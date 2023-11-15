@@ -7562,6 +7562,7 @@ namespace CumulusMX
 		public string EcowittApplicationKey { get; set; }
 		public string EcowittUserApiKey { get; set; }
 		public string EcowittMacAddress { get; set; }
+		public string EcowittCameraMacAddress { get; set; }
 		public bool EcowittSetCustomServer { get; set; }
 		public string EcowittGatewayAddr { get; set; }
 		public string EcowittLocalAddr { get; set; }
@@ -12195,7 +12196,10 @@ namespace CumulusMX
 
 		public void StartTimersAndSensors()
 		{
-			LogMessage("Start Extra Sensors");
+			if (airLinkOut != null || airLinkIn != null || ecowittExtra != null || ambientExtra != null || ecowittCloudExtra != null)
+			{
+				LogMessage("Starting Extra Sensors");
+			}
 			airLinkOut?.Start();
 			airLinkIn?.Start();
 			ecowittExtra?.Start();

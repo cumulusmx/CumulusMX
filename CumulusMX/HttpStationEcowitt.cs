@@ -127,6 +127,8 @@ namespace CumulusMX
 			}
 			else
 			{
+				// see if we have a camera attached
+				ecowittApi.GetStationList(cumulus.cancellationToken);
 				cumulus.LogMessage("Extra Sensors - HTTP Station (Ecowitt) - Waiting for data...");
 			}
 		}
@@ -183,6 +185,8 @@ namespace CumulusMX
 						GetHistoricData();
 						archiveRun++;
 					} while (archiveRun < maxArchiveRuns);
+
+					ecowittApi.GetStationList(cumulus.cancellationToken);
 				}
 				catch (Exception ex)
 				{
@@ -214,6 +218,24 @@ namespace CumulusMX
 
 			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
 
+		}
+
+		public override string GetEcowittCameraUrl()
+		{
+			if (cumulus.EcowittCameraMacAddress != null)
+			{
+				try
+				{
+					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(cumulus.cancellationToken, EcowittCameraUrl);
+					return EcowittCameraUrl;
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
+				}
+			}
+
+			return null;
 		}
 
 		public string ProcessData(IHttpContext context, bool main, DateTime? ts = null)

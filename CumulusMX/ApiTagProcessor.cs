@@ -84,15 +84,17 @@ namespace CumulusMX
 			{
 				var data = new StreamReader(request.InputStream).ReadToEnd();
 
+#if DEBUG
 				cumulus.LogDataMessage($"API tag: Source = {request.RemoteEndPoint} Input string = {data}");
-
+#endif
 				var tokenParser = new TokenParser(cumulus.TokenParserOnToken);
 				tokenParser.Encoding = new UTF8Encoding(false);
 				tokenParser.InputText = data;
 				var output = tokenParser.ToStringFromString();
 
+#if DEBUG
 				cumulus.LogDataMessage("API tag: Output string = " + output);
-
+#endif
 				return output;
 			}
 			catch (Exception ex)

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Web;
 
 using EmbedIO;
 
@@ -2974,8 +2975,10 @@ namespace CumulusMX
 			{
 				res = string.Empty;
 			}
-			return res;
 
+			var str = HttpUtility.JavaScriptStringEncode(res);
+
+			return $"{{\"data\":\"{str}\"}}";
 		}
 
 		internal string EditCurrentCond(IHttpContext context)

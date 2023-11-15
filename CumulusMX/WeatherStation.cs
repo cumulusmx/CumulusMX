@@ -16,7 +16,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Web;
-using System.Web.Compilation;
 
 using EmbedIO.Utilities;
 
@@ -378,6 +377,11 @@ namespace CumulusMX
 		public double RG11RainYesterday { get; set; }
 
 		public abstract void Start();
+
+		public virtual string GetEcowittCameraUrl()
+		{
+			return string.Empty;
+		}
 
 		public WeatherStation(Cumulus cumulus)
 		{

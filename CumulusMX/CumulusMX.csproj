@@ -77,7 +77,7 @@
     <StartupObject>CumulusMX.Program</StartupObject>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Copyright>Copyright ©  2015-2023 Cumulus MX</Copyright>
-    <Version>3.27.1.3260</Version>
+    <Version>3.27.1.3261</Version>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="echo.&#xD;&#xA;echo Starting post-build tasks&#xD;&#xA;echo Copy Updates.txt&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(TargetDir)\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;echo copy sqlite 32&#xD;&#xA;xcopy &quot;$(ProjectDir)\Libs\sqlite3-x86.dll&quot; &quot;$(TargetDir)\x86\sqlite3.dll&quot; /D /-I /Q /Y&#xD;&#xA;echo copy sqlite 64&#xD;&#xA;xcopy &quot;$(ProjectDir)\Libs\sqlite3-x64.dll&quot; &quot;$(TargetDir)\x64\sqlite3.dll&quot; /D /-I /Q /Y&#xD;&#xA;echo.&#xD;&#xA;echo Update Distribution folder&#xD;&#xA;echo copy MX exe&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo copy MX config&#xD;&#xA;xcopy &quot;$(TargetPath).config&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo recreate hash file&#xD;&#xA;cd &quot;$(SolutionDir)..\CumulusMX-Dist&quot;&#xD;&#xA;powershell -NoProfile -ExecutionPolicy Bypass -Command .\_CreateDistHashFile.ps1" />

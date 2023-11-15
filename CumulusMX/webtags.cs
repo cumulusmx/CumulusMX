@@ -398,7 +398,7 @@ namespace CumulusMX
 			{
 				res = string.Empty;
 			}
-			return res;
+			return EncodeForJs(res);
 		}
 
 		private string GetFormattedDateTime(DateTime dt, Dictionary<string, string> tagParams)
@@ -3263,9 +3263,15 @@ namespace CumulusMX
 
 		private string TagEcowittCameraUrl(Dictionary<string, string> tagParams)
 		{
-			return string.IsNullOrEmpty(station.EcowittCameraUrl) ? string.Empty : station.EcowittCameraUrl;
+			if (cumulus.StationType == StationTypes.GW1000 || cumulus.StationType == StationTypes.HttpEcowitt || cumulus.StationType == StationTypes.EcowittCloud)
+			{
+				return string.IsNullOrEmpty(station.GetEcowittCameraUrl()) ? string.Empty : station.EcowittCameraUrl;
+			}
+			else
+			{
+				return string.Empty;
+			}
 		}
-
 
 		private string Tagtempunit(Dictionary<string, string> tagParams)
 		{

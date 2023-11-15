@@ -18,10 +18,13 @@ namespace CumulusMX
 
 		private static readonly string historyUrl = "https://api.ecowitt.net/api/v3/device/history?";
 		private static readonly string currentUrl = "https://api.ecowitt.net/api/v3/device/real_time?";
+		private static readonly string stationUrl = "https://api.ecowitt.net/api/v3/device/list?";
 
 		private static readonly int EcowittApiFudgeFactor = 5; // Number of minutes that Ecowitt API data is delayed
 
 		private DateTime LastCurrentDataTime = DateTime.MinValue;
+		private DateTime LastCameraImageTime = DateTime.MinValue;
+		private DateTime LastCameraCallTime = DateTime.MinValue;
 
 		public EcowittApi(Cumulus cuml, WeatherStation stn)
 		{
@@ -1848,6 +1851,261 @@ namespace CumulusMX
 		}
 
 
+		internal string GetCurrentCameraImageUrl(CancellationToken token, string defaultUrl)
+		{
+			// Doc: https://doc.ecowitt.net/web/#/apiv3en?page_id=17
+
+			cumulus.LogMessage("API.GetCurrentCameraImageUrl: Get Ecowitt Current Camera Data");
+
+			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			{
+				cumulus.LogWarningMessage("API.GetCurrentCameraImageUrl: Missing Ecowitt API data in the configuration, aborting!");
+				return defaultUrl;
+			}
+
+
+			// rate limit to one call per minute
+			if (LastCameraCallTime.AddMinutes(1) > DateTime.Now)
+			{
+				cumulus.LogMessage("API.GetCurrentCameraImageUrl: Last call was less than 1 minute ago, using last image URL");
+				return defaultUrl;
+			}
+
+			LastCameraCallTime = DateTime.Now;
+
+			if (LastCameraImageTime.AddMinutes(5) > DateTime.Now)
+			{
+				cumulus.LogMessage("API.GetCurrentCameraImageUrl: Last image was less than 5 minutes ago, using last image URL");
+				return defaultUrl;
+			}
+
+			var sb = new StringBuilder(currentUrl);
+
+			sb.Append($"application_key={cumulus.EcowittApplicationKey}");
+			sb.Append($"&api_key={cumulus.EcowittUserApiKey}");
+			sb.Append($"&mac={cumulus.EcowittCameraMacAddress}");
+			sb.Append("&call_back=camera");
+
+			var url = sb.ToString();
+
+			var logUrl = url.Replace(cumulus.EcowittApplicationKey, "<<App-key>>").Replace(cumulus.EcowittUserApiKey, "<<User-key>>");
+			cumulus.LogDebugMessage($"Ecowitt URL = {logUrl}");
+
+			CurrentData currObj;
+
+			try
+			{
+				string responseBody;
+				int responseCode;
+
+				// we want to do this synchronously, so .Result
+				using (var response = Cumulus.MyHttpClient.GetAsync(url).Result)
+				{
+					responseBody = response.Content.ReadAsStringAsync().Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Response code: {responseCode}");
+					cumulus.LogDataMessage($"API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					var currentError = responseBody.FromJson<ErrorResp>();
+					cumulus.LogWarningMessage($"API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Error: {currentError.code}, {currentError.msg}");
+					cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
+					return defaultUrl;
+				}
+
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogWarningMessage("API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Data: No data was returned.");
+					cumulus.LogConsoleMessage(" - No current data available");
+					return defaultUrl;
+				}
+				else if (responseBody.StartsWith("{\"code\":")) // sanity check
+				{
+					// get the sensor data
+					currObj = responseBody.FromJson<CurrentData>();
+
+					if (currObj != null)
+					{
+						// success
+						if (currObj.code == 0)
+						{
+							if (currObj.data == null)
+							{
+								// There was no data returned.
+								return defaultUrl;
+							}
+						}
+						else if (currObj.code == -1 || currObj.code == 45001)
+						{
+							// -1 = system busy, 45001 = rate limited
+
+							cumulus.LogMessage("API.GetCurrentCameraImageUrl: System Busy or Rate Limited, waiting 5 secs before retry...");
+							return defaultUrl;
+						}
+						else
+						{
+							return defaultUrl;
+						}
+					}
+					else
+					{
+						return defaultUrl;
+					}
+
+				}
+				else // No idea what we got, dump it to the log
+				{
+					cumulus.LogErrorMessage("API.GetCurrentCameraImageUrl: Invalid current message received");
+					cumulus.LogDataMessage("API.GetCurrentCameraImageUrl: Received: " + responseBody);
+					return defaultUrl;
+				}
+
+				if (!token.IsCancellationRequested)
+				{
+					if (currObj.data.camera == null)
+					{
+						cumulus.LogWarningMessage("API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Data: No camera data was returned.");
+						return defaultUrl;
+					}
+
+					LastCameraImageTime = Utils.FromUnixTime(currObj.data.camera.photo.time);
+					cumulus.LogDebugMessage($"API.GetCurrentCameraImageUrl: Last image update {LastCameraImageTime:s}");
+					return currObj.data.camera.photo.url;
+				}
+
+				return defaultUrl;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("API.GetCurrentData: Exception: " + ex.Message);
+				return defaultUrl;
+			}
+		}
+
+		internal bool GetStationList(CancellationToken token)
+		{
+			cumulus.LogMessage("API.GetStationList: Get Ecowitt Station List");
+
+			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) )
+			{
+				cumulus.LogWarningMessage("API.GetCurrentCameraImageUrl: Missing Ecowitt API data in the configuration, aborting!");
+				return false;
+			}
+
+			var sb = new StringBuilder(stationUrl);
+
+			sb.Append($"application_key={cumulus.EcowittApplicationKey}");
+			sb.Append($"&api_key={cumulus.EcowittUserApiKey}");
+
+			var url = sb.ToString();
+
+			var logUrl = url.Replace(cumulus.EcowittApplicationKey, "<<App-key>>").Replace(cumulus.EcowittUserApiKey, "<<User-key>>");
+			cumulus.LogDebugMessage($"Ecowitt URL = {logUrl}");
+
+			StationList stnObj;
+
+			try
+			{
+				string responseBody;
+				int responseCode;
+
+				// we want to do this synchronously, so .Result
+				using (var response = Cumulus.MyHttpClient.GetAsync(url).Result)
+				{
+					responseBody = response.Content.ReadAsStringAsync().Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"API.GetStationList: Ecowitt API Station List Response code: {responseCode}");
+					cumulus.LogDataMessage($"API.GetStationList: Ecowitt API Station List Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					var currentError = responseBody.FromJson<ErrorResp>();
+					cumulus.LogWarningMessage($"API.GetStationList: Ecowitt API Station List Error: {currentError.code}, {currentError.msg}");
+					cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
+					return false;
+				}
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogWarningMessage("API.GetStationList: Ecowitt API Station List: No data was returned.");
+					cumulus.LogConsoleMessage(" - No current data available");
+					return false;
+				}
+				else if (responseBody.StartsWith("{\"code\":")) // sanity check
+				{
+					// get the sensor data
+					stnObj = responseBody.FromJson<StationList>();
+
+					if (stnObj != null)
+					{
+						// success
+						if (stnObj.code == 0)
+						{
+							if (stnObj.data == null)
+							{
+								// There was no data returned.
+								return false;
+							}
+						}
+						else if (stnObj.code == -1 || stnObj.code == 45001)
+						{
+							// -1 = system busy, 45001 = rate limited
+
+							cumulus.LogMessage("API.GetStationList: System Busy or Rate Limited, waiting 5 secs before retry...");
+							return false;
+						}
+						else
+						{
+							return false;
+						}
+					}
+					else
+					{
+						return false;
+					}
+
+				}
+				else // No idea what we got, dump it to the log
+				{
+					cumulus.LogErrorMessage("API.GetStationList: Invalid message received");
+					cumulus.LogDataMessage("API.GetStationList: Received: " + responseBody);
+					return false;
+				}
+
+				if (!token.IsCancellationRequested)
+				{
+					if (stnObj.data.list == null)
+					{
+						cumulus.LogWarningMessage("API.GetStationList: Ecowitt API: No station data was returned.");
+						return false;
+					}
+
+					foreach( var stn in stnObj.data.list)
+					{
+						cumulus.LogDebugMessage($"API.GetStationList: Station: id={stn.id}, mac/imei={stn.mac ?? stn.imei}, name={stn.name}, type={stn.type}");
+						if (stn.type == 2)
+						{
+							// we have a camera
+							cumulus.EcowittCameraMacAddress = stn.mac;
+						}
+					}
+
+					return cumulus.EcowittCameraMacAddress != null;
+				}
+
+				return false;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("API.GetStationList: Exception: " + ex.Message);
+				return false;
+			}
+		}
+
 		/*
 		private string ErrorCode(int code)
 		{
@@ -2361,6 +2619,37 @@ namespace CumulusMX
 		{
 			public long time { get; set; }
 			public string url { get; set; }
+		}
+
+		internal class StationList
+		{
+			public int code { get; set; }
+			public string msg { get; set; }
+			public long time { get; set; }
+
+			public StationListData data { get; set; }
+		}
+
+		internal class StationListData
+		{
+			public int total { get; set; }
+			public int totalPage { get; set; }
+			public int pageNum { get; set; }
+			public StationListDataStations[] list { get; set; }
+		}
+
+		internal class StationListDataStations
+		{
+			public int id { get; set; }
+			public string name { get; set; }
+			public string mac { get; set; }
+			public string imei { get; set; }
+			public int type { get; set; }
+			public string date_zone_id { get; set; }
+			public long createtime { get; set; }
+			public double longitude { get; set; }
+			public double latitude { get; set; }
+			public string stationtype { get; set; }
 		}
 	}
 }

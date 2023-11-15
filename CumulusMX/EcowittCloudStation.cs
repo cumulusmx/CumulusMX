@@ -107,6 +107,11 @@ namespace CumulusMX
 			{
 				Task.Run(getAndProcessHistoryData);
 			}
+			else if (cumulus.EcowittExtraUseCamera)
+			{
+				// see if we have a camera attached
+				ecowittApi.GetStationList(cumulus.cancellationToken);
+			}
 		}
 
 		public override void Start()
@@ -122,36 +127,39 @@ namespace CumulusMX
 				cumulus.StartTimersAndSensors();
 			}
 
+			// main data task
 			liveTask = Task.Run(() =>
 			{
-				try
-				{
 					var piezoLastRead = DateTime.MinValue;
 					var dataLastRead = DateTime.MinValue;
 					var delay = 0;
 					var nextFetch = DateTime.MinValue;
 
-
 					while (!cumulus.cancellationToken.IsCancellationRequested)
 					{
 						if (DateTime.Now >= nextFetch)
 						{
-							var data = ecowittApi.GetCurrentData(cumulus.cancellationToken, ref delay);
-
-							if (data != null)
+							try
 							{
-								ProcessCurrentData(data, cumulus.cancellationToken);
+
+								var data = ecowittApi.GetCurrentData(cumulus.cancellationToken, ref delay);
+
+								if (data != null)
+								{
+									ProcessCurrentData(data, cumulus.cancellationToken);
+								}
+								cumulus.LogDebugMessage($"EcowittCloud; Waiting {delay} seconds before next update");
+								nextFetch = DateTime.Now.AddSeconds(delay);
 							}
-							cumulus.LogDebugMessage($"EcowittCloud; Waiting {delay} seconds before next update");
-							nextFetch = DateTime.Now.AddSeconds(delay);
+							catch (Exception ex)
+							{
+								cumulus.LogExceptionMessage(ex, "Error running Ecowitt Cloud station");
+								nextFetch = DateTime.Now.AddMinutes(1);
+							}
 						}
+
 						Thread.Sleep(1000);
 					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, "Error ruuning Ecowitt Cloud station");
-				}
 			}, cumulus.cancellationToken);
 		}
 
@@ -181,6 +189,8 @@ namespace CumulusMX
 					GetHistoricData();
 					archiveRun++;
 				} while (archiveRun < maxArchiveRuns);
+
+				ecowittApi.GetStationList(cumulus.cancellationToken);
 			}
 			catch (Exception ex)
 			{
@@ -193,24 +203,42 @@ namespace CumulusMX
 			StartLoop();
 		}
 
-		private void GetHistoricData()
+		public override string GetEcowittCameraUrl()
 		{
-			cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
-
-			// add one minute to avoid duplicating the last log entry
-			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
-			var endTime = DateTime.Now;
-
-			// The API call is limited to fetching 24 hours of data
-			if ((endTime - startTime).TotalHours > 24.0)
+			if ((cumulus.EcowittExtraUseCamera || main) && cumulus.EcowittCameraMacAddress != null)
 			{
-				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
-				endTime = startTime.AddHours(24);
-				maxArchiveRuns++;
+				try
+				{
+					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(cumulus.cancellationToken, EcowittCameraUrl);
+					return EcowittCameraUrl;
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
+				}
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+			return null;
 		}
+
+		private void GetHistoricData()
+	{
+		cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
+
+		// add one minute to avoid duplicating the last log entry
+		var startTime = cumulus.LastUpdateTime.AddMinutes(1);
+		var endTime = DateTime.Now;
+
+		// The API call is limited to fetching 24 hours of data
+		if ((endTime - startTime).TotalHours > 24.0)
+		{
+			// only fetch 24 hours worth of data, and schedule another run to fetch the rest
+			endTime = startTime.AddHours(24);
+			maxArchiveRuns++;
+		}
+
+		ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+	}
 
 		private void ProcessCurrentData(EcowittApi.CurrentDataData data, CancellationToken token)
 		{
@@ -512,6 +540,7 @@ namespace CumulusMX
 			DataStopped = false;
 			cumulus.DataStoppedAlarm.Triggered = false;
 		}
+
 		private void ProcessExtraTempHum(EcowittApi.CurrentDataData data, WeatherStation station)
 		{
 			if (data.temp_and_humidity_ch1 != null)
