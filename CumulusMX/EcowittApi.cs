@@ -1306,16 +1306,16 @@ namespace CumulusMX
 					cumulus.LogWarningMessage("ApplyHistoricData: Missing indoor humidity data");
 				}
 
-				if (rec.Value.Humidity.HasValue)
+				if (cumulus.Gw1000PrimaryTHSensor == 0)
 				{
-					if (cumulus.Gw1000PrimaryTHSensor == 0)
+					if (rec.Value.Humidity.HasValue)
 					{
 						station.DoOutdoorHumidity(rec.Value.Humidity.Value, rec.Key);
 					}
-				}
-				else
-				{
-					cumulus.LogWarningMessage("ApplyHistoricData: Missing outdoor humidity data");
+					else
+					{
+						cumulus.LogWarningMessage("ApplyHistoricData: Missing outdoor humidity data");
+					}
 				}
 
 			}
@@ -1373,17 +1373,17 @@ namespace CumulusMX
 			// = avg for period
 			try
 			{
-				if (rec.Value.Temp.HasValue)
+				if (cumulus.Gw1000PrimaryTHSensor == 0)
 				{
-					if (cumulus.Gw1000PrimaryTHSensor == 0)
+					if (rec.Value.Temp.HasValue)
 					{
 						var tempVal = (double) rec.Value.Temp;
 						station.DoOutdoorTemp(tempVal, rec.Key);
 					}
-				}
-				else
-				{
-					cumulus.LogWarningMessage("ApplyHistoricData: Missing outdoor temperature data");
+					else
+					{
+						cumulus.LogWarningMessage("ApplyHistoricData: Missing outdoor temperature data");
+					}
 				}
 			}
 			catch (Exception ex)
