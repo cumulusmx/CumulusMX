@@ -5463,6 +5463,15 @@ namespace CumulusMX
 			return CheckRcDp(CheckTempUnit(result.Count == 0 ? station.FeelsLike : result[0].FeelsLike, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
+		private string TagRecentApparent(Dictionary<string, string> tagParams)
+		{
+			var recentTs = GetRecentTs(tagParams);
+
+			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+
+			return CheckRcDp(CheckTempUnit(result.Count == 0 ? station.ApparentTemperature : result[0].AppTemp, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
 		private string TagRecentHumidex(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
@@ -5550,6 +5559,24 @@ namespace CumulusMX
 			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
 			return CheckRcDp(result.Count == 0 ? station.UV : result[0].UV, tagParams, cumulus.UVDPlaces);
+		}
+
+		private string TagRecentIndoorTemp(Dictionary<string, string> tagParams)
+		{
+			var recentTs = GetRecentTs(tagParams);
+
+			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+
+			return CheckRcDp(result.Count == 0 ? station.IndoorTemperature : result[0].IndoorTemp, tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagRecentIndoorHumidity(Dictionary<string, string> tagParams)
+		{
+			var recentTs = GetRecentTs(tagParams);
+
+			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+
+			return result.Count == 0 ? station.IndoorHumidity.ToString() : result[0].IndoorHumidity.ToString();
 		}
 
 		private string TagRecentTs(Dictionary<string, string> tagParams)
@@ -6462,6 +6489,7 @@ namespace CumulusMX
 				{ "RecentDewPoint", TagRecentDewPoint },
 				{ "RecentHeatIndex", TagRecentHeatIndex },
 				{ "RecentFeelsLike", TagRecentFeelsLike },
+				{ "RecentApparent", TagRecentApparent },
 				{ "RecentHumidex", TagRecentHumidex },
 				{ "RecentHumidity", TagRecentHumidity },
 				{ "RecentPressure", TagRecentPressure },
@@ -6469,6 +6497,8 @@ namespace CumulusMX
 				{ "RecentRainToday", TagRecentRainToday },
 				{ "RecentSolarRad", TagRecentSolarRad },
 				{ "RecentUV", TagRecentUv },
+				{ "RecentIndoorTemp", TagRecentIndoorTemp },
+				{ "RecentIndoorHumidity", TagRecentIndoorHumidity },
 				{ "RecentTS", TagRecentTs },
 				// Recent history with comma decimals replaced
 				{ "RCRecentOutsideTemp", TagRcRecentOutsideTemp },

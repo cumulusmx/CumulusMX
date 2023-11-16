@@ -8,6 +8,7 @@ New
 	- Like the existing <#windrun> it also accepts the "unit" parameter to return the value in miles, kilometers, or nautical miles
 - PHP upload advanced option to disable the use of GET for small files and fallback to using POST for all files
 - Ecowitt stations can now map the indoor temp/hum values to the primary outdoor sensor (primarily of use for 4G stations that do not allow extra T/H sensors to be added)
+- New web tags for <#RecentApparent>, <#RecentIndoorTemp>, <#RecentIndoorHumidity>
 
 Changed
 - All third-party upload issues are now classified as Warnings
