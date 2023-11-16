@@ -2352,7 +2352,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2422,7 +2422,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2463,7 +2463,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2522,7 +2522,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2562,7 +2562,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2601,7 +2601,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2639,7 +2639,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2776,7 +2776,7 @@ namespace CumulusMX
 					dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 				}
 
-				var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+				var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 				for (var i = 0; i < data.Count; i++)
 				{
