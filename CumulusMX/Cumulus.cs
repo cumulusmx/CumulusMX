@@ -1755,7 +1755,7 @@ namespace CumulusMX
 		}
 
 
-		internal async void TestPhpUploadCompression()
+		internal void TestPhpUploadCompression()
 		{
 			LogDebugMessage($"Testing PHP upload compression: '{FtpOptions.PhpUrl}'");
 			using (var request = new HttpRequestMessage(HttpMethod.Get, FtpOptions.PhpUrl))
@@ -1765,7 +1765,8 @@ namespace CumulusMX
 					request.Headers.Add("Accept", "text/html");
 					request.Headers.Add("Accept-Encoding", "gzip, deflate");
 
-					var response = await phpUploadHttpClient.SendAsync(request);
+					// we do this async
+					var response = phpUploadHttpClient.SendAsync(request).Result;
 					response.EnsureSuccessStatusCode();
 					var encoding = response.Content.Headers.ContentEncoding;
 
@@ -10564,6 +10565,12 @@ namespace CumulusMX
 				var tasklist = new List<Task>();
 				var taskCount = 0;
 				var runningTaskCount = 0;
+
+				// do we perform a second chance compresssion test?
+				if (FtpOptions.PhpCompression == "notchecked")
+				{
+					TestPhpUploadCompression();
+				}
 
 				if (NOAAconf.NeedFtp)
 				{

@@ -1,4 +1,4 @@
-3.27.1 - b3261
+3.27.1 - b3262
 ——————————————
 New
 - Two new web tags for the Latest Error. These tags will encode the string for either HTML or JavaScript: <#LatestErrorEnc>, <#LatestErrorJsEnc>
