@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 
 using EmbedIO;
@@ -66,7 +67,7 @@ namespace CumulusMX
 							if (cumulus.phpUploadHttpClient == null)
 							{
 								cumulus.SetupPhpUploadClients();
-								cumulus.TestPhpUploadCompression();
+								Task.Run(() => cumulus.TestPhpUploadCompression());
 							}
 						}
 						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols) settings.website.sslftp;
