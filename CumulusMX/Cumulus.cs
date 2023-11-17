@@ -11626,7 +11626,7 @@ namespace CumulusMX
 							request.Method = HttpMethod.Post;
 
 							// Compress? if supported and payload exceeds 500 bytes
-							if (data.Length >= 500 && (FtpOptions.PhpCompression == "gzip" || (FtpOptions.PhpCompression == "deflate")
+							if (data.Length >= 500 && (FtpOptions.PhpCompression == "gzip" || (FtpOptions.PhpCompression == "deflate"))
 							{
 								using (var ms = new MemoryStream())
 								{
