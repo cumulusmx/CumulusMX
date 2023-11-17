@@ -9881,9 +9881,8 @@ namespace CumulusMX
 				LogDebugMessage("ProcessHttpFiles: Uploading http files");
 
 				// do we perform a second chance compresssion test?
-				if (FtpOptions.PhpCompression == "none" && FtpOptions.PhpCompressionRetries == 0)
+				if (FtpOptions.PhpCompression == "notchecked")
 				{
-					FtpOptions.PhpCompressionRetries++;
 					TestPhpUploadCompression();
 				}
 
@@ -11627,7 +11626,7 @@ namespace CumulusMX
 							request.Method = HttpMethod.Post;
 
 							// Compress? if supported and payload exceeds 500 bytes
-							if (data.Length >= 500 && FtpOptions.PhpCompression != "none")
+							if (data.Length >= 500 && (FtpOptions.PhpCompression == "gzip" || (FtpOptions.PhpCompression == "deflate")
 							{
 								using (var ms = new MemoryStream())
 								{
@@ -14070,8 +14069,7 @@ namespace CumulusMX
 		public string PhpUrl { get; set; }
 		public string PhpSecret { get; set; }
 		public bool PhpIgnoreCertErrors { get; set; }
-		public string PhpCompression { get; set; } = "none";
-		public int PhpCompressionRetries { get; set; }
+		public string PhpCompression { get; set; } = "notchecked";
 		public int MaxConcurrentUploads { get; set; }
 		public bool PhpUseGet {  get; set; }
 	}
