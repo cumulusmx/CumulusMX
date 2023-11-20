@@ -295,7 +295,7 @@ namespace CumulusMX
 				// - no w/c in wunderground data, so it must be set to CMX calculated
 				if (data["windspeedmph"] != null && data["tempf"] != null && data["windspeedmph"] != "-9999" && data["tempf"] != "-9999")
 				{
-					DoWindChill(0, recDate);
+					DoWindChill(-999, recDate);
 
 					// === Apparent/Feels Like ===
 					if (data["humidity"] != null && data["humidity"] != "-9999")

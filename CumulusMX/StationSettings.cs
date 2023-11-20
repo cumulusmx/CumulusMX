@@ -1673,7 +1673,7 @@ namespace CumulusMX
 		public string url { get; set; }
 	}
 
-	internal class JsonStationSettingsEcowittApi
+	public class JsonStationSettingsEcowittApi
 	{
 		public string applicationkey { get; set; }
 		public string userkey { get; set; }
@@ -1693,12 +1693,6 @@ namespace CumulusMX
 		public int wn34chan6 { get; set; }
 		public int wn34chan7 { get; set; }
 		public int wn34chan8 { get; set; }
-	}
-
-	public class JsonExtraSensorForwarders
-	{
-		public bool usemain { get; set; }
-		public List<JsonEcowittForwardList> forward { get; set; }
 	}
 
 	internal class JsonStationSettingsWMR928

@@ -82,6 +82,25 @@ namespace CumulusMX
 				}
 			};
 
+			var daviscloud = new JsonWizardDavisWll()
+			{
+				api = new JsonStationSettingsWLLApi()
+				{
+					apiKey = cumulus.WllApiKey,
+					apiSecret = cumulus.WllApiSecret,
+					apiStationId = cumulus.WllStationId
+				},
+				primary = new JsonStationSettingsWllPrimary()
+				{
+					wind = cumulus.WllPrimaryWind,
+					temphum = cumulus.WllPrimaryTempHum,
+					rain = cumulus.WllPrimaryRain,
+					solar = cumulus.WllPrimarySolar,
+					uv = cumulus.WllPrimaryUV
+				}
+			};
+
+
 			var weatherflow = new JsonStationSettingsWeatherFlow()
 			{ deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist };
 
@@ -128,6 +147,7 @@ namespace CumulusMX
 				stationmodel = cumulus.StationModel,
 				davisvp2 = davisvp,
 				daviswll = daviswll,
+				daviscloud = daviscloud,
 				gw1000 = gw1000,
 				fineoffset = fineoffset,
 				easyw = easyweather,
@@ -501,7 +521,6 @@ namespace CumulusMX
 						cumulus.WllPrimaryTempHum = settings.station.daviswll.primary.temphum;
 						cumulus.WllPrimaryUV = settings.station.daviswll.primary.uv;
 						cumulus.WllPrimaryWind = settings.station.daviswll.primary.wind;
-
 					}
 				}
 				catch (Exception ex)
@@ -511,6 +530,34 @@ namespace CumulusMX
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
 				}
+
+				// Davis Cloud
+				try
+				{
+					if (settings.station.daviscloud != null)
+					{
+						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.station.daviscloud.api.apiKey) ? string.Empty : settings.station.daviscloud.api.apiKey.Trim();
+						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.station.daviscloud.api.apiSecret) ? string.Empty : settings.station.daviscloud.api.apiSecret.Trim();
+						cumulus.WllStationId = settings.station.daviscloud.api.apiStationId;
+
+						if (settings.station.daviscloud.primary != null)
+						{
+							cumulus.WllPrimaryRain = settings.station.daviscloud.primary.rain;
+							cumulus.WllPrimarySolar = settings.station.daviscloud.primary.solar;
+							cumulus.WllPrimaryTempHum = settings.station.daviscloud.primary.temphum;
+							cumulus.WllPrimaryUV = settings.station.daviscloud.primary.uv;
+							cumulus.WllPrimaryWind = settings.station.daviscloud.primary.wind;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing davis cloud settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 
 				// GW1000 connection details
 				try
@@ -707,6 +754,7 @@ namespace CumulusMX
 		public string stationmodel { get; set; }
 		public JsonWizardDavisVp davisvp2 { get; set; }
 		public JsonWizardDavisWll daviswll { get; set; }
+		public JsonWizardDavisWll daviscloud { get; set; }
 		public JsonStationSettingsGw1000Conn gw1000 { get; set; }
 		public JsonWizardFineOffset fineoffset { get; set; }
 		public JsonWizardEasyWeather easyw { get; set; }

@@ -1,3 +1,43 @@
+3.27.1 - b3263
+——————————————
+New
+- Two new web tags for the Latest Error. These tags will encode the string for either HTML or JavaScript: <#LatestErrorEnc>, <#LatestErrorJsEnc>
+- New web tag for monthly wind run total <#windrunmonth>
+	- Without parameters it returns the total for the current month so far (excluding today)
+	- You can add parameters "year" and "month" to return the value for a particular month. Eg. <#windrunmonth year=2022 month=3>
+	- Like the existing <#windrun> it also accepts the "unit" parameter to return the value in miles, kilometers, or nautical miles
+- PHP upload advanced option to disable the use of GET for small files and fallback to using POST for all files
+- Ecowitt stations can now map the indoor temp/hum values to the primary outdoor sensor (primarily of use for 4G stations that do not allow extra T/H sensors to be added)
+- New web tags for <#RecentApparent>, <#RecentIndoorTemp>, <#RecentIndoorHumidity>
+
+Changed
+- All third-party upload issues are now classified as Warnings
+- Third party components for FTP(S) and SFTP updated
+- If Cumulus.ini needs rewriting it is now overwritten, if it needs recreating it is first truncated to zero length. Previously the file was deleted and recreated in both instances which
+	made linking the file for example in Docker images impossible.
+- The records editors now set both value and date/time when you click on the record from the dayfile for monthly logs
+- The records editors now accept y/n key presses to update records or cancel
+
+Fixed
+- "Object is not initialized" error from the API when the station is not yet ready
+- MX crash on start-up if the SQLite database has certain corruptions
+- Fix for PHP uploads when no compression is supported by the server (or the network was down when MX started)
+- VP2 error message "No Ack in response to DMPAFT" on start-up
+- Ecowitt Cloud API settings are no longer mandatory for Ecowitt station (bug introduced in 3.27.0)
+- Fix for error 500 in upload.php when debug is enabled (only occurred on some servers)
+- PHP uploads using HTTP GET were uploading to the same destination file on one server. Added an Internet advanced option to disable the use of GET and fallback to using POST for all files
+- Ecowitt Extra Cloud sensor station type not starting as expected
+- Ecowitt Extra Cloud sensor station can now pick up the latest web cam URL
+- Some new record alarms not setting the email message correctly
+- Fix for wind spike testing applying unit conversion multiple times in some circumstances
+- Davis VP2, if requested changing the logger interval is now done after reading catch-up data so the archive is not cleared before catch-up
+- Fix error 500 in the config Wizard for Davis Cloud stations
+- Fix Wizard and Settings screens did not allow the entry of an IMEI number for the Ecowitt Cloud API device ID
+- Fix some potential errors in the dewpoint calculations on Ecowitt stations when using a mapped primary temp/hum sensor
+- Fix for zero length string error when parsing web tokens
+- Perform a second chance PHP upload compression test at upload intervals if no compression detected at start-up
+
+
 3.27.0 - b3257
 ——————————————
 New

@@ -2624,7 +2624,7 @@ namespace CumulusMX
 										var dir = data.wind_speed_hi_dir ?? 0;
 										cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {data.tx_id}");
 										DoWind(gust, dir, spd, lastRecordTime);
-										AddValuesToRecentWind(spd, spd, lastRecordTime.AddSeconds(-data.arch_int), lastRecordTime);
+										AddValuesToRecentWind(spd, spd, dir, lastRecordTime.AddSeconds(-data.arch_int), lastRecordTime);
 									}
 									else
 									{

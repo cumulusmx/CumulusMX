@@ -79,6 +79,7 @@ namespace CumulusMX
 				useCo2 = cumulus.EcowittExtraUseCo2,
 				useLightning = cumulus.EcowittExtraUseLightning,
 				useLeak = cumulus.EcowittExtraUseLeak,
+				useCamera = cumulus.EcowittExtraUseCamera,
 
 				setcustom = cumulus.EcowittExtraSetCustomServer,
 				gwaddr = cumulus.EcowittExtraGatewayAddr,
@@ -102,6 +103,13 @@ namespace CumulusMX
 				}
 			}
 
+			var ecowittapi = new JsonStationSettingsEcowittApi()
+			{
+				applicationkey = cumulus.EcowittApplicationKey,
+				userkey = cumulus.EcowittUserApiKey,
+				mac = cumulus.EcowittMacAddress
+			};
+
 			var ambient = new JsonExtraSensorAmbient()
 			{
 				useSolar = cumulus.AmbientExtraUseSolar,
@@ -119,6 +127,7 @@ namespace CumulusMX
 			var httpStation = new JsonExtraSensorHttp()
 			{
 				ecowitt = ecowitt,
+				ecowittapi = ecowittapi,
 				ambient = ambient
 			};
 
@@ -267,11 +276,11 @@ namespace CumulusMX
 				// Ecowitt Extra settings
 				try
 				{
-					if (settings.httpSensors.extraStation == 0 || settings.httpSensors.extraStation == 2)
-					{
-						cumulus.EcowittExtraEnabled = settings.httpSensors.extraStation == 0;
-						cumulus.EcowittCloudExtraEnabled = settings.httpSensors.extraStation == 2;
+					cumulus.EcowittExtraEnabled = settings.httpSensors.extraStation == 0;
+					cumulus.EcowittCloudExtraEnabled = settings.httpSensors.extraStation == 2;
 
+					if (cumulus.EcowittExtraEnabled || cumulus.EcowittCloudExtraEnabled)
+					{
 						cumulus.EcowittExtraUseSolar = settings.httpSensors.ecowitt.useSolar;
 						cumulus.EcowittExtraUseUv = settings.httpSensors.ecowitt.useUv;
 						cumulus.EcowittExtraUseTempHum = settings.httpSensors.ecowitt.useTempHum;
@@ -283,11 +292,15 @@ namespace CumulusMX
 						cumulus.EcowittExtraUseCo2 = settings.httpSensors.ecowitt.useCo2;
 						cumulus.EcowittExtraUseLightning = settings.httpSensors.ecowitt.useLightning;
 						cumulus.EcowittExtraUseLeak = settings.httpSensors.ecowitt.useLeak;
+						cumulus.EcowittExtraUseCamera = settings.httpSensors.ecowitt.useCamera;
 
 						cumulus.EcowittExtraSetCustomServer = settings.httpSensors.ecowitt.setcustom;
-						cumulus.EcowittExtraGatewayAddr = settings.httpSensors.ecowitt.gwaddr;
-						cumulus.EcowittExtraLocalAddr = settings.httpSensors.ecowitt.localaddr;
-						cumulus.EcowittExtraCustomInterval = settings.httpSensors.ecowitt.interval;
+						if (cumulus.EcowittExtraSetCustomServer)
+						{
+							cumulus.EcowittExtraGatewayAddr = settings.httpSensors.ecowitt.gwaddr;
+							cumulus.EcowittExtraLocalAddr = settings.httpSensors.ecowitt.localaddr;
+							cumulus.EcowittExtraCustomInterval = settings.httpSensors.ecowitt.interval;
+						}
 
 						cumulus.Gw1000PrimaryTHSensor = settings.httpSensors.ecowitt.mappings.primaryTHsensor;
 
@@ -371,7 +384,7 @@ namespace CumulusMX
 							cumulus.EcowittMapWN34[8] = settings.httpSensors.ecowitt.mappings.wn34chan8;
 						}
 
-						cumulus.EcowittExtraUseMainForwarders = settings.httpSensors.ecowitt.forwarders.usemain;
+						cumulus.EcowittExtraUseMainForwarders = settings.httpSensors.ecowitt.forwarders == null ? true : settings.httpSensors.ecowitt.forwarders.usemain;
 
 						if (!cumulus.EcowittExtraUseMainForwarders)
 						{
@@ -394,8 +407,6 @@ namespace CumulusMX
 							cumulus.StationOptions.LogExtraSensors = true;
 						}
 					}
-					else
-						cumulus.EcowittExtraEnabled = false;
 				}
 				catch (Exception ex)
 				{
@@ -405,12 +416,31 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// Ecowitt API
+				try
+				{
+					if (settings.httpSensors.ecowittapi != null)
+					{
+						cumulus.EcowittApplicationKey = string.IsNullOrWhiteSpace(settings.httpSensors.ecowittapi.applicationkey) ? null : settings.httpSensors.ecowittapi.applicationkey.Trim();
+						cumulus.EcowittUserApiKey = string.IsNullOrWhiteSpace(settings.httpSensors.ecowittapi.userkey) ? null : settings.httpSensors.ecowittapi.userkey.Trim();
+						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.httpSensors.ecowittapi.mac) ? null : settings.httpSensors.ecowittapi.mac.Trim();
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ecowitt API settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
 				// Ambient Extra settings
 				try
 				{
-					if (settings.httpSensors.extraStation == 1)
+					cumulus.AmbientExtraEnabled = settings.httpSensors.extraStation == 1;
+					if (cumulus.AmbientExtraEnabled)
 					{
-						cumulus.AmbientExtraEnabled = true;
 						cumulus.AmbientExtraUseSolar = settings.httpSensors.ambient.useSolar;
 						cumulus.AmbientExtraUseUv = settings.httpSensors.ambient.useUv;
 						cumulus.AmbientExtraUseTempHum = settings.httpSensors.ambient.useTempHum;
@@ -428,8 +458,6 @@ namespace CumulusMX
 							cumulus.StationOptions.LogExtraSensors = true;
 						}
 					}
-					else
-						cumulus.AmbientExtraEnabled = false;
 				}
 				catch (Exception ex)
 				{
@@ -538,6 +566,7 @@ namespace CumulusMX
 		public int extraStation { get; set; }
 		public JsonExtraSensorEcowitt ecowitt { get; set; }
 		public JsonExtraSensorAmbient ambient { get; set; }
+		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
 	}
 
 	public class JsonExtraSensorAmbient
@@ -553,6 +582,7 @@ namespace CumulusMX
 		public bool useCo2 { get; set; }
 		public bool useLightning { get; set; }
 		public bool useLeak { get; set; }
+		public bool useCamera { get; set; }
 	}
 
 	public class JsonExtraSensorEcowitt : JsonExtraSensorAmbient
@@ -565,6 +595,11 @@ namespace CumulusMX
 		public JsonExtraSensorForwarders forwarders { get; set; }
 	}
 
+	public class JsonExtraSensorForwarders
+	{
+		public bool usemain { get; set; }
+		public List<JsonEcowittForwardList> forward { get; set; }
+	}
 
 	public class JsonExtraSensorBlakeLarsen
 	{

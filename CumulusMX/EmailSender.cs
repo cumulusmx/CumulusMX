@@ -88,9 +88,9 @@ namespace CumulusMX
 				}
 				retVal = true;
 			}
-			catch (Exception e)
+			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("SendEmail: Error - " + e);
+				cumulus.LogExceptionMessage(ex, "SendEmail: Error");
 			}
 			finally
 			{

@@ -120,9 +120,6 @@ namespace CumulusMX
 				DecodeReceptionStats(recepStats);
 			}
 
-			// check the logger interval
-			CheckLoggerInterval();
-
 			cumulus.LogMessage("Last update time = " + cumulus.LastUpdateTime);
 
 			var consoleclock = GetTime();
@@ -200,6 +197,11 @@ namespace CumulusMX
 				// Read the data from the logger
 				startReadingHistoryData();
 			}
+
+			// check the logger interval
+			// do this after reading the history so we do not wipe it out before we read it!
+			CheckLoggerInterval();
+
 		}
 
 		private void DecodeReceptionStats(string recepStats)
@@ -802,6 +804,18 @@ namespace CumulusMX
 				do
 				{
 					GetArchiveData();
+
+					// The VP" seems to need a nudge after a DMPAFT command
+					if (isSerial)
+					{
+						WakeVP(comport, true);
+					}
+					else
+					{
+						WakeVP(socket, true);
+					}
+
+
 					archiveRun++;
 				} while (archiveRun < maxArchiveRuns);
 
@@ -1346,7 +1360,7 @@ namespace CumulusMX
 						tmrComm.Stop();
 						if (comport.BytesToRead < loopDataLength)
 						{
-							cumulus.LogErrorMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {comport.BytesToRead}");
+							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {comport.BytesToRead}");
 						}
 
 						comport.Read(loopString, 0, loopDataLength);
@@ -1415,7 +1429,7 @@ namespace CumulusMX
 
 						if (socket.Available < loopDataLength)
 						{
-							cumulus.LogErrorMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {socket.Available}");
+							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {socket.Available}");
 						}
 
 						// Read the first 99 bytes of the buffer into the array
@@ -1617,16 +1631,7 @@ namespace CumulusMX
 					DoET(ConvertRainINToUser(loopData.AnnualET), now);
 				}
 
-				if (ConvertUserWindToMS(WindAverage) < 1.5)
-				{
-					DoWindChill(OutdoorTemperature, now);
-				}
-				else
-				{
-					// calculate wind chill from calibrated C temp and calibrated win in KPH
-					DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), now);
-				}
-
+				DoWindChill(OutdoorTemperature, now);
 				DoApparentTemp(now);
 				DoFeelsLike(now);
 				DoHumidex(now);
@@ -2087,6 +2092,7 @@ namespace CumulusMX
 				{
 					comport.DiscardInBuffer();
 
+
 					if (!WakeVP(comport))
 					{
 						cumulus.LogWarningMessage("GetArchiveData: Unable to wake VP");
@@ -2490,26 +2496,14 @@ namespace CumulusMX
 							if (archiveData.HiWindSpeed < 250 && archiveData.AvgWindSpeed < 250)
 							{
 								int bearing = archiveData.WindDirection;
-								if (bearing == 255)
-								{
-									bearing = 0;
-								}
+								bearing = bearing == 255 ? 0 : (int) (bearing * 22.5);
 
-								AddValuesToRecentWind(avgwind, avgwind, timestamp.AddMinutes(-interval), timestamp);
-								DoWind(wind, (int) (bearing * 22.5), avgwind, timestamp);
-
-								if (ConvertUserWindToMS(WindAverage) < 1.5)
-								{
-									DoWindChill(OutdoorTemperature, timestamp);
-								}
-								else
-								{
-									// calculate wind chill from calibrated C temp and calibrated win in KPH
-									DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), timestamp);
-								}
+								AddValuesToRecentWind(avgwind, avgwind, bearing, timestamp.AddMinutes(-interval), timestamp);
+								DoWind(wind, bearing, avgwind, timestamp);
+								DoWindChill(OutdoorTemperature, timestamp);
 
 								// update dominant wind bearing
-								CalculateDominantWindBearing((int) (bearing * 22.5), WindAverage, interval);
+								CalculateDominantWindBearing(bearing, WindAverage, interval);
 							}
 
 							DoApparentTemp(timestamp);
@@ -2656,7 +2650,7 @@ namespace CumulusMX
 
 							cumulus.LogMessage("GetArchiveData: Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
 
-							DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), timestamp);
+							DoWindChill(-999, timestamp);
 
 							DoApparentTemp(timestamp);
 							DoFeelsLike(timestamp);
@@ -2814,10 +2808,10 @@ namespace CumulusMX
 		//      4. If the console has not woken up after 3 attempts, then signal a connection error
 		// After the console has woken up, it will remain awake for 2 minutes. Every time the VP
 		// receives another character, the 2 minute timer will be reset.
-		private bool WakeVP(SerialPort serialPort)
+		private bool WakeVP(SerialPort serialPort, bool force = false)
 		{
 			// Check if we haven't sent a command within the last two minutes - use 1:50 (110,000 ms) to be safe
-			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000)
+			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000 && !force)
 			{
 				cumulus.LogDebugMessage("WakeVP: Not required");
 				awakeStopWatch.Restart();
@@ -2894,13 +2888,13 @@ namespace CumulusMX
 			}
 		}
 
-		private bool WakeVP(TcpClient thePort)
+		private bool WakeVP(TcpClient thePort, bool force = false)
 		{
 			const int maxPasses = 3;
 			int retryCount = 0;
 
 			// Check if we haven't sent a command within the last two minutes - use 1:50 () to be safe
-			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000)
+			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000 && !force)
 			{
 				cumulus.LogDebugMessage("WakeVP: Not required");
 				awakeStopWatch.Restart();

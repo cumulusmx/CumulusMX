@@ -12,14 +12,14 @@ namespace CumulusMX
 {
 	public delegate string WebTagFunction(Dictionary<string, string> tagParams);
 
-	internal class WebTags
+	public class WebTags
 	{
 		private Dictionary<string, WebTagFunction> webTagDictionary;
 
 		private readonly Cumulus cumulus;
 		private readonly WeatherStation station;
 
-		public WebTags(Cumulus cumulus, WeatherStation station)
+		internal WebTags(Cumulus cumulus, WeatherStation station)
 		{
 			this.cumulus = cumulus;
 			this.station = station;
@@ -398,7 +398,7 @@ namespace CumulusMX
 			{
 				res = string.Empty;
 			}
-			return res;
+			return EncodeForJs(res);
 		}
 
 		private string GetFormattedDateTime(DateTime dt, Dictionary<string, string> tagParams)
@@ -515,6 +515,20 @@ namespace CumulusMX
 		private string Tagwindrun(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(CheckWindRunUnit(station.WindRunToday, tagParams), tagParams, cumulus.WindRunDPlaces);
+		}
+
+		private string Tagwindrunmonth(Dictionary<string, string> tagParams)
+		{
+			if (!int.TryParse(tagParams.Get("year"), out int year))
+			{
+				year = DateTime.Now.Year;
+			}
+			if (!int.TryParse(tagParams.Get("month"), out int month))
+			{
+				month = DateTime.Now.Month;
+			}
+
+			return CheckRcDp(CheckWindRunUnit(station.GetWindRunMonth(year, month), tagParams), tagParams, cumulus.WindRunDPlaces);
 		}
 
 		private string Tagwspeed(Dictionary<string, string> tagParams)
@@ -3249,9 +3263,15 @@ namespace CumulusMX
 
 		private string TagEcowittCameraUrl(Dictionary<string, string> tagParams)
 		{
-			return string.IsNullOrEmpty(station.EcowittCameraUrl) ? string.Empty : station.EcowittCameraUrl;
+			if (cumulus.StationType == StationTypes.GW1000 || cumulus.StationType == StationTypes.HttpEcowitt || cumulus.StationType == StationTypes.EcowittCloud)
+			{
+				return string.IsNullOrEmpty(station.GetEcowittCameraUrl()) ? string.Empty : station.EcowittCameraUrl;
+			}
+			else
+			{
+				return string.Empty;
+			}
 		}
-
 
 		private string Tagtempunit(Dictionary<string, string> tagParams)
 		{
@@ -5140,6 +5160,16 @@ namespace CumulusMX
 			return cumulus.LatestError;
 		}
 
+		private string TagLatestErrorEnc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForWeb(cumulus.LatestError);
+		}
+
+		private string TagLatestErrorJsEnc(Dictionary<string, string> tagParams)
+		{
+			return EncodeForJs(cumulus.LatestError);
+		}
+
 		private string TagLatestErrorDate(Dictionary<string, string> tagParams)
 		{
 			return cumulus.LatestErrorTS == DateTime.MinValue ? "------" : GetFormattedDateTime(cumulus.LatestErrorTS, "ddddd", tagParams);
@@ -5433,6 +5463,15 @@ namespace CumulusMX
 			return CheckRcDp(CheckTempUnit(result.Count == 0 ? station.FeelsLike : result[0].FeelsLike, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
+		private string TagRecentApparent(Dictionary<string, string> tagParams)
+		{
+			var recentTs = GetRecentTs(tagParams);
+
+			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+
+			return CheckRcDp(CheckTempUnit(result.Count == 0 ? station.ApparentTemperature : result[0].AppTemp, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
 		private string TagRecentHumidex(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
@@ -5520,6 +5559,24 @@ namespace CumulusMX
 			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
 			return CheckRcDp(result.Count == 0 ? station.UV : result[0].UV, tagParams, cumulus.UVDPlaces);
+		}
+
+		private string TagRecentIndoorTemp(Dictionary<string, string> tagParams)
+		{
+			var recentTs = GetRecentTs(tagParams);
+
+			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+
+			return CheckRcDp(result.Count == 0 ? station.IndoorTemperature : result[0].IndoorTemp, tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagRecentIndoorHumidity(Dictionary<string, string> tagParams)
+		{
+			var recentTs = GetRecentTs(tagParams);
+
+			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+
+			return result.Count == 0 ? station.IndoorHumidity.ToString() : result[0].IndoorHumidity.ToString();
 		}
 
 		private string TagRecentTs(Dictionary<string, string> tagParams)
@@ -5675,6 +5732,7 @@ namespace CumulusMX
 				{ "domwinddirY", TagdomwinddirY },
 				{ "tomorrowdaylength", Tagtomorrowdaylength },
 				{ "windrun", Tagwindrun },
+				{ "windrunmonth", Tagwindrunmonth },
 				{ "domwindbearing", Tagdomwindbearing },
 				{ "domwinddir", Tagdomwinddir },
 				{ "heatdegdays", Tagheatdegdays },
@@ -6387,6 +6445,8 @@ namespace CumulusMX
 				{ "YearLowDailyTempRangeD", TagYearLowDailyTempRangeD },
 				// misc
 				{ "LatestError", TagLatestError },
+				{ "LatestErrorEnc", TagLatestErrorEnc },
+				{ "LatestErrorJsEnc", TagLatestErrorJsEnc },
 				{ "LatestErrorDate", TagLatestErrorDate },
 				{ "LatestErrorTime", TagLatestErrorTime },
 				{ "ErrorLight", Tagerrorlight },
@@ -6429,6 +6489,7 @@ namespace CumulusMX
 				{ "RecentDewPoint", TagRecentDewPoint },
 				{ "RecentHeatIndex", TagRecentHeatIndex },
 				{ "RecentFeelsLike", TagRecentFeelsLike },
+				{ "RecentApparent", TagRecentApparent },
 				{ "RecentHumidex", TagRecentHumidex },
 				{ "RecentHumidity", TagRecentHumidity },
 				{ "RecentPressure", TagRecentPressure },
@@ -6436,6 +6497,8 @@ namespace CumulusMX
 				{ "RecentRainToday", TagRecentRainToday },
 				{ "RecentSolarRad", TagRecentSolarRad },
 				{ "RecentUV", TagRecentUv },
+				{ "RecentIndoorTemp", TagRecentIndoorTemp },
+				{ "RecentIndoorHumidity", TagRecentIndoorHumidity },
 				{ "RecentTS", TagRecentTs },
 				// Recent history with comma decimals replaced
 				{ "RCRecentOutsideTemp", TagRcRecentOutsideTemp },

@@ -243,7 +243,7 @@ namespace CumulusMX
 
 		public PerformanceCounter UpTime;
 
-		private readonly WebTags webtags;
+		internal readonly WebTags WebTags;
 
 		internal Lang Trans = new Lang();
 
@@ -1060,12 +1060,13 @@ namespace CumulusMX
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
 				LogMessage("Maximum concurrent PHP Uploads = " + FtpOptions.MaxConcurrentUploads);
+				LogMessage("PHP using GET = " + FtpOptions.PhpUseGet);
 			}
 			uploadCountLimitSemaphoreSlim = new SemaphoreSlim(FtpOptions.MaxConcurrentUploads);
 
 			if (FtpOptions.Logging)
 			{
-				CreateFtpLogFile(ftpLogfile);
+				CreateFtpLogFile();
 			}
 
 			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
@@ -1585,6 +1586,8 @@ namespace CumulusMX
 					break;
 			}
 
+			LogMessage($"Wind settings: Calc avg speed={StationOptions.CalcuateAverageWindSpeed}, Use speed for avg={StationOptions.UseSpeedForLatest}, Gust time={StationOptions.PeakGustMinutes}, Avg time={StationOptions.AvgSpeedMinutes}");
+
 			if (station != null)
 			{
 				Api.Station = station;
@@ -1640,13 +1643,11 @@ namespace CumulusMX
 					ecowittCloudExtra = new EcowittCloudStation(this, station);
 				}
 
-				webtags = new WebTags(this, station);
-				webtags.InitialiseWebtags();
+				WebTags = new WebTags(this, station);
+				WebTags.InitialiseWebtags();
 
 				httpFiles = new HttpFiles(this, station);
 
-				Api.dataEditor.SetWebTags(webtags);
-				Api.tagProcessor.SetWebTags(webtags);
 				Api.httpFiles = httpFiles;
 
 				RealtimeTimer.Interval = RealtimeInterval;
@@ -1754,7 +1755,7 @@ namespace CumulusMX
 		}
 
 
-		internal async void TestPhpUploadCompression()
+		internal void TestPhpUploadCompression()
 		{
 			LogDebugMessage($"Testing PHP upload compression: '{FtpOptions.PhpUrl}'");
 			using (var request = new HttpRequestMessage(HttpMethod.Get, FtpOptions.PhpUrl))
@@ -1764,7 +1765,8 @@ namespace CumulusMX
 					request.Headers.Add("Accept", "text/html");
 					request.Headers.Add("Accept-Encoding", "gzip, deflate");
 
-					var response = await phpUploadHttpClient.SendAsync(request);
+					// we do this async
+					var response = phpUploadHttpClient.SendAsync(request).Result;
 					response.EnsureSuccessStatusCode();
 					var encoding = response.Content.Headers.ContentEncoding;
 
@@ -2321,7 +2323,7 @@ namespace CumulusMX
 						Wund.ErrorFlagCount++;
 						if (!Wund.RapidFireEnabled || Wund.ErrorFlagCount >= 12)
 						{
-							LogMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
+							LogWarningMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
 							ThirdPartyAlarm.LastMessage = "Wunderground: HTTP response - " + response.StatusCode;
 							ThirdPartyAlarm.Triggered = true;
 							Wund.ErrorFlagCount = 0;
@@ -2382,7 +2384,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("Windy: ERROR - " + ex.Message);
+				LogWarningMessage("Windy: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "Windy: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2428,7 +2430,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("WindGuru: ERROR - " + ex.Message);
+				LogWarningMessage("WindGuru: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "WindGuru: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2487,7 +2489,7 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogMessage("AWEKAS: Exception deserializing response = " + ex.Message);
-						LogErrorMessage($"AWEKAS: ERROR - Response body = {responseBodyAsText}");
+						LogWarningMessage($"AWEKAS: ERROR - Response body = {responseBodyAsText}");
 						ThirdPartyAlarm.LastMessage = "AWEKAS deserializing response: " + ex.Message;
 						ThirdPartyAlarm.Triggered = true;
 						AWEKAS.Updating = false;
@@ -2580,7 +2582,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("AWEKAS: Exception = " + ex.Message);
+				LogWarningMessage("AWEKAS: Exception = " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "AWEKAS: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2655,7 +2657,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("WeatherCloud: ERROR - " + ex.Message);
+				LogWarningMessage("WeatherCloud: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "WeatherCloud: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2705,7 +2707,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("OpenWeatherMap: ERROR - " + ex.Message);
+				LogWarningMessage("OpenWeatherMap: ERROR - " + ex.Message);
 				ThirdPartyAlarm.LastMessage = "OpenWeatherMap: " + ex.Message;
 				ThirdPartyAlarm.Triggered = true;
 			}
@@ -2736,7 +2738,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("OpenWeatherMap: Get Stations ERROR - " + ex.Message);
+				LogWarningMessage("OpenWeatherMap: Get Stations ERROR - " + ex.Message);
 			}
 
 			return retVal;
@@ -2786,7 +2788,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("OpenWeatherMap: Create station ERROR - " + ex.Message);
+				LogWarningMessage("OpenWeatherMap: Create station ERROR - " + ex.Message);
 			}
 		}
 
@@ -2934,7 +2936,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogDebugMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
+							LogErrorMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
 						}
 					}
 				}
@@ -2959,8 +2961,8 @@ namespace CumulusMX
 				return;
 
 			RealtimeFtpReconnecting = true;
-			FtpAlarm.Triggered = true;
 			FtpAlarm.LastMessage = "Realtime re-connecting";
+			FtpAlarm.Triggered = true;
 			await Task.Run(() =>
 			{
 				bool connected;
@@ -3034,11 +3036,11 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							reinit = true;
-							LogDebugMessage($"RealtimeReconnect: Error reconnecting ftp server - {ex.Message}");
+							LogErrorMessage($"RealtimeReconnect: Error reconnecting ftp server - {ex.Message}");
 							if (ex.InnerException != null)
 							{
 								ex = Utils.GetOriginalException(ex);
-								LogDebugMessage($"RealtimeReconnect: Base exception - {ex.Message}");
+								LogErrorMessage($"RealtimeReconnect: Base exception - {ex.Message}");
 							}
 						}
 					}
@@ -3109,7 +3111,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogDebugMessage($"RealtimeReconnect: Realtime ftp connection test Failed - {ex.Message}");
+							LogErrorMessage($"RealtimeReconnect: Realtime ftp connection test Failed - {ex.Message}");
 
 							if (ex.InnerException != null)
 							{
@@ -3267,6 +3269,9 @@ namespace CumulusMX
 						var idx = i;
 						tasklist.Add(Task.Run(async () =>
 						{
+#if DEBUG
+							LogDebugMessage($"Realtime[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].LocalFileName} to {RealtimeFiles[idx].RemoteFileName}");
+#endif
 							// realtime file
 							if (RealtimeFiles[idx].LocalFileName == "realtime.txt")
 							{
@@ -3287,7 +3292,7 @@ namespace CumulusMX
 							{
 								uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-								LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[idx].RemoteFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+								LogDebugMessage($"Realtime[{cycle}]: Real time file [{idx}] {RealtimeFiles[idx].RemoteFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 							}
 							return true;
@@ -3313,7 +3318,6 @@ namespace CumulusMX
 					.ToList()
 					.ForEach(item =>
 					{
-
 						var uploadfile = item.local;
 						var remotefile = item.remote;
 
@@ -3541,23 +3545,28 @@ namespace CumulusMX
 			}
 		}
 
+		private readonly object tokenParserLockObj = new object();
+
 		public void TokenParserOnToken(string strToken, ref string strReplacement)
 		{
-			var tagParams = new Dictionary<string, string>();
-			var paramList = ParseParams(strToken);
-			var webTag = paramList[0];
-
-			tagParams.Add("webtag", webTag);
-			for (int i = 1; i < paramList.Count; i += 2)
+			lock (tokenParserLockObj)
 			{
-				// odd numbered entries are keys with "=" on the end - remove that
-				string key = paramList[i].Remove(paramList[i].Length - 1);
-				// even numbered entries are values
-				string value = paramList[i + 1];
-				tagParams.Add(key, value);
-			}
+				var tagParams = new Dictionary<string, string>();
+				var paramList = ParseParams(strToken);
+				var webTag = paramList[0];
 
-			strReplacement = webtags.GetWebTagText(webTag, tagParams);
+				tagParams.Add("webtag", webTag);
+				for (int i = 1; i < paramList.Count; i += 2)
+				{
+					// odd numbered entries are keys with "=" on the end - remove that
+					string key = paramList[i].Remove(paramList[i].Length - 1);
+					// even numbered entries are values
+					string value = paramList[i + 1];
+					tagParams.Add(key, value);
+				}
+
+				strReplacement = WebTags.GetWebTagText(webTag, tagParams);
+			}
 		}
 
 		private List<string> ParseParams(string line)
@@ -4198,13 +4207,13 @@ namespace CumulusMX
 					var oldfile = ftpLogfile;
 					ftpLogfile = RemoveOldDiagsFiles("FTP");
 					LogFtpMessage("Rotating FTP log file, new log file will be: " + ftpLogfile.Split(DirectorySeparator).Last());
-					CreateFtpLogFile(ftpLogfile);
+					CreateFtpLogFile();
 					LogFtpMessage("Rotated FTP log file, old log file was: " + oldfile.Split(DirectorySeparator).Last());
 				}
 			}
 		}
 
-		public void CreateFtpLogFile(string filename)
+		public void CreateFtpLogFile()
 		{
 			if (FtpTraceListener != null)
 			{
@@ -4220,6 +4229,7 @@ namespace CumulusMX
 			var DavisBaudRates = new List<int> { 1200, 2400, 4800, 9600, 14400, 19200 };
 			ImetOptions.BaudRates = new List<int> { 19200, 115200 };
 			var rewriteRequired = false; // Do we need to re-save the ini file after migration processing or resetting options?
+			var recreateRequired = false; // Do we need to wipe the file to remove old entries?
 
 			LogMessage("Reading Cumulus.ini file");
 			//DateTimeToString(LongDate, "ddddd", Now);
@@ -4537,7 +4547,7 @@ namespace CumulusMX
 				try
 				{
 					RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate);
-					rewriteRequired = true;
+					recreateRequired = true;
 				}
 				catch (Exception ex)
 				{
@@ -4677,7 +4687,7 @@ namespace CumulusMX
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
 			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", "");
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
-			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0);  // 0=default, 1-8=extra t/h sensor number
+			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
 			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0); //0=main station (tipping bucket) 1=piezo
 			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
 			EcowittCloudExtraEnabled = ini.GetValue("GW1000", "ExtraCloudSensorDataEnabled", false);
@@ -4692,6 +4702,7 @@ namespace CumulusMX
 			EcowittExtraUseCo2 = ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
 			EcowittExtraUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
 			EcowittExtraUseLeak = ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
+			EcowittExtraUseCamera = ini.GetValue("GW1000", "ExtraSensorUseCamera", true);
 			EcowittSetCustomServer = ini.GetValue("GW1000", "SetCustomServer", false);
 			EcowittGatewayAddr = ini.GetValue("GW1000", "EcowittGwAddr", "0.0.0.0");
 			var localIp = Utils.GetIpWithDefaultGateway();
@@ -4750,7 +4761,7 @@ namespace CumulusMX
 			else
 			{
 				AirLinkIsNode = ini.GetValue("AirLink", "In-IsNode", false) || ini.GetValue("AirLink", "Out-IsNode", false);
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			AirLinkApiKey = ini.GetValue("AirLink", "WLv2ApiKey", "");
 			AirLinkApiSecret = ini.GetValue("AirLink", "WLv2ApiSecret", "");
@@ -4783,7 +4794,8 @@ namespace CumulusMX
 			FtpOptions.Username = ini.GetValue("FTP site", "Username", "");
 			FtpOptions.Password = ini.GetValue("FTP site", "Password", "");
 			FtpOptions.Directory = ini.GetValue("FTP site", "Directory", "");
-			if (FtpOptions.Hostname == "" && FtpOptions.Enabled)
+			FtpOptions.FtpMode = (FtpProtocols) ini.GetValue("FTP site", "Sslftp", 0);
+			if (FtpOptions.Enabled && FtpOptions.Hostname == "" && FtpOptions.FtpMode != FtpProtocols.PHP)
 			{
 				FtpOptions.Enabled = false;
 				rewriteRequired = true;
@@ -4792,7 +4804,6 @@ namespace CumulusMX
 			FtpOptions.AutoDetect = ini.GetValue("FTP site", "ConnectionAutoDetect", false);
 			FtpOptions.IgnoreCertErrors = ini.GetValue("FTP site", "IgnoreCertErrors", false);
 			FtpOptions.ActiveMode = ini.GetValue("FTP site", "ActiveFTP", false);
-			FtpOptions.FtpMode = (FtpProtocols) ini.GetValue("FTP site", "Sslftp", 0);
 			// BUILD 3092 - added alternate SFTP authentication options
 			FtpOptions.SshAuthen = ini.GetValue("FTP site", "SshFtpAuthentication", "password");
 			if (!sshAuthenticationVals.Contains(FtpOptions.SshAuthen))
@@ -4835,6 +4846,13 @@ namespace CumulusMX
 				FtpOptions.PhpSecret = Guid.NewGuid().ToString();
 			FtpOptions.PhpIgnoreCertErrors = ini.GetValue("FTP site", "PHP-IgnoreCertErrors", false);
 			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", boolWindows ? 4 : 1);
+			FtpOptions.PhpUseGet = ini.GetValue("FTP site", "PHP-UseGet", true);
+
+			if (FtpOptions.Enabled && FtpOptions.PhpUrl == "" && FtpOptions.FtpMode == FtpProtocols.PHP)
+			{
+				FtpOptions.Enabled = false;
+				rewriteRequired = true;
+			}
 
 			MoonImage.Ftp = ini.GetValue("FTP site", "IncludeMoonImage", false);
 			MoonImage.Copy = ini.GetValue("FTP site", "CopyMoonImage", false);
@@ -5546,14 +5564,14 @@ namespace CumulusMX
 			{
 				SolarOptions.RStransfactorJun = ini.GetValue("Solar", "RStransfactor", 0.8);
 				SolarOptions.RStransfactorDec = SolarOptions.RStransfactorJun;
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
 				if (ini.ValueExists("Solar", "RStransfactorJul"))
 				{
 					SolarOptions.RStransfactorJun = ini.GetValue("Solar", "RStransfactorJul", 0.8);
-					rewriteRequired = true;
+					recreateRequired = true;
 				}
 				else
 				{
@@ -5565,14 +5583,14 @@ namespace CumulusMX
 			{
 				SolarOptions.BrasTurbidityJun = ini.GetValue("Solar", "BrasTurbidity", 2.0);
 				SolarOptions.BrasTurbidityDec = SolarOptions.BrasTurbidityJun;
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
 				if (ini.ValueExists("Solar", "BrasTurbidityJul"))
 				{
 					SolarOptions.BrasTurbidityJun = ini.GetValue("Solar", "BrasTurbidityJul", 2.0);
-					rewriteRequired = true;
+					recreateRequired = true;
 				}
 				else
 				{
@@ -5933,12 +5951,25 @@ namespace CumulusMX
 
 			LogMessage("Reading Cumulus.ini file completed");
 
-			if (rewriteRequired && File.Exists("Cumulus.ini"))
+			if ((rewriteRequired || recreateRequired) && File.Exists("Cumulus.ini"))
 			{
 				LogMessage("Some values in Cumulus.ini had invalid values, or new required entries have been created.");
 				LogMessage("Recreating Cumulus.ini to reflect the new configuration.");
-				LogDebugMessage("Deleting existing Cumulus.ini");
-				File.Delete("Cumulus.ini");
+				if (recreateRequired)
+				{
+					LogDebugMessage("Clearing existing Cumulus.ini");
+					try
+					{
+						using (var fs = new FileStream("Cumulus.ini", FileMode.Truncate))
+						{
+							// Truncate the file to zero bytes.
+						}
+					}
+					catch (Exception ex)
+					{
+						LogErrorMessage("Error clearing Cumulus.ini: " + ex.Message);
+					}
+				}
 				WriteIniFile();
 			}
 		}
@@ -6186,6 +6217,7 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "ExtraSensorUseCo2", EcowittExtraUseCo2);
 			ini.SetValue("GW1000", "ExtraSensorUseLightning", EcowittExtraUseLightning);
 			ini.SetValue("GW1000", "ExtraSensorUseLeak", EcowittExtraUseLeak);
+			ini.SetValue("GW1000", "ExtraSensorUseCamera", EcowittExtraUseCamera);
 			ini.SetValue("GW1000", "SetCustomServer", EcowittSetCustomServer);
 			ini.SetValue("GW1000", "EcowittGwAddr", EcowittGatewayAddr);
 			ini.SetValue("GW1000", "EcowittLocalAddr", EcowittLocalAddr);
@@ -6368,6 +6400,7 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "PHP-URL", FtpOptions.PhpUrl);
 			ini.SetValue("FTP site", "PHP-Secret", FtpOptions.PhpSecret);
 			ini.SetValue("FTP site", "PHP-IgnoreCertErrors", FtpOptions.PhpIgnoreCertErrors);
+			ini.SetValue("FTP site", "PHP-UseGet", FtpOptions.PhpUseGet);
 			ini.SetValue("FTP site", "MaxConcurrentUploads", FtpOptions.MaxConcurrentUploads);
 
 
@@ -7446,10 +7479,11 @@ namespace CumulusMX
 			ini.SetValue("AlarmEmails", "batteryLow", BatteryLowAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "dataSpike", SpikeAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "upgrade", UpgradeAlarm.EmailMsg);
-			ini.SetValue("AlarmEmails", "ftpStopped", FtpAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "httpStopped", ThirdPartyAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "mySqlStopped", MySqlUploadAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "isRaining", IsRainingAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "newRecord", NewRecordAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "ftpStopped", FtpAlarm.EmailMsg);
 
 			ini.Flush();
 
@@ -7531,9 +7565,11 @@ namespace CumulusMX
 		public bool EcowittExtraUseCo2 { get; set; }
 		public bool EcowittExtraUseLightning { get; set; }
 		public bool EcowittExtraUseLeak { get; set; }
+		public bool EcowittExtraUseCamera { get; set; }
 		public string EcowittApplicationKey { get; set; }
 		public string EcowittUserApiKey { get; set; }
 		public string EcowittMacAddress { get; set; }
+		public string EcowittCameraMacAddress { get; set; }
 		public bool EcowittSetCustomServer { get; set; }
 		public string EcowittGatewayAddr { get; set; }
 		public string EcowittLocalAddr { get; set; }
@@ -9851,6 +9887,12 @@ namespace CumulusMX
 
 				LogDebugMessage("ProcessHttpFiles: Uploading http files");
 
+				// do we perform a second chance compresssion test?
+				if (FtpOptions.PhpCompression == "notchecked")
+				{
+					TestPhpUploadCompression();
+				}
+
 				HttpFilesConfig
 				.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && x.Upload)
 				.ToList()
@@ -9996,8 +10038,8 @@ namespace CumulusMX
 						{
 							LogFtpMessage($"SFTP[Int]: Error connecting SFTP - {ex.Message}");
 
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = "Error connecting SFTP - " + ex.Message;
+							FtpAlarm.Triggered = true;
 
 							if ((uint) ex.HResult == 0x80004005) // Could not resolve host
 							{
@@ -10031,8 +10073,8 @@ namespace CumulusMX
 								catch (Exception e)
 								{
 									LogFtpMessage($"SFTP[Int]: Error uploading file - {e.Message}");
-									FtpAlarm.Triggered = true;
 									FtpAlarm.LastMessage = "Error uploading NOAA report file - " + e.Message;
+									FtpAlarm.Triggered = true;
 								}
 								NOAAconf.NeedFtp = false;
 							}
@@ -10080,15 +10122,15 @@ namespace CumulusMX
 										{
 											LogFtpMessage($"SFTP[Int]: Error uploading Extra web file #{i} [{uploadfile}]");
 											LogFtpMessage($"SFTP[Int]: Error = {e.Message}");
-											FtpAlarm.Triggered = true;
 											FtpAlarm.LastMessage = $"Error uploading Extra web file #{i} [{uploadfile}";
+											FtpAlarm.Triggered = true;
 										}
 									}
 									else
 									{
 										LogFtpMessage($"SFTP[Int]: Extra web file #{i} [{uploadfile}] not found!");
-										FtpAlarm.Triggered = true;
 										FtpAlarm.LastMessage = $"Error Extra web file #{i} [{uploadfile} not found";
+										FtpAlarm.Triggered = true;
 									}
 								}
 							}
@@ -10128,8 +10170,8 @@ namespace CumulusMX
 									{
 										LogFtpMessage($"SFTP[Int]: Error uploading standard data file [{StdWebFiles[i].RemoteFileName}]");
 										LogFtpMessage($"SFTP[Int]: Error = {e}");
-										FtpAlarm.Triggered = true;
 										FtpAlarm.LastMessage = $"Error uploading standard web file {StdWebFiles[i].RemoteFileName} - {e.Message}";
+										FtpAlarm.Triggered = true;
 									}
 								}
 							}
@@ -10162,8 +10204,8 @@ namespace CumulusMX
 									{
 										LogFtpMessage($"SFTP[Int]: Error uploading graph data file [{uploadfile}]");
 										LogFtpMessage($"SFTP[Int]: Error = {e}");
-										FtpAlarm.Triggered = true;
 										FtpAlarm.LastMessage = $"Error uploading graph data file [{uploadfile}] - {e.Message}";
+										FtpAlarm.Triggered = true;
 									}
 								}
 							}
@@ -10191,8 +10233,8 @@ namespace CumulusMX
 									{
 										LogFtpMessage($"SFTP[Int]: Error uploading daily graph data file [{uploadfile}]");
 										LogFtpMessage($"SFTP[Int]: Error = {e}");
-										FtpAlarm.Triggered = true;
 										FtpAlarm.LastMessage = $"Error uploading daily graph data file [{uploadfile}] - {e.Message}";
+										FtpAlarm.Triggered = true;
 									}
 								}
 							}
@@ -10210,8 +10252,8 @@ namespace CumulusMX
 								catch (Exception e)
 								{
 									LogErrorMessage($"SFTP[Int]: Error uploading moon image - {e.Message}");
-									FtpAlarm.Triggered = true;
 									FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
+									FtpAlarm.Triggered = true;
 								}
 							}
 						}
@@ -10290,8 +10332,8 @@ namespace CumulusMX
 					{
 						LogFtpMessage("FTP[Int]: Error connecting ftp - " + ex.Message);
 
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
+						FtpAlarm.Triggered = true;
 
 						if (ex.InnerException != null)
 						{
@@ -10331,8 +10373,8 @@ namespace CumulusMX
 							catch (Exception e)
 							{
 								LogFtpMessage($"FTP[Int]: Error uploading NOAA files: {e.Message}");
-								FtpAlarm.Triggered = true;
 								FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
+								FtpAlarm.Triggered = true;
 							}
 							NOAAconf.NeedFtp = false;
 						}
@@ -10381,8 +10423,8 @@ namespace CumulusMX
 									catch (Exception e)
 									{
 										LogFtpMessage($"FTP[Int]: Error uploading file {uploadfile}: {e.Message}");
-										FtpAlarm.Triggered = true;
 										FtpAlarm.LastMessage = $"Error uploading extra file {uploadfile} - {e.Message}";
+										FtpAlarm.Triggered = true;
 									}
 								}
 								else
@@ -10428,8 +10470,8 @@ namespace CumulusMX
 								catch (Exception e)
 								{
 									LogFtpMessage($"FTP[Int]: Error uploading file {StdWebFiles[i].RemoteFileName}: {e}");
-									FtpAlarm.Triggered = true;
 									FtpAlarm.LastMessage = $"Error uploading file {StdWebFiles[i].RemoteFileName} - {e.Message}";
+									FtpAlarm.Triggered = true;
 								}
 							}
 						}
@@ -10461,8 +10503,8 @@ namespace CumulusMX
 								{
 									LogFtpMessage($"FTP[Int]: Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]");
 									LogFtpMessage($"FTP[Int]: Error = {e}");
-									FtpAlarm.Triggered = true;
 									FtpAlarm.LastMessage = $"Error uploading file {GraphDataFiles[i].RemoteFileName} - {e.Message}";
+									FtpAlarm.Triggered = true;
 								}
 							}
 						}
@@ -10491,8 +10533,8 @@ namespace CumulusMX
 								{
 									LogFtpMessage($"FTP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]");
 									LogFtpMessage($"FTP[Int]: Error = {e}");
-									FtpAlarm.Triggered = true;
 									FtpAlarm.LastMessage = $"Error uploading file {GraphDataEodFiles[i].RemoteFileName} - {e.Message}";
+									FtpAlarm.Triggered = true;
 								}
 							}
 						}
@@ -10510,8 +10552,8 @@ namespace CumulusMX
 							catch (Exception e)
 							{
 								LogErrorMessage($"FTP[Int]: Error uploading moon image - {e.Message}");
-								FtpAlarm.Triggered = true;
 								FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
+								FtpAlarm.Triggered = true;
 							}
 						}
 					}
@@ -10529,6 +10571,12 @@ namespace CumulusMX
 				var tasklist = new List<Task>();
 				var taskCount = 0;
 				var runningTaskCount = 0;
+
+				// do we perform a second chance compresssion test?
+				if (FtpOptions.PhpCompression == "notchecked")
+				{
+					TestPhpUploadCompression();
+				}
 
 				if (NOAAconf.NeedFtp)
 				{
@@ -10569,8 +10617,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading NOAA files");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading NOAA files - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -10628,8 +10676,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading NOAA Year file");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading NOAA files - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -10718,8 +10766,8 @@ namespace CumulusMX
 						catch (Exception ex) when (!(ex is TaskCanceledException))
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {uploadfile} to: {remotefile}");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading file {uploadfile} to: {remotefile} - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -10808,8 +10856,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {item.RemoteFileName}");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading file {item.RemoteFileName} - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -10900,8 +10948,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading graph data file [{item.RemoteFileName}]");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading graph data file [{item.RemoteFileName}] - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -10978,8 +11026,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, $"PHP[Int]: Error uploading daily graph data file [{item.RemoteFileName}]");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading daily graph data file [{item.RemoteFileName}] - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -11044,8 +11092,8 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							LogExceptionMessage(ex, "PHP[Int]: Error uploading moon image");
-							FtpAlarm.Triggered = true;
 							FtpAlarm.LastMessage = $"Error uploading moon image - {ex.Message}";
+							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
@@ -11082,8 +11130,8 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						LogExceptionMessage(ex, "PHP[Int]: Error waiting on upload tasks");
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = "Error waiting on upload tasks";
+						FtpAlarm.Triggered = true;
 					}
 				}
 				//LogDebugMessage($"PHP[Int]: EOD Graph files upload complete, {tasklist.Count()} files processed");
@@ -11116,8 +11164,8 @@ namespace CumulusMX
 				if (!File.Exists(localfile))
 				{
 					LogWarningMessage($"FTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"Error! Local file not found, aborting upload: {localfile}";
+					FtpAlarm.Triggered = true;
 					return true;
 				}
 
@@ -11129,8 +11177,8 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				LogFtpMessage($"FTP[{cycleStr}]: Error reading {localfile} - {ex.Message}");
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"Error reading {localfile} - {ex.Message}";
+				FtpAlarm.Triggered = true;
 
 				if (ex.InnerException != null)
 				{
@@ -11151,8 +11199,8 @@ namespace CumulusMX
 				if (dataStream.Length == 0)
 				{
 					LogWarningMessage($"FTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
+					FtpAlarm.Triggered = true;
 
 					return true;
 				}
@@ -11192,8 +11240,8 @@ namespace CumulusMX
 					{
 						LogFtpMessage($"FTP[{cycleStr}]: Error deleting {remotefile} : {ex.Message}");
 
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = $"Error deleting {remotefile} : {ex.Message}";
+						FtpAlarm.Triggered = true;
 
 						if (ex.InnerException != null)
 						{
@@ -11227,8 +11275,8 @@ namespace CumulusMX
 					{
 						LogFtpMessage($"FTP[{cycleStr}]: Error renaming {remotefiletmp} to {remotefile} : {ex.Message}");
 
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = $"Error renaming {remotefiletmp} to {remotefile} : {ex.Message}";
+						FtpAlarm.Triggered = true;
 
 						if (ex.InnerException != null)
 						{
@@ -11244,8 +11292,8 @@ namespace CumulusMX
 			{
 				LogFtpMessage($"FTP[{cycleStr}]: Error uploading {remotefile} : {ex.Message}");
 
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"Error uploading {remotefile} : {ex.Message}";
+				FtpAlarm.Triggered = true;
 
 				if (ex.InnerException != null)
 				{
@@ -11275,8 +11323,8 @@ namespace CumulusMX
 			if (!File.Exists(localfile))
 			{
 				LogWarningMessage($"SFTP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"Error! Local file not found, aborting upload: {localfile}";
+				FtpAlarm.Triggered = true;
 
 				return true;
 			}
@@ -11296,8 +11344,8 @@ namespace CumulusMX
 			catch (ObjectDisposedException)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {localfile}");
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {localfile}";
+				FtpAlarm.Triggered = true;
 
 				if (cycle >= 0)
 					RealtimeFTPReconnect();
@@ -11316,8 +11364,8 @@ namespace CumulusMX
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: Error reading {localfile} - {ex.Message}");
 
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"Error reading {localfile} - {ex.Message}";
+				FtpAlarm.Triggered = true;
 
 				if (ex.InnerException != null)
 				{
@@ -11337,8 +11385,8 @@ namespace CumulusMX
 			if (dataStream.Length == 0)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
+				FtpAlarm.Triggered = true;
 				return false;
 			}
 
@@ -11347,8 +11395,8 @@ namespace CumulusMX
 				if (conn == null || !conn.IsConnected)
 				{
 					LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is null or not connected - skipping upload of {remotefile}");
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"The SFTP object is null or not connected - skipping upload of {remotefile}";
+					FtpAlarm.Triggered = true;
 
 					if (cycle >= 0)
 						RealtimeFTPReconnect();
@@ -11360,8 +11408,8 @@ namespace CumulusMX
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {remotefile}");
 
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {remotefile}";
+				FtpAlarm.Triggered = true;
 
 				if (cycle >= 0)
 					RealtimeFTPReconnect();
@@ -11385,16 +11433,16 @@ namespace CumulusMX
 				catch (ObjectDisposedException)
 				{
 					LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {remotefile}";
+					FtpAlarm.Triggered = true;
 					return false;
 				}
 				catch (Exception ex)
 				{
 					LogFtpMessage($"SFTP[{cycleStr}]: Error uploading {remotefilename} : {ex.Message}");
 
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"Error uploading {remotefilename} : {ex.Message}";
+					FtpAlarm.Triggered = true;
 
 					if (ex.Message.Contains("Permission denied")) // Non-fatal
 						return true;
@@ -11422,16 +11470,16 @@ namespace CumulusMX
 					catch (ObjectDisposedException)
 					{
 						LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = $"The SFTP object is disposed during renaming of {remotefile}";
+						FtpAlarm.Triggered = true;
 						return false;
 					}
 					catch (Exception ex)
 					{
 						LogFtpMessage($"SFTP[{cycleStr}]: Error renaming {remotefilename} to {remotefile} : {ex.Message}");
 
-						FtpAlarm.Triggered = true;
 						FtpAlarm.LastMessage = $"Error renaming {remotefilename} to {remotefile} : {ex.Message}";
+						FtpAlarm.Triggered = true;
 
 						if (ex.InnerException != null)
 						{
@@ -11447,16 +11495,16 @@ namespace CumulusMX
 			catch (ObjectDisposedException)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = "The SFTP object is disposed";
+				FtpAlarm.Triggered = true;
 				return false;
 			}
 			catch (Exception ex)
 			{
 				LogFtpMessage($"SFTP[{cycleStr}]: Error uploading {remotefile} - {ex.Message}");
 
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $"Error uploading {remotefile} - {ex.Message}";
+				FtpAlarm.Triggered = true;
 
 				if (ex.InnerException != null)
 				{
@@ -11482,8 +11530,8 @@ namespace CumulusMX
 				{
 					LogWarningMessage($"PHP[{cycleStr}]: Error! Local file not found, aborting upload: {localfile}");
 
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $"Error! Local file not found, aborting upload: {localfile}";
+					FtpAlarm.Triggered = true;
 
 					return false;
 				}
@@ -11507,8 +11555,8 @@ namespace CumulusMX
 			{
 				LogDebugMessage($"PHP[{cycleStr}]: Error - {ex.Message}");
 
-				FtpAlarm.Triggered = true;
 				FtpAlarm.LastMessage = $" Error - {ex.Message}";
+				FtpAlarm.Triggered = true;
 
 				return false;
 			}
@@ -11573,7 +11621,7 @@ namespace CumulusMX
 						}
 
 						// if content < 7 KB-ish
-						if (len < 7000)
+						if (len < 7000 && FtpOptions.PhpUseGet)
 						{
 
 							if (!binary)
@@ -11584,14 +11632,14 @@ namespace CumulusMX
 							request.Method = HttpMethod.Get;
 							request.Headers.Add("DATA", data);
 						}
-						// else > 7 kB
+						// else > 7 kB or GET is disabled
 						else
 						{
 							// send as POST
 							request.Method = HttpMethod.Post;
 
 							// Compress? if supported and payload exceeds 500 bytes
-							if (data.Length >= 500 && FtpOptions.PhpCompression != "none")
+							if (data.Length >= 500 && (FtpOptions.PhpCompression == "gzip" || FtpOptions.PhpCompression == "deflate"))
 							{
 								using (var ms = new MemoryStream())
 								{
@@ -11624,6 +11672,17 @@ namespace CumulusMX
 
 									request.Content = streamContent;
 								}
+							}
+							else
+							{
+								request.Headers.Add("Content_Type", "text/plain");
+
+								outStream = new MemoryStream(Encoding.UTF8.GetBytes(data));
+								streamContent = new StreamContent(outStream);
+								streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
+								streamContent.Headers.ContentLength = outStream.Length;
+
+								request.Content = streamContent;
 							}
 						}
 
@@ -11660,8 +11719,8 @@ namespace CumulusMX
 				{
 					LogExceptionMessage(ex, $"PHP[{cycleStr}]: Error uploading to {remotefile}");
 
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $" Error uploading to {remotefile} - {ex.Message}";
+					FtpAlarm.Triggered = true;
 
 					retry++;
 					if (retry < 2)
@@ -11672,8 +11731,8 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					LogExceptionMessage(ex, $"PHP[{cycleStr}]: Error uploading to {remotefile}");
-					FtpAlarm.Triggered = true;
 					FtpAlarm.LastMessage = $" Error uploading to {remotefile} - {ex.Message}";
+					FtpAlarm.Triggered = true;
 					retry = 99;
 				}
 				finally
@@ -11702,7 +11761,7 @@ namespace CumulusMX
 				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + WebUtility.HtmlEncode(message)));
 			}
 
-			if (level >= LogLevel.Error)
+			if (level >= ErrorListLoggingLevel)
 			{
 				LatestError = message;
 				LatestErrorTS = DateTime.Now;
@@ -11760,7 +11819,7 @@ namespace CumulusMX
 					// Let's try closing and the existing log file and reopening
 					LogDebugMessage($"LogFluentFtpMessage: Error = {ex.Message}");
 					ftpLogfile = RemoveOldDiagsFiles("FTP");
-					CreateFtpLogFile(ftpLogfile);
+					CreateFtpLogFile();
 				}
 			}
 		}
@@ -11791,7 +11850,7 @@ namespace CumulusMX
 			{
 				_ = ErrorList.Dequeue();
 			}
-			ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message));
+			ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.Message));
 		}
 
 		/*
@@ -12149,11 +12208,15 @@ namespace CumulusMX
 
 		public void StartTimersAndSensors()
 		{
-			LogMessage("Start Extra Sensors");
+			if (airLinkOut != null || airLinkIn != null || ecowittExtra != null || ambientExtra != null || ecowittCloudExtra != null)
+			{
+				LogMessage("Starting Extra Sensors");
+			}
 			airLinkOut?.Start();
 			airLinkIn?.Start();
 			ecowittExtra?.Start();
 			ambientExtra?.Start();
+			ecowittCloudExtra?.Start();
 
 			LogMessage("Start Timers");
 			// start the general one-minute timer
@@ -12827,11 +12890,27 @@ namespace CumulusMX
 				try
 				{
 					using (var response = await MyHttpClient.GetAsync(WundList[i]))
-						LogMessage("WU Response: " + response.StatusCode + ": " + response.ReasonPhrase);
+					{
+						if (response.StatusCode == HttpStatusCode.OK)
+						{
+							LogDebugMessage("WU Response: " + response.ReasonPhrase);
+							ThirdPartyAlarm.Triggered = false;
+						}
+						else
+						{
+							var msg = "WU Response: " + response.StatusCode + ": " + response.ReasonPhrase;
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
+							ThirdPartyAlarm.Triggered = true;
+						}
+					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("WU update: " + ex.Message);
+					var msg = "WU update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
+					ThirdPartyAlarm.Triggered = true;
 				}
 			}
 
@@ -12851,11 +12930,27 @@ namespace CumulusMX
 				try
 				{
 					using (var response = await MyHttpClient.GetAsync(WindyList[i]))
-						LogMessage("Windy Response: " + response.StatusCode + ": " + response.ReasonPhrase);
+					{
+						if (response.StatusCode == HttpStatusCode.OK)
+						{
+							LogDebugMessage("Windy Response: " + response.ReasonPhrase);
+							ThirdPartyAlarm.Triggered = false;
+						}
+						else
+						{
+							var msg = "Windy Response: " + response.StatusCode + ": " + response.ReasonPhrase;
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
+							ThirdPartyAlarm.Triggered = true;
+						}
+					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("Windy update: " + ex.Message);
+					var msg = "Windy update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
+					ThirdPartyAlarm.Triggered = true;
 				}
 			}
 
@@ -12880,12 +12975,26 @@ namespace CumulusMX
 					using (var response = await MyHttpClient.GetAsync(PWSList[i]))
 					{
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
-						LogMessage("PWS Response: " + response.StatusCode + ": " + responseBodyAsText);
+						if (response.StatusCode == HttpStatusCode.OK)
+						{
+							LogDebugMessage("PWS Response: " + responseBodyAsText);
+							ThirdPartyAlarm.Triggered = false;
+						}
+						else
+						{
+							var msg = "PWS Response: " + response.StatusCode + ": " + responseBodyAsText;
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
+							ThirdPartyAlarm.Triggered = true;
+						}
 					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("PWS update: " + ex.Message);
+					var msg = "PWS update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
+					ThirdPartyAlarm.Triggered = true;
 				}
 			}
 
@@ -12910,12 +13019,26 @@ namespace CumulusMX
 					using (var response = await MyHttpClient.GetAsync(WOWList[i]))
 					{
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
-						LogMessage("WOW Response: " + response.StatusCode + ": " + responseBodyAsText);
+						if (response.StatusCode == HttpStatusCode.OK)
+						{
+							LogDebugMessage("WOW Response: " + responseBodyAsText);
+							ThirdPartyAlarm.Triggered = false;
+						}
+						else
+						{
+							var msg = "WOW Response: " + response.StatusCode + ": " + responseBodyAsText;
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
+							ThirdPartyAlarm.Triggered = true;
+						}
 					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("WOW update: " + ex.Message);
+					var msg = "WOW update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
+					ThirdPartyAlarm.Triggered = true;
 				}
 			}
 
@@ -12948,14 +13071,26 @@ namespace CumulusMX
 					{
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
 						var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
-						LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
-						if (response.StatusCode != HttpStatusCode.NoContent)
-							LogDataMessage($"OpenWeatherMap: Response data = {responseBodyAsText}");
+						if (status == "OK")
+						{
+							LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
+							ThirdPartyAlarm.Triggered = false;
+						}
+						else
+						{
+							var msg = $"OpenWeatherMap: Status = {response.StatusCode}, Response data = {responseBodyAsText}";
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
+							ThirdPartyAlarm.Triggered = true;
+						}
 					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("OpenWeatherMap: Update error = " + ex.Message);
+					var msg = "OpenWeatherMap: Update error = " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
+					ThirdPartyAlarm.Triggered = true;
 				}
 			}
 
@@ -12987,21 +13122,23 @@ namespace CumulusMX
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
 						if (response.StatusCode != HttpStatusCode.OK)
 						{
-							LogWarningMessage($"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}");
-							ThirdPartyAlarm.LastMessage = $"PWS: HTTP Response code = {response.StatusCode},  Body = {responseBodyAsText}";
+							var msg = $"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}";
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
 							ThirdPartyAlarm.Triggered = true;
 						}
 						else
 						{
-							LogDebugMessage("PWS Response: " + response.StatusCode + ": " + responseBodyAsText);
+							LogDebugMessage("PWS Response: " + responseBodyAsText);
 							ThirdPartyAlarm.Triggered = false;
 						}
 					}
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("PWS update: " + ex.Message);
-					ThirdPartyAlarm.LastMessage = "PWS: " + ex.Message;
+					var msg = "PWS update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
 					ThirdPartyAlarm.Triggered = true;
 				}
 				finally
@@ -13032,8 +13169,9 @@ namespace CumulusMX
 						var responseBodyAsText = await response.Content.ReadAsStringAsync();
 						if (response.StatusCode != HttpStatusCode.OK)
 						{
-							LogMessage($"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
-							ThirdPartyAlarm.LastMessage = $"WOW: HTTP response - Response code = {response.StatusCode}, body = {responseBodyAsText}";
+							var msg = $"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}";
+							LogWarningMessage(msg);
+							ThirdPartyAlarm.LastMessage = msg;
 							ThirdPartyAlarm.Triggered = true;
 						}
 						else
@@ -13045,8 +13183,9 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage("WOW update: " + ex.Message);
-					ThirdPartyAlarm.LastMessage = "WOW: " + ex.Message;
+					var msg = "WOW update: " + ex.Message;
+					LogWarningMessage(msg);
+					ThirdPartyAlarm.LastMessage = msg;
 					ThirdPartyAlarm.Triggered = true;
 				}
 				finally
@@ -13943,8 +14082,9 @@ namespace CumulusMX
 		public string PhpUrl { get; set; }
 		public string PhpSecret { get; set; }
 		public bool PhpIgnoreCertErrors { get; set; }
-		public string PhpCompression { get; set; } = "none";
+		public string PhpCompression { get; set; } = "notchecked";
 		public int MaxConcurrentUploads { get; set; }
+		public bool PhpUseGet {  get; set; }
 	}
 
 	public class FileGenerationOptions

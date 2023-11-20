@@ -762,9 +762,9 @@ namespace CumulusMX
 							}
 
 							// Cause wind chill calc
-							DoWindChill(0, timestamp);
+							DoWindChill(-999, timestamp);
 
-							DoOutdoorDewpoint(0, timestamp);
+							DoOutdoorDewpoint(-999, timestamp);
 							DoApparentTemp(timestamp);
 							DoFeelsLike(timestamp);
 							DoHumidex(timestamp);
@@ -1002,7 +1002,7 @@ namespace CumulusMX
 
 				if (temp1 > -999 && humidity > -999)
 				{
-					DoOutdoorDewpoint(0, now);
+					DoOutdoorDewpoint(-999, now);
 					DoHumidex(now);
 					DoCloudBaseHeatIndex(now);
 

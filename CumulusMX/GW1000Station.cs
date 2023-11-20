@@ -20,7 +20,7 @@ namespace CumulusMX
 		private int lastMinute;
 		private bool tenMinuteChanged = true;
 
-		private EcowittApi EcowittApi;
+		private EcowittApi ecowittApi;
 		private readonly GW1000Api Api;
 
 		private int maxArchiveRuns = 1;
@@ -72,9 +72,17 @@ namespace CumulusMX
 				// We are using the primary T/H sensor
 				cumulus.LogMessage("Using the default outdoor temp/hum sensor data");
 			}
+			else if (cumulus.Gw1000PrimaryTHSensor == 99)
+			{
+				// We are overriding the outdoor with the indoor T/H sensor
+				cumulus.LogMessage("Overriding the default outdoor temp/hum data with Indoor temp/hum sensor");
+				cumulus.StationOptions.CalculatedDP = true;
+				cumulus.StationOptions.CalculatedWC = true;
+			}
 			else
 			{
 				// We are not using the primary T/H sensor so MX must calculate the wind chill as well
+				cumulus.StationOptions.CalculatedDP = true;
 				cumulus.StationOptions.CalculatedWC = true;
 				cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
 			}
@@ -93,6 +101,8 @@ namespace CumulusMX
 			macaddr = cumulus.Gw1000MacAddress;
 
 			Api = new GW1000Api(cumulus);
+
+			ecowittApi = new EcowittApi(cumulus, this);
 
 			if (DoDiscovery())
 			{
@@ -237,9 +247,6 @@ namespace CumulusMX
 
 				try
 				{
-
-					EcowittApi = new EcowittApi(cumulus, this);
-
 					do
 					{
 						GetHistoricData();
@@ -250,6 +257,9 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 				}
+
+				// get the station list
+				ecowittApi.GetStationList(cumulus.cancellationToken);
 			}
 
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
@@ -279,7 +289,25 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			EcowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+		}
+
+		public override string GetEcowittCameraUrl()
+		{
+			if (cumulus.EcowittCameraMacAddress != null)
+			{
+				try
+				{
+					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(cumulus.cancellationToken, EcowittCameraUrl);
+					return EcowittCameraUrl;
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
+				}
+			}
+
+			return null;
 		}
 
 		private Discovery DiscoverGW1000()
@@ -787,6 +815,8 @@ namespace CumulusMX
 					double windSpeedLast = -999, rainRateLast = -999, rainLast = -999, gustLast = -999;
 					int windDirLast = -999;
 					double outdoortemp = -999;
+					double dewpoint = -999;
+					double windchill = -999;
 
 					bool batteryLow = false;
 
@@ -801,6 +831,12 @@ namespace CumulusMX
 						{
 							case 0x01:  //Indoor Temperature (℃)
 								tempInt16 = GW1000Api.ConvertBigEndianInt16(data, idx);
+								// user has mapped indoor temp to outdoor temp
+								if (cumulus.Gw1000PrimaryTHSensor == 99)
+								{
+									// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
+									outdoortemp = tempInt16 / 10.0;
+								}
 								DoIndoorTemp(ConvertTempCToUser(tempInt16 / 10.0));
 								idx += 2;
 								break;
@@ -815,14 +851,14 @@ namespace CumulusMX
 								break;
 							case 0x03: //Dew point (℃)
 								tempInt16 = GW1000Api.ConvertBigEndianInt16(data, idx);
-								DoOutdoorDewpoint(ConvertTempCToUser(tempInt16 / 10.0), dateTime);
+								dewpoint = tempInt16 / 10.0;
 								idx += 2;
 								break;
 							case 0x04: //Wind chill (℃)
 								if (cumulus.Gw1000PrimaryTHSensor == 0)
 								{
 									tempInt16 = GW1000Api.ConvertBigEndianInt16(data, idx);
-									DoWindChill(ConvertTempCToUser(tempInt16 / 10.0), dateTime);
+									windchill = tempInt16 / 10.0;
 								}
 								idx += 2;
 								break;
@@ -831,6 +867,11 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x06: //Indoor Humidity(%)
+									   // user has mapped indoor hum to outdoor hum
+								if (cumulus.Gw1000PrimaryTHSensor == 99)
+								{
+									DoOutdoorHumidity(data[idx], dateTime);
+								}
 								DoIndoorHumidity(data[idx]);
 								idx += 1;
 								break;
@@ -1256,16 +1297,7 @@ namespace CumulusMX
 
 					if (outdoortemp > -999)
 					{
-						if (ConvertUserWindToMS(WindAverage) < 1.5)
-						{
-							DoWindChill(OutdoorTemperature, dateTime);
-						}
-						else
-						{
-							// calculate wind chill from calibrated C temp and calibrated wind in KPH
-							DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), dateTime);
-						}
-
+						DoWindChill(windchill, dateTime);
 						DoApparentTemp(dateTime);
 						DoFeelsLike(dateTime);
 						DoHumidex(dateTime);

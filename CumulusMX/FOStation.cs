@@ -61,6 +61,9 @@ namespace CumulusMX
 
 			hasSolar = cumulus.StationType == StationTypes.FineOffsetSolar;
 
+			cumulus.StationOptions.CalculatedDP = true;
+			cumulus.StationOptions.CalculatedWC = true;
+
 			cumulus.LogMessage("FO synchronise reads: " + cumulus.FineOffsetOptions.SyncReads);
 			if (cumulus.FineOffsetOptions.SyncReads)
 			{
@@ -546,21 +549,12 @@ namespace CumulusMX
 
 					prevraintotal = historydata.rainCounter;
 
-					OutdoorDewpoint = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity));
-
-					CheckForDewpointHighLow(timestamp);
+					// calculate dp
+					DoOutdoorDewpoint(-999, timestamp);
 
 					// calculate wind chill
 
-					if (ConvertUserWindToMS(WindAverage) < 1.5)
-					{
-						DoWindChill(OutdoorTemperature, timestamp);
-					}
-					else
-					{
-						// calculate wind chill from calibrated C temp and calibrated win in KPH
-						DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), timestamp);
-					}
+					DoWindChill(-999, timestamp);
 
 					DoApparentTemp(timestamp);
 					DoFeelsLike(timestamp);
@@ -1316,21 +1310,12 @@ namespace CumulusMX
 						// Use current humidity for dewpoint
 						if (OutdoorHumidity > 0)
 						{
-							OutdoorDewpoint = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity));
-
-							CheckForDewpointHighLow(now);
+							// calculate dp
+							DoOutdoorDewpoint(-999, now);
 						}
 
 						// calculate wind chill
-						// The 'global average speed will have been determined by the call of DoWind
-						// so use that in the wind chill calculation
-						double avgspeedKPH = ConvertUserWindToKPH(WindAverage);
-
-						// windinMPH = calibwind * 2.23693629;
-						// calculate wind chill from calibrated C temp and calibrated win in KPH
-						double val = MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), avgspeedKPH);
-
-						DoWindChill(ConvertTempCToUser(val), now);
+						DoWindChill(-999, now);
 
 						DoApparentTemp(now);
 						DoFeelsLike(now);

@@ -196,7 +196,7 @@ namespace CumulusMX
 					if (settings.logging.ftplogging)
 					{
 						cumulus.ftpLogfile = cumulus.RemoveOldDiagsFiles("FTP");
-						cumulus.CreateFtpLogFile(cumulus.ftpLogfile);
+						cumulus.CreateFtpLogFile();
 					}
 					cumulus.FtpOptions.Logging = settings.logging.ftplogging;
 				}

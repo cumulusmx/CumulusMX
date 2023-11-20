@@ -8,7 +8,7 @@ namespace CumulusMX
 	internal class EcowittCloudStation : WeatherStation
 	{
 		private readonly WeatherStation station;
-		private EcowittApi ecowittApi;
+		private readonly EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
 		private Task liveTask;
 		private readonly bool main;
@@ -22,7 +22,7 @@ namespace CumulusMX
 
 			if (main)
 			{
-				cumulus.LogMessage("Creating Ecowitt Cloud");
+				cumulus.LogMessage("Creating Ecowitt Cloud Station");
 			}
 			else
 			{
@@ -63,6 +63,11 @@ namespace CumulusMX
 					// We are using the primary T/H sensor
 					cumulus.LogMessage("Using the default outdoor temp/hum sensor data");
 				}
+				else if (cumulus.Gw1000PrimaryTHSensor == 99)
+				{
+					cumulus.LogMessage("Overriding the default outdoor temp/hum data with the internal sensor");
+					cumulus.StationOptions.CalculatedDP = true;
+				}
 				else
 				{
 					// We are not using the primary T/H sensor
@@ -95,14 +100,17 @@ namespace CumulusMX
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
 
+			ecowittApi = new EcowittApi(cumulus, this);
+
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
 			if (main)
 			{
 				Task.Run(getAndProcessHistoryData);
 			}
-			else
+			else if (cumulus.EcowittExtraUseCamera)
 			{
-				cumulus.LogMessage("Extra Sensors - Ecowitt Cloud");
+				// see if we have a camera attached
+				ecowittApi.GetStationList(cumulus.cancellationToken);
 			}
 		}
 
@@ -114,38 +122,44 @@ namespace CumulusMX
 
 			cumulus.LogMessage("Starting Ecowitt Cloud station");
 
-			cumulus.StartTimersAndSensors();
+			if (station == null)
+			{
+				cumulus.StartTimersAndSensors();
+			}
 
+			// main data task
 			liveTask = Task.Run(() =>
 			{
-				try
-				{
 					var piezoLastRead = DateTime.MinValue;
 					var dataLastRead = DateTime.MinValue;
 					var delay = 0;
 					var nextFetch = DateTime.MinValue;
 
-
 					while (!cumulus.cancellationToken.IsCancellationRequested)
 					{
 						if (DateTime.Now >= nextFetch)
 						{
-							var data = ecowittApi.GetCurrentData(cumulus.cancellationToken, ref delay);
-
-							if (data != null)
+							try
 							{
-								ProcessCurrentData(data, cumulus.cancellationToken);
+
+								var data = ecowittApi.GetCurrentData(cumulus.cancellationToken, ref delay);
+
+								if (data != null)
+								{
+									ProcessCurrentData(data, cumulus.cancellationToken);
+								}
+								cumulus.LogDebugMessage($"EcowittCloud; Waiting {delay} seconds before next update");
+								nextFetch = DateTime.Now.AddSeconds(delay);
 							}
-							cumulus.LogDebugMessage($"EcowittCloud; Waiting {delay} seconds before next update");
-							nextFetch = DateTime.Now.AddSeconds(delay);
+							catch (Exception ex)
+							{
+								cumulus.LogExceptionMessage(ex, "Error running Ecowitt Cloud station");
+								nextFetch = DateTime.Now.AddMinutes(1);
+							}
 						}
+
 						Thread.Sleep(1000);
 					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, "Error ruuning Ecowitt Cloud station");
-				}
 			}, cumulus.cancellationToken);
 		}
 
@@ -170,14 +184,13 @@ namespace CumulusMX
 
 			try
 			{
-
-				ecowittApi = new EcowittApi(cumulus, this);
-
 				do
 				{
 					GetHistoricData();
 					archiveRun++;
 				} while (archiveRun < maxArchiveRuns);
+
+				ecowittApi.GetStationList(cumulus.cancellationToken);
 			}
 			catch (Exception ex)
 			{
@@ -190,24 +203,42 @@ namespace CumulusMX
 			StartLoop();
 		}
 
-		private void GetHistoricData()
+		public override string GetEcowittCameraUrl()
 		{
-			cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
-
-			// add one minute to avoid duplicating the last log entry
-			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
-			var endTime = DateTime.Now;
-
-			// The API call is limited to fetching 24 hours of data
-			if ((endTime - startTime).TotalHours > 24.0)
+			if ((cumulus.EcowittExtraUseCamera || main) && cumulus.EcowittCameraMacAddress != null)
 			{
-				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
-				endTime = startTime.AddHours(24);
-				maxArchiveRuns++;
+				try
+				{
+					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(cumulus.cancellationToken, EcowittCameraUrl);
+					return EcowittCameraUrl;
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
+				}
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+			return null;
 		}
+
+		private void GetHistoricData()
+	{
+		cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
+
+		// add one minute to avoid duplicating the last log entry
+		var startTime = cumulus.LastUpdateTime.AddMinutes(1);
+		var endTime = DateTime.Now;
+
+		// The API call is limited to fetching 24 hours of data
+		if ((endTime - startTime).TotalHours > 24.0)
+		{
+			// only fetch 24 hours worth of data, and schedule another run to fetch the rest
+			endTime = startTime.AddHours(24);
+			maxArchiveRuns++;
+		}
+
+		ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+	}
 
 		private void ProcessCurrentData(EcowittApi.CurrentDataData data, CancellationToken token)
 		{
@@ -230,10 +261,10 @@ namespace CumulusMX
 						{
 							var time = Utils.FromUnixTime(data.outdoor.temperature.time);
 							DoOutdoorTemp(data.outdoor.temperature.value, time);
+							DoOutdoorHumidity(data.outdoor.humidity.value, time);
 							DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
 							DoFeelsLike(time);
 							DoApparentTemp(time);
-							DoOutdoorHumidity(data.outdoor.humidity.value, time);
 							DoHumidex(time);
 							DoCloudBaseHeatIndex(time);
 						}
@@ -253,6 +284,19 @@ namespace CumulusMX
 				{
 					try
 					{
+						// user has mapped the indoor sensor to the outdoor sensor
+						if (cumulus.Gw1000PrimaryTHSensor == 99)
+						{
+							var time = Utils.FromUnixTime(data.outdoor.temperature.time);
+							DoOutdoorTemp(data.indoor.temperature.value, time);
+							DoOutdoorHumidity(data.indoor.humidity.value, time);
+							DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
+							DoFeelsLike(time);
+							DoApparentTemp(time);
+							DoHumidex(time);
+							DoCloudBaseHeatIndex(time);
+						}
+
 						DoIndoorTemp(data.indoor.temperature.value);
 						DoIndoorHumidity(data.indoor.humidity.value);
 					}
@@ -290,7 +334,7 @@ namespace CumulusMX
 					try
 					{
 						DoWind(data.wind.wind_gust.value, data.wind.wind_direction.value, data.wind.wind_speed.value, Utils.FromUnixTime(data.wind.wind_gust.time));
-						DoWindChill(0, Utils.FromUnixTime(data.wind.wind_gust.time));
+						DoWindChill(-999, Utils.FromUnixTime(data.wind.wind_gust.time));
 					}
 					catch (Exception ex)
 					{
@@ -489,13 +533,14 @@ namespace CumulusMX
 			cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
 
-			var updateTime = Utils.FromUnixTime(data.outdoor == null ? data.indoor.temperature.time : data.indoor.temperature.time);
+			var updateTime = Utils.FromUnixTime(data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time);
 			thisStation.UpdateStatusPanel(updateTime);
 			thisStation.UpdateMQTT();
 
 			DataStopped = false;
 			cumulus.DataStoppedAlarm.Triggered = false;
 		}
+
 		private void ProcessExtraTempHum(EcowittApi.CurrentDataData data, WeatherStation station)
 		{
 			if (data.temp_and_humidity_ch1 != null)

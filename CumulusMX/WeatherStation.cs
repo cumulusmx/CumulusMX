@@ -16,7 +16,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Web;
-using System.Web.Compilation;
 
 using EmbedIO.Utilities;
 
@@ -379,6 +378,11 @@ namespace CumulusMX
 
 		public abstract void Start();
 
+		public virtual string GetEcowittCameraUrl()
+		{
+			return string.Empty;
+		}
+
 		public WeatherStation(Cumulus cumulus)
 		{
 			// save the reference to the owner
@@ -481,15 +485,28 @@ namespace CumulusMX
 			else if (errorCount > 0)
 			{
 				cumulus.LogErrorMessage("SQLite integrity check Failed, trying to compact database");
-				RecentDataDb.Execute("vacuum;");
-				cumulus.LogErrorMessage("SQLite compact database complete, retesting integriry...");
-				CheckSqliteDatabase(true);
+				try
+				{
+					RecentDataDb.Execute("vacuum;");
+					cumulus.LogMessage("SQLite compact database complete, retesting integriry...");
+					CheckSqliteDatabase(true);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage("SQLite compress failed - " + ex.Message);
+					cumulus.LogErrorMessage("Deleting RecentData database..");
+					RecentDataDb.Close();
+					File.Delete(cumulus.dbfile);
+					// Open database (create file if it doesn't exist)
+					SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
+					RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
+				}
 			}
 		}
 
 		public void ReloadFailedMySQLCommands()
 		{
-			while (cumulus.MySqlFailedList.TryDequeue(out var tmp))
+			while (cumulus.MySqlFailedList.TryDequeue(out var _))
 			{
 				// do nothing
 			};
@@ -703,7 +720,7 @@ namespace CumulusMX
 			FOSensorClockTime = ini.GetValue("FineOffset", "FOSensorClockTime", DateTime.MinValue);
 			FOStationClockTime = ini.GetValue("FineOffset", "FOStationClockTime", DateTime.MinValue);
 			FOSolarClockTime = ini.GetValue("FineOffset", "FOSolarClockTime", DateTime.MinValue);
-			if (cumulus.FineOffsetOptions.SyncReads)
+			if (cumulus.FineOffsetOptions.SyncReads && (cumulus.StationType == StationTypes.FineOffset || cumulus.StationType == StationTypes.FineOffsetSolar))
 			{
 				cumulus.LogMessage("Sensor clock  " + FOSensorClockTime.ToLongTimeString());
 				cumulus.LogMessage("Station clock " + FOStationClockTime.ToLongTimeString());
@@ -1356,6 +1373,13 @@ namespace CumulusMX
 		/// Wind run for today
 		/// </summary>
 		public double WindRunToday { get; set; } = 0;
+
+		public double GetWindRunMonth(int year, int month)
+		{
+			var startDate = new DateTime(year, month, 1);
+			var enddate = startDate.AddMonths(1);
+			return DayFile.Where(r => r.Date >= startDate && r.Date < enddate).Sum(r => r.WindRun);
+		}
 
 		/// <summary>
 		/// Extra Temps
@@ -2328,7 +2352,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2398,7 +2422,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2439,7 +2463,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2498,7 +2522,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2538,7 +2562,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2577,7 +2601,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2615,7 +2639,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2752,7 +2776,7 @@ namespace CumulusMX
 					dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 				}
 
-				var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ?", dateFrom);
+				var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
 				for (var i = 0; i < data.Count; i++)
 				{
@@ -4466,7 +4490,7 @@ namespace CumulusMX
 
 		}
 
-		public string GetIntervaPressGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		public string GetIntervalPressGraphData(DateTime? start = null, DateTime? end = null)
 		{
 			var InvC = new CultureInfo("");
 			StringBuilder sb = new StringBuilder("{\"press\":[");
@@ -4543,7 +4567,7 @@ namespace CumulusMX
 
 		}
 
-		public string GetIntervalWindGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		public string GetIntervalWindGraphData(DateTime? start = null, DateTime? end = null)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{\"wgust\":[");
@@ -4643,7 +4667,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetIntervalRainGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		public string GetIntervalRainGraphData(DateTime? start = null, DateTime? end = null)
 		{
 			var InvC = new CultureInfo("");
 			var sb = new StringBuilder("{");
@@ -5379,14 +5403,22 @@ namespace CumulusMX
 		{
 			bool chillvalid = true;
 
-			if (cumulus.StationOptions.CalculatedWC)
+			if (cumulus.StationOptions.CalculatedWC || chillpar < -500)
 			{
 				// don"t try to calculate wind chill if we haven"t yet had wind and temp readings
 				if (TempReadyToPlot && WindReadyToPlot)
 				{
 					double TempinC = ConvertUserTempToC(OutdoorTemperature);
 					double windinKPH = ConvertUserWindToKPH(WindAverage);
-					WindChill = ConvertTempCToUser(MeteoLib.WindChill(TempinC, windinKPH));
+					// no wind chill below 1.5 m/s = 5.4 km
+					if (windinKPH >= 5.4)
+					{
+						WindChill = ConvertTempCToUser(MeteoLib.WindChill(TempinC, windinKPH));
+					}
+					else
+					{
+						WindChill = OutdoorTemperature;
+					}
 				}
 				else
 				{
@@ -5974,21 +6006,25 @@ namespace CumulusMX
 
 		public void DoOutdoorDewpoint(double dp, DateTime timestamp)
 		{
-			if (!cumulus.StationOptions.CalculatedDP)
+
+			if (cumulus.StationOptions.CalculatedDP || dp < -500)
 			{
-				if (ConvertUserTempToC(dp) <= cumulus.Limit.DewHigh)
-				{
-					OutdoorDewpoint = dp;
-					CheckForDewpointHighLow(timestamp);
-				}
-				else
-				{
-					var msg = $"Dew point greater than limit ({cumulus.Limit.DewHigh.ToString(cumulus.TempFormat)}); reading ignored: {dp.ToString(cumulus.TempFormat)}";
-					lastSpikeRemoval = DateTime.Now;
-					cumulus.SpikeAlarm.LastMessage = msg;
-					cumulus.SpikeAlarm.Triggered = true;
-					cumulus.LogSpikeRemoval(msg);
-				}
+				dp = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(OutdoorTemperature), OutdoorHumidity));
+
+			}
+
+			if (ConvertUserTempToC(dp) <= cumulus.Limit.DewHigh)
+			{
+				OutdoorDewpoint = dp;
+				CheckForDewpointHighLow(timestamp);
+			}
+			else
+			{
+				var msg = $"Dew point greater than limit ({cumulus.Limit.DewHigh.ToString(cumulus.TempFormat)}); reading ignored: {dp.ToString(cumulus.TempFormat)}";
+				lastSpikeRemoval = DateTime.Now;
+				cumulus.SpikeAlarm.LastMessage = msg;
+				cumulus.SpikeAlarm.Triggered = true;
+				cumulus.LogSpikeRemoval(msg);
 			}
 		}
 
@@ -6152,11 +6188,11 @@ namespace CumulusMX
 		// Use -1 for the average if you want to feedback the current average for a calculated moving average
 		public void DoWind(double gustpar, int bearingpar, double speedpar, DateTime timestamp)
 		{
-			cumulus.LogDebugMessage($"DoWind: gust={gustpar:F1}, speed={speedpar:F1} - Current: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
-
+			cumulus.LogDebugMessage($"DoWind: latest={gustpar:F1}, speed={speedpar:F1} - Current: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
+			// if we have a spike in wind speed or gust, ignore the reading
 			// Spike removal is in m/s
 			var windGustMS = ConvertUserWindToMS(gustpar);
-			var windAvgMS = ConvertUserWindToMS(speedpar == -1 ? previousWind : speedpar);
+			var windAvgMS = speedpar == -1 ? previousWind : ConvertUserWindToMS(speedpar);
 
 			if (((Math.Abs(windGustMS - previousGust) > cumulus.Spike.GustDiff) && (previousGust != 999)) ||
 				((Math.Abs(windAvgMS - previousWind) > cumulus.Spike.WindDiff) && (previousWind != 999)) ||
@@ -6314,12 +6350,31 @@ namespace CumulusMX
 			// Now add up all the values within the required period
 			double totalwindX = 0;
 			double totalwindY = 0;
+			int diffFrom = 0;
+			int diffTo = 0;
+
 			for (int i = 0; i < MaxWindRecent; i++)
 			{
 				if (timestamp - WindVec[i].Timestamp < cumulus.AvgBearingTime)
 				{
 					totalwindX += WindVec[i].X;
 					totalwindY += WindVec[i].Y;
+
+					if (WindVec[i].Bearing != 0)
+					{
+						// this reading was within the last N minutes
+						int difference = getShortestAngle(AvgBearing, WindVec[i].Bearing);
+						if ((difference > diffTo))
+						{
+							diffTo = difference;
+							BearingRangeTo = WindVec[i].Bearing;
+						}
+						if ((difference < diffFrom))
+						{
+							diffFrom = difference;
+							BearingRangeFrom = WindVec[i].Bearing;
+						}
+					}
 				}
 			}
 			if (totalwindX == 0)
@@ -6352,38 +6407,26 @@ namespace CumulusMX
 
 			AvgBearingText = CompassPoint(AvgBearing);
 
-			int diffFrom = 0;
-			int diffTo = 0;
-			BearingRangeFrom = AvgBearing;
-			BearingRangeTo = AvgBearing;
-			if (AvgBearing != 0)
+			if (Math.Abs(WindAverage) < 0.01)
 			{
-				for (int i = 0; i <= MaxWindRecent - 1; i++)
-				{
-					if ((timestamp - WindVec[i].Timestamp < cumulus.AvgBearingTime) && (WindVec[i].Bearing != 0))
-					{
-						// this reading was within the last N minutes
-						int difference = getShortestAngle(AvgBearing, WindVec[i].Bearing);
-						if ((difference > diffTo))
-						{
-							diffTo = difference;
-							BearingRangeTo = WindVec[i].Bearing;
-							// Calculate rounded up value
-							BearingRangeTo10 = (int) (Math.Ceiling(WindVec[i].Bearing / 10.0) * 10);
-						}
-						if ((difference < diffFrom))
-						{
-							diffFrom = difference;
-							BearingRangeFrom = WindVec[i].Bearing;
-							BearingRangeFrom10 = (int) (Math.Floor(WindVec[i].Bearing / 10.0) * 10);
-						}
-					}
-				}
+				BearingRangeFrom = 0;
+				BearingRangeFrom10 = 0;
+				BearingRangeTo = 0;
+				BearingRangeTo10 = 0;
 			}
 			else
 			{
-				BearingRangeFrom10 = 0;
-				BearingRangeTo10 = 0;
+				// Calculate rounded up/down values
+				BearingRangeFrom10 = (int) (Math.Floor(BearingRangeFrom / 10.0) * 10);
+				BearingRangeTo10 = (int) (Math.Ceiling(BearingRangeTo / 10.0) * 10) % 360;
+				if (cumulus.StationOptions.UseZeroBearing && BearingRangeFrom10 == 0)
+				{
+					BearingRangeFrom10 = 360;
+				}
+				if (cumulus.StationOptions.UseZeroBearing && BearingRangeTo10 == 0)
+				{
+					BearingRangeTo10 = 360;
+				}
 			}
 
 			WindReadyToPlot = true;
@@ -6429,16 +6472,41 @@ namespace CumulusMX
 			cumulus.LogDebugMessage($"InitialiseWind: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
 		}
 
-		public void AddValuesToRecentWind(double gust, double speed, DateTime start, DateTime end)
+		public void AddValuesToRecentWind(double gust, double speed, int bearing, DateTime start, DateTime end)
 		{
+			var calGust = cumulus.Calib.WindGust.Calibrate(gust);
+			int calBearing;
+
+			// use bearing of zero when calm
+			if ((Math.Abs(gust) < 0.001) && cumulus.StationOptions.UseZeroBearing)
+			{
+				calBearing = 0;
+			}
+			else
+			{
+				calBearing = (bearing + (int) cumulus.Calib.WindDir.Offset) % 360;
+				if (calBearing < 0)
+				{
+					calBearing = 360 + calBearing;
+				}
+
+				if (calBearing == 0)
+				{
+					calBearing = 360;
+				}
+			}
+
+
 			for (DateTime ts = start; ts <= end; ts = ts.AddSeconds(3))
 			{
-				nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
-
 				WindRecent[nextwind].Gust = gust;
 				WindRecent[nextwind].Speed = speed;
 				WindRecent[nextwind].Timestamp = ts;
 				nextwind = (nextwind + 1) % MaxWindRecent;
+
+				windspeeds[nextwindvalue] = calGust;
+				windbears[nextwindvalue] = calBearing;
+				nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
 			}
 		}
 
@@ -6565,8 +6633,8 @@ namespace CumulusMX
 				File.AppendAllText(cumulus.Alltimelogfile, sb.ToString());
 			}
 
-			cumulus.NewRecordAlarm.Triggered = true;
 			cumulus.NewRecordAlarm.LastMessage = rec.Desc + " = " + string.Format("{0,7:0.000}", value);
+			cumulus.NewRecordAlarm.Triggered = true;
 		}
 
 		public void SetMonthlyAlltime(AllTimeRec rec, double value, DateTime timestamp)

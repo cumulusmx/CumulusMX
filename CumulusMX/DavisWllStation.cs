@@ -1280,16 +1280,7 @@ namespace CumulusMX
 				// Now we have the primary data, calculate the derived data
 				if (cumulus.StationOptions.CalculatedWC)
 				{
-					if (ConvertUserWindToMS(WindAverage) < 1.5)
-					{
-						// wind speed too low, use the temperature
-						DoWindChill(OutdoorTemperature, dateTime);
-					}
-					else
-					{
-						// calculate wind chill from calibrated C temp and calibrated wind in KPH
-						DoWindChill(ConvertTempCToUser(MeteoLib.WindChill(ConvertUserTempToC(OutdoorTemperature), ConvertUserWindToKPH(WindAverage))), dateTime);
-					}
+					DoWindChill(OutdoorTemperature, dateTime);
 				}
 
 				DoApparentTemp(dateTime);
@@ -2142,7 +2133,7 @@ namespace CumulusMX
 									var dir = data11.wind_speed_hi_dir ?? 0;
 									cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {data11.tx_id}");
 									DoWind(gust, dir, spd, recordTs);
-									AddValuesToRecentWind(spd, spd, recordTs.AddSeconds(-data11.arch_int), recordTs);
+									AddValuesToRecentWind(spd, spd, dir, recordTs.AddSeconds(-data11.arch_int), recordTs);
 								}
 								else
 								{

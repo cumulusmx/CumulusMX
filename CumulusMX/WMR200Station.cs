@@ -866,7 +866,7 @@ namespace CumulusMX
 				// it can't/won't do it if temp isn't available, so don't
 				// bother calling anyway
 
-				DoWindChill(OutdoorTemperature, now);
+				DoWindChill(-999, now);
 			}
 			else
 			{
@@ -1564,7 +1564,7 @@ namespace CumulusMX
 				// bother calling anyway
 				if (TempReadyToPlot)
 				{
-					DoWindChill(OutdoorTemperature, timestamp);
+					DoWindChill(-999, timestamp);
 				}
 			}
 			else
