@@ -4794,7 +4794,8 @@ namespace CumulusMX
 			FtpOptions.Username = ini.GetValue("FTP site", "Username", "");
 			FtpOptions.Password = ini.GetValue("FTP site", "Password", "");
 			FtpOptions.Directory = ini.GetValue("FTP site", "Directory", "");
-			if (FtpOptions.Hostname == "" && FtpOptions.Enabled)
+			FtpOptions.FtpMode = (FtpProtocols) ini.GetValue("FTP site", "Sslftp", 0);
+			if (FtpOptions.Enabled && FtpOptions.Hostname == "" && FtpOptions.FtpMode != FtpProtocols.PHP)
 			{
 				FtpOptions.Enabled = false;
 				rewriteRequired = true;
@@ -4803,7 +4804,6 @@ namespace CumulusMX
 			FtpOptions.AutoDetect = ini.GetValue("FTP site", "ConnectionAutoDetect", false);
 			FtpOptions.IgnoreCertErrors = ini.GetValue("FTP site", "IgnoreCertErrors", false);
 			FtpOptions.ActiveMode = ini.GetValue("FTP site", "ActiveFTP", false);
-			FtpOptions.FtpMode = (FtpProtocols) ini.GetValue("FTP site", "Sslftp", 0);
 			// BUILD 3092 - added alternate SFTP authentication options
 			FtpOptions.SshAuthen = ini.GetValue("FTP site", "SshFtpAuthentication", "password");
 			if (!sshAuthenticationVals.Contains(FtpOptions.SshAuthen))
@@ -4847,6 +4847,12 @@ namespace CumulusMX
 			FtpOptions.PhpIgnoreCertErrors = ini.GetValue("FTP site", "PHP-IgnoreCertErrors", false);
 			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", boolWindows ? 4 : 1);
 			FtpOptions.PhpUseGet = ini.GetValue("FTP site", "PHP-UseGet", true);
+
+			if (FtpOptions.Enabled && FtpOptions.PhpUrl == "" && FtpOptions.FtpMode == FtpProtocols.PHP)
+			{
+				FtpOptions.Enabled = false;
+				rewriteRequired = true;
+			}
 
 			MoonImage.Ftp = ini.GetValue("FTP site", "IncludeMoonImage", false);
 			MoonImage.Copy = ini.GetValue("FTP site", "CopyMoonImage", false);

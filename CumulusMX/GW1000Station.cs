@@ -102,6 +102,8 @@ namespace CumulusMX
 
 			Api = new GW1000Api(cumulus);
 
+			ecowittApi = new EcowittApi(cumulus, this);
+
 			if (DoDiscovery())
 			{
 				PostDiscovery();
@@ -245,9 +247,6 @@ namespace CumulusMX
 
 				try
 				{
-
-					ecowittApi = new EcowittApi(cumulus, this);
-
 					do
 					{
 						GetHistoricData();
