@@ -765,6 +765,7 @@ namespace CumulusMX
 			DominantWindBearingMinutes = ini.GetValue("Wind", "DominantWindBearingMinutes", 0);
 			DominantWindBearingX = ini.GetValue("Wind", "DominantWindBearingX", 0.0);
 			DominantWindBearingY = ini.GetValue("Wind", "DominantWindBearingY", 0.0);
+
 			// Temperature
 			HiLoToday.LowTemp = ini.GetValue("Temp", "Low", 999.0);
 			HiLoToday.LowTempTime = ini.GetValue("Temp", "LTime", metoTodayDate);
@@ -780,16 +781,19 @@ namespace CumulusMX
 			CoolingDegreeDays = ini.GetValue("Temp", "CoolingDegreeDays", 0.0);
 			GrowingDegreeDaysThisYear1 = ini.GetValue("Temp", "GrowingDegreeDaysThisYear1", 0.0);
 			GrowingDegreeDaysThisYear2 = ini.GetValue("Temp", "GrowingDegreeDaysThisYear2", 0.0);
+
 			// Temperature midnight rollover
 			HiLoTodayMidnight.LowTemp = ini.GetValue("TempMidnight", "Low", 999.0);
 			HiLoTodayMidnight.LowTempTime = ini.GetValue("TempMidnight", "LTime", metoTodayDate);
 			HiLoTodayMidnight.HighTemp = ini.GetValue("TempMidnight", "High", -999.0);
 			HiLoTodayMidnight.HighTempTime = ini.GetValue("TempMidnight", "HTime", metoTodayDate);
-			// PressureHighDewpoint
+
+			// Pressure
 			HiLoToday.LowPress = ini.GetValue("Pressure", "Low", 9999.0);
 			HiLoToday.LowPressTime = ini.GetValue("Pressure", "LTime", metoTodayDate);
 			HiLoToday.HighPress = ini.GetValue("Pressure", "High", 0.0);
 			HiLoToday.HighPressTime = ini.GetValue("Pressure", "HTime", metoTodayDate);
+
 			// rain
 			HiLoToday.HighRainRate = ini.GetValue("Rain", "High", 0.0);
 			HiLoToday.HighRainRateTime = ini.GetValue("Rain", "HTime", metoTodayDate);
@@ -805,35 +809,43 @@ namespace CumulusMX
 				cumulus.LogMessage("ReadTodayfile: set initialiseRainCounterOnFirstData false");
 				initialiseRainCounterOnFirstData = false;
 			}
+
 			// humidity
 			HiLoToday.LowHumidity = ini.GetValue("Humidity", "Low", 100);
 			HiLoToday.HighHumidity = ini.GetValue("Humidity", "High", 0);
 			HiLoToday.LowHumidityTime = ini.GetValue("Humidity", "LTime", metoTodayDate);
 			HiLoToday.HighHumidityTime = ini.GetValue("Humidity", "HTime", metoTodayDate);
+
 			// Solar
 			SunshineHours = ini.GetValue("Solar", "SunshineHours", 0.0);
 			SunshineToMidnight = ini.GetValue("Solar", "SunshineHoursToMidnight", 0.0);
+
 			// heat index
 			HiLoToday.HighHeatIndex = ini.GetValue("HeatIndex", "High", -999.0);
 			HiLoToday.HighHeatIndexTime = ini.GetValue("HeatIndex", "HTime", metoTodayDate);
+
 			// Apparent temp
 			HiLoToday.HighAppTemp = ini.GetValue("AppTemp", "High", -999.0);
 			HiLoToday.HighAppTempTime = ini.GetValue("AppTemp", "HTime", metoTodayDate);
 			HiLoToday.LowAppTemp = ini.GetValue("AppTemp", "Low", 999.0);
 			HiLoToday.LowAppTempTime = ini.GetValue("AppTemp", "LTime", metoTodayDate);
+
 			// wind chill
 			HiLoToday.LowWindChill = ini.GetValue("WindChill", "Low", 999.0);
 			HiLoToday.LowWindChillTime = ini.GetValue("WindChill", "LTime", metoTodayDate);
+
 			// Dew point
 			HiLoToday.HighDewPoint = ini.GetValue("Dewpoint", "High", -999.0);
 			HiLoToday.HighDewPointTime = ini.GetValue("Dewpoint", "HTime", metoTodayDate);
 			HiLoToday.LowDewPoint = ini.GetValue("Dewpoint", "Low", 999.0);
 			HiLoToday.LowDewPointTime = ini.GetValue("Dewpoint", "LTime", metoTodayDate);
+
 			// Feels like
 			HiLoToday.HighFeelsLike = ini.GetValue("FeelsLike", "High", -999.0);
 			HiLoToday.HighFeelsLikeTime = ini.GetValue("FeelsLike", "HTime", metoTodayDate);
 			HiLoToday.LowFeelsLike = ini.GetValue("FeelsLike", "Low", 999.0);
 			HiLoToday.LowFeelsLikeTime = ini.GetValue("FeelsLike", "LTime", metoTodayDate);
+
 			// Humidex
 			HiLoToday.HighHumidex = ini.GetValue("Humidex", "High", -999.0);
 			HiLoToday.HighHumidexTime = ini.GetValue("Humidex", "HTime", metoTodayDate);
@@ -1609,7 +1621,6 @@ namespace CumulusMX
 			// Return control to the calling method immediately.
 			await Task.Yield();
 
-
 			// send current data to web-socket
 			try
 			{
@@ -1775,7 +1786,7 @@ namespace CumulusMX
 					// calculate ET just before the hour so it is included in the correct day at roll over - only affects 9am met days really
 					if (cumulus.StationOptions.CalculatedET && now.Minute == 59)
 					{
-						CalculateEvaoptranspiration(now);
+						CalculateEvapotranspiration(now);
 					}
 
 
@@ -2139,7 +2150,7 @@ namespace CumulusMX
 		*/
 
 
-		public void CalculateEvaoptranspiration(DateTime date)
+		public void CalculateEvapotranspiration(DateTime date)
 		{
 			cumulus.LogDebugMessage("Calculating ET from data");
 
@@ -6194,19 +6205,26 @@ namespace CumulusMX
 			var windGustMS = ConvertUserWindToMS(gustpar);
 			var windAvgMS = speedpar == -1 ? previousWind : ConvertUserWindToMS(speedpar);
 
-			if (((Math.Abs(windGustMS - previousGust) > cumulus.Spike.GustDiff) && (previousGust != 999)) ||
-				((Math.Abs(windAvgMS - previousWind) > cumulus.Spike.WindDiff) && (previousWind != 999)) ||
-				windGustMS >= cumulus.Limit.WindHigh
-				)
+			if (previousGust != 999 && (Math.Abs(windGustMS - previousGust) > cumulus.Spike.GustDiff || windGustMS >= cumulus.Limit.WindHigh))
 			{
-				cumulus.LogSpikeRemoval("Wind or gust difference greater than specified; reading ignored");
+				cumulus.LogSpikeRemoval("Gust difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"Gust: NewVal={windGustMS:F1} OldVal={previousGust:F1} SpikeGustDiff={cumulus.Spike.GustDiff:F1} HighLimit={cumulus.Limit.WindHigh:F1}");
-				cumulus.LogSpikeRemoval($"Wind: NewVal={windAvgMS:F1} OldVal={previousWind:F1} SpikeWindDiff={cumulus.Spike.WindDiff:F1}");
-				lastSpikeRemoval = DateTime.Now;
+				lastSpikeRemoval = timestamp;
 				cumulus.SpikeAlarm.LastMessage = $"Wind or gust difference greater than spike/limit value - Gust: NewVal={windGustMS:F1}m/s OldVal={previousGust:F1}m/s - Wind: NewVal={windAvgMS:F1}m/s OldVal={previousWind:F1}m/s";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
+
+			if (previousWind != 999 && (Math.Abs(windAvgMS - previousWind) > cumulus.Spike.WindDiff || windAvgMS >= cumulus.Limit.WindHigh))
+			{
+				cumulus.LogSpikeRemoval("Wind difference greater than specified; reading ignored");
+				cumulus.LogSpikeRemoval($"Wind: NewVal={windAvgMS:F1} OldVal={previousWind:F1} SpikeWindDiff={cumulus.Spike.WindDiff:F1} HighLimit={cumulus.Limit.WindHigh:F1}");
+				lastSpikeRemoval = timestamp;
+				cumulus.SpikeAlarm.LastMessage = $"Wind or gust difference greater than spike/limit value - Gust: NewVal={windGustMS:F1}m/s OldVal={previousGust:F1}m/s - Wind: NewVal={windAvgMS:F1}m/s OldVal={previousWind:F1}m/s";
+				cumulus.SpikeAlarm.Triggered = true;
+				return;
+			}
+
 
 			previousGust = windGustMS;
 			previousWind = windAvgMS;
@@ -14823,7 +14841,7 @@ namespace CumulusMX
 				cumulus.LowPressAlarm.Triggered, cumulus.HighPressAlarm.Triggered, cumulus.PressChangeAlarm.UpTriggered, cumulus.PressChangeAlarm.DownTriggered, cumulus.HighGustAlarm.Triggered, cumulus.HighWindAlarm.Triggered,
 				cumulus.SensorAlarm.Triggered, cumulus.BatteryLowAlarm.Triggered, cumulus.SpikeAlarm.Triggered, cumulus.UpgradeAlarm.Triggered, cumulus.ThirdPartyAlarm.Triggered, cumulus.MySqlUploadAlarm.Triggered, cumulus.IsRainingAlarm.Triggered,
 				FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
-				HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
+				HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat), cumulus.NewRecordAlarm.Triggered, cumulus.FtpAlarm.Triggered);
 
 			try
 			{
@@ -14850,11 +14868,11 @@ namespace CumulusMX
 		{
 			// Spike check is in m/s
 			var windGustMS = ConvertUserWindToMS(gust);
-			if (((previousGust != 999) && (Math.Abs(windGustMS - previousGust) > cumulus.Spike.GustDiff)) || windGustMS >= cumulus.Limit.WindHigh)
+			if (previousGust != 999 && (Math.Abs(windGustMS - previousGust) > cumulus.Spike.GustDiff || windGustMS >= cumulus.Limit.WindHigh))
 			{
 				cumulus.LogSpikeRemoval("Wind Gust difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"Gust: NewVal={windGustMS:F1} OldVal={previousGust:F1} SpikeGustDiff={cumulus.Spike.GustDiff:F1} HighLimit={cumulus.Limit.WindHigh:F1}");
-				lastSpikeRemoval = DateTime.Now;
+				lastSpikeRemoval = timestamp;
 				cumulus.SpikeAlarm.LastMessage = $"Wind Gust difference greater than spike value - NewVal={windGustMS:F1}, OldVal={previousGust:F1}";
 				cumulus.SpikeAlarm.Triggered = true;
 				return false;

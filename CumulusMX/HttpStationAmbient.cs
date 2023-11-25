@@ -336,7 +336,6 @@ namespace CumulusMX
 							var val = ConvertTempFToUser(Convert.ToDouble(dewpnt, CultureInfo.InvariantCulture));
 							DoOutdoorDewpoint(val, recDate);
 						}
-
 					}
 					catch (Exception ex)
 					{
@@ -504,7 +503,6 @@ namespace CumulusMX
 						// pm10_in_24h - [float, µg/m^3]
 						// pm_in_temp - [float, F]
 						// pm_in_humidity - [int, %]
-
 						ProcessAirQuality(data, thisStation);
 					}
 					catch (Exception ex)
@@ -541,7 +539,6 @@ namespace CumulusMX
 						// lightning_day - [int, count]
 						// lightning_time - [int, Unix time]
 						// lightning_distance - [float, km]
-
 						ProcessLightning(data, thisStation);
 					}
 					catch (Exception ex)
@@ -849,6 +846,5 @@ namespace CumulusMX
 				}
 			}
 		}
-
 	}
 }

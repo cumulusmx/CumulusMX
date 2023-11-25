@@ -100,9 +100,13 @@ namespace CumulusMX
 				}
 			};
 
-
 			var weatherflow = new JsonStationSettingsWeatherFlow()
-			{ deviceid = cumulus.WeatherFlowOptions.WFDeviceId, tcpport = cumulus.WeatherFlowOptions.WFTcpPort, token = cumulus.WeatherFlowOptions.WFToken, dayshistory = cumulus.WeatherFlowOptions.WFDaysHist };
+			{
+				deviceid = cumulus.WeatherFlowOptions.WFDeviceId,
+				tcpport = cumulus.WeatherFlowOptions.WFTcpPort,
+				token = cumulus.WeatherFlowOptions.WFToken,
+				dayshistory = cumulus.WeatherFlowOptions.WFDaysHist
+			};
 
 			var gw1000 = new JsonStationSettingsGw1000Conn()
 			{

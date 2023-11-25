@@ -647,7 +647,7 @@ namespace CumulusMX
 				else if (broadcastJson.StartsWith("STR_BCAST"))
 				{
 					var msg = broadcastJson.Replace(((char) 0x00), '.').Replace(((char) 0x1c), '.');
-					cumulus.LogWarningMessage($"WLL broadcast: Received spurious message from printer utility(?) at IP address {from.Address.ToString()} starting with \"STR_BCAST\"");
+					cumulus.LogDebugMessage($"WLL broadcast: Received spurious message from printer utility(?) at IP address {from.Address} starting with \"STR_BCAST\"");
 					cumulus.LogDataMessage("WLL broadcast: Message = " + msg);
 				}
 				else
@@ -1830,7 +1830,7 @@ namespace CumulusMX
 					if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
 					{
 						// Start of a new hour, and we want to calculate ET in Cumulus
-						CalculateEvaoptranspiration(timestamp);
+						CalculateEvapotranspiration(timestamp);
 					}
 
 					UpdateStatusPanel(timestamp);

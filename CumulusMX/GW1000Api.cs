@@ -227,7 +227,7 @@ namespace CumulusMX
 			// sanity check the size
 			if (size + 3 + lengthBytes > data.Length)
 			{
-				cumulus.LogErrorMessage($"Ckecksum: Error - Calculated data length [{size}] exceeds the buffer size!");
+				cumulus.LogErrorMessage($"Checksum: Error - Calculated data length [{size}] exceeds the buffer size!");
 				return false;
 			}
 

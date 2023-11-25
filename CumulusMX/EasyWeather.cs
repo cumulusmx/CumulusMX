@@ -201,7 +201,7 @@ namespace CumulusMX
 					if (cumulus.StationOptions.CalculatedET && now.Minute == 0)
 					{
 						// Start of a new hour, and we want to calculate ET in Cumulus
-						CalculateEvaoptranspiration(now);
+						CalculateEvapotranspiration(now);
 					}
 
 					UpdateStatusPanel(now);

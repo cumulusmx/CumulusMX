@@ -18,8 +18,6 @@ namespace CumulusMX
 {
 	internal class TempestStation : WeatherStation
 	{
-
-
 		public TempestStation(Cumulus cumulus) : base(cumulus)
 		{
 			calculaterainrate = false;
@@ -216,7 +214,7 @@ namespace CumulusMX
 				if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
 				{
 					// Start of a new hour, and we want to calculate ET in Cumulus
-					CalculateEvaoptranspiration(timestamp);
+					CalculateEvapotranspiration(timestamp);
 				}
 
 				DoTrendValues(timestamp);
@@ -236,7 +234,6 @@ namespace CumulusMX
 
 		public override void Start()
 		{
-
 			cumulus.NormalRunning = true;
 			StationListener.WeatherPacketReceived = WeatherPacketReceived;
 			StationListener.Start(cumulus);
@@ -290,8 +287,7 @@ namespace CumulusMX
 						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure,
 							(double) wp.Observation.Temperature);
 						DoPressure(ConvertPressMBToUser(seaLevel), ts);
-						cumulus.LogDebugMessage(
-							$"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
+						cumulus.LogDebugMessage($"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
 
 						DoSolarRad(wp.Observation.SolarRadiation, ts);
 						DoUV((double) wp.Observation.UV, ts);
@@ -299,12 +295,10 @@ namespace CumulusMX
 													(60d / wp.Observation.ReportInterval));
 
 						var newRain = Raincounter + ConvertRainMMToUser((double) wp.Observation.Precipitation);
-						cumulus.LogDebugMessage(
-							$"TempestDoRain: New Precip: {wp.Observation.Precipitation}, Type: {wp.Observation.PrecipType}, Rate: {rainrate}");
+						cumulus.LogDebugMessage($"TempestDoRain: New Precip: {wp.Observation.Precipitation}, Type: {wp.Observation.PrecipType}, Rate: {rainrate}");
 
 						DoRain(newRain, rainrate, ts);
-						cumulus.LogDebugMessage(
-							$"TempestDoRain: Total Precip for Day: {Raincounter}");
+						cumulus.LogDebugMessage($"TempestDoRain: Total Precip for Day: {Raincounter}");
 
 						DoOutdoorDewpoint(-999, ts);
 						DoApparentTemp(ts);
@@ -341,7 +335,6 @@ namespace CumulusMX
 						LightningStrikesToday++;
 						cumulus.LogDebugMessage($"Lightning Detected: {wp.LightningStrike.Timestamp} - {wp.LightningStrike.Distance} km - {LightningStrikesToday} strikes today");
 						break;
-
 				}
 			}
 		}
@@ -631,7 +624,6 @@ namespace CumulusMX.Tempest
 		public long timestamp { get; set; }
 
 		public DateTime PacketTime => WeatherPacket.FromUnixTimeSeconds(timestamp);
-
 
 		public int rssi { get; set; }
 		public string hub_sn { get; set; }

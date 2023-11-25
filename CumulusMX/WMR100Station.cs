@@ -61,7 +61,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("WMR100 station not found!");
+				cumulus.LogErrorMessage("WMR100 station not found!");
 				cumulus.LogConsoleMessage("WMR100 station not found!", ConsoleColor.Red);
 			}
 		}
@@ -389,7 +389,7 @@ namespace CumulusMX
 
 			if ((packetBuffer[8] & 0x20) == 0x20)
 			{
-				// no wind chill, use current temp if (available
+				// no wind chill, use current temp if available
 				// note that even if (Cumulus is set to calculate wind chill
 				// it can't/won't do it if (temp isn't available, so don't
 				// bother calling anyway

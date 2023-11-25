@@ -1250,7 +1250,7 @@ namespace CumulusMX
 				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
 				{
 					// Start of a new hour, and we want to calculate ET in Cumulus
-					station.CalculateEvaoptranspiration(rec.Key);
+					station.CalculateEvapotranspiration(rec.Key);
 				}
 
 				station.DoTrendValues(rec.Key);

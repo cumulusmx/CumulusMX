@@ -1,3 +1,15 @@
+3.27.2 - b3264
+——————————————
+New
+
+Changed
+- Warning message from WLL station about spurious broadcast messages changed to a Debug message
+
+Fixed
+- Add missing New Rccord and FTP alarm info to the dashboard data stream
+- Some AirLink wl.com API calls not using the correct API details when configured as Standalone
+
+
 3.27.1 - b3263
 ——————————————
 New

@@ -13845,6 +13845,7 @@ namespace CumulusMX
 			}
 		}
 
+		/*
 		private void PingCompletedCallback(object sender, PingCompletedEventArgs e)
 		{
 			// If an error occurred, display the exception to the user.
@@ -13859,6 +13860,7 @@ namespace CumulusMX
 
 			//pingReply = e.Reply;
 		}
+		*/
 
 		private void CreateRequiredFolders()
 		{

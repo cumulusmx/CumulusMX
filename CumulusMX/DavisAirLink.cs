@@ -611,7 +611,6 @@ namespace CumulusMX
 				apiKey = cumulus.WllApiKey;
 				apiSecret = cumulus.WllApiSecret;
 				stationId = cumulus.WllStationId;
-
 			}
 
 			if (stationId < 10)
@@ -660,7 +659,7 @@ namespace CumulusMX
 				int responseCode;
 
 				var request = new HttpRequestMessage(HttpMethod.Get, historicUrl.ToString());
-				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
+				request.Headers.Add("X-Api-Secret", apiSecret);
 
 				// we want to do this synchronously, so .Result
 				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
@@ -1010,6 +1009,10 @@ namespace CumulusMX
 		{
 			WlHistory histObj;
 
+			// Are we using the same WL APIv2 as a WLL device?
+			if (cumulus.StationType == 11 && !standalone)
+				return;
+
 			string apiKey;
 			string apiSecret;
 			int stationId;
@@ -1297,14 +1300,8 @@ namespace CumulusMX
 			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 
 			// Are we using the same WL APIv2 as a WLL device?
-			if (cumulus.StationType == 11 && cumulus.WllApiKey == cumulus.AirLinkApiKey)
+			if (cumulus.StationType == 11 && !standalone)
 				return true;
-
-			SortedDictionary<string, string> parameters = new SortedDictionary<string, string>
-			{
-				{ "api-key", cumulus.AirLinkApiKey },
-				{ "t", unixDateTime.ToString() }
-			};
 
 			var stationsUrl = "https://api.weatherlink.com/v2/stations?api-key=" + cumulus.AirLinkApiKey;
 
@@ -1380,17 +1377,15 @@ namespace CumulusMX
 		{
 			WlSensorList sensorsObj;
 
+			// Are we using the same WL APIv2 as a WLL device?
+			if (cumulus.StationType == 11 && !standalone)
+				return;
+
 			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 
 			if (string.IsNullOrEmpty(cumulus.AirLinkApiKey) || string.IsNullOrEmpty(cumulus.AirLinkApiSecret))
 			{
 				cumulus.LogWarningMessage("GetAvailableSensors: WeatherLink AirLink API data is missing in the configuration, aborting!");
-				return;
-			}
-
-			if ((indoor && cumulus.AirLinkInStationId < 10) || (!indoor && cumulus.AirLinkOutStationId < 10))
-			{
-				cumulus.LogWarningMessage($"GetAvailableSensors: No WeatherLink AirLink API station ID has been configured, aborting!");
 				return;
 			}
 

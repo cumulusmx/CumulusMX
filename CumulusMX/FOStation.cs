@@ -618,7 +618,7 @@ namespace CumulusMX
 				if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
 				{
 					// Start of a new hour, and we want to calculate ET in Cumulus
-					CalculateEvaoptranspiration(timestamp);
+					CalculateEvapotranspiration(timestamp);
 				}
 
 				UpdatePressureTrendString();
@@ -1379,7 +1379,7 @@ namespace CumulusMX
 
 						if (UVreading < 0 || UVreading > 16)
 						{
-							cumulus.LogMessage("Ignoring UV-I reading " + UVreading);
+							cumulus.LogWarningMessage("Ignoring UV-I reading " + UVreading);
 						}
 						else
 						{

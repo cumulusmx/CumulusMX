@@ -25,7 +25,7 @@ namespace CumulusMX
 							bool alarmPressUp, bool alarmPressDown, bool alarmGust, bool alarmWind, bool alarmSensor, bool alarmBattery, bool alarmSpike, bool alarmUpgrade,
 							bool alarmHttp, bool alarmMySql, bool alarmRaining,
 							double feelsLike, double highFeelsLikeToday, string highFeelsLikeTodayTime, double lowFeelsLikeToday, string lowFeelsLikeTodayTime,
-							double highHumidexToday, string highHumidexTodayTime)
+							double highHumidexToday, string highHumidexTodayTime, bool alarmRecord, bool alarmFtp)
 		{
 			this.cumulus = cumulus;
 			OutdoorTemp = outdoorTemp;
@@ -145,6 +145,8 @@ namespace CumulusMX
 			AlarmHttp = alarmHttp;
 			AlarmMySql = alarmMySql;
 			AlarmIsRaining = alarmRaining;
+			AlarmNewRec = alarmRecord;
+			AlarmFtp = alarmFtp;
 		}
 
 		[IgnoreDataMember]
@@ -832,5 +834,11 @@ namespace CumulusMX
 
 		[DataMember]
 		public bool AlarmIsRaining { get; set; }
+
+		[DataMember]
+		public bool AlarmNewRec { get; set; }
+
+		[DataMember]
+		public bool AlarmFtp { get; set; }
 	}
 }

@@ -316,7 +316,6 @@ namespace CumulusMX
 
 				if (recDate.Minute != lastMinute)
 				{
-
 					// at start-up or every 20 minutes trigger output of uptime
 					if ((recDate.Minute % 20) == 0 || lastMinute == -1 && data["runtime"] != null)
 					{
@@ -544,7 +543,7 @@ namespace CumulusMX
 							rRate = data["rainratein"];
 							if (cumulus.StationOptions.UseRainForIsRaining == 2)
 							{
-								IsRaining = Convert.ToDouble(data["​rrain_piezo"], invNum) > 0;
+								IsRaining = Convert.ToDouble(data["rrain_piezo"], invNum) > 0;
 								cumulus.IsRainingAlarm.Triggered = IsRaining;
 							}
 						}
@@ -1212,18 +1211,18 @@ namespace CumulusMX
 			lowBatt = lowBatt || (data["wh90batt"] != null && Convert.ToDouble(data["wh90batt"], invNum) <= 2.4);
 			for (var i = 1; i < 5; i++)
 			{
-				lowBatt = lowBatt || (data["batt" + i] != null && data["batt" + i] == "1");
+				lowBatt = lowBatt || (data["batt" + i]     != null && data["batt" + i] == "1");
 				lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["pm25batt" + i] != null && data["pm25batt" + i] == "1");
 				lowBatt = lowBatt || (data["leakbatt" + i] != null && data["leakbatt" + i] == "1");
-				lowBatt = lowBatt || (data["tf_batt" + i] != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
 			}
 			for (var i = 5; i < 9; i++)
 			{
-				lowBatt = lowBatt || (data["batt" + i] != null && data["batt" + i] == "1");
+				lowBatt = lowBatt || (data["batt" + i]     != null && data["batt" + i] == "1");
 				lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i], invNum) <= 1.2);
-				lowBatt = lowBatt || (data["tf_batt" + i] != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
 			}
 

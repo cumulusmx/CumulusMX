@@ -43,7 +43,7 @@ namespace CumulusMX
 				maxwind = cumulus.LCMaxWind,
 				recordtimeout = cumulus.RecordSetTimeoutHrs,
 				snowdepthhour = cumulus.SnowDepthHour,
-				raindaythreshold = cumulus.RainDayThreshold,
+				raindaythreshold = cumulus.RainDayThreshold
 			};
 
 			// Common Settings
@@ -187,7 +187,6 @@ namespace CumulusMX
 				summer10am = cumulus.Use10amInSummer
 			};
 
-
 			var fineoffsetadvanced = new JsonStationSettingsFineOffsetAdvanced()
 			{
 				readtime = cumulus.FineOffsetOptions.ReadTime,
@@ -233,7 +232,6 @@ namespace CumulusMX
 				baudrate = cumulus.ImetOptions.BaudRate,
 				advanced = imetAdvanced
 			};
-
 
 			int deg, min, sec;
 			string hem;
@@ -920,7 +918,6 @@ namespace CumulusMX
 				{
 					if (settings.ecowittmaps != null)
 					{
-
 						cumulus.Gw1000PrimaryTHSensor = settings.ecowittmaps.primaryTHsensor;
 						cumulus.Gw1000PrimaryRainSensor = settings.ecowittmaps.primaryRainSensor;
 
@@ -1220,7 +1217,6 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
-
 				// Station type
 				try
 				{
@@ -1365,6 +1361,7 @@ namespace CumulusMX
 					returnMsg = "Error starting a new upload";
 					cumulus.LogErrorMessage($"Upload Now: {returnMsg}: {ex.Message}");
 				}
+
 				cumulus.LogDebugMessage("Upload Now: Process complete");
 				return returnMsg;
 			}
