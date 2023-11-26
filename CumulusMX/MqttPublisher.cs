@@ -16,7 +16,7 @@ namespace CumulusMX
 		private static Cumulus cumulus;
 		private static MqttClient mqttClient;
 		public static bool configured;
-		private static Dictionary<String, String> publishedTopics;
+		private static Dictionary<String, String> publishedTopics = new Dictionary<string, string>();
 
 		public static void Setup(Cumulus cumulus)
 		{
@@ -76,8 +76,6 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("Error: MQTT reconnection to server failed");
 				}
 			});
-
-			publishedTopics = new Dictionary<string, string>();
 
 			configured = true;
 		}
