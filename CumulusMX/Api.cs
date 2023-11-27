@@ -1592,6 +1592,9 @@ namespace CumulusMX
 							case "ftpnow.json":
 								await writer.WriteAsync(stationSettings.UploadNow(HttpContext));
 								break;
+							case "clearerrorlog.json":
+								await writer.WriteAsync(cumulus.ClearErrorLog());
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;

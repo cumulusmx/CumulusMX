@@ -9245,9 +9245,6 @@ namespace CumulusMX
 				LogMessage("Stopping station...");
 				try
 				{
-					station.Stop();
-					LogMessage("Station stopped");
-
 					if (station.HaveReadData)
 					{
 						LogMessage("Writing today.ini file");
@@ -9259,6 +9256,9 @@ namespace CumulusMX
 						LogMessage("No data read this session, today.ini not written");
 					}
 					station.SaveWindData();
+
+					station.Stop();
+					LogMessage("Station stopped");
 				}
 				catch { }
 			}
@@ -11872,6 +11872,11 @@ namespace CumulusMX
 			return arr.Reverse().ToJson();
 		}
 
+		public string ClearErrorLog()
+		{
+			ErrorList.Clear();
+			return GetErrorLog();
+		}
 
 		private void CreateRealtimeFile(int cycle)
 		{

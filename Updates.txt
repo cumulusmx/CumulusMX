@@ -1,6 +1,7 @@
 3.27.2 - b3264
 ——————————————
 New
+- Adds the option to clear the latest error log
 
 Changed
 - Warning message from WLL station about spurious broadcast messages changed to a Debug message
