@@ -3386,7 +3386,6 @@ namespace CumulusMX
 
 		private string TagLastRainTip(Dictionary<string, string> tagParams)
 		{
-			string dtformat = tagParams.Get("format");
 			try
 			{
 				var lastTip = DateTime.Parse(station.LastRainTip);

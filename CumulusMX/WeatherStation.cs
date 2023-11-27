@@ -5766,7 +5766,7 @@ namespace CumulusMX
 			{
 				cumulus.LogSpikeRemoval("Rain rate greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"Rate value = {rainRateMM:F2} SpikeMaxRainRate = {cumulus.Spike.MaxRainRate:F2}");
-				lastSpikeRemoval = DateTime.Now;
+				lastSpikeRemoval = timestamp;
 				cumulus.SpikeAlarm.LastMessage = $"Rain rate greater than spike value - value = {rainRateMM:F2}mm/hr";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
@@ -5856,6 +5856,7 @@ namespace CumulusMX
 					cumulus.LogMessage("Setting raindaystart to " + raindaystart);
 
 					midnightraincount = Raincounter;
+					previoustotal = total;
 
 					// update any data in the recent data db
 					var counterChange = Raincounter - prevraincounter;

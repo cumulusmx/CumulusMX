@@ -285,8 +285,8 @@ namespace CumulusMX
 				broadcastTask = Task.Run(async () =>
 				{
 					byte[] lastMessage = null;
-					var endPoint = new IPEndPoint(IPAddress.Any, port);
-					using (var udpClient = new UdpClient(endPoint))
+					//var endPoint = new IPEndPoint(IPAddress.Any, port);
+					using (var udpClient = new UdpClient(port))
 					{
 						udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
@@ -372,14 +372,14 @@ namespace CumulusMX
 			StopMinuteTimer();
 			try
 			{
-				if (bw != null && bw.WorkerSupportsCancellation)
+				if (bw != null && bw.WorkerSupportsCancellation && !bw.CancellationPending)
 				{
 					bw.CancelAsync();
 				}
 				if (broadcastTask != null)
 					broadcastTask.Wait();
 
-				bwDoneEvent.WaitOne();
+				bwDoneEvent.WaitOne(2000);
 			}
 			catch
 			{
