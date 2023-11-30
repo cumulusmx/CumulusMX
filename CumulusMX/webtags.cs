@@ -2475,12 +2475,12 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.AllTime.HighWind.Ts, "\\a\\t HH:mm o\\n dd MMMM yyyy", tagParams);
 		}
 
-		private string TagwchillH(Dictionary<string, string> tagParams)
+		private string TagwchillL(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(CheckTempUnit(station.AllTime.LowChill.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
-		private string TagTwchillH(Dictionary<string, string> tagParams)
+		private string TagTwchillL(Dictionary<string, string> tagParams)
 		{
 			return GetFormattedDateTime(station.AllTime.LowChill.Ts, "\\a\\t HH:mm o\\n dd MMMM yyyy", tagParams);
 		}
@@ -5957,8 +5957,8 @@ namespace CumulusMX
 				{ "TwspeedH", TagTwspeedH },
 				{ "windrunH", TagwindrunH },
 				{ "TwindrunH", TagTwindrunH },
-				{ "wchillH", TagwchillH },
-				{ "TwchillH", TagTwchillH },
+				{ "wchillL", TagwchillL },
+				{ "TwchillL", TagTwchillL },
 				{ "rrateM", TagrrateM },
 				{ "TrrateM", TagTrrateM },
 				{ "rfallH", TagrfallH },

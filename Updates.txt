@@ -9,6 +9,9 @@ New
 
 Changed
 - Warning message from WLL station about spurious broadcast messages changed to a Debug message
+- All time low wind chill web tags were miss named wchillH and TwchillH. They are now wchillL and TwchillL
+	- The default web site page record.htm has been changed to reflect this
+	- As has the websitedataT.json file
 
 Fixed
 - Add missing New Record and FTP alarm info to the dashboard data stream
