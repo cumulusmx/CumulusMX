@@ -586,9 +586,14 @@ namespace CumulusMX
 					cumulus.LogMessage($"Special case, Davis station on 1st of {month}. Set midnight rain count to zero");
 					midnightraincount = 0;
 				}
+				else if (Math.Round(raindaystart, cumulus.RainDPlaces) == Math.Round(raincount, cumulus.RainDPlaces))
+				{
+					cumulus.LogMessage($"raindaystart {raindaystart:F4} and midnight rain {raincount:F4} match within rounding error, setting midnight rain to rainday start value");
+					midnightraincount = raindaystart;
+				}
 				else
 				{
-					cumulus.LogMessage("Midnight rain found, setting midnight rain count = " + raincount);
+					cumulus.LogMessage($"Midnight rain found, setting existing midnight rain count {midnightraincount:F4} to log file value {raincount:F4}");
 					midnightraincount = raincount;
 				}
 			}
@@ -599,14 +604,9 @@ namespace CumulusMX
 			}
 
 			// If we do not have a rain counter value for start of day from Today.ini, then use the midnight counter
-			if (initialiseRainCounterOnFirstData)
+			if (initialiseRainCounter)
 			{
 				Raincounter = midnightraincount + (RainToday / cumulus.Calib.Rain.Mult);
-			}
-			else
-			{
-				// Otherwise use the counter value from today.ini plus total so far today to infer the counter value
-				Raincounter = raindaystart + (RainToday / cumulus.Calib.Rain.Mult);
 			}
 
 			cumulus.LogMessage("Checking rain counter = " + Raincounter);
@@ -617,7 +617,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("Rain counter set to = " + Raincounter);
+				cumulus.LogMessage("Rain counter left at = " + Raincounter);
 			}
 		}
 
@@ -802,12 +802,19 @@ namespace CumulusMX
 			HiLoToday.HighRain24h = ini.GetValue("Rain", "High24h", 0.0);
 			HiLoToday.HighRain24hTime = ini.GetValue("Rain", "High24hTime", metoTodayDate);
 			raindaystart = ini.GetValue("Rain", "Start", -1.0);
-			cumulus.LogMessage($"ReadTodayfile: Rain day start = {raindaystart}");
+			Raincounter = ini.GetValue("Rain", "Last", -1.0);
+			cumulus.LogMessage($"ReadTodayfile: Rain day start = {raindaystart:F4}, last count = {Raincounter:F4}");
 			RainYesterday = ini.GetValue("Rain", "Yesterday", 0.0);
-			if (raindaystart >= 0)
+			if (raindaystart == -1.0)
 			{
-				cumulus.LogMessage("ReadTodayfile: set initialiseRainCounterOnFirstData false");
-				initialiseRainCounterOnFirstData = false;
+				cumulus.LogMessage("ReadTodayfile: set initialiseRainDayStart true");
+				initialiseRainDayStart = true;
+			}
+
+			if (Raincounter == -1.0)
+			{
+				cumulus.LogMessage("ReadTodayfile: set initialiseRainCounterOnFirstData true");
+				initialiseRainCounter = true;
 			}
 
 			// humidity
@@ -915,6 +922,7 @@ namespace CumulusMX
 				ini.SetValue("Rain", "High24h", HiLoToday.HighRain24h);
 				ini.SetValue("Rain", "High24hTime", HiLoToday.HighRain24hTime.ToString("HH:mm"));
 				ini.SetValue("Rain", "Start", raindaystart);
+				ini.SetValue("Rain", "Last", Raincounter);
 				ini.SetValue("Rain", "Yesterday", RainYesterday);
 				ini.SetValue("Rain", "LastTip", LastRainTip);
 				ini.SetValue("Rain", "ConsecutiveRainDays", ConsecutiveRainDays);
@@ -5793,7 +5801,7 @@ namespace CumulusMX
 			var previoustotal = Raincounter;
 
 			// This is just to stop rounding errors triggering phantom rain days
-			double raintipthreshold = cumulus.Units.Rain == 0 ? 0.009 : 0.0003;
+			//double raintipthreshold = cumulus.Units.Rain == 0 ? 0.009 : 0.0003;
 
 			/*
 			if (cumulus.Manufacturer == cumulus.DAVIS)  // Davis can have either 0.2mm or 0.01in buckets, and the user could select to measure in mm or inches!
@@ -5839,13 +5847,14 @@ namespace CumulusMX
 			Raincounter = total;
 
 			//first_rain = false;
-			if (initialiseRainCounterOnFirstData)
+			if (initialiseRainDayStart)
 			{
+				initialiseRainDayStart = false;
+
 				raindaystart = Raincounter;
 				midnightraincount = Raincounter;
 				cumulus.LogMessage(" First rain data, raindaystart = " + raindaystart);
 
-				initialiseRainCounterOnFirstData = false;
 				WriteTodayFile(timestamp, false);
 				HaveReadData = true;
 				return;
@@ -5853,7 +5862,7 @@ namespace CumulusMX
 
 			// Has the rain total in the station been reset?
 			// raindaystart greater than current total, allow for rounding
-			if (raindaystart - Raincounter > raintipthreshold)
+			if (Math.Round(raindaystart, cumulus.RainDPlaces) - Math.Round(Raincounter, cumulus.RainDPlaces) > 0)
 			{
 				if (FirstChanceRainReset)
 				// second consecutive reading with reset value
@@ -5937,7 +5946,7 @@ namespace CumulusMX
 			if (!FirstChanceRainReset)
 			{
 				// Has a tip occurred?
-				if (total - previoustotal > raintipthreshold)
+				if (Math.Round(total, cumulus.RainDPlaces) - Math.Round(previoustotal, cumulus.RainDPlaces) > 0)
 				{
 					// rain has occurred
 					LastRainTip = timestamp.ToString("yyyy-MM-dd HH:mm");
@@ -5955,11 +5964,8 @@ namespace CumulusMX
 				}
 
 				// Calculate today"s rainfall
-				RainToday = Raincounter - raindaystart;
+				RainToday = (Raincounter - raindaystart) * cumulus.Calib.Rain.Mult;
 				//cumulus.LogDebugMessage("Uncalibrated RainToday = " + RainToday);
-
-				// scale for calibration
-				RainToday *= cumulus.Calib.Rain.Mult;
 
 				// Calculate rain since midnight for Wunderground etc
 				double trendval = Raincounter - midnightraincount;
@@ -6754,7 +6760,8 @@ namespace CumulusMX
 
 		//private bool first_rain = true;
 		private bool FirstChanceRainReset = false;
-		public bool initialiseRainCounterOnFirstData = true;
+		private bool initialiseRainDayStart = false;
+		private bool initialiseRainCounter = false;
 		//private bool RainReadyToPlot = false;
 		private double rainthismonth = 0;
 		private double rainthisyear = 0;

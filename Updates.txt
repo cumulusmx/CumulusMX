@@ -1,4 +1,4 @@
-3.27.2 - b3264
+3.28.0 - b3264
 ——————————————
 New
 - Adds the option to clear the latest error log
@@ -13,6 +13,11 @@ Changed
 Fixed
 - Add missing New Record and FTP alarm info to the dashboard data stream
 - Some AirLink wl.com API calls not using the correct API details when configured as Standalone
+
+Package Updates
+- MailKit/MimeKit
+- MySqlConnector
+- ServiceStack.Text
 
 
 3.27.1 - b3263
