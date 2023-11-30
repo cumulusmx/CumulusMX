@@ -665,7 +665,7 @@ namespace CumulusMX
 				multicastsBad++;
 				var msg = string.Format("WLL broadcast: Error processing broadcast. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float) (multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
 				cumulus.LogErrorMessage(msg);
-				cumulus.LogMessage($"WLL broadcast: Received from {from.Address.ToString()}: " + broadcastJson);
+				cumulus.LogMessage($"WLL broadcast: Received from {from.Address}: " + broadcastJson);
 			}
 		}
 
