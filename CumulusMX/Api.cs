@@ -1646,6 +1646,9 @@ namespace CumulusMX
 							case "alarms.json":
 								await writer.WriteAsync(alarmSettings.GetAlarmInfo());
 								break;
+							case "units.json":
+								await writer.WriteAsync(Station.GetUnits());
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;

@@ -553,8 +553,8 @@ namespace CumulusMX
 				station.DoExtraTemp(data.temp_and_humidity_ch1.temperature.value, 1);
 				station.DoExtraHum(data.temp_and_humidity_ch1.humidity.value, 1);
 
-				var dp = MeteoLib.DewPoint(ConvertUserTempToC(station.ExtraTemp[1]), station.ExtraHum[1]);
-				station.ExtraDewPoint[1] = ConvertTempCToUser(dp);
+				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[1]), station.ExtraHum[1]);
+				station.ExtraDewPoint[1] = ConvertUnits.TempCToUser(dp);
 			}
 
 			if (data.temp_and_humidity_ch2 != null)
@@ -567,8 +567,8 @@ namespace CumulusMX
 				station.DoExtraTemp(data.temp_and_humidity_ch2.temperature.value, 2);
 				station.DoExtraHum(data.temp_and_humidity_ch2.humidity.value, 2);
 
-				var dp = MeteoLib.DewPoint(ConvertUserTempToC(station.ExtraTemp[2]), station.ExtraHum[2]);
-				station.ExtraDewPoint[2] = ConvertTempCToUser(dp);
+				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[2]), station.ExtraHum[2]);
+				station.ExtraDewPoint[2] = ConvertUnits.TempCToUser(dp);
 			}
 
 			if (data.temp_and_humidity_ch3 != null)
@@ -581,8 +581,8 @@ namespace CumulusMX
 				station.DoExtraTemp(data.temp_and_humidity_ch3.temperature.value, 3);
 				station.DoExtraHum(data.temp_and_humidity_ch3.humidity.value, 3);
 
-				var dp = MeteoLib.DewPoint(ConvertUserTempToC(station.ExtraTemp[3]), station.ExtraHum[3]);
-				station.ExtraDewPoint[3] = ConvertTempCToUser(dp);
+				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[3]), station.ExtraHum[3]);
+				station.ExtraDewPoint[3] = ConvertUnits.TempCToUser(dp);
 			}
 
 			if (data.temp_and_humidity_ch4 != null)
@@ -595,8 +595,8 @@ namespace CumulusMX
 				station.DoExtraTemp(data.temp_and_humidity_ch4.temperature.value, 4);
 				station.DoExtraHum(data.temp_and_humidity_ch4.humidity.value, 4);
 
-				var dp = MeteoLib.DewPoint(ConvertUserTempToC(station.ExtraTemp[4]), station.ExtraHum[4]);
-				station.ExtraDewPoint[4] = ConvertTempCToUser(dp);
+				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[4]), station.ExtraHum[4]);
+				station.ExtraDewPoint[4] = ConvertUnits.TempCToUser(dp);
 			}
 
 			if (data.temp_and_humidity_ch5 != null)
@@ -609,8 +609,8 @@ namespace CumulusMX
 				station.DoExtraTemp(data.temp_and_humidity_ch5.temperature.value, 5);
 				station.DoExtraHum(data.temp_and_humidity_ch5.humidity.value, 5);
 
-				var dp = MeteoLib.DewPoint(ConvertUserTempToC(station.ExtraTemp[5]), station.ExtraHum[5]);
-				station.ExtraDewPoint[5] = ConvertTempCToUser(dp);
+				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[5]), station.ExtraHum[5]);
+				station.ExtraDewPoint[5] = ConvertUnits.TempCToUser(dp);
 			}
 
 			if (data.temp_and_humidity_ch6 != null)
@@ -623,8 +623,8 @@ namespace CumulusMX
 				station.DoExtraTemp(data.temp_and_humidity_ch6.temperature.value, 6);
 				station.DoExtraHum(data.temp_and_humidity_ch6.humidity.value, 6);
 
-				var dp = MeteoLib.DewPoint(ConvertUserTempToC(station.ExtraTemp[6]), station.ExtraHum[6]);
-				station.ExtraDewPoint[6] = ConvertTempCToUser(dp);
+				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[6]), station.ExtraHum[6]);
+				station.ExtraDewPoint[6] = ConvertUnits.TempCToUser(dp);
 			}
 
 			if (data.temp_and_humidity_ch7 != null)
@@ -637,8 +637,8 @@ namespace CumulusMX
 				station.DoExtraTemp(data.temp_and_humidity_ch7.temperature.value, 7);
 				station.DoExtraHum(data.temp_and_humidity_ch7.humidity.value, 7);
 
-				var dp = MeteoLib.DewPoint(ConvertUserTempToC(station.ExtraTemp[7]), station.ExtraHum[7]);
-				station.ExtraDewPoint[7] = ConvertTempCToUser(dp);
+				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[7]), station.ExtraHum[7]);
+				station.ExtraDewPoint[7] = ConvertUnits.TempCToUser(dp);
 			}
 
 			if (data.temp_and_humidity_ch8 != null)
@@ -651,8 +651,8 @@ namespace CumulusMX
 				station.DoExtraTemp(data.temp_and_humidity_ch8.temperature.value, 8);
 				station.DoExtraHum(data.temp_and_humidity_ch8.humidity.value, 8);
 
-				var dp = MeteoLib.DewPoint(ConvertUserTempToC(station.ExtraTemp[8]), station.ExtraHum[8]);
-				station.ExtraDewPoint[8] = ConvertTempCToUser(dp);
+				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[8]), station.ExtraHum[8]);
+				station.ExtraDewPoint[8] = ConvertUnits.TempCToUser(dp);
 			}
 		}
 
@@ -888,7 +888,7 @@ namespace CumulusMX
 				if (data.lightning.distance != null && data.lightning.distance.value != 255)
 				{
 					station.LightningStrikesToday = data.lightning.count.value;
-					station.LightningDistance = ConvertKmtoUserUnits(data.lightning.distance.value);
+					station.LightningDistance = ConvertUnits.KmtoUserUnits(data.lightning.distance.value);
 
 					var tim = Utils.FromUnixTime(data.lightning.distance.time);
 

@@ -1549,12 +1549,12 @@ namespace CumulusMX
 
 				if ((loopData.InsideTemperature > -200) && (loopData.InsideTemperature < 300))
 				{
-					DoIndoorTemp(ConvertTempFToUser(loopData.InsideTemperature));
+					DoIndoorTemp(ConvertUnits.TempFToUser(loopData.InsideTemperature));
 				}
 
 				if ((loopData.OutsideTemperature > -200) && (loopData.OutsideTemperature < 300))
 				{
-					DoOutdoorTemp(ConvertTempFToUser(loopData.OutsideTemperature), now);
+					DoOutdoorTemp(ConvertUnits.TempFToUser(loopData.OutsideTemperature), now);
 				}
 				else
 				{
@@ -1563,15 +1563,15 @@ namespace CumulusMX
 
 				if ((loopData.Pressure >= 20) && (loopData.Pressure < 32.5))
 				{
-					DoPressure(ConvertPressINHGToUser(loopData.Pressure), now);
+					DoPressure(ConvertUnits.PressINHGToUser(loopData.Pressure), now);
 				}
 				else
 				{
 					cumulus.LogDebugMessage($"LOOP: Ignoring pressure data. Pressure={loopData.Pressure} inHg.");
 				}
 
-				double wind = ConvertWindMPHToUser(loopData.CurrentWindSpeed);
-				double avgwind = ConvertWindMPHToUser(loopData.AvgWindSpeed);
+				double wind = ConvertUnits.WindMPHToUser(loopData.CurrentWindSpeed);
+				double avgwind = ConvertUnits.WindMPHToUser(loopData.AvgWindSpeed);
 
 				// Check for sensible figures (spec says max for large cups is 175 mph, but up to 200 mph)
 				// Average = 255 means the console hasn't calculated it yet
@@ -1628,7 +1628,7 @@ namespace CumulusMX
 
 				if ((loopData.AnnualET >= 0) && (loopData.AnnualET < 32000))
 				{
-					DoET(ConvertRainINToUser(loopData.AnnualET), now);
+					DoET(ConvertUnits.RainINToUser(loopData.AnnualET), now);
 				}
 
 				DoWindChill(OutdoorTemperature, now);
@@ -1673,37 +1673,37 @@ namespace CumulusMX
 				{
 					if (loopData.ExtraTemp1 < 255)
 					{
-						DoExtraTemp(ConvertTempFToUser(loopData.ExtraTemp1 - 90), 1);
+						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp1 - 90), 1);
 					}
 
 					if (loopData.ExtraTemp2 < 255)
 					{
-						DoExtraTemp(ConvertTempFToUser(loopData.ExtraTemp2 - 90), 2);
+						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp2 - 90), 2);
 					}
 
 					if (loopData.ExtraTemp3 < 255)
 					{
-						DoExtraTemp(ConvertTempFToUser(loopData.ExtraTemp3 - 90), 3);
+						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp3 - 90), 3);
 					}
 
 					if (loopData.ExtraTemp4 < 255)
 					{
-						DoExtraTemp(ConvertTempFToUser(loopData.ExtraTemp4 - 90), 4);
+						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp4 - 90), 4);
 					}
 
 					if (loopData.ExtraTemp5 < 255)
 					{
-						DoExtraTemp(ConvertTempFToUser(loopData.ExtraTemp5 - 90), 5);
+						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp5 - 90), 5);
 					}
 
 					if (loopData.ExtraTemp6 < 255)
 					{
-						DoExtraTemp(ConvertTempFToUser(loopData.ExtraTemp6 - 90), 6);
+						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp6 - 90), 6);
 					}
 
 					if (loopData.ExtraTemp7 < 255)
 					{
-						DoExtraTemp(ConvertTempFToUser(loopData.ExtraTemp7 - 90), 7);
+						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp7 - 90), 7);
 					}
 
 					if (loopData.ExtraHum1 >= 0 && loopData.ExtraHum1 <= 100)
@@ -1711,7 +1711,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum1, 1);
 						if (loopData.ExtraTemp1 < 255)
 						{
-							ExtraDewPoint[1] = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(ExtraTemp[1]), ExtraHum[1]));
+							ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1]), ExtraHum[1]));
 						}
 					}
 
@@ -1720,7 +1720,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum2, 2);
 						if (loopData.ExtraTemp2 < 255)
 						{
-							ExtraDewPoint[2] = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(ExtraTemp[2]), ExtraHum[2]));
+							ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2]), ExtraHum[2]));
 						}
 					}
 
@@ -1729,7 +1729,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum3, 3);
 						if (loopData.ExtraTemp3 < 255)
 						{
-							ExtraDewPoint[3] = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(ExtraTemp[3]), ExtraHum[3]));
+							ExtraDewPoint[3] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[3]), ExtraHum[3]));
 						}
 					}
 
@@ -1738,7 +1738,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum4, 4);
 						if (loopData.ExtraTemp4 < 255)
 						{
-							ExtraDewPoint[4] = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(ExtraTemp[4]), ExtraHum[4]));
+							ExtraDewPoint[4] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[4]), ExtraHum[4]));
 						}
 					}
 
@@ -1779,22 +1779,22 @@ namespace CumulusMX
 
 					if (loopData.SoilTemp1 < 255 && loopData.SoilTemp1 > 0)
 					{
-						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp1 - 90), 1);
+						DoSoilTemp(ConvertUnits.TempFToUser(loopData.SoilTemp1 - 90), 1);
 					}
 
 					if (loopData.SoilTemp2 < 255 && loopData.SoilTemp2 > 0)
 					{
-						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp2 - 90), 2);
+						DoSoilTemp(ConvertUnits.TempFToUser(loopData.SoilTemp2 - 90), 2);
 					}
 
 					if (loopData.SoilTemp3 < 255 && loopData.SoilTemp3 > 0)
 					{
-						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp3 - 90), 3);
+						DoSoilTemp(ConvertUnits.TempFToUser(loopData.SoilTemp3 - 90), 3);
 					}
 
 					if (loopData.SoilTemp4 < 255 && loopData.SoilTemp4 > 0)
 					{
-						DoSoilTemp(ConvertTempFToUser(loopData.SoilTemp4 - 90), 4);
+						DoSoilTemp(ConvertUnits.TempFToUser(loopData.SoilTemp4 - 90), 4);
 					}
 
 					if (loopData.LeafWetness1 >= 0 && loopData.LeafWetness1 < 16)
@@ -1968,13 +1968,13 @@ namespace CumulusMX
 				else
 				{
 					// Spike removal is in mb/hPa
-					var pressUser = ConvertPressINHGToUser(loopData.AbsolutePressure);
-					var pressMB = ConvertUserPressToMB(pressUser);
+					var pressUser = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
+					var pressMB = ConvertUnits.UserPressToMB(pressUser);
 					if ((previousPressStation == 9999) || (Math.Abs(pressMB - previousPressStation) < cumulus.Spike.PressDiff))
 					{
 						previousPressStation = pressMB;
-						StationPressure = ConvertPressINHGToUser(loopData.AbsolutePressure);
-						AltimeterPressure = ConvertPressMBToUser(StationToAltimeter(ConvertUserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+						StationPressure = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
+						AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
 					}
 					else
 					{
@@ -1986,7 +1986,7 @@ namespace CumulusMX
 					}
 				}
 
-				double wind = ConvertWindMPHToUser(loopData.CurrentWindSpeed);
+				double wind = ConvertUnits.WindMPHToUser(loopData.CurrentWindSpeed);
 
 				// Use current average as we don't have a new value in LOOP2. Allow for calibration.
 				if (loopData.CurrentWindSpeed < 200)
@@ -2002,7 +2002,7 @@ namespace CumulusMX
 				if (loopData.WindGust10Min < 200 && cumulus.StationOptions.PeakGustMinutes >= 10)
 				{
 					// Extract 10-min gust and see if it is higher than we have recorded.
-					var rawGust10min = ConvertWindMPHToUser(loopData.WindGust10Min);
+					var rawGust10min = ConvertUnits.WindMPHToUser(loopData.WindGust10Min);
 					var gust10min = cumulus.Calib.WindGust.Calibrate(rawGust10min);
 					var gustdir = (int)cumulus.Calib.WindDir.Calibrate(loopData.WindGustDir);
 
@@ -2025,7 +2025,7 @@ namespace CumulusMX
 
 				if (loopData.THSWindex < 32000)
 				{
-					THSWIndex = ConvertTempFToUser(loopData.THSWindex);
+					THSWIndex = ConvertUnits.TempFToUser(loopData.THSWindex);
 				}
 
 				//UpdateStatusPanel(DateTime.Now);
@@ -2447,7 +2447,7 @@ namespace CumulusMX
 
 							if ((archiveData.InsideTemperature > -200) && (archiveData.InsideTemperature < 300))
 							{
-								DoIndoorTemp(ConvertTempFToUser(archiveData.InsideTemperature));
+								DoIndoorTemp(ConvertUnits.TempFToUser(archiveData.InsideTemperature));
 							}
 
 							if ((archiveData.InsideHumidity >= 0) && (archiveData.InsideHumidity <= 100))
@@ -2463,19 +2463,19 @@ namespace CumulusMX
 							// Check if the archive hi/lo temps break any records
 							if ((archiveData.HiOutsideTemp > -200) && (archiveData.HiOutsideTemp < 300))
 							{
-								DoOutdoorTemp(ConvertTempFToUser(archiveData.HiOutsideTemp), timestamp);
+								DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.HiOutsideTemp), timestamp);
 							}
 
 							// Check if the archive hi/lo temps break any records
 							if ((archiveData.LoOutsideTemp > -200) && (archiveData.LoOutsideTemp < 300))
 							{
-								DoOutdoorTemp(ConvertTempFToUser(archiveData.LoOutsideTemp), timestamp);
+								DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.LoOutsideTemp), timestamp);
 							}
 
 							// Now process the "average" interval temperature - use this as our
 							if ((archiveData.OutsideTemperature > -200) && (archiveData.OutsideTemperature < 300))
 							{
-								DoOutdoorTemp(ConvertTempFToUser(archiveData.OutsideTemperature), timestamp);
+								DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.OutsideTemperature), timestamp);
 								// add in 'archivePeriod' minutes worth of temperature to the temp samples
 								tempsamplestoday += interval;
 								TempTotalToday += (OutdoorTemperature * interval);
@@ -2491,8 +2491,8 @@ namespace CumulusMX
 								UpdateDegreeDays(interval);
 							}
 
-							double wind = ConvertWindMPHToUser(archiveData.HiWindSpeed);
-							double avgwind = ConvertWindMPHToUser(archiveData.AvgWindSpeed);
+							double wind = ConvertUnits.WindMPHToUser(archiveData.HiWindSpeed);
+							double avgwind = ConvertUnits.WindMPHToUser(archiveData.AvgWindSpeed);
 							if (archiveData.HiWindSpeed < 250 && archiveData.AvgWindSpeed < 250)
 							{
 								int bearing = archiveData.WindDirection;
@@ -2540,7 +2540,7 @@ namespace CumulusMX
 
 							if ((archiveData.Pressure > 0) && (archiveData.Pressure < 40))
 							{
-								DoPressure(ConvertPressINHGToUser(archiveData.Pressure), timestamp);
+								DoPressure(ConvertUnits.PressINHGToUser(archiveData.Pressure), timestamp);
 							}
 
 							if (archiveData.HiUVIndex >= 0 && archiveData.HiUVIndex < 25)
@@ -2559,24 +2559,24 @@ namespace CumulusMX
 
 							if (!cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
 							{
-								DoET(ConvertRainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
+								DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
 							}
 
 							if (cumulus.StationOptions.LogExtraSensors)
 							{
 								if (archiveData.ExtraTemp1 < 255)
 								{
-									DoExtraTemp(ConvertTempFToUser(archiveData.ExtraTemp1 - 90), 1);
+									DoExtraTemp(ConvertUnits.TempFToUser(archiveData.ExtraTemp1 - 90), 1);
 								}
 
 								if (archiveData.ExtraTemp2 < 255)
 								{
-									DoExtraTemp(ConvertTempFToUser(archiveData.ExtraTemp2 - 90), 2);
+									DoExtraTemp(ConvertUnits.TempFToUser(archiveData.ExtraTemp2 - 90), 2);
 								}
 
 								if (archiveData.ExtraTemp3 < 255)
 								{
-									DoExtraTemp(ConvertTempFToUser(archiveData.ExtraTemp3 - 90), 3);
+									DoExtraTemp(ConvertUnits.TempFToUser(archiveData.ExtraTemp3 - 90), 3);
 								}
 
 								if (archiveData.ExtraHum1 >= 0 && archiveData.ExtraHum1 <= 100)
@@ -2584,7 +2584,7 @@ namespace CumulusMX
 									DoExtraHum(archiveData.ExtraHum1, 1);
 									if (archiveData.ExtraTemp1 < 255)
 									{
-										ExtraDewPoint[1] = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(ExtraTemp[1]), ExtraHum[1]));
+										ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1]), ExtraHum[1]));
 									}
 								}
 
@@ -2593,7 +2593,7 @@ namespace CumulusMX
 									DoExtraHum(archiveData.ExtraHum2, 2);
 									if (archiveData.ExtraTemp2 < 255)
 									{
-										ExtraDewPoint[2] = ConvertTempCToUser(MeteoLib.DewPoint(ConvertUserTempToC(ExtraTemp[2]), ExtraHum[2]));
+										ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2]), ExtraHum[2]));
 									}
 								}
 
@@ -2619,22 +2619,22 @@ namespace CumulusMX
 
 								if (archiveData.SoilTemp1 < 255 && archiveData.SoilTemp1 > 0)
 								{
-									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp1 - 90), 1);
+									DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp1 - 90), 1);
 								}
 
 								if (archiveData.SoilTemp2 < 255 && archiveData.SoilTemp2 > 0)
 								{
-									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp2 - 90), 2);
+									DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp2 - 90), 2);
 								}
 
 								if (archiveData.SoilTemp3 < 255 && archiveData.SoilTemp3 > 0)
 								{
-									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp3 - 90), 3);
+									DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp3 - 90), 3);
 								}
 
 								if (archiveData.SoilTemp4 < 255 && archiveData.SoilTemp4 > 0)
 								{
-									DoSoilTemp(ConvertTempFToUser(archiveData.SoilTemp4 - 90), 4);
+									DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp4 - 90), 4);
 								}
 
 								if (archiveData.LeafWetness1 >= 0 && archiveData.LeafWetness1 < 16)
@@ -3760,19 +3760,19 @@ namespace CumulusMX
 			{
 				case 0:
 					// Rain gauge is metric 0.2 mm
-					return ConvertRainMMToUser(clicks * 0.2);
+					return ConvertUnits.RainMMToUser(clicks * 0.2);
 
 				case 1:
 					// Rain gauge is imperial 0.01 in
-					return ConvertRainINToUser(clicks * 0.01);
+					return ConvertUnits.RainINToUser(clicks * 0.01);
 
 				case 2:
 					// Rain gauge is metric 0.1 mm
-					return ConvertRainMMToUser(clicks * 0.1);
+					return ConvertUnits.RainMMToUser(clicks * 0.1);
 
 				case 3:
 					// Rain gauge is imperial 0.001 in
-					return ConvertRainMMToUser(clicks * 0.2);
+					return ConvertUnits.RainMMToUser(clicks * 0.2);
 
 				default:
 					// Rain gauge type not configured, assume it is the same as the station units

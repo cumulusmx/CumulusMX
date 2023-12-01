@@ -226,7 +226,7 @@ namespace CumulusMX
 
 		public const int LogFileRetries = 3;
 
-		private readonly WeatherStation station;
+		private WeatherStation station;
 
 		internal DavisAirLink airLinkIn;
 		public int airLinkInLsid;
@@ -243,7 +243,7 @@ namespace CumulusMX
 
 		public PerformanceCounter UpTime;
 
-		internal readonly WebTags WebTags;
+		internal WebTags WebTags;
 
 		internal Lang Trans = new Lang();
 
@@ -371,7 +371,7 @@ namespace CumulusMX
 		public double Altitude;
 
 		internal int wsPort;
-		private readonly bool DebuggingEnabled;
+		private bool DebuggingEnabled;
 
 		public SerialPort cmprtRG11;
 		public SerialPort cmprt2RG11;
@@ -384,14 +384,14 @@ namespace CumulusMX
 		public string Alltimelogfile;
 		public string MonthlyAlltimeIniFile;
 		public string MonthlyAlltimeLogFile;
-		private readonly string logFilePath;
+		private string logFilePath;
 		public string DayFileName;
 		public string YesterdayFile;
 		public string TodayIniFile;
 		public string MonthIniFile;
 		public string YearIniFile;
 		//private readonly string stringsFile;
-		private readonly string backupPath;
+		private string backupPath;
 		//private readonly string ExternaldataFile;
 		public string WebTagFile;
 
@@ -658,7 +658,7 @@ namespace CumulusMX
 
 		//private PingReply pingReply;
 
-		private readonly SemaphoreSlim uploadCountLimitSemaphoreSlim;
+		private SemaphoreSlim uploadCountLimitSemaphoreSlim;
 
 		// Global cancellation token for when CMX is stopping
 		public readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
@@ -667,24 +667,11 @@ namespace CumulusMX
 		private static bool boolWindows;
 
 
-		public Cumulus(int HTTPport, bool DebugEnabled, string startParms)
+		public Cumulus()
 		{
 			cancellationToken = tokenSource.Token;
 
-			var fullVer = Assembly.GetExecutingAssembly().GetName().Version;
-			Version = $"{fullVer.Major}.{fullVer.Minor}.{fullVer.Build}";
-			Build = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
-
 			DirectorySeparator = Path.DirectorySeparatorChar;
-
-			AppDir = Directory.GetCurrentDirectory() + DirectorySeparator;
-			WebTagFile = AppDir + "WebTags.txt";
-
-			//b3045>, use same port for WS...  WS port = HTTPS port
-			//wsPort = WSport;
-			wsPort = HTTPport;
-
-			DebuggingEnabled = DebugEnabled;
 
 			// Set up the diagnostic tracing
 			loggingfile = RemoveOldDiagsFiles("CMX");
@@ -696,8 +683,22 @@ namespace CumulusMX
 			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
 			Trace.Listeners.Add(myTextListener);
 			Trace.AutoFlush = true;
+		}
 
-			// Read the configuration file
+		public void Initialise(int HTTPport, bool DebugEnabled, string startParms)
+		{
+			var fullVer = Assembly.GetExecutingAssembly().GetName().Version;
+			Version = $"{fullVer.Major}.{fullVer.Minor}.{fullVer.Build}";
+			Build = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
+
+			AppDir = Directory.GetCurrentDirectory() + DirectorySeparator;
+			WebTagFile = AppDir + "WebTags.txt";
+
+			//b3045>, use same port for WS...  WS port = HTTPS port
+			//wsPort = WSport;
+			wsPort = HTTPport;
+
+			DebuggingEnabled = DebugEnabled;
 
 			LogMessage(" ========================== Cumulus MX starting ==========================");
 
@@ -4143,28 +4144,42 @@ namespace CumulusMX
 
 			if (logType == "CMX")
 			{
-				List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+\d{8}-\d{6}\.txt").Success));
-
-				fileEntries.Sort();
-
-				while (fileEntries.Count >= maxEntries)
+				try
 				{
-					File.Delete(fileEntries.First());
-					fileEntries.RemoveAt(0);
+					List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => Regex.Match(f, @"[\\/]+\d{8}-\d{6}\.txt").Success));
+
+					fileEntries.Sort();
+
+					while (fileEntries.Count >= maxEntries)
+					{
+						File.Delete(fileEntries.First());
+						fileEntries.RemoveAt(0);
+					}
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, "Error removing old MXdiags files");
 				}
 
 				filename = $"{directory}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
 			}
 			else if (logType == "FTP")
 			{
-				List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+FTP-\d{8}-\d{6}\.txt").Success));
-
-				fileEntries.Sort();
-
-				while (fileEntries.Count >= maxEntries)
+				try
 				{
-					File.Delete(fileEntries.First());
-					fileEntries.RemoveAt(0);
+					List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+FTP-\d{8}-\d{6}\.txt").Success));
+
+					fileEntries.Sort();
+
+					while (fileEntries.Count >= maxEntries)
+					{
+						File.Delete(fileEntries.First());
+						fileEntries.RemoveAt(0);
+					}
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, "Error removing old FTP log files");
 				}
 
 				filename = $"{directory}FTP-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
@@ -4530,6 +4545,34 @@ namespace CumulusMX
 			Spike.MaxHourlyRain = ini.GetValue("Station", "EWmaxHourlyRain", 999.0);
 			Spike.InTempDiff = ini.GetValue("Station", "EWinTempdiff", 999.0);
 			Spike.InHumDiff = ini.GetValue("Station", "EWinHumiditydiff", 999.0);
+			if (Spike.TempDiff < 999)
+			{
+				Spike.TempDiff = ConvertUnits.TempCToUser(Spike.TempDiff);
+			}
+			if (Spike.PressDiff < 999)
+			{
+				Spike.PressDiff = ConvertUnits.PressMBToUser(Spike.PressDiff);
+			}
+			if (Spike.GustDiff < 999)
+			{
+				Spike.GustDiff = ConvertUnits.WindMSToUser(Spike.GustDiff);
+			}
+			if (Spike.WindDiff < 999)
+			{
+				Spike.WindDiff = ConvertUnits.WindMSToUser(Spike.WindDiff);
+			}
+			if (Spike.MaxRainRate < 999)
+			{
+				Spike.MaxRainRate = ConvertUnits.RainMMToUser(Spike.MaxRainRate);
+			}
+			if (Spike.MaxHourlyRain < 999)
+			{
+				Spike.MaxHourlyRain = ConvertUnits.RainMMToUser(Spike.MaxHourlyRain);
+			}
+			if (Spike.InTempDiff < 999)
+			{
+				Spike.InTempDiff = ConvertUnits.TempCToUser(Spike.InTempDiff);
+			}
 
 			LCMaxWind = ini.GetValue("Station", "LCMaxWind", 9999);
 
@@ -5573,12 +5616,12 @@ namespace CumulusMX
 			Calib.Solar.Mult2 = ini.GetValue("Offsets", "SolarMult2", 0.0);
 			Calib.UV.Mult2 = ini.GetValue("Offsets", "UVMult2", 0.0);
 
-			Limit.TempHigh = ini.GetValue("Limits", "TempHighC", 60.0);
-			Limit.TempLow = ini.GetValue("Limits", "TempLowC", -60.0);
-			Limit.DewHigh = ini.GetValue("Limits", "DewHighC", 40.0);
-			Limit.PressHigh = ini.GetValue("Limits", "PressHighMB", 1090.0);
-			Limit.PressLow = ini.GetValue("Limits", "PressLowMB", 870.0);
-			Limit.WindHigh = ini.GetValue("Limits", "WindHighMS", 90.0);
+			Limit.TempHigh = ConvertUnits.TempCToUser(ini.GetValue("Limits", "TempHighC", 60.0));
+			Limit.TempLow = ConvertUnits.TempCToUser(ini.GetValue("Limits", "TempLowC", -60.0));
+			Limit.DewHigh = ConvertUnits.TempCToUser(ini.GetValue("Limits", "DewHighC", 40.0));
+			Limit.PressHigh = ConvertUnits.PressMBToUser(ini.GetValue("Limits", "PressHighMB", 1090.0));
+			Limit.PressLow = ConvertUnits.PressMBToUser(ini.GetValue("Limits", "PressLowMB", 870.0));
+			Limit.WindHigh = ConvertUnits.WindMSToUser(ini.GetValue("Limits", "WindHighMS", 90.0));
 
 			xapEnabled = ini.GetValue("xAP", "Enabled", false);
 			xapUID = ini.GetValue("xAP", "UID", "4375");
@@ -6146,14 +6189,14 @@ namespace CumulusMX
 			ini.SetValue("Station", "EWMaxRainTipDiff", EwOptions.MaxRainTipDiff);
 			ini.SetValue("Station", "EWpressureoffset", EwOptions.PressOffset);
 
-			ini.SetValue("Station", "EWtempdiff", Spike.TempDiff);
-			ini.SetValue("Station", "EWpressurediff", Spike.PressDiff);
+			ini.SetValue("Station", "EWtempdiff", Spike.TempDiff < 999 ? ConvertUnits.UserTempToC(Spike.TempDiff) : 999.0);
+			ini.SetValue("Station", "EWpressurediff", Spike.PressDiff < 999 ? ConvertUnits.UserPressToMB(Spike.PressDiff) : 999.00);
 			ini.SetValue("Station", "EWhumiditydiff", Spike.HumidityDiff);
-			ini.SetValue("Station", "EWgustdiff", Spike.GustDiff);
-			ini.SetValue("Station", "EWwinddiff", Spike.WindDiff);
-			ini.SetValue("Station", "EWmaxHourlyRain", Spike.MaxHourlyRain);
-			ini.SetValue("Station", "EWmaxRainRate", Spike.MaxRainRate);
-			ini.SetValue("Station", "EWinTempdiff", Spike.InTempDiff);
+			ini.SetValue("Station", "EWgustdiff", Spike.GustDiff < 999 ? ConvertUnits.UserWindToMS(Spike.GustDiff) : 999.0);
+			ini.SetValue("Station", "EWwinddiff", Spike.WindDiff < 999 ? ConvertUnits.UserWindToMS(Spike.WindDiff) : 999.0);
+			ini.SetValue("Station", "EWmaxHourlyRain", Spike.MaxHourlyRain < 999 ? ConvertUnits.UserRainToMM(Spike.MaxHourlyRain) : 999.0);
+			ini.SetValue("Station", "EWmaxRainRate", Spike.MaxRainRate < 999 ? ConvertUnits.UserRainToMM(Spike.MaxRainRate) : 999.0);
+			ini.SetValue("Station", "EWinTempdiff", Spike.InTempDiff < 999 ? ConvertUnits.UserTempToC(Spike.InTempDiff) : 999.0);
 			ini.SetValue("Station", "EWinHumiditydiff", Spike.InHumDiff);
 
 			ini.SetValue("Station", "RainSeasonStart", RainSeasonStart);
@@ -6830,12 +6873,12 @@ namespace CumulusMX
 			ini.SetValue("Offsets", "SolarMult2", Calib.Solar.Mult2);
 			ini.SetValue("Offsets", "UVMult2", Calib.UV.Mult2);
 
-			ini.SetValue("Limits", "TempHighC", Limit.TempHigh);
-			ini.SetValue("Limits", "TempLowC", Limit.TempLow);
-			ini.SetValue("Limits", "DewHighC", Limit.DewHigh);
-			ini.SetValue("Limits", "PressHighMB", Limit.PressHigh);
-			ini.SetValue("Limits", "PressLowMB", Limit.PressLow);
-			ini.SetValue("Limits", "WindHighMS", Limit.WindHigh);
+			ini.SetValue("Limits", "TempHighC", ConvertUnits.UserTempToC(Limit.TempHigh));
+			ini.SetValue("Limits", "TempLowC", ConvertUnits.UserTempToC(Limit.TempLow));
+			ini.SetValue("Limits", "DewHighC", ConvertUnits.UserTempToC(Limit.DewHigh));
+			ini.SetValue("Limits", "PressHighMB", ConvertUnits.UserPressToMB(Limit.PressHigh));
+			ini.SetValue("Limits", "PressLowMB", ConvertUnits.UserPressToMB(Limit.PressLow));
+			ini.SetValue("Limits", "WindHighMS", ConvertUnits.UserWindToMS(Limit.WindHigh));
 
 			ini.SetValue("xAP", "Enabled", xapEnabled);
 			ini.SetValue("xAP", "UID", xapUID);
@@ -9246,7 +9289,7 @@ namespace CumulusMX
 
 		public string Beaufort(double Bspeed) // Takes speed in current unit, returns Bft number as text
 		{
-			return station.Beaufort(Bspeed).ToString();
+			return ConvertUnits.Beaufort(Bspeed).ToString();
 		}
 
 		public string BeaufortDesc(double Bspeed)
@@ -9254,7 +9297,7 @@ namespace CumulusMX
 			// Takes speed in current units, returns Bft description
 
 			// Convert to Force
-			var force = station.Beaufort(Bspeed);
+			var force = ConvertUnits.Beaufort(Bspeed);
 			switch (force)
 			{
 				case 0:

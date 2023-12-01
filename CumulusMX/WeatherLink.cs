@@ -617,8 +617,8 @@ namespace CumulusMX
 
 		//        internal void Process(DavisStation station) // Processes the archive data once it's been loaded
 		//        {
-		/*  station.IndoorTemperature = station.ConvertTempFToUser(InsideTemperature);
-		station.OutdoorTemperature = station.ConvertTempFToUser(OutsideTemperature);
+		/*  station.IndoorTemperature = ConvertUnits.TempFToUser(InsideTemperature);
+		station.OutdoorTemperature = ConvertUnits.TempFToUser(OutsideTemperature);
 		station.IndoorHumidity = InsideHumidity;
 		station.OutdoorHumidity = OutsideHumidity;
 		station.Pressure = station.ConvertPressToInternal(Pressure);
@@ -631,7 +631,7 @@ namespace CumulusMX
 
 		station.UV = AvgUVIndex;
 		station.SolarRad = SolarRad;
-		station.ET = station.ConvertRainMMToUser(ET);
+		station.ET = ConvertUnits.RainMMToUser(ET);
 
 		station.ExtraHum[1] = ExtraHum1;
 		station.ExtraHum[2] = ExtraHum2;

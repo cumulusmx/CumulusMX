@@ -364,9 +364,9 @@ namespace CumulusMX
 						}
 						else
 						{
-							var gustVal = ConvertWindMPHToUser(Convert.ToDouble(gust, invNum));
+							var gustVal = ConvertUnits.WindMPHToUser(Convert.ToDouble(gust, invNum));
 							var dirVal = Convert.ToInt32(dir, invNum);
-							var spdVal = ConvertWindMPHToUser(Convert.ToDouble(spd, invNum));
+							var spdVal = ConvertUnits.WindMPHToUser(Convert.ToDouble(spd, invNum));
 
 							DoWind(gustVal, dirVal, spdVal, recDate);
 
@@ -438,7 +438,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							var pressVal = ConvertPressINHGToUser(Convert.ToDouble(press, invNum));
+							var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, invNum));
 							DoPressure(pressVal, recDate);
 							UpdatePressureTrendString();
 						}
@@ -449,7 +449,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							StationPressure = ConvertPressINHGToUser(Convert.ToDouble(stnPress, invNum));
+							StationPressure = ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, invNum));
 						}
 					}
 					catch (Exception ex)
@@ -469,7 +469,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							var tempVal = ConvertTempFToUser(Convert.ToDouble(data["tempinf"], invNum));
+							var tempVal = ConvertUnits.TempFToUser(Convert.ToDouble(data["tempinf"], invNum));
 							DoIndoorTemp(tempVal);
 
 							// user has mapped indoor humidity to outdoor
@@ -499,7 +499,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var tempVal = ConvertTempFToUser(Convert.ToDouble(data["tempf"], invNum));
+								var tempVal = ConvertUnits.TempFToUser(Convert.ToDouble(data["tempf"], invNum));
 								DoOutdoorTemp(tempVal, recDate);
 								haveTemp = true;
 							}
@@ -571,8 +571,8 @@ namespace CumulusMX
 						}
 						else
 						{
-							var rainVal = ConvertRainINToUser(Convert.ToDouble(rain, invNum));
-							var rateVal = ConvertRainINToUser(Convert.ToDouble(rRate, invNum));
+							var rainVal = ConvertUnits.RainINToUser(Convert.ToDouble(rain, invNum));
+							var rateVal = ConvertUnits.RainINToUser(Convert.ToDouble(rRate, invNum));
 							DoRain(rainVal, rateVal, recDate);
 						}
 					}
@@ -865,7 +865,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var val = ConvertTempFToUser(Convert.ToDouble(data["dewptf"], invNum));
+								var val = ConvertUnits.TempFToUser(Convert.ToDouble(data["dewptf"], invNum));
 								DoOutdoorDewpoint(val, recDate);
 							}
 						}
@@ -902,7 +902,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var val = ConvertTempFToUser(Convert.ToDouble(chill, invNum));
+								var val = ConvertUnits.TempFToUser(Convert.ToDouble(chill, invNum));
 								DoWindChill(val, recDate);
 							}
 						}
@@ -961,10 +961,10 @@ namespace CumulusMX
 				{
 					if (i == cumulus.Gw1000PrimaryTHSensor)
 					{
-						station.DoOutdoorTemp(ConvertTempFToUser(Convert.ToDouble(data["temp" + i + "f"], invNum)), ts);
+						station.DoOutdoorTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["temp" + i + "f"], invNum)), ts);
 						alreadyHaveTemp = true;
 					}
-					station.DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(data["temp" + i + "f"], invNum)), i);
+					station.DoExtraTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["temp" + i + "f"], invNum)), i);
 				}
 				else if (i == cumulus.Gw1000PrimaryTHSensor)
 				{
@@ -1016,14 +1016,14 @@ namespace CumulusMX
 		{
 			if (data["soiltempf"] != null)
 			{
-				station.DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(data["soiltempf"], invNum)), 1);
+				station.DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["soiltempf"], invNum)), 1);
 			}
 
 			for (var i = 2; i <= 16; i++)
 			{
 				if (data["soiltemp" + i + "f"] != null)
 				{
-					station.DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(data["soiltemp" + i + "f"], invNum)), i - 1);
+					station.DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["soiltemp" + i + "f"], invNum)), i - 1);
 				}
 			}
 		}
@@ -1076,11 +1076,11 @@ namespace CumulusMX
 				{
 					if (cumulus.EcowittMapWN34[i] == 0)
 					{
-						station.DoUserTemp(ConvertTempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), i);
+						station.DoUserTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), i);
 					}
 					else
 					{
-						station.DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), cumulus.EcowittMapWN34[i]);
+						station.DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), cumulus.EcowittMapWN34[i]);
 					}
 				}
 			}
@@ -1119,7 +1119,7 @@ namespace CumulusMX
 
 			if (data["tf_co2"] != null)
 			{
-				station.CO2_temperature = ConvertTempFToUser(Convert.ToDouble(data["tf_co2"], invNum));
+				station.CO2_temperature = ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_co2"], invNum));
 			}
 			if (data["humi_co2"] != null)
 			{
@@ -1163,7 +1163,7 @@ namespace CumulusMX
 				var valDist = Convert.ToDouble(dist, invNum);
 				if (valDist != 255)
 				{
-					station.LightningDistance = ConvertKmtoUserUnits(valDist);
+					station.LightningDistance = ConvertUnits.KmtoUserUnits(valDist);
 				}
 
 				var valTime = Convert.ToDouble(time, invNum);
@@ -1235,8 +1235,8 @@ namespace CumulusMX
 			{
 				if (data["temp" + i + "f"] != null && data["humidity" + i] != null)
 				{
-					var dp = MeteoLib.DewPoint(ConvertUserTempToC(station.ExtraTemp[i]), station.ExtraHum[i]);
-					station.ExtraDewPoint[i] = ConvertTempCToUser(dp);
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[i]), station.ExtraHum[i]);
+					station.ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
 				}
 			}
 		}

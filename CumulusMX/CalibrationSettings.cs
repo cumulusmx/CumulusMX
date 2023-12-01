@@ -132,9 +132,9 @@ namespace CumulusMX
 				offset = cumulus.Calib.Press.Offset,
 				multiplier = cumulus.Calib.Press.Mult,
 				multiplier2 = cumulus.Calib.Press.Mult2,
-				spike = cumulus.Spike.PressDiff,
-				limitmax = cumulus.Limit.PressHigh,
-				limitmin = cumulus.Limit.PressLow
+				spike = Math.Round(cumulus.Spike.PressDiff, cumulus.PressDPlaces),
+				limitmax = Math.Round(cumulus.Limit.PressHigh, cumulus.PressDPlaces),
+				limitmin = Math.Round(cumulus.Limit.PressLow, cumulus.PressDPlaces)
 			};
 
 			var temp = new JsonCalibrationSettings()
@@ -142,9 +142,9 @@ namespace CumulusMX
 				offset = cumulus.Calib.Temp.Offset,
 				multiplier = cumulus.Calib.Temp.Mult,
 				multiplier2 = cumulus.Calib.Temp.Mult2,
-				spike = cumulus.Spike.TempDiff,
-				limitmax = cumulus.Limit.TempHigh,
-				limitmin = cumulus.Limit.TempLow,
+				spike = Math.Round(cumulus.Spike.TempDiff, cumulus.TempDPlaces),
+				limitmax = Math.Round(cumulus.Limit.TempHigh, cumulus.TempDPlaces),
+				limitmin = Math.Round(cumulus.Limit.TempLow, cumulus.TempDPlaces),
 			};
 
 			var tempin = new JsonCalibrationSettings()
@@ -152,7 +152,7 @@ namespace CumulusMX
 				offset = cumulus.Calib.InTemp.Offset,
 				multiplier = cumulus.Calib.InTemp.Mult,
 				multiplier2 = cumulus.Calib.InTemp.Mult2,
-				spike = cumulus.Spike.InTempDiff
+				spike = Math.Round(cumulus.Spike.InTempDiff, cumulus.TempDPlaces)
 			};
 
 			var hum = new JsonCalibrationSettings()
@@ -175,15 +175,15 @@ namespace CumulusMX
 			{
 				multiplier = cumulus.Calib.WindSpeed.Mult,
 				multiplier2 = cumulus.Calib.WindSpeed.Mult2,
-				spike = cumulus.Spike.WindDiff
+				spike = Math.Round(cumulus.Spike.WindDiff, cumulus.WindAvgDPlaces)
 			};
 
 			var gust = new JsonCalibrationSettings()
 			{
 				multiplier = cumulus.Calib.WindGust.Mult,
 				multiplier2 = cumulus.Calib.WindGust.Mult2,
-				spike = cumulus.Spike.GustDiff,
-				limitmax = cumulus.Limit.WindHigh
+				spike = Math.Round(cumulus.Spike.GustDiff, cumulus.WindDPlaces),
+				limitmax = Math.Round(cumulus.Limit.WindHigh, cumulus.WindDPlaces)
 			};
 
 			var winddir = new JsonCalibrationSettings()
@@ -194,8 +194,8 @@ namespace CumulusMX
 			var rain = new JsonCalibrationSettings()
 			{
 				multiplier = cumulus.Calib.Rain.Mult,
-				spikehour = cumulus.Spike.MaxHourlyRain,
-				spikerate = cumulus.Spike.MaxRainRate
+				spikehour = Math.Round(cumulus.Spike.MaxHourlyRain, cumulus.RainDPlaces),
+				spikerate = Math.Round(cumulus.Spike.MaxRainRate, cumulus.RainDPlaces)
 			};
 
 			var solar = new JsonCalibrationSettings()
@@ -214,14 +214,14 @@ namespace CumulusMX
 
 			var wetbulb = new JsonCalibrationSettings()
 			{
-				offset = cumulus.Calib.WetBulb.Offset,
+				offset = Math.Round(cumulus.Calib.WetBulb.Offset, cumulus.TempDPlaces),
 				multiplier = cumulus.Calib.WetBulb.Mult,
 				multiplier2 = cumulus.Calib.WetBulb.Mult2
 			};
 
 			var dewpt = new JsonCalibrationSettings()
 			{
-				limitmax = cumulus.Limit.DewHigh
+				limitmax = Math.Round(cumulus.Limit.DewHigh, cumulus.TempDPlaces)
 			};
 
 			var data = new JsonCalibrationSettingsData()

@@ -138,27 +138,27 @@ namespace CumulusMX
 						lastTime = timestr;
 					}
 
-					DoWind(ConvertWindMSToUser(GetConvertedValue(st[EW_WIND_GUST])), CPtoBearing(st[EW_WIND_BEARING_CP]), ConvertWindMSToUser(GetConvertedValue(st[EW_AVERAGE_WIND])), now);
+					DoWind(ConvertUnits.WindMSToUser(GetConvertedValue(st[EW_WIND_GUST])), CPtoBearing(st[EW_WIND_BEARING_CP]), ConvertUnits.WindMSToUser(GetConvertedValue(st[EW_AVERAGE_WIND])), now);
 
-					DoWindChill(ConvertTempCToUser(GetConvertedValue(st[EW_WIND_CHILL])), now);
+					DoWindChill(ConvertUnits.TempCToUser(GetConvertedValue(st[EW_WIND_CHILL])), now);
 
 					DoIndoorHumidity(Convert.ToInt32(st[EW_INDOOR_HUM]));
 
 					DoOutdoorHumidity(Convert.ToInt32(st[EW_OUTDOOR_HUM]), now);
 
-					DoOutdoorDewpoint(ConvertTempCToUser(GetConvertedValue(st[EW_DEW_POINT])), now);
+					DoOutdoorDewpoint(ConvertUnits.TempCToUser(GetConvertedValue(st[EW_DEW_POINT])), now);
 
-					DoPressure(ConvertPressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), now);
+					DoPressure(ConvertUnits.PressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), now);
 					UpdatePressureTrendString();
 
-					StationPressure = ConvertPressMBToUser(GetConvertedValue(st[EW_ABS_PRESSURE]));
+					StationPressure = ConvertUnits.PressMBToUser(GetConvertedValue(st[EW_ABS_PRESSURE]));
 
-					DoIndoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_INDOOR_TEMP])));
+					DoIndoorTemp(ConvertUnits.TempCToUser(GetConvertedValue(st[EW_INDOOR_TEMP])));
 
-					DoOutdoorTemp(ConvertTempCToUser(GetConvertedValue(st[EW_OUTDOOR_TEMP])), now);
+					DoOutdoorTemp(ConvertUnits.TempCToUser(GetConvertedValue(st[EW_OUTDOOR_TEMP])), now);
 
-					DoRain(ConvertRainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_YEAR])), // use year as total
-							ConvertRainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_HOUR])), // use last hour as current rate
+					DoRain(ConvertUnits.RainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_YEAR])), // use year as total
+							ConvertUnits.RainMMToUser(GetConvertedValue(st[EW_RAIN_LAST_HOUR])), // use last hour as current rate
 							now);
 
 					DoApparentTemp(now);

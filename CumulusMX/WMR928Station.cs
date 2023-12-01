@@ -303,7 +303,7 @@ namespace CumulusMX
 
 			double temp = ExtractTemp(buff[4], buff[5]);
 
-			WMR928ExtraTempValues[channel] = ConvertTempCToUser(temp);
+			WMR928ExtraTempValues[channel] = ConvertUnits.TempCToUser(temp);
 			DoExtraTemp(WMR928ExtraTempValues[channel], channel);
 
 			if (cumulus.WMR928TempChannel == channel)
@@ -371,11 +371,11 @@ namespace CumulusMX
 
 			double temp = ExtractTemp(buff[4], buff[5]);
 
-			WMR928ExtraTempValues[channel] = ConvertTempCToUser(temp);
+			WMR928ExtraTempValues[channel] = ConvertUnits.TempCToUser(temp);
 			DoExtraTemp(WMR928ExtraTempValues[channel], channel);
 
-			WMR928ExtraDPValues[channel] = ConvertTempCToUser(BCDchartoint(buff[7]));
-			ExtraDewPoint[channel] = ConvertTempCToUser(BCDchartoint(buff[7]));
+			WMR928ExtraDPValues[channel] = ConvertUnits.TempCToUser(BCDchartoint(buff[7]));
+			ExtraDewPoint[channel] = ConvertUnits.TempCToUser(BCDchartoint(buff[7]));
 
 			if (cumulus.WMR928TempChannel == channel)
 			{
@@ -385,9 +385,9 @@ namespace CumulusMX
 				// Extract humidity
 				DoOutdoorHumidity(BCDchartoint(buff[6]), DateTime.Now);
 
-				DoOutdoorTemp(ConvertTempCToUser(temp), DateTime.Now);
+				DoOutdoorTemp(ConvertUnits.TempCToUser(temp), DateTime.Now);
 
-				DoOutdoorDewpoint(ConvertTempCToUser(BCDchartoint(buff[7])), DateTime.Now);
+				DoOutdoorDewpoint(ConvertUnits.TempCToUser(BCDchartoint(buff[7])), DateTime.Now);
 			}
 		}
 
@@ -409,14 +409,14 @@ namespace CumulusMX
 			double average = (double) (BCDchartoint(buff[7]) + ((BCDchartoint(buff[8]) % 10) * 100)) / 10;
 			int bearing = BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100);
 
-			DoWind(ConvertWindMSToUser(current), bearing, ConvertWindMSToUser(average), DateTime.Now);
+			DoWind(ConvertUnits.WindMSToUser(current), bearing, ConvertUnits.WindMSToUser(average), DateTime.Now);
 
 			// Extract wind chill
 			double wc = BCDchartoint(buff[9]);
 
 			if (buff[9] / 16 == 8) wc = -wc;
 
-			DoWindChill(ConvertTempCToUser(wc), DateTime.Now);
+			DoWindChill(ConvertUnits.TempCToUser(wc), DateTime.Now);
 		}
 
 		private void WMR928Rain(List<int> buff)
@@ -439,8 +439,8 @@ namespace CumulusMX
 			RainBattStatus = buff[3] / 16;
 			// MainForm.Rainbatt.Position := (15-rain_batt_status)*100 DIV 15;
 
-			double raincounter = ConvertRainMMToUser(BCDchartoint(buff[6]) + (BCDchartoint(buff[7]) * 100));
-			double rainrate = ConvertRainMMToUser(BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100));
+			double raincounter = ConvertUnits.RainMMToUser(BCDchartoint(buff[6]) + (BCDchartoint(buff[7]) * 100));
+			double rainrate = ConvertUnits.RainMMToUser(BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100));
 
 			DoRain(raincounter, rainrate, DateTime.Now);
 		}
@@ -468,10 +468,10 @@ namespace CumulusMX
 				// Extract temperature
 				double temp = ExtractTemp(buff[4], buff[5]);
 
-				DoOutdoorTemp(ConvertTempCToUser(temp), DateTime.Now);
+				DoOutdoorTemp(ConvertUnits.TempCToUser(temp), DateTime.Now);
 
 				// Extract dewpoint
-				DoOutdoorDewpoint(ConvertTempCToUser(BCDchartoint(buff[7])), DateTime.Now);
+				DoOutdoorDewpoint(ConvertUnits.TempCToUser(BCDchartoint(buff[7])), DateTime.Now);
 
 				DoApparentTemp(DateTime.Now);
 				DoFeelsLike(DateTime.Now);
@@ -507,11 +507,11 @@ namespace CumulusMX
 
 			// local pressure (not BCD); byte 8, with 856mb offset
 			double loc = buff[8] + 856;
-			StationPressure = ConvertPressMBToUser(loc);
+			StationPressure = ConvertUnits.PressMBToUser(loc);
 			double num = BCDchartoint((buff[10]) / 10) + BCDchartoint(buff[11]) * 10 + (BCDchartoint(buff[12]) * 1000);
 			double slcorr = num / 10.0 - 600;
 
-			DoPressure(ConvertPressMBToUser(loc + slcorr), DateTime.Now);
+			DoPressure(ConvertUnits.PressMBToUser(loc + slcorr), DateTime.Now);
 
 			UpdatePressureTrendString();
 
@@ -566,7 +566,7 @@ namespace CumulusMX
 
 			// local pressure (not BCD); byte 8, with 795mb offset
 			double loc = buff[8] + 795;
-			StationPressure = ConvertPressMBToUser(loc);
+			StationPressure = ConvertUnits.PressMBToUser(loc);
 			// SL pressure correction; bytes 10 (LSB) and 11 (MSB)
 			double num = BCDchartoint(buff[10] / 10) + (BCDchartoint(buff[11]) * 10) + buff[8];
 			DoPressure(num, DateTime.Now);

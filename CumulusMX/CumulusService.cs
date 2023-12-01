@@ -52,7 +52,8 @@ namespace CumulusMX
 				{ }
 			}
 
-			Program.cumulus = new Cumulus(httpport, debug, startParams);
+			Program.cumulus = new Cumulus();
+			Program.cumulus.Initialise(httpport, debug, startParams);
 		}
 
 		protected override void OnStop()

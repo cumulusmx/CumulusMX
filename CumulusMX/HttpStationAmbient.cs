@@ -144,9 +144,9 @@ namespace CumulusMX
 						}
 						else
 						{
-							var gustVal = ConvertWindMPHToUser(Convert.ToDouble(gust, CultureInfo.InvariantCulture));
+							var gustVal = ConvertUnits.WindMPHToUser(Convert.ToDouble(gust, CultureInfo.InvariantCulture));
 							var dirVal = Convert.ToInt32(dir, CultureInfo.InvariantCulture);
-							var avgVal = ConvertWindMPHToUser(Convert.ToDouble(avg, CultureInfo.InvariantCulture));
+							var avgVal = ConvertUnits.WindMPHToUser(Convert.ToDouble(avg, CultureInfo.InvariantCulture));
 							DoWind(gustVal, dirVal, avgVal, recDate);
 						}
 					}
@@ -211,7 +211,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							var pressVal = ConvertPressINHGToUser(Convert.ToDouble(press, CultureInfo.InvariantCulture));
+							var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, CultureInfo.InvariantCulture));
 							DoPressure(pressVal, recDate);
 							UpdatePressureTrendString();
 						}
@@ -222,7 +222,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							StationPressure = ConvertPressINHGToUser(Convert.ToDouble(stnPress, CultureInfo.InvariantCulture));
+							StationPressure = ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, CultureInfo.InvariantCulture));
 						}
 					}
 					catch (Exception ex)
@@ -246,7 +246,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							var tempVal = ConvertTempFToUser(Convert.ToDouble(temp, CultureInfo.InvariantCulture));
+							var tempVal = ConvertUnits.TempFToUser(Convert.ToDouble(temp, CultureInfo.InvariantCulture));
 							DoIndoorTemp(tempVal);
 						}
 					}
@@ -271,7 +271,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							var tempVal = ConvertTempFToUser(Convert.ToDouble(temp, CultureInfo.InvariantCulture));
+							var tempVal = ConvertUnits.TempFToUser(Convert.ToDouble(temp, CultureInfo.InvariantCulture));
 							DoOutdoorTemp(tempVal, recDate);
 						}
 					}
@@ -304,8 +304,8 @@ namespace CumulusMX
 						}
 						else
 						{
-							var rainVal = ConvertRainINToUser(Convert.ToDouble(rain, CultureInfo.InvariantCulture));
-							//var rateVal = ConvertRainINToUser(Convert.ToDouble(rRate, CultureInfo.InvariantCulture));
+							var rainVal = ConvertUnits.RainINToUser(Convert.ToDouble(rain, CultureInfo.InvariantCulture));
+							//var rateVal = ConvertUnits.RainINToUser(Convert.ToDouble(rRate, CultureInfo.InvariantCulture));
 							DoRain(rainVal, 0, recDate);
 						}
 					}
@@ -333,7 +333,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							var val = ConvertTempFToUser(Convert.ToDouble(dewpnt, CultureInfo.InvariantCulture));
+							var val = ConvertUnits.TempFToUser(Convert.ToDouble(dewpnt, CultureInfo.InvariantCulture));
 							DoOutdoorDewpoint(val, recDate);
 						}
 					}
@@ -363,7 +363,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var val = ConvertTempFToUser(Convert.ToDouble(chill, CultureInfo.InvariantCulture));
+								var val = ConvertUnits.TempFToUser(Convert.ToDouble(chill, CultureInfo.InvariantCulture));
 								DoWindChill(val, recDate);
 							}
 						}
@@ -627,7 +627,7 @@ namespace CumulusMX
 			{
 				if (data["temp" + i + "f"] != null)
 				{
-					station.DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(data["temp" + i + "f"], CultureInfo.InvariantCulture)), i);
+					station.DoExtraTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["temp" + i + "f"], CultureInfo.InvariantCulture)), i);
 				}
 			}
 		}
@@ -665,7 +665,7 @@ namespace CumulusMX
 			{
 				if (data["soiltemp" + i] != null)
 				{
-					station.DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(data["soiltemp" + i], CultureInfo.InvariantCulture)), i - 1);
+					station.DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["soiltemp" + i], CultureInfo.InvariantCulture)), i - 1);
 				}
 			}
 		}
@@ -763,7 +763,7 @@ namespace CumulusMX
 				var valDist = Convert.ToDouble(dist, CultureInfo.InvariantCulture);
 				if (valDist != 255)
 				{
-					LightningDistance = ConvertKmtoUserUnits(valDist);
+					LightningDistance = ConvertUnits.KmtoUserUnits(valDist);
 				}
 
 				var valTime = Convert.ToDouble(time, CultureInfo.InvariantCulture);
@@ -841,8 +841,8 @@ namespace CumulusMX
 			{
 				if (data["temp" + i + "f"] != null && data["humidity" + i] != null)
 				{
-					var dp = MeteoLib.DewPoint(ConvertUserTempToC(station.ExtraTemp[i]), station.ExtraHum[i]);
-					station.ExtraDewPoint[i] = ConvertTempCToUser(dp);
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[i]), station.ExtraHum[i]);
+					station.ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
 				}
 			}
 		}

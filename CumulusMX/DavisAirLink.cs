@@ -411,11 +411,11 @@ namespace CumulusMX
 
 							if (indoor)
 							{
-								cumulus.airLinkDataIn.temperature = station.ConvertTempFToUser(rec.temp);
+								cumulus.airLinkDataIn.temperature = ConvertUnits.TempFToUser(rec.temp);
 							}
 							else
 							{
-								cumulus.airLinkDataOut.temperature = station.ConvertTempFToUser(rec.temp);
+								cumulus.airLinkDataOut.temperature = ConvertUnits.TempFToUser(rec.temp);
 							}
 						}
 						catch (Exception ex)
@@ -877,11 +877,11 @@ namespace CumulusMX
 							{
 								if (indoor)
 								{
-									cumulus.airLinkDataIn.temperature = station.ConvertTempFToUser(data17.temp_avg);
+									cumulus.airLinkDataIn.temperature = ConvertUnits.TempFToUser(data17.temp_avg);
 								}
 								else
 								{
-									cumulus.airLinkDataOut.temperature = station.ConvertTempFToUser(data17.temp_avg);
+									cumulus.airLinkDataOut.temperature = ConvertUnits.TempFToUser(data17.temp_avg);
 								}
 							}
 						}

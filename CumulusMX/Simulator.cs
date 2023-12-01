@@ -98,21 +98,21 @@ namespace CumulusMX
 
 		private void applyData(DateTime recDate)
 		{
-			cumulus.LogDataMessage($"Simulated data: temp={ConvertTempCToUser(currData.tempVal):f1}, hum={currData.humVal}, gust={ConvertWindMPHToUser(currData.windSpeedVal):f2}, dir={currData.windBearingVal}, press={ConvertPressMBToUser(currData.pressureVal):f2}, r.rate={ConvertRainMMToUser(currData.rainRateVal):f2}");
+			cumulus.LogDataMessage($"Simulated data: temp={ConvertUnits.TempCToUser(currData.tempVal):f1}, hum={currData.humVal}, gust={ConvertUnits.WindMPHToUser(currData.windSpeedVal):f2}, dir={currData.windBearingVal}, press={ConvertUnits.PressMBToUser(currData.pressureVal):f2}, r.rate={ConvertUnits.RainMMToUser(currData.rainRateVal):f2}");
 
-			DoWind(ConvertWindMPHToUser(currData.windSpeedVal), currData.windBearingVal, -1, recDate);
+			DoWind(ConvertUnits.WindMPHToUser(currData.windSpeedVal), currData.windBearingVal, -1, recDate);
 
-			var rain = Raincounter + ConvertRainMMToUser(currData.rainRateVal * dataUpdateRate / 1000 / 3600);
+			var rain = Raincounter + ConvertUnits.RainMMToUser(currData.rainRateVal * dataUpdateRate / 1000 / 3600);
 
-			DoRain(rain, ConvertRainMMToUser(currData.rainRateVal), recDate);
+			DoRain(rain, ConvertUnits.RainMMToUser(currData.rainRateVal), recDate);
 
-			DoIndoorTemp(ConvertTempCToUser(currData.tempInVal));
+			DoIndoorTemp(ConvertUnits.TempCToUser(currData.tempInVal));
 			DoIndoorHumidity(currData.humInVal);
 
 			DoOutdoorHumidity(currData.humVal, recDate);
-			DoOutdoorTemp(ConvertTempCToUser(currData.tempVal), recDate);
+			DoOutdoorTemp(ConvertUnits.TempCToUser(currData.tempVal), recDate);
 
-			DoPressure(ConvertPressMBToUser(currData.pressureVal), recDate);
+			DoPressure(ConvertUnits.PressMBToUser(currData.pressureVal), recDate);
 			UpdatePressureTrendString();
 
 			doSolar(recDate);

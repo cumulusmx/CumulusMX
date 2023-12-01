@@ -103,9 +103,9 @@ namespace CumulusMX
 					}
 					else
 					{
-						var gustVal = ConvertWindMPHToUser(Convert.ToDouble(gust, CultureInfo.InvariantCulture));
+						var gustVal = ConvertUnits.WindMPHToUser(Convert.ToDouble(gust, CultureInfo.InvariantCulture));
 						var dirVal = Convert.ToInt32(dir, CultureInfo.InvariantCulture);
-						var avgVal = ConvertWindMPHToUser(Convert.ToDouble(avg, CultureInfo.InvariantCulture));
+						var avgVal = ConvertUnits.WindMPHToUser(Convert.ToDouble(avg, CultureInfo.InvariantCulture));
 						DoWind(gustVal, dirVal, avgVal, recDate);
 					}
 				}
@@ -166,7 +166,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						var pressVal = ConvertPressINHGToUser(Convert.ToDouble(press, CultureInfo.InvariantCulture));
+						var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, CultureInfo.InvariantCulture));
 						DoPressure(pressVal, recDate);
 						UpdatePressureTrendString();
 					}
@@ -191,7 +191,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						var tempVal = ConvertTempFToUser(Convert.ToDouble(temp, CultureInfo.InvariantCulture));
+						var tempVal = ConvertUnits.TempFToUser(Convert.ToDouble(temp, CultureInfo.InvariantCulture));
 						DoIndoorTemp(tempVal);
 					}
 				}
@@ -215,7 +215,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						var tempVal = ConvertTempFToUser(Convert.ToDouble(temp, CultureInfo.InvariantCulture));
+						var tempVal = ConvertUnits.TempFToUser(Convert.ToDouble(temp, CultureInfo.InvariantCulture));
 						DoOutdoorTemp(tempVal, recDate);
 					}
 				}
@@ -241,7 +241,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						var rainVal = ConvertRainINToUser(Convert.ToDouble(rain, CultureInfo.InvariantCulture));
+						var rainVal = ConvertUnits.RainINToUser(Convert.ToDouble(rain, CultureInfo.InvariantCulture));
 
 						if (rainVal < previousRainCount)
 						{
@@ -279,7 +279,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						var dpVal = ConvertTempFToUser(Convert.ToDouble(dewpnt, CultureInfo.InvariantCulture));
+						var dpVal = ConvertUnits.TempFToUser(Convert.ToDouble(dewpnt, CultureInfo.InvariantCulture));
 						DoOutdoorDewpoint(dpVal, recDate);
 					}
 				}
@@ -339,7 +339,7 @@ namespace CumulusMX
 						var str = data["temp" + i + "f"];
 						if (str != null && str != "-9999")
 						{
-							DoExtraTemp(ConvertTempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture)), i - 1);
+							DoExtraTemp(ConvertUnits.TempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture)), i - 1);
 						}
 					}
 				}
@@ -392,7 +392,7 @@ namespace CumulusMX
 					var str1 = data["soiltempf"];
 					if (str1 != null && str1 != "-9999")
 					{
-						DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str1, CultureInfo.InvariantCulture)), 1);
+						DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(str1, CultureInfo.InvariantCulture)), 1);
 					}
 
 					for (var i = 2; i <= 4; i++)
@@ -400,7 +400,7 @@ namespace CumulusMX
 						var str = data["soiltemp" + i + "f"];
 						if (str != null && str != "-9999")
 						{
-							DoSoilTemp(ConvertTempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture)), i);
+							DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture)), i);
 						}
 					}
 				}
