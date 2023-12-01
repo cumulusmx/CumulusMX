@@ -16,6 +16,7 @@ Changed
 Fixed
 - Add missing New Record and FTP alarm info to the dashboard data stream
 - Some AirLink wl.com API calls not using the correct API details when configured as Standalone
+- Indoor Temperature and Humidity spike removal not working
 
 Package Updates
 - MailKit/MimeKit

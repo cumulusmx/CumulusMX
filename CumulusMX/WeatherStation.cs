@@ -5092,23 +5092,38 @@ namespace CumulusMX
 				return;
 			}
 
-			IndoorHumidity = (int) Math.Round((hum * cumulus.Calib.InHum.Mult) + cumulus.Calib.InHum.Offset);
+			previousInHum = hum;
+			IndoorHumidity = (int) cumulus.Calib.InHum.Calibrate(hum);
+
+			if (IndoorHumidity < 0)
+			{
+				IndoorHumidity = 0;
+			}
+			if (IndoorHumidity > 100)
+			{
+				IndoorHumidity = 100;
+			}
+
 			HaveReadData = true;
 		}
 
 		public void DoIndoorTemp(double temp)
 		{
 			// Spike check
-			if ((previousInTemp != 999) && (Math.Abs(temp - previousInTemp) > cumulus.Spike.InTempDiff))
+			// Spike removal is in Celsius
+			var tempC = ConvertUserTempToC(temp);
+
+			if ((previousInTemp != 999) && (Math.Abs(tempC - previousInTemp) > cumulus.Spike.InTempDiff))
 			{
 				cumulus.LogSpikeRemoval("Indoor temperature difference greater than specified; reading ignored");
-				cumulus.LogSpikeRemoval($"NewVal={temp} OldVal={previousInTemp} SpikeDiff={cumulus.Spike.InTempDiff:F1}");
+				cumulus.LogSpikeRemoval($"NewVal={tempC} OldVal={previousInTemp} SpikeDiff={cumulus.Spike.InTempDiff:F1}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarm.LastMessage = $"Indoor temperature difference greater than spike value - NewVal={temp} OldVal={previousInTemp}";
+				cumulus.SpikeAlarm.LastMessage = $"Indoor temperature difference greater than spike value - NewVal={tempC} OldVal={previousInTemp}";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
 
+			previousInTemp = tempC;
 			IndoorTemperature = cumulus.Calib.InTemp.Calibrate(temp);
 			HaveReadData = true;
 		}
@@ -5133,11 +5148,8 @@ namespace CumulusMX
 			}
 			else
 			{
-				OutdoorHumidity = humpar;
+				OutdoorHumidity = (int) cumulus.Calib.Hum.Calibrate(humpar);
 			}
-
-			// apply offset and multipliers and round. This is different to C1, which truncates. I'm not sure why C1 does that
-			OutdoorHumidity = (int) Math.Round((OutdoorHumidity * OutdoorHumidity * cumulus.Calib.Hum.Mult2) + (OutdoorHumidity * cumulus.Calib.Hum.Mult) + cumulus.Calib.Hum.Offset);
 
 			if (OutdoorHumidity < 0)
 			{

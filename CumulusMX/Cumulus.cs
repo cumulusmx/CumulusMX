@@ -10936,7 +10936,6 @@ namespace CumulusMX
 						return;
 					}
 
-
 					tasklist.Add(Task.Run(async () =>
 					{
 						try
@@ -11178,7 +11177,6 @@ namespace CumulusMX
 						LogDebugMessage($"PHP[Int]: Moon image has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
-
 #endif
 					}
 					catch (OperationCanceledException)
@@ -11897,6 +11895,7 @@ namespace CumulusMX
 		{
 			if (!string.IsNullOrEmpty(message))
 				LogMessage(message);
+
 			LogFluentFtpMessage(FtpTraceLevel.Info, message);
 		}
 
@@ -11941,6 +11940,7 @@ namespace CumulusMX
 				{
 					message = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + message;
 				}
+
 				Console.ForegroundColor = colour;
 				Console.WriteLine(message);
 				Console.ResetColor();
