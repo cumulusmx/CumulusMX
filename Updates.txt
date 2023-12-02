@@ -24,6 +24,7 @@ Package Updates
 - MySqlConnector
 - ServiceStack.Text
 - SQLite
+- MQTTnet
 
 
 3.27.1 - b3263

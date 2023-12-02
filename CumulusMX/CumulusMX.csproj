@@ -54,7 +54,7 @@
     <PackageReference Include="FluentFTP" Version="48.0.3" />
     <PackageReference Include="HidSharp" Version="2.1.0" />
     <PackageReference Include="MailKit" Version="4.3.0" />
-    <PackageReference Include="MQTTnet" Version="4.3.1.873" />
+    <PackageReference Include="MQTTnet" Version="4.3.2.930" />
     <PackageReference Include="MySqlConnector" Version="2.3.1" />
     <PackageReference Include="ServiceStack.Text" Version="8.0.0" />
     <PackageReference Include="SSH.NET" Version="2023.0.0" />
