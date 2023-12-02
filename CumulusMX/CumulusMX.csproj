@@ -48,7 +48,6 @@
   <ItemGroup>
     <Content Include="icon.ico" />
     <Content Include="Libs\sqlite3-x64.dll" />
-    <Content Include="Libs\sqlite3-x86.dll" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EmbedIO" Version="3.5.2" />

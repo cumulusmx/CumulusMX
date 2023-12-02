@@ -1,4 +1,4 @@
-3.28.0 - b3264
+3.28.0 - b3265
 ——————————————
 New
 - Adds the option to clear the latest error log
@@ -23,6 +23,7 @@ Package Updates
 - MailKit/MimeKit
 - MySqlConnector
 - ServiceStack.Text
+- SQLite
 
 
 3.27.1 - b3263
