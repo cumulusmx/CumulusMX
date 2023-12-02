@@ -1612,6 +1612,13 @@ namespace CumulusMX
 			{
 				_ = sendWebSocketData();
 			}
+
+			// lets spread some the processing over the minute, 12 seconds past the minute...
+			var millisecs = (int) timeNow.TimeOfDay.TotalMilliseconds % 60000;
+			if (millisecs >= 12000 && millisecs < 12500)
+			{
+				MinutePlus12Changed(timeNow);
+			}
 		}
 
 		internal async Task sendWebSocketData(bool wait = false)
@@ -1974,8 +1981,6 @@ namespace CumulusMX
 					}
 
 					cumulus.DoHttpFiles(now);
-
-					CheckUserAlarms();
 				}
 				else
 				{
@@ -1988,6 +1993,14 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Checking for latest Cumulus MX version...");
 				cumulus.GetLatestVersion();
+			}
+		}
+
+		private void MinutePlus12Changed(DateTime now)
+		{
+			if (!DataStopped)
+			{
+				CheckUserAlarms();
 			}
 
 			// If not on windows, check for CPU temp
