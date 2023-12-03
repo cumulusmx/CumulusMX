@@ -273,8 +273,9 @@ namespace CumulusMX
 					if (dayList[daynumber].valid)
 					{
 						// already had this date - error!
-						cumulus.LogWarningMessage($"Duplicate entry in dayfile: {day.Date}.");
-						continue;
+						cumulus.LogErrorMessage($"Duplicate entry in dayfile: {day.Date:d}.");
+						cumulus.LogMessage("Please edit the file to correct the error");
+						return $"Error, duplicate entry in dayfile for {day.Date:d}";
 					}
 
 					// max temp
@@ -820,9 +821,20 @@ namespace CumulusMX
 					if (thisMonth.Count == 0)
 						continue;
 
+					var lastDay = DateTime.MinValue;
 
 					foreach (var day in thisMonth)
 					{
+						if (day.Date == lastDay)
+						{
+							// already had this date - error!
+							cumulus.LogWarningMessage($"Duplicate entry in dayfile: {day.Date:d}.");
+							cumulus.LogMessage("Please edit the file to correct the error");
+							return $"Error, duplicate entry in dayfile for {day.Date:d}";
+						}
+
+						lastDay = day.Date;
+
 						MonthList[month].totalmaxtemp += day.HighTemp;
 						MonthList[month].totalmintemp += day.LowTemp;
 

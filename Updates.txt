@@ -13,6 +13,8 @@ Changed
 	- The default web site page record.htm has been changed to reflect this
 	- As has the websitedataT.json file
 - Calibration and Limit values are now displayed and set in your native units
+- NOAA reports now produce an error rather than skipping over if a duplicate entry is detected in the dayfile
+- Reload dayfile now produces an error rather than skipping over if a duplicate entry is detected in the dayfile
 
 Fixed
 - Add missing New Record and FTP alarm info to the dashboard data stream

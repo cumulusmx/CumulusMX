@@ -8978,6 +8978,8 @@ namespace CumulusMX
 		{
 			int addedEntries = 0;
 
+			string msg = string.Empty;
+
 			cumulus.LogMessage($"LoadDayFile: Attempting to load the day file");
 			if (File.Exists(cumulus.DayFileName))
 			{
@@ -9001,18 +9003,30 @@ namespace CumulusMX
 
 								linenum++;
 								string Line = sr.ReadLine();
-								DayFile.Add(ParseDayFileRec(Line));
+								var newRec = ParseDayFileRec(Line);
+
+								if (DayFile.Any(x => x.Date == newRec.Date))
+								{
+									msg += $"ERROR: Duplicate entry in dayfile for {newRec.Date:d} - aborting load of daily data<br>";
+									msg += "Please correct your dayfile and try again";
+									cumulus.LogErrorMessage("LoadDayFile: " + msg);
+									return msg;
+								}
+
+								DayFile.Add(newRec);
 
 								addedEntries++;
 							}
 							catch (Exception e)
 							{
 								cumulus.LogWarningMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
+								msg += $"Error at line {linenum} of {cumulus.DayFileName}<br>";
 								cumulus.LogMessage("Please edit the file to correct the error");
 								errorCount++;
 								if (errorCount >= 20)
 								{
 									cumulus.LogErrorMessage($"LoadDayFile: Too many errors reading {cumulus.DayFileName} - aborting load of daily data");
+									msg += "Too many errors reading dayfile, aborting<br>";
 								}
 							}
 						} while (!(sr.EndOfStream || errorCount >= 20));
@@ -9027,15 +9041,16 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
 					cumulus.LogMessage("Please edit the file to correct the error");
+					msg += $"Error at line {linenum} of {cumulus.DayFileName} : {e.Message}<br>";
 				}
 
-				var msg = $"LoadDayFile: Loaded {addedEntries} entries to recent daily data list";
-				cumulus.LogMessage(msg);
+				cumulus.LogMessage($"Loaded {addedEntries} entries to recent daily data list");
+				msg += $"Loaded {addedEntries} entries to recent daily data list";
 				return msg;
 			}
 			else
 			{
-				var msg = "LoadDayFile: No Dayfile found - No entries added to recent daily data list";
+				msg = "LoadDayFile: No Dayfile found - No entries added to recent daily data list";
 				cumulus.LogErrorMessage(msg);
 				return msg;
 			}
