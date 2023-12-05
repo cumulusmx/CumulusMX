@@ -8264,7 +8264,7 @@ namespace CumulusMX
 
 						var tempRainLastHour = trendval * cumulus.Calib.Rain.Mult;
 
-						if (ConvertUnits.UserRainToMM(tempRainLastHour) > cumulus.Spike.MaxHourlyRain)
+						if (tempRainLastHour > cumulus.Spike.MaxHourlyRain)
 						{
 							// ignore
 							cumulus.LogSpikeRemoval("Max hourly rainfall spike value exceed");
