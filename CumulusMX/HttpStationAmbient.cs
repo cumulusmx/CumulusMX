@@ -13,7 +13,7 @@ namespace CumulusMX
 		private bool starting = true;
 		private bool stopping = false;
 
-		public HttpStationAmbient(Cumulus cumulus, WeatherStation station = null) : base(cumulus)
+		public HttpStationAmbient(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
 			this.station = station;
 

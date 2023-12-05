@@ -14,7 +14,7 @@ namespace CumulusMX
 		private readonly bool main;
 
 
-		public EcowittCloudStation(Cumulus cumulus, WeatherStation station = null) : base(cumulus)
+		public EcowittCloudStation(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
 			this.station = station;
 
