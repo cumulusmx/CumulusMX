@@ -1107,7 +1107,7 @@ namespace CumulusMX
 			LogMessage("Daylight saving time name: " + localZone.DaylightName);
 			LogMessage("Daylight saving time? " + localZone.IsDaylightSavingTime(now));
 
-			LogMessage(DateTime.Now.ToString("G"));
+			LogMessage("Locale date/time format: " + DateTime.Now.ToString("G"));
 
 			// Do we delay the start of Cumulus MX for a fixed period?
 			if (ProgramOptions.StartupDelaySecs > 0)
@@ -1389,7 +1389,11 @@ namespace CumulusMX
 			LogMessage($"WindUnit={Units.WindText} RainUnit={Units.RainText} TempUnit={Units.TempText} PressureUnit={Units.PressText}");
 			LogMessage($"YTDRain={YTDrain:F3} Year={YTDrainyear}");
 			LogMessage($"RainDayThreshold={RainDayThreshold:F3}");
-			LogMessage($"Roll over hour={RolloverHour}");
+			LogMessage($"Roll over hour={RolloverHour:D2}");
+			if (RolloverHour != 0)
+			{
+				LogMessage("Use 10am in summer =" + Use10amInSummer);
+			}
 
 			LogOffsetsMultipliers();
 
@@ -4276,14 +4280,23 @@ namespace CumulusMX
 			// if the culture names match, then we apply the new date separator if change is enabled and it contains a space
 			if (ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
 			{
-				// get the existing culture
-				var newCulture = (CultureInfo) CultureInfo.CurrentCulture.Clone();
 				// change the date separator
-				newCulture.DateTimeFormat.DateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
+				var dateSep = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
+				var shortDate = CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern.Replace(" ", "");
+
 				// set current thread culture
-				Thread.CurrentThread.CurrentCulture = newCulture;
+				Thread.CurrentThread.CurrentCulture.DateTimeFormat.DateSeparator = dateSep;
+				Thread.CurrentThread.CurrentCulture.DateTimeFormat.ShortDatePattern = shortDate;
+
+				Thread.CurrentThread.CurrentUICulture.DateTimeFormat.DateSeparator = dateSep;
+				Thread.CurrentThread.CurrentUICulture.DateTimeFormat.ShortDatePattern = shortDate;
+
 				// set the default culture for other threads
-				CultureInfo.DefaultThreadCurrentCulture = newCulture;
+				CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.DateSeparator = dateSep;
+				CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.ShortDatePattern = shortDate;
+
+				CultureInfo.DefaultThreadCurrentUICulture.DateTimeFormat.DateSeparator = dateSep;
+				CultureInfo.DefaultThreadCurrentUICulture.DateTimeFormat.ShortDatePattern = shortDate;
 			}
 
 			ProgramOptions.TimeFormat = ini.GetValue("Program", "TimeFormat", "t");
