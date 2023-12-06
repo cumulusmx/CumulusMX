@@ -8179,7 +8179,7 @@ namespace CumulusMX
 			sb.Append(station.RainRate.ToString(RainFormat) + ListSeparator);
 			sb.Append(station.RainToday.ToString(RainFormat) + ListSeparator);
 			sb.Append(station.Pressure.ToString(PressFormat) + ListSeparator);
-			sb.Append(station.Raincounter.ToString(RainFormat) + ListSeparator);
+			sb.Append(station.RainCounter.ToString(RainFormat) + ListSeparator);
 			sb.Append(station.IndoorTemperature.ToString(TempFormat) + ListSeparator);
 			sb.Append(station.IndoorHumidity + ListSeparator);
 			sb.Append(station.WindLatest.ToString(WindFormat) + ListSeparator);
@@ -8246,7 +8246,7 @@ namespace CumulusMX
 				values.Append(station.RainRate.ToString(RainFormat, InvC) + ",");
 				values.Append(station.RainToday.ToString(RainFormat, InvC) + ",");
 				values.Append(station.Pressure.ToString(PressFormat, InvC) + ",");
-				values.Append(station.Raincounter.ToString(RainFormat, InvC) + ",");
+				values.Append(station.RainCounter.ToString(RainFormat, InvC) + ",");
 				values.Append(station.IndoorTemperature.ToString(TempFormat, InvC) + ",");
 				values.Append(station.IndoorHumidity + ",");
 				values.Append(station.WindLatest.ToString(WindFormat, InvC) + ",");

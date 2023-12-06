@@ -1407,7 +1407,7 @@ namespace CumulusMX
 		public class HttpStation : WebApiController
 		{
 			[Route(HttpVerbs.Post, "/{req}")]
-			public async Task PostTags(string req)
+			public async Task PostStation(string req)
 			{
 				try
 				{

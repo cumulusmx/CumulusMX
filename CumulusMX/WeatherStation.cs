@@ -217,8 +217,8 @@ namespace CumulusMX
 		public double THWIndex = 0;
 		public double THSWIndex = 0;
 
-		public double raindaystart = 0.0;
-		public double Raincounter = 0.0;
+		public double RainCounterDayStart = 0.0;
+		public double RainCounter = 0.0;
 		public bool gotraindaystart = false;
 		protected double prevraincounter = 0.0;
 
@@ -528,18 +528,35 @@ namespace CumulusMX
 
 		private void GetRainCounter()
 		{
+			// do we need to do anything?
+			if (!initialiseRainCounter && !initialiseMidnightRain && !initialiseRainDayStart)
+			{
+				cumulus.LogMessage("GetRainCounter: Nothing to do");
+				return;
+			}
+
 			// Find today's rain so far from last record in log file
+			bool raindaystartfound = false;
+			bool raincounterfound = false;
 			bool midnightrainfound = false;
-			//string LogFile = cumulus.Datapath + cumulus.LastUpdateTime.ToString("MMMyy") + "log.txt";
+
 			string LogFile = cumulus.GetLogFileName(cumulus.LastUpdateTime);
-			double raincount = 0;
+			double raintoday = 0;
+			double raincounter = 0;
+			double midnightraincounter = 0;
+			double raindaystart = 0;
+
 			string logdate = "00/00/00";
 			string prevlogdate = "00/00/00";
+
 			string listSep = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 			string todaydatestring = cumulus.LastUpdateTime.ToString("dd/MM/yy");
 
-			cumulus.LogMessage("Finding raintoday from logfile " + LogFile);
-			cumulus.LogMessage("Expecting listsep=" + listSep + " decimal=" + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
+			var lastDate = cumulus.LastUpdateTime.AddHours(cumulus.GetHourInc(cumulus.LastUpdateTime));
+			var meteoDate = new DateTime(lastDate.Year, lastDate.Month, lastDate.Day, -cumulus.GetHourInc(cumulus.LastUpdateTime), 0, 0);
+
+			cumulus.LogMessage("GetRainCounter: Finding raintoday from logfile " + LogFile);
+			cumulus.LogMessage("GetRainCounter: Expecting listsep=" + listSep + " decimal=" + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
 
 			if (File.Exists(LogFile))
 			{
@@ -555,89 +572,114 @@ namespace CumulusMX
 						var st = new List<string>(Regex.Split(line, listSep));
 						if (st.Count > 0)
 						{
-							RainToday = Double.Parse(st[9]);
+							raintoday = Double.Parse(st[9]);
+							raincounter = Double.Parse(st[11]);
+
+							raincounterfound = true;
+
 							// get date of this entry
 							logdate = st[0];
-							if (!midnightrainfound)
+
+							if (initialiseMidnightRain && !midnightrainfound)
 							{
-								if (logdate != prevlogdate)
+								if (logdate != prevlogdate && todaydatestring == logdate)
 								{
-									if (todaydatestring == logdate)
-									{
-										// this is the first entry of a new day AND the new day is today
-										midnightrainfound = true;
-										cumulus.LogMessage("Midnight rain found in the following entry:");
-										cumulus.LogMessage(line);
-										raincount = Double.Parse(st[11]);
-									}
+									// this is the first entry of a new day AND the new day is today
+									midnightrainfound = true;
+									midnightraincounter = Double.Parse(st[11]);
+									cumulus.LogMessage($"GetRainCounter: Midnight rain counter {midnightraincounter:F4} found in the following entry:");
+									cumulus.LogMessage(line);
 								}
 							}
+
+							if (initialiseRainDayStart && !raindaystartfound)
+							{
+								var logDateTime = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
+								if (logDateTime >= meteoDate)
+								{
+									raindaystartfound = true;
+									raindaystart = Double.Parse(st[11]) - Double.Parse(st[9]);
+									cumulus.LogMessage($"GetRainCounter: Rain day start counter {raindaystart:F4} found in the following entry:");
+									cumulus.LogMessage(line);
+								}
+							}
+
 							prevlogdate = logdate;
 						}
 					}
 				}
 				catch (Exception E)
 				{
-					cumulus.LogErrorMessage("Error on line " + linenum + " of " + LogFile + ": " + E.Message);
+					cumulus.LogErrorMessage("GetRainCounter: Error on line " + linenum + " of " + LogFile + ": " + E.Message);
 				}
 			}
 
-			if (midnightrainfound)
+			if (initialiseMidnightRain)
 			{
-				if ((logdate.Substring(0, 2) == "01") && (logdate.Substring(3, 2) == cumulus.RainSeasonStart.ToString("D2")) && (cumulus.Manufacturer == cumulus.DAVIS))
+				if (midnightrainfound)
 				{
-					// special case: rain counter is about to be reset
-					//TODO: MC: Hmm are there issues here, what if the console clock is wrong and it does not reset for another hour, or it already reset and we have had rain since?
-					var month = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(cumulus.RainSeasonStart);
-					cumulus.LogMessage($"Special case, Davis station on 1st of {month}. Set midnight rain count to zero");
-					midnightraincount = 0;
-				}
-				else if (Math.Round(raindaystart, cumulus.RainDPlaces) == Math.Round(raincount, cumulus.RainDPlaces))
-				{
-					cumulus.LogMessage($"raindaystart {raindaystart:F4} and midnight rain {raincount:F4} match within rounding error, setting midnight rain to rainday start value");
-					midnightraincount = raindaystart;
+					if (Math.Round(MidnightRainCount, cumulus.RainDPlaces) == Math.Round(midnightraincounter, cumulus.RainDPlaces))
+					{
+						cumulus.LogMessage($"GetRainCounter: Rain day start counter {RainCounterDayStart:F4} and midnight rain counter {midnightraincounter:F4} match within rounding error, setting midnight rain to rain day start value");
+						MidnightRainCount = RainCounterDayStart;
+					}
+					else
+					{
+						cumulus.LogMessage($"GetRainCounter: Midnight rain counter found, setting existing midnight rain counter {MidnightRainCount:F4} to log file value {midnightraincounter:F4}");
+						MidnightRainCount = midnightraincounter;
+					}
 				}
 				else
 				{
-					cumulus.LogMessage($"Midnight rain found, setting existing midnight rain count {midnightraincount:F4} to log file value {raincount:F4}");
-					midnightraincount = raincount;
+					cumulus.LogMessage("GetRainCounter: Midnight rain counter not found, setting midnight count to raindaystart = " + RainCounterDayStart);
+					MidnightRainCount = RainCounterDayStart;
 				}
-			}
-			else
-			{
-				cumulus.LogMessage("Midnight rain not found, setting midnight count to raindaystart = " + raindaystart);
-				midnightraincount = raindaystart;
+
+				initialiseMidnightRain = false;
 			}
 
-			// If we do not have a rain counter value for start of day from Today.ini, then use the midnight counter
-			if (initialiseRainCounter)
+			if ((logdate.Substring(0, 2) == "01") && (logdate.Substring(3, 2) == cumulus.RainSeasonStart.ToString("D2")) && (cumulus.Manufacturer == cumulus.DAVIS))
 			{
-				Raincounter = midnightraincount + (RainToday / cumulus.Calib.Rain.Mult);
+				// special case: rain counter is about to be reset
+				//TODO: MC: Hmm are there issues here, what if the console clock is wrong and it does not reset for another hour, or it already reset and we have had rain since?
+				var month = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(cumulus.RainSeasonStart);
+				cumulus.LogMessage($"GetRainCounter: Special case, Davis station on 1st of {month}. Set midnight rain count to zero");
+				MidnightRainCount = 0;
 			}
 
-			cumulus.LogMessage("Checking rain counter = " + Raincounter);
-			if (Raincounter < 0)
+			if (initialiseRainDayStart && raindaystartfound)
 			{
-				cumulus.LogMessage("Rain counter negative, setting to zero");
-				Raincounter = 0;
+				cumulus.LogMessage($"GetRainCounter: Rain day start counter found, setting existing start rain counter {RainCounterDayStart:F4} to log file value {raindaystart:F4}");
+				RainCounterDayStart = raindaystart;
+				initialiseRainDayStart = false;
 			}
-			else
+
+			// If we do not have a rain counter value for start of day from Today.ini, then use the last value from the log file
+			if (initialiseRainCounter && raincounterfound)
 			{
-				cumulus.LogMessage("Rain counter left at = " + Raincounter);
+				cumulus.LogMessage($"GetRainCounter: Rain counter found, setting existing rain counter {RainCounter:F4} to log file value {raincounter:F4}");
+				RainCounter = raincounter;
+				initialiseRainCounter = false;
+			}
+
+			if (RainCounter < 0)
+			{
+				cumulus.LogMessage("GetRainCounter: Rain counter negative, setting to zero");
+				RainCounter = 0;
 			}
 		}
 
 		public void GetRainFallTotals()
 		{
-			cumulus.LogMessage("Getting rain totals, rain season start = " + cumulus.RainSeasonStart);
-			rainthismonth = 0;
-			rainthisyear = 0;
+			cumulus.LogMessage("GetRainFallTotals: Getting rain totals, rain season start = " + cumulus.RainSeasonStart);
+			RainThisMonth = 0;
+			RainThisYear = 0;
 			// get today's date for month check; allow for 0900 roll-over
 			var hourInc = cumulus.GetHourInc();
 			var ModifiedNow = DateTime.Now.AddHours(hourInc);
 			// avoid any funny locale peculiarities on date formats
 			string Today = ModifiedNow.ToString("dd/MM/yy", CultureInfo.InvariantCulture);
-			cumulus.LogMessage("Today = " + Today);
+			cumulus.LogMessage("GetRainFallTotals: Today = " + Today);
 			// get today's date offset by rain season start for year check
 			int offsetYearToday = ModifiedNow.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
 
@@ -649,12 +691,12 @@ namespace CumulusMX
 					// This year?
 					if (offsetLoggedYear == offsetYearToday)
 					{
-						rainthisyear += rec.TotalRain;
+						RainThisYear += rec.TotalRain;
 					}
 					// This month?
 					if ((rec.Date.Month == ModifiedNow.Month) && (rec.Date.Year == ModifiedNow.Year))
 					{
-						rainthismonth += rec.TotalRain;
+						RainThisMonth += rec.TotalRain;
 					}
 				}
 			}
@@ -663,26 +705,25 @@ namespace CumulusMX
 				cumulus.LogMessage("GetRainfallTotals: Error - " + ex.Message);
 			}
 
-			cumulus.LogMessage("Rainthismonth from dayfile: " + rainthismonth);
-			cumulus.LogMessage("Rainthisyear from dayfile: " + rainthisyear);
+			cumulus.LogMessage("GetRainFallTotals: Rainthismonth from dayfile: " + RainThisMonth);
+			cumulus.LogMessage("GetRainFallTotals: Rainthisyear from dayfile: " + RainThisYear);
 
 			// Add in year-to-date rain (if necessary)
 			if (cumulus.YTDrainyear == Convert.ToInt32(Today.Substring(6, 2)) + 2000)
 			{
-				cumulus.LogMessage("Adding YTD rain: " + cumulus.YTDrain);
-				rainthisyear += cumulus.YTDrain;
-				cumulus.LogMessage("Rainthisyear: " + rainthisyear);
+				cumulus.LogMessage($"GetRainFallTotals: Adding YTD rain: {cumulus.YTDrain}, new Rainthisyear: {RainThisYear}");
+				RainThisYear += cumulus.YTDrain;
 			}
-			RainMonth = rainthismonth;
-			RainYear = rainthisyear;
+			RainMonth = RainThisMonth;
+			RainYear = RainThisYear;
 		}
 
 		public void UpdateYearMonthRainfall()
 		{
 			var _month = RainMonth;
 			var _year = RainYear;
-			RainMonth = rainthismonth + RainToday;
-			RainYear = rainthisyear + RainToday;
+			RainMonth = RainThisMonth + RainToday;
+			RainYear = RainThisYear + RainToday;
 			cumulus.LogMessage($"Rainthismonth Updated from: {_month.ToString(cumulus.RainFormat)} to: {RainMonth.ToString(cumulus.RainFormat)}");
 			cumulus.LogMessage($"Rainthisyear Updated from: {_year.ToString(cumulus.RainFormat)} to: {RainYear.ToString(cumulus.RainFormat)}");
 
@@ -697,17 +738,15 @@ namespace CumulusMX
 
 			IniFile ini = new IniFile(cumulus.TodayIniFile);
 
-			cumulus.LogConsoleMessage("Today.ini = " + cumulus.TodayIniFile);
-
 			var todayfiledate = ini.GetValue("General", "Date", "00/00/00");
 			var timestampstr = ini.GetValue("General", "Timestamp", DateTime.Now.ToString("s"));
 
-			cumulus.LogConsoleMessage("Last update=" + timestampstr);
+			cumulus.LogConsoleMessage("Last update: " + timestampstr);
 
 			cumulus.LastUpdateTime = DateTime.Parse(timestampstr);
 			var todayDate = cumulus.LastUpdateTime.Date;
 
-			cumulus.LogMessage("Last update time from today.ini: " + cumulus.LastUpdateTime);
+			cumulus.LogMessage("ReadTodayFile: Last update time from today.ini: " + cumulus.LastUpdateTime);
 
 			DateTime metoTodayDate = cumulus.LastUpdateTime.AddHours(cumulus.GetHourInc()).Date;
 
@@ -719,7 +758,7 @@ namespace CumulusMX
 			CurrentMonth = ini.GetValue("General", "CurrentMonth", defaultmonth);
 			CurrentDay = ini.GetValue("General", "CurrentDay", defaultday);
 
-			cumulus.LogMessage("Read today file: Date = " + todayfiledate + ", LastUpdateTime = " + cumulus.LastUpdateTime + ", Month = " + CurrentMonth);
+			cumulus.LogMessage("ReadTodayFile: Date = " + todayfiledate + ", LastUpdateTime = " + cumulus.LastUpdateTime + ", Month = " + CurrentMonth);
 
 			LastRainTip = ini.GetValue("Rain", "LastTip", "0000-00-00 00:00");
 
@@ -728,8 +767,8 @@ namespace CumulusMX
 			FOSolarClockTime = ini.GetValue("FineOffset", "FOSolarClockTime", DateTime.MinValue);
 			if (cumulus.FineOffsetOptions.SyncReads && (cumulus.StationType == StationTypes.FineOffset || cumulus.StationType == StationTypes.FineOffsetSolar))
 			{
-				cumulus.LogMessage("Sensor clock  " + FOSensorClockTime.ToLongTimeString());
-				cumulus.LogMessage("Station clock " + FOStationClockTime.ToLongTimeString());
+				cumulus.LogMessage("ReadTodayFile: Sensor clock  " + FOSensorClockTime.ToLongTimeString());
+				cumulus.LogMessage("ReadTodayFile: Station clock " + FOStationClockTime.ToLongTimeString());
 			}
 			ConsecutiveRainDays = ini.GetValue("Rain", "ConsecutiveRainDays", 0);
 			ConsecutiveDryDays = ini.GetValue("Rain", "ConsecutiveDryDays", 0);
@@ -738,13 +777,13 @@ namespace CumulusMX
 			StartofdayET = ini.GetValue("ET", "Startofday", -1.0);
 			if (StartofdayET < 0)
 			{
-				cumulus.LogMessage("ET not initialised");
+				cumulus.LogMessage("ReadTodayFile: ET not initialised");
 				noET = true;
 			}
 			else
 			{
 				ET = AnnualETTotal - StartofdayET;
-				cumulus.LogMessage("ET today = " + ET.ToString(cumulus.ETFormat));
+				cumulus.LogMessage("ReadTodayFile: ET today = " + ET.ToString(cumulus.ETFormat));
 			}
 			ChillHours = ini.GetValue("Temp", "ChillHours", 0.0);
 
@@ -807,21 +846,51 @@ namespace CumulusMX
 			HiLoToday.HighHourlyRainTime = ini.GetValue("Rain", "HHourlyTime", metoTodayDate);
 			HiLoToday.HighRain24h = ini.GetValue("Rain", "High24h", 0.0);
 			HiLoToday.HighRain24hTime = ini.GetValue("Rain", "High24hTime", metoTodayDate);
-			raindaystart = ini.GetValue("Rain", "Start", -1.0);
-			Raincounter = ini.GetValue("Rain", "Last", -1.0);
-			cumulus.LogMessage($"ReadTodayfile: Rain day start = {raindaystart:F4}, last count = {Raincounter:F4}");
 			RainYesterday = ini.GetValue("Rain", "Yesterday", 0.0);
-			if (raindaystart == -1.0)
+			RainCounterDayStart = ini.GetValue("Rain", "Start", -1.0);
+			MidnightRainCount = ini.GetValue("Rain", "Midnight", -1.0);
+			RainCounter = ini.GetValue("Rain", "Last", -1.0);
+
+			if (RainCounterDayStart == -1.0)
 			{
 				cumulus.LogMessage("ReadTodayfile: set initialiseRainDayStart true");
 				initialiseRainDayStart = true;
 			}
+			else
+			{
+				initialiseRainDayStart = false;
+			}
 
-			if (Raincounter == -1.0)
+			if (RainCounter == -1.0)
 			{
 				cumulus.LogMessage("ReadTodayfile: set initialiseRainCounterOnFirstData true");
 				initialiseRainCounter = true;
 			}
+			else
+			{
+				initialiseRainCounter = false;
+			}
+
+			if (MidnightRainCount == -1.0)
+			{
+				if (cumulus.RolloverHour == 0 && !initialiseRainDayStart)
+				{
+					// midnight and rollover are the same
+					MidnightRainCount = RainCounterDayStart;
+					initialiseMidnightRain = false;
+				}
+				else
+				{
+					cumulus.LogMessage("ReadTodayfile: set initialiseMidnightRain true");
+					initialiseMidnightRain = true;
+				}
+			}
+			else
+			{
+				initialiseMidnightRain = false;
+			}
+
+			cumulus.LogMessage($"ReadTodayfile: Rain day start: {RainCounterDayStart:F4}, midnight counter: {MidnightRainCount:F4}, last counter: {RainCounter:F4}");
 
 			// humidity
 			HiLoToday.LowHumidity = ini.GetValue("Humidity", "Low", 100);
@@ -927,9 +996,10 @@ namespace CumulusMX
 				ini.SetValue("Rain", "HHourlyTime", HiLoToday.HighHourlyRainTime.ToString("HH:mm"));
 				ini.SetValue("Rain", "High24h", HiLoToday.HighRain24h);
 				ini.SetValue("Rain", "High24hTime", HiLoToday.HighRain24hTime.ToString("HH:mm"));
-				ini.SetValue("Rain", "Start", raindaystart);
-				ini.SetValue("Rain", "Last", Raincounter);
 				ini.SetValue("Rain", "Yesterday", RainYesterday);
+				ini.SetValue("Rain", "Start", RainCounterDayStart);
+				ini.SetValue("Rain", "Midnight", MidnightRainCount);
+				ini.SetValue("Rain", "Last", RainCounter);
 				ini.SetValue("Rain", "LastTip", LastRainTip);
 				ini.SetValue("Rain", "ConsecutiveRainDays", ConsecutiveRainDays);
 				ini.SetValue("Rain", "ConsecutiveDryDays", ConsecutiveDryDays);
@@ -996,16 +1066,15 @@ namespace CumulusMX
 
 				if (Log)
 				{
-					cumulus.LogMessage("Writing today.ini, LastUpdateTime = " + cumulus.LastUpdateTime + " raindaystart = " + raindaystart.ToString("F2") + " rain counter = " +
-									   Raincounter.ToString("F2"));
+					cumulus.LogMessage("Writing today.ini, LastUpdateTime = " + cumulus.LastUpdateTime + " raindaystart = " + RainCounterDayStart.ToString("F2") + " rain counter = " + RainCounter.ToString("F2"));
 
 					if (cumulus.FineOffsetStation)
 					{
-						cumulus.LogMessage("Latest reading: " + LatestFOReading);
+						cumulus.LogMessage("WriteTodayFile: Latest FO reading: " + LatestFOReading);
 					}
 					else if (cumulus.StationType == StationTypes.Instromet)
 					{
-						cumulus.LogMessage("Latest reading: " + cumulus.LatestImetReading);
+						cumulus.LogMessage("WriteTodayFile: Latest Instromet reading: " + cumulus.LatestImetReading);
 					}
 				}
 
@@ -1368,7 +1437,7 @@ namespace CumulusMX
 
 		public double ChillHours { get; set; }
 
-		public double midnightraincount { get; set; }
+		public double MidnightRainCount { get; set; }
 
 		public int MidnightRainResetDay { get; set; }
 
@@ -1810,7 +1879,7 @@ namespace CumulusMX
 					DoTrendValues(now);
 					DoPressTrend("Enable Cumulus pressure trend");
 					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
-						Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
+						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
 					// calculate ET just before the hour so it is included in the correct day at roll over - only affects 9am met days really
 					if (cumulus.StationOptions.CalculatedET && now.Minute == 59)
@@ -5039,15 +5108,15 @@ namespace CumulusMX
 
 			if (mrrday != MidnightRainResetDay)
 			{
-				midnightraincount = Raincounter;
+				MidnightRainCount = RainCounter;
 				RainSinceMidnight = 0;
 				MidnightRainResetDay = mrrday;
-				cumulus.LogMessage("Midnight rain reset, count = " + Raincounter + " time = " + timestamp.ToShortTimeString());
+				cumulus.LogMessage("Midnight rain reset, count = " + RainCounter + " time = " + timestamp.ToShortTimeString());
 				if ((mrrday == 1) && (mrrmonth == 1) && (cumulus.StationType == StationTypes.VantagePro))
 				{
 					// special case: rain counter is about to be reset
 					cumulus.LogMessage("Special case, Davis station on 1st Jan. Set midnight rain count to zero");
-					midnightraincount = 0;
+					MidnightRainCount = 0;
 				}
 			}
 		}
@@ -5776,7 +5845,7 @@ namespace CumulusMX
 				return;
 			}
 
-			var previoustotal = Raincounter;
+			var previoustotal = RainCounter;
 
 			// This is just to stop rounding errors triggering phantom rain days
 			//double raintipthreshold = cumulus.Units.Rain == 0 ? 0.009 : 0.0003;
@@ -5822,16 +5891,23 @@ namespace CumulusMX
 			}
 			*/
 
-			Raincounter = total;
+			RainCounter = total;
 
-			//first_rain = false;
-			if (initialiseRainDayStart)
+			if (initialiseRainDayStart || initialiseMidnightRain)
 			{
 				initialiseRainDayStart = false;
+				initialiseMidnightRain = false;
 
-				raindaystart = Raincounter;
-				midnightraincount = Raincounter;
-				cumulus.LogMessage(" First rain data, raindaystart = " + raindaystart);
+				if (initialiseRainDayStart)
+				{
+					RainCounterDayStart = RainCounter;
+					cumulus.LogMessage(" First rain data, raindaystart = " + RainCounterDayStart);
+				}
+
+				if (initialiseMidnightRain)
+				{
+					MidnightRainCount = RainCounter;
+				}
 
 				WriteTodayFile(timestamp, false);
 				HaveReadData = true;
@@ -5840,37 +5916,37 @@ namespace CumulusMX
 
 			// Has the rain total in the station been reset?
 			// raindaystart greater than current total, allow for rounding
-			if (Math.Round(raindaystart, cumulus.RainDPlaces) - Math.Round(Raincounter, cumulus.RainDPlaces) > 0)
+			if (Math.Round(RainCounterDayStart, cumulus.RainDPlaces) - Math.Round(RainCounter, cumulus.RainDPlaces) > 0)
 			{
 				if (FirstChanceRainReset)
 				// second consecutive reading with reset value
 				{
-					cumulus.LogWarningMessage(" ****Rain counter reset confirmed: raindaystart = " + raindaystart + ", Raincounter = " + Raincounter);
+					cumulus.LogWarningMessage(" ****Rain counter reset confirmed: raindaystart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
 
 					// set the start of day figure so it reflects the rain
 					// so far today
-					raindaystart = Raincounter - (RainToday / cumulus.Calib.Rain.Mult);
-					cumulus.LogMessage("Setting raindaystart to " + raindaystart);
+					RainCounterDayStart = RainCounter - (RainToday / cumulus.Calib.Rain.Mult);
+					cumulus.LogMessage("Setting raindaystart to " + RainCounterDayStart);
 
-					midnightraincount = Raincounter;
+					MidnightRainCount = RainCounter;
 					previoustotal = total;
 
 					// update any data in the recent data db
-					var counterChange = Raincounter - prevraincounter;
+					var counterChange = RainCounter - prevraincounter;
 					RecentDataDb.Execute("update RecentData set raincounter=raincounter+?", counterChange);
 
 					FirstChanceRainReset = false;
 				}
 				else
 				{
-					cumulus.LogMessage(" ****Rain reset? First chance: raindaystart = " + raindaystart + ", Raincounter = " + Raincounter);
+					cumulus.LogMessage(" ****Rain reset? First chance: raindaystart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
 
 					// reset the counter to ignore this reading
-					Raincounter = previoustotal;
-					cumulus.LogMessage("Leaving counter at " + Raincounter);
+					RainCounter = previoustotal;
+					cumulus.LogMessage("Leaving counter at " + RainCounter);
 
 					// stash the previous rain counter
-					prevraincounter = Raincounter;
+					prevraincounter = RainCounter;
 
 					FirstChanceRainReset = true;
 				}
@@ -5942,11 +6018,11 @@ namespace CumulusMX
 				}
 
 				// Calculate today"s rainfall
-				RainToday = (Raincounter - raindaystart) * cumulus.Calib.Rain.Mult;
+				RainToday = (RainCounter - RainCounterDayStart) * cumulus.Calib.Rain.Mult;
 				//cumulus.LogDebugMessage("Uncalibrated RainToday = " + RainToday);
 
 				// Calculate rain since midnight for Wunderground etc
-				double trendval = Raincounter - midnightraincount;
+				double trendval = RainCounter - MidnightRainCount;
 
 				// Round value as some values may have been read from log file and already rounded
 				trendval = Math.Round(trendval, cumulus.RainDPlaces);
@@ -5961,13 +6037,13 @@ namespace CumulusMX
 				}
 
 				// rain this month so far
-				RainMonth = rainthismonth + RainToday;
+				RainMonth = RainThisMonth + RainToday;
 
 				// get correct date for rain records
 				var offsetdate = timestamp.AddHours(cumulus.GetHourInc());
 
 				// rain this year so far
-				RainYear = rainthisyear + RainToday;
+				RainYear = RainThisYear + RainToday;
 
 				if (RainToday > AllTime.DailyRain.Val)
 					SetAlltime(AllTime.DailyRain, RainToday, offsetdate);
@@ -6722,11 +6798,12 @@ namespace CumulusMX
 
 		//private bool first_rain = true;
 		private bool FirstChanceRainReset = false;
-		private bool initialiseRainDayStart = false;
-		private bool initialiseRainCounter = false;
+		private bool initialiseRainDayStart = true;
+		private bool initialiseMidnightRain = true;
+		private bool initialiseRainCounter = true;
 		//private bool RainReadyToPlot = false;
-		private double rainthismonth = 0;
-		private double rainthisyear = 0;
+		private double RainThisMonth = 0;
+		private double RainThisYear = 0;
 		//private bool WindChillReadyToPlot = false;
 		public bool noET = false;
 		private int DayResetDay = 0;
@@ -6949,11 +7026,11 @@ namespace CumulusMX
 
 				// First save today"s extremes
 				DoDayfile(timestamp);
-				cumulus.LogMessage("Raincounter = " + Raincounter + " Raindaystart = " + raindaystart);
+				cumulus.LogMessage("Raincounter = " + RainCounter + " Raindaystart = " + RainCounterDayStart);
 
 				// Calculate yesterday"s rain, allowing for the multiplier -
 				// raintotal && raindaystart are not calibrated
-				RainYesterday = (Raincounter - raindaystart) * cumulus.Calib.Rain.Mult;
+				RainYesterday = (RainCounter - RainCounterDayStart) * cumulus.Calib.Rain.Mult;
 				cumulus.LogMessage("Rainyesterday (calibrated) set to " + RainYesterday);
 
 				//AddRecentDailyData(timestamp.AddDays(-1), RainYesterday, (cumulus.RolloverHour == 0 ? SunshineHours : SunshineToMidnight), HiLoToday.LowTemp, HiLoToday.HighTemp, YestAvgTemp);
@@ -7224,7 +7301,7 @@ namespace CumulusMX
 
 					CopyMonthIniFile(timestamp.AddDays(-1));
 
-					rainthismonth = 0;
+					RainThisMonth = 0;
 
 					ThisMonth.HighGust.Val = calibratedgust;
 					ThisMonth.HighWind.Val = WindAverage;
@@ -7286,7 +7363,7 @@ namespace CumulusMX
 					ThisMonth.HighDailyTempRange.Ts = timestamp;
 				}
 				else
-					rainthismonth += RainYesterday;
+					RainThisMonth += RainYesterday;
 
 				if ((day == 1) && (month == 1))
 				{
@@ -7369,11 +7446,11 @@ namespace CumulusMX
 				{
 					// new year starting
 					cumulus.LogMessage(" New rain season starting");
-					rainthisyear = 0;
+					RainThisYear = 0;
 				}
 				else
 				{
-					rainthisyear += RainYesterday;
+					RainThisYear += RainYesterday;
 				}
 
 				if ((day == 1) && (month == cumulus.ChillHourSeasonStart))
@@ -7398,8 +7475,8 @@ namespace CumulusMX
 				// && as we do the roll-over before processing the entry, the
 				// current items may not be set up.
 
-				raindaystart = Raincounter;
-				cumulus.LogMessage("Raindaystart set to " + raindaystart);
+				RainCounterDayStart = RainCounter;
+				cumulus.LogMessage("Raindaystart set to " + RainCounterDayStart);
 
 				RainToday = 0;
 
@@ -8255,7 +8332,7 @@ namespace CumulusMX
 
 
 					// calculate and display rainfall in last hour
-					if (Raincounter < retVals[0].raincounter)
+					if (RainCounter < retVals[0].raincounter)
 					{
 						// rain total is not available or has gone down, assume it was reset to zero, just use zero
 						RainLastHour = 0;
@@ -8263,7 +8340,7 @@ namespace CumulusMX
 					else
 					{
 						// normal case
-						trendval = Raincounter - retVals[0].raincounter;
+						trendval = RainCounter - retVals[0].raincounter;
 
 						// Round value as some values may have been read from log file and already rounded
 						trendval = Math.Round(trendval, cumulus.RainDPlaces);
@@ -8326,13 +8403,13 @@ namespace CumulusMX
 				{
 					retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddMinutes(-5.5));
 
-					if (retVals.Count != 1 || Raincounter < retVals[0].raincounter)
+					if (retVals.Count != 1 || RainCounter < retVals[0].raincounter)
 					{
 						RainRate = 0;
 					}
 					else
 					{
-						var raindiff = Math.Round(Raincounter - retVals[0].raincounter, cumulus.RainDPlaces);
+						var raindiff = Math.Round(RainCounter - retVals[0].raincounter, cumulus.RainDPlaces);
 						//cumulus.LogMessage("raindiff = " + raindiff);
 
 						var timediffhours = 1.0 / 12.0;
@@ -8401,13 +8478,13 @@ namespace CumulusMX
 			{
 				retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddDays(-1));
 
-				if (retVals.Count != 1 || Raincounter < retVals[0].raincounter)
+				if (retVals.Count != 1 || RainCounter < retVals[0].raincounter)
 				{
 					RainLast24Hour = 0;
 				}
 				else
 				{
-					trendval = Math.Round(Raincounter - retVals[0].raincounter, cumulus.RainDPlaces);
+					trendval = Math.Round(RainCounter - retVals[0].raincounter, cumulus.RainDPlaces);
 
 					if (trendval < 0)
 					{
@@ -9050,7 +9127,7 @@ namespace CumulusMX
 					msg += $"Error at line {linenum} of {cumulus.DayFileName} : {e.Message}<br>";
 				}
 
-				cumulus.LogMessage($"Loaded {addedEntries} entries to recent daily data list");
+				cumulus.LogMessage($"LoadDayFile: Loaded {addedEntries} entries to recent daily data list");
 				msg += $"Loaded {addedEntries} entries to recent daily data list";
 				return msg;
 			}
@@ -9833,7 +9910,6 @@ namespace CumulusMX
 
 		public void ReadAlltimeIniFile()
 		{
-			cumulus.LogMessage(Path.GetFullPath(cumulus.AlltimeIniFile));
 			IniFile ini = new IniFile(cumulus.AlltimeIniFile);
 
 			AllTime.HighTemp.Val = ini.GetValue("Temperature", "hightempvalue", Cumulus.DefaultHiVal);

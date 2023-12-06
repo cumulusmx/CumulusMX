@@ -48,10 +48,10 @@ namespace CumulusMX
 				try
 				{
 					var raintoday = double.Parse(raintodaystring, CultureInfo.InvariantCulture);
-					cumulus.LogMessage("Before rain today edit, raintoday=" + station.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.raindaystart.ToString(cumulus.RainFormat));
+					cumulus.LogMessage("Before rain today edit, raintoday=" + station.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.RainCounterDayStart.ToString(cumulus.RainFormat));
 					station.RainToday = raintoday;
-					station.raindaystart = station.Raincounter - (station.RainToday / cumulus.Calib.Rain.Mult);
-					cumulus.LogMessage("After rain today edit,  raintoday=" + station.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.raindaystart.ToString(cumulus.RainFormat));
+					station.RainCounterDayStart = station.RainCounter - (station.RainToday / cumulus.Calib.Rain.Mult);
+					cumulus.LogMessage("After rain today edit,  raintoday=" + station.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.RainCounterDayStart.ToString(cumulus.RainFormat));
 					// force the rainthismonth/rainthisyear values to be recalculated
 					station.UpdateYearMonthRainfall();
 				}
@@ -64,8 +64,8 @@ namespace CumulusMX
 			return new JsonObject
 			{
 				["raintoday"] = station.RainToday.ToString(cumulus.RainFormat, invC),
-				["raincounter"] = station.Raincounter.ToString(cumulus.RainFormat, invC),
-				["startofdayrain"] = station.raindaystart.ToString(cumulus.RainFormat, invC),
+				["raincounter"] = station.RainCounter.ToString(cumulus.RainFormat, invC),
+				["startofdayrain"] = station.RainCounterDayStart.ToString(cumulus.RainFormat, invC),
 				["rainmult"] = cumulus.Calib.Rain.Mult.ToString("F3", invC)
 			}.ToJson();
 		}
@@ -78,8 +78,8 @@ namespace CumulusMX
 			return new JsonObject
 			{
 				["raintoday"] = station.RainToday.ToString(cumulus.RainFormat, invC),
-				["raincounter"] = station.Raincounter.ToString(cumulus.RainFormat, invC),
-				["startofdayrain"] = station.raindaystart.ToString(cumulus.RainFormat, invC),
+				["raincounter"] = station.RainCounter.ToString(cumulus.RainFormat, invC),
+				["startofdayrain"] = station.RainCounterDayStart.ToString(cumulus.RainFormat, invC),
 				["rainmult"] = cumulus.Calib.Rain.Mult.ToString("F3", invC),
 				["step"] = step
 			}.ToJson();

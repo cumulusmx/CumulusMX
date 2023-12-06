@@ -77,7 +77,7 @@ New
 	- It grabs the data from the Ecowitt cloud servers. This data is updated once a minute and is slightly less rich than the locally available API data.
 	- This station can also be used as a source of Extra Sensor data for your primary station
 	- It also makes available the URL of the latest camera on the Ecowitt cloud server via the new web tag <#EcowittCameraUrl>
-	- You can use the tag <ecowittcameraurl> in the URL field of HTTP Files to download the latest image
+	- You can use the tag "<ecowittcameraurl>" in the URL field of HTTP Files to download the latest image
 - Adds a new station type of Davis Cloud
 	- It grabs the data from the Davis WeatherLink cloud servers. The data is updated according to your subscription model
 		- Pro+ = 1 minute updates
