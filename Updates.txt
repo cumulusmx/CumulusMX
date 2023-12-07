@@ -15,12 +15,14 @@ Changed
 - Calibration and Limit values are now displayed and set in your native units
 - NOAA reports now produce an error rather than skipping over if a duplicate entry is detected in the dayfile
 - Reload dayfile now produces an error rather than skipping over if a duplicate entry is detected in the dayfile
+- The default path in the sample cumulusmx.service file has been changed to /opt/CumulusMX
 
 Fixed
 - Add missing New Record and FTP alarm info to the dashboard data stream
 - Some AirLink wl.com API calls not using the correct API details when configured as Standalone
 - Indoor Temperature and Humidity spike removal not working
 - Program Setting 'Remove space character from date separators (if present)' now applies to all output
+- The Ecowitt API MAC address field was not allowed to be blank in the Wizard or station config
 
 Package Updates
 - MailKit/MimeKit

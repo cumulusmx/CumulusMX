@@ -580,19 +580,29 @@ namespace CumulusMX
 							// get date of this entry
 							logdate = st[0];
 
-							if (initialiseMidnightRain && !midnightrainfound)
+							if (logdate != prevlogdate && todaydatestring == logdate)
 							{
-								if (logdate != prevlogdate && todaydatestring == logdate)
+								if ((initialiseMidnightRain && !midnightrainfound) || (cumulus.RolloverHour == 0 && initialiseRainDayStart && !raindaystartfound))
 								{
-									// this is the first entry of a new day AND the new day is today
-									midnightrainfound = true;
-									midnightraincounter = Double.Parse(st[11]);
-									cumulus.LogMessage($"GetRainCounter: Midnight rain counter {midnightraincounter:F4} found in the following entry:");
+									if (initialiseMidnightRain)
+									{
+										// this is the first entry of a new day AND the new day is today
+										midnightrainfound = true;
+										midnightraincounter = Double.Parse(st[11]) - Double.Parse(st[9]);
+										cumulus.LogMessage($"GetRainCounter: Midnight rain counter {midnightraincounter:F4} found in the following entry:");
+									}
+
+									if (initialiseRainDayStart)
+									{
+										raindaystartfound = true;
+										raindaystart = Double.Parse(st[11]) - Double.Parse(st[9]);
+										cumulus.LogMessage($"GetRainCounter: Rain day start counter {raindaystart:F4} found in the following entry:");
+									}
 									cumulus.LogMessage(line);
 								}
 							}
 
-							if (initialiseRainDayStart && !raindaystartfound)
+							if (initialiseRainDayStart && !raindaystartfound && cumulus.RolloverHour != 0)
 							{
 								var logDateTime = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 								if (logDateTime >= meteoDate)
