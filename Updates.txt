@@ -1,4 +1,4 @@
-3.28.0 - b3266
+3.28.0 - b3267
 ——————————————
 New
 - Adds the option to clear the latest error log
