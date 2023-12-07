@@ -142,7 +142,7 @@ namespace CumulusMX
 							try
 							{
 
-								var data = ecowittApi.GetCurrentData(cumulus.cancellationToken, ref delay);
+								var data = ecowittApi.GetCurrentData(ref delay, cumulus.cancellationToken);
 
 								if (data != null)
 								{
@@ -205,16 +205,34 @@ namespace CumulusMX
 
 		public override string GetEcowittCameraUrl()
 		{
-			if ((cumulus.EcowittExtraUseCamera || main) && cumulus.EcowittCameraMacAddress != null)
+			if ((cumulus.EcowittExtraUseCamera || main) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 			{
 				try
 				{
-					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(cumulus.cancellationToken, EcowittCameraUrl);
+					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, cumulus.cancellationToken);
 					return EcowittCameraUrl;
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
+					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Camera URL");
+				}
+			}
+
+			return null;
+		}
+
+		public override string GetEcowittVideoUrl()
+		{
+			if ((cumulus.EcowittExtraUseCamera || main) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			{
+				try
+				{
+					EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, cumulus.cancellationToken);
+					return EcowittVideoUrl;
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Video URL");
 				}
 			}
 

@@ -3273,6 +3273,19 @@ namespace CumulusMX
 			}
 		}
 
+		private string TagEcowittVideoUrl(Dictionary<string, string> tagParams)
+		{
+			if (cumulus.StationType == StationTypes.GW1000 || cumulus.StationType == StationTypes.HttpEcowitt || cumulus.StationType == StationTypes.EcowittCloud)
+			{
+				return string.IsNullOrEmpty(station.GetEcowittVideoUrl()) ? string.Empty : station.EcowittVideoUrl;
+			}
+			else
+			{
+				return string.Empty;
+			}
+		}
+
+
 		private string Tagtempunit(Dictionary<string, string> tagParams)
 		{
 			return EncodeForWeb(cumulus.Units.TempText);
@@ -6027,6 +6040,7 @@ namespace CumulusMX
 				{ "webcam", Tagwebcam },
 				{ "webcamurl", Tagwebcamurl },
 				{ "EcowittCameraUrl", TagEcowittCameraUrl },
+				{ "EcowittVideoUrl", TagEcowittVideoUrl },
 				{ "tempunit", Tagtempunit },
 				{ "tempunitnodeg", Tagtempunitnodeg },
 				{ "tempunitnoenc", Tagtempunitnoenc },

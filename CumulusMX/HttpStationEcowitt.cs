@@ -221,16 +221,34 @@ namespace CumulusMX
 
 		public override string GetEcowittCameraUrl()
 		{
-			if (cumulus.EcowittCameraMacAddress != null)
+			if ((cumulus.EcowittExtraUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 			{
 				try
 				{
-					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(cumulus.cancellationToken, EcowittCameraUrl);
+					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, cumulus.cancellationToken);
 					return EcowittCameraUrl;
 				}
 				catch (Exception ex)
 				{
 					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
+				}
+			}
+
+			return null;
+		}
+
+		public override string GetEcowittVideoUrl()
+		{
+			if ((cumulus.EcowittExtraUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			{
+				try
+				{
+					EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, cumulus.cancellationToken);
+					return EcowittVideoUrl;
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Video URL");
 				}
 			}
 

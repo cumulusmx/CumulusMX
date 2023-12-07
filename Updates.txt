@@ -6,6 +6,7 @@ New
 	- Trigger an alarm when any numeric or boolean web tag value exceeds or falls below a set value
 	- Boolean web tags evaluate to 0 or 1 (false, true), so are treated as numeric
 - You can now change the built-in alarm descriptions in the Locale Strings settings
+- Adds a new web tag <#EcowittVideoUrl> to get the URL of the latest Ecowitt camera timelapse video
 
 Changed
 - Warning message from WLL station about spurious broadcast messages changed to a Debug message

@@ -294,11 +294,11 @@ namespace CumulusMX
 
 		public override string GetEcowittCameraUrl()
 		{
-			if (cumulus.EcowittCameraMacAddress != null)
+			if (!string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 			{
 				try
 				{
-					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(cumulus.cancellationToken, EcowittCameraUrl);
+					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, cumulus.cancellationToken);
 					return EcowittCameraUrl;
 				}
 				catch (Exception ex)
@@ -309,6 +309,25 @@ namespace CumulusMX
 
 			return null;
 		}
+
+		public override string GetEcowittVideoUrl()
+		{
+			if (!string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			{
+				try
+				{
+					EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, cumulus.cancellationToken);
+					return EcowittVideoUrl;
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Video URL");
+				}
+			}
+
+			return null;
+		}
+
 
 		private Discovery DiscoverGW1000()
 		{
