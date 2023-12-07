@@ -1387,7 +1387,7 @@ namespace CumulusMX
 			SetupUnitText();
 
 			LogMessage($"WindUnit={Units.WindText} RainUnit={Units.RainText} TempUnit={Units.TempText} PressureUnit={Units.PressText}");
-			LogMessage($"YTDRain={YTDrain:F3} Year={YTDrainyear}");
+			LogMessage($"Manual rainfall: YTDRain={YTDrain:F3}, Correction Year={YTDrainyear}");
 			LogMessage($"RainDayThreshold={RainDayThreshold:F3}");
 			LogMessage($"Roll over hour={RolloverHour:D2}");
 			if (RolloverHour != 0)
