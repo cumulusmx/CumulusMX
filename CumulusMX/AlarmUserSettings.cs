@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Net.Http;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
 
 using EmbedIO;
 
 using ServiceStack;
-using ServiceStack.Text;
 
 
 namespace CumulusMX
@@ -74,11 +69,11 @@ namespace CumulusMX
 						Enabled = settings.alarms[i].Enabled,
 						Value = settings.alarms[i].Value,
 						Email = settings.alarms[i].Email,
+						EmailMsg = settings.alarms[i].EmailMsg,
 						Action = settings.alarms[i].Action,
 						ActionParams = settings.alarms[i].ActionParams,
 						Latch = settings.alarms[i].Latch,
 						LatchHours = settings.alarms[i].LatchHours,
-						EmailMsg = settings.alarms[i].EmailMsg,
 						Units = settings.alarms[i].Units,
 						TriggerThreshold = settings.alarms[i].TriggerThreshold
 					});

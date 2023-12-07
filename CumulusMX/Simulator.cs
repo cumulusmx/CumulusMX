@@ -270,6 +270,5 @@ namespace CumulusMX
 				return _value;
 			}
 		}
-
 	}
 }

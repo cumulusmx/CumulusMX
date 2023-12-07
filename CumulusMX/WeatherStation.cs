@@ -9078,6 +9078,7 @@ namespace CumulusMX
 			{
 				int linenum = 0;
 				int errorCount = 0;
+				int duplicateCount = 0;
 
 				var watch = Stopwatch.StartNew();
 
@@ -9100,10 +9101,9 @@ namespace CumulusMX
 
 								if (DayFile.Any(x => x.Date == newRec.Date))
 								{
-									msg += $"ERROR: Duplicate entry in dayfile for {newRec.Date:d} - aborting load of daily data<br>";
-									msg += "Please correct your dayfile and try again";
-									cumulus.LogErrorMessage("LoadDayFile: " + msg);
-									return msg;
+									cumulus.LogErrorMessage($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}");
+									msg += $"ERROR: Duplicate entry in dayfile for {newRec.Date:d}<br>";
+									duplicateCount++;
 								}
 
 								DayFile.Add(newRec);
@@ -9129,6 +9129,12 @@ namespace CumulusMX
 					watch.Stop();
 					cumulus.LogDebugMessage($"LoadDayFile: Dayfile parse = {watch.ElapsedMilliseconds} ms");
 
+					if (duplicateCount > 0)
+					{
+						msg += $"Found {duplicateCount} duplicate entries, please correct your dayfile and try again";
+						cumulus.LogErrorMessage($"LoadDayFile: Found {duplicateCount} duplicate entries, please correct your dayfile and try again");
+						return msg;
+					}
 				}
 				catch (Exception e)
 				{

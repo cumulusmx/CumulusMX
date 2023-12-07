@@ -5569,6 +5569,7 @@ namespace CumulusMX
 					var value = ini.GetValue("UserAlarms", "AlarmValue" + i, 0.0);
 					var enabled = ini.GetValue("UserAlarms", "AlarmEnabled" + i, false);
 					var email = ini.GetValue("UserAlarms", "AlarmEmail" + i, false);
+					var emailMsg = ini.GetValue("UserAlarms", "AlarmEmailMsg" + i, "");
 					var latch = ini.GetValue("UserAlarms", "AlarmLatch" + i, false);
 					var latchHours = ini.GetValue("UserAlarms", "AlarmLatchHours" + i, 24.0);
 					var action = ini.GetValue("UserAlarms", "AlarmAction" + i, "");
@@ -5583,6 +5584,7 @@ namespace CumulusMX
 								Value = value,
 								Enabled = enabled,
 								Email = email,
+								EmailMsg = emailMsg,
 								Latch = latch,
 								LatchHours = latchHours,
 								Action = action,
@@ -6833,6 +6835,7 @@ namespace CumulusMX
 				ini.SetValue("UserAlarms", "AlarmValue" + i, UserAlarms[i].Value);
 				ini.SetValue("UserAlarms", "AlarmEnabled" + i, UserAlarms[i].Enabled);
 				ini.SetValue("UserAlarms", "AlarmEmail" + i, UserAlarms[i].Email);
+				ini.SetValue("UserAlarms", "AlarmEmailMsg" + i, UserAlarms[i].EmailMsg);
 				ini.SetValue("UserAlarms", "AlarmLatch" + i, UserAlarms[i].Latch);
 				ini.SetValue("UserAlarms", "AlarmLatchHours" + i, UserAlarms[i].LatchHours);
 				ini.SetValue("UserAlarms", "AlarmAction" + i, UserAlarms[i].Action);
@@ -6847,6 +6850,7 @@ namespace CumulusMX
 				ini.DeleteValue("UserAlarms", "AlarmValue" + i);
 				ini.DeleteValue("UserAlarms", "AlarmEnabled" + i);
 				ini.DeleteValue("UserAlarms", "AlarmEmail" + i);
+				ini.DeleteValue("UserAlarms", "AlarmEmailMsg" + i);
 				ini.DeleteValue("UserAlarms", "AlarmLatch" + i);
 				ini.DeleteValue("UserAlarms", "AlarmLatchHours" + i);
 				ini.DeleteValue("UserAlarms", "AlarmAction" + i);

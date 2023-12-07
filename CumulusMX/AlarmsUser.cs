@@ -195,7 +195,7 @@ namespace CumulusMX
 						// We are latching, but the latch period has expired, clear the trigger
 						triggered = false;
 						triggerCount = 0;
-						cumulus.LogMessage($"User Alarm ({Name}): Trigger cleared");
+						cumulus.LogMessage($"User Alarm ({Name}): Trigger cleared, value = {tagValue}");
 					}
 				}
 				else
@@ -203,7 +203,7 @@ namespace CumulusMX
 					// No latch, just clear the trigger
 					triggered = false;
 					triggerCount = 0;
-					cumulus.LogMessage($"User Alarm ({Name}): Trigger cleared");
+					cumulus.LogMessage($"User Alarm ({Name}): Trigger cleared, value = {tagValue}");
 				}
 			}
 		}
