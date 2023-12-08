@@ -31,6 +31,7 @@ Package Updates
 - ServiceStack.Text
 - SQLite
 - MQTTnet
+- FluentFTP (customised CMX version until new a build is released)
 
 
 3.27.1 - b3263
