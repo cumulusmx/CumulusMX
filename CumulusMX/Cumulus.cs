@@ -498,7 +498,6 @@ namespace CumulusMX
 			public bool EnableDataUpdate;
 			public string UpdateTemplate;
 			public bool EnableInterval;
-			public int IntervalTime;
 			public string IntervalTemplate;
 		}
 		public MqttSettings MQTT;
@@ -1674,11 +1673,6 @@ namespace CumulusMX
 				if (MQTT.EnableDataUpdate || MQTT.EnableInterval)
 				{
 					MqttPublisher.Setup(this);
-
-					if (MQTT.EnableInterval)
-					{
-						MQTTTimer.Elapsed += MQTTTimerTick;
-					}
 				}
 
 				InitialiseRG11();
@@ -2266,10 +2260,10 @@ namespace CumulusMX
 				UpdateAwekas(DateTime.Now);
 		}
 
-		public void MQTTTimerTick(object sender, ElapsedEventArgs e)
+		public void MQTTSecondChanged(DateTime now)
 		{
-			if (!station.DataStopped)
-				MqttPublisher.UpdateMQTTfeed("Interval");
+			if (MQTT.EnableInterval && !station.DataStopped)
+				MqttPublisher.UpdateMQTTfeed("Interval", now);
 		}
 
 		/*
@@ -5273,7 +5267,6 @@ namespace CumulusMX
 			MQTT.EnableDataUpdate = ini.GetValue("MQTT", "EnableDataUpdate", false);
 			MQTT.UpdateTemplate = ini.GetValue("MQTT", "UpdateTemplate", "DataUpdateTemplate.txt");
 			MQTT.EnableInterval = ini.GetValue("MQTT", "EnableInterval", false);
-			MQTT.IntervalTime = ini.GetValue("MQTT", "IntervalTime", 600); // default to 10 minutes
 			MQTT.IntervalTemplate = ini.GetValue("MQTT", "IntervalTemplate", "IntervalTemplate.txt");
 
 			LowTempAlarm.Value = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
@@ -6600,7 +6593,6 @@ namespace CumulusMX
 			ini.SetValue("MQTT", "EnableDataUpdate", MQTT.EnableDataUpdate);
 			ini.SetValue("MQTT", "UpdateTemplate", MQTT.UpdateTemplate);
 			ini.SetValue("MQTT", "EnableInterval", MQTT.EnableInterval);
-			ini.SetValue("MQTT", "IntervalTime", MQTT.IntervalTime);
 			ini.SetValue("MQTT", "IntervalTemplate", MQTT.IntervalTemplate);
 
 			ini.SetValue("Alarms", "alarmlowtemp", LowTempAlarm.Value);
@@ -7969,8 +7961,6 @@ namespace CumulusMX
 		public Timer WundTimer = new Timer();
 		public Timer WebTimer = new Timer();
 		public Timer AwekasTimer = new Timer();
-		public Timer MQTTTimer = new Timer();
-		//public Timer AirLinkTimer = new Timer();
 
 		public int DAVIS = 0;
 		public int OREGON = 1;
@@ -9384,11 +9374,8 @@ namespace CumulusMX
 				WundTimer.Stop();
 				WebTimer.Stop();
 				AwekasTimer.Stop();
-				MQTTTimer.Stop();
-				//AirLinkTimer.Stop();
 				CustomHttpSecondsTimer.Stop();
 				CustomMysqlSecondsTimer.Stop();
-				MQTTTimer.Stop();
 			}
 			catch { }
 
@@ -12437,26 +12424,7 @@ namespace CumulusMX
 				WundTimer.Interval = Wund.Interval * 60 * 1000; // mins to millisecs
 			}
 
-
 			AwekasTimer.Interval = AWEKAS.Interval * 1000;
-
-			MQTTTimer.Interval = MQTT.IntervalTime * 1000; // secs to millisecs
-
-
-			// 15/10/20 What is doing? Nothing
-			/*
-			if (AirLinkInEnabled || AirLinkOutEnabled)
-			{
-				AirLinkTimer.Interval = 60 * 1000; // 1 minute
-				AirLinkTimer.Enabled = true;
-				AirLinkTimer.Elapsed += AirLinkTimerTick;
-			}
-			*/
-
-			if (MQTT.EnableInterval)
-			{
-				MQTTTimer.Enabled = true;
-			}
 
 			if (WundList == null)
 			{
@@ -14584,6 +14552,7 @@ namespace CumulusMX
 		public string data { get; set; }
 		public bool retain { get; set; }
 		public string doNotTriggerOnTags { get; set; }
+		public int? interval { get; set; }
 	}
 
 	public class MySqlGeneralSettings

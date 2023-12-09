@@ -17,6 +17,10 @@ Changed
 - NOAA reports now produce an error rather than skipping over if a duplicate entry is detected in the dayfile
 - Reload dayfile now produces an error rather than skipping over if a duplicate entry is detected in the dayfile
 - The default path in the sample cumulusmx.service file has been changed to /opt/CumulusMX
+- Upload.php amended to change the maximum permitted clock difference between MX and the remote server to 20 seconds (was 10)
+*** BREAKING CHANGE ***
+- The MQTT interval data sending has changed. Previously all topics sent at the same fixed interval. Now you can specify an interval per topic in the MQTT config file
+	If you are using MQTT interval topics, then please the Readme.txt file in the /mqtt folder for details of the changes you need to make
 
 Fixed
 - Add missing New Record and FTP alarm info to the dashboard data stream

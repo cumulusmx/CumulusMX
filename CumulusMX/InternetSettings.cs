@@ -237,14 +237,11 @@ namespace CumulusMX
 					{
 						cumulus.MQTT.UpdateTemplate = settings.mqtt.dataUpdate.template ?? string.Empty;
 					}
+
 					cumulus.MQTT.EnableInterval = settings.mqtt.interval.enabled;
 					if (cumulus.MQTT.EnableInterval)
 					{
-						cumulus.MQTT.IntervalTime = settings.mqtt.interval.time;
 						cumulus.MQTT.IntervalTemplate = settings.mqtt.interval.template ?? string.Empty;
-
-						cumulus.MQTTTimer.Interval = cumulus.MQTT.IntervalTime * 1000;
-						cumulus.MQTTTimer.Enabled = cumulus.MQTT.EnableInterval && !string.IsNullOrWhiteSpace(cumulus.MQTT.IntervalTemplate);
 					}
 				}
 				catch (Exception ex)
@@ -355,20 +352,6 @@ namespace CumulusMX
 					{
 						MqttPublisher.Setup(cumulus);
 					}
-					if (cumulus.MQTT.EnableInterval)
-					{
-						cumulus.MQTTTimer.Elapsed -= cumulus.MQTTTimerTick;
-						cumulus.MQTTTimer.Elapsed += cumulus.MQTTTimerTick;
-						cumulus.MQTTTimer.Start();
-					}
-					else
-					{
-						cumulus.MQTTTimer.Stop();
-					}
-				}
-				else
-				{
-					cumulus.MQTTTimer.Stop();
 				}
 			}
 			catch (Exception ex)
@@ -520,16 +503,15 @@ namespace CumulusMX
 				realtimeprogramparams = cumulus.RealtimeParams
 			};
 
-			var mqttUpdate = new JsonInternetSettingsMqttDataupdate()
+			var mqttUpdate = new JsonInternetSettingsMqttData()
 			{
 				enabled = cumulus.MQTT.EnableDataUpdate,
 				template = cumulus.MQTT.UpdateTemplate
 			};
 
-			var mqttInterval = new JsonInternetSettingsMqttInterval()
+			var mqttInterval = new JsonInternetSettingsMqttData()
 			{
 				enabled = cumulus.MQTT.EnableInterval,
-				time = cumulus.MQTT.IntervalTime,
 				template = cumulus.MQTT.IntervalTemplate
 			};
 
@@ -803,24 +785,16 @@ namespace CumulusMX
 		public bool useTls { get; set; }
 		public string username { get; set; }
 		public string password { get; set; }
-		public JsonInternetSettingsMqttDataupdate dataUpdate { get; set; }
-		public JsonInternetSettingsMqttInterval interval { get; set; }
+		public JsonInternetSettingsMqttData dataUpdate { get; set; }
+		public JsonInternetSettingsMqttData interval { get; set; }
 	}
 
-	public class JsonInternetSettingsMqttDataupdate
+	public class JsonInternetSettingsMqttData
 	{
 		public bool enabled { get; set; }
 		public string template { get; set; }
 	}
 
-	public class JsonInternetSettingsMqttInterval
-	{
-		public bool enabled { get; set; }
-		public int time { get; set; }
-		public string topic { get; set; }
-		public string template { get; set; }
-		public bool retained { get; set; }
-	}
 
 	public class JsonInternetSettingsMoonImage
 	{

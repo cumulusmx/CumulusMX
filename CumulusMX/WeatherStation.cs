@@ -182,6 +182,7 @@ namespace CumulusMX
 
 		private int lastMinute;
 		private int lastHour;
+		private int lastSecond;
 
 		public bool[] WMR928ChannelPresent = new[] { false, false, false, false };
 		public bool[] WMR928ExtraTempValueOnly = new[] { false, false, false, false };
@@ -1698,17 +1699,24 @@ namespace CumulusMX
 				}
 			}
 
-			// send current data to web-socket every 5 seconds, unless it has already been sent within the 10 seconds
-			if (LastDataReadTimestamp.AddSeconds(5) < timeNow && (int) timeNow.TimeOfDay.TotalMilliseconds % 10000 <= 500)
+			if (timeNow.Second != lastSecond)
 			{
-				_ = sendWebSocketData();
-			}
+				lastSecond = timeNow.Second;
 
-			// lets spread some the processing over the minute, 12 seconds past the minute...
-			var millisecs = (int) timeNow.TimeOfDay.TotalMilliseconds % 60000;
-			if (millisecs >= 12000 && millisecs < 12500)
-			{
-				MinutePlus12Changed(timeNow);
+				// send current data to web-socket every 5 seconds, unless it has already been sent within the 10 seconds
+				if (LastDataReadTimestamp.AddSeconds(5) < timeNow && (int) timeNow.TimeOfDay.TotalMilliseconds % 10000 <= 500)
+				{
+					_ = sendWebSocketData();
+				}
+
+				// lets spread some the processing over the minute, 12 seconds past the minute...
+				var millisecs = (int) timeNow.TimeOfDay.TotalMilliseconds % 60000;
+				if (millisecs >= 12000 && millisecs < 12500)
+				{
+					MinutePlus12Changed(timeNow);
+				}
+
+				cumulus.MQTTSecondChanged(timeNow);
 			}
 		}
 
@@ -9502,7 +9510,7 @@ namespace CumulusMX
 		{
 			if (cumulus.MQTT.EnableDataUpdate)
 			{
-				MqttPublisher.UpdateMQTTfeed("DataUpdate");
+				MqttPublisher.UpdateMQTTfeed("DataUpdate", DateTime.MinValue);
 			}
 		}
 
