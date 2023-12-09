@@ -333,14 +333,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || item.Value == 140 || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].IndoorTemp = item.Value;
+								value.IndoorTemp = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.IndoorTemp = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ IndoorTemp = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -355,14 +355,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].IndoorHum = item.Value;
+								value.IndoorHum = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.IndoorHum = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ IndoorHum = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -389,14 +389,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || item.Value == 140 || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].Temp = item.Value;
+								value.Temp = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.Temp = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ Temp = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -412,14 +412,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].Humidity = item.Value;
+								value.Humidity = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.Humidity = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ Humidity = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -435,14 +435,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].DewPoint = item.Value;
+								value.DewPoint = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.DewPoint = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ DewPoint = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -468,14 +468,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].WindSpd = item.Value;
+								value.WindSpd = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.WindSpd = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ WindSpd = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -491,14 +491,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].WindGust = item.Value;
+								value.WindGust = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.WindGust = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ WindGust = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -514,14 +514,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].WindDir = item.Value;
+								value.WindDir = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.WindDir = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ WindDir = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -547,14 +547,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].Pressure = item.Value;
+								value.Pressure = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.Pressure = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ Pressure = item.Value};
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -582,14 +582,14 @@ namespace CumulusMX
 								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
 									continue;
 
-								if (buffer.ContainsKey(itemDate))
+								if (buffer.TryGetValue(itemDate, out var value))
 								{
-									buffer[itemDate].RainRate = item.Value;
+									value.RainRate = item.Value;
 								}
 								else
 								{
-									var newItem = new EcowittApi.HistoricData();
-									newItem.RainRate = item.Value;
+									var newItem = new EcowittApi.HistoricData()
+									{ RainRate = item.Value };
 									buffer.Add(itemDate, newItem);
 								}
 							}
@@ -605,14 +605,14 @@ namespace CumulusMX
 								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
 									continue;
 
-								if (buffer.ContainsKey(itemDate))
+								if (buffer.TryGetValue(itemDate, out var value))
 								{
-									buffer[itemDate].RainYear = item.Value;
+									value.RainYear = item.Value;
 								}
 								else
 								{
-									var newItem = new EcowittApi.HistoricData();
-									newItem.RainYear = item.Value;
+									var newItem = new EcowittApi.HistoricData()
+									{ RainYear = item.Value };
 									buffer.Add(itemDate, newItem);
 								}
 							}
@@ -630,14 +630,14 @@ namespace CumulusMX
 								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
 									continue;
 
-								if (buffer.ContainsKey(itemDate))
+								if (buffer.TryGetValue(itemDate, out var value))
 								{
-									buffer[itemDate].RainRate = item.Value;
+									value.RainRate = item.Value;
 								}
 								else
 								{
-									var newItem = new EcowittApi.HistoricData();
-									newItem.RainRate = item.Value;
+									var newItem = new EcowittApi.HistoricData()
+									{ RainRate = item.Value };
 									buffer.Add(itemDate, newItem);
 								}
 							}
@@ -653,14 +653,14 @@ namespace CumulusMX
 								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
 									continue;
 
-								if (buffer.ContainsKey(itemDate))
+								if (buffer.TryGetValue(itemDate, out var value))
 								{
-									buffer[itemDate].RainYear = item.Value;
+									value.RainYear = item.Value;
 								}
 								else
 								{
-									var newItem = new EcowittApi.HistoricData();
-									newItem.RainYear = item.Value;
+									var newItem = new EcowittApi.HistoricData()
+									{ RainYear = item.Value };
 									buffer.Add(itemDate, newItem);
 								}
 							}
@@ -687,14 +687,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].Solar = (int) item.Value;
+								value.Solar = (int) item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.Solar = (int) item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ Solar = (int) item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -710,14 +710,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].UVI = (int) item.Value;
+								value.UVI = (int) item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.UVI = (int) item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ UVI = (int) item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -802,9 +802,9 @@ namespace CumulusMX
 								if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 									continue;
 
-								if (buffer.ContainsKey(itemDate))
+								if (buffer.TryGetValue(itemDate, out var value))
 								{
-									buffer[itemDate].ExtraTemp[i] = item.Value;
+									value.ExtraTemp[i] = item.Value;
 								}
 								else
 								{
@@ -825,9 +825,9 @@ namespace CumulusMX
 								if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 									continue;
 
-								if (buffer.ContainsKey(itemDate))
+								if (buffer.TryGetValue(itemDate, out var value))
 								{
-									buffer[itemDate].ExtraHumidity[i] = item.Value;
+									value.ExtraHumidity[i] = item.Value;
 								}
 								else
 								{
@@ -857,9 +857,9 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].SoilMoist[i] = item.Value;
+								value.SoilMoist[i] = item.Value;
 							}
 							else
 							{
@@ -887,9 +887,9 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].UserTemp[i] = item.Value;
+								value.UserTemp[i] = item.Value;
 							}
 							else
 							{
@@ -917,9 +917,9 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].LeafWetness[i] = item.Value;
+								value.LeafWetness[i] = item.Value;
 							}
 							else
 							{
@@ -950,14 +950,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].IndoorCo2 = item.Value;
+								value.IndoorCo2 = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.IndoorCo2 = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ IndoorCo2 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -973,14 +973,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].IndoorCo2hr24 = item.Value;
+								value.IndoorCo2hr24 = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.IndoorCo2hr24 = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ IndoorCo2hr24 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1006,14 +1006,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].CO2pm2p5 = item.Value;
+								value.CO2pm2p5 = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.CO2pm2p5 = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ CO2pm2p5 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1029,14 +1029,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].CO2pm2p5hr24 = item.Value;
+								value.CO2pm2p5hr24 = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.CO2pm2p5hr24 = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ CO2pm2p5hr24 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1061,14 +1061,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].AqiComboPm25 = item.Value;
+								value.AqiComboPm25 = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.AqiComboPm25 = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ AqiComboPm25 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1093,14 +1093,14 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].AqiComboPm10 = item.Value;
+								value.AqiComboPm10 = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
-								newItem.AqiComboPm10 = item.Value;
+								var newItem = new EcowittApi.HistoricData()
+								{ AqiComboPm10 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1142,9 +1142,9 @@ namespace CumulusMX
 							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
 								continue;
 
-							if (buffer.ContainsKey(itemDate))
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								buffer[itemDate].pm25[i] = item.Value;
+								value.pm25[i] = item.Value;
 							}
 							else
 							{
