@@ -352,6 +352,10 @@ namespace CumulusMX
 					{
 						MqttPublisher.Setup(cumulus);
 					}
+					else
+					{
+						MqttPublisher.ReadTemplateFiles();
+					}
 				}
 			}
 			catch (Exception ex)
