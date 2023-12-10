@@ -14666,14 +14666,12 @@ namespace CumulusMX
 		// Returns true if the gust value exceeds current RecentMaxGust, false if it fails
 		public bool CheckHighGust(double gust, int gustdir, DateTime timestamp)
 		{
-			// Spike check is in m/s
-			var windGustMS = ConvertUnits.UserWindToMS(gust);
-			if (previousGust != 999 && (Math.Abs(windGustMS - previousGust) > cumulus.Spike.GustDiff || windGustMS >= cumulus.Limit.WindHigh))
+			if (gust >= cumulus.Limit.WindHigh)
 			{
-				cumulus.LogSpikeRemoval("Wind Gust difference greater than specified; reading ignored");
-				cumulus.LogSpikeRemoval($"Gust: NewVal={windGustMS:F1} OldVal={previousGust:F1} SpikeGustDiff={cumulus.Spike.GustDiff:F1} HighLimit={cumulus.Limit.WindHigh:F1}");
+				cumulus.LogSpikeRemoval("Wind Gust greater than the limit; reading ignored");
+				cumulus.LogSpikeRemoval($"Gust: NewVal={gust:F1} HighLimit={cumulus.Limit.WindHigh:F1}");
 				lastSpikeRemoval = timestamp;
-				cumulus.SpikeAlarm.LastMessage = $"Wind Gust difference greater than spike value - NewVal={windGustMS:F1}, OldVal={previousGust:F1}";
+				cumulus.SpikeAlarm.LastMessage = $"Wind Gust greater than limit - NewVal={gust:F1}, OldVal={cumulus.Limit.WindHigh:F1}";
 				cumulus.SpikeAlarm.Triggered = true;
 				return false;
 			}
