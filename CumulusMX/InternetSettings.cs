@@ -224,34 +224,6 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
-				// MQTT
-				try
-				{
-					cumulus.MQTT.Server = settings.mqtt.server ?? string.Empty;
-					cumulus.MQTT.Port = settings.mqtt.port;
-					cumulus.MQTT.UseTLS = settings.mqtt.useTls;
-					cumulus.MQTT.Username = settings.mqtt.username ?? string.Empty;
-					cumulus.MQTT.Password = settings.mqtt.password ?? string.Empty;
-					cumulus.MQTT.EnableDataUpdate = settings.mqtt.dataUpdate.enabled;
-					if (cumulus.MQTT.EnableDataUpdate)
-					{
-						cumulus.MQTT.UpdateTemplate = settings.mqtt.dataUpdate.template ?? string.Empty;
-					}
-
-					cumulus.MQTT.EnableInterval = settings.mqtt.interval.enabled;
-					if (cumulus.MQTT.EnableInterval)
-					{
-						cumulus.MQTT.IntervalTemplate = settings.mqtt.interval.template ?? string.Empty;
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Error processing MQTT settings: " + ex.Message;
-					cumulus.LogErrorMessage(msg);
-					errorMsg += msg + "\n\n";
-					context.Response.StatusCode = 500;
-				}
-
 				// Moon Image
 				try
 				{
@@ -507,29 +479,6 @@ namespace CumulusMX
 				realtimeprogramparams = cumulus.RealtimeParams
 			};
 
-			var mqttUpdate = new JsonInternetSettingsMqttData()
-			{
-				enabled = cumulus.MQTT.EnableDataUpdate,
-				template = cumulus.MQTT.UpdateTemplate
-			};
-
-			var mqttInterval = new JsonInternetSettingsMqttData()
-			{
-				enabled = cumulus.MQTT.EnableInterval,
-				template = cumulus.MQTT.IntervalTemplate
-			};
-
-			var mqttsettings = new JsonInternetSettingsMqtt()
-			{
-				server = cumulus.MQTT.Server,
-				port = cumulus.MQTT.Port,
-				useTls = cumulus.MQTT.UseTLS,
-				username = cumulus.MQTT.Username,
-				password = cumulus.MQTT.Password,
-				dataUpdate = mqttUpdate,
-				interval = mqttInterval
-			};
-
 			var moonimagesettings = new JsonInternetSettingsMoonImage()
 			{
 				enabled = cumulus.MoonImage.Enabled,
@@ -574,7 +523,6 @@ namespace CumulusMX
 				website = websitesettings,
 				websettings = websettings,
 				externalprograms = externalprograms,
-				mqtt = mqttsettings,
 				moonimage = moonimagesettings,
 				proxies = proxy,
 				emailsettings = email,
@@ -685,7 +633,6 @@ namespace CumulusMX
 		public JsonInternetSettingsWebsite website { get; set; }
 		public JsonInternetSettingsWebSettings websettings { get; set; }
 		public JsonInternetSettingsExternalPrograms externalprograms { get; set; }
-		public JsonInternetSettingsMqtt mqtt { get; set; }
 		public JsonInternetSettingsMoonImage moonimage { get; set; }
 		public JsonInternetSettingsProxySettings proxies { get; set; }
 		public JsonEmailSettings emailsettings { get; set; }
@@ -782,24 +729,6 @@ namespace CumulusMX
 		public string dailyprogramparams { get; set; }
 	}
 
-	public class JsonInternetSettingsMqtt
-	{
-		public string server { get; set; }
-		public int port { get; set; }
-		public bool useTls { get; set; }
-		public string username { get; set; }
-		public string password { get; set; }
-		public JsonInternetSettingsMqttData dataUpdate { get; set; }
-		public JsonInternetSettingsMqttData interval { get; set; }
-	}
-
-	public class JsonInternetSettingsMqttData
-	{
-		public bool enabled { get; set; }
-		public string template { get; set; }
-	}
-
-
 	public class JsonInternetSettingsMoonImage
 	{
 		public bool enabled { get; set; }
@@ -809,7 +738,6 @@ namespace CumulusMX
 		public bool copyimage { get; set; }
 		public string copydest { get; set; }
 	}
-
 
 	public class JsonInternetSettingsProxySettings
 	{

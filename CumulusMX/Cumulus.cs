@@ -487,7 +487,7 @@ namespace CumulusMX
 		public string WxnowComment = string.Empty;
 
 		// MQTT settings
-		public struct MqttSettings
+		public struct MqttConfig
 		{
 			public string Server;
 			public int Port;
@@ -500,7 +500,7 @@ namespace CumulusMX
 			public bool EnableInterval;
 			public string IntervalTemplate;
 		}
-		public MqttSettings MQTT;
+		public MqttConfig MQTT;
 
 		// NOAA report settings
 		public NOAAconfig NOAAconf = new NOAAconfig();
@@ -1450,6 +1450,7 @@ namespace CumulusMX
 			Api.alarmSettings = new AlarmSettings(this);
 			Api.alarmUserSettings = new AlarmUserSettings(this);
 			Api.mySqlSettings = new MysqlSettings(this);
+			Api.mqttSettings = new MqttSettings(this);
 			Api.customLogs = new CustomLogs(this);
 			Api.dataEditor = new DataEditor(this);
 			Api.tagProcessor = new ApiTagProcessor(this);

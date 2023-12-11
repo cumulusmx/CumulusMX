@@ -9510,7 +9510,7 @@ namespace CumulusMX
 		{
 			if (cumulus.MQTT.EnableDataUpdate)
 			{
-				MqttPublisher.UpdateMQTTfeed("DataUpdate", DateTime.MinValue);
+				MqttPublisher.UpdateMQTTfeed("DataUpdate", null);
 			}
 		}
 

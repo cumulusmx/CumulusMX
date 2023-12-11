@@ -19,6 +19,7 @@ Changed
 - The default path in the sample cumulusmx.service file has been changed to /opt/CumulusMX
 - Upload.php amended to change the maximum permitted clock difference between MX and the remote server to 20 seconds (was 10)
 - The MQTT config files are now only read at start-up or when the Internet Settings are saved
+- The MQTT settings have been removed from Internet Settings to their own page
 *** BREAKING CHANGE ***
 - The MQTT interval data sending has changed. Previously all topics sent at the same fixed interval. Now you can specify an interval per topic in the MQTT config file
 	If you are using MQTT interval topics, then please the ReadMe.txt file in the /mqtt folder for details of the changes you need to make
@@ -29,7 +30,7 @@ Fixed
 - Indoor Temperature and Humidity spike removal not working
 - Program Setting 'Remove space character from date separators (if present)' now applies to all output
 - The Ecowitt API MAC address field was not allowed to be blank in the Wizard or station config
-- Wind Gust values not being recorded as high values with moderate spike values and wind speed in mph or knots
+- Wind Gust values not being recorded as high values with moderate spike values set and wind speed in mph or knots
 
 Package Updates
 - MailKit/MimeKit
