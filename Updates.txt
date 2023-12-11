@@ -18,7 +18,7 @@ Changed
 - Reload dayfile now produces an error rather than skipping over if a duplicate entry is detected in the dayfile
 - The default path in the sample cumulusmx.service file has been changed to /opt/CumulusMX
 - Upload.php amended to change the maximum permitted clock difference between MX and the remote server to 20 seconds (was 10)
-- The MQTT config files are now only read at start-up or when the Internet Settings are saved
+- The MQTT config files are now only read at start-up or when the MQTT Settings are saved
 - The MQTT settings have been removed from Internet Settings to their own page
 *** BREAKING CHANGE ***
 - The MQTT interval data sending has changed. Previously all topics sent at the same fixed interval. Now you can specify an interval per topic in the MQTT config file
