@@ -165,9 +165,9 @@ namespace CumulusMX
 			{
 				var unit = tagParams.Get("unit").ToLower();
 				if (unit == "c")
-					return station.ConvertUserTempToC(val);
+					return ConvertUnits.UserTempToC(val);
 				else if (unit == "f")
-					return station.ConvertUserTempToF(val);
+					return ConvertUnits.UserTempToF(val);
 			}
 			return val;
 		}
@@ -191,11 +191,11 @@ namespace CumulusMX
 			{
 				var unit = tagParams.Get("unit").ToLower();
 				if (unit == "hpa" || unit == "mb")
-					return station.ConvertUserPressureToHPa(val);
+					return ConvertUnits.UserPressureToHPa(val);
 				else if (unit == "kpa")
-					return station.ConvertUserPressureToHPa(val) / 10;
+					return ConvertUnits.UserPressureToHPa(val) / 10;
 				else if (unit == "inhg")
-					return station.ConvertUserPressToIN(val);
+					return ConvertUnits.UserPressToIN(val);
 			}
 			return val;
 		}
@@ -206,9 +206,9 @@ namespace CumulusMX
 			{
 				var unit = tagParams.Get("unit").ToLower();
 				if (unit == "mm")
-					return station.ConvertUserRainToMM(val);
+					return ConvertUnits.UserRainToMM(val);
 				else if (unit == "in")
-					return station.ConvertUserRainToIN(val);
+					return ConvertUnits.UserRainToIN(val);
 			}
 			return val;
 		}
@@ -219,13 +219,13 @@ namespace CumulusMX
 			{
 				var unit = tagParams.Get("unit").ToLower();
 				if (unit == "mph")
-					return station.ConvertUserWindToMPH(val);
+					return ConvertUnits.UserWindToMPH(val);
 				else if (unit == "kph")
-					return station.ConvertUserWindToKPH(val);
+					return ConvertUnits.UserWindToKPH(val);
 				else if (unit == "ms")
-					return station.ConvertUserWindToMS(val);
+					return ConvertUnits.UserWindToMS(val);
 				else if (unit == "kt")
-					return station.ConvertUserWindToKnots(val);
+					return ConvertUnits.UserWindToKnots(val);
 			}
 			return val;
 		}
@@ -236,11 +236,11 @@ namespace CumulusMX
 			{
 				var unit = tagParams.Get("unit").ToLower();
 				if (unit == "mi")
-					return station.ConvertWindRunToMi(val);
+					return ConvertUnits.WindRunToMi(val);
 				else if (unit == "km")
-					return station.ConvertWindRunToKm(val);
+					return ConvertUnits.WindRunToKm(val);
 				else if (unit == "nm")
-					return station.ConvertWindRunToNm(val);
+					return ConvertUnits.WindRunToNm(val);
 			}
 			return val;
 		}
@@ -2301,12 +2301,12 @@ namespace CumulusMX
 
 		private string TagYbeaufort(Dictionary<string, string> tagParams)
 		{
-			return "F" + station.Beaufort(station.HiLoYest.HighWind);
+			return "F" + ConvertUnits.Beaufort(station.HiLoYest.HighWind);
 		}
 
 		private string TagYbeaufortnumber(Dictionary<string, string> tagParams)
 		{
-			return station.Beaufort(station.HiLoYest.HighWind).ToString();
+			return ConvertUnits.Beaufort(station.HiLoYest.HighWind).ToString();
 		}
 
 		private string TagYbeaudesc(Dictionary<string, string> tagParams)
@@ -2475,12 +2475,12 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.AllTime.HighWind.Ts, "\\a\\t HH:mm o\\n dd MMMM yyyy", tagParams);
 		}
 
-		private string TagwchillH(Dictionary<string, string> tagParams)
+		private string TagwchillL(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(CheckTempUnit(station.AllTime.LowChill.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
-		private string TagTwchillH(Dictionary<string, string> tagParams)
+		private string TagTwchillL(Dictionary<string, string> tagParams)
 		{
 			return GetFormattedDateTime(station.AllTime.LowChill.Ts, "\\a\\t HH:mm o\\n dd MMMM yyyy", tagParams);
 		}
@@ -3273,6 +3273,19 @@ namespace CumulusMX
 			}
 		}
 
+		private string TagEcowittVideoUrl(Dictionary<string, string> tagParams)
+		{
+			if (cumulus.StationType == StationTypes.GW1000 || cumulus.StationType == StationTypes.HttpEcowitt || cumulus.StationType == StationTypes.EcowittCloud)
+			{
+				return string.IsNullOrEmpty(station.GetEcowittVideoUrl()) ? string.Empty : station.EcowittVideoUrl;
+			}
+			else
+			{
+				return string.Empty;
+			}
+		}
+
+
 		private string Tagtempunit(Dictionary<string, string> tagParams)
 		{
 			return EncodeForWeb(cumulus.Units.TempText);
@@ -3386,7 +3399,6 @@ namespace CumulusMX
 
 		private string TagLastRainTip(Dictionary<string, string> tagParams)
 		{
-			string dtformat = tagParams.Get("format");
 			try
 			{
 				var lastTip = DateTime.Parse(station.LastRainTip);
@@ -3667,7 +3679,7 @@ namespace CumulusMX
 
 		private string TagIsFreezing(Dictionary<string, string> tagParams)
 		{
-			return station.ConvertUserTempToC(station.OutdoorTemperature) < 0.09 ? "1" : "0";
+			return ConvertUnits.UserTempToC(station.OutdoorTemperature) < 0.09 ? "1" : "0";
 		}
 
 		private string TagIsRaining(Dictionary<string, string> tagParams)
@@ -5958,8 +5970,8 @@ namespace CumulusMX
 				{ "TwspeedH", TagTwspeedH },
 				{ "windrunH", TagwindrunH },
 				{ "TwindrunH", TagTwindrunH },
-				{ "wchillH", TagwchillH },
-				{ "TwchillH", TagTwchillH },
+				{ "wchillL", TagwchillL },
+				{ "TwchillL", TagTwchillL },
 				{ "rrateM", TagrrateM },
 				{ "TrrateM", TagTrrateM },
 				{ "rfallH", TagrfallH },
@@ -6028,6 +6040,7 @@ namespace CumulusMX
 				{ "webcam", Tagwebcam },
 				{ "webcamurl", Tagwebcamurl },
 				{ "EcowittCameraUrl", TagEcowittCameraUrl },
+				{ "EcowittVideoUrl", TagEcowittVideoUrl },
 				{ "tempunit", Tagtempunit },
 				{ "tempunitnodeg", Tagtempunitnodeg },
 				{ "tempunitnoenc", Tagtempunitnoenc },

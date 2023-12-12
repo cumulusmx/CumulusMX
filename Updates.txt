@@ -1,3 +1,46 @@
+3.28.0 - b3269
+——————————————
+New
+- Adds the option to clear the latest error log
+- Adds User Defined Alarms
+	- Trigger an alarm when any numeric or boolean web tag value exceeds or falls below a set value
+	- Boolean web tags evaluate to 0 or 1 (false, true), so are treated as numeric
+- You can now change the built-in alarm descriptions in the Locale Strings settings
+- Adds a new web tag <#EcowittVideoUrl> to get the URL of the latest Ecowitt camera timelapse video
+
+Changed
+- Warning message from WLL station about spurious broadcast messages changed to a Debug message
+- All time low wind chill web tags were miss named wchillH and TwchillH. They are now wchillL and TwchillL
+	- The default web site page record.htm has been changed to reflect this
+	- As has the websitedataT.json file
+- Calibration and Limit values are now displayed and set in your native units
+- NOAA reports now produce an error rather than skipping over if a duplicate entry is detected in the dayfile
+- Reload dayfile now produces an error rather than skipping over if a duplicate entry is detected in the dayfile
+- The default path in the sample cumulusmx.service file has been changed to /opt/CumulusMX
+- Upload.php amended to change the maximum permitted clock difference between MX and the remote server to 20 seconds (was 10)
+- The MQTT config files are now only read at start-up or when the MQTT Settings are saved
+- The MQTT settings have been removed from Internet Settings to their own page
+*** BREAKING CHANGE ***
+- The MQTT interval data sending has changed. Previously all topics sent at the same fixed interval. Now you can specify an interval per topic in the MQTT config file
+	If you are using MQTT interval topics, then please the ReadMe.txt file in the /mqtt folder for details of the changes you need to make
+
+Fixed
+- Add missing New Record and FTP alarm info to the dashboard data stream
+- Some AirLink wl.com API calls not using the correct API details when configured as Standalone
+- Indoor Temperature and Humidity spike removal not working
+- Program Setting 'Remove space character from date separators (if present)' now applies to all output
+- The Ecowitt API MAC address field was not allowed to be blank in the Wizard or station config
+- Wind Gust values not being recorded as high values with moderate spike values set and wind speed in mph or knots
+
+Package Updates
+- MailKit/MimeKit
+- MySqlConnector
+- ServiceStack.Text
+- SQLite
+- MQTTnet
+- FluentFTP (customised CMX version until new a build is released)
+
+
 3.27.1 - b3263
 ——————————————
 New
@@ -45,7 +88,7 @@ New
 	- It grabs the data from the Ecowitt cloud servers. This data is updated once a minute and is slightly less rich than the locally available API data.
 	- This station can also be used as a source of Extra Sensor data for your primary station
 	- It also makes available the URL of the latest camera on the Ecowitt cloud server via the new web tag <#EcowittCameraUrl>
-	- You can use the tag <ecowittcameraurl> in the URL field of HTTP Files to download the latest image
+	- You can use the tag "<ecowittcameraurl>" in the URL field of HTTP Files to download the latest image
 - Adds a new station type of Davis Cloud
 	- It grabs the data from the Davis WeatherLink cloud servers. The data is updated according to your subscription model
 		- Pro+ = 1 minute updates

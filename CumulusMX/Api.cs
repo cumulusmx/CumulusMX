@@ -24,12 +24,14 @@ namespace CumulusMX
 		public static CalibrationSettings calibrationSettings;
 		public static NOAASettings noaaSettings;
 		public static MysqlSettings mySqlSettings;
+		public static MqttSettings mqttSettings;
 		public static CustomLogs customLogs;
 		internal static HttpFiles httpFiles;
 		public static Wizard wizard;
 		internal static LangSettings langSettings;
 		internal static DisplaySettings displaySettings;
 		internal static AlarmSettings alarmSettings;
+		internal static AlarmUserSettings alarmUserSettings;
 		internal static DataEditor dataEditor;
 		internal static ApiTagProcessor tagProcessor;
 		internal static HttpStationWund stationWund;
@@ -1156,6 +1158,9 @@ namespace CumulusMX
 							case "alarms.json":
 								await writer.WriteAsync(alarmSettings.GetAlarmSettings());
 								break;
+							case "useralarms.json":
+								await writer.WriteAsync(alarmUserSettings.GetAlpacaFormData());
+								break;
 							case "wizard.json":
 								await writer.WriteAsync(wizard.GetAlpacaFormData());
 								break;
@@ -1170,6 +1175,9 @@ namespace CumulusMX
 								break;
 							case "httpfiles.json":
 								await writer.WriteAsync(httpFiles.GetAlpacaFormData());
+								break;
+							case "mqttdata.json":
+								await writer.WriteAsync(mqttSettings.GetAlpacaFormData());
 								break;
 							default:
 								Response.StatusCode = 404;
@@ -1248,6 +1256,9 @@ namespace CumulusMX
 							case "updatealarmconfig.json":
 								await writer.WriteAsync(alarmSettings.UpdateAlarmSettings(HttpContext));
 								break;
+							case "updateuseralarms.json":
+								await writer.WriteAsync(alarmUserSettings.UpdateConfig(HttpContext));
+								break;
 							case "testemail.json":
 								await writer.WriteAsync(alarmSettings.TestEmail(HttpContext));
 								break;
@@ -1268,6 +1279,9 @@ namespace CumulusMX
 								break;
 							case "updatehttpfiles.json":
 								await writer.WriteAsync(httpFiles.UpdateConfig(HttpContext));
+								break;
+							case "updatemqttconfig.json":
+								await writer.WriteAsync(mqttSettings.UpdateConfig(HttpContext));
 								break;
 							default:
 								Response.StatusCode = 404;
@@ -1400,7 +1414,7 @@ namespace CumulusMX
 		public class HttpStation : WebApiController
 		{
 			[Route(HttpVerbs.Post, "/{req}")]
-			public async Task PostTags(string req)
+			public async Task PostStation(string req)
 			{
 				try
 				{
@@ -1592,6 +1606,9 @@ namespace CumulusMX
 							case "ftpnow.json":
 								await writer.WriteAsync(stationSettings.UploadNow(HttpContext));
 								break;
+							case "clearerrorlog.json":
+								await writer.WriteAsync(cumulus.ClearErrorLog());
+								break;
 							default:
 								Response.StatusCode = 404;
 								break;
@@ -1635,6 +1652,9 @@ namespace CumulusMX
 								break;
 							case "alarms.json":
 								await writer.WriteAsync(alarmSettings.GetAlarmInfo());
+								break;
+							case "units.json":
+								await writer.WriteAsync(Station.GetUnits());
 								break;
 							default:
 								Response.StatusCode = 404;

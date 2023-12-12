@@ -87,9 +87,11 @@ namespace CumulusMX
 #if DEBUG
 				cumulus.LogDataMessage($"API tag: Source = {request.RemoteEndPoint} Input string = {data}");
 #endif
-				var tokenParser = new TokenParser(cumulus.TokenParserOnToken);
-				tokenParser.Encoding = new UTF8Encoding(false);
-				tokenParser.InputText = data;
+				var tokenParser = new TokenParser(cumulus.TokenParserOnToken)
+				{
+					Encoding = new UTF8Encoding(false),
+					InputText = data
+				};
 				var output = tokenParser.ToStringFromString();
 
 #if DEBUG

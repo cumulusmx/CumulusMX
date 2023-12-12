@@ -103,10 +103,33 @@ namespace CumulusMX
 				Pm10_24hr = cumulus.Trans.CO2_pm10_24hrCaption
 			};
 
-			var alarms = new AlarmEmails()
+			var alarmNames = new AlarmStrings()
 			{
-				subject = cumulus.Trans.AlarmEmailSubject,
-				preamble = cumulus.Trans.AlarmEmailPreamble,
+				windGustAbove = cumulus.HighGustAlarm.Name,
+				pressureAbove = cumulus.HighPressAlarm.Name,
+				tempAbove = cumulus.HighTempAlarm.Name,
+				pressBelow = cumulus.LowPressAlarm.Name,
+				tempBelow = cumulus.LowTempAlarm.Name,
+				pressDown = cumulus.PressChangeAlarm.NameDown,
+				pressUp = cumulus.PressChangeAlarm.NameUp,
+				rainAbove = cumulus.HighRainTodayAlarm.Name,
+				rainRateAbove = cumulus.HighRainRateAlarm.Name,
+				sensorLost = cumulus.SensorAlarm.Name,
+				tempDown = cumulus.TempChangeAlarm.NameDown,
+				tempUp = cumulus.TempChangeAlarm.NameUp,
+				windAbove = cumulus.HighWindAlarm.Name,
+				dataStopped = cumulus.DataStoppedAlarm.Name,
+				batteryLow = cumulus.BatteryLowAlarm.Name,
+				dataSpike = cumulus.SpikeAlarm.Name,
+				upgrade = cumulus.UpgradeAlarm.Name,
+				httpStopped = cumulus.ThirdPartyAlarm.Name,
+				mySqlStopped = cumulus.MySqlUploadAlarm.Name,
+				newRecord = cumulus.NewRecordAlarm.Name,
+				ftpStopped = cumulus.FtpAlarm.Name
+			};
+
+			var alarmEmail = new AlarmStrings()
+			{
 				windGustAbove = cumulus.HighGustAlarm.EmailMsg,
 				pressureAbove = cumulus.HighPressAlarm.EmailMsg,
 				tempAbove = cumulus.HighTempAlarm.EmailMsg,
@@ -130,6 +153,14 @@ namespace CumulusMX
 				ftpStopped = cumulus.FtpAlarm.EmailMsg
 			};
 
+			var alarmSettings = new AlarmSettings()
+			{
+				subject = cumulus.Trans.AlarmEmailSubject,
+				preamble = cumulus.Trans.AlarmEmailPreamble,
+				names = alarmNames,
+				email = alarmEmail
+			};
+
 			var settings = new Settings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
@@ -149,7 +180,7 @@ namespace CumulusMX
 				solar = solar,
 				davisForecast = davisForecast,
 				co2 = co2,
-				alarms = alarms
+				alarms = alarmSettings
 			};
 
 
@@ -356,27 +387,50 @@ namespace CumulusMX
 				{
 					cumulus.Trans.AlarmEmailSubject = settings.alarms.subject.Trim();
 					cumulus.Trans.AlarmEmailPreamble = settings.alarms.preamble.Trim();
-					cumulus.HighGustAlarm.EmailMsg = settings.alarms.windGustAbove.Trim();
-					cumulus.HighPressAlarm.EmailMsg = settings.alarms.pressureAbove.Trim();
-					cumulus.HighTempAlarm.EmailMsg = settings.alarms.tempAbove.Trim();
-					cumulus.LowPressAlarm.EmailMsg = settings.alarms.pressBelow.Trim();
-					cumulus.LowTempAlarm.EmailMsg = settings.alarms.tempBelow.Trim();
-					cumulus.PressChangeAlarm.EmailMsgDn = settings.alarms.pressDown.Trim();
-					cumulus.PressChangeAlarm.EmailMsgUp = settings.alarms.pressUp.Trim();
-					cumulus.HighRainTodayAlarm.EmailMsg = settings.alarms.rainAbove.Trim();
-					cumulus.HighRainRateAlarm.EmailMsg = settings.alarms.rainRateAbove.Trim();
-					cumulus.SensorAlarm.EmailMsg = settings.alarms.sensorLost.Trim();
-					cumulus.TempChangeAlarm.EmailMsgDn = settings.alarms.tempDown.Trim();
-					cumulus.TempChangeAlarm.EmailMsgUp = settings.alarms.tempUp.Trim();
-					cumulus.HighWindAlarm.EmailMsg = settings.alarms.windAbove.Trim();
-					cumulus.DataStoppedAlarm.EmailMsg = settings.alarms.dataStopped.Trim();
-					cumulus.BatteryLowAlarm.EmailMsg = settings.alarms.batteryLow.Trim();
-					cumulus.SpikeAlarm.EmailMsg = settings.alarms.dataSpike.Trim();
-					cumulus.UpgradeAlarm.EmailMsg = settings.alarms.upgrade.Trim();
-					cumulus.ThirdPartyAlarm.EmailMsg = settings.alarms.httpStopped.Trim();
-					cumulus.MySqlUploadAlarm.EmailMsg = settings.alarms.mySqlStopped.Trim();
-					cumulus.NewRecordAlarm.EmailMsg = settings.alarms.newRecord.Trim();
-					cumulus.FtpAlarm.EmailMsg = settings.alarms.ftpStopped.Trim();
+					// Names
+					cumulus.HighGustAlarm.Name = settings.alarms.names.windGustAbove.Trim();
+					cumulus.HighPressAlarm.Name = settings.alarms.names.pressureAbove.Trim();
+					cumulus.HighTempAlarm.Name = settings.alarms.names.tempAbove.Trim();
+					cumulus.LowPressAlarm.Name = settings.alarms.names.pressBelow.Trim();
+					cumulus.LowTempAlarm.Name = settings.alarms.names.tempBelow.Trim();
+					cumulus.PressChangeAlarm.NameDown = settings.alarms.names.pressDown.Trim();
+					cumulus.PressChangeAlarm.NameUp = settings.alarms.names.pressUp.Trim();
+					cumulus.HighRainTodayAlarm.Name = settings.alarms.names.rainAbove.Trim();
+					cumulus.HighRainRateAlarm.Name = settings.alarms.names.rainRateAbove.Trim();
+					cumulus.SensorAlarm.Name = settings.alarms.names.sensorLost.Trim();
+					cumulus.TempChangeAlarm.NameDown = settings.alarms.names.tempDown.Trim();
+					cumulus.TempChangeAlarm.NameUp = settings.alarms.names.tempUp.Trim();
+					cumulus.HighWindAlarm.Name = settings.alarms.names.windAbove.Trim();
+					cumulus.DataStoppedAlarm.Name = settings.alarms.names.dataStopped.Trim();
+					cumulus.BatteryLowAlarm.Name = settings.alarms.names.batteryLow.Trim();
+					cumulus.SpikeAlarm.Name = settings.alarms.names.dataSpike.Trim();
+					cumulus.UpgradeAlarm.Name = settings.alarms.names.upgrade.Trim();
+					cumulus.ThirdPartyAlarm.Name = settings.alarms.names.httpStopped.Trim();
+					cumulus.MySqlUploadAlarm.Name = settings.alarms.names.mySqlStopped.Trim();
+					cumulus.NewRecordAlarm.Name = settings.alarms.names.newRecord.Trim();
+					cumulus.FtpAlarm.Name = settings.alarms.names.ftpStopped.Trim();
+					// Email
+					cumulus.HighGustAlarm.EmailMsg = settings.alarms.email.windGustAbove.Trim();
+					cumulus.HighPressAlarm.EmailMsg = settings.alarms.email.pressureAbove.Trim();
+					cumulus.HighTempAlarm.EmailMsg = settings.alarms.email.tempAbove.Trim();
+					cumulus.LowPressAlarm.EmailMsg = settings.alarms.email.pressBelow.Trim();
+					cumulus.LowTempAlarm.EmailMsg = settings.alarms.email.tempBelow.Trim();
+					cumulus.PressChangeAlarm.EmailMsgDn = settings.alarms.email.pressDown.Trim();
+					cumulus.PressChangeAlarm.EmailMsgUp = settings.alarms.email.pressUp.Trim();
+					cumulus.HighRainTodayAlarm.EmailMsg = settings.alarms.email.rainAbove.Trim();
+					cumulus.HighRainRateAlarm.EmailMsg = settings.alarms.email.rainRateAbove.Trim();
+					cumulus.SensorAlarm.EmailMsg = settings.alarms.email.sensorLost.Trim();
+					cumulus.TempChangeAlarm.EmailMsgDn = settings.alarms.email.tempDown.Trim();
+					cumulus.TempChangeAlarm.EmailMsgUp = settings.alarms.email.tempUp.Trim();
+					cumulus.HighWindAlarm.EmailMsg = settings.alarms.email.windAbove.Trim();
+					cumulus.DataStoppedAlarm.EmailMsg = settings.alarms.email.dataStopped.Trim();
+					cumulus.BatteryLowAlarm.EmailMsg = settings.alarms.email.batteryLow.Trim();
+					cumulus.SpikeAlarm.EmailMsg = settings.alarms.email.dataSpike.Trim();
+					cumulus.UpgradeAlarm.EmailMsg = settings.alarms.email.upgrade.Trim();
+					cumulus.ThirdPartyAlarm.EmailMsg = settings.alarms.email.httpStopped.Trim();
+					cumulus.MySqlUploadAlarm.EmailMsg = settings.alarms.email.mySqlStopped.Trim();
+					cumulus.NewRecordAlarm.EmailMsg = settings.alarms.email.newRecord.Trim();
+					cumulus.FtpAlarm.EmailMsg = settings.alarms.email.ftpStopped.Trim();
 				}
 				catch (Exception ex)
 				{
@@ -481,10 +535,16 @@ namespace CumulusMX
 			public string Pm10_24hr { get; set; }
 		}
 
-		private class AlarmEmails
+		private class AlarmSettings
 		{
 			public string subject { get; set; }
 			public string preamble { get; set; }
+			public AlarmStrings names { get; set; }
+			public AlarmStrings email { get; set; }
+		}
+
+		private class AlarmStrings
+		{
 			public string windGustAbove { get; set; }
 			public string pressureAbove { get; set; }
 			public string tempAbove { get; set; }
@@ -527,7 +587,7 @@ namespace CumulusMX
 			public Solar solar { get; set; }
 			public DavisForecast davisForecast { get; set; }
 			public Co2Captions co2 { get; set; }
-			public AlarmEmails alarms { get; set; }
+			public AlarmSettings alarms { get; set; }
 		}
 	}
 }

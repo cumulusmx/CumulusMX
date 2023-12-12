@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace CumulusMX
@@ -20,12 +21,9 @@ namespace CumulusMX
 							string highHeatIndexTodayTime, double highAppTempToday, double lowAppTempToday, string highAppTempTodayTime, string lowAppTempTodayTime,
 							int currentSolarMax, double alltimeHighPressure, double alltimeLowPressure, double sunshineHours, string domWindDir, string lastRainTipISO,
 							double highHourlyRainToday, string highHourlyRainTodayTime, string highBeaufortToday, string beaufort, string beaufortDesc, string lastDataRead,
-							bool dataStopped, double stormRain, string stormRainStart, int cloudbase, string cloudbaseUnit, double last24hourRain, bool alarmLowTemp,
-							bool alarmHighTemp, bool alarmTempUp, bool alarmTempDown, bool alarmRain, bool alarmRainRate, bool alarmLowPress, bool alarmHighPress,
-							bool alarmPressUp, bool alarmPressDown, bool alarmGust, bool alarmWind, bool alarmSensor, bool alarmBattery, bool alarmSpike, bool alarmUpgrade,
-							bool alarmHttp, bool alarmMySql, bool alarmRaining,
+							bool dataStopped, double stormRain, string stormRainStart, int cloudbase, string cloudbaseUnit, double last24hourRain,
 							double feelsLike, double highFeelsLikeToday, string highFeelsLikeTodayTime, double lowFeelsLikeToday, string lowFeelsLikeTodayTime,
-							double highHumidexToday, string highHumidexTodayTime)
+							double highHumidexToday, string highHumidexTodayTime, List<DashboardAlarms> alarms)
 		{
 			this.cumulus = cumulus;
 			OutdoorTemp = outdoorTemp;
@@ -126,25 +124,7 @@ namespace CumulusMX
 			StormRainStart = stormRainStart;
 			Cloudbase = cloudbase;
 			CloudbaseUnit = cloudbaseUnit;
-			AlarmLowTemp = alarmLowTemp;
-			AlarmHighTemp = alarmHighTemp;
-			AlarmTempUp = alarmTempUp;
-			AlarmTempDn = alarmTempDown;
-			AlarmRain = alarmRain;
-			AlarmRainRate = alarmRainRate;
-			AlarmLowPress = alarmLowPress;
-			AlarmHighPress = alarmHighPress;
-			AlarmPressUp = alarmPressUp;
-			AlarmPressDn = alarmPressDown;
-			AlarmGust = alarmGust;
-			AlarmWind = alarmWind;
-			AlarmSensor = alarmSensor;
-			AlarmBattery = alarmBattery;
-			AlarmSpike = alarmSpike;
-			AlarmUpgrade = alarmUpgrade;
-			AlarmHttp = alarmHttp;
-			AlarmMySql = alarmMySql;
-			AlarmIsRaining = alarmRaining;
+			Alarms = alarms;
 		}
 
 		[IgnoreDataMember]
@@ -777,60 +757,6 @@ namespace CumulusMX
 		public bool DataStopped { get; set; }
 
 		[DataMember]
-		public bool AlarmLowTemp { get; set; }
-
-		[DataMember]
-		public bool AlarmHighTemp { get; set; }
-
-		[DataMember]
-		public bool AlarmTempUp { get; set; }
-
-		[DataMember]
-		public bool AlarmTempDn { get; set; }
-
-		[DataMember]
-		public bool AlarmRain { get; set; }
-
-		[DataMember]
-		public bool AlarmRainRate { get; set; }
-
-		[DataMember]
-		public bool AlarmLowPress { get; set; }
-
-		[DataMember]
-		public bool AlarmHighPress { get; set; }
-
-		[DataMember]
-		public bool AlarmPressUp { get; set; }
-
-		[DataMember]
-		public bool AlarmPressDn { get; set; }
-
-		[DataMember]
-		public bool AlarmGust { get; set; }
-
-		[DataMember]
-		public bool AlarmWind { get; set; }
-
-		[DataMember]
-		public bool AlarmSensor { get; set; }
-
-		[DataMember]
-		public bool AlarmBattery { get; set; }
-
-		[DataMember]
-		public bool AlarmSpike { get; set; }
-
-		[DataMember]
-		public bool AlarmUpgrade { get; set; }
-
-		[DataMember]
-		public bool AlarmHttp { get; set; }
-
-		[DataMember]
-		public bool AlarmMySql { get; set; }
-
-		[DataMember]
-		public bool AlarmIsRaining { get; set; }
+		public List<DashboardAlarms> Alarms { get; set; }
 	}
 }

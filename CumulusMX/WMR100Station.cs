@@ -61,7 +61,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogMessage("WMR100 station not found!");
+				cumulus.LogErrorMessage("WMR100 station not found!");
 				cumulus.LogConsoleMessage("WMR100 station not found!", ConsoleColor.Red);
 			}
 		}
@@ -310,7 +310,7 @@ namespace CumulusMX
 
 				double num = (sign * ((packetBuffer[4] & 0xF) * 256 + packetBuffer[3])) / 10.0;
 
-				WMR200ExtraTempValues[sensor] = ConvertTempCToUser(num);
+				WMR200ExtraTempValues[sensor] = ConvertUnits.TempCToUser(num);
 				DoExtraTemp(WMR200ExtraTempValues[sensor], sensor);
 
 				// outdoor dewpoint - n/a
@@ -359,7 +359,7 @@ namespace CumulusMX
 				rate = 39.33;
 			}
 
-			DoRain(ConvertRainINToUser(counter), ConvertRainINToUser(rate), DateTime.Now);
+			DoRain(ConvertUnits.RainINToUser(counter), ConvertUnits.RainINToUser(rate), DateTime.Now);
 
 			// battery status
 			//if PacketBuffer[0] and $40 = $40 then
@@ -385,11 +385,11 @@ namespace CumulusMX
 			// average
 			double a = ((packetBuffer[6] * 16) + (packetBuffer[5] / 16)) / 10.0;
 
-			DoWind(ConvertWindMSToUser(g), (int) (b), ConvertWindMSToUser(a), now);
+			DoWind(ConvertUnits.WindMSToUser(g), (int) (b), ConvertUnits.WindMSToUser(a), now);
 
 			if ((packetBuffer[8] & 0x20) == 0x20)
 			{
-				// no wind chill, use current temp if (available
+				// no wind chill, use current temp if available
 				// note that even if (Cumulus is set to calculate wind chill
 				// it can't/won't do it if (temp isn't available, so don't
 				// bother calling anyway
@@ -448,7 +448,7 @@ namespace CumulusMX
 					sign = 1;
 
 				num = (sign * ((packetBuffer[4] & 0xF) * 256 + packetBuffer[3])) / 10.0;
-				DoOutdoorTemp(ConvertTempCToUser(num), Now);
+				DoOutdoorTemp(ConvertUnits.TempCToUser(num), Now);
 
 				// outdoor dewpoint
 				if ((packetBuffer[7] & 0x80) == 0x80)
@@ -457,7 +457,7 @@ namespace CumulusMX
 					sign = 1;
 
 				num = (sign * ((packetBuffer[7] & 0xF) * 256 + packetBuffer[6])) / 10.0;
-				DoOutdoorDewpoint(ConvertTempCToUser(num), Now);
+				DoOutdoorDewpoint(ConvertUnits.TempCToUser(num), Now);
 
 				DoApparentTemp(Now);
 				DoFeelsLike(Now);
@@ -483,7 +483,7 @@ namespace CumulusMX
 					sign = 1;
 
 				num = (sign * ((packetBuffer[4] & 0xF) * 256 + packetBuffer[3])) / 10.0;
-				DoIndoorTemp(ConvertTempCToUser(num));
+				DoIndoorTemp(ConvertUnits.TempCToUser(num));
 			}
 
 			if ((sensor > 1) && (sensor < 11))
@@ -502,7 +502,7 @@ namespace CumulusMX
 
 				num = (sign * ((packetBuffer[4] & 0xF) * 256 + packetBuffer[3])) / 10.0;
 
-				WMR200ExtraTempValues[sensor] = ConvertTempCToUser(num);
+				WMR200ExtraTempValues[sensor] = ConvertUnits.TempCToUser(num);
 				DoExtraTemp(WMR200ExtraTempValues[sensor], sensor);
 
 				// outdoor dewpoint
@@ -512,7 +512,7 @@ namespace CumulusMX
 					sign = 1;
 
 				num = (sign * ((packetBuffer[7] & 0xF) * 256 + packetBuffer[6])) / 10.0;
-				WMR200ExtraDPValues[sensor] = ConvertTempCToUser(num);
+				WMR200ExtraDPValues[sensor] = ConvertUnits.TempCToUser(num);
 				DoExtraDP(WMR200ExtraDPValues[sensor], sensor);
 				ExtraSensorsDetected = true;
 			}
@@ -523,11 +523,11 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("Barometer packet");
 			double num = ((packetBuffer[5] & 0xF) * 256) + packetBuffer[4];
 
-			double slp = ConvertPressMBToUser(num);
+			double slp = ConvertUnits.PressMBToUser(num);
 
 			num = ((packetBuffer[3] & 0xF) * 256) + packetBuffer[2];
 
-			StationPressure = ConvertPressMBToUser(num);
+			StationPressure = ConvertUnits.PressMBToUser(num);
 
 			DoPressure(slp, DateTime.Now);
 

@@ -226,7 +226,7 @@ namespace CumulusMX
 
 		public const int LogFileRetries = 3;
 
-		private readonly WeatherStation station;
+		private WeatherStation station;
 
 		internal DavisAirLink airLinkIn;
 		public int airLinkInLsid;
@@ -243,7 +243,7 @@ namespace CumulusMX
 
 		public PerformanceCounter UpTime;
 
-		internal readonly WebTags WebTags;
+		internal WebTags WebTags;
 
 		internal Lang Trans = new Lang();
 
@@ -371,7 +371,7 @@ namespace CumulusMX
 		public double Altitude;
 
 		internal int wsPort;
-		private readonly bool DebuggingEnabled;
+		private bool DebuggingEnabled;
 
 		public SerialPort cmprtRG11;
 		public SerialPort cmprt2RG11;
@@ -384,14 +384,14 @@ namespace CumulusMX
 		public string Alltimelogfile;
 		public string MonthlyAlltimeIniFile;
 		public string MonthlyAlltimeLogFile;
-		private readonly string logFilePath;
+		private string logFilePath;
 		public string DayFileName;
 		public string YesterdayFile;
 		public string TodayIniFile;
 		public string MonthIniFile;
 		public string YearIniFile;
 		//private readonly string stringsFile;
-		private readonly string backupPath;
+		private string backupPath;
 		//private readonly string ExternaldataFile;
 		public string WebTagFile;
 
@@ -487,7 +487,7 @@ namespace CumulusMX
 		public string WxnowComment = string.Empty;
 
 		// MQTT settings
-		public struct MqttSettings
+		public struct MqttConfig
 		{
 			public string Server;
 			public int Port;
@@ -498,10 +498,9 @@ namespace CumulusMX
 			public bool EnableDataUpdate;
 			public string UpdateTemplate;
 			public bool EnableInterval;
-			public int IntervalTime;
 			public string IntervalTemplate;
 		}
-		public MqttSettings MQTT;
+		public MqttConfig MQTT;
 
 		// NOAA report settings
 		public NOAAconfig NOAAconf = new NOAAconfig();
@@ -522,27 +521,28 @@ namespace CumulusMX
 		public double CPUtemp = -999;
 
 		// Alarms
-		public Alarm DataStoppedAlarm = new Alarm("Data Stopped", AlarmTypes.Trigger);
-		public Alarm BatteryLowAlarm = new Alarm("Battery Low", AlarmTypes.Trigger);
-		public Alarm SensorAlarm = new Alarm("Sensor Data Stopped", AlarmTypes.Trigger);
-		public Alarm SpikeAlarm = new Alarm("Data Spike", AlarmTypes.Trigger);
-		public Alarm HighWindAlarm = new Alarm("High Wind", AlarmTypes.Above);
-		public Alarm HighGustAlarm = new Alarm("High Gust", AlarmTypes.Above);
-		public Alarm HighRainRateAlarm = new Alarm("High Rainfall Rate", AlarmTypes.Above);
-		public Alarm HighRainTodayAlarm = new Alarm("Total Rainfall Today", AlarmTypes.Above);
-		public AlarmChange PressChangeAlarm = new AlarmChange("Pressure Change");
-		public Alarm HighPressAlarm = new Alarm("High Pressure", AlarmTypes.Above);
-		public Alarm LowPressAlarm = new Alarm("Low Pressure", AlarmTypes.Below);
-		public AlarmChange TempChangeAlarm = new AlarmChange("Temperature Change");
-		public Alarm HighTempAlarm = new Alarm("High Temperature", AlarmTypes.Above);
-		public Alarm LowTempAlarm = new Alarm("Low Temperature", AlarmTypes.Below);
-		public Alarm UpgradeAlarm = new Alarm("Upgrade Available", AlarmTypes.Trigger);
-		public Alarm ThirdPartyAlarm = new Alarm("HTTP Uploads", AlarmTypes.Trigger);
-		public Alarm MySqlUploadAlarm = new Alarm("MySQL Uploads", AlarmTypes.Trigger);
-		public Alarm IsRainingAlarm = new Alarm("IsRaining", AlarmTypes.Trigger);
-		public Alarm NewRecordAlarm = new Alarm("New Record", AlarmTypes.Trigger);
-		public Alarm FtpAlarm = new Alarm("Web Upload", AlarmTypes.Trigger);
+		public Alarm DataStoppedAlarm;
+		public Alarm BatteryLowAlarm;
+		public Alarm SensorAlarm;
+		public Alarm SpikeAlarm;
+		public Alarm HighWindAlarm;
+		public Alarm HighGustAlarm;
+		public Alarm HighRainRateAlarm;
+		public Alarm HighRainTodayAlarm;
+		public AlarmChange PressChangeAlarm;
+		public Alarm HighPressAlarm;
+		public Alarm LowPressAlarm;
+		public AlarmChange TempChangeAlarm;
+		public Alarm HighTempAlarm;
+		public Alarm LowTempAlarm;
+		public Alarm UpgradeAlarm;
+		public Alarm ThirdPartyAlarm;
+		public Alarm MySqlUploadAlarm;
+		public Alarm IsRainingAlarm;
+		public Alarm NewRecordAlarm;
+		public Alarm FtpAlarm;
 
+		public List<AlarmUser> UserAlarms = new List<AlarmUser>();
 
 		private const double DEFAULTFCLOWPRESS = 950.0;
 		private const double DEFAULTFCHIGHPRESS = 1050.0;
@@ -657,7 +657,7 @@ namespace CumulusMX
 
 		//private PingReply pingReply;
 
-		private readonly SemaphoreSlim uploadCountLimitSemaphoreSlim;
+		private SemaphoreSlim uploadCountLimitSemaphoreSlim;
 
 		// Global cancellation token for when CMX is stopping
 		public readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
@@ -666,24 +666,11 @@ namespace CumulusMX
 		private static bool boolWindows;
 
 
-		public Cumulus(int HTTPport, bool DebugEnabled, string startParms)
+		public Cumulus()
 		{
 			cancellationToken = tokenSource.Token;
 
-			var fullVer = Assembly.GetExecutingAssembly().GetName().Version;
-			Version = $"{fullVer.Major}.{fullVer.Minor}.{fullVer.Build}";
-			Build = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
-
 			DirectorySeparator = Path.DirectorySeparatorChar;
-
-			AppDir = Directory.GetCurrentDirectory() + DirectorySeparator;
-			WebTagFile = AppDir + "WebTags.txt";
-
-			//b3045>, use same port for WS...  WS port = HTTPS port
-			//wsPort = WSport;
-			wsPort = HTTPport;
-
-			DebuggingEnabled = DebugEnabled;
 
 			// Set up the diagnostic tracing
 			loggingfile = RemoveOldDiagsFiles("CMX");
@@ -695,8 +682,22 @@ namespace CumulusMX
 			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
 			Trace.Listeners.Add(myTextListener);
 			Trace.AutoFlush = true;
+		}
 
-			// Read the configuration file
+		public void Initialise(int HTTPport, bool DebugEnabled, string startParms)
+		{
+			var fullVer = Assembly.GetExecutingAssembly().GetName().Version;
+			Version = $"{fullVer.Major}.{fullVer.Minor}.{fullVer.Build}";
+			Build = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
+
+			AppDir = Directory.GetCurrentDirectory() + DirectorySeparator;
+			WebTagFile = AppDir + "WebTags.txt";
+
+			//b3045>, use same port for WS...  WS port = HTTPS port
+			//wsPort = WSport;
+			wsPort = HTTPport;
+
+			DebuggingEnabled = DebugEnabled;
 
 			LogMessage(" ========================== Cumulus MX starting ==========================");
 
@@ -1052,6 +1053,28 @@ namespace CumulusMX
 				CustomDailyLogSettings[i] = new CustomLogSettings();
 			}
 
+			// initialise the alarms
+			DataStoppedAlarm = new Alarm("AlarmData", AlarmTypes.Trigger, this);
+			BatteryLowAlarm = new Alarm("AlarmBattery", AlarmTypes.Trigger, this);
+			SensorAlarm = new Alarm("AlarmSensor", AlarmTypes.Trigger, this);
+			SpikeAlarm = new Alarm("AlarmSpike", AlarmTypes.Trigger, this);
+			HighWindAlarm = new Alarm("AlarmWind", AlarmTypes.Above, this, Units.WindText);
+			HighGustAlarm = new Alarm("AlarmGust", AlarmTypes.Above, this, Units.WindText);
+			HighRainRateAlarm = new Alarm("AlarmRainRate", AlarmTypes.Above, this, Units.RainTrendText);
+			HighRainTodayAlarm = new Alarm("AlarmRain", AlarmTypes.Above, this, Units.RainText);
+			PressChangeAlarm = new AlarmChange("AlarmPressUp", "AlarmPressDn", this, Units.PressTrendText);
+			HighPressAlarm = new Alarm("AlarmHighPress", AlarmTypes.Above, this, Units.PressText);
+			LowPressAlarm = new Alarm("AlarmLowPress", AlarmTypes.Below, this, Units.PressText);
+			TempChangeAlarm = new AlarmChange("AlarmTempUp", "AlarmTempDn", this, Units.TempTrendText);
+			HighTempAlarm = new Alarm("AlarmHighTemp", AlarmTypes.Above, this, Units.TempText);
+			LowTempAlarm = new Alarm("AlarmLowTemp", AlarmTypes.Below, this, Units.TempText);
+			UpgradeAlarm = new Alarm("AlarmUpgrade", AlarmTypes.Trigger, this);
+			ThirdPartyAlarm = new Alarm("AlarmHttp", AlarmTypes.Trigger, this);
+			MySqlUploadAlarm = new Alarm("AlarmMySql", AlarmTypes.Trigger, this);
+			IsRainingAlarm = new Alarm("AlarmIsRaining", AlarmTypes.Trigger, this);
+			NewRecordAlarm = new Alarm("AlarmNewRec", AlarmTypes.Trigger, this);
+			FtpAlarm = new Alarm("AlarmFtp", AlarmTypes.Trigger, this);
+
 			ReadIniFile();
 
 			// Do we prevent more than one copy of CumulusMX running?
@@ -1083,7 +1106,7 @@ namespace CumulusMX
 			LogMessage("Daylight saving time name: " + localZone.DaylightName);
 			LogMessage("Daylight saving time? " + localZone.IsDaylightSavingTime(now));
 
-			LogMessage(DateTime.Now.ToString("G"));
+			LogMessage("Locale date/time format: " + DateTime.Now.ToString("G"));
 
 			// Do we delay the start of Cumulus MX for a fixed period?
 			if (ProgramOptions.StartupDelaySecs > 0)
@@ -1363,45 +1386,17 @@ namespace CumulusMX
 			SetupUnitText();
 
 			LogMessage($"WindUnit={Units.WindText} RainUnit={Units.RainText} TempUnit={Units.TempText} PressureUnit={Units.PressText}");
-			LogMessage($"YTDRain={YTDrain:F3} Year={YTDrainyear}");
+			LogMessage($"Manual rainfall: YTDRain={YTDrain:F3}, Correction Year={YTDrainyear}");
 			LogMessage($"RainDayThreshold={RainDayThreshold:F3}");
-			LogMessage($"Roll over hour={RolloverHour}");
+			LogMessage($"Roll over hour={RolloverHour:D2}");
+			if (RolloverHour != 0)
+			{
+				LogMessage("Use 10am in summer =" + Use10amInSummer);
+			}
 
 			LogOffsetsMultipliers();
 
 			LogPrimaryAqSensor();
-
-			// initialise the alarms
-			DataStoppedAlarm.cumulus = this;
-			BatteryLowAlarm.cumulus = this;
-			SensorAlarm.cumulus = this;
-			SpikeAlarm.cumulus = this;
-			HighWindAlarm.cumulus = this;
-			HighWindAlarm.Units = Units.WindText;
-			HighGustAlarm.cumulus = this;
-			HighGustAlarm.Units = Units.WindText;
-			HighRainRateAlarm.cumulus = this;
-			HighRainRateAlarm.Units = Units.RainTrendText;
-			HighRainTodayAlarm.cumulus = this;
-			HighRainTodayAlarm.Units = Units.RainText;
-			PressChangeAlarm.cumulus = this;
-			PressChangeAlarm.Units = Units.PressTrendText;
-			HighPressAlarm.cumulus = this;
-			HighPressAlarm.Units = Units.PressText;
-			LowPressAlarm.cumulus = this;
-			LowPressAlarm.Units = Units.PressText;
-			TempChangeAlarm.cumulus = this;
-			TempChangeAlarm.Units = Units.TempTrendText;
-			HighTempAlarm.cumulus = this;
-			HighTempAlarm.Units = Units.TempText;
-			LowTempAlarm.cumulus = this;
-			LowTempAlarm.Units = Units.TempText;
-			UpgradeAlarm.cumulus = this;
-			ThirdPartyAlarm.cumulus = this;
-			MySqlUploadAlarm.cumulus = this;
-			IsRainingAlarm.cumulus = this;
-			NewRecordAlarm.cumulus = this;
-			FtpAlarm.cumulus = this;
 
 			GetLatestVersion();
 
@@ -1453,7 +1448,9 @@ namespace CumulusMX
 			Api.calibrationSettings = new CalibrationSettings(this);
 			Api.noaaSettings = new NOAASettings(this);
 			Api.alarmSettings = new AlarmSettings(this);
+			Api.alarmUserSettings = new AlarmUserSettings(this);
 			Api.mySqlSettings = new MysqlSettings(this);
+			Api.mqttSettings = new MqttSettings(this);
 			Api.customLogs = new CustomLogs(this);
 			Api.dataEditor = new DataEditor(this);
 			Api.tagProcessor = new ApiTagProcessor(this);
@@ -1677,11 +1674,6 @@ namespace CumulusMX
 				if (MQTT.EnableDataUpdate || MQTT.EnableInterval)
 				{
 					MqttPublisher.Setup(this);
-
-					if (MQTT.EnableInterval)
-					{
-						MQTTTimer.Elapsed += MQTTTimerTick;
-					}
 				}
 
 				InitialiseRG11();
@@ -2269,10 +2261,10 @@ namespace CumulusMX
 				UpdateAwekas(DateTime.Now);
 		}
 
-		public void MQTTTimerTick(object sender, ElapsedEventArgs e)
+		public void MQTTSecondChanged(DateTime now)
 		{
-			if (!station.DataStopped)
-				MqttPublisher.UpdateMQTTfeed("Interval");
+			if (MQTT.EnableInterval && !station.DataStopped)
+				MqttPublisher.UpdateMQTTfeed("Interval", now);
 		}
 
 		/*
@@ -4151,28 +4143,42 @@ namespace CumulusMX
 
 			if (logType == "CMX")
 			{
-				List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+\d{8}-\d{6}\.txt").Success));
-
-				fileEntries.Sort();
-
-				while (fileEntries.Count >= maxEntries)
+				try
 				{
-					File.Delete(fileEntries.First());
-					fileEntries.RemoveAt(0);
+					List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => Regex.Match(f, @"[\\/]+\d{8}-\d{6}\.txt").Success));
+
+					fileEntries.Sort();
+
+					while (fileEntries.Count >= maxEntries)
+					{
+						File.Delete(fileEntries.First());
+						fileEntries.RemoveAt(0);
+					}
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, "Error removing old MXdiags files");
 				}
 
 				filename = $"{directory}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
 			}
 			else if (logType == "FTP")
 			{
-				List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+FTP-\d{8}-\d{6}\.txt").Success));
-
-				fileEntries.Sort();
-
-				while (fileEntries.Count >= maxEntries)
+				try
 				{
-					File.Delete(fileEntries.First());
-					fileEntries.RemoveAt(0);
+					List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => System.Text.RegularExpressions.Regex.Match(f, @"[\\/]+FTP-\d{8}-\d{6}\.txt").Success));
+
+					fileEntries.Sort();
+
+					while (fileEntries.Count >= maxEntries)
+					{
+						File.Delete(fileEntries.First());
+						fileEntries.RemoveAt(0);
+					}
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, "Error removing old FTP log files");
 				}
 
 				filename = $"{directory}FTP-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
@@ -4269,14 +4275,23 @@ namespace CumulusMX
 			// if the culture names match, then we apply the new date separator if change is enabled and it contains a space
 			if (ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
 			{
-				// get the existing culture
-				var newCulture = (CultureInfo) CultureInfo.CurrentCulture.Clone();
 				// change the date separator
-				newCulture.DateTimeFormat.DateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
+				var dateSep = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
+				var shortDate = CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern.Replace(" ", "");
+
 				// set current thread culture
-				Thread.CurrentThread.CurrentCulture = newCulture;
+				Thread.CurrentThread.CurrentCulture.DateTimeFormat.DateSeparator = dateSep;
+				Thread.CurrentThread.CurrentCulture.DateTimeFormat.ShortDatePattern = shortDate;
+
+				Thread.CurrentThread.CurrentUICulture.DateTimeFormat.DateSeparator = dateSep;
+				Thread.CurrentThread.CurrentUICulture.DateTimeFormat.ShortDatePattern = shortDate;
+
 				// set the default culture for other threads
-				CultureInfo.DefaultThreadCurrentCulture = newCulture;
+				CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.DateSeparator = dateSep;
+				CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.ShortDatePattern = shortDate;
+
+				CultureInfo.DefaultThreadCurrentUICulture.DateTimeFormat.DateSeparator = dateSep;
+				CultureInfo.DefaultThreadCurrentUICulture.DateTimeFormat.ShortDatePattern = shortDate;
 			}
 
 			ProgramOptions.TimeFormat = ini.GetValue("Program", "TimeFormat", "t");
@@ -4538,6 +4553,34 @@ namespace CumulusMX
 			Spike.MaxHourlyRain = ini.GetValue("Station", "EWmaxHourlyRain", 999.0);
 			Spike.InTempDiff = ini.GetValue("Station", "EWinTempdiff", 999.0);
 			Spike.InHumDiff = ini.GetValue("Station", "EWinHumiditydiff", 999.0);
+			if (Spike.TempDiff < 999)
+			{
+				Spike.TempDiff = ConvertUnits.TempCToUser(Spike.TempDiff);
+			}
+			if (Spike.PressDiff < 999)
+			{
+				Spike.PressDiff = ConvertUnits.PressMBToUser(Spike.PressDiff);
+			}
+			if (Spike.GustDiff < 999)
+			{
+				Spike.GustDiff = ConvertUnits.WindMSToUser(Spike.GustDiff);
+			}
+			if (Spike.WindDiff < 999)
+			{
+				Spike.WindDiff = ConvertUnits.WindMSToUser(Spike.WindDiff);
+			}
+			if (Spike.MaxRainRate < 999)
+			{
+				Spike.MaxRainRate = ConvertUnits.RainMMToUser(Spike.MaxRainRate);
+			}
+			if (Spike.MaxHourlyRain < 999)
+			{
+				Spike.MaxHourlyRain = ConvertUnits.RainMMToUser(Spike.MaxHourlyRain);
+			}
+			if (Spike.InTempDiff < 999)
+			{
+				Spike.InTempDiff = ConvertUnits.TempCToUser(Spike.InTempDiff);
+			}
 
 			LCMaxWind = ini.GetValue("Station", "LCMaxWind", 9999);
 
@@ -5225,7 +5268,6 @@ namespace CumulusMX
 			MQTT.EnableDataUpdate = ini.GetValue("MQTT", "EnableDataUpdate", false);
 			MQTT.UpdateTemplate = ini.GetValue("MQTT", "UpdateTemplate", "DataUpdateTemplate.txt");
 			MQTT.EnableInterval = ini.GetValue("MQTT", "EnableInterval", false);
-			MQTT.IntervalTime = ini.GetValue("MQTT", "IntervalTime", 600); // default to 10 minutes
 			MQTT.IntervalTemplate = ini.GetValue("MQTT", "IntervalTemplate", "IntervalTemplate.txt");
 
 			LowTempAlarm.Value = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
@@ -5510,6 +5552,47 @@ namespace CumulusMX
 			AlarmEmailHtml = ini.GetValue("Alarms", "UseHTML", false);
 			AlarmEmailUseBcc = ini.GetValue("Alarms", "UseBCC", false);
 
+			// User Alarm Settings
+			for (var i = 0; i < 10; i++)
+			{
+				if (ini.ValueExists("UserAlarms", "AlarmName" + i))
+				{
+					var name = ini.GetValue("UserAlarms", "AlarmName" + i, "");
+					var tag = ini.GetValue("UserAlarms", "AlarmTag" + i, "");
+					var type = ini.GetValue("UserAlarms", "AlarmType" + i, "");
+					var value = ini.GetValue("UserAlarms", "AlarmValue" + i, 0.0);
+					var enabled = ini.GetValue("UserAlarms", "AlarmEnabled" + i, false);
+					var email = ini.GetValue("UserAlarms", "AlarmEmail" + i, false);
+					var emailMsg = ini.GetValue("UserAlarms", "AlarmEmailMsg" + i, "");
+					var latch = ini.GetValue("UserAlarms", "AlarmLatch" + i, false);
+					var latchHours = ini.GetValue("UserAlarms", "AlarmLatchHours" + i, 24.0);
+					var action = ini.GetValue("UserAlarms", "AlarmAction" + i, "");
+					var actionParams = ini.GetValue("UserAlarms", "AlarmActionParams" + i, "");
+
+					if (name != "" && tag != "" && type != "")
+					{
+						try
+						{
+							UserAlarms.Add(new AlarmUser(name, type, tag, this)
+							{
+								Value = value,
+								Enabled = enabled,
+								Email = email,
+								EmailMsg = emailMsg,
+								Latch = latch,
+								LatchHours = latchHours,
+								Action = action,
+								ActionParams = actionParams
+							});
+						}
+						catch (Exception ex)
+						{
+							LogErrorMessage($"Error loading user alarm {ini.GetValue("UserAlarms", "AlarmName" + i, "")}: {ex.Message}");
+						}
+					}
+				}
+			}
+
 			Calib.Press.Offset = ini.GetValue("Offsets", "PressOffset", 0.0);
 			Calib.Temp.Offset = ini.GetValue("Offsets", "TempOffset", 0.0);
 			Calib.Hum.Offset = ini.GetValue("Offsets", "HumOffset", 0);
@@ -5542,12 +5625,12 @@ namespace CumulusMX
 			Calib.Solar.Mult2 = ini.GetValue("Offsets", "SolarMult2", 0.0);
 			Calib.UV.Mult2 = ini.GetValue("Offsets", "UVMult2", 0.0);
 
-			Limit.TempHigh = ini.GetValue("Limits", "TempHighC", 60.0);
-			Limit.TempLow = ini.GetValue("Limits", "TempLowC", -60.0);
-			Limit.DewHigh = ini.GetValue("Limits", "DewHighC", 40.0);
-			Limit.PressHigh = ini.GetValue("Limits", "PressHighMB", 1090.0);
-			Limit.PressLow = ini.GetValue("Limits", "PressLowMB", 870.0);
-			Limit.WindHigh = ini.GetValue("Limits", "WindHighMS", 90.0);
+			Limit.TempHigh = ConvertUnits.TempCToUser(ini.GetValue("Limits", "TempHighC", 60.0));
+			Limit.TempLow = ConvertUnits.TempCToUser(ini.GetValue("Limits", "TempLowC", -60.0));
+			Limit.DewHigh = ConvertUnits.TempCToUser(ini.GetValue("Limits", "DewHighC", 40.0));
+			Limit.PressHigh = ConvertUnits.PressMBToUser(ini.GetValue("Limits", "PressHighMB", 1090.0));
+			Limit.PressLow = ConvertUnits.PressMBToUser(ini.GetValue("Limits", "PressLowMB", 870.0));
+			Limit.WindHigh = ConvertUnits.WindMSToUser(ini.GetValue("Limits", "WindHighMS", 90.0));
 
 			xapEnabled = ini.GetValue("xAP", "Enabled", false);
 			xapUID = ini.GetValue("xAP", "UID", "4375");
@@ -6115,14 +6198,14 @@ namespace CumulusMX
 			ini.SetValue("Station", "EWMaxRainTipDiff", EwOptions.MaxRainTipDiff);
 			ini.SetValue("Station", "EWpressureoffset", EwOptions.PressOffset);
 
-			ini.SetValue("Station", "EWtempdiff", Spike.TempDiff);
-			ini.SetValue("Station", "EWpressurediff", Spike.PressDiff);
+			ini.SetValue("Station", "EWtempdiff", Spike.TempDiff < 999 ? ConvertUnits.UserTempToC(Spike.TempDiff) : 999.0);
+			ini.SetValue("Station", "EWpressurediff", Spike.PressDiff < 999 ? ConvertUnits.UserPressToMB(Spike.PressDiff) : 999.00);
 			ini.SetValue("Station", "EWhumiditydiff", Spike.HumidityDiff);
-			ini.SetValue("Station", "EWgustdiff", Spike.GustDiff);
-			ini.SetValue("Station", "EWwinddiff", Spike.WindDiff);
-			ini.SetValue("Station", "EWmaxHourlyRain", Spike.MaxHourlyRain);
-			ini.SetValue("Station", "EWmaxRainRate", Spike.MaxRainRate);
-			ini.SetValue("Station", "EWinTempdiff", Spike.InTempDiff);
+			ini.SetValue("Station", "EWgustdiff", Spike.GustDiff < 999 ? ConvertUnits.UserWindToMS(Spike.GustDiff) : 999.0);
+			ini.SetValue("Station", "EWwinddiff", Spike.WindDiff < 999 ? ConvertUnits.UserWindToMS(Spike.WindDiff) : 999.0);
+			ini.SetValue("Station", "EWmaxHourlyRain", Spike.MaxHourlyRain < 999 ? ConvertUnits.UserRainToMM(Spike.MaxHourlyRain) : 999.0);
+			ini.SetValue("Station", "EWmaxRainRate", Spike.MaxRainRate < 999 ? ConvertUnits.UserRainToMM(Spike.MaxRainRate) : 999.0);
+			ini.SetValue("Station", "EWinTempdiff", Spike.InTempDiff < 999 ? ConvertUnits.UserTempToC(Spike.InTempDiff) : 999.0);
 			ini.SetValue("Station", "EWinHumiditydiff", Spike.InHumDiff);
 
 			ini.SetValue("Station", "RainSeasonStart", RainSeasonStart);
@@ -6511,7 +6594,6 @@ namespace CumulusMX
 			ini.SetValue("MQTT", "EnableDataUpdate", MQTT.EnableDataUpdate);
 			ini.SetValue("MQTT", "UpdateTemplate", MQTT.UpdateTemplate);
 			ini.SetValue("MQTT", "EnableInterval", MQTT.EnableInterval);
-			ini.SetValue("MQTT", "IntervalTime", MQTT.IntervalTime);
 			ini.SetValue("MQTT", "IntervalTemplate", MQTT.IntervalTemplate);
 
 			ini.SetValue("Alarms", "alarmlowtemp", LowTempAlarm.Value);
@@ -6737,6 +6819,37 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "UseHTML", AlarmEmailHtml);
 			ini.SetValue("Alarms", "UseBCC", AlarmEmailUseBcc);
 
+			// User Alarms
+			for (var i = 0; i < UserAlarms.Count(); i++)
+			{
+				ini.SetValue("UserAlarms", "AlarmName" + i, UserAlarms[i].Name);
+				ini.SetValue("UserAlarms", "AlarmTag" + i, UserAlarms[i].WebTag);
+				ini.SetValue("UserAlarms", "AlarmType" + i, UserAlarms[i].Type);
+				ini.SetValue("UserAlarms", "AlarmValue" + i, UserAlarms[i].Value);
+				ini.SetValue("UserAlarms", "AlarmEnabled" + i, UserAlarms[i].Enabled);
+				ini.SetValue("UserAlarms", "AlarmEmail" + i, UserAlarms[i].Email);
+				ini.SetValue("UserAlarms", "AlarmEmailMsg" + i, UserAlarms[i].EmailMsg);
+				ini.SetValue("UserAlarms", "AlarmLatch" + i, UserAlarms[i].Latch);
+				ini.SetValue("UserAlarms", "AlarmLatchHours" + i, UserAlarms[i].LatchHours);
+				ini.SetValue("UserAlarms", "AlarmAction" + i, UserAlarms[i].Action);
+				ini.SetValue("UserAlarms", "AlarmActionParams" + i, UserAlarms[i].ActionParams);
+			}
+			// remove any old alarms
+			for (var i = UserAlarms.Count(); i < 10; i++)
+			{
+				ini.DeleteValue("UserAlarms", "AlarmName" + i);
+				ini.DeleteValue("UserAlarms", "AlarmTag" + i);
+				ini.DeleteValue("UserAlarms", "AlarmType" + i);
+				ini.DeleteValue("UserAlarms", "AlarmValue" + i);
+				ini.DeleteValue("UserAlarms", "AlarmEnabled" + i);
+				ini.DeleteValue("UserAlarms", "AlarmEmail" + i);
+				ini.DeleteValue("UserAlarms", "AlarmEmailMsg" + i);
+				ini.DeleteValue("UserAlarms", "AlarmLatch" + i);
+				ini.DeleteValue("UserAlarms", "AlarmLatchHours" + i);
+				ini.DeleteValue("UserAlarms", "AlarmAction" + i);
+				ini.DeleteValue("UserAlarms", "AlarmActionParams" + i);
+			}
+
 			ini.SetValue("Offsets", "PressOffset", Calib.Press.Offset);
 			ini.SetValue("Offsets", "TempOffset", Calib.Temp.Offset);
 			ini.SetValue("Offsets", "HumOffset", Calib.Hum.Offset);
@@ -6770,12 +6883,12 @@ namespace CumulusMX
 			ini.SetValue("Offsets", "SolarMult2", Calib.Solar.Mult2);
 			ini.SetValue("Offsets", "UVMult2", Calib.UV.Mult2);
 
-			ini.SetValue("Limits", "TempHighC", Limit.TempHigh);
-			ini.SetValue("Limits", "TempLowC", Limit.TempLow);
-			ini.SetValue("Limits", "DewHighC", Limit.DewHigh);
-			ini.SetValue("Limits", "PressHighMB", Limit.PressHigh);
-			ini.SetValue("Limits", "PressLowMB", Limit.PressLow);
-			ini.SetValue("Limits", "WindHighMS", Limit.WindHigh);
+			ini.SetValue("Limits", "TempHighC", ConvertUnits.UserTempToC(Limit.TempHigh));
+			ini.SetValue("Limits", "TempLowC", ConvertUnits.UserTempToC(Limit.TempLow));
+			ini.SetValue("Limits", "DewHighC", ConvertUnits.UserTempToC(Limit.DewHigh));
+			ini.SetValue("Limits", "PressHighMB", ConvertUnits.UserPressToMB(Limit.PressHigh));
+			ini.SetValue("Limits", "PressLowMB", ConvertUnits.UserPressToMB(Limit.PressLow));
+			ini.SetValue("Limits", "WindHighMS", ConvertUnits.UserWindToMS(Limit.WindHigh));
 
 			ini.SetValue("xAP", "Enabled", xapEnabled);
 			ini.SetValue("xAP", "UID", xapUID);
@@ -7297,6 +7410,7 @@ namespace CumulusMX
 			// alarm emails
 			Trans.AlarmEmailSubject = ini.GetValue("AlarmEmails", "subject", "Cumulus MX Alarm");
 			Trans.AlarmEmailPreamble = ini.GetValue("AlarmEmails", "preamble", "A Cumulus MX alarm has been triggered.");
+
 			HighGustAlarm.EmailMsg = ini.GetValue("AlarmEmails", "windGustAbove", "A wind gust above {0} {1} has occurred.");
 			HighPressAlarm.EmailMsg = ini.GetValue("AlarmEmails", "pressureAbove", "The pressure has risen above {0} {1}.");
 			HighTempAlarm.EmailMsg = ini.GetValue("AlarmEmails", "tempAbove", "The temperature has risen above {0} {1}.");
@@ -7319,6 +7433,30 @@ namespace CumulusMX
 			IsRainingAlarm.EmailMsg = ini.GetValue("AlarmEmails", "isRaining", "It has started to rain.");
 			NewRecordAlarm.EmailMsg = ini.GetValue("AlarmEmails", "newRecord", "A new all-time record has been set.");
 			FtpAlarm.EmailMsg = ini.GetValue("AlarmEmails", "ftpStopped", "FTP uploads have stopped.");
+
+			// alarm names
+			HighGustAlarm.Name = ini.GetValue("AlarmNames", "windGustAbove", "High Gust");
+			HighPressAlarm.Name = ini.GetValue("AlarmNames", "pressureAbove", "High Pressure");
+			HighTempAlarm.Name = ini.GetValue("AlarmNames", "tempAbove", "High Temperature");
+			LowPressAlarm.Name = ini.GetValue("AlarmNames", "pressBelow", "Low Pressure");
+			LowTempAlarm.Name = ini.GetValue("AlarmNames", "tempBelow", "Low Temperature");
+			PressChangeAlarm.NameDown = ini.GetValue("AlarmNames", "pressDown", "Pressure Falling");
+			PressChangeAlarm.NameUp = ini.GetValue("AlarmNames", "pressUp", "Pressure Rising");
+			HighRainTodayAlarm.Name = ini.GetValue("AlarmNames", "rainAbove", "Rainfall Today");
+			HighRainRateAlarm.Name = ini.GetValue("AlarmNames", "rainRateAbove", "High Rainfall Rate");
+			SensorAlarm.Name = ini.GetValue("AlarmNames", "sensorLost", "Sensor Data Stopped");
+			TempChangeAlarm.NameDown = ini.GetValue("AlarmNames", "tempDown", "Temp Falling");
+			TempChangeAlarm.NameUp = ini.GetValue("AlarmNames", "tempUp", "Temp Rising");
+			HighWindAlarm.Name = ini.GetValue("AlarmNames", "windAbove", "High Wind");
+			DataStoppedAlarm.Name = ini.GetValue("AlarmNames", "dataStopped", "Data Stopped");
+			BatteryLowAlarm.Name = ini.GetValue("AlarmNames", "batteryLow", "Battery Low");
+			SpikeAlarm.Name = ini.GetValue("AlarmNames", "dataSpike", "Data Spike");
+			UpgradeAlarm.Name = ini.GetValue("AlarmNames", "upgrade", "Upgrade Available");
+			ThirdPartyAlarm.Name = ini.GetValue("AlarmNames", "httpStopped", "HTTP Upload");
+			MySqlUploadAlarm.Name = ini.GetValue("AlarmNames", "mySqlStopped", "MySQL Upload");
+			IsRainingAlarm.Name = ini.GetValue("AlarmNames", "isRaining", "Is Raining");
+			NewRecordAlarm.Name = ini.GetValue("AlarmNames", "newRecord", "New Record");
+			FtpAlarm.Name = ini.GetValue("AlarmNames", "ftpStopped", "Web Upload");
 
 			if (!File.Exists("strings.ini"))
 			{
@@ -7484,6 +7622,30 @@ namespace CumulusMX
 			ini.SetValue("AlarmEmails", "isRaining", IsRainingAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "newRecord", NewRecordAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "ftpStopped", FtpAlarm.EmailMsg);
+
+			// alarm names
+			ini.SetValue("AlarmNames", "windGustAbove", HighGustAlarm.Name);
+			ini.SetValue("AlarmNames", "pressureAbove", HighPressAlarm.Name);
+			ini.SetValue("AlarmNames", "tempAbove", HighTempAlarm.Name);
+			ini.SetValue("AlarmNames", "pressBelow", LowPressAlarm.Name);
+			ini.SetValue("AlarmNames", "tempBelow", LowTempAlarm.Name);
+			ini.SetValue("AlarmNames", "pressDown", PressChangeAlarm.NameDown);
+			ini.SetValue("AlarmNames", "pressUp", PressChangeAlarm.NameUp);
+			ini.SetValue("AlarmNames", "rainAbove", HighRainTodayAlarm.Name);
+			ini.SetValue("AlarmNames", "rainRateAbove", HighRainRateAlarm.Name);
+			ini.SetValue("AlarmNames", "sensorLost", SensorAlarm.Name);
+			ini.SetValue("AlarmNames", "tempDown", TempChangeAlarm.NameDown);
+			ini.SetValue("AlarmNames", "tempUp", TempChangeAlarm.NameUp);
+			ini.SetValue("AlarmNames", "windAbove", HighWindAlarm.Name);
+			ini.SetValue("AlarmNames", "dataStopped", DataStoppedAlarm.Name);
+			ini.SetValue("AlarmNames", "batteryLow", BatteryLowAlarm.Name);
+			ini.SetValue("AlarmNames", "dataSpike", SpikeAlarm.Name);
+			ini.SetValue("AlarmNames", "upgrade", UpgradeAlarm.Name);
+			ini.SetValue("AlarmNames", "httpStopped", ThirdPartyAlarm.Name);
+			ini.SetValue("AlarmNames", "mySqlStopped", MySqlUploadAlarm.Name);
+			ini.SetValue("AlarmNames", "isRaining", IsRainingAlarm.Name);
+			ini.SetValue("AlarmNames", "newRecord", NewRecordAlarm.Name);
+			ini.SetValue("AlarmNames", "ftpStopped", FtpAlarm.Name);
 
 			ini.Flush();
 
@@ -7800,8 +7962,6 @@ namespace CumulusMX
 		public Timer WundTimer = new Timer();
 		public Timer WebTimer = new Timer();
 		public Timer AwekasTimer = new Timer();
-		public Timer MQTTTimer = new Timer();
-		//public Timer AirLinkTimer = new Timer();
 
 		public int DAVIS = 0;
 		public int OREGON = 1;
@@ -7905,7 +8065,7 @@ namespace CumulusMX
 		}
 		*/
 
-		public string GetLogFileName(DateTime thedate)
+			public string GetLogFileName(DateTime thedate)
 		{
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
@@ -8014,7 +8174,7 @@ namespace CumulusMX
 			sb.Append(station.RainRate.ToString(RainFormat) + ListSeparator);
 			sb.Append(station.RainToday.ToString(RainFormat) + ListSeparator);
 			sb.Append(station.Pressure.ToString(PressFormat) + ListSeparator);
-			sb.Append(station.Raincounter.ToString(RainFormat) + ListSeparator);
+			sb.Append(station.RainCounter.ToString(RainFormat) + ListSeparator);
 			sb.Append(station.IndoorTemperature.ToString(TempFormat) + ListSeparator);
 			sb.Append(station.IndoorHumidity + ListSeparator);
 			sb.Append(station.WindLatest.ToString(WindFormat) + ListSeparator);
@@ -8081,7 +8241,7 @@ namespace CumulusMX
 				values.Append(station.RainRate.ToString(RainFormat, InvC) + ",");
 				values.Append(station.RainToday.ToString(RainFormat, InvC) + ",");
 				values.Append(station.Pressure.ToString(PressFormat, InvC) + ",");
-				values.Append(station.Raincounter.ToString(RainFormat, InvC) + ",");
+				values.Append(station.RainCounter.ToString(RainFormat, InvC) + ",");
 				values.Append(station.IndoorTemperature.ToString(TempFormat, InvC) + ",");
 				values.Append(station.IndoorHumidity + ",");
 				values.Append(station.WindLatest.ToString(WindFormat, InvC) + ",");
@@ -9137,7 +9297,7 @@ namespace CumulusMX
 
 		public string Beaufort(double Bspeed) // Takes speed in current unit, returns Bft number as text
 		{
-			return station.Beaufort(Bspeed).ToString();
+			return ConvertUnits.Beaufort(Bspeed).ToString();
 		}
 
 		public string BeaufortDesc(double Bspeed)
@@ -9145,7 +9305,7 @@ namespace CumulusMX
 			// Takes speed in current units, returns Bft description
 
 			// Convert to Force
-			var force = station.Beaufort(Bspeed);
+			var force = ConvertUnits.Beaufort(Bspeed);
 			switch (force)
 			{
 				case 0:
@@ -9215,11 +9375,8 @@ namespace CumulusMX
 				WundTimer.Stop();
 				WebTimer.Stop();
 				AwekasTimer.Stop();
-				MQTTTimer.Stop();
-				//AirLinkTimer.Stop();
 				CustomHttpSecondsTimer.Stop();
 				CustomMysqlSecondsTimer.Stop();
-				MQTTTimer.Stop();
 			}
 			catch { }
 
@@ -9245,9 +9402,6 @@ namespace CumulusMX
 				LogMessage("Stopping station...");
 				try
 				{
-					station.Stop();
-					LogMessage("Station stopped");
-
 					if (station.HaveReadData)
 					{
 						LogMessage("Writing today.ini file");
@@ -9259,6 +9413,9 @@ namespace CumulusMX
 						LogMessage("No data read this session, today.ini not written");
 					}
 					station.SaveWindData();
+
+					station.Stop();
+					LogMessage("Station stopped");
 				}
 				catch { }
 			}
@@ -10827,7 +10984,6 @@ namespace CumulusMX
 						return;
 					}
 
-
 					tasklist.Add(Task.Run(async () =>
 					{
 						try
@@ -11069,7 +11225,6 @@ namespace CumulusMX
 						LogDebugMessage($"PHP[Int]: Moon image has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
-
 #endif
 					}
 					catch (OperationCanceledException)
@@ -11788,6 +11943,7 @@ namespace CumulusMX
 		{
 			if (!string.IsNullOrEmpty(message))
 				LogMessage(message);
+
 			LogFluentFtpMessage(FtpTraceLevel.Info, message);
 		}
 
@@ -11832,6 +11988,7 @@ namespace CumulusMX
 				{
 					message = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + message;
 				}
+
 				Console.ForegroundColor = colour;
 				Console.WriteLine(message);
 				Console.ResetColor();
@@ -11872,6 +12029,11 @@ namespace CumulusMX
 			return arr.Reverse().ToJson();
 		}
 
+		public string ClearErrorLog()
+		{
+			ErrorList.Clear();
+			return GetErrorLog();
+		}
 
 		private void CreateRealtimeFile(int cycle)
 		{
@@ -12263,26 +12425,7 @@ namespace CumulusMX
 				WundTimer.Interval = Wund.Interval * 60 * 1000; // mins to millisecs
 			}
 
-
 			AwekasTimer.Interval = AWEKAS.Interval * 1000;
-
-			MQTTTimer.Interval = MQTT.IntervalTime * 1000; // secs to millisecs
-
-
-			// 15/10/20 What is doing? Nothing
-			/*
-			if (AirLinkInEnabled || AirLinkOutEnabled)
-			{
-				AirLinkTimer.Interval = 60 * 1000; // 1 minute
-				AirLinkTimer.Enabled = true;
-				AirLinkTimer.Elapsed += AirLinkTimerTick;
-			}
-			*/
-
-			if (MQTT.EnableInterval)
-			{
-				MQTTTimer.Enabled = true;
-			}
 
 			if (WundList == null)
 			{
@@ -13845,6 +13988,7 @@ namespace CumulusMX
 			}
 		}
 
+		/*
 		private void PingCompletedCallback(object sender, PingCompletedEventArgs e)
 		{
 			// If an error occurred, display the exception to the user.
@@ -13859,6 +14003,7 @@ namespace CumulusMX
 
 			//pingReply = e.Reply;
 		}
+		*/
 
 		private void CreateRequiredFolders()
 		{
@@ -14408,6 +14553,7 @@ namespace CumulusMX
 		public string data { get; set; }
 		public bool retain { get; set; }
 		public string doNotTriggerOnTags { get; set; }
+		public int? interval { get; set; }
 	}
 
 	public class MySqlGeneralSettings

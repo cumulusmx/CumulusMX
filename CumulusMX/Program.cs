@@ -283,7 +283,8 @@ namespace CumulusMX
 				_ = new ExitHandler();
 			}
 
-			cumulus = new Cumulus(port, debug, "");
+			cumulus = new Cumulus();
+			cumulus.Initialise(port, debug, "");
 
 			if (!exitSystem)
 			{

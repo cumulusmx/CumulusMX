@@ -221,7 +221,7 @@ namespace CumulusMX
 			double prevraintotal = -1;
 			double raindiff, rainrate;
 
-			double pressureoffset = ConvertPressMBToUser(Ws2300PressureOffset());
+			double pressureoffset = ConvertUnits.PressMBToUser(Ws2300PressureOffset());
 
 			while (datalist.Count > 0)
 			{
@@ -320,20 +320,20 @@ namespace CumulusMX
 				// Dewpoint ====================================================================
 				if (cumulus.StationOptions.CalculatedDP)
 				{
-					double tempC = ConvertUserTempToC(OutdoorTemperature);
-					DoOutdoorDewpoint(ConvertTempCToUser(MeteoLib.DewPoint(tempC, OutdoorHumidity)), timestamp);
+					double tempC = ConvertUnits.UserTempToC(OutdoorTemperature);
+					DoOutdoorDewpoint(ConvertUnits.TempCToUser(MeteoLib.DewPoint(tempC, OutdoorHumidity)), timestamp);
 					CheckForDewpointHighLow(timestamp);
 				}
 				else
 				{
-					if (historydata.dewpoint < ConvertUserTempToC(60))
+					if (historydata.dewpoint < ConvertUnits.UserTempToC(60))
 					{
 						DoOutdoorDewpoint(cumulus.Calib.Temp.Calibrate(historydata.dewpoint), timestamp);
 					}
 				}
 
 				// Wind chill ==================================================================
-				if (historydata.windchill < ConvertTempCToUser(60))
+				if (historydata.windchill < ConvertUnits.TempCToUser(60))
 				{
 					DoWindChill(historydata.windchill, timestamp);
 				}
@@ -353,7 +353,7 @@ namespace CumulusMX
 				// Pressure ======================================================================
 				double slpress = historydata.pressure + pressureoffset;
 
-				if ((slpress > ConvertPressMBToUser(900)) && (slpress < ConvertPressMBToUser(1200)))
+				if ((slpress > ConvertUnits.PressMBToUser(900)) && (slpress < ConvertUnits.PressMBToUser(1200)))
 				{
 					DoPressure(slpress, timestamp);
 				}
@@ -381,7 +381,7 @@ namespace CumulusMX
 				}
 				cumulus.MySqlRealtimeFile(999, false, timestamp);
 
-				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, rainrate, -1, -1);
+				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, rainrate, -1, -1);
 				UpdatePressureTrendString();
 				UpdateStatusPanel(timestamp);
 				cumulus.AddToWebServiceLists(timestamp);
@@ -549,13 +549,13 @@ namespace CumulusMX
 			if (pressure >= 1502.2)
 				pressure -= 1000;
 
-			pressure = ConvertPressMBToUser(pressure);
+			pressure = ConvertUnits.PressMBToUser(pressure);
 
 			humindoor = (int) ((tempint - (tempint % 10000)) / 10000.0);
 
 			humoutdoor = (data[5] >> 4) * 10 + (data[5] & 0xF);
 
-			raincount = ConvertRainMMToUser(rainref + (((data[7] & 0xF) * 256 + data[6]) - raincountref) * 0.518);
+			raincount = ConvertUnits.RainMMToUser(rainref + (((data[7] & 0xF) * 256 + data[6]) - raincountref) * 0.518);
 
 			windspeed = (data[8] * 16 + (data[7] >> 4)) / 10.0;
 
@@ -569,15 +569,15 @@ namespace CumulusMX
 			double windkmh = 3.6 * windspeed;
 
 			tempint = ((data[2] & 0xF) << 16) + (data[1] << 8) + data[0];
-			tempindoor = ConvertTempCToUser((tempint % 1000) / 10.0f - 30.0);
+			tempindoor = ConvertUnits.TempCToUser((tempint % 1000) / 10.0f - 30.0);
 			tempoutdoor = (tempint - (tempint % 1000)) / 10000.0f - 30.0;
 
-			windchill = ConvertTempCToUser(MeteoLib.WindChill(tempoutdoor, windkmh));
-			dewpoint = ConvertTempCToUser(MeteoLib.DewPoint(tempoutdoor, humoutdoor));
+			windchill = ConvertUnits.TempCToUser(MeteoLib.WindChill(tempoutdoor, windkmh));
+			dewpoint = ConvertUnits.TempCToUser(MeteoLib.DewPoint(tempoutdoor, humoutdoor));
 
-			tempoutdoor = ConvertTempCToUser(tempoutdoor);
+			tempoutdoor = ConvertUnits.TempCToUser(tempoutdoor);
 
-			windspeed = ConvertWindMSToUser(windspeed);
+			windspeed = ConvertUnits.WindMSToUser(windspeed);
 			winddir = (data[9] & 0xF) * 22.5;
 
 			return (++record) % 0xAF;
@@ -617,7 +617,7 @@ namespace CumulusMX
 				double intemp = Ws2300IndoorTemperature();
 				if (intemp > -20)
 				{
-					DoIndoorTemp(ConvertTempCToUser(intemp));
+					DoIndoorTemp(ConvertUnits.TempCToUser(intemp));
 				}
 			}
 
@@ -628,7 +628,7 @@ namespace CumulusMX
 				if ((outtemp > -60) && (outtemp < 60) && ((previoustemp == 999) || (Math.Abs(outtemp - previoustemp) < cumulus.Spike.TempDiff)))
 				{
 					previoustemp = outtemp;
-					DoOutdoorTemp(ConvertTempCToUser(outtemp), now);
+					DoOutdoorTemp(ConvertUnits.TempCToUser(outtemp), now);
 				}
 			}
 
@@ -638,7 +638,7 @@ namespace CumulusMX
 				double dp = Ws2300OutdoorDewpoint();
 				if (dp > -100 && dp < 60)
 				{
-					DoOutdoorDewpoint(ConvertTempCToUser(dp), now);
+					DoOutdoorDewpoint(ConvertUnits.TempCToUser(dp), now);
 				}
 			}
 
@@ -649,14 +649,14 @@ namespace CumulusMX
 				if ((pressure > 900) && (pressure < 1200) && ((previouspress == 9999) || (Math.Abs(pressure - previouspress) < cumulus.Spike.PressDiff)))
 				{
 					previouspress = pressure;
-					DoPressure(ConvertPressMBToUser(pressure), now);
+					DoPressure(ConvertUnits.PressMBToUser(pressure), now);
 				}
 
 				pressure = Ws2300AbsolutePressure();
 
 				if ((Pressure > 850) && (Pressure < 1200))
 				{
-					StationPressure = ConvertPressMBToUser(cumulus.Calib.Press.Calibrate(pressure));
+					StationPressure = ConvertUnits.PressMBToUser(cumulus.Calib.Press.Calibrate(pressure));
 					// AltimeterPressure := ConvertOregonPress(StationToAltimeter(PressureHPa(StationPressure),AltitudeM(Altitude)));
 				}
 			}
@@ -679,7 +679,7 @@ namespace CumulusMX
 				if ((wind > -1) && ((previouswind == 999) || (Math.Abs(wind - previouswind) < cumulus.Spike.WindDiff)))
 				{
 					previouswind = wind;
-					DoWind(ConvertWindMSToUser(wind), (int) direction, -1, now);
+					DoWind(ConvertUnits.WindMSToUser(wind), (int) direction, -1, now);
 				}
 				else
 				{
@@ -691,7 +691,7 @@ namespace CumulusMX
 				double wc = Ws2300WindChill();
 				if (wc > -100 && wc < 60)
 				{
-					DoWindChill(ConvertTempCToUser(wc), now);
+					DoWindChill(ConvertUnits.TempCToUser(wc), now);
 				}
 		}
 
@@ -701,7 +701,7 @@ namespace CumulusMX
 				double raintot = Ws2300RainTotal();
 				if (raintot > -1)
 				{
-					DoRain(ConvertRainMMToUser(raintot), -1, now);
+					DoRain(ConvertUnits.RainMMToUser(raintot), -1, now);
 				}
 			}
 

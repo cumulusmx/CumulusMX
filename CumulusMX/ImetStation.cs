@@ -694,7 +694,7 @@ namespace CumulusMX
 
 							if (sl[TEMP1AVGPOS].Length > 0)
 							{
-								DoOutdoorTemp(ConvertTempCToUser(Convert.ToDouble(sl[TEMP1AVGPOS], provider)), timestamp);
+								DoOutdoorTemp(ConvertUnits.TempCToUser(Convert.ToDouble(sl[TEMP1AVGPOS], provider)), timestamp);
 
 								// add in "archivePeriod" minutes worth of temperature to the temp samples
 								tempsamplestoday += interval;
@@ -738,9 +738,9 @@ namespace CumulusMX
 									raindiff = raintotal - prevraintotal;
 								}
 
-								double rainrate = ConvertRainMMToUser((raindiff) * (60.0 / cumulus.logints[cumulus.DataLogInterval]));
+								double rainrate = ConvertUnits.RainMMToUser((raindiff) * (60.0 / cumulus.logints[cumulus.DataLogInterval]));
 
-								DoRain(ConvertRainMMToUser(raintotal), rainrate, timestamp);
+								DoRain(ConvertUnits.RainMMToUser(raintotal), rainrate, timestamp);
 
 								prevraintotal = raintotal;
 							}
@@ -748,17 +748,17 @@ namespace CumulusMX
 							if ((sl[WINDAVGPOS].Length > 0) && (sl[TEMP1AVGPOS].Length > 0))
 							{
 								// wind chill
-								double tempinC = ConvertUserTempToC(OutdoorTemperature);
-								double windinKPH = ConvertUserWindToKPH(WindAverage);
+								double tempinC = ConvertUnits.UserTempToC(OutdoorTemperature);
+								double windinKPH = ConvertUnits.UserWindToKPH(WindAverage);
 								double value = MeteoLib.WindChill(tempinC, windinKPH);
 								// value is now in Celsius, convert to units in use
-								value = ConvertTempCToUser(value);
+								value = ConvertUnits.TempCToUser(value);
 								DoWindChill(value, timestamp);
 							}
 
 							if (sl[PRESSAVGPOS].Length > 0)
 							{
-								DoPressure(ConvertPressMBToUser(Convert.ToDouble(sl[PRESSAVGPOS], provider)), timestamp);
+								DoPressure(ConvertUnits.PressMBToUser(Convert.ToDouble(sl[PRESSAVGPOS], provider)), timestamp);
 							}
 
 							// Cause wind chill calc
@@ -781,13 +781,13 @@ namespace CumulusMX
 							cumulus.DoCustomIntervalLogs(timestamp);
 
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
+								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 							DoTrendValues(timestamp);
 
 							if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
 							{
 								// Start of a new hour, and we want to calculate ET in Cumulus
-								CalculateEvaoptranspiration(timestamp);
+								CalculateEvapotranspiration(timestamp);
 							}
 
 							UpdatePressureTrendString();
@@ -917,7 +917,7 @@ namespace CumulusMX
 					!string.IsNullOrEmpty(sl[WINDPOS]) && double.TryParse(sl[WINDPOS], NumberStyles.Float, provider, out varDbl))
 				{
 					windspeed = varDbl;
-					DoWind(ConvertWindMSToUser(windspeed), varInt, -1, now);
+					DoWind(ConvertUnits.WindMSToUser(windspeed), varInt, -1, now);
 				}
 				else
 				{
@@ -928,7 +928,7 @@ namespace CumulusMX
 				if (!string.IsNullOrEmpty(sl[TEMP1POS]) && double.TryParse(sl[TEMP1POS], NumberStyles.Float, provider, out varDbl))
 				{
 					temp1 = varDbl;
-					DoOutdoorTemp(ConvertTempCToUser(temp1), now);
+					DoOutdoorTemp(ConvertUnits.TempCToUser(temp1), now);
 					if (windspeed > -99)
 					{
 						double windchill = MeteoLib.WindChill(temp1, windspeed * 3.6);
@@ -947,12 +947,12 @@ namespace CumulusMX
 						if (cumulus.StationOptions.LogExtraSensors)
 						{
 							// use second temp as Extra Temp 1
-							DoExtraTemp(ConvertTempCToUser(varDbl), 1);
+							DoExtraTemp(ConvertUnits.TempCToUser(varDbl), 1);
 						}
 						else
 						{
 							// use second temp as wet bulb
-							DoWetBulb(ConvertTempCToUser(varDbl), now);
+							DoWetBulb(ConvertUnits.TempCToUser(varDbl), now);
 						}
 					}
 					else
@@ -973,7 +973,7 @@ namespace CumulusMX
 
 				if (!string.IsNullOrEmpty(sl[PRESSPOS]) && double.TryParse(sl[PRESSPOS], NumberStyles.Float, provider, out varDbl))
 				{
-					DoPressure(ConvertPressMBToUser(varDbl), now);
+					DoPressure(ConvertUnits.PressMBToUser(varDbl), now);
 					UpdatePressureTrendString();
 				}
 				else
@@ -984,7 +984,7 @@ namespace CumulusMX
 
 				if (!string.IsNullOrEmpty(sl[RAINPOS]) && double.TryParse(sl[RAINPOS], NumberStyles.Float, provider, out varDbl))
 				{
-					DoRain(ConvertRainMMToUser(varDbl), -1, now);
+					DoRain(ConvertUnits.RainMMToUser(varDbl), -1, now);
 				}
 				else
 				{

@@ -18,8 +18,6 @@ namespace CumulusMX
 {
 	internal class TempestStation : WeatherStation
 	{
-
-
 		public TempestStation(Cumulus cumulus) : base(cumulus)
 		{
 			calculaterainrate = false;
@@ -131,17 +129,17 @@ namespace CumulusMX
 				// Pressure =============================================================
 				var alt = AltitudeM(cumulus.Altitude);
 				var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) historydata.StationPressure, (double) historydata.Temperature);
-				DoPressure(ConvertPressMBToUser(seaLevel), timestamp);
+				DoPressure(ConvertUnits.PressMBToUser(seaLevel), timestamp);
 
 				// Outdoor Humidity =====================================================
 				DoOutdoorHumidity((int) historydata.Humidity, timestamp);
 
 				// Wind =================================================================
-				DoWind(ConvertWindMSToUser((double) historydata.WindGust), historydata.WindDirection,
-					ConvertWindMSToUser((double) historydata.WindAverage), timestamp);
+				DoWind(ConvertUnits.WindMSToUser((double) historydata.WindGust), historydata.WindDirection,
+					ConvertUnits.WindMSToUser((double) historydata.WindAverage), timestamp);
 
 				// Outdoor Temperature ==================================================
-				DoOutdoorTemp(ConvertTempCToUser((double) historydata.Temperature), timestamp);
+				DoOutdoorTemp(ConvertUnits.TempCToUser((double) historydata.Temperature), timestamp);
 				// add in 'archivePeriod' minutes worth of temperature to the temp samples
 				tempsamplestoday += historydata.ReportInterval;
 				TempTotalToday += OutdoorTemperature * historydata.ReportInterval;
@@ -151,16 +149,16 @@ namespace CumulusMX
 					// add 1 minute to chill hours
 					ChillHours += historydata.ReportInterval / 60.0;
 
-				double rainrate = (double) (ConvertRainMMToUser((double) historydata.Precipitation) *
+				double rainrate = (double) (ConvertUnits.RainMMToUser((double) historydata.Precipitation) *
 											(60d / historydata.ReportInterval));
 
-				var newRain = Raincounter + ConvertRainMMToUser((double) historydata.Precipitation);
+				var newRain = RainCounter + ConvertUnits.RainMMToUser((double) historydata.Precipitation);
 				cumulus.LogMessage(
 					$"TempestDoRainHist: New Precip: {historydata.Precipitation}, Type: {historydata.PrecipType}, Rate: {rainrate}, LocalDayRain: {historydata.LocalDayRain}, LocalRainChecked: {historydata.LocalRainChecked}, FinalRainChecked: {historydata.FinalRainChecked}");
 
 				DoRain(newRain, rainrate, timestamp);
 				cumulus.LogMessage(
-					$"TempestDoRainHist: Total Precip for Day: {Raincounter}");
+					$"TempestDoRainHist: Total Precip for Day: {RainCounter}");
 
 				// calculate dp
 				DoOutdoorDewpoint(-999, timestamp);
@@ -211,12 +209,12 @@ namespace CumulusMX
 				//    OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
 
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
 				if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
 				{
 					// Start of a new hour, and we want to calculate ET in Cumulus
-					CalculateEvaoptranspiration(timestamp);
+					CalculateEvapotranspiration(timestamp);
 				}
 
 				DoTrendValues(timestamp);
@@ -236,7 +234,6 @@ namespace CumulusMX
 
 		public override void Start()
 		{
-
 			cumulus.NormalRunning = true;
 			StationListener.WeatherPacketReceived = WeatherPacketReceived;
 			StationListener.Start(cumulus);
@@ -278,33 +275,30 @@ namespace CumulusMX
 
 						DoOutdoorHumidity((int) wp.Observation.Humidity, ts);
 
-						var userTemp = ConvertTempCToUser(Convert.ToDouble(wp.Observation.Temperature));
+						var userTemp = ConvertUnits.TempCToUser(Convert.ToDouble(wp.Observation.Temperature));
 
 						DoOutdoorTemp(userTemp, ts);
-						DoWind(ConvertWindMSToUser((double) wp.Observation.WindGust),
+						DoWind(ConvertUnits.WindMSToUser((double) wp.Observation.WindGust),
 							wp.Observation.WindDirection,
-							ConvertWindMSToUser((double) wp.Observation.WindAverage),
+							ConvertUnits.WindMSToUser((double) wp.Observation.WindAverage),
 							ts);
 
 						var alt = AltitudeM(cumulus.Altitude);
 						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure,
 							(double) wp.Observation.Temperature);
-						DoPressure(ConvertPressMBToUser(seaLevel), ts);
-						cumulus.LogDebugMessage(
-							$"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
+						DoPressure(ConvertUnits.PressMBToUser(seaLevel), ts);
+						cumulus.LogDebugMessage($"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
 
 						DoSolarRad(wp.Observation.SolarRadiation, ts);
 						DoUV((double) wp.Observation.UV, ts);
-						double rainrate = (double) (ConvertRainMMToUser((double) wp.Observation.Precipitation) *
+						double rainrate = (double) (ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation) *
 													(60d / wp.Observation.ReportInterval));
 
-						var newRain = Raincounter + ConvertRainMMToUser((double) wp.Observation.Precipitation);
-						cumulus.LogDebugMessage(
-							$"TempestDoRain: New Precip: {wp.Observation.Precipitation}, Type: {wp.Observation.PrecipType}, Rate: {rainrate}");
+						var newRain = RainCounter + ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation);
+						cumulus.LogDebugMessage($"TempestDoRain: New Precip: {wp.Observation.Precipitation}, Type: {wp.Observation.PrecipType}, Rate: {rainrate}");
 
 						DoRain(newRain, rainrate, ts);
-						cumulus.LogDebugMessage(
-							$"TempestDoRain: Total Precip for Day: {Raincounter}");
+						cumulus.LogDebugMessage($"TempestDoRain: Total Precip for Day: {RainCounter}");
 
 						DoOutdoorDewpoint(-999, ts);
 						DoApparentTemp(ts);
@@ -326,7 +320,7 @@ namespace CumulusMX
 						var rw = wp.RapidWind;
 						cumulus.LogDataMessage($"Wind Data - speed: {rw.WindSpeed}, direction: {rw.WindDirection}");
 
-						DoWind(ConvertWindMSToUser((double) rw.WindSpeed),
+						DoWind(ConvertUnits.WindMSToUser((double) rw.WindSpeed),
 							rw.WindDirection,
 							-1,
 							rw.Timestamp);
@@ -337,11 +331,10 @@ namespace CumulusMX
 						cumulus.LogDebugMessage("Received a Lightning message");
 
 						LightningTime = wp.LightningStrike.Timestamp;
-						LightningDistance = ConvertKmtoUserUnits(wp.LightningStrike.Distance);
+						LightningDistance = ConvertUnits.KmtoUserUnits(wp.LightningStrike.Distance);
 						LightningStrikesToday++;
 						cumulus.LogDebugMessage($"Lightning Detected: {wp.LightningStrike.Timestamp} - {wp.LightningStrike.Distance} km - {LightningStrikesToday} strikes today");
 						break;
-
 				}
 			}
 		}
@@ -631,7 +624,6 @@ namespace CumulusMX.Tempest
 		public long timestamp { get; set; }
 
 		public DateTime PacketTime => WeatherPacket.FromUnixTimeSeconds(timestamp);
-
 
 		public int rssi { get; set; }
 		public string hub_sn { get; set; }

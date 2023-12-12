@@ -63,7 +63,6 @@ namespace CumulusMX
 			{
 				enabled = cumulus.MySqlSettings.CustomSecs.Enabled,
 				interval = cumulus.MySqlSettings.CustomSecs.Interval
-
 			};
 
 			var cmdCnt = 1;

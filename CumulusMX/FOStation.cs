@@ -442,7 +442,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					DoIndoorTemp(ConvertTempCToUser(historydata.inTemp));
+					DoIndoorTemp(ConvertUnits.TempCToUser(historydata.inTemp));
 				}
 
 				// Pressure =============================================================
@@ -454,7 +454,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					DoPressure(ConvertPressMBToUser(historydata.pressure), timestamp);
+					DoPressure(ConvertUnits.PressMBToUser(historydata.pressure), timestamp);
 				}
 
 				if (historydata.SensorContactLost)
@@ -485,7 +485,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						DoWind(ConvertWindMSToUser(historydata.windGust), historydata.windBearing, ConvertWindMSToUser(historydata.windSpeed), timestamp);
+						DoWind(ConvertUnits.WindMSToUser(historydata.windGust), historydata.windBearing, ConvertUnits.WindMSToUser(historydata.windSpeed), timestamp);
 					}
 
 					// Outdoor Temperature ==================================================
@@ -495,7 +495,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						DoOutdoorTemp(ConvertTempCToUser(historydata.outTemp), timestamp);
+						DoOutdoorTemp(ConvertUnits.TempCToUser(historydata.outTemp), timestamp);
 						// add in 'archivePeriod' minutes worth of temperature to the temp samples
 						tempsamplestoday += historydata.interval;
 						TempTotalToday += (OutdoorTemperature * historydata.interval);
@@ -537,7 +537,7 @@ namespace CumulusMX
 					{
 						if (historydata.interval > 0)
 						{
-							rainrate = ConvertRainMMToUser((raindiff * 0.3) * (60.0 / historydata.interval));
+							rainrate = ConvertUnits.RainMMToUser((raindiff * 0.3) * (60.0 / historydata.interval));
 						}
 						else
 						{
@@ -545,7 +545,7 @@ namespace CumulusMX
 						}
 					}
 
-					DoRain(ConvertRainMMToUser(historydata.rainCounter * 0.3), rainrate, timestamp);
+					DoRain(ConvertUnits.RainMMToUser(historydata.rainCounter * 0.3), rainrate, timestamp);
 
 					prevraintotal = historydata.rainCounter;
 
@@ -612,13 +612,13 @@ namespace CumulusMX
 				cumulus.MySqlRealtimeFile(999, false, timestamp);
 
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 				DoTrendValues(timestamp);
 
 				if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
 				{
 					// Start of a new hour, and we want to calculate ET in Cumulus
-					CalculateEvaoptranspiration(timestamp);
+					CalculateEvapotranspiration(timestamp);
 				}
 
 				UpdatePressureTrendString();
@@ -1216,7 +1216,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					DoIndoorTemp(ConvertTempCToUser(intemp));
+					DoIndoorTemp(ConvertUnits.TempCToUser(intemp));
 				}
 
 				// Pressure =========================================================
@@ -1230,14 +1230,14 @@ namespace CumulusMX
 				}
 				else
 				{
-					DoPressure(ConvertPressMBToUser(pressure), now);
+					DoPressure(ConvertUnits.PressMBToUser(pressure), now);
 					// Get station pressure in hPa by subtracting offset and calibrating
 					// EWpressure offset is difference between rel and abs in hPa
 					// PressOffset is user calibration in user units.
 					var offsetPress = pressure - pressureOffset;
-					pressure = offsetPress * offsetPress * cumulus.Calib.Press.Mult2 + offsetPress * cumulus.Calib.Press.Mult + ConvertUserPressureToHPa(cumulus.Calib.Press.Offset);
+					pressure = offsetPress * offsetPress * cumulus.Calib.Press.Mult2 + offsetPress * cumulus.Calib.Press.Mult + ConvertUnits.UserPressureToHPa(cumulus.Calib.Press.Offset);
 
-					StationPressure = ConvertPressMBToUser(pressure);
+					StationPressure = ConvertUnits.PressMBToUser(pressure);
 
 					UpdatePressureTrendString();
 				}
@@ -1290,7 +1290,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						DoWind(ConvertWindMSToUser(gust), winddir, ConvertWindMSToUser(windspeed), now);
+						DoWind(ConvertUnits.WindMSToUser(gust), winddir, ConvertUnits.WindMSToUser(windspeed), now);
 					}
 
 					// Outdoor Temperature ==============================================
@@ -1305,7 +1305,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						DoOutdoorTemp(ConvertTempCToUser(outtemp), now);
+						DoOutdoorTemp(ConvertUnits.TempCToUser(outtemp), now);
 
 						// Use current humidity for dewpoint
 						if (OutdoorHumidity > 0)
@@ -1343,10 +1343,10 @@ namespace CumulusMX
 						if (ignoreraincount == 6)
 						{
 							cumulus.LogMessage("Six consecutive rain readings; accepting value. Adjusting start of day figure to compensate");
-							raindaystart += (raindiff * 0.3);
+							RainCounterDayStart += (raindiff * 0.3);
 							// adjust current rain total counter
-							Raincounter += (raindiff * 0.3);
-							cumulus.LogMessage("Setting raindaystart to " + raindaystart);
+							RainCounter += (raindiff * 0.3);
+							cumulus.LogMessage("Setting raindaystart to " + RainCounterDayStart);
 							ignoreraincount = 0;
 						}
 						else
@@ -1361,7 +1361,7 @@ namespace CumulusMX
 
 					if (ignoreraincount == 0)
 					{
-						DoRain(ConvertRainMMToUser(raintot * 0.3), -1, now);
+						DoRain(ConvertUnits.RainMMToUser(raintot * 0.3), -1, now);
 						prevraintotal = raintot;
 					}
 
@@ -1379,7 +1379,7 @@ namespace CumulusMX
 
 						if (UVreading < 0 || UVreading > 16)
 						{
-							cumulus.LogMessage("Ignoring UV-I reading " + UVreading);
+							cumulus.LogWarningMessage("Ignoring UV-I reading " + UVreading);
 						}
 						else
 						{

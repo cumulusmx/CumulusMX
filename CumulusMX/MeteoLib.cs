@@ -476,12 +476,12 @@ namespace CumulusMX
 			// Mean temperature in Fahrenheit
 			var result = RecentDataDb.Query<AvgData>("select avg(OutsideTemp) temp, avg(WindSpeed) wind, avg(SolarRad) solar, avg(Humidity) hum from RecentData where Timestamp >= ?", onehourago);
 
-			var meanTempC = ConvertUserTempToC(result[0].temp);
+			var meanTempC = ConvertUnits.UserTempToC(result[0].temp);
 			var meanTempK = meanTempC + 273.16;
-			var meanWind = ConvertUserWindToMS(result[0].wind);
+			var meanWind = ConvertUnits.UserWindToMS(result[0].wind);
 			var meanHum = result[0].hum;
 			var meanSolar = result[0].solar;
-			var pressure = ConvertUserPressToMB(AltimeterPressure) / 100;  // need kPa
+			var pressure = ConvertUnits.UserPressToMB(AltimeterPressure) / 100;  // need kPa
 
 			var satVapPress = SaturationVapourPressure2008(meanTempC);
 			var waterVapour = satVapPress * meanHum / 100;
