@@ -1,3 +1,12 @@
+3.28.1 - b3270
+——————————————
+New
+
+Changed
+
+Fixed
+- Add a check for null MQTT topics
+
 3.28.0 - b3269
 ——————————————
 New
