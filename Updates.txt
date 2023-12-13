@@ -31,6 +31,7 @@ Fixed
 - Program Setting 'Remove space character from date separators (if present)' now applies to all output
 - The Ecowitt API MAC address field was not allowed to be blank in the Wizard or station config
 - Wind Gust values not being recorded as high values with moderate spike values set and wind speed in mph or knots
+- Fix average wind speed values from the day file in the records editors
 
 Package Updates
 - MailKit/MimeKit

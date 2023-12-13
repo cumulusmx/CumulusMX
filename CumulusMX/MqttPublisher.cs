@@ -197,6 +197,8 @@ namespace CumulusMX
 			{
 				foreach (var topic in mqttTemplate.topics)
 				{
+					if (topic == null) continue;
+
 					if (feedType == "Interval" && now.Value.ToUnixTime() % (topic.interval ?? 600) != 0)
 					{
 						// this topic is not ready to update
