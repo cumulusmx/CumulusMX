@@ -166,30 +166,53 @@ namespace CumulusMX
 				else
 					cumulus.ProgramOptions.TimeFormatLong = "HH:mm:ss";
 
-
+				// Does the culture need to be tweaked - either way
 				if (cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
 				{
-					// get the existing culture
-					var newCulture = CultureInfo.CurrentCulture;
 					// change the date separator
-					newCulture.DateTimeFormat.DateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
+					var dateSep = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
+					var shortDate = CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern.Replace(" ", "");
+
 					// set current thread culture
-					Thread.CurrentThread.CurrentCulture = newCulture;
+					Thread.CurrentThread.CurrentCulture.DateTimeFormat.DateSeparator = dateSep;
+					Thread.CurrentThread.CurrentCulture.DateTimeFormat.ShortDatePattern = shortDate;
+
+					Thread.CurrentThread.CurrentUICulture.DateTimeFormat.DateSeparator = dateSep;
+					Thread.CurrentThread.CurrentUICulture.DateTimeFormat.ShortDatePattern = shortDate;
+
 					// set the default culture for other threads
-					CultureInfo.DefaultThreadCurrentCulture = newCulture;
+					CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.DateSeparator = dateSep;
+					CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.ShortDatePattern = shortDate;
+
+					CultureInfo.DefaultThreadCurrentUICulture.DateTimeFormat.DateSeparator = dateSep;
+					CultureInfo.DefaultThreadCurrentUICulture.DateTimeFormat.ShortDatePattern = shortDate;
 				}
 				else
 				{
-					var newCulture = CultureInfo.GetCultureInfo(CultureInfo.CurrentCulture.Name);
+					var origCulture = CultureInfo.GetCultureInfo(CultureInfo.CurrentCulture.Name);
 
-					if (!cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator && newCulture.DateTimeFormat.DateSeparator.Contains(" ") && !CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
+					if (!cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator && origCulture.DateTimeFormat.DateSeparator.Contains(" ") && !CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
 					{
+						// get the original date separator
+						var dateSep = origCulture.DateTimeFormat.DateSeparator;
+						var shortDate = origCulture.DateTimeFormat.ShortDatePattern;
+
 						// set current thread culture
-						Thread.CurrentThread.CurrentCulture = newCulture;
+						Thread.CurrentThread.CurrentCulture.DateTimeFormat.DateSeparator = dateSep;
+						Thread.CurrentThread.CurrentCulture.DateTimeFormat.ShortDatePattern = shortDate;
+
+						Thread.CurrentThread.CurrentUICulture.DateTimeFormat.DateSeparator = dateSep;
+						Thread.CurrentThread.CurrentUICulture.DateTimeFormat.ShortDatePattern = shortDate;
+
 						// set the default culture for other threads
-						CultureInfo.DefaultThreadCurrentCulture = newCulture;
+						CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.DateSeparator = dateSep;
+						CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.ShortDatePattern = shortDate;
+
+						CultureInfo.DefaultThreadCurrentUICulture.DateTimeFormat.DateSeparator = dateSep;
+						CultureInfo.DefaultThreadCurrentUICulture.DateTimeFormat.ShortDatePattern = shortDate;
 					}
 				}
+
 
 				if (settings.logging.ftplogging != cumulus.FtpOptions.Logging)
 				{
