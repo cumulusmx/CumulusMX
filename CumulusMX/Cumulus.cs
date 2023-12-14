@@ -14638,26 +14638,19 @@ namespace CumulusMX
 			// We always revert to the start time so we remain consistent across DST changes
 			NextUpdate[idx] = now.Date + StartTimes[idx];
 
-			if (Intervals[idx] == 0)
+			// Timed and we have now set the start, add on intervals until we reach the future
+			while (NextUpdate[idx] <= now)
 			{
-				// timed but no repeat interval, add a day
-				NextUpdate[idx] = NextUpdate[idx].AddDays(1);
+				NextUpdate[idx] = NextUpdate[idx].AddMinutes(Intervals[idx]);
 			}
-			else
-			{
-				// Timed and we have now set the start, add on intervals until we reach the future
-				while (NextUpdate[idx] <= now)
-				{
-					NextUpdate[idx] = NextUpdate[idx].AddMinutes(Intervals[idx]);
-				}
 
-				// have we rolled over a day and the next interval would be prior to the start time?
-				// if so, bump up the next interval to the daily start time
-				if (NextUpdate[idx].TimeOfDay < StartTimes[idx])
-					NextUpdate[idx] = NextUpdate[idx].Date + StartTimes[idx];
+			// have we rolled over a day and the next interval would be prior to the start time?
+			// if so, bump up the next interval to the daily start time
+			if (NextUpdate[idx].TimeOfDay < StartTimes[idx])
+			{
+				NextUpdate[idx] = NextUpdate[idx].Date + StartTimes[idx];
 			}
 		}
-
 	}
 
 	public class NOAAconfig

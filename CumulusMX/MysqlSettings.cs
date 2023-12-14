@@ -147,8 +147,8 @@ namespace CumulusMX
 					{
 						customtimed.entries[index].command = cumulus.MySqlSettings.CustomTimed.Commands[i];
 						customtimed.entries[index].starttime = cumulus.MySqlSettings.CustomTimed.StartTimes[i];
-						customtimed.entries[index].interval = cumulus.MySqlSettings.CustomTimed.Intervals[i];
-						customtimed.entries[index].repeat = customtimed.entries[index].interval != 1440;
+						customtimed.entries[index].interval = cumulus.MySqlSettings.CustomTimed.Intervals[i] == 1440 ? -1 : cumulus.MySqlSettings.CustomTimed.Intervals[i];
+						customtimed.entries[index].repeat = cumulus.MySqlSettings.CustomTimed.Intervals[i] != 1440;
 						index++;
 
 						if (index == cmdCnt)
@@ -341,15 +341,20 @@ namespace CumulusMX
 						{
 							cumulus.MySqlSettings.CustomTimed.Commands[i] = String.IsNullOrWhiteSpace(settings.customtimed.entries[i].command) ? null : settings.customtimed.entries[i].command.Trim();
 							cumulus.MySqlSettings.CustomTimed.StartTimes[i] = settings.customtimed.entries[i].starttime;
-							cumulus.MySqlSettings.CustomTimed.Intervals[i] = settings.customtimed.entries[i].interval;
-
+							if (settings.customtimed.entries[i].repeat)
+							{
+								cumulus.MySqlSettings.CustomTimed.Intervals[i] = settings.customtimed.entries[i].interval == -1 ? 1440 : settings.customtimed.entries[i].interval;
+							}
+							else
+							{
+								cumulus.MySqlSettings.CustomTimed.Intervals[i] = 1440;
+							}
 						}
 						else
 						{
 							cumulus.MySqlSettings.CustomTimed.Commands[i] = null;
 							cumulus.MySqlSettings.CustomTimed.StartTimes[i] = TimeSpan.Zero;
-							cumulus.MySqlSettings.CustomTimed.Intervals[i] = 0;
-
+							cumulus.MySqlSettings.CustomTimed.Intervals[i] = 1440;
 						}
 					}
 				}
