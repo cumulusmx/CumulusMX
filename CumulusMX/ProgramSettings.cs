@@ -158,6 +158,7 @@ namespace CumulusMX
 				// Does the culture need to be tweaked - either way
 				if (cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator != settings.culture.removespacefromdateseparator)
 				{
+					cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
 					returnMessage = "You must restart Cumulus for the Locale setting change to take effect";
 				}
 
