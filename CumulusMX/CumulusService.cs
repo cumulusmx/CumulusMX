@@ -30,7 +30,6 @@ namespace CumulusMX
 						startParams += args[i] + " ";
 
 						CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
-						CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
 					}
 					else if (args[i] == "-port" && args.Length >= i)
 					{

@@ -153,7 +153,6 @@ namespace CumulusMX
 								var lang = args[++i];
 
 								CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
-								CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
 								break;
 							}
 						case "-port" when args.Length >= i:

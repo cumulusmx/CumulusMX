@@ -8767,6 +8767,7 @@ namespace CumulusMX
 								if (errorCount >= 10)
 								{
 									cumulus.LogErrorMessage($"LoadRecent: Too many errors reading {logFile} - aborting load of graph data");
+									break;
 								}
 							}
 						}
