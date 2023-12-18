@@ -27,7 +27,7 @@ namespace CumulusMX
 		private DateTime LastCameraCallTime = DateTime.MinValue;
 
 		private string LastCameraVideoTime = "";
-		private DateTime LastCameraVideoCallTime = DateTime.MinValue;
+		private readonly DateTime LastCameraVideoCallTime = DateTime.MinValue;
 
 		public EcowittApi(Cumulus cuml, WeatherStation stn)
 		{
@@ -189,7 +189,7 @@ namespace CumulusMX
 
 			var msg = $"Processing history data from {startTime:yyyy-MM-dd HH:mm} to {endTime.AddMinutes(5):yyyy-MM-dd HH:mm}...";
 			cumulus.LogMessage($"API.GetHistoricData: " + msg);
-			cumulus.LogConsoleMessage(msg);
+			Cumulus.LogConsoleMessage(msg);
 
 			var logUrl = url.Replace(cumulus.EcowittApplicationKey, "<<App-key>>").Replace(cumulus.EcowittUserApiKey, "<<User-key>>");
 			cumulus.LogDebugMessage($"Ecowitt URL = {logUrl}");
@@ -203,7 +203,7 @@ namespace CumulusMX
 				do
 				{
 					// we want to do this synchronously, so .Result
-					using (var response = Cumulus.MyHttpClient.GetAsync(url).Result)
+					using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
 					{
 						responseBody = response.Content.ReadAsStringAsync().Result;
 						responseCode = (int) response.StatusCode;
@@ -215,7 +215,7 @@ namespace CumulusMX
 					{
 						var historyError = responseBody.FromJson<ErrorResp>();
 						cumulus.LogMessage($"API.GetHistoricData: Ecowitt API Historic Error: {historyError.code}, {historyError.msg}, Cumulus.LogLevel.Warning");
-						cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.msg}", ConsoleColor.Red);
+						Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.msg}", ConsoleColor.Red);
 						cumulus.LastUpdateTime = endTime;
 						return false;
 					}
@@ -224,7 +224,7 @@ namespace CumulusMX
 					if (responseBody == "{}")
 					{
 						cumulus.LogMessage("API.GetHistoricData: Ecowitt API Historic: No data was returned.");
-						cumulus.LogConsoleMessage(" - No historic data available");
+						Cumulus.LogConsoleMessage(" - No historic data available");
 						cumulus.LastUpdateTime = endTime;
 						return false;
 					}
@@ -271,7 +271,7 @@ namespace CumulusMX
 								}
 
 								cumulus.LogMessage("API.GetHistoricData: System Busy or Rate Limited, waiting 5 secs before retry...");
-								Task.Delay(5000, token).Wait();
+								Task.Delay(5000, token).Wait(token);
 							}
 							else
 							{
@@ -1737,7 +1737,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url).Result)
+				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -1749,7 +1749,7 @@ namespace CumulusMX
 				{
 					var currentError = responseBody.FromJson<ErrorResp>();
 					cumulus.LogWarningMessage($"API.GetCurrentData: Ecowitt API Current Error: {currentError.code}, {currentError.msg}");
-					cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
+					Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
 					delay = 10;
 					return null;
 				}
@@ -1758,7 +1758,7 @@ namespace CumulusMX
 				if (responseBody == "{}")
 				{
 					cumulus.LogWarningMessage("API.GetCurrentData: Ecowitt API Current: No data was returned.");
-					cumulus.LogConsoleMessage(" - No current data available");
+					Cumulus.LogConsoleMessage(" - No current data available");
 					delay = 10;
 					return null;
 				}
@@ -1902,7 +1902,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url).Result)
+				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -1914,7 +1914,7 @@ namespace CumulusMX
 				{
 					var currentError = responseBody.FromJson<ErrorResp>();
 					cumulus.LogWarningMessage($"API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Error: {currentError.code}, {currentError.msg}");
-					cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
+					Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
 					return defaultUrl;
 				}
 
@@ -1922,7 +1922,7 @@ namespace CumulusMX
 				if (responseBody == "{}")
 				{
 					cumulus.LogWarningMessage("API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Data: No data was returned.");
-					cumulus.LogConsoleMessage(" - No current data available");
+					Cumulus.LogConsoleMessage(" - No current data available");
 					return defaultUrl;
 				}
 				else if (responseBody.StartsWith("{\"code\":")) // sanity check
@@ -2049,7 +2049,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url).Result)
+				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -2061,7 +2061,7 @@ namespace CumulusMX
 				{
 					var currentError = responseBody.FromJson<ErrorResp>();
 					cumulus.LogWarningMessage($"API.GetLastCameraVideoUrl: Ecowitt API Current Camera Error: {currentError.code}, {currentError.msg}");
-					cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
+					Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
 					return defaultUrl;
 				}
 
@@ -2071,7 +2071,7 @@ namespace CumulusMX
 				if (responseBody == "{}")
 				{
 					cumulus.LogWarningMessage("API.GetLastCameraVideoUrl: Ecowitt API Current Camera Data: No data was returned.");
-					cumulus.LogConsoleMessage(" - No current data available");
+					Cumulus.LogConsoleMessage(" - No current data available");
 					return defaultUrl;
 				}
 				else if (responseBody.StartsWith("{\"code\":")) // sanity check
@@ -2174,7 +2174,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url).Result)
+				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -2186,14 +2186,14 @@ namespace CumulusMX
 				{
 					var currentError = responseBody.FromJson<ErrorResp>();
 					cumulus.LogWarningMessage($"API.GetStationList: Ecowitt API Station List Error: {currentError.code}, {currentError.msg}");
-					cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
+					Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
 					return false;
 				}
 
 				if (responseBody == "{}")
 				{
 					cumulus.LogWarningMessage("API.GetStationList: Ecowitt API Station List: No data was returned.");
-					cumulus.LogConsoleMessage(" - No current data available");
+					Cumulus.LogConsoleMessage(" - No current data available");
 					return false;
 				}
 				else if (responseBody.StartsWith("{\"code\":")) // sanity check

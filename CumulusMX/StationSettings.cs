@@ -441,7 +441,7 @@ namespace CumulusMX
 			return JsonSerializer.SerializeToString(data);
 		}
 
-		private void LongToDMS(decimal longitude, out int d, out int m, out int s, out string hem)
+		private static void LongToDMS(decimal longitude, out int d, out int m, out int s, out string hem)
 		{
 			decimal coordinate;
 			if (longitude < 0)
@@ -464,7 +464,7 @@ namespace CumulusMX
 			d = secs / 60;
 		}
 
-		private void LatToDMS(decimal latitude, out int d, out int m, out int s, out string hem)
+		private static void LatToDMS(decimal latitude, out int d, out int m, out int s, out string hem)
 		{
 			decimal coordinate;
 			if (latitude < 0)
@@ -1223,7 +1223,7 @@ namespace CumulusMX
 					if (cumulus.StationType != settings.general.stationtype)
 					{
 						cumulus.LogWarningMessage("Station type changed, restart required");
-						cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow, true);
+						Cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow, true);
 					}
 					cumulus.StationType = settings.general.stationtype;
 					cumulus.StationModel = settings.general.stationmodel;

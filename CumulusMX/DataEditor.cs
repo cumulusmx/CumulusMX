@@ -335,7 +335,7 @@ namespace CumulusMX
 			}
 
 			// Read the dayfile list extract the records from there
-			if (station.DayFile.Count() > 0)
+			if (station.DayFile.Count > 0)
 			{
 				var data = station.DayFile.Where(r => r.Date >= startDate && r.Date <= endDate).ToList();
 				foreach (var rec in data)
@@ -3583,7 +3583,7 @@ namespace CumulusMX
 		}
 		*/
 
-		private void AddLastHoursRainEntry(DateTime ts, double rain, ref Queue<LastHourRainLog> hourQueue, ref Queue<LastHourRainLog> h24Queue)
+		private static void AddLastHoursRainEntry(DateTime ts, double rain, ref Queue<LastHourRainLog> hourQueue, ref Queue<LastHourRainLog> h24Queue)
 		{
 			var lastrain = new LastHourRainLog(ts, rain);
 
@@ -3608,7 +3608,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void Add24HourRainEntry(DateTime ts, double rain, ref Queue<LastHourRainLog> h24Queue)
+		private static void Add24HourRainEntry(DateTime ts, double rain, ref Queue<LastHourRainLog> h24Queue)
 		{
 			var lastrain = new LastHourRainLog(ts, rain);
 			h24Queue.Enqueue(lastrain);

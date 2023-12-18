@@ -621,7 +621,7 @@ namespace CumulusMX
 		}
 
 
-		private void ProcessExtraTemps(NameValueCollection data, WeatherStation station)
+		private static void ProcessExtraTemps(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
@@ -632,7 +632,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessExtraHumidity(NameValueCollection data, WeatherStation station)
+		private static void ProcessExtraHumidity(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
@@ -643,7 +643,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessSolar(NameValueCollection data, WeatherStation station, DateTime recDate)
+		private static void ProcessSolar(NameValueCollection data, WeatherStation station, DateTime recDate)
 		{
 			if (data["solarradiation"] != null)
 			{
@@ -651,7 +651,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessUv(NameValueCollection data, WeatherStation station, DateTime recDate)
+		private static void ProcessUv(NameValueCollection data, WeatherStation station, DateTime recDate)
 		{
 			if (data["uv"] != null)
 			{
@@ -659,7 +659,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessSoilTemps(NameValueCollection data, WeatherStation station)
+		private static void ProcessSoilTemps(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
@@ -670,7 +670,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessSoilMoist(NameValueCollection data, WeatherStation station)
+		private static void ProcessSoilMoist(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
@@ -681,7 +681,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessAirQuality(NameValueCollection data, WeatherStation station)
+		private static void ProcessAirQuality(NameValueCollection data, WeatherStation station)
 		{
 			// pm25
 			// pm25_24h
@@ -786,7 +786,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessLeak(NameValueCollection data, WeatherStation station)
+		private static void ProcessLeak(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 4; i++)
 			{
@@ -835,7 +835,7 @@ namespace CumulusMX
 			cumulus.BatteryLowAlarm.Triggered = lowBatt;
 		}
 
-		private void ProcessExtraDewPoint(NameValueCollection data, WeatherStation station)
+		private static void ProcessExtraDewPoint(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{

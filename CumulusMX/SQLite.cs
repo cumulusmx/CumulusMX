@@ -3447,7 +3447,7 @@ namespace SQLite
 			return stmt;
 		}
 
-		void Finalize(Sqlite3Statement stmt)
+		static void Finalize(Sqlite3Statement stmt)
 		{
 			SQLite3.Finalize(stmt);
 		}

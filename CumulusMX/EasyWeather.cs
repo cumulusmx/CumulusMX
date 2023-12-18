@@ -45,7 +45,9 @@ namespace CumulusMX
 	 * 37   Data address        6 digit hex
 	 * 38   Raw data            16x 2-digit hex
 	*/
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal class EasyWeather : WeatherStation
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		private readonly Timer tmrDataRead;
 

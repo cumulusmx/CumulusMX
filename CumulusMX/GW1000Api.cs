@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace CumulusMX
 {
-	internal class GW1000Api
+	internal class GW1000Api : IDisposable
 	{
 		private readonly Cumulus cumulus;
 		private TcpClient socket;
@@ -118,6 +118,7 @@ namespace CumulusMX
 			}
 			finally
 			{
+				socket.Dispose();
 				socket = null;
 			}
 		}
@@ -137,7 +138,7 @@ namespace CumulusMX
 			}
 
 			var buffer = new byte[2028];
-			var bytesRead = 0;
+			int bytesRead;
 			var cmdName = command.ToString();
 
 			byte[] bytes;
@@ -565,7 +566,7 @@ namespace CumulusMX
 		*/
 
 
-		private struct CommandPayload
+		private readonly struct CommandPayload
 		{
 			public readonly byte[] Data;
 
@@ -633,6 +634,15 @@ namespace CumulusMX
 			return BitConverter.GetBytes(ui16);
 		}
 
+		public void Dispose()
+		{
+			try
+			{
+				socket.Close();
+				socket.Dispose();
+			}
+			catch { }
 
+		}
 	}
 }

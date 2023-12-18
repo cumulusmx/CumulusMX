@@ -393,6 +393,7 @@ namespace CumulusMX
 		{
 			string res;
 			using (var mySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString()))
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
 			using (MySqlCommand cmd = new MySqlCommand(createSQL, mySqlConn))
 			{
 				cumulus.LogMessage($"MySQL Create Table: {createSQL}");
@@ -420,6 +421,7 @@ namespace CumulusMX
 					{ }
 				}
 			}
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
 			return res;
 		}
 
@@ -436,6 +438,7 @@ namespace CumulusMX
 
 					// first get a list of the columns the table currenty has
 					var currCols = new List<string>();
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
 					using (MySqlCommand cmd = new MySqlCommand($"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", mySqlConn))
 					using (MySqlDataReader reader = cmd.ExecuteReader())
 					{
@@ -448,6 +451,7 @@ namespace CumulusMX
 							}
 						}
 					}
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
 
 					var update = new StringBuilder("ALTER TABLE " + table.Name, 1024);
 					foreach (var newCol in table.Columns)
@@ -464,12 +468,14 @@ namespace CumulusMX
 						// strip trailing comma
 						update.Length--;
 
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
 						using (MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn))
 						{
 							int aff = cmd.ExecuteNonQuery();
 							res = $"Added {cnt} columns to {table.Name} table";
 							cumulus.LogMessage($"MySQL Update Table: " + res);
 						}
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
 					}
 					else
 					{
@@ -488,35 +494,32 @@ namespace CumulusMX
 			return res;
 		}
 
-		public string CreateMonthlySQL(IHttpContext context)
+		public string CreateMonthlySQL()
 		{
-			context.Response.StatusCode = 200;
 			return "{\"result\":\"" + CreateMySQLTable(cumulus.MonthlyTable.CreateCommand) + "\"}";
 		}
 
-		public string CreateDayfileSQL(IHttpContext context)
+		public string CreateDayfileSQL()
 		{
-			context.Response.StatusCode = 200;
 			return "{\"result\":\"" + CreateMySQLTable(cumulus.DayfileTable.CreateCommand) + "\"}";
 		}
 
-		public string CreateRealtimeSQL(IHttpContext context)
+		public string CreateRealtimeSQL()
 		{
-			context.Response.StatusCode = 200;
 			return "{\"result\":\"" + CreateMySQLTable(cumulus.RealtimeTable.CreateCommand) + "\"}";
 		}
 
-		public string UpdateMonthlySQL(IHttpContext context)
+		public string UpdateMonthlySQL()
 		{
 			return "{\"result\":\"" + UpdateMySQLTable(cumulus.MonthlyTable) + "\"}";
 		}
 
-		public string UpdateDayfileSQL(IHttpContext context)
+		public string UpdateDayfileSQL()
 		{
 			return "{\"result\":\"" + UpdateMySQLTable(cumulus.DayfileTable) + "\"}";
 		}
 
-		public string UpdateRealtimeSQL(IHttpContext context)
+		public string UpdateRealtimeSQL()
 		{
 			return "{\"result\":\"" + UpdateMySQLTable(cumulus.RealtimeTable) + "\"}";
 		}

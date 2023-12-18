@@ -415,7 +415,7 @@ namespace CumulusMX
 		public override void startReadingHistoryData()
 		{
 			cumulus.LogMessage("Start reading history data");
-			cumulus.LogConsoleMessage("Start reading history data...");
+			Cumulus.LogConsoleMessage("Start reading history data...");
 			//lastArchiveTimeUTC = getLastArchiveTime();
 
 			// use the wind speeds averages from the logger data
@@ -526,7 +526,7 @@ namespace CumulusMX
 			}
 
 			cumulus.LogMessage("Downloading history from " + startfrom);
-			cumulus.LogConsoleMessage("Reading archive data from " + startfrom + " - please wait");
+			Cumulus.LogConsoleMessage("Reading archive data from " + startfrom + " - please wait");
 			//RegressLogs(cumulus.LastUpdateTime);
 			//bool valid = false;
 			int numrecs = GetNumberOfLogs();

@@ -159,7 +159,7 @@ namespace CumulusMX
 			}
 		}
 
-		private double CheckTempUnit(double val, Dictionary<string, string> tagParams)
+		private static double CheckTempUnit(double val, Dictionary<string, string> tagParams)
 		{
 			if (tagParams.ContainsKey("unit"))
 			{
@@ -185,7 +185,7 @@ namespace CumulusMX
 			return val;
 		}
 
-		private double CheckPressUnit(double val, Dictionary<string, string> tagParams)
+		private static double CheckPressUnit(double val, Dictionary<string, string> tagParams)
 		{
 			if (tagParams.ContainsKey("unit"))
 			{
@@ -200,7 +200,7 @@ namespace CumulusMX
 			return val;
 		}
 
-		private double CheckRainUnit(double val, Dictionary<string, string> tagParams)
+		private static double CheckRainUnit(double val, Dictionary<string, string> tagParams)
 		{
 			if (tagParams.ContainsKey("unit"))
 			{
@@ -213,7 +213,7 @@ namespace CumulusMX
 			return val;
 		}
 
-		private double CheckWindUnit(double val, Dictionary<string, string> tagParams)
+		private static double CheckWindUnit(double val, Dictionary<string, string> tagParams)
 		{
 			if (tagParams.ContainsKey("unit"))
 			{
@@ -230,7 +230,7 @@ namespace CumulusMX
 			return val;
 		}
 
-		private double CheckWindRunUnit(double val, Dictionary<string, string> tagParams)
+		private static double CheckWindRunUnit(double val, Dictionary<string, string> tagParams)
 		{
 			if (tagParams.ContainsKey("unit"))
 			{
@@ -401,7 +401,7 @@ namespace CumulusMX
 			return EncodeForJs(res);
 		}
 
-		private string GetFormattedDateTime(DateTime dt, Dictionary<string, string> tagParams)
+		private static string GetFormattedDateTime(DateTime dt, Dictionary<string, string> tagParams)
 		{
 			string s;
 			string dtformat = tagParams.Get("format");
@@ -1004,12 +1004,12 @@ namespace CumulusMX
 
 		private string Tagbeaufort(Dictionary<string, string> tagParams)
 		{
-			return "F" + cumulus.Beaufort(station.WindAverage);
+			return "F" + Cumulus.Beaufort(station.WindAverage);
 		}
 
 		private string Tagbeaufortnumber(Dictionary<string, string> tagParams)
 		{
-			return cumulus.Beaufort(station.WindAverage);
+			return Cumulus.Beaufort(station.WindAverage);
 		}
 
 		private string Tagbeaudesc(Dictionary<string, string> tagParams)
@@ -1980,12 +1980,12 @@ namespace CumulusMX
 
 		private string TagTbeaufort(Dictionary<string, string> tagParams)
 		{
-			return "F" + cumulus.Beaufort(station.HiLoToday.HighWind);
+			return "F" + Cumulus.Beaufort(station.HiLoToday.HighWind);
 		}
 
 		private string TagTbeaufortnumber(Dictionary<string, string> tagParams)
 		{
-			return cumulus.Beaufort(station.HiLoToday.HighWind);
+			return Cumulus.Beaufort(station.HiLoToday.HighWind);
 		}
 
 		private string TagTbeaudesc(Dictionary<string, string> tagParams)
@@ -5223,7 +5223,8 @@ namespace CumulusMX
 				{
 					var text = File.ReadAllText(@"/proc/uptime");
 					var strTime = text.Split(' ')[0];
-					double.TryParse(strTime, out upTime);
+					if (!double.TryParse(strTime, out upTime))
+						upTime = 0;
 				}
 
 				TimeSpan ts = TimeSpan.FromSeconds(upTime);
@@ -6610,7 +6611,7 @@ namespace CumulusMX
 
 		public string GetWebTagText(string tagString, Dictionary<string, string> tagParams)
 		{
-			return webTagDictionary.ContainsKey(tagString) ? webTagDictionary[tagString](tagParams) : string.Copy(string.Empty);
+			return webTagDictionary.TryGetValue(tagString, out var value) ? value(tagParams) : string.Copy(string.Empty);
 		}
 
 		//private static string Utf16ToUtf8(string utf16String)

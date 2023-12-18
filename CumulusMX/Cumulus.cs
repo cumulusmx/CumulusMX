@@ -43,17 +43,21 @@ using Timer = System.Timers.Timer;
 
 namespace CumulusMX
 {
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	public class Cumulus
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		/////////////////////////////////
 		/// Now derived from app properties
 		public string Version;
 		public string Build;
+		private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+
 		/////////////////////////////////
 
 
 
-		public static SemaphoreSlim syncInit = new SemaphoreSlim(1);
+		public static SemaphoreSlim syncInit { get => semaphoreSlim; }
 
 		/*
 		public enum VPRainGaugeTypes
@@ -249,7 +253,7 @@ namespace CumulusMX
 
 		public bool NormalRunning = false;
 
-		private TraceListener FtpTraceListener;
+		private TextWriterTraceListener FtpTraceListener;
 
 		public volatile int WebUpdating;
 		public volatile bool SqlCatchingUp;
@@ -652,8 +656,11 @@ namespace CumulusMX
 
 		public string loggingfile;
 		public string ftpLogfile;
-
-		public static Queue<string> ErrorList = new Queue<string>(50);
+		private static readonly Queue<string> queue = new Queue<string>(50);
+		public static Queue<string> ErrorList
+		{
+			get => queue;
+		}
 
 		//private PingReply pingReply;
 
@@ -1122,7 +1129,8 @@ namespace CumulusMX
 				{
 					var text = File.ReadAllText(@"/proc/uptime");
 					var strTime = text.Split(' ')[0];
-					double.TryParse(strTime, out ts);
+					if (!double.TryParse(strTime, out ts))
+						ts = -1;
 				}
 
 				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
@@ -2712,7 +2720,7 @@ namespace CumulusMX
 		// Find all stations associated with the users API key
 		internal OpenWeatherMapStation[] GetOpenWeatherMapStations()
 		{
-			OpenWeatherMapStation[] retVal = new OpenWeatherMapStation[0];
+			OpenWeatherMapStation[] retVal = Array.Empty<OpenWeatherMapStation>();
 			string url = "http://api.openweathermap.org/data/3.0/stations?appid=" + OpenWeatherMap.PW;
 			try
 			{
@@ -3399,7 +3407,7 @@ namespace CumulusMX
 					}
 
 				}
-				LogDebugMessage($"Realtime[{cycle}]: Real time files complete, {tasklist.Count()} files uploaded");
+				LogDebugMessage($"Realtime[{cycle}]: Real time files complete, {tasklist.Count} files uploaded");
 				tasklist.Clear();
 				RealtimeFtpInProgress = false;
 			}
@@ -3561,7 +3569,7 @@ namespace CumulusMX
 			}
 		}
 
-		private List<string> ParseParams(string line)
+		private static List<string> ParseParams(string line)
 		{
 			var insideQuotes = false;
 			var start = -1;
@@ -6816,7 +6824,7 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "UseBCC", AlarmEmailUseBcc);
 
 			// User Alarms
-			for (var i = 0; i < UserAlarms.Count(); i++)
+			for (var i = 0; i < UserAlarms.Count; i++)
 			{
 				ini.SetValue("UserAlarms", "AlarmName" + i, UserAlarms[i].Name);
 				ini.SetValue("UserAlarms", "AlarmTag" + i, UserAlarms[i].WebTag);
@@ -6831,7 +6839,7 @@ namespace CumulusMX
 				ini.SetValue("UserAlarms", "AlarmActionParams" + i, UserAlarms[i].ActionParams);
 			}
 			// remove any old alarms
-			for (var i = UserAlarms.Count(); i < 10; i++)
+			for (var i = UserAlarms.Count; i < 10; i++)
 			{
 				ini.DeleteValue("UserAlarms", "AlarmName" + i);
 				ini.DeleteValue("UserAlarms", "AlarmTag" + i);
@@ -9291,7 +9299,7 @@ namespace CumulusMX
 		}
 		*/
 
-		public string Beaufort(double Bspeed) // Takes speed in current unit, returns Bft number as text
+		public static string Beaufort(double Bspeed) // Takes speed in current unit, returns Bft number as text
 		{
 			return ConvertUnits.Beaufort(Bspeed).ToString();
 		}
@@ -9771,7 +9779,7 @@ namespace CumulusMX
 		public void DoHttpFiles(DateTime now)
 		{
 			// sanity check - is there anything to do?
-			if (HttpFilesConfig.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now).Count() == 0)
+			if (!HttpFilesConfig.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now).Any())
 			{
 #if DEBUG
 				LogDebugMessage("ProcessHttpFiles: No files to process at this time");
@@ -9781,7 +9789,7 @@ namespace CumulusMX
 
 			// second sanity check, are there any local copies?
 			var localOnly = HttpFilesConfig.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && !x.Upload);
-			if (localOnly.Count() > 0)
+			if (localOnly.Any())
 			{
 				LogDebugMessage("ProcessHttpFiles: Creating local http files");
 				foreach (var item in localOnly)
@@ -9800,7 +9808,7 @@ namespace CumulusMX
 
 			// third sanity check, are there any uploads?
 			var uploads = HttpFilesConfig.Where(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now && x.Upload);
-			if (uploads.Count() == 0)
+			if (!uploads.Any())
 			{
 #if DEBUG
 				LogDebugMessage("ProcessHttpFiles: No files to upload at this time");
@@ -10117,7 +10125,7 @@ namespace CumulusMX
 					return;
 				}
 
-				LogDebugMessage($"ProcessHttpFiles: Upload process complete, {tasklist.Count()} files processed");
+				LogDebugMessage($"ProcessHttpFiles: Upload process complete, {tasklist.Count} files processed");
 				tasklist.Clear();
 			}
 		}
@@ -11293,7 +11301,7 @@ namespace CumulusMX
 					return;
 				}
 
-				LogDebugMessage($"PHP[Int]: Upload process complete, {tasklist.Count()} files processed");
+				LogDebugMessage($"PHP[Int]: Upload process complete, {tasklist.Count} files processed");
 				tasklist.Clear();
 
 				return;
@@ -11455,7 +11463,7 @@ namespace CumulusMX
 			return conn.IsConnected;
 		}
 
-		public Stream GenerateStreamFromString(string s)
+		public static Stream GenerateStreamFromString(string s)
 		{
 			MemoryStream stream = new MemoryStream();
 			StreamWriter writer = new StreamWriter(stream);
@@ -11976,7 +11984,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void LogConsoleMessage(string message, ConsoleColor colour = ConsoleColor.White, bool LogDateTime = false)
+		public static void LogConsoleMessage(string message, ConsoleColor colour = ConsoleColor.White, bool LogDateTime = false)
 		{
 			if (!Program.service)
 			{
@@ -12013,7 +12021,7 @@ namespace CumulusMX
 		}
 		*/
 
-		public string GetErrorLog()
+		public static string GetErrorLog()
 		{
 			var arr = ErrorList.ToArray();
 
@@ -12025,7 +12033,7 @@ namespace CumulusMX
 			return arr.Reverse().ToJson();
 		}
 
-		public string ClearErrorLog()
+		public static string ClearErrorLog()
 		{
 			ErrorList.Clear();
 			return GetErrorLog();
@@ -12189,7 +12197,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("Error encountered during Realtime file update.");
+				LogErrorMessage($"Realtime[{cycle}]: Error encountered during Realtime file update.");
 				LogMessage(ex.Message);
 			}
 			return string.Empty;
@@ -13371,6 +13379,7 @@ namespace CumulusMX
 								// Do not remove the item from the stack until we know the command worked
 								if (queue.TryPeek(out cachedCmd))
 								{
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
 									using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, mySqlConn))
 									{
 										LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
@@ -13392,6 +13401,7 @@ namespace CumulusMX
 										// and pop the value from the queue
 										queue.TryDequeue(out cachedCmd);
 									}
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
 								}
 							} while (!queue.IsEmpty);
 
@@ -13461,6 +13471,7 @@ namespace CumulusMX
 							if (queue.TryPeek(out cachedCmd))
 							{
 
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
 								using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, mySqlConn))
 								{
 									LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
@@ -13481,6 +13492,7 @@ namespace CumulusMX
 									// and pop the value from the queue
 									queue.TryDequeue(out cachedCmd);
 								}
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
 
 								MySqlUploadAlarm.Triggered = false;
 							}
@@ -13734,7 +13746,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DegToDMS(decimal degrees, out int d, out int m, out int s)
+		public static void DegToDMS(decimal degrees, out int d, out int m, out int s)
 		{
 			int secs = (int) (degrees * 60 * 60);
 

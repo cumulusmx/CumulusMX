@@ -38,6 +38,7 @@ namespace CumulusMX
 
 		// *** Local cache modified flag ***
 		private bool m_CacheModified = false;
+		internal static readonly string[] quoteCommaQuote = new string[] { "\",\"" };
 
 		#endregion
 
@@ -276,7 +277,7 @@ namespace CumulusMX
 				}
 
 				// *** Modify the value ***
-				if (Section.ContainsKey(Key)) Section.Remove(Key);
+				Section.Remove(Key);
 				Section.Add(Key, Value);
 			}
 		}
@@ -332,7 +333,7 @@ namespace CumulusMX
 		}
 
 		// *** Encode byte array ***
-		private string EncodeByteArray(byte[] Value)
+		private static string EncodeByteArray(byte[] Value)
 		{
 			if (Value == null) return null;
 
@@ -355,12 +356,12 @@ namespace CumulusMX
 		}
 
 		// *** Decode byte array ***
-		private byte[] DecodeByteArray(string Value)
+		private static byte[] DecodeByteArray(string Value)
 		{
 			if (Value == null) return null;
 
 			int l = Value.Length;
-			if (l < 2) return new byte[] { };
+			if (l < 2) return Array.Empty<byte>();
 
 			l /= 2;
 			byte[] Result = new byte[l];
@@ -369,14 +370,13 @@ namespace CumulusMX
 		}
 
 		// *** Encode bool array
-		private string EncodeBoolArray(bool[] Value)
+		private static string EncodeBoolArray(bool[] Value)
 		{
 			if (Value == null) return null;
 
 			StringBuilder sb = new StringBuilder();
 			foreach (bool b in Value)
 			{
-				string text = b ? "1," : "0,";
 				sb.Append(b ? "1," : "0,");
 			}
 			if (sb[sb.Length - 1] == ',')
@@ -386,7 +386,7 @@ namespace CumulusMX
 		}
 
 		// *** Decode bool array
-		private bool[] DecodeBoolArray(string Value, int Length)
+		private static bool[] DecodeBoolArray(string Value, int Length)
 		{
 			if (Value == null) return null;
 
@@ -401,7 +401,7 @@ namespace CumulusMX
 		}
 
 		// *** Encode string array - very basic, no escaped quotes allowed
-		private string EncodeStringArray(string[] Value)
+		private static string EncodeStringArray(string[] Value)
 		{
 			if (Value == null) return null;
 
@@ -417,16 +417,16 @@ namespace CumulusMX
 		}
 
 		// *** Decode string array - very basic, no escaped quotes allowed
-		private string[] DecodeStringArray(string Value, int Length)
+		private static string[] DecodeStringArray(string Value)
 		{
 			if (Value == null) return null;
 
 			var x = Value.Substring(1, Value.Length - 2);
 
-			return x.Split(new string[] { "\",\"" }, StringSplitOptions.None);
+			return x.Split(quoteCommaQuote, StringSplitOptions.None);
 		}
 
-		private string EncodeIntArray(int[] Value)
+		private static string EncodeIntArray(int[] Value)
 		{
 			if (Value == null) return null;
 
@@ -435,7 +435,7 @@ namespace CumulusMX
 		}
 
 		// *** Decode string array - very basic, no escaped quotes allowed
-		private int[] DecodeIntArray(string Value, int Length)
+		private static int[] DecodeIntArray(string Value, int Length)
 		{
 			if (Value == null) return null;
 
@@ -513,7 +513,7 @@ namespace CumulusMX
 			string StringValue = GetValue(SectionName, Key, EncodeStringArray(DefaultValue));
 			try
 			{
-				return DecodeStringArray(StringValue, DefaultValue.Length);
+				return DecodeStringArray(StringValue);
 			}
 			catch (FormatException)
 			{

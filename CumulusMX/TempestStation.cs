@@ -79,12 +79,12 @@ namespace CumulusMX
 			if (totalentries == 0)
 			{
 				cumulus.LogMessage("No history data to process");
-				cumulus.LogConsoleMessage("No history data to process");
+				Cumulus.LogConsoleMessage("No history data to process");
 				return;
 			}
 
 			cumulus.LogMessage("Processing history data, number of entries = " + totalentries);
-			cumulus.LogConsoleMessage(
+			Cumulus.LogConsoleMessage(
 				$"Processing history data for {totalentries} records. {DateTime.Now.ToLongTimeString()}");
 
 			var rollHour = Math.Abs(cumulus.GetHourInc());
@@ -227,7 +227,7 @@ namespace CumulusMX
 			ticks = Environment.TickCount - ticks;
 			var rate = ((double) totalentries / ticks) * 1000;
 			cumulus.LogMessage($"End processing history data. Rate: {rate:f2}/second");
-			cumulus.LogConsoleMessage($"Completed processing history data. {DateTime.Now.ToLongTimeString()}, Rate: {rate:f2}/second");
+			Cumulus.LogConsoleMessage($"Completed processing history data. {DateTime.Now.ToLongTimeString()}, Rate: {rate:f2}/second");
 
 		}
 
@@ -372,7 +372,7 @@ namespace CumulusMX.Tempest
 			{
 				while (!token.IsCancellationRequested)
 				{
-					while (!token.IsCancellationRequested && Available == 0) await Task.Delay(10);
+					while (!token.IsCancellationRequested && Available == 0) await Task.Delay(10, token);
 					while (!token.IsCancellationRequested && Available > 0)
 					{
 						IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
@@ -526,22 +526,22 @@ namespace CumulusMX.Tempest
 						else if (rp != null && rp.status.status_message.Equals("SUCCESS"))
 						{
 							// no data for time period, ignore
-							//cumulus.LogConsoleMessage($"No data for time period from {tpStart} to {end}");
+							//Cumulus.LogConsoleMessage($"No data for time period from {tpStart} to {end}");
 						}
 						else
 						{
 							var msg = $"Error downloading tempest history: {apiResponse}";
 							cumulus.LogErrorMessage(msg);
-							cumulus.LogConsoleMessage(msg, ConsoleColor.Red);
+							Cumulus.LogConsoleMessage(msg, ConsoleColor.Red);
 							if (rp.status.status_code == 404)
 							{
-								cumulus.LogConsoleMessage("Normally indicates incorrect Device ID");
+								Cumulus.LogConsoleMessage("Normally indicates incorrect Device ID");
 								ts = -1;// force a stop, fatal error
 							}
 
 							if (rp.status.status_code == 401)
 							{
-								cumulus.LogConsoleMessage("Normally indicates incorrect Token");
+								Cumulus.LogConsoleMessage("Normally indicates incorrect Token");
 								ts = -1;// force a stop, fatal error
 							}
 						}
@@ -802,7 +802,7 @@ namespace CumulusMX.Tempest
 			}
 		}
 
-		public WeatherPacket.MessageType MsgType => WeatherPacket.MessageType.HubStatus;
+		public static WeatherPacket.MessageType MsgType => WeatherPacket.MessageType.HubStatus;
 
 
 		public string SerialNumber { get; set; }
@@ -968,7 +968,7 @@ namespace CumulusMX.Tempest
 			}
 		}
 
-		public WeatherPacket.MessageType MsgType => WeatherPacket.MessageType.RapidWind;
+		public static WeatherPacket.MessageType MsgType => WeatherPacket.MessageType.RapidWind;
 
 		public string SerialNumber { get; set; }
 		public string HubSN { get; set; }

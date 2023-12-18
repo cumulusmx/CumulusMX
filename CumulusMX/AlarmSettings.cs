@@ -12,6 +12,7 @@ namespace CumulusMX
 	public class AlarmSettings
 	{
 		private readonly Cumulus cumulus;
+		private static readonly char[] separator = new char[] { ';' };
 
 		public AlarmSettings(Cumulus cumulus)
 		{
@@ -823,7 +824,7 @@ namespace CumulusMX
 				}
 
 				// validate the destination email(s)
-				var emails = result.email.destEmail.Trim().Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+				var emails = result.email.destEmail.Trim().Split(separator, StringSplitOptions.RemoveEmptyEntries);
 				for (var i = 0; i < emails.Length; i++)
 				{
 					emails[i] = emails[i].Trim();
@@ -879,7 +880,7 @@ namespace CumulusMX
 				var from = result.fromEmail.Trim();
 
 				// validate the destination email(s)
-				var dest = result.destEmail.Trim().Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+				var dest = result.destEmail.Trim().Split(separator, StringSplitOptions.RemoveEmptyEntries);
 				for (var i = 0; i < dest.Length; i++)
 				{
 					dest[i] = dest[i].Trim();

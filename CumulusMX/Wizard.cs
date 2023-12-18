@@ -461,7 +461,7 @@ namespace CumulusMX
 					if (cumulus.StationType != settings.station.stationtype)
 					{
 						cumulus.LogWarningMessage("Station type changed, restart required");
-						cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow);
+						Cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow);
 					}
 					cumulus.StationType = settings.station.stationtype;
 					cumulus.StationModel = settings.station.stationmodel;
@@ -701,7 +701,7 @@ namespace CumulusMX
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
-		private string degToString(decimal degrees, bool lat)
+		private static string degToString(decimal degrees, bool lat)
 		{
 			var degs = (int) Math.Floor(Math.Abs(degrees));
 			var minsF = (Math.Abs(degrees) - degs) * 60;

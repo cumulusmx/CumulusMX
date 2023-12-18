@@ -773,7 +773,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessSoilMoist(EcowittApi.CurrentDataData data, WeatherStation station)
+		private static void ProcessSoilMoist(EcowittApi.CurrentDataData data, WeatherStation station)
 		{
 			if (data.soil_ch1 != null)
 			{
@@ -816,7 +816,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessLeafWetness(EcowittApi.CurrentDataData data, WeatherStation station)
+		private static void ProcessLeafWetness(EcowittApi.CurrentDataData data, WeatherStation station)
 		{
 			if (data.leaf_ch1 != null)
 			{
@@ -859,7 +859,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessAirQuality(EcowittApi.CurrentDataData data, WeatherStation station)
+		private static void ProcessAirQuality(EcowittApi.CurrentDataData data, WeatherStation station)
 		{
 			if (data.pm25_ch1 != null)
 			{
@@ -884,7 +884,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessCo2(EcowittApi.CurrentDataData data, WeatherStation station)
+		private static void ProcessCo2(EcowittApi.CurrentDataData data, WeatherStation station)
 		{
 			if (data.co2_aqi_combo != null)
 			{
@@ -918,7 +918,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessLeak(EcowittApi.CurrentDataData data, WeatherStation station)
+		private static void ProcessLeak(EcowittApi.CurrentDataData data, WeatherStation station)
 		{
 			if (data.water_leak != null)
 			{
