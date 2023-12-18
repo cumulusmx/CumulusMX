@@ -1402,7 +1402,7 @@ namespace CumulusMX
 				var autoDST = data[11] != 0;
 
 				// Ecowitt do not understand Unix time and add the local TZ offset and DST to it!
-				var offset = TimeZone.CurrentTimeZone.GetUtcOffset(now);
+				var offset = TimeZoneInfo.Local.GetUtcOffset(now);
 				if (autoDST && TimeZoneInfo.Local.IsDaylightSavingTime(date))
 				{
 					unix -= (int) Math.Round(offset.TotalSeconds);

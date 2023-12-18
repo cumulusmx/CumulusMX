@@ -1267,10 +1267,9 @@ namespace CumulusMX
 				}
 				else
 				{
-					TimeZone tz = TimeZone.CurrentTimeZone;
 					DateTime adjustedTS;
 
-					if (cumulus.Use10amInSummer && tz.IsDaylightSavingTime(timestamp))
+					if (cumulus.Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(timestamp))
 					{
 						// Locale is currently on Daylight (summer) time
 						adjustedTS = timestamp.AddHours(-10);

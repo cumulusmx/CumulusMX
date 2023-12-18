@@ -1106,12 +1106,16 @@ namespace CumulusMX
 			LogMessage($"Directory separator=[{DirectorySeparator}] Decimal separator=[{DecimalSeparator}] List separator=[{ListSeparator}]");
 			LogMessage($"Date separator=[{CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator}] Time separator=[{CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator}]");
 
-			TimeZone localZone = TimeZone.CurrentTimeZone;
-			DateTime now = DateTime.Now;
-
-			LogMessage("Standard time zone name:   " + localZone.StandardName);
-			LogMessage("Daylight saving time name: " + localZone.DaylightName);
-			LogMessage("Daylight saving time? " + localZone.IsDaylightSavingTime(now));
+			LogMessage("Standard time zone name:   " + TimeZoneInfo.Local.StandardName);
+			LogMessage("Daylight saving time name: " + TimeZoneInfo.Local.DaylightName);
+			if (TimeZoneInfo.Local.SupportsDaylightSavingTime)
+			{
+				LogMessage("Daylight saving time? " + TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now));
+			}
+			else
+			{
+				LogMessage("Daylight saving time is not available for this TimeZone");
+			}
 
 			LogMessage("Locale date/time format: " + DateTime.Now.ToString("G"));
 
@@ -3652,7 +3656,7 @@ namespace CumulusMX
 		internal void DoMoonPhase()
 		{
 			DateTime now = DateTime.Now;
-			double[] moonriseset = MoonriseMoonset.MoonRise(now.Year, now.Month, now.Day, TimeZone.CurrentTimeZone.GetUtcOffset(now).TotalHours, (double) Latitude, (double) Longitude);
+			double[] moonriseset = MoonriseMoonset.MoonRise(now.Year, now.Month, now.Day, TimeZoneInfo.Local.GetUtcOffset(now).TotalHours, (double) Latitude, (double) Longitude);
 			MoonRiseTime = TimeSpan.FromHours(moonriseset[0]);
 			MoonSetTime = TimeSpan.FromHours(moonriseset[1]);
 
@@ -3794,8 +3798,8 @@ namespace CumulusMX
 
 		private void GetSunriseSunset(DateTime time, out DateTime sunrise, out DateTime sunset, out bool alwaysUp, out bool alwaysDown)
 		{
-			string rise = SunriseSunset.SunRise(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
-			string set = SunriseSunset.SunSet(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
+			string rise = SunriseSunset.SunRise(time, TimeZoneInfo.Local.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
+			string set = SunriseSunset.SunSet(time, TimeZoneInfo.Local.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
 
 			if (rise.Equals("Always Down") || set.Equals("Always Down"))
 			{
@@ -3867,8 +3871,8 @@ namespace CumulusMX
 
 		private void GetDawnDusk(DateTime time, out DateTime dawn, out DateTime dusk, out bool alwaysUp, out bool alwaysDown)
 		{
-			string dawnStr = SunriseSunset.CivilTwilightEnds(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
-			string duskStr = SunriseSunset.CivilTwilightStarts(time, TimeZone.CurrentTimeZone.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
+			string dawnStr = SunriseSunset.CivilTwilightEnds(time, TimeZoneInfo.Local.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
+			string duskStr = SunriseSunset.CivilTwilightStarts(time, TimeZoneInfo.Local.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
 
 			if (dawnStr.Equals("Always Down") || duskStr.Equals("Always Down"))
 			{
