@@ -8,6 +8,7 @@ Fixed
 - Add a check for null MQTT topics
 - A bug in the MySQL timed + repeat settings
 - Error save Program Settings > RemoveSpaceFromDateSeparator
+- Fix wrong DST status issue that seems to affect some Synology NAS boxes
 
 
 3.28.0 - b3269

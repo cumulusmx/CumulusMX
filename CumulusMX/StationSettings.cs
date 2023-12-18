@@ -1352,6 +1352,7 @@ namespace CumulusMX
 
 				try
 				{
+					cumulus.LogDebugMessage("Upload Now: Starting the main update process in the background");
 					cumulus.WebUpdating = 1;
 					cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
 					cumulus.ftpThread.Start();

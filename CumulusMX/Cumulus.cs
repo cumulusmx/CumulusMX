@@ -1107,9 +1107,9 @@ namespace CumulusMX
 			LogMessage($"Date separator=[{CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator}] Time separator=[{CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator}]");
 
 			LogMessage("Standard time zone name:   " + TimeZoneInfo.Local.StandardName);
-			LogMessage("Daylight saving time name: " + TimeZoneInfo.Local.DaylightName);
 			if (TimeZoneInfo.Local.SupportsDaylightSavingTime)
 			{
+				LogMessage("Daylight saving time name: " + TimeZoneInfo.Local.DaylightName);
 				LogMessage("Daylight saving time? " + TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now));
 			}
 			else
@@ -11310,8 +11310,6 @@ namespace CumulusMX
 
 				return;
 			}
-
-			LogDebugMessage("PHP[Int]: Upload process complete");
 		}
 
 		// Return True if the connection still exists
