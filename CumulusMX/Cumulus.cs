@@ -1749,7 +1749,7 @@ namespace CumulusMX
 				{
 					return FtpOptions.PhpIgnoreCertErrors || errors == System.Net.Security.SslPolicyErrors.None;
 				},
-				MaxConnectionsPerServer = 20,
+				MaxConnectionsPerServer = Properties.Settings.Default.PhpMaxConnections,
 				AllowAutoRedirect = false
 			};
 

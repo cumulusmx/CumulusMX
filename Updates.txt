@@ -1,6 +1,7 @@
 3.28.1 - b3270
 ——————————————
 New
+- PHP upload max connections per server now configurable
 
 Changed
 - Web tag <#OsVersion> now returns the OS description. This is better on Windows and appears to be the same on Linux
