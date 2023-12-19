@@ -3,6 +3,7 @@
 New
 
 Changed
+- Web tag <#OsVersion> now returns the OS description. This is better on Windows and appears to be the same on Linux
 
 Fixed
 - Add a check for null MQTT topics

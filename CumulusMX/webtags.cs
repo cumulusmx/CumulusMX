@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
 
@@ -5194,7 +5195,14 @@ namespace CumulusMX
 
 		private static string TagOsVersion(Dictionary<string, string> tagParams)
 		{
-			return Environment.OSVersion.ToString();
+			try
+			{
+				return RuntimeInformation.OSDescription;
+			}
+			catch
+			{
+				 return Environment.OSVersion.ToString();
+			}
 		}
 
 		private static string TagOsLanguage(Dictionary<string, string> tagParams)
