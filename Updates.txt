@@ -1,7 +1,7 @@
 3.28.1 - b3270
 ——————————————
 New
-- PHP upload max connections per server now configurable
+- PHP upload max connections per server now configurable, the default value is reduced from 20 to 10
 
 Changed
 - Web tag <#OsVersion> now returns the OS description. This is better on Windows and appears to be the same on Linux
@@ -11,6 +11,7 @@ Fixed
 - A bug in the MySQL timed + repeat settings
 - Error save Program Settings > RemoveSpaceFromDateSeparator
 - Fix wrong DST status issue that seems to affect some Synology NAS boxes
+- Fix record editors when editing records that have a time format of "Mon Year"
 
 
 3.28.0 - b3269
