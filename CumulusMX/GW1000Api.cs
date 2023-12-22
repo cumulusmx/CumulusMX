@@ -115,10 +115,11 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("Error closing TCP port: " + ex.Message);
+				if (socket != null)
+					socket.Dispose();
 			}
 			finally
 			{
-				socket.Dispose();
 				socket = null;
 			}
 		}

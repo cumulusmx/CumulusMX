@@ -3319,7 +3319,7 @@ namespace CumulusMX
 
 				// replace the edited line
 				var orgLine = lines[lineNum];
-				var newLine = String.Join(cumulus.ListSeparator, newData.data[0]);
+				var newLine = string.Join(cumulus.ListSeparator, newData.data[0]);
 
 				// test if we are updating the correct entry
 				var orgArr = orgLine.Split(cumulus.ListSeparator[0]);
@@ -3613,22 +3613,13 @@ namespace CumulusMX
 			h24Queue.Enqueue(lastrain);
 		}
 
-
-		private static DateTime localeDateTimeStrToDate(string dt)
-		{
-			dt = dt.Replace('+', ' ');
-
-			// let this throw on invalid input
-			return DateTime.Parse(dt);
-		}
-
 		private static DateTime localeStrToDate(string dt)
 		{
 			// formats: "dd/MM/yyyy", "dd/MM/yyyy hh:mm", "MMM yyyy" - the space will be encoded as +, so "Dec+2023"
 
 			if (dt.Contains('+'))
 			{  // could be "dd/MM/yyyy hh:mm" or "MMM yyyy"
-				dt.Replace('+', ' ');
+				dt = dt.Replace('+', ' ');
 
 				if (dt.Contains(':'))
 				{   // full date/time - "dd/MM/yyyy hh:mm"

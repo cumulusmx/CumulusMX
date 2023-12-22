@@ -76,7 +76,7 @@
     <StartupObject>CumulusMX.Program</StartupObject>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Copyright>Copyright ©  2015-2023 Cumulus MX</Copyright>
-    <Version>3.28.1.3270</Version>
+    <Version>3.28.1.3273</Version>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>preview-minimum</AnalysisLevel>
   </PropertyGroup>
