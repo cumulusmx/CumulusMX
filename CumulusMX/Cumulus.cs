@@ -19,7 +19,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using System.Web.Caching;
 
 using EmbedIO;
 using EmbedIO.Files;
@@ -32,7 +31,6 @@ using FluentFTP.Helpers;
 using MySqlConnector;
 
 using Renci.SshNet;
-using Renci.SshNet.Messages;
 
 using ServiceStack;
 using ServiceStack.Text;
@@ -1758,9 +1756,11 @@ namespace CumulusMX
 				AllowAutoRedirect = false
 			};
 
-			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler);
-			// 5 second timeout
-			phpUploadHttpClient.Timeout = TimeSpan.FromSeconds(5);
+			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler)
+			{
+				// 5 second timeout
+				Timeout = TimeSpan.FromSeconds(5)
+			};
 		}
 
 
@@ -2936,8 +2936,10 @@ namespace CumulusMX
 
 							if (!string.IsNullOrEmpty(RealtimeParams))
 							{
-								var parser = new TokenParser(TokenParserOnToken);
-								parser.InputText = RealtimeParams;
+								var parser = new TokenParser(TokenParserOnToken)
+								{
+									InputText = RealtimeParams
+								};
 								args = parser.ToStringFromString();
 							}
 							LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
@@ -5026,16 +5028,18 @@ namespace CumulusMX
 
 			for (int i = 0; i < numextrafiles; i++)
 			{
-				ExtraFiles[i] = new CExtraFiles();
-				ExtraFiles[i].local = ini.GetValue("FTP site", "ExtraLocal" + i, string.Empty);
-				ExtraFiles[i].remote = ini.GetValue("FTP site", "ExtraRemote" + i, string.Empty);
-				ExtraFiles[i].process = ini.GetValue("FTP site", "ExtraProcess" + i, false);
-				ExtraFiles[i].binary = ini.GetValue("FTP site", "ExtraBinary" + i, false);
-				ExtraFiles[i].realtime = ini.GetValue("FTP site", "ExtraRealtime" + i, false);
-				ExtraFiles[i].FTP = ini.GetValue("FTP site", "ExtraFTP" + i, false);
-				ExtraFiles[i].UTF8 = ini.GetValue("FTP site", "ExtraUTF" + i, false);
-				ExtraFiles[i].endofday = ini.GetValue("FTP site", "ExtraEOD" + i, false);
-				ExtraFiles[i].incrementalLogfile = ini.GetValue("FTP site", "ExtraIncLogFile" + i, false);
+				ExtraFiles[i] = new CExtraFiles
+				{
+					local = ini.GetValue("FTP site", "ExtraLocal" + i, string.Empty),
+					remote = ini.GetValue("FTP site", "ExtraRemote" + i, string.Empty),
+					process = ini.GetValue("FTP site", "ExtraProcess" + i, false),
+					binary = ini.GetValue("FTP site", "ExtraBinary" + i, false),
+					realtime = ini.GetValue("FTP site", "ExtraRealtime" + i, false),
+					FTP = ini.GetValue("FTP site", "ExtraFTP" + i, false),
+					UTF8 = ini.GetValue("FTP site", "ExtraUTF" + i, false),
+					endofday = ini.GetValue("FTP site", "ExtraEOD" + i, false),
+					incrementalLogfile = ini.GetValue("FTP site", "ExtraIncLogFile" + i, false)
+				};
 
 				if (ExtraFiles[i].local != string.Empty && ExtraFiles[i].remote != string.Empty)
 				{
@@ -8701,10 +8705,11 @@ namespace CumulusMX
 			sb.Append(timestamp.ToString("dd/MM/yy") + ListSeparator);
 			sb.Append(timestamp.ToString("HH:mm") + ListSeparator);
 
-			var tokenParser = new TokenParser(TokenParserOnToken);
-
-			// process the webtags in the content string
-			tokenParser.InputText = CustomIntvlLogSettings[idx].ContentString;
+			var tokenParser = new TokenParser(TokenParserOnToken)
+			{
+				// process the webtags in the content string
+				InputText = CustomIntvlLogSettings[idx].ContentString
+			};
 			sb.Append(tokenParser.ToStringFromString());
 
 			LogDataMessage("DoCustomIntervalLog: entry: " + sb);
@@ -8759,10 +8764,11 @@ namespace CumulusMX
 			var sb = new StringBuilder(300);
 			sb.Append(datestring + ListSeparator);
 
-			var tokenParser = new TokenParser(TokenParserOnToken);
-
-			// process the webtags in the content string
-			tokenParser.InputText = CustomDailyLogSettings[idx].ContentString;
+			var tokenParser = new TokenParser(TokenParserOnToken)
+			{
+				// process the webtags in the content string
+				InputText = CustomDailyLogSettings[idx].ContentString
+			};
 			sb.Append(tokenParser.ToStringFromString());
 
 			LogDataMessage("DoCustomDailyLog: entry: " + sb);
@@ -9496,8 +9502,10 @@ namespace CumulusMX
 
 					if (!string.IsNullOrEmpty(ProgramOptions.ShutdownTaskParams))
 					{
-						var parser = new TokenParser(TokenParserOnToken);
-						parser.InputText = ProgramOptions.ShutdownTaskParams;
+						var parser = new TokenParser(TokenParserOnToken)
+						{
+							InputText = ProgramOptions.ShutdownTaskParams
+						};
 						args = parser.ToStringFromString();
 					}
 					LogMessage($"Running shutdown task: {ProgramOptions.ShutdownTask}, arguments: {args}");
@@ -9606,8 +9614,10 @@ namespace CumulusMX
 
 						if (!string.IsNullOrEmpty(ExternalParams))
 						{
-							var parser = new TokenParser(TokenParserOnToken);
-							parser.InputText = ExternalParams;
+							var parser = new TokenParser(TokenParserOnToken)
+							{
+								InputText = ExternalParams
+							};
 							args = parser.ToStringFromString();
 						}
 						LogDebugMessage("Interval: Executing program " + ExternalProgram + " " + args);
@@ -12467,9 +12477,11 @@ namespace CumulusMX
 
 			if (File.Exists(templatefile))
 			{
-				var parser = new TokenParser(TokenParserOnToken);
-				parser.Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
-				parser.SourceFile = templatefile;
+				var parser = new TokenParser(TokenParserOnToken)
+				{
+					Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1"),
+					SourceFile = templatefile
+				};
 				return parser.ToString();
 			}
 			else
@@ -12490,9 +12502,11 @@ namespace CumulusMX
 
 			if (File.Exists(templatefile))
 			{
-				var parser = new TokenParser(TokenParserOnToken);
-				parser.SourceFile = templatefile;
-				parser.Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1");
+				var parser = new TokenParser(TokenParserOnToken)
+				{
+					SourceFile = templatefile,
+					Encoding = utf8 ? new UTF8Encoding(false) : Encoding.GetEncoding("iso-8859-1")
+				};
 				return await parser.ToStringAsync();
 			}
 			else
@@ -13012,14 +13026,16 @@ namespace CumulusMX
 				RealtimeFTP.Dispose();
 			}
 
-			RealtimeFTP = new FtpClient();
+			RealtimeFTP = new FtpClient
+			{
+				//Enabled = false,
+				Host = FtpOptions.Hostname,
+				Port = FtpOptions.Port,
+				Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password),
+				LegacyLogger = LogFluentFtpMessage
+			};
 
-			//RealtimeTimer.Enabled = false;
-			RealtimeFTP.Host = FtpOptions.Hostname;
-			RealtimeFTP.Port = FtpOptions.Port;
-			RealtimeFTP.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
-			RealtimeFTP.Config.SocketPollInterval = 20000; // increase beyond the timeout values
-			RealtimeFTP.LegacyLogger = LogFluentFtpMessage;
+			RealtimeFTP.Config.SocketPollInterval = 20000; // increase beyond the timeout value
 
 			if (!FtpOptions.AutoDetect)
 			{
@@ -13773,8 +13789,10 @@ namespace CumulusMX
 					{
 						if (!string.IsNullOrEmpty(CustomHttpSecondsStrings[i]))
 						{
-							var parser = new TokenParser(TokenParserOnToken);
-							parser.InputText = CustomHttpSecondsStrings[i];
+							var parser = new TokenParser(TokenParserOnToken)
+							{
+								InputText = CustomHttpSecondsStrings[i]
+							};
 							var processedString = parser.ToStringFromString();
 							LogDebugMessage($"CustomHttpSeconds[{i}]: Querying - {processedString}");
 							using (var response = await MyHttpClient.GetAsync(processedString))
@@ -13812,8 +13830,10 @@ namespace CumulusMX
 					{
 						if (!string.IsNullOrEmpty(CustomHttpMinutesStrings[i]))
 						{
-							var parser = new TokenParser(TokenParserOnToken);
-							parser.InputText = CustomHttpMinutesStrings[i];
+							var parser = new TokenParser(TokenParserOnToken)
+							{
+								InputText = CustomHttpMinutesStrings[i]
+							};
 							var processedString = parser.ToStringFromString();
 							LogDebugMessage($"CustomHttpMinutes[{i}]: Querying - {processedString}");
 							using (var response = await MyHttpClient.GetAsync(processedString))
@@ -13846,8 +13866,10 @@ namespace CumulusMX
 					{
 						if (!string.IsNullOrEmpty(CustomHttpRolloverStrings[i]))
 						{
-							var parser = new TokenParser(TokenParserOnToken);
-							parser.InputText = CustomHttpRolloverStrings[i];
+							var parser = new TokenParser(TokenParserOnToken)
+							{
+								InputText = CustomHttpRolloverStrings[i]
+							};
 							var processedString = parser.ToStringFromString();
 							LogDebugMessage($"CustomHttpRollover[{i}]: Querying - {processedString}");
 							using (var response = await MyHttpClient.GetAsync(processedString))

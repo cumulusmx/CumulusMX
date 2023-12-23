@@ -10,7 +10,6 @@ using System.Timers;
 
 using ServiceStack;
 
-using static System.Collections.Specialized.BitVector32;
 
 namespace CumulusMX
 {

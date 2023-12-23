@@ -19,8 +19,6 @@ using System.Web;
 
 using EmbedIO.Utilities;
 
-using FluentFTP.Helpers;
-
 using ServiceStack.Text;
 
 using SQLite;
@@ -1964,23 +1962,20 @@ namespace CumulusMX
 								cumulus.ftpThread.Abort();
 							cumulus.LogMessage("Trying new web update");
 							cumulus.WebUpdating = 1;
-							cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles());
-							cumulus.ftpThread.IsBackground = true;
+							cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
 							cumulus.ftpThread.Start();
 						}
 						else
 						{
 							cumulus.WebUpdating = 1;
-							cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles());
-							cumulus.ftpThread.IsBackground = true;
+							cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
 							cumulus.ftpThread.Start();
 						}
 					}
 					// We also want to kick off DoHTMLFiles if local copy is enabled
 					else if (cumulus.FtpOptions.LocalCopyEnabled && cumulus.SynchronisedWebUpdate && (now.Minute % cumulus.UpdateInterval == 0))
 					{
-						cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles());
-						cumulus.ftpThread.IsBackground = true;
+						cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
 						cumulus.ftpThread.Start();
 					}
 
@@ -5034,10 +5029,9 @@ namespace CumulusMX
 
 			if (!String.IsNullOrWhiteSpace(cumulus.WxnowComment))
 			{
-				var tokenParser = new TokenParser(cumulus.TokenParserOnToken);
+				var tokenParser = new TokenParser(cumulus.TokenParserOnToken) { InputText = cumulus.WxnowComment };
 
 				// process the webtags in the content string
-				tokenParser.InputText = cumulus.WxnowComment;
 				data += tokenParser.ToStringFromString();
 			}
 
@@ -7743,8 +7737,7 @@ namespace CumulusMX
 
 						if (!string.IsNullOrEmpty(cumulus.DailyParams))
 						{
-							var parser = new TokenParser(cumulus.TokenParserOnToken);
-							parser.InputText = cumulus.DailyParams;
+							var parser = new TokenParser(cumulus.TokenParserOnToken) { InputText = cumulus.DailyParams };
 							args = parser.ToStringFromString();
 						}
 						cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);
