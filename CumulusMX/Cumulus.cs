@@ -11863,15 +11863,16 @@ namespace CumulusMX
 						request.RequestUri = new Uri(FtpOptions.PhpUrl);
 						// disable expect 100 - PHP doesn't support it
 						request.Headers.ExpectContinue = false;
-						request.Headers.Add("ACTION", incremental ? "append" : "replace");
 						request.Headers.Add("FILE", remotefile);
 						if (incremental)
 						{
+							request.Headers.Add("ACTION", "append");
 							request.Headers.Add("OLDEST", oldest);
 							request.Headers.Add("FILETYPE", logfile ? "logfile" : "json");
 						}
 						else
 						{
+							request.Headers.Add("ACTION", "replace");
 							request.Headers.Add("FILETYPE", "other");
 						}
 
@@ -11883,7 +11884,7 @@ namespace CumulusMX
 						request.Headers.Add("UTF8", utf8 ? "1" : "0");
 
 						int len;
-						string encData = string.Empty;
+						string payload = data;
 
 						if (binary)
 						{
@@ -11891,21 +11892,16 @@ namespace CumulusMX
 						}
 						else
 						{
-							encData = Convert.ToBase64String(encoding.GetBytes(data));
-							len = encData.Length;
+							payload = Convert.ToBase64String(encoding.GetBytes(data));
+							len = payload.Length;
 						}
 
 						// if content < 7 KB-ish
-						if (len < 7000 && FtpOptions.PhpUseGet)
+						if (len < 7000 && FtpOptions.PhpUseGet && !binary)
 						{
-
-							if (!binary)
-							{
-								data = encData;
-							}
 							// send data in GET headers
 							request.Method = HttpMethod.Get;
-							request.Headers.Add("DATA", data);
+							request.Headers.Add("DATA", payload);
 						}
 						// else > 7 kB or GET is disabled
 						else
@@ -11914,7 +11910,7 @@ namespace CumulusMX
 							request.Method = HttpMethod.Post;
 
 							// Compress? if supported and payload exceeds 500 bytes
-							if (data.Length >= 500 && (FtpOptions.PhpCompression == "gzip" || FtpOptions.PhpCompression == "deflate"))
+							if (payload.Length >= 500 && (FtpOptions.PhpCompression == "gzip" || FtpOptions.PhpCompression == "deflate"))
 							{
 								using (var ms = new MemoryStream())
 								{
@@ -11922,7 +11918,7 @@ namespace CumulusMX
 									{
 										using (var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true))
 										{
-											var byteData = encoding.GetBytes(data);
+											var byteData = encoding.GetBytes(payload);
 											zipped.Write(byteData, 0, byteData.Length);
 										}
 									}
@@ -11930,7 +11926,7 @@ namespace CumulusMX
 									{
 										using (var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true))
 										{
-											var byteData = encoding.GetBytes(data);
+											var byteData = encoding.GetBytes(payload);
 											zipped.Write(byteData, 0, byteData.Length);
 										}
 									}
@@ -11952,7 +11948,7 @@ namespace CumulusMX
 							{
 								request.Headers.Add("Content_Type", "text/plain");
 
-								outStream = new MemoryStream(Encoding.UTF8.GetBytes(data));
+								outStream = new MemoryStream(Encoding.UTF8.GetBytes(payload));
 								streamContent = new StreamContent(outStream);
 								streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
 								streamContent.Headers.ContentLength = outStream.Length;
