@@ -4699,7 +4699,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				var RecordsBeganDate = ini.GetValue("Station", "StartDateIso", DateTime.Now.ToString("yyyy-MM-dd"));
+				var RecordsBeganDate = ini.GetValue("Station", "StartDateIso", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
 				RecordsBeganDateTime = DateTime.ParseExact(RecordsBeganDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 			}
 
@@ -6298,7 +6298,7 @@ namespace CumulusMX
 
 			ini.SetValue("Station", "LocName", LocationName);
 			ini.SetValue("Station", "LocDesc", LocationDesc);
-			ini.SetValue("Station", "StartDateIso", RecordsBeganDateTime.ToString("yyyy-MM-dd"));
+			ini.SetValue("Station", "StartDateIso", RecordsBeganDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
 			ini.SetValue("Station", "YTDrain", YTDrain);
 			ini.SetValue("Station", "YTDrainyear", YTDrainyear);
 			ini.SetValue("Station", "UseDataLogger", UseDataLogger);
