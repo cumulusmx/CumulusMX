@@ -373,7 +373,7 @@ namespace CumulusMX.Tempest
 		protected override void Dispose(bool disposing)
 		{
 			// Check to see if Dispose has already been called.
-			if (!this.disposed)
+			if (!disposed)
 			{
 				// If disposing equals true, dispose all managed
 				// and unmanaged resources.

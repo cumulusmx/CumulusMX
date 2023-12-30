@@ -19,6 +19,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Web.Caching;
 
 using EmbedIO;
 using EmbedIO.Files;
@@ -3461,7 +3462,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, $"RealtimePHP[{cycle}]: Eror waiting on upload tasks");
+						LogExceptionMessage(ex, $"RealtimePHP[{cycle}]: Error waiting on upload tasks");
 					}
 				}
 
@@ -3472,61 +3473,97 @@ namespace CumulusMX
 			}
 			else
 			{
-				foreach (var item in ActiveExtraFiles)
+				for (var i = 0; i < ActiveExtraFiles.Count; i++)
 				{
-					if (item.realtime && item.FTP)
+					var item = ActiveExtraFiles[i];
+
+					if (!item.realtime || !item.FTP)
 					{
-						var uploadfile = GetUploadFilename(item.local, DateTime.Now);
+						continue;
+					}
 
-						if (File.Exists(uploadfile))
+					var uploadfile = GetUploadFilename(item.local, DateTime.Now);
+
+					if (!File.Exists(uploadfile))
+					{
+						LogWarningMessage($"Realtime[{cycle}]: Warning, extra web file not found! - {uploadfile}");
+						continue;
+					}
+
+					var remotefile = GetRemoteFileName(item.remote, DateTime.Now);
+
+					// all checks OK, file needs to be uploaded
+					LogFtpMessage("");
+					LogFtpDebugMessage($"Realtime[{cycle}]: Uploading extra web {uploadfile} to {remotefile}");
+
+
+					if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+					{
+						// Is this an incremental log file upload?
+						if (item.incrementalLogfile)
 						{
-							var remotefile = GetRemoteFileName(item.remote, DateTime.Now);
-
-							// all checks OK, file needs to be uploaded
-							LogFtpMessage("");
-							LogFtpDebugMessage($"Realtime[{cycle}]: Uploading extra web {uploadfile} to {remotefile}");
-
-							string data = string.Empty;
-
-							if (item.process)
+							// has the log file rolled over?
+							if (item.logFileLastFileName != uploadfile)
 							{
-								data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
+								ActiveExtraFiles[i].logFileLastFileName = uploadfile;
+								ActiveExtraFiles[i].logFileLastLineNumber = 0;
 							}
 
-							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+							var linesAdded = 0;
+							var data = WeatherStation.GetIncrementalLogFileData(uploadfile, item.logFileLastLineNumber, out linesAdded);
+
+							if (linesAdded == 0)
 							{
-								if (item.process)
-								{
-									using (var strm = GenerateStreamFromString(data))
-									{
-										UploadStream(RealtimeSSH, remotefile, strm, cycle);
-									}
-								}
-								else
-								{
-									UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
-								}
+								LogDebugMessage($"SFTP[Int]: Extra file: {uploadfile} - No incremental data found");
 								continue;
 							}
 
-							if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
+							// have we already uploaded the base file?
+							if (item.logFileLastLineNumber > 0)
 							{
-								if (item.process)
+								if (AppendText(RealtimeSSH, remotefile, data, cycle, linesAdded))
 								{
-									using (var strm = GenerateStreamFromString(data))
-									{
-										UploadStream(RealtimeFTP, remotefile, strm, cycle);
-									}
+									ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
 								}
-								else
+							}
+							else // no, just upload the base file
+							{
+								if (UploadFile(RealtimeSSH, uploadfile, remotefile, cycle))
 								{
-									UploadFile(RealtimeFTP, uploadfile, remotefile, cycle);
+									ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
 								}
+							}
+						}
+						else if  (item.process)
+						{
+							var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
+
+							using (var strm = GenerateStreamFromString(data))
+							{
+								UploadStream(RealtimeSSH, remotefile, strm, cycle);
 							}
 						}
 						else
 						{
-							LogWarningMessage($"Realtime[{cycle}]: Warning, extra web file not found! - {uploadfile}");
+							UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
+						}
+						continue;
+					}
+
+					if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
+					{
+						if (item.process)
+						{
+							var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
+
+							using (var strm = GenerateStreamFromString(data))
+							{
+								UploadStream(RealtimeFTP, remotefile, strm, cycle);
+							}
+						}
+						else
+						{
+							UploadFile(RealtimeFTP, uploadfile, remotefile, cycle);
 						}
 					}
 				}
@@ -10311,54 +10348,91 @@ namespace CumulusMX
 							}
 
 							// Extra files
-							foreach (var item in ActiveExtraFiles)
+							for (var i = 0; i < ActiveExtraFiles.Count; i++)
 							{
-								if (!item.realtime && item.FTP &&
-									(!item.endofday || EODfilesNeedFTP == item.endofday) // Either: It's not flagged as an EOD file, OR: It is flagged as EOD and EOD FTP is required
-								)
+								var item = ActiveExtraFiles[i];
+
+								if (!item.FTP || item.realtime || (item.endofday && !EODfilesNeedFTP))
 								{
-									// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
-									var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
-									var uploadfile = GetUploadFilename(item.local, logDay);
+									continue;
+								}
 
-									if (File.Exists(uploadfile))
+								// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
+								var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
+								var uploadfile = GetUploadFilename(item.local, logDay);
+
+								if (!File.Exists(uploadfile))
+								{
+									LogFtpMessage($"SFTP[Int]: Extra web file [{uploadfile}] not found!");
+									FtpAlarm.LastMessage = $"Error Extra web file [{uploadfile} not found";
+									FtpAlarm.Triggered = true;
+									continue;
+								}
+
+								var remotefile = GetRemoteFileName(item.remote, logDay);
+
+								LogFtpDebugMessage("SFTP[Int]: Uploading Extra file: " + uploadfile);
+
+								// all checks OK, file needs to be uploaded
+								try
+								{
+									// Is this an incremental log file upload?
+									if (item.incrementalLogfile)
 									{
-										LogFtpDebugMessage("SFTP[Int]: Uploading Extra file: " + uploadfile);
-
-										var remotefile = GetRemoteFileName(item.remote, logDay);
-
-										// all checks OK, file needs to be uploaded
-										try
+										// has the log file rolled over?
+										if (item.logFileLastFileName != uploadfile)
 										{
-											if (item.process)
+											ActiveExtraFiles[i].logFileLastFileName = uploadfile;
+											ActiveExtraFiles[i].logFileLastLineNumber = 0;
+										}
+
+										var linesAdded = 0;
+										var data = WeatherStation.GetIncrementalLogFileData(uploadfile, item.logFileLastLineNumber, out linesAdded);
+
+										if (linesAdded == 0)
+										{
+											LogDebugMessage($"SFTP[Int]: Extra file: {uploadfile} - No incremental data found");
+											continue;
+										}
+
+										// have we already uploaded the base file?
+										if (item.logFileLastLineNumber > 0)
+										{
+											if (AppendText(conn, remotefile, data, -1, linesAdded))
 											{
-												var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
-												using (var strm = GenerateStreamFromString(data))
-												{
-													UploadStream(conn, remotefile, strm, -1);
-												}
-											}
-											else
-											{
-												UploadFile(conn, uploadfile, remotefile, -1);
+												ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
 											}
 										}
-										catch (Exception e)
+										else // no, just upload the base file
 										{
-											LogFtpMessage($"SFTP[Int]: Error uploading Extra web file [{uploadfile}]");
-											LogFtpMessage($"SFTP[Int]: Error = {e.Message}");
-											FtpAlarm.LastMessage = $"Error uploading Extra web file [{uploadfile}";
-											FtpAlarm.Triggered = true;
+											if (UploadFile(conn, uploadfile, remotefile, -1))
+											{
+												ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
+											}
+										}
+									}
+									else if (item.process)
+									{
+										var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
+										using (var strm = GenerateStreamFromString(data))
+										{
+											UploadStream(conn, remotefile, strm, -1);
 										}
 									}
 									else
 									{
-										LogFtpMessage($"SFTP[Int]: Extra web file [{uploadfile}] not found!");
-										FtpAlarm.LastMessage = $"Error Extra web file [{uploadfile} not found";
-										FtpAlarm.Triggered = true;
+										UploadFile(conn, uploadfile, remotefile, -1);
 									}
 								}
+								catch (Exception e)
+								{
+									LogFtpMessage($"SFTP[Int]: Error uploading Extra web file [{uploadfile}]");
+									LogFtpMessage($"SFTP[Int]: Error = {e.Message}");
+									FtpAlarm.LastMessage = $"Error uploading Extra web file [{uploadfile}";
+									FtpAlarm.Triggered = true;
+								}
 							}
+
 							if (EODfilesNeedFTP)
 							{
 								EODfilesNeedFTP = false;
@@ -10919,7 +10993,7 @@ namespace CumulusMX
 
 				for (var i = 0; i < ActiveExtraFiles.Count; i++)
 				{
-					var item = ExtraFiles[i];
+					var item = ActiveExtraFiles[i];
 
 					if (!item.FTP || item.realtime || (item.endofday && !EODfilesNeedFTP))
 					{
@@ -11771,10 +11845,90 @@ namespace CumulusMX
 			return true;
 		}
 
+		private bool AppendText(SftpClient conn, string remotefile, string text, int cycle, int linesadded)
+		{
+			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
+
+			if (text.Length == 0)
+			{
+				LogFtpMessage($"SFTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
+				FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
+				FtpAlarm.Triggered = true;
+				return false;
+			}
+
+			try
+			{
+				if (conn == null || !conn.IsConnected)
+				{
+					LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is null or not connected - skipping upload of {remotefile}");
+					FtpAlarm.LastMessage = $"The SFTP object is null or not connected - skipping upload of {remotefile}";
+					FtpAlarm.Triggered = true;
+
+					if (cycle >= 0)
+						RealtimeFTPReconnect();
+
+					return false;
+				}
+			}
+			catch (ObjectDisposedException)
+			{
+				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed - skipping upload of {remotefile}");
+
+				FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {remotefile}";
+				FtpAlarm.Triggered = true;
+
+				if (cycle >= 0)
+					RealtimeFTPReconnect();
+
+				return false;
+			}
+
+			try
+			{
+				LogFtpDebugMessage($"SFTP[{cycleStr}]: Uploading {remotefile} [adding {linesadded} lines]");
+
+				conn.OperationTimeout = TimeSpan.FromSeconds(15);
+				conn.AppendAllText(remotefile, text);
+
+				LogFtpDebugMessage($"SFTP[{cycleStr}]: Uploaded {remotefile} [added {linesadded} lines]");
+			}
+			catch (ObjectDisposedException)
+			{
+				LogFtpMessage($"SFTP[{cycleStr}]: The SFTP object is disposed");
+				FtpAlarm.LastMessage = $"The SFTP object is disposed - skipping upload of {remotefile}";
+				FtpAlarm.Triggered = true;
+				return false;
+			}
+			catch (Exception ex)
+			{
+				LogFtpMessage($"SFTP[{cycleStr}]: Error uploading {remotefile} : {ex.Message}");
+
+				FtpAlarm.LastMessage = $"Error uploading {remotefile} : {ex.Message}";
+				FtpAlarm.Triggered = true;
+
+				if (ex.Message.Contains("Permission denied")) // Non-fatal
+					return true;
+
+				if (ex.InnerException != null)
+				{
+					ex = Utils.GetOriginalException(ex);
+					LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}");
+				}
+
+				// Lets start again anyway! Too hard to tell if the error is recoverable
+				conn.Dispose();
+				return false;
+			}
+
+			return true;
+		}
+
+
 		// Return True if the upload worked
 		// Return False if the upload failed
 		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle = -1, bool binary = false, bool utf8 = true)
-		{
+			{
 			var prefix = cycle >= 0 ? $"RealtimePHP[{cycle}]" : "PHP[Int]";
 
 			if (!File.Exists(localfile))
