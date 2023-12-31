@@ -1,7 +1,7 @@
 3.28.1 - b3274
 ——————————————
 New
-- PHP upload max connections per server now configurable, the default value is reduced from 20 to 10
+- PHP upload max connections per server now configurable, the default value is reduced from 20 to 5
 - Extra Web Files upload of log files now supports incremental uploads (works for all upload types: PHP, SFTP, FTP/FTPS)
 	- New tick box column on the settings page "Incremental"
 	- Can be used with any text file that "grows" a line at a time

@@ -454,7 +454,7 @@ namespace CumulusMX.Tempest
 		public static void Stop()
 		{
 			_udpListener?.StopListening();
-			_udpListener.Dispose();
+			_udpListener?.Dispose();
 		}
 
 		public static void StartUdpListen()
