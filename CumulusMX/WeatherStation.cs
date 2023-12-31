@@ -6670,7 +6670,7 @@ namespace CumulusMX
 			if (hrs < SunHourCounter || Math.Abs(hrs - SunHourCounter) > 20)
 			{
 				// counter reset
-				cumulus.LogMessage("Sun hour counter reset. Old value = " + SunHourCounter + "New value = " + hrs);
+				cumulus.LogMessage("Sun hour counter reset. Old value = " + SunHourCounter + ", New value = " + hrs);
 				StartOfDaySunHourCounter = hrs - SunshineHours;
 			}
 			SunHourCounter = hrs;
