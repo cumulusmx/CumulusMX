@@ -3332,7 +3332,7 @@ namespace CumulusMX
 				{
 					var item = ActiveExtraFiles[i];
 
-					if (!item.realtime)
+					if (!item.realtime || !item.FTP)
 					{
 						continue;
 					}
@@ -3350,7 +3350,7 @@ namespace CumulusMX
 					var data = string.Empty;
 
 					// Is this an incremental log file upload?
-					if (item.incrementalLogfile)
+					if (item.incrementalLogfile && !item.binary)
 					{
 						// has the log file rolled over?
 						if (item.logFileLastFileName != uploadfile)
@@ -3399,11 +3399,13 @@ namespace CumulusMX
 
 							// all checks OK, file needs to be uploaded
 							// Is this an incremental log file upload?
-							if (item.incrementalLogfile)
+							if (item.incrementalLogfile && !item.binary)
 							{
 								LogDebugMessage($"RealtimePHP[{cycle}]: Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incrementally - {linesAdded} lines" : "Fully")})");
-								_ = await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, cycle, item.binary, item.UTF8, true);
-								ActiveExtraFiles[idx].logFileLastLineNumber += linesAdded;
+								if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, cycle, item.binary, item.UTF8, true, item.logFileLastLineNumber))
+								{
+									ActiveExtraFiles[idx].logFileLastLineNumber += linesAdded;
+								}
 							}
 							else
 							{
@@ -3498,7 +3500,7 @@ namespace CumulusMX
 
 
 					// Is this an incremental log file upload?
-					if (item.incrementalLogfile)
+					if (item.incrementalLogfile && !item.binary)
 					{
 						// has the log file rolled over?
 						if (item.logFileLastFileName != uploadfile)
@@ -5093,6 +5095,11 @@ namespace CumulusMX
 					endofday = ini.GetValue("FTP site", "ExtraEOD" + i, false),
 					incrementalLogfile = ini.GetValue("FTP site", "ExtraIncLogFile" + i, false)
 				};
+
+				if (ExtraFiles[i].binary)
+				{
+					ExtraFiles[i].incrementalLogfile = false;
+				}
 
 				if (ExtraFiles[i].local != string.Empty && ExtraFiles[i].remote != string.Empty)
 				{
@@ -10393,7 +10400,7 @@ namespace CumulusMX
 								try
 								{
 									// Is this an incremental log file upload?
-									if (item.incrementalLogfile)
+									if (item.incrementalLogfile && !item.binary)
 									{
 										// has the log file rolled over?
 										if (item.logFileLastFileName != uploadfile)
@@ -10726,7 +10733,7 @@ namespace CumulusMX
 							try
 							{
 								// Is this an incremental log file upload?
-								if (item.incrementalLogfile)
+								if (item.incrementalLogfile && !item.binary)
 								{
 									// has the log file rolled over?
 									if (item.logFileLastFileName != uploadfile)
@@ -11075,7 +11082,7 @@ namespace CumulusMX
 
 
 					// Is this an incremental log file upload?
-					if (item.incrementalLogfile)
+					if (item.incrementalLogfile && !item.binary)
 					{
 						// has the log file rolled over?
 						if (item.logFileLastFileName != uploadfile)
@@ -11119,11 +11126,13 @@ namespace CumulusMX
 
 							// all checks OK, file needs to be uploaded
 							// Is this an incremental log file upload?
-							if (item.incrementalLogfile)
+							if (item.incrementalLogfile && !item.binary)
 							{
 								LogDebugMessage($"PHP[Int]: Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incrementally - {linesAdded} lines" : "Fully")})");
-								_ = await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, -1, item.binary, item.UTF8, true);
-								ActiveExtraFiles[idx].logFileLastLineNumber += linesAdded;
+								if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, -1, item.binary, item.UTF8, true, item.logFileLastLineNumber))
+								{
+									ActiveExtraFiles[idx].logFileLastLineNumber += linesAdded;
+								}
 							}
 							else
 							{
@@ -12118,7 +12127,7 @@ namespace CumulusMX
 			return false;
 		}
 
-		private async Task<bool> UploadString(HttpClient httpclient, bool incremental, string oldest, string data, string remotefile, int cycle = -1, bool binary = false, bool utf8 = true, bool logfile = false)
+		private async Task<bool> UploadString(HttpClient httpclient, bool incremental, string oldest, string data, string remotefile, int cycle = -1, bool binary = false, bool utf8 = true, bool logfile = false, int linecount = 0)
 		{
 			var prefix = cycle >= 0 ? $"RealtimePHP[{cycle}]" : "PHP[Int]";
 
@@ -12155,6 +12164,10 @@ namespace CumulusMX
 							request.Headers.Add("ACTION", "append");
 							request.Headers.Add("OLDEST", oldest);
 							request.Headers.Add("FILETYPE", logfile ? "logfile" : "json");
+							if (logfile)
+							{
+								request.Headers.Add("LINECOUNT", linecount.ToString());
+							}
 						}
 						else
 						{
@@ -12162,32 +12175,22 @@ namespace CumulusMX
 							request.Headers.Add("FILETYPE", "other");
 						}
 
-						var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data);
-						request.Headers.Add("SIGNATURE", signature);
-
 						request.Headers.Add("TS", unixTs);
 						request.Headers.Add("BINARY", binary ? "1" : "0");
 						request.Headers.Add("UTF8", utf8 ? "1" : "0");
 
-						int len;
-						string payload = data;
+						var signature = Utils.GetSHA256Hash(FtpOptions.PhpSecret, unixTs + remotefile + data);
+						request.Headers.Add("SIGNATURE", signature);
 
-						if (binary)
-						{
-							len = data.Length;
-						}
-						else
-						{
-							payload = Convert.ToBase64String(encoding.GetBytes(data));
-							len = payload.Length;
-						}
+						// binary data is already encoded as base 64 text
+						string encData = binary ? data : Convert.ToBase64String(encoding.GetBytes(data));
 
 						// if content < 7 KB-ish
-						if (len < 7000 && FtpOptions.PhpUseGet && !binary)
+						if (encData.Length < 7000 && FtpOptions.PhpUseGet)
 						{
 							// send data in GET headers
 							request.Method = HttpMethod.Get;
-							request.Headers.Add("DATA", payload);
+							request.Headers.Add("DATA", encData);
 						}
 						// else > 7 kB or GET is disabled
 						else
@@ -12196,15 +12199,16 @@ namespace CumulusMX
 							request.Method = HttpMethod.Post;
 
 							// Compress? if supported and payload exceeds 500 bytes
-							if (payload.Length >= 500 && (FtpOptions.PhpCompression == "gzip" || FtpOptions.PhpCompression == "deflate"))
+							if (data.Length >= 500 && (FtpOptions.PhpCompression == "gzip" || FtpOptions.PhpCompression == "deflate"))
 							{
 								using (var ms = new MemoryStream())
 								{
+									var byteData = encoding.GetBytes(data);
+
 									if (FtpOptions.PhpCompression == "gzip")
 									{
 										using (var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true))
 										{
-											var byteData = encoding.GetBytes(payload);
 											zipped.Write(byteData, 0, byteData.Length);
 										}
 									}
@@ -12212,7 +12216,6 @@ namespace CumulusMX
 									{
 										using (var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true))
 										{
-											var byteData = encoding.GetBytes(payload);
 											zipped.Write(byteData, 0, byteData.Length);
 										}
 									}
@@ -12234,7 +12237,7 @@ namespace CumulusMX
 							{
 								request.Headers.Add("Content_Type", "text/plain");
 
-								outStream = new MemoryStream(Encoding.UTF8.GetBytes(payload));
+								outStream = new MemoryStream(Encoding.UTF8.GetBytes(encData));
 								streamContent = new StreamContent(outStream);
 								streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
 								streamContent.Headers.ContentLength = outStream.Length;
@@ -12249,26 +12252,36 @@ namespace CumulusMX
 						{
 							//response.EnsureSuccessStatusCode();
 							var responseBodyAsText = await response.Content.ReadAsStringAsync();
-							if (response.StatusCode != HttpStatusCode.OK)
-							{
-								LogWarningMessage($"{prefix}: Upload to {remotefile}: Response code = {(int)response.StatusCode}: {response.StatusCode}");
-								LogMessage($"{prefix}: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
-							}
-							else
-							{
-								LogDebugMessage($"{prefix}: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-								LogDataMessage($"{prefix}: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
-							}
 
 							CheckPhpMaxUploads(response.Headers);
 
-							if (outStream != null)
-								outStream.Dispose();
+							if (response.StatusCode == HttpStatusCode.OK)
+							{
+								LogDebugMessage($"{prefix}: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+								LogDataMessage($"{prefix}: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
 
-							if (streamContent != null)
-								streamContent.Dispose();
+								return true;
+							}
+							else if (incremental && response.StatusCode == HttpStatusCode.NotAcceptable)
+							{
+								// 406 is reserved for trying to append data to a file that already exists (retry after inital attemp actually worked?)
+								// In this case flag success to the increment moved on
+								LogDebugMessage($"{prefix}: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode} - Skipping this increment");
+								LogDataMessage($"{prefix}: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
 
-							return response.StatusCode == HttpStatusCode.OK;
+								return true;
+							}
+							else
+							{
+								LogMessage($"{prefix}: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
+
+								retry++;
+								if (retry >= 2)
+								{
+									LogWarningMessage($"{prefix}: HTTP Error uploading to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
+									return false;
+								}
+							}
 						}
 					}
 				}

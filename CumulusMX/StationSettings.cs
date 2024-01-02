@@ -1350,6 +1350,16 @@ namespace CumulusMX
 					cumulus.NOAAconf.NeedCopy = true;
 				}
 
+				// flag the incremental log files for full upload
+				if (options.logfiles)
+				{
+					cumulus.LogDebugMessage("Upload Now: Flagging incremental log files for full upload rather than incremental");
+					for (var i = 0; i < cumulus.ActiveExtraFiles.Count; i++)
+					{
+						cumulus.ActiveExtraFiles[i].logFileLastLineNumber = 0;
+					}
+				}
+
 				try
 				{
 					cumulus.LogDebugMessage("Upload Now: Starting the main update process in the background");
@@ -1379,6 +1389,7 @@ namespace CumulusMX
 			public bool dailygraphs { get; set; }
 			public bool noaa { get; set; }
 			public bool graphs { get; set; }
+			public bool logfiles { get; set; }
 		}
 
 		internal string SetSelectaChartOptions(IHttpContext context)

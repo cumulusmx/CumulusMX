@@ -560,7 +560,8 @@ namespace CumulusMX
 				string utf8 = cumulus.ExtraFiles[i].UTF8 ? "true" : "false";
 				string binary = cumulus.ExtraFiles[i].binary ? "true" : "false";
 				string endofday = cumulus.ExtraFiles[i].endofday ? "true" : "false";
-				string inclogfile = cumulus.ExtraFiles[i].incrementalLogfile ? "true" : "false";
+				// binary and incremental are mutually exclusive
+				string inclogfile = cumulus.ExtraFiles[i].incrementalLogfile ? (cumulus.ExtraFiles[i].binary ? "false" : "true") : "false";
 				json.Append('{');
 				json.Append($"\"id\":{(i + 1)},\"values\":[\"{local}\",\"{remote}\",\"{process}\",\"{realtime}\",\"{ftp}\",\"{utf8}\",\"{binary}\",\"{endofday}\",\"{inclogfile}\"]");
 				json.Append('}');
@@ -626,7 +627,7 @@ namespace CumulusMX
 						break;
 					case 8:
 						// incremental log file
-						cumulus.ExtraFiles[entry].incrementalLogfile = value == "true";
+						cumulus.ExtraFiles[entry].incrementalLogfile = cumulus.ExtraFiles[entry].binary ? false : value == "true";
 						cumulus.ExtraFiles[entry].logFileLastLineNumber = 0;
 						cumulus.ExtraFiles[entry].logFileLastFileName = string.Empty;
 						break;
