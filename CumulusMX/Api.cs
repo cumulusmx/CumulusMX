@@ -246,6 +246,9 @@ namespace CumulusMX
 
 				try
 				{
+					// read the last segment of the URL to determine what data the caller wants
+					var lastSegment = Request.Url.Segments.Last();
+
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
 					var date = query["date"];
 					var from = query["from"];
@@ -257,7 +260,7 @@ namespace CumulusMX
 
 					using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
 					{
-						switch (req)
+						switch (lastSegment)
 						{
 							case "dayfile":
 								await writer.WriteAsync(Station.GetDayfile(draw, start, length, search));

@@ -2,10 +2,12 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Threading;
+using System.Threading.Tasks;
+
+//#error version
 
 namespace CumulusMX
 {
@@ -17,19 +19,19 @@ namespace CumulusMX
 		public static TextWriterTraceListener svcTextListener;
 		public const string AppGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
 		public static DateTime StartTime;
+		public static byte[] InstanceId;
+		public static bool RunningOnWindows;
 
 		public static int httpport = 8998;
 		public static bool debug = false;
 
-		private static void Main(string[] args)
+		private static async Task Main(string[] args)
 		{
 			StartTime = DateTime.Now;
-			var windows = Type.GetType("Mono.Runtime") == null;
-			//var ci = new CultureInfo("en-GB");
-			//System.Threading.Thread.CurrentThread.CurrentCulture = ci;
+			RunningOnWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
 			// force the current folder to be CumulusMX folder
-			Directory.SetCurrentDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+			Directory.SetCurrentDirectory(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
 
 			try
 			{
@@ -64,83 +66,66 @@ namespace CumulusMX
 			}
 
 			svcTextListener = new TextWriterTraceListener(logfile);
-			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Starting on " + (windows ? "Windows" : "Linux"));
+			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Starting on " + (RunningOnWindows ? "Windows" : "Linux"));
 			svcTextListener.Flush();
 
-			if (!windows)
+			// Add an exit handler
+			AppDomain.CurrentDomain.ProcessExit += (s, e) =>
 			{
-				// Use reflection, so no attempt to load Mono dll on Windows
-				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating SIGTERM monitor");
-				svcTextListener.Flush();
-
-				var posixAsm = Assembly.Load("Mono.Posix, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756");
-				var unixSignalType = posixAsm.GetType("Mono.Unix.UnixSignal");
-				var unixSignalWaitAny = unixSignalType.GetMethod("WaitAny", new[] { unixSignalType.MakeArrayType() });
-				var signumType = posixAsm.GetType("Mono.Unix.Native.Signum");
-
-				var signals = Array.CreateInstance(unixSignalType, 1);
-				signals.SetValue(Activator.CreateInstance(unixSignalType, signumType.GetField("SIGTERM").GetValue(null)), 0);
-
-				Thread signalThread = new Thread(delegate ()
+				if (cumulus != null)
 				{
-					while (!exitSystem)
-					{
-						// Wait for a signal to be delivered
-						unixSignalWaitAny?.Invoke(null, new object[] { signals });
-
-						var msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exiting system due to external SIGTERM signal";
-						Console.WriteLine(msg);
-						svcTextListener.WriteLine(msg);
-
-						if (cumulus != null)
-						{
-							msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating";
-							Console.WriteLine(msg);
-							svcTextListener.WriteLine(msg);
-							cumulus.LogMessage("Exiting system due to external SIGTERM signal");
-							cumulus.LogMessage("Cumulus terminating");
-							cumulus.Stop();
-							//allow main to run off
-							Thread.Sleep(500);
-							msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown";
-							Console.WriteLine(msg);
-							svcTextListener.WriteLine(msg);
-						}
-
-						exitSystem = true;
-					}
-				});
-
-				signalThread.Start();
-
-				// Now we need to catch the console Ctrl-C
-				Console.CancelKeyPress += (s, ev) =>
-				{
-					if (cumulus != null)
-					{
-						Cumulus.LogConsoleMessage("Ctrl+C pressed");
-						Cumulus.LogConsoleMessage("\nCumulus terminating");
-						cumulus.Stop();
-						//allow main to run off
-						Thread.Sleep(500);
-					}
-					else
-					{
-						Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Ctrl+C pressed");
-					}
-					Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
-					ev.Cancel = true;
+					Cumulus.LogConsoleMessage("Cumulus terminating", ConsoleColor.Red);
+					cumulus.LogMessage("Cumulus terminating");
+					cumulus.Stop();
+					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
+					svcTextListener.Flush();
+					Console.ForegroundColor = ConsoleColor.Yellow;
+					Console.WriteLine("Cumulus stopped");
+					Console.ResetColor();
 					exitSystem = true;
-				};
+				}
+				else
+				{
+					Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
+					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
+					//Console.WriteLine("Cumulus has not finished initialising, a clean exit is not possible, forcing exit");
+					//svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has not finished initialising, a clean exit is not possible, forcing exit");
+				}
+			};
 
-			}
 
-			AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
+			// Now we need to catch the console Ctrl-C
+			Console.CancelKeyPress += (s, ev) =>
+			{
+				if (cumulus != null)
+				{
+					Cumulus.LogConsoleMessage("Ctrl+C pressed", ConsoleColor.Red);
+					cumulus.LogMessage("Ctrl + C pressed");
+					cumulus.Stop();
+					//allow main to run off
+					Thread.Sleep(500);
+				}
+				else
+				{
+					Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Ctrl+C pressed");
+				}
+				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
+				ev.Cancel = true;
+				exitSystem = true;
+			};
 
+			debug = true;
 #if DEBUG
 			debug = true;
 			//Debugger.Launch();
 #endif
+
+			// Create a unique instance ID if it does not exist
+			_ = CheckInstanceId();
+
+			var install = false;
+			var uninstall = false;
+			var user = "";
 
 			for (int i = 0; i < args.Length; i++)
 			{
@@ -165,50 +150,23 @@ namespace CumulusMX
 						case "-wsport":
 							i++;
 							Console.WriteLine("The use of the -wsport command line parameter is deprecated");
+							svcTextListener.WriteLine("The use of the -wsport command line parameter is deprecated");
 							break;
-						case "-install" when windows:
-							{
-								if (SelfInstaller.InstallMe())
-								{
-									Console.WriteLine("Cumulus MX is now installed to run as service");
-									Environment.Exit(0);
-								}
-								else
-								{
-									Console.WriteLine("Cumulus MX failed to install as service");
-									Environment.Exit(1);
-								}
-
-								break;
-							}
 						case "-install":
-							Console.WriteLine("You can only install Cumulus MX as a service in Windows");
-							Environment.Exit(1);
+							install = true;
 							break;
-						case "-uninstall" when windows:
-							{
-								if (SelfInstaller.UninstallMe())
-								{
-									Console.WriteLine("Cumulus MX is no longer installed to run as service");
-									Environment.Exit(0);
-								}
-								else
-								{
-									Console.WriteLine("Cumulus MX failed uninstall itself as service");
-									Environment.Exit(1);
-								}
-
-								break;
-							}
 						case "-uninstall":
-							Console.WriteLine("You can only uninstall Cumulus MX as a service in Windows");
-							Environment.Exit(1);
+							uninstall = true;
+							break;
+						case "-user" when args.Length >= i:
+							user = args[++i];
 							break;
 						case "-service":
 							service = true;
 							break;
 						default:
 							Console.WriteLine($"Invalid command line argument \"{args[i]}\"");
+							svcTextListener.WriteLine($"Invalid command line argument \"{args[i]}\"");
 							Usage();
 							break;
 					}
@@ -217,11 +175,80 @@ namespace CumulusMX
 				{
 					Usage();
 				}
+
+
+				// we want to install as a service?
+				if (install)
+				{
+					if (RunningOnWindows)
+					{
+						if (SelfInstaller.InstallWin())
+						{
+							Console.ForegroundColor = ConsoleColor.Green;
+							Console.WriteLine("\nCumulus MX is now installed to run as service\n");
+							Console.ResetColor();
+							Environment.Exit(0);
+						}
+
+					}
+					else if (!string.IsNullOrEmpty(user))
+					{
+						if (SelfInstaller.InstallLinux(user))
+						{
+							Console.ForegroundColor = ConsoleColor.Green;
+							Console.WriteLine("\nCumulus MX is now installed to run as service\n");
+							Console.ResetColor();
+							Environment.Exit(0);
+						}
+					}
+					else
+					{
+						Console.ForegroundColor = ConsoleColor.Yellow;
+						Console.WriteLine("\nYou must supply a user name when installing the service\n");
+						Console.ResetColor();
+						Environment.Exit(0);
+					}
+
+					Console.ForegroundColor = ConsoleColor.Red;
+					Console.WriteLine("\nCumulus MX failed to install as service\n");
+					Console.ResetColor();
+					Environment.Exit(1);
+				}
+
+				// we want to uninstall the service?
+				if (uninstall)
+				{
+					if (RunningOnWindows)
+					{
+						if (SelfInstaller.UninstallWin())
+						{
+							Console.ForegroundColor = ConsoleColor.Green;
+							Console.WriteLine("\nCumulus MX is no longer installed to run as service\n");
+							Console.ResetColor();
+							Environment.Exit(0);
+						}
+					}
+					else
+					{
+						if (SelfInstaller.UninstallLinux())
+						{
+							Console.ForegroundColor = ConsoleColor.Green;
+							Console.WriteLine("\nCumulus MX is no longer installed to run as service\n");
+							Console.ResetColor();
+							Environment.Exit(0);
+						}
+					}
+
+					Console.ForegroundColor = ConsoleColor.Red;
+					Console.WriteLine("\nCumulus MX failed uninstall itself as service\n");
+					Console.ResetColor();
+					Environment.Exit(1);
+				}
 			}
 
-			// Interactive seems to be always false under mono :(
+			// Interactive seems to be always true on Linux :(
 
-			if (windows && !Environment.UserInteractive)
+			if (RunningOnWindows && !Environment.UserInteractive)
 			{
 				// Windows and not interactive - must be a service
 				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Windows service");
@@ -232,11 +259,10 @@ namespace CumulusMX
 			}
 			else
 			{
-				if (Environment.UserInteractive || (!windows && !service))
+				if (Environment.UserInteractive || (!RunningOnWindows && !service))
 				{
 					// Windows interactive or Linux and no service flag
 					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running interactively");
-					service = false;
 				}
 				else
 				{
@@ -251,10 +277,8 @@ namespace CumulusMX
 
 			while (!exitSystem)
 			{
-				Thread.Sleep(500);
+				await Task.Delay(500);
 			}
-
-			Environment.Exit(0);
 		}
 
 		private static void Usage()
@@ -264,9 +288,10 @@ namespace CumulusMX
 			Console.WriteLine(" -port <http_portnum> - Sets the HTTP port Cumulus will use (default 8998)");
 			Console.WriteLine(" -lang <culture_name> - Sets the Language Cumulus will use (defaults to current user language)");
 			Console.WriteLine(" -debug               - Switches on debug and data logging from Cumulus start");
-			Console.WriteLine(" -install             - Installs Cumulus as a system service (Windows only)");
-			Console.WriteLine(" -uninstall           - Removes Cumulus as a system service (Windows only)");
-			Console.WriteLine(" -service             - Must be used when running as a mono-service (Linux only)");
+			Console.WriteLine(" -install             - Installs Cumulus as a system service (Windows or Linux)");
+			Console.WriteLine(" -uninstall           - Removes Cumulus as a system service (Windows or Linux)");
+			Console.WriteLine(" -user                - Specifies the user to run the service under (Linux only)");
+			Console.WriteLine(" -service             - Must be used when running as service (Linux only)");
 			Console.WriteLine("\nCumulus terminating");
 			Environment.Exit(1);
 		}
@@ -274,15 +299,18 @@ namespace CumulusMX
 		private static void RunAsAConsole(int port, bool debug)
 		{
 			//Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
-			if (Type.GetType("Mono.Runtime") == null)
+			/*
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating Windows Exit Handler");
 				svcTextListener.Flush();
 
 				_ = new ExitHandler();
 			}
+			*/
 
 			cumulus = new Cumulus();
+
 			cumulus.Initialise(port, debug, "");
 
 			if (!exitSystem)
@@ -292,7 +320,7 @@ namespace CumulusMX
 			}
 		}
 
-		private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
+		private static async Task UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
 		{
 			try
 			{
@@ -312,68 +340,40 @@ namespace CumulusMX
 					Console.WriteLine("Press Enter to terminate");
 					Console.ReadLine();
 				}
-				Thread.Sleep(1000);
+				await Task.Delay(1000);
 				Environment.Exit(1);
 			}
 			catch (Exception)
 			{
 			}
 		}
-	}
 
-
-	// Windows ExitHandler
-	public class ExitHandler
-	{
-		[DllImport("Kernel32")]
-		private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
-
-		//private Program program;
-
-		private delegate bool EventHandler(CtrlType sig);
-
-		private static EventHandler handler;
-
-		private enum CtrlType
+		private static async Task CheckInstanceId()
 		{
-			CTRL_C_EVENT = 0,
-			CTRL_BREAK_EVENT = 1,
-			CTRL_CLOSE_EVENT = 2,
-			CTRL_LOGOFF_EVENT = 5,
-			CTRL_SHUTDOWN_EVENT = 6
-		}
-
-		public ExitHandler()
-		{
-			handler += Handler;
-			SetConsoleCtrlHandler(handler, true);
-		}
-
-		private static bool Handler(CtrlType sig)
-		{
-			var reason = new[] { "Ctrl-C", "Ctrl-Break", "Close Main Window", "unknown", "unknown", "User Logoff", "System Shutdown" };
-
-			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exiting system due to external: " + reason[(int) sig]);
-
-			if (Program.cumulus != null)
+			// check if instance file exists, if it exists, read the contents
+			if (File.Exists("UniqueId.txt"))
 			{
-				Cumulus.LogConsoleMessage("Cumulus terminating");
-				Program.cumulus.Stop();
-				//allow main to run off
-				Thread.Sleep(500);
+				string txt;
+				using (var sr = File.OpenText("UniqueId.txt"))
+					txt = await sr.ReadLineAsync();
+
+				InstanceId = Convert.FromBase64String(txt);
+				// Check the length, and ends in "="
+				if (txt.Length < 30 || txt[^1] != '=')
+				{
+					var msg = "Error: Your UniqueId.txt file appears to be corrupt, please restore it from a backup.";
+					Console.WriteLine(msg);
+					svcTextListener.WriteLine(msg);
+					svcTextListener.Flush();
+				}
 			}
 			else
 			{
-				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has not finished initialising, a clean exit is not possible, forcing exit");
-				Environment.Exit(2);
+				// otherwise, create it with a newly generated id
+				InstanceId = Crypto.GenerateKey();
+				await File.WriteAllTextAsync("UniqueId.txt", Convert.ToBase64String(InstanceId));
 			}
 
-			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
-			Console.WriteLine("Cumulus stopped");
-
-			Program.exitSystem = true;
-
-			return true;
 		}
 	}
 }

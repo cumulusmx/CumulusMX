@@ -794,7 +794,9 @@ namespace CumulusMX
 				try
 				{
 					// Windows enable the performance counter method
+#pragma warning disable CA1416 // Validate platform compatibility
 					UpTime = new PerformanceCounter("System", "System Up Time");
+#pragma warning restore CA1416 // Validate platform compatibility
 				}
 				catch (Exception e)
 				{
@@ -1130,8 +1132,10 @@ namespace CumulusMX
 				double ts = -1;
 				if (boolWindows && UpTime != null)
 				{
+#pragma warning disable CA1416 // Validate platform compatibility
 					UpTime.NextValue();
 					ts = UpTime.NextValue();
+#pragma warning restore CA1416 // Validate platform compatibility
 				}
 				else if (File.Exists(@"/proc/uptime"))
 				{
@@ -2252,7 +2256,7 @@ namespace CumulusMX
 			{
 				LogWarningMessage("Warning, previous web update is still in progress, second chance, aborting connection");
 				if (ftpThread.ThreadState == System.Threading.ThreadState.Running)
-					ftpThread.Abort();
+					ftpThread.Interrupt();
 				LogMessage("Trying new web update");
 				WebUpdating = 1;
 				ftpThread = new Thread(() => DoHTMLFiles()) { IsBackground = true };
@@ -3814,17 +3818,13 @@ namespace CumulusMX
 			if (MoonImage.Enabled)
 			{
 				LogDebugMessage("Generating new Moon image");
-				var ret = MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, (double) Latitude, MoonImage.Size);
+				var ret = MoonriseMoonset.CreateMoonImage(MoonPhaseAngle, (double) Latitude, MoonImage.Size, MoonImage.Transparent);
 
-				if (ret == "OK")
+				if (ret)
 				{
 					// set a flag to show file is ready for FTP
 					MoonImage.ReadyToFtp = true;
 					MoonImage.ReadyToCopy = true;
-				}
-				else
-				{
-					LogMessage(ret);
 				}
 			}
 		}
@@ -5142,6 +5142,7 @@ namespace CumulusMX
 				MoonImage.Size = 10;
 				rewriteRequired = true;
 			}
+			MoonImage.Transparent = ini.GetValue("Graphs", "MoonImageShadeTransparent", false);
 			MoonImage.FtpDest = ini.GetValue("Graphs", "MoonImageFtpDest", "images/moon.png");
 			MoonImage.CopyDest = ini.GetValue("Graphs", "MoonImageCopyDest", FtpOptions.LocalCopyFolder + "images" + sep1 + "moon.png");
 			GraphOptions.Visible.Temp.Val = ini.GetValue("Graphs", "TempVisible", 1);
@@ -7099,6 +7100,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "GraphHours", GraphHours);
 			ini.SetValue("Graphs", "MoonImageEnabled", MoonImage.Enabled);
 			ini.SetValue("Graphs", "MoonImageSize", MoonImage.Size);
+			ini.SetValue("Graphs", "MoonImageShadeTransparent", MoonImage.Transparent);
 			ini.SetValue("Graphs", "MoonImageFtpDest", MoonImage.FtpDest);
 			ini.SetValue("Graphs", "MoonImageCopyDest", MoonImage.CopyDest);
 			ini.SetValue("Graphs", "TempVisible", GraphOptions.Visible.Temp.Val);
@@ -8885,15 +8887,23 @@ namespace CumulusMX
 					_lockFile.Write(procId, 0, procId.Length);
 					_lockFile.Flush();
 				}
-				_lockFile.Lock(0, 0); // 0,0 has special meaning to lock entire file regardless of length
+				// Cannot lock the file on MacOS, we have to rely on FileShare
+				if (!IsOSX)
+				{
+#pragma warning disable CA1416 // Validate platform compatibility
+					_lockFile.Lock(0, 0); // 0,0 has special meaning to lock entire file regardless of length
+#pragma warning restore CA1416 // Validate platform compatibility
+				}
 
 				// give everyone access to the file
 				if (Windows)
 				{
+#pragma warning disable CA1416 // Validate platform compatibility
 					FileInfo fileInfo = new FileInfo(_lockFilename);
 					FileSecurity accessControl = fileInfo.GetAccessControl();
 					accessControl.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), FileSystemRights.FullControl, AccessControlType.Allow));
 					fileInfo.SetAccessControl(accessControl);
+#pragma warning restore CA1416 // Validate platform compatibility
 				}
 				else
 				{
@@ -9974,19 +9984,6 @@ namespace CumulusMX
 				{
 					using (SftpClient conn = new SftpClient(connectionInfo))
 					{
-						// If the ECDSA ciphers are not available - yes I'm talking about you Mono! - remove them from the list to be tried
-						try
-						{
-							using (var ecdsa = new System.Security.Cryptography.ECDsaCng())
-								_ = 0; // do nothing
-						}
-						catch (NotImplementedException)
-						{
-							var algsToRemove = connectionInfo.HostKeyAlgorithms.Keys.Where(algName => algName.StartsWith("ecdsa")).ToArray();
-							foreach (var algName in algsToRemove)
-								connectionInfo.HostKeyAlgorithms.Remove(algName);
-						}
-
 						try
 						{
 							LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
@@ -10301,19 +10298,6 @@ namespace CumulusMX
 				{
 					using (SftpClient conn = new SftpClient(connectionInfo))
 					{
-						// If the ECDSA ciphers are not available - yes I'm talking about you Mono! - remove them from the list to be tried
-						try
-						{
-							using (var ecdsa = new System.Security.Cryptography.ECDsaCng())
-								_ = 0; // do nothing
-						}
-						catch (NotImplementedException)
-						{
-							var algsToRemove = connectionInfo.HostKeyAlgorithms.Keys.Where(algName => algName.StartsWith("ecdsa")).ToArray();
-							foreach (var algName in algsToRemove)
-								connectionInfo.HostKeyAlgorithms.Remove(algName);
-						}
-
 						try
 						{
 							LogFtpDebugMessage($"SFTP[Int]: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
@@ -13428,19 +13412,6 @@ namespace CumulusMX
 						return;
 					}
 
-					// If the ECDSA ciphers are not available - yes I'm talking about you Mono! - remove them from the list to be tried
-					try
-					{
-						using (var ecdsa = new System.Security.Cryptography.ECDsaCng())
-						{/* Noop */}
-					}
-					catch (NotImplementedException)
-					{
-						var algsToRemove = connectionInfo.HostKeyAlgorithms.Keys.Where(algName => algName.StartsWith("ecdsa")).ToArray();
-						foreach (var algName in algsToRemove)
-							connectionInfo.HostKeyAlgorithms.Remove(algName);
-					}
-
 					RealtimeSSH = new SftpClient(connectionInfo);
 
 					//if (RealtimeSSH != null) RealtimeSSH.Dispose();
@@ -14699,6 +14670,7 @@ namespace CumulusMX
 	{
 		public bool Enabled { get; set; }
 		public int Size { get; set; }
+		public bool Transparent { get; set; }
 		public bool Ftp { get; set; }
 		public string FtpDest { get; set; }
 		public bool Copy { get; set; }

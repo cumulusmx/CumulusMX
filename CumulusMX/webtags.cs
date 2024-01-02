@@ -5219,8 +5219,10 @@ namespace CumulusMX
 				{
 					try
 					{
+#pragma warning disable CA1416 // Validate platform compatibility
 						cumulus.UpTime.NextValue();
 						upTime = cumulus.UpTime.NextValue();
+#pragma warning restore CA1416 // Validate platform compatibility
 					}
 					catch
 					{
@@ -6619,7 +6621,7 @@ namespace CumulusMX
 
 		public string GetWebTagText(string tagString, Dictionary<string, string> tagParams)
 		{
-			return webTagDictionary.TryGetValue(tagString, out var value) ? value(tagParams) : string.Copy(string.Empty);
+			return webTagDictionary.TryGetValue(tagString, out var value) ? value(tagParams) : string.Empty;
 		}
 
 		//private static string Utf16ToUtf8(string utf16String)

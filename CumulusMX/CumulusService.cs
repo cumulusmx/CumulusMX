@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.ServiceProcess;
+
+
+#pragma warning disable CA1416 // Validate platform compatibility
 
 namespace CumulusMX
 {

@@ -236,6 +236,7 @@ namespace CumulusMX
 						if (cumulus.MoonImage.Size < 10)
 							cumulus.MoonImage.Size = 10;
 
+						cumulus.MoonImage.Transparent = settings.moonimage.transparent;
 						cumulus.MoonImage.Ftp = settings.moonimage.includemoonimage;
 						if (cumulus.MoonImage.Ftp)
 							cumulus.MoonImage.FtpDest = settings.moonimage.ftpdest;
@@ -486,6 +487,7 @@ namespace CumulusMX
 				enabled = cumulus.MoonImage.Enabled,
 				includemoonimage = cumulus.MoonImage.Ftp,
 				size = cumulus.MoonImage.Size,
+				transparent = cumulus.MoonImage.Transparent,
 				ftpdest = cumulus.MoonImage.FtpDest,
 				copyimage = cumulus.MoonImage.Copy,
 				copydest = cumulus.MoonImage.CopyDest
@@ -778,6 +780,7 @@ namespace CumulusMX
 		public bool enabled { get; set; }
 		public bool includemoonimage { get; set; }
 		public int size { get; set; }
+		public bool transparent { get; set; }
 		public string ftpdest { get; set; }
 		public bool copyimage { get; set; }
 		public string copydest { get; set; }

@@ -1959,7 +1959,7 @@ namespace CumulusMX
 						{
 							cumulus.LogMessage("Warning, previous web update is still in progress, second chance, aborting connection");
 							if (cumulus.ftpThread.ThreadState == System.Threading.ThreadState.Running)
-								cumulus.ftpThread.Abort();
+								cumulus.ftpThread.Interrupt();
 							cumulus.LogMessage("Trying new web update");
 							cumulus.WebUpdating = 1;
 							cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };

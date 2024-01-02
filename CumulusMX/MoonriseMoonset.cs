@@ -1,7 +1,9 @@
 ﻿using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
+
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Memory;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace CumulusMX
 {
@@ -1518,92 +1520,103 @@ namespace CumulusMX
 			return (now - lastNewMoon).TotalDays;
 		}
 
-		public static string CreateMoonImage(double phaseAngle, double latitude, int size)
+		public static bool CreateMoonImage(double phaseAngle, double latitude, int size, bool transparent)
 		{
-			Bitmap bmp;
-			// we need to reverse a couple of settings beyond full moon
-			double corr = -1;
-
-			if (phaseAngle > 180)
+			if (!System.IO.File.Exists("./web/MoonBaseImage.png"))
 			{
-				corr = 1;
-				phaseAngle = -(phaseAngle - 360);
+				Program.cumulus.LogMessage("CreateMoonImage: File not found - ./web/MoonBaseImage.png");
+				return false;
 			}
 
-			double phase = (1 - cosd(phaseAngle)) / 2;
+			var success = true;
 
-			if (System.IO.File.Exists("./web/MoonBaseImage.png"))
+			try
 			{
-				bmp = new Bitmap("./web/MoonBaseImage.png");
-			}
-			else
-			{
-				return "CreateMoonImage: File not found - ./web/MoonBaseImage.png";
-			}
-
-			using (var g = Graphics.FromImage(bmp))
-			{
-				int srcSize = bmp.Width;
-				int srcSize2 = srcSize / 2;
-				Pen dark = new Pen(Color.FromArgb(200, 20, 20, 20));
-
-				for (int yPos = 0; yPos <= srcSize2; yPos++)
+				using var bmp = Image.Load<Rgba32>("./web/MoonBaseImage.png");
+				bmp.ProcessPixelRows(accessor =>
 				{
-					// moons limb
-					var y = srcSize2 - yPos;
-					var xPos = (int) (Math.Sqrt(srcSize2 * srcSize2 - y * y) * corr + srcSize2);
+					// we need to reverse a couple of settings beyond full moon
+					double corr = -1;
 
-					// Determine the edges of the illuminated part of the moon
-					double x = 1 - ((double) yPos / (double) srcSize2);
-					x = Math.Sqrt(1 - (x * x));
-					var xPos2 = (int) (srcSize2 + (phase - 0.5) * x * srcSize * (-corr));
-
-					Point p1 = new Point(xPos, yPos);
-					Point p2 = new Point(xPos2, yPos);
-
-					g.DrawLine(dark, p1, p2);
-
-					// suppress double drawing of the last line
-					if (yPos != srcSize2)
+					if (phaseAngle > 180)
 					{
-						Point p3 = new Point(xPos, srcSize - yPos);
-						Point p4 = new Point(xPos2, srcSize - yPos);
-
-						g.DrawLine(dark, p3, p4);
+						corr = 1;
+						phaseAngle = -(phaseAngle - 360);
 					}
-				}
 
+					double phase = (1 - cosd(phaseAngle)) / 2;
+
+					int srcSize = bmp.Width;
+					int srcSize2 = srcSize / 2;
+					var dark = new Rgba32(20, 20, 20, 200);
+
+					for (int yPos = 0; yPos <= srcSize2; yPos++)
+					{
+						// moons limb
+						var y = srcSize2 - yPos;
+						int xPos;
+
+						if (transparent)
+							xPos = corr == -1 ? 0 : srcSize - 1;
+						else
+							xPos = (int) (Math.Sqrt(srcSize2 * srcSize2 - y * y) * corr + srcSize2);
+
+						// Determine the edges of the illuminated part of the moon
+						double x = 1 - ((double) yPos / (double) srcSize2);
+						x = Math.Sqrt(1 - (x * x));
+						var xPos2 = (int) (srcSize2 + (phase - 0.5) * x * srcSize * (-corr));
+
+						Span<Rgba32> pixels1 = accessor.GetRowSpan(yPos);
+						for (int x1 = xPos; x1 < xPos2; x1++)
+						{
+							if (transparent)
+								pixels1[x1] = Color.Transparent;
+							else
+							{
+								pixels1[x1].R = (byte) (pixels1[x1].R * 0.2);
+								pixels1[x1].G = (byte) (pixels1[x1].G * 0.2);
+								pixels1[x1].B = (byte) (pixels1[x1].B * 0.2);
+							}
+						}
+
+						// suppress double drawing of the last line
+						if (yPos != srcSize2)
+						{
+							Span<Rgba32> pixels2 = accessor.GetRowSpan(srcSize - 1 - yPos);
+							for (int x2 = xPos; x2 <= xPos2; x2++)
+							{
+								if (transparent)
+									pixels2[x2] = Color.Transparent;
+								else
+								{
+									pixels2[x2].R = (byte) (pixels2[x2].R * 0.2);
+									pixels2[x2].G = (byte) (pixels2[x2].G * 0.2);
+									pixels2[x2].B = (byte) (pixels2[x2].B * 0.2);
+								}
+							}
+						}
+					}
+
+					// Rotate for southern hemisphere
+					if (latitude < 0)
+					{
+						bmp.Mutate(x => x.Rotate(RotateMode.Rotate180));
+					}
+
+					// resize to desired output size
+					bmp.Mutate(x => x.Resize(size, size));
+
+					// finally save the image and clean-up
+					bmp.SaveAsPng("./web/moon.png");
+				});
 			}
-			// Rotate for southern hemisphere
-			if (latitude < 0)
+			catch (Exception ex)
 			{
-				bmp.RotateFlip(RotateFlipType.Rotate180FlipNone);
+				Program.cumulus.LogExceptionMessage(ex, "Error creating the Moon image");
+				success = false;
 			}
 
-			// resize to desired output size
-			var destBmp = new Bitmap(size, size);
-			using (var gd = Graphics.FromImage(destBmp))
-			{
-				gd.CompositingMode = CompositingMode.SourceCopy;
-				gd.CompositingQuality = CompositingQuality.HighQuality;
-				gd.InterpolationMode = InterpolationMode.HighQualityBicubic;
-				gd.SmoothingMode = SmoothingMode.HighQuality;
-				gd.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-				using (var wrapMode = new ImageAttributes())
-				{
-					wrapMode.SetWrapMode(WrapMode.Clamp);
-					var destRect = new Rectangle(0, 0, size, size);
-					gd.DrawImage(bmp, destRect, 0, 0, bmp.Width, bmp.Height, GraphicsUnit.Pixel, wrapMode);
-				}
-			}
-
-			// finally save the image and clean-up
-			destBmp.Save("./web/moon.png", ImageFormat.Png);
-			destBmp.Dispose();
-			bmp.Dispose();
-
-			return "OK";
+			return success;
 		}
 	}
 }

@@ -1,37 +1,52 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{67A70E28-25C7-4C7F-BD7B-959AE6834B2C}</ProjectGuid>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <TargetFramework>net48</TargetFramework>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <TargetFrameworkProfile />
-    <RuntimeIdentifiers>win;win-x86;win-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
-    <PublishUrl>C:\Users\mcrossley\Code\CumulusMX-Dist\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <MapFileExtensions>true</MapFileExtensions>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
-  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <StartupObject>CumulusMX.Program</StartupObject>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ApplicationIcon>icon.ico</ApplicationIcon>
-  </PropertyGroup>
-  <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>
+    <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
+    <FileVersion>$(PackageVersion)</FileVersion>
+    <PackageIcon>icon.ico</PackageIcon>
+    <PackageIconUrl />
+    <UserSecretsId>06d97cbf-708b-41a7-b6fa-82bb67d5da0c</UserSecretsId>
+    <IsPublishable>False</IsPublishable>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+    <Nullable>annotations</Nullable>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath></OutputPath>
+    <DefineConstants>TRACE;DEBUG;USE_SQLITEPCL_RAW</DefineConstants>
+    <NoWarn>1701;1702</NoWarn>
+    <WarningsAsErrors>NU1605</WarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath></OutputPath>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <DefineConstants>TRACE;USE_SQLITEPCL_RAW</DefineConstants>
+    <NoWarn>1701;1702</NoWarn>
+    <WarningsAsErrors>NU1605</WarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <Version>3.500.0.3500</Version>
+    <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="DataEditor-byDay.cs" />
     <Compile Remove="MxFtpClient.cs" />
     <Compile Remove="WeatherStation-byDay.cs" />
   </ItemGroup>
+
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
@@ -42,14 +57,26 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
+
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
+
   <ItemGroup>
     <Content Include="icon.ico" />
     <Content Include="Libs\sqlite3-x64.dll" />
   </ItemGroup>
+
   <ItemGroup>
+    <PackageReference Include="Core.System.Configuration.Install" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.7" />
+    <PackageReference Include="System.CodeDom" Version="8.0.0" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
     <PackageReference Include="FluentFTP" Version="49.0.1" />
     <PackageReference Include="HidSharp" Version="2.1.0" />
@@ -57,31 +84,17 @@
     <PackageReference Include="MQTTnet" Version="4.3.3.952" />
     <PackageReference Include="MySqlConnector" Version="2.3.3" />
     <PackageReference Include="ServiceStack.Text" Version="8.0.0" />
-    <PackageReference Include="SSH.NET" Version="2023.0.0" />
+    <PackageReference Include="SSH.NET" Version="2023.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters" Version="1.3.0" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <Reference Include="System.Configuration.Install" />
-    <Reference Include="System.ServiceProcess" />
-    <Reference Include="System.Web" />
     <Reference Include="Tmds.MDns">
       <HintPath>lib\Tmds.MDns.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <PropertyGroup>
-    <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
-    <FileVersion>$(PackageVersion)</FileVersion>
-    <OutputType>Exe</OutputType>
-    <StartupObject>CumulusMX.Program</StartupObject>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
-    <Version>3.28.1.3275</Version>
-    <EnableNETAnalyzers>True</EnableNETAnalyzers>
-    <AnalysisLevel>latest</AnalysisLevel>
-    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
-  </PropertyGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="echo.&#xD;&#xA;echo Starting post-build tasks&#xD;&#xA;echo Copy Updates.txt&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(TargetDir)\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;echo copy sqlite 32&#xD;&#xA;xcopy &quot;$(ProjectDir)\Libs\sqlite3-x86.dll&quot; &quot;$(TargetDir)\x86\sqlite3.dll&quot; /D /-I /Q /Y&#xD;&#xA;echo copy sqlite 64&#xD;&#xA;xcopy &quot;$(ProjectDir)\Libs\sqlite3-x64.dll&quot; &quot;$(TargetDir)\x64\sqlite3.dll&quot; /D /-I /Q /Y&#xD;&#xA;echo.&#xD;&#xA;echo Update Distribution folder&#xD;&#xA;echo copy MX exe&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo copy MX config&#xD;&#xA;xcopy &quot;$(TargetPath).config&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo recreate hash file&#xD;&#xA;cd &quot;$(SolutionDir)..\CumulusMX-Dist&quot;&#xD;&#xA;powershell -NoProfile -ExecutionPolicy Bypass -Command .\_CreateDistHashFile.ps1" />
-  </Target>
+
 </Project>

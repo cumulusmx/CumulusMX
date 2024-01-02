@@ -1301,7 +1301,7 @@ namespace CumulusMX
 					{
 						cumulus.LogMessage("Upload Now: Warning, a previous web update is still in progress, second chance, aborting connection");
 						if (cumulus.ftpThread.ThreadState == ThreadState.Running)
-							cumulus.ftpThread.Abort();
+							cumulus.ftpThread.Interrupt();
 
 						returnMsg = "An existing upload process was aborted, and a new FTP process invoked";
 					}
