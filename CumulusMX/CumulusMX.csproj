@@ -64,7 +64,6 @@
 
   <ItemGroup>
     <Content Include="icon.ico" />
-    <Content Include="Libs\sqlite3-x64.dll" />
   </ItemGroup>
 
   <ItemGroup>
@@ -88,6 +87,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters" Version="1.3.0" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>
 
@@ -96,5 +96,24 @@
       <HintPath>lib\Tmds.MDns.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="echo.&#xD;&#xA;echo Starting post-build tasks&#xD;&#xA;echo Copy Updates.txt&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(TargetDir)\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;echo.&#xD;&#xA;echo Update Distribution folder&#xD;&#xA;echo copy MX exe&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;xcopy &quot;$(OutputPath)\CumulusMX.exe&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo copy MX config&#xD;&#xA;xcopy &quot;$(TargetPath).config&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;xcopy &quot;$(OutputPath)\CumulusMX.runtimeconfig.json&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo recreate hash file&#xD;&#xA;cd &quot;$(SolutionDir)..\CumulusMX-Dist.Net&quot;&#xD;&#xA;powershell -NoProfile -ExecutionPolicy Bypass -Command .\_CreateDistHashFile.ps1" />
+  </Target>
 
 </Project>

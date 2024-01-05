@@ -52,7 +52,7 @@ namespace CumulusMX
 		/// Now derived from app properties
 		public string Version;
 		public string Build;
-		private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+		private static readonly SemaphoreSlim semaphoreSlim = new(1);
 
 		/////////////////////////////////
 
@@ -141,7 +141,7 @@ namespace CumulusMX
 
 		public LogLevel ErrorListLoggingLevel = LogLevel.Warning;
 
-		private readonly string[] sshAuthenticationVals = { "password", "psk", "password_psk" };
+		private readonly string[] sshAuthenticationVals = ["password", "psk", "password_psk"];
 
 		/*
 		public struct Dataunits
@@ -253,7 +253,7 @@ namespace CumulusMX
 
 		internal WebTags WebTags;
 
-		internal Lang Trans = new Lang();
+		internal Lang Trans = new();
 
 		public bool NormalRunning = false;
 
@@ -273,7 +273,7 @@ namespace CumulusMX
 		//public int[] PressFact = new[] { 1, 1, 100 };
 		//public int[] RUnitFact = new[] { 1000, 39 };
 
-		public int[] logints = new[] { 1, 5, 10, 15, 20, 30 };
+		public int[] logints = [1, 5, 10, 15, 20, 30];
 
 		//public int UnitMult = 1000;
 
@@ -302,9 +302,9 @@ namespace CumulusMX
 		};
 
 		// equivalents of Zambretti "dial window" letters A - Z
-		public int[] riseOptions = { 25, 25, 25, 24, 24, 19, 16, 12, 11, 9, 8, 6, 5, 2, 1, 1, 0, 0, 0, 0, 0, 0 };
-		public int[] steadyOptions = { 25, 25, 25, 25, 25, 25, 23, 23, 22, 18, 15, 13, 10, 4, 1, 1, 0, 0, 0, 0, 0, 0 };
-		public int[] fallOptions = { 25, 25, 25, 25, 25, 25, 25, 25, 23, 23, 21, 20, 17, 14, 7, 3, 1, 1, 1, 0, 0, 0 };
+		public int[] riseOptions = [25, 25, 25, 24, 24, 19, 16, 12, 11, 9, 8, 6, 5, 2, 1, 1, 0, 0, 0, 0, 0, 0];
+		public int[] steadyOptions = [25, 25, 25, 25, 25, 25, 23, 23, 22, 18, 15, 13, 10, 4, 1, 1, 0, 0, 0, 0, 0, 0];
+		public int[] fallOptions = [25, 25, 25, 25, 25, 25, 25, 25, 23, 23, 21, 20, 17, 14, 7, 3, 1, 1, 1, 0, 0, 0];
 
 		internal int[] FactorsOf60 = { 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60 };
 
@@ -752,36 +752,6 @@ namespace CumulusMX
 			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
 
 			LogMessage($"Running as a {(IntPtr.Size == 4 ? "32" : "64")} bit process");
-
-			// Messy, but Windows and Linux use different mechanisms for loading DLLs, neither are very pretty
-			// Simplest method is to leave them searching the application directory, and copy the correct file there before it is loaded by the first SQlite connect()
-			// copy the correct sqlite DLL for your bitness
-			var dstfile = "sqlite3.dll";
-			var srcfile = (IntPtr.Size == 4 ? "x86" : "x64") + DirectorySeparator + dstfile;
-			if (!Utils.FilesEqual(srcfile, dstfile))
-			{
-				try
-				{
-					LogMessage($"Copying {srcfile} to {dstfile}");
-					File.Copy(srcfile, dstfile, true);
-				}
-				catch (FileNotFoundException)
-				{
-					var msg = "Error: cannot find the file: " + srcfile;
-					LogErrorMessage(msg);
-					LogConsoleMessage(msg);
-					Program.exitSystem = true;
-					return;
-				}
-				catch (Exception ex)
-				{
-					var msg = $"Error copying file {srcfile}: {ex.Message}";
-					LogErrorMessage(msg);
-					LogConsoleMessage(msg);
-					Program.exitSystem = true;
-					return;
-				}
-			}
 
 			boolWindows = Platform.Substring(0, 3) == "Win";
 
@@ -4990,7 +4960,7 @@ namespace CumulusMX
 			if (FtpOptions.PhpSecret == string.Empty)
 				FtpOptions.PhpSecret = Guid.NewGuid().ToString();
 			FtpOptions.PhpIgnoreCertErrors = ini.GetValue("FTP site", "PHP-IgnoreCertErrors", false);
-			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", boolWindows ? 4 : 1);
+			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", 2);
 			FtpOptions.PhpUseGet = ini.GetValue("FTP site", "PHP-UseGet", true);
 
 			if (FtpOptions.Enabled && FtpOptions.PhpUrl == "" && FtpOptions.FtpMode == FtpProtocols.PHP)
@@ -12221,7 +12191,7 @@ namespace CumulusMX
 							{
 								request.Headers.Add("Content_Type", "text/plain");
 
-								outStream = new MemoryStream(Encoding.UTF8.GetBytes(encData));
+								outStream = new MemoryStream(Encoding.UTF8.GetBytes(data));
 								streamContent = new StreamContent(outStream);
 								streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
 								streamContent.Headers.ContentLength = outStream.Length;

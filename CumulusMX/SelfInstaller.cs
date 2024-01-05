@@ -120,7 +120,7 @@ namespace CumulusMX
 				var appPath = AppDomain.CurrentDomain.BaseDirectory;
 
 
-				string[] contents = {
+				string[] contents = [
 					"[Unit]",
 					"Description=CumulusMX service",
 					"Documentation=https://cumuluswiki.org/a/Main_Page https://cumulus.hosiene.co.uk/",
@@ -136,7 +136,7 @@ namespace CumulusMX
 					"",
 					"[Install]",
 					"WantedBy=multi-user.target"
-				};
+				];
 
 				File.WriteAllLines(serviceFile, contents);
 

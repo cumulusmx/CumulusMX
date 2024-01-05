@@ -9,15 +9,10 @@ using ServiceStack;
 
 namespace CumulusMX
 {
-	public class AlarmSettings
+	public class AlarmSettings(Cumulus cumulus)
 	{
-		private readonly Cumulus cumulus;
-		private static readonly char[] separator = new char[] { ';' };
-
-		public AlarmSettings(Cumulus cumulus)
-		{
-			this.cumulus = cumulus;
-		}
+		private readonly Cumulus cumulus = cumulus;
+		private static readonly char[] separator = [';'];
 
 		public string GetAlarmSettings()
 		{
