@@ -1,20 +1,23 @@
-3.28.1 - b3274
+3.28.1 - b3277
 ——————————————
 New
 - PHP upload max connections per server now configurable, the default value is reduced from 20 to 5
 - Extra Web Files upload of log files now supports incremental uploads (works for all upload types: PHP, SFTP, FTP/FTPS)
 	- New tick box column on the settings page "Incremental"
 	- Can be used with any text file that "grows" a line at a time
+- Upload Now! page now has a tick box to force upload of incremental log files fully
 
 Changed
 - Web tag <#OsVersion> now returns the OS description. This is better on Windows and appears to be the same on Linux
 
 Fixed
+- Final(?) fix for remove space from dates
 - Add a check for null MQTT topics
 - A bug in the MySQL timed + repeat settings
 - Error save Program Settings > RemoveSpaceFromDateSeparator
 - Fix wrong DST status issue that seems to affect some Synology NAS boxes
 - Fix record editors when editing records that have a time format of "Mon Year"
+- When Davis WLL detects a missed high wind gust it is now also added into recent wind data to be included in the calculations
 
 Package Updates
 - FluentFTP (revert back to official release)

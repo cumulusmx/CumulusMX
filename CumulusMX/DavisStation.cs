@@ -43,6 +43,8 @@ namespace CumulusMX
 
 			// VP2 does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
+			// does not send Wind Chill in LOOP
+			cumulus.StationOptions.CalculatedWC = true;
 
 			isSerial = (cumulus.DavisOptions.ConnectionType == 0);
 
