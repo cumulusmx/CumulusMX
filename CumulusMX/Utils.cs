@@ -256,6 +256,51 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
+		public static string ExceptionToString(Exception ex, out string message)
+		{
+			var sb = new StringBuilder();
+
+			message = ex.Message;
+			sb.AppendLine("");
+			sb.AppendLine("Exception Type: " + ex.GetType().FullName);
+			sb.AppendLine("Message: " + ex.Message);
+			sb.AppendLine("Source: " + ex.Source);
+			foreach (var key in ex.Data.Keys)
+			{
+				sb.AppendLine(key.ToString() + ": " + ex.Data[key].ToString());
+			}
+
+			if (String.IsNullOrEmpty(ex.StackTrace))
+			{
+				sb.AppendLine("Environment Stack Trace: " + ex.StackTrace);
+			}
+			else
+			{
+				sb.AppendLine("Stack Trace: " + ex.StackTrace);
+			}
+
+			/*
+			var st = new StackTrace(ex, true);
+			foreach (var frame in st.GetFrames())
+			{
+				if (frame.GetFileLineNumber() < 1)
+					continue;
+
+				sb.Append("File: " + frame.GetFileName());
+				sb.AppendLine("  Linenumber: " + frame.GetFileLineNumber());
+			}
+			*/
+
+			if (ex.InnerException != null)
+			{
+				sb.AppendLine("Inner Exception... ");
+				sb.AppendLine(ExceptionToString(ex.InnerException, out message));
+			}
+
+			return sb.ToString();
+		}
+
+
 		public static void RunExternalTask(string task, string parameters, bool wait, bool redirectError = false)
 		{
 			var process = new System.Diagnostics.Process();

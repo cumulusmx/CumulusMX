@@ -16,18 +16,18 @@ namespace CumulusMX
 	{
 		internal static WeatherStation Station;
 		internal static Cumulus cumulus;
-		public static ProgramSettings programSettings;
+		public static ProgramSettings programSettings { get; set; }
 		internal static StationSettings stationSettings;
-		public static InternetSettings internetSettings;
-		public static ThirdPartySettings thirdpartySettings;
-		public static ExtraSensorSettings extraSensorSettings;
-		public static CalibrationSettings calibrationSettings;
-		public static NOAASettings noaaSettings;
-		public static MysqlSettings mySqlSettings;
-		public static MqttSettings mqttSettings;
-		public static CustomLogs customLogs;
+		public static InternetSettings internetSettings { get; set; }
+		public static ThirdPartySettings thirdpartySettings { get; set; }
+		public static ExtraSensorSettings extraSensorSettings { get; set; }
+		public static CalibrationSettings calibrationSettings { get; set; }
+		public static NOAASettings noaaSettings { get; set; }
+		public static MysqlSettings mySqlSettings { get; set; }
+		public static MqttSettings mqttSettings { get; set; }
+		public static CustomLogs customLogs { get; set; }
 		internal static HttpFiles httpFiles;
-		public static Wizard wizard;
+		public static Wizard wizard { get; set; }
 		internal static LangSettings langSettings;
 		internal static DisplaySettings displaySettings;
 		internal static AlarmSettings alarmSettings;
@@ -39,7 +39,7 @@ namespace CumulusMX
 		internal static HttpStationEcowitt stationEcowittExtra;
 		internal static HttpStationAmbient stationAmbient;
 		internal static HttpStationAmbient stationAmbientExtra;
-
+		private static readonly char[] separator = new char[] { ':' };
 
 		private static string EscapeUnicode(string input)
 		{
@@ -288,7 +288,7 @@ namespace CumulusMX
 							case "errorlog.json":
 								if (await Authenticate(HttpContext))
 								{
-									await writer.WriteAsync(cumulus.GetErrorLog());
+									await writer.WriteAsync(Cumulus.GetErrorLog());
 								}
 								break;
 							default:
@@ -1236,22 +1236,22 @@ namespace CumulusMX
 								await writer.WriteAsync(mySqlSettings.UpdateConfig(HttpContext));
 								break;
 							case "createmonthlysql.json":
-								await writer.WriteAsync(mySqlSettings.CreateMonthlySQL(HttpContext));
+								await writer.WriteAsync(mySqlSettings.CreateMonthlySQL());
 								break;
 							case "createdayfilesql.json":
-								await writer.WriteAsync(mySqlSettings.CreateDayfileSQL(HttpContext));
+								await writer.WriteAsync(mySqlSettings.CreateDayfileSQL());
 								break;
 							case "createrealtimesql.json":
-								await writer.WriteAsync(mySqlSettings.CreateRealtimeSQL(HttpContext));
+								await writer.WriteAsync(mySqlSettings.CreateRealtimeSQL());
 								break;
 							case "updatemonthlysql.json":
-								await writer.WriteAsync(mySqlSettings.UpdateMonthlySQL(HttpContext));
+								await writer.WriteAsync(mySqlSettings.UpdateMonthlySQL());
 								break;
 							case "updatedayfilesql.json":
-								await writer.WriteAsync(mySqlSettings.UpdateDayfileSQL(HttpContext));
+								await writer.WriteAsync(mySqlSettings.UpdateDayfileSQL());
 								break;
 							case "updaterealtimesql.json":
-								await writer.WriteAsync(mySqlSettings.UpdateRealtimeSQL(HttpContext));
+								await writer.WriteAsync(mySqlSettings.UpdateRealtimeSQL());
 								break;
 							case "updatealarmconfig.json":
 								await writer.WriteAsync(alarmSettings.UpdateAlarmSettings(HttpContext));
@@ -1607,7 +1607,7 @@ namespace CumulusMX
 								await writer.WriteAsync(stationSettings.UploadNow(HttpContext));
 								break;
 							case "clearerrorlog.json":
-								await writer.WriteAsync(cumulus.ClearErrorLog());
+								await writer.WriteAsync(Cumulus.ClearErrorLog());
 								break;
 							default:
 								Response.StatusCode = 404;
@@ -1682,7 +1682,7 @@ namespace CumulusMX
 				{
 					byte[] tempConverted = Convert.FromBase64String(authorization.Replace("Basic ", "").Trim());
 					userInfo = Encoding.UTF8.GetString(tempConverted);
-					string[] usernamePassword = userInfo.Split(new char[] { ':' });
+					string[] usernamePassword = userInfo.Split(separator);
 					username = usernamePassword[0] ?? string.Empty;
 					password = usernamePassword[1] ?? string.Empty;
 

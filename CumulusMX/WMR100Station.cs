@@ -62,7 +62,7 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogErrorMessage("WMR100 station not found!");
-				cumulus.LogConsoleMessage("WMR100 station not found!", ConsoleColor.Red);
+				Cumulus.LogConsoleMessage("WMR100 station not found!", ConsoleColor.Red);
 			}
 		}
 
@@ -174,7 +174,7 @@ namespace CumulusMX
 			}
 		}
 
-		private int WMR100PacketLength(int packettype)
+		private static int WMR100PacketLength(int packettype)
 		{
 			switch (packettype)
 			{
@@ -567,7 +567,7 @@ namespace CumulusMX
 			DoForecast(fcstr, false);
 		}
 
-		private void ProcessDatePacket()
+		private static void ProcessDatePacket()
 		{
 		}
 

@@ -43,6 +43,8 @@ namespace CumulusMX
 
 			// VP2 does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
+			// does not send Wind Chill in LOOP
+			cumulus.StationOptions.CalculatedWC = true;
 
 			isSerial = (cumulus.DavisOptions.ConnectionType == 0);
 
@@ -77,12 +79,12 @@ namespace CumulusMX
 			if (connectedOK)
 			{
 				cumulus.LogMessage("Connected OK");
-				cumulus.LogConsoleMessage("Connected to station");
+				Cumulus.LogConsoleMessage("Connected to station");
 			}
 			else
 			{
 				cumulus.LogMessage("Not Connected");
-				cumulus.LogConsoleMessage("Unable to connect to station");
+				Cumulus.LogConsoleMessage("Unable to connect to station");
 			}
 
 			if (!connectedOK) return;
@@ -106,7 +108,7 @@ namespace CumulusMX
 				else if ((float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float) 1.9) && cumulus.DavisOptions.UseLoop2)
 				{
 					cumulus.LogWarningMessage("LOOP2 is enabled in Cumulus.ini but this firmware version does not support it. Consider disabling it in Cumulus.ini");
-					cumulus.LogConsoleMessage("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini", ConsoleColor.Yellow);
+					Cumulus.LogConsoleMessage("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini", ConsoleColor.Yellow);
 				}
 			}
 			catch (Exception ex)
@@ -140,7 +142,7 @@ namespace CumulusMX
 						SetTime();
 						// Pause whilst the console sorts itself out
 						cumulus.LogMessage("Console clock: Pausing to allow Davis console to process the new date/time");
-						cumulus.LogConsoleMessage("Pausing to allow Davis console to process the new date/time");
+						Cumulus.LogConsoleMessage("Pausing to allow Davis console to process the new date/time");
 						Thread.Sleep(1000 * 5);
 
 						consoleclock = GetTime();
@@ -428,7 +430,7 @@ namespace CumulusMX
 				// change the logger interval to the value we just discovered
 				loggerInterval = readBuffer[0];
 				var msg = $"** WARNING: Your station logger interval {loggerInterval} mins does not match your Cumulus MX logging interval {cumulus.logints[cumulus.DataLogInterval]} mins";
-				cumulus.LogConsoleMessage(msg);
+				Cumulus.LogConsoleMessage(msg);
 				cumulus.LogWarningMessage("CheckLoggerInterval: " + msg);
 
 				if (cumulus.DavisOptions.SetLoggerInterval)
@@ -829,11 +831,6 @@ namespace CumulusMX
 			}
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.syncInit.Release();
-		}
-
-		// destructor
-		~DavisStation()
-		{
 		}
 
 		private static int calculateCRC(byte[] data)
@@ -3091,8 +3088,8 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogConsoleMessage("Error opening serial port - " + ex.Message, ConsoleColor.Red, true);
-					cumulus.LogConsoleMessage("Will retry in 30 seconds...");
+					Cumulus.LogConsoleMessage("Error opening serial port - " + ex.Message, ConsoleColor.Red, true);
+					Cumulus.LogConsoleMessage("Will retry in 30 seconds...");
 					cumulus.LogErrorMessage("InitSerial: Error opening port - " + ex.Message);
 				}
 
@@ -3187,7 +3184,7 @@ namespace CumulusMX
 				if (socket == null && !stop)
 				{
 					cumulus.LogMessage("InitTCP: Failed to connect to the station, waiting 30 seconds before trying again");
-					cumulus.LogConsoleMessage("Failed to connect to the station, waiting 30 seconds before trying again", ConsoleColor.Red, true);
+					Cumulus.LogConsoleMessage("Failed to connect to the station, waiting 30 seconds before trying again", ConsoleColor.Red, true);
 					Thread.Sleep(30000);
 				}
 			} while ((socket == null || !socket.Connected) && !stop);

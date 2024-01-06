@@ -489,7 +489,7 @@ namespace SQLite
 				throw new ArgumentNullException(nameof(key));
 			if (key.Length != 32 && key.Length != 48)
 				throw new ArgumentException("Key must be 32 bytes (256-bit) or 48 bytes (384-bit)", nameof(key));
-			var s = String.Join("", key.Select(x => x.ToString("X2")));
+			var s = string.Join("", key.Select(x => x.ToString("X2")));
 			ExecuteScalar<string>("pragma key = \"x'" + s + "'\"");
 		}
 
@@ -3447,7 +3447,7 @@ namespace SQLite
 			return stmt;
 		}
 
-		void Finalize(Sqlite3Statement stmt)
+		static void Finalize(Sqlite3Statement stmt)
 		{
 			SQLite3.Finalize(stmt);
 		}

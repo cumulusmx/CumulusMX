@@ -11,7 +11,9 @@ using Timer = System.Timers.Timer;
 
 namespace CumulusMX
 {
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal class FOStation : WeatherStation
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		//private IDevice[] stations;
 		//private IDevice device;
@@ -100,7 +102,7 @@ namespace CumulusMX
 						if (logint != cumulus.logints[cumulus.DataLogInterval])
 						{
 							var msg = $"Warning, your console logging interval ({logint} mins) does not match the Cumulus logging interval ({cumulus.logints[cumulus.DataLogInterval]} mins)";
-							cumulus.LogConsoleMessage(msg);
+							Cumulus.LogConsoleMessage(msg);
 							cumulus.LogWarningMessage(msg);
 							if (cumulus.FineOffsetOptions.SetLoggerInterval)
 							{
@@ -225,7 +227,7 @@ namespace CumulusMX
 			//DateTime now = DateTime.Now;
 			cumulus.LogMessage(DateTime.Now.ToString("G"));
 			cumulus.LogMessage("Start reading history data");
-			cumulus.LogConsoleMessage("Downloading Archive Data");
+			Cumulus.LogConsoleMessage("Downloading Archive Data");
 			DateTime timestamp = DateTime.Now;
 			//LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
 			cumulus.LogMessage("Last Update = " + cumulus.LastUpdateTime);
@@ -356,7 +358,7 @@ namespace CumulusMX
 			{
 				Console.WriteLine("");
 			}
-			cumulus.LogConsoleMessage("Completed read of history data from the console");
+			Cumulus.LogConsoleMessage("Completed read of history data from the console");
 			cumulus.LogMessage("Number of history entries = " + datalist.Count);
 
 			if (datalist.Count > 0)
@@ -374,7 +376,7 @@ namespace CumulusMX
 		{
 			int totalentries = datalist.Count;
 
-			cumulus.LogConsoleMessage("Processing history data, number of entries = " + totalentries);
+			Cumulus.LogConsoleMessage("Processing history data, number of entries = " + totalentries);
 
 			int rollHour = Math.Abs(cumulus.GetHourInc());
 			int luhour = cumulus.LastUpdateTime.Hour;
@@ -638,7 +640,7 @@ namespace CumulusMX
 			{
 				Console.WriteLine("");
 			}
-			cumulus.LogConsoleMessage("End processing history data");
+			Cumulus.LogConsoleMessage("End processing history data");
 		}
 
 		/// <summary>
@@ -663,19 +665,19 @@ namespace CumulusMX
 			int pid = (cumulus.FineOffsetOptions.ProductID < 0 ? DefaultPid : cumulus.FineOffsetOptions.ProductID);
 
 			cumulus.LogMessage("Looking for Fine Offset station, VendorID=0x" + vid.ToString("X4") + " ProductID=0x" + pid.ToString("X4"));
-			cumulus.LogConsoleMessage("Looking for Fine Offset station");
+			Cumulus.LogConsoleMessage("Looking for Fine Offset station");
 
 			hidDevice = devicelist.GetHidDeviceOrNull(vendorID: vid, productID: pid);
 
 			if (hidDevice != null)
 			{
 				cumulus.LogMessage("Fine Offset station found");
-				cumulus.LogConsoleMessage("Fine Offset station found");
+				Cumulus.LogConsoleMessage("Fine Offset station found");
 
 				if (hidDevice.TryOpen(out stream))
 				{
 					cumulus.LogMessage("Stream opened");
-					cumulus.LogConsoleMessage("Connected to station");
+					Cumulus.LogConsoleMessage("Connected to station");
 					stream.Flush();
 					return true;
 				}
@@ -746,7 +748,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting", ConsoleColor.Red, true);
+				Cumulus.LogConsoleMessage("Error sending command to station - it may need resetting", ConsoleColor.Red, true);
 				cumulus.LogMessage(ex.Message);
 				cumulus.LogErrorMessage("Error sending command to station - it may need resetting");
 				if (!DataStopped)
@@ -769,7 +771,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogConsoleMessage("Error reading data from station - it may need resetting", ConsoleColor.Red, true);
+					Cumulus.LogConsoleMessage("Error reading data from station - it may need resetting", ConsoleColor.Red, true);
 					cumulus.LogMessage(ex.Message);
 					cumulus.LogErrorMessage("Error reading data from station - it may need resetting");
 					if (!DataStopped)
@@ -811,7 +813,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogConsoleMessage("Error sending command to station - it may need resetting");
+				Cumulus.LogConsoleMessage("Error sending command to station - it may need resetting");
 				cumulus.LogMessage(ex.Message);
 				cumulus.LogErrorMessage("Error sending command to station - it may need resetting");
 				if (!DataStopped)
@@ -1035,7 +1037,7 @@ namespace CumulusMX
 
 				if (synchronising && !stationSyncDone)
 				{
-					//cumulus.LogConsoleMessage(" - Console clock minute changed");
+					//Cumulus.LogConsoleMessage(" - Console clock minute changed");
 					cumulus.LogMessage("Synchronise: Console clock minute changed");
 
 					FOStationClockTime = DateTime.Now;
@@ -1080,7 +1082,7 @@ namespace CumulusMX
 
 					if (datachanged)
 					{
-						//cumulus.LogConsoleMessage(" - Sensor data changed");
+						//Cumulus.LogConsoleMessage(" - Sensor data changed");
 						cumulus.LogMessage("Synchronise: Sensor data changed");
 
 						if (!sensorSyncDone)
@@ -1101,7 +1103,7 @@ namespace CumulusMX
 					/*
 					if (prevdata[0] != data[0])
 					{
-						cumulus.LogConsoleMessage(" - Console clock minute changed");
+						Cumulus.LogConsoleMessage(" - Console clock minute changed");
 						cumulus.LogMessage("Synchronise: Console clock minute changed");
 
 						if (!stationSync)
@@ -1140,7 +1142,7 @@ namespace CumulusMX
 
 						if (datachanged)
 						{
-							//cumulus.LogConsoleMessage(" - Solar data changed");
+							//Cumulus.LogConsoleMessage(" - Solar data changed");
 							cumulus.LogMessage("Synchronise: Solar data changed");
 
 							if (!solarSyncDone)
@@ -1407,7 +1409,7 @@ namespace CumulusMX
 			readCounter = 0;
 			syncStart = DateTime.Now;
 			cumulus.LogMessage("Start Synchronising with console");
-			cumulus.LogConsoleMessage("Start Synchronising with console, run #" + synchroniseAttempts, ConsoleColor.Gray, true);
+			Cumulus.LogConsoleMessage("Start Synchronising with console, run #" + synchroniseAttempts, ConsoleColor.Gray, true);
 
 			tmrDataRead.Interval = 500; // half a second
 		}
@@ -1484,10 +1486,10 @@ namespace CumulusMX
 				}
 			}
 
-			cumulus.LogConsoleMessage($" - Found times for:- sensor: {foundSensor}, station: {foundStation} {(hasSolar ? (", solar:" + (doSolarSync ? foundSolar.ToString() : "supressed")) : "")}", ConsoleColor.Gray);
+			Cumulus.LogConsoleMessage($" - Found times for:- sensor: {foundSensor}, station: {foundStation} {(hasSolar ? (", solar:" + (doSolarSync ? foundSolar.ToString() : "supressed")) : "")}", ConsoleColor.Gray);
 
 			cumulus.LogMessage("Stop Synchronising");
-			cumulus.LogConsoleMessage("Stop Synchronising", ConsoleColor.Gray, true);
+			Cumulus.LogConsoleMessage("Stop Synchronising", ConsoleColor.Gray, true);
 		}
 
 		private void InitialiseSync(bool solarSync)

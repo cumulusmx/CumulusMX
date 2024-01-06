@@ -55,12 +55,12 @@ namespace CumulusMX
 			if (station != null)
 			{
 				cumulus.LogMessage("WMR200 station found");
-				cumulus.LogConsoleMessage("WMR200 station found", ConsoleColor.Red);
+				Cumulus.LogConsoleMessage("WMR200 station found", ConsoleColor.Red);
 
 				if (station.TryOpen(out stream))
 				{
 					cumulus.LogMessage("Stream opened");
-					cumulus.LogConsoleMessage("Connected to station");
+					Cumulus.LogConsoleMessage("Connected to station");
 				}
 
 				packetBuffer = new byte[PacketBufferBound];
@@ -79,7 +79,7 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogErrorMessage("WMR200 station not found!");
-				cumulus.LogConsoleMessage("WMR200 station not found!", ConsoleColor.Red);
+				Cumulus.LogConsoleMessage("WMR200 station not found!", ConsoleColor.Red);
 			}
 		}
 
@@ -91,7 +91,7 @@ namespace CumulusMX
 
 		public override void startReadingHistoryData()
 		{
-			cumulus.LogConsoleMessage("Reading archive data");
+			Cumulus.LogConsoleMessage("Reading archive data");
 
 			//lastArchiveTimeUTC = getLastArchiveTime();
 
@@ -117,7 +117,7 @@ namespace CumulusMX
 		public override void getAndProcessHistoryData()
 		{
 			cumulus.LogMessage("Start reading history data");
-			cumulus.LogConsoleMessage("Start reading history data...");
+			Cumulus.LogConsoleMessage("Start reading history data...");
 
 			//DateTime timestamp = DateTime.Now;
 			//LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
@@ -410,7 +410,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessStatusPacket()
+		private static void ProcessStatusPacket()
 		{
 			//
 			// ----> Status----> CHSUM

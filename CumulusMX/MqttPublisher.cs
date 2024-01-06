@@ -16,7 +16,7 @@ namespace CumulusMX
 	{
 		private static Cumulus cumulus;
 		private static MqttClient mqttClient;
-		public static bool configured;
+		public static bool configured { get; set; }
 		private static readonly Dictionary<String, String> publishedTopics = new Dictionary<string, string>();
 		private static MqttTemplate updateTemplate;
 		private static MqttTemplate intervalTemplate;
@@ -197,6 +197,8 @@ namespace CumulusMX
 			{
 				foreach (var topic in mqttTemplate.topics)
 				{
+					if (topic == null) continue;
+
 					if (feedType == "Interval" && now.Value.ToUnixTime() % (topic.interval ?? 600) != 0)
 					{
 						// this topic is not ready to update

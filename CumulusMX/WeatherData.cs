@@ -14,7 +14,7 @@ namespace CumulusMX
 			{
 				windspeed = value;
 				var handler = PropertyChanged;
-				handler?.Invoke(this, new PropertyChangedEventArgs("WindSpeed"));
+				handler?.Invoke(this, new PropertyChangedEventArgs(nameof(WindSpeed)));
 			}
 		}
 
@@ -27,7 +27,7 @@ namespace CumulusMX
 			{
 				windaverage = value;
 				var handler = PropertyChanged;
-				handler?.Invoke(this, new PropertyChangedEventArgs("WindAverage"));
+				handler?.Invoke(this, new PropertyChangedEventArgs(nameof(WindAverage)));
 			}
 		}
 
@@ -40,7 +40,7 @@ namespace CumulusMX
 			{
 				outdoortemp = value;
 				var handler = PropertyChanged;
-				handler?.Invoke(this, new PropertyChangedEventArgs("OutdoorTemp"));
+				handler?.Invoke(this, new PropertyChangedEventArgs(nameof(OutdoorTemp)));
 			}
 		}
 
@@ -53,7 +53,7 @@ namespace CumulusMX
 			{
 				pressure = value;
 				var handler = PropertyChanged;
-				handler?.Invoke(this, new PropertyChangedEventArgs("Pressure"));
+				handler?.Invoke(this, new PropertyChangedEventArgs(nameof(Pressure)));
 			}
 		}
 
@@ -66,7 +66,7 @@ namespace CumulusMX
 			{
 				raintotal = value;
 				var handler = PropertyChanged;
-				handler?.Invoke(this, new PropertyChangedEventArgs("Raintotal"));
+				handler?.Invoke(this, new PropertyChangedEventArgs(nameof(Raintotal)));
 			}
 		}
 

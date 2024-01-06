@@ -118,8 +118,8 @@ namespace CumulusMX
 				{
 					if (cumulus != null)
 					{
-						cumulus.LogConsoleMessage("Ctrl+C pressed");
-						cumulus.LogConsoleMessage("\nCumulus terminating");
+						Cumulus.LogConsoleMessage("Ctrl+C pressed");
+						Cumulus.LogConsoleMessage("\nCumulus terminating");
 						cumulus.Stop();
 						//allow main to run off
 						Thread.Sleep(500);
@@ -153,7 +153,6 @@ namespace CumulusMX
 								var lang = args[++i];
 
 								CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
-								CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
 								break;
 							}
 						case "-port" when args.Length >= i:
@@ -358,7 +357,7 @@ namespace CumulusMX
 
 			if (Program.cumulus != null)
 			{
-				Program.cumulus.LogConsoleMessage("Cumulus terminating");
+				Cumulus.LogConsoleMessage("Cumulus terminating");
 				Program.cumulus.Stop();
 				//allow main to run off
 				Thread.Sleep(500);

@@ -149,65 +149,62 @@ namespace CumulusMX
 				cumulus.LogMessage("Updating NOAA settings");
 
 				cumulus.NOAAconf.Create = settings.autosave;
-				if (cumulus.NOAAconf.Create)
-				{
-					cumulus.NOAAconf.Name = string.IsNullOrWhiteSpace(settings.sitedetails.sitename) ? null : settings.sitedetails.sitename.Trim();
-					cumulus.NOAAconf.City = string.IsNullOrWhiteSpace(settings.sitedetails.city) ? null : settings.sitedetails.city.Trim();
-					cumulus.NOAAconf.State = string.IsNullOrWhiteSpace(settings.sitedetails.state) ? null : settings.sitedetails.state.Trim();
+				cumulus.NOAAconf.Name = string.IsNullOrWhiteSpace(settings.sitedetails.sitename) ? null : settings.sitedetails.sitename.Trim();
+				cumulus.NOAAconf.City = string.IsNullOrWhiteSpace(settings.sitedetails.city) ? null : settings.sitedetails.city.Trim();
+				cumulus.NOAAconf.State = string.IsNullOrWhiteSpace(settings.sitedetails.state) ? null : settings.sitedetails.state.Trim();
 
-					cumulus.NOAAconf.MonthFile = string.IsNullOrWhiteSpace(settings.outputfiles.monthfileformat) ? null : settings.outputfiles.monthfileformat.Trim();
-					cumulus.NOAAconf.YearFile = string.IsNullOrWhiteSpace(settings.outputfiles.yearfileformat) ? null : settings.outputfiles.yearfileformat.Trim();
+				cumulus.NOAAconf.MonthFile = string.IsNullOrWhiteSpace(settings.outputfiles.monthfileformat) ? null : settings.outputfiles.monthfileformat.Trim();
+				cumulus.NOAAconf.YearFile = string.IsNullOrWhiteSpace(settings.outputfiles.yearfileformat) ? null : settings.outputfiles.yearfileformat.Trim();
 
-					cumulus.NOAAconf.Use12hour = settings.options.timeformat == 1;
-					cumulus.NOAAconf.UseUtf8 = settings.options.utf8;
-					cumulus.NOAAconf.UseDotDecimal = settings.options.dotdecimal;
-					cumulus.NOAAconf.UseNoaaHeatCoolDays = settings.options.noaacoolheat;
-					cumulus.NOAAconf.UseMinMaxAvg = settings.options.minmaxavg;
+				cumulus.NOAAconf.Use12hour = settings.options.timeformat == 1;
+				cumulus.NOAAconf.UseUtf8 = settings.options.utf8;
+				cumulus.NOAAconf.UseDotDecimal = settings.options.dotdecimal;
+				cumulus.NOAAconf.UseNoaaHeatCoolDays = settings.options.noaacoolheat;
+				cumulus.NOAAconf.UseMinMaxAvg = settings.options.minmaxavg;
 
-					cumulus.NOAAconf.AutoFtp = settings.ftp.autotransfer;
-					cumulus.NOAAconf.FtpFolder = string.IsNullOrWhiteSpace(settings.ftp.dstfolder) ? null : settings.ftp.dstfolder.Trim();
+				cumulus.NOAAconf.AutoFtp = settings.ftp.autotransfer;
+				cumulus.NOAAconf.FtpFolder = string.IsNullOrWhiteSpace(settings.ftp.dstfolder) ? null : settings.ftp.dstfolder.Trim();
 
-					cumulus.NOAAconf.AutoCopy = settings.copy.autotransfer;
-					cumulus.NOAAconf.CopyFolder = string.IsNullOrWhiteSpace(settings.copy.dstfolder) ? null : settings.copy.dstfolder.Trim();
+				cumulus.NOAAconf.AutoCopy = settings.copy.autotransfer;
+				cumulus.NOAAconf.CopyFolder = string.IsNullOrWhiteSpace(settings.copy.dstfolder) ? null : settings.copy.dstfolder.Trim();
 
-					cumulus.NOAAconf.HeatThreshold = settings.thresholds.heatingthreshold;
-					cumulus.NOAAconf.CoolThreshold = settings.thresholds.coolingthreshold;
-					cumulus.NOAAconf.MaxTempComp1 = settings.thresholds.maxtempcomp1;
-					cumulus.NOAAconf.MaxTempComp2 = settings.thresholds.maxtempcomp2;
-					cumulus.NOAAconf.MinTempComp1 = settings.thresholds.mintempcomp1;
-					cumulus.NOAAconf.MinTempComp2 = settings.thresholds.mintempcomp2;
-					cumulus.NOAAconf.RainComp1 = settings.thresholds.raincomp1;
-					cumulus.NOAAconf.RainComp2 = settings.thresholds.raincomp2;
-					cumulus.NOAAconf.RainComp3 = settings.thresholds.raincomp3;
+				cumulus.NOAAconf.HeatThreshold = settings.thresholds.heatingthreshold;
+				cumulus.NOAAconf.CoolThreshold = settings.thresholds.coolingthreshold;
+				cumulus.NOAAconf.MaxTempComp1 = settings.thresholds.maxtempcomp1;
+				cumulus.NOAAconf.MaxTempComp2 = settings.thresholds.maxtempcomp2;
+				cumulus.NOAAconf.MinTempComp1 = settings.thresholds.mintempcomp1;
+				cumulus.NOAAconf.MinTempComp2 = settings.thresholds.mintempcomp2;
+				cumulus.NOAAconf.RainComp1 = settings.thresholds.raincomp1;
+				cumulus.NOAAconf.RainComp2 = settings.thresholds.raincomp2;
+				cumulus.NOAAconf.RainComp3 = settings.thresholds.raincomp3;
 
-					// normal mean temps
-					cumulus.NOAAconf.TempNorms[1] = settings.normalmeantemps.jan;
-					cumulus.NOAAconf.TempNorms[2] = settings.normalmeantemps.feb;
-					cumulus.NOAAconf.TempNorms[3] = settings.normalmeantemps.mar;
-					cumulus.NOAAconf.TempNorms[4] = settings.normalmeantemps.apr;
-					cumulus.NOAAconf.TempNorms[5] = settings.normalmeantemps.may;
-					cumulus.NOAAconf.TempNorms[6] = settings.normalmeantemps.jun;
-					cumulus.NOAAconf.TempNorms[7] = settings.normalmeantemps.jul;
-					cumulus.NOAAconf.TempNorms[8] = settings.normalmeantemps.aug;
-					cumulus.NOAAconf.TempNorms[9] = settings.normalmeantemps.sep;
-					cumulus.NOAAconf.TempNorms[10] = settings.normalmeantemps.oct;
-					cumulus.NOAAconf.TempNorms[11] = settings.normalmeantemps.nov;
-					cumulus.NOAAconf.TempNorms[12] = settings.normalmeantemps.dec;
+				// normal mean temps
+				cumulus.NOAAconf.TempNorms[1] = settings.normalmeantemps.jan;
+				cumulus.NOAAconf.TempNorms[2] = settings.normalmeantemps.feb;
+				cumulus.NOAAconf.TempNorms[3] = settings.normalmeantemps.mar;
+				cumulus.NOAAconf.TempNorms[4] = settings.normalmeantemps.apr;
+				cumulus.NOAAconf.TempNorms[5] = settings.normalmeantemps.may;
+				cumulus.NOAAconf.TempNorms[6] = settings.normalmeantemps.jun;
+				cumulus.NOAAconf.TempNorms[7] = settings.normalmeantemps.jul;
+				cumulus.NOAAconf.TempNorms[8] = settings.normalmeantemps.aug;
+				cumulus.NOAAconf.TempNorms[9] = settings.normalmeantemps.sep;
+				cumulus.NOAAconf.TempNorms[10] = settings.normalmeantemps.oct;
+				cumulus.NOAAconf.TempNorms[11] = settings.normalmeantemps.nov;
+				cumulus.NOAAconf.TempNorms[12] = settings.normalmeantemps.dec;
 
-					// normal rain
-					cumulus.NOAAconf.RainNorms[1] = settings.normalrain.jan;
-					cumulus.NOAAconf.RainNorms[2] = settings.normalrain.feb;
-					cumulus.NOAAconf.RainNorms[3] = settings.normalrain.mar;
-					cumulus.NOAAconf.RainNorms[4] = settings.normalrain.apr;
-					cumulus.NOAAconf.RainNorms[5] = settings.normalrain.may;
-					cumulus.NOAAconf.RainNorms[6] = settings.normalrain.jun;
-					cumulus.NOAAconf.RainNorms[7] = settings.normalrain.jul;
-					cumulus.NOAAconf.RainNorms[8] = settings.normalrain.aug;
-					cumulus.NOAAconf.RainNorms[9] = settings.normalrain.sep;
-					cumulus.NOAAconf.RainNorms[10] = settings.normalrain.oct;
-					cumulus.NOAAconf.RainNorms[11] = settings.normalrain.nov;
-					cumulus.NOAAconf.RainNorms[12] = settings.normalrain.dec;
-				}
+				// normal rain
+				cumulus.NOAAconf.RainNorms[1] = settings.normalrain.jan;
+				cumulus.NOAAconf.RainNorms[2] = settings.normalrain.feb;
+				cumulus.NOAAconf.RainNorms[3] = settings.normalrain.mar;
+				cumulus.NOAAconf.RainNorms[4] = settings.normalrain.apr;
+				cumulus.NOAAconf.RainNorms[5] = settings.normalrain.may;
+				cumulus.NOAAconf.RainNorms[6] = settings.normalrain.jun;
+				cumulus.NOAAconf.RainNorms[7] = settings.normalrain.jul;
+				cumulus.NOAAconf.RainNorms[8] = settings.normalrain.aug;
+				cumulus.NOAAconf.RainNorms[9] = settings.normalrain.sep;
+				cumulus.NOAAconf.RainNorms[10] = settings.normalrain.oct;
+				cumulus.NOAAconf.RainNorms[11] = settings.normalrain.nov;
+				cumulus.NOAAconf.RainNorms[12] = settings.normalrain.dec;
 
 				// Save the settings
 				cumulus.WriteIniFile();

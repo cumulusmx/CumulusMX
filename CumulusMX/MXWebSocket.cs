@@ -33,7 +33,7 @@ namespace CumulusMX
 			await Task.CompletedTask;
 		}
 
-		protected override async Task OnMessageReceivedAsync(IWebSocketContext context, byte[] rxBuffer, IWebSocketReceiveResult rxResult)
+		protected override async Task OnMessageReceivedAsync(IWebSocketContext context, byte[] buffer, IWebSocketReceiveResult result)
 		{
 			await Task.CompletedTask;
 		}

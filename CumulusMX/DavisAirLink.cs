@@ -16,7 +16,9 @@ using Tmds.MDns;
 
 namespace CumulusMX
 {
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal class DavisAirLink
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		private readonly Cumulus cumulus;
 		private readonly WeatherStation station;
@@ -109,7 +111,7 @@ namespace CumulusMX
 					// We didn't find anything on the network
 					msg = "Failed to discover any AirLink devices";
 					cumulus.LogWarningMessage("ZeroConf Service: " + msg);
-					cumulus.LogConsoleMessage(msg);
+					Cumulus.LogConsoleMessage(msg);
 				}
 				else if (discovered.IP.Count == 1 && (string.IsNullOrEmpty(hostname) || discovered.Hostname[0] == hostname) && numOfAirLinks == 1)
 				{
@@ -200,17 +202,17 @@ namespace CumulusMX
 					string list = "";
 					msg = "*** Discovered one or more potential AirLink devices.";
 					cumulus.LogMessage("ZeroConf Service: " + msg);
-					cumulus.LogConsoleMessage(msg);
+					Cumulus.LogConsoleMessage(msg);
 					msg = "*** Please select the Host name/IP address from the list and enter it manually into the configuration";
 					cumulus.LogMessage("ZeroConf Service: " + msg);
-					cumulus.LogConsoleMessage(msg);
+					Cumulus.LogConsoleMessage(msg);
 					for (var i = 0; i < discovered.IP.Count; i++)
 					{
 						list += discovered.Hostname[i] + "/" + discovered.IP[i] + " ";
 					}
 					msg = "*** Discovered AirLinks = " + list;
 					cumulus.LogMessage("ZeroConf Service: " + msg);
-					cumulus.LogConsoleMessage(msg);
+					Cumulus.LogConsoleMessage(msg);
 				}
 			}
 			else
@@ -617,7 +619,7 @@ namespace CumulusMX
 			{
 				var msg = "No AirLink WeatherLink API station ID in the configuration";
 				cumulus.LogWarningMessage(msg);
-				cumulus.LogConsoleMessage("GetWlHistoricData: " + msg);
+				Cumulus.LogConsoleMessage("GetWlHistoricData: " + msg);
 				return;
 			}
 
@@ -637,7 +639,7 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {airLinkLastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
+			Cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {airLinkLastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
 			cumulus.LogMessage($"GetWlHistoricData: Downloading Historic Data from WL.com from: {airLinkLastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
 
 			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + stationId);
@@ -674,7 +676,7 @@ namespace CumulusMX
 				{
 					var errObj = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogErrorMessage($"GetWlHistoricData: WeatherLink API Historic Error: {errObj.code}, {errObj.message}");
-					cumulus.LogConsoleMessage($" - Error {errObj.code}: {errObj.message}");
+					Cumulus.LogConsoleMessage($" - Error {errObj.code}: {errObj.message}");
 					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
@@ -682,7 +684,7 @@ namespace CumulusMX
 				if (responseBody == "{}")
 				{
 					cumulus.LogWarningMessage("GetWlHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
-					cumulus.LogConsoleMessage(" - No historic data available");
+					Cumulus.LogConsoleMessage(" - No historic data available");
 					airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
@@ -711,7 +713,7 @@ namespace CumulusMX
 					if (noOfRecs == 0)
 					{
 						cumulus.LogMessage("GetWlHistoricData: No historic data available");
-						cumulus.LogConsoleMessage(" - No historic data available");
+						Cumulus.LogConsoleMessage(" - No historic data available");
 						airLinkLastUpdateTime = Utils.FromUnixTime(endTime);
 						return;
 					}
@@ -1023,7 +1025,7 @@ namespace CumulusMX
 				if (string.IsNullOrEmpty(cumulus.AirLinkApiKey) || string.IsNullOrEmpty(cumulus.AirLinkApiSecret))
 				{
 					var msg = "Missing AirLink WeatherLink API key/secret in the cumulus.ini file";
-					cumulus.LogConsoleMessage(msg);
+					Cumulus.LogConsoleMessage(msg);
 					cumulus.LogWarningMessage("AirLinkHealth: " + msg);
 					return;
 				}
@@ -1033,7 +1035,7 @@ namespace CumulusMX
 				if ((indoor ? cumulus.AirLinkInStationId : cumulus.AirLinkOutStationId) < 10)
 				{
 					var msg = "Missing AirLink WeatherLink API station Id in the cumulus.ini file";
-					cumulus.LogConsoleMessage(msg);
+					Cumulus.LogConsoleMessage(msg);
 					cumulus.LogWarningMessage("AirLinkHealth: " + msg);
 					GetAvailableStationIds();
 					return;
@@ -1297,8 +1299,6 @@ namespace CumulusMX
 		{
 			WlStationList stationsObj;
 
-			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
-
 			// Are we using the same WL APIv2 as a WLL device?
 			if (cumulus.StationType == 11 && !standalone)
 				return true;
@@ -1337,7 +1337,7 @@ namespace CumulusMX
 					cumulus.LogMessage($"Found WeatherLink station id = {station.station_id}, name = {station.station_name}");
 					if (stationsObj.stations.Count > 1)
 					{
-						cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}");
+						Cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}");
 					}
 
 					if ((station.station_id == cumulus.AirLinkInStationId || station.station_id == cumulus.AirLinkOutStationId) && station.recording_interval != cumulus.logints[cumulus.DataLogInterval])
@@ -1347,7 +1347,7 @@ namespace CumulusMX
 				}
 				if (stationsObj.stations.Count > 1)
 				{
-					cumulus.LogConsoleMessage(" - Enter the required station id from the above list into your AirLink configuration to enable history downloads.");
+					Cumulus.LogConsoleMessage(" - Enter the required station id from the above list into your AirLink configuration to enable history downloads.");
 				}
 
 				if (stationsObj.stations.Count == 1)
@@ -1380,8 +1380,6 @@ namespace CumulusMX
 			// Are we using the same WL APIv2 as a WLL device?
 			if (cumulus.StationType == 11 && !standalone)
 				return;
-
-			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 
 			if (string.IsNullOrEmpty(cumulus.AirLinkApiKey) || string.IsNullOrEmpty(cumulus.AirLinkApiSecret))
 			{

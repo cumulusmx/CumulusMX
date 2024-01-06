@@ -31,6 +31,8 @@ namespace CumulusMX
 
 			// Imet does not provide average wind speeds
 			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
+			cumulus.StationOptions.UseSpeedForAvgCalc = false;
+			cumulus.StationOptions.UseSpeedForLatest = false;
 
 			// Change the default dps for rain and sunshine from 1 to 2 for IMet stations
 			cumulus.RainDPlaces = cumulus.SunshineDPlaces = 2;
@@ -415,11 +417,12 @@ namespace CumulusMX
 		public override void startReadingHistoryData()
 		{
 			cumulus.LogMessage("Start reading history data");
-			cumulus.LogConsoleMessage("Start reading history data...");
+			Cumulus.LogConsoleMessage("Start reading history data...");
 			//lastArchiveTimeUTC = getLastArchiveTime();
 
 			// use the wind speeds averages from the logger data
 			cumulus.StationOptions.CalcuateAverageWindSpeed = false;
+			cumulus.StationOptions.UseSpeedForAvgCalc = true;
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
@@ -449,6 +452,7 @@ namespace CumulusMX
 
 			// normal running
 			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
+			cumulus.StationOptions.UseSpeedForAvgCalc = false;
 
 			cumulus.NormalRunning = true;
 			cumulus.LogMessage("Archive reading thread completed");
@@ -526,7 +530,7 @@ namespace CumulusMX
 			}
 
 			cumulus.LogMessage("Downloading history from " + startfrom);
-			cumulus.LogConsoleMessage("Reading archive data from " + startfrom + " - please wait");
+			Cumulus.LogConsoleMessage("Reading archive data from " + startfrom + " - please wait");
 			//RegressLogs(cumulus.LastUpdateTime);
 			//bool valid = false;
 			int numrecs = GetNumberOfLogs();

@@ -30,7 +30,6 @@ namespace CumulusMX
 						startParams += args[i] + " ";
 
 						CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
-						CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
 					}
 					else if (args[i] == "-port" && args.Length >= i)
 					{
@@ -59,7 +58,7 @@ namespace CumulusMX
 		protected override void OnStop()
 		{
 			Program.cumulus.LogMessage("Shutting down due to SERVICE STOP");
-			Program.cumulus.LogConsoleMessage("Shutting down due to SERVICE STOP");
+			Cumulus.LogConsoleMessage("Shutting down due to SERVICE STOP");
 			Program.cumulus.Stop();
 			Program.exitSystem = true;
 		}
@@ -67,7 +66,7 @@ namespace CumulusMX
 		protected override void OnShutdown()
 		{
 			Program.cumulus.LogMessage("Shutting down due to SYSTEM SHUTDOWN");
-			Program.cumulus.LogConsoleMessage("Shutting down due to SYSTEM SHUTDOWN");
+			Cumulus.LogConsoleMessage("Shutting down due to SYSTEM SHUTDOWN");
 			Program.cumulus.Stop();
 			Program.exitSystem = true;
 			base.OnShutdown();
@@ -98,7 +97,7 @@ namespace CumulusMX
 					break;
 				case PowerBroadcastStatus.ResumeCritical:
 					Program.cumulus.LogMessage("POWER: Detected system RESUME CRITICAL, stopping service");
-					Program.cumulus.LogConsoleMessage("Detected system RESUME CRITICAL, stopping service");
+					Cumulus.LogConsoleMessage("Detected system RESUME CRITICAL, stopping service");
 					// A critical suspend will not have shutdown Cumulus, so do it now
 					Stop();
 					Program.exitSystem = true;
@@ -108,7 +107,7 @@ namespace CumulusMX
 					break;
 				case PowerBroadcastStatus.Suspend:
 					Program.cumulus.LogMessage("POWER: Detected system GOING TO STANDBY, stopping service");
-					Program.cumulus.LogConsoleMessage("Detected system GOING TO STANDBY, stopping service");
+					Cumulus.LogConsoleMessage("Detected system GOING TO STANDBY, stopping service");
 					Stop();
 					Program.exitSystem = true;
 					break;

@@ -10,11 +10,12 @@ using System.Timers;
 
 using ServiceStack;
 
-using static System.Collections.Specialized.BitVector32;
 
 namespace CumulusMX
 {
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal class DavisCloudStation : WeatherStation
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		private readonly System.Timers.Timer tmrCurrent;
 		private readonly System.Timers.Timer tmrHealth;
@@ -115,7 +116,7 @@ namespace CumulusMX
 				// The basic API details have not been supplied
 				cumulus.LogWarningMessage("WLL - No WeatherLink.com API configuration supplied, just going to work locally");
 				cumulus.LogMessage("WLL - Cannot start historic downloads or retrieve health data");
-				cumulus.LogConsoleMessage("*** No WeatherLink.com API details supplied. Cannot start station", ConsoleColor.DarkCyan);
+				Cumulus.LogConsoleMessage("*** No WeatherLink.com API details supplied. Cannot start station", ConsoleColor.DarkCyan);
 			}
 			else if (string.IsNullOrEmpty(cumulus.WllApiKey) || string.IsNullOrEmpty(cumulus.WllApiSecret))
 			{
@@ -123,12 +124,12 @@ namespace CumulusMX
 				if (string.IsNullOrEmpty(cumulus.WllApiKey))
 				{
 					cumulus.LogWarningMessage("WLL - Missing WeatherLink.com API Key");
-					cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Key. Cannot start station", ConsoleColor.Yellow);
+					Cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Key. Cannot start station", ConsoleColor.Yellow);
 				}
 				else
 				{
 					cumulus.LogWarningMessage("WLL - Missing WeatherLink.com API Secret");
-					cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Secret. Cannot start station", ConsoleColor.Yellow);
+					Cumulus.LogConsoleMessage("*** Missing WeatherLink.com API Secret. Cannot start station", ConsoleColor.Yellow);
 				}
 			}
 
@@ -141,7 +142,7 @@ namespace CumulusMX
 			{
 				var msg = "No WeatherLink API station ID in the cumulus.ini file";
 				cumulus.LogWarningMessage(msg);
-				cumulus.LogConsoleMessage(msg);
+				Cumulus.LogConsoleMessage(msg);
 
 				GetAvailableStationIds(true);
 			}
@@ -155,7 +156,7 @@ namespace CumulusMX
 			{
 				// API details supplied, but Station Id is still invalid - do not start the station up.
 				cumulus.LogErrorMessage("WLL - The WeatherLink.com API is enabled, but no Station Id has been configured, not starting the station. Please correct this and restart Cumulus");
-				cumulus.LogConsoleMessage("The WeatherLink.com API is enabled, but no Station Id has been configured. Please correct this and restart Cumulus", ConsoleColor.Yellow);
+				Cumulus.LogConsoleMessage("The WeatherLink.com API is enabled, but no Station Id has been configured. Please correct this and restart Cumulus", ConsoleColor.Yellow);
 				return;
 			}
 
@@ -281,7 +282,7 @@ namespace CumulusMX
 			{
 				const string msg = "No WeatherLink API station ID in the configuration";
 				cumulus.LogWarningMessage(msg);
-				cumulus.LogConsoleMessage("GetWlCurrent: " + msg);
+				Cumulus.LogConsoleMessage("GetWlCurrent: " + msg);
 
 			}
 
@@ -316,7 +317,7 @@ namespace CumulusMX
 				{
 					var error = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogErrorMessage($"GetWlCurrent: WeatherLink API Current Error: {error.code}, {error.message}");
-					cumulus.LogConsoleMessage($" - Error {error.code}: {error.message}", ConsoleColor.Red);
+					Cumulus.LogConsoleMessage($" - Error {error.code}: {error.message}", ConsoleColor.Red);
 					return;
 				}
 
@@ -395,7 +396,7 @@ namespace CumulusMX
 			{
 				const string msg = "No WeatherLink API station ID in the configuration";
 				cumulus.LogWarningMessage(msg);
-				cumulus.LogConsoleMessage("GetWlLastArchive: " + msg);
+				Cumulus.LogConsoleMessage("GetWlLastArchive: " + msg);
 
 			}
 
@@ -435,7 +436,7 @@ namespace CumulusMX
 				{
 					var error = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogWarningMessage($"GetWlLastArchive: WeatherLink API Historic Error: {error.code}, {error.message}");
-					cumulus.LogConsoleMessage($" - Error {error.code}: {error.message}", ConsoleColor.Red);
+					Cumulus.LogConsoleMessage($" - Error {error.code}: {error.message}", ConsoleColor.Red);
 					return;
 				}
 
@@ -1559,7 +1560,7 @@ namespace CumulusMX
 			{
 				const string msg = "No WeatherLink API station ID in the configuration";
 				cumulus.LogWarningMessage(msg);
-				cumulus.LogConsoleMessage("GetWlHistoricData: " + msg);
+				Cumulus.LogConsoleMessage("GetWlHistoricData: " + msg);
 
 			}
 
@@ -1576,7 +1577,7 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
+			Cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
 			cumulus.LogMessage($"GetWlHistoricData: Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
 
 			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId);
@@ -1622,7 +1623,7 @@ namespace CumulusMX
 				{
 					var historyError = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogErrorMessage($"GetWlHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
-					cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
+					Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
 					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
@@ -1630,7 +1631,7 @@ namespace CumulusMX
 				if (responseBody == "{}")
 				{
 					cumulus.LogWarningMessage("GetWlHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
-					cumulus.LogConsoleMessage(" - No historic data available");
+					Cumulus.LogConsoleMessage(" - No historic data available");
 					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
 					return;
 				}
@@ -1658,7 +1659,7 @@ namespace CumulusMX
 					if (noOfRecs == 0)
 					{
 						cumulus.LogMessage("GetWlHistoricData: No historic data available");
-						cumulus.LogConsoleMessage(" - No historic data available");
+						Cumulus.LogConsoleMessage(" - No historic data available");
 						cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
 						return;
 					}
@@ -3366,7 +3367,7 @@ namespace CumulusMX
 			if (cumulus.WllStationId < 10)
 			{
 				const string msg = "No WeatherLink API station ID in the cumulus.ini file";
-				cumulus.LogConsoleMessage("GetWlHistoricHealth: " + msg);
+				Cumulus.LogConsoleMessage("GetWlHistoricHealth: " + msg);
 				cumulus.LogWarningMessage($"WL Health: {msg}, aborting!");
 				return;
 			}
@@ -3523,7 +3524,7 @@ namespace CumulusMX
 					cumulus.LogMessage($"WLLStations: Found WeatherLink station id = {station.station_id}, name = {station.station_name}");
 					if (stationsObj.stations.Count > 1 && logToConsole)
 					{
-						cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}");
+						Cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}");
 					}
 					if (station.station_id == cumulus.WllStationId)
 					{
@@ -3542,7 +3543,7 @@ namespace CumulusMX
 				if (stationsObj.stations.Count > 1 && cumulus.WllStationId < 10)
 				{
 					if (logToConsole)
-						cumulus.LogConsoleMessage(" - Enter the required station id from the above list into your WLL configuration to enable history downloads.");
+						Cumulus.LogConsoleMessage(" - Enter the required station id from the above list into your WLL configuration to enable history downloads.");
 				}
 				else if (stationsObj.stations.Count == 1 && cumulus.WllStationId != stationsObj.stations[0].station_id)
 				{
@@ -3683,7 +3684,7 @@ namespace CumulusMX
 				if (responseCode != 200)
 				{
 					cumulus.LogWarningMessage($"GetSystemStatus: WeatherLink.com system status Error: {responseCode}");
-					cumulus.LogConsoleMessage($" - Error {responseCode}");
+					Cumulus.LogConsoleMessage($" - Error {responseCode}");
 					return;
 				}
 

@@ -21,8 +21,9 @@ namespace CumulusMX
 		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 		private bool reportStationType = true;
 		private int lastMinute = -1;
-		private EcowittApi ecowittApi;
+		private readonly EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
+		internal static readonly string[] commaSpace = new string[] { ", " };
 
 		public HttpStationEcowitt(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
@@ -853,11 +854,12 @@ namespace CumulusMX
 				{
 					if (data["stationtype"] != null)
 					{
-						var fwString = data["stationtype"].Split(new string[] { "_V" }, StringSplitOptions.None);
+						var separator = new string[] { "_V" };
+						var fwString = data["stationtype"].Split(separator, StringSplitOptions.None);
 						if (fwString.Length > 1)
 						{
 							// bug fix for WS90 which sends "stationtype=GW2000A_V2.1.0, runtime=253500"
-							var str = fwString[1].Split(new string[] { ", " }, StringSplitOptions.None)[0];
+							var str = fwString[1].Split(commaSpace, StringSplitOptions.None)[0];
 							GW1000FirmwareVersion = str;
 						}
 					}
@@ -1057,7 +1059,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessSoilMoistRaw(NameValueCollection data, WeatherStation station)
+		private static void ProcessSoilMoistRaw(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 16; i++)
 			{
@@ -1247,7 +1249,7 @@ namespace CumulusMX
 			cumulus.BatteryLowAlarm.Triggered = lowBatt;
 		}
 
-		private void ProcessExtraDewPoint(NameValueCollection data, WeatherStation station)
+		private static void ProcessExtraDewPoint(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{

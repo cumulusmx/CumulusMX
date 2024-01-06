@@ -11,7 +11,9 @@ using ServiceStack.Text;
 
 namespace CumulusMX
 {
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal class GW1000Station : WeatherStation
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		private string ipaddr;
 		private readonly string macaddr;
@@ -20,7 +22,7 @@ namespace CumulusMX
 		private int lastMinute;
 		private bool tenMinuteChanged = true;
 
-		private EcowittApi ecowittApi;
+		private readonly EcowittApi ecowittApi;
 		private readonly GW1000Api Api;
 
 		private int maxArchiveRuns = 1;
@@ -36,6 +38,9 @@ namespace CumulusMX
 		//private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
 		private Version fwVersion;
+		internal static readonly char[] dotSeparator = new char[] { '.' };
+		internal static readonly string[] underscoreV = new string[] { "_V" };
+
 		//private string gatewayType;
 
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
@@ -387,7 +392,7 @@ namespace CumulusMX
 										Array.Copy(recevBuffer, 18, nameArr, 0, nameLen);
 										var name = Encoding.UTF8.GetString(nameArr, 0, nameArr.Length);
 
-										if (ipAddr.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Length == 4)
+										if (ipAddr.Split(dotSeparator, StringSplitOptions.RemoveEmptyEntries).Length == 4)
 										{
 											IPAddress ipAddr2;
 											if (IPAddress.TryParse(ipAddr, out ipAddr2))
@@ -446,7 +451,7 @@ namespace CumulusMX
 					// We didn't find anything on the network
 					msg = "Failed to discover any Ecowitt devices";
 					cumulus.LogWarningMessage(msg);
-					cumulus.LogConsoleMessage(msg, ConsoleColor.DarkYellow, true);
+					Cumulus.LogConsoleMessage(msg, ConsoleColor.DarkYellow, true);
 					return false;
 				}
 				else if (discoveredDevices.IP.Count == 1 && (string.IsNullOrEmpty(macaddr) || discoveredDevices.Mac[0] == macaddr))
@@ -494,15 +499,15 @@ namespace CumulusMX
 					string iplist = "";
 					msg = "Discovered more than one potential Ecowitt device.";
 					cumulus.LogWarningMessage(msg);
-					cumulus.LogConsoleMessage(msg);
+					Cumulus.LogConsoleMessage(msg);
 					msg = "Please select the IP address from the list and enter it manually into the configuration";
 					cumulus.LogMessage(msg);
-					cumulus.LogConsoleMessage(msg);
+					Cumulus.LogConsoleMessage(msg);
 
 					for (var i = 0; i < discoveredDevices.IP.Count; i++)
 					{
 						msg = $"Device={discoveredDevices.Name[i]}, IP={discoveredDevices.IP[i]}";
-						cumulus.LogConsoleMessage(msg);
+						Cumulus.LogConsoleMessage(msg);
 						cumulus.LogMessage(msg);
 						iplist += discoveredDevices.IP[i] + " ";
 					}
@@ -516,7 +521,7 @@ namespace CumulusMX
 			{
 				var msg = "No IP address configured or discovered for your GW1000, please remedy and restart Cumulus MX";
 				cumulus.LogErrorMessage(msg);
-				cumulus.LogConsoleMessage(msg);
+				Cumulus.LogConsoleMessage(msg);
 				return false;
 			}
 
@@ -532,12 +537,12 @@ namespace CumulusMX
 			if (Api.Connected)
 			{
 				cumulus.LogMessage("Connected OK");
-				cumulus.LogConsoleMessage("Connected to station", ConsoleColor.White, true);
+				Cumulus.LogConsoleMessage("Connected to station", ConsoleColor.White, true);
 			}
 			else
 			{
 				cumulus.LogErrorMessage("Not Connected");
-				cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red, true);
+				Cumulus.LogConsoleMessage("Unable to connect to station", ConsoleColor.Red, true);
 			}
 
 			if (Api.Connected)
@@ -547,7 +552,7 @@ namespace CumulusMX
 				cumulus.LogMessage($"Ecowitt firmware version: {GW1000FirmwareVersion}");
 				if (GW1000FirmwareVersion != "???")
 				{
-					var fwString = GW1000FirmwareVersion.Split(new string[] { "_V" }, StringSplitOptions.None);
+					var fwString = GW1000FirmwareVersion.Split(underscoreV, StringSplitOptions.None);
 					if (fwString.Length > 1)
 					{
 						//gatewayType = fwString[0];
@@ -1397,7 +1402,7 @@ namespace CumulusMX
 				var autoDST = data[11] != 0;
 
 				// Ecowitt do not understand Unix time and add the local TZ offset and DST to it!
-				var offset = TimeZone.CurrentTimeZone.GetUtcOffset(now);
+				var offset = TimeZoneInfo.Local.GetUtcOffset(now);
 				if (autoDST && TimeZoneInfo.Local.IsDaylightSavingTime(date))
 				{
 					unix -= (int) Math.Round(offset.TotalSeconds);

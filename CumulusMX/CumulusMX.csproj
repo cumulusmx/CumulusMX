@@ -51,11 +51,11 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EmbedIO" Version="3.5.2" />
-    <PackageReference Include="FluentFTP" Version="48.0.3" />
+    <PackageReference Include="FluentFTP" Version="49.0.1" />
     <PackageReference Include="HidSharp" Version="2.1.0" />
     <PackageReference Include="MailKit" Version="4.3.0" />
-    <PackageReference Include="MQTTnet" Version="4.3.2.930" />
-    <PackageReference Include="MySqlConnector" Version="2.3.1" />
+    <PackageReference Include="MQTTnet" Version="4.3.3.952" />
+    <PackageReference Include="MySqlConnector" Version="2.3.3" />
     <PackageReference Include="ServiceStack.Text" Version="8.0.0" />
     <PackageReference Include="SSH.NET" Version="2023.0.0" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
@@ -75,8 +75,11 @@
     <OutputType>Exe</OutputType>
     <StartupObject>CumulusMX.Program</StartupObject>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <Copyright>Copyright ©  2015-2023 Cumulus MX</Copyright>
-    <Version>3.28.0.3269</Version>
+    <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
+    <Version>3.28.1.3278</Version>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="echo.&#xD;&#xA;echo Starting post-build tasks&#xD;&#xA;echo Copy Updates.txt&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(TargetDir)\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;echo copy sqlite 32&#xD;&#xA;xcopy &quot;$(ProjectDir)\Libs\sqlite3-x86.dll&quot; &quot;$(TargetDir)\x86\sqlite3.dll&quot; /D /-I /Q /Y&#xD;&#xA;echo copy sqlite 64&#xD;&#xA;xcopy &quot;$(ProjectDir)\Libs\sqlite3-x64.dll&quot; &quot;$(TargetDir)\x64\sqlite3.dll&quot; /D /-I /Q /Y&#xD;&#xA;echo.&#xD;&#xA;echo Update Distribution folder&#xD;&#xA;echo copy MX exe&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo copy MX config&#xD;&#xA;xcopy &quot;$(TargetPath).config&quot; &quot;$(SolutionDir)..\CumulusMX-Dist\CumulusMX&quot; /D /-I /Q /Y&#xD;&#xA;echo recreate hash file&#xD;&#xA;cd &quot;$(SolutionDir)..\CumulusMX-Dist&quot;&#xD;&#xA;powershell -NoProfile -ExecutionPolicy Bypass -Command .\_CreateDistHashFile.ps1" />

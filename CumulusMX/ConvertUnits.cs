@@ -1,5 +1,4 @@
-﻿
-namespace CumulusMX
+﻿namespace CumulusMX
 {
 	internal static class ConvertUnits
 	{

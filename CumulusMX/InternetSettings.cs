@@ -10,6 +10,8 @@ using EmbedIO;
 
 using ServiceStack;
 
+using static CumulusMX.Cumulus;
+
 
 namespace CumulusMX
 {
@@ -535,7 +537,17 @@ namespace CumulusMX
 		public string GetExtraWebFilesData()
 		{
 			var json = new StringBuilder(10240);
-			json.Append("{\"metadata\":[{\"name\":\"local\",\"label\":\"Local Filename\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"remote\",\"label\":\"Destination Filename\",\"datatype\":\"string\",\"editable\":true},{\"name\":\"process\",\"label\":\"Process\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"realtime\",\"label\":\"Realtime\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"ftp\",\"label\":\"Upload\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"utf8\",\"label\":\"UTF8\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"binary\",\"label\":\"Binary\",\"datatype\":\"boolean\",\"editable\":true},{\"name\":\"endofday\",\"label\":\"End of day\",\"datatype\":\"boolean\",\"editable\":true}],\"data\":[");
+			json.Append("{\"metadata\":[" +
+				"{\"name\":\"local\",\"label\":\"Local Filename\",\"datatype\":\"string\",\"editable\":true}," +
+				"{\"name\":\"remote\",\"label\":\"Destination Filename\",\"datatype\":\"string\",\"editable\":true}," +
+				"{\"name\":\"process\",\"label\":\"Process\",\"datatype\":\"boolean\",\"editable\":true}," +
+				"{\"name\":\"realtime\",\"label\":\"Realtime\",\"datatype\":\"boolean\",\"editable\":true}," +
+				"{\"name\":\"ftp\",\"label\":\"Upload\",\"datatype\":\"boolean\",\"editable\":true}," +
+				"{\"name\":\"utf8\",\"label\":\"UTF8\",\"datatype\":\"boolean\",\"editable\":true}," +
+				"{\"name\":\"binary\",\"label\":\"Binary\",\"datatype\":\"boolean\",\"editable\":true}," +
+				"{\"name\":\"endofday\",\"label\":\"End of day\",\"datatype\":\"boolean\",\"editable\":true}," +
+				"{\"name\":\"inclogfile\",\"label\":\"Incremental\",\"datatype\":\"boolean\",\"editable\":true}" +
+				"],\"data\":[");
 
 			for (int i = 0; i < Cumulus.numextrafiles; i++)
 			{
@@ -548,8 +560,10 @@ namespace CumulusMX
 				string utf8 = cumulus.ExtraFiles[i].UTF8 ? "true" : "false";
 				string binary = cumulus.ExtraFiles[i].binary ? "true" : "false";
 				string endofday = cumulus.ExtraFiles[i].endofday ? "true" : "false";
+				// binary and incremental are mutually exclusive
+				string inclogfile = cumulus.ExtraFiles[i].incrementalLogfile ? (cumulus.ExtraFiles[i].binary ? "false" : "true") : "false";
 				json.Append('{');
-				json.Append($"\"id\":{(i + 1)},\"values\":[\"{local}\",\"{remote}\",\"{process}\",\"{realtime}\",\"{ftp}\",\"{utf8}\",\"{binary}\",\"{endofday}\"]");
+				json.Append($"\"id\":{(i + 1)},\"values\":[\"{local}\",\"{remote}\",\"{process}\",\"{realtime}\",\"{ftp}\",\"{utf8}\",\"{binary}\",\"{endofday}\",\"{inclogfile}\"]");
 				json.Append('}');
 
 				if (i < Cumulus.numextrafiles - 1)
@@ -611,9 +625,39 @@ namespace CumulusMX
 						// end of day
 						cumulus.ExtraFiles[entry].endofday = value == "true";
 						break;
+					case 8:
+						// incremental log file
+						cumulus.ExtraFiles[entry].incrementalLogfile = cumulus.ExtraFiles[entry].binary ? false : value == "true";
+						cumulus.ExtraFiles[entry].logFileLastLineNumber = 0;
+						cumulus.ExtraFiles[entry].logFileLastFileName = string.Empty;
+						break;
 				}
+
 				// Save the settings
 				cumulus.WriteIniFile();
+
+				cumulus.ActiveExtraFiles.Clear();
+
+				for (var i = 0; i < cumulus.ExtraFiles.Length; i++)
+				{
+					if (cumulus.ExtraFiles[i].local != string.Empty && cumulus.ExtraFiles[i].remote != string.Empty)
+					{
+						cumulus.ActiveExtraFiles.Add(new CExtraFiles
+						{
+							local = cumulus.ExtraFiles[i].local,
+							remote = cumulus.ExtraFiles[i].remote,
+							binary = cumulus.ExtraFiles[i].binary,
+							process = cumulus.ExtraFiles[i].process,
+							realtime = cumulus.ExtraFiles[i].realtime,
+							FTP = cumulus.ExtraFiles[i].FTP,
+							UTF8 = cumulus.ExtraFiles[i].UTF8,
+							endofday = cumulus.ExtraFiles[i].endofday,
+							incrementalLogfile = cumulus.ExtraFiles[i].incrementalLogfile,
+							logFileLastFileName = string.Empty,
+							logFileLastLineNumber = 0
+						});
+					}
+				}
 
 				context.Response.StatusCode = 200;
 			}

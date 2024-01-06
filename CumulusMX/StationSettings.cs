@@ -441,7 +441,7 @@ namespace CumulusMX
 			return JsonSerializer.SerializeToString(data);
 		}
 
-		private void LongToDMS(decimal longitude, out int d, out int m, out int s, out string hem)
+		private static void LongToDMS(decimal longitude, out int d, out int m, out int s, out string hem)
 		{
 			decimal coordinate;
 			if (longitude < 0)
@@ -464,7 +464,7 @@ namespace CumulusMX
 			d = secs / 60;
 		}
 
-		private void LatToDMS(decimal latitude, out int d, out int m, out int s, out string hem)
+		private static void LatToDMS(decimal latitude, out int d, out int m, out int s, out string hem)
 		{
 			decimal coordinate;
 			if (latitude < 0)
@@ -1223,7 +1223,7 @@ namespace CumulusMX
 					if (cumulus.StationType != settings.general.stationtype)
 					{
 						cumulus.LogWarningMessage("Station type changed, restart required");
-						cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow, true);
+						Cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow, true);
 					}
 					cumulus.StationType = settings.general.stationtype;
 					cumulus.StationModel = settings.general.stationmodel;
@@ -1350,8 +1350,19 @@ namespace CumulusMX
 					cumulus.NOAAconf.NeedCopy = true;
 				}
 
+				// flag the incremental log files for full upload
+				if (options.logfiles)
+				{
+					cumulus.LogDebugMessage("Upload Now: Flagging incremental log files for full upload rather than incremental");
+					for (var i = 0; i < cumulus.ActiveExtraFiles.Count; i++)
+					{
+						cumulus.ActiveExtraFiles[i].logFileLastLineNumber = 0;
+					}
+				}
+
 				try
 				{
+					cumulus.LogDebugMessage("Upload Now: Starting the main update process in the background");
 					cumulus.WebUpdating = 1;
 					cumulus.ftpThread = new Thread(() => cumulus.DoHTMLFiles()) { IsBackground = true };
 					cumulus.ftpThread.Start();
@@ -1378,6 +1389,7 @@ namespace CumulusMX
 			public bool dailygraphs { get; set; }
 			public bool noaa { get; set; }
 			public bool graphs { get; set; }
+			public bool logfiles { get; set; }
 		}
 
 		internal string SetSelectaChartOptions(IHttpContext context)

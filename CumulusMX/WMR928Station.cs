@@ -57,7 +57,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage($"Error opening com port [{cumulus.ComportName}]: {ex.Message}");
-				cumulus.LogConsoleMessage($"Error opening com port [{cumulus.ComportName}]: {ex.Message}");
+				Cumulus.LogConsoleMessage($"Error opening com port [{cumulus.ComportName}]: {ex.Message}");
 			}
 		}
 
@@ -178,7 +178,7 @@ namespace CumulusMX
 			}
 		}
 
-		private bool WMR928valid(List<int> s, out int csum) // Validates a WMR928 packet
+		private static bool WMR928valid(List<int> s, out int csum) // Validates a WMR928 packet
 		{
 			bool result;
 
@@ -320,11 +320,11 @@ namespace CumulusMX
 			}
 		}
 
-		private void WMR928Clock(List<int> buff)
+		private static void WMR928Clock(List<int> buff)
 		{
 		}
 
-		private void WMR928Minute(List<int> buff)
+		private static void WMR928Minute(List<int> buff)
 		{
 		}
 
@@ -595,7 +595,7 @@ namespace CumulusMX
 			DoForecast(forecast, false);
 		}
 
-		private double ExtractTemp(int byteOne, int byteTwo)
+		private static double ExtractTemp(int byteOne, int byteTwo)
 		{
 			double temp10 = BCDchartoint(byteOne) + ((BCDchartoint(byteTwo) % 10) * 100);
 			if (byteTwo / 16 == 8) temp10 = -temp10;

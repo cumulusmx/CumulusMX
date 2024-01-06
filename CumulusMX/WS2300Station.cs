@@ -390,7 +390,7 @@ namespace CumulusMX
 			}
 		}
 
-		private DateTime ws2300TimestampToDateTime(Timestamp ts)
+		private static DateTime ws2300TimestampToDateTime(Timestamp ts)
 		{
 			return new DateTime(ts.year, ts.month, ts.day, ts.hour, ts.minute, 0);
 		}
@@ -1274,7 +1274,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="number"></param>
 		/// <returns></returns>
-		private byte ws2300commandChecksum4(int number)
+		private static byte ws2300commandChecksum4(int number)
 		{
 			return (byte) (number + 0x30);
 		}
@@ -1285,7 +1285,7 @@ namespace CumulusMX
 		/// <param name="data"></param>
 		/// <param name="numberofbytes"></param>
 		/// <returns></returns>
-		private byte dataChecksum(byte[] data, int numberofbytes)
+		private static byte dataChecksum(byte[] data, int numberofbytes)
 		{
 			int checksum = 0;
 
@@ -1302,7 +1302,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="number">number to be encoded</param>
 		/// <returns></returns>
-		private byte ws2300encodeNumberOfBytes(int number)
+		private static byte ws2300encodeNumberOfBytes(int number)
 		{
 			byte encodednumber;
 
@@ -1320,7 +1320,7 @@ namespace CumulusMX
 		/// <param name="command"></param>
 		/// <param name="sequence"></param>
 		/// <returns></returns>
-		private byte ws2300commandChecksum0to3(byte command, int sequence)
+		private static byte ws2300commandChecksum0to3(byte command, int sequence)
 		{
 			return (byte) (sequence * 16 + ((command) - 0x82) / 4);
 		}
@@ -1347,7 +1347,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="addressIn">Address to be encoded</param>
 		/// <param name="addressOut">Encoded address</param>
-		private void ws2300EncodeAddress(int addressIn, byte[] addressOut)
+		private static void ws2300EncodeAddress(int addressIn, byte[] addressOut)
 		{
 			const int numbytes = 4;
 

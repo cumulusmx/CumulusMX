@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Threading;
 
 using EmbedIO;
 
@@ -100,6 +98,7 @@ namespace CumulusMX
 		{
 			var errorMsg = "";
 			var json = "";
+			var returnMessage = "success";
 			JsonProgramSettings settings;
 			context.Response.StatusCode = 200;
 
@@ -153,7 +152,13 @@ namespace CumulusMX
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
-				cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
+
+				// Does the culture need to be tweaked - either way
+				if (cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator != settings.culture.removespacefromdateseparator)
+				{
+					cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
+					returnMessage = "You must restart Cumulus for the Locale setting change to take effect";
+				}
 
 				cumulus.ProgramOptions.SecureSettings = settings.security.securesettings;
 				cumulus.ProgramOptions.SettingsUsername = (settings.security.username ?? string.Empty).Trim();
@@ -166,30 +171,6 @@ namespace CumulusMX
 				else
 					cumulus.ProgramOptions.TimeFormatLong = "HH:mm:ss";
 
-
-				if (cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
-				{
-					// get the existing culture
-					var newCulture = CultureInfo.CurrentCulture;
-					// change the date separator
-					newCulture.DateTimeFormat.DateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
-					// set current thread culture
-					Thread.CurrentThread.CurrentCulture = newCulture;
-					// set the default culture for other threads
-					CultureInfo.DefaultThreadCurrentCulture = newCulture;
-				}
-				else
-				{
-					var newCulture = CultureInfo.GetCultureInfo(CultureInfo.CurrentCulture.Name);
-
-					if (!cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator && newCulture.DateTimeFormat.DateSeparator.Contains(" ") && !CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(" "))
-					{
-						// set current thread culture
-						Thread.CurrentThread.CurrentCulture = newCulture;
-						// set the default culture for other threads
-						CultureInfo.DefaultThreadCurrentCulture = newCulture;
-					}
-				}
 
 				if (settings.logging.ftplogging != cumulus.FtpOptions.Logging)
 				{
@@ -212,7 +193,7 @@ namespace CumulusMX
 			// Save the settings
 			cumulus.WriteIniFile();
 
-			return context.Response.StatusCode == 200 ? "success" : errorMsg;
+			return context.Response.StatusCode == 200 ? returnMessage : errorMsg;
 		}
 	}
 
