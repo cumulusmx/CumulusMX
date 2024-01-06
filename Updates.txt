@@ -1,4 +1,4 @@
-3.28.1 - b3277
+3.28.1 - b3278
 ——————————————
 New
 - PHP upload max connections per server now configurable, the default value is reduced from 20 to 5
