@@ -23,7 +23,7 @@ namespace CumulusMX
 		private int lastMinute = -1;
 		private readonly EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
-		internal static readonly string[] commaSpace = new string[] { ", " };
+		internal static readonly string[] commaSpace = [", "];
 
 		public HttpStationEcowitt(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{

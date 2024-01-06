@@ -38,8 +38,8 @@ namespace CumulusMX
 		//private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
 		private Version fwVersion;
-		internal static readonly char[] dotSeparator = new char[] { '.' };
-		internal static readonly string[] underscoreV = new string[] { "_V" };
+		internal static readonly char[] dotSeparator = ['.'];
+		internal static readonly string[] underscoreV = ["_V"];
 
 		//private string gatewayType;
 
@@ -1713,9 +1713,9 @@ namespace CumulusMX
 
 			public Discovery()
 			{
-				IP = new List<string>();
-				Name = new List<string>();
-				Mac = new List<string>();
+				IP = [];
+				Name = [];
+				Mac = [];
 			}
 		}
 

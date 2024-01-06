@@ -566,7 +566,7 @@ namespace CumulusMX
 
 		private class JsonGraphVisAq
 		{
-			public JsonGraphVisAqSensor[] sensors { get; set; } = new JsonGraphVisAqSensor[] { new JsonGraphVisAqSensor(), new JsonGraphVisAqSensor(), new JsonGraphVisAqSensor(), new JsonGraphVisAqSensor() };
+			public JsonGraphVisAqSensor[] sensors { get; set; } = [new(), new(), new(), new()];
 		}
 
 		private class JsonGraphVisAqSensor

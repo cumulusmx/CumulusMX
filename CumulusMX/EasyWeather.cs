@@ -125,7 +125,7 @@ namespace CumulusMX
 					cumulus.LogDataMessage("Data: " + line);
 
 					// split string on commas and spaces
-					char[] charSeparators = { ',', ' ' };
+					char[] charSeparators = [',', ' '];
 
 					var st = line.Split(charSeparators, StringSplitOptions.RemoveEmptyEntries);
 

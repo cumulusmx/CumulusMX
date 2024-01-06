@@ -26,15 +26,15 @@ namespace CumulusMX
 		private readonly string ipaddr;
 		private readonly System.Timers.Timer tmrCurrent;
 		private System.Timers.Timer tmrHealth;
-		private readonly object threadSafer = new object();
-		private static readonly SemaphoreSlim WebReq = new SemaphoreSlim(1);
+		private readonly object threadSafer = new();
+		private static readonly SemaphoreSlim WebReq = new(1);
 		private bool startupDayResetIfRequired = true;
 		private int maxArchiveRuns = 1;
 
 		private const int WeatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
 
 		//private bool alVoltageLow = false;
-		private readonly List<WlSensor> sensorList = new List<WlSensor>();
+		private readonly List<WlSensor> sensorList = [];
 		private readonly int healthLsid;
 		private bool updateInProgress;
 		private readonly bool indoor;
@@ -43,7 +43,7 @@ namespace CumulusMX
 		private readonly bool standaloneHistory; // Used to flag if we need to get history data on catch-up
 		private DateTime airLinkLastUpdateTime;
 
-		private readonly DiscoveredDevices discovered = new DiscoveredDevices();
+		private readonly DiscoveredDevices discovered = new();
 
 		public DavisAirLink(Cumulus cumulus, bool indoor, WeatherStation station)
 		{
@@ -1734,8 +1734,8 @@ namespace CumulusMX
 
 			public DiscoveredDevices()
 			{
-				IP = new List<string>();
-				Hostname = new List<string>();
+				IP = [];
+				Hostname = [];
 			}
 		}
 	}

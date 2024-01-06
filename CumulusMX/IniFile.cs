@@ -18,7 +18,7 @@ namespace CumulusMX
 		#region "Declarations"
 
 		// *** Lock for thread-safe access to file and local cache ***
-		private readonly object m_Lock = new object();
+		private readonly object m_Lock = new();
 
 		// *** File name ***
 		private string m_FileName = null;
@@ -34,11 +34,11 @@ namespace CumulusMX
 		private bool m_Lazy = false;
 
 		// *** Local cache ***
-		private readonly Dictionary<string, Dictionary<string, string>> m_Sections = new Dictionary<string, Dictionary<string, string>>();
+		private readonly Dictionary<string, Dictionary<string, string>> m_Sections = [];
 
 		// *** Local cache modified flag ***
 		private bool m_CacheModified = false;
-		internal static readonly string[] quoteCommaQuote = new string[] { "\",\"" };
+		internal static readonly string[] quoteCommaQuote = ["\",\""];
 
 		#endregion
 
@@ -107,7 +107,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									CurrentSection = new Dictionary<string, string>();
+									CurrentSection = [];
 									m_Sections.Add(SectionName, CurrentSection);
 								}
 							}
@@ -272,7 +272,7 @@ namespace CumulusMX
 				if (!m_Sections.TryGetValue(SectionName, out Section))
 				{
 					// *** If it doesn't, add it ***
-					Section = new Dictionary<string, string>();
+					Section = [];
 					m_Sections.Add(SectionName, Section);
 				}
 

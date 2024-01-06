@@ -574,7 +574,7 @@ namespace CumulusMX
 			public CommandPayload(Commands command) : this()
 			{
 				// header, header, command, size, checksum
-				Data = new byte[] { 0xff, 0xff, (byte) command, 3, (byte) (command + 3) };
+				Data = [0xff, 0xff, (byte) command, 3, (byte) (command + 3)];
 			}
 			public byte[] Serialise()
 			{

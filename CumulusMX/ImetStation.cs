@@ -298,7 +298,7 @@ namespace CumulusMX
 
 		private List<string> GetArchiveRecord()
 		{
-			List<string> sl = new List<string>();
+			List<string> sl = [];
 			cumulus.LogMessage("Get next log - RDLG,1");
 			// request the archive data
 			SendCommand("RDLG,1");

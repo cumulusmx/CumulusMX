@@ -26,10 +26,10 @@ namespace CumulusMX
 		private int wlStationArchiveInterval = 5;
 		private bool wlLastArchiveFetchOk;
 		private bool wllVoltageLow;
-		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
+		private readonly AutoResetEvent bwDoneEvent = new(false);
 		private List<WlSensorListSensor> sensorList;
 		private bool startingUp = true;
-		private new readonly Random random = new Random();
+		private new readonly Random random = new();
 		private DateTime lastRecordTime = DateTime.MinValue;
 
 		public DavisCloudStation(Cumulus cumulus) : base(cumulus)

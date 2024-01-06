@@ -10,7 +10,7 @@ namespace CumulusMX
 	public class ApiTagProcessor
 	{
 		private readonly Cumulus cumulus;
-		private readonly object lockObject = new object();
+		private readonly object lockObject = new();
 
 		internal ApiTagProcessor(Cumulus cumulus)
 		{

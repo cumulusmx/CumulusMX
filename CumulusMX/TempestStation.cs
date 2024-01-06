@@ -508,7 +508,7 @@ namespace CumulusMX.Tempest
 
 		public static List<Observation> GetRestPacket(string url, string token, int deviceId, DateTime start, DateTime end, Cumulus c)
 		{
-			List<Observation> ret = new List<Observation>();
+			List<Observation> ret = [];
 			cumulus = c;
 
 			using (var httpClient = new HttpClient())

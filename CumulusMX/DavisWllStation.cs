@@ -20,9 +20,7 @@ using Tmds.MDns;
 
 namespace CumulusMX
 {
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable
-	internal class DavisWllStation : WeatherStation
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
+	internal partial class DavisWllStation : WeatherStation
 	{
 		private string ipaddr;
 		private int port;
@@ -31,8 +29,8 @@ namespace CumulusMX
 		private readonly System.Timers.Timer tmrCurrent;
 		private readonly System.Timers.Timer tmrBroadcastWatchdog;
 		private readonly System.Timers.Timer tmrHealth;
-		private readonly object threadSafer = new object();
-		private static readonly SemaphoreSlim WebReq = new SemaphoreSlim(1, 1);
+		private readonly object threadSafer = new();
+		private static readonly SemaphoreSlim WebReq = new(1, 1);
 		private bool startupDayResetIfRequired = true;
 		//private bool savedUseSpeedForAvgCalc;
 		private bool savedCalculatePeakGust;
@@ -42,8 +40,8 @@ namespace CumulusMX
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
 		private bool wllVoltageLow;
 		private Task broadcastTask;
-		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
-		private readonly List<WlSensor> sensorList = new List<WlSensor>();
+		private readonly AutoResetEvent bwDoneEvent = new(false);
+		private readonly List<WlSensor> sensorList = [];
 		private readonly bool useWeatherLinkDotCom = true;
 		//private readonly bool checkWllGustValues;
 
@@ -75,12 +73,12 @@ namespace CumulusMX
 					return DateTime.MinValue;
 				}
 
-				if (datetimeStr.EndsWith("Z") &&
+				if (datetimeStr.EndsWith('Z') &&
 					DateTime.TryParseExact(datetimeStr, utcTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime resultUtc))
 				{
 					return resultUtc;
 				}
-				else if (!datetimeStr.EndsWith("Z") &&
+				else if (!datetimeStr.EndsWith('Z') &&
 					DateTime.TryParseExact(datetimeStr, localTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime resultLocal))
 				{
 					return resultLocal;
@@ -688,9 +686,9 @@ namespace CumulusMX
 				{
 					// Yuck, we have to find the data type in the string, then we know how to decode it to the correct object type
 					int start = rec.IndexOf("data_structure_type:") + "data_structure_type:".Length;
-					int end = rec.IndexOf(",", start);
+					int end = rec.IndexOf(',', start);
 
-					int type = int.Parse(rec.Substring(start, end - start));
+					int type = int.Parse(rec[start..end]);
 					string idx = "";
 
 					switch (type)
@@ -1356,34 +1354,25 @@ namespace CumulusMX
 		private double ConvertRainClicksToUser(double clicks, int size)
 		{
 			// 0: Reserved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
-			switch (size)
+			return size switch
 			{
-				case 1:
-					return ConvertUnits.RainINToUser(clicks * 0.01);
-				case 2:
-					return ConvertUnits.RainMMToUser(clicks * 0.2);
-				case 3:
-					return ConvertUnits.RainMMToUser(clicks * 0.1);
-				case 4:
-					return ConvertUnits.RainINToUser(clicks * 0.001);
-				default:
-					switch (cumulus.DavisOptions.RainGaugeType)
-					{
-						// Hmm, no valid tip size from WLL...
-						// One click is normally either 0.01 inches or 0.2 mm
-						// Try the setting in Cumulus.ini
-						// Rain gauge type not configured, assume from units
-						case -1 when cumulus.Units.Rain == 0:
-							return clicks * 0.2;
-						case -1:
-							return clicks * 0.01;
-						// Rain gauge is metric, convert to user unit
-						case 0:
-							return ConvertUnits.RainMMToUser(clicks * 0.2);
-						default:
-							return ConvertUnits.RainINToUser(clicks * 0.01);
-					}
-			}
+				1 => ConvertUnits.RainINToUser(clicks * 0.01),
+				2 => ConvertUnits.RainMMToUser(clicks * 0.2),
+				3 => ConvertUnits.RainMMToUser(clicks * 0.1),
+				4 => ConvertUnits.RainINToUser(clicks * 0.001),
+				_ => cumulus.DavisOptions.RainGaugeType switch
+				{
+					// Hmm, no valid tip size from WLL...
+					// One click is normally either 0.01 inches or 0.2 mm
+					// Try the setting in Cumulus.ini
+					// Rain gauge type not configured, assume from units
+					-1 when cumulus.Units.Rain == 0 => clicks * 0.2,
+					-1 => clicks * 0.01,
+					// Rain gauge is metric, convert to user unit
+					0 => ConvertUnits.RainMMToUser(clicks * 0.2),
+					_ => ConvertUnits.RainINToUser(clicks * 0.01),
+				},
+			};
 		}
 
 		private static bool CheckIpValid(string strIp)
@@ -3033,8 +3022,6 @@ namespace CumulusMX
 		// Return true if only 1 result is found, else return false
 		private void GetAvailableStationIds(bool logToConsole = false)
 		{
-			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
-
 			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
 			{
 				cumulus.LogWarningMessage("WLLStations: Missing WeatherLink API data in the cumulus.ini file, aborting!");
@@ -3058,7 +3045,7 @@ namespace CumulusMX
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
-					var resp = System.Text.RegularExpressions.Regex.Replace(responseBody, "user_email\":\"[^\"]*\"", "user_email\":\"<<email>>\"");
+					var resp = regexUserEmail().Replace(responseBody, "user_email\":\"<<email>>\"");
 					cumulus.LogDebugMessage($"WLLStations: WeatherLink API Response: {responseCode}: {resp}");
 				}
 
@@ -3115,8 +3102,6 @@ namespace CumulusMX
 
 		private void GetAvailableSensors()
 		{
-			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
-
 			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
 			{
 				cumulus.LogWarningMessage("GetAvailableSensors: WeatherLink API data is missing in the configuration, aborting!");
@@ -3133,7 +3118,7 @@ namespace CumulusMX
 
 			cumulus.LogDebugMessage($"GetAvailableSensors: URL = {stationsUrl.Replace(cumulus.WllApiKey, "API_KEY")}");
 
-			WlSensorList sensorsObj = new WlSensorList();
+			WlSensorList sensorsObj;
 
 			try
 			{
@@ -3450,5 +3435,8 @@ namespace CumulusMX
 			public double? dew_point_in { get; set; }
 			public double? heat_index_in { get; set; }
 		}
+
+		[System.Text.RegularExpressions.GeneratedRegex("user_email\":\"[^\"]*\"")]
+		private static partial System.Text.RegularExpressions.Regex regexUserEmail();
 	}
 }

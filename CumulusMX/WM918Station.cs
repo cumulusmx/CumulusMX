@@ -14,7 +14,7 @@ namespace CumulusMX
 		private const int WM918RainData = 0xBF;
 		private const int WM918WindData = 0xCF;
 
-		private readonly int[] WM918PacketLength = { 0, 0, 0, 0, 0, 0, 0, 0, 35, 34, 31, 14, 27, 0, 0, 0, 255 };
+		private readonly int[] WM918PacketLength = [0, 0, 0, 0, 0, 0, 0, 0, 35, 34, 31, 14, 27, 0, 0, 0, 255];
 
 		private int currentPacketLength;
 		private int currentPacketType;

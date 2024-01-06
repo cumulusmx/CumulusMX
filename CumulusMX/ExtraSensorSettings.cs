@@ -94,7 +94,7 @@ namespace CumulusMX
 				usemain = cumulus.EcowittExtraUseMainForwarders
 			};
 
-			ecowitt.forwarders.forward = new List<JsonEcowittForwardList>();
+			ecowitt.forwarders.forward = [];
 			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.EcowittExtraForwarders[i]))

@@ -24,79 +24,79 @@ namespace CumulusMX
 		// Meeus first edition table 45.A Longitude and distance of the moon
 
 		private static readonly int[] T45AD =
-		{
+		[
 			0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 1, 0, 2, 0, 0, 4, 0, 4, 2, 2, 1, 1, 2, 2, 4, 2, 0, 2, 2, 1, 2, 0, 0, 2, 2, 2, 4, 0, 3, 2, 4, 0, 2, 2, 2, 4, 0, 4, 1,
 			2, 0, 1, 3, 4, 2, 0, 1, 2, 2
-		};
+		];
 
 		private static readonly int[] T45AM =
-		{
+		[
 			0, 0, 0, 0, 1, 0, 0, -1, 0, -1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, -1, 0, 0, 0, 1, 0, -1, 0, -2, 1, 2, -2, 0, 0, -1, 0, 0, 1, -1, 2, 2, 1, -1, 0,
 			0, -1, 0, 1, 0, 1, 0, 0, -1, 2, 1, 0, 0
-		};
+		];
 
 		private static readonly int[] T45AMP =
-		{
+		[
 			1, -1, 0, 2, 0, 0, -2, -1, 1, 0, -1, 0, 1, 0, 1, 1, -1, 3, -2, -1, 0, -1, 0, 1, 2, 0, -3, -2, -1, -2, 1, 0, 2, 0, -1, 1, 0, -1, 2, -1, 1, -2, -1, -1,
 			-2, 0, 1, 4, 0, -2, 0, 2, 1, -2, -3, 2, 1, -1, 3, -1
-		};
+		];
 
 		private static readonly int[] T45AF =
-		{
+		[
 			0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, -2, 2, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, -2, 2, 0, 2, 0, 0, 0, 0, 0, 0, -2, 0, 0, 0,
 			0, -2, -2, 0, 0, 0, 0, 0, 0, 0, -2
-		};
+		];
 
 		private static readonly int[] T45AL =
-		{
+		[
 			6288774, 1274027, 658314, 213618, -185116, -114332, 58793, 57066, 53322, 45758, -40923, -34720, -30383, 15327, -12528, 10980, 10675, 10034, 8548,
 			-7888, -6766, -5163, 4987, 4036, 3994, 3861, 3665, -2689, -2602, 2390, -2348, 2236, -2120, -2069, 2048, -1773, -1595, 1215, -1110, -892, -810, 759,
 			-713, -700, 691, 596, 549, 537, 520, -487, -399, -381, 351, -340, 330, 327, -323, 299, 294, 0
-		};
+		];
 
 		private static readonly int[] T45AR =
-		{
+		[
 			-20905355, -3699111, -2955968, -569925, 48888, -3149, 246158, -152138, -170733, -204586, -129620, 108743, 104755, 10321, 0, 79661, -34782, -23210,
 			-21636, 24208, 30824, -8379, -16675, -12831, -10445, -11650, 14403, -7003, 0, 10056, 6322, -9884, 5751, 0, -4950, 4130, 0, -3958, 0, 3258, 2616,
 			-1897, -2117, 2354, 0, 0, -1423, -1117, -1571, -1739, 0, -4421, 0, 0, 0, 0, 1165, 0, 0, 8752
-		};
+		];
 
 		// Meeus table 45B latitude of the moon
 
 		private static readonly int[] T45BD =
-		{
+		[
 			0, 0, 0, 2, 2, 2, 2, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 4, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 4, 0, 4, 2, 2, 2, 2, 0, 2, 2, 2, 2, 4, 2, 2, 0, 2, 1, 1, 0, 2,
 			1, 2, 0, 4, 4, 1, 4, 1, 4, 2
-		};
+		];
 
 		private static readonly int[] T45BM =
-		{
+		[
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1, -1, -1, -1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 1, 0, -1, -2, 0, 1, 1, 1,
 			1, 1, 0, -1, 1, 0, -1, 0, 0, 0, -1, -2
-		};
+		];
 
 		private static readonly int[] T45BMP =
-		{
+		[
 			0, 1, 1, 0, -1, -1, 0, 2, 1, 2, 0, -2, 1, 0, -1, 0, -1, -1, -1, 0, 0, -1, 0, 1, 1, 0, 0, 3, 0, -1, 1, -2, 0, 2, 1, -2, 3, 2, -3, -1, 0, 0, 1, 0, 1,
 			1, 0, 0, -2, -1, 1, -2, 2, -2, -1, 1, 1, -1, 0, 0
-		};
+		];
 
 		private static readonly int[] T45BF =
-		{
+		[
 			1, 1, -1, -1, 1, -1, 1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, 1, 3, 1, 1, 1, -1, -1, -1, 1, -1, 1, -3, 1, -3, -1, -1, 1, -1, 1, -1, 1, 1, 1, 1,
 			-1, 3, -1, -1, 1, -1, -1, 1, -1, 1, -1, -1, -1, -1, -1, -1, 1
-		};
+		];
 
 		private static readonly int[] T45BL =
-		{
+		[
 			5128122, 280602, 277693, 173237, 55413, 46271, 32573, 17198, 9266, 8822, 8216, 4324, 4200, -3359, 2463, 2211, 2065, -1870, 1828, -1794, -1749, -1565,
 			-1491, -1475, -1410, -1344, -1335, 1107, 1021, 833, 777, 671, 607, 596, 491, -451, 439, 422, 421, -366, -351, 331, 315, 302, -283, -229, 223, 223,
 			-220, -220, -185, 181, -177, 176, 166, -164, 132, -119, 115, 107
-		};
+		];
 
 		// Tabulate the New Moons in UT - expensive to calculate these accurately
 		private static readonly string[] NewMoons =
-		{
+		[
 			"2020-01-24 21:41 +0000",
 			"2020-02-23 15:31 +0000",
 			"2020-03-24 09:27 +0000",
@@ -1086,7 +1086,7 @@ namespace CumulusMX
 			"2099-10-14 01:32 +0000",
 			"2099-11-12 11:30 +0000",
 			"2099-12-11 23:09 +0000"
-		};
+		];
 
 		private static double rev(double angle)
 		{
@@ -1163,7 +1163,7 @@ namespace CumulusMX
 			var zhor = x * cosd(lat) + z * sind(lat);
 			var azimuth = rev(atan2d(yhor, xhor) + 180.0); // so 0 degrees is north
 			var altitude = atan2d(zhor, Math.Sqrt(xhor * xhor + yhor * yhor));
-			return new double[] { altitude, azimuth };
+			return [altitude, azimuth];
 		}
 
 		// MoonPos calculates the Moon position, based on Meeus chapter 45
@@ -1225,7 +1225,7 @@ namespace CumulusMX
 			var ra = rev(atan2d(sind(mglong) * cosd(obl) - tand(mglat) * sind(obl), cosd(mglong))) / 15.0;
 			var dec = rev(asind(sind(mglat) * cosd(obl) + cosd(mglat) * sind(obl) * sind(mglong)));
 			if (dec > 180.0) dec -= 360;
-			return new double[] { ra, dec, mr };
+			return [ra, dec, mr];
 		}
 
 		public static double[] MoonRise(int year, int month, int day, double TZ, double latitude, double longitude)
@@ -1254,11 +1254,11 @@ namespace CumulusMX
 			// set the return code to allow for always up or never rises
 			if (elh[0] > 0.0)
 			{
-				riseset = new double[] { -2, -2 };
+				riseset = [-2, -2];
 			}
 			else
 			{
-				riseset = new double[] { -1, -1 };
+				riseset = [-1, -1];
 			}
 			hours = 24;
 			rad = MoonPos(year, month, day, hours - TZ);

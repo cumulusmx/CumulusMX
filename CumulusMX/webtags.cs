@@ -1140,7 +1140,7 @@ namespace CumulusMX
 
 					for (var i = 0; i < sl.Length; i++)
 					{
-						retVal += $"\"TX{i + 1}\":\"{sl[i].Substring(2)}\",";
+						retVal += $"\"TX{i + 1}\":\"{sl[i][2..]}\",";
 					}
 
 					return retVal.Remove(retVal.Length - 1) + "}";
@@ -1152,7 +1152,7 @@ namespace CumulusMX
 			}
 
 			// extract status for required channel
-			char[] delimiters = { ' ', '-' };
+			char[] delimiters = [' ', '-'];
 			sl = station.TxBatText.Split(delimiters);
 
 			int channel = int.Parse(channeltxt) * 2 - 1;
@@ -2091,17 +2091,13 @@ namespace CumulusMX
 
 		private string Tagrollovertime(Dictionary<string, string> tagParams)
 		{
-			switch (cumulus.GetHourInc())
+			return cumulus.GetHourInc() switch
 			{
-				case 0:
-					return "midnight";
-				case -9:
-					return "9 am";
-				case -10:
-					return "10 am";
-				default:
-					return "unknown";
-			}
+				0 => "midnight",
+				-9 => "9 am",
+				-10 => "10 am",
+				_ => "unknown",
+			};
 		}
 
 		private string TagRg11RainToday(Dictionary<string, string> tagParams)
@@ -5215,7 +5211,7 @@ namespace CumulusMX
 			try
 			{
 				double upTime = 0;
-				if (cumulus.Platform.Substring(0, 3) == "Win")
+				if (cumulus.Platform[..3] == "Win")
 				{
 					try
 					{
@@ -6610,12 +6606,11 @@ namespace CumulusMX
 
 			if (!cumulus.ProgramOptions.ListWebTags) return;
 
-			using (StreamWriter file = new StreamWriter(cumulus.WebTagFile))
+			using StreamWriter file = new StreamWriter(cumulus.WebTagFile);
+
+			foreach (var pair in webTagDictionary)
 			{
-				foreach (var pair in webTagDictionary)
-				{
-					file.WriteLine(pair.Key);
-				}
+				file.WriteLine(pair.Key);
 			}
 		}
 

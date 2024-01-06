@@ -256,7 +256,7 @@ namespace CumulusMX
 			int year = thedate.Year;
 			int linenum = 0;
 			int idx = 0;
-			List<string> st = new List<string>();
+			List<string> st = [];
 
 			int daynumber = 0;
 			var currDate = DateTime.MinValue;

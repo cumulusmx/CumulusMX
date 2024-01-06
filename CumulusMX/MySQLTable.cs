@@ -15,7 +15,7 @@ namespace CumulusMX
 		public MySqlTable(string TableName)
 		{
 			Name = TableName;
-			Columns = new List<Column>();
+			Columns = [];
 		}
 
 

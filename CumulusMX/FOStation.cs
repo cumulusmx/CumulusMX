@@ -253,7 +253,7 @@ namespace CumulusMX
 
 			bool moredata = true;
 
-			datalist = new List<HistoryData>();
+			datalist = [];
 
 			while (moredata)
 			{

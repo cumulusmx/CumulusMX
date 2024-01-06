@@ -31,7 +31,7 @@ namespace CumulusMX
 		private bool stop;
 		private int loggerInterval;
 
-		private readonly Stopwatch awakeStopWatch = new Stopwatch();
+		private readonly Stopwatch awakeStopWatch = new();
 
 		private double previousPressStation = 9999;
 
@@ -323,7 +323,7 @@ namespace CumulusMX
 
 			cumulus.LogDataMessage("GetFirmwareVersion: Received - " + data);
 
-			return response.Length >= 5 ? response.Substring(0, response.Length - 2) : "???";
+			return response.Length >= 5 ? response[..^2] : "???";
 		}
 
 		private void CheckLoggerInterval()
@@ -618,7 +618,7 @@ namespace CumulusMX
 
 			cumulus.LogDataMessage("GetReceptionStats: Received - " + BitConverter.ToString(readBuffer.Take(bytesRead).ToArray()));
 
-			response = response.Length > 10 ? response.Substring(0, response.Length - 2) : "0 0 0 0 0";
+			response = response.Length > 10 ? response[..^2] : "0 0 0 0 0";
 
 			cumulus.LogDebugMessage($"GetReceptionStats: {response}");
 
@@ -837,7 +837,7 @@ namespace CumulusMX
 		{
 			ushort crc = 0;
 			ushort[] crcTable =
-			{
+			[
 				0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7, // 0x00
 				0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef, // 0x08
 				0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6, // 0x10
@@ -870,7 +870,7 @@ namespace CumulusMX
 				0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1, // 0xE8
 				0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8, // 0xF0
 				0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0, // 0xF8
-			};
+			];
 
 			foreach (var databyte in data)
 			{
@@ -1173,7 +1173,7 @@ namespace CumulusMX
 			cumulus.LogDataMessage("BARREAD Received - " + BitConverter.ToString(readBuffer.Take(bytesRead).ToArray()));
 			if (response.Length > 2)
 			{
-				cumulus.LogDebugMessage("BARREAD Received - " + response.Substring(0, response.Length - 2));
+				cumulus.LogDebugMessage("BARREAD Received - " + response[..^2]);
 			}
 		}
 
@@ -2042,9 +2042,9 @@ namespace CumulusMX
 			const int NAK = 0x21;
 			const int ESC = 0x1b;
 			const int maxPasses = 4;
-			byte[] ACKstring = { ACK };
-			byte[] NAKstring = { NAK };
-			byte[] ESCstring = { ESC };
+			byte[] ACKstring = [ACK];
+			byte[] NAKstring = [NAK];
+			byte[] ESCstring = [ESC];
 			const int pageSize = 267;
 			const int recordSize = 52;
 			bool ack;
@@ -2156,7 +2156,7 @@ namespace CumulusMX
 			cumulus.LogMessage("GetArchiveData: Received response to DMPAFT, sending start date and time");
 
 			// Construct date time string to send next
-			byte[] data = { (byte) (vantageDateStamp % 256), (byte) (vantageDateStamp / 256), (byte) (vantageTimeStamp % 256), (byte) (vantageTimeStamp / 256), 0, 0 };
+			byte[] data = [(byte) (vantageDateStamp % 256), (byte) (vantageDateStamp / 256), (byte) (vantageTimeStamp % 256), (byte) (vantageTimeStamp / 256), 0, 0];
 
 			// calculate and insert CRC
 
@@ -3289,7 +3289,7 @@ namespace CumulusMX
 					return false;
 				}
 
-			} while (readBuffer.ToString().IndexOf("OK\n\r") == -1);
+			} while (!readBuffer.ToString().Contains("OK\n\r", StringComparison.CurrentCulture));
 			cumulus.LogDebugMessage("WaitForOK: Found OK");
 			return true;
 		}
@@ -3334,7 +3334,7 @@ namespace CumulusMX
 					return false;
 				}
 
-			} while (readBuffer.ToString().IndexOf("OK\n\r") == -1);
+			} while (!readBuffer.ToString().Contains("OK\n\r", StringComparison.CurrentCulture));
 			cumulus.LogDebugMessage("WaitForOK: Found OK");
 			return true;
 		}
@@ -3753,29 +3753,15 @@ namespace CumulusMX
 		private double ConvertRainClicksToUser(double clicks)
 		{
 			// One click is either 0.01, 0.001 inches or 0.2, 0.1 mm
-			switch (cumulus.DavisOptions.RainGaugeType)
+			return cumulus.DavisOptions.RainGaugeType switch
 			{
-				case 0:
-					// Rain gauge is metric 0.2 mm
-					return ConvertUnits.RainMMToUser(clicks * 0.2);
-
-				case 1:
-					// Rain gauge is imperial 0.01 in
-					return ConvertUnits.RainINToUser(clicks * 0.01);
-
-				case 2:
-					// Rain gauge is metric 0.1 mm
-					return ConvertUnits.RainMMToUser(clicks * 0.1);
-
-				case 3:
-					// Rain gauge is imperial 0.001 in
-					return ConvertUnits.RainMMToUser(clicks * 0.2);
-
-				default:
-					// Rain gauge type not configured, assume it is the same as the station units
-					// Assume standard gauge type of 0.01 in or 0.02 mm
-					return cumulus.Units.Rain == 0 ? clicks * 0.2 : clicks * 0.01;
-			}
+				0 => ConvertUnits.RainMMToUser(clicks * 0.2),// Rain gauge is metric 0.2 mm
+				1 => ConvertUnits.RainINToUser(clicks * 0.01),// Rain gauge is imperial 0.01 in
+				2 => ConvertUnits.RainMMToUser(clicks * 0.1),// Rain gauge is metric 0.1 mm
+				3 => ConvertUnits.RainMMToUser(clicks * 0.2),// Rain gauge is imperial 0.001 in
+				_ => cumulus.Units.Rain == 0 ? clicks * 0.2 : clicks * 0.01,// Rain gauge type not configured, assume it is the same as the station units
+																			// Assume standard gauge type of 0.01 in or 0.02 mm
+			};
 		}
 	}
 }

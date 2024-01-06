@@ -4,37 +4,37 @@
 	{
 		public Lang()
 		{
-			zForecast = new string[]
-			{
+			zForecast =
+			[
 				"Settled fine", "Fine weather", "Becoming fine", "Fine, becoming less settled", "Fine, possible showers", "Fairly fine, improving",
 				"Fairly fine, possible showers early", "Fairly fine, showery later", "Showery early, improving", "Changeable, mending",
 				"Fairly fine, showers likely", "Rather unsettled clearing later", "Unsettled, probably improving", "Showery, bright intervals",
 				"Showery, becoming less settled", "Changeable, some rain", "Unsettled, short fine intervals", "Unsettled, rain later", "Unsettled, some rain",
 				"Mostly very unsettled", "Occasional rain, worsening", "Rain at times, very unsettled", "Rain at frequent intervals", "Rain, very unsettled",
 				"Stormy, may improve", "Stormy, much rain"
-			};
+			];
 
 			compassp = new string[16];
 
-			AirQualityCaptions = new string[] { "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4" };
-			AirQualityAvgCaptions = new string[] { "Sensor Avg 1", "Sensor Avg 2", "Sensor Avg 3", "Sensor Avg 4" };
+			AirQualityCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4"];
+			AirQualityAvgCaptions = ["Sensor Avg 1", "Sensor Avg 2", "Sensor Avg 3", "Sensor Avg 4"];
 
-			LeafWetnessCaptions = new string[] { "Wetness 1", "Wetness 2", "Wetness 3", "Wetness 4", "Wetness 5", "Wetness 6", "Wetness 7", "Wetness 8" };
+			LeafWetnessCaptions = ["Wetness 1", "Wetness 2", "Wetness 3", "Wetness 4", "Wetness 5", "Wetness 6", "Wetness 7", "Wetness 8"];
 
-			UserTempCaptions = new string[] { "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8" };
+			UserTempCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8"];
 
-			ExtraTempCaptions = new string[] { "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
+			ExtraTempCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10"];
 
-			ExtraHumCaptions = new string[] { "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
+			ExtraHumCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10"];
 
-			ExtraDPCaptions = new string[] { "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10" };
+			ExtraDPCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10"];
 
-			SoilTempCaptions = new string[] { "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16" };
+			SoilTempCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16"];
 
-			SoilMoistureCaptions = new string[] { "Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16" };
+			SoilMoistureCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16"];
 
-			DavisForecast1 = new string[]
-			{
+			DavisForecast1 =
+			[
 				"FORECAST REQUIRES 3 HRS. OF RECENT DATA",
 				"Mostly cloudy with little temperature change.",
 				"Mostly cloudy and cooler.",
@@ -60,10 +60,10 @@
 				"Partly cloudy with little temperature change.",
 				"Partly cloudy and cooler.",
 				"Unknown forecast rule."
-			};
+			];
 
-			DavisForecast2 = new string[]
-			{
+			DavisForecast2 =
+			[
 				"",
 				"Precipitation possible within 48 hours.",
 				"Precipitation possible within 24 to 48 hours.",
@@ -83,10 +83,10 @@
 				"Precipitation likely.",
 				"Precipitation continuing, possibly heavy at times.",
 				"Precipitation continuing."
-			};
+			];
 
-			DavisForecast3 = new string[]
-			{
+			DavisForecast3 =
+			[
 				"",
 				"Windy with possible wind shift to the W, SW, or S.",
 				"Possible wind shift to the W, SW, or S.",
@@ -94,7 +94,7 @@
 				"Possible wind shift to the W, NW, or N.",
 				"Windy.",
 				"Increasing winds."
-			};
+			];
 		}
 
 		// Forecasts

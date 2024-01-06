@@ -156,15 +156,14 @@ namespace CumulusMX
 			};
 
 
-			var ecowitt = new JsonStationSettingsEcowitt()
+			var ecowitt = new JsonStationSettingsEcowitt
 			{
 				setcustom = cumulus.EcowittSetCustomServer,
 				gwaddr = cumulus.EcowittGatewayAddr,
 				localaddr = cumulus.EcowittLocalAddr,
-				interval = cumulus.EcowittCustomInterval
+				interval = cumulus.EcowittCustomInterval,
+				forward = []
 			};
-
-			ecowitt.forward = new List<JsonEcowittForwardList>();
 
 			for (var i = 0; i < 10; i++)
 			{
@@ -503,7 +502,7 @@ namespace CumulusMX
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json=" prefix
-				json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
 				settings = JsonSerializer.DeserializeFromString<JsonStationSettingsData>(json);

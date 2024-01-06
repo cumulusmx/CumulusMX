@@ -119,7 +119,7 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogMessage("History info obtained");
-				datalist = new List<HistoryData>();
+				datalist = [];
 
 				/*
 				double pressureoffset = ws2300PressureOffset();
@@ -1047,8 +1047,8 @@ namespace CumulusMX
 
 			int address = 0x26B;
 			int bytes = 1;
-			string[] presstrendstrings = new string[] { "Steady", "Rising", "Falling" };
-			string[] forecaststrings = new string[] { "Rainy", "Cloudy", "Sunny" };
+			string[] presstrendstrings = ["Steady", "Rising", "Falling"];
+			string[] forecaststrings = ["Rainy", "Cloudy", "Sunny"];
 
 			cumulus.LogDataMessage("Reading press trend and forecast");
 			if (Ws2300ReadWithRetries(address, bytes, data, command) != bytes)
@@ -1431,9 +1431,7 @@ namespace CumulusMX
 		private int Ws2300WriteSerial(byte command)
 		{
 			cumulus.LogDataMessage("Writing command " + command.ToString("X2"));
-			byte[] towrite = new byte[1];
-			towrite[0] = command;
-
+			byte[] towrite = [command];
 			try
 			{
 				comport.Write(towrite, 0, 1);
