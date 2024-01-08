@@ -9629,38 +9629,40 @@ namespace CumulusMX
 				// handle any extra files
 				foreach (var item in ActiveExtraFiles)
 				{
-					if (item.realtime && !item.endofday && !item.FTP)
+					if (item.FTP || item.realtime || item.endofday) // eod files are copied in DoExtraEndOfDayFiles()
 					{
-						var uploadfile = GetUploadFilename(item.local, DateTime.Now);
+						continue;
+					}
 
-						if (File.Exists(uploadfile))
-						{
-							var remotefile = GetRemoteFileName(item.remote, DateTime.Now);
+					var uploadfile = GetUploadFilename(item.local, DateTime.Now);
 
-							LogDebugMessage($"Interval: Copying extra file {uploadfile} to {remotefile}");
-							try
-							{
-								if (item.process)
-								{
-									var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
-									File.WriteAllText(remotefile, data);
-								}
-								else
-								{
-									// just copy the file
-									File.Copy(uploadfile, remotefile, true);
-								}
-							}
-							catch (Exception ex)
-							{
-								LogDebugMessage($"Interval: Error copying extra file: " + ex.Message);
-							}
-							//LogDebugMessage("Finished copying extra file " + uploadfile);
-						}
-						else
+					if (File.Exists(uploadfile))
+					{
+						var remotefile = GetRemoteFileName(item.remote, DateTime.Now);
+
+						LogDebugMessage($"Interval: Copying extra file {uploadfile} to {remotefile}");
+						try
 						{
-							LogWarningMessage($"Interval: Warning, extra web file not found - {uploadfile}");
+							if (item.process)
+							{
+								var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
+								File.WriteAllText(remotefile, data);
+							}
+							else
+							{
+								// just copy the file
+								File.Copy(uploadfile, remotefile, true);
+							}
 						}
+						catch (Exception ex)
+						{
+							LogDebugMessage($"Interval: Error copying extra file: " + ex.Message);
+						}
+						//LogDebugMessage("Finished copying extra file " + uploadfile);
+					}
+					else
+					{
+						LogWarningMessage($"Interval: Warning, extra web file not found - {uploadfile}");
 					}
 				}
 
