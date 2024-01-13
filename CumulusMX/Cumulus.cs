@@ -7471,7 +7471,7 @@ namespace CumulusMX
 			{
 				// air quality captions (for Extra Sensor Data screen)
 				Trans.AirQualityCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor" + (i + 1), Trans.AirQualityCaptions[i]);
-				Trans.AirQualityAvgCaptions[i] = ini.GetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[1]);
+				Trans.AirQualityAvgCaptions[i] = ini.GetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[i]);
 			}
 
 			for (var i = 0; i < 8; i++)
@@ -7664,7 +7664,7 @@ namespace CumulusMX
 			{
 				// air quality captions (for Extra Sensor Data screen)
 				ini.SetValue("AirQualityCaptions", "Sensor" + (i + 1), Trans.AirQualityCaptions[i]);
-				ini.SetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[1]);
+				ini.SetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[i]);
 			}
 
 			for (var i = 0; i < 8; i++)
