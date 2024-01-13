@@ -130,36 +130,40 @@ namespace CumulusMX
 			// main data task
 			liveTask = Task.Run(() =>
 			{
-					var piezoLastRead = DateTime.MinValue;
-					var dataLastRead = DateTime.MinValue;
-					var delay = 0;
-					var nextFetch = DateTime.MinValue;
+				var piezoLastRead = DateTime.MinValue;
+				var dataLastRead = DateTime.MinValue;
+				var delay = 0;
+				var nextFetch = DateTime.MinValue;
 
-					while (!cumulus.cancellationToken.IsCancellationRequested)
+				while (!cumulus.cancellationToken.IsCancellationRequested)
+				{
+					if (DateTime.Now >= nextFetch)
 					{
-						if (DateTime.Now >= nextFetch)
+						try
 						{
-							try
-							{
 
-								var data = ecowittApi.GetCurrentData(ref delay, cumulus.cancellationToken);
+							var data = ecowittApi.GetCurrentData(ref delay, cumulus.cancellationToken);
 
-								if (data != null)
-								{
-									ProcessCurrentData(data, cumulus.cancellationToken);
-								}
-								cumulus.LogDebugMessage($"EcowittCloud; Waiting {delay} seconds before next update");
-								nextFetch = DateTime.Now.AddSeconds(delay);
-							}
-							catch (Exception ex)
+							if (data != null)
 							{
-								cumulus.LogExceptionMessage(ex, "Error running Ecowitt Cloud station");
-								nextFetch = DateTime.Now.AddMinutes(1);
+								ProcessCurrentData(data, cumulus.cancellationToken);
 							}
+							else
+							{
+								cumulus.LogDebugMessage($"EcowittCloud: No new data to process");
+							}
+							cumulus.LogDebugMessage($"EcowittCloud: Waiting {delay} seconds before next update");
+							nextFetch = DateTime.Now.AddSeconds(delay);
 						}
-
-						Thread.Sleep(1000);
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, "Error running Ecowitt Cloud station");
+							nextFetch = DateTime.Now.AddMinutes(1);
+						}
 					}
+
+					Thread.Sleep(1000);
+				}
 			}, cumulus.cancellationToken);
 		}
 
@@ -569,10 +573,15 @@ namespace CumulusMX
 					station.DoOutdoorHumidity(data.temp_and_humidity_ch1.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch1.humidity.time));
 				}
 				station.DoExtraTemp(data.temp_and_humidity_ch1.temperature.value, 1);
-				station.DoExtraHum(data.temp_and_humidity_ch1.humidity.value, 1);
 
-				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[1]), station.ExtraHum[1]);
-				station.ExtraDewPoint[1] = ConvertUnits.TempCToUser(dp);
+				// Not all sensor types have humidity
+				if (data.temp_and_humidity_ch1.humidity != null)
+				{
+					station.DoExtraHum(data.temp_and_humidity_ch1.humidity.value, 1);
+
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[1]), station.ExtraHum[1]);
+					station.ExtraDewPoint[1] = ConvertUnits.TempCToUser(dp);
+				}
 			}
 
 			if (data.temp_and_humidity_ch2 != null)
@@ -583,10 +592,15 @@ namespace CumulusMX
 					station.DoOutdoorHumidity(data.temp_and_humidity_ch2.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch2.humidity.time));
 				}
 				station.DoExtraTemp(data.temp_and_humidity_ch2.temperature.value, 2);
-				station.DoExtraHum(data.temp_and_humidity_ch2.humidity.value, 2);
 
-				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[2]), station.ExtraHum[2]);
-				station.ExtraDewPoint[2] = ConvertUnits.TempCToUser(dp);
+				// Not all sensor types have humidity
+				if (data.temp_and_humidity_ch2.humidity != null)
+				{
+					station.DoExtraHum(data.temp_and_humidity_ch2.humidity.value, 2);
+
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[2]), station.ExtraHum[2]);
+					station.ExtraDewPoint[2] = ConvertUnits.TempCToUser(dp);
+				}
 			}
 
 			if (data.temp_and_humidity_ch3 != null)
@@ -597,10 +611,15 @@ namespace CumulusMX
 					station.DoOutdoorHumidity(data.temp_and_humidity_ch3.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch3.humidity.time));
 				}
 				station.DoExtraTemp(data.temp_and_humidity_ch3.temperature.value, 3);
-				station.DoExtraHum(data.temp_and_humidity_ch3.humidity.value, 3);
 
-				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[3]), station.ExtraHum[3]);
-				station.ExtraDewPoint[3] = ConvertUnits.TempCToUser(dp);
+				// Not all sensor types have humidity
+				if (data.temp_and_humidity_ch3.humidity != null)
+				{
+					station.DoExtraHum(data.temp_and_humidity_ch3.humidity.value, 3);
+
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[3]), station.ExtraHum[3]);
+					station.ExtraDewPoint[3] = ConvertUnits.TempCToUser(dp);
+				}
 			}
 
 			if (data.temp_and_humidity_ch4 != null)
@@ -611,10 +630,15 @@ namespace CumulusMX
 					station.DoOutdoorHumidity(data.temp_and_humidity_ch4.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch4.humidity.time));
 				}
 				station.DoExtraTemp(data.temp_and_humidity_ch4.temperature.value, 4);
-				station.DoExtraHum(data.temp_and_humidity_ch4.humidity.value, 4);
 
-				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[4]), station.ExtraHum[4]);
-				station.ExtraDewPoint[4] = ConvertUnits.TempCToUser(dp);
+				// Not all sensor types have humidity
+				if (data.temp_and_humidity_ch4.humidity != null)
+				{
+					station.DoExtraHum(data.temp_and_humidity_ch4.humidity.value, 4);
+
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[4]), station.ExtraHum[4]);
+					station.ExtraDewPoint[4] = ConvertUnits.TempCToUser(dp);
+				}
 			}
 
 			if (data.temp_and_humidity_ch5 != null)
@@ -625,10 +649,15 @@ namespace CumulusMX
 					station.DoOutdoorHumidity(data.temp_and_humidity_ch5.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch5.humidity.time));
 				}
 				station.DoExtraTemp(data.temp_and_humidity_ch5.temperature.value, 5);
-				station.DoExtraHum(data.temp_and_humidity_ch5.humidity.value, 5);
 
-				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[5]), station.ExtraHum[5]);
-				station.ExtraDewPoint[5] = ConvertUnits.TempCToUser(dp);
+				// Not all sensor types have humidity
+				if (data.temp_and_humidity_ch5.humidity != null)
+				{
+					station.DoExtraHum(data.temp_and_humidity_ch5.humidity.value, 5);
+
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[5]), station.ExtraHum[5]);
+					station.ExtraDewPoint[5] = ConvertUnits.TempCToUser(dp);
+				}
 			}
 
 			if (data.temp_and_humidity_ch6 != null)
@@ -639,10 +668,15 @@ namespace CumulusMX
 					station.DoOutdoorHumidity(data.temp_and_humidity_ch6.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch6.humidity.time));
 				}
 				station.DoExtraTemp(data.temp_and_humidity_ch6.temperature.value, 6);
-				station.DoExtraHum(data.temp_and_humidity_ch6.humidity.value, 6);
 
-				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[6]), station.ExtraHum[6]);
-				station.ExtraDewPoint[6] = ConvertUnits.TempCToUser(dp);
+				// Not all sensor types have humidity
+				if (data.temp_and_humidity_ch6.humidity != null)
+				{
+					station.DoExtraHum(data.temp_and_humidity_ch6.humidity.value, 6);
+
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[6]), station.ExtraHum[6]);
+					station.ExtraDewPoint[6] = ConvertUnits.TempCToUser(dp);
+				}
 			}
 
 			if (data.temp_and_humidity_ch7 != null)
@@ -653,10 +687,15 @@ namespace CumulusMX
 					station.DoOutdoorHumidity(data.temp_and_humidity_ch7.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch7.humidity.time));
 				}
 				station.DoExtraTemp(data.temp_and_humidity_ch7.temperature.value, 7);
-				station.DoExtraHum(data.temp_and_humidity_ch7.humidity.value, 7);
 
-				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[7]), station.ExtraHum[7]);
-				station.ExtraDewPoint[7] = ConvertUnits.TempCToUser(dp);
+				// Not all sensor types have humidity
+				if (data.temp_and_humidity_ch7.humidity != null)
+				{
+					station.DoExtraHum(data.temp_and_humidity_ch7.humidity.value, 7);
+
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[7]), station.ExtraHum[7]);
+					station.ExtraDewPoint[7] = ConvertUnits.TempCToUser(dp);
+				}
 			}
 
 			if (data.temp_and_humidity_ch8 != null)
@@ -667,10 +706,15 @@ namespace CumulusMX
 					station.DoOutdoorHumidity(data.temp_and_humidity_ch8.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch8.humidity.time));
 				}
 				station.DoExtraTemp(data.temp_and_humidity_ch8.temperature.value, 8);
-				station.DoExtraHum(data.temp_and_humidity_ch8.humidity.value, 8);
 
-				var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[8]), station.ExtraHum[8]);
-				station.ExtraDewPoint[8] = ConvertUnits.TempCToUser(dp);
+				// Not all sensor types have humidity
+				if (data.temp_and_humidity_ch8.humidity != null)
+				{
+					station.DoExtraHum(data.temp_and_humidity_ch8.humidity.value, 8);
+
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[8]), station.ExtraHum[8]);
+					station.ExtraDewPoint[8] = ConvertUnits.TempCToUser(dp);
+				}
 			}
 		}
 
@@ -889,13 +933,13 @@ namespace CumulusMX
 			if (data.co2_aqi_combo != null)
 			{
 				station.CO2 = data.co2_aqi_combo.co2.value;
-				station.CO2_24h = data.co2_aqi_combo.Avg24h;
+				station.CO2_24h = data.co2_aqi_combo.Avg24h.value;
 			}
 			// indoor overrides the combo
 			if (data.indoor_co2 != null)
 			{
 				station.CO2 = data.indoor_co2.co2.value;
-				station.CO2_24h = data.indoor_co2.Avg24h;
+				station.CO2_24h = data.indoor_co2.Avg24h.value;
 			}
 		}
 

@@ -62,8 +62,6 @@ namespace CumulusMX
 		/// <returns>Feels Like temperature in Celsius</returns>
 		public static double FeelsLike(double tempC, double windSpeedKph, int humidity)
 		{
-			// Cannot use the WindChill function as we need the chill above 10 C
-			//double chill = windSpeedKph < 4.828 ? tempC : 13.12 + 0.6215 * tempC - 11.37 * Math.Pow(windSpeedKph, 0.16) + 0.3965 * tempC * Math.Pow(windSpeedKph, 0.16);
 			double chill = WindChill(tempC, windSpeedKph, false);
 			double svp = SaturationVapourPressure1980(tempC);   // Saturation Vapour Pressure in hPa
 			double avp = (float) humidity / 100.0 * svp / 10.0;             // Actual Vapour Pressure in kPa

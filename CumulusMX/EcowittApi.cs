@@ -1820,18 +1820,25 @@ namespace CumulusMX
 						LastCurrentDataTime = dataTime;
 
 						// how many seconds to the next update?
-						// the data is updated once a minute, so wait for 5 seonds after the next update
+						// the data is updated once a minute, so wait for 15 seonds after the next update
 
-						var lastUpdate = (DateTime.Now - LastCurrentDataTime).TotalSeconds;
-						if (lastUpdate > 65)
+						var lastUpdateSecs = (int) (DateTime.Now - LastCurrentDataTime).TotalSeconds;
+						if (lastUpdateSecs > 130)
 						{
-							// hum the data is already out of date, query again after a short delay
+							// hmm the data is already out of date, query again after a short delay
 							delay = 10;
 							return null;
 						}
+						else if (lastUpdateSecs < 15)
+						{
+							// we're OK, just update again in an "Ecowitt" minute
+							delay = 64;
+							return currObj.data;
+						}
 						else
 						{
-							delay = (int) (60 - lastUpdate + 3);
+							// lets try and shift the time to be closer to 15 seconds after the next expected update
+							delay = 75 - lastUpdateSecs;
 							return currObj.data;
 						}
 					}
@@ -2598,17 +2605,8 @@ namespace CumulusMX
 			public CurrentSensorValDbl rain_rate { get; set; }
 			public CurrentSensorValDbl daily { get; set; }
 
-			[IgnoreDataMember]
-			public CurrentSensorValDbl Event { get; set; }
-
 			[DataMember(Name = "event")]
-			public CurrentSensorValDbl EventVal
-			{
-				get => Event;
-				set { Event = value; }
-			}
-
-
+			public CurrentSensorValDbl Event { get; set; }
 			public CurrentSensorValDbl hourly { get; set; }
 			public CurrentSensorValDbl yearly { get; set; }
 		}
@@ -2635,16 +2633,8 @@ namespace CumulusMX
 		internal class CurrentCo2
 		{
 			public CurrentSensorValInt co2 { get; set; }
-
-			[IgnoreDataMember]
-			public int Avg24h { get; set; }
-
 			[DataMember(Name = "24_hours_average")]
-			public int Average
-			{
-				get => Avg24h;
-				set { Avg24h = value; }
-			}
+			public CurrentSensorValInt Avg24h { get; set; }
 		}
 
 		internal class CurrentPm25
@@ -2652,15 +2642,8 @@ namespace CumulusMX
 			public CurrentSensorValInt real_time_aqi { get; set; }
 			public CurrentSensorValInt pm25 { get; set; }
 
-			[IgnoreDataMember]
-			public CurrentSensorValInt Avg24h { get; set; }
-
 			[DataMember(Name = "24_hours_aqi")]
-			public CurrentSensorValInt AvgVal
-			{
-				get => Avg24h;
-				set { Avg24h = value; }
-			}
+			public CurrentSensorValInt Avg24h { get; set; }
 		}
 
 		internal class CurrentPm10
@@ -2668,15 +2651,8 @@ namespace CumulusMX
 			public CurrentSensorValInt real_time_aqi { get; set; }
 			public CurrentSensorValInt pm10 { get; set; }
 
-			[IgnoreDataMember]
-			public CurrentSensorValInt Avg24h { get; set; }
-
 			[DataMember(Name = "24_hours_aqi")]
-			public CurrentSensorValInt AvgVal
-			{
-				get => Avg24h;
-				set { Avg24h = value; }
-			}
+			public CurrentSensorValInt Avg24h { get; set; }
 		}
 
 		internal class CurrentLeak

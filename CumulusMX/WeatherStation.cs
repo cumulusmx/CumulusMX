@@ -6111,7 +6111,7 @@ namespace CumulusMX
 
 		public void DoExtraHum(double hum, int channel)
 		{
-			if ((channel > 0) && (channel < ExtraHum.Length))
+			if ((channel > 0) && (channel < ExtraHum.Length) && hum > 0 && hum <= 100)
 			{
 				ExtraHum[channel] = (int) hum;
 			}
