@@ -2723,6 +2723,8 @@ namespace CumulusMX
 					{
 						cumulus.LogDebugMessage($"WLL Input Voltage = {inpV:0.##}V");
 					}
+
+					StationRuntime = (int) data15.uptime;
 					var upt = TimeSpan.FromSeconds(data15.uptime);
 					var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
 							(int) upt.TotalDays,
