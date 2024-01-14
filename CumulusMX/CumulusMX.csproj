@@ -81,7 +81,7 @@
     <PackageReference Include="HidSharp" Version="2.1.0" />
     <PackageReference Include="MailKit" Version="4.3.0" />
     <PackageReference Include="MQTTnet" Version="4.3.3.952" />
-    <PackageReference Include="MySqlConnector" Version="2.3.3" />
+    <PackageReference Include="MySqlConnector" Version="2.3.4" />
     <PackageReference Include="ServiceStack.Text" Version="8.0.0" />
     <PackageReference Include="SSH.NET" Version="2023.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters" Version="1.3.1" />
