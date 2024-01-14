@@ -7,6 +7,8 @@ New
 
 Fixed
 - Ecowitt Cloud station: Fix some errors decoding Ecowitt cloud API
+- Extra Files using log filename templates missed the last log entry at month rollover as they switched to the new month immediately
+- Fix missing units in alarm email messages
 
 
 3.28.1 - b3278

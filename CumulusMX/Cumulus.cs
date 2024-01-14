@@ -1401,6 +1401,18 @@ namespace CumulusMX
 
 			SetupUnitText();
 
+			// set alarms units
+			HighWindAlarm.Units = Units.WindText;
+			HighGustAlarm.Units = Units.WindText;
+			HighRainRateAlarm.Units = Units.RainTrendText;
+			HighRainTodayAlarm.Units = Units.RainText;
+			PressChangeAlarm.Units = Units.PressTrendText;
+			HighPressAlarm.Units = Units.PressText;
+			LowPressAlarm.Units = Units.PressText;
+			TempChangeAlarm.Units = Units.TempTrendText;
+			HighTempAlarm.Units = Units.TempText;
+			LowTempAlarm.Units = Units.TempText;
+
 			LogMessage($"WindUnit={Units.WindText} RainUnit={Units.RainText} TempUnit={Units.TempText} PressureUnit={Units.PressText}");
 			LogMessage($"Manual rainfall: YTDRain={YTDrain:F3}, Correction Year={YTDrainyear}");
 			LogMessage($"RainDayThreshold={RainDayThreshold:F3}");
