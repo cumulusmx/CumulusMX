@@ -14130,17 +14130,20 @@ namespace CumulusMX
 
 		private string GetUploadFilename(string input, DateTime dat)
 		{
+			// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+			var logDate = dat.AddMinutes(-(logints[DataLogInterval] + 1));
+
 			if (input == "<currentlogfile>")
 			{
-				return GetLogFileName(dat);
+				return GetLogFileName(logDate);
 			}
 			else if (input == "<currentextralogfile>")
 			{
-				return GetExtraLogFileName(dat);
+				return GetExtraLogFileName(logDate);
 			}
 			else if (input == "<airlinklogfile>")
 			{
-				return GetAirLinkLogFileName(dat);
+				return GetAirLinkLogFileName(logDate);
 			}
 			else if (input == "<noaayearfile>")
 			{
@@ -14161,8 +14164,10 @@ namespace CumulusMX
 					if (match.Success)
 					{
 						var idx = int.Parse(match.Groups[1].Value) - 1; // we use a zero relative array
+						// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+						var custDate = dat.AddMinutes(-(CustomIntvlLogSettings[idx].Interval + 1));
 
-						return GetCustomIntvlLogFileName(idx, dat);
+						return GetCustomIntvlLogFileName(idx, custDate);
 					}
 					else
 					{
@@ -14181,17 +14186,20 @@ namespace CumulusMX
 
 		private string GetRemoteFileName(string input, DateTime dat)
 		{
+			// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+			var logDate = dat.AddMinutes(-(logints[DataLogInterval] + 1));
+
 			if (input.Contains("<currentlogfile>"))
 			{
-				return input.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(dat)));
+				return input.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(logDate)));
 			}
 			else if (input.Contains("<currentextralogfile>"))
 			{
-				return input.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(dat)));
+				return input.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(logDate)));
 			}
 			else if (input.Contains("<airlinklogfile>"))
 			{
-				return input.Replace("<airlinklogfile>", Path.GetFileName(GetAirLinkLogFileName(dat)));
+				return input.Replace("<airlinklogfile>", Path.GetFileName(GetAirLinkLogFileName(logDate)));
 			}
 			else if (input.Contains("<noaayearfile>"))
 			{
@@ -14212,8 +14220,10 @@ namespace CumulusMX
 					if (match.Success)
 					{
 						var idx = int.Parse(match.Groups[1].Value) - 1; // we use a zero relative array
+						// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+						var custDate = dat.AddMinutes(-(CustomIntvlLogSettings[idx].Interval + 1));
 
-						return input.Replace(match.Groups[0].Value, Path.GetFileName(GetCustomIntvlLogFileName(idx, dat)));
+						return input.Replace(match.Groups[0].Value, Path.GetFileName(GetCustomIntvlLogFileName(idx, custDate)));
 					}
 					else
 					{
