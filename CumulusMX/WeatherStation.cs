@@ -389,6 +389,9 @@ namespace CumulusMX
 			return string.Empty;
 		}
 
+		public int EcowittHeapSize;
+		public int StationRuntime;
+
 
 		public WeatherStation(Cumulus cumulus, bool extraStation = false)
 		{

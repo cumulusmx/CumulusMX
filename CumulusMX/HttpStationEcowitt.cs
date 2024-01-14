@@ -869,6 +869,26 @@ namespace CumulusMX
 					cumulus.LogErrorMessage($"{procName}: Error extracting firmware version - {ex.Message}");
 				}
 
+
+				// === Heap and run time ===
+				try
+				{
+					if (data["heap"] != null)
+					{
+						EcowittHeapSize = int.Parse(data["heap"]);
+					}
+
+					if (data["runtime"] != null)
+					{
+						StationRuntime = int.Parse(data["runtime"]);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"{procName}: Error extracting heap/runtime - {ex.Message}");
+				}
+
+
 				if (main)
 				{
 					// Do derived values after the primary values

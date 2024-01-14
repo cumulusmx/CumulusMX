@@ -1,5 +1,10 @@
 3.28.2 - b3279
 ——————————————
+New
+- Adds two new web tags <#EcowittHeap> and <#StationRuntime>
+	EcowittHeap: Shows the station free memory for Ecowitt GW1100/20000
+	StationRuntime: Shows the station uptime in seconds for Davis WLL, Ecowitt GW1100/20000
+
 Fixed
 - Ecowitt Cloud station: Fix some errors decoding Ecowitt cloud API
 
