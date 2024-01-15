@@ -19,7 +19,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using System.Web.Caching;
 
 using EmbedIO;
 using EmbedIO.Files;
@@ -1402,7 +1401,7 @@ namespace CumulusMX
 			// switch off logging from Unosquare.Swan which underlies embedIO
 			Swan.Logging.Logger.NoLogging();
 
-			var assemblyPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+			var assemblyPath = System.AppContext.BaseDirectory;
 			var htmlRootPath = Path.Combine(assemblyPath, "interface");
 
 			LogMessage("HTML root path = " + htmlRootPath);
