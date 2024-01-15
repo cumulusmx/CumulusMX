@@ -90,7 +90,7 @@ namespace CumulusMX
 			}
 		}
 
-		public static bool InstallLinux(string userId)
+		public static bool InstallLinux(string userId, string lang, int port)
 		{
 			try
 			{
@@ -131,7 +131,7 @@ namespace CumulusMX
 					$"User={user}",
 					$"Group={user}",
 					$"WorkingDirectory={appPath}",
-					$"ExecStart=\"{dotnetPath}\" CumulusMX.dll -service",
+					$"ExecStart=\"{dotnetPath}\" CumulusMX.dll -service" + (port == 8998 ? "" : " -port " + port) + (string.IsNullOrEmpty(lang) ? "" : " -lang " + lang),
 					"Type=simple",
 					"",
 					"[Install]",

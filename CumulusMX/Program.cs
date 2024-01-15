@@ -126,6 +126,7 @@ namespace CumulusMX
 			var install = false;
 			var uninstall = false;
 			var user = "";
+			var lang = "";
 
 			for (int i = 0; i < args.Length; i++)
 			{
@@ -135,7 +136,7 @@ namespace CumulusMX
 					{
 						case "-lang" when args.Length >= i:
 							{
-								var lang = args[++i];
+								lang = args[++i];
 
 								CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
 								break;
@@ -191,22 +192,23 @@ namespace CumulusMX
 						}
 
 					}
-					else if (!string.IsNullOrEmpty(user))
+					else
 					{
-						if (SelfInstaller.InstallLinux(user))
+						if (string.IsNullOrEmpty(user))
+						{
+							Console.ForegroundColor = ConsoleColor.Yellow;
+							Console.WriteLine("\nYou must supply a user name when installing the service\n");
+							Console.ResetColor();
+							Environment.Exit(0);
+						}
+
+						if (SelfInstaller.InstallLinux(user, httpport, lang))
 						{
 							Console.ForegroundColor = ConsoleColor.Green;
 							Console.WriteLine("\nCumulus MX is now installed to run as service\n");
 							Console.ResetColor();
 							Environment.Exit(0);
 						}
-					}
-					else
-					{
-						Console.ForegroundColor = ConsoleColor.Yellow;
-						Console.WriteLine("\nYou must supply a user name when installing the service\n");
-						Console.ResetColor();
-						Environment.Exit(0);
 					}
 
 					Console.ForegroundColor = ConsoleColor.Red;

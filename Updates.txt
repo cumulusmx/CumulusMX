@@ -1,5 +1,17 @@
-3.500.0 - b3500
-———————————————
+4.0.0 - b4002
+—————————————
+- Linux self installer now also applies the -port and -lang parameters if they are provided with -install
+
+
+
+4.0.0 - b4001
+—————————————
+- Change versioning from 3.500 to 4.0
+- Incorporate v3.28.2 updates
+
+
+4.0.0 - b4000
+—————————————
 Initial release of Cumulus MX version 3.5 which now runs under Microsoft .Net 8.0 and removes the requirement for the Mono runtime environment on Linux
 
 New
