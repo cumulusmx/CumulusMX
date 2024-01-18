@@ -289,7 +289,7 @@ namespace CumulusMX
 				{
 					for (var i = 0; i < 10; i++)
 					{
-						if (i < settings.customseconds.command.Length)
+						if (settings.customseconds.command == null || i < settings.customseconds.command.Length)
 							cumulus.MySqlSettings.CustomSecs.Commands[i] = String.IsNullOrWhiteSpace(settings.customseconds.command[i]) ? null : settings.customseconds.command[i].Trim();
 						else
 							cumulus.MySqlSettings.CustomSecs.Commands[i] = null;
@@ -303,7 +303,7 @@ namespace CumulusMX
 				{
 					for (var i = 0; i < 10; i++)
 					{
-						if (i < settings.customminutes.command.Length)
+						if (settings.customminutes.command != null && i < settings.customminutes.command.Length)
 							cumulus.MySqlSettings.CustomMins.Commands[i] = String.IsNullOrWhiteSpace(settings.customminutes.command[i]) ? null : settings.customminutes.command[i].Trim();
 						else
 							cumulus.MySqlSettings.CustomMins.Commands[i] = null;
@@ -325,7 +325,7 @@ namespace CumulusMX
 				{
 					for (var i = 0; i < 10; i++)
 					{
-						if (i < settings.customrollover.command.Length)
+						if (settings.customrollover.command != null && i < settings.customrollover.command.Length)
 							cumulus.MySqlSettings.CustomRollover.Commands[i] = String.IsNullOrWhiteSpace(settings.customrollover.command[i]) ? null : settings.customrollover.command[i].Trim();
 						else
 							cumulus.MySqlSettings.CustomRollover.Commands[i] = null;

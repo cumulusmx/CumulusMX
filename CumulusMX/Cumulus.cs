@@ -721,11 +721,10 @@ namespace CumulusMX
 			LogConsoleMessage("Cumulus MX v." + Version + " build " + Build);
 			LogConsoleMessage("Working Dir: " + AppDir);
 
+			IsOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 			Type type = Type.GetType("Mono.Runtime");
 			if (type != null)
 			{
-				IsOSX = IsRunningOnMac();
-
 				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
 				if (displayName != null)
 					LogMessage("Mono version   : " + displayName.Invoke(null, null));
@@ -3733,31 +3732,6 @@ namespace CumulusMX
 		}
 
 		public string DecimalSeparator { get; set; }
-
-		private static bool IsRunningOnMac()
-		{
-			IntPtr buf = IntPtr.Zero;
-			try
-			{
-				buf = Marshal.AllocHGlobal(8192);
-				// This is a hacktastic way of getting sysname from uname ()
-				if (SafeNativeMethods.uname(buf) == 0)
-				{
-					string os = Marshal.PtrToStringAnsi(buf);
-					if (os == "Darwin")
-						return true;
-				}
-			}
-			catch
-			{
-			}
-			finally
-			{
-				if (buf != IntPtr.Zero)
-					Marshal.FreeHGlobal(buf);
-			}
-			return false;
-		}
 
 		internal void DoMoonPhase()
 		{

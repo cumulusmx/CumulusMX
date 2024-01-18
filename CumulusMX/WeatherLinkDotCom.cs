@@ -463,7 +463,7 @@ namespace CumulusMX
 		public long espressif_version { get; set; }
 		public int battery_voltage { get; set; }
 		public int input_voltage { get; set; }
-		public double uptime { get; set; }
+		public int uptime { get; set; }
 		public int bgn { get; set; }
 		public int network_type { get; set; }
 		public int ip_address_type { get; set; }
@@ -520,6 +520,7 @@ namespace CumulusMX
 		public double? database_kilobytes { get; set; }
 		public double? battery_cycle_count { get; set; }
 		public string console_os_version { get; set; }
+		public long ts { get; set; }
 	}
 
 
@@ -542,7 +543,7 @@ namespace CumulusMX
 		public int? data_structure_type { get; set; }
 
 		// We have no idea what data structures are going to be in here in advance
-		public string[] data { get; set; }
+		public string data { get; set; }
 	}
 
 
@@ -557,9 +558,13 @@ namespace CumulusMX
 		public double? temp_in { get; set; }
 		public int? hum_in { get; set; }
 		public double? temp_out { get; set; }
+		public double? dew_point { get; set; }
+		public double? heat_index { get; set; }
+		public double? wind_chill { get; set; }
 		public int? wind_speed { get; set; }
-		public int? wind_speed_10_min_avg { get; set; }
 		public int? wind_dir { get; set; }
+		public int? wind_speed_10_min_avg { get; set; }
+		public int? wind_gust_10_min { get; set; }
 		public int? temp_extra_1 { get; set; }
 		public int? temp_extra_2 { get; set; }
 		public int? temp_extra_3 { get; set; }
@@ -586,8 +591,6 @@ namespace CumulusMX
 		public int? rain_rate_clicks { get; set; }
 		public double? rain_rate_in { get; set; }
 		public double? rain_rate_mm { get; set; }
-		public int? uv { get; set; }
-		public int? solar_rad { get; set; }
 		public int? rain_storm_clicks { get; set; }
 		public double? rain_storm_in { get; set; }
 		public double? rain_storm_mm { get; set; }
@@ -601,6 +604,8 @@ namespace CumulusMX
 		public int? rain_year_clicks { get; set; }
 		public double? rain_year_in { get; set; }
 		public double? rain_year_mm { get; set; }
+		public int? uv { get; set; }
+		public int? solar_rad { get; set; }
 		public double? et_day { get; set; }
 		public double? et_month { get; set; }
 		public double? et_year { get; set; }
@@ -614,10 +619,6 @@ namespace CumulusMX
 		public int? wet_leaf_4 { get; set; }
 		public int? forecast_rule { get; set; }
 		public string forescast_desc { get; set; }
-		public double? dew_point { get; set; }
-		public double? heat_index { get; set; }
-		public double? wind_chill { get; set; }
-		public int? wind_gust_10_min { get; set; }
 		public long ts { get; set; }
 	}
 
@@ -647,9 +648,9 @@ namespace CumulusMX
 		public double? wind_speed_hi_last_2_min { get; set; }
 		public int? wind_dir_at_hi_speed_last_2_min { get; set; }
 		public double? wind_speed_avg_last_10_min { get; set; }
-		public double wind_dir_scalar_avg_last_10_min { get; set; }
-		public int? wind_speed_hi_last_10_min { get; set; }
-		public double wind_dir_at_hi_speed_last_10_min { get; set; }
+		public int wind_dir_scalar_avg_last_10_min { get; set; }
+		public double? wind_speed_hi_last_10_min { get; set; }
+		public int wind_dir_at_hi_speed_last_10_min { get; set; }
 		public double? wind_run_day { get; set; }  // Type 23 only
 		public int? rain_size { get; set; }
 		public int? rain_rate_last_clicks { get; set; }
@@ -751,12 +752,13 @@ namespace CumulusMX
 		public int? freq_index { get; set; } // Type 25 only
 		public long? last_packet_received_timestamp { get; set; } // Type 25 only
 		public int? trans_battery_flag { get; set; } // Type 25 only
+		public long ts { get; set; }
 
 		public object this[string name]
 		{
 			get
 			{
-				Type myType = typeof(WlHistorySensorDataType13);
+				Type myType = typeof(WLCurrentSensorDataType12_25);
 				PropertyInfo myPropInfo = myType.GetProperty(name);
 				return myPropInfo.GetValue(this, null);
 			}

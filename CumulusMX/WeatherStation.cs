@@ -389,7 +389,7 @@ namespace CumulusMX
 			return string.Empty;
 		}
 
-		public int EcowittHeapSize;
+		public int StationFreeMemory;
 		public int StationRuntime;
 
 
