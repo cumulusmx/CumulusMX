@@ -200,9 +200,10 @@ namespace CumulusMX
 							Console.WriteLine("\nYou must supply a user name when installing the service\n");
 							Console.ResetColor();
 							Environment.Exit(0);
+
 						}
 
-						if (SelfInstaller.InstallLinux(user, httpport, lang))
+						if (SelfInstaller.InstallLinux(user, lang, httpport))
 						{
 							Console.ForegroundColor = ConsoleColor.Green;
 							Console.WriteLine("\nCumulus MX is now installed to run as service\n");

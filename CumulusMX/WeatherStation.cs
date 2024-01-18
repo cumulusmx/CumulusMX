@@ -386,7 +386,7 @@ namespace CumulusMX
 			return string.Empty;
 		}
 
-		public int EcowittHeapSize;
+		public int StationFreeMemory;
 		public int StationRuntime;
 
 
@@ -427,6 +427,7 @@ namespace CumulusMX
 			ReadMonthIniFile();
 			ReadYearIniFile();
 			_ = LoadDayFile();
+			CheckMonthlyLogFile(cumulus.LastUpdateTime);
 
 			GetRainCounter();
 			GetRainFallTotals();
@@ -514,6 +515,26 @@ namespace CumulusMX
 					SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
 					RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
 				}
+			}
+		}
+
+		private void CheckMonthlyLogFile(DateTime logDate)
+		{
+			// A crude check for corruption, just see if the last line starts with nulls
+			// if it does resave the file missing the last line
+			var fileName = cumulus.GetLogFileName(logDate);
+
+			var lines = File.ReadAllLines(fileName);
+
+			//Strip the "null line" from file
+			if (lines[lines.Length - 1].StartsWith("\0\0\0\0\0"))
+			{
+				cumulus.LogMessage($"Monthly log file {fileName} Repaired");
+				File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
+			}
+			else
+			{
+				cumulus.LogMessage($"Monthly log file {fileName} OK");
 			}
 		}
 

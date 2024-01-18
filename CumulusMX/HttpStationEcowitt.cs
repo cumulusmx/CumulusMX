@@ -875,7 +875,7 @@ namespace CumulusMX
 				{
 					if (data["heap"] != null)
 					{
-						EcowittHeapSize = int.Parse(data["heap"]);
+						StationFreeMemory = int.Parse(data["heap"]);
 					}
 
 					if (data["runtime"] != null)

@@ -5385,7 +5385,7 @@ namespace CumulusMX
 			return retVal;
 		}
 
-		private string TagEcowittHeap(Dictionary<string, string> tagParams)
+		private string TagStationFreeMemory(Dictionary<string, string> tagParams)
 		{
 			return station.EcowittHeapSize.ToString();
 		}
@@ -6506,7 +6506,7 @@ namespace CumulusMX
 				{ "GW1000FirmwareVersion", TagGw1000FirmwareVersion },
 				{ "EcowittFirmwareVersion", TagGw1000FirmwareVersion },
 				{ "EcowittReception", TagGw1000Reception },
-				{ "EcowittHeap", TagEcowittHeap },
+				{ "StationFreeMemory", TagStationFreeMemory },
 				{ "StationRuntime", TagStationRuntime },
 				{ "DataStopped", TagDataStopped },
 				// Recent history

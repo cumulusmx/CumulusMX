@@ -718,22 +718,23 @@ namespace CumulusMX
 			LogConsoleMessage("Cumulus MX v." + Version + " build " + Build);
 			LogConsoleMessage("Working Dir: " + AppDir);
 
-			Type type = Type.GetType("Mono.Runtime");
-			if (type != null)
-			{
-				IsOSX = IsRunningOnMac();
+			IsOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
-				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
-				if (displayName != null)
-					LogMessage("Mono version   : " + displayName.Invoke(null, null));
-			}
 
 			// restrict the threadpool size - for Mono which does not seem to have very good pool management!
 			ThreadPool.SetMinThreads(Properties.Settings.Default.MinThreadPoolSize, Properties.Settings.Default.MinThreadPoolSize);
 			ThreadPool.SetMaxThreads(Properties.Settings.Default.MaxThreadPoolSize, Properties.Settings.Default.MaxThreadPoolSize);
 
-
-			Platform = IsOSX ? "Mac OS X" : Environment.OSVersion.Platform.ToString();
+			if (IsOSX)
+				Platform = "Mac OS X";
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				Platform = "Windows";
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				Platform = "Linux";
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+				Platform = "FreeBSD";
+			else
+				Platform = "Unknown";
 
 			LogMessage("Platform       : " + Platform);
 
@@ -1313,7 +1314,8 @@ namespace CumulusMX
 			LogMessage("Email logging :" + (SmtpOptions.Logging ? "enabled" : "disabled"));
 			LogMessage("Spike logging :" + (ErrorLogSpikeRemoval ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval] + " mins");
-			LogMessage("Real time interval = " + RealtimeInterval / 1000 + " secs");
+			LogMessage("Real time interval:" + (RealtimeIntervalEnabled ? "enabled" : "disabled") + ", uploads:" + (FtpOptions.RealtimeEnabled ? "enabled" : "disabled") + ", (" + RealtimeInterval / 1000 + " secs)");
+			LogMessage("Interval          :" + (WebIntervalEnabled ? "enabled" : "disabled") + ", uploads:" + (FtpOptions.IntervalEnabled ? "enabled" : "disabled") + ", (" + UpdateInterval + " mins)");
 			LogMessage("NoSensorCheck = " + (StationOptions.NoSensorCheck ? "1" : "0"));
 
 			TempFormat = "F" + TempDPlaces;
@@ -3680,30 +3682,6 @@ namespace CumulusMX
 
 		public string DecimalSeparator { get; set; }
 
-		private static bool IsRunningOnMac()
-		{
-			IntPtr buf = IntPtr.Zero;
-			try
-			{
-				buf = Marshal.AllocHGlobal(8192);
-				// This is a hacktastic way of getting sysname from uname ()
-				if (SafeNativeMethods.uname(buf) == 0)
-				{
-					string os = Marshal.PtrToStringAnsi(buf);
-					if (os == "Darwin")
-						return true;
-				}
-			}
-			catch
-			{
-			}
-			finally
-			{
-				if (buf != IntPtr.Zero)
-					Marshal.FreeHGlobal(buf);
-			}
-			return false;
-		}
 
 		internal void DoMoonPhase()
 		{
