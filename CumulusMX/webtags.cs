@@ -5387,7 +5387,7 @@ namespace CumulusMX
 
 		private string TagStationFreeMemory(Dictionary<string, string> tagParams)
 		{
-			return station.EcowittHeapSize.ToString();
+			return station.StationFreeMemory.ToString();
 		}
 
 		private string TagStationRuntime(Dictionary<string, string> tagParams)

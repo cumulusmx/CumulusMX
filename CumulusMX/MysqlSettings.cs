@@ -84,24 +84,36 @@ namespace CumulusMX
 			var customminutes = new JsonSettingsCustomMinutes()
 			{
 				enabled = cumulus.MySqlSettings.CustomMins.Enabled,
-				intervalindex = cumulus.CustomMySqlMinutesIntervalIndex
+				entries = Array.Empty<JsonCustomMinutes>()
 			};
 
-			cmdCnt = 1;
-			for (var i = 1; i < 10; i++)
+			cmdCnt = 0;
+			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomMins.Commands[i]))
 					cmdCnt++;
 			}
-			customminutes.command = new string[cmdCnt];
 
-			index = 0;
-			for (var i = 0; i < 10; i++)
+			if (cmdCnt > 0)
 			{
-				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomMins.Commands[i]))
-					customminutes.command[index++] = cumulus.MySqlSettings.CustomMins.Commands[i];
-			}
+				customminutes.entries = new JsonCustomMinutes[cmdCnt];
 
+				index = 0;
+				for (var i = 0; i < 10; i++)
+				{
+					customminutes.entries[index] = new JsonCustomMinutes();
+
+					if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomMins.Commands[i]))
+					{
+						customminutes.entries[index].command = cumulus.MySqlSettings.CustomMins.Commands[i];
+						customminutes.entries[index].intervalidx = cumulus.MySqlSettings.CustomMins.IntervalIndexes[i];
+						index++;
+
+						if (index == cmdCnt)
+							break;
+					}
+				}
+			}
 			var customrollover = new JsonSettingsCustomRolloverStart()
 			{
 				enabled = cumulus.MySqlSettings.CustomRollover.Enabled
@@ -303,20 +315,26 @@ namespace CumulusMX
 				{
 					for (var i = 0; i < 10; i++)
 					{
-						if (settings.customminutes.command != null && i < settings.customminutes.command.Length)
-							cumulus.MySqlSettings.CustomMins.Commands[i] = String.IsNullOrWhiteSpace(settings.customminutes.command[i]) ? null : settings.customminutes.command[i].Trim();
+						if (i < settings.customminutes.entries.Length)
+						{
+							cumulus.MySqlSettings.CustomMins.Commands[i] = String.IsNullOrWhiteSpace(settings.customminutes.entries[i].command) ? null : settings.customminutes.entries[i].command.Trim();
+							cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] = settings.customminutes.entries[i].intervalidx;
+							if (cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] >= 0 && cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] < cumulus.FactorsOf60.Length)
+							{
+								cumulus.MySqlSettings.CustomMins.Intervals[i] = cumulus.FactorsOf60[cumulus.MySqlSettings.CustomMins.IntervalIndexes[i]];
+							}
+							else
+							{
+								cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] = 6;
+								cumulus.MySqlSettings.CustomMins.Intervals[i] = 10;
+							}
+						}
 						else
+						{
 							cumulus.MySqlSettings.CustomMins.Commands[i] = null;
-					}
-
-					cumulus.CustomMySqlMinutesIntervalIndex = settings.customminutes.intervalindex;
-					if (cumulus.CustomMySqlMinutesIntervalIndex >= 0 && cumulus.CustomMySqlMinutesIntervalIndex < cumulus.FactorsOf60.Length)
-					{
-						cumulus.MySqlSettings.CustomMins.Interval = cumulus.FactorsOf60[cumulus.CustomMySqlMinutesIntervalIndex];
-					}
-					else
-					{
-						cumulus.MySqlSettings.CustomMins.Interval = 10;
+							cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] = 6;
+							cumulus.MySqlSettings.CustomMins.Intervals[i] = 10;
+						}
 					}
 				}
 				// custom roll-over
@@ -344,6 +362,7 @@ namespace CumulusMX
 							if (settings.customtimed.entries[i].repeat)
 							{
 								cumulus.MySqlSettings.CustomTimed.Intervals[i] = settings.customtimed.entries[i].interval == -1 ? 1440 : settings.customtimed.entries[i].interval;
+								cumulus.MySqlSettings.CustomTimed.SetNextInterval(i, DateTime.Now);
 							}
 							else
 							{
@@ -585,8 +604,13 @@ namespace CumulusMX
 		private class JsonSettingsCustomMinutes
 		{
 			public bool enabled { get; set; }
-			public string[] command { get; set; }
-			public int intervalindex { get; set; }
+			public JsonCustomMinutes[] entries { get; set; }
+		}
+
+		private class JsonCustomMinutes
+		{
+			public string command { get; set; }
+			public int intervalidx { get; set; }
 		}
 
 		private class JsonSettingsCustomRolloverStart
