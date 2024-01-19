@@ -14,14 +14,9 @@ using ServiceStack;
 
 namespace CumulusMX
 {
-	public class MysqlSettings
+	public class MysqlSettings(Cumulus cumulus)
 	{
-		private readonly Cumulus cumulus;
-
-		public MysqlSettings(Cumulus cumulus)
-		{
-			this.cumulus = cumulus;
-		}
+		private readonly Cumulus cumulus = cumulus;
 
 		public string GetAlpacaFormData()
 		{
@@ -222,7 +217,7 @@ namespace CumulusMX
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
 				settings = json.FromJson<JsonSettings>();
@@ -412,7 +407,6 @@ namespace CumulusMX
 		{
 			string res;
 			using (var mySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString()))
-#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
 			using (MySqlCommand cmd = new MySqlCommand(createSQL, mySqlConn))
 			{
 				cumulus.LogMessage($"MySQL Create Table: {createSQL}");
@@ -440,7 +434,6 @@ namespace CumulusMX
 					{ }
 				}
 			}
-#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
 			return res;
 		}
 
@@ -451,56 +444,48 @@ namespace CumulusMX
 
 			try
 			{
-				using (var mySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString()))
+				using var mySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString());
+				mySqlConn.Open();
+
+				// first get a list of the columns the table currenty has
+				var currCols = new List<string>();
+				using (MySqlCommand cmd = new MySqlCommand($"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", mySqlConn))
+				using (MySqlDataReader reader = cmd.ExecuteReader())
 				{
-					mySqlConn.Open();
-
-					// first get a list of the columns the table currenty has
-					var currCols = new List<string>();
-#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
-					using (MySqlCommand cmd = new MySqlCommand($"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", mySqlConn))
-					using (MySqlDataReader reader = cmd.ExecuteReader())
+					if (reader.HasRows)
 					{
-						if (reader.HasRows)
+						while (reader.Read())
 						{
-							while (reader.Read())
-							{
-								var col = reader.GetString(0);
-								currCols.Add(col);
-							}
+							var col = reader.GetString(0);
+							currCols.Add(col);
 						}
 					}
-#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
+				}
 
-					var update = new StringBuilder("ALTER TABLE " + table.Name, 1024);
-					foreach (var newCol in table.Columns)
+				var update = new StringBuilder("ALTER TABLE " + table.Name, 1024);
+				foreach (var newCol in table.Columns)
+				{
+					if (!currCols.Contains(newCol.Name))
 					{
-						if (!currCols.Contains(newCol.Name))
-						{
-							update.Append($" ADD COLUMN {newCol.Name} {newCol.Attributes},");
-							cnt++;
-						}
+						update.Append($" ADD COLUMN {newCol.Name} {newCol.Attributes},");
+						cnt++;
 					}
+				}
 
-					if (cnt > 0)
-					{
-						// strip trailing comma
-						update.Length--;
+				if (cnt > 0)
+				{
+					// strip trailing comma
+					update.Length--;
 
-#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
-						using (MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn))
-						{
-							int aff = cmd.ExecuteNonQuery();
-							res = $"Added {cnt} columns to {table.Name} table";
-							cumulus.LogMessage($"MySQL Update Table: " + res);
-						}
-#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
-					}
-					else
-					{
-						res = $"The {table.Name} table already has all the required columns. Required = {table.Columns.Count}, actual = {currCols.Count}";
-						cumulus.LogMessage("MySQL Update Table: " + res);
-					}
+					using MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn);
+					int aff = cmd.ExecuteNonQuery();
+					res = $"Added {cnt} columns to {table.Name} table";
+					cumulus.LogMessage($"MySQL Update Table: " + res);
+				}
+				else
+				{
+					res = $"The {table.Name} table already has all the required columns. Required = {table.Columns.Count}, actual = {currCols.Count}";
+					cumulus.LogMessage("MySQL Update Table: " + res);
 				}
 			}
 			catch (Exception ex)

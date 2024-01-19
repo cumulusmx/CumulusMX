@@ -859,21 +859,13 @@ namespace CumulusMX
 		public double elevation { get; set; }
 	}
 
-	public class WlSensor
+	public class WlSensor(int sensorType, int lsid, int parentId, string name, string parentName)
 	{
-		public WlSensor(int sensorType, int lsid, int parentId, string name, string parentName)
-		{
-			SensorType = sensorType;
-			LSID = lsid;
-			ParentID = parentId;
-			Name = name;
-			ParentName = parentName;
-		}
-		public int SensorType { get; set; }
-		public int LSID { get; set; }
-		public int ParentID { get; set; }
-		public string Name { get; set; }
-		public string ParentName { get; set; }
+		public int SensorType { get; set; } = sensorType;
+		public int LSID { get; set; } = lsid;
+		public int ParentID { get; set; } = parentId;
+		public string Name { get; set; } = name;
+		public string ParentName { get; set; } = parentName;
 	}
 
 

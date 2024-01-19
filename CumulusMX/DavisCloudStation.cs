@@ -24,8 +24,8 @@ namespace CumulusMX
 				private int wlStationArchiveInterval = 5;
 		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
 		private List<WlSensorListSensor> sensorList;
-		private readonly Dictionary<int, int> lsidToTx = new Dictionary<int, int>();
-		private readonly Dictionary<int, long> lsidLastUpdate = new Dictionary<int, long>();
+		private readonly Dictionary<int, int> lsidToTx = [];
+		private readonly Dictionary<int, long> lsidLastUpdate = [];
 
 		private bool startingUp = true;
 		private new readonly Random random = new();
@@ -59,12 +59,12 @@ namespace CumulusMX
 					return DateTime.MinValue;
 				}
 
-				if (datetimeStr.EndsWith("Z") &&
+				if (datetimeStr.EndsWith('Z') &&
 					DateTime.TryParseExact(datetimeStr, utcTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime resultUtc))
 				{
 					return resultUtc;
 				}
-				else if (!datetimeStr.EndsWith("Z") &&
+				else if (!datetimeStr.EndsWith('Z') &&
 					DateTime.TryParseExact(datetimeStr, localTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime resultLocal))
 				{
 					return resultLocal;
@@ -1227,34 +1227,25 @@ namespace CumulusMX
 		private double ConvertRainClicksToUser(double clicks, int size)
 		{
 			// 0: Reserved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
-			switch (size)
+			return size switch
 			{
-				case 1:
-					return ConvertUnits.RainINToUser(clicks * 0.01);
-				case 2:
-					return ConvertUnits.RainMMToUser(clicks * 0.2);
-				case 3:
-					return ConvertUnits.RainMMToUser(clicks * 0.1);
-				case 4:
-					return ConvertUnits.RainINToUser(clicks * 0.001);
-				default:
-					switch (cumulus.DavisOptions.RainGaugeType)
-					{
-						// Hmm, no valid tip size from WLL...
-						// One click is normally either 0.01 inches or 0.2 mm
-						// Try the setting in Cumulus.ini
-						// Rain gauge type not configured, assume from units
-						case -1 when cumulus.Units.Rain == 0:
-							return clicks * 0.2;
-						case -1:
-							return clicks * 0.01;
-						// Rain gauge is metric, convert to user unit
-						case 0:
-							return ConvertUnits.RainMMToUser(clicks * 0.2);
-						default:
-							return ConvertUnits.RainINToUser(clicks * 0.01);
-					}
-			}
+				1 => ConvertUnits.RainINToUser(clicks * 0.01),
+				2 => ConvertUnits.RainMMToUser(clicks * 0.2),
+				3 => ConvertUnits.RainMMToUser(clicks * 0.1),
+				4 => ConvertUnits.RainINToUser(clicks * 0.001),
+				_ => cumulus.DavisOptions.RainGaugeType switch
+				{
+					// Hmm, no valid tip size from WLL...
+					// One click is normally either 0.01 inches or 0.2 mm
+					// Try the setting in Cumulus.ini
+					// Rain gauge type not configured, assume from units
+					-1 when cumulus.Units.Rain == 0 => clicks * 0.2,
+					-1 => clicks * 0.01,
+					// Rain gauge is metric, convert to user unit
+					0 => ConvertUnits.RainMMToUser(clicks * 0.2),
+					_ => ConvertUnits.RainINToUser(clicks * 0.01),
+				},
+			};
 		}
 
 		private void SetTxBatteryStatus(int txId, int status)
@@ -4445,43 +4436,26 @@ namespace CumulusMX
 
 				StationRuntime = data.app_uptime ?? 0;
 
-				var condition = "";
-				switch (data.battery_condition.Value)
+				var condition = data.battery_condition.Value switch
 				{
-					case 1:
-						condition = "unknown"; break;
-					case 2:
-						condition = "good"; break;
-					case 3:
-						condition = "overheat"; break;
-					case 4:
-						condition = "dead"; break;
-					case 5:
-						condition = "over voltage"; break;
-					case 6:
-						condition = "unspecified failure"; break;
-					case 7:
-						condition = "cold"; break;
-					default:
-						condition = data.battery_condition.Value.ToString(); break;
-				}
-				var status = "";
-				switch (data.battery_status)
+					1 => "unknown",
+					2 => "good",
+					3 => "overheat",
+					4 => "dead",
+					5 => "over voltage",
+					6 => "unspecified failure",
+					7 => "cold",
+					_ => data.battery_condition.Value.ToString(),
+				};
+				var status = data.battery_status switch
 				{
-					case 1:
-						status = "unknown"; break;
-					case 2:
-						status = "charging"; break;
-					case 3:
-						status = "discharging"; break;
-					case 4:
-						status = "not charging"; break;
-					case 5:
-						status = "full"; break;
-					default:
-						status = data.battery_status.Value.ToString(); break;
-				}
-
+					1 => "unknown",
+					2 => "charging",
+					3 => "discharging",
+					4 => "not charging",
+					5 => "full",
+					_ => data.battery_status.Value.ToString(),
+				};
 				cumulus.LogDebugMessage($"WLC: Battery: Percent={data.battery_percent}, voltage={(data.battery_voltage.Value / 1000.0).ToString("F2")}V, current={data.battery_current} mA, temp={data.battery_temp}°C");
 				cumulus.LogDebugMessage($"WLC: Battery: Condition={condition}, charger={(data.charger_plugged == 0 ? "unplugged" : "plugged-in")}, status={status}");
 
