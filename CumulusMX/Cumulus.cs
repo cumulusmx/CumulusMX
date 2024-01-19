@@ -616,8 +616,6 @@ namespace CumulusMX
 		internal MySqlTable MonthlyTable;
 		internal MySqlTable DayfileTable;
 
-		public int CustomMySqlMinutesIntervalIndex;
-
 		private bool customMySqlSecondsUpdateInProgress;
 		private bool customMySqlMinutesUpdateInProgress;
 		private bool customMySqlRolloverUpdateInProgress;
@@ -5946,25 +5944,29 @@ namespace CumulusMX
 			if (MySqlSettings.CustomSecs.Interval < 1) { MySqlSettings.CustomSecs.Interval = 1; }
 
 			// MySQL - custom minutes
+			MySqlSettings.CustomMins.Enabled = ini.GetValue("MySQL", "CustomMySqlMinutesEnabled", false);
+
 			MySqlSettings.CustomMins.Commands[0] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", "");
+			MySqlSettings.CustomMins.IntervalIndexes[0] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIndex", 6);
+			if (MySqlSettings.CustomMins.IntervalIndexes[0] < 0 && MySqlSettings.CustomMins.IntervalIndexes[0] >= FactorsOf60.Length)
+			{
+				MySqlSettings.CustomMins.IntervalIndexes[0] = 6;
+			}
+			MySqlSettings.CustomMins.Intervals[0] = FactorsOf60[MySqlSettings.CustomMins.IntervalIndexes[0]];
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlMinutesCommandString" + i))
+				{
 					MySqlSettings.CustomMins.Commands[i] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString" + i, "");
+					MySqlSettings.CustomMins.IntervalIndexes[i] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlSettings.CustomMins.IntervalIndexes[0]);
+					if (MySqlSettings.CustomMins.IntervalIndexes[i] < 0 && MySqlSettings.CustomMins.IntervalIndexes[i] > FactorsOf60.Length)
+					{
+						MySqlSettings.CustomMins.IntervalIndexes[i] = 6;
+					}
+					MySqlSettings.CustomMins.Intervals[i] = FactorsOf60[MySqlSettings.CustomMins.IntervalIndexes[i]];
+				}
 			}
 
-			MySqlSettings.CustomMins.Enabled = ini.GetValue("MySQL", "CustomMySqlMinutesEnabled", false);
-			CustomMySqlMinutesIntervalIndex = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIndex", -1);
-			if (CustomMySqlMinutesIntervalIndex >= 0 && CustomMySqlMinutesIntervalIndex < FactorsOf60.Length)
-			{
-				MySqlSettings.CustomMins.Interval = FactorsOf60[CustomMySqlMinutesIntervalIndex];
-			}
-			else
-			{
-				MySqlSettings.CustomMins.Interval = 10;
-				CustomMySqlMinutesIntervalIndex = 6;
-				rewriteRequired = true;
-			}
 
 			// MySql - Timed
 			MySqlSettings.CustomTimed.Enabled = ini.GetValue("MySQL", "CustomMySqlTimedEnabled", false);
@@ -5974,8 +5976,8 @@ namespace CumulusMX
 				MySqlSettings.CustomTimed.SetStartTime(i, ini.GetValue("MySQL", "CustomMySqlTimedStartTime" + i, "00:00"));
 				MySqlSettings.CustomTimed.Intervals[i] = ini.GetValue("MySQL", "CustomMySqlTimedInterval" + i, 1440);
 
-				if (!string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]))
-					MySqlSettings.CustomTimed.SetInitialNextInterval(i, DateTime.Now);
+				if (!string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]) && MySqlSettings.CustomTimed.Intervals[i] < 1440)
+					MySqlSettings.CustomTimed.SetNextInterval(i, DateTime.Now);
 			}
 
 			// MySQL - custom roll-over
@@ -7207,12 +7209,13 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "CustomMySqlStartUpEnabled", MySqlSettings.CustomStartUp.Enabled);
 
 			ini.SetValue("MySQL", "CustomMySqlSecondsInterval", MySqlSettings.CustomSecs.Interval);
-			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIndex", CustomMySqlMinutesIntervalIndex);
 
 			ini.SetValue("MySQL", "CustomMySqlSecondsCommandString", MySqlSettings.CustomSecs.Commands[0]);
 			ini.SetValue("MySQL", "CustomMySqlMinutesCommandString", MySqlSettings.CustomMins.Commands[0]);
 			ini.SetValue("MySQL", "CustomMySqlRolloverCommandString", MySqlSettings.CustomRollover.Commands[0]);
 			ini.SetValue("MySQL", "CustomMySqlStartUpCommandString", MySqlSettings.CustomStartUp.Commands[0]);
+
+			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIdx", MySqlSettings.CustomMins.IntervalIndexes[0]);
 
 			for (var i = 1; i < 10; i++)
 			{
@@ -7222,9 +7225,15 @@ namespace CumulusMX
 					ini.SetValue("MySQL", "CustomMySqlSecondsCommandString" + i, MySqlSettings.CustomSecs.Commands[i]);
 
 				if (string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+				{
 					ini.DeleteValue("MySQL", "CustomMySqlMinutesCommandString" + i);
+					ini.DeleteValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i);
+				}
 				else
+				{
 					ini.SetValue("MySQL", "CustomMySqlMinutesCommandString" + i, MySqlSettings.CustomMins.Commands[i]);
+					ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlSettings.CustomMins.IntervalIndexes[i]);
+				}
 
 				if (string.IsNullOrEmpty(MySqlSettings.CustomRollover.Commands[i]))
 					ini.DeleteValue("MySQL", "CustomMySqlRolloverCommandString" + i);
@@ -13016,7 +13025,7 @@ namespace CumulusMX
 		}
 
 
-		internal async void CustomMysqlMinutesTimerTick()
+		internal async void CustomMysqlMinutesUpdate(DateTime now)
 		{
 			if (station.DataStopped)
 			{
@@ -13041,10 +13050,12 @@ namespace CumulusMX
 				{
 					try
 					{
-						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]) && now.Minute % MySqlSettings.CustomMins.Intervals[i] == 0)
 						{
 							tokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", tokenParser.ToStringFromString());
+							var cmd = tokenParser.ToStringFromString();
+							LogDebugMessage("MySQLTimed: Running - " + cmd);
+							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", cmd);
 						}
 					}
 					catch (Exception ex)
@@ -13110,15 +13121,39 @@ namespace CumulusMX
 
 				var tokenParser = new TokenParser(TokenParserOnToken);
 
+				var roundedTime = new TimeSpan(now.Hour, now.Minute, 0);
+
 				for (var i = 0; i < 10; i++)
 				{
 					try
 					{
-						if (!string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]) && MySqlSettings.CustomTimed.NextUpdate[i] <= now)
+						if (string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]))
 						{
-							tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", tokenParser.ToStringFromString());
-							MySqlSettings.CustomTimed.SetNextInterval(i, now);
+							continue;
+						}
+
+						// is this a one-off, or a repeater
+						if (MySqlSettings.CustomTimed.Intervals[i] == 1440)
+						{
+							if (MySqlSettings.CustomTimed.StartTimes[i] == roundedTime)
+							{
+								tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
+								var cmd = tokenParser.ToStringFromString();
+								LogDebugMessage("MySQLTimed: Running - " + cmd);
+								await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", cmd);
+								continue;
+							}
+						}
+						else // it's a repeater
+						{
+							if (MySqlSettings.CustomTimed.NextUpdate[i] <= now)
+							{
+								tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
+								var cmd = tokenParser.ToStringFromString();
+								LogDebugMessage("MySQLTimed: Running repeating - " + cmd);
+								await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", cmd);
+								MySqlSettings.CustomTimed.SetNextInterval(i, now);
+							}
 						}
 					}
 					catch (Exception ex)
@@ -15012,7 +15047,7 @@ namespace CumulusMX
 		public MySqlTableSettings Monthly { get; set; }
 		public MySqlTableSettings Dayfile { get; set; }
 		public MySqlTableSettings CustomSecs { get; set; }
-		public MySqlTableSettings CustomMins { get; set; }
+		public MySqlTableIntervalSettings CustomMins { get; set; }
 		public MySqlTableSettings CustomRollover { get; set; }
 		public MySqlTableTimedSettings CustomTimed { get; set; }
 		public MySqlTableSettings CustomStartUp { get; set; }
@@ -15024,13 +15059,15 @@ namespace CumulusMX
 			Monthly = new MySqlTableSettings();
 			Dayfile = new MySqlTableSettings();
 			CustomSecs = new MySqlTableSettings();
-			CustomMins = new MySqlTableSettings();
+			CustomMins = new MySqlTableIntervalSettings();
 			CustomRollover = new MySqlTableSettings();
 			CustomTimed = new MySqlTableTimedSettings();
 			CustomStartUp = new MySqlTableSettings();
 
 			CustomSecs.Commands = new string[10];
 			CustomMins.Commands = new string[10];
+			CustomMins.IntervalIndexes = new int[10];
+			CustomMins.Intervals = new int[10];
 			CustomRollover.Commands = new string[10];
 			CustomTimed.Commands = new string[10];
 			CustomTimed.Intervals = new int[10];
@@ -15057,6 +15094,12 @@ namespace CumulusMX
 		public int Interval { get; set; }
 	}
 
+	public class MySqlTableIntervalSettings : MySqlTableSettings
+	{
+		public int[] IntervalIndexes { get; set; }
+		public int[] Intervals { get; set; }
+	}
+
 	public class MySqlTableTimedSettings : MySqlTableSettings
 	{
 		public TimeSpan[] StartTimes { get; set; }
@@ -15072,11 +15115,6 @@ namespace CumulusMX
 		public string GetStartTimeString(int idx)
 		{
 			return StartTimes[idx].ToString("hh\\:mm", CultureInfo.InvariantCulture);
-		}
-
-		public void SetInitialNextInterval(int idx, DateTime now)
-		{
-			NextUpdate[idx] = now.Date + StartTimes[idx];
 		}
 
 		public void SetNextInterval(int idx, DateTime now)
