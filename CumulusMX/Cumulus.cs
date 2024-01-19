@@ -12904,7 +12904,7 @@ namespace CumulusMX
 		}
 
 
-		internal async void CustomMysqlMinutesTimerTick()
+		internal async void CustomMysqlMinutesUpdate(DateTime now)
 		{
 			if (station.DataStopped)
 			{
