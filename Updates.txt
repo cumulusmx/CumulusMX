@@ -1,7 +1,12 @@
+4.0.0 - b4003
+—————————————
+- v3.28.2 feature catch-up
+- HTTP timeout increased from 5 to 15 seconds to match v3
+
+
 4.0.0 - b4002
 —————————————
 - Linux self installer now also applies the -port and -lang parameters if they are provided with -install
-
 
 
 4.0.0 - b4001
