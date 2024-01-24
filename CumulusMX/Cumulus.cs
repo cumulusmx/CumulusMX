@@ -616,8 +616,6 @@ namespace CumulusMX
 		internal MySqlTable MonthlyTable;
 		internal MySqlTable DayfileTable;
 
-		public int CustomMySqlMinutesIntervalIndex;
-
 		private bool customMySqlSecondsUpdateInProgress;
 		private bool customMySqlMinutesUpdateInProgress;
 		private bool customMySqlRolloverUpdateInProgress;
@@ -721,11 +719,10 @@ namespace CumulusMX
 			LogConsoleMessage("Cumulus MX v." + Version + " build " + Build);
 			LogConsoleMessage("Working Dir: " + AppDir);
 
+			IsOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 			Type type = Type.GetType("Mono.Runtime");
 			if (type != null)
 			{
-				IsOSX = IsRunningOnMac();
-
 				MethodInfo displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
 				if (displayName != null)
 					LogMessage("Mono version   : " + displayName.Invoke(null, null));
@@ -1345,7 +1342,8 @@ namespace CumulusMX
 			LogMessage("Email logging :" + (SmtpOptions.Logging ? "enabled" : "disabled"));
 			LogMessage("Spike logging :" + (ErrorLogSpikeRemoval ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval] + " mins");
-			LogMessage("Real time interval = " + RealtimeInterval / 1000 + " secs");
+			LogMessage("Real time interval:" + (RealtimeIntervalEnabled ? "enabled" : "disabled") + ", uploads:" + (FtpOptions.RealtimeEnabled ? "enabled" : "disabled") + ", (" + RealtimeInterval / 1000 + " secs)");
+			LogMessage("Interval          :" + (WebIntervalEnabled ? "enabled" : "disabled") + ", uploads:" + (FtpOptions.IntervalEnabled ? "enabled" : "disabled") + ", (" + UpdateInterval + " mins)");
 			LogMessage("NoSensorCheck = " + (StationOptions.NoSensorCheck ? "1" : "0"));
 
 			TempFormat = "F" + TempDPlaces;
@@ -1400,6 +1398,18 @@ namespace CumulusMX
 			LogMessage("Station type: " + (StationType == -1 ? "Undefined" : StationType + " - " + StationDesc[StationType]));
 
 			SetupUnitText();
+
+			// set alarms units
+			HighWindAlarm.Units = Units.WindText;
+			HighGustAlarm.Units = Units.WindText;
+			HighRainRateAlarm.Units = Units.RainTrendText;
+			HighRainTodayAlarm.Units = Units.RainText;
+			PressChangeAlarm.Units = Units.PressTrendText;
+			HighPressAlarm.Units = Units.PressText;
+			LowPressAlarm.Units = Units.PressText;
+			TempChangeAlarm.Units = Units.TempTrendText;
+			HighTempAlarm.Units = Units.TempText;
+			LowTempAlarm.Units = Units.TempText;
 
 			LogMessage($"WindUnit={Units.WindText} RainUnit={Units.RainText} TempUnit={Units.TempText} PressureUnit={Units.PressText}");
 			LogMessage($"Manual rainfall: YTDRain={YTDrain:F3}, Correction Year={YTDrainyear}");
@@ -3722,31 +3732,6 @@ namespace CumulusMX
 
 		public string DecimalSeparator { get; set; }
 
-		private static bool IsRunningOnMac()
-		{
-			IntPtr buf = IntPtr.Zero;
-			try
-			{
-				buf = Marshal.AllocHGlobal(8192);
-				// This is a hacktastic way of getting sysname from uname ()
-				if (SafeNativeMethods.uname(buf) == 0)
-				{
-					string os = Marshal.PtrToStringAnsi(buf);
-					if (os == "Darwin")
-						return true;
-				}
-			}
-			catch
-			{
-			}
-			finally
-			{
-				if (buf != IntPtr.Zero)
-					Marshal.FreeHGlobal(buf);
-			}
-			return false;
-		}
-
 		internal void DoMoonPhase()
 		{
 			DateTime now = DateTime.Now;
@@ -5959,25 +5944,29 @@ namespace CumulusMX
 			if (MySqlSettings.CustomSecs.Interval < 1) { MySqlSettings.CustomSecs.Interval = 1; }
 
 			// MySQL - custom minutes
+			MySqlSettings.CustomMins.Enabled = ini.GetValue("MySQL", "CustomMySqlMinutesEnabled", false);
+
 			MySqlSettings.CustomMins.Commands[0] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", "");
+			MySqlSettings.CustomMins.IntervalIndexes[0] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIndex", 6);
+			if (MySqlSettings.CustomMins.IntervalIndexes[0] < 0 && MySqlSettings.CustomMins.IntervalIndexes[0] >= FactorsOf60.Length)
+			{
+				MySqlSettings.CustomMins.IntervalIndexes[0] = 6;
+			}
+			MySqlSettings.CustomMins.Intervals[0] = FactorsOf60[MySqlSettings.CustomMins.IntervalIndexes[0]];
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlMinutesCommandString" + i))
+				{
 					MySqlSettings.CustomMins.Commands[i] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString" + i, "");
+					MySqlSettings.CustomMins.IntervalIndexes[i] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlSettings.CustomMins.IntervalIndexes[0]);
+					if (MySqlSettings.CustomMins.IntervalIndexes[i] < 0 && MySqlSettings.CustomMins.IntervalIndexes[i] > FactorsOf60.Length)
+					{
+						MySqlSettings.CustomMins.IntervalIndexes[i] = 6;
+					}
+					MySqlSettings.CustomMins.Intervals[i] = FactorsOf60[MySqlSettings.CustomMins.IntervalIndexes[i]];
+				}
 			}
 
-			MySqlSettings.CustomMins.Enabled = ini.GetValue("MySQL", "CustomMySqlMinutesEnabled", false);
-			CustomMySqlMinutesIntervalIndex = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIndex", -1);
-			if (CustomMySqlMinutesIntervalIndex >= 0 && CustomMySqlMinutesIntervalIndex < FactorsOf60.Length)
-			{
-				MySqlSettings.CustomMins.Interval = FactorsOf60[CustomMySqlMinutesIntervalIndex];
-			}
-			else
-			{
-				MySqlSettings.CustomMins.Interval = 10;
-				CustomMySqlMinutesIntervalIndex = 6;
-				rewriteRequired = true;
-			}
 
 			// MySql - Timed
 			MySqlSettings.CustomTimed.Enabled = ini.GetValue("MySQL", "CustomMySqlTimedEnabled", false);
@@ -5987,8 +5976,8 @@ namespace CumulusMX
 				MySqlSettings.CustomTimed.SetStartTime(i, ini.GetValue("MySQL", "CustomMySqlTimedStartTime" + i, "00:00"));
 				MySqlSettings.CustomTimed.Intervals[i] = ini.GetValue("MySQL", "CustomMySqlTimedInterval" + i, 1440);
 
-				if (!string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]))
-					MySqlSettings.CustomTimed.SetInitialNextInterval(i, DateTime.Now);
+				if (!string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]) && MySqlSettings.CustomTimed.Intervals[i] < 1440)
+					MySqlSettings.CustomTimed.SetNextInterval(i, DateTime.Now);
 			}
 
 			// MySQL - custom roll-over
@@ -7220,12 +7209,13 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "CustomMySqlStartUpEnabled", MySqlSettings.CustomStartUp.Enabled);
 
 			ini.SetValue("MySQL", "CustomMySqlSecondsInterval", MySqlSettings.CustomSecs.Interval);
-			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIndex", CustomMySqlMinutesIntervalIndex);
 
 			ini.SetValue("MySQL", "CustomMySqlSecondsCommandString", MySqlSettings.CustomSecs.Commands[0]);
 			ini.SetValue("MySQL", "CustomMySqlMinutesCommandString", MySqlSettings.CustomMins.Commands[0]);
 			ini.SetValue("MySQL", "CustomMySqlRolloverCommandString", MySqlSettings.CustomRollover.Commands[0]);
 			ini.SetValue("MySQL", "CustomMySqlStartUpCommandString", MySqlSettings.CustomStartUp.Commands[0]);
+
+			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIdx", MySqlSettings.CustomMins.IntervalIndexes[0]);
 
 			for (var i = 1; i < 10; i++)
 			{
@@ -7235,9 +7225,15 @@ namespace CumulusMX
 					ini.SetValue("MySQL", "CustomMySqlSecondsCommandString" + i, MySqlSettings.CustomSecs.Commands[i]);
 
 				if (string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+				{
 					ini.DeleteValue("MySQL", "CustomMySqlMinutesCommandString" + i);
+					ini.DeleteValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i);
+				}
 				else
+				{
 					ini.SetValue("MySQL", "CustomMySqlMinutesCommandString" + i, MySqlSettings.CustomMins.Commands[i]);
+					ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlSettings.CustomMins.IntervalIndexes[i]);
+				}
 
 				if (string.IsNullOrEmpty(MySqlSettings.CustomRollover.Commands[i]))
 					ini.DeleteValue("MySQL", "CustomMySqlRolloverCommandString" + i);
@@ -7471,7 +7467,7 @@ namespace CumulusMX
 			{
 				// air quality captions (for Extra Sensor Data screen)
 				Trans.AirQualityCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor" + (i + 1), Trans.AirQualityCaptions[i]);
-				Trans.AirQualityAvgCaptions[i] = ini.GetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[1]);
+				Trans.AirQualityAvgCaptions[i] = ini.GetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[i]);
 			}
 
 			for (var i = 0; i < 8; i++)
@@ -7664,7 +7660,7 @@ namespace CumulusMX
 			{
 				// air quality captions (for Extra Sensor Data screen)
 				ini.SetValue("AirQualityCaptions", "Sensor" + (i + 1), Trans.AirQualityCaptions[i]);
-				ini.SetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[1]);
+				ini.SetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[i]);
 			}
 
 			for (var i = 0; i < 8; i++)
@@ -13029,7 +13025,7 @@ namespace CumulusMX
 		}
 
 
-		internal async void CustomMysqlMinutesTimerTick()
+		internal async void CustomMysqlMinutesUpdate(DateTime now)
 		{
 			if (station.DataStopped)
 			{
@@ -13054,10 +13050,12 @@ namespace CumulusMX
 				{
 					try
 					{
-						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]) && now.Minute % MySqlSettings.CustomMins.Intervals[i] == 0)
 						{
 							tokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", tokenParser.ToStringFromString());
+							var cmd = tokenParser.ToStringFromString();
+							LogDebugMessage("MySQLTimed: Running - " + cmd);
+							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", cmd);
 						}
 					}
 					catch (Exception ex)
@@ -13123,15 +13121,39 @@ namespace CumulusMX
 
 				var tokenParser = new TokenParser(TokenParserOnToken);
 
+				var roundedTime = new TimeSpan(now.Hour, now.Minute, 0);
+
 				for (var i = 0; i < 10; i++)
 				{
 					try
 					{
-						if (!string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]) && MySqlSettings.CustomTimed.NextUpdate[i] <= now)
+						if (string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]))
 						{
-							tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", tokenParser.ToStringFromString());
-							MySqlSettings.CustomTimed.SetNextInterval(i, now);
+							continue;
+						}
+
+						// is this a one-off, or a repeater
+						if (MySqlSettings.CustomTimed.Intervals[i] == 1440)
+						{
+							if (MySqlSettings.CustomTimed.StartTimes[i] == roundedTime)
+							{
+								tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
+								var cmd = tokenParser.ToStringFromString();
+								LogDebugMessage("MySQLTimed: Running - " + cmd);
+								await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", cmd);
+								continue;
+							}
+						}
+						else // it's a repeater
+						{
+							if (MySqlSettings.CustomTimed.NextUpdate[i] <= now)
+							{
+								tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
+								var cmd = tokenParser.ToStringFromString();
+								LogDebugMessage("MySQLTimed: Running repeating - " + cmd);
+								await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", cmd);
+								MySqlSettings.CustomTimed.SetNextInterval(i, now);
+							}
 						}
 					}
 					catch (Exception ex)
@@ -14298,17 +14320,20 @@ namespace CumulusMX
 
 		private string GetUploadFilename(string input, DateTime dat)
 		{
+			// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+			var logDate = dat.AddMinutes(-(logints[DataLogInterval] + 1));
+
 			if (input == "<currentlogfile>")
 			{
-				return GetLogFileName(dat);
+				return GetLogFileName(logDate);
 			}
 			else if (input == "<currentextralogfile>")
 			{
-				return GetExtraLogFileName(dat);
+				return GetExtraLogFileName(logDate);
 			}
 			else if (input == "<airlinklogfile>")
 			{
-				return GetAirLinkLogFileName(dat);
+				return GetAirLinkLogFileName(logDate);
 			}
 			else if (input == "<noaayearfile>")
 			{
@@ -14329,8 +14354,10 @@ namespace CumulusMX
 					if (match.Success)
 					{
 						var idx = int.Parse(match.Groups[1].Value) - 1; // we use a zero relative array
+						// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+						var custDate = dat.AddMinutes(-(CustomIntvlLogSettings[idx].Interval + 1));
 
-						return GetCustomIntvlLogFileName(idx, dat);
+						return GetCustomIntvlLogFileName(idx, custDate);
 					}
 					else
 					{
@@ -14349,17 +14376,20 @@ namespace CumulusMX
 
 		private string GetRemoteFileName(string input, DateTime dat)
 		{
+			// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+			var logDate = dat.AddMinutes(-(logints[DataLogInterval] + 1));
+
 			if (input.Contains("<currentlogfile>"))
 			{
-				return input.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(dat)));
+				return input.Replace("<currentlogfile>", Path.GetFileName(GetLogFileName(logDate)));
 			}
 			else if (input.Contains("<currentextralogfile>"))
 			{
-				return input.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(dat)));
+				return input.Replace("<currentextralogfile>", Path.GetFileName(GetExtraLogFileName(logDate)));
 			}
 			else if (input.Contains("<airlinklogfile>"))
 			{
-				return input.Replace("<airlinklogfile>", Path.GetFileName(GetAirLinkLogFileName(dat)));
+				return input.Replace("<airlinklogfile>", Path.GetFileName(GetAirLinkLogFileName(logDate)));
 			}
 			else if (input.Contains("<noaayearfile>"))
 			{
@@ -14380,8 +14410,10 @@ namespace CumulusMX
 					if (match.Success)
 					{
 						var idx = int.Parse(match.Groups[1].Value) - 1; // we use a zero relative array
+						// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+						var custDate = dat.AddMinutes(-(CustomIntvlLogSettings[idx].Interval + 1));
 
-						return input.Replace(match.Groups[0].Value, Path.GetFileName(GetCustomIntvlLogFileName(idx, dat)));
+						return input.Replace(match.Groups[0].Value, Path.GetFileName(GetCustomIntvlLogFileName(idx, custDate)));
 					}
 					else
 					{
@@ -15015,7 +15047,7 @@ namespace CumulusMX
 		public MySqlTableSettings Monthly { get; set; }
 		public MySqlTableSettings Dayfile { get; set; }
 		public MySqlTableSettings CustomSecs { get; set; }
-		public MySqlTableSettings CustomMins { get; set; }
+		public MySqlTableIntervalSettings CustomMins { get; set; }
 		public MySqlTableSettings CustomRollover { get; set; }
 		public MySqlTableTimedSettings CustomTimed { get; set; }
 		public MySqlTableSettings CustomStartUp { get; set; }
@@ -15027,13 +15059,15 @@ namespace CumulusMX
 			Monthly = new MySqlTableSettings();
 			Dayfile = new MySqlTableSettings();
 			CustomSecs = new MySqlTableSettings();
-			CustomMins = new MySqlTableSettings();
+			CustomMins = new MySqlTableIntervalSettings();
 			CustomRollover = new MySqlTableSettings();
 			CustomTimed = new MySqlTableTimedSettings();
 			CustomStartUp = new MySqlTableSettings();
 
 			CustomSecs.Commands = new string[10];
 			CustomMins.Commands = new string[10];
+			CustomMins.IntervalIndexes = new int[10];
+			CustomMins.Intervals = new int[10];
 			CustomRollover.Commands = new string[10];
 			CustomTimed.Commands = new string[10];
 			CustomTimed.Intervals = new int[10];
@@ -15060,6 +15094,12 @@ namespace CumulusMX
 		public int Interval { get; set; }
 	}
 
+	public class MySqlTableIntervalSettings : MySqlTableSettings
+	{
+		public int[] IntervalIndexes { get; set; }
+		public int[] Intervals { get; set; }
+	}
+
 	public class MySqlTableTimedSettings : MySqlTableSettings
 	{
 		public TimeSpan[] StartTimes { get; set; }
@@ -15075,11 +15115,6 @@ namespace CumulusMX
 		public string GetStartTimeString(int idx)
 		{
 			return StartTimes[idx].ToString("hh\\:mm", CultureInfo.InvariantCulture);
-		}
-
-		public void SetInitialNextInterval(int idx, DateTime now)
-		{
-			NextUpdate[idx] = now.Date + StartTimes[idx];
 		}
 
 		public void SetNextInterval(int idx, DateTime now)

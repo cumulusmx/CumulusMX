@@ -1,3 +1,23 @@
+3.28.2 - b3279
+——————————————
+New
+- Adds two new web tags <#StationFreeMemory> and <#StationRuntime>
+	StationFreeMemory: Shows the station free memory for Davis WLC, Ecowitt GW1100/20000 (using HTTP)
+	StationRuntime: Shows the station uptime in seconds for Davis WLL/WLC, Ecowitt GW1100/20000 (using HTTP)
+- Now implements a basic check of the latest monthly log file on start-up to remove any nulls from the end
+
+Changed
+- Custom Minutes MySQL commands can now have the interval defined per command rather than globally
+
+Fixed
+- Ecowitt Cloud station: Fix some errors decoding Ecowitt cloud API.
+- Ecowitt Cloud, no longer requires a Pro subscrition to pull current data. Quite an extensive rewrite!
+- Extra Files using log filename templates missed the last log entry at month rollover as they switched to the new month immediately
+- Fix missing units in alarm email messages
+- Custom Timed MySQL commands sometimes fired immediately after saving the configuration
+- Ecowitt historic catch-up was missing CO2, CO2 pm, CO2 T/H, leaf wetness, and extra T/H dewpoint values
+
+
 3.28.1 - b3278
 ——————————————
 New

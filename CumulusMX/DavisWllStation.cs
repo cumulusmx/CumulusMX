@@ -863,8 +863,7 @@ namespace CumulusMX
 									if (CheckHighGust(gustCal, gustDirCal, dateTime))
 									{
 										cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-										AddValuesToRecentWind(gust, WindAverage, gustDir, dateTime, dateTime);
-										RecentMaxGust = gustCal;
+										DoWind(gust, gustDir, -1, dateTime);
 									}
 								}
 								catch (Exception ex)
@@ -2710,6 +2709,8 @@ namespace CumulusMX
 					var dat = Utils.FromUnixTime(data15.firmware_version);
 					DavisFirmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
 
+					StationRuntime = data15.uptime;
+
 					var battV = data15.battery_voltage / 1000.0;
 					ConBatText = battV.ToString("F2");
 					// Allow voltage to drop to 1.35V per cell before triggering the alarm. This should leave a good reserve without changing them too often
@@ -2734,6 +2735,7 @@ namespace CumulusMX
 					{
 						cumulus.LogDebugMessage($"WLL Input Voltage = {inpV:0.##}V");
 					}
+
 					var upt = TimeSpan.FromSeconds(data15.uptime);
 					var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
 							(int) upt.TotalDays,
@@ -3033,8 +3035,6 @@ namespace CumulusMX
 		// Return true if only 1 result is found, else return false
 		private void GetAvailableStationIds(bool logToConsole = false)
 		{
-			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
-
 			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
 			{
 				cumulus.LogWarningMessage("WLLStations: Missing WeatherLink API data in the cumulus.ini file, aborting!");
@@ -3115,8 +3115,6 @@ namespace CumulusMX
 
 		private void GetAvailableSensors()
 		{
-			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
-
 			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
 			{
 				cumulus.LogWarningMessage("GetAvailableSensors: WeatherLink API data is missing in the configuration, aborting!");
@@ -3133,7 +3131,7 @@ namespace CumulusMX
 
 			cumulus.LogDebugMessage($"GetAvailableSensors: URL = {stationsUrl.Replace(cumulus.WllApiKey, "API_KEY")}");
 
-			WlSensorList sensorsObj = new WlSensorList();
+			WlSensorList sensorsObj;
 
 			try
 			{

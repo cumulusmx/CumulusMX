@@ -5387,6 +5387,15 @@ namespace CumulusMX
 			return retVal;
 		}
 
+		private string TagStationFreeMemory(Dictionary<string, string> tagParams)
+		{
+			return station.StationFreeMemory.ToString();
+		}
+
+		private string TagStationRuntime(Dictionary<string, string> tagParams)
+		{
+			return station.StationRuntime.ToString();
+		}
 
 		private string Tagdailygraphperiod(Dictionary<string, string> tagparams)
 		{
@@ -6499,6 +6508,8 @@ namespace CumulusMX
 				{ "GW1000FirmwareVersion", TagGw1000FirmwareVersion },
 				{ "EcowittFirmwareVersion", TagGw1000FirmwareVersion },
 				{ "EcowittReception", TagGw1000Reception },
+				{ "StationFreeMemory", TagStationFreeMemory },
+				{ "StationRuntime", TagStationRuntime },
 				{ "DataStopped", TagDataStopped },
 				// Recent history
 				{ "RecentOutsideTemp", TagRecentOutsideTemp },
