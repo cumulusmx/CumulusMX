@@ -15,7 +15,7 @@ Fixed
 - Extra Files using log filename templates missed the last log entry at month rollover as they switched to the new month immediately
 - Fix missing units in alarm email messages
 - Custom Timed MySQL commands sometimes fired immediately after saving the configuration
-
+- Ecowitt historic catch-up was missing CO2, CO2 pm, CO2 T/H, leaf wetness, and extra T/H dewpoint values
 
 
 3.28.1 - b3278

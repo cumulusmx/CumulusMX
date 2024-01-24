@@ -863,8 +863,7 @@ namespace CumulusMX
 									if (CheckHighGust(gustCal, gustDirCal, dateTime))
 									{
 										cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-										AddValuesToRecentWind(gust, WindAverage, gustDir, dateTime, dateTime);
-										RecentMaxGust = gustCal;
+										DoWind(gust, gustDir, -1, dateTime);
 									}
 								}
 								catch (Exception ex)
