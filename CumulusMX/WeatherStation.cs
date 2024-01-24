@@ -12199,7 +12199,11 @@ namespace CumulusMX
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
 					json.Append($"[\"{cumulus.Trans.CO2_pm10Caption}\",\"{CO2_pm10:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"]");
+					json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
+					json.Append($"[\"{cumulus.Trans.CO2_TemperatureCaption}\",\"{CO2_temperature:F1}\",\"{cumulus.Units.TempText}\"],");
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
+					json.Append($"[\"{cumulus.Trans.CO2_HumidityCaption}\",\"{CO2_humidity:F1}\",\"%\"]");
 			}
 
 			if (json[^1] == ',')
