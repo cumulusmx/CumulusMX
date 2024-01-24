@@ -1740,7 +1740,7 @@ namespace CumulusMX
 			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler)
 			{
 				// 5 second timeout
-				Timeout = TimeSpan.FromSeconds(5)
+				Timeout = TimeSpan.FromSeconds(15)
 			};
 		}
 
