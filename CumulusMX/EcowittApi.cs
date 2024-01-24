@@ -168,12 +168,16 @@ namespace CumulusMX
 				"leaf_ch6",
 				"leaf_ch7",
 				"leaf_ch8",
-				"indoor_co2",
-				"co2_aqi_combo",
 				"pm25_ch1",
 				"pm25_ch2",
 				"pm25_ch3",
-				"pm25_ch4"
+				"pm25_ch4",
+				"indoor_co2",
+				"co2_aqi_combo",
+				"pm1_aqi_combo",
+				"pm25_aqi_combo",
+				"pm10_aqi_combo",
+				"t_rh_aqi_combo"
 			};
 
 			sb.Append("&call_back=");
@@ -314,7 +318,7 @@ namespace CumulusMX
 		private void ProcessHistoryData(EcowittHistoricData data, CancellationToken token)
 		{
 			// allocate a dictionary of data objects, keyed on the timestamp
-			var buffer = new SortedDictionary<DateTime, EcowittApi.HistoricData>();
+			var buffer = new SortedDictionary<DateTime, HistoricData>();
 
 			// process each sensor type, and store them for adding to the system later
 			// Indoor Data
@@ -339,7 +343,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ IndoorTemp = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -361,7 +365,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ IndoorHum = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -395,7 +399,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ Temp = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -418,7 +422,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ Humidity = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -441,12 +445,59 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ DewPoint = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
 					}
+
+					// Feels like
+					if (data.outdoor.feels_like != null && data.outdoor.feels_like.list != null)
+					{
+						foreach (var item in data.outdoor.feels_like.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
+							{
+								value.FeelsLike = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ FeelsLike = item.Value };
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+
+					// Apparent
+					if (data.outdoor.app_temp != null && data.outdoor.app_temp.list != null)
+					{
+						foreach (var item in data.outdoor.app_temp.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
+							{
+								value.Apparent = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ Apparent = item.Value };
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+
 				}
 				catch (Exception ex)
 				{
@@ -474,7 +525,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ WindSpd = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -497,7 +548,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ WindGust = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -520,7 +571,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ WindDir = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -553,7 +604,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ Pressure = item.Value};
 								buffer.Add(itemDate, newItem);
 							}
@@ -588,7 +639,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									var newItem = new EcowittApi.HistoricData()
+									var newItem = new HistoricData()
 									{ RainRate = item.Value };
 									buffer.Add(itemDate, newItem);
 								}
@@ -611,7 +662,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									var newItem = new EcowittApi.HistoricData()
+									var newItem = new HistoricData()
 									{ RainYear = item.Value };
 									buffer.Add(itemDate, newItem);
 								}
@@ -636,7 +687,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									var newItem = new EcowittApi.HistoricData()
+									var newItem = new HistoricData()
 									{ RainRate = item.Value };
 									buffer.Add(itemDate, newItem);
 								}
@@ -659,7 +710,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									var newItem = new EcowittApi.HistoricData()
+									var newItem = new HistoricData()
 									{ RainYear = item.Value };
 									buffer.Add(itemDate, newItem);
 								}
@@ -693,7 +744,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ Solar = (int) item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -716,7 +767,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ UVI = (int) item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -731,10 +782,10 @@ namespace CumulusMX
 			// Extra 8 channel sensors
 			for (var i = 1; i <= 8; i++)
 			{
-				EcowittApi.HistoricTempHum srcTH = null;
-				EcowittApi.HistoricDataSoil srcSoil = null;
-				EcowittApi.HistoricDataTemp srcTemp = null;
-				EcowittApi.HistoricDataLeaf srcLeaf = null;
+				HistoricTempHum srcTH = null;
+				HistoricDataSoil srcSoil = null;
+				HistoricDataTemp srcTemp = null;
+				HistoricDataLeaf srcLeaf = null;
 				switch (i)
 				{
 					case 1:
@@ -808,7 +859,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									var newItem = new EcowittApi.HistoricData();
+									var newItem = new HistoricData();
 									newItem.ExtraTemp[i] = item.Value;
 									buffer.Add(itemDate, newItem);
 								}
@@ -831,7 +882,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									var newItem = new EcowittApi.HistoricData();
+									var newItem = new HistoricData();
 									newItem.ExtraHumidity[i] = item.Value;
 									buffer.Add(itemDate, newItem);
 								}
@@ -863,7 +914,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
+								var newItem = new HistoricData();
 								newItem.SoilMoist[i] = item.Value;
 								buffer.Add(itemDate, newItem);
 							}
@@ -893,7 +944,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
+								var newItem = new HistoricData();
 								newItem.UserTemp[i] = item.Value;
 								buffer.Add(itemDate, newItem);
 							}
@@ -923,7 +974,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
+								var newItem = new HistoricData();
 								newItem.LeafWetness[i] = item.Value;
 								buffer.Add(itemDate, newItem);
 							}
@@ -956,7 +1007,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ IndoorCo2 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -979,7 +1030,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ IndoorCo2hr24 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -1008,12 +1059,12 @@ namespace CumulusMX
 
 							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								value.CO2pm2p5 = item.Value;
+								value.AqiComboCO2 = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
-								{ CO2pm2p5 = item.Value };
+								var newItem = new HistoricData()
+								{ AqiComboCO2 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1031,12 +1082,12 @@ namespace CumulusMX
 
 							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								value.CO2pm2p5hr24 = item.Value;
+								value.AqiComboCO2hr24 = item.Value;
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
-								{ CO2pm2p5hr24 = item.Value };
+								var newItem = new HistoricData()
+								{ AqiComboCO2hr24 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1067,7 +1118,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ AqiComboPm25 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -1099,7 +1150,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData()
+								var newItem = new HistoricData()
 								{ AqiComboPm10 = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
@@ -1111,6 +1162,62 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing pm 10 combo data. Exception: " + ex.Message);
 				}
 			}
+			// temp/hum Combo
+			if (data.t_rh_aqi_combo != null)
+			{
+				try
+				{
+					if (data.t_rh_aqi_combo.temperature != null && data.t_rh_aqi_combo.temperature.list != null)
+					{
+						foreach (var item in data.t_rh_aqi_combo.temperature.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
+							{
+								value.AqiComboTemp = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ AqiComboTemp = item.Value };
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+
+					if (data.t_rh_aqi_combo.humidity != null && data.t_rh_aqi_combo.humidity.list != null)
+					{
+						foreach (var item in data.t_rh_aqi_combo.humidity.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
+							{
+								value.AqiComboHum = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ AqiComboHum = item.Value };
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing temp/hum combo data. Exception: " + ex.Message);
+				}
+			}
+
 			// 4 channel PM 2.5 sensors
 			for (var i = 1; i <= 4; i++)
 			{
@@ -1148,7 +1255,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								var newItem = new EcowittApi.HistoricData();
+								var newItem = new HistoricData();
 								newItem.pm25[i] = item.Value;
 								buffer.Add(itemDate, newItem);
 							}
@@ -1241,7 +1348,12 @@ namespace CumulusMX
 				cumulus.DoLogFile(rec.Key, false);
 				cumulus.DoCustomIntervalLogs(rec.Key);
 
-				if (cumulus.StationOptions.LogExtraSensors) cumulus.DoExtraLogFile(rec.Key);
+				cumulus.MySqlRealtimeFile(999, false, rec.Key);
+
+				if (cumulus.StationOptions.LogExtraSensors)
+				{
+					cumulus.DoExtraLogFile(rec.Key);
+				}
 
 				//AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing,
 				//    OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
@@ -1500,6 +1612,11 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra humidity data - {ex.Message}");
 				}
+				// === Extra Dewpoint ===
+				if (rec.Value.ExtraTemp[i].HasValue && rec.Value.ExtraHumidity[i].HasValue)
+				{
+					station.DoExtraDP(ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC((double)rec.Value.ExtraTemp[i].Value), rec.Value.ExtraHumidity[i].Value)), i);
+				}
 
 
 				// === User Temperature ===
@@ -1522,6 +1639,7 @@ namespace CumulusMX
 					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra user temperature data - {ex.Message}");
 				}
 
+
 				// === Soil Moisture ===
 				try
 				{
@@ -1534,6 +1652,20 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage($"ApplyHistoricData: Error in soil moisture data - {ex.Message}");
 				}
+
+				// === Leaf Wetness ===
+				try
+				{
+					if (rec.Value.LeafWetness[i].HasValue)
+					{
+						station.DoLeafWetness((double) rec.Value.LeafWetness[i], i);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in leaf wetness data - {ex.Message}");
+				}
+
 			}
 
 			// === Indoor CO2 ===
@@ -1541,7 +1673,7 @@ namespace CumulusMX
 			{
 				if (rec.Value.IndoorCo2.HasValue)
 				{
-					station.CO2_pm2p5 = rec.Value.IndoorCo2.Value;
+					station.CO2 = rec.Value.IndoorCo2.Value;
 				}
 			}
 			catch (Exception ex)
@@ -1554,7 +1686,7 @@ namespace CumulusMX
 			{
 				if (rec.Value.IndoorCo2hr24.HasValue)
 				{
-					station.CO2_pm2p5_24h = rec.Value.CO2pm2p5hr24.Value;
+					station.CO2_24h = rec.Value.IndoorCo2hr24.Value;
 				}
 			}
 			catch (Exception ex)
@@ -1562,7 +1694,33 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 24hr avg data - " + ex.Message);
 			}
 
-			// === PM 2.5 Combo
+			// === Combo CO2 ===
+			try
+			{
+				if (rec.Value.AqiComboCO2.HasValue)
+				{
+					station.CO2 = rec.Value.AqiComboCO2.Value;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 data - " + ex.Message);
+			}
+
+			// === Combo CO2 24hr avg ===
+			try
+			{
+				if (rec.Value.AqiComboCO2hr24.HasValue)
+				{
+					station.CO2_24h = rec.Value.AqiComboCO2hr24.Value;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 24hr avg data - " + ex.Message);
+			}
+
+			// === PM 2.5 Combo ===
 			try
 			{
 				if (rec.Value.AqiComboPm25.HasValue)
@@ -1575,7 +1733,7 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("ApplyHistoricData: Error in AQI Combo pm2.5 data - " + ex.Message);
 			}
 
-			// === PM 10 Combo
+			// === PM 10 Combo ===
 			try
 			{
 				if (rec.Value.AqiComboPm10.HasValue)
@@ -1586,6 +1744,32 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("ApplyHistoricData: Error in AQI Combo pm10 data - " + ex.Message);
+			}
+
+			// === temp Combo ===
+			try
+			{
+				if (rec.Value.AqiComboTemp.HasValue)
+				{
+					station.CO2_temperature = (double) rec.Value.AqiComboTemp.Value;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in AQI Combo temp data - " + ex.Message);
+			}
+
+			// === humidity Combo ===
+			try
+			{
+				if (rec.Value.AqiComboHum.HasValue)
+				{
+					station.CO2_humidity = (double) rec.Value.AqiComboHum.Value;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in AQI Combo temp data - " + ex.Message);
 			}
 
 			// === 4 channel pm 2.5 ===
@@ -2370,11 +2554,11 @@ namespace CumulusMX
 			public HistoricDataCo2 co2_aqi_combo { get; set; }
 			public HistoricDataPm25Aqi pm25_aqi_combo { get; set; }
 			public HistoricDataPm10Aqi pm10_aqi_combo { get; set; }
+			public HistoricTempHum t_rh_aqi_combo { get; set; }
 			public HistoricDataPm25Aqi pm25_ch1 { get; set; }
 			public HistoricDataPm25Aqi pm25_ch2 { get; set; }
 			public HistoricDataPm25Aqi pm25_ch3 { get; set; }
 			public HistoricDataPm25Aqi pm25_ch4 { get; set; }
-
 		}
 
 		internal class HistoricDataTypeInt
@@ -2398,6 +2582,8 @@ namespace CumulusMX
 		internal class HistoricOutdoor : HistoricTempHum
 		{
 			public HistoricDataTypeDbl dew_point { get; set; }
+			public HistoricDataTypeDbl feels_like { get; set; }
+			public HistoricDataTypeInt app_temp { get; set; }
 		}
 
 		internal class HistoricDataPressure
@@ -2470,6 +2656,7 @@ namespace CumulusMX
 			public decimal? Temp { get; set; }
 			public decimal? DewPoint { get; set; }
 			public decimal? FeelsLike { get; set; }
+			public decimal? Apparent {  get; set; }
 			public int? Humidity { get; set; }
 			public decimal? RainRate { get; set; }
 			public decimal? RainYear { get; set; }
@@ -2491,8 +2678,8 @@ namespace CumulusMX
 			public decimal? AqiComboPm10 { get; set; }
 			public decimal? AqiComboTemp { get; set; }
 			public int? AqiComboHum { get; set; }
-			public int? CO2pm2p5 { get; set; }
-			public int? CO2pm2p5hr24 { get; set; }
+			public int? AqiComboCO2 { get; set; }
+			public int? AqiComboCO2hr24 { get; set; }
 			public int? IndoorCo2 { get; set; }
 			public int? IndoorCo2hr24 { get; set; }
 
@@ -2633,6 +2820,7 @@ namespace CumulusMX
 		internal class CurrentCo2
 		{
 			public CurrentSensorValInt co2 { get; set; }
+
 			[DataMember(Name = "24_hours_average")]
 			public CurrentSensorValInt Avg24h { get; set; }
 		}
