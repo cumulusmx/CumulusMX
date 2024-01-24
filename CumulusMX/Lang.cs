@@ -161,6 +161,8 @@
 		public string CO2_pm2p5_24hrCaption { get; set; }
 		public string CO2_pm10Caption { get; set; }
 		public string CO2_pm10_24hrCaption { get; set; }
+		public string CO2_TemperatureCaption { get; set; }
+		public string CO2_HumidityCaption { get; set; }
 		// daylight
 		public string thereWillBeMinSLessDaylightTomorrow { get; set; }
 		public string thereWillBeMinSMoreDaylightTomorrow { get; set; }

@@ -1,3 +1,11 @@
+3.28.3 - b3280
+——————————————
+Fixed
+- Ecowitt Cloud decoding of Soil Moisture values
+- Ecowitt Cloud add missing decode of CO2 temp/humidity values
+
+
+
 3.28.2 - b3279
 ——————————————
 New
@@ -11,7 +19,7 @@ Changed
 
 Fixed
 - Ecowitt Cloud station: Fix some errors decoding Ecowitt cloud API.
-- Ecowitt Cloud, no longer requires a Pro subscrition to pull current data. Quite an extensive rewrite!
+- Ecowitt Cloud, no longer requires a Pro subscription to pull current data. Quite an extensive rewrite!
 - Extra Files using log filename templates missed the last log entry at month rollover as they switched to the new month immediately
 - Fix missing units in alarm email messages
 - Custom Timed MySQL commands sometimes fired immediately after saving the configuration
