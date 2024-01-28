@@ -15,14 +15,9 @@ using static CumulusMX.Cumulus;
 
 namespace CumulusMX
 {
-	public class InternetSettings
+	public class InternetSettings(Cumulus cumulus)
 	{
-		private readonly Cumulus cumulus;
-
-		public InternetSettings(Cumulus cumulus)
-		{
-			this.cumulus = cumulus;
-		}
+		private readonly Cumulus cumulus = cumulus;
 
 		public string UpdateConfig(IHttpContext context)
 		{
@@ -277,18 +272,17 @@ namespace CumulusMX
 					cumulus.SmtpOptions.Enabled = settings.emailsettings.enabled;
 					if (cumulus.SmtpOptions.Enabled)
 					{
-						cumulus.SmtpOptions.Server = settings.emailsettings.server;
+						cumulus.SmtpOptions.Server = (settings.emailsettings.server ?? "").Trim();
 						cumulus.SmtpOptions.Port = settings.emailsettings.port;
 						cumulus.SmtpOptions.SslOption = settings.emailsettings.ssloption;
-						cumulus.SmtpOptions.RequiresAuthentication = settings.emailsettings.authenticate;
-						cumulus.SmtpOptions.User = settings.emailsettings.user;
-						cumulus.SmtpOptions.Password = settings.emailsettings.password;
+						cumulus.SmtpOptions.AuthenticationMethod = settings.emailsettings.authenticate;
+						cumulus.SmtpOptions.User = (settings.emailsettings.user ?? "").Trim();
+						cumulus.SmtpOptions.Password = (settings.emailsettings.password ?? "").Trim();
+						cumulus.SmtpOptions.ClientId = (settings.emailsettings.clientid ?? "").Trim();
+						cumulus.SmtpOptions.ClientSecret = (settings.emailsettings.clientsecret ?? "").Trim();
 						cumulus.SmtpOptions.IgnoreCertErrors = settings.emailsettings.ignorecerterrors;
 
-						if (cumulus.emailer == null)
-						{
-							cumulus.emailer = new EmailSender(cumulus);
-						}
+						cumulus.emailer ??= new EmailSender(cumulus);
 					}
 				}
 				catch (Exception ex)
@@ -509,9 +503,11 @@ namespace CumulusMX
 				server = cumulus.SmtpOptions.Server,
 				port = cumulus.SmtpOptions.Port,
 				ssloption = cumulus.SmtpOptions.SslOption,
-				authenticate = cumulus.SmtpOptions.RequiresAuthentication,
+				authenticate = cumulus.SmtpOptions.AuthenticationMethod,
 				user = cumulus.SmtpOptions.User,
 				password = cumulus.SmtpOptions.Password,
+				clientid = cumulus.SmtpOptions.ClientId,
+				clientsecret = cumulus.SmtpOptions.ClientSecret,
 				ignorecerterrors = cumulus.SmtpOptions.IgnoreCertErrors
 			};
 
@@ -805,9 +801,11 @@ namespace CumulusMX
 		public string server { get; set; }
 		public int port { get; set; }
 		public int ssloption { get; set; }
-		public bool authenticate { get; set; }
+		public int authenticate { get; set; }
 		public string user { get; set; }
 		public string password { get; set; }
+		public string clientid { get; set; }
+		public string clientsecret { get; set; }
 		public bool ignorecerterrors { get; set; }
 	}
 

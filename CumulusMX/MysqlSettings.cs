@@ -132,7 +132,7 @@ namespace CumulusMX
 			var customtimed = new JsonSettingsCustomTimed()
 			{
 				enabled = cumulus.MySqlSettings.CustomTimed.Enabled,
-				entries = Array.Empty<JsonCustomTimed>()
+				entries = []
 			};
 
 			cmdCnt = 0;

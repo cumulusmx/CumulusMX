@@ -6,8 +6,13 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Util.Store;
+
 using MailKit;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 
 using MimeKit;
 
@@ -18,6 +23,7 @@ namespace CumulusMX
 		static readonly Regex ValidEmailRegex = CreateValidEmailRegex();
 		private static SemaphoreSlim _writeLock;
 		private readonly Cumulus cumulus;
+		private static readonly string[] initializer = new[] { "https://www.googleapis.com/auth/gmail.send" };
 
 		public EmailSender(Cumulus cumulus)
 		{
@@ -71,20 +77,57 @@ namespace CumulusMX
 						client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 					}
 
-					await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions) cumulus.SmtpOptions.SslOption);
+					await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (SecureSocketOptions) cumulus.SmtpOptions.SslOption);
 
-					// Note: since we don't have an OAuth2 token, disable
-					// the XOAUTH2 authentication mechanism.
-					client.AuthenticationMechanisms.Remove("XOAUTH2");
-
-					if (cumulus.SmtpOptions.RequiresAuthentication)
+					// 0 = None
+					// 1 = Username/Passwword
+					// 2 = Google OAuth2
+					if (cumulus.SmtpOptions.AuthenticationMethod <= 1)
 					{
-						await client.AuthenticateAsync(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
-						//client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
+						// Note: since we don't have an OAuth2 token, disable
+						// the XOAUTH2 authentication mechanism.
+						client.AuthenticationMechanisms.Remove("XOAUTH2");
+
+						if (cumulus.SmtpOptions.AuthenticationMethod == 1)
+						{
+							await client.AuthenticateAsync(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
+							//client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
+						}
+					}
+					else if (cumulus.SmtpOptions.AuthenticationMethod == 2)
+					{
+						// Google OAuth 2.0
+						var clientSecrets = new ClientSecrets
+						{
+							ClientId = cumulus.SmtpOptions.ClientId,
+							ClientSecret = cumulus.SmtpOptions.ClientSecret
+						};
+
+						var codeFlow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+						{
+							DataStore = new FileDataStore(cumulus.AppDir, false),
+							Scopes = initializer,
+							ClientSecrets = clientSecrets
+						});
+
+						var codeReceiver = new LocalServerCodeReceiver();
+						var authCode = new AuthorizationCodeInstalledApp(codeFlow, codeReceiver);
+
+						var credential = await authCode.AuthorizeAsync(cumulus.SmtpOptions.User, CancellationToken.None);
+
+						if (credential.Token.IsStale)
+						{
+							await credential.RefreshTokenAsync(CancellationToken.None);
+						}
+
+						var oauth2 = new SaslMechanismOAuth2(credential.UserId, credential.Token.AccessToken);
+
+						await client.AuthenticateAsync(oauth2);
 					}
 
-					await client.SendAsync(m);
-					client.Disconnect(true);
+					var response = await client.SendAsync(m);
+					cumulus.LogDebugMessage("SendEmail response: " + response);
+					await client.DisconnectAsync(true);
 				}
 				retVal = true;
 			}
@@ -137,17 +180,51 @@ namespace CumulusMX
 					client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions) cumulus.SmtpOptions.SslOption);
 					//client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable);
 
-					// Note: since we don't have an OAuth2 token, disable
-					// the XOAUTH2 authentication mechanism.
-					client.AuthenticationMechanisms.Remove("XOAUTH2");
-
-					if (cumulus.SmtpOptions.RequiresAuthentication)
+					if (cumulus.SmtpOptions.AuthenticationMethod <= 1)
 					{
-						client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
-						//client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
+						// Note: since we don't have an OAuth2 token, disable
+						// the XOAUTH2 authentication mechanism.
+						client.AuthenticationMechanisms.Remove("XOAUTH2");
+
+						if (cumulus.SmtpOptions.AuthenticationMethod == 1)
+						{
+							client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
+							//client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
+						}
+					}
+					else if (cumulus.SmtpOptions.AuthenticationMethod == 2)
+					{
+						// Google OAuth 2.0
+						var clientSecrets = new ClientSecrets
+						{
+							ClientId = cumulus.SmtpOptions.ClientId,
+							ClientSecret = cumulus.SmtpOptions.ClientSecret
+						};
+
+						var codeFlow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+						{
+							DataStore = new FileDataStore(cumulus.AppDir, false),
+							Scopes = initializer,
+							ClientSecrets = clientSecrets
+						});
+
+						var codeReceiver = new LocalServerCodeReceiver();
+						var authCode = new AuthorizationCodeInstalledApp(codeFlow, codeReceiver);
+
+						var credential = authCode.AuthorizeAsync(cumulus.SmtpOptions.User, CancellationToken.None).Result;
+
+						if (credential.Token.IsStale)
+						{
+							_ = credential.RefreshTokenAsync(CancellationToken.None).Result;
+						}
+
+						var oauth2 = new SaslMechanismOAuth2(credential.UserId, credential.Token.AccessToken);
+
+						client.Authenticate(oauth2);
 					}
 
-					client.Send(m);
+					var response = client.Send(m);
+					cumulus.LogDebugMessage("SendEmail response: " + response);
 					client.Disconnect(true);
 				}
 
@@ -200,8 +277,10 @@ namespace CumulusMX
 			public int Port;
 			public string User;
 			public string Password;
+			public string ClientId;
+			public string ClientSecret;
 			public int SslOption;
-			public bool RequiresAuthentication;
+			public int AuthenticationMethod;
 			public bool Logging;
 			public bool IgnoreCertErrors;
 		}

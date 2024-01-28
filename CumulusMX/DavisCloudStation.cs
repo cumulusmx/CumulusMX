@@ -13,16 +13,14 @@ using ServiceStack;
 
 namespace CumulusMX
 {
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable
-	internal class DavisCloudStation : WeatherStation
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
+	internal partial class DavisCloudStation : WeatherStation
 	{
 		private readonly System.Timers.Timer tmrCurrent;
 		//private bool savedUseSpeedForAvgCalc;
 		private bool savedCalculatePeakGust;
 		private int maxArchiveRuns = 1;
 				private int wlStationArchiveInterval = 5;
-		private readonly AutoResetEvent bwDoneEvent = new AutoResetEvent(false);
+		private readonly AutoResetEvent bwDoneEvent = new(false);
 		private List<WlSensorListSensor> sensorList;
 		private readonly Dictionary<int, int> lsidToTx = [];
 		private readonly Dictionary<int, long> lsidLastUpdate = [];
@@ -4456,7 +4454,7 @@ namespace CumulusMX
 					5 => "full",
 					_ => data.battery_status.Value.ToString(),
 				};
-				cumulus.LogDebugMessage($"WLC: Battery: Percent={data.battery_percent}, voltage={(data.battery_voltage.Value / 1000.0).ToString("F2")}V, current={data.battery_current} mA, temp={data.battery_temp}°C");
+				cumulus.LogDebugMessage($"WLC: Battery: Percent={data.battery_percent}, voltage={data.battery_voltage.Value / 1000.0:F2}V, current={data.battery_current} mA, temp={data.battery_temp}°C");
 				cumulus.LogDebugMessage($"WLC: Battery: Condition={condition}, charger={(data.charger_plugged == 0 ? "unplugged" : "plugged-in")}, status={status}");
 
 				if (data.battery_condition.Value != 2)
@@ -4538,7 +4536,7 @@ namespace CumulusMX
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
-					var resp = System.Text.RegularExpressions.Regex.Replace(responseBody, "user_email\":\"[^\"]*\"", "user_email\":\"<<email>>\"");
+					var resp = UserEmailRegEx().Replace(responseBody, "user_email\":\"<<email>>\"");
 					cumulus.LogDebugMessage($"GetStations: WeatherLink API Response: {responseCode}: {resp}");
 				}
 
@@ -4756,5 +4754,8 @@ namespace CumulusMX
 				DataTimeoutMins = wlStationArchiveInterval + 3;
 			}
 		}
+
+		[System.Text.RegularExpressions.GeneratedRegex("user_email\":\"[^\"]*\"")]
+		private static partial System.Text.RegularExpressions.Regex UserEmailRegEx();
 	}
 }
