@@ -96,25 +96,18 @@ namespace CumulusMX
 			// Request the data in the correct units
 			sb.Append($"&temp_unitid={cumulus.Units.Temp + 1}"); // 1=C, 2=F
 			sb.Append($"&pressure_unitid={(cumulus.Units.Press == 2 ? "4" : "3")}"); // 3=hPa, 4=inHg, 5=mmHg
-			string windUnit;
-			switch (cumulus.Units.Wind)
+			var windUnit = cumulus.Units.Wind switch
 			{
-				case 0: // m/s
-					windUnit = "6";
-					break;
-				case 1: // mph
-					windUnit = "9";
-					break;
-				case 2: // km/h
-					windUnit = "7";
-					break;
-				case 3: // knots
-					windUnit = "8";
-					break;
-				default:
-					windUnit = "?";
-					break;
-			}
+				// m/s
+				0 => "6",
+				// mph
+				1 => "9",
+				// km/h
+				2 => "7",
+				// knots
+				3 => "8",
+				_ => "?",
+			};
 			sb.Append($"&wind_speed_unitid={windUnit}");
 			sb.Append($"&rainfall_unitid={cumulus.Units.Rain + 12}"); // 13=inches, 14=mm
 
@@ -234,8 +227,11 @@ namespace CumulusMX
 					}
 					else if (responseBody.StartsWith("{\"code\":")) // sanity check
 					{
+						// Ecowitt send null values as the string "-", so we have to change all those to null before we parse...
+						var json = responseBody.Replace("\"-\"", "null");
+
 						// get the sensor data
-						var histObj = responseBody.FromJson<HistoricResp>();
+						var histObj = json.FromJson<HistoricResp>();
 
 						if (histObj != null)
 						{
@@ -1678,7 +1674,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 data - " + ex.Message);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in indoor CO2 data - " + ex.Message);
 			}
 
 			// === Indoor CO2 24hr avg ===
@@ -1691,7 +1687,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 24hr avg data - " + ex.Message);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in indoor CO2 24hr avg data - " + ex.Message);
 			}
 
 			// === Combo CO2 ===
@@ -1704,7 +1700,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 data - " + ex.Message);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in combo CO2 data - " + ex.Message);
 			}
 
 			// === Combo CO2 24hr avg ===
@@ -1717,7 +1713,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 24hr avg data - " + ex.Message);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in combo CO2 24hr avg data - " + ex.Message);
 			}
 
 			// === PM 2.5 Combo ===
@@ -1873,25 +1869,18 @@ namespace CumulusMX
 			// Request the data in the correct units
 			sb.Append($"&temp_unitid={cumulus.Units.Temp + 1}"); // 1=C, 2=F
 			sb.Append($"&pressure_unitid={(cumulus.Units.Press == 2 ? "4" : "3")}"); // 3=hPa, 4=inHg, 5=mmHg
-			string windUnit;
-			switch (cumulus.Units.Wind)
+			var windUnit = cumulus.Units.Wind switch
 			{
-				case 0: // m/s
-					windUnit = "6";
-					break;
-				case 1: // mph
-					windUnit = "9";
-					break;
-				case 2: // km/h
-					windUnit = "7";
-					break;
-				case 3: // knots
-					windUnit = "8";
-					break;
-				default:
-					windUnit = "?";
-					break;
-			}
+				// m/s
+				0 => "6",
+				// mph
+				1 => "9",
+				// km/h
+				2 => "7",
+				// knots
+				3 => "8",
+				_ => "?",
+			};
 			sb.Append($"&wind_speed_unitid={windUnit}");
 			sb.Append($"&rainfall_unitid={cumulus.Units.Rain + 12}");
 
@@ -1948,8 +1937,11 @@ namespace CumulusMX
 				}
 				else if (responseBody.StartsWith("{\"code\":")) // sanity check
 				{
+					// Ecowitt send null values as the string "-", so we have to change all those to null before we parse...
+					var json = responseBody.Replace("\"-\"", "null");
+
 					// get the sensor data
-					currObj = responseBody.FromJson<CurrentData>();
+					currObj = json.FromJson<CurrentData>();
 
 					if (currObj != null)
 					{
@@ -2583,7 +2575,7 @@ namespace CumulusMX
 		{
 			public HistoricDataTypeDbl dew_point { get; set; }
 			public HistoricDataTypeDbl feels_like { get; set; }
-			public HistoricDataTypeInt app_temp { get; set; }
+			public HistoricDataTypeDbl app_temp { get; set; }
 		}
 
 		internal class HistoricDataPressure
@@ -2634,6 +2626,7 @@ namespace CumulusMX
 		[DataContract]
 		internal class HistoricDataCo2
 		{
+			[DataMember(Name = "co2")]
 			public HistoricDataTypeInt co2 { get; set; }
 			[DataMember(Name = "24_hours_average")]
 			public HistoricDataTypeInt average24h { get; set; }
@@ -2641,12 +2634,12 @@ namespace CumulusMX
 
 		internal class HistoricDataPm25Aqi
 		{
-			public HistoricDataTypeDbl pm25 { get; set; }
+			public HistoricDataTypeInt pm25 { get; set; }
 		}
 
 		internal class HistoricDataPm10Aqi
 		{
-			public HistoricDataTypeDbl pm10 { get; set; }
+			public HistoricDataTypeInt pm10 { get; set; }
 		}
 
 		internal class HistoricData
