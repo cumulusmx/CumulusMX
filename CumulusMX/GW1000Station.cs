@@ -1186,6 +1186,10 @@ namespace CumulusMX
 								}
 								idx += 8;
 								break;
+							case 0x6C: // Heap size - has constant offset of +3692 to HTTP value????
+								StationFreeMemory = (int) GW1000Api.ConvertBigEndianUInt32(data, idx);
+								idx += 4;
+								break;
 							case 0x70: // WH45 CO₂
 								batteryLow = batteryLow || DoCO2Decode(data, idx);
 								idx += 16;
