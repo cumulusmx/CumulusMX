@@ -387,6 +387,7 @@ namespace CumulusMX
 		}
 
 		public int StationFreeMemory;
+		public int ExtraStationFreeMemory;
 		public int StationRuntime;
 
 
