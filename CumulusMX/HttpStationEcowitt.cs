@@ -102,7 +102,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Checking Ecowitt Extra Gateway Custom Server configuration...");
 				var api = new GW1000Api(cumulus);
-				api.OpenTcpPort(cumulus.EcowittGatewayAddr, 45000);
+				api.OpenTcpPort(cumulus.EcowittExtraGatewayAddr, 45000);
 				SetCustomServer(api, mainStation);
 				api.CloseTcpPort();
 				cumulus.LogMessage("Ecowitt Extra Gateway Custom Server configuration complete");
@@ -1357,7 +1357,7 @@ namespace CumulusMX
 
 						// Payload
 						// 1    - ID length
-						// n+   - ID
+						// n+   - ID size
 						// 1    - Password length
 						// n+   - Password
 						// 0	- Server length
@@ -1415,6 +1415,11 @@ namespace CumulusMX
 					// does the path need setting as well?
 					if (ecPath != customPath)
 					{
+						// 1 - id
+						// 2 - size
+						// 3-n - Ecowitt Path
+						// n+1-m - Wund Path
+
 						ecPath = customPath;
 						var path = new byte[ecPath.Length + wuPath.Length + 2];
 						path[0] = (byte) ecPath.Length;
