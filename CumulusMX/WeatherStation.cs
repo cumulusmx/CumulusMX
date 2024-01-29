@@ -530,7 +530,7 @@ namespace CumulusMX
 				var lines = File.ReadAllLines(fileName);
 
 				//Strip the "null line" from file
-				if (lines[^1].StartsWith("\0\0\0\0\0"))
+				if (lines[^1].StartsWith("\0"))
 				{
 					cumulus.LogMessage($"Monthly log file {fileName} Repaired");
 					File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
