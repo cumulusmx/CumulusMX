@@ -7,7 +7,8 @@ New
 Fixed
 - Ecowitt Cloud decoding of Soil Moisture values
 - Ecowitt Cloud add missing decode of CO2 temp/humidity values
-- Fix crash for new installs when the monthly log file does not exist
+- Crash for new installs when the monthly log file does not exist
+- Setting Ecowitt custom server settings when used as an Extra Sensor station
 
 
 3.28.2 - b3279
