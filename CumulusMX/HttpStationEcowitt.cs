@@ -875,7 +875,14 @@ namespace CumulusMX
 				{
 					if (data["heap"] != null)
 					{
-						StationFreeMemory = int.Parse(data["heap"]);
+						if (main)
+						{
+							StationFreeMemory = int.Parse(data["heap"]);
+						}
+						else
+						{
+							ExtraStationFreeMemory = int.Parse(data["heap"]);
+						}
 					}
 
 					if (data["runtime"] != null)

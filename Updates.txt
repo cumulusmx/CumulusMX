@@ -2,6 +2,7 @@
 ——————————————
 New
 - Adds Ecowitt local GW1000 API to the web tag <#StationFreeMemory>. Known to work with GW1100 (v2.3.1) and GW2000 (v3.1.1) so far
+- Adds a new web tag <#ExtraStationFreeMemory> to avoid clashes with the main station and a Ecowitt HTTP station used for extra sensors
 
 Fixed
 - Ecowitt Cloud decoding of Soil Moisture values
