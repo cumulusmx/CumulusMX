@@ -528,17 +528,24 @@ namespace CumulusMX
 			// if it does resave the file missing the last line
 			var fileName = cumulus.GetLogFileName(logDate);
 
-			var lines = File.ReadAllLines(fileName);
-
-			//Strip the "null line" from file
-			if (lines[lines.Length - 1].StartsWith("\0\0\0\0\0"))
+			if (File.Exists(fileName))
 			{
-				cumulus.LogMessage($"Monthly log file {fileName} Repaired");
-				File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
+				var lines = File.ReadAllLines(fileName);
+
+				//Strip the "null line" from file
+				if (lines[lines.Length - 1].StartsWith("\0\0\0\0\0"))
+				{
+					cumulus.LogMessage($"Monthly log file {fileName} Repaired");
+					File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
+				}
+				else
+				{
+					cumulus.LogMessage($"Monthly log file {fileName} OK");
+				}
 			}
 			else
 			{
-				cumulus.LogMessage($"Monthly log file {fileName} OK");
+				cumulus.LogMessage("Monthly log file check skipped - no file exists");
 			}
 		}
 
