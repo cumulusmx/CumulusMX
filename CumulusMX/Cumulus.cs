@@ -686,10 +686,16 @@ namespace CumulusMX
 			Program.svcTextListener.Flush();
 
 			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
+
+			// the default trace writes to the debug log, but on Linux it also writes to the /var/log/user.log
+			if (!Debugger.IsAttached)
+			{
+				Trace.Listeners.Clear();
+			}
+
 			Trace.Listeners.Add(myTextListener);
 			Trace.AutoFlush = true;
 		}
-
 		public void Initialise(int HTTPport, bool DebugEnabled, string startParms)
 		{
 			var fullVer = Assembly.GetExecutingAssembly().GetName().Version;
@@ -748,6 +754,7 @@ namespace CumulusMX
 			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
 
 			LogMessage($"Running as a {(IntPtr.Size == 4 ? "32" : "64")} bit process");
+			LogMessage("Running under userid: " + Environment.UserName);
 
 			boolWindows = Platform[..3] == "Win";
 

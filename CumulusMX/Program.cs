@@ -176,77 +176,77 @@ namespace CumulusMX
 				{
 					Usage();
 				}
+			}
 
 
-				// we want to install as a service?
-				if (install)
+			// we want to install as a service?
+			if (install)
+			{
+				if (RunningOnWindows)
 				{
-					if (RunningOnWindows)
+					if (SelfInstaller.InstallWin())
 					{
-						if (SelfInstaller.InstallWin())
-						{
-							Console.ForegroundColor = ConsoleColor.Green;
-							Console.WriteLine("\nCumulus MX is now installed to run as service\n");
-							Console.ResetColor();
-							Environment.Exit(0);
-						}
-
-					}
-					else
-					{
-						if (string.IsNullOrEmpty(user))
-						{
-							Console.ForegroundColor = ConsoleColor.Yellow;
-							Console.WriteLine("\nYou must supply a user name when installing the service\n");
-							Console.ResetColor();
-							Environment.Exit(0);
-
-						}
-
-						if (SelfInstaller.InstallLinux(user, lang, httpport))
-						{
-							Console.ForegroundColor = ConsoleColor.Green;
-							Console.WriteLine("\nCumulus MX is now installed to run as service\n");
-							Console.ResetColor();
-							Environment.Exit(0);
-						}
+						Console.ForegroundColor = ConsoleColor.Green;
+						Console.WriteLine("\nCumulus MX is now installed to run as service\n");
+						Console.ResetColor();
+						Environment.Exit(0);
 					}
 
-					Console.ForegroundColor = ConsoleColor.Red;
-					Console.WriteLine("\nCumulus MX failed to install as service\n");
-					Console.ResetColor();
-					Environment.Exit(1);
+				}
+				else
+				{
+					if (string.IsNullOrEmpty(user))
+					{
+						Console.ForegroundColor = ConsoleColor.Yellow;
+						Console.WriteLine("\nYou must supply a user name when installing the service\n");
+						Console.ResetColor();
+						Environment.Exit(0);
+
+					}
+
+					if (SelfInstaller.InstallLinux(user, lang, httpport))
+					{
+						Console.ForegroundColor = ConsoleColor.Green;
+						Console.WriteLine("\nCumulus MX is now installed to run as service\n");
+						Console.ResetColor();
+						Environment.Exit(0);
+					}
 				}
 
-				// we want to uninstall the service?
-				if (uninstall)
-				{
-					if (RunningOnWindows)
-					{
-						if (SelfInstaller.UninstallWin())
-						{
-							Console.ForegroundColor = ConsoleColor.Green;
-							Console.WriteLine("\nCumulus MX is no longer installed to run as service\n");
-							Console.ResetColor();
-							Environment.Exit(0);
-						}
-					}
-					else
-					{
-						if (SelfInstaller.UninstallLinux())
-						{
-							Console.ForegroundColor = ConsoleColor.Green;
-							Console.WriteLine("\nCumulus MX is no longer installed to run as service\n");
-							Console.ResetColor();
-							Environment.Exit(0);
-						}
-					}
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("\nCumulus MX failed to install as service\n");
+				Console.ResetColor();
+				Environment.Exit(1);
+			}
 
-					Console.ForegroundColor = ConsoleColor.Red;
-					Console.WriteLine("\nCumulus MX failed uninstall itself as service\n");
-					Console.ResetColor();
-					Environment.Exit(1);
+			// we want to uninstall the service?
+			if (uninstall)
+			{
+				if (RunningOnWindows)
+				{
+					if (SelfInstaller.UninstallWin())
+					{
+						Console.ForegroundColor = ConsoleColor.Green;
+						Console.WriteLine("\nCumulus MX is no longer installed to run as service\n");
+						Console.ResetColor();
+						Environment.Exit(0);
+					}
 				}
+				else
+				{
+					if (SelfInstaller.UninstallLinux())
+					{
+						Console.ForegroundColor = ConsoleColor.Green;
+						Console.WriteLine("\nCumulus MX is no longer installed to run as service\n");
+						Console.ResetColor();
+						Environment.Exit(0);
+					}
+				}
+
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("\nCumulus MX failed uninstall itself as service\n");
+				Console.ResetColor();
+				Environment.Exit(1);
 			}
 
 			// Interactive seems to be always true on Linux :(

@@ -130,7 +130,7 @@ namespace CumulusMX
 					"[Service]",
 					$"User={user}",
 					$"Group={user}",
-					$"WorkingDirectory={appPath}",
+					$"WorkingDirectory={appPath[..^1]}",
 					$"ExecStart=\"{dotnetPath}\" CumulusMX.dll -service" + (port == 8998 ? "" : " -port " + port) + (string.IsNullOrEmpty(lang) ? "" : " -lang " + lang),
 					"Type=simple",
 					"",
