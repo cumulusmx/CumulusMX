@@ -1976,8 +1976,8 @@ namespace CumulusMX
 
 			var datefrom = cumulus.RecordsBeganDateTime;
 			datefrom = new DateTime(datefrom.Year, datefrom.Month, 1, 0, 0, 0);
-			var dateto = DateTime.Now;
-			dateto = new DateTime(dateto.Year, dateto.Month, 1, 0, 0, 0);
+			datefrom = datefrom.AddHours(cumulus.GetHourInc());
+			var dateto = DateTime.Now.Date;
 			var filedate = datefrom;
 
 			var logFile = cumulus.GetLogFileName(filedate);
@@ -2097,7 +2097,7 @@ namespace CumulusMX
 			{
 				if (File.Exists(logFile))
 				{
-					cumulus.LogDebugMessage($"GetMonthlyTimeRecLogFile: Processing log file - {logFile}");
+					cumulus.LogDebugMessage($"GetMonthlyRecLogFile: Processing log file - {logFile}");
 					var linenum = 0;
 					try
 					{
@@ -2266,7 +2266,7 @@ namespace CumulusMX
 							// new meteo day
 							if (currentDay.Date != metoDate.Date)
 							{
-								var lastEntryMonthOffset = metoDate.Month - 1;
+								var lastEntryMonthOffset = currentDay.Date.Month - 1;
 								if (dayHighTemp.Value < lowMaxTemp[lastEntryMonthOffset].Value)
 								{
 									lowMaxTemp[lastEntryMonthOffset].Value = dayHighTemp.Value;
@@ -2311,10 +2311,10 @@ namespace CumulusMX
 
 								monthlyRain += dayRain;
 
-								if (monthlyRain > highRainMonth[monthOffset].Value)
+								if (monthlyRain > highRainMonth[lastEntryMonthOffset].Value)
 								{
-									highRainMonth[monthOffset].Value = monthlyRain;
-									highRainMonth[monthOffset].Ts = currentDay;
+									highRainMonth[lastEntryMonthOffset].Value = monthlyRain;
+									highRainMonth[lastEntryMonthOffset].Ts = currentDay;
 								}
 
 								if (currentDay.Month != metoDate.Month)
@@ -2330,10 +2330,10 @@ namespace CumulusMX
 									{
 										currentWetPeriod = 1;
 										isDryNow = false;
-										if (currentDryPeriod > dryPeriod[monthOffset].Value)
+										if (currentDryPeriod > dryPeriod[lastEntryMonthOffset].Value)
 										{
-											dryPeriod[monthOffset].Value = currentDryPeriod;
-											dryPeriod[monthOffset].Ts = thisDateDry;
+											dryPeriod[lastEntryMonthOffset].Value = currentDryPeriod;
+											dryPeriod[lastEntryMonthOffset].Ts = thisDateDry;
 										}
 										currentDryPeriod = 0;
 									}
@@ -2354,10 +2354,10 @@ namespace CumulusMX
 									{
 										currentDryPeriod = 1;
 										isDryNow = true;
-										if (currentWetPeriod > wetPeriod[monthOffset].Value)
+										if (currentWetPeriod > wetPeriod[lastEntryMonthOffset].Value)
 										{
-											wetPeriod[monthOffset].Value = currentWetPeriod;
-											wetPeriod[monthOffset].Ts = thisDateWet;
+											wetPeriod[lastEntryMonthOffset].Value = currentWetPeriod;
+											wetPeriod[lastEntryMonthOffset].Ts = thisDateWet;
 										}
 										currentWetPeriod = 0;
 									}
