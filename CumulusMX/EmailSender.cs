@@ -29,6 +29,13 @@ namespace CumulusMX
 		public async Task<bool> SendEmail(string[] to, string from, string subject, string message, bool isHTML, bool useBcc)
 		{
 			bool retVal = false;
+
+			if (string.IsNullOrEmpty(cumulus.SmtpOptions.Server) || string.IsNullOrEmpty(cumulus.SmtpOptions.User))
+			{
+				cumulus.LogWarningMessage("SendEmail: You have not configured either the email server, or the email account used to send email");
+				return retVal;
+			}
+
 			try
 			{
 				//cumulus.LogDebugMessage($"SendEmail: Waiting for lock...");
@@ -103,6 +110,12 @@ namespace CumulusMX
 		public string SendTestEmail(string[] to, string from, string subject, string message, bool isHTML)
 		{
 			string retVal;
+
+			if (string.IsNullOrEmpty(cumulus.SmtpOptions.Server) || string.IsNullOrEmpty(cumulus.SmtpOptions.User))
+			{
+				cumulus.LogWarningMessage("SendEmail: You have not configured either the email server, or the email account used to send email");
+				return "You have not configured either the email server, or the email account used to send email";
+			}
 
 			try
 			{
