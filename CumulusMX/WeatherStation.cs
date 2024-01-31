@@ -5945,17 +5945,29 @@ namespace CumulusMX
 
 			// Has the rain total in the station been reset?
 			// raindaystart greater than current total, allow for rounding
-			if (Math.Round(RainCounterDayStart, cumulus.RainDPlaces) - Math.Round(RainCounter, cumulus.RainDPlaces) > 0)
+			// or current has jumped by more than 25 mm/1 inch
+			var maxIncrement = cumulus.Units.Rain == 0 ? 1 : 25;
+			var counterReset = Math.Round(RainCounterDayStart, cumulus.RainDPlaces) - Math.Round(RainCounter, cumulus.RainDPlaces) > 0;
+			var counterJumped = Math.Round(RainCounter, cumulus.RainDPlaces) - previoustotal > maxIncrement;
+
+			if (counterReset || counterJumped)
 			{
-				if (FirstChanceRainReset)
+				if (SecondChanceRainReset)
 				// second consecutive reading with reset value
 				{
-					cumulus.LogWarningMessage(" ****Rain counter reset confirmed: raindaystart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
+					if (counterReset)
+					{
+						cumulus.LogWarningMessage(" ****Rain counter reset confirmed: RaindayStart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
+					}
+					else
+					{
+						cumulus.LogWarningMessage(" ****Rain counter jump confirmed: Previous Value = " + previoustotal + ", Raincounter = " + RainCounter);
+					}
 
 					// set the start of day figure so it reflects the rain
 					// so far today
 					RainCounterDayStart = RainCounter - (RainToday / cumulus.Calib.Rain.Mult);
-					cumulus.LogMessage("Setting raindaystart to " + RainCounterDayStart);
+					cumulus.LogMessage("Setting RaindayStart to " + RainCounterDayStart);
 
 					MidnightRainCount = RainCounter;
 					previoustotal = total;
@@ -5964,11 +5976,19 @@ namespace CumulusMX
 					var counterChange = RainCounter - prevraincounter;
 					RecentDataDb.Execute("update RecentData set raincounter=raincounter+?", counterChange);
 
-					FirstChanceRainReset = false;
+					SecondChanceRainReset = false;
+					rainResetCount = 0;
 				}
 				else
 				{
-					cumulus.LogMessage(" ****Rain reset? First chance: raindaystart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
+					if (counterReset)
+					{
+						cumulus.LogMessage(" ****Rain reset? RaindayStart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
+					}
+					else
+					{
+						cumulus.LogWarningMessage(" ****Rain counter jump? Previous Value = " + previoustotal + ", Raincounter = " + RainCounter);
+					}
 
 					// reset the counter to ignore this reading
 					RainCounter = previoustotal;
@@ -5977,12 +5997,18 @@ namespace CumulusMX
 					// stash the previous rain counter
 					prevraincounter = RainCounter;
 
-					FirstChanceRainReset = true;
+					rainResetCount++;
+
+					if (rainResetCount >= 2)
+					{
+						SecondChanceRainReset = true;
+					}
 				}
 			}
 			else
 			{
-				FirstChanceRainReset = false;
+				SecondChanceRainReset = false;
+				rainResetCount = 0;
 			}
 
 			if (rate > -1)
@@ -6026,7 +6052,7 @@ namespace CumulusMX
 				}
 			}
 
-			if (!FirstChanceRainReset)
+			if (rainResetCount == 0)
 			{
 				// Has a tip occurred?
 				if (Math.Round(total, cumulus.RainDPlaces) - Math.Round(previoustotal, cumulus.RainDPlaces) > 0)
@@ -6823,7 +6849,8 @@ namespace CumulusMX
 
 
 		//private bool first_rain = true;
-		private bool FirstChanceRainReset = false;
+		private int rainResetCount = 0;
+		private bool SecondChanceRainReset = false;
 		private bool initialiseRainDayStart = true;
 		private bool initialiseMidnightRain = true;
 		private bool initialiseRainCounter = true;
