@@ -18,7 +18,7 @@ using Swan;
 
 namespace CumulusMX
 {
-	internal class Utils
+	internal partial class Utils
 	{
 		public static DateTime FromUnixTime(long unixTime)
 		{
@@ -68,11 +68,8 @@ namespace CumulusMX
 
 		public static string GetMd5String(byte[] bytes)
 		{
-			using (var md5 = MD5.Create())
-			{
-				var hashBytes = md5.ComputeHash(bytes);
-				return ByteArrayToHexString(hashBytes);
-			}
+			var hashBytes = MD5.HashData(bytes);
+			return ByteArrayToHexString(hashBytes);
 		}
 
 		public static string GetMd5String(string str)
@@ -84,17 +81,15 @@ namespace CumulusMX
 		{
 			byte[] hashValue;
 			// Initialize the keyed hash object.
-			using (HMACSHA256 hmac = new HMACSHA256(key.ToAsciiBytes()))
+			using HMACSHA256 hmac = new HMACSHA256(key.ToAsciiBytes());
+			// convert string to stream
+			byte[] byteArray = Encoding.UTF8.GetBytes(data);
+			using (MemoryStream stream = new MemoryStream(byteArray))
 			{
-				// convert string to stream
-				byte[] byteArray = Encoding.UTF8.GetBytes(data);
-				using (MemoryStream stream = new MemoryStream(byteArray))
-				{
-					// Compute the hash of the input string.
-					hashValue = hmac.ComputeHash(stream);
-				}
-				return BitConverter.ToString(hashValue).Replace("-", string.Empty).ToLower();
+				// Compute the hash of the input string.
+				hashValue = hmac.ComputeHash(stream);
 			}
+			return BitConverter.ToString(hashValue).Replace("-", string.Empty).ToLower();
 		}
 
 		public static bool ValidateIPv4(string ipString)
@@ -119,7 +114,7 @@ namespace CumulusMX
 		{
 			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
 			// Determine separators from the strings, allow for multi-byte!
-			var datSep = Regex.Match(d, @"[^0-9]+").Value;
+			var datSep = DateStringSeparators().Match(d).Value;
 
 			// Converts a date string in UK order to a DateTime
 			string[] date = d.Split(new string[] { datSep }, StringSplitOptions.None);
@@ -138,8 +133,8 @@ namespace CumulusMX
 		{
 			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
 			// Determine separators from the strings, allow for multi-byte!
-			var datSep = Regex.Match(d, @"[^0-9]+").Value;
-			var timSep = Regex.Match(t, @"[^0-9]+").Value;
+			var datSep = DateStringSeparators().Match(d).Value;
+			var timSep = DateStringSeparators().Match(t).Value;
 
 			// Converts a date string in UK order to a DateTime
 			string[] date = d.Split(new string[] { datSep }, StringSplitOptions.None);
@@ -167,7 +162,7 @@ namespace CumulusMX
 			// dd/MM/yy,hh:mm,N.N,....
 			// so we just need to find the first separator after the date before a number
 
-			var reg = Regex.Match(line, @"\d{2}[^\d]+\d{2}[^\d]+\d{2}([^\d])");
+			var reg = LogFileSeparators().Match(line);
 			if (reg.Success)
 				return reg.Groups[1].Value;
 			else
@@ -397,6 +392,11 @@ namespace CumulusMX
 				return false;
 			}
 		}
+
+		[GeneratedRegex(@"[^0-9]+")]
+		private static partial Regex DateStringSeparators();
+		[GeneratedRegex(@"\d{2}[^\d]+\d{2}[^\d]+\d{2}([^\d])")]
+		private static partial Regex LogFileSeparators();
 
 		/*
 		public static class ParallelAsync

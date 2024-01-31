@@ -9088,7 +9088,7 @@ namespace CumulusMX
 
 			string msg = string.Empty;
 
-			cumulus.LogMessage($"LoadDayFile: Attempting to load the day file");
+			cumulus.LogMessage("LoadDayFile: Attempting to load the day file");
 			if (File.Exists(cumulus.DayFileName))
 			{
 				int linenum = 0;
@@ -9100,45 +9100,42 @@ namespace CumulusMX
 				// Clear the existing list
 				DayFile.Clear();
 
+				var lines = File.ReadAllLines(cumulus.DayFileName);
+
 				try
 				{
-					using (var sr = new StreamReader(cumulus.DayFileName))
+					foreach (var line in lines)
 					{
-						do
+						try
 						{
-							try
+							// process each record in the file
+							linenum++;
+							var newRec = ParseDayFileRec(line);
+
+							if (DayFile.Any(x => x.Date == newRec.Date))
 							{
-								// process each record in the file
-
-								linenum++;
-								string Line = sr.ReadLine();
-								var newRec = ParseDayFileRec(Line);
-
-								if (DayFile.Any(x => x.Date == newRec.Date))
-								{
-									cumulus.LogErrorMessage($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}");
-									msg += $"ERROR: Duplicate entry in dayfile for {newRec.Date:d}<br>";
-									duplicateCount++;
-								}
-
-								DayFile.Add(newRec);
-
-								addedEntries++;
+								cumulus.LogErrorMessage($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}");
+								msg += $"ERROR: Duplicate entry in dayfile for {newRec.Date:d}<br>";
+								duplicateCount++;
 							}
-							catch (Exception e)
+
+							DayFile.Add(newRec);
+
+							addedEntries++;
+						}
+						catch (Exception e)
+						{
+							cumulus.LogWarningMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
+							msg += $"Error at line {linenum} of {cumulus.DayFileName}<br>";
+							cumulus.LogMessage("Please edit the file to correct the error");
+							errorCount++;
+							if (errorCount >= 20)
 							{
-								cumulus.LogWarningMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
-								msg += $"Error at line {linenum} of {cumulus.DayFileName}<br>";
-								cumulus.LogMessage("Please edit the file to correct the error");
-								errorCount++;
-								if (errorCount >= 20)
-								{
-									cumulus.LogErrorMessage($"LoadDayFile: Too many errors reading {cumulus.DayFileName} - aborting load of daily data");
-									msg += "Too many errors reading dayfile, aborting<br>";
-								}
+								cumulus.LogErrorMessage($"LoadDayFile: Too many errors reading {cumulus.DayFileName} - aborting load of daily data");
+								msg += "Too many errors reading dayfile, aborting<br>";
+								break;
 							}
-						} while (!(sr.EndOfStream || errorCount >= 20));
-						sr.Close();
+						}
 					}
 
 					watch.Stop();

@@ -2965,10 +2965,8 @@ namespace CumulusMX
 			string fileName = cumulus.AppDir + "currentconditions.txt";
 			if (File.Exists(fileName))
 			{
-				using (StreamReader streamReader = new StreamReader(fileName))
-				{
-					res = streamReader.ReadToEnd();
-				}
+				using StreamReader streamReader = new StreamReader(fileName);
+				res = streamReader.ReadToEnd();
 			}
 			else
 			{
@@ -3638,29 +3636,17 @@ namespace CumulusMX
 
 
 
-		private class LastHourRainLog
+		private class LastHourRainLog(DateTime ts, double rain)
 		{
-			public readonly DateTime Timestamp;
-			public readonly double Raincounter;
-
-			public LastHourRainLog(DateTime ts, double rain)
-			{
-				Timestamp = ts;
-				Raincounter = rain;
-			}
+			public readonly DateTime Timestamp = ts;
+			public readonly double Raincounter = rain;
 		}
 
 
-		private class LocalRec
+		private class LocalRec(bool HighVal)
 		{
-			public double Value { get; set; }
-			public DateTime Ts { get; set; }
-
-			public LocalRec(bool HighVal)
-			{
-				Value = HighVal ? Cumulus.DefaultHiVal : Cumulus.DefaultLoVal;
-				Ts = DateTime.MinValue;
-			}
+			public double Value { get; set; } = HighVal ? Cumulus.DefaultHiVal : Cumulus.DefaultLoVal;
+			public DateTime Ts { get; set; } = DateTime.MinValue;
 
 			public string GetValString(string format = "")
 			{
