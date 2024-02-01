@@ -234,8 +234,11 @@ namespace CumulusMX
 					}
 					else if (responseBody.StartsWith("{\"code\":")) // sanity check
 					{
+						// Ecowitt send null values as the string "-", so we have to change all those to null before we parse...
+						var json = responseBody.Replace("\"-\"", "null");
+
 						// get the sensor data
-						var histObj = responseBody.FromJson<HistoricResp>();
+						var histObj = json.FromJson<HistoricResp>();
 
 						if (histObj != null)
 						{
@@ -1678,7 +1681,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 data - " + ex.Message);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in indoor CO2 data - " + ex.Message);
 			}
 
 			// === Indoor CO2 24hr avg ===
@@ -1691,7 +1694,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 24hr avg data - " + ex.Message);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in indoor CO2 24hr avg data - " + ex.Message);
 			}
 
 			// === Combo CO2 ===
@@ -1704,7 +1707,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 data - " + ex.Message);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in combo CO2 data - " + ex.Message);
 			}
 
 			// === Combo CO2 24hr avg ===
@@ -1717,7 +1720,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("ApplyHistoricData: Error in CO2 24hr avg data - " + ex.Message);
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in combo CO2 24hr avg data - " + ex.Message);
 			}
 
 			// === PM 2.5 Combo ===
@@ -1948,8 +1951,11 @@ namespace CumulusMX
 				}
 				else if (responseBody.StartsWith("{\"code\":")) // sanity check
 				{
+					// Ecowitt send null values as the string "-", so we have to change all those to null before we parse...
+					var json = responseBody.Replace("\"-\"", "null");
+
 					// get the sensor data
-					currObj = responseBody.FromJson<CurrentData>();
+					currObj = json.FromJson<CurrentData>();
 
 					if (currObj != null)
 					{
@@ -2583,7 +2589,7 @@ namespace CumulusMX
 		{
 			public HistoricDataTypeDbl dew_point { get; set; }
 			public HistoricDataTypeDbl feels_like { get; set; }
-			public HistoricDataTypeInt app_temp { get; set; }
+			public HistoricDataTypeDbl app_temp { get; set; }
 		}
 
 		internal class HistoricDataPressure
@@ -2634,6 +2640,7 @@ namespace CumulusMX
 		[DataContract]
 		internal class HistoricDataCo2
 		{
+			[DataMember(Name = "co2")]
 			public HistoricDataTypeInt co2 { get; set; }
 			[DataMember(Name = "24_hours_average")]
 			public HistoricDataTypeInt average24h { get; set; }
@@ -2641,12 +2648,12 @@ namespace CumulusMX
 
 		internal class HistoricDataPm25Aqi
 		{
-			public HistoricDataTypeDbl pm25 { get; set; }
+			public HistoricDataTypeInt pm25 { get; set; }
 		}
 
 		internal class HistoricDataPm10Aqi
 		{
-			public HistoricDataTypeDbl pm10 { get; set; }
+			public HistoricDataTypeInt pm10 { get; set; }
 		}
 
 		internal class HistoricData

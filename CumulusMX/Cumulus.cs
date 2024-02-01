@@ -7507,7 +7507,8 @@ namespace CumulusMX
 			Trans.CO2_pm2p5_24hrCaption = ini.GetValue("CO2Captions", "CO2-Pm2p5-24hr", "PM 2.5 24h avg");
 			Trans.CO2_pm10Caption = ini.GetValue("CO2Captions", "CO2-Pm10", "PM 10");
 			Trans.CO2_pm10_24hrCaption = ini.GetValue("CO2Captions", "CO2-Pm10-24hr", "PM 10 24h avg");
-
+			Trans.CO2_TemperatureCaption = ini.GetValue("CO2Captions", "CO2-Temperature", "Temperature");
+			Trans.CO2_HumidityCaption = ini.GetValue("CO2Captions", "CO2-Humidity", "Humidity");
 
 			Trans.thereWillBeMinSLessDaylightTomorrow = ini.GetValue("Solar", "LessDaylightTomorrow", "There will be {0}min {1}s less daylight tomorrow");
 			Trans.thereWillBeMinSMoreDaylightTomorrow = ini.GetValue("Solar", "MoreDaylightTomorrow", "There will be {0}min {1}s more daylight tomorrow");
@@ -7700,6 +7701,8 @@ namespace CumulusMX
 			ini.SetValue("CO2Captions", "CO2-Pm2p5-24hr", Trans.CO2_pm2p5_24hrCaption);
 			ini.SetValue("CO2Captions", "CO2-Pm10", Trans.CO2_pm10Caption);
 			ini.SetValue("CO2Captions", "CO2-Pm10-24hr", Trans.CO2_pm10_24hrCaption);
+			ini.SetValue("CO2Captions", "CO2-Temperature", Trans.CO2_TemperatureCaption);
+			ini.SetValue("CO2Captions", "CO2-Humidity", Trans.CO2_HumidityCaption);
 
 
 			ini.SetValue("Solar", "LessDaylightTomorrow", Trans.thereWillBeMinSLessDaylightTomorrow);

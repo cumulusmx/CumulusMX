@@ -1,3 +1,18 @@
+3.28.3 - b3280
+——————————————
+New
+- Adds Ecowitt local GW1000 API to the web tag <#StationFreeMemory>. Known to work with GW1100 (v2.3.1) and GW2000 (v3.1.1) so far
+- Adds a new web tag <#ExtraStationFreeMemory> to avoid clashes with the main station and a Ecowitt HTTP station used for extra sensors
+- Adds a check for the raincounter suddenly increasing (more than 25mm or 1 inch)
+
+Fixed
+- Ecowitt Cloud decoding of Soil Moisture values
+- Ecowitt Cloud add missing decode of CO2 temp/humidity values
+- Crash for new installs when the monthly log file does not exist
+- Setting Ecowitt custom server settings when used as an Extra Sensor station
+- The Monthly Records editor values from the log file showed the previous months values for monthly totals like Total Rainfall etc.
+
+
 3.28.2 - b3279
 ——————————————
 New
@@ -11,7 +26,7 @@ Changed
 
 Fixed
 - Ecowitt Cloud station: Fix some errors decoding Ecowitt cloud API.
-- Ecowitt Cloud, no longer requires a Pro subscrition to pull current data. Quite an extensive rewrite!
+- Ecowitt Cloud, no longer requires a Pro subscription to pull current data. Quite an extensive rewrite!
 - Extra Files using log filename templates missed the last log entry at month rollover as they switched to the new month immediately
 - Fix missing units in alarm email messages
 - Custom Timed MySQL commands sometimes fired immediately after saving the configuration

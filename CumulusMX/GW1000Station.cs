@@ -942,7 +942,7 @@ namespace CumulusMX
 								}
 								idx += 2;
 								break;
-							case 0x0F: //Rain hour (mm)
+							case 0x0F: //Rain Gain (mm)
 								idx += 2;
 								break;
 							case 0x10: //Rain Day (mm)
@@ -1186,6 +1186,10 @@ namespace CumulusMX
 								}
 								idx += 8;
 								break;
+							case 0x6C: // Heap size - has constant offset of +3692 to GW1100 HTTP value????
+								StationFreeMemory = (int) GW1000Api.ConvertBigEndianUInt32(data, idx);
+								idx += 4;
+								break;
 							case 0x70: // WH45 CO₂
 								batteryLow = batteryLow || DoCO2Decode(data, idx);
 								idx += 16;
@@ -1210,6 +1214,12 @@ namespace CumulusMX
 								DoLeafWetness(data[idx], chan);
 								idx += 1;
 								break;
+							case 0x7A: // Rain Priority
+								idx += 1;
+								break;
+							case 0x7B: // Radiation compensation
+								idx += 1;
+								break;
 							case 0x80: // Piezo Rain Rate
 								if (cumulus.Gw1000PrimaryRainSensor == 1)
 								{
@@ -1224,7 +1234,7 @@ namespace CumulusMX
 								}
 								idx += 2;
 								break;
-							case 0x82: // Piezo Hourly Rain
+							case 0x82: // Piezo Hourly Rain (not used)
 								idx += 2;
 								break;
 							case 0x83: // Piezo Daily Rain

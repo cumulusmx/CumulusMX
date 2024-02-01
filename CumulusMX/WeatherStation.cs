@@ -23,6 +23,8 @@ using ServiceStack.Text;
 
 using SQLite;
 
+using static System.Net.Mime.MediaTypeNames;
+
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX
@@ -390,6 +392,7 @@ namespace CumulusMX
 		}
 
 		public int StationFreeMemory;
+		public int ExtraStationFreeMemory;
 		public int StationRuntime;
 
 
@@ -527,17 +530,37 @@ namespace CumulusMX
 			// if it does resave the file missing the last line
 			var fileName = cumulus.GetLogFileName(logDate);
 
-			var lines = File.ReadAllLines(fileName);
-
-			//Strip the "null line" from file
-			if (lines[lines.Length - 1].StartsWith("\0\0\0\0\0"))
+			if (File.Exists(fileName))
 			{
-				cumulus.LogMessage($"Monthly log file {fileName} Repaired");
-				File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
+				var lines = File.ReadAllLines(fileName);
+
+				//Strip the "null line" from file
+				if (lines[lines.Length - 1][0] < 32)
+				{
+					cumulus.LogMessage($"Monthly log file {fileName} Repaired");
+					var str = new StringBuilder(lines[lines.Length - 1].Length + 50);
+					for (int i = 0; i < lines[lines.Length - 1].Length; i++)
+					{
+						if (Char.ConvertToUtf32(lines[lines.Length - 1], i) < 32)
+						{
+							str.AppendFormat("[{0:X2}]", (byte) lines[lines.Length - 1][i]);
+						}
+						else
+						{
+							str.Append(lines[lines.Length - 1][i]);
+						}
+					}
+					cumulus.LogMessage("Removed line: " + str.ToString());
+					File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
+				}
+				else
+				{
+					cumulus.LogMessage($"Monthly log file {fileName} Checked OK");
+				}
 			}
 			else
 			{
-				cumulus.LogMessage($"Monthly log file {fileName} OK");
+				cumulus.LogMessage("Monthly log file check skipped - no file exists");
 			}
 		}
 
@@ -5975,17 +5998,29 @@ namespace CumulusMX
 
 			// Has the rain total in the station been reset?
 			// raindaystart greater than current total, allow for rounding
-			if (Math.Round(RainCounterDayStart, cumulus.RainDPlaces) - Math.Round(RainCounter, cumulus.RainDPlaces) > 0)
+			// or current has jumped by more than 25 mm/1 inch
+			var maxIncrement = cumulus.Units.Rain == 0 ? 1 : 25;
+			var counterReset = Math.Round(RainCounterDayStart, cumulus.RainDPlaces) - Math.Round(RainCounter, cumulus.RainDPlaces) > 0;
+			var counterJumped = Math.Round(RainCounter, cumulus.RainDPlaces) - previoustotal > maxIncrement;
+
+			if (counterReset || counterJumped)
 			{
-				if (FirstChanceRainReset)
-				// second consecutive reading with reset value
+				// third consecutive reading with reset value
+				if (SecondChanceRainReset)
 				{
-					cumulus.LogWarningMessage(" ****Rain counter reset confirmed: raindaystart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
+					if (counterReset)
+					{
+						cumulus.LogWarningMessage(" ****Rain counter reset confirmed: RaindayStart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
+					}
+					else
+					{
+						cumulus.LogWarningMessage(" ****Rain counter jump confirmed: Previous Value = " + previoustotal + ", Raincounter = " + RainCounter);
+					}
 
 					// set the start of day figure so it reflects the rain
 					// so far today
 					RainCounterDayStart = RainCounter - (RainToday / cumulus.Calib.Rain.Mult);
-					cumulus.LogMessage("Setting raindaystart to " + RainCounterDayStart);
+					cumulus.LogMessage("Setting RaindayStart to " + RainCounterDayStart);
 
 					MidnightRainCount = RainCounter;
 					previoustotal = total;
@@ -5994,11 +6029,19 @@ namespace CumulusMX
 					var counterChange = RainCounter - prevraincounter;
 					RecentDataDb.Execute("update RecentData set raincounter=raincounter+?", counterChange);
 
-					FirstChanceRainReset = false;
+					SecondChanceRainReset = false;
+					rainResetCount = 0;
 				}
 				else
 				{
-					cumulus.LogMessage(" ****Rain reset? First chance: raindaystart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
+					if (counterReset)
+					{
+						cumulus.LogMessage(" ****Rain reset? RaindayStart = " + RainCounterDayStart + ", Raincounter = " + RainCounter);
+					}
+					else
+					{
+						cumulus.LogWarningMessage(" ****Rain counter jump? Previous Value = " + previoustotal + ", Raincounter = " + RainCounter);
+					}
 
 					// reset the counter to ignore this reading
 					RainCounter = previoustotal;
@@ -6007,12 +6050,18 @@ namespace CumulusMX
 					// stash the previous rain counter
 					prevraincounter = RainCounter;
 
-					FirstChanceRainReset = true;
+					rainResetCount++;
+
+					if (rainResetCount >= 2)
+					{
+						SecondChanceRainReset = true;
+					}
 				}
 			}
 			else
 			{
-				FirstChanceRainReset = false;
+				SecondChanceRainReset = false;
+				rainResetCount = 0;
 			}
 
 			if (rate > -1)
@@ -6056,7 +6105,7 @@ namespace CumulusMX
 				}
 			}
 
-			if (!FirstChanceRainReset)
+			if (rainResetCount == 0)
 			{
 				// Has a tip occurred?
 				if (Math.Round(total, cumulus.RainDPlaces) - Math.Round(previoustotal, cumulus.RainDPlaces) > 0)
@@ -6853,7 +6902,8 @@ namespace CumulusMX
 
 
 		//private bool first_rain = true;
-		private bool FirstChanceRainReset = false;
+		private int rainResetCount = 0;
+		private bool SecondChanceRainReset = false;
 		private bool initialiseRainDayStart = true;
 		private bool initialiseMidnightRain = true;
 		private bool initialiseRainCounter = true;
@@ -12239,7 +12289,11 @@ namespace CumulusMX
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
 					json.Append($"[\"{cumulus.Trans.CO2_pm10Caption}\",\"{CO2_pm10:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"]");
+					json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
+					json.Append($"[\"{cumulus.Trans.CO2_TemperatureCaption}\",\"{CO2_temperature:F1}\",\"{cumulus.Units.TempText}\"],");
+				if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
+					json.Append($"[\"{cumulus.Trans.CO2_HumidityCaption}\",\"{CO2_humidity:F1}\",\"%\"]");
 			}
 
 			if (json[json.Length - 1] == ',')

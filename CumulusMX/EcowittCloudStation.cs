@@ -821,42 +821,42 @@ namespace CumulusMX
 		{
 			if (data.soil_ch1 != null)
 			{
-				station.DoSoilTemp(data.soil_ch1.soilmoisture.value, 1);
+				station.DoSoilMoisture(data.soil_ch1.soilmoisture.value, 1);
 			}
 
 			if (data.soil_ch2 != null)
 			{
-				station.DoSoilTemp(data.soil_ch2.soilmoisture.value, 2);
+				station.DoSoilMoisture(data.soil_ch2.soilmoisture.value, 2);
 			}
 
 			if (data.soil_ch3 != null)
 			{
-				station.DoSoilTemp(data.soil_ch3.soilmoisture.value, 3);
+				station.DoSoilMoisture(data.soil_ch3.soilmoisture.value, 3);
 			}
 
 			if (data.soil_ch4 != null)
 			{
-				station.DoSoilTemp(data.soil_ch4.soilmoisture.value, 4);
+				station.DoSoilMoisture(data.soil_ch4.soilmoisture.value, 4);
 			}
 
 			if (data.soil_ch5 != null)
 			{
-				station.DoSoilTemp(data.soil_ch5.soilmoisture.value, 5);
+				station.DoSoilMoisture(data.soil_ch5.soilmoisture.value, 5);
 			}
 
 			if (data.soil_ch6 != null)
 			{
-				station.DoSoilTemp(data.soil_ch6.soilmoisture.value, 6);
+				station.DoSoilMoisture(data.soil_ch6.soilmoisture.value, 6);
 			}
 
 			if (data.soil_ch7 != null)
 			{
-				station.DoSoilTemp(data.soil_ch7.soilmoisture.value, 7);
+				station.DoSoilMoisture(data.soil_ch7.soilmoisture.value, 7);
 			}
 
 			if (data.soil_ch8 != null)
 			{
-				station.DoSoilTemp(data.soil_ch8.soilmoisture.value, 8);
+				station.DoSoilMoisture(data.soil_ch8.soilmoisture.value, 8);
 			}
 		}
 
@@ -935,6 +935,25 @@ namespace CumulusMX
 				station.CO2 = data.co2_aqi_combo.co2.value;
 				station.CO2_24h = data.co2_aqi_combo.Avg24h.value;
 			}
+
+			if (data.pm25_aqi_combo != null)
+			{
+				station.CO2_pm2p5 = data.pm25_aqi_combo.pm25.value;
+				station.CO2_pm2p5_24h = data.pm25_aqi_combo.Avg24h.value;
+			}
+
+			if (data.pm10_aqi_combo != null)
+			{
+				station.CO2_pm10 = data.pm10_aqi_combo.pm10.value;
+				station.CO2_pm10_24h = data.pm10_aqi_combo.Avg24h.value;
+			}
+
+			if (data.t_rh_aqi_combo != null)
+			{
+				station.CO2_temperature = data.t_rh_aqi_combo.temperature.value;
+				station.CO2_humidity = data.t_rh_aqi_combo.humidity.value;
+			}
+
 			// indoor overrides the combo
 			if (data.indoor_co2 != null)
 			{

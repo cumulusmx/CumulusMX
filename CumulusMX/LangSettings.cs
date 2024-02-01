@@ -100,7 +100,9 @@ namespace CumulusMX
 				Pm2p5 = cumulus.Trans.CO2_pm2p5Caption,
 				Pm2p5_24hr = cumulus.Trans.CO2_pm2p5_24hrCaption,
 				Pm10 = cumulus.Trans.CO2_pm10Caption,
-				Pm10_24hr = cumulus.Trans.CO2_pm10_24hrCaption
+				Pm10_24hr = cumulus.Trans.CO2_pm10_24hrCaption,
+				Temperature = cumulus.Trans.CO2_TemperatureCaption,
+				Humidity = cumulus.Trans.CO2_HumidityCaption
 			};
 
 			var alarmNames = new AlarmStrings()
@@ -373,6 +375,8 @@ namespace CumulusMX
 					cumulus.Trans.CO2_pm2p5_24hrCaption = settings.co2.Pm2p5_24hr.Trim();
 					cumulus.Trans.CO2_pm10Caption = settings.co2.Pm10.Trim();
 					cumulus.Trans.CO2_pm10_24hrCaption = settings.co2.Pm10_24hr.Trim();
+					cumulus.Trans.CO2_TemperatureCaption = settings.co2.Temperature.Trim();
+					cumulus.Trans.CO2_HumidityCaption = settings.co2.Humidity.Trim();
 				}
 				catch (Exception ex)
 				{
@@ -533,6 +537,8 @@ namespace CumulusMX
 			public string Pm2p5_24hr { get; set; }
 			public string Pm10 { get; set; }
 			public string Pm10_24hr { get; set; }
+			public string Temperature { get; set; }
+			public string Humidity { get; set; }
 		}
 
 		private class AlarmSettings
