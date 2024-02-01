@@ -37,7 +37,7 @@
 
   <PropertyGroup>
     <ServerGarbageCollection>true</ServerGarbageCollection>
-    <Version>4.000.0.4004</Version>
+    <Version>4.000.0.4005</Version>
     <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
   </PropertyGroup>
 
@@ -73,7 +73,7 @@
     <PackageReference Include="System.CodeDom" Version="8.0.0" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
-    <PackageReference Include="FluentFTP" Version="49.0.1" />
+    <PackageReference Include="FluentFTP" Version="49.0.2" />
     <PackageReference Include="HidSharp" Version="2.1.0" />
     <PackageReference Include="MailKit" Version="4.3.0" />
     <PackageReference Include="MQTTnet" Version="4.3.3.952" />

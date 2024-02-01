@@ -1,5 +1,10 @@
 4.0.0 - b4004
 —————————————
+- FluentFTP updated
+
+
+4.0.0 - b4004
+—————————————
 - v3.28.3 feature catch-up
 - fixes for linux service install
 - Suppresses writing to the Linux sys and user logs

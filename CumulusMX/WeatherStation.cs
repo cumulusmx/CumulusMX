@@ -530,14 +530,27 @@ namespace CumulusMX
 				var lines = File.ReadAllLines(fileName);
 
 				//Strip the "null line" from file
-				if (lines[^1].StartsWith("\0"))
+				if (lines[^1][0] < 32)
 				{
 					cumulus.LogMessage($"Monthly log file {fileName} Repaired");
+					var str = new StringBuilder(lines[^1].Length + 50);
+					for (int i = 0; i < lines[^1].Length; i++)
+					{
+						if (Char.ConvertToUtf32(lines[^1], i) < 32)
+						{
+							str.AppendFormat("[{0:X2}]", (byte)lines[^1][i]);
+						}
+						else
+						{
+							str.Append(lines[^1][i]);
+						}
+					}
+					cumulus.LogMessage("Removed line: " + str.ToString());
 					File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
 				}
 				else
 				{
-					cumulus.LogMessage($"Monthly log file {fileName} OK");
+					cumulus.LogMessage($"Monthly log file {fileName} Checked OK");
 				}
 			}
 			else
@@ -7935,7 +7948,7 @@ namespace CumulusMX
 			strb.Append(DominantWindBearing + cumulus.ListSeparator);
 			strb.Append(HeatingDegreeDays.ToString("F1") + cumulus.ListSeparator);
 			strb.Append(CoolingDegreeDays.ToString("F1") + cumulus.ListSeparator);
-			strb.Append((int) HiLoToday.HighSolar + cumulus.ListSeparator);
+			strb.Append(HiLoToday.HighSolar + cumulus.ListSeparator);
 			strb.Append(HiLoToday.HighSolarTime.ToString("HH:mm") + cumulus.ListSeparator);
 			strb.Append(HiLoToday.HighUv.ToString(cumulus.UVFormat) + cumulus.ListSeparator);
 			strb.Append(HiLoToday.HighUvTime.ToString("HH:mm") + cumulus.ListSeparator);
