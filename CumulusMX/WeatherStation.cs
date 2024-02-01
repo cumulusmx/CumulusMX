@@ -23,6 +23,8 @@ using ServiceStack.Text;
 
 using SQLite;
 
+using static System.Net.Mime.MediaTypeNames;
+
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX
@@ -533,14 +535,27 @@ namespace CumulusMX
 				var lines = File.ReadAllLines(fileName);
 
 				//Strip the "null line" from file
-				if (lines[lines.Length - 1].StartsWith("\0"))
+				if (lines[lines.Length - 1][0] < 32)
 				{
 					cumulus.LogMessage($"Monthly log file {fileName} Repaired");
+					var str = new StringBuilder(lines[lines.Length - 1].Length + 50);
+					for (int i = 0; i < lines[lines.Length - 1].Length; i++)
+					{
+						if (Char.ConvertToUtf32(lines[lines.Length - 1], i) < 32)
+						{
+							str.AppendFormat("[{0:X2}]", (byte) lines[lines.Length - 1][i]);
+						}
+						else
+						{
+							str.Append(lines[lines.Length - 1][i]);
+						}
+					}
+					cumulus.LogMessage("Removed line: " + str.ToString());
 					File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
 				}
 				else
 				{
-					cumulus.LogMessage($"Monthly log file {fileName} OK");
+					cumulus.LogMessage($"Monthly log file {fileName} Checked OK");
 				}
 			}
 			else
