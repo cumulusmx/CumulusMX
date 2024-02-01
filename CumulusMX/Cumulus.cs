@@ -778,6 +778,20 @@ namespace CumulusMX
 				}
 			}
 
+			// Fix .Net locales using non-standard minus symbols for negative numbers to use the source code friendly dash
+			if (CultureInfo.CurrentCulture.NumberFormat.NegativeSign != "-")
+			{
+				// change the negative sign
+				CultureInfo newCulture = (CultureInfo) Thread.CurrentThread.CurrentCulture.Clone();
+				newCulture.NumberFormat.NegativeSign = "-";
+
+				// set current thread culture
+				Thread.CurrentThread.CurrentCulture = newCulture;
+
+				// set the default culture for other threads
+				CultureInfo.DefaultThreadCurrentCulture = newCulture;
+			}
+
 			// Check if all the folders required by CMX exist, if not create them
 			CreateRequiredFolders();
 
