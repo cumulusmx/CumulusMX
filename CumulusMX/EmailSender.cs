@@ -36,7 +36,7 @@ namespace CumulusMX
 		{
 			bool retVal = false;
 
-			if (string.IsNullOrEmpty(cumulus.SmtpOptions.Server) || string.IsNullOrEmpty(cumulus.SmtpOptions.User))
+			if (string.IsNullOrEmpty(cumulus.SmtpOptions.Server) || (cumulus.SmtpOptions.AuthenticationMethod > 0 && string.IsNullOrEmpty(cumulus.SmtpOptions.User)))
 			{
 				cumulus.LogWarningMessage("SendEmail: You have not configured either the email server or the email account used to send email");
 				return retVal;
@@ -154,7 +154,7 @@ namespace CumulusMX
 		{
 			string retVal;
 
-			if (string.IsNullOrEmpty(cumulus.SmtpOptions.Server) || string.IsNullOrEmpty(cumulus.SmtpOptions.User))
+			if (string.IsNullOrEmpty(cumulus.SmtpOptions.Server) || (cumulus.SmtpOptions.AuthenticationMethod > 0 && string.IsNullOrEmpty(cumulus.SmtpOptions.User)))
 			{
 				cumulus.LogWarningMessage("SendEmail: You have not configured either the email server or the email account used to send email");
 				return "You have not configured either the email server or the email account used to send email";
