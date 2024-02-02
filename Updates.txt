@@ -1,3 +1,9 @@
+3.28.4 - b3281
+——————————————
+Fixed
+- Error sending email to a server that requires no authentication that the username is not set
+
+
 3.28.3 - b3280
 ——————————————
 New
