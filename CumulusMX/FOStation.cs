@@ -202,8 +202,6 @@ namespace CumulusMX
 
 		private void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
-			//var ci = new CultureInfo("en-GB");
-			//System.Threading.Thread.CurrentThread.CurrentCulture = ci;
 			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.syncInit.Wait();
 			//cumulus.LogDebugMessage("Lock: Station has the lock");
@@ -887,8 +885,6 @@ namespace CumulusMX
 			// 18 "
 			// 19 UV
 
-			//var ci = new CultureInfo("en-GB");
-			//System.Threading.Thread.CurrentThread.CurrentCulture = ci;
 
 			var data = new byte[32];
 			var now = DateTime.Now;

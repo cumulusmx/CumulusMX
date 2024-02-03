@@ -16,8 +16,6 @@ namespace CumulusMX
 
 		public string GetAlarmSettings()
 		{
-			//var InvC = new CultureInfo("");
-
 			var alarmUnits = new JsonAlarmUnits()
 			{
 				tempUnits = cumulus.Units.TempText,

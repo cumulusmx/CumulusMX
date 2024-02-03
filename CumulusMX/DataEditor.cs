@@ -32,7 +32,7 @@ namespace CumulusMX
 		//internal string EditRainToday(HttpListenerContext context)
 		internal string EditRainToday(IHttpContext context)
 		{
-			var invC = new CultureInfo("");
+			var invC = CultureInfo.InvariantCulture;
 			var request = context.Request;
 			string text;
 			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
@@ -47,7 +47,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					var raintoday = double.Parse(raintodaystring, CultureInfo.InvariantCulture);
+					var raintoday = double.Parse(raintodaystring, invC);
 					cumulus.LogMessage("Before rain today edit, raintoday=" + station.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.RainCounterDayStart.ToString(cumulus.RainFormat));
 					station.RainToday = raintoday;
 					station.RainCounterDayStart = station.RainCounter - (station.RainToday / cumulus.Calib.Rain.Mult);
@@ -72,7 +72,7 @@ namespace CumulusMX
 
 		internal string GetRainTodayEditData()
 		{
-			var invC = new CultureInfo("");
+			var invC = CultureInfo.InvariantCulture;
 			var step = (cumulus.RainDPlaces == 1 ? "0.1" : "0.01");
 
 			return new JsonObject
@@ -3055,7 +3055,7 @@ namespace CumulusMX
 
 							try
 							{
-								var InvC = new CultureInfo("");
+								var InvC = CultureInfo.InvariantCulture;
 								var updt = new StringBuilder(1024);
 
 								updt.Append($"UPDATE {cumulus.MySqlSettings.Dayfile.TableName} SET ");
@@ -3289,7 +3289,7 @@ namespace CumulusMX
 		{
 			var request = context.Request;
 			string text;
-			var InvC = new CultureInfo("");
+			var InvC = CultureInfo.InvariantCulture;
 			var lastMonth = -1;
 			var lines = new List<string>();
 			var logfile = string.Empty;
@@ -3317,10 +3317,10 @@ namespace CumulusMX
 
 				// replace the edited line
 				var orgLine = lines[lineNum];
-				var newLine = string.Join(cumulus.ListSeparator, newData.data[0]);
+				var newLine = string.Join(',', newData.data[0]);
 
 				// test if we are updating the correct entry
-				var orgArr = orgLine.Split(cumulus.ListSeparator[0]);
+				var orgArr = orgLine.Split(',');
 
 				if (orgArr[0] == newData.data[0][0] && orgArr[1] == newData.data[0][1])
 				{

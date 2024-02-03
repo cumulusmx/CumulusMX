@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -112,47 +113,20 @@ namespace CumulusMX
 
 		public static DateTime ddmmyyStrToDate(string d)
 		{
-			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
-			// Determine separators from the strings, allow for multi-byte!
-			var datSep = DateStringSeparators().Match(d).Value;
-
-			// Converts a date string in UK order to a DateTime
-			string[] date = d.Split(new string[] { datSep }, StringSplitOptions.None);
-
-			int D = Convert.ToInt32(date[0]);
-			int M = Convert.ToInt32(date[1]);
-			int Y = Convert.ToInt32(date[2]);
-			if (Y < 1900)
+			if (DateTime.TryParseExact(d, "dd/MM/yy", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var result))
 			{
-				Y += Y > 70 ? 1900 : 2000;
+				return result;
 			}
-			return new DateTime(Y, M, D);
+			return DateTime.MinValue;
 		}
 
 		public static DateTime ddmmyyhhmmStrToDate(string d, string t)
 		{
-			// Horrible hack, but we have localised separators, but UK sequence, so localised parsing may fail
-			// Determine separators from the strings, allow for multi-byte!
-			var datSep = DateStringSeparators().Match(d).Value;
-			var timSep = DateStringSeparators().Match(t).Value;
-
-			// Converts a date string in UK order to a DateTime
-			string[] date = d.Split(new string[] { datSep }, StringSplitOptions.None);
-			string[] time = t.Split(new string[] { timSep }, StringSplitOptions.None);
-
-			int D = Convert.ToInt32(date[0]);
-			int M = Convert.ToInt32(date[1]);
-			int Y = Convert.ToInt32(date[2]);
-
-			// Double check - just in case we get a four digit year!
-			if (Y < 1900)
+			if (DateTime.TryParseExact(d + ' ' + t, "dd/MM/yy HH:mm", CultureInfo.InvariantCulture,DateTimeStyles.AssumeLocal, out var result))
 			{
-				Y += Y > 70 ? 1900 : 2000;
+				return result;
 			}
-			int h = Convert.ToInt32(time[0]);
-			int m = Convert.ToInt32(time[1]);
-
-			return new DateTime(Y, M, D, h, m, 0);
+			return DateTime.MinValue;
 		}
 
 		public static string GetLogFileSeparator(string line, string defSep)

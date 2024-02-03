@@ -1,3 +1,25 @@
+4.0.0 - b4006
+—————————————
+- REMOVE: Patch for Steinar and the hypen-minus issue
+- All data files are now written/read as invariant - dayfile, monthly log files, extra log files, custom log files
+	- NOTE: Custom log files may require the user to alter their configuration to use comma separators and add the rc=y parameter to numeric web tags
+	- ToDo: Can MX force web tags to use rc=y??? Can MX change the separators??? <-- this fraught with danger as possibly free text in there
+- Monthly log files now renamed to "month[yyyyMM]log.txt" to remove localised month name - and now sortable in the file system!
+- Added MigrateData3to4 utility.
+	- Basic workflow:
+		- Clean install v4
+		- Copy v3 Cumulus.ini to root
+		- Copy v3 /data folder to v4 install
+		- Rename the /data folder to /datav3
+		- Run MigrateData3to4
+		- Done! (haha)
+
+
+4.0.0 - b4005
+—————————————
+- Experimental Gmail OATH 2.0 authentication
+- Patch for Steinar and the hypen-minus issue
+
 4.0.0 - b4004
 —————————————
 - FluentFTP updated

@@ -3289,7 +3289,7 @@ namespace CumulusMX
 					return false;
 				}
 
-			} while (!readBuffer.ToString().Contains("OK\n\r", StringComparison.CurrentCulture));
+			} while (!readBuffer.ToString().Contains("OK\n\r", StringComparison.InvariantCulture));
 			cumulus.LogDebugMessage("WaitForOK: Found OK");
 			return true;
 		}
@@ -3334,7 +3334,7 @@ namespace CumulusMX
 					return false;
 				}
 
-			} while (!readBuffer.ToString().Contains("OK\n\r", StringComparison.CurrentCulture));
+			} while (!readBuffer.ToString().Contains("OK\n\r", StringComparison.InvariantCulture));
 			cumulus.LogDebugMessage("WaitForOK: Found OK");
 			return true;
 		}

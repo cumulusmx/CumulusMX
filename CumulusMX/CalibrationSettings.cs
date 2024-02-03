@@ -23,7 +23,7 @@ namespace CumulusMX
 		{
 			var json = "";
 			JsonCalibrationSettingsData settings;
-			var invC = new CultureInfo("");
+			var invC = CultureInfo.InvariantCulture;
 
 			try
 			{

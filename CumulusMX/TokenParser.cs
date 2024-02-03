@@ -25,7 +25,7 @@ namespace CumulusMX
 	///     TokenParser is used by the calling code by implementing an event handler for
 	///     the delegate TokenHandler(string strToken, ref string strReplacement)
 	/// </remarks>
-	internal class TokenParser
+	internal partial class TokenParser
 	{
 		public string InputText;
 		public string SourceFile { set; get; }
@@ -242,23 +242,23 @@ namespace CumulusMX
 				return $"TokenParser error in file: {SourceFile}, InputString is zero length";
 			}
 
-			Regex rx = new Regex("<#[^>]*?(?:(?:(\")[^\"]*?\\1)[^>]*?)*>", RegexOptions.Compiled);
+			Regex rx = WebTagRegex();
 			// Find matches.
 			MatchCollection matches = rx.Matches(InputText);
 
 			if (matches.Count > 0)
 			{
-				foreach (Match match in matches)
+				foreach (Match match in matches.Cast<Match>())
 				{
-					outText.Append(InputText.Substring(i, match.Index - i));
+					outText.Append(InputText.AsSpan(i, match.Index - i));
 					if (AltTags != null)
-						altOutText.Append(InputText.Substring(i, match.Index - i));
+						altOutText.Append(InputText.AsSpan(i, match.Index - i));
 
 					try
 					{
 						// strip the "<#" ">" characters from the token string
 						token = match.Value;
-						token = token.Substring(2, token.Length - 3);
+						token = token[2..^1];
 						OnToken(token, ref replacement);
 						outText.Append(replacement);
 						if (AltTags != null)
@@ -285,9 +285,9 @@ namespace CumulusMX
 					}
 					i = match.Index + match.Length;
 				}
-				outText.Append(InputText.Substring(i, InputText.Length - i));
+				outText.Append(InputText.AsSpan(i, InputText.Length - i));
 				if (AltTags != null)
-					altOutText.Append(InputText.Substring(i, InputText.Length - i));
+					altOutText.Append(InputText.AsSpan(i, InputText.Length - i));
 			}
 			else
 			{
@@ -432,5 +432,8 @@ namespace CumulusMX
 			}
 			return result;
 		}
+
+		[GeneratedRegex("<#[^>]*?(?:(?:(\")[^\"]*?\\1)[^>]*?)*>", RegexOptions.Compiled)]
+		private static partial Regex WebTagRegex();
 	}
 }

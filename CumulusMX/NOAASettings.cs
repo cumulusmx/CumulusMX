@@ -19,7 +19,6 @@ namespace CumulusMX
 
 		public string GetAlpacaFormData()
 		{
-			//var InvC = new CultureInfo("");
 			var normalmeantemps = new JsonNOAASettingsNormalMeanTemps()
 			{
 				jan = Math.Round(cumulus.NOAAconf.TempNorms[1], cumulus.TempDPlaces),
