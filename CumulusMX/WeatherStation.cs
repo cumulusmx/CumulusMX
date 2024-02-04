@@ -597,14 +597,13 @@ namespace CumulusMX
 			string logdate = "00/00/00";
 			string prevlogdate = "00/00/00";
 
-			string listSep = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 			string todaydatestring = cumulus.LastUpdateTime.ToString("dd/MM/yy");
 
 			var lastDate = cumulus.LastUpdateTime.AddHours(cumulus.GetHourInc(cumulus.LastUpdateTime));
 			var meteoDate = new DateTime(lastDate.Year, lastDate.Month, lastDate.Day, -cumulus.GetHourInc(cumulus.LastUpdateTime), 0, 0);
 
 			cumulus.LogMessage("GetRainCounter: Finding raintoday from logfile " + LogFile);
-			cumulus.LogMessage("GetRainCounter: Expecting listsep=" + listSep + " decimal=" + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
+			cumulus.LogMessage("GetRainCounter: Expecting listsep=, decimal=" + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
 
 			if (File.Exists(LogFile))
 			{
@@ -617,7 +616,7 @@ namespace CumulusMX
 					{
 						// now process each record to get the last "raintoday" figure
 						linenum++;
-						var st = new List<string>(Regex.Split(line, listSep));
+						var st = new List<string>(line.Split(','));
 						if (st.Count > 0)
 						{
 							var raintoday = Double.Parse(st[9]);
@@ -3062,7 +3061,7 @@ namespace CumulusMX
 							{
 								// process each record in the file
 								linenum++;
-								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								var st = new List<string>(line.Split(','));
 								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate > dateFrom)
@@ -3208,7 +3207,7 @@ namespace CumulusMX
 							{
 								// process each record in the file
 								linenum++;
-								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								var st = new List<string>(line.Split(','));
 								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate > dateFrom)
@@ -3354,7 +3353,7 @@ namespace CumulusMX
 							{
 								// process each record in the file
 								linenum++;
-								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								var st = new List<string>(line.Split(','));
 								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate > dateFrom)
@@ -3500,7 +3499,7 @@ namespace CumulusMX
 							{
 								// process each record in the file
 								linenum++;
-								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								var st = new List<string>(line.Split(','));
 								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate > dateFrom)
@@ -3651,7 +3650,7 @@ namespace CumulusMX
 							{
 								// process each record in the file
 								linenum++;
-								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								var st = new List<string>(line.Split(','));
 								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate > dateFrom)
@@ -3802,7 +3801,7 @@ namespace CumulusMX
 							{
 								// process each record in the file
 								linenum++;
-								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								var st = new List<string>(line.Split(','));
 								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate > dateFrom)
@@ -3949,7 +3948,7 @@ namespace CumulusMX
 							{
 								// process each record in the file
 								linenum++;
-								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								var st = new List<string>(line.Split(','));
 								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate > dateFrom)
@@ -4097,7 +4096,7 @@ namespace CumulusMX
 							{
 								// process each record in the file
 								linenum++;
-								var st = new List<string>(Regex.Split(line, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
+								var st = new List<string>(line.Split(','));
 								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
 								if (entrydate > dateFrom)
@@ -12835,9 +12834,7 @@ namespace CumulusMX
 						// track the number of lines we have to return so far
 						thisDraw++;
 
-						var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
-
-						var fields = line.Split(sep[0]);
+						var fields = line.Split(',');
 						var numFields = fields.Length;
 
 						json.Append($"[{lineNum},");
@@ -12995,8 +12992,7 @@ namespace CumulusMX
 						{
 							lineNum++;
 
-							var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
-							var fields = line.Split(sep[0]);
+							var fields = line.Split(',');
 
 							var entryDate = Utils.ddmmyyhhmmStrToDate(fields[0], fields[1]);
 

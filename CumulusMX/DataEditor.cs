@@ -3020,12 +3020,12 @@ namespace CumulusMX
 
 					// replace the edited line
 					var orgLine = lines[lineNum];
-					newLine = string.Join(cumulus.ListSeparator, newData.data[0]);
+					newLine = string.Join(',', newData.data[0]);
 
-					var sep = Utils.GetLogFileSeparator(orgLine, cumulus.ListSeparator);
+					var sep = ',';
 
 					// check if the dates match
-					if (orgLine.Split(sep[0])[0] == newData.data[0][0])
+					if (orgLine.Split(sep)[0] == newData.data[0][0])
 					{
 						lines[lineNum] = newLine;
 
@@ -3161,8 +3161,7 @@ namespace CumulusMX
 					var lineNum = newData.lines[i] - 1; // we want a zero relative index
 
 					// Just double check we are deleting the correct line - see if the dates match
-					var sep = Utils.GetLogFileSeparator(lines[lineNum], cumulus.ListSeparator);
-					var lineData = lines[lineNum].Split(sep[0]);
+					var lineData = lines[lineNum].Split(',');
 					var formDate = newData.data[i][0];
 					if (lineData[0] != formDate)
 					{
@@ -3495,8 +3494,7 @@ namespace CumulusMX
 					var lineNum = newData.lines[i] - 1; // we want a zero relative index
 
 					// Just double check we are deleting the correct line - see if the date and .Ts match
-					var sep = Utils.GetLogFileSeparator(lines[lineNum], cumulus.ListSeparator);
-					var lineData = lines[lineNum].Split(sep[0]);
+					var lineData = lines[lineNum].Split(',');
 					if (lineData[0] == newData.data[i][0] && lineData[1] == newData.data[i][1])
 					{
 						var thisrec = new List<string>(newData.data[i]);

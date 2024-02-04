@@ -1605,7 +1605,7 @@ namespace CumulusMX
 							break;
 						case "csvseparator.txt":
 							Response.ContentType = "text/plain";
-							await writer.WriteAsync(CultureInfo.CurrentCulture.TextInfo.ListSeparator);
+							await writer.WriteAsync(',');
 							break;
 						case "alarms.json":
 							await writer.WriteAsync(alarmSettings.GetAlarmInfo());

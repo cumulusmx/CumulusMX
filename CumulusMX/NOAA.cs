@@ -140,15 +140,13 @@ namespace CumulusMX
 					var lines = File.ReadAllLines(logFile);
 					linenum = 0;
 					windsamples = 0;
-					string sep;
 
 					foreach (var line in lines)
 					{
 						// now process each record in the file
 
 						linenum++;
-						sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
-						st = new List<string>(line.Split(sep[0]));
+						st = new List<string>(line.Split(','));
 						idx = 5;
 						double windspeed = Convert.ToSingle(st[idx]);
 						// add in wind speed sample for whole month
@@ -463,8 +461,7 @@ namespace CumulusMX
 					{
 						// now process each record in the file
 						linenum++;
-						var sep = Utils.GetLogFileSeparator(line, cumulus.ListSeparator);
-						st = new List<string>(line.Split(sep[0]));
+						st = new List<string>(line.Split(','));
 
 						idx = 1;
 
@@ -741,7 +738,6 @@ namespace CumulusMX
 
 			CultureInfo culture = cumulus.NOAAconf.UseDotDecimal ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture;
 
-			string listSep = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 			StringBuilder repLine = new StringBuilder(200);
 			int linenum = 0;
 
