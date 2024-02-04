@@ -6221,6 +6221,7 @@ namespace CumulusMX
 			ini.SetValue("Program", "SettingsUsername", Crypto.EncryptString(ProgramOptions.SettingsUsername, Program.InstanceId, "SettingsUsername"));
 			ini.SetValue("Program", "SettingsPassword", Crypto.EncryptString(ProgramOptions.SettingsPassword, Program.InstanceId, "SettingsPassword"));
 
+			ini.SetValue("Program", "EncryptedCreds", true);
 
 			ini.SetValue("Station", "Type", StationType);
 			ini.SetValue("Station", "Model", StationModel);
