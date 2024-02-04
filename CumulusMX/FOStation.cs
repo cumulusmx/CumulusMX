@@ -393,6 +393,8 @@ namespace CumulusMX
 
 				int h = timestamp.Hour;
 
+				rollHour = Math.Abs(cumulus.GetHourInc(timestamp));
+
 				//  if outside roll-over hour, roll-over yet to be done
 				if (h != rollHour)
 				{

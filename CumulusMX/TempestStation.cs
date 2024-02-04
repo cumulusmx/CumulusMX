@@ -100,6 +100,8 @@ namespace CumulusMX
 
 				cumulus.LogMessage("Processing data for " + timestamp);
 
+				rollHour = Math.Abs(cumulus.GetHourInc(timestamp));
+
 				var h = timestamp.Hour;
 
 				//  if outside rollover hour, rollover yet to be done

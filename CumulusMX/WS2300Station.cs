@@ -234,6 +234,8 @@ namespace CumulusMX
 
 				int h = timestamp.Hour;
 
+				rollHour = Math.Abs(cumulus.GetHourInc(timestamp));
+
 				if (h != rollHour)
 				{
 					rolloverdone = false;

@@ -2055,7 +2055,7 @@ namespace CumulusMX
 			lastDataReadTime = cumulus.LastUpdateTime;
 			int luhour = lastDataReadTime.Hour;
 
-			int rollHour = Math.Abs(cumulus.GetHourInc());
+			int rollHour = Math.Abs(cumulus.GetHourInc(lastDataReadTime));
 
 			cumulus.LogMessage("GetArchiveData: Roll-over hour = " + rollHour);
 

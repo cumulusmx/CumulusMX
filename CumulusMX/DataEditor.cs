@@ -654,31 +654,36 @@ namespace CumulusMX
 			const string dateStampFormat = "d";
 			const string monthFormat = "MMM yyyy";
 
-			DateTime filedate, datefrom;
+			DateTime filedate, datefrom, raindate;
 
 			switch (recordType)
 			{
 				case "alltime":
 					datefrom = cumulus.RecordsBeganDateTime;
+					raindate = datefrom;
+					filedate = datefrom;
 					break;
 				case "thisyear":
 					var now = DateTime.Now;
-					filedate = new DateTime(now.Year, 1, 1).Date;
-					datefrom = filedate.AddDays(-1);
+					filedate = new DateTime(now.Year, 1, 1);
+					datefrom = filedate.AddHours(-cumulus.GetHourInc(filedate));
+					raindate = datefrom.AddDays(-1);
+					filedate = filedate.AddMonths(-1);
 					break;
 				case "thismonth":
 					now = DateTime.Now;
-					filedate = new DateTime(now.Year, now.Month, 1).Date;
-					datefrom = filedate.AddDays(-1);
+					filedate = new DateTime(now.Year, now.Month, 1);
+					datefrom = filedate.AddHours(-cumulus.GetHourInc(filedate));
+					raindate = datefrom.AddDays(-1);
+					filedate = filedate.AddMonths(-1);
 					break;
 				default:
 					datefrom = cumulus.RecordsBeganDateTime;
+					raindate = datefrom;
+					filedate = datefrom;
 					break;
 			}
 			var dateto = DateTime.Now.Date;
-
-			// we have to go back 24 hour to calculate rain in 24h value
-			filedate = datefrom.AddDays(-1);
 
 			var logFile = cumulus.GetLogFileName(filedate);
 			var started = false;
@@ -783,18 +788,18 @@ namespace CumulusMX
 							var rec = station.ParseLogFileRec(line, true);
 
 							// We need to work in meteo dates not clock dates for day hi/lows
-							var metoDate = rec.Date.AddHours(cumulus.GetHourInc());
+							var metoDate = rec.Date.AddHours(cumulus.GetHourInc(rec.Date));
 
 							if (!started)
 							{
-								if (metoDate >= datefrom)
+								if (rec.Date >= datefrom)
 								{
 									lastentrydate = rec.Date;
 									currentDay = metoDate;
-									started = true;
 									totalRainfall = lastentryrain;
+									started = true;
 								}
-								else if (metoDate < filedate)
+								else if (rec.Date < raindate)
 								{
 									continue;
 								}
@@ -960,7 +965,7 @@ namespace CumulusMX
 								// after that build the total was reset to zero in the entry
 								// messy!
 								// no final rainfall entry after this date (approx). The best we can do is add in the increase in rain counter during this preiod
-								var rollovertime = new TimeSpan(-cumulus.GetHourInc(), 0, 0);
+								var rollovertime = new TimeSpan(-cumulus.GetHourInc(rec.Date), 0, 0);
 								if (rec.RainToday > 0 && rec.Date.TimeOfDay == rollovertime)
 								{
 									dayRain = rec.RainToday;
@@ -1976,7 +1981,7 @@ namespace CumulusMX
 
 			var datefrom = cumulus.RecordsBeganDateTime;
 			datefrom = new DateTime(datefrom.Year, datefrom.Month, 1, 0, 0, 0);
-			datefrom = datefrom.AddHours(cumulus.GetHourInc());
+			datefrom = datefrom.AddHours(cumulus.GetHourInc(datefrom));
 			var dateto = DateTime.Now.Date;
 			var filedate = datefrom;
 
@@ -2110,7 +2115,7 @@ namespace CumulusMX
 							var rec = station.ParseLogFileRec(line, true);
 
 							// We need to work in meteo dates not clock dates for day hi/lows
-							var metoDate = rec.Date.AddHours(cumulus.GetHourInc());
+							var metoDate = rec.Date.AddHours(cumulus.GetHourInc(rec.Date));
 							var monthOffset = metoDate.Month - 1;
 
 							if (!started)
@@ -2293,7 +2298,7 @@ namespace CumulusMX
 								// after that build the total was reset to zero in the entry
 								// messy!
 								// no final rainfall entry after this date (approx). The best we can do is add in the increase in rain counter during this period
-								var rollovertime = new TimeSpan(-cumulus.GetHourInc(), 0, 0);
+								var rollovertime = new TimeSpan(-cumulus.GetHourInc(rec.Date), 0, 0);
 								if (rec.RainToday > 0 && rec.Date.TimeOfDay == rollovertime)
 								{
 									dayRain = rec.RainToday;

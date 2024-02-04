@@ -2,7 +2,7 @@
   "profiles": {
     "CumulusMX": {
       "commandName": "Project",
-      "commandLineArgs": "-lang en_GB"
+      "commandLineArgs": "-lang en-GB"
     }
   }
 }

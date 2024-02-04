@@ -1495,7 +1495,6 @@ namespace CumulusMX
 				{
 					LogConsoleMessage($"                    http://{ip}:{HTTPport}/", ConsoleColor.Yellow);
 				}
-
 			}
 
 			Console.WriteLine();
@@ -6135,6 +6134,7 @@ namespace CumulusMX
 				AirLinkApiSecret = Crypto.DecryptString(AirLinkApiSecret, Program.InstanceId, "AirLinkApiSecret");
 				FtpOptions.Username = Crypto.DecryptString(FtpOptions.Username, Program.InstanceId, "FtpOptions.Username");
 				FtpOptions.Password = Crypto.DecryptString(FtpOptions.Password, Program.InstanceId, "FtpOptions.Password");
+				FtpOptions.PhpSecret = Crypto.DecryptString(FtpOptions.PhpSecret, Program.InstanceId, "FtpOptions.PhpSecret");
 				Wund.PW = Crypto.DecryptString(Wund.PW, Program.InstanceId, "Wund.PW");
 				Windy.ApiKey = Crypto.DecryptString(Windy.ApiKey, Program.InstanceId, "Windy.ApiKey");
 				AWEKAS.PW = Crypto.DecryptString(AWEKAS.PW, Program.InstanceId, "AWEKAS.PW");
@@ -6613,7 +6613,7 @@ namespace CumulusMX
 
 			// PHP upload options
 			ini.SetValue("FTP site", "PHP-URL", FtpOptions.PhpUrl);
-			ini.SetValue("FTP site", "PHP-Secret", FtpOptions.PhpSecret);
+			ini.SetValue("FTP site", "PHP-Secret", Crypto.EncryptString(FtpOptions.PhpSecret, Program.InstanceId, "FtpOptions.PhpSecret"));
 			ini.SetValue("FTP site", "PHP-IgnoreCertErrors", FtpOptions.PhpIgnoreCertErrors);
 			ini.SetValue("FTP site", "PHP-UseGet", FtpOptions.PhpUseGet);
 			ini.SetValue("FTP site", "MaxConcurrentUploads", FtpOptions.MaxConcurrentUploads);
@@ -8220,7 +8220,7 @@ namespace CumulusMX
 
 			var datestring = logfiledate.ToString("yyyyMM");
 
-			return Datapath + "Month" + datestring + "log.txt";
+			return Datapath + datestring + "log.txt";
 		}
 
 		public string GetExtraLogFileName(DateTime thedate)

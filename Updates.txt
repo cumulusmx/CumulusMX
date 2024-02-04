@@ -1,7 +1,14 @@
+4.0.0 - b4008
+—————————————
+- Monthly log files are now named just yyyyMMlog.txt
+- Credentials are now encrypted in cumulus.ini
+- Fix for problems when using a 9am rollover in the records editors for values from the monthly log files
+
+
 4.0.0 - b4007
 —————————————
 - Implements encryption of the credentials in the cumulus.ini file
-
+- Fix for reading invariant log files
 
 4.0.0 - b4006
 —————————————

@@ -137,8 +137,14 @@ namespace CumulusMX
 						case "-lang" when args.Length >= i:
 							{
 								lang = args[++i];
+								// some people enter the code as eg en_GB, it should use dash en-GB
+								lang = lang.Replace('_', '-');
 
 								CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
+								CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
+								Thread.CurrentThread.CurrentCulture = new CultureInfo(lang);
+								CultureInfo.CurrentCulture = new CultureInfo(lang);
+								CultureInfo.CurrentUICulture = new CultureInfo(lang);
 								break;
 							}
 						case "-port" when args.Length >= i:

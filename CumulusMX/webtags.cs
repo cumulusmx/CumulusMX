@@ -729,7 +729,7 @@ namespace CumulusMX
 
 		private string TagMetDateYesterday(Dictionary<string, string> tagParams)
 		{
-			int offset = cumulus.GetHourInc();
+			int offset = cumulus.GetHourInc(DateTime.Now.AddDays(-1));
 			return GetFormattedDateTime(DateTime.Now.AddHours(offset).AddDays(-1), "d", tagParams);
 		}
 

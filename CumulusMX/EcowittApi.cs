@@ -1281,6 +1281,8 @@ namespace CumulusMX
 
 				var h = rec.Key.Hour;
 
+				rollHour = Math.Abs(cumulus.GetHourInc(rec.Key));
+
 				//  if outside rollover hour, rollover yet to be done
 				if (h != rollHour) rolloverdone = false;
 

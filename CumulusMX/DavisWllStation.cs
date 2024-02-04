@@ -1553,7 +1553,7 @@ namespace CumulusMX
 			lastDataReadTime = cumulus.LastUpdateTime;
 			int luhour = lastDataReadTime.Hour;
 
-			int rollHour = Math.Abs(cumulus.GetHourInc());
+			int rollHour = Math.Abs(cumulus.GetHourInc(cumulus.LastUpdateTime));
 
 			cumulus.LogMessage($"Roll over hour = {rollHour}");
 
