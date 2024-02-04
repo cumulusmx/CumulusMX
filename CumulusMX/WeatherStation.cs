@@ -2914,7 +2914,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetAqGraphData(bool incremental, DateTime? start = null)
+		public string GetAqGraphData(bool incremental, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
 			var InvC = CultureInfo.InvariantCulture;
@@ -2931,6 +2931,10 @@ namespace CumulusMX
 				if (incremental)
 				{
 					dateFrom = start ?? cumulus.GraphDataFiles[12].LastDataTime;
+				}
+				else if (start.HasValue && end.HasValue)
+				{
+					dateFrom = start.Value;
 				}
 				else
 				{
@@ -4011,7 +4015,7 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		public string GetCo2SensorGraphData(bool incremental, bool local, DateTime? start = null)
+		public string GetCo2SensorGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
 			var InvC = CultureInfo.InvariantCulture;
@@ -4041,6 +4045,10 @@ namespace CumulusMX
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[19].LastDataTime;
+			}
+			else if (start.HasValue && end.HasValue)
+			{
+				dateFrom = start.Value;
 			}
 			else
 			{

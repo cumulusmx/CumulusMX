@@ -8,14 +8,9 @@ using ServiceStack.Text;
 
 namespace CumulusMX
 {
-	public class ProgramSettings
+	public class ProgramSettings(Cumulus cumulus)
 	{
-		private readonly Cumulus cumulus;
-
-		public ProgramSettings(Cumulus cumulus)
-		{
-			this.cumulus = cumulus;
-		}
+		private readonly Cumulus cumulus = cumulus;
 
 		public string GetAlpacaFormData()
 		{
@@ -110,7 +105,7 @@ namespace CumulusMX
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
 				settings = JsonSerializer.DeserializeFromString<JsonProgramSettings>(json);

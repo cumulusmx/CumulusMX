@@ -502,7 +502,7 @@ namespace CumulusMX
 							await writer.WriteAsync(Station.GetIntervalSolarGraphData(true, start, end));
 							break;
 						case "intvairquality.json":
-							// TODO
+							await writer.WriteAsync(Station.GetAqGraphData(false, start, end));
 							break;
 						case "intvextratemp.json":
 							await writer.WriteAsync(Station.GetExtraTempGraphData(false, true, start, end));
@@ -526,7 +526,7 @@ namespace CumulusMX
 							await writer.WriteAsync(Station.GetUserTempGraphData(false, true, start, end));
 							break;
 						case "intvco2sensor.json":
-							// TODO
+							await writer.WriteAsync(Station.GetCo2SensorGraphData(false, true, start, end));
 							break;
 
 						// config data

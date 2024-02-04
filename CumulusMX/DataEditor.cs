@@ -3140,8 +3140,8 @@ namespace CumulusMX
 					else
 					{
 						// ohoh! The dates do not match
-						cumulus.LogErrorMessage($"EditDayFile: Dates do not match. FormDate: {newData.data[0][0]}, FileDate: {orgLine.Split(sep[0])[0]}");
-						return $"{{\"errors\":{{\"General\":[\"<br>Dates do not match. FormDate: {newData.data[0][0]}, FileDate: {orgLine.Split(sep[0])[0]}\"]}}}}";
+						cumulus.LogErrorMessage($"EditDayFile: Dates do not match. FormDate: {newData.data[0][0]}, FileDate: {orgLine.Split(sep)[0]}");
+						return $"{{\"errors\":{{\"General\":[\"<br>Dates do not match. FormDate: {newData.data[0][0]}, FileDate: {orgLine.Split(sep)[0]}\"]}}}}";
 					}
 				}
 				catch (Exception ex)
