@@ -376,7 +376,6 @@ namespace CumulusMX
 				InstanceId = Crypto.GenerateKey();
 				await File.WriteAllTextAsync("UniqueId.txt", Convert.ToBase64String(InstanceId));
 			}
-
 		}
 	}
 }

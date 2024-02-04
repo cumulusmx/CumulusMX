@@ -7895,7 +7895,7 @@ namespace CumulusMX
 			YestAvgTemp = AvgTemp;
 
 			var inv = CultureInfo.InvariantCulture;
-			var sep = ',';
+			var sep = ",";
 
 			string datestring = timestamp.AddDays(-1).ToString("dd/MM/yy", inv);
 			// NB this string is just for logging, the dayfile update code is further down

@@ -1,6 +1,11 @@
+4.0.0 - b4007
+—————————————
+- Implements encryption of the credentials in the cumulus.ini file
+
+
 4.0.0 - b4006
 —————————————
-- REMOVE: Patch for Steinar and the hypen-minus issue
+- REMOVE: Patch for Steinar and the hyphen-minus issue
 - All data files are now written/read as invariant - dayfile, monthly log files, extra log files, custom log files
 	- NOTE: Custom log files may require the user to alter their configuration to use comma separators and add the rc=y parameter to numeric web tags
 	- ToDo: Can MX force web tags to use rc=y??? Can MX change the separators??? <-- this fraught with danger as possibly free text in there
@@ -18,7 +23,7 @@
 4.0.0 - b4005
 —————————————
 - Experimental Gmail OATH 2.0 authentication
-- Patch for Steinar and the hypen-minus issue
+- Patch for Steinar and the hyphen-minus issue
 
 4.0.0 - b4004
 —————————————
