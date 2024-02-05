@@ -74,6 +74,38 @@ Changed
 Fixed
 
 
+4.0.0 - b4xxx
+—————————————
+Initial release of Cumulus MX version 3.5 which now runs under Microsoft .Net 8.0 and removes the requirement for the Mono runtime environment on Linux
+
+New
+- Moon Image now supports transparent shadows
+- The -install/-unistall command line switches now support both Windows and Linux
+	- Under Linux run > sudo dotnet CumulusMX.dll -install -user <username> [-port <port_number>] [-lang <lang-code>]
+- Implements encryption of the credentials in the cumulus.ini file
+- Experimental Gmail OATH 2.0 authentication
+
+Changed
+- Now requires Microsoft .Net 8.0 rather than mono to run under Linux and MacOS
+- All data files are now written/read as invariant - dayfile, monthly log files, extra log files, custom log files
+	- NOTE: Custom log files may require the user to alter their configuration to use comma separators and add the rc=y parameter to numeric web tags
+- Monthly log files now renamed to "[yyyyMM]log.txt" to remove localised month name - and now sortable in the file system!
+- Added MigrateData3to4 utility.
+	- Basic workflow:
+		- Clean install v4
+		- Copy v3 Cumulus.ini to root
+		- Copy v3 /data and /Reports folders to v4 install
+		- Rename the /data folder to /datav3
+		- Run MigrateData3to4
+		- Done!
+- Removed previously deprecated web tags
+	CO2-24h, CO2-pm2p5, CO2-pm2p5-24h, CO2-pm10, CO2-temp, CO2-hum
+
+Fixed
+- Problems when using a 9am rollover in the records editors for values from the monthly log files
+- Select-a-Period charts not respecting the interval dates: Air Quality, CO₂, Soil Moisture, Leaf Wetness
+- Calibration Limits not changing when the user changes units - eg initial install
+
 
 ############## Cumulus MX version 3.0 below here ##############
 
