@@ -1,3 +1,8 @@
+4.0.0 - b4009
+—————————————
+- New web tag for the average temperature of the previous 24 hours from now: <#TempAvg24Hrs>
+
+
 4.0.0 - b4008
 —————————————
 - Monthly log files are now named just yyyyMMlog.txt
@@ -84,6 +89,7 @@ New
 	- Under Linux run > sudo dotnet CumulusMX.dll -install -user <username> [-port <port_number>] [-lang <lang-code>]
 - Implements encryption of the credentials in the cumulus.ini file
 - Experimental Gmail OATH 2.0 authentication
+- New web tag for the average temperature of the previous 24 hours from now: <#TempAvg24Hrs>
 
 Changed
 - Now requires Microsoft .Net 8.0 rather than mono to run under Linux and MacOS
