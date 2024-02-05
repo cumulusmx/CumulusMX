@@ -8,10 +8,6 @@ namespace CumulusMX
 {
 	public class SelfInstaller
 	{
-
-		[DllImport("libc")]
-		private static extern uint getuid();
-
 		private const string serviceFile = "/etc/systemd/system/cumulusmx.service";
 
 
@@ -199,7 +195,7 @@ namespace CumulusMX
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				return WindowsIdentity.GetCurrent().Owner.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);
 			else
-				return getuid() == 0;
+				return Environment.GetEnvironmentVariable("EUID") == "0";
 		}
 
 		private static int RunCommand(string exe, string args)
