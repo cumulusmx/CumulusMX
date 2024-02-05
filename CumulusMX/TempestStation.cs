@@ -425,14 +425,9 @@ namespace CumulusMX.Tempest
 		}
 	}
 
-	public class PacketReceivedArgs : EventArgs
+	public class PacketReceivedArgs(byte[] packet) : EventArgs
 	{
-		public PacketReceivedArgs(byte[] packet)
-		{
-			Packet = packet;
-		}
-
-		public byte[] Packet { get; }
+		public byte[] Packet { get; } = packet;
 	}
 
 	#endregion
@@ -538,42 +533,37 @@ namespace CumulusMX.Tempest
 
 					cumulus.LogDebugMessage($"GetRestPacket: Requesting from URL - {url}device/{deviceId}?token=<<token>>&time_start={st}&time_end={end_time}");
 
-					using (var response =
-						httpClient.GetAsync($"{url}device/{deviceId}?token={token}&time_start={st}&time_end={end_time}")
-					)
+					using var response = httpClient.GetAsync($"{url}device/{deviceId}?token={token}&time_start={st}&time_end={end_time}");
+					string apiResponse = response.Result.Content.ReadAsStringAsync().Result;
+					var rp = JsonSerializer.DeserializeFromString<RestPacket>(apiResponse);
+					if (rp != null && rp.status.status_message.Equals("SUCCESS") && rp.obs != null)
 					{
-						string apiResponse = response.Result.Content.ReadAsStringAsync().Result;
-						var rp = JsonSerializer.DeserializeFromString<RestPacket>(apiResponse);
-						if (rp != null && rp.status.status_message.Equals("SUCCESS") && rp.obs != null)
+						foreach (var ob in rp.obs)
 						{
-							foreach (var ob in rp.obs)
-							{
-								ret.Add(new Observation(ob));
-							}
+							ret.Add(new Observation(ob));
 						}
-						else if (rp != null && rp.status.status_message.Equals("SUCCESS"))
+					}
+					else if (rp != null && rp.status.status_message.Equals("SUCCESS"))
+					{
+						// no data for time period, ignore
+						//Cumulus.LogConsoleMessage($"No data for time period from {tpStart} to {end}");
+					}
+					else
+					{
+						var msg = $"Error downloading tempest history: {apiResponse}";
+						cumulus.LogErrorMessage(msg);
+						Cumulus.LogConsoleMessage(msg, ConsoleColor.Red);
+						if (rp.status.status_code == 404)
 						{
-							// no data for time period, ignore
-							//Cumulus.LogConsoleMessage($"No data for time period from {tpStart} to {end}");
-						}
-						else
-						{
-							var msg = $"Error downloading tempest history: {apiResponse}";
-							cumulus.LogErrorMessage(msg);
-							Cumulus.LogConsoleMessage(msg, ConsoleColor.Red);
-							if (rp.status.status_code == 404)
-							{
-								Cumulus.LogConsoleMessage("Normally indicates incorrect Device ID");
-								ts = -1;// force a stop, fatal error
-							}
-
-							if (rp.status.status_code == 401)
-							{
-								Cumulus.LogConsoleMessage("Normally indicates incorrect Token");
-								ts = -1;// force a stop, fatal error
-							}
+							Cumulus.LogConsoleMessage("Normally indicates incorrect Device ID");
+							ts = -1;// force a stop, fatal error
 						}
 
+						if (rp.status.status_code == 401)
+						{
+							Cumulus.LogConsoleMessage("Normally indicates incorrect Token");
+							ts = -1;// force a stop, fatal error
+						}
 					}
 				}
 			}
@@ -812,21 +802,13 @@ namespace CumulusMX.Tempest
 				Seq = packet.seq;
 
 
-				switch (packet.radio_stats[3])
+				RadioStatus = packet.radio_stats[3] switch
 				{
-					case 0:
-						RadioStatus = WeatherPacket.RadioStatus.RadioOff;
-						break;
-					case 1:
-						RadioStatus = WeatherPacket.RadioStatus.RadioOn;
-						break;
-					case 3:
-						RadioStatus = WeatherPacket.RadioStatus.RadioActive;
-						break;
-					default:
-						RadioStatus = WeatherPacket.RadioStatus.RadioOff;
-						break;
-				}
+					0 => WeatherPacket.RadioStatus.RadioOff,
+					1 => WeatherPacket.RadioStatus.RadioOn,
+					3 => WeatherPacket.RadioStatus.RadioActive,
+					_ => WeatherPacket.RadioStatus.RadioOff
+				};
 			}
 		}
 
@@ -912,21 +894,13 @@ namespace CumulusMX.Tempest
 			o.SolarRadiation = WeatherPacket.GetInt(ob[11]);
 			o.Precipitation = WeatherPacket.GetDecimal(ob[12]);
 
-			switch (WeatherPacket.GetInt(ob[13]))
+			o.PrecipType = WeatherPacket.GetInt(ob[13]) switch
 			{
-				case 0:
-					o.PrecipType = WeatherPacket.PrecipType.None;
-					break;
-				case 1:
-					o.PrecipType = WeatherPacket.PrecipType.Rain;
-					break;
-				case 2:
-					o.PrecipType = WeatherPacket.PrecipType.Hail;
-					break;
-				default:
-					o.PrecipType = WeatherPacket.PrecipType.None;
-					break;
-			}
+				0 => WeatherPacket.PrecipType.None,
+				1 => WeatherPacket.PrecipType.Rain,
+				2 => WeatherPacket.PrecipType.Hail,
+				_ => WeatherPacket.PrecipType.None,
+			};
 			o.LightningAvgDist = WeatherPacket.GetInt(ob[14]);
 			o.LightningCount = WeatherPacket.GetInt(ob[15]);
 			o.BatteryVoltage = WeatherPacket.GetDecimal(ob[16]);
@@ -968,18 +942,11 @@ namespace CumulusMX.Tempest
 		public int LocalRainChecked { get; set; }// mm
 
 	}
-	public class PrecipEvent
+	public class PrecipEvent(WeatherPacket packet)
 	{
-		public PrecipEvent(WeatherPacket packet)
-		{
-			SerialNumber = packet.serial_number;
-			HubSN = packet.hub_sn;
-			Timestamp = WeatherPacket.FromUnixTimeSeconds(packet.evt[0]);
-		}
-
-		public string SerialNumber { get; set; }
-		public string HubSN { get; set; }
-		public DateTime Timestamp { get; set; }
+		public string SerialNumber { get; set; } = packet.serial_number;
+		public string HubSN { get; set; } = packet.hub_sn;
+		public DateTime Timestamp { get; set; } = WeatherPacket.FromUnixTimeSeconds(packet.evt[0]);
 	}
 	public class RapidWind
 	{
