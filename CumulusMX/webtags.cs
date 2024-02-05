@@ -1784,6 +1784,12 @@ namespace CumulusMX
 			return CheckRcDp(CheckTempUnitAbs((station.HiLoTodayMidnight.HighTemp - station.HiLoTodayMidnight.LowTemp), tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
+		private string TagTempAvg24Hrs(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(CheckTempUnit(station.TempAvg24Hrs(), tagParams), tagParams, cumulus.RainDPlaces);
+		}
+
+
 		private string TagSolarTh(Dictionary<string, string> tagParams)
 		{
 			return ((int) station.HiLoToday.HighSolar).ToString();
@@ -5881,6 +5887,7 @@ namespace CumulusMX
 				{ "TdewpointTL", TagTdewpointTl },
 				{ "heatindexTH", TagheatindexTh },
 				{ "TheatindexTH", TagTheatindexTh },
+				{ "TempAvg24Hrs", TagTempAvg24Hrs },
 				{ "pressTH", TagpressTh },
 				{ "TpressTH", TagTpressTh },
 				{ "pressTL", TagpressTl },

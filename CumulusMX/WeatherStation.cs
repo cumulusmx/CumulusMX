@@ -9988,6 +9988,19 @@ namespace CumulusMX
 			return z_output.ToString();
 		}
 
+		public double TempAvg24Hrs()
+		{
+			try
+			{
+				return RecentDataDb.ExecuteScalar<double>("select avg(OutsideTemp) from RecentData where Timestamp >= datetime('now', '-24 hour')");
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TempAvg24Hrs: Error querying database: " + ex.Message);
+				return 0.0;
+			}
+		}
+
 		public int Forecastnumber { get; set; }
 
 
