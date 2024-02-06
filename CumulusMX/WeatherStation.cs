@@ -433,7 +433,15 @@ namespace CumulusMX
 			ReadMonthIniFile();
 			ReadYearIniFile();
 			_ = LoadDayFile();
-			CheckMonthlyLogFile(cumulus.LastUpdateTime);
+			CheckMonthlyLogFile(cumulus.LastUpdateTime, 0);
+			if (cumulus.StationOptions.LogExtraSensors)
+			{
+				CheckMonthlyLogFile(cumulus.LastUpdateTime, 1);
+			}
+			if (cumulus.AirLinkInEnabled)
+			{
+				CheckMonthlyLogFile(cumulus.LastUpdateTime, 2);
+			}
 
 			GetRainCounter();
 			GetRainFallTotals();
@@ -524,11 +532,38 @@ namespace CumulusMX
 			}
 		}
 
-		private void CheckMonthlyLogFile(DateTime logDate)
+		/// <summary>
+		/// Checks monthly log files for corruption on the last line
+		/// </summary>
+		/// <param name="logDate">Log date to check</param>
+		/// <param name="logtype">0: Monthly, 1:Extra, 2:AirLink</param>
+		private void CheckMonthlyLogFile(DateTime logDate, int logtype)
 		{
 			// A crude check for corruption, just see if the last line starts with nulls
 			// if it does resave the file missing the last line
-			var fileName = cumulus.GetLogFileName(logDate);
+			string fileName = string.Empty;
+			string prefix = string.Empty;
+			int fieldCount = 0;
+
+			switch (logtype)
+			{
+				case 0:
+					fileName = cumulus.GetLogFileName(logDate);
+					prefix = "Monthly log file";
+					fieldCount = Cumulus.NumLogFileFields;
+					break;
+				case 1:
+					fileName = cumulus.GetExtraLogFileName(logDate);
+					prefix = "Monthly Extra log file";
+					fieldCount = Cumulus.NumExtraLogFileFields;
+					break;
+				case 2:
+					fileName = cumulus.GetAirLinkLogFileName(logDate);
+					prefix = "AirLink log file";
+					fieldCount = Cumulus.NumAirLinkLogFileFields;
+					break;
+			}
+
 
 			if (File.Exists(fileName))
 			{
@@ -537,30 +572,47 @@ namespace CumulusMX
 				//Strip the "null line" from file
 				if (lines[lines.Length - 1][0] < 32)
 				{
-					cumulus.LogMessage($"Monthly log file {fileName} Repaired");
-					var str = new StringBuilder(lines[lines.Length - 1].Length + 50);
-					for (int i = 0; i < lines[lines.Length - 1].Length; i++)
+					// first try stripping the control characters out
+					var line = lines[lines.Length - 1];
+
+					line = new string((from c in line
+									   where char.IsLetterOrDigit(c) || char.IsPunctuation(c)
+									   select c
+									).ToArray());
+
+					// test if it is now valid by spliting into fields and counting them
+					if (line.SplitByAny(cumulus.ListSeparator[0]).Length == fieldCount)
 					{
-						if (Char.ConvertToUtf32(lines[lines.Length - 1], i) < 32)
-						{
-							str.AppendFormat("[{0:X2}]", (byte) lines[lines.Length - 1][i]);
-						}
-						else
-						{
-							str.Append(lines[lines.Length - 1][i]);
-						}
+						cumulus.LogMessage($"{prefix} {fileName} Repaired");
+						lines[lines.Length - 1] = line;
+						File.WriteAllLines(fileName, lines);
 					}
-					cumulus.LogMessage("Removed line: " + str.ToString());
-					File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
+					else
+					{
+						var str = new StringBuilder(lines[lines.Length - 1].Length + 50);
+						for (int i = 0; i < lines[lines.Length - 1].Length; i++)
+						{
+							if (Char.ConvertToUtf32(lines[lines.Length - 1], i) < 32)
+							{
+								str.AppendFormat("[{0:X2}]", (byte) lines[lines.Length - 1][i]);
+							}
+							else
+							{
+								str.Append(lines[lines.Length - 1][i]);
+							}
+						}
+						cumulus.LogMessage("Removed line: " + str.ToString());
+						File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
+					}
 				}
 				else
 				{
-					cumulus.LogMessage($"Monthly log file {fileName} Checked OK");
+					cumulus.LogMessage($"{prefix} {fileName} Checked OK");
 				}
 			}
 			else
 			{
-				cumulus.LogMessage("Monthly log file check skipped - no file exists");
+				cumulus.LogMessage($"{prefix} check skipped - no file exists");
 			}
 		}
 
