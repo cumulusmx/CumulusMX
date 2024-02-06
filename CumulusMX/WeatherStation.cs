@@ -564,46 +564,64 @@ namespace CumulusMX
 			{
 				var lines = File.ReadAllLines(fileName);
 
-				//Strip the "null line" from file
-				if (lines[^1][0] < 32)
+				if (string.IsNullOrEmpty(lines[^1]))
 				{
-					// first try stripping the control characters out
-					var line = lines[^1];
-
-					line = new string((from c in line
-									   where char.IsLetterOrDigit(c) || char.IsPunctuation(c)
-									   select c
-									).ToArray());
-
-					// test if it is now valid by spliting into fields and counting them
-					if (line.SplitByAny(cumulus.ListSeparator[0]).Length == fieldCount)
-					{
-						cumulus.LogMessage($"{prefix} {fileName} Repaired");
-						lines[^1] = line;
-						File.WriteAllLines(fileName, lines);
-					}
-					else
-					{
-						var str = new StringBuilder(lines[^1].Length + 50);
-						for (int i = 0; i < lines[^1].Length; i++)
-						{
-							if (Char.ConvertToUtf32(lines[^1], i) < 32)
-							{
-								str.AppendFormat("[{0:X2}]", (byte) lines[^1][i]);
-							}
-							else
-							{
-								str.Append(lines[^1][i]);
-							}
-						}
-						cumulus.LogMessage("Removed line: " + str.ToString());
-						File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
-					}
+					cumulus.LogMessage($"{prefix} {fileName} empty line removed");
+					lines = lines.Take(lines.Length - 1).ToArray();
 				}
 				else
 				{
-					cumulus.LogMessage($"{prefix} {fileName} Checked OK");
+					//Strip the "null line" from file
+					if (lines[^1][0] < 32)
+					{
+						// first try stripping the control characters out and see if there is valid data left
+						var line = lines[^1];
+
+						try
+						{
+							line = new string((from c in line
+											   where char.IsLetterOrDigit(c) || char.IsPunctuation(c)
+											   select c
+									).ToArray());
+
+							// test if it is now valid by spliting into fields and counting them
+							if (line.SplitByAny(cumulus.ListSeparator[0]).Length == fieldCount)
+							{
+								cumulus.LogMessage($"{prefix} {fileName} Repaired");
+								lines[^1] = line;
+							}
+							else
+							{
+								var str = new StringBuilder(lines[^1].Length + 50);
+								for (int i = 0; i < lines[^1].Length; i++)
+								{
+									if (Char.ConvertToUtf32(lines[^1], i) < 32)
+									{
+										str.AppendFormat("[{0:X2}]", (byte) lines[^1][i]);
+									}
+									else
+									{
+										str.Append(lines[^1][i]);
+									}
+								}
+								cumulus.LogMessage("Removed line: " + str.ToString());
+								lines = lines.Take(lines.Length - 1).ToArray();
+							}
+						}
+						catch
+						{
+							// it failed somewhere, just delete the line
+							cumulus.LogMessage("Processed failed. Removed line");
+							lines = lines.Take(lines.Length - 1).ToArray();
+						}
+					}
+					else
+					{
+						cumulus.LogMessage($"{prefix} {fileName} Checked OK");
+					}
 				}
+
+				File.WriteAllLines(fileName, lines);
 			}
 			else
 			{
