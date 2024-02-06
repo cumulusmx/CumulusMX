@@ -9,14 +9,9 @@ using ServiceStack;
 
 namespace CumulusMX
 {
-	public class CalibrationSettings
+	public class CalibrationSettings(Cumulus cumulus)
 	{
-		private readonly Cumulus cumulus;
-
-		public CalibrationSettings(Cumulus cumulus)
-		{
-			this.cumulus = cumulus;
-		}
+		private readonly Cumulus cumulus = cumulus;
 
 		//public string UpdateCalibrationConfig(HttpListenerContext context)
 		public string UpdateConfig(IHttpContext context)
@@ -29,7 +24,7 @@ namespace CumulusMX
 			{
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
-				json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
 				settings = json.FromJson<JsonCalibrationSettingsData>();

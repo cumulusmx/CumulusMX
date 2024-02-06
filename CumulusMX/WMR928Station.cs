@@ -194,7 +194,7 @@ namespace CumulusMX
 			{
 				csum = checksum(s);
 
-				if (csum != s[s.Count - 1])
+				if (csum != s[^1])
 					result = false;
 				else
 					result = true;

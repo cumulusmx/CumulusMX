@@ -8556,6 +8556,8 @@ namespace CumulusMX
 			} while (!success && retries >= 0);
 		}
 
+		public const int NumAirLinkLogFileFields = 56;
+
 		public async void DoAirLinkLogFile(DateTime timestamp)
 		{
 			// Writes an entry to the n-minute airlinklogfile. Fields are comma-separated:

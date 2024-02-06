@@ -81,19 +81,14 @@
 		/// <returns>Wind in configured units</returns>
 		public static double WindMSToUser(double value)
 		{
-			switch (Program.cumulus.Units.Wind)
+			return Program.cumulus.Units.Wind switch
 			{
-				case 0:
-					return value;
-				case 1:
-					return value * 2.23693629;
-				case 2:
-					return value * 3.6;
-				case 3:
-					return value * 1.94384449;
-				default:
-					return 0;
-			}
+				0 => value,
+				1 => value * 2.23693629,
+				2 => value * 3.6,
+				3 => value * 1.94384449,
+				_ => 0,
+			};
 		}
 
 		/// <summary>
@@ -103,19 +98,14 @@
 		/// <returns>Wind in configured units</returns>
 		public static double WindMPHToUser(double value)
 		{
-			switch (Program.cumulus.Units.Wind)
+			return Program.cumulus.Units.Wind switch
 			{
-				case 0:
-					return value * 0.44704;
-				case 1:
-					return value;
-				case 2:
-					return value * 1.60934;
-				case 3:
-					return value * 0.868976;
-				default:
-					return 0;
-			}
+				0 => value * 0.44704,
+				1 => value,
+				2 => value * 1.60934,
+				3 => value * 0.868976,
+				_ => 0,
+			};
 		}
 
 		/// <summary>
@@ -125,19 +115,14 @@
 		/// <returns></returns>
 		public static double WindToMS(double value)
 		{
-			switch (Program.cumulus.Units.Wind)
+			return Program.cumulus.Units.Wind switch
 			{
-				case 0:
-					return value;
-				case 1:
-					return value / 2.23693629;
-				case 2:
-					return value / 3.6F;
-				case 3:
-					return value / 1.94384449;
-				default:
-					return 0;
-			}
+				0 => value,
+				1 => value / 2.23693629,
+				2 => value / 3.6F,
+				3 => value / 1.94384449,
+				_ => 0,
+			};
 		}
 
 		/// <summary>
@@ -147,17 +132,16 @@
 		/// <returns>Wind in configured units</returns>
 		public static double KmtoUserUnits(double val)
 		{
-			switch (Program.cumulus.Units.Wind)
+			return Program.cumulus.Units.Wind switch
 			{
-				case 0: // m/s
-				case 2: // km/h
-					return val;
-				case 1: // mph
-					return val * 0.621371;
-				case 3: // knots
-					return val * 0.539957;
-			}
-			return val;
+				// m/s
+				0 or 2 => val,
+				// mph
+				1 => val * 0.621371,
+				// knots
+				3 => val * 0.539957,
+				_ => val,
+			};
 		}
 
 		/// <summary>
@@ -167,18 +151,16 @@
 		/// <returns>Wind in km</returns>
 		public static double WindRunToKm(double value)
 		{
-			switch (Program.cumulus.Units.Wind)
+			return Program.cumulus.Units.Wind switch
 			{
-				case 0: // m/s
-				case 2: // km/h
-					return value;
-				case 1: // mph
-					return value / 0.621371192;
-				case 3: // knots
-					return value / 0.539957;
-				default:
-					return 0;
-			}
+				// m/s
+				0 or 2 => value,
+				// mph
+				1 => value / 0.621371192,
+				// knots
+				3 => value / 0.539957,
+				_ => 0,
+			};
 		}
 
 		/// <summary>
@@ -188,18 +170,16 @@
 		/// <returns>Wind in mi</returns>
 		public static double WindRunToMi(double value)
 		{
-			switch (Program.cumulus.Units.Wind)
+			return Program.cumulus.Units.Wind switch
 			{
-				case 0: // m/s
-				case 2: // km/h
-					return value * 0.621371192;
-				case 1: // mph
-					return value;
-				case 3: // knots
-					return value / 0.8689762;
-				default:
-					return 0;
-			}
+				// m/s
+				0 or 2 => value * 0.621371192,
+				// mph
+				1 => value,
+				// knots
+				3 => value / 0.8689762,
+				_ => 0,
+			};
 		}
 
 		/// <summary>
@@ -209,86 +189,72 @@
 		/// <returns>Wind in Nm</returns>
 		public static double WindRunToNm(double value)
 		{
-			switch (Program.cumulus.Units.Wind)
+			return Program.cumulus.Units.Wind switch
 			{
-				case 0: // m/s
-				case 2: // km/h
-					return value * 0.539956803;
-				case 1: // mph
-					return value * 0.8689762;
-				case 3: // knots
-					return value;
-				default:
-					return 0;
-			}
+				// m/s
+				0 or 2 => value * 0.539956803,
+				// mph
+				1 => value * 0.8689762,
+				// knots
+				3 => value,
+				_ => 0,
+			};
 		}
 
 		public static double UserWindToKPH(double wind) // input is in Units.Wind units, convert to km/h
 		{
-			switch (Program.cumulus.Units.Wind)
+			return Program.cumulus.Units.Wind switch
 			{
-				case 0: // m/s
-					return wind * 3.6;
-				case 1: // mph
-					return wind * 1.609344;
-				case 2: // kph
-					return wind;
-				case 3: // knots
-					return wind * 1.852;
-				default:
-					return wind;
-			}
+				// m/s
+				0 => wind * 3.6,
+				// mph
+				1 => wind * 1.609344,
+				// kph
+				2 => wind,
+				// knots
+				3 => wind * 1.852,
+				_ => wind,
+			};
 		}
 
 		public static double UserWindToMS(double wind) // input is in Units.Wind units, convert to m/s
 		{
-			switch (Program.cumulus.Units.Wind)
+			return Program.cumulus.Units.Wind switch
 			{
-				case 0: // m/s
-					return wind;
-				case 1: // mph
-					return wind * 0.44704;
-				case 2: // kph
-					return wind * 0.2777778;
-				case 3: // knots
-					return wind * 0.5144444;
-				default:
-					return wind;
-			}
+				// m/s
+				0 => wind,
+				// mph
+				1 => wind * 0.44704,
+				// kph
+				2 => wind * 0.2777778,
+				// knots
+				3 => wind * 0.5144444,
+				_ => wind,
+			};
 		}
 
 		public static double UserWindToMPH(double value)
 		{
-			switch (Program.cumulus.Units.Wind)
+			return Program.cumulus.Units.Wind switch
 			{
-				case 0:
-					return value * 2.23693629;
-				case 1:
-					return value;
-				case 2:
-					return value * 0.621371;
-				case 3:
-					return value * 1.15077945;
-				default:
-					return 0;
-			}
+				0 => value * 2.23693629,
+				1 => value,
+				2 => value * 0.621371,
+				3 => value * 1.15077945,
+				_ => 0,
+			};
 		}
 
 		public static double UserWindToKnots(double value)
 		{
-			switch (Program.cumulus.Units.Wind)
+			return Program.cumulus.Units.Wind switch
 			{
-				case 0:
-					return value * 1.943844;
-				case 1:
-					return value * 0.8689758;
-				case 2:
-					return value * 0.5399565;
-				case 3:
-					return value;
-				default:
-					return 0;
-			}
+				0 => value * 1.943844,
+				1 => value * 0.8689758,
+				2 => value * 0.5399565,
+				3 => value,
+				_ => 0,
+			};
 		}
 
 

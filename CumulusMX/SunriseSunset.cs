@@ -417,200 +417,128 @@ namespace CumulusMX
 
 		public static string SunRise(DateTime ddate, double tz, double glong, double glat)
 		{
+			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CSunrise);
 			//
 			//   simple way of calling sunevent() using the Excel date format
 			//   returns just the sunrise time or NULL if no event
 			//   I used the day(), month() and year() functions in excel to allow
 			//   portability to the MAC (different date serial numbers)
 			//
-			string EventTime;
-			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CSunrise);
-			switch (sOut)
+			var EventTime = sOut switch
 			{
-				case "....":
-					EventTime = "Always Down";
-					break;
-				case "----":
-					EventTime = "No event";
-					break;
-				case "****":
-					EventTime = "Always Up";
-					break;
-				default:
-					EventTime = sOut;
-					break;
-			}
+				"...." => "Always Down",
+				"----" => "No event",
+				"****" => "Always Up",
+				_ => sOut,
+			};
 			return EventTime;
 		}
 
 		public static string SunSet(DateTime ddate, double tz, double glong, double glat)
 		{
+			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CSunset);
 			//
 			//   simple way of calling sunevent() using the Excel date format
 			//   returns just the sunset time or ****, ...., ---- as appropriate in a string
 			//   I used the day(), month() and year() functions in excel to allow
 			//   portability to the MAC (different date serial number base)
 			//
-			string eventTime;
-			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CSunset);
-			switch (sOut)
+			var eventTime = sOut switch
 			{
-				case "....":
-					eventTime = "Always Down";
-					break;
-				case "----":
-					eventTime = "No event";
-					break;
-				case "****":
-					eventTime = "Always Up";
-					break;
-				default:
-					eventTime = sOut;
-					break;
-			}
+				"...." => "Always Down",
+				"----" => "No event",
+				"****" => "Always Up",
+				_ => sOut,
+			};
 			return eventTime;
 		}
 
 		public static string CivilTwilightStarts(DateTime ddate, double tz, double glong, double glat)
 		{
+			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CBeginCivilTwilight);
 			//
 			//   simple way of calling sunevent() using the Excel date format
 			//   returns just the start of civil twilight time or ****, ...., ---- as appropriate
 			//   I used the day(), month() and year() functions in excel to allow
 			//   portability to the MAC (different date serial numbers)
 			//
-			string eventTime;
-			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CBeginCivilTwilight);
-			switch (sOut)
+			var eventTime = sOut switch
 			{
-				case "....":
-					eventTime = "Always Down";
-					break;
-				case "----":
-					eventTime = "No event";
-					break;
-				case "****":
-					eventTime = "Always Up";
-					break;
-				default:
-					eventTime = sOut;
-					break;
-			}
+				"...." => "Always Down",
+				"----" => "No event",
+				"****" => "Always Up",
+				_ => sOut,
+			};
 			return eventTime;
 		}
 
 		public static string CivilTwilightEnds(DateTime ddate, double tz, double glong, double glat)
 		{
-			//
-			string eventTime;
 			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CEndCivilTwilight);
-			switch (sOut)
+			//
+			var eventTime = sOut switch
 			{
-				case "....":
-					eventTime = "Always Down";
-					break;
-				case "----":
-					eventTime = "No event";
-					break;
-				case "****":
-					eventTime = "Always Up";
-					break;
-				default:
-					eventTime = sOut;
-					break;
-			}
+				"...." => "Always Down",
+				"----" => "No event",
+				"****" => "Always Up",
+				_ => sOut,
+			};
 			return eventTime;
 		}
 
 		public static string NauticalTwilightStarts(DateTime ddate, double tz, double glong, double glat)
 		{
-			//
-			string eventTime;
 			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CBeginNautTwilight);
-			switch (sOut)
+			//
+			var eventTime = sOut switch
 			{
-				case "....":
-					eventTime = "Always Down";
-					break;
-				case "----":
-					eventTime = "No event";
-					break;
-				case "****":
-					eventTime = "Always Up";
-					break;
-				default:
-					eventTime = sOut.Substring(0, 2) + "h " + sOut.Substring(2, 2) + "m";
-					break;
-			}
+				"...." => "Always Down",
+				"----" => "No event",
+				"****" => "Always Up",
+				_ => string.Concat(sOut.AsSpan(0, 2), "h ", sOut.AsSpan(2, 2), "m"),
+			};
 			return eventTime;
 		}
 
 		public static string NauticalTwilightEnds(DateTime ddate, double tz, double glong, double glat)
 		{
-			//
-			string eventTime;
 			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CEndNautTwilight);
-			switch (sOut)
+			//
+			var eventTime = sOut switch
 			{
-				case "....":
-					eventTime = "Always Down";
-					break;
-				case "----":
-					eventTime = "No event";
-					break;
-				case "****":
-					eventTime = "Always Up";
-					break;
-				default:
-					eventTime = sOut.Substring(0, 2) + "h " + sOut.Substring(2, 2) + "m";
-					break;
-			}
+				"...." => "Always Down",
+				"----" => "No event",
+				"****" => "Always Up",
+				_ => string.Concat(sOut.AsSpan(0, 2), "h ", sOut.AsSpan(2, 2), "m"),
+			};
 			return eventTime;
 		}
 
 		public static string AstroTwilightStarts(DateTime ddate, double tz, double glong, double glat)
 		{
-			//
-			string eventTime;
 			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CBeginAstroTwilight);
-			switch (sOut)
+			//
+			var eventTime = sOut switch
 			{
-				case "....":
-					eventTime = "Always Down";
-					break;
-				case "----":
-					eventTime = "No event";
-					break;
-				case "****":
-					eventTime = "Always Up";
-					break;
-				default:
-					eventTime = sOut.Substring(0, 2) + "h " + sOut.Substring(2, 2) + "m";
-					break;
-			}
+				"...." => "Always Down",
+				"----" => "No event",
+				"****" => "Always Up",
+				_ => string.Concat(sOut.AsSpan(0, 2), "h ", sOut.AsSpan(2, 2), "m"),
+			};
 			return eventTime;
 		}
 
 		public static string AstroTwilightEnds(DateTime ddate, double tz, double glong, double glat)
 		{
-			//
-			string eventTime;
 			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CEndAstroTwilight);
-			switch (sOut)
+			//
+			var eventTime = sOut switch
 			{
-				case "....":
-					eventTime = "Always Down";
-					break;
-				case "----":
-					eventTime = "No event";
-					break;
-				case "****":
-					eventTime = "Always Up";
-					break;
-				default:
-					eventTime = sOut.Substring(0, 2) + "h " + sOut.Substring(2, 2) + "m";
-					break;
-			}
+				"...." => "Always Down",
+				"----" => "No event",
+				"****" => "Always Up",
+				_ => string.Concat(sOut.AsSpan(0, 2), "h ", sOut.AsSpan(2, 2), "m"),
+			};
 			return eventTime;
 		}
 	}

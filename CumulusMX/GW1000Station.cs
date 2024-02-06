@@ -342,90 +342,88 @@ namespace CumulusMX
 
 			try
 			{
-				using (var client = new UdpClient())
+				using var client = new UdpClient();
+				var recvEp = new IPEndPoint(0, 0);
+				var sendEp = new IPEndPoint(IPAddress.Broadcast, broadcastPort);
+				var sendBytes = new byte[] { 0xff, 0xff, 0x12, 0x00, 0x04, 0x16 };
+
+
+				// Get the primary IP address
+				var myIP = Utils.GetIpWithDefaultGateway();
+				cumulus.LogDebugMessage($"Using local IP address {myIP} to discover the Ecowitt device");
+
+				// bind the cient to the primary address - broadcast does not work with .Any address :(
+				client.Client.Bind(new IPEndPoint(myIP, broadcastPort));
+				// time out listening after 1.5 second
+				client.Client.ReceiveTimeout = 1500;
+
+				// we are going to attempt discovery twice
+				var retryCount = 1;
+				do
 				{
-					var recvEp = new IPEndPoint(0, 0);
-					var sendEp = new IPEndPoint(IPAddress.Broadcast, broadcastPort);
-					var sendBytes = new byte[] { 0xff, 0xff, 0x12, 0x00, 0x04, 0x16 };
+					cumulus.LogDebugMessage("Discovery Run #" + retryCount);
+					// each time we wait 1.5 second for any responses
+					var endTime = DateTime.Now.AddSeconds(1.5);
 
-
-					// Get the primary IP address
-					var myIP = Utils.GetIpWithDefaultGateway();
-					cumulus.LogDebugMessage($"Using local IP address {myIP} to discover the Ecowitt device");
-
-					// bind the cient to the primary address - broadcast does not work with .Any address :(
-					client.Client.Bind(new IPEndPoint(myIP, broadcastPort));
-					// time out listening after 1.5 second
-					client.Client.ReceiveTimeout = 1500;
-
-					// we are going to attempt discovery twice
-					var retryCount = 1;
-					do
+					try
 					{
-						cumulus.LogDebugMessage("Discovery Run #" + retryCount);
-						// each time we wait 1.5 second for any responses
-						var endTime = DateTime.Now.AddSeconds(1.5);
+						// Send the request
+						client.Send(sendBytes, sendBytes.Length, sendEp);
 
-						try
+						do
 						{
-							// Send the request
-							client.Send(sendBytes, sendBytes.Length, sendEp);
-
-							do
+							try
 							{
-								try
+								// get a response
+								var recevBuffer = client.Receive(ref recvEp);
+
+								// sanity check the response size - we may see our request back as a receive packet
+								if (recevBuffer.Length > 20)
 								{
-									// get a response
-									var recevBuffer = client.Receive(ref recvEp);
+									string ipAddr = $"{recevBuffer[11]}.{recevBuffer[12]}.{recevBuffer[13]}.{recevBuffer[14]}";
+									var macArr = new byte[6];
 
-									// sanity check the response size - we may see our request back as a receive packet
-									if (recevBuffer.Length > 20)
+									Array.Copy(recevBuffer, 5, macArr, 0, 6);
+									var macHex = BitConverter.ToString(macArr).Replace('-', ':');
+
+									var nameLen = recevBuffer[17];
+									var nameArr = new byte[nameLen];
+									Array.Copy(recevBuffer, 18, nameArr, 0, nameLen);
+									var name = Encoding.UTF8.GetString(nameArr, 0, nameArr.Length);
+
+									if (ipAddr.Split(dotSeparator, StringSplitOptions.RemoveEmptyEntries).Length == 4)
 									{
-										string ipAddr = $"{recevBuffer[11]}.{recevBuffer[12]}.{recevBuffer[13]}.{recevBuffer[14]}";
-										var macArr = new byte[6];
-
-										Array.Copy(recevBuffer, 5, macArr, 0, 6);
-										var macHex = BitConverter.ToString(macArr).Replace('-', ':');
-
-										var nameLen = recevBuffer[17];
-										var nameArr = new byte[nameLen];
-										Array.Copy(recevBuffer, 18, nameArr, 0, nameLen);
-										var name = Encoding.UTF8.GetString(nameArr, 0, nameArr.Length);
-
-										if (ipAddr.Split(dotSeparator, StringSplitOptions.RemoveEmptyEntries).Length == 4)
+										IPAddress ipAddr2;
+										if (IPAddress.TryParse(ipAddr, out ipAddr2))
 										{
-											IPAddress ipAddr2;
-											if (IPAddress.TryParse(ipAddr, out ipAddr2))
+											cumulus.LogDebugMessage($"Discovered Ecowitt device: {name}, IP={ipAddr}, MAC={macHex}");
+											if (!discovered.IP.Contains(ipAddr) && !discovered.Mac.Contains(macHex))
 											{
-												cumulus.LogDebugMessage($"Discovered Ecowitt device: {name}, IP={ipAddr}, MAC={macHex}");
-												if (!discovered.IP.Contains(ipAddr) && !discovered.Mac.Contains(macHex))
-												{
-													discovered.Name.Add(name);
-													discovered.IP.Add(ipAddr);
-													discovered.Mac.Add(macHex);
-												}
+												discovered.Name.Add(name);
+												discovered.IP.Add(ipAddr);
+												discovered.Mac.Add(macHex);
 											}
 										}
-										else
-										{
-											cumulus.LogDebugMessage($"Discovered an unsupported device: {name}, IP={ipAddr}, MAC={macHex}");
-										}
+									}
+									else
+									{
+										cumulus.LogDebugMessage($"Discovered an unsupported device: {name}, IP={ipAddr}, MAC={macHex}");
 									}
 								}
-								catch
-								{ }
+							}
+							catch
+							{ }
 
-							} while (DateTime.Now < endTime);
-						}
-						catch (Exception ex)
-						{
-							cumulus.LogMessage("DiscoverGW1000: Error sending discovery request");
-							cumulus.LogErrorMessage("DiscoverGW1000: Error: " + ex.Message);
-						}
-						retryCount++;
+						} while (DateTime.Now < endTime);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogMessage("DiscoverGW1000: Error sending discovery request");
+						cumulus.LogErrorMessage("DiscoverGW1000: Error: " + ex.Message);
+					}
+					retryCount++;
 
-					} while (retryCount <= 2);
-				}
+				} while (retryCount <= 2);
 			}
 			catch (Exception ex)
 			{

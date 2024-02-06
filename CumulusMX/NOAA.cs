@@ -8,7 +8,7 @@ using System.Text;
 
 namespace CumulusMX
 {
-	internal class NOAA
+	internal class NOAA(Cumulus cumulus, WeatherStation station)
 	{
 		private struct Tdaysummary
 		{
@@ -66,14 +66,8 @@ namespace CumulusMX
 			public int mintempcount2;
 		} // end Tmonthsummary
 
-		private readonly Cumulus cumulus;
-		private readonly WeatherStation station;
-
-		public NOAA(Cumulus cumulus, WeatherStation station)
-		{
-			this.cumulus = cumulus;
-			this.station = station;
-		}
+		private readonly Cumulus cumulus = cumulus;
+		private readonly WeatherStation station = station;
 
 		/// <summary>
 		/// checks whether first value is LE second to 3dp

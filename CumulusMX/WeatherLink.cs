@@ -331,21 +331,15 @@ namespace CumulusMX
 		private string PressureTrendText()
 		{
 			// The barometric trend is in signed integer values.  Convert these to something meaningful.
-			switch (PressureTrend)
+			return PressureTrend switch
 			{
-				case (-60):
-					return "Falling Rapidly";
-				case (-20):
-					return "Falling Slowly";
-				case (0):
-					return "Steady";
-				case (20):
-					return "Rising Slowly";
-				case (60):
-					return "Rising Rapidly";
-				default:
-					return "??";
-			}
+				(-60) => "Falling Rapidly",
+				(-20) => "Falling Slowly",
+				(0) => "Steady",
+				(20) => "Rising Slowly",
+				(60) => "Rising Rapidly",
+				_ => "??",
+			};
 		}
 
 		public VPLoopData()

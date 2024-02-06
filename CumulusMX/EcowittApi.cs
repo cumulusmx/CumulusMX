@@ -202,7 +202,7 @@ namespace CumulusMX
 					// we want to do this synchronously, so .Result
 					using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
 					{
-						responseBody = response.Content.ReadAsStringAsync().Result;
+						responseBody = response.Content.ReadAsStringAsync(token).Result;
 						responseCode = (int) response.StatusCode;
 						cumulus.LogDebugMessage($"API.GetHistoricData: Ecowitt API Historic Response code: {responseCode}");
 						cumulus.LogDataMessage($"API.GetHistoricData: Ecowitt API Historic Response: {responseBody}");
@@ -1914,7 +1914,7 @@ namespace CumulusMX
 				// we want to do this synchronously, so .Result
 				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
-					responseBody = response.Content.ReadAsStringAsync().Result;
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"API.GetCurrentData: Ecowitt API Current Response code: {responseCode}");
 					cumulus.LogDataMessage($"API.GetCurrentData: Ecowitt API Current Response: {responseBody}");
@@ -2089,7 +2089,7 @@ namespace CumulusMX
 				// we want to do this synchronously, so .Result
 				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
-					responseBody = response.Content.ReadAsStringAsync().Result;
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Response code: {responseCode}");
 					cumulus.LogDataMessage($"API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Response: {responseBody}");
@@ -2236,7 +2236,7 @@ namespace CumulusMX
 				// we want to do this synchronously, so .Result
 				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
-					responseBody = response.Content.ReadAsStringAsync().Result;
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"API.GetLastCameraVideoUrl: Ecowitt API Current Camera Response code: {responseCode}");
 					cumulus.LogDataMessage($"API.GetLastCameraVideoUrl: Ecowitt API Current Camera Response: {responseBody}");
@@ -2361,7 +2361,7 @@ namespace CumulusMX
 				// we want to do this synchronously, so .Result
 				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
-					responseBody = response.Content.ReadAsStringAsync().Result;
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"API.GetStationList: Ecowitt API Station List Response code: {responseCode}");
 					cumulus.LogDataMessage($"API.GetStationList: Ecowitt API Station List Response: {responseBody}");

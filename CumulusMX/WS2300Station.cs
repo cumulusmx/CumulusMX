@@ -165,22 +165,23 @@ namespace CumulusMX
 					}
 					else
 					{
-						HistoryData histData = new HistoryData();
-
-						histData.timestamp = recordtime;
-						histData.interval = interval;
-						histData.address = address;
-						histData.inHum = inhum;
-						histData.inTemp = intemp;
-						histData.outHum = outhum;
-						histData.outTemp = outtemp;
-						histData.pressure = press;
-						histData.rainTotal = raincount;
-						histData.windBearing = (int) bearing;
-						histData.windGust = windspeed;
-						histData.windSpeed = windspeed;
-						histData.dewpoint = dewpoint;
-						histData.windchill = windchill;
+						HistoryData histData = new HistoryData
+						{
+							timestamp = recordtime,
+							interval = interval,
+							address = address,
+							inHum = inhum,
+							inTemp = intemp,
+							outHum = outhum,
+							outTemp = outtemp,
+							pressure = press,
+							rainTotal = raincount,
+							windBearing = (int) bearing,
+							windGust = windspeed,
+							windSpeed = windspeed,
+							dewpoint = dewpoint,
+							windchill = windchill
+						};
 
 						datalist.Add(histData);
 						recordtime = recordtime.AddMinutes(-interval);
@@ -225,7 +226,7 @@ namespace CumulusMX
 
 			while (datalist.Count > 0)
 			{
-				HistoryData historydata = datalist[datalist.Count - 1];
+				HistoryData historydata = datalist[^1];
 
 				DateTime timestamp = historydata.timestamp;
 

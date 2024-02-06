@@ -9,14 +9,9 @@ using ServiceStack;
 
 namespace CumulusMX
 {
-	public class MqttSettings
+	public class MqttSettings(Cumulus cumulus)
 	{
-		private readonly Cumulus cumulus;
-
-		public MqttSettings(Cumulus cumulus)
-		{
-			this.cumulus = cumulus;
-		}
+		private readonly Cumulus cumulus = cumulus;
 
 		public string UpdateConfig(IHttpContext context)
 		{
@@ -31,7 +26,7 @@ namespace CumulusMX
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
 				settings = json.FromJson<MqttConfig>();

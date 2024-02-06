@@ -154,8 +154,6 @@ namespace CumulusMX
 				bytes = payload.Data;
 			}
 
-			var tmrComm = new WeatherStation.CommTimer();
-
 			try
 			{
 				var stream = socket.GetStream();
@@ -605,7 +603,7 @@ namespace CumulusMX
 				{
 					Checksum += data[i];
 				}
-				Data[Data.Length - 1] = Checksum;
+				Data[^1] = Checksum;
 			}
 		}
 

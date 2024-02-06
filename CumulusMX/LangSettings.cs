@@ -11,14 +11,9 @@ using ServiceStack.Text;
 
 namespace CumulusMX
 {
-	internal class LangSettings
+	internal class LangSettings(Cumulus cumulus)
 	{
-		private readonly Cumulus cumulus;
-
-		public LangSettings(Cumulus cumulus)
-		{
-			this.cumulus = cumulus;
-		}
+		private readonly Cumulus cumulus = cumulus;
 
 		public string GetAlpacaFormData()
 		{
@@ -201,7 +196,7 @@ namespace CumulusMX
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
 				settings = json.FromJson<Settings>();

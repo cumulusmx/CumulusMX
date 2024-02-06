@@ -32,7 +32,7 @@ namespace CumulusMX
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
 				settings = json.FromJson<JsonInternetSettingsData>();
@@ -625,7 +625,7 @@ namespace CumulusMX
 						break;
 					case 8:
 						// incremental log file
-						cumulus.ExtraFiles[entry].incrementalLogfile = cumulus.ExtraFiles[entry].binary ? false : value == "true";
+						cumulus.ExtraFiles[entry].incrementalLogfile = !cumulus.ExtraFiles[entry].binary && value == "true";
 						cumulus.ExtraFiles[entry].logFileLastLineNumber = 0;
 						cumulus.ExtraFiles[entry].logFileLastFileName = string.Empty;
 						break;

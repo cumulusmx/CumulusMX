@@ -6,17 +6,11 @@ using System.Threading.Tasks;
 
 namespace CumulusMX
 {
-	internal class NOAAReports
+	internal class NOAAReports(Cumulus cumulus, WeatherStation station)
 	{
-		private readonly Cumulus cumulus;
-		private readonly WeatherStation station;
+		private readonly Cumulus cumulus = cumulus;
+		private readonly WeatherStation station = station;
 		private string noaafile;
-
-		public NOAAReports(Cumulus cumulus, WeatherStation station)
-		{
-			this.cumulus = cumulus;
-			this.station = station;
-		}
 
 		public string GenerateNoaaYearReport(int year)
 		{
@@ -170,7 +164,7 @@ namespace CumulusMX
 		{
 			DateTime noaats = new DateTime(year, 1, 1);
 			var reportName = string.Empty;
-			var report = string.Empty;
+			string report;
 			try
 			{
 				reportName = noaats.ToString(cumulus.NOAAconf.YearFile);
@@ -190,7 +184,7 @@ namespace CumulusMX
 		{
 			DateTime noaats = new DateTime(year, month, 1);
 			var reportName = string.Empty;
-			var report = string.Empty;
+			string report;
 			try
 			{
 				reportName = noaats.ToString(cumulus.NOAAconf.MonthFile);

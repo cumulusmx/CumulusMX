@@ -54,18 +54,12 @@ namespace CumulusMX
 			get => type.ToString();
 			set
 			{
-				switch (value.ToLower())
+				type = value.ToLower() switch
 				{
-					case "above":
-						type = AlarmTypes.Above;
-						break;
-					case "below":
-						type = AlarmTypes.Below;
-						break;
-					default:
-						type = AlarmTypes.Above;
-						break;
-				}
+					"above" => AlarmTypes.Above,
+					"below" => AlarmTypes.Below,
+					_ => AlarmTypes.Above,
+				};
 			}
 		}
 
@@ -82,19 +76,12 @@ namespace CumulusMX
 		{
 			Name = AlarmName;
 
-			switch (AlarmType.ToLower())
+			type = AlarmType.ToLower() switch
 			{
-				case "above":
-					type = AlarmTypes.Above;
-					break;
-				case "below":
-					type = AlarmTypes.Below;
-					break;
-				default:
-					type = AlarmTypes.Above;
-					break;
-			}
-
+				"above" => AlarmTypes.Above,
+				"below" => AlarmTypes.Below,
+				_ => AlarmTypes.Above,
+			};
 			cumulus = cuml;
 			WebTag = webTag;
 			tokenParser = new TokenParser(cumulus.TokenParserOnToken)
@@ -168,8 +155,10 @@ namespace CumulusMX
 							try
 							{
 								// Prepare the process to run
-								var parser = new TokenParser(cumulus.TokenParserOnToken);
-								parser.InputText = ActionParams;
+								var parser = new TokenParser(cumulus.TokenParserOnToken)
+								{
+									InputText = ActionParams
+								};
 								var args = parser.ToStringFromString();
 								cumulus.LogMessage($"User Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
 								Utils.RunExternalTask(Action, args, false);

@@ -79,7 +79,7 @@ namespace CumulusMX
 			var customminutes = new JsonSettingsCustomMinutes()
 			{
 				enabled = cumulus.MySqlSettings.CustomMins.Enabled,
-				entries = Array.Empty<JsonCustomMinutes>()
+				entries = []
 			};
 
 			cmdCnt = 0;

@@ -306,14 +306,14 @@ namespace CumulusMX
 
 					// add history data to collection
 
-					var histData = new HistoryData();
-
-
-					histData.timestamp = timestamp;
-					histData.interval = interval;
-					histData.followinginterval = followinginterval;
-					histData.inHum = data[1] == 255 ? 10 : data[1];
-					histData.outHum = data[4] == 255 ? 10 : data[4];
+					var histData = new HistoryData
+					{
+						timestamp = timestamp,
+						interval = interval,
+						followinginterval = followinginterval,
+						inHum = data[1] == 255 ? 10 : data[1],
+						outHum = data[4] == 255 ? 10 : data[4]
+					};
 					double outtemp = (data[5] + (data[6] & 0x7F) * 256) / 10.0f;
 					var sign = (byte) (data[6] & 0x80);
 					if (sign == 0x80) outtemp = -outtemp;
@@ -385,7 +385,7 @@ namespace CumulusMX
 
 			while (datalist.Count > 0)
 			{
-				HistoryData historydata = datalist[datalist.Count - 1];
+				HistoryData historydata = datalist[^1];
 
 				DateTime timestamp = historydata.timestamp;
 

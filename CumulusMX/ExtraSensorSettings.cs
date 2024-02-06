@@ -9,15 +9,10 @@ using ServiceStack;
 
 namespace CumulusMX
 {
-	public class ExtraSensorSettings
+	public class ExtraSensorSettings(Cumulus cumulus)
 	{
-		private readonly Cumulus cumulus;
+		private readonly Cumulus cumulus = cumulus;
 		private WeatherStation station;
-
-		public ExtraSensorSettings(Cumulus cumulus)
-		{
-			this.cumulus = cumulus;
-		}
 
 		internal void SetStation(WeatherStation station)
 		{
@@ -26,7 +21,7 @@ namespace CumulusMX
 
 		public string GetAlpacaFormData()
 		{
-			var indoor = new JsonExtraSensorAirLinkDevice()
+			var indoor = new JsonExtraSensorAirLinkDevice
 			{
 				enabled = cumulus.AirLinkInEnabled,
 				ipAddress = cumulus.AirLinkInIPAddr,
@@ -34,7 +29,7 @@ namespace CumulusMX
 				stationId = cumulus.AirLinkInStationId
 			};
 
-			var outdoor = new JsonExtraSensorAirLinkDevice()
+			var outdoor = new JsonExtraSensorAirLinkDevice
 			{
 				enabled = cumulus.AirLinkOutEnabled,
 				ipAddress = cumulus.AirLinkOutIPAddr,
@@ -42,7 +37,7 @@ namespace CumulusMX
 				stationId = cumulus.AirLinkOutStationId
 			};
 
-			var airlink = new JsonExtraSensorAirLinkSettings()
+			var airlink = new JsonExtraSensorAirLinkSettings
 			{
 				isNode = cumulus.AirLinkIsNode,
 				apiKey = cumulus.AirLinkApiKey,
@@ -52,7 +47,7 @@ namespace CumulusMX
 				outdoor = outdoor
 			};
 
-			var ecowittwn34map = new JsonStationSettingsEcowittMappings()
+			var ecowittwn34map = new JsonStationSettingsEcowittMappings
 			{
 				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
 
@@ -66,7 +61,7 @@ namespace CumulusMX
 				wn34chan8 = cumulus.EcowittMapWN34[8]
 			};
 
-			var ecowitt = new JsonExtraSensorEcowitt()
+			var ecowitt = new JsonExtraSensorEcowitt
 			{
 				useSolar = cumulus.EcowittExtraUseSolar,
 				useUv = cumulus.EcowittExtraUseUv,
@@ -86,12 +81,11 @@ namespace CumulusMX
 				localaddr = cumulus.EcowittExtraLocalAddr,
 				interval = cumulus.EcowittExtraCustomInterval,
 
-				mappings = ecowittwn34map
-			};
-
-			ecowitt.forwarders = new JsonExtraSensorForwarders()
-			{
-				usemain = cumulus.EcowittExtraUseMainForwarders
+				mappings = ecowittwn34map,
+				forwarders = new JsonExtraSensorForwarders
+				{
+					usemain = cumulus.EcowittExtraUseMainForwarders
+				}
 			};
 
 			ecowitt.forwarders.forward = [];
@@ -103,14 +97,14 @@ namespace CumulusMX
 				}
 			}
 
-			var ecowittapi = new JsonStationSettingsEcowittApi()
+			var ecowittapi = new JsonStationSettingsEcowittApi
 			{
 				applicationkey = cumulus.EcowittApplicationKey,
 				userkey = cumulus.EcowittUserApiKey,
 				mac = cumulus.EcowittMacAddress
 			};
 
-			var ambient = new JsonExtraSensorAmbient()
+			var ambient = new JsonExtraSensorAmbient
 			{
 				useSolar = cumulus.AmbientExtraUseSolar,
 				useUv = cumulus.AmbientExtraUseUv,
@@ -124,7 +118,7 @@ namespace CumulusMX
 				useLeak = cumulus.AmbientExtraUseLeak
 			};
 
-			var httpStation = new JsonExtraSensorHttp()
+			var httpStation = new JsonExtraSensorHttp
 			{
 				ecowitt = ecowitt,
 				ecowittapi = ecowittapi,
@@ -141,12 +135,12 @@ namespace CumulusMX
 				httpStation.extraStation = -1;
 
 
-			var bl = new JsonExtraSensorBlakeLarsen()
+			var bl = new JsonExtraSensorBlakeLarsen
 			{
 				enabled = cumulus.SolarOptions.UseBlakeLarsen
 			};
 
-			var rg11port1 = new JsonExtraSensorRG11device()
+			var rg11port1 = new JsonExtraSensorRG11device
 			{
 				enabled = cumulus.RG11Enabled,
 				commPort = cumulus.RG11Port,
@@ -155,7 +149,7 @@ namespace CumulusMX
 				dtrMode = cumulus.RG11TBRmode
 			};
 
-			var rg11port2 = new JsonExtraSensorRG11device()
+			var rg11port2 = new JsonExtraSensorRG11device
 			{
 				enabled = cumulus.RG11Enabled2,
 				commPort = cumulus.RG11Port2,
@@ -164,19 +158,19 @@ namespace CumulusMX
 				dtrMode = cumulus.RG11TBRmode2
 			};
 
-			var rg11 = new JsonExtraSensorRG11()
+			var rg11 = new JsonExtraSensorRG11
 			{
 				port1 = rg11port1,
 				port2 = rg11port2
 			};
 
-			var aq = new JsonExtraSensorAirQuality()
+			var aq = new JsonExtraSensorAirQuality
 			{
 				primaryaqsensor = cumulus.StationOptions.PrimaryAqSensor,
 				aqi = cumulus.airQualityIndex,
 			};
 
-			var data = new JsonExtraSensorSettings()
+			var data = new JsonExtraSensorSettings
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				airquality = aq,
@@ -201,7 +195,7 @@ namespace CumulusMX
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
 				settings = json.FromJson<JsonExtraSensorSettings>();
@@ -384,7 +378,7 @@ namespace CumulusMX
 							cumulus.EcowittMapWN34[8] = settings.httpSensors.ecowitt.mappings.wn34chan8;
 						}
 
-						cumulus.EcowittExtraUseMainForwarders = settings.httpSensors.ecowitt.forwarders == null ? true : settings.httpSensors.ecowitt.forwarders.usemain;
+						cumulus.EcowittExtraUseMainForwarders = settings.httpSensors.ecowitt.forwarders == null || settings.httpSensors.ecowitt.forwarders.usemain;
 
 						if (!cumulus.EcowittExtraUseMainForwarders)
 						{

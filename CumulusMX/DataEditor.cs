@@ -3151,7 +3151,7 @@ namespace CumulusMX
 				}
 
 				// we need to add the line num to the returned data
-				return "[" + newData.lines[0] + "," + newData.data[0].ToJson().Substring(1);
+				return "[" + newData.lines[0] + "," + newData.data[0].ToJson()[1..];
 			}
 			else if (newData.action == "Delete")
 			{

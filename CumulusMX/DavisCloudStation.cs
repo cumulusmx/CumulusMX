@@ -19,7 +19,7 @@ namespace CumulusMX
 		//private bool savedUseSpeedForAvgCalc;
 		private bool savedCalculatePeakGust;
 		private int maxArchiveRuns = 1;
-				private int wlStationArchiveInterval = 5;
+		private int wlStationArchiveInterval = 5;
 		private readonly AutoResetEvent bwDoneEvent = new(false);
 		private List<WlSensorListSensor> sensorList;
 		private readonly Dictionary<int, int> lsidToTx = [];

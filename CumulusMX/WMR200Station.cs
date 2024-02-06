@@ -954,36 +954,17 @@ namespace CumulusMX
 			UpdatePressureTrendString();
 
 			var forecast = packetBuffer[8] / 16;
-			string fcstr;
-
-			switch (forecast)
+			var fcstr = forecast switch
 			{
-				case 0:
-					fcstr = "Partly Cloudy";
-					break;
-				case 1:
-					fcstr = "Rainy";
-					break;
-				case 2:
-					fcstr = "Cloudy";
-					break;
-				case 3:
-					fcstr = "Sunny";
-					break;
-				case 4:
-					fcstr = "Clear";
-					break;
-				case 5:
-					fcstr = "Snowy";
-					break;
-				case 6:
-					fcstr = "Partly Cloudy";
-					break;
-				default:
-					fcstr = "Unknown";
-					break;
-			}
-
+				0 => "Partly Cloudy",
+				1 => "Rainy",
+				2 => "Cloudy",
+				3 => "Sunny",
+				4 => "Clear",
+				5 => "Snowy",
+				6 => "Partly Cloudy",
+				_ => "Unknown",
+			};
 			DoForecast(fcstr, false);
 		}
 

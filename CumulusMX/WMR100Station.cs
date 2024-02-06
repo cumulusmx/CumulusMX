@@ -176,25 +176,17 @@ namespace CumulusMX
 
 		private static int WMR100PacketLength(int packettype)
 		{
-			switch (packettype)
+			return packettype switch
 			{
-				case BARO_PACKET_TYPE:
-					return BARO_PACKET_LENGTH;
-				case TEMP_PACKET_TYPE:
-					return TEMP_PACKET_LENGTH;
-				case WIND_PACKET_TYPE:
-					return WIND_PACKET_LENGTH;
-				case RAIN_PACKET_TYPE:
-					return RAIN_PACKET_LENGTH;
-				case UV_PACKET_TYPE:
-					return UV_PACKET_LENGTH;
-				case DATE_PACKET_TYPE:
-					return DATE_PACKET_LENGTH;
-				case POND_PACKET_TYPE:
-					return POND_PACKET_LENGTH;
-				default:
-					return 255;
-			}
+				BARO_PACKET_TYPE => BARO_PACKET_LENGTH,
+				TEMP_PACKET_TYPE => TEMP_PACKET_LENGTH,
+				WIND_PACKET_TYPE => WIND_PACKET_LENGTH,
+				RAIN_PACKET_TYPE => RAIN_PACKET_LENGTH,
+				UV_PACKET_TYPE => UV_PACKET_LENGTH,
+				DATE_PACKET_TYPE => DATE_PACKET_LENGTH,
+				POND_PACKET_TYPE => POND_PACKET_LENGTH,
+				_ => 255,
+			};
 		}
 
 		/*
@@ -534,36 +526,17 @@ namespace CumulusMX
 			UpdatePressureTrendString();
 
 			int forecast = packetBuffer[3] / 16;
-			string fcstr;
-
-			switch (forecast)
+			var fcstr = forecast switch
 			{
-				case 0:
-					fcstr = "Partly Cloudy";
-					break;
-				case 1:
-					fcstr = "Rainy";
-					break;
-				case 2:
-					fcstr = "Cloudy";
-					break;
-				case 3:
-					fcstr = "Sunny";
-					break;
-				case 4:
-					fcstr = "Clear";
-					break;
-				case 5:
-					fcstr = "Snowy";
-					break;
-				case 6:
-					fcstr = "Partly Cloudy";
-					break;
-				default:
-					fcstr = "Unknown";
-					break;
-			}
-
+				0 => "Partly Cloudy",
+				1 => "Rainy",
+				2 => "Cloudy",
+				3 => "Sunny",
+				4 => "Clear",
+				5 => "Snowy",
+				6 => "Partly Cloudy",
+				_ => "Unknown",
+			};
 			DoForecast(fcstr, false);
 		}
 

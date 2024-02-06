@@ -232,27 +232,17 @@ namespace CumulusMX
 			}
 		}
 
-		private class MeanRevertingRandomWalk
+		private class MeanRevertingRandomWalk(Func<DateTime, double> meanCurve, Func<DateTime, double> volatility, double meanReversion, double cropMin, double cropMax)
 		{
-			private readonly Func<DateTime, double> _meanCurve;
-			private readonly Func<DateTime, double> _volatility;
-			private readonly double _meanReversion;
-			private readonly double _cropMin;
-			private readonly double _cropMax;
+			private readonly Func<DateTime, double> _meanCurve = meanCurve;
+			private readonly Func<DateTime, double> _volatility = volatility;
+			private readonly double _meanReversion = meanReversion;
+			private readonly double _cropMin = cropMin;
+			private readonly double _cropMax = cropMax;
 
 			private double _value;
 			private bool _initialised = false;
-			private readonly Random _random;
-
-			public MeanRevertingRandomWalk(Func<DateTime, double> meanCurve, Func<DateTime, double> volatility, double meanReversion, double cropMin, double cropMax)
-			{
-				_meanCurve = meanCurve;
-				_volatility = volatility;
-				_meanReversion = meanReversion;
-				_cropMin = cropMin;
-				_cropMax = cropMax;
-				_random = new Random();
-			}
+			private readonly Random _random = new();
 
 			public double GetValue(DateTime date)
 			{

@@ -12,8 +12,7 @@ using EmbedIO;
 
 namespace CumulusMX
 {
-
-	class HttpStationEcowitt : WeatherStation
+	partial class HttpStationEcowitt : WeatherStation
 	{
 		private readonly WeatherStation station;
 		private bool starting = true;
@@ -291,7 +290,7 @@ namespace CumulusMX
 
 				var text = new StreamReader(context.Request.InputStream).ReadToEnd();
 
-				cumulus.LogDataMessage($"{procName}: Payload = {System.Text.RegularExpressions.Regex.Replace(text, "PASSKEY=[^&]+", "PASSKEY=<PassKey>")}");
+				cumulus.LogDataMessage($"{procName}: Payload = {PassKeyRegex().Replace(text, "PASSKEY=<PassKey>")}");
 
 				var retVal = ApplyData(text, main, ts);
 
@@ -1470,12 +1469,10 @@ namespace CumulusMX
 					{
 						try
 						{
-							using (var request = new HttpRequestMessage(HttpMethod.Post, url))
-							{
-								request.Content = new StringContent(data, encoding, "application/x-www-form-urlencoded");
-								using (var response = await Cumulus.MyHttpClient.SendAsync(request))
-									cumulus.LogDebugMessage($"ForwardData: Forward to {url}: Result: {response.StatusCode}");
-							}
+							using var request = new HttpRequestMessage(HttpMethod.Post, url);
+							request.Content = new StringContent(data, encoding, "application/x-www-form-urlencoded");
+							using var response = await Cumulus.MyHttpClient.SendAsync(request);
+							cumulus.LogDebugMessage($"ForwardData: Forward to {url}: Result: {response.StatusCode}");
 						}
 						catch (Exception ex)
 						{
@@ -1486,5 +1483,8 @@ namespace CumulusMX
 				}
 			}
 		}
+
+		[System.Text.RegularExpressions.GeneratedRegex("PASSKEY=[^&]+")]
+		private static partial System.Text.RegularExpressions.Regex PassKeyRegex();
 	}
 }

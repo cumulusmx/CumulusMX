@@ -15,16 +15,10 @@ using ServiceStack.Text;
 
 namespace CumulusMX
 {
-	internal class HttpFiles
+	internal class HttpFiles(Cumulus cumulus, WeatherStation station)
 	{
-		private readonly Cumulus cumulus;
-		private readonly WeatherStation station;
-
-		public HttpFiles(Cumulus cumulus, WeatherStation station)
-		{
-			this.cumulus = cumulus;
-			this.station = station;
-		}
+		private readonly Cumulus cumulus = cumulus;
+		private readonly WeatherStation station = station;
 
 		public string GetAlpacaFormData()
 		{
@@ -65,7 +59,7 @@ namespace CumulusMX
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				// Start at char 5 to skip the "json:" prefix
-				json = WebUtility.UrlDecode(data.Substring(5));
+				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
 				settings = json.FromJson<HttpFileSettings>();
@@ -155,7 +149,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				modUrl = url + (url.Contains("?") ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
+				modUrl = url + (url.Contains('?') ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
 			}
 
 			cumulus.LogDebugMessage($"DownloadHttpFile: Downloading from {url} to {filename}");
@@ -179,7 +173,7 @@ namespace CumulusMX
 
 		public async Task<string> DownloadHttpFileBase64String(string url)
 		{
-			var modUrl = url + (url.Contains("?") ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
+			var modUrl = url + (url.Contains('?') ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
 
 			cumulus.LogDebugMessage($"DownloadHttpFileString: Downloading from {url}");
 
@@ -208,18 +202,16 @@ namespace CumulusMX
 
 		public async Task<Stream> DownloadHttpFileStream(string url)
 		{
-			var modUrl = url + (url.Contains("?") ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
+			var modUrl = url + (url.Contains('?') ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
 
 			cumulus.LogDebugMessage($"DownloadHttpFileStream: Downloading from {url}");
 
 			try
 			{
-				using (var request = new HttpRequestMessage(HttpMethod.Get, modUrl))
-				using (var response = await Cumulus.MyHttpClient.SendAsync(request))
-				{
-					response.EnsureSuccessStatusCode();
-					return response.Content.ReadAsStreamAsync().Result;
-				}
+				using var request = new HttpRequestMessage(HttpMethod.Get, modUrl);
+				using var response = await Cumulus.MyHttpClient.SendAsync(request);
+				response.EnsureSuccessStatusCode();
+				return response.Content.ReadAsStreamAsync().Result;
 			}
 			catch (Exception ex)
 			{

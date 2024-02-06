@@ -46,10 +46,10 @@ namespace CumulusMX
 	 * 38   Raw data            16x 2-digit hex
 	*/
 #pragma warning disable CA1001 // Types that own disposable fields should be disposable
-	internal class EasyWeather : WeatherStation
+	internal class EasyWeather(Cumulus cumulus) : WeatherStation(cumulus)
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
-		private readonly Timer tmrDataRead;
+		private readonly Timer tmrDataRead = new();
 
 		private const int EW_READING_DATE = 3;
 		private const int EW_READING_TIME = 4;
@@ -71,13 +71,6 @@ namespace CumulusMX
 
 		private string lastTime = "";
 		private string lastDate = "";
-
-		public EasyWeather(Cumulus cumulus) : base(cumulus)
-		{
-			tmrDataRead = new Timer();
-
-
-		}
 
 		public override void Start()
 		{
@@ -222,53 +215,31 @@ namespace CumulusMX
 
 		private static int CPtoBearing(string cp)
 		{
-			switch (cp)
+			return cp switch
 			{
-				case "N":
-					return 360;
-				case "NNE":
-					return 22;
-				case "NE":
-					return 45;
-				case "NEE":
-					return 67;
-				case "ENE":
-					return 67;
-				case "E":
-					return 90;
-				case "SEE":
-					return 112;
-				case "EES":
-					return 112;
-				case "ESE":
-					return 112;
-				case "SE":
-					return 135;
-				case "SSE":
-					return 157;
-				case "S":
-					return 180;
-				case "SSW":
-					return 202;
-				case "SW":
-					return 225;
-				case "SWW":
-					return 247;
-				case "WSW":
-					return 247;
-				case "W":
-					return 270;
-				case "NWW":
-					return 292;
-				case "WNW":
-					return 292;
-				case "NW":
-					return 315;
-				case "NNW":
-					return 337;
-				default:
-					return 0;
-			}
+				"N" => 360,
+				"NNE" => 22,
+				"NE" => 45,
+				"NEE" => 67,
+				"ENE" => 67,
+				"E" => 90,
+				"SEE" => 112,
+				"EES" => 112,
+				"ESE" => 112,
+				"SE" => 135,
+				"SSE" => 157,
+				"S" => 180,
+				"SSW" => 202,
+				"SW" => 225,
+				"SWW" => 247,
+				"WSW" => 247,
+				"W" => 270,
+				"NWW" => 292,
+				"WNW" => 292,
+				"NW" => 315,
+				"NNW" => 337,
+				_ => 0,
+			};
 		}
 
 		private string ConvertPeriodToSystemDecimal(string aStr)

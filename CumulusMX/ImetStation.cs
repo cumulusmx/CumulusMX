@@ -198,7 +198,7 @@ namespace CumulusMX
 				{
 					// Response: rdst,adr,dat
 					// split the data
-					var sl = new List<string>(Regex.Split(response1, ","));
+					var sl = new List<string>(response1.Split(','));
 					var currPtr = sl[2];
 
 					if (currentWritePointer.Equals(currPtr))
@@ -313,7 +313,7 @@ namespace CumulusMX
 				try
 				{
 					// split the data
-					sl = new List<string>(Regex.Split(data, ","));
+					sl = new List<string>(data.Split(','));
 				}
 				catch
 				{
@@ -351,7 +351,7 @@ namespace CumulusMX
 				try
 				{
 					// split the data
-					var st = new List<string>(Regex.Split(data, ","));
+					var st = new List<string>(data.Split(','));
 
 					if (st[1].Length > 0)
 					{
@@ -376,7 +376,7 @@ namespace CumulusMX
 			try
 			{
 				// split the data
-				var sl = new List<string>(Regex.Split(str, ","));
+				var sl = new List<string>(str.Split(','));
 
 				// get number of fields in string
 				int len = sl.Count;
@@ -385,7 +385,7 @@ namespace CumulusMX
 
 				// calculate checksum of string
 				uint sum = 0;
-				int endpos = str.LastIndexOf(",");
+				int endpos = str.LastIndexOf(',');
 
 				for (int i = 0; i <= endpos; i++)
 				{
@@ -411,7 +411,7 @@ namespace CumulusMX
 			// readto() should have stripped this off
 			int pos1 = input.IndexOf(after);
 			//int pos2 = input.Length - 2;
-			return pos1 >= 0 ? input.Substring(pos1) : "";
+			return pos1 >= 0 ? input[pos1..] : "";
 		}
 
 		public override void startReadingHistoryData()
@@ -543,10 +543,10 @@ namespace CumulusMX
 				bool dataOK;
 				try
 				{
-					hour = Convert.ToInt32(sl[TIMEPOS].Substring(0, 2));
+					hour = Convert.ToInt32(sl[TIMEPOS][..2]);
 					minute = Convert.ToInt32(sl[TIMEPOS].Substring(3, 2));
 					sec = Convert.ToInt32(sl[TIMEPOS].Substring(6, 2));
-					day = Convert.ToInt32(sl[DATEPOS].Substring(0, 2));
+					day = Convert.ToInt32(sl[DATEPOS][..2]);
 					month = Convert.ToInt32(sl[DATEPOS].Substring(3, 2));
 					year = Convert.ToInt32(sl[DATEPOS].Substring(6, 4));
 					cumulus.LogMessage("Logger entry : Y = " + year + ", M = " + month + ", D = " + day + ", h = " + hour + ", m = " + minute + ", s = " + sec);
@@ -576,10 +576,10 @@ namespace CumulusMX
 							sl = GetArchiveRecord();
 							try
 							{
-								hour = Convert.ToInt32(sl[TIMEPOS].Substring(0, 2));
+								hour = Convert.ToInt32(sl[TIMEPOS][..2]);
 								minute = Convert.ToInt32(sl[TIMEPOS].Substring(3, 2));
 								sec = Convert.ToInt32(sl[TIMEPOS].Substring(6, 2));
-								day = Convert.ToInt32(sl[DATEPOS].Substring(0, 2));
+								day = Convert.ToInt32(sl[DATEPOS][..2]);
 								month = Convert.ToInt32(sl[DATEPOS].Substring(3, 2));
 								year = Convert.ToInt32(sl[DATEPOS].Substring(6, 4));
 								cumulus.LogMessage("Logger entry zero: Y = " + year + ", M = " + month + ", D = " + day + ", h = " + hour + ", m = " + minute + ", s = " + sec);
@@ -640,10 +640,10 @@ namespace CumulusMX
 							sl = GetArchiveRecord();
 							ProgressLogs();
 
-							hour = Convert.ToInt32(sl[TIMEPOS].Substring(0, 2));
+							hour = Convert.ToInt32(sl[TIMEPOS][..2]);
 							minute = Convert.ToInt32(sl[TIMEPOS].Substring(3, 2));
 							sec = Convert.ToInt32(sl[TIMEPOS].Substring(6, 2));
-							day = Convert.ToInt32(sl[DATEPOS].Substring(0, 2));
+							day = Convert.ToInt32(sl[DATEPOS][..2]);
 							month = Convert.ToInt32(sl[DATEPOS].Substring(3, 2));
 							year = Convert.ToInt32(sl[DATEPOS].Substring(6, 4));
 							timestamp = new DateTime(year, month, day, hour, minute, sec);
@@ -899,7 +899,7 @@ namespace CumulusMX
 			if (ValidChecksum(response) && !stop)
 			{
 				// split the data
-				var sl = new List<string>(Regex.Split(response, ","));
+				var sl = new List<string>(response.Split(','));
 
 				if (sl.Count != 10 && sl[0] != "rdlv")
 				{

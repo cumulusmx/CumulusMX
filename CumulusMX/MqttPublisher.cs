@@ -31,33 +31,25 @@ namespace CumulusMX
 
 			var clientId = Guid.NewGuid().ToString();
 
-			var mqttTcpOptions = new MQTTnet.Client.MqttClientTcpOptions
+			var mqttTcpOptions = new MqttClientTcpOptions
 			{
 				Server = cumulus.MQTT.Server,
 				Port = cumulus.MQTT.Port,
-				TlsOptions = new MQTTnet.Client.MqttClientTlsOptions { UseTls = cumulus.MQTT.UseTLS }
+				TlsOptions = new MqttClientTlsOptions { UseTls = cumulus.MQTT.UseTLS },
+				AddressFamily = cumulus.MQTT.IpVersion switch
+				{
+					4 => System.Net.Sockets.AddressFamily.InterNetwork,
+					6 => System.Net.Sockets.AddressFamily.InterNetworkV6,
+					_ => System.Net.Sockets.AddressFamily.Unspecified,
+				}
 			};
-
-			switch (cumulus.MQTT.IpVersion)
-			{
-				case 4:
-					mqttTcpOptions.AddressFamily = System.Net.Sockets.AddressFamily.InterNetwork;
-					break;
-				case 6:
-					mqttTcpOptions.AddressFamily = System.Net.Sockets.AddressFamily.InterNetworkV6;
-					break;
-				default:
-					mqttTcpOptions.AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
-					break;
-			}
-
-			var mqttOptions = new MQTTnet.Client.MqttClientOptions
+			var mqttOptions = new MqttClientOptions
 			{
 				ChannelOptions = mqttTcpOptions,
 				ClientId = clientId,
 				Credentials = string.IsNullOrEmpty(cumulus.MQTT.Password)
 					? null
-					: new MQTTnet.Client.MqttClientCredentials(cumulus.MQTT.Username, System.Text.Encoding.UTF8.GetBytes(cumulus.MQTT.Password)),
+					: new MqttClientCredentials(cumulus.MQTT.Username, System.Text.Encoding.UTF8.GetBytes(cumulus.MQTT.Password)),
 				CleanSession = true
 			};
 

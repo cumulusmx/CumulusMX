@@ -4,15 +4,10 @@ using EmbedIO.WebSockets;
 
 namespace CumulusMX
 {
-	public class MxWebSocket : WebSocketModule
+	public class MxWebSocket(string urlPath, Cumulus cumulus) : WebSocketModule(urlPath, true)
 	{
-		private readonly Cumulus cumulus;
+		private readonly Cumulus cumulus = cumulus;
 		private WeatherStation station;
-
-		public MxWebSocket(string urlPath, Cumulus cumulus) : base(urlPath, true)
-		{
-			this.cumulus = cumulus;
-		}
 
 		/// <inheritdoc />
 		protected override async Task OnClientConnectedAsync(IWebSocketContext context)
@@ -46,7 +41,7 @@ namespace CumulusMX
 
 		public int ConnectedClients
 		{
-			get { return this.ActiveContexts.Count; }
+			get { return ActiveContexts.Count; }
 		}
 
 		internal WeatherStation SetStation

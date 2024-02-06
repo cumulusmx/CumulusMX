@@ -3,21 +3,14 @@ using System.Text;
 
 namespace CumulusMX
 {
-	internal class MySqlTable
+	internal class MySqlTable(string TableName)
 	{
-		internal string Name;
-		internal List<Column> Columns;
+		internal string Name = TableName;
+		internal List<Column> Columns = [];
 
 		private string _insertStart;
 		private string _PrimaryKey;
 		private string _Comment;
-
-		public MySqlTable(string TableName)
-		{
-			Name = TableName;
-			Columns = [];
-		}
-
 
 		public string CreateCommand
 		{
@@ -40,7 +33,7 @@ namespace CumulusMX
 				create.Append(')');
 
 				// strip trailing comma (if any)
-				if (create[create.Length - 1] == ',')
+				if (create[^1] == ',')
 				{
 					create.Length--;
 				}
@@ -69,7 +62,7 @@ namespace CumulusMX
 					}
 
 					// replace trailing comma with closing brace
-					insert[insert.Length - 1] = ')';
+					insert[^1] = ')';
 					_insertStart = insert.ToString();
 				}
 
@@ -113,16 +106,10 @@ namespace CumulusMX
 			_insertStart = null;
 		}
 
-		internal class Column
+		internal class Column(string ColName, string ColAttributes)
 		{
-			internal string Name;
-			internal string Attributes;
-
-			public Column(string ColName, string ColAttributes)
-			{
-				Name = ColName;
-				Attributes = ColAttributes;
-			}
+			internal string Name = ColName;
+			internal string Attributes = ColAttributes;
 		}
 	}
 }

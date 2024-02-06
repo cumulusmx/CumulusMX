@@ -34,7 +34,7 @@ namespace CumulusMX
 				try
 				{
 					// remove leading "?" and split on "&"
-					var input = new List<string>(query.Substring(1).Split('&'));
+					var input = new List<string>(query[1..].Split('&'));
 					var parms = new Dictionary<string, string>();
 					if (input[0] == "rc")
 					{
