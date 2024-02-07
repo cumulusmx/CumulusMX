@@ -8339,21 +8339,21 @@ namespace CumulusMX
 			sb.Append(station.RG11RainToday.ToString(RainFormat, inv) + sep);
 			sb.Append(station.RainSinceMidnight.ToString(RainFormat, inv) + sep);
 			sb.Append(station.FeelsLike.ToString(TempFormat, inv) + sep);
-			sb.Append(station.Humidex.ToString(TempFormat, inv));
+			sb.AppendLine(station.Humidex.ToString(TempFormat, inv));
 
 			var success = false;
 			var retries = LogFileRetries;
+			var charArr = sb.ToString().ToCharArray();
+
 			do
 			{
 				try
 				{
-					using (FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read))
-					using (StreamWriter file = new StreamWriter(fs))
-					{
-						await file.WriteLineAsync(sb.ToString());
-						file.Close();
-						fs.Close();
-					}
+					using FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read, charArr.Length, FileOptions.WriteThrough);
+					using StreamWriter file = new StreamWriter(fs);
+					await file.WriteAsync(charArr, 0, charArr.Length);
+					file.Close();
+					fs.Close();
 
 					success = true;
 
@@ -8530,16 +8530,19 @@ namespace CumulusMX
 			sb.Append(station.CO2_pm10_24h.ToString("F1", inv) + sep);            //89
 			sb.Append(station.CO2_temperature.ToString(TempFormat, inv) + sep);   //90
 			sb.Append(station.CO2_humidity);                                      //91
+			sb.Append(Environment.NewLine);
 
 			var success = false;
 			var retries = LogFileRetries;
+			var charArr = sb.ToString().ToCharArray();
+
 			do
 			{
 				try
 				{
-					using FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read);
+					using FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read, charArr.Length, FileOptions.WriteThrough);
 					using StreamWriter file = new StreamWriter(fs);
-					await file.WriteLineAsync(sb.ToString());
+					await file.WriteAsync(charArr, 0, charArr.Length);
 					file.Close();
 					fs.Close();
 
@@ -8723,16 +8726,19 @@ namespace CumulusMX
 				}
 				sb.Append('0');
 			}
+			sb.Append(Environment.NewLine);
 
 			var success = false;
 			var retries = LogFileRetries;
+			var charArr = sb.ToString().ToCharArray();
+
 			do
 			{
 				try
 				{
-					using FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read);
+					using FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read, charArr.Length, FileOptions.WriteThrough);
 					using StreamWriter file = new StreamWriter(fs);
-					file.WriteLine(sb);
+					await file.WriteAsync(charArr, 0, charArr.Length);
 					file.Close();
 					fs.Close();
 
@@ -8793,15 +8799,19 @@ namespace CumulusMX
 
 			LogDataMessage("DoCustomIntervalLog: entry: " + sb);
 
+			sb.Append(Environment.NewLine);
+
 			var success = false;
 			var retries = LogFileRetries;
+			var charArr = sb.ToString().ToCharArray();
+
 			do
 			{
 				try
 				{
-					using FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read);
+					using FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read, charArr.Length, FileOptions.WriteThrough);
 					using StreamWriter file = new StreamWriter(fs);
-					file.WriteLine(sb);
+					await file.WriteAsync(charArr, 0, charArr.Length);
 					file.Close();
 					fs.Close();
 
@@ -8850,15 +8860,19 @@ namespace CumulusMX
 
 			LogDataMessage("DoCustomDailyLog: entry: " + sb);
 
+			sb.Append(Environment.NewLine);
+
 			var success = false;
 			var retries = LogFileRetries;
+			var charArr = sb.ToString().ToCharArray();
+
 			do
 			{
 				try
 				{
-					using FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read);
+					using FileStream fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read, charArr.Length, FileOptions.WriteThrough);
 					using StreamWriter file = new StreamWriter(fs);
-					file.WriteLine(sb);
+					await file.WriteAsync(charArr, 0, charArr.Length);
 					file.Close();
 					fs.Close();
 

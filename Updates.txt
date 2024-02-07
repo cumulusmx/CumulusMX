@@ -17,11 +17,11 @@ New
 
 Changed
 - Now requires Microsoft .Net 8.0 rather than mono to run under Linux and MacOS
-- All data files are now written/read as invariant - dayfile, monthly log files, extra log files, custom log files
+- All data files are now written/read as invariant - dayfile, monthly log files, extra log files, AirLink, and  custom log files
 	- NOTE: Custom log files may require the user to alter their configuration to use comma separators and add the rc=y parameter to numeric web tags
 - Monthly log files now renamed to "[yyyyMM]log.txt" to remove localised month name - and now sortable in the file system!
 - Added MigrateData3to4 utility.
-	- Basic workflow:
+	Basic workflow:
 		- Clean install v4
 		- Copy v3 Cumulus.ini to root
 		- Copy v3 /data and /Reports folders to v4 install
@@ -35,6 +35,7 @@ Fixed
 - Problems when using a 9am rollover in the records editors for values from the monthly log files
 - Select-a-Period charts not respecting the interval dates: Air Quality, CO₂, Soil Moisture, Leaf Wetness
 - Calibration Limits not changing when the user changes units - eg initial install
+- Potential fix for corruption at the end of data log files when shutting down
 
 
 ############## Cumulus MX version 3.0 below here ##############

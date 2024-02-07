@@ -7998,13 +7998,15 @@ namespace CumulusMX
 			strb.Append(HiLoToday.HighHumidexTime.ToString("HH:mm", inv) + sep);
 			strb.Append(ChillHours.ToString(cumulus.TempFormat, inv) + sep);
 			strb.Append(HiLoToday.HighRain24h.ToString(cumulus.RainFormat, inv) + sep);
-			strb.Append(HiLoToday.HighRain24hTime.ToString("HH:mm", inv));
+			strb.AppendLine(HiLoToday.HighRain24hTime.ToString("HH:mm", inv));
 
 			cumulus.LogMessage("Dayfile.txt entry:");
 			cumulus.LogMessage(strb.ToString());
 
 			var success = false;
 			var retries = Cumulus.LogFileRetries;
+			var charArr = strb.ToString().ToCharArray();
+
 			do
 			{
 				try
@@ -8021,9 +8023,9 @@ namespace CumulusMX
 					{
 						cumulus.LogMessage("Writing entry to dayfile.txt");
 
-						using FileStream fs = new FileStream(cumulus.DayFileName, FileMode.Append, FileAccess.Write, FileShare.Read);
+						using FileStream fs = new FileStream(cumulus.DayFileName, FileMode.Append, FileAccess.Write, FileShare.Read, charArr.Length, FileOptions.WriteThrough);
 						using StreamWriter file = new StreamWriter(fs);
-						await file.WriteLineAsync(strb.ToString());
+						await file.WriteAsync(charArr, 0, charArr.Length);
 						file.Close();
 						fs.Close();
 
