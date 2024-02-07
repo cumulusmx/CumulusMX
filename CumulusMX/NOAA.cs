@@ -122,6 +122,7 @@ namespace CumulusMX
 			double totalwinddirX = 0;
 			double totalwinddirY = 0;
 			double totalwindspeed = 0;
+			var inv = CultureInfo.InvariantCulture.NumberFormat;
 
 			// Use the second of the month to allow for 9am roll-over
 			var logFile = cumulus.GetLogFileName(new DateTime(year, month, 2));
@@ -142,7 +143,7 @@ namespace CumulusMX
 						linenum++;
 						st = new List<string>(line.Split(','));
 						idx = 5;
-						double windspeed = Convert.ToSingle(st[idx]);
+						double windspeed = Convert.ToSingle(st[idx], inv);
 						// add in wind speed sample for whole month
 						windsamples++;
 						totalwindspeed += windspeed;
