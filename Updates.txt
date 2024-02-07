@@ -1,87 +1,11 @@
 4.0.0 - b4009
 —————————————
-- New web tag for the average temperature of the previous 24 hours from now: <#TempAvg24Hrs>
-
-
-4.0.0 - b4008
-—————————————
-- Monthly log files are now named just yyyyMMlog.txt
-- Credentials are now encrypted in cumulus.ini
-- Fix for problems when using a 9am rollover in the records editors for values from the monthly log files
-
-
-4.0.0 - b4007
-—————————————
-- Implements encryption of the credentials in the cumulus.ini file
-- Fix for reading invariant log files
-
-4.0.0 - b4006
-—————————————
-- REMOVE: Patch for Steinar and the hyphen-minus issue
-- All data files are now written/read as invariant - dayfile, monthly log files, extra log files, custom log files
-	- NOTE: Custom log files may require the user to alter their configuration to use comma separators and add the rc=y parameter to numeric web tags
-	- ToDo: Can MX force web tags to use rc=y??? Can MX change the separators??? <-- this fraught with danger as possibly free text in there
-- Monthly log files now renamed to "month[yyyyMM]log.txt" to remove localised month name - and now sortable in the file system!
-- Added MigrateData3to4 utility.
-	- Basic workflow:
-		- Clean install v4
-		- Copy v3 Cumulus.ini to root
-		- Copy v3 /data folder to v4 install
-		- Rename the /data folder to /datav3
-		- Run MigrateData3to4
-		- Done! (haha)
-
-
-4.0.0 - b4005
-—————————————
-- Experimental Gmail OATH 2.0 authentication
-- Patch for Steinar and the hyphen-minus issue
-
-4.0.0 - b4004
-—————————————
-- FluentFTP updated
-
-
-4.0.0 - b4004
-—————————————
-- v3.28.3 feature catch-up
-- fixes for linux service install
-- Suppresses writing to the Linux sys and user logs
-
-
-4.0.0 - b4003
-—————————————
-- v3.28.2 feature catch-up
-- HTTP timeout increased from 5 to 15 seconds to match v3
-
-
-4.0.0 - b4002
-—————————————
-- Linux self installer now also applies the -port and -lang parameters if they are provided with -install
-
-
-4.0.0 - b4001
-—————————————
-- Change versioning from 3.500 to 4.0
-- Incorporate v3.28.2 updates
-
-
-4.0.0 - b4000
-—————————————
-Initial release of Cumulus MX version 3.5 which now runs under Microsoft .Net 8.0 and removes the requirement for the Mono runtime environment on Linux
-
-New
-- Moon Image now supports transparent shadows
-- The -install/-unistall command line switches now support both Windows and Linux
-
-Changed
-
-Fixed
+- First Beta build
 
 
 4.0.0 - b4xxx
 —————————————
-Initial release of Cumulus MX version 3.5 which now runs under Microsoft .Net 8.0 and removes the requirement for the Mono runtime environment on Linux
+Initial release of Cumulus MX which now runs under Microsoft .Net 8.0 and removes the requirement for the Mono runtime environment on Linux
 
 New
 - Moon Image now supports transparent shadows

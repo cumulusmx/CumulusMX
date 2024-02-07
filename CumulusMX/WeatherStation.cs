@@ -538,24 +538,20 @@ namespace CumulusMX
 			// if it does resave the file missing the last line
 			string fileName = string.Empty;
 			string prefix = string.Empty;
-			int fieldCount = 0;
 
 			switch (logtype)
 			{
 				case 0:
 					fileName = cumulus.GetLogFileName(logDate);
 					prefix = "Monthly log file";
-					fieldCount = Cumulus.NumLogFileFields;
 					break;
 				case 1:
 					fileName = cumulus.GetExtraLogFileName(logDate);
 					prefix = "Monthly Extra log file";
-					fieldCount = Cumulus.NumExtraLogFileFields;
 					break;
 				case 2:
 					fileName = cumulus.GetAirLinkLogFileName(logDate);
 					prefix = "AirLink log file";
-					fieldCount = Cumulus.NumAirLinkLogFileFields;
 					break;
 			}
 
@@ -574,46 +570,8 @@ namespace CumulusMX
 					//Strip the "null line" from file
 					if (lines[^1][0] < 32)
 					{
-						// first try stripping the control characters out and see if there is valid data left
-						var line = lines[^1];
-
-						try
-						{
-							line = new string((from c in line
-											   where char.IsLetterOrDigit(c) || char.IsPunctuation(c)
-											   select c
-									).ToArray());
-
-							// test if it is now valid by spliting into fields and counting them
-							if (line.SplitByAny(cumulus.ListSeparator[0]).Length == fieldCount)
-							{
-								cumulus.LogMessage($"{prefix} {fileName} Repaired");
-								lines[^1] = line;
-							}
-							else
-							{
-								var str = new StringBuilder(lines[^1].Length + 50);
-								for (int i = 0; i < lines[^1].Length; i++)
-								{
-									if (Char.ConvertToUtf32(lines[^1], i) < 32)
-									{
-										str.AppendFormat("[{0:X2}]", (byte) lines[^1][i]);
-									}
-									else
-									{
-										str.Append(lines[^1][i]);
-									}
-								}
-								cumulus.LogMessage("Removed line: " + str.ToString());
-								lines = lines.Take(lines.Length - 1).ToArray();
-							}
-						}
-						catch
-						{
-							// it failed somewhere, just delete the line
-							cumulus.LogMessage("Processed failed. Removed line");
-							lines = lines.Take(lines.Length - 1).ToArray();
-						}
+						cumulus.LogMessage($"{prefix} {fileName} Removed last line of nul's from file");
+						lines = lines.Take(lines.Length - 1).ToArray();
 					}
 					else
 					{
