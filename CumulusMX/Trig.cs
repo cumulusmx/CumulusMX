@@ -171,5 +171,42 @@ namespace CumulusMX
 			return pfTanVal;
 		}
 
+		public static void DegToDMS(decimal degrees, out int d, out int m, out int s)
+		{
+			int secs = (int) (degrees * 60 * 60);
+
+			s = secs % 60;
+
+			secs = (secs - s) / 60;
+
+			m = secs % 60;
+			d = secs / 60;
+		}
+
+		/// <summary>
+		/// Returns the angle from bearing2 to bearing1, in the range -180 to +180 degrees
+		/// </summary>
+		/// <param name="bearing1"></param>
+		/// <param name="bearing2"></param>
+		/// <returns>the required angle</returns>
+		public static int getShortestAngle(int bearing1, int bearing2)
+		{
+			int diff = bearing2 - bearing1;
+
+			if (diff >= 180)
+			{
+				// result is obtuse and positive, subtract 360 to go the other way
+				diff -= 360;
+			}
+			else
+			{
+				if (diff <= -180)
+				{
+					// result is obtuse and negative, add 360 to go the other way
+					diff += 360;
+				}
+			}
+			return diff;
+		}
 	}
 }

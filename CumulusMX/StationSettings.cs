@@ -1152,8 +1152,8 @@ namespace CumulusMX
 						{
 							case 0:
 							case 1:
-								cumulus.Limit.PressHigh = ConvertUnits.UserPressureToHPa(cumulus.Limit.PressHigh);
-								cumulus.Limit.PressLow = ConvertUnits.UserPressureToHPa(cumulus.Limit.PressLow);
+								cumulus.Limit.PressHigh = ConvertUnits.UserPressToHpa(cumulus.Limit.PressHigh);
+								cumulus.Limit.PressLow = ConvertUnits.UserPressToHpa(cumulus.Limit.PressLow);
 								break;
 							case 2:
 								cumulus.Limit.PressHigh = ConvertUnits.UserPressToIN(cumulus.Limit.PressHigh);

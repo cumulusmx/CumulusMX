@@ -66,9 +66,6 @@ namespace CumulusMX
 						cumulus.Wund.SendExtraTemp2 = settings.wunderground.extratemp2;
 						cumulus.Wund.SendExtraTemp3 = settings.wunderground.extratemp3;
 						cumulus.Wund.SendExtraTemp4 = settings.wunderground.extratemp4;
-
-						cumulus.WundTimer.Interval = cumulus.Wund.RapidFireEnabled ? 5000 : cumulus.Wund.Interval * 60 * 1000;
-						cumulus.WundTimer.Enabled = cumulus.Wund.Enabled && !cumulus.Wund.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.Wund.ID) && !string.IsNullOrWhiteSpace(cumulus.Wund.PW);
 					}
 				}
 				catch (Exception ex)
@@ -119,9 +116,6 @@ namespace CumulusMX
 						cumulus.AWEKAS.SendIndoor = settings.awekas.includeindoor;
 						cumulus.AWEKAS.SendAirQuality = settings.awekas.includeaq;
 						cumulus.AWEKAS.SynchronisedUpdate = (cumulus.AWEKAS.Interval % 60 == 0);
-
-						cumulus.AwekasTimer.Interval = cumulus.AWEKAS.Interval * 1000;
-						cumulus.AwekasTimer.Enabled = cumulus.AWEKAS.Enabled && !cumulus.AWEKAS.SynchronisedUpdate && !string.IsNullOrWhiteSpace(cumulus.AWEKAS.ID) && !string.IsNullOrWhiteSpace(cumulus.AWEKAS.PW);
 					}
 				}
 				catch (Exception ex)

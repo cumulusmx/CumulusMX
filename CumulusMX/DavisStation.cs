@@ -1971,7 +1971,7 @@ namespace CumulusMX
 					{
 						previousPressStation = pressMB;
 						StationPressure = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
-						AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+						AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 					}
 					else
 					{

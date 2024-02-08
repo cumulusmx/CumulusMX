@@ -472,7 +472,7 @@ namespace CumulusMX
 							continue;
 
 						idx = 5;
-						double windspeed = double.Parse(st[idx]);
+						double windspeed = double.Parse(st[idx], CultureInfo.InvariantCulture.NumberFormat);
 
 						// add in wind speed sample for this day
 						dayList[daynumber].windsamples++;

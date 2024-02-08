@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.IO.Ports;
 using System.Linq;
 using System.Net;
@@ -24,19 +25,15 @@ using EmbedIO;
 using EmbedIO.Files;
 using EmbedIO.Utilities;
 using EmbedIO.WebApi;
-
 using FluentFTP;
 using FluentFTP.Helpers;
-
+using Microsoft.Extensions.Logging;
 using MySqlConnector;
-
+using NReco.Logging.File;
 using Renci.SshNet;
-
 using ServiceStack;
 using ServiceStack.Text;
-
 using SQLite;
-
 using Swan;
 
 using static CumulusMX.EmailSender;
@@ -56,7 +53,6 @@ namespace CumulusMX
 		/////////////////////////////////
 
 
-
 		public static SemaphoreSlim syncInit { get => semaphoreSlim; }
 
 		/*
@@ -65,15 +61,12 @@ namespace CumulusMX
 			MM = 0,
 			IN = 1
 		}
-		*/
 
-		/*
 		public enum VPConnTypes
 		{
 			Serial = 0,
 			TCPIP = 1
 		}
-		*/
 
 		public enum PressUnits
 		{
@@ -102,7 +95,6 @@ namespace CumulusMX
 			IN
 		}
 
-		/*
 		public enum SolarCalcTypes
 		{
 			RyanStolzenbach = 0,
@@ -130,7 +122,7 @@ namespace CumulusMX
 			EcowittCO2 = 6
 		}
 
-		public enum LogLevel
+		public enum MxLogLevel
 		{
 			Info = 0,
 			Warning = 1,
@@ -138,7 +130,7 @@ namespace CumulusMX
 			Critical = 3
 		}
 
-		public LogLevel ErrorListLoggingLevel = LogLevel.Warning;
+		public MxLogLevel ErrorListLoggingLevel = MxLogLevel.Warning;
 
 		private readonly string[] sshAuthenticationVals = ["password", "psk", "password_psk"];
 
@@ -256,7 +248,10 @@ namespace CumulusMX
 
 		public bool NormalRunning = false;
 
-		private TextWriterTraceListener FtpTraceListener;
+		private static LoggerFactory loggerFactory = new();
+		private ILogger FtpLoggerRT;
+		private ILogger FtpLoggerIN;
+		private ILogger FtpLoggerMX;
 
 		public volatile int WebUpdating;
 		public volatile bool SqlCatchingUp;
@@ -464,33 +459,32 @@ namespace CumulusMX
 		public bool RealtimeIntervalEnabled; // The timer is to be started
 		private int realtimeFTPRetries; // Count of failed realtime FTP attempts
 
-		// Wunderground settings
-		public WebUploadWund Wund = new();
+		// Wunderground object
+		internal ThirdParty.WebUploadWund Wund;
 
-		// Windy.com settings
-		public WebUploadWindy Windy = new();
+		// Windy.com object
+		internal ThirdParty.WebUploadWindy Windy;
 
-		// Wind Guru settings
-		public WebUploadWindGuru WindGuru = new();
+		// Wind Guru object
+		internal ThirdParty.WebUploadWindGuru WindGuru;
 
-		// PWS Weather settings
-		public WebUploadService PWS = new();
+		// PWS Weather object
+		internal ThirdParty.WebUploadServiceBase PWS;
 
-		// WOW settings
-		public WebUploadService WOW = new();
+		// WOW object
+		internal ThirdParty.WebUploadWow WOW;
 
-		// APRS settings
-		public WebUploadAprs APRS = new();
+		// APRS object
+		internal ThirdParty.WebUploadAprs APRS;
 
-		// Awekas settings
-		public WebUploadAwekas AWEKAS = new();
+		// Awekas object
+		internal ThirdParty.WebUploadAwekas AWEKAS;
 
-		// WeatherCloud settings
-		public WebUploadWCloud WCloud = new();
+		// WeatherCloud object
+		internal ThirdParty.WebUploadWCloud WCloud;
 
-		// OpenWeatherMap settings
-		public WebUploadService OpenWeatherMap = new();
-
+		// OpenWeatherMap object
+		internal ThirdParty.WebUploadOWM OpenWeatherMap;
 		public string WxnowComment = string.Empty;
 
 		// MQTT settings
@@ -824,6 +818,17 @@ namespace CumulusMX
 
 			//stringsFile = "strings.ini";
 
+			// initialise the third party uploads
+			Wund = new ThirdParty.WebUploadWund(this, "WUnderground");
+			Windy = new ThirdParty.WebUploadWindy(this, "Windy");
+			WindGuru = new ThirdParty.WebUploadWindGuru(this, "WindGuru");
+			PWS = new ThirdParty.WebUploadPWS(this, "PWS");
+			WOW = new ThirdParty.WebUploadWow(this, "WOW");
+			APRS = new ThirdParty.WebUploadAprs(this, "APRS");
+			AWEKAS = new ThirdParty.WebUploadAwekas(this, "AWEKAS");
+			WCloud = new ThirdParty.WebUploadWCloud(this, "WCloud");
+			OpenWeatherMap = new ThirdParty.WebUploadOWM(this, "OpenWeatherMap");
+
 			// Set the default upload intervals for web services
 			Wund.DefaultInterval = 15;
 			Windy.DefaultInterval = 15;
@@ -1091,11 +1096,6 @@ namespace CumulusMX
 			}
 			uploadCountLimitSemaphoreSlim = new SemaphoreSlim(FtpOptions.MaxConcurrentUploads);
 
-			if (FtpOptions.Logging)
-			{
-				CreateFtpLogFile();
-			}
-
 			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 
 			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
@@ -1115,6 +1115,9 @@ namespace CumulusMX
 			}
 
 			LogMessage("Locale date/time format: " + DateTime.Now.ToString("G"));
+
+			// Take a backup of all the data before we start proper
+			BackupData(false, DateTime.Now);
 
 			// Do we delay the start of Cumulus MX for a fixed period?
 			if (ProgramOptions.StartupDelaySecs > 0)
@@ -1284,6 +1287,8 @@ namespace CumulusMX
 				}
 			}
 
+			SetupFtpLogging();
+
 			GC.Collect();
 
 			LogMessage("Data path = " + Datapath);
@@ -1328,8 +1333,6 @@ namespace CumulusMX
 			{
 				LogErrorMessage("Error cleaning up the Diary DB, exception = " + ex.Message);
 			}
-
-			BackupData(false, DateTime.Now);
 
 			LogMessage("Debug logging :" + (ProgramOptions.DebugLogging ? "enabled" : "disabled"));
 			LogMessage("Data logging  :" + (ProgramOptions.DataLogging ? "enabled" : "disabled"));
@@ -1660,6 +1663,17 @@ namespace CumulusMX
 					ecowittCloudExtra = new EcowittCloudStation(this, station);
 				}
 
+				// set the third party upload station
+				Wund.station = station;
+				Windy.station = station;
+				WindGuru.station = station;
+				PWS.station = station;
+				WOW.station = station;
+				APRS.station = station;
+				AWEKAS.station = station;
+				WCloud.station = station;
+				OpenWeatherMap.station = station;
+
 				WebTags = new WebTags(this, station);
 				WebTags.InitialiseWebtags();
 
@@ -1671,8 +1685,8 @@ namespace CumulusMX
 				RealtimeTimer.Elapsed += RealtimeTimerTick;
 				RealtimeTimer.AutoReset = true;
 
-				WundTimer.Elapsed += WundTimerTick;
-				AwekasTimer.Elapsed += AwekasTimerTick;
+				SetFtpLogging(FtpOptions.Logging);
+
 				WebTimer.Elapsed += WebTimerTick;
 
 				xapsource = "sanday.cumulus." + Environment.MachineName;
@@ -2115,6 +2129,21 @@ namespace CumulusMX
 			HighGustAlarm.Units = Units.WindText;
 		}
 
+		public void SetFtpLogging(bool isSet)
+		{
+			if (RealtimeFTP == null || RealtimeFTP.IsDisposed)
+				return;
+
+			if (isSet)
+			{
+				RealtimeFTP.Logger = (IFtpLogger) FtpLoggerRT;
+			}
+			else
+			{
+				RealtimeFTP.Logger = null;
+			}
+		}
+
 		/*
 		private string LocalIPAddress()
 		{
@@ -2268,19 +2297,6 @@ namespace CumulusMX
 			}
 		}
 
-		private void WundTimerTick(object sender, ElapsedEventArgs e)
-		{
-			if (!string.IsNullOrWhiteSpace(Wund.ID))
-				UpdateWunderground(DateTime.Now);
-		}
-
-
-		private void AwekasTimerTick(object sender, ElapsedEventArgs e)
-		{
-			if (!string.IsNullOrWhiteSpace(AWEKAS.ID))
-				UpdateAwekas(DateTime.Now);
-		}
-
 		public void MQTTSecondChanged(DateTime now)
 		{
 			if (MQTT.EnableInterval && !station.DataStopped)
@@ -2301,421 +2317,6 @@ namespace CumulusMX
 			}
 		}
 		*/
-
-		internal async void UpdateWunderground(DateTime timestamp)
-		{
-			if (Wund.Updating || station.DataStopped)
-			{
-				// No data coming in, do not do anything
-				return;
-			}
-
-			Wund.Updating = true;
-
-			string pwstring;
-			string URL = station.GetWundergroundURL(out pwstring, timestamp, false);
-
-			string starredpwstring = "&PASSWORD=" + new string('*', Wund.PW.Length);
-
-			string logUrl = URL.Replace(pwstring, starredpwstring);
-			if (!Wund.RapidFireEnabled)
-			{
-				LogDebugMessage("Wunderground: URL = " + logUrl);
-			}
-
-			try
-			{
-				using var response = await MyHttpClient.GetAsync(URL);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					// Flag the error immediately if no rapid fire
-					// Flag error after every 12 rapid fire failures (1 minute)
-					Wund.ErrorFlagCount++;
-					if (!Wund.RapidFireEnabled || Wund.ErrorFlagCount >= 12)
-					{
-						LogWarningMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
-						ThirdPartyAlarm.LastMessage = "Wunderground: HTTP response - " + response.StatusCode;
-						ThirdPartyAlarm.Triggered = true;
-						Wund.ErrorFlagCount = 0;
-					}
-				}
-				else
-				{
-					ThirdPartyAlarm.Triggered = false;
-					Wund.ErrorFlagCount = 0;
-				}
-			}
-			catch (Exception ex)
-			{
-				LogWarningMessage("Wunderground: ERROR - " + ex.Message);
-				ThirdPartyAlarm.LastMessage = "Wunderground: " + ex.Message;
-				ThirdPartyAlarm.Triggered = true;
-			}
-			finally
-			{
-				Wund.Updating = false;
-			}
-		}
-
-		internal async void UpdateWindy(DateTime timestamp)
-		{
-			if (Windy.Updating || station.DataStopped)
-			{
-				// No data coming in, do not do anything
-				return;
-			}
-
-			Windy.Updating = true;
-
-			string apistring;
-			string url = station.GetWindyURL(out apistring, timestamp);
-			string logUrl = url.Replace(apistring, "<<API_KEY>>");
-
-			LogDebugMessage("Windy: URL = " + logUrl);
-
-			try
-			{
-				using var response = await MyHttpClient.GetAsync(url);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					LogWarningMessage("Windy: ERROR - Response = " + response.StatusCode + ": " + responseBodyAsText);
-					ThirdPartyAlarm.LastMessage = "Windy: HTTP response - " + response.StatusCode;
-					ThirdPartyAlarm.Triggered = true;
-				}
-				else
-				{
-					ThirdPartyAlarm.Triggered = false;
-				}
-			}
-			catch (Exception ex)
-			{
-				LogWarningMessage("Windy: ERROR - " + ex.Message);
-				ThirdPartyAlarm.LastMessage = "Windy: " + ex.Message;
-				ThirdPartyAlarm.Triggered = true;
-			}
-			finally
-			{
-				Windy.Updating = false;
-			}
-		}
-
-		internal async void UpdateWindGuru(DateTime timestamp)
-		{
-			if (WindGuru.Updating || station.DataStopped)
-			{
-				// No data coming in, do not do anything
-				return;
-			}
-
-			WindGuru.Updating = true;
-
-			string apistring;
-			string url = station.GetWindGuruURL(out apistring, timestamp);
-			string logUrl = url.Replace(apistring, "<<StationUID>>");
-
-			LogDebugMessage("WindGuru: URL = " + logUrl);
-
-			try
-			{
-				using var response = await MyHttpClient.GetAsync(url);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				LogDebugMessage("WindGuru: " + response.StatusCode + ": " + responseBodyAsText);
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					LogWarningMessage("WindGuru: ERROR - " + response.StatusCode + ": " + responseBodyAsText);
-					ThirdPartyAlarm.LastMessage = "WindGuru: HTTP response - " + response.StatusCode;
-					ThirdPartyAlarm.Triggered = true;
-				}
-				else
-				{
-					ThirdPartyAlarm.Triggered = false;
-				}
-			}
-			catch (Exception ex)
-			{
-				LogWarningMessage("WindGuru: ERROR - " + ex.Message);
-				ThirdPartyAlarm.LastMessage = "WindGuru: " + ex.Message;
-				ThirdPartyAlarm.Triggered = true;
-			}
-			finally
-			{
-				WindGuru.Updating = false;
-			}
-		}
-
-
-		internal async void UpdateAwekas(DateTime timestamp)
-		{
-			if (AWEKAS.Updating || station.DataStopped)
-			{
-				// No data coming in, do not do anything
-				return;
-			}
-
-			AWEKAS.Updating = true;
-
-			string pwstring;
-			string url = station.GetAwekasURLv4(out pwstring, timestamp);
-
-			string starredpwstring = "<password>";
-
-			string logUrl = url.Replace(pwstring, starredpwstring);
-
-			LogDebugMessage("AWEKAS: URL = " + logUrl);
-
-			try
-			{
-				using var response = await MyHttpClient.GetAsync(url);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				LogDebugMessage("AWEKAS Response code = " + response.StatusCode);
-				LogDataMessage("AWEKAS: Response text = " + responseBodyAsText);
-
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					LogWarningMessage($"AWEKAS: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
-					ThirdPartyAlarm.LastMessage = $"AWEKAS: HTTP Response code = {response.StatusCode}, body = {responseBodyAsText}";
-					ThirdPartyAlarm.Triggered = true;
-					AWEKAS.Updating = false;
-					return;
-				}
-				else
-				{
-					ThirdPartyAlarm.Triggered = false;
-				}
-
-				AwekasResponse respJson;
-				try
-				{
-					respJson = JsonSerializer.DeserializeFromString<AwekasResponse>(responseBodyAsText);
-				}
-				catch (Exception ex)
-				{
-					LogMessage("AWEKAS: Exception deserializing response = " + ex.Message);
-					LogWarningMessage($"AWEKAS: ERROR - Response body = {responseBodyAsText}");
-					ThirdPartyAlarm.LastMessage = "AWEKAS deserializing response: " + ex.Message;
-					ThirdPartyAlarm.Triggered = true;
-					AWEKAS.Updating = false;
-					return;
-				}
-
-				// Check the status response
-				if (respJson.status == 2)
-				{
-					LogDebugMessage("AWEKAS: Data stored OK");
-				}
-				else if (respJson.status == 1)
-				{
-					LogMessage("AWEKAS: Data PARIALLY stored");
-					// TODO: Check errors and disabled
-				}
-				else if (respJson.status == 0)  // Authentication error or rate limited
-				{
-					if (respJson.minuploadtime > 0 && respJson.authentication == 0)
-					{
-						LogWarningMessage("AWEKAS: Authentication error");
-						if (AWEKAS.Interval < 300)
-						{
-							AWEKAS.RateLimited = true;
-							AWEKAS.OriginalInterval = AWEKAS.Interval;
-							AWEKAS.Interval = 300;
-							AwekasTimer.Enabled = false;
-							AWEKAS.SynchronisedUpdate = true;
-							LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to authentication error");
-						}
-					}
-					else if (respJson.minuploadtime == 0)
-					{
-						LogWarningMessage("AWEKAS: Too many requests, rate limited");
-						// AWEKAS PLus allows minimum of 60 second updates, try that first
-						if (!AWEKAS.RateLimited && AWEKAS.Interval < 60)
-						{
-							AWEKAS.OriginalInterval = AWEKAS.Interval;
-							AWEKAS.RateLimited = true;
-							AWEKAS.Interval = 60;
-							AwekasTimer.Enabled = false;
-							AWEKAS.SynchronisedUpdate = true;
-							LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
-						}
-						// AWEKAS normal allows minimum of 300 second updates, revert to that
-						else
-						{
-							AWEKAS.RateLimited = true;
-							AWEKAS.Interval = 300;
-							AwekasTimer.Interval = AWEKAS.Interval * 1000;
-							AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
-							AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
-							LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to rate limit");
-						}
-					}
-					else
-					{
-						LogWarningMessage("AWEKAS: Unknown error");
-						ThirdPartyAlarm.LastMessage = "AWEKAS: Unknown error";
-						ThirdPartyAlarm.Triggered = true;
-					}
-				}
-
-				// check the min upload time is greater than our upload time
-				if (respJson.status > 0 && respJson.minuploadtime > AWEKAS.OriginalInterval)
-				{
-					LogMessage($"AWEKAS: The minimum upload time to AWEKAS for your station is {respJson.minuploadtime} sec, Cumulus is configured for {AWEKAS.OriginalInterval} sec, increasing Cumulus interval to match AWEKAS");
-					AWEKAS.Interval = respJson.minuploadtime;
-					WriteIniFile();
-					AwekasTimer.Interval = AWEKAS.Interval * 1000;
-					AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
-					AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
-					// we got a successful upload, and reset the interval, so clear the rate limited values
-					AWEKAS.OriginalInterval = AWEKAS.Interval;
-					AWEKAS.RateLimited = false;
-				}
-				else if (AWEKAS.RateLimited && respJson.status > 0)
-				{
-					// We are currently rate limited, it could have been a transient thing because
-					// we just got a valid response, and our interval is >= the minimum allowed.
-					// So we just undo the limit, and resume as before
-					LogMessage($"AWEKAS: Removing temporary increase in upload interval to 60 secs, resuming uploads every {AWEKAS.OriginalInterval} secs");
-					AWEKAS.Interval = AWEKAS.OriginalInterval;
-					AwekasTimer.Interval = AWEKAS.Interval * 1000;
-					AWEKAS.SynchronisedUpdate = AWEKAS.Interval % 60 == 0;
-					AwekasTimer.Enabled = !AWEKAS.SynchronisedUpdate;
-					AWEKAS.RateLimited = false;
-				}
-			}
-			catch (Exception ex)
-			{
-				LogWarningMessage("AWEKAS: Exception = " + ex.Message);
-				ThirdPartyAlarm.LastMessage = "AWEKAS: " + ex.Message;
-				ThirdPartyAlarm.Triggered = true;
-			}
-			finally
-			{
-				AWEKAS.Updating = false;
-			}
-		}
-
-		internal async void UpdateWCloud(DateTime timestamp)
-		{
-			if (WCloud.Updating || station.DataStopped)
-			{
-				// No data coming in, do not do anything
-				return;
-			}
-
-			WCloud.Updating = true;
-
-			string pwstring;
-			string url = station.GetWCloudURL(out pwstring, timestamp);
-
-			string starredpwstring = "<key>";
-
-			string logUrl = url.Replace(pwstring, starredpwstring);
-
-			LogDebugMessage("WeatherCloud: URL = " + logUrl);
-
-			try
-			{
-				using var response = await MyHttpClient.GetAsync(url);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				var msg = "";
-				switch ((int) response.StatusCode)
-				{
-					case 200:
-						msg = "Success";
-						ThirdPartyAlarm.Triggered = false;
-						break;
-					case 400:
-						msg = "Bad request";
-						ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
-						ThirdPartyAlarm.Triggered = true;
-						break;
-					case 401:
-						msg = "Incorrect WID or Key";
-						ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
-						ThirdPartyAlarm.Triggered = true;
-						break;
-					case 429:
-						msg = "Too many requests";
-						ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
-						ThirdPartyAlarm.Triggered = true;
-						break;
-					case 500:
-						msg = "Server error";
-						ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
-						ThirdPartyAlarm.Triggered = true;
-						break;
-					default:
-						msg = "Unknown error";
-						ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
-						ThirdPartyAlarm.Triggered = true;
-						break;
-				}
-				if ((int) response.StatusCode == 200)
-					LogDebugMessage($"WeatherCloud: Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
-				else
-					LogWarningMessage($"WeatherCloud: ERROR - Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
-			}
-			catch (Exception ex)
-			{
-				LogWarningMessage("WeatherCloud: ERROR - " + ex.Message);
-				ThirdPartyAlarm.LastMessage = "WeatherCloud: " + ex.Message;
-				ThirdPartyAlarm.Triggered = true;
-			}
-			finally
-			{
-				WCloud.Updating = false;
-			}
-		}
-
-		internal async void UpdateOpenWeatherMap(DateTime timestamp)
-		{
-			if (OpenWeatherMap.Updating || station.DataStopped)
-			{
-				// No data coming in, do not do anything
-				return;
-			}
-
-			OpenWeatherMap.Updating = true;
-
-			string url = "http://api.openweathermap.org/data/3.0/measurements?appid=" + OpenWeatherMap.PW;
-			string logUrl = url.Replace(OpenWeatherMap.PW, "<key>");
-
-			string jsonData = station.GetOpenWeatherMapData(timestamp);
-
-			LogDebugMessage("OpenWeatherMap: URL = " + logUrl);
-			LogDataMessage("OpenWeatherMap: Body = " + jsonData);
-
-			try
-			{
-				var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
-				using var response = await MyHttpClient.PostAsync(url, data);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
-				LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
-				if (response.StatusCode != HttpStatusCode.NoContent)
-				{
-					LogWarningMessage($"OpenWeatherMap: ERROR - Response code = {response.StatusCode}, Response data = {responseBodyAsText}");
-					ThirdPartyAlarm.LastMessage = $"OpenWeatherMap: HTTP response - {response.StatusCode}, Response data = {responseBodyAsText}";
-					ThirdPartyAlarm.Triggered = true;
-				}
-				else
-				{
-					ThirdPartyAlarm.Triggered = false;
-				}
-			}
-			catch (Exception ex)
-			{
-				LogWarningMessage("OpenWeatherMap: ERROR - " + ex.Message);
-				ThirdPartyAlarm.LastMessage = "OpenWeatherMap: " + ex.Message;
-				ThirdPartyAlarm.Triggered = true;
-			}
-			finally
-			{
-				OpenWeatherMap.Updating = false;
-			}
-		}
 
 		// Find all stations associated with the users API key
 		internal OpenWeatherMapStation[] GetOpenWeatherMapStations()
@@ -3216,8 +2817,6 @@ namespace CumulusMX
 					var remoteFile = remotePath + RealtimeFiles[i].RemoteFileName;
 					var localFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
 
-					LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}");
-
 					string data = string.Empty;
 
 					if (FtpOptions.FtpMode != FtpProtocols.PHP)
@@ -3236,11 +2835,12 @@ namespace CumulusMX
 						using var dataStream = GenerateStreamFromString(data);
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
-
+							LogDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}");
 							_ = UploadStream(RealtimeSSH, remoteFile, dataStream, cycle);
 						}
 						else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
 						{
+							LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}");
 							_ = UploadStream(RealtimeFTP, remoteFile, dataStream, cycle);
 						}
 					}
@@ -4262,32 +3862,6 @@ namespace CumulusMX
 				Trace.Listeners.Add(myTextListener);
 				LogMessage("Rotated log file, old log file was: " + oldfile.Split(DirectorySeparator).Last());
 			}
-
-			// cycle the FTP log file
-			if (FtpOptions.Logging && File.Exists(ftpLogfile))
-			{
-				logfileSize = new FileInfo(ftpLogfile).Length;
-				// if > 20 MB
-				if (logfileSize > 20971520)
-				{
-					var oldfile = ftpLogfile;
-					ftpLogfile = RemoveOldDiagsFiles("FTP");
-					LogFtpMessage("Rotating FTP log file, new log file will be: " + ftpLogfile.Split(DirectorySeparator).Last());
-					CreateFtpLogFile();
-					LogFtpMessage("Rotated FTP log file, old log file was: " + oldfile.Split(DirectorySeparator).Last());
-				}
-			}
-		}
-
-		public void CreateFtpLogFile()
-		{
-			if (FtpTraceListener != null)
-			{
-				FtpTraceListener.Close();
-				FtpTraceListener.Dispose();
-			}
-			FtpTraceListener = new TextWriterTraceListener(ftpLogfile, "ftplog");
-			LogFtpMessage("Create FTP log file: " + ftpLogfile.Split(DirectorySeparator).Last());
 		}
 
 		private void ReadIniFile()
@@ -4374,7 +3948,7 @@ namespace CumulusMX
 				ProgramOptions.DebugLogging = ini.GetValue("Station", "Logging", false);
 				ProgramOptions.DataLogging = ini.GetValue("Station", "DataLogging", false);
 			}
-			ErrorListLoggingLevel = (LogLevel) ini.GetValue("Program", "ErrorListLoggingLevel", (int)LogLevel.Warning);
+			ErrorListLoggingLevel = (MxLogLevel) ini.GetValue("Program", "ErrorListLoggingLevel", (int)MxLogLevel.Warning);
 
 			ProgramOptions.SecureSettings = ini.GetValue("Program", "SecureSettings", false);
 			ProgramOptions.SettingsUsername = ini.GetValue("Program", "SettingsUsername", "");
@@ -4923,6 +4497,7 @@ namespace CumulusMX
 			FtpOptions.DisableEPSV = ini.GetValue("FTP site", "DisableEPSV", false);
 			FtpOptions.DisableExplicit = ini.GetValue("FTP site", "DisableFtpsExplicit", false);
 			FtpOptions.Logging = ini.GetValue("FTP site", "FTPlogging", false);
+			FtpOptions.LoggingLevel = ini.GetValue("FTP site", "FTPloggingLevel", 2);
 			RealtimeIntervalEnabled = ini.GetValue("FTP site", "EnableRealtime", false);
 			FtpOptions.RealtimeEnabled = ini.GetValue("FTP site", "RealtimeFTPEnabled", false);
 
@@ -6517,6 +6092,7 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "IgnoreCertErrors", FtpOptions.IgnoreCertErrors);
 
 			ini.SetValue("FTP site", "FTPlogging", FtpOptions.Logging);
+			ini.SetValue("FTP site", "FTPloggingLevel", FtpOptions.LoggingLevel);
 			ini.SetValue("FTP site", "UTF8encode", UTF8encode);
 			ini.SetValue("FTP site", "EnableRealtime", RealtimeIntervalEnabled);
 			ini.SetValue("FTP site", "RealtimeInterval", RealtimeInterval);
@@ -8105,9 +7681,7 @@ namespace CumulusMX
 		public int Gw1000PrimaryTHSensor;
 		public int Gw1000PrimaryRainSensor;
 
-		public Timer WundTimer = new();
 		public Timer WebTimer = new();
-		public Timer AwekasTimer = new();
 
 		public int DAVIS = 0;
 		public int OREGON = 1;
@@ -8142,76 +7716,7 @@ namespace CumulusMX
 		public FileGenerationOptions[] GraphDataEodFiles;
 
 
-		//		private WebSocketServer wsServer;
-
-		/*
-		public string Getversion()
-		{
-			return Version;
-		}
-
-		public void SetComport(string comport)
-		{
-			ComportName = comport;
-		}
-
-		public string GetComport()
-		{
-			return ComportName;
-		}
-
-		public void SetStationType(int type)
-		{
-			StationType = type;
-		}
-
-		public int GetStationType()
-		{
-			return StationType;
-		}
-
-		public void SetVPRainGaugeType(int type)
-		{
-			VPrainGaugeType = type;
-		}
-
-		public int GetVPRainGaugeType()
-		{
-			return VPrainGaugeType;
-		}
-
-		public void SetVPConnectionType(VPConnTypes type)
-		{
-			VPconntype = type;
-		}
-
-		public VPConnTypes GetVPConnectionType()
-		{
-			return VPconntype;
-		}
-
-		public void SetIPaddress(string address)
-		{
-			IPaddress = address;
-		}
-
-		public string GetIPaddress()
-		{
-			return IPaddress;
-		}
-
-		public void SetTCPport(int port)
-		{
-			TCPport = port;
-		}
-
-		public int GetTCPport()
-		{
-			return TCPport;
-		}
-		*/
-
-			public string GetLogFileName(DateTime thedate)
+		public string GetLogFileName(DateTime thedate)
 		{
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
@@ -8529,7 +8034,7 @@ namespace CumulusMX
 			sb.Append(station.CO2_pm10.ToString("F1", inv) + sep);                //88
 			sb.Append(station.CO2_pm10_24h.ToString("F1", inv) + sep);            //89
 			sb.Append(station.CO2_temperature.ToString(TempFormat, inv) + sep);   //90
-			sb.Append(station.CO2_humidity);                                      //91
+			sb.Append(station.CO2_humidity.ToString("F0"));                       //91
 			sb.Append(Environment.NewLine);
 
 			var success = false;
@@ -9030,95 +8535,208 @@ namespace CumulusMX
 					}
 				}
 
-				string foldername = timestamp.ToString("yyyyMMddHHmmss");
-
-				foldername = dirpath + foldername + DirectorySeparator;
+				string foldername = daily ? timestamp.ToString("yyyyMMdd") : timestamp.ToString("yyyyMMddHHmmss");
+				string folderpath = dirpath + foldername + DirectorySeparator;
+				string datafolder = "data" + DirectorySeparator;
 
 				LogMessage("BackupData: Creating backup folder " + foldername);
 
-				var alltimebackup = foldername + "alltime.ini";
-				var monthlyAlltimebackup = foldername + "monthlyalltime.ini";
-				var daybackup = foldername + "dayfile.txt";
-				var yesterdaybackup = foldername + "yesterday.ini";
-				var todaybackup = foldername + "today.ini";
-				var monthbackup = foldername + "month.ini";
-				var yearbackup = foldername + "year.ini";
-				var diarybackup = foldername + "diary.db";
-				var configbackup = foldername + "Cumulus.ini";
-				var dbBackup = foldername + "cumulusmx.db";
-				var stringsbackup = foldername + "strings.ini";
+				var configbackup = "Cumulus.ini";
+				var uniquebackup = "UniqueId.txt";
+				var stringsbackup = "strings.ini";
+				var alltimebackup = datafolder + "alltime.ini";
+				var monthlyAlltimebackup = datafolder + "monthlyalltime.ini";
+				var daybackup = datafolder + "dayfile.txt";
+				var yesterdaybackup = datafolder + "yesterday.ini";
+				var todaybackup = datafolder + "today.ini";
+				var monthbackup = datafolder + "month.ini";
+				var yearbackup = datafolder + "year.ini";
+				var diarybackup = datafolder + "diary.db";
+				var dbBackup = datafolder + "cumulusmx.db";
 
 				var LogFile = GetLogFileName(timestamp);
-				var logbackup = foldername + LogFile.Replace(logFilePath, "");
+				var logbackup = datafolder + LogFile.Replace(logFilePath, "");
 
 				var extraFile = GetExtraLogFileName(timestamp);
-				var extraBackup = foldername + extraFile.Replace(logFilePath, "");
+				var extraBackup = datafolder + extraFile.Replace(logFilePath, "");
 
 				var AirLinkFile = GetAirLinkLogFileName(timestamp);
-				var AirLinkBackup = foldername + AirLinkFile.Replace(logFilePath, "");
+				var AirLinkBackup = datafolder + AirLinkFile.Replace(logFilePath, "");
 
 
-				if (!Directory.Exists(foldername))
+				if (!Directory.Exists(folderpath))
 				{
-					Directory.CreateDirectory(foldername);
-					CopyBackupFile(AlltimeIniFile, alltimebackup);
-					CopyBackupFile(MonthlyAlltimeIniFile, monthlyAlltimebackup);
-					CopyBackupFile(DayFileName, daybackup);
-					CopyBackupFile(TodayIniFile, todaybackup);
-					CopyBackupFile(YesterdayFile, yesterdaybackup);
-					CopyBackupFile(LogFile, logbackup);
-					CopyBackupFile(MonthIniFile, monthbackup);
-					CopyBackupFile(YearIniFile, yearbackup);
-					CopyBackupFile(diaryfile, diarybackup);
-					CopyBackupFile("Cumulus.ini", configbackup);
-					CopyBackupFile(dbfile, dbBackup);
-					CopyBackupFile(extraFile, extraBackup);
-					CopyBackupFile(AirLinkFile, AirLinkBackup);
-					CopyBackupFile("strings.ini", stringsbackup);
-					// custom logs
-					for (var i = 0; i < 10; i++)
+					try
 					{
-						if (CustomIntvlLogSettings[i].Enabled)
-						{
-							var filename = GetCustomIntvlLogFileName(i, timestamp);
-							CopyBackupFile(filename, foldername + filename.Replace(logFilePath, ""));
-						}
-
-						if (CustomDailyLogSettings[i].Enabled)
-						{
-							var filename = GetCustomDailyLogFileName(i);
-							CopyBackupFile(filename, foldername + filename.Replace(logFilePath, ""));
-						}
+						Directory.CreateDirectory(folderpath);
+						if (!Directory.Exists(datafolder))
+							Directory.CreateDirectory(datafolder);
+					}
+					catch (Exception ex)
+					{
+						LogExceptionMessage(ex, "Backup: Error creating folders");
+						return;
 					}
 
-					// Do not do this extra backup between 00:00 & Roll-over hour on the first of the month
-					// as the month has not yet rolled over - only applies for start-up backups
-					if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
+					// create a zip archive file for the backup
+					using (FileStream zipFile = new FileStream(folderpath + DirectorySeparator + foldername + ".zip", FileMode.Create))
 					{
-						// on the first of month, we also need to backup last months files as well
-						var LogFile2 = GetLogFileName(timestamp.AddDays(-1));
-						var logbackup2 = foldername + LogFile2.Replace(logFilePath, "");
-
-						var extraFile2 = GetExtraLogFileName(timestamp.AddDays(-1));
-						var extraBackup2 = foldername + extraFile2.Replace(logFilePath, "");
-
-						var AirLinkFile2 = GetAirLinkLogFileName(timestamp.AddDays(-1));
-						var AirLinkBackup2 = foldername + AirLinkFile2.Replace(logFilePath, "");
-
-						CopyBackupFile(LogFile2, logbackup2, true);
-						CopyBackupFile(extraFile2, extraBackup2, true);
-						CopyBackupFile(AirLinkFile2, AirLinkBackup2, true);
-
-						for (var i = 0; i < 10; i++)
+						using ZipArchive archive = new ZipArchive(zipFile, ZipArchiveMode.Create);
+						try
 						{
-							if (CustomIntvlLogSettings[i].Enabled)
+							if (File.Exists(AlltimeIniFile))
+								archive.CreateEntryFromFile(AlltimeIniFile, alltimebackup);
+							if (File.Exists(MonthlyAlltimeIniFile))
+								archive.CreateEntryFromFile(MonthlyAlltimeIniFile, monthlyAlltimebackup);
+							if (File.Exists(DayFileName))
+								archive.CreateEntryFromFile(DayFileName, daybackup);
+							if (File.Exists(TodayIniFile))
+								archive.CreateEntryFromFile(TodayIniFile, todaybackup);
+							if (File.Exists(YesterdayFile))
+								archive.CreateEntryFromFile(YesterdayFile, yesterdaybackup);
+							if (File.Exists(LogFile))
+								archive.CreateEntryFromFile(LogFile, logbackup);
+							if (File.Exists(MonthIniFile))
+								archive.CreateEntryFromFile(MonthIniFile, monthbackup);
+							if (File.Exists(YearIniFile))
+								archive.CreateEntryFromFile(YearIniFile, yearbackup);
+							if (File.Exists("Cumulus.ini"))
+								archive.CreateEntryFromFile("Cumulus.ini", configbackup);
+							if (File.Exists("UniqueId.txt"))
+								archive.CreateEntryFromFile("UniqueId.txt", uniquebackup);
+							if (File.Exists("strings.ini"))
+								archive.CreateEntryFromFile("strings.ini", stringsbackup);
+						}
+						catch (Exception ex)
+						{
+							LogExceptionMessage(ex, "Backup: Error backing up the data files");
+						}
+
+						if (daily)
+						{
+							// for daily backup the db is in use, so use an online backup
+							try
 							{
-								var filename = GetCustomIntvlLogFileName(i, timestamp.AddDays(-1));
-								CopyBackupFile(filename, foldername + filename.Replace(logFilePath, ""), true);
+								var backUpDest = folderpath + "cumulusmx.db";
+								var zipLocation = datafolder + "cumulusmx.db";
+								LogDebugMessage("Making backup copy of the database");
+								station.RecentDataDb.Backup(backUpDest);
+								LogDebugMessage("Completed backup copy of the database");
+
+								LogDebugMessage("Archiving backup copy of the database");
+								archive.CreateEntryFromFile(backUpDest, zipLocation);
+								LogDebugMessage("Completed backup copy of the database");
+
+								LogDebugMessage("Deleting backup copy of the database");
+								File.Delete(backUpDest);
+
+								backUpDest = folderpath + "diary.db";
+								zipLocation = datafolder + "diary.db";
+								LogDebugMessage("Making backup copy of the diary");
+								DiaryDB.Backup(backUpDest);
+								LogDebugMessage("Completed backup copy of the diary");
+
+								LogDebugMessage("Archiving backup copy of the diary");
+								archive.CreateEntryFromFile(backUpDest, zipLocation);
+								LogDebugMessage("Completed backup copy of the diary");
+
+								LogDebugMessage("Deleting backup copy of the diary");
+								File.Delete(backUpDest);
+							}
+							catch (Exception ex)
+							{
+								LogExceptionMessage(ex, "Error making db backup");
 							}
 						}
-					}
+						else
+						{
+							// start-up backup - the db is not yet in use, do a file copy including any recovery files
+							try
+							{
+								LogDebugMessage("Archiving the database");
+								archive.CreateEntryFromFile(dbfile, dbBackup);
+								if (File.Exists(dbfile + "-journal"))
+								{
+									archive.CreateEntryFromFile(dbfile + "-journal", dbBackup + "-journal");
+								}
 
+								archive.CreateEntryFromFile(diaryfile, diarybackup);
+								if (File.Exists(diaryfile + "-journal"))
+								{
+									archive.CreateEntryFromFile(diaryfile + "-journal", diarybackup + "-journal");
+								}
+
+								LogDebugMessage("Completed archive of the database");
+							}
+							catch (Exception ex)
+							{
+								LogExceptionMessage(ex, "Backup: Error backing up the database files");
+							}
+						}
+
+						try
+						{
+							if (File.Exists(extraFile))
+								archive.CreateEntryFromFile(extraFile, extraBackup);
+							if (File.Exists(AirLinkFile))
+								archive.CreateEntryFromFile(AirLinkFile, AirLinkBackup);
+
+							// custom logs
+							for (var i = 0; i < 10; i++)
+							{
+								if (CustomIntvlLogSettings[i].Enabled)
+								{
+									var filename = GetCustomIntvlLogFileName(i, timestamp);
+									if (File.Exists(filename))
+										archive.CreateEntryFromFile(filename, datafolder + Path.GetFileName(filename));
+								}
+
+								if (CustomDailyLogSettings[i].Enabled)
+								{
+									var filename = GetCustomDailyLogFileName(i);
+									if (File.Exists(filename))
+										archive.CreateEntryFromFile(filename, datafolder + Path.GetFileName(filename));
+								}
+							}
+
+							// Do not do this extra backup between 00:00 & Roll-over hour on the first of the month
+							// as the month has not yet rolled over - only applies for start-up backups
+							if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
+							{
+								var newTime = timestamp.AddDays(-1);
+								// on the first of month, we also need to backup last months files as well
+								var LogFile2 = GetLogFileName(newTime);
+								var logbackup2 = datafolder + Path.GetFileName(LogFile2);
+
+								var extraFile2 = GetExtraLogFileName(newTime);
+								var extraBackup2 = datafolder + Path.GetFileName(extraFile2);
+
+								var AirLinkFile2 = GetAirLinkLogFileName(timestamp.AddDays(-1));
+								var AirLinkBackup2 = datafolder + Path.GetFileName(AirLinkFile2);
+
+								if (File.Exists(LogFile2))
+									archive.CreateEntryFromFile(LogFile2, logbackup2);
+								if (File.Exists(extraFile2))
+									archive.CreateEntryFromFile(extraFile2, extraBackup2);
+								if (File.Exists(AirLinkFile2))
+									archive.CreateEntryFromFile(AirLinkFile2, AirLinkBackup2);
+
+								for (var i = 0; i < 10; i++)
+								{
+									if (CustomIntvlLogSettings[i].Enabled)
+									{
+										var filename = GetCustomIntvlLogFileName(i, newTime);
+										if (File.Exists(filename))
+											archive.CreateEntryFromFile(filename, datafolder + Path.GetFileName(filename));
+									}
+								}
+							}
+						}
+						catch (Exception ex)
+						{
+							LogExceptionMessage(ex, "Backup: Error backing up extra log files");
+						}
+					}
 					LogMessage("Created backup folder " + foldername);
 				}
 				else
@@ -9498,17 +9116,17 @@ namespace CumulusMX
 
 		public void LogCriticalMessage(string message)
 		{
-			LogMessage(message, LogLevel.Critical);
+			LogMessage(message, MxLogLevel.Critical);
 		}
 
 		public void LogErrorMessage(string message)
 		{
-			LogMessage(message, LogLevel.Error);
+			LogMessage(message, MxLogLevel.Error);
 		}
 
 		public void LogWarningMessage(string message)
 		{
-			LogMessage(message, LogLevel.Warning);
+			LogMessage(message, MxLogLevel.Warning);
 		}
 
 		public void LogSpikeRemoval(string message)
@@ -9527,12 +9145,12 @@ namespace CumulusMX
 			{
 				tokenSource.Cancel();
 				LogMessage("Stopping timers");
-				RealtimeTimer.Stop();
-				WundTimer.Stop();
-				WebTimer.Stop();
-				AwekasTimer.Stop();
-				CustomHttpSecondsTimer.Stop();
-				CustomMysqlSecondsTimer.Stop();
+				try { RealtimeTimer.Stop(); } catch { }
+				try { Wund.IntTimer.Stop(); } catch { }
+				try { WebTimer.Stop(); } catch { }
+				try { AWEKAS.IntTimer.Stop(); } catch { }
+				try { CustomHttpSecondsTimer.Stop(); } catch { }
+				try { CustomMysqlSecondsTimer.Stop(); } catch { }
 			}
 			catch { }
 
@@ -10068,12 +9686,17 @@ namespace CumulusMX
 			{
 				using (FtpClient conn = new FtpClient())
 				{
+					if (FtpOptions.Logging)
+					{
+						conn.Logger = (IFtpLogger) FtpLoggerIN;
+					}
+
 					LogFtpMessage(""); // insert a blank line
 					LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to " + FtpOptions.Hostname);
 					conn.Host = FtpOptions.Hostname;
 					conn.Port = FtpOptions.Port;
 					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
-					conn.LegacyLogger = LogFluentFtpMessage;
+					conn.Config.LogPassword = false;
 
 					if (!FtpOptions.AutoDetect)
 					{
@@ -10589,12 +10212,17 @@ namespace CumulusMX
 			{
 				using (FtpClient conn = new FtpClient())
 				{
+					if (FtpOptions.Logging)
+					{
+						conn.Logger = (IFtpLogger) FtpLoggerIN;
+					}
+
 					LogFtpMessage(""); // insert a blank line
 					LogFtpDebugMessage($"FTP[Int]: CumulusMX Connecting to " + FtpOptions.Hostname);
 					conn.Host = FtpOptions.Hostname;
 					conn.Port = FtpOptions.Port;
 					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
-					conn.LegacyLogger = LogFluentFtpMessage;
+					conn.Config.LogPassword = false;
 
 					if (!FtpOptions.AutoDetect)
 					{
@@ -12307,7 +11935,7 @@ namespace CumulusMX
 			return false;
 		}
 
-		public void LogMessage(string message, LogLevel level=LogLevel.Info)
+		public void LogMessage(string message, MxLogLevel level=MxLogLevel.Info)
 		{
 			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 
@@ -12348,39 +11976,19 @@ namespace CumulusMX
 			if (!string.IsNullOrEmpty(message))
 				LogMessage(message);
 
-			LogFluentFtpMessage(FtpTraceLevel.Info, message);
+			if (FtpOptions.Logging)
+			{
+				FtpLoggerMX.LogInformation("CMX: {msg}", message);
+			}
 		}
 
 		public void LogFtpDebugMessage(string message)
 		{
-			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.SFTP))
+			if (FtpOptions.Logging)
 			{
 				if (!string.IsNullOrEmpty(message))
 					LogDebugMessage(message);
-				LogFluentFtpMessage(FtpTraceLevel.Info, message);
-			}
-		}
-
-		public void LogFluentFtpMessage(FtpTraceLevel level, string message)
-		{
-			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.SFTP))
-			{
-				try
-				{
-					if (string.IsNullOrEmpty(message))
-						FtpTraceListener.WriteLine(string.Empty);
-					else
-						FtpTraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
-					FtpTraceListener.Flush();
-				}
-				catch (Exception ex)
-				{
-					LogExceptionMessage(ex, $"LogFluentFtpMessage: Error");
-					// Let's try closing and the existing log file and reopening
-					LogDebugMessage($"LogFluentFtpMessage: Error = {ex.Message}");
-					ftpLogfile = RemoveOldDiagsFiles("FTP");
-					CreateFtpLogFile();
-				}
+				FtpLoggerMX.LogInformation("CMX: {msg}", message);
 			}
 		}
 
@@ -12835,104 +12443,26 @@ namespace CumulusMX
 
 			if (Wund.RapidFireEnabled)
 			{
-				WundTimer.Interval = 5000; // 5 seconds in rapid-fire mode
+				Wund.IntTimer.Interval = 5000; // 5 seconds in rapid-fire mode
 			}
 			else
 			{
-				WundTimer.Interval = Wund.Interval * 60 * 1000; // mins to millisecs
+				Wund.IntTimer.Interval = Wund.Interval * 60 * 1000; // mins to millisecs
 			}
 
-			AwekasTimer.Interval = AWEKAS.Interval * 1000;
+			AWEKAS.IntTimer.Interval = AWEKAS.Interval * 1000;
+			AWEKAS.IntTimer.Enabled = AWEKAS.Enabled && !AWEKAS.SynchronisedUpdate;
 
-			if (WundList == null)
-			{
-				// we've already been through here
-				// do nothing
-				LogDebugMessage("Wundlist is null");
-			}
-			else if (WundList.Count == 0)
-			{
-				// No archived entries to upload
-				WundList = null;
-				LogDebugMessage("Wundlist count is zero");
-				WundTimer.Enabled = Wund.Enabled && !Wund.SynchronisedUpdate;
-			}
-			else
-			{
-				// start the archive upload thread
-				Wund.CatchingUp = true;
-				WundCatchup();
-			}
 
-			if (WindyList == null)
-			{
-				// we've already been through here
-				// do nothing
-				LogDebugMessage("Windylist is null");
-			}
-			else if (WindyList.Count == 0)
-			{
-				// No archived entries to upload
-				WindyList = null;
-				LogDebugMessage("Windylist count is zero");
-			}
-			else
-			{
-				// start the archive upload thread
-				Windy.CatchingUp = true;
-				WindyCatchUp();
-			}
+			Wund.CatchUpIfRequired();
 
-			if (PWSList == null)
-			{
-				// we've already been through here
-				// do nothing
-			}
-			else if (PWSList.Count == 0)
-			{
-				// No archived entries to upload
-				PWSList = null;
-			}
-			else
-			{
-				// start the archive upload thread
-				PWS.CatchingUp = true;
-				PWSCatchUp();
-			}
+			Windy.CatchUpIfRequired();
 
-			if (WOWList == null)
-			{
-				// we've already been through here
-				// do nothing
-			}
-			else if (WOWList.Count == 0)
-			{
-				// No archived entries to upload
-				WOWList = null;
-			}
-			else
-			{
-				// start the archive upload thread
-				WOW.CatchingUp = true;
-				WOWCatchUp();
-			}
+			PWS.CatchUpIfRequired();
 
-			if (OWMList == null)
-			{
-				// we've already been through here
-				// do nothing
-			}
-			else if (OWMList.Count == 0)
-			{
-				// No archived entries to upload
-				OWMList = null;
-			}
-			else
-			{
-				// start the archive upload thread
-				OpenWeatherMap.CatchingUp = true;
-				OpenWeatherMapCatchUp();
-			}
+			WOW.CatchUpIfRequired();
+
+			OpenWeatherMap.CatchUpIfRequired();
 
 			if (MySqlList.IsEmpty)
 			{
@@ -12949,8 +12479,6 @@ namespace CumulusMX
 
 			WebTimer.Interval = UpdateInterval * 60 * 1000; // mins to millisecs
 			WebTimer.Enabled = WebIntervalEnabled && !SynchronisedWebUpdate;
-
-			AwekasTimer.Enabled = AWEKAS.Enabled && !AWEKAS.SynchronisedUpdate;
 
 			EnableOpenWeatherMap();
 
@@ -13324,10 +12852,12 @@ namespace CumulusMX
 				Host = FtpOptions.Hostname,
 				Port = FtpOptions.Port,
 				Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password),
-				LegacyLogger = LogFluentFtpMessage
 			};
 
 			RealtimeFTP.Config.SocketPollInterval = 20000; // increase beyond the timeout value
+			RealtimeFTP.Config.LogPassword = false;
+
+			SetFtpLogging(FtpOptions.Logging);
 
 			if (!FtpOptions.AutoDetect)
 			{
@@ -13438,264 +12968,6 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					LogErrorMessage($"RealtimeSSHLogin: Error connecting SFTP - {ex.Message}");
-				}
-			}
-		}
-
-		/// <summary>
-		/// Process the list of WU updates created at start-up from logger entries
-		/// </summary>
-		private async void WundCatchup()
-		{
-			Wund.Updating = true;
-			for (int i = 0; i < WundList.Count; i++)
-			{
-				LogMessage("Uploading WU archive #" + (i + 1));
-				try
-				{
-					using var response = await MyHttpClient.GetAsync(WundList[i]);
-					if (response.StatusCode == HttpStatusCode.OK)
-					{
-						LogDebugMessage("WU Response: " + response.ReasonPhrase);
-						ThirdPartyAlarm.Triggered = false;
-					}
-					else
-					{
-						var msg = "WU Response: " + response.StatusCode + ": " + response.ReasonPhrase;
-						LogWarningMessage(msg);
-						ThirdPartyAlarm.LastMessage = msg;
-						ThirdPartyAlarm.Triggered = true;
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "WU update: " + ex.Message;
-					LogWarningMessage(msg);
-					ThirdPartyAlarm.LastMessage = msg;
-					ThirdPartyAlarm.Triggered = true;
-				}
-			}
-
-			LogMessage("End of WU archive upload");
-			WundList.Clear();
-			Wund.CatchingUp = false;
-			WundTimer.Enabled = Wund.Enabled && !Wund.SynchronisedUpdate;
-			Wund.Updating = false;
-		}
-
-		private async void WindyCatchUp()
-		{
-			Windy.Updating = true;
-			for (int i = 0; i < WindyList.Count; i++)
-			{
-				LogMessage("Uploading Windy archive #" + (i + 1));
-				try
-				{
-					using var response = await MyHttpClient.GetAsync(WindyList[i]);
-					if (response.StatusCode == HttpStatusCode.OK)
-					{
-						LogDebugMessage("Windy Response: " + response.ReasonPhrase);
-						ThirdPartyAlarm.Triggered = false;
-					}
-					else
-					{
-						var msg = "Windy Response: " + response.StatusCode + ": " + response.ReasonPhrase;
-						LogWarningMessage(msg);
-						ThirdPartyAlarm.LastMessage = msg;
-						ThirdPartyAlarm.Triggered = true;
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "Windy update: " + ex.Message;
-					LogWarningMessage(msg);
-					ThirdPartyAlarm.LastMessage = msg;
-					ThirdPartyAlarm.Triggered = true;
-				}
-			}
-
-			LogMessage("End of Windy archive upload");
-			WindyList.Clear();
-			Windy.CatchingUp = false;
-			Windy.Updating = false;
-		}
-
-		/// <summary>
-		/// Process the list of PWS Weather updates created at start-up from logger entries
-		/// </summary>
-		private async void PWSCatchUp()
-		{
-			PWS.Updating = true;
-
-			for (int i = 0; i < PWSList.Count; i++)
-			{
-				LogMessage("Uploading PWS archive #" + (i + 1));
-				try
-				{
-					using var response = await MyHttpClient.GetAsync(PWSList[i]);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (response.StatusCode == HttpStatusCode.OK)
-					{
-						LogDebugMessage("PWS Response: " + responseBodyAsText);
-						ThirdPartyAlarm.Triggered = false;
-					}
-					else
-					{
-						var msg = "PWS Response: " + response.StatusCode + ": " + responseBodyAsText;
-						LogWarningMessage(msg);
-						ThirdPartyAlarm.LastMessage = msg;
-						ThirdPartyAlarm.Triggered = true;
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "PWS update: " + ex.Message;
-					LogWarningMessage(msg);
-					ThirdPartyAlarm.LastMessage = msg;
-					ThirdPartyAlarm.Triggered = true;
-				}
-			}
-
-			LogMessage("End of PWS archive upload");
-			PWSList.Clear();
-			PWS.CatchingUp = false;
-			PWS.Updating = false;
-		}
-
-		/// <summary>
-		/// Process the list of WOW updates created at start-up from logger entries
-		/// </summary>
-		private async void WOWCatchUp()
-		{
-			WOW.Updating = true;
-
-			for (int i = 0; i < WOWList.Count; i++)
-			{
-				LogMessage("Uploading WOW archive #" + (i + 1));
-				try
-				{
-					using var response = await MyHttpClient.GetAsync(WOWList[i]);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (response.StatusCode == HttpStatusCode.OK)
-					{
-						LogDebugMessage("WOW Response: " + responseBodyAsText);
-						ThirdPartyAlarm.Triggered = false;
-					}
-					else
-					{
-						var msg = "WOW Response: " + response.StatusCode + ": " + responseBodyAsText;
-						LogWarningMessage(msg);
-						ThirdPartyAlarm.LastMessage = msg;
-						ThirdPartyAlarm.Triggered = true;
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "WOW update: " + ex.Message;
-					LogWarningMessage(msg);
-					ThirdPartyAlarm.LastMessage = msg;
-					ThirdPartyAlarm.Triggered = true;
-				}
-			}
-
-			LogMessage("End of WOW archive upload");
-			WOWList.Clear();
-			WOW.CatchingUp = false;
-			WOW.Updating = false;
-		}
-
-		/// <summary>
-		/// Process the list of OpenWeatherMap updates created at start-up from logger entries
-		/// </summary>
-		private async void OpenWeatherMapCatchUp()
-		{
-			OpenWeatherMap.Updating = true;
-
-			string url = "http://api.openweathermap.org/data/3.0/measurements?appid=" + OpenWeatherMap.PW;
-			string logUrl = url.Replace(OpenWeatherMap.PW, "<key>");
-
-			for (int i = 0; i < OWMList.Count; i++)
-			{
-				LogMessage("Uploading OpenWeatherMap archive #" + (i + 1));
-				LogDebugMessage("OpenWeatherMap: URL = " + logUrl);
-				LogDataMessage("OpenWeatherMap: Body = " + OWMList[i]);
-
-				try
-				{
-					using var data = new StringContent(OWMList[i], Encoding.UTF8, "application/json");
-					using var response = await MyHttpClient.PostAsync(url, data);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
-					if (status == "OK")
-					{
-						LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
-						ThirdPartyAlarm.Triggered = false;
-					}
-					else
-					{
-						var msg = $"OpenWeatherMap: Status = {response.StatusCode}, Response data = {responseBodyAsText}";
-						LogWarningMessage(msg);
-						ThirdPartyAlarm.LastMessage = msg;
-						ThirdPartyAlarm.Triggered = true;
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "OpenWeatherMap: Update error = " + ex.Message;
-					LogWarningMessage(msg);
-					ThirdPartyAlarm.LastMessage = msg;
-					ThirdPartyAlarm.Triggered = true;
-				}
-			}
-
-			LogMessage("End of OpenWeatherMap archive upload");
-			OWMList.Clear();
-			OpenWeatherMap.CatchingUp = false;
-			OpenWeatherMap.Updating = false;
-		}
-
-
-		public async void UpdatePWSweather(DateTime timestamp)
-		{
-			if (!PWS.Updating)
-			{
-				PWS.Updating = true;
-
-				string pwstring;
-				string URL = station.GetPWSURL(out pwstring, timestamp);
-
-				string starredpwstring = "&PASSWORD=" + new string('*', PWS.PW.Length);
-
-				string LogURL = URL.Replace(pwstring, starredpwstring);
-				LogDebugMessage(LogURL);
-
-				try
-				{
-					using var response = await MyHttpClient.GetAsync(URL);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (response.StatusCode != HttpStatusCode.OK)
-					{
-						var msg = $"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}";
-						LogWarningMessage(msg);
-						ThirdPartyAlarm.LastMessage = msg;
-						ThirdPartyAlarm.Triggered = true;
-					}
-					else
-					{
-						LogDebugMessage("PWS Response: " + responseBodyAsText);
-						ThirdPartyAlarm.Triggered = false;
-					}
-				}
-				catch (Exception ex)
-				{
-					var msg = "PWS update: " + ex.Message;
-					LogWarningMessage(msg);
-					ThirdPartyAlarm.LastMessage = msg;
-					ThirdPartyAlarm.Triggered = true;
-				}
-				finally
-				{
-					PWS.Updating = false;
 				}
 			}
 		}
@@ -14151,99 +13423,11 @@ namespace CumulusMX
 
 		public void AddToWebServiceLists(DateTime timestamp)
 		{
-			AddToWundList(timestamp);
-			AddToWindyList(timestamp);
-			AddToPWSList(timestamp);
-			AddToWOWList(timestamp);
-			AddToOpenWeatherMapList(timestamp);
-		}
-
-		/// <summary>
-		/// Add an archive entry to the WU 'catchup' list for sending to WU
-		/// </summary>
-		/// <param name="timestamp"></param>
-		private void AddToWundList(DateTime timestamp)
-		{
-			if (Wund.Enabled && Wund.CatchUp)
-			{
-				string pwstring;
-				string URL = station.GetWundergroundURL(out pwstring, timestamp, true);
-
-				WundList.Add(URL);
-
-				string starredpwstring = "&PASSWORD=" + new string('*', Wund.PW.Length);
-
-				string LogURL = URL.Replace(pwstring, starredpwstring);
-
-				LogMessage("Creating WU URL #" + WundList.Count);
-
-				LogMessage(LogURL);
-			}
-		}
-
-		private void AddToWindyList(DateTime timestamp)
-		{
-			if (Windy.Enabled && Windy.CatchUp)
-			{
-				string apistring;
-				string URL = station.GetWindyURL(out apistring, timestamp);
-
-				WindyList.Add(URL);
-
-				string LogURL = URL.Replace(apistring, "<<API_KEY>>");
-
-				LogMessage("Creating Windy URL #" + WindyList.Count);
-
-				LogMessage(LogURL);
-			}
-		}
-
-		private void AddToPWSList(DateTime timestamp)
-		{
-			if (PWS.Enabled && PWS.CatchUp)
-			{
-				string pwstring;
-				string URL = station.GetPWSURL(out pwstring, timestamp);
-
-				PWSList.Add(URL);
-
-				string starredpwstring = "&PASSWORD=" + new string('*', PWS.PW.Length);
-
-				string LogURL = URL.Replace(pwstring, starredpwstring);
-
-				LogMessage("Creating PWS URL #" + PWSList.Count);
-
-				LogMessage(LogURL);
-			}
-		}
-
-		private void AddToWOWList(DateTime timestamp)
-		{
-			if (WOW.Enabled && WOW.CatchUp)
-			{
-				string pwstring;
-				string URL = station.GetWOWURL(out pwstring, timestamp);
-
-				WOWList.Add(URL);
-
-				string starredpwstring = "&siteAuthenticationKey=" + new string('*', WOW.PW.Length);
-
-				string LogURL = URL.Replace(pwstring, starredpwstring);
-
-				LogMessage("Creating WOW URL #" + WOWList.Count);
-
-				LogMessage(LogURL);
-			}
-		}
-
-		private void AddToOpenWeatherMapList(DateTime timestamp)
-		{
-			if (OpenWeatherMap.Enabled && OpenWeatherMap.CatchUp)
-			{
-				OWMList.Add(station.GetOpenWeatherMapData(timestamp));
-
-				LogMessage("Creating OpenWeatherMap data #" + OWMList.Count);
-			}
+			Wund.AddToList(timestamp);
+			Windy.AddToList(timestamp);
+			PWS.AddToList(timestamp);
+			WOW.AddToList(timestamp);
+			OpenWeatherMap.AddToList(timestamp);
 		}
 
 		private string GetUploadFilename(string input, DateTime dat)
@@ -14446,6 +13630,70 @@ namespace CumulusMX
 			}
 		}
 
+		public void SetupFtpLogging()
+		{
+			if (loggerFactory != null)
+			{
+				loggerFactory.Dispose();
+			}
+
+			loggerFactory = new LoggerFactory();
+			var fileLoggerOptions = new FileLoggerOptions()
+			{
+				Append = true,
+				FileSizeLimitBytes = 5242880,
+				MaxRollingFiles = 3,
+				MinLevel = (LogLevel) FtpOptions.LoggingLevel,
+				FormatLogEntry = (msg) =>
+				{
+					var logBuilder = new StringBuilder();
+					if (!string.IsNullOrEmpty(msg.Message))
+					{
+						var loglevel = "";
+						switch (msg.LogLevel)
+						{
+							case LogLevel.Trace:
+								loglevel = "TRCE";
+								break;
+							case LogLevel.Debug:
+								loglevel = "DBUG";
+								break;
+							case LogLevel.Information:
+								loglevel = "INFO";
+								break;
+							case LogLevel.Warning:
+								loglevel = "WARN";
+								break;
+							case LogLevel.Error:
+								loglevel = "FAIL";
+								break;
+							case LogLevel.Critical:
+								loglevel = "CRIT";
+								break;
+						}
+						DateTime timeStamp = DateTime.Now;
+						logBuilder.Append(timeStamp.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+						logBuilder.Append('\t');
+						logBuilder.Append(loglevel);
+						logBuilder.Append("\t[");
+						logBuilder.Append(msg.LogName);
+						logBuilder.Append(']');
+						//logBuilder.Append("\t[");
+						//logBuilder.Append(ms.EventId.Id);
+						//logBuilder.Append("]\t");
+						logBuilder.Append('\t');
+						logBuilder.Append(msg.Message);
+					}
+					return logBuilder.ToString();
+				}
+			};
+			var fileLogger = new FileLoggerProvider("MXdiags" + Path.DirectorySeparatorChar + "ftp.log", fileLoggerOptions);
+			loggerFactory.AddProvider(fileLogger);
+			FtpLoggerRT = loggerFactory.CreateLogger("R-T");
+			FtpLoggerIN = loggerFactory.CreateLogger("INT");
+			FtpLoggerMX = loggerFactory.CreateLogger("CMX");
+		}
+
 		[GeneratedRegex(@"max[\s]*=[\s]*([\d]+)")]
 		private static partial Regex regexMaxParam();
 		[GeneratedRegex(@"[\\/]+\d{8}-\d{6}\.txt")]
@@ -14635,6 +13883,7 @@ namespace CumulusMX
 		public string SshAuthen { get; set; }
 		public string SshPskFile { get; set; }
 		public bool Logging { get; set; }
+		public int LoggingLevel { get; set; }
 		public bool Utf8Encode { get; set; }
 		public bool ActiveMode { get; set; }
 		public bool DisableEPSV { get; set; }

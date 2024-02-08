@@ -218,8 +218,11 @@ namespace CumulusMX
 			try
 			{
 				if (tmrCurrent != null)
+				{
+					cumulus.LogMessage("Stopping current data timer");
 					tmrCurrent.Stop();
-							}
+				}
+			}
 			catch
 			{
 				cumulus.LogMessage("Error stopping station timers");
@@ -230,10 +233,9 @@ namespace CumulusMX
 			{
 				if (bw != null && bw.WorkerSupportsCancellation)
 				{
+					cumulus.LogMessage("Stopping background worker");
 					bw.CancelAsync();
 				}
-
-				bwDoneEvent.WaitOne();
 			}
 			catch
 			{
@@ -1960,7 +1962,7 @@ namespace CumulusMX
 											StationPressure = ConvertUnits.PressINHGToUser(rec.bar_absolute.Value);
 											// Or do we use calibration? The VP2 code doesn't?
 											//StationPressure = ConvertUnits.PressINHGToUser(data.Value<double>("bar_absolute")) * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
-											AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+											AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 										}
 									}
 								}
@@ -3271,7 +3273,7 @@ namespace CumulusMX
 									StationPressure = ConvertUnits.PressINHGToUser((double) data.abs_press);
 									// Or do we use calibration? The VP2 code doesn't?
 									//StationPressure = ConvertUnits.PressINHGToUser(data.Value<double>("bar_absolute")) * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
-									AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+									AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 								}
 							}
 							catch (Exception ex)
@@ -4176,7 +4178,7 @@ namespace CumulusMX
 										StationPressure = ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute);
 										// Or do we use calibration? The VP2 code doesn't?
 										//StationPressure = ConvertUnits.PressINHGToUser(data.Value<double>("bar_absolute")) * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
-										AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+										AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 									}
 								}
 								catch (Exception ex)

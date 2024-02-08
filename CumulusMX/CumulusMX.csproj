@@ -37,7 +37,7 @@
 
   <PropertyGroup>
     <ServerGarbageCollection>true</ServerGarbageCollection>
-    <Version>4.000.0.4009</Version>
+    <Version>4.000.0.4010</Version>
     <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
   </PropertyGroup>
 
@@ -68,8 +68,9 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.66.0" />
+    <PackageReference Include="NReco.Logging.File" Version="1.2.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.7" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
     <PackageReference Include="System.CodeDom" Version="8.0.0" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
@@ -78,7 +79,7 @@
     <PackageReference Include="MailKit" Version="4.3.0" />
     <PackageReference Include="MQTTnet" Version="4.3.3.952" />
     <PackageReference Include="MySqlConnector" Version="2.3.5" />
-    <PackageReference Include="ServiceStack.Text" Version="8.0.0" />
+    <PackageReference Include="ServiceStack.Text" Version="8.1.2" />
     <PackageReference Include="SSH.NET" Version="2023.0.1" />
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />

@@ -50,6 +50,7 @@ namespace CumulusMX
 				debuglogging = cumulus.ProgramOptions.DebugLogging,
 				datalogging = cumulus.ProgramOptions.DataLogging,
 				ftplogging = cumulus.FtpOptions.Logging,
+				ftplogginglevel = cumulus.FtpOptions.LoggingLevel,
 				emaillogging = cumulus.SmtpOptions.Logging,
 				spikelogging = cumulus.ErrorLogSpikeRemoval,
 				errorlistlevel = (int) cumulus.ErrorListLoggingLevel
@@ -142,7 +143,7 @@ namespace CumulusMX
 				cumulus.ProgramOptions.DataLogging = settings.logging.datalogging;
 				cumulus.SmtpOptions.Logging = settings.logging.emaillogging;
 				cumulus.ErrorLogSpikeRemoval = settings.logging.spikelogging;
-				cumulus.ErrorListLoggingLevel = (Cumulus.LogLevel) settings.logging.errorlistlevel;
+				cumulus.ErrorListLoggingLevel = (Cumulus.MxLogLevel) settings.logging.errorlistlevel;
 
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
@@ -167,14 +168,17 @@ namespace CumulusMX
 					cumulus.ProgramOptions.TimeFormatLong = "HH:mm:ss";
 
 
+				if (settings.logging.ftplogginglevel.HasValue && settings.logging.ftplogginglevel != cumulus.FtpOptions.LoggingLevel)
+				{
+					cumulus.FtpOptions.LoggingLevel = settings.logging.ftplogginglevel.Value;
+					cumulus.SetupFtpLogging();
+					cumulus.SetFtpLogging(settings.logging.ftplogging);
+				}
+
 				if (settings.logging.ftplogging != cumulus.FtpOptions.Logging)
 				{
-					if (settings.logging.ftplogging)
-					{
-						cumulus.ftpLogfile = cumulus.RemoveOldDiagsFiles("FTP");
-						cumulus.CreateFtpLogFile();
-					}
 					cumulus.FtpOptions.Logging = settings.logging.ftplogging;
+					cumulus.SetFtpLogging(cumulus.FtpOptions.Logging);
 				}
 			}
 			catch (Exception ex)
@@ -224,6 +228,7 @@ namespace CumulusMX
 		public bool debuglogging { get; set; }
 		public bool datalogging { get; set; }
 		public bool ftplogging { get; set; }
+		public int? ftplogginglevel { get; set; }
 		public bool emaillogging { get; set; }
 		public bool spikelogging { get; set; }
 		public int errorlistlevel { get; set; }

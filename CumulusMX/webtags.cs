@@ -192,9 +192,9 @@ namespace CumulusMX
 			{
 				var unit = tagParams.Get("unit").ToLower();
 				if (unit == "hpa" || unit == "mb")
-					return ConvertUnits.UserPressureToHPa(val);
+					return ConvertUnits.UserPressToHpa(val);
 				else if (unit == "kpa")
-					return ConvertUnits.UserPressureToHPa(val) / 10;
+					return ConvertUnits.UserPressToHpa(val) / 10;
 				else if (unit == "inhg")
 					return ConvertUnits.UserPressToIN(val);
 			}

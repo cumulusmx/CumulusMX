@@ -629,6 +629,7 @@ namespace CumulusMX
 
 			var lastDate = cumulus.LastUpdateTime.AddHours(cumulus.GetHourInc(cumulus.LastUpdateTime));
 			var meteoDate = new DateTime(lastDate.Year, lastDate.Month, lastDate.Day, -cumulus.GetHourInc(cumulus.LastUpdateTime), 0, 0);
+			var inv = CultureInfo.InvariantCulture.NumberFormat;
 
 			cumulus.LogMessage("GetRainCounter: Finding raintoday from logfile " + LogFile);
 			cumulus.LogMessage("GetRainCounter: Expecting listsep=, decimal=" + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
@@ -647,8 +648,8 @@ namespace CumulusMX
 						var st = new List<string>(line.Split(','));
 						if (st.Count > 0)
 						{
-							var raintoday = Double.Parse(st[9]);
-							raincounter = Double.Parse(st[11]);
+							var raintoday = Double.Parse(st[9], inv);
+							raincounter = Double.Parse(st[11], inv);
 
 							raincounterfound = true;
 
@@ -663,14 +664,14 @@ namespace CumulusMX
 									{
 										// this is the first entry of a new day AND the new day is today
 										midnightrainfound = true;
-										midnightraincounter = Double.Parse(st[11]) - Double.Parse(st[9]);
+										midnightraincounter = raincounter - raintoday;
 										cumulus.LogMessage($"GetRainCounter: Midnight rain counter {midnightraincounter:F4} found in the following entry:");
 									}
 
 									if (initialiseRainDayStart)
 									{
 										raindaystartfound = true;
-										raindaystart = Double.Parse(st[11]) - Double.Parse(st[9]);
+										raindaystart = raincounter - raintoday;
 										cumulus.LogMessage($"GetRainCounter: Rain day start counter {raindaystart:F4} found in the following entry:");
 									}
 									cumulus.LogMessage(line);
@@ -683,7 +684,7 @@ namespace CumulusMX
 								if (logDateTime >= meteoDate)
 								{
 									raindaystartfound = true;
-									raindaystart = Double.Parse(st[11]) - Double.Parse(st[9]);
+									raindaystart = raincounter - raintoday;
 									cumulus.LogMessage($"GetRainCounter: Rain day start counter {raindaystart:F4} found in the following entry:");
 									cumulus.LogMessage(line);
 								}
@@ -2049,47 +2050,47 @@ namespace CumulusMX
 
 					if (cumulus.Wund.Enabled && (now.Minute % cumulus.Wund.Interval == 0) && cumulus.Wund.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.Wund.ID))
 					{
-						cumulus.UpdateWunderground(now);
+						_ = cumulus.Wund.DoUpdate(now);
 					}
 
 					if (cumulus.Windy.Enabled && (now.Minute % cumulus.Windy.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.Windy.ApiKey))
 					{
-						cumulus.UpdateWindy(now);
+						_ = cumulus.Windy.DoUpdate(now);
 					}
 
 					if (cumulus.WindGuru.Enabled && (now.Minute % cumulus.WindGuru.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.WindGuru.ID))
 					{
-						cumulus.UpdateWindGuru(now);
+						_ = cumulus.WindGuru.DoUpdate(now);
 					}
 
 					if (cumulus.AWEKAS.Enabled && (now.Minute % ((double) cumulus.AWEKAS.Interval / 60) == 0) && cumulus.AWEKAS.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
 					{
-						cumulus.UpdateAwekas(now);
+						_ = cumulus.AWEKAS.DoUpdate(now);
 					}
 
 					if (cumulus.WCloud.Enabled && (now.Minute % cumulus.WCloud.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.WCloud.ID))
 					{
-						cumulus.UpdateWCloud(now);
+						_ = cumulus.WCloud.DoUpdate(now);
 					}
 
 					if (cumulus.OpenWeatherMap.Enabled && (now.Minute % cumulus.OpenWeatherMap.Interval == 0) && !string.IsNullOrWhiteSpace(cumulus.OpenWeatherMap.ID))
 					{
-						cumulus.UpdateOpenWeatherMap(now);
+						_ = cumulus.OpenWeatherMap.DoUpdate(now);
 					}
 
 					if (cumulus.PWS.Enabled && (now.Minute % cumulus.PWS.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.PWS.ID) && !String.IsNullOrWhiteSpace(cumulus.PWS.PW))
 					{
-						cumulus.UpdatePWSweather(now);
+						_ = cumulus.PWS.DoUpdate(now);
 					}
 
 					if (cumulus.WOW.Enabled && (now.Minute % cumulus.WOW.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.WOW.ID) && !String.IsNullOrWhiteSpace(cumulus.WOW.PW))
 					{
-						cumulus.UpdateWOW(now);
+						_ = cumulus.WOW.DoUpdate(now);
 					}
 
 					if (cumulus.APRS.Enabled && (now.Minute % cumulus.APRS.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.APRS.ID))
 					{
-						UpdateAPRS();
+						_ = cumulus.APRS.DoUpdate(now);
 					}
 
 					if (cumulus.xapEnabled)
@@ -2357,7 +2358,7 @@ namespace CumulusMX
 				result[0].avgSol,
 				result[0].avgSolMax,
 				ConvertUnits.UserWindToMS(result[0].avgWind),
-				ConvertUnits.UserPressureToHPa(result[0].avgPress) / 10
+				ConvertUnits.UserPressToHpa(result[0].avgPress) / 10
 			);
 
 			// convert to user units
@@ -5812,7 +5813,7 @@ namespace CumulusMX
 			{
 				if (cumulus.Manufacturer == cumulus.OREGONUSB)
 				{
-					AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressureToHPa(StationPressure), AltitudeM(cumulus.Altitude)));
+					AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 				}
 				else
 				{
@@ -6298,7 +6299,7 @@ namespace CumulusMX
 					hp = cumulus.FChighpress / 0.0295333727;
 				}
 
-				CumulusForecast = BetelCast(ConvertUnits.UserPressureToHPa(Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
+				CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
 
 				if (cumulus.UseCumulusForecast)
 				{
@@ -11525,7 +11526,7 @@ namespace CumulusMX
 			URL.Append("&wind_direction=" + AvgBearing);
 			URL.Append("&temperature=" + ConvertUnits.UserTempToC(OutdoorTemperature).ToString("F1", InvC));
 			URL.Append("&rh=" + OutdoorHumidity);
-			URL.Append("&mslp=" + ConvertUnits.UserPressureToHPa(Pressure).ToString("F1", InvC));
+			URL.Append("&mslp=" + ConvertUnits.UserPressToHpa(Pressure).ToString("F1", InvC));
 			if (cumulus.WindGuru.SendRain)
 			{
 				URL.Append("&precip=" + ConvertUnits.UserRainToMM(RainLastHour).ToString("F1", InvC));
@@ -11545,7 +11546,7 @@ namespace CumulusMX
 			sb.Append($"\"wind_deg\":{AvgBearing},");
 			sb.Append($"\"wind_speed\":{Math.Round(ConvertUnits.UserWindToMS(WindAverage), 1).ToString(invC)},");
 			sb.Append($"\"wind_gust\":{Math.Round(ConvertUnits.UserWindToMS(RecentMaxGust), 1).ToString(invC)},");
-			sb.Append($"\"pressure\":{Math.Round(ConvertUnits.UserPressureToHPa(Pressure), 1).ToString(invC)},");
+			sb.Append($"\"pressure\":{Math.Round(ConvertUnits.UserPressToHpa(Pressure), 1).ToString(invC)},");
 			sb.Append($"\"humidity\":{OutdoorHumidity},");
 			sb.Append($"\"rain_1h\":{Math.Round(ConvertUnits.UserRainToMM(RainLastHour), 1).ToString(invC)},");
 			sb.Append($"\"rain_24h\":{Math.Round(ConvertUnits.UserRainToMM(RainLast24Hour), 1).ToString(invC)}");
@@ -11554,18 +11555,18 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
-		private static string PressINstr(double pressure)
+		public static string PressINstr(double pressure)
 		{
 			return ConvertUnits.UserPressToIN(pressure).ToString("F3", CultureInfo.InvariantCulture);
 		}
 
-		private static string PressPAstr(double pressure)
+		public static string PressPAstr(double pressure)
 		{
 			// return value to 0.1 hPa
 			return (ConvertUnits.UserPressToMB(pressure) / 100).ToString("F4", CultureInfo.InvariantCulture);
 		}
 
-		private string WindMPHStr(double wind)
+		public string WindMPHStr(double wind)
 		{
 			var windMPH = ConvertUnits.UserWindToMPH(wind);
 			if (cumulus.StationOptions.RoundWindSpeed)
@@ -11574,7 +11575,7 @@ namespace CumulusMX
 			return windMPH.ToString("F1", CultureInfo.InvariantCulture);
 		}
 
-		private string WindMSStr(double wind)
+		public string WindMSStr(double wind)
 		{
 			var windMS = ConvertUnits.UserWindToMS(wind);
 			if (cumulus.StationOptions.RoundWindSpeed)
@@ -11588,7 +11589,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="rain"></param>
 		/// <returns></returns>
-		private static string RainINstr(double rain)
+		public static string RainINstr(double rain)
 		{
 			return ConvertUnits.UserRainToIN(rain).ToString("F2", CultureInfo.InvariantCulture);
 		}
@@ -11598,7 +11599,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="rain"></param>
 		/// <returns></returns>
-		private static string RainMMstr(double rain)
+		public static string RainMMstr(double rain)
 		{
 			return ConvertUnits.UserRainToMM(rain).ToString("F2", CultureInfo.InvariantCulture);
 		}
@@ -11608,7 +11609,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="temp"></param>
 		/// <returns></returns>
-		private static string TempFstr(double temp)
+		public static string TempFstr(double temp)
 		{
 			return ConvertUnits.UserTempToF(temp).ToString("F1", CultureInfo.InvariantCulture);
 		}
@@ -11618,7 +11619,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="temp"></param>
 		/// <returns></returns>
-		private static string TempCstr(double temp)
+		public static string TempCstr(double temp)
 		{
 			return ConvertUnits.UserTempToC(temp).ToString("F1", CultureInfo.InvariantCulture);
 		}
@@ -14840,95 +14841,6 @@ namespace CumulusMX
 			cumulus.HighWindAlarm.CheckAlarm(WindAverage);
 		}
 
-
-		public void UpdateAPRS()
-		{
-			// See: http://aprs.net/vm/DOS/PROTOCOL.HTM
-
-			if (DataStopped)
-			{
-				// No data coming in, do nothing
-				return;
-			}
-
-			cumulus.LogDebugMessage("Updating CWOP");
-			using var client = new TcpClient(cumulus.APRS.Server, cumulus.APRS.Port);
-			using var ns = client.GetStream();
-			try
-			{
-				using (StreamWriter writer = new StreamWriter(ns))
-				{
-					StringBuilder message = new StringBuilder(256);
-					message.Append($"user {cumulus.APRS.ID} pass {cumulus.APRS.PW} vers Cumulus {cumulus.Version}");
-
-					//Byte[] data = Encoding.ASCII.GetBytes(message.ToString());
-
-					cumulus.LogDebugMessage("Sending user and pass to CWOP");
-
-					writer.WriteLine(message.ToString());
-					writer.Flush();
-
-					Thread.Sleep(3000);
-
-					string timeUTC = DateTime.Now.ToUniversalTime().ToString("ddHHmm");
-
-					message.Clear();
-					message.Append($"{cumulus.APRS.ID}>APRS,TCPIP*:@{timeUTC}z{APRSLat(cumulus)}/{APRSLon(cumulus)}");
-					// bearing _nnn
-					message.Append($"_{AvgBearing:D3}");
-					// wind speed mph /nnn
-					message.Append($"/{APRSwind(WindAverage)}");
-					// wind gust last 5 mins mph gnnn
-					message.Append($"g{APRSwind(RecentMaxGust)}");
-					// temp F tnnn
-					message.Append($"t{APRStemp(OutdoorTemperature)}");
-					// rain last hour 0.01 inches rnnn
-					message.Append($"r{APRSrain(RainLastHour)}");
-					// rain last 24 hours 0.01 inches pnnn
-					message.Append($"p{APRSrain(RainLast24Hour)}");
-					message.Append('P');
-					if (cumulus.RolloverHour == 0)
-					{
-						// use today"s rain for safety
-						message.Append(APRSrain(RainToday));
-					}
-					else
-					{
-						// 0900 day, use midnight calculation
-						message.Append(APRSrain(RainSinceMidnight));
-					}
-					if ((!cumulus.APRS.HumidityCutoff) || (ConvertUnits.UserTempToC(OutdoorTemperature) >= -10))
-					{
-						// humidity Hnn
-						message.Append($"h{APRShum(OutdoorHumidity)}");
-					}
-					// bar 0.1mb Bnnnnn
-					message.Append($"b{APRSpress(AltimeterPressure)}");
-					if (cumulus.APRS.SendSolar)
-					{
-						message.Append(APRSsolarradStr(Convert.ToInt32(SolarRad)));
-					}
-
-					// station type e<string>
-					message.Append($"eCumulus{cumulus.APRSstationtype[cumulus.StationType]}");
-
-					cumulus.LogDebugMessage($"Sending: {message}");
-
-					//data = Encoding.ASCII.GetBytes(message.ToString());
-
-					writer.WriteLine(message.ToString());
-					writer.Flush();
-
-					Thread.Sleep(3000);
-					writer.Close();
-				}
-				cumulus.LogDebugMessage("End of CWOP update");
-			}
-			catch (Exception e)
-			{
-				cumulus.LogErrorMessage("CWOP error: " + e.Message);
-			}
-		}
 
 		/// <summary>
 		/// Takes latitude in degrees and converts it to APRS format ddmm.hhX:

@@ -1,4 +1,4 @@
-4.0.0 - b4009
+4.0.0 - b4010
 —————————————
 - First Beta build
 
@@ -14,6 +14,7 @@ New
 - Implements encryption of the credentials in the cumulus.ini file
 - Experimental Gmail OATH 2.0 authentication
 - New web tag for the average temperature of the previous 24 hours from now: <#TempAvg24Hrs>
+- Cumulus backups are now zipped
 
 Changed
 - Now requires Microsoft .Net 8.0 rather than mono to run under Linux and MacOS
@@ -39,6 +40,50 @@ Fixed
 
 
 ############## Cumulus MX version 3.0 below here ##############
+
+3.28.4 - b3281
+——————————————
+New
+- The monthly log file check is extended to the Extra and AirLink logs if they are in use
+
+Fixed
+- Error sending email to a server that requires no authentication that the username is not set
+
+
+
+3.28.3 - b3280
+——————————————
+New
+- Adds Ecowitt local GW1000 API to the web tag <#StationFreeMemory>. Known to work with GW1100 (v2.3.1) and GW2000 (v3.1.1) so far
+- Adds a new web tag <#ExtraStationFreeMemory> to avoid clashes with the main station and a Ecowitt HTTP station used for extra sensors
+- Adds a check for the raincounter suddenly increasing (more than 25mm or 1 inch)
+
+Fixed
+- Ecowitt Cloud decoding of Soil Moisture values
+- Ecowitt Cloud add missing decode of CO2 temp/humidity values
+- Crash for new installs when the monthly log file does not exist
+- Setting Ecowitt custom server settings when used as an Extra Sensor station
+- The Monthly Records editor values from the log file showed the previous months values for monthly totals like Total Rainfall etc.
+
+
+3.28.2 - b3279
+——————————————
+New
+- Adds two new web tags <#StationFreeMemory> and <#StationRuntime>
+	StationFreeMemory: Shows the station free memory for Davis WLC, Ecowitt GW1100/20000 (using HTTP)
+	StationRuntime: Shows the station uptime in seconds for Davis WLL/WLC, Ecowitt GW1100/20000 (using HTTP)
+- Now implements a basic check of the latest monthly log file on start-up to remove any nulls from the end
+
+Changed
+- Custom Minutes MySQL commands can now have the interval defined per command rather than globally
+
+Fixed
+- Ecowitt Cloud station: Fix some errors decoding Ecowitt cloud API.
+- Ecowitt Cloud, no longer requires a Pro subscription to pull current data. Quite an extensive rewrite!
+- Extra Files using log filename templates missed the last log entry at month rollover as they switched to the new month immediately
+- Fix missing units in alarm email messages
+- Custom Timed MySQL commands sometimes fired immediately after saving the configuration
+- Ecowitt historic catch-up was missing CO2, CO2 pm, CO2 T/H, leaf wetness, and extra T/H dewpoint values
 
 
 3.28.1 - b3276

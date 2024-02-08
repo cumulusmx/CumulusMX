@@ -329,7 +329,7 @@
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public static double UserPressureToHPa(double value)
+		public static double UserPressToHpa(double value)
 		{
 			return Program.cumulus.Units.Press == 2 ? value / 0.0295333727 : value;
 		}
