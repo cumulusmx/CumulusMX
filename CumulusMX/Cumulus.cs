@@ -27,6 +27,8 @@ using EmbedIO.Utilities;
 using EmbedIO.WebApi;
 using FluentFTP;
 using FluentFTP.Helpers;
+using FluentFTP.Logging;
+
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using NReco.Logging.File;
@@ -2136,7 +2138,7 @@ namespace CumulusMX
 
 			if (isSet)
 			{
-				RealtimeFTP.Logger = (IFtpLogger) FtpLoggerRT;
+				RealtimeFTP.Logger = new FtpLogAdapter(FtpLoggerRT);
 			}
 			else
 			{
@@ -2198,7 +2200,7 @@ namespace CumulusMX
 		{
 			LogDebugMessage("WS receive : " + context.DataFrame.ToString());
 		}
-*/
+	*/
 		private void InitialiseRG11()
 		{
 			if (RG11Enabled && RG11Port.Length > 0)
@@ -9688,7 +9690,7 @@ namespace CumulusMX
 				{
 					if (FtpOptions.Logging)
 					{
-						conn.Logger = (IFtpLogger) FtpLoggerIN;
+						conn.Logger = new FtpLogAdapter(FtpLoggerIN);
 					}
 
 					LogFtpMessage(""); // insert a blank line
@@ -10214,7 +10216,7 @@ namespace CumulusMX
 				{
 					if (FtpOptions.Logging)
 					{
-						conn.Logger = (IFtpLogger) FtpLoggerIN;
+						conn.Logger = new FtpLogAdapter(FtpLoggerIN);
 					}
 
 					LogFtpMessage(""); // insert a blank line
@@ -11978,7 +11980,7 @@ namespace CumulusMX
 
 			if (FtpOptions.Logging)
 			{
-				FtpLoggerMX.LogInformation("CMX: {msg}", message);
+				FtpLoggerMX.LogInformation("{msg}", message);
 			}
 		}
 
@@ -11988,7 +11990,7 @@ namespace CumulusMX
 			{
 				if (!string.IsNullOrEmpty(message))
 					LogDebugMessage(message);
-				FtpLoggerMX.LogInformation("CMX: {msg}", message);
+				FtpLoggerMX.LogInformation("{msg}", message);
 			}
 		}
 
