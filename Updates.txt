@@ -1,3 +1,10 @@
+4.0.0 - b4011
+—————————————
+- Fix FTP logging
+- Improved web socket initial connection to send data immediately on dashboard/now/gauges connection
+- Tweaks to real-time FTP reconnect to avoid multiple reconnects occuring at once
+
+
 4.0.0 - b4010
 —————————————
 - First Beta build

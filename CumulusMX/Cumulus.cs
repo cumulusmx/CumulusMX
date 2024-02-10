@@ -2491,15 +2491,13 @@ namespace CumulusMX
 							if (FtpOptions.FtpMode == FtpProtocols.SFTP && (RealtimeSSH == null || !RealtimeSSH.ConnectionInfo.IsAuthenticated))
 							{
 								RealtimeFTPReconnect();
-								reconnecting = true;
 							}
 							if ((FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS) && !RealtimeFTP.IsConnected)
 							{
 								RealtimeFTPReconnect();
-								reconnecting = true;
 							}
 
-							if (!reconnecting || FtpOptions.FtpMode == FtpProtocols.PHP)
+							if (!RealtimeFtpReconnecting || FtpOptions.FtpMode == FtpProtocols.PHP)
 							{
 								// Finally we can do some FTP!
 								//RealtimeFtpInProgress = true;
@@ -2563,9 +2561,18 @@ namespace CumulusMX
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 				return;
 
+			if (RealtimeFtpReconnecting)
+			{
+				LogDebugMessage("RealtimeFTPReconnect: Already reconnecting, skipping this attempt");
+				return;
+			}
+
 			RealtimeFtpReconnecting = true;
+			RealtimeFtpInProgress = true;
+
 			FtpAlarm.LastMessage = "Realtime re-connecting";
 			FtpAlarm.Triggered = true;
+
 			await Task.Run(() =>
 			{
 				bool connected;

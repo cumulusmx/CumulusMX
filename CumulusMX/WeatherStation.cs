@@ -18,6 +18,7 @@ using System.Timers;
 using System.Web;
 
 using EmbedIO.Utilities;
+using EmbedIO.WebSockets;
 
 using ServiceStack.Text;
 

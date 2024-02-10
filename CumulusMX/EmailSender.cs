@@ -16,6 +16,8 @@ using MailKit.Security;
 
 using MimeKit;
 
+using static System.Net.Mime.MediaTypeNames;
+
 namespace CumulusMX
 {
 	public class EmailSender
@@ -23,7 +25,8 @@ namespace CumulusMX
 		static readonly Regex ValidEmailRegex = CreateValidEmailRegex();
 		private static SemaphoreSlim _writeLock;
 		private readonly Cumulus cumulus;
-		private static readonly string[] initializer = new[] { "https://www.googleapis.com/auth/gmail.send" };
+		//private static readonly string[] initializer = new[] { "https://www.googleapis.com/auth/gmail.compose" };
+		private static readonly string[] initializer = new[] { "https://mail.google.com" };
 
 		public EmailSender(Cumulus cumulus)
 		{
@@ -51,7 +54,8 @@ namespace CumulusMX
 				var logMessage = ToLiteral(message);
 				var sendSubject = subject + " - " + cumulus.LocationName;
 
-				cumulus.LogMessage($"SendEmail: Sending email, to [{string.Join("; ", to)}], subject [{sendSubject}], body [{logMessage}]...");
+				var logMsg = $"SendEmail: Sending email, to [{string.Join("; ", to)}], subject [{sendSubject}], body [{logMessage}]";
+				cumulus.LogMessage(logMsg);
 
 				var m = new MimeMessage();
 				m.From.Add(new MailboxAddress("", from));
@@ -82,6 +86,13 @@ namespace CumulusMX
 					if (cumulus.SmtpOptions.IgnoreCertErrors)
 					{
 						client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+					}
+
+					if (cumulus.SmtpOptions.Logging)
+					{
+						logMsg = DateTime.Now.ToString("\n\nyyyy-MM-dd HH:mm:ss.fff ") + logMsg;
+						var byteArr = System.Text.Encoding.UTF8.GetBytes(logMsg);
+						client.ProtocolLogger.LogClient(byteArr, 0, byteArr.Length);
 					}
 
 					await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (SecureSocketOptions) cumulus.SmtpOptions.SslOption);
@@ -166,14 +177,20 @@ namespace CumulusMX
 				_writeLock.Wait();
 				//cumulus.LogDebugMessage($"SendEmail: Has the lock");
 
-				cumulus.LogDebugMessage($"SendEmail: Sending Test email, to [{string.Join("; ", to)}], subject [{subject}], body [{message}]...");
+
+				var logMsg = $"SendEmail: Sending TEST email, to [{string.Join("; ", to)}], subject [{subject}], body [{subject}]";
+				cumulus.LogMessage(logMsg);
 
 				var m = new MimeMessage();
 				m.From.Add(new MailboxAddress("", from));
 				foreach (var addr in to)
 				{
-					m.To.Add(new MailboxAddress("", addr));
+					if (cumulus.AlarmEmailUseBcc)
+						m.Bcc.Add(new MailboxAddress("", addr));
+					else
+						m.To.Add(new MailboxAddress("", addr));
 				}
+
 				m.Subject = subject;
 
 				BodyBuilder bodyBuilder = new BodyBuilder();
@@ -190,9 +207,24 @@ namespace CumulusMX
 
 				using (SmtpClient client = cumulus.SmtpOptions.Logging ? new SmtpClient(new ProtocolLogger("MXdiags/smtp.log")) : new SmtpClient())
 				{
+					if (cumulus.SmtpOptions.IgnoreCertErrors)
+					{
+						client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+					}
+
+					if (cumulus.SmtpOptions.Logging)
+					{
+						logMsg = DateTime.Now.ToString("\n\nyyyy-MM-dd HH:mm:ss.fff ") + logMsg;
+						var byteArr = System.Text.Encoding.UTF8.GetBytes(logMsg);
+						client.ProtocolLogger.LogClient(byteArr, 0, byteArr.Length);
+					}
+
 					client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions) cumulus.SmtpOptions.SslOption);
 					//client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable);
 
+					// 0 = None
+					// 1 = Username/Passwword
+					// 2 = Google OAuth2
 					if (cumulus.SmtpOptions.AuthenticationMethod <= 1)
 					{
 						// Note: since we don't have an OAuth2 token, disable

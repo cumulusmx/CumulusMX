@@ -8,6 +8,7 @@ namespace CumulusMX
 	{
 		private readonly Cumulus cumulus = cumulus;
 		private WeatherStation station;
+		private string lastMessage;
 
 		/// <inheritdoc />
 		protected override async Task OnClientConnectedAsync(IWebSocketContext context)
@@ -16,7 +17,7 @@ namespace CumulusMX
 			if (station != null)
 			{
 				// send an update right away so the client is not left waiting
-				await station.sendWebSocketData(true);
+				await SendAsync(context, station.GetCurrentData());
 			}
 			await Task.CompletedTask;
 		}
