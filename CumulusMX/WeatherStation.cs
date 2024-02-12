@@ -2447,7 +2447,7 @@ namespace CumulusMX
 					try
 					{
 						var dest = cumulus.GraphDataEodFiles[i].LocalPath + cumulus.GraphDataEodFiles[i].LocalFileName;
-						File.WriteAllText(dest, json);
+						File.WriteAllTextAsync(dest, json);
 					}
 					catch (Exception ex)
 					{
@@ -2478,7 +2478,7 @@ namespace CumulusMX
 					try
 					{
 						var dest = cumulus.GraphDataFiles[i].LocalPath + cumulus.GraphDataFiles[i].LocalFileName;
-						File.WriteAllText(dest, json);
+						File.WriteAllTextAsync(dest, json);
 					}
 					catch (Exception ex)
 					{

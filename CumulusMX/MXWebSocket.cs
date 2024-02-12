@@ -8,7 +8,6 @@ namespace CumulusMX
 	{
 		private readonly Cumulus cumulus = cumulus;
 		private WeatherStation station;
-		private string lastMessage;
 
 		/// <inheritdoc />
 		protected override async Task OnClientConnectedAsync(IWebSocketContext context)

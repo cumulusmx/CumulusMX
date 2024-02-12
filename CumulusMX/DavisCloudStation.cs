@@ -2126,6 +2126,7 @@ namespace CumulusMX
 							{
 								// VP2 ISS archive revision A/B
 								case 1:
+								case 2:
 									{
 										var data = sensor.data.FromJsv<WLCurrentSensordDataType1_2>();
 

@@ -43,7 +43,9 @@ Fixed
 - Problems when using a 9am rollover in the records editors for values from the monthly log files
 - Select-a-Period charts not respecting the interval dates: Air Quality, CO₂, Soil Moisture, Leaf Wetness
 - Calibration Limits not changing when the user changes units - eg initial install
-- Potential fix for corruption at the end of data log files when shutting down
+- Potential fix for corruption at the end of all data log files when shutting down
+- Error that the username is not set when sending email to a server that requires no authentication
+
 
 
 ############## Cumulus MX version 3.0 below here ##############

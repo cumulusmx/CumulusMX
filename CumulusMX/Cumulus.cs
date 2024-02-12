@@ -2432,7 +2432,6 @@ namespace CumulusMX
 		internal void RealtimeTimerTick(object sender, ElapsedEventArgs elapsedEventArgs)
 		{
 			var cycle = RealtimeCycleCounter++;
-			var reconnecting = false;
 
 			if (station.DataStopped)
 			{
@@ -3006,6 +3005,7 @@ namespace CumulusMX
 
 								if (item.process)
 								{
+									LogDebugMessage($"RealtimePHP[{cycle}]: Processing extra web file {uploadfile}");
 									var str = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 
 									_ = await UploadString(phpUploadHttpClient, false, string.Empty, str, remotefile, cycle, item.binary, item.UTF8);
@@ -3107,7 +3107,7 @@ namespace CumulusMX
 
 						if (linesAdded == 0)
 						{
-							LogDebugMessage($"SFTP[Int]: Extra file: {uploadfile} - No incremental data found");
+							LogDebugMessage($"FTP[Int]: Extra file: {uploadfile} - No incremental data found");
 							continue;
 						}
 
@@ -3149,6 +3149,7 @@ namespace CumulusMX
 					}
 					else if (item.process) // does the file require processing first
 					{
+						LogDebugMessage($"Realtime[{cycle}]: Processing extra web {uploadfile}");
 						var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
 
 						using var strm = GenerateStreamFromString(data);
@@ -3217,6 +3218,7 @@ namespace CumulusMX
 							LogDebugMessage($"Realtime[{cycle}]: Copying extra file {uploadfile} to {remotefile}");
 							if (item.process)
 							{
+								LogDebugMessage($"Realtime[{cycle}]: Processing extra file {uploadfile}");
 								ProcessTemplateFile(uploadfile, remotefile, false);
 							}
 							else
@@ -9295,6 +9297,7 @@ namespace CumulusMX
 						{
 							if (item.process)
 							{
+								LogDebugMessage($"Interval: Processing extra file {uploadfile}");
 								var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
 								File.WriteAllText(remotefile, data);
 							}
@@ -10022,7 +10025,7 @@ namespace CumulusMX
 
 							var remotefile = GetRemoteFileName(item.remote, logDay);
 
-							LogFtpDebugMessage("SFTP[Int]: Uploading Extra file: " + uploadfile);
+							LogFtpDebugMessage("SFTP[Int]: Uploading Extra web file: " + uploadfile);
 
 							// all checks OK, file needs to be uploaded
 							try
@@ -10042,7 +10045,7 @@ namespace CumulusMX
 
 									if (linesAdded == 0)
 									{
-										LogDebugMessage($"SFTP[Int]: Extra file: {uploadfile} - No incremental data found");
+										LogDebugMessage($"SFTP[Int]: Extra web file: {uploadfile} - No incremental data found");
 										continue;
 									}
 
@@ -10064,6 +10067,7 @@ namespace CumulusMX
 								}
 								else if (item.process)
 								{
+									LogFtpDebugMessage("SFTP[Int]: Processing Extra web file: " + uploadfile);
 									var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
 									using var strm = GenerateStreamFromString(data);
 									UploadStream(conn, remotefile, strm, -1);
@@ -10354,7 +10358,7 @@ namespace CumulusMX
 							var remotefile = GetRemoteFileName(item.remote, logDay);
 
 							LogFtpMessage("");
-							LogFtpDebugMessage("FTP[Int]: Uploading Extra file: " + uploadfile);
+							LogFtpDebugMessage("FTP[Int]: Uploading Extra web file: " + uploadfile);
 
 							// all checks OK, file needs to be uploaded
 
@@ -10375,7 +10379,7 @@ namespace CumulusMX
 
 									if (linesAdded == 0)
 									{
-										LogDebugMessage($"FTP[Int]: Extra file: {uploadfile} - No incremental data found");
+										LogDebugMessage($"FTP[Int]: Extra web file: {uploadfile} - No incremental data found");
 										continue;
 									}
 
@@ -10397,6 +10401,7 @@ namespace CumulusMX
 								}
 								else if (item.process)
 								{
+									LogFtpDebugMessage("FTP[Int]: Processing Extra web file: " + uploadfile);
 									var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
 									using var strm = GenerateStreamFromString(data);
 									UploadStream(conn, remotefile, strm, -1);
@@ -11625,7 +11630,7 @@ namespace CumulusMX
 			{
 				if (conn == null || !conn.IsConnected)
 				{
-					LogFtpMessage($"SFTP[{cycleStr}]: The FTP object is null or not connected - skipping upload of {remotefile}");
+					LogFtpMessage($"FTP[{cycleStr}]: The FTP object is null or not connected - skipping upload of {remotefile}");
 					FtpAlarm.LastMessage = $"The FTP object is null or not connected - skipping upload of {remotefile}";
 					FtpAlarm.Triggered = true;
 
@@ -12791,11 +12796,12 @@ namespace CumulusMX
 						else
 						{
 							// just copy the file
-							LogDebugMessage($"EOD: Copying extra file {uploadfile} to {remotefile}");
+							LogDebugMessage($"EOD: Copying extra web file {uploadfile} to {remotefile}");
 							try
 							{
 								if (item.process)
 								{
+									LogDebugMessage($"EOD: Processing extra web file {uploadfile} to {remotefile}");
 									var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
 									File.WriteAllText(remotefile, data);
 								}
@@ -12807,14 +12813,14 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								LogExceptionMessage(ex, $"EOD: Error copying extra file {uploadfile} to {remotefile}");
+								LogExceptionMessage(ex, $"EOD: Error copying extra web file {uploadfile} to {remotefile}");
 							}
 							//LogDebugMessage("Finished copying extra file " + uploadfile);
 						}
 					}
 					else
 					{
-						LogWarningMessage($"EOD: Error extra file {uploadfile} not found");
+						LogWarningMessage($"EOD: Error extra web file {uploadfile} not found");
 					}
 				}
 			}
