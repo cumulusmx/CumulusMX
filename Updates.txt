@@ -3,7 +3,7 @@
 - Fix FTP logging
 - Improved web socket initial connection to send data immediately on dashboard/now/gauges connection
 - Tweaks to real-time FTP reconnect to avoid multiple reconnects occuring at once
-
+- Add Enable option to Extra Web Files
 
 4.0.0 - b4010
 —————————————
@@ -22,6 +22,7 @@ New
 - Experimental Gmail OATH 2.0 authentication
 - New web tag for the average temperature of the previous 24 hours from now: <#TempAvg24Hrs>
 - Cumulus backups are now zipped
+- Add Enable option to Extra Web Files so you can now save entries but not have them active
 
 Changed
 - Now requires Microsoft .Net 8.0 rather than mono to run under Linux and MacOS

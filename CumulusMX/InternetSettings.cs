@@ -536,6 +536,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder(10240);
 			json.Append("{\"metadata\":[" +
+				"{\"name\":\"enable\",\"label\":\"Enable\",\"datatype\":\"boolean\",\"editable\":true}," +
 				"{\"name\":\"local\",\"label\":\"Local Filename\",\"datatype\":\"string\",\"editable\":true}," +
 				"{\"name\":\"remote\",\"label\":\"Destination Filename\",\"datatype\":\"string\",\"editable\":true}," +
 				"{\"name\":\"process\",\"label\":\"Process\",\"datatype\":\"boolean\",\"editable\":true}," +
@@ -549,6 +550,7 @@ namespace CumulusMX
 
 			for (int i = 0; i < Cumulus.numextrafiles; i++)
 			{
+				var enable = cumulus.ExtraFiles[i].enable ? "true" : "false";
 				var local = cumulus.ExtraFiles[i].local.Replace("\\", "\\\\").Replace("/", "\\/");
 				var remote = cumulus.ExtraFiles[i].remote.Replace("\\", "\\\\").Replace("/", "\\/");
 
@@ -561,7 +563,7 @@ namespace CumulusMX
 				// binary and incremental are mutually exclusive
 				string inclogfile = cumulus.ExtraFiles[i].incrementalLogfile ? (cumulus.ExtraFiles[i].binary ? "false" : "true") : "false";
 				json.Append('{');
-				json.Append($"\"id\":{(i + 1)},\"values\":[\"{local}\",\"{remote}\",\"{process}\",\"{realtime}\",\"{ftp}\",\"{utf8}\",\"{binary}\",\"{endofday}\",\"{inclogfile}\"]");
+				json.Append($"\"id\":{(i + 1)},\"values\":[\"{enable}\",\"{local}\",\"{remote}\",\"{process}\",\"{realtime}\",\"{ftp}\",\"{utf8}\",\"{binary}\",\"{endofday}\",\"{inclogfile}\"]");
 				json.Append('}');
 
 				if (i < Cumulus.numextrafiles - 1)
@@ -577,8 +579,11 @@ namespace CumulusMX
 		//public string UpdateExtraWebFiles(HttpListenerContext context)
 		public string UpdateExtraWebFiles(IHttpContext context)
 		{
+			var retVal = "success";
+
 			try
 			{
+
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 				var pars = WebUtility.UrlDecode(data);
@@ -592,44 +597,55 @@ namespace CumulusMX
 				switch (col)
 				{
 					case 0:
-						// local filename
-						cumulus.ExtraFiles[entry].local = value;
+						// enable
+						cumulus.ExtraFiles[entry].enable = value == "true";
 						break;
 					case 1:
-						// remote filename
-						cumulus.ExtraFiles[entry].remote = value;
+						// local filename
+						cumulus.ExtraFiles[entry].local = value.Trim();
 						break;
 					case 2:
+						// remote filename
+						cumulus.ExtraFiles[entry].remote = value.Trim();
+						break;
+					case 3:
 						// process
 						cumulus.ExtraFiles[entry].process = value == "true";
 						break;
-					case 3:
+					case 4:
 						// realtime
 						cumulus.ExtraFiles[entry].realtime = value == "true";
 						break;
-					case 4:
+					case 5:
 						// ftp
 						cumulus.ExtraFiles[entry].FTP = value == "true";
 						break;
-					case 5:
+					case 6:
 						// utf8
 						cumulus.ExtraFiles[entry].UTF8 = value == "true";
 						break;
-					case 6:
+					case 7:
 						// binary
 						cumulus.ExtraFiles[entry].binary = value == "true";
 						break;
-					case 7:
+					case 8:
 						// end of day
 						cumulus.ExtraFiles[entry].endofday = value == "true";
 						break;
-					case 8:
+					case 9:
 						// incremental log file
 						cumulus.ExtraFiles[entry].incrementalLogfile = !cumulus.ExtraFiles[entry].binary && value == "true";
 						cumulus.ExtraFiles[entry].logFileLastLineNumber = 0;
 						cumulus.ExtraFiles[entry].logFileLastFileName = string.Empty;
 						break;
 				}
+
+				if (cumulus.ExtraFiles[entry].enable && (string.IsNullOrEmpty(cumulus.ExtraFiles[entry].local) || string.IsNullOrEmpty(cumulus.ExtraFiles[entry].remote)))
+				{
+					cumulus.ExtraFiles[entry].enable = false;
+					retVal = "failed";
+				}
+
 
 				// Save the settings
 				cumulus.WriteIniFile();
@@ -638,10 +654,11 @@ namespace CumulusMX
 
 				for (var i = 0; i < cumulus.ExtraFiles.Length; i++)
 				{
-					if (cumulus.ExtraFiles[i].local != string.Empty && cumulus.ExtraFiles[i].remote != string.Empty)
+					if (cumulus.ExtraFiles[i].enable && cumulus.ExtraFiles[i].local != string.Empty && cumulus.ExtraFiles[i].remote != string.Empty)
 					{
 						cumulus.ActiveExtraFiles.Add(new CExtraFiles
 						{
+							enable = cumulus.ExtraFiles[i].enable,
 							local = cumulus.ExtraFiles[i].local,
 							remote = cumulus.ExtraFiles[i].remote,
 							binary = cumulus.ExtraFiles[i].binary,
@@ -665,7 +682,7 @@ namespace CumulusMX
 				context.Response.StatusCode = 500;
 				return ex.Message;
 			}
-			return "success";
+			return retVal;
 		}
 	}
 

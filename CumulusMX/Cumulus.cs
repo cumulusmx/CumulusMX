@@ -202,6 +202,7 @@ namespace CumulusMX
 
 		public class CExtraFiles
 		{
+			public bool enable;
 			public string local;
 			public string remote;
 			public bool process;
@@ -4643,10 +4644,20 @@ namespace CumulusMX
 					ExtraFiles[i].incrementalLogfile = false;
 				}
 
-				if (ExtraFiles[i].local != string.Empty && ExtraFiles[i].remote != string.Empty)
+				if (ini.ValueExists("FTP site", "ExtraEnable" + i))
+				{
+					ExtraFiles[i].enable = ini.GetValue("FTP site", "ExtraEnable" + i, false);
+				}
+				else
+				{
+					ExtraFiles[i].enable = !string.IsNullOrEmpty(ExtraFiles[i].local) && !string.IsNullOrEmpty(ExtraFiles[i].remote);
+				}
+
+				if (ExtraFiles[i].enable && ExtraFiles[i].local != string.Empty && ExtraFiles[i].remote != string.Empty)
 				{
 					ActiveExtraFiles.Add(new CExtraFiles
 					{
+						enable = ExtraFiles[i].enable,
 						local = ExtraFiles[i].local,
 						remote = ExtraFiles[i].remote,
 						process = ExtraFiles[i].process,
@@ -6163,6 +6174,7 @@ namespace CumulusMX
 			{
 				if (string.IsNullOrEmpty(ExtraFiles[i].local) && string.IsNullOrEmpty(ExtraFiles[i].remote))
 				{
+					ini.DeleteValue("FTP site", "ExtraEnable" + i);
 					ini.DeleteValue("FTP site", "ExtraLocal" + i);
 					ini.DeleteValue("FTP site", "ExtraRemote" + i);
 					ini.DeleteValue("FTP site", "ExtraProcess" + i);
@@ -6175,6 +6187,7 @@ namespace CumulusMX
 				}
 				else
 				{
+					ini.SetValue("FTP site", "ExtraEnable" + i, ExtraFiles[i].enable);
 					ini.SetValue("FTP site", "ExtraLocal" + i, ExtraFiles[i].local);
 					ini.SetValue("FTP site", "ExtraRemote" + i, ExtraFiles[i].remote);
 					ini.SetValue("FTP site", "ExtraProcess" + i, ExtraFiles[i].process);
