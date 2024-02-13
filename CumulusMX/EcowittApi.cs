@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Runtime.Serialization;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +22,7 @@ namespace CumulusMX
 		private static readonly string historyUrl = "https://api.ecowitt.net/api/v3/device/history?";
 		private static readonly string currentUrl = "https://api.ecowitt.net/api/v3/device/real_time?";
 		private static readonly string stationUrl = "https://api.ecowitt.net/api/v3/device/list?";
+		private static readonly string firmwareUrl = "http://ota.ecowitt.net/api/ota/v1/version/info?";
 
 		private static readonly int EcowittApiFudgeFactor = 5; // Number of minutes that Ecowitt API data is delayed
 
@@ -2452,6 +2456,119 @@ namespace CumulusMX
 			}
 		}
 
+		internal async  Task<string> GetLatestFirmwareVersion(string model, string mac, string version, CancellationToken token)
+		{
+			// Credit: https://www.wxforum.net/index.php?topic=46414.msg469692#msg469692
+
+			cumulus.LogMessage("API.GetLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
+
+			if (model == null || (!model.StartsWith("GW1100") && !model.StartsWith("GW2000")))
+			{
+				cumulus.LogMessage($"API.GetLatestFirmwareVersion: Your model - {model ?? "null"} - is not not currently supported");
+				return null;
+			}
+
+			if (model == null | version == null)
+			{
+				cumulus.LogMessage("API.GetLatestFirmwareVersion: No model or version supplied, cannot continue");
+				return null;
+			}
+
+			mac ??= GetRandomMacAddress();
+
+			var url = $"id={Uri.EscapeDataString(mac.ToUpper())}&model={model}&time={DateTime.Now.ToUnixTime()}&user=1&version={version}";
+			var sig = Utils.GetMd5String(url + "@ecowittnet");
+			url = firmwareUrl + url + $"&sign={sig}";
+
+			FirmwareResponse retObj;
+
+			try
+			{
+				string responseBody;
+				int responseCode;
+
+				// we want to do this synchronously, so .Result
+				using (var response = await Cumulus.MyHttpClient.GetAsync(url, token))
+				{
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"API.GetLatestFirmwareVersion: Ecowitt API Response code: {responseCode}");
+					cumulus.LogDataMessage($"API.GetLatestFirmwareVersion: Ecowitt API Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					var currentError = responseBody.FromJson<ErrorResp>();
+					cumulus.LogWarningMessage($"API.GetLatestFirmwareVersion: Ecowitt API Error: {currentError.code}, {currentError.msg}");
+					return null;
+				}
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogWarningMessage("API.GetLatestFirmwareVersion: Ecowitt API: No data was returned.");
+					return null;
+				}
+				else if (responseBody.StartsWith("{\"code\":")) // sanity check
+				{
+					// get the sensor data
+					retObj = responseBody.FromJson<FirmwareResponse>();
+
+					if (retObj == null || retObj.data == null)
+					{
+						return null;
+					}
+					else if (retObj.code == -1)
+					{
+						// -1 = no update required or error
+						switch (retObj.msg)
+						{
+							case "The firmware is up to date":
+								cumulus.LogMessage($"API.GetLatestFirmwareVersion: No update required, already on the latest version: {version}");
+								return version;
+							case "Operation too frequent":
+								cumulus.LogMessage("API.GetLatestFirmwareVersion: Operation throttled");
+								return null;
+							default:
+								cumulus.LogMessage($"API.GetLatestFirmwareVersion: {retObj.msg}");
+								return null;
+						}
+					}
+					else if (retObj.data.name == null)
+					{
+						cumulus.LogWarningMessage("API.GetLatestFirmwareVersion: Ecowitt API: No version was returned.");
+						return null;
+					}
+
+					if (retObj.data.content != null)
+					{
+						cumulus.LogWarningMessage($"API.GetLatestFirmwareVersion: Latest Version {retObj.data.name}, Change log:\n{retObj.data.content}");
+					}
+
+					return retObj.data.name;
+				}
+				else // No idea what we got, dump it to the log
+				{
+					cumulus.LogErrorMessage("API.GetLatestFirmwareVersion: Invalid message received");
+					cumulus.LogDataMessage("API.GetLatestFirmwareVersion: Received: " + responseBody);
+					return null;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("API.GetLatestFirmwareVersion: Exception: " + ex.Message);
+				return null;
+			}
+		}
+
+		private static string GetRandomMacAddress()
+		{
+			var random = new Random();
+			var buffer = new byte[6];
+			random.NextBytes(buffer);
+			var result = String.Concat(buffer.Select(x => string.Format("{0}:", x.ToString("X2"))).ToArray());
+			return result.TrimEnd(':');
+		}
+
 		/*
 		private string ErrorCode(int code)
 		{
@@ -2968,6 +3085,24 @@ namespace CumulusMX
 			public double longitude { get; set; }
 			public double latitude { get; set; }
 			public string stationtype { get; set; }
+		}
+
+		private class FirmwareResponse
+		{
+			public int code { get; set; }
+			public string msg { get; set; }
+			public int time { get; set; }
+			public FirmwareData data { get; set; }
+		}
+
+		private class FirmwareData
+		{
+			public int id { get; set; }
+			public string name { get; set; }
+			public string content { get; set; }
+			public string attach1file { get; set; }
+			public string attach2file { get; set; }
+			public int queryintval { get; set; }
 		}
 	}
 }

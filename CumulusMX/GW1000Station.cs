@@ -17,9 +17,12 @@ namespace CumulusMX
 	{
 		private string ipaddr;
 		private readonly string macaddr;
+		private string deviceModel;
+		private string deviceFirmware;
 		private const int AtPort = 45000;
 		private int updateRate = 10000; // 10 seconds by default
 		private int lastMinute;
+		private int lastHour;
 		private bool tenMinuteChanged = true;
 
 		private readonly EcowittApi ecowittApi;
@@ -109,10 +112,10 @@ namespace CumulusMX
 
 			ecowittApi = new EcowittApi(cumulus, this);
 
-			if (DoDiscovery())
-			{
-				PostDiscovery();
-			}
+			DoDiscovery();
+			PostDiscovery();
+
+			_ = ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken).Result;
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
@@ -140,7 +143,7 @@ namespace CumulusMX
 
 			cumulus.StartTimersAndSensors();
 
-			liveTask = Task.Run(() =>
+			liveTask = Task.Run(async () =>
 			{
 				try
 				{
@@ -177,6 +180,17 @@ namespace CumulusMX
 								if (minute == 0 && DateTime.Now.Hour == 12)
 								{
 									GetSystemInfo(true);
+								}
+
+								var hour = DateTime.Now.Hour;
+								if (lastHour != hour)
+								{
+									lastHour = hour;
+
+									if (hour == 13)
+									{
+										_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken);
+									}
 								}
 							}
 						}
@@ -462,6 +476,8 @@ namespace CumulusMX
 						cumulus.LogMessage($"Changing previous IP address: {ipaddr} to {discoveredDevices.IP[0]}");
 						ipaddr = discoveredDevices.IP[0].Trim();
 						cumulus.Gw1000IpAddress = ipaddr;
+						deviceModel = discoveredDevices.Name[0].Split('-')[0];
+						deviceFirmware = discoveredDevices.Name[0].Split('-')[1].Split(' ')[1];
 						if (discoveredDevices.Mac[0] != macaddr)
 						{
 							cumulus.Gw1000MacAddress = discoveredDevices.Mac[0];
@@ -480,6 +496,8 @@ namespace CumulusMX
 					cumulus.LogDebugMessage("Matching Ecowitt MAC address found on the network");
 
 					var idx = discoveredDevices.Mac.IndexOf(macaddr);
+					deviceModel = discoveredDevices.Name[idx].Split('-')[0];
+					deviceFirmware = discoveredDevices.Name[idx].Split('-')[1].Split(' ')[1];
 
 					if (discoveredDevices.IP[idx] != ipaddr)
 					{
@@ -550,6 +568,9 @@ namespace CumulusMX
 				cumulus.LogMessage($"Ecowitt firmware version: {GW1000FirmwareVersion}");
 				if (GW1000FirmwareVersion != "???")
 				{
+					deviceModel = GW1000FirmwareVersion.Split('_')[0];
+					deviceFirmware = GW1000FirmwareVersion.Split('_')[1];
+
 					var fwString = GW1000FirmwareVersion.Split(underscoreV, StringSplitOptions.None);
 					if (fwString.Length > 1)
 					{
@@ -1745,10 +1766,8 @@ namespace CumulusMX
 				}
 				cumulus.DataStoppedAlarm.LastMessage = $"No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds";
 				cumulus.DataStoppedAlarm.Triggered = true;
-				if (DoDiscovery())
-				{
-					PostDiscovery();
-				}
+				DoDiscovery();
+				PostDiscovery();
 			}
 		}
 	}
