@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,10 +17,12 @@ namespace CumulusMX
 		private readonly Cumulus cumulus;
 		private readonly WeatherStation station;
 
-		private static readonly string historyUrl = "https://api.ecowitt.net/api/v3/device/history?";
-		private static readonly string currentUrl = "https://api.ecowitt.net/api/v3/device/real_time?";
-		private static readonly string stationUrl = "https://api.ecowitt.net/api/v3/device/list?";
-		private static readonly string firmwareUrl = "http://ota.ecowitt.net/api/ota/v1/version/info?";
+		private const string historyUrl = "https://api.ecowitt.net/api/v3/device/history?";
+		private const string currentUrl = "https://api.ecowitt.net/api/v3/device/real_time?";
+		private const string stationUrl = "https://api.ecowitt.net/api/v3/device/list?";
+		private const string firmwareUrl = "http://ota.ecowitt.net/api/ota/v1/version/info?";
+		private static readonly string[] supportedModels = ["GW1100", "GW1200", "GW2000"];
+
 
 		private static readonly int EcowittApiFudgeFactor = 5; // Number of minutes that Ecowitt API data is delayed
 
@@ -2462,7 +2462,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage("API.GetLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
 
-			if (model == null || (!model.StartsWith("GW1100") && !model.StartsWith("GW2000")))
+			if (model == null || !supportedModels.Contains(model[0..5]))
 			{
 				cumulus.LogMessage($"API.GetLatestFirmwareVersion: Your model - {model ?? "null"} - is not not currently supported");
 				return null;
