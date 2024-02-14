@@ -203,7 +203,7 @@ namespace CumulusMX
 		private void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
 			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
-			Cumulus.syncInit.Wait();
+			Cumulus.SyncInit.Wait();
 			//cumulus.LogDebugMessage("Lock: Station has the lock");
 			try
 			{
@@ -214,7 +214,7 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 			}
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
-			Cumulus.syncInit.Release();
+			Cumulus.SyncInit.Release();
 		}
 
 		public override void getAndProcessHistoryData()

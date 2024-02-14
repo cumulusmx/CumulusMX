@@ -28,7 +28,7 @@ namespace CumulusMX.ThirdParty
 		public int SendExtraTemp4;
 		public int ErrorFlagCount;
 
-		public WebUploadWund(Cumulus cumulus, string name) : base (cumulus, name)
+		public WebUploadWund(Cumulus cumulus, string name) : base(cumulus, name)
 		{
 			IntTimer.Elapsed += TimerTick;
 		}
@@ -185,29 +185,29 @@ namespace CumulusMX.ThirdParty
 			if (SendLeafWetness2 && station.LeafWetness2 >= Cumulus.DefaultHiVal)
 				Data.Append($"&leafwetness2={station.LeafWetness2}");
 
-			if (SendAirQuality && cumulus.StationOptions.PrimaryAqSensor > (int)Cumulus.PrimaryAqSensor.Undefined)
+			if (SendAirQuality && cumulus.StationOptions.PrimaryAqSensor > (int) Cumulus.PrimaryAqSensor.Undefined)
 			{
 				switch (cumulus.StationOptions.PrimaryAqSensor)
 				{
-					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
+					case (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 						if (cumulus.airLinkDataOut != null)
 						{
 							Data.Append($"&AqPM2.5={cumulus.airLinkDataOut.pm2p5:F1}&AqPM10={cumulus.airLinkDataOut.pm10.ToString("F1", invC)}");
 						}
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
 						if (station.AirQuality1 >= Cumulus.DefaultHiVal)
 							Data.Append($"&AqPM2.5={station.AirQuality1.ToString("F1", invC)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
 						if (station.AirQuality2 >= Cumulus.DefaultHiVal)
 							Data.Append($"&AqPM2.5={station.AirQuality2.ToString("F1", invC)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
 						if (station.AirQuality3 >= Cumulus.DefaultHiVal)
 							Data.Append($"&AqPM2.5={station.AirQuality3.ToString("F1", invC)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
 						if (station.AirQuality4 >= Cumulus.DefaultHiVal)
 							Data.Append($"&AqPM2.5={station.AirQuality4.ToString("F1", invC)}");
 						break;

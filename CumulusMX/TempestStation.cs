@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
@@ -44,7 +43,7 @@ namespace CumulusMX
 		public override void getAndProcessHistoryData()
 		{
 			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
-			Cumulus.syncInit.Wait();
+			Cumulus.SyncInit.Wait();
 			//cumulus.LogDebugMessage("Lock: Station has the lock");
 			try
 			{
@@ -69,7 +68,7 @@ namespace CumulusMX
 
 			}
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
-			Cumulus.syncInit.Release();
+			Cumulus.SyncInit.Release();
 			StartLoop();
 		}
 

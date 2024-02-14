@@ -1625,7 +1625,7 @@ namespace CumulusMX
 				}
 			}
 		}
-		private static async  Task<bool> Authenticate(IHttpContext context)
+		private static async Task<bool> Authenticate(IHttpContext context)
 		{
 			string authorization = context.Request.Headers["Authorization"];
 			string userInfo;

@@ -605,7 +605,7 @@ namespace CumulusMX
 							else
 							{
 								var newItem = new HistoricData()
-								{ Pressure = item.Value};
+								{ Pressure = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1617,7 +1617,7 @@ namespace CumulusMX
 				// === Extra Dewpoint ===
 				if (rec.Value.ExtraTemp[i].HasValue && rec.Value.ExtraHumidity[i].HasValue)
 				{
-					station.DoExtraDP(ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC((double)rec.Value.ExtraTemp[i].Value), rec.Value.ExtraHumidity[i].Value)), i);
+					station.DoExtraDP(ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC((double) rec.Value.ExtraTemp[i].Value), rec.Value.ExtraHumidity[i].Value)), i);
 				}
 
 
@@ -2339,7 +2339,7 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("API.GetStationList: Get Ecowitt Station List");
 
-			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) )
+			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey))
 			{
 				cumulus.LogWarningMessage("API.GetCurrentCameraImageUrl: Missing Ecowitt API data in the configuration, aborting!");
 				return false;
@@ -2434,7 +2434,7 @@ namespace CumulusMX
 						return false;
 					}
 
-					foreach( var stn in stnObj.data.list)
+					foreach (var stn in stnObj.data.list)
 					{
 						cumulus.LogDebugMessage($"API.GetStationList: Station: id={stn.id}, mac/imei={stn.mac ?? stn.imei}, name={stn.name}, type={stn.type}");
 						if (stn.type == 2)
@@ -2456,7 +2456,7 @@ namespace CumulusMX
 			}
 		}
 
-		internal async  Task<string> GetLatestFirmwareVersion(string model, string mac, string version, CancellationToken token)
+		internal async Task<string> GetLatestFirmwareVersion(string model, string mac, string version, CancellationToken token)
 		{
 			// Credit: https://www.wxforum.net/index.php?topic=46414.msg469692#msg469692
 
@@ -2768,7 +2768,7 @@ namespace CumulusMX
 			public decimal? Temp { get; set; }
 			public decimal? DewPoint { get; set; }
 			public decimal? FeelsLike { get; set; }
-			public decimal? Apparent {  get; set; }
+			public decimal? Apparent { get; set; }
 			public int? Humidity { get; set; }
 			public decimal? RainRate { get; set; }
 			public decimal? RainYear { get; set; }

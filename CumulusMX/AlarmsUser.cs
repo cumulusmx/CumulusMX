@@ -50,7 +50,8 @@ namespace CumulusMX
 		public string EmailMsg { get; set; }
 		public string Units { get; set; }
 		public int TriggerThreshold { get; set; }
-		public string Type {
+		public string Type
+		{
 			get => type.ToString();
 			set
 			{

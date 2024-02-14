@@ -37,7 +37,7 @@ namespace CumulusMX
 			{
 				if (enabled && cumulus.NormalRunning)
 				{
-					doTriggered(value);
+					DoTriggered(value);
 				}
 			}
 		}
@@ -64,17 +64,17 @@ namespace CumulusMX
 		{
 			if (enabled && cumulus.NormalRunning)
 			{
-				doTriggered((type == AlarmTypes.Above && value > Value) || (type == AlarmTypes.Below && value < Value));
+				DoTriggered((type == AlarmTypes.Above && value > Value) || (type == AlarmTypes.Below && value < Value));
 			}
 		}
 
 		public void ClearAlarm()
 		{
 			if (Latch && triggered && DateTime.Now > triggeredTime.AddHours(LatchHours))
-				doTriggered(false);
+				DoTriggered(false);
 		}
 
-		private void doTriggered(bool value)
+		private void DoTriggered(bool value)
 		{
 			if (value)
 			{
@@ -199,7 +199,7 @@ namespace CumulusMX
 			{
 				if (enabled && cumulus.NormalRunning)
 				{
-					doUpTriggered(value);
+					DoUpTriggered(value);
 				}
 			}
 		}
@@ -214,7 +214,7 @@ namespace CumulusMX
 			{
 				if (enabled && cumulus.NormalRunning)
 				{
-					doDownTriggered(value);
+					DoDownTriggered(value);
 				}
 			}
 		}
@@ -229,18 +229,18 @@ namespace CumulusMX
 
 				if (value > Value)
 				{
-					doUpTriggered(true);
-					doDownTriggered(false);
+					DoUpTriggered(true);
+					DoDownTriggered(false);
 				}
 				else if (value < -Value)
 				{
-					doUpTriggered(false);
-					doDownTriggered(true);
+					DoUpTriggered(false);
+					DoDownTriggered(true);
 				}
 				else
 				{
-					doUpTriggered(false);
-					doDownTriggered(false);
+					DoUpTriggered(false);
+					DoDownTriggered(false);
 				}
 			}
 		}
@@ -248,13 +248,13 @@ namespace CumulusMX
 		public new void ClearAlarm()
 		{
 			if (Latch && upTriggered && DateTime.Now > UpTriggeredTime.AddHours(LatchHours))
-				doUpTriggered(false);
+				DoUpTriggered(false);
 
 			if (Latch && downTriggered && DateTime.Now > DownTriggeredTime.AddHours(LatchHours))
-				doDownTriggered(false);
+				DoDownTriggered(false);
 		}
 
-		private void doUpTriggered(bool value)
+		private void DoUpTriggered(bool value)
 		{
 			if (value)
 			{
@@ -330,7 +330,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void doDownTriggered(bool value)
+		private void DoDownTriggered(bool value)
 		{
 			if (value)
 			{

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -192,7 +191,7 @@ namespace CumulusMX
 			{
 				// Wait for the lock
 				//cumulus.LogDebugMessage("Lock: Station waiting for lock");
-				Cumulus.syncInit.Wait();
+				Cumulus.SyncInit.Wait();
 				//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 				// Create a current conditions thread to poll readings
@@ -208,7 +207,7 @@ namespace CumulusMX
 			finally
 			{
 				//cumulus.LogDebugMessage("Lock: Station releasing lock");
-				Cumulus.syncInit.Release();
+				Cumulus.SyncInit.Release();
 			}
 		}
 
@@ -1311,7 +1310,7 @@ namespace CumulusMX
 
 			int archiveRun = 0;
 			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
-			Cumulus.syncInit.Wait();
+			Cumulus.SyncInit.Wait();
 			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			try
@@ -1341,7 +1340,7 @@ namespace CumulusMX
 
 
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
-			Cumulus.syncInit.Release();
+			Cumulus.SyncInit.Release();
 			bwDoneEvent.Set();
 		}
 
@@ -3002,22 +3001,22 @@ namespace CumulusMX
 							CheckLoggingDataStopped(data.arch_int / 60);
 
 							// Temperature & Humidity
-								/*
-								 * Available fields
-								 * deg_days_cool
-								 * deg_days_heat
-								 * dew_point_in
-								 * dew_point_out
-								 * heat_index_in
-								 * heat_index_out
-								 * hum_in
-								 * hum_out
-								 * temp_in
-								 * temp_out
-								 * temp_out_hi
-								 * temp_out_lo
-								 * wind_chill
-								 */
+							/*
+							 * Available fields
+							 * deg_days_cool
+							 * deg_days_heat
+							 * dew_point_in
+							 * dew_point_out
+							 * heat_index_in
+							 * heat_index_out
+							 * hum_in
+							 * hum_out
+							 * temp_in
+							 * temp_out
+							 * temp_out_hi
+							 * temp_out_lo
+							 * wind_chill
+							 */
 
 							try
 							{
@@ -3306,7 +3305,7 @@ namespace CumulusMX
 							catch (Exception ex)
 							{
 								cumulus.LogErrorMessage($"DecodeHistoric: Error processing UV value on TxId {data.tx_id}. Error: {ex.Message}");
-								}
+							}
 
 							// Solar
 							/*
@@ -4325,11 +4324,11 @@ namespace CumulusMX
 				// 1.35 * 4 = 5.4
 				if (battV < 5.4)
 				{
-										cumulus.LogWarningMessage($"WARNING: WLL Backup battery voltage is low = {battV:0.##}V");
+					cumulus.LogWarningMessage($"WARNING: WLL Backup battery voltage is low = {battV:0.##}V");
 				}
 				else
 				{
-										cumulus.LogDebugMessage($"WLL Battery Voltage = {battV:0.##}V");
+					cumulus.LogDebugMessage($"WLL Battery Voltage = {battV:0.##}V");
 				}
 				var inpV = data.input_voltage / 1000.0;
 				ConSupplyVoltageText = inpV.ToString("F2");

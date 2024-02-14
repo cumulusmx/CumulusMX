@@ -94,11 +94,11 @@ namespace CumulusMX
 						s = s.Trim();
 
 						// *** Check for section names ***
-						if (s.StartsWith("[") && s.EndsWith("]"))
+						if (s.StartsWith('[') && s.EndsWith(']'))
 						{
 							if (s.Length > 2)
 							{
-								string SectionName = s.Substring(1, s.Length - 2);
+								string SectionName = s[1..^1];
 
 								// *** Only first occurrence of a section is loaded ***
 								if (m_Sections.ContainsKey(SectionName))
@@ -116,20 +116,17 @@ namespace CumulusMX
 						{
 							// *** Check for key+value pair ***
 							int i;
-							if (s.StartsWith("#"))
+							if (s.StartsWith('#'))
 							{
 								// It's a comment
 								// *** Only first occurrence of a key is loaded ***
-								if (!CurrentSection.ContainsKey(s))
-								{
-									CurrentSection.Add(s, "");
-								}
+								CurrentSection.TryAdd(s, "");
 							}
 							else if ((i = s.IndexOf('=')) > 0)
 							{
 								// It's a value
 								int j = s.Length - i - 1;
-								string Key = s.Substring(0, i).Trim();
+								string Key = s[..i].Trim();
 								if (Key.Length > 0)
 								{
 									// *** Only first occurrence of a key is loaded ***
@@ -191,7 +188,7 @@ namespace CumulusMX
 								{
 									// *** Write the key+value pair ***
 									sw.Write(ValuePair.Key);
-									if (!ValuePair.Key.StartsWith("#"))
+									if (!ValuePair.Key.StartsWith('#'))
 									{
 										sw.Write('=');
 										sw.Write(ValuePair.Value);
@@ -344,7 +341,7 @@ namespace CumulusMX
 				int l = hex.Length;
 				if (l > 2)
 				{
-					sb.Append(hex.Substring(l - 2, 2));
+					sb.Append(hex.AsSpan(l - 2, 2));
 				}
 				else
 				{
@@ -361,7 +358,7 @@ namespace CumulusMX
 			if (Value == null) return null;
 
 			int l = Value.Length;
-			if (l < 2) return Array.Empty<byte>();
+			if (l < 2) return [];
 
 			l /= 2;
 			byte[] Result = new byte[l];
@@ -379,7 +376,7 @@ namespace CumulusMX
 			{
 				sb.Append(b ? "1," : "0,");
 			}
-			if (sb[sb.Length - 1] == ',')
+			if (sb[^1] == ',')
 				sb.Length--;
 
 			return sb.ToString();
@@ -410,7 +407,7 @@ namespace CumulusMX
 			{
 				sb.Append($"\"{b}\",");
 			}
-			if (sb[sb.Length - 1] == ',')
+			if (sb[^1] == ',')
 				sb.Length--;
 
 			return sb.ToString();
@@ -421,7 +418,7 @@ namespace CumulusMX
 		{
 			if (Value == null) return null;
 
-			var x = Value.Substring(1, Value.Length - 2);
+			var x = Value[1..^1];
 
 			return x.Split(quoteCommaQuote, StringSplitOptions.None);
 		}

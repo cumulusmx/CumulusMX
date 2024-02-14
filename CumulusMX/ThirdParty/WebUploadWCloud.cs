@@ -33,7 +33,7 @@ namespace CumulusMX.ThirdParty
 				using var response = await Cumulus.MyHttpClient.GetAsync(url);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync();
 				var msg = "";
-				switch ((int)response.StatusCode)
+				switch ((int) response.StatusCode)
 				{
 					case 200:
 						msg = "Success";
@@ -65,7 +65,7 @@ namespace CumulusMX.ThirdParty
 						cumulus.ThirdPartyAlarm.Triggered = true;
 						break;
 				}
-				if ((int)response.StatusCode == 200)
+				if ((int) response.StatusCode == 200)
 					cumulus.LogDebugMessage($"WeatherCloud: Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
 				else
 					cumulus.LogMessage($"WeatherCloud: ERROR - Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
@@ -93,7 +93,7 @@ namespace CumulusMX.ThirdParty
 			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
 				sb.Append("&temp=" + (int) Math.Round(ConvertUnits.UserTempToC(station.OutdoorTemperature) * 10));
 			if (station.WindChill > Cumulus.DefaultHiVal)
-				sb.Append("&chill=" + (int )Math.Round(ConvertUnits.UserTempToC(station.WindChill) * 10));
+				sb.Append("&chill=" + (int) Math.Round(ConvertUnits.UserTempToC(station.WindChill) * 10));
 			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
 				sb.Append("&dew=" + (int) Math.Round(ConvertUnits.UserTempToC(station.OutdoorDewpoint) * 10));
 			if (station.HeatIndex > Cumulus.DefaultHiVal)
@@ -123,7 +123,7 @@ namespace CumulusMX.ThirdParty
 			// rain
 			if (station.RainToday >= 0)
 				sb.Append("&rain=" + (int) Math.Round(ConvertUnits.UserRainToMM(station.RainToday) * 10));
-			if (station.RainRate>= 0)
+			if (station.RainRate >= 0)
 				sb.Append("&rainrate=" + (int) Math.Round(ConvertUnits.UserRainToMM(station.RainRate) * 10));
 
 			// ET
@@ -149,7 +149,7 @@ namespace CumulusMX.ThirdParty
 			{
 				switch (cumulus.StationOptions.PrimaryAqSensor)
 				{
-					case (int)Cumulus.PrimaryAqSensor.AirLinkOutdoor:
+					case (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor:
 						if (cumulus.airLinkDataOut != null)
 						{
 							sb.Append($"&pm25={cumulus.airLinkDataOut.pm2p5:F0}");
@@ -157,31 +157,31 @@ namespace CumulusMX.ThirdParty
 							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(cumulus.airLinkDataOut.pm2p5_24hr)}");
 						}
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt1:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
 						if (station.AirQuality1 >= 0)
 							sb.Append($"&pm25={station.AirQuality1:F0}");
 						if (station.AirQualityAvg1 >= 0)
 							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg1)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt2:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
 						if (station.AirQuality2 >= 0)
 							sb.Append($"&pm25={station.AirQuality2:F0}");
 						if (station.AirQualityAvg2 >= 0)
 							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg2)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt3:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
 						if (station.AirQuality3 >= 0)
 							sb.Append($"&pm25={station.AirQuality3:F0}");
 						if (station.AirQualityAvg3 >= 0)
 							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg3)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.Ecowitt4:
+					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
 						if (station.AirQuality4 >= 0)
 							sb.Append($"&pm25={station.AirQuality4:F0}");
 						if (station.AirQualityAvg4 >= 0)
 							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg4)}");
 						break;
-					case (int)Cumulus.PrimaryAqSensor.EcowittCO2:
+					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 						if (station.CO2_pm2p5 >= 0)
 							sb.Append($"&pm25={station.CO2_pm2p5:F0}");
 						if (station.CO2_pm10 >= 0)

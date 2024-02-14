@@ -252,7 +252,7 @@ namespace CumulusMX
 		public override void getAndProcessHistoryData()
 		{
 			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
-			Cumulus.syncInit.Wait();
+			Cumulus.SyncInit.Wait();
 			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
@@ -282,7 +282,7 @@ namespace CumulusMX
 			}
 
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
-			_ = Cumulus.syncInit.Release();
+			_ = Cumulus.SyncInit.Release();
 
 			if (cumulus.cancellationToken.IsCancellationRequested)
 			{

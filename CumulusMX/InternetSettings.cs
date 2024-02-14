@@ -707,7 +707,7 @@ namespace CumulusMX
 		public bool ignorecerts { get; set; }
 		public bool phpignorecerts { get; set; }
 		public int maxuploads { get; set; }
-		public bool phpuseget {  get; set; }
+		public bool phpuseget { get; set; }
 	}
 
 	public class JsonInternetSettingsWebsite

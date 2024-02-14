@@ -241,7 +241,7 @@ namespace CumulusMX
 			{
 				// Wait for the lock
 				//cumulus.LogDebugMessage("Lock: Station waiting for lock");
-				Cumulus.syncInit.Wait();
+				Cumulus.SyncInit.Wait();
 				//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 				// Create a realtime thread to periodically restart broadcasts
@@ -346,7 +346,7 @@ namespace CumulusMX
 			finally
 			{
 				//cumulus.LogDebugMessage("Lock: Station releasing lock");
-				Cumulus.syncInit.Release();
+				Cumulus.SyncInit.Release();
 			}
 		}
 
@@ -1471,7 +1471,7 @@ namespace CumulusMX
 
 			int archiveRun = 0;
 			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
-			Cumulus.syncInit.Wait();
+			Cumulus.SyncInit.Wait();
 			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			try
@@ -1501,7 +1501,7 @@ namespace CumulusMX
 
 
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
-			Cumulus.syncInit.Release();
+			Cumulus.SyncInit.Release();
 			bwDoneEvent.Set();
 		}
 

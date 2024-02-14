@@ -72,7 +72,7 @@ namespace CumulusMX.ThirdParty
 				cumulus.LogMessage($"Uploading {Name} archive #" + (i + 1));
 				try
 				{
-					using var  response = await Cumulus.MyHttpClient.GetAsync(CatchupList[i]);
+					using var response = await Cumulus.MyHttpClient.GetAsync(CatchupList[i]);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					cumulus.LogMessage($"{Name} Response: {response.StatusCode}: {response.ReasonPhrase}");
 				}
@@ -100,7 +100,7 @@ namespace CumulusMX.ThirdParty
 				string LogURL = URL;
 				if (pwstring != null)
 				{
-				LogURL = LogURL.Replace(pwstring, new string('*', pwstring.Length));
+					LogURL = LogURL.Replace(pwstring, new string('*', pwstring.Length));
 				}
 
 				cumulus.LogMessage($"Creating {Name} URL #{CatchupList.Count} - {LogURL}");

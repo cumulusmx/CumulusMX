@@ -25,17 +25,24 @@ using EmbedIO;
 using EmbedIO.Files;
 using EmbedIO.Utilities;
 using EmbedIO.WebApi;
+
 using FluentFTP;
 using FluentFTP.Helpers;
 using FluentFTP.Logging;
 
 using Microsoft.Extensions.Logging;
+
 using MySqlConnector;
+
 using NReco.Logging.File;
+
 using Renci.SshNet;
+
 using ServiceStack;
 using ServiceStack.Text;
+
 using SQLite;
+
 using Swan;
 
 using static CumulusMX.EmailSender;
@@ -55,7 +62,7 @@ namespace CumulusMX
 		/////////////////////////////////
 
 
-		public static SemaphoreSlim syncInit { get => semaphoreSlim; }
+		public static SemaphoreSlim SyncInit { get => semaphoreSlim; }
 
 		/*
 		public enum VPRainGaugeTypes
@@ -627,27 +634,27 @@ namespace CumulusMX
 
 		public string[] StationDesc =
 		[
-			"Davis Vantage Pro",			// 0
-			"Davis Vantage Pro2",			// 1
-			"Oregon Scientific WMR-928",	// 2
-			"Oregon Scientific WM-918",		// 3
-			"EasyWeather",					// 4
-			"Fine Offset",					// 5
-			"LaCrosse WS2300",				// 6
-			"Fine Offset with Solar",		// 7
-			"Oregon Scientific WMR100",		// 8
-			"Oregon Scientific WMR200",		// 9
-			"Instromet",					// 10
-			"Davis WLL",					// 11
-			"GW1000",						// 12
-			"HTTP WUnderground",			// 13
-			"HTTP Ecowitt",					// 14
-			"HTTP Ambient",					// 15
-			"WeatherFlow Tempest",			// 16
-			"Simulator",					// 17
-			"Ecowitt Cloud",				// 18
-			"Davis Cloud (WLL/WLC)",		// 19
-			"Davis Cloud (VP2)"				// 20
+			"Davis Vantage Pro",            // 0
+			"Davis Vantage Pro2",           // 1
+			"Oregon Scientific WMR-928",    // 2
+			"Oregon Scientific WM-918",     // 3
+			"EasyWeather",                  // 4
+			"Fine Offset",                  // 5
+			"LaCrosse WS2300",              // 6
+			"Fine Offset with Solar",       // 7
+			"Oregon Scientific WMR100",     // 8
+			"Oregon Scientific WMR200",     // 9
+			"Instromet",                    // 10
+			"Davis WLL",                    // 11
+			"GW1000",                       // 12
+			"HTTP WUnderground",            // 13
+			"HTTP Ecowitt",                 // 14
+			"HTTP Ambient",                 // 15
+			"WeatherFlow Tempest",          // 16
+			"Simulator",                    // 17
+			"Ecowitt Cloud",                // 18
+			"Davis Cloud (WLL/WLC)",        // 19
+			"Davis Cloud (VP2)"             // 20
 		];
 
 		public string[] APRSstationtype = ["DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul", "Ecow", "DsVP", "DsVP"];
@@ -877,121 +884,121 @@ namespace CumulusMX
 
 			GraphDataFiles =
 			[
-				new()		// 0
+				new()       // 0
 				{
 					LocalPath = WebPath,
 					LocalFileName = "graphconfig.json",
 					RemoteFileName = "graphconfig.json"
 				},
-				new()		// 1
+				new()       // 1
 				{
 					LocalPath = WebPath,
 					LocalFileName = "availabledata.json",
 					RemoteFileName = "availabledata.json"
 				},
-				new()		// 2
+				new()       // 2
 				{
 					LocalPath = WebPath,
 					LocalFileName = "tempdata.json",
 					RemoteFileName = "tempdata.json"
 				},
-				new()		// 3
+				new()       // 3
 				{
 					LocalPath = WebPath,
 					LocalFileName = "pressdata.json",
 					RemoteFileName = "pressdata.json"
 				},
-				new()		// 4
+				new()       // 4
 				{
 					LocalPath = WebPath,
 					LocalFileName = "winddata.json",
 					RemoteFileName = "winddata.json"
 				},
-				new()		// 5
+				new()       // 5
 				{
 					LocalPath = WebPath,
 					LocalFileName = "wdirdata.json",
 					RemoteFileName = "wdirdata.json"
 				},
-				new()		// 6
+				new()       // 6
 				{
 					LocalPath = WebPath,
 					LocalFileName = "humdata.json",
 					RemoteFileName = "humdata.json"
 				},
-				new()		// 7
+				new()       // 7
 				{
 					LocalPath = WebPath,
 					LocalFileName = "raindata.json",
 					RemoteFileName = "raindata.json"
 				},
-				new()		// 8
+				new()       // 8
 				{
 					LocalPath = WebPath,
 					LocalFileName = "dailyrain.json",
 					RemoteFileName = "dailyrain.json"
 				},
-				new()		// 9
+				new()       // 9
 				{
 					LocalPath = WebPath,
 					LocalFileName = "dailytemp.json",
 					RemoteFileName = "dailytemp.json"
 				},
-				new()		// 10
+				new()       // 10
 				{
 					LocalPath = WebPath,
 					LocalFileName = "solardata.json",
 					RemoteFileName = "solardata.json"
 				},
-				new()		// 11
+				new()       // 11
 				{
 					LocalPath = WebPath,
 					LocalFileName = "sunhours.json",
 					RemoteFileName = "sunhours.json"
 				},
-				new()		// 12
+				new()       // 12
 				{
 					LocalPath = WebPath,
 					LocalFileName = "airquality.json",
 					RemoteFileName = "airquality.json"
 				},
-				new()		// 13
+				new()       // 13
 				{
 					LocalPath = WebPath,
 					LocalFileName = "extratempdata.json",
 					RemoteFileName = "extratempdata.json"
 				},
-				new()		// 14
+				new()       // 14
 				{
 					LocalPath = WebPath,
 					LocalFileName = "extrahumdata.json",
 					RemoteFileName = "extrahumdata.json"
 				},
-				new()		// 15
+				new()       // 15
 				{
 					LocalPath = WebPath,
 					LocalFileName = "extradewdata.json",
 					RemoteFileName = "extradewdata.json"
 				},
-				new()		// 16
+				new()       // 16
 				{
 					LocalPath = WebPath,
 					LocalFileName = "soiltempdata.json",
 					RemoteFileName = "soiltempdata.json"
 				},
-				new()		// 17
+				new()       // 17
 				{
 					LocalPath = WebPath,
 					LocalFileName = "soilmoistdata.json",
 					RemoteFileName = "soilmoistdata.json"
 				},
-				new()		// 18
+				new()       // 18
 				{
 					LocalPath = WebPath,
 					LocalFileName = "usertempdata.json",
 					RemoteFileName = "usertempdata.json"
 				},
-				new()		// 19
+				new()       // 19
 				{
 					LocalPath = WebPath,
 					LocalFileName = "co2sensordata.json",
@@ -1517,7 +1524,7 @@ namespace CumulusMX
 			Console.WriteLine();
 
 			//LogDebugMessage("Lock: Cumulus waiting for the lock");
-			syncInit.Wait();
+			SyncInit.Wait();
 			//LogDebugMessage("Lock: Cumulus has lock");
 
 			LogMessage("Opening station type " + StationType);
@@ -1742,7 +1749,7 @@ namespace CumulusMX
 			}
 
 			LogDebugMessage("Lock: Cumulus releasing the lock");
-			syncInit.Release();
+			SyncInit.Release();
 		}
 
 		internal void SetUpHttpProxy()
@@ -3960,7 +3967,7 @@ namespace CumulusMX
 				ProgramOptions.DebugLogging = ini.GetValue("Station", "Logging", false);
 				ProgramOptions.DataLogging = ini.GetValue("Station", "DataLogging", false);
 			}
-			ErrorListLoggingLevel = (MxLogLevel) ini.GetValue("Program", "ErrorListLoggingLevel", (int)MxLogLevel.Warning);
+			ErrorListLoggingLevel = (MxLogLevel) ini.GetValue("Program", "ErrorListLoggingLevel", (int) MxLogLevel.Warning);
 
 			ProgramOptions.SecureSettings = ini.GetValue("Program", "SecureSettings", false);
 			ProgramOptions.SettingsUsername = ini.GetValue("Program", "SettingsUsername", "");
@@ -9332,7 +9339,7 @@ namespace CumulusMX
 					}
 				}
 
-					LogDebugMessage("Interval: Done creating extra files");
+				LogDebugMessage("Interval: Done creating extra files");
 
 				if (!string.IsNullOrEmpty(ExternalProgram))
 				{
@@ -11709,7 +11716,7 @@ namespace CumulusMX
 		// Return True if the upload worked
 		// Return False if the upload failed
 		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle = -1, bool binary = false, bool utf8 = true)
-			{
+		{
 			var prefix = cycle >= 0 ? $"RealtimePHP[{cycle}]" : "PHP[Int]";
 
 			if (!File.Exists(localfile))
@@ -11962,7 +11969,7 @@ namespace CumulusMX
 			return false;
 		}
 
-		public void LogMessage(string message, MxLogLevel level=MxLogLevel.Info)
+		public void LogMessage(string message, MxLogLevel level = MxLogLevel.Info)
 		{
 			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 
@@ -12664,9 +12671,9 @@ namespace CumulusMX
 						if (MySqlSettings.CustomTimed.Intervals[i] == 1440)
 						{
 							if (MySqlSettings.CustomTimed.StartTimes[i] == roundedTime)
-						{
-							tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
-							var cmd = tokenParser.ToStringFromString();
+							{
+								tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
+								var cmd = tokenParser.ToStringFromString();
 								LogDebugMessage("MySQLTimed: Running - " + cmd);
 								await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", cmd);
 								continue;
@@ -13494,7 +13501,7 @@ namespace CumulusMX
 					if (match.Success)
 					{
 						var idx = int.Parse(match.Groups[1].Value) - 1; // we use a zero relative array
-						// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+																		// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
 						var custDate = dat.AddMinutes(-(CustomIntvlLogSettings[idx].Interval + 1));
 
 						return GetCustomIntvlLogFileName(idx, custDate);
@@ -13550,7 +13557,7 @@ namespace CumulusMX
 					if (match.Success)
 					{
 						var idx = int.Parse(match.Groups[1].Value) - 1; // we use a zero relative array
-						// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+																		// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
 						var custDate = dat.AddMinutes(-(CustomIntvlLogSettings[idx].Interval + 1));
 
 						return input.Replace(match.Groups[0].Value, Path.GetFileName(GetCustomIntvlLogFileName(idx, custDate)));
@@ -13925,7 +13932,7 @@ namespace CumulusMX
 		public bool PhpIgnoreCertErrors { get; set; }
 		public string PhpCompression { get; set; } = "notchecked";
 		public int MaxConcurrentUploads { get; set; }
-		public bool PhpUseGet {  get; set; }
+		public bool PhpUseGet { get; set; }
 	}
 
 	public class FileGenerationOptions

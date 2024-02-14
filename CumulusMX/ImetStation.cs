@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO.Ports;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace CumulusMX

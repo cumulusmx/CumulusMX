@@ -181,7 +181,7 @@ namespace CumulusMX
 		public override void getAndProcessHistoryData()
 		{
 			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
-			Cumulus.syncInit.Wait();
+			Cumulus.SyncInit.Wait();
 			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			int archiveRun = 0;
@@ -202,7 +202,7 @@ namespace CumulusMX
 			}
 
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
-			_ = Cumulus.syncInit.Release();
+			_ = Cumulus.SyncInit.Release();
 
 			StartLoop();
 		}
@@ -244,23 +244,23 @@ namespace CumulusMX
 		}
 
 		private void GetHistoricData()
-	{
-		cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
-
-		// add one minute to avoid duplicating the last log entry
-		var startTime = cumulus.LastUpdateTime.AddMinutes(1);
-		var endTime = DateTime.Now;
-
-		// The API call is limited to fetching 24 hours of data
-		if ((endTime - startTime).TotalHours > 24.0)
 		{
-			// only fetch 24 hours worth of data, and schedule another run to fetch the rest
-			endTime = startTime.AddHours(24);
-			maxArchiveRuns++;
-		}
+			cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
 
-		ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
-	}
+			// add one minute to avoid duplicating the last log entry
+			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
+			var endTime = DateTime.Now;
+
+			// The API call is limited to fetching 24 hours of data
+			if ((endTime - startTime).TotalHours > 24.0)
+			{
+				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
+				endTime = startTime.AddHours(24);
+				maxArchiveRuns++;
+			}
+
+			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+		}
 
 		private void ProcessCurrentData(EcowittApi.CurrentDataData data, CancellationToken token)
 		{

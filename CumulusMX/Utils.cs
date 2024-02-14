@@ -122,7 +122,7 @@ namespace CumulusMX
 
 		public static DateTime ddmmyyhhmmStrToDate(string d, string t)
 		{
-			if (DateTime.TryParseExact(d + ' ' + t, "dd/MM/yy HH:mm", CultureInfo.InvariantCulture,DateTimeStyles.AssumeLocal, out var result))
+			if (DateTime.TryParseExact(d + ' ' + t, "dd/MM/yy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var result))
 			{
 				return result;
 			}

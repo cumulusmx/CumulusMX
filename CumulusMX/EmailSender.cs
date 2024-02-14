@@ -16,8 +16,6 @@ using MailKit.Security;
 
 using MimeKit;
 
-using static System.Net.Mime.MediaTypeNames;
-
 namespace CumulusMX
 {
 	public class EmailSender

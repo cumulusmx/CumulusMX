@@ -174,7 +174,7 @@ namespace CumulusMX.ThirdParty
 				sb.Append($"\"name\":\"{cumulus.LocationName}\",");
 				sb.Append($"\"latitude\":{cumulus.Latitude.ToString(invC)},");
 				sb.Append($"\"longitude\":{cumulus.Longitude.ToString(invC)},");
-				sb.Append($"\"altitude\":{(int)station.AltitudeM(cumulus.Altitude)}}}");
+				sb.Append($"\"altitude\":{(int) station.AltitudeM(cumulus.Altitude)}}}");
 
 				cumulus.LogMessage($"OpenWeatherMap: Creating new station");
 				cumulus.LogMessage($"OpenWeatherMap: - {sb}");

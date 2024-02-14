@@ -119,7 +119,7 @@ namespace CumulusMX
 
 				return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
 
-		}
+			}
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("Edit Diary: " + ex.Message);
@@ -2625,7 +2625,7 @@ namespace CumulusMX
 						station.ThisMonth.LowTemp.Ts = time;
 						break;
 					case "highDewPoint":
-						station.ThisMonth.HighDewPoint.Val =value;
+						station.ThisMonth.HighDewPoint.Val = value;
 						station.ThisMonth.HighDewPoint.Ts = time;
 						break;
 					case "lowDewPoint":
@@ -2653,7 +2653,7 @@ namespace CumulusMX
 						station.ThisMonth.HighHumidex.Ts = time;
 						break;
 					case "lowWindChill":
-						station.ThisMonth.LowChill.Val =value;
+						station.ThisMonth.LowChill.Val = value;
 						station.ThisMonth.LowChill.Ts = time;
 						break;
 					case "highHeatIndex":
@@ -2665,7 +2665,7 @@ namespace CumulusMX
 						station.ThisMonth.HighMinTemp.Ts = time;
 						break;
 					case "lowMaxTemp":
-						station.ThisMonth.LowMaxTemp.Val =value;
+						station.ThisMonth.LowMaxTemp.Val = value;
 						station.ThisMonth.LowMaxTemp.Ts = time;
 						break;
 					case "highDailyTempRange":
@@ -3627,7 +3627,7 @@ namespace CumulusMX
 					return DateTime.Parse(dt);
 				}
 				else
-				{	// short month date
+				{   // short month date
 					return DateTime.Parse("01 " + dt);
 				}
 			}

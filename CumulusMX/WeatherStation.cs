@@ -11,14 +11,12 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Web;
 
 using EmbedIO.Utilities;
-using EmbedIO.WebSockets;
 
 using ServiceStack.Text;
 

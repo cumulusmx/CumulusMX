@@ -251,7 +251,7 @@ namespace CumulusMX
 	}
 	public class JsonProgramSettingsSecurity
 	{
-		public bool securesettings { get; set;}
+		public bool securesettings { get; set; }
 		public string username { get; set; }
 		public string password { get; set; }
 	}

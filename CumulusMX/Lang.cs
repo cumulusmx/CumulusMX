@@ -6,12 +6,32 @@
 		{
 			zForecast =
 			[
-				"Settled fine", "Fine weather", "Becoming fine", "Fine, becoming less settled", "Fine, possible showers", "Fairly fine, improving",
-				"Fairly fine, possible showers early", "Fairly fine, showery later", "Showery early, improving", "Changeable, mending",
-				"Fairly fine, showers likely", "Rather unsettled clearing later", "Unsettled, probably improving", "Showery, bright intervals",
-				"Showery, becoming less settled", "Changeable, some rain", "Unsettled, short fine intervals", "Unsettled, rain later", "Unsettled, some rain",
-				"Mostly very unsettled", "Occasional rain, worsening", "Rain at times, very unsettled", "Rain at frequent intervals", "Rain, very unsettled",
-				"Stormy, may improve", "Stormy, much rain"
+				"Settled fine",
+				"Fine weather",
+				"Becoming fine",
+				"Fine, becoming less settled",
+				"Fine, possible showers",
+				"Fairly fine, improving",
+				"Fairly fine, possible showers early",
+				"Fairly fine, showery later",
+				"Showery early, improving",
+				"Changeable, mending",
+				"Fairly fine, showers likely",
+				"Rather unsettled clearing later",
+				"Unsettled, probably improving",
+				"Showery, bright intervals",
+				"Showery, becoming less settled",
+				"Changeable, some rain",
+				"Unsettled, short fine intervals",
+				"Unsettled, rain later",
+				"Unsettled, some rain",
+				"Mostly very unsettled",
+				"Occasional rain, worsening",
+				"Rain at times, very unsettled",
+				"Rain at frequent intervals",
+				"Rain, very unsettled",
+				"Stormy, may improve",
+				"Stormy, much rain"
 			];
 
 			compassp = new string[16];
@@ -45,7 +65,8 @@
 				"Increasing clouds and warmer.",
 				"Mostly clear for 12 to 24 hours with little temperature change.",
 				"Mostly clear for 6 to 12 hours with little temperature change.",
-				"Mostly clear and warmer. ", "Mostly clear for 12 to 24 hours and cooler.",
+				"Mostly clear and warmer. ",
+				"Mostly clear for 12 to 24 hours and cooler.",
 				"Mostly clear for 12 hours with little temperature change.",
 				"Mostly clear with little temperature change.",
 				"Mostly clear and cooler.",
@@ -55,7 +76,8 @@
 				"Mostly cloudy, Rain and/or snow possible or continuing.",
 				"Mostly cloudy, Snow possible or continuing.",
 				"Mostly cloudy, Rain possible or continuing.",
-				"Mostly cloudy. ", "Partially cloudy.",
+				"Mostly cloudy. ",
+				"Partially cloudy.",
 				"Mostly clear.",
 				"Partly cloudy with little temperature change.",
 				"Partly cloudy and cooler.",
