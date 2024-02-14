@@ -1,8 +1,13 @@
+4.0.0 - b4012
+—————————————
+- Fix CPU temperature when not running on Windows
+
+
 4.0.0 - b4011
 —————————————
 - Fix FTP logging
 - Improved web socket initial connection to send data immediately on dashboard/now/gauges connection
-- Tweaks to real-time FTP reconnect to avoid multiple reconnects occuring at once
+- Tweaks to real-time FTP reconnect to avoid multiple reconnects occurring at once
 - Add Enable option to Extra Web Files
 - Ecowitt - added firmware update check on start-up and once a day at 13:00
 	- New Firmware Alarm to support this

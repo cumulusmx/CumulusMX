@@ -5264,14 +5264,12 @@ namespace CumulusMX
 
 		private static string TagProgramUpTime(Dictionary<string, string> tagParams)
 		{
-			// Bug in Mono Process.StartTime - wraps after 24 days
 			TimeSpan ts = DateTime.Now - Program.StartTime;
 			return string.Format($"{ts.Days} days {ts.Hours} hours");
 		}
 
 		private static string TagProgramUpTimeMs(Dictionary<string, string> tagParams)
 		{
-			// Bug in Mono Process.StartTime - wraps after 24 days
 			TimeSpan ts = DateTime.Now - Program.StartTime;
 			return ts.TotalMilliseconds.ToString();
 		}

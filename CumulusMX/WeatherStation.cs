@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
@@ -2169,7 +2170,7 @@ namespace CumulusMX
 			// If not on windows, check for CPU temp
 			try
 			{
-				if (Type.GetType("Mono.Runtime") != null && File.Exists("/sys/class/thermal/thermal_zone0/temp"))
+				if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && File.Exists("/sys/class/thermal/thermal_zone0/temp"))
 				{
 					var raw = File.ReadAllText(@"/sys/class/thermal/thermal_zone0/temp");
 					if (double.TryParse(raw, out var val))
