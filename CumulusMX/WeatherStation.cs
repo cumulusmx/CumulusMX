@@ -1883,6 +1883,7 @@ namespace CumulusMX
 			cumulus.SensorAlarm.ClearAlarm();
 			cumulus.SpikeAlarm.ClearAlarm();
 			cumulus.UpgradeAlarm.ClearAlarm();
+			cumulus.FirmwareAlarm.ClearAlarm();
 			cumulus.ThirdPartyAlarm.ClearAlarm();
 			cumulus.MySqlUploadAlarm.ClearAlarm();
 			cumulus.HighWindAlarm.ClearAlarm();
@@ -14716,6 +14717,8 @@ namespace CumulusMX
 				alarms.Add(new DashboardAlarms(cumulus.MySqlUploadAlarm.Id, cumulus.MySqlUploadAlarm.Triggered));
 			if (cumulus.UpgradeAlarm.Enabled)
 				alarms.Add(new DashboardAlarms(cumulus.UpgradeAlarm.Id, cumulus.UpgradeAlarm.Triggered));
+			if (cumulus.FirmwareAlarm.Enabled)
+				alarms.Add(new DashboardAlarms(cumulus.FirmwareAlarm.Id, cumulus.FirmwareAlarm.Triggered));
 
 			for (var i = 0; i < cumulus.UserAlarms.Count; i++)
 			{

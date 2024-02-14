@@ -246,6 +246,18 @@ namespace CumulusMX
 					Action = cumulus.UpgradeAlarm.Action,
 					ActionParams = cumulus.UpgradeAlarm.ActionParams
 				},
+				firmware = new JsonAlarmValues()
+				{
+					Enabled = cumulus.FirmwareAlarm.Enabled,
+					SoundEnabled = cumulus.FirmwareAlarm.Sound,
+					Sound = cumulus.FirmwareAlarm.SoundFile,
+					Notify = cumulus.FirmwareAlarm.Notify,
+					Email = cumulus.FirmwareAlarm.Email,
+					Latches = cumulus.FirmwareAlarm.Latch,
+					LatchHrs = cumulus.FirmwareAlarm.LatchHours,
+					Action = cumulus.FirmwareAlarm.Action,
+					ActionParams = cumulus.FirmwareAlarm.ActionParams
+				},
 				httpUpload = new JsonAlarmValues()
 				{
 					Enabled = cumulus.ThirdPartyAlarm.Enabled,
@@ -481,6 +493,15 @@ namespace CumulusMX
 					SoundEnabled = cumulus.UpgradeAlarm.Sound,
 					Sound = cumulus.UpgradeAlarm.SoundFile,
 					Notify = cumulus.UpgradeAlarm.Notify
+				});
+			if (cumulus.FirmwareAlarm.Enabled)
+				alarms.Add(new JsonAlarmInfo()
+				{
+					Id = cumulus.FirmwareAlarm.Id,
+					Name = cumulus.FirmwareAlarm.Name,
+					SoundEnabled = cumulus.FirmwareAlarm.Sound,
+					Sound = cumulus.FirmwareAlarm.SoundFile,
+					Notify = cumulus.FirmwareAlarm.Notify
 				});
 			if (cumulus.ThirdPartyAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
@@ -767,6 +788,17 @@ namespace CumulusMX
 				cumulus.UpgradeAlarm.Action = settings.upgrade.Action.Trim();
 				cumulus.UpgradeAlarm.ActionParams = settings.upgrade.ActionParams.Trim();
 
+				cumulus.FirmwareAlarm.Enabled = settings.firmware.Enabled;
+				cumulus.FirmwareAlarm.Sound = settings.firmware.SoundEnabled;
+				cumulus.FirmwareAlarm.SoundFile = settings.firmware.Sound.Trim();
+				cumulus.FirmwareAlarm.Notify = settings.firmware.Notify;
+				cumulus.FirmwareAlarm.Email = settings.firmware.Email;
+				cumulus.FirmwareAlarm.Latch = settings.firmware.Latches;
+				cumulus.FirmwareAlarm.LatchHours = settings.firmware.LatchHrs;
+				emailRequired = emailRequired || (cumulus.FirmwareAlarm.Email && cumulus.FirmwareAlarm.Enabled);
+				cumulus.FirmwareAlarm.Action = settings.firmware.Action.Trim();
+				cumulus.FirmwareAlarm.ActionParams = settings.firmware.ActionParams.Trim();
+
 				cumulus.ThirdPartyAlarm.Enabled = settings.httpUpload.Enabled;
 				cumulus.ThirdPartyAlarm.Sound = settings.httpUpload.SoundEnabled;
 				cumulus.ThirdPartyAlarm.SoundFile = settings.httpUpload.Sound.Trim();
@@ -927,6 +959,7 @@ namespace CumulusMX
 		public JsonAlarmValues batteryLow { get; set; }
 		public JsonAlarmValues spike { get; set; }
 		public JsonAlarmValues upgrade { get; set; }
+		public JsonAlarmValues firmware { get; set; }
 		public JsonAlarmValues httpUpload { get; set; }
 		public JsonAlarmValues mySqlUpload { get; set; }
 		public JsonAlarmValues isRaining { get; set; }

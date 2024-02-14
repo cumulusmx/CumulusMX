@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -21,8 +22,8 @@ namespace CumulusMX
 		private string deviceFirmware;
 		private const int AtPort = 45000;
 		private int updateRate = 10000; // 10 seconds by default
-		private int lastMinute;
-		private int lastHour;
+		private int lastMinute = -1;
+		private int lastHour = -1;
 		private bool tenMinuteChanged = true;
 
 		private readonly EcowittApi ecowittApi;
@@ -115,7 +116,7 @@ namespace CumulusMX
 			DoDiscovery();
 			PostDiscovery();
 
-			_ = ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken).Result;
+			CheckAvailableFirmware();
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
@@ -143,7 +144,7 @@ namespace CumulusMX
 
 			cumulus.StartTimersAndSensors();
 
-			liveTask = Task.Run(async () =>
+			liveTask = Task.Run(() =>
 			{
 				try
 				{
@@ -189,7 +190,7 @@ namespace CumulusMX
 
 									if (hour == 13)
 									{
-										_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken);
+										CheckAvailableFirmware();
 									}
 								}
 							}
@@ -278,7 +279,7 @@ namespace CumulusMX
 				}
 
 				// get the station list
-				ecowittApi.GetStationList(cumulus.cancellationToken);
+				ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
 			}
 
 			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
@@ -607,6 +608,32 @@ namespace CumulusMX
 				cumulus.LogErrorMessage($"GetFirmwareVersion: Error retrieving/processing firmware version. Message - {ex.Message}");
 			}
 			return response;
+		}
+
+		private async void CheckAvailableFirmware()
+		{
+			if (EcowittApi.FirmwareSupportedModels.Contains(deviceModel[..6]))
+			{
+				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken);
+			}
+			else
+			{
+				var retVal = ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken).Result;
+				if (retVal != null)
+				{
+					var verVer = new Version(retVal[0]);
+					if (fwVersion.CompareTo(verVer) < 0)
+					{
+						cumulus.FirmwareAlarm.LastMessage = $"A new firmware version is available: {retVal[0]}.\nChange log:\n{string.Join('\n', retVal[1].Split(';'))}";
+						cumulus.FirmwareAlarm.Triggered = true;
+						cumulus.LogWarningMessage($"FirmwareVersion: Latest Version {retVal[0]}, Change log:\n{string.Join('\n', retVal[1].Split(';'))}");
+					}
+					else
+					{
+						cumulus.LogDebugMessage($"FirmwareVersion: Already on the latest Version {retVal[0]}");
+					}
+				}
+			}
 		}
 
 		private bool GetSensorIdsNew()

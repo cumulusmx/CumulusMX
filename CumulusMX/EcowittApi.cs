@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-
 using ServiceStack;
 using ServiceStack.Text;
 
@@ -21,7 +20,10 @@ namespace CumulusMX
 		private const string currentUrl = "https://api.ecowitt.net/api/v3/device/real_time?";
 		private const string stationUrl = "https://api.ecowitt.net/api/v3/device/list?";
 		private const string firmwareUrl = "http://ota.ecowitt.net/api/ota/v1/version/info?";
-		private static readonly string[] supportedModels = ["GW1100", "GW1200", "GW2000"];
+		private const string simpleFirmwareUrl = "http://download.ecowitt.net/down/filewave?v=FirwaveReadme.txt";
+		public static readonly string[] FirmwareSupportedModels = ["GW1100", "GW1200", "GW2000"];
+		private static readonly string[] simpleSupportedModels = ["GW1000", "WH2650", "WS1900", "HP10", "WH2680", "WH6006", "WL6006"];
+
 
 
 		private static readonly int EcowittApiFudgeFactor = 5; // Number of minutes that Ecowitt API data is delayed
@@ -2335,14 +2337,14 @@ namespace CumulusMX
 			}
 		}
 
-		internal bool GetStationList(CancellationToken token)
+		internal string[] GetStationList(bool CheckCamera, string macAddress, CancellationToken token)
 		{
 			cumulus.LogMessage("API.GetStationList: Get Ecowitt Station List");
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey))
 			{
 				cumulus.LogWarningMessage("API.GetCurrentCameraImageUrl: Missing Ecowitt API data in the configuration, aborting!");
-				return false;
+				return null;
 			}
 
 			var sb = new StringBuilder(stationUrl);
@@ -2376,14 +2378,14 @@ namespace CumulusMX
 					var currentError = responseBody.FromJson<ErrorResp>();
 					cumulus.LogWarningMessage($"API.GetStationList: Ecowitt API Station List Error: {currentError.code}, {currentError.msg}");
 					Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
-					return false;
+					return null;
 				}
 
 				if (responseBody == "{}")
 				{
 					cumulus.LogWarningMessage("API.GetStationList: Ecowitt API Station List: No data was returned.");
 					Cumulus.LogConsoleMessage(" - No current data available");
-					return false;
+					return null;
 				}
 				else if (responseBody.StartsWith("{\"code\":")) // sanity check
 				{
@@ -2398,7 +2400,7 @@ namespace CumulusMX
 							if (stnObj.data == null)
 							{
 								// There was no data returned.
-								return false;
+								return null;
 							}
 						}
 						else if (stnObj.code == -1 || stnObj.code == 45001)
@@ -2406,16 +2408,16 @@ namespace CumulusMX
 							// -1 = system busy, 45001 = rate limited
 
 							cumulus.LogMessage("API.GetStationList: System Busy or Rate Limited, waiting 5 secs before retry...");
-							return false;
+							return null;
 						}
 						else
 						{
-							return false;
+							return null;
 						}
 					}
 					else
 					{
-						return false;
+						return null;
 					}
 
 				}
@@ -2423,7 +2425,7 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage("API.GetStationList: Invalid message received");
 					cumulus.LogDataMessage("API.GetStationList: Received: " + responseBody);
-					return false;
+					return null;
 				}
 
 				if (!token.IsCancellationRequested)
@@ -2431,28 +2433,39 @@ namespace CumulusMX
 					if (stnObj.data.list == null)
 					{
 						cumulus.LogWarningMessage("API.GetStationList: Ecowitt API: No station data was returned.");
-						return false;
+						return null;
 					}
+
+					var vers = string.Empty;
+					var model = string.Empty;
 
 					foreach (var stn in stnObj.data.list)
 					{
-						cumulus.LogDebugMessage($"API.GetStationList: Station: id={stn.id}, mac/imei={stn.mac ?? stn.imei}, name={stn.name}, type={stn.type}");
-						if (stn.type == 2)
+						cumulus.LogDebugMessage($"API.GetStationList: Station: id={stn.id}, mac/imei={stn.mac ?? stn.imei}, name={stn.name}, type={stn.stationtype}");
+						if (stn.type == 2 && CheckCamera)
 						{
 							// we have a camera
 							cumulus.EcowittCameraMacAddress = stn.mac;
 						}
+						else if (stn.type == 1 && stn.mac.Equals(macAddress, StringComparison.CurrentCultureIgnoreCase))
+						{
+							// weather station - check the version
+							vers = stn.stationtype.Split('V')[^1];
+							model = stn.stationtype.Replace("_", string.Empty).Split('V')[0];
+						}
 					}
 
-					return cumulus.EcowittCameraMacAddress != null;
+					cumulus.LogDebugMessage($"API.GetStationList: Found vers={vers}, model={model}");
+
+					return [vers, model];
 				}
 
-				return false;
+				return null;
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("API.GetStationList: Exception: " + ex.Message);
-				return false;
+				return null;
 			}
 		}
 
@@ -2462,15 +2475,15 @@ namespace CumulusMX
 
 			cumulus.LogMessage("API.GetLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
 
-			if (model == null || !supportedModels.Contains(model[0..5]))
+			if (model == null || !FirmwareSupportedModels.Contains(model[0..6]))
 			{
 				cumulus.LogMessage($"API.GetLatestFirmwareVersion: Your model - {model ?? "null"} - is not not currently supported");
 				return null;
 			}
 
-			if (model == null | version == null)
+			if (version == null)
 			{
-				cumulus.LogMessage("API.GetLatestFirmwareVersion: No model or version supplied, cannot continue");
+				cumulus.LogMessage("API.GetLatestFirmwareVersion: No version supplied, cannot continue");
 				return null;
 			}
 
@@ -2538,13 +2551,19 @@ namespace CumulusMX
 						cumulus.LogWarningMessage("API.GetLatestFirmwareVersion: Ecowitt API: No version was returned.");
 						return null;
 					}
-
-					if (retObj.data.content != null)
+					else if (retObj.code == 0)
 					{
+						cumulus.FirmwareAlarm.LastMessage = $"A new firmware version is available: {retObj.data.name}.\nChange log:\n{retObj.data.content}";
+						cumulus.FirmwareAlarm.Triggered = true;
 						cumulus.LogWarningMessage($"API.GetLatestFirmwareVersion: Latest Version {retObj.data.name}, Change log:\n{retObj.data.content}");
+						return retObj.data.name;
 					}
-
-					return retObj.data.name;
+					else
+					{
+						cumulus.LogErrorMessage("API.GetLatestFirmwareVersion: Invalid message received");
+						cumulus.LogDataMessage("API.GetLatestFirmwareVersion: Received: " + responseBody);
+						return null;
+					}
 				}
 				else // No idea what we got, dump it to the log
 				{
@@ -2556,6 +2575,64 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("API.GetLatestFirmwareVersion: Exception: " + ex.Message);
+				return null;
+			}
+		}
+
+		internal async Task<string[]> GetSimpleLatestFirmwareVersion(string model, CancellationToken token)
+		{
+			// Credit: https://www.wxforum.net/index.php?topic=46414.msg469763#msg469763
+
+			cumulus.LogMessage("API.GetSimpleLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
+
+			if (model == null || !simpleSupportedModels.Contains(model[0..6]))
+			{
+				cumulus.LogMessage($"API.GetSimpleLatestFirmwareVersion: Your model - {model ?? "null"} - is not not currently supported");
+				return null;
+			}
+
+			if (model.StartsWith("GW1000"))
+			{
+				model = "GW1000";
+			}
+
+			try
+			{
+				string responseBody;
+				int responseCode;
+
+				// we want to do this synchronously, so .Result
+				using (var response = await Cumulus.MyHttpClient.GetAsync(simpleFirmwareUrl, token))
+				{
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"API.GetSimpleLatestFirmwareVersion: Ecowitt API Response code: {responseCode}");
+					cumulus.LogDataMessage($"API.GetSimpleLatestFirmwareVersion: Ecowitt API Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					cumulus.LogWarningMessage($"API.GetSimpleLatestFirmwareVersion: Ecowitt API Error: Response Code={responseCode}, Content={responseBody}");
+					return null;
+				}
+
+				IniFile ini = new IniFile();
+				ini.LoadString(responseBody.Split('\n'));
+
+				var ver = ini.GetValue(model, "VER", "");
+				var notes = ini.GetValue(model, "NOTES", "");
+
+				if (string.IsNullOrEmpty(ver))
+				{
+					cumulus.LogMessage($"API.GetSimpleLatestFirmwareVersion: No firmware version found for your model - {model}");
+					return null;
+				}
+
+				return [ver.Split('V')[^1], notes];
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("API.GetSimpleLatestFirmwareVersion: Exception: " + ex.Message);
 				return null;
 			}
 		}

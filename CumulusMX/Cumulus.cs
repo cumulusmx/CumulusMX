@@ -547,6 +547,7 @@ namespace CumulusMX
 		public Alarm HighTempAlarm;
 		public Alarm LowTempAlarm;
 		public Alarm UpgradeAlarm;
+		public Alarm FirmwareAlarm;
 		public Alarm ThirdPartyAlarm;
 		public Alarm MySqlUploadAlarm;
 		public Alarm IsRainingAlarm;
@@ -1088,6 +1089,7 @@ namespace CumulusMX
 			HighTempAlarm = new Alarm("AlarmHighTemp", AlarmTypes.Above, this, Units.TempText);
 			LowTempAlarm = new Alarm("AlarmLowTemp", AlarmTypes.Below, this, Units.TempText);
 			UpgradeAlarm = new Alarm("AlarmUpgrade", AlarmTypes.Trigger, this);
+			FirmwareAlarm = new Alarm("AlarmFirmware", AlarmTypes.Trigger, this);
 			ThirdPartyAlarm = new Alarm("AlarmHttp", AlarmTypes.Trigger, this);
 			MySqlUploadAlarm = new Alarm("AlarmMySql", AlarmTypes.Trigger, this);
 			IsRainingAlarm = new Alarm("AlarmIsRaining", AlarmTypes.Trigger, this);
@@ -5195,6 +5197,16 @@ namespace CumulusMX
 			UpgradeAlarm.Action = ini.GetValue("Alarms", "UpgradeAlarmAction", "");
 			UpgradeAlarm.ActionParams = ini.GetValue("Alarms", "UpgradeAlarmActionParams", "");
 
+			FirmwareAlarm.Enabled = ini.GetValue("Alarms", "FirmwareAlarmSet", true);
+			FirmwareAlarm.Sound = ini.GetValue("Alarms", "FirmwareAlarmSound", false);
+			FirmwareAlarm.SoundFile = ini.GetValue("Alarms", "FirmwareAlarmSoundFile", DefaultSoundFile);
+			FirmwareAlarm.Notify = ini.GetValue("Alarms", "FirmwareAlarmNotify", true);
+			FirmwareAlarm.Email = ini.GetValue("Alarms", "FirmwareAlarmEmail", false);
+			FirmwareAlarm.Latch = ini.GetValue("Alarms", "FirmwareAlarmLatch", false);
+			FirmwareAlarm.LatchHours = ini.GetValue("Alarms", "FirmwareAlarmLatchHours", 24.0);
+			FirmwareAlarm.Action = ini.GetValue("Alarms", "FirmwareAlarmAction", "");
+			FirmwareAlarm.ActionParams = ini.GetValue("Alarms", "FirmwareAlarmActionParams", "");
+
 			ThirdPartyAlarm.Enabled = ini.GetValue("Alarms", "HttpUploadAlarmSet", false);
 			ThirdPartyAlarm.Sound = ini.GetValue("Alarms", "HttpUploadAlarmSound", false);
 			ThirdPartyAlarm.SoundFile = ini.GetValue("Alarms", "HttpUploadAlarmSoundFile", DefaultSoundFile);
@@ -6511,6 +6523,16 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "UpgradeAlarmAction", UpgradeAlarm.Action);
 			ini.SetValue("Alarms", "UpgradeAlarmActionParams", UpgradeAlarm.ActionParams);
 
+			ini.SetValue("Alarms", "FirmwareAlarmSet", FirmwareAlarm.Enabled);
+			ini.SetValue("Alarms", "FirmwareAlarmSound", FirmwareAlarm.Sound);
+			ini.SetValue("Alarms", "FirmwareAlarmSoundFile", FirmwareAlarm.SoundFile);
+			ini.SetValue("Alarms", "FirmwareAlarmNotify", FirmwareAlarm.Notify);
+			ini.SetValue("Alarms", "FirmwareAlarmEmail", FirmwareAlarm.Email);
+			ini.SetValue("Alarms", "FirmwareAlarmLatch", FirmwareAlarm.Latch);
+			ini.SetValue("Alarms", "FirmwareAlarmLatchHours", FirmwareAlarm.LatchHours);
+			ini.SetValue("Alarms", "FirmwareAlarmAction", FirmwareAlarm.Action);
+			ini.SetValue("Alarms", "FirmwareAlarmActionParams", FirmwareAlarm.ActionParams);
+
 			ini.SetValue("Alarms", "HttpUploadAlarmSet", ThirdPartyAlarm.Enabled);
 			ini.SetValue("Alarms", "HttpUploadAlarmSound", ThirdPartyAlarm.Sound);
 			ini.SetValue("Alarms", "HttpUploadAlarmSoundFile", ThirdPartyAlarm.SoundFile);
@@ -7178,6 +7200,7 @@ namespace CumulusMX
 			BatteryLowAlarm.EmailMsg = ini.GetValue("AlarmEmails", "batteryLow", "A low battery condition has been detected.");
 			SpikeAlarm.EmailMsg = ini.GetValue("AlarmEmails", "dataSpike", "A data spike from your weather station has been suppressed.");
 			UpgradeAlarm.EmailMsg = ini.GetValue("AlarmEmails", "upgrade", "An upgrade to Cumulus MX is now available.");
+			FirmwareAlarm.EmailMsg = ini.GetValue("AlarmEmails", "firmware", "A station firmware update is now available.");
 			ThirdPartyAlarm.EmailMsg = ini.GetValue("AlarmEmails", "httpStopped", "Third party HTTP uploads are failing.");
 			MySqlUploadAlarm.EmailMsg = ini.GetValue("AlarmEmails", "mySqlStopped", "MySQL uploads are failing.");
 			IsRainingAlarm.EmailMsg = ini.GetValue("AlarmEmails", "isRaining", "It has started to rain.");
@@ -7201,7 +7224,8 @@ namespace CumulusMX
 			DataStoppedAlarm.Name = ini.GetValue("AlarmNames", "dataStopped", "Data Stopped");
 			BatteryLowAlarm.Name = ini.GetValue("AlarmNames", "batteryLow", "Battery Low");
 			SpikeAlarm.Name = ini.GetValue("AlarmNames", "dataSpike", "Data Spike");
-			UpgradeAlarm.Name = ini.GetValue("AlarmNames", "upgrade", "Upgrade Available");
+			UpgradeAlarm.Name = ini.GetValue("AlarmNames", "upgrade", "CMX Upgrade");
+			FirmwareAlarm.Name = ini.GetValue("AlarmNames", "firmware", "Firmware Upgrade");
 			ThirdPartyAlarm.Name = ini.GetValue("AlarmNames", "httpStopped", "HTTP Upload");
 			MySqlUploadAlarm.Name = ini.GetValue("AlarmNames", "mySqlStopped", "MySQL Upload");
 			IsRainingAlarm.Name = ini.GetValue("AlarmNames", "isRaining", "Is Raining");
@@ -7369,6 +7393,7 @@ namespace CumulusMX
 			ini.SetValue("AlarmEmails", "batteryLow", BatteryLowAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "dataSpike", SpikeAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "upgrade", UpgradeAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "firmware", FirmwareAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "httpStopped", ThirdPartyAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "mySqlStopped", MySqlUploadAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "isRaining", IsRainingAlarm.EmailMsg);
@@ -7393,6 +7418,7 @@ namespace CumulusMX
 			ini.SetValue("AlarmNames", "batteryLow", BatteryLowAlarm.Name);
 			ini.SetValue("AlarmNames", "dataSpike", SpikeAlarm.Name);
 			ini.SetValue("AlarmNames", "upgrade", UpgradeAlarm.Name);
+			ini.SetValue("AlarmNames", "firmware", FirmwareAlarm.Name);
 			ini.SetValue("AlarmNames", "httpStopped", ThirdPartyAlarm.Name);
 			ini.SetValue("AlarmNames", "mySqlStopped", MySqlUploadAlarm.Name);
 			ini.SetValue("AlarmNames", "isRaining", IsRainingAlarm.Name);

@@ -119,6 +119,7 @@ namespace CumulusMX
 				batteryLow = cumulus.BatteryLowAlarm.Name,
 				dataSpike = cumulus.SpikeAlarm.Name,
 				upgrade = cumulus.UpgradeAlarm.Name,
+				firmware = cumulus.FirmwareAlarm.Name,
 				httpStopped = cumulus.ThirdPartyAlarm.Name,
 				mySqlStopped = cumulus.MySqlUploadAlarm.Name,
 				newRecord = cumulus.NewRecordAlarm.Name,
@@ -144,6 +145,7 @@ namespace CumulusMX
 				batteryLow = cumulus.BatteryLowAlarm.EmailMsg,
 				dataSpike = cumulus.SpikeAlarm.EmailMsg,
 				upgrade = cumulus.UpgradeAlarm.EmailMsg,
+				firmware = cumulus.FirmwareAlarm.EmailMsg,
 				httpStopped = cumulus.ThirdPartyAlarm.EmailMsg,
 				mySqlStopped = cumulus.MySqlUploadAlarm.EmailMsg,
 				newRecord = cumulus.NewRecordAlarm.EmailMsg,
@@ -404,6 +406,7 @@ namespace CumulusMX
 					cumulus.BatteryLowAlarm.Name = settings.alarms.names.batteryLow.Trim();
 					cumulus.SpikeAlarm.Name = settings.alarms.names.dataSpike.Trim();
 					cumulus.UpgradeAlarm.Name = settings.alarms.names.upgrade.Trim();
+					cumulus.FirmwareAlarm.Name = settings.alarms.names.firmware.Trim();
 					cumulus.ThirdPartyAlarm.Name = settings.alarms.names.httpStopped.Trim();
 					cumulus.MySqlUploadAlarm.Name = settings.alarms.names.mySqlStopped.Trim();
 					cumulus.NewRecordAlarm.Name = settings.alarms.names.newRecord.Trim();
@@ -426,6 +429,7 @@ namespace CumulusMX
 					cumulus.BatteryLowAlarm.EmailMsg = settings.alarms.email.batteryLow.Trim();
 					cumulus.SpikeAlarm.EmailMsg = settings.alarms.email.dataSpike.Trim();
 					cumulus.UpgradeAlarm.EmailMsg = settings.alarms.email.upgrade.Trim();
+					cumulus.FirmwareAlarm.EmailMsg = settings.alarms.email.firmware.Trim();
 					cumulus.ThirdPartyAlarm.EmailMsg = settings.alarms.email.httpStopped.Trim();
 					cumulus.MySqlUploadAlarm.EmailMsg = settings.alarms.email.mySqlStopped.Trim();
 					cumulus.NewRecordAlarm.EmailMsg = settings.alarms.email.newRecord.Trim();
@@ -563,6 +567,7 @@ namespace CumulusMX
 			public string batteryLow { get; set; }
 			public string dataSpike { get; set; }
 			public string upgrade { get; set; }
+			public string firmware { get; set; }
 			public string httpStopped { get; set; }
 			public string mySqlStopped { get; set; }
 			public string newRecord { get; set; }

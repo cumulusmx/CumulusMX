@@ -55,12 +55,74 @@ namespace CumulusMX
 			Initialize(FileName, Lazy);
 		}
 
+		// Readonly - from string
+		public IniFile()
+		{
+			m_Lazy = false;
+		}
+
+
 		// *** Initialization ***
 		private void Initialize(string FileName, bool Lazy)
 		{
 			m_FileName = FileName;
 			m_Lazy = Lazy;
 			if (!m_Lazy) Refresh();
+		}
+
+		// Load a supplied string rather than read from file
+		internal void LoadString(string[] inputStr)
+		{
+			// *** Clear local cache ***
+			m_Sections.Clear();
+
+			// *** Read up the array content ***
+			Dictionary<string, string> CurrentSection = null;
+
+			foreach (var line in inputStr)
+			{
+				var s = line.Trim();
+
+				// *** Check for section names ***
+				if (s.StartsWith('[') && s.EndsWith(']'))
+				{
+					if (s.Length > 2)
+					{
+						string SectionName = s[1..^1];
+
+						// *** Only first occurrence of a section is loaded ***
+						if (m_Sections.ContainsKey(SectionName))
+						{
+							CurrentSection = null;
+						}
+						else
+						{
+							CurrentSection = [];
+							m_Sections.Add(SectionName, CurrentSection);
+						}
+					}
+				}
+				else if (CurrentSection != null)
+				{
+					// *** Check for key+value pair ***
+					int i;
+					if ((i = s.IndexOf('=')) > 0)
+					{
+						// It's a value
+						int j = s.Length - i - 1;
+						string Key = s[..i].Trim();
+						if (Key.Length > 0)
+						{
+							// *** Only first occurrence of a key is loaded ***
+							if (!CurrentSection.ContainsKey(Key))
+							{
+								string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : ("");
+								CurrentSection.Add(Key, Value);
+							}
+						}
+					}
+				}
+			}
 		}
 
 		// *** Read file contents into local cache ***

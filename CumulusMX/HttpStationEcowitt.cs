@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,9 +21,12 @@ namespace CumulusMX
 		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 		private bool reportStationType = true;
 		private int lastMinute = -1;
+		private int lastHour = -1;
 		private readonly EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
 		internal static readonly string[] commaSpace = [", "];
+		private string deviceModel;
+		private Version deviceFirmware;
 
 		public HttpStationEcowitt(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
@@ -126,13 +130,20 @@ namespace CumulusMX
 			if (mainStation)
 			{
 				Task.Run(getAndProcessHistoryData);
+				var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+				deviceFirmware = new Version(retVal[0]);
+				deviceModel = retVal[1];
 			}
 			else
 			{
 				// see if we have a camera attached
-				ecowittApi.GetStationList(cumulus.cancellationToken);
+				var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+				deviceFirmware = new Version(retVal[0]);
+				deviceModel = retVal[1];
 				cumulus.LogMessage("Extra Sensors - HTTP Station (Ecowitt) - Waiting for data...");
 			}
+
+			CheckAvailableFirmware();
 		}
 
 		public override void Start()
@@ -184,8 +195,6 @@ namespace CumulusMX
 						GetHistoricData();
 						archiveRun++;
 					} while (archiveRun < maxArchiveRuns);
-
-					ecowittApi.GetStationList(cumulus.cancellationToken);
 				}
 				catch (Exception ex)
 				{
@@ -996,6 +1005,22 @@ namespace CumulusMX
 
 			cumulus.LogDebugMessage($"{procName}: Complete");
 
+			var hour = DateTime.Now.Hour;
+			if (hour != lastHour)
+			{
+				lastHour = hour;
+
+				if (hour == 13)
+				{
+					var retVal = ecowittApi.GetStationList(main || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+					deviceFirmware = new Version(retVal[0]);
+					deviceModel = retVal[1];
+
+					CheckAvailableFirmware();
+				}
+			}
+
+
 			return "";
 		}
 
@@ -1480,6 +1505,32 @@ namespace CumulusMX
 							cumulus.LogMessage($"ForwardData: Error forwarding to {url}: {msg}");
 						}
 					});
+				}
+			}
+		}
+
+		private async void CheckAvailableFirmware()
+		{
+			if (EcowittApi.FirmwareSupportedModels.Contains(deviceModel[..6]))
+			{
+				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, "V" + deviceFirmware.ToString(), cumulus.cancellationToken);
+			}
+			else
+			{
+				var retVal = ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken).Result;
+				if (retVal != null)
+				{
+					var verVer = new Version(retVal[0]);
+					if (deviceFirmware.CompareTo(verVer) < 0)
+					{
+						cumulus.FirmwareAlarm.LastMessage = $"A new firmware version is available: {retVal[0]}.\nChange log:\n{string.Join('\n', retVal[1].Split(';'))}";
+						cumulus.FirmwareAlarm.Triggered = true;
+						cumulus.LogWarningMessage($"FirmwareVersion: Latest Version {retVal[0]}, Change log:\n{string.Join('\n', retVal[1].Split(';'))}");
+					}
+					else
+					{
+						cumulus.LogDebugMessage($"FirmwareVersion: Already on the latest Version {retVal[0]}");
+					}
 				}
 			}
 		}
