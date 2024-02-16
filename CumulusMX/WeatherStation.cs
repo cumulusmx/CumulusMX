@@ -11013,7 +11013,7 @@ namespace CumulusMX
 				if (cumulus.Manufacturer == cumulus.EW)
 				{
 					// very! approximate conversion from percentage to cb
-					moist = (100 - SoilMoisture1) * 2;
+					moist = (100 - moist) * 2;
 				}
 
 				sb.Append($"&soilmoist={moist}");

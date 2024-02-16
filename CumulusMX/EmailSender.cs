@@ -90,7 +90,8 @@ namespace CumulusMX
 						//client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
 					}
 
-					await client.SendAsync(m);
+					var response = await client.SendAsync(m);
+					cumulus.LogDebugMessage("SendEmail response: " + response);
 					client.Disconnect(true);
 				}
 				retVal = true;
@@ -160,7 +161,8 @@ namespace CumulusMX
 						//client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
 					}
 
-					client.Send(m);
+					var response = client.Send(m);
+					cumulus.LogDebugMessage("SendEmail response: " + response);
 					client.Disconnect(true);
 				}
 
