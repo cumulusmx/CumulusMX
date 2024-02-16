@@ -57,14 +57,14 @@ namespace CumulusMX.ThirdParty
 			}
 		}
 
-		internal override string GetURL(out string uidstring, DateTime timestamp)
+		internal override string GetURL(out string pwstring, DateTime timestamp)
 		{
 			var InvC = new CultureInfo("");
 
 			string salt = timestamp.ToUnixTime().ToString();
 			string hash = Utils.GetMd5String(salt + cumulus.WindGuru.ID + cumulus.WindGuru.PW);
 
-			uidstring = cumulus.WindGuru.ID;
+			pwstring = cumulus.WindGuru.ID;
 
 			int numvalues = 0;
 			double totalwind = 0;

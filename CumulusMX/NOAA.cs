@@ -47,14 +47,14 @@ namespace CumulusMX
 			public double heatingdegdays;
 			public double coolingdegdays;
 			public double totrain;
-			public double totalwindspeed;
+			//public double totalwindspeed
 			public int samples;
 			public double avgwindspeed;
 			public double highwindspeed;
 			public int highwindday;
 			public int winddomdir;
-			//public double totalwinddirX;
-			//public double totalwinddirY;
+			//public double totalwinddirX
+			//public double totalwinddirY
 			public int raincount1;
 			public int raincount2;
 			public int raincount3;
@@ -175,7 +175,6 @@ namespace CumulusMX
 			}
 			try
 			{
-				//domdir = 90 - (int)Math.Floor(RadToDeg(Math.Atan2(totalwinddirY, totalwinddirX))); //(int) Convert.ToInt64((Math.Atan(totalwinddirY/totalwinddirX)*(180/Math.PI)));
 				domdir = CalcAvgBearing(totalwinddirX, totalwinddirY);
 				if (domdir == 0)
 				{
@@ -462,8 +461,6 @@ namespace CumulusMX
 
 						var entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
-						//DateTime entrydate = new DateTime(entryyear, entrymonth, entryday, entryhour, entryminute, 0);
-
 						entrydate = entrydate.AddHours(cumulus.GetHourInc(entrydate));
 
 						daynumber = entrydate.Day;
@@ -530,8 +527,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							dayList[i].winddomdir = CalcAvgBearing(dayList[i].totalwinddirX, dayList[i].totalwinddirY);// 90 - (int)Math.Floor(RadToDeg(Math.Atan2(DayList[i].totalwinddirY, DayList[i].totalwinddirX)));
-																													   //(int)Math.Floor(RadToDeg(Math.Atan(DayList[i].totalwinddirY / DayList[i].totalwinddirX)));
+							dayList[i].winddomdir = CalcAvgBearing(dayList[i].totalwinddirX, dayList[i].totalwinddirY);
 						}
 						catch
 						{
@@ -625,7 +621,7 @@ namespace CumulusMX
 					{
 						repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].meantemp));
 					}
-					;
+
 					repLine.Append(string.Format(culture, "{0,6:F1}", dayList[i].maxtemp));
 					string timestr = dayList[i].maxtemptimestamp.ToString(timeFormat);
 					repLine.Append(string.Format("{0,8}", timestr));
@@ -702,7 +698,6 @@ namespace CumulusMX
 			{
 				repLine.Append(string.Format(culture, "{0,6:F1}", avgwindspeed));
 			}
-			;
 
 			repLine.Append(string.Format(culture, "{0,6:F1}", highwind));
 			repLine.Append(string.Format(culture, "{0,6:D}", highwindday));
@@ -797,7 +792,7 @@ namespace CumulusMX
 				MonthList[m].meantemp = 0;
 				MonthList[m].meanmaxtemp = 0;
 				MonthList[m].meanmintemp = 0;
-				MonthList[m].totalwindspeed = 0;
+				//MonthList[m].totalwindspeed = 0
 				MonthList[m].avgwindspeed = 0;
 				MonthList[m].maxrain = 0;
 			}
@@ -1139,9 +1134,7 @@ namespace CumulusMX
 					raincount1 += MonthList[m].raincount1;
 					raincount2 += MonthList[m].raincount2;
 					raincount3 += MonthList[m].raincount3;
-					{
-						output.Add(repLine.ToString());
-					}
+					output.Add(repLine.ToString());
 				}
 
 				output.Add("---------------------------------------------");

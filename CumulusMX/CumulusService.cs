@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.ServiceProcess;
+using System.Text;
 
 
 #pragma warning disable CA1416 // Validate platform compatibility
@@ -18,26 +19,26 @@ namespace CumulusMX
 
 		protected override void OnStart(string[] args)
 		{
-			int httpport = Program.httpport;
+			int httpport = Program.Httpport;
 			bool debug = Program.debug;
-			string startParams = "";
+			StringBuilder startParams = new();
 
 			for (int i = 0; i < args.Length; i++)
 			{
-				startParams += args[i] + " ";
+				startParams.Append(args[i] + " ");
 				try
 				{
 					if (args[i] == "-lang" && args.Length >= i)
 					{
 						var lang = args[++i];
-						startParams += args[i] + " ";
+						startParams.Append(args[i] + " ");
 
 						CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
 					}
 					else if (args[i] == "-port" && args.Length >= i)
 					{
 						httpport = Convert.ToInt32(args[++i]);
-						startParams += args[i] + " ";
+						startParams.Append(args[i] + " ");
 					}
 					else if (args[i] == "-debug")
 					{
@@ -47,15 +48,17 @@ namespace CumulusMX
 					else if (args[i] == "-wsport" && args.Length >= i)
 					{
 						i++;
-						startParams += args[i] + " ";
+						startParams.Append(args[i] + " ");
 					}
 				}
 				catch
-				{ }
+				{
+					// Ignore any errors
+				}
 			}
 
 			Program.cumulus = new Cumulus();
-			Program.cumulus.Initialise(httpport, debug, startParams);
+			Program.cumulus.Initialise(httpport, debug, startParams.ToString());
 		}
 
 		protected override void OnStop()

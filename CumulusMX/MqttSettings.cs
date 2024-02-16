@@ -132,7 +132,7 @@ namespace CumulusMX
 			return mqttsettings.ToJson();
 		}
 
-		private class MqttConfig
+		private sealed class MqttConfig
 		{
 			public string server { get; set; }
 			public int port { get; set; }
@@ -143,7 +143,7 @@ namespace CumulusMX
 			public MqttData interval { get; set; }
 		}
 
-		private class MqttData
+		private sealed class MqttData
 		{
 			public bool enabled { get; set; }
 			public string template { get; set; }

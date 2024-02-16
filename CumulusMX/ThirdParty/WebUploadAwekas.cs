@@ -495,7 +495,9 @@ namespace CumulusMX.ThirdParty
 		}
 
 
-		private class AwekasResponse
+#pragma warning disable S3459 // Unassigned members should be removed
+#pragma warning disable S1144 // Unused private types or members should be removed
+		private sealed class AwekasResponse
 		{
 			public int status { get; set; }
 			public int authentication { get; set; }
@@ -504,7 +506,7 @@ namespace CumulusMX.ThirdParty
 			public AwekasDisabled disabled { get; set; }
 		}
 
-		private class AwekasErrors
+		private sealed class AwekasErrors
 		{
 			public int count { get; set; }
 			public int time { get; set; }
@@ -536,7 +538,7 @@ namespace CumulusMX.ThirdParty
 			public int warning { get; set; }
 		}
 
-		private class AwekasDisabled
+		private sealed class AwekasDisabled
 		{
 			public int temp { get; set; }
 			public int hum { get; set; }
@@ -561,5 +563,7 @@ namespace CumulusMX.ThirdParty
 			public int leafwetness2 { get; set; }
 			public int report { get; set; }
 		}
+#pragma warning restore S3459 // Unassigned members should be removed
+#pragma warning restore S1144 // Unused private types or members should be removed
 	}
 }

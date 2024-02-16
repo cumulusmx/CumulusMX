@@ -44,9 +44,9 @@ namespace CumulusMX
 			get { return ActiveContexts.Count; }
 		}
 
-		internal WeatherStation SetStation
+		internal void SetSetStation(WeatherStation value)
 		{
-			set { station = value; }
+			station = value;
 		}
 	}
 }

@@ -169,7 +169,7 @@ namespace CumulusMX
 		}
 
 
-		private class DataSet
+		private sealed class DataSet
 		{
 			private readonly MeanRevertingRandomWalk temperature;
 			private readonly MeanRevertingRandomWalk humidity;
@@ -232,7 +232,7 @@ namespace CumulusMX
 			}
 		}
 
-		private class MeanRevertingRandomWalk(Func<DateTime, double> meanCurve, Func<DateTime, double> volatility, double meanReversion, double cropMin, double cropMax)
+		private sealed class MeanRevertingRandomWalk(Func<DateTime, double> meanCurve, Func<DateTime, double> volatility, double meanReversion, double cropMin, double cropMax)
 		{
 			private readonly Func<DateTime, double> _meanCurve = meanCurve;
 			private readonly Func<DateTime, double> _volatility = volatility;

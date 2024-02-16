@@ -131,19 +131,28 @@ namespace CumulusMX
 			{
 				Task.Run(getAndProcessHistoryData);
 				var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-				deviceFirmware = new Version(retVal[0]);
-				deviceModel = retVal[1];
+				if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+				{
+					deviceFirmware = new Version(retVal[0]);
+					deviceModel = retVal[1];
+				}
 			}
 			else
 			{
 				// see if we have a camera attached
 				var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-				deviceFirmware = new Version(retVal[0]);
-				deviceModel = retVal[1];
+				if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+				{
+					deviceFirmware = new Version(retVal[0]);
+					deviceModel = retVal[1];
+				}
 				cumulus.LogMessage("Extra Sensors - HTTP Station (Ecowitt) - Waiting for data...");
 			}
 
-			CheckAvailableFirmware();
+			if (!string.IsNullOrEmpty(deviceModel))
+			{
+				_= CheckAvailableFirmware(deviceModel);
+			}
 		}
 
 		public override void Start()
@@ -175,9 +184,7 @@ namespace CumulusMX
 
 		public override void getAndProcessHistoryData()
 		{
-			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.SyncInit.Wait();
-			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
@@ -202,7 +209,6 @@ namespace CumulusMX
 				}
 			}
 
-			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			_ = Cumulus.SyncInit.Release();
 
 			StartLoop();
@@ -365,6 +371,14 @@ namespace CumulusMX
 					reportStationType = false;
 				}
 
+				var modelVer = data["model"].Split("_V");
+				if (modelVer.Length == 2)
+				{
+					deviceModel = modelVer[0];
+					deviceFirmware = new Version(modelVer[1]);
+					GW1000FirmwareVersion = modelVer[1];
+				}
+
 				// Only do the primary sensors if running as the main station
 				if (main)
 				{
@@ -383,7 +397,6 @@ namespace CumulusMX
 						var gust = data["windgustmph"];
 						var dir = data["winddir"];
 						var spd = data["windspeedmph"];
-
 
 						if (gust == null || dir == null || spd == null)
 						{
@@ -1013,10 +1026,16 @@ namespace CumulusMX
 				if (hour == 13)
 				{
 					var retVal = ecowittApi.GetStationList(main || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-					deviceFirmware = new Version(retVal[0]);
-					deviceModel = retVal[1];
+					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+					{
+						deviceFirmware = new Version(retVal[0]);
+						deviceModel = retVal[1];
+					}
 
-					CheckAvailableFirmware();
+					if (!string.IsNullOrEmpty(deviceModel))
+					{
+						_ = CheckAvailableFirmware(deviceModel);
+					}
 				}
 			}
 
@@ -1241,7 +1260,7 @@ namespace CumulusMX
 				// Sends a default value until the first strike is detected of 0xFFFFFFFF
 				if (valTime != 0xFFFFFFFF)
 				{
-					var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+					var dtDateTime = DateTime.UnixEpoch;
 					dtDateTime = dtDateTime.AddSeconds(valTime).ToLocalTime();
 
 					if (dtDateTime > LightningTime)
@@ -1486,7 +1505,6 @@ namespace CumulusMX
 				if (!string.IsNullOrEmpty(forwarders[i]))
 				{
 					var url = forwarders[i];
-					var idx = i;
 					cumulus.LogDebugMessage("ForwardData: Forwarding Ecowitt data to: " + url);
 
 					// we are just going to fire and forget
@@ -1509,7 +1527,7 @@ namespace CumulusMX
 			}
 		}
 
-		private async void CheckAvailableFirmware()
+		private async Task CheckAvailableFirmware(string deviceModel)
 		{
 			if (EcowittApi.FirmwareSupportedModels.Contains(deviceModel[..6]))
 			{
@@ -1517,7 +1535,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				var retVal = ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken).Result;
+				var retVal = await ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken);
 				if (retVal != null)
 				{
 					var verVer = new Version(retVal[0]);

@@ -19,6 +19,7 @@ namespace CumulusMX
 		private const int ACK = 6;
 		private const int NACK = 33;
 		private const int CANCEL = 24;
+		private const int ESC = 0x1b;
 		private const int CR = 13;
 		private const int LF = 10;
 		private bool clockSetNeeded;
@@ -30,6 +31,29 @@ namespace CumulusMX
 		private int maxArchiveRuns = 2;
 		private bool stop;
 		private int loggerInterval;
+
+		private readonly int[,] ForecastLookup  =
+		{
+			{14, 0, 0}, {13, 0, 0}, {12, 0, 0}, {11, 0, 0}, {13, 0, 0}, {25, 0, 0}, {24, 0, 0}, {24, 0, 0}, {10, 0, 0}, {24, 0, 0}, {24, 0, 0},
+			{13, 0, 0}, {7, 2, 0}, {24, 0, 0}, {13, 0, 0}, {6, 3, 0}, {13, 0, 0}, {24, 0, 0}, {13, 0, 0}, {6, 6, 0}, {13, 0, 0}, {24, 0, 0},
+			{13, 0, 0}, {7, 3, 0}, {10, 0, 6}, {24, 0, 0}, {13, 0, 0}, {7, 6, 6}, {10, 0, 6}, {7, 0, 0}, {24, 0, 0}, {13, 0, 0}, {7, 6, 6},
+			{10, 0, 6}, {7, 0, 0}, {24, 0, 0}, {13, 0, 0}, {7, 6, 6}, {24, 0, 0}, {13, 0, 0}, {10, 1, 0}, {10, 0, 0}, {24, 0, 0}, {13, 0, 0},
+			{6, 2, 0}, {6, 0, 0}, {24, 0, 0}, {13, 0, 0}, {7, 4, 0}, {24, 0, 0}, {13, 0, 0}, {7, 4, 5}, {24, 0, 0}, {13, 0, 0}, {7, 4, 5},
+			{24, 0, 0}, {13, 0, 0}, {7, 7, 0}, {24, 0, 0}, {13, 0, 0}, {7, 7, 5}, {24, 0, 0}, {13, 0, 0}, {7, 4, 5}, {24, 0, 0}, {13, 0, 0},
+			{7, 6, 0}, {24, 0, 0}, {13, 0, 0}, {7, 16, 0}, {4, 14, 0}, {24, 0, 0}, {4, 14, 0}, {13, 0, 0}, {4, 14, 0}, {25, 0, 0}, {24, 0, 0},
+			{14, 0, 0}, {4, 14, 0}, {13, 0, 0}, {4, 14, 0}, {14, 0, 0}, {24, 0, 0}, {13, 0, 0}, {6, 3, 0}, {2, 18, 0}, {24, 0, 0}, {13, 0, 0},
+			{2, 16, 0}, {1, 18, 0}, {1, 16, 0}, {24, 0, 0}, {13, 0, 0}, {5, 9, 0}, {6, 9, 0}, {2, 18, 6}, {24, 0, 0}, {13, 0, 0}, {2, 16, 6},
+			{1, 18, 6}, {1, 16, 6}, {24, 0, 0}, {13, 0, 0}, {5, 4, 4}, {6, 4, 4}, {24, 0, 0}, {13, 0, 0}, {5, 10, 4}, {6, 10, 4}, {2, 13, 4},
+			{2, 0, 4}, {1, 13, 4}, {1, 0, 4}, {2, 13, 4}, {24, 0, 0}, {13, 0, 0}, {2, 3, 4}, {1, 13, 4}, {1, 3, 4}, {3, 14, 0}, {3, 0, 0},
+			{2, 14, 3}, {2, 0, 3}, {3, 0, 0}, {24, 0, 0}, {13, 0, 0}, {1, 6, 5}, {24, 0, 0}, {13, 0, 0}, {5, 5, 5}, {2, 14, 5}, {24, 0, 0},
+			{13, 0, 0}, {2, 6, 5}, {2, 11, 0}, {2, 0, 0}, {2, 17, 5}, {24, 0, 0}, {13, 0, 0}, {2, 7, 5}, {1, 17, 5}, {24, 0, 0}, {13, 0, 0},
+			{1, 7, 5}, {24, 0, 0}, {13, 0, 0}, {6, 5, 5}, {2, 0, 5}, {2, 17, 5}, {24, 0, 0}, {13, 0, 0}, {2, 15, 5}, {1, 17, 5}, {1, 15, 5},
+			{24, 0, 0}, {13, 0, 0}, {5, 10, 5}, {6, 10, 5}, {5, 18, 3}, {24, 0, 0}, {13, 0, 0}, {2, 16, 3}, {1, 18, 3}, {1, 16, 3}, {5, 10, 3},
+			{24, 0, 0}, {13, 0, 0}, {5, 10, 4}, {6, 10, 3}, {6, 10, 4}, {24, 0, 0}, {13, 0, 0}, {5, 10, 3}, {6, 10, 3}, {24, 0, 0}, {13, 0, 0},
+			{5, 4, 3}, {6, 4, 3}, {2, 12, 3}, {24, 0, 0}, {13, 0, 0}, {2, 8, 3}, {1, 13, 3}, {1, 8, 3}, {2, 18, 0}, {24, 0, 0}, {13, 0, 0},
+			{2, 16, 3}, {1, 18, 0}, {1, 16, 0}, {24, 0, 0}, {13, 0, 0}, {2, 5, 5}, {0, 0, 0}, {26, 0, 0}, {26, 0, 0}, {26, 0, 0}, {26, 0, 0}, {26, 0, 0}, {26, 0, 0}, {26, 0, 0}
+		};
+
 
 		private readonly Stopwatch awakeStopWatch = new();
 
@@ -88,9 +112,6 @@ namespace CumulusMX
 			}
 
 			if (!connectedOK) return;
-
-			// get time of last database entry (also sets raincounter and prevraincounter)
-			//lastArchiveTimeUTC = getLastArchiveTime();
 
 			DavisFirmwareVersion = GetFirmwareVersion();
 			// retry as this command seem particularly unreliable
@@ -172,20 +193,15 @@ namespace CumulusMX
 			}
 
 
-			DateTime tooold = new DateTime(0);
+			DateTime tooold = new DateTime(0, DateTimeKind.Local);
 
 			if ((cumulus.LastUpdateTime <= tooold) || !cumulus.UseDataLogger)
 			{
 				// there's nothing in the database, so we haven't got a rain counter
 				// we can't load the history data, so we'll just have to go live
 
-				//if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes >= 10)
-				//{
-				//    CalcRecentMaxGust = false;
-				//}
 				timerStartNeeded = true;
 				LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
-				//StartLoop();
 				DoDayResetIfNeeded();
 				DoTrendValues(DateTime.Now);
 
@@ -231,8 +247,8 @@ namespace CumulusMX
 		private string GetFirmwareVersion()
 		{
 			cumulus.LogMessage("Reading firmware version");
-			string response = "";
-			string data = "";
+			StringBuilder response = new ();
+			StringBuilder data = new();
 			int ch;
 
 			// expected response - <LF><CR>OK<LF><CR>1.73<LF><CR>
@@ -254,11 +270,11 @@ namespace CumulusMX
 							{
 								// Read the current character
 								ch = comport.ReadChar();
-								response += Convert.ToChar(ch);
-								data += ch.ToString("X2") + "-";
+								response.Append(Convert.ToChar(ch));
+								data.Append(ch.ToString("X2") + "-");
 							} while (ch != CR);
 
-							data = data.Remove(data.Length - 1);
+							data.Length--;
 						}
 					}
 					catch (TimeoutException)
@@ -293,11 +309,11 @@ namespace CumulusMX
 							{
 								// Read the current character
 								ch = stream.ReadByte();
-								response += Convert.ToChar(ch);
-								data += ch.ToString("X2") + "-";
+								response.Append(Convert.ToChar(ch));
+								data.Append(ch.ToString("X2") + "-");
 							} while (ch != CR);
 
-							data = data.Remove(data.Length - 1);
+							data.Length--;
 						}
 					}
 					catch (System.IO.IOException ex)
@@ -323,7 +339,7 @@ namespace CumulusMX
 
 			cumulus.LogDataMessage("GetFirmwareVersion: Received - " + data);
 
-			return response.Length >= 5 ? response[..^2] : "???";
+			return response.Length >= 5 ? response.ToString()[..^2] : "???";
 		}
 
 		private void CheckLoggerInterval()
@@ -398,7 +414,6 @@ namespace CumulusMX
 							var ch = stream.ReadByte();
 							readBuffer[bytesRead] = (byte) ch;
 							bytesRead++;
-							//cumulus.LogMessage("Received " + ch.ToString("X2"));
 						} while (bytesRead < 3);
 					}
 					catch (System.IO.IOException ex)
@@ -526,7 +541,7 @@ namespace CumulusMX
 			//       0   1  23 4   5  6
 			cumulus.LogMessage("Reading reception stats");
 			lastRecepStatsTime = DateTime.Now;
-			string response = "";
+			StringBuilder response = new ();
 			var bytesRead = 0;
 			byte[] readBuffer = new byte[40];
 			int ch;
@@ -547,7 +562,7 @@ namespace CumulusMX
 							{
 								// Read the current character
 								ch = comport.ReadChar();
-								response += Convert.ToChar(ch);
+								response.Append(Convert.ToChar(ch));
 								readBuffer[bytesRead] = (byte) ch;
 								bytesRead++;
 							} while (ch != CR);
@@ -586,7 +601,7 @@ namespace CumulusMX
 							{
 								// Read the current character
 								ch = stream.ReadByte();
-								response += Convert.ToChar(ch);
+								response.Append(Convert.ToChar(ch));
 								readBuffer[bytesRead] = (byte) ch;
 								bytesRead++;
 							} while (ch != CR);
@@ -618,11 +633,11 @@ namespace CumulusMX
 
 			cumulus.LogDataMessage("GetReceptionStats: Received - " + BitConverter.ToString(readBuffer.Take(bytesRead).ToArray()));
 
-			response = response.Length > 10 ? response[..^2] : "0 0 0 0 0";
+			var resp = response.Length > 10 ? response.ToString()[..^2] : "0 0 0 0 0";
 
-			cumulus.LogDebugMessage($"GetReceptionStats: {response}");
+			cumulus.LogDebugMessage($"GetReceptionStats: {resp}");
 
-			return response;
+			return resp;
 		}
 
 		// Open a TCP socket.
@@ -670,58 +685,15 @@ namespace CumulusMX
 			return client;
 		}
 
-		// Re-open a TCP socket.
-		/*
-		private bool ReOpenTcpPort(TcpClient client)
-		{
-			try
-			{
-				int attempt = 0;
-
-				while (attempt < 5 && !client.Connected)
-				{
-					attempt++;
-					cumulus.LogDebugMessage("TCP Logger Re-Connect attempt " + attempt);
-					client.Connect(ipaddr, port);
-
-					Thread.Sleep(1000);
-				}
-
-				return client.Connected;
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogDebugMessage("Error reconnecting TCP logger port: " + ex.Message);
-				cumulus.LogDebugMessage("Attempt to close/open TCP logger port.");
-				try
-				{
-					socket.Close();
-					OpenTcpPort();
-					return client.Connected;
-				}
-				catch
-				{
-					cumulus.LogDebugMessage("Close/Open TCP logger port: " + ex.Message);
-					return (false);
-				}
-			}
-		}
-		*/
-
 		public override void startReadingHistoryData()
 		{
-			//lastArchiveTimeUTC = getLastArchiveTime();
 			cumulus.LogMessage("Reading history data from log files");
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
 			cumulus.LogMessage("Reading archive data from logger");
 			bw = new BackgroundWorker();
-			//histprog = new historyProgressWindow();
-			//histprog.Owner = mainWindow;
-			//histprog.Show();
 			bw.DoWork += bw_DoWork;
-			//bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
 			bw.RunWorkerCompleted += bw_RunWorkerCompleted;
 			bw.WorkerReportsProgress = true;
 			bw.RunWorkerAsync();
@@ -748,31 +720,19 @@ namespace CumulusMX
 			}
 			catch
 			{
+				// do nothing
 			}
-
 		}
 
 		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
-			//histprog.histprogTB.Text = "Processed 100%";
-			//histprog.histprogPB.Value = 100;
-			//histprog.Close();
-			//mainWindow.FillLastHourGraphData();
 			cumulus.LogMessage("Logger archive reading thread completed");
 			if (e.Error != null)
 			{
 				cumulus.LogErrorMessage("Archive reading thread apparently terminated with an error: " + e.Error.Message);
 			}
-			//cumulus.LogMessage("Updating highs and lows");
-			//using (cumulusEntities dataContext = new cumulusEntities())
-			//{
-			//    UpdateHighsAndLows(dataContext);
-			//}
+
 			cumulus.NormalRunning = true;
-			//if (cumulus.UseDavisLoop2 && cumulus.PeakGustMinutes >= 10)
-			//{
-			//    CalcRecentMaxGust = false;
-			//}
 			StartLoop();
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
@@ -781,28 +741,21 @@ namespace CumulusMX
 
 		private void bw_DoStart(object sender, DoWorkEventArgs e)
 		{
-			//cumulus.LogDebugMessage("Lock: Station waiting for lock");
 			Cumulus.SyncInit.Wait();
-			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			// Wait a short while for Cumulus initialisation to complete
 			Thread.Sleep(500);
 			StartLoop();
 
-			//cumulus.LogDebugMessage("Lock: Station releasing lock");
 			Cumulus.SyncInit.Release();
 		}
 
 		private void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
 			int archiveRun = 0;
-			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.SyncInit.Wait();
-			//cumulus.LogDebugMessage("Lock: Station has the lock");
 			try
 			{
-				// set this temporarily, so speed is done from average and not peak gust from logger
-				//cumulus.StationOptions.UseSpeedForAvgCalc = true;
 				do
 				{
 					GetArchiveData();
@@ -820,16 +773,11 @@ namespace CumulusMX
 
 					archiveRun++;
 				} while (archiveRun < maxArchiveRuns);
-
-				// restore the setting
-				//cumulus.StationOptions.UseSpeedForAvgCalc = false;
-
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 			}
-			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.SyncInit.Release();
 		}
 
@@ -1109,30 +1057,6 @@ namespace CumulusMX
 			return (calculateCRC(data) == 0);
 		}
 
-		/*
-		/// <summary>
-		/// Converts wind supplied in mph to m/s
-		/// </summary>
-		/// <param name="value">Wind in mph</param>
-		/// <returns>Wind in m/s</returns>
-		private double ConvertWindToInternal(double value)
-		{
-			return value*0.44704F;
-		}
-		*/
-
-		/*
-		/// <summary>
-		/// Convert pressure in inches to mb
-		/// </summary>
-		/// <param name="value">pressure in inHg</param>
-		/// <returns>pressure in mb</returns>
-		private double ConvertPressToInternal(double value)
-		{
-			return value*33.86389F;
-		}
-		*/
-
 		public override void Start()
 		{
 			cumulus.LogMessage("Start normal reading loop");
@@ -1229,12 +1153,9 @@ namespace CumulusMX
 							reconnecting = false;
 						}
 
-						if (socket != null && socket.Connected)
+						if (socket != null && socket.Connected && cumulus.DavisOptions.UseLoop2 && SendLoopCommand(socket, "LPS 2 " + loop2count + Newline))
 						{
-							if (cumulus.DavisOptions.UseLoop2 && SendLoopCommand(socket, "LPS 2 " + loop2count + Newline))
-							{
-								GetAndProcessLoop2Data(loop2count);
-							}
+							GetAndProcessLoop2Data(loop2count);
 						}
 
 						if (socket != null && socket.Connected)
@@ -1303,7 +1224,7 @@ namespace CumulusMX
 		{
 			cumulus.LogDebugMessage("Sending BARREAD");
 
-			string response = "";
+			StringBuilder response = new ();
 			var bytesRead = 0;
 			byte[] readBuffer = new byte[64];
 
@@ -1326,7 +1247,7 @@ namespace CumulusMX
 							{
 								// Read the current character
 								var ch = comport.ReadChar();
-								response += Convert.ToChar(ch);
+								response.Append(Convert.ToChar(ch));
 								readBuffer[bytesRead] = (byte) ch;
 								bytesRead++;
 
@@ -1363,10 +1284,9 @@ namespace CumulusMX
 							{
 								// Read the current character
 								var ch = stream.ReadByte();
-								response += Convert.ToChar(ch);
+								response.Append(Convert.ToChar(ch));
 								readBuffer[bytesRead] = (byte) ch;
 								bytesRead++;
-								//cumulus.LogMessage("Received " + ch.ToString("X2"));
 							} while (stream.DataAvailable);
 						}
 					}
@@ -1397,7 +1317,8 @@ namespace CumulusMX
 			cumulus.LogDataMessage("BARREAD Received - " + BitConverter.ToString(readBuffer.Take(bytesRead).ToArray()));
 			if (response.Length > 2)
 			{
-				cumulus.LogDebugMessage("BARREAD Received - " + response[..^2]);
+				response.Length--;
+				cumulus.LogDebugMessage("BARREAD Received - " + response.ToString());
 			}
 		}
 
@@ -1412,7 +1333,6 @@ namespace CumulusMX
 				if (serialPort.IsOpen && !stop)
 				{
 					WakeVP(serialPort);
-					//cumulus.LogMessage("Sending command: " + commandString);
 
 					int passCount = 1;
 					const int maxPasses = 4;
@@ -1535,7 +1455,6 @@ namespace CumulusMX
 
 		private void GetAndProcessLoopData(int number)
 		{
-			//cumulus.LogMessage("processing loop data");
 			const int loopDataLength = 99;
 
 			CommTimer tmrComm = new CommTimer();
@@ -1616,8 +1535,6 @@ namespace CumulusMX
 								cumulus.LogDebugMessage("LOOP: Periodic disconnect from logger");
 								// time to disconnect - first stop the loop data by sending a newline
 								socket.GetStream().WriteByte(10);
-								//socket.Client.Shutdown(SocketShutdown.Both);
-								//socket.Client.Disconnect(false);
 							}
 							catch (Exception ex)
 							{
@@ -1749,9 +1666,6 @@ namespace CumulusMX
 				loopData.Load(loopString);
 
 				// Process it
-				//cumulus.LogMessage(DateTime.Now.ToLongTimeString() + " Processing Data, i=" + i);
-				//Trace.Flush();
-
 				DateTime now = DateTime.Now;
 
 				if ((loopData.InsideHumidity >= 0) && (loopData.InsideHumidity <= 100))
@@ -1858,11 +1772,11 @@ namespace CumulusMX
 				DoHumidex(now);
 				DoCloudBaseHeatIndex(now);
 
-				var forecastRule = loopData.ForecastRule < cumulus.DavisForecastLookup.Length ? loopData.ForecastRule : cumulus.DavisForecastLookup.Length - 1;
+				var forecastRule = loopData.ForecastRule < ForecastLookup.Length ? loopData.ForecastRule : ForecastLookup.Length - 1;
 
-				var key1 = cumulus.DavisForecastLookup[forecastRule, 0];
-				var key2 = cumulus.DavisForecastLookup[forecastRule, 1];
-				var key3 = cumulus.DavisForecastLookup[forecastRule, 2];
+				var key1 = ForecastLookup[forecastRule, 0];
+				var key2 = ForecastLookup[forecastRule, 1];
+				var key3 = ForecastLookup[forecastRule, 2];
 
 				// Adjust for S hemisphere
 				if (cumulus.Latitude < 0)
@@ -1882,10 +1796,8 @@ namespace CumulusMX
 				DoForecast(forecast, false);
 
 				ConBatText = loopData.ConBatVoltage.ToString("F2");
-				//cumulus.LogDebugMessage("Con batt="+ConBatText);
 
 				TxBatText = ProcessTxBatt(loopData.TXbattStatus);
-				//cumulus.LogDebugMessage("TX batt=" + TxBatText);
 
 				cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW") || loopData.ConBatVoltage <= 3.5;
 
@@ -2041,20 +1953,20 @@ namespace CumulusMX
 				UpdateStatusPanel(DateTime.Now);
 				UpdateMQTT();
 			}
-
-			//cumulus.LogMessage("end processing loop data");
 		}
 
 		private static string ProcessTxBatt(byte txStatus)
 		{
-			string response = "";
+			StringBuilder response = new ();
 
 			for (int i = 0; i < 8; i++)
 			{
 				var status = (txStatus & (1 << i)) == 0 ? "-ok " : "-LOW ";
-				response = response + (i + 1) + status;
+				response.Append((i + 1) + status);
 			}
-			return response.Trim();
+
+			response.Length--;
+			return response.ToString();
 		}
 
 		private void GetAndProcessLoop2Data(int number)
@@ -2171,9 +2083,6 @@ namespace CumulusMX
 				loopData.Load(loopString);
 
 				// Process it
-				//cumulus.LogMessage(DateTime.Now.ToLongTimeString() + " Processing Data, i=" + i);
-				//Trace.Flush();
-
 				DateTime now = DateTime.Now;
 
 				// Extract station pressure, and use it to calculate altimeter pressure
@@ -2242,17 +2151,11 @@ namespace CumulusMX
 					}
 				}
 
-				//cumulus.LogDebugMessage("LOOP2 wind average: "+loopData.WindAverage);
-
 				if (loopData.THSWindex < 32000)
 				{
 					THSWIndex = ConvertUnits.TempFToUser(loopData.THSWindex);
 				}
-
-				//UpdateStatusPanel(DateTime.Now);
 			}
-
-			//cumulus.LogMessage("end processing loop2 data");
 		}
 
 
@@ -2262,12 +2165,9 @@ namespace CumulusMX
 
 			Console.WriteLine("Downloading Archive Data");
 
-			const int ACK = 6;
-			const int NAK = 0x21;
-			const int ESC = 0x1b;
 			const int maxPasses = 4;
 			byte[] ACKstring = [ACK];
-			byte[] NAKstring = [NAK];
+			byte[] NAKstring = [NACK];
 			byte[] ESCstring = [ESC];
 			const int pageSize = 267;
 			const int recordSize = 52;
@@ -2417,11 +2317,11 @@ namespace CumulusMX
 				// Read the response
 				comport.Read(data, 0, 6);
 
-				var resp = "Response: ";
+				StringBuilder resp = new ("Response:");
 
 				for (int i = 0; i < 6; i++)
 				{
-					resp = resp + " " + data[i].ToString("X2");
+					resp.Append(" " + data[i].ToString("X2"));
 				}
 				cumulus.LogDataMessage("GetArchiveData: " + resp);
 			}
@@ -2451,8 +2351,6 @@ namespace CumulusMX
 			// extract number of pages and offset into first page
 			int numPages = (data[1] * 256) + data[0];
 			int offset = (data[3] * 256) + data[2];
-			//int bytesToRead = numPages*pageSize;
-			//int dataOffset = (offset*recordSize) + 1;
 			byte[] buff = new byte[pageSize];
 
 			cumulus.LogMessage("GetArchiveData: Reading data: " + numPages + " pages , offset = " + offset);
@@ -2499,7 +2397,7 @@ namespace CumulusMX
 							// wait for the response
 							CommTimer tmrComm = new CommTimer();
 							tmrComm.Start(CommWaitTimeMs);
-							while (tmrComm.timedout == false)
+							while (!tmrComm.timedout)
 							{
 								if (comport.BytesToRead < pageSize)
 								{
@@ -2879,14 +2777,14 @@ namespace CumulusMX
 
 							lastDataReadTime = timestamp;
 
-							cumulus.DoLogFile(timestamp, false);
+							_ = cumulus.DoLogFile(timestamp, false);
 							cumulus.LogMessage("GetArchiveData: Log file entry written");
 							cumulus.MySqlRealtimeFile(999, false, timestamp);
 							cumulus.DoCustomIntervalLogs(timestamp);
 
 							if (cumulus.StationOptions.LogExtraSensors)
 							{
-								cumulus.DoExtraLogFile(timestamp);
+								_ = cumulus.DoExtraLogFile(timestamp);
 							}
 
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
@@ -2912,8 +2810,6 @@ namespace CumulusMX
 						if (!Program.service)
 							Console.Write("\r - processed " + ((double) numdone / (double) numtodo).ToString("P0"));
 						cumulus.LogMessage(numdone + " archive entries processed");
-
-						//bw.ReportProgress(numdone*100/numtodo, "processing");
 					}
 				}
 				if (!Program.service)
@@ -2923,99 +2819,6 @@ namespace CumulusMX
 			}
 		}
 
-		// GetData retrieves data from the Vantage weather station using the specified command
-		/*
-		private byte[] GetData(SerialPort serialPort, string commandString, int returnLength)
-		{
-			bool Found_ACK = false;
-			const int ACK = 6; // ASCII 6
-			int passCount = 1;
-			const int maxPasses = 4;
-
-			try
-			{
-				// Clean out the input (receive) buffer just in case something showed up in it
-				serialPort.DiscardInBuffer();
-				// . . . and clean out the output buffer while we're at it for good measure
-				serialPort.DiscardOutBuffer();
-
-				// Try the command until we get a clean ACKnowledge from the VP.  We count the number of passes since
-				// a timeout will never occur reading from the sockets buffer.  If we try a few times (maxPasses) and
-				// we get nothing back, we assume that the connection is broken
-				CommTimer tmrComm = new CommTimer();
-
-				while (!Found_ACK && passCount < maxPasses)
-				{
-					serialPort.WriteLine(commandString);
-					// I'm using the LOOP command as the baseline here because many its parameters are a superset of
-					// those for other commands.  The most important part of this is that the LOOP command is iterative
-					// and the station waits 2 seconds between its responses.  Although it's not clear from the documentation,
-					// I'm assuming that the first packet isn't sent for 2 seconds.  In any event, the conservative nature
-					// of waiting this amount of time probably makes sense to deal with serial IO in this manner anyway.
-					tmrComm.Start(2000);
-
-					while (tmrComm.timedout == false)
-					{
-						// Wait for the VP to acknowledge the receipt of the command - sometimes we get a '\n\r'
-						// in the buffer first or no response is given.  If all else fails, try again.
-						Found_ACK = WaitForACK(serialPort);
-					}
-				}
-
-				// We've tried a few times and have heard nothing back from the port (nothing's in the buffer).
-				// Give up.
-				if (passCount == maxPasses)
-				{
-					cumulus.LogDebugMessage("!!! No ack received in response to " + commandString);
-					return (null);
-				}
-				else
-				{
-					// Allocate a byte array to hold the return data
-					// Size the array according to the data passed to the procedure
-					byte[] loopString = new byte[returnLength];
-
-					// Wait until the buffer is full - we've received returnLength characters from the LOOP response,
-					// including the final '\n'
-					tmrComm.Start(commWaitTimeMs);
-					while (tmrComm.timedout == false)
-					{
-						if (serialPort.BytesToRead < loopString.Length)
-						{
-							// Wait a short period to let more data load into the buffer
-							Thread.Sleep(20);
-						}
-						else
-						{
-							break;
-						}
-					}
-
-					tmrComm.tmrComm.Dispose();
-
-					if (serialPort.BytesToRead < loopString.Length)
-					{
-						// all data not received
-						cumulus.LogMessage("!!! loop data not received, bytes received = " + serialPort.BytesToRead);
-						return null;
-					}
-					// Read the first returnLength bytes of the buffer into the array
-					serialPort.Read(loopString, 0, returnLength);
-
-					return loopString;
-				}
-			}
-				// Catch the ThreadAbortException
-			catch (ThreadAbortException)
-			{
-				return null;
-			}
-			catch
-			{
-				return null;
-			}
-		}
-		*/
 
 		// In order to conserve battery power, the console spends as much time “asleep” as possible,
 		// waking up only when required. Receiving a character on the serial port will cause the console to
@@ -3262,20 +3065,6 @@ namespace CumulusMX
 			}
 		}
 
-		/*
-		private bool WakeVP()
-		{
-			if (IsSerial)
-			{
-				return WakeVP(comport);
-			}
-			else
-			{
-				return WakeVP(socket);
-			}
-		}
-		*/
-
 		private void InitSerial()
 		{
 			byte[] readBuffer = new byte[1000];
@@ -3290,10 +3079,12 @@ namespace CumulusMX
 					if (comport != null && comport.IsOpen)
 					{
 						comport.Close();
-						comport.Dispose();
 					}
 				}
-				catch { }
+				catch
+				{
+					// do nothing
+				}
 
 				cumulus.LogMessage("InitSerial: Connecting to the station");
 
@@ -3399,7 +3190,10 @@ namespace CumulusMX
 					if (socket != null && socket.Connected)
 						socket.Close();
 				}
-				catch { }
+				catch
+				{
+					// do nothing
+				}
 
 				cumulus.LogMessage("InitTCP: Connecting to the station");
 
@@ -3724,8 +3518,6 @@ namespace CumulusMX
 					{
 						comport.WriteLine(commandString);
 
-						//Thread.Sleep(commWaitTimeMs);
-
 						if (!WaitForACK(comport))
 						{
 							cumulus.LogWarningMessage("getTime: No ACK");
@@ -3739,7 +3531,6 @@ namespace CumulusMX
 							var ch = comport.ReadChar();
 							readBuffer[bytesRead] = (byte) ch;
 							bytesRead++;
-							//cumulus.LogMessage("Received " + ch.ToString("X2"));
 						} while (bytesRead < 8);
 					}
 					catch (TimeoutException)
@@ -3810,16 +3601,11 @@ namespace CumulusMX
 			{
 				cumulus.LogWarningMessage("getTime: Expected 8 bytes, got " + bytesRead);
 			}
-			// CRC doesn't seem to compute?
-			//else if (!crcOK(buffer))
-			//{
-			//	cumulus.LogMessage("getTime: Invalid CRC!");
-			//}
 			else
 			{
 				try
 				{
-					return new DateTime(readBuffer[5] + 1900, readBuffer[4], readBuffer[3], readBuffer[2], readBuffer[1], readBuffer[0]);
+					return new DateTime(readBuffer[5] + 1900, readBuffer[4], readBuffer[3], readBuffer[2], readBuffer[1], readBuffer[0], DateTimeKind.Local);
 				}
 				catch (Exception)
 				{
@@ -3844,8 +3630,6 @@ namespace CumulusMX
 					{
 						comport.WriteLine(commandString);
 
-						//Thread.Sleep(commWaitTimeMs);
-
 						// wait for the ACK
 						if (!WaitForACK(comport))
 						{
@@ -3864,8 +3648,6 @@ namespace CumulusMX
 						stream.WriteTimeout = 2500;
 
 						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
-
-						//Thread.Sleep(cumulus.DavisIPResponseTime);
 
 						// wait for the ACK
 						if (!WaitForACK(stream))
@@ -3911,8 +3693,6 @@ namespace CumulusMX
 					// send the data
 					comport.Write(writeBuffer, 0, 8);
 
-					//Thread.Sleep(commWaitTimeMs);
-
 					// wait for the ACK
 					if (WaitForACK(comport))
 					{
@@ -3943,30 +3723,6 @@ namespace CumulusMX
 			}
 		}
 
-		/*
-		/// <summary>
-		/// Converts rain from VP standard (in) to internal standard (mm)
-		/// </summary>
-		/// <param name="VPrain">rain in inches</param>
-		/// <returns>rain in mm</returns>
-		internal double ConvertRainToInternal(double VPrain)
-		{
-			return cumulus.VPrainGaugeType == 1 ? VPrain *25.4F : VPrain * 20F;
-		}
-		*/
-
-		/*
-		/// <summary>
-		/// Converts VP rain gauge tips/clicks to mm
-		/// </summary>
-		/// <param name="clicks"></param>
-		/// <returns></returns>
-		internal double ConvertRainClicksToInternal(double clicks)
-		{
-			// One click is either 0.01 inches or 0.2 mm
-			return cumulus.VPrainGaugeType == 0 ? clicks *0.2F : clicks * 0.254F;
-		}
-		*/
 
 		/// <summary>
 		/// Converts VP rain gauge tips/clicks to user units

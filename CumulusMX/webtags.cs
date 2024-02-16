@@ -26,59 +26,6 @@ namespace CumulusMX
 			this.station = station;
 		}
 
-		/*
-		private void FreeWebTagDictionary()
-		{
-			WebTagDictionary.Clear();
-		}
-		*/
-
-		/*
-		private string FormatByteSize(long bytes)
-		{
-			string sign = (bytes < 0 ? "-" : "");
-			double readable = (bytes < 0 ? -bytes : bytes);
-			string suffix;
-			if (bytes >= 0x1000000000000000) // Exabyte
-			{
-				suffix = "EB";
-				readable = (double) (bytes >> 50);
-			}
-			else if (bytes >= 0x4000000000000) // Petabyte
-			{
-				suffix = "PB";
-				readable = (double) (bytes >> 40);
-			}
-			else if (bytes >= 0x10000000000) // Terabyte
-			{
-				suffix = "TB";
-				readable = (double) (bytes >> 30);
-			}
-			else if (bytes >= 0x40000000) // Gigabyte
-			{
-				suffix = "GB";
-				readable = (double) (bytes >> 20);
-			}
-			else if (bytes >= 0x100000) // Megabyte
-			{
-				suffix = "MB";
-				readable = (double) (bytes >> 10);
-			}
-			else if (bytes >= 0x400) // Kilobyte
-			{
-				suffix = "KB";
-				readable = (double) bytes;
-			}
-			else
-			{
-				return bytes.ToString(sign + "0 B"); // Byte
-			}
-			readable /= 1024;
-
-			return sign + readable.ToString("0.## ") + suffix;
-		}
-		*/
-
 		private static string ReadFileIntoString(string fileName)
 		{
 			string result;
@@ -470,20 +417,6 @@ namespace CumulusMX
 			return GetFormattedDateTime(dt, defaultFormat, tagParams);
 		}
 
-		/*
-		private string GetFormattedDateTime(string dtstr, Dictionary<string,string> TagParams)
-		{
-			string dtformat = TagParams.Get("format");
-			if (dtformat == null)
-			{
-				// No format specified, return string as is
-				return dtstr;
-			}
-			DateTime ts = DateTime.Parse(dtstr);
-			return ts.ToString(dtformat);
-		}
-		*/
-
 		private string GetMonthlyAlltimeValueStr(AllTimeRec rec, Dictionary<string, string> tagParams, int decimals)
 		{
 			if (rec.Ts <= cumulus.defaultRecordTS)
@@ -493,20 +426,6 @@ namespace CumulusMX
 
 			return CheckRcDp(rec.Val, tagParams, decimals);
 		}
-
-		/*
-		private string GetMonthlyAlltimeTSStr(int identifier, int month, string format)
-		{
-			if (station.monthlyrecarray[identifier, month].timestamp <= cumulus.defaultRecordTS)
-			{
-				return "----";
-			}
-			else
-			{
-				return station.monthlyrecarray[identifier, month].timestamp.ToString(format);
-			}
-		}
-		*/
 
 		private string Tagwlatest(Dictionary<string, string> tagParams)
 		{
@@ -1135,15 +1054,17 @@ namespace CumulusMX
 			{
 				if (json)
 				{
-					var retVal = "{";
+					var retVal = new StringBuilder("{");
 					sl = station.TxBatText.Split(' ');
 
 					for (var i = 0; i < sl.Length; i++)
 					{
-						retVal += $"\"TX{i + 1}\":\"{sl[i][2..]}\",";
+						retVal.Append($"\"TX{i + 1}\":\"{sl[i][2..]}\",");
 					}
 
-					return retVal.Remove(retVal.Length - 1) + "}";
+					retVal.Length--;
+					retVal.Append('}');
+					return retVal.ToString();
 				}
 				else
 				{
@@ -1792,7 +1713,7 @@ namespace CumulusMX
 
 		private string TagSolarTh(Dictionary<string, string> tagParams)
 		{
-			return ((int) station.HiLoToday.HighSolar).ToString();
+			return station.HiLoToday.HighSolar.ToString();
 		}
 
 		private string TagTsolarTh(Dictionary<string, string> tagParams)
@@ -3106,7 +3027,7 @@ namespace CumulusMX
 			try
 			{
 				var dp = int.Parse(dpstr);
-				return CheckRcDp(cumulus.Longitude, tagParams, 2);
+				return CheckRcDp(cumulus.Longitude, tagParams, dp);
 			}
 			catch
 			{
@@ -3642,7 +3563,7 @@ namespace CumulusMX
 		private string TagChillHoursYesterday(Dictionary<string, string> tagParams)
 		{
 			var dayb4yest = DateTime.Now.Date.AddDays(-2);
-			WeatherStation.dayfilerec rec;
+			WeatherStation.DayFileRec rec;
 			try
 			{
 				rec = station.DayFile.Where(r => r.Date == dayb4yest).Single();
@@ -5178,7 +5099,7 @@ namespace CumulusMX
 
 		private string TagLastDataReadT(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.LastDataReadTimestamp, "G", tagParams);
+			return GetFormattedDateTime(station.LastDataReadTimestamp.ToLocalTime(), "G", tagParams);
 		}
 
 		private string TagLatestError(Dictionary<string, string> tagParams)
@@ -5369,7 +5290,7 @@ namespace CumulusMX
 		{
 			var json = tagParams.Get("format") == "json";
 
-			var retVal = json ? "{" : string.Empty;
+			var retVal = new StringBuilder(json ? "{" : string.Empty);
 
 
 			if (WeatherStation.SensorReception.Count > 0)
@@ -5378,26 +5299,24 @@ namespace CumulusMX
 				{
 					if (json)
 					{
-						retVal += $"\"{pair.Key}\":{pair.Value},";
+						retVal.Append($"\"{pair.Key}\":{pair.Value},");
 					}
 					else
 					{
-						retVal += $"{pair.Key}={pair.Value},";
+						retVal.Append($"{pair.Key}={pair.Value},");
 					}
 				}
 
-				retVal = retVal.Remove(retVal.Length - 1);
+				retVal.Length--;
 
-				retVal += json ? "}" : "";
+				retVal.Append(json ? '}' : "");
 
-				return retVal;
+				return retVal.ToString();
 			}
 			else
 			{
-				retVal = json ? "{}" : "n/a";
+				return json ? "{}" : "n/a";
 			}
-
-			return retVal;
 		}
 
 		private string TagStationFreeMemory(Dictionary<string, string> tagParams)
@@ -6646,51 +6565,6 @@ namespace CumulusMX
 			return webTagDictionary.TryGetValue(tagString, out var value) ? value(tagParams) : string.Empty;
 		}
 
-		//private static string Utf16ToUtf8(string utf16String)
-		//{
-		//	/**************************************************************
-		//	 * Every .NET string will store text with the UTF16 encoding, *
-		//	 * known as Encoding.Unicode. Other encodings may exist as    *
-		//	 * Byte-Array or incorrectly stored with the UTF16 encoding.  *
-		//	 *                                                            *
-		//	 * UTF8 = 1 bytes per char                                    *
-		//	 *    ["100" for the ANSI 'd']                                *
-		//	 *    ["206" and "186" for the Russian 'κ']                   *
-		//	 *                                                            *
-		//	 * UTF16 = 2 bytes per char                                   *
-		//	 *    ["100, 0" for the ANSI 'd']                             *
-		//	 *    ["186, 3" for the Russian 'κ']                          *
-		//	 *                                                            *
-		//	 * UTF8 inside UTF16                                          *
-		//	 *    ["100, 0" for the ANSI 'd']                             *
-		//	 *    ["206, 0" and "186, 0" for the Russian 'κ']             *
-		//	 *                                                            *
-		//	 * We can use the convert encoding function to convert an     *
-		//	 * UTF16 Byte-Array to an UTF8 Byte-Array. When we use UTF8   *
-		//	 * encoding to string method now, we will get a UTF16 string. *
-		//	 *                                                            *
-		//	 * So we imitate UTF16 by filling the second byte of a char   *
-		//	 * with a 0 byte (binary 0) while creating the string.        *
-		//	 **************************************************************/
-
-		//	// Storage for the UTF8 string
-		//	string utf8String = String.Empty;
-
-		//	// Get UTF16 bytes and convert UTF16 bytes to UTF8 bytes
-		//	byte[] utf16Bytes = Encoding.Unicode.GetBytes(utf16String);
-		//	byte[] utf8Bytes = Encoding.Convert(Encoding.Unicode, Encoding.UTF8, utf16Bytes);
-
-		//	// Fill UTF8 bytes inside UTF8 string
-		//	for (int i = 0; i < utf8Bytes.Length; i++)
-		//	{
-		//		// Because char always saves 2 bytes, fill char with 0
-		//		byte[] utf8Container = new byte[2] { utf8Bytes[i], 0 };
-		//		utf8String += BitConverter.ToChar(utf8Container, 0);
-		//	}
-
-		//	// Return UTF8
-		//	return utf8String;
-		//}
 	} // end WebTags class
 
 	//Jan 2010 - www.haiders.net

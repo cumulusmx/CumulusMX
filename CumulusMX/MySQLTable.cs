@@ -9,8 +9,6 @@ namespace CumulusMX
 		internal List<Column> Columns = [];
 
 		private string _insertStart;
-		private string _PrimaryKey;
-		private string _Comment;
 
 		public string CreateCommand
 		{
@@ -24,9 +22,9 @@ namespace CumulusMX
 				}
 
 				// add the primary key (if any)
-				if (!string.IsNullOrEmpty(_PrimaryKey))
+				if (!string.IsNullOrEmpty(PrimaryKey))
 				{
-					create.Append($" PRIMARY KEY ({_PrimaryKey})");
+					create.Append($" PRIMARY KEY ({PrimaryKey})");
 				}
 
 				// close the column list
@@ -39,9 +37,9 @@ namespace CumulusMX
 				}
 
 				// add the comment (if any)
-				if (!string.IsNullOrEmpty(_Comment))
+				if (!string.IsNullOrEmpty(Comment))
 				{
-					create.Append(" COMMENT=" + _Comment);
+					create.Append(" COMMENT=" + Comment);
 				}
 
 				return create.ToString();
@@ -70,29 +68,9 @@ namespace CumulusMX
 			}
 		}
 
-		public string PrimaryKey
-		{
-			get
-			{
-				return _PrimaryKey;
-			}
-			set
-			{
-				_PrimaryKey = value;
-			}
-		}
+		public string PrimaryKey { get; set; }
 
-		public string Comment
-		{
-			get
-			{
-				return _Comment;
-			}
-			set
-			{
-				_Comment = value;
-			}
-		}
+		public string Comment { get; set; }
 
 
 		public void AddColumn(string ColName, string ColAttributes)

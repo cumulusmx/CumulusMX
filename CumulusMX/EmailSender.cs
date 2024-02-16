@@ -18,20 +18,13 @@ using MimeKit;
 
 namespace CumulusMX
 {
-	public class EmailSender
+	public class EmailSender(Cumulus cumulus)
 	{
 		static readonly Regex ValidEmailRegex = CreateValidEmailRegex();
-		private static SemaphoreSlim _writeLock;
-		private readonly Cumulus cumulus;
-		//private static readonly string[] initializer = new[] { "https://www.googleapis.com/auth/gmail.compose" };
-		private static readonly string[] initializer = new[] { "https://mail.google.com" };
-
-		public EmailSender(Cumulus cumulus)
-		{
-			this.cumulus = cumulus;
-			_writeLock = new SemaphoreSlim(1);
-		}
-
+		private static readonly SemaphoreSlim _writeLock = new (1);
+		private readonly Cumulus cumulus = cumulus;
+		//private static readonly string[] initializer = new[] { "https://www.googleapis.com/auth/gmail.compose" }
+		private static readonly string[] initializer = ["https://mail.google.com"];
 
 		public async Task<bool> SendEmail(string[] to, string from, string subject, string message, bool isHTML, bool useBcc)
 		{
@@ -45,9 +38,7 @@ namespace CumulusMX
 
 			try
 			{
-				//cumulus.LogDebugMessage($"SendEmail: Waiting for lock...");
 				await _writeLock.WaitAsync();
-				//cumulus.LogDebugMessage($"SendEmail: Has the lock");
 
 				var logMessage = ToLiteral(message);
 				var sendSubject = subject + " - " + cumulus.LocationName;
@@ -83,7 +74,9 @@ namespace CumulusMX
 				{
 					if (cumulus.SmtpOptions.IgnoreCertErrors)
 					{
+#pragma warning disable S4830 // Server certificates should be verified during SSL/TLS connections
 						client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+#pragma warning restore S4830 // Server certificates should be verified during SSL/TLS connections
 					}
 
 					if (cumulus.SmtpOptions.Logging)
@@ -107,7 +100,6 @@ namespace CumulusMX
 						if (cumulus.SmtpOptions.AuthenticationMethod == 1)
 						{
 							await client.AuthenticateAsync(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
-							//client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
 						}
 					}
 					else if (cumulus.SmtpOptions.AuthenticationMethod == 2)
@@ -153,7 +145,6 @@ namespace CumulusMX
 			}
 			finally
 			{
-				//cumulus.LogDebugMessage($"SendEmail: Releasing lock...");
 				_writeLock.Release();
 			}
 			return retVal;
@@ -171,10 +162,7 @@ namespace CumulusMX
 
 			try
 			{
-				//cumulus.LogDebugMessage($"SendEmail: Waiting for lock...");
 				_writeLock.Wait();
-				//cumulus.LogDebugMessage($"SendEmail: Has the lock");
-
 
 				var logMsg = $"SendEmail: Sending TEST email, to [{string.Join("; ", to)}], subject [{subject}], body [{subject}]";
 				cumulus.LogMessage(logMsg);
@@ -207,7 +195,9 @@ namespace CumulusMX
 				{
 					if (cumulus.SmtpOptions.IgnoreCertErrors)
 					{
+#pragma warning disable S4830 // Server certificates should be verified during SSL/TLS connections
 						client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+#pragma warning restore S4830 // Server certificates should be verified during SSL/TLS connections
 					}
 
 					if (cumulus.SmtpOptions.Logging)
@@ -218,7 +208,6 @@ namespace CumulusMX
 					}
 
 					client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (MailKit.Security.SecureSocketOptions) cumulus.SmtpOptions.SslOption);
-					//client.Connect(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable);
 
 					// 0 = None
 					// 1 = Username/Passwword
@@ -232,7 +221,6 @@ namespace CumulusMX
 						if (cumulus.SmtpOptions.AuthenticationMethod == 1)
 						{
 							client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
-							//client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
 						}
 					}
 					else if (cumulus.SmtpOptions.AuthenticationMethod == 2)
@@ -280,7 +268,6 @@ namespace CumulusMX
 			}
 			finally
 			{
-				//cumulus.LogDebugMessage($"SendEmail: Releasing lock...");
 				_writeLock.Release();
 			}
 
@@ -315,17 +302,17 @@ namespace CumulusMX
 
 		public class SmtpOptions
 		{
-			public bool Enabled;
-			public string Server;
-			public int Port;
-			public string User;
-			public string Password;
-			public string ClientId;
-			public string ClientSecret;
-			public int SslOption;
-			public int AuthenticationMethod;
-			public bool Logging;
-			public bool IgnoreCertErrors;
+			public bool Enabled {  get; set; }
+			public string Server { get; set; }
+			public int Port { get; set; }
+			public string User { get; set; }
+			public string Password { get; set; }
+			public string ClientId { get; set; }
+			public string ClientSecret { get; set; }
+			public int SslOption { get; set; }
+			public int AuthenticationMethod { get; set; }
+			public bool Logging { get; set; }
+			public bool IgnoreCertErrors { get; set; }
 		}
 	}
 }

@@ -53,7 +53,7 @@ namespace CumulusMX
 				CleanSession = true
 			};
 
-			Connect(mqttOptions);
+			Connect(mqttOptions).Wait();
 
 			mqttClient.DisconnectedAsync += (async e =>
 			{
@@ -63,7 +63,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("MQTT attempting to reconnect with server");
 				try
 				{
-					Connect(mqttOptions);
+					Connect(mqttOptions).Wait();
 					cumulus.LogDebugMessage("MQTT reconnected OK");
 				}
 				catch
@@ -150,7 +150,7 @@ namespace CumulusMX
 			}
 		}
 
-		private static async void Connect(MQTTnet.Client.MqttClientOptions options)
+		private static async Task Connect(MQTTnet.Client.MqttClientOptions options)
 		{
 			try
 			{
@@ -194,7 +194,6 @@ namespace CumulusMX
 					if (feedType == "Interval" && now.Value.ToUnixTime() % (topic.interval ?? 600) != 0)
 					{
 						// this topic is not ready to update
-						//cumulus.LogDebugMessage($"MQTT: Topic {topic.topic} not ready yet");
 						continue;
 					}
 

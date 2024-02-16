@@ -89,7 +89,7 @@ namespace CumulusMX
 			return "success";
 		}
 
-		private class Settings
+		private sealed class Settings
 		{
 			public bool accessible { get; set; }
 			public List<AlarmUser> alarms { get; set; }

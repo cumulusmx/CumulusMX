@@ -64,8 +64,6 @@ namespace CumulusMX
 		public double? temp_soil_4 { get; set; }
 		public int? wet_leaf_1 { get; set; }
 		public int? wet_leaf_2 { get; set; }
-		// public int? temp_leaf_1 { get; set; }
-		// public int? temp_leaf_2 { get; set; }
 		public double? temp_extra_1 { get; set; }
 		public double? temp_extra_2 { get; set; }
 		public double? temp_extra_3 { get; set; }
@@ -553,7 +551,7 @@ namespace CumulusMX
 	public class WLCurrentSensordDataType1_2
 	{
 		public int tx_id { get; set; }
-		//public int bar_trend { get; set; }
+		public int bar_trend { get; set; }
 		public double? bar { get; set; }
 		public double? temp_in { get; set; }
 		public int? hum_in { get; set; }
@@ -903,17 +901,6 @@ namespace CumulusMX
 						{
 							msg.AppendLine($"    {message.datetime} - {message.details}");
 						}
-
-						/*
-						if (incident.containers_affected.Length > 0)
-						{
-							msg.AppendLine($"  Affected containers:");
-							foreach (var container in incident.containers_affected)
-							{
-								msg.AppendLine($"    {container.name}");
-							}
-						}
-						*/
 
 						if (incident.components_affected.Length > 0)
 						{

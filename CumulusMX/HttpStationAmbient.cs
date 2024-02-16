@@ -27,14 +27,12 @@ namespace CumulusMX
 			}
 
 
-			//cumulus.StationOptions.CalculatedWC = true;
 			// Ambient does not provide average wind speeds
 			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
-			//cumulus.StationOptions.UseSpeedForAvgCalc = false;
 			// Ambient does not send the rain rate, so we will calculate it
 			calculaterainrate = true;
 			// Ambient does not send DP, so force MX to calculate it
-			//cumulus.StationOptions.CalculatedDP = true;
+			//cumulus.StationOptions.CalculatedDP = true
 
 			if (station == null || (station != null && cumulus.AmbientExtraUseAQI))
 			{
@@ -305,7 +303,6 @@ namespace CumulusMX
 						else
 						{
 							var rainVal = ConvertUnits.RainINToUser(Convert.ToDouble(rain, CultureInfo.InvariantCulture));
-							//var rateVal = ConvertUnits.RainINToUser(Convert.ToDouble(rRate, CultureInfo.InvariantCulture));
 							DoRain(rainVal, 0, recDate);
 						}
 					}
@@ -770,7 +767,7 @@ namespace CumulusMX
 				// Sends a default value until the first strike is detected of 0xFFFFFFFF
 				if (valTime != 0xFFFFFFFF)
 				{
-					var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+					var dtDateTime = DateTime.UnixEpoch;
 					dtDateTime = dtDateTime.AddSeconds(valTime).ToLocalTime();
 
 					if (dtDateTime > LightningTime)

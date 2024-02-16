@@ -9,10 +9,10 @@ using ServiceStack.Text;
 
 namespace CumulusMX.ThirdParty
 {
-	internal class WebUploadOWM : WebUploadServiceBase
+	internal class WebUploadOwm : WebUploadServiceBase
 	{
 
-		internal WebUploadOWM(Cumulus cumulus, string name) : base(cumulus, name)
+		internal WebUploadOwm(Cumulus cumulus, string name) : base(cumulus, name)
 		{ }
 
 
@@ -246,7 +246,9 @@ namespace CumulusMX.ThirdParty
 			}
 		}
 
-		private class OpenWeatherMapStation
+#pragma warning disable S3459 // Unassigned members should be removed
+#pragma warning disable S1144 // Unused private types or members should be removed
+		private sealed class OpenWeatherMapStation
 		{
 			public string id { get; set; }
 			public string created_at { get; set; }
@@ -259,7 +261,7 @@ namespace CumulusMX.ThirdParty
 			public int rank { get; set; }
 		}
 
-		private class OpenWeatherMapNewStation
+		private sealed class OpenWeatherMapNewStation
 		{
 			public string ID { get; set; }
 			public string created_at { get; set; }
@@ -273,4 +275,6 @@ namespace CumulusMX.ThirdParty
 			public int source_type { get; set; }
 		}
 	}
+#pragma warning restore S3459 // Unassigned members should be removed
+#pragma warning restore S1144 // Unused private types or members should be removed
 }

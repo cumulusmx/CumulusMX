@@ -32,7 +32,6 @@ namespace CumulusMX
 		private readonly object threadSafer = new();
 		private static readonly SemaphoreSlim WebReq = new(1, 1);
 		private bool startupDayResetIfRequired = true;
-		//private bool savedUseSpeedForAvgCalc;
 		private bool savedCalculatePeakGust;
 		private int maxArchiveRuns = 1;
 		private bool broadcastReceived;
@@ -43,12 +42,10 @@ namespace CumulusMX
 		private readonly AutoResetEvent bwDoneEvent = new(false);
 		private readonly List<WlSensor> sensorList = [];
 		private readonly bool useWeatherLinkDotCom = true;
-		//private readonly bool checkWllGustValues;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
 			calculaterainrate = false;
-			//cumulus.UseDataLogger = false;
 			// WLL does not provide a forecast string, so use the Cumulus forecast
 			cumulus.UseCumulusForecast = true;
 			// WLL does not provide pressure trend strings
@@ -101,29 +98,7 @@ namespace CumulusMX
 			// calculate it by averaging the gust values
 			cumulus.StationOptions.UseSpeedForAvgCalc = false;
 
-			/*
-			// If the user is using the default 10 minute Wind gust, always use gust data from the WLL - simple
-			if (cumulus.StationOptions.PeakGustMinutes == 10)
-			{
-				CalcRecentMaxGust = true;
-				checkWllGustValues = true;
-			}
-			else if (cumulus.StationOptions.PeakGustMinutes > 10)
-			{
-				// If the user period is greater that 10 minutes, then Cumulus must calculate Gust values
-				// but we can check the WLL 10 min gust value in case we missed a gust
-				CalcRecentMaxGust = true;
-				checkWllGustValues = true;
-			}
-			else
-			{
-				// User period is less than 10 minutes
-				CalcRecentMaxGust = true;
-				checkWllGustValues = true;
-			}
-			*/
 			CalcRecentMaxGust = true;
-
 
 			// Sanity check - do we have all the info we need?
 			if (string.IsNullOrEmpty(cumulus.WllApiKey) && string.IsNullOrEmpty(cumulus.WllApiSecret))
@@ -198,7 +173,6 @@ namespace CumulusMX
 				serviceBrowser.ServiceChanged += OnServiceChanged;
 				serviceBrowser.QueryParameters.QueryInterval = cumulus.WllBroadcastDuration * 1000 * 4; // query at 4x the multicast time (default 20 mins)
 
-				//Console.WriteLine($"Browsing for type: {serviceType}");
 				serviceBrowser.StartBrowse(serviceType);
 
 				cumulus.LogMessage("ZeroConf Service: Attempting to find WLL via mDNS...");
@@ -212,7 +186,7 @@ namespace CumulusMX
 			}
 
 
-			DateTime tooOld = new DateTime(0);
+			DateTime tooOld = new DateTime(0, DateTimeKind.Local);
 
 			if ((cumulus.LastUpdateTime <= tooOld) || !cumulus.UseDataLogger)
 			{
@@ -221,7 +195,6 @@ namespace CumulusMX
 
 				timerStartNeeded = true;
 				LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
-				//StartLoop();
 				DoDayResetIfNeeded();
 				DoTrendValues(DateTime.Now);
 
@@ -240,9 +213,7 @@ namespace CumulusMX
 			try
 			{
 				// Wait for the lock
-				//cumulus.LogDebugMessage("Lock: Station waiting for lock");
 				Cumulus.SyncInit.Wait();
-				//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 				// Create a realtime thread to periodically restart broadcasts
 				GetWllRealtime(null, null);
@@ -285,7 +256,6 @@ namespace CumulusMX
 				broadcastTask = Task.Run(async () =>
 				{
 					byte[] lastMessage = null;
-					//var endPoint = new IPEndPoint(IPAddress.Any, port);
 					using (var udpClient = new UdpClient(port))
 					{
 						udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -294,18 +264,18 @@ namespace CumulusMX
 						{
 							try
 							{
-								var broadcastTask = udpClient.ReceiveAsync();
+								var bcastTask = udpClient.ReceiveAsync();
 								var timeoutTask = Task.Delay(3000, cumulus.cancellationToken); // We should get a message every 2.5 seconds
 
 								// wait for a broadcast message, a timeout, or a cancellation request
-								await Task.WhenAny(broadcastTask, timeoutTask);
+								await Task.WhenAny(bcastTask, timeoutTask);
 
 								// we get duplicate packets over IPv4 and IPv6, plus if the host has multiple interfaces to the local LAN
-								if (broadcastTask.Status == TaskStatus.RanToCompletion && !Utils.ByteArraysEqual(lastMessage, broadcastTask.Result.Buffer))
+								if (bcastTask.Status == TaskStatus.RanToCompletion && !Utils.ByteArraysEqual(lastMessage, bcastTask.Result.Buffer))
 								{
-									var jsonStr = Encoding.UTF8.GetString(broadcastTask.Result.Buffer);
-									DecodeBroadcast(jsonStr, broadcastTask.Result.RemoteEndPoint);
-									lastMessage = broadcastTask.Result.Buffer.ToArray();
+									var jsonStr = Encoding.UTF8.GetString(bcastTask.Result.Buffer);
+									DecodeBroadcast(jsonStr, bcastTask.Result.RemoteEndPoint);
+									lastMessage = bcastTask.Result.Buffer.ToArray();
 								}
 								else if (timeoutTask.Status == TaskStatus.RanToCompletion)
 								{
@@ -342,10 +312,10 @@ namespace CumulusMX
 			}
 			catch (ThreadAbortException)
 			{
+				// do nothing
 			}
 			finally
 			{
-				//cumulus.LogDebugMessage("Lock: Station releasing lock");
 				Cumulus.SyncInit.Release();
 			}
 		}
@@ -391,9 +361,7 @@ namespace CumulusMX
 		{
 			var retry = 2;
 
-			//cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime waiting for lock");
 			await WebReq.WaitAsync();
-			//cumulus.LogDebugMessage("GetWllRealtime: GetWllRealtime has the lock");
 
 			// The WLL will error if already responding to a request from another device, so add a retry
 			do
@@ -410,7 +378,7 @@ namespace CumulusMX
 
 					if (CheckIpValid(ip))
 					{
-						var timeSinceLastMessage = (int) (DateTime.Now.Subtract(LastDataReadTimestamp).TotalMilliseconds % 2500);
+						var timeSinceLastMessage = (int) (DateTime.UtcNow.Subtract(LastDataReadTimestamp).TotalMilliseconds % 2500);
 						if (timeSinceLastMessage > 1500)
 						{
 							// Another broadcast is due in the next second or less
@@ -465,7 +433,6 @@ namespace CumulusMX
 				}
 			} while (retry > 0);
 
-			//cumulus.LogDebugMessage("GetWllRealtime: Releasing lock");
 			WebReq.Release();
 		}
 
@@ -483,7 +450,7 @@ namespace CumulusMX
 			{
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
 
-				var timeSinceLastMessage = (int) (DateTime.Now.Subtract(LastDataReadTimestamp).TotalMilliseconds % 2500);
+				var timeSinceLastMessage = (int) (DateTime.UtcNow.Subtract(LastDataReadTimestamp).TotalMilliseconds % 2500);
 				if (timeSinceLastMessage > 1500)
 				{
 					// Another broadcast is due in the next second or less
@@ -494,9 +461,7 @@ namespace CumulusMX
 					tmrCurrent.Start();
 				}
 
-				//cumulus.LogDebugMessage("GetWllCurrent: Waiting for lock");
 				await WebReq.WaitAsync();
-				//cumulus.LogDebugMessage("GetWllCurrent: Has the lock");
 
 				// The WLL will error if already responding to a request from another device, so add a retry
 				do
@@ -548,7 +513,6 @@ namespace CumulusMX
 					}
 				} while (retry <= 3);
 
-				//cumulus.LogDebugMessage("GetWllCurrent: Releasing lock");
 				WebReq.Release();
 			}
 			else
@@ -584,7 +548,7 @@ namespace CumulusMX
 							try
 							{
 								// WLL BUG/FEATURE: The WLL sends a null wind direction for calm when the avg speed falls to zero, we use zero
-								var windDir = (int) (rec.wind_dir_last ?? 0);
+								var windDir = rec.wind_dir_last ?? 0;
 								var spd = ConvertUnits.WindMPHToUser(rec.wind_speed_last);
 
 								// No average in the broadcast data, so use current average.
@@ -633,8 +597,6 @@ namespace CumulusMX
 						}
 					}
 
-					json = null;
-
 					UpdateStatusPanel(DateTime.Now);
 					UpdateMQTT();
 
@@ -678,7 +640,6 @@ namespace CumulusMX
 
 				// The WLL sends the timestamp in Unix ticks, and in UTC
 				// rather than rely on the WLL clock being correct, we will use our local time
-				//var dateTime = FromUnixTime(data.Value<int>("ts"));
 				var dateTime = DateTime.Now;
 				var localSensorContactLost = false;
 
@@ -1222,7 +1183,6 @@ namespace CumulusMX
 								{
 									StationPressure = ConvertUnits.PressINHGToUser(data3.bar_absolute.Value);
 									// Or do we use calibration? The VP2 code doesn't?
-									//StationPressure = ConvertUnits.PressINHGToUser(rec.Value<double>("bar_absolute")) * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
 									AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 								}
 							}
@@ -1385,7 +1345,7 @@ namespace CumulusMX
 
 			//Check each substring checking that parses to byte
 			byte result;
-			return arrOctets.All(strOctet => byte.TryParse(strOctet, out result));
+			return Array.TrueForAll(arrOctets, strOctet => byte.TryParse(strOctet, out result));
 		}
 
 		private void SetTxBatteryStatus(int txId, int status)
@@ -1417,11 +1377,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage("WLL history: Reading archive data from WeatherLink API");
 			bw = new BackgroundWorker { WorkerSupportsCancellation = true };
-			//histprog = new historyProgressWindow();
-			//histprog.Owner = mainWindow;
-			//histprog.Show();
 			bw.DoWork += bw_ReadHistory;
-			//bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
 			bw.RunWorkerCompleted += bw_ReadHistoryCompleted;
 			bw.WorkerReportsProgress = true;
 			bw.RunWorkerAsync();
@@ -1434,11 +1390,7 @@ namespace CumulusMX
 			{
 				cumulus.LogErrorMessage("WLL history: Archive reading thread apparently terminated with an error: " + e.Error.Message);
 			}
-			cumulus.LogMessage("WLL history: Updating highs and lows");
-			//using (cumulusEntities dataContext = new cumulusEntities())
-			//{
-			//    UpdateHighsAndLows(dataContext);
-			//}
+
 			cumulus.NormalRunning = true;
 
 			CalcRecentMaxGust = savedCalculatePeakGust;
@@ -1449,30 +1401,12 @@ namespace CumulusMX
 			cumulus.StartTimersAndSensors();
 		}
 
-		/*
-		private void bw_DoStart(object sender, DoWorkEventArgs e)
-		{
-			//cumulus.LogDebugMessage("Lock: Station waiting for lock");
-			Cumulus.syncInit.Wait();
-			//cumulus.LogDebugMessage("Lock: Station has the lock");
-
-			// Wait a short while for Cumulus initialisation to complete
-			Thread.Sleep(500);
-			StartLoop();
-
-			//cumulus.LogDebugMessage("Lock: Station releasing lock");
-			Cumulus.syncInit.Release();
-		}
-		*/
-
 		private void bw_ReadHistory(object sender, DoWorkEventArgs e)
 		{
 			BackgroundWorker worker = sender as BackgroundWorker;
 
 			int archiveRun = 0;
-			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.SyncInit.Wait();
-			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			try
 			{
@@ -1487,7 +1421,7 @@ namespace CumulusMX
 				{
 					GetWlHistoricData(worker);
 					archiveRun++;
-				} while (archiveRun < maxArchiveRuns && worker.CancellationPending == false);
+				} while (archiveRun < maxArchiveRuns && !worker.CancellationPending);
 
 				// restore the setting
 				cumulus.StationOptions.UseSpeedForAvgCalc = false;
@@ -1497,10 +1431,6 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 			}
 
-			// force a calculation of the current gust and average wind speed so we do not get a zero values at startup
-
-
-			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.SyncInit.Release();
 			bwDoneEvent.Set();
 		}
@@ -1523,9 +1453,6 @@ namespace CumulusMX
 				Cumulus.LogConsoleMessage("GetWlHistoricData: " + msg);
 
 			}
-
-			//int passCount;
-			//const int maxPasses = 4;
 
 			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
 			var startTime = Utils.ToUnixTime(cumulus.LastUpdateTime);
@@ -1654,7 +1581,7 @@ namespace CumulusMX
 
 			for (int dataIndex = 0; dataIndex < noOfRecs; dataIndex++)
 			{
-				if (worker.CancellationPending == true)
+				if (worker.CancellationPending)
 					return;
 
 				try
@@ -1711,7 +1638,7 @@ namespace CumulusMX
 
 					foreach (var sensor in histObj.sensors)
 					{
-						if (worker.CancellationPending == true)
+						if (worker.CancellationPending)
 							return;
 
 						int sensorType = sensor.sensor_type;
@@ -1725,7 +1652,7 @@ namespace CumulusMX
 								var found = false;
 								foreach (var dataRec in sensor.data)
 								{
-									if (worker.CancellationPending == true)
+									if (worker.CancellationPending)
 										return;
 
 									var rec = dataRec.FromJsv<WlHistorySensorDataType17>();
@@ -1753,7 +1680,7 @@ namespace CumulusMX
 								var found = false;
 								foreach (var dataRec in sensor.data)
 								{
-									if (worker.CancellationPending == true)
+									if (worker.CancellationPending)
 										return;
 
 									var rec = dataRec.FromJsv<WlHistorySensorDataType17>();
@@ -1775,13 +1702,10 @@ namespace CumulusMX
 								cumulus.airLinkIn.DecodeAlHistoric(dataStructureType, sensor.data[dataIndex]);
 							}
 						}
-						else if (sensorType != 504 && sensorType != 506 && lsid != sensorWithMostRecs.lsid)
+						else if (sensorType != 504 && sensorType != 506 && lsid != sensorWithMostRecs.lsid && sensor.data.Count > dataIndex)
 						{
-							if (sensor.data.Count > dataIndex)
-							{
-								DecodeHistoric(dataStructureType, sensorType, sensor.data[dataIndex]);
-								// sensor 504 (WLL info) does not always contain a full set of records, so grab the timestamp from a 'real' sensor
-							}
+							DecodeHistoric(dataStructureType, sensorType, sensor.data[dataIndex]);
+							// sensor 504 (WLL info) does not always contain a full set of records, so grab the timestamp from a 'real' sensor
 						}
 					}
 
@@ -1799,19 +1723,19 @@ namespace CumulusMX
 					DoCloudBaseHeatIndex(timestamp);
 
 					// Log all the data
-					cumulus.DoLogFile(timestamp, false);
+					_ = cumulus.DoLogFile(timestamp, false);
 					cumulus.LogMessage("GetWlHistoricData: Log file entry written");
 					cumulus.MySqlRealtimeFile(999, false, timestamp);
 					cumulus.DoCustomIntervalLogs(timestamp);
 
 					if (cumulus.StationOptions.LogExtraSensors)
 					{
-						cumulus.DoExtraLogFile(timestamp);
+						_ = cumulus.DoExtraLogFile(timestamp);
 					}
 
 					if (cumulus.airLinkOut != null || cumulus.airLinkIn != null)
 					{
-						cumulus.DoAirLinkLogFile(timestamp);
+						_ = cumulus.DoAirLinkLogFile(timestamp);
 					}
 
 					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
@@ -2556,8 +2480,6 @@ namespace CumulusMX
 									if (data13baro.bar_absolute != null)
 									{
 										StationPressure = ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute);
-										// Or do we use calibration? The VP2 code doesn't?
-										//StationPressure = ConvertUnits.PressINHGToUser(data.Value<double>("bar_absolute")) * cumulus.Calib.Press.Mult + cumulus.Calib.Press.Offset;
 										AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 									}
 								}
@@ -2693,7 +2615,7 @@ namespace CumulusMX
 
 				try
 				{
-					var data15 = sensor.data.Last().FromJsv<WlHealthDataType15>();
+					var data15 = sensor.data[^1].FromJsv<WlHealthDataType15>();
 
 					var dat = Utils.FromUnixTime(data15.firmware_version);
 					DavisFirmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
@@ -2787,12 +2709,9 @@ namespace CumulusMX
 					else
 						type = sensor.data_structure_type == 11 ? "ISS" : "Soil/Leaf";
 
-					var data = sensor.data.Last().FromJsv<WlHealthDataType11_13>();
+					var data = sensor.data[^1].FromJsv<WlHealthDataType11_13>();
 
 					cumulus.LogDebugMessage($"WLL Health - found health data for {type} device TxId = {data.tx_id}");
-
-					// Save the archive interval
-					//weatherLinkArchiveInterval = data.Value<int>("arch_int");
 
 					// Check battery state 0=Good, 1=Low
 					SetTxBatteryStatus(data.tx_id, data.trans_battery_flag);
@@ -2805,7 +2724,6 @@ namespace CumulusMX
 						cumulus.LogDebugMessage($"WLL Health: {type} {data.tx_id}: Battery state is OK");
 					}
 
-					//DavisTotalPacketsReceived[txid] = ;  // Do not have a value for this
 					DavisTotalPacketsMissed[data.tx_id] = data.error_packets;
 					DavisNumCRCerrors[data.tx_id] = data.error_packets;
 					DavisNumberOfResynchs[data.tx_id] = data.resynchs;
@@ -2946,14 +2864,12 @@ namespace CumulusMX
 					// 506 = AirLink Health
 
 					// Get the LSID of the health station associated with each device
-					//var wllHealthLsid = GetWlHistoricHealthLsid(cumulus.WllParentId, 504);
 					var alInHealthLsid = GetWlHistoricHealthLsid(cumulus.airLinkInLsid, 506);
 					var alOutHealthLsid = GetWlHistoricHealthLsid(cumulus.airLinkOutLsid, 506);
 
 					foreach (var sensor in histObj.sensors)
 					{
 						var sensorType = sensor.sensor_type;
-						var dataStructureType = sensor.data_structure_type;
 						var lsid = sensor.lsid;
 
 						switch (sensorType)
@@ -3099,7 +3015,6 @@ namespace CumulusMX
 			{
 				cumulus.LogDebugMessage("WLLStations: WeatherLink API exception: " + ex.Message);
 			}
-			return;
 		}
 
 		private void GetAvailableSensors()
@@ -3214,10 +3129,10 @@ namespace CumulusMX
 		{
 			try
 			{
-				var sensor = sensorList.FirstOrDefault(i => i.LSID == id || i.ParentID == id);
+				var sensor = sensorList.Find(i => i.LSID == id || i.ParentID == id);
 				if (sensor != null)
 				{
-					var health = sensorList.FirstOrDefault(i => i.ParentID == sensor.ParentID && i.SensorType == type);
+					var health = sensorList.Find(i => i.ParentID == sensor.ParentID && i.SensorType == type);
 					if (health != null)
 					{
 						return health.LSID;
@@ -3225,7 +3140,9 @@ namespace CumulusMX
 				}
 			}
 			catch
-			{ }
+			{
+				// do nothing
+			}
 			return 0;
 		}
 
@@ -3287,18 +3204,18 @@ namespace CumulusMX
 			{
 				cumulus.LogErrorMessage("GetSystemStatus: Exception: " + ex);
 			}
-
-			return;
 		}
 
-		private class WllBroadcast
+#pragma warning disable S1144 // Unused private types or members should be removed
+#pragma warning disable S3459 // Unassigned members should be removed
+		private sealed class WllBroadcast
 		{
 			public string did { get; set; }
 			public int ts { get; set; }
 			public List<WllBroadcastRec> conditions { get; set; }
 		}
 
-		private class WllBroadcastRec
+		private sealed class WllBroadcastRec
 		{
 			public string lsid { get; set; }
 			public int txid { get; set; }
@@ -3319,32 +3236,32 @@ namespace CumulusMX
 		}
 
 		// Response from WLL when asked to start multi-casting
-		private class WllBroadcastReqResponse
+		private sealed class WllBroadcastReqResponse
 		{
 			public WllBroadcastReqResponseData data { get; set; }
 			public string error { get; set; }
 		}
 
-		private class WllBroadcastReqResponseData
+		private sealed class WllBroadcastReqResponseData
 		{
 			public int broadcast_port { get; set; }
 			public int duration { get; set; }
 		}
 
-		private class WllCurrent
+		private sealed class WllCurrent
 		{
 			public WllCurrentDevice data { get; set; }
 			public string error { get; set; }
 		}
 
-		private class WllCurrentDevice
+		private sealed class WllCurrentDevice
 		{
 			public string did { get; set; }
 			public long ts { get; set; }
 			public List<string> conditions { get; set; }  // We have no clue what these structures are going to be ahead of time
 		}
 
-		private class WllCurrentType1
+		private sealed class WllCurrentType1
 		{
 			public int lsid { get; set; }
 			public int data_structure_type { get; set; }
@@ -3389,7 +3306,7 @@ namespace CumulusMX
 			public long? rain_storm_last_end_at { get; set; }
 		}
 
-		private class WllCurrentType2
+		private sealed class WllCurrentType2
 		{
 			public int lsid { get; set; }
 			public int data_structure_type { get; set; }
@@ -3418,7 +3335,7 @@ namespace CumulusMX
 		}
 
 		// WLL Current Baro
-		private class WllCurrentType3
+		private sealed class WllCurrentType3
 		{
 			public int lsid { get; set; }
 			public int data_structure_type { get; set; }
@@ -3428,7 +3345,7 @@ namespace CumulusMX
 		}
 
 		// WLL Current internal temp/hum
-		private class WllCurrentType4
+		private sealed class WllCurrentType4
 		{
 			public int lsid { get; set; }
 			public int data_structure_type { get; set; }
@@ -3437,6 +3354,9 @@ namespace CumulusMX
 			public double? dew_point_in { get; set; }
 			public double? heat_index_in { get; set; }
 		}
+#pragma warning restore S3459 // Unassigned members should be removed
+#pragma warning restore S1144 // Unused private types or members should be removed
+
 
 		[System.Text.RegularExpressions.GeneratedRegex("user_email\":\"[^\"]*\"")]
 		private static partial System.Text.RegularExpressions.Regex regexUserEmail();

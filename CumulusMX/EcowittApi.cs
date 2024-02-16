@@ -28,9 +28,9 @@ namespace CumulusMX
 
 		private static readonly int EcowittApiFudgeFactor = 5; // Number of minutes that Ecowitt API data is delayed
 
-		private DateTime LastCurrentDataTime = DateTime.MinValue;
-		private DateTime LastCameraImageTime = DateTime.MinValue;
-		private DateTime LastCameraCallTime = DateTime.MinValue;
+		private DateTime LastCurrentDataTime = DateTime.MinValue; // Stored in UTC to avoid DST issues
+		private DateTime LastCameraImageTime = DateTime.MinValue; // Stored in UTC to avoid DST issues
+		private DateTime LastCameraCallTime = DateTime.MinValue; // Stored in UTC to avoid DST issues
 
 		private string LastCameraVideoTime = "";
 		private readonly DateTime LastCameraVideoCallTime = DateTime.MinValue;
@@ -39,8 +39,6 @@ namespace CumulusMX
 		{
 			cumulus = cuml;
 			station = stn;
-
-			//httpClient.DefaultRequestHeaders.ConnectionClose = true;
 
 			// Let's decode the Unix ts to DateTime
 			JsConfig.Init(new Config
@@ -94,7 +92,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				sb.Append($"&mac={cumulus.EcowittMacAddress}");
+				sb.Append($"&mac={cumulus.EcowittMacAddress.ToUpper()}");
 			}
 			sb.Append($"&start_date={apiStartDate:yyyy-MM-dd'%20'HH:mm:ss}");
 			sb.Append($"&end_date={apiEndDate:yyyy-MM-dd'%20'HH:mm:ss}");
@@ -298,8 +296,6 @@ namespace CumulusMX
 						cumulus.LastUpdateTime = endTime;
 						return false;
 					}
-
-					//
 				} while (!success);
 
 				if (!token.IsCancellationRequested)
@@ -618,104 +614,109 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing pressure data. Exception: " + ex.Message);
 				}
 			}
-			// Rainfall Data
-			if (data.rainfall != null)
+			// Rainfall Data - Tipper
+			if (cumulus.Gw1000PrimaryRainSensor == 0 && data.rainfall != null)
 			{
 				try
 				{
-					if (cumulus.Gw1000PrimaryRainSensor == 0)
+					// rain rate
+					if (data.rainfall.rain_rate != null && data.rainfall.rain_rate.list != null)
 					{
-						// rain rate
-						if (data.rainfall.rain_rate != null && data.rainfall.rain_rate.list != null)
+						foreach (var item in data.rainfall.rain_rate.list)
 						{
-							foreach (var item in data.rainfall.rain_rate.list)
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
-
-								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
-									continue;
-
-								if (buffer.TryGetValue(itemDate, out var value))
-								{
-									value.RainRate = item.Value;
-								}
-								else
-								{
-									var newItem = new HistoricData()
-									{ RainRate = item.Value };
-									buffer.Add(itemDate, newItem);
-								}
+								value.RainRate = item.Value;
 							}
-						}
-
-						// yearly rain
-						if (data.rainfall.yearly != null && data.rainfall.yearly.list != null)
-						{
-							foreach (var item in data.rainfall.yearly.list)
+							else
 							{
-								var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
-
-								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
-									continue;
-
-								if (buffer.TryGetValue(itemDate, out var value))
-								{
-									value.RainYear = item.Value;
-								}
-								else
-								{
-									var newItem = new HistoricData()
-									{ RainYear = item.Value };
-									buffer.Add(itemDate, newItem);
-								}
+								var newItem = new HistoricData()
+								{ RainRate = item.Value };
+								buffer.Add(itemDate, newItem);
 							}
 						}
 					}
-					else // rainfall piezo
+
+					// yearly rain
+					if (data.rainfall.yearly != null && data.rainfall.yearly.list != null)
 					{
-						// rain rate
-						if (data.rainfall_piezo.rain_rate != null && data.rainfall_piezo.rain_rate.list != null)
+						foreach (var item in data.rainfall.yearly.list)
 						{
-							foreach (var item in data.rainfall_piezo.rain_rate.list)
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
-
-								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
-									continue;
-
-								if (buffer.TryGetValue(itemDate, out var value))
-								{
-									value.RainRate = item.Value;
-								}
-								else
-								{
-									var newItem = new HistoricData()
-									{ RainRate = item.Value };
-									buffer.Add(itemDate, newItem);
-								}
+								value.RainYear = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ RainYear = item.Value };
+								buffer.Add(itemDate, newItem);
 							}
 						}
-
-						// yearly rain
-						if (data.rainfall_piezo.yearly != null && data.rainfall_piezo.yearly.list != null)
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing rainfall data. Exception: " + ex.Message);
+				}
+			}
+			// Rainfall Data - Piezo
+			if (cumulus.Gw1000PrimaryRainSensor == 1 && data.rainfall_piezo != null)
+			{
+				try
+				{
+					// rain rate
+					if (data.rainfall_piezo.rain_rate != null && data.rainfall_piezo.rain_rate.list != null)
+					{
+						foreach (var item in data.rainfall_piezo.rain_rate.list)
 						{
-							foreach (var item in data.rainfall_piezo.yearly.list)
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+								value.RainRate = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ RainRate = item.Value };
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
 
-								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
-									continue;
+					// yearly rain
+					if (data.rainfall_piezo.yearly != null && data.rainfall_piezo.yearly.list != null)
+					{
+						foreach (var item in data.rainfall_piezo.yearly.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
 
-								if (buffer.TryGetValue(itemDate, out var value))
-								{
-									value.RainYear = item.Value;
-								}
-								else
-								{
-									var newItem = new HistoricData()
-									{ RainYear = item.Value };
-									buffer.Add(itemDate, newItem);
-								}
+							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
+							{
+								value.RainYear = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ RainYear = item.Value };
+								buffer.Add(itemDate, newItem);
 							}
 						}
 					}
@@ -1345,23 +1346,15 @@ namespace CumulusMX
 
 				station.CheckForWindrunHighLow(rec.Key);
 
-				//bw?.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
-
-				//UpdateDatabase(timestamp.ToUniversalTime(), historydata.interval, false);
-
-				cumulus.DoLogFile(rec.Key, false);
+				_ = cumulus.DoLogFile(rec.Key, false);
 				cumulus.DoCustomIntervalLogs(rec.Key);
 
 				cumulus.MySqlRealtimeFile(999, false, rec.Key);
 
 				if (cumulus.StationOptions.LogExtraSensors)
 				{
-					cumulus.DoExtraLogFile(rec.Key);
+					_ = cumulus.DoExtraLogFile(rec.Key);
 				}
-
-				//AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing,
-				//    OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-				//    OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
 
 				station.AddRecentDataWithAq(rec.Key, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, station.OutdoorTemperature, station.WindChill, station.OutdoorDewpoint, station.HeatIndex,
 					station.OutdoorHumidity, station.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, station.IndoorTemperature, station.IndoorHumidity, station.CurrentSolarMax, station.RainRate);
@@ -1392,7 +1385,7 @@ namespace CumulusMX
 				{
 					var gustVal = (double) rec.Value.WindGust;
 					var spdVal = (double) rec.Value.WindSpd;
-					var dirVal = (int) rec.Value.WindDir.Value;
+					var dirVal = rec.Value.WindDir.Value;
 
 					station.DoWind(gustVal, dirVal, spdVal, rec.Key);
 				}
@@ -1871,7 +1864,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				sb.Append($"&mac={cumulus.EcowittMacAddress}");
+				sb.Append($"&mac={cumulus.EcowittMacAddress.ToUpper()}");
 			}
 
 			// Request the data in the correct units
@@ -1998,15 +1991,14 @@ namespace CumulusMX
 					var dataTime = Utils.FromUnixTime(currObj.data.pressure == null ? currObj.data.outdoor.temperature.time : currObj.data.pressure.absolute.time);
 					cumulus.LogDebugMessage($"EcowittCloud: Last data update {dataTime:s}");
 
-					if (dataTime != LastCurrentDataTime)
+					if (dataTime.ToUniversalTime() != LastCurrentDataTime)
 					{
-						//ProcessCurrentData(currObj.data, token);
-						LastCurrentDataTime = dataTime;
+						LastCurrentDataTime = dataTime.ToUniversalTime();
 
 						// how many seconds to the next update?
 						// the data is updated once a minute, so wait for 15 seonds after the next update
 
-						var lastUpdateSecs = (int) (DateTime.Now - LastCurrentDataTime).TotalSeconds;
+						var lastUpdateSecs = (int) (DateTime.UtcNow - LastCurrentDataTime).TotalSeconds;
 						if (lastUpdateSecs > 130)
 						{
 							// hmm the data is already out of date, query again after a short delay
@@ -2059,15 +2051,15 @@ namespace CumulusMX
 
 
 			// rate limit to one call per minute
-			if (LastCameraCallTime.AddMinutes(1) > DateTime.Now)
+			if (LastCameraCallTime.AddMinutes(1) > DateTime.UtcNow)
 			{
 				cumulus.LogMessage("API.GetCurrentCameraImageUrl: Last call was less than 1 minute ago, using last image URL");
 				return defaultUrl;
 			}
 
-			LastCameraCallTime = DateTime.Now;
+			LastCameraCallTime = DateTime.UtcNow;
 
-			if (LastCameraImageTime.AddMinutes(5) > DateTime.Now)
+			if (LastCameraImageTime.AddMinutes(5) > DateTime.UtcNow)
 			{
 				cumulus.LogMessage("API.GetCurrentCameraImageUrl: Last image was less than 5 minutes ago, using last image URL");
 				return defaultUrl;
@@ -2139,8 +2131,8 @@ namespace CumulusMX
 								return defaultUrl;
 							}
 
-							LastCameraImageTime = Utils.FromUnixTime(currObj.data.camera.photo.time);
-							cumulus.LogDebugMessage($"API.GetCurrentCameraImageUrl: Last image update {LastCameraImageTime:s}");
+							LastCameraImageTime = Utils.FromUnixTime(currObj.data.camera.photo.time).ToUniversalTime();
+							cumulus.LogDebugMessage($"API.GetCurrentCameraImageUrl: Last image update {LastCameraImageTime.ToLocalTime():s}");
 							return currObj.data.camera.photo.url;
 						}
 						else if (currObj.code == -1 || currObj.code == 45001)
@@ -2179,20 +2171,23 @@ namespace CumulusMX
 		{
 			// Doc: https://doc.ecowitt.net/web/#/apiv3en?page_id=19
 
+
+#pragma warning disable S125 // Sections of code should not be commented out
 			/*
-				{
-					"code": 0,
-					"msg": "success",
-					"time": "1701950253",
-					"data": {
-						"camera": {
-							"20231206": {
-								"video": "https://osswww.ecowitt.net/videos/webvideo/v0/2023_12_06/158185/29f0493644eb87ef7a0ffea30221605c.mp4"
+							{
+								"code": 0,
+								"msg": "success",
+								"time": "1701950253",
+								"data": {
+									"camera": {
+										"20231206": {
+											"video": "https://osswww.ecowitt.net/videos/webvideo/v0/2023_12_06/158185/29f0493644eb87ef7a0ffea30221605c.mp4"
+										}
+									}
+								}
 							}
-						}
-					}
-				}
-			*/
+						*/
+#pragma warning restore S125 // Sections of code should not be commented out
 			cumulus.LogMessage("API.GetLastCameraVideoUrl: Get Ecowitt Last Camera Video");
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
@@ -2343,8 +2338,8 @@ namespace CumulusMX
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey))
 			{
-				cumulus.LogWarningMessage("API.GetCurrentCameraImageUrl: Missing Ecowitt API data in the configuration, aborting!");
-				return null;
+				cumulus.LogWarningMessage("API.GetStationList: Missing Ecowitt API data in the configuration, cannot get the station list");
+				return [];
 			}
 
 			var sb = new StringBuilder(stationUrl);
@@ -2378,14 +2373,14 @@ namespace CumulusMX
 					var currentError = responseBody.FromJson<ErrorResp>();
 					cumulus.LogWarningMessage($"API.GetStationList: Ecowitt API Station List Error: {currentError.code}, {currentError.msg}");
 					Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
-					return null;
+					return [];
 				}
 
 				if (responseBody == "{}")
 				{
 					cumulus.LogWarningMessage("API.GetStationList: Ecowitt API Station List: No data was returned.");
 					Cumulus.LogConsoleMessage(" - No current data available");
-					return null;
+					return [];
 				}
 				else if (responseBody.StartsWith("{\"code\":")) // sanity check
 				{
@@ -2400,7 +2395,7 @@ namespace CumulusMX
 							if (stnObj.data == null)
 							{
 								// There was no data returned.
-								return null;
+								return [];
 							}
 						}
 						else if (stnObj.code == -1 || stnObj.code == 45001)
@@ -2408,16 +2403,16 @@ namespace CumulusMX
 							// -1 = system busy, 45001 = rate limited
 
 							cumulus.LogMessage("API.GetStationList: System Busy or Rate Limited, waiting 5 secs before retry...");
-							return null;
+							return [];
 						}
 						else
 						{
-							return null;
+							return [];
 						}
 					}
 					else
 					{
-						return null;
+						return [];
 					}
 
 				}
@@ -2425,7 +2420,7 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage("API.GetStationList: Invalid message received");
 					cumulus.LogDataMessage("API.GetStationList: Received: " + responseBody);
-					return null;
+					return [];
 				}
 
 				if (!token.IsCancellationRequested)
@@ -2433,7 +2428,7 @@ namespace CumulusMX
 					if (stnObj.data.list == null)
 					{
 						cumulus.LogWarningMessage("API.GetStationList: Ecowitt API: No station data was returned.");
-						return null;
+						return [];
 					}
 
 					var vers = string.Empty;
@@ -2460,12 +2455,12 @@ namespace CumulusMX
 					return [vers, model];
 				}
 
-				return null;
+				return [];
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("API.GetStationList: Exception: " + ex.Message);
-				return null;
+				return [];
 			}
 		}
 
@@ -2488,10 +2483,11 @@ namespace CumulusMX
 			}
 
 			mac ??= GetRandomMacAddress();
-
 			var url = $"id={Uri.EscapeDataString(mac.ToUpper())}&model={model}&time={DateTime.Now.ToUnixTime()}&user=1&version={version}";
 			var sig = Utils.GetMd5String(url + "@ecowittnet");
 			url = firmwareUrl + url + $"&sign={sig}";
+
+			cumulus.LogDataMessage($"Ecowitt URL: {url}");
 
 			FirmwareResponse retObj;
 
@@ -2607,7 +2603,7 @@ namespace CumulusMX
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"API.GetSimpleLatestFirmwareVersion: Ecowitt API Response code: {responseCode}");
-					cumulus.LogDataMessage($"API.GetSimpleLatestFirmwareVersion: Ecowitt API Response: {responseBody}");
+					cumulus.LogDataMessage($"API.GetSimpleLatestFirmwareVersion: Ecowitt API Response:\n{responseBody}");
 				}
 
 				if (responseCode != 200)
@@ -2646,44 +2642,44 @@ namespace CumulusMX
 			return result.TrimEnd(':');
 		}
 
-		/*
-		private string ErrorCode(int code)
-		{
-			switch (code)
-			{
-				case -1: return "System is busy";
-				case 0: return "Success!";
-				case 40000: return "Illegal parameter";
-				case 40010: return "Illegal Application_Key Parameter";
-				case 40011: return "Illegal Api_Key Parameter";
-				case 40012: return "Illegal MAC/IMEI Parameter";
-				case 40013: return "Illegal start_date Parameter";
-				case 40014: return "Illegal end_date Parameter";
-				case 40015: return "Illegal cycle_type Parameter";
-				case 40016: return "Illegal call_back Parameter";
-				case 40017: return "Missing Application_Key Parameter";
-				case 40018: return "Missing Api_Key Parameter";
-				case 40019: return "Missing MAC Parameter";
-				case 40020: return "Missing start_date Parameter";
-				case 40021: return "Missing end_date Parameter";
-				case 40022: return "Illegal Voucher type";
-				case 43001: return "Needs other service support";
-				case 44001: return "Media file or data packet is null";
-				case 45001: return "Over the limit or other error";
-				case 46001: return "No existing request";
-				case 47001: return "Parse JSON/XML contents error";
-				case 48001: return "Privilege Problem";
-				default: return "Unknown error code";
-			}
-		}
-		*/
-
-		private class ErrorResp
+#pragma warning disable S3459 // Unassigned members should be removed
+#pragma warning disable S1144 // Unused private types or members should be removed
+		private sealed class ErrorResp
 		{
 			public int code { get; set; }
 			public string msg { get; set; }
 			public DateTime time { get; set; }
 			public object data { get; set; }
+
+			public string GetErrorMessage()
+			{
+				return code switch
+				{
+					-1 => "System is busy",
+					0 => "Success!",
+					40000 => "Illegal parameter",
+					40010 => "Illegal Application_Key Parameter",
+					40011 => "Illegal Api_Key Parameter",
+					40012 => "Illegal MAC/IMEI Parameter",
+					40013 => "Illegal start_date Parameter",
+					40014 => "Illegal end_date Parameter",
+					40015 => "Illegal cycle_type Parameter",
+					40016 => "Illegal call_back Parameter",
+					40017 => "Missing Application_Key Parameter",
+					40018 => "Missing Api_Key Parameter",
+					40019 => "Missing MAC Parameter",
+					40020 => "Missing start_date Parameter",
+					40021 => "Missing end_date Parameter",
+					40022 => "Illegal Voucher type",
+					43001 => "Needs other service support",
+					44001 => "Media file or data packet is null",
+					45001 => "Over the limit or other error",
+					46001 => "No existing request",
+					47001 => "Parse JSON/XML contents error",
+					48001 => "Privilege Problem",
+					_ => "Unknown error code",
+				};
+			}
 		}
 
 		internal class HistoricResp
@@ -2884,7 +2880,7 @@ namespace CumulusMX
 		}
 
 
-		private class CurrentData
+		private sealed class CurrentData
 		{
 			public int code { get; set; }
 			public string msg { get; set; }
@@ -3164,7 +3160,7 @@ namespace CumulusMX
 			public string stationtype { get; set; }
 		}
 
-		private class FirmwareResponse
+		private sealed class FirmwareResponse
 		{
 			public int code { get; set; }
 			public string msg { get; set; }
@@ -3172,7 +3168,7 @@ namespace CumulusMX
 			public FirmwareData data { get; set; }
 		}
 
-		private class FirmwareData
+		private sealed class FirmwareData
 		{
 			public int id { get; set; }
 			public string name { get; set; }
@@ -3181,5 +3177,7 @@ namespace CumulusMX
 			public string attach2file { get; set; }
 			public int queryintval { get; set; }
 		}
+#pragma warning restore S1144 // Unused private types or members should be removed
+#pragma warning restore S3459 // Unassigned members should be removed
 	}
 }

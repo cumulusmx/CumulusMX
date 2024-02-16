@@ -2,7 +2,7 @@
 
 namespace CumulusMX
 {
-	internal class AirQualityIndices
+	internal static class AirQualityIndices
 	{
 		/*
 		 * US AQI - United States Environmental Protection Agency (EPA)
@@ -18,61 +18,61 @@ namespace CumulusMX
 
 			if (pmVal >= 350.4)
 			{
-				//Clow = 350.5;
-				//Chigh = 500.4;
-				//Ilow = 401;
-				//Ihigh = 500;
+				//Clow = 350.5
+				//Chigh = 500.4
+				//Ilow = 401
+				//Ihigh = 500
 				retVal = 400 + Interpolate(350.4, 500.4, pmVal) * 100;
 			}
 			else if (pmVal >= 250.4)
 			{
-				//Clow = 250.5;
-				//Chigh = 350.4;
-				//Ilow = 301;
-				//Ihigh = 400;
+				//Clow = 250.5
+				//Chigh = 350.4
+				//Ilow = 301
+				//Ihigh = 400
 				retVal = 300 + Interpolate(250.4, 350.4, pmVal) * 100;
 			}
 			else if (pmVal >= 150.4)
 			{
-				//Clow = 150.5;
-				//Chigh = 250.4;
-				//Ilow = 201;
-				//Ihigh = 300;
+				//Clow = 150.5
+				//Chigh = 250.4
+				//Ilow = 201
+				//Ihigh = 300
 				retVal = 200 + Interpolate(150.4, 250.4, pmVal) * 100;
 			}
 			else if (pmVal >= 55.4)
 			{
-				//Clow = 55.5;
-				//Chigh = 150.4;
-				//Ilow = 151;
-				//Ihigh = 200;
+				//Clow = 55.5
+				//Chigh = 150.4
+				//Ilow = 151
+				//Ihigh = 200
 				retVal = 150 + Interpolate(55.4, 150.4, pmVal) * 50;
 			}
 			else if (pmVal >= 35.4)
 			{
-				//Clow = 35.5;
-				//Chigh = 55.4;
-				//Ilow = 101;
-				//Ihigh = 150;
+				//Clow = 35.5
+				//Chigh = 55.4
+				//Ilow = 101
+				//Ihigh = 150
 				retVal = 100 + Interpolate(35.4, 55.4, pmVal) * 50;
 			}
 			else if (pmVal >= 12)
 			{
-				//Clow = 12.1;
-				//Chigh = 35.4;
-				//Ilow = 51;
-				//Ihigh = 100;
+				//Clow = 12.1
+				//Chigh = 35.4
+				//Ilow = 51
+				//Ihigh = 100
 				retVal = 50 + Interpolate(12, 35.4, pmVal) * 50;
 			}
 			else
 			{
-				//Clow = 0;
-				//Chigh = 12;
-				//Ilow = 0;
-				//Ihigh = 50;
+				//Clow = 0
+				//Chigh = 12
+				//Ilow = 0
+				//Ihigh = 50
 				retVal = Interpolate(0, 12, pmVal) * 50;
 			}
-			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
+			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow
 			return (int) Math.Round(retVal);
 		}
 
@@ -90,61 +90,61 @@ namespace CumulusMX
 
 			if (pmVal >= 504)
 			{
-				//Clow = 505;
-				//Chigh = 604;
-				//Ilow = 401;
-				//Ihigh = 500;
+				//Clow = 505
+				//Chigh = 604
+				//Ilow = 401
+				//Ihigh = 500
 				retVal = 400 + Interpolate(504, 604, pmVal) * 100;
 			}
 			else if (pmVal >= 424)
 			{
-				//Clow = 425;
-				//Chigh = 504;
-				//Ilow = 301;
-				//Ihigh = 400;
+				//Clow = 425
+				//Chigh = 504
+				//Ilow = 301
+				//Ihigh = 400
 				retVal = 300 + Interpolate(424, 504, pmVal) * 100;
 			}
 			else if (pmVal >= 354)
 			{
-				//Clow = 355;
-				//Chigh = 424;
-				//Ilow = 201;
-				//Ihigh = 300;
+				//Clow = 355
+				//Chigh = 424
+				//Ilow = 201
+				//Ihigh = 300
 				retVal = 200 + Interpolate(354, 424, pmVal) * 100;
 			}
 			else if (pmVal >= 254)
 			{
-				//Clow = 255;
-				//Chigh = 354;
-				//Ilow = 151;
-				//Ihigh = 200;
+				//Clow = 255
+				//Chigh = 354
+				//Ilow = 151
+				//Ihigh = 200
 				retVal = 150 + Interpolate(254, 354, pmVal) * 50;
 			}
 			else if (pmVal >= 154)
 			{
-				//Clow = 155;
-				//Chigh = 254;
-				//Ilow = 101;
-				//Ihigh = 150;
+				//Clow = 155
+				//Chigh = 254
+				//Ilow = 101
+				//Ihigh = 150
 				retVal = 100 + Interpolate(154, 254, pmVal) * 50;
 			}
 			else if (pmVal >= 54)
 			{
-				//Clow = 55;
-				//Chigh = 154;
-				//Ilow = 51;
-				//Ihigh = 100;
+				//Clow = 55
+				//Chigh = 154
+				//Ilow = 51
+				//Ihigh = 100
 				retVal = 50 + Interpolate(54, 154, pmVal) * 50;
 			}
 			else
 			{
-				//Clow = 0;
-				//Chigh = 54;
-				//Ilow = 0;
-				//Ihigh = 50;
+				//Clow = 0
+				//Chigh = 54
+				//Ilow = 0
+				//Ihigh = 50
 				retVal = Interpolate(0, 54, pmVal) * 50;
 			}
-			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow;
+			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow
 			return (int) Math.Round(retVal);
 		}
 

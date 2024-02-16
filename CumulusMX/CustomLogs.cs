@@ -200,21 +200,21 @@ namespace CumulusMX
 		}
 
 
-		private class CustomLogsSettings
+		private sealed class CustomLogsSettings
 		{
 			public bool accessible { get; set; }
 			public List<CustomLogsDailySettings> daily { get; set; }
 			public List<CustomLogsIntervalSettings> interval { get; set; }
 		}
 
-		private class CustomLogsDailySettings
+		private sealed class CustomLogsDailySettings
 		{
 			public bool enabled { get; set; }
 			public string filename { get; set; }
 			public string content { get; set; }
 		}
 
-		private class CustomLogsIntervalSettings
+		private sealed class CustomLogsIntervalSettings
 		{
 			public bool enabled { get; set; }
 			public string filename { get; set; }

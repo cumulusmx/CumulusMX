@@ -32,9 +32,9 @@
 	}
 	public class Settings
 	{
-		public double Offset = 0;
-		public double Mult = 1;
-		public double Mult2 = 0;
+		public double Offset { get; set; } = 0;
+		public double Mult { get; set; } = 1;
+		public double Mult2 { get; set; } = 0;
 
 		public double Calibrate(double value)
 		{
@@ -44,24 +44,24 @@
 
 	public class Limits
 	{
-		public double TempHigh = 60;        // Celsius
-		public double TempLow = -60;        // Celsius
-		public double DewHigh = 40;         // Celsius
-		public double PressHigh = 1090;     // hPa
-		public double PressLow = 870;       // hPa
-		public double WindHigh = 90;        // m/s
+		public double TempHigh { get; set; } = 60;        // Celsius
+		public double TempLow { get; set; } = -60;        // Celsius
+		public double DewHigh { get; set; } = 40;         // Celsius
+		public double PressHigh { get; set; } = 1090;     // hPa
+		public double PressLow { get; set; } = 870;       // hPa
+		public double WindHigh { get; set; } = 90;        // m/s
 	}
 
 	public class Spikes
 	{
-		public double MaxHourlyRain = 999;
-		public double MaxRainRate = 999;
-		public double WindDiff = 999;
-		public double GustDiff = 999;
-		public double HumidityDiff = 999;
-		public double PressDiff = 999;
-		public double TempDiff = 999;
-		public double InTempDiff = 999;
-		public double InHumDiff = 999;
+		public double MaxHourlyRain { get; set; } = 999;
+		public double MaxRainRate { get; set; } = 999;
+		public double WindDiff { get; set; } = 999;
+		public double GustDiff { get; set; } = 999;
+		public double HumidityDiff { get; set; } = 999;
+		public double PressDiff { get; set; } = 999;
+		public double TempDiff { get; set; } = 999;
+		public double InTempDiff { get; set; } = 999;
+		public double InHumDiff { get; set; }= 999;
 	}
 }

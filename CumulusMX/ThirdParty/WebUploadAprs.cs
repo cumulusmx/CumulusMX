@@ -34,8 +34,6 @@ namespace CumulusMX.ThirdParty
 					StringBuilder message = new StringBuilder(256);
 					message.Append($"user {cumulus.APRS.ID} pass {cumulus.APRS.PW} vers Cumulus {cumulus.Version}");
 
-					//Byte[] data = Encoding.ASCII.GetBytes(message.ToString());
-
 					cumulus.LogDebugMessage("Sending user and pass to CWOP");
 
 					await writer.WriteLineAsync(message.ToString());
@@ -93,8 +91,6 @@ namespace CumulusMX.ThirdParty
 					message.Append($"eCumulus{cumulus.APRSstationtype[cumulus.StationType]}");
 
 					cumulus.LogDebugMessage($"Sending: {message}");
-
-					//data = Encoding.ASCII.GetBytes(message.ToString());
 
 					await writer.WriteLineAsync(message.ToString());
 					writer.Flush();

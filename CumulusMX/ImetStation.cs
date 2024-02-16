@@ -11,7 +11,6 @@ namespace CumulusMX
 	internal class ImetStation : WeatherStation
 	{
 		private const string sLineBreak = "\r\n";
-		private bool midnightraindone;
 		private double prevraintotal = -1;
 		private int previousminute = 60;
 		private string currentWritePointer = "";
@@ -50,7 +49,6 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("Error opening COM port: " + ex.Message);
-				//MessageBox.Show(ex.Message);
 			}
 
 			if (comport.IsOpen)
@@ -94,94 +92,13 @@ namespace CumulusMX
 			cumulus.LogDataMessage("WRTM Response: " + data);
 		}
 
-		/*
-		private string ReadStationClock()
-		{
-			SendCommand("RDTM");
-			string response = GetResponse("rdtm");
-			string data = ExtractText(response, "rdtm");
-			return data;
-		}
-		*/
-
 		private void ProgressLogs()
 		{
-			// MainForm.LogMessage('Advance log pointer');
 			// advance the pointer
 			SendCommand("PRLG,1");
 			// read the response
 			GetResponse("prlg");
 		}
-
-		/*
-		private void RegressLogs(DateTime ts) // Move the log pointer back until the archive record timestamp is earlier
-			// than the supplied ts, or the logs cannot be regressed any further
-		{
-			const int TIMEPOS = 4;
-			const int DATEPOS = 5;
-			bool done = false;
-			int numlogs = GetNumberOfLogs();
-			int previousnumlogs;
-			bool dataOK;
-			DateTime entryTS;
-
-			cumulus.LogMessage("Regressing logs to before " + ts);
-			// regress the pointer
-			SendCommand("RGLG,1");
-			// read the response
-			//string response = GetResponse("rglg");
-			GetResponse("rglg");
-			do
-			{
-				List<string> sl = GetArchiveRecord();
-				try
-				{
-					int hour = Convert.ToInt32(sl[TIMEPOS].Substring(0, 2));
-					int minute = Convert.ToInt32(sl[TIMEPOS].Substring(3, 2));
-					int sec = Convert.ToInt32(sl[TIMEPOS].Substring(6, 2));
-					int day = Convert.ToInt32(sl[DATEPOS].Substring(0, 2));
-					int month = Convert.ToInt32(sl[DATEPOS].Substring(3, 2));
-					int year = Convert.ToInt32(sl[DATEPOS].Substring(6, 2));
-					cumulus.LogMessage("Logger entry : Y = " + year + ", M = " + month + ", D = " + day + ", h = " + hour + ", m = " + minute + ", s = " + sec);
-
-					entryTS = new DateTime(year, month, day, hour, minute, sec, 0);
-					dataOK = true;
-				}
-				catch
-				{
-					cumulus.LogMessage("Error in timestamp, unable to process logger data");
-					dataOK = false;
-					done = true;
-					entryTS = DateTime.MinValue;
-				}
-
-				if (dataOK)
-				{
-					if (entryTS < ts)
-					{
-						done = true;
-						cumulus.LogMessage("Regressed far enough");
-					}
-					else
-					{
-						// regress the pointer
-						SendCommand("RGLG,1");
-						// read the response
-						//response = GetResponse("rglg");
-						GetResponse("rglg");
-						previousnumlogs = numlogs;
-						numlogs = GetNumberOfLogs();
-						cumulus.LogMessage("Number of logs = " + numlogs);
-						if (numlogs == previousnumlogs)
-						{
-							done = true;
-							cumulus.LogMessage("Cannot regress any further");
-						}
-					}
-				}
-			} while (!done);
-		}
-		*/
 
 		private void UpdateReadPointer()
 		{
@@ -220,6 +137,7 @@ namespace CumulusMX
 				}
 				catch
 				{
+					// do nothing
 				}
 			}
 			else
@@ -274,10 +192,7 @@ namespace CumulusMX
 					attempts++;
 					cumulus.LogDataMessage("Reading response from station, attempt " + attempts);
 					response = comport.ReadTo(sLineBreak);
-					byte[] ba = Encoding.Default.GetBytes(response);
-
 					cumulus.LogDataMessage($"Response from station: '{response}'");
-					//cumulus.LogDebugMessage("Hex: '" + BitConverter.ToString(ba) + "'");
 				} while (!(response.Contains(expected)) && attempts < 6);
 
 				// If we got the response and didn't time out, then wait for the command prompt before
@@ -316,6 +231,7 @@ namespace CumulusMX
 				}
 				catch
 				{
+					// do nothing
 				}
 			}
 
@@ -409,7 +325,6 @@ namespace CumulusMX
 			// assumes that the terminating CRLF is not present, as
 			// readto() should have stripped this off
 			int pos1 = input.IndexOf(after);
-			//int pos2 = input.Length - 2;
 			return pos1 >= 0 ? input[pos1..] : "";
 		}
 
@@ -417,7 +332,6 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("Start reading history data");
 			Cumulus.LogConsoleMessage("Start reading history data...");
-			//lastArchiveTimeUTC = getLastArchiveTime();
 
 			// use the wind speeds averages from the logger data
 			cumulus.StationOptions.CalcuateAverageWindSpeed = false;
@@ -426,11 +340,7 @@ namespace CumulusMX
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
 			bw = new BackgroundWorker();
-			//histprog = new historyProgressWindow();
-			//histprog.Owner = mainWindow;
-			//histprog.Show();
 			bw.DoWork += new DoWorkEventHandler(bw_DoWork);
-			//bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
 			bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
 			bw.WorkerReportsProgress = true;
 			bw.RunWorkerAsync();
@@ -444,11 +354,6 @@ namespace CumulusMX
 
 		private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
-			//histprog.histprogTB.Text = "Processed 100%";
-			//histprog.histprogPB.Value = 100;
-			//histprog.Close();
-			//mainWindow.FillLastHourGraphData();
-
 			// normal running
 			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
 			cumulus.StationOptions.UseSpeedForAvgCalc = false;
@@ -471,24 +376,24 @@ namespace CumulusMX
 		public override void getAndProcessHistoryData()
 		{
 			// Positions of fields in logger data
-			//const int IDPOS = 1;
-			//const int TYPEPOS = 2;
+			//const int IDPOS = 1
+			//const int TYPEPOS = 2
 			const int INTERVALPOS = 3;
 			const int TIMEPOS = 4;
 			const int DATEPOS = 5;
-			//const int TEMP1MINPOS = 6;
-			//const int TEMP1MAXPOS = 7;
+			//const int TEMP1MINPOS = 6
+			//const int TEMP1MAXPOS = 7
 			const int TEMP1AVGPOS = 8;
-			//const int TEMP2MINPOS = 9;
-			//const int TEMP2MAXPOS = 10;
+			//const int TEMP2MINPOS = 9
+			//const int TEMP2MAXPOS = 10
 			const int TEMP2AVGPOS = 11;
-			//const int RELHUMMINPOS = 12;
-			//const int RELHUMMAXPOS = 13;
+			//const int RELHUMMINPOS = 12
+			//const int RELHUMMAXPOS = 13
 			const int RELHUMAVGPOS = 14;
-			//const int PRESSMINPOS = 15;
-			//const int PRESSMAXPOS = 16;
+			//const int PRESSMINPOS = 15
+			//const int PRESSMAXPOS = 16
 			const int PRESSAVGPOS = 17;
-			//const int WINDMINPOS = 18;
+			//const int WINDMINPOS = 18
 			const int WINDMAXPOS = 19;
 			const int WINDAVGPOS = 20;
 			const int DIRPOS = 21;
@@ -517,12 +422,6 @@ namespace CumulusMX
 				// First time Cumulus has run, "delete" all the log entries as there may be
 				// vast numbers and they will take hours to download only to be discarded
 
-				//cumulus.LogMessage("First run: PRLG,32760");
-				// regress the pointer
-				//comport.Write("PRLG,32760" + sLineBreak);
-				// read the response
-				//response = GetResponse("prlg");
-
 				// Do it by updating the read pointer to match the write pointer
 				// The recorded value for currentWritePointer will not have been set yet
 				UpdateReadPointer();
@@ -530,8 +429,6 @@ namespace CumulusMX
 
 			cumulus.LogMessage("Downloading history from " + startfrom);
 			Cumulus.LogConsoleMessage("Reading archive data from " + startfrom + " - please wait");
-			//RegressLogs(cumulus.LastUpdateTime);
-			//bool valid = false;
 			int numrecs = GetNumberOfLogs();
 			cumulus.LogMessage("Logs available = " + numrecs);
 			if (numrecs > 0)
@@ -550,7 +447,7 @@ namespace CumulusMX
 					year = Convert.ToInt32(sl[DATEPOS].Substring(6, 4));
 					cumulus.LogMessage("Logger entry : Y = " + year + ", M = " + month + ", D = " + day + ", h = " + hour + ", m = " + minute + ", s = " + sec);
 
-					timestamp = new DateTime(year, month, day, hour, minute, sec, 0);
+					timestamp = new DateTime(year, month, day, hour, minute, sec, 0, DateTimeKind.Local);
 					dataOK = true;
 				}
 				catch
@@ -564,7 +461,6 @@ namespace CumulusMX
 					cumulus.LogMessage("Earliest timestamp " + timestamp);
 					if (timestamp < cumulus.LastUpdateTime)
 					{
-						// startindex = 1;
 						cumulus.LogMessage("-----Earliest timestamp is earlier than required");
 						cumulus.LogMessage("-----Find first entry after " + cumulus.LastUpdateTime);
 						startindex++; //  to allow for first log already read
@@ -583,7 +479,7 @@ namespace CumulusMX
 								year = Convert.ToInt32(sl[DATEPOS].Substring(6, 4));
 								cumulus.LogMessage("Logger entry zero: Y = " + year + ", M = " + month + ", D = " + day + ", h = " + hour + ", m = " + minute + ", s = " + sec);
 
-								timestamp = new DateTime(year, month, day, hour, minute, sec, 0);
+								timestamp = new DateTime(year, month, day, hour, minute, sec, 0, DateTimeKind.Local);
 								cumulus.LogMessage("New earliest timestamp " + timestamp);
 							}
 							catch (Exception E)
@@ -603,7 +499,6 @@ namespace CumulusMX
 					cumulus.LogMessage("-----Actual number of valid history records = " + (numrecs - startindex));
 					// Compare earliest timestamp with the update time of the today file
 					// and see if (they are on the same day
-					//int hourInc = cumulus.GetHourInc();
 
 					// set up controls for end of day roll-over
 					int rollHour;
@@ -629,7 +524,7 @@ namespace CumulusMX
 
 					var rolloverdone = luhour == rollHour;
 
-					midnightraindone = luhour == 0;
+					var midnightraindone = luhour == 0;
 
 					for (int i = startindex; i < numrecs; i++)
 					{
@@ -645,7 +540,7 @@ namespace CumulusMX
 							day = Convert.ToInt32(sl[DATEPOS][..2]);
 							month = Convert.ToInt32(sl[DATEPOS].Substring(3, 2));
 							year = Convert.ToInt32(sl[DATEPOS].Substring(6, 4));
-							timestamp = new DateTime(year, month, day, hour, minute, sec);
+							timestamp = new DateTime(year, month, day, hour, minute, sec, DateTimeKind.Local);
 							cumulus.LogMessage("Processing logger data entry " + i + " for " + timestamp);
 
 							int interval = (int) (Convert.ToDouble(sl[INTERVALPOS], provider) / 60);
@@ -779,7 +674,7 @@ namespace CumulusMX
 								DoSunHours(Convert.ToDouble(sl[SUNPOS], provider));
 							}
 
-							cumulus.DoLogFile(timestamp, false);
+							_ = cumulus.DoLogFile(timestamp, false);
 							cumulus.MySqlRealtimeFile(999, false, timestamp);
 							cumulus.DoCustomIntervalLogs(timestamp);
 
@@ -856,6 +751,7 @@ namespace CumulusMX
 			// Catch the ThreadAbortException
 			catch (ThreadAbortException)
 			{
+				// do nothing
 			}
 			finally
 			{
@@ -873,7 +769,7 @@ namespace CumulusMX
 			const int DIRPOS = 6;
 			const int SUNPOS = 7;
 			const int RAINPOS = 8;
-			//const int CHECKSUMPOS = 9;
+			//const int CHECKSUMPOS = 9
 
 			DateTime now = DateTime.Now;
 

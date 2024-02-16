@@ -19,37 +19,37 @@ using Swan;
 
 namespace CumulusMX
 {
-	internal partial class Utils
+	internal static partial class Utils
 	{
 		public static DateTime FromUnixTime(long unixTime)
 		{
 			// Cconvert Unix TS seconds to local time
-			var utcTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixTime);
+			var utcTime = DateTime.UnixEpoch.AddSeconds(unixTime);
 			return utcTime.ToLocalTime();
 		}
 
 		public static long ToUnixTime(DateTime dateTime)
 		{
-			return (long) dateTime.ToUnixEpochDate();
+			return dateTime.ToUnixEpochDate();
 		}
 
 		public static long ToJsTime(DateTime dateTime)
 		{
-			return (long) dateTime.ToUnixEpochDate() * 1000;
+			return dateTime.ToUnixEpochDate() * 1000;
 		}
 
 		// SPECIAL Unix TS for graphs. It looks like a Unix TS, but is the local time as if it were UTC.
 		// Used for the graph data, as HighCharts is going to display UTC date/times to be consistent across TZ
 		public static long ToPseudoUnixTime(DateTime timestamp)
 		{
-			return (long) DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToUnixEpochDate();
+			return DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToUnixEpochDate();
 		}
 
 		// SPECIAL JS TS for graphs. It looks like a Unix TS, but is the local time as if it were UTC.
 		// Used for the graph data, as HighCharts is going to display UTC date/times to be consistent across TZ
 		public static long ToPseudoJSTime(DateTime timestamp)
 		{
-			return (long) DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToUnixEpochDate() * 1000;
+			return DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToUnixEpochDate() * 1000;
 		}
 
 
@@ -108,7 +108,7 @@ namespace CumulusMX
 
 			byte tempForParsing;
 
-			return splitValues.All(r => byte.TryParse(r, out tempForParsing));
+			return Array.TrueForAll(splitValues, r => byte.TryParse(r, out tempForParsing));
 		}
 
 		public static DateTime ddmmyyStrToDate(string d)
@@ -129,20 +129,6 @@ namespace CumulusMX
 			return DateTime.MinValue;
 		}
 
-		public static string GetLogFileSeparator(string line, string defSep)
-		{
-			// we know the dayfile and monthly log files start with
-			// dd/MM/yy,NN,...
-			// dd/MM/yy,hh:mm,N.N,....
-			// so we just need to find the first separator after the date before a number
-
-			var reg = LogFileSeparators().Match(line);
-			if (reg.Success)
-				return reg.Groups[1].Value;
-			else
-				return defSep;
-		}
-
 		public static IPAddress GetIpWithDefaultGateway()
 		{
 			try
@@ -159,7 +145,11 @@ namespace CumulusMX
 					.Select(g => g.Address)
 					.First();
 			}
-			catch { }
+			catch
+			{
+				// do nothing
+			}
+
 			try
 			{
 				// next just return the first IPv4 address found
@@ -172,7 +162,10 @@ namespace CumulusMX
 					}
 				}
 			}
-			catch { }
+			catch
+			{
+				// do nothing
+			}
 
 			// finally, give up and just return a 0.0.0.0 IP!
 			return IPAddress.Any;
@@ -184,7 +177,6 @@ namespace CumulusMX
 
 			sb.AppendLine("Exception Type: " + ex.GetType().FullName);
 			sb.AppendLine("Message: " + ex.Message);
-			//sb.AppendLine("Source: " + ex.Source);
 			if (ex.Data.Keys.Count > 0)
 			{
 				foreach (var key in ex.Data.Keys)
@@ -192,29 +184,6 @@ namespace CumulusMX
 					sb.AppendLine(key.ToString() + ": " + (ex.Data[key] is null ? "null" : ex.Data[key].ToString()));
 				}
 			}
-
-			/*
-			if (String.IsNullOrEmpty(ex.StackTrace))
-			{
-				sb.AppendLine("Environment Stack Trace: " + ex.StackTrace);
-			}
-			else
-			{
-				sb.AppendLine("Stack Trace: " + ex.StackTrace);
-			}
-			*/
-
-			/*
-			var st = new StackTrace(ex, true);
-			foreach (var frame in st.GetFrames())
-			{
-				if (frame.GetFileLineNumber() < 1)
-					continue;
-
-				sb.Append("File: " + frame.GetFileName());
-				sb.AppendLine("  Linenumber: " + frame.GetFileLineNumber());
-			}
-			*/
 
 			if (ex.InnerException != null)
 			{
@@ -248,18 +217,6 @@ namespace CumulusMX
 				sb.AppendLine("Stack Trace: " + ex.StackTrace);
 			}
 
-			/*
-			var st = new StackTrace(ex, true);
-			foreach (var frame in st.GetFrames())
-			{
-				if (frame.GetFileLineNumber() < 1)
-					continue;
-
-				sb.Append("File: " + frame.GetFileName());
-				sb.AppendLine("  Linenumber: " + frame.GetFileLineNumber());
-			}
-			*/
-
 			if (ex.InnerException != null)
 			{
 				sb.AppendLine("Inner Exception... ");
@@ -276,7 +233,6 @@ namespace CumulusMX
 			process.StartInfo.FileName = task;
 			process.StartInfo.Arguments = parameters;
 			process.StartInfo.UseShellExecute = false;
-			//process.StartInfo.RedirectStandardOutput = true;
 			process.StartInfo.RedirectStandardError = redirectError;
 			process.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
 			process.StartInfo.CreateNoWindow = true;
@@ -366,51 +322,5 @@ namespace CumulusMX
 				return false;
 			}
 		}
-
-		[GeneratedRegex(@"[^0-9]+")]
-		private static partial Regex DateStringSeparators();
-		[GeneratedRegex(@"\d{2}[^\d]+\d{2}[^\d]+\d{2}([^\d])")]
-		private static partial Regex LogFileSeparators();
-
-		/*
-		public static class ParallelAsync
-		{
-			public static async Task ForeachAsync<T>(IEnumerable<T> source, int maxParallelCount, Func<T, Task> action)
-			{
-				using (SemaphoreSlim completeSemphoreSlim = new SemaphoreSlim(1))
-				using (SemaphoreSlim taskCountLimitSemaphoreSlim = new SemaphoreSlim(maxParallelCount))
-				{
-					await completeSemphoreSlim.WaitAsync();
-					int runningtaskCount = source.Count();
-
-					foreach (var item in source)
-					{
-						await taskCountLimitSemaphoreSlim.WaitAsync();
-
-						_ = Task.Run(async () =>
-						{
-							try
-							{
-								await action(item).ContinueWith(task =>
-								{
-									Interlocked.Decrement(ref runningtaskCount);
-									if (runningtaskCount == 0)
-									{
-										completeSemphoreSlim.Release();
-									}
-								});
-							}
-							finally
-							{
-								taskCountLimitSemaphoreSlim.Release();
-							}
-						});
-					}
-
-					await completeSemphoreSlim.WaitAsync();
-				}
-			}
-		}
-		*/
 	}
 }

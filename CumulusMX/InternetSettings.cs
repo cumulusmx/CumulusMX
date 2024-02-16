@@ -58,14 +58,13 @@ namespace CumulusMX
 					cumulus.FtpOptions.Enabled = settings.website.enabled;
 					if (cumulus.FtpOptions.Enabled)
 					{
-						if (cumulus.FtpOptions.FtpMode != Cumulus.FtpProtocols.PHP && (Cumulus.FtpProtocols) settings.website.sslftp == Cumulus.FtpProtocols.PHP)
+						if (cumulus.FtpOptions.FtpMode != Cumulus.FtpProtocols.PHP &&
+							(Cumulus.FtpProtocols) settings.website.sslftp == Cumulus.FtpProtocols.PHP &&
+							cumulus.phpUploadHttpClient == null)
 						{
 							// switching to PHP, make sure the HTTPclients are initialised
-							if (cumulus.phpUploadHttpClient == null)
-							{
-								cumulus.SetupPhpUploadClients();
-								Task.Run(() => cumulus.TestPhpUploadCompression());
-							}
+							cumulus.SetupPhpUploadClients();
+							Task.Run(() => cumulus.TestPhpUploadCompression());
 						}
 
 						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols) settings.website.sslftp;
@@ -312,7 +311,6 @@ namespace CumulusMX
 				cumulus.WriteIniFile();
 
 				cumulus.SetUpHttpProxy();
-				//cumulus.SetFtpLogging(cumulus.FTPlogging);
 
 				// Setup MQTT
 				if (cumulus.MQTT.EnableDataUpdate || cumulus.MQTT.EnableInterval)
@@ -487,7 +485,7 @@ namespace CumulusMX
 				copydest = cumulus.MoonImage.CopyDest
 			};
 
-			var httpproxy = new JsonInternetSettingsHTTPproxySettings()
+			var httpproxy = new JsonInternetSettingsHttpProxySettings()
 			{
 				password = cumulus.HTTPProxyPassword,
 				port = cumulus.HTTPProxyPort,
@@ -561,7 +559,8 @@ namespace CumulusMX
 				string binary = cumulus.ExtraFiles[i].binary ? "true" : "false";
 				string endofday = cumulus.ExtraFiles[i].endofday ? "true" : "false";
 				// binary and incremental are mutually exclusive
-				string inclogfile = cumulus.ExtraFiles[i].incrementalLogfile ? (cumulus.ExtraFiles[i].binary ? "false" : "true") : "false";
+				var bin = cumulus.ExtraFiles[i].binary ? "false" : "true";
+				string inclogfile = cumulus.ExtraFiles[i].incrementalLogfile ? bin : "false";
 				json.Append('{');
 				json.Append($"\"id\":{(i + 1)},\"values\":[\"{enable}\",\"{local}\",\"{remote}\",\"{process}\",\"{realtime}\",\"{ftp}\",\"{utf8}\",\"{binary}\",\"{endofday}\",\"{inclogfile}\"]");
 				json.Append('}');
@@ -773,7 +772,6 @@ namespace CumulusMX
 	{
 		public bool enabled { get; set; }
 		public bool enablerealtimeftp { get; set; }
-		//public bool enablecopy { get; set; }
 		public int realtimeinterval { get; set; }
 		public JsonInternetSettingsFileSettings[] files { get; set; }
 	}
@@ -801,10 +799,10 @@ namespace CumulusMX
 
 	public class JsonInternetSettingsProxySettings
 	{
-		public JsonInternetSettingsHTTPproxySettings httpproxy { get; set; }
+		public JsonInternetSettingsHttpProxySettings httpproxy { get; set; }
 	}
 
-	public class JsonInternetSettingsHTTPproxySettings
+	public class JsonInternetSettingsHttpProxySettings
 	{
 		public string proxy { get; set; }
 		public int port { get; set; }

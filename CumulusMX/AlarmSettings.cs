@@ -542,7 +542,7 @@ namespace CumulusMX
 						SoundEnabled = false,
 						Sound = "",
 						Notify = false
-					}); ;
+					});
 				}
 			}
 
@@ -562,10 +562,6 @@ namespace CumulusMX
 
 				// Start at char 5 to skip the "json:" prefix
 				json = WebUtility.UrlDecode(data);
-
-				// de-serialize it to the settings structure
-				//var settings = JsonConvert.DeserializeObject<JsonAlarmSettingsData>(json);
-				//var settings = JsonSerializer.DeserializeFromString<JsonAlarmSettingsData>(json);
 
 				result = json.FromJson<JsonAlarmSettings>();
 				settings = result.data;

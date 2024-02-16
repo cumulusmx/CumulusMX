@@ -431,7 +431,9 @@ namespace CumulusMX
 						mySqlConn.Close();
 					}
 					catch
-					{ }
+					{
+						// do nothing
+					}
 				}
 			}
 			return res;
@@ -478,7 +480,7 @@ namespace CumulusMX
 					update.Length--;
 
 					using MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn);
-					int aff = cmd.ExecuteNonQuery();
+					_ = cmd.ExecuteNonQuery();
 					res = $"Added {cnt} columns to {table.Name} table";
 					cumulus.LogMessage($"MySQL Update Table: " + res);
 				}
@@ -528,7 +530,7 @@ namespace CumulusMX
 			return "{\"result\":\"" + UpdateMySQLTable(cumulus.RealtimeTable) + "\"}";
 		}
 
-		private class JsonSettings
+		private sealed class JsonSettings
 		{
 			public bool accessible { get; set; }
 			public JsonSettingsServer server { get; set; }
@@ -543,7 +545,7 @@ namespace CumulusMX
 			public JsonSettingsCustomRolloverStart customstart { get; set; }
 		}
 
-		private class JsonSettingsServer
+		private sealed class JsonSettingsServer
 		{
 			public string host { get; set; }
 			public uint port { get; set; }
@@ -552,19 +554,19 @@ namespace CumulusMX
 			public string database { get; set; }
 		}
 
-		private class JsonSettingsOptions
+		private sealed class JsonSettingsOptions
 		{
 			public bool updateonedit { get; set; }
 			public bool bufferonerror { get; set; }
 		}
 
-		private class JsonSettingsMonthly
+		private sealed class JsonSettingsMonthly
 		{
 			public bool enabled { get; set; }
 			public string table { get; set; }
 		}
 
-		private class JsonSettingsRealtime
+		private sealed class JsonSettingsRealtime
 		{
 			public bool enabled { get; set; }
 			public string table { get; set; }
@@ -573,44 +575,44 @@ namespace CumulusMX
 			public bool limit1min { get; set; }
 		}
 
-		private class JsonSettingsDayfile
+		private sealed class JsonSettingsDayfile
 		{
 			public bool enabled { get; set; }
 			public string table { get; set; }
 		}
 
-		private class JsonSettingsCustomSeconds
+		private sealed class JsonSettingsCustomSeconds
 		{
 			public bool enabled { get; set; }
 			public string[] command { get; set; }
 			public int interval { get; set; }
 		}
 
-		private class JsonSettingsCustomMinutes
+		private sealed class JsonSettingsCustomMinutes
 		{
 			public bool enabled { get; set; }
 			public JsonCustomMinutes[] entries { get; set; }
 		}
 
-		private class JsonCustomMinutes
+		private sealed class JsonCustomMinutes
 		{
 			public string command { get; set; }
 			public int intervalidx { get; set; }
 		}
 
-		private class JsonSettingsCustomRolloverStart
+		private sealed class JsonSettingsCustomRolloverStart
 		{
 			public bool enabled { get; set; }
 			public string[] command { get; set; }
 		}
 
-		private class JsonSettingsCustomTimed
+		private sealed class JsonSettingsCustomTimed
 		{
 			public bool enabled { get; set; }
 			public JsonCustomTimed[] entries { get; set; }
 		}
 
-		private class JsonCustomTimed
+		private sealed class JsonCustomTimed
 		{
 			public string command { get; set; }
 			public int interval { get; set; }

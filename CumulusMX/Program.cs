@@ -11,19 +11,19 @@ using System.Threading.Tasks;
 
 namespace CumulusMX
 {
-	internal class Program
+	internal static class Program
 	{
-		public static Cumulus cumulus;
-		public static bool exitSystem = false;
-		public static bool service = false;
-		public static TextWriterTraceListener svcTextListener;
+		public static Cumulus cumulus { get; set; }
+		public static bool exitSystem { get; set; } = false;
+		public static bool service { get; set; } = false;
+		public static TextWriterTraceListener svcTextListener { get; set; }
 		public const string AppGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
-		public static DateTime StartTime;
-		public static byte[] InstanceId;
-		public static bool RunningOnWindows;
+		public static DateTime StartTime { get; set; }
+		public static byte[] InstanceId { get; set; }
+		public static int Httpport { get; set; } = 8998;
 
-		public static int httpport = 8998;
-		public static bool debug = false;
+		private static bool RunningOnWindows;
+		public static bool debug { get; set; } = false;
 
 		private static async Task Main(string[] args)
 		{
@@ -88,8 +88,6 @@ namespace CumulusMX
 				{
 					Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
 					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
-					//Console.WriteLine("Cumulus has not finished initialising, a clean exit is not possible, forcing exit");
-					//svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has not finished initialising, a clean exit is not possible, forcing exit");
 				}
 			};
 
@@ -114,10 +112,10 @@ namespace CumulusMX
 				exitSystem = true;
 			};
 
-			debug = true;
+			AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
+
 #if DEBUG
 			debug = true;
-			//Debugger.Launch();
 #endif
 
 			// Create a unique instance ID if it does not exist
@@ -148,7 +146,7 @@ namespace CumulusMX
 								break;
 							}
 						case "-port" when args.Length >= i:
-							httpport = Convert.ToInt32(args[++i]);
+							Httpport = Convert.ToInt32(args[++i]);
 							break;
 						case "-debug":
 							// Switch on debug and data logging from the start
@@ -210,7 +208,7 @@ namespace CumulusMX
 
 					}
 
-					if (SelfInstaller.InstallLinux(user, lang, httpport))
+					if (SelfInstaller.InstallLinux(user, lang, Httpport))
 					{
 						Console.ForegroundColor = ConsoleColor.Green;
 						Console.WriteLine("\nCumulus MX is now installed to run as service\n");
@@ -281,7 +279,7 @@ namespace CumulusMX
 				}
 				svcTextListener.Flush();
 				// Launch normally - Linux Service runs like this too
-				RunAsAConsole(httpport, debug);
+				RunAsAConsole(Httpport, debug);
 			}
 
 			while (!exitSystem)
@@ -307,17 +305,6 @@ namespace CumulusMX
 
 		private static void RunAsAConsole(int port, bool debug)
 		{
-			//Console.WriteLine("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
-			/*
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating Windows Exit Handler");
-				svcTextListener.Flush();
-
-				_ = new ExitHandler();
-			}
-			*/
-
 			cumulus = new Cumulus();
 
 			cumulus.Initialise(port, debug, "");
@@ -329,7 +316,7 @@ namespace CumulusMX
 			}
 		}
 
-		private static async Task UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
+		private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
 		{
 			try
 			{
@@ -349,11 +336,12 @@ namespace CumulusMX
 					Console.WriteLine("Press Enter to terminate");
 					Console.ReadLine();
 				}
-				await Task.Delay(1000);
+				Thread.Sleep(1000);
 				Environment.Exit(1);
 			}
 			catch (Exception)
 			{
+				// do nothing
 			}
 		}
 

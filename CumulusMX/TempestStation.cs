@@ -42,9 +42,7 @@ namespace CumulusMX
 
 		public override void getAndProcessHistoryData()
 		{
-			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.SyncInit.Wait();
-			//cumulus.LogDebugMessage("Lock: Station has the lock");
 			try
 			{
 				var stTime = cumulus.LastUpdateTime;
@@ -67,7 +65,7 @@ namespace CumulusMX
 				}
 
 			}
-			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
+
 			Cumulus.SyncInit.Release();
 			StartLoop();
 		}
@@ -151,8 +149,7 @@ namespace CumulusMX
 					// add 1 minute to chill hours
 					ChillHours += historydata.ReportInterval / 60.0;
 
-				double rainrate = (double) (ConvertUnits.RainMMToUser((double) historydata.Precipitation) *
-											(60d / historydata.ReportInterval));
+				double rainrate = ConvertUnits.RainMMToUser((double) historydata.Precipitation) * (60d / historydata.ReportInterval);
 
 				var newRain = RainCounter + ConvertUnits.RainMMToUser((double) historydata.Precipitation);
 				cumulus.LogMessage(
@@ -199,16 +196,13 @@ namespace CumulusMX
 
 				bw?.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
-				//UpdateDatabase(timestamp.ToUniversalTime(), historydata.interval, false);
-
-				cumulus.DoLogFile(timestamp, false);
+				_ = cumulus.DoLogFile(timestamp, false);
 				cumulus.DoCustomIntervalLogs(timestamp);
 
-				if (cumulus.StationOptions.LogExtraSensors) cumulus.DoExtraLogFile(timestamp);
-
-				//AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing,
-				//    OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-				//    OutdoorHumidity, Pressure, RainToday, SolarRad, UV, Raincounter, FeelsLike, Humidex);
+				if (cumulus.StationOptions.LogExtraSensors)
+				{
+					_ = cumulus.DoExtraLogFile(timestamp);
+				}
 
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
@@ -293,8 +287,7 @@ namespace CumulusMX
 
 						DoSolarRad(wp.Observation.SolarRadiation, ts);
 						DoUV((double) wp.Observation.UV, ts);
-						double rainrate = (double) (ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation) *
-													(60d / wp.Observation.ReportInterval));
+						double rainrate = ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation) * (60d / wp.Observation.ReportInterval);
 
 						var newRain = RainCounter + ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation);
 						cumulus.LogDebugMessage($"TempestDoRain: New Precip: {wp.Observation.Precipitation}, Type: {wp.Observation.PrecipType}, Rate: {rainrate}");
@@ -357,13 +350,13 @@ namespace CumulusMX.Tempest
 		public EventClient(int port)
 		{
 			tokenSource = new CancellationTokenSource();
-			_listenTask = new Task(() => ListenForPackets(tokenSource.Token));
+			_listenTask = new Task(() => _ = ListenForPackets(tokenSource.Token));
 			// force shared port as Mono defaults to exclusive
 			ExclusiveAddressUse = false;
 			Client.Bind(new IPEndPoint(IPAddress.Any, port));
 		}
 
-		public event EventHandler<PacketReceivedArgs> PacketReceived;
+		public event EventHandler<PacketReceivedEventArgs> PacketReceived;
 
 		public void StartListening()
 		{
@@ -392,7 +385,7 @@ namespace CumulusMX.Tempest
 			}
 		}
 
-		private async void ListenForPackets(CancellationToken token)
+		private async Task ListenForPackets(CancellationToken token)
 		{
 			try
 			{
@@ -403,7 +396,7 @@ namespace CumulusMX.Tempest
 					{
 						IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
 						var data = Receive(ref endPoint);
-						PacketReceived?.Invoke(this, new PacketReceivedArgs(data));
+						PacketReceived?.Invoke(this, new PacketReceivedEventArgs(data));
 					}
 				}
 			}
@@ -424,7 +417,7 @@ namespace CumulusMX.Tempest
 		}
 	}
 
-	public class PacketReceivedArgs(byte[] packet) : EventArgs
+	public class PacketReceivedEventArgs(byte[] packet) : EventArgs
 	{
 		public byte[] Packet { get; } = packet;
 	}
@@ -474,7 +467,7 @@ namespace CumulusMX.Tempest
 			}
 		}
 
-		private static void _udpListener_PacketReceived(object sender, PacketReceivedArgs e)
+		private static void _udpListener_PacketReceived(object sender, PacketReceivedEventArgs e)
 		{
 			if (e.Packet.Length > 0)
 			{
@@ -545,20 +538,19 @@ namespace CumulusMX.Tempest
 					else if (rp != null && rp.status.status_message.Equals("SUCCESS"))
 					{
 						// no data for time period, ignore
-						//Cumulus.LogConsoleMessage($"No data for time period from {tpStart} to {end}");
 					}
 					else
 					{
 						var msg = $"Error downloading tempest history: {apiResponse}";
 						cumulus.LogErrorMessage(msg);
 						Cumulus.LogConsoleMessage(msg, ConsoleColor.Red);
-						if (rp.status.status_code == 404)
+						if (rp != null && rp.status.status_code == 404)
 						{
 							Cumulus.LogConsoleMessage("Normally indicates incorrect Device ID");
 							ts = -1;// force a stop, fatal error
 						}
 
-						if (rp.status.status_code == 401)
+						if (rp != null && rp.status.status_code == 401)
 						{
 							Cumulus.LogConsoleMessage("Normally indicates incorrect Token");
 							ts = -1;// force a stop, fatal error
@@ -618,17 +610,17 @@ namespace CumulusMX.Tempest
 			RadioActive
 		}
 
-		public DeviceStatus DeviceStatus;
+		internal DeviceStatus DeviceStatus;
 
-		public HubStatus HubStatus;
+		internal HubStatus HubStatus;
 
-		public LightningStrike LightningStrike;
+		internal LightningStrike LightningStrike;
 
-		public Observation Observation;
+		internal Observation Observation;
 
-		public PrecipEvent PrecipEvent;
+		internal PrecipEvent PrecipEvent;
 
-		public RapidWind RapidWind;
+		internal RapidWind RapidWind;
 
 		public string FullString { get; set; }
 		public string serial_number { get; set; }
@@ -696,14 +688,14 @@ namespace CumulusMX.Tempest
 		public static DateTime FromUnixTimeSeconds(long epoch)
 		{
 			// Unix timestamp is seconds past epoch
-			System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+			System.DateTime dtDateTime = DateTime.UnixEpoch;
 			dtDateTime = dtDateTime.AddSeconds(epoch).ToLocalTime();
 			return dtDateTime;
 		}
 
 		public static long ToUnixTimeSeconds(DateTime dt)
 		{
-			TimeSpan t = dt.ToUniversalTime() - new DateTime(1970, 1, 1);
+			TimeSpan t = dt.ToUniversalTime() - DateTime.UnixEpoch;
 			return (long) t.TotalSeconds;
 		}
 
@@ -747,7 +739,7 @@ namespace CumulusMX.Tempest
 
 	public class DeviceStatus
 	{
-		public WeatherPacket.MessageType MsgType = WeatherPacket.MessageType.DeviceStatus;
+		public WeatherPacket.MessageType MsgType { get; set; } = WeatherPacket.MessageType.DeviceStatus;
 
 		public DeviceStatus(WeatherPacket packet)
 		{
@@ -762,7 +754,10 @@ namespace CumulusMX.Tempest
 				if (!int.TryParse(packet.firmware_revision.ToString(), out var i)) i = -1;
 				FirmwareRevision = i;
 			}
-			catch { }
+			catch
+			{
+				// do nothing
+			}
 
 			RSSI = packet.rssi;
 			HubRSSI = packet.hub_rssi;
@@ -851,7 +846,7 @@ namespace CumulusMX.Tempest
 
 	public class Observation
 	{
-		public WeatherPacket.MessageType MsgType = WeatherPacket.MessageType.Observation;
+		public WeatherPacket.MessageType MsgType { get; set; } = WeatherPacket.MessageType.Observation;
 
 		public Observation(WeatherPacket packet)
 		{
@@ -863,11 +858,13 @@ namespace CumulusMX.Tempest
 				if (!int.TryParse(packet.firmware_revision.ToString(), out i)) i = -1;
 				FirmwareRevision = i;
 			}
-			catch { }
+			catch
+			{
+				// do nothing
+			}
 
 			if (packet.obs[0].Length >= 18)
 			{
-				//var ob = packet.obs[0];
 				LoadObservation(this, packet.obs[0]);
 			}
 		}

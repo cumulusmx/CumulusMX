@@ -82,7 +82,7 @@ namespace CumulusMX
 					cumulus.Windy.Enabled = settings.windy.enabled;
 					if (cumulus.Windy.Enabled)
 					{
-						//cumulus.WindySendSolar = settings.windy.includesolar;
+						//cumulus.WindySendSolar = settings.windy.includesolar
 						cumulus.Windy.SendUV = settings.windy.includeuv;
 						cumulus.Windy.Interval = settings.windy.interval;
 						cumulus.Windy.ApiKey = string.IsNullOrWhiteSpace(settings.windy.apikey) ? string.Empty : settings.windy.apikey.Trim();
@@ -204,12 +204,12 @@ namespace CumulusMX
 					cumulus.APRS.Enabled = settings.cwop.enabled;
 					if (cumulus.APRS.Enabled)
 					{
-						cumulus.APRS.ID = string.IsNullOrWhiteSpace(settings.cwop.id) ? string.Empty : settings.cwop.id.Trim(); ;
+						cumulus.APRS.ID = string.IsNullOrWhiteSpace(settings.cwop.id) ? string.Empty : settings.cwop.id.Trim();
 						cumulus.APRS.Interval = settings.cwop.interval;
 						cumulus.APRS.SendSolar = settings.cwop.includesolar;
-						cumulus.APRS.PW = string.IsNullOrWhiteSpace(settings.cwop.password) ? string.Empty : settings.cwop.password.Trim(); ;
+						cumulus.APRS.PW = string.IsNullOrWhiteSpace(settings.cwop.password) ? string.Empty : settings.cwop.password.Trim();
 						cumulus.APRS.Port = settings.cwop.port;
-						cumulus.APRS.Server = string.IsNullOrWhiteSpace(settings.cwop.server) ? string.Empty : settings.cwop.server.Trim(); ;
+						cumulus.APRS.Server = string.IsNullOrWhiteSpace(settings.cwop.server) ? string.Empty : settings.cwop.server.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -413,7 +413,7 @@ namespace CumulusMX
 				stationid = cumulus.PWS.ID
 			};
 
-			var wowsettings = new JsonThirdPartySettingsWOW()
+			var wowsettings = new JsonThirdPartySettingsWow()
 			{
 				catchup = cumulus.WOW.CatchUp,
 				enabled = cumulus.WOW.Enabled,
@@ -547,7 +547,7 @@ namespace CumulusMX
 		public JsonThirdPartySettingsWunderground wunderground { get; set; }
 		public JsonThirdPartySettingsWindy windy { get; set; }
 		public JsonThirdPartySettingsPWSweather pwsweather { get; set; }
-		public JsonThirdPartySettingsWOW wow { get; set; }
+		public JsonThirdPartySettingsWow wow { get; set; }
 		public JsonThirdPartySettingsCwop cwop { get; set; }
 		public JsonThirdPartySettingsAwekas awekas { get; set; }
 		public JsonThirdPartySettingsWCloud weathercloud { get; set; }
@@ -579,7 +579,6 @@ namespace CumulusMX
 	{
 		public bool enabled { get; set; }
 		public bool includeuv { get; set; }
-		//public bool includesolar { get; set; }
 		public bool catchup { get; set; }
 		public int interval { get; set; }
 		public string apikey { get; set; }
@@ -629,7 +628,7 @@ namespace CumulusMX
 		public int interval { get; set; }
 	}
 
-	public class JsonThirdPartySettingsWOW
+	public class JsonThirdPartySettingsWow
 	{
 		public bool enabled { get; set; }
 		public bool includeuv { get; set; }

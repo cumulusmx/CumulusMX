@@ -2,7 +2,7 @@
 
 namespace CumulusMX
 {
-	class SunriseSunset
+	static class SunriseSunset
 	{
 		//
 		//   This module contains a user defined spreadsheet function called
@@ -75,7 +75,7 @@ namespace CumulusMX
 
 		public static DateTime RoundToMinute(DateTime dt)
 		{
-			var dtRounded = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0);
+			var dtRounded = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0, DateTimeKind.Local);
 			if (dt.Second >= 30) dtRounded = dtRounded.AddMinutes(1);
 			return dtRounded;
 		}
@@ -127,23 +127,6 @@ namespace CumulusMX
 			}
 			return a;
 		}
-
-		/*
-		private static string hrsmin(double t)
-		{
-			//
-			//   takes a time as a decimal number of hours between 0 and 23.9999...
-			//   and returns a string with the time in hhmm format
-			//
-			double hour;
-			double min;
-
-			hour = (int)Math.Floor(t);
-			min = (int)Math.Floor((t - hour) * 60 + 0.5);
-			return (hour.ToString("00") + min.ToString("00"));
-			//return "0000";
-		}
-		*/
 
 		private static string HrsMinSec(double t)
 		{
@@ -217,7 +200,7 @@ namespace CumulusMX
 			ye = (a * xe + b) * xe + c;
 			var dis = b * b - 4.0 * a * c;
 
-			if (!(dis > 0)) return;
+			if (dis <= 0) return;
 
 			var dx = 0.5 * System.Math.Sqrt(dis) / System.Math.Abs(a);
 			z1 = xe - dx;
@@ -265,18 +248,9 @@ namespace CumulusMX
 			//
 			//   This is the function that does most of the work
 			//
-			//			double sglong;
 			double utrise = 0;
 			double utset = 0;
-			// 			int above;
-			// 			double utset;
-			// 			int above;
-			// 			double utrise;
-			// 			double utset;
 			string OutString = "";
-			// 			string AlwaysDown;
-			// 			string OutString;
-			// 			string NoEvent;
 			double[] sinho = new double[6];
 			const double rads = 0.0174532925;
 			const string alwaysUp = "****";
@@ -475,7 +449,6 @@ namespace CumulusMX
 		public static string CivilTwilightEnds(DateTime ddate, double tz, double glong, double glat)
 		{
 			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CEndCivilTwilight);
-			//
 			var eventTime = sOut switch
 			{
 				"...." => "Always Down",
@@ -489,7 +462,6 @@ namespace CumulusMX
 		public static string NauticalTwilightStarts(DateTime ddate, double tz, double glong, double glat)
 		{
 			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CBeginNautTwilight);
-			//
 			var eventTime = sOut switch
 			{
 				"...." => "Always Down",
@@ -503,7 +475,6 @@ namespace CumulusMX
 		public static string NauticalTwilightEnds(DateTime ddate, double tz, double glong, double glat)
 		{
 			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CEndNautTwilight);
-			//
 			var eventTime = sOut switch
 			{
 				"...." => "Always Down",
@@ -517,7 +488,6 @@ namespace CumulusMX
 		public static string AstroTwilightStarts(DateTime ddate, double tz, double glong, double glat)
 		{
 			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CBeginAstroTwilight);
-			//
 			var eventTime = sOut switch
 			{
 				"...." => "Always Down",
@@ -531,7 +501,6 @@ namespace CumulusMX
 		public static string AstroTwilightEnds(DateTime ddate, double tz, double glong, double glat)
 		{
 			var sOut = SunEvent(ddate.Year, ddate.Month, ddate.Day, tz, glong, glat, CEndAstroTwilight);
-			//
 			var eventTime = sOut switch
 			{
 				"...." => "Always Down",

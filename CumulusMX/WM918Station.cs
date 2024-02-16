@@ -23,7 +23,7 @@ namespace CumulusMX
 		public WM918Station(Cumulus cumulus)
 			: base(cumulus)
 		{
-			cumulus.Manufacturer = cumulus.OREGON;
+			cumulus.Manufacturer = Cumulus.OREGON;
 			// station supplies rain rate
 			calculaterainrate = false;
 
@@ -152,6 +152,7 @@ namespace CumulusMX
 			// Catch the ThreadAbortException
 			catch (ThreadAbortException)
 			{
+				// do nothing
 			}
 			finally
 			{

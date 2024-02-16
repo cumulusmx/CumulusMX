@@ -27,7 +27,7 @@ namespace CumulusMX
 
 		public WMR928Station(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = cumulus.OREGON;
+			cumulus.Manufacturer = Cumulus.OREGON;
 			// station supplies rain rate
 			calculaterainrate = false;
 

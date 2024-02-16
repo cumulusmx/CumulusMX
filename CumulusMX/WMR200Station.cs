@@ -48,7 +48,7 @@ namespace CumulusMX
 
 		public WMR200Station(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = cumulus.OREGONUSB;
+			cumulus.Manufacturer = Cumulus.OREGONUSB;
 			var devicelist = DeviceList.Local;
 			var station = devicelist.GetHidDeviceOrNull(Vendorid, Productid);
 
@@ -1583,13 +1583,13 @@ namespace CumulusMX
 			DoHumidex(timestamp);
 			DoCloudBaseHeatIndex(timestamp);
 
-			cumulus.DoLogFile(timestamp, false);
+			_ = cumulus.DoLogFile(timestamp, false);
 			cumulus.MySqlRealtimeFile(999, false, timestamp);
 			cumulus.DoCustomIntervalLogs(timestamp);
 
 			if (cumulus.StationOptions.LogExtraSensors)
 			{
-				cumulus.DoExtraLogFile(timestamp);
+				_ = cumulus.DoExtraLogFile(timestamp);
 			}
 
 			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,

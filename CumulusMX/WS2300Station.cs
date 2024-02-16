@@ -30,7 +30,7 @@ namespace CumulusMX
 
 		public WS2300Station(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = cumulus.LACROSSE;
+			cumulus.Manufacturer = Cumulus.LACROSSE;
 			calculaterainrate = true;
 
 			cumulus.LogMessage("WS2300: Attempting to open " + cumulus.ComportName);
@@ -373,14 +373,12 @@ namespace CumulusMX
 
 				bw.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
-				//UpdateDatabase(timestamp.ToUniversalTime(), historydata.interval, false);
-
-				cumulus.DoLogFile(timestamp, false);
+				_ = cumulus.DoLogFile(timestamp, false);
 				cumulus.DoCustomIntervalLogs(timestamp);
 
 				if (cumulus.StationOptions.LogExtraSensors)
 				{
-					cumulus.DoExtraLogFile(timestamp);
+					_ = cumulus.DoExtraLogFile(timestamp);
 				}
 				cumulus.MySqlRealtimeFile(999, false, timestamp);
 
@@ -1449,7 +1447,7 @@ namespace CumulusMX
 			return 1;
 		}
 
-		private class HistoryData
+		private sealed class HistoryData
 		{
 			public DateTime timestamp;
 

@@ -2,7 +2,7 @@ using System;
 
 namespace CumulusMX
 {
-	internal class MeteoLib
+	internal static class MeteoLib
 	{
 
 		/// <summary>
@@ -46,7 +46,7 @@ namespace CumulusMX
 		public static double ApparentTemperature(double tempC, double windspeedMS, int humidity)
 		{
 			double avp = (humidity / 100.0) * 6.105 * Math.Exp(17.27 * tempC / (237.7 + tempC)); // hPa
-																								 //double avp = ActualVapourPressure(tempC, humidity);
+			//double avp = ActualVapourPressure(tempC, humidity)
 			return tempC + (0.33 * avp) - (0.7 * windspeedMS) - 4.0;
 		}
 
@@ -166,7 +166,7 @@ namespace CumulusMX
 			if (humidity == 100)
 				return tempC;
 
-			return tempC * Math.Atan(0.151977 * Math.Sqrt(humidity + 8.313659)) + Math.Atan(tempC + humidity) - Math.Atan(humidity - 1.676331) + 0.00391838 * Math.Pow(humidity, 3 / 2) * Math.Atan(0.023101 * humidity) - 4.686035;
+			return tempC * Math.Atan(0.151977 * Math.Sqrt(humidity + 8.313659)) + Math.Atan(tempC + humidity) - Math.Atan(humidity - 1.676331) + 0.00391838 * Math.Pow(humidity, 3.0 / 2) * Math.Atan(0.023101 * humidity) - 4.686035;
 		}
 
 
@@ -338,9 +338,9 @@ namespace CumulusMX
 			double a = 9.80665;// gravity
 			double r = .0065; //standard atmosphere lapse rate
 			double s = 1013.25;// standard sea level pressure
-			double n = 273.15 + tempC; //288.15; // standard sea level temp;
+			double n = 273.15 + tempC; //288.15  standard sea level temp;
 
-			double l = a / (i * r);//
+			double l = a / (i * r);
 			double c = i * r / a;
 			double u = Math.Pow(1 + Math.Pow(s / pressureHpa, c) * (r * altitudeM / n), l);
 			double d = pressureHpa * u;

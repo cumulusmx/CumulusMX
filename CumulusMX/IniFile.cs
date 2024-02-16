@@ -111,14 +111,11 @@ namespace CumulusMX
 						// It's a value
 						int j = s.Length - i - 1;
 						string Key = s[..i].Trim();
-						if (Key.Length > 0)
+						if (Key.Length > 0 && !CurrentSection.ContainsKey(Key))
 						{
 							// *** Only first occurrence of a key is loaded ***
-							if (!CurrentSection.ContainsKey(Key))
-							{
-								string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : ("");
-								CurrentSection.Add(Key, Value);
-							}
+							string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : ("");
+							CurrentSection.Add(Key, Value);
 						}
 					}
 				}
@@ -189,14 +186,11 @@ namespace CumulusMX
 								// It's a value
 								int j = s.Length - i - 1;
 								string Key = s[..i].Trim();
-								if (Key.Length > 0)
+								if (Key.Length > 0 && !CurrentSection.ContainsKey(Key))
 								{
 									// *** Only first occurrence of a key is loaded ***
-									if (!CurrentSection.ContainsKey(Key))
-									{
-										string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : ("");
-										CurrentSection.Add(Key, Value);
-									}
+									string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : ("");
+									CurrentSection.Add(Key, Value);
 								}
 							}
 						}
@@ -275,72 +269,12 @@ namespace CumulusMX
 							throw;
 						}
 					}
-					catch
-					{
-						throw;
-					}
 				} while (!success && retries >= 0);
 			}
 		}
 
 		// *** Read a value from local cache ***
-		internal string GetValue(string SectionName, string Key, string DefaultValue)
-		{
-			// *** Lazy loading ***
-			if (m_Lazy)
-			{
-				m_Lazy = false;
-				Refresh();
-			}
-
-			lock (m_Lock)
-			{
-				// *** Check if the section exists ***
-				Dictionary<string, string> Section;
-				if (!m_Sections.TryGetValue(SectionName, out Section)) return DefaultValue;
-
-				// *** Check if the key exists ***
-				string Value;
-				if (!Section.TryGetValue(Key, out Value)) return DefaultValue;
-
-				// *** Check if the value is blank ***
-				if (string.IsNullOrWhiteSpace(Value)) return DefaultValue;
-
-				// *** Return the found value ***
-				return Value;
-			}
-		}
-
 		// *** Insert or modify a value in local cache ***
-		internal void SetValue(string SectionName, string Key, string Value)
-		{
-			// *** Lazy loading ***
-			if (m_Lazy)
-			{
-				m_Lazy = false;
-				Refresh();
-			}
-
-			lock (m_Lock)
-			{
-				// *** Flag local cache modification ***
-				m_CacheModified = true;
-
-				// *** Check if the section exists ***
-				Dictionary<string, string> Section;
-				if (!m_Sections.TryGetValue(SectionName, out Section))
-				{
-					// *** If it doesn't, add it ***
-					Section = [];
-					m_Sections.Add(SectionName, Section);
-				}
-
-				// *** Modify the value ***
-				Section.Remove(Key);
-				Section.Add(Key, Value);
-			}
-		}
-
 		internal bool ValueExists(string SectionName, string Key)
 		{
 			// *** Lazy loading ***
@@ -417,7 +351,7 @@ namespace CumulusMX
 		// *** Decode byte array ***
 		private static byte[] DecodeByteArray(string Value)
 		{
-			if (Value == null) return null;
+			if (Value == null) return [];
 
 			int l = Value.Length;
 			if (l < 2) return [];
@@ -447,7 +381,7 @@ namespace CumulusMX
 		// *** Decode bool array
 		private static bool[] DecodeBoolArray(string Value, int Length)
 		{
-			if (Value == null) return null;
+			if (Value == null) return [];
 
 			var arr = Value.Split(',');
 			var ret = new bool[Math.Max(arr.Length, Length)];
@@ -478,7 +412,7 @@ namespace CumulusMX
 		// *** Decode string array - very basic, no escaped quotes allowed
 		private static string[] DecodeStringArray(string Value)
 		{
-			if (Value == null) return null;
+			if (Value == null) return [];
 
 			var x = Value[1..^1];
 
@@ -496,7 +430,7 @@ namespace CumulusMX
 		// *** Decode string array - very basic, no escaped quotes allowed
 		private static int[] DecodeIntArray(string Value, int Length)
 		{
-			if (Value == null) return null;
+			if (Value == null) return [];
 
 			var arr = Value.Split(',');
 			var ret = new int[Math.Max(arr.Length, Length)];
@@ -509,6 +443,33 @@ namespace CumulusMX
 		}
 
 		// *** Getters for various types ***
+		internal string GetValue(string SectionName, string Key, string DefaultValue)
+		{
+			// *** Lazy loading ***
+			if (m_Lazy)
+			{
+				m_Lazy = false;
+				Refresh();
+			}
+
+			lock (m_Lock)
+			{
+				// *** Check if the section exists ***
+				Dictionary<string, string> Section;
+				if (!m_Sections.TryGetValue(SectionName, out Section)) return DefaultValue;
+
+				// *** Check if the key exists ***
+				string Value;
+				if (!Section.TryGetValue(Key, out Value)) return DefaultValue;
+
+				// *** Check if the value is blank ***
+				if (string.IsNullOrWhiteSpace(Value)) return DefaultValue;
+
+				// *** Return the found value ***
+				return Value;
+			}
+		}
+
 		internal bool GetValue(string SectionName, string Key, bool DefaultValue)
 		{
 			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(System.Globalization.CultureInfo.InvariantCulture));
@@ -598,11 +559,40 @@ namespace CumulusMX
 		{
 			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
 			DateTime Value;
-			if (DateTime.TryParse(StringValue, out Value)) return Value;
+			if (DateTime.TryParse(StringValue, CultureInfo.InvariantCulture, out Value)) return Value;
 			return DefaultValue;
 		}
 
 		// *** Setters for various types ***
+		internal void SetValue(string SectionName, string Key, string Value)
+		{
+			// *** Lazy loading ***
+			if (m_Lazy)
+			{
+				m_Lazy = false;
+				Refresh();
+			}
+
+			lock (m_Lock)
+			{
+				// *** Flag local cache modification ***
+				m_CacheModified = true;
+
+				// *** Check if the section exists ***
+				Dictionary<string, string> Section;
+				if (!m_Sections.TryGetValue(SectionName, out Section))
+				{
+					// *** If it doesn't, add it ***
+					Section = [];
+					m_Sections.Add(SectionName, Section);
+				}
+
+				// *** Modify the value ***
+				Section.Remove(Key);
+				Section.Add(Key, Value);
+			}
+		}
+
 		internal void SetValue(string SectionName, string Key, bool Value)
 		{
 			SetValue(SectionName, Key, (Value) ? ("1") : ("0"));

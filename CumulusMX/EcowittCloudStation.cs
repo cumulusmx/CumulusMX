@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Org.BouncyCastle.Asn1.Esf;
+
 
 namespace CumulusMX
 {
@@ -110,18 +112,26 @@ namespace CumulusMX
 			{
 				Task.Run(getAndProcessHistoryData);
 				var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-				deviceFirmware = new Version(retVal[0]);
-				deviceModel = retVal[1];
+				if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+				{
+					// EasyWeather seems to contain the WiFi version
+					deviceFirmware = new Version(retVal[0]);
+					deviceModel = retVal[1];
+				}
 			}
 			else
 			{
 				// see if we have a camera attached
 				var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-				deviceFirmware = new Version(retVal[0]);
-				deviceModel = retVal[1];
+				if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+				{
+					// EasyWeather seems to contain the WiFi version
+					deviceFirmware = new Version(retVal[0]);
+					deviceModel = retVal[1];
+				}
 			}
 
-			CheckAvailableFirmware();
+			_ =CheckAvailableFirmware();
 		}
 
 		public override void Start()
@@ -140,8 +150,6 @@ namespace CumulusMX
 			// main data task
 			liveTask = Task.Run(() =>
 			{
-				var piezoLastRead = DateTime.MinValue;
-				var dataLastRead = DateTime.MinValue;
 				var delay = 0;
 				var nextFetch = DateTime.MinValue;
 
@@ -173,13 +181,16 @@ namespace CumulusMX
 								if (hour == 13)
 								{
 									var retVal = ecowittApi.GetStationList(main || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-									deviceFirmware = new Version(retVal[0]);
-									deviceModel = retVal[1];
-
-									CheckAvailableFirmware();
+									if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+									{
+										// EasyWeather seems to contain the WiFi version
+										deviceFirmware = new Version(retVal[0]);
+										deviceModel = retVal[1];
+										GW1000FirmwareVersion = retVal[0];
+									}
+									_ = CheckAvailableFirmware();
 								}
 							}
-
 						}
 						catch (Exception ex)
 						{
@@ -206,9 +217,7 @@ namespace CumulusMX
 
 		public override void getAndProcessHistoryData()
 		{
-			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.SyncInit.Wait();
-			//cumulus.LogDebugMessage("Lock: Station has the lock");
 
 			int archiveRun = 0;
 
@@ -225,7 +234,6 @@ namespace CumulusMX
 				cumulus.LogExceptionMessage(ex, "Exception occurred reading archive data.");
 			}
 
-			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			_ = Cumulus.SyncInit.Release();
 
 			StartLoop();
@@ -290,301 +298,313 @@ namespace CumulusMX
 		{
 			bool batteryLow = false;
 			var thisStation = main ? this : station;
+			token.ThrowIfCancellationRequested();
 
-			// Only do the primary sensors if running as the main station
-			if (main)
-			{
-				// Outdoor temp/hum
-				if (cumulus.Gw1000PrimaryTHSensor == 0)
-				{
-					if (data.outdoor == null)
-					{
-						cumulus.LogErrorMessage("ProcessCurrentData: Error outdoor temp/humidity is missing");
-					}
-					else
-					{
-						try
-						{
-							var time = Utils.FromUnixTime(data.outdoor.temperature.time);
-							DoOutdoorTemp(data.outdoor.temperature.value, time);
-							DoOutdoorHumidity(data.outdoor.humidity.value, time);
-							DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
-							DoFeelsLike(time);
-							DoApparentTemp(time);
-							DoHumidex(time);
-							DoCloudBaseHeatIndex(time);
-						}
-						catch (Exception ex)
-						{
-							cumulus.LogErrorMessage($"ProcessCurrentData: Error in Outdoor temp data - {ex.Message}");
-						}
-					}
-				}
-
-				// Indoor temp/hum
-				if (data.indoor == null)
-				{
-					cumulus.LogErrorMessage("ProcessCurrentData: Error indoor temp/humidity is missing");
-				}
-				else
-				{
-					try
-					{
-						// user has mapped the indoor sensor to the outdoor sensor
-						if (cumulus.Gw1000PrimaryTHSensor == 99)
-						{
-							var time = Utils.FromUnixTime(data.outdoor.temperature.time);
-							DoOutdoorTemp(data.indoor.temperature.value, time);
-							DoOutdoorHumidity(data.indoor.humidity.value, time);
-							DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
-							DoFeelsLike(time);
-							DoApparentTemp(time);
-							DoHumidex(time);
-							DoCloudBaseHeatIndex(time);
-						}
-
-						DoIndoorTemp(data.indoor.temperature.value);
-						DoIndoorHumidity(data.indoor.humidity.value);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in indoor data - {ex.Message}");
-					}
-				}
-
-				// Pressure
-				if (data.pressure == null)
-				{
-					cumulus.LogErrorMessage("ProcessCurrentData: Error pressure data is missing");
-				}
-				else
-				{
-					try
-					{
-						DoPressure(data.pressure.relative.value, Utils.FromUnixTime(data.pressure.relative.time));
-						StationPressure = data.pressure.absolute.value;
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in pressure data - {ex.Message}");
-					}
-				}
-
-				// Wind
-				if (data.wind == null)
-				{
-					cumulus.LogErrorMessage("ProcessCurrentData: Error wind data is missing");
-				}
-				else
-				{
-					try
-					{
-						DoWind(data.wind.wind_gust.value, data.wind.wind_direction.value, data.wind.wind_speed.value, Utils.FromUnixTime(data.wind.wind_gust.time));
-						DoWindChill(-999, Utils.FromUnixTime(data.wind.wind_gust.time));
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in wind data - {ex.Message}");
-					}
-				}
-
-				// Rain
-				if (cumulus.Gw1000PrimaryRainSensor == 0) // tipper
-				{
-					if (data.rainfall == null)
-					{
-						cumulus.LogErrorMessage("ProcessCurrentData: Error tipper rainfall is missing");
-					}
-					else
-					{
-						try
-						{
-							DoRain(data.rainfall.yearly.value, data.rainfall.rain_rate.value, Utils.FromUnixTime(data.rainfall.yearly.time));
-							StormRain = data.rainfall.Event.value;
-						}
-						catch (Exception ex)
-						{
-							cumulus.LogErrorMessage($"ProcessCurrentData: Error in tipper rainfall data - {ex.Message}");
-						}
-					}
-				}
-				else // piezo
-				{
-					if (data.rainfall_piezo == null)
-					{
-						cumulus.LogErrorMessage("ProcessCurrentData: Error piezo rainfall is missing");
-					}
-					else
-					{
-						try
-						{
-							DoRain(data.rainfall_piezo.yearly.value, data.rainfall_piezo.rain_rate.value, Utils.FromUnixTime(data.rainfall_piezo.yearly.time));
-							StormRain = data.rainfall_piezo.Event.value;
-						}
-						catch (Exception ex)
-						{
-							cumulus.LogErrorMessage($"ProcessCurrentData: Error in piezo rainfall data - {ex.Message}");
-						}
-					}
-				}
-			}
-
-			// Solar
-			if ((main || cumulus.EcowittExtraUseSolar) && data.solar_and_uvi != null)
-			{
-				try
-				{
-					if (data.solar_and_uvi.solar != null)
-						DoSolarRad((int) data.solar_and_uvi.solar.value, Utils.FromUnixTime(data.solar_and_uvi.solar.time));
-
-					if (data.solar_and_uvi.uvi != null)
-						DoUV(data.solar_and_uvi.uvi.value, Utils.FromUnixTime(data.solar_and_uvi.solar.time));
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ProcessCurrentData: Error in solar data - {ex.Message}");
-				}
-			}
-
-			// Extra Temperature
-			if (main || cumulus.EcowittExtraUseTempHum)
-			{
-				try
-				{
-					ProcessExtraTempHum(data, thisStation);
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ProcessCurrentData: Error in extra temperature data - {ex.Message}");
-				}
-			}
-
-			// === Soil/Water Temp ===
-			if (main || cumulus.EcowittExtraUseUserTemp)
-			{
-				try
-				{
-					ProcessUserTemps(data, thisStation);
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ProcessCurrentData: Error in user temperature data - {ex.Message}");
-				}
-			}
-
-			// === Soil Moisture ===
-			if (main || cumulus.EcowittExtraUseSoilMoist)
-			{
-				try
-				{
-					ProcessSoilMoist(data, thisStation);
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Soil moisture data - {ex.Message}");
-				}
-			}
-
-			// === Leaf Wetness ===
-			if (main || cumulus.EcowittExtraUseLeafWet)
-			{
-				try
-				{
-					ProcessLeafWetness(data, thisStation);
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Leaf wetness data - {ex.Message}");
-				}
-			}
-
-			// === Air Quality ===
-			if (main || cumulus.EcowittExtraUseAQI)
-			{
-				try
-				{
-					ProcessAirQuality(data, thisStation);
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Air Quality data - {ex.Message}");
-				}
-			}
-
-			// === CO₂ ===
-			if (main || cumulus.EcowittExtraUseCo2)
-			{
-				try
-				{
-					ProcessCo2(data, thisStation);
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ProcessCurrentData: Error in CO₂ data - {ex.Message}");
-				}
-			}
-
-			// === Lightning ===
-			if (main || cumulus.EcowittExtraUseLightning)
-			{
-				try
-				{
-					ProcessLightning(data, thisStation);
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Lightning data - {ex.Message}");
-				}
-			}
-
-			// === Leak ===
-			if (main || cumulus.EcowittExtraUseLeak)
-			{
-				try
-				{
-					ProcessLeak(data, thisStation);
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Leak data - {ex.Message}");
-				}
-			}
-
-			// === Batteries ===
 			try
 			{
-				ProcessBatteries(data);
+				// Only do the primary sensors if running as the main station
+				if (main)
+				{
+					// Outdoor temp/hum
+					if (cumulus.Gw1000PrimaryTHSensor == 0)
+					{
+						if (data.outdoor == null)
+						{
+							cumulus.LogErrorMessage("ProcessCurrentData: Error outdoor temp/humidity is missing");
+						}
+						else
+						{
+							try
+							{
+								var time = Utils.FromUnixTime(data.outdoor.temperature.time);
+								DoOutdoorTemp(data.outdoor.temperature.value, time);
+								DoOutdoorHumidity(data.outdoor.humidity.value, time);
+								DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
+								DoFeelsLike(time);
+								DoApparentTemp(time);
+								DoHumidex(time);
+								DoCloudBaseHeatIndex(time);
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogErrorMessage($"ProcessCurrentData: Error in Outdoor temp data - {ex.Message}");
+							}
+						}
+					}
+
+					// Indoor temp/hum
+					if (data.indoor == null)
+					{
+						cumulus.LogErrorMessage("ProcessCurrentData: Error indoor temp/humidity is missing");
+					}
+					else
+					{
+						try
+						{
+							// user has mapped the indoor sensor to the outdoor sensor
+							if (cumulus.Gw1000PrimaryTHSensor == 99)
+							{
+								var time = Utils.FromUnixTime(data.outdoor.temperature.time);
+								DoOutdoorTemp(data.indoor.temperature.value, time);
+								DoOutdoorHumidity(data.indoor.humidity.value, time);
+								DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
+								DoFeelsLike(time);
+								DoApparentTemp(time);
+								DoHumidex(time);
+								DoCloudBaseHeatIndex(time);
+							}
+
+							DoIndoorTemp(data.indoor.temperature.value);
+							DoIndoorHumidity(data.indoor.humidity.value);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogErrorMessage($"ProcessCurrentData: Error in indoor data - {ex.Message}");
+						}
+					}
+
+					// Pressure
+					if (data.pressure == null)
+					{
+						cumulus.LogErrorMessage("ProcessCurrentData: Error pressure data is missing");
+					}
+					else
+					{
+						try
+						{
+							DoPressure(data.pressure.relative.value, Utils.FromUnixTime(data.pressure.relative.time));
+							StationPressure = data.pressure.absolute.value;
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogErrorMessage($"ProcessCurrentData: Error in pressure data - {ex.Message}");
+						}
+					}
+
+					// Wind
+					if (data.wind == null)
+					{
+						cumulus.LogErrorMessage("ProcessCurrentData: Error wind data is missing");
+					}
+					else
+					{
+						try
+						{
+							DoWind(data.wind.wind_gust.value, data.wind.wind_direction.value, data.wind.wind_speed.value, Utils.FromUnixTime(data.wind.wind_gust.time));
+							DoWindChill(-999, Utils.FromUnixTime(data.wind.wind_gust.time));
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogErrorMessage($"ProcessCurrentData: Error in wind data - {ex.Message}");
+						}
+					}
+
+					// Rain
+					if (cumulus.Gw1000PrimaryRainSensor == 0) // tipper
+					{
+						if (data.rainfall == null)
+						{
+							cumulus.LogErrorMessage("ProcessCurrentData: Error tipper rainfall is missing");
+						}
+						else
+						{
+							try
+							{
+								DoRain(data.rainfall.yearly.value, data.rainfall.rain_rate.value, Utils.FromUnixTime(data.rainfall.yearly.time));
+								StormRain = data.rainfall.Event.value;
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogErrorMessage($"ProcessCurrentData: Error in tipper rainfall data - {ex.Message}");
+							}
+						}
+					}
+					else // piezo
+					{
+						if (data.rainfall_piezo == null)
+						{
+							cumulus.LogErrorMessage("ProcessCurrentData: Error piezo rainfall is missing");
+						}
+						else
+						{
+							try
+							{
+								DoRain(data.rainfall_piezo.yearly.value, data.rainfall_piezo.rain_rate.value, Utils.FromUnixTime(data.rainfall_piezo.yearly.time));
+								StormRain = data.rainfall_piezo.Event.value;
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogErrorMessage($"ProcessCurrentData: Error in piezo rainfall data - {ex.Message}");
+							}
+						}
+					}
+				}
+
+				// Solar
+				if ((main || cumulus.EcowittExtraUseSolar) && data.solar_and_uvi != null)
+				{
+					try
+					{
+						if (data.solar_and_uvi.solar != null)
+							DoSolarRad((int) data.solar_and_uvi.solar.value, Utils.FromUnixTime(data.solar_and_uvi.solar.time));
+
+						if (data.solar_and_uvi.uvi != null)
+							DoUV(data.solar_and_uvi.uvi.value, Utils.FromUnixTime(data.solar_and_uvi.solar.time));
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in solar data - {ex.Message}");
+					}
+				}
+
+				// Extra Temperature
+				if (main || cumulus.EcowittExtraUseTempHum)
+				{
+					try
+					{
+						ProcessExtraTempHum(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in extra temperature data - {ex.Message}");
+					}
+				}
+
+				// === Soil/Water Temp ===
+				if (main || cumulus.EcowittExtraUseUserTemp)
+				{
+					try
+					{
+						ProcessUserTemps(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in user temperature data - {ex.Message}");
+					}
+				}
+
+				// === Soil Moisture ===
+				if (main || cumulus.EcowittExtraUseSoilMoist)
+				{
+					try
+					{
+						ProcessSoilMoist(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Soil moisture data - {ex.Message}");
+					}
+				}
+
+				// === Leaf Wetness ===
+				if (main || cumulus.EcowittExtraUseLeafWet)
+				{
+					try
+					{
+						ProcessLeafWetness(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Leaf wetness data - {ex.Message}");
+					}
+				}
+
+				// === Air Quality ===
+				if (main || cumulus.EcowittExtraUseAQI)
+				{
+					try
+					{
+						ProcessAirQuality(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Air Quality data - {ex.Message}");
+					}
+				}
+
+				// === CO₂ ===
+				if (main || cumulus.EcowittExtraUseCo2)
+				{
+					try
+					{
+						ProcessCo2(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in CO₂ data - {ex.Message}");
+					}
+				}
+
+				// === Lightning ===
+				if (main || cumulus.EcowittExtraUseLightning)
+				{
+					try
+					{
+						ProcessLightning(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Lightning data - {ex.Message}");
+					}
+				}
+
+				// === Leak ===
+				if (main || cumulus.EcowittExtraUseLeak)
+				{
+					try
+					{
+						ProcessLeak(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Leak data - {ex.Message}");
+					}
+				}
+
+				// === Batteries ===
+				try
+				{
+					ProcessBatteries(data);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Battery data - {ex.Message}");
+				}
+
+				// === Camera ===
+				try
+				{
+					if (data.camera != null && data.camera.photo != null)
+					{
+						EcowittCameraUrl = data.camera.photo.url;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Camera data - {ex.Message}");
+				}
+
+
+				thisStation.DoForecast("", false);
+
+				cumulus.BatteryLowAlarm.Triggered = batteryLow;
+
+
+				var updateTime = Utils.FromUnixTime(data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time);
+				thisStation.UpdateStatusPanel(updateTime);
+				thisStation.UpdateMQTT();
+
+				DataStopped = false;
+				cumulus.DataStoppedAlarm.Triggered = false;
+			}
+			catch (OperationCanceledException)
+			{
+				// asked to cancel
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage($"ProcessCurrentData: Error in Battery data - {ex.Message}");
+				cumulus.LogExceptionMessage(ex, "ProcessCurrentData: Exception");
 			}
-
-			// === Camera ===
-			try
-			{
-				if (data.camera != null && data.camera.photo != null)
-				{
-					EcowittCameraUrl = data.camera.photo.url;
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogErrorMessage($"ProcessCurrentData: Error in Camera data - {ex.Message}");
-			}
-
-
-			thisStation.DoForecast("", false);
-
-			cumulus.BatteryLowAlarm.Triggered = batteryLow;
-
-
-			var updateTime = Utils.FromUnixTime(data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time);
-			thisStation.UpdateStatusPanel(updateTime);
-			thisStation.UpdateMQTT();
-
-			DataStopped = false;
-			cumulus.DataStoppedAlarm.Triggered = false;
 		}
 
 		private void ProcessExtraTempHum(EcowittApi.CurrentDataData data, WeatherStation station)
@@ -932,23 +952,23 @@ namespace CumulusMX
 			if (data.pm25_ch1 != null)
 			{
 				station.DoAirQuality(data.pm25_ch1.pm25.value, 1);
-				//station.DoAirQualityAvg(data.pm25_ch1.Avg24h.value, 1);
+				//station.DoAirQualityAvg(data.pm25_ch1.Avg24h.value, 1)
 			}
 
 			if (data.pm25_ch2 != null)
 			{
 				station.DoAirQuality(data.pm25_ch2.pm25.value, 2);
-				//station.DoAirQualityAvg(data.pm25_ch2.Avg24h.value, 2);
+				//station.DoAirQualityAvg(data.pm25_ch2.Avg24h.value, 2)
 			}
 			if (data.pm25_ch3 != null)
 			{
 				station.DoAirQuality(data.pm25_ch3.pm25.value, 3);
-				//station.DoAirQualityAvg(data.pm25_ch3.Avg24h.value, 3);
+				//station.DoAirQualityAvg(data.pm25_ch3.Avg24h.value, 3)
 			}
 			if (data.pm25_ch4 != null)
 			{
 				station.DoAirQuality(data.pm25_ch4.pm25.value, 4);
-				//station.DoAirQualityAvg(data.pm25_ch1.Avg24h.value, 4);
+				//station.DoAirQualityAvg(data.pm25_ch1.Avg24h.value, 4)
 			}
 		}
 
@@ -988,19 +1008,16 @@ namespace CumulusMX
 
 		private void ProcessLightning(EcowittApi.CurrentDataData data, WeatherStation station)
 		{
-			if (data.lightning != null)
+			if (data.lightning != null && data.lightning.distance != null && data.lightning.distance.value != 255)
 			{
-				if (data.lightning.distance != null && data.lightning.distance.value != 255)
+				station.LightningStrikesToday = data.lightning.count.value;
+				station.LightningDistance = ConvertUnits.KmtoUserUnits(data.lightning.distance.value);
+
+				var tim = Utils.FromUnixTime(data.lightning.distance.time);
+
+				if (tim > LightningTime)
 				{
-					station.LightningStrikesToday = data.lightning.count.value;
-					station.LightningDistance = ConvertUnits.KmtoUserUnits(data.lightning.distance.value);
-
-					var tim = Utils.FromUnixTime(data.lightning.distance.time);
-
-					if (tim > LightningTime)
-					{
-						station.LightningTime = tim;
-					}
+					station.LightningTime = tim;
 				}
 			}
 		}
@@ -1096,7 +1113,7 @@ namespace CumulusMX
 			}
 		}
 
-		private async void CheckAvailableFirmware()
+		private async Task CheckAvailableFirmware()
 		{
 			if (EcowittApi.FirmwareSupportedModels.Contains(deviceModel[..6]))
 			{

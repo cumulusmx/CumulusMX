@@ -56,12 +56,12 @@ namespace CumulusMX
 
 			var daviswll = new JsonWizardDavisWll()
 			{
-				network = new JsonStationSettingsWLLNetwork()
+				network = new JsonStationSettingsWllNetwork()
 				{
 					autoDiscover = cumulus.WLLAutoUpdateIpAddress,
 					ipaddress = cumulus.DavisOptions.IPAddr
 				},
-				api = new JsonStationSettingsWLLApi()
+				api = new JsonStationSettingsWllApi()
 				{
 					apiKey = cumulus.WllApiKey,
 					apiSecret = cumulus.WllApiSecret,
@@ -79,7 +79,7 @@ namespace CumulusMX
 
 			var daviscloud = new JsonWizardDavisWll()
 			{
-				api = new JsonStationSettingsWLLApi()
+				api = new JsonStationSettingsWllApi()
 				{
 					apiKey = cumulus.WllApiKey,
 					apiSecret = cumulus.WllApiSecret,
@@ -128,7 +128,7 @@ namespace CumulusMX
 				baudrate = cumulus.ImetOptions.BaudRate
 			};
 
-			var wmr = new JsonStationSettingsWMR928()
+			var wmr = new JsonStationSettingsWmr928()
 			{
 				comportname = cumulus.ComportName
 			};
@@ -300,11 +300,6 @@ namespace CumulusMX
 						cumulus.GraphDataEodFiles[i].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					}
 					// and Realtime files
-
-					// realtime.txt is not used by the standard site
-					//cumulus.RealtimeFiles[0].Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
-					//cumulus.RealtimeFiles[0].FTP = cumulus.FtpOptions.Enabled;
-					//cumulus.RealtimeFiles[0].Copy = cumulus.FtpOptions.LocalCopyEnabled;
 
 					// realtimegauges.txt IS used by the standard site
 					cumulus.RealtimeFiles[1].FTP = cumulus.FtpOptions.Enabled;
@@ -758,7 +753,7 @@ namespace CumulusMX
 		public JsonWizardFineOffset fineoffset { get; set; }
 		public JsonWizardEasyWeather easyw { get; set; }
 		public JsonWizardImet imet { get; set; }
-		public JsonStationSettingsWMR928 wmr928 { get; set; }
+		public JsonStationSettingsWmr928 wmr928 { get; set; }
 		public JsonStationSettingsWeatherFlow weatherflow { get; set; }
 		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
 	}
@@ -772,8 +767,8 @@ namespace CumulusMX
 
 	internal class JsonWizardDavisWll
 	{
-		public JsonStationSettingsWLLNetwork network { get; set; }
-		public JsonStationSettingsWLLApi api { get; set; }
+		public JsonStationSettingsWllNetwork network { get; set; }
+		public JsonStationSettingsWllApi api { get; set; }
 		public JsonStationSettingsWllPrimary primary { get; set; }
 	}
 

@@ -7,10 +7,10 @@ using System.Web;
 
 namespace CumulusMX.ThirdParty
 {
-	internal class WebUploadPWS : WebUploadServiceBase
+	internal class WebUploadPws : WebUploadServiceBase
 	{
 
-		internal WebUploadPWS(Cumulus cumulus, string name) : base(cumulus, name)
+		internal WebUploadPws(Cumulus cumulus, string name) : base(cumulus, name)
 		{ }
 
 		internal override async Task DoUpdate(DateTime timestamp)

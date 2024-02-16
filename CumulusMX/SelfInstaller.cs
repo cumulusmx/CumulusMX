@@ -6,7 +6,7 @@ using System.Security.Principal;
 
 namespace CumulusMX
 {
-	public class SelfInstaller
+	public static class SelfInstaller
 	{
 		private const string serviceFile = "/etc/systemd/system/cumulusmx.service";
 

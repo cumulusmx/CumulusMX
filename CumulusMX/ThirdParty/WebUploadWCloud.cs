@@ -127,7 +127,7 @@ namespace CumulusMX.ThirdParty
 				sb.Append("&rainrate=" + (int) Math.Round(ConvertUnits.UserRainToMM(station.RainRate) * 10));
 
 			// ET
-			if (SendSolar && cumulus.Manufacturer == cumulus.DAVIS)
+			if (SendSolar && cumulus.Manufacturer == Cumulus.DAVIS)
 			{
 				sb.Append("&et=" + (int) Math.Round(ConvertUnits.UserRainToMM(station.ET) * 10));
 			}
@@ -250,7 +250,7 @@ namespace CumulusMX.ThirdParty
 						break;
 				}
 
-				if (cumulus.Manufacturer == cumulus.EW)
+				if (cumulus.Manufacturer == Cumulus.EW)
 				{
 					// very! approximate conversion from percentage to cb
 					moist = (100 - moist) * 2;
@@ -296,13 +296,10 @@ namespace CumulusMX.ThirdParty
 				sb.Append($"&leafwet={wet.ToString(cumulus.LeafWetFormat)}");
 			}
 
-			// time - UTCHmm"));
-
 			// date - UTC
 			sb.Append("&date=" + timestamp.ToUniversalTime().ToString("yyyyMMdd"));
 
 			// software identification
-			//sb.Append("&type=291&ver=" + cumulus.Version);
 			sb.Append($"&software=Cumulus_MX_v{cumulus.Version}&softwareid=142787ebe716");
 
 			return sb.ToString();

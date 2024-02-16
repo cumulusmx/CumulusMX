@@ -460,14 +460,14 @@ namespace CumulusMX
 		}
 
 
-		private class ForecastStrings
+		private sealed class ForecastStrings
 		{
 			public string notavailable { get; set; }
 			public string exceptional { get; set; }
 			public string[] forecast { get; set; }
 		}
 
-		private class MoonPhaseStrings
+		private sealed class MoonPhaseStrings
 		{
 			public string Newmoon { get; set; }
 			public string WaxingCrescent { get; set; }
@@ -479,7 +479,7 @@ namespace CumulusMX
 			public string WaningCrescent { get; set; }
 		}
 
-		private class BeaufortStrings
+		private sealed class BeaufortStrings
 		{
 			public string f0 { get; set; }
 			public string f1 { get; set; }
@@ -496,7 +496,7 @@ namespace CumulusMX
 			public string f12 { get; set; }
 		}
 
-		private class TrendsStrings
+		private sealed class TrendsStrings
 		{
 			public string Risingveryrapidly { get; set; }
 			public string Risingquickly { get; set; }
@@ -509,26 +509,26 @@ namespace CumulusMX
 			public string Fallingveryrapidly { get; set; }
 		}
 
-		private class AirQuality
+		private sealed class AirQuality
 		{
 			public string[] sensor { get; set; }
 			public string[] sensorAvg { get; set; }
 		}
 
-		private class Solar
+		private sealed class Solar
 		{
 			public string lessdaylight { get; set; }
 			public string moredaylight { get; set; }
 		}
 
-		private class DavisForecast
+		private sealed class DavisForecast
 		{
 			public string[] forecast1 { get; set; }
 			public string[] forecast2 { get; set; }
 			public string[] forecast3 { get; set; }
 		}
 
-		private class Co2Captions
+		private sealed class Co2Captions
 		{
 			public string Current { get; set; }
 			public string Hr24 { get; set; }
@@ -540,7 +540,7 @@ namespace CumulusMX
 			public string Humidity { get; set; }
 		}
 
-		private class AlarmSettings
+		private sealed class AlarmSettings
 		{
 			public string subject { get; set; }
 			public string preamble { get; set; }
@@ -548,7 +548,7 @@ namespace CumulusMX
 			public AlarmStrings email { get; set; }
 		}
 
-		private class AlarmStrings
+		private sealed class AlarmStrings
 		{
 			public string windGustAbove { get; set; }
 			public string pressureAbove { get; set; }
@@ -574,7 +574,7 @@ namespace CumulusMX
 			public string ftpStopped { get; set; }
 		}
 
-		private class Settings
+		private sealed class Settings
 		{
 			public bool accessible { get; set; }
 			public ForecastStrings forecast { get; set; }

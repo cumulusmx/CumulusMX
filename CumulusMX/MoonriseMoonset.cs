@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -6,7 +7,7 @@ using SixLabors.ImageSharp.Processing;
 
 namespace CumulusMX
 {
-	internal class MoonriseMoonset
+	internal static class MoonriseMoonset
 	{
 		// JavaScript by Peter Hayes http://www.aphayes.pwp.blueyonder.co.uk/
 		// Copyright 2001-2010
@@ -1112,11 +1113,6 @@ namespace CumulusMX
 			return (180.0 / Math.PI) * Math.Asin(c);
 		}
 
-		//private double acosd(double c)
-		//{
-		//    return (180.0/Math.PI)*Math.Acos(c);
-		//}
-
 		private static double atan2d(double y, double x)
 		{
 			double num = x < 0 ? 1 : 0;
@@ -1327,7 +1323,6 @@ namespace CumulusMX
 					hours = hfirst + 0.5;
 					rad = MoonPos(year, month, day, hours - TZ);
 					altaz = RaDecToAltAz(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
-					// alert("day ="+day+" hour ="+hours+" altaz="+altaz[0]+" "+altaz[1]);
 					if ((rise == 0) && (altaz[0] <= 0.0))
 					{
 						hfirst = hours;
@@ -1363,12 +1358,8 @@ namespace CumulusMX
 			var T2 = T * T;
 			var T3 = T2 * T;
 			var T4 = T3 * T;
-			// Moons mean elongation Meeus first edition
-			// var D=297.8502042+445267.1115168*T-0.0016300*T2+T3/545868.0-T4/113065000.0;
 			// Moons mean elongation Meeus second edition
 			var D = 297.8501921 + 445267.1114034 * T - 0.0018819 * T2 + T3 / 545868.0 - T4 / 113065000.0;
-			// Moons mean anomaly M' Meeus first edition
-			// var MP=134.9634114+477198.8676313*T+0.0089970*T2+T3/69699.0-T4/14712000.0;
 			// Moons mean anomaly M' Meeus second edition
 			var MP = 134.9633964 + 477198.8675055 * T + 0.0087414 * T2 + T3 / 69699.0 - T4 / 14712000.0;
 			// Suns mean anomaly
@@ -1547,7 +1538,6 @@ namespace CumulusMX
 
 					int srcSize = bmp.Width;
 					int srcSize2 = srcSize / 2;
-					var dark = new Rgba32(20, 20, 20, 200);
 
 					for (int yPos = 0; yPos <= srcSize2; yPos++)
 					{

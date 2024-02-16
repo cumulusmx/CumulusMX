@@ -214,7 +214,7 @@ namespace CumulusMX
 				BearingAvg = cumulus.GraphOptions.Colour.WindBearingAvg
 			};
 
-			var grapColRain = new jsonGraphColRain()
+			var grapColRain = new JsonGraphColRain()
 			{
 				Rain = cumulus.GraphOptions.Colour.Rainfall,
 				RainRate = cumulus.GraphOptions.Colour.RainRate
@@ -319,7 +319,6 @@ namespace CumulusMX
 				DataVisibility = graphVis
 			};
 
-			//return JsonConvert.SerializeObject(data);
 			return JsonSerializer.SerializeToString(data);
 		}
 
@@ -536,7 +535,7 @@ namespace CumulusMX
 
 
 
-		private class JsonData
+		private sealed class JsonData
 		{
 			public bool accessible { get; set; }
 			public JsonGraphs Graphs { get; set; }
@@ -544,7 +543,7 @@ namespace CumulusMX
 			public JsonVisibility DataVisibility { get; set; }
 		}
 
-		private class JsonGraphs
+		private sealed class JsonGraphs
 		{
 			public int graphhours { get; set; }
 			public int graphdays { get; set; }
@@ -552,7 +551,7 @@ namespace CumulusMX
 			public JsonColour colour { get; set; }
 		}
 
-		private class JsonGraphVisCo2
+		private sealed class JsonGraphVisCo2
 		{
 			public int co2 { get; set; }
 			public int co2avg { get; set; }
@@ -564,12 +563,12 @@ namespace CumulusMX
 			public int hum { get; set; }
 		}
 
-		private class JsonGraphVisAq
+		private sealed class JsonGraphVisAq
 		{
 			public JsonGraphVisAqSensor[] sensors { get; set; } = [new(), new(), new(), new()];
 		}
 
-		private class JsonGraphVisAqSensor
+		private sealed class JsonGraphVisAqSensor
 		{
 			public int pm { get; set; }
 			public int pmavg { get; set; }
@@ -578,7 +577,7 @@ namespace CumulusMX
 		}
 
 
-		private class JsonVisibility
+		private sealed class JsonVisibility
 		{
 			public JsonGraphVisTemperature temperature { get; set; }
 			public JsonGraphVisHumidity humidity { get; set; }
@@ -596,7 +595,7 @@ namespace CumulusMX
 			public JsonGraphVisCo2 co2 { get; set; }
 		}
 
-		private class JsonGraphVisTemperature
+		private sealed class JsonGraphVisTemperature
 		{
 			public int Temp { get; set; }
 			public int InTemp { get; set; }
@@ -611,38 +610,38 @@ namespace CumulusMX
 			public int MinTemp { get; set; }
 		}
 
-		private class JsonGraphVisHumidity
+		private sealed class JsonGraphVisHumidity
 		{
 			public int Hum { get; set; }
 			public int InHum { get; set; }
 		}
 
-		private class JsonGraphVisSolar
+		private sealed class JsonGraphVisSolar
 		{
 			public int UV { get; set; }
 			public int Solar { get; set; }
 			public int Sunshine { get; set; }
 		}
 
-		private class JsonGraphVisDegreeDays
+		private sealed class JsonGraphVisDegreeDays
 		{
 			public int GrowingDegreeDays1 { get; set; }
 			public int GrowingDegreeDays2 { get; set; }
 		}
 
-		private class JsonGraphVisTempSum
+		private sealed class JsonGraphVisTempSum
 		{
 			public int TempSum0 { get; set; }
 			public int TempSum1 { get; set; }
 			public int TempSum2 { get; set; }
 		}
 
-		private class JsonGraphVisExtraSensors
+		private sealed class JsonGraphVisExtraSensors
 		{
 			public int[] sensors { get; set; }
 		}
 
-		private class JsonColour
+		private sealed class JsonColour
 		{
 			public JsonGraphColTemperature temperature { get; set; }
 			public JsonGraphColDailyTemp dailytemp { get; set; }
@@ -652,7 +651,7 @@ namespace CumulusMX
 			public JsonGraphColDailyMaxMin dailypress { get; set; }
 			public JsonGraphColWind wind { get; set; }
 			public JsonGraphColWindBearing bearing { get; set; }
-			public jsonGraphColRain rain { get; set; }
+			public JsonGraphColRain rain { get; set; }
 			public JsonGraphColSolar solar { get; set; }
 			public JsonGraphColAQ aq { get; set; }
 			public JsonGraphColExtraSensors extratemp { get; set; }
@@ -666,7 +665,7 @@ namespace CumulusMX
 		}
 
 
-		private class JsonGraphColTemperature
+		private sealed class JsonGraphColTemperature
 		{
 			public string Temp { get; set; }
 			public string InTemp { get; set; }
@@ -678,7 +677,7 @@ namespace CumulusMX
 			public string Humidex { get; set; }
 		}
 
-		private class JsonGraphColDailyTemp
+		private sealed class JsonGraphColDailyTemp
 		{
 			public string AvgTemp { get; set; }
 			public string MaxTemp { get; set; }
@@ -694,43 +693,43 @@ namespace CumulusMX
 			public string MaxHumidex { get; set; }
 		}
 
-		private class JsonGraphColHumidity
+		private sealed class JsonGraphColHumidity
 		{
 			public string Hum { get; set; }
 			public string InHum { get; set; }
 		}
 
-		private class JsonGraphColPress
+		private sealed class JsonGraphColPress
 		{
 			public string Press { get; set; }
 		}
 
-		private class JsonGraphColDailyMaxMin
+		private sealed class JsonGraphColDailyMaxMin
 		{
 			public string Max { get; set; }
 			public string Min { get; set; }
 		}
 
-		private class JsonGraphColWind
+		private sealed class JsonGraphColWind
 		{
 			public string WindGust { get; set; }
 			public string WindAvg { get; set; }
 			public string WindRun { get; set; }
 		}
 
-		private class JsonGraphColWindBearing
+		private sealed class JsonGraphColWindBearing
 		{
 			public string Bearing { get; set; }
 			public string BearingAvg { get; set; }
 		}
 
-		private class jsonGraphColRain
+		private sealed class JsonGraphColRain
 		{
 			public string Rain { get; set; }
 			public string RainRate { get; set; }
 		}
 
-		private class JsonGraphColSolar
+		private sealed class JsonGraphColSolar
 		{
 			public string UV { get; set; }
 			public string Solar { get; set; }
@@ -738,18 +737,18 @@ namespace CumulusMX
 			public string Sunshine { get; set; }
 		}
 
-		private class JsonGraphColAQ
+		private sealed class JsonGraphColAQ
 		{
 			public string Pm2p5 { get; set; }
 			public string Pm10 { get; set; }
 		}
 
-		private class JsonGraphColExtraSensors
+		private sealed class JsonGraphColExtraSensors
 		{
 			public string[] sensors { get; set; }
 		}
 
-		private class JsonGraphColCo2
+		private sealed class JsonGraphColCo2
 		{
 			public string co2 { get; set; }
 			public string co2avg { get; set; }

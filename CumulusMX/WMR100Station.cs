@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
 
 using HidSharp;
@@ -37,7 +38,7 @@ namespace CumulusMX
 
 		public WMR100Station(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = cumulus.OREGONUSB;
+			cumulus.Manufacturer = Cumulus.OREGONUSB;
 			var devicelist = DeviceList.Local;
 			var station = devicelist.GetHidDeviceOrNull(Vendorid, Productid);
 
@@ -96,14 +97,14 @@ namespace CumulusMX
 
 						if (stop) break;
 
-						String str = "";
+						StringBuilder str = new();
 
 						for (int I = startByte; I < responseLength; I++)
 						{
-							str = str + " " + usbbuffer[I].ToString("X2");
+							str.Append(" " + usbbuffer[I].ToString("X2"));
 						}
 
-						cumulus.LogDataMessage(str);
+						cumulus.LogDataMessage(str.ToString());
 
 						// Number of valid bytes is in first byte
 						int dataLength = usbbuffer[1];
@@ -164,13 +165,12 @@ namespace CumulusMX
 					}
 				}
 				CheckBatteryStatus();
-
-				//Thread.Sleep(100);
 			}
 
 			// Catch the ThreadAbortException
 			catch (ThreadAbortException)
 			{
+				// do nothing
 			}
 		}
 
@@ -232,11 +232,11 @@ namespace CumulusMX
 
 		private void ProcessWMR100Packet()
 		{
-			string str = String.Empty;
+			StringBuilder str =new ();
 
 			for (int i = 0; i <= currentPacketLength - 3; i++)
 			{
-				str = str + " " + packetBuffer[i].ToString("X2");
+				str.Append(" " + packetBuffer[i].ToString("X2"));
 			}
 
 			cumulus.LogDataMessage("Packet:" + str);
@@ -285,8 +285,6 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("Pond packet");
 			int sensor = packetBuffer[2] & 0xF;
 			int sign;
-
-			//MainForm.SystemLog.WriteLogString('Pond packet received, ch = ' + IntToStr(sensor));
 
 			if ((sensor > 1) && (sensor < 11))
 			{
@@ -352,12 +350,6 @@ namespace CumulusMX
 			}
 
 			DoRain(ConvertUnits.RainINToUser(counter), ConvertUnits.RainINToUser(rate), DateTime.Now);
-
-			// battery status
-			//if PacketBuffer[0] and $40 = $40 then
-			//MainForm.RainBatt.Position := 0
-			//else
-			//MainForm.RainBatt.Position := 100;
 		}
 
 		private void ProcessWindPacket()
@@ -406,12 +398,6 @@ namespace CumulusMX
 
 				DoWindChill(wc, now);
 			}
-
-			// battery status
-			//if ((PacketBuffer[0] & 0x40) == 0x40)
-			//    MainForm.WindBatt.Position = 0;
-			//else
-			//    MainForm.WindBatt.Position = 100;
 		}
 
 		private void ProcessTempPacket()
@@ -429,7 +415,6 @@ namespace CumulusMX
 
 			if (sensor == cumulus.WMR200TempChannel)
 			{
-				//MainForm.SystemLog.WriteLogString('Main Outdoor sensor');
 				// outdoor hum
 				DoOutdoorHumidity(packetBuffer[5], DateTime.Now);
 
@@ -455,16 +440,9 @@ namespace CumulusMX
 				DoFeelsLike(Now);
 				DoHumidex(Now);
 				DoCloudBaseHeatIndex(Now);
-
-				// battery status
-				//if (PacketBuffer[0] & 0x40 == 0x40 )
-				//  MainForm.TempBatt.Position = 0
-				//else
-				//  MainForm.TempBatt.Position = 100;
 			}
 			else if (sensor == 0)
 			{
-				//MainForm.SystemLog.WriteLogString('Indoor sensor');
 				// indoor hum
 				DoIndoorHumidity(packetBuffer[5]);
 
@@ -542,6 +520,7 @@ namespace CumulusMX
 
 		private static void ProcessDatePacket()
 		{
+			// do nothing
 		}
 
 		private Boolean CRCOK()

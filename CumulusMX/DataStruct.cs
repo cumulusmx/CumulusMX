@@ -25,635 +25,587 @@ namespace CumulusMX
 		private readonly Cumulus cumulus = cumulus;
 
 		[IgnoreDataMember]
-		public double StormRain { get; set; } = stormRain;
+		public double StormRain { get; } = stormRain;
 
 		[DataMember(Name = "StormRain")]
 		public string StormRainRounded
 		{
 			get => StormRain.ToString(cumulus.RainFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string StormRainStart { get; set; } = stormRainStart;
+		public string StormRainStart { get; } = stormRainStart;
 
 		[DataMember]
-		public int CurrentSolarMax { get; set; } = currentSolarMax;
+		public int CurrentSolarMax { get; } = currentSolarMax;
 
 		[IgnoreDataMember]
-		public double HighHeatIndexToday { get; set; } = highHeatIndexToday;
+		public double HighHeatIndexToday { get; } = highHeatIndexToday;
 
 		[DataMember(Name = "HighHeatIndexToday")]
 		public string HighHeatIndexTodayRounded
 		{
 			get => HighHeatIndexToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string HighHeatIndexTodayTime { get; set; } = highHeatIndexTodayTime;
+		public string HighHeatIndexTodayTime { get; } = highHeatIndexTodayTime;
 
 		[DataMember]
-		public string Sunrise { get; set; } = sunrise;
+		public string Sunrise { get; } = sunrise;
 
 		[DataMember]
-		public string Sunset { get; set; } = sunset;
+		public string Sunset { get; } = sunset;
 
 		[DataMember]
-		public string Moonrise { get; set; } = moonrise;
+		public string Moonrise { get; } = moonrise;
 
 		[DataMember]
-		public string Moonset { get; set; } = moonset;
+		public string Moonset { get; } = moonset;
 
 		[DataMember]
-		public string Forecast { get; set; } = forecast;
+		public string Forecast { get; } = forecast;
 
 		[IgnoreDataMember]
-		public double UVindex { get; set; } = uvindex;
+		public double UVindex { get; } = uvindex;
 
 		[DataMember(Name = "UVindex")]
 		public string UVindexRounded
 		{
 			get => UVindex.ToString(cumulus.UVFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double HighUVindexToday { get; set; } = highUVindexToday;
+		public double HighUVindexToday { get; } = highUVindexToday;
 
 		[DataMember(Name = "HighUVindexToday")]
 		public string HighUVindexTodayRounded
 		{
 			get => HighUVindexToday.ToString(cumulus.UVFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string HighUVindexTodayTime { get; set; } = highUVindexTodayTime;
+		public string HighUVindexTodayTime { get; } = highUVindexTodayTime;
 
 		[DataMember]
-		public string HighSolarRadTodayTime { get; set; } = highSolarRadTodayTime;
+		public string HighSolarRadTodayTime { get; } = highSolarRadTodayTime;
 
 		[DataMember]
-		public int HighSolarRadToday { get; set; } = highSolarRadToday;
+		public int HighSolarRadToday { get; } = highSolarRadToday;
 
 		[DataMember]
-		public int SolarRad { get; set; } = solarRad;
+		public int SolarRad { get; } = solarRad;
 
 		[IgnoreDataMember]
-		public double IndoorTemp = indoorTemp;
+		public double IndoorTemp { get; } = indoorTemp;
 
 		[DataMember(Name = "IndoorTemp")]
 		public string IndoorTempRounded
 		{
 			get => IndoorTemp.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double OutdoorDewpoint = outdoorDewpoint;
+		public double OutdoorDewpoint { get; } = outdoorDewpoint;
 
 		[DataMember(Name = "OutdoorDewpoint")]
 		public string OutdoorDewpointRounded
 		{
 			get => OutdoorDewpoint.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double LowDewpointToday { get; set; } = lowDewpointToday;
+		public double LowDewpointToday { get; } = lowDewpointToday;
 
 		[DataMember(Name = "LowDewpointToday")]
 		public string LowDewpointTodayRounded
 		{
 			get => LowDewpointToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double HighDewpointToday { get; set; } = highDewpointToday;
+		public double HighDewpointToday { get; } = highDewpointToday;
 
 		[DataMember(Name = "HighDewpointToday")]
 		public string HighDewpointTodayRounded
 		{
 			get => HighDewpointToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string LowDewpointTodayTime { get; set; } = lowDewpointTodayTime;
+		public string LowDewpointTodayTime { get; } = lowDewpointTodayTime;
 
 		[DataMember]
-		public string HighDewpointTodayTime { get; set; } = highDewpointTodayTime;
+		public string HighDewpointTodayTime { get; } = highDewpointTodayTime;
 
 		[IgnoreDataMember]
-		public double WindChill = windChill;
+		public double WindChill { get; } = windChill;
 
 		[DataMember(Name = "WindChill")]
 		public string WindChillRounded
 		{
 			get => WindChill.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double LowWindChillToday { get; set; } = lowWindChillToday;
+		public double LowWindChillToday { get; } = lowWindChillToday;
 
 		[DataMember(Name = "LowWindChillToday")]
 		public string LowWindChillTodayRounded
 		{
 			get => LowWindChillToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string LowWindChillTodayTime { get; set; } = lowWindChillTodayTime;
+		public string LowWindChillTodayTime { get; } = lowWindChillTodayTime;
 
 		[DataMember]
-		public string WindUnit = windUnit;
+		public string WindUnit { get; } = windUnit;
 
 		[DataMember]
-		public string RainUnit { get; set; } = rainUnit;
+		public string RainUnit { get; } = rainUnit;
 
 		[DataMember]
-		public string TempUnit { get; set; } = tempUnit;
+		public string TempUnit { get; } = tempUnit;
 
 		[DataMember]
-		public string PressUnit { get; set; } = pressUnit;
+		public string PressUnit { get; } = pressUnit;
 
 		[DataMember]
-		public string CloudbaseUnit { get; set; } = cloudbaseUnit;
+		public string CloudbaseUnit { get; } = cloudbaseUnit;
 
 		[DataMember]
-		public int Cloudbase { get; set; } = cloudbase;
+		public int Cloudbase { get; } = cloudbase;
 
 		[DataMember]
-		public string LowHumTodayTime { get; set; } = lowHumTodayTime;
+		public string LowHumTodayTime { get; } = lowHumTodayTime;
 
 		[DataMember]
-		public string HighHumTodayTime { get; set; } = highHumTodayTime;
+		public string HighHumTodayTime { get; } = highHumTodayTime;
 
 		[DataMember]
-		public int LowHumToday { get; set; } = lowHumToday;
+		public int LowHumToday { get; } = lowHumToday;
 
 		[DataMember]
-		public int HighHumToday { get; set; } = highHumToday;
+		public int HighHumToday { get; } = highHumToday;
 
 		[DataMember]
-		public string HighRainRateTodayTime { get; set; } = highRainRateTodayTime;
+		public string HighRainRateTodayTime { get; } = highRainRateTodayTime;
 
 		[IgnoreDataMember]
-		public double HighRainRateToday { get; set; } = highRainRateToday;
+		public double HighRainRateToday { get; } = highRainRateToday;
 
 		[DataMember(Name = "HighRainRateToday")]
 		public string HighRainRateTodayRounded
 		{
 			get => HighRainRateToday.ToString(cumulus.RainFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string HighHourlyRainTodayTime { get; set; } = highHourlyRainTodayTime;
+		public string HighHourlyRainTodayTime { get; } = highHourlyRainTodayTime;
 
 		[IgnoreDataMember]
-		public double HighHourlyRainToday { get; set; } = highHourlyRainToday;
+		public double HighHourlyRainToday { get; } = highHourlyRainToday;
 
 		[DataMember(Name = "HighHourlyRainToday")]
 		public string HighHourlyRainTodayRounded
 		{
 			get => HighHourlyRainToday.ToString(cumulus.RainFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string LowPressTodayTime { get; set; } = lowPressTodayTime;
+		public string LowPressTodayTime { get; } = lowPressTodayTime;
 
 		[DataMember]
-		public string HighPressTodayTime { get; set; } = highPressTodayTime;
+		public string HighPressTodayTime { get; } = highPressTodayTime;
 
 		[IgnoreDataMember]
-		public double LowPressToday { get; set; } = lowPressToday;
+		public double LowPressToday { get; } = lowPressToday;
 
 		[DataMember(Name = "LowPressToday")]
 		public string LowPressTodayRounded
 		{
 			get => LowPressToday.ToString(cumulus.PressFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double HighPressToday { get; set; } = highPressToday;
+		public double HighPressToday { get; } = highPressToday;
 
 		[DataMember(Name = "HighPressToday")]
 		public string HighPressTodayRounded
 		{
 			get => HighPressToday.ToString(cumulus.PressFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string LowTempTodayTime { get; set; } = lowTempTodayTime;
+		public string LowTempTodayTime { get; } = lowTempTodayTime;
 
 		[DataMember]
-		public string HighTempTodayTime { get; set; } = highTempTodayToday;
+		public string HighTempTodayTime { get; } = highTempTodayToday;
 
 		[IgnoreDataMember]
-		public double LowTempToday { get; set; } = lowTempToday;
+		public double LowTempToday { get; } = lowTempToday;
 
 		[DataMember(Name = "LowTempToday")]
 		public string LowTempTodayRounded
 		{
 			get => LowTempToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double HighTempToday { get; set; } = highTempToday;
+		public double HighTempToday { get; } = highTempToday;
 
 		[DataMember(Name = "HighTempToday")]
 		public string HighTempTodayRounded
 		{
 			get => HighTempToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string WindRoseData { get; set; } = windRoseData;
+		public string WindRoseData { get; } = windRoseData;
 
 		[DataMember]
-		public int BearingRangeTo10 { get; set; } = bearingRangeTo10;
+		public int BearingRangeTo10 { get; } = bearingRangeTo10;
 
 		[DataMember]
-		public int BearingRangeFrom10 { get; set; } = bearingRangeFrom10;
+		public int BearingRangeFrom10 { get; } = bearingRangeFrom10;
 
 		[DataMember]
-		public int HighGustBearingToday { get; set; } = highGustBearingToday;
+		public int HighGustBearingToday { get; } = highGustBearingToday;
 
 		[IgnoreDataMember]
-		public double HighWindToday { get; set; } = highWindToday;
+		public double HighWindToday { get; } = highWindToday;
 
 		[DataMember(Name = "HighWindToday")]
 		public string HighWindTodayRounded
 		{
 			get => HighWindToday.ToString(cumulus.WindAvgFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string HighGustTodayTime { get; set; } = highGustTodayTime;
+		public string HighGustTodayTime { get; } = highGustTodayTime;
 
 		[IgnoreDataMember]
-		public double HighGustToday { get; set; } = highGustToday;
+		public double HighGustToday { get; } = highGustToday;
 
 		[DataMember(Name = "HighGustToday")]
 		public string HighGustTodayRounded
 		{
 			get => HighGustToday.ToString(cumulus.WindFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double OutdoorTemp { get; set; } = outdoorTemp;
+		public double OutdoorTemp { get; } = outdoorTemp;
 
 		[DataMember(Name = "OutdoorTemp")]
 		public string OutdoorTempRounded
 		{
 			get => OutdoorTemp.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[DataMember]
-		public int OutdoorHum { get; set; } = outdoorHum;
+		public int OutdoorHum { get; } = outdoorHum;
 
 		[IgnoreDataMember]
-		public double AvgTempToday { get; set; } = avgTempToday;
+		public double AvgTempToday { get; } = avgTempToday;
 
 		[DataMember(Name = "AvgTempToday")]
 		public string AvgTempRounded
 		{
 			get => AvgTempToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[DataMember]
-		public int IndoorHum { get; set; } = indoorHum;
+		public int IndoorHum { get; } = indoorHum;
 
 		[IgnoreDataMember]
-		public double Pressure { get; set; } = pressure;
+		public double Pressure { get; } = pressure;
 
 		[DataMember(Name = "Pressure")]
 		public string PressureRounded
 		{
 			get => Pressure.ToString(cumulus.PressFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double AlltimeHighPressure { get; set; } = alltimeHighPressure;
+		public double AlltimeHighPressure { get; } = alltimeHighPressure;
 
 		[DataMember(Name = "AlltimeHighPressure")]
 		public string AlltimeHighPressureRounded
 		{
 			get => AlltimeHighPressure.ToString(cumulus.PressFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double AlltimeLowPressure { get; set; } = alltimeLowPressure;
+		public double AlltimeLowPressure { get; } = alltimeLowPressure;
 
 		[DataMember(Name = "AlltimeLowPressure")]
 		public string AlltimeLowPressureRounded
 		{
 			get => AlltimeLowPressure.ToString(cumulus.PressFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double WindLatest { get; set; } = windLatest;
+		public double WindLatest { get; } = windLatest;
 
 		[DataMember(Name = "WindLatest")]
 		public string WindLatestRounded
 		{
 			get => WindLatest.ToString(cumulus.WindFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double WindAverage { get; set; } = windAverage;
+		public double WindAverage { get; } = windAverage;
 
 		[DataMember(Name = "WindAverage")]
 		public string WindAverageRounded
 		{
 			get => WindAverage.ToString(cumulus.WindAvgFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double Recentmaxgust { get; set; } = recentmaxgust;
+		public double Recentmaxgust { get; } = recentmaxgust;
 
 		[DataMember(Name = "Recentmaxgust")]
 		public string RecentmaxgustRounded
 		{
 			get => Recentmaxgust.ToString(cumulus.WindFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double WindRunToday { get; set; } = windRunToday;
+		public double WindRunToday { get; } = windRunToday;
 
 		[DataMember(Name = "WindRunToday")]
 		public string WindRunTodayRounded
 		{
 			get => WindRunToday.ToString(cumulus.WindRunFormat);
-			set { }
 		}
 
 		[DataMember]
-		public int Bearing { get; set; } = bearing;
+		public int Bearing { get; } = bearing;
 
 		[DataMember]
-		public int Avgbearing { get; set; } = avgbearing;
+		public int Avgbearing { get; } = avgbearing;
 
 		[IgnoreDataMember]
-		public double RainToday { get; set; } = rainToday;
+		public double RainToday { get; } = rainToday;
 
 		[DataMember(Name = "RainToday")]
 		public string RainTodayRounded
 		{
 			get => RainToday.ToString(cumulus.RainFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double RainYesterday { get; set; } = rainYesterday;
+		public double RainYesterday { get; } = rainYesterday;
 
 		[DataMember(Name = "RainYesterday")]
 		public string RainYesterdayRounded
 		{
 			get => RainYesterday.ToString(cumulus.RainFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double RainMonth { get; set; } = rainMonth;
+		public double RainMonth { get; } = rainMonth;
 
 		[DataMember(Name = "RainMonth")]
 		public string RainMonthRounded
 		{
 			get => RainMonth.ToString(cumulus.RainFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double RainYear { get; set; } = rainYear;
+		public double RainYear { get; } = rainYear;
 		[DataMember(Name = "RainYear")]
 		public string RainYearRounded
 		{
 			get => RainYear.ToString(cumulus.RainFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double RainRate { get; set; } = rainRate;
+		public double RainRate { get; } = rainRate;
 
 		[DataMember(Name = "RainRate")]
 		public string RainRateRounded
 		{
 			get => RainRate.ToString(cumulus.RainFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double RainLastHour { get; set; } = rainLastHour;
+		public double RainLastHour { get; } = rainLastHour;
 
 		[DataMember(Name = "RainLastHour")]
 		public string RainLastHourRounded
 		{
 			get => RainLastHour.ToString(cumulus.RainFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double RainLast24Hour { get; set; } = last24hourRain;
+		public double RainLast24Hour { get; } = last24hourRain;
 
 		[DataMember(Name = "RainLast24Hour")]
 		public string RainLast24HourRounded
 		{
 			get => RainLast24Hour.ToString(cumulus.RainFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double HeatIndex { get; set; } = heatIndex;
+		public double HeatIndex { get; } = heatIndex;
 
 		[DataMember(Name = "HeatIndex")]
 		public string HeatIndexRounded
 		{
 			get => HeatIndex.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double Humidex { get; set; } = humidex;
+		public double Humidex { get; } = humidex;
 
 		[DataMember(Name = "Humidex")]
 		public string HumidexRounded
 		{
 			get => Humidex.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string HighHumidexTodayTime { get; set; } = highHumidexTodayTime;
+		public string HighHumidexTodayTime { get; } = highHumidexTodayTime;
 
 		[IgnoreDataMember]
-		public double HighHumidexToday { get; set; } = highHumidexToday;
+		public double HighHumidexToday { get; } = highHumidexToday;
 
 		[DataMember(Name = "HighHumidexToday")]
 		public string HighHumidexTodayRounded
 		{
 			get => HighHumidexToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double AppTemp { get; set; } = appTemp;
+		public double AppTemp { get; } = appTemp;
 
 		[DataMember(Name = "AppTemp")]
 		public string AppTempRounded
 		{
 			get => AppTemp.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string LowAppTempTodayTime { get; set; } = lowAppTempTodayTime;
+		public string LowAppTempTodayTime { get; } = lowAppTempTodayTime;
 
 		[DataMember]
-		public string HighAppTempTodayTime { get; set; } = highAppTempTodayTime;
+		public string HighAppTempTodayTime { get; } = highAppTempTodayTime;
 
 		[IgnoreDataMember]
-		public double LowAppTempToday { get; set; } = lowAppTempToday;
+		public double LowAppTempToday { get; } = lowAppTempToday;
 
 		[DataMember(Name = "LowAppTempToday")]
 		public string LowAppTempTodayRounded
 		{
 			get => LowAppTempToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double HighAppTempToday { get; set; } = highAppTempToday;
+		public double HighAppTempToday { get; } = highAppTempToday;
 
 		[DataMember(Name = "HighAppTempToday")]
 		public string HighAppTempTodayRounded
 		{
 			get => HighAppTempToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double FeelsLike { get; set; } = feelsLike;
+		public double FeelsLike { get; } = feelsLike;
 
 		[DataMember(Name = "FeelsLike")]
 		public string FeelsLikeRounded
 		{
 			get => FeelsLike.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[DataMember]
-		public string LowFeelsLikeTodayTime { get; set; } = lowFeelsLikeTodayTime;
+		public string LowFeelsLikeTodayTime { get; } = lowFeelsLikeTodayTime;
 
 		[DataMember]
-		public string HighFeelsLikeTodayTime { get; set; } = highFeelsLikeTodayTime;
+		public string HighFeelsLikeTodayTime { get; } = highFeelsLikeTodayTime;
 
 		[IgnoreDataMember]
-		public double LowFeelsLikeToday { get; set; } = lowFeelsLikeToday;
+		public double LowFeelsLikeToday { get; } = lowFeelsLikeToday;
 
 		[DataMember(Name = "LowFeelsLikeToday")]
 		public string LowFeelsLikeTodayRounded
 		{
 			get => LowFeelsLikeToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double HighFeelsLikeToday { get; set; } = highFeelsLikeToday;
+		public double HighFeelsLikeToday { get; } = highFeelsLikeToday;
 
 		[DataMember(Name = "HighFeelsLikeToday")]
 		public string HighFeelsLikeTodayRounded
 		{
 			get => HighFeelsLikeToday.ToString(cumulus.TempFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double TempTrend { get; set; } = tempTrend;
+		public double TempTrend { get; } = tempTrend;
 
 		[DataMember(Name = "TempTrend")]
 		public string TempTrendRounded
 		{
 			get => TempTrend.ToString(cumulus.TempTrendFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double PressTrend { get; set; } = pressTrend;
+		public double PressTrend { get; } = pressTrend;
 
 		[DataMember(Name = "PressTrend")]
 		public string PressTrendRounded
 		{
 			get => PressTrend.ToString(cumulus.PressTrendFormat);
-			set { }
 		}
 
 		[IgnoreDataMember]
-		public double SunshineHours { get; set; } = sunshineHours;
+		public double SunshineHours { get; } = sunshineHours;
 
 		[DataMember(Name = "SunshineHours")]
 		public string SunshineHoursRounded
 		{
 			get => SunshineHours.ToString(cumulus.SunFormat);
-			set { }
 		}
 
 		[DataMember]
 		public string Version
 		{
 			get => cumulus.Version;
-			set { }
 		}
 
 		[DataMember]
 		public string Build
 		{
 			get => cumulus.Build;
-			set { }
 		}
 
 		[DataMember]
-		public string DominantWindDirection { get; set; } = domWindDir;
+		public string DominantWindDirection { get; } = domWindDir;
 
 		[DataMember]
-		public string LastRainTipISO { get; set; } = lastRainTipISO;
+		public string LastRainTipISO { get; } = lastRainTipISO;
 
 		[DataMember]
-		public string HighBeaufortToday { get; set; } = highBeaufortToday;
+		public string HighBeaufortToday { get; } = highBeaufortToday;
 
 		[DataMember]
-		public string Beaufort { get; set; } = beaufort;
+		public string Beaufort { get; } = beaufort;
 
 		[DataMember]
-		public string BeaufortDesc { get; set; } = beaufortDesc;
+		public string BeaufortDesc { get; } = beaufortDesc;
 
 		[DataMember]
-		public string LastDataRead { get; set; } = lastDataRead;
+		public string LastDataRead { get; } = lastDataRead;
 
 		[DataMember]
-		public bool DataStopped { get; set; } = dataStopped;
+		public bool DataStopped { get; } = dataStopped;
 
 		[DataMember]
-		public List<DashboardAlarms> Alarms { get; set; } = alarms;
+		public List<DashboardAlarms> Alarms { get; } = alarms;
 	}
 }

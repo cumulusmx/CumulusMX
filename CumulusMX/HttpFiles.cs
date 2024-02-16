@@ -220,7 +220,7 @@ namespace CumulusMX
 			}
 		}
 
-		private class HttpFileSettings
+		private sealed class HttpFileSettings
 		{
 			public bool accessible { get; set; }
 			public List<HttpFileProps> files { get; set; }

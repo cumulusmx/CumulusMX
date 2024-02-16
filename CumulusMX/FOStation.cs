@@ -15,15 +15,11 @@ namespace CumulusMX
 	internal class FOStation : WeatherStation
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
-		//private IDevice[] stations;
-		//private IDevice device;
-
 		private readonly double pressureOffset;
 		private HidDevice hidDevice;
 		private HidStream stream;
 		private List<HistoryData> datalist;
 
-		//private readonly int maxHistoryEntries;
 		private int prevaddr = -1;
 		private int prevraintotal = -1;
 		private int ignoreraincount;
@@ -37,16 +33,12 @@ namespace CumulusMX
 		private bool stationSyncDone;
 		private bool solarSyncDone;
 		private bool doSolarSync;
-		//private DateTime lastraintip;
-		//private int raininlasttip = 0;
-		//private readonly double[] WindRunHourMult = {3.6, 1.0, 1.0, 1.0};
 		private readonly Timer tmrDataRead;
 		private int readCounter;
 		private bool hadfirstsyncdata;
 		private readonly byte[] prevdata = new byte[20];
 		private readonly int foEntrysize;
 		private readonly int foMaxAddr;
-		//private int FOmaxhistoryentries;
 		private readonly bool hasSolar;
 		private bool readingData = false;
 
@@ -80,13 +72,11 @@ namespace CumulusMX
 			{
 				foEntrysize = 0x14;
 				foMaxAddr = 0xFFEC;
-				//maxHistoryEntries = 3264;
 			}
 			else
 			{
 				foEntrysize = 0x10;
 				foMaxAddr = 0xFFF0;
-				//maxHistoryEntries = 4080;
 			}
 
 			do
@@ -168,8 +158,6 @@ namespace CumulusMX
 
 		public override void startReadingHistoryData()
 		{
-			//lastArchiveTimeUTC = getLastArchiveTime();
-
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
 			bw = new BackgroundWorker();
@@ -202,9 +190,7 @@ namespace CumulusMX
 
 		private void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
-			//cumulus.LogDebugMessage("Lock: Station waiting for the lock");
 			Cumulus.SyncInit.Wait();
-			//cumulus.LogDebugMessage("Lock: Station has the lock");
 			try
 			{
 				getAndProcessHistoryData();
@@ -213,7 +199,6 @@ namespace CumulusMX
 			{
 				cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
 			}
-			//cumulus.LogDebugMessage("Lock: Station releasing the lock");
 			Cumulus.SyncInit.Release();
 		}
 
@@ -222,12 +207,10 @@ namespace CumulusMX
 			var data = new byte[32];
 			int interval = 0;
 			cumulus.LogMessage("Current culture: " + CultureInfo.CurrentCulture.DisplayName);
-			//DateTime now = DateTime.Now;
 			cumulus.LogMessage(DateTime.Now.ToString("G"));
 			cumulus.LogMessage("Start reading history data");
 			Cumulus.LogConsoleMessage("Downloading Archive Data");
 			DateTime timestamp = DateTime.Now;
-			//LastUpdateTime = DateTime.Now; // lastArchiveTimeUTC.ToLocalTime();
 			cumulus.LogMessage("Last Update = " + cumulus.LastUpdateTime);
 			cumulus.LogDebugMessage("Reading fixed memory block");
 			if (!ReadAddress(0, data))
@@ -339,8 +322,6 @@ namespace CumulusMX
 
 					datalist.Add(histData);
 
-					//bw.ReportProgress(datalist.Count, "collecting");
-
 					if (!Program.service)
 					{
 						Console.Write($"\r - Downloaded {datalist.Count} records, current date - {histData.timestamp:g}");
@@ -363,11 +344,6 @@ namespace CumulusMX
 			{
 				ProcessHistoryData();
 			}
-
-			//using (cumulusEntities dataContext = new cumulusEntities())
-			//{
-			//    UpdateHighsAndLows(dataContext);
-			//}
 		}
 
 		private void ProcessHistoryData()
@@ -514,20 +490,6 @@ namespace CumulusMX
 
 					// record time of last rain tip, to use in
 					// normal running rain rate calc NB rain rate calc not currently used
-					/*
-					if (raindiff > 0)
-					{
-						lastraintip = timestamp;
-
-						raininlasttip = raindiff;
-					}
-					else
-					{
-						lastraintip = DateTime.MinValue;
-
-						raininlasttip = 0;
-					}
-					*/
 					double rainrate;
 
 					if (raindiff > 100)
@@ -604,12 +566,12 @@ namespace CumulusMX
 
 				bw.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
-				cumulus.DoLogFile(timestamp, false);
+				_ = cumulus.DoLogFile(timestamp, false);
 				cumulus.DoCustomIntervalLogs(timestamp);
 
 				if (cumulus.StationOptions.LogExtraSensors)
 				{
-					cumulus.DoExtraLogFile(timestamp);
+					_ = cumulus.DoExtraLogFile(timestamp);
 				}
 				cumulus.MySqlRealtimeFile(999, false, timestamp);
 
@@ -715,7 +677,6 @@ namespace CumulusMX
 		/// <param name="buff">Where to return the data</param>
 		private bool ReadAddress(int address, byte[] buff)
 		{
-			//cumulus.LogMessage("Reading address " + address.ToString("X6"));
 			var lowbyte = (byte) (address & 0xFF);
 			var highbyte = (byte) (address >> 8);
 
@@ -741,7 +702,6 @@ namespace CumulusMX
 				return false;
 			}
 
-			//response = device.WriteRead(0x00, request);
 			try
 			{
 				stream.Write(request);
@@ -764,7 +724,6 @@ namespace CumulusMX
 			Thread.Sleep(cumulus.FineOffsetOptions.ReadTime);
 			for (int i = 1; i < 5; i++)
 			{
-				//cumulus.LogMessage("Reading 8 bytes");
 				try
 				{
 					stream.Read(response, 0, responseLength);
@@ -794,7 +753,7 @@ namespace CumulusMX
 			return true;
 		}
 
-		private bool WriteAddress(int address, byte val)
+		private void WriteAddress(int address, byte val)
 		{
 			var addrlowbyte = (byte) (address & 0xFF);
 			var addrhighbyte = (byte) (address >> 8);
@@ -803,10 +762,9 @@ namespace CumulusMX
 
 			if (hidDevice == null)
 			{
-				return false;
+				return;
 			}
 
-			//response = device.WriteRead(0x00, request);
 			try
 			{
 				stream.Write(request);
@@ -823,10 +781,7 @@ namespace CumulusMX
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.LastMessage = "Error sending command to station - it may need resetting: " + ex.Message;
 				cumulus.DataStoppedAlarm.Triggered = true;
-				return false;
 			}
-
-			return true;
 		}
 
 		private void DataReadTimerTick(object state, ElapsedEventArgs elapsedEventArgs)
@@ -841,7 +796,10 @@ namespace CumulusMX
 					{
 						stream.Close();
 					}
-					catch { }
+					catch
+					{
+						// do nothing
+					}
 				}
 
 				if (!OpenHidDevice())
@@ -1029,13 +987,11 @@ namespace CumulusMX
 			else if (addr != prevaddr)
 			{
 				// location has changed, skip this read to give it chance to update
-				//cumulus.LogMessage("Location changed, skipping");
 				cumulus.LogDebugMessage("Address changed, delay reading data this time");
 				cumulus.LogDebugMessage("addr=" + addr.ToString("X4") + " previous=" + prevaddr.ToString("X4"));
 
 				if (synchronising && !stationSyncDone)
 				{
-					//Cumulus.LogConsoleMessage(" - Console clock minute changed");
 					cumulus.LogMessage("Synchronise: Console clock minute changed");
 
 					FOStationClockTime = DateTime.Now;
@@ -1080,7 +1036,6 @@ namespace CumulusMX
 
 					if (datachanged)
 					{
-						//Cumulus.LogConsoleMessage(" - Sensor data changed");
 						cumulus.LogMessage("Synchronise: Sensor data changed");
 
 						if (!sensorSyncDone)
@@ -1098,21 +1053,6 @@ namespace CumulusMX
 					// station clock minute change
 					// the minutes in the data block only seems to update when data is written to the block,
 					// so we cannot use that as an accurate indication of when the console clock minute changes
-					/*
-					if (prevdata[0] != data[0])
-					{
-						Cumulus.LogConsoleMessage(" - Console clock minute changed");
-						cumulus.LogMessage("Synchronise: Console clock minute changed");
-
-						if (!stationSync)
-						{
-							FOStationClockTime = now;
-							stationSync = true;
-						}
-
-						prevdata[0] = data[0];
-					}
-					*/
 				}
 				else
 				{
@@ -1140,7 +1080,6 @@ namespace CumulusMX
 
 						if (datachanged)
 						{
-							//Cumulus.LogConsoleMessage(" - Solar data changed");
 							cumulus.LogMessage("Synchronise: Solar data changed");
 
 							if (!solarSyncDone)
@@ -1484,7 +1423,8 @@ namespace CumulusMX
 				}
 			}
 
-			Cumulus.LogConsoleMessage($" - Found times for:- sensor: {foundSensor}, station: {foundStation} {(hasSolar ? (", solar:" + (doSolarSync ? foundSolar.ToString() : "supressed")) : "")}", ConsoleColor.Gray);
+			var solEnabled = doSolarSync ? foundSolar.ToString() : "supressed";
+			Cumulus.LogConsoleMessage($" - Found times for:- sensor: {foundSensor}, station: {foundStation} {(hasSolar ? ", solar:" + solEnabled : "")}", ConsoleColor.Gray);
 
 			cumulus.LogMessage("Stop Synchronising");
 			Cumulus.LogConsoleMessage("Stop Synchronising", ConsoleColor.Gray, true);
@@ -1516,7 +1456,7 @@ namespace CumulusMX
 		}
 
 
-		private class HistoryData
+		private sealed class HistoryData
 		{
 			public int inHum;
 

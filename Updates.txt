@@ -1,7 +1,8 @@
 4.0.0 - b4012
 —————————————
 - Fix CPU temperature when not running on Windows
-
+- Fix EcowittCloud not applying historic piezo rainfall
+- Some fixes to Ecowitt firmware versions
 
 4.0.0 - b4011
 —————————————

@@ -36,7 +36,7 @@ namespace CumulusMX
 	//    Wind Direction                  16      2       It is a two byte unsigned value from 0 to 360 degrees.
 	//                                                        (0° is North, 90° is East, 180° is South and 270° is West.)
 	//    Extra Temperatures              18      7       This field supports seven extra temperature stations. Each byte is one extra temperature value
-	//                                                        in whole degrees F with an offset of 90 degrees.  For example, a value of 0 = -90°F ;
+	//                                                        in whole degrees F with an offset of 90 degrees.  For example, a value of 0 = -90°F
 	//                                                        a value of 100 = 10°F ; and a value of 169 = 79°F.
 	//    Soil Temperatures               25      4       This field supports four soil temperature sensors, in the same format as the Extra Temperature
 	//                                                        field above
@@ -253,7 +253,7 @@ namespace CumulusMX
 				var srYear = (stormRainStart & 0x007F) + 2000;
 				if (srMonth < 13 && srDay < 32)  // Exception suppression!
 				{
-					StormRainStart = new DateTime(srYear, srMonth, srDay);
+					StormRainStart = new DateTime(srYear, srMonth, srDay, 0, 0, 0, DateTimeKind.Local);
 				}
 				else
 				{
@@ -264,20 +264,6 @@ namespace CumulusMX
 			{
 				StormRainStart = DateTime.MinValue;
 			}
-
-			// get the current date and time
-			// DateTime currTime = DateTime.Now;
-
-			//int timevalue = BitConverter.ToInt16(byteArray, 91);
-			//int minutes;
-			//int hours = Math.DivRem(timevalue, 100, out minutes);
-
-			// Create a new Datetime instance - use current year, month and day
-			//SunRise = new DateTime(currTime.Year, currTime.Month, currTime.Day, hours, minutes, 0);
-
-			//timevalue = BitConverter.ToInt16(byteArray, 93);
-			//hours = Math.DivRem(timevalue, 100, out minutes);
-			//SunSet = new DateTime(currTime.Year, currTime.Month, currTime.Day, hours, minutes, 0);
 		}
 
 		// This procedure displays the data that we've captured from the Vantage and processed already.
@@ -376,7 +362,7 @@ namespace CumulusMX
 	//    Total Length                    43
 	public class WeatherCalibrationData
 	{
-		// Not yet implemented
+		// TODO: Not yet implemented
 	}
 
 	public class VPArchiveData
@@ -559,11 +545,11 @@ namespace CumulusMX
 
 			try
 			{
-				Timestamp = new DateTime(year, month, day, hours, minutes, 0);
+				Timestamp = new DateTime(year, month, day, hours, minutes, 0, DateTimeKind.Local);
 			}
 			catch (Exception)
 			{
-				Timestamp = new DateTime(1900, 1, 1);
+				Timestamp = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Local);
 			}
 			lastArchiveDate = Timestamp;
 		}
@@ -608,139 +594,6 @@ namespace CumulusMX
 			AvgUVIndex = 0.0F;
 			Rainfall = 0.0F;
 		}
-
-		//        internal void Process(DavisStation station) // Processes the archive data once it's been loaded
-		//        {
-		/*  station.IndoorTemperature = ConvertUnits.TempFToUser(InsideTemperature);
-		station.OutdoorTemperature = ConvertUnits.TempFToUser(OutsideTemperature);
-		station.IndoorHumidity = InsideHumidity;
-		station.OutdoorHumidity = OutsideHumidity;
-		station.Pressure = station.ConvertPressToInternal(Pressure);
-		station.WindLatest = station.ConvertWindToInternal(HiWindSpeed);
-		station.WindAverage = station.ConvertWindToInternal(AvgWindSpeed);
-		station.Bearing = (int) (WindDirection*22.5F);
-		station.BearingText = station.CompassPoint(WindDirection);
-		station.Raincounter += station.ConvertRainClicksToInternal(Rainfall);
-		station.RainRate = station.ConvertRainClicksToInternal(HiRainRate);
-
-		station.UV = AvgUVIndex;
-		station.SolarRad = SolarRad;
-		station.ET = ConvertUnits.RainMMToUser(ET);
-
-		station.ExtraHum[1] = ExtraHum1;
-		station.ExtraHum[2] = ExtraHum2;
-		station.ExtraTemp[1] = ExtraTemp1;
-		station.ExtraTemp[2] = ExtraTemp2;
-		station.ExtraTemp[3] = ExtraTemp3;
-
-		station.ExtraDewPoint[1] = (double) MeteoLib.DewPoint(ExtraTemp1, ExtraHum1);
-		station.ExtraDewPoint[2] = (double) MeteoLib.DewPoint(ExtraTemp2, ExtraHum2);
-
-		station.SoilMoisture1 = SoilMoisture1;
-		station.SoilMoisture2 = SoilMoisture2;
-		station.SoilMoisture3 = SoilMoisture3;
-		station.SoilMoisture4 = SoilMoisture4;
-
-		station.SoilTemp1 = SoilTemp1;
-		station.SoilTemp2 = SoilTemp2;
-		station.SoilTemp3 = SoilTemp3;
-		station.SoilTemp4 = SoilTemp4;
-
-		station.LeafWetness1 = LeafWetness1;
-		station.LeafWetness2 = LeafWetness2;
-
-		station.LeafTemp1 = LeafTemp1;
-		station.LeafTemp1 = LeafTemp2;
-
-		if (!station.gotraindaystart)
-		{
-			// we haven't got the start of day rain counter yet
-			// try to find it
-			double sodrain = station.getStartOfDayRainCounter(Timestamp);
-
-			if (sodrain >= 0)
-			{
-				// found it
-				station.raindaystart = sodrain;
-			}
-			else
-			{
-				// can't find it - use current value
-				station.raindaystart = station.Raincounter;
-			}
-
-			station.gotraindaystart = true;
-		}
-
-		if (station.haveReadData)
-		{
-			if (station.lastDataReadTime.Day != Timestamp.Day)
-			{
-				// current data is for a new day
-				// reset start of day rain counter
-				station.raindaystart = station.Raincounter;
-			}
-		}
-
-		station.haveReadData = true;
-
-		station.RainToday = station.Raincounter - station.raindaystart;
-
-		//String dbfile = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData) + @"\Cumulus\cumulus.s3db";
-		//using(SQLiteConnection conn = new SQLiteConnection("Data Source=" + dbfile))
-		//using (SQLiteCommand insertcmd = new SQLiteCommand(conn))
-		//{
-		//    conn.Open();
-		//    insertcmd.CommandText = "INSERT OR IGNORE INTO [weather] ([timestamp], [outsideTemp], [hiOutsideTemp], [loOutsideTemp], [insideTemp], [barometer], [outsideHum], [insideHum], [rainfall], [hiRainRate], [avgWindSpeed], [hiWindSpeed], [windDirection], [hiWindDirection], [solarRad], [hiSolarRad], [avgUVIndex], [hiUVIndex], [ET], [leafTemp1], [leafTemp2], [soilTemp1], [soilTemp2], [soilTemp3], [soilTemp4], [leafWetness1], [leafWetness2], [extraHum1], [extraHum2], [extraTemp1], [extraTemp2], [extraTemp3], [soilMoisture1], [soilMoisture2], [soilMoisture3], [soilMoisture4]) VALUES (@timestamp, @outsideTemp, @hiOutsideTemp, @loOutsideTemp, @insideTemp, @barometer, @outsideHum, @insideHum, @rainfall, @hiRainRate, @avgWindSpeed, @hiWindSpeed, @windDirection, @hiWindDirection, @solarRad, @hiSolarRad, @avgUVIndex, @hiUVIndex, @ET, @leafTemp1, @leafTemp2, @soilTemp1, @soilTemp2, @soilTemp3, @soilTemp4, @leafWetness1, @leafWetness2, @extraHum1, @extraHum2, @extraTemp1, @extraTemp2, @extraTemp3, @soilMoisture1, @soilMoisture2, @soilMoisture3, @soilMoisture4)";
-		//    // set all the parameters
-		//    insertcmd.Parameters.AddWithValue("@timestamp", Timestamp);
-		//    insertcmd.Parameters.AddWithValue("@outsideTemp", OutsideTemperature);
-		//    insertcmd.Parameters.AddWithValue("@hiOutsideTemp", HiOutsideTemp);
-		//    insertcmd.Parameters.AddWithValue("@loOutsideTemp", LoOutsideTemp);
-		//    insertcmd.Parameters.AddWithValue("@insideTemp", InsideTemperature);
-		//    insertcmd.Parameters.AddWithValue("@barometer", Barometer);
-		//    insertcmd.Parameters.AddWithValue("@outsideHum", OutsideHumidity);
-		//    insertcmd.Parameters.AddWithValue("@insideHum", InsideHumidity);
-		//    insertcmd.Parameters.AddWithValue("@rainfall", Rainfall);
-		//    insertcmd.Parameters.AddWithValue("@hiRainRate", HiRainRate);
-		//    insertcmd.Parameters.AddWithValue("@avgWindSpeed", AvgWindSpeed);
-		//    insertcmd.Parameters.AddWithValue("@hiWindSpeed", HiWindSpeed);
-		//    insertcmd.Parameters.AddWithValue("@windDirection", WindDirection);
-		//    insertcmd.Parameters.AddWithValue("@hiWindDirection", HiWindDirection);
-		//    insertcmd.Parameters.AddWithValue("@solarRad", SolarRad);
-		//    insertcmd.Parameters.AddWithValue("@hiSolarRad", HiSolarRad);
-		//    insertcmd.Parameters.AddWithValue("@avgUVIndex", AvgUVIndex);
-		//    insertcmd.Parameters.AddWithValue("@hiUVIndex", HiUVIndex);
-		//    insertcmd.Parameters.AddWithValue("@ET", ET);
-		//    insertcmd.Parameters.AddWithValue("@leafTemp1", LeafTemp1);
-		//    insertcmd.Parameters.AddWithValue("@leafTemp2", LeafTemp2);
-		//    insertcmd.Parameters.AddWithValue("@soilTemp1", SoilTemp1);
-		//    insertcmd.Parameters.AddWithValue("@soilTemp2", SoilTemp2);
-		//    insertcmd.Parameters.AddWithValue("@soilTemp3", SoilTemp3);
-		//    insertcmd.Parameters.AddWithValue("@soilTemp4", SoilTemp4);
-		//    insertcmd.Parameters.AddWithValue("@leafWetness1", LeafWetness1);
-		//    insertcmd.Parameters.AddWithValue("@leafWetness2", LeafWetness2);
-		//    insertcmd.Parameters.AddWithValue("@extraHum1", ExtraHum);
-		//    insertcmd.Parameters.AddWithValue("@extraHum2", ExtraHum2);
-		//    insertcmd.Parameters.AddWithValue("@extraTemp1", ExtraTemp1);
-		//    insertcmd.Parameters.AddWithValue("@extraTemp2", ExtraTemp2);
-		//    insertcmd.Parameters.AddWithValue("@extraTemp3", ExtraTemp3);
-		//    insertcmd.Parameters.AddWithValue("@soilMoisture1", SoilMoisture1);
-		//    insertcmd.Parameters.AddWithValue("@soilMoisture2", SoilMoisture2);
-		//    insertcmd.Parameters.AddWithValue("@soilMoisture3", SoilMoisture3);
-		//    insertcmd.Parameters.AddWithValue("@soilMoisture4", SoilMoisture4);
-		//    try
-		//    {
-		//        insertcmd.ExecuteNonQuery();
-		//    }
-		//    catch (Exception ex)
-		//    {
-		//        cumulus.LogMessage(ex.ToString());
-		//        Trace.Flush();
-		//    }
-		//}
-	} */
-		//   }
 	}
 
 	// The VPLoop2Data class extracts and stores the weather data from the array of bytes returned from the Vantage weather station
@@ -858,7 +711,7 @@ namespace CumulusMX
 		public int THSWindex { get; private set; }
 		//public int RainRate { get; private set; }
 		//public int UV { get; private set; }
-		// public int Solar { get; private set; }
+		//public int Solar { get; private set; }
 		//public int StormRain { get; private set; }
 		//public int DailyRain { get; private set; }
 		//public int Last15mRain { get; private set; }

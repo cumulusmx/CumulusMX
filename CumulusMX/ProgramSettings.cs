@@ -86,7 +86,6 @@ namespace CumulusMX
 				security = security
 			};
 
-			//return JsonConvert.SerializeObject(data);
 			return JsonSerializer.SerializeToString(settings);
 		}
 

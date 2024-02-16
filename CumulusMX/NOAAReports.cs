@@ -10,10 +10,10 @@ namespace CumulusMX
 	{
 		private readonly Cumulus cumulus = cumulus;
 		private readonly WeatherStation station = station;
-		private string noaafile;
 
 		public string GenerateNoaaYearReport(int year)
 		{
+			string noaafile;
 			NOAA noaa = new NOAA(cumulus, station);
 			DateTime noaats = new DateTime(year, 1, 1);
 
@@ -41,6 +41,7 @@ namespace CumulusMX
 		{
 			NOAA noaa = new NOAA(cumulus, station);
 			DateTime noaats = new DateTime(year, month, 1);
+			string noaafile;
 
 			cumulus.LogMessage("Creating NOAA monthly report");
 			var report = noaa.CreateMonthlyReport(noaats);
@@ -70,8 +71,6 @@ namespace CumulusMX
 			var missingYears = new List<DateTime>();
 			var checkDate = cumulus.RecordsBeganDateTime.Date;
 			string reportName;
-			var now = DateTime.Now;
-
 
 			var lastRptDate = GetLastReportDate();
 			var lastYear = 0;
@@ -165,6 +164,8 @@ namespace CumulusMX
 			DateTime noaats = new DateTime(year, 1, 1);
 			var reportName = string.Empty;
 			string report;
+			string noaafile;
+
 			try
 			{
 				reportName = noaats.ToString(cumulus.NOAAconf.YearFile);
@@ -185,6 +186,8 @@ namespace CumulusMX
 			DateTime noaats = new DateTime(year, month, 1);
 			var reportName = string.Empty;
 			string report;
+			string noaafile;
+
 			try
 			{
 				reportName = noaats.ToString(cumulus.NOAAconf.MonthFile);

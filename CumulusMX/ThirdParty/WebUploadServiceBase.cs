@@ -36,7 +36,7 @@ namespace CumulusMX.ThirdParty
 
 		internal Timer IntTimer = new();
 
-		internal WebUploadServiceBase(Cumulus cumulus, string name)
+		private protected WebUploadServiceBase(Cumulus cumulus, string name)
 		{
 			this.cumulus = cumulus;
 			Name = name;
@@ -73,7 +73,6 @@ namespace CumulusMX.ThirdParty
 				try
 				{
 					using var response = await Cumulus.MyHttpClient.GetAsync(CatchupList[i]);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					cumulus.LogMessage($"{Name} Response: {response.StatusCode}: {response.ReasonPhrase}");
 				}
 				catch (Exception ex)

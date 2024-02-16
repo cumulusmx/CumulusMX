@@ -59,12 +59,12 @@ namespace CumulusMX.ThirdParty
 		// Documentation on the API can be found here...
 		// https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy
 		//
-		internal override string GetURL(out string apistring, DateTime timestamp)
+		internal override string GetURL(out string pwstring, DateTime timestamp)
 		{
 			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH':'mm':'ss");
 			StringBuilder URL = new StringBuilder("https://stations.windy.com/pws/update/", 1024);
 
-			apistring = ApiKey;
+			pwstring = ApiKey;
 
 			URL.Append(ApiKey);
 			URL.Append("?station=" + StationIdx);

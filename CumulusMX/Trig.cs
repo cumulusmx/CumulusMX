@@ -2,15 +2,8 @@
 
 namespace CumulusMX
 {
-	public class Trig
+	public static class Trig
 	{
-		public Trig()
-		{
-			//
-			// TODO: Add constructor logic here
-			//
-		}
-
 		public static double DegToRad(double pfDeg)
 		{
 			return pfDeg / 180 * Math.PI;

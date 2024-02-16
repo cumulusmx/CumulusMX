@@ -14,10 +14,10 @@ namespace CumulusMX
 {
 	public static class Api
 	{
-		internal static WeatherStation Station;
-		internal static Cumulus cumulus;
+		internal static WeatherStation Station { get; set; }
+		internal static Cumulus cumulus {  get; set; }
 		public static ProgramSettings programSettings { get; set; }
-		internal static StationSettings stationSettings;
+		internal static StationSettings stationSettings { get; set; }
 		public static InternetSettings internetSettings { get; set; }
 		public static ThirdPartySettings thirdpartySettings { get; set; }
 		public static ExtraSensorSettings extraSensorSettings { get; set; }
@@ -26,33 +26,21 @@ namespace CumulusMX
 		public static MysqlSettings mySqlSettings { get; set; }
 		public static MqttSettings mqttSettings { get; set; }
 		public static CustomLogs customLogs { get; set; }
-		internal static HttpFiles httpFiles;
+		internal static HttpFiles httpFiles {  get; set; }
 		public static Wizard wizard { get; set; }
-		internal static LangSettings langSettings;
-		internal static DisplaySettings displaySettings;
-		internal static AlarmSettings alarmSettings;
-		internal static AlarmUserSettings alarmUserSettings;
-		internal static DataEditor dataEditor;
-		internal static ApiTagProcessor tagProcessor;
-		internal static HttpStationWund stationWund;
-		internal static HttpStationEcowitt stationEcowitt;
-		internal static HttpStationEcowitt stationEcowittExtra;
-		internal static HttpStationAmbient stationAmbient;
-		internal static HttpStationAmbient stationAmbientExtra;
+		internal static LangSettings langSettings {  get; set; }
+		internal static DisplaySettings displaySettings {  get; set; }
+		internal static AlarmSettings alarmSettings {  get; set; }
+		internal static AlarmUserSettings alarmUserSettings {  get; set; }
+		internal static DataEditor dataEditor {  get; set; }
+		internal static ApiTagProcessor tagProcessor { get; set; }
+		internal static HttpStationWund stationWund { get; set; }
+		internal static HttpStationEcowitt stationEcowitt { get; set; }
+		internal static HttpStationEcowitt stationEcowittExtra { get; set; }
+		internal static HttpStationAmbient stationAmbient {  get; set; }
+		internal static HttpStationAmbient stationAmbientExtra {  get; set; }
 		private static readonly char[] separator = [':'];
 
-		private static string EscapeUnicode(string input)
-		{
-			StringBuilder sb = new StringBuilder(input.Length);
-			foreach (char ch in input)
-			{
-				if (ch <= 0x7f)
-					sb.Append(ch);
-				else
-					sb.AppendFormat(CultureInfo.InvariantCulture, "\\u{0:x4}", (int) ch);
-			}
-			return sb.ToString();
-		}
 
 		// Get/Post Edit data
 		public class EditController : WebApiController
@@ -242,9 +230,6 @@ namespace CumulusMX
 
 				try
 				{
-					// read the last segment of the URL to determine what data the caller wants
-					var lastSegment = Request.Url.Segments.Last();
-
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
 					var date = query["date"];
 					var from = query["from"];
@@ -255,13 +240,12 @@ namespace CumulusMX
 					string search = query["search[value]"];
 
 					using var writer = HttpContext.OpenResponseText(new UTF8Encoding(false));
-					switch (lastSegment)
+					switch (req)
 					{
 						case "dayfile":
 							await writer.WriteAsync(Station.GetDayfile(draw, start, length, search));
 							break;
 						case "logfile":
-							//return await this.JsonResponseAsync(Station.GetLogfile(from, to, false));
 							await writer.WriteAsync(Station.GetLogfile(from, to, draw, start, length, search, false));
 							break;
 						case "extralogfile":
@@ -274,7 +258,6 @@ namespace CumulusMX
 							await writer.WriteAsync(Station.GetDiaryData(date));
 							break;
 						case "diarysummary":
-							//return await this.JsonResponseAsync(Station.GetDiarySummary(year, month));
 							await writer.WriteAsync(Station.GetDiarySummary());
 							break;
 						case "mysqlcache.json":
@@ -930,8 +913,8 @@ namespace CumulusMX
 						return;
 					}
 
-					var startDate = new DateTime(startyear, startmonth, startday);
-					var endDate = new DateTime(endyear, endmonth, endday);
+					var startDate = new DateTime(startyear, startmonth, startday, 0, 0, 0, DateTimeKind.Local);
+					var endDate = new DateTime(endyear, endmonth, endday, 0, 0, 0, DateTimeKind.Local);
 
 
 					await writer.WriteAsync(EscapeUnicode(dataEditor.GetRecordsDayFile("thisperiod", startDate, endDate)));
@@ -941,6 +924,19 @@ namespace CumulusMX
 					cumulus.LogErrorMessage($"api/records/thisperiod: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
+			}
+
+			private static string EscapeUnicode(string input)
+			{
+				StringBuilder sb = new StringBuilder(input.Length);
+				foreach (char ch in input)
+				{
+					if (ch <= 0x7f)
+						sb.Append(ch);
+					else
+						sb.AppendFormat(CultureInfo.InvariantCulture, "\\u{0:x4}", (int) ch);
+				}
+				return sb.ToString();
 			}
 		}
 
@@ -1363,13 +1359,11 @@ namespace CumulusMX
 							break;
 						default:
 							Response.StatusCode = 404;
-							throw new Exception();
+							throw new ArgumentException("Unknown request: " + req);
 					}
 				}
 				catch (Exception ex)
 				{
-					//using (var writer = HttpContext.OpenResponseText(new UTF8Encoding(false)))
-					//	await writer.WriteAsync($"{{\"Title\":\"Unexpected Error\",\"ErrorCode\":\"{ex.GetType().Name}\",\"Description\":\"{ex.Message}\"}}");
 					Response.StatusCode = 500;
 					cumulus.LogErrorMessage($"api/genreports: Unexpected Error, ErrorCode: {ex.GetType().Name}, Description: \"{ex.Message}\"");
 				}
@@ -1512,11 +1506,8 @@ namespace CumulusMX
 							await writer.WriteAsync(Station.LoadDayFile());
 							break;
 						case "purgemysql":
-							var cnt = 0;
-							while (cumulus.MySqlFailedList.TryDequeue(out var item))
-							{
-								cnt++;
-							};
+							var cnt = cumulus.MySqlFailedList.Count;
+							cumulus.MySqlFailedList.Clear();
 							_ = Station.RecentDataDb.Execute("DELETE FROM SqlCache");
 							string msg;
 							if (cnt == 0)

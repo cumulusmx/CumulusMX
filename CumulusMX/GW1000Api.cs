@@ -534,7 +534,7 @@ namespace CumulusMX
 		*/
 
 		/*
-		private class Sensors
+		private sealed class Sensors
 		{
 			SensorInfo single { get; set; }
 			SensorInfo wh26;

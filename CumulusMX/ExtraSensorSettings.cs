@@ -140,23 +140,9 @@ namespace CumulusMX
 				enabled = cumulus.SolarOptions.UseBlakeLarsen
 			};
 
-			var rg11port1 = new JsonExtraSensorRG11device
-			{
-				enabled = cumulus.RG11Enabled,
-				commPort = cumulus.RG11Port,
-				tipMode = cumulus.RG11TBRmode,
-				tipSize = cumulus.RG11tipsize,
-				dtrMode = cumulus.RG11TBRmode
-			};
+			var rg11port1 = new JsonExtraSensorRg11Device(cumulus.RG11Enabled, cumulus.RG11Port, cumulus.RG11TBRmode, cumulus.RG11tipsize, default, cumulus.RG11TBRmode);
 
-			var rg11port2 = new JsonExtraSensorRG11device
-			{
-				enabled = cumulus.RG11Enabled2,
-				commPort = cumulus.RG11Port2,
-				tipMode = cumulus.RG11TBRmode2,
-				tipSize = cumulus.RG11tipsize2,
-				dtrMode = cumulus.RG11TBRmode2
-			};
+			var rg11port2 = new JsonExtraSensorRg11Device(cumulus.RG11Enabled2, cumulus.RG11Port2, cumulus.RG11TBRmode2, cumulus.RG11tipsize2, default, cumulus.RG11TBRmode2);
 
 			var rg11 = new JsonExtraSensorRG11
 			{
@@ -278,7 +264,7 @@ namespace CumulusMX
 						cumulus.EcowittExtraUseSolar = settings.httpSensors.ecowitt.useSolar;
 						cumulus.EcowittExtraUseUv = settings.httpSensors.ecowitt.useUv;
 						cumulus.EcowittExtraUseTempHum = settings.httpSensors.ecowitt.useTempHum;
-						//cumulus.EcowittExtraUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp;
+						//cumulus.EcowittExtraUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp
 						cumulus.EcowittExtraUseSoilMoist = settings.httpSensors.ecowitt.useSoilMoist;
 						cumulus.EcowittExtraUseLeafWet = settings.httpSensors.ecowitt.useLeafWet;
 						cumulus.EcowittExtraUseUserTemp = settings.httpSensors.ecowitt.useUserTemp;
@@ -438,9 +424,9 @@ namespace CumulusMX
 						cumulus.AmbientExtraUseSolar = settings.httpSensors.ambient.useSolar;
 						cumulus.AmbientExtraUseUv = settings.httpSensors.ambient.useUv;
 						cumulus.AmbientExtraUseTempHum = settings.httpSensors.ambient.useTempHum;
-						//cumulus.AmbientExtraUseSoilTemp = settings.httpSensors.ambient.useSoilTemp;
+						//cumulus.AmbientExtraUseSoilTemp = settings.httpSensors.ambient.useSoilTemp
 						cumulus.AmbientExtraUseSoilMoist = settings.httpSensors.ambient.useSoilMoist;
-						//cumulus.AmbientExtraUseLeafWet = settings.httpSensors.ambient.useLeafWet;
+						//cumulus.AmbientExtraUseLeafWet = settings.httpSensors.ambient.useLeafWet
 						cumulus.AmbientExtraUseAQI = settings.httpSensors.ambient.useAQI;
 						cumulus.AmbientExtraUseCo2 = settings.httpSensors.ambient.useCo2;
 						cumulus.AmbientExtraUseLightning = settings.httpSensors.ambient.useLightning;
@@ -568,7 +554,6 @@ namespace CumulusMX
 		public bool useSolar { get; set; }
 		public bool useUv { get; set; }
 		public bool useTempHum { get; set; }
-		//public bool useSoilTemp { get; set; }
 		public bool useSoilMoist { get; set; }
 		public bool useLeafWet { get; set; }
 		public bool useUserTemp { get; set; }
@@ -602,17 +587,9 @@ namespace CumulusMX
 
 	public class JsonExtraSensorRG11
 	{
-		public JsonExtraSensorRG11device port1 { get; set; }
-		public JsonExtraSensorRG11device port2 { get; set; }
+		public JsonExtraSensorRg11Device port1 { get; set; }
+		public JsonExtraSensorRg11Device port2 { get; set; }
 	}
 
-	public class JsonExtraSensorRG11device
-	{
-		public bool enabled { get; set; }
-		public string commPort { get; set; }
-		public bool tipMode { get; set; }
-		public double tipSize { get; set; }
-		public bool ignoreFirst { get; set; }
-		public bool dtrMode { get; set; }
-	}
+	public record JsonExtraSensorRg11Device(bool enabled, string commPort, bool tipMode, double tipSize, bool ignoreFirst, bool dtrMode);
 }
