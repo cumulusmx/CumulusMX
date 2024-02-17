@@ -2471,6 +2471,8 @@ namespace CumulusMX
 				RealtimeFtpInProgress = false;
 				realtimeFTPRetries = 0;
 				RealtimeCopyInProgress = false;
+				FtpAlarm.LastMessage = "Realtime re-connected";
+				FtpAlarm.Triggered = false;
 				LogMessage("RealtimeReconnect: Realtime FTP now connected to server (tested)");
 				LogMessage("RealtimeReconnect: Realtime FTP operations will be restarted");
 			});

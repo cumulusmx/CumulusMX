@@ -205,7 +205,7 @@ namespace CumulusMX
 
 				return sc.ExitCode;
 			}
-			catch (Exception ex)
+			catch
 			{
 				return 999;
 			}

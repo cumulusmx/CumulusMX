@@ -1,10 +1,13 @@
 4.0.0 - b4012
 —————————————
+- Error that the username is not set when sending email to a server that requires no authentication
+- Some Davis VP2 stations current data not working with the WeatherLink Cloud station type
 - Fix CPU temperature when not running on Windows
 - Fix EcowittCloud not applying historic piezo rainfall
 - Some fixes to Ecowitt firmware versions
 - Windows install as a service now self elevates and requests UAC
 - Linux install no longer checks for elevation
+- Fix for soil moisture conversion from percentage to cb in WCloud uploads
 
 
 4.0.0 - b4011
