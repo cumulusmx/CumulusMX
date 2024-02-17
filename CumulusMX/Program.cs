@@ -195,7 +195,6 @@ namespace CumulusMX
 						Console.ResetColor();
 						Environment.Exit(0);
 					}
-
 				}
 				else
 				{

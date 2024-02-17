@@ -16,38 +16,25 @@ namespace CumulusMX
 		{
 			try
 			{
+				var path = AppDomain.CurrentDomain.BaseDirectory + "\\CumulusMX.exe";
+
 				if (!IsElevated())
 				{
-					Console.WriteLine("You must run the service installation as an elevated user - 'Run as Administrator'");
-					return false;
+					Console.WriteLine("Restarting as elevated...");
+					var exitcode = RunCommand(path, "-install", true, true, true);
+					return exitcode == 0;
 				}
 
 				Console.WriteLine("Installing as a Windows Service...");
 
 				// sc create CumulusMX binpath=C:\CumulusMX\CumulusMX.dll start= delayed-auto depend= LanmanWorkstation
+				var createExitCode = RunCommand("sc.exe", $"create CumulusMX binpath=\"{path}\" start=delayed-auto depend=Netman");
 
-				var path = AppDomain.CurrentDomain.BaseDirectory + "\\CumulusMX.exe";
-
-				var startinfo = new ProcessStartInfo
-				{
-					FileName = "sc.exe",
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					Arguments = $"create CumulusMX binpath=\"{path}\" start=delayed-auto depend=Netman"
-				};
-
-				var sc = new Process
-				{
-					StartInfo = startinfo
-				};
-
-				sc.Start();
-				sc.WaitForExit();
-
-				var createExitCode = RunCommand("sc.exe", $"create CumulusMX binpath =\"{path}\" start=delayed-auto depend=Netman");
+				if (createExitCode != 0)
+					return false;
 
 				// Now set the description
-				RunCommand("sc.exe", "description CumulusMX \"CumulusMX weather station service\"");
+				createExitCode = RunCommand("sc.exe", "description CumulusMX \"CumulusMX weather station service\"");
 
 				if (createExitCode == 0)
 					return true;
@@ -64,10 +51,13 @@ namespace CumulusMX
 		{
 			try
 			{
+				var path = AppDomain.CurrentDomain.BaseDirectory + "\\CumulusMX.exe";
+
 				if (!IsElevated())
 				{
-					Console.WriteLine("You must run the service uninstall process as an elevated user - 'Run as Administrator'");
-					return false;
+					Console.WriteLine("Restarting as elevated...");
+					var exitcode = RunCommand(path, "-uninstall", true, true, true);
+					return exitcode == 0;
 				}
 
 				Console.WriteLine("Uninstalling as a Windows Service...");
@@ -90,12 +80,6 @@ namespace CumulusMX
 		{
 			try
 			{
-				if (!IsElevated())
-				{
-					Console.WriteLine("You must run the service installation as an elevated user - 'sudo dotnet CumulusMX -install'");
-					return false;
-				}
-
 				var user = string.IsNullOrEmpty(userId) ? "root" : userId;
 
 				Console.WriteLine($"Installing as a systemctld service to run as userid {user}...");
@@ -111,7 +95,8 @@ namespace CumulusMX
 				// get the location of dotnet.exe - not so simple!
 				// we have to get our own process, then find the main module filename
 
-				var dotnetPath = Process.GetProcessById(Environment.ProcessId).MainModule.FileName;
+				var dotnetPath = Environment.ProcessPath;
+
 
 				var appPath = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -137,25 +122,19 @@ namespace CumulusMX
 				File.WriteAllLines(serviceFile, contents);
 
 				return RunCommand("systemctl", "daemon-reload") == 0;
-
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine("Error creating service: " + ex.Message);
-				return false;
+				Console.WriteLine("You must run the service installation as an elevated user - 'sudo dotnet CumulusMX.dll -install -user myuser'");
 			}
+			return false;
 		}
 
 		public static bool UninstallLinux()
 		{
 			try
 			{
-				if (!IsElevated())
-				{
-					Console.WriteLine("You must run the service uninstall process as an elevated user - 'Run as Administrator'");
-					return false;
-				}
-
 				// stop and disable the service if it is running
 				RunCommand("systemctl", "stop cumulusmx");
 				RunCommand("systemctl", "disable cumulusmx");
@@ -186,6 +165,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				Console.WriteLine("Error removing service: " + ex.Message);
+				Console.WriteLine("You must run the service uninstall as an elevated user - 'sudo dotnet CumulusMX.dll -uninstall'");
 				return false;
 			}
 		}
@@ -195,20 +175,25 @@ namespace CumulusMX
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				return WindowsIdentity.GetCurrent().Owner.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);
 			else
-				return Environment.GetEnvironmentVariable("EUID") == "0";
+				return Environment.GetEnvironmentVariable("EUID") == "0" || Environment.GetEnvironmentVariable("USER") == "root";
 		}
 
-		private static int RunCommand(string exe, string args)
+		private static int RunCommand(string exe, string args, bool createWindow = false, bool useshell = false, bool elevated = false)
 		{
 			try
 			{
 				var startinfo = new ProcessStartInfo
 				{
 					FileName = exe,
-					UseShellExecute = false,
-					CreateNoWindow = true,
+					UseShellExecute = useshell,
+					CreateNoWindow = createWindow,
 					Arguments = args
 				};
+
+				if (elevated )
+				{
+					startinfo.Verb = "runas";
+				}
 
 				var sc = new Process
 				{
@@ -220,7 +205,7 @@ namespace CumulusMX
 
 				return sc.ExitCode;
 			}
-			catch
+			catch (Exception ex)
 			{
 				return 999;
 			}

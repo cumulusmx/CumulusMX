@@ -3,6 +3,9 @@
 - Fix CPU temperature when not running on Windows
 - Fix EcowittCloud not applying historic piezo rainfall
 - Some fixes to Ecowitt firmware versions
+- Windows install as a service now self elevates and requests UAC
+- Linux install no longer checks for elevation
+
 
 4.0.0 - b4011
 —————————————
