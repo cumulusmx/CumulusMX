@@ -1,3 +1,9 @@
+4.0.0 - b4013
+—————————————
+- FTP log file now only created when required
+
+
+
 4.0.0 - b4012
 —————————————
 - Error that the username is not set when sending email to a server that requires no authentication

@@ -1098,7 +1098,10 @@ namespace CumulusMX
 				}
 			}
 
-			SetupFtpLogging();
+			if (FtpOptions.Logging && (FtpOptions.RealtimeEnabled || FtpOptions.IntervalEnabled) && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
+			{
+				SetupFtpLogging(true);
+			}
 
 			LogMessage("Data path = " + Datapath);
 
@@ -1489,8 +1492,6 @@ namespace CumulusMX
 				RealtimeTimer.Interval = RealtimeInterval;
 				RealtimeTimer.Elapsed += RealtimeTimerTick;
 				RealtimeTimer.AutoReset = true;
-
-				SetFtpLogging(FtpOptions.Logging);
 
 				WebTimer.Elapsed += WebTimerTick;
 
@@ -1934,7 +1935,7 @@ namespace CumulusMX
 			HighGustAlarm.Units = Units.WindText;
 		}
 
-		public void SetFtpLogging(bool isSet)
+		public void SetRealTimeFtpLogging(bool isSet)
 		{
 			if (RealtimeFTP == null || RealtimeFTP.IsDisposed)
 				return;
@@ -12064,7 +12065,7 @@ namespace CumulusMX
 			RealtimeFTP.Config.SocketPollInterval = 20000; // increase beyond the timeout value
 			RealtimeFTP.Config.LogPassword = false;
 
-			SetFtpLogging(FtpOptions.Logging);
+			SetRealTimeFtpLogging(FtpOptions.Logging);
 
 			if (!FtpOptions.AutoDetect)
 			{
@@ -12801,11 +12802,16 @@ namespace CumulusMX
 			}
 		}
 
-		public void SetupFtpLogging()
+		public void SetupFtpLogging(bool enable)
 		{
 			if (loggerFactory != null)
 			{
 				loggerFactory.Dispose();
+			}
+
+			if (!enable)
+			{
+				return;
 			}
 
 			loggerFactory = new LoggerFactory();

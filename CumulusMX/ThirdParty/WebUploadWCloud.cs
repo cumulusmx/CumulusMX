@@ -262,7 +262,6 @@ namespace CumulusMX.ThirdParty
 			// leaf wetness
 			if (SendLeafWetness)
 			{
-				// Weathercloud wants soil moisture in centibar. Davis supplies this, but Ecowitt provide a percentage
 				double wet = 0;
 
 				switch (cumulus.WCloud.LeafWetnessSensor)

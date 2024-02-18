@@ -167,17 +167,22 @@ namespace CumulusMX
 					cumulus.ProgramOptions.TimeFormatLong = "HH:mm:ss";
 
 
-				if (settings.logging.ftplogginglevel.HasValue && settings.logging.ftplogginglevel != cumulus.FtpOptions.LoggingLevel)
-				{
-					cumulus.FtpOptions.LoggingLevel = settings.logging.ftplogginglevel.Value;
-					cumulus.SetupFtpLogging();
-					cumulus.SetFtpLogging(settings.logging.ftplogging);
-				}
-
 				if (settings.logging.ftplogging != cumulus.FtpOptions.Logging)
 				{
 					cumulus.FtpOptions.Logging = settings.logging.ftplogging;
-					cumulus.SetFtpLogging(cumulus.FtpOptions.Logging);
+
+					if (settings.logging.ftplogginglevel.HasValue)
+					{
+						cumulus.FtpOptions.LoggingLevel = settings.logging.ftplogginglevel.Value;
+					}
+					cumulus.SetupFtpLogging(cumulus.FtpOptions.Logging);
+					cumulus.SetRealTimeFtpLogging(cumulus.FtpOptions.Logging);
+				}
+				else if (settings.logging.ftplogginglevel.HasValue && cumulus.FtpOptions.LoggingLevel!= settings.logging.ftplogginglevel.Value)
+				{
+					cumulus.FtpOptions.LoggingLevel = settings.logging.ftplogginglevel.Value;
+					cumulus.SetupFtpLogging(cumulus.FtpOptions.Logging);
+					cumulus.SetRealTimeFtpLogging(cumulus.FtpOptions.Logging);
 				}
 			}
 			catch (Exception ex)
