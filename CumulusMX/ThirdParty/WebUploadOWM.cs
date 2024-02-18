@@ -18,12 +18,13 @@ namespace CumulusMX.ThirdParty
 
 		/// <summary>
 		/// Process the list of OpenWeatherMap updates created at start-up from logger entries
+		/// Documentation: https://openweathermap.org/stations#measurement
 		/// </summary>
 		internal override async Task DoCatchUp()
 		{
 			Updating = true;
 
-			string url = "http://api.openweathermap.org/data/3.0/measurements?appid=" + PW;
+			string url = "https://api.openweathermap.org/data/3.0/measurements?appid=" + PW;
 			string logUrl = url.Replace(PW, "<key>");
 
 			for (int i = 0; i < CatchupList.Count; i++)
@@ -66,7 +67,7 @@ namespace CumulusMX.ThirdParty
 
 			Updating = true;
 
-			string url = "http://api.openweathermap.org/data/3.0/measurements?appid=" + PW;
+			string url = "https://api.openweathermap.org/data/3.0/measurements?appid=" + PW;
 			string logUrl = url.Replace(PW, "<key>");
 
 			string jsonData = GetURL(out _, timestamp);
@@ -104,10 +105,6 @@ namespace CumulusMX.ThirdParty
 			}
 		}
 
-
-		// Documentation on the API can be found here...
-		// https://stations.windguru.cz/upload_api.php
-		//
 		// GetURL actually returns the request body for OpenWeatherMap
 		internal override string GetURL(out string pwstring, DateTime timestamp)
 		{
@@ -139,7 +136,7 @@ namespace CumulusMX.ThirdParty
 		private OpenWeatherMapStation[] GetOpenWeatherMapStations()
 		{
 			OpenWeatherMapStation[] retVal = [];
-			string url = "http://api.openweathermap.org/data/3.0/stations?appid=" + PW;
+			string url = "https://api.openweathermap.org/data/3.0/stations?appid=" + PW;
 			try
 			{
 				using var client = new HttpClient();
@@ -166,7 +163,7 @@ namespace CumulusMX.ThirdParty
 		{
 			var invC = new CultureInfo("");
 
-			string url = "http://api.openweathermap.org/data/3.0/stations?appid=" + PW;
+			string url = "https://api.openweathermap.org/data/3.0/stations?appid=" + PW;
 			try
 			{
 				var datestr = DateTime.Now.ToUniversalTime().ToString("yyMMddHHmm");
