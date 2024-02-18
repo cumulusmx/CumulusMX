@@ -111,15 +111,15 @@ namespace CumulusMX
 				cumulus.LogMessage("Ecowitt Extra Gateway Custom Server configuration complete");
 			}
 
-			if (mainStation || (!mainStation && cumulus.EcowittExtraUseAQI))
+			if (mainStation || cumulus.EcowittExtraUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
-			if (mainStation || (!mainStation && cumulus.EcowittExtraUseSoilMoist))
+			if (mainStation || cumulus.EcowittExtraUseSoilMoist)
 			{
 				cumulus.Units.SoilMoistureUnitText = "%";
 			}
-			if (mainStation || (!mainStation && cumulus.EcowittExtraUseSoilMoist))
+			if (mainStation || cumulus.EcowittExtraUseSoilMoist)
 			{
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
@@ -719,7 +719,8 @@ namespace CumulusMX
 					try
 					{
 						// soilad[1-16]
-						ProcessSoilMoistRaw(data, thisStation);
+						//TODO: are we going to do anything with the raw values?
+						//ProcessSoilMoistRaw(data, thisStation)
 					}
 					catch (Exception ex)
 					{
@@ -1129,17 +1130,20 @@ namespace CumulusMX
 			}
 		}
 
+#pragma warning disable S125 // Sections of code should not be commented out
+		/*
 		private static void ProcessSoilMoistRaw(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 16; i++)
 			{
 				if (data["soilad" + i] != null)
 				{
-					// Do nothing for now
-					//station.DoSoilMoistureRaw(Convert.ToDouble(data["soilad" + i], invNum), i);
+					station.DoSoilMoistureRaw(Convert.ToDouble(data["soilad" + i], invNum), i);
 				}
 			}
 		}
+		*/
+#pragma warning restore S125 // Sections of code should not be commented out
 
 		private void ProcessLeafWetness(NameValueCollection data, WeatherStation station)
 		{

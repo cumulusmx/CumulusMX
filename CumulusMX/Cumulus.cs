@@ -3804,7 +3804,7 @@ namespace CumulusMX
 				var RecordsBeganDate = ini.GetValue("Station", "StartDate", DateTime.Now.ToLongDateString());
 				try
 				{
-					RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate);
+					RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate, CultureInfo.CurrentCulture);
 					recreateRequired = true;
 				}
 				catch (Exception ex)
@@ -7159,13 +7159,13 @@ namespace CumulusMX
 
 		public bool ReportDataStoppedErrors { get; set; }
 
-		//public bool RestartIfDataStops { get; set; }
+		//public bool RestartIfDataStops { get set }
 
-		//public bool RestartIfUnplugged { get; set; }
+		//public bool RestartIfUnplugged { get set }
 
-		//public bool CloseOnSuspend { get; set; }
+		//public bool CloseOnSuspend { get set }
 
-		//public bool ConfirmClose { get; set; }
+		//public bool ConfirmClose { get set }
 
 		public int DataLogInterval { get; set; }
 
@@ -8827,10 +8827,10 @@ namespace CumulusMX
 		public void DoHttpFiles(DateTime now)
 		{
 			// sanity check - is there anything to do?
-			if (!HttpFilesConfig.Any(x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now))
+			if (!Array.Exists(HttpFilesConfig, x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now))
 			{
 #if DEBUG
-				LogDebugMessage("ProcessHttpFiles: No files to process at this time");
+					LogDebugMessage("ProcessHttpFiles: No files to process at this time");
 #endif
 				return;
 			}

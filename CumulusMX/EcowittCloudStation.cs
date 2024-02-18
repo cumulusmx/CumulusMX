@@ -92,15 +92,15 @@ namespace CumulusMX
 				DataTimeoutMins = 2;
 			}
 
-			if (main || (!main && cumulus.EcowittExtraUseAQI))
+			if (main || cumulus.EcowittExtraUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
-			if (main || (!main && cumulus.EcowittExtraUseSoilMoist))
+			if (main || cumulus.EcowittExtraUseSoilMoist)
 			{
 				cumulus.Units.SoilMoistureUnitText = "%";
 			}
-			if (main || (!main && cumulus.EcowittExtraUseSoilMoist))
+			if (main || cumulus.EcowittExtraUseSoilMoist)
 			{
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
