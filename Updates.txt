@@ -1,7 +1,7 @@
 4.0.0 - b4013
 —————————————
 - FTP log file now only created when required
-
+- Fixes to backup to zip at start-up and rollover
 
 
 4.0.0 - b4012

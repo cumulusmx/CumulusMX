@@ -8059,6 +8059,8 @@ namespace CumulusMX
 
 		public void BackupData(bool daily, DateTime timestamp)
 		{
+			LogMessage($"Creating {(daily ? "daily" : "start-up")} backup...");
+
 			string dirpath = daily ? backupPath + "daily" + DirectorySeparator : backupPath;
 
 			if (!Directory.Exists(dirpath))
@@ -8070,48 +8072,39 @@ namespace CumulusMX
 
 			if (Directory.Exists(dirpath))
 			{
-				string[] dirs = Directory.GetDirectories(dirpath);
-				Array.Sort(dirs);
-				var dircnt = dirs.Length;
+				string[] files = Directory.GetFiles(dirpath);
+				Array.Sort(files);
+				var filecnt = files.Length;
 
-				foreach (var dir in dirs)
+				foreach (var zip in files)
 				{
 					// leave the last 10 in place
-					if (dircnt <= 10)
+					if (filecnt <= 10)
 						break;
 
 					try
 					{
-						if (Path.GetFileName(dir) == "daily")
-						{
-							LogMessage("BackupData: *** Error - the backup folder has unexpected contents");
-							continue;
-						}
-						else
-						{
-							Directory.Delete(dir, true);
-							dircnt--;
-						}
+						File.Delete(zip);
+						filecnt--;
 					}
 					catch (UnauthorizedAccessException)
 					{
-						LogErrorMessage("BackupData: Error, no permission to read/delete folder: " + dir);
-						LogConsoleMessage("Error, no permission to read/delete folder: " + dir, ConsoleColor.Yellow);
+						LogErrorMessage("BackupData: Error, no permission to read/delete file: " + zip);
+						LogConsoleMessage("Error, no permission to read/delete file: " + zip, ConsoleColor.Yellow);
 						break;
 					}
 					catch (Exception ex)
 					{
-						LogErrorMessage($"BackupData: Error while attempting to read/delete folder: {dir}, error message: {ex.Message}");
-						LogConsoleMessage($"Error while attempting to read/delete folder: {dir}, error message: {ex.Message}", ConsoleColor.Yellow);
+						LogErrorMessage($"BackupData: Error while attempting to read/delete file: {zip}, error message: {ex.Message}");
+						LogConsoleMessage($"Error while attempting to read/delete file: {zip}, error message: {ex.Message}", ConsoleColor.Yellow);
 						break;
 					}
 				}
 
-				string foldername = daily ? timestamp.ToString("yyyyMMdd") : timestamp.ToString("yyyyMMddHHmmss");
-				string folderpath = dirpath + foldername + DirectorySeparator;
+				string filename = (daily ? timestamp.ToString("yyyyMMdd") : timestamp.ToString("yyyyMMddHHmmss")) + ".zip";
 				string datafolder = "data" + DirectorySeparator;
 
-				LogMessage("BackupData: Creating backup folder " + foldername);
+				LogMessage("BackupData: Creating backup " + filename);
 
 				var configbackup = "Cumulus.ini";
 				var uniquebackup = "UniqueId.txt";
@@ -8136,22 +8129,10 @@ namespace CumulusMX
 				var AirLinkBackup = datafolder + AirLinkFile.Replace(logFilePath, "");
 
 
-				if (!Directory.Exists(folderpath))
+				if (!File.Exists(dirpath + DirectorySeparator + filename))
 				{
-					try
-					{
-						Directory.CreateDirectory(folderpath);
-						if (!Directory.Exists(datafolder))
-							Directory.CreateDirectory(datafolder);
-					}
-					catch (Exception ex)
-					{
-						LogExceptionMessage(ex, "Backup: Error creating folders");
-						return;
-					}
-
 					// create a zip archive file for the backup
-					using (FileStream zipFile = new FileStream(folderpath + DirectorySeparator + foldername + ".zip", FileMode.Create))
+					using (FileStream zipFile = new FileStream(dirpath + DirectorySeparator + filename, FileMode.Create))
 					{
 						using ZipArchive archive = new ZipArchive(zipFile, ZipArchiveMode.Create);
 						try
@@ -8189,7 +8170,7 @@ namespace CumulusMX
 							// for daily backup the db is in use, so use an online backup
 							try
 							{
-								var backUpDest = folderpath + "cumulusmx.db";
+								var backUpDest = dirpath + "cumulusmx.db";
 								var zipLocation = datafolder + "cumulusmx.db";
 								LogDebugMessage("Making backup copy of the database");
 								station.RecentDataDb.Backup(backUpDest);
@@ -8202,7 +8183,7 @@ namespace CumulusMX
 								LogDebugMessage("Deleting backup copy of the database");
 								File.Delete(backUpDest);
 
-								backUpDest = folderpath + "diary.db";
+								backUpDest = dirpath + "diary.db";
 								zipLocation = datafolder + "diary.db";
 								LogDebugMessage("Making backup copy of the diary");
 								DiaryDB.Backup(backUpDest);
@@ -8258,16 +8239,16 @@ namespace CumulusMX
 							{
 								if (CustomIntvlLogSettings[i].Enabled)
 								{
-									var filename = GetCustomIntvlLogFileName(i, timestamp);
-									if (File.Exists(filename))
-										archive.CreateEntryFromFile(filename, datafolder + Path.GetFileName(filename));
+									var custfilename = GetCustomIntvlLogFileName(i, timestamp);
+									if (File.Exists(custfilename))
+										archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
 								}
 
 								if (CustomDailyLogSettings[i].Enabled)
 								{
-									var filename = GetCustomDailyLogFileName(i);
-									if (File.Exists(filename))
-										archive.CreateEntryFromFile(filename, datafolder + Path.GetFileName(filename));
+									var custfilename = GetCustomDailyLogFileName(i);
+									if (File.Exists(custfilename))
+										archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
 								}
 							}
 
@@ -8297,9 +8278,9 @@ namespace CumulusMX
 								{
 									if (CustomIntvlLogSettings[i].Enabled)
 									{
-										var filename = GetCustomIntvlLogFileName(i, newTime);
-										if (File.Exists(filename))
-											archive.CreateEntryFromFile(filename, datafolder + Path.GetFileName(filename));
+										var custfilename = GetCustomIntvlLogFileName(i, newTime);
+										if (File.Exists(custfilename))
+											archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
 									}
 								}
 							}
@@ -8309,11 +8290,11 @@ namespace CumulusMX
 							LogExceptionMessage(ex, "Backup: Error backing up extra log files");
 						}
 					}
-					LogMessage("Created backup folder " + foldername);
+					LogMessage("Created backup file " + filename);
 				}
 				else
 				{
-					LogMessage("Backup folder " + foldername + " already exists, skipping backup");
+					LogMessage("Backup file " + filename + " already exists, skipping backup");
 				}
 			}
 			else
@@ -8677,7 +8658,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogErrorMessage("LocalCopy: Error copy NOAA reports - " + ex.Message);
+						LogErrorMessage("LocalCopy: Error copying NOAA reports - " + ex.Message);
 					}
 				}
 				catch (Exception e)

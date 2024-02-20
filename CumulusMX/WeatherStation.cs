@@ -1594,18 +1594,9 @@ namespace CumulusMX
 				{
 					lastHour = timeNow.Hour;
 					HourChanged(timeNow);
-					MinuteChanged(timeNow);
+				}
 
-					// If it is rollover do the backup
-					if (timeNow.Hour == Math.Abs(cumulus.GetHourInc()))
-					{
-						cumulus.BackupData(true, timeNow);
-					}
-				}
-				else
-				{
-					MinuteChanged(timeNow);
-				}
+				MinuteChanged(timeNow);
 
 				if (DataStopped)
 				{
@@ -2072,6 +2063,7 @@ namespace CumulusMX
 			if (now.Hour == rollHour)
 			{
 				DayReset(now);
+				cumulus.BackupData(true, now);
 			}
 
 			if (now.Hour == 0)
