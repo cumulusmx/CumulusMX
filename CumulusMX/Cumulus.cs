@@ -556,9 +556,9 @@ namespace CumulusMX
 			IsOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
 
-			// restrict the threadpool size - for Mono which does not seem to have very good pool management!
-			//ThreadPool.SetMinThreads(Properties.Settings.Default.MinThreadPoolSize, Properties.Settings.Default.MinThreadPoolSize)
-			//ThreadPool.SetMaxThreads(Properties.Settings.Default.MaxThreadPoolSize, Properties.Settings.Default.MaxThreadPoolSize)
+			// restrict the threadpool size - for Linux which does not seem to have very good pool management!
+			ThreadPool.SetMinThreads(Properties.Settings.Default.MinThreadPoolSize, Properties.Settings.Default.MinThreadPoolSize);
+			ThreadPool.SetMaxThreads(Properties.Settings.Default.MaxThreadPoolSize, Properties.Settings.Default.MaxThreadPoolSize);
 
 			if (IsOSX)
 				Platform = "Mac OS X";
