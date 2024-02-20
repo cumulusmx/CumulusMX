@@ -2,6 +2,7 @@
 —————————————
 - FTP log file now only created when required
 - Fixes to backup to zip at start-up and rollover
+- Reinstate ThreadPool size limits
 
 
 4.0.0 - b4012
