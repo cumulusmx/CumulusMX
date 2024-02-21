@@ -2135,6 +2135,7 @@ namespace CumulusMX
 							{
 								// VP2 ISS archive revision A/B
 								case 1:
+								case 2:
 									{
 										var data = sensor.data.FromJsv<WLCurrentSensordDataType1_2>();
 
@@ -3003,6 +3004,7 @@ namespace CumulusMX
 				{
 					case 3: // VP2 ISS archive revision A
 					case 4: // VP2 ISS archive revision B
+					case 7: // EnviroMonitor ISS Archive Record
 						{
 							var data = json.FromJsv<WlHistorySensorDataType3_4>();
 							lastRecordTime = Utils.FromUnixTime(data.ts);

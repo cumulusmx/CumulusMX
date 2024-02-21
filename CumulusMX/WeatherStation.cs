@@ -19,6 +19,7 @@ using System.Web;
 
 using EmbedIO.Utilities;
 
+using ServiceStack;
 using ServiceStack.Text;
 
 using SQLite;
@@ -433,7 +434,15 @@ namespace CumulusMX
 			ReadMonthIniFile();
 			ReadYearIniFile();
 			_ = LoadDayFile();
-			CheckMonthlyLogFile(cumulus.LastUpdateTime);
+			CheckMonthlyLogFile(cumulus.LastUpdateTime, 0);
+			if (cumulus.StationOptions.LogExtraSensors)
+			{
+				CheckMonthlyLogFile(cumulus.LastUpdateTime, 1);
+			}
+			if (cumulus.AirLinkInEnabled)
+			{
+				CheckMonthlyLogFile(cumulus.LastUpdateTime, 2);
+			}
 
 			GetRainCounter();
 			GetRainFallTotals();
@@ -524,43 +533,63 @@ namespace CumulusMX
 			}
 		}
 
-		private void CheckMonthlyLogFile(DateTime logDate)
+		/// <summary>
+		/// Checks monthly log files for corruption on the last line
+		/// </summary>
+		/// <param name="logDate">Log date to check</param>
+		/// <param name="logtype">0: Monthly, 1:Extra, 2:AirLink</param>
+		private void CheckMonthlyLogFile(DateTime logDate, int logtype)
 		{
 			// A crude check for corruption, just see if the last line starts with nulls
 			// if it does resave the file missing the last line
-			var fileName = cumulus.GetLogFileName(logDate);
+			string fileName = string.Empty;
+			string prefix = string.Empty;
+
+			switch (logtype)
+			{
+				case 0:
+					fileName = cumulus.GetLogFileName(logDate);
+					prefix = "Monthly log file";
+					break;
+				case 1:
+					fileName = cumulus.GetExtraLogFileName(logDate);
+					prefix = "Monthly Extra log file";
+					break;
+				case 2:
+					fileName = cumulus.GetAirLinkLogFileName(logDate);
+					prefix = "AirLink log file";
+					break;
+			}
+
 
 			if (File.Exists(fileName))
 			{
 				var lines = File.ReadAllLines(fileName);
 
-				//Strip the "null line" from file
-				if (lines[lines.Length - 1][0] < 32)
+				if (string.IsNullOrEmpty(lines[lines.Length - 1]))
 				{
-					cumulus.LogMessage($"Monthly log file {fileName} Repaired");
-					var str = new StringBuilder(lines[lines.Length - 1].Length + 50);
-					for (int i = 0; i < lines[lines.Length - 1].Length; i++)
-					{
-						if (Char.ConvertToUtf32(lines[lines.Length - 1], i) < 32)
-						{
-							str.AppendFormat("[{0:X2}]", (byte) lines[lines.Length - 1][i]);
-						}
-						else
-						{
-							str.Append(lines[lines.Length - 1][i]);
-						}
-					}
-					cumulus.LogMessage("Removed line: " + str.ToString());
-					File.WriteAllLines(fileName, lines.Take(lines.Length - 1).ToArray());
+					cumulus.LogMessage($"{prefix} {fileName} empty line removed");
+					lines = lines.Take(lines.Length - 1).ToArray();
 				}
 				else
 				{
-					cumulus.LogMessage($"Monthly log file {fileName} Checked OK");
+					//Strip the "null line" from file
+					if (lines[lines.Length - 1][0] < 32)
+					{
+						cumulus.LogMessage($"{prefix} {fileName} Removed last line of nul's from file");
+						lines = lines.Take(lines.Length - 1).ToArray();
+					}
+					else
+					{
+						cumulus.LogMessage($"{prefix} {fileName} Checked OK");
+					}
 				}
+
+				File.WriteAllLines(fileName, lines);
 			}
 			else
 			{
-				cumulus.LogMessage("Monthly log file check skipped - no file exists");
+				cumulus.LogMessage($"{prefix} check skipped - no file exists");
 			}
 		}
 
@@ -10984,7 +11013,7 @@ namespace CumulusMX
 				if (cumulus.Manufacturer == cumulus.EW)
 				{
 					// very! approximate conversion from percentage to cb
-					moist = (100 - SoilMoisture1) * 2;
+					moist = (100 - moist) * 2;
 				}
 
 				sb.Append($"&soilmoist={moist}");

@@ -608,7 +608,7 @@ namespace CumulusMX
 							else
 							{
 								var newItem = new HistoricData()
-								{ Pressure = item.Value};
+								{ Pressure = item.Value };
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -619,111 +619,116 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing pressure data. Exception: " + ex.Message);
 				}
 			}
-			// Rainfall Data
-			if (data.rainfall != null)
+			// Rainfall Data - Tipper
+			if (cumulus.Gw1000PrimaryRainSensor == 0 && data.rainfall != null)
 			{
 				try
 				{
-					if (cumulus.Gw1000PrimaryRainSensor == 0)
+					// rain rate
+					if (data.rainfall.rain_rate != null && data.rainfall.rain_rate.list != null)
 					{
-						// rain rate
-						if (data.rainfall.rain_rate != null && data.rainfall.rain_rate.list != null)
+						foreach (var item in data.rainfall.rain_rate.list)
 						{
-							foreach (var item in data.rainfall.rain_rate.list)
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
-
-								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
-									continue;
-
-								if (buffer.TryGetValue(itemDate, out var value))
-								{
-									value.RainRate = item.Value;
-								}
-								else
-								{
-									var newItem = new HistoricData()
-									{ RainRate = item.Value };
-									buffer.Add(itemDate, newItem);
-								}
+								value.RainRate = item.Value;
 							}
-						}
-
-						// yearly rain
-						if (data.rainfall.yearly != null && data.rainfall.yearly.list != null)
-						{
-							foreach (var item in data.rainfall.yearly.list)
+							else
 							{
-								var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
-
-								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
-									continue;
-
-								if (buffer.TryGetValue(itemDate, out var value))
-								{
-									value.RainYear = item.Value;
-								}
-								else
-								{
-									var newItem = new HistoricData()
-									{ RainYear = item.Value };
-									buffer.Add(itemDate, newItem);
-								}
+								var newItem = new HistoricData()
+								{ RainRate = item.Value };
+								buffer.Add(itemDate, newItem);
 							}
 						}
 					}
-					else // rainfall piezo
+
+					// yearly rain
+					if (data.rainfall.yearly != null && data.rainfall.yearly.list != null)
 					{
-						// rain rate
-						if (data.rainfall_piezo.rain_rate != null && data.rainfall_piezo.rain_rate.list != null)
+						foreach (var item in data.rainfall.yearly.list)
 						{
-							foreach (var item in data.rainfall_piezo.rain_rate.list)
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
-
-								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
-									continue;
-
-								if (buffer.TryGetValue(itemDate, out var value))
-								{
-									value.RainRate = item.Value;
-								}
-								else
-								{
-									var newItem = new HistoricData()
-									{ RainRate = item.Value };
-									buffer.Add(itemDate, newItem);
-								}
+								value.RainYear = item.Value;
 							}
-						}
-
-						// yearly rain
-						if (data.rainfall_piezo.yearly != null && data.rainfall_piezo.yearly.list != null)
-						{
-							foreach (var item in data.rainfall_piezo.yearly.list)
+							else
 							{
-								var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
-
-								if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
-									continue;
-
-								if (buffer.TryGetValue(itemDate, out var value))
-								{
-									value.RainYear = item.Value;
-								}
-								else
-								{
-									var newItem = new HistoricData()
-									{ RainYear = item.Value };
-									buffer.Add(itemDate, newItem);
-								}
+								var newItem = new HistoricData()
+								{ RainYear = item.Value };
+								buffer.Add(itemDate, newItem);
 							}
 						}
 					}
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing rainfall data. Exception: " + ex.Message);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing tipper rainfall data. Exception: " + ex.Message);
+				}
+			}
+			// Rainfall Data - Piezo
+			if (cumulus.Gw1000PrimaryRainSensor == 1 && data.rainfall_piezo != null)
+			{
+				try
+				{
+					// rain rate
+					if (data.rainfall_piezo.rain_rate != null && data.rainfall_piezo.rain_rate.list != null)
+					{
+						foreach (var item in data.rainfall_piezo.rain_rate.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
+							{
+								value.RainRate = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ RainRate = item.Value };
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+
+					// yearly rain
+					if (data.rainfall_piezo.yearly != null && data.rainfall_piezo.yearly.list != null)
+					{
+						foreach (var item in data.rainfall_piezo.yearly.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
+							{
+								value.RainYear = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ RainYear = item.Value };
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing piezo rainfall data. Exception: " + ex.Message);
 				}
 			}
 			// Solar Data
