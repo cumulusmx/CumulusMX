@@ -557,8 +557,8 @@ namespace CumulusMX
 
 
 			// restrict the threadpool size - for Linux which does not seem to have very good pool management!
-			ThreadPool.SetMinThreads(Properties.Settings.Default.MinThreadPoolSize, Properties.Settings.Default.MinThreadPoolSize);
-			ThreadPool.SetMaxThreads(Properties.Settings.Default.MaxThreadPoolSize, Properties.Settings.Default.MaxThreadPoolSize);
+			//ThreadPool.SetMinThreads(Properties.Settings.Default.MinThreadPoolSize, Properties.Settings.Default.MinThreadPoolSize)
+			//ThreadPool.SetMaxThreads(Properties.Settings.Default.MaxThreadPoolSize, Properties.Settings.Default.MaxThreadPoolSize)
 
 			if (IsOSX)
 				Platform = "Mac OS X";
@@ -2317,14 +2317,9 @@ namespace CumulusMX
 						try
 						{
 							LogMessage("RealtimeReconnect: Realtime ftp attempting disconnect");
-							if (FtpOptions.FtpMode == FtpProtocols.SFTP && RealtimeSSH != null)
+							if (RealtimeSSH != null)
 							{
 								RealtimeSSH.Disconnect();
-							}
-							if (FtpOptions.FtpMode != FtpProtocols.SFTP && RealtimeFTP != null)
-							{
-								RealtimeFTP.Config.DisconnectWithQuit = false;
-								RealtimeFTP.Disconnect();
 							}
 							LogMessage("RealtimeReconnect: Realtime ftp disconnected");
 						}
@@ -2336,33 +2331,12 @@ namespace CumulusMX
 						{
 							LogDebugMessage($"RealtimeReconnect: Error disconnecting from server - {ex.Message}");
 						}
-						finally
-						{
-							if (FtpOptions.FtpMode != FtpProtocols.SFTP && RealtimeFTP != null)
-								RealtimeFTP.Config.DisconnectWithQuit = true;
-						}
-
 						// Attempt a simple reconnect
 						try
 						{
 							LogMessage("RealtimeReconnect: Realtime ftp attempting to reconnect");
-							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
-							{
-								RealtimeSSH.Connect();
-								connected = RealtimeSSH.ConnectionInfo.IsAuthenticated;
-							}
-							else
-							{
-								if (FtpOptions.AutoDetect)
-								{
-									RealtimeFTP.AutoConnect();
-								}
-								else
-								{
-									RealtimeFTP.Connect();
-								}
-								connected = RealtimeFTP.IsConnected;
-							}
+							RealtimeSSH.Connect();
+							connected = RealtimeSSH.ConnectionInfo.IsAuthenticated;
 							LogMessage("RealtimeReconnect: Reconnected with server (we think)");
 						}
 						catch (ObjectDisposedException)
@@ -2416,15 +2390,15 @@ namespace CumulusMX
 					{
 						try
 						{
-							string pwd;
+							var pwd = RealtimeSSH.WorkingDirectory;
 							LogMessage("RealtimeReconnect: Realtime ftp testing the connection");
 							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 							{
 								pwd = RealtimeSSH.WorkingDirectory;
-								// Double check
-								if (!RealtimeSSH.IsConnected)
-								{
-									connected = false;
+							// Double check
+							if (!RealtimeSSH.IsConnected)
+							{
+								connected = false;
 								}
 							}
 							else
@@ -2434,8 +2408,8 @@ namespace CumulusMX
 								if (!RealtimeFTP.IsConnected)
 								{
 									connected = false;
-								}
 							}
+
 							if (pwd.Length == 0)
 							{
 								connected = false;
