@@ -30,7 +30,7 @@ namespace CumulusMX
 		{
 			bool retVal = false;
 
-			if (string.IsNullOrEmpty(cumulus.SmtpOptions.Server) || string.IsNullOrEmpty(cumulus.SmtpOptions.User))
+			if (string.IsNullOrEmpty(cumulus.SmtpOptions.Server) || (cumulus.SmtpOptions.RequiresAuthentication && string.IsNullOrEmpty(cumulus.SmtpOptions.User)))
 			{
 				cumulus.LogWarningMessage("SendEmail: You have not configured either the email server or the email account used to send email");
 				return retVal;
@@ -90,7 +90,8 @@ namespace CumulusMX
 						//client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
 					}
 
-					await client.SendAsync(m);
+					var response = await client.SendAsync(m);
+					cumulus.LogDebugMessage("SendEmail response: " + response);
 					client.Disconnect(true);
 				}
 				retVal = true;
@@ -111,7 +112,7 @@ namespace CumulusMX
 		{
 			string retVal;
 
-			if (string.IsNullOrEmpty(cumulus.SmtpOptions.Server) || string.IsNullOrEmpty(cumulus.SmtpOptions.User))
+			if (string.IsNullOrEmpty(cumulus.SmtpOptions.Server) || (cumulus.SmtpOptions.RequiresAuthentication && string.IsNullOrEmpty(cumulus.SmtpOptions.User)))
 			{
 				cumulus.LogWarningMessage("SendEmail: You have not configured either the email server or the email account used to send email");
 				return "You have not configured either the email server or the email account used to send email";
@@ -160,7 +161,8 @@ namespace CumulusMX
 						//client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
 					}
 
-					client.Send(m);
+					var response = client.Send(m);
+					cumulus.LogDebugMessage("SendEmail response: " + response);
 					client.Disconnect(true);
 				}
 

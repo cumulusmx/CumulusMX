@@ -8540,6 +8540,8 @@ namespace CumulusMX
 			} while (!success && retries >= 0);
 		}
 
+		public const int NumAirLinkLogFileFields = 56;
+
 		public async void DoAirLinkLogFile(DateTime timestamp)
 		{
 			// Writes an entry to the n-minute airlinklogfile. Fields are comma-separated:
@@ -13839,7 +13841,6 @@ namespace CumulusMX
 								// Do not remove the item from the stack until we know the command worked
 								if (queue.TryPeek(out cachedCmd))
 								{
-#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
 									using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, mySqlConn))
 									{
 										LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
@@ -13861,7 +13862,6 @@ namespace CumulusMX
 										// and pop the value from the queue
 										queue.TryDequeue(out cachedCmd);
 									}
-#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
 								}
 							} while (!queue.IsEmpty);
 
@@ -13931,7 +13931,6 @@ namespace CumulusMX
 							if (queue.TryPeek(out cachedCmd))
 							{
 
-#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
 								using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, mySqlConn))
 								{
 									LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
@@ -13952,7 +13951,6 @@ namespace CumulusMX
 									// and pop the value from the queue
 									queue.TryDequeue(out cachedCmd);
 								}
-#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
 
 								MySqlUploadAlarm.Triggered = false;
 							}
