@@ -7,6 +7,7 @@ Fixed
 - Error that the username is not set when sending email to a server that requires no authentication
 - Some Davis VP2 stations current data not working with the WeatherLink Cloud station type
 - Fix for soil moisture conversion from percentage to cb in WCloud uploads
+- Fix EcowittCloud not applying historic piezo rainfall
 
 
 3.28.3 - b3280
