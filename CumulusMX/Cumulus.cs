@@ -2390,15 +2390,16 @@ namespace CumulusMX
 					{
 						try
 						{
-							var pwd = RealtimeSSH.WorkingDirectory;
+							string pwd;
 							LogMessage("RealtimeReconnect: Realtime ftp testing the connection");
+
 							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 							{
 								pwd = RealtimeSSH.WorkingDirectory;
-							// Double check
-							if (!RealtimeSSH.IsConnected)
-							{
-								connected = false;
+								// Double check
+								if (!RealtimeSSH.IsConnected)
+								{
+									connected = false;
 								}
 							}
 							else
@@ -2408,6 +2409,7 @@ namespace CumulusMX
 								if (!RealtimeFTP.IsConnected)
 								{
 									connected = false;
+								}
 							}
 
 							if (pwd.Length == 0)
