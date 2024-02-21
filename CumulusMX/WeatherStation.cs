@@ -27,9 +27,7 @@ using Timer = System.Timers.Timer;
 
 namespace CumulusMX
 {
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal abstract partial class WeatherStation
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		public struct TWindRecent
 		{
@@ -2089,11 +2087,10 @@ namespace CumulusMX
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.Triggered = true;
 				/*if (RestartIfDataStops)
-				{
-					cumulus.LogMessage("*** Data input appears to have stopped, restarting");
-					ApplicationExec(ParamStr(0), '', SW_SHOW);
-					TerminateProcess(GetCurrentProcess, 0);
-				}*/
+					cumulus.LogMessage("*** Data input appears to have stopped, restarting")
+					ApplicationExec(ParamStr(0), '', SW_SHOW)
+					TerminateProcess(GetCurrentProcess, 0)
+				*/
 				if (cumulus.ReportDataStoppedErrors)
 				{
 					cumulus.LogErrorMessage("*** Data input appears to have stopped");
@@ -2163,6 +2160,9 @@ namespace CumulusMX
 		{
 			// Chart data for Highcharts graphs
 			string json;
+			// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
+			int[] createReqOnce = [0,1,8,9,11];
+
 			for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 			{
 				if (cumulus.GraphDataFiles[i].Create && cumulus.GraphDataFiles[i].CreateRequired)
@@ -2180,7 +2180,7 @@ namespace CumulusMX
 
 						// The config files only need creating once per change
 						// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-						if (i == 0 || i == 1 || i == 8 || i == 9 || i == 11)
+						if (createReqOnce.Contains(i))
 						{
 							cumulus.GraphDataFiles[i].CreateRequired = false;
 						}
@@ -2807,11 +2807,8 @@ namespace CumulusMX
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
-			{
 				"sensor 1": [[time,val],[time,val],...],
 				"sensor 4": [[time,val],[time,val],...],
-
-			}
 			*/
 
 			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length];
@@ -2953,11 +2950,8 @@ namespace CumulusMX
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
-			{
 				"sensor 1": [[time,val],[time,val],...],
 				"sensor 4": [[time,val],[time,val],...],
-
-			}
 			*/
 
 			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length];
@@ -3098,11 +3092,8 @@ namespace CumulusMX
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
-			{
 				"sensor 1": [[time,val],[time,val],...],
 				"sensor 4": [[time,val],[time,val],...],
-
-			}
 			*/
 
 			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.ExtraHum.Vals.Length];
@@ -3245,11 +3236,8 @@ namespace CumulusMX
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
-			{
 				"sensor 1": [[time,val],[time,val],...],
 				"sensor 4": [[time,val],[time,val],...],
-
-			}
 			*/
 
 			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.SoilTemp.Vals.Length];
@@ -3396,11 +3384,8 @@ namespace CumulusMX
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
-			{
 				"sensor 1": [[time,val],[time,val],...],
 				"sensor 4": [[time,val],[time,val],...],
-
-			}
 			*/
 
 			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.SoilMoist.Vals.Length];
@@ -3547,11 +3532,8 @@ namespace CumulusMX
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
-			{
 				"sensor 1": [[time,val],[time,val],...],
 				"sensor 4": [[time,val],[time,val],...],
-
-			}
 			*/
 
 			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.LeafWetness.Vals.Length];
@@ -3694,11 +3676,8 @@ namespace CumulusMX
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
-			{
 				"sensor 1": [[time,val],[time,val],...],
 				"sensor 4": [[time,val],[time,val],...],
-
-			}
 			*/
 
 			StringBuilder[] sbExt = new StringBuilder[cumulus.GraphOptions.Visible.UserTemp.Vals.Length];
@@ -3841,11 +3820,8 @@ namespace CumulusMX
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
-			{
 				"CO2": [[time,val],[time,val],...],
 				"CO2 Average": [[time,val],[time,val],...],
-
-			}
 			*/
 
 			var sbCo2 = new StringBuilder($"\"CO2\":[");
@@ -6319,10 +6295,7 @@ namespace CumulusMX
 				}
 			}
 			// average the values, if we have enough samples
-			if (numvalues > 3)
-				WindAverage = totalwind / numvalues;
-			else
-				WindAverage = totalwind / 3;
+			WindAverage = totalwind / Math.Max(numvalues, 3);
 
 			// now the gust
 			fromTime = DateTime.Now - cumulus.PeakGustTime;
@@ -6588,7 +6561,6 @@ namespace CumulusMX
 		public TWindVec[] WindVec { get; set; }
 
 
-		//private bool first_rain = true;
 		private int rainResetCount = 0;
 		private bool SecondChanceRainReset = false;
 		private bool initialiseRainDayStart = true;
@@ -6706,8 +6678,6 @@ namespace CumulusMX
 
 		public void ReadYesterdayFile()
 		{
-			//var hourInc = cumulus.GetHourInc();
-
 			IniFile ini = new IniFile(cumulus.YesterdayFile);
 
 			// Wind
@@ -8701,6 +8671,8 @@ namespace CumulusMX
 			// get the min and max timestamps from the recent wind array
 			var minWindTs = DateTime.MaxValue;
 			var maxWindTs = DateTime.MinValue;
+
+#pragma warning disable S3267 // Loops should be simplified with "LINQ" expressions
 			foreach (var rec in WindRecent)
 			{
 				if (rec.Timestamp < minWindTs)
@@ -8708,6 +8680,7 @@ namespace CumulusMX
 				if (rec.Timestamp > maxWindTs)
 					maxWindTs = rec.Timestamp;
 			}
+#pragma warning restore S3267 // Loops should be simplified with "LINQ" expressions
 
 			foreach (var rec in result)
 			{
@@ -8841,7 +8814,7 @@ namespace CumulusMX
 							linenum++;
 							var newRec = ParseDayFileRec(line);
 
-							if (DayFile.Any(x => x.Date == newRec.Date))
+							if (DayFile.Exists(x => x.Date == newRec.Date))
 							{
 								cumulus.LogErrorMessage($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}");
 								msg.Append($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}<br>");
@@ -13428,11 +13401,9 @@ namespace CumulusMX
 		{
 			var InvC = CultureInfo.InvariantCulture;
 			/* returns:
-			 *	{
 			 *		highgust:[[date1,val1],[date2,val2]...],
 			 *		mintemp:[[date1,val1],[date2,val2]...],
 			 *		etc
-			 *	}
 			 */
 
 			StringBuilder sb = new StringBuilder("{");
@@ -13597,11 +13568,9 @@ namespace CumulusMX
 			var InvC = CultureInfo.InvariantCulture;
 
 			/* returns:
-			 *	{
 			 *		highgust:[[date1,val1],[date2,val2]...],
 			 *		mintemp:[[date1,val1],[date2,val2]...],
 			 *		etc
-			 *	}
 			 */
 
 			StringBuilder sb = new StringBuilder("{");
@@ -13642,11 +13611,9 @@ namespace CumulusMX
 			var InvC = CultureInfo.InvariantCulture;
 
 			/* returns:
-			 *	{
 			 *		highgust:[[date1,val1],[date2,val2]...],
 			 *		mintemp:[[date1,val1],[date2,val2]...],
 			 *		etc
-			 *	}
 			 */
 
 			StringBuilder sb = new StringBuilder("{");
@@ -13683,11 +13650,9 @@ namespace CumulusMX
 			var InvC = CultureInfo.InvariantCulture;
 
 			/* returns:
-			 *	{
 			 *		highgust:[[date1,val1],[date2,val2]...],
 			 *		mintemp:[[date1,val1],[date2,val2]...],
 			 *		etc
-			 *	}
 			 */
 
 			StringBuilder sb = new StringBuilder("{");
@@ -13724,11 +13689,9 @@ namespace CumulusMX
 		{
 
 			/* returns:
-			 *	{
 			 *		highgust:[[date1,val1],[date2,val2]...],
 			 *		mintemp:[[date1,val1],[date2,val2]...],
 			 *		etc
-			 *	}
 			 */
 
 			StringBuilder sb = new StringBuilder("{");
@@ -13758,11 +13721,9 @@ namespace CumulusMX
 		public string GetAllDailyHumGraphData()
 		{
 			/* returns:
-			 *	{
 			 *		highgust:[[date1,val1],[date2,val2]...],
 			 *		mintemp:[[date1,val1],[date2,val2]...],
 			 *		etc
-			 *	}
 			 */
 
 			StringBuilder sb = new StringBuilder("{");
@@ -13799,11 +13760,9 @@ namespace CumulusMX
 			var InvC = CultureInfo.InvariantCulture;
 
 			/* returns:
-			 *	{
 			 *		highgust:[[date1,val1],[date2,val2]...],
 			 *		mintemp:[[date1,val1],[date2,val2]...],
 			 *		etc
-			 *	}
 			 */
 
 			StringBuilder sb = new StringBuilder("{");

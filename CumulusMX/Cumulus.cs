@@ -587,7 +587,7 @@ namespace CumulusMX
 			LogMessage($"Running as a {(IntPtr.Size == 4 ? "32" : "64")} bit process");
 			LogMessage("Running under userid: " + Environment.UserName);
 
-			boolWindows = Platform[..3] == "Win";
+			boolWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
 			// Set the default comport name depending on platform
 			DefaultComportName = boolWindows ? "COM1" : "/dev/ttyUSB0";

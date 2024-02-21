@@ -185,6 +185,25 @@ namespace CumulusMX
 
 									if (hour == 13)
 									{
+										var fw = GetFirmwareVersion();
+										if (fw != "???")
+										{
+											GW1000FirmwareVersion = fw;
+											deviceModel = GW1000FirmwareVersion.Split('_')[0];
+											deviceFirmware = GW1000FirmwareVersion.Split('_')[1];
+
+											var fwString = GW1000FirmwareVersion.Split(underscoreV, StringSplitOptions.None);
+											if (fwString.Length > 1)
+											{
+												fwVersion = new Version(fwString[1]);
+											}
+											else
+											{
+												// failed to get the version, lets assume it's fairly new
+												fwVersion = new Version("1.6.5");
+											}
+										}
+
 										_ = CheckAvailableFirmware();
 									}
 								}
@@ -860,9 +879,8 @@ namespace CumulusMX
 					var hex = "FFFF27004601009D06220821A509270D02001707490A00B40B002F0C0069150001F07C16006317012A00324D00341900AA0E0000100000110000120000009D130000072C0D0000F8"
 					int NumberChars = hex.Length
 					byte[] bytes = new byte[NumberChars / 2]
-					for (int i = 0; i < NumberChars; i += 2)
+					fore (int i = 0; i < NumberChars; i += 2)
 						bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16)
-
 					data = bytes
 					*/
 
