@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -6,6 +7,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
+
+using ServiceStack.Text;
 
 using Swan;
 
@@ -2607,6 +2610,13 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.MonthlyRecs[month].LowTemp.Ts, "\\a\\t HH:mm o\\n dd MMMM yyyy", tagParams);
 		}
 
+		private string TagByMonthTempAvg(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var avg = station.DayFile.Where(rec => rec.Date.Month == month).Average(rec => rec.AvgTemp);
+			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
 		private string TagByMonthAppTempH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
@@ -3534,6 +3544,48 @@ namespace CumulusMX
 			return CheckRcDp(station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours == Cumulus.DefaultHiVal ? 0 : x.SunShineHours), tagParams, 1);
 		}
 
+		private string TagMonthTempAvg(Dictionary<string, string> tagParams)
+		{
+			var year = tagParams.Get("y");
+			var month = tagParams.Get("m");
+			DateTime start;
+			DateTime end;
+
+			if (year != null && month != null)
+			{
+				start = new DateTime(int.Parse(year), int.Parse(month), 1);
+				end = start.AddMonths(1);
+			}
+			else
+			{
+				end = DateTime.Now.Date;
+				start = new DateTime(end.Year, end.Month, 1);
+			}
+
+			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
+			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagYearTempAvg(Dictionary<string, string> tagParams)
+		{
+			var year = tagParams.Get("y");
+			DateTime start;
+			DateTime end;
+
+			if (year != null)
+			{
+				start = new DateTime(int.Parse(year), 1, 1);
+				end = start.AddYears(1);
+			}
+			else
+			{
+				end = DateTime.Now.Date;
+				start = new DateTime(end.Year, 1, 1);
+			}
+
+			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
+			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
+		}
 
 		private string TagThwIndex(Dictionary<string, string> tagParams)
 		{
@@ -6480,6 +6532,7 @@ namespace CumulusMX
 				// Month-by-month highs and lows - values
 				{ "ByMonthTempH", TagByMonthTempH },
 				{ "ByMonthTempL", TagByMonthTempL },
+				{ "ByMonthTempAvg", TagByMonthTempAvg },
 				{ "ByMonthAppTempH", TagByMonthAppTempH },
 				{ "ByMonthAppTempL", TagByMonthAppTempL },
 				{ "ByMonthFeelsLikeH", TagByMonthFeelsLikeH },
@@ -6539,6 +6592,9 @@ namespace CumulusMX
 				{ "ByMonthLongestWetPeriodT", TagByMonthLongestWetPeriodT },
 				{ "ByMonthLowDailyTempRangeT", TagByMonthLowDailyTempRangeT },
 				{ "ByMonthHighDailyTempRangeT", TagByMonthHighDailyTempRangeT },
+				// Specifc Month/Year values
+				{ "MonthTempAvg", TagMonthTempAvg },
+				{ "YearTempAvg", TagYearTempAvg },
 				// Options
 				{ "Option_useApparent", TagOption_useApparent },
 				{ "Option_showSolar", TagOption_showSolar },

@@ -2,7 +2,10 @@
 —————————————
 - FTP log file now only created when required
 - Fixes to backup to zip at start-up and rollover
-- Reinstate ThreadPool size limits
+- Adds new web tags for temperature means
+	<#ByMonthTempAvg mon=a>	Mean for requested month over the entire history. Omit the mon parameter for the current month
+	<#MonthTempAvg m=a y=b>	Mean for the requested specific month. Omit the parameters for the current month
+	<#YearTempAvg y=a>	Mean for the requested year. Omit the y parameter for the current year
 
 
 4.0.0 - b4012
@@ -49,6 +52,10 @@ New
 - Ecowitt - added firmware update check on start-up and once a day at 13:00
 	- New Firmware Alarm to support this
 	- New web tag <#FirmwareAlarm>
+- Adds new web tags for temperature means
+	<#ByMonthTempAvg mon=a>	Mean for requested month over the entire history. Omit the mon parameter for the current month
+	<#MonthTempAvg m=a y=b>	Mean for the requested specific month. Omit the parameters for the current month
+	<#YearTempAvg y=a>	Mean for the requested year. Omit the y parameter for the current year
 
 Changed
 - Now requires Microsoft .Net 8.0 rather than mono to run under Linux and MacOS
