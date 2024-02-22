@@ -76,7 +76,7 @@
     <StartupObject>CumulusMX.Program</StartupObject>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
-    <Version>3.28.4.3281</Version>
+    <Version>3.28.5.3282</Version>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
