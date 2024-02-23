@@ -1,3 +1,9 @@
+3.28.5 - b3282
+——————————————
+Fixed
+- Bug in rainfall jump detection, was triggering at 1 mm!
+
+
 3.28.4 - b3281
 ——————————————
 New
@@ -6,7 +12,7 @@ New
 Fixed
 - Error that the username is not set when sending email to a server that requires no authentication
 - Some Davis VP2 stations current data not working with the WeatherLink Cloud station type
-- Fix for soil moisture conversion from percentage to cb in WCloud uploads
+- Fix for soil moisture conversion from percentage to cb in WeatherCloud uploads
 - Fix EcowittCloud not applying historic piezo rainfall
 
 

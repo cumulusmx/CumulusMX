@@ -6027,8 +6027,8 @@ namespace CumulusMX
 
 			// Has the rain total in the station been reset?
 			// raindaystart greater than current total, allow for rounding
-			// or current has jumped by more than 25 mm/1 inch
-			var maxIncrement = cumulus.Units.Rain == 0 ? 1 : 25;
+			// or current has jumped by more than 40 mm/1.5 inch
+			var maxIncrement = cumulus.Units.Rain == 0 ? 40 : 1.5;
 			var counterReset = Math.Round(RainCounterDayStart, cumulus.RainDPlaces) - Math.Round(RainCounter, cumulus.RainDPlaces) > 0;
 			var counterJumped = Math.Round(RainCounter, cumulus.RainDPlaces) - previoustotal > maxIncrement;
 
