@@ -76,11 +76,12 @@ namespace CumulusMX
 			}
 		}
 
-		public static bool InstallLinux(string userId, string lang, int port)
+		public static bool InstallLinux(string userId, string groupId, string lang, int port)
 		{
 			try
 			{
 				var user = string.IsNullOrEmpty(userId) ? "root" : userId;
+				var group = string.IsNullOrEmpty(groupId) ? user : groupId;
 
 				Console.WriteLine($"Installing as a systemctld service to run as userid {user}...");
 
@@ -110,7 +111,7 @@ namespace CumulusMX
 					"",
 					"[Service]",
 					$"User={user}",
-					$"Group={user}",
+					$"Group={group}",
 					$"WorkingDirectory={appPath[..^1]}",
 					$"ExecStart=\"{dotnetPath}\" CumulusMX.dll -service" + (port == 8998 ? "" : " -port " + port) + (string.IsNullOrEmpty(lang) ? "" : " -lang " + lang),
 					"Type=simple",

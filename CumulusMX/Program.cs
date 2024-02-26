@@ -123,8 +123,9 @@ namespace CumulusMX
 
 			var install = false;
 			var uninstall = false;
-			var user = "";
-			var lang = "";
+			var user = string.Empty;
+			var group = string.Empty;
+			var lang = string.Empty;
 
 			for (int i = 0; i < args.Length; i++)
 			{
@@ -165,6 +166,9 @@ namespace CumulusMX
 							break;
 						case "-user" when args.Length >= i:
 							user = args[++i];
+							break;
+						case "-group" when args.Length >= i:
+							group = args[++i];
 							break;
 						case "-service":
 							service = true;
@@ -207,7 +211,7 @@ namespace CumulusMX
 
 					}
 
-					if (SelfInstaller.InstallLinux(user, lang, Httpport))
+					if (SelfInstaller.InstallLinux(user, group, lang, Httpport))
 					{
 						Console.ForegroundColor = ConsoleColor.Green;
 						Console.WriteLine("\nCumulus MX is now installed to run as service\n");

@@ -6,6 +6,7 @@
 	<#ByMonthTempAvg mon=a>	Mean for requested month over the entire history. Omit the mon parameter for the current month
 	<#MonthTempAvg m=a y=b>	Mean for the requested specific month. Omit the parameters for the current month
 	<#YearTempAvg y=a>	Mean for the requested year. Omit the y parameter for the current year
+- Linux -install now accepts an optional -group <groupname> parameter. If omitted it defaults to the user name
 
 
 4.0.0 - b4012
