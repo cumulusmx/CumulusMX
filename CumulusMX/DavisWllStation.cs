@@ -2178,7 +2178,7 @@ namespace CumulusMX
 									DoSolarRad((int) data11.solar_rad_avg, recordTs);
 
 									// add in archive period worth of sunshine, if sunny - arch_int in seconds
-									if ((SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.00) && (SolarRad >= cumulus.SolarOptions.SolarMinimum))
+									if (IsSunny)
 									{
 										SunshineHours += (data11.arch_int / 3600.0);
 									}

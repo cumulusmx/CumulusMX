@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -8,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
 
-using ServiceStack.Text;
 
 using Swan;
 
@@ -608,7 +606,7 @@ namespace CumulusMX
 
 		private static string TagDaysSince30Dec1899(Dictionary<string, string> tagParams)
 		{
-			DateTime startDate = new DateTime(1899, 12, 30);
+			DateTime startDate = new DateTime(1899, 12, 30, 0, 0, 0, DateTimeKind.Local);
 			return ((DateTime.Now - startDate).TotalDays).ToString();
 		}
 
@@ -3335,7 +3333,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				var lastTip = DateTime.Parse(station.LastRainTip);
+				var lastTip = DateTime.Parse(station.LastRainTip, CultureInfo.CurrentCulture);
 				return GetFormattedDateTime(lastTip, "d", tagParams);
 			}
 			catch (Exception)
@@ -3349,7 +3347,7 @@ namespace CumulusMX
 			DateTime lastTip;
 			try
 			{
-				lastTip = DateTime.Parse(station.LastRainTip);
+				lastTip = DateTime.Parse(station.LastRainTip, CultureInfo.CurrentCulture);
 			}
 			catch (Exception)
 			{
@@ -3499,19 +3497,19 @@ namespace CumulusMX
 
 			if (year != null && month != null)
 			{
-				start = new DateTime(int.Parse(year), int.Parse(month), 1);
+				start = new DateTime(int.Parse(year), int.Parse(month), 1, 0, 0, 0, DateTimeKind.Local);
 				end = start.AddMonths(1);
 			}
 			else if (rel != null)
 			{
 				end = DateTime.Now;
-				start = new DateTime(end.Year, end.Month, 1).AddMonths(int.Parse(rel));
+				start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(int.Parse(rel));
 				end = start.AddMonths(1);
 			}
 			else
 			{
 				end = DateTime.Now;
-				start = new DateTime(end.Year, end.Month, 1);
+				start = new DateTime(end.Year, end.Month, 1, 0 ,0, 0, DateTimeKind.Local);
 			}
 
 			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours == Cumulus.DefaultHiVal ? 0 : rec.SunShineHours), tagParams, 1);
@@ -3526,19 +3524,19 @@ namespace CumulusMX
 
 			if (year != null)
 			{
-				start = new DateTime(int.Parse(year), 1, 1);
+				start = new DateTime(int.Parse(year), 1, 1, 0, 0, 0, DateTimeKind.Local);
 				end = start.AddYears(1);
 			}
 			else if (rel != null)
 			{
 				end = DateTime.Now;
-				start = new DateTime(end.Year, 1, 1).AddYears(int.Parse(rel));
+				start = new DateTime(end.Year, 1, 1, 0, 0, 0, DateTimeKind.Local).AddYears(int.Parse(rel));
 				end = start.AddYears(1);
 			}
 			else
 			{
 				end = DateTime.Now;
-				start = new DateTime(end.Year, 1, 1);
+				start = new DateTime(end.Year, 1, 1, 0, 0, 0, DateTimeKind.Local);
 			}
 
 			return CheckRcDp(station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours == Cumulus.DefaultHiVal ? 0 : x.SunShineHours), tagParams, 1);
@@ -3553,13 +3551,13 @@ namespace CumulusMX
 
 			if (year != null && month != null)
 			{
-				start = new DateTime(int.Parse(year), int.Parse(month), 1);
+				start = new DateTime(int.Parse(year), int.Parse(month), 1, 0 ,0, 0, DateTimeKind.Local);
 				end = start.AddMonths(1);
 			}
 			else
 			{
 				end = DateTime.Now.Date;
-				start = new DateTime(end.Year, end.Month, 1);
+				start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
 			}
 
 			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
@@ -3574,13 +3572,13 @@ namespace CumulusMX
 
 			if (year != null)
 			{
-				start = new DateTime(int.Parse(year), 1, 1);
+				start = new DateTime(int.Parse(year), 1, 1, 0, 0, 0, DateTimeKind.Local);
 				end = start.AddYears(1);
 			}
 			else
 			{
 				end = DateTime.Now.Date;
-				start = new DateTime(end.Year, 1, 1);
+				start = new DateTime(end.Year, 1, 1, 0, 0, 0, DateTimeKind.Local);
 			}
 
 			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
@@ -3618,7 +3616,7 @@ namespace CumulusMX
 			WeatherStation.DayFileRec rec;
 			try
 			{
-				rec = station.DayFile.Where(r => r.Date == dayb4yest).Single();
+				rec = station.DayFile.Single(r => r.Date == dayb4yest);
 			}
 			catch
 			{

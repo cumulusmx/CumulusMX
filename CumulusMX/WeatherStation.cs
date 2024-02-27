@@ -810,7 +810,7 @@ namespace CumulusMX
 
 			Cumulus.LogConsoleMessage("Last update: " + timestampstr);
 
-			cumulus.LastUpdateTime = DateTime.Parse(timestampstr).ToUniversalTime();
+			cumulus.LastUpdateTime = DateTime.Parse(timestampstr, CultureInfo.CurrentCulture);
 			var todayDate = cumulus.LastUpdateTime.Date;
 
 			cumulus.LogMessage("ReadTodayFile: Last update time from today.ini: " + cumulus.LastUpdateTime);
@@ -1585,7 +1585,7 @@ namespace CumulusMX
 
 				if ((timeNow.Minute % 10) == 0)
 				{
-					TenMinuteChanged(timeNow);
+					TenMinuteChanged();
 				}
 
 				if (timeNow.Hour != lastHour)
@@ -1623,7 +1623,7 @@ namespace CumulusMX
 				var millisecs = (int) timeNow.TimeOfDay.TotalMilliseconds % 60000;
 				if (millisecs >= 12000 && millisecs < 12500)
 				{
-					MinutePlus12Changed(timeNow);
+					MinutePlus12Changed();
 				}
 
 				cumulus.MQTTSecondChanged(timeNow);
@@ -2005,7 +2005,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void MinutePlus12Changed(DateTime now)
+		private void MinutePlus12Changed()
 		{
 			if (!DataStopped)
 			{
@@ -2035,7 +2035,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void TenMinuteChanged(DateTime now)
+		private void TenMinuteChanged()
 		{
 			cumulus.DoMoonPhase();
 			cumulus.MoonAge = MoonriseMoonset.MoonAge();
@@ -2820,7 +2820,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
-			var entrydate = new DateTime();
+			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			if (incremental)
 			{
@@ -2963,7 +2963,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
-			var entrydate = new DateTime();
+			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			if (incremental)
 			{
@@ -3106,7 +3106,7 @@ namespace CumulusMX
 
 
 			var finished = false;
-			var entrydate = new DateTime();
+			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			if (incremental)
 			{
@@ -3249,7 +3249,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
-			var entrydate = new DateTime();
+			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			if (incremental)
 			{
@@ -3397,7 +3397,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
-			var entrydate = new DateTime();
+			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			if (incremental)
 			{
@@ -3545,7 +3545,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
-			var entrydate = new DateTime();
+			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			if (incremental)
 			{
@@ -3689,7 +3689,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
-			var entrydate = new DateTime();
+			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			if (incremental)
 			{
@@ -3835,7 +3835,7 @@ namespace CumulusMX
 
 
 			var finished = false;
-			var entrydate = new DateTime();
+			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			if (incremental)
 			{
@@ -7701,7 +7701,7 @@ namespace CumulusMX
 			var tim = timestamp.AddDays(-1);
 			var newRec = new DayFileRec()
 			{
-				Date = new DateTime(tim.Year, tim.Month, tim.Day),
+				Date = new DateTime(tim.Year, tim.Month, tim.Day, 0, 0, 0, DateTimeKind.Local),
 				HighGust = HiLoToday.HighGust,
 				HighGustBearing = HiLoToday.HighGustBearing,
 				HighGustTime = HiLoToday.HighGustTime,
@@ -12572,15 +12572,15 @@ namespace CumulusMX
 				var stDate = from.Split('-');
 				var enDate = to.Split('-');
 
-				var ts = new DateTime(int.Parse(stDate[0]), int.Parse(stDate[1]), int.Parse(stDate[2]));
-				var te = new DateTime(int.Parse(enDate[0]), int.Parse(enDate[1]), int.Parse(enDate[2]));
+				var ts = new DateTime(int.Parse(stDate[0]), int.Parse(stDate[1]), int.Parse(stDate[2]), 0, 0, 0, DateTimeKind.Local);
+				var te = new DateTime(int.Parse(enDate[0]), int.Parse(enDate[1]), int.Parse(enDate[2]), 0, 0, 0, DateTimeKind.Local);
 
 				// adjust for 9 am rollover
 				ts = ts.AddHours(-cumulus.GetHourInc(ts));
 				te = te.AddDays(1);
 				te = te.AddHours(-cumulus.GetHourInc(ts));
 
-				var fileDate = new DateTime(ts.Year, ts.Month, 15);
+				var fileDate = new DateTime(ts.Year, ts.Month, 15, 0, 0, 0, DateTimeKind.Local);
 
 				var logfile = extra ? cumulus.GetExtraLogFileName(fileDate) : cumulus.GetLogFileName(fileDate);
 				var numFields = extra ? Cumulus.NumExtraLogFileFields : Cumulus.NumLogFileFields;
@@ -13853,7 +13853,7 @@ namespace CumulusMX
 			if (DayFile.Count > 0 && (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local) || cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local)))
 			{
 				// we have to detect a new growing deg day year is starting
-				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.GrowingYearStarts, 1);
+				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.GrowingYearStarts, 1, 0, 0, 0, DateTimeKind.Local);
 
 				if (DayFile[0].Date >= nextYear)
 				{
@@ -13929,7 +13929,7 @@ namespace CumulusMX
 					}
 
 					// make all series the same year so they plot together
-					long recDate = Utils.ToPseudoJSTime(new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day));
+					long recDate = Utils.ToPseudoJSTime(new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Utc));
 
 					if (cumulus.GraphOptions.Visible.GrowingDegreeDays1.IsVisible(local))
 					{
@@ -14029,7 +14029,7 @@ namespace CumulusMX
 			if (DayFile.Count > 0 && (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum2.IsVisible(local)))
 			{
 				// we have to detect a new year is starting
-				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.TempSumYearStarts, 1);
+				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.TempSumYearStarts, 1, 0, 0, 0, DateTimeKind.Local);
 
 				if (DayFile[0].Date >= nextYear)
 				{
@@ -14119,7 +14119,7 @@ namespace CumulusMX
 						plotYear++;
 					}
 
-					long recDate = Utils.ToPseudoJSTime(new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day));
+					long recDate = Utils.ToPseudoJSTime(new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Utc));
 
 					if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
 					{

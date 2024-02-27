@@ -48,7 +48,9 @@ namespace CumulusMX
 							socket.Dispose();
 						}
 						catch
-						{ }
+						{
+							// do nothing
+						}
 						socket = null;
 						Thread.Sleep(5000 * attempt);
 					}
@@ -111,6 +113,7 @@ namespace CumulusMX
 			}
 			catch (ObjectDisposedException)
 			{
+				// do nothing
 			}
 			catch (Exception ex)
 			{
@@ -131,11 +134,11 @@ namespace CumulusMX
 				// Are we already reconnecting?
 				if (connecting)
 					// yep - so wait reconnect to complete
-					return null;
+					return [];
 				// no, try a reconnect
 				else if (!OpenTcpPort(ipAddress, tcpPort))
 					// that didn;t work, give up and return nothing
-					return null;
+					return [];
 			}
 
 			var buffer = new byte[2028];
@@ -175,7 +178,7 @@ namespace CumulusMX
 					{
 						cumulus.LogWarningMessage($"DoCommand({cmdName}): No response received");
 					}
-					return null;
+					return [];
 				}
 				else
 				{
@@ -188,7 +191,7 @@ namespace CumulusMX
 				cumulus.LogMessage("Attempting to reopen the TCP port");
 				Thread.Sleep(1000);
 				OpenTcpPort(ipAddress, tcpPort);
-				return null;
+				return [];
 			}
 			// Return the data we want out of the buffer
 			if (bytesRead > 0)
@@ -199,7 +202,7 @@ namespace CumulusMX
 				return data1;
 			}
 
-			return null;
+			return [];
 		}
 
 		private bool ChecksumOk(byte[] data, int lengthBytes)
@@ -323,7 +326,7 @@ namespace CumulusMX
 			CMD_WRITE_RAIN = 0x58 // *new* write rain data
 		}
 
-		private enum CommandRespSize : int
+		private enum CommandRespSize
 		{
 			bytes1 = 1,
 			bytes2 = 2,

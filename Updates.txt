@@ -3,10 +3,11 @@
 - FTP log file now only created when required
 - Fixes to backup to zip at start-up and rollover
 - Adds new web tags for temperature means
-	<#ByMonthTempAvg mon=a>	Mean for requested month over the entire history. Omit the mon parameter for the current month
-	<#MonthTempAvg m=a y=b>	Mean for the requested specific month. Omit the parameters for the current month
-	<#YearTempAvg y=a>	Mean for the requested year. Omit the y parameter for the current year
+	<#ByMonthTempAvg mon=[1-12]>        Mean for requested month over the entire history. Omit the mon parameter for the current month
+	<#MonthTempAvg m=[1-12] y=[YYYY]>   Mean for the requested specific month. Omit the parameters for the current month
+	<#YearTempAvg y=[YYYY]>             Mean for the requested year. Omit the y parameter for the current year
 - Linux -install now accepts an optional -group <groupname> parameter. If omitted it defaults to the user name
+- Fix TZ issue on catch-up
 
 
 4.0.0 - b4012

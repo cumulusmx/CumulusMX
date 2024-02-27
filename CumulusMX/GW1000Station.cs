@@ -895,7 +895,7 @@ namespace CumulusMX
 					double windSpeedLast = -999, rainRateLast = -999, rainLast = -999, gustLast = -999;
 					int windDirLast = -999;
 					double outdoortemp = -999;
-					double dewpoint;
+					//double dewpoint
 					double windchill = -999;
 
 					bool batteryLow = false;
@@ -930,8 +930,8 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x03: //Dew point (℃)
-								tempInt16 = GW1000Api.ConvertBigEndianInt16(data, idx);
-								dewpoint = tempInt16 / 10.0;
+								//tempInt16 = GW1000Api.ConvertBigEndianInt16(data, idx)
+								//dewpoint = tempInt16 / 10.0
 								idx += 2;
 								break;
 							case 0x04: //Wind chill (℃)
@@ -1434,17 +1434,12 @@ namespace CumulusMX
 				var mainSensor = data[5] == 0 ? "WH24" : "Other than WH24";
 
 				var unix = (int) GW1000Api.ConvertBigEndianUInt32(data, 6);
-				var date = Utils.FromUnixTime(unix);
 				var autoDST = data[11] != 0;
 
 				// Ecowitt do not understand Unix time and add the local TZ offset and DST to it!
-				var offset = TimeZoneInfo.Local.GetUtcOffset(now);
-				if (autoDST && TimeZoneInfo.Local.IsDaylightSavingTime(date))
-				{
-					unix -= (int) Math.Round(offset.TotalSeconds);
-					date = date.AddSeconds(-offset.TotalSeconds);
-				}
+				var offset = autoDST ? TimeZoneInfo.Local.GetUtcOffset(now) : TimeZoneInfo.Local.BaseUtcOffset;
 
+				var date = Utils.FromUnixTime(unix - offset.Seconds);
 				var clockdiff = now.ToUnixTime() - unix;
 
 				string slowfast;
@@ -1457,7 +1452,7 @@ namespace CumulusMX
 					slowfast = "fast";
 
 				if (!driftOnly)
-					cumulus.LogMessage($"Gateway Info: frequency: {freq}, main sensor: {mainSensor}, date/time: {date:F}, Automatic DST adjustment: {autoDST}");
+					cumulus.LogMessage($"Gateway Info: frequency: {freq}, main sensor: {mainSensor}, date/time: {date:yyyy-MM-dd HH:mm:ss}, Automatic DST adjustment: {autoDST}");
 
 				cumulus.LogMessage($"Gateway Info: Gateway clock is {Math.Abs(clockdiff)} secs {slowfast} compared to Cumulus");
 			}

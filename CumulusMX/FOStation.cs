@@ -539,7 +539,7 @@ namespace CumulusMX
 							DoSolarRad((int) Math.Floor(historydata.solarVal * cumulus.SolarOptions.LuxToWM2), timestamp);
 
 							// add in archive period worth of sunshine, if sunny
-							if ((SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100) && (SolarRad >= cumulus.SolarOptions.SolarMinimum))
+							if (IsSunny)
 								SunshineHours += (historydata.interval / 60.0);
 
 							LightValue = historydata.solarVal;

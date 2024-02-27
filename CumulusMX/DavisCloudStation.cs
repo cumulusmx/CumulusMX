@@ -2386,7 +2386,7 @@ namespace CumulusMX
 									cumulus.LogDebugMessage($"DecodeHistoric: using solar data from TxId {data.tx_id}");
 									DoSolarRad(data.solar_rad_avg.Value, lastRecordTime);
 
-									if (!current && (SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.00) && (SolarRad >= cumulus.SolarOptions.SolarMinimum))
+									if (!current && IsSunny)
 									{
 										// add in archive period worth of sunshine, if sunny - arch_int in seconds
 										SunshineHours += (data.arch_int / 3600.0);
@@ -2930,7 +2930,7 @@ namespace CumulusMX
 										cumulus.LogDebugMessage($"DecodeHistoric: using solar data from TxId {data.tx_id}");
 										DoSolarRad((int) data.solar_rad_avg, lastRecordTime);
 
-										if (!current && (SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.00) && (SolarRad >= cumulus.SolarOptions.SolarMinimum))
+										if (!current && IsSunny)
 										{
 											// add in archive period worth of sunshine, if sunny - arch_int in seconds
 											SunshineHours += (data.arch_int / 3600.0);
