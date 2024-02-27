@@ -1,3 +1,9 @@
+3.28.6 - b3283
+——————————————
+- Fix davis Cloud station decode of VP2 sensor current data (again)
+- Fix Ecowitt WH41 PM 2.5 24 hour average value not being recorded
+
+
 3.28.5 - b3282
 ——————————————
 Fixed

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -2137,7 +2136,8 @@ namespace CumulusMX
 								case 1:
 								case 2:
 									{
-										var data = sensor.data.FromJsv<WLCurrentSensordDataType1_2>();
+										// VP2 sensor data is sent as an array of one, so we will strip off the enclosing [ ]
+										var data = sensor.data.Substring(1, sensor.data.Length - 2).FromJsv<WLCurrentSensordDataType1_2>();
 
 										try
 										{
