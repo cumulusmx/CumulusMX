@@ -13,7 +13,7 @@ namespace CumulusMX
 		private const string sLineBreak = "\r\n";
 		private double prevraintotal = -1;
 		private int previousminute = 60;
-		private string currentWritePointer = "";
+		private string currentWritePointer = string.Empty;
 		private int readCounter = 30;
 		private bool stop = false;
 
@@ -173,7 +173,7 @@ namespace CumulusMX
 
 		private string GetResponse(string expected)
 		{
-			string response = "";
+			string response = string.Empty;
 			int attempts = 0;
 
 			// The Instromet is odd, in that the serial connection is configured for human interaction rather than machine.

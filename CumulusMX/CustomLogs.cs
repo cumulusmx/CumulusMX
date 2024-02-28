@@ -70,7 +70,7 @@ namespace CumulusMX
 
 		public string UpdateConfigIntvl(IHttpContext context)
 		{
-			string json = "";
+			string json = string.Empty;
 			CustomLogsSettings settings;
 			try
 			{
@@ -137,7 +137,7 @@ namespace CumulusMX
 
 		public string UpdateConfigDaily(IHttpContext context)
 		{
-			string json = "";
+			string json = string.Empty;
 			CustomLogsSettings settings;
 			try
 			{

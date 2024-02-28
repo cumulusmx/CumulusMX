@@ -650,7 +650,7 @@ namespace CumulusMX
 					int end = rec.IndexOf(',', start);
 
 					int type = int.Parse(rec[start..end]);
-					string idx = "";
+					string idx = string.Empty;
 
 					switch (type)
 					{
@@ -1354,7 +1354,7 @@ namespace CumulusMX
 			var delimiters = new[] { ' ', '-' };
 			var sl = TxBatText.Split(delimiters);
 
-			TxBatText = "";
+			TxBatText = string.Empty;
 			for (var i = 1; i <= 8; i++)
 			{
 				TxBatText += i;
@@ -2213,7 +2213,7 @@ namespace CumulusMX
 							case 56: // Soil + Leaf
 								var data13 = json.FromJsv<WlHistorySensorDataType13>();
 
-								string idx = "";
+								string idx = string.Empty;
 								/*
 								 * Leaf Wetness
 								 * Available fields

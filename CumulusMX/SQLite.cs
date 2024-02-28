@@ -2295,7 +2295,7 @@ namespace SQLite
 
 			// Check for errors
 			r = SQLite3.GetResult(destHandle);
-			string msg = "";
+			string msg = string.Empty;
 			if (r != SQLite3.Result.OK)
 			{
 				msg = SQLite3.GetErrmsg(destHandle);
@@ -3204,7 +3204,7 @@ namespace SQLite
 		{
 			_conn = conn;
 			_bindings = new List<Binding>();
-			CommandText = "";
+			CommandText = string.Empty;
 		}
 
 		public int ExecuteNonQuery()
@@ -4482,7 +4482,7 @@ namespace SQLite
 					args[i] = CompileExpr(call.Arguments[i], queryArgs);
 				}
 
-				var sqlCall = "";
+				var sqlCall = string.Empty;
 
 				if (call.Method.Name == "Like" && args.Length == 2)
 				{
@@ -4657,7 +4657,7 @@ namespace SQLite
 					{
 						var sb = new System.Text.StringBuilder();
 						sb.Append("(");
-						var head = "";
+						var head = string.Empty;
 						foreach (var a in (System.Collections.IEnumerable) val)
 						{
 							queryArgs.Add(a);

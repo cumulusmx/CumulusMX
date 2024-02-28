@@ -250,7 +250,7 @@ namespace CumulusMX
 			//
 			double utrise = 0;
 			double utset = 0;
-			string OutString = "";
+			string OutString = string.Empty;
 			double[] sinho = new double[6];
 			const double rads = 0.0174532925;
 			const string alwaysUp = "****";

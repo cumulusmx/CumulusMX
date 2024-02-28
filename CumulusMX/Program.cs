@@ -118,9 +118,6 @@ namespace CumulusMX
 			debug = true;
 #endif
 
-			// Create a unique instance ID if it does not exist
-			_ = CheckInstanceId();
-
 			var install = false;
 			var uninstall = false;
 			var user = string.Empty;
@@ -348,31 +345,31 @@ namespace CumulusMX
 			}
 		}
 
-		private static async Task CheckInstanceId()
+		public static bool CheckInstanceId(bool create)
 		{
 			// check if instance file exists, if it exists, read the contents
 			if (File.Exists("UniqueId.txt"))
 			{
 				string txt;
 				using (var sr = File.OpenText("UniqueId.txt"))
-					txt = await sr.ReadLineAsync();
+					txt = sr.ReadLine();
 
-				InstanceId = Convert.FromBase64String(txt);
 				// Check the length, and ends in "="
-				if (txt.Length < 30 || txt[^1] != '=')
+				if (txt.Length > 30 || txt[^1] == '=')
 				{
-					var msg = "Error: Your UniqueId.txt file appears to be corrupt, please restore it from a backup.";
-					Console.WriteLine(msg);
-					svcTextListener.WriteLine(msg);
-					svcTextListener.Flush();
+					InstanceId = Convert.FromBase64String(txt);
+					return true;
 				}
 			}
-			else
+			else if (create)
 			{
 				// otherwise, create it with a newly generated id
 				InstanceId = Crypto.GenerateKey();
-				await File.WriteAllTextAsync("UniqueId.txt", Convert.ToBase64String(InstanceId));
+				File.WriteAllText("UniqueId.txt", Convert.ToBase64String(InstanceId));
+				return true;
 			}
+
+			return false;
 		}
 	}
 }

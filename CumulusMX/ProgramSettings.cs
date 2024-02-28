@@ -91,8 +91,8 @@ namespace CumulusMX
 
 		public string UpdateConfig(IHttpContext context)
 		{
-			var errorMsg = "";
-			var json = "";
+			var errorMsg = string.Empty;
+			var json = string.Empty;
 			var returnMessage = "success";
 			JsonProgramSettings settings;
 			context.Response.StatusCode = 200;

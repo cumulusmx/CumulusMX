@@ -16,7 +16,7 @@ namespace CumulusMX
 		//public string UpdateCalibrationConfig(HttpListenerContext context)
 		public string UpdateConfig(IHttpContext context)
 		{
-			var json = "";
+			var json = string.Empty;
 			JsonCalibrationSettingsData settings;
 			var invC = CultureInfo.InvariantCulture;
 

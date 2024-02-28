@@ -210,7 +210,7 @@ namespace CumulusMX
 
 		public string UpdateConfig(IHttpContext context)
 		{
-			string json = "";
+			string json = string.Empty;
 			JsonSettings settings;
 			try
 			{

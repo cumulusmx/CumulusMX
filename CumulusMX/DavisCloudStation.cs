@@ -341,7 +341,7 @@ namespace CumulusMX
 			var delimiters = new[] { ' ', '-' };
 			var sl = TxBatText.Split(delimiters);
 
-			TxBatText = "";
+			TxBatText = string.Empty;
 			for (var i = 1; i <= 8; i++)
 			{
 				TxBatText += i;
@@ -1199,7 +1199,8 @@ namespace CumulusMX
 								case 1:
 								case 2:
 									{
-										var data = sensor.data.FromJsv<WLCurrentSensordDataType1_2>();
+										// VP2 sensor data is sent as an array of one, so we will strip off the enclosing [ ]
+										var data = sensor.data[1..^2].FromJsv<WLCurrentSensordDataType1_2>();
 
 										try
 										{
@@ -1486,7 +1487,7 @@ namespace CumulusMX
 											cumulus.LogErrorMessage($"DecodeCurrent: Error processing Solar value on TxId {data.tx_id}. Error: {ex.Message}");
 										}
 
-										string idx = "";
+										string idx = string.Empty;
 
 										// Leaf Wetness
 										try
@@ -2413,7 +2414,7 @@ namespace CumulusMX
 								cumulus.LogErrorMessage($"DecodeHistoric: Error processing Solar value on TxId {data.tx_id}. Error: {ex.Message}");
 							}
 
-							string idx = "";
+							string idx = string.Empty;
 
 							// Leaf Wetness
 							cumulus.LogDebugMessage($"DecodeHistoric: found Leaf/Soil data on TxId {data.tx_id}");
@@ -2967,7 +2968,7 @@ namespace CumulusMX
 							case 56: // Soil + Leaf
 								var data = json.FromJsv<WlHistorySensorDataType13>();
 
-								string idx = "";
+								string idx = string.Empty;
 								/*
 								 * Leaf Wetness
 								 * Available fields

@@ -52,7 +52,7 @@ namespace CumulusMX
 
 		public string UpdateConfig(IHttpContext context)
 		{
-			string json = "";
+			string json = string.Empty;
 			HttpFileSettings settings;
 			try
 			{

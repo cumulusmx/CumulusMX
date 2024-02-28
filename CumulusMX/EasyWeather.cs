@@ -69,8 +69,8 @@ namespace CumulusMX
 		private const int EW_LIGHT = 28;
 		private const int EW_UV = 29;
 
-		private string lastTime = "";
-		private string lastDate = "";
+		private string lastTime = string.Empty;
+		private string lastDate = string.Empty;
 
 		public override void Start()
 		{

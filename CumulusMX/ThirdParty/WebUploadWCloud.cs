@@ -32,7 +32,7 @@ namespace CumulusMX.ThirdParty
 			{
 				using var response = await Cumulus.MyHttpClient.GetAsync(url);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				var msg = "";
+				var msg = string.Empty;
 				switch ((int) response.StatusCode)
 				{
 					case 200:

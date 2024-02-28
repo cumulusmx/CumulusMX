@@ -488,8 +488,8 @@ namespace CumulusMX
 
 		internal string UpdateConfig(IHttpContext context)
 		{
-			var errorMsg = "";
-			var json = "";
+			var errorMsg = string.Empty;
+			var json = string.Empty;
 			context.Response.StatusCode = 200;
 			JsonStationSettingsData settings;
 
@@ -1430,7 +1430,7 @@ namespace CumulusMX
 
 		internal string SetSelectaChartOptions(IHttpContext context)
 		{
-			var errorMsg = "";
+			var errorMsg = string.Empty;
 			context.Response.StatusCode = 200;
 			// get the response
 			try
@@ -1473,7 +1473,7 @@ namespace CumulusMX
 
 		internal string SetSelectaPeriodOptions(IHttpContext context)
 		{
-			var errorMsg = "";
+			var errorMsg = string.Empty;
 			context.Response.StatusCode = 200;
 			// get the response
 			try

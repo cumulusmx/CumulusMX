@@ -396,7 +396,7 @@ namespace CumulusMX
 
 		private const string ForumDefault = "https://cumulus.hosiene.co.uk/";
 
-		private const string WebcamDefault = "";
+		private const string WebcamDefault = string.Empty;
 
 		private const string DefaultSoundFile = "alarm.mp3";
 		private const string DefaultSoundFileOld = "alert.wav";
@@ -2457,7 +2457,7 @@ namespace CumulusMX
 
 		private void RealtimeLocalCopy(byte cycle)
 		{
-			var dstPath = "";
+			var dstPath = string.Empty;
 			var folderSep1 = Path.DirectorySeparatorChar.ToString();
 			var folderSep2 = Path.AltDirectorySeparatorChar.ToString();
 
@@ -2509,7 +2509,7 @@ namespace CumulusMX
 
 		private async Task RealtimeUpload(byte cycle)
 		{
-			var remotePath = "";
+			var remotePath = string.Empty;
 			var tasklist = new List<Task>();
 
 			var taskCount = 0;
@@ -3465,18 +3465,18 @@ namespace CumulusMX
 
 			ProgramOptions.EnableAccessibility = ini.GetValue("Program", "EnableAccessibility", false);
 
-			ProgramOptions.StartupPingHost = ini.GetValue("Program", "StartupPingHost", "");
+			ProgramOptions.StartupPingHost = ini.GetValue("Program", "StartupPingHost", string.Empty);
 
 			ProgramOptions.StartupPingEscapeTime = ini.GetValue("Program", "StartupPingEscapeTime", 999);
 			ProgramOptions.StartupDelaySecs = ini.GetValue("Program", "StartupDelaySecs", 0);
 			ProgramOptions.StartupDelayMaxUptime = ini.GetValue("Program", "StartupDelayMaxUptime", 300);
 
-			ProgramOptions.StartupTask = ini.GetValue("Program", "StartupTask", "");
-			ProgramOptions.StartupTaskParams = ini.GetValue("Program", "StartupTaskParams", "");
+			ProgramOptions.StartupTask = ini.GetValue("Program", "StartupTask", string.Empty);
+			ProgramOptions.StartupTaskParams = ini.GetValue("Program", "StartupTaskParams", string.Empty);
 			ProgramOptions.StartupTaskWait = ini.GetValue("Program", "StartupTaskWait", false);
 
-			ProgramOptions.ShutdownTask = ini.GetValue("Program", "ShutdownTask", "");
-			ProgramOptions.ShutdownTaskParams = ini.GetValue("Program", "ShutdownTaskParams", "");
+			ProgramOptions.ShutdownTask = ini.GetValue("Program", "ShutdownTask", string.Empty);
+			ProgramOptions.ShutdownTaskParams = ini.GetValue("Program", "ShutdownTaskParams", string.Empty);
 
 			ProgramOptions.DataStoppedExit = ini.GetValue("Program", "DataStoppedExit", false);
 			ProgramOptions.DataStoppedMins = ini.GetValue("Program", "DataStoppedMins", 10);
@@ -3485,8 +3485,8 @@ namespace CumulusMX
 			if (ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(' '))
 			{
 				// change the date separator
-				var dateSep = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", "");
-				var shortDate = CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern.Replace(" ", "");
+				var dateSep = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", string.Empty);
+				var shortDate = CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern.Replace(" ", string.Empty);
 
 				CultureInfo newCulture = (CultureInfo) Thread.CurrentThread.CurrentCulture.Clone();
 				newCulture.DateTimeFormat.DateSeparator = dateSep;
@@ -3526,13 +3526,13 @@ namespace CumulusMX
 			ErrorListLoggingLevel = (MxLogLevel) ini.GetValue("Program", "ErrorListLoggingLevel", (int) MxLogLevel.Warning);
 
 			ProgramOptions.SecureSettings = ini.GetValue("Program", "SecureSettings", false);
-			ProgramOptions.SettingsUsername = ini.GetValue("Program", "SettingsUsername", "");
-			ProgramOptions.SettingsPassword = ini.GetValue("Program", "SettingsPassword", "");
+			ProgramOptions.SettingsUsername = ini.GetValue("Program", "SettingsUsername", string.Empty);
+			ProgramOptions.SettingsPassword = ini.GetValue("Program", "SettingsPassword", string.Empty);
 
 			ComportName = ini.GetValue("Station", "ComportName", DefaultComportName);
 
 			StationType = ini.GetValue("Station", "Type", -1);
-			StationModel = ini.GetValue("Station", "Model", "");
+			StationModel = ini.GetValue("Station", "Model", string.Empty);
 
 			FineOffsetStation = (StationType == StationTypes.FineOffset || StationType == StationTypes.FineOffsetSolar);
 			DavisStation = (StationType == StationTypes.VantagePro || StationType == StationTypes.VantagePro2);
@@ -3591,10 +3591,10 @@ namespace CumulusMX
 				rewriteRequired = true;
 			}
 
-			LatTxt = ini.GetValue("Station", "LatTxt", "");
+			LatTxt = ini.GetValue("Station", "LatTxt", string.Empty);
 			LatTxt = LatTxt.Replace(" ", "&nbsp;");
 			LatTxt = LatTxt.Replace("°", "&#39;");
-			LonTxt = ini.GetValue("Station", "LonTxt", "");
+			LonTxt = ini.GetValue("Station", "LonTxt", string.Empty);
 			LonTxt = LonTxt.Replace(" ", "&nbsp;");
 			LonTxt = LonTxt.Replace("°", "&#39;");
 
@@ -3723,14 +3723,14 @@ namespace CumulusMX
 			}
 
 
-			LocationName = ini.GetValue("Station", "LocName", "");
-			LocationDesc = ini.GetValue("Station", "LocDesc", "");
+			LocationName = ini.GetValue("Station", "LocName", string.Empty);
+			LocationDesc = ini.GetValue("Station", "LocDesc", string.Empty);
 
 			YTDrain = ini.GetValue("Station", "YTDrain", 0.0);
 			YTDrainyear = ini.GetValue("Station", "YTDrainyear", 0);
 
 			EwOptions.Interval = ini.GetValue("Station", "EWInterval", 1.0);
-			EwOptions.Filename = ini.GetValue("Station", "EWFile", "");
+			EwOptions.Filename = ini.GetValue("Station", "EWFile", string.Empty);
 			EwOptions.MinPressMB = ini.GetValue("Station", "EWminpressureMB", 900);
 			EwOptions.MaxPressMB = ini.GetValue("Station", "EWmaxpressureMB", 1200);
 			EwOptions.MaxRainTipDiff = ini.GetValue("Station", "EWMaxRainTipDiff", 30);
@@ -3872,8 +3872,8 @@ namespace CumulusMX
 			WxnowComment = ini.GetValue("Station", "WxnowComment.txt", string.Empty);
 
 			// WeatherLink Live device settings
-			WllApiKey = ini.GetValue("WLL", "WLv2ApiKey", "");
-			WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", "");
+			WllApiKey = ini.GetValue("WLL", "WLv2ApiKey", string.Empty);
+			WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", string.Empty);
 			WllStationId = ini.GetValue("WLL", "WLStationId", -1);
 			WllTriggerDataStoppedOnBroadcast = ini.GetValue("WLL", "DataStoppedOnBroadcast", true);
 			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true);
@@ -3913,7 +3913,7 @@ namespace CumulusMX
 
 			// GW1000 settings
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
-			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", "");
+			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", string.Empty);
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
 			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0); //0=main station (tipping bucket) 1=piezo
@@ -3942,9 +3942,9 @@ namespace CumulusMX
 			EcowittExtraLocalAddr = ini.GetValue("GW1000", "EcowittExtraLocalAddr", localIp.ToString());
 			EcowittExtraCustomInterval = ini.GetValue("GW1000", "EcowittExtraCustomInterval", 16);
 			// api
-			EcowittApplicationKey = ini.GetValue("GW1000", "EcowittAppKey", "");
-			EcowittUserApiKey = ini.GetValue("GW1000", "EcowittUserKey", "");
-			EcowittMacAddress = ini.GetValue("GW1000", "EcowittMacAddress", "");
+			EcowittApplicationKey = ini.GetValue("GW1000", "EcowittAppKey", string.Empty);
+			EcowittUserApiKey = ini.GetValue("GW1000", "EcowittUserKey", string.Empty);
+			EcowittMacAddress = ini.GetValue("GW1000", "EcowittMacAddress", string.Empty);
 			if (string.IsNullOrEmpty(EcowittMacAddress) && !string.IsNullOrEmpty(Gw1000MacAddress))
 			{
 				EcowittMacAddress = Gw1000MacAddress;
@@ -3957,13 +3957,13 @@ namespace CumulusMX
 			// forwarders
 			for (int i = 0; i < EcowittForwarders.Length; i++)
 			{
-				EcowittForwarders[i] = ini.GetValue("GW1000", "Forwarder" + i, "");
+				EcowittForwarders[i] = ini.GetValue("GW1000", "Forwarder" + i, string.Empty);
 			}
 			EcowittExtraUseMainForwarders = ini.GetValue("GW1000", "ExtraUseMainForwarders", false);
 			// extra forwarders
 			for (int i = 0; i < EcowittExtraForwarders.Length; i++)
 			{
-				EcowittExtraForwarders[i] = ini.GetValue("GW1000", "ExtraForwarder" + i, "");
+				EcowittExtraForwarders[i] = ini.GetValue("GW1000", "ExtraForwarder" + i, string.Empty);
 			}
 
 			// Ambient settings
@@ -3990,8 +3990,8 @@ namespace CumulusMX
 				AirLinkIsNode = ini.GetValue("AirLink", "In-IsNode", false) || ini.GetValue("AirLink", "Out-IsNode", false);
 				recreateRequired = true;
 			}
-			AirLinkApiKey = ini.GetValue("AirLink", "WLv2ApiKey", "");
-			AirLinkApiSecret = ini.GetValue("AirLink", "WLv2ApiSecret", "");
+			AirLinkApiKey = ini.GetValue("AirLink", "WLv2ApiKey", string.Empty);
+			AirLinkApiSecret = ini.GetValue("AirLink", "WLv2ApiSecret", string.Empty);
 			AirLinkAutoUpdateIpAddress = ini.GetValue("AirLink", "AutoUpdateIpAddress", true);
 			AirLinkInEnabled = ini.GetValue("AirLink", "In-Enabled", false);
 			AirLinkInIPAddr = ini.GetValue("AirLink", "In-IPAddress", "0.0.0.0");
@@ -4022,7 +4022,7 @@ namespace CumulusMX
 			FtpOptions.Password = ini.GetValue("FTP site", "Password", string.Empty);
 			FtpOptions.Directory = ini.GetValue("FTP site", "Directory", string.Empty);
 			FtpOptions.FtpMode = (FtpProtocols) ini.GetValue("FTP site", "Sslftp", 0);
-			if (FtpOptions.Enabled && FtpOptions.Hostname == "" && FtpOptions.FtpMode != FtpProtocols.PHP)
+			if (FtpOptions.Enabled && FtpOptions.Hostname == string.Empty && FtpOptions.FtpMode != FtpProtocols.PHP)
 			{
 				FtpOptions.Enabled = false;
 				rewriteRequired = true;
@@ -4042,7 +4042,7 @@ namespace CumulusMX
 			FtpOptions.SshPskFile = ini.GetValue("FTP site", "SshFtpPskFile", string.Empty);
 			if (FtpOptions.SshPskFile.Length > 0 && (FtpOptions.SshAuthen == "psk" || FtpOptions.SshAuthen == "password_psk") && !File.Exists(FtpOptions.SshPskFile))
 			{
-				FtpOptions.SshPskFile = "";
+				FtpOptions.SshPskFile = string.Empty;
 				LogErrorMessage($"Error, file name specified by SshFtpPskFile value in Cumulus.ini does not exist [{FtpOptions.SshPskFile}].");
 				rewriteRequired = true;
 			}
@@ -4055,7 +4055,7 @@ namespace CumulusMX
 
 			// Local Copy Options
 			FtpOptions.LocalCopyEnabled = ini.GetValue("FTP site", "EnableLocalCopy", false);
-			FtpOptions.LocalCopyFolder = ini.GetValue("FTP site", "LocalCopyFolder", "");
+			FtpOptions.LocalCopyFolder = ini.GetValue("FTP site", "LocalCopyFolder", string.Empty);
 			var sep1 = Path.DirectorySeparatorChar.ToString();
 			var sep2 = Path.AltDirectorySeparatorChar.ToString();
 			if (FtpOptions.LocalCopyFolder.Length > 1 &&
@@ -4067,15 +4067,15 @@ namespace CumulusMX
 			}
 
 			// PHP upload options
-			FtpOptions.PhpUrl = ini.GetValue("FTP site", "PHP-URL", "");
-			FtpOptions.PhpSecret = ini.GetValue("FTP site", "PHP-Secret", "");
+			FtpOptions.PhpUrl = ini.GetValue("FTP site", "PHP-URL", string.Empty);
+			FtpOptions.PhpSecret = ini.GetValue("FTP site", "PHP-Secret", string.Empty);
 			if (FtpOptions.PhpSecret == string.Empty)
 				FtpOptions.PhpSecret = Guid.NewGuid().ToString();
 			FtpOptions.PhpIgnoreCertErrors = ini.GetValue("FTP site", "PHP-IgnoreCertErrors", false);
 			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", 2);
 			FtpOptions.PhpUseGet = ini.GetValue("FTP site", "PHP-UseGet", true);
 
-			if (FtpOptions.Enabled && FtpOptions.PhpUrl == "" && FtpOptions.FtpMode == FtpProtocols.PHP)
+			if (FtpOptions.Enabled && FtpOptions.PhpUrl == string.Empty && FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
 				FtpOptions.Enabled = false;
 				rewriteRequired = true;
@@ -4211,10 +4211,10 @@ namespace CumulusMX
 
 			ExternalProgram = ini.GetValue("FTP site", "ExternalProgram", string.Empty);
 			RealtimeProgram = ini.GetValue("FTP site", "RealtimeProgram", string.Empty);
-			DailyProgram = ini.GetValue("FTP site", "DailyProgram", "");
-			ExternalParams = ini.GetValue("FTP site", "ExternalParams", "");
-			RealtimeParams = ini.GetValue("FTP site", "RealtimeParams", "");
-			DailyParams = ini.GetValue("FTP site", "DailyParams", "");
+			DailyProgram = ini.GetValue("FTP site", "DailyProgram", string.Empty);
+			ExternalParams = ini.GetValue("FTP site", "ExternalParams", string.Empty);
+			RealtimeParams = ini.GetValue("FTP site", "RealtimeParams", string.Empty);
+			DailyParams = ini.GetValue("FTP site", "DailyParams", string.Empty);
 
 			ForumURL = ini.GetValue("Web Site", "ForumURL", ForumDefault);
 			WebcamURL = ini.GetValue("Web Site", "WebcamURL", WebcamDefault);
@@ -4335,8 +4335,8 @@ namespace CumulusMX
 			GraphOptions.Colour.CO2Sensor.Hum = ini.GetValue("GraphColours", "CO2-HumColour", "#008000");
 
 
-			Wund.ID = ini.GetValue("Wunderground", "ID", "");
-			Wund.PW = ini.GetValue("Wunderground", "Password", "");
+			Wund.ID = ini.GetValue("Wunderground", "ID", string.Empty);
+			Wund.PW = ini.GetValue("Wunderground", "Password", string.Empty);
 			Wund.Enabled = ini.GetValue("Wunderground", "Enabled", false);
 			Wund.RapidFireEnabled = ini.GetValue("Wunderground", "RapidFire", false);
 			Wund.Interval = ini.GetValue("Wunderground", "Interval", Wund.DefaultInterval);
@@ -4363,7 +4363,7 @@ namespace CumulusMX
 
 			Wund.SynchronisedUpdate = !Wund.RapidFireEnabled;
 
-			Windy.ApiKey = ini.GetValue("Windy", "APIkey", "");
+			Windy.ApiKey = ini.GetValue("Windy", "APIkey", string.Empty);
 			Windy.StationIdx = ini.GetValue("Windy", "StationIdx", 0);
 			Windy.Enabled = ini.GetValue("Windy", "Enabled", false);
 			Windy.Interval = ini.GetValue("Windy", "Interval", Windy.DefaultInterval);
@@ -4376,8 +4376,8 @@ namespace CumulusMX
 			Windy.SendSolar = ini.GetValue("Windy", "SendSolar", false);
 			Windy.CatchUp = ini.GetValue("Windy", "CatchUp", false);
 
-			AWEKAS.ID = ini.GetValue("Awekas", "User", "");
-			AWEKAS.PW = ini.GetValue("Awekas", "Password", "");
+			AWEKAS.ID = ini.GetValue("Awekas", "User", string.Empty);
+			AWEKAS.PW = ini.GetValue("Awekas", "Password", string.Empty);
 			AWEKAS.Enabled = ini.GetValue("Awekas", "Enabled", false);
 			AWEKAS.Interval = ini.GetValue("Awekas", "Interval", AWEKAS.DefaultInterval);
 			if (AWEKAS.Interval < 15)
@@ -4397,8 +4397,8 @@ namespace CumulusMX
 
 			AWEKAS.SynchronisedUpdate = (AWEKAS.Interval % 60 == 0);
 
-			WindGuru.ID = ini.GetValue("WindGuru", "StationUID", "");
-			WindGuru.PW = ini.GetValue("WindGuru", "Password", "");
+			WindGuru.ID = ini.GetValue("WindGuru", "StationUID", string.Empty);
+			WindGuru.PW = ini.GetValue("WindGuru", "Password", string.Empty);
 			WindGuru.Enabled = ini.GetValue("WindGuru", "Enabled", false);
 			WindGuru.Interval = ini.GetValue("WindGuru", "Interval", WindGuru.DefaultInterval);
 			if (WindGuru.Interval < 1)
@@ -4408,8 +4408,8 @@ namespace CumulusMX
 			}
 			WindGuru.SendRain = ini.GetValue("WindGuru", "SendRain", false);
 
-			WCloud.ID = ini.GetValue("WeatherCloud", "Wid", "");
-			WCloud.PW = ini.GetValue("WeatherCloud", "Key", "");
+			WCloud.ID = ini.GetValue("WeatherCloud", "Wid", string.Empty);
+			WCloud.PW = ini.GetValue("WeatherCloud", "Key", string.Empty);
 			WCloud.Enabled = ini.GetValue("WeatherCloud", "Enabled", false);
 			WCloud.Interval = ini.GetValue("WeatherCloud", "Interval", WCloud.DefaultInterval);
 			WCloud.SendUV = ini.GetValue("WeatherCloud", "SendUV", false);
@@ -4420,8 +4420,8 @@ namespace CumulusMX
 			WCloud.SendLeafWetness = ini.GetValue("WeatherCloud", "SendLeafWetness", false);
 			WCloud.LeafWetnessSensor = ini.GetValue("WeatherCloud", "LeafWetnessSensor", 1);
 
-			PWS.ID = ini.GetValue("PWSweather", "ID", "");
-			PWS.PW = ini.GetValue("PWSweather", "Password", "");
+			PWS.ID = ini.GetValue("PWSweather", "ID", string.Empty);
+			PWS.PW = ini.GetValue("PWSweather", "Password", string.Empty);
 			PWS.Enabled = ini.GetValue("PWSweather", "Enabled", false);
 			PWS.Interval = ini.GetValue("PWSweather", "Interval", PWS.DefaultInterval);
 			if (PWS.Interval < 1)
@@ -4433,8 +4433,8 @@ namespace CumulusMX
 			PWS.SendSolar = ini.GetValue("PWSweather", "SendSR", false);
 			PWS.CatchUp = ini.GetValue("PWSweather", "CatchUp", true);
 
-			WOW.ID = ini.GetValue("WOW", "ID", "");
-			WOW.PW = ini.GetValue("WOW", "Password", "");
+			WOW.ID = ini.GetValue("WOW", "ID", string.Empty);
+			WOW.PW = ini.GetValue("WOW", "Password", string.Empty);
 			WOW.Enabled = ini.GetValue("WOW", "Enabled", false);
 			WOW.Interval = ini.GetValue("WOW", "Interval", WOW.DefaultInterval);
 			if (WOW.Interval < 1)
@@ -4448,7 +4448,7 @@ namespace CumulusMX
 			WOW.SoilTempSensor = ini.GetValue("WOW", "SoilTempSensor", 1);
 			WOW.CatchUp = ini.GetValue("WOW", "CatchUp", false);
 
-			APRS.ID = ini.GetValue("APRS", "ID", "");
+			APRS.ID = ini.GetValue("APRS", "ID", string.Empty);
 			APRS.PW = ini.GetValue("APRS", "pass", "-1");
 			APRS.Server = ini.GetValue("APRS", "server", "cwop.aprs.net");
 			APRS.Port = ini.GetValue("APRS", "port", 14580);
@@ -4464,11 +4464,11 @@ namespace CumulusMX
 
 			OpenWeatherMap.Enabled = ini.GetValue("OpenWeatherMap", "Enabled", false);
 			OpenWeatherMap.CatchUp = ini.GetValue("OpenWeatherMap", "CatchUp", true);
-			OpenWeatherMap.PW = ini.GetValue("OpenWeatherMap", "APIkey", "");
-			OpenWeatherMap.ID = ini.GetValue("OpenWeatherMap", "StationId", "");
+			OpenWeatherMap.PW = ini.GetValue("OpenWeatherMap", "APIkey", string.Empty);
+			OpenWeatherMap.ID = ini.GetValue("OpenWeatherMap", "StationId", string.Empty);
 			OpenWeatherMap.Interval = ini.GetValue("OpenWeatherMap", "Interval", OpenWeatherMap.DefaultInterval);
 
-			MQTT.Server = ini.GetValue("MQTT", "Server", "");
+			MQTT.Server = ini.GetValue("MQTT", "Server", string.Empty);
 			MQTT.Port = ini.GetValue("MQTT", "Port", 1883);
 			MQTT.IpVersion = ini.GetValue("MQTT", "IPversion", 0); // 0 = unspecified, 4 = force IPv4, 6 = force IPv6
 			if (MQTT.IpVersion != 0 && MQTT.IpVersion != 4 && MQTT.IpVersion != 6)
@@ -4477,8 +4477,8 @@ namespace CumulusMX
 				rewriteRequired = true;
 			}
 			MQTT.UseTLS = ini.GetValue("MQTT", "UseTLS", false);
-			MQTT.Username = ini.GetValue("MQTT", "Username", "");
-			MQTT.Password = ini.GetValue("MQTT", "Password", "");
+			MQTT.Username = ini.GetValue("MQTT", "Username", string.Empty);
+			MQTT.Password = ini.GetValue("MQTT", "Password", string.Empty);
 			MQTT.EnableDataUpdate = ini.GetValue("MQTT", "EnableDataUpdate", false);
 			MQTT.UpdateTemplate = ini.GetValue("MQTT", "UpdateTemplate", "DataUpdateTemplate.txt");
 			MQTT.EnableInterval = ini.GetValue("MQTT", "EnableInterval", false);
@@ -4497,8 +4497,8 @@ namespace CumulusMX
 			LowTempAlarm.Email = ini.GetValue("Alarms", "LowTempAlarmEmail", false);
 			LowTempAlarm.Latch = ini.GetValue("Alarms", "LowTempAlarmLatch", false);
 			LowTempAlarm.LatchHours = ini.GetValue("Alarms", "LowTempAlarmLatchHours", 24.0);
-			LowTempAlarm.Action = ini.GetValue("Alarms", "LowTempAlarmAction", "");
-			LowTempAlarm.ActionParams = ini.GetValue("Alarms", "LowTempAlarmActionParams", "");
+			LowTempAlarm.Action = ini.GetValue("Alarms", "LowTempAlarmAction", string.Empty);
+			LowTempAlarm.ActionParams = ini.GetValue("Alarms", "LowTempAlarmActionParams", string.Empty);
 
 			HighTempAlarm.Value = ini.GetValue("Alarms", "alarmhightemp", 0.0);
 			HighTempAlarm.Enabled = ini.GetValue("Alarms", "HighTempAlarmSet", false);
@@ -4513,8 +4513,8 @@ namespace CumulusMX
 			HighTempAlarm.Email = ini.GetValue("Alarms", "HighTempAlarmEmail", false);
 			HighTempAlarm.Latch = ini.GetValue("Alarms", "HighTempAlarmLatch", false);
 			HighTempAlarm.LatchHours = ini.GetValue("Alarms", "HighTempAlarmLatchHours", 24.0);
-			HighTempAlarm.Action = ini.GetValue("Alarms", "HighTempAlarmAction", "");
-			HighTempAlarm.ActionParams = ini.GetValue("Alarms", "HighTempAlarmActionParams", "");
+			HighTempAlarm.Action = ini.GetValue("Alarms", "HighTempAlarmAction", string.Empty);
+			HighTempAlarm.ActionParams = ini.GetValue("Alarms", "HighTempAlarmActionParams", string.Empty);
 
 			TempChangeAlarm.Value = ini.GetValue("Alarms", "alarmtempchange", 0.0);
 			TempChangeAlarm.Enabled = ini.GetValue("Alarms", "TempChangeAlarmSet", false);
@@ -4529,8 +4529,8 @@ namespace CumulusMX
 			TempChangeAlarm.Email = ini.GetValue("Alarms", "TempChangeAlarmEmail", false);
 			TempChangeAlarm.Latch = ini.GetValue("Alarms", "TempChangeAlarmLatch", false);
 			TempChangeAlarm.LatchHours = ini.GetValue("Alarms", "TempChangeAlarmLatchHours", 24.0);
-			TempChangeAlarm.Action = ini.GetValue("Alarms", "TempChangeAlarmAction", "");
-			TempChangeAlarm.ActionParams = ini.GetValue("Alarms", "TempChangeAlarmActionParams", "");
+			TempChangeAlarm.Action = ini.GetValue("Alarms", "TempChangeAlarmAction", string.Empty);
+			TempChangeAlarm.ActionParams = ini.GetValue("Alarms", "TempChangeAlarmActionParams", string.Empty);
 
 			LowPressAlarm.Value = ini.GetValue("Alarms", "alarmlowpress", 0.0);
 			LowPressAlarm.Enabled = ini.GetValue("Alarms", "LowPressAlarmSet", false);
@@ -4545,8 +4545,8 @@ namespace CumulusMX
 			LowPressAlarm.Email = ini.GetValue("Alarms", "LowPressAlarmEmail", false);
 			LowPressAlarm.Latch = ini.GetValue("Alarms", "LowPressAlarmLatch", false);
 			LowPressAlarm.LatchHours = ini.GetValue("Alarms", "LowPressAlarmLatchHours", 24.0);
-			LowPressAlarm.Action = ini.GetValue("Alarms", "LowPressAlarmAction", "");
-			LowPressAlarm.ActionParams = ini.GetValue("Alarms", "LowPressAlarmActionParams", "");
+			LowPressAlarm.Action = ini.GetValue("Alarms", "LowPressAlarmAction", string.Empty);
+			LowPressAlarm.ActionParams = ini.GetValue("Alarms", "LowPressAlarmActionParams", string.Empty);
 
 			HighPressAlarm.Value = ini.GetValue("Alarms", "alarmhighpress", 0.0);
 			HighPressAlarm.Enabled = ini.GetValue("Alarms", "HighPressAlarmSet", false);
@@ -4561,8 +4561,8 @@ namespace CumulusMX
 			HighPressAlarm.Email = ini.GetValue("Alarms", "HighPressAlarmEmail", false);
 			HighPressAlarm.Latch = ini.GetValue("Alarms", "HighPressAlarmLatch", false);
 			HighPressAlarm.LatchHours = ini.GetValue("Alarms", "HighPressAlarmLatchHours", 24.0);
-			HighPressAlarm.Action = ini.GetValue("Alarms", "HighPressAlarmAction", "");
-			HighPressAlarm.ActionParams = ini.GetValue("Alarms", "HighPressAlarmActionParams", "");
+			HighPressAlarm.Action = ini.GetValue("Alarms", "HighPressAlarmAction", string.Empty);
+			HighPressAlarm.ActionParams = ini.GetValue("Alarms", "HighPressAlarmActionParams", string.Empty);
 
 			PressChangeAlarm.Value = ini.GetValue("Alarms", "alarmpresschange", 0.0);
 			PressChangeAlarm.Enabled = ini.GetValue("Alarms", "PressChangeAlarmSet", false);
@@ -4577,8 +4577,8 @@ namespace CumulusMX
 			PressChangeAlarm.Email = ini.GetValue("Alarms", "PressChangeAlarmEmail", false);
 			PressChangeAlarm.Latch = ini.GetValue("Alarms", "PressChangeAlarmLatch", false);
 			PressChangeAlarm.LatchHours = ini.GetValue("Alarms", "PressChangeAlarmLatchHours", 24.0);
-			PressChangeAlarm.Action = ini.GetValue("Alarms", "PressChangeAlarmAction", "");
-			PressChangeAlarm.ActionParams = ini.GetValue("Alarms", "PressChangeAlarmActionParams", "");
+			PressChangeAlarm.Action = ini.GetValue("Alarms", "PressChangeAlarmAction", string.Empty);
+			PressChangeAlarm.ActionParams = ini.GetValue("Alarms", "PressChangeAlarmActionParams", string.Empty);
 
 			HighRainTodayAlarm.Value = ini.GetValue("Alarms", "alarmhighraintoday", 0.0);
 			HighRainTodayAlarm.Enabled = ini.GetValue("Alarms", "HighRainTodayAlarmSet", false);
@@ -4593,8 +4593,8 @@ namespace CumulusMX
 			HighRainTodayAlarm.Email = ini.GetValue("Alarms", "HighRainTodayAlarmEmail", false);
 			HighRainTodayAlarm.Latch = ini.GetValue("Alarms", "HighRainTodayAlarmLatch", false);
 			HighRainTodayAlarm.LatchHours = ini.GetValue("Alarms", "HighRainTodayAlarmLatchHours", 24.0);
-			HighRainTodayAlarm.Action = ini.GetValue("Alarms", "HighRainTodayAlarmAction", "");
-			HighRainTodayAlarm.ActionParams = ini.GetValue("Alarms", "HighRainTodayAlarmActionParams", "");
+			HighRainTodayAlarm.Action = ini.GetValue("Alarms", "HighRainTodayAlarmAction", string.Empty);
+			HighRainTodayAlarm.ActionParams = ini.GetValue("Alarms", "HighRainTodayAlarmActionParams", string.Empty);
 
 			HighRainRateAlarm.Value = ini.GetValue("Alarms", "alarmhighrainrate", 0.0);
 			HighRainRateAlarm.Enabled = ini.GetValue("Alarms", "HighRainRateAlarmSet", false);
@@ -4609,8 +4609,8 @@ namespace CumulusMX
 			HighRainRateAlarm.Email = ini.GetValue("Alarms", "HighRainRateAlarmEmail", false);
 			HighRainRateAlarm.Latch = ini.GetValue("Alarms", "HighRainRateAlarmLatch", false);
 			HighRainRateAlarm.LatchHours = ini.GetValue("Alarms", "HighRainRateAlarmLatchHours", 24.0);
-			HighRainRateAlarm.Action = ini.GetValue("Alarms", "HighRainRateAlarmAction", "");
-			HighRainRateAlarm.ActionParams = ini.GetValue("Alarms", "HighRainRateAlarmActionParams", "");
+			HighRainRateAlarm.Action = ini.GetValue("Alarms", "HighRainRateAlarmAction", string.Empty);
+			HighRainRateAlarm.ActionParams = ini.GetValue("Alarms", "HighRainRateAlarmActionParams", string.Empty);
 
 			IsRainingAlarm.Enabled = ini.GetValue("Alarms", "IsRainingAlarmSet", false);
 			IsRainingAlarm.Sound = ini.GetValue("Alarms", "IsRainingAlarmSound", false);
@@ -4619,8 +4619,8 @@ namespace CumulusMX
 			IsRainingAlarm.Email = ini.GetValue("Alarms", "IsRainingAlarmEmail", false);
 			IsRainingAlarm.Latch = ini.GetValue("Alarms", "IsRainingAlarmLatch", false);
 			IsRainingAlarm.LatchHours = ini.GetValue("Alarms", "IsRainingAlarmLatchHours", 1.0);
-			IsRainingAlarm.Action = ini.GetValue("Alarms", "IsRainingAlarmAction", "");
-			IsRainingAlarm.ActionParams = ini.GetValue("Alarms", "IsRainingAlarmActionParams", "");
+			IsRainingAlarm.Action = ini.GetValue("Alarms", "IsRainingAlarmAction", string.Empty);
+			IsRainingAlarm.ActionParams = ini.GetValue("Alarms", "IsRainingAlarmActionParams", string.Empty);
 
 			HighGustAlarm.Value = ini.GetValue("Alarms", "alarmhighgust", 0.0);
 			HighGustAlarm.Enabled = ini.GetValue("Alarms", "HighGustAlarmSet", false);
@@ -4635,8 +4635,8 @@ namespace CumulusMX
 			HighGustAlarm.Email = ini.GetValue("Alarms", "HighGustAlarmEmail", false);
 			HighGustAlarm.Latch = ini.GetValue("Alarms", "HighGustAlarmLatch", false);
 			HighGustAlarm.LatchHours = ini.GetValue("Alarms", "HighGustAlarmLatchHours", 24.0);
-			HighGustAlarm.Action = ini.GetValue("Alarms", "HighGustAlarmAction", "");
-			HighGustAlarm.ActionParams = ini.GetValue("Alarms", "HighGustAlarmActionParams", "");
+			HighGustAlarm.Action = ini.GetValue("Alarms", "HighGustAlarmAction", string.Empty);
+			HighGustAlarm.ActionParams = ini.GetValue("Alarms", "HighGustAlarmActionParams", string.Empty);
 
 			HighWindAlarm.Value = ini.GetValue("Alarms", "alarmhighwind", 0.0);
 			HighWindAlarm.Enabled = ini.GetValue("Alarms", "HighWindAlarmSet", false);
@@ -4651,8 +4651,8 @@ namespace CumulusMX
 			HighWindAlarm.Email = ini.GetValue("Alarms", "HighWindAlarmEmail", false);
 			HighWindAlarm.Latch = ini.GetValue("Alarms", "HighWindAlarmLatch", false);
 			HighWindAlarm.LatchHours = ini.GetValue("Alarms", "HighWindAlarmLatchHours", 24.0);
-			HighWindAlarm.Action = ini.GetValue("Alarms", "HighWindAlarmAction", "");
-			HighWindAlarm.ActionParams = ini.GetValue("Alarms", "HighWindAlarmActionParams", "");
+			HighWindAlarm.Action = ini.GetValue("Alarms", "HighWindAlarmAction", string.Empty);
+			HighWindAlarm.ActionParams = ini.GetValue("Alarms", "HighWindAlarmActionParams", string.Empty);
 
 			SensorAlarm.Enabled = ini.GetValue("Alarms", "SensorAlarmSet", true);
 			SensorAlarm.Sound = ini.GetValue("Alarms", "SensorAlarmSound", false);
@@ -4667,8 +4667,8 @@ namespace CumulusMX
 			SensorAlarm.Latch = ini.GetValue("Alarms", "SensorAlarmLatch", true);
 			SensorAlarm.LatchHours = ini.GetValue("Alarms", "SensorAlarmLatchHours", 1.0);
 			SensorAlarm.TriggerThreshold = ini.GetValue("Alarms", "SensorAlarmTriggerCount", 2);
-			SensorAlarm.Action = ini.GetValue("Alarms", "SensorAlarmAction", "");
-			SensorAlarm.ActionParams = ini.GetValue("Alarms", "SensorAlarmActionParams", "");
+			SensorAlarm.Action = ini.GetValue("Alarms", "SensorAlarmAction", string.Empty);
+			SensorAlarm.ActionParams = ini.GetValue("Alarms", "SensorAlarmActionParams", string.Empty);
 
 			DataStoppedAlarm.Enabled = ini.GetValue("Alarms", "DataStoppedAlarmSet", true);
 			DataStoppedAlarm.Sound = ini.GetValue("Alarms", "DataStoppedAlarmSound", false);
@@ -4683,8 +4683,8 @@ namespace CumulusMX
 			DataStoppedAlarm.Latch = ini.GetValue("Alarms", "DataStoppedAlarmLatch", true);
 			DataStoppedAlarm.LatchHours = ini.GetValue("Alarms", "DataStoppedAlarmLatchHours", 1.0);
 			DataStoppedAlarm.TriggerThreshold = ini.GetValue("Alarms", "DataStoppedAlarmTriggerCount", 2);
-			DataStoppedAlarm.Action = ini.GetValue("Alarms", "DataStoppedAlarmAction", "");
-			DataStoppedAlarm.ActionParams = ini.GetValue("Alarms", "DataStoppedAlarmActionParams", "");
+			DataStoppedAlarm.Action = ini.GetValue("Alarms", "DataStoppedAlarmAction", string.Empty);
+			DataStoppedAlarm.ActionParams = ini.GetValue("Alarms", "DataStoppedAlarmActionParams", string.Empty);
 
 			// Alarms below here were created after the change in default sound file, so no check required
 			BatteryLowAlarm.Enabled = ini.GetValue("Alarms", "BatteryLowAlarmSet", false);
@@ -4695,8 +4695,8 @@ namespace CumulusMX
 			BatteryLowAlarm.Latch = ini.GetValue("Alarms", "BatteryLowAlarmLatch", false);
 			BatteryLowAlarm.LatchHours = ini.GetValue("Alarms", "BatteryLowAlarmLatchHours", 24.0);
 			BatteryLowAlarm.TriggerThreshold = ini.GetValue("Alarms", "BatteryLowAlarmTriggerCount", 1);
-			BatteryLowAlarm.Action = ini.GetValue("Alarms", "BatteryLowAlarmAction", "");
-			BatteryLowAlarm.ActionParams = ini.GetValue("Alarms", "BatteryLowAlarmActionParams", "");
+			BatteryLowAlarm.Action = ini.GetValue("Alarms", "BatteryLowAlarmAction", string.Empty);
+			BatteryLowAlarm.ActionParams = ini.GetValue("Alarms", "BatteryLowAlarmActionParams", string.Empty);
 
 			SpikeAlarm.Enabled = ini.GetValue("Alarms", "DataSpikeAlarmSet", false);
 			SpikeAlarm.Sound = ini.GetValue("Alarms", "DataSpikeAlarmSound", false);
@@ -4706,8 +4706,8 @@ namespace CumulusMX
 			SpikeAlarm.Latch = ini.GetValue("Alarms", "DataSpikeAlarmLatch", true);
 			SpikeAlarm.LatchHours = ini.GetValue("Alarms", "DataSpikeAlarmLatchHours", 24.0);
 			SpikeAlarm.TriggerThreshold = ini.GetValue("Alarms", "DataSpikeAlarmTriggerCount", 1);
-			SpikeAlarm.Action = ini.GetValue("Alarms", "DataSpikeAlarmAction", "");
-			SpikeAlarm.ActionParams = ini.GetValue("Alarms", "DataSpikeAlarmActionParams", "");
+			SpikeAlarm.Action = ini.GetValue("Alarms", "DataSpikeAlarmAction", string.Empty);
+			SpikeAlarm.ActionParams = ini.GetValue("Alarms", "DataSpikeAlarmActionParams", string.Empty);
 
 			UpgradeAlarm.Enabled = ini.GetValue("Alarms", "UpgradeAlarmSet", true);
 			UpgradeAlarm.Sound = ini.GetValue("Alarms", "UpgradeAlarmSound", false);
@@ -4716,8 +4716,8 @@ namespace CumulusMX
 			UpgradeAlarm.Email = ini.GetValue("Alarms", "UpgradeAlarmEmail", false);
 			UpgradeAlarm.Latch = ini.GetValue("Alarms", "UpgradeAlarmLatch", false);
 			UpgradeAlarm.LatchHours = ini.GetValue("Alarms", "UpgradeAlarmLatchHours", 24.0);
-			UpgradeAlarm.Action = ini.GetValue("Alarms", "UpgradeAlarmAction", "");
-			UpgradeAlarm.ActionParams = ini.GetValue("Alarms", "UpgradeAlarmActionParams", "");
+			UpgradeAlarm.Action = ini.GetValue("Alarms", "UpgradeAlarmAction", string.Empty);
+			UpgradeAlarm.ActionParams = ini.GetValue("Alarms", "UpgradeAlarmActionParams", string.Empty);
 
 			FirmwareAlarm.Enabled = ini.GetValue("Alarms", "FirmwareAlarmSet", true);
 			FirmwareAlarm.Sound = ini.GetValue("Alarms", "FirmwareAlarmSound", false);
@@ -4726,8 +4726,8 @@ namespace CumulusMX
 			FirmwareAlarm.Email = ini.GetValue("Alarms", "FirmwareAlarmEmail", false);
 			FirmwareAlarm.Latch = ini.GetValue("Alarms", "FirmwareAlarmLatch", false);
 			FirmwareAlarm.LatchHours = ini.GetValue("Alarms", "FirmwareAlarmLatchHours", 24.0);
-			FirmwareAlarm.Action = ini.GetValue("Alarms", "FirmwareAlarmAction", "");
-			FirmwareAlarm.ActionParams = ini.GetValue("Alarms", "FirmwareAlarmActionParams", "");
+			FirmwareAlarm.Action = ini.GetValue("Alarms", "FirmwareAlarmAction", string.Empty);
+			FirmwareAlarm.ActionParams = ini.GetValue("Alarms", "FirmwareAlarmActionParams", string.Empty);
 
 			ThirdPartyAlarm.Enabled = ini.GetValue("Alarms", "HttpUploadAlarmSet", false);
 			ThirdPartyAlarm.Sound = ini.GetValue("Alarms", "HttpUploadAlarmSound", false);
@@ -4737,8 +4737,8 @@ namespace CumulusMX
 			ThirdPartyAlarm.Latch = ini.GetValue("Alarms", "HttpUploadAlarmLatch", false);
 			ThirdPartyAlarm.LatchHours = ini.GetValue("Alarms", "HttpUploadAlarmLatchHours", 24.0);
 			ThirdPartyAlarm.TriggerThreshold = ini.GetValue("Alarms", "HttpUploadAlarmTriggerCount", 1);
-			ThirdPartyAlarm.Action = ini.GetValue("Alarms", "HttpUploadAlarmAction", "");
-			ThirdPartyAlarm.ActionParams = ini.GetValue("Alarms", "HttpUploadAlarmActionParams", "");
+			ThirdPartyAlarm.Action = ini.GetValue("Alarms", "HttpUploadAlarmAction", string.Empty);
+			ThirdPartyAlarm.ActionParams = ini.GetValue("Alarms", "HttpUploadAlarmActionParams", string.Empty);
 
 			MySqlUploadAlarm.Enabled = ini.GetValue("Alarms", "MySqlUploadAlarmSet", false);
 			MySqlUploadAlarm.Sound = ini.GetValue("Alarms", "MySqlUploadAlarmSound", false);
@@ -4748,8 +4748,8 @@ namespace CumulusMX
 			MySqlUploadAlarm.Latch = ini.GetValue("Alarms", "MySqlUploadAlarmLatch", false);
 			MySqlUploadAlarm.LatchHours = ini.GetValue("Alarms", "MySqlUploadAlarmLatchHours", 24.0);
 			MySqlUploadAlarm.TriggerThreshold = ini.GetValue("Alarms", "MySqlUploadAlarmTriggerCount", 1);
-			MySqlUploadAlarm.Action = ini.GetValue("Alarms", "MySqlUploadAlarmAction", "");
-			MySqlUploadAlarm.ActionParams = ini.GetValue("Alarms", "MySqlUploadAlarmActionParams", "");
+			MySqlUploadAlarm.Action = ini.GetValue("Alarms", "MySqlUploadAlarmAction", string.Empty);
+			MySqlUploadAlarm.ActionParams = ini.GetValue("Alarms", "MySqlUploadAlarmActionParams", string.Empty);
 
 			NewRecordAlarm.Enabled = ini.GetValue("Alarms", "NewRecordAlarmSet", true);
 			NewRecordAlarm.Sound = ini.GetValue("Alarms", "NewRecordAlarmSound", false);
@@ -4758,8 +4758,8 @@ namespace CumulusMX
 			NewRecordAlarm.Email = ini.GetValue("Alarms", "NewRecordAlarmEmail", false);
 			NewRecordAlarm.Latch = ini.GetValue("Alarms", "NewRecordAlarmLatch", false);
 			NewRecordAlarm.LatchHours = ini.GetValue("Alarms", "NewRecordAlarmLatchHours", 24.0);
-			NewRecordAlarm.Action = ini.GetValue("Alarms", "NewRecordAlarmAction", "");
-			NewRecordAlarm.ActionParams = ini.GetValue("Alarms", "NewRecordAlarmActionParams", "");
+			NewRecordAlarm.Action = ini.GetValue("Alarms", "NewRecordAlarmAction", string.Empty);
+			NewRecordAlarm.ActionParams = ini.GetValue("Alarms", "NewRecordAlarmActionParams", string.Empty);
 
 			FtpAlarm.Enabled = ini.GetValue("Alarms", "FtpAlarmSet", false);
 			FtpAlarm.Sound = ini.GetValue("Alarms", "FtpAlarmSound", false);
@@ -4768,11 +4768,11 @@ namespace CumulusMX
 			FtpAlarm.Email = ini.GetValue("Alarms", "FtpAlarmEmail", false);
 			FtpAlarm.Latch = ini.GetValue("Alarms", "FtpAlarmLatch", false);
 			FtpAlarm.LatchHours = ini.GetValue("Alarms", "FtpAlarmLatchHours", 24.0);
-			FtpAlarm.Action = ini.GetValue("Alarms", "FtpAlarmAction", "");
-			FtpAlarm.ActionParams = ini.GetValue("Alarms", "FtpAlarmActionParams", "");
+			FtpAlarm.Action = ini.GetValue("Alarms", "FtpAlarmAction", string.Empty);
+			FtpAlarm.ActionParams = ini.GetValue("Alarms", "FtpAlarmActionParams", string.Empty);
 
-			AlarmFromEmail = ini.GetValue("Alarms", "FromEmail", "");
-			AlarmDestEmail = ini.GetValue("Alarms", "DestEmail", "").Split(';');
+			AlarmFromEmail = ini.GetValue("Alarms", "FromEmail", string.Empty);
+			AlarmDestEmail = ini.GetValue("Alarms", "DestEmail", string.Empty).Split(';');
 			AlarmEmailHtml = ini.GetValue("Alarms", "UseHTML", false);
 			AlarmEmailUseBcc = ini.GetValue("Alarms", "UseBCC", false);
 
@@ -4781,19 +4781,19 @@ namespace CumulusMX
 			{
 				if (ini.ValueExists("UserAlarms", "AlarmName" + i))
 				{
-					var name = ini.GetValue("UserAlarms", "AlarmName" + i, "");
-					var tag = ini.GetValue("UserAlarms", "AlarmTag" + i, "");
-					var type = ini.GetValue("UserAlarms", "AlarmType" + i, "");
+					var name = ini.GetValue("UserAlarms", "AlarmName" + i, string.Empty);
+					var tag = ini.GetValue("UserAlarms", "AlarmTag" + i, string.Empty);
+					var type = ini.GetValue("UserAlarms", "AlarmType" + i, string.Empty);
 					var value = ini.GetValue("UserAlarms", "AlarmValue" + i, 0.0);
 					var enabled = ini.GetValue("UserAlarms", "AlarmEnabled" + i, false);
 					var email = ini.GetValue("UserAlarms", "AlarmEmail" + i, false);
-					var emailMsg = ini.GetValue("UserAlarms", "AlarmEmailMsg" + i, "");
+					var emailMsg = ini.GetValue("UserAlarms", "AlarmEmailMsg" + i, string.Empty);
 					var latch = ini.GetValue("UserAlarms", "AlarmLatch" + i, false);
 					var latchHours = ini.GetValue("UserAlarms", "AlarmLatchHours" + i, 24.0);
-					var action = ini.GetValue("UserAlarms", "AlarmAction" + i, "");
-					var actionParams = ini.GetValue("UserAlarms", "AlarmActionParams" + i, "");
+					var action = ini.GetValue("UserAlarms", "AlarmAction" + i, string.Empty);
+					var actionParams = ini.GetValue("UserAlarms", "AlarmActionParams" + i, string.Empty);
 
-					if (name != "" && tag != "" && type != "")
+					if (name != string.Empty && tag != string.Empty && type != string.Empty)
 					{
 						try
 						{
@@ -4811,7 +4811,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogErrorMessage($"Error loading user alarm {ini.GetValue("UserAlarms", "AlarmName" + i, "")}: {ex.Message}");
+							LogErrorMessage($"Error loading user alarm {ini.GetValue("UserAlarms", "AlarmName" + i, string.Empty)}: {ex.Message}");
 						}
 					}
 				}
@@ -4967,9 +4967,9 @@ namespace CumulusMX
 
 			NOAAconf.Create = ini.GetValue("NOAA", "AutoSave", false);
 			NOAAconf.AutoFtp = ini.GetValue("NOAA", "AutoFTP", false);
-			NOAAconf.FtpFolder = ini.GetValue("NOAA", "FTPDirectory", "");
+			NOAAconf.FtpFolder = ini.GetValue("NOAA", "FTPDirectory", string.Empty);
 			NOAAconf.AutoCopy = ini.GetValue("NOAA", "AutoCopy", false);
-			NOAAconf.CopyFolder = ini.GetValue("NOAA", "CopyDirectory", "");
+			NOAAconf.CopyFolder = ini.GetValue("NOAA", "CopyDirectory", string.Empty);
 			NOAAconf.MonthFile = ini.GetValue("NOAA", "MonthFileFormat", "'NOAAMO'MMyy'.txt'");
 			// Check for Cumulus 1 default format - and update
 			if (NOAAconf.MonthFile == "'NOAAMO'mmyy'.txt'" || NOAAconf.MonthFile == "\"NOAAMO\"mmyy\".txt\"")
@@ -5009,10 +5009,10 @@ namespace CumulusMX
 			NOAAconf.RainNorms[11] = ini.GetValue("NOAA", "NOAARainNormNov", -1000.0);
 			NOAAconf.RainNorms[12] = ini.GetValue("NOAA", "NOAARainNormDec", -1000.0);
 
-			HTTPProxyName = ini.GetValue("Proxies", "HTTPProxyName", "");
+			HTTPProxyName = ini.GetValue("Proxies", "HTTPProxyName", string.Empty);
 			HTTPProxyPort = ini.GetValue("Proxies", "HTTPProxyPort", 0);
-			HTTPProxyUser = ini.GetValue("Proxies", "HTTPProxyUser", "");
-			HTTPProxyPassword = ini.GetValue("Proxies", "HTTPProxyPassword", "");
+			HTTPProxyUser = ini.GetValue("Proxies", "HTTPProxyUser", string.Empty);
+			HTTPProxyPassword = ini.GetValue("Proxies", "HTTPProxyPassword", string.Empty);
 
 			NumWindRosePoints = ini.GetValue("Display", "NumWindRosePoints", 16);
 			WindRoseAngle = 360.0 / NumWindRosePoints;
@@ -5023,8 +5023,8 @@ namespace CumulusMX
 			// MySQL - common
 			MySqlConnSettings.Server = ini.GetValue("MySQL", "Host", "127.0.0.1");
 			MySqlConnSettings.Port = (uint) ini.GetValue("MySQL", "Port", 3306);
-			MySqlConnSettings.UserID = ini.GetValue("MySQL", "User", "");
-			MySqlConnSettings.Password = ini.GetValue("MySQL", "Pass", "");
+			MySqlConnSettings.UserID = ini.GetValue("MySQL", "User", string.Empty);
+			MySqlConnSettings.Password = ini.GetValue("MySQL", "Pass", string.Empty);
 			MySqlConnSettings.Database = ini.GetValue("MySQL", "Database", "database");
 			MySqlSettings.UpdateOnEdit = ini.GetValue("MySQL", "UpdateOnEdit", true);
 			MySqlSettings.BufferOnfailure = ini.GetValue("MySQL", "BufferOnFailure", false);
@@ -5035,18 +5035,18 @@ namespace CumulusMX
 			// MySQL - real-time
 			MySqlSettings.Realtime.Enabled = ini.GetValue("MySQL", "RealtimeMySqlEnabled", false);
 			MySqlSettings.Realtime.TableName = ini.GetValue("MySQL", "RealtimeTable", "Realtime");
-			MySqlSettings.RealtimeRetention = ini.GetValue("MySQL", "RealtimeRetention", "");
+			MySqlSettings.RealtimeRetention = ini.GetValue("MySQL", "RealtimeRetention", string.Empty);
 			MySqlSettings.RealtimeLimit1Minute = ini.GetValue("MySQL", "RealtimeMySql1MinLimit", false) && RealtimeInterval < 60000; // do not enable if real time interval is greater than 1 minute
 																																	 // MySQL - dayfile
 			MySqlSettings.Dayfile.Enabled = ini.GetValue("MySQL", "DayfileMySqlEnabled", false);
 			MySqlSettings.Dayfile.TableName = ini.GetValue("MySQL", "DayfileTable", "Dayfile");
 
 			// MySQL - custom seconds
-			MySqlSettings.CustomSecs.Commands[0] = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString", "");
+			MySqlSettings.CustomSecs.Commands[0] = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString", string.Empty);
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlSecondsCommandString" + i))
-					MySqlSettings.CustomSecs.Commands[i] = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString" + i, "");
+					MySqlSettings.CustomSecs.Commands[i] = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString" + i, string.Empty);
 			}
 
 			MySqlSettings.CustomSecs.Enabled = ini.GetValue("MySQL", "CustomMySqlSecondsEnabled", false);
@@ -5056,7 +5056,7 @@ namespace CumulusMX
 			// MySQL - custom minutes
 			MySqlSettings.CustomMins.Enabled = ini.GetValue("MySQL", "CustomMySqlMinutesEnabled", false);
 
-			MySqlSettings.CustomMins.Commands[0] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", "");
+			MySqlSettings.CustomMins.Commands[0] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", string.Empty);
 			MySqlSettings.CustomMins.IntervalIndexes[0] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIndex", 6);
 			if (MySqlSettings.CustomMins.IntervalIndexes[0] < 0 && MySqlSettings.CustomMins.IntervalIndexes[0] >= FactorsOf60.Length)
 			{
@@ -5067,7 +5067,7 @@ namespace CumulusMX
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlMinutesCommandString" + i))
 				{
-					MySqlSettings.CustomMins.Commands[i] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString" + i, "");
+					MySqlSettings.CustomMins.Commands[i] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString" + i, string.Empty);
 					MySqlSettings.CustomMins.IntervalIndexes[i] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlSettings.CustomMins.IntervalIndexes[0]);
 					if (MySqlSettings.CustomMins.IntervalIndexes[i] < 0 && MySqlSettings.CustomMins.IntervalIndexes[i] > FactorsOf60.Length)
 					{
@@ -5082,7 +5082,7 @@ namespace CumulusMX
 			MySqlSettings.CustomTimed.Enabled = ini.GetValue("MySQL", "CustomMySqlTimedEnabled", false);
 			for (var i = 0; i < 10; i++)
 			{
-				MySqlSettings.CustomTimed.Commands[i] = ini.GetValue("MySQL", "CustomMySqlTimedCommandString" + i, "");
+				MySqlSettings.CustomTimed.Commands[i] = ini.GetValue("MySQL", "CustomMySqlTimedCommandString" + i, string.Empty);
 				MySqlSettings.CustomTimed.SetStartTime(i, ini.GetValue("MySQL", "CustomMySqlTimedStartTime" + i, "00:00"));
 				MySqlSettings.CustomTimed.Intervals[i] = ini.GetValue("MySQL", "CustomMySqlTimedInterval" + i, 1440);
 
@@ -5092,29 +5092,29 @@ namespace CumulusMX
 
 			// MySQL - custom roll-over
 			MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
-			MySqlSettings.CustomRollover.Commands[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", "");
+			MySqlSettings.CustomRollover.Commands[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", string.Empty);
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlRolloverCommandString" + i))
-					MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString" + i, "");
+					MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString" + i, string.Empty);
 			}
 
 			// MySQL - custom start-up
 			MySqlSettings.CustomStartUp.Enabled = ini.GetValue("MySQL", "CustomMySqlStartUpEnabled", false);
-			MySqlSettings.CustomStartUp.Commands[0] = ini.GetValue("MySQL", "CustomMySqlStartUpCommandString", "");
+			MySqlSettings.CustomStartUp.Commands[0] = ini.GetValue("MySQL", "CustomMySqlStartUpCommandString", string.Empty);
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlStartUpCommandString" + i))
-					MySqlSettings.CustomStartUp.Commands[i] = ini.GetValue("MySQL", "CustomMySqlStartUpCommandString" + i, "");
+					MySqlSettings.CustomStartUp.Commands[i] = ini.GetValue("MySQL", "CustomMySqlStartUpCommandString" + i, string.Empty);
 			}
 
 
 			// Custom HTTP - seconds
-			CustomHttpSecondsStrings[0] = ini.GetValue("HTTP", "CustomHttpSecondsString", "");
+			CustomHttpSecondsStrings[0] = ini.GetValue("HTTP", "CustomHttpSecondsString", string.Empty);
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("HTTP", "CustomHttpSecondsString" + i))
-					CustomHttpSecondsStrings[i] = ini.GetValue("HTTP", "CustomHttpSecondsString" + i, "");
+					CustomHttpSecondsStrings[i] = ini.GetValue("HTTP", "CustomHttpSecondsString" + i, string.Empty);
 			}
 
 			CustomHttpSecondsEnabled = ini.GetValue("HTTP", "CustomHttpSecondsEnabled", false);
@@ -5122,11 +5122,11 @@ namespace CumulusMX
 			if (CustomHttpSecondsInterval < 1) { CustomHttpSecondsInterval = 1; }
 
 			// Custom HTTP - minutes
-			CustomHttpMinutesStrings[0] = ini.GetValue("HTTP", "CustomHttpMinutesString", "");
+			CustomHttpMinutesStrings[0] = ini.GetValue("HTTP", "CustomHttpMinutesString", string.Empty);
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("HTTP", "CustomHttpMinutesString" + i))
-					CustomHttpMinutesStrings[i] = ini.GetValue("HTTP", "CustomHttpMinutesString" + i, "");
+					CustomHttpMinutesStrings[i] = ini.GetValue("HTTP", "CustomHttpMinutesString" + i, string.Empty);
 			}
 
 			CustomHttpMinutesEnabled = ini.GetValue("HTTP", "CustomHttpMinutesEnabled", false);
@@ -5144,11 +5144,11 @@ namespace CumulusMX
 
 			// Http - custom roll-over
 			CustomHttpRolloverEnabled = ini.GetValue("HTTP", "CustomHttpRolloverEnabled", false);
-			CustomHttpRolloverStrings[0] = ini.GetValue("HTTP", "CustomHttpRolloverString", "");
+			CustomHttpRolloverStrings[0] = ini.GetValue("HTTP", "CustomHttpRolloverString", string.Empty);
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("HTTP", "CustomHttpRolloverString" + i))
-					CustomHttpRolloverStrings[i] = ini.GetValue("HTTP", "CustomHttpRolloverString" + i, "");
+					CustomHttpRolloverStrings[i] = ini.GetValue("HTTP", "CustomHttpRolloverString" + i, string.Empty);
 			}
 
 			// Http files
@@ -5157,8 +5157,8 @@ namespace CumulusMX
 				if (ini.ValueExists("HTTP", "HttpFileUrl" + i))
 				{
 					HttpFilesConfig[i].Enabled = ini.GetValue("HTTP", "HttpFileEnabled" + i, false);
-					HttpFilesConfig[i].Url = ini.GetValue("HTTP", "HttpFileUrl" + i, "");
-					HttpFilesConfig[i].Remote = ini.GetValue("HTTP", "HttpFileRemote" + i, "");
+					HttpFilesConfig[i].Url = ini.GetValue("HTTP", "HttpFileUrl" + i, string.Empty);
+					HttpFilesConfig[i].Remote = ini.GetValue("HTTP", "HttpFileRemote" + i, string.Empty);
 					HttpFilesConfig[i].Interval = ini.GetValue("HTTP", "HttpFileInterval" + i, 0);
 					HttpFilesConfig[i].Upload = ini.GetValue("HTTP", "HttpFileUpload" + i, false);
 					HttpFilesConfig[i].Timed = ini.GetValue("HTTP", "HttpFileTimed" + i, false);
@@ -5174,26 +5174,26 @@ namespace CumulusMX
 			for (int i = 0; i < SelectaChartOptions.series.Length; i++)
 			{
 				SelectaChartOptions.series[i] = ini.GetValue("Select-a-Chart", "Series" + i, "0");
-				SelectaChartOptions.colours[i] = ini.GetValue("Select-a-Chart", "Colour" + i, "");
+				SelectaChartOptions.colours[i] = ini.GetValue("Select-a-Chart", "Colour" + i, string.Empty);
 			}
 
 			// Select-a-Period settings
 			for (int i = 0; i < SelectaPeriodOptions.series.Length; i++)
 			{
 				SelectaPeriodOptions.series[i] = ini.GetValue("Select-a-Period", "Series" + i, "0");
-				SelectaPeriodOptions.colours[i] = ini.GetValue("Select-a-Period", "Colour" + i, "");
+				SelectaPeriodOptions.colours[i] = ini.GetValue("Select-a-Period", "Colour" + i, string.Empty);
 			}
 
 			// Email settings
 			SmtpOptions.Enabled = ini.GetValue("SMTP", "Enabled", false);
-			SmtpOptions.Server = ini.GetValue("SMTP", "ServerName", "");
+			SmtpOptions.Server = ini.GetValue("SMTP", "ServerName", string.Empty);
 			SmtpOptions.Port = ini.GetValue("SMTP", "Port", 587);
 			SmtpOptions.SslOption = ini.GetValue("SMTP", "SSLOption", 1);
 			SmtpOptions.AuthenticationMethod = ini.GetValue("SMTP", "RequiresAuthentication", 0);
-			SmtpOptions.User = ini.GetValue("SMTP", "User", "");
-			SmtpOptions.Password = ini.GetValue("SMTP", "Password", "");
-			SmtpOptions.ClientId = ini.GetValue("SMTP", "ClientId", "");
-			SmtpOptions.ClientSecret = ini.GetValue("SMTP", "ClientSecret", "");
+			SmtpOptions.User = ini.GetValue("SMTP", "User", string.Empty);
+			SmtpOptions.Password = ini.GetValue("SMTP", "Password", string.Empty);
+			SmtpOptions.ClientId = ini.GetValue("SMTP", "ClientId", string.Empty);
+			SmtpOptions.ClientSecret = ini.GetValue("SMTP", "ClientSecret", string.Empty);
 			SmtpOptions.IgnoreCertErrors = ini.GetValue("SMTP", "IgnoreCertErrors", false);
 
 			// Growing Degree Days
@@ -5216,10 +5216,10 @@ namespace CumulusMX
 			for (var i = 0; i < 10; i++)
 			{
 				if (ini.ValueExists("CustomLogs", "DailyFilename" + i))
-					CustomDailyLogSettings[i].FileName = ini.GetValue("CustomLogs", "DailyFilename" + i, "");
+					CustomDailyLogSettings[i].FileName = ini.GetValue("CustomLogs", "DailyFilename" + i, string.Empty);
 
 				if (ini.ValueExists("CustomLogs", "DailyContent" + i))
-					CustomDailyLogSettings[i].ContentString = ini.GetValue("CustomLogs", "DailyContent" + i, "").Replace("\n", "").Replace("\r", "");
+					CustomDailyLogSettings[i].ContentString = ini.GetValue("CustomLogs", "DailyContent" + i, string.Empty).Replace("\n", string.Empty).Replace("\r", string.Empty);
 
 				if (string.IsNullOrEmpty(CustomDailyLogSettings[i].FileName) || string.IsNullOrEmpty(CustomDailyLogSettings[i].ContentString))
 					CustomDailyLogSettings[i].Enabled = false;
@@ -5229,10 +5229,10 @@ namespace CumulusMX
 
 
 				if (ini.ValueExists("CustomLogs", "IntervalFilename" + i))
-					CustomIntvlLogSettings[i].FileName = ini.GetValue("CustomLogs", "IntervalFilename" + i, "");
+					CustomIntvlLogSettings[i].FileName = ini.GetValue("CustomLogs", "IntervalFilename" + i, string.Empty);
 
 				if (ini.ValueExists("CustomLogs", "IntervalContent" + i))
-					CustomIntvlLogSettings[i].ContentString = ini.GetValue("CustomLogs", "IntervalContent" + i, "").Replace("\n", "").Replace("\r", "");
+					CustomIntvlLogSettings[i].ContentString = ini.GetValue("CustomLogs", "IntervalContent" + i, string.Empty).Replace("\n", string.Empty).Replace("\r", string.Empty);
 
 				if (string.IsNullOrEmpty(CustomIntvlLogSettings[i].FileName) || string.IsNullOrEmpty(CustomIntvlLogSettings[i].ContentString))
 					CustomIntvlLogSettings[i].Enabled = false;
@@ -5264,6 +5264,35 @@ namespace CumulusMX
 			// do we need to decrypt creds?
 			if (ProgramOptions.EncryptedCreds)
 			{
+				if (!Program.CheckInstanceId(false))
+				{
+					/*
+					 (ProgramOptions.SettingsUsername == string.Empty && ProgramOptions.SettingsPassword == string.Empty &&
+						WllApiKey == string.Empty && WllApiSecret == string.Empty &&
+						AirLinkApiKey == string.Empty && AirLinkApiSecret == string.Empty &&
+						FtpOptions.Username == string.Empty &&
+						FtpOptions.Password == string.Empty &&
+						FtpOptions.PhpSecret == string.Empty &&
+						Wund.PW == string.Empty &&
+						Windy.ApiKey == string.Empty &&
+						AWEKAS.PW == string.Empty &&
+						WindGuru.PW == string.Empty &&
+						WCloud.PW == string.Empty &&
+						WCloud.PW == string.Empty &&
+						WOW.PW == string.Empty &&
+						.. etc
+						)
+					[
+						LogWarningMessage("No UniqueId.txt file found, but no credentials are encrptyed so creating a new UniqueId.txt file")
+						Program.CheckInstanceId(true)
+					]
+					*/
+
+					LogCriticalMessage("ERROR: The UniqueId.txt file is missing or corrupt, please restore it from a backup");
+					LogConsoleMessage("ERROR: The UniqueId.txt file is missing or corrupt, please restore it from a backup", ConsoleColor.Red);
+					Environment.Exit(1);
+				}
+
 				ProgramOptions.SettingsUsername = Crypto.DecryptString(ProgramOptions.SettingsUsername, Program.InstanceId, "SettingsUsername");
 				ProgramOptions.SettingsPassword = Crypto.DecryptString(ProgramOptions.SettingsPassword, Program.InstanceId, "SettingsPassword");
 				WllApiKey = Crypto.DecryptString(WllApiKey, Program.InstanceId, "WllApiKey");
@@ -5280,7 +5309,10 @@ namespace CumulusMX
 				WCloud.PW = Crypto.DecryptString(WCloud.PW, Program.InstanceId, "WCloud.PW");
 				PWS.PW = Crypto.DecryptString(PWS.PW, Program.InstanceId, "PWS.PW");
 				WOW.PW = Crypto.DecryptString(WOW.PW, Program.InstanceId, "WOW.PW");
-				APRS.PW = Crypto.DecryptString(APRS.PW, Program.InstanceId, "APRS.PW");
+				if (APRS.PW != "-1")
+				{
+					APRS.PW = Crypto.DecryptString(APRS.PW, Program.InstanceId, "APRS.PW");
+				}
 				OpenWeatherMap.PW = Crypto.DecryptString(OpenWeatherMap.PW, Program.InstanceId, "OpenWeatherMap.PW");
 				MQTT.Username = Crypto.DecryptString(MQTT.Username, Program.InstanceId, "MQTT.Username");
 				MQTT.Password = Crypto.DecryptString(MQTT.Password, Program.InstanceId, "MQTT.Password");
@@ -5297,6 +5329,15 @@ namespace CumulusMX
 			}
 			else
 			{
+				try
+				{
+					Program.CheckInstanceId(true);
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, "Error creating UniqueId.txt");
+					Environment.Exit(1);
+				}
 				rewriteRequired = true;
 			}
 
@@ -5835,7 +5876,14 @@ namespace CumulusMX
 			ini.SetValue("WOW", "CatchUp", WOW.CatchUp);
 
 			ini.SetValue("APRS", "ID", APRS.ID);
-			ini.SetValue("APRS", "pass", Crypto.EncryptString(APRS.PW, Program.InstanceId, "APRS.PW"));
+			if (APRS.PW == "-1")
+			{
+				ini.SetValue("APRS", "pass", APRS.PW);
+			}
+			else
+			{
+				ini.SetValue("APRS", "pass", Crypto.EncryptString(APRS.PW, Program.InstanceId, "APRS.PW"));
+			}
 			ini.SetValue("APRS", "server", APRS.Server);
 			ini.SetValue("APRS", "port", APRS.Port);
 			ini.SetValue("APRS", "Enabled", APRS.Enabled);
@@ -8604,7 +8652,7 @@ namespace CumulusMX
 			}
 
 
-			var srcfile = "";
+			var srcfile = string.Empty;
 			string dstfile;
 
 			if (NOAAconf.NeedCopy)
@@ -9122,7 +9170,7 @@ namespace CumulusMX
 
 		public async Task DoIntervalUpload()
 		{
-			var remotePath = "";
+			var remotePath = string.Empty;
 
 			if (!FtpOptions.Enabled || !FtpOptions.IntervalEnabled)
 				return;
@@ -12783,7 +12831,7 @@ namespace CumulusMX
 					var logBuilder = new StringBuilder();
 					if (!string.IsNullOrEmpty(msg.Message))
 					{
-						var loglevel = "";
+						var loglevel = string.Empty;
 						switch (msg.LogLevel)
 						{
 							case LogLevel.Trace:
@@ -12933,7 +12981,7 @@ namespace CumulusMX
 			AirQualityUnitText = "µg/m³";
 			SoilMoistureUnitText = "cb";
 			CO2UnitText = "ppm";
-			LeafWetnessUnitText = "";  // Davis is unitless, Ecowitt uses %
+			LeafWetnessUnitText = string.Empty;  // Davis is unitless, Ecowitt uses %
 		}
 	}
 

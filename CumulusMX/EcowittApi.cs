@@ -32,7 +32,7 @@ namespace CumulusMX
 		private DateTime LastCameraImageTime = DateTime.MinValue; // Stored in UTC to avoid DST issues
 		private DateTime LastCameraCallTime = DateTime.MinValue; // Stored in UTC to avoid DST issues
 
-		private string LastCameraVideoTime = "";
+		private string LastCameraVideoTime = string.Empty;
 		private readonly DateTime LastCameraVideoCallTime = DateTime.MinValue;
 
 		public EcowittApi(Cumulus cuml, WeatherStation stn)

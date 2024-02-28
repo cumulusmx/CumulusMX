@@ -114,7 +114,7 @@ namespace CumulusMX
 		//public string UpdateNoaaConfig(HttpListenerContext context)
 		public string UpdateConfig(IHttpContext context)
 		{
-			var json = "";
+			var json = string.Empty;
 			JsonNOAASettingsData settings;
 
 			try

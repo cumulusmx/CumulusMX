@@ -1,3 +1,10 @@
+4.0.0 - b4014
+—————————————
+- Fix Davis Cloud station decode of VP2 sensor current data (again)
+- Fix Ecowitt WH41 PM 2.5 24 hour average value not being recorded
+- Now exits if a UniqueId.txt file is not found and Cumulus.ini is already encrypted
+
+
 4.0.0 - b4013
 —————————————
 - FTP log file now only created when required
@@ -6,8 +13,9 @@
 	<#ByMonthTempAvg mon=[1-12]>        Mean for requested month over the entire history. Omit the mon parameter for the current month
 	<#MonthTempAvg m=[1-12] y=[YYYY]>   Mean for the requested specific month. Omit the parameters for the current month
 	<#YearTempAvg y=[YYYY]>             Mean for the requested year. Omit the y parameter for the current year
-- Linux -install now accepts an optional -group <groupname> parameter. If omitted it defaults to the user name
+- Linux -install now accepts an optional -group <groupname> parameter. If omitted it defaults to the username
 - Fix TZ issue on catch-up
+- MigrateData3to4: custom daily files are now to be supplied as raw filenames, no path. They will be read from the /datav3 folder
 
 
 4.0.0 - b4012
@@ -55,9 +63,9 @@ New
 	- New Firmware Alarm to support this
 	- New web tag <#FirmwareAlarm>
 - Adds new web tags for temperature means
-	<#ByMonthTempAvg mon=a>	Mean for requested month over the entire history. Omit the mon parameter for the current month
-	<#MonthTempAvg m=a y=b>	Mean for the requested specific month. Omit the parameters for the current month
-	<#YearTempAvg y=a>	Mean for the requested year. Omit the y parameter for the current year
+	<#ByMonthTempAvg mon=[1-12]>        Mean for requested month over the entire history. Omit the mon parameter for the current month
+	<#MonthTempAvg m=[1-12] y=[YYYY]>   Mean for the requested specific month. Omit the parameters for the current month
+	<#YearTempAvg y=[YYYY]>             Mean for the requested year. Omit the y parameter for the current year
 
 Changed
 - Now requires Microsoft .Net 8.0 rather than mono to run under Linux and MacOS

@@ -3042,7 +3042,7 @@ namespace CumulusMX
 							cumulus.MySqlSettings.UpdateOnEdit
 							)
 						{
-							var updateStr = "";
+							var updateStr = string.Empty;
 
 							try
 							{
@@ -3346,7 +3346,7 @@ namespace CumulusMX
 						!newData.extra  // Only the monthly log file is stored in MySQL
 						)
 					{
-						var updateStr = "";
+						var updateStr = string.Empty;
 
 						try
 						{

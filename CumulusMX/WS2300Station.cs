@@ -1054,8 +1054,8 @@ namespace CumulusMX
 			cumulus.LogDataMessage("Reading press trend and forecast");
 			if (Ws2300ReadWithRetries(address, bytes, data, command) != bytes)
 			{
-				pressuretrend = "";
-				forecast = "";
+				pressuretrend = string.Empty;
+				forecast = string.Empty;
 				return ERROR;
 			}
 
@@ -1068,8 +1068,8 @@ namespace CumulusMX
 			}
 			catch
 			{
-				pressuretrend = "";
-				forecast = "";
+				pressuretrend = string.Empty;
+				forecast = string.Empty;
 				return ERROR;
 			}
 		}

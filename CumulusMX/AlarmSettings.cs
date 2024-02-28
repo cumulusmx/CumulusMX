@@ -552,7 +552,7 @@ namespace CumulusMX
 
 		public string UpdateAlarmSettings(IHttpContext context)
 		{
-			var json = "";
+			var json = string.Empty;
 			JsonAlarmSettings result;
 			JsonAlarmSettingsData settings;
 
