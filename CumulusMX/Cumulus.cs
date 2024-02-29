@@ -396,7 +396,7 @@ namespace CumulusMX
 
 		private const string ForumDefault = "https://cumulus.hosiene.co.uk/";
 
-		private const string WebcamDefault = string.Empty;
+		private const string WebcamDefault = "";
 
 		private const string DefaultSoundFile = "alarm.mp3";
 		private const string DefaultSoundFileOld = "alert.wav";
