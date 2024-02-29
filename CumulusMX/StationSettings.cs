@@ -1114,7 +1114,16 @@ namespace CumulusMX
 					{
 						cumulus.EcowittApplicationKey = string.IsNullOrWhiteSpace(settings.ecowittapi.applicationkey) ? null : settings.ecowittapi.applicationkey.Trim();
 						cumulus.EcowittUserApiKey = string.IsNullOrWhiteSpace(settings.ecowittapi.userkey) ? null : settings.ecowittapi.userkey.Trim();
-						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.ecowittapi.mac) ? null : settings.ecowittapi.mac.Trim();
+						if (cumulus.StationType == 12)
+						{
+							// For GW1000 local API, the cloud MAC MUST be the same as the device MAC
+							cumulus.EcowittMacAddress = cumulus.Gw1000MacAddress;
+						}
+						else
+						{
+							// For all others, there is no local MAC, so we have to define it in the API
+							cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.ecowittapi.mac) ? null : settings.ecowittapi.mac.Trim();
+						}
 					}
 				}
 				catch (Exception ex)
