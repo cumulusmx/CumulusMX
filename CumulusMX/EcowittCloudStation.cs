@@ -908,23 +908,23 @@ namespace CumulusMX
 			if (data.pm25_ch1 != null)
 			{
 				station.DoAirQuality(data.pm25_ch1.pm25.value, 1);
-				station.DoAirQualityAvg(data.pm25_ch1.Avg24h.value, 1);
+				//station.DoAirQualityAvg(data.pm25_ch1.Avg24h.value, 1);
 			}
 
 			if (data.pm25_ch2 != null)
 			{
 				station.DoAirQuality(data.pm25_ch2.pm25.value, 2);
-				station.DoAirQualityAvg(data.pm25_ch2.Avg24h.value, 2);
+				//station.DoAirQualityAvg(data.pm25_ch2.Avg24h.value, 2);
 			}
 			if (data.pm25_ch3 != null)
 			{
 				station.DoAirQuality(data.pm25_ch3.pm25.value, 3);
-				station.DoAirQualityAvg(data.pm25_ch3.Avg24h.value, 3);
+				//station.DoAirQualityAvg(data.pm25_ch3.Avg24h.value, 3);
 			}
 			if (data.pm25_ch4 != null)
 			{
 				station.DoAirQuality(data.pm25_ch4.pm25.value, 4);
-				station.DoAirQualityAvg(data.pm25_ch1.Avg24h.value, 4);
+				//station.DoAirQualityAvg(data.pm25_ch1.Avg24h.value, 4);
 			}
 		}
 
