@@ -3016,7 +3016,7 @@ namespace CumulusMX
 			public CurrentSensorValInt pm25 { get; set; }
 
 			[DataMember(Name = "24_hours_aqi")]
-			public CurrentSensorValInt Avg24h { get; set; }
+			public CurrentSensorValInt AqiAvg24h { get; set; }
 		}
 
 		internal class CurrentPm10
@@ -3025,7 +3025,7 @@ namespace CumulusMX
 			public CurrentSensorValInt pm10 { get; set; }
 
 			[DataMember(Name = "24_hours_aqi")]
-			public CurrentSensorValInt Avg24h { get; set; }
+			public CurrentSensorValInt AqiAvg24h { get; set; }
 		}
 
 		internal class CurrentLeak

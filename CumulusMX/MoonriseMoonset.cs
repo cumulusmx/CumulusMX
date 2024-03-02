@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Globalization;
 
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Memory;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
@@ -97,55 +98,6 @@ namespace CumulusMX
 		// Tabulate the New Moons in UT - expensive to calculate these accurately
 		private static readonly string[] NewMoons =
 		[
-			"2020-01-24 21:41 +0000",
-			"2020-02-23 15:31 +0000",
-			"2020-03-24 09:27 +0000",
-			"2020-04-23 02:25 +0000",
-			"2020-05-22 17:38 +0000",
-			"2020-06-21 06:41 +0000",
-			"2020-07-20 17:32 +0000",
-			"2020-08-19 02:41 +0000",
-			"2020-09-17 11:00 +0000",
-			"2020-10-16 19:31 +0000",
-			"2020-11-15 05:07 +0000",
-			"2020-12-14 16:17 +0000",
-			"2021-01-13 05:00 +0000",
-			"2021-02-11 19:05 +0000",
-			"2021-03-13 10:20 +0000",
-			"2021-04-12 02:30 +0000",
-			"2021-05-11 18:59 +0000",
-			"2021-06-10 10:52 +0000",
-			"2021-07-10 01:16 +0000",
-			"2021-08-08 13:49 +0000",
-			"2021-09-07 00:51 +0000",
-			"2021-10-06 11:05 +0000",
-			"2021-11-04 21:14 +0000",
-			"2021-12-04 07:43 +0000",
-			"2022-01-02 18:34 +0000",
-			"2022-02-01 05:46 +0000",
-			"2022-03-02 17:34 +0000",
-			"2022-04-01 06:24 +0000",
-			"2022-04-30 20:27 +0000",
-			"2022-05-30 11:29 +0000",
-			"2022-06-29 02:51 +0000",
-			"2022-07-28 17:54 +0000",
-			"2022-08-27 08:16 +0000",
-			"2022-09-25 21:54 +0000",
-			"2022-10-25 10:48 +0000",
-			"2022-11-23 22:56 +0000",
-			"2022-12-23 10:17 +0000",
-			"2023-01-21 20:53 +0000",
-			"2023-02-20 07:06 +0000",
-			"2023-03-21 17:23 +0000",
-			"2023-04-20 04:12 +0000",
-			"2023-05-19 15:53 +0000",
-			"2023-06-18 04:36 +0000",
-			"2023-07-17 18:31 +0000",
-			"2023-08-16 09:37 +0000",
-			"2023-09-15 01:39 +0000",
-			"2023-10-14 17:54 +0000",
-			"2023-11-13 09:27 +0000",
-			"2023-12-12 23:31 +0000",
 			"2024-01-11 11:57 +0000",
 			"2024-02-09 22:58 +0000",
 			"2024-03-10 09:00 +0000",
@@ -1518,6 +1470,19 @@ namespace CumulusMX
 				return false;
 			}
 
+			// Reduce the memory allocation in ImageSharp - we only have a small image
+			try
+			{
+				Configuration.Default.MemoryAllocator = MemoryAllocator.Create(new MemoryAllocatorOptions()
+				{
+					MaximumPoolSizeMegabytes = 1
+				});
+			}
+			catch (Exception ex)
+			{
+				Program.cumulus.LogExceptionMessage(ex, "Error setting ImageSharp memory pool size");
+			}
+
 			var success = true;
 
 			try
@@ -1538,49 +1503,41 @@ namespace CumulusMX
 
 					int srcSize = bmp.Width;
 					int srcSize2 = srcSize / 2;
+					int xPos = corr == -1 ? 0 : srcSize - 1;
 
 					for (int yPos = 0; yPos <= srcSize2; yPos++)
 					{
-						// moons limb
-						var y = srcSize2 - yPos;
-						int xPos;
-
-						if (transparent)
-							xPos = corr == -1 ? 0 : srcSize - 1;
-						else
-							xPos = (int) (Math.Sqrt(srcSize2 * srcSize2 - y * y) * corr + srcSize2);
-
 						// Determine the edges of the illuminated part of the moon
-						double x = 1 - ((double) yPos / (double) srcSize2);
-						x = Math.Sqrt(1 - (x * x));
-						var xPos2 = (int) (srcSize2 + (phase - 0.5) * x * srcSize * (-corr));
+						double xe = 1 - (yPos / (double) srcSize2);
+						xe = Math.Sqrt(1 - (xe * xe));
+						var xPos2 = (int) (srcSize2 + (phase - 0.5) * xe * srcSize * (-corr));
 
-						Span<Rgba32> pixels1 = accessor.GetRowSpan(yPos);
-						for (int x1 = xPos; x1 < xPos2; x1++)
+						var pixels1 = accessor.GetRowSpan(yPos);
+						var pixels2 = accessor.GetRowSpan(srcSize - 1 - yPos);
+
+
+						var start = Math.Min(xPos, xPos2);
+						var end = Math.Max(xPos, xPos2);
+
+						for (int x = start; x <= end; x++)
 						{
 							if (transparent)
-								pixels1[x1] = Color.Transparent;
+							{
+								pixels1[x] = Color.Transparent;
+								pixels2[x] = Color.Transparent;
+							}
 							else
 							{
-								pixels1[x1].R = (byte) (pixels1[x1].R * 0.2);
-								pixels1[x1].G = (byte) (pixels1[x1].G * 0.2);
-								pixels1[x1].B = (byte) (pixels1[x1].B * 0.2);
-							}
-						}
+								pixels1[x].R = (byte) (pixels1[x].R * 0.3);
+								pixels1[x].G = (byte) (pixels1[x].G * 0.3);
+								pixels1[x].B = (byte) (pixels1[x].B * 0.3);
 
-						// suppress double drawing of the last line
-						if (yPos != srcSize2)
-						{
-							Span<Rgba32> pixels2 = accessor.GetRowSpan(srcSize - 1 - yPos);
-							for (int x2 = xPos; x2 <= xPos2; x2++)
-							{
-								if (transparent)
-									pixels2[x2] = Color.Transparent;
-								else
+								// suppress double drawing of the last line
+								if (yPos != srcSize2)
 								{
-									pixels2[x2].R = (byte) (pixels2[x2].R * 0.2);
-									pixels2[x2].G = (byte) (pixels2[x2].G * 0.2);
-									pixels2[x2].B = (byte) (pixels2[x2].B * 0.2);
+									pixels2[x].R = (byte) (pixels2[x].R * 0.3);
+									pixels2[x].G = (byte) (pixels2[x].G * 0.3);
+									pixels2[x].B = (byte) (pixels2[x].B * 0.3);
 								}
 							}
 						}
@@ -1594,6 +1551,16 @@ namespace CumulusMX
 
 					// resize to desired output size
 					bmp.Mutate(x => x.Resize(size, size));
+
+					// add a bit of meta data
+					if (bmp.Metadata.ExifProfile == null)
+					{
+						bmp.Metadata.ExifProfile = new ExifProfile();
+					}
+					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.XPAuthor, "Cumulus MX");
+					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.XPTitle, DateTime.Now.ToString("yyyy:MM:dd HH:mm:ss"));
+					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.Software, "Cumulus MX");
+					bmp.Metadata.ExifProfile.SetValue<string>(ExifTag.DateTimeOriginal, DateTime.Now.ToString("yyyy:MM:dd HH:mm:ss"));
 
 					// finally save the image and clean-up
 					bmp.SaveAsPng("./web/moon.png");

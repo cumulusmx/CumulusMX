@@ -1493,8 +1493,6 @@ namespace CumulusMX
 				RealtimeTimer.Elapsed += RealtimeTimerTick;
 				RealtimeTimer.AutoReset = true;
 
-				WebTimer.Elapsed += WebTimerTick;
-
 				xapsource = "sanday.cumulus." + Environment.MachineName;
 
 				xapHeartbeat = "xap-hbeat\n{\nv=12\nhop=1\nuid=FF" + xapUID + "00\nclass=xap-hbeat.alive\nsource=" + xapsource + "\ninterval=60\n}";
@@ -11690,6 +11688,7 @@ namespace CumulusMX
 				_ = MySqlCommandAsync(MySqlList, "MySQL Archive", false);
 			}
 
+			WebTimer.Elapsed += WebTimerTick;
 			WebTimer.Interval = UpdateInterval * 60 * 1000; // mins to millisecs
 			WebTimer.Enabled = WebIntervalEnabled && !SynchronisedWebUpdate;
 

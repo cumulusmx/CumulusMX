@@ -1,7 +1,7 @@
 4.0.0 - b4014
 —————————————
 - Fix Davis Cloud station decode of VP2 sensor current data (again)
-- Fix Ecowitt WH41 PM 2.5 24 hour average value not being recorded
+- Fix Moon image creation
 - Now exits if a UniqueId.txt file is not found and Cumulus.ini is already encrypted
 - You now only set the Ecowitt MAC/IMEI address in one place for the various station types
 	- In Local API settings for GW1000 type

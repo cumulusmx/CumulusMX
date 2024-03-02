@@ -1619,11 +1619,11 @@ namespace CumulusMX
 					_ = sendWebSocketData();
 				}
 
-				// lets spread some the processing over the minute, 12 seconds past the minute...
+				// lets spread some the processing over the minute, 10 seconds past the minute...
 				var millisecs = (int) timeNow.TimeOfDay.TotalMilliseconds % 60000;
-				if (millisecs >= 12000 && millisecs < 12500)
+				if (millisecs >= 10000 && millisecs < 10500)
 				{
-					MinutePlus12Changed();
+					MinutePlus10Changed();
 				}
 
 				cumulus.MQTTSecondChanged(timeNow);
@@ -2005,7 +2005,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void MinutePlus12Changed()
+		private void MinutePlus10Changed()
 		{
 			if (!DataStopped)
 			{

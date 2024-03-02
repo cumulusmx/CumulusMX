@@ -68,7 +68,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentFTP.Logging" Version="1.0.0" />
-    <PackageReference Include="Google.Apis.Auth" Version="1.66.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.67.0" />
     <PackageReference Include="NReco.Logging.File" Version="1.2.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
@@ -81,7 +81,7 @@
     <PackageReference Include="MQTTnet" Version="4.3.3.952" />
     <PackageReference Include="MySqlConnector" Version="2.3.5" />
     <PackageReference Include="ServiceStack.Text" Version="8.1.2" />
-    <PackageReference Include="SSH.NET" Version="2023.0.1" />
+    <PackageReference Include="SSH.NET" Version="2024.0.0" />
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
   </ItemGroup>

@@ -950,23 +950,23 @@ namespace CumulusMX
 			if (data.pm25_ch1 != null)
 			{
 				station.DoAirQuality(data.pm25_ch1.pm25.value, 1);
-				station.DoAirQualityAvg(data.pm25_ch1.Avg24h.value, 1);
+				//station.DoAirQualityAvg(data.pm25_ch1.AqiAvg24h.value, 1);
 			}
 
 			if (data.pm25_ch2 != null)
 			{
 				station.DoAirQuality(data.pm25_ch2.pm25.value, 2);
-				station.DoAirQualityAvg(data.pm25_ch2.Avg24h.value, 2);
+				//station.DoAirQualityAvg(data.pm25_ch2.AqiAvg24h.value, 2);
 			}
 			if (data.pm25_ch3 != null)
 			{
 				station.DoAirQuality(data.pm25_ch3.pm25.value, 3);
-				station.DoAirQualityAvg(data.pm25_ch3.Avg24h.value, 3);
+				//station.DoAirQualityAvg(data.pm25_ch3.AqiAvg24h.value, 3);
 			}
 			if (data.pm25_ch4 != null)
 			{
 				station.DoAirQuality(data.pm25_ch4.pm25.value, 4);
-				station.DoAirQualityAvg(data.pm25_ch1.Avg24h.value, 4);
+				//station.DoAirQualityAvg(data.pm25_ch1.AqiAvg24h.value, 4);
 			}
 		}
 
@@ -981,13 +981,13 @@ namespace CumulusMX
 			if (data.pm25_aqi_combo != null)
 			{
 				station.CO2_pm2p5 = data.pm25_aqi_combo.pm25.value;
-				station.CO2_pm2p5_24h = data.pm25_aqi_combo.Avg24h.value;
+				//station.CO2_pm2p5_24h = data.pm25_aqi_combo.AqiAvg24h.value;
 			}
 
 			if (data.pm10_aqi_combo != null)
 			{
 				station.CO2_pm10 = data.pm10_aqi_combo.pm10.value;
-				station.CO2_pm10_24h = data.pm10_aqi_combo.Avg24h.value;
+				//station.CO2_pm10_24h = data.pm10_aqi_combo.AqiAvg24h.value;
 			}
 
 			if (data.t_rh_aqi_combo != null)
