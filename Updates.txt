@@ -6,6 +6,7 @@
 - You now only set the Ecowitt MAC/IMEI address in one place for the various station types
 	- In Local API settings for GW1000 type
 	- In Cloud Access API for Cloud and HTTP station types
+- Fix error saving Locale Strings
 
 
 4.0.0 - b4013

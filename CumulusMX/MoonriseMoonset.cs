@@ -1528,16 +1528,18 @@ namespace CumulusMX
 							}
 							else
 							{
-								pixels1[x].R = (byte) (pixels1[x].R * 0.3);
-								pixels1[x].G = (byte) (pixels1[x].G * 0.3);
-								pixels1[x].B = (byte) (pixels1[x].B * 0.3);
+								var pixel = pixels1[x];
+								pixel.R = (byte) (pixel.R * 0.3);
+								pixel.G = (byte) (pixel.G * 0.3);
+								pixel.B = (byte) (pixel.B * 0.3);
 
 								// suppress double drawing of the last line
 								if (yPos != srcSize2)
 								{
-									pixels2[x].R = (byte) (pixels2[x].R * 0.3);
-									pixels2[x].G = (byte) (pixels2[x].G * 0.3);
-									pixels2[x].B = (byte) (pixels2[x].B * 0.3);
+									var pixel2 = pixels2[x];
+									pixel2.R = (byte) (pixel2.R * 0.3);
+									pixel2.G = (byte) (pixel2.G * 0.3);
+									pixel2.B = (byte) (pixel2.B * 0.3);
 								}
 							}
 						}
