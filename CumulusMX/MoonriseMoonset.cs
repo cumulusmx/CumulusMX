@@ -1532,6 +1532,7 @@ namespace CumulusMX
 								pixel.R = (byte) (pixel.R * 0.3);
 								pixel.G = (byte) (pixel.G * 0.3);
 								pixel.B = (byte) (pixel.B * 0.3);
+								pixels1[x] = pixel;
 
 								// suppress double drawing of the last line
 								if (yPos != srcSize2)
@@ -1540,6 +1541,7 @@ namespace CumulusMX
 									pixel2.R = (byte) (pixel2.R * 0.3);
 									pixel2.G = (byte) (pixel2.G * 0.3);
 									pixel2.B = (byte) (pixel2.B * 0.3);
+									pixels2[x] = pixel2;
 								}
 							}
 						}
