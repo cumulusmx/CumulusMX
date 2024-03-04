@@ -1,3 +1,9 @@
+4.0.0 - b4015
+—————————————
+- Fix Moon image creation, again (a late optimisation broke it last time!)
+
+
+
 4.0.0 - b4014
 —————————————
 - Fix Davis Cloud station decode of VP2 sensor current data (again)
