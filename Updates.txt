@@ -1,6 +1,7 @@
 3.28.6 - b3283
 ——————————————
 - Fix davis Cloud station decode of VP2 sensor current data (again)
+- Fix crash in Growing Degree Days & Temperature Sum graphs for a particular circumstances
 
 
 3.28.5 - b3282

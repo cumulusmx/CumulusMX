@@ -14382,7 +14382,7 @@ namespace CumulusMX
 					// make all series the same year so they plot together
 					// 2000 was a leap year, so make sure February falls in 2000
 					// for Southern hemisphere this means the start year must be 1999
-					if (cumulus.GrowingYearStarts > 2 && plotYear == 1999 && DayFile[i].Date.Month == 1)
+					if (cumulus.GrowingYearStarts > 2 && plotYear == 1999 && DayFile[i].Date.Month < cumulus.GrowingYearStarts)
 					{
 						plotYear++;
 					}
@@ -14573,7 +14573,7 @@ namespace CumulusMX
 					// make all series the same year so they plot together
 					// 2000 was a leap year, so make sure February falls in 2000
 					// for Southern hemisphere this means the start year must be 1999
-					if (cumulus.TempSumYearStarts > 2 && plotYear == 1999 && DayFile[i].Date.Month == 1)
+					if (cumulus.TempSumYearStarts > 2 && plotYear == 1999 && DayFile[i].Date.Month < cumulus.TempSumYearStarts)
 					{
 						plotYear++;
 					}
