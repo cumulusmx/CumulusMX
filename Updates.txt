@@ -1,6 +1,7 @@
 4.0.0 - b4015
 —————————————
 - Fix Moon image creation, again (a late optimisation broke it last time!)
+- Fix crash in Growing Degree Days & Temperature Sum graphs for a particular circumstances
 
 
 
