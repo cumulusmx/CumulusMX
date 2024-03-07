@@ -1708,7 +1708,7 @@ namespace CumulusMX
 
 		private string TagTempAvg24Hrs(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.TempAvg24Hrs(), tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckTempUnit(station.TempAvg24Hrs(), tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 
