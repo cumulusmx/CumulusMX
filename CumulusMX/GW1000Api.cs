@@ -67,6 +67,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
+					cumulus.LogDebugMessage("Error: Ecowitt Gateway Connect attempt " + attempt + " FAILED");
 					cumulus.LogErrorMessage("Error opening TCP port: " + ex.Message);
 					Thread.Sleep(5000 * attempt);
 				}
@@ -75,7 +76,7 @@ namespace CumulusMX
 			// Set the timeout of the underlying stream
 			try
 			{
-				if (socket.Connected)
+				if (socket != null && socket.Connected)
 				{
 					cumulus.LogDebugMessage("Ecowitt Gateway reconnected");
 					connected = true;
