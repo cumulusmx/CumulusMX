@@ -12886,7 +12886,14 @@ namespace CumulusMX
 				json.Append($"\"growingdegreedays1\":{{\"name\":\"GDD#1\"}},");
 			if (cumulus.GraphOptions.Visible.GrowingDegreeDays2.IsVisible(local))
 				json.Append($"\"growingdegreedays2\":{{\"name\":\"GDD#2\"}},");
-			// TODO: temp sum
+
+			// temp sum
+			if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
+				json.Append($"\"tempsum0\":{{\"name\":\"Temp Sum#0\"}},");
+			if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
+				json.Append($"\"tempsum1\":{{\"name\":\"Temp Sum#1\"}},");
+			if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
+				json.Append($"\"tempsum2\":{{\"name\":\"Temp Sum#2\"}},");
 
 			// daily temps
 			if (cumulus.GraphOptions.Visible.AvgTemp.IsVisible(local))
