@@ -22,15 +22,26 @@ namespace CumulusMX
 
 		internal bool OpenTcpPort(string ipaddr, int port)
 		{
+			var connected = false;
+
+			if (connecting)
+			{
+				return connected;
+			}
+
 			ipAddress = ipaddr;
 			tcpPort = port;
 			connecting = true;
 
-			CloseTcpPort();
+			if (socket != null)
+			{
+				CloseTcpPort();
+			}
+
 			int attempt = 0;
 
 			// Creating the new TCP socket effectively opens it - specify IP address or domain name and port
-			while (attempt < 5 && socket == null)
+			while (attempt < 5)
 			{
 				attempt++;
 				cumulus.LogDebugMessage("Ecowitt Gateway Connect attempt " + attempt);
@@ -45,13 +56,11 @@ namespace CumulusMX
 						try
 						{
 							socket.Close();
-							socket.Dispose();
 						}
 						catch
 						{
 							// do nothing
 						}
-						socket = null;
 						Thread.Sleep(5000 * attempt);
 					}
 
@@ -64,52 +73,37 @@ namespace CumulusMX
 			}
 
 			// Set the timeout of the underlying stream
-			if (socket != null)
+			try
 			{
-				try
+				if (socket.Connected)
 				{
-					if (socket.Connected)
-					{
-						cumulus.LogDebugMessage("Ecowitt Gateway reconnected");
-						connecting = false;
-					}
-					else
-					{
-						cumulus.LogDebugMessage("Ecowitt Gateway failed to reconnect");
-					}
+					cumulus.LogDebugMessage("Ecowitt Gateway reconnected");
+					connected = true;
+				}
+				else
+				{
+					cumulus.LogDebugMessage("Ecowitt Gateway failed to reconnect");
+				}
 
-				}
-				catch (ObjectDisposedException)
-				{
-					socket = null;
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage("Error reconnecting Ecowitt Gateway: " + ex.Message);
-				}
 			}
-			else
+			catch (Exception ex)
 			{
-				cumulus.LogDebugMessage("Ecowitt Gateway connect failed");
-				connecting = false;
-				return false;
+				cumulus.LogErrorMessage("Error reconnecting Ecowitt Gateway: " + ex.Message);
 			}
 
-			return true;
+			connecting = false;
+			return connected;
 		}
 
 		internal void CloseTcpPort()
 		{
 			try
 			{
-				if (socket != null)
+				if (socket.Connected)
 				{
-					if (socket.Connected)
-					{
-						socket.GetStream().WriteByte(10);
-					}
-					socket.Close();
+					socket.GetStream().WriteByte(10);
 				}
+				socket.Close();
 			}
 			catch (ObjectDisposedException)
 			{
@@ -118,12 +112,6 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogMessage("Error closing TCP port: " + ex.Message);
-				if (socket != null)
-					socket.Dispose();
-			}
-			finally
-			{
-				socket = null;
 			}
 		}
 
