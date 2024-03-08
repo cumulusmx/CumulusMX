@@ -312,7 +312,7 @@ namespace CumulusMX
 			if (!exitSystem)
 			{
 				Console.WriteLine(DateTime.Now.ToString("G"));
-				Console.WriteLine("Type Ctrl-C to terminate");
+				Console.WriteLine("Type Ctrl-C to terminate\n");
 			}
 		}
 
