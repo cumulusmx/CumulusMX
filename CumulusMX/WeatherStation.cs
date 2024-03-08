@@ -8804,61 +8804,61 @@ namespace CumulusMX
 
 				var lines = File.ReadAllLines(cumulus.DayFileName);
 
-				try
+				foreach (var line in lines)
 				{
-					foreach (var line in lines)
+					try
 					{
-						try
+						// process each record in the file
+						linenum++;
+						var newRec = ParseDayFileRec(line);
+
+						if (DayFile.Exists(x => x.Date == newRec.Date))
 						{
-							// process each record in the file
-							linenum++;
-							var newRec = ParseDayFileRec(line);
-
-							if (DayFile.Exists(x => x.Date == newRec.Date))
-							{
-								cumulus.LogErrorMessage($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}");
-								msg.Append($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}<br>");
-								duplicateCount++;
-							}
-
-							DayFile.Add(newRec);
-
-							addedEntries++;
+							cumulus.LogErrorMessage($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}");
+							msg.Append($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}<br>");
+							duplicateCount++;
 						}
-						catch (Exception e)
+
+						DayFile.Add(newRec);
+
+						addedEntries++;
+					}
+					catch (Exception e)
+					{
+						if (errorCount < 20)
 						{
-							cumulus.LogWarningMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
-							msg .Append($"Error at line {linenum} of {cumulus.DayFileName}<br>");
+							cumulus.LogErrorMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
+							msg.Append($"Error at line {linenum} of {cumulus.DayFileName}<br>");
 							cumulus.LogMessage("Please edit the file to correct the error");
-							errorCount++;
-							if (errorCount >= 20)
-							{
-								cumulus.LogErrorMessage($"LoadDayFile: Too many errors reading {cumulus.DayFileName} - aborting load of daily data");
-								msg.Append("Too many errors reading dayfile, aborting<br>");
-								break;
-							}
 						}
-					}
 
-					watch.Stop();
-					cumulus.LogDebugMessage($"LoadDayFile: Dayfile parse = {watch.ElapsedMilliseconds} ms");
-
-					if (duplicateCount > 0)
-					{
-						msg.Append($"Found {duplicateCount} duplicate entries, please correct your dayfile and try again");
-						cumulus.LogErrorMessage($"LoadDayFile: Found {duplicateCount} duplicate entries, please correct your dayfile and try again");
-						return msg.ToString();
+						errorCount++;
 					}
 				}
-				catch (Exception e)
-				{
-					cumulus.LogErrorMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
-					cumulus.LogMessage("Please edit the file to correct the error");
-					msg.Append($"Error at line {linenum} of {cumulus.DayFileName} : {e.Message}<br>");
-				}
+
+				watch.Stop();
+				cumulus.LogDebugMessage($"LoadDayFile: Dayfile parse = {watch.ElapsedMilliseconds} ms");
 
 				cumulus.LogMessage($"LoadDayFile: Loaded {addedEntries} entries to recent daily data list");
-				msg.Append($"Loaded {addedEntries} entries to recent daily data list");
+				msg.Append($"Loaded {addedEntries} entries to recent daily data list<br>");
+
+				if (errorCount > 20)
+				{
+					cumulus.LogErrorMessage($"LoadDayFile: Lines not loaded due to errors {errorCount}");
+					msg.Append($"Lines not loaded due to errors {errorCount}<br>");
+				}
+
+				if (duplicateCount > 0)
+				{
+					cumulus.LogErrorMessage($"LoadDayFile: Found {duplicateCount} duplicate entries, please correct your dayfile and try again");
+					msg.Append($"Found {duplicateCount} duplicate entries<br>");
+				}
+
+				if (errorCount > 0 || duplicateCount > 0)
+				{
+					msg.Append("Correct your dayfile and try again");
+				}
+
 				return msg.ToString();
 			}
 			else

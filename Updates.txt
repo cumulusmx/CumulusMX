@@ -3,6 +3,7 @@
 - Fix Moon image creation, again (a late optimisation broke it last time!)
 - Fix crash in Growing Degree Days & Temperature Sum graphs for a particular circumstances
 - Improvement to GW1000 API reconnects
+- Loading dayfile now continues on error and reports total errors - only the first 20 errors are logged
 
 
 4.0.0 - b4014
@@ -65,6 +66,7 @@ New
 - Moon Image now supports transparent shadows
 - The -install/-unistall command line switches now support both Windows and Linux
 	- Under Linux run > sudo dotnet CumulusMX.dll -install -user <username> [-port <port_number>] [-lang <lang-code>]
+	- Windows install as a service now self elevates and requests UAC
 - Implements encryption of the credentials in the cumulus.ini file
 - Experimental Gmail OATH 2.0 authentication
 - New web tag for the average temperature of the previous 24 hours from now: <#TempAvg24Hrs>
@@ -93,6 +95,11 @@ Changed
 		- Done!
 - Removed previously deprecated web tags
 	CO2-24h, CO2-pm2p5, CO2-pm2p5-24h, CO2-pm10, CO2-temp, CO2-hum
+- Loading dayfile now continues on error and reports total errors - only the first 20 errors are logged
+- You now only set the Ecowitt MAC/IMEI address in one place for the various station types
+	- In Local API settings for GW1000 type
+	- In Cloud Access API for Cloud and HTTP station types
+
 
 Fixed
 - Problems when using a 9am rollover in the records editors for values from the monthly log files
@@ -100,10 +107,25 @@ Fixed
 - Calibration Limits not changing when the user changes units - eg initial install
 - Potential fix for corruption at the end of all data log files when shutting down
 - Error that the username is not set when sending email to a server that requires no authentication
+- Improvement to GW1000 API reconnects
+- Improved web socket initial connection to send data immediately on dashboard/now/gauges connection
+- Fix for soil moisture conversion from percentage to cb in Weather Cloud uploads
 
 
 
 ############## Cumulus MX version 3.0 below here ##############
+
+3.28.6 - b3283
+——————————————
+- Fix davis Cloud station decode of VP2 sensor current data (again)
+- Fix crash in Growing Degree Days & Temperature Sum graphs for a particular circumstances
+
+
+3.28.5 - b3282
+——————————————
+Fixed
+- Bug in rainfall jump detection, was triggering at 1 mm!
+
 
 3.28.4 - b3281
 ——————————————
