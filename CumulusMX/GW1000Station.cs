@@ -1243,8 +1243,8 @@ namespace CumulusMX
 								idx += 16;
 								break;
 							case 0x71: // Ambient ONLY - AQI
-									   //TODO: Not doing anything with this yet
-									   //idx += 2; // SEEMS TO BE VARIABLE
+									   // Not doing anything with this yet
+									   //idx += 2; // SEEMS TO BE VARIABLE?!
 								cumulus.LogDebugMessage("Found a device 0x71 - Ambient AQI. No decode for this yet");
 								// We will have lost our place now, so bail out
 								idx = size;

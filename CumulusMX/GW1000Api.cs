@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 
 namespace CumulusMX
 {
-	internal class GW1000Api : IDisposable
+	internal sealed class GW1000Api : IDisposable
 	{
 		private readonly Cumulus cumulus;
 		private TcpClient socket;
@@ -416,7 +415,7 @@ namespace CumulusMX
 			Wh90            // 48 30
 		};
 
-
+		/*
 		[Flags]
 		internal enum SigSen : byte
 		{
@@ -425,7 +424,9 @@ namespace CumulusMX
 			Wh25 = 1 << 6,
 			Wh24 = 1 << 7
 		}
+		*/
 
+		/*
 		[Flags]
 		internal enum Wh31Ch : byte
 		{
@@ -438,7 +439,7 @@ namespace CumulusMX
 			Ch7 = 1 << 6,
 			Ch8 = 1 << 7
 		}
-
+		*/
 
 		/*
 		private enum _wh41_ch : UInt16
@@ -450,6 +451,7 @@ namespace CumulusMX
 		}
 		*/
 
+		/*
 		[Flags]
 		internal enum Wh51Ch : UInt32
 		{
@@ -470,6 +472,7 @@ namespace CumulusMX
 			Ch15 = 1 << 14,
 			Ch16 = 1 << 15
 		}
+		*/
 
 		/*
 		private enum Wh55Ch : UInt32
@@ -481,6 +484,7 @@ namespace CumulusMX
 		}
 		*/
 
+		/*
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 		internal struct BatteryStatus
 		{
@@ -497,6 +501,7 @@ namespace CumulusMX
 			public byte wh55_ch3;
 			public byte wh55_ch4;
 		}
+		*/
 
 		/*
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -566,11 +571,6 @@ namespace CumulusMX
 				// header, header, command, size, checksum
 				Data = [0xff, 0xff, (byte) command, 3, (byte) (command + 3)];
 			}
-			public byte[] Serialise()
-			{
-				// allocate a byte array for the struct data
-				return Data;
-			}
 		}
 
 
@@ -630,10 +630,11 @@ namespace CumulusMX
 			try
 			{
 				socket.Close();
-				socket.Dispose();
 			}
-			catch { }
-
+			catch
+			{
+				// do nothing
+			}
 		}
 	}
 }
