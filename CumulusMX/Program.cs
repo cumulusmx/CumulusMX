@@ -7,6 +7,8 @@ using System.ServiceProcess;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Win32;
+
 //#error version
 
 namespace CumulusMX
@@ -253,8 +255,13 @@ namespace CumulusMX
 				Environment.Exit(1);
 			}
 
-			// Interactive seems to be always true on Linux :(
+			// detect system sleeping/hibernating - Windows only
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(OnPowerModeChanged);
+			}
 
+			// Interactive seems to be always true on Linux :(
 			if (RunningOnWindows && !Environment.UserInteractive)
 			{
 				// Windows and not interactive - must be a service
@@ -370,6 +377,22 @@ namespace CumulusMX
 			}
 
 			return false;
+		}
+
+		private static void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+		{
+#pragma warning disable CA1416 // Validate platform compatibility
+			if (e.Mode == PowerModes.Suspend)
+			{
+				if (cumulus != null)
+				{
+					cumulus.LogCriticalMessage("Shutting down due to computer going to sleep");
+					cumulus.Stop();
+				}
+
+				Program.exitSystem = true;
+			}
+#pragma warning restore CA1416 // Validate platform compatibility
 		}
 	}
 }

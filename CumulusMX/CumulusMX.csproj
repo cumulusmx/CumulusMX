@@ -37,7 +37,7 @@
 
   <PropertyGroup>
     <ServerGarbageCollection>true</ServerGarbageCollection>
-    <Version>4.000.0.4015</Version>
+    <Version>4.000.0.4016</Version>
     <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
   </PropertyGroup>
 
@@ -69,6 +69,7 @@
   <ItemGroup>
     <PackageReference Include="FluentFTP.Logging" Version="1.0.0" />
     <PackageReference Include="Google.Apis.Auth" Version="1.67.0" />
+    <PackageReference Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
     <PackageReference Include="NReco.Logging.File" Version="1.2.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.3" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />

@@ -647,29 +647,41 @@ namespace CumulusMX
 			int attempt = 0;
 
 			// Creating the new TCP socket effectively opens it - specify IP address or domain name and port
-			while (attempt < 5 && client == null && !stop)
+			while (attempt < 5 && !stop)
 			{
 				attempt++;
 				cumulus.LogDebugMessage("OpenTcpPort: TCP Logger Connect attempt " + attempt);
 				try
 				{
-					client = new TcpClient(ipaddr, port);
+					//client = new TcpClient(ipaddr, port)
+					// Force IPv4 only
+					client = new TcpClient()
+					{
+						Client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+					};
+					client.Connect(ipaddr, port);
+
 
 					if (!client.Connected)
 					{
-						client = null;
+						client.Close();
 					}
-
-					Thread.Sleep(1000);
+					else
+					{
+						// we're connected, bail out
+						break;
+					}
 				}
 				catch (Exception ex)
 				{
 					cumulus.LogErrorMessage("OpenTcpPort: Error - " + ex.Message);
 				}
+
+				Thread.Sleep(1000);
 			}
 
 			// Set the timeout of the underlying stream
-			if (client != null)
+			if (client != null && client.Connected)
 			{
 				client.GetStream().ReadTimeout = TcpWaitTimeMs;
 				client.GetStream().WriteTimeout = TcpWaitTimeMs;
@@ -2296,6 +2308,12 @@ namespace CumulusMX
 
 			if (isSerial)
 			{
+				if (comport == null)
+				{
+					cumulus.LogErrorMessage("GetArchiveData: No COMM port connection, giving up");
+					return;
+				}
+
 				// send the data
 				comport.Write(data, 0, 6);
 
@@ -2327,6 +2345,12 @@ namespace CumulusMX
 			}
 			else
 			{
+				if (stream == null)
+				{
+					cumulus.LogErrorMessage("GetArchiveData: No TCP connection, giving up");
+					return;
+				}
+
 				stream.Write(data, 0, 6);
 
 				if (!WaitForACK(stream, 5000))
@@ -3119,6 +3143,12 @@ namespace CumulusMX
 
 			try
 			{
+				if (comport == null)
+				{
+					cumulus.LogErrorMessage("InitSerial: No COMM port connection, giving up");
+					return;
+				}
+
 				// stop any loop data that may still be active
 				comport.WriteLine("");
 				Thread.Sleep(500);
@@ -3209,6 +3239,12 @@ namespace CumulusMX
 
 			try
 			{
+				if (socket== null)
+				{
+					cumulus.LogErrorMessage("InitTCP: No TCP connection, giving up");
+					return;
+				}
+
 				cumulus.LogMessage("InitTCP: Flushing input stream");
 				NetworkStream stream = socket.GetStream();
 				stream.ReadTimeout = 2500;

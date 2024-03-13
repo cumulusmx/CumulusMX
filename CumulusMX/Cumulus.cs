@@ -2184,6 +2184,7 @@ namespace CumulusMX
 				if (RealtimeCopyInProgress || RealtimeFtpInProgress)
 				{
 					LogWarningMessage($"Realtime[{cycle}]: Warning, a previous cycle is still processing local files. Skipping this interval.");
+					return;
 				}
 				else
 				{
@@ -2273,7 +2274,9 @@ namespace CumulusMX
 				LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during update");
 				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
 				{
+					LogDebugMessage($"Realtime[{cycle}]: End cycle");
 					_ = RealtimeFTPReconnect();
+					return;
 				}
 			}
 
@@ -2810,7 +2813,7 @@ namespace CumulusMX
 
 						if (linesAdded == 0)
 						{
-							LogDebugMessage($"FTP[Int]: Extra file: {uploadfile} - No incremental data found");
+							LogDebugMessage($"Realtime[{cycle}]: Extra file: {uploadfile} - No incremental data found");
 							continue;
 						}
 

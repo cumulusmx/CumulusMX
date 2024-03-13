@@ -46,7 +46,13 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("Ecowitt Gateway Connect attempt " + attempt);
 				try
 				{
-					socket = new TcpClient(ipaddr, port);
+					//socket = new TcpClient(ipaddr, port)
+					// Force IPv4 only
+					socket = new TcpClient
+					{
+						Client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+					};
+					socket.Connect(ipAddress, tcpPort);
 
 					if (!socket.Connected)
 					{
@@ -60,16 +66,20 @@ namespace CumulusMX
 						{
 							// do nothing
 						}
-						Thread.Sleep(5000 * attempt);
 					}
-
+					else
+					{
+						// we're connected, bail out
+						break;
+					}
 				}
 				catch (Exception ex)
 				{
 					cumulus.LogDebugMessage("Error: Ecowitt Gateway Connect attempt " + attempt + " FAILED");
 					cumulus.LogErrorMessage("Error opening TCP port: " + ex.Message);
-					Thread.Sleep(5000 * attempt);
 				}
+
+				Thread.Sleep(5000 * attempt);
 			}
 
 			// Set the timeout of the underlying stream

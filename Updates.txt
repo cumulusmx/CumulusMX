@@ -1,61 +1,6 @@
-4.0.0 - b4015
+4.0.0 - b4016
 —————————————
-- Fix Moon image creation, again (a late optimisation broke it last time!)
-- Fix crash in Growing Degree Days & Temperature Sum graphs for a particular circumstances
-- Improvement to GW1000 API reconnects
-- Loading dayfile now continues on error and reports total errors - only the first 20 errors are logged
-
-
-4.0.0 - b4014
-—————————————
-- Fix Davis Cloud station decode of VP2 sensor current data (again)
-- Fix Moon image creation
-- Now exits if a UniqueId.txt file is not found and Cumulus.ini is already encrypted
-- You now only set the Ecowitt MAC/IMEI address in one place for the various station types
-	- In Local API settings for GW1000 type
-	- In Cloud Access API for Cloud and HTTP station types
-- Fix error saving Locale Strings
-
-
-4.0.0 - b4013
-—————————————
-- FTP log file now only created when required
-- Fixes to backup to zip at start-up and rollover
-- Adds new web tags for temperature means
-	<#ByMonthTempAvg mon=[1-12]>        Mean for requested month over the entire history. Omit the mon parameter for the current month
-	<#MonthTempAvg m=[1-12] y=[YYYY]>   Mean for the requested specific month. Omit the parameters for the current month
-	<#YearTempAvg y=[YYYY]>             Mean for the requested year. Omit the y parameter for the current year
-- Linux -install now accepts an optional -group <groupname> parameter. If omitted it defaults to the username
-- Fix TZ issue on catch-up
-- MigrateData3to4: custom daily files are now to be supplied as raw filenames, no path. They will be read from the /datav3 folder
-
-
-4.0.0 - b4012
-—————————————
-- Error that the username is not set when sending email to a server that requires no authentication
-- Some Davis VP2 stations current data not working with the WeatherLink Cloud station type
-- Fix CPU temperature when not running on Windows
-- Fix EcowittCloud not applying historic piezo rainfall
-- Some fixes to Ecowitt firmware versions
-- Windows install as a service now self elevates and requests UAC
-- Linux install no longer checks for elevation
-- Fix for soil moisture conversion from percentage to cb in WCloud uploads
-
-
-4.0.0 - b4011
-—————————————
-- Fix FTP logging
-- Improved web socket initial connection to send data immediately on dashboard/now/gauges connection
-- Tweaks to real-time FTP reconnect to avoid multiple reconnects occurring at once
-- Add Enable option to Extra Web Files
-- Ecowitt - added firmware update check on start-up and once a day at 13:00
-	- New Firmware Alarm to support this
-	- New web tag <#FirmwareAlarm>
-
-
-4.0.0 - b4010
-—————————————
-- First Beta build
+- First public beta
 
 
 4.0.0 - b4xxx
@@ -756,7 +701,7 @@ New
 	- Default web site updated to show all the relevant records
 - Adds the ability to search in the Dayfile viewer/editor
 - FTP and FTPS now has an option to enable automatic detection of the connection settings
-	- This and another new setting Ignore Certificate Errors are in Internet Settings | Web/TFP Site | Advanced Settings
+	- This and another new setting Ignore Certificate Errors are in Internet Settings | Web/FTP Site | Advanced Settings
 	- NOTE: If you use an FTP server without a public certificate, you *MUST* enable the setting. This is a breaking change
 - Custom HTTP calls (seconds, minutes, rollover) can now each have up to 10 URLs
 - Custom MySQL Uploads (seconds, minutes, rollover) can now each have up to 10 commands
@@ -786,7 +731,7 @@ Fixed
 3.19.2 - b3195
 ——————————————
 Fixed
-- Supress trying to sync solar data on FO stations with solar during night time hours
+- Suppress trying to sync solar data on FO stations with solar during night time hours
 - Fix problem processing buffered failed MySQL commands. More query string issues excluded from buffering
 - Default gauges.htm page CSS for the Wind Rose fixed
 

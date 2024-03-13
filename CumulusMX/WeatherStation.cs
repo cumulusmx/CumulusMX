@@ -5645,10 +5645,14 @@ namespace CumulusMX
 				return;
 			}
 
-			if ((CurrentDay != readingTS.Day) || (CurrentMonth != readingTS.Month) || (CurrentYear != readingTS.Year))
+			var currdate =  new DateTime(CurrentYear, CurrentMonth, CurrentDay, 0, 0, 0, DateTimeKind.Local);
+			currdate = currdate.AddHours(cumulus.GetHourInc(currdate.Date));
+			var meteodata = readingTS.AddHours(cumulus.GetHourInc(readingTS.Date));
+			if (meteodata > currdate.Date.AddDays(1))
 			{
 				// A reading has apparently arrived at the start of a new day, but before we have done the roll-over
 				// Ignore it, as otherwise it may cause a new monthly record to be logged using last month's total
+				// Problem: NoSensorCheck means we continue processing even when no data is coming in. So all we can do is ignore the check in this case
 				cumulus.LogDebugMessage("DoRain: A reading arrived at the start of a new day, but before we have done the roll-over. Ignoring it");
 				return;
 			}
