@@ -19,9 +19,12 @@ using System.Web;
 
 using EmbedIO.Utilities;
 
+using ServiceStack;
 using ServiceStack.Text;
 
 using SQLite;
+
+using static System.Net.Mime.MediaTypeNames;
 
 using Timer = System.Timers.Timer;
 

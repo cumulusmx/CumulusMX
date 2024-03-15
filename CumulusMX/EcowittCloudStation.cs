@@ -189,6 +189,13 @@ namespace CumulusMX
 									_ = CheckAvailableFirmware();
 								}
 							}
+							cumulus.LogDebugMessage($"EcowittCloud: Waiting {delay} seconds before next update");
+							nextFetch = DateTime.Now.AddSeconds(delay);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, "Error running Ecowitt Cloud station");
+							nextFetch = DateTime.Now.AddMinutes(1);
 						}
 						catch (Exception ex)
 						{

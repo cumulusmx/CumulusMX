@@ -555,7 +555,6 @@ namespace CumulusMX
 
 			IsOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
-
 			// restrict the threadpool size - for Linux which does not seem to have very good pool management!
 			//ThreadPool.SetMinThreads(Properties.Settings.Default.MinThreadPoolSize, Properties.Settings.Default.MinThreadPoolSize)
 			//ThreadPool.SetMaxThreads(Properties.Settings.Default.MaxThreadPoolSize, Properties.Settings.Default.MaxThreadPoolSize)
@@ -8584,6 +8583,11 @@ namespace CumulusMX
 						{
 							LogDebugMessage($"Interval: Error copying extra file: " + ex.Message);
 						}
+						//LogDebugMessage("Finished copying extra file " + uploadfile);
+					}
+					else
+					{
+						LogWarningMessage($"Interval: Warning, extra web file not found - {uploadfile}");
 					}
 					else
 					{
@@ -11768,10 +11772,12 @@ namespace CumulusMX
 				{
 					try
 					{
-						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]) && now.Minute % MySqlSettings.CustomMins.Intervals[i] == 0)
 						{
 							tokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", tokenParser.ToStringFromString());
+							var cmd = tokenParser.ToStringFromString();
+							LogDebugMessage("MySQLTimed: Running - " + cmd);
+							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", cmd);
 						}
 					}
 					catch (Exception ex)
@@ -12662,7 +12668,7 @@ namespace CumulusMX
 					if (match.Success)
 					{
 						var idx = int.Parse(match.Groups[1].Value) - 1; // we use a zero relative array
-																		// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+						// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
 						var custDate = dat.AddMinutes(-(CustomIntvlLogSettings[idx].Interval + 1));
 
 						return GetCustomIntvlLogFileName(idx, custDate);
@@ -12718,7 +12724,7 @@ namespace CumulusMX
 					if (match.Success)
 					{
 						var idx = int.Parse(match.Groups[1].Value) - 1; // we use a zero relative array
-																		// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
+						// we need to subtract the logging interval, otherwise the last log entry will be missed on the month rollover
 						var custDate = dat.AddMinutes(-(CustomIntvlLogSettings[idx].Interval + 1));
 
 						return input.Replace(match.Groups[0].Value, Path.GetFileName(GetCustomIntvlLogFileName(idx, custDate)));
