@@ -124,10 +124,10 @@ namespace CumulusMX
 		private WeatherStation station;
 
 		internal DavisAirLink airLinkIn;
-		public int airLinkInLsid {get; set; }
-		public string AirLinkInHostName {get; set; }
-		internal DavisAirLink airLinkOut {get; set; }
-		public int airLinkOutLsid {get; set; }
+		public int airLinkInLsid { get; set; }
+		public string AirLinkInHostName { get; set; }
+		internal DavisAirLink airLinkOut { get; set; }
+		public int airLinkOutLsid { get; set; }
 		public string AirLinkOutHostName { get; set; }
 
 		internal HttpStationEcowitt ecowittExtra;
@@ -156,7 +156,7 @@ namespace CumulusMX
 
 		internal int NumWindRosePoints;
 
-		internal int[] logints { get;  } = [1, 5, 10, 15, 20, 30];
+		internal int[] logints { get; } = [1, 5, 10, 15, 20, 30];
 
 		public int GraphDays { get; set; } = 31;
 
@@ -2208,7 +2208,7 @@ namespace CumulusMX
 							if (realtimeFTPRetries * RealtimeInterval / 1000 > 3 * 60)
 							{
 								LogWarningMessage($"Realtime[{cycle}]: Realtime has been in progress for more than 3 minutes, attempting to reconnect.");
-								_= RealtimeFTPReconnect();
+								_ = RealtimeFTPReconnect();
 							}
 							else
 							{
@@ -8837,7 +8837,7 @@ namespace CumulusMX
 			if (!Array.Exists(HttpFilesConfig, x => x.Enabled && x.Url.Length > 0 && x.Remote.Length > 0 && x.NextDownload <= now))
 			{
 #if DEBUG
-					LogDebugMessage("ProcessHttpFiles: No files to process at this time");
+				LogDebugMessage("ProcessHttpFiles: No files to process at this time");
 #endif
 				return;
 			}
@@ -11754,7 +11754,7 @@ namespace CumulusMX
 			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
 				// not all the data is ready and NoSensorCheck is not enabled
-				LogMessage($"CustomMysqlMinutesTimerTick: Not all data is ready, aborting process");
+				LogMessage($"CustomMysqlMinutesUpdate: Not all data is ready, aborting process");
 				return;
 			}
 
@@ -13255,24 +13255,24 @@ namespace CumulusMX
 
 	public class WebUploadService
 	{
-		public string Server {get; set;}
-		public int Port {get; set;}
-		public string ID {get; set;}
-		public string PW {get; set;}
-		public bool Enabled {get; set;}
-		public int Interval {get; set;}
-		public int DefaultInterval {get; set;}
-		public bool SynchronisedUpdate {get; set;}
-		public bool SendUV {get; set;}
-		public bool SendSolar {get; set;}
-		public bool SendIndoor {get; set;}
-		public bool SendAirQuality {get; set;}
-		public bool SendSoilTemp {get; set;}
-		public int SoilTempSensor {get; set;}
-		public bool SendSoilMoisture {get; set;}
-		public int SoilMoistureSensor {get; set;}
-		public bool CatchUp {get; set;}
-		public bool CatchingUp {get; set;}
+		public string Server { get; set; }
+		public int Port { get; set; }
+		public string ID { get; set; }
+		public string PW { get; set; }
+		public bool Enabled { get; set; }
+		public int Interval { get; set; }
+		public int DefaultInterval { get; set; }
+		public bool SynchronisedUpdate { get; set; }
+		public bool SendUV { get; set; }
+		public bool SendSolar { get; set; }
+		public bool SendIndoor { get; set; }
+		public bool SendAirQuality { get; set; }
+		public bool SendSoilTemp { get; set; }
+		public int SoilTempSensor { get; set; }
+		public bool SendSoilMoisture { get; set; }
+		public int SoilMoistureSensor { get; set; }
+		public bool CatchUp { get; set; }
+		public bool CatchingUp { get; set; }
 		public bool Updating { get; set; }
 	}
 

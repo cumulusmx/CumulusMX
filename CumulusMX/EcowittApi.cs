@@ -723,7 +723,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing rainfall data. Exception: " + ex.Message);
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing piezo rainfall data. Exception: " + ex.Message);
 				}
 			}
 			// Solar Data
