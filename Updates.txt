@@ -1,11 +1,11 @@
-4.0.0 - b4016
+4.0.0 - b4017
 —————————————
 - First public beta
 
 
 4.0.0 - b4xxx
 —————————————
-Initial release of Cumulus MX which now runs under Microsoft .Net 8.0 and removes the requirement for the Mono runtime environment on Linux
+Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and removes the requirement for the Mono runtime environment on Linux
 
 New
 - Moon Image now supports transparent shadows
