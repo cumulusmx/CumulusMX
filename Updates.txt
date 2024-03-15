@@ -75,10 +75,13 @@ Fixed
 3.28.4 - b3281
 ——————————————
 New
-- The monthly log file check is extended to the Extra and AirLink logs if they are in use
+- The monthly log file check for corruption is extended to the Extra and AirLink logs if they are in use
 
 Fixed
-- Error sending email to a server that requires no authentication that the username is not set
+- Error that the username is not set when sending email to a server that requires no authentication
+- Some Davis VP2 stations current data not working with the WeatherLink Cloud station type
+- Fix for soil moisture conversion from percentage to cb in WeatherCloud uploads
+- Fix EcowittCloud not applying historic piezo rainfall
 
 
 
@@ -117,7 +120,7 @@ Fixed
 - Ecowitt historic catch-up was missing CO2, CO2 pm, CO2 T/H, leaf wetness, and extra T/H dewpoint values
 
 
-3.28.1 - b3276
+3.28.1 - b3278
 ——————————————
 New
 - PHP upload max connections per server now configurable, the default value is reduced from 20 to 5
