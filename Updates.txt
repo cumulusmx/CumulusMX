@@ -1,3 +1,7 @@
+4.0.0 - b4018
+—————————————
+- Reworked GetVersion() to account for published beta builds
+
 4.0.0 - b4017
 —————————————
 - First public beta
@@ -11,7 +15,7 @@ New
 - Moon Image now supports transparent shadows
 - The -install/-unistall command line switches now support both Windows and Linux
 	- Under Linux run > sudo dotnet CumulusMX.dll -install -user <username> [-port <port_number>] [-lang <lang-code>]
-	- Windows install as a service now self elevates and requests UAC
+	- Windows install as a service now self-elevates and requests UAC
 - Implements encryption of the credentials in the cumulus.ini file
 - Experimental Gmail OATH 2.0 authentication
 - New web tag for the average temperature of the previous 24 hours from now: <#TempAvg24Hrs>
@@ -27,7 +31,7 @@ New
 
 Changed
 - Now requires Microsoft .Net 8.0 rather than mono to run under Linux and MacOS
-- All data files are now written/read as invariant - dayfile, monthly log files, extra log files, AirLink, and  custom log files
+- All data files are now written/read as invariant - dayfile, monthly log files, extra log files, AirLink, and custom log files
 	- NOTE: Custom log files may require the user to alter their configuration to use comma separators and add the rc=y parameter to numeric web tags
 - Monthly log files now renamed to "[yyyyMM]log.txt" to remove localised month name - and now sortable in the file system!
 - Added MigrateData3to4 utility.
