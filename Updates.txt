@@ -1,6 +1,8 @@
 4.0.0 - b4018
 —————————————
 - Reworked GetVersion() to account for published beta builds
+- Fix backup error on first start-up
+
 
 4.0.0 - b4017
 —————————————

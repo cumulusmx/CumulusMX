@@ -8234,17 +8234,17 @@ namespace CumulusMX
 							try
 							{
 								LogDebugMessage("Archiving the database");
-								archive.CreateEntryFromFile(dbfile, dbBackup);
-								if (File.Exists(dbfile + "-journal"))
-								{
-									archive.CreateEntryFromFile(dbfile + "-journal", dbBackup + "-journal");
-								}
+								if (File.Exists(dbfile))
+									archive.CreateEntryFromFile(dbfile, dbBackup);
 
-								archive.CreateEntryFromFile(diaryfile, diarybackup);
+								if (File.Exists(dbfile + "-journal"))
+									archive.CreateEntryFromFile(dbfile + "-journal", dbBackup + "-journal");
+
+								if (File.Exists(diaryfile))
+									archive.CreateEntryFromFile(diaryfile, diarybackup);
+
 								if (File.Exists(diaryfile + "-journal"))
-								{
 									archive.CreateEntryFromFile(diaryfile + "-journal", diarybackup + "-journal");
-								}
 
 								LogDebugMessage("Completed archive of the database");
 							}
@@ -12481,7 +12481,7 @@ namespace CumulusMX
 				var latestBuild = releases.Find(x => !x.draft && x.prerelease == beta);
 				var latestLive = releases.Find(x => !x.draft && !x.prerelease);
 				var cmxBuild = int.Parse(Build);
-
+				var veryLatest = Math.Max(int.Parse(latestBuild.tag_name[1..]), int.Parse(latestLive.tag_name[1..]));
 
 				if (latestLive == null)
 				{
@@ -12496,7 +12496,7 @@ namespace CumulusMX
 				}
 				else if (beta && int.Parse(latestLive.tag_name[1..]) > cmxBuild)
 				{
-					var msg = $"You are not running a beta version of Cumulus MX, and a later release build {latestLive.name} is available.";
+					var msg = $"You are running a beta version of Cumulus MX, and a later release build {latestLive.name} is available.";
 					LogConsoleMessage(msg, ConsoleColor.Cyan);
 					LogWarningMessage(msg);
 					UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
@@ -12517,7 +12517,7 @@ namespace CumulusMX
 				}
 				else if (int.Parse(latestBuild.tag_name[1..]) < cmxBuild)
 				{
-					LogWarningMessage($"This Cumulus MX instance appears to be running a test version. This build = {Build}, latest released build = {LatestBuild}");
+					LogWarningMessage($"This Cumulus MX instance appears to be running a test version. This build = {Build}, latest available build = {veryLatest}");
 				}
 			}
 			catch (Exception ex)
