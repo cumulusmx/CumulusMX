@@ -12483,14 +12483,14 @@ namespace CumulusMX
 				var cmxBuild = int.Parse(Build);
 				var veryLatest = Math.Max(int.Parse(latestBuild.tag_name[1..]), int.Parse(latestLive.tag_name[1..]));
 
-				if (latestLive == null)
+				if (string.IsNullOrEmpty(latestLive.name))
 				{
 					if (releases.Count == 0)
 					{
 						LogMessage("Failed to get the latest build version from GitHub");
 					}
 				}
-				else if (latestBuild == null)
+				else if (string.IsNullOrEmpty(latestBuild.name))
 				{
 					LogMessage($"Failed to get the latest {(beta ? "beta" : "release")} build version from GitHub");
 				}

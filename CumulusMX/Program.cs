@@ -362,9 +362,17 @@ namespace CumulusMX
 					txt = sr.ReadLine();
 
 				// Check the length, and ends in "="
-				if (txt.Length > 30 || txt[^1] == '=')
+				if (txt != null && (txt.Length > 30 || txt[^1] == '='))
 				{
 					InstanceId = Convert.FromBase64String(txt);
+					return true;
+				}
+
+				if (create && string.IsNullOrEmpty(txt))
+				{
+					// otherwise, create it with a newly generated id
+					InstanceId = Crypto.GenerateKey();
+					File.WriteAllText("UniqueId.txt", Convert.ToBase64String(InstanceId));
 					return true;
 				}
 			}
