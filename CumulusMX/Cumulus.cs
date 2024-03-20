@@ -4464,6 +4464,7 @@ namespace CumulusMX
 			}
 			APRS.HumidityCutoff = ini.GetValue("APRS", "APRSHumidityCutoff", false);
 			APRS.SendSolar = ini.GetValue("APRS", "SendSR", false);
+			APRS.UseUtcInWxNowFile = ini.GetValue("APRS", "UseUtcInWxNowFile", false);
 
 			OpenWeatherMap.Enabled = ini.GetValue("OpenWeatherMap", "Enabled", false);
 			OpenWeatherMap.CatchUp = ini.GetValue("OpenWeatherMap", "CatchUp", true);
@@ -5893,6 +5894,7 @@ namespace CumulusMX
 			ini.SetValue("APRS", "Interval", APRS.Interval);
 			ini.SetValue("APRS", "SendSR", APRS.SendSolar);
 			ini.SetValue("APRS", "APRSHumidityCutoff", APRS.HumidityCutoff);
+			ini.SetValue("APRS", "UseUtcInWxNowFile", APRS.UseUtcInWxNowFile);
 
 			ini.SetValue("OpenWeatherMap", "Enabled", OpenWeatherMap.Enabled);
 			ini.SetValue("OpenWeatherMap", "CatchUp", OpenWeatherMap.CatchUp);

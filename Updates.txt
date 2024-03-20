@@ -3,6 +3,7 @@
 - Reworked GetVersion() to account for published beta builds
 - Fix backup error on first start-up
 - Change uniqueid.txt file handling to allow for zero length files
+- wxnow.txt file now has the option to force UTC timestamps
 
 
 4.0.0 - b4017

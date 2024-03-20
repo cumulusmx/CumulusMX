@@ -164,6 +164,7 @@ namespace CumulusMX
 						}
 
 						cumulus.WxnowComment = settings.websettings.interval.stdfiles.wxnowcomment;
+						cumulus.APRS.UseUtcInWxNowFile = settings.websettings.interval.stdfiles.wxnowutc;
 
 						for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 						{
@@ -382,7 +383,8 @@ namespace CumulusMX
 			var websettingsintervalstd = new JsonInternetSettingsWebSettingsIntervalFiles()
 			{
 				files = new JsonInternetSettingsFileSettings[cumulus.StdWebFiles.Length],
-				wxnowcomment = cumulus.WxnowComment
+				wxnowcomment = cumulus.WxnowComment,
+				wxnowutc = cumulus.APRS.UseUtcInWxNowFile
 			};
 
 			var websettingsintervalgraph = new JsonInternetSettingsWebSettingsIntervalFiles()
@@ -766,6 +768,7 @@ namespace CumulusMX
 	{
 		public JsonInternetSettingsFileSettings[] files { get; set; }
 		public string wxnowcomment { get; set; }
+		public bool wxnowutc { get; set; }
 	}
 
 	public class JsonInternetSettingsWebSettingsRealtime
