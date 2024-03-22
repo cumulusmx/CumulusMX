@@ -214,7 +214,7 @@ namespace CumulusMX
 
 					}
 
-					if (SelfInstaller.InstallLinux(user, group, lang, Httpport, ))
+					if (SelfInstaller.InstallLinux(user, group, lang, Httpport, servicename))
 					{
 						Console.ForegroundColor = ConsoleColor.Green;
 						Console.WriteLine("\nCumulus MX is now installed to run as service\n");
