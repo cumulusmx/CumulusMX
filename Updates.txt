@@ -5,6 +5,7 @@
 - Change uniqueid.txt file handling to allow for zero length files
 - wxnow.txt file now has the option to force UTC timestamps
 - Fix WLL not binding to broadcast port in shared mode
+- Add optional parameter "-servicename xxxx" to Linux service -install and -uninstall, it defaults to "cumulusmx"
 
 
 4.0.0 - b4017
