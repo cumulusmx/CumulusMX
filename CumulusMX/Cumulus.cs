@@ -12519,7 +12519,7 @@ namespace CumulusMX
 				}
 				else if (int.Parse(latestBuild.tag_name[1..]) < cmxBuild)
 				{
-					LogWarningMessage($"This Cumulus MX instance appears to be running a test version. This build = {Build}, latest available build = {veryLatest}");
+					LogWarningMessage($"This Cumulus MX instance appears to be running a test version. This build={Build}, latest available build={veryLatest}");
 				}
 			}
 			catch (Exception ex)
