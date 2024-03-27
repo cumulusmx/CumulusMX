@@ -3948,7 +3948,8 @@ namespace CumulusMX
 			EcowittApplicationKey = ini.GetValue("GW1000", "EcowittAppKey", string.Empty);
 			EcowittUserApiKey = ini.GetValue("GW1000", "EcowittUserKey", string.Empty);
 			EcowittMacAddress = ini.GetValue("GW1000", "EcowittMacAddress", string.Empty);
-			if (string.IsNullOrEmpty(EcowittMacAddress) && !string.IsNullOrEmpty(Gw1000MacAddress))
+			// For GW1000 stations, the Ecowitt MAC must be the same as the device MAC
+			if (StationType == 12)
 			{
 				EcowittMacAddress = Gw1000MacAddress;
 			}
