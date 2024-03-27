@@ -80,7 +80,7 @@
     <PackageReference Include="HidSharp" Version="2.1.0" />
     <PackageReference Include="MailKit" Version="4.4.0" />
     <PackageReference Include="MQTTnet" Version="4.3.3.952" />
-    <PackageReference Include="MySqlConnector" Version="2.3.5" />
+    <PackageReference Include="MySqlConnector" Version="2.3.6" />
     <PackageReference Include="ServiceStack.Text" Version="8.2.2" />
     <PackageReference Include="SSH.NET" Version="2024.0.0" />
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
