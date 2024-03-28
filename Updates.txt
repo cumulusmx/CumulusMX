@@ -1,3 +1,9 @@
+4.0.0 - b4019
+—————————————
+- Change HTTP Ecowitt "warning" messages
+- Fix WeatherUnderground rapid fire updates
+
+
 4.0.0 - b4018
 —————————————
 - Reworked GetVersion() to account for published beta builds
@@ -8,6 +14,7 @@
 - Add optional parameter "-servicename xxxx" to Linux service -install and -uninstall, it defaults to "cumulusmx"
 - Fix error/crash in Ecowitt GetStationList() processing
 - Add Davis WeatherLink Console archive decodes for historic: baro, internal T/H, soil/leaf, enviro-monitor
+- MySQL Connector updated
 
 
 4.0.0 - b4017

@@ -11661,19 +11661,6 @@ namespace CumulusMX
 
 			CustomHttpSecondsTimer.Enabled = CustomHttpSecondsEnabled;
 
-			if (Wund.RapidFireEnabled)
-			{
-				Wund.IntTimer.Interval = 5000; // 5 seconds in rapid-fire mode
-			}
-			else
-			{
-				Wund.IntTimer.Interval = Wund.Interval * 60 * 1000; // mins to millisecs
-			}
-
-			AWEKAS.IntTimer.Interval = AWEKAS.Interval * 1000;
-			AWEKAS.IntTimer.Enabled = AWEKAS.Enabled && !AWEKAS.SynchronisedUpdate;
-
-
 			Wund.CatchUpIfRequired();
 
 			Windy.CatchUpIfRequired();
@@ -11683,6 +11670,19 @@ namespace CumulusMX
 			WOW.CatchUpIfRequired();
 
 			OpenWeatherMap.CatchUpIfRequired();
+
+			if (Wund.RapidFireEnabled)
+			{
+				Wund.IntTimer.Interval = 5000; // 5 seconds in rapid-fire mode
+				Wund.IntTimer.Enabled = Wund.Enabled;
+			}
+			else
+			{
+				Wund.IntTimer.Interval = Wund.Interval * 60 * 1000; // mins to millisecs
+			}
+
+			AWEKAS.IntTimer.Interval = AWEKAS.Interval * 1000;
+			AWEKAS.IntTimer.Enabled = AWEKAS.Enabled && !AWEKAS.SynchronisedUpdate;
 
 			if (MySqlList.IsEmpty)
 			{
