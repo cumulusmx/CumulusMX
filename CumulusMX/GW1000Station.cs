@@ -496,7 +496,7 @@ namespace CumulusMX
 						deviceFirmware = discoveredDevices.Name[0].Split('-')[1].Split(' ')[1];
 						if (discoveredDevices.Mac[0] != macaddr)
 						{
-							cumulus.Gw1000MacAddress = discoveredDevices.Mac[0];
+							cumulus.Gw1000MacAddress = discoveredDevices.Mac[0].ToUpper();
 						}
 						cumulus.WriteIniFile();
 					}

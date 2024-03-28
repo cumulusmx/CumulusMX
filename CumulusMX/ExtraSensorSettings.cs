@@ -403,7 +403,7 @@ namespace CumulusMX
 					{
 						cumulus.EcowittApplicationKey = string.IsNullOrWhiteSpace(settings.httpSensors.ecowittapi.applicationkey) ? null : settings.httpSensors.ecowittapi.applicationkey.Trim();
 						cumulus.EcowittUserApiKey = string.IsNullOrWhiteSpace(settings.httpSensors.ecowittapi.userkey) ? null : settings.httpSensors.ecowittapi.userkey.Trim();
-						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.httpSensors.ecowittapi.mac) ? null : settings.httpSensors.ecowittapi.mac.Trim();
+						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.httpSensors.ecowittapi.mac) ? null : settings.httpSensors.ecowittapi.mac.Trim().ToUpper();
 					}
 				}
 				catch (Exception ex)
