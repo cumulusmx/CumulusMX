@@ -7,6 +7,7 @@
 - Fix WLL not binding to broadcast port in shared mode
 - Add optional parameter "-servicename xxxx" to Linux service -install and -uninstall, it defaults to "cumulusmx"
 - Fix error/crash in Ecowitt GetStationList() processing
+- Add Davis WeatherLink Console archive decodes for historic: baro, internal T/H, soil/leaf, enviro-monitor
 
 
 4.0.0 - b4017
