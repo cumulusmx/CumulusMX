@@ -2,6 +2,7 @@
 —————————————
 - Change HTTP Ecowitt "warning" messages
 - Fix WeatherUnderground rapid fire updates
+- Fix MySQL Custom Upload Minutes firing every minute for all configured intervals
 
 
 4.0.0 - b4018

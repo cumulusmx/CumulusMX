@@ -11748,7 +11748,7 @@ namespace CumulusMX
 		}
 
 
-		internal async Task CustomMysqlMinutesUpdate()
+		internal async Task CustomMysqlMinutesUpdate(DateTime now)
 		{
 			if (station.DataStopped)
 			{
@@ -11773,7 +11773,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]) && now.Minute % MySqlSettings.CustomMins.Intervals[i] == 0)
 						{
 							tokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
 							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", tokenParser.ToStringFromString());
