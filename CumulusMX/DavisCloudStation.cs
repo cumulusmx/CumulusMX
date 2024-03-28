@@ -519,8 +519,8 @@ namespace CumulusMX
 					int idxOfSensorWithMostRecs = 0;
 					for (var i = 0; i < histObj.sensors.Count; i++)
 					{
-						// Find the WLL baro, or internal temp/hum sensors
-						if (histObj.sensors[i].sensor_type == 242 && histObj.sensors[i].data_structure_type == 13)
+						// Find the WLL/WLC baro, oth use sensor type=242, WLL structure=13, WLC structure=20
+						if (histObj.sensors[i].sensor_type == 242 && (histObj.sensors[i].data_structure_type == 13 || histObj.sensors[i].data_structure_type == 20))
 						{
 							var recs = histObj.sensors[i].data.Count;
 							if (recs > noOfRecs)
@@ -2061,6 +2061,7 @@ namespace CumulusMX
 				{
 					case 3: // VP2 ISS archive revision A
 					case 4: // VP2 ISS archive revision B
+					case 7: // EnviroMonitor ISS Archive Record
 						{
 							var data = json.FromJsv<WlHistorySensorDataType3_4>();
 							lastRecordTime = Utils.FromUnixTime(data.ts);
@@ -2962,7 +2963,9 @@ namespace CumulusMX
 						break;
 
 					case 13: // WeatherLink Live Non-ISS data
-					case 26:
+					case 20: // WL console Baro
+					case 22: // WL console internal T/H
+					case 26: // WL console Soil/Leaf data
 						switch (sensorType)
 						{
 							case 56: // Soil + Leaf
@@ -3245,7 +3248,8 @@ namespace CumulusMX
 								}
 								break;
 
-							case 243: // Inside temp/hum
+							case 243: // WeatherLink Live Inside temp/hum
+							case 365: // WL console Inside temp/hum
 								/*
 								 * Available fields
 								 * "dew_point_in"

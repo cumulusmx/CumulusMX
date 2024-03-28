@@ -10,6 +10,7 @@ namespace CumulusMX.ThirdParty
 	internal class WebUploadAprs : WebUploadServiceBase
 	{
 		public bool HumidityCutoff;
+		public bool UseUtcInWxNowFile;
 
 		internal WebUploadAprs(Cumulus cumulus, string name) : base(cumulus, name)
 		{

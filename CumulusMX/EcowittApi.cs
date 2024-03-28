@@ -2334,7 +2334,7 @@ namespace CumulusMX
 
 		internal string[] GetStationList(bool CheckCamera, string macAddress, CancellationToken token)
 		{
-			cumulus.LogMessage("API.GetStationList: Get Ecowitt Station List");
+			cumulus.LogMessage("API.GetStationList: Get Ecowitt Station List - mac=" + macAddress);
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey))
 			{

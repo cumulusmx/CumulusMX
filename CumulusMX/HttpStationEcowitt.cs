@@ -130,26 +130,45 @@ namespace CumulusMX
 			if (mainStation)
 			{
 				Task.Run(getAndProcessHistoryData);
-				var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-				if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+
+				if (string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 				{
-					deviceFirmware = new Version(retVal[0]);
-					deviceModel = retVal[1];
+					cumulus.LogMessage("No MAC/IMEI address is configured, skipping device model check");
+				}
+				else
+				{
+					var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
+					{
+						deviceFirmware = new Version(retVal[0]);
+						deviceModel = retVal[1];
+					}
 				}
 			}
 			else
 			{
 				// see if we have a camera attached
-				var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-				if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+				if (string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 				{
-					deviceFirmware = new Version(retVal[0]);
-					deviceModel = retVal[1];
+					cumulus.LogMessage("No MAC/IMEI address is configured, skipping device model check");
+				}
+				else
+				{
+					var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
+					{
+						deviceFirmware = new Version(retVal[0]);
+						deviceModel = retVal[1];
+					}
 				}
 				cumulus.LogMessage("Extra Sensors - HTTP Station (Ecowitt) - Waiting for data...");
 			}
 
-			if (!string.IsNullOrEmpty(deviceModel))
+			if (string.IsNullOrEmpty(deviceModel))
+			{
+				cumulus.LogMessage("No device model found, skipping firmware version check");
+			}
+			else
 			{
 				_= CheckAvailableFirmware(deviceModel);
 			}

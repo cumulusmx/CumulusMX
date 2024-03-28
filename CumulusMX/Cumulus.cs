@@ -44,8 +44,10 @@ using ServiceStack.Text;
 using SQLite;
 
 using Swan;
+using Swan.Formatters;
 
 using static CumulusMX.EmailSender;
+using static CumulusMX.NoaaConfig;
 
 using Timer = System.Timers.Timer;
 
@@ -3914,7 +3916,7 @@ namespace CumulusMX
 
 			// GW1000 settings
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
-			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", string.Empty);
+			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", string.Empty).ToUpper();
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
 			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0); //0=main station (tipping bucket) 1=piezo
@@ -3945,8 +3947,9 @@ namespace CumulusMX
 			// api
 			EcowittApplicationKey = ini.GetValue("GW1000", "EcowittAppKey", string.Empty);
 			EcowittUserApiKey = ini.GetValue("GW1000", "EcowittUserKey", string.Empty);
-			EcowittMacAddress = ini.GetValue("GW1000", "EcowittMacAddress", string.Empty);
-			if (string.IsNullOrEmpty(EcowittMacAddress) && !string.IsNullOrEmpty(Gw1000MacAddress))
+			EcowittMacAddress = ini.GetValue("GW1000", "EcowittMacAddress", string.Empty).ToUpper();
+			// For GW1000 stations, the Ecowitt MAC must be the same as the device MAC
+			if (StationType == 12)
 			{
 				EcowittMacAddress = Gw1000MacAddress;
 			}
@@ -4462,6 +4465,7 @@ namespace CumulusMX
 			}
 			APRS.HumidityCutoff = ini.GetValue("APRS", "APRSHumidityCutoff", false);
 			APRS.SendSolar = ini.GetValue("APRS", "SendSR", false);
+			APRS.UseUtcInWxNowFile = ini.GetValue("APRS", "UseUtcInWxNowFile", false);
 
 			OpenWeatherMap.Enabled = ini.GetValue("OpenWeatherMap", "Enabled", false);
 			OpenWeatherMap.CatchUp = ini.GetValue("OpenWeatherMap", "CatchUp", true);
@@ -5891,6 +5895,7 @@ namespace CumulusMX
 			ini.SetValue("APRS", "Interval", APRS.Interval);
 			ini.SetValue("APRS", "SendSR", APRS.SendSolar);
 			ini.SetValue("APRS", "APRSHumidityCutoff", APRS.HumidityCutoff);
+			ini.SetValue("APRS", "UseUtcInWxNowFile", APRS.UseUtcInWxNowFile);
 
 			ini.SetValue("OpenWeatherMap", "Enabled", OpenWeatherMap.Enabled);
 			ini.SetValue("OpenWeatherMap", "CatchUp", OpenWeatherMap.CatchUp);
@@ -8232,17 +8237,17 @@ namespace CumulusMX
 							try
 							{
 								LogDebugMessage("Archiving the database");
-								archive.CreateEntryFromFile(dbfile, dbBackup);
-								if (File.Exists(dbfile + "-journal"))
-								{
-									archive.CreateEntryFromFile(dbfile + "-journal", dbBackup + "-journal");
-								}
+								if (File.Exists(dbfile))
+									archive.CreateEntryFromFile(dbfile, dbBackup);
 
-								archive.CreateEntryFromFile(diaryfile, diarybackup);
+								if (File.Exists(dbfile + "-journal"))
+									archive.CreateEntryFromFile(dbfile + "-journal", dbBackup + "-journal");
+
+								if (File.Exists(diaryfile))
+									archive.CreateEntryFromFile(diaryfile, diarybackup);
+
 								if (File.Exists(diaryfile + "-journal"))
-								{
 									archive.CreateEntryFromFile(diaryfile + "-journal", diarybackup + "-journal");
-								}
 
 								LogDebugMessage("Completed archive of the database");
 							}
@@ -12467,29 +12472,55 @@ namespace CumulusMX
 		{
 			try
 			{
-				using var retVal = await MyHttpClient.GetAsync("https://github.com/cumulusmx/CumulusMX/releases/latest");
-				var latestUri = retVal.RequestMessage.RequestUri.AbsolutePath;
-				LatestBuild = new string(latestUri.Split('/')[^1].Where(char.IsDigit).ToArray());
-				if (int.Parse(Build) < int.Parse(LatestBuild))
+				bool beta = Program.debug;
+				var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/cumulusmx/CumulusMX/releases");
+				request.Headers.Add("User-Agent", "CumulusMX");
+
+				using var retval = await MyHttpClient.SendAsync(request);
+
+				var body = await retval.Content.ReadAsStringAsync();
+				var releases = body.FromJson<List<GithubRelease>>();
+
+				var latestBuild = releases.Find(x => !x.draft && x.prerelease == beta);
+				var latestLive = releases.Find(x => !x.draft && !x.prerelease);
+				var cmxBuild = int.Parse(Build);
+				var veryLatest = Math.Max(int.Parse(latestBuild.tag_name[1..]), int.Parse(latestLive.tag_name[1..]));
+
+				if (string.IsNullOrEmpty(latestLive.name))
 				{
-					var msg = $"You are not running the latest version of Cumulus MX, build {LatestBuild} is available.";
+					if (releases.Count == 0)
+					{
+						LogMessage("Failed to get the latest build version from GitHub");
+					}
+				}
+				else if (string.IsNullOrEmpty(latestBuild.name))
+				{
+					LogMessage($"Failed to get the latest {(beta ? "beta" : "release")} build version from GitHub");
+				}
+				else if (beta && int.Parse(latestLive.tag_name[1..]) > cmxBuild)
+				{
+					var msg = $"You are running a beta version of Cumulus MX, and a later release build {latestLive.name} is available.";
 					LogConsoleMessage(msg, ConsoleColor.Cyan);
 					LogWarningMessage(msg);
-					UpgradeAlarm.LastMessage = $"Build {LatestBuild} is available";
+					UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
 					UpgradeAlarm.Triggered = true;
 				}
-				else if (int.Parse(Build) == int.Parse(LatestBuild))
+				else if (int.Parse(latestBuild.tag_name[1..]) > cmxBuild)
 				{
-					LogMessage("This Cumulus MX instance is running the latest version");
+					var msg = $"You are not running the latest {(beta ? "beta" : "release")} version of Cumulus MX, build {latestBuild.name} is available.";
+					LogConsoleMessage(msg, ConsoleColor.Cyan);
+					LogWarningMessage(msg);
+					UpgradeAlarm.LastMessage = $"{(beta ? "Beta" : "Release")} build {latestBuild.name} is available";
+					UpgradeAlarm.Triggered = true;
+				}
+				else if (int.Parse(latestBuild.tag_name[1..]) == cmxBuild)
+				{
+					LogMessage($"This Cumulus MX instance is running the latest {(beta ? "beta" : "release")} version");
 					UpgradeAlarm.Triggered = false;
 				}
-				else if (int.Parse(Build) > int.Parse(LatestBuild))
+				else if (int.Parse(latestBuild.tag_name[1..]) < cmxBuild)
 				{
-					LogWarningMessage($"This Cumulus MX instance appears to be running a beta/test version. This build = {Build}, latest released build = {LatestBuild}");
-				}
-				else
-				{
-					LogMessage($"Could not determine if you are running the latest Cumulus MX build or not. This build = {Build}, latest build = {LatestBuild}");
+					LogWarningMessage($"This Cumulus MX instance appears to be running a test version. This build={Build}, latest available build={veryLatest}");
 				}
 			}
 			catch (Exception ex)
@@ -13458,5 +13489,13 @@ namespace CumulusMX
 			TempNorms = new double[13];
 			RainNorms = new double[13];
 		}
+	}
+
+	sealed class GithubRelease
+	{
+		public string tag_name { get; set; }
+		public string name { get; set; }
+		public bool draft { get; set; }
+		public bool prerelease { get; set; }
 	}
 }

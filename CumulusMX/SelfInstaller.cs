@@ -4,13 +4,12 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 
+using Renci.SshNet.Messages;
+
 namespace CumulusMX
 {
 	public static class SelfInstaller
 	{
-		private const string serviceFile = "/etc/systemd/system/cumulusmx.service";
-
-
 		// Yuk, yuk, yuk, but the best way I have found to install as a service is to shell sc.exe!
 		public static bool InstallWin()
 		{
@@ -76,15 +75,17 @@ namespace CumulusMX
 			}
 		}
 
-		public static bool InstallLinux(string userId, string groupId, string lang, int port)
+		public static bool InstallLinux(string userId, string groupId, string lang, int port, string servicename)
 		{
 			try
 			{
 				var user = string.IsNullOrEmpty(userId) ? "root" : userId;
 				var group = string.IsNullOrEmpty(groupId) ? user : groupId;
+				var name = string.IsNullOrEmpty(servicename) ? "cumulusmx" : servicename;
 
-				Console.WriteLine($"Installing as a systemctld service to run as userid {user}...");
+				Console.WriteLine($"Installing as a systemctld service '{name}' to run as userid {user}...");
 
+				var serviceFile = $"/etc/systemd/system/{name}.service";
 
 				// does the service file exist already?
 				if (File.Exists(serviceFile))
@@ -132,13 +133,19 @@ namespace CumulusMX
 			return false;
 		}
 
-		public static bool UninstallLinux()
+		public static bool UninstallLinux(string servicename)
 		{
+			var name = string.IsNullOrEmpty(servicename) ? "cumulusmx" : servicename;
+
+			Console.WriteLine($"Uninstalling systemctld service '{name}'...");
+
 			try
 			{
 				// stop and disable the service if it is running
 				RunCommand("systemctl", "stop cumulusmx");
 				RunCommand("systemctl", "disable cumulusmx");
+
+				var serviceFile = $"/etc/systemd/system/{name}.service";
 
 				// does the service file exist?
 				if (File.Exists(serviceFile))
@@ -152,10 +159,10 @@ namespace CumulusMX
 				}
 
 				// does a sym link exist
-				if (File.Exists("/usr/lib/systemd/system/cumulusmx.service"))
+				if (File.Exists($"/usr/lib/systemd/system/{name}.service"))
 				{
 					// delete it
-					File.Delete("/usr/lib/systemd/system/cumulusmx.service");
+					File.Delete($"/usr/lib/systemd/system/{name}.service");
 				}
 
 				var ok = RunCommand("systemctl", "daemon-reload") == 0;
@@ -165,8 +172,8 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("Error removing service: " + ex.Message);
-				Console.WriteLine("You must run the service uninstall as an elevated user - 'sudo dotnet CumulusMX.dll -uninstall'");
+				Console.WriteLine($"Error removing service '{name}': " + ex.Message);
+				Console.WriteLine("You must run the service uninstall as an elevated user - 'sudo dotnet CumulusMX.dll -uninstall [-servicename xxxx]'");
 				return false;
 			}
 		}

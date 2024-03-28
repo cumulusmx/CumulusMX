@@ -560,7 +560,7 @@ namespace CumulusMX
 					{
 						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.station.gw1000.ipaddress) ? string.Empty : settings.station.gw1000.ipaddress.Trim();
 						cumulus.Gw1000AutoUpdateIpAddress = settings.station.gw1000.autoDiscover;
-						cumulus.Gw1000MacAddress = string.IsNullOrWhiteSpace(settings.station.gw1000.macaddress) ? string.Empty : settings.station.gw1000.macaddress.Trim();
+						cumulus.Gw1000MacAddress = string.IsNullOrWhiteSpace(settings.station.gw1000.macaddress) ? string.Empty : settings.station.gw1000.macaddress.Trim().ToUpper();
 					}
 				}
 				catch (Exception ex)
@@ -664,7 +664,7 @@ namespace CumulusMX
 					{
 						cumulus.EcowittApplicationKey = string.IsNullOrWhiteSpace(settings.station.ecowittapi.applicationkey) ? null : settings.station.ecowittapi.applicationkey.Trim();
 						cumulus.EcowittUserApiKey = string.IsNullOrWhiteSpace(settings.station.ecowittapi.userkey) ? null : settings.station.ecowittapi.userkey.Trim();
-						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.station.ecowittapi.mac) ? null : settings.station.ecowittapi.mac.Trim();
+						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.station.ecowittapi.mac) ? null : settings.station.ecowittapi.mac.Trim().ToUpper();
 					}
 				}
 				catch (Exception ex)

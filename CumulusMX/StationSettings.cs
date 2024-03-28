@@ -869,7 +869,7 @@ namespace CumulusMX
 					{
 						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.gw1000.ipaddress) ? null : settings.gw1000.ipaddress.Trim();
 						cumulus.Gw1000AutoUpdateIpAddress = settings.gw1000.autoDiscover;
-						cumulus.Gw1000MacAddress = string.IsNullOrWhiteSpace(settings.gw1000.macaddress) ? null : settings.gw1000.macaddress.Trim();
+						cumulus.Gw1000MacAddress = string.IsNullOrWhiteSpace(settings.gw1000.macaddress) ? null : settings.gw1000.macaddress.Trim().ToUpper();
 					}
 				}
 				catch (Exception ex)
@@ -1122,7 +1122,7 @@ namespace CumulusMX
 						else
 						{
 							// For all others, there is no local MAC, so we have to define it in the API
-							cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.ecowittapi.mac) ? null : settings.ecowittapi.mac.Trim();
+							cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.ecowittapi.mac) ? null : settings.ecowittapi.mac.Trim().ToUpper();
 						}
 					}
 				}

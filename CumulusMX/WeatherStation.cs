@@ -4803,7 +4803,7 @@ namespace CumulusMX
 			// b10153 - barometric pressure in tenths of a millibar - 1015.3 millibars
 			// CommentString - free format information text
 
-			var timestamp = DateTime.Now.ToString(@"MMM dd yyyy HH\:mm");
+			var timestamp = cumulus.APRS.UseUtcInWxNowFile ? DateTime.Now.ToUniversalTime().ToString(@"MMM dd yyyy HH\:mm") : DateTime.Now.ToString(@"MMM dd yyyy HH\:mm");
 
 			int mphwind = Convert.ToInt32(ConvertUnits.UserWindToMPH(WindAverage));
 			int mphgust = Convert.ToInt32(ConvertUnits.UserWindToMPH(RecentMaxGust));
