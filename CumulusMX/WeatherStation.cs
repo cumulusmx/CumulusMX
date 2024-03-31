@@ -1526,6 +1526,10 @@ namespace CumulusMX
 		public double CO2_pm10_24h { get; set; }
 		public double CO2_temperature { get; set; }
 		public double CO2_humidity { get; set; }
+		public double CO2_pm1 { get; set; }
+		public double CO2_pm1_24h { get; set; }
+		public double CO2_pm4 { get; set; }
+		public double CO2_pm4_24h { get; set; }
 
 		public int LeakSensor1 { get; set; }
 		public int LeakSensor2 { get; set; }
@@ -2891,7 +2895,7 @@ namespace CumulusMX
 									var jsTime = Utils.ToPseudoJSTime(entrydate);
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length; i++)
 									{
-										if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local) && double.TryParse(st[i + 2], out temp))
+										if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local) && double.TryParse(st[i + 2], InvC, out temp))
 											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
@@ -3034,7 +3038,7 @@ namespace CumulusMX
 									var temp = 0.0;
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length; i++)
 									{
-										if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local) && double.TryParse(st[i + 22], out temp))
+										if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local) && double.TryParse(st[i + 22], InvC, out temp))
 											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
@@ -3321,12 +3325,12 @@ namespace CumulusMX
 
 									for (var i = 0; i < 4; i++)
 									{
-										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local) && double.TryParse(st[i + 32], out temp))
+										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local) && double.TryParse(st[i + 32], InvC, out temp))
 											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 									for (var i = 4; i < 16; i++)
 									{
-										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local) && double.TryParse(st[i + 40], out temp))
+										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local) && double.TryParse(st[i + 40], InvC, out temp))
 											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
@@ -3529,6 +3533,7 @@ namespace CumulusMX
 		public string GetLeafWetnessGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			bool append = false;
+			var InvC = CultureInfo.InvariantCulture;
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
@@ -3617,8 +3622,8 @@ namespace CumulusMX
 
 									for (var i = 0; i < 2; i++)
 									{
-										if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local) && double.TryParse(st[i + 42], out temp))
-											sbExt[i].Append($"[{jsTime},{temp}],");
+										if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local) && double.TryParse(st[i + 42], InvC, out temp))
+											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
 							}
@@ -3761,7 +3766,7 @@ namespace CumulusMX
 
 									for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Vals.Length; i++)
 									{
-										if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local) && double.TryParse(st[i + 76], out temp))
+										if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local) && double.TryParse(st[i + 76], InvC, out temp))
 											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 									}
 								}
@@ -3906,28 +3911,28 @@ namespace CumulusMX
 								{
 									var jsTime = Utils.ToPseudoJSTime(entrydate);
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local) && double.TryParse(st[84], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local) && double.TryParse(st[84], InvC, out temp))
 										sbCo2.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local) && double.TryParse(st[85], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local) && double.TryParse(st[85], InvC, out temp))
 										sbCo2Avg.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local) && double.TryParse(st[86], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local) && double.TryParse(st[86], InvC, out temp))
 										sbPm25.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local) && double.TryParse(st[87], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local) && double.TryParse(st[87], InvC, out temp))
 										sbPm25Avg.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local) && double.TryParse(st[88], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local) && double.TryParse(st[88], InvC, out temp))
 										sbPm10.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local) && double.TryParse(st[89], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local) && double.TryParse(st[89], InvC, out temp))
 										sbPm10Avg.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local) && double.TryParse(st[90], out temp))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local) && double.TryParse(st[90], InvC, out temp))
 										sbTemp.Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local) && int.TryParse(st[91], out tempInt))
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local) && int.TryParse(st[91], InvC, out tempInt))
 										sbHum.Append($"[{jsTime},{tempInt}],");
 								}
 							}

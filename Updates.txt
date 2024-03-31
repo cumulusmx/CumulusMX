@@ -3,6 +3,10 @@
 - Change HTTP Ecowitt "warning" messages
 - Fix WeatherUnderground rapid fire updates
 - Fix MySQL Custom Upload Minutes firing every minute for all configured intervals
+- Adds decode for Ecowitt CO₂ PM1 and PM4 when using local API
+	- New web tags: <#CO2_pm1>, <#CO2_pm1_24h>, <#CO2_pm4>, <#CO2_pm4_24h>
+- Fix MAC address field not always displayed in Station Settings for HTTP Ecowitt stations
+- Fix Extra Sensor graph data not being created for none dot-decimal locales
 
 
 4.0.0 - b4018

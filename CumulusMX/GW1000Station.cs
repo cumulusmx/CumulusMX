@@ -1228,11 +1228,17 @@ namespace CumulusMX
 								}
 								break;
 							case 0x6B: //WH34 User temperature battery (8 channels) - No longer used in firmware 1.6.0+
-								if (tenMinuteChanged)
+										//
+								if (fwVersion.CompareTo(new Version("1.6.0")) < 0)
 								{
 									batteryLow = batteryLow || DoWH34BatteryStatus(data, idx);
+									idx += 8;
 								}
-								idx += 8;
+								else
+								{
+									batteryLow = batteryLow || DoCO2DecodeNew(data, idx);
+									idx += 23;
+								}
 								break;
 							case 0x6C: // Heap size - has constant offset of +3692 to GW1100 HTTP value????
 								StationFreeMemory = (int) GW1000Api.ConvertBigEndianUInt32(data, idx);
@@ -1678,6 +1684,50 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("DoCO2Decode: Error - " + ex.Message);
 			}
 
+			return batteryLow;
+		}
+
+		private bool DoCO2DecodeNew(byte[] data, int index)
+		{
+			bool batteryLow = false;
+			int idx = index;
+			cumulus.LogDebugMessage("WH45 CO₂ New: Decoding...");
+
+			try
+			{
+				CO2_temperature = ConvertUnits.TempCToUser(GW1000Api.ConvertBigEndianInt16(data, idx) / 10.0);
+				idx += 2;
+				CO2_humidity = data[idx++];
+				CO2_pm10 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm10_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm2p5 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm2p5_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2 = GW1000Api.ConvertBigEndianUInt16(data, idx);
+				idx += 2;
+				CO2_24h = GW1000Api.ConvertBigEndianUInt16(data, idx);
+				idx += 2;
+				CO2_pm1 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm1_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm4 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm4_24h = GW1000Api.ConvertBigEndianUInt16(data, idx)/ 10.0;
+				idx += 2;
+				var msg = $"WH45 CO₂ New: temp={CO2_temperature.ToString(cumulus.TempFormat)}, hum={CO2_humidity}, pm10={CO2_pm10:F1}, pm10_24h={CO2_pm10_24h:F1}, pm2.5={CO2_pm2p5:F1}, pm2.5_24h={CO2_pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}, pm1={CO2_pm1:F1}, pm1_24h={CO2_pm1_24h:F1}, pm4={CO2_pm4:F1}, pm4_24h={CO2_pm4_24h:F1}";
+				var batt = TestBattery3(data[idx]);
+				batteryLow = batt == "Low";
+				msg += $", Battery={batt}";
+				cumulus.LogDebugMessage(msg);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "DoCO2DecodeNew: Error");
+			}
 			return batteryLow;
 		}
 
