@@ -873,16 +873,19 @@ namespace CumulusMX
 			{
 				if (null != data && data.Length > 16)
 				{
+#pragma warning disable S125 // Sections of code should not be commented out
 					/*
 					 * debugging code with example data
 					 *
-					var hex = "FFFF27004601009D06220821A509270D02001707490A00B40B002F0C0069150001F07C16006317012A00324D00341900AA0E0000100000110000120000009D130000072C0D0000F8"
-					int NumberChars = hex.Length
-					byte[] bytes = new byte[NumberChars / 2]
-					fore (int i = 0; i < NumberChars; i += 2)
-						bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16)
-					data = bytes
+						//var hex = "FFFF27004601009D06220821A509270D02001707490A00B40B002F0C0069150001F07C16006317012A00324D00341900AA0E0000100000110000120000009D130000072C0D0000F8";
+						var hex = "ffff27009c0100c806360827500927500200b107630a00710b00000c00001500000a2816000017002c2d2e28303332561c00c224361d00c325361e00c226361f00c3273621001b580059006200000012616609bbfc60011900240e00001000d31100d3120000022f130000022f0d00af6300684d6400cd4465006d4a66ff5b4e6700c74d6b00dc31002700190018001002550265000a0008002200160630";
+						int NumberChars = hex.Length;
+						byte[] bytes = new byte[NumberChars / 2];
+						for (int i = 0; i < NumberChars; i += 2)
+							bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+						data = bytes;
 					*/
+#pragma warning restore S125 // Sections of code should not be commented out
 
 					// now decode it
 					Int16 tempInt16;
@@ -1227,9 +1230,9 @@ namespace CumulusMX
 									idx += 2;
 								}
 								break;
-							case 0x6B: //WH34 User temperature battery (8 channels) - No longer used in firmware 1.6.0+
-										//
-								if (fwVersion.CompareTo(new Version("1.6.0")) < 0)
+							case 0x6B:  //WH34 User temperature battery (8 channels) - No longer used in firmware 1.6.0+
+										//Later version from ??? send an extended WH45 CO₂ data block
+								if (fwVersion != null && fwVersion.CompareTo(new Version("1.6.0")) < 0)
 								{
 									batteryLow = batteryLow || DoWH34BatteryStatus(data, idx);
 									idx += 8;
