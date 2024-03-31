@@ -635,7 +635,7 @@ namespace CumulusMX
 				if (retVal != null)
 				{
 					var verVer = new Version(retVal[0]);
-					if (fwVersion.CompareTo(verVer) < 0)
+					if (fwVersion < verVer)
 					{
 						cumulus.FirmwareAlarm.LastMessage = $"A new firmware version is available: {retVal[0]}.\nChange log:\n{string.Join('\n', retVal[1].Split(';'))}";
 						cumulus.FirmwareAlarm.Triggered = true;
@@ -1208,7 +1208,7 @@ namespace CumulusMX
 									DoSoilTemp(ConvertUnits.TempCToUser(tempInt16 / 10.0), cumulus.EcowittMapWN34[chan]);
 								}
 								// Firmware version 1.5.9 uses 2 data bytes, 1.6.0+ uses 3 data bytes
-								if (fwVersion.CompareTo(new Version("1.6.0")) >= 0)
+								if (fwVersion >= new Version("1.6.0"))
 								{
 									if (tenMinuteChanged)
 									{
@@ -1232,7 +1232,7 @@ namespace CumulusMX
 								break;
 							case 0x6B:  //WH34 User temperature battery (8 channels) - No longer used in firmware 1.6.0+
 										//Later version from ??? send an extended WH45 CO₂ data block
-								if (fwVersion != null && fwVersion.CompareTo(new Version("1.6.0")) < 0)
+								if (fwVersion != null && fwVersion < new Version("1.6.0"))
 								{
 									batteryLow = batteryLow || DoWH34BatteryStatus(data, idx);
 									idx += 8;
