@@ -24,7 +24,6 @@ namespace CumulusMX
 		private int updateRate = 10000; // 10 seconds by default
 		private int lastMinute = -1;
 		private int lastHour = -1;
-		private bool tenMinuteChanged = true;
 
 		private readonly EcowittApi ecowittApi;
 		private readonly GW1000Api Api;
@@ -121,7 +120,6 @@ namespace CumulusMX
 
 		public override void Start()
 		{
-			tenMinuteChanged = true;
 			lastMinute = DateTime.Now.Minute;
 
 			// Start a broadcast watchdog to warn if messages are not being received
@@ -844,13 +842,6 @@ namespace CumulusMX
 		{
 			cumulus.LogDebugMessage("Reading live data");
 
-			// set a flag at the start of every 10 minutes to trigger battery status check
-			var minute = DateTime.Now.Minute;
-			if (minute != lastMinute)
-			{
-				tenMinuteChanged = (minute % 10) == 0;
-			}
-
 			byte[] data = Api.DoCommand(GW1000Api.Commands.CMD_GW1000_LIVEDATA);
 
 			// sample data = in-temp, in-hum, abs-baro, rel-baro, temp, hum, dir, speed, gust, light, UV uW, UV-I, rain-rate, rain-day, rain-week, rain-month, rain-year, PM2.5, PM-ch1, Soil-1, temp-2, hum-2, temp-3, hum-3, batt
@@ -1208,20 +1199,17 @@ namespace CumulusMX
 									DoSoilTemp(ConvertUnits.TempCToUser(tempInt16 / 10.0), cumulus.EcowittMapWN34[chan]);
 								}
 								// Firmware version 1.5.9 uses 2 data bytes, 1.6.0+ uses 3 data bytes
-								if (fwVersion >= new Version("1.6.0"))
+								if ((deviceModel.StartsWith("GW1000") && fwVersion >= new Version("1.6.0")) || !deviceModel.StartsWith("GW1000"))
 								{
-									if (tenMinuteChanged)
+									var volts = TestBattery10V(data[idx + 2]);
+									if (volts <= 1.2)
 									{
-										var volts = TestBattery10V(data[idx + 2]);
-										if (volts <= 1.2)
-										{
-											batteryLow = true;
-											cumulus.LogWarningMessage($"WN34 channel #{chan} battery LOW = {volts}V");
-										}
-										else
-										{
-											cumulus.LogDebugMessage($"WN34 channel #{chan} battery OK = {volts}V");
-										}
+										batteryLow = true;
+										cumulus.LogWarningMessage($"WN34 channel #{chan} battery LOW = {volts}V");
+									}
+									else
+									{
+										cumulus.LogDebugMessage($"WN34 channel #{chan} battery OK = {volts}V");
 									}
 									idx += 3;
 								}
@@ -1232,7 +1220,7 @@ namespace CumulusMX
 								break;
 							case 0x6B:  //WH34 User temperature battery (8 channels) - No longer used in firmware 1.6.0+
 										//Later version from ??? send an extended WH45 CO₂ data block
-								if (fwVersion != null && fwVersion < new Version("1.6.0"))
+								if (deviceModel.StartsWith("GW1000") && fwVersion < new Version("1.6.0"))
 								{
 									batteryLow = batteryLow || DoWH34BatteryStatus(data, idx);
 									idx += 8;
@@ -1351,9 +1339,6 @@ namespace CumulusMX
 						}
 					}
 
-					if (tenMinuteChanged) tenMinuteChanged = false;
-
-
 					if (gustLast > -999 && windSpeedLast > -999 && windDirLast > -999)
 					{
 						DoWind(gustLast, windDirLast, windSpeedLast, dateTime);
@@ -1442,14 +1427,14 @@ namespace CumulusMX
 
 				var mainSensor = data[5] == 0 ? "WH24" : "Other than WH24";
 
-				var unix = (int) GW1000Api.ConvertBigEndianUInt32(data, 6);
+				var unix = (long) GW1000Api.ConvertBigEndianUInt32(data, 6);
 				var autoDST = data[11] != 0;
 
 				// Ecowitt do not understand Unix time and add the local TZ offset and DST to it!
-				var offset = autoDST ? TimeZoneInfo.Local.GetUtcOffset(now) : TimeZoneInfo.Local.BaseUtcOffset;
+				var offset = autoDST ? (int) TimeZoneInfo.Local.GetUtcOffset(now).TotalSeconds : (int) TimeZoneInfo.Local.BaseUtcOffset.TotalSeconds;
 
-				var date = Utils.FromUnixTime(unix - offset.Seconds);
-				var clockdiff = now.ToUnixTime() - unix;
+				var date = Utils.FromUnixTime(unix - offset);
+				var clockdiff = now.ToUnixTime() - (unix - offset);
 
 				string slowfast;
 
@@ -1668,17 +1653,14 @@ namespace CumulusMX
 				idx += 2;
 				var batt = TestBattery3(data[idx]);
 				var msg = $"WH45 CO₂: temp={CO2_temperature.ToString(cumulus.TempFormat)}, hum={CO2_humidity}, pm10={CO2_pm10:F1}, pm10_24h={CO2_pm10_24h:F1}, pm2.5={CO2_pm2p5:F1}, pm2.5_24h={CO2_pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}";
-				if (tenMinuteChanged)
+				if (batt == "Low")
 				{
-					if (batt == "Low")
-					{
-						batteryLow = true;
-						msg += $", Battery={batt}";
-					}
-					else
-					{
-						msg += $", Battery={batt}";
-					}
+					batteryLow = true;
+					msg += $", Battery={batt}";
+				}
+				else
+				{
+					msg += $", Battery={batt}";
 				}
 				cumulus.LogDebugMessage(msg);
 			}
