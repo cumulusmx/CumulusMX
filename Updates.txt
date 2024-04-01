@@ -7,6 +7,7 @@
 	- New web tags: <#CO2_pm1>, <#CO2_pm1_24h>, <#CO2_pm4>, <#CO2_pm4_24h>
 - Fix MAC address field not always displayed in Station Settings for HTTP Ecowitt stations
 - Fix Extra Sensor graph data not being created for none dot-decimal locales
+- Enable MQTT updates for Tempest Rapid Wind packets
 
 
 4.0.0 - b4018
