@@ -616,7 +616,6 @@ namespace CumulusMX
 			var inv = CultureInfo.InvariantCulture.NumberFormat;
 
 			cumulus.LogMessage("GetRainCounter: Finding raintoday from logfile " + LogFile);
-			cumulus.LogMessage("GetRainCounter: Expecting listsep=, decimal=" + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
 
 			if (File.Exists(LogFile))
 			{
