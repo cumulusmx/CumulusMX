@@ -2898,7 +2898,7 @@ namespace CumulusMX
 					LogDebugMessage($"Realtime[{cycle}]: Creating realtime file - {RealtimeFiles[i].LocalFileName}");
 					try
 					{
-						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, true);
+						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, true, UTF8encode);
 					}
 					catch (Exception ex)
 					{
@@ -2924,7 +2924,7 @@ namespace CumulusMX
 							if (item.process)
 							{
 								LogDebugMessage($"Realtime[{cycle}]: Processing extra file {uploadfile}");
-								ProcessTemplateFile(uploadfile, remotefile, false);
+								ProcessTemplateFile(uploadfile, remotefile, false, item.UTF8);
 							}
 							else
 							{
@@ -8544,7 +8544,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							ProcessTemplateFile(StdWebFiles[i].TemplateFileName, destFile, true);
+							ProcessTemplateFile(StdWebFiles[i].TemplateFileName, destFile, true, UTF8encode);
 						}
 					}
 				}
@@ -11539,7 +11539,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessTemplateFile(string template, string outputfile, bool useAppDir)
+		private void ProcessTemplateFile(string template, string outputfile, bool useAppDir, bool utf8)
 		{
 
 			var output = ProcessTemplateFile2String(template, useAppDir);
@@ -11547,7 +11547,7 @@ namespace CumulusMX
 			if (output != string.Empty)
 			{
 				var utf8WithoutBom = new UTF8Encoding(false);
-				var encoding = UTF8encode ? utf8WithoutBom : Encoding.GetEncoding("iso-8859-1");
+				var encoding = utf8 ? utf8WithoutBom : Encoding.GetEncoding("iso-8859-1");
 
 				try
 				{

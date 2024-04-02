@@ -8,6 +8,7 @@
 - Fix MAC address field not always displayed in Station Settings for HTTP Ecowitt stations
 - Fix Extra Sensor graph data not being created for none dot-decimal locales
 - Enable MQTT updates for Tempest Rapid Wind packets
+- Fix Extra Web Files not obeying the UTF-8 setting when creating a local file
 
 
 4.0.0 - b4018

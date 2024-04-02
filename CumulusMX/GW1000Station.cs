@@ -623,6 +623,12 @@ namespace CumulusMX
 
 		private async Task CheckAvailableFirmware()
 		{
+			if (deviceModel == null)
+			{
+				cumulus.LogMessage("Device Model not determined, firmware check skipped.");
+				return;
+			}
+
 			if (EcowittApi.FirmwareSupportedModels.Contains(deviceModel[..6]))
 			{
 				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken);
