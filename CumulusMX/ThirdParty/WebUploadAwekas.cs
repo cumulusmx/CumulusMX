@@ -103,7 +103,7 @@ namespace CumulusMX.ThirdParty
 							RateLimited = true;
 							OriginalInterval = Interval;
 							Interval = 300;
-							Enabled = false;
+							Enabled = true;
 							SynchronisedUpdate = true;
 							cumulus.LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to authentication error");
 						}
@@ -117,7 +117,6 @@ namespace CumulusMX.ThirdParty
 							OriginalInterval = Interval;
 							RateLimited = true;
 							Interval = 60;
-							Enabled = false;
 							SynchronisedUpdate = true;
 							cumulus.LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
 						}
@@ -127,8 +126,7 @@ namespace CumulusMX.ThirdParty
 							RateLimited = true;
 							Interval = 300;
 							IntTimer.Interval = Interval * 1000;
-							Enabled = !SynchronisedUpdate;
-							SynchronisedUpdate = Interval % 60 == 0;
+							SynchronisedUpdate = true;
 							cumulus.LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to rate limit");
 						}
 					}
