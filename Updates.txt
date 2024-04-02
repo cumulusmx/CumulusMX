@@ -9,6 +9,7 @@
 - Fix Extra Sensor graph data not being created for none dot-decimal locales
 - Enable MQTT updates for Tempest Rapid Wind packets
 - Fix Extra Web Files not obeying the UTF-8 setting when creating a local file
+- Fix bug in AWEKAS rate limited code that disabled the upload completely
 
 
 4.0.0 - b4018
