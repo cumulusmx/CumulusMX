@@ -1937,8 +1937,15 @@ namespace CumulusMX
 
 		public void SetRealTimeFtpLogging(bool isSet)
 		{
-			if (RealtimeFTP == null || RealtimeFTP.IsDisposed)
+			try
+			{
+				if (RealtimeFTP == null || RealtimeFTP.IsDisposed)
+					return;
+			}
+			catch
+			{
 				return;
+			}
 
 			if (isSet)
 			{
@@ -12061,9 +12068,16 @@ namespace CumulusMX
 			LogMessage($"RealtimeFTPLogin: Attempting realtime FTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
 
 			// dispose of the previous FTP client
-			if (RealtimeFTP != null && !RealtimeFTP.IsDisposed)
+			try
 			{
-				RealtimeFTP.Dispose();
+				if (RealtimeFTP != null && !RealtimeFTP.IsDisposed)
+				{
+					RealtimeFTP.Dispose();
+				}
+			}
+			catch
+			{
+				// do nothing
 			}
 
 			RealtimeFTP = new FtpClient
