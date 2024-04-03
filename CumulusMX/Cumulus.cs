@@ -1937,8 +1937,15 @@ namespace CumulusMX
 
 		public void SetRealTimeFtpLogging(bool isSet)
 		{
-			if (RealtimeFTP == null || RealtimeFTP.IsDisposed)
+			try
+			{
+				if (RealtimeFTP == null || RealtimeFTP.IsDisposed)
+					return;
+			}
+			catch
+			{
 				return;
+			}
 
 			if (isSet)
 			{
@@ -2898,7 +2905,7 @@ namespace CumulusMX
 					LogDebugMessage($"Realtime[{cycle}]: Creating realtime file - {RealtimeFiles[i].LocalFileName}");
 					try
 					{
-						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, true);
+						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, true, UTF8encode);
 					}
 					catch (Exception ex)
 					{
@@ -2924,7 +2931,7 @@ namespace CumulusMX
 							if (item.process)
 							{
 								LogDebugMessage($"Realtime[{cycle}]: Processing extra file {uploadfile}");
-								ProcessTemplateFile(uploadfile, remotefile, false);
+								ProcessTemplateFile(uploadfile, remotefile, false, item.UTF8);
 							}
 							else
 							{
@@ -8544,7 +8551,7 @@ namespace CumulusMX
 						}
 						else
 						{
-							ProcessTemplateFile(StdWebFiles[i].TemplateFileName, destFile, true);
+							ProcessTemplateFile(StdWebFiles[i].TemplateFileName, destFile, true, UTF8encode);
 						}
 					}
 				}
@@ -11539,7 +11546,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessTemplateFile(string template, string outputfile, bool useAppDir)
+		private void ProcessTemplateFile(string template, string outputfile, bool useAppDir, bool utf8)
 		{
 
 			var output = ProcessTemplateFile2String(template, useAppDir);
@@ -11547,7 +11554,7 @@ namespace CumulusMX
 			if (output != string.Empty)
 			{
 				var utf8WithoutBom = new UTF8Encoding(false);
-				var encoding = UTF8encode ? utf8WithoutBom : Encoding.GetEncoding("iso-8859-1");
+				var encoding = utf8 ? utf8WithoutBom : Encoding.GetEncoding("iso-8859-1");
 
 				try
 				{
@@ -11661,19 +11668,6 @@ namespace CumulusMX
 
 			CustomHttpSecondsTimer.Enabled = CustomHttpSecondsEnabled;
 
-			if (Wund.RapidFireEnabled)
-			{
-				Wund.IntTimer.Interval = 5000; // 5 seconds in rapid-fire mode
-			}
-			else
-			{
-				Wund.IntTimer.Interval = Wund.Interval * 60 * 1000; // mins to millisecs
-			}
-
-			AWEKAS.IntTimer.Interval = AWEKAS.Interval * 1000;
-			AWEKAS.IntTimer.Enabled = AWEKAS.Enabled && !AWEKAS.SynchronisedUpdate;
-
-
 			Wund.CatchUpIfRequired();
 
 			Windy.CatchUpIfRequired();
@@ -11683,6 +11677,19 @@ namespace CumulusMX
 			WOW.CatchUpIfRequired();
 
 			OpenWeatherMap.CatchUpIfRequired();
+
+			if (Wund.RapidFireEnabled)
+			{
+				Wund.IntTimer.Interval = 5000; // 5 seconds in rapid-fire mode
+				Wund.IntTimer.Enabled = Wund.Enabled;
+			}
+			else
+			{
+				Wund.IntTimer.Interval = Wund.Interval * 60 * 1000; // mins to millisecs
+			}
+
+			AWEKAS.IntTimer.Interval = AWEKAS.Interval * 1000;
+			AWEKAS.IntTimer.Enabled = AWEKAS.Enabled && !AWEKAS.SynchronisedUpdate;
 
 			if (MySqlList.IsEmpty)
 			{
@@ -11748,7 +11755,7 @@ namespace CumulusMX
 		}
 
 
-		internal async Task CustomMysqlMinutesUpdate()
+		internal async Task CustomMysqlMinutesUpdate(DateTime now)
 		{
 			if (station.DataStopped)
 			{
@@ -11773,7 +11780,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]) && now.Minute % MySqlSettings.CustomMins.Intervals[i] == 0)
 						{
 							tokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
 							await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", tokenParser.ToStringFromString());
@@ -12061,9 +12068,16 @@ namespace CumulusMX
 			LogMessage($"RealtimeFTPLogin: Attempting realtime FTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
 
 			// dispose of the previous FTP client
-			if (RealtimeFTP != null && !RealtimeFTP.IsDisposed)
+			try
 			{
-				RealtimeFTP.Dispose();
+				if (RealtimeFTP != null && !RealtimeFTP.IsDisposed)
+				{
+					RealtimeFTP.Dispose();
+				}
+			}
+			catch
+			{
+				// do nothing
 			}
 
 			RealtimeFTP = new FtpClient

@@ -1,3 +1,17 @@
+4.0.0 - b4019
+—————————————
+- Change HTTP Ecowitt "warning" messages
+- Fix WeatherUnderground rapid fire updates
+- Fix MySQL Custom Upload Minutes firing every minute for all configured intervals
+- Adds decode for Ecowitt CO₂ PM1 and PM4 when using local API
+	- New web tags: <#CO2_pm1>, <#CO2_pm1_24h>, <#CO2_pm4>, <#CO2_pm4_24h>
+- Fix MAC address field not always displayed in Station Settings for HTTP Ecowitt stations
+- Fix Extra Sensor graph data not being created for none dot-decimal locales
+- Enable MQTT updates for Tempest Rapid Wind packets
+- Fix Extra Web Files not obeying the UTF-8 setting when creating a local file
+- Fix bug in AWEKAS rate limited code that disabled the upload completely
+
+
 4.0.0 - b4018
 —————————————
 - Reworked GetVersion() to account for published beta builds
@@ -8,6 +22,7 @@
 - Add optional parameter "-servicename xxxx" to Linux service -install and -uninstall, it defaults to "cumulusmx"
 - Fix error/crash in Ecowitt GetStationList() processing
 - Add Davis WeatherLink Console archive decodes for historic: baro, internal T/H, soil/leaf, enviro-monitor
+- MySQL Connector updated
 
 
 4.0.0 - b4017

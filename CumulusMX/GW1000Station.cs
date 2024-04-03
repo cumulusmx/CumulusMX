@@ -24,7 +24,6 @@ namespace CumulusMX
 		private int updateRate = 10000; // 10 seconds by default
 		private int lastMinute = -1;
 		private int lastHour = -1;
-		private bool tenMinuteChanged = true;
 
 		private readonly EcowittApi ecowittApi;
 		private readonly GW1000Api Api;
@@ -121,7 +120,6 @@ namespace CumulusMX
 
 		public override void Start()
 		{
-			tenMinuteChanged = true;
 			lastMinute = DateTime.Now.Minute;
 
 			// Start a broadcast watchdog to warn if messages are not being received
@@ -625,6 +623,12 @@ namespace CumulusMX
 
 		private async Task CheckAvailableFirmware()
 		{
+			if (deviceModel == null)
+			{
+				cumulus.LogMessage("Device Model not determined, firmware check skipped.");
+				return;
+			}
+
 			if (EcowittApi.FirmwareSupportedModels.Contains(deviceModel[..6]))
 			{
 				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken);
@@ -635,7 +639,7 @@ namespace CumulusMX
 				if (retVal != null)
 				{
 					var verVer = new Version(retVal[0]);
-					if (fwVersion.CompareTo(verVer) < 0)
+					if (fwVersion < verVer)
 					{
 						cumulus.FirmwareAlarm.LastMessage = $"A new firmware version is available: {retVal[0]}.\nChange log:\n{string.Join('\n', retVal[1].Split(';'))}";
 						cumulus.FirmwareAlarm.Triggered = true;
@@ -844,13 +848,6 @@ namespace CumulusMX
 		{
 			cumulus.LogDebugMessage("Reading live data");
 
-			// set a flag at the start of every 10 minutes to trigger battery status check
-			var minute = DateTime.Now.Minute;
-			if (minute != lastMinute)
-			{
-				tenMinuteChanged = (minute % 10) == 0;
-			}
-
 			byte[] data = Api.DoCommand(GW1000Api.Commands.CMD_GW1000_LIVEDATA);
 
 			// sample data = in-temp, in-hum, abs-baro, rel-baro, temp, hum, dir, speed, gust, light, UV uW, UV-I, rain-rate, rain-day, rain-week, rain-month, rain-year, PM2.5, PM-ch1, Soil-1, temp-2, hum-2, temp-3, hum-3, batt
@@ -873,16 +870,19 @@ namespace CumulusMX
 			{
 				if (null != data && data.Length > 16)
 				{
+#pragma warning disable S125 // Sections of code should not be commented out
 					/*
 					 * debugging code with example data
 					 *
-					var hex = "FFFF27004601009D06220821A509270D02001707490A00B40B002F0C0069150001F07C16006317012A00324D00341900AA0E0000100000110000120000009D130000072C0D0000F8"
-					int NumberChars = hex.Length
-					byte[] bytes = new byte[NumberChars / 2]
-					fore (int i = 0; i < NumberChars; i += 2)
-						bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16)
-					data = bytes
+						//var hex = "FFFF27004601009D06220821A509270D02001707490A00B40B002F0C0069150001F07C16006317012A00324D00341900AA0E0000100000110000120000009D130000072C0D0000F8";
+						var hex = "ffff27009c0100c806360827500927500200b107630a00710b00000c00001500000a2816000017002c2d2e28303332561c00c224361d00c325361e00c226361f00c3273621001b580059006200000012616609bbfc60011900240e00001000d31100d3120000022f130000022f0d00af6300684d6400cd4465006d4a66ff5b4e6700c74d6b00dc31002700190018001002550265000a0008002200160630";
+						int NumberChars = hex.Length;
+						byte[] bytes = new byte[NumberChars / 2];
+						for (int i = 0; i < NumberChars; i += 2)
+							bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+						data = bytes;
 					*/
+#pragma warning restore S125 // Sections of code should not be commented out
 
 					// now decode it
 					Int16 tempInt16;
@@ -1205,20 +1205,17 @@ namespace CumulusMX
 									DoSoilTemp(ConvertUnits.TempCToUser(tempInt16 / 10.0), cumulus.EcowittMapWN34[chan]);
 								}
 								// Firmware version 1.5.9 uses 2 data bytes, 1.6.0+ uses 3 data bytes
-								if (fwVersion.CompareTo(new Version("1.6.0")) >= 0)
+								if ((deviceModel.StartsWith("GW1000") && fwVersion >= new Version("1.6.0")) || !deviceModel.StartsWith("GW1000"))
 								{
-									if (tenMinuteChanged)
+									var volts = TestBattery10V(data[idx + 2]);
+									if (volts <= 1.2)
 									{
-										var volts = TestBattery10V(data[idx + 2]);
-										if (volts <= 1.2)
-										{
-											batteryLow = true;
-											cumulus.LogWarningMessage($"WN34 channel #{chan} battery LOW = {volts}V");
-										}
-										else
-										{
-											cumulus.LogDebugMessage($"WN34 channel #{chan} battery OK = {volts}V");
-										}
+										batteryLow = true;
+										cumulus.LogWarningMessage($"WN34 channel #{chan} battery LOW = {volts}V");
+									}
+									else
+									{
+										cumulus.LogDebugMessage($"WN34 channel #{chan} battery OK = {volts}V");
 									}
 									idx += 3;
 								}
@@ -1227,12 +1224,18 @@ namespace CumulusMX
 									idx += 2;
 								}
 								break;
-							case 0x6B: //WH34 User temperature battery (8 channels) - No longer used in firmware 1.6.0+
-								if (tenMinuteChanged)
+							case 0x6B:  //WH34 User temperature battery (8 channels) - No longer used in firmware 1.6.0+
+										//Later version from ??? send an extended WH45 CO₂ data block
+								if (deviceModel.StartsWith("GW1000") && fwVersion < new Version("1.6.0"))
 								{
 									batteryLow = batteryLow || DoWH34BatteryStatus(data, idx);
+									idx += 8;
 								}
-								idx += 8;
+								else
+								{
+									batteryLow = batteryLow || DoCO2DecodeNew(data, idx);
+									idx += 23;
+								}
 								break;
 							case 0x6C: // Heap size - has constant offset of +3692 to GW1100 HTTP value????
 								StationFreeMemory = (int) GW1000Api.ConvertBigEndianUInt32(data, idx);
@@ -1342,9 +1345,6 @@ namespace CumulusMX
 						}
 					}
 
-					if (tenMinuteChanged) tenMinuteChanged = false;
-
-
 					if (gustLast > -999 && windSpeedLast > -999 && windDirLast > -999)
 					{
 						DoWind(gustLast, windDirLast, windSpeedLast, dateTime);
@@ -1433,14 +1433,14 @@ namespace CumulusMX
 
 				var mainSensor = data[5] == 0 ? "WH24" : "Other than WH24";
 
-				var unix = (int) GW1000Api.ConvertBigEndianUInt32(data, 6);
+				var unix = (long) GW1000Api.ConvertBigEndianUInt32(data, 6);
 				var autoDST = data[11] != 0;
 
 				// Ecowitt do not understand Unix time and add the local TZ offset and DST to it!
-				var offset = autoDST ? TimeZoneInfo.Local.GetUtcOffset(now) : TimeZoneInfo.Local.BaseUtcOffset;
+				var offset = autoDST ? (int) TimeZoneInfo.Local.GetUtcOffset(now).TotalSeconds : (int) TimeZoneInfo.Local.BaseUtcOffset.TotalSeconds;
 
-				var date = Utils.FromUnixTime(unix - offset.Seconds);
-				var clockdiff = now.ToUnixTime() - unix;
+				var date = Utils.FromUnixTime(unix - offset);
+				var clockdiff = now.ToUnixTime() - (unix - offset);
 
 				string slowfast;
 
@@ -1659,17 +1659,14 @@ namespace CumulusMX
 				idx += 2;
 				var batt = TestBattery3(data[idx]);
 				var msg = $"WH45 CO₂: temp={CO2_temperature.ToString(cumulus.TempFormat)}, hum={CO2_humidity}, pm10={CO2_pm10:F1}, pm10_24h={CO2_pm10_24h:F1}, pm2.5={CO2_pm2p5:F1}, pm2.5_24h={CO2_pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}";
-				if (tenMinuteChanged)
+				if (batt == "Low")
 				{
-					if (batt == "Low")
-					{
-						batteryLow = true;
-						msg += $", Battery={batt}";
-					}
-					else
-					{
-						msg += $", Battery={batt}";
-					}
+					batteryLow = true;
+					msg += $", Battery={batt}";
+				}
+				else
+				{
+					msg += $", Battery={batt}";
 				}
 				cumulus.LogDebugMessage(msg);
 			}
@@ -1678,6 +1675,50 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("DoCO2Decode: Error - " + ex.Message);
 			}
 
+			return batteryLow;
+		}
+
+		private bool DoCO2DecodeNew(byte[] data, int index)
+		{
+			bool batteryLow = false;
+			int idx = index;
+			cumulus.LogDebugMessage("WH45 CO₂ New: Decoding...");
+
+			try
+			{
+				CO2_temperature = ConvertUnits.TempCToUser(GW1000Api.ConvertBigEndianInt16(data, idx) / 10.0);
+				idx += 2;
+				CO2_humidity = data[idx++];
+				CO2_pm10 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm10_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm2p5 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm2p5_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2 = GW1000Api.ConvertBigEndianUInt16(data, idx);
+				idx += 2;
+				CO2_24h = GW1000Api.ConvertBigEndianUInt16(data, idx);
+				idx += 2;
+				CO2_pm1 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm1_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm4 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				idx += 2;
+				CO2_pm4_24h = GW1000Api.ConvertBigEndianUInt16(data, idx)/ 10.0;
+				idx += 2;
+				var msg = $"WH45 CO₂ New: temp={CO2_temperature.ToString(cumulus.TempFormat)}, hum={CO2_humidity}, pm10={CO2_pm10:F1}, pm10_24h={CO2_pm10_24h:F1}, pm2.5={CO2_pm2p5:F1}, pm2.5_24h={CO2_pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}, pm1={CO2_pm1:F1}, pm1_24h={CO2_pm1_24h:F1}, pm4={CO2_pm4:F1}, pm4_24h={CO2_pm4_24h:F1}";
+				var batt = TestBattery3(data[idx]);
+				batteryLow = batt == "Low";
+				msg += $", Battery={batt}";
+				cumulus.LogDebugMessage(msg);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "DoCO2DecodeNew: Error");
+			}
 			return batteryLow;
 		}
 

@@ -321,7 +321,7 @@ namespace CumulusMX
 							-1,
 							rw.Timestamp);
 						UpdateStatusPanel(rw.Timestamp);
-
+						UpdateMQTT();
 						break;
 					case WeatherPacket.MessageType.LightningStrike:
 						cumulus.LogDebugMessage("Received a Lightning message");
@@ -330,6 +330,7 @@ namespace CumulusMX
 						LightningDistance = ConvertUnits.KmtoUserUnits(wp.LightningStrike.Distance);
 						LightningStrikesToday++;
 						cumulus.LogDebugMessage($"Lightning Detected: {wp.LightningStrike.Timestamp} - {wp.LightningStrike.Distance} km - {LightningStrikesToday} strikes today");
+						UpdateMQTT();
 						break;
 				}
 			}

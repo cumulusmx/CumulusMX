@@ -419,7 +419,7 @@ namespace CumulusMX
 
 						if (gust == null || dir == null || spd == null)
 						{
-							cumulus.LogDebugMessage($"{procName}: Error, missing wind data");
+							cumulus.LogWarningMessage($"{procName}: Error, missing wind data");
 						}
 						else
 						{
@@ -465,7 +465,7 @@ namespace CumulusMX
 						{
 							if (data["humidity"] == null)
 							{
-								cumulus.LogDebugMessage($"{procName}: Error, missing outdoor humidity");
+								cumulus.LogWarningMessage($"{procName}: Error, missing outdoor humidity");
 							}
 							else
 							{
@@ -493,7 +493,7 @@ namespace CumulusMX
 
 						if (press == null)
 						{
-							cumulus.LogDebugMessage($"{procName}: Error, missing baro pressure");
+							cumulus.LogWarningMessage($"{procName}: Error, missing baro pressure");
 						}
 						else
 						{
@@ -524,7 +524,7 @@ namespace CumulusMX
 						// tempinf
 						if (data["tempinf"] == null)
 						{
-							cumulus.LogDebugMessage($"{procName}: Error, missing indoor temp");
+							cumulus.LogWarningMessage($"{procName}: Error, missing indoor temp");
 						}
 						else
 						{
@@ -554,7 +554,7 @@ namespace CumulusMX
 						{
 							if (data["tempf"] == null)
 							{
-								cumulus.LogDebugMessage($"{procName}: Error, missing outdoor temp");
+								cumulus.LogWarningMessage($"{procName}: Error, missing outdoor temp");
 							}
 							else
 							{
@@ -626,7 +626,7 @@ namespace CumulusMX
 
 						if (rain == null)
 						{
-							cumulus.LogDebugMessage($"{procName}: Error, missing rainfall");
+							cumulus.LogWarningMessage($"{procName}: Error, missing rainfall");
 						}
 						else
 						{
