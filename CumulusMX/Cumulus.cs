@@ -8351,14 +8351,23 @@ namespace CumulusMX
 			{
 				try
 				{
-					if (Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(timestamp))
+					if (Use10amInSummer && TimeZoneInfo.Local.SupportsDaylightSavingTime)
 					{
-						// Locale is currently on Daylight time
-						return -10;
+						var dst = TimeZoneInfo.Local.IsDaylightSavingTime(timestamp);
+
+						// Irish time zone is unique in it uses standard time in summer and -1 hour in winter. So winter is flagged as using DST!
+						// So reverse the DST in Ireland TZ
+						if (TimeZoneInfo.Local.StandardName == "IST")
+						{
+							dst = !dst;
+						}
+
+						// If in DST then return 10am, else 9am
+						return dst ? -10 : -9;
 					}
 					else
 					{
-						// Locale is currently on Standard time or unknown
+						// Either no "use 10am in summer", or TZ does not support DST
 						return -9;
 					}
 				}

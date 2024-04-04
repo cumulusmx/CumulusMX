@@ -1,3 +1,9 @@
+4.0.0 - b4020
+—————————————
+- Fix Irish time zone DST reversal for "use 10am in summer"
+
+
+
 4.0.0 - b4019
 —————————————
 - Change HTTP Ecowitt "warning" messages
