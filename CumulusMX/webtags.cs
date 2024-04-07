@@ -481,7 +481,7 @@ namespace CumulusMX
 			if (startOfDay > DateTime.Now.AddSeconds(-20))
 				startOfDay = startOfDay.AddDays(-1);
 
-			var hours = (DateTime.Now - startOfDay).TotalHours;
+			var hours = (DateTime.Now.ToUniversalTime() - startOfDay.ToUniversalTime()).TotalHours;
 			var timeToday = station.WindRunHourMult[cumulus.Units.Wind] * hours;
 			// just after rollover the numbers will be silly, so return zero for the first 15 minutes
 			return CheckRcDp(CheckWindUnit(hours > 0.25 ? station.WindRunToday / timeToday : 0, tagParams), tagParams, cumulus.WindAvgDPlaces);
@@ -2557,7 +2557,7 @@ namespace CumulusMX
 
 		private string TagDaysSinceRecordsBegan(Dictionary<string, string> tagParams)
 		{
-			return (DateTime.Now - cumulus.RecordsBeganDateTime).Days.ToString();
+			return (DateTime.Now.ToUniversalTime() - cumulus.RecordsBeganDateTime.ToUniversalTime()).Days.ToString();
 		}
 
 		private string TagmintempH(Dictionary<string, string> tagParams)
@@ -3354,7 +3354,7 @@ namespace CumulusMX
 				return "---";
 			}
 
-			return ((int) (DateTime.Now - lastTip).TotalMinutes).ToString();
+			return ((int) (DateTime.Now.ToUniversalTime() - lastTip.ToUniversalTime()).TotalMinutes).ToString();
 		}
 
 		private string TagRCtemp(Dictionary<string, string> tagParams)
@@ -5255,13 +5255,13 @@ namespace CumulusMX
 
 		private static string TagProgramUpTime(Dictionary<string, string> tagParams)
 		{
-			TimeSpan ts = DateTime.Now - Program.StartTime;
+			TimeSpan ts = DateTime.Now.ToUniversalTime() - Program.StartTime.ToUniversalTime();
 			return string.Format($"{ts.Days} days {ts.Hours} hours");
 		}
 
 		private static string TagProgramUpTimeMs(Dictionary<string, string> tagParams)
 		{
-			TimeSpan ts = DateTime.Now - Program.StartTime;
+			TimeSpan ts = DateTime.Now.ToUniversalTime() - Program.StartTime.ToUniversalTime();
 			return ts.TotalMilliseconds.ToString();
 		}
 
