@@ -5174,27 +5174,27 @@ namespace CumulusMX
 
 		private string TagLatestError(Dictionary<string, string> tagParams)
 		{
-			return cumulus.LatestError;
+			return Cumulus.LatestError;
 		}
 
 		private string TagLatestErrorEnc(Dictionary<string, string> tagParams)
 		{
-			return EncodeForWeb(cumulus.LatestError);
+			return EncodeForWeb(Cumulus.LatestError);
 		}
 
 		private string TagLatestErrorJsEnc(Dictionary<string, string> tagParams)
 		{
-			return EncodeForJs(cumulus.LatestError);
+			return EncodeForJs(Cumulus.LatestError);
 		}
 
 		private string TagLatestErrorDate(Dictionary<string, string> tagParams)
 		{
-			return cumulus.LatestErrorTS == DateTime.MinValue ? "------" : GetFormattedDateTime(cumulus.LatestErrorTS, "ddddd", tagParams);
+			return Cumulus.LatestErrorTS == DateTime.MinValue ? "------" : GetFormattedDateTime(Cumulus.LatestErrorTS, "ddddd", tagParams);
 		}
 
 		private string TagLatestErrorTime(Dictionary<string, string> tagParams)
 		{
-			return cumulus.LatestErrorTS == DateTime.MinValue ? "------" : GetFormattedDateTime(cumulus.LatestErrorTS, "t", tagParams);
+			return Cumulus.LatestErrorTS == DateTime.MinValue ? "------" : GetFormattedDateTime(Cumulus.LatestErrorTS, "t", tagParams);
 		}
 
 		private static string TagOsVersion(Dictionary<string, string> tagParams)

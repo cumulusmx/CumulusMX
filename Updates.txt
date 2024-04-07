@@ -1,6 +1,8 @@
 4.0.0 - b4020
 —————————————
 - Fix Irish time zone DST reversal for "use 10am in summer"
+- Clear the recent error log now also clears the latest error web tags
+- Move ThreadPool min/max to runtimeconfig file
 
 
 

@@ -7309,8 +7309,8 @@ namespace CumulusMX
 		public const int SIMULATOR = 10;
 
 		internal string ReportPath;
-		internal string LatestError;
-		internal DateTime LatestErrorTS = DateTime.MinValue;
+		public static string LatestError { get; set; }
+		public static DateTime LatestErrorTS { get; set; } = DateTime.MinValue;
 		internal DateTime defaultRecordTS = DateTime.MinValue;
 		internal const string WxnowFile = "wxnow.txt";
 		private readonly string RealtimeFile = "realtime.txt";
@@ -11288,6 +11288,8 @@ namespace CumulusMX
 
 		public static string ClearErrorLog()
 		{
+			LatestError = string.Empty;
+			LatestErrorTS = DateTime.MinValue;
 			ErrorList.Clear();
 			return GetErrorLog();
 		}
