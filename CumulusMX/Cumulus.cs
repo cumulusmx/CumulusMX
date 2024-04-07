@@ -11251,7 +11251,7 @@ namespace CumulusMX
 			Program.svcTextListener.Flush();
 		}
 
-		public void LogExceptionMessage(Exception ex, string message, bool LatestError = true)
+		public void LogExceptionMessage(Exception ex, string message, bool logError = true)
 		{
 			LogMessage(message);
 
@@ -11264,13 +11264,15 @@ namespace CumulusMX
 				LogMessage(message + " - " + Utils.ExceptionToString(ex));
 			}
 
-			if (LatestError)
+			if (logError)
 			{
 				while (ErrorList.Count >= 50)
 				{
 					_ = ErrorList.Dequeue();
 				}
 				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.Message));
+				LatestError = message + " - " + ex.Message;
+				LatestErrorTS = DateTime.Now;
 			}
 		}
 

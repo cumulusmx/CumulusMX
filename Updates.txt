@@ -3,6 +3,7 @@
 - Fix Irish time zone DST reversal for "use 10am in summer"
 - Clear the recent error log now also clears the latest error web tags
 - Move ThreadPool min/max to runtimeconfig file
+- Logged exception messages now also update LatestError and LatestErrorTS
 
 
 
