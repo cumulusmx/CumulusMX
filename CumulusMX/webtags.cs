@@ -607,7 +607,7 @@ namespace CumulusMX
 		private static string TagDaysSince30Dec1899(Dictionary<string, string> tagParams)
 		{
 			DateTime startDate = new DateTime(1899, 12, 30, 0, 0, 0, DateTimeKind.Local);
-			return ((DateTime.Now - startDate).TotalDays).ToString();
+			return ((DateTime.Now.ToUniversalTime() - startDate.ToUniversalTime()).TotalDays).ToString();
 		}
 
 		private string TagTimeUtc(Dictionary<string, string> tagParams)
