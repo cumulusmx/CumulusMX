@@ -44,10 +44,8 @@ using ServiceStack.Text;
 using SQLite;
 
 using Swan;
-using Swan.Formatters;
 
 using static CumulusMX.EmailSender;
-using static CumulusMX.NoaaConfig;
 
 using Timer = System.Timers.Timer;
 
