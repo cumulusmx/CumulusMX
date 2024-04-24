@@ -1,6 +1,7 @@
 4.0.0 - b4021
 —————————————
 - Fix web tags for none hyphen-decimal locales
+- Reload dayfile can now only be run as a single instance
 
 
 4.0.0 - b4020
