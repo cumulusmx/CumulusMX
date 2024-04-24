@@ -10204,7 +10204,7 @@ namespace CumulusMX
 							// we want incremental data for PHP
 							var json = station.CreateGraphDataJson(item.LocalFileName, item.Incremental);
 							var remotefile = item.RemoteFileName;
-							LogDebugMessage("PHP[Int]: Uploading graph data file: " + item.LocalFileName);
+							LogDebugMessage($"PHP[Int]: Uploading graph data file ({(item.Incremental ? "full" : $"incremental from {item.LastDataTime:s}")}): {item.LocalFileName}");
 
 							if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, -1, false, true))
 							{
@@ -13114,7 +13114,7 @@ namespace CumulusMX
 		public bool CopyRequired { get; set; } = true;
 		public bool CreateRequired { get; set; } = true;
 		public DateTime LastDataTime { get; set; } = DateTime.MinValue;
-		public bool Incremental { get; set; }
+		public bool Incremental { get; set; } = false;
 	}
 
 	public class MoonImageOptionsClass

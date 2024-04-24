@@ -1,3 +1,8 @@
+4.0.0 - b4021
+—————————————
+- Fix web tags for none hyphen-decimal locales
+
+
 4.0.0 - b4020
 —————————————
 - Fix Irish time zone DST reversal for "use 10am in summer"

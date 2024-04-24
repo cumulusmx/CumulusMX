@@ -37,16 +37,11 @@ namespace CumulusMX
 			return result;
 		}
 
-		private static string ReplaceCommas(string aStr)
-		{
-			return aStr.Replace(',', '.');
-		}
-
 		private static string CheckRc(string val, Dictionary<string, string> tagParams)
 		{
 			try
 			{
-				return tagParams.Get("rc") == "y" ? ReplaceCommas(val) : val;
+				return tagParams.Get("rc") == "y" ? val.Replace(',', '.') : val;
 			}
 			catch
 			{
@@ -59,22 +54,22 @@ namespace CumulusMX
 			string ret;
 			try
 			{
+				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+
 				if (tagParams.Get("tc") == "y")
-					return Math.Truncate(val).ToString();
+				{
+					val = Math.Truncate(val);
+					tagParams["dp"] = "0";
+				}
 
 				if (null != format)
 				{
-					ret = val.ToString(format);
+					ret = val.ToString(format, numFormat);
 				}
 				else
 				{
 					int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : decimals;
-					ret = val.ToString("F" + dp);
-				}
-
-				if (tagParams.Get("rc") == "y")
-				{
-					ret = ReplaceCommas(ret);
+					ret = val.ToString("F" + dp, numFormat);
 				}
 				return ret;
 			}
@@ -89,17 +84,18 @@ namespace CumulusMX
 			string ret;
 			try
 			{
+				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+
 				if (tagParams.Get("tc") == "y")
-					return Math.Truncate(val).ToString();
+				{
+					val = Math.Truncate(val);
+					tagParams["dp"] = "0";
+				}
 
 				int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : decimals;
 
-				ret = val.ToString("F" + dp);
+				ret = val.ToString("F" + dp, numFormat);
 
-				if (tagParams.Get("rc") == "y")
-				{
-					ret = ReplaceCommas(ret);
-				}
 				return ret;
 			}
 			catch
@@ -1739,7 +1735,8 @@ namespace CumulusMX
 
 		private string TagRCapptempTh(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagapptempTh(tagParams));
+			tagParams.Add("rc", "y");
+			return TagapptempTh(tagParams);
 		}
 
 		private string TagTapptempTh(Dictionary<string, string> tagParams)
@@ -1754,7 +1751,8 @@ namespace CumulusMX
 
 		private string TagRCapptempTl(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagapptempTl(tagParams));
+			tagParams.Add("rc", "y");
+			return TagapptempTl(tagParams);
 		}
 
 		private string TagTapptempTl(Dictionary<string, string> tagParams)
@@ -1799,7 +1797,8 @@ namespace CumulusMX
 
 		private string TagRCdewpointTh(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagdewpointTh(tagParams));
+			tagParams.Add("rc", "y");
+			return TagdewpointTh(tagParams);
 		}
 
 		private string TagTdewpointTh(Dictionary<string, string> tagParams)
@@ -1814,7 +1813,8 @@ namespace CumulusMX
 
 		private string TagRCdewpointTl(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagdewpointTl(tagParams));
+			tagParams.Add("rc", "y");
+			return TagdewpointTl(tagParams);
 		}
 
 		private string TagTdewpointTl(Dictionary<string, string> tagParams)
@@ -1829,7 +1829,8 @@ namespace CumulusMX
 
 		private string TagRCwchillTl(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagwchillTl(tagParams));
+			tagParams.Add("rc", "y");
+			return TagwchillTl(tagParams);
 		}
 
 		private string TagTwchillTl(Dictionary<string, string> tagParams)
@@ -1844,7 +1845,8 @@ namespace CumulusMX
 
 		private string TagRCheatindexTh(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagheatindexTh(tagParams));
+			tagParams.Add("rc", "y");
+			return TagheatindexTh(tagParams);
 		}
 
 		private string TagTheatindexTh(Dictionary<string, string> tagParams)
@@ -3359,97 +3361,116 @@ namespace CumulusMX
 
 		private string TagRCtemp(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Tagtemp(tagParams));
+			tagParams.Add("rc", "y");
+			return Tagtemp(tagParams);
 		}
 
 		private string TagRCtempTh(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagtempTh(tagParams));
+			tagParams.Add("rc", "y");
+			return TagtempTh(tagParams);
 		}
 
 		private string TagRCtempTl(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagtempTl(tagParams));
+			tagParams.Add("rc", "y");
+			return TagtempTl(tagParams);
 		}
 
 		private string TagRCintemp(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Tagintemp(tagParams));
+			tagParams.Add("rc", "y");
+			return Tagintemp(tagParams);
 		}
 
 		private string TagRCdew(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Tagdew(tagParams));
+			tagParams.Add("rc", "y");
+			return Tagdew(tagParams);
 		}
 
 		private string TagRCheatindex(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Tagheatindex(tagParams));
+			tagParams.Add("rc", "y");
+			return Tagheatindex(tagParams);
 		}
 
 		private string TagRCwchill(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Tagwchill(tagParams));
+			tagParams.Add("rc", "y");
+			return Tagwchill(tagParams);
 		}
 
 		private string TagRChum(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Taghum(tagParams));
+			tagParams.Add("rc", "y");
+			return Taghum(tagParams);
 		}
 
 		private string TagRCinhum(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Taginhum(tagParams));
+			tagParams.Add("rc", "y");
+			return Taginhum(tagParams);
 		}
 
 		private string TagRCrfall(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Tagrfall(tagParams));
+			tagParams.Add("rc", "y");
+			return Tagrfall(tagParams);
 		}
 
 		private string TagRCrrate(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Tagrrate(tagParams));
+			tagParams.Add("rc", "y");
+			return Tagrrate(tagParams);
 		}
 
 		private string TagRCrrateTm(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagrrateTm(tagParams));
+			tagParams.Add("rc", "y");
+			return TagrrateTm(tagParams);
 		}
 
 		private string TagRCwlatest(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Tagwlatest(tagParams));
+			tagParams.Add("rc", "y");
+			return Tagwlatest(tagParams);
 		}
 
 		private string TagRCwgust(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Tagwgust(tagParams));
+			tagParams.Add("rc", "y");
+			return Tagwgust(tagParams);
 		}
 
 		private string TagRCwspeed(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Tagwspeed(tagParams));
+			tagParams.Add("rc", "y");
+			return Tagwspeed(tagParams);
 		}
 
 		private string TagRCwgustTm(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagwgustTm(tagParams));
+			tagParams.Add("rc", "y");
+			return TagwgustTm(tagParams);
 		}
 
 		private string TagRCpress(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(Tagpress(tagParams));
+			tagParams.Add("rc", "y");
+			return Tagpress(tagParams);
 		}
 
 		private string TagRCpressTh(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagpressTh(tagParams));
+			tagParams.Add("rc", "y");
+			return TagpressTh(tagParams);
 		}
 
 		private string TagRCpressTl(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagpressTl(tagParams));
+			tagParams.Add("rc", "y");
+			return TagpressTl(tagParams);
 		}
 
 		private string TagEt(Dictionary<string, string> tagParams)
@@ -5628,52 +5649,62 @@ namespace CumulusMX
 		// Recent history with commas replaced
 		private string TagRcRecentOutsideTemp(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagRecentOutsideTemp(tagParams));
+			tagParams.Add("rc", "y");
+			return TagRecentOutsideTemp(tagParams);
 		}
 
 		private string TagRcRecentWindSpeed(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagRecentWindSpeed(tagParams));
+			tagParams.Add("rc", "y");
+			return TagRecentWindSpeed(tagParams);
 		}
 
 		private string TagRcRecentWindGust(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagRecentWindGust(tagParams));
+			tagParams.Add("rc", "y");
+			return TagRecentWindGust(tagParams);
 		}
 
 		private string TagRcRecentWindLatest(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagRecentWindLatest(tagParams));
+			tagParams.Add("rc", "y");
+			return TagRecentWindLatest(tagParams);
 		}
 
 		private string TagRcRecentWindChill(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagRecentWindChill(tagParams));
+			tagParams.Add("rc", "y");
+			return TagRecentWindChill(tagParams);
 		}
 
 		private string TagRcRecentDewPoint(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagRecentDewPoint(tagParams));
+			tagParams.Add("rc", "y");
+			return TagRecentDewPoint(tagParams);
 		}
 
 		private string TagRcRecentHeatIndex(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagRecentHeatIndex(tagParams));
+			tagParams.Add("rc", "y");
+			return TagRecentHeatIndex(tagParams);
 		}
 
 		private string TagRcRecentPressure(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagRecentPressure(tagParams));
+			tagParams.Add("rc", "y");
+			return TagRecentPressure(tagParams);
 		}
 
 		private string TagRcRecentRainToday(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagRecentRainToday(tagParams));
+			tagParams.Add("rc", "y");
+			return TagRecentRainToday(tagParams);
 		}
 
 		private string TagRcRecentUv(Dictionary<string, string> tagParams)
 		{
-			return ReplaceCommas(TagRecentUv(tagParams));
+			tagParams.Add("rc", "y");
+			return TagRecentUv(tagParams);
 		}
 
 		private string TagOption_useApparent(Dictionary<string, string> tagParams)

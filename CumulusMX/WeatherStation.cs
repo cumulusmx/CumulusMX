@@ -2046,6 +2046,9 @@ namespace CumulusMX
 			cumulus.RotateLogFiles();
 
 			ClearAlarms();
+
+			System.Runtime.GCSettings.LargeObjectHeapCompactionMode = System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+			GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false);
 		}
 
 		private void HourChanged(DateTime now)
