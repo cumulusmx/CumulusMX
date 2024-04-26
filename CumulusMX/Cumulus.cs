@@ -555,11 +555,6 @@ namespace CumulusMX
 
 			IsOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
-
-			// restrict the threadpool size - for Linux which does not seem to have very good pool management!
-			//ThreadPool.SetMinThreads(Properties.Settings.Default.MinThreadPoolSize, Properties.Settings.Default.MinThreadPoolSize)
-			//ThreadPool.SetMaxThreads(Properties.Settings.Default.MaxThreadPoolSize, Properties.Settings.Default.MaxThreadPoolSize)
-
 			if (IsOSX)
 				Platform = "Mac OS X";
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -588,6 +583,22 @@ namespace CumulusMX
 			LogMessage("Running under userid: " + Environment.UserName);
 
 			boolWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+			// Some .NET 8 clutures use a non-"standard" minus symbol, this causes all sorts of parsing issues down the line and for external scripts
+			// the simplest solution is to override this and set all cultures to use the hypen-minus
+			if (CultureInfo.CurrentCulture.NumberFormat.NegativeSign != "-")
+			{
+				// change the none hyphen-minus to a standard hypen
+				CultureInfo newCulture = (CultureInfo) Thread.CurrentThread.CurrentCulture.Clone();
+				newCulture.NumberFormat.NegativeSign = "-";
+
+				// set current thread culture
+				Thread.CurrentThread.CurrentCulture = newCulture;
+
+				// set the default culture for other threads
+				CultureInfo.DefaultThreadCurrentCulture = newCulture;
+			}
+
 
 			// Set the default comport name depending on platform
 			DefaultComportName = boolWindows ? "COM1" : "/dev/ttyUSB0";
@@ -2281,12 +2292,15 @@ namespace CumulusMX
 				LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during update");
 				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
 				{
+					RealtimeCopyInProgress = false;
+					RealtimeFtpInProgress = false;
 					LogDebugMessage($"Realtime[{cycle}]: End cycle");
 					_ = RealtimeFTPReconnect();
 					return;
 				}
 			}
 
+			RealtimeCopyInProgress = false;
 			RealtimeFtpInProgress = false;
 			LogDebugMessage($"Realtime[{cycle}]: End cycle");
 		}
@@ -12074,7 +12088,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void RealtimeFTPLogin()
+		public void RealtimeFTPLogin()
 		{
 			LogMessage($"RealtimeFTPLogin: Attempting realtime FTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
 
@@ -12161,6 +12175,14 @@ namespace CumulusMX
 					RealtimeFTP.Disconnect();
 				}
 			}
+
+			// OK we are reconnected or failed to connect, let the FTP recommence
+			RealtimeFtpReconnecting = false;
+			RealtimeFtpInProgress = false;
+			realtimeFTPRetries = 0;
+			RealtimeCopyInProgress = false;
+			FtpAlarm.Triggered = false;
+
 		}
 
 		private void RealtimeSSHLogin()
