@@ -36,7 +36,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ServerGarbageCollection>true</ServerGarbageCollection>
     <Version>4.000.0.4021</Version>
     <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
   </PropertyGroup>

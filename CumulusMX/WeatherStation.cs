@@ -6303,7 +6303,8 @@ namespace CumulusMX
 				}
 			}
 			// average the values, if we have enough samples
-			WindAverage = totalwind / Math.Max(numvalues, 3);
+			WindAverageUncalibrated = totalwind / Math.Max(numvalues, 3);
+			WindAverage = cumulus.Calib.WindSpeed.Calibrate(WindAverageUncalibrated);
 
 			// now the gust
 			fromTime = DateTime.Now - cumulus.PeakGustTime;
@@ -6315,6 +6316,7 @@ namespace CumulusMX
 					RecentMaxGust = WindRecent[i].Gust;
 				}
 			}
+			RecentMaxGust = cumulus.Calib.WindGust.Calibrate(RecentMaxGust);
 
 			cumulus.LogDebugMessage($"InitialiseWind: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
 		}

@@ -1,7 +1,7 @@
 {
 	"configProperties": {
 		"System.GC.gen0size": 33554432,
-		"System.GC.Concurrent": true,
+		"System.GC.Server": false,
 		"System.Threading.ThreadPool.MinThreads": "10",
 		"System.Threading.ThreadPool.MaxThreads": "30"
 	}
