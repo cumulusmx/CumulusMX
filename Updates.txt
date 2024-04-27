@@ -3,7 +3,7 @@
 - Force all locales to use the hypen-minus symbol
 - Reload dayfile can now only be run as a single instance
 - Add MX calculates SLP
-	- Applies to HTTP Ecowitt, HTTP Ambient, GW1000 stations
+	- Applies to HTTP Ecowitt, HTTP Ambient, GW1000, FO stations
 	- When enabled, the pressure calibration is applied to the raw station pressure
 - Another attempt to smooth the average speed when ending catch-up on WLL stations
 

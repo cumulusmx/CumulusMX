@@ -312,7 +312,17 @@ namespace CumulusMX
 					if (sign == 0x80) intemp = -intemp;
 					histData.inTemp = intemp;
 					// Get pressure and convert to sea level
-					histData.pressure = (data[7] + (data[8] * 256)) / 10.0f + pressureOffset;
+					histData.stationPress = (data[7] + (data[8] * 256)) / 10.0f;
+					 
+					if (cumulus.StationOptions.CalculateSLP)
+					{
+						histData.stationPress = cumulus.Calib.Press.Calibrate(histData.stationPress);
+						histData.pressure = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), histData.stationPress, histData.outTemp, cumulus.Latitude);
+					}
+					else
+					{
+						histData.pressure = (data[7] + (data[8] * 256)) / 10.0f + pressureOffset;
+					}
 					histData.SensorContactLost = (data[15] & 0x40) == 0x40;
 					if (hasSolar)
 					{
@@ -433,6 +443,7 @@ namespace CumulusMX
 				else
 				{
 					DoPressure(ConvertUnits.PressMBToUser(historydata.pressure), timestamp);
+					StationPressure = historydata.stationPress;
 				}
 
 				if (historydata.SensorContactLost)
@@ -1159,7 +1170,8 @@ namespace CumulusMX
 				}
 
 				// Pressure =========================================================
-				double pressure = (data[7] + ((data[8] & 0x3f) * 256)) / 10.0f + pressureOffset;
+				double stnPress = (data[7] + ((data[8] & 0x3f) * 256)) / 10.0f;
+				double pressure = stnPress + pressureOffset;
 
 				if (pressure < cumulus.EwOptions.MinPressMB || pressure > cumulus.EwOptions.MaxPressMB)
 				{
@@ -1169,14 +1181,17 @@ namespace CumulusMX
 				}
 				else
 				{
-					DoPressure(ConvertUnits.PressMBToUser(pressure), now);
-					// Get station pressure in hPa by subtracting offset and calibrating
-					// EWpressure offset is difference between rel and abs in hPa
-					// PressOffset is user calibration in user units.
-					var offsetPress = pressure - pressureOffset;
-					pressure = offsetPress * offsetPress * cumulus.Calib.Press.Mult2 + offsetPress * cumulus.Calib.Press.Mult + ConvertUnits.UserPressToHpa(cumulus.Calib.Press.Offset);
+					StationPressure = cumulus.Calib.Press.Calibrate(ConvertUnits.PressMBToUser(pressure));
 
-					StationPressure = ConvertUnits.PressMBToUser(pressure);
+					if (!cumulus.StationOptions.CalculateSLP)
+					{
+						DoPressure(ConvertUnits.PressMBToUser(pressure), now);
+					}
+					else
+					{
+						var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), StationPressure, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+						DoPressure(slp, now);
+					}
 
 					UpdatePressureTrendString();
 				}
@@ -1467,6 +1482,7 @@ namespace CumulusMX
 			public double outTemp;
 
 			public double pressure;
+			public double stationPress;
 
 			public int rainCounter;
 			public DateTime timestamp;
