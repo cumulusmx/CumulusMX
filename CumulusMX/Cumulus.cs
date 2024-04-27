@@ -3681,6 +3681,7 @@ namespace CumulusMX
 			StationOptions.CalculatedDP = ini.GetValue("Station", "CalculatedDP", false);
 			StationOptions.CalculatedWC = ini.GetValue("Station", "CalculatedWC", false);
 			StationOptions.CalculatedET = ini.GetValue("Station", "CalculatedET", false);
+			StationOptions.CalculateSLP = ini.GetValue("Station", "CalculatedSLP", false);
 			RolloverHour = ini.GetValue("Station", "RolloverHour", 0);
 			Use10amInSummer = ini.GetValue("Station", "Use10amInSummer", true);
 			//ConfirmClose = ini.GetValue("Station", "ConfirmClose", false)
@@ -5469,6 +5470,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "CalculatedDP", StationOptions.CalculatedDP);
 			ini.SetValue("Station", "CalculatedWC", StationOptions.CalculatedWC);
 			ini.SetValue("Station", "CalculatedET", StationOptions.CalculatedET);
+			ini.SetValue("Station", "CalculatedSLP", StationOptions.CalculateSLP);
 
 			ini.SetValue("Station", "RolloverHour", RolloverHour);
 			ini.SetValue("Station", "Use10amInSummer", Use10amInSummer);
