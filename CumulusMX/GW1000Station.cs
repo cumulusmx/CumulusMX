@@ -965,11 +965,21 @@ namespace CumulusMX
 							case 0x08: //Absolute Barometric (hPa)
 								tempUint16 = GW1000Api.ConvertBigEndianUInt16(data, idx);
 								StationPressure = ConvertUnits.PressMBToUser(tempUint16 / 10.0);
+
+								if (cumulus.StationOptions.CalculateSLP)
+								{
+									StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
+									var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+									DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
+								}
 								idx += 2;
 								break;
 							case 0x09: //Relative Barometric (hPa)
-								tempUint16 = GW1000Api.ConvertBigEndianUInt16(data, idx);
-								DoPressure(ConvertUnits.PressMBToUser(tempUint16 / 10.0), dateTime);
+								if (!cumulus.StationOptions.CalculateSLP)
+								{
+									tempUint16 = GW1000Api.ConvertBigEndianUInt16(data, idx);
+									DoPressure(ConvertUnits.PressMBToUser(tempUint16 / 10.0), dateTime);
+								}
 								idx += 2;
 								break;
 							case 0x0A: //Wind Direction (360°)

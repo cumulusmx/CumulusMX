@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.Text;
 
+using static System.Collections.Specialized.BitVector32;
+
 namespace CumulusMX
 {
 	internal class EcowittApi
@@ -608,6 +610,30 @@ namespace CumulusMX
 							}
 						}
 					}
+
+					// absolute
+					if (data.pressure.absolute != null && data.pressure.absolute.list != null)
+					{
+						foreach (var item in data.pressure.absolute.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
+							{
+								value.StationPressure = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ StationPressure = item.Value };
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+
 				}
 				catch (Exception ex)
 				{
@@ -1442,14 +1468,37 @@ namespace CumulusMX
 			{
 				if (rec.Value.Pressure.HasValue)
 				{
-					var pressVal = (double) rec.Value.Pressure;
-					station.DoPressure(pressVal, rec.Key);
-					station.UpdatePressureTrendString();
+					if (!cumulus.StationOptions.CalculateSLP)
+					{
+						var pressVal = (double) rec.Value.Pressure;
+						station.DoPressure(pressVal, rec.Key);
+					}
 				}
 				else
 				{
-					cumulus.LogWarningMessage("ApplyHistoricData: Missing pressure data");
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing relative pressure data");
 				}
+
+				if (rec.Value.StationPressure.HasValue)
+				{
+					station.StationPressure = (double) rec.Value.StationPressure;
+
+					if (cumulus.StationOptions.CalculateSLP)
+					{
+						station.StationPressure = cumulus.Calib.Press.Calibrate(station.StationPressure);
+						var slp = MeteoLib.GetSeaLevelPressure(station.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(station.StationPressure), ConvertUnits.UserTempToC(station.OutdoorTemperature), cumulus.Latitude);
+
+						station.DoPressure(ConvertUnits.PressMBToUser(slp), rec.Key);
+					}
+
+				}
+				else
+				{
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing absolute pressure data");
+				}
+
+
+				station.UpdatePressureTrendString();
 			}
 			catch (Exception ex)
 			{
@@ -2773,6 +2822,7 @@ namespace CumulusMX
 		internal class HistoricDataPressure
 		{
 			public HistoricDataTypeDbl relative { get; set; }
+			public HistoricDataTypeDbl absolute { get; set; }
 		}
 
 		internal class HistoricDataWind
@@ -2849,6 +2899,7 @@ namespace CumulusMX
 			public decimal? WindGust { get; set; }
 			public int? WindDir { get; set; }
 			public decimal? Pressure { get; set; }
+			public decimal? StationPressure { get; set; }
 			public int? Solar { get; set; }
 			public decimal? UVI { get; set; }
 			public decimal? LightningDist { get; set; }

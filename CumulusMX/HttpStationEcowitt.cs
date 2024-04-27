@@ -497,9 +497,11 @@ namespace CumulusMX
 						}
 						else
 						{
-							var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, invNum));
-							DoPressure(pressVal, recDate);
-							UpdatePressureTrendString();
+							if (!cumulus.StationOptions.CalculateSLP)
+							{
+								var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, invNum));
+								DoPressure(pressVal, recDate);
+							}
 						}
 
 						if (stnPress == null)
@@ -509,7 +511,18 @@ namespace CumulusMX
 						else
 						{
 							StationPressure = ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, invNum));
+
+							if (cumulus.StationOptions.CalculateSLP)
+							{
+								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
+
+								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+
+								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
+							}
 						}
+
+						UpdatePressureTrendString();
 					}
 					catch (Exception ex)
 					{
