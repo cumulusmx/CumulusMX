@@ -5,6 +5,7 @@
 - Add MX calculates SLP
 	- Applies to HTTP Ecowitt, HTTP Ambient, GW1000 stations
 	- When enabled, the pressure calibration is applied to the raw station pressure
+- Another attempt to smooth the average speed when ending catch-up on WLL stations
 
 
 4.0.0 - b4020

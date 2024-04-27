@@ -6147,13 +6147,14 @@ namespace CumulusMX
 					}
 				}
 				// average the values, if we have enough samples
-				if (numvalues > 3)
+				if (numvalues > 5)
 				{
 					avg = totalwind / numvalues;
 				}
 				else
 				{
-					avg = totalwind / 3;
+					// take a third of the gust values
+					avg = totalwind / 15;
 				}
 
 				WindAverageUncalibrated = avg;
