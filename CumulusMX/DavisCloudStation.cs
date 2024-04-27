@@ -1016,22 +1016,42 @@ namespace CumulusMX
 										}
 
 										lsidLastUpdate[sensor.lsid] = rec.ts;
+										var ts = Utils.FromUnixTime(rec.ts);
 
-										if (rec.bar_sea_level.HasValue)
+										if (cumulus.StationOptions.CalculateSLP)
 										{
-											// leave it at current value
-											var ts = Utils.FromUnixTime(rec.ts);
-											DoPressure(ConvertUnits.PressINHGToUser(rec.bar_sea_level.Value), ts);
+											if (rec.bar_absolute.HasValue)
+											{
+												var abs = ConvertUnits.PressINHGToHpa(rec.bar_sea_level.Value);
+												var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), abs, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+												slp = cumulus.Calib.Press.Calibrate(slp);
+												DoPressure(ConvertUnits.PressMBToUser(slp), ts);
+											}
+											else
+											{
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Baro data (absolute)");
+											}
 										}
 										else
 										{
-											cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Baro data (high)");
+											if (rec.bar_sea_level.HasValue)
+											{
+												// leave it at current value
+												DoPressure(ConvertUnits.PressINHGToUser(rec.bar_sea_level.Value), ts);
+											}
+											else
+											{
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Baro data (slp)");
+											}
 										}
+
+										UpdatePressureTrendString();
 
 										// Altimeter from absolute
 										if (rec.bar_absolute.HasValue)
 										{
-											StationPressure = ConvertUnits.PressINHGToUser(rec.bar_absolute.Value);
+											var abs = ConvertUnits.PressINHGToUser(rec.bar_absolute.Value);
+											StationPressure = cumulus.StationOptions.CalculateSLP ? cumulus.Calib.Press.Calibrate(abs) : abs;
 											// Or do we use calibration? The VP2 code doesn't?
 											AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 										}
@@ -2324,20 +2344,38 @@ namespace CumulusMX
 							cumulus.LogDebugMessage("DecodeHistoric: found Baro data");
 							try
 							{
-								if (data.bar != null)
+								if (cumulus.StationOptions.CalculateSLP)
 								{
-									// leave it at current value
-									DoPressure(ConvertUnits.PressINHGToUser((double) data.bar), lastRecordTime);
+									if (data.abs_press != null)
+									{
+										var abs = ConvertUnits.PressINHGToHpa((double) data.abs_press);
+										abs = cumulus.Calib.Press.Calibrate(abs);
+										var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), abs, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+										DoPressure(ConvertUnits.PressMBToUser(slp), lastDataReadTime);
+									}
+									else
+									{
+										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid abs Baro data");
+									}
 								}
 								else
 								{
-									cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data");
+									if (data.bar != null)
+									{
+										// leave it at current value
+										DoPressure(ConvertUnits.PressINHGToUser((double) data.bar), lastRecordTime);
+									}
+									else
+									{
+										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data");
+									}
 								}
 
 								// Altimeter from absolute
 								if (data.abs_press != null)
 								{
-									StationPressure = ConvertUnits.PressINHGToUser((double) data.abs_press);
+									var abs = ConvertUnits.PressINHGToUser((double) data.abs_press);
+									StationPressure = cumulus.StationOptions.CalculateSLP ? cumulus.Calib.Press.Calibrate(abs) : abs;
 									// Or do we use calibration? The VP2 code doesn't?
 									AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 								}

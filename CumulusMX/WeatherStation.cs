@@ -5542,6 +5542,7 @@ namespace CumulusMX
 			// If we calculate SLP, then the calibration is applied to the station pressure
 			Pressure = cumulus.StationOptions.CalculateSLP ? sl : cumulus.Calib.Press.Calibrate(sl);
 
+			// TODO: This is bollocks, several stations set the altimeter correctly
 			if (cumulus.Manufacturer == Cumulus.DAVIS)
 			{
 				if ((cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2) || cumulus.StationType == StationTypes.VantagePro)
