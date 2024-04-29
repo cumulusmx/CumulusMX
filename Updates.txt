@@ -6,7 +6,7 @@
 	- Applies to HTTP Ecowitt, HTTP Ambient, GW1000, Ecowitt Cloud, FO, Davis Cloud WLC stations
 	- When enabled, the pressure calibration is applied to the raw station pressure
 	- Check your station pressure (Absolute) calibration!
-- Adds true Altimeter Pressure calculation to GW1000, Ecowitt HTTP, Ecowitt Cloud
+- Adds true Altimeter Pressure calculation to GW1000, HTTP Ecowitt, Ecowitt Cloud
 	- Check your station pressure (Absolute) calibration!
 - Another attempt to smooth the average speed when ending catch-up on WLL stations
 
