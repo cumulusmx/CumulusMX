@@ -1191,7 +1191,7 @@ namespace CumulusMX
 								{
 									StationPressure = ConvertUnits.PressINHGToUser(data3.bar_absolute.Value);
 									// Or do we use calibration? The VP2 code doesn't?
-									AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+									AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 								}
 							}
 							catch (Exception ex)

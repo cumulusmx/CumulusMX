@@ -232,8 +232,6 @@ namespace CumulusMX
 								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
 							}
 						}
-
-						UpdatePressureTrendString();
 					}
 					catch (Exception ex)
 					{

@@ -520,9 +520,9 @@ namespace CumulusMX
 
 								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
 							}
-						}
 
-						UpdatePressureTrendString();
+							AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+						}
 					}
 					catch (Exception ex)
 					{

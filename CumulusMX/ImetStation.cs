@@ -688,7 +688,6 @@ namespace CumulusMX
 								CalculateEvapotranspiration(timestamp);
 							}
 
-							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
 
 							// Add current data to the lists of web service updates to be done
@@ -873,7 +872,6 @@ namespace CumulusMX
 				if (!string.IsNullOrEmpty(sl[PRESSPOS]) && double.TryParse(sl[PRESSPOS], NumberStyles.Float, provider, out varDbl))
 				{
 					DoPressure(ConvertUnits.PressMBToUser(varDbl), now);
-					UpdatePressureTrendString();
 				}
 				else
 				{

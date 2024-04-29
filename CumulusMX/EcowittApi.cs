@@ -1392,7 +1392,6 @@ namespace CumulusMX
 				}
 
 				station.DoTrendValues(rec.Key);
-				station.UpdatePressureTrendString();
 				station.UpdateStatusPanel(rec.Key);
 				cumulus.AddToWebServiceLists(rec.Key);
 
@@ -1491,14 +1490,12 @@ namespace CumulusMX
 						station.DoPressure(ConvertUnits.PressMBToUser(slp), rec.Key);
 					}
 
+					station.AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(station.StationPressure, station.AltitudeM(cumulus.Altitude)));
 				}
 				else
 				{
 					cumulus.LogWarningMessage("ApplyHistoricData: Missing absolute pressure data");
 				}
-
-
-				station.UpdatePressureTrendString();
 			}
 			catch (Exception ex)
 			{

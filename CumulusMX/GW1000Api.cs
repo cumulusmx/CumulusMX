@@ -422,7 +422,8 @@ namespace CumulusMX
 			Wh35Ch6,        // 45 2D
 			Wh35Ch7,        // 46 2E
 			Wh35Ch8,        // 47 2F
-			Wh90            // 48 30
+			Wh90,           // 48 30
+			Ws85            // 49 31
 		};
 
 		/*

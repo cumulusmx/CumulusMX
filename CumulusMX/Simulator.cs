@@ -113,7 +113,6 @@ namespace CumulusMX
 			DoOutdoorTemp(ConvertUnits.TempCToUser(currData.tempVal), recDate);
 
 			DoPressure(ConvertUnits.PressMBToUser(currData.pressureVal), recDate);
-			UpdatePressureTrendString();
 
 			doSolar(recDate);
 

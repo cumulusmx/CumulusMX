@@ -513,8 +513,6 @@ namespace CumulusMX
 
 			DoPressure(ConvertUnits.PressMBToUser(loc + slcorr), DateTime.Now);
 
-			UpdatePressureTrendString();
-
 			string forecast = String.Empty;
 
 			// forecast - top 4 bits of byte 9
@@ -571,7 +569,6 @@ namespace CumulusMX
 			double num = BCDchartoint(buff[10] / 10) + (BCDchartoint(buff[11]) * 10) + buff[8];
 			DoPressure(num, DateTime.Now);
 
-			UpdatePressureTrendString();
 			// forecast - bottom 4 bits of byte 9
 			string forecast = String.Empty;
 

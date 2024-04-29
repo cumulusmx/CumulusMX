@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading;
 using System.Timers;
 
+using Org.BouncyCastle.Ocsp;
+
 using ServiceStack;
 
 
@@ -1022,9 +1024,9 @@ namespace CumulusMX
 										{
 											if (rec.bar_absolute.HasValue)
 											{
-												var abs = ConvertUnits.PressINHGToHpa(rec.bar_sea_level.Value);
+												var abs = ConvertUnits.PressINHGToHpa(rec.bar_absolute.Value);
+												abs = cumulus.Calib.Press.Calibrate(abs);
 												var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), abs, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-												slp = cumulus.Calib.Press.Calibrate(slp);
 												DoPressure(ConvertUnits.PressMBToUser(slp), ts);
 											}
 											else
@@ -1045,15 +1047,13 @@ namespace CumulusMX
 											}
 										}
 
-										UpdatePressureTrendString();
-
 										// Altimeter from absolute
 										if (rec.bar_absolute.HasValue)
 										{
 											var abs = ConvertUnits.PressINHGToUser(rec.bar_absolute.Value);
 											StationPressure = cumulus.StationOptions.CalculateSLP ? cumulus.Calib.Press.Calibrate(abs) : abs;
 											// Or do we use calibration? The VP2 code doesn't?
-											AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+											AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 										}
 									}
 								}
@@ -2344,40 +2344,22 @@ namespace CumulusMX
 							cumulus.LogDebugMessage("DecodeHistoric: found Baro data");
 							try
 							{
-								if (cumulus.StationOptions.CalculateSLP)
+								if (data.bar != null)
 								{
-									if (data.abs_press != null)
-									{
-										var abs = ConvertUnits.PressINHGToHpa((double) data.abs_press);
-										abs = cumulus.Calib.Press.Calibrate(abs);
-										var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), abs, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-										DoPressure(ConvertUnits.PressMBToUser(slp), lastDataReadTime);
-									}
-									else
-									{
-										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid abs Baro data");
-									}
+									// leave it at current value
+									DoPressure(ConvertUnits.PressINHGToUser((double) data.bar), lastRecordTime);
 								}
 								else
 								{
-									if (data.bar != null)
-									{
-										// leave it at current value
-										DoPressure(ConvertUnits.PressINHGToUser((double) data.bar), lastRecordTime);
-									}
-									else
-									{
-										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data");
-									}
+									cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data");
 								}
 
 								// Altimeter from absolute
 								if (data.abs_press != null)
 								{
-									var abs = ConvertUnits.PressINHGToUser((double) data.abs_press);
-									StationPressure = cumulus.StationOptions.CalculateSLP ? cumulus.Calib.Press.Calibrate(abs) : abs;
+									StationPressure = ConvertUnits.PressINHGToUser((double) data.abs_press);
 									// Or do we use calibration? The VP2 code doesn't?
-									AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+									AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 								}
 							}
 							catch (Exception ex)
@@ -3240,44 +3222,63 @@ namespace CumulusMX
 								{
 									var data13baro = json.FromJsv<WlHistorySensorDataType13Baro>();
 									DateTime ts;
-									// check the high
-									if (data13baro.bar_hi_at != 0 && data13baro.bar_hi != null)
-									{
-										ts = Utils.FromUnixTime(data13baro.bar_hi_at);
-										DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_hi), ts);
-									}
-									else
-									{
-										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (high)");
-									}
-									// check the low
-									if (data13baro.bar_lo_at != 0 && data13baro.bar_lo != null)
-									{
-										ts = Utils.FromUnixTime(data13baro.bar_lo_at);
-										DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_lo), ts);
-									}
-									else
-									{
-										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (high)");
-									}
 
-									if (data13baro.bar_sea_level != null)
+									// Only check hi/lo if we are using the Davis SLP
+									if (!cumulus.StationOptions.CalculateSLP)
 									{
-										// leave it at current value
+										// check the high
+										if (data13baro.bar_hi_at != 0 && data13baro.bar_hi != null)
+										{
+											ts = Utils.FromUnixTime(data13baro.bar_hi_at);
+											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_hi), ts);
+										}
+										else
+										{
+											cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (high)");
+										}
+										// check the low
+										if (data13baro.bar_lo_at != 0 && data13baro.bar_lo != null)
+										{
+											ts = Utils.FromUnixTime(data13baro.bar_lo_at);
+											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_lo), ts);
+										}
+										else
+										{
+											cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (high)");
+										}
+
+										if (data13baro.bar_sea_level != null)
+										{
+											// leave it at current value
+											ts = Utils.FromUnixTime(data13baro.ts);
+											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_sea_level), ts);
+										}
+										else
+										{
+											cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (sea level)");
+										}
+									}
+									else if (data13baro.bar_absolute != null)
+									{
 										ts = Utils.FromUnixTime(data13baro.ts);
-										DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_sea_level), ts);
+										var abs = ConvertUnits.PressINHGToHpa((double) data13baro.bar_absolute);
+										abs = cumulus.Calib.Press.Calibrate(abs);
+										var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), abs, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+										DoPressure(ConvertUnits.PressMBToUser(slp), ts);
 									}
 									else
 									{
-										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (high)");
+										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (absolute)");
 									}
 
 									// Altimeter from absolute
 									if (data13baro.bar_absolute != null)
 									{
+										var abs = ConvertUnits.PressINHGToHpa((double) data13baro.bar_absolute);
+										abs = cumulus.StationOptions.CalculateSLP ? cumulus.Calib.Press.Calibrate(abs) : abs;
 										StationPressure = ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute);
 										// Or do we use calibration? The VP2 code doesn't?
-										AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+										AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 									}
 								}
 								catch (Exception ex)

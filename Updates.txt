@@ -2,9 +2,12 @@
 —————————————
 - Force all locales to use the hypen-minus symbol
 - Reload dayfile can now only be run as a single instance
-- Add MX calculates SLP
-	- Applies to HTTP Ecowitt, HTTP Ambient, GW1000, FO, Davis Cloud WLC stations
+- Add "MX calculates Sea Level Pressure"
+	- Applies to HTTP Ecowitt, HTTP Ambient, GW1000, Ecowitt Cloud, FO, Davis Cloud WLC stations
 	- When enabled, the pressure calibration is applied to the raw station pressure
+	- Check your station pressure (Absolute) calibration!
+- Adds true Altimeter Pressure calculation to GW1000, Ecowitt HTTP, Ecowitt Cloud
+	- Check your station pressure (Absolute) calibration!
 - Another attempt to smooth the average speed when ending catch-up on WLL stations
 
 
@@ -70,6 +73,12 @@ New
 	<#ByMonthTempAvg mon=[1-12]>        Mean for requested month over the entire history. Omit the mon parameter for the current month
 	<#MonthTempAvg m=[1-12] y=[YYYY]>   Mean for the requested specific month. Omit the parameters for the current month
 	<#YearTempAvg y=[YYYY]>             Mean for the requested year. Omit the y parameter for the current year
+- Add "MX calculates Sea Level Pressure"
+	- Applies to HTTP Ecowitt, HTTP Ambient, GW1000, Ecowitt Cloud, FO, Davis Cloud WLC stations
+	- When enabled, the pressure calibration is applied to the raw station pressure
+	- Check your station pressure (Absolute) calibration!
+- Adds true Altimeter Pressure calculation to GW1000, Ecowitt HTTP, Ecowitt Cloud
+	- Check your station pressure (Absolute) calibration!
 
 Changed
 - Now requires Microsoft .Net 8.0 rather than mono to run under Linux and MacOS
@@ -101,6 +110,8 @@ Fixed
 - Improvement to GW1000 API reconnects
 - Improved web socket initial connection to send data immediately on dashboard/now/gauges connection
 - Fix for soil moisture conversion from percentage to cb in Weather Cloud uploads
+- Reload dayfile can now only be run as a single instance
+
 
 
 

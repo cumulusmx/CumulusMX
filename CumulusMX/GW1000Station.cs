@@ -725,12 +725,19 @@ namespace CumulusMX
 			try
 			{
 				var id = GW1000Api.ConvertBigEndianUInt32(data, idx + 1);
-				var type = Enum.GetName(typeof(GW1000Api.SensorIds), data[idx]).ToUpper();
+				string type = null;
+				try
+				{
+					type = Enum.GetName(typeof(GW1000Api.SensorIds), data[idx]).ToUpper();
+				} catch
+				{
+					// leave the device id as null
+				}
 				var battPos = idx + 5;
 				var sigPos = idx + 6;
 				if (string.IsNullOrEmpty(type))
 				{
-					type = $"unknown type = {id}";
+					type = $"[unknown sensor = {data[idx]}]";
 				}
 				// Wh65 could be a Wh65 or a Wh24, we found out using the System Info command
 				if (type == "WH65")
@@ -965,6 +972,7 @@ namespace CumulusMX
 							case 0x08: //Absolute Barometric (hPa)
 								tempUint16 = GW1000Api.ConvertBigEndianUInt16(data, idx);
 								StationPressure = ConvertUnits.PressMBToUser(tempUint16 / 10.0);
+								AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(tempUint16 / 10.0, AltitudeM(cumulus.Altitude)));
 
 								if (cumulus.StationOptions.CalculateSLP)
 								{

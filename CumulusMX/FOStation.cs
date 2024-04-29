@@ -313,7 +313,7 @@ namespace CumulusMX
 					histData.inTemp = intemp;
 					// Get pressure and convert to sea level
 					histData.stationPress = (data[7] + (data[8] * 256)) / 10.0f;
-					 
+
 					if (cumulus.StationOptions.CalculateSLP)
 					{
 						histData.stationPress = cumulus.Calib.Press.Calibrate(histData.stationPress);
@@ -596,7 +596,6 @@ namespace CumulusMX
 					CalculateEvapotranspiration(timestamp);
 				}
 
-				UpdatePressureTrendString();
 				UpdateStatusPanel(timestamp);
 				cumulus.AddToWebServiceLists(timestamp);
 				datalist.RemoveAt(datalist.Count - 1);
@@ -1192,8 +1191,6 @@ namespace CumulusMX
 						var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), StationPressure, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 						DoPressure(slp, now);
 					}
-
-					UpdatePressureTrendString();
 				}
 
 				var status = data[15];

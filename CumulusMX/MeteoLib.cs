@@ -404,6 +404,23 @@ namespace CumulusMX
 
 
 		/// <summary>
+		/// Calculates the altimeter pressure
+		/// </summary>
+		/// <param name="pressureHpa">Station pressure in inHg</param>
+		/// <param name="altitudeM">Station altitude in metres</param>
+		/// <returns>Returns the altimeter pressure in hPa</returns>
+		public static double StationToAltimeter(double pressureHPa, double elevationM)
+		{
+			// from MADIS API by NOAA Forecast Systems Lab, see http://madis.noaa.gov/madis_api.html
+
+			double k1 = 0.190284; // discrepancy with calculated k1 probably because Smithsonian used less precise gas constant and gravity values
+			double k2 = 8.4184960528E-5; // (standardLapseRate / standardTempK) * (Power(standardSLP, k1)
+			return Math.Pow(Math.Pow(pressureHPa - 0.3, k1) + (k2 * elevationM), 1 / k1);
+		}
+
+
+
+		/// <summary>
 		/// Calculates the net long wave radiation
 		/// http://www.fao.org/3/x0490e/x0490e07.htm#radiation - equation (39)
 		/// </summary>

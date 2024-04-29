@@ -2821,7 +2821,6 @@ namespace CumulusMX
 								CalculateEvapotranspiration(timestamp);
 							}
 
-							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
 							cumulus.AddToWebServiceLists(timestamp);
 						}

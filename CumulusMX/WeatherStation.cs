@@ -1818,7 +1818,6 @@ namespace CumulusMX
 					}
 
 					DoTrendValues(now);
-					DoPressTrend("Enable Cumulus pressure trend");
 					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
@@ -5551,17 +5550,18 @@ namespace CumulusMX
 					AltimeterPressure = Pressure;
 				}
 			}
+			else if (cumulus.Manufacturer == Cumulus.OREGONUSB)
+			{
+				AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+			}
+			else if (cumulus.StationType == StationTypes.WLL || cumulus.StationType == StationTypes.DavisCloudWll || cumulus.StationType == StationTypes.EcowittCloud || cumulus.StationType == StationTypes.GW1000)
+			{
+				// do nothing, these stations set the Altimeter value
+			}
 			else
 			{
-				if (cumulus.Manufacturer == Cumulus.OREGONUSB)
-				{
-					AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
-				}
-				else
-				{
-					// For all other stations, altimeter is same as sea-level
-					AltimeterPressure = Pressure;
-				}
+				// For all other stations, altimeter is same as sea-level
+				AltimeterPressure = Pressure;
 			}
 
 			first_press = false;
@@ -5623,6 +5623,8 @@ namespace CumulusMX
 				ThisYear.LowPress.Ts = timestamp;
 				WriteYearIniFile();
 			}
+
+			DoPressTrend("Enable Cumulus pressure trend");
 
 			PressReadyToPlot = true;
 			HaveReadData = true;
@@ -6026,16 +6028,6 @@ namespace CumulusMX
 			{
 				return altitude;
 			}
-		}
-
-
-		public static double StationToAltimeter(double pressureHPa, double elevationM)
-		{
-			// from MADIS API by NOAA Forecast Systems Lab, see http://madis.noaa.gov/madis_api.html
-
-			double k1 = 0.190284; // discrepancy with calculated k1 probably because Smithsonian used less precise gas constant and gravity values
-			double k2 = 8.4184960528E-5; // (standardLapseRate / standardTempK) * (Power(standardSLP, k1)
-			return Math.Pow(Math.Pow(pressureHPa - 0.3, k1) + (k2 * elevationM), 1 / k1);
 		}
 
 		public bool PressReadyToPlot { get; set; }

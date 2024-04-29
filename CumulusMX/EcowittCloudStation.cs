@@ -370,8 +370,18 @@ namespace CumulusMX
 					{
 						try
 						{
-							DoPressure(data.pressure.relative.value, Utils.FromUnixTime(data.pressure.relative.time));
 							StationPressure = data.pressure.absolute.value;
+
+							if (cumulus.StationOptions.CalculateSLP)
+							{
+								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
+								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), StationPressure, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+								DoPressure(slp, Utils.FromUnixTime(data.pressure.absolute.time));
+							}
+							else
+							{
+								DoPressure(data.pressure.relative.value, Utils.FromUnixTime(data.pressure.relative.time));
+							}
 						}
 						catch (Exception ex)
 						{
