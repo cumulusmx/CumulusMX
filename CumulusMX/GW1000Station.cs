@@ -831,7 +831,7 @@ namespace CumulusMX
 						batt = $"{battV:f2}V ({(battV > 2.4 ? "OK" : "Low")})";
 						break;
 					case "WS85":
-						// if a WS85 is connected, it has a 8.8 second update rate, so reduce the MX update rate from the default 10 seconds
+						// if a WS85 is connected, it has a 8.5 second update rate, so reduce the MX update rate from the default 10 seconds
 						if (updateRate > 8000 && updateRate != 8000)
 						{
 							cumulus.LogMessage($"PrintSensorInfoNew: WS85 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
