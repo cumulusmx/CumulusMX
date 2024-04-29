@@ -2488,7 +2488,7 @@ namespace CumulusMX
 									if (data13baro.bar_absolute != null)
 									{
 										StationPressure = ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute);
-										AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+										AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 									}
 								}
 								catch (Exception ex)
