@@ -830,7 +830,15 @@ namespace CumulusMX
 						battV = data[battPos] * 0.02;
 						batt = $"{battV:f2}V ({(battV > 2.4 ? "OK" : "Low")})";
 						break;
-
+					case "WS85":
+						// if a WS85 is connected, it has a 8.8 second update rate, so reduce the MX update rate from the default 10 seconds
+						if (updateRate > 8000 && updateRate != 8000)
+						{
+							cumulus.LogMessage($"PrintSensorInfoNew: WS85 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
+							updateRate = 8000;
+						}
+						batt = $"{data[battPos]} ({TestBattery3(data[battPos])})"; // 0-5 (6+9), low = 1
+						break;
 					default:
 						batt = "???";
 						break;
@@ -1768,6 +1776,8 @@ namespace CumulusMX
 		{
 			if (value == 6)
 				return "DC";
+			if (value == 9)
+				return "OFF";
 			return value > 1 ? "OK" : "Low";
 		}
 
