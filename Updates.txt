@@ -9,6 +9,7 @@
 - Adds true Altimeter Pressure calculation to GW1000, HTTP Ecowitt, Ecowitt Cloud
 	- Check your station pressure (Absolute) calibration!
 - Another attempt to smooth the average speed when ending catch-up on WLL stations
+- Fix web tags #MonthTempAvg, and #ByMonthTempAvg for cases where there is no data, and the 1st of the current month (#MonthTempAvg)
 
 
 4.0.0 - b4020

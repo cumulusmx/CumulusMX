@@ -2613,7 +2613,16 @@ namespace CumulusMX
 		private string TagByMonthTempAvg(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var avg = station.DayFile.Where(rec => rec.Date.Month == month).Average(rec => rec.AvgTemp);
+			double avg;
+			try
+			{
+				avg = station.DayFile.Where(rec => rec.Date.Month == month).Average(rec => rec.AvgTemp);
+			}
+			catch
+			{
+				// no data found
+				return "-";
+			}
 			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
@@ -3581,7 +3590,24 @@ namespace CumulusMX
 				start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
 			}
 
-			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
+			if (start.Date == DateTime.Now.AddHours(cumulus.GetHourInc()).Date)
+			{
+				// first day of the currebt month, there are no dayfile entries
+				// so return the average temp so far today
+				return Tagavgtemp(tagParams);
+			}
+
+			double avg;
+			try
+			{
+				avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
+			}
+			catch
+			{
+				// no data found
+				return "-";
+			}
+
 			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
