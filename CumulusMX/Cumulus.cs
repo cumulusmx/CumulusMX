@@ -10424,7 +10424,7 @@ namespace CumulusMX
 		// Return False if the connection is disposed, null, or not connected
 		private bool UploadFile(FtpClient conn, string localfile, string remotefile, int cycle = -1)
 		{
-			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
+			string cycleStr = cycle == -1 ? "Int" : (cycle == 9999 ? "NOAA" : cycle.ToString());
 
 			LogFtpMessage("");
 
@@ -10458,7 +10458,7 @@ namespace CumulusMX
 
 		private bool UploadFile(SftpClient conn, string localfile, string remotefile, int cycle = -1)
 		{
-			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
+			string cycleStr = cycle == -1 ? "Int" : (cycle == 9999 ? "NOAA" : cycle.ToString());
 
 			if (!File.Exists(localfile))
 			{
@@ -10517,7 +10517,7 @@ namespace CumulusMX
 
 		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle = -1, bool binary = false, bool utf8 = true)
 		{
-			var prefix = cycle >= 0 ? $"RealtimePHP[{cycle}]" : "PHP[Int]";
+			var prefix = cycle == -1 ? "PHP[Int]" : (cycle == 9999 ? "PHP[NOAA]" : $"RealtimePHP[{cycle}]");
 
 			if (!File.Exists(localfile))
 			{
@@ -10575,7 +10575,7 @@ namespace CumulusMX
 		private bool UploadStream(FtpClient conn, string remotefile, Stream dataStream, int cycle = -1)
 		{
 			string remotefiletmp = FTPRename ? remotefile + "tmp" : remotefile;
-			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
+			string cycleStr = cycle == -1 ? "Int" : (cycle == 9999 ? "NOAA" : cycle.ToString());
 
 			try
 			{
@@ -11191,6 +11191,310 @@ namespace CumulusMX
 
 			return false;
 		}
+
+
+		public async Task DoSingleNoaaUpload(string filename)
+		{
+			var uploadfile = ReportPath + filename;
+			var remotefile = NOAAconf.FtpFolder + '/' + filename;
+
+			if (!FtpOptions.Enabled)
+				return;
+
+			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+			{
+				ConnectionInfo connectionInfo;
+				if (FtpOptions.SshAuthen == "password")
+				{
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
+					LogFtpDebugMessage("SFTP[NOAA]: Connecting using password authentication");
+				}
+				else if (FtpOptions.SshAuthen == "psk")
+				{
+					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
+					LogFtpDebugMessage("SFTP[NOAA]: Connecting using PSK authentication");
+				}
+				else if (FtpOptions.SshAuthen == "password_psk")
+				{
+					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
+					LogFtpDebugMessage("SFTP[NOAA]: Connecting using password or PSK authentication");
+				}
+				else
+				{
+					LogFtpMessage($"SFTP[NOAA]: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]");
+					return;
+				}
+
+				try
+				{
+					using SftpClient conn = new SftpClient(connectionInfo);
+					try
+					{
+						LogFtpDebugMessage($"SFTP[NOAA]: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
+						conn.Connect();
+						if (ServicePointManager.DnsRefreshTimeout == 0)
+						{
+							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
+						}
+					}
+					catch (Exception ex)
+					{
+						LogFtpMessage($"SFTP[NOAA]: Error connecting SFTP - {ex.Message}");
+
+						FtpAlarm.LastMessage = "Error connecting SFTP - " + ex.Message;
+						FtpAlarm.Triggered = true;
+
+						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
+						{
+							// Disable the DNS cache for the next query
+							ServicePointManager.DnsRefreshTimeout = 0;
+						}
+						return;
+					}
+
+					if (conn.IsConnected)
+					{
+						LogFtpDebugMessage($"SFTP[NOAA]: CumulusMX Connected to {FtpOptions.Hostname} OK");
+						try
+						{
+							// upload NOAA reports
+							LogFtpDebugMessage("SFTP[NOAA]: Uploading NOAA report " + filename);
+
+							UploadFile(conn, uploadfile, remotefile, 9999);
+
+							LogFtpDebugMessage("SFTP[NOAA]: Done uploading NOAA report " + filename);
+						}
+						catch (Exception e)
+						{
+							LogFtpMessage($"SFTP[NOAA]: Error uploading file {filename} - {e.Message}");
+							FtpAlarm.LastMessage = "Error uploading NOAA report file - " + e.Message;
+							FtpAlarm.Triggered = true;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage($"SFTP[NOAA]: Error using SFTP connection - {ex.Message}");
+				}
+				LogFtpDebugMessage("SFTP[NOAA]: Upload process complete");
+			}
+			else if (FtpOptions.FtpMode == FtpProtocols.FTP || (FtpOptions.FtpMode == FtpProtocols.FTPS))
+			{
+				using (FtpClient conn = new FtpClient())
+				{
+					if (FtpOptions.Logging)
+					{
+						conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+					}
+
+					LogFtpMessage(""); // insert a blank line
+					LogFtpDebugMessage($"FTP[NOAA]: CumulusMX Connecting to " + FtpOptions.Hostname);
+					conn.Host = FtpOptions.Hostname;
+					conn.Port = FtpOptions.Port;
+					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
+					conn.Config.LogPassword = false;
+
+					if (!FtpOptions.AutoDetect)
+					{
+
+						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+						{
+							// Explicit = Current protocol - connects using FTP and switches to TLS
+							// Implicit = Old depreciated protocol - connects using TLS
+							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+							conn.Config.DataConnectionEncryption = true;
+						}
+
+						if (FtpOptions.ActiveMode)
+						{
+							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
+						}
+						else if (FtpOptions.DisableEPSV)
+						{
+							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
+						}
+					}
+
+					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+					{
+						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
+					}
+
+					try
+					{
+						if (FtpOptions.AutoDetect)
+						{
+							conn.AutoConnect();
+						}
+						else
+						{
+							conn.Connect();
+						}
+
+						if (ServicePointManager.DnsRefreshTimeout == 0)
+						{
+							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
+						}
+					}
+					catch (Exception ex)
+					{
+						LogFtpMessage("FTP[NOAA]: Error connecting ftp - " + ex.Message);
+
+						FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
+						FtpAlarm.Triggered = true;
+
+						if (ex.InnerException != null)
+						{
+							ex = Utils.GetOriginalException(ex);
+							LogFtpMessage($"FTP[NOAA]: Base exception - {ex.Message}");
+						}
+
+						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
+						{
+							// Disable the DNS cache for the next query
+							ServicePointManager.DnsRefreshTimeout = 0;
+						}
+						return;
+					}
+
+					if (conn.IsConnected)
+					{
+						try
+						{
+							// upload NOAA reports
+							LogFtpMessage("");
+							LogFtpDebugMessage("FTP[NOAA]: Uploading NOAA report" + filename);
+
+							UploadFile(conn, uploadfile, remotefile, 9999);
+
+							LogFtpDebugMessage($"FTP[NOAA]: Upload of NOAA report {filename} complete");
+						}
+						catch (Exception e)
+						{
+							LogFtpMessage($"FTP[NOAA]: Error uploading NOAA file: {e.Message}");
+							FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
+							FtpAlarm.Triggered = true;
+						}
+					}
+
+					// b3045 - dispose of connection
+					conn.Disconnect();
+					LogFtpDebugMessage("FTP[NOAA]: Disconnected from " + FtpOptions.Hostname);
+				}
+				LogFtpMessage("FTP[NOAA]: Process complete");
+			}
+			else if (FtpOptions.FtpMode == FtpProtocols.PHP)
+			{
+				LogDebugMessage("PHP[NOAA]: Upload process starting");
+
+				var tasklist = new List<Task>();
+				var taskCount = 0;
+				var runningTaskCount = 0;
+
+				// do we perform a second chance compresssion test?
+				if (FtpOptions.PhpCompression == "notchecked")
+				{
+					TestPhpUploadCompression();
+				}
+
+				// upload NOAA report
+				try
+				{
+#if DEBUG
+					LogDebugMessage($"PHP[NOAA]: NOAA report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					LogDebugMessage($"PHP[NOAA]: NOAA report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+				}
+				catch (OperationCanceledException)
+				{
+					return;
+				}
+
+				Interlocked.Increment(ref taskCount);
+
+				tasklist.Add(Task.Run(async () =>
+				{
+					if (cancellationToken.IsCancellationRequested)
+						return false;
+
+					try
+					{
+
+						LogDebugMessage("PHP[NOAA]: Uploading NOAA report" + filename);
+
+						_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, 9999, false, NOAAconf.UseUtf8);
+
+					}
+					catch (Exception ex)
+					{
+						LogExceptionMessage(ex, $"PHP[NOAA]: Error uploading NOAA file " + filename);
+						FtpAlarm.LastMessage = $"Error uploading NOAA file - {ex.Message}";
+						FtpAlarm.Triggered = true;
+					}
+					finally
+					{
+						uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+						LogDebugMessage($"PHP[NOAA]: NOAA report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+					}
+
+					// no void return which cannot be tracked
+					return true;
+				}, cancellationToken));
+
+				Interlocked.Increment(ref runningTaskCount);
+
+				// wait for all the files to start
+				while (runningTaskCount < taskCount)
+				{
+					if (cancellationToken.IsCancellationRequested)
+					{
+						LogDebugMessage($"PHP[NOAA]: Upload process aborted");
+						return;
+					}
+					await Task.Delay(10);
+				}
+				// wait for all the EOD files to complete
+				try
+				{
+					// wait for all the tasks to complete, or timeout
+					if (Task.WaitAll([.. tasklist], TimeSpan.FromSeconds(30)))
+					{
+						LogDebugMessage($"PHP[NOAA]: Upload process complete, {tasklist.Count} files processed");
+					}
+					else
+					{
+						LogErrorMessage("PHP[NOAA]: Upload process complete timed out waiting for tasks to complete");
+					}
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, "PHP[NOAA]: Error waiting on upload tasks");
+					FtpAlarm.LastMessage = "Error waiting on upload tasks";
+					FtpAlarm.Triggered = true;
+				}
+
+				if (cancellationToken.IsCancellationRequested)
+				{
+					LogDebugMessage($"PHP[NOAA]: Upload process aborted");
+					return;
+				}
+
+				LogDebugMessage($"PHP[NOAA]: Upload process complete");
+				tasklist.Clear();
+
+				return;
+			}
+		}
+
+
+
 
 		public void LogMessage(string message, MxLogLevel level = MxLogLevel.Info)
 		{

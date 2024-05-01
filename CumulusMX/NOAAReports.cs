@@ -4,6 +4,8 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
+using HidSharp.Reports;
+
 namespace CumulusMX
 {
 	internal class NOAAReports(Cumulus cumulus, WeatherStation station)
@@ -264,6 +266,25 @@ namespace CumulusMX
 				return cumulus.ReportPath + logfiledate.AddHours(-1).ToString(cumulus.NOAAconf.MonthFile);
 			else
 				return logfiledate.AddHours(-1).ToString(cumulus.NOAAconf.MonthFile);
+		}
+
+		public string UploadNoaaReport(int year, int month=-1)
+		{
+			DateTime noaats = month == -1 ? new DateTime(year, 1, 1) : new DateTime(year, month, 1);
+			var reportName = string.Empty;
+			string result;
+			try
+			{
+				reportName = month == -1 ? noaats.ToString(cumulus.NOAAconf.YearFile) : noaats.ToString(cumulus.NOAAconf.MonthFile);
+				_ = cumulus.DoSingleNoaaUpload(reportName);
+				result = "Uploading, check log for progress";
+			}
+			catch (Exception e)
+			{
+				cumulus.LogErrorMessage($"Error processing NOAA report '{reportName}': {e.Message}");
+				result = "Something went wrong!";
+			}
+			return result;
 		}
 
 		private DateTime GetLastReportDate()
