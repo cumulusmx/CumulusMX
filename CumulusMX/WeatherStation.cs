@@ -185,9 +185,6 @@ namespace CumulusMX
 		public double[] WMR928ExtraDPValues = [0.0, 0.0, 0.0, 0.0];
 		public int[] WMR928ExtraHumValues = [0, 0, 0, 0];
 
-		// random number generator - used for things like random back-off delays
-		internal Random random = new();
-
 		public DateTime AlltimeRecordTimestamp { get; set; }
 
 		public BackgroundWorker bw;
@@ -442,8 +439,7 @@ namespace CumulusMX
 			// preload the failed sql cache - if any
 			ReloadFailedMySQLCommands();
 
-			var rnd = new Random();
-			versionCheckTime = new DateTime(1, 1, 1, rnd.Next(0, 23), rnd.Next(0, 59), 0, DateTimeKind.Local);
+			versionCheckTime = new DateTime(1, 1, 1, Program.RandGenerator.Next(0, 23), Program.RandGenerator.Next(0, 59), 0, DateTimeKind.Local);
 
 			SensorReception = [];
 		}

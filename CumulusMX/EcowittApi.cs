@@ -206,7 +206,7 @@ namespace CumulusMX
 				do
 				{
 					// we want to do this synchronously, so .Result
-					using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
+					using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
 					{
 						responseBody = response.Content.ReadAsStringAsync(token).Result;
 						responseCode = (int) response.StatusCode;
@@ -1957,7 +1957,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
+				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2131,7 +2131,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
+				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2281,7 +2281,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
+				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2406,7 +2406,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
+				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2514,6 +2514,8 @@ namespace CumulusMX
 		{
 			// Credit: https://www.wxforum.net/index.php?topic=46414.msg469692#msg469692
 
+			await Task.Delay(Program.RandGenerator.Next(0, 5000));
+
 			cumulus.LogMessage("API.GetLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
 
 			if (model == null || !FirmwareSupportedModels.Contains(model[0..6]))
@@ -2543,7 +2545,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = await Cumulus.MyHttpClient.GetAsync(url, token))
+				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2644,7 +2646,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = await Cumulus.MyHttpClient.GetAsync(simpleFirmwareUrl, token))
+				using (var response = await cumulus.MyHttpClient.GetAsync(simpleFirmwareUrl, token))
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2681,9 +2683,8 @@ namespace CumulusMX
 
 		private static string GetRandomMacAddress()
 		{
-			var random = new Random();
 			var buffer = new byte[6];
-			random.NextBytes(buffer);
+			Program.RandGenerator.NextBytes(buffer);
 			var result = String.Concat(buffer.Select(x => string.Format("{0}:", x.ToString("X2"))).ToArray());
 			return result.TrimEnd(':');
 		}

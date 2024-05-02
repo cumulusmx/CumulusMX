@@ -403,7 +403,7 @@ namespace CumulusMX
 
 						string responseBody;
 
-						using (var response = await Cumulus.MyHttpClient.GetAsync(urlRealtime))
+						using (var response = await cumulus.MyHttpClient.GetAsync(urlRealtime))
 						{
 							responseBody = await response.Content.ReadAsStringAsync();
 							responseBody = responseBody.TrimEnd('\r', '\n');
@@ -478,7 +478,7 @@ namespace CumulusMX
 					try
 					{
 						string responseBody;
-						using (var response = await Cumulus.MyHttpClient.GetAsync(urlCurrent))
+						using (var response = await cumulus.MyHttpClient.GetAsync(urlCurrent))
 						{
 							response.EnsureSuccessStatusCode();
 							responseBody = await response.Content.ReadAsStringAsync();
@@ -1509,7 +1509,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -2818,7 +2818,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -2967,7 +2967,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// We want to do this synchronously
-				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -3053,7 +3053,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// We want to do this synchronously
-				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -3165,7 +3165,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("GetSystemStatus: Getting WeatherLink.com system status");
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync("https://0886445102835570.hostedstatus.com/1.0/status/600712dea9c1290530967bc6").Result)
+				using (var response = cumulus.MyHttpClient.GetAsync("https://0886445102835570.hostedstatus.com/1.0/status/600712dea9c1290530967bc6").Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;

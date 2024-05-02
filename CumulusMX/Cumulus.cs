@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -407,8 +408,8 @@ namespace CumulusMX
 
 		internal MxWebSocket WebSock;
 
-		internal static readonly HttpClient MyHttpClient = new();
-		internal static readonly HttpClientHandler MyHttpHandler = new();
+		internal SocketsHttpHandler MyHttpSocketsHttpHandler;
+		internal HttpClient MyHttpClient;
 
 		// Custom HTTP - seconds
 		private bool updatingCustomHttpSeconds;
@@ -430,7 +431,7 @@ namespace CumulusMX
 		internal string[] CustomHttpRolloverStrings = new string[10];
 
 		// PHP upload HTTP
-		internal HttpClientHandler phpUploadHttpHandler;
+		internal SocketsHttpHandler phpUploadSocketHandler;
 		internal HttpClient phpUploadHttpClient;
 
 		internal Thread ftpThread;
@@ -1185,9 +1186,9 @@ namespace CumulusMX
 
 			ReadStringsFile();
 
-			MyHttpClient.Timeout = new TimeSpan(0, 0, 15);  // 15 second timeout on all http calls
-
 			SetUpHttpProxy();
+
+			SetupMyHttpClient();
 
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
@@ -1562,37 +1563,53 @@ namespace CumulusMX
 			if (!string.IsNullOrEmpty(HTTPProxyName))
 			{
 				var proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				MyHttpHandler.Proxy = proxy;
-				MyHttpHandler.UseProxy = true;
+				MyHttpSocketsHttpHandler.Proxy = proxy;
+				MyHttpSocketsHttpHandler.UseProxy = true;
 
-				phpUploadHttpHandler.Proxy = proxy;
-				phpUploadHttpHandler.UseProxy = true;
+				phpUploadSocketHandler.Proxy = proxy;
+				phpUploadSocketHandler.UseProxy = true;
 
 				if (!string.IsNullOrEmpty(HTTPProxyUser))
 				{
 					var creds = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-					MyHttpHandler.Credentials = creds;
-					phpUploadHttpHandler.Credentials = creds;
+					MyHttpSocketsHttpHandler.Credentials = creds;
+					phpUploadSocketHandler.Credentials = creds;
 				}
 			}
 		}
 
 		internal void SetupPhpUploadClients()
 		{
-			phpUploadHttpHandler = new HttpClientHandler
+			var sslOptions = new SslClientAuthenticationOptions()
 			{
-				ClientCertificateOptions = ClientCertificateOption.Manual,
-				ServerCertificateCustomValidationCallback = (sender, cert, chain, errors) =>
-				{
-					return FtpOptions.PhpIgnoreCertErrors || errors == System.Net.Security.SslPolicyErrors.None;
-				},
+				RemoteCertificateValidationCallback = delegate { return FtpOptions.PhpIgnoreCertErrors; }
+			};
+
+
+			phpUploadSocketHandler = new SocketsHttpHandler()
+			{
+				PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+				SslOptions = sslOptions,
 				MaxConnectionsPerServer = Properties.Settings.Default.PhpMaxConnections,
 				AllowAutoRedirect = false
 			};
 
-			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler)
+			phpUploadHttpClient = new HttpClient(phpUploadSocketHandler)
 			{
-				// 5 second timeout
+				// 15 second timeout
+				Timeout = TimeSpan.FromSeconds(15)
+			};
+		}
+
+		internal void SetupMyHttpClient()
+		{
+			MyHttpSocketsHttpHandler = new SocketsHttpHandler()
+			{
+				PooledConnectionLifetime = TimeSpan.FromMinutes(4)
+			};
+
+			MyHttpClient = new HttpClient(MyHttpSocketsHttpHandler)
+			{
 				Timeout = TimeSpan.FromSeconds(15)
 			};
 		}

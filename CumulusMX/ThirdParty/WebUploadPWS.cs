@@ -19,6 +19,9 @@ namespace CumulusMX.ThirdParty
 			{
 				Updating = true;
 
+				// Random jitter
+				await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+
 				string pwstring;
 				string URL = GetURL(out pwstring, timestamp);
 
@@ -29,7 +32,7 @@ namespace CumulusMX.ThirdParty
 
 				try
 				{
-					using var response = await Cumulus.MyHttpClient.GetAsync(URL);
+					using var response = await cumulus.MyHttpClient.GetAsync(URL);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					if (response.StatusCode != HttpStatusCode.OK)
 					{

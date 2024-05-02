@@ -1550,7 +1550,7 @@ namespace CumulusMX
 						{
 							using var request = new HttpRequestMessage(HttpMethod.Post, url);
 							request.Content = new StringContent(data, encoding, "application/x-www-form-urlencoded");
-							using var response = await Cumulus.MyHttpClient.SendAsync(request);
+							using var response = await cumulus.MyHttpClient.SendAsync(request);
 							cumulus.LogDebugMessage($"ForwardData: Forward to {url}: Result: {response.StatusCode}");
 						}
 						catch (Exception ex)

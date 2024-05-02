@@ -21,6 +21,9 @@ namespace CumulusMX.ThirdParty
 
 			Updating = true;
 
+			// Random jitter
+			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+
 			string apistring;
 			string url = GetURL(out apistring, timestamp);
 			string logUrl = url.Replace(apistring, "<<API_KEY>>");
@@ -29,7 +32,7 @@ namespace CumulusMX.ThirdParty
 
 			try
 			{
-				using var response = await Cumulus.MyHttpClient.GetAsync(url);
+				using var response = await cumulus.MyHttpClient.GetAsync(url);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync();
 				cumulus.LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
 				if (response.StatusCode != HttpStatusCode.OK)

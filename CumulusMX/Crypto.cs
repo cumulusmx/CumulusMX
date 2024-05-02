@@ -35,8 +35,7 @@ namespace CumulusMX
 		public static byte[] GenerateKey()
 		{
 			var key = new byte[256 / 8]; // use 256 bits
-			var rnd = new Random();
-			rnd.NextBytes(key);
+			Program.RandGenerator.NextBytes(key);
 			return key;
 		}
 

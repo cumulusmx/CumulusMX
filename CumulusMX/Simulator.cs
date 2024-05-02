@@ -11,7 +11,6 @@ namespace CumulusMX
 
 		private readonly int dataUpdateRate = 5000; // 5 second data update rate
 
-		private new readonly Random random;
 		private bool solarIntialised;
 
 		public Simulator(Cumulus cumulus) : base(cumulus)
@@ -20,8 +19,6 @@ namespace CumulusMX
 			cumulus.LogMessage("Station type = Simulator");
 
 			cumulus.LogMessage("Last update time = " + cumulus.LastUpdateTime);
-
-			random = new Random();
 
 			currData = new DataSet();
 
@@ -126,7 +123,7 @@ namespace CumulusMX
 
 		private void doSolar(DateTime recDate)
 		{
-			// For the solar random walk we are chasing the theoretical solat max value
+			// For the solar Program.RandGenerator walk we are chasing the theoretical solat max value
 			double solar = SolarRad;
 
 			// if we are starting up, set the intial solar rad value to 90% of theoretical
@@ -161,7 +158,7 @@ namespace CumulusMX
 				volatility = 30;
 
 			solar -= (solar - CurrentSolarMax * factor) * 0.02;
-			solar += volatility * (2 * random.NextDouble() - 1);
+			solar += volatility * (2 * Program.RandGenerator.NextDouble() - 1);
 			if (solar < 0 || CurrentSolarMax == 0)
 				solar = 0;
 			DoSolarRad((int) solar, recDate);
@@ -241,7 +238,6 @@ namespace CumulusMX
 
 			private double _value;
 			private bool _initialised = false;
-			private readonly Random _random = new();
 
 			public double GetValue(DateTime date)
 			{
@@ -253,7 +249,7 @@ namespace CumulusMX
 
 
 				_value -= (_value - _meanCurve(date)) * _meanReversion;
-				_value += _volatility(date) * (2 * _random.NextDouble() - 1);
+				_value += _volatility(date) * (2 * Program.RandGenerator.NextDouble() - 1);
 				if (_value < _cropMin) return _cropMin;
 				if (_value > _cropMax) return _cropMax;
 				return _value;

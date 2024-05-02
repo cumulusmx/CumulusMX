@@ -26,7 +26,6 @@ namespace CumulusMX
 		private readonly Dictionary<int, long> lsidLastUpdate = [];
 
 		private bool startingUp = true;
-		private new readonly Random random = new();
 		private DateTime lastRecordTime = DateTime.MinValue;
 
 		public DavisCloudStation(Cumulus cumulus) : base(cumulus)
@@ -254,7 +253,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// we want to do this synchronously, so .Result
-				using (var response = await Cumulus.MyHttpClient.SendAsync(request))
+				using (var response = await cumulus.MyHttpClient.SendAsync(request))
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -489,7 +488,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -2278,7 +2277,7 @@ namespace CumulusMX
 								if (current)
 								{
 									// we do not have the latest value, so set a pseudo value between average and gust
-									WindLatest = random.Next((int) WindAverage, (int) RecentMaxGust);
+									WindLatest = Program.RandGenerator.Next((int) WindAverage, (int) RecentMaxGust);
 								}
 							}
 							catch (Exception ex)
@@ -2839,7 +2838,7 @@ namespace CumulusMX
 									if (current)
 									{
 										// we do not have the latest value, so set a pseudo value between average and gust
-										WindLatest = random.Next((int) WindAverage, (int) RecentMaxGust);
+										WindLatest = Program.RandGenerator.Next((int) WindAverage, (int) RecentMaxGust);
 									}
 
 								}
@@ -3635,7 +3634,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// We want to do this synchronously
-				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -3725,7 +3724,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// We want to do this synchronously
-				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -3795,7 +3794,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("GetSystemStatus: Getting WeatherLink.com system status");
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync("https://0886445102835570.hostedstatus.com/1.0/status/600712dea9c1290530967bc6").Result)
+				using (var response = cumulus.MyHttpClient.GetAsync("https://0886445102835570.hostedstatus.com/1.0/status/600712dea9c1290530967bc6").Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
