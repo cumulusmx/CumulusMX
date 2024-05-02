@@ -1583,6 +1583,7 @@ namespace CumulusMX
 					}
 					else
 					{
+						cumulus.FirmwareAlarm.Triggered = false;
 						cumulus.LogDebugMessage($"FirmwareVersion: Already on the latest Version {retVal[0]}");
 					}
 				}

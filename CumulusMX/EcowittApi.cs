@@ -2514,10 +2514,6 @@ namespace CumulusMX
 		{
 			// Credit: https://www.wxforum.net/index.php?topic=46414.msg469692#msg469692
 
-			await Task.Delay(Program.RandGenerator.Next(0, 5000));
-
-			cumulus.LogMessage("API.GetLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
-
 			if (model == null || !FirmwareSupportedModels.Contains(model[0..6]))
 			{
 				cumulus.LogMessage($"API.GetLatestFirmwareVersion: Your model - {model ?? "null"} - is not not currently supported");
@@ -2529,6 +2525,10 @@ namespace CumulusMX
 				cumulus.LogMessage("API.GetLatestFirmwareVersion: No version supplied, cannot continue");
 				return null;
 			}
+
+			await Task.Delay(Program.RandGenerator.Next(0, 5000), token);
+
+			cumulus.LogMessage("API.GetLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
 
 			mac ??= GetRandomMacAddress();
 			var url = $"id={Uri.EscapeDataString(mac.ToUpper())}&model={model}&time={DateTime.Now.ToUnixTime()}&user=1&version={version}";
@@ -2581,9 +2581,13 @@ namespace CumulusMX
 						{
 							case "The firmware is up to date":
 								cumulus.LogMessage($"API.GetLatestFirmwareVersion: No update required, already on the latest version: {version}");
+								cumulus.FirmwareAlarm.Triggered = false;
 								return version;
 							case "Operation too frequent":
-								cumulus.LogMessage("API.GetLatestFirmwareVersion: Operation throttled");
+								cumulus.LogMessage("API.GetLatestFirmwareVersion: Operation throttled, retrying later...");
+								// delay 5 minutes and try again
+								await Task.Delay(5 * 60 * 1000, token);
+								await GetLatestFirmwareVersion(model, mac,version, token);
 								return null;
 							default:
 								cumulus.LogMessage($"API.GetLatestFirmwareVersion: {retObj.msg}");

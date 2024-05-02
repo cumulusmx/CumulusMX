@@ -14,6 +14,8 @@
 - Third-party web uploads
 	- Add random jitter
 	- Set HttpClient Pool lifetime to four minutes
+- Ecowitt firmware check now clears the alarm after a firmware update
+- Add retry to Ecowitt firmware check on "Operation too frequent"
 
 
 4.0.0 - b4020
