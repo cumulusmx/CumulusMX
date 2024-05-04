@@ -144,7 +144,6 @@ namespace CumulusMX
 					DoOutdoorDewpoint(ConvertUnits.TempCToUser(GetConvertedValue(st[EW_DEW_POINT])), now);
 
 					DoPressure(ConvertUnits.PressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), now);
-					UpdatePressureTrendString();
 
 					StationPressure = ConvertUnits.PressMBToUser(GetConvertedValue(st[EW_ABS_PRESSURE]));
 

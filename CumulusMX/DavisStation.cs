@@ -2116,7 +2116,7 @@ namespace CumulusMX
 					{
 						previousPressStation = pressMB;
 						StationPressure = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
-						AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+						AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 					}
 					else
 					{
@@ -2821,7 +2821,6 @@ namespace CumulusMX
 								CalculateEvapotranspiration(timestamp);
 							}
 
-							UpdatePressureTrendString();
 							UpdateStatusPanel(timestamp);
 							cumulus.AddToWebServiceLists(timestamp);
 						}
@@ -3159,6 +3158,7 @@ namespace CumulusMX
 
 				// now we have purged any data, test the connection
 				int tryCount = 1;
+				var resp = string.Empty;
 				do
 				{
 					// write TEST, we expect to get "\n\rTEST\n\r" back
@@ -3177,7 +3177,7 @@ namespace CumulusMX
 							bytesRead++;
 						} while (comport.BytesToRead > 0 || bytesRead < 8);
 
-						var resp = Encoding.ASCII.GetString(readBuffer);
+						resp = Encoding.ASCII.GetString(readBuffer);
 						cumulus.LogDataMessage($"InitSerial: TEST ({tryCount}) received - '{BitConverter.ToString(readBuffer.Take(bytesRead).ToArray())}'");
 
 						if (resp.Contains("TEST"))
@@ -3198,7 +3198,7 @@ namespace CumulusMX
 
 				} while (tryCount < 5);
 
-				if (tryCount < 5)
+				if (resp.Contains("TEST"))
 				{
 					awakeStopWatch.Restart();
 					cumulus.LogMessage("InitSerial: Connection confirmed");

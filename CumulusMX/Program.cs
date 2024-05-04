@@ -27,6 +27,8 @@ namespace CumulusMX
 		private static bool RunningOnWindows;
 		public static bool debug { get; set; } = false;
 
+		public static Random RandGenerator { get; } = new Random();
+
 		private static async Task Main(string[] args)
 		{
 			StartTime = DateTime.Now;

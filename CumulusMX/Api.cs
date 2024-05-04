@@ -1368,6 +1368,61 @@ namespace CumulusMX
 					cumulus.LogErrorMessage($"api/genreports: Unexpected Error, ErrorCode: {ex.GetType().Name}, Description: \"{ex.Message}\"");
 				}
 			}
+
+			[Route(HttpVerbs.Get, "/uploadreport/{req}")]
+			public async Task UploadReport(string req)
+			{
+				try
+				{
+					NOAAReports noaarpts = new NOAAReports(cumulus, Station);
+
+					if (!(await Authenticate(HttpContext)))
+					{
+						return;
+					}
+
+					var query = HttpUtility.ParseQueryString(Request.Url.Query);
+					int month, year;
+					Response.ContentType = "text/plain";
+
+					using var writer = HttpContext.OpenResponseText(new UTF8Encoding(false));
+					switch (req)
+					{
+						case "noaayear":
+							if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+							{
+								await writer.WriteAsync("Invalid year supplied: " + year);
+								Response.StatusCode = 406;
+								return;
+							}
+							await writer.WriteAsync(noaarpts.UploadNoaaReport(year));
+							break;
+						case "noaamonth":
+							if (!Int32.TryParse(query["year"], out year) || year < 2000 || year > 2050)
+							{
+								await writer.WriteAsync("Invalid year supplied: " + year);
+								Response.StatusCode = 406;
+								return;
+							}
+							if (!Int32.TryParse(query["month"], out month) || month < 1 || month > 12)
+							{
+								await writer.WriteAsync("Invalid month supplied: " + month);
+								Response.StatusCode = 406;
+								return;
+							}
+							await writer.WriteAsync(noaarpts.UploadNoaaReport(year, month));
+							break;
+						default:
+							Response.StatusCode = 404;
+							throw new ArgumentException("Unknown request: " + req);
+					}
+				}
+				catch (Exception ex)
+				{
+					Response.StatusCode = 500;
+					cumulus.LogErrorMessage($"api/uploadreport: Unexpected Error, ErrorCode: {ex.GetType().Name}, Description: \"{ex.Message}\"");
+				}
+			}
 		}
 
 		// HTTP Station

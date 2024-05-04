@@ -36,7 +36,7 @@ namespace CumulusMX.ThirdParty
 				try
 				{
 					var data = new StringContent(CatchupList[i], Encoding.UTF8, "application/json");
-					using var response = await Cumulus.MyHttpClient.PostAsync(url, data);
+					using var response = await cumulus.MyHttpClient.PostAsync(url, data);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
 					cumulus.LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
@@ -67,6 +67,9 @@ namespace CumulusMX.ThirdParty
 
 			Updating = true;
 
+			// Random jitter
+			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+
 			string url = "https://api.openweathermap.org/data/3.0/measurements?appid=" + PW;
 			string logUrl = url.Replace(PW, "<key>");
 
@@ -78,7 +81,7 @@ namespace CumulusMX.ThirdParty
 			try
 			{
 				var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
-				HttpResponseMessage response = await Cumulus.MyHttpClient.PostAsync(url, data);
+				HttpResponseMessage response = await cumulus.MyHttpClient.PostAsync(url, data);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync();
 				var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
 				cumulus.LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
@@ -179,7 +182,7 @@ namespace CumulusMX.ThirdParty
 
 				var data = new StringContent(sb.ToString(), Encoding.UTF8, "application/json");
 
-				HttpResponseMessage response = Cumulus.MyHttpClient.PostAsync(url, data).Result;
+				HttpResponseMessage response = cumulus.MyHttpClient.PostAsync(url, data).Result;
 				var responseBodyAsText = response.Content.ReadAsStringAsync().Result;
 				var status = response.StatusCode == HttpStatusCode.Created ? "OK" : "Error";  // Returns a 201 response for OK
 				cumulus.LogDebugMessage($"OpenWeatherMap: Create station response code = {status} - {response.StatusCode}");

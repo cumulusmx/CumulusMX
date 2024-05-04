@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.Text;
 
+using static System.Collections.Specialized.BitVector32;
+
 namespace CumulusMX
 {
 	internal class EcowittApi
@@ -204,7 +206,7 @@ namespace CumulusMX
 				do
 				{
 					// we want to do this synchronously, so .Result
-					using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
+					using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
 					{
 						responseBody = response.Content.ReadAsStringAsync(token).Result;
 						responseCode = (int) response.StatusCode;
@@ -608,6 +610,30 @@ namespace CumulusMX
 							}
 						}
 					}
+
+					// absolute
+					if (data.pressure.absolute != null && data.pressure.absolute.list != null)
+					{
+						foreach (var item in data.pressure.absolute.list)
+						{
+							var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
+							{
+								value.StationPressure = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ StationPressure = item.Value };
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+
 				}
 				catch (Exception ex)
 				{
@@ -1366,7 +1392,6 @@ namespace CumulusMX
 				}
 
 				station.DoTrendValues(rec.Key);
-				station.UpdatePressureTrendString();
 				station.UpdateStatusPanel(rec.Key);
 				cumulus.AddToWebServiceLists(rec.Key);
 
@@ -1442,13 +1467,34 @@ namespace CumulusMX
 			{
 				if (rec.Value.Pressure.HasValue)
 				{
-					var pressVal = (double) rec.Value.Pressure;
-					station.DoPressure(pressVal, rec.Key);
-					station.UpdatePressureTrendString();
+					if (!cumulus.StationOptions.CalculateSLP)
+					{
+						var pressVal = (double) rec.Value.Pressure;
+						station.DoPressure(pressVal, rec.Key);
+					}
 				}
 				else
 				{
-					cumulus.LogWarningMessage("ApplyHistoricData: Missing pressure data");
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing relative pressure data");
+				}
+
+				if (rec.Value.StationPressure.HasValue)
+				{
+					station.StationPressure = (double) rec.Value.StationPressure;
+
+					if (cumulus.StationOptions.CalculateSLP)
+					{
+						station.StationPressure = cumulus.Calib.Press.Calibrate(station.StationPressure);
+						var slp = MeteoLib.GetSeaLevelPressure(station.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(station.StationPressure), ConvertUnits.UserTempToC(station.OutdoorTemperature), cumulus.Latitude);
+
+						station.DoPressure(ConvertUnits.PressMBToUser(slp), rec.Key);
+					}
+
+					station.AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(station.StationPressure, station.AltitudeM(cumulus.Altitude)));
+				}
+				else
+				{
+					cumulus.LogWarningMessage("ApplyHistoricData: Missing absolute pressure data");
 				}
 			}
 			catch (Exception ex)
@@ -1911,7 +1957,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
+				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2085,7 +2131,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
+				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2235,7 +2281,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
+				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2360,7 +2406,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync(url, token).Result)
+				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2468,8 +2514,6 @@ namespace CumulusMX
 		{
 			// Credit: https://www.wxforum.net/index.php?topic=46414.msg469692#msg469692
 
-			cumulus.LogMessage("API.GetLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
-
 			if (model == null || !FirmwareSupportedModels.Contains(model[0..6]))
 			{
 				cumulus.LogMessage($"API.GetLatestFirmwareVersion: Your model - {model ?? "null"} - is not not currently supported");
@@ -2481,6 +2525,10 @@ namespace CumulusMX
 				cumulus.LogMessage("API.GetLatestFirmwareVersion: No version supplied, cannot continue");
 				return null;
 			}
+
+			await Task.Delay(Program.RandGenerator.Next(0, 5000), token);
+
+			cumulus.LogMessage("API.GetLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
 
 			mac ??= GetRandomMacAddress();
 			var url = $"id={Uri.EscapeDataString(mac.ToUpper())}&model={model}&time={DateTime.Now.ToUnixTime()}&user=1&version={version}";
@@ -2497,7 +2545,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = await Cumulus.MyHttpClient.GetAsync(url, token))
+				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2533,9 +2581,13 @@ namespace CumulusMX
 						{
 							case "The firmware is up to date":
 								cumulus.LogMessage($"API.GetLatestFirmwareVersion: No update required, already on the latest version: {version}");
+								cumulus.FirmwareAlarm.Triggered = false;
 								return version;
 							case "Operation too frequent":
-								cumulus.LogMessage("API.GetLatestFirmwareVersion: Operation throttled");
+								cumulus.LogMessage("API.GetLatestFirmwareVersion: Operation throttled, retrying later...");
+								// delay 5 minutes and try again
+								await Task.Delay(5 * 60 * 1000, token);
+								await GetLatestFirmwareVersion(model, mac,version, token);
 								return null;
 							default:
 								cumulus.LogMessage($"API.GetLatestFirmwareVersion: {retObj.msg}");
@@ -2598,7 +2650,7 @@ namespace CumulusMX
 				int responseCode;
 
 				// we want to do this synchronously, so .Result
-				using (var response = await Cumulus.MyHttpClient.GetAsync(simpleFirmwareUrl, token))
+				using (var response = await cumulus.MyHttpClient.GetAsync(simpleFirmwareUrl, token))
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
 					responseCode = (int) response.StatusCode;
@@ -2635,9 +2687,8 @@ namespace CumulusMX
 
 		private static string GetRandomMacAddress()
 		{
-			var random = new Random();
 			var buffer = new byte[6];
-			random.NextBytes(buffer);
+			Program.RandGenerator.NextBytes(buffer);
 			var result = String.Concat(buffer.Select(x => string.Format("{0}:", x.ToString("X2"))).ToArray());
 			return result.TrimEnd(':');
 		}
@@ -2773,6 +2824,7 @@ namespace CumulusMX
 		internal class HistoricDataPressure
 		{
 			public HistoricDataTypeDbl relative { get; set; }
+			public HistoricDataTypeDbl absolute { get; set; }
 		}
 
 		internal class HistoricDataWind
@@ -2849,6 +2901,7 @@ namespace CumulusMX
 			public decimal? WindGust { get; set; }
 			public int? WindDir { get; set; }
 			public decimal? Pressure { get; set; }
+			public decimal? StationPressure { get; set; }
 			public int? Solar { get; set; }
 			public decimal? UVI { get; set; }
 			public decimal? LightningDist { get; set; }

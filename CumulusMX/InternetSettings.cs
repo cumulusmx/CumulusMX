@@ -108,6 +108,18 @@ namespace CumulusMX
 							cumulus.FtpOptions.PhpUseGet = settings.website.advanced.phpuseget;
 							cumulus.FtpOptions.MaxConcurrentUploads = settings.website.advanced.maxuploads;
 						}
+
+						if (cumulus.FtpOptions.FtpMode != Cumulus.FtpProtocols.PHP && settings.websettings.realtime.enabled && settings.websettings.realtime.enablerealtimeftp)
+						{
+							try
+							{
+								cumulus.RealtimeFTPLogin();
+							}
+							catch
+							{
+								// do nothing
+							}
+						}
 					}
 
 					cumulus.FtpOptions.LocalCopyEnabled = settings.website.localcopy;

@@ -647,6 +647,7 @@ namespace CumulusMX
 					}
 					else
 					{
+						cumulus.FirmwareAlarm.Triggered = false;
 						cumulus.LogDebugMessage($"FirmwareVersion: Already on the latest Version {retVal[0]}");
 					}
 				}
@@ -725,12 +726,19 @@ namespace CumulusMX
 			try
 			{
 				var id = GW1000Api.ConvertBigEndianUInt32(data, idx + 1);
-				var type = Enum.GetName(typeof(GW1000Api.SensorIds), data[idx]).ToUpper();
+				string type = null;
+				try
+				{
+					type = Enum.GetName(typeof(GW1000Api.SensorIds), data[idx]).ToUpper();
+				} catch
+				{
+					// leave the device id as null
+				}
 				var battPos = idx + 5;
 				var sigPos = idx + 6;
 				if (string.IsNullOrEmpty(type))
 				{
-					type = $"unknown type = {id}";
+					type = $"[unknown sensor = {data[idx]}]";
 				}
 				// Wh65 could be a Wh65 or a Wh24, we found out using the System Info command
 				if (type == "WH65")
@@ -823,7 +831,15 @@ namespace CumulusMX
 						battV = data[battPos] * 0.02;
 						batt = $"{battV:f2}V ({(battV > 2.4 ? "OK" : "Low")})";
 						break;
-
+					case "WS85":
+						// if a WS85 is connected, it has a 8.5 second update rate, so reduce the MX update rate from the default 10 seconds
+						if (updateRate > 8000 && updateRate != 8000)
+						{
+							cumulus.LogMessage($"PrintSensorInfoNew: WS85 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
+							updateRate = 8000;
+						}
+						batt = $"{data[battPos]} ({TestBattery3(data[battPos])})"; // 0-5 (6+9), low = 1
+						break;
 					default:
 						batt = "???";
 						break;
@@ -965,11 +981,22 @@ namespace CumulusMX
 							case 0x08: //Absolute Barometric (hPa)
 								tempUint16 = GW1000Api.ConvertBigEndianUInt16(data, idx);
 								StationPressure = ConvertUnits.PressMBToUser(tempUint16 / 10.0);
+								AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(tempUint16 / 10.0, AltitudeM(cumulus.Altitude)));
+
+								if (cumulus.StationOptions.CalculateSLP)
+								{
+									StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
+									var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+									DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
+								}
 								idx += 2;
 								break;
 							case 0x09: //Relative Barometric (hPa)
-								tempUint16 = GW1000Api.ConvertBigEndianUInt16(data, idx);
-								DoPressure(ConvertUnits.PressMBToUser(tempUint16 / 10.0), dateTime);
+								if (!cumulus.StationOptions.CalculateSLP)
+								{
+									tempUint16 = GW1000Api.ConvertBigEndianUInt16(data, idx);
+									DoPressure(ConvertUnits.PressMBToUser(tempUint16 / 10.0), dateTime);
+								}
 								idx += 2;
 								break;
 							case 0x0A: //Wind Direction (360°)
@@ -1750,6 +1777,8 @@ namespace CumulusMX
 		{
 			if (value == 6)
 				return "DC";
+			if (value == 9)
+				return "OFF";
 			return value > 1 ? "OK" : "Low";
 		}
 

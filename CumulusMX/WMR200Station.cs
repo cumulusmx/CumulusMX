@@ -951,8 +951,6 @@ namespace CumulusMX
 
 			StationPressure = ConvertUnits.PressMBToUser(((packetBuffer[8] & 0xF) * 256) + packetBuffer[7]);
 
-			UpdatePressureTrendString();
-
 			var forecast = packetBuffer[8] / 16;
 			var fcstr = forecast switch
 			{
@@ -1595,7 +1593,6 @@ namespace CumulusMX
 			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 							Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 			DoTrendValues(timestamp);
-			UpdatePressureTrendString();
 			UpdateStatusPanel(timestamp);
 			// Add current data to the lists of web service updates to be done
 			cumulus.AddToWebServiceLists(timestamp);

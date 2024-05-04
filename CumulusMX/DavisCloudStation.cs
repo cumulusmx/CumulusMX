@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading;
 using System.Timers;
 
+using Org.BouncyCastle.Ocsp;
+
 using ServiceStack;
 
 
@@ -24,7 +26,6 @@ namespace CumulusMX
 		private readonly Dictionary<int, long> lsidLastUpdate = [];
 
 		private bool startingUp = true;
-		private new readonly Random random = new();
 		private DateTime lastRecordTime = DateTime.MinValue;
 
 		public DavisCloudStation(Cumulus cumulus) : base(cumulus)
@@ -252,7 +253,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// we want to do this synchronously, so .Result
-				using (var response = await Cumulus.MyHttpClient.SendAsync(request))
+				using (var response = await cumulus.MyHttpClient.SendAsync(request))
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -487,7 +488,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -1016,24 +1017,42 @@ namespace CumulusMX
 										}
 
 										lsidLastUpdate[sensor.lsid] = rec.ts;
+										var ts = Utils.FromUnixTime(rec.ts);
 
-										if (rec.bar_sea_level.HasValue)
+										if (cumulus.StationOptions.CalculateSLP)
 										{
-											// leave it at current value
-											var ts = Utils.FromUnixTime(rec.ts);
-											DoPressure(ConvertUnits.PressINHGToUser(rec.bar_sea_level.Value), ts);
+											if (rec.bar_absolute.HasValue)
+											{
+												var abs = ConvertUnits.PressINHGToHpa(rec.bar_absolute.Value);
+												abs = cumulus.Calib.Press.Calibrate(abs);
+												var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), abs, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+												DoPressure(ConvertUnits.PressMBToUser(slp), ts);
+											}
+											else
+											{
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Baro data (absolute)");
+											}
 										}
 										else
 										{
-											cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Baro data (high)");
+											if (rec.bar_sea_level.HasValue)
+											{
+												// leave it at current value
+												DoPressure(ConvertUnits.PressINHGToUser(rec.bar_sea_level.Value), ts);
+											}
+											else
+											{
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Baro data (slp)");
+											}
 										}
 
 										// Altimeter from absolute
 										if (rec.bar_absolute.HasValue)
 										{
-											StationPressure = ConvertUnits.PressINHGToUser(rec.bar_absolute.Value);
+											var abs = ConvertUnits.PressINHGToUser(rec.bar_absolute.Value);
+											StationPressure = cumulus.StationOptions.CalculateSLP ? cumulus.Calib.Press.Calibrate(abs) : abs;
 											// Or do we use calibration? The VP2 code doesn't?
-											AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+											AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 										}
 									}
 								}
@@ -2258,7 +2277,7 @@ namespace CumulusMX
 								if (current)
 								{
 									// we do not have the latest value, so set a pseudo value between average and gust
-									WindLatest = random.Next((int) WindAverage, (int) RecentMaxGust);
+									WindLatest = Program.RandGenerator.Next((int) WindAverage, (int) RecentMaxGust);
 								}
 							}
 							catch (Exception ex)
@@ -2339,7 +2358,7 @@ namespace CumulusMX
 								{
 									StationPressure = ConvertUnits.PressINHGToUser((double) data.abs_press);
 									// Or do we use calibration? The VP2 code doesn't?
-									AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+									AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 								}
 							}
 							catch (Exception ex)
@@ -2819,7 +2838,7 @@ namespace CumulusMX
 									if (current)
 									{
 										// we do not have the latest value, so set a pseudo value between average and gust
-										WindLatest = random.Next((int) WindAverage, (int) RecentMaxGust);
+										WindLatest = Program.RandGenerator.Next((int) WindAverage, (int) RecentMaxGust);
 									}
 
 								}
@@ -3202,44 +3221,63 @@ namespace CumulusMX
 								{
 									var data13baro = json.FromJsv<WlHistorySensorDataType13Baro>();
 									DateTime ts;
-									// check the high
-									if (data13baro.bar_hi_at != 0 && data13baro.bar_hi != null)
-									{
-										ts = Utils.FromUnixTime(data13baro.bar_hi_at);
-										DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_hi), ts);
-									}
-									else
-									{
-										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (high)");
-									}
-									// check the low
-									if (data13baro.bar_lo_at != 0 && data13baro.bar_lo != null)
-									{
-										ts = Utils.FromUnixTime(data13baro.bar_lo_at);
-										DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_lo), ts);
-									}
-									else
-									{
-										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (high)");
-									}
 
-									if (data13baro.bar_sea_level != null)
+									// Only check hi/lo if we are using the Davis SLP
+									if (!cumulus.StationOptions.CalculateSLP)
 									{
-										// leave it at current value
+										// check the high
+										if (data13baro.bar_hi_at != 0 && data13baro.bar_hi != null)
+										{
+											ts = Utils.FromUnixTime(data13baro.bar_hi_at);
+											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_hi), ts);
+										}
+										else
+										{
+											cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (high)");
+										}
+										// check the low
+										if (data13baro.bar_lo_at != 0 && data13baro.bar_lo != null)
+										{
+											ts = Utils.FromUnixTime(data13baro.bar_lo_at);
+											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_lo), ts);
+										}
+										else
+										{
+											cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (high)");
+										}
+
+										if (data13baro.bar_sea_level != null)
+										{
+											// leave it at current value
+											ts = Utils.FromUnixTime(data13baro.ts);
+											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_sea_level), ts);
+										}
+										else
+										{
+											cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (sea level)");
+										}
+									}
+									else if (data13baro.bar_absolute != null)
+									{
 										ts = Utils.FromUnixTime(data13baro.ts);
-										DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_sea_level), ts);
+										var abs = ConvertUnits.PressINHGToHpa((double) data13baro.bar_absolute);
+										abs = cumulus.Calib.Press.Calibrate(abs);
+										var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), abs, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+										DoPressure(ConvertUnits.PressMBToUser(slp), ts);
 									}
 									else
 									{
-										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (high)");
+										cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (absolute)");
 									}
 
 									// Altimeter from absolute
 									if (data13baro.bar_absolute != null)
 									{
+										var abs = ConvertUnits.PressINHGToHpa((double) data13baro.bar_absolute);
+										abs = cumulus.StationOptions.CalculateSLP ? cumulus.Calib.Press.Calibrate(abs) : abs;
 										StationPressure = ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute);
 										// Or do we use calibration? The VP2 code doesn't?
-										AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+										AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 									}
 								}
 								catch (Exception ex)
@@ -3596,7 +3634,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// We want to do this synchronously
-				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -3686,7 +3724,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// We want to do this synchronously
-				using (var response = Cumulus.MyHttpClient.SendAsync(request).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -3756,7 +3794,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("GetSystemStatus: Getting WeatherLink.com system status");
 
 				// we want to do this synchronously, so .Result
-				using (var response = Cumulus.MyHttpClient.GetAsync("https://0886445102835570.hostedstatus.com/1.0/status/600712dea9c1290530967bc6").Result)
+				using (var response = cumulus.MyHttpClient.GetAsync("https://0886445102835570.hostedstatus.com/1.0/status/600712dea9c1290530967bc6").Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;

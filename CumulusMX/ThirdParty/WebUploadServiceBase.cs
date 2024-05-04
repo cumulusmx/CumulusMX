@@ -72,7 +72,7 @@ namespace CumulusMX.ThirdParty
 				cumulus.LogMessage($"Uploading {Name} archive #" + (i + 1));
 				try
 				{
-					using var response = await Cumulus.MyHttpClient.GetAsync(CatchupList[i]);
+					using var response = await cumulus.MyHttpClient.GetAsync(CatchupList[i]);
 					cumulus.LogMessage($"{Name} Response: {response.StatusCode}: {response.ReasonPhrase}");
 				}
 				catch (Exception ex)

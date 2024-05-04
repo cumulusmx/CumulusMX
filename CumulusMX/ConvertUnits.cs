@@ -315,6 +315,16 @@
 		}
 
 		/// <summary>
+		/// Convert pressure in inHg to hPa
+		/// </summary>
+		/// <param name="value">pressure in inHg</param>
+		/// <returns>pressure in hPa</returns>
+		public static double PressINHGToHpa(double value)
+		{
+			return value * 33.8638866667;
+		}
+
+		/// <summary>
 		/// Convert pressure in units in use to mb
 		/// </summary>
 		/// <param name="value">pressure in configured units</param>

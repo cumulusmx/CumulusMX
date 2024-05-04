@@ -330,8 +330,6 @@ namespace CumulusMX
 
 			DoPressure(pressure, DateTime.Now);
 
-			UpdatePressureTrendString();
-
 			string forecast = String.Empty;
 
 			// Forecast

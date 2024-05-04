@@ -1,3 +1,35 @@
+4.0.0 - b4021
+—————————————
+- Force all locales to use the hypen-minus symbol
+- Reload dayfile can now only be run as a single instance
+- Add "MX calculates Sea Level Pressure"
+	- Applies to HTTP Ecowitt, HTTP Ambient, GW1000, Ecowitt Cloud, FO, Davis Cloud WLC stations
+	- When enabled, the pressure calibration is applied to the raw station pressure
+	- Check your station pressure (Absolute) calibration!
+- Adds true Altimeter Pressure calculation to GW1000, HTTP Ecowitt, Ecowitt Cloud
+	- Check your station pressure (Absolute) calibration!
+- Fix web tags #MonthTempAvg, and #ByMonthTempAvg for cases where there is no data, and the 1st of the current month (#MonthTempAvg)
+- Add option to upload individual NOAA reports
+- Third-party web uploads
+	- Add random jitter
+	- Set HttpClient Pool lifetime to two minutes
+- Ecowitt firmware check now clears the alarm after a firmware update
+- Add retry to Ecowitt firmware check on "Operation too frequent"
+- Improvements to Davis WLL wind handling when:
+	- Transitioning from catch-up to live running
+	- No broadcasts are received
+- Davis WLL improved recovery from loss of broadcast messages
+
+
+4.0.0 - b4020
+—————————————
+- Fix Irish time zone DST reversal for "use 10am in summer"
+- Clear the recent error log now also clears the latest error web tags
+- Move ThreadPool min/max to runtimeconfig file
+- Logged exception messages now also update LatestError and LatestErrorTS
+
+
+
 4.0.0 - b4019
 —————————————
 - Change HTTP Ecowitt "warning" messages
@@ -51,6 +83,12 @@ New
 	<#ByMonthTempAvg mon=[1-12]>        Mean for requested month over the entire history. Omit the mon parameter for the current month
 	<#MonthTempAvg m=[1-12] y=[YYYY]>   Mean for the requested specific month. Omit the parameters for the current month
 	<#YearTempAvg y=[YYYY]>             Mean for the requested year. Omit the y parameter for the current year
+- Add "MX calculates Sea Level Pressure"
+	- Applies to HTTP Ecowitt, HTTP Ambient, GW1000, Ecowitt Cloud, FO, Davis Cloud WLC stations
+	- When enabled, the pressure calibration is applied to the raw station pressure
+	- Check your station pressure (Absolute) calibration!
+- Adds true Altimeter Pressure calculation to GW1000, Ecowitt HTTP, Ecowitt Cloud
+	- Check your station pressure (Absolute) calibration!
 
 Changed
 - Now requires Microsoft .Net 8.0 rather than mono to run under Linux and MacOS
@@ -82,6 +120,12 @@ Fixed
 - Improvement to GW1000 API reconnects
 - Improved web socket initial connection to send data immediately on dashboard/now/gauges connection
 - Fix for soil moisture conversion from percentage to cb in Weather Cloud uploads
+- Reload dayfile can now only be run as a single instance
+- Improvements to Davis WLL wind handling when:
+	- Transitioning from catch-up to live running
+	- No broadcasts are received
+- Davis WLL improved recovery from loss of broadcast messages
+
 
 
 

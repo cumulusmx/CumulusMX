@@ -156,7 +156,7 @@ namespace CumulusMX
 
 			try
 			{
-				using (var response = await Cumulus.MyHttpClient.GetAsync(new Uri(modUrl)))
+				using (var response = await cumulus.MyHttpClient.GetAsync(new Uri(modUrl)))
 				using (var fileStream = new FileStream(filename, FileMode.Create))
 				{
 					response.EnsureSuccessStatusCode();
@@ -181,7 +181,7 @@ namespace CumulusMX
 			{
 				string ret = null;
 				var request = new HttpRequestMessage(HttpMethod.Get, modUrl);
-				var sendTask = Cumulus.MyHttpClient.SendAsync(request);
+				var sendTask = cumulus.MyHttpClient.SendAsync(request);
 				using (var response = sendTask.Result.EnsureSuccessStatusCode())
 				{
 					var bytes = await response.Content.ReadAsByteArrayAsync();
@@ -209,7 +209,7 @@ namespace CumulusMX
 			try
 			{
 				using var request = new HttpRequestMessage(HttpMethod.Get, modUrl);
-				using var response = await Cumulus.MyHttpClient.SendAsync(request);
+				using var response = await cumulus.MyHttpClient.SendAsync(request);
 				response.EnsureSuccessStatusCode();
 				return response.Content.ReadAsStreamAsync().Result;
 			}

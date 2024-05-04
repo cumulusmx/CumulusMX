@@ -501,8 +501,6 @@ namespace CumulusMX
 
 			DoPressure(slp, DateTime.Now);
 
-			UpdatePressureTrendString();
-
 			int forecast = packetBuffer[3] / 16;
 			var fcstr = forecast switch
 			{

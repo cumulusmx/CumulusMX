@@ -185,9 +185,6 @@ namespace CumulusMX
 		public double[] WMR928ExtraDPValues = [0.0, 0.0, 0.0, 0.0];
 		public int[] WMR928ExtraHumValues = [0, 0, 0, 0];
 
-		// random number generator - used for things like random back-off delays
-		internal Random random = new();
-
 		public DateTime AlltimeRecordTimestamp { get; set; }
 
 		public BackgroundWorker bw;
@@ -442,8 +439,7 @@ namespace CumulusMX
 			// preload the failed sql cache - if any
 			ReloadFailedMySQLCommands();
 
-			var rnd = new Random();
-			versionCheckTime = new DateTime(1, 1, 1, rnd.Next(0, 23), rnd.Next(0, 59), 0, DateTimeKind.Local);
+			versionCheckTime = new DateTime(1, 1, 1, Program.RandGenerator.Next(0, 23), Program.RandGenerator.Next(0, 59), 0, DateTimeKind.Local);
 
 			SensorReception = [];
 		}
@@ -1344,7 +1340,7 @@ namespace CumulusMX
 		/// Average wind speed
 		/// </summary>
 		public double WindAverage { get; set; } = 0;
-		private double WindAverageUncalibrated;
+		public double WindAverageUncalibrated { get; set; } = 0;
 
 		/// <summary>
 		/// Peak wind gust in last 10 minutes
@@ -1818,7 +1814,6 @@ namespace CumulusMX
 					}
 
 					DoTrendValues(now);
-					DoPressTrend("Enable Cumulus pressure trend");
 					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
@@ -2046,6 +2041,9 @@ namespace CumulusMX
 			cumulus.RotateLogFiles();
 
 			ClearAlarms();
+
+			System.Runtime.GCSettings.LargeObjectHeapCompactionMode = System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+			GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false);
 		}
 
 		private void HourChanged(DateTime now)
@@ -5536,7 +5534,10 @@ namespace CumulusMX
 
 			previousPress = sl;
 
-			Pressure = cumulus.Calib.Press.Calibrate(sl);
+			// If we calculate SLP, then the calibration is applied to the station pressure
+			Pressure = cumulus.StationOptions.CalculateSLP ? sl : cumulus.Calib.Press.Calibrate(sl);
+
+			// TODO: This is bollocks, several stations set the altimeter correctly
 			if (cumulus.Manufacturer == Cumulus.DAVIS)
 			{
 				if ((cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2) || cumulus.StationType == StationTypes.VantagePro)
@@ -5545,17 +5546,18 @@ namespace CumulusMX
 					AltimeterPressure = Pressure;
 				}
 			}
+			else if (cumulus.Manufacturer == Cumulus.OREGONUSB)
+			{
+				AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+			}
+			else if (cumulus.StationType == StationTypes.WLL || cumulus.StationType == StationTypes.DavisCloudWll || cumulus.StationType == StationTypes.EcowittCloud || cumulus.StationType == StationTypes.GW1000)
+			{
+				// do nothing, these stations set the Altimeter value
+			}
 			else
 			{
-				if (cumulus.Manufacturer == Cumulus.OREGONUSB)
-				{
-					AltimeterPressure = ConvertUnits.PressMBToUser(StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
-				}
-				else
-				{
-					// For all other stations, altimeter is same as sea-level
-					AltimeterPressure = Pressure;
-				}
+				// For all other stations, altimeter is same as sea-level
+				AltimeterPressure = Pressure;
 			}
 
 			first_press = false;
@@ -5617,6 +5619,8 @@ namespace CumulusMX
 				ThisYear.LowPress.Ts = timestamp;
 				WriteYearIniFile();
 			}
+
+			DoPressTrend("Enable Cumulus pressure trend");
 
 			PressReadyToPlot = true;
 			HaveReadData = true;
@@ -6022,16 +6026,6 @@ namespace CumulusMX
 			}
 		}
 
-
-		public static double StationToAltimeter(double pressureHPa, double elevationM)
-		{
-			// from MADIS API by NOAA Forecast Systems Lab, see http://madis.noaa.gov/madis_api.html
-
-			double k1 = 0.190284; // discrepancy with calculated k1 probably because Smithsonian used less precise gas constant and gravity values
-			double k2 = 8.4184960528E-5; // (standardLapseRate / standardTempK) * (Power(standardSLP, k1)
-			return Math.Pow(Math.Pow(pressureHPa - 0.3, k1) + (k2 * elevationM), 1 / k1);
-		}
-
 		public bool PressReadyToPlot { get; set; }
 
 		public bool first_press { get; set; }
@@ -6142,13 +6136,14 @@ namespace CumulusMX
 					}
 				}
 				// average the values, if we have enough samples
-				if (numvalues > 3)
+				if (numvalues > 5)
 				{
 					avg = totalwind / numvalues;
 				}
 				else
 				{
-					avg = totalwind / 3;
+					// take a third of the gust values
+					avg = totalwind / 15;
 				}
 
 				WindAverageUncalibrated = avg;
@@ -6287,7 +6282,7 @@ namespace CumulusMX
 		public void InitialiseWind()
 		{
 			// first the average
-			var fromTime = cumulus.LastUpdateTime - cumulus.AvgSpeedTime;
+			var fromTime = cumulus.LastUpdateTime.Subtract(cumulus.AvgSpeedTime);
 			var numvalues = 0;
 			var totalwind = 0.0;
 
@@ -6300,10 +6295,11 @@ namespace CumulusMX
 				}
 			}
 			// average the values, if we have enough samples
-			WindAverage = totalwind / Math.Max(numvalues, 3);
+			WindAverageUncalibrated = totalwind / Math.Max(numvalues, 3);
+			WindAverage = cumulus.Calib.WindSpeed.Calibrate(WindAverageUncalibrated);
 
 			// now the gust
-			fromTime = DateTime.Now - cumulus.PeakGustTime;
+			fromTime = cumulus.LastUpdateTime.Subtract(cumulus.PeakGustTime);
 
 			for (int i = 0; i < MaxWindRecent; i++)
 			{
@@ -6312,6 +6308,7 @@ namespace CumulusMX
 					RecentMaxGust = WindRecent[i].Gust;
 				}
 			}
+			RecentMaxGust = cumulus.Calib.WindGust.Calibrate(RecentMaxGust);
 
 			cumulus.LogDebugMessage($"InitialiseWind: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
 		}
@@ -6592,6 +6589,8 @@ namespace CumulusMX
 		public string GW1000FirmwareVersion = "???";
 		public string EcowittCameraUrl = string.Empty;
 		public string EcowittVideoUrl = string.Empty;
+
+		private bool dayfileReloading;
 
 		public static Dictionary<string, byte> SensorReception { get; set; }
 
@@ -8796,81 +8795,101 @@ namespace CumulusMX
 			StringBuilder msg = new ();
 
 			cumulus.LogMessage("LoadDayFile: Attempting to load the day file");
-			if (File.Exists(cumulus.DayFileName))
+			if (dayfileReloading)
 			{
-				int linenum = 0;
-				int errorCount = 0;
-				int duplicateCount = 0;
-
-				var watch = Stopwatch.StartNew();
-
-				// Clear the existing list
-				DayFile.Clear();
-
-				var lines = File.ReadAllLines(cumulus.DayFileName);
-
-				foreach (var line in lines)
-				{
-					try
-					{
-						// process each record in the file
-						linenum++;
-						var newRec = ParseDayFileRec(line);
-
-						if (DayFile.Exists(x => x.Date == newRec.Date))
-						{
-							cumulus.LogErrorMessage($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}");
-							msg.Append($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}<br>");
-							duplicateCount++;
-						}
-
-						DayFile.Add(newRec);
-
-						addedEntries++;
-					}
-					catch (Exception e)
-					{
-						if (errorCount < 20)
-						{
-							cumulus.LogErrorMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
-							msg.Append($"Error at line {linenum} of {cumulus.DayFileName}<br>");
-							cumulus.LogMessage("Please edit the file to correct the error");
-						}
-
-						errorCount++;
-					}
-				}
-
-				watch.Stop();
-				cumulus.LogDebugMessage($"LoadDayFile: Dayfile parse = {watch.ElapsedMilliseconds} ms");
-
-				cumulus.LogMessage($"LoadDayFile: Loaded {addedEntries} entries to recent daily data list");
-				msg.Append($"Loaded {addedEntries} entries to recent daily data list<br>");
-
-				if (errorCount > 20)
-				{
-					cumulus.LogErrorMessage($"LoadDayFile: Lines not loaded due to errors {errorCount}");
-					msg.Append($"Lines not loaded due to errors {errorCount}<br>");
-				}
-
-				if (duplicateCount > 0)
-				{
-					cumulus.LogErrorMessage($"LoadDayFile: Found {duplicateCount} duplicate entries, please correct your dayfile and try again");
-					msg.Append($"Found {duplicateCount} duplicate entries<br>");
-				}
-
-				if (errorCount > 0 || duplicateCount > 0)
-				{
-					msg.Append("Correct your dayfile and try again");
-				}
-
-				return msg.ToString();
+				cumulus.LogMessage("LoadDayFile: A reload is already in progress, ignoring this request");
+				return "A reload is already in progress, ignoring this request";
 			}
-			else
+
+			dayfileReloading = true;
+
+			try
 			{
-				var msg1 = "LoadDayFile: No Dayfile found - No entries added to recent daily data list";
-				cumulus.LogErrorMessage(msg1);
-				return msg1;
+
+				if (File.Exists(cumulus.DayFileName))
+				{
+					int linenum = 0;
+					int errorCount = 0;
+					int duplicateCount = 0;
+
+					var watch = Stopwatch.StartNew();
+
+					// Clear the existing list
+					DayFile.Clear();
+
+					var lines = File.ReadAllLines(cumulus.DayFileName);
+
+					foreach (var line in lines)
+					{
+						try
+						{
+							// process each record in the file
+							linenum++;
+							var newRec = ParseDayFileRec(line);
+
+							if (DayFile.Exists(x => x.Date == newRec.Date))
+							{
+								cumulus.LogErrorMessage($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}");
+								msg.Append($"ERROR: Duplicate entry in dayfile for {newRec.Date:d}<br>");
+								duplicateCount++;
+							}
+
+							DayFile.Add(newRec);
+
+							addedEntries++;
+						}
+						catch (Exception e)
+						{
+							if (errorCount < 20)
+							{
+								cumulus.LogErrorMessage($"LoadDayFile: Error at line {linenum} of {cumulus.DayFileName} : {e.Message}");
+								msg.Append($"Error at line {linenum} of {cumulus.DayFileName}<br>");
+								cumulus.LogMessage("Please edit the file to correct the error");
+							}
+
+							errorCount++;
+						}
+					}
+
+					watch.Stop();
+					cumulus.LogDebugMessage($"LoadDayFile: Dayfile parse = {watch.ElapsedMilliseconds} ms");
+
+					cumulus.LogMessage($"LoadDayFile: Loaded {addedEntries} entries to recent daily data list");
+					msg.Append($"Loaded {addedEntries} entries to recent daily data list<br>");
+
+					if (errorCount > 20)
+					{
+						cumulus.LogErrorMessage($"LoadDayFile: Lines not loaded due to errors {errorCount}");
+						msg.Append($"Lines not loaded due to errors {errorCount}<br>");
+					}
+
+					if (duplicateCount > 0)
+					{
+						cumulus.LogErrorMessage($"LoadDayFile: Found {duplicateCount} duplicate entries, please correct your dayfile and try again");
+						msg.Append($"Found {duplicateCount} duplicate entries<br>");
+					}
+
+					if (errorCount > 0 || duplicateCount > 0)
+					{
+						msg.Append("Correct your dayfile and try again");
+					}
+
+					dayfileReloading = false;
+					return msg.ToString();
+				}
+				else
+				{
+					var msg1 = "LoadDayFile: No Dayfile found - No entries added to recent daily data list";
+					cumulus.LogErrorMessage(msg1);
+					dayfileReloading = false;
+					return msg1;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "LoadDayFile: Error");
+				dayfileReloading = false;
+				return "Error processing dayfile: " + ex.Message;
 			}
 		}
 

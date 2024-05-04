@@ -168,7 +168,6 @@ namespace CumulusMX
 					{
 						var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, CultureInfo.InvariantCulture));
 						DoPressure(pressVal, recDate);
-						UpdatePressureTrendString();
 					}
 				}
 				catch (Exception ex)

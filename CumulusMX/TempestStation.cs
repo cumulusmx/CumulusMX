@@ -215,7 +215,6 @@ namespace CumulusMX
 				}
 
 				DoTrendValues(timestamp);
-				UpdatePressureTrendString();
 				UpdateStatusPanel(timestamp);
 				cumulus.AddToWebServiceLists(timestamp);
 

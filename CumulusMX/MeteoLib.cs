@@ -1,4 +1,5 @@
 using System;
+using System.CodeDom;
 
 namespace CumulusMX
 {
@@ -331,6 +332,13 @@ namespace CumulusMX
 		}
 
 
+		/// <summary>
+		/// Calculates the sea leavel pressure
+		/// </summary>
+		/// <param name="altitudeM">Altitude in metres</param>
+		/// <param name="pressureHpa">Station pressure in hPha</param>
+		/// <param name="tempC">Current temperature</param>
+		/// <returns>Returns the sea level pressure in hPa</returns>
 		public static double GetSeaLevelPressure(double altitudeM, double pressureHpa, double tempC)
 		{
 			/* constants */
@@ -346,6 +354,70 @@ namespace CumulusMX
 			double d = pressureHpa * u;
 			return d;
 		}
+
+		/// <summary>
+		/// Calculates the sea leavel pressure
+		/// https://www.wind101.net/sea-level-pressure-advanced/LAPLACE%20GENERAL%20EQUATION%20THE%20REDUCTION%20OF%20BAROMETRIC%20PRESSURE%20DrKFS_net.pdf
+		/// </summary>
+		/// <param name="altitudeM">Station altitude in metres</param>
+		/// <param name="pressureHpa">Station pressure in inHg</param>
+		/// <param name="tempC">Current temperature</param>
+		/// <param name="latitude">Latitude of the station</param>
+		/// <returns>Returns the sea level pressure in hPa</returns>
+		public static double GetSeaLevelPressure(double altitudeM, double pressureHpa, double tempC, decimal latitude)
+		{
+			/* constants */
+			double latRad = (double) latitude * Math.PI / 180;   // Latitude in radians
+			double R = 6367324;                         // Radius of Earth (m)
+			double k = 0.0026;                          // asphericity of earth
+			double K = 18400.0;                         // barometrics constant (m)
+			double s = 1013.25;                         // standard sea level pressure (hPa)
+			double r = .005;                            // atmosphere lapse rate assuming a temperature gradient of 0.5 degC/100 metres (C/m)
+			double a = 0.0037;                          // coefficient of thermal expansion of the air
+
+			double avgTemp = tempC + (r * altitudeM) / 2;                           // avg temp of air column
+			double vp = Math.Pow(10, 7.5 * avgTemp / (237.3 + avgTemp)) * 6.1078;   // vapour pressure
+			double corT = 1 + a * avgTemp;                                          // correction for atmospheric temperature
+			double corH = 1 / (1 - 0.378 * (vp / s));                               // correction for humidity
+			double corE = 1 / (1 - (k * Math.Cos(2 * latRad)));                     // correction for asphericity of earth
+			double corG = 1 + altitudeM / R;                                        // correction for variation of gravity with height
+
+			double corr = altitudeM / (K * corT * corH * corE * corG);
+
+			return pressureHpa * Math.Pow(10, corr);
+		}
+
+
+		/// <summary>
+		/// Calculates the sea leavel pressure using the Davis method
+		/// http://www.fao.org/3/x0490e/x0490e07.htm#radiation - equation (39)
+		/// </summary>
+		/// <param name="altitudeFt">Altitude in feet</param>
+		/// <param name="pressInHg">Station pressure in inHg</param>
+		/// <param name="tempAvgT">Average of temperature now and temperature 12 hours ago</param>
+		/// <param name="dewPoint">Current dewpoint</param>
+		/// <returns>Returns the sea level pressure in inHG</returns>
+		public static double GetSeaLevelPressureDavis(double altitudeFt, double pressInHg, double tempAvgT, double dewPoint)
+		{
+			throw new NotImplementedException();
+		}
+
+
+		/// <summary>
+		/// Calculates the altimeter pressure
+		/// </summary>
+		/// <param name="pressureHpa">Station pressure in inHg</param>
+		/// <param name="altitudeM">Station altitude in metres</param>
+		/// <returns>Returns the altimeter pressure in hPa</returns>
+		public static double StationToAltimeter(double pressureHPa, double elevationM)
+		{
+			// from MADIS API by NOAA Forecast Systems Lab, see http://madis.noaa.gov/madis_api.html
+
+			double k1 = 0.190284; // discrepancy with calculated k1 probably because Smithsonian used less precise gas constant and gravity values
+			double k2 = 8.4184960528E-5; // (standardLapseRate / standardTempK) * (Power(standardSLP, k1)
+			return Math.Pow(Math.Pow(pressureHPa - 0.3, k1) + (k2 * elevationM), 1 / k1);
+		}
+
 
 
 		/// <summary>

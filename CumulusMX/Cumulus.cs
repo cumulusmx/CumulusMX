@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -44,10 +45,8 @@ using ServiceStack.Text;
 using SQLite;
 
 using Swan;
-using Swan.Formatters;
 
 using static CumulusMX.EmailSender;
-using static CumulusMX.NoaaConfig;
 
 using Timer = System.Timers.Timer;
 
@@ -409,8 +408,8 @@ namespace CumulusMX
 
 		internal MxWebSocket WebSock;
 
-		internal static readonly HttpClient MyHttpClient = new();
-		internal static readonly HttpClientHandler MyHttpHandler = new();
+		internal SocketsHttpHandler MyHttpSocketsHttpHandler;
+		internal HttpClient MyHttpClient;
 
 		// Custom HTTP - seconds
 		private bool updatingCustomHttpSeconds;
@@ -432,7 +431,7 @@ namespace CumulusMX
 		internal string[] CustomHttpRolloverStrings = new string[10];
 
 		// PHP upload HTTP
-		internal HttpClientHandler phpUploadHttpHandler;
+		internal SocketsHttpHandler phpUploadSocketHandler;
 		internal HttpClient phpUploadHttpClient;
 
 		internal Thread ftpThread;
@@ -557,11 +556,6 @@ namespace CumulusMX
 
 			IsOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
-
-			// restrict the threadpool size - for Linux which does not seem to have very good pool management!
-			//ThreadPool.SetMinThreads(Properties.Settings.Default.MinThreadPoolSize, Properties.Settings.Default.MinThreadPoolSize)
-			//ThreadPool.SetMaxThreads(Properties.Settings.Default.MaxThreadPoolSize, Properties.Settings.Default.MaxThreadPoolSize)
-
 			if (IsOSX)
 				Platform = "Mac OS X";
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -590,6 +584,22 @@ namespace CumulusMX
 			LogMessage("Running under userid: " + Environment.UserName);
 
 			boolWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+			// Some .NET 8 clutures use a non-"standard" minus symbol, this causes all sorts of parsing issues down the line and for external scripts
+			// the simplest solution is to override this and set all cultures to use the hypen-minus
+			if (CultureInfo.CurrentCulture.NumberFormat.NegativeSign != "-")
+			{
+				// change the none hyphen-minus to a standard hypen
+				CultureInfo newCulture = (CultureInfo) Thread.CurrentThread.CurrentCulture.Clone();
+				newCulture.NumberFormat.NegativeSign = "-";
+
+				// set current thread culture
+				Thread.CurrentThread.CurrentCulture = newCulture;
+
+				// set the default culture for other threads
+				CultureInfo.DefaultThreadCurrentCulture = newCulture;
+			}
+
 
 			// Set the default comport name depending on platform
 			DefaultComportName = boolWindows ? "COM1" : "/dev/ttyUSB0";
@@ -1176,9 +1186,9 @@ namespace CumulusMX
 
 			ReadStringsFile();
 
-			MyHttpClient.Timeout = new TimeSpan(0, 0, 15);  // 15 second timeout on all http calls
-
 			SetUpHttpProxy();
+
+			SetupMyHttpClient();
 
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
@@ -1553,37 +1563,53 @@ namespace CumulusMX
 			if (!string.IsNullOrEmpty(HTTPProxyName))
 			{
 				var proxy = new WebProxy(HTTPProxyName, HTTPProxyPort);
-				MyHttpHandler.Proxy = proxy;
-				MyHttpHandler.UseProxy = true;
+				MyHttpSocketsHttpHandler.Proxy = proxy;
+				MyHttpSocketsHttpHandler.UseProxy = true;
 
-				phpUploadHttpHandler.Proxy = proxy;
-				phpUploadHttpHandler.UseProxy = true;
+				phpUploadSocketHandler.Proxy = proxy;
+				phpUploadSocketHandler.UseProxy = true;
 
 				if (!string.IsNullOrEmpty(HTTPProxyUser))
 				{
 					var creds = new NetworkCredential(HTTPProxyUser, HTTPProxyPassword);
-					MyHttpHandler.Credentials = creds;
-					phpUploadHttpHandler.Credentials = creds;
+					MyHttpSocketsHttpHandler.Credentials = creds;
+					phpUploadSocketHandler.Credentials = creds;
 				}
 			}
 		}
 
 		internal void SetupPhpUploadClients()
 		{
-			phpUploadHttpHandler = new HttpClientHandler
+			var sslOptions = new SslClientAuthenticationOptions()
 			{
-				ClientCertificateOptions = ClientCertificateOption.Manual,
-				ServerCertificateCustomValidationCallback = (sender, cert, chain, errors) =>
-				{
-					return FtpOptions.PhpIgnoreCertErrors || errors == System.Net.Security.SslPolicyErrors.None;
-				},
+				RemoteCertificateValidationCallback = delegate { return FtpOptions.PhpIgnoreCertErrors; }
+			};
+
+
+			phpUploadSocketHandler = new SocketsHttpHandler()
+			{
+				PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+				SslOptions = sslOptions,
 				MaxConnectionsPerServer = Properties.Settings.Default.PhpMaxConnections,
 				AllowAutoRedirect = false
 			};
 
-			phpUploadHttpClient = new HttpClient(phpUploadHttpHandler)
+			phpUploadHttpClient = new HttpClient(phpUploadSocketHandler)
 			{
-				// 5 second timeout
+				// 15 second timeout
+				Timeout = TimeSpan.FromSeconds(15)
+			};
+		}
+
+		internal void SetupMyHttpClient()
+		{
+			MyHttpSocketsHttpHandler = new SocketsHttpHandler()
+			{
+				PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+			};
+
+			MyHttpClient = new HttpClient(MyHttpSocketsHttpHandler)
+			{
 				Timeout = TimeSpan.FromSeconds(15)
 			};
 		}
@@ -2283,12 +2309,15 @@ namespace CumulusMX
 				LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during update");
 				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
 				{
+					RealtimeCopyInProgress = false;
+					RealtimeFtpInProgress = false;
 					LogDebugMessage($"Realtime[{cycle}]: End cycle");
 					_ = RealtimeFTPReconnect();
 					return;
 				}
 			}
 
+			RealtimeCopyInProgress = false;
 			RealtimeFtpInProgress = false;
 			LogDebugMessage($"Realtime[{cycle}]: End cycle");
 		}
@@ -3669,6 +3698,7 @@ namespace CumulusMX
 			StationOptions.CalculatedDP = ini.GetValue("Station", "CalculatedDP", false);
 			StationOptions.CalculatedWC = ini.GetValue("Station", "CalculatedWC", false);
 			StationOptions.CalculatedET = ini.GetValue("Station", "CalculatedET", false);
+			StationOptions.CalculateSLP = ini.GetValue("Station", "CalculatedSLP", false);
 			RolloverHour = ini.GetValue("Station", "RolloverHour", 0);
 			Use10amInSummer = ini.GetValue("Station", "Use10amInSummer", true);
 			//ConfirmClose = ini.GetValue("Station", "ConfirmClose", false)
@@ -5457,6 +5487,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "CalculatedDP", StationOptions.CalculatedDP);
 			ini.SetValue("Station", "CalculatedWC", StationOptions.CalculatedWC);
 			ini.SetValue("Station", "CalculatedET", StationOptions.CalculatedET);
+			ini.SetValue("Station", "CalculatedSLP", StationOptions.CalculateSLP);
 
 			ini.SetValue("Station", "RolloverHour", RolloverHour);
 			ini.SetValue("Station", "Use10amInSummer", Use10amInSummer);
@@ -7311,8 +7342,8 @@ namespace CumulusMX
 		public const int SIMULATOR = 10;
 
 		internal string ReportPath;
-		internal string LatestError;
-		internal DateTime LatestErrorTS = DateTime.MinValue;
+		public static string LatestError { get; set; }
+		public static DateTime LatestErrorTS { get; set; } = DateTime.MinValue;
 		internal DateTime defaultRecordTS = DateTime.MinValue;
 		internal const string WxnowFile = "wxnow.txt";
 		private readonly string RealtimeFile = "realtime.txt";
@@ -8351,14 +8382,23 @@ namespace CumulusMX
 			{
 				try
 				{
-					if (Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(timestamp))
+					if (Use10amInSummer && TimeZoneInfo.Local.SupportsDaylightSavingTime)
 					{
-						// Locale is currently on Daylight time
-						return -10;
+						var dst = TimeZoneInfo.Local.IsDaylightSavingTime(timestamp);
+
+						// Irish time zone is unique in it uses standard time in summer and -1 hour in winter. So winter is flagged as using DST!
+						// So reverse the DST in Ireland TZ
+						if (TimeZoneInfo.Local.StandardName == "IST")
+						{
+							dst = !dst;
+						}
+
+						// If in DST then return 10am, else 9am
+						return dst ? -10 : -9;
 					}
 					else
 					{
-						// Locale is currently on Standard time or unknown
+						// Either no "use 10am in summer", or TZ does not support DST
 						return -9;
 					}
 				}
@@ -10197,7 +10237,7 @@ namespace CumulusMX
 							// we want incremental data for PHP
 							var json = station.CreateGraphDataJson(item.LocalFileName, item.Incremental);
 							var remotefile = item.RemoteFileName;
-							LogDebugMessage("PHP[Int]: Uploading graph data file: " + item.LocalFileName);
+							LogDebugMessage($"PHP[Int]: Uploading graph data file ({(item.Incremental ? "full" : $"incremental from {item.LastDataTime:s}")}): {item.LocalFileName}");
 
 							if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, -1, false, true))
 							{
@@ -10401,7 +10441,7 @@ namespace CumulusMX
 		// Return False if the connection is disposed, null, or not connected
 		private bool UploadFile(FtpClient conn, string localfile, string remotefile, int cycle = -1)
 		{
-			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
+			string cycleStr = cycle == -1 ? "Int" : (cycle == 9999 ? "NOAA" : cycle.ToString());
 
 			LogFtpMessage("");
 
@@ -10435,7 +10475,7 @@ namespace CumulusMX
 
 		private bool UploadFile(SftpClient conn, string localfile, string remotefile, int cycle = -1)
 		{
-			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
+			string cycleStr = cycle == -1 ? "Int" : (cycle == 9999 ? "NOAA" : cycle.ToString());
 
 			if (!File.Exists(localfile))
 			{
@@ -10494,7 +10534,7 @@ namespace CumulusMX
 
 		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle = -1, bool binary = false, bool utf8 = true)
 		{
-			var prefix = cycle >= 0 ? $"RealtimePHP[{cycle}]" : "PHP[Int]";
+			var prefix = cycle == -1 ? "PHP[Int]" : (cycle == 9999 ? "PHP[NOAA]" : $"RealtimePHP[{cycle}]");
 
 			if (!File.Exists(localfile))
 			{
@@ -10552,7 +10592,7 @@ namespace CumulusMX
 		private bool UploadStream(FtpClient conn, string remotefile, Stream dataStream, int cycle = -1)
 		{
 			string remotefiletmp = FTPRename ? remotefile + "tmp" : remotefile;
-			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
+			string cycleStr = cycle == -1 ? "Int" : (cycle == 9999 ? "NOAA" : cycle.ToString());
 
 			try
 			{
@@ -11169,6 +11209,310 @@ namespace CumulusMX
 			return false;
 		}
 
+
+		public async Task DoSingleNoaaUpload(string filename)
+		{
+			var uploadfile = ReportPath + filename;
+			var remotefile = NOAAconf.FtpFolder + '/' + filename;
+
+			if (!FtpOptions.Enabled)
+				return;
+
+			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+			{
+				ConnectionInfo connectionInfo;
+				if (FtpOptions.SshAuthen == "password")
+				{
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
+					LogFtpDebugMessage("SFTP[NOAA]: Connecting using password authentication");
+				}
+				else if (FtpOptions.SshAuthen == "psk")
+				{
+					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
+					LogFtpDebugMessage("SFTP[NOAA]: Connecting using PSK authentication");
+				}
+				else if (FtpOptions.SshAuthen == "password_psk")
+				{
+					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
+					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
+					LogFtpDebugMessage("SFTP[NOAA]: Connecting using password or PSK authentication");
+				}
+				else
+				{
+					LogFtpMessage($"SFTP[NOAA]: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]");
+					return;
+				}
+
+				try
+				{
+					using SftpClient conn = new SftpClient(connectionInfo);
+					try
+					{
+						LogFtpDebugMessage($"SFTP[NOAA]: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
+						conn.Connect();
+						if (ServicePointManager.DnsRefreshTimeout == 0)
+						{
+							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
+						}
+					}
+					catch (Exception ex)
+					{
+						LogFtpMessage($"SFTP[NOAA]: Error connecting SFTP - {ex.Message}");
+
+						FtpAlarm.LastMessage = "Error connecting SFTP - " + ex.Message;
+						FtpAlarm.Triggered = true;
+
+						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
+						{
+							// Disable the DNS cache for the next query
+							ServicePointManager.DnsRefreshTimeout = 0;
+						}
+						return;
+					}
+
+					if (conn.IsConnected)
+					{
+						LogFtpDebugMessage($"SFTP[NOAA]: CumulusMX Connected to {FtpOptions.Hostname} OK");
+						try
+						{
+							// upload NOAA reports
+							LogFtpDebugMessage("SFTP[NOAA]: Uploading NOAA report " + filename);
+
+							UploadFile(conn, uploadfile, remotefile, 9999);
+
+							LogFtpDebugMessage("SFTP[NOAA]: Done uploading NOAA report " + filename);
+						}
+						catch (Exception e)
+						{
+							LogFtpMessage($"SFTP[NOAA]: Error uploading file {filename} - {e.Message}");
+							FtpAlarm.LastMessage = "Error uploading NOAA report file - " + e.Message;
+							FtpAlarm.Triggered = true;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage($"SFTP[NOAA]: Error using SFTP connection - {ex.Message}");
+				}
+				LogFtpDebugMessage("SFTP[NOAA]: Upload process complete");
+			}
+			else if (FtpOptions.FtpMode == FtpProtocols.FTP || (FtpOptions.FtpMode == FtpProtocols.FTPS))
+			{
+				using (FtpClient conn = new FtpClient())
+				{
+					if (FtpOptions.Logging)
+					{
+						conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+					}
+
+					LogFtpMessage(""); // insert a blank line
+					LogFtpDebugMessage($"FTP[NOAA]: CumulusMX Connecting to " + FtpOptions.Hostname);
+					conn.Host = FtpOptions.Hostname;
+					conn.Port = FtpOptions.Port;
+					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
+					conn.Config.LogPassword = false;
+
+					if (!FtpOptions.AutoDetect)
+					{
+
+						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+						{
+							// Explicit = Current protocol - connects using FTP and switches to TLS
+							// Implicit = Old depreciated protocol - connects using TLS
+							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
+							conn.Config.DataConnectionEncryption = true;
+						}
+
+						if (FtpOptions.ActiveMode)
+						{
+							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
+						}
+						else if (FtpOptions.DisableEPSV)
+						{
+							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
+						}
+					}
+
+					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+					{
+						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
+					}
+
+					try
+					{
+						if (FtpOptions.AutoDetect)
+						{
+							conn.AutoConnect();
+						}
+						else
+						{
+							conn.Connect();
+						}
+
+						if (ServicePointManager.DnsRefreshTimeout == 0)
+						{
+							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
+						}
+					}
+					catch (Exception ex)
+					{
+						LogFtpMessage("FTP[NOAA]: Error connecting ftp - " + ex.Message);
+
+						FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
+						FtpAlarm.Triggered = true;
+
+						if (ex.InnerException != null)
+						{
+							ex = Utils.GetOriginalException(ex);
+							LogFtpMessage($"FTP[NOAA]: Base exception - {ex.Message}");
+						}
+
+						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
+						{
+							// Disable the DNS cache for the next query
+							ServicePointManager.DnsRefreshTimeout = 0;
+						}
+						return;
+					}
+
+					if (conn.IsConnected)
+					{
+						try
+						{
+							// upload NOAA reports
+							LogFtpMessage("");
+							LogFtpDebugMessage("FTP[NOAA]: Uploading NOAA report" + filename);
+
+							UploadFile(conn, uploadfile, remotefile, 9999);
+
+							LogFtpDebugMessage($"FTP[NOAA]: Upload of NOAA report {filename} complete");
+						}
+						catch (Exception e)
+						{
+							LogFtpMessage($"FTP[NOAA]: Error uploading NOAA file: {e.Message}");
+							FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
+							FtpAlarm.Triggered = true;
+						}
+					}
+
+					// b3045 - dispose of connection
+					conn.Disconnect();
+					LogFtpDebugMessage("FTP[NOAA]: Disconnected from " + FtpOptions.Hostname);
+				}
+				LogFtpMessage("FTP[NOAA]: Process complete");
+			}
+			else if (FtpOptions.FtpMode == FtpProtocols.PHP)
+			{
+				LogDebugMessage("PHP[NOAA]: Upload process starting");
+
+				var tasklist = new List<Task>();
+				var taskCount = 0;
+				var runningTaskCount = 0;
+
+				// do we perform a second chance compresssion test?
+				if (FtpOptions.PhpCompression == "notchecked")
+				{
+					TestPhpUploadCompression();
+				}
+
+				// upload NOAA report
+				try
+				{
+#if DEBUG
+					LogDebugMessage($"PHP[NOAA]: NOAA report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					LogDebugMessage($"PHP[NOAA]: NOAA report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#else
+					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+#endif
+				}
+				catch (OperationCanceledException)
+				{
+					return;
+				}
+
+				Interlocked.Increment(ref taskCount);
+
+				tasklist.Add(Task.Run(async () =>
+				{
+					if (cancellationToken.IsCancellationRequested)
+						return false;
+
+					try
+					{
+
+						LogDebugMessage("PHP[NOAA]: Uploading NOAA report" + filename);
+
+						_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, 9999, false, NOAAconf.UseUtf8);
+
+					}
+					catch (Exception ex)
+					{
+						LogExceptionMessage(ex, $"PHP[NOAA]: Error uploading NOAA file " + filename);
+						FtpAlarm.LastMessage = $"Error uploading NOAA file - {ex.Message}";
+						FtpAlarm.Triggered = true;
+					}
+					finally
+					{
+						uploadCountLimitSemaphoreSlim.Release();
+#if DEBUG
+						LogDebugMessage($"PHP[NOAA]: NOAA report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+#endif
+					}
+
+					// no void return which cannot be tracked
+					return true;
+				}, cancellationToken));
+
+				Interlocked.Increment(ref runningTaskCount);
+
+				// wait for all the files to start
+				while (runningTaskCount < taskCount)
+				{
+					if (cancellationToken.IsCancellationRequested)
+					{
+						LogDebugMessage($"PHP[NOAA]: Upload process aborted");
+						return;
+					}
+					await Task.Delay(10);
+				}
+				// wait for all the EOD files to complete
+				try
+				{
+					// wait for all the tasks to complete, or timeout
+					if (Task.WaitAll([.. tasklist], TimeSpan.FromSeconds(30)))
+					{
+						LogDebugMessage($"PHP[NOAA]: Upload process complete, {tasklist.Count} files processed");
+					}
+					else
+					{
+						LogErrorMessage("PHP[NOAA]: Upload process complete timed out waiting for tasks to complete");
+					}
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, "PHP[NOAA]: Error waiting on upload tasks");
+					FtpAlarm.LastMessage = "Error waiting on upload tasks";
+					FtpAlarm.Triggered = true;
+				}
+
+				if (cancellationToken.IsCancellationRequested)
+				{
+					LogDebugMessage($"PHP[NOAA]: Upload process aborted");
+					return;
+				}
+
+				LogDebugMessage($"PHP[NOAA]: Upload process complete");
+				tasklist.Clear();
+
+				return;
+			}
+		}
+
+
+
+
 		public void LogMessage(string message, MxLogLevel level = MxLogLevel.Info)
 		{
 			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
@@ -11244,7 +11588,7 @@ namespace CumulusMX
 			Program.svcTextListener.Flush();
 		}
 
-		public void LogExceptionMessage(Exception ex, string message, bool LatestError = true)
+		public void LogExceptionMessage(Exception ex, string message, bool logError = true)
 		{
 			LogMessage(message);
 
@@ -11257,13 +11601,15 @@ namespace CumulusMX
 				LogMessage(message + " - " + Utils.ExceptionToString(ex));
 			}
 
-			if (LatestError)
+			if (logError)
 			{
 				while (ErrorList.Count >= 50)
 				{
 					_ = ErrorList.Dequeue();
 				}
 				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.Message));
+				LatestError = message + " - " + ex.Message;
+				LatestErrorTS = DateTime.Now;
 			}
 		}
 
@@ -11281,6 +11627,8 @@ namespace CumulusMX
 
 		public static string ClearErrorLog()
 		{
+			LatestError = string.Empty;
+			LatestErrorTS = DateTime.MinValue;
 			ErrorList.Clear();
 			return GetErrorLog();
 		}
@@ -12063,7 +12411,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void RealtimeFTPLogin()
+		public void RealtimeFTPLogin()
 		{
 			LogMessage($"RealtimeFTPLogin: Attempting realtime FTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
 
@@ -12150,6 +12498,14 @@ namespace CumulusMX
 					RealtimeFTP.Disconnect();
 				}
 			}
+
+			// OK we are reconnected or failed to connect, let the FTP recommence
+			RealtimeFtpReconnecting = false;
+			RealtimeFtpInProgress = false;
+			realtimeFTPRetries = 0;
+			RealtimeCopyInProgress = false;
+			FtpAlarm.Triggered = false;
+
 		}
 
 		private void RealtimeSSHLogin()
@@ -13044,6 +13400,7 @@ namespace CumulusMX
 		public bool CalculatedET { get; set; }
 		public bool SyncTime { get; set; }
 		public int ClockSettingHour { get; set; }
+		public bool CalculateSLP { get; set; }
 		public bool UseCumulusPresstrendstr { get; set; }
 		public bool LogExtraSensors { get; set; }
 		public bool WS2300IgnoreStationClock { get; set; }
@@ -13103,7 +13460,7 @@ namespace CumulusMX
 		public bool CopyRequired { get; set; } = true;
 		public bool CreateRequired { get; set; } = true;
 		public DateTime LastDataTime { get; set; } = DateTime.MinValue;
-		public bool Incremental { get; set; }
+		public bool Incremental { get; set; } = false;
 	}
 
 	public class MoonImageOptionsClass

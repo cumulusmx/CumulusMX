@@ -497,9 +497,11 @@ namespace CumulusMX
 						}
 						else
 						{
-							var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, invNum));
-							DoPressure(pressVal, recDate);
-							UpdatePressureTrendString();
+							if (!cumulus.StationOptions.CalculateSLP)
+							{
+								var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, invNum));
+								DoPressure(pressVal, recDate);
+							}
 						}
 
 						if (stnPress == null)
@@ -509,6 +511,17 @@ namespace CumulusMX
 						else
 						{
 							StationPressure = ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, invNum));
+
+							if (cumulus.StationOptions.CalculateSLP)
+							{
+								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
+
+								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+
+								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
+							}
+
+							AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 						}
 					}
 					catch (Exception ex)
@@ -1537,7 +1550,7 @@ namespace CumulusMX
 						{
 							using var request = new HttpRequestMessage(HttpMethod.Post, url);
 							request.Content = new StringContent(data, encoding, "application/x-www-form-urlencoded");
-							using var response = await Cumulus.MyHttpClient.SendAsync(request);
+							using var response = await cumulus.MyHttpClient.SendAsync(request);
 							cumulus.LogDebugMessage($"ForwardData: Forward to {url}: Result: {response.StatusCode}");
 						}
 						catch (Exception ex)
@@ -1570,6 +1583,7 @@ namespace CumulusMX
 					}
 					else
 					{
+						cumulus.FirmwareAlarm.Triggered = false;
 						cumulus.LogDebugMessage($"FirmwareVersion: Already on the latest Version {retVal[0]}");
 					}
 				}

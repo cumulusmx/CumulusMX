@@ -55,6 +55,7 @@ namespace CumulusMX
 				calculatedewpoint = cumulus.StationOptions.CalculatedDP,
 				calculatewindchill = cumulus.StationOptions.CalculatedWC,
 				calculateet = cumulus.StationOptions.CalculatedET,
+				calculateslp = cumulus.StationOptions.CalculateSLP,
 				cumuluspresstrendnames = cumulus.StationOptions.UseCumulusPresstrendstr,
 				extrasensors = cumulus.StationOptions.LogExtraSensors,
 				ignorelacrosseclock = cumulus.StationOptions.WS2300IgnoreStationClock,
@@ -669,6 +670,7 @@ namespace CumulusMX
 					cumulus.StationOptions.CalculatedDP = settings.Options.calculatedewpoint;
 					cumulus.StationOptions.CalculatedWC = settings.Options.calculatewindchill;
 					cumulus.StationOptions.CalculatedET = settings.Options.calculateet;
+					cumulus.StationOptions.CalculateSLP = settings.Options.calculateslp;
 					cumulus.StationOptions.UseCumulusPresstrendstr = settings.Options.cumuluspresstrendnames;
 					cumulus.StationOptions.LogExtraSensors = settings.Options.extrasensors;
 					cumulus.StationOptions.WS2300IgnoreStationClock = settings.Options.ignorelacrosseclock;
@@ -686,6 +688,7 @@ namespace CumulusMX
 					cumulus.RecordSetTimeoutHrs = settings.Options.advanced.recordtimeout;
 					cumulus.SnowDepthHour = settings.Options.advanced.snowdepthhour;
 					cumulus.RainDayThreshold = settings.Options.advanced.raindaythreshold;
+
 				}
 				catch (Exception ex)
 				{
@@ -1621,6 +1624,7 @@ namespace CumulusMX
 		public bool calculatedewpoint { get; set; }
 		public bool calculatewindchill { get; set; }
 		public bool calculateet { get; set; }
+		public bool calculateslp { get; set; }
 		public bool cumuluspresstrendnames { get; set; }
 		public bool roundwindspeeds { get; set; }
 		public bool ignorelacrosseclock { get; set; }

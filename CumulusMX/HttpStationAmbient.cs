@@ -205,22 +205,32 @@ namespace CumulusMX
 
 						if (press == null)
 						{
-							cumulus.LogWarningMessage("ProcessData: Error, missing baro pressure");
+							cumulus.LogWarningMessage($"{procName}: Error, missing baro pressure");
 						}
 						else
 						{
-							var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, CultureInfo.InvariantCulture));
-							DoPressure(pressVal, recDate);
-							UpdatePressureTrendString();
+							if (!cumulus.StationOptions.CalculateSLP)
+							{
+								var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, CultureInfo.InvariantCulture));
+								DoPressure(pressVal, recDate);
+							}
 						}
 
 						if (stnPress == null)
 						{
-							cumulus.LogDebugMessage("ProcessData: Error, missing absolute baro pressure");
+							cumulus.LogDebugMessage($"{procName}: Error, missing absolute baro pressure");
 						}
 						else
 						{
 							StationPressure = ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, CultureInfo.InvariantCulture));
+
+							if (cumulus.StationOptions.CalculateSLP)
+							{
+								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
+								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+
+								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
+							}
 						}
 					}
 					catch (Exception ex)
