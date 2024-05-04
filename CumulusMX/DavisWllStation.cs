@@ -35,7 +35,7 @@ namespace CumulusMX
 		private bool savedCalculatePeakGust;
 		private int maxArchiveRuns = 1;
 		private bool broadcastReceived;
-		private bool broadcastStopped;
+		private bool broadcastStopped = true;
 		private int weatherLinkArchiveInterval = 16 * 60; // Used to get historic Health, 16 minutes in seconds only for initial fetch after load
 		private bool wllVoltageLow;
 		private Task broadcastTask;
@@ -225,7 +225,7 @@ namespace CumulusMX
 				// Create a current conditions thread to poll readings every 10 seconds as temperature updates every 10 seconds
 				GetWllCurrent(null, null);
 				tmrCurrent.Elapsed += GetWllCurrent;
-				tmrCurrent.Interval = 20 * 1000;  // Every 10 seconds
+				tmrCurrent.Interval = 20 * 1000;  // Every 20 seconds
 				tmrCurrent.AutoReset = true;
 				tmrCurrent.Start();
 
@@ -262,34 +262,47 @@ namespace CumulusMX
 						{
 							udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 							udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
+							var timeout = TimeSpan.FromSeconds(3);
 
 							while (!cumulus.cancellationToken.IsCancellationRequested)
 							{
 								try
 								{
-									var bcastTask = udpClient.ReceiveAsync();
-									var timeoutTask = Task.Delay(3000, cumulus.cancellationToken); // We should get a message every 2.5 seconds
+									using CancellationTokenSource tokenSource = new();
+									var udpCancellation = tokenSource.Token;
 
-									// wait for a broadcast message, a timeout, or a cancellation request
-									await Task.WhenAny(bcastTask, timeoutTask);
+									var bcastTask = udpClient.ReceiveAsync(udpCancellation).AsTask();
 
-									// we get duplicate packets over IPv4 and IPv6, plus if the host has multiple interfaces to the local LAN
-									if (bcastTask.Status == TaskStatus.RanToCompletion && !Utils.ByteArraysEqual(lastMessage, bcastTask.Result.Buffer))
+									do
 									{
-										var jsonStr = Encoding.UTF8.GetString(bcastTask.Result.Buffer);
-										DecodeBroadcast(jsonStr, bcastTask.Result.RemoteEndPoint);
-										lastMessage = bcastTask.Result.Buffer.ToArray();
-									}
-									else if (timeoutTask.Status == TaskStatus.RanToCompletion)
-									{
-										multicastsBad++;
-										var msg = string.Format("WLL: Missed a WLL broadcast message. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float) (multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
-										cumulus.LogDebugMessage(msg);
-									}
+										try
+										{
+											await bcastTask.WaitAsync(timeout, cumulus.cancellationToken);
+
+											// we get duplicate packets over IPv4 and IPv6, plus if the host has multiple interfaces to the local LAN
+											if (!Utils.ByteArraysEqual(lastMessage, bcastTask.Result.Buffer))
+											{
+												var jsonStr = Encoding.UTF8.GetString(bcastTask.Result.Buffer);
+												DecodeBroadcast(jsonStr, bcastTask.Result.RemoteEndPoint);
+												lastMessage = bcastTask.Result.Buffer.ToArray();
+											}
+										}
+										catch (TimeoutException)
+										{
+											tokenSource.Cancel();
+											multicastsBad++;
+											var msg = string.Format("WLL: Missed a WLL broadcast message. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float) (multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
+											cumulus.LogDebugMessage(msg);
+										}
+									} while ((bcastTask.Status < TaskStatus.RanToCompletion) && cumulus.cancellationToken.IsCancellationRequested);
 								}
 								catch (SocketException exp)
 								{
 									cumulus.LogMessage($"WLL: UDP socket exception: {exp.Message}");
+								}
+								catch (TaskCanceledException)
+								{
+									// do nothing
 								}
 							}
 						}
@@ -458,15 +471,18 @@ namespace CumulusMX
 			{
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
 
-				var timeSinceLastMessage = (int) (DateTime.UtcNow.Subtract(LastDataReadTimestamp).TotalMilliseconds % 2500);
-				if (timeSinceLastMessage > 1500)
+				if (!broadcastStopped)
 				{
-					// Another broadcast is due in the next second or less
-					var delay = Math.Max(200, 2600 - timeSinceLastMessage);
-					cumulus.LogDebugMessage($"GetWllCurrent: Delaying {delay} ms");
-					tmrCurrent.Stop();
-					await Task.Delay(delay);
-					tmrCurrent.Start();
+					var timeSinceLastMessage = (int) (DateTime.UtcNow.Subtract(LastDataReadTimestamp).TotalMilliseconds % 2500);
+					if (timeSinceLastMessage > 1500)
+					{
+						// Another broadcast is due in the next second or less
+						var delay = Math.Max(200, 2600 - timeSinceLastMessage);
+						cumulus.LogDebugMessage($"GetWllCurrent: Delaying {delay} ms");
+						tmrCurrent.Stop();
+						await Task.Delay(delay);
+						tmrCurrent.Start();
+					}
 				}
 
 				await WebReq.WaitAsync();
@@ -609,7 +625,11 @@ namespace CumulusMX
 					UpdateMQTT();
 
 					broadcastReceived = true;
-					broadcastStopped = false;
+					if (broadcastStopped)
+					{
+						broadcastStopped = false;
+						tmrCurrent.Interval = 20 * 1000;  // Every 20 seconds
+					}
 					DataStopped = false;
 					cumulus.DataStoppedAlarm.Triggered = false;
 					multicastsGood++;
@@ -780,6 +800,23 @@ namespace CumulusMX
 								*/
 								try
 								{
+									double gust;
+									int gustDir;
+									if (cumulus.StationOptions.PeakGustMinutes < 10)
+									{
+										gust = ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
+										gustDir = data1.wind_dir_at_hi_speed_last_2_min ?? 0;
+									}
+									else
+									{
+										gust = ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_10_min ?? 0);
+										gustDir = data1.wind_dir_at_hi_speed_last_10_min ?? 0;
+									}
+
+									var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
+									var gustDirCal = gustDir == 0 ? 0 : (int) cumulus.Calib.WindDir.Calibrate(gustDir);
+
+
 									// Only use wind data from current if we are not receiving broadcasts
 									if (broadcastStopped)
 									{
@@ -794,32 +831,14 @@ namespace CumulusMX
 										else
 											currentAvgWindSpd = ConvertUnits.WindMPHToUser(data1.wind_speed_avg_last_10_min ?? 0);
 
+
 										// pesky null values from WLL when it is calm
 										int wdir = data1.wind_dir_last ?? 0;
-										double wind = ConvertUnits.WindMPHToUser(data1.wind_speed_last ?? 0);
+										int wdirCal = wdir == 0 ? 0 : (int) cumulus.Calib.WindDir.Calibrate(wdir);
+										var wind = ConvertUnits.WindMPHToUser(data1.wind_speed_last ?? 0);
 
-										cumulus.StationOptions.CalcuateAverageWindSpeed = false;
-										CalcRecentMaxGust = false;
-										DoWind(wind, wdir, currentAvgWindSpd, dateTime);
-										cumulus.StationOptions.CalcuateAverageWindSpeed = true;
-										CalcRecentMaxGust = true;
+										DoWind(wind, wdirCal, currentAvgWindSpd, dateTime);
 									}
-
-									double gust;
-									int gustDir;
-									if (cumulus.StationOptions.PeakGustMinutes <= 10)
-									{
-										gust = ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
-										gustDir = data1.wind_dir_at_hi_speed_last_2_min ?? 0;
-									}
-									else
-									{
-										gust = ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_10_min ?? 0);
-										gustDir = data1.wind_dir_at_hi_speed_last_10_min ?? 0;
-									}
-
-									var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
-									var gustDirCal = gustDir == 0 ? 0 : (int) cumulus.Calib.WindDir.Calibrate(gustDir);
 
 									// See if the current speed is higher than the current max
 									// We can then update the figure before the next data packet is read
@@ -830,8 +849,14 @@ namespace CumulusMX
 									if (CheckHighGust(gustCal, gustDirCal, dateTime))
 									{
 										cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-										DoWind(gust, gustDir, -1, dateTime);
+										RecentMaxGust = gustCal;
+
+										if (!broadcastStopped)
+										{
+											AddValuesToRecentWind(gust, WindAverage, gustDirCal, dateTime, dateTime);
+										}
 									}
+
 								}
 								catch (Exception ex)
 								{
@@ -2054,9 +2079,13 @@ namespace CumulusMX
 									var gust = ConvertUnits.WindMPHToUser((double) data11.wind_speed_hi);
 									var spd = ConvertUnits.WindMPHToUser((double) data11.wind_speed_avg);
 									var dir = data11.wind_speed_hi_dir ?? 0;
+									var dirCal = (int)cumulus.Calib.WindDir.Calibrate(dir);
 									cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {data11.tx_id}");
-									DoWind(gust, dir, spd, recordTs);
-									AddValuesToRecentWind(spd, spd, dir, recordTs.AddSeconds(-data11.arch_int), recordTs);
+									// only record average speed values in recentwind to avoid spikes when switching to live broadcast reception
+									DoWind(spd, dirCal, spd, recordTs);
+									// and handle the gust value manually
+									CheckHighGust(cumulus.Calib.WindGust.Calibrate(gust), dirCal, recordTs);
+									RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
 								}
 								else
 								{
@@ -3130,6 +3159,9 @@ namespace CumulusMX
 				broadcastStopped = true;
 				// Try and give the broadcasts a kick in case the last command did not get through
 				GetWllRealtime(null, null);
+
+				// increase the current data query rate to pull wind speeds more frequently
+				tmrCurrent.Interval = 5000;
 			}
 		}
 

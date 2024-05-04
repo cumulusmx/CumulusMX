@@ -1340,7 +1340,7 @@ namespace CumulusMX
 		/// Average wind speed
 		/// </summary>
 		public double WindAverage { get; set; } = 0;
-		private double WindAverageUncalibrated;
+		public double WindAverageUncalibrated { get; set; } = 0;
 
 		/// <summary>
 		/// Peak wind gust in last 10 minutes
@@ -6282,7 +6282,7 @@ namespace CumulusMX
 		public void InitialiseWind()
 		{
 			// first the average
-			var fromTime = cumulus.LastUpdateTime - cumulus.AvgSpeedTime;
+			var fromTime = cumulus.LastUpdateTime.Subtract(cumulus.AvgSpeedTime);
 			var numvalues = 0;
 			var totalwind = 0.0;
 
@@ -6299,7 +6299,7 @@ namespace CumulusMX
 			WindAverage = cumulus.Calib.WindSpeed.Calibrate(WindAverageUncalibrated);
 
 			// now the gust
-			fromTime = DateTime.Now - cumulus.PeakGustTime;
+			fromTime = cumulus.LastUpdateTime.Subtract(cumulus.PeakGustTime);
 
 			for (int i = 0; i < MaxWindRecent; i++)
 			{

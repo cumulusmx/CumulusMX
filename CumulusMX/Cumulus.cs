@@ -1605,7 +1605,7 @@ namespace CumulusMX
 		{
 			MyHttpSocketsHttpHandler = new SocketsHttpHandler()
 			{
-				PooledConnectionLifetime = TimeSpan.FromMinutes(4)
+				PooledConnectionLifetime = TimeSpan.FromMinutes(2)
 			};
 
 			MyHttpClient = new HttpClient(MyHttpSocketsHttpHandler)

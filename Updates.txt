@@ -8,14 +8,17 @@
 	- Check your station pressure (Absolute) calibration!
 - Adds true Altimeter Pressure calculation to GW1000, HTTP Ecowitt, Ecowitt Cloud
 	- Check your station pressure (Absolute) calibration!
-- Another attempt to smooth the average speed when ending catch-up on WLL stations
 - Fix web tags #MonthTempAvg, and #ByMonthTempAvg for cases where there is no data, and the 1st of the current month (#MonthTempAvg)
 - Add option to upload individual NOAA reports
 - Third-party web uploads
 	- Add random jitter
-	- Set HttpClient Pool lifetime to four minutes
+	- Set HttpClient Pool lifetime to two minutes
 - Ecowitt firmware check now clears the alarm after a firmware update
 - Add retry to Ecowitt firmware check on "Operation too frequent"
+- Improvements to Davis WLL wind handling when:
+	- Transitioning from catch-up to live running
+	- No broadcasts are received
+- Davis WLL improved recovery from loss of broadcast messages
 
 
 4.0.0 - b4020
@@ -118,6 +121,10 @@ Fixed
 - Improved web socket initial connection to send data immediately on dashboard/now/gauges connection
 - Fix for soil moisture conversion from percentage to cb in Weather Cloud uploads
 - Reload dayfile can now only be run as a single instance
+- Improvements to Davis WLL wind handling when:
+	- Transitioning from catch-up to live running
+	- No broadcasts are received
+- Davis WLL improved recovery from loss of broadcast messages
 
 
 
