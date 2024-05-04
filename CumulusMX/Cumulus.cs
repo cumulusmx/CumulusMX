@@ -1582,7 +1582,7 @@ namespace CumulusMX
 		{
 			var sslOptions = new SslClientAuthenticationOptions()
 			{
-				RemoteCertificateValidationCallback = delegate { return FtpOptions.PhpIgnoreCertErrors; }
+				RemoteCertificateValidationCallback = new RemoteCertificateValidationCallback((sender, certificate, chain, policyErrors) => { return FtpOptions.PhpIgnoreCertErrors || policyErrors == SslPolicyErrors.None; })
 			};
 
 
