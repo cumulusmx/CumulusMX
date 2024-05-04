@@ -550,7 +550,6 @@ namespace CumulusMX
 	// Data Structure 1 (rev B) = VP2 ISS current record (rev b just adds bar_trend which we do not use)
 	public class WLCurrentSensordDataType1_2
 	{
-		public int tx_id { get; set; }
 		public int bar_trend { get; set; }
 		public double? bar { get; set; }
 		public double? temp_in { get; set; }
@@ -602,7 +601,7 @@ namespace CumulusMX
 		public int? rain_year_clicks { get; set; }
 		public double? rain_year_in { get; set; }
 		public double? rain_year_mm { get; set; }
-		public int? uv { get; set; }
+		public double? uv { get; set; }
 		public int? solar_rad { get; set; }
 		public double? et_day { get; set; }
 		public double? et_month { get; set; }

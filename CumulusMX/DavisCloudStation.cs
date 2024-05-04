@@ -1225,10 +1225,10 @@ namespace CumulusMX
 										{
 											if (data.ts == lsidLastUpdate[sensor.lsid])
 											{
-												cumulus.LogDebugMessage($"DecodeCurrent: Skipping ISS {data.tx_id}, already processed this ts");
+												cumulus.LogDebugMessage($"DecodeCurrent: Skipping record type {sensor.data_structure_type}, already processed this ts");
 												continue;
 											}
-											cumulus.LogDebugMessage($"DecodeCurrent: Using ISS {data.tx_id}");
+											cumulus.LogDebugMessage($"DecodeCurrent: Using this record type {sensor.data_structure_type}");
 										}
 										catch (KeyNotFoundException)
 										{
@@ -1236,7 +1236,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogExceptionMessage(ex, $"DecodeCurrent: Error determining ISS {data.tx_id} last ts");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error determining last ts");
 										}
 
 										lsidLastUpdate[sensor.lsid] = data.ts;
@@ -1269,12 +1269,12 @@ namespace CumulusMX
 											}
 											else
 											{
-												cumulus.LogErrorMessage($"DecodeCurrent: Warning, no valid Humidity data on TxId {data.tx_id}");
+												cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Humidity data");
 											}
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing Primary humidity value on TxId {data.tx_id}. Error: {ex.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing Primary humidity. Error: {ex.Message}");
 										}
 
 										// do temperature after humidity as DoOutdoorTemp contains dewpoint calculation (if user selected)
@@ -1282,11 +1282,11 @@ namespace CumulusMX
 										{
 											if (data.temp_out.HasValue && data.temp_out == -99)
 											{
-												cumulus.LogErrorMessage($"DecodeCurrent: Warning, no valid Primary temperature value found [-99] on TxId {data.tx_id}");
+												cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Primary temperature value found [-99]");
 											}
 											else
 											{
-												cumulus.LogDebugMessage($"DecodeCurrent: using temp/hum data from TxId {data.tx_id}");
+												cumulus.LogDebugMessage("DecodeCurrent: using temp/hum data");
 
 												// do last temp
 												if (data.temp_out.HasValue)
@@ -1295,13 +1295,13 @@ namespace CumulusMX
 												}
 												else
 												{
-													cumulus.LogErrorMessage($"DecodeCurrent: Warning, no valid Temperature data on TxId {data.tx_id}");
+													cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Temperature data");
 												}
 											}
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing Primary temperature value on TxId {data.tx_id}. Error: {ex.Message}");
+											cumulus.LogErrorMessage("DecodeCurrent: Error processing Primary temperature. Error: {ex.Message}");
 										}
 
 
@@ -1314,12 +1314,12 @@ namespace CumulusMX
 											}
 											else
 											{
-												cumulus.LogErrorMessage($"DecodeCurrent: Warning, no valid Dew Point data on TxId {data.tx_id}");
+												cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Dew Point data");
 											}
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing dew point value on TxId {data.tx_id}. Error: {ex.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing dew point value. Error: {ex.Message}");
 										}
 
 										if (!cumulus.StationOptions.CalculatedWC)
@@ -1334,12 +1334,12 @@ namespace CumulusMX
 												}
 												else
 												{
-													cumulus.LogWarningMessage($"DecodeCurrent: Warning, no valid Wind Chill data on TxId {data.tx_id}");
+													cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Wind Chill data");
 												}
 											}
 											catch (Exception ex)
 											{
-												cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind chill value on TxId {data.tx_id}. Error: {ex.Message}");
+												cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind chill. Error: {ex.Message}");
 											}
 										}
 
@@ -1362,7 +1362,7 @@ namespace CumulusMX
 												// dir is a direction code: 0=N, 1=NNE, ... 14=NW, 15=NNW - convert to degress
 												var dir = (int) ((data.wind_dir ?? 0) * 22.5);
 
-												cumulus.LogDebugMessage($"DecodeCurrent: using wind data from TxId {data.tx_id}");
+												cumulus.LogDebugMessage("DecodeCurrent: using wind data");
 
 												DoWind(gust, dir, -1, lastRecordTime);
 
@@ -1373,12 +1373,12 @@ namespace CumulusMX
 											}
 											else
 											{
-												cumulus.LogDebugMessage($"DecodeCurrent: Warning, no valid Wind data on TxId {data.tx_id}");
+												cumulus.LogDebugMessage("DecodeCurrent: Warning, no valid Wind data");
 											}
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind values on TxId {data.tx_id}. Error: {ex.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind values. Error: {ex.Message}");
 										}
 
 										// Rainfall
@@ -1408,7 +1408,7 @@ namespace CumulusMX
 										{
 											if (data.rain_year_clicks.HasValue && data.rain_rate_clicks.HasValue)
 											{
-												cumulus.LogDebugMessage($"DecodeCurrent: using rain data from TxId {data.tx_id}");
+												cumulus.LogDebugMessage("DecodeCurrent: using rain data");
 
 												var rain = ConvertRainClicksToUser(data.rain_year_clicks.Value, cumulus.DavisOptions.RainGaugeType);
 												var rainrate = ConvertRainClicksToUser(data.rain_rate_clicks.Value, cumulus.DavisOptions.RainGaugeType);
@@ -1421,12 +1421,12 @@ namespace CumulusMX
 											}
 											else
 											{
-												cumulus.LogWarningMessage($"DecodeCurrent: Warning, no valid Rain data on TxId {data.tx_id}");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Rain data");
 											}
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing rain data on TxId {data.tx_id}. Error:{ex.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing rain data. Error:{ex.Message}");
 										}
 
 										// Pressure
@@ -1462,18 +1462,18 @@ namespace CumulusMX
 										{
 											if (data.uv.HasValue)
 											{
-												cumulus.LogDebugMessage($"DecodeCurrent: using UV data from TxId {data.tx_id}");
+												cumulus.LogDebugMessage("DecodeCurrent: using UV data");
 
 												DoUV(data.uv.Value, lastRecordTime);
 											}
 											else
 											{
-												cumulus.LogWarningMessage($"DecodeCurrent: Warning, no valid UV data on TxId {data.tx_id}");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid UV data");
 											}
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing UV value on TxId {data.tx_id}. Error: {ex.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing UV value. Error: {ex.Message}");
 										}
 
 										// Solar
@@ -1488,12 +1488,12 @@ namespace CumulusMX
 										{
 											if (data.solar_rad.HasValue)
 											{
-												cumulus.LogDebugMessage($"DecodeCurrent: using solar data from TxId {data.tx_id}");
+												cumulus.LogDebugMessage("DecodeCurrent: using solar data");
 												DoSolarRad(data.solar_rad.Value, lastRecordTime);
 											}
 											else
 											{
-												cumulus.LogWarningMessage($"DecodeCurrent: Warning, no valid Solar data on TxId {data.tx_id}");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Solar data");
 											}
 
 											if (data.et_year.HasValue && !cumulus.StationOptions.CalculatedET && (data.et_year.Value >= 0) && (data.et_year.Value < 32000))
@@ -1503,10 +1503,9 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing Solar value on TxId {data.tx_id}. Error: {ex.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing Solar value. Error: {ex.Message}");
 										}
 
-										string idx = string.Empty;
 
 										// Leaf Wetness
 										try
@@ -1531,7 +1530,7 @@ namespace CumulusMX
 										}
 										catch (Exception e)
 										{
-											cumulus.LogErrorMessage($"Error, DecodeCurrent, LeafWetness txid={data.tx_id}: {e.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing LeafWetness. Error: {e.Message}");
 										}
 
 
@@ -1557,7 +1556,7 @@ namespace CumulusMX
 										}
 										catch (Exception e)
 										{
-											cumulus.LogErrorMessage($"Error, DecodeCurrent, SoilMoisture txid={data.tx_id}, idx={idx}: {e.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing SoilMoisture. Error: {e.Message}");
 										}
 
 
@@ -1583,7 +1582,7 @@ namespace CumulusMX
 										}
 										catch (Exception e)
 										{
-											cumulus.LogErrorMessage($"Error, DecodeCurrent, SoilTemp txid={data.tx_id}, idx={idx}: {e.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing SoilTemp. Error: {e.Message}");
 										}
 
 										// Extra Temperature
@@ -1620,7 +1619,7 @@ namespace CumulusMX
 										}
 										catch (Exception e)
 										{
-											cumulus.LogErrorMessage($"Error, DecodeCurrent, ExtraTemp txid={data.tx_id}, idx={idx}: {e.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing ExtraTemp. Error: {e.Message}");
 										}
 
 										// Extra Humidity
@@ -1657,7 +1656,7 @@ namespace CumulusMX
 										}
 										catch (Exception e)
 										{
-											cumulus.LogErrorMessage($"Error, DecodeCurrent, ExtraHum txid={data.tx_id}, idx={idx}: {e.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing ExtraHum. Error: {e.Message}");
 										}
 									}
 									break;
@@ -1674,10 +1673,10 @@ namespace CumulusMX
 											{
 												if (rec.ts == lsidLastUpdate[sensor.lsid])
 												{
-													cumulus.LogDebugMessage($"DecodeCurrent: Skipping ISS {rec.tx_id}, already processed this ts");
+													cumulus.LogDebugMessage($"DecodeCurrent: Skipping ISS {rec.tx_id}, type {sensor.data_structure_type}, already processed this ts");
 													continue;
 												}
-												cumulus.LogDebugMessage($"DecodeCurrent: Using ISS {rec.tx_id}");
+												cumulus.LogDebugMessage($"DecodeCurrent: Using ISS {rec.tx_id}, type {sensor.data_structure_type}");
 											}
 											catch (KeyNotFoundException)
 											{
