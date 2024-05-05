@@ -1,7 +1,8 @@
-4.0.0 - b4021
+4.0.0 - b4022
 —————————————
 - Fix PHP upload certifcate errors introduced in b4021
 - Fix UV decode for Davis cloud station (VP2)
+- Spike/limit improvements
 
 
 4.0.0 - b4021

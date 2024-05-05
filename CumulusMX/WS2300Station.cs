@@ -625,7 +625,7 @@ namespace CumulusMX
 			if (!stop)
 			{
 				double outtemp = Ws2300OutdoorTemperature();
-				if ((outtemp > -60) && (outtemp < 60) && ((previoustemp == 999) || (Math.Abs(outtemp - previoustemp) < cumulus.Spike.TempDiff)))
+				if ((outtemp > -60) && (outtemp < 60) && ((previoustemp == 999) || (Math.Abs(outtemp - previoustemp) < ConvertUnits.UserTempToC(cumulus.Spike.TempDiff))))
 				{
 					previoustemp = outtemp;
 					DoOutdoorTemp(ConvertUnits.TempCToUser(outtemp), now);
@@ -646,7 +646,7 @@ namespace CumulusMX
 			if (!stop)
 			{
 				double pressure = Ws2300RelativePressure();
-				if ((pressure > 900) && (pressure < 1200) && ((previouspress == 9999) || (Math.Abs(pressure - previouspress) < cumulus.Spike.PressDiff)))
+				if ((pressure > 900) && (pressure < 1200) && ((previouspress == 9999) || (Math.Abs(pressure - previouspress) < ConvertUnits.UserPressToHpa(cumulus.Spike.PressDiff))))
 				{
 					previouspress = pressure;
 					DoPressure(ConvertUnits.PressMBToUser(pressure), now);
