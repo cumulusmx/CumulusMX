@@ -397,6 +397,15 @@ namespace CumulusMX
 				{
 					if (cumulus.Units.Wind != settings.units.wind)
 					{
+						cumulus.Limit.WindHigh = settings.units.wind switch
+						{
+							0 => ConvertUnits.UserWindToMS(cumulus.Limit.WindHigh),
+							1 => ConvertUnits.UserWindToMPH(cumulus.Limit.WindHigh),
+							2 => ConvertUnits.UserWindToKPH(cumulus.Limit.WindHigh),
+							3 => ConvertUnits.UserWindToKnots(cumulus.Limit.WindHigh),
+							_ => cumulus.Limit.WindHigh
+						};
+
 						cumulus.Units.Wind = settings.units.wind;
 						cumulus.ChangeWindUnits();
 						cumulus.WindDPlaces = cumulus.StationOptions.RoundWindSpeed ? 0 : cumulus.WindDPlaceDefaults[cumulus.Units.Wind];
@@ -404,12 +413,37 @@ namespace CumulusMX
 					}
 					if (cumulus.Units.Press != settings.units.pressure)
 					{
+						switch (settings.units.pressure)
+						{
+							case 0:
+							case 1:
+								cumulus.Limit.PressHigh = ConvertUnits.UserPressToHpa(cumulus.Limit.PressHigh);
+								cumulus.Limit.PressLow = ConvertUnits.UserPressToHpa(cumulus.Limit.PressLow);
+								break;
+							case 2:
+								cumulus.Limit.PressHigh = ConvertUnits.UserPressToIN(cumulus.Limit.PressHigh);
+								cumulus.Limit.PressLow = ConvertUnits.UserPressToIN(cumulus.Limit.PressLow);
+								break;
+						}
 						cumulus.Units.Press = settings.units.pressure;
 						cumulus.ChangePressureUnits();
 						cumulus.PressDPlaces = cumulus.PressDPlaceDefaults[cumulus.Units.Press];
 					}
 					if (cumulus.Units.Temp != settings.units.temp)
 					{
+						switch (settings.units.temp)
+						{
+							case 0:
+								cumulus.Limit.TempHigh = ConvertUnits.UserTempToC(cumulus.Limit.TempHigh);
+								cumulus.Limit.TempLow = ConvertUnits.UserTempToC(cumulus.Limit.TempLow);
+								cumulus.Limit.DewHigh = ConvertUnits.UserTempToC(cumulus.Limit.DewHigh);
+								break;
+							case 1:
+								cumulus.Limit.TempHigh = ConvertUnits.UserTempToF(cumulus.Limit.TempHigh);
+								cumulus.Limit.TempLow = ConvertUnits.UserTempToF(cumulus.Limit.TempLow);
+								cumulus.Limit.DewHigh = ConvertUnits.UserTempToF(cumulus.Limit.DewHigh);
+								break;
+						}
 						cumulus.Units.Temp = settings.units.temp;
 						cumulus.ChangeTempUnits();
 					}
