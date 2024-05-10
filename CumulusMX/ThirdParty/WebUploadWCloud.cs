@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -69,14 +70,34 @@ namespace CumulusMX.ThirdParty
 						break;
 				}
 				if ((int) response.StatusCode == 200)
+				{
 					cumulus.LogDebugMessage($"WeatherCloud: Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
+				}
 				else
-					cumulus.LogMessage($"WeatherCloud: ERROR - Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
+				{
+					var log = $"WeatherCloud: ERROR - Response = {msg} ({response.StatusCode}): {responseBodyAsText}";
+					cumulus.LogWarningMessage(log);
+					cumulus.ThirdPartyAlarm.LastMessage = log;
+					cumulus.ThirdPartyAlarm.Triggered = true;
+				}
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogExceptionMessage(ex, "WeatherCloud: ERROR");
-				cumulus.ThirdPartyAlarm.LastMessage = "WeatherCloud: " + ex.Message;
+				string msg;
+
+				if (ex.InnerException is TimeoutException)
+				{
+					msg = $"WeatherCloud: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+					cumulus.LogWarningMessage(msg);
+				}
+				else
+				{
+					msg = "WeatherCloud: " + ex.Message;
+					cumulus.LogExceptionMessage(ex, "WeatherCloud: Error");
+				}
+
+				cumulus.ThirdPartyAlarm.LastMessage = msg;
 				cumulus.ThirdPartyAlarm.Triggered = true;
 			}
 			finally

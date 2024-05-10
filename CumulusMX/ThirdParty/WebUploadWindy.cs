@@ -37,7 +37,7 @@ namespace CumulusMX.ThirdParty
 				cumulus.LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					cumulus.LogMessage("Windy: ERROR - Response = " + response.StatusCode + ": " + responseBodyAsText);
+					cumulus.LogWarningMessage("Windy: ERROR - Response = " + response.StatusCode + ": " + responseBodyAsText);
 					cumulus.ThirdPartyAlarm.LastMessage = "Windy: HTTP response - " + response.StatusCode;
 					cumulus.ThirdPartyAlarm.Triggered = true;
 				}
@@ -48,8 +48,20 @@ namespace CumulusMX.ThirdParty
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, "Windy: ERROR");
-				cumulus.ThirdPartyAlarm.LastMessage = "Windy: " + ex.Message;
+				string msg;
+
+				if (ex.InnerException is TimeoutException)
+				{
+					msg = $"Windy: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+					cumulus.LogWarningMessage(msg);
+				}
+				else
+				{
+					msg = "Windy: " + ex.Message;
+					cumulus.LogExceptionMessage(ex, "Windy: Error");
+				}
+
+				cumulus.ThirdPartyAlarm.LastMessage = msg;
 				cumulus.ThirdPartyAlarm.Triggered = true;
 			}
 			finally

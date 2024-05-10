@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
@@ -61,13 +62,17 @@ namespace CumulusMX.ThirdParty
 
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					cumulus.LogMessage($"AWEKAS: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
+					cumulus.LogWarningMessage($"AWEKAS: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
 					cumulus.ThirdPartyAlarm.LastMessage = $"AWEKAS: HTTP Response code = {response.StatusCode}, body = {responseBodyAsText}";
 					cumulus.ThirdPartyAlarm.Triggered = true;
 				}
 				else
 				{
-					cumulus.ThirdPartyAlarm.Triggered = false;
+					if (string.IsNullOrEmpty(responseBodyAsText))
+					{
+						cumulus.ThirdPartyAlarm.Triggered = false;
+						return;
+					}
 				}
 
 				AwekasResponse respJson;
@@ -78,8 +83,8 @@ namespace CumulusMX.ThirdParty
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogMessage("AWEKAS: Exception deserializing response = " + ex.Message);
-					cumulus.LogMessage($"AWEKAS: ERROR - Response body = {responseBodyAsText}");
+					cumulus.LogWarningMessage("AWEKAS: Exception deserializing response = " + ex.Message);
+					cumulus.LogWarningMessage($"AWEKAS: ERROR - Response body = {responseBodyAsText}");
 					cumulus.ThirdPartyAlarm.LastMessage = "AWEKAS deserializing response: " + ex.Message;
 					cumulus.ThirdPartyAlarm.Triggered = true;
 					Updating = false;
@@ -100,7 +105,7 @@ namespace CumulusMX.ThirdParty
 				{
 					if (respJson.minuploadtime > 0 && respJson.authentication == 0)
 					{
-						cumulus.LogMessage("AWEKAS: Authentication error");
+						cumulus.LogWarningMessage("AWEKAS: Authentication error");
 						if (Interval < 300)
 						{
 							RateLimited = true;
@@ -113,7 +118,7 @@ namespace CumulusMX.ThirdParty
 					}
 					else if (respJson.minuploadtime == 0)
 					{
-						cumulus.LogMessage("AWEKAS: Too many requests, rate limited");
+						cumulus.LogWarningMessage("AWEKAS: Too many requests, rate limited");
 						// AWEKAS PLus allows minimum of 60 second updates, try that first
 						if (!RateLimited && Interval < 60)
 						{
@@ -121,7 +126,7 @@ namespace CumulusMX.ThirdParty
 							RateLimited = true;
 							Interval = 60;
 							SynchronisedUpdate = true;
-							cumulus.LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
+							cumulus.LogWarningMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
 						}
 						// AWEKAS normal allows minimum of 300 second updates, revert to that
 						else
@@ -130,12 +135,12 @@ namespace CumulusMX.ThirdParty
 							Interval = 300;
 							IntTimer.Interval = Interval * 1000;
 							SynchronisedUpdate = true;
-							cumulus.LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to rate limit");
+							cumulus.LogWarningMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to rate limit");
 						}
 					}
 					else
 					{
-						cumulus.LogMessage("AWEKAS: Unknown error");
+						cumulus.LogWarningMessage("AWEKAS: Unknown error");
 						cumulus.ThirdPartyAlarm.LastMessage = "AWEKAS: Unknown error";
 						cumulus.ThirdPartyAlarm.Triggered = true;
 					}
@@ -144,7 +149,7 @@ namespace CumulusMX.ThirdParty
 				// check the min upload time is greater than our upload time
 				if (respJson.status > 0 && respJson.minuploadtime > OriginalInterval)
 				{
-					cumulus.LogMessage($"AWEKAS: The minimum upload time to AWEKAS for your station is {respJson.minuploadtime} sec, Cumulus is configured for {OriginalInterval} sec, increasing Cumulus interval to match AWEKAS");
+					cumulus.LogWarningMessage($"AWEKAS: The minimum upload time to AWEKAS for your station is {respJson.minuploadtime} sec, Cumulus is configured for {OriginalInterval} sec, increasing Cumulus interval to match AWEKAS");
 					Interval = respJson.minuploadtime;
 					cumulus.WriteIniFile();
 					IntTimer.Interval = Interval * 1000;
@@ -169,8 +174,19 @@ namespace CumulusMX.ThirdParty
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, "AWEKAS: Error");
-				cumulus.ThirdPartyAlarm.LastMessage = "AWEKAS: " + ex.Message;
+				string msg;
+
+				if (ex.InnerException is TimeoutException)
+				{
+					msg = $"AWEKAS: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+					cumulus.LogWarningMessage(msg);
+				}
+				else
+				{
+					msg = "AWEKAS: " + ex.Message;
+					cumulus.LogExceptionMessage(ex, "AWEKAS: Error");
+				}
+				cumulus.ThirdPartyAlarm.LastMessage = msg;
 				cumulus.ThirdPartyAlarm.Triggered = true;
 			}
 			finally

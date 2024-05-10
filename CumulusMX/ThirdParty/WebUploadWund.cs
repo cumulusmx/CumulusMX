@@ -83,8 +83,20 @@ namespace CumulusMX.ThirdParty
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, "Wunderground: ERROR");
-				cumulus.ThirdPartyAlarm.LastMessage = "Wunderground: " + ex.Message;
+				string msg;
+
+				if (ex.InnerException is TimeoutException)
+				{
+					msg = $"Wunderground: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+					cumulus.LogWarningMessage(msg);
+				}
+				else
+				{
+					msg = "Wunderground: " + ex.Message;
+					cumulus.LogExceptionMessage(ex, "Wunderground: Error");
+				}
+
+				cumulus.ThirdPartyAlarm.LastMessage = msg;
 				cumulus.ThirdPartyAlarm.Triggered = true;
 			}
 			finally

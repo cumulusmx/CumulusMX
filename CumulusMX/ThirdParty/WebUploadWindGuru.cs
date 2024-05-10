@@ -39,7 +39,7 @@ namespace CumulusMX.ThirdParty
 				cumulus.LogDebugMessage("WindGuru: " + response.StatusCode + ": " + responseBodyAsText);
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					cumulus.LogMessage("WindGuru: ERROR - " + response.StatusCode + ": " + responseBodyAsText);
+					cumulus.LogWarningMessage("WindGuru: ERROR - " + response.StatusCode + ": " + responseBodyAsText);
 					cumulus.ThirdPartyAlarm.LastMessage = "WindGuru: HTTP response - " + response.StatusCode;
 					cumulus.ThirdPartyAlarm.Triggered = true;
 				}
@@ -50,8 +50,20 @@ namespace CumulusMX.ThirdParty
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, "WindGuru: ERROR");
-				cumulus.ThirdPartyAlarm.LastMessage = "WindGuru: " + ex.Message;
+				string msg;
+
+				if (ex.InnerException is TimeoutException)
+				{
+					msg = $"WindGuru: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+					cumulus.LogWarningMessage(msg);
+				}
+				else
+				{
+					msg = "WindGuru: " + ex.Message;
+					cumulus.LogExceptionMessage(ex, "WindGuru: Error");
+				}
+
+				cumulus.ThirdPartyAlarm.LastMessage = msg;
 				cumulus.ThirdPartyAlarm.Triggered = true;
 			}
 			finally
