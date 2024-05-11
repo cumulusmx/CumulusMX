@@ -2114,7 +2114,7 @@ namespace CumulusMX
 					if ((previousPressStation != 9999) && (Math.Abs(pressUser - previousPressStation) > cumulus.Spike.PressDiff))
 					{
 						cumulus.LogSpikeRemoval("Station Pressure difference greater than spike value; reading ignored");
-						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} OldVal={pressUser.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}");
+						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} OldVal={previousPressStation.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}");
 						lastSpikeRemoval = DateTime.Now;
 						cumulus.SpikeAlarm.LastMessage = $"Station Pressure difference greater than spike value - NewVal={pressUser.ToString(cumulus.PressFormat)} OldVal={previousPressStation.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}";
 						cumulus.SpikeAlarm.Triggered = true;
