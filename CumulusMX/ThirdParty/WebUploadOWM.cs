@@ -46,7 +46,21 @@ namespace CumulusMX.ThirdParty
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogExceptionMessage(ex, "OpenWeatherMap: Update error");
+					string msg;
+
+					if (ex.InnerException is TimeoutException)
+					{
+						msg = $"OpenWeatherMap: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+						cumulus.LogWarningMessage(msg);
+					}
+					else
+					{
+						msg = "OpenWeatherMap: " + ex.Message;
+						cumulus.LogExceptionMessage(ex, "OpenWeatherMap: Update error");
+					}
+
+					cumulus.ThirdPartyAlarm.LastMessage = msg;
+					cumulus.ThirdPartyAlarm.Triggered = true;
 				}
 			}
 
@@ -98,8 +112,20 @@ namespace CumulusMX.ThirdParty
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, "OpenWeatherMap: ERROR");
-				cumulus.ThirdPartyAlarm.LastMessage = "OpenWeatherMap: " + ex.Message;
+				string msg;
+
+				if (ex.InnerException is TimeoutException)
+				{
+					msg = $"OpenWeatherMap: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+					cumulus.LogWarningMessage(msg);
+				}
+				else
+				{
+					msg = "OpenWeatherMap: " + ex.Message;
+					cumulus.LogExceptionMessage(ex, "OpenWeatherMap: Update error");
+				}
+
+				cumulus.ThirdPartyAlarm.LastMessage = msg;
 				cumulus.ThirdPartyAlarm.Triggered = true;
 			}
 			finally

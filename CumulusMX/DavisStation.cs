@@ -2109,22 +2109,38 @@ namespace CumulusMX
 				}
 				else
 				{
-					// Spike removal is in mb/hPa
+					// Spike removal is in user units
 					var pressUser = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
-					var pressMB = ConvertUnits.UserPressToMB(pressUser);
-					if ((previousPressStation == 9999) || (Math.Abs(pressMB - previousPressStation) < cumulus.Spike.PressDiff))
+					if ((previousPressStation != 9999) && (Math.Abs(pressUser - previousPressStation) > cumulus.Spike.PressDiff))
 					{
-						previousPressStation = pressMB;
-						StationPressure = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
-						AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+						cumulus.LogSpikeRemoval("Station Pressure difference greater than spike value; reading ignored");
+						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} OldVal={pressUser.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}");
+						lastSpikeRemoval = DateTime.Now;
+						cumulus.SpikeAlarm.LastMessage = $"Station Pressure difference greater than spike value - NewVal={pressUser.ToString(cumulus.PressFormat)} OldVal={previousPressStation.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}";
+						cumulus.SpikeAlarm.Triggered = true;
+					}
+					else if (pressUser > cumulus.Limit.PressHigh)
+					{
+						cumulus.LogSpikeRemoval("Station Pressure greater than upper limit; reading ignored");
+						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} HighLimit={cumulus.Limit.PressHigh.ToString(cumulus.PressFormat)}");
+						lastSpikeRemoval = DateTime.Now;
+						cumulus.SpikeAlarm.LastMessage = $"Station Pressure greater than upper limit - NewVal={pressUser.ToString(cumulus.PressFormat)} HighLimit={cumulus.Limit.PressHigh.ToString(cumulus.PressFormat)}";
+						cumulus.SpikeAlarm.Triggered = true;
+					}
+					else if (pressUser < cumulus.Limit.PressLow)
+					{
+						cumulus.LogSpikeRemoval("Station Pressure less than lower limit; reading ignored");
+						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} LowLimit={cumulus.Limit.PressLow.ToString(cumulus.PressFormat)}");
+						lastSpikeRemoval = DateTime.Now;
+						cumulus.SpikeAlarm.LastMessage = $"Station Pressure less than lower limit - NewVal={pressUser.ToString(cumulus.PressFormat)} LowLimit={cumulus.Limit.PressLow.ToString(cumulus.PressFormat)}";
+						cumulus.SpikeAlarm.Triggered = true;
 					}
 					else
 					{
-						cumulus.LogSpikeRemoval("Station Pressure difference greater than specified; reading ignored");
-						cumulus.LogSpikeRemoval($"NewVal={pressMB:F1} OldVal={previousPressStation:F1} SpikePressDiff={cumulus.Spike.PressDiff:F1} HighLimit={cumulus.Limit.PressHigh:F1} LowLimit={cumulus.Limit.PressLow:F1}");
-						lastSpikeRemoval = DateTime.Now;
-						cumulus.SpikeAlarm.LastMessage = $"Station Pressure difference greater than spike value - NewVal={pressMB:F1} OldVal={previousPressStation:F1}";
-						cumulus.SpikeAlarm.Triggered = true;
+						// all good!
+						previousPressStation = pressUser;
+						StationPressure = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
+						AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 					}
 				}
 

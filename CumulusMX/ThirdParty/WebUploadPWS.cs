@@ -48,8 +48,20 @@ namespace CumulusMX.ThirdParty
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogExceptionMessage(ex, "PWS update error");
-					cumulus.ThirdPartyAlarm.LastMessage = "PWS: " + ex.Message;
+					string msg;
+
+					if (ex.InnerException is TimeoutException)
+					{
+						msg = $"PWS: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+						cumulus.LogWarningMessage(msg);
+					}
+					else
+					{
+						msg = "PWS: " + ex.Message;
+						cumulus.LogExceptionMessage(ex, "PWS update error");
+					}
+
+					cumulus.ThirdPartyAlarm.LastMessage = msg;
 					cumulus.ThirdPartyAlarm.Triggered = true;
 				}
 				finally

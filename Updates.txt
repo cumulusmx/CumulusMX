@@ -1,68 +1,4 @@
-4.0.0 - b4021
-—————————————
-- Force all locales to use the hypen-minus symbol
-- Reload dayfile can now only be run as a single instance
-- Add "MX calculates Sea Level Pressure"
-	- Applies to HTTP Ecowitt, HTTP Ambient, GW1000, Ecowitt Cloud, FO, Davis Cloud WLC stations
-	- When enabled, the pressure calibration is applied to the raw station pressure
-	- Check your station pressure (Absolute) calibration!
-- Adds true Altimeter Pressure calculation to GW1000, HTTP Ecowitt, Ecowitt Cloud
-	- Check your station pressure (Absolute) calibration!
-- Fix web tags #MonthTempAvg, and #ByMonthTempAvg for cases where there is no data, and the 1st of the current month (#MonthTempAvg)
-- Add option to upload individual NOAA reports
-- Third-party web uploads
-	- Add random jitter
-	- Set HttpClient Pool lifetime to two minutes
-- Ecowitt firmware check now clears the alarm after a firmware update
-- Add retry to Ecowitt firmware check on "Operation too frequent"
-- Improvements to Davis WLL wind handling when:
-	- Transitioning from catch-up to live running
-	- No broadcasts are received
-- Davis WLL improved recovery from loss of broadcast messages
-
-
-4.0.0 - b4020
-—————————————
-- Fix Irish time zone DST reversal for "use 10am in summer"
-- Clear the recent error log now also clears the latest error web tags
-- Move ThreadPool min/max to runtimeconfig file
-- Logged exception messages now also update LatestError and LatestErrorTS
-
-
-
-4.0.0 - b4019
-—————————————
-- Change HTTP Ecowitt "warning" messages
-- Fix WeatherUnderground rapid fire updates
-- Fix MySQL Custom Upload Minutes firing every minute for all configured intervals
-- Adds decode for Ecowitt CO₂ PM1 and PM4 when using local API
-	- New web tags: <#CO2_pm1>, <#CO2_pm1_24h>, <#CO2_pm4>, <#CO2_pm4_24h>
-- Fix MAC address field not always displayed in Station Settings for HTTP Ecowitt stations
-- Fix Extra Sensor graph data not being created for none dot-decimal locales
-- Enable MQTT updates for Tempest Rapid Wind packets
-- Fix Extra Web Files not obeying the UTF-8 setting when creating a local file
-- Fix bug in AWEKAS rate limited code that disabled the upload completely
-
-
-4.0.0 - b4018
-—————————————
-- Reworked GetVersion() to account for published beta builds
-- Fix backup error on first start-up
-- Change uniqueid.txt file handling to allow for zero length files
-- wxnow.txt file now has the option to force UTC timestamps
-- Fix WLL not binding to broadcast port in shared mode
-- Add optional parameter "-servicename xxxx" to Linux service -install and -uninstall, it defaults to "cumulusmx"
-- Fix error/crash in Ecowitt GetStationList() processing
-- Add Davis WeatherLink Console archive decodes for historic: baro, internal T/H, soil/leaf, enviro-monitor
-- MySQL Connector updated
-
-
-4.0.0 - b4017
-—————————————
-- First public beta
-
-
-4.0.0 - b4xxx
+4.0.0 - b4022
 —————————————
 Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and removes the requirement for the Mono runtime environment on Linux
 
@@ -89,6 +25,8 @@ New
 	- Check your station pressure (Absolute) calibration!
 - Adds true Altimeter Pressure calculation to GW1000, Ecowitt HTTP, Ecowitt Cloud
 	- Check your station pressure (Absolute) calibration!
+- Added localisation of records web tag date/time formats
+
 
 Changed
 - Now requires Microsoft .Net 8.0 rather than mono to run under Linux and MacOS
@@ -125,7 +63,7 @@ Fixed
 	- Transitioning from catch-up to live running
 	- No broadcasts are received
 - Davis WLL improved recovery from loss of broadcast messages
-
+- Spike/limit improvements
 
 
 

@@ -1582,7 +1582,7 @@ namespace CumulusMX
 		{
 			var sslOptions = new SslClientAuthenticationOptions()
 			{
-				RemoteCertificateValidationCallback = delegate { return FtpOptions.PhpIgnoreCertErrors; }
+				RemoteCertificateValidationCallback = new RemoteCertificateValidationCallback((sender, certificate, chain, policyErrors) => { return FtpOptions.PhpIgnoreCertErrors || policyErrors == SslPolicyErrors.None; })
 			};
 
 
@@ -6841,6 +6841,12 @@ namespace CumulusMX
 			NewRecordAlarm.Name = ini.GetValue("AlarmNames", "newRecord", "New Record");
 			FtpAlarm.Name = ini.GetValue("AlarmNames", "ftpStopped", "Web Upload");
 
+			// web tag defaults
+			Trans.WebTagGenTimeDate = ini.GetValue("WebTags", "GeneralTimeDate", "HH:mm 'on' dd MMMM yyyy");
+			Trans.WebTagRecDate = ini.GetValue("WebTags", "RecordDate", "'on' dd MMMM yyyy");
+			Trans.WebTagRecTimeDate = ini.GetValue("WebTags", "RecordTimeDate", "'at' HH:mm 'on' dd MMMM yyyy");
+			Trans.WebTagRecDryWetDate = ini.GetValue("WebTags", "RecordDryWetDate", "'to' dd MMMM yyyy");
+
 			if (!File.Exists("strings.ini"))
 			{
 				WriteStringsFile();
@@ -7033,6 +7039,12 @@ namespace CumulusMX
 			ini.SetValue("AlarmNames", "isRaining", IsRainingAlarm.Name);
 			ini.SetValue("AlarmNames", "newRecord", NewRecordAlarm.Name);
 			ini.SetValue("AlarmNames", "ftpStopped", FtpAlarm.Name);
+
+			// web tag defaults
+			ini.SetValue("WebTags", "GeneralTimeDate", Trans.WebTagGenTimeDate);
+			ini.SetValue("WebTags", "RecordDate", Trans.WebTagRecDate);
+			ini.SetValue("WebTags", "RecordTimeDate", Trans.WebTagRecTimeDate);
+			ini.SetValue("WebTags", "RecordDryWetDate", Trans.WebTagRecDryWetDate);
 
 			ini.Flush();
 

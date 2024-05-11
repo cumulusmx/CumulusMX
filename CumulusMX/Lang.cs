@@ -195,5 +195,10 @@
 		// alarm emails
 		public string AlarmEmailPreamble { get; set; }
 		public string AlarmEmailSubject { get; set; }
+		// web tag defaults
+		public string WebTagGenTimeDate { get; set; }
+		public string WebTagRecTimeDate { get; set; }
+		public string WebTagRecDate { get; set; }
+		public string WebTagRecDryWetDate { get; set; }
 	}
 }
