@@ -1,3 +1,12 @@
+4.0.1 - b4023
+—————————————
+New
+Changed
+Fixed
+- Fixed Spike handling for outdoor temperature
+
+
+
 4.0.0 - b4022
 —————————————
 Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and removes the requirement for the Mono runtime environment on Linux

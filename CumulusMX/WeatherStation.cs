@@ -5074,10 +5074,10 @@ namespace CumulusMX
 		public void DoOutdoorTemp(double temp, DateTime timestamp)
 		{
 			// Spike removal is in user units
-			if ((previousTemp != 9999) && (Math.Abs(temp - previousTemp) > cumulus.Spike.TempDiff))
+			if ((previousTemp != 999) && (Math.Abs(temp - previousTemp) > cumulus.Spike.TempDiff))
 			{
 				cumulus.LogSpikeRemoval("Temp difference greater than spike value; reading ignored");
-				cumulus.LogSpikeRemoval($"NewVal={temp.ToString(cumulus.TempFormat)} OldVal={temp.ToString(cumulus.TempFormat)} SpikeTempDiff={cumulus.Spike.TempDiff.ToString(cumulus.TempFormat)}");
+				cumulus.LogSpikeRemoval($"NewVal={temp.ToString(cumulus.TempFormat)} OldVal={previousTemp.ToString(cumulus.TempFormat)} SpikeTempDiff={cumulus.Spike.TempDiff.ToString(cumulus.TempFormat)}");
 				lastSpikeRemoval = DateTime.Now;
 				cumulus.SpikeAlarm.LastMessage = $"Temp difference greater than spike value - NewVal={temp.ToString(cumulus.TempFormat)} OldVal={previousTemp.ToString(cumulus.TempFormat)} SpikeTempDiff={cumulus.Spike.TempDiff.ToString(cumulus.TempFormat)}";
 				cumulus.SpikeAlarm.Triggered = true;
@@ -5101,8 +5101,6 @@ namespace CumulusMX
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
-
-
 
 			previousTemp = temp;
 
@@ -5544,7 +5542,7 @@ namespace CumulusMX
 			if ((previousPress != 9999) && (Math.Abs(sl - previousPress) > cumulus.Spike.PressDiff))
 			{
 				cumulus.LogSpikeRemoval("Pressure difference greater than spike value; reading ignored");
-				cumulus.LogSpikeRemoval($"NewVal={sl.ToString(cumulus.PressFormat)} OldVal={sl.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}");
+				cumulus.LogSpikeRemoval($"NewVal={sl.ToString(cumulus.PressFormat)} OldVal={previousPress.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}");
 				lastSpikeRemoval = DateTime.Now;
 				cumulus.SpikeAlarm.LastMessage = $"Pressure difference greater than spike value - NewVal={sl.ToString(cumulus.PressFormat)} OldVal={sl.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}";
 				cumulus.SpikeAlarm.Triggered = true;
