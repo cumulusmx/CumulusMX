@@ -160,6 +160,14 @@ namespace CumulusMX
 				email = alarmEmail
 			};
 
+			var webtags = new WebTags()
+			{
+				gentimedate = cumulus.Trans.WebTagGenTimeDate,
+				recdate = cumulus.Trans.WebTagRecDate,
+				rectimedate = cumulus.Trans.WebTagRecTimeDate,
+				recwetdrytimedate = cumulus.Trans.WebTagRecDryWetDate
+			};
+
 			var settings = new Settings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
@@ -179,7 +187,8 @@ namespace CumulusMX
 				solar = solar,
 				davisForecast = davisForecast,
 				co2 = co2,
-				alarms = alarmSettings
+				alarms = alarmSettings,
+				webtags = webtags
 			};
 
 
@@ -443,8 +452,25 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
-				// Save the settings
-				cumulus.WriteStringsFile();
+				// web tags
+				try
+				{
+					cumulus.Trans.WebTagGenTimeDate = settings.webtags.gentimedate;
+					cumulus.Trans.WebTagRecDate = settings.webtags.recdate;
+					cumulus.Trans.WebTagRecTimeDate = settings.webtags.rectimedate;
+					cumulus.Trans.WebTagRecDryWetDate = settings.webtags.recwetdrytimedate;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Web Tag settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
+			// Save the settings
+			cumulus.WriteStringsFile();
 			}
 			catch (Exception ex)
 			{
@@ -574,6 +600,14 @@ namespace CumulusMX
 			public string ftpStopped { get; set; }
 		}
 
+		private sealed class WebTags
+		{
+			public string gentimedate { get; set; }
+			public string recdate { get; set; }
+			public string rectimedate { get; set; }
+			public string recwetdrytimedate { get; set; }
+		}
+
 		private sealed class Settings
 		{
 			public bool accessible { get; set; }
@@ -594,6 +628,7 @@ namespace CumulusMX
 			public DavisForecast davisForecast { get; set; }
 			public Co2Captions co2 { get; set; }
 			public AlarmSettings alarms { get; set; }
+			public WebTags webtags { get; set; }
 		}
 	}
 }

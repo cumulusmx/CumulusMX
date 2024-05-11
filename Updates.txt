@@ -4,6 +4,8 @@
 - Fix UV decode for Davis cloud station (VP2)
 - Spike/limit improvements
 - Add missing conversion of Limits when changing units in the configuration wizard
+- Added localisation of records web tag date/time formats
+- Third party upload timeouts reclassified as Warnings
 
 
 4.0.0 - b4021
