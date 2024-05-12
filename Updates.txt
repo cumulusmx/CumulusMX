@@ -2,6 +2,8 @@
 —————————————
 New
 Changed
+- Removed the experimental Gmail OATH2 authentication method
+
 Fixed
 - Fixed Spike handling for outdoor temperature
 - Fixed David Cloud (VP2) station sometimes not decoding dew point, adds indoor temp/hum decode
