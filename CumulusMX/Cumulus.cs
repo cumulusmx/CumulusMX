@@ -5234,8 +5234,6 @@ namespace CumulusMX
 			SmtpOptions.AuthenticationMethod = ini.GetValue("SMTP", "RequiresAuthentication", 0);
 			SmtpOptions.User = ini.GetValue("SMTP", "User", string.Empty);
 			SmtpOptions.Password = ini.GetValue("SMTP", "Password", string.Empty);
-			SmtpOptions.ClientId = ini.GetValue("SMTP", "ClientId", string.Empty);
-			SmtpOptions.ClientSecret = ini.GetValue("SMTP", "ClientSecret", string.Empty);
 			SmtpOptions.IgnoreCertErrors = ini.GetValue("SMTP", "IgnoreCertErrors", false);
 
 			// Growing Degree Days
@@ -5362,8 +5360,6 @@ namespace CumulusMX
 				MySqlConnSettings.Password = Crypto.DecryptString(MySqlConnSettings.Password, Program.InstanceId, "MySql Password");
 				SmtpOptions.User = Crypto.DecryptString(SmtpOptions.User, Program.InstanceId, "SmtpOptions.User");
 				SmtpOptions.Password = Crypto.DecryptString(SmtpOptions.Password, Program.InstanceId, "SmtpOptions.Password");
-				SmtpOptions.ClientId = Crypto.DecryptString(SmtpOptions.ClientId, Program.InstanceId, "SmtpOptions.ClientId");
-				SmtpOptions.ClientSecret = Crypto.DecryptString(SmtpOptions.ClientSecret, Program.InstanceId, "SmtpOptions.ClientSecret");
 				HTTPProxyUser = Crypto.DecryptString(HTTPProxyUser, Program.InstanceId, "HTTPProxyUser");
 				HTTPProxyPassword = Crypto.DecryptString(HTTPProxyPassword, Program.InstanceId, "HTTPProxyPassword");
 				EcowittApplicationKey = Crypto.DecryptString(EcowittApplicationKey, Program.InstanceId, "EcowittSettings.AppKey");
@@ -6594,8 +6590,6 @@ namespace CumulusMX
 			ini.SetValue("SMTP", "RequiresAuthentication", SmtpOptions.AuthenticationMethod);
 			ini.SetValue("SMTP", "User", Crypto.EncryptString(SmtpOptions.User, Program.InstanceId, "SmtpOptions.User"));
 			ini.SetValue("SMTP", "Password", Crypto.EncryptString(SmtpOptions.Password, Program.InstanceId, "SmtpOptions.Password"));
-			ini.SetValue("SMTP", "ClientId", Crypto.EncryptString(SmtpOptions.ClientId, Program.InstanceId, SmtpOptions.ClientId));
-			ini.SetValue("SMTP", "ClientSecret", Crypto.EncryptString(SmtpOptions.ClientSecret, Program.InstanceId, SmtpOptions.ClientSecret));
 			ini.SetValue("SMTP", "Logging", SmtpOptions.Logging);
 			ini.SetValue("SMTP", "IgnoreCertErrors", SmtpOptions.IgnoreCertErrors);
 
