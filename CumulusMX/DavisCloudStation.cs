@@ -302,11 +302,13 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("GetCurrent:  Exception: " + ex.Message);
-				if (ex.InnerException != null)
+				if (ex.InnerException is TimeoutException)
 				{
-					ex = Utils.GetOriginalException(ex);
-					cumulus.LogMessage($"GetCurrent: Base exception - {ex.Message}");
+					cumulus.LogWarningMessage($"GetCurrent: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "GetCurrent: Error");
 				}
 			}
 		}
@@ -1219,7 +1221,9 @@ namespace CumulusMX
 								case 2:
 									{
 										// VP2 sensor data is sent as an array of one, so we will strip off the enclosing [ ]
-										var data = sensor.data[1..^2].FromJsv<WLCurrentSensordDataType1_2>();
+										// and uck, uck, uck, we need to re-quote the forecast description as ithe quotes get stripped by the .FromJson() into a string
+										var str = sensor.data[1..^2].Replace("forecast_desc:", "forecast_desc:\"").Replace(",dew_point", "\",dew_point");
+										var data = str.FromJsv<WLCurrentSensordDataType1_2>();
 
 										try
 										{
@@ -1301,14 +1305,14 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage("DecodeCurrent: Error processing Primary temperature. Error: {ex.Message}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing Primary temperature. Error: {ex.Message}");
 										}
 
 
 										try
 										{
 											// do DP
-											if (data.dew_point.HasValue)
+											if (!cumulus.StationOptions.CalculatedDP && data.dew_point.HasValue)
 											{
 												DoOutdoorDewpoint(ConvertUnits.TempFToUser(data.dew_point.Value), lastRecordTime);
 											}
@@ -1322,25 +1326,48 @@ namespace CumulusMX
 											cumulus.LogErrorMessage($"DecodeCurrent: Error processing dew point value. Error: {ex.Message}");
 										}
 
-										if (!cumulus.StationOptions.CalculatedWC)
+										// use wind chill from station - otherwise we calculate it at the end of processing the record when we have all the data
+										try
 										{
-											// use wind chill from station - otherwise we calculate it at the end of processing the record when we have all the data
-											try
+											// do last WC
+											if (!cumulus.StationOptions.CalculatedWC && data.wind_chill.HasValue)
 											{
-												// do last WC
-												if (data.wind_chill.HasValue)
-												{
-													DoWindChill(ConvertUnits.TempFToUser(data.wind_chill.Value), lastRecordTime);
-												}
-												else
-												{
-													cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Wind Chill data");
-												}
+												DoWindChill(ConvertUnits.TempFToUser(data.wind_chill.Value), lastRecordTime);
 											}
-											catch (Exception ex)
+											else
 											{
-												cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind chill. Error: {ex.Message}");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Wind Chill data");
 											}
+										}
+										catch (Exception ex)
+										{
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind chill. Error: {ex.Message}");
+										}
+
+										// indoor data
+										try
+										{
+											if (data.temp_in.HasValue)
+											{
+												DoIndoorTemp(ConvertUnits.TempFToUser(data.temp_in.Value));
+											}
+											else
+											{
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid indoor temperature data");
+											}
+
+											if (data.hum_in.HasValue)
+											{
+												DoIndoorHumidity(data.hum_in.Value);
+											}
+											else
+											{
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid indoor temperature data");
+											}
+										}
+										catch (Exception ex)
+										{
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing indoor temp/humidity. Error: {ex.Message}");
 										}
 
 										// Wind
@@ -1771,25 +1798,22 @@ namespace CumulusMX
 													cumulus.LogErrorMessage($"DecodeCurrent: Error processing dew point value on TxId {rec.tx_id}. Error: {ex.Message}");
 												}
 
-												if (!cumulus.StationOptions.CalculatedWC)
+												// use wind chill from WL.com - otherwise we calculate it at the end of processing the historic record when we have all the data
+												try
 												{
-													// use wind chill from WL.com - otherwise we calculate it at the end of processing the historic record when we have all the data
-													try
+													// do last WC
+													if (!cumulus.StationOptions.CalculatedWC && rec.wind_chill.HasValue)
 													{
-														// do last WC
-														if (rec.wind_chill.HasValue)
-														{
-															DoWindChill(ConvertUnits.TempFToUser(rec.wind_chill.Value), lastRecordTime);
-														}
-														else
-														{
-															cumulus.LogWarningMessage($"DecodeCurrent: Warning, no valid Wind Chill data on TxId {rec.tx_id}");
-														}
+														DoWindChill(ConvertUnits.TempFToUser(rec.wind_chill.Value), lastRecordTime);
 													}
-													catch (Exception ex)
+													else
 													{
-														cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind chill value on TxId {rec.tx_id}. Error: {ex.Message}");
+														cumulus.LogWarningMessage($"DecodeCurrent: Warning, no valid Wind Chill data on TxId {rec.tx_id}");
 													}
+												}
+												catch (Exception ex)
+												{
+													cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind chill value on TxId {rec.tx_id}. Error: {ex.Message}");
 												}
 											}
 

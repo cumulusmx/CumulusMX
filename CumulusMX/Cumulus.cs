@@ -10453,7 +10453,15 @@ namespace CumulusMX
 		// Return False if the connection is disposed, null, or not connected
 		private bool UploadFile(FtpClient conn, string localfile, string remotefile, int cycle = -1)
 		{
-			string cycleStr = cycle == -1 ? "Int" : (cycle == 9999 ? "NOAA" : cycle.ToString());
+			string cycleStr;
+			if (cycle == 9999)
+			{
+				cycleStr = "NOAA";
+			}
+			else
+			{
+				cycleStr = cycle == -1 ? "Int" : (cycle.ToString());
+			}
 
 			LogFtpMessage("");
 
@@ -10487,7 +10495,15 @@ namespace CumulusMX
 
 		private bool UploadFile(SftpClient conn, string localfile, string remotefile, int cycle = -1)
 		{
-			string cycleStr = cycle == -1 ? "Int" : (cycle == 9999 ? "NOAA" : cycle.ToString());
+			string cycleStr;
+			if (cycle == 9999)
+			{
+				cycleStr = "NOAA";
+			}
+			else
+			{
+				cycleStr = cycle == -1 ? "Int" : (cycle.ToString());
+			}
 
 			if (!File.Exists(localfile))
 			{
@@ -10546,7 +10562,15 @@ namespace CumulusMX
 
 		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle = -1, bool binary = false, bool utf8 = true)
 		{
-			var prefix = cycle == -1 ? "PHP[Int]" : (cycle == 9999 ? "PHP[NOAA]" : $"RealtimePHP[{cycle}]");
+			string prefix;
+			if (cycle == -1)
+			{
+				prefix = "PHP[Int]";
+			}
+			else
+			{
+				prefix = cycle == 9999 ? "PHP[NOAA]" : $"RealtimePHP[{cycle}]";
+			}
 
 			if (!File.Exists(localfile))
 			{
@@ -10604,7 +10628,15 @@ namespace CumulusMX
 		private bool UploadStream(FtpClient conn, string remotefile, Stream dataStream, int cycle = -1)
 		{
 			string remotefiletmp = FTPRename ? remotefile + "tmp" : remotefile;
-			string cycleStr = cycle == -1 ? "Int" : (cycle == 9999 ? "NOAA" : cycle.ToString());
+			string cycleStr;
+			if (cycle == 9999)
+			{
+				cycleStr = "NOAA";
+			}
+			else
+			{
+				cycleStr = cycle == -1 ? "Int" : (cycle.ToString());
+			}
 
 			try
 			{

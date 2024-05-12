@@ -550,14 +550,12 @@ namespace CumulusMX
 	// Data Structure 1 (rev B) = VP2 ISS current record (rev b just adds bar_trend which we do not use)
 	public class WLCurrentSensordDataType1_2
 	{
+		public long ts { get; set; }
 		public int bar_trend { get; set; }
 		public double? bar { get; set; }
 		public double? temp_in { get; set; }
 		public int? hum_in { get; set; }
 		public double? temp_out { get; set; }
-		public double? dew_point { get; set; }
-		public double? heat_index { get; set; }
-		public double? wind_chill { get; set; }
 		public int? wind_speed { get; set; }
 		public int? wind_dir { get; set; }
 		public int? wind_speed_10_min_avg { get; set; }
@@ -615,8 +613,10 @@ namespace CumulusMX
 		public int? wet_leaf_3 { get; set; }
 		public int? wet_leaf_4 { get; set; }
 		public int? forecast_rule { get; set; }
-		public string forescast_desc { get; set; }
-		public long ts { get; set; }
+		public string forecast_desc { get; set; }
+		public double? dew_point { get; set; }
+		public double? heat_index { get; set; }
+		public double? wind_chill { get; set; }
 	}
 
 	// TODO?
