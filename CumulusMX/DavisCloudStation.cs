@@ -1284,7 +1284,7 @@ namespace CumulusMX
 										// do temperature after humidity as DoOutdoorTemp contains dewpoint calculation (if user selected)
 										try
 										{
-											if (data.temp_out.HasValue && data.temp_out == -99)
+											if (data.temp_out.HasValue && data.temp_out < -98)
 											{
 												cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Primary temperature value found [-99]");
 											}
@@ -1756,7 +1756,7 @@ namespace CumulusMX
 												// do temperature after humidity as DoOutdoorTemp contains dewpoint calculation (if user selected)
 												try
 												{
-													if (rec.temp == -99)
+													if (rec.temp < -98)
 													{
 														cumulus.LogWarningMessage($"DecodeCurrent: Warning, no valid Primary temperature value found [-99] on TxId {rec.tx_id}");
 													}
@@ -2148,7 +2148,7 @@ namespace CumulusMX
 							// do temperature after humidity as DoOutdoorTemp contains dewpoint calculation (if user selected)
 							try
 							{
-								if (data.temp_out.HasValue && data.temp_out == -99)
+								if (data.temp_out.HasValue && data.temp_out < -98)
 								{
 									cumulus.LogErrorMessage($"DecodeHistoric: Warning, no valid Primary temperature value found [-99] on TxId {data.tx_id}");
 								}
@@ -2637,7 +2637,7 @@ namespace CumulusMX
 								// do temperature after humidity as DoOutdoorTemp contains dewpoint calculation (if user selected)
 								try
 								{
-									if (data.temp_last == -99)
+									if (data.temp_last < -98)
 									{
 										cumulus.LogWarningMessage($"DecodeHistoric: Warning, no valid Primary temperature value found [-99] on TxId {data.tx_id}");
 									}
@@ -2780,7 +2780,7 @@ namespace CumulusMX
 
 									try
 									{
-										if (data.temp_last == -99 || data.temp_last == null)
+										if (data.temp_last < -98 || data.temp_last == null)
 										{
 											cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid Extra temperature value on TxId {data.tx_id}");
 										}

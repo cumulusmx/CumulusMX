@@ -11219,18 +11219,32 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogExceptionMessage(ex, $"{prefix}: General error uploading to {remotefile}", false);
-
 					retry++;
 					if (retry < 2)
 					{
-						LogDebugMessage($"{prefix}: General Error uploading to {remotefile} - " + ex.Message);
+						if (ex.InnerException is TimeoutException)
+						{
+							LogDebugMessage($"{prefix}: Timeout uploading to {remotefile}");
+						}
+						else
+						{
+							LogExceptionMessage(ex, $"{prefix}: General Error uploading to {remotefile}", false);
+						}
+
 						LogMessage($"{prefix}: Retrying upload to {remotefile}");
 					}
 					else
 					{
-						LogErrorMessage($"{prefix}]: General Error uploading to {remotefile} - " + ex.Message);
-						FtpAlarm.LastMessage = $"General Error uploading to {remotefile} - {ex.Message}";
+						if (ex.InnerException is TimeoutException)
+						{
+							LogErrorMessage($"{prefix}]: Timeout uploading to {remotefile}");
+							FtpAlarm.LastMessage = $"Timeout uploading to {remotefile}";
+						}
+						else
+						{
+							LogExceptionMessage(ex, $"{prefix}: General error uploading to {remotefile}", true);
+							FtpAlarm.LastMessage = $"General error uploading to {remotefile} - {ex.Message}";
+						}
 						FtpAlarm.Triggered = true;
 					}
 				}

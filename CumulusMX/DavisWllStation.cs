@@ -755,7 +755,7 @@ namespace CumulusMX
 									{
 										if (cumulus.WllExtraTempTx[tempTxId] == data1.txid)
 										{
-											if (!data1.temp.HasValue || data1.temp.Value == -99)
+											if (!data1.temp.HasValue || data1.temp.Value < -98)
 											{
 												cumulus.LogDebugMessage($"WLL current: no valid Extra temperature value found [{data1.temp}] on TxId {data1.txid}");
 											}
@@ -1886,7 +1886,7 @@ namespace CumulusMX
 							// do temperature after humidity as DoOutdoorTemp contains dewpoint calculation (if user selected)
 							try
 							{
-								if (data11.temp_last == -99)
+								if (data11.temp_last < -98)
 								{
 									cumulus.LogWarningMessage($"WL.com historic: Warning, no valid Primary temperature value found [-99] on TxId {data11.tx_id}");
 								}
@@ -2925,7 +2925,7 @@ namespace CumulusMX
 								break;
 							// WLL or ISS
 							case 504:
-							case int n when (n >= 23 && n < 100):
+							case int n when n is >= 23 and < 100:
 								// Davis don't make this easy! Either a...
 								// 504 - WLL
 								//  23 - ISS VP2, Cabled (6322C)

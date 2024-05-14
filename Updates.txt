@@ -1,6 +1,7 @@
 4.0.1 - b4023
 —————————————
 New
+
 Changed
 - Removed the experimental Gmail OATH2 authentication method
 
