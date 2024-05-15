@@ -4,6 +4,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 
+using Org.BouncyCastle.Asn1;
+
 using Renci.SshNet.Messages;
 
 namespace CumulusMX
@@ -15,7 +17,17 @@ namespace CumulusMX
 		{
 			try
 			{
-				var path = AppDomain.CurrentDomain.BaseDirectory + "\\CumulusMX.exe";
+				var path = string.Empty;
+
+				// 32 bit OS will not run CumulusMX.exe, have to run via dotnet.exe
+				if (IntPtr.Size == 4)
+				{
+					path = "dotnet.exe " + AppDomain.CurrentDomain.BaseDirectory + "\\CumulusMX.dll";
+				}
+				else
+				{
+					path = AppDomain.CurrentDomain.BaseDirectory + "\\CumulusMX.exe";
+				}
 
 				if (!IsElevated())
 				{
@@ -27,7 +39,7 @@ namespace CumulusMX
 				Console.WriteLine("Installing as a Windows Service...");
 
 				// sc create CumulusMX binpath=C:\CumulusMX\CumulusMX.dll start= delayed-auto depend= LanmanWorkstation
-				var createExitCode = RunCommand("sc.exe", $"create CumulusMX binpath=\"{path}\" start=delayed-auto depend=Netman");
+				var createExitCode = RunCommand("sc.exe", $"create CumulusMX2 binpath= \"{path}\" start= delayed-auto depend= Netman obj= \"\"NT Authority\\NetworkService\"\"");
 
 				if (createExitCode != 0)
 					return false;
@@ -50,7 +62,17 @@ namespace CumulusMX
 		{
 			try
 			{
-				var path = AppDomain.CurrentDomain.BaseDirectory + "\\CumulusMX.exe";
+				var path = string.Empty;
+
+				// 32 bit OS will not run CumulusMX.exe, have to run via dotnet.exe
+				if (IntPtr.Size == 4)
+				{
+					path = "dotnet.exe " + AppDomain.CurrentDomain.BaseDirectory + "\\CumulusMX.dll";
+				}
+				else
+				{
+					path = AppDomain.CurrentDomain.BaseDirectory + "\\CumulusMX.exe";
+				}
 
 				if (!IsElevated())
 				{
