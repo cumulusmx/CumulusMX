@@ -18,6 +18,8 @@ namespace CumulusMX.ThirdParty
 			if (Updating || station.DataStopped)
 			{
 				// No data coming in, do not do anything
+				var reason = Updating ? "previous upload still in progress" : "data stopped condition";
+				cumulus.LogWarningMessage("WindGuru: Not uploading, " + reason);
 				return;
 			}
 
@@ -32,44 +34,80 @@ namespace CumulusMX.ThirdParty
 
 			cumulus.LogDebugMessage("WindGuru: URL = " + logUrl);
 
-			try
-			{
-				using var response = await cumulus.MyHttpClient.GetAsync(url);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				cumulus.LogDebugMessage("WindGuru: " + response.StatusCode + ": " + responseBodyAsText);
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					cumulus.LogWarningMessage("WindGuru: ERROR - " + response.StatusCode + ": " + responseBodyAsText);
-					cumulus.ThirdPartyAlarm.LastMessage = "WindGuru: HTTP response - " + response.StatusCode;
-					cumulus.ThirdPartyAlarm.Triggered = true;
-				}
-				else
-				{
-					cumulus.ThirdPartyAlarm.Triggered = false;
-				}
-			}
-			catch (Exception ex)
-			{
-				string msg;
+			// we will try this twice in case the first attempt fails
+			var maxRetryAttempts = 2;
+			var delay = maxRetryAttempts * 5.0;
 
-				if (ex.InnerException is TimeoutException)
-				{
-					msg = $"WindGuru: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
-					cumulus.LogWarningMessage(msg);
-				}
-				else
-				{
-					msg = "WindGuru: " + ex.Message;
-					cumulus.LogExceptionMessage(ex, "WindGuru: Error");
-				}
-
-				cumulus.ThirdPartyAlarm.LastMessage = msg;
-				cumulus.ThirdPartyAlarm.Triggered = true;
-			}
-			finally
+			for (int retryCount = maxRetryAttempts; retryCount >= 0; retryCount--)
 			{
-				Updating = false;
+				try
+				{
+					using var response = await cumulus.MyHttpClient.GetAsync(url);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					cumulus.LogDebugMessage("WindGuru: " + response.StatusCode + ": " + responseBodyAsText);
+					if (response.StatusCode == HttpStatusCode.OK)
+					{
+						cumulus.ThirdPartyAlarm.Triggered = false;
+						Updating = false;
+						return;
+					}
+					else
+					{
+
+						if (retryCount == 0)
+						{
+							cumulus.LogWarningMessage($"WindGuru Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}");
+							cumulus.ThirdPartyAlarm.LastMessage = $"WindGuru: HTTP Response code = {response.StatusCode},  Body = {responseBodyAsText}";
+							cumulus.ThirdPartyAlarm.Triggered = true;
+						}
+						else
+						{
+							cumulus.LogDebugMessage($"WindGuru Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
+							cumulus.LogMessage($"WindGuru: Retrying in {delay / retryCount} seconds");
+
+							await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					string msg;
+
+					if (retryCount == 0)
+					{
+						if (ex.InnerException is TimeoutException)
+						{
+							msg = $"WindGuru: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+							cumulus.LogWarningMessage(msg);
+						}
+						else
+						{
+							msg = "WindGuru: Error - " + ex.Message;
+							cumulus.LogExceptionMessage(ex, "WindGuru: Error");
+						}
+
+						cumulus.ThirdPartyAlarm.LastMessage = msg;
+						cumulus.ThirdPartyAlarm.Triggered = true;
+					}
+					else
+					{
+						if (ex.InnerException is TimeoutException)
+						{
+							cumulus.LogDebugMessage($"WindGuru: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
+						}
+						else
+						{
+							cumulus.LogDebugMessage("WindGuru: Error - " + ex.Message);
+						}
+
+						cumulus.LogMessage($"WindGuru: Retrying in {delay / retryCount} seconds");
+
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+					}
+				}
 			}
+
+			Updating = false;
 		}
 
 		internal override string GetURL(out string pwstring, DateTime timestamp)

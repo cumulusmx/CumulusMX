@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Globalization;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,60 +18,107 @@ namespace CumulusMX.ThirdParty
 
 		internal override async Task DoUpdate(DateTime timestamp)
 		{
-			if (!Updating)
+			if (Updating || station.DataStopped)
 			{
-				Updating = true;
+				// No data coming in, do not do anything
+				var reason = Updating ? "previous upload still in progress" : "data stopped condition";
+				cumulus.LogWarningMessage("WOW: Not uploading, " + reason);
+				return;
+			}
 
-				// Random jitter
-				await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+			Updating = true;
 
-				string pwstring;
-				string URL = GetURL(out pwstring, timestamp);
+			// Random jitter
+			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
 
-				string starredpwstring = "&siteAuthenticationKey=" + new string('*', PW.Length);
+			string pwstring;
+			string URL = GetURL(out pwstring, timestamp);
 
-				string LogURL = URL.Replace(pwstring, starredpwstring);
-				cumulus.LogDebugMessage("WOW URL = " + LogURL);
+			string starredpwstring = "&siteAuthenticationKey=" + new string('*', PW.Length);
 
+			string LogURL = URL.Replace(pwstring, starredpwstring);
+			cumulus.LogDebugMessage("WOW URL = " + LogURL);
+
+			// we will try this twice in case the first attempt fails
+			var maxRetryAttempts = 2;
+			var delay = maxRetryAttempts * 5.0;
+
+			for (int retryCount = maxRetryAttempts; retryCount >= 0 ; retryCount--)
+			{
 				try
 				{
 					using var response = await cumulus.MyHttpClient.GetAsync(URL);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (response.StatusCode != HttpStatusCode.OK)
-					{
-						cumulus.LogWarningMessage($"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
-						cumulus.ThirdPartyAlarm.LastMessage = $"WOW: HTTP response - Response code = {response.StatusCode}, body = {responseBodyAsText}";
-						cumulus.ThirdPartyAlarm.Triggered = true;
-					}
-					else
+					if (response.StatusCode == HttpStatusCode.OK)
 					{
 						cumulus.LogDebugMessage("WOW Response: " + response.StatusCode + ": " + responseBodyAsText);
 						cumulus.ThirdPartyAlarm.Triggered = false;
+						Updating = false;
+						return;
+					}
+					else
+					{
+						// we get a too many requests response on the first retry if the inital atttempt worked but we did not see a response
+						if (retryCount == 1 && response.StatusCode == HttpStatusCode.TooManyRequests)
+						{
+							Updating = false;
+							return;
+						}
+
+						if (retryCount == 0 || response.StatusCode == HttpStatusCode.TooManyRequests)
+						{
+							cumulus.LogWarningMessage($"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
+							cumulus.ThirdPartyAlarm.LastMessage = $"WOW: HTTP response - Response code = {response.StatusCode}, body = {responseBodyAsText}";
+							cumulus.ThirdPartyAlarm.Triggered = true;
+							Updating = false;
+							return;
+						}
+
+						cumulus.LogDebugMessage($"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
+						cumulus.LogMessage($"WOW: Retrying in {delay / retryCount} seconds");
+
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
 					}
 				}
 				catch (Exception ex)
 				{
 					string msg;
 
-					if (ex.InnerException is TimeoutException)
+					if (retryCount == 0)
 					{
-						msg = $"WOW: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
-						cumulus.LogWarningMessage(msg);
+						if (ex.InnerException is TimeoutException)
+						{
+							msg = $"WOW: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+							cumulus.LogWarningMessage(msg);
+						}
+						else
+						{
+							msg = "WOW: Error - " + ex.Message;
+							cumulus.LogExceptionMessage(ex, "WOW: Error");
+						}
+
+						cumulus.ThirdPartyAlarm.LastMessage = msg;
+						cumulus.ThirdPartyAlarm.Triggered = true;
 					}
 					else
 					{
-						msg = "WOW: " + ex.Message;
-						cumulus.LogExceptionMessage(ex, "WOW: Error");
-					}
+						if (ex.InnerException is TimeoutException)
+						{
+							cumulus.LogDebugMessage($"WOW: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
+						}
+						else
+						{
+							cumulus.LogDebugMessage("WOW: Error - " + ex.Message);
+						}
 
-					cumulus.ThirdPartyAlarm.LastMessage = msg;
-					cumulus.ThirdPartyAlarm.Triggered = true;
-				}
-				finally
-				{
-					Updating = false;
+						cumulus.LogMessage($"WOW: Retrying in {delay / retryCount} seconds");
+
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+					}
 				}
 			}
+
+			Updating = false;
 		}
 
 		internal override string GetURL(out string pwstring, DateTime timestamp)

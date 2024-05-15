@@ -1,9 +1,9 @@
 4.0.1 - b4023
 —————————————
-New
-
 Changed
 - Removed the experimental Gmail OATH2 authentication method
+- Third party uploads now have retries and the timeout increased to 30 seconds
+
 
 Fixed
 - Fixed Spike handling for outdoor temperature

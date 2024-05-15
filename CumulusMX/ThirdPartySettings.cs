@@ -67,6 +67,17 @@ namespace CumulusMX
 						cumulus.Wund.SendExtraTemp3 = settings.wunderground.extratemp3;
 						cumulus.Wund.SendExtraTemp4 = settings.wunderground.extratemp4;
 					}
+
+					if (cumulus.Wund.RapidFireEnabled)
+					{
+						cumulus.Wund.IntTimer.Interval = 5000; // 5 seconds in rapid-fire mode
+					}
+					else
+					{
+						cumulus.Wund.IntTimer.Interval = cumulus.Wund.Interval * 60 * 1000; // mins to millisecs
+					}
+
+					cumulus.Wund.IntTimer.Enabled = cumulus.Wund.Enabled;
 				}
 				catch (Exception ex)
 				{
@@ -116,6 +127,12 @@ namespace CumulusMX
 						cumulus.AWEKAS.SendIndoor = settings.awekas.includeindoor;
 						cumulus.AWEKAS.SendAirQuality = settings.awekas.includeaq;
 						cumulus.AWEKAS.SynchronisedUpdate = (cumulus.AWEKAS.Interval % 60 == 0);
+						cumulus.AWEKAS.IntTimer.Interval = cumulus.AWEKAS.Interval * 1000;
+						cumulus.AWEKAS.IntTimer.Enabled = !cumulus.AWEKAS.SynchronisedUpdate;
+					}
+					else
+					{
+						cumulus.AWEKAS.IntTimer.Enabled = false;
 					}
 				}
 				catch (Exception ex)

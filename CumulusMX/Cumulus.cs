@@ -1610,7 +1610,7 @@ namespace CumulusMX
 
 			MyHttpClient = new HttpClient(MyHttpSocketsHttpHandler)
 			{
-				Timeout = TimeSpan.FromSeconds(15)
+				Timeout = TimeSpan.FromSeconds(30)
 			};
 		}
 
@@ -11202,13 +11202,12 @@ namespace CumulusMX
 				}
 				catch (HttpRequestException ex)
 				{
-					LogExceptionMessage(ex, $"{prefix}: HTTP Error uploading to {remotefile}", false);
-
 					retry++;
 					if (retry < 2)
 					{
 						LogDebugMessage($"{prefix}: HTTP Error uploading to {remotefile} - " + ex.Message);
 						LogMessage($"{prefix}: Retrying upload to {remotefile}");
+						await Task.Delay(2000);
 					}
 					else
 					{
@@ -11232,6 +11231,7 @@ namespace CumulusMX
 						}
 
 						LogMessage($"{prefix}: Retrying upload to {remotefile}");
+						await Task.Delay(2000);
 					}
 					else
 					{
@@ -11608,7 +11608,7 @@ namespace CumulusMX
 
 			if (FtpOptions.Logging)
 			{
-				FtpLoggerMX.LogInformation("{msg}", message);
+				FtpLoggerMX.LogInformation(message);
 			}
 		}
 
@@ -11618,7 +11618,7 @@ namespace CumulusMX
 			{
 				if (!string.IsNullOrEmpty(message))
 					LogDebugMessage(message);
-				FtpLoggerMX.LogInformation("{msg}", message);
+				FtpLoggerMX.LogInformation(message);
 			}
 		}
 

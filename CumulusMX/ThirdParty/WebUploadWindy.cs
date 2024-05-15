@@ -16,6 +16,8 @@ namespace CumulusMX.ThirdParty
 			if (Updating || station.DataStopped)
 			{
 				// No data coming in, do not do anything
+				var reason = Updating ? "previous upload still in progress" : "data stopped condition";
+				cumulus.LogWarningMessage("Windy: Not uploading, " + reason);
 				return;
 			}
 
@@ -30,44 +32,79 @@ namespace CumulusMX.ThirdParty
 
 			cumulus.LogDebugMessage("Windy: URL = " + logUrl);
 
-			try
-			{
-				using var response = await cumulus.MyHttpClient.GetAsync(url);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				cumulus.LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					cumulus.LogWarningMessage("Windy: ERROR - Response = " + response.StatusCode + ": " + responseBodyAsText);
-					cumulus.ThirdPartyAlarm.LastMessage = "Windy: HTTP response - " + response.StatusCode;
-					cumulus.ThirdPartyAlarm.Triggered = true;
-				}
-				else
-				{
-					cumulus.ThirdPartyAlarm.Triggered = false;
-				}
-			}
-			catch (Exception ex)
-			{
-				string msg;
+			// we will try this twice in case the first attempt fails
+			var maxRetryAttempts = 2;
+			var delay = maxRetryAttempts * 5.0;
 
-				if (ex.InnerException is TimeoutException)
-				{
-					msg = $"Windy: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
-					cumulus.LogWarningMessage(msg);
-				}
-				else
-				{
-					msg = "Windy: " + ex.Message;
-					cumulus.LogExceptionMessage(ex, "Windy: Error");
-				}
-
-				cumulus.ThirdPartyAlarm.LastMessage = msg;
-				cumulus.ThirdPartyAlarm.Triggered = true;
-			}
-			finally
+			for (int retryCount = maxRetryAttempts; retryCount >= 0; retryCount--)
 			{
-				Updating = false;
+				try
+				{
+					using var response = await cumulus.MyHttpClient.GetAsync(url);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					cumulus.LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
+					if (response.StatusCode == HttpStatusCode.OK)
+					{
+						cumulus.ThirdPartyAlarm.Triggered = false;
+						Updating = false;
+						return;
+					}
+					else
+					{
+						if (retryCount == 0)
+						{
+							cumulus.LogWarningMessage("Windy: ERROR - Response = " + response.StatusCode + ": " + responseBodyAsText);
+							cumulus.ThirdPartyAlarm.LastMessage = "Windy: HTTP response - " + response.StatusCode;
+							cumulus.ThirdPartyAlarm.Triggered = true;
+						}
+						else
+						{
+							cumulus.LogDebugMessage($"Windy Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
+							cumulus.LogMessage($"Windy: Retrying in {delay / retryCount} seconds");
+
+							await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					string msg;
+
+					if (retryCount == 0)
+					{
+						if (ex.InnerException is TimeoutException)
+						{
+							msg = $"Windy: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+							cumulus.LogWarningMessage(msg);
+						}
+						else
+						{
+							msg = "Windy: " + ex.Message;
+							cumulus.LogExceptionMessage(ex, "Windy: Error");
+						}
+
+						cumulus.ThirdPartyAlarm.LastMessage = msg;
+						cumulus.ThirdPartyAlarm.Triggered = true;
+					}
+					else
+					{
+						if (ex.InnerException is TimeoutException)
+						{
+							cumulus.LogDebugMessage($"Windy: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
+						}
+						else
+						{
+							cumulus.LogDebugMessage("Windy: Error - " + ex.Message);
+						}
+
+						cumulus.LogMessage($"Windy: Retrying in {delay / retryCount} seconds");
+
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+					}
+				}
 			}
+
+			Updating = false;
 		}
 
 
