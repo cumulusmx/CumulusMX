@@ -56,6 +56,13 @@ namespace CumulusMX.ThirdParty
 						Updating = false;
 						return;
 					}
+					else if (response.StatusCode == HttpStatusCode.Unauthorized)
+					{
+						cumulus.ThirdPartyAlarm.LastMessage = "WOW: Unauthorized, check credentials";
+						cumulus.ThirdPartyAlarm.Triggered = true;
+						Updating = false;
+						return;
+					}
 					else
 					{
 						// we get a too many requests response on the first retry if the inital atttempt worked but we did not see a response

@@ -111,6 +111,13 @@ namespace CumulusMX.ThirdParty
 					{
 						cumulus.ThirdPartyAlarm.Triggered = false;
 					}
+					else if (response.StatusCode == HttpStatusCode.Unauthorized)
+					{
+						cumulus.ThirdPartyAlarm.LastMessage = "OpenWeatherMap: Unauthorized, check credentials";
+						cumulus.ThirdPartyAlarm.Triggered = true;
+						Updating = false;
+						return;
+					}
 					else
 					{
 						cumulus.LogMessage($"OpenWeatherMap: ERROR - Response code = {response.StatusCode}, Response data = {responseBodyAsText}");

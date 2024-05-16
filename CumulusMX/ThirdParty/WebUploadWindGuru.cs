@@ -51,6 +51,13 @@ namespace CumulusMX.ThirdParty
 						Updating = false;
 						return;
 					}
+					else if (response.StatusCode == HttpStatusCode.Unauthorized)
+					{
+						cumulus.ThirdPartyAlarm.LastMessage = "WindGuru: Unauthorized, check credentials";
+						cumulus.ThirdPartyAlarm.Triggered = true;
+						Updating = false;
+						return;
+					}
 					else
 					{
 

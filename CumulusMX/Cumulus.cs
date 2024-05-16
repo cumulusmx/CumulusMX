@@ -4487,7 +4487,7 @@ namespace CumulusMX
 			WOW.SendSolar = ini.GetValue("WOW", "SendSR", false);
 			WOW.SendSoilTemp = ini.GetValue("WOW", "SendSoilTemp", false);
 			WOW.SoilTempSensor = ini.GetValue("WOW", "SoilTempSensor", 1);
-			WOW.CatchUp = ini.GetValue("WOW", "CatchUp", false);
+			WOW.CatchUp = false;
 
 			APRS.ID = ini.GetValue("APRS", "ID", string.Empty);
 			APRS.PW = ini.GetValue("APRS", "pass", "-1");
