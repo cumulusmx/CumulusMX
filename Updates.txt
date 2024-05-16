@@ -1,3 +1,21 @@
+4.0.1 - b4023
+—————————————
+New
+- There is now a 32 Windows specific version of executable - CumulusMX32.exe
+	- The same applies to MigrateData3to4 and CreateMissing
+
+Changed
+- Removed the experimental Gmail OATH2 authentication method
+- Third party uploads now have retries and the timeout increased to 30 seconds
+
+
+Fixed
+- Fixed Spike handling for outdoor temperature
+- Fixed David Cloud (VP2) station sometimes not decoding dew point, adds indoor temp/hum decode
+- The -install option now works on 32 bit Windows
+
+
+
 4.0.0 - b4022
 —————————————
 Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and removes the requirement for the Mono runtime environment on Linux

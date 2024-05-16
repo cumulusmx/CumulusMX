@@ -15,60 +15,107 @@ namespace CumulusMX.ThirdParty
 
 		internal override async Task DoUpdate(DateTime timestamp)
 		{
-			if (!Updating)
+			if (Updating || station.DataStopped)
 			{
-				Updating = true;
+				// No data coming in, do not do anything
+				var reason = Updating ? "previous upload still in progress" : "data stopped condition";
+				cumulus.LogWarningMessage("PWS: Not uploading, " + reason);
+				return;
+			}
 
-				// Random jitter
-				await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+			Updating = true;
 
-				string pwstring;
-				string URL = GetURL(out pwstring, timestamp);
+			// Random jitter
+			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
 
-				string starredpwstring = "&PASSWORD=" + new string('*', PW.Length);
+			string pwstring;
+			string URL = GetURL(out pwstring, timestamp);
 
-				string LogURL = URL.Replace(pwstring, starredpwstring);
-				cumulus.LogDebugMessage(LogURL);
+			string starredpwstring = "&PASSWORD=" + new string('*', PW.Length);
 
+			string LogURL = URL.Replace(pwstring, starredpwstring);
+			cumulus.LogDebugMessage(LogURL);
+
+			// we will try this twice in case the first attempt fails
+			var maxRetryAttempts = 2;
+			var delay = maxRetryAttempts * 5.0;
+
+			for (int retryCount = maxRetryAttempts; retryCount >= 0; retryCount--)
+			{
 				try
 				{
 					using var response = await cumulus.MyHttpClient.GetAsync(URL);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (response.StatusCode != HttpStatusCode.OK)
-					{
-						cumulus.LogWarningMessage($"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}");
-						cumulus.ThirdPartyAlarm.LastMessage = $"PWS: HTTP Response code = {response.StatusCode},  Body = {responseBodyAsText}";
-						cumulus.ThirdPartyAlarm.Triggered = true;
-					}
-					else
+					if (response.StatusCode == HttpStatusCode.OK)
 					{
 						cumulus.LogDebugMessage("PWS Response: " + response.StatusCode + ": " + responseBodyAsText);
 						cumulus.ThirdPartyAlarm.Triggered = false;
+						Updating = false;
+						return;
+					}
+					else if (response.StatusCode == HttpStatusCode.Unauthorized)
+					{
+						cumulus.ThirdPartyAlarm.LastMessage = "PWS: Unauthorized, check credentials";
+						cumulus.ThirdPartyAlarm.Triggered = true;
+						Updating = false;
+						return;
+					}
+					else
+					{
+						if (retryCount == 0)
+						{
+							cumulus.LogWarningMessage($"PWS Response: ERROR - Response code = {response.StatusCode},  Body = {responseBodyAsText}");
+							cumulus.ThirdPartyAlarm.LastMessage = $"PWS: HTTP Response code = {response.StatusCode},  Body = {responseBodyAsText}";
+							cumulus.ThirdPartyAlarm.Triggered = true;
+						}
+						else
+						{
+							cumulus.LogDebugMessage($"PWS Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
+							cumulus.LogMessage($"PWS: Retrying in {delay / retryCount} seconds");
+
+							await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						}
 					}
 				}
 				catch (Exception ex)
 				{
 					string msg;
 
-					if (ex.InnerException is TimeoutException)
+					if (retryCount == 0)
 					{
-						msg = $"PWS: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
-						cumulus.LogWarningMessage(msg);
+						if (ex.InnerException is TimeoutException)
+						{
+							msg = $"PWS: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+							cumulus.LogWarningMessage(msg);
+						}
+						else
+						{
+							msg = "PWS: " + ex.Message;
+							cumulus.LogExceptionMessage(ex, "PWS update error");
+						}
+
+						cumulus.ThirdPartyAlarm.LastMessage = msg;
+						cumulus.ThirdPartyAlarm.Triggered = true;
 					}
 					else
 					{
-						msg = "PWS: " + ex.Message;
-						cumulus.LogExceptionMessage(ex, "PWS update error");
-					}
+						if (ex.InnerException is TimeoutException)
+						{
+							cumulus.LogDebugMessage($"PWS: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
+						}
+						else
+						{
+							cumulus.LogDebugMessage("PWS: Error - " + ex.Message);
+						}
 
-					cumulus.ThirdPartyAlarm.LastMessage = msg;
-					cumulus.ThirdPartyAlarm.Triggered = true;
-				}
-				finally
-				{
-					Updating = false;
+						cumulus.LogMessage($"PWS: Retrying in {delay / retryCount} seconds");
+
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+					}
 				}
 			}
+
+			Updating = false;
 		}
 
 		internal override string GetURL(out string pwstring, DateTime timestamp)

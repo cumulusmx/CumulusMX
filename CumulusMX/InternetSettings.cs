@@ -290,8 +290,6 @@ namespace CumulusMX
 						cumulus.SmtpOptions.AuthenticationMethod = settings.emailsettings.authenticate;
 						cumulus.SmtpOptions.User = (settings.emailsettings.user ?? "").Trim();
 						cumulus.SmtpOptions.Password = (settings.emailsettings.password ?? "").Trim();
-						cumulus.SmtpOptions.ClientId = (settings.emailsettings.clientid ?? "").Trim();
-						cumulus.SmtpOptions.ClientSecret = (settings.emailsettings.clientsecret ?? "").Trim();
 						cumulus.SmtpOptions.IgnoreCertErrors = settings.emailsettings.ignorecerterrors;
 
 						cumulus.emailer ??= new EmailSender(cumulus);
@@ -518,8 +516,6 @@ namespace CumulusMX
 				authenticate = cumulus.SmtpOptions.AuthenticationMethod,
 				user = cumulus.SmtpOptions.User,
 				password = cumulus.SmtpOptions.Password,
-				clientid = cumulus.SmtpOptions.ClientId,
-				clientsecret = cumulus.SmtpOptions.ClientSecret,
 				ignorecerterrors = cumulus.SmtpOptions.IgnoreCertErrors
 			};
 
@@ -834,8 +830,6 @@ namespace CumulusMX
 		public int authenticate { get; set; }
 		public string user { get; set; }
 		public string password { get; set; }
-		public string clientid { get; set; }
-		public string clientsecret { get; set; }
 		public bool ignorecerterrors { get; set; }
 	}
 

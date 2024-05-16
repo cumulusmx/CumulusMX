@@ -76,6 +76,8 @@ namespace CumulusMX.ThirdParty
 			if (Updating || station.DataStopped)
 			{
 				// No data coming in, do not do anything
+				var reason = Updating ? "previous upload still in progress" : "data stopped condition";
+				cumulus.LogWarningMessage("OpenWeatherMap: Not uploading, " + reason);
 				return;
 			}
 
@@ -92,46 +94,79 @@ namespace CumulusMX.ThirdParty
 			cumulus.LogDebugMessage("OpenWeatherMap: URL = " + logUrl);
 			cumulus.LogDataMessage("OpenWeatherMap: Body = " + jsonData);
 
-			try
-			{
-				var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
-				HttpResponseMessage response = await cumulus.MyHttpClient.PostAsync(url, data);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
-				cumulus.LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
-				if (response.StatusCode != HttpStatusCode.NoContent)
-				{
-					cumulus.LogMessage($"OpenWeatherMap: ERROR - Response code = {response.StatusCode}, Response data = {responseBodyAsText}");
-					cumulus.ThirdPartyAlarm.LastMessage = $"OpenWeatherMap: HTTP response - {response.StatusCode}, Response data = {responseBodyAsText}";
-					cumulus.ThirdPartyAlarm.Triggered = true;
-				}
-				else
-				{
-					cumulus.ThirdPartyAlarm.Triggered = false;
-				}
-			}
-			catch (Exception ex)
-			{
-				string msg;
+			var maxRetryAttempts = 2;
+			var delay = maxRetryAttempts * 5.0;
 
-				if (ex.InnerException is TimeoutException)
-				{
-					msg = $"OpenWeatherMap: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
-					cumulus.LogWarningMessage(msg);
-				}
-				else
-				{
-					msg = "OpenWeatherMap: " + ex.Message;
-					cumulus.LogExceptionMessage(ex, "OpenWeatherMap: Update error");
-				}
-
-				cumulus.ThirdPartyAlarm.LastMessage = msg;
-				cumulus.ThirdPartyAlarm.Triggered = true;
-			}
-			finally
+			for (int retryCount = maxRetryAttempts; retryCount >= 0; retryCount--)
 			{
-				Updating = false;
+
+				try
+				{
+					var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
+					HttpResponseMessage response = await cumulus.MyHttpClient.PostAsync(url, data);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
+					cumulus.LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
+					if (response.StatusCode == HttpStatusCode.NoContent)
+					{
+						cumulus.ThirdPartyAlarm.Triggered = false;
+					}
+					else if (response.StatusCode == HttpStatusCode.Unauthorized)
+					{
+						cumulus.ThirdPartyAlarm.LastMessage = "OpenWeatherMap: Unauthorized, check credentials";
+						cumulus.ThirdPartyAlarm.Triggered = true;
+						Updating = false;
+						return;
+					}
+					else
+					{
+						cumulus.LogMessage($"OpenWeatherMap: ERROR - Response code = {response.StatusCode}, Response data = {responseBodyAsText}");
+						cumulus.ThirdPartyAlarm.LastMessage = $"OpenWeatherMap: HTTP response - {response.StatusCode}, Response data = {responseBodyAsText}";
+						cumulus.ThirdPartyAlarm.Triggered = true;
+					}
+					Updating = false;
+					return;
+				}
+				catch (Exception ex)
+				{
+					string msg;
+
+					if (retryCount > 0)
+					{
+						if (ex.InnerException is TimeoutException)
+						{
+							cumulus.LogDebugMessage($"OpenWeatherMap: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
+						}
+						else
+						{
+							cumulus.LogDebugMessage("OpenWeatherMap: Error - " + ex.Message);
+						}
+
+						cumulus.LogMessage($"OpenWeatherMap: Retrying in {delay / retryCount} seconds");
+
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+					}
+					else
+					{
+
+						if (ex.InnerException is TimeoutException)
+						{
+							msg = $"OpenWeatherMap: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+							cumulus.LogWarningMessage(msg);
+						}
+						else
+						{
+							msg = "OpenWeatherMap: " + ex.Message;
+							cumulus.LogExceptionMessage(ex, "OpenWeatherMap: Update error");
+						}
+
+						cumulus.ThirdPartyAlarm.LastMessage = msg;
+						cumulus.ThirdPartyAlarm.Triggered = true;
+					}
+				}
 			}
+
+			Updating = false;
 		}
 
 		// GetURL actually returns the request body for OpenWeatherMap

@@ -913,7 +913,7 @@ namespace CumulusMX
 			MidnightRainCount = ini.GetValue("Rain", "Midnight", -1.0);
 			RainCounter = ini.GetValue("Rain", "Last", -1.0);
 
-			if (RainCounterDayStart == -1.0)
+			if (RainCounterDayStart < -0.5)
 			{
 				cumulus.LogMessage("ReadTodayfile: set initialiseRainDayStart true");
 				initialiseRainDayStart = true;
@@ -923,7 +923,7 @@ namespace CumulusMX
 				initialiseRainDayStart = false;
 			}
 
-			if (RainCounter == -1.0)
+			if (RainCounter < -0.5)
 			{
 				cumulus.LogMessage("ReadTodayfile: set initialiseRainCounterOnFirstData true");
 				initialiseRainCounter = true;
@@ -933,7 +933,7 @@ namespace CumulusMX
 				initialiseRainCounter = false;
 			}
 
-			if (MidnightRainCount == -1.0)
+			if (MidnightRainCount < -0.5)
 			{
 				if (cumulus.RolloverHour == 0 && !initialiseRainDayStart)
 				{
@@ -2766,7 +2766,7 @@ namespace CumulusMX
 				for (var i = 0; i < data.Count; i++)
 				{
 					var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
-					var val = data[i].Pm2p5 == -1 ? "null" : data[i].Pm2p5.ToString("F1", InvC);
+					var val = data[i].Pm2p5 < -0.5 ? "null" : data[i].Pm2p5.ToString("F1", InvC);
 					sb2p5.Append($"[{jsTime},{val}],");
 
 					// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
@@ -2775,7 +2775,7 @@ namespace CumulusMX
 						cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2)
 					{
 						append = true;
-						val = data[i].Pm10 == -1 ? "null" : data[i].Pm10.ToString("F1", InvC);
+						val = data[i].Pm10 < -0.5 ? "null" : data[i].Pm10.ToString("F1", InvC);
 						sb10.Append($"[{jsTime},{val}],");
 					}
 				}
@@ -4974,7 +4974,7 @@ namespace CumulusMX
 		public void DoIndoorTemp(double temp)
 		{
 			// Spike check
-			if ((previousInTemp != 999) && (Math.Abs(temp - previousInTemp) > cumulus.Spike.InTempDiff))
+			if ((previousInTemp < 998) && (Math.Abs(temp - previousInTemp) > cumulus.Spike.InTempDiff))
 			{
 				cumulus.LogSpikeRemoval("Indoor temperature difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"NewVal={temp.ToString(cumulus.TempFormat)} OldVal={previousInTemp.ToString(cumulus.TempFormat)} SpikeDiff={cumulus.Spike.InTempDiff.ToString(cumulus.TempFormat)}");
@@ -4992,7 +4992,7 @@ namespace CumulusMX
 		public void DoOutdoorHumidity(int humpar, DateTime timestamp)
 		{
 			// Spike check
-			if ((previousHum != 999) && (Math.Abs(humpar - previousHum) > cumulus.Spike.HumidityDiff))
+			if ((previousHum < 998) && (Math.Abs(humpar - previousHum) > cumulus.Spike.HumidityDiff))
 			{
 				cumulus.LogSpikeRemoval("Humidity difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"NewVal={humpar} OldVal={previousHum} SpikeHumidityDiff={cumulus.Spike.HumidityDiff:F1}");
@@ -5074,10 +5074,10 @@ namespace CumulusMX
 		public void DoOutdoorTemp(double temp, DateTime timestamp)
 		{
 			// Spike removal is in user units
-			if ((previousTemp != 9999) && (Math.Abs(temp - previousTemp) > cumulus.Spike.TempDiff))
+			if ((previousTemp < 998) && (Math.Abs(temp - previousTemp) > cumulus.Spike.TempDiff))
 			{
 				cumulus.LogSpikeRemoval("Temp difference greater than spike value; reading ignored");
-				cumulus.LogSpikeRemoval($"NewVal={temp.ToString(cumulus.TempFormat)} OldVal={temp.ToString(cumulus.TempFormat)} SpikeTempDiff={cumulus.Spike.TempDiff.ToString(cumulus.TempFormat)}");
+				cumulus.LogSpikeRemoval($"NewVal={temp.ToString(cumulus.TempFormat)} OldVal={previousTemp.ToString(cumulus.TempFormat)} SpikeTempDiff={cumulus.Spike.TempDiff.ToString(cumulus.TempFormat)}");
 				lastSpikeRemoval = DateTime.Now;
 				cumulus.SpikeAlarm.LastMessage = $"Temp difference greater than spike value - NewVal={temp.ToString(cumulus.TempFormat)} OldVal={previousTemp.ToString(cumulus.TempFormat)} SpikeTempDiff={cumulus.Spike.TempDiff.ToString(cumulus.TempFormat)}";
 				cumulus.SpikeAlarm.Triggered = true;
@@ -5101,8 +5101,6 @@ namespace CumulusMX
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
-
-
 
 			previousTemp = temp;
 
@@ -5541,12 +5539,12 @@ namespace CumulusMX
 		public void DoPressure(double sl, DateTime timestamp)
 		{
 			// Spike removal is in user units
-			if ((previousPress != 9999) && (Math.Abs(sl - previousPress) > cumulus.Spike.PressDiff))
+			if ((previousPress < 9998) && (Math.Abs(sl - previousPress) > cumulus.Spike.PressDiff))
 			{
 				cumulus.LogSpikeRemoval("Pressure difference greater than spike value; reading ignored");
-				cumulus.LogSpikeRemoval($"NewVal={sl.ToString(cumulus.PressFormat)} OldVal={sl.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}");
+				cumulus.LogSpikeRemoval($"NewVal={sl.ToString(cumulus.PressFormat)} OldVal={previousPress.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}");
 				lastSpikeRemoval = DateTime.Now;
-				cumulus.SpikeAlarm.LastMessage = $"Pressure difference greater than spike value - NewVal={sl.ToString(cumulus.PressFormat)} OldVal={sl.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}";
+				cumulus.SpikeAlarm.LastMessage = $"Pressure difference greater than spike value - NewVal={sl.ToString(cumulus.PressFormat)} OldVal={previousPress.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
@@ -6074,7 +6072,7 @@ namespace CumulusMX
 			cumulus.LogDebugMessage($"DoWind: latest={gustpar:F1}, speed={speedpar:F1} - Current: gust={RecentMaxGust:F1}, speed={WindAverage:F1}");
 			// if we have a spike in wind speed or gust, ignore the reading
 			// Spike removal in user units
-			if (previousGust != 999 && (Math.Abs(gustpar - previousGust) > cumulus.Spike.GustDiff))
+			if (previousGust < 998 && (Math.Abs(gustpar - previousGust) > cumulus.Spike.GustDiff))
 			{
 				cumulus.LogSpikeRemoval("Gust difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"Gust: NewVal={gustpar.ToString(cumulus.WindFormat)} OldVal={previousGust.ToString(cumulus.WindFormat)} SpikeGustDiff={cumulus.Spike.GustDiff.ToString(cumulus.WindFormat)}");
@@ -6093,12 +6091,12 @@ namespace CumulusMX
 				return;
 			}
 
-			if (previousWind != 999 && (Math.Abs(speedpar - previousWind) > cumulus.Spike.WindDiff))
+			if (previousWind < 998 && (Math.Abs(speedpar - previousWind) > cumulus.Spike.WindDiff))
 			{
 				cumulus.LogSpikeRemoval("Wind difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"Wind: NewVal={speedpar.ToString(cumulus.WindAvgFormat)} OldVal={previousWind.ToString(cumulus.WindAvgFormat)} SpikeWindDiff={cumulus.Spike.WindDiff.ToString(cumulus.WindAvgFormat)}");
 				lastSpikeRemoval = timestamp;
-				cumulus.SpikeAlarm.LastMessage = $"Wind difference greater than spike value -  Wind: NewVal={speedpar:F1} OldVal={previousWind:F1} SpikeWindDiff={cumulus.Spike.WindDiff.ToString(cumulus.WindAvgFormat)}";
+				cumulus.SpikeAlarm.LastMessage = $"Wind difference greater than spike value -  Wind: NewVal={speedpar.ToString(cumulus.WindAvgFormat)} OldVal={previousWind.ToString(cumulus.WindAvgFormat)} SpikeWindDiff={cumulus.Spike.WindDiff.ToString(cumulus.WindAvgFormat)}";
 				cumulus.SpikeAlarm.Triggered = true;
 				return;
 			}
@@ -11281,7 +11279,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append($"[\"Distance to last strike\",\"{(LightningDistance == -1 ? "-" : LightningDistance.ToString(cumulus.WindRunFormat))}\",\"{cumulus.Units.WindRunText}\"],");
+			json.Append($"[\"Distance to last strike\",\"{(LightningDistance < 0 ? "-" : LightningDistance.ToString(cumulus.WindRunFormat))}\",\"{cumulus.Units.WindRunText}\"],");
 			json.Append($"[\"Time of last strike\",\"{(DateTime.Equals(LightningTime, DateTime.MinValue) ? "-" : LightningTime.ToString("g"))}\",\"\"],");
 			json.Append($"[\"Number of strikes today\",\"{LightningStrikesToday}\",\"\"]");
 			json.Append("]}");
@@ -13707,9 +13705,9 @@ namespace CumulusMX
 			if (gust >= cumulus.Limit.WindHigh)
 			{
 				cumulus.LogSpikeRemoval("Wind Gust greater than the limit; reading ignored");
-				cumulus.LogSpikeRemoval($"Gust: NewVal={gust:F1} HighLimit={cumulus.Limit.WindHigh:F1}");
+				cumulus.LogSpikeRemoval($"Gust: NewVal={gust.ToString(cumulus.WindFormat)} HighLimit={cumulus.Limit.WindHigh.ToString(cumulus.WindFormat)}");
 				lastSpikeRemoval = timestamp;
-				cumulus.SpikeAlarm.LastMessage = $"Wind Gust greater than limit - NewVal={gust:F1}, OldVal={cumulus.Limit.WindHigh:F1}";
+				cumulus.SpikeAlarm.LastMessage = $"Wind Gust greater than limit - NewVal={gust.ToString(cumulus.WindFormat)}, OldVal={cumulus.Limit.WindHigh.ToString(cumulus.WindFormat)}";
 				cumulus.SpikeAlarm.Triggered = true;
 				return false;
 			}

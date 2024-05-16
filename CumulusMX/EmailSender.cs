@@ -6,10 +6,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Util.Store;
-
 using MailKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -23,8 +19,6 @@ namespace CumulusMX
 		static readonly Regex ValidEmailRegex = CreateValidEmailRegex();
 		private static readonly SemaphoreSlim _writeLock = new (1);
 		private readonly Cumulus cumulus = cumulus;
-		//private static readonly string[] initializer = new[] { "https://www.googleapis.com/auth/gmail.compose" }
-		private static readonly string[] initializer = ["https://mail.google.com"];
 
 		public async Task<bool> SendEmail(string[] to, string from, string subject, string message, bool isHTML, bool useBcc)
 		{
@@ -90,7 +84,6 @@ namespace CumulusMX
 
 					// 0 = None
 					// 1 = Username/Passwword
-					// 2 = Google OAuth2
 					if (cumulus.SmtpOptions.AuthenticationMethod <= 1)
 					{
 						// Note: since we don't have an OAuth2 token, disable
@@ -101,36 +94,6 @@ namespace CumulusMX
 						{
 							await client.AuthenticateAsync(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
 						}
-					}
-					else if (cumulus.SmtpOptions.AuthenticationMethod == 2)
-					{
-						// Google OAuth 2.0
-						var clientSecrets = new ClientSecrets
-						{
-							ClientId = cumulus.SmtpOptions.ClientId,
-							ClientSecret = cumulus.SmtpOptions.ClientSecret
-						};
-
-						var codeFlow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-						{
-							DataStore = new FileDataStore(cumulus.AppDir, false),
-							Scopes = initializer,
-							ClientSecrets = clientSecrets
-						});
-
-						var codeReceiver = new LocalServerCodeReceiver();
-						var authCode = new AuthorizationCodeInstalledApp(codeFlow, codeReceiver);
-
-						var credential = await authCode.AuthorizeAsync(cumulus.SmtpOptions.User, CancellationToken.None);
-
-						if (credential.Token.IsStale)
-						{
-							await credential.RefreshTokenAsync(CancellationToken.None);
-						}
-
-						var oauth2 = new SaslMechanismOAuth2(credential.UserId, credential.Token.AccessToken);
-
-						await client.AuthenticateAsync(oauth2);
 					}
 
 					var response = await client.SendAsync(m);
@@ -211,7 +174,6 @@ namespace CumulusMX
 
 					// 0 = None
 					// 1 = Username/Passwword
-					// 2 = Google OAuth2
 					if (cumulus.SmtpOptions.AuthenticationMethod <= 1)
 					{
 						// Note: since we don't have an OAuth2 token, disable
@@ -222,36 +184,6 @@ namespace CumulusMX
 						{
 							client.Authenticate(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
 						}
-					}
-					else if (cumulus.SmtpOptions.AuthenticationMethod == 2)
-					{
-						// Google OAuth 2.0
-						var clientSecrets = new ClientSecrets
-						{
-							ClientId = cumulus.SmtpOptions.ClientId,
-							ClientSecret = cumulus.SmtpOptions.ClientSecret
-						};
-
-						var codeFlow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-						{
-							DataStore = new FileDataStore(cumulus.AppDir, false),
-							Scopes = initializer,
-							ClientSecrets = clientSecrets
-						});
-
-						var codeReceiver = new LocalServerCodeReceiver();
-						var authCode = new AuthorizationCodeInstalledApp(codeFlow, codeReceiver);
-
-						var credential = authCode.AuthorizeAsync(cumulus.SmtpOptions.User, CancellationToken.None).Result;
-
-						if (credential.Token.IsStale)
-						{
-							_ = credential.RefreshTokenAsync(CancellationToken.None).Result;
-						}
-
-						var oauth2 = new SaslMechanismOAuth2(credential.UserId, credential.Token.AccessToken);
-
-						client.Authenticate(oauth2);
 					}
 
 					var response = client.Send(m);
@@ -307,8 +239,6 @@ namespace CumulusMX
 			public int Port { get; set; }
 			public string User { get; set; }
 			public string Password { get; set; }
-			public string ClientId { get; set; }
-			public string ClientSecret { get; set; }
 			public int SslOption { get; set; }
 			public int AuthenticationMethod { get; set; }
 			public bool Logging { get; set; }

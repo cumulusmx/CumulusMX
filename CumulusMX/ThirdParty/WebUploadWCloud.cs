@@ -15,6 +15,8 @@ namespace CumulusMX.ThirdParty
 			if (Updating || station.DataStopped)
 			{
 				// No data coming in, do not do anything
+				var reason = Updating ? "previous upload still in progress" : "data stopped condition";
+				cumulus.LogWarningMessage("WeatherCloud: Not uploading, " + reason);
 				return;
 			}
 
@@ -32,78 +34,104 @@ namespace CumulusMX.ThirdParty
 
 			cumulus.LogDebugMessage("WeatherCloud: URL = " + logUrl);
 
-			try
-			{
-				using var response = await cumulus.MyHttpClient.GetAsync(url);
-				var responseBodyAsText = await response.Content.ReadAsStringAsync();
-				var msg = string.Empty;
-				switch ((int) response.StatusCode)
-				{
-					case 200:
-						msg = "Success";
-						cumulus.ThirdPartyAlarm.Triggered = false;
-						break;
-					case 400:
-						msg = "Bad request";
-						cumulus.ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
-						cumulus.ThirdPartyAlarm.Triggered = true;
-						break;
-					case 401:
-						msg = "Incorrect WID or Key";
-						cumulus.ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
-						cumulus.ThirdPartyAlarm.Triggered = true;
-						break;
-					case 429:
-						msg = "Too many requests";
-						cumulus.ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
-						cumulus.ThirdPartyAlarm.Triggered = true;
-						break;
-					case 500:
-						msg = "Server error";
-						cumulus.ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
-						cumulus.ThirdPartyAlarm.Triggered = true;
-						break;
-					default:
-						msg = "Unknown error";
-						cumulus.ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
-						cumulus.ThirdPartyAlarm.Triggered = true;
-						break;
-				}
-				if ((int) response.StatusCode == 200)
-				{
-					cumulus.LogDebugMessage($"WeatherCloud: Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
-				}
-				else
-				{
-					var log = $"WeatherCloud: ERROR - Response = {msg} ({response.StatusCode}): {responseBodyAsText}";
-					cumulus.LogWarningMessage(log);
-					cumulus.ThirdPartyAlarm.LastMessage = log;
-					cumulus.ThirdPartyAlarm.Triggered = true;
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogExceptionMessage(ex, "WeatherCloud: ERROR");
-				string msg;
+			// we will try this twice in case the first attempt fails
+			var maxRetryAttempts = 2;
+			var delay = maxRetryAttempts * 5.0;
 
-				if (ex.InnerException is TimeoutException)
-				{
-					msg = $"WeatherCloud: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
-					cumulus.LogWarningMessage(msg);
-				}
-				else
-				{
-					msg = "WeatherCloud: " + ex.Message;
-					cumulus.LogExceptionMessage(ex, "WeatherCloud: Error");
-				}
-
-				cumulus.ThirdPartyAlarm.LastMessage = msg;
-				cumulus.ThirdPartyAlarm.Triggered = true;
-			}
-			finally
+			for (int retryCount = maxRetryAttempts; retryCount >= 0; retryCount--)
 			{
-				Updating = false;
+				try
+				{
+					using var response = await cumulus.MyHttpClient.GetAsync(url);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					var msg = string.Empty;
+					switch ((int) response.StatusCode)
+					{
+						case 200:
+							msg = "Success";
+							cumulus.ThirdPartyAlarm.Triggered = false;
+							break;
+						case 400:
+							msg = "Bad request";
+							cumulus.ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
+							cumulus.ThirdPartyAlarm.Triggered = true;
+							break;
+						case 401:
+							msg = "Incorrect WID or Key";
+							cumulus.ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
+							cumulus.ThirdPartyAlarm.Triggered = true;
+							break;
+						case 429:
+							msg = "Too many requests";
+							cumulus.ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
+							cumulus.ThirdPartyAlarm.Triggered = true;
+							break;
+						case 500:
+							msg = "Server error";
+							cumulus.ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
+							cumulus.ThirdPartyAlarm.Triggered = true;
+							break;
+						default:
+							msg = "Unknown error";
+							cumulus.ThirdPartyAlarm.LastMessage = "WeatherCloud: " + msg;
+							cumulus.ThirdPartyAlarm.Triggered = true;
+							break;
+					}
+					if ((int) response.StatusCode == 200)
+					{
+						cumulus.LogDebugMessage($"WeatherCloud: Response = {msg} ({response.StatusCode}): {responseBodyAsText}");
+					}
+					else
+					{
+						var log = $"WeatherCloud: ERROR - Response = {msg} ({response.StatusCode}): {responseBodyAsText}";
+						cumulus.LogWarningMessage(log);
+						cumulus.ThirdPartyAlarm.LastMessage = log;
+						cumulus.ThirdPartyAlarm.Triggered = true;
+					}
+
+					Updating = false;
+					return;
+				}
+				catch (Exception ex)
+				{
+					if (retryCount == 0)
+					{
+
+						string msg;
+
+						if (ex.InnerException is TimeoutException)
+						{
+							msg = $"WeatherCloud: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+							cumulus.LogWarningMessage(msg);
+						}
+						else
+						{
+							msg = "WeatherCloud: Error - " + ex.Message;
+							cumulus.LogExceptionMessage(ex, "WeatherCloud: Error");
+						}
+
+						cumulus.ThirdPartyAlarm.LastMessage = msg;
+						cumulus.ThirdPartyAlarm.Triggered = true;
+					}
+					else
+					{
+						if (ex.InnerException is TimeoutException)
+						{
+							cumulus.LogDebugMessage($"WeatherCloud: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
+						}
+						else
+						{
+							cumulus.LogDebugMessage("WeatherCloud: Error - " + ex.Message);
+						}
+
+						cumulus.LogMessage($"WeatherCloud: Retrying in {delay / retryCount} seconds");
+
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+					}
+				}
 			}
+
+			Updating = false;
 		}
 
 		internal override string GetURL(out string pwstring, DateTime timestamp)

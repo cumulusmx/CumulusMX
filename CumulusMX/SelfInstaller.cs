@@ -4,8 +4,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 
-using Renci.SshNet.Messages;
-
 namespace CumulusMX
 {
 	public static class SelfInstaller
@@ -15,7 +13,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				var path = AppDomain.CurrentDomain.BaseDirectory + "\\CumulusMX.exe";
+				var path = AppDomain.CurrentDomain.BaseDirectory + $"\\CumulusMX{(IntPtr.Size == 4 ? "32" : string.Empty)}.exe";
 
 				if (!IsElevated())
 				{
@@ -27,7 +25,7 @@ namespace CumulusMX
 				Console.WriteLine("Installing as a Windows Service...");
 
 				// sc create CumulusMX binpath=C:\CumulusMX\CumulusMX.dll start= delayed-auto depend= LanmanWorkstation
-				var createExitCode = RunCommand("sc.exe", $"create CumulusMX binpath=\"{path}\" start=delayed-auto depend=Netman");
+				var createExitCode = RunCommand("sc.exe", $"create CumulusMX binpath= \"{path}\" start= delayed-auto depend= Netman obj= \"\"NT Authority\\NetworkService\"\"");
 
 				if (createExitCode != 0)
 					return false;
@@ -50,7 +48,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				var path = AppDomain.CurrentDomain.BaseDirectory + "\\CumulusMX.exe";
+				var path = AppDomain.CurrentDomain.BaseDirectory + $"\\CumulusMX{(IntPtr.Size == 4 ? "32" : string.Empty)}.exe";
 
 				if (!IsElevated())
 				{
