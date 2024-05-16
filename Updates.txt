@@ -1,5 +1,9 @@
 4.0.1 - b4023
 —————————————
+New
+- There is now a 32 Windows specific version of executable - CumulusMX32.exe
+	- The same applies to MigrateData3to4 and CreateMissing
+
 Changed
 - Removed the experimental Gmail OATH2 authentication method
 - Third party uploads now have retries and the timeout increased to 30 seconds
