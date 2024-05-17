@@ -15,7 +15,7 @@ namespace CumulusMX
 	public static class MqttPublisher
 	{
 		private static Cumulus cumulus;
-		private static MqttClient mqttClient;
+		private static IMqttClient mqttClient;
 		public static bool configured { get; set; }
 		private static readonly Dictionary<String, String> publishedTopics = [];
 		private static MqttTemplate updateTemplate;
@@ -27,33 +27,31 @@ namespace CumulusMX
 
 			var mqttFactory = new MqttFactory();
 
+			var protocolType = cumulus.MQTT.IpVersion switch
+			{
+				4 => System.Net.Sockets.ProtocolType.IPv4,
+				6 => System.Net.Sockets.ProtocolType.IPv6,
+				_ => System.Net.Sockets.ProtocolType.Unspecified,
+			};
+
+			var options = new MqttClientOptionsBuilder()
+				.WithClientId(Guid.NewGuid().ToString())
+				.WithTcpServer(cumulus.MQTT.Server, cumulus.MQTT.Port)
+				.WithProtocolType(protocolType)
+				.WithCredentials(string.IsNullOrEmpty(cumulus.MQTT.Password) ? null : new MqttClientCredentials(cumulus.MQTT.Username, System.Text.Encoding.UTF8.GetBytes(cumulus.MQTT.Password)))
+				.WithTlsOptions(
+					new MqttClientTlsOptions()
+					{
+						UseTls = cumulus.MQTT.UseTLS
+					}
+				)
+				.WithCleanSession()
+				.Build();
+
 			mqttClient = (MqttClient) mqttFactory.CreateMqttClient();
 
-			var clientId = Guid.NewGuid().ToString();
 
-			var mqttTcpOptions = new MqttClientTcpOptions
-			{
-				Server = cumulus.MQTT.Server,
-				Port = cumulus.MQTT.Port,
-				TlsOptions = new MqttClientTlsOptions { UseTls = cumulus.MQTT.UseTLS },
-				AddressFamily = cumulus.MQTT.IpVersion switch
-				{
-					4 => System.Net.Sockets.AddressFamily.InterNetwork,
-					6 => System.Net.Sockets.AddressFamily.InterNetworkV6,
-					_ => System.Net.Sockets.AddressFamily.Unspecified,
-				}
-			};
-			var mqttOptions = new MqttClientOptions
-			{
-				ChannelOptions = mqttTcpOptions,
-				ClientId = clientId,
-				Credentials = string.IsNullOrEmpty(cumulus.MQTT.Password)
-					? null
-					: new MqttClientCredentials(cumulus.MQTT.Username, System.Text.Encoding.UTF8.GetBytes(cumulus.MQTT.Password)),
-				CleanSession = true
-			};
-
-			Connect(mqttOptions).Wait();
+			Connect(options).Wait();
 
 			mqttClient.DisconnectedAsync += (async e =>
 			{
@@ -63,7 +61,7 @@ namespace CumulusMX
 				cumulus.LogDebugMessage("MQTT attempting to reconnect with server");
 				try
 				{
-					Connect(mqttOptions).Wait();
+					Connect(options).Wait();
 					cumulus.LogDebugMessage("MQTT reconnected OK");
 				}
 				catch

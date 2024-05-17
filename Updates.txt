@@ -1,3 +1,13 @@
+4.0.2 - b4024
+—————————————
+New
+Changed
+- New MQTT version
+
+Fixed
+- Temperature Sum graph data when Sum0 is the only selected range
+
+
 4.0.1 - b4023
 —————————————
 New
