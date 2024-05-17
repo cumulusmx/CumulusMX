@@ -13542,10 +13542,7 @@ namespace CumulusMX
 				tempSumYears0.Append(tempSum0 + "]");
 
 				// add to main json
-				sb.Append("\"Sum0\":" + tempSumYears0 + "}");
-
-				if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
-					sb.Append(',');
+				sb.Append("\"Sum0\":" + tempSumYears0 + "},");
 			}
 			if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
 			{
