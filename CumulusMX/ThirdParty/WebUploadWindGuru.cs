@@ -19,7 +19,7 @@ namespace CumulusMX.ThirdParty
 			{
 				// No data coming in, do not do anything
 				var reason = Updating ? "previous upload still in progress" : "data stopped condition";
-				cumulus.LogWarningMessage("WindGuru: Not uploading, " + reason);
+				cumulus.LogDebugMessage("WindGuru: Not uploading, " + reason);
 				return;
 			}
 

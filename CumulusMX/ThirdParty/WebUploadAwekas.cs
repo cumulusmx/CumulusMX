@@ -38,7 +38,7 @@ namespace CumulusMX.ThirdParty
 			{
 				// No data coming in, do not do anything
 				var reason = Updating ? "previous upload still in progress" : "data stopped condition";
-				cumulus.LogWarningMessage("AWEKAS: Not uploading, " + reason);
+				cumulus.LogDebugMessage("AWEKAS: Not uploading, " + reason);
 				return;
 			}
 

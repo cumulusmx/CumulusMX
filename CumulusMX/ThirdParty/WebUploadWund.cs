@@ -40,7 +40,7 @@ namespace CumulusMX.ThirdParty
 			{
 				// No data coming in, do not do anything
 				var reason = Updating ? "previous upload still in progress" : "data stopped condition";
-				cumulus.LogWarningMessage($"Wunderground: {(RapidFireEnabled ? "RapidFire " : string.Empty)}Not uploading, {reason}");
+				cumulus.LogDebugMessage($"Wunderground: {(RapidFireEnabled ? "RapidFire " : string.Empty)}Not uploading, {reason}");
 				return;
 			}
 

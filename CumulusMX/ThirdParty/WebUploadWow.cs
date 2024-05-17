@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Globalization;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,7 +20,7 @@ namespace CumulusMX.ThirdParty
 			{
 				// No data coming in, do not do anything
 				var reason = Updating ? "previous upload still in progress" : "data stopped condition";
-				cumulus.LogWarningMessage("WOW: Not uploading, " + reason);
+				cumulus.LogDebugMessage("WOW: Not uploading, " + reason);
 				return;
 			}
 
