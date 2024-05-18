@@ -12926,6 +12926,7 @@ namespace CumulusMX
 					LogWarningMessage(msg);
 					UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
 					UpgradeAlarm.Triggered = true;
+					LatestBuild = latestLive.tag_name[1..];
 				}
 				else if (int.Parse(latestBuild.tag_name[1..]) > cmxBuild)
 				{
@@ -12934,15 +12935,18 @@ namespace CumulusMX
 					LogWarningMessage(msg);
 					UpgradeAlarm.LastMessage = $"{(beta ? "Beta" : "Release")} build {latestBuild.name} is available";
 					UpgradeAlarm.Triggered = true;
+					LatestBuild = latestBuild.tag_name[1..];
 				}
 				else if (int.Parse(latestBuild.tag_name[1..]) == cmxBuild)
 				{
 					LogMessage($"This Cumulus MX instance is running the latest {(beta ? "beta" : "release")} version");
 					UpgradeAlarm.Triggered = false;
+					LatestBuild = latestBuild.tag_name[1..];
 				}
 				else if (int.Parse(latestBuild.tag_name[1..]) < cmxBuild)
 				{
 					LogWarningMessage($"This Cumulus MX instance appears to be running a test version. This build={Build}, latest available build={veryLatest}");
+					LatestBuild = veryLatest.ToString();
 				}
 			}
 			catch (Exception ex)
