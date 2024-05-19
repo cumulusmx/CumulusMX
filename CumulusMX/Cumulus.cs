@@ -1975,6 +1975,10 @@ namespace CumulusMX
 
 			if (isSet)
 			{
+				if (FtpLoggerRT == null || FtpLoggerIN == null || FtpLoggerMX == null)
+				{
+					SetupFtpLogging(true);
+				}
 				RealtimeFTP.Logger = new FtpLogAdapter(FtpLoggerRT);
 			}
 			else

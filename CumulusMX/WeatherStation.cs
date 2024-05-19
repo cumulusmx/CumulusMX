@@ -5729,7 +5729,25 @@ namespace CumulusMX
 			var counterReset = Math.Round(RainCounterDayStart, cumulus.RainDPlaces) - Math.Round(RainCounter, cumulus.RainDPlaces) > 0;
 			var counterJumped = Math.Round(RainCounter, cumulus.RainDPlaces) - previoustotal > maxIncrement;
 
-			if (counterReset || counterJumped)
+			// Davis VP2 console loses todays rainfall when it is power cycled
+			// so check if the current value is less than previous and has returned to the previous midnight value
+			if (Math.Round(RainCounter, cumulus.RainDPlaces) < previoustotal &&
+				Math.Round(RainCounter, cumulus.RainDPlaces) == Math.Round(MidnightRainCount, cumulus.RainDPlaces) &&
+				cumulus.StationType == StationTypes.VantagePro2)
+			{
+				var counterLost = previoustotal - MidnightRainCount;
+				RainCounterDayStart -= counterLost;
+				MidnightRainCount -= counterLost;
+
+				cumulus.LogWarningMessage($" ****Rain counter reset to previous midnight value (VP2 console power cycled?), lost {counterLost} counts");
+				cumulus.LogWarningMessage($"     New values:  RaindayStart = {RainCounterDayStart}, MidnightRainCount = {MidnightRainCount}, Raincounter = {RainCounter}");
+
+				// update any data in the recent data db
+				var counterChange = RainCounter - prevraincounter;
+				RecentDataDb.Execute("update RecentData set raincounter=raincounter-?", counterLost);
+
+			}
+			else if (counterReset || counterJumped)
 			{
 				if (SecondChanceRainReset)
 				// second consecutive reading with reset value
