@@ -3,6 +3,7 @@
 New
 Changed
 - New MQTT version
+- Removed options for WOW catch-up, it isn't supported by WOW
 
 Fixed
 - Temperature Sum graph data when Sum0 is the only selected range
