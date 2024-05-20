@@ -1,6 +1,8 @@
 4.0.2 - b4024
 —————————————
 New
+- HTTP (Ecowitt) station now accepts the data via a simple GET url as well as POST
+
 Changed
 - New MQTT version
 - Removed options for WOW catch-up, it isn't supported by WOW

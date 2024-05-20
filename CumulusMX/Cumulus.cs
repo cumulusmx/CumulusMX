@@ -3687,7 +3687,7 @@ namespace CumulusMX
 			ErrorLogSpikeRemoval = ini.GetValue("Station", "ErrorLogSpikeRemoval", true);
 			// this is now an index
 			DataLogInterval = ini.GetValue("Station", "DataLogInterval", 2, 0, 5);
-#
+
 			FineOffsetOptions.SyncReads = ini.GetValue("Station", "SyncFOReads", true);
 			FineOffsetOptions.ReadAvoidPeriod = ini.GetValue("Station", "FOReadAvoidPeriod", 3, 0);
 			FineOffsetOptions.ReadTime = ini.GetValue("Station", "FineOffsetReadTime", 150, 0);
