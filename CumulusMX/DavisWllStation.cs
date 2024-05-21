@@ -1060,7 +1060,7 @@ namespace CumulusMX
 							if (sensorContactLost[data2.txid])
 							{
 								cumulus.LogWarningMessage($"Warning: Sensor contact restored TxId {data2.txid}");
-								sensorContactLost[data1.txid] = false;
+								sensorContactLost[data2.txid] = false;
 							}
 
 							// For leaf wetness, soil temp/moisture we rely on user configuration, trap any errors

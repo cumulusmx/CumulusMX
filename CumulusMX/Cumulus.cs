@@ -12445,7 +12445,6 @@ namespace CumulusMX
 
 			if (FtpOptions.Enabled)
 			{
-				LogMessage($"RealtimeFTPLogin: Attempting realtime FTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
 				try
 				{
 					if (FtpOptions.AutoDetect)
@@ -12470,14 +12469,6 @@ namespace CumulusMX
 					RealtimeFTP.Disconnect();
 				}
 			}
-
-			// OK we are reconnected or failed to connect, let the FTP recommence
-			RealtimeFtpReconnecting = false;
-			RealtimeFtpInProgress = false;
-			realtimeFTPRetries = 0;
-			RealtimeCopyInProgress = false;
-			FtpAlarm.Triggered = false;
-
 		}
 
 		private void RealtimeSSHLogin()
