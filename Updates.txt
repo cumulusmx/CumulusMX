@@ -12,7 +12,7 @@ Fixed
 - Fix #NewBuildAvailable and #NewBuildNumber web tags
 - Fix for Davis VP2 consoles losing todays rainfall on a full power cycle
 - Exception when enabling real-time FTP whilst running and FTP logging is enabled
-- WLL now fires a single "sensor contact lost" warning message + contact restored
+- Davis WLL now fires a single "sensor contact lost" warning message + contact restored
 
 
 
