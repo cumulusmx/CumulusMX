@@ -1266,18 +1266,23 @@ namespace CumulusMX
 			if (data["pm25_co2"] != null)
 			{
 				station.CO2_pm2p5 = Convert.ToDouble(data["pm25_co2"], invNum);
+				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
 			}
 			if (data["pm25_24h_co2"] != null)
 			{
 				station.CO2_pm2p5_24h = Convert.ToDouble(data["pm25_24h_co2"], invNum);
+				station.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5h24, station.CO2_pm2p5_24h);
+
 			}
 			if (data["pm10_co2"] != null)
 			{
 				station.CO2_pm10 = Convert.ToDouble(data["pm10_co2"], invNum);
+				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
 			}
 			if (data["pm10_24h_co2"] != null)
 			{
 				station.CO2_pm10_24h = Convert.ToDouble(data["pm10_24h_co2"], invNum);
+				station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10h24, station.CO2_pm10_24h);
 			}
 			if (data["co2"] != null)
 			{

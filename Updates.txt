@@ -2,10 +2,16 @@
 —————————————
 New
 - HTTP (Ecowitt) station now accepts the data via a simple GET url as well as POST
+- Cumulus now calculates the AQi for Ecowitt PM and CO₂ sensors
+	- New web tags:
+	<#AirQualityIdx1[-4]>, <#AirQualityAvgIdx1[-4]>
+	<#CO2_pm2p5_aqi>, <#CO2_pm2p5_24h_aqi>, <#CO2_pm10_aqi>, <#CO2_pm10_24_aqih>
+
 
 Changed
 - New MQTT version
 - Removed options for WOW catch-up, it isn't supported by WOW
+
 
 Fixed
 - Temperature Sum graph data when Sum0 is the only selected range

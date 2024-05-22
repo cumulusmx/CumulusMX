@@ -1741,6 +1741,11 @@ namespace CumulusMX
 				batteryLow = batt == "Low";
 				msg += $", Battery={batt}";
 				cumulus.LogDebugMessage(msg);
+
+				CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5);
+				CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5h24, CO2_pm2p5_24h);
+				CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
+				CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10h24, CO2_pm10_24h);
 			}
 			catch (Exception ex)
 			{

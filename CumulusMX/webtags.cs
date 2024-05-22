@@ -4109,6 +4109,46 @@ namespace CumulusMX
 			return CheckRcDp(station.AirQualityAvg4, tagParams, cumulus.AirQualityDPlaces);
 		}
 
+		private string TagAirQualityIdx1(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.AirQualityIdx1, tagParams, cumulus.AirQualityDPlaces);
+		}
+
+		private string TagAirQualityIdx2(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.AirQualityIdx2, tagParams, cumulus.AirQualityDPlaces);
+		}
+
+		private string TagAirQualityIdx3(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.AirQualityIdx3, tagParams, cumulus.AirQualityDPlaces);
+		}
+
+		private string TagAirQualityIdx4(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.AirQualityIdx4, tagParams, cumulus.AirQualityDPlaces);
+		}
+
+		private string TagAirQualityAvgIdx1(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.AirQualityAvgIdx1, tagParams, cumulus.AirQualityDPlaces);
+		}
+
+		private string TagAirQualityAvgIdx2(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.AirQualityAvgIdx2, tagParams, cumulus.AirQualityDPlaces);
+		}
+
+		private string TagAirQualityAvgIdx3(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.AirQualityAvgIdx3, tagParams, cumulus.AirQualityDPlaces);
+		}
+
+		private string TagAirQualityAvgIdx4(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.AirQualityAvgIdx4, tagParams, cumulus.AirQualityDPlaces);
+		}
+
 		private string TagCo2(Dictionary<string, string> tagParams)
 		{
 			return station.CO2.ToString();
@@ -4167,6 +4207,26 @@ namespace CumulusMX
 		private string TagCO2_pm4_24h(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(station.CO2_pm4_24h, tagParams, cumulus.AirQualityDPlaces);
+		}
+
+		private string TagCO2_pm2p5_aqi(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.CO2_pm2p5_aqi, tagParams, cumulus.AirQualityDPlaces);
+		}
+
+		private string TagCO2_pm2p5_24h_aqi(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.CO2_pm2p5_24h_aqi, tagParams, cumulus.AirQualityDPlaces);
+		}
+
+		private string TagCO2_pm10_aqi(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.CO2_pm10_aqi, tagParams, cumulus.AirQualityDPlaces);
+		}
+
+		private string TagCO2_pm10_24h_aqi(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(station.CO2_pm10_24h_aqi, tagParams, cumulus.AirQualityDPlaces);
 		}
 
 		private string TagLeakSensor1(Dictionary<string, string> tagParams)
@@ -6263,6 +6323,14 @@ namespace CumulusMX
 				{ "AirQualityAvg2", TagAirQualityAvg2 },
 				{ "AirQualityAvg3", TagAirQualityAvg3 },
 				{ "AirQualityAvg4", TagAirQualityAvg4 },
+				{ "AirQualityIdx1", TagAirQualityIdx1 },
+				{ "AirQualityIdx2", TagAirQualityIdx2 },
+				{ "AirQualityIdx3", TagAirQualityIdx3 },
+				{ "AirQualityIdx4", TagAirQualityIdx4 },
+				{ "AirQualityAvgIdx1", TagAirQualityAvgIdx1 },
+				{ "AirQualityAvgIdx2", TagAirQualityAvgIdx2 },
+				{ "AirQualityAvgIdx3", TagAirQualityAvgIdx3 },
+				{ "AirQualityAvgIdx4", TagAirQualityAvgIdx4 },
 				{ "CO2", TagCo2 },
 				{ "CO2_24h", TagCO2_24h },
 				{ "CO2_pm2p5", TagCO2_pm2p5 },
@@ -6275,6 +6343,10 @@ namespace CumulusMX
 				{ "CO2_pm1_24h", TagCO2_pm1_24h },
 				{ "CO2_pm4", TagCO2_pm4 },
 				{ "CO2_pm4_24h", TagCO2_pm4_24h },
+				{ "CO2_pm2p5_aqi", TagCO2_pm2p5_aqi },
+				{ "CO2_pm2p5_24h_aqi", TagCO2_pm2p5_24h_aqi },
+				{ "CO2_pm10_aqi", TagCO2_pm10_aqi },
+				{ "CO2_pm10_24_aqih", TagCO2_pm10_24h_aqi },
 				{ "LeakSensor1", TagLeakSensor1 },
 				{ "LeakSensor2", TagLeakSensor2 },
 				{ "LeakSensor3", TagLeakSensor3 },

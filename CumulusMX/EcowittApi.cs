@@ -1769,6 +1769,7 @@ namespace CumulusMX
 				if (rec.Value.AqiComboPm25.HasValue)
 				{
 					station.CO2_pm2p5 = (double) rec.Value.AqiComboPm25.Value;
+					station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
 				}
 			}
 			catch (Exception ex)
@@ -1782,6 +1783,8 @@ namespace CumulusMX
 				if (rec.Value.AqiComboPm10.HasValue)
 				{
 					station.CO2_pm10 = (double) rec.Value.AqiComboPm10.Value;
+					station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
+
 				}
 			}
 			catch (Exception ex)
