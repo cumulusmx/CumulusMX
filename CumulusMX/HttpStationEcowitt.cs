@@ -556,7 +556,7 @@ namespace CumulusMX
 							var tempVal = ConvertUnits.TempFToUser(Convert.ToDouble(data["tempinf"], invNum));
 							DoIndoorTemp(tempVal);
 
-							// user has mapped indoor humidity to outdoor
+							// user has mapped indoor temperature to outdoor
 							if (cumulus.Gw1000PrimaryTHSensor == 99)
 							{
 								DoOutdoorTemp(tempVal, recDate);

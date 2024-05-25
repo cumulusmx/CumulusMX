@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.Text;
 
-using static System.Collections.Specialized.BitVector32;
 
 namespace CumulusMX
 {

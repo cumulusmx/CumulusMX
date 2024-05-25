@@ -39,6 +39,7 @@ namespace CumulusMX
 		internal static HttpStationEcowitt stationEcowittExtra { get; set; }
 		internal static HttpStationAmbient stationAmbient {  get; set; }
 		internal static HttpStationAmbient stationAmbientExtra {  get; set; }
+		internal static JsonStation stationJson { get; set; }
 		private static readonly char[] separator = [':'];
 
 
@@ -1458,6 +1459,17 @@ namespace CumulusMX
 							{
 								Response.StatusCode = 503;
 								await writer.WriteAsync("{\"Error\":\"HTTP Station (Ecowitt) is not running}\"");
+							}
+							break;
+						case "json":
+							if (stationJson != null)
+							{
+								await writer.WriteAsync(stationJson.GetDataFromApi(HttpContext, false));
+							}
+							else
+							{
+								Response.StatusCode = 503;
+								await writer.WriteAsync("{\"Error\":\"JSON Station is not running}\"");
 							}
 							break;
 						default:

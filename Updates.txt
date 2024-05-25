@@ -21,6 +21,9 @@ Fixed
 - Davis WLL now fires a single "sensor contact lost" warning message + contact restored
 - Fix for multiple realtime FTP log-ins being attempted in parallel
 
+Package Updates
+- MQTTnet
+- MailKit
 
 
 4.0.1 - b4023

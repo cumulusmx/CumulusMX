@@ -109,6 +109,23 @@
 		}
 
 		/// <summary>
+		///  Converts wind supplied in kph to user units
+		/// </summary>
+		/// <param name="value">Wind in kph</param>
+		/// <returns>Wind in configured units</returns>
+		public static double WindKPHToUser(double value)
+		{
+			return Program.cumulus.Units.Wind switch
+			{
+				0 => value * 0.2777778,
+				1 => value * 0.6213712,
+				2 => value,
+				3 => value * 0.5399568,
+				_ => 0,
+			};
+		}
+
+		/// <summary>
 		/// Converts wind in user units to m/s
 		/// </summary>
 		/// <param name="value"></param>
