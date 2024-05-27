@@ -1176,6 +1176,9 @@ namespace CumulusMX
 				case 2:
 					threeHourlyPressureChangeMb = presstrendval * 3 / 0.0295333727;
 					break;
+				case 3:
+					threeHourlyPressureChangeMb = presstrendval * 30;
+					break;
 			}
 
 			if (threeHourlyPressureChangeMb > 6) Presstrendstr = cumulus.Trans.Risingveryrapidly;

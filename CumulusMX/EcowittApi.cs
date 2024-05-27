@@ -599,12 +599,16 @@ namespace CumulusMX
 
 							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								value.Pressure = item.Value;
+								// We have to request kPa values in hPa, so divide by 10
+								value.Pressure = cumulus.Units.Press == 3 ? item.Value / 10 : item.Value;
 							}
 							else
 							{
 								var newItem = new HistoricData()
-								{ Pressure = item.Value };
+								{
+									// We have to request kPa values in hPa, so divide by 10
+									Pressure = cumulus.Units.Press == 3 ? item.Value / 10 : item.Value
+								};
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -622,12 +626,16 @@ namespace CumulusMX
 
 							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								value.StationPressure = item.Value;
+								// We have to request kPa values in hPa, so divide by 10
+								value.StationPressure = cumulus.Units.Press == 3 ? item.Value / 10 : item.Value;
 							}
 							else
 							{
 								var newItem = new HistoricData()
-								{ StationPressure = item.Value };
+								{
+									// We have to request kPa values in hPa, so divide by 10
+									StationPressure = cumulus.Units.Press == 3 ? item.Value / 10 : item.Value
+								};
 								buffer.Add(itemDate, newItem);
 							}
 						}

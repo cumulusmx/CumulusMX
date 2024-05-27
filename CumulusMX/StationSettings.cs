@@ -1170,6 +1170,10 @@ namespace CumulusMX
 								cumulus.Limit.PressHigh = ConvertUnits.UserPressToIN(cumulus.Limit.PressHigh);
 								cumulus.Limit.PressLow = ConvertUnits.UserPressToIN(cumulus.Limit.PressLow);
 								break;
+							case 3:
+								cumulus.Limit.PressHigh = ConvertUnits.UserPressToKpa(cumulus.Limit.PressHigh);
+								cumulus.Limit.PressLow = ConvertUnits.UserPressToKpa(cumulus.Limit.PressLow);
+								break;
 						}
 						cumulus.Units.Press = settings.general.units.pressure;
 						cumulus.ChangePressureUnits();

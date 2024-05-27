@@ -397,21 +397,11 @@ namespace CumulusMX
 
 			try
 			{
-				// set this temporarily, so speed is done from average and not peak gust from logger
-				cumulus.StationOptions.UseSpeedForAvgCalc = true;
-
-				// same for gust values
-				savedCalculatePeakGust = CalcRecentMaxGust;
-				CalcRecentMaxGust = true;
-
 				do
 				{
 					GetHistoricData(worker);
 					archiveRun++;
 				} while (archiveRun < maxArchiveRuns && !worker.CancellationPending);
-
-				// restore the setting
-				cumulus.StationOptions.UseSpeedForAvgCalc = false;
 			}
 			catch (Exception ex)
 			{
@@ -1838,25 +1828,42 @@ namespace CumulusMX
 
 												try
 												{
-													// WLL BUG/FEATURE: The WLL sends a null wind direction for calm when the avg speed falls to zero, we use zero
-													var windDir = rec.wind_dir_last ?? 0;
-													var spd = ConvertUnits.WindMPHToUser(rec.wind_speed_last.Value);
-
-													// No average in the broadcast data, so use current average.
-													DoWind(spd, windDir, -1, lastRecordTime);
-
+													double speed;
+													int bearing;
 													double gust;
 													int gustDir;
-													if (cumulus.StationOptions.PeakGustMinutes <= 10)
+
+													if (cumulus.StationOptions.AvgSpeedMinutes < 10)
+													{
+														speed = ConvertUnits.WindMPHToUser(rec.wind_speed_avg_last_2_min ?? 0);
+													}
+													else
+													{
+														speed = ConvertUnits.WindMPHToUser(rec.wind_speed_avg_last_10_min ?? 0);
+													}
+
+													if (cumulus.StationOptions.AvgBearingMinutes < 10)
+													{
+														bearing = rec.wind_dir_scalar_avg_last_2_min;
+													}
+													else
+													{
+														bearing = rec.wind_dir_scalar_avg_last_10_min;
+													}
+
+													if (cumulus.StationOptions.PeakGustMinutes < 10)
 													{
 														gust = ConvertUnits.WindMPHToUser(rec.wind_speed_hi_last_2_min ?? 0);
-														gustDir = rec.wind_dir_at_hi_speed_last_2_min ?? 0;
 													}
 													else
 													{
 														gust = ConvertUnits.WindMPHToUser(rec.wind_speed_hi_last_10_min ?? 0);
-														gustDir = rec.wind_dir_at_hi_speed_last_10_min;
 													}
+
+													DoWind(gust, bearing, speed, lastRecordTime);
+
+													gust = ConvertUnits.WindMPHToUser(rec.wind_speed_hi_last_10_min ?? 0);
+													gustDir = rec.wind_dir_at_hi_speed_last_10_min;
 
 													var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
 													var gustDirCal = gustDir == 0 ? 0 : (int) cumulus.Calib.WindDir.Calibrate(gustDir);

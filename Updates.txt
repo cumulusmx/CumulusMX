@@ -6,6 +6,7 @@ New
 	- New web tags:
 	<#AirQualityIdx1[-4]>, <#AirQualityAvgIdx1[-4]>
 	<#CO2_pm2p5_aqi>, <#CO2_pm2p5_24h_aqi>, <#CO2_pm10_aqi>, <#CO2_pm10_24_aqih>
+- Add new pressure units option of kilopascal (kPa)
 
 
 Changed

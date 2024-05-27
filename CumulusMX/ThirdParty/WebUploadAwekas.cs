@@ -245,6 +245,9 @@ namespace CumulusMX.ThirdParty
 				case 2:
 					threeHourlyPressureChangeMb = station.presstrendval * 3 / 0.0295333727;
 					break;
+				case 3:
+					threeHourlyPressureChangeMb = station.presstrendval * 30;
+					break;
 			}
 
 			if (threeHourlyPressureChangeMb > 6) presstrend = 2;

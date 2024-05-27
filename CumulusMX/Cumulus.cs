@@ -1885,6 +1885,10 @@ namespace CumulusMX
 					Units.PressText = "in";
 					Units.PressTrendText = "in/hr";
 					break;
+				case 3:
+					Units.PressText = "kPa";
+					Units.PressTrendText = "kPa/hr";
+					break;
 			}
 
 			switch (Units.Wind)
@@ -1946,8 +1950,14 @@ namespace CumulusMX
 		{
 			SetupUnitText();
 
-			FCPressureThreshold = Units.Press == 2 ? 0.00295333727 : 0.1;
-
+			FCPressureThreshold = Units.Press switch
+			{
+				0 => 0.1,
+				1 => 0.1,
+				2 => 0.00295333727,
+				3 => 0.01,
+				_ => 0
+			};
 			PressChangeAlarm.Units = Units.PressTrendText;
 			HighPressAlarm.Units = Units.PressText;
 			LowPressAlarm.Units = Units.PressText;
@@ -3697,7 +3707,7 @@ namespace CumulusMX
 
 
 			Units.Wind = ini.GetValue("Station", "WindUnit", 2, 0, 3);
-			Units.Press = ini.GetValue("Station", "PressureUnit", 1, 0, 2);
+			Units.Press = ini.GetValue("Station", "PressureUnit", 1, 0, 3);
 
 			Units.Rain = ini.GetValue("Station", "RainUnit", 0, 0, 1);
 			Units.Temp = ini.GetValue("Station", "TempUnit", 0, 0 , 1);
@@ -3861,7 +3871,14 @@ namespace CumulusMX
 
 			if (FCPressureThreshold < 0)
 			{
-				FCPressureThreshold = Units.Press == 2 ? 0.00295333727 : 0.1;
+				FCPressureThreshold = Units.Press switch
+				{
+					0 => 0.1,
+					1 => 0.1,
+					2 => 0.00295333727,
+					3 => 0.01,
+					_ => 0
+				};
 			}
 
 			WMR928TempChannel = ini.GetValue("Station", "WMR928TempChannel", 0, 0);
@@ -7144,7 +7161,7 @@ namespace CumulusMX
 
 		public int[] WindDPlaceDefaults { get; } = [1, 0, 0, 0]; // m/s, mph, km/h, knots
 		public int[] TempDPlaceDefaults { get; } = [1, 1];
-		public int[] PressDPlaceDefaults { get; } = [1, 1, 2];
+		public int[] PressDPlaceDefaults { get; } = [1, 1, 2, 2];
 		public int[] RainDPlaceDefaults { get; } = [1, 2];
 		public const int numextrafiles = 99;
 		public const int numOfSelectaChartSeries = 6;
@@ -13325,7 +13342,7 @@ namespace CumulusMX
 	{
 		/// <value> 0=m/s, 1=mph, 2=km/h, 3=knots</value>
 		public int Wind { get; set; }
-		/// <value> 0=mb, 1=hPa, 2=inHg </value>
+		/// <value> 0=mb, 1=hPa, 2=inHg, 3=kPa</value>
 		public int Press { get; set; }
 		/// <value> 0=mm, 1=in </value>
 		public int Rain { get; set; }
