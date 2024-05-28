@@ -335,6 +335,23 @@
 		}
 
 		/// <summary>
+		/// Convert pressure in kPa to units in use
+		/// </summary>
+		/// <param name="value">pressure in kPa</param>
+		/// <returns>pressure in configured units</returns>
+		public static double PressKPAToUser(double value)
+		{
+			return Program.cumulus.Units.Press switch
+			{
+				0 => value * kPa2hPa,
+				1 => value * kPa2hPa,
+				2 => value / inHg2kPa,
+				3 => value,
+				_ => 0,
+			};
+		}
+
+		/// <summary>
 		/// Convert pressure in inHg to units in use
 		/// </summary>
 		/// <param name="value">pressure in mb</param>

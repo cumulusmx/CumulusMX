@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 
 using EmbedIO;
 
-using Org.BouncyCastle.Ocsp;
-
 using ServiceStack;
 using ServiceStack.Text;
 
-using static System.Net.Mime.MediaTypeNames;
 
 namespace CumulusMX
 {
 	internal class JsonStation : WeatherStation
 	{
 
+		private bool haveTemp = false;
+		private bool haveHum = false;
+		private bool haveWind = false;
 
 		public JsonStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -104,10 +104,15 @@ namespace CumulusMX
 					if (data.temperature.outdoor.HasValue)
 					{
 						DoOutdoorTemp(ConvertUnits.TempCToUser(data.temperature.outdoor.Value), data.lastupdated);
+						haveTemp = true;
 					}
 					if (data.temperature.indoor.HasValue)
 					{
 						DoIndoorTemp(ConvertUnits.TempCToUser(data.temperature.indoor.Value));
+					}
+					if (!cumulus.StationOptions.CalculatedDP && data.temperature.dewpoint.HasValue)
+					{
+						DoOutdoorDewpoint(ConvertUnits.TempCToUser(data.temperature.dewpoint.Value), data.lastupdated);
 					}
 				}
 				else if (data.units.temperature == "F")
@@ -115,6 +120,7 @@ namespace CumulusMX
 					if (data.temperature.outdoor.HasValue)
 					{
 						DoOutdoorTemp(ConvertUnits.TempFToUser(data.temperature.outdoor.Value), data.lastupdated);
+						haveTemp = true;
 					}
 					if (data.temperature.indoor.HasValue)
 					{
@@ -134,6 +140,7 @@ namespace CumulusMX
 				if (data.humidity.outdoor != null)
 				{
 					DoOutdoorHumidity(data.humidity.outdoor.Value, data.lastupdated);
+					haveHum = true;
 				}
 				if (data.humidity.indoor != null)
 				{
@@ -186,6 +193,7 @@ namespace CumulusMX
 						if (doit)
 						{
 							DoWind(gust, data.wind.direction ?? 0, avg, data.lastupdated);
+							haveWind = true;
 						}
 					}
 				}
@@ -227,7 +235,7 @@ namespace CumulusMX
 							DoRain(ConvertUnits.RainMMToUser(counter), rate, data.lastupdated);
 						}
 					}
-					else if (data.units.temperature == "in")
+					else if (data.units.rainfall == "in")
 					{
 						var rate = ConvertUnits.RainINToUser(data.rain.rate ?? 0);
 
@@ -279,13 +287,17 @@ namespace CumulusMX
 									slp = ConvertUnits.PressMBToUser(slp);
 									StationPressure = ConvertUnits.PressMBToUser(abs);
 									break;
+								case "kPa":
+									slp = ConvertUnits.PressKPAToUser(slp);
+									StationPressure = ConvertUnits.PressKPAToUser(abs);
+									break;
 								case "inHg":
 									slp = ConvertUnits.PressINHGToUser(slp);
 									StationPressure = ConvertUnits.PressINHGToUser(abs);
 									break;
 								default:
-									cumulus.LogErrorMessage("ApplyData: Invalid windspeed units supplied: " + data.units.windspeed);
-									retStr += "Invalid windspeed units\n";
+									cumulus.LogErrorMessage("ApplyData: Invalid pressure units supplied: " + data.units.pressure);
+									retStr += "Invalid pressure units\n";
 									doit = false;
 									break;
 							}
@@ -457,21 +469,95 @@ namespace CumulusMX
 			// Air Quality
 			if (data.airquality != null)
 			{
-				if (data.airquality.outdoor != null)
+				foreach (var rec in data.airquality)
 				{
+					if (rec.pm2p5.HasValue)
+					{
+						DoAirQuality(rec.pm2p5.Value, rec.index);
+					}
 
-				}
-
-				if (data.airquality.indoor != null)
-				{
-
-				}
-
-				if (data.airquality.co2 != null)
-				{
-
+					if (rec.pm2p5avg24h.HasValue)
+					{
+						DoAirQualityAvg(rec.pm2p5avg24h.Value, rec.index);
+					}
 				}
 			}
+
+			// CO2
+			if (data.co2 != null)
+			{
+				if (data.co2.co2.HasValue)
+				{
+					CO2 = data.co2.co2.Value;
+				}
+
+				if (data.co2.co2_24h.HasValue)
+				{
+					CO2_24h = data.co2.co2_24h.Value;
+				}
+
+				if (data.co2.pm2p5.HasValue)
+				{
+					CO2_pm2p5 = data.co2.pm2p5.Value;
+					CO2_pm2p5_aqi = GetAqi(WeatherStation.AqMeasure.pm2p5, CO2_pm2p5);
+				}
+
+				if (data.co2.pm2p5avg24h.HasValue)
+				{
+					CO2_pm2p5_24h = data.co2.pm2p5avg24h.Value;
+					CO2_pm2p5_24h_aqi = GetAqi(WeatherStation.AqMeasure.pm2p5h24, CO2_pm2p5_24h);
+				}
+
+				if (data.co2.pm10.HasValue)
+				{
+					CO2_pm10 = data.co2.pm10.Value;
+					CO2_pm10_aqi = GetAqi(WeatherStation.AqMeasure.pm10, CO2_pm10);
+				}
+
+				if (data.co2.pm10avg24h.HasValue)
+				{
+					CO2_pm10_24h = data.co2.pm10avg24h.Value;
+					CO2_pm10_24h_aqi = GetAqi(WeatherStation.AqMeasure.pm10h24, CO2_pm10_24h);
+				}
+			}
+
+			// Do derived values after the primary values
+
+
+			// === Wind Chill ===
+			try
+			{
+				// windchillf
+				if (cumulus.StationOptions.CalculatedWC && haveTemp && haveWind)
+				{
+					DoWindChill(-999, data.lastupdated);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("ApplyData: Error in wind chill data - " + ex.Message);
+				return "Failed: Error in wind chill data - " + ex.Message;
+			}
+
+
+			// === Humidex ===
+			if (haveTemp && haveHum)
+			{
+				DoHumidex(data.lastupdated);
+				DoCloudBaseHeatIndex(data.lastupdated);
+
+				// === Apparent === - requires temp, hum, and windspeed
+				if (haveWind)
+				{
+					DoApparentTemp(data.lastupdated);
+					DoFeelsLike(data.lastupdated);
+				}
+			}
+
+			DoForecast(string.Empty, false);
+
+			UpdateStatusPanel(data.lastupdated);
+			UpdateMQTT();
 
 			return retStr;
 		}
@@ -493,7 +579,8 @@ namespace CumulusMX
 			public ExtraTemp[] soiltemp { get; set; }
 			public ExtraValue[] soilmoisture { get; set; }
 			public ExtraValue[] leafwetness { get; set; }
-			public AirQuality airquality { get; set; }
+			public PMdata[] airquality { get; set; }
+			public CO2data co2 { get; set; }
 		}
 
 		private sealed class UnitsObject
@@ -552,20 +639,15 @@ namespace CumulusMX
 			public int index { get; set; }
 			public int? value { get; set; }
 		}
-		private sealed class AirQuality
+		private class PMdata
 		{
-			public PM outdoor { get; set; }
-			public PM indoor { get; set; }
-			public CO2 co2 { get; set; }
-		}
-		private class PM
-		{
+			public int index { get; set; }
 			public double? pm2p5 { get; set; }
 			public double? pm2p5avg24h { get; set; }
 			public double? pm10 { get; set; }
 			public double? pm10avg24h { get; set;}
 		}
-		private class CO2 : PM
+		private class CO2data : PMdata
 		{
 			public int? co2 { get; set; }
 			public int? co2_24h { get; set; }
