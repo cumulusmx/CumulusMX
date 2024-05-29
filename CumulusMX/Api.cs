@@ -1464,7 +1464,7 @@ namespace CumulusMX
 						case "json":
 							if (stationJson != null)
 							{
-								await writer.WriteAsync(stationJson.GetDataFromApi(HttpContext, false));
+								await writer.WriteAsync(stationJson.ReceiveDataFromApi(HttpContext, false));
 							}
 							else
 							{

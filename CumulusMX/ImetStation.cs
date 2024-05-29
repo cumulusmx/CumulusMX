@@ -53,7 +53,7 @@ namespace CumulusMX
 
 			if (comport.IsOpen)
 			{
-				ImetSetLoggerInterval(cumulus.logints[cumulus.DataLogInterval]);
+				ImetSetLoggerInterval(Cumulus.logints[cumulus.DataLogInterval]);
 				if (cumulus.StationOptions.SyncTime)
 				{
 					SetStationClock();
@@ -636,7 +636,7 @@ namespace CumulusMX
 									raindiff = raintotal - prevraintotal;
 								}
 
-								double rainrate = ConvertUnits.RainMMToUser((raindiff) * (60.0 / cumulus.logints[cumulus.DataLogInterval]));
+								double rainrate = ConvertUnits.RainMMToUser((raindiff) * (60.0 / Cumulus.logints[cumulus.DataLogInterval]));
 
 								DoRain(ConvertUnits.RainMMToUser(raintotal), rainrate, timestamp);
 
@@ -736,10 +736,10 @@ namespace CumulusMX
 				while (!stop)
 				{
 					ImetGetData();
-					if (cumulus.ImetLoggerInterval != cumulus.logints[cumulus.DataLogInterval])
+					if (cumulus.ImetLoggerInterval != Cumulus.logints[cumulus.DataLogInterval])
 					{
 						// logging interval has changed; update station to match
-						ImetSetLoggerInterval(cumulus.logints[cumulus.DataLogInterval]);
+						ImetSetLoggerInterval(Cumulus.logints[cumulus.DataLogInterval]);
 					}
 					else
 					{

@@ -15,7 +15,6 @@ namespace CumulusMX
 	internal partial class DavisCloudStation : WeatherStation
 	{
 		private readonly System.Timers.Timer tmrCurrent;
-		private bool savedCalculatePeakGust;
 		private int maxArchiveRuns = 1;
 		private int wlStationArchiveInterval = 5;
 		private readonly AutoResetEvent bwDoneEvent = new(false);
@@ -379,8 +378,6 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("History: Archive reading thread apparently terminated with an error: " + e.Error.Message);
 			}
 			cumulus.NormalRunning = true;
-
-			CalcRecentMaxGust = savedCalculatePeakGust;
 
 			StartLoop();
 			DoDayResetIfNeeded();
@@ -3691,9 +3688,9 @@ namespace CumulusMX
 						cumulus.LogDebugMessage($"GetStations: Setting WLL parent ID = {station.gateway_id}");
 						cumulus.WllParentId = station.gateway_id;
 
-						if (station.recording_interval != cumulus.logints[cumulus.DataLogInterval])
+						if (station.recording_interval != Cumulus.logints[cumulus.DataLogInterval])
 						{
-							cumulus.LogWarningMessage($"GetStations: - Cumulus log interval {cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
+							cumulus.LogWarningMessage($"GetStations: - Cumulus log interval {Cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
 						}
 
 						wlStationArchiveInterval = station.recording_interval;

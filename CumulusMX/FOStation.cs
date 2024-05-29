@@ -89,19 +89,19 @@ namespace CumulusMX
 					{
 						int logint = data[0];
 
-						if (logint != cumulus.logints[cumulus.DataLogInterval])
+						if (logint != Cumulus.logints[cumulus.DataLogInterval])
 						{
-							var msg = $"Warning, your console logging interval ({logint} mins) does not match the Cumulus logging interval ({cumulus.logints[cumulus.DataLogInterval]} mins)";
+							var msg = $"Warning, your console logging interval ({logint} mins) does not match the Cumulus logging interval ({Cumulus.logints[cumulus.DataLogInterval]} mins)";
 							Cumulus.LogConsoleMessage(msg);
 							cumulus.LogWarningMessage(msg);
 							if (cumulus.FineOffsetOptions.SetLoggerInterval)
 							{
 								var retries = 2;
 
-								cumulus.LogMessage($"Attempting to set console logging interval to {cumulus.logints[cumulus.DataLogInterval]} mins");
+								cumulus.LogMessage($"Attempting to set console logging interval to {Cumulus.logints[cumulus.DataLogInterval]} mins");
 								do
 								{
-									WriteAddress(0x10, (byte) cumulus.logints[cumulus.DataLogInterval]); // write the logging new logging interval
+									WriteAddress(0x10, (byte) Cumulus.logints[cumulus.DataLogInterval]); // write the logging new logging interval
 									WriteAddress(0x1A, 0xAA); // tell the station to read the new parameter
 
 									int readAttempts = 3;
@@ -111,13 +111,13 @@ namespace CumulusMX
 										Thread.Sleep(1000);  // sleep to let it reconfigure
 										ReadAddress(0x10, data);
 										readAttempts--;
-									} while (data[0] != cumulus.logints[cumulus.DataLogInterval] && readAttempts >= 0);
+									} while (data[0] != Cumulus.logints[cumulus.DataLogInterval] && readAttempts >= 0);
 
 
 									retries--;
-								} while (data[0] != cumulus.logints[cumulus.DataLogInterval] && retries >= 0);
+								} while (data[0] != Cumulus.logints[cumulus.DataLogInterval] && retries >= 0);
 
-								if (data[0] == cumulus.logints[cumulus.DataLogInterval])
+								if (data[0] == Cumulus.logints[cumulus.DataLogInterval])
 								{
 									cumulus.LogMessage("Successfully set new logging interval");
 								}
@@ -249,7 +249,7 @@ namespace CumulusMX
 				if (datalist.Count == 0)
 				{
 					// number of ticks in a logging interval
-					var intTicks = TimeSpan.FromMinutes(cumulus.logints[cumulus.DataLogInterval]).Ticks;
+					var intTicks = TimeSpan.FromMinutes(Cumulus.logints[cumulus.DataLogInterval]).Ticks;
 					// date/time of the last log interval
 					var lastLogInterval = new DateTime((DateTime.Now.Ticks / intTicks) * intTicks);
 					// which log interval does this data belong to, the last or the one before that?

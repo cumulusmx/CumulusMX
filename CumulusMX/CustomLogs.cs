@@ -103,7 +103,7 @@ namespace CumulusMX
 						cumulus.CustomIntvlLogSettings[i].FileName = string.IsNullOrWhiteSpace(settings.interval[i].filename) ? null : settings.interval[i].filename.Trim();
 						cumulus.CustomIntvlLogSettings[i].ContentString = string.IsNullOrWhiteSpace(settings.interval[i].content) ? null : settings.interval[i].content.Replace("\n", "").Replace("\r", "").Trim();
 						cumulus.CustomIntvlLogSettings[i].IntervalIdx = settings.interval[i].intervalidx;
-						cumulus.CustomIntvlLogSettings[i].Interval = cumulus.FactorsOf60[settings.interval[i].intervalidx];
+						cumulus.CustomIntvlLogSettings[i].Interval = Cumulus.FactorsOf60[settings.interval[i].intervalidx];
 
 						if (null == cumulus.CustomIntvlLogSettings[i].FileName || null == cumulus.CustomIntvlLogSettings[i].ContentString)
 							cumulus.CustomIntvlLogSettings[i].Enabled = false;
@@ -116,7 +116,7 @@ namespace CumulusMX
 						cumulus.CustomIntvlLogSettings[i].FileName = null;
 						cumulus.CustomIntvlLogSettings[i].ContentString = null;
 						cumulus.CustomIntvlLogSettings[i].IntervalIdx = cumulus.DataLogInterval;
-						cumulus.CustomIntvlLogSettings[i].Interval = cumulus.FactorsOf60[cumulus.DataLogInterval];
+						cumulus.CustomIntvlLogSettings[i].Interval = Cumulus.FactorsOf60[cumulus.DataLogInterval];
 					}
 				}
 

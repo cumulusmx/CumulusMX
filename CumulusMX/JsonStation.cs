@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 using EmbedIO;
 
+using FluentFTP.Helpers;
+
+using MQTTnet;
+
 using ServiceStack;
 using ServiceStack.Text;
 
@@ -20,6 +24,8 @@ namespace CumulusMX
 		private bool haveHum = false;
 		private bool haveWind = false;
 
+		private FileSystemWatcher watcher;
+
 		public JsonStation(Cumulus cumulus) : base(cumulus)
 		{
 
@@ -32,28 +38,111 @@ namespace CumulusMX
 			{
 				DateHandler = DateHandler.UnixTime
 			});
+
+			Start();
 		}
 
 
 		public override void Start()
 		{
+			DoDayResetIfNeeded();
 
+			if (cumulus.JsonStationOptions.Connectiontype == 0)
+			{
+				// Get data from file
+				GetDataFromFile();
+			}
+			else if (cumulus.JsonStationOptions.Connectiontype == 1)
+			{
+				// Get data from HTTP
+				// Nothing to do, the API will send us the data
+			}
+			else if (cumulus.JsonStationOptions.Connectiontype == 2)
+			{
+				// Get data from MQTT
+				if (string.IsNullOrEmpty(cumulus.JsonStationOptions.MqttServer))
+				{
+					cumulus.LogErrorMessage("JSON Data Input: Unable to configure MQTT client - Server name is blank");
+					return;
+				}
+				if (string.IsNullOrEmpty(cumulus.JsonStationOptions.MqttTopic))
+				{
+					cumulus.LogErrorMessage("JSON Data Input: Unable to configure MQTT client - Topic name is blank");
+					return;
+				}
+
+				SetupMqttClient();
+			}
+			else
+			{
+				cumulus.LogErrorMessage("Unable to start JSON data input station due to invalid connection type = " + cumulus.JsonStationOptions.Connectiontype);
+				return;
+			}
+
+			timerStartNeeded = true;
 		}
 
 
 		public override void Stop()
 		{
-
+			if (cumulus.JsonStationOptions.Connectiontype == 0)
+			{
+				// Get data from file
+				watcher.Dispose();
+			}
+			else if (cumulus.JsonStationOptions.Connectiontype == 1)
+			{
+				// Get data from HTTP
+				// Nothing to do, the API will send us the data
+			}
+			else if (cumulus.JsonStationOptions.Connectiontype == 2)
+			{
+				JsonStationMqtt.Disconnect();
+			}
 		}
 
 
 		private void GetDataFromFile()
 		{
+			cumulus.LogMessage("JSON Data: Monitoring file = " + cumulus.JsonStationOptions.SourceFile);
+			var fileInfo = new FileInfo(cumulus.JsonStationOptions.SourceFile);
 
+			watcher = new FileSystemWatcher(fileInfo.DirectoryName)
+			{
+				NotifyFilter = NotifyFilters.LastWrite
+			};
+
+			watcher.Filter = fileInfo.Name;
+
+			watcher.Changed += OnFileChanged;
+			watcher.Created += OnFileChanged;
+			watcher.EnableRaisingEvents = true;
 		}
 
 
-		public string GetDataFromApi(IHttpContext context, bool main)
+		private void OnFileChanged(object sender, FileSystemEventArgs e)
+		{
+			cumulus.LogDebugMessage("OnFileChanged: File change type = " + e.ChangeType);
+			if (e.ChangeType != WatcherChangeTypes.Changed)
+			{
+				return;
+			}
+
+			try
+			{
+				System.Threading.Thread.Sleep(cumulus.JsonStationOptions.FileReadDelay);
+				var content = File.ReadAllText(e.FullPath);
+				cumulus.LogDataMessage($"OnFileChanged: Content = {content}");
+
+				ApplyData(content);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "OnFileChanged Error");
+			}
+		}
+
+		public string ReceiveDataFromApi(IHttpContext context, bool main)
 		{
 			cumulus.LogDebugMessage("GetDataFromApi: Processing POST data");
 			var text = new StreamReader(context.Request.InputStream).ReadToEnd();
@@ -74,9 +163,20 @@ namespace CumulusMX
 			return "success";
 		}
 
-		private void GetDataFromMqtt()
+		private void SetupMqttClient()
 		{
+			JsonStationMqtt.Setup(cumulus, this);
+		}
 
+		public void ReceiveDataFromMqtt(MQTTnet.MqttApplicationMessage appMessage)
+		{
+			cumulus.LogDebugMessage("GetDataFromMqtt: Processing data");
+			cumulus.LogDataMessage("GetDataFromMqtt: data = " + appMessage.ConvertPayloadToString());
+
+			if (appMessage.PayloadSegment.Count > 0)
+			{
+				ApplyData(appMessage.ConvertPayloadToString());
+			}
 		}
 
 		private string ApplyData(string dataString)

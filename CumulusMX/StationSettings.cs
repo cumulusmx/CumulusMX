@@ -8,8 +8,13 @@ using System.Threading;
 
 using EmbedIO;
 
+using MQTTnet.Protocol;
+using MQTTnet.Server;
+
 using ServiceStack;
 using ServiceStack.Text;
+
+using static SQLite.SQLite3;
 
 
 namespace CumulusMX
@@ -412,6 +417,24 @@ namespace CumulusMX
 				advanced = generalAdvanced
 			};
 
+			var jsonstnadv = new JsonJsonStationAdvanced()
+			{
+				filedelay = cumulus.JsonStationOptions.FileReadDelay,
+				mqtttls = cumulus.JsonStationOptions.MqttUseTls
+			};
+
+			var jsonstn = new JsonJsonStation()
+			{
+				conntype = cumulus.JsonStationOptions.Connectiontype,
+				filename = cumulus.JsonStationOptions.SourceFile,
+				mqttserver = cumulus.JsonStationOptions.MqttServer,
+				mqttport = cumulus.JsonStationOptions.MqttPort,
+				mqttuser = cumulus.JsonStationOptions.MqttUsername,
+				mqttpass = cumulus.JsonStationOptions.MqttPassword,
+				mqtttopic = cumulus.JsonStationOptions.MqttTopic,
+				advanced = jsonstnadv
+			};
+
 			var data = new JsonStationSettingsData()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
@@ -428,6 +451,7 @@ namespace CumulusMX
 				easyw = easyweather,
 				imet = imet,
 				wmr928 = wmr928,
+				jsonstation = jsonstn,
 				Options = options,
 				Forecast = forecast,
 				Solar = solar,
@@ -1137,6 +1161,37 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// JSON data input
+				try
+				{
+					if (settings.jsonstation != null)
+					{
+						cumulus.JsonStationOptions.Connectiontype = settings.jsonstation.conntype;
+						if (cumulus.JsonStationOptions.Connectiontype == 0)
+						{
+							cumulus.JsonStationOptions.SourceFile = string.IsNullOrWhiteSpace(settings.jsonstation.filename) ? null : settings.jsonstation.filename.Trim();
+							cumulus.JsonStationOptions.FileReadDelay = settings.jsonstation.advanced.filedelay;
+						}
+						if (cumulus.JsonStationOptions.Connectiontype == 2)
+						{
+							cumulus.JsonStationOptions.MqttServer = string.IsNullOrWhiteSpace(settings.jsonstation.mqttserver) ? null : settings.jsonstation.mqttserver.Trim();
+							cumulus.JsonStationOptions.MqttPort = settings.jsonstation.mqttport;
+							cumulus.JsonStationOptions.MqttUsername = string.IsNullOrWhiteSpace(settings.jsonstation.mqttuser) ? null : settings.jsonstation.mqttuser.Trim();
+							cumulus.JsonStationOptions.MqttPassword = string.IsNullOrWhiteSpace(settings.jsonstation.mqttpass) ? null : settings.jsonstation.mqttpass.Trim();
+							cumulus.JsonStationOptions.MqttTopic = string.IsNullOrWhiteSpace(settings.jsonstation.mqtttopic) ? null : settings.jsonstation.mqtttopic.Trim();
+
+							cumulus.JsonStationOptions.MqttUseTls = settings.jsonstation.advanced.mqtttls;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing JSON Data Input settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// Units
 				try
 				{
@@ -1558,6 +1613,7 @@ namespace CumulusMX
 		public JsonStationSettingsEasyWeather easyw { get; set; }
 		public JsonStationSettingsImet imet { get; set; }
 		public JsonStationSettingsWmr928 wmr928 { get; set; }
+		public JsonJsonStation jsonstation { get; set; }
 		public JsonStationSettingsOptions Options { get; set; }
 		public JsonStationSettingsForecast Forecast { get; set; }
 		public JsonStationSettingsSolar Solar { get; set; }
@@ -1963,5 +2019,24 @@ namespace CumulusMX
 	{
 		public double threshold { get; set; }
 		public int month { get; set; }
+	}
+
+	public class JsonJsonStation
+	{
+		public int conntype { get; set; }
+		public string filename { get; set; }
+		public string mqttserver { get; set; }
+		public int mqttport { get; set; }
+		public string mqttuser { get; set; }
+		public string mqttpass { get; set; }
+		public string mqtttopic { get; set; }
+
+		public JsonJsonStationAdvanced advanced { get; set; }
+	}
+
+	public class JsonJsonStationAdvanced
+	{
+		public int filedelay { get; set; }
+		public bool mqtttls { get; set; }
 	}
 }

@@ -314,9 +314,9 @@ namespace CumulusMX
 						{
 							cumulus.MySqlSettings.CustomMins.Commands[i] = String.IsNullOrWhiteSpace(settings.customminutes.entries[i].command) ? null : settings.customminutes.entries[i].command.Trim();
 							cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] = settings.customminutes.entries[i].intervalidx;
-							if (cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] >= 0 && cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] < cumulus.FactorsOf60.Length)
+							if (cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] >= 0 && cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] < Cumulus.FactorsOf60.Length)
 							{
-								cumulus.MySqlSettings.CustomMins.Intervals[i] = cumulus.FactorsOf60[cumulus.MySqlSettings.CustomMins.IntervalIndexes[i]];
+								cumulus.MySqlSettings.CustomMins.Intervals[i] = Cumulus.FactorsOf60[cumulus.MySqlSettings.CustomMins.IntervalIndexes[i]];
 							}
 							else
 							{

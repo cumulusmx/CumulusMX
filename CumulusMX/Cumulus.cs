@@ -157,11 +157,11 @@ namespace CumulusMX
 
 		internal int NumWindRosePoints;
 
-		internal int[] logints { get; } = [1, 5, 10, 15, 20, 30];
+		internal static int[] logints { get; } = [1, 5, 10, 15, 20, 30];
 
 		public int GraphDays { get; set; } = 31;
 
-		internal int[] FactorsOf60 = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60];
+		internal static int[] FactorsOf60 { get; } = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60];
 
 		internal TimeSpan AvgSpeedTime;
 
@@ -283,6 +283,7 @@ namespace CumulusMX
 		internal ImetOptions ImetOptions = new();
 		internal EasyWeatherOptions EwOptions = new();
 		internal WeatherFlowOptions WeatherFlowOptions = new();
+		internal JsonStationOptions JsonStationOptions = new();
 
 		internal GraphOptions GraphOptions = new();
 
@@ -487,10 +488,11 @@ namespace CumulusMX
 			"Simulator",                    // 17
 			"Ecowitt Cloud",                // 18
 			"Davis Cloud (WLL/WLC)",        // 19
-			"Davis Cloud (VP2)"             // 20
+			"Davis Cloud (VP2)",            // 20
+			"JSON Data"                     // 21
 		];
 
-		internal string[] APRSstationtype = ["DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul", "Ecow", "DsVP", "DsVP"];
+		internal string[] APRSstationtype = ["DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul", "Ecow", "DsVP", "DsVP", "Json"];
 
 		private string loggingfile;
 		private static readonly Queue<string> queue = new(50);
@@ -1419,6 +1421,10 @@ namespace CumulusMX
 					Manufacturer = DAVIS;
 					station = new DavisCloudStation(this);
 					break;
+				case StationTypes.JsonStation:
+					Manufacturer = JSONSTATION;
+					station = new JsonStation(this);
+					break;
 
 				default:
 					LogConsoleMessage("Station type not set", ConsoleColor.Red);
@@ -1446,6 +1452,10 @@ namespace CumulusMX
 				else if (StationType == StationTypes.HttpAmbient)
 				{
 					Api.stationAmbient = (HttpStationAmbient) station;
+				}
+				else if (StationType == StationTypes.JsonStation && JsonStationOptions.Connectiontype == 1)
+				{
+					Api.stationJson = (JsonStation) station;
 				}
 
 				if (AirLinkInEnabled)
@@ -3994,6 +4004,17 @@ namespace CumulusMX
 			AmbientExtraUseLightning = ini.GetValue("Ambient", "ExtraSensorUseLightning", true);
 			AmbientExtraUseLeak = ini.GetValue("Ambient", "ExtraSensorUseLeak", true);
 
+			// JSON station options
+			JsonStationOptions.Connectiontype = ini.GetValue("JsonStation", "ConnectionType", 1, 0, 2);
+			JsonStationOptions.SourceFile = ini.GetValue("JsonStation", "SourceFile", string.Empty);
+			JsonStationOptions.FileReadDelay = ini.GetValue("JsonStation", "FileDelay", 200, 0);
+			JsonStationOptions.MqttServer = ini.GetValue("JsonStation", "MqttServer", string.Empty);
+			JsonStationOptions.MqttPort = ini.GetValue("JsonStation", "MqttServerPort", 1883, 1, 65353);
+			JsonStationOptions.MqttUsername = ini.GetValue("JsonStation", "MqttUsername", string.Empty);
+			JsonStationOptions.MqttPassword = ini.GetValue("JsonStation", "MqttPassword", string.Empty);
+			JsonStationOptions.MqttUseTls = ini.GetValue("JsonStation", "MqttUseTls", false);
+			JsonStationOptions.MqttTopic = ini.GetValue("JsonStation", "MqttTopic", string.Empty);
+
 			// AirLink settings
 			// We have to convert previous per AL IsNode config to global
 			// So check if the global value exists
@@ -5276,6 +5297,8 @@ namespace CumulusMX
 				ProgramOptions.SettingsPassword = Crypto.DecryptString(ProgramOptions.SettingsPassword, Program.InstanceId, "SettingsPassword");
 				WllApiKey = Crypto.DecryptString(WllApiKey, Program.InstanceId, "WllApiKey");
 				WllApiSecret = Crypto.DecryptString(WllApiSecret, Program.InstanceId, "WllApiSecret");
+				JsonStationOptions.MqttUsername = Crypto.DecryptString(JsonStationOptions.MqttUsername, Program.InstanceId, "JsonStationMqttUsername");
+				JsonStationOptions.MqttPassword = Crypto.DecryptString(JsonStationOptions.MqttPassword, Program.InstanceId, "JsonStationMqttPassword");
 				AirLinkApiKey = Crypto.DecryptString(AirLinkApiKey, Program.InstanceId, "AirLinkApiKey");
 				AirLinkApiSecret = Crypto.DecryptString(AirLinkApiSecret, Program.InstanceId, "AirLinkApiSecret");
 				FtpOptions.Username = Crypto.DecryptString(FtpOptions.Username, Program.InstanceId, "FtpOptions.Username");
@@ -5633,6 +5656,16 @@ namespace CumulusMX
 			ini.SetValue("Ambient", "ExtraSensorUseLightning", AmbientExtraUseLightning);
 			ini.SetValue("Ambient", "ExtraSensorUseLeak", AmbientExtraUseLeak);
 
+			// JSON station options
+			ini.SetValue("JsonStation", "ConnectionType", JsonStationOptions.Connectiontype);
+			ini.SetValue("JsonStation", "SourceFile", JsonStationOptions.SourceFile);
+			ini.SetValue("JsonStation", "FileDelay", JsonStationOptions.FileReadDelay);
+			ini.SetValue("JsonStation", "MqttServer", JsonStationOptions.MqttServer);
+			ini.SetValue("JsonStation", "MqttServerPort", JsonStationOptions.MqttPort);
+			ini.SetValue("JsonStation", "MqttUsername", Crypto.EncryptString(JsonStationOptions.MqttUsername, Program.InstanceId, "JsonStationMqttUsername"));
+			ini.SetValue("JsonStation", "MqttPassword", Crypto.EncryptString(JsonStationOptions.MqttPassword, Program.InstanceId, "JsonStationMqttPassword"));
+			ini.SetValue("JsonStation", "MqttUseTls", JsonStationOptions.MqttUseTls);
+			ini.SetValue("JsonStation", "MqttTopic", JsonStationOptions.MqttTopic);
 
 			// AirLink settings
 			ini.SetValue("AirLink", "IsWllNode", AirLinkIsNode);
@@ -7285,6 +7318,7 @@ namespace CumulusMX
 		public const int AMBIENT = 8;
 		public const int WEATHERFLOW = 9;
 		public const int SIMULATOR = 10;
+		public const int JSONSTATION = 11;
 
 		internal string ReportPath;
 		public static string LatestError { get; set; }
@@ -13294,6 +13328,7 @@ namespace CumulusMX
 		public const int EcowittCloud = 18;
 		public const int DavisCloudWll = 19;
 		public const int DavisCloudVP2 = 20;
+		public const int JsonStation = 21;
 	}
 
 	public class DiaryData
@@ -13476,6 +13511,22 @@ namespace CumulusMX
 		public int TCPPort { get; set; }
 		public string IPAddr { get; set; }
 		public int PeriodicDisconnectInterval { get; set; }
+	}
+
+
+	public class JsonStationOptions
+	{
+		/// <value>0=file, 1=HTTP, 2=MQTT</value>
+		public int Connectiontype { get; set; }
+		public string SourceFile { get; set; }
+		public int FileReadDelay { get; set; }
+		public string MqttServer { get; set; }
+		public int MqttPort { get; set; }
+		public string MqttUsername { get; set; }
+		public string MqttPassword { get; set; }
+		public bool MqttUseTls { get; set; }
+		public string MqttTopic { get; set; }
+
 	}
 
 	public class WeatherFlowOptions
