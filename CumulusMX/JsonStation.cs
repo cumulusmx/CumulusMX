@@ -104,19 +104,33 @@ namespace CumulusMX
 
 		private void GetDataFromFile()
 		{
-			cumulus.LogMessage("JSON Data: Monitoring file = " + cumulus.JsonStationOptions.SourceFile);
-			var fileInfo = new FileInfo(cumulus.JsonStationOptions.SourceFile);
-
-			watcher = new FileSystemWatcher(fileInfo.DirectoryName)
+			if (string.IsNullOrEmpty(cumulus.JsonStationOptions.SourceFile))
 			{
-				NotifyFilter = NotifyFilters.LastWrite
-			};
+				cumulus.LogErrorMessage("JSON Station: Using file moniotoring, but not filename provided!");
+				return;
+			}
 
-			watcher.Filter = fileInfo.Name;
+			cumulus.LogMessage("JSON Data: Monitoring file = " + cumulus.JsonStationOptions.SourceFile);
 
-			watcher.Changed += OnFileChanged;
-			watcher.Created += OnFileChanged;
-			watcher.EnableRaisingEvents = true;
+			try
+			{
+				var fileInfo = new FileInfo(cumulus.JsonStationOptions.SourceFile);
+
+				watcher = new FileSystemWatcher(fileInfo.DirectoryName)
+				{
+					NotifyFilter = NotifyFilters.LastWrite
+				};
+
+				watcher.Filter = fileInfo.Name;
+
+				watcher.Changed += OnFileChanged;
+				watcher.Created += OnFileChanged;
+				watcher.EnableRaisingEvents = true;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "GetDataFromFile: Error creating watcher");
+			}
 		}
 
 
@@ -144,8 +158,19 @@ namespace CumulusMX
 
 		public string ReceiveDataFromApi(IHttpContext context, bool main)
 		{
+			string text;
+
 			cumulus.LogDebugMessage("GetDataFromApi: Processing POST data");
-			var text = new StreamReader(context.Request.InputStream).ReadToEnd();
+			try
+			{
+				text = new StreamReader(context.Request.InputStream).ReadToEnd();
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "ReceiveDataFromApi: Error reading request stream");
+				context.Response.StatusCode = 500;
+				return "Error reading request stream";
+			}
 
 			cumulus.LogDataMessage($"GetDataFromApi: Payload = {text}");
 
@@ -177,11 +202,15 @@ namespace CumulusMX
 			{
 				ApplyData(appMessage.ConvertPayloadToString());
 			}
+			else
+			{
+				cumulus.LogErrorMessage("GetDataFromMqtt: No content!");
+			}
 		}
 
 		private string ApplyData(string dataString)
 		{
-			var retStr = string.Empty;
+			var retStr = new StringBuilder();
 
 			var data = dataString.FromJson<DataObject>();
 
@@ -192,49 +221,59 @@ namespace CumulusMX
 			}
 
 			// Temperature
-			if (data.temperature != null && data.units != null)
+			try
 			{
-				if (data.units.temperature == null)
+				if (data.temperature != null && data.units != null)
 				{
-					cumulus.LogErrorMessage("ApplyData: No temperature units supplied!");
-					retStr = "No temperature units\n";
+					if (data.units.temperature == null)
+					{
+						cumulus.LogErrorMessage("ApplyData: No temperature units supplied!");
+						retStr.AppendLine("No temperature units");
+					}
+					else if (data.units.temperature == "C")
+					{
+						if (data.temperature.outdoor.HasValue)
+						{
+							DoOutdoorTemp(ConvertUnits.TempCToUser(data.temperature.outdoor.Value), data.lastupdated);
+							haveTemp = true;
+						}
+						if (data.temperature.indoor.HasValue)
+						{
+							DoIndoorTemp(ConvertUnits.TempCToUser(data.temperature.indoor.Value));
+						}
+						if (!cumulus.StationOptions.CalculatedDP && data.temperature.dewpoint.HasValue)
+						{
+							DoOutdoorDewpoint(ConvertUnits.TempCToUser(data.temperature.dewpoint.Value), data.lastupdated);
+						}
+					}
+					else if (data.units.temperature == "F")
+					{
+						if (data.temperature.outdoor.HasValue)
+						{
+							DoOutdoorTemp(ConvertUnits.TempFToUser(data.temperature.outdoor.Value), data.lastupdated);
+							haveTemp = true;
+						}
+						if (data.temperature.indoor.HasValue)
+						{
+							DoIndoorTemp(ConvertUnits.TempFToUser(data.temperature.indoor.Value));
+						}
+					}
+					else
+					{
+						cumulus.LogErrorMessage("ApplyData: Invalid temperature units supplied = " + data.units.temperature);
+						retStr.AppendLine($"Invalid temperature units: {data.units.temperature}");
+					}
 				}
-				else if (data.units.temperature == "C")
-				{
-					if (data.temperature.outdoor.HasValue)
-					{
-						DoOutdoorTemp(ConvertUnits.TempCToUser(data.temperature.outdoor.Value), data.lastupdated);
-						haveTemp = true;
-					}
-					if (data.temperature.indoor.HasValue)
-					{
-						DoIndoorTemp(ConvertUnits.TempCToUser(data.temperature.indoor.Value));
-					}
-					if (!cumulus.StationOptions.CalculatedDP && data.temperature.dewpoint.HasValue)
-					{
-						DoOutdoorDewpoint(ConvertUnits.TempCToUser(data.temperature.dewpoint.Value), data.lastupdated);
-					}
-				}
-				else if (data.units.temperature == "F")
-				{
-					if (data.temperature.outdoor.HasValue)
-					{
-						DoOutdoorTemp(ConvertUnits.TempFToUser(data.temperature.outdoor.Value), data.lastupdated);
-						haveTemp = true;
-					}
-					if (data.temperature.indoor.HasValue)
-					{
-						DoIndoorTemp(ConvertUnits.TempFToUser(data.temperature.indoor.Value));
-					}
-				}
-				else
-				{
-					cumulus.LogErrorMessage("ApplyData: Invalid temperature units supplied = " + data.units.temperature);
-					retStr = $"Invalid temperature units: {data.units.temperature}\n";
-				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "ApplyData: Error processing tempertaure");
+				retStr.AppendLine("Error processing tempertaure");
 			}
 
 			// Humidity
+			try
+			{
 			if (data.humidity != null)
 			{
 				if (data.humidity.outdoor != null)
@@ -247,14 +286,23 @@ namespace CumulusMX
 					DoIndoorHumidity(data.humidity.indoor.Value);
 				}
 			}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "ApplyData: Error processing humidity");
+				retStr.AppendLine("Error processing humidity");
+			}
+
 
 			// Wind
+			try
+			{
 			if (data.wind != null && data.units != null)
 			{
 				if (data.units.windspeed == null)
 				{
 					cumulus.LogErrorMessage("ApplyData: No windspeed units supplied!");
-					retStr += "No windspeed units\n";
+					retStr.AppendLine("No windspeed units");
 				}
 				else
 				{
@@ -264,7 +312,7 @@ namespace CumulusMX
 					if (gust < 0)
 					{
 						cumulus.LogErrorMessage("ApplyData: No gust value supplied in wind data");
-						retStr += "No gust value in wind data\n";
+						retStr.AppendLine("No gust value supplied in wind data");
 					}
 					else
 					{
@@ -285,7 +333,7 @@ namespace CumulusMX
 								break;
 							default:
 								cumulus.LogErrorMessage("ApplyData: Invalid windspeed units supplied: " + data.units.windspeed);
-								retStr += "Invalid windspeed units\n";
+								retStr.AppendLine("Invalid windspeed units");
 								doit = false;
 								break;
 						}
@@ -298,8 +346,17 @@ namespace CumulusMX
 					}
 				}
 			}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "ApplyData: Error processing wind");
+				retStr.AppendLine("Error processing wind");
+			}
+
 
 			// Rain
+			try
+			{
 			if (data.rain != null && data.units != null)
 			{
 				var doit = true;
@@ -315,7 +372,7 @@ namespace CumulusMX
 				else
 				{
 					cumulus.LogErrorMessage("ApplyData: No rainfall counter/year value supplied!");
-					retStr += "No rainfall counter/year value supplied\n";
+					retStr.AppendLine("No rainfall counter/year value supplied");
 					doit = false;
 				}
 
@@ -324,7 +381,7 @@ namespace CumulusMX
 					if (data.units.rainfall == null)
 					{
 						cumulus.LogErrorMessage("ApplyData: No rainfall units supplied!");
-						retStr += "No rainfall units\n";
+						retStr.AppendLine("No rainfall units");
 					}
 					else if (data.units.rainfall == "mm")
 					{
@@ -347,18 +404,27 @@ namespace CumulusMX
 					else
 					{
 						cumulus.LogErrorMessage("ApplyData: Invalid rainfall units supplied = " + data.units.rainfall);
-						retStr = $"Invalid rainfall units: {data.units.rainfall}\n";
+						retStr.AppendLine($"Invalid rainfall units: {data.units.rainfall}");
 					}
 				}
 			}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "ApplyData: Error processing rain");
+				retStr.AppendLine("Error processing rain");
+			}
+
 
 			// Pressure
+			try
+			{
 			if (data.pressure != null && data.units != null)
 			{
 				if (data.units.pressure == null)
 				{
 					cumulus.LogErrorMessage("ApplyData: No pressure units supplied!");
-					retStr += "No pressure units\n";
+					retStr.AppendLine("No pressure units");
 				}
 				else
 				{
@@ -368,7 +434,7 @@ namespace CumulusMX
 					if (slp < 0 && abs < 0)
 					{
 						cumulus.LogErrorMessage("ApplyData: No pressure values in data");
-						retStr += "No pressure values in data\n";
+						retStr.AppendLine("No pressure values in data");
 					}
 					else
 					{
@@ -377,7 +443,7 @@ namespace CumulusMX
 						if (cumulus.StationOptions.CalculateSLP && abs < 0)
 						{
 							cumulus.LogErrorMessage("ApplyData: Calculate SLP is enabled, but no abosolute pressure value in data");
-							retStr += "Calculate SLP is enabled, but no abosolute pressure value in data\n";
+							retStr.AppendLine("Calculate SLP is enabled, but no abosolute pressure value in data");
 						}
 						else
 						{
@@ -397,7 +463,7 @@ namespace CumulusMX
 									break;
 								default:
 									cumulus.LogErrorMessage("ApplyData: Invalid pressure units supplied: " + data.units.pressure);
-									retStr += "Invalid pressure units\n";
+									retStr.AppendLine("Invalid pressure units");
 									doit = false;
 									break;
 							}
@@ -418,21 +484,36 @@ namespace CumulusMX
 					}
 				}
 			}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "ApplyData: Error processing pressure");
+				retStr.AppendLine("Error processing pressure");
+			}
 
 
 			// Solar
-			if (data.solar != null)
+			try
 			{
-				if (data.solar.irradiation != null)
+				if (data.solar != null)
 				{
-					DoSolarRad(data.solar.irradiation.Value, data.lastupdated);
-				}
+					if (data.solar.irradiation != null)
+					{
+						DoSolarRad(data.solar.irradiation.Value, data.lastupdated);
+					}
 
-				if (data.solar.uvi != null)
-				{
-					DoUV(data.solar.uvi.Value, data.lastupdated);
+					if (data.solar.uvi != null)
+					{
+						DoUV(data.solar.uvi.Value, data.lastupdated);
+					}
 				}
 			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "ApplyData: Error processing solar");
+				retStr.AppendLine("Error processing solar");
+			}
+
 
 			// Extra Temp/Hums
 			if (data.extratemp != null && data.units != null)
@@ -440,7 +521,7 @@ namespace CumulusMX
 				if (data.units.temperature == null)
 				{
 					cumulus.LogErrorMessage("ApplyData: No temperature units supplied!");
-					retStr = "No temperature units\n";
+					retStr.AppendLine("No temperature units");
 				}
 				else
 				{
@@ -462,7 +543,7 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							cumulus.LogExceptionMessage(ex, "ApplyData: Error processing Extra Temperature/Humidity");
-							retStr = "Error processing Extra Temperature/Humidity\n";
+							retStr.AppendLine("Error processing Extra Temperature/Humidity");
 						}
 					}
 				}
@@ -474,7 +555,7 @@ namespace CumulusMX
 				if (data.units.temperature == null)
 				{
 					cumulus.LogErrorMessage("ApplyData: No temperature units supplied!");
-					retStr = "No temperature units\n";
+					retStr.AppendLine("No temperature units");
 				}
 				else
 				{
@@ -491,7 +572,7 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							cumulus.LogExceptionMessage(ex, "ApplyData: Error processing User Temperature");
-							retStr = "Error processing User Temperature\n";
+							retStr.AppendLine("Error processing User Temperature");
 						}
 					}
 				}
@@ -503,7 +584,7 @@ namespace CumulusMX
 				if (data.units.temperature == null)
 				{
 					cumulus.LogErrorMessage("ApplyData: No temperature units supplied!");
-					retStr = "No temperature units\n";
+					retStr.AppendLine("No temperature units");
 				}
 				else
 				{
@@ -520,7 +601,7 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							cumulus.LogExceptionMessage(ex, "ApplyData: Error processing Soil Temperature");
-							retStr = "Error processing Soil Temperature\n";
+							retStr.AppendLine("Error processing Soil Temperature");
 						}
 					}
 				}
@@ -541,7 +622,7 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogExceptionMessage(ex, "ApplyData: Error processing Soil Moisture");
-						retStr = "Error processing Soil Moisture\n";
+						retStr.AppendLine("Error processing Soil Moisture");
 					}
 				}
 			}
@@ -561,7 +642,7 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogExceptionMessage(ex, "ApplyData: Error processing Leaf Wetness");
-						retStr = "Error processing Leaf Wetness\n";
+						retStr.AppendLine("Error processing Leaf Wetness");
 					}
 				}
 			}
@@ -571,54 +652,70 @@ namespace CumulusMX
 			{
 				foreach (var rec in data.airquality)
 				{
-					if (rec.pm2p5.HasValue)
+					try
 					{
-						DoAirQuality(rec.pm2p5.Value, rec.index);
-					}
+						if (rec.pm2p5.HasValue)
+						{
+							DoAirQuality(rec.pm2p5.Value, rec.index);
+						}
 
-					if (rec.pm2p5avg24h.HasValue)
+						if (rec.pm2p5avg24h.HasValue)
+						{
+							DoAirQualityAvg(rec.pm2p5avg24h.Value, rec.index);
+						}
+					}
+					catch (Exception ex)
 					{
-						DoAirQualityAvg(rec.pm2p5avg24h.Value, rec.index);
+						cumulus.LogExceptionMessage(ex, "ApplyData: Error processing tempertaure");
+						retStr.AppendLine("Error processing air quality");
 					}
 				}
 			}
 
 			// CO2
-			if (data.co2 != null)
+			try
 			{
-				if (data.co2.co2.HasValue)
+				if (data.co2 != null)
 				{
-					CO2 = data.co2.co2.Value;
-				}
+					if (data.co2.co2.HasValue)
+					{
+						CO2 = data.co2.co2.Value;
+					}
 
-				if (data.co2.co2_24h.HasValue)
-				{
-					CO2_24h = data.co2.co2_24h.Value;
-				}
+					if (data.co2.co2_24h.HasValue)
+					{
+						CO2_24h = data.co2.co2_24h.Value;
+					}
 
-				if (data.co2.pm2p5.HasValue)
-				{
-					CO2_pm2p5 = data.co2.pm2p5.Value;
-					CO2_pm2p5_aqi = GetAqi(WeatherStation.AqMeasure.pm2p5, CO2_pm2p5);
-				}
+					if (data.co2.pm2p5.HasValue)
+					{
+						CO2_pm2p5 = data.co2.pm2p5.Value;
+						CO2_pm2p5_aqi = GetAqi(WeatherStation.AqMeasure.pm2p5, CO2_pm2p5);
+					}
 
-				if (data.co2.pm2p5avg24h.HasValue)
-				{
-					CO2_pm2p5_24h = data.co2.pm2p5avg24h.Value;
-					CO2_pm2p5_24h_aqi = GetAqi(WeatherStation.AqMeasure.pm2p5h24, CO2_pm2p5_24h);
-				}
+					if (data.co2.pm2p5avg24h.HasValue)
+					{
+						CO2_pm2p5_24h = data.co2.pm2p5avg24h.Value;
+						CO2_pm2p5_24h_aqi = GetAqi(WeatherStation.AqMeasure.pm2p5h24, CO2_pm2p5_24h);
+					}
 
-				if (data.co2.pm10.HasValue)
-				{
-					CO2_pm10 = data.co2.pm10.Value;
-					CO2_pm10_aqi = GetAqi(WeatherStation.AqMeasure.pm10, CO2_pm10);
-				}
+					if (data.co2.pm10.HasValue)
+					{
+						CO2_pm10 = data.co2.pm10.Value;
+						CO2_pm10_aqi = GetAqi(WeatherStation.AqMeasure.pm10, CO2_pm10);
+					}
 
-				if (data.co2.pm10avg24h.HasValue)
-				{
-					CO2_pm10_24h = data.co2.pm10avg24h.Value;
-					CO2_pm10_24h_aqi = GetAqi(WeatherStation.AqMeasure.pm10h24, CO2_pm10_24h);
+					if (data.co2.pm10avg24h.HasValue)
+					{
+						CO2_pm10_24h = data.co2.pm10avg24h.Value;
+						CO2_pm10_24h_aqi = GetAqi(WeatherStation.AqMeasure.pm10h24, CO2_pm10_24h);
+					}
 				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "ApplyData: Error processing CO2");
+				retStr.AppendLine("Error processing CO2");
 			}
 
 			// Do derived values after the primary values
@@ -636,7 +733,7 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("ApplyData: Error in wind chill data - " + ex.Message);
-				return "Failed: Error in wind chill data - " + ex.Message;
+				retStr.AppendLine("Failed: Error in wind chill");
 			}
 
 
@@ -659,7 +756,7 @@ namespace CumulusMX
 			UpdateStatusPanel(data.lastupdated);
 			UpdateMQTT();
 
-			return retStr;
+			return retStr.ToString();
 		}
 
 

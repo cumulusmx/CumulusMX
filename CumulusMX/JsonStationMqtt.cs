@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using MQTTnet;
 using MQTTnet.Client;
 
-using Swan.Formatters;
-
 
 namespace CumulusMX
 {
@@ -34,7 +32,7 @@ namespace CumulusMX
 			*/
 
 			var options = new MqttClientOptionsBuilder()
-				.WithClientId(Guid.NewGuid().ToString())
+				.WithClientId("CumulusMXJsonStn" + cumulus.wsPort)
 				.WithTcpServer(cumulus.JsonStationOptions.MqttServer, cumulus.JsonStationOptions.MqttPort)
 				//.WithProtocolType(protocolType)
 				.WithCredentials(string.IsNullOrEmpty(cumulus.JsonStationOptions.MqttPassword) ? null : new MqttClientCredentials(cumulus.JsonStationOptions.MqttUsername, System.Text.Encoding.UTF8.GetBytes(cumulus.JsonStationOptions.MqttPassword)))
