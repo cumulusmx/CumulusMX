@@ -760,24 +760,24 @@ namespace CumulusMX
 		}
 
 
+#pragma warning disable S3459,S1144 // Unused private types or members should be removed
 		private sealed class DataObject
 		{
 			public UnitsObject units { get; set; }
-			public DateTime timestamp { get; set; }
 			public DateTime lastupdated { get; set; }
 			public Temperature temperature { get; set; }
 			public Humidity humidity { get; set; }
 			public Wind wind { get; set; }
 			public Rain rain { get; set; }
-			public Pressure pressure { get; set; }
+			public PressureJson pressure { get; set; }
 			public Solar solar { get; set; }
 			public ExtraTempHum[] extratemp { get; set; }
-			public ExtraTemp[] usertemp { get; set; }
-			public ExtraTemp[] soiltemp { get; set; }
+			public ExtraTempJson[] usertemp { get; set; }
+			public ExtraTempJson[] soiltemp { get; set; }
 			public ExtraValue[] soilmoisture { get; set; }
 			public ExtraValue[] leafwetness { get; set; }
-			public PMdata[] airquality { get; set; }
-			public CO2data co2 { get; set; }
+			public PmData[] airquality { get; set; }
+			public Co2Data co2 { get; set; }
 		}
 
 		private sealed class UnitsObject
@@ -812,7 +812,7 @@ namespace CumulusMX
 			public double? year { get; set; }
 			public double? rate { get; set; }
 		}
-		private sealed class Pressure
+		private sealed class PressureJson
 		{
 			public double? absolute { get; set;}
 			public double? sealevel { get; set; }
@@ -822,12 +822,12 @@ namespace CumulusMX
 			public int? irradiation { get; set; }
 			public double? uvi { get; set;}
 		}
-		private class ExtraTemp
+		private class ExtraTempJson
 		{
 			public int index { get; set; }
 			public double? temperature { get; set; }
 		}
-		private sealed class ExtraTempHum : ExtraTemp
+		private sealed class ExtraTempHum : ExtraTempJson
 		{
 			public int? humidity { get; set; }
 		}
@@ -836,7 +836,7 @@ namespace CumulusMX
 			public int index { get; set; }
 			public int? value { get; set; }
 		}
-		private class PMdata
+		private class PmData
 		{
 			public int index { get; set; }
 			public double? pm2p5 { get; set; }
@@ -844,7 +844,7 @@ namespace CumulusMX
 			public double? pm10 { get; set; }
 			public double? pm10avg24h { get; set;}
 		}
-		private class CO2data : PMdata
+		private sealed class Co2Data : PmData
 		{
 			public int? co2 { get; set; }
 			public int? co2_24h { get; set; }
