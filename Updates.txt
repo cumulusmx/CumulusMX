@@ -1,4 +1,4 @@
-4.0.2 - b4024
+4.1.0 - b4024
 —————————————
 New
 - HTTP (Ecowitt) station now accepts the data via a simple GET url as well as POST
@@ -7,11 +7,17 @@ New
 	<#AirQualityIdx1[-4]>, <#AirQualityAvgIdx1[-4]>
 	<#CO2_pm2p5_aqi>, <#CO2_pm2p5_24h_aqi>, <#CO2_pm10_aqi>, <#CO2_pm10_24_aqih>
 - Add new pressure units option of kilopascal (kPa)
+- New station type added: JSON Data Input, marked as "experimental" for now, but testing so far has been successful
+	- Accepts data in a JSON format defined in MXutils/WeatherStationInput.jsonc
+	- Input mechanism is via:
+		- Named file
+		- HTTP POST to http://[CMX_IP_Address]:8998/station/json
+		- MQTT using a named topic
 
 
 Changed
-- New MQTT version
-- Removed options for WOW catch-up, it isn't supported by WOW
+- Removed option for WOW catch-up, it isn't supported by WOW
+- Moved the log file header info files to the MXutils/fileheaders folder
 
 
 Fixed
@@ -21,6 +27,8 @@ Fixed
 - Exception when enabling real-time FTP whilst running and FTP logging is enabled
 - Davis WLL now fires a single "sensor contact lost" warning message + contact restored
 - Fix for multiple realtime FTP log-ins being attempted in parallel
+- Alarm actions errored if the action parameter field is empty
+
 
 Package Updates
 - MQTTnet
