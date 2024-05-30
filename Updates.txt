@@ -13,6 +13,7 @@ New
 		- Named file
 		- HTTP POST to http://[CMX_IP_Address]:8998/station/json
 		- MQTT using a named topic
+- Locale Strings now has settings for the default record date/time text
 
 
 Changed

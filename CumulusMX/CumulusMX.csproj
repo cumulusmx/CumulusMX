@@ -66,7 +66,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BouncyCastle.Cryptography" Version="2.3.1" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
     <PackageReference Include="FluentFTP.Logging" Version="1.0.0" />
     <PackageReference Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
     <PackageReference Include="NReco.Logging.File" Version="1.2.0" />
@@ -78,7 +78,7 @@
     <PackageReference Include="FluentFTP" Version="50.0.1" />
     <PackageReference Include="HidSharp" Version="2.1.0" />
     <PackageReference Include="MailKit" Version="4.6.0" />
-    <PackageReference Include="MQTTnet" Version="4.3.5.1141" />
+    <PackageReference Include="MQTTnet" Version="4.3.6.1152" />
     <PackageReference Include="MySqlConnector" Version="2.3.7" />
     <PackageReference Include="ServiceStack.Text" Version="8.2.2" />
     <PackageReference Include="SSH.NET" Version="2024.0.0" />
