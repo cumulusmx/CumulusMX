@@ -1665,7 +1665,7 @@ namespace CumulusMX
 			{
 				// if we already have an update queued, don't add to the wait queue. Otherwise we get hundreds queued up during catch-up
 				// Zero wait time for the ws lock object unless wait = true
-				if (!webSocketSemaphore.Wait(wait ? 0 : 600))
+				if (!await webSocketSemaphore.WaitAsync(wait ? 0 : 600))
 				{
 					cumulus.LogDebugMessage("sendWebSocketData: Update already running, skipping this one");
 					return;
@@ -5759,7 +5759,7 @@ namespace CumulusMX
 				cumulus.LogWarningMessage($"     New values:  RaindayStart = {RainCounterDayStart}, MidnightRainCount = {MidnightRainCount}, Raincounter = {RainCounter}");
 
 				// update any data in the recent data db
-				var counterChange = RainCounter - prevraincounter;
+				//var counterChange = RainCounter - prevraincounter
 				RecentDataDb.Execute("update RecentData set raincounter=raincounter-?", counterLost);
 
 			}

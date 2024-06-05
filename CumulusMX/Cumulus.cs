@@ -2605,7 +2605,7 @@ namespace CumulusMX
 
 						if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
 						{
-							data = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, true, true);
+							data = await ProcessTemplateFile2StringAsync(RealtimeFiles[i].TemplateFileName, true, true);
 						}
 
 						using var dataStream = GenerateStreamFromString(data);
@@ -2734,7 +2734,7 @@ namespace CumulusMX
 					{
 #if DEBUG
 						LogDebugMessage($"RealtimePHP[{cycle}]: Extra File {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
 						LogDebugMessage($"RealtimePHP[{cycle}]: Extra File {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
@@ -2918,7 +2918,7 @@ namespace CumulusMX
 					else if (item.process) // does the file require processing first
 					{
 						LogDebugMessage($"Realtime[{cycle}]: Processing extra web {uploadfile}");
-						var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
+						var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 
 						using var strm = GenerateStreamFromString(data);
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
@@ -8624,8 +8624,8 @@ namespace CumulusMX
 							if (item.process)
 							{
 								LogDebugMessage($"Interval: Processing extra file {uploadfile}");
-								var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
-								File.WriteAllText(remotefile, data);
+								var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
+								await File.WriteAllTextAsync(remotefile, data);
 							}
 							else
 							{
@@ -9387,7 +9387,7 @@ namespace CumulusMX
 								else if (item.process)
 								{
 									LogFtpDebugMessage("SFTP[Int]: Processing Extra web file: " + uploadfile);
-									var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
+									var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 									using var strm = GenerateStreamFromString(data);
 									UploadStream(conn, remotefile, strm, -1);
 								}
@@ -9429,7 +9429,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										data = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, true, true);
+										data = await ProcessTemplateFile2StringAsync(StdWebFiles[i].TemplateFileName, true, true);
 									}
 
 									using var dataStream = GenerateStreamFromString(data);
@@ -9721,7 +9721,7 @@ namespace CumulusMX
 								else if (item.process)
 								{
 									LogFtpDebugMessage("FTP[Int]: Processing Extra web file: " + uploadfile);
-									var data = ProcessTemplateFile2String(uploadfile, false, item.UTF8);
+									var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 									using var strm = GenerateStreamFromString(data);
 									UploadStream(conn, remotefile, strm, -1);
 								}
@@ -9761,7 +9761,7 @@ namespace CumulusMX
 									}
 									else
 									{
-										data = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, true, true);
+										data = await ProcessTemplateFile2StringAsync(StdWebFiles[i].TemplateFileName, true, true);
 									}
 
 									using (var dataStream = GenerateStreamFromString(data))
@@ -10056,7 +10056,7 @@ namespace CumulusMX
 					{
 #if DEBUG
 						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
 						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
@@ -11127,17 +11127,17 @@ namespace CumulusMX
 							if (FtpOptions.PhpCompression == "gzip")
 							{
 								using var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true);
-								zipped.Write(byteData, 0, byteData.Length);
+								await zipped.WriteAsync(byteData, 0, byteData.Length);
 							}
 							else if (FtpOptions.PhpCompression == "deflate")
 							{
 								using var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true);
-								zipped.Write(byteData, 0, byteData.Length);
+								await zipped.WriteAsync(byteData, 0, byteData.Length);
 							}
 
 							ms.Position = 0;
 							byte[] compressed = new byte[ms.Length];
-							ms.Read(compressed, 0, compressed.Length);
+							await ms.ReadAsync(compressed, 0, compressed.Length);
 
 							outStream = new MemoryStream(compressed);
 							streamContent = new StreamContent(outStream);
@@ -11246,7 +11246,7 @@ namespace CumulusMX
 				finally
 				{
 					if (outStream != null)
-						outStream.Dispose();
+						await outStream.DisposeAsync();
 
 					if (streamContent != null)
 						streamContent.Dispose();
@@ -12312,7 +12312,7 @@ namespace CumulusMX
 
 		public async Task CheckMySQLFailedUploads(string callingFunction, string cmd)
 		{
-			await CheckMySQLFailedUploads(callingFunction, new List<string>() { cmd });
+			await CheckMySQLFailedUploads(callingFunction, [cmd]);
 		}
 
 		public async Task CheckMySQLFailedUploads(string callingFunction, List<string> cmds)

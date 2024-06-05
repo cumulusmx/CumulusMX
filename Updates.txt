@@ -34,6 +34,7 @@ Fixed
 Package Updates
 - MQTTnet
 - MailKit
+- BouncyCastle
 
 
 4.0.1 - b4023
