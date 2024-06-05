@@ -140,6 +140,18 @@ namespace CumulusMX
 				mac = cumulus.EcowittMacAddress
 			};
 
+			var jsonstn = new JsonJsonStation()
+			{
+				conntype = cumulus.JsonStationOptions.Connectiontype,
+				filename = cumulus.JsonStationOptions.SourceFile,
+				mqttserver = cumulus.JsonStationOptions.MqttServer,
+				mqttport = cumulus.JsonStationOptions.MqttPort,
+				mqttuser = cumulus.JsonStationOptions.MqttUsername,
+				mqttpass = cumulus.JsonStationOptions.MqttPassword,
+				mqtttopic = cumulus.JsonStationOptions.MqttTopic
+			};
+
+
 			var station = new JsonWizardStation()
 			{
 				stationtype = cumulus.StationType,
@@ -153,7 +165,8 @@ namespace CumulusMX
 				imet = imet,
 				wmr928 = wmr,
 				weatherflow = weatherflow,
-				ecowittapi = ecowittapi
+				ecowittapi = ecowittapi,
+				jsonstation = jsonstn
 			};
 
 			var copy = new JsonWizardInternetCopy()
@@ -423,6 +436,10 @@ namespace CumulusMX
 							case 2:
 								cumulus.Limit.PressHigh = ConvertUnits.UserPressToIN(cumulus.Limit.PressHigh);
 								cumulus.Limit.PressLow = ConvertUnits.UserPressToIN(cumulus.Limit.PressLow);
+								break;
+							case 3:
+								cumulus.Limit.PressHigh = ConvertUnits.UserPressToKpa(cumulus.Limit.PressHigh);
+								cumulus.Limit.PressLow = ConvertUnits.UserPressToKpa(cumulus.Limit.PressLow);
 								break;
 						}
 						cumulus.Units.Press = settings.units.pressure;
@@ -709,6 +726,35 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// JSON data input
+				try
+				{
+					if (settings.station.jsonstation != null)
+					{
+						cumulus.JsonStationOptions.Connectiontype = settings.station.jsonstation.conntype;
+						if (cumulus.JsonStationOptions.Connectiontype == 0)
+						{
+							cumulus.JsonStationOptions.SourceFile = settings.station.jsonstation.filename.Trim();
+						}
+						if (cumulus.JsonStationOptions.Connectiontype == 2)
+						{
+							cumulus.JsonStationOptions.MqttServer = string.IsNullOrWhiteSpace(settings.station.jsonstation.mqttserver) ? null : settings.station.jsonstation.mqttserver.Trim();
+							cumulus.JsonStationOptions.MqttPort = settings.station.jsonstation.mqttport;
+							cumulus.JsonStationOptions.MqttUsername = string.IsNullOrWhiteSpace(settings.station.jsonstation.mqttuser) ? null : settings.station.jsonstation.mqttuser.Trim();
+							cumulus.JsonStationOptions.MqttPassword = string.IsNullOrWhiteSpace(settings.station.jsonstation.mqttpass) ? null : settings.station.jsonstation.mqttpass.Trim();
+							cumulus.JsonStationOptions.MqttTopic = string.IsNullOrWhiteSpace(settings.station.jsonstation.mqtttopic) ? null : settings.station.jsonstation.mqtttopic.Trim();
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing JSON Data Input settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
 
 				// Save the settings
 				cumulus.WriteIniFile();
@@ -790,6 +836,7 @@ namespace CumulusMX
 		public JsonStationSettingsWmr928 wmr928 { get; set; }
 		public JsonStationSettingsWeatherFlow weatherflow { get; set; }
 		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
+		public JsonJsonStation jsonstation { get; set; }
 	}
 
 	internal class JsonWizardDavisVp

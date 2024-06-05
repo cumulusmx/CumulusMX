@@ -7,7 +7,6 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using ServiceStack;
@@ -227,15 +226,15 @@ namespace CumulusMX
 		}
 
 
-		public static void RunExternalTask(string task, string parameters, bool wait, bool redirectError = false)
+		public static void RunExternalTask(string task, string parameters, bool wait, bool redirectError = false, bool createwindow = false)
 		{
 			var process = new System.Diagnostics.Process();
 			process.StartInfo.FileName = task;
 			process.StartInfo.Arguments = parameters;
 			process.StartInfo.UseShellExecute = false;
 			process.StartInfo.RedirectStandardError = redirectError;
-			process.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-			process.StartInfo.CreateNoWindow = true;
+			process.StartInfo.WindowStyle = createwindow ? System.Diagnostics.ProcessWindowStyle.Normal : System.Diagnostics.ProcessWindowStyle.Hidden;
+			process.StartInfo.CreateNoWindow = !createwindow;
 			process.Start();
 
 			if (wait)

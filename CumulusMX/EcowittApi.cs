@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.Text;
 
-using static System.Collections.Specialized.BitVector32;
 
 namespace CumulusMX
 {
@@ -600,12 +599,16 @@ namespace CumulusMX
 
 							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								value.Pressure = item.Value;
+								// We have to request kPa values in hPa, so divide by 10
+								value.Pressure = cumulus.Units.Press == 3 ? item.Value / 10 : item.Value;
 							}
 							else
 							{
 								var newItem = new HistoricData()
-								{ Pressure = item.Value };
+								{
+									// We have to request kPa values in hPa, so divide by 10
+									Pressure = cumulus.Units.Press == 3 ? item.Value / 10 : item.Value
+								};
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -623,12 +626,16 @@ namespace CumulusMX
 
 							if (buffer.TryGetValue(itemDate, out var value))
 							{
-								value.StationPressure = item.Value;
+								// We have to request kPa values in hPa, so divide by 10
+								value.StationPressure = cumulus.Units.Press == 3 ? item.Value / 10 : item.Value;
 							}
 							else
 							{
 								var newItem = new HistoricData()
-								{ StationPressure = item.Value };
+								{
+									// We have to request kPa values in hPa, so divide by 10
+									StationPressure = cumulus.Units.Press == 3 ? item.Value / 10 : item.Value
+								};
 								buffer.Add(itemDate, newItem);
 							}
 						}
@@ -1769,6 +1776,7 @@ namespace CumulusMX
 				if (rec.Value.AqiComboPm25.HasValue)
 				{
 					station.CO2_pm2p5 = (double) rec.Value.AqiComboPm25.Value;
+					station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
 				}
 			}
 			catch (Exception ex)
@@ -1782,6 +1790,8 @@ namespace CumulusMX
 				if (rec.Value.AqiComboPm10.HasValue)
 				{
 					station.CO2_pm10 = (double) rec.Value.AqiComboPm10.Value;
+					station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
+
 				}
 			}
 			catch (Exception ex)

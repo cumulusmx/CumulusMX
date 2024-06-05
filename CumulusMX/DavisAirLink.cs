@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-
-using Org.BouncyCastle.Utilities.Encoders;
 
 using ServiceStack;
 
@@ -1340,9 +1337,9 @@ namespace CumulusMX
 						Cumulus.LogConsoleMessage($" - Found WeatherLink station id = {stn.station_id}, name = {stn.station_name}, active = {stn.active}");
 					}
 
-					if ((stn.station_id == cumulus.AirLinkInStationId || stn.station_id == cumulus.AirLinkOutStationId) && stn.recording_interval != cumulus.logints[cumulus.DataLogInterval])
+					if ((stn.station_id == cumulus.AirLinkInStationId || stn.station_id == cumulus.AirLinkOutStationId) && stn.recording_interval != Cumulus.logints[cumulus.DataLogInterval])
 					{
-						cumulus.LogWarningMessage($" - Cumulus log interval {cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {stn.recording_interval}");
+						cumulus.LogWarningMessage($" - Cumulus log interval {Cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {stn.recording_interval}");
 					}
 				}
 				if (stationsObj.stations.Count > 1)

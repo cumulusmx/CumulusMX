@@ -294,7 +294,7 @@ namespace CumulusMX
 			/*
 			 * Ecowitt doc:
 			 *
-			POST Parameters - all fields are URL escaped
+			POST/GET Parameters - all fields are URL escaped
 
 			PASSKEY=<redacted>&stationtype=GW1000A_V1.6.8&dateutc=2021-07-23+17:13:34&tempinf=80.6&humidityin=50&baromrelin=29.940&baromabsin=29.081&tempf=81.3&humidity=43&winddir=296&windspeedmph=2.46&windgustmph=4.25&maxdailygust=14.09&solarradiation=226.28&uv=1&rainratein=0.000&eventrainin=0.000&hourlyrainin=0.000&dailyrainin=0.000&weeklyrainin=0.000&monthlyrainin=4.118&yearlyrainin=29.055&totalrainin=29.055&temp1f=83.48&humidity1=39&temp2f=87.98&humidity2=40&temp3f=82.04&humidity3=40&temp4f=93.56&humidity4=34&temp5f=-11.38&temp6f=87.26&humidity6=38&temp7f=45.50&humidity7=40&soilmoisture1=51&soilmoisture2=65&soilmoisture3=72&soilmoisture4=36&soilmoisture5=48&pm25_ch1=11.0&pm25_avg_24h_ch1=10.8&pm25_ch2=13.0&pm25_avg_24h_ch2=15.0&tf_co2=80.8&humi_co2=48&pm25_co2=4.8&pm25_24h_co2=6.1&pm10_co2=4.9&pm10_24h_co2=6.5&co2=493&co2_24h=454&lightning_time=1627039348&lightning_num=3&lightning=24&wh65batt=0&wh80batt=3.06&batt1=0&batt2=0&batt3=0&batt4=0&batt5=0&batt6=0&batt7=0&soilbatt1=1.5&soilbatt2=1.4&soilbatt3=1.5&soilbatt4=1.5&soilbatt5=1.6&pm25batt1=4&pm25batt2=4&wh57batt=4&co2_batt=6&freq=868M&model=GW1000_Pro
 			PASSKEY=<redacted>&stationtype=GW1100A_V2.0.2&dateutc=2021-09-08+11:58:39&tempinf=80.8&humidityin=42&baromrelin=29.864&baromabsin=29.415&temp1f=87.8&tf_ch1=64.4&batt1=0&tf_batt1=1.48&freq=868M&model=GW1100A
@@ -320,9 +320,21 @@ namespace CumulusMX
 				// freq
 				// model
 
-				cumulus.LogDebugMessage($"{procName}: Processing posted data");
+				string text = string.Empty;
 
-				var text = new StreamReader(context.Request.InputStream).ReadToEnd();
+
+				if (context.Request.HttpVerb == HttpVerbs.Post)
+				{
+					cumulus.LogDebugMessage($"{procName}: Processing POST data");
+					text = new StreamReader(context.Request.InputStream).ReadToEnd();
+				}
+				else
+				{
+					cumulus.LogDebugMessage($"{procName}: Processing GET data");
+					//remove /station/ecowitt[extra]?
+					text = context.Request.RawUrl[(context.Request.RawUrl.IndexOf('?') + 1)..];
+				}
+
 
 				cumulus.LogDataMessage($"{procName}: Payload = {PassKeyRegex().Replace(text, "PASSKEY=<PassKey>")}");
 
@@ -544,7 +556,7 @@ namespace CumulusMX
 							var tempVal = ConvertUnits.TempFToUser(Convert.ToDouble(data["tempinf"], invNum));
 							DoIndoorTemp(tempVal);
 
-							// user has mapped indoor humidity to outdoor
+							// user has mapped indoor temperature to outdoor
 							if (cumulus.Gw1000PrimaryTHSensor == 99)
 							{
 								DoOutdoorTemp(tempVal, recDate);
@@ -1254,18 +1266,23 @@ namespace CumulusMX
 			if (data["pm25_co2"] != null)
 			{
 				station.CO2_pm2p5 = Convert.ToDouble(data["pm25_co2"], invNum);
+				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
 			}
 			if (data["pm25_24h_co2"] != null)
 			{
 				station.CO2_pm2p5_24h = Convert.ToDouble(data["pm25_24h_co2"], invNum);
+				station.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5h24, station.CO2_pm2p5_24h);
+
 			}
 			if (data["pm10_co2"] != null)
 			{
 				station.CO2_pm10 = Convert.ToDouble(data["pm10_co2"], invNum);
+				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
 			}
 			if (data["pm10_24h_co2"] != null)
 			{
 				station.CO2_pm10_24h = Convert.ToDouble(data["pm10_24h_co2"], invNum);
+				station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10h24, station.CO2_pm10_24h);
 			}
 			if (data["co2"] != null)
 			{

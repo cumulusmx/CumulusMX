@@ -349,7 +349,7 @@ namespace CumulusMX
 			byte[] readBuffer = new byte[40];
 
 			// default the logger interval to the CMX interval - change it later if we find different
-			loggerInterval = cumulus.logints[cumulus.DataLogInterval];
+			loggerInterval = Cumulus.logints[cumulus.DataLogInterval];
 
 			// response should be (5 mins):
 			// ACK  VAL CKS1 CKS2
@@ -440,17 +440,17 @@ namespace CumulusMX
 
 			cumulus.LogDebugMessage($"CheckLoggerInterval: Station logger interval is {readBuffer[0]} minutes");
 
-			if (bytesRead > 0 && readBuffer[0] != cumulus.logints[cumulus.DataLogInterval])
+			if (bytesRead > 0 && readBuffer[0] != Cumulus.logints[cumulus.DataLogInterval])
 			{
 				// change the logger interval to the value we just discovered
 				loggerInterval = readBuffer[0];
-				var msg = $"** WARNING: Your station logger interval {loggerInterval} mins does not match your Cumulus MX logging interval {cumulus.logints[cumulus.DataLogInterval]} mins";
+				var msg = $"** WARNING: Your station logger interval {loggerInterval} mins does not match your Cumulus MX logging interval {Cumulus.logints[cumulus.DataLogInterval]} mins";
 				Cumulus.LogConsoleMessage(msg);
 				cumulus.LogWarningMessage("CheckLoggerInterval: " + msg);
 
 				if (cumulus.DavisOptions.SetLoggerInterval)
 				{
-					SetLoggerInterval(cumulus.logints[cumulus.DataLogInterval]);
+					SetLoggerInterval(Cumulus.logints[cumulus.DataLogInterval]);
 				}
 			}
 		}

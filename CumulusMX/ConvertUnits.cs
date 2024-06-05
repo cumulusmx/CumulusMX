@@ -1,7 +1,13 @@
 ﻿namespace CumulusMX
 {
+
 	internal static class ConvertUnits
 	{
+		private const double inHg2hPa = 33.8638866667;
+		private const double inHg2kPa = 3.38638866667;
+		private const int kPa2hPa = 10;
+		private const double mm2in = 25.4;
+
 		/// <summary>
 		///  Convert temp supplied in C to units in use
 		/// </summary>
@@ -104,6 +110,23 @@
 				1 => value,
 				2 => value * 1.60934,
 				3 => value * 0.868976,
+				_ => 0,
+			};
+		}
+
+		/// <summary>
+		///  Converts wind supplied in kph to user units
+		/// </summary>
+		/// <param name="value">Wind in kph</param>
+		/// <returns>Wind in configured units</returns>
+		public static double WindKPHToUser(double value)
+		{
+			return Program.cumulus.Units.Wind switch
+			{
+				0 => value * 0.2777778,
+				1 => value * 0.6213712,
+				2 => value,
+				3 => value * 0.5399568,
 				_ => 0,
 			};
 		}
@@ -265,7 +288,7 @@
 		/// <returns>Rain in configured units</returns>
 		public static double RainMMToUser(double value)
 		{
-			return Program.cumulus.Units.Rain == 1 ? value * 0.0393700787 : value;
+			return Program.cumulus.Units.Rain == 1 ? value / mm2in : value;
 		}
 
 		/// <summary>
@@ -275,7 +298,7 @@
 		/// <returns>Rain in configured units</returns>
 		public static double RainINToUser(double value)
 		{
-			return Program.cumulus.Units.Rain == 1 ? value : value * 25.4;
+			return Program.cumulus.Units.Rain == 1 ? value : value * mm2in;
 		}
 
 		/// <summary>
@@ -285,12 +308,12 @@
 		/// <returns>Rain in mm</returns>
 		public static double UserRainToMM(double value)
 		{
-			return Program.cumulus.Units.Rain == 1 ? value / 0.0393700787 : value;
+			return Program.cumulus.Units.Rain == 1 ? value * mm2in : value;
 		}
 
 		public static double UserRainToIN(double rain)
 		{
-			return Program.cumulus.Units.Rain == 0 ? rain * 0.0393700787 : rain;
+			return Program.cumulus.Units.Rain == 0 ? rain / mm2in : rain;
 		}
 
 
@@ -301,7 +324,31 @@
 		/// <returns>pressure in configured units</returns>
 		public static double PressMBToUser(double value)
 		{
-			return Program.cumulus.Units.Press == 2 ? value * 0.0295333727 : value;
+			return Program.cumulus.Units.Press switch
+			{
+				0 => value,
+				1 => value,
+				2 => value / inHg2hPa,
+				3 => value / kPa2hPa,
+				_ => 0,
+			};
+		}
+
+		/// <summary>
+		/// Convert pressure in kPa to units in use
+		/// </summary>
+		/// <param name="value">pressure in kPa</param>
+		/// <returns>pressure in configured units</returns>
+		public static double PressKPAToUser(double value)
+		{
+			return Program.cumulus.Units.Press switch
+			{
+				0 => value * kPa2hPa,
+				1 => value * kPa2hPa,
+				2 => value / inHg2kPa,
+				3 => value,
+				_ => 0,
+			};
 		}
 
 		/// <summary>
@@ -311,7 +358,14 @@
 		/// <returns>pressure in configured units</returns>
 		public static double PressINHGToUser(double value)
 		{
-			return Program.cumulus.Units.Press == 2 ? value : value * 33.8638866667;
+			return Program.cumulus.Units.Press switch
+			{
+				0 => value * inHg2hPa,
+				1 => value * inHg2hPa,
+				2 => value,
+				3 => value * inHg2kPa,
+				_ => 0,
+			};
 		}
 
 		/// <summary>
@@ -321,7 +375,7 @@
 		/// <returns>pressure in hPa</returns>
 		public static double PressINHGToHpa(double value)
 		{
-			return value * 33.8638866667;
+			return value * inHg2hPa;
 		}
 
 		/// <summary>
@@ -331,7 +385,14 @@
 		/// <returns>pressure in mb</returns>
 		public static double UserPressToMB(double value)
 		{
-			return Program.cumulus.Units.Press == 2 ? value / 0.0295333727 : value;
+			return Program.cumulus.Units.Press switch
+			{
+				0 => value,
+				1 => value,
+				2 => value * inHg2hPa,
+				3 => value * kPa2hPa,
+				_ => 0,
+			};
 		}
 
 		/// <summary>
@@ -341,7 +402,31 @@
 		/// <returns></returns>
 		public static double UserPressToHpa(double value)
 		{
-			return Program.cumulus.Units.Press == 2 ? value / 0.0295333727 : value;
+			return Program.cumulus.Units.Press switch
+			{
+				0 => value,
+				1 => value,
+				2 => value * inHg2hPa,
+				3 => value * kPa2hPa,
+				_ => 0,
+			};
+		}
+
+		/// <summary>
+		/// Convert pressure from user units to kPa
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static double UserPressToKpa(double value)
+		{
+			return Program.cumulus.Units.Press switch
+			{
+				0 => value / kPa2hPa,
+				1 => value / kPa2hPa,
+				2 => value * inHg2kPa,
+				3 => value,
+				_ => 0,
+			};
 		}
 
 		/// <summary>
@@ -351,7 +436,14 @@
 		/// <returns>pressure in mb</returns>
 		public static double UserPressToIN(double value)
 		{
-			return Program.cumulus.Units.Press == 2 ? value : value * 0.0295333727;
+			return Program.cumulus.Units.Press switch
+			{
+				0 => value / inHg2hPa,
+				1 => value / inHg2hPa,
+				2 => value,
+				3 => value / inHg2kPa,
+				_ => 0,
+			};
 		}
 
 		/// <summary>

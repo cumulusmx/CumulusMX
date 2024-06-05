@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Net;
-using System.Net.Http;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -38,7 +36,7 @@ namespace CumulusMX.ThirdParty
 			{
 				// No data coming in, do not do anything
 				var reason = Updating ? "previous upload still in progress" : "data stopped condition";
-				cumulus.LogWarningMessage("AWEKAS: Not uploading, " + reason);
+				cumulus.LogDebugMessage("AWEKAS: Not uploading, " + reason);
 				return;
 			}
 
@@ -246,6 +244,9 @@ namespace CumulusMX.ThirdParty
 					break;
 				case 2:
 					threeHourlyPressureChangeMb = station.presstrendval * 3 / 0.0295333727;
+					break;
+				case 3:
+					threeHourlyPressureChangeMb = station.presstrendval * 30;
 					break;
 			}
 

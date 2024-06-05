@@ -478,27 +478,42 @@ namespace CumulusMX
 			return DefaultValue;
 		}
 
-		internal int GetValue(string SectionName, string Key, int DefaultValue)
+		internal int GetValue(string SectionName, string Key, int DefaultValue, int MinValue = int.MinValue, int MaxValue = int.MaxValue)
 		{
 			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
 			int Value;
-			if (int.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value)) return Value;
+			if (int.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value))
+			{
+				if (Value < MinValue) return MinValue;
+				if (Value > MaxValue) return MaxValue;
+				return Value;
+			}
 			return DefaultValue;
 		}
 
-		internal double GetValue(string SectionName, string Key, double DefaultValue)
+		internal double GetValue(string SectionName, string Key, double DefaultValue, double MinValue = double.MinValue, double MaxValue = double.MaxValue)
 		{
 			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
 			double Value;
-			if (double.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value)) return Value;
+			if (double.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value))
+			{
+				if (Value < MinValue) return MinValue;
+				if (Value > MaxValue) return MaxValue;
+				return Value;
+			}
 			return DefaultValue;
 		}
 
-		internal decimal GetValue(string SectionName, string Key, decimal DefaultValue)
+		internal decimal GetValue(string SectionName, string Key, decimal DefaultValue, decimal MinValue = decimal.MinValue, decimal MaxValue = decimal.MaxValue)
 		{
 			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
 			decimal Value;
-			if (decimal.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value)) return Value;
+			if (decimal.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value))
+			{
+				if (Value < MinValue) return MinValue;
+				if (Value > MaxValue) return MaxValue;
+				return Value;
+			}
 			return DefaultValue;
 		}
 

@@ -39,6 +39,7 @@ namespace CumulusMX
 		internal static HttpStationEcowitt stationEcowittExtra { get; set; }
 		internal static HttpStationAmbient stationAmbient {  get; set; }
 		internal static HttpStationAmbient stationAmbientExtra {  get; set; }
+		internal static JsonStation stationJson { get; set; }
 		private static readonly char[] separator = [':'];
 
 
@@ -1460,6 +1461,17 @@ namespace CumulusMX
 								await writer.WriteAsync("{\"Error\":\"HTTP Station (Ecowitt) is not running}\"");
 							}
 							break;
+						case "json":
+							if (stationJson != null)
+							{
+								await writer.WriteAsync(stationJson.ReceiveDataFromApi(HttpContext, false));
+							}
+							else
+							{
+								Response.StatusCode = 503;
+								await writer.WriteAsync("{\"Error\":\"JSON Station is not running}\"");
+							}
+							break;
 						default:
 							Response.StatusCode = 404;
 							break;
@@ -1516,6 +1528,28 @@ namespace CumulusMX
 							{
 								Response.StatusCode = 503;
 								await writer.WriteAsync("HTTP Station (Ambient) is not running");
+							}
+							break;
+						case "ecowitt":
+							if (stationEcowitt != null)
+							{
+								await writer.WriteAsync(stationEcowitt.ProcessData(HttpContext, true));
+							}
+							else
+							{
+								Response.StatusCode = 503;
+								await writer.WriteAsync("{\"Error\":\"HTTP Station (Ecowitt) is not running}\"");
+							}
+							break;
+						case "ecowittextra":
+							if (stationEcowittExtra != null)
+							{
+								await writer.WriteAsync(stationEcowittExtra.ProcessData(HttpContext, false));
+							}
+							else
+							{
+								Response.StatusCode = 503;
+								await writer.WriteAsync("{\"Error\":\"HTTP Station (Ecowitt) is not running}\"");
 							}
 							break;
 						default:

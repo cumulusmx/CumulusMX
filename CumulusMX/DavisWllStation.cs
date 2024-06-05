@@ -42,6 +42,7 @@ namespace CumulusMX
 		private readonly AutoResetEvent bwDoneEvent = new(false);
 		private readonly List<WlSensor> sensorList = [];
 		private readonly bool useWeatherLinkDotCom = true;
+		private readonly bool[] sensorContactLost = new bool[9];
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -694,8 +695,18 @@ namespace CumulusMX
 							if (data1.rx_state == 2)
 							{
 								localSensorContactLost = true;
-								cumulus.LogWarningMessage($"Warning: Sensor contact lost TxId {data1.txid}; ignoring data from this ISS");
+								if (!sensorContactLost[data1.txid])
+								{
+									cumulus.LogWarningMessage($"Warning: Sensor contact lost TxId {data1.txid}; ignoring data from this ISS");
+									sensorContactLost[data1.txid] = true;
+								}
 								continue;
+							}
+
+							if (sensorContactLost[data1.txid])
+							{
+								cumulus.LogWarningMessage($"Warning: Sensor contact restored TxId {data1.txid}");
+								sensorContactLost[data1.txid] = false;
 							}
 
 
@@ -1038,8 +1049,18 @@ namespace CumulusMX
 							if (data2.rx_state == 2)
 							{
 								localSensorContactLost = true;
-								cumulus.LogWarningMessage($"Warning: Sensor contact lost TxId {data2.txid}; ignoring data from this Leaf/Soil transmitter");
+								if (!sensorContactLost[data2.txid])
+								{
+									cumulus.LogWarningMessage($"Warning: Sensor contact lost TxId {data2.txid}; ignoring data from this Leaf/Soil transmitter");
+									sensorContactLost[data2.txid] = true;
+								}
 								continue;
+							}
+
+							if (sensorContactLost[data2.txid])
+							{
+								cumulus.LogWarningMessage($"Warning: Sensor contact restored TxId {data2.txid}");
+								sensorContactLost[data2.txid] = false;
 							}
 
 							// For leaf wetness, soil temp/moisture we rely on user configuration, trap any errors
@@ -3025,9 +3046,9 @@ namespace CumulusMX
 						cumulus.LogDebugMessage($"WLLStations: Setting WLL parent ID = {station.gateway_id}");
 						cumulus.WllParentId = station.gateway_id;
 
-						if (station.recording_interval != cumulus.logints[cumulus.DataLogInterval])
+						if (station.recording_interval != Cumulus.logints[cumulus.DataLogInterval])
 						{
-							cumulus.LogMessage($"WLLStations: - Cumulus log interval {cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
+							cumulus.LogMessage($"WLLStations: - Cumulus log interval {Cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
 						}
 					}
 				}

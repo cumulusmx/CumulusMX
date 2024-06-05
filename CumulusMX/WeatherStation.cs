@@ -1176,6 +1176,9 @@ namespace CumulusMX
 				case 2:
 					threeHourlyPressureChangeMb = presstrendval * 3 / 0.0295333727;
 					break;
+				case 3:
+					threeHourlyPressureChangeMb = presstrendval * 30;
+					break;
 			}
 
 			if (threeHourlyPressureChangeMb > 6) Presstrendstr = cumulus.Trans.Risingveryrapidly;
@@ -1513,6 +1516,15 @@ namespace CumulusMX
 		public double AirQualityAvg3 { get; set; }
 		public double AirQualityAvg4 { get; set; }
 
+		public double AirQualityIdx1 { get; set; }
+		public double AirQualityIdx2 { get; set; }
+		public double AirQualityIdx3 { get; set; }
+		public double AirQualityIdx4 { get; set; }
+		public double AirQualityAvgIdx1 { get; set; }
+		public double AirQualityAvgIdx2 { get; set; }
+		public double AirQualityAvgIdx3 { get; set; }
+		public double AirQualityAvgIdx4 { get; set; }
+
 		public int CO2 { get; set; }
 		public int CO2_24h { get; set; }
 		public double CO2_pm2p5 { get; set; }
@@ -1525,6 +1537,10 @@ namespace CumulusMX
 		public double CO2_pm1_24h { get; set; }
 		public double CO2_pm4 { get; set; }
 		public double CO2_pm4_24h { get; set; }
+		public double CO2_pm2p5_aqi { get; set; }
+		public double CO2_pm2p5_24h_aqi { get; set; }
+		public double CO2_pm10_aqi { get; set; }
+		public double CO2_pm10_24h_aqi { get; set; }
 
 		public int LeakSensor1 { get; set; }
 		public int LeakSensor2 { get; set; }
@@ -1649,7 +1665,7 @@ namespace CumulusMX
 			{
 				// if we already have an update queued, don't add to the wait queue. Otherwise we get hundreds queued up during catch-up
 				// Zero wait time for the ws lock object unless wait = true
-				if (!webSocketSemaphore.Wait(wait ? 0 : 600))
+				if (!await webSocketSemaphore.WaitAsync(wait ? 0 : 600))
 				{
 					cumulus.LogDebugMessage("sendWebSocketData: Update already running, skipping this one");
 					return;
@@ -1824,7 +1840,7 @@ namespace CumulusMX
 					}
 
 
-					if (now.Minute % cumulus.logints[cumulus.DataLogInterval] == 0)
+					if (now.Minute % Cumulus.logints[cumulus.DataLogInterval] == 0)
 					{
 						_ = cumulus.DoLogFile(now, true);
 
@@ -2836,7 +2852,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -2979,7 +2995,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3122,7 +3138,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3265,7 +3281,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3413,7 +3429,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3562,7 +3578,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3706,7 +3722,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = end ?? DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = end ?? DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3852,7 +3868,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var dateto = DateTime.Now.AddMinutes(-(cumulus.logints[cumulus.DataLogInterval] + 1));
+			var dateto = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -5729,7 +5745,25 @@ namespace CumulusMX
 			var counterReset = Math.Round(RainCounterDayStart, cumulus.RainDPlaces) - Math.Round(RainCounter, cumulus.RainDPlaces) > 0;
 			var counterJumped = Math.Round(RainCounter, cumulus.RainDPlaces) - previoustotal > maxIncrement;
 
-			if (counterReset || counterJumped)
+			// Davis VP2 console loses todays rainfall when it is power cycled
+			// so check if the current value is less than previous and has returned to the previous midnight value
+			if (Math.Round(RainCounter, cumulus.RainDPlaces) < previoustotal &&
+				Math.Round(RainCounter, cumulus.RainDPlaces) == Math.Round(MidnightRainCount, cumulus.RainDPlaces) &&
+				cumulus.StationType == StationTypes.VantagePro2)
+			{
+				var counterLost = previoustotal - MidnightRainCount;
+				RainCounterDayStart -= counterLost;
+				MidnightRainCount -= counterLost;
+
+				cumulus.LogWarningMessage($" ****Rain counter reset to previous midnight value (VP2 console power cycled?), lost {counterLost} counts");
+				cumulus.LogWarningMessage($"     New values:  RaindayStart = {RainCounterDayStart}, MidnightRainCount = {MidnightRainCount}, Raincounter = {RainCounter}");
+
+				// update any data in the recent data db
+				//var counterChange = RainCounter - prevraincounter
+				RecentDataDb.Execute("update RecentData set raincounter=raincounter-?", counterLost);
+
+			}
+			else if (counterReset || counterJumped)
 			{
 				if (SecondChanceRainReset)
 				// second consecutive reading with reset value
@@ -9388,40 +9422,126 @@ namespace CumulusMX
 
 		public void DoAirQuality(double value, int index)
 		{
+			var idx = GetAqi(AqMeasure.pm2p5, value);
+
 			switch (index)
 			{
 				case 1:
 					AirQuality1 = value;
+					AirQualityIdx1 = idx;
 					break;
 				case 2:
 					AirQuality2 = value;
+					AirQualityIdx2 = idx;
 					break;
 				case 3:
 					AirQuality3 = value;
+					AirQualityIdx3 = idx;
 					break;
 				case 4:
 					AirQuality4 = value;
+					AirQualityIdx4 = idx;
 					break;
 			}
 		}
 
 		public void DoAirQualityAvg(double value, int index)
 		{
+			var idx = GetAqi(AqMeasure.pm2p5h24, value);
+
 			switch (index)
 			{
 				case 1:
 					AirQualityAvg1 = value;
+					AirQualityAvgIdx1 = idx;
 					break;
 				case 2:
 					AirQualityAvg2 = value;
+					AirQualityAvgIdx2 = idx;
 					break;
 				case 3:
 					AirQualityAvg3 = value;
+					AirQualityAvgIdx3 = idx;
 					break;
 				case 4:
 					AirQualityAvg4 = value;
+					AirQualityAvgIdx4 = idx;
 					break;
 			}
+		}
+
+
+		public enum AqMeasure
+		{
+			pm2p5,
+			pm2p5h24,
+			pm10,
+			pm10h24
+		}
+
+		public double GetAqi(AqMeasure type, double value)
+		{
+			switch (cumulus.airQualityIndex)
+			{
+				case 0: // US EPA
+					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
+						return AirQualityIndices.US_EPApm2p5(value);
+					else
+						return AirQualityIndices.US_EPApm10(value);
+
+				case 1: // UK COMEAP
+					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
+						return AirQualityIndices.UK_COMEAPpm2p5(value);
+					else
+						return AirQualityIndices.UK_COMEAPpm10(value);
+
+				case 2: // EU AQI
+					return type switch
+					{
+						AqMeasure.pm2p5 => AirQualityIndices.EU_AQIpm2p5h1(value),
+						AqMeasure.pm2p5h24 => AirQualityIndices.EU_AQI2p5h24(value),
+						AqMeasure.pm10 => AirQualityIndices.EU_AQI10h1(value),
+						AqMeasure.pm10h24 => AirQualityIndices.EU_AQI10h24(value),
+						_ => 0
+					};
+
+				case 3: // EU CAQI
+					return type switch
+					{
+						AqMeasure.pm2p5 => AirQualityIndices.EU_CAQI2p5h1(value),
+						AqMeasure.pm2p5h24 => AirQualityIndices.EU_CAQI2p5h24(value),
+						AqMeasure.pm10 => AirQualityIndices.EU_CAQI10h1(value),
+						AqMeasure.pm10h24 => AirQualityIndices.EU_CAQI10h24(value),
+						_ => 0
+					};
+
+				case 4: // Canada AQHI
+					// return AirQualityIndices.CA_AQHI(value)
+					return -1;
+
+				case 5: // Australia NEPM
+					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
+						return AirQualityIndices.AU_NEpm2p5(value);
+					else
+						return AirQualityIndices.AU_NEpm10(value);
+
+				case 6: // Netherlands LKI
+					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
+						return AirQualityIndices.NL_LKIpm2p5(value);
+					else
+						return AirQualityIndices.NL_LKIpm10(value);
+
+				case 7: // Belgium BelAQI
+					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
+						return AirQualityIndices.BE_BelAQIpm2p5(value);
+					else
+						return AirQualityIndices.BE_BelAQIpm10(value);
+
+				default:
+					cumulus.LogErrorMessage($"GetAqi: Invalid AQI formula value set [cumulus.airQualityIndex]");
+					return -1;
+			}
+
 		}
 
 		public void DoLeakSensor(int value, int index)
@@ -13542,10 +13662,7 @@ namespace CumulusMX
 				tempSumYears0.Append(tempSum0 + "]");
 
 				// add to main json
-				sb.Append("\"Sum0\":" + tempSumYears0 + "}");
-
-				if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
-					sb.Append(',');
+				sb.Append("\"Sum0\":" + tempSumYears0 + "},");
 			}
 			if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
 			{

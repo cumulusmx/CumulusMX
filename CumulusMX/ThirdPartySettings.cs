@@ -309,9 +309,9 @@ namespace CumulusMX
 						}
 
 						cumulus.CustomHttpMinutesIntervalIndex = settings.customhttp.customminutes.intervalindex;
-						if (cumulus.CustomHttpMinutesIntervalIndex >= 0 && cumulus.CustomHttpMinutesIntervalIndex < cumulus.FactorsOf60.Length)
+						if (cumulus.CustomHttpMinutesIntervalIndex >= 0 && cumulus.CustomHttpMinutesIntervalIndex < Cumulus.FactorsOf60.Length)
 						{
-							cumulus.CustomHttpMinutesInterval = cumulus.FactorsOf60[cumulus.CustomHttpMinutesIntervalIndex];
+							cumulus.CustomHttpMinutesInterval = Cumulus.FactorsOf60[cumulus.CustomHttpMinutesIntervalIndex];
 						}
 						else
 						{

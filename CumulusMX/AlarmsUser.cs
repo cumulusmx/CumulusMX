@@ -45,6 +45,7 @@ namespace CumulusMX
 		public bool Email { get; set; }
 		public string Action { get; set; }
 		public string ActionParams { get; set; }
+		public bool ShowWindow { get; set; }
 		public bool Latch { get; set; }
 		public double LatchHours { get; set; }
 		public string EmailMsg { get; set; }
@@ -155,14 +156,18 @@ namespace CumulusMX
 						{
 							try
 							{
+								var args = string.Empty;
 								// Prepare the process to run
-								var parser = new TokenParser(cumulus.TokenParserOnToken)
+								if (!string.IsNullOrEmpty(ActionParams))
 								{
-									InputText = ActionParams
-								};
-								var args = parser.ToStringFromString();
+									var parser = new TokenParser(cumulus.TokenParserOnToken)
+									{
+										InputText = ActionParams
+									};
+									args = parser.ToStringFromString();
+								}
 								cumulus.LogMessage($"User Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
-								Utils.RunExternalTask(Action, args, false);
+								Utils.RunExternalTask(Action, args, false, false, ShowWindow);
 							}
 							catch (Exception ex)
 							{
