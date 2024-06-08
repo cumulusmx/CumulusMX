@@ -12878,7 +12878,11 @@ namespace CumulusMX
 		{
 			try
 			{
-				bool beta = Program.debug;
+#if DEBUG
+				bool beta = true;
+#else
+				bool beta = false;
+#endif
 				var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/cumulusmx/CumulusMX/releases");
 				request.Headers.Add("User-Agent", "CumulusMX");
 

@@ -20,7 +20,7 @@ namespace CumulusMX
 		protected override void OnStart(string[] args)
 		{
 			int httpport = Program.Httpport;
-			bool debug = Program.debug;
+			bool debug = false;
 			StringBuilder startParams = new();
 
 			for (int i = 0; i < args.Length; i++)
