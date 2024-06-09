@@ -5,6 +5,8 @@ New
 Changed
 
 Fixed
+- Davis VP2/Vue raincounter reset problems
+- Another raincounter reset issue that has been lurking
 
 
 

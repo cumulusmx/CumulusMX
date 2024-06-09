@@ -5779,7 +5779,7 @@ namespace CumulusMX
 
 					// set the start of day figure so it reflects the rain
 					// so far today
-					RainCounterDayStart = RainCounter - (RainToday / cumulus.Calib.Rain.Mult);
+					RainCounterDayStart = RainCounter - (previoustotal - RainCounterDayStart);
 					cumulus.LogMessage("Setting RaindayStart to " + RainCounterDayStart);
 
 					MidnightRainCount = RainCounter;
