@@ -3286,13 +3286,13 @@ namespace CumulusMX
 
 		private string TagNewBuildAvailable(Dictionary<string, string> tagParams)
 		{
-			try
+			if (int.TryParse(cumulus.Build, out var thisbuild) && int.TryParse(cumulus.LatestBuild, out var latestbuild))
 			{
-				return (int.Parse(cumulus.Build) < int.Parse(cumulus.LatestBuild)) ? "1" : "0";
+				return thisbuild < latestbuild ? "1" : "0";
 			}
-			catch
+			else
 			{
-				return "0";
+				return "n/a";
 			}
 		}
 
