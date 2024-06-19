@@ -10654,41 +10654,10 @@ namespace CumulusMX
 					}
 				}
 
-				if (DeleteBeforeUpload)
-				{
-					// delete the existing file
-					try
-					{
-						LogFtpDebugMessage($"FTP[{cycleStr}]: Deleting {remotefile}");
-						if (conn.FileExists(remotefile))
-						{
-							conn.DeleteFile(remotefile);
-						}
-						else
-						{
-							LogFtpDebugMessage($"FTP[{cycleStr}]: Cannot delete remote file {remotefile} as it does not exist");
-						}
-					}
-					catch (Exception ex)
-					{
-						LogFtpMessage($"FTP[{cycleStr}]: Error deleting {remotefile} : {ex.Message}");
-
-						FtpAlarm.LastMessage = $"Error deleting {remotefile} : {ex.Message}";
-						FtpAlarm.Triggered = true;
-
-						if (ex.InnerException != null)
-						{
-							ex = Utils.GetOriginalException(ex);
-							LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}");
-						}
-						// continue on error
-					}
-				}
-
 				LogFtpDebugMessage($"FTP[{cycleStr}]: Uploading {remotefiletmp}");
 
 				FtpStatus status;
-				status = conn.UploadStream(dataStream, remotefiletmp);
+				status = conn.UploadStream(dataStream, remotefiletmp, DeleteBeforeUpload ? FtpRemoteExists.Overwrite : FtpRemoteExists.NoCheck);
 
 				if (status.IsFailure())
 				{
@@ -12878,7 +12847,11 @@ namespace CumulusMX
 		{
 			try
 			{
-				bool beta = Program.debug;
+#if DEBUG
+				bool beta = true;
+#else
+				bool beta = false;
+#endif
 				var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/cumulusmx/CumulusMX/releases");
 				request.Headers.Add("User-Agent", "CumulusMX");
 

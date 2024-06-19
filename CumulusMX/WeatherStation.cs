@@ -5747,7 +5747,7 @@ namespace CumulusMX
 
 			// Davis VP2 console loses todays rainfall when it is power cycled
 			// so check if the current value is less than previous and has returned to the previous midnight value
-			if (Math.Round(RainCounter, cumulus.RainDPlaces) < previoustotal &&
+			if (Math.Round(RainCounter, cumulus.RainDPlaces) < Math.Round(previoustotal, cumulus.RainDPlaces) &&
 				Math.Round(RainCounter, cumulus.RainDPlaces) == Math.Round(MidnightRainCount, cumulus.RainDPlaces) &&
 				cumulus.StationType == StationTypes.VantagePro2)
 			{
@@ -5779,7 +5779,7 @@ namespace CumulusMX
 
 					// set the start of day figure so it reflects the rain
 					// so far today
-					RainCounterDayStart = RainCounter - (RainToday / cumulus.Calib.Rain.Mult);
+					RainCounterDayStart = RainCounter - (previoustotal - RainCounterDayStart);
 					cumulus.LogMessage("Setting RaindayStart to " + RainCounterDayStart);
 
 					MidnightRainCount = RainCounter;
