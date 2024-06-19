@@ -8,6 +8,7 @@ Fixed
 - Davis VP2/Vue raincounter reset problems
 - Another raincounter reset issue that has been lurking
 - Wizard made Ecowitt API key and secret mandatory
+- Fix for FTP overwrite performing delete + create of remote file
 
 
 
