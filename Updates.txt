@@ -1,9 +1,5 @@
 4.1.1 - b4025
 —————————————
-New
-
-Changed
-
 Fixed
 - Davis VP2/Vue raincounter reset problems
 - Another raincounter reset issue that has been lurking
