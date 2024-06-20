@@ -46,8 +46,10 @@ using SQLite;
 
 using Swan;
 
+using static System.Net.WebRequestMethods;
 using static CumulusMX.EmailSender;
 
+using File = System.IO.File;
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX
@@ -3520,6 +3522,7 @@ namespace CumulusMX
 			// check for Cumulus 1 [FTP Site] and correct it
 			if (ini.ValueExists("FTP Site", "Port"))
 			{
+				LogMessage("Cumulus.ini: Changing old [FTP Site] to [FTP site]");
 				var contents = File.ReadAllText("Cumulus.ini");
 				contents = contents.Replace("[FTP Site]", "[FTP site]");
 				File.WriteAllText("Cumulus.ini", contents);
@@ -3609,6 +3612,7 @@ namespace CumulusMX
 			DavisOptions.IncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", false);
 			if (StationType == StationTypes.VantagePro && DavisOptions.UseLoop2)
 			{
+				LogMessage("Cumulus.ini: Disabling LOOP2 for old VP station");
 				DavisOptions.UseLoop2 = false;
 				rewriteRequired = true;
 			}
@@ -3617,7 +3621,7 @@ namespace CumulusMX
 			if (!DavisBaudRates.Contains(DavisOptions.BaudRate))
 			{
 				// nope, that isn't allowed, set the default
-				LogMessage("Error, the value for DavisBaudRate in the ini file " + DavisOptions.BaudRate + " is not valid, using default 19200.");
+				LogMessage("Cumulus.ini: Error, the value for DavisBaudRate in the ini file " + DavisOptions.BaudRate + " is not valid, using default 19200.");
 				DavisOptions.BaudRate = 19200;
 				rewriteRequired = true;
 			}
@@ -3625,10 +3629,15 @@ namespace CumulusMX
 			DavisOptions.RainGaugeType = ini.GetValue("Station", "VPrainGaugeType", -1);
 			if (DavisOptions.RainGaugeType > 3)
 			{
+				LogMessage("Cumulus.ini: Invalid Davis rain gauge type, defaulting to -1");
 				DavisOptions.RainGaugeType = -1;
 				rewriteRequired = true;
 			}
-			DavisOptions.ConnectionType = ini.GetValue("Station", "VP2ConnectionType", 0, 0, 1);
+			DavisOptions.ConnectionType = ini.GetValue("Station", "VP2ConnectionType", 0, 0, 2);
+			if (DavisOptions.ConnectionType == 1)
+			{
+				DavisOptions.ConnectionType = 2;
+			}
 			DavisOptions.TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222, 1, 65535);
 			DavisOptions.IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
 
@@ -3643,14 +3652,14 @@ namespace CumulusMX
 			if (Latitude > 90 || Latitude < -90)
 			{
 				Latitude = 0;
-				LogErrorMessage($"Error, invalid latitude value in Cumulus.ini [{Latitude}], defaulting to zero.");
+				LogErrorMessage($"Cumulus.ini: Error, invalid latitude value [{Latitude}], defaulting to zero.");
 				rewriteRequired = true;
 			}
 			Longitude = ini.GetValue("Station", "Longitude", (decimal) 0.0);
 			if (Longitude > 180 || Longitude < -180)
 			{
 				Longitude = 0;
-				LogErrorMessage($"Error, invalid longitude value in Cumulus.ini [{Longitude}], defaulting to zero.");
+				LogErrorMessage($"Cumulus.ini: Error, invalid longitude value [{Longitude}], defaulting to zero.");
 				rewriteRequired = true;
 			}
 
@@ -3811,10 +3820,11 @@ namespace CumulusMX
 				{
 					RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate, CultureInfo.CurrentCulture);
 					recreateRequired = true;
+					LogMessage($"Cumulus.ini: Changing old StartDate [{RecordsBeganDate}] to StartDateIso [{RecordsBeganDateTime.ToString("yyyy-MM-dd")}]");
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage($"Error parsing the RecordsBegan date {RecordsBeganDate}: {ex.Message}");
+					LogErrorMessage($"Cumulus.ini: Error parsing the RecordsBegan date {RecordsBeganDate}: {ex.Message}");
 				}
 			}
 			else
@@ -3823,7 +3833,7 @@ namespace CumulusMX
 				RecordsBeganDateTime = DateTime.ParseExact(RecordsBeganDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 			}
 
-			LogMessage($"Cumulus start date Parsed: {RecordsBeganDateTime:yyyy-MM-dd}");
+			LogMessage($"Cumulus.ini: Start date Parsed: {RecordsBeganDateTime:yyyy-MM-dd}");
 
 			ImetOptions.WaitTime = ini.GetValue("Station", "ImetWaitTime", 500, 0);
 			ImetOptions.ReadDelay = ini.GetValue("Station", "ImetReadDelay", 500, 0);
@@ -3833,7 +3843,7 @@ namespace CumulusMX
 			if (!ImetOptions.BaudRates.Contains(ImetOptions.BaudRate))
 			{
 				// nope, that isn't allowed, set the default
-				LogMessage("Error, the value for ImetOptions.ImetBaudRate in the ini file " + ImetOptions.BaudRate + " is not valid, using default 19200.");
+				LogMessage("Cumulus.ini: Error, the value for ImetOptions.ImetBaudRate " + ImetOptions.BaudRate + " is not valid, using default 19200.");
 				ImetOptions.BaudRate = 19200;
 				rewriteRequired = true;
 			}
@@ -3862,6 +3872,7 @@ namespace CumulusMX
 			if (ChillHourThreshold < -998)
 			{
 				ChillHourThreshold = Units.Temp == 0 ? 7 : 45;
+				LogMessage("Cumulus.ini: Defaulting ChillHourThreshold to " + ChillHourThreshold);
 				rewriteRequired = true;
 			}
 
@@ -4036,6 +4047,7 @@ namespace CumulusMX
 			if (AirLinkInStationId == -1 && AirLinkIsNode)
 			{
 				AirLinkInStationId = WllStationId;
+				LogMessage("Cumulus.ini: No AirLinkInStationId supplied, but AirlinkIsNode, so using main station id");
 				rewriteRequired = true;
 			}
 			AirLinkInHostName = ini.GetValue("AirLink", "In-Hostname", string.Empty);
@@ -4046,6 +4058,7 @@ namespace CumulusMX
 			if (AirLinkOutStationId == -1 && AirLinkIsNode)
 			{
 				AirLinkOutStationId = WllStationId;
+				LogMessage("Cumulus.ini: No AirLinkOutStationId supplied, but AirlinkIsNode, so using main station id");
 				rewriteRequired = true;
 			}
 			AirLinkOutHostName = ini.GetValue("AirLink", "Out-Hostname", string.Empty);
@@ -4061,6 +4074,7 @@ namespace CumulusMX
 			FtpOptions.FtpMode = (FtpProtocols) ini.GetValue("FTP site", "Sslftp", 0, 0, 3);
 			if (FtpOptions.Enabled && FtpOptions.Hostname == string.Empty && FtpOptions.FtpMode != FtpProtocols.PHP)
 			{
+				LogMessage("Cumulus.ini: FTP enabled, but no hostname supplied, disabling FTP");
 				FtpOptions.Enabled = false;
 				rewriteRequired = true;
 			}
@@ -4073,14 +4087,14 @@ namespace CumulusMX
 			if (!sshAuthenticationVals.Contains(FtpOptions.SshAuthen))
 			{
 				FtpOptions.SshAuthen = "password";
-				LogWarningMessage($"Error, invalid SshFtpAuthentication value in Cumulus.ini [{FtpOptions.SshAuthen}], defaulting to Password.");
+				LogWarningMessage($"Cumulus.ini: Error, invalid SshFtpAuthentication value [{FtpOptions.SshAuthen}], defaulting to Password.");
 				rewriteRequired = true;
 			}
 			FtpOptions.SshPskFile = ini.GetValue("FTP site", "SshFtpPskFile", string.Empty);
 			if (FtpOptions.SshPskFile.Length > 0 && (FtpOptions.SshAuthen == "psk" || FtpOptions.SshAuthen == "password_psk") && !File.Exists(FtpOptions.SshPskFile))
 			{
 				FtpOptions.SshPskFile = string.Empty;
-				LogErrorMessage($"Error, file name specified by SshFtpPskFile value in Cumulus.ini does not exist [{FtpOptions.SshPskFile}].");
+				LogErrorMessage($"Cumulus.ini: Error, file name specified by SshFtpPskFile does not exist [{FtpOptions.SshPskFile}], removing it.");
 				rewriteRequired = true;
 			}
 			FtpOptions.DisableEPSV = ini.GetValue("FTP site", "DisableEPSV", false);
@@ -4099,6 +4113,7 @@ namespace CumulusMX
 				!(FtpOptions.LocalCopyFolder.EndsWith(sep1) || FtpOptions.LocalCopyFolder.EndsWith(sep2))
 				)
 			{
+				LogMessage("Cumulus.ini: Local copy folder does not end with a directory separator, adding it");
 				FtpOptions.LocalCopyFolder += sep1;
 				rewriteRequired = true;
 			}
@@ -4114,6 +4129,7 @@ namespace CumulusMX
 
 			if (FtpOptions.Enabled && FtpOptions.PhpUrl == string.Empty && FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
+				LogMessage("Cumulus.ini: PHP upload enabled but the target URL is missing, disabling uploads");
 				FtpOptions.Enabled = false;
 				rewriteRequired = true;
 			}
@@ -4139,6 +4155,7 @@ namespace CumulusMX
 			UpdateInterval = ini.GetValue("FTP site", "UpdateInterval", DefaultWebUpdateInterval);
 			if (UpdateInterval < 1)
 			{
+				LogMessage("Cumulus.ini: Update interval invalid, resetting to 1");
 				UpdateInterval = 1;
 				rewriteRequired = true;
 			}
@@ -4396,6 +4413,7 @@ namespace CumulusMX
 			Windy.Interval = ini.GetValue("Windy", "Interval", Windy.DefaultInterval);
 			if (Windy.Interval < 5)
 			{
+				LogMessage("Cumulus.ini: Windy upload interval set to less than 5 mins, resetting to 5");
 				Windy.Interval = 5;
 				rewriteRequired = true;
 			}
@@ -4425,6 +4443,7 @@ namespace CumulusMX
 			WindGuru.Interval = ini.GetValue("WindGuru", "Interval", WindGuru.DefaultInterval);
 			if (WindGuru.Interval < 1)
 			{
+				LogMessage("Cumulus.ini: WindGuru update interval invalid, resetting to 1");
 				WindGuru.Interval = 1;
 				rewriteRequired = true;
 			}
@@ -4481,6 +4500,7 @@ namespace CumulusMX
 			MQTT.IpVersion = ini.GetValue("MQTT", "IPversion", 0, 0, 6); // 0 = unspecified, 4 = force IPv4, 6 = force IPv6
 			if (MQTT.IpVersion != 0 && MQTT.IpVersion != 4 && MQTT.IpVersion != 6)
 			{
+				LogMessage("Cumulus.ini: MQTT IP Version invalid, restting to unspecified");
 				MQTT.IpVersion = 0;
 				rewriteRequired = true;
 			}
