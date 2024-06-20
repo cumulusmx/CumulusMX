@@ -331,6 +331,10 @@ namespace CumulusMX
 								avg = ConvertUnits.WindKPHToUser(avg);
 								gust = ConvertUnits.WindKPHToUser(gust);
 								break;
+							case "knots":
+									avg = ConvertUnits.WindKnotsToUser(avg);
+									gust = ConvertUnits.WindKnotsToUser(gust);
+									break;
 							default:
 								cumulus.LogErrorMessage("ApplyData: Invalid windspeed units supplied: " + data.units.windspeed);
 								retStr.AppendLine("Invalid windspeed units");

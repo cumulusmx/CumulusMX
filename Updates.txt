@@ -1,3 +1,11 @@
+4.1.2 - b4026
+—————————————
+Fixed
+- Davis VP2 connection type being decoded from Cumulus.ini incorrectly
+- Add missing knots input to JSON station
+
+
+
 4.1.1 - b4025
 —————————————
 Fixed
