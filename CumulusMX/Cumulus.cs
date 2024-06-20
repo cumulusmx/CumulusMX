@@ -4963,54 +4963,63 @@ namespace CumulusMX
 			NOAAconf.HeatThreshold = ini.GetValue("NOAA", "HeatingThreshold", -1000.0);
 			if (NOAAconf.HeatThreshold < -99 || NOAAconf.HeatThreshold > 150)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.HeatThreshold, resetting it");
 				NOAAconf.HeatThreshold = Units.Temp == 0 ? 18.3 : 65;
 				rewriteRequired = true;
 			}
 			NOAAconf.CoolThreshold = ini.GetValue("NOAA", "CoolingThreshold", -1000.0);
 			if (NOAAconf.CoolThreshold < -99 || NOAAconf.CoolThreshold > 150)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.CoolThreshold, resetting it");
 				NOAAconf.CoolThreshold = Units.Temp == 0 ? 18.3 : 65;
 				rewriteRequired = true;
 			}
 			NOAAconf.MaxTempComp1 = ini.GetValue("NOAA", "MaxTempComp1", -1000.0);
 			if (NOAAconf.MaxTempComp1 < -99 || NOAAconf.MaxTempComp1 > 150)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.MaxTempComp1, resetting it");
 				NOAAconf.MaxTempComp1 = Units.Temp == 0 ? 27 : 80;
 				rewriteRequired = true;
 			}
 			NOAAconf.MaxTempComp2 = ini.GetValue("NOAA", "MaxTempComp2", -1000.0);
 			if (NOAAconf.MaxTempComp2 < -99 || NOAAconf.MaxTempComp2 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.MaxTempComp2, resetting it");
 				NOAAconf.MaxTempComp2 = Units.Temp == 0 ? 0 : 32;
 				rewriteRequired = true;
 			}
 			NOAAconf.MinTempComp1 = ini.GetValue("NOAA", "MinTempComp1", -1000.0);
 			if (NOAAconf.MinTempComp1 < -99 || NOAAconf.MinTempComp1 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.MinTempComp1, resetting it");
 				NOAAconf.MinTempComp1 = Units.Temp == 0 ? 0 : 32;
 				rewriteRequired = true;
 			}
 			NOAAconf.MinTempComp2 = ini.GetValue("NOAA", "MinTempComp2", -1000.0);
 			if (NOAAconf.MinTempComp2 < -99 || NOAAconf.MinTempComp2 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.MinTempComp2, resetting it");
 				NOAAconf.MinTempComp2 = Units.Temp == 0 ? -18 : 0;
 				rewriteRequired = true;
 			}
 			NOAAconf.RainComp1 = ini.GetValue("NOAA", "RainComp1", -1000.0);
 			if (NOAAconf.RainComp1 < 0 || NOAAconf.RainComp1 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.RainComp1, resetting it");
 				NOAAconf.RainComp1 = Units.Rain == 0 ? 0.2 : 0.01;
 				rewriteRequired = true;
 			}
 			NOAAconf.RainComp2 = ini.GetValue("NOAA", "RainComp2", -1000.0);
 			if (NOAAconf.RainComp2 < 0 || NOAAconf.RainComp2 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.RainComp2, resetting it");
 				NOAAconf.RainComp2 = Units.Rain == 0 ? 2 : 0.1;
 				rewriteRequired = true;
 			}
 			NOAAconf.RainComp3 = ini.GetValue("NOAA", "RainComp3", -1000.0);
 			if (NOAAconf.RainComp3 < 0 || NOAAconf.RainComp3 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.RainComp3, resetting it");
 				NOAAconf.RainComp3 = Units.Rain == 0 ? 20 : 1;
 				rewriteRequired = true;
 			}
@@ -5024,6 +5033,7 @@ namespace CumulusMX
 			// Check for Cumulus 1 default format - and update
 			if (NOAAconf.MonthFile == "'NOAAMO'mmyy'.txt'" || NOAAconf.MonthFile == "\"NOAAMO\"mmyy\".txt\"")
 			{
+				LogMessage("Cumulus.ini: Updating old Cumulus 1 NOAA monthly file name");
 				NOAAconf.MonthFile = "'NOAAMO'MMyy'.txt'";
 				rewriteRequired = true;
 			}
