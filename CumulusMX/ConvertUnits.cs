@@ -131,6 +131,23 @@
 			};
 		}
 
+        /// <summary>
+        ///  Converts wind supplied in kts to user units
+        /// </summary>
+        /// <param name="value">Wind in kts</param>
+        /// <returns>Wind in configured units</returns>
+        public static double WindKTSToUser(double value)
+        {
+            return Program.cumulus.Units.Wind switch
+            {
+                0 => value * 0.51444,
+                1 => value * 1.15078,
+                2 => value * 1.852,
+                3 => value,
+                _ => 0,
+            };
+        }
+
 		/// <summary>
 		/// Converts wind in user units to m/s
 		/// </summary>
@@ -147,7 +164,7 @@
 				_ => 0,
 			};
 		}
-
+	
 		/// <summary>
 		/// Converts value in kilometres to distance unit based on users configured wind units
 		/// </summary>
