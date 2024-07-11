@@ -11867,12 +11867,12 @@ namespace CumulusMX
 
 			json.Append("[\"High Solar Radiation\",\"");
 			json.Append(HiLoToday.HighSolar.ToString("F0"));
-			json.Append("&nbsp;W/m2");
+			json.Append("&nbsp;W/m<sup>2</sup>");
 			json.Append(sepStr);
 			json.Append(HiLoToday.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighSolar.ToString("F0"));
-			json.Append("&nbsp;W/m2");
+			json.Append("&nbsp;W/m<sup>2</sup>");
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");

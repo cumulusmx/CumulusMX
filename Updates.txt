@@ -3,7 +3,8 @@
 Fixed
 - Davis VP2 connection type being decoded from Cumulus.ini incorrectly
 - Add missing knots input to JSON station
-
+- Solar W/m2 should use superscript
+- Cumulus Calculates SLP giving a spike on start-up with the following stations: Ecowitt Local API, Davis Cloud Station, Ecowitt Cloud Station, HTTP Ambient, HTTP Ecowitt
 
 
 4.1.1 - b4025

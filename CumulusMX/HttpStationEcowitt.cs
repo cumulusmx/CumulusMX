@@ -494,55 +494,6 @@ namespace CumulusMX
 					}
 
 
-					// === Pressure ===
-					try
-					{
-						// baromabsin
-						// baromrelin
-
-						var press = data["baromrelin"];
-						var stnPress = data["baromabsin"];
-
-						if (press == null)
-						{
-							cumulus.LogWarningMessage($"{procName}: Error, missing baro pressure");
-						}
-						else
-						{
-							if (!cumulus.StationOptions.CalculateSLP)
-							{
-								var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, invNum));
-								DoPressure(pressVal, recDate);
-							}
-						}
-
-						if (stnPress == null)
-						{
-							cumulus.LogDebugMessage($"{procName}: Error, missing absolute baro pressure");
-						}
-						else
-						{
-							StationPressure = ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, invNum));
-
-							if (cumulus.StationOptions.CalculateSLP)
-							{
-								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
-
-								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-
-								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
-							}
-
-							AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
-						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"{procName}: Error in Pressure data - {ex.Message}");
-						return "Failed: Error in baro pressure data - " + ex.Message;
-					}
-
-
 					// === Indoor temp ===
 					try
 					{
@@ -593,6 +544,55 @@ namespace CumulusMX
 					{
 						cumulus.LogErrorMessage($"{procName}: Error in Outdoor temp data - {ex.Message}");
 						return "Failed: Error in outdoor temp data - " + ex.Message;
+					}
+
+
+					// === Pressure ===
+					try
+					{
+						// baromabsin
+						// baromrelin
+
+						var press = data["baromrelin"];
+						var stnPress = data["baromabsin"];
+
+						if (press == null)
+						{
+							cumulus.LogWarningMessage($"{procName}: Error, missing baro pressure");
+						}
+						else
+						{
+							if (!cumulus.StationOptions.CalculateSLP)
+							{
+								var pressVal = ConvertUnits.PressINHGToUser(Convert.ToDouble(press, invNum));
+								DoPressure(pressVal, recDate);
+							}
+						}
+
+						if (stnPress == null)
+						{
+							cumulus.LogDebugMessage($"{procName}: Error, missing absolute baro pressure");
+						}
+						else
+						{
+							StationPressure = ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, invNum));
+
+							if (cumulus.StationOptions.CalculateSLP)
+							{
+								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
+
+								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+
+								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
+							}
+
+							AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in Pressure data - {ex.Message}");
+						return "Failed: Error in baro pressure data - " + ex.Message;
 					}
 
 

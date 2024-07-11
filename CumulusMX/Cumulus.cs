@@ -3820,7 +3820,7 @@ namespace CumulusMX
 				{
 					RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate, CultureInfo.CurrentCulture);
 					recreateRequired = true;
-					LogMessage($"Cumulus.ini: Changing old StartDate [{RecordsBeganDate}] to StartDateIso [{RecordsBeganDateTime.ToString("yyyy-MM-dd")}]");
+					LogMessage($"Cumulus.ini: Changing old StartDate [{RecordsBeganDate}] to StartDateIso [{RecordsBeganDateTime:yyyy-MM-dd}]");
 				}
 				catch (Exception ex)
 				{
@@ -11602,7 +11602,9 @@ namespace CumulusMX
 
 			if (FtpOptions.Logging)
 			{
+#pragma warning disable CA2254 // Template should be a static expression
 				FtpLoggerMX.LogInformation(message);
+#pragma warning restore CA2254 // Template should be a static expression
 			}
 		}
 
@@ -11612,7 +11614,9 @@ namespace CumulusMX
 			{
 				if (!string.IsNullOrEmpty(message))
 					LogDebugMessage(message);
+#pragma warning disable CA2254 // Template should be a static expression
 				FtpLoggerMX.LogInformation(message);
+#pragma warning restore CA2254 // Template should be a static expression
 			}
 		}
 

@@ -1351,6 +1351,15 @@ namespace CumulusMX
 				// finally apply this data
 				ApplyHistoricData(rec);
 
+				// Do the CMX calculate SLP now as it depends on temperature
+				if (cumulus.StationOptions.CalculateSLP)
+				{
+					var abs = cumulus.Calib.Press.Calibrate(station.StationPressure);
+					var slp = MeteoLib.GetSeaLevelPressure(station.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(abs), ConvertUnits.UserTempToC(station.OutdoorTemperature), cumulus.Latitude);
+
+					station.DoPressure(ConvertUnits.PressMBToUser(slp), rec.Key);
+				}
+
 				// add in archive period worth of sunshine, if sunny
 				if (station.CurrentSolarMax > 0 &&
 					station.SolarRad > station.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
@@ -1488,16 +1497,8 @@ namespace CumulusMX
 				if (rec.Value.StationPressure.HasValue)
 				{
 					station.StationPressure = (double) rec.Value.StationPressure;
-
-					if (cumulus.StationOptions.CalculateSLP)
-					{
-						station.StationPressure = cumulus.Calib.Press.Calibrate(station.StationPressure);
-						var slp = MeteoLib.GetSeaLevelPressure(station.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(station.StationPressure), ConvertUnits.UserTempToC(station.OutdoorTemperature), cumulus.Latitude);
-
-						station.DoPressure(ConvertUnits.PressMBToUser(slp), rec.Key);
-					}
-
 					station.AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(station.StationPressure, station.AltitudeM(cumulus.Altitude)));
+					// Leave CMX calculated SLP until the end as it uses Temperature
 				}
 				else
 				{

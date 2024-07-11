@@ -372,13 +372,9 @@ namespace CumulusMX
 						{
 							StationPressure = data.pressure.absolute.value;
 
-							if (cumulus.StationOptions.CalculateSLP)
-							{
-								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
-								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), StationPressure, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-								DoPressure(slp, Utils.FromUnixTime(data.pressure.absolute.time));
-							}
-							else
+							// leave cmx calculated SLP until the end as it depends on temperature
+
+							if (!cumulus.StationOptions.CalculateSLP)
 							{
 								DoPressure(data.pressure.relative.value, Utils.FromUnixTime(data.pressure.relative.time));
 							}
@@ -592,6 +588,12 @@ namespace CumulusMX
 					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Camera data - {ex.Message}");
 				}
 
+				if (cumulus.StationOptions.CalculateSLP)
+				{
+					var abs = cumulus.Calib.Press.Calibrate(StationPressure);
+					var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(abs), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+					DoPressure(ConvertUnits.PressMBToUser(slp), Utils.FromUnixTime(data.pressure.absolute.time));
+				}
 
 				thisStation.DoForecast("", false);
 
