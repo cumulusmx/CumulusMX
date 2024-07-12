@@ -14,6 +14,8 @@ Fixed
 - Add missing knots input to JSON station
 - Solar W/m2 should use superscript
 - Cumulus Calculates SLP giving a spike on start-up with the following stations: Ecowitt Local API, Davis Cloud Station, Ecowitt Cloud Station, HTTP Ambient, HTTP Ecowitt
+- Fix missing wind run units and humidity % in ai2 dashboard
+
 
 
 4.1.1 - b4025
