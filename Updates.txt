@@ -1,5 +1,8 @@
 4.1.2 - b4026
 —————————————
+New
+- Adds wind run to the dashboard "now" page
+
 Fixed
 - Davis VP2 connection type being decoded from Cumulus.ini incorrectly
 - Add missing knots input to JSON station
