@@ -2,6 +2,12 @@
 —————————————
 New
 - Adds wind run to the dashboard "now" page
+- Adds support for the format parameter to the <#ProgramUpTime> and <#SystemUpTime> web tags
+	- The format syntax is different from date/time web tags as these two tags use a elapsed time.
+	- For Custom format specifiers see: https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-timespan-format-strings
+	- For Standard format specifiers see: https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-timespan-format-strings
+	- The default output is generated using the format string "{0:%d} days {0:%h} hours"
+	- You can customise this like this example: <#SystemUpTime format="{0:%d}d {0:%h}h {0:%m}m">  --> "12d 9h 46m"
 
 Fixed
 - Davis VP2 connection type being decoded from Cumulus.ini incorrectly

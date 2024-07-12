@@ -414,6 +414,12 @@ namespace CumulusMX
 			return GetFormattedDateTime(dt, defaultFormat, tagParams);
 		}
 
+		private static string GetFormattedTimeSpan(TimeSpan ts, string defaultFormat, Dictionary<string, string> tagParams)
+		{
+			string dtformat = tagParams.Get("format") ?? defaultFormat;
+			return String.Format(dtformat, ts);
+		}
+
 		private string GetMonthlyAlltimeValueStr(AllTimeRec rec, Dictionary<string, string> tagParams, int decimals)
 		{
 			if (rec.Ts <= cumulus.defaultRecordTS)
@@ -5350,7 +5356,7 @@ namespace CumulusMX
 
 				TimeSpan ts = TimeSpan.FromSeconds(upTime);
 
-				return string.Format($"{ts.Days} days {ts.Hours} hours");
+				return GetFormattedTimeSpan(ts, "{0:%d} days {0:%h} hours", tagParams);
 			}
 			catch (Exception ex)
 			{
@@ -5363,7 +5369,7 @@ namespace CumulusMX
 		private static string TagProgramUpTime(Dictionary<string, string> tagParams)
 		{
 			TimeSpan ts = DateTime.Now.ToUniversalTime() - Program.StartTime.ToUniversalTime();
-			return string.Format($"{ts.Days} days {ts.Hours} hours");
+			return GetFormattedTimeSpan(ts, "{0:%d} days {0:%h} hours", tagParams);
 		}
 
 		private static string TagProgramUpTimeMs(Dictionary<string, string> tagParams)
