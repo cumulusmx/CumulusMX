@@ -1348,7 +1348,7 @@ namespace CumulusMX
 					if (newLightningTime > LightningTime)
 					{
 						LightningTime = newLightningTime;
-						if (newLightningDistance != 999)
+						if (newLightningDistance < 999)
 							LightningDistance = newLightningDistance;
 					}
 

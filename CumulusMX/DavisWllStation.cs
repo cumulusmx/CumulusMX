@@ -2047,9 +2047,9 @@ namespace CumulusMX
 
 								try
 								{
-									if (data11.temp_last == -99 || data11.temp_last == null)
+									if (data11.temp_last < -98 || data11.temp_last == null)
 									{
-										cumulus.LogDebugMessage($"WL.com historic: Warning, no valid Extra temperature value on TxId {data11.tx_id}");
+										cumulus.LogDebugMessage($"WL.com historic: Warning, no valid Extra temperature value [-99] on TxId {data11.tx_id}");
 									}
 									else
 									{
