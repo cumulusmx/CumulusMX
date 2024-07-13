@@ -1251,7 +1251,7 @@ namespace CumulusMX
 											}
 											else
 											{
-												cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Humidity data");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Humidity data");
 											}
 										}
 										catch (Exception ex)
@@ -1264,7 +1264,7 @@ namespace CumulusMX
 										{
 											if (data.temp_out.HasValue && data.temp_out < -98)
 											{
-												cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Primary temperature value found [-99]");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Primary temperature value found [-99]");
 											}
 											else
 											{
@@ -1277,7 +1277,7 @@ namespace CumulusMX
 												}
 												else
 												{
-													cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Temperature data");
+													cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Temperature data");
 												}
 											}
 										}
@@ -1296,7 +1296,7 @@ namespace CumulusMX
 											}
 											else
 											{
-												cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Dew Point data");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Dew Point data");
 											}
 										}
 										catch (Exception ex)
@@ -1378,7 +1378,7 @@ namespace CumulusMX
 											}
 											else
 											{
-												cumulus.LogDebugMessage("DecodeCurrent: Warning, no valid Wind data");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Wind data");
 											}
 										}
 										catch (Exception ex)
@@ -1471,10 +1471,6 @@ namespace CumulusMX
 
 												DoUV(data.uv.Value, lastRecordTime);
 											}
-											else
-											{
-												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid UV data");
-											}
 										}
 										catch (Exception ex)
 										{
@@ -1495,15 +1491,11 @@ namespace CumulusMX
 											{
 												cumulus.LogDebugMessage("DecodeCurrent: using solar data");
 												DoSolarRad(data.solar_rad.Value, lastRecordTime);
-											}
-											else
-											{
-												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Solar data");
-											}
 
-											if (data.et_year.HasValue && !cumulus.StationOptions.CalculatedET && (data.et_year.Value >= 0) && (data.et_year.Value < 32000))
-											{
-												DoET(ConvertUnits.RainINToUser(data.et_year.Value), lastRecordTime);
+												if (data.et_year.HasValue && !cumulus.StationOptions.CalculatedET && (data.et_year.Value >= 0) && (data.et_year.Value < 32000))
+												{
+													DoET(ConvertUnits.RainINToUser(data.et_year.Value), lastRecordTime);
+												}
 											}
 										}
 										catch (Exception ex)
