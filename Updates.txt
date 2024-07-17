@@ -9,6 +9,9 @@ New
 	- The default output is generated using the format string "{0:%d} days {0:%h} hours"
 	- You can customise this like this example: <#SystemUpTime format="{0:%d}d {0:%h}h {0:%m}m">  --> "12d 9h 46m"
 
+Changed
+- Daily backup now runs asynchronously to prevent it stopping MX continue to run
+
 Fixed
 - Davis VP2 connection type being decoded from Cumulus.ini incorrectly
 - Add missing knots input to JSON station
@@ -16,6 +19,8 @@ Fixed
 - Cumulus Calculates SLP giving a spike on start-up with the following stations: Ecowitt Local API, Davis Cloud Station, Ecowitt Cloud Station, HTTP Ambient, HTTP Ecowitt
 - Add missing wind run units and extra space in humidity % in ai2 dashboard
 - Remove UV/Solar missing data messages from Davis Cloud (VP2)
+- A new version of MigrateData3to4 (1.0.3) to fix issues migrating the day file
+- Negative 0.0 appearing when no rainfall has occurred
 
 
 

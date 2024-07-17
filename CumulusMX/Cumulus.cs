@@ -11126,17 +11126,17 @@ namespace CumulusMX
 							if (FtpOptions.PhpCompression == "gzip")
 							{
 								using var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true);
-								await zipped.WriteAsync(byteData, 0, byteData.Length);
+								await zipped.WriteAsync(byteData, 0, byteData.Length, cancellationToken);
 							}
 							else if (FtpOptions.PhpCompression == "deflate")
 							{
 								using var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true);
-								await zipped.WriteAsync(byteData, 0, byteData.Length);
+								await zipped.WriteAsync(byteData, 0, byteData.Length, cancellationToken);
 							}
 
 							ms.Position = 0;
 							byte[] compressed = new byte[ms.Length];
-							await ms.ReadAsync(compressed, 0, compressed.Length);
+							await ms.ReadAsync(compressed, 0, compressed.Length, cancellationToken);
 
 							outStream = new MemoryStream(compressed);
 							streamContent = new StreamContent(outStream);

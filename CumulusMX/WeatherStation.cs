@@ -2078,7 +2078,7 @@ namespace CumulusMX
 			if (now.Hour == rollHour)
 			{
 				DayReset(now);
-				cumulus.BackupData(true, now);
+				Task.Run(() => cumulus.BackupData(true, now));
 			}
 
 			if (now.Hour == 0)
@@ -5887,6 +5887,8 @@ namespace CumulusMX
 
 				// Calculate today"s rainfall
 				RainToday = (RainCounter - RainCounterDayStart) * cumulus.Calib.Rain.Mult;
+				// Allow for rounding errors
+				if (RainToday < 0) RainToday = 0;
 
 				// Calculate rain since midnight for Wunderground etc
 				double trendval = RainCounter - MidnightRainCount;
