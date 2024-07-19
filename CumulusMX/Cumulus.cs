@@ -8231,165 +8231,179 @@ namespace CumulusMX
 				if (!File.Exists(dirpath + DirectorySeparator + filename))
 				{
 					// create a zip archive file for the backup
-					using (FileStream zipFile = new FileStream(dirpath + DirectorySeparator + filename, FileMode.Create))
+					try
 					{
-						using ZipArchive archive = new ZipArchive(zipFile, ZipArchiveMode.Create);
-						try
+						using (FileStream zipFile = new FileStream(dirpath + DirectorySeparator + filename, FileMode.Create))
 						{
-							if (File.Exists(AlltimeIniFile))
-								archive.CreateEntryFromFile(AlltimeIniFile, alltimebackup);
-							if (File.Exists(MonthlyAlltimeIniFile))
-								archive.CreateEntryFromFile(MonthlyAlltimeIniFile, monthlyAlltimebackup);
-							if (File.Exists(DayFileName))
-								archive.CreateEntryFromFile(DayFileName, daybackup);
-							if (File.Exists(TodayIniFile))
-								archive.CreateEntryFromFile(TodayIniFile, todaybackup);
-							if (File.Exists(YesterdayFile))
-								archive.CreateEntryFromFile(YesterdayFile, yesterdaybackup);
-							if (File.Exists(LogFile))
-								archive.CreateEntryFromFile(LogFile, logbackup);
-							if (File.Exists(MonthIniFile))
-								archive.CreateEntryFromFile(MonthIniFile, monthbackup);
-							if (File.Exists(YearIniFile))
-								archive.CreateEntryFromFile(YearIniFile, yearbackup);
-							if (File.Exists("Cumulus.ini"))
-								archive.CreateEntryFromFile("Cumulus.ini", configbackup);
-							if (File.Exists("UniqueId.txt"))
-								archive.CreateEntryFromFile("UniqueId.txt", uniquebackup);
-							if (File.Exists("strings.ini"))
-								archive.CreateEntryFromFile("strings.ini", stringsbackup);
-						}
-						catch (Exception ex)
-						{
-							LogExceptionMessage(ex, "Backup: Error backing up the data files");
-						}
-
-						if (daily)
-						{
-							// for daily backup the db is in use, so use an online backup
+							using ZipArchive archive = new ZipArchive(zipFile, ZipArchiveMode.Create);
 							try
 							{
-								var backUpDest = dirpath + "cumulusmx.db";
-								var zipLocation = datafolder + "cumulusmx.db";
-								LogDebugMessage("Making backup copy of the database");
-								station.RecentDataDb.Backup(backUpDest);
-								LogDebugMessage("Completed backup copy of the database");
-
-								LogDebugMessage("Archiving backup copy of the database");
-								archive.CreateEntryFromFile(backUpDest, zipLocation);
-								LogDebugMessage("Completed backup copy of the database");
-
-								LogDebugMessage("Deleting backup copy of the database");
-								File.Delete(backUpDest);
-
-								backUpDest = dirpath + "diary.db";
-								zipLocation = datafolder + "diary.db";
-								LogDebugMessage("Making backup copy of the diary");
-								DiaryDB.Backup(backUpDest);
-								LogDebugMessage("Completed backup copy of the diary");
-
-								LogDebugMessage("Archiving backup copy of the diary");
-								archive.CreateEntryFromFile(backUpDest, zipLocation);
-								LogDebugMessage("Completed backup copy of the diary");
-
-								LogDebugMessage("Deleting backup copy of the diary");
-								File.Delete(backUpDest);
+								if (File.Exists(AlltimeIniFile))
+									archive.CreateEntryFromFile(AlltimeIniFile, alltimebackup);
+								if (File.Exists(MonthlyAlltimeIniFile))
+									archive.CreateEntryFromFile(MonthlyAlltimeIniFile, monthlyAlltimebackup);
+								if (File.Exists(DayFileName))
+									archive.CreateEntryFromFile(DayFileName, daybackup);
+								if (File.Exists(TodayIniFile))
+									archive.CreateEntryFromFile(TodayIniFile, todaybackup);
+								if (File.Exists(YesterdayFile))
+									archive.CreateEntryFromFile(YesterdayFile, yesterdaybackup);
+								if (File.Exists(LogFile))
+									archive.CreateEntryFromFile(LogFile, logbackup);
+								if (File.Exists(MonthIniFile))
+									archive.CreateEntryFromFile(MonthIniFile, monthbackup);
+								if (File.Exists(YearIniFile))
+									archive.CreateEntryFromFile(YearIniFile, yearbackup);
+								if (File.Exists("Cumulus.ini"))
+									archive.CreateEntryFromFile("Cumulus.ini", configbackup);
+								if (File.Exists("UniqueId.txt"))
+									archive.CreateEntryFromFile("UniqueId.txt", uniquebackup);
+								if (File.Exists("strings.ini"))
+									archive.CreateEntryFromFile("strings.ini", stringsbackup);
 							}
 							catch (Exception ex)
 							{
-								LogExceptionMessage(ex, "Error making db backup");
+								LogExceptionMessage(ex, "Backup: Error backing up the data files");
 							}
-						}
-						else
-						{
-							// start-up backup - the db is not yet in use, do a file copy including any recovery files
+
+							if (daily)
+							{
+								// for daily backup the db is in use, so use an online backup
+								try
+								{
+									var backUpDest = dirpath + "cumulusmx.db";
+									var zipLocation = datafolder + "cumulusmx.db";
+									LogDebugMessage("Making backup copy of the database");
+									station.RecentDataDb.Backup(backUpDest);
+									LogDebugMessage("Completed backup copy of the database");
+
+									LogDebugMessage("Archiving backup copy of the database");
+									archive.CreateEntryFromFile(backUpDest, zipLocation);
+									LogDebugMessage("Completed backup copy of the database");
+
+									LogDebugMessage("Deleting backup copy of the database");
+									File.Delete(backUpDest);
+
+									backUpDest = dirpath + "diary.db";
+									zipLocation = datafolder + "diary.db";
+									LogDebugMessage("Making backup copy of the diary");
+									DiaryDB.Backup(backUpDest);
+									LogDebugMessage("Completed backup copy of the diary");
+
+									LogDebugMessage("Archiving backup copy of the diary");
+									archive.CreateEntryFromFile(backUpDest, zipLocation);
+									LogDebugMessage("Completed backup copy of the diary");
+
+									LogDebugMessage("Deleting backup copy of the diary");
+									File.Delete(backUpDest);
+								}
+								catch (Exception ex)
+								{
+									LogExceptionMessage(ex, "Error making db backup");
+								}
+							}
+							else
+							{
+								// start-up backup - the db is not yet in use, do a file copy including any recovery files
+								try
+								{
+									LogDebugMessage("Archiving the database");
+									if (File.Exists(dbfile))
+										archive.CreateEntryFromFile(dbfile, dbBackup);
+
+									if (File.Exists(dbfile + "-journal"))
+										archive.CreateEntryFromFile(dbfile + "-journal", dbBackup + "-journal");
+
+									if (File.Exists(diaryfile))
+										archive.CreateEntryFromFile(diaryfile, diarybackup);
+
+									if (File.Exists(diaryfile + "-journal"))
+										archive.CreateEntryFromFile(diaryfile + "-journal", diarybackup + "-journal");
+
+									LogDebugMessage("Completed archive of the database");
+								}
+								catch (Exception ex)
+								{
+									LogExceptionMessage(ex, "Backup: Error backing up the database files");
+								}
+							}
+
 							try
 							{
-								LogDebugMessage("Archiving the database");
-								if (File.Exists(dbfile))
-									archive.CreateEntryFromFile(dbfile, dbBackup);
+								if (File.Exists(extraFile))
+									archive.CreateEntryFromFile(extraFile, extraBackup);
+								if (File.Exists(AirLinkFile))
+									archive.CreateEntryFromFile(AirLinkFile, AirLinkBackup);
 
-								if (File.Exists(dbfile + "-journal"))
-									archive.CreateEntryFromFile(dbfile + "-journal", dbBackup + "-journal");
-
-								if (File.Exists(diaryfile))
-									archive.CreateEntryFromFile(diaryfile, diarybackup);
-
-								if (File.Exists(diaryfile + "-journal"))
-									archive.CreateEntryFromFile(diaryfile + "-journal", diarybackup + "-journal");
-
-								LogDebugMessage("Completed archive of the database");
-							}
-							catch (Exception ex)
-							{
-								LogExceptionMessage(ex, "Backup: Error backing up the database files");
-							}
-						}
-
-						try
-						{
-							if (File.Exists(extraFile))
-								archive.CreateEntryFromFile(extraFile, extraBackup);
-							if (File.Exists(AirLinkFile))
-								archive.CreateEntryFromFile(AirLinkFile, AirLinkBackup);
-
-							// custom logs
-							for (var i = 0; i < 10; i++)
-							{
-								if (CustomIntvlLogSettings[i].Enabled)
-								{
-									var custfilename = GetCustomIntvlLogFileName(i, timestamp);
-									if (File.Exists(custfilename))
-										archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
-								}
-
-								if (CustomDailyLogSettings[i].Enabled)
-								{
-									var custfilename = GetCustomDailyLogFileName(i);
-									if (File.Exists(custfilename))
-										archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
-								}
-							}
-
-							// Do not do this extra backup between 00:00 & Roll-over hour on the first of the month
-							// as the month has not yet rolled over - only applies for start-up backups
-							if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
-							{
-								var newTime = timestamp.AddDays(-1);
-								// on the first of month, we also need to backup last months files as well
-								var LogFile2 = GetLogFileName(newTime);
-								var logbackup2 = datafolder + Path.GetFileName(LogFile2);
-
-								var extraFile2 = GetExtraLogFileName(newTime);
-								var extraBackup2 = datafolder + Path.GetFileName(extraFile2);
-
-								var AirLinkFile2 = GetAirLinkLogFileName(timestamp.AddDays(-1));
-								var AirLinkBackup2 = datafolder + Path.GetFileName(AirLinkFile2);
-
-								if (File.Exists(LogFile2))
-									archive.CreateEntryFromFile(LogFile2, logbackup2);
-								if (File.Exists(extraFile2))
-									archive.CreateEntryFromFile(extraFile2, extraBackup2);
-								if (File.Exists(AirLinkFile2))
-									archive.CreateEntryFromFile(AirLinkFile2, AirLinkBackup2);
-
+								// custom logs
 								for (var i = 0; i < 10; i++)
 								{
 									if (CustomIntvlLogSettings[i].Enabled)
 									{
-										var custfilename = GetCustomIntvlLogFileName(i, newTime);
+										var custfilename = GetCustomIntvlLogFileName(i, timestamp);
+										if (File.Exists(custfilename))
+											archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
+									}
+
+									if (CustomDailyLogSettings[i].Enabled)
+									{
+										var custfilename = GetCustomDailyLogFileName(i);
 										if (File.Exists(custfilename))
 											archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
 									}
 								}
+
+								// Do not do this extra backup between 00:00 & Roll-over hour on the first of the month
+								// as the month has not yet rolled over - only applies for start-up backups
+								if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
+								{
+									var newTime = timestamp.AddDays(-1);
+									// on the first of month, we also need to backup last months files as well
+									var LogFile2 = GetLogFileName(newTime);
+									var logbackup2 = datafolder + Path.GetFileName(LogFile2);
+
+									var extraFile2 = GetExtraLogFileName(newTime);
+									var extraBackup2 = datafolder + Path.GetFileName(extraFile2);
+
+									var AirLinkFile2 = GetAirLinkLogFileName(timestamp.AddDays(-1));
+									var AirLinkBackup2 = datafolder + Path.GetFileName(AirLinkFile2);
+
+									if (File.Exists(LogFile2))
+										archive.CreateEntryFromFile(LogFile2, logbackup2);
+									if (File.Exists(extraFile2))
+										archive.CreateEntryFromFile(extraFile2, extraBackup2);
+									if (File.Exists(AirLinkFile2))
+										archive.CreateEntryFromFile(AirLinkFile2, AirLinkBackup2);
+
+									for (var i = 0; i < 10; i++)
+									{
+										if (CustomIntvlLogSettings[i].Enabled)
+										{
+											var custfilename = GetCustomIntvlLogFileName(i, newTime);
+											if (File.Exists(custfilename))
+												archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
+										}
+									}
+								}
+							}
+							catch (Exception ex)
+							{
+								LogExceptionMessage(ex, "Backup: Error backing up extra log files");
 							}
 						}
-						catch (Exception ex)
-						{
-							LogExceptionMessage(ex, "Backup: Error backing up extra log files");
-						}
+
+						LogMessage("Created backup file " + filename);
 					}
-					LogMessage("Created backup file " + filename);
+					catch (UnauthorizedAccessException)
+					{
+						LogErrorMessage("BackupData: Error, no permission to create/write file: " + dirpath + DirectorySeparator + filename);
+						LogConsoleMessage("Error, no permission to create/write file: " + dirpath + DirectorySeparator + filename, ConsoleColor.Yellow);
+					}
+					catch (Exception ex)
+					{
+						LogErrorMessage($"BackupData: Error while attempting to create/write file: {dirpath + DirectorySeparator + filename}, error message: {ex.Message}");
+						LogConsoleMessage($"Error while attempting to create/write file: {dirpath + DirectorySeparator + filename}, error message: {ex.Message}", ConsoleColor.Yellow);
+					}
 				}
 				else
 				{
