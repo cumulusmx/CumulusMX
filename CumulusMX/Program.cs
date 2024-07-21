@@ -129,9 +129,10 @@ namespace CumulusMX
 			var lang = string.Empty;
 			var servicename = string.Empty;
 
-			for (int i = 0; i < args.Length; i++)
+			try
 			{
-				try
+				int i = 0;
+				while (i < args.Length)
 				{
 					switch (args[i])
 					{
@@ -184,11 +185,13 @@ namespace CumulusMX
 							Usage();
 							break;
 					}
+
+					i++;
 				}
-				catch
-				{
-					Usage();
-				}
+			}
+			catch
+			{
+				Usage();
 			}
 
 

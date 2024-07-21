@@ -2057,9 +2057,6 @@ namespace CumulusMX
 			cumulus.RotateLogFiles();
 
 			ClearAlarms();
-
-			System.Runtime.GCSettings.LargeObjectHeapCompactionMode = System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
-			GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false);
 		}
 
 		private void HourChanged(DateTime now)
@@ -2089,6 +2086,9 @@ namespace CumulusMX
 			}
 
 			RemoveOldRecentData(now);
+
+			System.Runtime.GCSettings.LargeObjectHeapCompactionMode = System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+			//GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false)
 		}
 
 		private void CheckForDataStopped()
@@ -2112,7 +2112,7 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage("*** Data input appears to have stopped");
 				}
-			}
+			}		// Calculates evapotranspiration based on the data for the last hour and updates the running annual total.
 			else
 			{
 				DataStopped = false;
@@ -2146,6 +2146,8 @@ namespace CumulusMX
 			}
 		}
 
+
+		// Calculates evapotranspiration based on the data for the last hour and updates the running annual total.
 		public void CalculateEvapotranspiration(DateTime date)
 		{
 			cumulus.LogDebugMessage("Calculating ET from data");
@@ -13797,7 +13799,7 @@ namespace CumulusMX
 				HiLoToday.LowAppTemp, HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), CurrentSolarMax,
 				AllTime.HighPress.Val, AllTime.LowPress.Val, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
 				HiLoToday.HighHourlyRain, HiLoToday.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat), "F" + Cumulus.Beaufort(HiLoToday.HighWind), "F" + Cumulus.Beaufort(WindAverage),
-				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToLocalTime().ToString(cumulus.ProgramOptions.TimeFormatLong), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
+				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp, DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 				FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
 				HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat), alarms);
 

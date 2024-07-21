@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
@@ -17,7 +18,7 @@ namespace CumulusMX
 						string highUVindexTodayTime, string forecast, string sunrise, string sunset, string moonrise, string moonset, double highHeatIndexToday,
 						string highHeatIndexTodayTime, double highAppTempToday, double lowAppTempToday, string highAppTempTodayTime, string lowAppTempTodayTime,
 						int currentSolarMax, double alltimeHighPressure, double alltimeLowPressure, double sunshineHours, string domWindDir, string lastRainTipISO,
-						double highHourlyRainToday, string highHourlyRainTodayTime, string highBeaufortToday, string beaufort, string beaufortDesc, string lastDataRead,
+						double highHourlyRainToday, string highHourlyRainTodayTime, string highBeaufortToday, string beaufort, string beaufortDesc, DateTime lastDataRead,
 						bool dataStopped, double stormRain, string stormRainStart, int cloudbase, string cloudbaseUnit, double last24hourRain,
 						double feelsLike, double highFeelsLikeToday, string highFeelsLikeTodayTime, double lowFeelsLikeToday, string lowFeelsLikeTodayTime,
 						double highHumidexToday, string highHumidexTodayTime, List<DashboardAlarms> alarms)
@@ -603,7 +604,14 @@ namespace CumulusMX
 		public string BeaufortDesc { get; } = beaufortDesc;
 
 		[DataMember]
-		public string LastDataRead { get; } = lastDataRead;
+		public string LastDataRead { get; } = lastDataRead.ToLocalTime().ToString(cumulus.ProgramOptions.TimeFormatLong);
+
+		[DataMember]
+		public string LastDataReadDate
+		{
+			get => lastDataRead.ToLocalTime().ToString("d");
+		}
+
 
 		[DataMember]
 		public bool DataStopped { get; } = dataStopped;
