@@ -861,15 +861,15 @@ namespace CumulusMX
 
 			if (cumulus.FineOffsetOptions.SyncReads && !synchronising)
 			{
-				var doSensorSync = DateTime.Now.Subtract(FOSensorClockTime).TotalDays > 1;
-				var doStationSync = DateTime.Now.Subtract(FOStationClockTime).TotalDays > 1;
-				doSolarSync = hasSolar && DateTime.Now.Subtract(FOSolarClockTime).TotalDays > 1;
+				var doSensorSync = DateTime.UtcNow.Subtract(FOSensorClockTime.ToUniversalTime()).TotalDays > 1;
+				var doStationSync = DateTime.UtcNow.Subtract(FOStationClockTime.ToUniversalTime()).TotalDays > 1;
+				doSolarSync = hasSolar && DateTime.UtcNow.Subtract(FOSolarClockTime.ToUniversalTime()).TotalDays > 1;
 
 				if (doSensorSync || doStationSync || doSolarSync)
 				{
 					doSolarSync = hasSolar;
 
-					if (hasSolar && DateTime.Now.Subtract(FOSolarClockTime).TotalDays > 1)
+					if (hasSolar && DateTime.UtcNow.Subtract(FOSolarClockTime.ToUniversalTime()).TotalDays > 1)
 					{
 						if (DateTime.Now.CompareTo(cumulus.SunRiseTime.AddMinutes(30)) > 0)
 						{
@@ -1111,7 +1111,7 @@ namespace CumulusMX
 					StopSynchronising();
 					FinaliseSync();
 				}
-				else if (DateTime.Now.Subtract(syncStart).TotalMinutes > 1)
+				else if (DateTime.UtcNow.Subtract(syncStart.ToUniversalTime()).TotalMinutes > 1)
 				{
 					StopSynchronising();
 

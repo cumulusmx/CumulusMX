@@ -2548,14 +2548,81 @@ namespace CumulusMX
 								rolloverdone = false;
 							}
 
+							int interval;
+							if (starting && timestamp > nextLoggerTime)
+							{
+								interval = loggerInterval;
+								starting = false;
+							}
+							else
+							{
+								interval = (int) (timestamp - lastDataReadTime).TotalMinutes;
+							}
+
 							// ..and then process it
 
 							// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
-							// Windrun
-							// Dominant wind bearing
+							// Windrun (done)
+							// Dominant wind bearing (done)
 							// ET - if MX calculated
-							// Degree days
-							// Rainfall
+							// Degree days (done)
+							// Rainfall (done)
+
+							if (h == rollHour && !rolloverdone)
+							{
+								double lastAvg = ConvertUnits.WindMPHToUser(archiveData.AvgWindSpeed);
+								if (archiveData.HiWindSpeed < 250 && archiveData.AvgWindSpeed < 250)
+								{
+									int bearing = archiveData.WindDirection;
+									bearing = bearing == 255 ? 0 : (int) (bearing * 22.5);
+
+									// update dominant wind bearing
+									CalculateDominantWindBearing(bearing, WindAverage, interval);
+								}
+
+								// add in 'archivePeriod' minutes worth of wind speed to windrun
+								WindRunToday += ((lastAvg * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+
+								var preDayTS = timestamp.AddDays(-1).Date.AddHours(23).AddMinutes(59);
+
+								CheckForWindrunHighLow(preDayTS);
+
+
+								if (!cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
+								{
+									DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, preDayTS);
+								}
+
+
+								// Now process the "average" interval temperature - use this as our
+								if ((archiveData.OutsideTemperature > -200) && (archiveData.OutsideTemperature < 300))
+								{
+									var temp = ConvertUnits.TempFToUser(archiveData.OutsideTemperature);
+									// add in 'archivePeriod' minutes worth of temperature to the temp samples
+									tempsamplestoday += interval;
+									TempTotalToday += (temp * interval);
+
+									// update chill hours
+									if (temp < cumulus.ChillHourThreshold)
+									{
+										// add 1 minute to chill hours
+										ChillHours += (interval / 60.0);
+									}
+
+									// update heating/cooling degree days
+									UpdateDegreeDays(interval);
+								}
+
+								var lastRain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
+								double lastRainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
+
+								if (lastRainrate < 0)
+								{
+									lastRainrate = 0;
+								}
+
+								DoRain(lastRain, lastRainrate, preDayTS);
+							}
 
 
 							// In roll-over hour and roll-over not yet done
@@ -2593,17 +2660,6 @@ namespace CumulusMX
 								midnightraindone = true;
 							}
 
-							int interval;
-							if (starting && timestamp > nextLoggerTime)
-							{
-								interval = loggerInterval;
-								starting = false;
-							}
-							else
-							{
-								interval = (int) (timestamp - lastDataReadTime).TotalMinutes;
-							}
-
 							if ((archiveData.InsideTemperature > -200) && (archiveData.InsideTemperature < 300))
 							{
 								DoIndoorTemp(ConvertUnits.TempFToUser(archiveData.InsideTemperature));
@@ -2635,19 +2691,24 @@ namespace CumulusMX
 							if ((archiveData.OutsideTemperature > -200) && (archiveData.OutsideTemperature < 300))
 							{
 								DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.OutsideTemperature), timestamp);
-								// add in 'archivePeriod' minutes worth of temperature to the temp samples
-								tempsamplestoday += interval;
-								TempTotalToday += (OutdoorTemperature * interval);
 
-								// update chill hours
-								if (OutdoorTemperature < cumulus.ChillHourThreshold)
+								// we don't want to do the totals for the first instant of the day
+								if (h != rollHour || timestamp.Minute != 0)
 								{
-									// add 1 minute to chill hours
-									ChillHours += (interval / 60.0);
-								}
+									// add in 'archivePeriod' minutes worth of temperature to the temp samples
+									tempsamplestoday += interval;
+									TempTotalToday += (OutdoorTemperature * interval);
 
-								// update heating/cooling degree days
-								UpdateDegreeDays(interval);
+									// update chill hours
+									if (OutdoorTemperature < cumulus.ChillHourThreshold)
+									{
+										// add 1 minute to chill hours
+										ChillHours += (interval / 60.0);
+									}
+
+									// update heating/cooling degree days
+									UpdateDegreeDays(interval);
+								}
 							}
 
 							double wind = ConvertUnits.WindMPHToUser(archiveData.HiWindSpeed);
@@ -2671,21 +2732,13 @@ namespace CumulusMX
 							DoCloudBaseHeatIndex(timestamp);
 
 							// add in 'archivePeriod' minutes worth of wind speed to windrun
-							WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
-
-							DateTime windruncheckTS;
-							if ((h == rollHour) && (timestamp.Minute == 0))
+							// we don't want to do the this for the first instant of the day
+							if (h != rollHour || timestamp.Minute != 0)
 							{
-								// this is the last logger entry before roll-over
-								// fudge the timestamp to make sure it falls in the previous day
-								windruncheckTS = timestamp.AddMinutes(-1);
-							}
-							else
-							{
-								windruncheckTS = timestamp;
+								WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+								CheckForWindrunHighLow(timestamp);
 							}
 
-							CheckForWindrunHighLow(windruncheckTS);
 
 							double rain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
 							double rainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
@@ -2716,7 +2769,8 @@ namespace CumulusMX
 									SunshineHours += (interval / 60.0);
 							}
 
-							if (!cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
+							// we don't want to do the this for the first instant of the day
+							if ((h != rollHour || timestamp.Minute != 0) && !cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
 							{
 								DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
 							}
@@ -2831,7 +2885,8 @@ namespace CumulusMX
 								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 							DoTrendValues(timestamp);
 
-							if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+							// we don't want to do the this for the first instant of the day
+							if (cumulus.StationOptions.CalculatedET && h != rollHour && timestamp.Minute != 0)
 							{
 								// Start of a new hour, and we want to calculate ET in Cumulus
 								CalculateEvapotranspiration(timestamp);

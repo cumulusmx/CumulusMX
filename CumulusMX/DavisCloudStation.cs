@@ -696,6 +696,13 @@ namespace CumulusMX
 					DoHumidex(timestamp);
 					DoCloudBaseHeatIndex(timestamp);
 
+					if (cumulus.StationOptions.CalculateSLP && StationPressure > 0)
+					{
+						var abs = cumulus.Calib.Press.Calibrate(StationPressure);
+						var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(abs), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+						DoPressure(ConvertUnits.PressMBToUser(slp), timestamp);
+					}
+
 					// Log all the data
 					_ = cumulus.DoLogFile(timestamp, false);
 					cumulus.MySqlRealtimeFile(999, false, timestamp);
@@ -1006,21 +1013,7 @@ namespace CumulusMX
 										lsidLastUpdate[sensor.lsid] = rec.ts;
 										var ts = Utils.FromUnixTime(rec.ts);
 
-										if (cumulus.StationOptions.CalculateSLP)
-										{
-											if (rec.bar_absolute.HasValue)
-											{
-												var abs = ConvertUnits.PressINHGToHpa(rec.bar_absolute.Value);
-												abs = cumulus.Calib.Press.Calibrate(abs);
-												var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), abs, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-												DoPressure(ConvertUnits.PressMBToUser(slp), ts);
-											}
-											else
-											{
-												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Baro data (absolute)");
-											}
-										}
-										else
+										if (!cumulus.StationOptions.CalculateSLP)
 										{
 											if (rec.bar_sea_level.HasValue)
 											{
@@ -1258,7 +1251,7 @@ namespace CumulusMX
 											}
 											else
 											{
-												cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Humidity data");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Humidity data");
 											}
 										}
 										catch (Exception ex)
@@ -1271,7 +1264,7 @@ namespace CumulusMX
 										{
 											if (data.temp_out.HasValue && data.temp_out < -98)
 											{
-												cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Primary temperature value found [-99]");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Primary temperature value found [-99]");
 											}
 											else
 											{
@@ -1284,7 +1277,7 @@ namespace CumulusMX
 												}
 												else
 												{
-													cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Temperature data");
+													cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Temperature data");
 												}
 											}
 										}
@@ -1303,7 +1296,7 @@ namespace CumulusMX
 											}
 											else
 											{
-												cumulus.LogErrorMessage("DecodeCurrent: Warning, no valid Dew Point data");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Dew Point data");
 											}
 										}
 										catch (Exception ex)
@@ -1385,7 +1378,7 @@ namespace CumulusMX
 											}
 											else
 											{
-												cumulus.LogDebugMessage("DecodeCurrent: Warning, no valid Wind data");
+												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Wind data");
 											}
 										}
 										catch (Exception ex)
@@ -1478,10 +1471,6 @@ namespace CumulusMX
 
 												DoUV(data.uv.Value, lastRecordTime);
 											}
-											else
-											{
-												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid UV data");
-											}
 										}
 										catch (Exception ex)
 										{
@@ -1502,15 +1491,11 @@ namespace CumulusMX
 											{
 												cumulus.LogDebugMessage("DecodeCurrent: using solar data");
 												DoSolarRad(data.solar_rad.Value, lastRecordTime);
-											}
-											else
-											{
-												cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Solar data");
-											}
 
-											if (data.et_year.HasValue && !cumulus.StationOptions.CalculatedET && (data.et_year.Value >= 0) && (data.et_year.Value < 32000))
-											{
-												DoET(ConvertUnits.RainINToUser(data.et_year.Value), lastRecordTime);
+												if (data.et_year.HasValue && !cumulus.StationOptions.CalculatedET && (data.et_year.Value >= 0) && (data.et_year.Value < 32000))
+												{
+													DoET(ConvertUnits.RainINToUser(data.et_year.Value), lastRecordTime);
+												}
 											}
 										}
 										catch (Exception ex)
@@ -2079,6 +2064,20 @@ namespace CumulusMX
 			DoFeelsLike(dateTime);
 			DoHumidex(dateTime);
 			DoCloudBaseHeatIndex(dateTime);
+
+			if (cumulus.StationOptions.CalculateSLP)
+			{
+				if (StationPressure > 0)
+				{
+					var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+					DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
+				}
+				else
+				{
+					cumulus.LogWarningMessage("DecodeCurrent: Warning, no valid Baro data (absolute)");
+				}
+			}
+
 
 			DoForecast(string.Empty, false);
 
@@ -3281,14 +3280,6 @@ namespace CumulusMX
 										{
 											cumulus.LogWarningMessage("DecodeHistoric: Warning, no valid Baro data (sea level)");
 										}
-									}
-									else if (data13baro.bar_absolute != null)
-									{
-										ts = Utils.FromUnixTime(data13baro.ts);
-										var abs = ConvertUnits.PressINHGToHpa((double) data13baro.bar_absolute);
-										abs = cumulus.Calib.Press.Calibrate(abs);
-										var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), abs, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-										DoPressure(ConvertUnits.PressMBToUser(slp), ts);
 									}
 									else
 									{

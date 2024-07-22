@@ -46,8 +46,10 @@ using SQLite;
 
 using Swan;
 
+using static System.Net.WebRequestMethods;
 using static CumulusMX.EmailSender;
 
+using File = System.IO.File;
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX
@@ -3520,6 +3522,7 @@ namespace CumulusMX
 			// check for Cumulus 1 [FTP Site] and correct it
 			if (ini.ValueExists("FTP Site", "Port"))
 			{
+				LogMessage("Cumulus.ini: Changing old [FTP Site] to [FTP site]");
 				var contents = File.ReadAllText("Cumulus.ini");
 				contents = contents.Replace("[FTP Site]", "[FTP site]");
 				File.WriteAllText("Cumulus.ini", contents);
@@ -3609,6 +3612,7 @@ namespace CumulusMX
 			DavisOptions.IncrementPressureDP = ini.GetValue("Station", "DavisIncrementPressureDP", false);
 			if (StationType == StationTypes.VantagePro && DavisOptions.UseLoop2)
 			{
+				LogMessage("Cumulus.ini: Disabling LOOP2 for old VP station");
 				DavisOptions.UseLoop2 = false;
 				rewriteRequired = true;
 			}
@@ -3617,7 +3621,7 @@ namespace CumulusMX
 			if (!DavisBaudRates.Contains(DavisOptions.BaudRate))
 			{
 				// nope, that isn't allowed, set the default
-				LogMessage("Error, the value for DavisBaudRate in the ini file " + DavisOptions.BaudRate + " is not valid, using default 19200.");
+				LogMessage("Cumulus.ini: Error, the value for DavisBaudRate in the ini file " + DavisOptions.BaudRate + " is not valid, using default 19200.");
 				DavisOptions.BaudRate = 19200;
 				rewriteRequired = true;
 			}
@@ -3625,10 +3629,15 @@ namespace CumulusMX
 			DavisOptions.RainGaugeType = ini.GetValue("Station", "VPrainGaugeType", -1);
 			if (DavisOptions.RainGaugeType > 3)
 			{
+				LogMessage("Cumulus.ini: Invalid Davis rain gauge type, defaulting to -1");
 				DavisOptions.RainGaugeType = -1;
 				rewriteRequired = true;
 			}
-			DavisOptions.ConnectionType = ini.GetValue("Station", "VP2ConnectionType", 0, 0, 1);
+			DavisOptions.ConnectionType = ini.GetValue("Station", "VP2ConnectionType", 0, 0, 2);
+			if (DavisOptions.ConnectionType == 1)
+			{
+				DavisOptions.ConnectionType = 2;
+			}
 			DavisOptions.TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222, 1, 65535);
 			DavisOptions.IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
 
@@ -3643,14 +3652,14 @@ namespace CumulusMX
 			if (Latitude > 90 || Latitude < -90)
 			{
 				Latitude = 0;
-				LogErrorMessage($"Error, invalid latitude value in Cumulus.ini [{Latitude}], defaulting to zero.");
+				LogErrorMessage($"Cumulus.ini: Error, invalid latitude value [{Latitude}], defaulting to zero.");
 				rewriteRequired = true;
 			}
 			Longitude = ini.GetValue("Station", "Longitude", (decimal) 0.0);
 			if (Longitude > 180 || Longitude < -180)
 			{
 				Longitude = 0;
-				LogErrorMessage($"Error, invalid longitude value in Cumulus.ini [{Longitude}], defaulting to zero.");
+				LogErrorMessage($"Cumulus.ini: Error, invalid longitude value [{Longitude}], defaulting to zero.");
 				rewriteRequired = true;
 			}
 
@@ -3811,10 +3820,11 @@ namespace CumulusMX
 				{
 					RecordsBeganDateTime = DateTime.Parse(RecordsBeganDate, CultureInfo.CurrentCulture);
 					recreateRequired = true;
+					LogMessage($"Cumulus.ini: Changing old StartDate [{RecordsBeganDate}] to StartDateIso [{RecordsBeganDateTime:yyyy-MM-dd}]");
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage($"Error parsing the RecordsBegan date {RecordsBeganDate}: {ex.Message}");
+					LogErrorMessage($"Cumulus.ini: Error parsing the RecordsBegan date {RecordsBeganDate}: {ex.Message}");
 				}
 			}
 			else
@@ -3823,7 +3833,7 @@ namespace CumulusMX
 				RecordsBeganDateTime = DateTime.ParseExact(RecordsBeganDate, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 			}
 
-			LogMessage($"Cumulus start date Parsed: {RecordsBeganDateTime:yyyy-MM-dd}");
+			LogMessage($"Cumulus.ini: Start date Parsed: {RecordsBeganDateTime:yyyy-MM-dd}");
 
 			ImetOptions.WaitTime = ini.GetValue("Station", "ImetWaitTime", 500, 0);
 			ImetOptions.ReadDelay = ini.GetValue("Station", "ImetReadDelay", 500, 0);
@@ -3833,7 +3843,7 @@ namespace CumulusMX
 			if (!ImetOptions.BaudRates.Contains(ImetOptions.BaudRate))
 			{
 				// nope, that isn't allowed, set the default
-				LogMessage("Error, the value for ImetOptions.ImetBaudRate in the ini file " + ImetOptions.BaudRate + " is not valid, using default 19200.");
+				LogMessage("Cumulus.ini: Error, the value for ImetOptions.ImetBaudRate " + ImetOptions.BaudRate + " is not valid, using default 19200.");
 				ImetOptions.BaudRate = 19200;
 				rewriteRequired = true;
 			}
@@ -3862,6 +3872,7 @@ namespace CumulusMX
 			if (ChillHourThreshold < -998)
 			{
 				ChillHourThreshold = Units.Temp == 0 ? 7 : 45;
+				LogMessage("Cumulus.ini: Defaulting ChillHourThreshold to " + ChillHourThreshold);
 				rewriteRequired = true;
 			}
 
@@ -4036,6 +4047,7 @@ namespace CumulusMX
 			if (AirLinkInStationId == -1 && AirLinkIsNode)
 			{
 				AirLinkInStationId = WllStationId;
+				LogMessage("Cumulus.ini: No AirLinkInStationId supplied, but AirlinkIsNode, so using main station id");
 				rewriteRequired = true;
 			}
 			AirLinkInHostName = ini.GetValue("AirLink", "In-Hostname", string.Empty);
@@ -4046,6 +4058,7 @@ namespace CumulusMX
 			if (AirLinkOutStationId == -1 && AirLinkIsNode)
 			{
 				AirLinkOutStationId = WllStationId;
+				LogMessage("Cumulus.ini: No AirLinkOutStationId supplied, but AirlinkIsNode, so using main station id");
 				rewriteRequired = true;
 			}
 			AirLinkOutHostName = ini.GetValue("AirLink", "Out-Hostname", string.Empty);
@@ -4061,6 +4074,7 @@ namespace CumulusMX
 			FtpOptions.FtpMode = (FtpProtocols) ini.GetValue("FTP site", "Sslftp", 0, 0, 3);
 			if (FtpOptions.Enabled && FtpOptions.Hostname == string.Empty && FtpOptions.FtpMode != FtpProtocols.PHP)
 			{
+				LogMessage("Cumulus.ini: FTP enabled, but no hostname supplied, disabling FTP");
 				FtpOptions.Enabled = false;
 				rewriteRequired = true;
 			}
@@ -4073,14 +4087,14 @@ namespace CumulusMX
 			if (!sshAuthenticationVals.Contains(FtpOptions.SshAuthen))
 			{
 				FtpOptions.SshAuthen = "password";
-				LogWarningMessage($"Error, invalid SshFtpAuthentication value in Cumulus.ini [{FtpOptions.SshAuthen}], defaulting to Password.");
+				LogWarningMessage($"Cumulus.ini: Error, invalid SshFtpAuthentication value [{FtpOptions.SshAuthen}], defaulting to Password.");
 				rewriteRequired = true;
 			}
 			FtpOptions.SshPskFile = ini.GetValue("FTP site", "SshFtpPskFile", string.Empty);
 			if (FtpOptions.SshPskFile.Length > 0 && (FtpOptions.SshAuthen == "psk" || FtpOptions.SshAuthen == "password_psk") && !File.Exists(FtpOptions.SshPskFile))
 			{
 				FtpOptions.SshPskFile = string.Empty;
-				LogErrorMessage($"Error, file name specified by SshFtpPskFile value in Cumulus.ini does not exist [{FtpOptions.SshPskFile}].");
+				LogErrorMessage($"Cumulus.ini: Error, file name specified by SshFtpPskFile does not exist [{FtpOptions.SshPskFile}], removing it.");
 				rewriteRequired = true;
 			}
 			FtpOptions.DisableEPSV = ini.GetValue("FTP site", "DisableEPSV", false);
@@ -4099,6 +4113,7 @@ namespace CumulusMX
 				!(FtpOptions.LocalCopyFolder.EndsWith(sep1) || FtpOptions.LocalCopyFolder.EndsWith(sep2))
 				)
 			{
+				LogMessage("Cumulus.ini: Local copy folder does not end with a directory separator, adding it");
 				FtpOptions.LocalCopyFolder += sep1;
 				rewriteRequired = true;
 			}
@@ -4114,6 +4129,7 @@ namespace CumulusMX
 
 			if (FtpOptions.Enabled && FtpOptions.PhpUrl == string.Empty && FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
+				LogMessage("Cumulus.ini: PHP upload enabled but the target URL is missing, disabling uploads");
 				FtpOptions.Enabled = false;
 				rewriteRequired = true;
 			}
@@ -4139,6 +4155,7 @@ namespace CumulusMX
 			UpdateInterval = ini.GetValue("FTP site", "UpdateInterval", DefaultWebUpdateInterval);
 			if (UpdateInterval < 1)
 			{
+				LogMessage("Cumulus.ini: Update interval invalid, resetting to 1");
 				UpdateInterval = 1;
 				rewriteRequired = true;
 			}
@@ -4396,6 +4413,7 @@ namespace CumulusMX
 			Windy.Interval = ini.GetValue("Windy", "Interval", Windy.DefaultInterval);
 			if (Windy.Interval < 5)
 			{
+				LogMessage("Cumulus.ini: Windy upload interval set to less than 5 mins, resetting to 5");
 				Windy.Interval = 5;
 				rewriteRequired = true;
 			}
@@ -4425,6 +4443,7 @@ namespace CumulusMX
 			WindGuru.Interval = ini.GetValue("WindGuru", "Interval", WindGuru.DefaultInterval);
 			if (WindGuru.Interval < 1)
 			{
+				LogMessage("Cumulus.ini: WindGuru update interval invalid, resetting to 1");
 				WindGuru.Interval = 1;
 				rewriteRequired = true;
 			}
@@ -4481,6 +4500,7 @@ namespace CumulusMX
 			MQTT.IpVersion = ini.GetValue("MQTT", "IPversion", 0, 0, 6); // 0 = unspecified, 4 = force IPv4, 6 = force IPv6
 			if (MQTT.IpVersion != 0 && MQTT.IpVersion != 4 && MQTT.IpVersion != 6)
 			{
+				LogMessage("Cumulus.ini: MQTT IP Version invalid, restting to unspecified");
 				MQTT.IpVersion = 0;
 				rewriteRequired = true;
 			}
@@ -4943,54 +4963,63 @@ namespace CumulusMX
 			NOAAconf.HeatThreshold = ini.GetValue("NOAA", "HeatingThreshold", -1000.0);
 			if (NOAAconf.HeatThreshold < -99 || NOAAconf.HeatThreshold > 150)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.HeatThreshold, resetting it");
 				NOAAconf.HeatThreshold = Units.Temp == 0 ? 18.3 : 65;
 				rewriteRequired = true;
 			}
 			NOAAconf.CoolThreshold = ini.GetValue("NOAA", "CoolingThreshold", -1000.0);
 			if (NOAAconf.CoolThreshold < -99 || NOAAconf.CoolThreshold > 150)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.CoolThreshold, resetting it");
 				NOAAconf.CoolThreshold = Units.Temp == 0 ? 18.3 : 65;
 				rewriteRequired = true;
 			}
 			NOAAconf.MaxTempComp1 = ini.GetValue("NOAA", "MaxTempComp1", -1000.0);
 			if (NOAAconf.MaxTempComp1 < -99 || NOAAconf.MaxTempComp1 > 150)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.MaxTempComp1, resetting it");
 				NOAAconf.MaxTempComp1 = Units.Temp == 0 ? 27 : 80;
 				rewriteRequired = true;
 			}
 			NOAAconf.MaxTempComp2 = ini.GetValue("NOAA", "MaxTempComp2", -1000.0);
 			if (NOAAconf.MaxTempComp2 < -99 || NOAAconf.MaxTempComp2 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.MaxTempComp2, resetting it");
 				NOAAconf.MaxTempComp2 = Units.Temp == 0 ? 0 : 32;
 				rewriteRequired = true;
 			}
 			NOAAconf.MinTempComp1 = ini.GetValue("NOAA", "MinTempComp1", -1000.0);
 			if (NOAAconf.MinTempComp1 < -99 || NOAAconf.MinTempComp1 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.MinTempComp1, resetting it");
 				NOAAconf.MinTempComp1 = Units.Temp == 0 ? 0 : 32;
 				rewriteRequired = true;
 			}
 			NOAAconf.MinTempComp2 = ini.GetValue("NOAA", "MinTempComp2", -1000.0);
 			if (NOAAconf.MinTempComp2 < -99 || NOAAconf.MinTempComp2 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.MinTempComp2, resetting it");
 				NOAAconf.MinTempComp2 = Units.Temp == 0 ? -18 : 0;
 				rewriteRequired = true;
 			}
 			NOAAconf.RainComp1 = ini.GetValue("NOAA", "RainComp1", -1000.0);
 			if (NOAAconf.RainComp1 < 0 || NOAAconf.RainComp1 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.RainComp1, resetting it");
 				NOAAconf.RainComp1 = Units.Rain == 0 ? 0.2 : 0.01;
 				rewriteRequired = true;
 			}
 			NOAAconf.RainComp2 = ini.GetValue("NOAA", "RainComp2", -1000.0);
 			if (NOAAconf.RainComp2 < 0 || NOAAconf.RainComp2 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.RainComp2, resetting it");
 				NOAAconf.RainComp2 = Units.Rain == 0 ? 2 : 0.1;
 				rewriteRequired = true;
 			}
 			NOAAconf.RainComp3 = ini.GetValue("NOAA", "RainComp3", -1000.0);
 			if (NOAAconf.RainComp3 < 0 || NOAAconf.RainComp3 > 99)
 			{
+				LogMessage("Cumulus.ini: Invalid NOAAconf.RainComp3, resetting it");
 				NOAAconf.RainComp3 = Units.Rain == 0 ? 20 : 1;
 				rewriteRequired = true;
 			}
@@ -5004,6 +5033,7 @@ namespace CumulusMX
 			// Check for Cumulus 1 default format - and update
 			if (NOAAconf.MonthFile == "'NOAAMO'mmyy'.txt'" || NOAAconf.MonthFile == "\"NOAAMO\"mmyy\".txt\"")
 			{
+				LogMessage("Cumulus.ini: Updating old Cumulus 1 NOAA monthly file name");
 				NOAAconf.MonthFile = "'NOAAMO'MMyy'.txt'";
 				rewriteRequired = true;
 			}
@@ -8201,165 +8231,179 @@ namespace CumulusMX
 				if (!File.Exists(dirpath + DirectorySeparator + filename))
 				{
 					// create a zip archive file for the backup
-					using (FileStream zipFile = new FileStream(dirpath + DirectorySeparator + filename, FileMode.Create))
+					try
 					{
-						using ZipArchive archive = new ZipArchive(zipFile, ZipArchiveMode.Create);
-						try
+						using (FileStream zipFile = new FileStream(dirpath + DirectorySeparator + filename, FileMode.Create))
 						{
-							if (File.Exists(AlltimeIniFile))
-								archive.CreateEntryFromFile(AlltimeIniFile, alltimebackup);
-							if (File.Exists(MonthlyAlltimeIniFile))
-								archive.CreateEntryFromFile(MonthlyAlltimeIniFile, monthlyAlltimebackup);
-							if (File.Exists(DayFileName))
-								archive.CreateEntryFromFile(DayFileName, daybackup);
-							if (File.Exists(TodayIniFile))
-								archive.CreateEntryFromFile(TodayIniFile, todaybackup);
-							if (File.Exists(YesterdayFile))
-								archive.CreateEntryFromFile(YesterdayFile, yesterdaybackup);
-							if (File.Exists(LogFile))
-								archive.CreateEntryFromFile(LogFile, logbackup);
-							if (File.Exists(MonthIniFile))
-								archive.CreateEntryFromFile(MonthIniFile, monthbackup);
-							if (File.Exists(YearIniFile))
-								archive.CreateEntryFromFile(YearIniFile, yearbackup);
-							if (File.Exists("Cumulus.ini"))
-								archive.CreateEntryFromFile("Cumulus.ini", configbackup);
-							if (File.Exists("UniqueId.txt"))
-								archive.CreateEntryFromFile("UniqueId.txt", uniquebackup);
-							if (File.Exists("strings.ini"))
-								archive.CreateEntryFromFile("strings.ini", stringsbackup);
-						}
-						catch (Exception ex)
-						{
-							LogExceptionMessage(ex, "Backup: Error backing up the data files");
-						}
-
-						if (daily)
-						{
-							// for daily backup the db is in use, so use an online backup
+							using ZipArchive archive = new ZipArchive(zipFile, ZipArchiveMode.Create);
 							try
 							{
-								var backUpDest = dirpath + "cumulusmx.db";
-								var zipLocation = datafolder + "cumulusmx.db";
-								LogDebugMessage("Making backup copy of the database");
-								station.RecentDataDb.Backup(backUpDest);
-								LogDebugMessage("Completed backup copy of the database");
-
-								LogDebugMessage("Archiving backup copy of the database");
-								archive.CreateEntryFromFile(backUpDest, zipLocation);
-								LogDebugMessage("Completed backup copy of the database");
-
-								LogDebugMessage("Deleting backup copy of the database");
-								File.Delete(backUpDest);
-
-								backUpDest = dirpath + "diary.db";
-								zipLocation = datafolder + "diary.db";
-								LogDebugMessage("Making backup copy of the diary");
-								DiaryDB.Backup(backUpDest);
-								LogDebugMessage("Completed backup copy of the diary");
-
-								LogDebugMessage("Archiving backup copy of the diary");
-								archive.CreateEntryFromFile(backUpDest, zipLocation);
-								LogDebugMessage("Completed backup copy of the diary");
-
-								LogDebugMessage("Deleting backup copy of the diary");
-								File.Delete(backUpDest);
+								if (File.Exists(AlltimeIniFile))
+									archive.CreateEntryFromFile(AlltimeIniFile, alltimebackup);
+								if (File.Exists(MonthlyAlltimeIniFile))
+									archive.CreateEntryFromFile(MonthlyAlltimeIniFile, monthlyAlltimebackup);
+								if (File.Exists(DayFileName))
+									archive.CreateEntryFromFile(DayFileName, daybackup);
+								if (File.Exists(TodayIniFile))
+									archive.CreateEntryFromFile(TodayIniFile, todaybackup);
+								if (File.Exists(YesterdayFile))
+									archive.CreateEntryFromFile(YesterdayFile, yesterdaybackup);
+								if (File.Exists(LogFile))
+									archive.CreateEntryFromFile(LogFile, logbackup);
+								if (File.Exists(MonthIniFile))
+									archive.CreateEntryFromFile(MonthIniFile, monthbackup);
+								if (File.Exists(YearIniFile))
+									archive.CreateEntryFromFile(YearIniFile, yearbackup);
+								if (File.Exists("Cumulus.ini"))
+									archive.CreateEntryFromFile("Cumulus.ini", configbackup);
+								if (File.Exists("UniqueId.txt"))
+									archive.CreateEntryFromFile("UniqueId.txt", uniquebackup);
+								if (File.Exists("strings.ini"))
+									archive.CreateEntryFromFile("strings.ini", stringsbackup);
 							}
 							catch (Exception ex)
 							{
-								LogExceptionMessage(ex, "Error making db backup");
+								LogExceptionMessage(ex, "Backup: Error backing up the data files");
 							}
-						}
-						else
-						{
-							// start-up backup - the db is not yet in use, do a file copy including any recovery files
+
+							if (daily)
+							{
+								// for daily backup the db is in use, so use an online backup
+								try
+								{
+									var backUpDest = dirpath + "cumulusmx.db";
+									var zipLocation = datafolder + "cumulusmx.db";
+									LogDebugMessage("Making backup copy of the database");
+									station.RecentDataDb.Backup(backUpDest);
+									LogDebugMessage("Completed backup copy of the database");
+
+									LogDebugMessage("Archiving backup copy of the database");
+									archive.CreateEntryFromFile(backUpDest, zipLocation);
+									LogDebugMessage("Completed backup copy of the database");
+
+									LogDebugMessage("Deleting backup copy of the database");
+									File.Delete(backUpDest);
+
+									backUpDest = dirpath + "diary.db";
+									zipLocation = datafolder + "diary.db";
+									LogDebugMessage("Making backup copy of the diary");
+									DiaryDB.Backup(backUpDest);
+									LogDebugMessage("Completed backup copy of the diary");
+
+									LogDebugMessage("Archiving backup copy of the diary");
+									archive.CreateEntryFromFile(backUpDest, zipLocation);
+									LogDebugMessage("Completed backup copy of the diary");
+
+									LogDebugMessage("Deleting backup copy of the diary");
+									File.Delete(backUpDest);
+								}
+								catch (Exception ex)
+								{
+									LogExceptionMessage(ex, "Error making db backup");
+								}
+							}
+							else
+							{
+								// start-up backup - the db is not yet in use, do a file copy including any recovery files
+								try
+								{
+									LogDebugMessage("Archiving the database");
+									if (File.Exists(dbfile))
+										archive.CreateEntryFromFile(dbfile, dbBackup);
+
+									if (File.Exists(dbfile + "-journal"))
+										archive.CreateEntryFromFile(dbfile + "-journal", dbBackup + "-journal");
+
+									if (File.Exists(diaryfile))
+										archive.CreateEntryFromFile(diaryfile, diarybackup);
+
+									if (File.Exists(diaryfile + "-journal"))
+										archive.CreateEntryFromFile(diaryfile + "-journal", diarybackup + "-journal");
+
+									LogDebugMessage("Completed archive of the database");
+								}
+								catch (Exception ex)
+								{
+									LogExceptionMessage(ex, "Backup: Error backing up the database files");
+								}
+							}
+
 							try
 							{
-								LogDebugMessage("Archiving the database");
-								if (File.Exists(dbfile))
-									archive.CreateEntryFromFile(dbfile, dbBackup);
+								if (File.Exists(extraFile))
+									archive.CreateEntryFromFile(extraFile, extraBackup);
+								if (File.Exists(AirLinkFile))
+									archive.CreateEntryFromFile(AirLinkFile, AirLinkBackup);
 
-								if (File.Exists(dbfile + "-journal"))
-									archive.CreateEntryFromFile(dbfile + "-journal", dbBackup + "-journal");
-
-								if (File.Exists(diaryfile))
-									archive.CreateEntryFromFile(diaryfile, diarybackup);
-
-								if (File.Exists(diaryfile + "-journal"))
-									archive.CreateEntryFromFile(diaryfile + "-journal", diarybackup + "-journal");
-
-								LogDebugMessage("Completed archive of the database");
-							}
-							catch (Exception ex)
-							{
-								LogExceptionMessage(ex, "Backup: Error backing up the database files");
-							}
-						}
-
-						try
-						{
-							if (File.Exists(extraFile))
-								archive.CreateEntryFromFile(extraFile, extraBackup);
-							if (File.Exists(AirLinkFile))
-								archive.CreateEntryFromFile(AirLinkFile, AirLinkBackup);
-
-							// custom logs
-							for (var i = 0; i < 10; i++)
-							{
-								if (CustomIntvlLogSettings[i].Enabled)
-								{
-									var custfilename = GetCustomIntvlLogFileName(i, timestamp);
-									if (File.Exists(custfilename))
-										archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
-								}
-
-								if (CustomDailyLogSettings[i].Enabled)
-								{
-									var custfilename = GetCustomDailyLogFileName(i);
-									if (File.Exists(custfilename))
-										archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
-								}
-							}
-
-							// Do not do this extra backup between 00:00 & Roll-over hour on the first of the month
-							// as the month has not yet rolled over - only applies for start-up backups
-							if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
-							{
-								var newTime = timestamp.AddDays(-1);
-								// on the first of month, we also need to backup last months files as well
-								var LogFile2 = GetLogFileName(newTime);
-								var logbackup2 = datafolder + Path.GetFileName(LogFile2);
-
-								var extraFile2 = GetExtraLogFileName(newTime);
-								var extraBackup2 = datafolder + Path.GetFileName(extraFile2);
-
-								var AirLinkFile2 = GetAirLinkLogFileName(timestamp.AddDays(-1));
-								var AirLinkBackup2 = datafolder + Path.GetFileName(AirLinkFile2);
-
-								if (File.Exists(LogFile2))
-									archive.CreateEntryFromFile(LogFile2, logbackup2);
-								if (File.Exists(extraFile2))
-									archive.CreateEntryFromFile(extraFile2, extraBackup2);
-								if (File.Exists(AirLinkFile2))
-									archive.CreateEntryFromFile(AirLinkFile2, AirLinkBackup2);
-
+								// custom logs
 								for (var i = 0; i < 10; i++)
 								{
 									if (CustomIntvlLogSettings[i].Enabled)
 									{
-										var custfilename = GetCustomIntvlLogFileName(i, newTime);
+										var custfilename = GetCustomIntvlLogFileName(i, timestamp);
+										if (File.Exists(custfilename))
+											archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
+									}
+
+									if (CustomDailyLogSettings[i].Enabled)
+									{
+										var custfilename = GetCustomDailyLogFileName(i);
 										if (File.Exists(custfilename))
 											archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
 									}
 								}
+
+								// Do not do this extra backup between 00:00 & Roll-over hour on the first of the month
+								// as the month has not yet rolled over - only applies for start-up backups
+								if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
+								{
+									var newTime = timestamp.AddDays(-1);
+									// on the first of month, we also need to backup last months files as well
+									var LogFile2 = GetLogFileName(newTime);
+									var logbackup2 = datafolder + Path.GetFileName(LogFile2);
+
+									var extraFile2 = GetExtraLogFileName(newTime);
+									var extraBackup2 = datafolder + Path.GetFileName(extraFile2);
+
+									var AirLinkFile2 = GetAirLinkLogFileName(timestamp.AddDays(-1));
+									var AirLinkBackup2 = datafolder + Path.GetFileName(AirLinkFile2);
+
+									if (File.Exists(LogFile2))
+										archive.CreateEntryFromFile(LogFile2, logbackup2);
+									if (File.Exists(extraFile2))
+										archive.CreateEntryFromFile(extraFile2, extraBackup2);
+									if (File.Exists(AirLinkFile2))
+										archive.CreateEntryFromFile(AirLinkFile2, AirLinkBackup2);
+
+									for (var i = 0; i < 10; i++)
+									{
+										if (CustomIntvlLogSettings[i].Enabled)
+										{
+											var custfilename = GetCustomIntvlLogFileName(i, newTime);
+											if (File.Exists(custfilename))
+												archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
+										}
+									}
+								}
+							}
+							catch (Exception ex)
+							{
+								LogExceptionMessage(ex, "Backup: Error backing up extra log files");
 							}
 						}
-						catch (Exception ex)
-						{
-							LogExceptionMessage(ex, "Backup: Error backing up extra log files");
-						}
+
+						LogMessage("Created backup file " + filename);
 					}
-					LogMessage("Created backup file " + filename);
+					catch (UnauthorizedAccessException)
+					{
+						LogErrorMessage("BackupData: Error, no permission to create/write file: " + dirpath + DirectorySeparator + filename);
+						LogConsoleMessage("Error, no permission to create/write file: " + dirpath + DirectorySeparator + filename, ConsoleColor.Yellow);
+					}
+					catch (Exception ex)
+					{
+						LogErrorMessage($"BackupData: Error while attempting to create/write file: {dirpath + DirectorySeparator + filename}, error message: {ex.Message}");
+						LogConsoleMessage($"Error while attempting to create/write file: {dirpath + DirectorySeparator + filename}, error message: {ex.Message}", ConsoleColor.Yellow);
+					}
 				}
 				else
 				{
@@ -11096,17 +11140,17 @@ namespace CumulusMX
 							if (FtpOptions.PhpCompression == "gzip")
 							{
 								using var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true);
-								await zipped.WriteAsync(byteData, 0, byteData.Length);
+								await zipped.WriteAsync(byteData, 0, byteData.Length, cancellationToken);
 							}
 							else if (FtpOptions.PhpCompression == "deflate")
 							{
 								using var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true);
-								await zipped.WriteAsync(byteData, 0, byteData.Length);
+								await zipped.WriteAsync(byteData, 0, byteData.Length, cancellationToken);
 							}
 
 							ms.Position = 0;
 							byte[] compressed = new byte[ms.Length];
-							await ms.ReadAsync(compressed, 0, compressed.Length);
+							await ms.ReadAsync(compressed, 0, compressed.Length, cancellationToken);
 
 							outStream = new MemoryStream(compressed);
 							streamContent = new StreamContent(outStream);
@@ -11572,7 +11616,9 @@ namespace CumulusMX
 
 			if (FtpOptions.Logging)
 			{
+#pragma warning disable CA2254 // Template should be a static expression
 				FtpLoggerMX.LogInformation(message);
+#pragma warning restore CA2254 // Template should be a static expression
 			}
 		}
 
@@ -11582,7 +11628,9 @@ namespace CumulusMX
 			{
 				if (!string.IsNullOrEmpty(message))
 					LogDebugMessage(message);
+#pragma warning disable CA2254 // Template should be a static expression
 				FtpLoggerMX.LogInformation(message);
+#pragma warning restore CA2254 // Template should be a static expression
 			}
 		}
 

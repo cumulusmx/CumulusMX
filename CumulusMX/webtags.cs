@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -412,6 +413,12 @@ namespace CumulusMX
 			DateTime dt = DateTime.MinValue.Add(ts);
 
 			return GetFormattedDateTime(dt, defaultFormat, tagParams);
+		}
+
+		private static string GetFormattedTimeSpan(TimeSpan ts, string defaultFormat, Dictionary<string, string> tagParams)
+		{
+			string dtformat = tagParams.Get("format") ?? defaultFormat;
+			return String.Format(dtformat, ts);
 		}
 
 		private string GetMonthlyAlltimeValueStr(AllTimeRec rec, Dictionary<string, string> tagParams, int decimals)
@@ -3592,7 +3599,7 @@ namespace CumulusMX
 
 			if (start.Date == DateTime.Now.AddHours(cumulus.GetHourInc()).Date)
 			{
-				// first day of the currebt month, there are no dayfile entries
+				// first day of the current month, there are no dayfile entries
 				// so return the average temp so far today
 				return Tagavgtemp(tagParams);
 			}
@@ -3630,6 +3637,34 @@ namespace CumulusMX
 
 			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
 			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagAnnualRainfall(Dictionary<string, string> tagParams)
+		{
+			var year = tagParams.Get("y");
+			DateTime start;
+			DateTime end;
+			double total;
+
+			if (year != null)
+			{
+				if (int.Parse(year) == DateTime.Now.Year)
+				{
+					total = station.RainYear;
+				}
+				else
+				{
+					start = new DateTime(int.Parse(year), 1, 1, 0, 0, 0, DateTimeKind.Local);
+					end = start.AddYears(1);
+					total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.TotalRain);
+				}
+			}
+			else
+			{
+				total = station.RainYear;
+			}
+
+			return CheckRcDp(CheckRainUnit(total, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagThwIndex(Dictionary<string, string> tagParams)
@@ -5350,7 +5385,7 @@ namespace CumulusMX
 
 				TimeSpan ts = TimeSpan.FromSeconds(upTime);
 
-				return string.Format($"{ts.Days} days {ts.Hours} hours");
+				return GetFormattedTimeSpan(ts, "{0:%d} days {0:%h} hours", tagParams);
 			}
 			catch (Exception ex)
 			{
@@ -5363,7 +5398,7 @@ namespace CumulusMX
 		private static string TagProgramUpTime(Dictionary<string, string> tagParams)
 		{
 			TimeSpan ts = DateTime.Now.ToUniversalTime() - Program.StartTime.ToUniversalTime();
-			return string.Format($"{ts.Days} days {ts.Hours} hours");
+			return GetFormattedTimeSpan(ts, "{0:%d} days {0:%h} hours", tagParams);
 		}
 
 		private static string TagProgramUpTimeMs(Dictionary<string, string> tagParams)
@@ -6746,6 +6781,7 @@ namespace CumulusMX
 				// Specifc Month/Year values
 				{ "MonthTempAvg", TagMonthTempAvg },
 				{ "YearTempAvg", TagYearTempAvg },
+				{ "AnnualRainfall", TagAnnualRainfall },
 				// Options
 				{ "Option_useApparent", TagOption_useApparent },
 				{ "Option_showSolar", TagOption_showSolar },

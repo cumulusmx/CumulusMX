@@ -2057,9 +2057,6 @@ namespace CumulusMX
 			cumulus.RotateLogFiles();
 
 			ClearAlarms();
-
-			System.Runtime.GCSettings.LargeObjectHeapCompactionMode = System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
-			GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false);
 		}
 
 		private void HourChanged(DateTime now)
@@ -2078,7 +2075,7 @@ namespace CumulusMX
 			if (now.Hour == rollHour)
 			{
 				DayReset(now);
-				cumulus.BackupData(true, now);
+				Task.Run(() => cumulus.BackupData(true, now));
 			}
 
 			if (now.Hour == 0)
@@ -2089,6 +2086,9 @@ namespace CumulusMX
 			}
 
 			RemoveOldRecentData(now);
+
+			System.Runtime.GCSettings.LargeObjectHeapCompactionMode = System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+			//GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false)
 		}
 
 		private void CheckForDataStopped()
@@ -2112,7 +2112,7 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage("*** Data input appears to have stopped");
 				}
-			}
+			}		// Calculates evapotranspiration based on the data for the last hour and updates the running annual total.
 			else
 			{
 				DataStopped = false;
@@ -2146,6 +2146,8 @@ namespace CumulusMX
 			}
 		}
 
+
+		// Calculates evapotranspiration based on the data for the last hour and updates the running annual total.
 		public void CalculateEvapotranspiration(DateTime date)
 		{
 			cumulus.LogDebugMessage("Calculating ET from data");
@@ -5887,6 +5889,8 @@ namespace CumulusMX
 
 				// Calculate today"s rainfall
 				RainToday = (RainCounter - RainCounterDayStart) * cumulus.Calib.Rain.Mult;
+				// Allow for rounding errors
+				if (RainToday < 0) RainToday = 0;
 
 				// Calculate rain since midnight for Wunderground etc
 				double trendval = RainCounter - MidnightRainCount;
@@ -11867,12 +11871,12 @@ namespace CumulusMX
 
 			json.Append("[\"High Solar Radiation\",\"");
 			json.Append(HiLoToday.HighSolar.ToString("F0"));
-			json.Append("&nbsp;W/m2");
+			json.Append("&nbsp;W/m<sup>2</sup>");
 			json.Append(sepStr);
 			json.Append(HiLoToday.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighSolar.ToString("F0"));
-			json.Append("&nbsp;W/m2");
+			json.Append("&nbsp;W/m<sup>2</sup>");
 			json.Append(sepStr);
 			json.Append(HiLoYest.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
@@ -13784,7 +13788,7 @@ namespace CumulusMX
 			var data = new DataStruct(cumulus, OutdoorTemperature, OutdoorHumidity, TempTotalToday / tempsamplestoday, IndoorTemperature, OutdoorDewpoint, WindChill, IndoorHumidity,
 				Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainMonth, RainYear, RainRate,
 				RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, HiLoToday.HighGust, HiLoToday.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighWind,
-				HiLoToday.HighGustBearing, cumulus.Units.WindText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), HiLoToday.HighTemp, HiLoToday.LowTemp,
+				HiLoToday.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), HiLoToday.HighTemp, HiLoToday.LowTemp,
 				HiLoToday.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighPress, HiLoToday.LowPress, HiLoToday.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat),
 				HiLoToday.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighRainRate, HiLoToday.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighHumidity, HiLoToday.LowHumidity,
 				HiLoToday.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), cumulus.Units.PressText, cumulus.Units.TempText, cumulus.Units.RainText,
@@ -13795,7 +13799,7 @@ namespace CumulusMX
 				HiLoToday.LowAppTemp, HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), CurrentSolarMax,
 				AllTime.HighPress.Val, AllTime.LowPress.Val, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
 				HiLoToday.HighHourlyRain, HiLoToday.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat), "F" + Cumulus.Beaufort(HiLoToday.HighWind), "F" + Cumulus.Beaufort(WindAverage),
-				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp.ToLocalTime().ToString(cumulus.ProgramOptions.TimeFormatLong), DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
+				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp, DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 				FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
 				HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat), alarms);
 

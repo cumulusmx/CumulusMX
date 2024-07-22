@@ -372,13 +372,9 @@ namespace CumulusMX
 						{
 							StationPressure = data.pressure.absolute.value;
 
-							if (cumulus.StationOptions.CalculateSLP)
-							{
-								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
-								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), StationPressure, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-								DoPressure(slp, Utils.FromUnixTime(data.pressure.absolute.time));
-							}
-							else
+							// leave cmx calculated SLP until the end as it depends on temperature
+
+							if (!cumulus.StationOptions.CalculateSLP)
 							{
 								DoPressure(data.pressure.relative.value, Utils.FromUnixTime(data.pressure.relative.time));
 							}
@@ -592,6 +588,12 @@ namespace CumulusMX
 					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Camera data - {ex.Message}");
 				}
 
+				if (cumulus.StationOptions.CalculateSLP)
+				{
+					var abs = cumulus.Calib.Press.Calibrate(StationPressure);
+					var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(abs), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+					DoPressure(ConvertUnits.PressMBToUser(slp), Utils.FromUnixTime(data.pressure.absolute.time));
+				}
 
 				thisStation.DoForecast("", false);
 
@@ -960,23 +962,23 @@ namespace CumulusMX
 			if (data.pm25_ch1 != null)
 			{
 				station.DoAirQuality(data.pm25_ch1.pm25.value, 1);
-				//station.DoAirQualityAvg(data.pm25_ch1.AqiAvg24h.value, 1);
+				//station.DoAirQualityAvg(data.pm25_ch1.AqiAvg24h.value, 1)
 			}
 
 			if (data.pm25_ch2 != null)
 			{
 				station.DoAirQuality(data.pm25_ch2.pm25.value, 2);
-				//station.DoAirQualityAvg(data.pm25_ch2.AqiAvg24h.value, 2);
+				//station.DoAirQualityAvg(data.pm25_ch2.AqiAvg24h.value, 2)
 			}
 			if (data.pm25_ch3 != null)
 			{
 				station.DoAirQuality(data.pm25_ch3.pm25.value, 3);
-				//station.DoAirQualityAvg(data.pm25_ch3.AqiAvg24h.value, 3);
+				//station.DoAirQualityAvg(data.pm25_ch3.AqiAvg24h.value, 3)
 			}
 			if (data.pm25_ch4 != null)
 			{
 				station.DoAirQuality(data.pm25_ch4.pm25.value, 4);
-				//station.DoAirQualityAvg(data.pm25_ch1.AqiAvg24h.value, 4);
+				//station.DoAirQualityAvg(data.pm25_ch1.AqiAvg24h.value, 4)
 			}
 		}
 
@@ -991,14 +993,14 @@ namespace CumulusMX
 			if (data.pm25_aqi_combo != null)
 			{
 				station.CO2_pm2p5 = data.pm25_aqi_combo.pm25.value;
-				//station.CO2_pm2p5_24h = data.pm25_aqi_combo.AqiAvg24h.value;
+				//station.CO2_pm2p5_24h = data.pm25_aqi_combo.AqiAvg24h.value
 				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
 			}
 
 			if (data.pm10_aqi_combo != null)
 			{
 				station.CO2_pm10 = data.pm10_aqi_combo.pm10.value;
-				//station.CO2_pm10_24h = data.pm10_aqi_combo.AqiAvg24h.value;
+				//station.CO2_pm10_24h = data.pm10_aqi_combo.AqiAvg24h.value
 				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
 			}
 

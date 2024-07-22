@@ -982,13 +982,7 @@ namespace CumulusMX
 								tempUint16 = GW1000Api.ConvertBigEndianUInt16(data, idx);
 								StationPressure = ConvertUnits.PressMBToUser(tempUint16 / 10.0);
 								AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(tempUint16 / 10.0, AltitudeM(cumulus.Altitude)));
-
-								if (cumulus.StationOptions.CalculateSLP)
-								{
-									StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
-									var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-									DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
-								}
+								// Leave calculate SLP until the end as it depends on temperature
 								idx += 2;
 								break;
 							case 0x09: //Relative Barometric (hPa)
@@ -1354,7 +1348,7 @@ namespace CumulusMX
 					if (newLightningTime > LightningTime)
 					{
 						LightningTime = newLightningTime;
-						if (newLightningDistance != 999)
+						if (newLightningDistance < 999)
 							LightningDistance = newLightningDistance;
 					}
 
@@ -1389,6 +1383,13 @@ namespace CumulusMX
 						DoFeelsLike(dateTime);
 						DoHumidex(dateTime);
 						DoCloudBaseHeatIndex(dateTime);
+
+						if (cumulus.StationOptions.CalculateSLP)
+						{
+							var abs = cumulus.Calib.Press.Calibrate(StationPressure);
+							var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(abs), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+							DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
+						}
 					}
 
 					DoForecast("", false);

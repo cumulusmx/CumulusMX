@@ -356,8 +356,8 @@ namespace CumulusMX
 		}
 
 		/// <summary>
-		/// Calculates the sea leavel pressure
-		/// https://www.wind101.net/sea-level-pressure-advanced/LAPLACE%20GENERAL%20EQUATION%20THE%20REDUCTION%20OF%20BAROMETRIC%20PRESSURE%20DrKFS_net.pdf
+		/// Calculates the sea leavel pressure.
+		/// See: https://www.wind101.net/sea-level-pressure-advanced/LAPLACE%20GENERAL%20EQUATION%20THE%20REDUCTION%20OF%20BAROMETRIC%20PRESSURE%20DrKFS_net.pdf
 		/// </summary>
 		/// <param name="altitudeM">Station altitude in metres</param>
 		/// <param name="pressureHpa">Station pressure in inHg</param>
