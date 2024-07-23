@@ -46,7 +46,6 @@ using SQLite;
 
 using Swan;
 
-using static System.Net.WebRequestMethods;
 using static CumulusMX.EmailSender;
 
 using File = System.IO.File;
@@ -12908,10 +12907,10 @@ namespace CumulusMX
 				var body = await retval.Content.ReadAsStringAsync();
 				var releases = body.FromJson<List<GithubRelease>>();
 
-				var latestBuild = releases.Find(x => !x.draft && x.prerelease == beta);
+				var latestBeta = releases.Find(x => !x.draft && x.prerelease);
 				var latestLive = releases.Find(x => !x.draft && !x.prerelease);
 				var cmxBuild = int.Parse(Build);
-				var veryLatest = Math.Max(int.Parse(latestBuild.tag_name[1..]), int.Parse(latestLive.tag_name[1..]));
+				var veryLatest = Math.Max(int.Parse(latestBeta.tag_name[1..]), int.Parse(latestLive.tag_name[1..]));
 
 				if (string.IsNullOrEmpty(latestLive.name))
 				{
@@ -12919,39 +12918,65 @@ namespace CumulusMX
 					{
 						LogMessage("Failed to get the latest build version from GitHub");
 					}
+					return;
 				}
-				else if (string.IsNullOrEmpty(latestBuild.name))
+				else if (string.IsNullOrEmpty(latestBeta.name))
 				{
-					LogMessage($"Failed to get the latest {(beta ? "beta" : "release")} build version from GitHub");
+					LogMessage("Failed to get the latest beta build version from GitHub");
+					return;
 				}
-				else if (beta && int.Parse(latestLive.tag_name[1..]) > cmxBuild)
+
+				if (beta)
 				{
-					var msg = $"You are running a beta version of Cumulus MX, and a later release build {latestLive.name} is available.";
-					LogConsoleMessage(msg, ConsoleColor.Cyan);
-					LogWarningMessage(msg);
-					UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
-					UpgradeAlarm.Triggered = true;
-					LatestBuild = latestLive.tag_name[1..];
+					if (int.Parse(latestLive.tag_name[1..]) > cmxBuild)
+					{
+						var msg = $"You are running a beta version of Cumulus MX, and a later release build {latestLive.name} is available.";
+						LogConsoleMessage(msg, ConsoleColor.Cyan);
+						LogWarningMessage(msg);
+						UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
+						UpgradeAlarm.Triggered = true;
+						LatestBuild = latestLive.tag_name[1..];
+					}
+					else if (int.Parse(latestBeta.tag_name[1..]) == cmxBuild)
+					{
+						LogMessage($"This Cumulus MX instance is running the latest beta version");
+						UpgradeAlarm.Triggered = false;
+						LatestBuild = latestLive.tag_name[1..];
+					}
+					else if (int.Parse(latestBeta.tag_name[1..]) > cmxBuild)
+					{
+						LogMessage($"This Cumulus MX beta instance is not running the latest beta version of Cumulsus MX, build {latestBeta.name} is available.");
+						UpgradeAlarm.Triggered = false;
+						LatestBuild = latestLive.tag_name[1..];
+					}
+					else
+					{
+						LogWarningMessage($"This Cumulus MX instance appears to be running a beta test version. This build={Build}, latest available build={veryLatest}");
+						LatestBuild = veryLatest.ToString();
+					}
 				}
-				else if (int.Parse(latestBuild.tag_name[1..]) > cmxBuild)
+				else // Live release
 				{
-					var msg = $"You are not running the latest {(beta ? "beta" : "release")} version of Cumulus MX, build {latestBuild.name} is available.";
-					LogConsoleMessage(msg, ConsoleColor.Cyan);
-					LogWarningMessage(msg);
-					UpgradeAlarm.LastMessage = $"{(beta ? "Beta" : "Release")} build {latestBuild.name} is available";
-					UpgradeAlarm.Triggered = true;
-					LatestBuild = latestBuild.tag_name[1..];
-				}
-				else if (int.Parse(latestBuild.tag_name[1..]) == cmxBuild)
-				{
-					LogMessage($"This Cumulus MX instance is running the latest {(beta ? "beta" : "release")} version");
-					UpgradeAlarm.Triggered = false;
-					LatestBuild = latestBuild.tag_name[1..];
-				}
-				else if (int.Parse(latestBuild.tag_name[1..]) < cmxBuild)
-				{
-					LogWarningMessage($"This Cumulus MX instance appears to be running a test version. This build={Build}, latest available build={veryLatest}");
-					LatestBuild = veryLatest.ToString();
+					if (int.Parse(latestLive.tag_name[1..]) > cmxBuild)
+					{
+						var msg = $"You are not running the latest version of Cumulus MX, build {latestLive.name} is available.";
+						LogConsoleMessage(msg, ConsoleColor.Cyan);
+						LogWarningMessage(msg);
+						UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
+						UpgradeAlarm.Triggered = true;
+						LatestBuild = latestBeta.tag_name[1..];
+					}
+					else if (int.Parse(latestLive.tag_name[1..]) == cmxBuild)
+					{
+						LogMessage($"This Cumulus MX instance is running the latest release version");
+						UpgradeAlarm.Triggered = false;
+						LatestBuild = latestBeta.tag_name[1..];
+					}
+					else
+					{
+						LogWarningMessage($"This Cumulus MX instance appears to be running a test version. This build={Build}, latest available build={veryLatest}");
+						LatestBuild = veryLatest.ToString();
+					}
 				}
 			}
 			catch (Exception ex)
