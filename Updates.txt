@@ -1,4 +1,4 @@
-4.1.2 - b4026
+4.1.2 - b4027
 —————————————
 New
 - Adds wind run to the dashboard "now" page
@@ -24,6 +24,8 @@ Fixed
 - Remove UV/Solar missing data messages from Davis Cloud (VP2)
 - A new version of MigrateData3to4 (1.0.3) to fix issues migrating the day file
 - Negative 0.0 appearing when no rainfall has occurred
+- Davis Cloud Station wind processing changed, instead of MX trying to calculate an average wind speed, MX now uses the wind speed data from Davis directly.
+	The data rate from the cloud is not fast enough for the average to be calculated.
 
 
 

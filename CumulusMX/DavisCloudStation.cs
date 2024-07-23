@@ -72,9 +72,10 @@ namespace CumulusMX
 			cumulus.LeafWetDPlaces = 1;
 			cumulus.LeafWetFormat = "F1";
 
-			CalcRecentMaxGust = true;
-			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
+			CalcRecentMaxGust = false;
+			cumulus.StationOptions.CalcuateAverageWindSpeed = false;
 			cumulus.StationOptions.UseSpeedForAvgCalc = true;
+			cumulus.StationOptions.UseSpeedForLatest = true;
 			cumulus.StationOptions.CalculatedDP = false;
 			cumulus.StationOptions.CalculatedWC = false;
 
@@ -750,6 +751,7 @@ namespace CumulusMX
 		private void DecodeCurrent(List<WlCurrentSensor> sensors)
 		{
 			// The WLL sends the timestamp in Unix ticks, and in UTC
+			var dataUpdated = false;
 
 			foreach (var sensor in sensors)
 			{
@@ -779,6 +781,7 @@ namespace CumulusMX
 											continue;
 										}
 										cumulus.LogDebugMessage($"DecodeCurrent: Using Leaf/Soil {txid}");
+										dataUpdated = true;
 									}
 									catch (KeyNotFoundException)
 									{
@@ -1000,6 +1003,7 @@ namespace CumulusMX
 												continue;
 											}
 											cumulus.LogDebugMessage("DecodeCurrent: Using barometer");
+											dataUpdated = true;
 										}
 										catch (KeyNotFoundException)
 										{
@@ -1069,6 +1073,7 @@ namespace CumulusMX
 											continue;
 										}
 										cumulus.LogDebugMessage($"DecodeCurrent: Using Inside temp/hum");
+										dataUpdated = true;
 									}
 									catch (KeyNotFoundException)
 									{
@@ -1132,6 +1137,7 @@ namespace CumulusMX
 											continue;
 										}
 										cumulus.LogDebugMessage("DecodeCurrent: Using WLL health");
+										dataUpdated = true;
 									}
 									catch (KeyNotFoundException)
 									{
@@ -1163,6 +1169,7 @@ namespace CumulusMX
 											continue;
 										}
 										cumulus.LogDebugMessage("DecodeCurrent: Using WLC health");
+										dataUpdated = true;
 									}
 									catch (KeyNotFoundException)
 									{
@@ -1211,6 +1218,7 @@ namespace CumulusMX
 												continue;
 											}
 											cumulus.LogDebugMessage($"DecodeCurrent: Using this record type {sensor.data_structure_type}");
+											dataUpdated = true;
 										}
 										catch (KeyNotFoundException)
 										{
@@ -1361,20 +1369,17 @@ namespace CumulusMX
 
 										try
 										{
-											if (data.wind_speed.HasValue && data.wind_dir.HasValue)
+											if (data.wind_gust_10_min.HasValue && data.wind_speed.HasValue && data.wind_dir.HasValue)
 											{
-												var gust = ConvertUnits.WindMPHToUser(data.wind_speed.Value);
+												// The cloud data isn't coming in a a rapid enough rate to perform averaging, so just use the Davis values
+												var gust = ConvertUnits.WindMPHToUser(data.wind_gust_10_min.Value);
+												var spd = ConvertUnits.WindMPHToUser(data.wind_speed.Value);
 												// dir is a direction code: 0=N, 1=NNE, ... 14=NW, 15=NNW - convert to degress
 												var dir = (int) ((data.wind_dir ?? 0) * 22.5);
 
 												cumulus.LogDebugMessage("DecodeCurrent: using wind data");
 
-												DoWind(gust, dir, -1, lastRecordTime);
-
-												if (data.wind_gust_10_min.HasValue)
-												{
-													CheckHighGust(ConvertUnits.WindMPHToUser(data.wind_gust_10_min.Value), dir, lastRecordTime);
-												}
+												DoWind(gust, dir, spd, lastRecordTime);
 											}
 											else
 											{
@@ -1674,6 +1679,7 @@ namespace CumulusMX
 													continue;
 												}
 												cumulus.LogDebugMessage($"DecodeCurrent: Using ISS {rec.tx_id}, type {sensor.data_structure_type}");
+												dataUpdated = true;
 											}
 											catch (KeyNotFoundException)
 											{
@@ -2050,6 +2056,12 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage($"Error, DecodeCurrent, DataType={sensor.data_structure_type}, SensorType={sensor.sensor_type}: " + e.Message);
 				}
+			}
+
+			if (!dataUpdated)
+			{
+				// no new data, bail out
+				return;
 			}
 
 			var dateTime = DateTime.Now;
