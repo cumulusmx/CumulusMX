@@ -7,6 +7,8 @@ Changed
 
 Fixed
 - The Cumulus MX version comparison with latest online at startup and daily
+- Davis Cloud Station can now accurately determine the current conditions update rate
+- Fix Davis WLL (and others) creating erroneous wind speed spike warnings
 
 
 Package Updates

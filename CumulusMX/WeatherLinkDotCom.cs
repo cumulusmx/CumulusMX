@@ -834,6 +834,7 @@ namespace CumulusMX
 	public class WlStationListStations
 	{
 		public int station_id { get; set; }
+		public string station_id_uuid { get; set; }
 		public string station_name { get; set; }
 		public int gateway_id { get; set; }
 		public string gateway_id_hex { get; set; }
@@ -854,6 +855,9 @@ namespace CumulusMX
 		public double latitude { get; set; }
 		public double longitude { get; set; }
 		public double elevation { get; set; }
+		public string gateway_type { get; set; }
+		public string relationship_type { get; set; }
+		public string subscription_type { get; set; }
 	}
 
 	public class WlSensor(int sensorType, int lsid, int parentId, string name, string parentName)

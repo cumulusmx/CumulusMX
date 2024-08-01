@@ -3652,6 +3652,7 @@ namespace CumulusMX
 			var stationsUrl = "https://api.weatherlink.com/v2/stations?api-key=" + cumulus.WllApiKey;
 
 			cumulus.LogDebugMessage($"GetStations: URL = {stationsUrl.ToString().Replace(cumulus.WllApiKey, "API_KEY")}");
+			cumulus.LogDebugMessage($"GetStations: Looking for station id = {cumulus.WllStationId}");
 
 			try
 			{
@@ -3697,7 +3698,7 @@ namespace CumulusMX
 						}
 
 						wlStationArchiveInterval = station.recording_interval;
-						DataTimeoutMins = wlStationArchiveInterval + 3;
+						SetDataTimeout(station.subscription_type);
 					}
 				}
 				if (stationsObj.stations.Count > 1 && cumulus.WllStationId < 10)
@@ -3715,6 +3716,7 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"GetStations: Setting WLL parent ID = {stationsObj.stations[0].gateway_id}");
 					cumulus.WllParentId = stationsObj.stations[0].gateway_id;
 					wlStationArchiveInterval = stationsObj.stations[0].recording_interval;
+					SetDataTimeout(stationsObj.stations[0].subscription_type);
 					return;
 				}
 			}
@@ -3722,6 +3724,19 @@ namespace CumulusMX
 			{
 				cumulus.LogDebugMessage("GetStations: WeatherLink API exception: " + ex.Message);
 			}
+		}
+
+		private void SetDataTimeout(string subscription)
+		{
+			subscription = (subscription ?? "basic").ToLower();
+
+			DataTimeoutMins = subscription switch
+			{
+				"basic" => 15 + 3,
+				"pro" => 5 + 3,
+				"pro+" => 1 + 3,
+				_ => 15 + 3,
+			};
 		}
 
 		private void GetAvailableSensors()
