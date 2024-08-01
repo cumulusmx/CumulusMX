@@ -2,6 +2,7 @@
 4.1.3 - b4028
 —————————————
 New
+- New web tag <#stationId> which returns the internal station number used by CMX to determine the station type
 
 Changed
 
@@ -9,6 +10,7 @@ Fixed
 - The Cumulus MX version comparison with latest online at startup and daily
 - Davis Cloud Station can now accurately determine the current conditions update rate
 - Fix Davis WLL (and others) creating erroneous wind speed spike warnings
+- AI2 Davis reception stats
 
 
 Package Updates
