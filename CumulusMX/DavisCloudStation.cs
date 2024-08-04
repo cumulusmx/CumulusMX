@@ -24,6 +24,7 @@ namespace CumulusMX
 
 		private bool startingUp = true;
 		private DateTime lastRecordTime = DateTime.MinValue;
+		private DateTime lastHistoricData;
 
 		public DavisCloudStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -362,6 +363,7 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("History: Reading history data from log files");
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
+			lastHistoricData = cumulus.LastUpdateTime;
 
 			cumulus.LogMessage("History: Reading archive data from WeatherLink API");
 			bw = new BackgroundWorker { WorkerSupportsCancellation = true };
@@ -417,7 +419,7 @@ namespace CumulusMX
 			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)
 			{
 				cumulus.LogWarningMessage("GetHistoricData: Missing WeatherLink API data in the configuration, aborting!");
-				cumulus.LastUpdateTime = DateTime.Now;
+				lastHistoricData = DateTime.Now;
 				return;
 			}
 
@@ -426,11 +428,10 @@ namespace CumulusMX
 				const string msg = "No WeatherLink API station ID in the configuration";
 				cumulus.LogWarningMessage(msg);
 				Cumulus.LogConsoleMessage("GetHistoricData: " + msg);
-
 			}
 
 			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
-			var startTime = Utils.ToUnixTime(cumulus.LastUpdateTime);
+			var startTime = Utils.ToUnixTime(lastHistoricData);
 			long endTime = unixDateTime;
 			int unix24hrs = 24 * 60 * 60;
 
@@ -442,8 +443,8 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			Cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
-			cumulus.LogMessage($"GetHistoricData: Downloading Historic Data from WL.com from: {cumulus.LastUpdateTime:s} to: {Utils.FromUnixTime(endTime):s}");
+			Cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {Utils.FromUnixTime(endTime):s}");
+			cumulus.LogMessage($"GetHistoricData: Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {Utils.FromUnixTime(endTime):s}");
 
 			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId);
 			historicUrl.Append("?api-key=" + cumulus.WllApiKey);
@@ -455,7 +456,7 @@ namespace CumulusMX
 			lastDataReadTime = cumulus.LastUpdateTime;
 			int luhour = lastDataReadTime.Hour;
 
-			int rollHour = Math.Abs(cumulus.GetHourInc(cumulus.LastUpdateTime));
+			int rollHour = Math.Abs(cumulus.GetHourInc(lastHistoricData));
 
 			cumulus.LogMessage($"Roll over hour = {rollHour}");
 
@@ -489,7 +490,7 @@ namespace CumulusMX
 					var historyError = responseBody.FromJson<WlErrorResponse>();
 					cumulus.LogErrorMessage($"GetHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
 					Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
-					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
+					//cumulus.LastUpdateTime = Utils.FromUnixTime(endTime)
 					return;
 				}
 
@@ -497,7 +498,7 @@ namespace CumulusMX
 				{
 					cumulus.LogWarningMessage("GetHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
 					Cumulus.LogConsoleMessage(" - No historic data available");
-					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
+					lastHistoricData = Utils.FromUnixTime(endTime);
 					return;
 				}
 				else if (responseBody.StartsWith("{\"")) // basic sanity check
@@ -525,7 +526,7 @@ namespace CumulusMX
 					{
 						cumulus.LogMessage("GetHistoricData: No historic data available");
 						Cumulus.LogConsoleMessage(" - No historic data available");
-						cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
+						lastHistoricData = Utils.FromUnixTime(endTime);
 						return;
 					}
 					else
@@ -537,7 +538,7 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage("GetHistoricData: Invalid historic message received");
 					cumulus.LogMessage("GetHistoricData: Received: " + responseBody);
-					cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
+					lastHistoricData = Utils.FromUnixTime(endTime);
 					return;
 				}
 			}
@@ -550,7 +551,7 @@ namespace CumulusMX
 					cumulus.LogMessage($"GetHistoricData: Base exception - {ex.Message}");
 				}
 
-				cumulus.LastUpdateTime = Utils.FromUnixTime(endTime);
+				lastHistoricData = Utils.FromUnixTime(endTime);
 				return;
 			}
 
@@ -745,6 +746,8 @@ namespace CumulusMX
 
 			if (!Program.service)
 				Console.WriteLine(""); // flush the progress line
+
+			lastHistoricData = Utils.FromUnixTime(endTime);
 		}
 
 
@@ -1487,8 +1490,8 @@ namespace CumulusMX
 											* Available fields
 											* solar_rad
 											* et_day (inches) - ET field is populated in the ISS archive records, which may not be the same as the solar
-											* et_month
-											* et_year
+											* et_month - only incremented at rollover
+											* et_year - only incremented at rollover
 											*/
 										try
 										{
@@ -1497,9 +1500,9 @@ namespace CumulusMX
 												cumulus.LogDebugMessage("DecodeCurrent: using solar data");
 												DoSolarRad(data.solar_rad.Value, lastRecordTime);
 
-												if (data.et_year.HasValue && !cumulus.StationOptions.CalculatedET && (data.et_year.Value >= 0) && (data.et_year.Value < 32000))
+												if (data.et_year.HasValue && data.et_day.HasValue && !cumulus.StationOptions.CalculatedET && (data.et_year.Value >= 0) && (data.et_year.Value < 32000))
 												{
-													DoET(ConvertUnits.RainINToUser(data.et_year.Value), lastRecordTime);
+													DoET(ConvertUnits.RainINToUser(data.et_year.Value + data.et_day.Value), lastRecordTime);
 												}
 											}
 										}
@@ -2015,9 +2018,9 @@ namespace CumulusMX
 														cumulus.LogWarningMessage($"DecodeCurrent: Warning, no valid Solar data on TxId {rec.tx_id}");
 													}
 
-													if (rec.et_year.HasValue && !cumulus.StationOptions.CalculatedET)
+													if (rec.et_year.HasValue && rec.et_day.HasValue && !cumulus.StationOptions.CalculatedET)
 													{
-														DoET(ConvertUnits.RainINToUser(rec.et_year.Value), lastRecordTime);
+														DoET(ConvertUnits.RainINToUser(rec.et_year.Value + rec.et_day.Value), lastRecordTime);
 													}
 												}
 												catch (Exception ex)
@@ -3722,7 +3725,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogDebugMessage("GetStations: WeatherLink API exception: " + ex.Message);
+				cumulus.LogErrorMessage("GetStations: WeatherLink API exception: " + ex.Message);
 			}
 		}
 
@@ -3737,6 +3740,8 @@ namespace CumulusMX
 				"pro+" => 1 + 3,
 				_ => 15 + 3,
 			};
+
+			cumulus.LogMessage($"GetStations: Subscription type = {subscription}, update rate = {DataTimeoutMins} minutes");
 		}
 
 		private void GetAvailableSensors()
@@ -3785,7 +3790,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogDebugMessage("GetAvailableSensors: WeatherLink API exception: " + ex.Message);
+				cumulus.LogErrorMessage("GetAvailableSensors: WeatherLink API exception: " + ex.Message);
 				return;
 			}
 
@@ -3821,7 +3826,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogDebugMessage("GetAvailableSensors: Processing sensors exception: " + ex.Message);
+					cumulus.LogErrorMessage("GetAvailableSensors: Processing sensors exception: " + ex.Message);
 				}
 			}
 		}

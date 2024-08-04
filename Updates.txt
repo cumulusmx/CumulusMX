@@ -10,8 +10,11 @@ Fixed
 - The Cumulus MX version comparison with latest online at startup and daily
 - Davis Cloud Station can now accurately determine the current conditions update rate
 - Fix Davis WLL (and others) creating erroneous wind speed spike warnings
-- AI2 Davis reception stats
-
+- AI2 Davis reception stats display incorrectly
+- Davis Cloud Station (VP2) now correctly displays the Davis ET values when "Cumulus calculates ET" is not enabled
+	- Note: If "Cumulus calculates ET" is not enabled, the last hours ET every day, will be accumulated in the first hour of the following day
+-
+ Davis WLL, and Davis Cloud stations, fixed a problem where the rollover would not be performed if historic data was not available and MX was stopped before the rollover and restarted after
 
 Package Updates
 - SixLabors.ImageSharp
@@ -71,7 +74,7 @@ New
 - Cumulus now calculates the AQi for Ecowitt PM and CO₂ sensors
 	- New web tags:
 	<#AirQualityIdx1[-4]>, <#AirQualityAvgIdx1[-4]>
-	<#CO2_pm2p5_aqi>, <#CO2_pm2p5_24h_aqi>, <#CO2_pm10_aqi>, <#CO2_pm10_24_aqih>
+	<#CO2_pm2p5_aqi>, <#CO2_pm2p5_24h_aqi>, <#CO2_pm10_aqi>, <#CO2_pm10_24_aqi>
 - Add new pressure units option of kilopascal (kPa)
 - New station type added: JSON Data Input, marked as "experimental" for now, but testing so far has been successful
 	- Accepts data in a JSON format defined in MXutils/WeatherStationInput.jsonc

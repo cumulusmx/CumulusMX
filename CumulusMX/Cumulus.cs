@@ -588,6 +588,8 @@ namespace CumulusMX
 
 			boolWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
+			LogMessage("Dotnet Version: " + RuntimeInformation.FrameworkDescription);
+
 			// Some .NET 8 clutures use a non-"standard" minus symbol, this causes all sorts of parsing issues down the line and for external scripts
 			// the simplest solution is to override this and set all cultures to use the hypen-minus
 			if (CultureInfo.CurrentCulture.NumberFormat.NegativeSign != "-")
