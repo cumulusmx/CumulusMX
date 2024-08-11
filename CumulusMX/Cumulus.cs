@@ -3912,6 +3912,7 @@ namespace CumulusMX
 			WllApiKey = ini.GetValue("WLL", "WLv2ApiKey", string.Empty);
 			WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", string.Empty);
 			WllStationId = ini.GetValue("WLL", "WLStationId", -1, -1);
+			WllStationUuid = ini.GetValue("WLL", "WLStationUuid", "");
 			WllTriggerDataStoppedOnBroadcast = ini.GetValue("WLL", "DataStoppedOnBroadcast", true);
 			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true);
 			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", WllBroadcastDuration);
@@ -5609,6 +5610,7 @@ namespace CumulusMX
 			ini.SetValue("WLL", "WLv2ApiKey", Crypto.EncryptString(WllApiKey, Program.InstanceId, "WllApiKey"));
 			ini.SetValue("WLL", "WLv2ApiSecret", Crypto.EncryptString(WllApiSecret, Program.InstanceId, "WllApiSecret"));
 			ini.SetValue("WLL", "WLStationId", WllStationId);
+			ini.SetValue("WLL", "WLStationUuid", WllStationUuid);
 			ini.SetValue("WLL", "DataStoppedOnBroadcast", WllTriggerDataStoppedOnBroadcast);
 			ini.SetValue("WLL", "PrimaryRainTxId", WllPrimaryRain);
 			ini.SetValue("WLL", "PrimaryTempHumTxId", WllPrimaryTempHum);
@@ -7302,6 +7304,7 @@ namespace CumulusMX
 		internal string WllApiKey;
 		internal string WllApiSecret;
 		internal int WllStationId;
+		internal string WllStationUuid;
 		internal int WllParentId;
 		internal bool WllTriggerDataStoppedOnBroadcast; // trigger a data stopped state if broadcasts stop being received but current data is OK
 		/// <value>Read-only setting, default 20 minutes (1200 sec)</value>

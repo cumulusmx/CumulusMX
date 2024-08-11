@@ -134,10 +134,10 @@ namespace CumulusMX
 			}
 
 			// Perform Station ID checks - If we have API details!
-			// If the Station ID is missing, this will populate it if the user only has one station associated with the API key
+			// If the Station ID is missing, this will populate it if the user only has one station associated with the API key or the UUID is known
 			if (useWeatherLinkDotCom && cumulus.WllStationId < 10)
 			{
-				var msg = "No WeatherLink API station ID in the cumulus.ini file";
+				var msg = $"No WeatherLink API station ID {(cumulus.WllStationUuid == string.Empty ? "or UUID" : "")}in the cumulus.ini file" + (cumulus.WllStationUuid == string.Empty ? "" : ", but a UUID has been configured");
 				cumulus.LogMessage(msg);
 				Cumulus.LogConsoleMessage(msg);
 
@@ -3044,7 +3044,7 @@ namespace CumulusMX
 					{
 						Cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}");
 					}
-					if (station.station_id == cumulus.WllStationId)
+					if (station.station_id == cumulus.WllStationId || cumulus.WllStationUuid == station.station_id_uuid)
 					{
 						cumulus.LogDebugMessage($"WLLStations: Setting WLL parent ID = {station.gateway_id}");
 						cumulus.WllParentId = station.gateway_id;
@@ -3053,17 +3053,31 @@ namespace CumulusMX
 						{
 							cumulus.LogMessage($"WLLStations: - Cumulus log interval {Cumulus.logints[cumulus.DataLogInterval]} does not match this WeatherLink stations log interval {station.recording_interval}");
 						}
+
+						if (cumulus.WllStationId < 10)
+						{
+							cumulus.WllStationId = station.station_id;
+						}
+						else if (cumulus.WllStationUuid == string.Empty)
+						{
+							cumulus.WllStationUuid = station.station_id_uuid;
+						}
+
+						cumulus.WriteIniFile();
 					}
 				}
-				if (stationsObj.stations.Count > 1 && cumulus.WllStationId < 10)
+				if (stationsObj.stations.Count > 1 && cumulus.WllStationId < 10 && cumulus.WllStationUuid == string.Empty)
 				{
 					if (logToConsole)
 						Cumulus.LogConsoleMessage(" - Enter the required station id from the above list into your WLL configuration to enable history downloads.");
 				}
 				else if (stationsObj.stations.Count == 1 && cumulus.WllStationId != stationsObj.stations[0].station_id)
 				{
-					cumulus.LogMessage($"WLLStations: Only found 1 WeatherLink station, using id = {stationsObj.stations[0].station_id}");
+					var usedId = cumulus.WllStationId < 10 ? cumulus.WllStationId.ToString() : cumulus.WllStationUuid;
+
+					cumulus.LogMessage($"WLLStations: Only found 1 WeatherLink station, using id = {usedId}");
 					cumulus.WllStationId = stationsObj.stations[0].station_id;
+					cumulus.WllStationUuid = stationsObj.stations[0].station_id_uuid;
 					// And save it to the config file
 					cumulus.WriteIniFile();
 
