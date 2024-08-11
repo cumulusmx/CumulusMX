@@ -16,6 +16,7 @@ Fixed
 - Davis Cloud Station (VP2) now correctly displays the Davis ET values when "Cumulus calculates ET" is not enabled
 	- Note: If "Cumulus calculates ET" is not enabled, the last hours ET every day, will be accumulated in the first hour of the following day
 - Davis WLL, and Davis Cloud stations, fixed a problem where the rollover would not be performed if historic data was not available and MX was stopped before the rollover and restarted after
+- Improved Ctrl-C shutdown of Cumulus MX for Davis VP2 stations when they are failing to connect with the station
 
 Package Updates
 - SixLabors.ImageSharp
