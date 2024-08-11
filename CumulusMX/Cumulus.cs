@@ -12502,7 +12502,6 @@ namespace CumulusMX
 				Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password),
 			};
 
-			RealtimeFTP.Config.SocketPollInterval = 20000; // increase beyond the timeout value
 			RealtimeFTP.Config.LogPassword = false;
 
 			SetRealTimeFtpLogging(FtpOptions.Logging);

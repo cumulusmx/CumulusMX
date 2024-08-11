@@ -3,6 +3,8 @@
 —————————————
 New
 - New web tag <#stationId> which returns the internal station number used by CMX to determine the station type
+- For Davis WLL and WeatherLink Cloud stations you can now specify the station identifier using the stations UUID instead of the numeric Id. The UUID is simplier to find
+	as it forms part of the URL of every web page related to your station on weatherlink.com
 
 Changed
 
@@ -13,8 +15,7 @@ Fixed
 - AI2 Davis reception stats display incorrectly
 - Davis Cloud Station (VP2) now correctly displays the Davis ET values when "Cumulus calculates ET" is not enabled
 	- Note: If "Cumulus calculates ET" is not enabled, the last hours ET every day, will be accumulated in the first hour of the following day
--
- Davis WLL, and Davis Cloud stations, fixed a problem where the rollover would not be performed if historic data was not available and MX was stopped before the rollover and restarted after
+- Davis WLL, and Davis Cloud stations, fixed a problem where the rollover would not be performed if historic data was not available and MX was stopped before the rollover and restarted after
 
 Package Updates
 - SixLabors.ImageSharp
@@ -23,6 +24,7 @@ Package Updates
 - NReco.Logging.File
 - ServiceStack.Text
 - SSH.Net
+- SQLite
 
 
 
