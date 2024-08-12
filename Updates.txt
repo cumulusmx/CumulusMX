@@ -10,14 +10,14 @@ Changed
 
 Fixed
 - The Cumulus MX version comparison with latest online at startup and daily
+- Fix CMX version check when no betas are available on Github repo
 - Davis Cloud Station can now accurately determine the current conditions update rate
 - Fix Davis WLL (and others) creating erroneous wind speed spike warnings
-- AI2 Davis reception stats display incorrectly
+- Alternative Interface 2 - Davis reception stats display incorrectly
 - Davis Cloud Station (VP2) now correctly displays the Davis ET values when "Cumulus calculates ET" is not enabled
 	- Note: If "Cumulus calculates ET" is not enabled, the last hours ET every day, will be accumulated in the first hour of the following day
 - Davis WLL, and Davis Cloud stations, fixed a problem where the rollover would not be performed if historic data was not available and MX was stopped before the rollover and restarted after
 - Improved Ctrl-C shutdown of Cumulus MX for Davis VP2 stations when they are failing to connect with the station
-- Fix CMX version check when no betas are available on Github repo
 - Fix Ecowitt firmware check when running test firmware
 
 
