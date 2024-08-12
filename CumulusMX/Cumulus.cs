@@ -12914,7 +12914,11 @@ namespace CumulusMX
 				var latestBeta = releases.Find(x => !x.draft && x.prerelease);
 				var latestLive = releases.Find(x => !x.draft && !x.prerelease);
 				var cmxBuild = int.Parse(Build);
-				var veryLatest = Math.Max(int.Parse(latestBeta.tag_name[1..]), int.Parse(latestLive.tag_name[1..]));
+				int veryLatest;
+				if (latestBeta == null)
+					veryLatest = int.Parse(latestLive.tag_name[1..]);
+				else
+					veryLatest = Math.Max(int.Parse(latestBeta.tag_name[1..]), int.Parse(latestLive.tag_name[1..]));
 
 				if (string.IsNullOrEmpty(latestLive.name))
 				{
@@ -12924,7 +12928,7 @@ namespace CumulusMX
 					}
 					return;
 				}
-				else if (string.IsNullOrEmpty(latestBeta.name))
+				else if (latestBeta != null && string.IsNullOrEmpty(latestBeta.name))
 				{
 					LogMessage("Failed to get the latest beta build version from GitHub");
 					return;
@@ -12941,13 +12945,13 @@ namespace CumulusMX
 						UpgradeAlarm.Triggered = true;
 						LatestBuild = latestLive.tag_name[1..];
 					}
-					else if (int.Parse(latestBeta.tag_name[1..]) == cmxBuild)
+					else if (latestBeta != null && int.Parse(latestBeta.tag_name[1..]) == cmxBuild)
 					{
 						LogMessage($"This Cumulus MX instance is running the latest beta version");
 						UpgradeAlarm.Triggered = false;
 						LatestBuild = latestLive.tag_name[1..];
 					}
-					else if (int.Parse(latestBeta.tag_name[1..]) > cmxBuild)
+					else if (latestBeta != null && int.Parse(latestBeta.tag_name[1..]) > cmxBuild)
 					{
 						LogMessage($"This Cumulus MX beta instance is not running the latest beta version of Cumulsus MX, build {latestBeta.name} is available.");
 						UpgradeAlarm.Triggered = false;
@@ -12968,13 +12972,13 @@ namespace CumulusMX
 						LogWarningMessage(msg);
 						UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
 						UpgradeAlarm.Triggered = true;
-						LatestBuild = latestBeta.tag_name[1..];
+						LatestBuild = latestBeta != null ? latestBeta.tag_name[1..] : latestLive.tag_name[1..];
 					}
 					else if (int.Parse(latestLive.tag_name[1..]) == cmxBuild)
 					{
 						LogMessage($"This Cumulus MX instance is running the latest release version");
 						UpgradeAlarm.Triggered = false;
-						LatestBuild = latestBeta.tag_name[1..];
+						LatestBuild = latestBeta != null ? latestBeta.tag_name[1..] : latestLive.tag_name[1..];
 					}
 					else
 					{
