@@ -46,7 +46,6 @@ using SQLite;
 
 using Swan;
 
-using static System.Net.WebRequestMethods;
 using static CumulusMX.EmailSender;
 
 using File = System.IO.File;
@@ -588,6 +587,8 @@ namespace CumulusMX
 			LogMessage("Running under userid: " + Environment.UserName);
 
 			boolWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+			LogMessage("Dotnet Version: " + RuntimeInformation.FrameworkDescription);
 
 			// Some .NET 8 clutures use a non-"standard" minus symbol, this causes all sorts of parsing issues down the line and for external scripts
 			// the simplest solution is to override this and set all cultures to use the hypen-minus
@@ -3911,6 +3912,7 @@ namespace CumulusMX
 			WllApiKey = ini.GetValue("WLL", "WLv2ApiKey", string.Empty);
 			WllApiSecret = ini.GetValue("WLL", "WLv2ApiSecret", string.Empty);
 			WllStationId = ini.GetValue("WLL", "WLStationId", -1, -1);
+			WllStationUuid = ini.GetValue("WLL", "WLStationUuid", "");
 			WllTriggerDataStoppedOnBroadcast = ini.GetValue("WLL", "DataStoppedOnBroadcast", true);
 			WLLAutoUpdateIpAddress = ini.GetValue("WLL", "AutoUpdateIpAddress", true);
 			WllBroadcastDuration = ini.GetValue("WLL", "BroadcastDuration", WllBroadcastDuration);
@@ -5608,6 +5610,7 @@ namespace CumulusMX
 			ini.SetValue("WLL", "WLv2ApiKey", Crypto.EncryptString(WllApiKey, Program.InstanceId, "WllApiKey"));
 			ini.SetValue("WLL", "WLv2ApiSecret", Crypto.EncryptString(WllApiSecret, Program.InstanceId, "WllApiSecret"));
 			ini.SetValue("WLL", "WLStationId", WllStationId);
+			ini.SetValue("WLL", "WLStationUuid", WllStationUuid);
 			ini.SetValue("WLL", "DataStoppedOnBroadcast", WllTriggerDataStoppedOnBroadcast);
 			ini.SetValue("WLL", "PrimaryRainTxId", WllPrimaryRain);
 			ini.SetValue("WLL", "PrimaryTempHumTxId", WllPrimaryTempHum);
@@ -7301,6 +7304,7 @@ namespace CumulusMX
 		internal string WllApiKey;
 		internal string WllApiSecret;
 		internal int WllStationId;
+		internal string WllStationUuid;
 		internal int WllParentId;
 		internal bool WllTriggerDataStoppedOnBroadcast; // trigger a data stopped state if broadcasts stop being received but current data is OK
 		/// <value>Read-only setting, default 20 minutes (1200 sec)</value>
@@ -11140,17 +11144,17 @@ namespace CumulusMX
 							if (FtpOptions.PhpCompression == "gzip")
 							{
 								using var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true);
-								await zipped.WriteAsync(byteData, 0, byteData.Length, cancellationToken);
+								await zipped.WriteAsync(byteData.AsMemory(0, byteData.Length), cancellationToken);
 							}
 							else if (FtpOptions.PhpCompression == "deflate")
 							{
 								using var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true);
-								await zipped.WriteAsync(byteData, 0, byteData.Length, cancellationToken);
+								await zipped.WriteAsync(byteData.AsMemory(0, byteData.Length), cancellationToken);
 							}
 
 							ms.Position = 0;
 							byte[] compressed = new byte[ms.Length];
-							await ms.ReadAsync(compressed, 0, compressed.Length, cancellationToken);
+							await ms.ReadAsync(compressed.AsMemory(0, compressed.Length), cancellationToken);
 
 							outStream = new MemoryStream(compressed);
 							streamContent = new StreamContent(outStream);
@@ -12498,7 +12502,6 @@ namespace CumulusMX
 				Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password),
 			};
 
-			RealtimeFTP.Config.SocketPollInterval = 20000; // increase beyond the timeout value
 			RealtimeFTP.Config.LogPassword = false;
 
 			SetRealTimeFtpLogging(FtpOptions.Logging);
@@ -12908,10 +12911,14 @@ namespace CumulusMX
 				var body = await retval.Content.ReadAsStringAsync();
 				var releases = body.FromJson<List<GithubRelease>>();
 
-				var latestBuild = releases.Find(x => !x.draft && x.prerelease == beta);
+				var latestBeta = releases.Find(x => !x.draft && x.prerelease);
 				var latestLive = releases.Find(x => !x.draft && !x.prerelease);
 				var cmxBuild = int.Parse(Build);
-				var veryLatest = Math.Max(int.Parse(latestBuild.tag_name[1..]), int.Parse(latestLive.tag_name[1..]));
+				int veryLatest;
+				if (latestBeta == null)
+					veryLatest = int.Parse(latestLive.tag_name[1..]);
+				else
+					veryLatest = Math.Max(int.Parse(latestBeta.tag_name[1..]), int.Parse(latestLive.tag_name[1..]));
 
 				if (string.IsNullOrEmpty(latestLive.name))
 				{
@@ -12919,39 +12926,65 @@ namespace CumulusMX
 					{
 						LogMessage("Failed to get the latest build version from GitHub");
 					}
+					return;
 				}
-				else if (string.IsNullOrEmpty(latestBuild.name))
+				else if (latestBeta != null && string.IsNullOrEmpty(latestBeta.name))
 				{
-					LogMessage($"Failed to get the latest {(beta ? "beta" : "release")} build version from GitHub");
+					LogMessage("Failed to get the latest beta build version from GitHub");
+					return;
 				}
-				else if (beta && int.Parse(latestLive.tag_name[1..]) > cmxBuild)
+
+				if (beta)
 				{
-					var msg = $"You are running a beta version of Cumulus MX, and a later release build {latestLive.name} is available.";
-					LogConsoleMessage(msg, ConsoleColor.Cyan);
-					LogWarningMessage(msg);
-					UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
-					UpgradeAlarm.Triggered = true;
-					LatestBuild = latestLive.tag_name[1..];
+					if (int.Parse(latestLive.tag_name[1..]) > cmxBuild)
+					{
+						var msg = $"You are running a beta version of Cumulus MX, and a later release build {latestLive.name} is available.";
+						LogConsoleMessage(msg, ConsoleColor.Cyan);
+						LogWarningMessage(msg);
+						UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
+						UpgradeAlarm.Triggered = true;
+						LatestBuild = latestLive.tag_name[1..];
+					}
+					else if (latestBeta != null && int.Parse(latestBeta.tag_name[1..]) == cmxBuild)
+					{
+						LogMessage($"This Cumulus MX instance is running the latest beta version");
+						UpgradeAlarm.Triggered = false;
+						LatestBuild = latestLive.tag_name[1..];
+					}
+					else if (latestBeta != null && int.Parse(latestBeta.tag_name[1..]) > cmxBuild)
+					{
+						LogMessage($"This Cumulus MX beta instance is not running the latest beta version of Cumulsus MX, build {latestBeta.name} is available.");
+						UpgradeAlarm.Triggered = false;
+						LatestBuild = latestLive.tag_name[1..];
+					}
+					else
+					{
+						LogWarningMessage($"This Cumulus MX instance appears to be running a beta test version. This build={Build}, latest available build={veryLatest}");
+						LatestBuild = veryLatest.ToString();
+					}
 				}
-				else if (int.Parse(latestBuild.tag_name[1..]) > cmxBuild)
+				else // Live release
 				{
-					var msg = $"You are not running the latest {(beta ? "beta" : "release")} version of Cumulus MX, build {latestBuild.name} is available.";
-					LogConsoleMessage(msg, ConsoleColor.Cyan);
-					LogWarningMessage(msg);
-					UpgradeAlarm.LastMessage = $"{(beta ? "Beta" : "Release")} build {latestBuild.name} is available";
-					UpgradeAlarm.Triggered = true;
-					LatestBuild = latestBuild.tag_name[1..];
-				}
-				else if (int.Parse(latestBuild.tag_name[1..]) == cmxBuild)
-				{
-					LogMessage($"This Cumulus MX instance is running the latest {(beta ? "beta" : "release")} version");
-					UpgradeAlarm.Triggered = false;
-					LatestBuild = latestBuild.tag_name[1..];
-				}
-				else if (int.Parse(latestBuild.tag_name[1..]) < cmxBuild)
-				{
-					LogWarningMessage($"This Cumulus MX instance appears to be running a test version. This build={Build}, latest available build={veryLatest}");
-					LatestBuild = veryLatest.ToString();
+					if (int.Parse(latestLive.tag_name[1..]) > cmxBuild)
+					{
+						var msg = $"You are not running the latest version of Cumulus MX, build {latestLive.name} is available.";
+						LogConsoleMessage(msg, ConsoleColor.Cyan);
+						LogWarningMessage(msg);
+						UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
+						UpgradeAlarm.Triggered = true;
+						LatestBuild = latestBeta != null ? latestBeta.tag_name[1..] : latestLive.tag_name[1..];
+					}
+					else if (int.Parse(latestLive.tag_name[1..]) == cmxBuild)
+					{
+						LogMessage($"This Cumulus MX instance is running the latest release version");
+						UpgradeAlarm.Triggered = false;
+						LatestBuild = latestBeta != null ? latestBeta.tag_name[1..] : latestLive.tag_name[1..];
+					}
+					else
+					{
+						LogWarningMessage($"This Cumulus MX instance appears to be running a test version. This build={Build}, latest available build={veryLatest}");
+						LatestBuild = veryLatest.ToString();
+					}
 				}
 			}
 			catch (Exception ex)

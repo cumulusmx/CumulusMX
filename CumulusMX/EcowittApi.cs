@@ -2612,10 +2612,19 @@ namespace CumulusMX
 					}
 					else if (retObj.code == 0)
 					{
-						cumulus.FirmwareAlarm.LastMessage = $"A new firmware version is available: {retObj.data.name}.\nChange log:\n{retObj.data.content}";
-						cumulus.FirmwareAlarm.Triggered = true;
-						cumulus.LogWarningMessage($"API.GetLatestFirmwareVersion: Latest Version {retObj.data.name}, Change log:\n{retObj.data.content}");
-						return retObj.data.name;
+						if (retObj.data.content.Contains("test"))  // "- This is a test firmware."
+						{
+							cumulus.LogMessage($"(\"API.GetLatestFirmwareVersion: You are running on test firmware: {retObj.data.name}");
+							cumulus.FirmwareAlarm.Triggered = false;
+							return null;
+						}
+						else
+						{
+							cumulus.FirmwareAlarm.LastMessage = $"A new firmware version is available: {retObj.data.name}.\nChange log:\n{retObj.data.content}";
+							cumulus.FirmwareAlarm.Triggered = true;
+							cumulus.LogWarningMessage($"API.GetLatestFirmwareVersion: Latest Version {retObj.data.name}, Change log:\n{retObj.data.content}");
+							return retObj.data.name;
+						}
 					}
 					else
 					{

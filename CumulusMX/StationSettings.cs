@@ -329,7 +329,8 @@ namespace CumulusMX
 			{
 				apiKey = cumulus.WllApiKey,
 				apiSecret = cumulus.WllApiSecret,
-				apiStationId = cumulus.WllStationId
+				apiStationId = cumulus.WllStationId,
+				apiStationUuid = cumulus.WllStationUuid
 			};
 
 			var wllPrimary = new JsonStationSettingsWllPrimary()
@@ -795,6 +796,7 @@ namespace CumulusMX
 						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.daviswll.api.apiKey) ? null : settings.daviswll.api.apiKey.Trim();
 						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.daviswll.api.apiSecret) ? null : settings.daviswll.api.apiSecret.Trim();
 						cumulus.WllStationId = settings.daviswll.api.apiStationId;
+						cumulus.WllStationUuid = settings.daviswll.api.apiStationUuid;
 
 						if (settings.general.stationtype == 11 || settings.general.stationtype == 19) // WLL & Cloud WLL/WLC only
 						{
@@ -1908,6 +1910,7 @@ namespace CumulusMX
 		public string apiKey { get; set; }
 		public string apiSecret { get; set; }
 		public int apiStationId { get; set; }
+		public string apiStationUuid { get; set; }
 	}
 
 	internal class JsonStationSettingsWllPrimary

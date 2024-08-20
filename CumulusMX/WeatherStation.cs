@@ -6129,7 +6129,7 @@ namespace CumulusMX
 				return;
 			}
 
-			if (previousWind < 998 && (Math.Abs(speedpar - previousWind) > cumulus.Spike.WindDiff))
+			if (speedpar >= 0 && previousWind < 998 && (Math.Abs(speedpar - previousWind) > cumulus.Spike.WindDiff))
 			{
 				cumulus.LogSpikeRemoval("Wind difference greater than specified; reading ignored");
 				cumulus.LogSpikeRemoval($"Wind: NewVal={speedpar.ToString(cumulus.WindAvgFormat)} OldVal={previousWind.ToString(cumulus.WindAvgFormat)} SpikeWindDiff={cumulus.Spike.WindDiff.ToString(cumulus.WindAvgFormat)}");
@@ -6149,7 +6149,10 @@ namespace CumulusMX
 			}
 
 			previousGust = gustpar;
-			previousWind = speedpar;
+			if (speedpar >= 0)
+			{
+				previousWind = speedpar;
+			}
 
 			calibratedgust = cumulus.Calib.WindGust.Calibrate(gustpar);
 			var uncalibratedspeed = speedpar < 0 ? WindAverageUncalibrated : speedpar;
@@ -6237,10 +6240,31 @@ namespace CumulusMX
 					avg = totalwind / 15;
 				}
 
+				if (avg >= 0 && previousWind < 998 && (Math.Abs(avg - previousWind) > cumulus.Spike.WindDiff))
+				{
+					cumulus.LogSpikeRemoval("Wind difference greater than specified; reading ignored");
+					cumulus.LogSpikeRemoval($"Wind: NewVal={speedpar.ToString(cumulus.WindAvgFormat)} OldVal={previousWind.ToString(cumulus.WindAvgFormat)} SpikeWindDiff={cumulus.Spike.WindDiff.ToString(cumulus.WindAvgFormat)}");
+					lastSpikeRemoval = timestamp;
+					cumulus.SpikeAlarm.LastMessage = $"Wind difference greater than spike value -  Wind: NewVal={avg.ToString(cumulus.WindAvgFormat)} OldVal={previousWind.ToString(cumulus.WindAvgFormat)} SpikeWindDiff={cumulus.Spike.WindDiff.ToString(cumulus.WindAvgFormat)}";
+					cumulus.SpikeAlarm.Triggered = true;
+					return;
+				}
+				else if (avg >= cumulus.Limit.WindHigh)
+				{
+					cumulus.LogSpikeRemoval("Wind greater than upper limit; reading ignored");
+					cumulus.LogSpikeRemoval($"Wind: NewVal={avg.ToString(cumulus.WindAvgFormat)} HighLimit={cumulus.Limit.WindHigh.ToString(cumulus.WindAvgFormat)}");
+					lastSpikeRemoval = timestamp;
+					cumulus.SpikeAlarm.LastMessage = $"Wind greater than upper limit -  Wind: NewVal={avg.ToString(cumulus.WindAvgFormat)} HighLimit={cumulus.Limit.WindHigh.ToString(cumulus.WindAvgFormat)}";
+					cumulus.SpikeAlarm.Triggered = true;
+					return;
+				}
+
 				WindAverageUncalibrated = avg;
 
 				// we want any calibration to be applied from uncalibrated values
 				WindAverage = cumulus.Calib.WindSpeed.Calibrate(avg);
+
+				previousWind = avg;
 			}
 			else
 			{

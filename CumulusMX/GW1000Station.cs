@@ -775,7 +775,7 @@ namespace CumulusMX
 						else
 						{
 							batt = $"{battV:f2}V ({TestBatteryWh40(data[battPos], battV)})"; // low = 1.2V
-							if (battV == 1.6)
+							if (battV >= 1.59)
 							{
 								batt += " dummy value?";
 							}

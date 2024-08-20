@@ -649,6 +649,12 @@ namespace CumulusMX
 			// Creating the new TCP socket effectively opens it - specify IP address or domain name and port
 			while (attempt < 5 && !stop)
 			{
+				if (cumulus.cancellationToken.IsCancellationRequested)
+				{
+					stop = true;
+					return null;
+				}
+
 				attempt++;
 				cumulus.LogDebugMessage("OpenTcpPort: TCP Logger Connect attempt " + attempt);
 				try
@@ -677,7 +683,13 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("OpenTcpPort: Error - " + ex.Message);
 				}
 
-				Thread.Sleep(1000);
+				cumulus.cancellationToken.WaitHandle.WaitOne(1000);
+
+				if (cumulus.cancellationToken.IsCancellationRequested)
+				{
+					stop = true;
+					return null;
+				}
 			}
 
 			// Set the timeout of the underlying stream
@@ -770,6 +782,11 @@ namespace CumulusMX
 			{
 				do
 				{
+					if (stop)
+					{
+						return;
+					}
+
 					GetArchiveData();
 
 					// The VP" seems to need a nudge after a DMPAFT command
@@ -1182,7 +1199,13 @@ namespace CumulusMX
 							if (reconnecting)
 							{
 								cumulus.LogMessage("Failed to connect to the station, waiting 30 seconds before trying again");
-								Thread.Sleep(30000);
+								cumulus.cancellationToken.WaitHandle.WaitOne(30000);
+
+								if (cumulus.cancellationToken.IsCancellationRequested)
+								{
+									stop = true;
+									return;
+								}
 							}
 							continue;
 						}
@@ -3012,11 +3035,16 @@ namespace CumulusMX
 			int retryCount = 0;
 
 			// Check if we haven't sent a command within the last two minutes - use 1:50 () to be safe
-			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000 && !force)
+			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000 && !force )
 			{
 				cumulus.LogDebugMessage("WakeVP: Not required");
 				awakeStopWatch.Restart();
 				return true;
+			}
+
+			if (stop)
+			{
+				return false;
 			}
 
 			cumulus.LogDebugMessage("WakeVP: Starting");
@@ -3205,7 +3233,13 @@ namespace CumulusMX
 				if (comport == null || !comport.IsOpen)
 				{
 					cumulus.LogMessage("InitSerial: Failed to connect to the station, waiting 30 seconds before trying again");
-					Thread.Sleep(30000);
+					cumulus.cancellationToken.WaitHandle.WaitOne(30000);
+
+					if (cumulus.cancellationToken.IsCancellationRequested)
+					{
+						stop = true;
+						return;
+					}
 				}
 
 			} while (comport != null && !comport.IsOpen);
@@ -3300,11 +3334,18 @@ namespace CumulusMX
 
 				socket = OpenTcpPort();
 
-				if (socket == null && !stop)
+				if ((socket == null || !socket.Connected) && !stop)
 				{
 					cumulus.LogMessage("InitTCP: Failed to connect to the station, waiting 30 seconds before trying again");
 					Cumulus.LogConsoleMessage("Failed to connect to the station, waiting 30 seconds before trying again", ConsoleColor.Red, true);
-					Thread.Sleep(30000);
+
+					cumulus.cancellationToken.WaitHandle.WaitOne(30000);
+
+					if (cumulus.cancellationToken.IsCancellationRequested)
+					{
+						stop = true;
+						return;
+					}
 				}
 			} while ((socket == null || !socket.Connected) && !stop);
 

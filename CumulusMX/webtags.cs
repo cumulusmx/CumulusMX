@@ -3006,6 +3006,11 @@ namespace CumulusMX
 			return cumulus.StationType == -1 ? "undefined" : EncodeForJs(cumulus.StationDesc[cumulus.StationType]);
 		}
 
+		private string TagstationId(Dictionary<string, string> tagParams)
+		{
+			return cumulus.StationType == -1 ? "undefined" : cumulus.StationType.ToString();
+		}
+
 		private string Taglatitude(Dictionary<string, string> tagParams)
 		{
 			var dpstr = tagParams.Get("dp");
@@ -6185,6 +6190,7 @@ namespace CumulusMX
 				{ "graphperiod", Taggraphperiod },
 				{ "stationtype", Tagstationtype },
 				{ "stationtypeJsEnc", TagstationtypeJsEnc },
+				{ "stationId", TagstationId	},
 				{ "latitude", Taglatitude },
 				{ "latitudeJsEnc", TaglatitudeJsEnc },
 				{ "longitude", Taglongitude },
