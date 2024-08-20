@@ -409,6 +409,7 @@ namespace CumulusMX
 
 			var general = new JsonStationGeneral()
 			{
+				manufacturer = cumulus.Manufacturer,
 				stationtype = cumulus.StationType,
 				stationmodel = cumulus.StationModel,
 				loginterval = cumulus.DataLogInterval,
@@ -1326,11 +1327,13 @@ namespace CumulusMX
 				// Station type
 				try
 				{
+
 					if (cumulus.StationType != settings.general.stationtype)
 					{
 						cumulus.LogWarningMessage("Station type changed, restart required");
 						Cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow, true);
 					}
+					cumulus.Manufacturer = settings.general.manufacturer;
 					cumulus.StationType = settings.general.stationtype;
 					cumulus.StationModel = settings.general.stationmodel;
 				}
@@ -1627,6 +1630,7 @@ namespace CumulusMX
 
 	internal class JsonStationGeneral
 	{
+		public int manufacturer { get; set; }
 		public int stationtype { get; set; }
 		public string stationmodel { get; set; }
 		public int loginterval { get; set; }

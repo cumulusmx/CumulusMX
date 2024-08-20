@@ -1346,86 +1346,68 @@ namespace CumulusMX
 			if (StationType >= 0 && StationType < StationDesc.Length)
 				LogConsoleMessage($"Opening station type {StationType} - {StationDesc[StationType]}");
 
+			Manufacturer = GetStationManufacturer(StationType);
 			switch (StationType)
 			{
 				case StationTypes.FineOffset:
 				case StationTypes.FineOffsetSolar:
-					Manufacturer = EW;
 					station = new FOStation(this);
 					break;
 				case StationTypes.VantagePro:
 				case StationTypes.VantagePro2:
-					Manufacturer = DAVIS;
 					station = new DavisStation(this);
 					break;
 				case StationTypes.WMR928:
-					Manufacturer = OREGON;
 					station = new WMR928Station(this);
 					break;
 				case StationTypes.WM918:
-					Manufacturer = OREGON;
 					station = new WM918Station(this);
 					break;
 				case StationTypes.WS2300:
-					Manufacturer = LACROSSE;
 					station = new WS2300Station(this);
 					break;
 				case StationTypes.WMR200:
-					Manufacturer = OREGONUSB;
 					station = new WMR200Station(this);
 					break;
 				case StationTypes.Instromet:
-					Manufacturer = INSTROMET;
 					station = new ImetStation(this);
 					break;
 				case StationTypes.WMR100:
-					Manufacturer = OREGONUSB;
 					station = new WMR100Station(this);
 					break;
 				case StationTypes.EasyWeather:
-					Manufacturer = EW;
 					station = new EasyWeather(this);
 					station.LoadLastHoursFromDataLogs(DateTime.Now);
 					break;
 				case StationTypes.WLL:
-					Manufacturer = DAVIS;
 					station = new DavisWllStation(this);
 					break;
 				case StationTypes.GW1000:
-					Manufacturer = ECOWITT;
 					station = new GW1000Station(this);
 					break;
 				case StationTypes.Tempest:
-					Manufacturer = WEATHERFLOW;
 					station = new TempestStation(this);
 					break;
 				case StationTypes.HttpWund:
-					Manufacturer = HTTPSTATION;
 					station = new HttpStationWund(this);
 					break;
 				case StationTypes.HttpEcowitt:
-					Manufacturer = ECOWITT;
 					station = new HttpStationEcowitt(this);
 					break;
 				case StationTypes.HttpAmbient:
-					Manufacturer = AMBIENT;
 					station = new HttpStationAmbient(this);
 					break;
 				case StationTypes.Simulator:
-					Manufacturer = SIMULATOR;
 					station = new Simulator(this);
 					break;
 				case StationTypes.EcowittCloud:
-					Manufacturer = ECOWITT;
 					station = new EcowittCloudStation(this);
 					break;
 				case StationTypes.DavisCloudWll:
 				case StationTypes.DavisCloudVP2:
-					Manufacturer = DAVIS;
 					station = new DavisCloudStation(this);
 					break;
 				case StationTypes.JsonStation:
-					Manufacturer = JSONSTATION;
 					station = new JsonStation(this);
 					break;
 
@@ -3600,6 +3582,7 @@ namespace CumulusMX
 
 			StationType = ini.GetValue("Station", "Type", -1);
 			StationModel = ini.GetValue("Station", "Model", string.Empty);
+			Manufacturer = GetStationManufacturer(StationType);
 
 			FineOffsetStation = (StationType == StationTypes.FineOffset || StationType == StationTypes.FineOffsetSolar);
 			DavisStation = (StationType == StationTypes.VantagePro || StationType == StationTypes.VantagePro2);
@@ -13369,6 +13352,50 @@ namespace CumulusMX
 			FtpLoggerIN = loggerFactory.CreateLogger("INT");
 			FtpLoggerMX = loggerFactory.CreateLogger("CMX");
 		}
+
+		private int GetStationManufacturer(int type)
+		{
+			switch (type)
+			{
+				case StationTypes.FineOffset:
+				case StationTypes.FineOffsetSolar:
+				case StationTypes.EasyWeather:
+					return EW;
+				case StationTypes.VantagePro:
+				case StationTypes.VantagePro2:
+				case StationTypes.WLL:
+				case StationTypes.DavisCloudWll:
+				case StationTypes.DavisCloudVP2:
+					return DAVIS;
+				case StationTypes.WMR928:
+				case StationTypes.WM918:
+					return OREGON;
+				case StationTypes.WMR200:
+				case StationTypes.WMR100:
+					return OREGONUSB;
+				case StationTypes.WS2300:
+					return LACROSSE;
+				case StationTypes.Instromet:
+					return INSTROMET;
+				case StationTypes.GW1000:
+				case StationTypes.HttpEcowitt:
+				case StationTypes.EcowittCloud:
+					return ECOWITT;
+				case StationTypes.Tempest:
+					return WEATHERFLOW;
+				case StationTypes.HttpWund:
+					return HTTPSTATION;
+				case StationTypes.HttpAmbient:
+					return AMBIENT;
+				case StationTypes.Simulator:
+					return SIMULATOR;
+				case StationTypes.JsonStation:
+					return JSONSTATION;
+				default:
+					return -1;
+			}
+		}
+
 
 		[GeneratedRegex(@"max[\s]*=[\s]*([\d]+)")]
 		private static partial Regex regexMaxParam();
