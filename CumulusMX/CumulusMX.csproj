@@ -15,6 +15,7 @@
     <IsPublishable>False</IsPublishable>
     <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
     <Nullable>annotations</Nullable>
+    <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -25,8 +26,26 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <OutputPath />
+    <DefineConstants>TRACE;DEBUG;USE_SQLITEPCL_RAW</DefineConstants>
+    <NoWarn>1701;1702</NoWarn>
+    <WarningsAsErrors>NU1605</WarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath></OutputPath>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <DefineConstants>TRACE;USE_SQLITEPCL_RAW</DefineConstants>
+    <NoWarn>1701;1702</NoWarn>
+    <WarningsAsErrors>NU1605</WarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <OutputPath />
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <DefineConstants>TRACE;USE_SQLITEPCL_RAW</DefineConstants>
