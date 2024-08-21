@@ -3693,10 +3693,10 @@ namespace CumulusMX
 
 				foreach (var station in stationsObj.stations)
 				{
-					cumulus.LogMessage($"GetStations: Found WeatherLink station id = {station.station_id}, name = {station.station_name}");
+					cumulus.LogMessage($"GetStations: WeatherLink station id = {station.station_id}, name = {station.station_name}, subscription = {station.subscription_type}");
 					if (stationsObj.stations.Count > 1 && logToConsole)
 					{
-						Cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}");
+						Cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}, subscription = {station.subscription_type}");
 					}
 					if (station.station_id == cumulus.WllStationId || station.station_id_uuid == cumulus.WllStationUuid)
 					{
@@ -3710,7 +3710,6 @@ namespace CumulusMX
 
 						wlStationArchiveInterval = station.recording_interval;
 						SetDataTimeout(station.subscription_type);
-
 
 						if (cumulus.WllStationId < 10)
 						{

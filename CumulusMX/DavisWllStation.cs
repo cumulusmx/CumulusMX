@@ -44,6 +44,7 @@ namespace CumulusMX
 		private readonly bool useWeatherLinkDotCom = true;
 		private readonly bool[] sensorContactLost = new bool[9];
 		private DateTime lastHistoricData;
+		private string subscriptionType = string.Empty;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -3039,10 +3040,10 @@ namespace CumulusMX
 
 				foreach (var station in stationsObj.stations)
 				{
-					cumulus.LogMessage($"WLLStations: Found WeatherLink station id = {station.station_id}, name = {station.station_name}");
+					cumulus.LogMessage($"WLLStations: WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}, subscription = {station.subscription_type}");
 					if (stationsObj.stations.Count > 1 && logToConsole)
 					{
-						Cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}");
+						Cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}, subscription = {station.subscription_type}");
 					}
 					if (station.station_id == cumulus.WllStationId || cumulus.WllStationUuid == station.station_id_uuid)
 					{
@@ -3063,6 +3064,8 @@ namespace CumulusMX
 							cumulus.WllStationUuid = station.station_id_uuid;
 						}
 
+						subscriptionType = station.subscription_type.ToLower();
+
 						cumulus.WriteIniFile();
 					}
 				}
@@ -3078,6 +3081,8 @@ namespace CumulusMX
 					cumulus.LogMessage($"WLLStations: Only found 1 WeatherLink station, using id = {usedId}");
 					cumulus.WllStationId = stationsObj.stations[0].station_id;
 					cumulus.WllStationUuid = stationsObj.stations[0].station_id_uuid;
+					subscriptionType = stationsObj.stations[0].subscription_type.ToLower();
+
 					// And save it to the config file
 					cumulus.WriteIniFile();
 
