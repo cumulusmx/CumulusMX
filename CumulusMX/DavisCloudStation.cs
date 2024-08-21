@@ -25,6 +25,7 @@ namespace CumulusMX
 		private bool startingUp = true;
 		private DateTime lastRecordTime = DateTime.MinValue;
 		private DateTime lastHistoricData;
+		private string subscriptionLevel = "basic";
 
 		public DavisCloudStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -139,7 +140,7 @@ namespace CumulusMX
 
 			DateTime tooOld = new DateTime(0, DateTimeKind.Local);
 
-			if ((cumulus.LastUpdateTime <= tooOld) || !cumulus.StationOptions.UseDataLogger)
+			if ((cumulus.LastUpdateTime <= tooOld) || subscriptionLevel == "basic" || !cumulus.StationOptions.UseDataLogger)
 			{
 				// there's nothing in the database, so we haven't got a rain counter
 				// we can't load the history data, so we'll just have to go live
@@ -3753,9 +3754,9 @@ namespace CumulusMX
 
 		private void SetDataTimeout(string subscription)
 		{
-			subscription = (subscription ?? "basic").ToLower();
+			subscriptionLevel = (subscription ?? "basic").ToLower();
 
-			DataTimeoutMins = subscription switch
+			DataTimeoutMins = subscriptionLevel switch
 			{
 				"basic" => 15 + 3,
 				"pro" => 5 + 3,
