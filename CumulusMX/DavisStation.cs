@@ -195,7 +195,7 @@ namespace CumulusMX
 
 			DateTime tooold = new DateTime(0, DateTimeKind.Local);
 
-			if ((cumulus.LastUpdateTime <= tooold) || !cumulus.UseDataLogger)
+			if ((cumulus.LastUpdateTime <= tooold) || !cumulus.StationOptions.UseDataLogger)
 			{
 				// there's nothing in the database, so we haven't got a rain counter
 				// we can't load the history data, so we'll just have to go live

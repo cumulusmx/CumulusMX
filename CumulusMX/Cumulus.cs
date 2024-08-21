@@ -3832,7 +3832,7 @@ namespace CumulusMX
 				rewriteRequired = true;
 			}
 
-			UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
+			StationOptions.UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
 			UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
 			HourlyForecast = ini.GetValue("Station", "HourlyForecast", false);
 			StationOptions.UseCumulusPresstrendstr = ini.GetValue("Station", "UseCumulusPresstrendstr", false);
@@ -5525,7 +5525,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "StartDateIso", RecordsBeganDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
 			ini.SetValue("Station", "YTDrain", YTDrain);
 			ini.SetValue("Station", "YTDrainyear", YTDrainyear);
-			ini.SetValue("Station", "UseDataLogger", UseDataLogger);
+			ini.SetValue("Station", "UseDataLogger", StationOptions.UseDataLogger);
 			ini.SetValue("Station", "UseCumulusForecast", UseCumulusForecast);
 			ini.SetValue("Station", "HourlyForecast", HourlyForecast);
 			ini.SetValue("Station", "UseCumulusPresstrendstr", StationOptions.UseCumulusPresstrendstr);
@@ -7200,8 +7200,6 @@ namespace CumulusMX
 		public bool HourlyForecast { get; set; }
 
 		public bool UseCumulusForecast { get; set; }
-
-		public bool UseDataLogger { get; set; }
 
 		public bool DavisConsoleHighGust { get; set; }
 
@@ -13535,6 +13533,7 @@ namespace CumulusMX
 		public int UseRainForIsRaining { get; set; }
 		public int LeafWetnessIsRainingIdx { get; set; }
 		public double LeafWetnessIsRainingThrsh { get; set; }
+		public bool UseDataLogger { get; set; }
 	}
 
 	public class FtpOptionsClass

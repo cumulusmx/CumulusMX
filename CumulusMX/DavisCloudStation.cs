@@ -139,7 +139,7 @@ namespace CumulusMX
 
 			DateTime tooOld = new DateTime(0, DateTimeKind.Local);
 
-			if ((cumulus.LastUpdateTime <= tooOld) || !cumulus.UseDataLogger)
+			if ((cumulus.LastUpdateTime <= tooOld) || !cumulus.StationOptions.UseDataLogger)
 			{
 				// there's nothing in the database, so we haven't got a rain counter
 				// we can't load the history data, so we'll just have to go live
@@ -494,6 +494,7 @@ namespace CumulusMX
 					cumulus.LogErrorMessage($"GetHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
 					Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
 					//cumulus.LastUpdateTime = Utils.FromUnixTime(endTime)
+					maxArchiveRuns = 0;
 					return;
 				}
 
@@ -502,6 +503,7 @@ namespace CumulusMX
 					cumulus.LogWarningMessage("GetHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
 					Cumulus.LogConsoleMessage(" - No historic data available");
 					lastHistoricData = Utils.FromUnixTime(endTime);
+					maxArchiveRuns = 0;
 					return;
 				}
 				else if (responseBody.StartsWith("{\"")) // basic sanity check
@@ -542,6 +544,7 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("GetHistoricData: Invalid historic message received");
 					cumulus.LogMessage("GetHistoricData: Received: " + responseBody);
 					lastHistoricData = Utils.FromUnixTime(endTime);
+					maxArchiveRuns = 0;
 					return;
 				}
 			}
@@ -555,6 +558,7 @@ namespace CumulusMX
 				}
 
 				lastHistoricData = Utils.FromUnixTime(endTime);
+				maxArchiveRuns = 0;
 				return;
 			}
 
@@ -2104,7 +2108,7 @@ namespace CumulusMX
 
 			// If the station isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
 			// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
-			if (!cumulus.UseDataLogger)
+			if (!cumulus.StationOptions.UseDataLogger)
 			{
 				cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW");
 			}

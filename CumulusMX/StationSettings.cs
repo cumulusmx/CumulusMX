@@ -48,7 +48,8 @@ namespace CumulusMX
 				maxwind = cumulus.LCMaxWind,
 				recordtimeout = cumulus.RecordSetTimeoutHrs,
 				snowdepthhour = cumulus.SnowDepthHour,
-				raindaythreshold = cumulus.RainDayThreshold
+				raindaythreshold = cumulus.RainDayThreshold,
+				uselogger = cumulus.StationOptions.UseDataLogger
 			};
 
 			// Common Settings
@@ -710,11 +711,11 @@ namespace CumulusMX
 					cumulus.StationOptions.AvgBearingMinutes = settings.Options.advanced.avgbearingmins;
 					cumulus.StationOptions.AvgSpeedMinutes = settings.Options.advanced.avgspeedmins;
 					cumulus.StationOptions.PeakGustMinutes = settings.Options.advanced.peakgustmins;
+					cumulus.StationOptions.UseDataLogger = settings.Options.advanced.uselogger;
 					cumulus.LCMaxWind = settings.Options.advanced.maxwind;
 					cumulus.RecordSetTimeoutHrs = settings.Options.advanced.recordtimeout;
 					cumulus.SnowDepthHour = settings.Options.advanced.snowdepthhour;
 					cumulus.RainDayThreshold = settings.Options.advanced.raindaythreshold;
-
 				}
 				catch (Exception ex)
 				{
@@ -1680,6 +1681,7 @@ namespace CumulusMX
 		public int recordtimeout { get; set; }
 		public int snowdepthhour { get; set; }
 		public double raindaythreshold { get; set; }
+		public bool uselogger { get; set; }
 	}
 
 	internal class JsonStationSettingsOptions
