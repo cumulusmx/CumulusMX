@@ -190,7 +190,7 @@ namespace CumulusMX
 
 			DateTime tooOld = new DateTime(0, DateTimeKind.Local);
 
-			if ((cumulus.LastUpdateTime <= tooOld) || !cumulus.UseDataLogger)
+			if ((cumulus.LastUpdateTime <= tooOld) || !cumulus.StationOptions.UseDataLogger)
 			{
 				// there's nothing in the database, so we haven't got a rain counter
 				// we can't load the history data, so we'll just have to go live
@@ -1312,7 +1312,7 @@ namespace CumulusMX
 
 				// If the station isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
 				// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
-				if (!cumulus.UseDataLogger)
+				if (!cumulus.StationOptions.UseDataLogger)
 				{
 					cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW");
 				}
