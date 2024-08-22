@@ -1410,6 +1410,9 @@ namespace CumulusMX
 				case StationTypes.JsonStation:
 					station = new JsonStation(this);
 					break;
+				case StationTypes.EcowittHttpApi:
+					station = new EcowittHttpApiStation(this);
+					break;
 
 				default:
 					LogConsoleMessage("Station type not set", ConsoleColor.Red);
@@ -13378,6 +13381,7 @@ namespace CumulusMX
 				case StationTypes.GW1000:
 				case StationTypes.HttpEcowitt:
 				case StationTypes.EcowittCloud:
+				case StationTypes.EcowittHttpApi:
 					return ECOWITT;
 				case StationTypes.Tempest:
 					return WEATHERFLOW;
@@ -13430,6 +13434,7 @@ namespace CumulusMX
 		public const int DavisCloudWll = 19;
 		public const int DavisCloudVP2 = 20;
 		public const int JsonStation = 21;
+		public const int EcowittHttpApi = 22;
 	}
 
 	public class DiaryData
