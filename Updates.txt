@@ -1,16 +1,29 @@
+4.1.4 - b4029
+—————————————
+Fixed
+- Davis Cloud stations in endless loop at startup if there is no historic data to process or access is denied
+
+Changed
+- Davis WLL/DAvis Cloud stations now use the WL.com subscription level to determine if they use WL.com as a logger
+
+
+Package Updates
+- SQLite: Reverted to v2.1.8 pending fix from author
+
+
 
 4.1.3 - b4028
 —————————————
 New
 - New web tag <#stationId> which returns the internal station number used by CMX to determine the station type
-- For Davis WLL and WeatherLink Cloud stations you can now specify the station identifier using the stations UUID instead of the numeric Id. The UUID is simplier to find
+- For Davis WLL and WeatherLink Cloud stations you can now specify the station identifier using the stations UUID instead of the numeric Id. The UUID is simpler to find
 	as it forms part of the URL of every web page related to your station on weatherlink.com
 
 Changed
 
 Fixed
 - The Cumulus MX version comparison with latest online at startup and daily
-- Fix CMX version check when no betas are available on Github repo
+- Fix CMX version check when no betas are available on GitHub repo
 - Davis Cloud Station can now accurately determine the current conditions update rate
 - Fix Davis WLL (and others) creating erroneous wind speed spike warnings
 - Alternative Interface 2 - Davis reception stats display incorrectly
