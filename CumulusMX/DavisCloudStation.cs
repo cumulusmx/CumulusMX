@@ -25,7 +25,7 @@ namespace CumulusMX
 		private bool startingUp = true;
 		private DateTime lastRecordTime = DateTime.MinValue;
 		private DateTime lastHistoricData;
-		private string subscriptionLevel = "basic";
+		private string subscriptionLevel = string.Empty;
 
 		public DavisCloudStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -3763,7 +3763,7 @@ namespace CumulusMX
 				_ => 15 + 3,
 			};
 
-			cumulus.LogMessage($"GetStations: Subscription type = {subscription}, update rate = {DataTimeoutMins} minutes");
+			cumulus.LogMessage($"GetStations: Subscription type = {subscription}, data timeout = {DataTimeoutMins} minutes");
 		}
 
 		private void GetAvailableSensors()

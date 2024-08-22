@@ -1,4 +1,4 @@
-4.2.0 - b4029
+4.2.0 - b4030
 —————————————
 New
 - Exposes the UseDataLogger setting in Station Settings > Options > Advanced
@@ -9,6 +9,20 @@ Changed
 Fixed
 - Davis Cloud stations no longer continuosly try to fetch history data if there is no Pro subscription
 
+
+
+
+4.1.4 - b4029
+—————————————
+Fixed
+- Davis Cloud stations in endless loop at startup if there is no historic data to process or access is denied
+
+Changed
+- Davis WLL/DAvis Cloud stations now use the WL.com subscription level to determine if they use WL.com as a logger
+
+
+Package Updates
+- SQLite: Reverted to v2.1.8 pending fix from author
 
 
 

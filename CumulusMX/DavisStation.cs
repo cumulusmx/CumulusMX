@@ -789,7 +789,7 @@ namespace CumulusMX
 
 					GetArchiveData();
 
-					// The VP" seems to need a nudge after a DMPAFT command
+					// The VP2 seems to need a nudge after a DMPAFT command
 					if (isSerial)
 					{
 						WakeVP(comport, true);
