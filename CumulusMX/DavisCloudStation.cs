@@ -25,6 +25,7 @@ namespace CumulusMX
 		private bool startingUp = true;
 		private DateTime lastRecordTime = DateTime.MinValue;
 		private DateTime lastHistoricData;
+		private string subscriptionLevel = string.Empty;
 
 		public DavisCloudStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -139,7 +140,7 @@ namespace CumulusMX
 
 			DateTime tooOld = new DateTime(0, DateTimeKind.Local);
 
-			if ((cumulus.LastUpdateTime <= tooOld) || !cumulus.UseDataLogger)
+			if ((cumulus.LastUpdateTime <= tooOld) || subscriptionLevel == "basic" || !cumulus.UseDataLogger)
 			{
 				// there's nothing in the database, so we haven't got a rain counter
 				// we can't load the history data, so we'll just have to go live
@@ -494,6 +495,7 @@ namespace CumulusMX
 					cumulus.LogErrorMessage($"GetHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
 					Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
 					//cumulus.LastUpdateTime = Utils.FromUnixTime(endTime)
+					maxArchiveRuns = 0;
 					return;
 				}
 
@@ -502,6 +504,7 @@ namespace CumulusMX
 					cumulus.LogWarningMessage("GetHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
 					Cumulus.LogConsoleMessage(" - No historic data available");
 					lastHistoricData = Utils.FromUnixTime(endTime);
+					maxArchiveRuns = 0;
 					return;
 				}
 				else if (responseBody.StartsWith("{\"")) // basic sanity check
@@ -542,6 +545,7 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("GetHistoricData: Invalid historic message received");
 					cumulus.LogMessage("GetHistoricData: Received: " + responseBody);
 					lastHistoricData = Utils.FromUnixTime(endTime);
+					maxArchiveRuns = 0;
 					return;
 				}
 			}
@@ -555,6 +559,7 @@ namespace CumulusMX
 				}
 
 				lastHistoricData = Utils.FromUnixTime(endTime);
+				maxArchiveRuns = 0;
 				return;
 			}
 
@@ -3688,10 +3693,10 @@ namespace CumulusMX
 
 				foreach (var station in stationsObj.stations)
 				{
-					cumulus.LogMessage($"GetStations: Found WeatherLink station id = {station.station_id}, name = {station.station_name}");
+					cumulus.LogMessage($"GetStations: WeatherLink station id = {station.station_id}, name = {station.station_name}, subscription = {station.subscription_type}");
 					if (stationsObj.stations.Count > 1 && logToConsole)
 					{
-						Cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}");
+						Cumulus.LogConsoleMessage($" - Found WeatherLink station id = {station.station_id}, name = {station.station_name}, active = {station.active}, subscription = {station.subscription_type}");
 					}
 					if (station.station_id == cumulus.WllStationId || station.station_id_uuid == cumulus.WllStationUuid)
 					{
@@ -3705,7 +3710,6 @@ namespace CumulusMX
 
 						wlStationArchiveInterval = station.recording_interval;
 						SetDataTimeout(station.subscription_type);
-
 
 						if (cumulus.WllStationId < 10)
 						{
@@ -3749,9 +3753,9 @@ namespace CumulusMX
 
 		private void SetDataTimeout(string subscription)
 		{
-			subscription = (subscription ?? "basic").ToLower();
+			subscriptionLevel = (subscription ?? "basic").ToLower();
 
-			DataTimeoutMins = subscription switch
+			DataTimeoutMins = subscriptionLevel switch
 			{
 				"basic" => 15 + 3,
 				"pro" => 5 + 3,
