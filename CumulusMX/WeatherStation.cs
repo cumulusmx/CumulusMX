@@ -1683,7 +1683,10 @@ namespace CumulusMX
 
 			try
 			{
-				webSocketSemaphore.Release();
+				if (webSocketSemaphore.CurrentCount == 0)
+				{
+					webSocketSemaphore.Release();
+				}
 			}
 			catch
 			{
