@@ -2,12 +2,14 @@
 —————————————
 New
 - Exposes the UseDataLogger setting in Station Settings > Options > Advanced
+- Implements a new data viewer where you can select and view historic data from the monthly logs for a given period, for a set of data values. See: "Data logs > Interval data viewer"
 
 Changed
 
 
 Fixed
 - Davis Cloud stations no longer continuosly try to fetch history data if there is no Pro subscription
+- WMR928 Station now correctly converts indoor temperatures to the user defined units
 
 
 
