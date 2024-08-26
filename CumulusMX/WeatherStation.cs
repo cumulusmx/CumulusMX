@@ -12254,6 +12254,220 @@ namespace CumulusMX
 		}
 
 
+		public string GetIntervalData(string from, string to, string vars)
+		{
+			var fromDate = Utils.FromUnixTime(long.Parse(from));
+			var toDate = Utils.FromUnixTime(long.Parse(to));
+			var variables = vars.Split(',');
+
+			if (variables.Length == 0)
+			{
+				return "[]";
+			}
+
+
+			// adjust for 9 am rollover
+			var ts = fromDate.AddHours(-cumulus.GetHourInc(fromDate));
+			var te = toDate.AddHours(-cumulus.GetHourInc(toDate));
+			var fileDate = new DateTime(ts.Year, ts.Month, 15, 0, 0, 0, DateTimeKind.Local);
+
+			var data = new Dictionary<string, List<string>>();
+
+			// add the headers
+			data.Add("Date/Time", variables.ToList());
+
+			// convert field names to numbers
+			var logFields = new List<int>();
+			if (variables.Contains("temp")) logFields.Add(2);
+			if (variables.Contains("intemp")) logFields.Add(12);
+			if (variables.Contains("heatindex")) logFields.Add(16);
+			if (variables.Contains("dewpoint")) logFields.Add(4);
+			if (variables.Contains("windchill")) logFields.Add(15);
+			if (variables.Contains("feelslike")) logFields.Add(27);
+			if (variables.Contains("humidex")) logFields.Add(28);
+			if (variables.Contains("hum")) logFields.Add(3);
+			if (variables.Contains("inhum")) logFields.Add(13);
+			if (variables.Contains("press")) logFields.Add(10);
+			if (variables.Contains("windspeed")) logFields.Add(5);
+			if (variables.Contains("windgust")) logFields.Add(6);
+			if (variables.Contains("winddir")) logFields.Add(7);
+			if (variables.Contains("rain")) logFields.Add(9);
+			if (variables.Contains("rainrate")) logFields.Add(8);
+			if (variables.Contains("solar")) logFields.Add(18);
+			if (variables.Contains("uv")) logFields.Add(17);
+
+			var extraFields = new List<int>();
+			for (var i = 0; i < 10; i++)
+			{
+				if (variables.Contains($"extratemp{i}")) extraFields.Add(i + 2);
+			}
+			for (var i = 0; i < 10; i++)
+			{
+				if (variables.Contains($"extrahum{i}")) extraFields.Add(i + 12);
+			}
+			for (var i = 0; i < 10; i++)
+			{
+				if (variables.Contains($"extradew{i}")) extraFields.Add(i + 22);
+			}
+			for (var i = 0; i < 4; i++)
+			{
+				if (variables.Contains($"soiltemp{i}")) extraFields.Add(i + 32);
+			}
+			for (var i = 4; i < 16; i++)
+			{
+				if (variables.Contains($"soiltemp{i}")) extraFields.Add(i + 44);
+			}
+			for (var i = 0; i < 4; i++)
+			{
+				if (variables.Contains($"soilmoist{i}")) extraFields.Add(i + 36);
+			}
+			for (var i = 4; i < 16; i++)
+			{
+				if (variables.Contains($"soilmoist{i}")) extraFields.Add(i + 56);
+			}
+			for (var i = 0; i < 2; i++)
+			{
+				if (variables.Contains($"leafwet{i}")) extraFields.Add(i + 44);
+			}
+			for (var i = 0; i < 8; i++)
+			{
+				if (variables.Contains($"usertemp{i}")) extraFields.Add(i + 76);
+			}
+			for (var i = 0; i < 4; i++)
+			{
+				if (variables.Contains($"aqpm{i}")) extraFields.Add(i + 68);
+			}
+			for (var i = 0; i < 4; i++)
+			{
+				if (variables.Contains($"aqpmavg{i}")) extraFields.Add(i + 72);
+			}
+			if (variables.Contains("co2")) extraFields.Add(84);
+			if (variables.Contains("co2avg")) extraFields.Add(85);
+			if (variables.Contains("co2pm25")) extraFields.Add(86);
+			if (variables.Contains("co2pm25avg")) extraFields.Add(87);
+			if (variables.Contains("co2pm10")) extraFields.Add(88);
+			if (variables.Contains("co2pm10avg")) extraFields.Add(89);
+			if (variables.Contains("co2temp")) extraFields.Add(90);
+			if (variables.Contains("co2hum")) extraFields.Add(91);
+
+
+
+			var finished = false;
+			var json = new StringBuilder("[", 5 * variables.Length);
+
+
+			try
+			{
+				while (!finished)
+				{
+
+
+					if (logFields.Count > 0)
+					{
+						var logfile = cumulus.GetLogFileName(fileDate);
+
+						if (!File.Exists(logfile))
+						{
+							cumulus.LogErrorMessage($"GetIntervalData: Error, file does not exist: {logfile}");
+							return "[]";
+						}
+
+						cumulus.LogDebugMessage($"GetIntervalData: Processing log file - {logfile}");
+
+						// read the log file into a List
+						var lines = File.ReadAllLines(logfile).ToList();
+
+						foreach (var line in lines)
+						{
+							var fieldList = new List<string>();
+							var fields = line.Split(',');
+							var date = Utils.ddmmyyhhmmStrToDate(fields[0], fields[1]);
+							var dateStr = fields[0] + " " + fields[1];
+
+							if (date >= fromDate && date <= toDate)
+							{
+								foreach (var fieldNo in logFields)
+								{
+									fieldList.Add(fields[fieldNo]);
+								}
+
+								data.TryAdd(dateStr, fieldList);
+							}
+						}
+					}
+
+					if (extraFields.Count > 0)
+					{
+						var logfile = cumulus.GetExtraLogFileName(ts);
+
+						if (!File.Exists(logfile))
+						{
+							cumulus.LogErrorMessage($"GetIntervalData: Error, file does not exist: {logfile}");
+							return "[]";
+						}
+
+						cumulus.LogDebugMessage($"GetIntervalData: Processing extra log file - {logfile}");
+
+						// read the log file into a List
+						var lines = File.ReadAllLines(logfile).ToList();
+
+						foreach (var line in lines)
+						{
+							var fieldList = new List<string>();
+							var fields = line.Split(',');
+							var date = Utils.ddmmyyhhmmStrToDate(fields[0], fields[1]);
+							var dateStr = fields[0] + " " + fields[1];
+
+							if (date >= fromDate && date <= toDate)
+							{
+								foreach (var fieldNo in extraFields)
+								{
+									fieldList.Add(fields[fieldNo]);
+								}
+
+								if (data.TryGetValue(dateStr, out var value))
+								{
+									value.AddRange(fieldList);
+								}
+								else
+								{
+									data.TryAdd(dateStr, fieldList);
+								}
+							}
+						}
+					}
+
+					// might need the next months log
+					fileDate = fileDate.AddMonths(1);
+
+					// have we run out of log entries?
+					// filedate is 15th on month, compare against the first
+					if (te <= fileDate.AddDays(-14))
+					{
+						finished = true;
+						cumulus.LogDebugMessage("GetIntervalData: Finished processing log files");
+					}
+				}
+
+
+				foreach (var rec in data)
+				{
+					json.Append($"[\"{rec.Key}\",\"{string.Join($"\",\"", rec.Value)}\"],");
+				}
+
+				json.Length -= 1;
+				json.Append(']');
+
+				return json.ToString();
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("GetIntervalData: Error - " + ex.ToString());
+			}
+
+			return "[]";
+		}
+
 		public string GetCachedSqlCommands(string draw, int start, int length, string search)
 		{
 			try

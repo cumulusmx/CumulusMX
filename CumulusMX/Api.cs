@@ -239,6 +239,7 @@ namespace CumulusMX
 					int start = Convert.ToInt32(query["start"]);
 					int length = Convert.ToInt32(query["length"]);
 					string search = query["search[value]"];
+					string data = query["data"];
 
 					using var writer = HttpContext.OpenResponseText(new UTF8Encoding(false));
 					switch (req)
@@ -272,6 +273,9 @@ namespace CumulusMX
 							{
 								await writer.WriteAsync(Cumulus.GetErrorLog());
 							}
+							break;
+						case "intervaldata.json":
+							await writer.WriteAsync(Station.GetIntervalData(from, to, data));
 							break;
 						default:
 							Response.StatusCode = 404;
