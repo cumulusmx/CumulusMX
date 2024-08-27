@@ -2104,7 +2104,7 @@ namespace CumulusMX
 									var gust = ConvertUnits.WindMPHToUser((double) data11.wind_speed_hi);
 									var spd = ConvertUnits.WindMPHToUser((double) data11.wind_speed_avg);
 									var dir = data11.wind_speed_hi_dir ?? 0;
-									var dirCal = (int)cumulus.Calib.WindDir.Calibrate(dir);
+									var dirCal = (int) cumulus.Calib.WindDir.Calibrate(dir);
 									cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {data11.tx_id}");
 									// only record average speed values in recentwind to avoid spikes when switching to live broadcast reception
 									DoWind(spd, dirCal, spd, recordTs);

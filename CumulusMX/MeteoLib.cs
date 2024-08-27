@@ -1,5 +1,4 @@
 using System;
-using System.CodeDom;
 
 namespace CumulusMX
 {
@@ -47,7 +46,7 @@ namespace CumulusMX
 		public static double ApparentTemperature(double tempC, double windspeedMS, int humidity)
 		{
 			double avp = (humidity / 100.0) * 6.105 * Math.Exp(17.27 * tempC / (237.7 + tempC)); // hPa
-			//double avp = ActualVapourPressure(tempC, humidity)
+																								 //double avp = ActualVapourPressure(tempC, humidity)
 			return tempC + (0.33 * avp) - (0.7 * windspeedMS) - 4.0;
 		}
 

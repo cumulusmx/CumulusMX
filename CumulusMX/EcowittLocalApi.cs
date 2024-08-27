@@ -2,7 +2,6 @@
 using System.Threading;
 
 using ServiceStack;
-using ServiceStack.Text;
 
 
 
@@ -232,7 +231,7 @@ namespace CumulusMX
 			rainDay = 16,
 			rainWeek = 17,
 			rainMonth = 18,
-			rainYear =19,
+			rainYear = 19,
 			rainTotals = 20,
 			light = 21,
 			uv = 22,
@@ -243,8 +242,8 @@ namespace CumulusMX
 
 		public class commonSensor
 		{
-			public int id { get; set ; }
-			public string val { get;  set; }
+			public int id { get; set; }
+			public string val { get; set; }
 			public string? unit { get; set; }
 			public double? battery { get; set; }
 

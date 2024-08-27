@@ -3551,7 +3551,7 @@ namespace CumulusMX
 			else
 			{
 				end = DateTime.Now;
-				start = new DateTime(end.Year, end.Month, 1, 0 ,0, 0, DateTimeKind.Local);
+				start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
 			}
 
 			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours == Cumulus.DefaultHiVal ? 0 : rec.SunShineHours), tagParams, 1);
@@ -3593,7 +3593,7 @@ namespace CumulusMX
 
 			if (year != null && month != null)
 			{
-				start = new DateTime(int.Parse(year), int.Parse(month), 1, 0 ,0, 0, DateTimeKind.Local);
+				start = new DateTime(int.Parse(year), int.Parse(month), 1, 0, 0, 0, DateTimeKind.Local);
 				end = start.AddMonths(1);
 			}
 			else
@@ -5352,7 +5352,7 @@ namespace CumulusMX
 			}
 			catch
 			{
-				 return Environment.OSVersion.ToString();
+				return Environment.OSVersion.ToString();
 			}
 		}
 
@@ -6190,7 +6190,7 @@ namespace CumulusMX
 				{ "graphperiod", Taggraphperiod },
 				{ "stationtype", Tagstationtype },
 				{ "stationtypeJsEnc", TagstationtypeJsEnc },
-				{ "stationId", TagstationId	},
+				{ "stationId", TagstationId },
 				{ "latitude", Taglatitude },
 				{ "latitudeJsEnc", TaglatitudeJsEnc },
 				{ "longitude", Taglongitude },

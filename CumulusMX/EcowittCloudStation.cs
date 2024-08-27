@@ -129,7 +129,7 @@ namespace CumulusMX
 				}
 			}
 
-			_ =CheckAvailableFirmware();
+			_ = CheckAvailableFirmware();
 		}
 
 		public override void Start()

@@ -2115,7 +2115,7 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage("*** Data input appears to have stopped");
 				}
-			}		// Calculates evapotranspiration based on the data for the last hour and updates the running annual total.
+			}       // Calculates evapotranspiration based on the data for the last hour and updates the running annual total.
 			else
 			{
 				DataStopped = false;
@@ -2183,7 +2183,7 @@ namespace CumulusMX
 			// Chart data for Highcharts graphs
 			string json;
 			// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-			int[] createReqOnce = [0,1,8,9,11];
+			int[] createReqOnce = [0, 1, 8, 9, 11];
 
 			for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 			{
@@ -6695,7 +6695,7 @@ namespace CumulusMX
 		public readonly double[] WindRunHourMult = [3.6, 1.0, 1.0, 1.0];
 		public DateTime LastDataReadTimestamp = DateTime.MinValue;              // Stored in UTC to avoid clock change issues
 		public DateTime SavedLastDataReadTimestamp = DateTime.MinValue;         // Stored in UTC to avoid clock change issues
-		// Create arrays with 9 entries, 0 = VP2, 1-8 = WLL TxIds
+																				// Create arrays with 9 entries, 0 = VP2, 1-8 = WLL TxIds
 		public int DavisTotalPacketsReceived = 0;
 		public int[] DavisTotalPacketsMissed = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 		public int[] DavisNumberOfResynchs = [0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -8910,7 +8910,7 @@ namespace CumulusMX
 		{
 			int addedEntries = 0;
 
-			StringBuilder msg = new ();
+			StringBuilder msg = new();
 
 			cumulus.LogMessage("LoadDayFile: Attempting to load the day file");
 			if (dayfileReloading)
@@ -9547,7 +9547,7 @@ namespace CumulusMX
 					};
 
 				case 4: // Canada AQHI
-					// return AirQualityIndices.CA_AQHI(value)
+						// return AirQualityIndices.CA_AQHI(value)
 					return -1;
 
 				case 5: // Australia NEPM
@@ -12439,7 +12439,7 @@ namespace CumulusMX
 			var fldNames = new List<string>();
 			try
 			{
-				foreach(var fld in flds)
+				foreach (var fld in flds)
 				{
 					fldNames.Add(cumulus.DayfileFieldNames[fld]);
 				}

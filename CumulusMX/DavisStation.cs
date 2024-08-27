@@ -32,7 +32,7 @@ namespace CumulusMX
 		private bool stop;
 		private int loggerInterval;
 
-		private readonly int[,] ForecastLookup  =
+		private readonly int[,] ForecastLookup =
 		{
 			{14, 0, 0}, {13, 0, 0}, {12, 0, 0}, {11, 0, 0}, {13, 0, 0}, {25, 0, 0}, {24, 0, 0}, {24, 0, 0}, {10, 0, 0}, {24, 0, 0}, {24, 0, 0},
 			{13, 0, 0}, {7, 2, 0}, {24, 0, 0}, {13, 0, 0}, {6, 3, 0}, {13, 0, 0}, {24, 0, 0}, {13, 0, 0}, {6, 6, 0}, {13, 0, 0}, {24, 0, 0},
@@ -247,7 +247,7 @@ namespace CumulusMX
 		private string GetFirmwareVersion()
 		{
 			cumulus.LogMessage("Reading firmware version");
-			StringBuilder response = new ();
+			StringBuilder response = new();
 			StringBuilder data = new();
 			int ch;
 
@@ -541,7 +541,7 @@ namespace CumulusMX
 			//       0   1  23 4   5  6
 			cumulus.LogMessage("Reading reception stats");
 			lastRecepStatsTime = DateTime.Now;
-			StringBuilder response = new ();
+			StringBuilder response = new();
 			var bytesRead = 0;
 			byte[] readBuffer = new byte[40];
 			int ch;
@@ -1259,7 +1259,7 @@ namespace CumulusMX
 		{
 			cumulus.LogDebugMessage("Sending BARREAD");
 
-			StringBuilder response = new ();
+			StringBuilder response = new();
 			var bytesRead = 0;
 			byte[] readBuffer = new byte[64];
 
@@ -1992,7 +1992,7 @@ namespace CumulusMX
 
 		private static string ProcessTxBatt(byte txStatus)
 		{
-			StringBuilder response = new ();
+			StringBuilder response = new();
 
 			for (int i = 0; i < 8; i++)
 			{
@@ -2374,7 +2374,7 @@ namespace CumulusMX
 				// Read the response
 				comport.Read(data, 0, 6);
 
-				StringBuilder resp = new ("Response:");
+				StringBuilder resp = new("Response:");
 
 				for (int i = 0; i < 6; i++)
 				{
@@ -3035,7 +3035,7 @@ namespace CumulusMX
 			int retryCount = 0;
 
 			// Check if we haven't sent a command within the last two minutes - use 1:50 () to be safe
-			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000 && !force )
+			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000 && !force)
 			{
 				cumulus.LogDebugMessage("WakeVP: Not required");
 				awakeStopWatch.Restart();
@@ -3351,7 +3351,7 @@ namespace CumulusMX
 
 			try
 			{
-				if (socket== null)
+				if (socket == null)
 				{
 					cumulus.LogErrorMessage("InitTCP: No TCP connection, giving up");
 					return;

@@ -3729,7 +3729,7 @@ namespace CumulusMX
 			Units.Press = ini.GetValue("Station", "PressureUnit", 1, 0, 3);
 
 			Units.Rain = ini.GetValue("Station", "RainUnit", 0, 0, 1);
-			Units.Temp = ini.GetValue("Station", "TempUnit", 0, 0 , 1);
+			Units.Temp = ini.GetValue("Station", "TempUnit", 0, 0, 1);
 
 			StationOptions.RoundWindSpeed = ini.GetValue("Station", "RoundWindSpeed", false);
 			StationOptions.PrimaryAqSensor = ini.GetValue("Station", "PrimaryAqSensor", -1, -1);

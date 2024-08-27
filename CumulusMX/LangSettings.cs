@@ -469,8 +469,8 @@ namespace CumulusMX
 				}
 
 
-			// Save the settings
-			cumulus.WriteStringsFile();
+				// Save the settings
+				cumulus.WriteStringsFile();
 			}
 			catch (Exception ex)
 			{

@@ -41,7 +41,7 @@ namespace CumulusMX.ThirdParty
 			var maxRetryAttempts = 2;
 			var delay = maxRetryAttempts * 5.0;
 
-			for (int retryCount = maxRetryAttempts; retryCount >= 0 ; retryCount--)
+			for (int retryCount = maxRetryAttempts; retryCount >= 0; retryCount--)
 			{
 				try
 				{

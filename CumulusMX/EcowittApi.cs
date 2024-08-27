@@ -2598,7 +2598,7 @@ namespace CumulusMX
 								cumulus.LogMessage("API.GetLatestFirmwareVersion: Operation throttled, retrying later...");
 								// delay 5 minutes and try again
 								await Task.Delay(5 * 60 * 1000, token);
-								await GetLatestFirmwareVersion(model, mac,version, token);
+								await GetLatestFirmwareVersion(model, mac, version, token);
 								return null;
 							default:
 								cumulus.LogMessage($"API.GetLatestFirmwareVersion: {retObj.msg}");

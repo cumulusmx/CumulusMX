@@ -232,7 +232,7 @@ namespace CumulusMX
 
 		private void ProcessWMR100Packet()
 		{
-			StringBuilder str =new ();
+			StringBuilder str = new();
 
 			for (int i = 0; i <= currentPacketLength - 3; i++)
 			{

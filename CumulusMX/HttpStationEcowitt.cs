@@ -170,7 +170,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				_= CheckAvailableFirmware(deviceModel);
+				_ = CheckAvailableFirmware(deviceModel);
 			}
 		}
 

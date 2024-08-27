@@ -8,13 +8,8 @@ using System.Threading;
 
 using EmbedIO;
 
-using MQTTnet.Protocol;
-using MQTTnet.Server;
-
 using ServiceStack;
 using ServiceStack.Text;
-
-using static SQLite.SQLite3;
 
 
 namespace CumulusMX

@@ -730,7 +730,8 @@ namespace CumulusMX
 				try
 				{
 					type = Enum.GetName(typeof(GW1000Api.SensorIds), data[idx]).ToUpper();
-				} catch
+				}
+				catch
 				{
 					// leave the device id as null
 				}
@@ -946,8 +947,8 @@ namespace CumulusMX
 								idx += 2;
 								break;
 							case 0x03: //Dew point (℃)
-								//tempInt16 = GW1000Api.ConvertBigEndianInt16(data, idx)
-								//dewpoint = tempInt16 / 10.0
+									   //tempInt16 = GW1000Api.ConvertBigEndianInt16(data, idx)
+									   //dewpoint = tempInt16 / 10.0
 								idx += 2;
 								break;
 							case 0x04: //Wind chill (℃)
@@ -1735,7 +1736,7 @@ namespace CumulusMX
 				idx += 2;
 				CO2_pm4 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2_pm4_24h = GW1000Api.ConvertBigEndianUInt16(data, idx)/ 10.0;
+				CO2_pm4_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
 				var msg = $"WH45 CO₂ New: temp={CO2_temperature.ToString(cumulus.TempFormat)}, hum={CO2_humidity}, pm10={CO2_pm10:F1}, pm10_24h={CO2_pm10_24h:F1}, pm2.5={CO2_pm2p5:F1}, pm2.5_24h={CO2_pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}, pm1={CO2_pm1:F1}, pm1_24h={CO2_pm1_24h:F1}, pm4={CO2_pm4:F1}, pm4_24h={CO2_pm4_24h:F1}";
 				var batt = TestBattery3(data[idx]);

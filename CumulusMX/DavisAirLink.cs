@@ -39,7 +39,7 @@ namespace CumulusMX
 		private readonly string locationStr;
 		private readonly bool standalone;
 		private readonly bool standaloneHistory; // Used to flag if we need to get history data on catch-up
-		//private DateTime airLinkLastUpdateTime
+												 //private DateTime airLinkLastUpdateTime
 
 		private readonly DiscoveredDevices discovered = new();
 

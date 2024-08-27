@@ -15,7 +15,7 @@ namespace CumulusMX
 	public static class Api
 	{
 		internal static WeatherStation Station { get; set; }
-		internal static Cumulus cumulus {  get; set; }
+		internal static Cumulus cumulus { get; set; }
 		public static ProgramSettings programSettings { get; set; }
 		internal static StationSettings stationSettings { get; set; }
 		public static InternetSettings internetSettings { get; set; }
@@ -26,19 +26,19 @@ namespace CumulusMX
 		public static MysqlSettings mySqlSettings { get; set; }
 		public static MqttSettings mqttSettings { get; set; }
 		public static CustomLogs customLogs { get; set; }
-		internal static HttpFiles httpFiles {  get; set; }
+		internal static HttpFiles httpFiles { get; set; }
 		public static Wizard wizard { get; set; }
-		internal static LangSettings langSettings {  get; set; }
-		internal static DisplaySettings displaySettings {  get; set; }
-		internal static AlarmSettings alarmSettings {  get; set; }
-		internal static AlarmUserSettings alarmUserSettings {  get; set; }
-		internal static DataEditor dataEditor {  get; set; }
+		internal static LangSettings langSettings { get; set; }
+		internal static DisplaySettings displaySettings { get; set; }
+		internal static AlarmSettings alarmSettings { get; set; }
+		internal static AlarmUserSettings alarmUserSettings { get; set; }
+		internal static DataEditor dataEditor { get; set; }
 		internal static ApiTagProcessor tagProcessor { get; set; }
 		internal static HttpStationWund stationWund { get; set; }
 		internal static HttpStationEcowitt stationEcowitt { get; set; }
 		internal static HttpStationEcowitt stationEcowittExtra { get; set; }
-		internal static HttpStationAmbient stationAmbient {  get; set; }
-		internal static HttpStationAmbient stationAmbientExtra {  get; set; }
+		internal static HttpStationAmbient stationAmbient { get; set; }
+		internal static HttpStationAmbient stationAmbientExtra { get; set; }
 		internal static JsonStation stationJson { get; set; }
 		private static readonly char[] separator = [':'];
 

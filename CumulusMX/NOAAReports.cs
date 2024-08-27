@@ -4,8 +4,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-using HidSharp.Reports;
-
 namespace CumulusMX
 {
 	internal class NOAAReports(Cumulus cumulus, WeatherStation station)
@@ -268,7 +266,7 @@ namespace CumulusMX
 				return logfiledate.AddHours(-1).ToString(cumulus.NOAAconf.MonthFile);
 		}
 
-		public string UploadNoaaReport(int year, int month=-1)
+		public string UploadNoaaReport(int year, int month = -1)
 		{
 			DateTime noaats = month == -1 ? new DateTime(year, 1, 1) : new DateTime(year, month, 1);
 			var reportName = string.Empty;
