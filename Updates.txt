@@ -2,7 +2,8 @@
 —————————————
 New
 - Exposes the UseDataLogger setting in Station Settings > Options > Advanced
-- Implements a new data viewer where you can select and view historic data from the monthly logs for a given period, for a set of data values. See: "Data logs > Interval data viewer"
+- Implements a new data viewer where you can select and view historic data from the monthly logs for a given period, for a set of data values. See: "Data logs > Interval Data Viewer"
+- Implements a new data viewer where you can select and view historic daily data from the day file for a given period, for a set of data values. See: "Data logs > Daily Data Viewer"
 
 Changed
 

@@ -349,6 +349,7 @@ namespace CumulusMX
 			public bool EnableInterval { get; set; }
 			public string IntervalTemplate { get; set; }
 		}
+
 		internal MqttConfig MQTT;
 
 		// NOAA report settings
@@ -494,6 +495,18 @@ namespace CumulusMX
 		];
 
 		internal string[] APRSstationtype = ["DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul", "Ecow", "DsVP", "DsVP", "Json"];
+
+		internal string[] DayfileFieldNames = ["Date", "HighWindGust", "HighGustBearing", "HighGustTime", "MinTemperature", "MinTempTime", "MaxTemperature", "MaxTempTime", "MinPressure", "MinPressureTime", "MaxPressure", "MaxPressureTime", "MaxRainfallRate", "MaxRainRateTime", "TotalRainfallToday", "AvgTemperatureToday", "TotalWindRun", "HighAverageWindSpeed", "HighAvgWindSpeedTime", "LowHumidity", "LowHumidityTime", "HighHumidity", "HighHumidityTime", "TotalEvapotranspiration", "TotalHoursOfSunshine", "HighHeatIndex", "HighHeatIndexTime", "HighApparentTemperature", "HighAppTempTime", "LowApparentTemperature", "LowAppTempTime", "High1hRain", "High1hRainTime", "LowWindChill", "LowWindChillTime", "HighDewPoint", "HighDewPointTime", "LowDewPoint", "LowDewPointTime", "DominantWindBearing", "HeatingDegreeDays", "CoolingDegreeDays", "HighSolarRad", "HighSolarRadTime", "HighUv-I", "HighUv-ITime", "HighFeelsLike", "HighFeelsLikeTime", "LowFeelsLike", "LowFeelsLikeTime", "HighHumidex", "HighHumidexTime", "ChillHours", "High24hRain", "High24hRainTime"];
+		internal string[] LogFileFieldNames = ["Date", "Time", "Temperature", "Humidity", "DewPoint", "WindSpeed", "RecentHighGust", "AverageWindBearing", "RainfallRate", "RainfallSoFar", "SeaLevelPressure", "RainfallCounter", "InsideTemperature", "InsideHumidity", "CurrentGust", "WindChill", "HeatIndex", "UvIndex", "SolarRadiation", "Evapotranspiration", "AnnualEvapotranspiration", "ApparentTemperature", "MaxSolarRadiation", "HoursOfSunshine", "WindBearing", "Rg-11Rain", "RainSinceMidnight", "FeelsLike", "Humidex"];
+		internal string[] ExtraFileFieldNames = ["Date", "Time",
+			"Temp1", "Temp2", "Temp3", "Temp4", "Temp5", "Temp6", "Temp7", "Temp8", "Temp9", "Temp10", "Hum1", "Hum2", "Hum3", "Hum4", "Hum5", "Hum6", "Hum7", "Hum8", "Hum9", "Hum10",
+			"Dewpoint1", "Dewpoint2", "Dewpoint3", "Dewpoint4", "Dewpoint5", "Dewpoint6", "Dewpoint7", "Dewpoint8", "Dewpoint9", "Dewpoint10",
+			"SoilTemp1", "SoilTemp2", "SoilTemp3", "SoilTemp4", "SoilMoist1", "SoilMoist2", "SoilMoist3", "SoilMoist4", "na1", "na2", "LeafWet1", "LeafWet2",
+			"SoilTemp5", "SoilTemp6", "SoilTemp7", "SoilTemp8", "SoilTemp9", "SoilTemp10", "SoilTemp11", "SoilTemp12", "SoilTemp13", "SoilTemp14", "SoilTemp15", "SoilTemp16",
+			"SoilMoist5", "SoilMoist6", "SoilMoist7", "SoilMoist8", "SoilMoist9", "SoilMoist10", "SoilMoist11", "SoilMoist12", "SoilMoist13", "SoilMoist14", "SoilMoist15", "SoilMoist16",
+			"AQ1Pm", "AQ2Pm", "AQ3Pm", "AQ4Pm", "AQ1PmAvg", "AQ2PmAvg", "AQ3PmAvg", "AQ4PmAvg", "UserTemp1", "UserTemp2", "UserTemp3", "UserTemp4", "UserTemp5", "UserTemp6", "UserTemp7", "UserTemp8",
+			"CO2", "CO2Avg", "CO2Pm25", "CO2Pm25Avg", "CO2Pm10", "CO2Pm10Avg", "CO2Temp", "CO2Hum"
+		];
 
 		private string loggingfile;
 		private static readonly Queue<string> queue = new(50);

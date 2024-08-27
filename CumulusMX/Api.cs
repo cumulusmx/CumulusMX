@@ -277,6 +277,9 @@ namespace CumulusMX
 						case "intervaldata.json":
 							await writer.WriteAsync(Station.GetIntervalData(from, to, data));
 							break;
+						case "dailydata.json":
+							await writer.WriteAsync(Station.GetDailylData(from, to, data));
+							break;
 						default:
 							Response.StatusCode = 404;
 							break;
