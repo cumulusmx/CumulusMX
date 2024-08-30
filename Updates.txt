@@ -8,7 +8,7 @@ Changed
 
 
 Package Updates
-- SQLite: Reverted to v2.1.8 pending fix from author
+- SQLite
 
 
 
