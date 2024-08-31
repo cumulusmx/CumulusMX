@@ -2092,7 +2092,8 @@ namespace CumulusMX
 			{
 				if (StationPressure > 0)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+					var stnCal = cumulus.Calib.Press.Calibrate(StationPressure);
+					var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(stnCal), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 					DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
 				}
 				else
@@ -3312,8 +3313,8 @@ namespace CumulusMX
 									// Altimeter from absolute
 									if (data13baro.bar_absolute != null)
 									{
-										var abs = ConvertUnits.PressINHGToHpa((double) data13baro.bar_absolute);
-										abs = cumulus.StationOptions.CalculateSLP ? cumulus.Calib.Press.Calibrate(abs) : abs;
+										// leave possible calculation of SLP until later when we have temp and humidity
+
 										StationPressure = ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute);
 										// Or do we use calibration? The VP2 code doesn't?
 										AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));

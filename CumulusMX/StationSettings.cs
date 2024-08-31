@@ -157,6 +157,10 @@ namespace CumulusMX
 				macaddress = cumulus.Gw1000MacAddress,
 			};
 
+			var ecowittHttpApi = new JsonStationSettingsHttpApi()
+			{
+				ipaddress = cumulus.Gw1000IpAddress
+			};
 
 			var ecowitt = new JsonStationSettingsEcowitt
 			{
@@ -441,6 +445,7 @@ namespace CumulusMX
 				davisvp2 = davisvp2,
 				daviswll = wll,
 				gw1000 = gw1000,
+				ecowitthttpapi = ecowittHttpApi,
 				ecowitt = ecowitt,
 				ecowittapi = ecowittapi,
 				ecowittmaps = ecowittmaps,
@@ -896,6 +901,22 @@ namespace CumulusMX
 						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.gw1000.ipaddress) ? null : settings.gw1000.ipaddress.Trim();
 						cumulus.Gw1000AutoUpdateIpAddress = settings.gw1000.autoDiscover;
 						cumulus.Gw1000MacAddress = string.IsNullOrWhiteSpace(settings.gw1000.macaddress) ? null : settings.gw1000.macaddress.Trim().ToUpper();
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing GW1000 settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// HTTP Local API connection details
+				try
+				{
+					if (settings.ecowitthttpapi != null)
+					{
+						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.ipaddress) ? null : settings.ecowitthttpapi.ipaddress.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -1605,6 +1626,7 @@ namespace CumulusMX
 		public JsonStationGeneral general { get; set; }
 		public JsonStationSettingsDavisVp2 davisvp2 { get; set; }
 		public JsonStationSettingsGw1000Conn gw1000 { get; set; }
+		public JsonStationSettingsHttpApi ecowitthttpapi { get; set; }
 		public JsonStationSettingsEcowitt ecowitt { get; set; }
 		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
 		public JsonStationSettingsEcowittMappings ecowittmaps { get; set; }
@@ -1778,6 +1800,11 @@ namespace CumulusMX
 		public string macaddress { get; set; }
 		public int primaryTHsensor { get; set; }
 		public int primaryRainSensor { get; set; }
+	}
+
+	internal class JsonStationSettingsHttpApi
+	{
+		public string ipaddress { get; set; }
 	}
 
 	internal class JsonStationSettingsEcowitt

@@ -110,6 +110,11 @@ namespace CumulusMX
 				macaddress = cumulus.Gw1000MacAddress
 			};
 
+			var ecowittHttpApi = new JsonStationSettingsHttpApi()
+			{
+				ipaddress = cumulus.Gw1000IpAddress
+			};
+
 			var fineoffset = new JsonWizardFineOffset()
 			{
 				syncreads = cumulus.FineOffsetOptions.SyncReads,
@@ -830,6 +835,7 @@ namespace CumulusMX
 		public JsonWizardDavisWll daviswll { get; set; }
 		public JsonWizardDavisWll daviscloud { get; set; }
 		public JsonStationSettingsGw1000Conn gw1000 { get; set; }
+		public JsonStationSettingsHttpApi ecowitthttpapi { get; set; }
 		public JsonWizardFineOffset fineoffset { get; set; }
 		public JsonWizardEasyWeather easyw { get; set; }
 		public JsonWizardImet imet { get; set; }

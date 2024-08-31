@@ -1,4 +1,4 @@
-4.2.0 - b4030
+4.2.0 - b4031
 —————————————
 New
 - Exposes the UseDataLogger setting in Station Settings > Options > Advanced
@@ -6,6 +6,7 @@ New
 - Implements a new data viewer where you can select and view historic daily data from the day file for a given period, for a set of data values. See: "Data logs > Daily Data Viewer"
 
 Changed
+- The Station Settings screen now does a two stage selection: First the manufacturer, then the station model. This shortens the long and list to select from.
 
 
 Fixed

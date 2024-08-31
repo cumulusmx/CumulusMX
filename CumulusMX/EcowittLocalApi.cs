@@ -10,7 +10,6 @@ namespace CumulusMX
 	internal sealed class EcowittLocalApi : IDisposable
 	{
 		private readonly Cumulus cumulus;
-		private string ipAddress = null;
 
 		public EcowittLocalApi(Cumulus cumul)
 		{
@@ -148,14 +147,12 @@ namespace CumulusMX
 			int responseCode;
 			int retries = 3;
 
-			string ip;
+			string ip = cumulus.Gw1000IpAddress;
 			int retry = 1;
-
-			ip = cumulus.DavisOptions.IPAddr;
 
 			do
 			{
-				var url = $"http://{ip}/get_livedata_info?";
+				var url = $"http://{ip}/get_livedata_info";
 
 				// we want to do this synchronously, so .Result
 				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
@@ -180,7 +177,7 @@ namespace CumulusMX
 					Cumulus.LogConsoleMessage(" - No Live data available");
 					return null;
 				}
-				else if (responseBody.StartsWith("{ \"common")) // sanity check
+				else if (responseBody.StartsWith('{')) // sanity check
 				{
 					// Convert JSON string to an object
 					liveData json = responseBody.FromJson<liveData>();
@@ -242,7 +239,7 @@ namespace CumulusMX
 
 		public class commonSensor
 		{
-			public int id { get; set; }
+			public string id { get; set; }
 			public string val { get; set; }
 			public string? unit { get; set; }
 			public double? battery { get; set; }
@@ -275,7 +272,7 @@ namespace CumulusMX
 		public class tempHumSensor
 		{
 			public int channel { get; set; }
-			public int battery { get; set; }
+			public int? battery { get; set; }
 			public double? temp { get; set; }
 			public string? humidity { get; set; }
 			public string? unit { get; set; }
@@ -284,9 +281,7 @@ namespace CumulusMX
 			{
 				get
 				{
-					if (humidity.EndsWith('%'))
-						humidity = humidity[0..^1];
-					return int.TryParse(humidity, out int result) ? result : null;
+					return int.TryParse(humidity[0..^1], out int result) ? result : null;
 				}
 			}
 		}
@@ -299,7 +294,7 @@ namespace CumulusMX
 			public string inhumi { get; set; }
 			public string abs { get; set; }
 			public string rel { get; set; }
-			public int battery { get; set; }
+			public int? battery { get; set; }
 
 			public int? inhumiInt
 			{
@@ -314,8 +309,8 @@ namespace CumulusMX
 		{
 			public string distance { get; set; }
 			public string timestamp { get; set; }
-			public int count { get; set; }
-			public int battery { get; set; }
+			public int? count { get; set; }
+			public int? battery { get; set; }
 
 			public double? distanceVal
 			{
@@ -326,7 +321,7 @@ namespace CumulusMX
 				}
 			}
 
-			public string? distanceUnit
+			public string distanceUnit
 			{
 				get
 				{
@@ -338,34 +333,42 @@ namespace CumulusMX
 
 		public class co2Sensor
 		{
-			public double temp { get; set; }
+			public double? temp { get; set; }
 			public string unit { get; set; }
 			public string humidity { get; set; }
-			public double PM25 { get; set; }
-			public double PM25_RealAQI { get; set; }
-			public double PM25_24HAQI { get; set; }
-			public double PM10 { get; set; }
-			public double PM10_RealAQI { get; set; }
-			public double PM10_24HAQI { get; set; }
-			public int CO2 { get; set; }
-			public int CO2_24H { get; set; }
-			public int battery { get; set; }
+			public double? PM25 { get; set; }
+			public double? PM25_RealAQI { get; set; }
+			public double? PM25_24HAQI { get; set; }
+			public double? PM10 { get; set; }
+			public double? PM10_RealAQI { get; set; }
+			public double? PM10_24HAQI { get; set; }
+			public int? CO2 { get; set; }
+			public int? CO2_24H { get; set; }
+			public int? battery { get; set; }
+
+			public int? humidityVal
+			{
+				get
+				{
+					return int.TryParse(humidity[0..^1], out int result) ? result : null;
+				}
+			}
 		}
 
 		public class ch_pm25Sensor
 		{
-			public int channel { get; set; }
-			public double PM25 { get; set; }
-			public double PM25_RealAQI { get; set; }
-			public double PM25_24HAQI { get; set; }
-			public int battery { get; set; }
+			public int? channel { get; set; }
+			public double? PM25 { get; set; }
+			public double? PM25_RealAQI { get; set; }
+			public double? PM25_24HAQI { get; set; }
+			public int? battery { get; set; }
 		}
 
 		public class ch_leakSensor
 		{
-			public int channel { get; set; }
+			public int? channel { get; set; }
 			public string name { get; set; }
-			public int battery { get; set; }
+			public int? battery { get; set; }
 			public string status { get; set; }
 		}
 
@@ -384,8 +387,5 @@ namespace CumulusMX
 			public tempHumSensor[]? ch_temp { get; set; }
 			public tempHumSensor[]? ch_leaf { get; set; }
 		}
-
-
 	}
-
 }
