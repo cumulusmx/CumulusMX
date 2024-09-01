@@ -166,6 +166,7 @@ namespace CumulusMX
 				daviswll = daviswll,
 				daviscloud = daviscloud,
 				gw1000 = gw1000,
+				ecowitthttpapi = ecowittHttpApi,
 				fineoffset = fineoffset,
 				easyw = easyweather,
 				imet = imet,
@@ -624,6 +625,23 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing GW1000 settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
+				// HTTP Local API connection details
+				try
+				{
+					if (settings.station.ecowitthttpapi != null)
+					{
+						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.station.ecowitthttpapi.ipaddress) ? null : settings.station.ecowitthttpapi.ipaddress.Trim();
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ecowitt Local HTTP API settings: " + ex.Message;
 					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;

@@ -733,78 +733,97 @@ namespace CumulusMX
 		{
 			foreach (var sensor in sensors)
 			{
-				//Rain Event (val unit)
-				try
+				switch (sensor.id)
 				{
-					var arr = sensor.val.Split(' ');
-					if (arr.Length == 2 && double.TryParse(arr[0], out var val))
-					{
-						var evnt = arr[1] switch
+					case "0x0D":
+						//Rain Event (val unit)
+						try
 						{
-							"mm" => ConvertUnits.RainMMToUser(val),
-							"in" => ConvertUnits.RainINToUser(val),
-							_ => -999
-						};
+							var arr = sensor.val.Split(' ');
+							if (arr.Length == 2 && double.TryParse(arr[0], out var val))
+							{
+								var evnt = arr[1] switch
+								{
+									"mm" => ConvertUnits.RainMMToUser(val),
+									"in" => ConvertUnits.RainINToUser(val),
+									_ => -999
+								};
 
-						if (evnt >= 0)
-						{
-							StormRain = evnt;
+								if (evnt >= 0)
+								{
+									StormRain = evnt;
+								}
+							}
 						}
-					}
-				}
-				catch (Exception ex)
-				{
-					//TODO: log a message
-				}
-
-				//Rain Rate (val unit/h)
-				try
-				{
-					var arr = sensor.val.Split(' ');
-					if (arr.Length == 2 && double.TryParse(arr[0], out var val))
-					{
-						var rate = arr[1] switch
+						catch (Exception ex)
 						{
-							"mm/Hr" => ConvertUnits.RainMMToUser(val),
-							"in/Hr" => ConvertUnits.RainINToUser(val),
-							_ => -999
-						};
-
-						if (rate >= 0)
-						{
-							rainRateLast = rate;
+							//TODO: log a message
 						}
-					}
-				}
-				catch (Exception ex)
-				{
-					//TODO: log a message
-				}
+						break;
 
-				//Rain Year (val unit)
-				try
-				{
-					// TODO: battery status
-
-					var arr = sensor.val.Split(' ');
-					if (arr.Length == 2 && double.TryParse(arr[0], out var val))
-					{
-						var yr = arr[1] switch
+					case "0x0E":
+						//Rain Rate (val unit/h)
+						try
 						{
-							"mm/Hr" => ConvertUnits.RainMMToUser(val),
-							"in/Hr" => ConvertUnits.RainINToUser(val),
-							_ => -999
-						};
+							var arr = sensor.val.Split(' ');
+							if (arr.Length == 2 && double.TryParse(arr[0], out var val))
+							{
+								var rate = arr[1] switch
+								{
+									"mm/Hr" => ConvertUnits.RainMMToUser(val),
+									"in/Hr" => ConvertUnits.RainINToUser(val),
+									_ => -999
+								};
 
-						if (yr >= 0)
-						{
-							rainLast = yr;
+								if (rate >= 0)
+								{
+									rainRateLast = rate;
+								}
+							}
 						}
-					}
-				}
-				catch (Exception ex)
-				{
-					//TODO: log a message
+						catch (Exception ex)
+						{
+							//TODO: log a message
+						}
+						break;
+
+					case "0x13":
+						//Rain Year (val unit)
+						try
+						{
+							// TODO: battery status
+
+							var arr = sensor.val.Split(' ');
+							if (arr.Length == 2 && double.TryParse(arr[0], out var val))
+							{
+								var yr = arr[1] switch
+								{
+									"mm" => ConvertUnits.RainMMToUser(val),
+									"in" => ConvertUnits.RainINToUser(val),
+									_ => -999
+								};
+
+								if (yr >= 0)
+								{
+									rainLast = yr;
+								}
+							}
+						}
+						catch (Exception ex)
+						{
+							//TODO: log a message
+						}
+						break;
+
+					case "0x10": // Rain day
+					case "0x11": // Rain week
+					case "0x12": // Rain month
+								 // do nothing
+						break;
+
+					default:
+						cumulus.LogDebugMessage($"Error: Unknown rain sensor id found = {sensor.id}");
+						break;
 				}
 			}
 		}

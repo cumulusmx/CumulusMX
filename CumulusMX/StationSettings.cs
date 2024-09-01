@@ -921,7 +921,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					var msg = "Error processing GW1000 settings: " + ex.Message;
+					var msg = "Error processing Ecowitt Local HTTP API settings: " + ex.Message;
 					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
