@@ -159,6 +159,7 @@ namespace CumulusMX
 
 			var station = new JsonWizardStation()
 			{
+				manufacturer = cumulus.Manufacturer,
 				stationtype = cumulus.StationType,
 				stationmodel = cumulus.StationModel,
 				davisvp2 = davisvp,
@@ -509,6 +510,7 @@ namespace CumulusMX
 						cumulus.LogWarningMessage("Station type changed, restart required");
 						Cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow);
 					}
+					cumulus.Manufacturer = settings.station.manufacturer;
 					cumulus.StationType = settings.station.stationtype;
 					cumulus.StationModel = settings.station.stationmodel;
 				}
@@ -829,6 +831,7 @@ namespace CumulusMX
 
 	internal class JsonWizardStation
 	{
+		public int manufacturer { get; set; }
 		public int stationtype { get; set; }
 		public string stationmodel { get; set; }
 		public JsonWizardDavisVp davisvp2 { get; set; }
