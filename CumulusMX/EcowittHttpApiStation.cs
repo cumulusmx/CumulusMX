@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static CumulusMX.GW1000Api;
 
 
 namespace CumulusMX
@@ -15,8 +11,6 @@ namespace CumulusMX
 	internal class EcowittHttpApiStation : WeatherStation
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
-		private readonly string ipaddr;
-		private readonly string macaddr;
 		private string deviceModel;
 		private string deviceFirmware;
 		private readonly int updateRate = 10000; // 10 seconds by default
@@ -111,9 +105,6 @@ namespace CumulusMX
 				cumulus.LogMessage("Using the piezo rain sensor data");
 			}
 
-			ipaddr = cumulus.Gw1000IpAddress;
-			macaddr = cumulus.Gw1000MacAddress;
-
 			localApi = new EcowittLocalApi(cumulus);
 
 			ecowittApi = new EcowittApi(cumulus, this);
@@ -152,7 +143,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					var dataLastRead = DateTime.MinValue;
+					DateTime dataLastRead;
 					double delay;
 
 					while (!cumulus.cancellationToken.IsCancellationRequested)
@@ -183,7 +174,7 @@ namespace CumulusMX
 
 						if (rawData.co2 != null)
 						{
-							ProcessCo2(rawData.co2, dataLastRead);
+							ProcessCo2(rawData.co2);
 						}
 
 						if (rawData.ch_pm25 != null)
@@ -502,7 +493,6 @@ namespace CumulusMX
 
 			var sensors = await localApi.GetSensorInfo(cumulus.cancellationToken);
 			batteryLow = false;
-			bool sensorOk;
 
 			LowBatteryDevices.Clear();
 
@@ -1003,7 +993,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessCo2(EcowittLocalApi.Co2Sensor[] sensors, DateTime dateTime)
+		private void ProcessCo2(EcowittLocalApi.Co2Sensor[] sensors)
 		{
 			cumulus.LogDebugMessage("WH45 CO₂: Decoding...");
 
@@ -1050,7 +1040,7 @@ namespace CumulusMX
 			CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
 		}
 
-		private void ProcessChPm25(EcowittLocalApi.Ch_Pm25Sensor[] sensors)
+		private void ProcessChPm25(EcowittLocalApi.ChPm25Sensor[] sensors)
 		{
 			cumulus.LogDebugMessage($"ProcessChPm25: Processing {sensors.Length} sensors");
 
@@ -1072,7 +1062,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessLeak(EcowittLocalApi.Ch_LeakSensor[] sensors)
+		private void ProcessLeak(EcowittLocalApi.ChLeakSensor[] sensors)
 		{
 			cumulus.LogDebugMessage($"ProcessLeak: Processing {sensors.Length} sensors");
 
@@ -1206,11 +1196,6 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("NOT Reading Ecowitt system info");
 
-		}
-
-		private static string TestBattery1(int value)
-		{
-			return value == 0 ? "OK" : "Low";
 		}
 
 		private static bool TestBattery3(int value)

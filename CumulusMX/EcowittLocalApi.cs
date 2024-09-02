@@ -537,7 +537,7 @@ namespace CumulusMX
 			}
 		}
 
-		public class Ch_Pm25Sensor
+		public class ChPm25Sensor
 		{
 			public int? channel { get; set; }
 			public double? PM25 { get; set; }
@@ -546,7 +546,7 @@ namespace CumulusMX
 			public int? battery { get; set; }
 		}
 
-		public class Ch_LeakSensor
+		public class ChLeakSensor
 		{
 			public int? channel { get; set; }
 			public string name { get; set; }
@@ -562,8 +562,8 @@ namespace CumulusMX
 			public Wh25Sensor[]? wh25 { get; set; }
 			public LightningSensor[]? lightning { get; set; }
 			public Co2Sensor[]? co2 { get; set; }
-			public Ch_Pm25Sensor[]? ch_pm25 { get; set; }
-			public Ch_LeakSensor[]? ch_leak { get; set; }
+			public ChPm25Sensor[]? ch_pm25 { get; set; }
+			public ChLeakSensor[]? ch_leak { get; set; }
 			public TempHumSensor[]? ch_aisle { get; set; }
 			public TempHumSensor[]? ch_soil { get; set; }
 			public TempHumSensor[]? ch_temp { get; set; }
