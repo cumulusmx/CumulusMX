@@ -15,11 +15,11 @@ namespace CumulusMX
 	internal class EcowittHttpApiStation : WeatherStation
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
-		private string ipaddr;
+		private readonly string ipaddr;
 		private readonly string macaddr;
 		private string deviceModel;
 		private string deviceFirmware;
-		private int updateRate = 10000; // 10 seconds by default
+		private readonly int updateRate = 10000; // 10 seconds by default
 		private int lastMinute = -1;
 		private int lastHour = -1;
 
@@ -145,6 +145,9 @@ namespace CumulusMX
 
 			cumulus.StartTimersAndSensors();
 
+			// Get the sensor list
+			GetSensorIds().Wait();
+
 			liveTask = Task.Run(() =>
 			{
 				try
@@ -166,13 +169,11 @@ namespace CumulusMX
 						// process rain values
 						if (cumulus.Gw1000PrimaryRainSensor == 0 && rawData.rain != null)
 						{
-							ProcessRain(rawData.rain, dataLastRead);
-							// TODO: battery status for piezo
+							ProcessRain(rawData.rain);
 						}
 						else if (cumulus.Gw1000PrimaryRainSensor == 1 && rawData.piezoRain != null)
 						{
-							ProcessRain(rawData.piezoRain, dataLastRead);
-							// TODO: battery status for tipper
+							ProcessRain(rawData.piezoRain);
 						}
 
 						if (rawData.lightning != null)
@@ -202,19 +203,13 @@ namespace CumulusMX
 
 						if (rawData.ch_temp != null)
 						{
-							ProcessUserTemp(rawData.ch_temp, dataLastRead);
+							ProcessUserTemp(rawData.ch_temp);
 						}
 
 						if (rawData.ch_soil != null)
 						{
 							ProcessSoilMoisture(rawData.ch_soil);
 						}
-
-						// TODO: Soil Temperature sensors
-						//if (rawData.ch_ ??? != null)
-						//{
-						//	ProcessSoilTemp(rawData.ch_ ???);
-						//}
 
 						if (rawData.ch_leaf != null)
 						{
@@ -286,6 +281,12 @@ namespace CumulusMX
 						if (minute != lastMinute)
 						{
 							lastMinute = minute;
+
+							// at the start of every 20 minutes to trigger battery status check
+							if ((minute % 20) == 0 && !cumulus.cancellationToken.IsCancellationRequested)
+							{
+								_ = GetSensorIds();
+							}
 
 							// every day dump the clock drift at midday each day
 							if (minute == 0 && DateTime.Now.Hour == 12)
@@ -495,20 +496,110 @@ namespace CumulusMX
 			}
 		}
 
-		private void GetSensorIdsNew()
+		private async Task GetSensorIds()
 		{
 			cumulus.LogMessage("Reading sensor ids");
 
+			var sensors = await localApi.GetSensorInfo(cumulus.cancellationToken);
+			batteryLow = false;
+			bool sensorOk;
+
+			LowBatteryDevices.Clear();
+
+			if (sensors.Length > 0)
+			{
+				for (var i = 0; i< sensors.Length; i++)
+				{
+					var sensor = sensors[i];
+					var name = string.Empty;
+
+					cumulus.LogDebugMessage($" - enabled={sensor.idst}, type={sensor.img}, sensor id={sensor.id}, signal={sensor.signal}, battery={sensor.batt}, name={sensor.name}");
+
+					// check the battery status
+					if (sensor.idst && sensor.signal > 0)
+					{
+#pragma warning disable S907
+						switch (sensor.type)
+						{
+							case 0: // wh69
+								break;
+							case 1: // wh68
+								name = "wh68";
+								goto case 1003;
+							case 2: // wh80
+								name = "wh80";
+								goto case 1003;
+							case 3: // wh40
+								name = "wh40";
+								goto case 1003;
+							case 4: // wh25
+								name = "wh25";
+								goto case 1003;
+							case 5: // wh26
+								name = "wh326";
+								goto case 1001;
+							case int n when (n > 5 && n < 14): // wh31 - T&H (8 chan)
+								name = "wh31ch" + (sensor.type - 5);
+								goto case 1001;
+							case int n when (n > 13 && n < 22): // wh51 - soil moisture (8 chan)
+								break;
+							case int n when (n > 21 && n < 26): // wh41 - pm2.5 (4 chan)
+								name = "wh41ch" + (sensor.type - 21);
+								goto case 1003;
+							case 26: // wh57 - lightning
+								name = "wh57";
+								goto case 1003;
+							case int n when (n > 26 && n < 31): // wh55 - leak (4 chan)
+								name = "wh55ch" + (sensor.type - 26);
+								goto case 1003;
+							case int n when (n > 30 && n < 39): // wh34 - Temp (8 chan)
+								name = "wh34ch" + (sensor.type - 30);
+								goto case 1003;
+							case 39: // wh45 - co2
+								name = "wh45";
+								goto case 1003;
+							case int n when (n > 39 && n < 48): // wh35 - leasf wet (8 chan)
+								name = "wh35ch" + (sensor.type - 39);
+								goto case 1003;
+							case 48: // wh90
+								name = "wh90";
+								goto case 1003;
+							case 49: // wh85
+								name = "wh85";
+								goto case 1003;
+
+
+							case 1001: // battery type 1 (0=OK, 1=LOW)
+								if (sensor.batt == 1)
+								{
+									batteryLow = true;
+									LowBatteryDevices.Add(name + " - LOW");
+								}
+								break;
+
+							case 1003: // battery type 3 (0-1=LOW, 2-5=OK, 6=DC, 9=OFF)
+								if (!TestBattery3(sensor.batt))
+								{
+									batteryLow = true;
+									LowBatteryDevices.Add(name + " - " + sensor.batt);
+								}
+								break;
+
+							default:
+								cumulus.LogWarningMessage($"Unknown sensor type in SendorIds. Model={sensor.img}, type={sensor.type}");
+								break;
+						}
+#pragma warning restore S907
+					}
+				}
+			}
+			else
+			{
+				cumulus.LogWarningMessage("GetSensorIds: No sensor data returned");
+			}
 		}
 
-		private bool PrintSensorInfoNew(byte[] data, int idx)
-		{
-			var batteryLow = false;
-
-			return batteryLow;
-		}
-
-		private void ProcessCommonList(EcowittLocalApi.commonSensor[] sensors, DateTime dateTime)
+		private void ProcessCommonList(EcowittLocalApi.CommonSensor[] sensors, DateTime dateTime)
 		{
 			cumulus.LogDebugMessage($"ProcessCommonList: Processing {sensors.Length} sensors");
 
@@ -646,7 +737,7 @@ namespace CumulusMX
 
 		}
 
-		private void ProcessWh25(EcowittLocalApi.wh25Sensor[] sensors, DateTime dateTime)
+		private void ProcessWh25(EcowittLocalApi.Wh25Sensor[] sensors, DateTime dateTime)
 		{
 			for (var i = 0; i < sensors.Length; i++)
 			{
@@ -735,12 +826,10 @@ namespace CumulusMX
 				{
 					cumulus.LogExceptionMessage(ex, "ProcessWh25: Error processing pressure}");
 				}
-
-				// TODO: battery status
 			}
 		}
 
-		private void ProcessRain(EcowittLocalApi.commonSensor[] sensors, DateTime dateTime)
+		private void ProcessRain(EcowittLocalApi.CommonSensor[] sensors)
 		{
 			for (var i = 0; i < sensors.Length; i++)
 			{
@@ -772,7 +861,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								//TODO: log a message
+								cumulus.LogExceptionMessage(ex, $"ProcessRain: Error processing Rain Event for sensor id {sensor.id}");
 							}
 							break;
 
@@ -798,7 +887,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								//TODO: log a message
+								cumulus.LogExceptionMessage(ex, $"ProcessRain: Error processing Rain Rate for sensor id {sensor.id}");
 							}
 							break;
 
@@ -806,8 +895,6 @@ namespace CumulusMX
 							//Rain Year (val unit)
 							try
 							{
-								// TODO: battery status
-
 								var arr = sensor.val.Split(' ');
 								if (arr.Length == 2 && double.TryParse(arr[0], out var val))
 								{
@@ -826,7 +913,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								//TODO: log a message
+								cumulus.LogExceptionMessage(ex, $"ProcessRain: Error processing Rain Year for sensor id {sensor.id}");
 							}
 							break;
 
@@ -849,7 +936,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessLightning(EcowittLocalApi.lightningSensor[] sensors, DateTime dateTime)
+		private void ProcessLightning(EcowittLocalApi.LightningSensor[] sensors, DateTime dateTime)
 		{
 			for (var i = 0; i < sensors.Length; i++)
 			{
@@ -916,7 +1003,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessCo2(EcowittLocalApi.co2Sensor[] sensors, DateTime dateTime)
+		private void ProcessCo2(EcowittLocalApi.Co2Sensor[] sensors, DateTime dateTime)
 		{
 			cumulus.LogDebugMessage("WH45 CO₂: Decoding...");
 
@@ -952,8 +1039,6 @@ namespace CumulusMX
 					{
 						CO2_24h = sensor.CO2_24H.Value;
 					}
-
-					// TODO: Battery status
 				}
 				catch (Exception ex)
 				{
@@ -965,8 +1050,10 @@ namespace CumulusMX
 			CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
 		}
 
-		private void ProcessChPm25(EcowittLocalApi.ch_pm25Sensor[] sensors)
+		private void ProcessChPm25(EcowittLocalApi.Ch_Pm25Sensor[] sensors)
 		{
+			cumulus.LogDebugMessage($"ProcessChPm25: Processing {sensors.Length} sensors");
+
 			for (var i = 0; i < sensors.Length; i++)
 			{
 				var sensor = sensors[i];
@@ -982,13 +1069,13 @@ namespace CumulusMX
 				{
 					cumulus.LogExceptionMessage(ex, "ProcessChPm25: Error");
 				}
-
-				// TODO: Battery status
 			}
 		}
 
-		private void ProcessLeak(EcowittLocalApi.ch_leakSensor[] sensors)
+		private void ProcessLeak(EcowittLocalApi.Ch_LeakSensor[] sensors)
 		{
+			cumulus.LogDebugMessage($"ProcessLeak: Processing {sensors.Length} sensors");
+
 			for (var i = 0; i < sensors.Length; i++)
 			{
 				var sensor = sensors[i];
@@ -999,8 +1086,6 @@ namespace CumulusMX
 					{
 						var val = sensor.status == "NORMAL" ? 0 : 1;
 						DoLeakSensor(val, sensor.channel.Value);
-
-						// TODO: Battery status
 					}
 				}
 				catch (Exception ex)
@@ -1011,9 +1096,10 @@ namespace CumulusMX
 			}
 		}
 
-
-		private void ProcessExtraTempHum(EcowittLocalApi.tempHumSensor[] sensors, DateTime dateTime)
+		private void ProcessExtraTempHum(EcowittLocalApi.TempHumSensor[] sensors, DateTime dateTime)
 		{
+			cumulus.LogDebugMessage($"ProcessExtraTempHum: Processing {sensors.Length} sensors");
+
 			for (var i = 0; i < sensors.Length; i++)
 			{
 				var sensor = sensors[i];
@@ -1038,14 +1124,13 @@ namespace CumulusMX
 				{
 					cumulus.LogExceptionMessage(ex, $"ProcessExtraTempHum: Error processind sensor channel {sensor.channel}");
 				}
-
-				// TODO: battery status
 			}
 		}
 
-		private void ProcessUserTemp(EcowittLocalApi.tempHumSensor[] sensors, DateTime dateTime)
+		private void ProcessUserTemp(EcowittLocalApi.TempHumSensor[] sensors)
 		{
 			// user temp = WH34 8 channel Soil or Water temperature sensors
+			cumulus.LogDebugMessage($"ProcessUserTemp: Processing {sensors.Length} sensors");
 
 			for (var i = 0; i < sensors.Length; i++)
 			{
@@ -1070,13 +1155,13 @@ namespace CumulusMX
 				{
 					cumulus.LogExceptionMessage(ex, $"ProcessUserTemp: Error processing sensor channel {sensor.channel}");
 				}
-
-				// TODO: Battery status
 			}
 		}
 
-		private void ProcessSoilMoisture(EcowittLocalApi.tempHumSensor[] sensors)
+		private void ProcessSoilMoisture(EcowittLocalApi.TempHumSensor[] sensors)
 		{
+			cumulus.LogDebugMessage($"ProcessSoilMoisture: Processing {sensors.Length} sensors");
+
 			for (var i = 0; i < sensors.Length; i++)
 			{
 				try
@@ -1092,39 +1177,13 @@ namespace CumulusMX
 				{
 					cumulus.LogExceptionMessage(ex, "ProcessSoilMoisture: Error");
 				}
-
-				// TODO: Battery status
 			}
 		}
 
-
-		private void ProcessSoilTemp(EcowittLocalApi.tempHumSensor[] sensors)
+		private void ProcessLeafWet(EcowittLocalApi.TempHumSensor[] sensors)
 		{
-			for (var i = 0; i < sensors.Length; i++)
-			{
-				var sensor = sensors[i];
-				
-				try
-				{
+			cumulus.LogDebugMessage($"ProcessLeafWet: Processing {sensors.Length} sensors");
 
-					if (sensor.temp.HasValue)
-					{
-						var val = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
-						DoSoilTemp(val, sensor.channel);
-					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, $"ProcessSoilTemp: Error processing channel {sensor.channel}");
-				}
-
-				// TODO: Battery status
-			}
-
-		}
-
-		private void ProcessLeafWet(EcowittLocalApi.tempHumSensor[] sensors)
-		{
 			for (var i = 0; i < sensors.Length; i++)
 			{
 				var sensor = sensors[i];
@@ -1140,72 +1199,38 @@ namespace CumulusMX
 				{
 					cumulus.LogExceptionMessage(ex, $"ProcessLeafWet: Error processing channel {sensor.channel}");
 				}
-
-				// TODO: Battery status
 			}
 		}
 
-
 		private void GetSystemInfo(bool driftOnly)
 		{
-			cumulus.LogMessage("Reading Ecowitt system info");
+			cumulus.LogMessage("NOT Reading Ecowitt system info");
 
 		}
 
-
-		private bool DoWH34BatteryStatus(byte[] data, int index)
+		private static string TestBattery1(int value)
 		{
-			// No longer used in firmware 1.6.0+
-			cumulus.LogDebugMessage("WH34 battery status...");
-			var str = "wh34>" +
-				" ch1=" + TestBattery3(data[index + 1]) +
-				" ch2=" + TestBattery3(data[index + 2]) +
-				" ch3=" + TestBattery3(data[index + 3]) +
-				" ch4=" + TestBattery3(data[index + 4]) +
-				" ch5=" + TestBattery3(data[index + 5]) +
-				" ch6=" + TestBattery3(data[index + 6]) +
-				" ch7=" + TestBattery3(data[index + 7]) +
-				" ch8=" + TestBattery3(data[index + 8]);
-
-			cumulus.LogDebugMessage(str);
-
-			return str.Contains("Low");
+			return value == 0 ? "OK" : "Low";
 		}
 
-		private static string TestBattery1(byte value, byte mask)
-		{
-			return (value & mask) == 0 ? "OK" : "Low";
-		}
-
-		private static string TestBattery3(byte value)
+		private static bool TestBattery3(int value)
 		{
 			if (value == 6)
-				return "DC";
+			{
+				// DC
+				return true;
+			}
 			if (value == 9)
-				return "OFF";
-			return value > 1 ? "OK" : "Low";
-		}
+			{
+				// OFF
+				return false;
+			}
+			if (value > 1)
+			{
+				return true;
+			}
 
-		private static string TestBattery10(byte value)
-		{
-			// consider 1.2V as low
-			if (value == 255)
-				return "n/a";
-
-			return value > 12 ? "OK" : "Low";
-		}
-
-		private static double TestBattery10V(byte value)
-		{
-			return value / 10.0;
-		}
-
-		private static string TestBatteryWh40(byte value, double volts)
-		{
-			if (value == 255)
-				return "n/a";
-
-			return volts > 1.2 ? "OK" : "Low";
+			return false;
 		}
 
 		private void DataTimeout(object source, ElapsedEventArgs e)
@@ -1218,13 +1243,13 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogErrorMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
+				cumulus.LogErrorMessage($"ERROR: No data received from the sttaion for {tmrDataWatchdog.Interval / 1000} seconds");
 				if (!DataStopped)
 				{
 					DataStoppedTime = DateTime.Now;
 					DataStopped = true;
 				}
-				cumulus.DataStoppedAlarm.LastMessage = $"No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds";
+				cumulus.DataStoppedAlarm.LastMessage = $"No data received from the station for {tmrDataWatchdog.Interval / 1000} seconds";
 				cumulus.DataStoppedAlarm.Triggered = true;
 			}
 		}

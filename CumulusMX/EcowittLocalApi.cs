@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ServiceStack;
 
@@ -17,7 +18,7 @@ namespace CumulusMX
 		}
 
 
-		public liveData GetLiveData(CancellationToken token)
+		public LiveData GetLiveData(CancellationToken token)
 		{
 			// http://ip-address/get_livedata_info
 			//
@@ -180,7 +181,7 @@ namespace CumulusMX
 				else if (responseBody.StartsWith('{')) // sanity check
 				{
 					// Convert JSON string to an object
-					liveData json = responseBody.FromJson<liveData>();
+					LiveData json = responseBody.FromJson<LiveData>();
 					return json;
 				}
 			} while (retries-- > 0);
@@ -189,11 +190,221 @@ namespace CumulusMX
 		}
 
 
-		public void GetSensorInfo()
+		public async Task<SensorInfo[]> GetSensorInfo(CancellationToken token)
 		{
 			// http://ip-address/get_sensors_info?page=1
 			// http://ip-address/get_sensors_info?page=2
 
+			// Example of page=1
+			/*
+			
+				[
+					{
+						"img": "wh85",
+						"type": "49",
+						"name": "Wind & Rain",
+						"id": "FFFFFFFF",
+						"batt": "9",
+						"signal": "0",
+						"idst": "1"
+					},
+					{
+						"img": "wh90",
+						"type": "48",
+						"name": "Temp & Humidity & Solar & Wind & Rain",
+						"id": "FFFFFFFE",
+						"batt": "9",
+						"signal": "0",
+						"idst": "0"
+					},
+					{
+						"img": "wh69",
+						"type": "0",
+						"name": "Temp & Humidity & Solar & Wind & Rain",
+						"id": "FFFFFFFE",
+						"batt": "9",
+						"signal": "0",
+						"idst": "0"
+					},
+					{
+						"img": "wh68",
+						"type": "1",
+						"name": "Solar & Wind",
+						"id": "FFFFFFFE",
+						"batt": "9",
+						"signal": "0",
+						"idst": "0"
+					},
+					{
+						"img": "wh40",
+						"type": "3",
+						"name": "Rain",
+						"id": "E1EF",
+						"batt": "0",
+						"signal": "3",
+						"idst": "1"
+					},
+					{
+						"img": "wh25",
+						"type": "4",
+						"name": "Temp & Humidity & Pressure",
+						"id": "FFFFFFFF",
+						"batt": "9",
+						"signal": "0",
+						"idst": "1"
+					},
+					{
+						"img": "wh26",
+						"type": "5",
+						"name": "Temp & Humidity",
+						"id": "FFFFFFFE",
+						"batt": "9",
+						"signal": "0",
+						"idst": "0"
+					},
+					{
+						"img": "wh80",
+						"type": "2",
+						"name": "Temp & Humidity & Solar & Wind",
+						"id": "E0038",
+						"batt": "5",
+						"signal": "4",
+						"idst": "1"
+					},
+					{
+						"img": "wh57",
+						"type": "26",
+						"name": "Lightning",
+						"id": "FFFFFFFE",
+						"batt": "9",
+						"signal": "0",
+						"idst": "0"
+					},
+					{
+						"img": "wh45",
+						"type": "39",
+						"name": "PM25 & PM10 & CO2",
+						"id": "FFFFFFFE",
+						"batt": "9",
+						"signal": "0",
+						"idst": "0"
+					},
+					{
+						"img": "wh41",
+						"type": "22",
+						"name": "PM2.5 CH1",
+						"id": "34",
+						"batt": "9",
+						"signal": "0",
+						"idst": "1"
+					},
+					.. chans 2-4
+					{
+						"img": "wh55",
+						"type": "27",
+						"name": "Leak CH1",
+						"id": "FFFFFFFE",
+						"batt": "9",
+						"signal": "0",
+						"idst": "0"
+					},
+					.. chans 2-4
+					{
+						"img": "wh31",
+						"type": "6",
+						"name": "Temp & Humidity CH1",
+						"id": "B0",
+						"batt": "0",
+						"signal": "4",
+						"idst": "1"
+					},
+					.. chans 2-7
+				]
+			 */
+
+
+			// Example page=2
+			/*
+				[
+					{
+						"img": "wh31",
+						"type": "13",
+						"name": "Temp & Humidity CH8",
+						"id": "FFFFFFFE",
+						"batt": "9",
+						"signal": "0",
+						"idst": "0"
+					},
+					{
+						"img": "wh51",
+						"type": "14",
+						"name": "Soil moisture CH1",
+						"id": "FFFFFFFE",
+						"batt": "9",
+						"signal": "0",
+						"idst": "0"
+					},
+					.. chans 2-8
+					{
+						"img": "wh34",
+						"type": "31",
+						"name": "Temp CH1",
+						"id": "FFFFFFFE",
+						"batt": "9",
+						"signal": "0",
+						"idst": "0"
+					},
+					.. chans 2-8
+					{
+						"img": "wh35",
+						"type": "40",
+						"name": "Leaf Wetness CH1",
+						"id": "FFFFFFFE",
+						"batt": "9",
+						"signal": "0",
+						"idst": "0"
+					},
+					.. chans 2-8
+				]
+
+			 */
+
+			string ip = cumulus.Gw1000IpAddress;
+
+			SensorInfo[] sensors1 = [];
+			SensorInfo[] sensors2 = [];
+
+			var url1 = $"http://{ip}/get_sensors_info?page=1";
+			var url2 = $"http://{ip}/get_sensors_info?page=2";
+
+
+			var task1 = cumulus.MyHttpClient.GetStringAsync(url1, token);
+			var task2 = cumulus.MyHttpClient.GetStringAsync(url2, token);
+
+			// Wait for both tasks to complete
+			await Task.WhenAll(task1, task2);
+
+			// Retrieve the results
+			string result1 = await task1;
+			string result2 = await task2;
+
+			cumulus.LogDataMessage("GetSensorInfo: Page 1 = " + result1);
+			cumulus.LogDataMessage("GetSensorInfo: Page 2 = " + result2);
+
+			if (!string.IsNullOrEmpty(result1))
+			{
+				sensors1 = result1.FromJson<SensorInfo[]>();
+			}
+			if (!string.IsNullOrEmpty(result2))
+			{
+				sensors2 = result2.FromJson<SensorInfo[]>();
+			}
+
+			var retArr = new SensorInfo[sensors1.Length + sensors2.Length];
+			sensors1.CopyTo(retArr, 0);
+			sensors2.CopyTo(retArr, sensors1.Length);
+
+			return retArr;
 		}
 
 
@@ -208,36 +419,7 @@ namespace CumulusMX
 			}
 		}
 
-		private enum commonSensorTypes
-		{
-			indoorTemp = 1,
-			temp = 2,
-			dewpoint = 3,
-			windchill = 4,
-			heatindex = 5,
-			indoorHum = 6,
-			hum = 7,
-			absPressure = 8,
-			relPressure = 9,
-			windDir = 10,
-			windSpeed = 11,
-			windGust = 12,
-			rainEvent = 13,
-			rainRate = 14,
-			rainGain = 15,
-			rainDay = 16,
-			rainWeek = 17,
-			rainMonth = 18,
-			rainYear = 19,
-			rainTotals = 20,
-			light = 21,
-			uv = 22,
-			uvindex = 23,
-			time = 24,
-			dayWindMax = 25
-		}
-
-		public class commonSensor
+		public class CommonSensor
 		{
 			public string id { get; set; }
 			public string val { get; set; }
@@ -269,7 +451,7 @@ namespace CumulusMX
 			}
 		}
 
-		public class tempHumSensor
+		public class TempHumSensor
 		{
 			public int channel { get; set; }
 			public int? battery { get; set; }
@@ -287,7 +469,7 @@ namespace CumulusMX
 		}
 
 
-		public class wh25Sensor
+		public class Wh25Sensor
 		{
 			public double intemp { get; set; }
 			public string unit { get; set; }
@@ -305,7 +487,7 @@ namespace CumulusMX
 			}
 		}
 
-		public class lightningSensor
+		public class LightningSensor
 		{
 			public string distance { get; set; }
 			public string timestamp { get; set; }
@@ -331,7 +513,7 @@ namespace CumulusMX
 			}
 		}
 
-		public class co2Sensor
+		public class Co2Sensor
 		{
 			public double? temp { get; set; }
 			public string unit { get; set; }
@@ -355,7 +537,7 @@ namespace CumulusMX
 			}
 		}
 
-		public class ch_pm25Sensor
+		public class Ch_Pm25Sensor
 		{
 			public int? channel { get; set; }
 			public double? PM25 { get; set; }
@@ -364,7 +546,7 @@ namespace CumulusMX
 			public int? battery { get; set; }
 		}
 
-		public class ch_leakSensor
+		public class Ch_LeakSensor
 		{
 			public int? channel { get; set; }
 			public string name { get; set; }
@@ -372,20 +554,31 @@ namespace CumulusMX
 			public string status { get; set; }
 		}
 
-		public class liveData
+		public class LiveData
 		{
-			public commonSensor[] common_list { get; set; }
-			public commonSensor[]? rain { get; set; }
-			public commonSensor[]? piezoRain { get; set; }
-			public wh25Sensor[]? wh25 { get; set; }
-			public lightningSensor[]? lightning { get; set; }
-			public co2Sensor[]? co2 { get; set; }
-			public ch_pm25Sensor[]? ch_pm25 { get; set; }
-			public ch_leakSensor[]? ch_leak { get; set; }
-			public tempHumSensor[]? ch_aisle { get; set; }
-			public tempHumSensor[]? ch_soil { get; set; }
-			public tempHumSensor[]? ch_temp { get; set; }
-			public tempHumSensor[]? ch_leaf { get; set; }
+			public CommonSensor[] common_list { get; set; }
+			public CommonSensor[]? rain { get; set; }
+			public CommonSensor[]? piezoRain { get; set; }
+			public Wh25Sensor[]? wh25 { get; set; }
+			public LightningSensor[]? lightning { get; set; }
+			public Co2Sensor[]? co2 { get; set; }
+			public Ch_Pm25Sensor[]? ch_pm25 { get; set; }
+			public Ch_LeakSensor[]? ch_leak { get; set; }
+			public TempHumSensor[]? ch_aisle { get; set; }
+			public TempHumSensor[]? ch_soil { get; set; }
+			public TempHumSensor[]? ch_temp { get; set; }
+			public TempHumSensor[]? ch_leaf { get; set; }
+		}
+
+		public class SensorInfo
+		{
+			public string img {  get; set; }
+			public int type { get; set; }
+			public string name { get; set; }
+			public string id { get; set; }
+			public int batt { get; set; }
+			public int signal { get; set; }
+			public bool idst { get; set; }
 		}
 	}
 }

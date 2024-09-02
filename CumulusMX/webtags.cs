@@ -1091,6 +1091,11 @@ namespace CumulusMX
 			return station.TxBatText;
 		}
 
+		private string TagLowBatteryList(Dictionary<string, string> tagParams)
+		{
+			return string.Join(",", station.LowBatteryDevices);
+		}
+
 		private string TagMulticastGoodCnt(Dictionary<string, string> tagParams)
 		{
 			return station.multicastsGood.ToString();
@@ -5974,6 +5979,7 @@ namespace CumulusMX
 				{ "battery", Tagbattery },
 				{ "txbattery", Tagtxbattery },
 				{ "ConsoleSupplyV", TagConsoleSupplyV },
+				{ "LowBatteryList", TagLowBatteryList },
 				{ "MulticastBadCnt", TagMulticastBadCnt },
 				{ "MulticastGoodCnt", TagMulticastGoodCnt },
 				{ "MulticastGoodPct", TagMulticastGoodPct },

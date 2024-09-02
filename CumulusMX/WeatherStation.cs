@@ -197,6 +197,8 @@ namespace CumulusMX
 
 		public WeatherDataCollection weatherDataCollection = [];
 
+		public List<string> LowBatteryDevices = new List<string>();
+
 		// Current values
 
 		public double THWIndex = 0;
