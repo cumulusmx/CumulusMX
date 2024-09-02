@@ -512,123 +512,132 @@ namespace CumulusMX
 		{
 			cumulus.LogDebugMessage($"ProcessCommonList: Processing {sensors.Length} sensors");
 
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
-				switch (sensor.id)
+				var sensor = sensors[i];
+
+				try
 				{
-					case "0x02": //Outdoor Temperature
-						if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
-						{
-							// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
-							outdoortemp = sensor.valDbl.Value;
-							outdoortemp = sensor.unit == "C" ? ConvertUnits.TempCToUser(outdoortemp) : ConvertUnits.TempFToUser(outdoortemp);
-						}
-						break;
-					case "0x03": //Dew point
-						if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0 && !cumulus.StationOptions.CalculatedDP)
-						{
-							var temp = sensor.valDbl.Value;
-							temp = sensor.unit == "C" ? ConvertUnits.TempCToUser(temp) : ConvertUnits.TempFToUser(temp);
-
-							DoOutdoorDewpoint(temp, dateTime);
-						}
-						break;
-					case "3": //Feels like
-							  // do nothing with this for now - MX calcuates feels like
-						break;
-					case "0x04": //Wind chill
-						if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
-						{
-							windchill = sensor.valDbl.Value;
-							windchill = sensor.unit == "C" ? ConvertUnits.TempCToUser(windchill) : ConvertUnits.TempFToUser(windchill);
-						}
-						break;
-					case "0x05": //Heat index
-								 // cumulus calculates this
-						break;
-					case "0x07": //Outdoor Humidity (%)
-						if (sensor.valInt.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
-						{
-							DoOutdoorHumidity(sensor.valInt.Value, dateTime);
-						}
-						break;
-					case "0x0A": //Wind Direction (360°)
-						if (sensor.valInt.HasValue)
-						{
-							windDirLast = sensor.valInt.Value;
-						}
-						break;
-					case "0x0B": //Wind Speed (val unit)
-						var arr = sensor.val.Split(' ');
-						if (arr.Length == 2 && double.TryParse(arr[0], out var valDbl))
-						{
-							var spd = arr[1] switch
+					switch (sensor.id)
+					{
+						case "0x02": //Outdoor Temperature
+							if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
 							{
-								"km/h" => ConvertUnits.WindKPHToUser(valDbl),
-								"m/s" => ConvertUnits.WindMSToUser(valDbl),
-								"mph" => ConvertUnits.WindMPHToUser(valDbl),
-								"knots" => ConvertUnits.WindKnotsToUser(valDbl),
-								_ => -999
-							};
-
-							if (spd >= 0)
-							{
-								windSpeedLast = spd;
+								// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
+								outdoortemp = sensor.valDbl.Value;
+								outdoortemp = sensor.unit == "C" ? ConvertUnits.TempCToUser(outdoortemp) : ConvertUnits.TempFToUser(outdoortemp);
 							}
-						}
-						break;
-					case "0x0C": // Gust speed (val unit)
-						arr = sensor.val.Split(' ');
-						if (arr.Length == 2 && double.TryParse(arr[0], out valDbl))
-						{
-							var spd = arr[1] switch
+							break;
+						case "0x03": //Dew point
+							if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0 && !cumulus.StationOptions.CalculatedDP)
 							{
-								"km/h" => ConvertUnits.WindKPHToUser(valDbl),
-								"m/s" => ConvertUnits.WindMSToUser(valDbl),
-								"mph" => ConvertUnits.WindMPHToUser(valDbl),
-								"knots" => ConvertUnits.WindKnotsToUser(valDbl),
-								_ => -999
-							};
+								var temp = sensor.valDbl.Value;
+								temp = sensor.unit == "C" ? ConvertUnits.TempCToUser(temp) : ConvertUnits.TempFToUser(temp);
 
-							if (spd >= 0)
-							{
-								gustLast = spd;
+								DoOutdoorDewpoint(temp, dateTime);
 							}
-						}
-						break;
-					case "0x15": //Light (value unit)
-						arr = sensor.val.Split(' ');
-						if (arr.Length == 2 && double.TryParse(arr[0], out valDbl))
-						{
-							var light = arr[1] switch
+							break;
+						case "3": //Feels like
+								  // do nothing with this for now - MX calcuates feels like
+							break;
+						case "0x04": //Wind chill
+							if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
 							{
-								"fc" => valDbl * 0.015759751708199,
-								"lux" => valDbl * cumulus.SolarOptions.LuxToWM2, // convert Lux to W/m² - approximately!
-								"W/m2" => valDbl,
-								_ => -999
-							};
-
-							LightValue = valDbl;
-							if (light >= 0)
-							{
-								DoSolarRad((int) light, dateTime);
+								windchill = sensor.valDbl.Value;
+								windchill = sensor.unit == "C" ? ConvertUnits.TempCToUser(windchill) : ConvertUnits.TempFToUser(windchill);
 							}
-						}
-						break;
-					case "0x17": //UVI (0-15 index)
-						if (sensor.valDbl.HasValue)
-						{
-							DoUV(sensor.valDbl.Value, dateTime);
-						}
-						break;
+							break;
+						case "0x05": //Heat index
+									 // cumulus calculates this
+							break;
+						case "0x07": //Outdoor Humidity (%)
+							if (sensor.valInt.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
+							{
+								DoOutdoorHumidity(sensor.valInt.Value, dateTime);
+							}
+							break;
+						case "0x0A": //Wind Direction (360°)
+							if (sensor.valInt.HasValue)
+							{
+								windDirLast = sensor.valInt.Value;
+							}
+							break;
+						case "0x0B": //Wind Speed (val unit)
+							var arr = sensor.val.Split(' ');
+							if (arr.Length == 2 && double.TryParse(arr[0], out var valDbl))
+							{
+								var spd = arr[1] switch
+								{
+									"km/h" => ConvertUnits.WindKPHToUser(valDbl),
+									"m/s" => ConvertUnits.WindMSToUser(valDbl),
+									"mph" => ConvertUnits.WindMPHToUser(valDbl),
+									"knots" => ConvertUnits.WindKnotsToUser(valDbl),
+									_ => -999
+								};
 
-					case "0x19": // max wind today (value unit)
-								 // not used
-						break;
+								if (spd >= 0)
+								{
+									windSpeedLast = spd;
+								}
+							}
+							break;
+						case "0x0C": // Gust speed (val unit)
+							arr = sensor.val.Split(' ');
+							if (arr.Length == 2 && double.TryParse(arr[0], out valDbl))
+							{
+								var spd = arr[1] switch
+								{
+									"km/h" => ConvertUnits.WindKPHToUser(valDbl),
+									"m/s" => ConvertUnits.WindMSToUser(valDbl),
+									"mph" => ConvertUnits.WindMPHToUser(valDbl),
+									"knots" => ConvertUnits.WindKnotsToUser(valDbl),
+									_ => -999
+								};
 
-					default:
-						cumulus.LogDebugMessage($"Error: Unknown common_list sensor id found = {sensor.id}");
-						break;
+								if (spd >= 0)
+								{
+									gustLast = spd;
+								}
+							}
+							break;
+						case "0x15": //Light (value unit)
+							arr = sensor.val.Split(' ');
+							if (arr.Length == 2 && double.TryParse(arr[0], out valDbl))
+							{
+								var light = arr[1] switch
+								{
+									"fc" => valDbl * 0.015759751708199,
+									"lux" => valDbl * cumulus.SolarOptions.LuxToWM2, // convert Lux to W/m² - approximately!
+									"W/m2" => valDbl,
+									_ => -999
+								};
+
+								LightValue = valDbl;
+								if (light >= 0)
+								{
+									DoSolarRad((int) light, dateTime);
+								}
+							}
+							break;
+						case "0x17": //UVI (0-15 index)
+							if (sensor.valDbl.HasValue)
+							{
+								DoUV(sensor.valDbl.Value, dateTime);
+							}
+							break;
+
+						case "0x19": // max wind today (value unit)
+									 // not used
+							break;
+
+						default:
+							cumulus.LogDebugMessage($"Error: Unknown common_list sensor id found = {sensor.id}");
+							break;
+					}
+				}
+				catch(Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, $"ProcessCommonList: Error processing sensor id {sensor.id}");
 				}
 			}
 
@@ -639,8 +648,10 @@ namespace CumulusMX
 
 		private void ProcessWh25(EcowittLocalApi.wh25Sensor[] sensors, DateTime dateTime)
 		{
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
+				var sensor = sensors[i];
+
 				// Indoor Temperature
 				try
 				{
@@ -657,7 +668,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					//TODO: log a message
+					cumulus.LogExceptionMessage(ex, "ProcessWh25: Error processing indoor temp}");
 				}
 
 				// Indoor Humidity
@@ -673,7 +684,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					//TODO: log a message
+					cumulus.LogExceptionMessage(ex, "ProcessWh25: Error processing indoor humidity}");
 				}
 
 				// Pressure
@@ -722,7 +733,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					//TODO: log a message
+					cumulus.LogExceptionMessage(ex, "ProcessWh25: Error processing pressure}");
 				}
 
 				// TODO: battery status
@@ -731,109 +742,121 @@ namespace CumulusMX
 
 		private void ProcessRain(EcowittLocalApi.commonSensor[] sensors, DateTime dateTime)
 		{
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
-				switch (sensor.id)
+				var sensor = sensors[i];
+
+				try
 				{
-					case "0x0D":
-						//Rain Event (val unit)
-						try
-						{
-							var arr = sensor.val.Split(' ');
-							if (arr.Length == 2 && double.TryParse(arr[0], out var val))
+					switch (sensor.id)
+					{
+						case "0x0D":
+							//Rain Event (val unit)
+							try
 							{
-								var evnt = arr[1] switch
+								var arr = sensor.val.Split(' ');
+								if (arr.Length == 2 && double.TryParse(arr[0], out var val))
 								{
-									"mm" => ConvertUnits.RainMMToUser(val),
-									"in" => ConvertUnits.RainINToUser(val),
-									_ => -999
-								};
+									var evnt = arr[1] switch
+									{
+										"mm" => ConvertUnits.RainMMToUser(val),
+										"in" => ConvertUnits.RainINToUser(val),
+										_ => -999
+									};
 
-								if (evnt >= 0)
-								{
-									StormRain = evnt;
+									if (evnt >= 0)
+									{
+										StormRain = evnt;
+									}
 								}
 							}
-						}
-						catch (Exception ex)
-						{
-							//TODO: log a message
-						}
-						break;
-
-					case "0x0E":
-						//Rain Rate (val unit/h)
-						try
-						{
-							var arr = sensor.val.Split(' ');
-							if (arr.Length == 2 && double.TryParse(arr[0], out var val))
+							catch (Exception ex)
 							{
-								var rate = arr[1] switch
-								{
-									"mm/Hr" => ConvertUnits.RainMMToUser(val),
-									"in/Hr" => ConvertUnits.RainINToUser(val),
-									_ => -999
-								};
+								//TODO: log a message
+							}
+							break;
 
-								if (rate >= 0)
+						case "0x0E":
+							//Rain Rate (val unit/h)
+							try
+							{
+								var arr = sensor.val.Split(' ');
+								if (arr.Length == 2 && double.TryParse(arr[0], out var val))
 								{
-									rainRateLast = rate;
+									var rate = arr[1] switch
+									{
+										"mm/Hr" => ConvertUnits.RainMMToUser(val),
+										"in/Hr" => ConvertUnits.RainINToUser(val),
+										_ => -999
+									};
+
+									if (rate >= 0)
+									{
+										rainRateLast = rate;
+									}
 								}
 							}
-						}
-						catch (Exception ex)
-						{
-							//TODO: log a message
-						}
-						break;
-
-					case "0x13":
-						//Rain Year (val unit)
-						try
-						{
-							// TODO: battery status
-
-							var arr = sensor.val.Split(' ');
-							if (arr.Length == 2 && double.TryParse(arr[0], out var val))
+							catch (Exception ex)
 							{
-								var yr = arr[1] switch
-								{
-									"mm" => ConvertUnits.RainMMToUser(val),
-									"in" => ConvertUnits.RainINToUser(val),
-									_ => -999
-								};
+								//TODO: log a message
+							}
+							break;
 
-								if (yr >= 0)
+						case "0x13":
+							//Rain Year (val unit)
+							try
+							{
+								// TODO: battery status
+
+								var arr = sensor.val.Split(' ');
+								if (arr.Length == 2 && double.TryParse(arr[0], out var val))
 								{
-									rainLast = yr;
+									var yr = arr[1] switch
+									{
+										"mm" => ConvertUnits.RainMMToUser(val),
+										"in" => ConvertUnits.RainINToUser(val),
+										_ => -999
+									};
+
+									if (yr >= 0)
+									{
+										rainLast = yr;
+									}
 								}
 							}
-						}
-						catch (Exception ex)
-						{
-							//TODO: log a message
-						}
-						break;
+							catch (Exception ex)
+							{
+								//TODO: log a message
+							}
+							break;
 
-					case "0x10": // Rain day
-					case "0x11": // Rain week
-					case "0x12": // Rain month
-								 // do nothing
-						break;
+						case "0x10": // Rain day
+						case "0x11": // Rain week
+						case "0x12": // Rain month
+									 // do nothing
+							break;
 
-					default:
-						cumulus.LogDebugMessage($"Error: Unknown rain sensor id found = {sensor.id}");
-						break;
+						default:
+							cumulus.LogDebugMessage($"Error: Unknown rain sensor id found = {sensor.id}");
+							break;
+					}
 				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, $"ProcessRain: Error processing sensor id {sensor.id}");
+				}
+
 			}
 		}
 
 		private void ProcessLightning(EcowittLocalApi.lightningSensor[] sensors, DateTime dateTime)
 		{
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
 				try
 				{
+					var sensor = sensors[i];
+
 					//Lightning dist (1-40km)
 					if (sensor.distanceVal.HasValue && sensor.distanceUnit != null)
 					{
@@ -888,7 +911,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					//TODO: log a message
+					cumulus.LogExceptionMessage(ex, "ProcessLightning: Error");
 				}
 			}
 		}
@@ -897,10 +920,12 @@ namespace CumulusMX
 		{
 			cumulus.LogDebugMessage("WH45 CO₂: Decoding...");
 
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
 				try
 				{
+					var sensor = sensors[i];
+
 					if (sensor.temp.HasValue && !string.IsNullOrEmpty(sensor.unit))
 					{
 						CO2_temperature = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
@@ -942,11 +967,20 @@ namespace CumulusMX
 
 		private void ProcessChPm25(EcowittLocalApi.ch_pm25Sensor[] sensors)
 		{
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
-				if (sensor.channel.HasValue && sensor.PM25.HasValue)
+				var sensor = sensors[i];
+
+				try
 				{
-					DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
+					if (sensor.channel.HasValue && sensor.PM25.HasValue)
+					{
+						DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "ProcessChPm25: Error");
 				}
 
 				// TODO: Battery status
@@ -955,35 +989,54 @@ namespace CumulusMX
 
 		private void ProcessLeak(EcowittLocalApi.ch_leakSensor[] sensors)
 		{
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
-				if (sensor.channel.HasValue && !string.IsNullOrEmpty(sensor.status))
-				{
-					var val = sensor.status == "NORMAL" ? 0 : 1;
-					DoLeakSensor(val, sensor.channel.Value);
+				var sensor = sensors[i];
 
-					// TODO: Battery status
+				try
+				{
+					if (sensor.channel.HasValue && !string.IsNullOrEmpty(sensor.status))
+					{
+						var val = sensor.status == "NORMAL" ? 0 : 1;
+						DoLeakSensor(val, sensor.channel.Value);
+
+						// TODO: Battery status
+					}
 				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, $"ProcessLeak: Error processing channel {sensor.channel.Value}");
+				}
+
 			}
 		}
 
 
 		private void ProcessExtraTempHum(EcowittLocalApi.tempHumSensor[] sensors, DateTime dateTime)
 		{
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
-				if (sensor.temp.HasValue)
-				{
-					DoExtraTemp(sensor.temp.Value, sensor.channel);
-				}
+				var sensor = sensors[i];
 
-				if (sensor.humidityVal.HasValue)
+				try
 				{
-					if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
+					if (sensor.temp.HasValue)
 					{
-						DoOutdoorHumidity(sensor.humidityVal.Value, dateTime);
+						DoExtraTemp(sensor.temp.Value, sensor.channel);
 					}
-					DoExtraHum(sensor.humidityVal.Value, sensor.channel);
+
+					if (sensor.humidityVal.HasValue)
+					{
+						if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
+						{
+							DoOutdoorHumidity(sensor.humidityVal.Value, dateTime);
+						}
+						DoExtraHum(sensor.humidityVal.Value, sensor.channel);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, $"ProcessExtraTempHum: Error processind sensor channel {sensor.channel}");
 				}
 
 				// TODO: battery status
@@ -994,32 +1047,50 @@ namespace CumulusMX
 		{
 			// user temp = WH34 8 channel Soil or Water temperature sensors
 
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
-				if (sensor.temp.HasValue)
-				{
-					var val = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
-					if (cumulus.EcowittMapWN34[sensor.channel] == 0) // false = user temp, true = soil temp
-					{
-						DoUserTemp(val, sensor.channel);
-					}
-					else
-					{
-						DoSoilTemp(val, cumulus.EcowittMapWN34[sensor.channel]);
-					}
+				var sensor = sensors[i];
 
-					// TODO: Battery status
+				try
+				{
+					if (sensor.temp.HasValue)
+					{
+						var val = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
+						if (cumulus.EcowittMapWN34[sensor.channel] == 0) // false = user temp, true = soil temp
+						{
+							DoUserTemp(val, sensor.channel);
+						}
+						else
+						{
+							DoSoilTemp(val, cumulus.EcowittMapWN34[sensor.channel]);
+						}
+					}
 				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, $"ProcessUserTemp: Error processing sensor channel {sensor.channel}");
+				}
+
+				// TODO: Battery status
 			}
 		}
 
 		private void ProcessSoilMoisture(EcowittLocalApi.tempHumSensor[] sensors)
 		{
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
-				if (sensor.humidityVal.HasValue)
+				try
 				{
-					DoSoilMoisture(sensor.humidityVal.Value, sensor.channel);
+					var sensor = sensors[i];
+
+					if (sensor.humidityVal.HasValue)
+					{
+						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "ProcessSoilMoisture: Error");
 				}
 
 				// TODO: Battery status
@@ -1029,12 +1100,22 @@ namespace CumulusMX
 
 		private void ProcessSoilTemp(EcowittLocalApi.tempHumSensor[] sensors)
 		{
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
-				if (sensor.temp.HasValue)
+				var sensor = sensors[i];
+				
+				try
 				{
-					var val = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
-					DoSoilTemp(val, sensor.channel);
+
+					if (sensor.temp.HasValue)
+					{
+						var val = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
+						DoSoilTemp(val, sensor.channel);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, $"ProcessSoilTemp: Error processing channel {sensor.channel}");
 				}
 
 				// TODO: Battery status
@@ -1044,11 +1125,20 @@ namespace CumulusMX
 
 		private void ProcessLeafWet(EcowittLocalApi.tempHumSensor[] sensors)
 		{
-			foreach (var sensor in sensors)
+			for (var i = 0; i < sensors.Length; i++)
 			{
-				if (sensor.humidityVal.HasValue)
+				var sensor = sensors[i];
+
+				try
 				{
-					DoLeafWetness(sensor.humidityVal.Value, sensor.channel);
+					if (sensor.humidityVal.HasValue)
+					{
+						DoLeafWetness(sensor.humidityVal.Value, sensor.channel);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, $"ProcessLeafWet: Error processing channel {sensor.channel}");
 				}
 
 				// TODO: Battery status
