@@ -2990,6 +2990,21 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("WLL Health: exception: " + ex.Message);
 				}
 				cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW") || wllVoltageLow;
+
+				// Just the low battery list
+				LowBatteryDevices.Clear();
+				if (wllVoltageLow)
+				{
+					LowBatteryDevices.Add("Console-" + ConBatText);
+				}
+				var arr = TxBatText.Split(' ');
+				for (int i = 0; i < arr.Length; i++)
+				{
+					if (arr[i].Contains("LOW"))
+					{
+						LowBatteryDevices.Add(arr[i]);
+					}
+				}
 			}
 			catch (Exception ex)
 			{
