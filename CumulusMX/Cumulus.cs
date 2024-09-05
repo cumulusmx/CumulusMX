@@ -11077,9 +11077,12 @@ namespace CumulusMX
 			LogDebugMessage($"{prefix}: Uploading to {remotefile}");
 
 			// we will try this twice in case the first attempt fails
-			var retry = 0;
+			var retry = -1;
 			do
 			{
+				// retry == 0 is the initial upload
+				retry++;
+
 				MemoryStream outStream = null;
 				StreamContent streamContent = null;
 
@@ -11202,17 +11205,18 @@ namespace CumulusMX
 					{
 						LogMessage($"{prefix}: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
 
-						retry++;
-						if (retry >= 2)
+						if (retry == 2)
 						{
 							LogWarningMessage($"{prefix}: HTTP Error uploading to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-							return false;
+						}
+						else
+						{
+							await Task.Delay(2000);
 						}
 					}
 				}
 				catch (HttpRequestException ex)
 				{
-					retry++;
 					if (retry < 2)
 					{
 						LogDebugMessage($"{prefix}: HTTP Error uploading to {remotefile} - " + ex.Message);
@@ -11228,7 +11232,6 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					retry++;
 					if (retry < 2)
 					{
 						if (ex.InnerException is TimeoutException)

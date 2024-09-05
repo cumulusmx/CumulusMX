@@ -8,6 +8,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
+using static CumulusMX.Tempest.RestPacket;
+
 namespace CumulusMX
 {
 	internal class DavisStation : WeatherStation
@@ -1830,7 +1832,14 @@ namespace CumulusMX
 
 				DoForecast(forecast, false);
 
+				LowBatteryDevices.Clear();
+
 				ConBatText = loopData.ConBatVoltage.ToString("F2");
+
+				if (loopData.ConBatVoltage <= 3.5)
+				{
+					LowBatteryDevices.Add("Console-" + ConBatText);
+				}
 
 				TxBatText = ProcessTxBatt(loopData.TXbattStatus);
 
@@ -1990,13 +1999,17 @@ namespace CumulusMX
 			}
 		}
 
-		private static string ProcessTxBatt(byte txStatus)
+		private string ProcessTxBatt(byte txStatus)
 		{
 			StringBuilder response = new();
 
 			for (int i = 0; i < 8; i++)
 			{
 				var status = (txStatus & (1 << i)) == 0 ? "-ok " : "-LOW ";
+				if (status == "-LOW")
+				{
+					LowBatteryDevices.Add((i + 1) + status);
+				}
 				response.Append((i + 1) + status);
 			}
 

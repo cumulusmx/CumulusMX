@@ -20,7 +20,7 @@ Changed
 Fixed
 - Davis Cloud stations no longer continuosly try to fetch history data if there is no Pro subscription
 - WMR928 Station now correctly converts indoor temperatures to the user defined units
-
+- No logging PHP upload failures to the warning log
 
 
 
