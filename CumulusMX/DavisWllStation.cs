@@ -1313,9 +1313,20 @@ namespace CumulusMX
 
 				// If the station isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
 				// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
-				if (!cumulus.StationOptions.UseDataLogger)
+				LowBatteryDevices.Clear();
+				
+				if (!cumulus.StationOptions.UseDataLogger && TxBatText.Contains("LOW"))
 				{
-					cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW");
+					cumulus.BatteryLowAlarm.Triggered = true;
+					// Just the low battery list
+					var arr = TxBatText.Split(' ');
+					for (int i = 0; i < arr.Length; i++)
+					{
+						if (arr[i].Contains("LOW"))
+						{
+							LowBatteryDevices.Add(arr[i]);
+						}
+					}
 				}
 			}
 			catch (Exception exp)
