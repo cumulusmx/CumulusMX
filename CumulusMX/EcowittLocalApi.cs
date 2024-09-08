@@ -192,6 +192,13 @@ namespace CumulusMX
 						return json;
 					}
 				}
+				catch (System.Net.Http.HttpRequestException ex)
+				{
+					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+					{
+						cumulus.LogErrorMessage("GetLiveData: Error - This Station does not support the HTTP API!");
+					}
+				}
 				catch (Exception ex)
 				{
 					cumulus.LogExceptionMessage(ex, "GetLiveData: Error");
@@ -206,180 +213,6 @@ namespace CumulusMX
 		{
 			// http://ip-address/get_sensors_info?page=1
 			// http://ip-address/get_sensors_info?page=2
-
-			// Example of page=1
-			/*
-			
-				[
-					{
-						"img": "wh85",
-						"type": "49",
-						"name": "Wind & Rain",
-						"id": "FFFFFFFF",
-						"batt": "9",
-						"signal": "0",
-						"idst": "1"
-					},
-					{
-						"img": "wh90",
-						"type": "48",
-						"name": "Temp & Humidity & Solar & Wind & Rain",
-						"id": "FFFFFFFE",
-						"batt": "9",
-						"signal": "0",
-						"idst": "0"
-					},
-					{
-						"img": "wh69",
-						"type": "0",
-						"name": "Temp & Humidity & Solar & Wind & Rain",
-						"id": "FFFFFFFE",
-						"batt": "9",
-						"signal": "0",
-						"idst": "0"
-					},
-					{
-						"img": "wh68",
-						"type": "1",
-						"name": "Solar & Wind",
-						"id": "FFFFFFFE",
-						"batt": "9",
-						"signal": "0",
-						"idst": "0"
-					},
-					{
-						"img": "wh40",
-						"type": "3",
-						"name": "Rain",
-						"id": "E1EF",
-						"batt": "0",
-						"signal": "3",
-						"idst": "1"
-					},
-					{
-						"img": "wh25",
-						"type": "4",
-						"name": "Temp & Humidity & Pressure",
-						"id": "FFFFFFFF",
-						"batt": "9",
-						"signal": "0",
-						"idst": "1"
-					},
-					{
-						"img": "wh26",
-						"type": "5",
-						"name": "Temp & Humidity",
-						"id": "FFFFFFFE",
-						"batt": "9",
-						"signal": "0",
-						"idst": "0"
-					},
-					{
-						"img": "wh80",
-						"type": "2",
-						"name": "Temp & Humidity & Solar & Wind",
-						"id": "E0038",
-						"batt": "5",
-						"signal": "4",
-						"idst": "1"
-					},
-					{
-						"img": "wh57",
-						"type": "26",
-						"name": "Lightning",
-						"id": "FFFFFFFE",
-						"batt": "9",
-						"signal": "0",
-						"idst": "0"
-					},
-					{
-						"img": "wh45",
-						"type": "39",
-						"name": "PM25 & PM10 & CO2",
-						"id": "FFFFFFFE",
-						"batt": "9",
-						"signal": "0",
-						"idst": "0"
-					},
-					{
-						"img": "wh41",
-						"type": "22",
-						"name": "PM2.5 CH1",
-						"id": "34",
-						"batt": "9",
-						"signal": "0",
-						"idst": "1"
-					},
-					.. chans 2-4
-					{
-						"img": "wh55",
-						"type": "27",
-						"name": "Leak CH1",
-						"id": "FFFFFFFE",
-						"batt": "9",
-						"signal": "0",
-						"idst": "0"
-					},
-					.. chans 2-4
-					{
-						"img": "wh31",
-						"type": "6",
-						"name": "Temp & Humidity CH1",
-						"id": "B0",
-						"batt": "0",
-						"signal": "4",
-						"idst": "1"
-					},
-					.. chans 2-7
-				]
-			 */
-
-
-			// Example page=2
-			/*
-				[
-					{
-						"img": "wh31",
-						"type": "13",
-						"name": "Temp & Humidity CH8",
-						"id": "FFFFFFFE",
-						"batt": "9",
-						"signal": "0",
-						"idst": "0"
-					},
-					{
-						"img": "wh51",
-						"type": "14",
-						"name": "Soil moisture CH1",
-						"id": "FFFFFFFE",
-						"batt": "9",
-						"signal": "0",
-						"idst": "0"
-					},
-					.. chans 2-8
-					{
-						"img": "wh34",
-						"type": "31",
-						"name": "Temp CH1",
-						"id": "FFFFFFFE",
-						"batt": "9",
-						"signal": "0",
-						"idst": "0"
-					},
-					.. chans 2-8
-					{
-						"img": "wh35",
-						"type": "40",
-						"name": "Leaf Wetness CH1",
-						"id": "FFFFFFFE",
-						"batt": "9",
-						"signal": "0",
-						"idst": "0"
-					},
-					.. chans 2-8
-				]
-
-			 */
 
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
@@ -423,6 +256,13 @@ namespace CumulusMX
 				sensors2.CopyTo(retArr, sensors1.Length);
 
 				return retArr;
+			}
+			catch (System.Net.Http.HttpRequestException ex)
+			{
+				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage("GetSensorInfo: Error - This Station does not support the HTTP API!");
+				}
 			}
 			catch (Exception ex)
 			{

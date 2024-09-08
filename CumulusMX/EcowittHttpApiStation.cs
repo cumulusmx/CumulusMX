@@ -517,101 +517,108 @@ namespace CumulusMX
 					var sensor = sensors[i];
 					var name = string.Empty;
 
-					cumulus.LogDebugMessage($" - enabled={sensor.idst}, type={sensor.img}, sensor id={sensor.id}, signal={sensor.signal}, battery={sensor.batt}, name={sensor.name}");
-
-					// check the battery status
-					if (sensor.idst && sensor.signal > 0)
+					try
 					{
-#pragma warning disable S907
-						switch (sensor.type)
+						cumulus.LogDebugMessage($" - enabled={sensor.idst}, type={sensor.img}, sensor id={sensor.id}, signal={sensor.signal}, battery={sensor.batt}, name={sensor.name}");
+
+						// check the battery status
+						if (sensor.idst && sensor.signal > 0)
 						{
-							case 0: // wh69
-								break;
-							case 1: // wh68
-								name = "wh68";
-								goto case 1003;
-							case 2: // wh80
-								name = "wh80";
-								// if a WS80 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
-								if (updateRate > 4000 && updateRate != 4000)
-								{
-									cumulus.LogMessage($"GetSensorIds: WS80 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 4 seconds");
-									updateRate = 4000;
-								}
-								goto case 1003;
-							case 3: // wh40
-								name = "wh40";
-								goto case 1003;
-							case 4: // wh25
-								name = "wh25";
-								goto case 1003;
-							case 5: // wh26
-								name = "wh326";
-								goto case 1001;
-							case int n when (n > 5 && n < 14): // wh31 - T&H (8 chan)
-								name = "wh31ch" + (sensor.type - 5);
-								goto case 1001;
-							case int n when (n > 13 && n < 22): // wh51 - soil moisture (8 chan)
-								break;
-							case int n when (n > 21 && n < 26): // wh41 - pm2.5 (4 chan)
-								name = "wh41ch" + (sensor.type - 21);
-								goto case 1003;
-							case 26: // wh57 - lightning
-								name = "wh57";
-								goto case 1003;
-							case int n when (n > 26 && n < 31): // wh55 - leak (4 chan)
-								name = "wh55ch" + (sensor.type - 26);
-								goto case 1003;
-							case int n when (n > 30 && n < 39): // wh34 - Temp (8 chan)
-								name = "wh34ch" + (sensor.type - 30);
-								goto case 1003;
-							case 39: // wh45 - co2
-								name = "wh45";
-								goto case 1003;
-							case int n when (n > 39 && n < 48): // wh35 - leasf wet (8 chan)
-								name = "wh35ch" + (sensor.type - 39);
-								goto case 1003;
-							case 48: // wh90
-								name = "wh90";
-								// if a WS90 is connected, it has a 8.8 second update rate, so reduce the MX update rate from the default 10 seconds
-								if (updateRate > 8000 && updateRate != 8000)
-								{
-									cumulus.LogMessage($"GetSensorIds: WS90 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
-									updateRate = 8000;
-								}
-								goto case 1003;
-							case 49: // wh85
-								name = "wh85";
-								// if a WH85 is connected, it has a 8.5 second update rate, so reduce the MX update rate from the default 10 seconds
-								if (updateRate > 8000 && updateRate != 8000)
-								{
-									cumulus.LogMessage($"GetSensorIds: WH85 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
-									updateRate = 8000;
-								}
-								goto case 1003;
+#pragma warning disable S907
+							switch (sensor.type)
+							{
+								case 0: // wh69
+									break;
+								case 1: // wh68
+									name = "wh68";
+									goto case 1003;
+								case 2: // wh80
+									name = "wh80";
+									// if a WS80 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
+									if (updateRate > 4000 && updateRate != 4000)
+									{
+										cumulus.LogMessage($"GetSensorIds: WS80 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 4 seconds");
+										updateRate = 4000;
+									}
+									goto case 1003;
+								case 3: // wh40
+									name = "wh40";
+									goto case 1003;
+								case 4: // wh25
+									name = "wh25";
+									goto case 1003;
+								case 5: // wh26
+									name = "wh326";
+									goto case 1001;
+								case int n when (n > 5 && n < 14): // wh31 - T&H (8 chan)
+									name = "wh31ch" + (sensor.type - 5);
+									goto case 1001;
+								case int n when (n > 13 && n < 22): // wh51 - soil moisture (8 chan)
+									break;
+								case int n when (n > 21 && n < 26): // wh41 - pm2.5 (4 chan)
+									name = "wh41ch" + (sensor.type - 21);
+									goto case 1003;
+								case 26: // wh57 - lightning
+									name = "wh57";
+									goto case 1003;
+								case int n when (n > 26 && n < 31): // wh55 - leak (4 chan)
+									name = "wh55ch" + (sensor.type - 26);
+									goto case 1003;
+								case int n when (n > 30 && n < 39): // wh34 - Temp (8 chan)
+									name = "wh34ch" + (sensor.type - 30);
+									goto case 1003;
+								case 39: // wh45 - co2
+									name = "wh45";
+									goto case 1003;
+								case int n when (n > 39 && n < 48): // wh35 - leasf wet (8 chan)
+									name = "wh35ch" + (sensor.type - 39);
+									goto case 1003;
+								case 48: // wh90
+									name = "wh90";
+									// if a WS90 is connected, it has a 8.8 second update rate, so reduce the MX update rate from the default 10 seconds
+									if (updateRate > 8000 && updateRate != 8000)
+									{
+										cumulus.LogMessage($"GetSensorIds: WS90 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
+										updateRate = 8000;
+									}
+									goto case 1003;
+								case 49: // wh85
+									name = "wh85";
+									// if a WH85 is connected, it has a 8.5 second update rate, so reduce the MX update rate from the default 10 seconds
+									if (updateRate > 8000 && updateRate != 8000)
+									{
+										cumulus.LogMessage($"GetSensorIds: WH85 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
+										updateRate = 8000;
+									}
+									goto case 1003;
 
 
-							case 1001: // battery type 1 (0=OK, 1=LOW)
-								if (sensor.batt == 1)
-								{
-									batteryLow = true;
-									LowBatteryDevices.Add(name + " - LOW");
-								}
-								break;
+								case 1001: // battery type 1 (0=OK, 1=LOW)
+									if (sensor.batt == 1)
+									{
+										batteryLow = true;
+										LowBatteryDevices.Add(name + " - LOW");
+									}
+									break;
 
-							case 1003: // battery type 3 (0-1=LOW, 2-5=OK, 6=DC, 9=OFF)
-								if (!TestBattery3(sensor.batt))
-								{
-									batteryLow = true;
-									LowBatteryDevices.Add(name + " - " + sensor.batt);
-								}
-								break;
+								case 1003: // battery type 3 (0-1=LOW, 2-5=OK, 6=DC, 9=OFF)
+									if (!TestBattery3(sensor.batt))
+									{
+										batteryLow = true;
+										LowBatteryDevices.Add(name + " - " + sensor.batt);
+									}
+									break;
 
-							default:
-								cumulus.LogWarningMessage($"Unknown sensor type in SendorIds. Model={sensor.img}, type={sensor.type}");
-								break;
-						}
+								default:
+									cumulus.LogWarningMessage($"Unknown sensor type in SendorIds. Model={sensor.img}, type={sensor.type}");
+									break;
+							}
 #pragma warning restore S907
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"GetSensorIds: Error processing sensor[{i}]");
 					}
 				}
 			}

@@ -9,6 +9,7 @@ BETA Changes:
 - Davis WL Cloud station - some support for new <#LowBattList>
 - Davis WLL station support for new <#LowBattList>
 - Davis VP2 station support for new <#LowBattList>
+- Detect 404 errors for the Ecowitt HTTP API
 
 
 
