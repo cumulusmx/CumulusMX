@@ -1023,7 +1023,7 @@ namespace CumulusMX
 					if (sensor.distanceVal.HasValue && sensor.distanceUnit != null)
 					{
 						// Sends a default value of 255km until the first strike is detected
-						if (sensor.distanceVal.Value > 254.9)
+						if (sensor.distanceVal.Value > 254.9 )
 						{
 							newLightningDistance = 999;
 						}
@@ -1032,31 +1032,35 @@ namespace CumulusMX
 							newLightningDistance = ConvertUnits.KmtoUserUnits(sensor.distanceVal.Value);
 						}
 					}
+					else if (sensor.distance.Contains("--"))
+					{
+						newLightningDistance = 999;
+					}
 
 					//Lightning time (UTC)
 					if (!string.IsNullOrEmpty(sensor.timestamp))
 					{
-						// oh my god, it sends the time as "MM/dd/yyyy HH: mm: ss" for some locales
-						// TODO: what is default time if not strikes detected yet?
-						var arr = sensor.timestamp.Replace(": ", ":").Split(' ');
-						var date = arr[0].Split('/');
-						var time = arr[1].Split(':');
+						if (sensor.timestamp.Contains("--"))
+						{
+							newLightningTime = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+						}
+						else
+						{
+							// oh my god, it sends the time as "MM/dd/yyyy HH: mm: ss" for some locales
+							// TODO: what is default time if not strikes detected yet?
+							var arr = sensor.timestamp.Replace(": ", ":").Split(' ');
+							var date = arr[0].Split('/');
+							var time = arr[1].Split(':');
 
-						//if (sensor.timestamp == "default string")
-						//{
-						//	newLightningTime = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-						//}
-						//else
-						//{
 							newLightningTime = new DateTime(
 								int.Parse(date[2]),
 								int.Parse(date[0]),
-								int.Parse(date[1]), 
+								int.Parse(date[1]),
 								int.Parse(time[0]),
 								int.Parse(time[1]),
 								int.Parse(time[2]),
 								0, DateTimeKind.Utc);
-						//}
+						}
 					}
 
 					//Lightning strikes today
