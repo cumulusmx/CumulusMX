@@ -55,8 +55,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>4.2.0.4031</Version>
+    <Version>4.2.0.4033-beta</Version>
     <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
+    <PackageId>$(AssemblyName)</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

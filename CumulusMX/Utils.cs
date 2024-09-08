@@ -94,7 +94,7 @@ namespace CumulusMX
 
 		public static bool ValidateIPv4(string ipString)
 		{
-			if (string.IsNullOrWhiteSpace(ipString))
+			if (string.IsNullOrWhiteSpace(ipString) || ipString == "0.0.0.0")
 			{
 				return false;
 			}

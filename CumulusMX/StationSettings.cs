@@ -159,7 +159,8 @@ namespace CumulusMX
 
 			var ecowittHttpApi = new JsonStationSettingsHttpApi()
 			{
-				ipaddress = cumulus.Gw1000IpAddress
+				ipaddress = cumulus.Gw1000IpAddress,
+				password = cumulus.EcowittHttpPassword
 			};
 
 			var ecowitt = new JsonStationSettingsEcowitt
@@ -917,6 +918,7 @@ namespace CumulusMX
 					if (settings.ecowitthttpapi != null)
 					{
 						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.ipaddress) ? null : settings.ecowitthttpapi.ipaddress.Trim();
+						cumulus.EcowittHttpPassword = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.password) ? null : settings.ecowitthttpapi.password.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -1805,6 +1807,7 @@ namespace CumulusMX
 	internal class JsonStationSettingsHttpApi
 	{
 		public string ipaddress { get; set; }
+		public string password { get; set; }
 	}
 
 	internal class JsonStationSettingsEcowitt

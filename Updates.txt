@@ -1,5 +1,17 @@
-4.2.0 - b4031
+4.2.0 - b4032
 —————————————
+BETA Changes:
+- Add Ecowitt HTTP API password
+- Add polling time update to Ecowitt HTTP API station
+- Add more Ecowitt HTTP API station error handling
+- Ecowitt HTTP API station ignore apparent temp
+- More HTTP API station Lightning fixes
+- Davis WL Cloud station - some support for new <#LowBattList>
+- Davis WLL station support for new <#LowBattList>
+- Davis VP2 station support for new <#LowBattList>
+
+
+
 New
 - New station type: Ecowitt Local HTTP API
 	- Ecowitt Local HTTP API is an alternative the local TCP API used by the gateways and some stations
@@ -14,23 +26,15 @@ New
 	- Where <state> is "LOW" or "0" or "1" depending on what the sensor sends
 
 Changed
-- The Station Settings screen now does a two stage selection: First the manufacturer, then the station model. This shortens the long and list to select from.
+- Davis WLL/Davis Cloud stations now use the WL.com subscription level to determine if they use WL.com as a logger
+- The Station Settings screen now does a two-stage selection: First the manufacturer, then the station model. This shortens the long and list to select from.
+- AI2 dashboard now shows some Davis WLL hardware information
 
-
-Fixed
-- Davis Cloud stations no longer continuosly try to fetch history data if there is no Pro subscription
-- WMR928 Station now correctly converts indoor temperatures to the user defined units
-- Not logging PHP upload failures to the warning log
-
-
-
-4.1.4 - b4029
-—————————————
 Fixed
 - Davis Cloud stations in endless loop at startup if there is no historic data to process or access is denied
-
-Changed
-- Davis WLL/DAvis Cloud stations now use the WL.com subscription level to determine if they use WL.com as a logger
+- Davis Cloud stations no longer continuously try to fetch history data if there is no Pro subscription
+- WMR928 Station now correctly converts indoor temperatures to the user defined units
+- Not logging PHP upload failures to the warning log
 
 
 Package Updates

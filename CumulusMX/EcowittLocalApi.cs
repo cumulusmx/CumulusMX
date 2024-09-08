@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using ServiceStack;
 
 
-
 namespace CumulusMX
 {
 	internal sealed class EcowittLocalApi : IDisposable
@@ -148,41 +147,54 @@ namespace CumulusMX
 			int responseCode;
 			int retries = 3;
 
-			string ip = cumulus.Gw1000IpAddress;
 			int retry = 1;
+
+			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
+			{
+				cumulus.LogErrorMessage("GetLiveData: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				return null;
+			}
+
 
 			do
 			{
-				var url = $"http://{ip}/get_livedata_info";
-
-				// we want to do this synchronously, so .Result
-				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
+				try
 				{
-					responseBody = response.Content.ReadAsStringAsync(token).Result;
-					responseCode = (int) response.StatusCode;
-					cumulus.LogDebugMessage($"LocalApi.GetLiveData: Ecowitt Local API GetLiveData Response code: {responseCode}");
-					cumulus.LogDataMessage($"LocalApi.GetLiveData: Ecowitt Local API GetLiveData Response: {responseBody}");
+					var url = $"http://{cumulus.Gw1000IpAddress}/get_livedata_info";
+
+					// we want to do this synchronously, so .Result
+					using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
+					{
+						responseBody = response.Content.ReadAsStringAsync(token).Result;
+						responseCode = (int) response.StatusCode;
+						cumulus.LogDebugMessage($"LocalApi.GetLiveData: Ecowitt Local API GetLiveData Response code: {responseCode}");
+						cumulus.LogDataMessage($"LocalApi.GetLiveData: Ecowitt Local API GetLiveData Response: {responseBody}");
+					}
+
+					if (responseCode != 200)
+					{
+						cumulus.LogWarningMessage($"LocalApi.GetLiveData: Ecowitt Local API GetLiveData Error: {responseCode}");
+						Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+						return null;
+					}
+
+
+					if (responseBody == "{}")
+					{
+						cumulus.LogMessage("LocalApi.GetLiveData: Ecowitt Local API GetLiveData: No data was returned.");
+						Cumulus.LogConsoleMessage(" - No Live data available");
+						return null;
+					}
+					else if (responseBody.StartsWith('{')) // sanity check
+					{
+						// Convert JSON string to an object
+						LiveData json = responseBody.FromJson<LiveData>();
+						return json;
+					}
 				}
-
-				if (responseCode != 200)
+				catch (Exception ex)
 				{
-					cumulus.LogWarningMessage($"LocalApi.GetLiveData: Ecowitt Local API GetLiveData Error: {responseCode}");
-					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
-					return null;
-				}
-
-
-				if (responseBody == "{}")
-				{
-					cumulus.LogMessage("LocalApi.GetLiveData: Ecowitt Local API GetLiveData: No data was returned.");
-					Cumulus.LogConsoleMessage(" - No Live data available");
-					return null;
-				}
-				else if (responseBody.StartsWith('{')) // sanity check
-				{
-					// Convert JSON string to an object
-					LiveData json = responseBody.FromJson<LiveData>();
-					return json;
+					cumulus.LogExceptionMessage(ex, "GetLiveData: Error");
 				}
 			} while (retries-- > 0);
 
@@ -369,42 +381,257 @@ namespace CumulusMX
 
 			 */
 
-			string ip = cumulus.Gw1000IpAddress;
+			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
+			{
+				cumulus.LogErrorMessage("GetSensorInfo: Invalid station IP address: " +  cumulus.Gw1000IpAddress);
+				return null;
+			}
 
 			SensorInfo[] sensors1 = [];
 			SensorInfo[] sensors2 = [];
 
-			var url1 = $"http://{ip}/get_sensors_info?page=1";
-			var url2 = $"http://{ip}/get_sensors_info?page=2";
-
-
-			var task1 = cumulus.MyHttpClient.GetStringAsync(url1, token);
-			var task2 = cumulus.MyHttpClient.GetStringAsync(url2, token);
-
-			// Wait for both tasks to complete
-			await Task.WhenAll(task1, task2);
-
-			// Retrieve the results
-			string result1 = await task1;
-			string result2 = await task2;
-
-			cumulus.LogDataMessage("GetSensorInfo: Page 1 = " + result1);
-			cumulus.LogDataMessage("GetSensorInfo: Page 2 = " + result2);
-
-			if (!string.IsNullOrEmpty(result1))
+			try
 			{
-				sensors1 = result1.FromJson<SensorInfo[]>();
+				var url1 = $"http://{cumulus.Gw1000IpAddress}/get_sensors_info?page=1";
+				var url2 = $"http://{cumulus.Gw1000IpAddress}/get_sensors_info?page=2";
+
+
+				var task1 = cumulus.MyHttpClient.GetStringAsync(url1, token);
+				var task2 = cumulus.MyHttpClient.GetStringAsync(url2, token);
+
+				// Wait for both tasks to complete
+				await Task.WhenAll(task1, task2);
+
+				// Retrieve the results
+				string result1 = await task1;
+				string result2 = await task2;
+
+				cumulus.LogDataMessage("GetSensorInfo: Page 1 = " + result1);
+				cumulus.LogDataMessage("GetSensorInfo: Page 2 = " + result2);
+
+				if (!string.IsNullOrEmpty(result1))
+				{
+					sensors1 = result1.FromJson<SensorInfo[]>();
+				}
+				if (!string.IsNullOrEmpty(result2))
+				{
+					sensors2 = result2.FromJson<SensorInfo[]>();
+				}
+
+				var retArr = new SensorInfo[sensors1.Length + sensors2.Length];
+				sensors1.CopyTo(retArr, 0);
+				sensors2.CopyTo(retArr, sensors1.Length);
+
+				return retArr;
 			}
-			if (!string.IsNullOrEmpty(result2))
+			catch (Exception ex)
 			{
-				sensors2 = result2.FromJson<SensorInfo[]>();
+				cumulus.LogExceptionMessage(ex, "GetSensorInfo: Error");
 			}
 
-			var retArr = new SensorInfo[sensors1.Length + sensors2.Length];
-			sensors1.CopyTo(retArr, 0);
-			sensors2.CopyTo(retArr, sensors1.Length);
+			return null;
+		}
 
-			return retArr;
+
+		public void GetVersion(CancellationToken token)
+		{
+			// http://ip-address/get_version
+
+			// response
+			//	{
+			//		"version":	"Version: GW1100A_V2.3.4",
+			//		"newVersion":	"0",
+			//		"platform":	"ecowitt"
+			//	}
+
+		}
+
+		public void GetDeviceInfo(CancellationToken token) 
+		{
+			// http://ip-address/get_device_info
+
+			//{
+			//	"sensorType":	"1",
+			//	"rf_freq":	"1",
+			//	"AFC":	"0",
+			//	"tz_auto":	"1",
+			//	"tz_name":	"",
+			//	"tz_index":	"39",
+			//	"dst_stat":	"1",
+			//	"radcompensation":	"0",
+			//	"date":	"2024-09-06T16:36",
+			//	"upgrade":	"0",
+			//	"apAuto":	"1",
+			//	"newVersion":	"0",
+			//	"curr_msg":	"Current version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries.",
+			//	"apName":	"GW1100A-WIFID4D3",
+			//	"APpwd":	"",
+			//	"time":	"20"
+			//}
+		}
+
+		public void SetDeviceInfo(CancellationToken token)
+		{
+			// http://ip-address/set_device_info
+
+			// POST
+
+		}
+
+		public void GetUnits(CancellationToken token)
+		{
+			// http://ip-address/get_units_info
+			
+			// response
+			//{
+			//	"temperature": "0",      0=C 1=F
+			//	"pressure": "0",         0=hPa 1=inHg 2=mmHg
+			//	"wind": "2",             0=ms 1=km/h 2=mph 3=knots
+			//	"rain": "0",             0=mm 1=in
+			//	"light": "1"             0=kLux=? 1=W/m2 2=kfc
+			//}
+		}
+
+		public void SetUnits(CancellationToken token)
+		{
+			// http://ip-address/set_units_info
+
+			// POST
+			//{temperature: "1", pressure: "0", wind: "2", rain: "0", light: "1"}
+
+			// response = 200 - OK
+		}
+
+
+		public void SetLogin(string password)
+		{
+			// http://ip-address/set_login_info
+
+			// POST
+			//{
+			//	"pwd":""
+			//}
+
+			// Response
+			//{
+			//	"status":	"1",
+			//	"online":	"0",
+			//	"msg":	"success"
+			//}
+		}
+
+		public void GetRainTotals(CancellationToken token)
+		{
+			// http://ip-address/get_rain_totals
+
+			// response
+			//{
+			//	"rainFallPriority": "1",       0=No Guage 1=Traditional 2=Piezo
+			//	"list":	[
+			//		{
+			//			"gauge": "No rain gauge",
+			//			"value": "0"
+			//		}, {
+			//			"gauge": "Traditional rain gauge",
+			//			"value": "1"
+			//		}, {
+			//			"gauge": "Piezoelectric rain gauge",
+			//			"value": "2"
+			//		}
+			//	],
+			//	"rainDay": "0.0",
+			//	"rainWeek": "5.3",
+			//	"rainMonth": "6.8",
+			//	"rainYear": "572.5",
+			//	"rainGain": "1.00",
+			//	"rstRainDay": "0",      reset hour - 0=00:00 etc
+			//	"rstRainWeek": "1",     0=Sunday 1=Monday
+			//	"rstRainYear":"0"       reset month
+			//}
+
+			// response = 200 - OK
+
+		}
+
+		public void SetRainTotals(CancellationToken token)
+		{
+			// http://ip-address/set_rain_totals
+
+			// POST
+			//{
+			//	"rainDay": "0.0",
+			//	"rainWeek": "5.3",
+			//	"rainMonth": "6.8",
+			//	"rainYear": "572.5",
+			//	"rainGain": "1.01",
+			//	"rainFallPriority": "1",
+			//	"rstRainDay": "0",
+			//	"rstRainWeek": "1",
+			//	"rstRainYear": "0"
+			//}
+
+			// response = 200 - OK
+
+		}
+
+
+		public void CheckForUpgrade(CancellationToken token)
+		{
+			// http://ip-address/upgrade_process
+
+			// POST
+			// {"upgrade": "check"}
+
+			// response
+			//{
+			//	"is_new": false,
+			//	"msg": "It's the latest version\r\nCurrent version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries."
+			//}
+
+		}
+
+		public void StartUpgrade(CancellationToken token)
+		{
+			// http://ip-address/upgrade_process
+
+			// POST
+			// {"upgrade": "start"}
+
+			// response
+			// object
+			// status: N   1=running 
+			// 'over'
+
+		}
+
+		public void Login(string password, CancellationToken token)
+		{
+			// http://ip-address/set_login_info
+
+			// POST
+			//{pwd: "base64_string"}
+		}
+
+
+		public void Reboot(CancellationToken token)
+		{
+			// http://ip-address/set_device_info
+
+			// POST
+			// { sysreboot: 1 }
+
+		}
+
+		private static string decodePassword(string base64EncodedData)
+		{
+			var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+			return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+		}
+
+		private static string encodePassword(string plainText)
+		{
+			var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+			return System.Convert.ToBase64String(plainTextBytes);
 		}
 
 

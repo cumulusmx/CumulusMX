@@ -13,7 +13,7 @@ namespace CumulusMX
 	{
 		private string deviceModel;
 		private string deviceFirmware;
-		private readonly int updateRate = 10000; // 10 seconds by default
+		private int updateRate = 10000; // 10 seconds by default
 		private int lastMinute = -1;
 		private int lastHour = -1;
 
@@ -141,6 +141,8 @@ namespace CumulusMX
 
 			liveTask = Task.Run(() =>
 			{
+				var excepMsg = "unknown error";
+
 				try
 				{
 					DateTime dataLastRead;
@@ -325,13 +327,25 @@ namespace CumulusMX
 					}
 				}
 				// Catch the ThreadAbortException
-				catch (ThreadAbortException)
+				catch (ThreadAbortException ex)
 				{
 					//do nothing
+					excepMsg = ex.Message;
+				}
+				catch (Exception ex)
+				{
+					excepMsg = ex.Message;
 				}
 				finally
 				{
-					cumulus.LogMessage("Local API task ended");
+					if (cumulus.cancellationToken.IsCancellationRequested)
+					{
+						cumulus.LogMessage("Local API task cancelled by request");
+					}
+					else
+					{
+						cumulus.LogCriticalMessage("Local API task ended unexpectedly: " + excepMsg);
+					}
 				}
 			}, cumulus.cancellationToken);
 		}
@@ -518,6 +532,12 @@ namespace CumulusMX
 								goto case 1003;
 							case 2: // wh80
 								name = "wh80";
+								// if a WS80 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
+								if (updateRate > 4000 && updateRate != 4000)
+								{
+									cumulus.LogMessage($"GetSensorIds: WS80 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 4 seconds");
+									updateRate = 4000;
+								}
 								goto case 1003;
 							case 3: // wh40
 								name = "wh40";
@@ -553,9 +573,21 @@ namespace CumulusMX
 								goto case 1003;
 							case 48: // wh90
 								name = "wh90";
+								// if a WS90 is connected, it has a 8.8 second update rate, so reduce the MX update rate from the default 10 seconds
+								if (updateRate > 8000 && updateRate != 8000)
+								{
+									cumulus.LogMessage($"GetSensorIds: WS90 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
+									updateRate = 8000;
+								}
 								goto case 1003;
 							case 49: // wh85
 								name = "wh85";
+								// if a WH85 is connected, it has a 8.5 second update rate, so reduce the MX update rate from the default 10 seconds
+								if (updateRate > 8000 && updateRate != 8000)
+								{
+									cumulus.LogMessage($"GetSensorIds: WH85 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
+									updateRate = 8000;
+								}
 								goto case 1003;
 
 
@@ -627,6 +659,9 @@ namespace CumulusMX
 								windchill = sensor.valDbl.Value;
 								windchill = sensor.unit == "C" ? ConvertUnits.TempCToUser(windchill) : ConvertUnits.TempFToUser(windchill);
 							}
+							break;
+						case "4": //Apparent
+								  // do nothing with this for now - MX calcuates apparent
 							break;
 						case "0x05": //Heat index
 									 // cumulus calculates this
@@ -729,6 +764,14 @@ namespace CumulusMX
 
 		private void ProcessWh25(EcowittLocalApi.Wh25Sensor[] sensors, DateTime dateTime)
 		{
+			//"wh25":	[{
+			//	"intemp":	"23.8",
+			//	"unit":	"C",
+			//	"inhumi":	"68%",
+			//	"abs":	"1006.5 hPa",
+			//	"rel":	"1010.5 hPa"
+			//}]
+
 			for (var i = 0; i < sensors.Length; i++)
 			{
 				var sensor = sensors[i];
@@ -821,6 +864,35 @@ namespace CumulusMX
 
 		private void ProcessRain(EcowittLocalApi.CommonSensor[] sensors)
 		{
+			//"rain"/"piezoRain": [
+			//	{
+			//		"id": "0x0D",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x0E",
+			//		"val": "0.0 mm/Hr"
+			//	},
+			//	{
+			//		"id": "0x10",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x11",
+			//		"val": "5.0 mm"
+			//	},
+			//	{
+			//		"id": "0x12",
+			//		"val": "27.1 mm"
+			//	},
+			//	{
+			//		"id": "0x13",
+			//		"val": "681.4 mm",
+			//		"battery": "5"
+			//	}
+			//],
+
+
 			for (var i = 0; i < sensors.Length; i++)
 			{
 				var sensor = sensors[i];
@@ -928,6 +1000,12 @@ namespace CumulusMX
 
 		private void ProcessLightning(EcowittLocalApi.LightningSensor[] sensors, DateTime dateTime)
 		{
+			// "lightning":	[{
+			//		"distance": "16.7 mi",
+			//		"timestamp": "09/01/2024 18:45:14",
+			//		"count": "0",
+			//		"battery": "5"
+			// }]
 			for (var i = 0; i < sensors.Length; i++)
 			{
 				try
@@ -951,10 +1029,11 @@ namespace CumulusMX
 					//Lightning time (UTC)
 					if (!string.IsNullOrEmpty(sensor.timestamp))
 					{
-						// oh my god, it sends the time as "MM/dd/yyyy HH: mm: ss"
-						// TODO: what is default time if not strikes detecetd yet?
-						var arr = sensor.timestamp.Split(' ');
+						// oh my god, it sends the time as "MM/dd/yyyy HH: mm: ss" for some locales
+						// TODO: what is default time if not strikes detected yet?
+						var arr = sensor.timestamp.Replace(": ", ":").Split(' ');
 						var date = arr[0].Split('/');
+						var time = arr[1].Split(':');
 
 						//if (sensor.timestamp == "default string")
 						//{
@@ -966,9 +1045,9 @@ namespace CumulusMX
 								int.Parse(date[2]),
 								int.Parse(date[0]),
 								int.Parse(date[1]), 
-								int.Parse(arr[1][0..^1]),
-								int.Parse(arr[2][0..^1]),
-								int.Parse(arr[3][0..^1]),
+								int.Parse(time[0]),
+								int.Parse(time[1]),
+								int.Parse(time[2]),
 								0, DateTimeKind.Utc);
 						//}
 					}
@@ -995,6 +1074,23 @@ namespace CumulusMX
 
 		private void ProcessCo2(EcowittLocalApi.Co2Sensor[] sensors)
 		{
+			// "co2": [
+			//	{
+			//		"temp": "24.4",
+			//		"unit": "C",
+			//		"humidity": "62%",
+			//		"PM25": "0.9",
+			//		"PM25_RealAQI": "4",
+			//		"PM25_24HAQI": "7",
+			//		"PM10": "0.9",
+			//		"PM10_RealAQI": "1",
+			//		"PM10_24HAQI": "2",
+			//		"CO2": "323",
+			//		"CO2_24H": "348",
+			//		"battery": "6"
+			//	}
+			// ]
+
 			cumulus.LogDebugMessage("WH45 CO₂: Decoding...");
 
 			for (var i = 0; i < sensors.Length; i++)
@@ -1042,6 +1138,16 @@ namespace CumulusMX
 
 		private void ProcessChPm25(EcowittLocalApi.ChPm25Sensor[] sensors)
 		{
+			//"ch_pm25": [
+			//	{
+			//		"channel": "1",
+			//		"PM25": "6.0",
+			//		"PM25_RealAQI": "25",
+			//		"PM25_24HAQI": "24",
+			//		"battery": "5"
+			//	}
+			//]
+
 			cumulus.LogDebugMessage($"ProcessChPm25: Processing {sensors.Length} sensors");
 
 			for (var i = 0; i < sensors.Length; i++)
@@ -1064,6 +1170,15 @@ namespace CumulusMX
 
 		private void ProcessLeak(EcowittLocalApi.ChLeakSensor[] sensors)
 		{
+			//"ch_leak": [
+			//	{
+			//		"channel": "2",
+			//		"name": "",
+			//		"battery": "4",
+			//		"status": "Normal"
+			//	}
+			//]
+
 			cumulus.LogDebugMessage($"ProcessLeak: Processing {sensors.Length} sensors");
 
 			for (var i = 0; i < sensors.Length; i++)
@@ -1088,6 +1203,17 @@ namespace CumulusMX
 
 		private void ProcessExtraTempHum(EcowittLocalApi.TempHumSensor[] sensors, DateTime dateTime)
 		{
+			//"ch_aisle": [
+			//	{
+			//		"channel": "1",
+			//		"name": "",
+			//		"battery": "0",
+			//		"temp": "24.9",
+			//		"unit": "C",
+			//		"humidity": "61%"
+			//	}
+			//]
+
 			cumulus.LogDebugMessage($"ProcessExtraTempHum: Processing {sensors.Length} sensors");
 
 			for (var i = 0; i < sensors.Length; i++)
@@ -1119,6 +1245,16 @@ namespace CumulusMX
 
 		private void ProcessUserTemp(EcowittLocalApi.TempHumSensor[] sensors)
 		{
+			//"ch_temp": [
+			//	{
+			//		"channel": "1",
+			//		"name": "",
+			//		"temp": "21.5",
+			//		"unit": "C",
+			//		"battery": "3"
+			//	}
+			//]
+
 			// user temp = WH34 8 channel Soil or Water temperature sensors
 			cumulus.LogDebugMessage($"ProcessUserTemp: Processing {sensors.Length} sensors");
 
@@ -1150,6 +1286,15 @@ namespace CumulusMX
 
 		private void ProcessSoilMoisture(EcowittLocalApi.TempHumSensor[] sensors)
 		{
+			//"ch_soil": [
+			//	{
+			//		"channel": "1",
+			//		"name": "",
+			//		"battery": "5",
+			//		"humidity": "56%"
+			//	}
+			//]
+
 			cumulus.LogDebugMessage($"ProcessSoilMoisture: Processing {sensors.Length} sensors");
 
 			for (var i = 0; i < sensors.Length; i++)
@@ -1172,6 +1317,15 @@ namespace CumulusMX
 
 		private void ProcessLeafWet(EcowittLocalApi.TempHumSensor[] sensors)
 		{
+			//"ch_leaf": [
+			//	{
+			//		"channel": "1",
+			//		"name": "CH1 Leaf Wetness",
+			//		"humidity": "10%",
+			//		"battery": "5"
+			//	}
+			//]
+
 			cumulus.LogDebugMessage($"ProcessLeafWet: Processing {sensors.Length} sensors");
 
 			for (var i = 0; i < sensors.Length; i++)
@@ -1195,7 +1349,6 @@ namespace CumulusMX
 		private void GetSystemInfo(bool driftOnly)
 		{
 			cumulus.LogMessage("NOT Reading Ecowitt system info");
-
 		}
 
 		private static bool TestBattery3(int value)
@@ -1228,7 +1381,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cumulus.LogErrorMessage($"ERROR: No data received from the sttaion for {tmrDataWatchdog.Interval / 1000} seconds");
+				cumulus.LogErrorMessage($"ERROR: No data received from the station for {tmrDataWatchdog.Interval / 1000} seconds");
 				if (!DataStopped)
 				{
 					DataStoppedTime = DateTime.Now;

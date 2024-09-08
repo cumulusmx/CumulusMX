@@ -3975,6 +3975,8 @@ namespace CumulusMX
 			EcowittLocalAddr = ini.GetValue("GW1000", "EcowittLocalAddr", localIp.ToString());
 			EcowittCustomInterval = ini.GetValue("GW1000", "EcowittCustomInterval", 16, 1);
 
+			EcowittHttpPassword = ini.GetValue("GW1000", "HttpPassword", "");
+
 			EcowittExtraSetCustomServer = ini.GetValue("GW1000", "ExtraSetCustomServer", false);
 			EcowittExtraGatewayAddr = ini.GetValue("GW1000", "EcowittExtraGwAddr", "0.0.0.0");
 			EcowittExtraLocalAddr = ini.GetValue("GW1000", "EcowittExtraLocalAddr", localIp.ToString());
@@ -5380,6 +5382,7 @@ namespace CumulusMX
 				HTTPProxyPassword = Crypto.DecryptString(HTTPProxyPassword, Program.InstanceId, "HTTPProxyPassword");
 				EcowittApplicationKey = Crypto.DecryptString(EcowittApplicationKey, Program.InstanceId, "EcowittSettings.AppKey");
 				EcowittUserApiKey = Crypto.DecryptString(EcowittUserApiKey, Program.InstanceId, "EcowittSettings.UserApiKey");
+				EcowittHttpPassword = Crypto.DecryptString(EcowittHttpPassword, Program.InstanceId, "EcowittSettings.HttpPassword");
 			}
 			else
 			{
@@ -5672,6 +5675,9 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "EcowittExtraGwAddr", EcowittExtraGatewayAddr);
 			ini.SetValue("GW1000", "EcowittExtraLocalAddr", EcowittExtraLocalAddr);
 			ini.SetValue("GW1000", "EcowittExtraCustomInterval", EcowittExtraCustomInterval);
+
+			ini.SetValue("GW1000", "HttpPassword", Crypto.EncryptString(EcowittHttpPassword, Program.InstanceId, "EcowittSettings.HttpPassword"));
+
 			// api
 			ini.SetValue("GW1000", "EcowittAppKey", Crypto.EncryptString(EcowittApplicationKey, Program.InstanceId, "EcowittSettings.AppKey"));
 			ini.SetValue("GW1000", "EcowittUserKey", Crypto.EncryptString(EcowittUserApiKey, Program.InstanceId, "EcowittSettings.UserApiKey"));
@@ -7159,6 +7165,7 @@ namespace CumulusMX
 		public string[] EcowittForwarders { get; set; } = new string[10];
 		public bool EcowittExtraUseMainForwarders { get; set; }
 		public string[] EcowittExtraForwarders { get; set; } = new string[10];
+		public string EcowittHttpPassword { get; set; }
 
 		public int[] EcowittMapWN34 { get; set; } = new int[9];
 
