@@ -7578,22 +7578,29 @@ namespace CumulusMX
 
 				if (!string.IsNullOrEmpty(cumulus.DailyProgram))
 				{
-					try
+					if (!File.Exists(cumulus.DailyProgram))
 					{
-						// Prepare the process to run
-						var args = string.Empty;
-
-						if (!string.IsNullOrEmpty(cumulus.DailyParams))
-						{
-							var parser = new TokenParser(cumulus.TokenParserOnToken) { InputText = cumulus.DailyParams };
-							args = parser.ToStringFromString();
-						}
-						cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);
-						Utils.RunExternalTask(cumulus.DailyProgram, args, false);
+						cumulus.LogWarningMessage($"Warning: Daily external program '{cumulus.DailyProgram}' does not exist");
 					}
-					catch (Exception ex)
+					else
 					{
-						cumulus.LogErrorMessage("Error executing external program: " + ex.Message);
+						try
+						{
+							// Prepare the process to run
+							var args = string.Empty;
+
+							if (!string.IsNullOrEmpty(cumulus.DailyParams))
+							{
+								var parser = new TokenParser(cumulus.TokenParserOnToken) { InputText = cumulus.DailyParams };
+								args = parser.ToStringFromString();
+							}
+							cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);
+							Utils.RunExternalTask(cumulus.DailyProgram, args, false);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogErrorMessage("Error executing external program: " + ex.Message);
+						}
 					}
 				}
 

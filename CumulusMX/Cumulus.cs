@@ -1118,14 +1118,21 @@ namespace CumulusMX
 			// do we have a start-up task to run?
 			if (!string.IsNullOrEmpty(ProgramOptions.StartupTask))
 			{
-				LogMessage($"Running start-up task: {ProgramOptions.StartupTask}, arguments: {ProgramOptions.StartupTaskParams}, wait: {ProgramOptions.StartupTaskWait}");
-				try
+				if (!File.Exists(ProgramOptions.StartupTask))
 				{
-					Utils.RunExternalTask(ProgramOptions.StartupTask, ProgramOptions.StartupTaskParams, ProgramOptions.StartupTaskWait);
+					LogWarningMessage($"Waring: Start-up task: '{ProgramOptions.StartupTask}' does not exist");
 				}
-				catch (Exception ex)
+				else
 				{
-					LogErrorMessage($"Error running start-up task: {ex.Message}");
+					LogMessage($"Running start-up task: {ProgramOptions.StartupTask}, arguments: {ProgramOptions.StartupTaskParams}, wait: {ProgramOptions.StartupTaskWait}");
+					try
+					{
+						Utils.RunExternalTask(ProgramOptions.StartupTask, ProgramOptions.StartupTaskParams, ProgramOptions.StartupTaskWait);
+					}
+					catch (Exception ex)
+					{
+						LogErrorMessage($"Error running start-up task: {ex.Message}");
+					}
 				}
 			}
 
@@ -2306,24 +2313,31 @@ namespace CumulusMX
 
 					if (!string.IsNullOrEmpty(RealtimeProgram))
 					{
-						try
+						if (!File.Exists(ProgramOptions.StartupTask))
 						{
-							var args = string.Empty;
-
-							if (!string.IsNullOrEmpty(RealtimeParams))
-							{
-								var parser = new TokenParser(TokenParserOnToken)
-								{
-									InputText = RealtimeParams
-								};
-								args = parser.ToStringFromString();
-							}
-							LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
-							Utils.RunExternalTask(RealtimeProgram, args, false);
+							LogWarningMessage($"Warning: Realtime program '{RealtimeProgram}' does not exist");
 						}
-						catch (Exception ex)
+						else
 						{
-							LogErrorMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
+							try
+							{
+								var args = string.Empty;
+
+								if (!string.IsNullOrEmpty(RealtimeParams))
+								{
+									var parser = new TokenParser(TokenParserOnToken)
+									{
+										InputText = RealtimeParams
+									};
+									args = parser.ToStringFromString();
+								}
+								LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
+								Utils.RunExternalTask(RealtimeProgram, args, false);
+							}
+							catch (Exception ex)
+							{
+								LogErrorMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
+							}
 						}
 					}
 				}
@@ -8584,24 +8598,31 @@ namespace CumulusMX
 			// do we have a shutdown task to run?
 			if (!string.IsNullOrEmpty(ProgramOptions.ShutdownTask))
 			{
-				try
+				if (!File.Exists(ProgramOptions.ShutdownTask))
 				{
-					var args = string.Empty;
-
-					if (!string.IsNullOrEmpty(ProgramOptions.ShutdownTaskParams))
-					{
-						var parser = new TokenParser(TokenParserOnToken)
-						{
-							InputText = ProgramOptions.ShutdownTaskParams
-						};
-						args = parser.ToStringFromString();
-					}
-					LogMessage($"Running shutdown task: {ProgramOptions.ShutdownTask}, arguments: {args}");
-					Utils.RunExternalTask(ProgramOptions.ShutdownTask, args, false);
+					LogWarningMessage($"Warning: Shutdown eextrernal task: '{ProgramOptions.ShutdownTask}' does not exist");
 				}
-				catch (Exception ex)
+				else
 				{
-					LogMessage($"Error running shutdown task: {ex.Message}");
+					try
+					{
+						var args = string.Empty;
+
+						if (!string.IsNullOrEmpty(ProgramOptions.ShutdownTaskParams))
+						{
+							var parser = new TokenParser(TokenParserOnToken)
+							{
+								InputText = ProgramOptions.ShutdownTaskParams
+							};
+							args = parser.ToStringFromString();
+						}
+						LogMessage($"Running shutdown task: {ProgramOptions.ShutdownTask}, arguments: {args}");
+						Utils.RunExternalTask(ProgramOptions.ShutdownTask, args, false);
+					}
+					catch (Exception ex)
+					{
+						LogMessage($"Error running shutdown task: {ex.Message}");
+					}
 				}
 			}
 
@@ -8701,25 +8722,32 @@ namespace CumulusMX
 
 				if (!string.IsNullOrEmpty(ExternalProgram))
 				{
-					try
+					if (!File.Exists(ExternalProgram))
 					{
-						var args = string.Empty;
-
-						if (!string.IsNullOrEmpty(ExternalParams))
-						{
-							var parser = new TokenParser(TokenParserOnToken)
-							{
-								InputText = ExternalParams
-							};
-							args = parser.ToStringFromString();
-						}
-						LogDebugMessage("Interval: Executing program " + ExternalProgram + " " + args);
-						Utils.RunExternalTask(ExternalProgram, args, false);
-						LogDebugMessage("Interval: External program started");
+						LogWarningMessage($"Warning: Interval: External program '{ExternalProgram}' does not exist");
 					}
-					catch (Exception ex)
+					else
 					{
-						LogWarningMessage("Interval: Error starting external program: " + ex.Message);
+						try
+						{
+							var args = string.Empty;
+
+							if (!string.IsNullOrEmpty(ExternalParams))
+							{
+								var parser = new TokenParser(TokenParserOnToken)
+								{
+									InputText = ExternalParams
+								};
+								args = parser.ToStringFromString();
+							}
+							LogDebugMessage("Interval: Executing external program " + ExternalProgram + " " + args);
+							Utils.RunExternalTask(ExternalProgram, args, false);
+							LogDebugMessage("Interval: External program started");
+						}
+						catch (Exception ex)
+						{
+							LogWarningMessage("Interval: Error starting external program: " + ex.Message);
+						}
 					}
 				}
 
