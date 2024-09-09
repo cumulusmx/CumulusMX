@@ -1,6 +1,7 @@
-4.2.0 - b4032
+4.2.0 - b4033
 —————————————
-BETA Changes:
+BETA b4033 Changes:
+———————————————————
 - Add Ecowitt HTTP API password
 - Add polling time update to Ecowitt HTTP API station
 - Add more Ecowitt HTTP API station error handling
@@ -12,6 +13,7 @@ BETA Changes:
 - Detect 404 errors for the Ecowitt HTTP API
 - External Programs now set the working directory to the location of the executable/script rather than the Cumulus MX home directory
 - Allow for Ecowitt Lightning sensor factory reset/new device
+- Latest AI2 updates applied
 
 
 New
@@ -32,6 +34,7 @@ Changed
 - The Station Settings screen now does a two-stage selection: First the manufacturer, then the station model. This shortens the long and list to select from.
 - AI2 dashboard now shows some Davis WLL hardware information
 - External Programs now sets the working directory to the location of the executable/script rather than the Cumulus MX home directory
+- Latest AI2 updates applied
 
 Fixed
 - Davis Cloud stations in endless loop at startup if there is no historic data to process or access is denied
