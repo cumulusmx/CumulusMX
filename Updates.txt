@@ -1,7 +1,12 @@
-4.2.0 - b4033
+4.2.0 - b4034
 —————————————
-BETA b4033 Changes:
-———————————————————
+BETA 4034 Changes:
+——————————————————
+- Improved Ecowitt HTTP API station error handling/recovery when station goes offline
+
+
+BETA 4033 Changes:
+——————————————————
 - Add Ecowitt HTTP API password
 - Add polling time update to Ecowitt HTTP API station
 - Add more Ecowitt HTTP API station error handling
@@ -45,7 +50,7 @@ Fixed
 
 Package Updates
 - SQLite: Reverted to v2.1.8 pending fix from author
-
+- MQTTnet
 
 
 4.1.3 - b4028

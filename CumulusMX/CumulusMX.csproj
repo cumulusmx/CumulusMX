@@ -55,7 +55,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>4.2.0.4033-beta</Version>
+    <Version>4.2.0.4034-beta</Version>
     <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
     <PackageId>$(AssemblyName)</PackageId>
   </PropertyGroup>
@@ -98,7 +98,7 @@
     <PackageReference Include="FluentFTP" Version="51.0.0" />
     <PackageReference Include="HidSharp" Version="2.1.0" />
     <PackageReference Include="MailKit" Version="4.7.1.1" />
-    <PackageReference Include="MQTTnet" Version="4.3.6.1152" />
+    <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
     <PackageReference Include="MySqlConnector" Version="2.3.7" />
     <PackageReference Include="ServiceStack.Text" Version="8.3.0" />
     <PackageReference Include="SSH.NET" Version="2024.1.0" />

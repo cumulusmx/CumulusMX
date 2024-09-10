@@ -145,7 +145,7 @@ namespace CumulusMX
 
 			string responseBody;
 			int responseCode;
-			int retries = 3;
+			int retries = 2;
 
 			int retry = 1;
 
@@ -197,6 +197,10 @@ namespace CumulusMX
 					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 					{
 						cumulus.LogErrorMessage("GetLiveData: Error - This Station does not support the HTTP API!");
+					}
+					else
+					{
+						cumulus.LogExceptionMessage(ex, "GetLiveData: HTTP Error");
 					}
 				}
 				catch (Exception ex)
@@ -262,6 +266,10 @@ namespace CumulusMX
 				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
 					cumulus.LogErrorMessage("GetSensorInfo: Error - This Station does not support the HTTP API!");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "GetSensorInfo: HTTP Error");
 				}
 			}
 			catch (Exception ex)
