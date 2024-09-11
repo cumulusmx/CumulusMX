@@ -1,8 +1,18 @@
-4.2.0 - b4034
+4.2.0 - b4035
 —————————————
 BETA 4034 Changes:
 ——————————————————
+- Fixes to the Interval/Daily data viewer web pages
+- Fix Ecowitt HTTP API station parsing of some decimal values when running in a user locale that uses comma decimals
+
+
+
+BETA 4034 Changes:
+——————————————————
 - Improved Ecowitt HTTP API station error handling/recovery when station goes offline
+- Daily and Interval data viewers now visible on the dashboard
+- Removed Ecowitt HTTP API station password
+- New web tag <#MonthRainfall>
 
 
 BETA 4033 Changes:
@@ -33,6 +43,10 @@ New
 	- The format is a comma separated list of sensor/transmitter IDs and battery states
 	- Eg. "wh80 - <state>,wh41ch1-<state>,wh41ch2-<state>"
 	- Where <state> is "LOW" or "0" or "1" depending on what the sensor sends
+- New web tag <#MonthRainfall> which returns the rainfall total for the current month by default
+	- Takes optional parameters y=YYYY and m=MM (both must be specified) to return the total rainfall for specified month in the specified year
+	- Eg. <#MonthRainfall y=2018 m=10>
+
 
 Changed
 - Davis WLL/Davis Cloud stations now use the WL.com subscription level to determine if they use WL.com as a logger

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace CumulusMX
 	internal sealed class EcowittLocalApi : IDisposable
 	{
 		private readonly Cumulus cumulus;
-
+		private static NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 		public EcowittLocalApi(Cumulus cumul)
 		{
 			cumulus = cumul;
@@ -521,7 +522,7 @@ namespace CumulusMX
 						unit = temp[1];
 						val = temp[0];
 					}
-					return double.TryParse(val, out double result) ? result : null;
+					return double.TryParse(val, invNum, out double result) ? result : null;
 				}
 			}
 		}
@@ -574,7 +575,7 @@ namespace CumulusMX
 				get
 				{
 					var temp = distance.Split(' ');
-					return double.TryParse(temp[0], out double result) ? result : null;
+					return double.TryParse(temp[0], invNum, out double result) ? result : null;
 				}
 			}
 

@@ -2505,6 +2505,12 @@ namespace CumulusMX
 							vers = stn.stationtype.Split('V')[^1];
 							model = stn.stationtype.Replace("_", string.Empty).Split('V')[0];
 						}
+						else
+						{
+							// no idea what we got!
+							vers = stn.name;
+							model = stn.name;
+						}
 					}
 
 					cumulus.LogDebugMessage($"API.GetStationList: Found vers={vers}, model={model}");

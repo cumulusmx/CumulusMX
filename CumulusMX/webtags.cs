@@ -3595,28 +3595,38 @@ namespace CumulusMX
 			var month = tagParams.Get("m");
 			DateTime start;
 			DateTime end;
-
-			if (year != null && month != null)
-			{
-				start = new DateTime(int.Parse(year), int.Parse(month), 1, 0, 0, 0, DateTimeKind.Local);
-				end = start.AddMonths(1);
-			}
-			else
-			{
-				end = DateTime.Now.Date;
-				start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
-			}
-
-			if (start.Date == DateTime.Now.AddHours(cumulus.GetHourInc()).Date)
-			{
-				// first day of the current month, there are no dayfile entries
-				// so return the average temp so far today
-				return Tagavgtemp(tagParams);
-			}
-
 			double avg;
+
 			try
 			{
+				if (year != null && month != null)
+				{
+					var yr = int.Parse(year);
+					var mon = int.Parse(month);
+
+					if (yr > 1970 && yr <= DateTime.Now.Year && mon > 0 && mon < 13)
+					{
+						start = new DateTime(int.Parse(year), int.Parse(month), 1, 0, 0, 0, DateTimeKind.Local);
+						end = start.AddMonths(1);
+					}
+					else
+					{
+						return "-";
+					}
+				}
+				else
+				{
+					end = DateTime.Now.Date;
+					start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
+				}
+
+				if (start.Date == DateTime.Now.AddHours(cumulus.GetHourInc()).Date)
+				{
+					// first day of the current month, there are no dayfile entries
+					// so return the average temp so far today
+					return Tagavgtemp(tagParams);
+				}
+
 				avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
 			}
 			catch
@@ -3647,6 +3657,46 @@ namespace CumulusMX
 
 			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
 			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagMonthRainfall(Dictionary<string, string> tagParams)
+		{
+			var year = tagParams.Get("y");
+			var month = tagParams.Get("m");
+			DateTime start;
+			DateTime end;
+			double total;
+
+			if (year != null && month != null)
+			{
+				try
+				{
+					var yr = int.Parse(year);
+					var mon = int.Parse(month);
+
+					if (yr > 1970 && yr <= DateTime.Now.Year && mon > 0 && mon < 13)
+					{
+						start = new DateTime(yr, mon, 1, 0, 0, 0, DateTimeKind.Local);
+						end = start.AddMonths(1);
+						total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(rec => rec.TotalRain);
+					}
+					else 
+					{
+						return "-";
+					}
+				}
+				catch
+				{
+					// error or no data found
+					return "-";
+				}
+			}
+			else
+			{
+				total = station.RainMonth;
+			}
+
+			return CheckRcDp(CheckTempUnit(total, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagAnnualRainfall(Dictionary<string, string> tagParams)
@@ -6793,6 +6843,7 @@ namespace CumulusMX
 				// Specifc Month/Year values
 				{ "MonthTempAvg", TagMonthTempAvg },
 				{ "YearTempAvg", TagYearTempAvg },
+				{ "MonthRainfall", TagMonthRainfall },
 				{ "AnnualRainfall", TagAnnualRainfall },
 				// Options
 				{ "Option_useApparent", TagOption_useApparent },
