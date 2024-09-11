@@ -4,7 +4,7 @@ BETA 4034 Changes:
 ——————————————————
 - Fixes to the Interval/Daily data viewer web pages
 - Fix Ecowitt HTTP API station parsing of some decimal values when running in a user locale that uses comma decimals
-
+- Fix Ecowitt HTTP API station settings not having a field for the MAC address
 
 
 BETA 4034 Changes:
