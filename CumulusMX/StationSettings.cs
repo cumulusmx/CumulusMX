@@ -161,7 +161,8 @@ namespace CumulusMX
 			{
 				ipaddress = cumulus.Gw1000IpAddress,
 				macaddress = cumulus.Gw1000MacAddress,
-				password = cumulus.EcowittHttpPassword
+				password = cumulus.EcowittHttpPassword,
+				piezosrain = cumulus.EcowittIsRainingUsePiezo
 			};
 
 			var ecowitt = new JsonStationSettingsEcowitt
@@ -170,6 +171,7 @@ namespace CumulusMX
 				gwaddr = cumulus.EcowittGatewayAddr,
 				localaddr = cumulus.EcowittLocalAddr,
 				interval = cumulus.EcowittCustomInterval,
+				piezosrain = cumulus.EcowittIsRainingUsePiezo,
 				forward = []
 			};
 
@@ -921,6 +923,7 @@ namespace CumulusMX
 						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.ipaddress) ? null : settings.ecowitthttpapi.ipaddress.Trim();
 						cumulus.Gw1000MacAddress = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.macaddress) ? null : settings.ecowitthttpapi.macaddress.Trim().ToUpper();
 						cumulus.EcowittHttpPassword = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.password) ? null : settings.ecowitthttpapi.password.Trim();
+						cumulus.EcowittIsRainingUsePiezo = settings.ecowitthttpapi.piezosrain;
 					}
 				}
 				catch (Exception ex)
@@ -940,6 +943,7 @@ namespace CumulusMX
 						cumulus.EcowittGatewayAddr = string.IsNullOrWhiteSpace(settings.ecowitt.gwaddr) ? null : settings.ecowitt.gwaddr.Trim();
 						cumulus.EcowittLocalAddr = string.IsNullOrWhiteSpace(settings.ecowitt.localaddr) ? null : settings.ecowitt.localaddr.Trim();
 						cumulus.EcowittCustomInterval = settings.ecowitt.interval;
+						cumulus.EcowittIsRainingUsePiezo = settings.ecowitthttpapi.piezosrain;
 
 						for (var i = 0; i < 10; i++)
 						{
@@ -1811,6 +1815,7 @@ namespace CumulusMX
 		public string ipaddress { get; set; }
 		public string macaddress { get; set; }
 		public string password { get; set; }
+		public bool piezosrain { get; set; }
 	}
 
 	internal class JsonStationSettingsEcowitt
@@ -1819,6 +1824,7 @@ namespace CumulusMX
 		public string gwaddr { get; set; }
 		public string localaddr { get; set; }
 		public int interval { get; set; }
+		public bool piezosrain { get; set; }
 		public List<JsonEcowittForwardList> forward { get; set; }
 	}
 

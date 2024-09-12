@@ -618,6 +618,8 @@ namespace CumulusMX
 						// wrain_piezo
 						// mrain_piezo
 						// yrain_piezo
+						// plus
+						// srain_piezo
 
 						string rain, rRate;
 						// if no yearly counter, try the total counter
@@ -658,6 +660,11 @@ namespace CumulusMX
 							var rainVal = ConvertUnits.RainINToUser(Convert.ToDouble(rain, invNum));
 							var rateVal = ConvertUnits.RainINToUser(Convert.ToDouble(rRate, invNum));
 							DoRain(rainVal, rateVal, recDate);
+						}
+
+						if (data["srain_piezo"] != null && cumulus.EcowittIsRainingUsePiezo)
+						{
+							IsRaining = data["srain_piezo"] == "1";
 						}
 					}
 					catch (Exception ex)

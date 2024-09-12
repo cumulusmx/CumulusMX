@@ -1,10 +1,11 @@
 4.2.0 - b4035
 —————————————
-BETA 4034 Changes:
+BETA 4035 Changes:
 ——————————————————
 - Fixes to the Interval/Daily data viewer web pages
 - Fix Ecowitt HTTP API station parsing of some decimal values when running in a user locale that uses comma decimals
 - Fix Ecowitt HTTP API station settings not having a field for the MAC address
+- Add support for Ecowitt srain_piezo to Ecowitt HTTP API, and HTTP Custom Sender stations
 
 
 BETA 4034 Changes:
@@ -46,7 +47,7 @@ New
 - New web tag <#MonthRainfall> which returns the rainfall total for the current month by default
 	- Takes optional parameters y=YYYY and m=MM (both must be specified) to return the total rainfall for specified month in the specified year
 	- Eg. <#MonthRainfall y=2018 m=10>
-
+- Support for Ecowitt WS90 piezo IsRaining status to trigger MX IsRaining. Currently only supported with a WS90 connected to a GW2000
 
 Changed
 - Davis WLL/Davis Cloud stations now use the WL.com subscription level to determine if they use WL.com as a logger

@@ -989,6 +989,13 @@ namespace CumulusMX
 							}
 							break;
 
+						case "srain_piezo":
+							if (cumulus.EcowittIsRainingUsePiezo)
+							{
+								IsRaining = sensor.val == "1";
+							}
+							break;
+
 						case "0x10": // Rain day
 						case "0x11": // Rain week
 						case "0x12": // Rain month
