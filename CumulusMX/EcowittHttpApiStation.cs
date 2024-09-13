@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ namespace CumulusMX
 	internal class EcowittHttpApiStation : WeatherStation
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
+		private static readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
+
 		private string deviceModel;
 		private string deviceFirmware;
 		private int updateRate = 10000; // 10 seconds by default
@@ -690,7 +693,7 @@ namespace CumulusMX
 							break;
 						case "0x0B": //Wind Speed (val unit)
 							var arr = sensor.val.Split(' ');
-							if (arr.Length == 2 && double.TryParse(arr[0], out var valDbl))
+							if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var valDbl))
 							{
 								var spd = arr[1] switch
 								{
@@ -709,7 +712,7 @@ namespace CumulusMX
 							break;
 						case "0x0C": // Gust speed (val unit)
 							arr = sensor.val.Split(' ');
-							if (arr.Length == 2 && double.TryParse(arr[0], out valDbl))
+							if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
 							{
 								var spd = arr[1] switch
 								{
@@ -728,7 +731,7 @@ namespace CumulusMX
 							break;
 						case "0x15": //Light (value unit)
 							arr = sensor.val.Split(' ');
-							if (arr.Length == 2 && double.TryParse(arr[0], out valDbl))
+							if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
 							{
 								var light = arr[1] switch
 								{
@@ -827,7 +830,7 @@ namespace CumulusMX
 					if (sensor.rel != null && !cumulus.StationOptions.CalculateSLP)
 					{
 						var arr = sensor.rel.Split(' ');
-						if (arr.Length == 2 && double.TryParse(arr[0], out var val))
+						if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 						{
 							var slp = arr[1] switch
 							{
@@ -846,7 +849,7 @@ namespace CumulusMX
 					if (sensor.abs != null)
 					{
 						var arr = sensor.abs.Split(' ');
-						if (arr.Length == 2 && double.TryParse(arr[0], out var val))
+						if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 						{
 							var abs = arr[1] switch
 							{
@@ -916,7 +919,7 @@ namespace CumulusMX
 							try
 							{
 								var arr = sensor.val.Split(' ');
-								if (arr.Length == 2 && double.TryParse(arr[0], out var val))
+								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 								{
 									var evnt = arr[1] switch
 									{
@@ -942,7 +945,7 @@ namespace CumulusMX
 							try
 							{
 								var arr = sensor.val.Split(' ');
-								if (arr.Length == 2 && double.TryParse(arr[0], out var val))
+								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 								{
 									var rate = arr[1] switch
 									{
@@ -968,7 +971,7 @@ namespace CumulusMX
 							try
 							{
 								var arr = sensor.val.Split(' ');
-								if (arr.Length == 2 && double.TryParse(arr[0], out var val))
+								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 								{
 									var yr = arr[1] switch
 									{

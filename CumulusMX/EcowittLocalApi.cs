@@ -11,7 +11,7 @@ namespace CumulusMX
 	internal sealed class EcowittLocalApi : IDisposable
 	{
 		private readonly Cumulus cumulus;
-		private static NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
+		private static readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 		public EcowittLocalApi(Cumulus cumul)
 		{
 			cumulus = cumul;
