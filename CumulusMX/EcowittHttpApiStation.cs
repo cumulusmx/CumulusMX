@@ -167,11 +167,14 @@ namespace CumulusMX
 							// process rain values
 							if (cumulus.Gw1000PrimaryRainSensor == 0 && rawData.rain != null)
 							{
-								ProcessRain(rawData.rain);
+								ProcessRain(rawData.rain, false);
 							}
-							else if (cumulus.Gw1000PrimaryRainSensor == 1 && rawData.piezoRain != null)
+							
+							if ((cumulus.Gw1000PrimaryRainSensor == 1 || (cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo)) && rawData.piezoRain != null)
 							{
-								ProcessRain(rawData.piezoRain);
+								// if we are using piezo as the primary rain sensor
+								// or using the tipper at the primary, but want to use the piezo srain value for IsRaining
+								ProcessRain(rawData.piezoRain, cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo);
 							}
 
 							if (rawData.lightning != null)
@@ -875,7 +878,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ProcessRain(EcowittLocalApi.CommonSensor[] sensors)
+		private void ProcessRain(EcowittLocalApi.CommonSensor[] sensors, bool isRainingOnly)
 		{
 			//"rain"/"piezoRain": [
 			//	{
@@ -916,6 +919,8 @@ namespace CumulusMX
 					{
 						case "0x0D":
 							//Rain Event (val unit)
+							if (isRainingOnly)
+								break;
 							try
 							{
 								var arr = sensor.val.Split(' ');
@@ -942,6 +947,8 @@ namespace CumulusMX
 
 						case "0x0E":
 							//Rain Rate (val unit/h)
+							if (isRainingOnly)
+								break;
 							try
 							{
 								var arr = sensor.val.Split(' ');
@@ -958,6 +965,12 @@ namespace CumulusMX
 									{
 										rainRateLast = rate;
 									}
+
+									if (cumulus.StationOptions.UseRainForIsRaining == 1 && !cumulus.EcowittIsRainingUsePiezo)
+									{
+										IsRaining = rate > 0;
+										cumulus.IsRainingAlarm.Triggered = IsRaining;
+									}
 								}
 							}
 							catch (Exception ex)
@@ -968,6 +981,8 @@ namespace CumulusMX
 
 						case "0x13":
 							//Rain Year (val unit)
+							if (isRainingOnly)
+								break;
 							try
 							{
 								var arr = sensor.val.Split(' ');
@@ -996,7 +1011,7 @@ namespace CumulusMX
 							if (cumulus.EcowittIsRainingUsePiezo)
 							{
 								IsRaining = sensor.val == "1";
-							}
+								cumulus.IsRainingAlarm.Triggered = IsRaining;							}
 							break;
 
 						case "0x10": // Rain day

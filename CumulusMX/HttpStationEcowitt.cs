@@ -627,17 +627,19 @@ namespace CumulusMX
 						{
 							rain = data["yearlyrainin"] ?? data["totalrainin"];
 							rRate = data["rainratein"];
-							if (cumulus.StationOptions.UseRainForIsRaining == 2)
-							{
-								IsRaining = Convert.ToDouble(data["rrain_piezo"], invNum) > 0;
-								cumulus.IsRainingAlarm.Triggered = IsRaining;
-							}
 						}
 						else
 						{
 							rain = data["yrain_piezo"];
 							rRate = data["rrain_piezo"];
 						}
+
+						if (!cumulus.EcowittIsRainingUsePiezo)
+						{
+							IsRaining = (cumulus.StationOptions.UseRainForIsRaining == 0 ? Convert.ToDouble(rRate, invNum): Convert.ToDouble(data["rrain_piezo"], invNum)) > 0;
+							cumulus.IsRainingAlarm.Triggered = IsRaining;
+						}
+						
 
 						if (rRate == null)
 						{
@@ -662,9 +664,10 @@ namespace CumulusMX
 							DoRain(rainVal, rateVal, recDate);
 						}
 
-						if (data["srain_piezo"] != null && cumulus.EcowittIsRainingUsePiezo)
+						if (cumulus.EcowittIsRainingUsePiezo && data["srain_piezo"] != null)
 						{
 							IsRaining = data["srain_piezo"] == "1";
+							cumulus.IsRainingAlarm.Triggered = IsRaining;
 						}
 					}
 					catch (Exception ex)
