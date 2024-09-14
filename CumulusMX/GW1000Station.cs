@@ -741,10 +741,11 @@ namespace CumulusMX
 				var battPos = idx + 5;
 				var sigPos = idx + 6;
 				// Wh65 could be a Wh65 or a Wh24, we found out using the System Info command
-				if (type == "WH65")
-				{
-					type = "WH24/WH65";
-				}
+				// So, Ecowitt reused this id for the third time! It is now the WS69
+				//if (type == "WH65")
+				//{
+				//	type = "WH24/WH65";
+				//}
 
 				switch (id)
 				{
@@ -787,6 +788,7 @@ namespace CumulusMX
 					case "WH24":
 					case "WH26":
 					case "WH24/WH65":
+					case "WS69":
 						batt = TestBattery1(data[battPos], 1);  // 0 or 1
 						break;
 

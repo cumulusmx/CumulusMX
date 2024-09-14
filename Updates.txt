@@ -1,5 +1,12 @@
-4.2.0 - b4035
+4.2.0 - b4036
 —————————————
+BETA 4036 Changes:
+——————————————————
+- Accessibility updates for the Interval and Daily data viewer pages
+- Add Soil moisture sensors 9-16 to Ecowitt HTTP API decode
+- Add Soil moisture sensors 9-16 to Ecowitt TCP API decode of sensor info
+
+
 BETA 4035 Changes:
 ——————————————————
 - Fixes to the Interval/Daily data viewer web pages
@@ -47,7 +54,8 @@ New
 - New web tag <#MonthRainfall> which returns the rainfall total for the current month by default
 	- Takes optional parameters y=YYYY and m=MM (both must be specified) to return the total rainfall for specified month in the specified year
 	- Eg. <#MonthRainfall y=2018 m=10>
-- Support for Ecowitt WS90 piezo IsRaining status to trigger MX IsRaining. Currently only supported with a WS90 connected to a GW2000
+- Support for Ecowitt WS90 piezo IsRaining status to trigger MX IsRaining.
+	- Currently only supported with a WS90/WS85 connected to a GW2000 (Sept. 2024). This value is being added to more stations as they get firmware updates.
 
 Changed
 - Davis WLL/Davis Cloud stations now use the WL.com subscription level to determine if they use WL.com as a logger

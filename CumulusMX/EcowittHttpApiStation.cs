@@ -563,7 +563,8 @@ namespace CumulusMX
 									name = "wh31ch" + (sensor.type - 5);
 									goto case 1001;
 								case int n when (n > 13 && n < 22): // wh51 - soil moisture (8 chan)
-									break;
+									name = "wh51ch" + (sensor.type - 13);
+									goto case 1001;
 								case int n when (n > 21 && n < 26): // wh41 - pm2.5 (4 chan)
 									name = "wh41ch" + (sensor.type - 21);
 									goto case 1003;
@@ -579,7 +580,7 @@ namespace CumulusMX
 								case 39: // wh45 - co2
 									name = "wh45";
 									goto case 1003;
-								case int n when (n > 39 && n < 48): // wh35 - leasf wet (8 chan)
+								case int n when (n > 39 && n < 48): // wh35 - leaf wet (8 chan)
 									name = "wh35ch" + (sensor.type - 39);
 									goto case 1003;
 								case 48: // wh90
@@ -600,6 +601,13 @@ namespace CumulusMX
 										updateRate = 8000;
 									}
 									goto case 1003;
+								case int n when (n > 49 && n < 58): // wh51 - soil moisture (chan 9-16)
+									name = "wh51ch" + (sensor.type - 49 + 8);
+									goto case 1001;
+								case int n when (n > 57 && n < 66): // undocumented block of 8 sensors - possibly future temperature or t/h chans 9-16?
+									name = "unkownch" + (sensor.type - 57 + 8);
+									break;
+
 
 
 								case 1001: // battery type 1 (0=OK, 1=LOW)

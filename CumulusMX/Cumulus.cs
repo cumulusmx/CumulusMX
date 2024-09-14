@@ -2313,7 +2313,7 @@ namespace CumulusMX
 
 					if (!string.IsNullOrEmpty(RealtimeProgram))
 					{
-						if (!File.Exists(ProgramOptions.StartupTask))
+						if (!File.Exists(RealtimeProgram))
 						{
 							LogWarningMessage($"Warning: Realtime program '{RealtimeProgram}' does not exist");
 						}
