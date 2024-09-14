@@ -12,7 +12,7 @@ namespace CumulusMX
 		private readonly EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
 		private Task liveTask;
-		private readonly bool main;
+		private readonly bool mainStation;
 		private string deviceModel;
 		private Version deviceFirmware;
 		private int lastHour = -1;
@@ -21,9 +21,9 @@ namespace CumulusMX
 		{
 			this.station = station;
 
-			main = station == null;
+			mainStation = station == null;
 
-			if (main)
+			if (mainStation)
 			{
 				cumulus.LogMessage("Creating Ecowitt Cloud Station");
 			}
@@ -40,7 +40,7 @@ namespace CumulusMX
 
 
 			// Do not set these if we are only using extra sensors
-			if (main)
+			if (mainStation)
 			{
 				// cloud provides 10 min average wind speeds
 				cumulus.StationOptions.CalcuateAverageWindSpeed = true;
@@ -90,15 +90,15 @@ namespace CumulusMX
 				DataTimeoutMins = 2;
 			}
 
-			if (main || cumulus.EcowittExtraUseAQI)
+			if (mainStation || cumulus.EcowittExtraUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
-			if (main || cumulus.EcowittExtraUseSoilMoist)
+			if (mainStation)
 			{
-				cumulus.Units.SoilMoistureUnitText = "%";
+				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
-			if (main || cumulus.EcowittExtraUseSoilMoist)
+			if (mainStation || cumulus.EcowittExtraUseLeafWet)
 			{
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
@@ -106,7 +106,7 @@ namespace CumulusMX
 			ecowittApi = new EcowittApi(cumulus, this);
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
-			if (main)
+			if (mainStation)
 			{
 				Task.Run(getAndProcessHistoryData);
 				var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
@@ -178,7 +178,7 @@ namespace CumulusMX
 
 								if (hour == 13)
 								{
-									var retVal = ecowittApi.GetStationList(main || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+									var retVal = ecowittApi.GetStationList(mainStation || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
 									if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 									{
 										// EasyWeather seems to contain the WiFi version
@@ -239,7 +239,7 @@ namespace CumulusMX
 
 		public override string GetEcowittCameraUrl()
 		{
-			if ((cumulus.EcowittExtraUseCamera || main) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if ((cumulus.EcowittExtraUseCamera || mainStation) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 			{
 				try
 				{
@@ -257,7 +257,7 @@ namespace CumulusMX
 
 		public override string GetEcowittVideoUrl()
 		{
-			if ((cumulus.EcowittExtraUseCamera || main) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if ((cumulus.EcowittExtraUseCamera || mainStation) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 			{
 				try
 				{
@@ -295,13 +295,13 @@ namespace CumulusMX
 		private void ProcessCurrentData(EcowittApi.CurrentDataData data, CancellationToken token)
 		{
 			bool batteryLow = false;
-			var thisStation = main ? this : station;
+			var thisStation = mainStation ? this : station;
 			token.ThrowIfCancellationRequested();
 
 			try
 			{
 				// Only do the primary sensors if running as the main station
-				if (main)
+				if (mainStation)
 				{
 					// Outdoor temp/hum
 					if (cumulus.Gw1000PrimaryTHSensor == 0)
@@ -445,7 +445,7 @@ namespace CumulusMX
 				}
 
 				// Solar
-				if ((main || cumulus.EcowittExtraUseSolar) && data.solar_and_uvi != null)
+				if ((mainStation || cumulus.EcowittExtraUseSolar) && data.solar_and_uvi != null)
 				{
 					try
 					{
@@ -462,7 +462,7 @@ namespace CumulusMX
 				}
 
 				// Extra Temperature
-				if (main || cumulus.EcowittExtraUseTempHum)
+				if (mainStation || cumulus.EcowittExtraUseTempHum)
 				{
 					try
 					{
@@ -475,7 +475,7 @@ namespace CumulusMX
 				}
 
 				// === Soil/Water Temp ===
-				if (main || cumulus.EcowittExtraUseUserTemp)
+				if (mainStation || cumulus.EcowittExtraUseUserTemp)
 				{
 					try
 					{
@@ -488,7 +488,7 @@ namespace CumulusMX
 				}
 
 				// === Soil Moisture ===
-				if (main || cumulus.EcowittExtraUseSoilMoist)
+				if (mainStation || cumulus.EcowittExtraUseSoilMoist)
 				{
 					try
 					{
@@ -501,7 +501,7 @@ namespace CumulusMX
 				}
 
 				// === Leaf Wetness ===
-				if (main || cumulus.EcowittExtraUseLeafWet)
+				if (mainStation || cumulus.EcowittExtraUseLeafWet)
 				{
 					try
 					{
@@ -514,7 +514,7 @@ namespace CumulusMX
 				}
 
 				// === Air Quality ===
-				if (main || cumulus.EcowittExtraUseAQI)
+				if (mainStation || cumulus.EcowittExtraUseAQI)
 				{
 					try
 					{
@@ -527,7 +527,7 @@ namespace CumulusMX
 				}
 
 				// === CO₂ ===
-				if (main || cumulus.EcowittExtraUseCo2)
+				if (mainStation || cumulus.EcowittExtraUseCo2)
 				{
 					try
 					{
@@ -540,7 +540,7 @@ namespace CumulusMX
 				}
 
 				// === Lightning ===
-				if (main || cumulus.EcowittExtraUseLightning)
+				if (mainStation || cumulus.EcowittExtraUseLightning)
 				{
 					try
 					{
@@ -553,7 +553,7 @@ namespace CumulusMX
 				}
 
 				// === Leak ===
-				if (main || cumulus.EcowittExtraUseLeak)
+				if (mainStation || cumulus.EcowittExtraUseLeak)
 				{
 					try
 					{
@@ -871,46 +871,78 @@ namespace CumulusMX
 			}
 		}
 
-		private static void ProcessSoilMoist(EcowittApi.CurrentDataData data, WeatherStation station)
+		private void ProcessSoilMoist(EcowittApi.CurrentDataData data, WeatherStation station)
 		{
 			if (data.soil_ch1 != null)
 			{
 				station.DoSoilMoisture(data.soil_ch1.soilmoisture.value, 1);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[0] = "%";
+				}
 			}
 
 			if (data.soil_ch2 != null)
 			{
 				station.DoSoilMoisture(data.soil_ch2.soilmoisture.value, 2);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[1] = "%";
+				}
 			}
 
 			if (data.soil_ch3 != null)
 			{
 				station.DoSoilMoisture(data.soil_ch3.soilmoisture.value, 3);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[2] = "%";
+				}
 			}
 
 			if (data.soil_ch4 != null)
 			{
 				station.DoSoilMoisture(data.soil_ch4.soilmoisture.value, 4);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[3] = "%";
+				}
 			}
 
 			if (data.soil_ch5 != null)
 			{
 				station.DoSoilMoisture(data.soil_ch5.soilmoisture.value, 5);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[4] = "%";
+				}
 			}
 
 			if (data.soil_ch6 != null)
 			{
 				station.DoSoilMoisture(data.soil_ch6.soilmoisture.value, 6);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[5] = "%";
+				}
 			}
 
 			if (data.soil_ch7 != null)
 			{
 				station.DoSoilMoisture(data.soil_ch7.soilmoisture.value, 7);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[6] = "%";
+				}
 			}
 
 			if (data.soil_ch8 != null)
 			{
 				station.DoSoilMoisture(data.soil_ch8.soilmoisture.value, 8);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[7] = "%";
+				}
 			}
 		}
 

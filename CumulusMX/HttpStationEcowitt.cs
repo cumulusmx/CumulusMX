@@ -16,6 +16,7 @@ namespace CumulusMX
 	partial class HttpStationEcowitt : WeatherStation
 	{
 		private readonly WeatherStation station;
+		private readonly bool mainStation;
 		private bool starting = true;
 		private bool stopping = false;
 		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
@@ -32,7 +33,7 @@ namespace CumulusMX
 		{
 			this.station = station;
 
-			var mainStation = station == null;
+			mainStation = station == null;
 
 			if (mainStation)
 			{
@@ -115,11 +116,11 @@ namespace CumulusMX
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
-			if (mainStation || cumulus.EcowittExtraUseSoilMoist)
+			if (mainStation)
 			{
-				cumulus.Units.SoilMoistureUnitText = "%";
+				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
-			if (mainStation || cumulus.EcowittExtraUseSoilMoist)
+			if (mainStation || cumulus.EcowittExtraUseLeafWet)
 			{
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
@@ -1191,6 +1192,10 @@ namespace CumulusMX
 				if (data["soilmoisture" + i] != null)
 				{
 					station.DoSoilMoisture(Convert.ToDouble(data["soilmoisture" + i], invNum), i);
+					if (!mainStation)
+					{
+						cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
+					}
 				}
 			}
 		}

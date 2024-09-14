@@ -44,7 +44,7 @@ namespace CumulusMX
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Units.AirQualityUnitText = "µg/m³";
-			cumulus.Units.SoilMoistureUnitText = "%";
+			Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			cumulus.Units.LeafWetnessUnitText = "%";
 
 			// GW1000 does not provide 10 min average wind speeds

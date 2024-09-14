@@ -52,7 +52,7 @@ namespace CumulusMX
 		public EcowittHttpApiStation(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.Units.AirQualityUnitText = "µg/m³";
-			cumulus.Units.SoilMoistureUnitText = "%";
+			Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			cumulus.Units.LeafWetnessUnitText = "%";
 
 			// GW1000 does not provide 10 min average wind speeds
@@ -604,9 +604,6 @@ namespace CumulusMX
 								case int n when (n > 49 && n < 58): // wh51 - soil moisture (chan 9-16)
 									name = "wh51ch" + (sensor.type - 49 + 8);
 									goto case 1001;
-								case int n when (n > 57 && n < 66): // undocumented block of 8 sensors - possibly future temperature or t/h chans 9-16?
-									name = "unkownch" + (sensor.type - 57 + 8);
-									break;
 
 
 

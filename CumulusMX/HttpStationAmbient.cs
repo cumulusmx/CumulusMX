@@ -10,12 +10,14 @@ namespace CumulusMX
 	class HttpStationAmbient : WeatherStation
 	{
 		private readonly WeatherStation station;
+		private readonly Cumulus cumulus;
 		private bool starting = true;
 		private bool stopping = false;
 
 		public HttpStationAmbient(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
 			this.station = station;
+			this.cumulus = cumulus;
 
 			if (station == null)
 			{
@@ -34,13 +36,13 @@ namespace CumulusMX
 			// Ambient does not send DP, so force MX to calculate it
 			//cumulus.StationOptions.CalculatedDP = true
 
-			if (station == null || (station != null && cumulus.AmbientExtraUseAQI))
+			if (station == null || cumulus.AmbientExtraUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
-			if (station == null || (station != null && cumulus.AmbientExtraUseSoilMoist))
+			if (station == null)
 			{
-				cumulus.Units.SoilMoistureUnitText = "%";
+				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
@@ -677,13 +679,17 @@ namespace CumulusMX
 			}
 		}
 
-		private static void ProcessSoilMoist(NameValueCollection data, WeatherStation station)
+		private void ProcessSoilMoist(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
 				if (data["soilhum" + i] != null)
 				{
 					station.DoSoilMoisture(Convert.ToDouble(data["soilhum" + i], CultureInfo.InvariantCulture), i);
+					if (station != null)
+					{
+						cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
+					}
 				}
 			}
 		}

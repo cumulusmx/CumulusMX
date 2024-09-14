@@ -5,6 +5,7 @@ BETA 4036 Changes:
 - Accessibility updates for the Interval and Daily data viewer pages
 - Add Soil moisture sensors 9-16 to Ecowitt HTTP API decode
 - Add Soil moisture sensors 9-16 to Ecowitt TCP API decode of sensor info
+- Soil moisture units now follow the source
 
 
 BETA 4035 Changes:
@@ -69,6 +70,9 @@ Fixed
 - Davis Cloud stations no longer continuously try to fetch history data if there is no Pro subscription
 - WMR928 Station now correctly converts indoor temperatures to the user defined units
 - Not logging PHP upload failures to the warning log
+- Soil moisture units now follow the source
+	- Example if you have a main station Davis with sensors 1 & 2, their units will be cb, and you have Ecowitt extra sensors 3 & 4, their units will be %
+	- This does mean a change to the Units JSON and the graph scripts for the default web site. A re-upload of /js/cumuluscharts.js and /js/selectachart.js will be required
 
 
 Package Updates
