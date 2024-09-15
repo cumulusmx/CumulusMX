@@ -7,7 +7,7 @@ BETA 4036 Changes:
 - Add Soil moisture sensors 9-16 to Ecowitt TCP API decode of sensor info
 - Soil moisture units now follow the source
 - Two new web tags <#NewRecordAlarm> and <#NewRecordAlarmMessage>
-
+- Cleanup old MD5 hash files
 
 
 BETA 4035 Changes:
@@ -62,6 +62,7 @@ New
 - Two new web tags <#NewRecordAlarm> and <#NewRecordAlarmMessage>
 	- NewRecordAlarm somewhat replicates the existing #newrecord web tag, but is also controlled by the alarm being enable/disabled
 	- NewRecordAlarmMessage displays the last new record alarm text message
+- Old MD5 hash files are now deleted on startup
 
 Changed
 - Davis WLL/Davis Cloud stations now use the WL.com subscription level to determine if they use WL.com as a logger

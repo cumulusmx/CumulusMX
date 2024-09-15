@@ -643,6 +643,9 @@ namespace CumulusMX
 			// Check if all the folders required by CMX exist, if not create them
 			CreateRequiredFolders();
 
+			// Remove old MD5 hash files
+			CleanUpHashFiles();
+
 			Datapath = "data" + DirectorySeparator;
 			backupPath = "backup" + DirectorySeparator;
 			ReportPath = "Reports" + DirectorySeparator;
@@ -3093,6 +3096,16 @@ namespace CumulusMX
 
 		public string DecimalSeparator { get; set; }
 
+		private void CleanUpHashFiles()
+		{
+			foreach (var file in Directory.EnumerateFiles(AppDir, "hash_md5_*.txt"))
+			{
+				if (!file.EndsWith(Build + ".txt"))
+				{
+					File.Delete(file);
+				}
+			}
+		}
 
 		internal void DoMoonPhase()
 		{
