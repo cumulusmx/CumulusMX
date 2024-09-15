@@ -325,7 +325,7 @@ namespace CumulusMX
 
 		public double[] WMR200ExtraTempValues { get; set; }
 
-		public DateTime lastDataReadTime;
+		public DateTime LastDataReadTime;
 		public bool haveReadData = false;
 
 		public bool ExtraSensorsDetected = false;

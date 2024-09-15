@@ -615,6 +615,7 @@ namespace CumulusMX
 
 				thisStation.UpdateStatusPanel(recDate);
 				thisStation.UpdateMQTT();
+				thisStation.LastDataReadTime = recDate;
 			}
 			catch (Exception ex)
 			{

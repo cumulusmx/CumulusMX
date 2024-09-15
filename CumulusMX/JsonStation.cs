@@ -754,6 +754,7 @@ namespace CumulusMX
 
 			UpdateStatusPanel(data.lastupdated);
 			UpdateMQTT();
+			LastDataReadTime = data.lastupdated;
 
 			return retStr.ToString();
 		}

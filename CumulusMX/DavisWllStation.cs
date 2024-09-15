@@ -1544,8 +1544,8 @@ namespace CumulusMX
 
 			cumulus.LogDebugMessage($"WeatherLink URL = {historicUrl.ToString().Replace(cumulus.WllApiKey, "API_KEY")}");
 
-			lastDataReadTime = lastHistoricData;
-			int luhour = lastDataReadTime.Hour;
+			LastDataReadTime = lastHistoricData;
+			int luhour = LastDataReadTime.Hour;
 
 			int rollHour = Math.Abs(cumulus.GetHourInc(lastHistoricData));
 

@@ -1402,6 +1402,7 @@ namespace CumulusMX
 
 					UpdateStatusPanel(dateTime);
 					UpdateMQTT();
+					LastDataReadTime = dateTime;
 
 					dataReceived = true;
 					DataStopped = false;

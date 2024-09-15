@@ -277,6 +277,7 @@ namespace CumulusMX
 							dataReceived = true;
 							DataStopped = false;
 							cumulus.DataStoppedAlarm.Triggered = false;
+							LastDataReadTime = dataLastRead;
 
 							var minute = DateTime.Now.Minute;
 							if (minute != lastMinute)

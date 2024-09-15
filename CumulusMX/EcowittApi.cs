@@ -1410,7 +1410,7 @@ namespace CumulusMX
 				station.DoTrendValues(rec.Key);
 				station.UpdateStatusPanel(rec.Key);
 				cumulus.AddToWebServiceLists(rec.Key);
-
+				station.LastDataReadTime = rec.Key;
 			}
 		}
 

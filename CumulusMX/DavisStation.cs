@@ -2240,10 +2240,10 @@ namespace CumulusMX
 
 			NetworkStream stream = null;
 
-			lastDataReadTime = cumulus.LastUpdateTime;
-			int luhour = lastDataReadTime.Hour;
+			LastDataReadTime = cumulus.LastUpdateTime;
+			int luhour = LastDataReadTime.Hour;
 
-			int rollHour = Math.Abs(cumulus.GetHourInc(lastDataReadTime));
+			int rollHour = Math.Abs(cumulus.GetHourInc(LastDataReadTime));
 
 			cumulus.LogMessage("GetArchiveData: Roll-over hour = " + rollHour);
 
@@ -2573,7 +2573,7 @@ namespace CumulusMX
 
 						cumulus.LogMessage("GetArchiveData: Loaded archive record for Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
 
-						if (timestamp > lastDataReadTime)
+						if (timestamp > LastDataReadTime)
 						{
 							cumulus.LogMessage("GetArchiveData: Processing archive record for " + timestamp);
 
@@ -2592,7 +2592,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								interval = (int) (timestamp - lastDataReadTime).TotalMinutes;
+								interval = (int) (timestamp - LastDataReadTime).TotalMinutes;
 							}
 
 							// ..and then process it
@@ -2905,7 +2905,7 @@ namespace CumulusMX
 							DoFeelsLike(timestamp);
 							DoHumidex(timestamp);
 
-							lastDataReadTime = timestamp;
+							LastDataReadTime = timestamp;
 
 							_ = cumulus.DoLogFile(timestamp, false);
 							cumulus.LogMessage("GetArchiveData: Log file entry written");
