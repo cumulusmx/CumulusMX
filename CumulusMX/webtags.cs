@@ -4571,6 +4571,21 @@ namespace CumulusMX
 			return "0";
 		}
 
+		private string TagNewRecordAlarm(Dictionary<string, string> tagParams)
+		{
+			if (cumulus.NewRecordAlarm.Enabled)
+			{
+				return cumulus.NewRecordAlarm.Triggered ? "1" : "0";
+			}
+
+			return "0";
+		}
+
+		private string TagNewRecordAlarmMessage(Dictionary<string, string> tagParams)
+		{
+			return cumulus.NewRecordAlarm.LastMessage;
+		}
+
 
 		private string TagMySqlUploadAlarm(Dictionary<string, string> tagParams)
 		{
@@ -6479,6 +6494,8 @@ namespace CumulusMX
 				{ "HttpUploadAlarm", TagHttpUploadAlarm },
 				{ "UpgradeAlarm", TagUpgradeAlarm },
 				{ "FirmwareAlarm", TagFirmwareAlarm },
+				{ "NewRecordAlarm", TagNewRecordAlarm },
+				{ "NewRecordAlarmMessage", TagNewRecordAlarmMessage },
 
 				{ "RG11RainToday", TagRg11RainToday },
 				{ "RG11RainYest", TagRg11RainYest },
