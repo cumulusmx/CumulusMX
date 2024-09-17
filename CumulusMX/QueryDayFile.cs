@@ -98,7 +98,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					var ret = db.Query<retValString>($"SELECT value, year_month FROM (SELECT strftime('%Y-%m', Date) AS year_month, COUNT(*) AS value FROM DayFileRec WHERE {propertyName} {where} AND strftime('%m', Date) = '{byMonth}' GROUP BY year_month) AS grouped_data ORDER BY value DESC LIMIT 1");
+					var ret = db.Query<RetValString>($"SELECT value, year_month FROM (SELECT strftime('%Y-%m', Date) AS year_month, COUNT(*) AS value FROM DayFileRec WHERE {propertyName} {where} AND strftime('%m', Date) = '{byMonth}' GROUP BY year_month) AS grouped_data ORDER BY value DESC LIMIT 1");
 					if (ret.Count == 1)
 					{
 						value = ret[0].value;
@@ -111,7 +111,7 @@ namespace CumulusMX
 			{
 				if (byMonth == string.Empty)
 				{
-					var ret = db.Query<retValTime>($"SELECT {propertyName} value, {timeProp} time FROM DayFileRec WHERE {propertyName} = (SELECT {function}({propertyName}) FROM DayFileRec WHERE Date >= ? AND Date < ?) AND Date >= ? AND Date < ?", fromDate, toDate, fromDate, toDate);
+					var ret = db.Query<RetValTime>($"SELECT {propertyName} value, {timeProp} time FROM DayFileRec WHERE {propertyName} = (SELECT {function}({propertyName}) FROM DayFileRec WHERE Date >= ? AND Date < ?) AND Date >= ? AND Date < ?", fromDate, toDate, fromDate, toDate);
 					if (ret.Count == 1)
 					{
 						value = ret[0].value;
@@ -120,7 +120,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					var ret = db.Query<retValTime>($"SELECT {propertyName} value, {timeProp} time FROM DayFileRec WHERE {propertyName} = (SELECT {function}({propertyName}) FROM DayFileRec WHERE strftime('%m', Date) = '{byMonth}') AND strftime('%m', Date) = '{byMonth}'"); 
+					var ret = db.Query<RetValTime>($"SELECT {propertyName} value, {timeProp} time FROM DayFileRec WHERE {propertyName} = (SELECT {function}({propertyName}) FROM DayFileRec WHERE strftime('%m', Date) = '{byMonth}') AND strftime('%m', Date) = '{byMonth}'"); 
 
 					if (ret.Count == 1)
 					{
@@ -178,13 +178,13 @@ namespace CumulusMX
 			};
 		}
 
-		private class retValTime
+		private sealed class RetValTime
 		{
 			public double value { get; set; }
 			public DateTime time { get; set; }
 		}
 
-		private class retValString
+		private sealed class RetValString
 		{
 			public int value { get; set; }
 			public string year_month { get; set; }
