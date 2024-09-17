@@ -120,10 +120,6 @@ namespace CumulusMX
 				}
 				else
 				{
-					//value = db.ExecuteScalar<double>($"SELECT {function}({propertyName}) FROM DayFileRec WHERE strftime('%m', Date) = '?' ORDER BY Date", byMonth);
-					var sort = function == "min" ? "ASC" : "DESC";
-					//var ret = db.Query<retValTime>($"SELECT {propertyName} value, {timeProp} time FROM DayFileRec WHERE {propertyName} = (SELECT {function}({propertyName}) FROM DayFileRec WHERE strftime('%m', Date) = '{byMonth}') AS grouped_data ORDER BY Date LIMIT 1");
-
 					var ret = db.Query<retValTime>($"SELECT {propertyName} value, {timeProp} time FROM DayFileRec WHERE {propertyName} = (SELECT {function}({propertyName}) FROM DayFileRec WHERE strftime('%m', Date) = '{byMonth}') AND strftime('%m', Date) = '{byMonth}'"); 
 
 					if (ret.Count == 1)
@@ -142,10 +138,8 @@ namespace CumulusMX
 			return prop switch
 			{
 				"HighGust" => "HighGustTime",
-				"HighGustBearing" => "Date",
 				"WindRun" => "Date",
 				"HighAvgWind" => "HighAvgWindTime",
-				"DominantWindBearing" => "Date",
 
 				"LowTemp" => "LowTempTime",
 				"HighTemp" => "HighTempTime",
@@ -162,6 +156,7 @@ namespace CumulusMX
 
 				"LowPress" => "LowPressTime",
 				"HighPress" => "HighPressTime",
+
 				"HighRainRate" => "HighRainRateTime",
 				"TotalRain" => "Date",
 				"HighHourlyRain" => "HighHourlyRainTime",
