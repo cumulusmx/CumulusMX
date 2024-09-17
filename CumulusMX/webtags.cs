@@ -5928,6 +5928,45 @@ namespace CumulusMX
 			return GetFormattedDateTime(cumulus.MySqlILastntervalTime, "yyyy-MM-dd HH:mm", tagParams);
 		}
 
+		private string TagQueryDayFile(Dictionary<string, string> tagParams)
+		{
+			var value = tagParams.Get("value");
+			var function = tagParams.Get("function");
+			var where = tagParams.Get("where");
+			var from = tagParams.Get("from");
+			var to = tagParams.Get("to");
+			var showDate = tagParams.Get("showDate");
+
+			tagParams.Add("tc", function == "count" ? "y" : "n");
+
+			var defaultFormat = function == "count" ? "MM/yyyy" : "g";
+
+			var ret = station.DayFileQuery.DayFile(value, function, where, from, to);
+
+			if (ret.value < -9998)
+			{
+				if (showDate == "y")
+				{
+					return "[\"-\",\"-\"]";
+				}
+				else
+				{
+					return "-";
+				}
+			}
+			else
+			{
+				if (showDate == "y")
+				{
+					return "[\"" + CheckRcDp(ret.value, tagParams, 1) + "\",\"" + GetFormattedDateTime(ret.time, defaultFormat, tagParams) + "\"]";
+				}
+				else
+				{
+					return CheckRcDp(ret.value, tagParams, 1);
+				}
+			}
+		}
+
 		public void InitialiseWebtags()
 		{
 			// create the web tag dictionary
@@ -6868,7 +6907,9 @@ namespace CumulusMX
 				{ "Option_showUV", TagOption_showUV },
 				// MySQL insert times
 				{ "MySqlRealtimeTime", TagMySqlRealtimeTime },
-				{ "MySqlIntervalTime", TagMySqlIntervalTime }
+				{ "MySqlIntervalTime", TagMySqlIntervalTime },
+				// General queries
+				{ "QueryDayFile", TagQueryDayFile }
 			};
 
 			cumulus.LogMessage(webTagDictionary.Count + " web tags initialised");
