@@ -9,6 +9,10 @@ using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
 
+using Org.BouncyCastle.Ocsp;
+
+using ServiceStack.Text.Common;
+
 
 namespace CumulusMX
 {
@@ -930,6 +934,35 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					cumulus.LogErrorMessage($"api/records/thisperiod: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+
+			[Route(HttpVerbs.Post, "/records/query/{req}")]
+			public async Task GetQueryData(string req)
+			{
+				Response.ContentType = "application/json";
+
+				using var writer = HttpContext.OpenResponseText(new UTF8Encoding(false));
+
+				if (Station == null)
+				{
+					await writer.WriteAsync("{}");
+					return;
+				}
+
+				try
+				{
+					switch (req)
+					{
+						case "dayfile.json":
+							await writer.WriteAsync(Station.DayFileQuery.WebQuery(HttpContext));
+							break;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"api/query/{req}: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}

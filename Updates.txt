@@ -9,6 +9,8 @@ BETA 4036 Changes:
 - Two new web tags <#NewRecordAlarm> and <#NewRecordAlarmMessage>
 - Delete old MD5 hash files
 - New day file query web tag <#DayFileQuery>. Please read the separate documention (QueryDayFile.md) for more details
+- Fix Ecowitt HTTP API station not showing in the config Wizard
+- Add bash script for old Fine Offset USB stations on Linux
 
 
 BETA 4035 Changes:
@@ -65,7 +67,7 @@ New
 	- NewRecordAlarmMessage displays the last new record alarm text message
 - Old MD5 hash files are now deleted on startup
 - New web tag <#DayFileQuery> which allows flexible querying of the day file. Please read the separate documention (QueryDayFile.md) for more details
-
+- Added a script to /MXutils/linux/Fix_FineOffset_USB.sh to fix Fine Offset USB stations
 
 Changed
 - Davis WLL/Davis Cloud stations now use the WL.com subscription level to determine if they use WL.com as a logger

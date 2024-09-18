@@ -5936,12 +5936,13 @@ namespace CumulusMX
 			var from = tagParams.Get("from");
 			var to = tagParams.Get("to");
 			var showDate = tagParams.Get("showDate");
+			var resfunc = tagParams.Get("resFunc");
 
 			tagParams.Add("tc", function == "count" ? "y" : "n");
 
 			var defaultFormat = function == "count" ? "MM/yyyy" : "g";
 
-			var ret = station.DayFileQuery.DayFile(value, function, where, from, to);
+			var ret = station.DayFileQuery.DayFile(value, function, where, from, to, resfunc);
 
 			if (ret.value < -9998)
 			{
@@ -6602,7 +6603,7 @@ namespace CumulusMX
 				{ "AirLinkPct_24hrOut", AirLinkPct_24hrOut },
 				{ "AirLinkPct_NowcastOut", AirLinkPct_NowcastOut },
 
-				// Monthly highs and lows - values
+				// This month's highs and lows - values
 				{ "MonthTempH", TagMonthTempH },
 				{ "MonthTempL", TagMonthTempL },
 				{ "MonthHeatIndexH", TagMonthHeatIndexH },
@@ -6631,7 +6632,7 @@ namespace CumulusMX
 				{ "MonthLongestWetPeriod", TagMonthLongestWetPeriod },
 				{ "MonthHighDailyTempRange", TagMonthHighDailyTempRange },
 				{ "MonthLowDailyTempRange", TagMonthLowDailyTempRange },
-				// This year"s highs and lows - times
+				// This month's highs and lows - times
 				{ "MonthTempHT", TagMonthTempHt },
 				{ "MonthTempLT", TagMonthTempLt },
 				{ "MonthHeatIndexHT", TagMonthHeatIndexHt },
@@ -6652,7 +6653,7 @@ namespace CumulusMX
 				{ "MonthRain24HourHT", TagMonthRain24HourHt },
 				{ "MonthDewPointHT", TagMonthDewPointHt },
 				{ "MonthDewPointLT", TagMonthDewPointLt },
-				// This month"s highs and lows - dates
+				// This month's highs and lows - dates
 				{ "MonthTempHD", TagMonthTempHd },
 				{ "MonthTempLD", TagMonthTempLd },
 				{ "MonthHeatIndexHD", TagMonthHeatIndexHd },
@@ -6681,7 +6682,7 @@ namespace CumulusMX
 				{ "MonthLongestWetPeriodD", TagMonthLongestWetPeriodD },
 				{ "MonthHighDailyTempRangeD", TagMonthHighDailyTempRangeD },
 				{ "MonthLowDailyTempRangeD", TagMonthLowDailyTempRangeD },
-				// This Year"s highs and lows - values
+				// This Year's highs and lows - values
 				{ "YearTempH", TagYearTempH },
 				{ "YearTempL", TagYearTempL },
 				{ "YearHeatIndexH", TagYearHeatIndexH },
@@ -6711,7 +6712,7 @@ namespace CumulusMX
 				{ "YearLongestWetPeriod", TagYearLongestWetPeriod },
 				{ "YearHighDailyTempRange", TagYearHighDailyTempRange },
 				{ "YearLowDailyTempRange", TagYearLowDailyTempRange },
-				// This years"s highs and lows - times
+				// This years highs and lows - times
 				{ "YearTempHT", TagYearTempHt },
 				{ "YearTempLT", TagYearTempLt },
 				{ "YearHeatIndexHT", TagYearHeatIndexHt },
@@ -6732,7 +6733,7 @@ namespace CumulusMX
 				{ "YearRain24HourHT", TagYearRain24HourHt },
 				{ "YearDewPointHT", TagYearDewPointHt },
 				{ "YearDewPointLT", TagYearDewPointLt },
-				// Yearly highs and lows - dates
+				// This years highs and lows - dates
 				{ "YearTempHD", TagYearTempHd },
 				{ "YearTempLD", TagYearTempLd },
 				{ "YearHeatIndexHD", TagYearHeatIndexHd },

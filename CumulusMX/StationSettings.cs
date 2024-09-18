@@ -1605,7 +1605,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("Update selecaperiod options error: " + ex.Message);
+				cumulus.LogErrorMessage("Update select-a-period options error: " + ex.Message);
 				context.Response.StatusCode = 500;
 				return ex.Message;
 			}
