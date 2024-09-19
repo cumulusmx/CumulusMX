@@ -31,7 +31,7 @@ namespace CumulusMX
 
 			if (!funcNameArray.Contains(function))
 			{
-				throw new ArgumentException($"Invalid function name - '{to}'");
+				throw new ArgumentException($"Invalid function name - '{function}'");
 			}
 
 
@@ -233,6 +233,16 @@ namespace CumulusMX
 					var (value, time) = DayFile(req.dataname, req.function, req.where, from, req.end, req.countfunction);
 
 					Program.cumulus.LogMessage("API Querying day file complete");
+
+					if (value < -9998)
+					{
+						return "{\"value\": \"n/a\", \"time\": \"n/a\"}";
+					}
+
+					if (time == DateTime.MinValue)
+					{
+						return $"{{\"value\": {value:0.000}, \"time\":\"n/a\"}}";
+					}
 
 					return $"{{\"value\": {value:0.000}, \"time\":\"{time.ToString(format)}\"}}";
 				}

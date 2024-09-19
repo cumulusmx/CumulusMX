@@ -8,15 +8,10 @@ using ServiceStack;
 
 namespace CumulusMX
 {
-	internal sealed class EcowittLocalApi : IDisposable
+	internal sealed class EcowittLocalApi(Cumulus cumul) : IDisposable
 	{
-		private readonly Cumulus cumulus;
+		private readonly Cumulus cumulus = cumul;
 		private static readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
-		public EcowittLocalApi(Cumulus cumul)
-		{
-			cumulus = cumul;
-		}
-
 
 		public LiveData GetLiveData(CancellationToken token)
 		{
