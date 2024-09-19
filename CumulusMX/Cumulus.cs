@@ -11726,7 +11726,7 @@ namespace CumulusMX
 				{
 					_ = ErrorList.Dequeue();
 				}
-				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.Message));
+				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.GetInnerMostException().Message));
 				LatestError = message + " - " + ex.Message;
 				LatestErrorTS = DateTime.Now;
 			}

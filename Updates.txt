@@ -8,7 +8,7 @@ BETA 4036 Changes:
 - Soil moisture units now follow the source
 - Two new web tags <#NewRecordAlarm> and <#NewRecordAlarmMessage>
 - Delete old MD5 hash files
-- New day file query web tag <#DayFileQuery>. Please read the separate documention (QueryDayFile.md) for more details
+- New day file query web tag <#DayFileQuery>. Please read the separate documentation (QueryDayFileWebTag.md) for more details
 - Fix Ecowitt HTTP API station not showing in the config Wizard
 - Add bash script for old Fine Offset USB stations on Linux
 

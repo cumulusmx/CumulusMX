@@ -159,10 +159,16 @@ namespace CumulusMX
 							dataLastRead = DateTime.Now;
 
 							// process the common_list sensors
-							ProcessCommonList(rawData.common_list, dataLastRead);
+							if (rawData.common_list != null)
+							{
+								ProcessCommonList(rawData.common_list, dataLastRead);
+							}
 
 							// process base station values
-							ProcessWh25(rawData.wh25, dataLastRead);
+							if (rawData.wh25 != null)
+							{
+								ProcessWh25(rawData.wh25, dataLastRead);
+							}
 
 							// process rain values
 							if (cumulus.Gw1000PrimaryRainSensor == 0 && rawData.rain != null)
