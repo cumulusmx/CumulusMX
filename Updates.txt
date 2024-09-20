@@ -74,7 +74,8 @@ New
 	- NewRecordAlarm somewhat replicates the existing #newrecord web tag, but is also controlled by the alarm being enable/disabled
 	- NewRecordAlarmMessage displays the last new record alarm text message
 - Old MD5 hash files are now deleted on startup
-- New web tag <#DayFileQuery> which allows flexible querying of the day file. Please read the separate documention (QueryDayFile.md) for more details
+- New web tag <#DayFileQuery> which allows flexible querying of the day file.
+	- Please read the separate documention (/MUtils/QueryDayFile.md) for more details
 - Added a script to /MXutils/linux/Fix_FineOffset_USB.sh to fix Fine Offset USB stations
 
 Changed

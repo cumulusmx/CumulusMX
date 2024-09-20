@@ -11,6 +11,8 @@ using ServiceStack.Text;
 
 using SQLite;
 
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace CumulusMX
 {
@@ -34,8 +36,6 @@ namespace CumulusMX
 				throw new ArgumentException($"Invalid function name - '{function}'");
 			}
 
-			Program.cumulus.LogDebugMessage($"QueryDayFile: prop={propertyName}, func={function}, where={where}, from={from}, to={to}, resFunc={resfunc}");
-
 			try
 			{
 				switch (from)
@@ -47,19 +47,19 @@ namespace CumulusMX
 
 					case "ThisMonth":
 						fromDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1, 0, 0, 0, DateTimeKind.Local);
-						toDate = fromDate.AddMonths(1);
+						toDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month), 0, 0, 0, DateTimeKind.Local);
 						break;
 
 					case string s when s.StartsWith("Month-"):
 						var rel = int.Parse(s.Split('-')[1]);
 						fromDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(-rel);
-						toDate = fromDate.AddMonths(1);
+						toDate = fromDate.AddMonths(1).AddDays(-1);
 						break;
 
 					case string s when s.StartsWith("Year-"):
 						rel = int.Parse(s.Split('-')[1]);
 						fromDate = new DateTime(DateTime.Now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local).AddYears(-rel);
-						toDate = fromDate.AddYears(1);
+						toDate = fromDate.AddYears(1).AddDays(-1);
 						break;
 
 					case string s when s.Length > 5 && s.StartsWith("Month"):
@@ -96,6 +96,9 @@ namespace CumulusMX
 			{
 				throw new ArgumentException("Error parsing from/to dates: " + ex.Message);
 			}
+
+			Program.cumulus.LogDebugMessage($"QueryDayFile: resFunc={resfunc}, prop={propertyName}, func={function}, where={where}, from={from}, to={to}, start={fromDate:yyyy-MM-dd}, end={toDate:yyyy-MM-dd}");
+
 
 			DateTime logTime = DateTime.MinValue;
 			double value = -9999;
