@@ -112,7 +112,7 @@ namespace CumulusMX
 			{
 				if (byMonth == string.Empty && !yearly)
 				{
-					value = db.ExecuteScalar<int>($"SELECT COUNT({propertyName}) FROM DayFileRec WHERE {propertyName} {where} AND Date >= ? AND Date < ?", fromDate, toDate);
+					value = db.ExecuteScalar<int>($"SELECT COUNT({propertyName}) FROM DayFileRec WHERE {propertyName} {where} AND Date BETWEEN ? AND ?", fromDate, toDate);
 					logTime = fromDate;
 				}
 				else
@@ -150,11 +150,11 @@ namespace CumulusMX
 
 					if (function == "avg" || function == "sum")
 					{
-						ret = db.Query<RetValTime>($"SELECT {function}({propertyName}) value, {timeProp} time FROM DayFileRec WHERE Date >= ? AND Date < ?", fromDate, toDate);
+						ret = db.Query<RetValTime>($"SELECT {function}({propertyName}) value, {timeProp} time FROM DayFileRec WHERE Date BETWEEN ? AND ?", fromDate, toDate);
 					}
 					else
 					{
-						ret = db.Query<RetValTime>($"SELECT {propertyName} value, {timeProp} time FROM DayFileRec WHERE {propertyName} = (SELECT {function}({propertyName}) FROM DayFileRec WHERE Date >= ? AND Date < ?) AND Date >= ? AND Date < ? LIMIT 1", fromDate, toDate, fromDate, toDate);
+						ret = db.Query<RetValTime>($"SELECT {propertyName} value, {timeProp} time FROM DayFileRec WHERE {propertyName} = (SELECT {function}({propertyName}) FROM DayFileRec WHERE Date BETWEEN ? AND ?) AND Date BETWEEN ? AND ? LIMIT 1", fromDate, toDate, fromDate, toDate);
 					}
 					
 					if (ret.Count == 1)

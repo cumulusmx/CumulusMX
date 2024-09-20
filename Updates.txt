@@ -1,5 +1,13 @@
-4.2.0 - b4036
+4.2.0 - b4037
 —————————————
+BETA 4037 Changes:
+——————————————————
+- Configuration Wizard now working again
+- Station Settings for HTTP API station now drops MAC to match Wizard settings
+- Query Daily Data to date now inclusive
+- Daily data for query now added to at rollover, and amended at day file edits
+
+
 BETA 4036 Changes:
 ——————————————————
 - Accessibility updates for the Interval and Daily data viewer pages
