@@ -34,6 +34,7 @@ namespace CumulusMX
 				throw new ArgumentException($"Invalid function name - '{function}'");
 			}
 
+			Program.cumulus.LogDebugMessage($"QueryDayFile: prop={propertyName}, func={function}, where={where}, from={from}, to={to}, resFunc={resfunc}");
 
 			try
 			{
@@ -202,6 +203,7 @@ namespace CumulusMX
 					}
 				}
 			}
+			Program.cumulus.LogDebugMessage($"QueryDayFile: Result = [{value:0.00}, {logTime:g}]");
 
 			return (value, logTime);
 		}

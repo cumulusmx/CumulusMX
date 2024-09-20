@@ -3015,10 +3015,13 @@ namespace CumulusMX
 					{
 						lines[lineNum] = newLine;
 
-						// Update the in memory record
 						try
 						{
+							// Update the in memory record
 							station.DayFile[lineNum] = station.ParseDayFileRec(newLine);
+
+							// update SQLite
+							station.RecentDataDb.Update(station.DayFile[lineNum]);
 
 							// write dayfile back again
 							File.WriteAllLines(cumulus.DayFileName, lines);

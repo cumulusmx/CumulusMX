@@ -7897,7 +7897,8 @@ namespace CumulusMX
 
 			DayFile.Add(newRec);
 
-
+			// add to SQLite
+			RecentDataDb.Insert(newRec);
 
 			if (cumulus.MySqlSettings.Dayfile.Enabled)
 			{
