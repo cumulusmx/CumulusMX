@@ -218,6 +218,11 @@ namespace CumulusMX
 
 		private async void GetCurrent(object source, ElapsedEventArgs e)
 		{
+			if (DayResetInProgress)
+			{
+				return;
+			}
+
 			cumulus.LogMessage("GetCurrent: Get WL.com Current Data");
 
 			if (cumulus.WllApiKey == string.Empty || cumulus.WllApiSecret == string.Empty)

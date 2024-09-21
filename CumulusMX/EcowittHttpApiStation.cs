@@ -153,182 +153,185 @@ namespace CumulusMX
 
 					while (!cumulus.cancellationToken.IsCancellationRequested)
 					{
-						var rawData = localApi.GetLiveData(cumulus.cancellationToken);
-						if (rawData is not null)
+						if (!DayResetInProgress)
 						{
-							dataLastRead = DateTime.Now;
-
-							// process the common_list sensors
-							if (rawData.common_list != null)
+							var rawData = localApi.GetLiveData(cumulus.cancellationToken);
+							if (rawData is not null)
 							{
-								ProcessCommonList(rawData.common_list, dataLastRead);
-							}
+								dataLastRead = DateTime.Now;
 
-							// process base station values
-							if (rawData.wh25 != null)
-							{
-								ProcessWh25(rawData.wh25, dataLastRead);
-							}
-
-							// process rain values
-							if (cumulus.Gw1000PrimaryRainSensor == 0 && rawData.rain != null)
-							{
-								ProcessRain(rawData.rain, false);
-							}
-							
-							if ((cumulus.Gw1000PrimaryRainSensor == 1 || (cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo)) && rawData.piezoRain != null)
-							{
-								// if we are using piezo as the primary rain sensor
-								// or using the tipper at the primary, but want to use the piezo srain value for IsRaining
-								ProcessRain(rawData.piezoRain, cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo);
-							}
-
-							if (rawData.lightning != null)
-							{
-								ProcessLightning(rawData.lightning, dataLastRead);
-							}
-
-							if (rawData.co2 != null)
-							{
-								ProcessCo2(rawData.co2);
-							}
-
-							if (rawData.ch_pm25 != null)
-							{
-								ProcessChPm25(rawData.ch_pm25);
-							}
-
-							if (rawData.ch_leak != null)
-							{
-								ProcessLeak(rawData.ch_leak);
-							}
-
-							if (rawData.ch_aisle != null)
-							{
-								ProcessExtraTempHum(rawData.ch_aisle, dataLastRead);
-							}
-
-							if (rawData.ch_temp != null)
-							{
-								ProcessUserTemp(rawData.ch_temp);
-							}
-
-							if (rawData.ch_soil != null)
-							{
-								ProcessSoilMoisture(rawData.ch_soil);
-							}
-
-							if (rawData.ch_leaf != null)
-							{
-								ProcessLeafWet(rawData.ch_leaf);
-							}
-
-							// Now do the stuff that requires more than one input parameter
-
-							// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
-							if (newLightningTime > LightningTime)
-							{
-								LightningTime = newLightningTime;
-								if (newLightningDistance < 999)
-									LightningDistance = newLightningDistance;
-							}
-
-							// Process outdoor temperature here, as GW1000 currently does not supply Dew Point so we have to calculate it in DoOutdoorTemp()
-							if (outdoortemp > -999)
-								DoOutdoorTemp(ConvertUnits.TempCToUser(outdoortemp), dataLastRead);
-
-							// Same for extra T/H sensors
-							for (var i = 1; i <= 8; i++)
-							{
-								if (ExtraHum[i] > 0)
+								// process the common_list sensors
+								if (rawData.common_list != null)
 								{
-									var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i]), ExtraHum[i]);
-									ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
-								}
-							}
-
-							if (gustLast > -999 && windSpeedLast > -999 && windDirLast > -999)
-							{
-								DoWind(gustLast, windDirLast, windSpeedLast, dataLastRead);
-							}
-
-							if (rainLast > -999 && rainRateLast > -999)
-							{
-								DoRain(rainLast, rainRateLast, dataLastRead);
-							}
-
-							if (outdoortemp > -999)
-							{
-								DoWindChill(windchill, dataLastRead);
-								DoApparentTemp(dataLastRead);
-								DoFeelsLike(dataLastRead);
-								DoHumidex(dataLastRead);
-								DoCloudBaseHeatIndex(dataLastRead);
-
-								if (cumulus.StationOptions.CalculateSLP)
-								{
-									var abs = cumulus.Calib.Press.Calibrate(StationPressure);
-									var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(abs), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-									DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
-								}
-							}
-
-							DoForecast("", false);
-
-							cumulus.BatteryLowAlarm.Triggered = batteryLow;
-
-							UpdateStatusPanel(dataLastRead);
-							UpdateMQTT();
-
-							dataReceived = true;
-							DataStopped = false;
-							cumulus.DataStoppedAlarm.Triggered = false;
-							LastDataReadTime = dataLastRead;
-
-							var minute = DateTime.Now.Minute;
-							if (minute != lastMinute)
-							{
-								lastMinute = minute;
-
-								// at the start of every 20 minutes to trigger battery status check
-								if ((minute % 20) == 0 && !cumulus.cancellationToken.IsCancellationRequested)
-								{
-									_ = GetSensorIds();
+									ProcessCommonList(rawData.common_list, dataLastRead);
 								}
 
-								// every day dump the clock drift at midday each day
-								if (minute == 0 && DateTime.Now.Hour == 12)
+								// process base station values
+								if (rawData.wh25 != null)
 								{
-									GetSystemInfo(true);
+									ProcessWh25(rawData.wh25, dataLastRead);
 								}
 
-								var hour = DateTime.Now.Hour;
-								if (lastHour != hour)
+								// process rain values
+								if (cumulus.Gw1000PrimaryRainSensor == 0 && rawData.rain != null)
 								{
-									lastHour = hour;
+									ProcessRain(rawData.rain, false);
+								}
 
-									if (hour == 13)
+								if ((cumulus.Gw1000PrimaryRainSensor == 1 || (cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo)) && rawData.piezoRain != null)
+								{
+									// if we are using piezo as the primary rain sensor
+									// or using the tipper at the primary, but want to use the piezo srain value for IsRaining
+									ProcessRain(rawData.piezoRain, cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo);
+								}
+
+								if (rawData.lightning != null)
+								{
+									ProcessLightning(rawData.lightning, dataLastRead);
+								}
+
+								if (rawData.co2 != null)
+								{
+									ProcessCo2(rawData.co2);
+								}
+
+								if (rawData.ch_pm25 != null)
+								{
+									ProcessChPm25(rawData.ch_pm25);
+								}
+
+								if (rawData.ch_leak != null)
+								{
+									ProcessLeak(rawData.ch_leak);
+								}
+
+								if (rawData.ch_aisle != null)
+								{
+									ProcessExtraTempHum(rawData.ch_aisle, dataLastRead);
+								}
+
+								if (rawData.ch_temp != null)
+								{
+									ProcessUserTemp(rawData.ch_temp);
+								}
+
+								if (rawData.ch_soil != null)
+								{
+									ProcessSoilMoisture(rawData.ch_soil);
+								}
+
+								if (rawData.ch_leaf != null)
+								{
+									ProcessLeafWet(rawData.ch_leaf);
+								}
+
+								// Now do the stuff that requires more than one input parameter
+
+								// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
+								if (newLightningTime > LightningTime)
+								{
+									LightningTime = newLightningTime;
+									if (newLightningDistance < 999)
+										LightningDistance = newLightningDistance;
+								}
+
+								// Process outdoor temperature here, as GW1000 currently does not supply Dew Point so we have to calculate it in DoOutdoorTemp()
+								if (outdoortemp > -999)
+									DoOutdoorTemp(ConvertUnits.TempCToUser(outdoortemp), dataLastRead);
+
+								// Same for extra T/H sensors
+								for (var i = 1; i <= 8; i++)
+								{
+									if (ExtraHum[i] > 0)
 									{
-										var fw = GetFirmwareVersion();
-										if (fw != "???")
+										var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i]), ExtraHum[i]);
+										ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
+									}
+								}
+
+								if (gustLast > -999 && windSpeedLast > -999 && windDirLast > -999)
+								{
+									DoWind(gustLast, windDirLast, windSpeedLast, dataLastRead);
+								}
+
+								if (rainLast > -999 && rainRateLast > -999)
+								{
+									DoRain(rainLast, rainRateLast, dataLastRead);
+								}
+
+								if (outdoortemp > -999)
+								{
+									DoWindChill(windchill, dataLastRead);
+									DoApparentTemp(dataLastRead);
+									DoFeelsLike(dataLastRead);
+									DoHumidex(dataLastRead);
+									DoCloudBaseHeatIndex(dataLastRead);
+
+									if (cumulus.StationOptions.CalculateSLP)
+									{
+										var abs = cumulus.Calib.Press.Calibrate(StationPressure);
+										var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(abs), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+										DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
+									}
+								}
+
+								DoForecast("", false);
+
+								cumulus.BatteryLowAlarm.Triggered = batteryLow;
+
+								UpdateStatusPanel(dataLastRead);
+								UpdateMQTT();
+
+								dataReceived = true;
+								DataStopped = false;
+								cumulus.DataStoppedAlarm.Triggered = false;
+								LastDataReadTime = dataLastRead;
+
+								var minute = DateTime.Now.Minute;
+								if (minute != lastMinute)
+								{
+									lastMinute = minute;
+
+									// at the start of every 20 minutes to trigger battery status check
+									if ((minute % 20) == 0 && !cumulus.cancellationToken.IsCancellationRequested)
+									{
+										_ = GetSensorIds();
+									}
+
+									// every day dump the clock drift at midday each day
+									if (minute == 0 && DateTime.Now.Hour == 12)
+									{
+										GetSystemInfo(true);
+									}
+
+									var hour = DateTime.Now.Hour;
+									if (lastHour != hour)
+									{
+										lastHour = hour;
+
+										if (hour == 13)
 										{
-											GW1000FirmwareVersion = fw;
-											deviceModel = GW1000FirmwareVersion.Split('_')[0];
-											deviceFirmware = GW1000FirmwareVersion.Split('_')[1];
+											var fw = GetFirmwareVersion();
+											if (fw != "???")
+											{
+												GW1000FirmwareVersion = fw;
+												deviceModel = GW1000FirmwareVersion.Split('_')[0];
+												deviceFirmware = GW1000FirmwareVersion.Split('_')[1];
 
-											var fwString = GW1000FirmwareVersion.Split(underscoreV, StringSplitOptions.None);
-											if (fwString.Length > 1)
-											{
-												fwVersion = new Version(fwString[1]);
+												var fwString = GW1000FirmwareVersion.Split(underscoreV, StringSplitOptions.None);
+												if (fwString.Length > 1)
+												{
+													fwVersion = new Version(fwString[1]);
+												}
+												else
+												{
+													// failed to get the version, lets assume it's fairly new
+													fwVersion = new Version("1.6.5");
+												}
 											}
-											else
-											{
-												// failed to get the version, lets assume it's fairly new
-												fwVersion = new Version("1.6.5");
-											}
+
+											_ = CheckAvailableFirmware();
 										}
-
-										_ = CheckAvailableFirmware();
 									}
 								}
 							}

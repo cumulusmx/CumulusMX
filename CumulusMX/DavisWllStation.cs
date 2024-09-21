@@ -285,8 +285,16 @@ namespace CumulusMX
 											// we get duplicate packets over IPv4 and IPv6, plus if the host has multiple interfaces to the local LAN
 											if (!Utils.ByteArraysEqual(lastMessage, bcastTask.Result.Buffer))
 											{
-												var jsonStr = Encoding.UTF8.GetString(bcastTask.Result.Buffer);
-												DecodeBroadcast(jsonStr, bcastTask.Result.RemoteEndPoint);
+												if (!DayResetInProgress)
+												{
+													var jsonStr = Encoding.UTF8.GetString(bcastTask.Result.Buffer);
+													DecodeBroadcast(jsonStr, bcastTask.Result.RemoteEndPoint);
+												}
+												else
+												{
+													broadcastReceived = true;
+													cumulus.LogMessage("WLL: Rollover in progress, broadcast ignored");
+												}
 												lastMessage = bcastTask.Result.Buffer.ToArray();
 											}
 										}
@@ -464,6 +472,11 @@ namespace CumulusMX
 		{
 			string ip;
 			int retry = 1;
+
+			if (DayResetInProgress)
+			{
+				return;
+			}
 
 			lock (threadSafer)
 			{

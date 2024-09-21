@@ -210,6 +210,8 @@ namespace CumulusMX
 		public bool gotraindaystart = false;
 		protected double prevraincounter = 0.0;
 
+		protected bool DayResetInProgress = false;
+
 		public struct DailyHighLow
 		{
 			public double HighGust;
@@ -6890,6 +6892,9 @@ namespace CumulusMX
 			int drday = timestamp.Day;
 			DateTime yesterday = timestamp.AddDays(-1);
 			cumulus.LogMessage("=== Day reset, today = " + drday);
+
+			DayResetInProgress = true;
+
 			if (drday != DayResetDay)
 			{
 				cumulus.LogMessage("=== Day reset for " + yesterday.Date);
@@ -7613,6 +7618,8 @@ namespace CumulusMX
 				CurrentDay = timestamp.Day;
 				CurrentMonth = timestamp.Month;
 				CurrentYear = timestamp.Year;
+				DayResetInProgress = false;
+
 				cumulus.LogMessage("=== Day reset complete");
 				cumulus.LogMessage("Now recording data for day=" + CurrentDay + " month=" + CurrentMonth + " year=" + CurrentYear);
 			}

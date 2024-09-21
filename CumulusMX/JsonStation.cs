@@ -113,10 +113,9 @@ namespace CumulusMX
 
 				watcher = new FileSystemWatcher(fileInfo.DirectoryName)
 				{
-					NotifyFilter = NotifyFilters.LastWrite
+					NotifyFilter = NotifyFilters.LastWrite,
+					Filter = fileInfo.Name
 				};
-
-				watcher.Filter = fileInfo.Name;
 
 				watcher.Changed += OnFileChanged;
 				watcher.Created += OnFileChanged;
@@ -205,6 +204,12 @@ namespace CumulusMX
 
 		private string ApplyData(string dataString)
 		{
+			if (DayResetInProgress)
+			{
+				cumulus.LogMessage("ApplyData: Day reset in progress, ignoring incoming data");
+				return string.Empty;
+			}
+
 			var retStr = new StringBuilder();
 
 			var data = dataString.FromJson<DataObject>();

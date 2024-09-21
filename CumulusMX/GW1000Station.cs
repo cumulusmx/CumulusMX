@@ -147,82 +147,85 @@ namespace CumulusMX
 
 					while (!cumulus.cancellationToken.IsCancellationRequested)
 					{
-						if (Api.Connected)
+						if (!DayResetInProgress)
 						{
-							GetLiveData();
-							dataLastRead = DateTime.Now;
-
-							// every 30 seconds read the rain rate
-							if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.StationOptions.UseRainForIsRaining == 2) && (DateTime.UtcNow - piezoLastRead).TotalSeconds >= 30 && !cumulus.cancellationToken.IsCancellationRequested)
+							if (Api.Connected)
 							{
-								GetPiezoRainData();
-								piezoLastRead = DateTime.UtcNow;
-							}
+								GetLiveData();
+								dataLastRead = DateTime.Now;
 
-							var minute = DateTime.Now.Minute;
-							if (minute != lastMinute)
-							{
-								lastMinute = minute;
-
-								// at the start of every 20 minutes to trigger battery status check
-								if ((minute % 20) == 0 && !cumulus.cancellationToken.IsCancellationRequested)
+								// every 30 seconds read the rain rate
+								if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.StationOptions.UseRainForIsRaining == 2) && (DateTime.UtcNow - piezoLastRead).TotalSeconds >= 30 && !cumulus.cancellationToken.IsCancellationRequested)
 								{
-									GetSensorIdsNew();
+									GetPiezoRainData();
+									piezoLastRead = DateTime.UtcNow;
 								}
 
-								// every day dump the clock drift at midday each day
-								if (minute == 0 && DateTime.Now.Hour == 12)
+								var minute = DateTime.Now.Minute;
+								if (minute != lastMinute)
 								{
-									GetSystemInfo(true);
-								}
+									lastMinute = minute;
 
-								var hour = DateTime.Now.Hour;
-								if (lastHour != hour)
-								{
-									lastHour = hour;
-
-									if (hour == 13)
+									// at the start of every 20 minutes to trigger battery status check
+									if ((minute % 20) == 0 && !cumulus.cancellationToken.IsCancellationRequested)
 									{
-										var fw = GetFirmwareVersion();
-										if (fw != "???")
+										GetSensorIdsNew();
+									}
+
+									// every day dump the clock drift at midday each day
+									if (minute == 0 && DateTime.Now.Hour == 12)
+									{
+										GetSystemInfo(true);
+									}
+
+									var hour = DateTime.Now.Hour;
+									if (lastHour != hour)
+									{
+										lastHour = hour;
+
+										if (hour == 13)
 										{
-											GW1000FirmwareVersion = fw;
-											deviceModel = GW1000FirmwareVersion.Split('_')[0];
-											deviceFirmware = GW1000FirmwareVersion.Split('_')[1];
+											var fw = GetFirmwareVersion();
+											if (fw != "???")
+											{
+												GW1000FirmwareVersion = fw;
+												deviceModel = GW1000FirmwareVersion.Split('_')[0];
+												deviceFirmware = GW1000FirmwareVersion.Split('_')[1];
 
-											var fwString = GW1000FirmwareVersion.Split(underscoreV, StringSplitOptions.None);
-											if (fwString.Length > 1)
-											{
-												fwVersion = new Version(fwString[1]);
+												var fwString = GW1000FirmwareVersion.Split(underscoreV, StringSplitOptions.None);
+												if (fwString.Length > 1)
+												{
+													fwVersion = new Version(fwString[1]);
+												}
+												else
+												{
+													// failed to get the version, lets assume it's fairly new
+													fwVersion = new Version("1.6.5");
+												}
 											}
-											else
-											{
-												// failed to get the version, lets assume it's fairly new
-												fwVersion = new Version("1.6.5");
-											}
+
+											_ = CheckAvailableFirmware();
 										}
-
-										_ = CheckAvailableFirmware();
 									}
 								}
 							}
-						}
-						else
-						{
-							cumulus.LogMessage("Attempting to reconnect to Ecowitt device...");
-							Api.OpenTcpPort(cumulus.Gw1000IpAddress, AtPort);
-							if (Api.Connected)
-							{
-								cumulus.LogMessage("Reconnected to Ecowitt device");
-								GetLiveData();
-							}
 							else
 							{
-								// add a small extra delay before trying again
-								cumulus.LogMessage("Delaying before attempting reconnect");
-								if (cumulus.cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(20000)))
+								cumulus.LogMessage("Attempting to reconnect to Ecowitt device...");
+								Api.OpenTcpPort(cumulus.Gw1000IpAddress, AtPort);
+								if (Api.Connected)
 								{
-									break;
+									cumulus.LogMessage("Reconnected to Ecowitt device");
+									GetLiveData();
+								}
+								else
+								{
+									// add a small extra delay before trying again
+									cumulus.LogMessage("Delaying before attempting reconnect");
+									if (cumulus.cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(20000)))
+									{
+										break;
+									}
 								}
 							}
 						}

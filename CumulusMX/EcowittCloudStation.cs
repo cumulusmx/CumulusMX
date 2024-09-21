@@ -153,7 +153,7 @@ namespace CumulusMX
 
 				while (!cumulus.cancellationToken.IsCancellationRequested)
 				{
-					if (DateTime.Now >= nextFetch)
+					if (DateTime.Now >= nextFetch && !DayResetInProgress)
 					{
 						try
 						{

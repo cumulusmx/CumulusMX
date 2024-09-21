@@ -206,7 +206,9 @@ namespace CumulusMX
 					}
 				}
 			}
-			Program.cumulus.LogDebugMessage($"QueryDayFile: Result = [{value:0.00}, {logTime:g}]");
+
+			var valStr = value.ToString("0.000", inv);
+			Program.cumulus.LogDebugMessage($"QueryDayFile: Result = [{valStr}, {logTime:g}]");
 
 			return (value, logTime);
 		}
@@ -244,12 +246,14 @@ namespace CumulusMX
 						return "{\"value\": \"n/a\", \"time\": \"n/a\"}";
 					}
 
+					var valStr = value.ToString("0.000", inv);
+
 					if (time == DateTime.MinValue)
 					{
-						return $"{{\"value\": {value:0.000}, \"time\":\"n/a\"}}";
+						return $"{{\"value\": {valStr}, \"time\":\"n/a\"}}";
 					}
 
-					return $"{{\"value\": {value:0.000}, \"time\":\"{time.ToString(format)}\"}}";
+					return $"{{\"value\": {valStr}, \"time\":\"{time.ToString(format)}\"}}";
 				}
 				catch (Exception ex)
 				{
