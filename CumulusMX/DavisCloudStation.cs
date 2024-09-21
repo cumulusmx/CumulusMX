@@ -500,7 +500,7 @@ namespace CumulusMX
 					cumulus.LogErrorMessage($"GetHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
 					Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
 					//cumulus.LastUpdateTime = Utils.FromUnixTime(endTime)
-					maxArchiveRuns = 0;
+					maxArchiveRuns = -1;
 					return;
 				}
 
@@ -509,7 +509,7 @@ namespace CumulusMX
 					cumulus.LogWarningMessage("GetHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
 					Cumulus.LogConsoleMessage(" - No historic data available");
 					lastHistoricData = Utils.FromUnixTime(endTime);
-					maxArchiveRuns = 0;
+					maxArchiveRuns = -1;
 					return;
 				}
 				else if (responseBody.StartsWith("{\"")) // basic sanity check
@@ -550,7 +550,7 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("GetHistoricData: Invalid historic message received");
 					cumulus.LogMessage("GetHistoricData: Received: " + responseBody);
 					lastHistoricData = Utils.FromUnixTime(endTime);
-					maxArchiveRuns = 0;
+					maxArchiveRuns = -1;
 					return;
 				}
 			}
@@ -564,7 +564,7 @@ namespace CumulusMX
 				}
 
 				lastHistoricData = Utils.FromUnixTime(endTime);
-				maxArchiveRuns = 0;
+				maxArchiveRuns = -1;
 				return;
 			}
 
