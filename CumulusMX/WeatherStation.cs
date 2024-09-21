@@ -1023,15 +1023,15 @@ namespace CumulusMX
 				// Date
 				ini.SetValue("General", "Date", timestamp.AddHours(hourInc).ToShortDateString());
 				// Timestamp
-				ini.SetValue("General", "Timestamp", cumulus.LastUpdateTime.ToString("s"));
+				ini.SetValue("General", "Timestamp", cumulus.LastUpdateTime);
 				ini.SetValue("General", "CurrentYear", CurrentYear);
 				ini.SetValue("General", "CurrentMonth", CurrentMonth);
 				ini.SetValue("General", "CurrentDay", CurrentDay);
 				// Wind
 				ini.SetValue("Wind", "Speed", HiLoToday.HighWind);
-				ini.SetValue("Wind", "SpTime", HiLoToday.HighWindTime.ToString("HH:mm"));
+				ini.SetValue("Wind", "SpTime", HiLoToday.HighWindTime);
 				ini.SetValue("Wind", "Gust", HiLoToday.HighGust);
-				ini.SetValue("Wind", "Time", HiLoToday.HighGustTime.ToString("HH:mm"));
+				ini.SetValue("Wind", "Time", HiLoToday.HighGustTime);
 				ini.SetValue("Wind", "Bearing", HiLoToday.HighGustBearing);
 				ini.SetValue("Wind", "Direction", CompassPoint(HiLoToday.HighGustBearing));
 				ini.SetValue("Wind", "Windrun", WindRunToday);
@@ -1041,9 +1041,9 @@ namespace CumulusMX
 				ini.SetValue("Wind", "DominantWindBearingY", DominantWindBearingY);
 				// Temperature
 				ini.SetValue("Temp", "Low", HiLoToday.LowTemp);
-				ini.SetValue("Temp", "LTime", HiLoToday.LowTempTime.ToString("HH:mm"));
+				ini.SetValue("Temp", "LTime", HiLoToday.LowTempTime);
 				ini.SetValue("Temp", "High", HiLoToday.HighTemp);
-				ini.SetValue("Temp", "HTime", HiLoToday.HighTempTime.ToString("HH:mm"));
+				ini.SetValue("Temp", "HTime", HiLoToday.HighTempTime);
 				ini.SetValue("Temp", "Total", TempTotalToday);
 				ini.SetValue("Temp", "Samples", tempsamplestoday);
 				ini.SetValue("Temp", "ChillHours", ChillHours);
@@ -1058,16 +1058,16 @@ namespace CumulusMX
 				ini.SetValue("TempMidnight", "HTime", HiLoTodayMidnight.HighTempTime);
 				// Pressure
 				ini.SetValue("Pressure", "Low", HiLoToday.LowPress);
-				ini.SetValue("Pressure", "LTime", HiLoToday.LowPressTime.ToString("HH:mm"));
+				ini.SetValue("Pressure", "LTime", HiLoToday.LowPressTime);
 				ini.SetValue("Pressure", "High", HiLoToday.HighPress);
-				ini.SetValue("Pressure", "HTime", HiLoToday.HighPressTime.ToString("HH:mm"));
+				ini.SetValue("Pressure", "HTime", HiLoToday.HighPressTime);
 				// rain
 				ini.SetValue("Rain", "High", HiLoToday.HighRainRate);
-				ini.SetValue("Rain", "HTime", HiLoToday.HighRainRateTime.ToString("HH:mm"));
+				ini.SetValue("Rain", "HTime", HiLoToday.HighRainRateTime);
 				ini.SetValue("Rain", "HourlyHigh", HiLoToday.HighHourlyRain);
-				ini.SetValue("Rain", "HHourlyTime", HiLoToday.HighHourlyRainTime.ToString("HH:mm"));
+				ini.SetValue("Rain", "HHourlyTime", HiLoToday.HighHourlyRainTime);
 				ini.SetValue("Rain", "High24h", HiLoToday.HighRain24h);
-				ini.SetValue("Rain", "High24hTime", HiLoToday.HighRain24hTime.ToString("HH:mm"));
+				ini.SetValue("Rain", "High24hTime", HiLoToday.HighRain24hTime);
 				ini.SetValue("Rain", "Yesterday", RainYesterday);
 				ini.SetValue("Rain", "Start", RainCounterDayStart);
 				ini.SetValue("Rain", "Midnight", MidnightRainCount);
@@ -1082,35 +1082,35 @@ namespace CumulusMX
 				// humidity
 				ini.SetValue("Humidity", "Low", HiLoToday.LowHumidity);
 				ini.SetValue("Humidity", "High", HiLoToday.HighHumidity);
-				ini.SetValue("Humidity", "LTime", HiLoToday.LowHumidityTime.ToString("HH:mm"));
-				ini.SetValue("Humidity", "HTime", HiLoToday.HighHumidityTime.ToString("HH:mm"));
+				ini.SetValue("Humidity", "LTime", HiLoToday.LowHumidityTime);
+				ini.SetValue("Humidity", "HTime", HiLoToday.HighHumidityTime);
 				// Solar
 				ini.SetValue("Solar", "SunshineHours", SunshineHours);
 				ini.SetValue("Solar", "SunshineHoursToMidnight", SunshineToMidnight);
 				// heat index
 				ini.SetValue("HeatIndex", "High", HiLoToday.HighHeatIndex);
-				ini.SetValue("HeatIndex", "HTime", HiLoToday.HighHeatIndexTime.ToString("HH:mm"));
+				ini.SetValue("HeatIndex", "HTime", HiLoToday.HighHeatIndexTime);
 				// App temp
 				ini.SetValue("AppTemp", "Low", HiLoToday.LowAppTemp);
-				ini.SetValue("AppTemp", "LTime", HiLoToday.LowAppTempTime.ToString("HH:mm"));
+				ini.SetValue("AppTemp", "LTime", HiLoToday.LowAppTempTime);
 				ini.SetValue("AppTemp", "High", HiLoToday.HighAppTemp);
-				ini.SetValue("AppTemp", "HTime", HiLoToday.HighAppTempTime.ToString("HH:mm"));
+				ini.SetValue("AppTemp", "HTime", HiLoToday.HighAppTempTime);
 				// Feels like
 				ini.SetValue("FeelsLike", "Low", HiLoToday.LowFeelsLike);
-				ini.SetValue("FeelsLike", "LTime", HiLoToday.LowFeelsLikeTime.ToString("HH:mm"));
+				ini.SetValue("FeelsLike", "LTime", HiLoToday.LowFeelsLikeTime);
 				ini.SetValue("FeelsLike", "High", HiLoToday.HighFeelsLike);
-				ini.SetValue("FeelsLike", "HTime", HiLoToday.HighFeelsLikeTime.ToString("HH:mm"));
+				ini.SetValue("FeelsLike", "HTime", HiLoToday.HighFeelsLikeTime);
 				// Humidex
 				ini.SetValue("Humidex", "High", HiLoToday.HighHumidex);
-				ini.SetValue("Humidex", "HTime", HiLoToday.HighHumidexTime.ToString("HH:mm"));
+				ini.SetValue("Humidex", "HTime", HiLoToday.HighHumidexTime);
 				// wind chill
 				ini.SetValue("WindChill", "Low", HiLoToday.LowWindChill);
-				ini.SetValue("WindChill", "LTime", HiLoToday.LowWindChillTime.ToString("HH:mm"));
+				ini.SetValue("WindChill", "LTime", HiLoToday.LowWindChillTime);
 				// Dewpoint
 				ini.SetValue("Dewpoint", "Low", HiLoToday.LowDewPoint);
-				ini.SetValue("Dewpoint", "LTime", HiLoToday.LowDewPointTime.ToString("HH:mm"));
+				ini.SetValue("Dewpoint", "LTime", HiLoToday.LowDewPointTime);
 				ini.SetValue("Dewpoint", "High", HiLoToday.HighDewPoint);
-				ini.SetValue("Dewpoint", "HTime", HiLoToday.HighDewPointTime.ToString("HH:mm"));
+				ini.SetValue("Dewpoint", "HTime", HiLoToday.HighDewPointTime);
 
 				// NOAA report names
 				ini.SetValue("NOAA", "LatestMonthlyReport", cumulus.NOAAconf.LatestMonthReport);
@@ -1118,9 +1118,9 @@ namespace CumulusMX
 
 				// Solar
 				ini.SetValue("Solar", "HighSolarRad", HiLoToday.HighSolar);
-				ini.SetValue("Solar", "HighSolarRadTime", HiLoToday.HighSolarTime.ToString("HH:mm"));
+				ini.SetValue("Solar", "HighSolarRadTime", HiLoToday.HighSolarTime);
 				ini.SetValue("Solar", "HighUV", HiLoToday.HighUv);
-				ini.SetValue("Solar", "HighUVTime", HiLoToday.HighUvTime.ToString("HH:mm"));
+				ini.SetValue("Solar", "HighUVTime", HiLoToday.HighUvTime);
 				ini.SetValue("Solar", "SunStart", StartOfDaySunHourCounter);
 
 				// Special Fine Offset data
@@ -6732,76 +6732,76 @@ namespace CumulusMX
 			ini.SetValue("General", "Date", logdate.AddHours(hourInc));
 			// Wind
 			ini.SetValue("Wind", "Speed", HiLoYest.HighWind);
-			ini.SetValue("Wind", "SpTime", HiLoYest.HighWindTime.ToString("HH:mm"));
+			ini.SetValue("Wind", "SpTime", HiLoYest.HighWindTime);
 			ini.SetValue("Wind", "Gust", HiLoYest.HighGust);
-			ini.SetValue("Wind", "Time", HiLoYest.HighGustTime.ToString("HH:mm"));
+			ini.SetValue("Wind", "Time", HiLoYest.HighGustTime);
 			ini.SetValue("Wind", "Bearing", HiLoYest.HighGustBearing);
 			ini.SetValue("Wind", "Direction", CompassPoint(HiLoYest.HighGustBearing));
 			ini.SetValue("Wind", "Windrun", YesterdayWindRun);
 			ini.SetValue("Wind", "DominantWindBearing", YestDominantWindBearing);
 			// Temperature
 			ini.SetValue("Temp", "Low", HiLoYest.LowTemp);
-			ini.SetValue("Temp", "LTime", HiLoYest.LowTempTime.ToString("HH:mm"));
+			ini.SetValue("Temp", "LTime", HiLoYest.LowTempTime);
 			ini.SetValue("Temp", "High", HiLoYest.HighTemp);
-			ini.SetValue("Temp", "HTime", HiLoYest.HighTempTime.ToString("HH:mm"));
+			ini.SetValue("Temp", "HTime", HiLoYest.HighTempTime);
 			ini.SetValue("Temp", "ChillHours", YestChillHours);
 			ini.SetValue("Temp", "HeatingDegreeDays", YestHeatingDegreeDays);
 			ini.SetValue("Temp", "CoolingDegreeDays", YestCoolingDegreeDays);
 			ini.SetValue("Temp", "AvgTemp", YestAvgTemp);
 			// Temperature midnight
 			ini.SetValue("TempMidnight", "Low", HiLoYestMidnight.LowTemp);
-			ini.SetValue("TempMidnight", "LTime", HiLoYestMidnight.LowTempTime.ToString("HH:mm"));
+			ini.SetValue("TempMidnight", "LTime", HiLoYestMidnight.LowTempTime);
 			ini.SetValue("TempMidnight", "High", HiLoYestMidnight.HighTemp);
-			ini.SetValue("TempMidnight", "HTime", HiLoYestMidnight.HighTempTime.ToString("HH:mm"));
+			ini.SetValue("TempMidnight", "HTime", HiLoYestMidnight.HighTempTime);
 			// Pressure
 			ini.SetValue("Pressure", "Low", HiLoYest.LowPress);
-			ini.SetValue("Pressure", "LTime", HiLoYest.LowPressTime.ToString("HH:mm"));
+			ini.SetValue("Pressure", "LTime", HiLoYest.LowPressTime);
 			ini.SetValue("Pressure", "High", HiLoYest.HighPress);
-			ini.SetValue("Pressure", "HTime", HiLoYest.HighPressTime.ToString("HH:mm"));
+			ini.SetValue("Pressure", "HTime", HiLoYest.HighPressTime);
 			// rain
 			ini.SetValue("Rain", "High", HiLoYest.HighRainRate);
-			ini.SetValue("Rain", "HTime", HiLoYest.HighRainRateTime.ToString("HH:mm"));
+			ini.SetValue("Rain", "HTime", HiLoYest.HighRainRateTime);
 			ini.SetValue("Rain", "HourlyHigh", HiLoYest.HighHourlyRain);
-			ini.SetValue("Rain", "HHourlyTime", HiLoYest.HighHourlyRainTime.ToString("HH:mm"));
+			ini.SetValue("Rain", "HHourlyTime", HiLoYest.HighHourlyRainTime);
 			ini.SetValue("Rain", "High24h", HiLoYest.HighRain24h);
-			ini.SetValue("Rain", "High24hTime", HiLoYest.HighRain24hTime.ToString("HH:mm"));
+			ini.SetValue("Rain", "High24hTime", HiLoYest.HighRain24hTime);
 			ini.SetValue("Rain", "RG11Yesterday", RG11RainYesterday);
 			// humidity
 			ini.SetValue("Humidity", "Low", HiLoYest.LowHumidity);
 			ini.SetValue("Humidity", "High", HiLoYest.HighHumidity);
-			ini.SetValue("Humidity", "LTime", HiLoYest.LowHumidityTime.ToString("HH:mm"));
-			ini.SetValue("Humidity", "HTime", HiLoYest.HighHumidityTime.ToString("HH:mm"));
+			ini.SetValue("Humidity", "LTime", HiLoYest.LowHumidityTime);
+			ini.SetValue("Humidity", "HTime", HiLoYest.HighHumidityTime);
 			// Solar
 			ini.SetValue("Solar", "SunshineHours", YestSunshineHours);
 			// heat index
 			ini.SetValue("HeatIndex", "High", HiLoYest.HighHeatIndex);
-			ini.SetValue("HeatIndex", "HTime", HiLoYest.HighHeatIndexTime.ToString("HH:mm"));
+			ini.SetValue("HeatIndex", "HTime", HiLoYest.HighHeatIndexTime);
 			// App temp
 			ini.SetValue("AppTemp", "Low", HiLoYest.LowAppTemp);
-			ini.SetValue("AppTemp", "LTime", HiLoYest.LowAppTempTime.ToString("HH:mm"));
+			ini.SetValue("AppTemp", "LTime", HiLoYest.LowAppTempTime);
 			ini.SetValue("AppTemp", "High", HiLoYest.HighAppTemp);
-			ini.SetValue("AppTemp", "HTime", HiLoYest.HighAppTempTime.ToString("HH:mm"));
+			ini.SetValue("AppTemp", "HTime", HiLoYest.HighAppTempTime);
 			// wind chill
 			ini.SetValue("WindChill", "Low", HiLoYest.LowWindChill);
-			ini.SetValue("WindChill", "LTime", HiLoYest.LowWindChillTime.ToString("HH:mm"));
+			ini.SetValue("WindChill", "LTime", HiLoYest.LowWindChillTime);
 			// Dewpoint
 			ini.SetValue("Dewpoint", "Low", HiLoYest.LowDewPoint);
-			ini.SetValue("Dewpoint", "LTime", HiLoYest.LowDewPointTime.ToString("HH:mm"));
+			ini.SetValue("Dewpoint", "LTime", HiLoYest.LowDewPointTime);
 			ini.SetValue("Dewpoint", "High", HiLoYest.HighDewPoint);
-			ini.SetValue("Dewpoint", "HTime", HiLoYest.HighDewPointTime.ToString("HH:mm"));
+			ini.SetValue("Dewpoint", "HTime", HiLoYest.HighDewPointTime);
 			// Solar
 			ini.SetValue("Solar", "HighSolarRad", HiLoYest.HighSolar);
-			ini.SetValue("Solar", "HighSolarRadTime", HiLoYest.HighSolarTime.ToString("HH:mm"));
+			ini.SetValue("Solar", "HighSolarRadTime", HiLoYest.HighSolarTime);
 			ini.SetValue("Solar", "HighUV", HiLoYest.HighUv);
-			ini.SetValue("Solar", "HighUVTime", HiLoYest.HighUvTime.ToString("HH:mm"));
+			ini.SetValue("Solar", "HighUVTime", HiLoYest.HighUvTime);
 			// Feels like
 			ini.SetValue("FeelsLike", "Low", HiLoYest.LowFeelsLike);
-			ini.SetValue("FeelsLike", "LTime", HiLoYest.LowFeelsLikeTime.ToString("HH:mm"));
+			ini.SetValue("FeelsLike", "LTime", HiLoYest.LowFeelsLikeTime);
 			ini.SetValue("FeelsLike", "High", HiLoYest.HighFeelsLike);
-			ini.SetValue("FeelsLike", "HTime", HiLoYest.HighFeelsLikeTime.ToString("HH:mm"));
+			ini.SetValue("FeelsLike", "HTime", HiLoYest.HighFeelsLikeTime);
 			// Humidex
 			ini.SetValue("Humidex", "High", HiLoYest.HighHumidex);
-			ini.SetValue("Humidex", "HTime", HiLoYest.HighHumidexTime.ToString("HH:mm"));
+			ini.SetValue("Humidex", "HTime", HiLoYest.HighHumidexTime);
 
 			ini.Flush();
 

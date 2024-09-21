@@ -7,7 +7,7 @@ BETA 4037 Changes:
 - Query Daily Data to date now inclusive
 - Daily data for query now added to at rollover, and amended at day file edits
 - Fix Davis Cloud Station continually attempting to download history data on error
-
+- Fix a lurking problem with the today.ini and yesterday.ini files that has been there from day 0
 
 BETA 4036 Changes:
 ——————————————————
@@ -95,6 +95,7 @@ Fixed
 	- Example if you have a main station Davis with sensors 1 & 2, their units will be cb, and you have Ecowitt extra sensors 3 & 4, their units will be %
 	- This does mean a change to the Units JSON and the graph scripts for the default web site. A re-upload of /js/cumuluscharts.js and /js/selectachart.js will be required
 - Fix Davis Cloud Station continually attempting to download history data on error
+- Fix a lurking problem with the today.ini and yesterday.ini files that has been there from day 0. Times are now stored as a full date/time
 
 
 Package Updates
