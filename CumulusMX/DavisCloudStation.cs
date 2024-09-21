@@ -3780,7 +3780,7 @@ namespace CumulusMX
 				_ => 15 + 3,
 			};
 
-			cumulus.LogMessage($"GetStations: Subscription type = {subscription}, data timeout = {DataTimeoutMins} minutes");
+			cumulus.LogMessage($"GetStations: Subscription type = {subscriptionLevel}, data timeout = {DataTimeoutMins} minutes");
 		}
 
 		private void GetAvailableSensors()
