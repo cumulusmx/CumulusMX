@@ -94,7 +94,10 @@ namespace CumulusMX
 					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
 				}
 
-				Console.CursorVisible = true;
+				if (!service)
+				{
+					Console.CursorVisible = true;
+				}
 			};
 
 
@@ -116,7 +119,10 @@ namespace CumulusMX
 				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
 				ev.Cancel = true;
 				exitSystem = true;
-				Console.CursorVisible = true;
+				if (!service)
+				{
+					Console.CursorVisible = true;
+				}
 			};
 
 			AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
@@ -306,7 +312,10 @@ namespace CumulusMX
 				await Task.Delay(500);
 			}
 
-			Console.CursorVisible = true;
+			if (!service)
+			{
+				Console.CursorVisible = true;
+			}
 		}
 
 		private static void Usage()
@@ -321,7 +330,11 @@ namespace CumulusMX
 			Console.WriteLine(" -user                - Specifies the user to run the service under (Linux only)");
 			Console.WriteLine(" -service             - Must be used when running as service (Linux only)");
 			Console.WriteLine("\nCumulus terminating");
-			Console.CursorVisible = true;
+			try
+			{
+				Console.CursorVisible = true;
+			}
+			catch { }
 			Environment.Exit(1);
 		}
 
@@ -342,7 +355,6 @@ namespace CumulusMX
 		{
 			try
 			{
-				Console.CursorVisible = true;
 				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "!!! Unhandled Exception !!!");
 				Trace.WriteLine(e.ExceptionObject.ToString());
 
@@ -354,6 +366,7 @@ namespace CumulusMX
 				}
 				else
 				{
+					Console.CursorVisible = true;
 					Console.WriteLine(e.ExceptionObject.ToString());
 					Console.WriteLine("**** An error has occurred - please zip up the MXdiags folder and post it in the forum ****");
 					Console.WriteLine("Press Enter to terminate");
