@@ -1,5 +1,9 @@
-4.2.0 - b4037
+4.2.0 - b4038
 —————————————
+BETA 4038 Changes:
+——————————————————
+- Fix crash when stopping service
+
 BETA 4037 Changes:
 ——————————————————
 - Configuration Wizard now working again
