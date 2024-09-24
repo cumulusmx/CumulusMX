@@ -2504,6 +2504,7 @@ namespace CumulusMX
 							// weather station - check the version
 							vers = stn.stationtype.Split('V')[^1];
 							model = stn.stationtype.Replace("_", string.Empty).Split('V')[0];
+							break;
 						}
 						else
 						{

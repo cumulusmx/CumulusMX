@@ -3,6 +3,7 @@
 BETA 4038 Changes:
 ——————————————————
 - Fix crash when stopping service
+- Fix crash in Ecowitt getting station firmware version in some circumstances
 
 BETA 4037 Changes:
 ——————————————————
@@ -61,7 +62,7 @@ BETA 4033 Changes:
 New
 - New station type: Ecowitt Local HTTP API
 	- Ecowitt Local HTTP API is an alternative the local TCP API used by the gateways and some stations
-	- Currently it is less capable than the TCP API
+	- Currently it is slightly less capable than the TCP API, but does provide all the sensor values
 	- Allows direct support of Ecowitt stations that do not support the TCP API and currently have to use the Custom HTTP Server mode
 - Exposes the UseDataLogger setting in Station Settings > Options > Advanced
 - Implements a new data viewer where you can select and view historic data from the monthly logs for a given period, for a set of data values. See: "Data logs > Interval Data Viewer"
@@ -100,6 +101,7 @@ Fixed
 	- This does mean a change to the Units JSON and the graph scripts for the default web site. A re-upload of /js/cumuluscharts.js and /js/selectachart.js will be required
 - Fix Davis Cloud Station continually attempting to download history data on error
 - Fix a lurking problem with the today.ini and yesterday.ini files that has been there from day 0. Times are now stored as a full date/time
+- Fix crash in Ecowitt getting station firmware version in some circumstances
 
 
 Package Updates

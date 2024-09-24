@@ -106,30 +106,37 @@ namespace CumulusMX
 			ecowittApi = new EcowittApi(cumulus, this);
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
-			if (mainStation)
+			try
 			{
-				Task.Run(getAndProcessHistoryData);
-				var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-				if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+				if (mainStation)
 				{
-					// EasyWeather seems to contain the WiFi version
-					deviceFirmware = new Version(retVal[0]);
-					deviceModel = retVal[1];
+					Task.Run(getAndProcessHistoryData);
+					var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+					{
+						// EasyWeather seems to contain the WiFi version
+						deviceFirmware = new Version(retVal[0]);
+						deviceModel = retVal[1];
+					}
 				}
-			}
-			else
-			{
-				// see if we have a camera attached
-				var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-				if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+				else
 				{
-					// EasyWeather seems to contain the WiFi version
-					deviceFirmware = new Version(retVal[0]);
-					deviceModel = retVal[1];
+					// see if we have a camera attached
+					var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+					{
+						// EasyWeather seems to contain the WiFi version
+						deviceFirmware = new Version(retVal[0]);
+						deviceModel = retVal[1];
+					}
 				}
-			}
 
-			_ = CheckAvailableFirmware();
+				_ = CheckAvailableFirmware();
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "Error checking firmware version");
+			}
 		}
 
 		public override void Start()
@@ -178,15 +185,22 @@ namespace CumulusMX
 
 								if (hour == 13)
 								{
-									var retVal = ecowittApi.GetStationList(mainStation || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-									if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+									try
 									{
-										// EasyWeather seems to contain the WiFi version
-										deviceFirmware = new Version(retVal[0]);
-										deviceModel = retVal[1];
-										GW1000FirmwareVersion = retVal[0];
+										var retVal = ecowittApi.GetStationList(mainStation || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+										if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+										{
+											// EasyWeather seems to contain the WiFi version
+											deviceFirmware = new Version(retVal[0]);
+											deviceModel = retVal[1];
+											GW1000FirmwareVersion = retVal[0];
+										}
+										_ = CheckAvailableFirmware();
 									}
-									_ = CheckAvailableFirmware();
+									catch (Exception ex)
+									{
+										cumulus.LogExceptionMessage(ex, "Error decoding firmware version");
+									}
 								}
 							}
 						}

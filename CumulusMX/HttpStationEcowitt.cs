@@ -138,11 +138,18 @@ namespace CumulusMX
 				}
 				else
 				{
-					var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
+					try
 					{
-						deviceFirmware = new Version(retVal[0]);
-						deviceModel = retVal[1];
+						var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+						if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
+						{
+							deviceFirmware = new Version(retVal[0]);
+							deviceModel = retVal[1];
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "Error getting station firmware version");
 					}
 				}
 			}
@@ -155,11 +162,18 @@ namespace CumulusMX
 				}
 				else
 				{
-					var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
+					try
 					{
-						deviceFirmware = new Version(retVal[0]);
-						deviceModel = retVal[1];
+						var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+						if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
+						{
+							deviceFirmware = new Version(retVal[0]);
+							deviceModel = retVal[1];
+						}
+					}
+					catch(Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "Error getting camera firmware version");
 					}
 				}
 				cumulus.LogMessage("Extra Sensors - HTTP Station (Ecowitt) - Waiting for data...");
@@ -1095,11 +1109,18 @@ namespace CumulusMX
 					}
 					else
 					{
-						var retVal = ecowittApi.GetStationList(main || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-						if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+						try
 						{
-							deviceFirmware = new Version(retVal[0]);
-							deviceModel = retVal[1];
+							var retVal = ecowittApi.GetStationList(main || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+							if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+							{
+								deviceFirmware = new Version(retVal[0]);
+								deviceModel = retVal[1];
+							}
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, "Error getting firmware version");
 						}
 					}
 
