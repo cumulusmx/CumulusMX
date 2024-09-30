@@ -48,6 +48,9 @@ Fixed
 Package Updates
 - SQLite: Reverted to v2.1.8 pending fix from author
 - MQTTnet
+- FluentFTP
+- ServiceStack.Text
+- SixLabors.ImageSharp
 
 
 4.1.3 - b4028
