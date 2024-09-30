@@ -1034,12 +1034,12 @@ namespace CumulusMX
 
 		private string Tagbattery(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.ConBatText, tagParams);
+			return CheckRc(station.ConBatText ?? "--", tagParams);
 		}
 
 		private string TagConsoleSupplyV(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.ConSupplyVoltageText, tagParams);
+			return CheckRc(station.ConSupplyVoltageText ?? "--", tagParams);
 		}
 
 		private string Tagtxbattery(Dictionary<string, string> tagParams)

@@ -10,14 +10,12 @@ namespace CumulusMX
 	class HttpStationAmbient : WeatherStation
 	{
 		private readonly WeatherStation station;
-		private readonly Cumulus cumulus;
 		private bool starting = true;
 		private bool stopping = false;
 
 		public HttpStationAmbient(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
 			this.station = station;
-			this.cumulus = cumulus;
 
 			if (station == null)
 			{
@@ -775,14 +773,14 @@ namespace CumulusMX
 			{
 				// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
 				var valDist = Convert.ToDouble(dist, CultureInfo.InvariantCulture);
-				if (valDist != 255)
+				if (valDist < 255)
 				{
 					LightningDistance = ConvertUnits.KmtoUserUnits(valDist);
 				}
 
 				var valTime = Convert.ToDouble(time, CultureInfo.InvariantCulture);
 				// Sends a default value until the first strike is detected of 0xFFFFFFFF
-				if (valTime != 0xFFFFFFFF)
+				if (valTime < 0xFFFFFFFF)
 				{
 					var dtDateTime = DateTime.UnixEpoch;
 					dtDateTime = dtDateTime.AddSeconds(valTime).ToLocalTime();

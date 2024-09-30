@@ -316,7 +316,7 @@ namespace CumulusMX
 
 				var urlCurrent = $"http://{ip}/v1/current_conditions";
 
-				WebReq.Wait();
+				await WebReq.WaitAsync();
 
 				// The AL will error if already responding to a request from another device, so add a retry
 				do
