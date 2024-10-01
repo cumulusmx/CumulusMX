@@ -13,4 +13,4 @@ The original source was post build b3043 - it incorporated some changes that wer
 The support forum for this software can [be found here](https://cumulus.hosiene.co.uk/)
 
 
-The change log [is here](blob/master/CHANGELOG.md)
+The change log [is here](CHANGELOG.md)
