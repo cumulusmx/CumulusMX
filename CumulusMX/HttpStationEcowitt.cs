@@ -16,6 +16,7 @@ namespace CumulusMX
 	partial class HttpStationEcowitt : WeatherStation
 	{
 		private readonly WeatherStation station;
+		private readonly bool mainStation;
 		private bool starting = true;
 		private bool stopping = false;
 		private readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
@@ -32,7 +33,7 @@ namespace CumulusMX
 		{
 			this.station = station;
 
-			var mainStation = station == null;
+			mainStation = station == null;
 
 			if (mainStation)
 			{
@@ -115,11 +116,11 @@ namespace CumulusMX
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
-			if (mainStation || cumulus.EcowittExtraUseSoilMoist)
+			if (mainStation)
 			{
-				cumulus.Units.SoilMoistureUnitText = "%";
+				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
-			if (mainStation || cumulus.EcowittExtraUseSoilMoist)
+			if (mainStation || cumulus.EcowittExtraUseLeafWet)
 			{
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
@@ -137,11 +138,18 @@ namespace CumulusMX
 				}
 				else
 				{
-					var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
+					try
 					{
-						deviceFirmware = new Version(retVal[0]);
-						deviceModel = retVal[1];
+						var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+						if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
+						{
+							deviceFirmware = new Version(retVal[0]);
+							deviceModel = retVal[1];
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "Error getting station firmware version");
 					}
 				}
 			}
@@ -154,11 +162,18 @@ namespace CumulusMX
 				}
 				else
 				{
-					var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
+					try
 					{
-						deviceFirmware = new Version(retVal[0]);
-						deviceModel = retVal[1];
+						var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+						if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
+						{
+							deviceFirmware = new Version(retVal[0]);
+							deviceModel = retVal[1];
+						}
+					}
+					catch(Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "Error getting camera firmware version");
 					}
 				}
 				cumulus.LogMessage("Extra Sensors - HTTP Station (Ecowitt) - Waiting for data...");
@@ -170,7 +185,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				_= CheckAvailableFirmware(deviceModel);
+				_ = CheckAvailableFirmware(deviceModel);
 			}
 		}
 
@@ -306,9 +321,16 @@ namespace CumulusMX
 
 			var procName = main ? "ProcessData" : "ProcessExtraData";
 
+			if (DayResetInProgress)
+			{
+				cumulus.LogMessage("ProcessData: Rollover in progress, incoming data ignored");
+				context.Response.StatusCode = 200;
+				return "success";
+			}
+
 			if (starting || stopping)
 			{
-				cumulus.LogMessage($"Station {(starting ? "starting" : "stopping")}, incoming data ignored");
+				cumulus.LogMessage($"ProcessData: Station {(starting ? "starting" : "stopping")}, incoming data ignored");
 				context.Response.StatusCode = 200;
 				return "success";
 			}
@@ -618,6 +640,8 @@ namespace CumulusMX
 						// wrain_piezo
 						// mrain_piezo
 						// yrain_piezo
+						// plus
+						// srain_piezo
 
 						string rain, rRate;
 						// if no yearly counter, try the total counter
@@ -625,17 +649,19 @@ namespace CumulusMX
 						{
 							rain = data["yearlyrainin"] ?? data["totalrainin"];
 							rRate = data["rainratein"];
-							if (cumulus.StationOptions.UseRainForIsRaining == 2)
-							{
-								IsRaining = Convert.ToDouble(data["rrain_piezo"], invNum) > 0;
-								cumulus.IsRainingAlarm.Triggered = IsRaining;
-							}
 						}
 						else
 						{
 							rain = data["yrain_piezo"];
 							rRate = data["rrain_piezo"];
 						}
+
+						if (!cumulus.EcowittIsRainingUsePiezo)
+						{
+							IsRaining = (cumulus.StationOptions.UseRainForIsRaining == 0 ? Convert.ToDouble(rRate, invNum): Convert.ToDouble(data["rrain_piezo"], invNum)) > 0;
+							cumulus.IsRainingAlarm.Triggered = IsRaining;
+						}
+						
 
 						if (rRate == null)
 						{
@@ -658,6 +684,12 @@ namespace CumulusMX
 							var rainVal = ConvertUnits.RainINToUser(Convert.ToDouble(rain, invNum));
 							var rateVal = ConvertUnits.RainINToUser(Convert.ToDouble(rRate, invNum));
 							DoRain(rainVal, rateVal, recDate);
+						}
+
+						if (cumulus.EcowittIsRainingUsePiezo && data["srain_piezo"] != null)
+						{
+							IsRaining = data["srain_piezo"] == "1";
+							cumulus.IsRainingAlarm.Triggered = IsRaining;
 						}
 					}
 					catch (Exception ex)
@@ -1054,6 +1086,7 @@ namespace CumulusMX
 
 				thisStation.UpdateStatusPanel(recDate);
 				thisStation.UpdateMQTT();
+				thisStation.LastDataReadTime = recDate;
 			}
 			catch (Exception ex)
 			{
@@ -1076,11 +1109,18 @@ namespace CumulusMX
 					}
 					else
 					{
-						var retVal = ecowittApi.GetStationList(main || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
-						if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+						try
 						{
-							deviceFirmware = new Version(retVal[0]);
-							deviceModel = retVal[1];
+							var retVal = ecowittApi.GetStationList(main || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+							if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
+							{
+								deviceFirmware = new Version(retVal[0]);
+								deviceModel = retVal[1];
+							}
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, "Error getting firmware version");
 						}
 					}
 
@@ -1181,6 +1221,10 @@ namespace CumulusMX
 				if (data["soilmoisture" + i] != null)
 				{
 					station.DoSoilMoisture(Convert.ToDouble(data["soilmoisture" + i], invNum), i);
+					if (!mainStation)
+					{
+						cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
+					}
 				}
 			}
 		}

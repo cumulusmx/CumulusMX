@@ -8,6 +8,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
+using static CumulusMX.Tempest.RestPacket;
+
 namespace CumulusMX
 {
 	internal class DavisStation : WeatherStation
@@ -32,7 +34,7 @@ namespace CumulusMX
 		private bool stop;
 		private int loggerInterval;
 
-		private readonly int[,] ForecastLookup  =
+		private readonly int[,] ForecastLookup =
 		{
 			{14, 0, 0}, {13, 0, 0}, {12, 0, 0}, {11, 0, 0}, {13, 0, 0}, {25, 0, 0}, {24, 0, 0}, {24, 0, 0}, {10, 0, 0}, {24, 0, 0}, {24, 0, 0},
 			{13, 0, 0}, {7, 2, 0}, {24, 0, 0}, {13, 0, 0}, {6, 3, 0}, {13, 0, 0}, {24, 0, 0}, {13, 0, 0}, {6, 6, 0}, {13, 0, 0}, {24, 0, 0},
@@ -195,7 +197,7 @@ namespace CumulusMX
 
 			DateTime tooold = new DateTime(0, DateTimeKind.Local);
 
-			if ((cumulus.LastUpdateTime <= tooold) || !cumulus.UseDataLogger)
+			if ((cumulus.LastUpdateTime <= tooold) || !cumulus.StationOptions.UseDataLogger)
 			{
 				// there's nothing in the database, so we haven't got a rain counter
 				// we can't load the history data, so we'll just have to go live
@@ -247,7 +249,7 @@ namespace CumulusMX
 		private string GetFirmwareVersion()
 		{
 			cumulus.LogMessage("Reading firmware version");
-			StringBuilder response = new ();
+			StringBuilder response = new();
 			StringBuilder data = new();
 			int ch;
 
@@ -541,7 +543,7 @@ namespace CumulusMX
 			//       0   1  23 4   5  6
 			cumulus.LogMessage("Reading reception stats");
 			lastRecepStatsTime = DateTime.Now;
-			StringBuilder response = new ();
+			StringBuilder response = new();
 			var bytesRead = 0;
 			byte[] readBuffer = new byte[40];
 			int ch;
@@ -1259,7 +1261,7 @@ namespace CumulusMX
 		{
 			cumulus.LogDebugMessage("Sending BARREAD");
 
-			StringBuilder response = new ();
+			StringBuilder response = new();
 			var bytesRead = 0;
 			byte[] readBuffer = new byte[64];
 
@@ -1830,7 +1832,14 @@ namespace CumulusMX
 
 				DoForecast(forecast, false);
 
+				LowBatteryDevices.Clear();
+
 				ConBatText = loopData.ConBatVoltage.ToString("F2");
+
+				if (loopData.ConBatVoltage <= 3.5)
+				{
+					LowBatteryDevices.Add("Console-" + ConBatText);
+				}
 
 				TxBatText = ProcessTxBatt(loopData.TXbattStatus);
 
@@ -1990,13 +1999,17 @@ namespace CumulusMX
 			}
 		}
 
-		private static string ProcessTxBatt(byte txStatus)
+		private string ProcessTxBatt(byte txStatus)
 		{
-			StringBuilder response = new ();
+			StringBuilder response = new();
 
 			for (int i = 0; i < 8; i++)
 			{
 				var status = (txStatus & (1 << i)) == 0 ? "-ok " : "-LOW ";
+				if (status == "-LOW")
+				{
+					LowBatteryDevices.Add((i + 1) + status);
+				}
 				response.Append((i + 1) + status);
 			}
 
@@ -2227,10 +2240,10 @@ namespace CumulusMX
 
 			NetworkStream stream = null;
 
-			lastDataReadTime = cumulus.LastUpdateTime;
-			int luhour = lastDataReadTime.Hour;
+			LastDataReadTime = cumulus.LastUpdateTime;
+			int luhour = LastDataReadTime.Hour;
 
-			int rollHour = Math.Abs(cumulus.GetHourInc(lastDataReadTime));
+			int rollHour = Math.Abs(cumulus.GetHourInc(LastDataReadTime));
 
 			cumulus.LogMessage("GetArchiveData: Roll-over hour = " + rollHour);
 
@@ -2374,7 +2387,7 @@ namespace CumulusMX
 				// Read the response
 				comport.Read(data, 0, 6);
 
-				StringBuilder resp = new ("Response:");
+				StringBuilder resp = new("Response:");
 
 				for (int i = 0; i < 6; i++)
 				{
@@ -2560,7 +2573,7 @@ namespace CumulusMX
 
 						cumulus.LogMessage("GetArchiveData: Loaded archive record for Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
 
-						if (timestamp > lastDataReadTime)
+						if (timestamp > LastDataReadTime)
 						{
 							cumulus.LogMessage("GetArchiveData: Processing archive record for " + timestamp);
 
@@ -2579,7 +2592,7 @@ namespace CumulusMX
 							}
 							else
 							{
-								interval = (int) (timestamp - lastDataReadTime).TotalMinutes;
+								interval = (int) (timestamp - LastDataReadTime).TotalMinutes;
 							}
 
 							// ..and then process it
@@ -2892,7 +2905,7 @@ namespace CumulusMX
 							DoFeelsLike(timestamp);
 							DoHumidex(timestamp);
 
-							lastDataReadTime = timestamp;
+							LastDataReadTime = timestamp;
 
 							_ = cumulus.DoLogFile(timestamp, false);
 							cumulus.LogMessage("GetArchiveData: Log file entry written");
@@ -3035,7 +3048,7 @@ namespace CumulusMX
 			int retryCount = 0;
 
 			// Check if we haven't sent a command within the last two minutes - use 1:50 () to be safe
-			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000 && !force )
+			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000 && !force)
 			{
 				cumulus.LogDebugMessage("WakeVP: Not required");
 				awakeStopWatch.Restart();
@@ -3351,7 +3364,7 @@ namespace CumulusMX
 
 			try
 			{
-				if (socket== null)
+				if (socket == null)
 				{
 					cumulus.LogErrorMessage("InitTCP: No TCP connection, giving up");
 					return;

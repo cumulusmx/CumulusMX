@@ -17,7 +17,7 @@ namespace CumulusMX
 	public class EmailSender(Cumulus cumulus)
 	{
 		static readonly Regex ValidEmailRegex = CreateValidEmailRegex();
-		private static readonly SemaphoreSlim _writeLock = new (1);
+		private static readonly SemaphoreSlim _writeLock = new(1);
 		private readonly Cumulus cumulus = cumulus;
 
 		public async Task<bool> SendEmail(string[] to, string from, string subject, string message, bool isHTML, bool useBcc)
@@ -234,7 +234,7 @@ namespace CumulusMX
 
 		public class SmtpOptions
 		{
-			public bool Enabled {  get; set; }
+			public bool Enabled { get; set; }
 			public string Server { get; set; }
 			public int Port { get; set; }
 			public string User { get; set; }

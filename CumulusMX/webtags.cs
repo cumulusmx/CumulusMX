@@ -1034,12 +1034,12 @@ namespace CumulusMX
 
 		private string Tagbattery(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.ConBatText, tagParams);
+			return CheckRc(station.ConBatText ?? "--", tagParams);
 		}
 
 		private string TagConsoleSupplyV(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.ConSupplyVoltageText, tagParams);
+			return CheckRc(station.ConSupplyVoltageText ?? "--", tagParams);
 		}
 
 		private string Tagtxbattery(Dictionary<string, string> tagParams)
@@ -1089,6 +1089,11 @@ namespace CumulusMX
 
 			// default
 			return station.TxBatText;
+		}
+
+		private string TagLowBatteryList(Dictionary<string, string> tagParams)
+		{
+			return string.Join(",", station.LowBatteryDevices);
 		}
 
 		private string TagMulticastGoodCnt(Dictionary<string, string> tagParams)
@@ -3551,7 +3556,7 @@ namespace CumulusMX
 			else
 			{
 				end = DateTime.Now;
-				start = new DateTime(end.Year, end.Month, 1, 0 ,0, 0, DateTimeKind.Local);
+				start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
 			}
 
 			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours == Cumulus.DefaultHiVal ? 0 : rec.SunShineHours), tagParams, 1);
@@ -3590,28 +3595,38 @@ namespace CumulusMX
 			var month = tagParams.Get("m");
 			DateTime start;
 			DateTime end;
-
-			if (year != null && month != null)
-			{
-				start = new DateTime(int.Parse(year), int.Parse(month), 1, 0 ,0, 0, DateTimeKind.Local);
-				end = start.AddMonths(1);
-			}
-			else
-			{
-				end = DateTime.Now.Date;
-				start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
-			}
-
-			if (start.Date == DateTime.Now.AddHours(cumulus.GetHourInc()).Date)
-			{
-				// first day of the current month, there are no dayfile entries
-				// so return the average temp so far today
-				return Tagavgtemp(tagParams);
-			}
-
 			double avg;
+
 			try
 			{
+				if (year != null && month != null)
+				{
+					var yr = int.Parse(year);
+					var mon = int.Parse(month);
+
+					if (yr > 1970 && yr <= DateTime.Now.Year && mon > 0 && mon < 13)
+					{
+						start = new DateTime(int.Parse(year), int.Parse(month), 1, 0, 0, 0, DateTimeKind.Local);
+						end = start.AddMonths(1);
+					}
+					else
+					{
+						return "-";
+					}
+				}
+				else
+				{
+					end = DateTime.Now.Date;
+					start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
+				}
+
+				if (start.Date == DateTime.Now.AddHours(cumulus.GetHourInc()).Date)
+				{
+					// first day of the current month, there are no dayfile entries
+					// so return the average temp so far today
+					return Tagavgtemp(tagParams);
+				}
+
 				avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
 			}
 			catch
@@ -3642,6 +3657,46 @@ namespace CumulusMX
 
 			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
 			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagMonthRainfall(Dictionary<string, string> tagParams)
+		{
+			var year = tagParams.Get("y");
+			var month = tagParams.Get("m");
+			DateTime start;
+			DateTime end;
+			double total;
+
+			if (year != null && month != null)
+			{
+				try
+				{
+					var yr = int.Parse(year);
+					var mon = int.Parse(month);
+
+					if (yr > 1970 && yr <= DateTime.Now.Year && mon > 0 && mon < 13)
+					{
+						start = new DateTime(yr, mon, 1, 0, 0, 0, DateTimeKind.Local);
+						end = start.AddMonths(1);
+						total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(rec => rec.TotalRain);
+					}
+					else 
+					{
+						return "-";
+					}
+				}
+				catch
+				{
+					// error or no data found
+					return "-";
+				}
+			}
+			else
+			{
+				total = station.RainMonth;
+			}
+
+			return CheckRcDp(CheckTempUnit(total, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagAnnualRainfall(Dictionary<string, string> tagParams)
@@ -4516,6 +4571,21 @@ namespace CumulusMX
 			return "0";
 		}
 
+		private string TagNewRecordAlarm(Dictionary<string, string> tagParams)
+		{
+			if (cumulus.NewRecordAlarm.Enabled)
+			{
+				return cumulus.NewRecordAlarm.Triggered ? "1" : "0";
+			}
+
+			return "0";
+		}
+
+		private string TagNewRecordAlarmMessage(Dictionary<string, string> tagParams)
+		{
+			return cumulus.NewRecordAlarm.LastMessage;
+		}
+
 
 		private string TagMySqlUploadAlarm(Dictionary<string, string> tagParams)
 		{
@@ -5352,7 +5422,7 @@ namespace CumulusMX
 			}
 			catch
 			{
-				 return Environment.OSVersion.ToString();
+				return Environment.OSVersion.ToString();
 			}
 		}
 
@@ -5858,6 +5928,46 @@ namespace CumulusMX
 			return GetFormattedDateTime(cumulus.MySqlILastntervalTime, "yyyy-MM-dd HH:mm", tagParams);
 		}
 
+		private string TagQueryDayFile(Dictionary<string, string> tagParams)
+		{
+			var value = tagParams.Get("value");
+			var function = tagParams.Get("function");
+			var where = tagParams.Get("where");
+			var from = tagParams.Get("from");
+			var to = tagParams.Get("to");
+			var showDate = tagParams.Get("showDate");
+			var resfunc = tagParams.Get("resFunc");
+
+			tagParams.Add("tc", function == "count" ? "y" : "n");
+
+			var defaultFormat = function == "count" ? "MM/yyyy" : "g";
+
+			var ret = station.DayFileQuery.DayFile(value, function, where, from, to, resfunc);
+
+			if (ret.value < -9998)
+			{
+				if (showDate == "y")
+				{
+					return "[\"-\",\"-\"]";
+				}
+				else
+				{
+					return "-";
+				}
+			}
+			else
+			{
+				if (showDate == "y")
+				{
+					return "[\"" + CheckRcDp(ret.value, tagParams, 1) + "\",\"" + GetFormattedDateTime(ret.time, defaultFormat, tagParams) + "\"]";
+				}
+				else
+				{
+					return CheckRcDp(ret.value, tagParams, 1);
+				}
+			}
+		}
+
 		public void InitialiseWebtags()
 		{
 			// create the web tag dictionary
@@ -5974,6 +6084,7 @@ namespace CumulusMX
 				{ "battery", Tagbattery },
 				{ "txbattery", Tagtxbattery },
 				{ "ConsoleSupplyV", TagConsoleSupplyV },
+				{ "LowBatteryList", TagLowBatteryList },
 				{ "MulticastBadCnt", TagMulticastBadCnt },
 				{ "MulticastGoodCnt", TagMulticastGoodCnt },
 				{ "MulticastGoodPct", TagMulticastGoodPct },
@@ -6190,7 +6301,7 @@ namespace CumulusMX
 				{ "graphperiod", Taggraphperiod },
 				{ "stationtype", Tagstationtype },
 				{ "stationtypeJsEnc", TagstationtypeJsEnc },
-				{ "stationId", TagstationId	},
+				{ "stationId", TagstationId },
 				{ "latitude", Taglatitude },
 				{ "latitudeJsEnc", TaglatitudeJsEnc },
 				{ "longitude", Taglongitude },
@@ -6423,6 +6534,8 @@ namespace CumulusMX
 				{ "HttpUploadAlarm", TagHttpUploadAlarm },
 				{ "UpgradeAlarm", TagUpgradeAlarm },
 				{ "FirmwareAlarm", TagFirmwareAlarm },
+				{ "NewRecordAlarm", TagNewRecordAlarm },
+				{ "NewRecordAlarmMessage", TagNewRecordAlarmMessage },
 
 				{ "RG11RainToday", TagRg11RainToday },
 				{ "RG11RainYest", TagRg11RainYest },
@@ -6490,7 +6603,7 @@ namespace CumulusMX
 				{ "AirLinkPct_24hrOut", AirLinkPct_24hrOut },
 				{ "AirLinkPct_NowcastOut", AirLinkPct_NowcastOut },
 
-				// Monthly highs and lows - values
+				// This month's highs and lows - values
 				{ "MonthTempH", TagMonthTempH },
 				{ "MonthTempL", TagMonthTempL },
 				{ "MonthHeatIndexH", TagMonthHeatIndexH },
@@ -6519,7 +6632,7 @@ namespace CumulusMX
 				{ "MonthLongestWetPeriod", TagMonthLongestWetPeriod },
 				{ "MonthHighDailyTempRange", TagMonthHighDailyTempRange },
 				{ "MonthLowDailyTempRange", TagMonthLowDailyTempRange },
-				// This year"s highs and lows - times
+				// This month's highs and lows - times
 				{ "MonthTempHT", TagMonthTempHt },
 				{ "MonthTempLT", TagMonthTempLt },
 				{ "MonthHeatIndexHT", TagMonthHeatIndexHt },
@@ -6540,7 +6653,7 @@ namespace CumulusMX
 				{ "MonthRain24HourHT", TagMonthRain24HourHt },
 				{ "MonthDewPointHT", TagMonthDewPointHt },
 				{ "MonthDewPointLT", TagMonthDewPointLt },
-				// This month"s highs and lows - dates
+				// This month's highs and lows - dates
 				{ "MonthTempHD", TagMonthTempHd },
 				{ "MonthTempLD", TagMonthTempLd },
 				{ "MonthHeatIndexHD", TagMonthHeatIndexHd },
@@ -6569,7 +6682,7 @@ namespace CumulusMX
 				{ "MonthLongestWetPeriodD", TagMonthLongestWetPeriodD },
 				{ "MonthHighDailyTempRangeD", TagMonthHighDailyTempRangeD },
 				{ "MonthLowDailyTempRangeD", TagMonthLowDailyTempRangeD },
-				// This Year"s highs and lows - values
+				// This Year's highs and lows - values
 				{ "YearTempH", TagYearTempH },
 				{ "YearTempL", TagYearTempL },
 				{ "YearHeatIndexH", TagYearHeatIndexH },
@@ -6599,7 +6712,7 @@ namespace CumulusMX
 				{ "YearLongestWetPeriod", TagYearLongestWetPeriod },
 				{ "YearHighDailyTempRange", TagYearHighDailyTempRange },
 				{ "YearLowDailyTempRange", TagYearLowDailyTempRange },
-				// This years"s highs and lows - times
+				// This years highs and lows - times
 				{ "YearTempHT", TagYearTempHt },
 				{ "YearTempLT", TagYearTempLt },
 				{ "YearHeatIndexHT", TagYearHeatIndexHt },
@@ -6620,7 +6733,7 @@ namespace CumulusMX
 				{ "YearRain24HourHT", TagYearRain24HourHt },
 				{ "YearDewPointHT", TagYearDewPointHt },
 				{ "YearDewPointLT", TagYearDewPointLt },
-				// Yearly highs and lows - dates
+				// This years highs and lows - dates
 				{ "YearTempHD", TagYearTempHd },
 				{ "YearTempLD", TagYearTempLd },
 				{ "YearHeatIndexHD", TagYearHeatIndexHd },
@@ -6787,6 +6900,7 @@ namespace CumulusMX
 				// Specifc Month/Year values
 				{ "MonthTempAvg", TagMonthTempAvg },
 				{ "YearTempAvg", TagYearTempAvg },
+				{ "MonthRainfall", TagMonthRainfall },
 				{ "AnnualRainfall", TagAnnualRainfall },
 				// Options
 				{ "Option_useApparent", TagOption_useApparent },
@@ -6794,7 +6908,9 @@ namespace CumulusMX
 				{ "Option_showUV", TagOption_showUV },
 				// MySQL insert times
 				{ "MySqlRealtimeTime", TagMySqlRealtimeTime },
-				{ "MySqlIntervalTime", TagMySqlIntervalTime }
+				{ "MySqlIntervalTime", TagMySqlIntervalTime },
+				// General queries
+				{ "QueryDayFile", TagQueryDayFile }
 			};
 
 			cumulus.LogMessage(webTagDictionary.Count + " web tags initialised");

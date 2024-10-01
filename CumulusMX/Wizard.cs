@@ -110,6 +110,11 @@ namespace CumulusMX
 				macaddress = cumulus.Gw1000MacAddress
 			};
 
+			var ecowittHttpApi = new JsonStationSettingsHttpApi()
+			{
+				ipaddress = cumulus.Gw1000IpAddress
+			};
+
 			var fineoffset = new JsonWizardFineOffset()
 			{
 				syncreads = cumulus.FineOffsetOptions.SyncReads,
@@ -154,12 +159,14 @@ namespace CumulusMX
 
 			var station = new JsonWizardStation()
 			{
+				manufacturer = cumulus.Manufacturer,
 				stationtype = cumulus.StationType,
 				stationmodel = cumulus.StationModel,
 				davisvp2 = davisvp,
 				daviswll = daviswll,
 				daviscloud = daviscloud,
 				gw1000 = gw1000,
+				ecowitthttpapi = ecowittHttpApi,
 				fineoffset = fineoffset,
 				easyw = easyweather,
 				imet = imet,
@@ -504,6 +511,7 @@ namespace CumulusMX
 						cumulus.LogWarningMessage("Station type changed, restart required");
 						Cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow);
 					}
+					cumulus.Manufacturer = settings.station.manufacturer;
 					cumulus.StationType = settings.station.stationtype;
 					cumulus.StationModel = settings.station.stationmodel;
 				}
@@ -617,6 +625,23 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					var msg = "Error processing GW1000 settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+
+				// HTTP Local API connection details
+				try
+				{
+					if (settings.station.ecowitthttpapi != null)
+					{
+						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.station.ecowitthttpapi.ipaddress) ? null : settings.station.ecowitthttpapi.ipaddress.Trim();
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ecowitt Local HTTP API settings: " + ex.Message;
 					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -824,12 +849,14 @@ namespace CumulusMX
 
 	internal class JsonWizardStation
 	{
+		public int manufacturer { get; set; }
 		public int stationtype { get; set; }
 		public string stationmodel { get; set; }
 		public JsonWizardDavisVp davisvp2 { get; set; }
 		public JsonWizardDavisWll daviswll { get; set; }
 		public JsonWizardDavisWll daviscloud { get; set; }
 		public JsonStationSettingsGw1000Conn gw1000 { get; set; }
+		public JsonStationSettingsHttpApi ecowitthttpapi { get; set; }
 		public JsonWizardFineOffset fineoffset { get; set; }
 		public JsonWizardEasyWeather easyw { get; set; }
 		public JsonWizardImet imet { get; set; }

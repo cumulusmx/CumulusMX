@@ -113,10 +113,9 @@ namespace CumulusMX
 
 				watcher = new FileSystemWatcher(fileInfo.DirectoryName)
 				{
-					NotifyFilter = NotifyFilters.LastWrite
+					NotifyFilter = NotifyFilters.LastWrite,
+					Filter = fileInfo.Name
 				};
-
-				watcher.Filter = fileInfo.Name;
 
 				watcher.Changed += OnFileChanged;
 				watcher.Created += OnFileChanged;
@@ -205,6 +204,12 @@ namespace CumulusMX
 
 		private string ApplyData(string dataString)
 		{
+			if (DayResetInProgress)
+			{
+				cumulus.LogMessage("ApplyData: Day reset in progress, ignoring incoming data");
+				return string.Empty;
+			}
+
 			var retStr = new StringBuilder();
 
 			var data = dataString.FromJson<DataObject>();
@@ -269,18 +274,18 @@ namespace CumulusMX
 			// Humidity
 			try
 			{
-			if (data.humidity != null)
-			{
-				if (data.humidity.outdoor != null)
+				if (data.humidity != null)
 				{
-					DoOutdoorHumidity(data.humidity.outdoor.Value, data.lastupdated);
-					haveHum = true;
+					if (data.humidity.outdoor != null)
+					{
+						DoOutdoorHumidity(data.humidity.outdoor.Value, data.lastupdated);
+						haveHum = true;
+					}
+					if (data.humidity.indoor != null)
+					{
+						DoIndoorHumidity(data.humidity.indoor.Value);
+					}
 				}
-				if (data.humidity.indoor != null)
-				{
-					DoIndoorHumidity(data.humidity.indoor.Value);
-				}
-			}
 			}
 			catch (Exception ex)
 			{
@@ -292,59 +297,59 @@ namespace CumulusMX
 			// Wind
 			try
 			{
-			if (data.wind != null && data.units != null)
-			{
-				if (data.units.windspeed == null)
+				if (data.wind != null && data.units != null)
 				{
-					cumulus.LogErrorMessage("ApplyData: No windspeed units supplied!");
-					retStr.AppendLine("No windspeed units");
-				}
-				else
-				{
-					var avg = data.wind.speed ?? -1;
-					var gust = data.wind.gust10m ?? -1;
-
-					if (gust < 0)
+					if (data.units.windspeed == null)
 					{
-						cumulus.LogErrorMessage("ApplyData: No gust value supplied in wind data");
-						retStr.AppendLine("No gust value supplied in wind data");
+						cumulus.LogErrorMessage("ApplyData: No windspeed units supplied!");
+						retStr.AppendLine("No windspeed units");
 					}
 					else
 					{
-						var doit = true;
-						switch (data.units.windspeed)
+						var avg = data.wind.speed ?? -1;
+						var gust = data.wind.gust10m ?? -1;
+
+						if (gust < 0)
 						{
-							case "mph":
-								avg = ConvertUnits.WindMPHToUser(avg);
-								gust = ConvertUnits.WindMPHToUser(gust);
-								break;
-							case "ms":
-								avg = ConvertUnits.WindMSToUser(avg);
-								gust = ConvertUnits.WindMSToUser(gust);
-								break;
-							case "kph":
-								avg = ConvertUnits.WindKPHToUser(avg);
-								gust = ConvertUnits.WindKPHToUser(gust);
-								break;
-							case "knots":
+							cumulus.LogErrorMessage("ApplyData: No gust value supplied in wind data");
+							retStr.AppendLine("No gust value supplied in wind data");
+						}
+						else
+						{
+							var doit = true;
+							switch (data.units.windspeed)
+							{
+								case "mph":
+									avg = ConvertUnits.WindMPHToUser(avg);
+									gust = ConvertUnits.WindMPHToUser(gust);
+									break;
+								case "ms":
+									avg = ConvertUnits.WindMSToUser(avg);
+									gust = ConvertUnits.WindMSToUser(gust);
+									break;
+								case "kph":
+									avg = ConvertUnits.WindKPHToUser(avg);
+									gust = ConvertUnits.WindKPHToUser(gust);
+									break;
+								case "knots":
 									avg = ConvertUnits.WindKnotsToUser(avg);
 									gust = ConvertUnits.WindKnotsToUser(gust);
 									break;
-							default:
-								cumulus.LogErrorMessage("ApplyData: Invalid windspeed units supplied: " + data.units.windspeed);
-								retStr.AppendLine("Invalid windspeed units");
-								doit = false;
-								break;
-						}
+								default:
+									cumulus.LogErrorMessage("ApplyData: Invalid windspeed units supplied: " + data.units.windspeed);
+									retStr.AppendLine("Invalid windspeed units");
+									doit = false;
+									break;
+							}
 
-						if (doit)
-						{
-							DoWind(gust, data.wind.direction ?? 0, avg, data.lastupdated);
-							haveWind = true;
+							if (doit)
+							{
+								DoWind(gust, data.wind.direction ?? 0, avg, data.lastupdated);
+								haveWind = true;
+							}
 						}
 					}
 				}
-			}
 			}
 			catch (Exception ex)
 			{
@@ -356,57 +361,57 @@ namespace CumulusMX
 			// Rain
 			try
 			{
-			if (data.rain != null && data.units != null)
-			{
-				var doit = true;
-				double counter = 0;
-				if (data.rain.counter.HasValue)
+				if (data.rain != null && data.units != null)
 				{
-					counter = data.rain.counter.Value;
-				}
-				else if (data.rain.year.HasValue)
-				{
-					counter = data.rain.year.Value;
-				}
-				else
-				{
-					cumulus.LogErrorMessage("ApplyData: No rainfall counter/year value supplied!");
-					retStr.AppendLine("No rainfall counter/year value supplied");
-					doit = false;
-				}
-
-				if (doit)
-				{
-					if (data.units.rainfall == null)
+					var doit = true;
+					double counter = 0;
+					if (data.rain.counter.HasValue)
 					{
-						cumulus.LogErrorMessage("ApplyData: No rainfall units supplied!");
-						retStr.AppendLine("No rainfall units");
+						counter = data.rain.counter.Value;
 					}
-					else if (data.units.rainfall == "mm")
+					else if (data.rain.year.HasValue)
 					{
-						var rate = ConvertUnits.RainMMToUser(data.rain.rate ?? 0);
-
-						if (data.rain.counter.HasValue)
-						{
-							DoRain(ConvertUnits.RainMMToUser(counter), rate, data.lastupdated);
-						}
-					}
-					else if (data.units.rainfall == "in")
-					{
-						var rate = ConvertUnits.RainINToUser(data.rain.rate ?? 0);
-
-						if (data.rain.counter.HasValue)
-						{
-							DoRain(ConvertUnits.RainINToUser(counter), rate, data.lastupdated);
-						}
+						counter = data.rain.year.Value;
 					}
 					else
 					{
-						cumulus.LogErrorMessage("ApplyData: Invalid rainfall units supplied = " + data.units.rainfall);
-						retStr.AppendLine($"Invalid rainfall units: {data.units.rainfall}");
+						cumulus.LogErrorMessage("ApplyData: No rainfall counter/year value supplied!");
+						retStr.AppendLine("No rainfall counter/year value supplied");
+						doit = false;
+					}
+
+					if (doit)
+					{
+						if (data.units.rainfall == null)
+						{
+							cumulus.LogErrorMessage("ApplyData: No rainfall units supplied!");
+							retStr.AppendLine("No rainfall units");
+						}
+						else if (data.units.rainfall == "mm")
+						{
+							var rate = ConvertUnits.RainMMToUser(data.rain.rate ?? 0);
+
+							if (data.rain.counter.HasValue)
+							{
+								DoRain(ConvertUnits.RainMMToUser(counter), rate, data.lastupdated);
+							}
+						}
+						else if (data.units.rainfall == "in")
+						{
+							var rate = ConvertUnits.RainINToUser(data.rain.rate ?? 0);
+
+							if (data.rain.counter.HasValue)
+							{
+								DoRain(ConvertUnits.RainINToUser(counter), rate, data.lastupdated);
+							}
+						}
+						else
+						{
+							cumulus.LogErrorMessage("ApplyData: Invalid rainfall units supplied = " + data.units.rainfall);
+							retStr.AppendLine($"Invalid rainfall units: {data.units.rainfall}");
+						}
 					}
 				}
-			}
 			}
 			catch (Exception ex)
 			{
@@ -418,71 +423,71 @@ namespace CumulusMX
 			// Pressure
 			try
 			{
-			if (data.pressure != null && data.units != null)
-			{
-				if (data.units.pressure == null)
+				if (data.pressure != null && data.units != null)
 				{
-					cumulus.LogErrorMessage("ApplyData: No pressure units supplied!");
-					retStr.AppendLine("No pressure units");
-				}
-				else
-				{
-					var slp = data.pressure.sealevel ?? -1;
-					var abs = data.pressure.absolute ?? -1;
-
-					if (slp < 0 && abs < 0)
+					if (data.units.pressure == null)
 					{
-						cumulus.LogErrorMessage("ApplyData: No pressure values in data");
-						retStr.AppendLine("No pressure values in data");
+						cumulus.LogErrorMessage("ApplyData: No pressure units supplied!");
+						retStr.AppendLine("No pressure units");
 					}
 					else
 					{
-						var doit = true;
+						var slp = data.pressure.sealevel ?? -1;
+						var abs = data.pressure.absolute ?? -1;
 
-						if (cumulus.StationOptions.CalculateSLP && abs < 0)
+						if (slp < 0 && abs < 0)
 						{
-							cumulus.LogErrorMessage("ApplyData: Calculate SLP is enabled, but no abosolute pressure value in data");
-							retStr.AppendLine("Calculate SLP is enabled, but no abosolute pressure value in data");
+							cumulus.LogErrorMessage("ApplyData: No pressure values in data");
+							retStr.AppendLine("No pressure values in data");
 						}
 						else
 						{
-							switch (data.units.pressure)
+							var doit = true;
+
+							if (cumulus.StationOptions.CalculateSLP && abs < 0)
 							{
-								case "hPa":
-									slp = ConvertUnits.PressMBToUser(slp);
-									StationPressure = ConvertUnits.PressMBToUser(abs);
-									break;
-								case "kPa":
-									slp = ConvertUnits.PressKPAToUser(slp);
-									StationPressure = ConvertUnits.PressKPAToUser(abs);
-									break;
-								case "inHg":
-									slp = ConvertUnits.PressINHGToUser(slp);
-									StationPressure = ConvertUnits.PressINHGToUser(abs);
-									break;
-								default:
-									cumulus.LogErrorMessage("ApplyData: Invalid pressure units supplied: " + data.units.pressure);
-									retStr.AppendLine("Invalid pressure units");
-									doit = false;
-									break;
+								cumulus.LogErrorMessage("ApplyData: Calculate SLP is enabled, but no abosolute pressure value in data");
+								retStr.AppendLine("Calculate SLP is enabled, but no abosolute pressure value in data");
 							}
-
-							StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
-
-							if (doit)
+							else
 							{
-								if (cumulus.StationOptions.CalculateSLP)
+								switch (data.units.pressure)
 								{
-									slp = MeteoLib.GetSeaLevelPressure(cumulus.Altitude, ConvertUnits.UserPressToHpa(StationPressure), OutdoorTemperature);
-									slp = ConvertUnits.PressMBToUser(slp);
+									case "hPa":
+										slp = ConvertUnits.PressMBToUser(slp);
+										StationPressure = ConvertUnits.PressMBToUser(abs);
+										break;
+									case "kPa":
+										slp = ConvertUnits.PressKPAToUser(slp);
+										StationPressure = ConvertUnits.PressKPAToUser(abs);
+										break;
+									case "inHg":
+										slp = ConvertUnits.PressINHGToUser(slp);
+										StationPressure = ConvertUnits.PressINHGToUser(abs);
+										break;
+									default:
+										cumulus.LogErrorMessage("ApplyData: Invalid pressure units supplied: " + data.units.pressure);
+										retStr.AppendLine("Invalid pressure units");
+										doit = false;
+										break;
 								}
 
-								DoPressure(slp, data.lastupdated);
+								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
+
+								if (doit)
+								{
+									if (cumulus.StationOptions.CalculateSLP)
+									{
+										slp = MeteoLib.GetSeaLevelPressure(cumulus.Altitude, ConvertUnits.UserPressToHpa(StationPressure), OutdoorTemperature);
+										slp = ConvertUnits.PressMBToUser(slp);
+									}
+
+									DoPressure(slp, data.lastupdated);
+								}
 							}
 						}
 					}
 				}
-			}
 			}
 			catch (Exception ex)
 			{
@@ -754,12 +759,13 @@ namespace CumulusMX
 
 			UpdateStatusPanel(data.lastupdated);
 			UpdateMQTT();
+			LastDataReadTime = data.lastupdated;
 
 			return retStr.ToString();
 		}
 
 
-#pragma warning disable S3459,S1144 // Unused private types or members should be removed
+#pragma warning disable S3459, S1144 // Unused private types or members should be removed
 		private sealed class DataObject
 		{
 			public UnitsObject units { get; set; }
@@ -785,13 +791,13 @@ namespace CumulusMX
 			public string windspeed { get; set; }
 			public string rainfall { get; set; }
 			public string pressure { get; set; }
-			public string soilmoisture { get; set;}
+			public string soilmoisture { get; set; }
 		}
 
 		private sealed class Temperature
 		{
 			public double? outdoor { get; set; }
-			public double? indoor { get; set;}
+			public double? indoor { get; set; }
 			public double? dewpoint { get; set; }
 		}
 		private sealed class Humidity
@@ -803,7 +809,7 @@ namespace CumulusMX
 		{
 			public double? speed { get; set; }
 			public int? direction { get; set; }
-			public double? gust10m { get; set;}
+			public double? gust10m { get; set; }
 		}
 		private sealed class Rain
 		{
@@ -813,13 +819,13 @@ namespace CumulusMX
 		}
 		private sealed class PressureJson
 		{
-			public double? absolute { get; set;}
+			public double? absolute { get; set; }
 			public double? sealevel { get; set; }
 		}
 		private sealed class Solar
 		{
 			public int? irradiation { get; set; }
-			public double? uvi { get; set;}
+			public double? uvi { get; set; }
 		}
 		private class ExtraTempJson
 		{
@@ -841,7 +847,7 @@ namespace CumulusMX
 			public double? pm2p5 { get; set; }
 			public double? pm2p5avg24h { get; set; }
 			public double? pm10 { get; set; }
-			public double? pm10avg24h { get; set;}
+			public double? pm10avg24h { get; set; }
 		}
 		private sealed class Co2Data : PmData
 		{

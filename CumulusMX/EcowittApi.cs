@@ -1410,7 +1410,7 @@ namespace CumulusMX
 				station.DoTrendValues(rec.Key);
 				station.UpdateStatusPanel(rec.Key);
 				cumulus.AddToWebServiceLists(rec.Key);
-
+				station.LastDataReadTime = rec.Key;
 			}
 		}
 
@@ -2498,18 +2498,26 @@ namespace CumulusMX
 						{
 							// we have a camera
 							cumulus.EcowittCameraMacAddress = stn.mac;
+							cumulus.LogDebugMessage($"API.GetStationList: Found Camera name={stn.name ?? "-"}, vers={stn.stationtype ?? "-"}");
 						}
 						else if (stn.type == 1 && stn.mac.Equals(macAddress, StringComparison.CurrentCultureIgnoreCase))
 						{
 							// weather station - check the version
 							vers = stn.stationtype.Split('V')[^1];
 							model = stn.stationtype.Replace("_", string.Empty).Split('V')[0];
+							cumulus.LogDebugMessage($"API.GetStationList: Found Station model={model}, vers={vers}");
+						}
+						else
+						{
+							// no idea what we got!
+							cumulus.LogDebugMessage($"API.GetStationList: Found type={stn.type}, name={stn.name?? "-"}, model={stn.stationtype ?? "-"}");
 						}
 					}
 
-					cumulus.LogDebugMessage($"API.GetStationList: Found vers={vers}, model={model}");
-
-					return [vers, model];
+					if (vers != string.Empty && model != string.Empty)
+					{
+						return [vers, model];
+					}
 				}
 
 				return [];
@@ -2598,7 +2606,7 @@ namespace CumulusMX
 								cumulus.LogMessage("API.GetLatestFirmwareVersion: Operation throttled, retrying later...");
 								// delay 5 minutes and try again
 								await Task.Delay(5 * 60 * 1000, token);
-								await GetLatestFirmwareVersion(model, mac,version, token);
+								await GetLatestFirmwareVersion(model, mac, version, token);
 								return null;
 							default:
 								cumulus.LogMessage($"API.GetLatestFirmwareVersion: {retObj.msg}");

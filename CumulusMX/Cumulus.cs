@@ -349,6 +349,7 @@ namespace CumulusMX
 			public bool EnableInterval { get; set; }
 			public string IntervalTemplate { get; set; }
 		}
+
 		internal MqttConfig MQTT;
 
 		// NOAA report settings
@@ -490,10 +491,23 @@ namespace CumulusMX
 			"Ecowitt Cloud",                // 18
 			"Davis Cloud (WLL/WLC)",        // 19
 			"Davis Cloud (VP2)",            // 20
-			"JSON Data"                     // 21
+			"JSON Data",                    // 21
+			"Ecowitt HTTP API"              // 22
 		];
 
-		internal string[] APRSstationtype = ["DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul", "Ecow", "DsVP", "DsVP", "Json"];
+		internal string[] APRSstationtype = ["DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecow", "Unkn", "Ecow", "Ambt", "Tmpt", "Simul", "Ecow", "DsVP", "DsVP", "Json", "Ecow"];
+
+		internal string[] DayfileFieldNames = ["Date", "HighWindGust", "HighGustBearing", "HighGustTime", "MinTemperature", "MinTempTime", "MaxTemperature", "MaxTempTime", "MinPressure", "MinPressureTime", "MaxPressure", "MaxPressureTime", "MaxRainfallRate", "MaxRainRateTime", "TotalRainfallToday", "AvgTemperatureToday", "TotalWindRun", "HighAverageWindSpeed", "HighAvgWindSpeedTime", "LowHumidity", "LowHumidityTime", "HighHumidity", "HighHumidityTime", "TotalEvapotranspiration", "TotalHoursOfSunshine", "HighHeatIndex", "HighHeatIndexTime", "HighApparentTemperature", "HighAppTempTime", "LowApparentTemperature", "LowAppTempTime", "High1hRain", "High1hRainTime", "LowWindChill", "LowWindChillTime", "HighDewPoint", "HighDewPointTime", "LowDewPoint", "LowDewPointTime", "DominantWindBearing", "HeatingDegreeDays", "CoolingDegreeDays", "HighSolarRad", "HighSolarRadTime", "HighUv-I", "HighUv-ITime", "HighFeelsLike", "HighFeelsLikeTime", "LowFeelsLike", "LowFeelsLikeTime", "HighHumidex", "HighHumidexTime", "ChillHours", "High24hRain", "High24hRainTime"];
+		internal string[] LogFileFieldNames = ["Date", "Time", "Temperature", "Humidity", "DewPoint", "WindSpeed", "RecentHighGust", "AverageWindBearing", "RainfallRate", "RainfallSoFar", "SeaLevelPressure", "RainfallCounter", "InsideTemperature", "InsideHumidity", "CurrentGust", "WindChill", "HeatIndex", "UvIndex", "SolarRadiation", "Evapotranspiration", "AnnualEvapotranspiration", "ApparentTemperature", "MaxSolarRadiation", "HoursOfSunshine", "WindBearing", "Rg-11Rain", "RainSinceMidnight", "FeelsLike", "Humidex"];
+		internal string[] ExtraFileFieldNames = ["Date", "Time",
+			"Temp1", "Temp2", "Temp3", "Temp4", "Temp5", "Temp6", "Temp7", "Temp8", "Temp9", "Temp10", "Hum1", "Hum2", "Hum3", "Hum4", "Hum5", "Hum6", "Hum7", "Hum8", "Hum9", "Hum10",
+			"Dewpoint1", "Dewpoint2", "Dewpoint3", "Dewpoint4", "Dewpoint5", "Dewpoint6", "Dewpoint7", "Dewpoint8", "Dewpoint9", "Dewpoint10",
+			"SoilTemp1", "SoilTemp2", "SoilTemp3", "SoilTemp4", "SoilMoist1", "SoilMoist2", "SoilMoist3", "SoilMoist4", "na1", "na2", "LeafWet1", "LeafWet2",
+			"SoilTemp5", "SoilTemp6", "SoilTemp7", "SoilTemp8", "SoilTemp9", "SoilTemp10", "SoilTemp11", "SoilTemp12", "SoilTemp13", "SoilTemp14", "SoilTemp15", "SoilTemp16",
+			"SoilMoist5", "SoilMoist6", "SoilMoist7", "SoilMoist8", "SoilMoist9", "SoilMoist10", "SoilMoist11", "SoilMoist12", "SoilMoist13", "SoilMoist14", "SoilMoist15", "SoilMoist16",
+			"AQ1Pm", "AQ2Pm", "AQ3Pm", "AQ4Pm", "AQ1PmAvg", "AQ2PmAvg", "AQ3PmAvg", "AQ4PmAvg", "UserTemp1", "UserTemp2", "UserTemp3", "UserTemp4", "UserTemp5", "UserTemp6", "UserTemp7", "UserTemp8",
+			"CO2", "CO2Avg", "CO2Pm25", "CO2Pm25Avg", "CO2Pm10", "CO2Pm10Avg", "CO2Temp", "CO2Hum"
+		];
 
 		private string loggingfile;
 		private static readonly Queue<string> queue = new(50);
@@ -628,6 +642,9 @@ namespace CumulusMX
 
 			// Check if all the folders required by CMX exist, if not create them
 			CreateRequiredFolders();
+
+			// Remove old MD5 hash files
+			CleanUpHashFiles();
 
 			Datapath = "data" + DirectorySeparator;
 			backupPath = "backup" + DirectorySeparator;
@@ -1104,14 +1121,21 @@ namespace CumulusMX
 			// do we have a start-up task to run?
 			if (!string.IsNullOrEmpty(ProgramOptions.StartupTask))
 			{
-				LogMessage($"Running start-up task: {ProgramOptions.StartupTask}, arguments: {ProgramOptions.StartupTaskParams}, wait: {ProgramOptions.StartupTaskWait}");
-				try
+				if (!File.Exists(ProgramOptions.StartupTask))
 				{
-					Utils.RunExternalTask(ProgramOptions.StartupTask, ProgramOptions.StartupTaskParams, ProgramOptions.StartupTaskWait);
+					LogWarningMessage($"Waring: Start-up task: '{ProgramOptions.StartupTask}' does not exist");
 				}
-				catch (Exception ex)
+				else
 				{
-					LogErrorMessage($"Error running start-up task: {ex.Message}");
+					LogMessage($"Running start-up task: {ProgramOptions.StartupTask}, arguments: {ProgramOptions.StartupTaskParams}, wait: {ProgramOptions.StartupTaskWait}");
+					try
+					{
+						Utils.RunExternalTask(ProgramOptions.StartupTask, ProgramOptions.StartupTaskParams, ProgramOptions.StartupTaskWait);
+					}
+					catch (Exception ex)
+					{
+						LogErrorMessage($"Error running start-up task: {ex.Message}");
+					}
 				}
 			}
 
@@ -1346,87 +1370,72 @@ namespace CumulusMX
 			if (StationType >= 0 && StationType < StationDesc.Length)
 				LogConsoleMessage($"Opening station type {StationType} - {StationDesc[StationType]}");
 
+			Manufacturer = GetStationManufacturer(StationType);
 			switch (StationType)
 			{
 				case StationTypes.FineOffset:
 				case StationTypes.FineOffsetSolar:
-					Manufacturer = EW;
 					station = new FOStation(this);
 					break;
 				case StationTypes.VantagePro:
 				case StationTypes.VantagePro2:
-					Manufacturer = DAVIS;
 					station = new DavisStation(this);
 					break;
 				case StationTypes.WMR928:
-					Manufacturer = OREGON;
 					station = new WMR928Station(this);
 					break;
 				case StationTypes.WM918:
-					Manufacturer = OREGON;
 					station = new WM918Station(this);
 					break;
 				case StationTypes.WS2300:
-					Manufacturer = LACROSSE;
 					station = new WS2300Station(this);
 					break;
 				case StationTypes.WMR200:
-					Manufacturer = OREGONUSB;
 					station = new WMR200Station(this);
 					break;
 				case StationTypes.Instromet:
-					Manufacturer = INSTROMET;
 					station = new ImetStation(this);
 					break;
 				case StationTypes.WMR100:
-					Manufacturer = OREGONUSB;
 					station = new WMR100Station(this);
 					break;
 				case StationTypes.EasyWeather:
-					Manufacturer = EW;
 					station = new EasyWeather(this);
 					station.LoadLastHoursFromDataLogs(DateTime.Now);
 					break;
 				case StationTypes.WLL:
-					Manufacturer = DAVIS;
 					station = new DavisWllStation(this);
 					break;
 				case StationTypes.GW1000:
-					Manufacturer = ECOWITT;
 					station = new GW1000Station(this);
 					break;
 				case StationTypes.Tempest:
-					Manufacturer = WEATHERFLOW;
 					station = new TempestStation(this);
 					break;
 				case StationTypes.HttpWund:
-					Manufacturer = HTTPSTATION;
 					station = new HttpStationWund(this);
 					break;
 				case StationTypes.HttpEcowitt:
-					Manufacturer = ECOWITT;
 					station = new HttpStationEcowitt(this);
 					break;
 				case StationTypes.HttpAmbient:
-					Manufacturer = AMBIENT;
 					station = new HttpStationAmbient(this);
 					break;
 				case StationTypes.Simulator:
-					Manufacturer = SIMULATOR;
 					station = new Simulator(this);
 					break;
 				case StationTypes.EcowittCloud:
-					Manufacturer = ECOWITT;
 					station = new EcowittCloudStation(this);
 					break;
 				case StationTypes.DavisCloudWll:
 				case StationTypes.DavisCloudVP2:
-					Manufacturer = DAVIS;
 					station = new DavisCloudStation(this);
 					break;
 				case StationTypes.JsonStation:
-					Manufacturer = JSONSTATION;
 					station = new JsonStation(this);
+					break;
+				case StationTypes.EcowittHttpApi:
+					station = new EcowittHttpApiStation(this);
 					break;
 
 				default:
@@ -2307,24 +2316,31 @@ namespace CumulusMX
 
 					if (!string.IsNullOrEmpty(RealtimeProgram))
 					{
-						try
+						if (!File.Exists(RealtimeProgram))
 						{
-							var args = string.Empty;
-
-							if (!string.IsNullOrEmpty(RealtimeParams))
-							{
-								var parser = new TokenParser(TokenParserOnToken)
-								{
-									InputText = RealtimeParams
-								};
-								args = parser.ToStringFromString();
-							}
-							LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
-							Utils.RunExternalTask(RealtimeProgram, args, false);
+							LogWarningMessage($"Warning: Realtime program '{RealtimeProgram}' does not exist");
 						}
-						catch (Exception ex)
+						else
 						{
-							LogErrorMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
+							try
+							{
+								var args = string.Empty;
+
+								if (!string.IsNullOrEmpty(RealtimeParams))
+								{
+									var parser = new TokenParser(TokenParserOnToken)
+									{
+										InputText = RealtimeParams
+									};
+									args = parser.ToStringFromString();
+								}
+								LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
+								Utils.RunExternalTask(RealtimeProgram, args, false);
+							}
+							catch (Exception ex)
+							{
+								LogErrorMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
+							}
 						}
 					}
 				}
@@ -3080,6 +3096,16 @@ namespace CumulusMX
 
 		public string DecimalSeparator { get; set; }
 
+		private void CleanUpHashFiles()
+		{
+			foreach (var file in Directory.EnumerateFiles(AppDir, "hash_md5_*.txt"))
+			{
+				if (!file.EndsWith(Build + ".txt"))
+				{
+					File.Delete(file);
+				}
+			}
+		}
 
 		internal void DoMoonPhase()
 		{
@@ -3600,6 +3626,7 @@ namespace CumulusMX
 
 			StationType = ini.GetValue("Station", "Type", -1);
 			StationModel = ini.GetValue("Station", "Model", string.Empty);
+			Manufacturer = GetStationManufacturer(StationType);
 
 			FineOffsetStation = (StationType == StationTypes.FineOffset || StationType == StationTypes.FineOffsetSolar);
 			DavisStation = (StationType == StationTypes.VantagePro || StationType == StationTypes.VantagePro2);
@@ -3730,7 +3757,7 @@ namespace CumulusMX
 			Units.Press = ini.GetValue("Station", "PressureUnit", 1, 0, 3);
 
 			Units.Rain = ini.GetValue("Station", "RainUnit", 0, 0, 1);
-			Units.Temp = ini.GetValue("Station", "TempUnit", 0, 0 , 1);
+			Units.Temp = ini.GetValue("Station", "TempUnit", 0, 0, 1);
 
 			StationOptions.RoundWindSpeed = ini.GetValue("Station", "RoundWindSpeed", false);
 			StationOptions.PrimaryAqSensor = ini.GetValue("Station", "PrimaryAqSensor", -1, -1);
@@ -3849,7 +3876,7 @@ namespace CumulusMX
 				rewriteRequired = true;
 			}
 
-			UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
+			StationOptions.UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
 			UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
 			HourlyForecast = ini.GetValue("Station", "HourlyForecast", false);
 			StationOptions.UseCumulusPresstrendstr = ini.GetValue("Station", "UseCumulusPresstrendstr", false);
@@ -3955,6 +3982,7 @@ namespace CumulusMX
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0, 0, 99);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
 			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0, 0, 1); //0=main station (tipping bucket) 1=piezo
+			EcowittIsRainingUsePiezo = ini.GetValue("GW1000", "UsePiezoIsRaining", false);
 			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
 			EcowittCloudExtraEnabled = ini.GetValue("GW1000", "ExtraCloudSensorDataEnabled", false);
 			EcowittExtraUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
@@ -3974,6 +4002,8 @@ namespace CumulusMX
 			var localIp = Utils.GetIpWithDefaultGateway();
 			EcowittLocalAddr = ini.GetValue("GW1000", "EcowittLocalAddr", localIp.ToString());
 			EcowittCustomInterval = ini.GetValue("GW1000", "EcowittCustomInterval", 16, 1);
+
+			EcowittHttpPassword = ini.GetValue("GW1000", "HttpPassword", "");
 
 			EcowittExtraSetCustomServer = ini.GetValue("GW1000", "ExtraSetCustomServer", false);
 			EcowittExtraGatewayAddr = ini.GetValue("GW1000", "EcowittExtraGwAddr", "0.0.0.0");
@@ -5380,6 +5410,7 @@ namespace CumulusMX
 				HTTPProxyPassword = Crypto.DecryptString(HTTPProxyPassword, Program.InstanceId, "HTTPProxyPassword");
 				EcowittApplicationKey = Crypto.DecryptString(EcowittApplicationKey, Program.InstanceId, "EcowittSettings.AppKey");
 				EcowittUserApiKey = Crypto.DecryptString(EcowittUserApiKey, Program.InstanceId, "EcowittSettings.UserApiKey");
+				EcowittHttpPassword = Crypto.DecryptString(EcowittHttpPassword, Program.InstanceId, "EcowittSettings.HttpPassword");
 			}
 			else
 			{
@@ -5542,7 +5573,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "StartDateIso", RecordsBeganDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
 			ini.SetValue("Station", "YTDrain", YTDrain);
 			ini.SetValue("Station", "YTDrainyear", YTDrainyear);
-			ini.SetValue("Station", "UseDataLogger", UseDataLogger);
+			ini.SetValue("Station", "UseDataLogger", StationOptions.UseDataLogger);
 			ini.SetValue("Station", "UseCumulusForecast", UseCumulusForecast);
 			ini.SetValue("Station", "HourlyForecast", HourlyForecast);
 			ini.SetValue("Station", "UseCumulusPresstrendstr", StationOptions.UseCumulusPresstrendstr);
@@ -5650,6 +5681,7 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "AutoUpdateIpAddress", Gw1000AutoUpdateIpAddress);
 			ini.SetValue("GW1000", "PrimaryTHSensor", Gw1000PrimaryTHSensor);
 			ini.SetValue("GW1000", "PrimaryRainSensor", Gw1000PrimaryRainSensor);
+			ini.SetValue("GW1000", "UsePiezoIsRaining", EcowittIsRainingUsePiezo);
 			ini.SetValue("GW1000", "ExtraSensorDataEnabled", EcowittExtraEnabled);
 			ini.SetValue("GW1000", "ExtraCloudSensorDataEnabled", EcowittCloudExtraEnabled);
 			ini.SetValue("GW1000", "ExtraSensorUseSolar", EcowittExtraUseSolar);
@@ -5672,6 +5704,9 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "EcowittExtraGwAddr", EcowittExtraGatewayAddr);
 			ini.SetValue("GW1000", "EcowittExtraLocalAddr", EcowittExtraLocalAddr);
 			ini.SetValue("GW1000", "EcowittExtraCustomInterval", EcowittExtraCustomInterval);
+
+			ini.SetValue("GW1000", "HttpPassword", Crypto.EncryptString(EcowittHttpPassword, Program.InstanceId, "EcowittSettings.HttpPassword"));
+
 			// api
 			ini.SetValue("GW1000", "EcowittAppKey", Crypto.EncryptString(EcowittApplicationKey, Program.InstanceId, "EcowittSettings.AppKey"));
 			ini.SetValue("GW1000", "EcowittUserKey", Crypto.EncryptString(EcowittUserApiKey, Program.InstanceId, "EcowittSettings.UserApiKey"));
@@ -7159,8 +7194,9 @@ namespace CumulusMX
 		public string[] EcowittForwarders { get; set; } = new string[10];
 		public bool EcowittExtraUseMainForwarders { get; set; }
 		public string[] EcowittExtraForwarders { get; set; } = new string[10];
-
+		public string EcowittHttpPassword { get; set; }
 		public int[] EcowittMapWN34 { get; set; } = new int[9];
+		public bool EcowittIsRainingUsePiezo {  get; set; }
 
 		public bool AmbientExtraEnabled { get; set; }
 		public bool AmbientExtraUseSolar { get; set; }
@@ -7217,8 +7253,6 @@ namespace CumulusMX
 		public bool HourlyForecast { get; set; }
 
 		public bool UseCumulusForecast { get; set; }
-
-		public bool UseDataLogger { get; set; }
 
 		public bool DavisConsoleHighGust { get; set; }
 
@@ -8579,24 +8613,31 @@ namespace CumulusMX
 			// do we have a shutdown task to run?
 			if (!string.IsNullOrEmpty(ProgramOptions.ShutdownTask))
 			{
-				try
+				if (!File.Exists(ProgramOptions.ShutdownTask))
 				{
-					var args = string.Empty;
-
-					if (!string.IsNullOrEmpty(ProgramOptions.ShutdownTaskParams))
-					{
-						var parser = new TokenParser(TokenParserOnToken)
-						{
-							InputText = ProgramOptions.ShutdownTaskParams
-						};
-						args = parser.ToStringFromString();
-					}
-					LogMessage($"Running shutdown task: {ProgramOptions.ShutdownTask}, arguments: {args}");
-					Utils.RunExternalTask(ProgramOptions.ShutdownTask, args, false);
+					LogWarningMessage($"Warning: Shutdown eextrernal task: '{ProgramOptions.ShutdownTask}' does not exist");
 				}
-				catch (Exception ex)
+				else
 				{
-					LogMessage($"Error running shutdown task: {ex.Message}");
+					try
+					{
+						var args = string.Empty;
+
+						if (!string.IsNullOrEmpty(ProgramOptions.ShutdownTaskParams))
+						{
+							var parser = new TokenParser(TokenParserOnToken)
+							{
+								InputText = ProgramOptions.ShutdownTaskParams
+							};
+							args = parser.ToStringFromString();
+						}
+						LogMessage($"Running shutdown task: {ProgramOptions.ShutdownTask}, arguments: {args}");
+						Utils.RunExternalTask(ProgramOptions.ShutdownTask, args, false);
+					}
+					catch (Exception ex)
+					{
+						LogMessage($"Error running shutdown task: {ex.Message}");
+					}
 				}
 			}
 
@@ -8696,25 +8737,32 @@ namespace CumulusMX
 
 				if (!string.IsNullOrEmpty(ExternalProgram))
 				{
-					try
+					if (!File.Exists(ExternalProgram))
 					{
-						var args = string.Empty;
-
-						if (!string.IsNullOrEmpty(ExternalParams))
-						{
-							var parser = new TokenParser(TokenParserOnToken)
-							{
-								InputText = ExternalParams
-							};
-							args = parser.ToStringFromString();
-						}
-						LogDebugMessage("Interval: Executing program " + ExternalProgram + " " + args);
-						Utils.RunExternalTask(ExternalProgram, args, false);
-						LogDebugMessage("Interval: External program started");
+						LogWarningMessage($"Warning: Interval: External program '{ExternalProgram}' does not exist");
 					}
-					catch (Exception ex)
+					else
 					{
-						LogWarningMessage("Interval: Error starting external program: " + ex.Message);
+						try
+						{
+							var args = string.Empty;
+
+							if (!string.IsNullOrEmpty(ExternalParams))
+							{
+								var parser = new TokenParser(TokenParserOnToken)
+								{
+									InputText = ExternalParams
+								};
+								args = parser.ToStringFromString();
+							}
+							LogDebugMessage("Interval: Executing external program " + ExternalProgram + " " + args);
+							Utils.RunExternalTask(ExternalProgram, args, false);
+							LogDebugMessage("Interval: External program started");
+						}
+						catch (Exception ex)
+						{
+							LogWarningMessage("Interval: Error starting external program: " + ex.Message);
+						}
 					}
 				}
 
@@ -11079,9 +11127,12 @@ namespace CumulusMX
 			LogDebugMessage($"{prefix}: Uploading to {remotefile}");
 
 			// we will try this twice in case the first attempt fails
-			var retry = 0;
+			var retry = -1;
 			do
 			{
+				// retry == 0 is the initial upload
+				retry++;
+
 				MemoryStream outStream = null;
 				StreamContent streamContent = null;
 
@@ -11204,17 +11255,18 @@ namespace CumulusMX
 					{
 						LogMessage($"{prefix}: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
 
-						retry++;
-						if (retry >= 2)
+						if (retry == 2)
 						{
 							LogWarningMessage($"{prefix}: HTTP Error uploading to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode}");
-							return false;
+						}
+						else
+						{
+							await Task.Delay(2000);
 						}
 					}
 				}
 				catch (HttpRequestException ex)
 				{
-					retry++;
 					if (retry < 2)
 					{
 						LogDebugMessage($"{prefix}: HTTP Error uploading to {remotefile} - " + ex.Message);
@@ -11230,7 +11282,6 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					retry++;
 					if (retry < 2)
 					{
 						if (ex.InnerException is TimeoutException)
@@ -11675,7 +11726,7 @@ namespace CumulusMX
 				{
 					_ = ErrorList.Dequeue();
 				}
-				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.Message));
+				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.GetInnerMostException().Message));
 				LatestError = message + " - " + ex.Message;
 				LatestErrorTS = DateTime.Now;
 			}
@@ -13370,6 +13421,51 @@ namespace CumulusMX
 			FtpLoggerMX = loggerFactory.CreateLogger("CMX");
 		}
 
+		private int GetStationManufacturer(int type)
+		{
+			switch (type)
+			{
+				case StationTypes.FineOffset:
+				case StationTypes.FineOffsetSolar:
+				case StationTypes.EasyWeather:
+					return EW;
+				case StationTypes.VantagePro:
+				case StationTypes.VantagePro2:
+				case StationTypes.WLL:
+				case StationTypes.DavisCloudWll:
+				case StationTypes.DavisCloudVP2:
+					return DAVIS;
+				case StationTypes.WMR928:
+				case StationTypes.WM918:
+					return OREGON;
+				case StationTypes.WMR200:
+				case StationTypes.WMR100:
+					return OREGONUSB;
+				case StationTypes.WS2300:
+					return LACROSSE;
+				case StationTypes.Instromet:
+					return INSTROMET;
+				case StationTypes.GW1000:
+				case StationTypes.HttpEcowitt:
+				case StationTypes.EcowittCloud:
+				case StationTypes.EcowittHttpApi:
+					return ECOWITT;
+				case StationTypes.Tempest:
+					return WEATHERFLOW;
+				case StationTypes.HttpWund:
+					return HTTPSTATION;
+				case StationTypes.HttpAmbient:
+					return AMBIENT;
+				case StationTypes.Simulator:
+					return SIMULATOR;
+				case StationTypes.JsonStation:
+					return JSONSTATION;
+				default:
+					return -1;
+			}
+		}
+
+
 		[GeneratedRegex(@"max[\s]*=[\s]*([\d]+)")]
 		private static partial Regex regexMaxParam();
 		[GeneratedRegex(@"[\\/]+\d{8}-\d{6}\.txt")]
@@ -13405,6 +13501,7 @@ namespace CumulusMX
 		public const int DavisCloudWll = 19;
 		public const int DavisCloudVP2 = 20;
 		public const int JsonStation = 21;
+		public const int EcowittHttpApi = 22;
 	}
 
 	public class DiaryData
@@ -13470,14 +13567,14 @@ namespace CumulusMX
 		public string PressTrendText { get; set; }
 		public string WindRunText { get; set; }
 		public string AirQualityUnitText { get; set; }
-		public string SoilMoistureUnitText { get; set; }
+		public string[] SoilMoistureUnitText { get; set; } = new string[16];
 		public string CO2UnitText { get; set; }
 		public string LeafWetnessUnitText { get; set; }
 
 		public StationUnits()
 		{
 			AirQualityUnitText = "µg/m³";
-			SoilMoistureUnitText = "cb";
+			Array.Fill(SoilMoistureUnitText, "cb");
 			CO2UnitText = "ppm";
 			LeafWetnessUnitText = string.Empty;  // Davis is unitless, Ecowitt uses %
 		}
@@ -13508,6 +13605,7 @@ namespace CumulusMX
 		public int UseRainForIsRaining { get; set; }
 		public int LeafWetnessIsRainingIdx { get; set; }
 		public double LeafWetnessIsRainingThrsh { get; set; }
+		public bool UseDataLogger { get; set; }
 	}
 
 	public class FtpOptionsClass

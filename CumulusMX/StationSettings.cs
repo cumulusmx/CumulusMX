@@ -8,13 +8,8 @@ using System.Threading;
 
 using EmbedIO;
 
-using MQTTnet.Protocol;
-using MQTTnet.Server;
-
 using ServiceStack;
 using ServiceStack.Text;
-
-using static SQLite.SQLite3;
 
 
 namespace CumulusMX
@@ -48,7 +43,8 @@ namespace CumulusMX
 				maxwind = cumulus.LCMaxWind,
 				recordtimeout = cumulus.RecordSetTimeoutHrs,
 				snowdepthhour = cumulus.SnowDepthHour,
-				raindaythreshold = cumulus.RainDayThreshold
+				raindaythreshold = cumulus.RainDayThreshold,
+				uselogger = cumulus.StationOptions.UseDataLogger
 			};
 
 			// Common Settings
@@ -144,6 +140,7 @@ namespace CumulusMX
 			{
 				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
 				primaryRainSensor = cumulus.Gw1000PrimaryRainSensor,
+				piezosrain = cumulus.EcowittIsRainingUsePiezo,
 				wn34chan1 = cumulus.EcowittMapWN34[1],
 				wn34chan2 = cumulus.EcowittMapWN34[2],
 				wn34chan3 = cumulus.EcowittMapWN34[3],
@@ -161,6 +158,11 @@ namespace CumulusMX
 				macaddress = cumulus.Gw1000MacAddress,
 			};
 
+			var ecowittHttpApi = new JsonStationSettingsHttpApi()
+			{
+				ipaddress = cumulus.Gw1000IpAddress,
+				password = cumulus.EcowittHttpPassword
+			};
 
 			var ecowitt = new JsonStationSettingsEcowitt
 			{
@@ -409,6 +411,7 @@ namespace CumulusMX
 
 			var general = new JsonStationGeneral()
 			{
+				manufacturer = cumulus.Manufacturer,
 				stationtype = cumulus.StationType,
 				stationmodel = cumulus.StationModel,
 				loginterval = cumulus.DataLogInterval,
@@ -444,6 +447,7 @@ namespace CumulusMX
 				davisvp2 = davisvp2,
 				daviswll = wll,
 				gw1000 = gw1000,
+				ecowitthttpapi = ecowittHttpApi,
 				ecowitt = ecowitt,
 				ecowittapi = ecowittapi,
 				ecowittmaps = ecowittmaps,
@@ -709,11 +713,11 @@ namespace CumulusMX
 					cumulus.StationOptions.AvgBearingMinutes = settings.Options.advanced.avgbearingmins;
 					cumulus.StationOptions.AvgSpeedMinutes = settings.Options.advanced.avgspeedmins;
 					cumulus.StationOptions.PeakGustMinutes = settings.Options.advanced.peakgustmins;
+					cumulus.StationOptions.UseDataLogger = settings.Options.advanced.uselogger;
 					cumulus.LCMaxWind = settings.Options.advanced.maxwind;
 					cumulus.RecordSetTimeoutHrs = settings.Options.advanced.recordtimeout;
 					cumulus.SnowDepthHour = settings.Options.advanced.snowdepthhour;
 					cumulus.RainDayThreshold = settings.Options.advanced.raindaythreshold;
-
 				}
 				catch (Exception ex)
 				{
@@ -909,6 +913,23 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// HTTP Local API connection details
+				try
+				{
+					if (settings.ecowitthttpapi != null)
+					{
+						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.ipaddress) ? null : settings.ecowitthttpapi.ipaddress.Trim();
+						cumulus.EcowittHttpPassword = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.password) ? null : settings.ecowitthttpapi.password.Trim();
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Ecowitt Local HTTP API settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// Ecowitt configuration details
 				try
 				{
@@ -947,6 +968,7 @@ namespace CumulusMX
 					{
 						cumulus.Gw1000PrimaryTHSensor = settings.ecowittmaps.primaryTHsensor;
 						cumulus.Gw1000PrimaryRainSensor = settings.ecowittmaps.primaryRainSensor;
+						cumulus.EcowittIsRainingUsePiezo = settings.ecowittmaps.piezosrain;
 
 						if (cumulus.EcowittMapWN34[1] != settings.ecowittmaps.wn34chan1)
 						{
@@ -1326,11 +1348,13 @@ namespace CumulusMX
 				// Station type
 				try
 				{
+
 					if (cumulus.StationType != settings.general.stationtype)
 					{
 						cumulus.LogWarningMessage("Station type changed, restart required");
 						Cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow, true);
 					}
+					cumulus.Manufacturer = settings.general.manufacturer;
 					cumulus.StationType = settings.general.stationtype;
 					cumulus.StationModel = settings.general.stationmodel;
 				}
@@ -1579,7 +1603,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("Update selecaperiod options error: " + ex.Message);
+				cumulus.LogErrorMessage("Update select-a-period options error: " + ex.Message);
 				context.Response.StatusCode = 500;
 				return ex.Message;
 			}
@@ -1606,6 +1630,7 @@ namespace CumulusMX
 		public JsonStationGeneral general { get; set; }
 		public JsonStationSettingsDavisVp2 davisvp2 { get; set; }
 		public JsonStationSettingsGw1000Conn gw1000 { get; set; }
+		public JsonStationSettingsHttpApi ecowitthttpapi { get; set; }
 		public JsonStationSettingsEcowitt ecowitt { get; set; }
 		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
 		public JsonStationSettingsEcowittMappings ecowittmaps { get; set; }
@@ -1627,6 +1652,7 @@ namespace CumulusMX
 
 	internal class JsonStationGeneral
 	{
+		public int manufacturer { get; set; }
 		public int stationtype { get; set; }
 		public string stationmodel { get; set; }
 		public int loginterval { get; set; }
@@ -1676,6 +1702,7 @@ namespace CumulusMX
 		public int recordtimeout { get; set; }
 		public int snowdepthhour { get; set; }
 		public double raindaythreshold { get; set; }
+		public bool uselogger { get; set; }
 	}
 
 	internal class JsonStationSettingsOptions
@@ -1779,6 +1806,12 @@ namespace CumulusMX
 		public int primaryRainSensor { get; set; }
 	}
 
+	internal class JsonStationSettingsHttpApi
+	{
+		public string ipaddress { get; set; }
+		public string password { get; set; }
+	}
+
 	internal class JsonStationSettingsEcowitt
 	{
 		public bool setcustom { get; set; }
@@ -1804,6 +1837,7 @@ namespace CumulusMX
 	{
 		public int primaryTHsensor { get; set; }
 		public int primaryRainSensor { get; set; }
+		public bool piezosrain { get; set; }
 
 		public int wn34chan1 { get; set; }
 		public int wn34chan2 { get; set; }

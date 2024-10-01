@@ -9,13 +9,17 @@ using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
 
+using Org.BouncyCastle.Ocsp;
+
+using ServiceStack.Text.Common;
+
 
 namespace CumulusMX
 {
 	public static class Api
 	{
 		internal static WeatherStation Station { get; set; }
-		internal static Cumulus cumulus {  get; set; }
+		internal static Cumulus cumulus { get; set; }
 		public static ProgramSettings programSettings { get; set; }
 		internal static StationSettings stationSettings { get; set; }
 		public static InternetSettings internetSettings { get; set; }
@@ -26,19 +30,19 @@ namespace CumulusMX
 		public static MysqlSettings mySqlSettings { get; set; }
 		public static MqttSettings mqttSettings { get; set; }
 		public static CustomLogs customLogs { get; set; }
-		internal static HttpFiles httpFiles {  get; set; }
+		internal static HttpFiles httpFiles { get; set; }
 		public static Wizard wizard { get; set; }
-		internal static LangSettings langSettings {  get; set; }
-		internal static DisplaySettings displaySettings {  get; set; }
-		internal static AlarmSettings alarmSettings {  get; set; }
-		internal static AlarmUserSettings alarmUserSettings {  get; set; }
-		internal static DataEditor dataEditor {  get; set; }
+		internal static LangSettings langSettings { get; set; }
+		internal static DisplaySettings displaySettings { get; set; }
+		internal static AlarmSettings alarmSettings { get; set; }
+		internal static AlarmUserSettings alarmUserSettings { get; set; }
+		internal static DataEditor dataEditor { get; set; }
 		internal static ApiTagProcessor tagProcessor { get; set; }
 		internal static HttpStationWund stationWund { get; set; }
 		internal static HttpStationEcowitt stationEcowitt { get; set; }
 		internal static HttpStationEcowitt stationEcowittExtra { get; set; }
-		internal static HttpStationAmbient stationAmbient {  get; set; }
-		internal static HttpStationAmbient stationAmbientExtra {  get; set; }
+		internal static HttpStationAmbient stationAmbient { get; set; }
+		internal static HttpStationAmbient stationAmbientExtra { get; set; }
 		internal static JsonStation stationJson { get; set; }
 		private static readonly char[] separator = [':'];
 
@@ -239,6 +243,7 @@ namespace CumulusMX
 					int start = Convert.ToInt32(query["start"]);
 					int length = Convert.ToInt32(query["length"]);
 					string search = query["search[value]"];
+					string data = query["data"];
 
 					using var writer = HttpContext.OpenResponseText(new UTF8Encoding(false));
 					switch (req)
@@ -272,6 +277,12 @@ namespace CumulusMX
 							{
 								await writer.WriteAsync(Cumulus.GetErrorLog());
 							}
+							break;
+						case "intervaldata.json":
+							await writer.WriteAsync(Station.GetIntervalData(from, to, data));
+							break;
+						case "dailydata.json":
+							await writer.WriteAsync(Station.GetDailylData(from, to, data));
 							break;
 						default:
 							Response.StatusCode = 404;
@@ -923,6 +934,35 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					cumulus.LogErrorMessage($"api/records/thisperiod: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+
+			[Route(HttpVerbs.Post, "/records/query/{req}")]
+			public async Task GetQueryData(string req)
+			{
+				Response.ContentType = "application/json";
+
+				using var writer = HttpContext.OpenResponseText(new UTF8Encoding(false));
+
+				if (Station == null)
+				{
+					await writer.WriteAsync("{}");
+					return;
+				}
+
+				try
+				{
+					switch (req)
+					{
+						case "dayfile.json":
+							await writer.WriteAsync(Station.DayFileQuery.WebQuery(HttpContext));
+							break;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"api/query/{req}: Unexpected Error, Description: \"{ex.Message}\"");
 					Response.StatusCode = 500;
 				}
 			}

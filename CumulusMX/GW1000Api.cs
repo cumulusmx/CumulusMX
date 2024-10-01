@@ -374,7 +374,7 @@ namespace CumulusMX
 
 		internal enum SensorIds
 		{
-			Wh65,           // 0 00
+			Wh69,           // 0 00
 			Wh68,           // 1 01
 			Wh80,           // 2 02
 			Wh40,           // 3 03
@@ -423,7 +423,15 @@ namespace CumulusMX
 			Wh35Ch7,        // 46 2E
 			Wh35Ch8,        // 47 2F
 			Wh90,           // 48 30
-			Ws85            // 49 31
+			Ws85,           // 49 31
+			Wh51Ch9,        // 50 32
+			Wh51Ch10,       // 51 33
+			Wh51Ch11,       // 52 34
+			Wh51Ch12,       // 53 35
+			Wh51Ch13,       // 54 36
+			Wh51Ch14,       // 55 37
+			Wh51Ch15,       // 56 38
+			Wh51Ch16        // 57 39
 		};
 
 		/*

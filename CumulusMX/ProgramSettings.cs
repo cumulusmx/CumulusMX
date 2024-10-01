@@ -178,7 +178,7 @@ namespace CumulusMX
 					cumulus.SetupFtpLogging(cumulus.FtpOptions.Logging);
 					cumulus.SetRealTimeFtpLogging(cumulus.FtpOptions.Logging);
 				}
-				else if (settings.logging.ftplogginglevel.HasValue && cumulus.FtpOptions.LoggingLevel!= settings.logging.ftplogginglevel.Value)
+				else if (settings.logging.ftplogginglevel.HasValue && cumulus.FtpOptions.LoggingLevel != settings.logging.ftplogginglevel.Value)
 				{
 					cumulus.FtpOptions.LoggingLevel = settings.logging.ftplogginglevel.Value;
 					cumulus.SetupFtpLogging(cumulus.FtpOptions.Logging);
