@@ -286,9 +286,9 @@ namespace CumulusMX
 		 * Canada AQHI - only valid for PM2.5 and 3 hour data
 		 * https://en.wikipedia.org/wiki/Air_Quality_Health_Index_(Canada)
 		 */
-		public static int CA_AQHI(double pmVal)
+		public static double CA_AQHI(double pmVal)
 		{
-			var aqi = (int) (1000 / 10.4 * (Math.Exp(0.000487 * pmVal) - 1));
+			var aqi = 1000 / 10.4 * (Math.Exp(0.000487 * pmVal) - 1);
 			return aqi < 1 ? 1 : aqi;
 		}
 
