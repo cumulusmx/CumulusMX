@@ -191,7 +191,7 @@ namespace CumulusMX
 
 			DateTime tooOld = new DateTime(0, DateTimeKind.Local);
 
-			if ((cumulus.LastUpdateTime <= tooOld) || !cumulus.UseDataLogger)
+			if ((cumulus.LastUpdateTime <= tooOld) || !cumulus.StationOptions.UseDataLogger)
 			{
 				// there's nothing in the database, so we haven't got a rain counter
 				// we can't load the history data, so we'll just have to go live
@@ -285,8 +285,16 @@ namespace CumulusMX
 											// we get duplicate packets over IPv4 and IPv6, plus if the host has multiple interfaces to the local LAN
 											if (!Utils.ByteArraysEqual(lastMessage, bcastTask.Result.Buffer))
 											{
-												var jsonStr = Encoding.UTF8.GetString(bcastTask.Result.Buffer);
-												DecodeBroadcast(jsonStr, bcastTask.Result.RemoteEndPoint);
+												if (!DayResetInProgress)
+												{
+													var jsonStr = Encoding.UTF8.GetString(bcastTask.Result.Buffer);
+													DecodeBroadcast(jsonStr, bcastTask.Result.RemoteEndPoint);
+												}
+												else
+												{
+													broadcastReceived = true;
+													cumulus.LogMessage("WLL: Rollover in progress, broadcast ignored");
+												}
 												lastMessage = bcastTask.Result.Buffer.ToArray();
 											}
 										}
@@ -464,6 +472,11 @@ namespace CumulusMX
 		{
 			string ip;
 			int retry = 1;
+
+			if (DayResetInProgress)
+			{
+				return;
+			}
 
 			lock (threadSafer)
 			{
@@ -1313,9 +1326,20 @@ namespace CumulusMX
 
 				// If the station isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
 				// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
-				if (!cumulus.UseDataLogger)
+				LowBatteryDevices.Clear();
+				
+				if (!cumulus.StationOptions.UseDataLogger && TxBatText.Contains("LOW"))
 				{
-					cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW");
+					cumulus.BatteryLowAlarm.Triggered = true;
+					// Just the low battery list
+					var arr = TxBatText.Split(' ');
+					for (int i = 0; i < arr.Length; i++)
+					{
+						if (arr[i].Contains("LOW"))
+						{
+							LowBatteryDevices.Add(arr[i]);
+						}
+					}
 				}
 			}
 			catch (Exception exp)
@@ -1533,8 +1557,8 @@ namespace CumulusMX
 
 			cumulus.LogDebugMessage($"WeatherLink URL = {historicUrl.ToString().Replace(cumulus.WllApiKey, "API_KEY")}");
 
-			lastDataReadTime = lastHistoricData;
-			int luhour = lastDataReadTime.Hour;
+			LastDataReadTime = lastHistoricData;
+			int luhour = LastDataReadTime.Hour;
 
 			int rollHour = Math.Abs(cumulus.GetHourInc(lastHistoricData));
 
@@ -2104,7 +2128,7 @@ namespace CumulusMX
 									var gust = ConvertUnits.WindMPHToUser((double) data11.wind_speed_hi);
 									var spd = ConvertUnits.WindMPHToUser((double) data11.wind_speed_avg);
 									var dir = data11.wind_speed_hi_dir ?? 0;
-									var dirCal = (int)cumulus.Calib.WindDir.Calibrate(dir);
+									var dirCal = (int) cumulus.Calib.WindDir.Calibrate(dir);
 									cumulus.LogDebugMessage($"WL.com historic: using wind data from TxId {data11.tx_id}");
 									// only record average speed values in recentwind to avoid spikes when switching to live broadcast reception
 									DoWind(spd, dirCal, spd, recordTs);
@@ -2990,6 +3014,21 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("WLL Health: exception: " + ex.Message);
 				}
 				cumulus.BatteryLowAlarm.Triggered = TxBatText.Contains("LOW") || wllVoltageLow;
+
+				// Just the low battery list
+				LowBatteryDevices.Clear();
+				if (wllVoltageLow)
+				{
+					LowBatteryDevices.Add("Console-" + ConBatText);
+				}
+				var arr = TxBatText.Split(' ');
+				for (int i = 0; i < arr.Length; i++)
+				{
+					if (arr[i].Contains("LOW"))
+					{
+						LowBatteryDevices.Add(arr[i]);
+					}
+				}
 			}
 			catch (Exception ex)
 			{

@@ -196,7 +196,7 @@ namespace CumulusMX
 					Arguments = args
 				};
 
-				if (elevated )
+				if (elevated)
 				{
 					startinfo.Verb = "runas";
 				}

@@ -104,63 +104,64 @@ namespace CumulusMX
 			public double Humidex;
 		}
 
-		public struct DayFileRec
+		public class DayFileRec
 		{
-			public DateTime Date;
-			public double HighGust;
-			public int HighGustBearing;
-			public DateTime HighGustTime;
-			public double LowTemp;
-			public DateTime LowTempTime;
-			public double HighTemp;
-			public DateTime HighTempTime;
-			public double LowPress;
-			public DateTime LowPressTime;
-			public double HighPress;
-			public DateTime HighPressTime;
-			public double HighRainRate;
-			public DateTime HighRainRateTime;
-			public double TotalRain;
-			public double AvgTemp;
-			public double WindRun;
-			public double HighAvgWind;
-			public DateTime HighAvgWindTime;
-			public int LowHumidity;
-			public DateTime LowHumidityTime;
-			public int HighHumidity;
-			public DateTime HighHumidityTime;
-			public double ET;
-			public double SunShineHours;
-			public double HighHeatIndex;
-			public DateTime HighHeatIndexTime;
-			public double HighAppTemp;
-			public DateTime HighAppTempTime;
-			public double LowAppTemp;
-			public DateTime LowAppTempTime;
-			public double HighHourlyRain;
-			public DateTime HighHourlyRainTime;
-			public double LowWindChill;
-			public DateTime LowWindChillTime;
-			public double HighDewPoint;
-			public DateTime HighDewPointTime;
-			public double LowDewPoint;
-			public DateTime LowDewPointTime;
-			public int DominantWindBearing;
-			public double HeatingDegreeDays;
-			public double CoolingDegreeDays;
-			public int HighSolar;
-			public DateTime HighSolarTime;
-			public double HighUv;
-			public DateTime HighUvTime;
-			public double HighFeelsLike;
-			public DateTime HighFeelsLikeTime;
-			public double LowFeelsLike;
-			public DateTime LowFeelsLikeTime;
-			public double HighHumidex;
-			public DateTime HighHumidexTime;
-			public double ChillHours;
-			public double HighRain24h;
-			public DateTime HighRain24hTime;
+			[PrimaryKey]
+			public DateTime Date { get; set; }
+			public double HighGust { get; set; }
+			public int HighGustBearing { get; set; }
+			public DateTime HighGustTime { get; set; }
+			public double LowTemp { get; set; }
+			public DateTime LowTempTime { get; set; }
+			public double HighTemp { get; set; }
+			public DateTime HighTempTime { get; set; }
+			public double LowPress { get; set; }
+			public DateTime LowPressTime { get; set; }
+			public double HighPress { get; set; }
+			public DateTime HighPressTime { get; set; }
+			public double HighRainRate { get; set; }
+			public DateTime HighRainRateTime { get; set; }
+			public double TotalRain { get; set; }
+			public double AvgTemp { get; set; }
+			public double WindRun { get; set; }
+			public double HighAvgWind { get; set; }
+			public DateTime HighAvgWindTime { get; set; }
+			public int LowHumidity { get; set; }
+			public DateTime LowHumidityTime { get; set; }
+			public int HighHumidity { get; set; }
+			public DateTime HighHumidityTime { get; set; }
+			public double ET { get; set; }
+			public double SunShineHours { get; set; }
+			public double HighHeatIndex { get; set; }
+			public DateTime HighHeatIndexTime { get; set; }
+			public double HighAppTemp { get; set; }
+			public DateTime HighAppTempTime { get; set; }
+			public double LowAppTemp { get; set; }
+			public DateTime LowAppTempTime { get; set; }
+			public double HighHourlyRain { get; set; }
+			public DateTime HighHourlyRainTime { get; set; }
+			public double LowWindChill { get; set; }
+			public DateTime LowWindChillTime { get; set; }
+			public double HighDewPoint { get; set; }
+			public DateTime HighDewPointTime { get; set; }
+			public double LowDewPoint { get; set; }
+			public DateTime LowDewPointTime { get; set; }
+			public int DominantWindBearing { get; set; }
+			public double HeatingDegreeDays { get; set; }
+			public double CoolingDegreeDays { get; set; }
+			public int HighSolar { get; set; }
+			public DateTime HighSolarTime { get; set; }
+			public double HighUv { get; set; }
+			public DateTime HighUvTime { get; set; }
+			public double HighFeelsLike { get; set; }
+			public DateTime HighFeelsLikeTime { get; set; }
+			public double LowFeelsLike { get; set; }
+			public DateTime LowFeelsLikeTime { get; set; }
+			public double HighHumidex { get; set; }
+			public DateTime HighHumidexTime { get; set; }
+			public double ChillHours { get; set; }
+			public double HighRain24h { get; set; }
+			public DateTime HighRain24hTime  { get; set; }
 		}
 
 		public List<DayFileRec> DayFile = [];
@@ -197,6 +198,8 @@ namespace CumulusMX
 
 		public WeatherDataCollection weatherDataCollection = [];
 
+		public List<string> LowBatteryDevices { get; set; } = [];
+
 		// Current values
 
 		public double THWIndex = 0;
@@ -206,6 +209,8 @@ namespace CumulusMX
 		public double RainCounter = 0.0;
 		public bool gotraindaystart = false;
 		protected double prevraincounter = 0.0;
+
+		protected bool DayResetInProgress = false;
 
 		public struct DailyHighLow
 		{
@@ -323,7 +328,7 @@ namespace CumulusMX
 
 		public double[] WMR200ExtraTempValues { get; set; }
 
-		public DateTime lastDataReadTime;
+		public DateTime LastDataReadTime;
 		public bool haveReadData = false;
 
 		public bool ExtraSensorsDetected = false;
@@ -373,6 +378,8 @@ namespace CumulusMX
 		public int ExtraStationFreeMemory;
 		public int StationRuntime;
 
+		public QueryDayFile DayFileQuery;
+
 
 		protected WeatherStation(Cumulus cumulus, bool extraStation = false)
 		{
@@ -404,6 +411,22 @@ namespace CumulusMX
 			WindRecent = new TWindRecent[MaxWindRecent];
 			WindVec = new TWindVec[MaxWindRecent];
 
+			// Open database (create file if it doesn't exist)
+			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
+
+			RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
+			CheckSqliteDatabase(false);
+			RecentDataDb.CreateTable<RecentData>();
+			RecentDataDb.CreateTable<SqlCache>();
+			RecentDataDb.CreateTable<CWindRecent>();
+			RecentDataDb.Execute("create table if not exists WindRecentPointer (pntr INTEGER)");
+			RecentDataDb.CreateTable<DayFileRec>();
+			// switch off full synchronisation - the data base isn't that critical and we get a performance boost
+			RecentDataDb.Execute("PRAGMA synchronous = NORMAL");
+
+			// preload the failed sql cache - if any
+			ReloadFailedMySQLCommands();
+
 			ReadTodayFile();
 			ReadYesterdayFile();
 			ReadAlltimeIniFile();
@@ -424,24 +447,11 @@ namespace CumulusMX
 			GetRainCounter();
 			GetRainFallTotals();
 
-			// Open database (create file if it doesn't exist)
-			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
-
-			RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
-			CheckSqliteDatabase(false);
-			RecentDataDb.CreateTable<RecentData>();
-			RecentDataDb.CreateTable<SqlCache>();
-			RecentDataDb.CreateTable<CWindRecent>();
-			RecentDataDb.Execute("create table if not exists WindRecentPointer (pntr INTEGER)");
-			// switch off full synchronisation - the data base isn't that critical and we get a performance boost
-			RecentDataDb.Execute("PRAGMA synchronous = NORMAL");
-
-			// preload the failed sql cache - if any
-			ReloadFailedMySQLCommands();
-
 			versionCheckTime = new DateTime(1, 1, 1, Program.RandGenerator.Next(0, 23), Program.RandGenerator.Next(0, 59), 0, DateTimeKind.Local);
 
 			SensorReception = [];
+
+			DayFileQuery = new QueryDayFile(RecentDataDb);
 		}
 
 		private void CheckSqliteDatabase(bool giveup)
@@ -1013,15 +1023,15 @@ namespace CumulusMX
 				// Date
 				ini.SetValue("General", "Date", timestamp.AddHours(hourInc).ToShortDateString());
 				// Timestamp
-				ini.SetValue("General", "Timestamp", cumulus.LastUpdateTime.ToString("s"));
+				ini.SetValue("General", "Timestamp", cumulus.LastUpdateTime);
 				ini.SetValue("General", "CurrentYear", CurrentYear);
 				ini.SetValue("General", "CurrentMonth", CurrentMonth);
 				ini.SetValue("General", "CurrentDay", CurrentDay);
 				// Wind
 				ini.SetValue("Wind", "Speed", HiLoToday.HighWind);
-				ini.SetValue("Wind", "SpTime", HiLoToday.HighWindTime.ToString("HH:mm"));
+				ini.SetValue("Wind", "SpTime", HiLoToday.HighWindTime);
 				ini.SetValue("Wind", "Gust", HiLoToday.HighGust);
-				ini.SetValue("Wind", "Time", HiLoToday.HighGustTime.ToString("HH:mm"));
+				ini.SetValue("Wind", "Time", HiLoToday.HighGustTime);
 				ini.SetValue("Wind", "Bearing", HiLoToday.HighGustBearing);
 				ini.SetValue("Wind", "Direction", CompassPoint(HiLoToday.HighGustBearing));
 				ini.SetValue("Wind", "Windrun", WindRunToday);
@@ -1031,9 +1041,9 @@ namespace CumulusMX
 				ini.SetValue("Wind", "DominantWindBearingY", DominantWindBearingY);
 				// Temperature
 				ini.SetValue("Temp", "Low", HiLoToday.LowTemp);
-				ini.SetValue("Temp", "LTime", HiLoToday.LowTempTime.ToString("HH:mm"));
+				ini.SetValue("Temp", "LTime", HiLoToday.LowTempTime);
 				ini.SetValue("Temp", "High", HiLoToday.HighTemp);
-				ini.SetValue("Temp", "HTime", HiLoToday.HighTempTime.ToString("HH:mm"));
+				ini.SetValue("Temp", "HTime", HiLoToday.HighTempTime);
 				ini.SetValue("Temp", "Total", TempTotalToday);
 				ini.SetValue("Temp", "Samples", tempsamplestoday);
 				ini.SetValue("Temp", "ChillHours", ChillHours);
@@ -1048,16 +1058,16 @@ namespace CumulusMX
 				ini.SetValue("TempMidnight", "HTime", HiLoTodayMidnight.HighTempTime);
 				// Pressure
 				ini.SetValue("Pressure", "Low", HiLoToday.LowPress);
-				ini.SetValue("Pressure", "LTime", HiLoToday.LowPressTime.ToString("HH:mm"));
+				ini.SetValue("Pressure", "LTime", HiLoToday.LowPressTime);
 				ini.SetValue("Pressure", "High", HiLoToday.HighPress);
-				ini.SetValue("Pressure", "HTime", HiLoToday.HighPressTime.ToString("HH:mm"));
+				ini.SetValue("Pressure", "HTime", HiLoToday.HighPressTime);
 				// rain
 				ini.SetValue("Rain", "High", HiLoToday.HighRainRate);
-				ini.SetValue("Rain", "HTime", HiLoToday.HighRainRateTime.ToString("HH:mm"));
+				ini.SetValue("Rain", "HTime", HiLoToday.HighRainRateTime);
 				ini.SetValue("Rain", "HourlyHigh", HiLoToday.HighHourlyRain);
-				ini.SetValue("Rain", "HHourlyTime", HiLoToday.HighHourlyRainTime.ToString("HH:mm"));
+				ini.SetValue("Rain", "HHourlyTime", HiLoToday.HighHourlyRainTime);
 				ini.SetValue("Rain", "High24h", HiLoToday.HighRain24h);
-				ini.SetValue("Rain", "High24hTime", HiLoToday.HighRain24hTime.ToString("HH:mm"));
+				ini.SetValue("Rain", "High24hTime", HiLoToday.HighRain24hTime);
 				ini.SetValue("Rain", "Yesterday", RainYesterday);
 				ini.SetValue("Rain", "Start", RainCounterDayStart);
 				ini.SetValue("Rain", "Midnight", MidnightRainCount);
@@ -1072,35 +1082,35 @@ namespace CumulusMX
 				// humidity
 				ini.SetValue("Humidity", "Low", HiLoToday.LowHumidity);
 				ini.SetValue("Humidity", "High", HiLoToday.HighHumidity);
-				ini.SetValue("Humidity", "LTime", HiLoToday.LowHumidityTime.ToString("HH:mm"));
-				ini.SetValue("Humidity", "HTime", HiLoToday.HighHumidityTime.ToString("HH:mm"));
+				ini.SetValue("Humidity", "LTime", HiLoToday.LowHumidityTime);
+				ini.SetValue("Humidity", "HTime", HiLoToday.HighHumidityTime);
 				// Solar
 				ini.SetValue("Solar", "SunshineHours", SunshineHours);
 				ini.SetValue("Solar", "SunshineHoursToMidnight", SunshineToMidnight);
 				// heat index
 				ini.SetValue("HeatIndex", "High", HiLoToday.HighHeatIndex);
-				ini.SetValue("HeatIndex", "HTime", HiLoToday.HighHeatIndexTime.ToString("HH:mm"));
+				ini.SetValue("HeatIndex", "HTime", HiLoToday.HighHeatIndexTime);
 				// App temp
 				ini.SetValue("AppTemp", "Low", HiLoToday.LowAppTemp);
-				ini.SetValue("AppTemp", "LTime", HiLoToday.LowAppTempTime.ToString("HH:mm"));
+				ini.SetValue("AppTemp", "LTime", HiLoToday.LowAppTempTime);
 				ini.SetValue("AppTemp", "High", HiLoToday.HighAppTemp);
-				ini.SetValue("AppTemp", "HTime", HiLoToday.HighAppTempTime.ToString("HH:mm"));
+				ini.SetValue("AppTemp", "HTime", HiLoToday.HighAppTempTime);
 				// Feels like
 				ini.SetValue("FeelsLike", "Low", HiLoToday.LowFeelsLike);
-				ini.SetValue("FeelsLike", "LTime", HiLoToday.LowFeelsLikeTime.ToString("HH:mm"));
+				ini.SetValue("FeelsLike", "LTime", HiLoToday.LowFeelsLikeTime);
 				ini.SetValue("FeelsLike", "High", HiLoToday.HighFeelsLike);
-				ini.SetValue("FeelsLike", "HTime", HiLoToday.HighFeelsLikeTime.ToString("HH:mm"));
+				ini.SetValue("FeelsLike", "HTime", HiLoToday.HighFeelsLikeTime);
 				// Humidex
 				ini.SetValue("Humidex", "High", HiLoToday.HighHumidex);
-				ini.SetValue("Humidex", "HTime", HiLoToday.HighHumidexTime.ToString("HH:mm"));
+				ini.SetValue("Humidex", "HTime", HiLoToday.HighHumidexTime);
 				// wind chill
 				ini.SetValue("WindChill", "Low", HiLoToday.LowWindChill);
-				ini.SetValue("WindChill", "LTime", HiLoToday.LowWindChillTime.ToString("HH:mm"));
+				ini.SetValue("WindChill", "LTime", HiLoToday.LowWindChillTime);
 				// Dewpoint
 				ini.SetValue("Dewpoint", "Low", HiLoToday.LowDewPoint);
-				ini.SetValue("Dewpoint", "LTime", HiLoToday.LowDewPointTime.ToString("HH:mm"));
+				ini.SetValue("Dewpoint", "LTime", HiLoToday.LowDewPointTime);
 				ini.SetValue("Dewpoint", "High", HiLoToday.HighDewPoint);
-				ini.SetValue("Dewpoint", "HTime", HiLoToday.HighDewPointTime.ToString("HH:mm"));
+				ini.SetValue("Dewpoint", "HTime", HiLoToday.HighDewPointTime);
 
 				// NOAA report names
 				ini.SetValue("NOAA", "LatestMonthlyReport", cumulus.NOAAconf.LatestMonthReport);
@@ -1108,9 +1118,9 @@ namespace CumulusMX
 
 				// Solar
 				ini.SetValue("Solar", "HighSolarRad", HiLoToday.HighSolar);
-				ini.SetValue("Solar", "HighSolarRadTime", HiLoToday.HighSolarTime.ToString("HH:mm"));
+				ini.SetValue("Solar", "HighSolarRadTime", HiLoToday.HighSolarTime);
 				ini.SetValue("Solar", "HighUV", HiLoToday.HighUv);
-				ini.SetValue("Solar", "HighUVTime", HiLoToday.HighUvTime.ToString("HH:mm"));
+				ini.SetValue("Solar", "HighUVTime", HiLoToday.HighUvTime);
 				ini.SetValue("Solar", "SunStart", StartOfDaySunHourCounter);
 
 				// Special Fine Offset data
@@ -1683,7 +1693,10 @@ namespace CumulusMX
 
 			try
 			{
-				webSocketSemaphore.Release();
+				if (webSocketSemaphore.CurrentCount == 0)
+				{
+					webSocketSemaphore.Release();
+				}
 			}
 			catch
 			{
@@ -2112,7 +2125,7 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage("*** Data input appears to have stopped");
 				}
-			}		// Calculates evapotranspiration based on the data for the last hour and updates the running annual total.
+			}       // Calculates evapotranspiration based on the data for the last hour and updates the running annual total.
 			else
 			{
 				DataStopped = false;
@@ -2180,7 +2193,7 @@ namespace CumulusMX
 			// Chart data for Highcharts graphs
 			string json;
 			// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-			int[] createReqOnce = [0,1,8,9,11];
+			int[] createReqOnce = [0, 1, 8, 9, 11];
 
 			for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 			{
@@ -6692,7 +6705,7 @@ namespace CumulusMX
 		public readonly double[] WindRunHourMult = [3.6, 1.0, 1.0, 1.0];
 		public DateTime LastDataReadTimestamp = DateTime.MinValue;              // Stored in UTC to avoid clock change issues
 		public DateTime SavedLastDataReadTimestamp = DateTime.MinValue;         // Stored in UTC to avoid clock change issues
-		// Create arrays with 9 entries, 0 = VP2, 1-8 = WLL TxIds
+																				// Create arrays with 9 entries, 0 = VP2, 1-8 = WLL TxIds
 		public int DavisTotalPacketsReceived = 0;
 		public int[] DavisTotalPacketsMissed = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 		public int[] DavisNumberOfResynchs = [0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -6719,76 +6732,76 @@ namespace CumulusMX
 			ini.SetValue("General", "Date", logdate.AddHours(hourInc));
 			// Wind
 			ini.SetValue("Wind", "Speed", HiLoYest.HighWind);
-			ini.SetValue("Wind", "SpTime", HiLoYest.HighWindTime.ToString("HH:mm"));
+			ini.SetValue("Wind", "SpTime", HiLoYest.HighWindTime);
 			ini.SetValue("Wind", "Gust", HiLoYest.HighGust);
-			ini.SetValue("Wind", "Time", HiLoYest.HighGustTime.ToString("HH:mm"));
+			ini.SetValue("Wind", "Time", HiLoYest.HighGustTime);
 			ini.SetValue("Wind", "Bearing", HiLoYest.HighGustBearing);
 			ini.SetValue("Wind", "Direction", CompassPoint(HiLoYest.HighGustBearing));
 			ini.SetValue("Wind", "Windrun", YesterdayWindRun);
 			ini.SetValue("Wind", "DominantWindBearing", YestDominantWindBearing);
 			// Temperature
 			ini.SetValue("Temp", "Low", HiLoYest.LowTemp);
-			ini.SetValue("Temp", "LTime", HiLoYest.LowTempTime.ToString("HH:mm"));
+			ini.SetValue("Temp", "LTime", HiLoYest.LowTempTime);
 			ini.SetValue("Temp", "High", HiLoYest.HighTemp);
-			ini.SetValue("Temp", "HTime", HiLoYest.HighTempTime.ToString("HH:mm"));
+			ini.SetValue("Temp", "HTime", HiLoYest.HighTempTime);
 			ini.SetValue("Temp", "ChillHours", YestChillHours);
 			ini.SetValue("Temp", "HeatingDegreeDays", YestHeatingDegreeDays);
 			ini.SetValue("Temp", "CoolingDegreeDays", YestCoolingDegreeDays);
 			ini.SetValue("Temp", "AvgTemp", YestAvgTemp);
 			// Temperature midnight
 			ini.SetValue("TempMidnight", "Low", HiLoYestMidnight.LowTemp);
-			ini.SetValue("TempMidnight", "LTime", HiLoYestMidnight.LowTempTime.ToString("HH:mm"));
+			ini.SetValue("TempMidnight", "LTime", HiLoYestMidnight.LowTempTime);
 			ini.SetValue("TempMidnight", "High", HiLoYestMidnight.HighTemp);
-			ini.SetValue("TempMidnight", "HTime", HiLoYestMidnight.HighTempTime.ToString("HH:mm"));
+			ini.SetValue("TempMidnight", "HTime", HiLoYestMidnight.HighTempTime);
 			// Pressure
 			ini.SetValue("Pressure", "Low", HiLoYest.LowPress);
-			ini.SetValue("Pressure", "LTime", HiLoYest.LowPressTime.ToString("HH:mm"));
+			ini.SetValue("Pressure", "LTime", HiLoYest.LowPressTime);
 			ini.SetValue("Pressure", "High", HiLoYest.HighPress);
-			ini.SetValue("Pressure", "HTime", HiLoYest.HighPressTime.ToString("HH:mm"));
+			ini.SetValue("Pressure", "HTime", HiLoYest.HighPressTime);
 			// rain
 			ini.SetValue("Rain", "High", HiLoYest.HighRainRate);
-			ini.SetValue("Rain", "HTime", HiLoYest.HighRainRateTime.ToString("HH:mm"));
+			ini.SetValue("Rain", "HTime", HiLoYest.HighRainRateTime);
 			ini.SetValue("Rain", "HourlyHigh", HiLoYest.HighHourlyRain);
-			ini.SetValue("Rain", "HHourlyTime", HiLoYest.HighHourlyRainTime.ToString("HH:mm"));
+			ini.SetValue("Rain", "HHourlyTime", HiLoYest.HighHourlyRainTime);
 			ini.SetValue("Rain", "High24h", HiLoYest.HighRain24h);
-			ini.SetValue("Rain", "High24hTime", HiLoYest.HighRain24hTime.ToString("HH:mm"));
+			ini.SetValue("Rain", "High24hTime", HiLoYest.HighRain24hTime);
 			ini.SetValue("Rain", "RG11Yesterday", RG11RainYesterday);
 			// humidity
 			ini.SetValue("Humidity", "Low", HiLoYest.LowHumidity);
 			ini.SetValue("Humidity", "High", HiLoYest.HighHumidity);
-			ini.SetValue("Humidity", "LTime", HiLoYest.LowHumidityTime.ToString("HH:mm"));
-			ini.SetValue("Humidity", "HTime", HiLoYest.HighHumidityTime.ToString("HH:mm"));
+			ini.SetValue("Humidity", "LTime", HiLoYest.LowHumidityTime);
+			ini.SetValue("Humidity", "HTime", HiLoYest.HighHumidityTime);
 			// Solar
 			ini.SetValue("Solar", "SunshineHours", YestSunshineHours);
 			// heat index
 			ini.SetValue("HeatIndex", "High", HiLoYest.HighHeatIndex);
-			ini.SetValue("HeatIndex", "HTime", HiLoYest.HighHeatIndexTime.ToString("HH:mm"));
+			ini.SetValue("HeatIndex", "HTime", HiLoYest.HighHeatIndexTime);
 			// App temp
 			ini.SetValue("AppTemp", "Low", HiLoYest.LowAppTemp);
-			ini.SetValue("AppTemp", "LTime", HiLoYest.LowAppTempTime.ToString("HH:mm"));
+			ini.SetValue("AppTemp", "LTime", HiLoYest.LowAppTempTime);
 			ini.SetValue("AppTemp", "High", HiLoYest.HighAppTemp);
-			ini.SetValue("AppTemp", "HTime", HiLoYest.HighAppTempTime.ToString("HH:mm"));
+			ini.SetValue("AppTemp", "HTime", HiLoYest.HighAppTempTime);
 			// wind chill
 			ini.SetValue("WindChill", "Low", HiLoYest.LowWindChill);
-			ini.SetValue("WindChill", "LTime", HiLoYest.LowWindChillTime.ToString("HH:mm"));
+			ini.SetValue("WindChill", "LTime", HiLoYest.LowWindChillTime);
 			// Dewpoint
 			ini.SetValue("Dewpoint", "Low", HiLoYest.LowDewPoint);
-			ini.SetValue("Dewpoint", "LTime", HiLoYest.LowDewPointTime.ToString("HH:mm"));
+			ini.SetValue("Dewpoint", "LTime", HiLoYest.LowDewPointTime);
 			ini.SetValue("Dewpoint", "High", HiLoYest.HighDewPoint);
-			ini.SetValue("Dewpoint", "HTime", HiLoYest.HighDewPointTime.ToString("HH:mm"));
+			ini.SetValue("Dewpoint", "HTime", HiLoYest.HighDewPointTime);
 			// Solar
 			ini.SetValue("Solar", "HighSolarRad", HiLoYest.HighSolar);
-			ini.SetValue("Solar", "HighSolarRadTime", HiLoYest.HighSolarTime.ToString("HH:mm"));
+			ini.SetValue("Solar", "HighSolarRadTime", HiLoYest.HighSolarTime);
 			ini.SetValue("Solar", "HighUV", HiLoYest.HighUv);
-			ini.SetValue("Solar", "HighUVTime", HiLoYest.HighUvTime.ToString("HH:mm"));
+			ini.SetValue("Solar", "HighUVTime", HiLoYest.HighUvTime);
 			// Feels like
 			ini.SetValue("FeelsLike", "Low", HiLoYest.LowFeelsLike);
-			ini.SetValue("FeelsLike", "LTime", HiLoYest.LowFeelsLikeTime.ToString("HH:mm"));
+			ini.SetValue("FeelsLike", "LTime", HiLoYest.LowFeelsLikeTime);
 			ini.SetValue("FeelsLike", "High", HiLoYest.HighFeelsLike);
-			ini.SetValue("FeelsLike", "HTime", HiLoYest.HighFeelsLikeTime.ToString("HH:mm"));
+			ini.SetValue("FeelsLike", "HTime", HiLoYest.HighFeelsLikeTime);
 			// Humidex
 			ini.SetValue("Humidex", "High", HiLoYest.HighHumidex);
-			ini.SetValue("Humidex", "HTime", HiLoYest.HighHumidexTime.ToString("HH:mm"));
+			ini.SetValue("Humidex", "HTime", HiLoYest.HighHumidexTime);
 
 			ini.Flush();
 
@@ -6879,6 +6892,9 @@ namespace CumulusMX
 			int drday = timestamp.Day;
 			DateTime yesterday = timestamp.AddDays(-1);
 			cumulus.LogMessage("=== Day reset, today = " + drday);
+
+			DayResetInProgress = true;
+
 			if (drday != DayResetDay)
 			{
 				cumulus.LogMessage("=== Day reset for " + yesterday.Date);
@@ -7573,28 +7589,37 @@ namespace CumulusMX
 
 				if (!string.IsNullOrEmpty(cumulus.DailyProgram))
 				{
-					try
+					if (!File.Exists(cumulus.DailyProgram))
 					{
-						// Prepare the process to run
-						var args = string.Empty;
-
-						if (!string.IsNullOrEmpty(cumulus.DailyParams))
-						{
-							var parser = new TokenParser(cumulus.TokenParserOnToken) { InputText = cumulus.DailyParams };
-							args = parser.ToStringFromString();
-						}
-						cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);
-						Utils.RunExternalTask(cumulus.DailyProgram, args, false);
+						cumulus.LogWarningMessage($"Warning: Daily external program '{cumulus.DailyProgram}' does not exist");
 					}
-					catch (Exception ex)
+					else
 					{
-						cumulus.LogErrorMessage("Error executing external program: " + ex.Message);
+						try
+						{
+							// Prepare the process to run
+							var args = string.Empty;
+
+							if (!string.IsNullOrEmpty(cumulus.DailyParams))
+							{
+								var parser = new TokenParser(cumulus.TokenParserOnToken) { InputText = cumulus.DailyParams };
+								args = parser.ToStringFromString();
+							}
+							cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);
+							Utils.RunExternalTask(cumulus.DailyProgram, args, false);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogErrorMessage("Error executing external program: " + ex.Message);
+						}
 					}
 				}
 
 				CurrentDay = timestamp.Day;
 				CurrentMonth = timestamp.Month;
 				CurrentYear = timestamp.Year;
+				DayResetInProgress = false;
+
 				cumulus.LogMessage("=== Day reset complete");
 				cumulus.LogMessage("Now recording data for day=" + CurrentDay + " month=" + CurrentMonth + " year=" + CurrentYear);
 			}
@@ -7879,7 +7904,8 @@ namespace CumulusMX
 
 			DayFile.Add(newRec);
 
-
+			// add to SQLite
+			RecentDataDb.Insert(newRec);
 
 			if (cumulus.MySqlSettings.Dayfile.Enabled)
 			{
@@ -8907,7 +8933,7 @@ namespace CumulusMX
 		{
 			int addedEntries = 0;
 
-			StringBuilder msg = new ();
+			StringBuilder msg = new();
 
 			cumulus.LogMessage("LoadDayFile: Attempting to load the day file");
 			if (dayfileReloading)
@@ -8931,6 +8957,7 @@ namespace CumulusMX
 
 					// Clear the existing list
 					DayFile.Clear();
+					RecentDataDb.Execute("DELETE FROM DayFileRec");
 
 					var lines = File.ReadAllLines(cumulus.DayFileName);
 
@@ -8965,6 +8992,8 @@ namespace CumulusMX
 							errorCount++;
 						}
 					}
+
+					RecentDataDb.InsertAll(DayFile);
 
 					watch.Stop();
 					cumulus.LogDebugMessage($"LoadDayFile: Dayfile parse = {watch.ElapsedMilliseconds} ms");
@@ -9544,7 +9573,7 @@ namespace CumulusMX
 					};
 
 				case 4: // Canada AQHI
-					// return AirQualityIndices.CA_AQHI(value)
+						// return AirQualityIndices.CA_AQHI(value)
 					return -1;
 
 				case 5: // Australia NEPM
@@ -11323,37 +11352,37 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 1024);
 
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(0, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[0]}\",\"{SoilMoisture1:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[0]}\",\"{SoilMoisture1:F0}\",\"{cumulus.Units.SoilMoistureUnitText[0]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(1, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[1]}\",\"{SoilMoisture2:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[1]}\",\"{SoilMoisture2:F0}\",\"{cumulus.Units.SoilMoistureUnitText[1]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(2, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[2]}\",\"{SoilMoisture3:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[2]}\",\"{SoilMoisture3:F0}\",\"{cumulus.Units.SoilMoistureUnitText[2]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(3, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[3]}\",\"{SoilMoisture4:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[3]}\",\"{SoilMoisture4:F0}\",\"{cumulus.Units.SoilMoistureUnitText[3]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(4, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[4]}\",\"{SoilMoisture5:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[4]}\",\"{SoilMoisture5:F0}\",\"{cumulus.Units.SoilMoistureUnitText[4]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(5, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[5]}\",\"{SoilMoisture6:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[5]}\",\"{SoilMoisture6:F0}\",\"{cumulus.Units.SoilMoistureUnitText[5]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(6, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[6]}\",\"{SoilMoisture7:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[6]}\",\"{SoilMoisture7:F0}\",\"{cumulus.Units.SoilMoistureUnitText[6]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(7, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[7]}\",\"{SoilMoisture8:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[7]}\",\"{SoilMoisture8:F0}\",\"{cumulus.Units.SoilMoistureUnitText[7]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(8, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[8]}\",\"{SoilMoisture9:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[8]}\",\"{SoilMoisture9:F0}\",\"{cumulus.Units.SoilMoistureUnitText[8]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(9, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[9]}\",\"{SoilMoisture10:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[9]}\",\"{SoilMoisture10:F0}\",\"{cumulus.Units.SoilMoistureUnitText[9]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(10, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[10]}\",\"{SoilMoisture11:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[10]}\",\"{SoilMoisture11:F0}\",\"{cumulus.Units.SoilMoistureUnitText[10]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(11, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[11]}\",\"{SoilMoisture12:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[11]}\",\"{SoilMoisture12:F0}\",\"{cumulus.Units.SoilMoistureUnitText[11]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(12, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[12]}\",\"{SoilMoisture13:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[12]}\",\"{SoilMoisture13:F0}\",\"{cumulus.Units.SoilMoistureUnitText[12]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(13, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[13]}\",\"{SoilMoisture14:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[13]}\",\"{SoilMoisture14:F0}\",\"{cumulus.Units.SoilMoistureUnitText[13]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(14, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[14]}\",\"{SoilMoisture15:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[14]}\",\"{SoilMoisture15:F0}\",\"{cumulus.Units.SoilMoistureUnitText[14]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(15, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[15]}\",\"{SoilMoisture16:F0}\",\"{cumulus.Units.SoilMoistureUnitText}\"]");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[15]}\",\"{SoilMoisture16:F0}\",\"{cumulus.Units.SoilMoistureUnitText[15]}\"]");
 
 			if (json[^1] == ',')
 				json.Length--;
@@ -12251,6 +12280,257 @@ namespace CumulusMX
 		}
 
 
+		public string GetIntervalData(string from, string to, string fields)
+		{
+			var fromDate = Utils.FromUnixTime(long.Parse(from));
+			var toDate = Utils.FromUnixTime(long.Parse(to));
+			var flds = (fields ?? "").Split(',').Select<string, int>(int.Parse).ToArray();
+
+			if (flds.Length == 0)
+			{
+				return "[]";
+			}
+
+
+			// adjust for 9 am rollover
+			var ts = fromDate.AddHours(-cumulus.GetHourInc(fromDate));
+			var te = toDate.AddHours(-cumulus.GetHourInc(toDate));
+			var fileDate = new DateTime(ts.Year, ts.Month, 15, 0, 0, 0, DateTimeKind.Local);
+
+			var data = new Dictionary<string, List<string>>();
+
+			// add the headers
+			var fldNames = new List<string>();
+			var useLogFile = false;
+			var useExtraFile = false;
+
+			try
+			{
+				foreach (var fld in flds)
+				{
+					if (fld < 1000)
+					{
+						fldNames.Add(cumulus.LogFileFieldNames[fld]);
+						useLogFile = true;
+					}
+					else
+					{
+						fldNames.Add(cumulus.ExtraFileFieldNames[fld - 1000]);
+						useExtraFile = true;
+					}
+				}
+				data.Add("Date/Time", fldNames);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("GetIntervalData: Error processing input fields: " + ex.Message);
+				return "[]";
+			}
+
+			var finished = false;
+			var json = new StringBuilder("[", flds.Length * 512);
+
+			try
+			{
+				while (!finished)
+				{
+					if (useLogFile)
+					{
+						var logfile = cumulus.GetLogFileName(fileDate);
+
+						if (!File.Exists(logfile))
+						{
+							cumulus.LogErrorMessage($"GetIntervalData: Error, file does not exist: {logfile}");
+							return "[]";
+						}
+
+						cumulus.LogDebugMessage($"GetIntervalData: Processing log file - {logfile}");
+
+						// read the log file into a List
+						var lines = File.ReadAllLines(logfile).ToList();
+
+						foreach (var line in lines)
+						{
+							var vars = line.Split(',');
+							var date = Utils.ddmmyyhhmmStrToDate(vars[0], vars[1]);
+							var dateStr = vars[0] + " " + vars[1];
+
+							if (date >= fromDate && date <= toDate)
+							{
+								var fieldList = new List<string>();
+
+								foreach (var indx in flds)
+								{
+									if (indx < 1000)
+									{
+										fieldList.Add(vars[indx]);
+									}
+								}
+
+								data.TryAdd(dateStr, fieldList);
+							}
+						}
+					}
+
+					if (useExtraFile)
+					{
+						var logfile = cumulus.GetExtraLogFileName(ts);
+
+						if (!File.Exists(logfile))
+						{
+							cumulus.LogErrorMessage($"GetIntervalData: Error, file does not exist: {logfile}");
+							return "[]";
+						}
+
+						cumulus.LogDebugMessage($"GetIntervalData: Processing extra log file - {logfile}");
+
+						// read the log file into a List
+						var lines = File.ReadAllLines(logfile).ToList();
+
+						foreach (var line in lines)
+						{
+							var fieldList = new List<string>();
+							var vars = line.Split(',');
+							var date = Utils.ddmmyyhhmmStrToDate(vars[0], vars[1]);
+							var dateStr = vars[0] + " " + vars[1];
+
+							if (date >= fromDate && date <= toDate)
+							{
+								foreach (var indx in flds)
+								{
+									if (indx >= 1000)
+									{
+										fieldList.Add(vars[indx - 1000]);
+									}
+								}
+
+								if (data.TryGetValue(dateStr, out var value))
+								{
+									value.AddRange(fieldList);
+								}
+								else
+								{
+									data.TryAdd(dateStr, fieldList);
+								}
+							}
+						}
+					}
+
+					// might need the next months log
+					fileDate = fileDate.AddMonths(1);
+
+					// have we run out of log entries?
+					// filedate is 15th on month, compare against the first
+					if (te <= fileDate.AddDays(-14))
+					{
+						finished = true;
+						cumulus.LogDebugMessage("GetIntervalData: Finished processing log files");
+					}
+				}
+
+
+				foreach (var rec in data)
+				{
+					json.Append($"[\"{rec.Key}\",\"{string.Join($"\",\"", rec.Value)}\"],");
+				}
+
+				json.Length -= 1;
+				json.Append(']');
+
+				return json.ToString();
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("GetIntervalData: Error - " + ex.ToString());
+			}
+
+			return "[]";
+		}
+
+
+		public string GetDailylData(string from, string to, string fields)
+		{
+			var fromDate = Utils.FromUnixTime(long.Parse(from));
+			var toDate = Utils.FromUnixTime(long.Parse(to));
+			var flds = (fields ?? "").Split(',').Select<string, int>(int.Parse).ToArray();
+
+			if (flds.Length == 0)
+			{
+				return "[]";
+			}
+
+			var data = new Dictionary<string, List<string>>();
+
+			// add the headers
+			var fldNames = new List<string>();
+			try
+			{
+				foreach (var fld in flds)
+				{
+					fldNames.Add(cumulus.DayfileFieldNames[fld]);
+				}
+				data.Add("Date", fldNames);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("GetDailylData: Error processing input fields: " + ex.Message);
+				return "[]";
+			}
+
+			var json = new StringBuilder("[", flds.Length * 512);
+
+			try
+			{
+				cumulus.LogDebugMessage("GetDailylData: Processing day file records");
+
+				if (!File.Exists(cumulus.DayFileName))
+				{
+					cumulus.LogErrorMessage("GetDailylData: Error, dar file does not exist");
+					return "[]";
+				}
+
+				cumulus.LogDebugMessage("GetDailylData: Processing day file");
+
+				// read the log file into a List
+				var lines = File.ReadAllLines(cumulus.DayFileName).ToList();
+
+				foreach (var line in lines)
+				{
+					var vars = line.Split(',');
+					var date = Utils.ddmmyyStrToDate(vars[0]);
+
+					if (date >= fromDate && date <= toDate)
+					{
+						var fieldList = new List<string>();
+
+						foreach (var indx in flds)
+						{
+							fieldList.Add(vars[indx]);
+						}
+
+						data.TryAdd(vars[0], fieldList);
+					}
+				}
+
+				foreach (var rec in data)
+				{
+					json.Append($"[\"{rec.Key}\",\"{string.Join($"\",\"", rec.Value)}\"],");
+				}
+
+				json.Length -= 1;
+				json.Append(']');
+
+				return json.ToString();
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("GetDailylData: Error - " + ex.ToString());
+			}
+
+			return "[]";
+
+		}
+
 		public string GetCachedSqlCommands(string draw, int start, int length, string search)
 		{
 			try
@@ -12327,7 +12607,7 @@ namespace CumulusMX
 			json.Append($"\"windrun\":\"{cumulus.Units.WindRunText}\",");
 			json.Append($"\"rain\":\"{cumulus.Units.RainText}\",");
 			json.Append($"\"press\":\"{cumulus.Units.PressText}\",");
-			json.Append($"\"soilmoisture\":\"{cumulus.Units.SoilMoistureUnitText}\",");
+			json.Append($"\"soilmoisture\":[\"{string.Join("\",\"", cumulus.Units.SoilMoistureUnitText)}\"],");
 			json.Append($"\"co2\":\"{cumulus.Units.CO2UnitText}\",");
 			json.Append($"\"leafwet\":\"{cumulus.Units.LeafWetnessUnitText}\",");
 			json.Append($"\"aq\":\"{cumulus.Units.AirQualityUnitText}\"");
@@ -12345,7 +12625,7 @@ namespace CumulusMX
 			json.Append($"\"press\":{{\"units\":\"{cumulus.Units.PressText}\",\"decimals\":{cumulus.PressDPlaces}}},");
 			json.Append($"\"hum\":{{\"decimals\":{cumulus.HumDPlaces}}},");
 			json.Append($"\"uv\":{{\"decimals\":{cumulus.UVDPlaces}}},");
-			json.Append($"\"soilmoisture\":{{\"units\":\"{cumulus.Units.SoilMoistureUnitText}\"}},");
+			json.Append($"\"soilmoisture\":{{\"units\":[\"{string.Join("\",\"", cumulus.Units.SoilMoistureUnitText)}\"]}},");
 			json.Append($"\"co2\":{{\"units\":\"{cumulus.Units.CO2UnitText}\"}},");
 			json.Append($"\"leafwet\":{{\"units\":\"{cumulus.Units.LeafWetnessUnitText}\",\"decimals\":{cumulus.LeafWetDPlaces}}},");
 			json.Append($"\"aq\":{{\"units\":\"{cumulus.Units.AirQualityUnitText}\"}},");

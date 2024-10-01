@@ -693,7 +693,7 @@ namespace CumulusMX
 				{
 					DoWindChill(ConvertUnits.TempCToUser(wc), now);
 				}
-		}
+			}
 
 			// Rain ===========================================================================
 			if (!stop)

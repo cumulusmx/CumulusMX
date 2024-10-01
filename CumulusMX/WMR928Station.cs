@@ -498,9 +498,9 @@ namespace CumulusMX
 			IndoorBattStatus = buff[3] / 16;
 
 			// Extract temp (tenths of deg C) in BCD; bytes 4 (LSB) and 5 (MSB)
-			double temp10 = BCDchartoint(buff[4]) + (BCDchartoint(buff[5]) * 100);
+			double temp = ExtractTemp(buff[4], buff[5]);
 
-			DoIndoorTemp(temp10 / 10);
+			DoIndoorTemp(ConvertUnits.TempCToUser(temp));
 
 			// humidity in BCD; byte 6
 			DoIndoorHumidity(BCDchartoint(buff[6]));
@@ -557,7 +557,7 @@ namespace CumulusMX
 			// Extract temp (tenths of deg C) in BCD;
 			double temp = ExtractTemp(buff[4], buff[5]);
 
-			DoIndoorTemp(temp);
+			DoIndoorTemp(ConvertUnits.TempCToUser(temp));
 
 			// humidity in BCD; byte 6
 			DoIndoorHumidity(BCDchartoint(buff[6]));

@@ -34,13 +34,13 @@ namespace CumulusMX
 			// Ambient does not send DP, so force MX to calculate it
 			//cumulus.StationOptions.CalculatedDP = true
 
-			if (station == null || (station != null && cumulus.AmbientExtraUseAQI))
+			if (station == null || cumulus.AmbientExtraUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
-			if (station == null || (station != null && cumulus.AmbientExtraUseSoilMoist))
+			if (station == null)
 			{
-				cumulus.Units.SoilMoistureUnitText = "%";
+				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
@@ -613,6 +613,7 @@ namespace CumulusMX
 
 				thisStation.UpdateStatusPanel(recDate);
 				thisStation.UpdateMQTT();
+				thisStation.LastDataReadTime = recDate;
 			}
 			catch (Exception ex)
 			{
@@ -677,13 +678,17 @@ namespace CumulusMX
 			}
 		}
 
-		private static void ProcessSoilMoist(NameValueCollection data, WeatherStation station)
+		private void ProcessSoilMoist(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
 				if (data["soilhum" + i] != null)
 				{
 					station.DoSoilMoisture(Convert.ToDouble(data["soilhum" + i], CultureInfo.InvariantCulture), i);
+					if (station != null)
+					{
+						cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
+					}
 				}
 			}
 		}
@@ -768,14 +773,14 @@ namespace CumulusMX
 			{
 				// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
 				var valDist = Convert.ToDouble(dist, CultureInfo.InvariantCulture);
-				if (valDist != 255)
+				if (valDist < 255)
 				{
 					LightningDistance = ConvertUnits.KmtoUserUnits(valDist);
 				}
 
 				var valTime = Convert.ToDouble(time, CultureInfo.InvariantCulture);
 				// Sends a default value until the first strike is detected of 0xFFFFFFFF
-				if (valTime != 0xFFFFFFFF)
+				if (valTime < 0xFFFFFFFF)
 				{
 					var dtDateTime = DateTime.UnixEpoch;
 					dtDateTime = dtDateTime.AddSeconds(valTime).ToLocalTime();

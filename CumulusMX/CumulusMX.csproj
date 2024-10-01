@@ -55,8 +55,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>4.1.4.4029</Version>
+    <Version>4.2.0.4039</Version>
     <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
+    <PackageId>$(AssemblyName)</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -90,16 +91,16 @@
     <PackageReference Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
     <PackageReference Include="NReco.Logging.File" Version="1.2.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10-pre20240828193256" />
     <PackageReference Include="System.CodeDom" Version="8.0.0" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
-    <PackageReference Include="FluentFTP" Version="51.0.0" />
+    <PackageReference Include="FluentFTP" Version="51.1.0" />
     <PackageReference Include="HidSharp" Version="2.1.0" />
     <PackageReference Include="MailKit" Version="4.7.1.1" />
-    <PackageReference Include="MQTTnet" Version="4.3.6.1152" />
+    <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
     <PackageReference Include="MySqlConnector" Version="2.3.7" />
-    <PackageReference Include="ServiceStack.Text" Version="8.3.0" />
+    <PackageReference Include="ServiceStack.Text" Version="8.4.0" />
     <PackageReference Include="SSH.NET" Version="2024.1.0" />
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
@@ -127,7 +128,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="echo.&#xD;&#xA;echo Starting post-build tasks&#xD;&#xA;echo Copy Updates.txt&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(TargetDir)\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;xcopy &quot;$(ProjectDir)..\Updates.txt&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX\Updates.txt&quot; /D /-I /Q /Y&#xD;&#xA;echo.&#xD;&#xA;echo Update Distribution folder&#xD;&#xA;echo copy MX exe&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;xcopy &quot;$(OutputPath)\CumulusMX.exe&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;echo copy MX config&#xD;&#xA;xcopy &quot;$(TargetPath).config&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;xcopy &quot;$(OutputPath)\CumulusMX.runtimeconfig.json&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;xcopy &quot;$(OutputPath)\CumulusMX.deps.json&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;echo copy dll's&#xD;&#xA;xcopy &quot;$(OutputPath)\*.dll&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;echo copy runtimes&#xD;&#xA;xcopy &quot;$(OutputPath)\runtimes&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX\runtimes&quot; /S /D /I /Y&#xD;&#xA;echo recreate hash file&#xD;&#xA;cd &quot;$(SolutionDir)..\CumulusMX-Dist.Net&quot;&#xD;&#xA;powershell -NoProfile -ExecutionPolicy Bypass -Command .\_CreateDistHashFile.ps1" />
+    <Exec Command="echo.&#xD;&#xA;echo Starting post-build tasks&#xD;&#xA;echo Copy Updates.txt&#xD;&#xA;xcopy &quot;$(ProjectDir)..\CHANGELOG.md&quot; &quot;$(TargetDir)\CHANGELOG.md&quot; /D /-I /Q /Y&#xD;&#xA;xcopy &quot;$(ProjectDir)..\CHANGELOG.md&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX\CHANGELOG.md&quot; /D /-I /Q /Y&#xD;&#xA;echo.&#xD;&#xA;echo Update Distribution folder&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;if $(Platform)==x86 (&#xD;&#xA;  echo copy MX exe - x86&#xD;&#xA;  xcopy &quot;$(OutputPath)\CumulusMX.exe&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX\CumulusMX32.exe&quot; /D /-I /Y&#xD;&#xA;)&#xD;&#xA;if $(Platform)==AnyCPU (&#xD;&#xA;  echo copy MX exe - AnyCPU&#xD;&#xA;  xcopy &quot;$(OutputPath)\CumulusMX.exe&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;)&#xD;&#xA;echo copy MX config&#xD;&#xA;xcopy &quot;$(TargetPath).config&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;xcopy &quot;$(OutputPath)\CumulusMX.runtimeconfig.json&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;xcopy &quot;$(OutputPath)\CumulusMX.deps.json&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;echo copy dll's&#xD;&#xA;xcopy &quot;$(OutputPath)\*.dll&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX&quot; /D /-I /Y&#xD;&#xA;echo copy runtimes&#xD;&#xA;xcopy &quot;$(OutputPath)\runtimes&quot; &quot;$(SolutionDir)..\CumulusMX-Dist.Net\CumulusMX\runtimes&quot; /S /D /I /Y&#xD;&#xA;echo recreate hash file&#xD;&#xA;cd &quot;$(SolutionDir)..\CumulusMX-Dist.Net&quot;&#xD;&#xA;powershell -NoProfile -ExecutionPolicy Bypass -Command .\_CreateDistHashFile.ps1" />
   </Target>
 
 </Project>
