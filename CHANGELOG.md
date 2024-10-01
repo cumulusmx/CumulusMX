@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=17887)
 
 This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.
+Alternatively, view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/main/CHANGELOG.md)
+
+---
+
+
+## 4.2.1 \[b4040\] - 2024-??-??
+
+### New
+No new features
+
+### Changed
+- The AQI web tag now returns a decimal value when using the Canada AQHI calculation<br>
+	To return to the previous behaviour of using integer values, set your Air Quality decimal places to zero in `Station Settings > General Settings > Units > Advanced Options`
+
+### Fixed
+No fixes
+
+### Package Updates
+No package updates
 
 ---
 
