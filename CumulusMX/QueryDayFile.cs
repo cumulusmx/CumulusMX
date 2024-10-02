@@ -11,9 +11,6 @@ using ServiceStack.Text;
 
 using SQLite;
 
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
-
 namespace CumulusMX
 {
 

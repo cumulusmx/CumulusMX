@@ -8,8 +8,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-using static CumulusMX.Tempest.RestPacket;
-
 namespace CumulusMX
 {
 	internal class DavisStation : WeatherStation

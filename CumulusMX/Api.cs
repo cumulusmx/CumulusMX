@@ -9,11 +9,6 @@ using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
 
-using Org.BouncyCastle.Ocsp;
-
-using ServiceStack.Text.Common;
-
-
 namespace CumulusMX
 {
 	public static class Api
