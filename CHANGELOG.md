@@ -20,7 +20,7 @@ No new features
 	To return to the previous behaviour of using integer values, set your Air Quality decimal places to zero in `Station Settings > General Settings > Units > Advanced Options`
 
 ### Fixed
-No fixes
+- Interval data viewer not working over month ends for extra sensor values
 
 ### Package Updates
 No package updates

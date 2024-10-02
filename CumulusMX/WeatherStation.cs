@@ -12374,7 +12374,7 @@ namespace CumulusMX
 
 					if (useExtraFile)
 					{
-						var logfile = cumulus.GetExtraLogFileName(ts);
+						var logfile = cumulus.GetExtraLogFileName(fileDate);
 
 						if (!File.Exists(logfile))
 						{
