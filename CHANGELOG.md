@@ -18,6 +18,8 @@ No new features
 ### Changed
 - The AQI web tag now returns a decimal value when using the Canada AQHI calculation<br>
 	To return to the previous behaviour of using integer values, set your Air Quality decimal places to zero in `Station Settings > General Settings > Units > Advanced Options`
+- The web tag `<#CO2_pm10_24_aqih>` has been corrected to `<#CO2_pm10_24h_aqi>`<br>
+	If you use this tag in any of your files, please amend your files to match the corrected tag name
 
 ### Fixed
 - Interval data viewer not working over month ends for extra sensor values

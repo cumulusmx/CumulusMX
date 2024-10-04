@@ -6498,7 +6498,7 @@ namespace CumulusMX
 				{ "CO2_pm2p5_aqi", TagCO2_pm2p5_aqi },
 				{ "CO2_pm2p5_24h_aqi", TagCO2_pm2p5_24h_aqi },
 				{ "CO2_pm10_aqi", TagCO2_pm10_aqi },
-				{ "CO2_pm10_24_aqih", TagCO2_pm10_24h_aqi },
+				{ "CO2_pm10_24h_aqi", TagCO2_pm10_24h_aqi },
 				{ "LeakSensor1", TagLeakSensor1 },
 				{ "LeakSensor2", TagLeakSensor2 },
 				{ "LeakSensor3", TagLeakSensor3 },
