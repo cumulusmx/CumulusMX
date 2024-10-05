@@ -13,7 +13,9 @@ Alternatively, view it [online on GitHub](https://github.com/cumulusmx/CumulusMX
 ## 4.2.1 \[b4040\] - 2024-??-??
 
 ### New
-No new features
+- The web tag `<#DayFileQuery>` has been extended to allow "on this day" type queries.
+	- Please read the separate documention (`/MXutils/QueryDayFile.md`) for more details
+- The `Daily Data Query` page on the dashboard has also been extended to support "on this day" queries
 
 ### Changed
 - The AQI web tag now returns a decimal value when using the Canada AQHI calculation<br>
@@ -25,7 +27,8 @@ No new features
 - Interval data viewer not working over month ends for extra sensor values
 
 ### Package Updates
-No package updates
+- SQLite
+- MailKit
 
 ---
 
@@ -52,6 +55,7 @@ No package updates
 	- NewRecordAlarm somewhat replicates the existing #newrecord web tag, but is also controlled by the alarm being enable/disabled
 	- NewRecordAlarmMessage displays the last new record alarm text message
 - Old MD5 hash files are now deleted on startup
+- New data viewer where you can query daily data in all sorts of flexible ways. See `Records > Daily Data Query`
 - New web tag `<#DayFileQuery>` which allows flexible querying of the day file.
 	- Please read the separate documention (`/MXutils/QueryDayFile.md`) for more details
 - Added a script `/MXutils/linux/Fix_FineOffset_USB.sh` to fix Fine Offset USB stations

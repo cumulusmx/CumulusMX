@@ -91,13 +91,13 @@
     <PackageReference Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
     <PackageReference Include="NReco.Logging.File" Version="1.2.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10-pre20240828193256" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10" />
     <PackageReference Include="System.CodeDom" Version="8.0.0" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
     <PackageReference Include="FluentFTP" Version="51.1.0" />
     <PackageReference Include="HidSharp" Version="2.1.0" />
-    <PackageReference Include="MailKit" Version="4.7.1.1" />
+    <PackageReference Include="MailKit" Version="4.8.0" />
     <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
     <PackageReference Include="MySqlConnector" Version="2.3.7" />
     <PackageReference Include="ServiceStack.Text" Version="8.4.0" />
