@@ -374,9 +374,9 @@ namespace CumulusMX
 
 		internal enum SensorIds
 		{
-			Wh69,           // 0 00
+			Ws69,           // 0 00
 			Wh68,           // 1 01
-			Wh80,           // 2 02
+			WS80,           // 2 02
 			Wh40,           // 3 03
 			Wh25,           // 4 04
 			Wh26,           // 5 05
@@ -422,7 +422,7 @@ namespace CumulusMX
 			Wh35Ch6,        // 45 2D
 			Wh35Ch7,        // 46 2E
 			Wh35Ch8,        // 47 2F
-			Wh90,           // 48 30
+			WS90,           // 48 30
 			Ws85,           // 49 31
 			Wh51Ch9,        // 50 32
 			Wh51Ch10,       // 51 33

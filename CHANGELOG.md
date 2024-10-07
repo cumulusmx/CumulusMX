@@ -16,6 +16,8 @@ Alternatively, view it [online on GitHub](https://github.com/cumulusmx/CumulusMX
 - The web tag `<#DayFileQuery>` has been extended to allow "on this day" type queries.
 	- Please read the separate documention (`/MXutils/QueryDayFile.md`) for more details
 - The `Daily Data Query` page on the dashboard has also been extended to support "on this day" queries
+- Ecowitt TCP API station now supports the LowBatteryList web tag
+
 
 ### Changed
 - The AQI web tag now returns a decimal value when using the Canada AQHI calculation<br>
@@ -25,6 +27,8 @@ Alternatively, view it [online on GitHub](https://github.com/cumulusmx/CumulusMX
 
 ### Fixed
 - Interval data viewer not working over month ends for extra sensor values
+- Ecowitt TCP API Station, incorrect interpretation of Ecowitt WH34 sensor low battery state
+- Ecowitt TCP API Station, false detection of WS90 when a WH34 sensor was detected
 
 ### Package Updates
 - SQLite

@@ -7,8 +7,6 @@ using System.Net;
 
 using EmbedIO;
 
-using Org.BouncyCastle.Ocsp;
-
 using ServiceStack.Text;
 
 using SQLite;
