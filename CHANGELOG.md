@@ -33,6 +33,8 @@ Alternatively, view it [online on GitHub](https://github.com/cumulusmx/CumulusMX
 ### Package Updates
 - SQLite
 - MailKit
+- System.Diagnostics.PerformanceCounter
+- System.ServiceProcess.ServiceController
 
 ---
 
