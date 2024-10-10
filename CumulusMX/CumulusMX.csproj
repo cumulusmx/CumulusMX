@@ -64,9 +64,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="DataEditor-byDay.cs" />
     <Compile Remove="MxFtpClient.cs" />
-    <Compile Remove="WeatherStation-byDay.cs" />
   </ItemGroup>
 
   <ItemGroup>

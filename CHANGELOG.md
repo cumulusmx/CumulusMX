@@ -17,7 +17,7 @@ Alternatively, view it [online on GitHub](https://github.com/cumulusmx/CumulusMX
 	- Please read the separate documention (`/MXutils/QueryDayFile.md`) for more details
 - The `Daily Data Query` page on the dashboard has also been extended to support "on this day" queries
 - Ecowitt TCP API station now supports the LowBatteryList web tag
-
+- Adds Brotli compression support to PHP uploads
 
 ### Changed
 - The AQI web tag now returns a decimal value when using the Canada AQHI calculation<br>
