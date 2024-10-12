@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Web;
 
@@ -488,6 +489,28 @@ namespace CumulusMX
 			var timeToday = station.WindRunHourMult[cumulus.Units.Wind] * hours;
 			// just after rollover the numbers will be silly, so return zero for the first 15 minutes
 			return CheckRcDp(CheckWindUnit(hours > 0.25 ? station.WindRunToday / timeToday : 0, tagParams), tagParams, cumulus.WindAvgDPlaces);
+		}
+
+		private string TagWindAvgCust(Dictionary<string, string> tagParams)
+		{
+			// m parater is the minutes to average
+			int mins = int.TryParse(tagParams.Get("m"), out mins) ? mins : cumulus.AvgSpeedTime.Minutes;
+			var fromTime = DateTime.Now.AddMinutes(-mins);
+			var ws = station.GetWindAverageFromArray(fromTime);
+			// we want any calibration to be applied from uncalibrated values
+			ws = cumulus.Calib.WindSpeed.Calibrate(ws);
+			return CheckRcDp(CheckWindUnit(ws, tagParams), tagParams, cumulus.WindAvgDPlaces);
+		}
+
+		private string TagWindGustCust(Dictionary<string, string> tagParams)
+		{
+			// m parater is the minutes to find the gust
+			int mins = int.TryParse(tagParams.Get("m"), out mins) ? mins : cumulus.PeakGustTime.Minutes;
+			var fromTime = DateTime.Now.AddMinutes(-mins);
+			var ws = station.GetWindGustFromArray(fromTime);
+			// we want any calibration to be applied from uncalibrated values
+			ws = cumulus.Calib.WindGust.Calibrate(ws);
+			return CheckRcDp(CheckWindUnit(ws, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string Tagwchill(Dictionary<string, string> tagParams)
@@ -6834,6 +6857,9 @@ namespace CumulusMX
 				{ "RCRecentPressure", TagRcRecentPressure },
 				{ "RCRecentRainToday", TagRcRecentRainToday },
 				{ "RCRecentUV", TagRcRecentUv },
+				// Custom Intervals
+				{ "WindAvgCust", TagWindAvgCust },
+				{ "WindGustCust", TagWindGustCust },
 				// Month-by-month highs and lows - values
 				{ "ByMonthTempH", TagByMonthTempH },
 				{ "ByMonthTempL", TagByMonthTempL },

@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
@@ -6226,32 +6227,9 @@ namespace CumulusMX
 
 			if (cumulus.StationOptions.CalcuateAverageWindSpeed)
 			{
-				int numvalues = 0;
-				double totalwind = 0;
-				double avg = 0;
 				var fromTime = timestamp - cumulus.AvgSpeedTime;
-				for (int i = 0; i < MaxWindRecent; i++)
-				{
-					if (WindRecent[i].Timestamp >= fromTime)
-					{
-#if DEBUGWIND
-//						cumulus.LogDebugMessage($"Wind Time:{WindRecent[i].Timestamp.ToLongTimeString()} Gust:{WindRecent[i].Gust:F1} Speed:{WindRecent[i].Speed:F1}");
-#endif
 
-						numvalues++;
-						totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? WindRecent[i].Speed : WindRecent[i].Gust;
-					}
-				}
-				// average the values, if we have enough samples
-				if (numvalues > 5)
-				{
-					avg = totalwind / numvalues;
-				}
-				else
-				{
-					// take a third of the gust values
-					avg = totalwind / 15;
-				}
+				var avg = GetWindAverageFromArray(fromTime);
 
 				if (avg >= 0 && previousWind < 998 && (Math.Abs(avg - previousWind) > cumulus.Spike.WindDiff))
 				{
@@ -6290,15 +6268,7 @@ namespace CumulusMX
 			{
 				// Find recent max gust
 				var fromTime = timestamp - cumulus.PeakGustTime;
-
-				double maxgust = 0;
-				for (int i = 0; i <= MaxWindRecent - 1; i++)
-				{
-					if (WindRecent[i].Timestamp >= fromTime && WindRecent[i].Gust > maxgust)
-					{
-						maxgust = WindRecent[i].Gust;
-					}
-				}
+				var maxgust = GetWindGustFromArray(fromTime);
 				// wind gust is stored uncaligrated, so we need to calibrate now
 				RecentMaxGust = cumulus.Calib.WindGust.Calibrate(maxgust);
 			}
@@ -6404,6 +6374,53 @@ namespace CumulusMX
 
 			WindReadyToPlot = true;
 			HaveReadData = true;
+		}
+
+
+		public double GetWindAverageFromArray(DateTime fromTime)
+		{
+			int numvalues = 0;
+			double totalwind = 0;
+			double avg = 0;
+
+			for (int i = 0; i < MaxWindRecent; i++)
+			{
+				if (WindRecent[i].Timestamp >= fromTime)
+				{
+#if DEBUGWIND
+//						cumulus.LogDebugMessage($"Wind Time:{WindRecent[i].Timestamp.ToLongTimeString()} Gust:{WindRecent[i].Gust:F1} Speed:{WindRecent[i].Speed:F1}");
+#endif
+
+					numvalues++;
+					totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? WindRecent[i].Speed : WindRecent[i].Gust;
+				}
+			}
+			// average the values, if we have enough samples
+			if (numvalues > 5)
+			{
+				avg = totalwind / numvalues;
+			}
+			else
+			{
+				// take a third of the gust values
+				avg = totalwind / 15;
+			}
+
+			return avg;
+		}
+
+		public double GetWindGustFromArray(DateTime fromTime)
+		{
+			double maxgust = 0;
+			for (int i = 0; i <= MaxWindRecent - 1; i++)
+			{
+				if (WindRecent[i].Timestamp >= fromTime && WindRecent[i].Gust > maxgust)
+				{
+					maxgust = WindRecent[i].Gust;
+				}
+			}
+
+			return maxgust;
 		}
 
 		// called at start-up to initialise the gust and average speeds from the recent data to avoid zero values

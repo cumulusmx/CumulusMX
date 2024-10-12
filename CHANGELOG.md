@@ -18,6 +18,11 @@ Alternatively, view it [online on GitHub](https://github.com/cumulusmx/CumulusMX
 - The `Daily Data Query` page on the dashboard has also been extended to support "on this day" queries
 - Ecowitt TCP API station now supports the LowBatteryList web tag
 - Adds Brotli compression support to PHP uploads
+- Two new web tags for wind speeds. These allow you to extract the average and gust speeds for custom intervals. If you have 10 minutes defined as your average and gust speed intervals in Cumulus,
+but you also want to see the two minute values, then you can use these new tags
+	- `<#WindAvgCust m=N>` - returns the average windspeed for the last N minutes
+	- `<#WindGustCust m=N>` - returns the maximum gust value for the last N minutes
+	- **Note:** *You should not use values for m greater than around 20 minutes due to the limited storage time of 'live' wind values*
 
 ### Changed
 - The AQI web tag now returns a decimal value when using the Canada AQHI calculation<br>
