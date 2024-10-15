@@ -1687,10 +1687,9 @@ namespace CumulusMX
 			return station.AllTime.LowDailyTempRange.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
-		private string Tagerrorlight(Dictionary<string, string> tagParams)
+		private static string Tagerrorlight(Dictionary<string, string> tagParams)
 		{
-			// TODO
-			return "0";
+			return Cumulus.LatestError.Length > 0 ? "1" : "0";
 		}
 
 		private string TagtempTh(Dictionary<string, string> tagParams)

@@ -5,12 +5,12 @@ All notable changes to this project will be documented in this file.
 Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=17887)
 
 This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.
-Alternatively, view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/main/CHANGELOG.md)
+Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/main/CHANGELOG.md)
 
 ---
 
 
-## 4.2.1 \[b4040\] - 2024-??-??
+## 4.2.1 \[b4040\] - 2024-10-15
 
 ### New
 - The web tag `<#DayFileQuery>` has been extended to allow "on this day" type queries.
@@ -20,23 +20,24 @@ Alternatively, view it [online on GitHub](https://github.com/cumulusmx/CumulusMX
 	- The `Daily Data Query` page on the dashboard has also been extended to support "on this day" queries
 - Ecowitt TCP API station now supports the LowBatteryList web tag
 - Adds Brotli compression support to PHP uploads
-- Two new web tags for wind speeds. These allow you to extract the average and gust speeds for custom intervals. If you have 10 minutes defined as your average and gust speed intervals in Cumulus,
-but you also want to see the two minute values, then you can use these new tags
+- Two new web tags for wind speeds. These allow you to extract the average and gust speeds for custom intervals. If for example you have 10 minutes defined as your average and gust speed intervals in Cumulus,
+but you also want to see the two minute values then you can use these new tags
 	- `<#WindAvgCust m=N>` - returns the average windspeed for the last N minutes
 	- `<#WindGustCust m=N>` - returns the maximum gust value for the last N minutes
-	- **Note:** *You should not use values for m greater than around 20 minutes due to the limited storage time of 'live' wind values*
+	- **Note:** *You should not use values for m greater than around 20 minutes due to the limited storage time of 'live' wind values. This is station update rate dependent*
 
 ### Changed
 - The AQI web tag now returns a decimal value when using the Canada AQHI calculation<br>
 	To return to the previous behaviour of using integer values, set your Air Quality decimal places to zero in `Station Settings > General Settings > Units > Advanced Options`
 - The web tag `<#CO2_pm10_24_aqih>` has been corrected to `<#CO2_pm10_24h_aqi>`<br>
-	If you use this tag in any of your files, please amend your files to match the corrected tag name
+	If you use this tag in any of your files please amend your files to match the corrected tag name
 - Clean-up of the AI2 pages for Interval and Daily Data viewers
 
 ### Fixed
 - Interval data viewer not working over month ends for extra sensor values
 - Ecowitt TCP API Station, incorrect interpretation of Ecowitt WH34 sensor low battery state
 - Ecowitt TCP API Station, false detection of WS90 when a WH34 sensor was detected
+- Web tag `<#errorlight>` is now functional again. It is triggered if Latest Error has any text, and cleared when you clear the latest error list from the interface
 
 ### Package Updates
 - SQLite
@@ -66,7 +67,7 @@ but you also want to see the two minute values, then you can use these new tags
 - Support for Ecowitt WS90 piezo IsRaining status to trigger MX IsRaining.
 	- Currently only supported with a WS90/WS85 connected to a GW2000 (Sept. 2024). This value is being added to more stations as they get firmware updates.
 - Two new web tags `<#NewRecordAlarm>` and `<#NewRecordAlarmMessage>`
-	- NewRecordAlarm somewhat replicates the existing #newrecord web tag, but is also controlled by the alarm being enable/disabled
+	- NewRecordAlarm somewhat replicates the existing #newrecord web tag but is also controlled by the alarm being enable/disabled
 	- NewRecordAlarmMessage displays the last new record alarm text message
 - Old MD5 hash files are now deleted on startup
 - New data viewer where you can query daily data in all sorts of flexible ways. See `Records > Daily Data Query`
@@ -88,7 +89,7 @@ but you also want to see the two minute values, then you can use these new tags
 - WMR928 Station now correctly converts indoor temperatures to the user defined units
 - Not logging PHP upload failures to the warning log
 - Soil moisture units now follow the source
-	- Example if you have a main station Davis with sensors 1 & 2, their units will be cb, and you have Ecowitt extra sensors 3 & 4, their units will be %
+	- Example if you have a main station Davis with sensors 1 & 2 then their units will be cb; and you have Ecowitt extra sensors 3 & 4 then their units will be %
 	- This does mean a change to the Units JSON and the graph scripts for the default web site. A re-upload of `/js/cumuluscharts.js` and `/js/selectachart.js` will be required
 - Fix Davis Cloud Station continually attempting to download history data on error
 - Fix a lurking problem with the `today.ini` and `yesterday.ini` files that has been there from day 0. Times are now stored as a full date/time
@@ -120,7 +121,7 @@ No changes
 - Fix Davis WLL (and others) creating erroneous wind speed spike warnings
 - Alternative Interface 2 - Davis reception stats display incorrectly
 - Davis Cloud Station (VP2) now correctly displays the Davis ET values when "Cumulus calculates ET" is not enabled
-	- Note: If "Cumulus calculates ET" is not enabled, the last hours ET every day, will be accumulated in the first hour of the following day
+	- Note: If "Cumulus calculates ET" is not enabled the last hours ET every day will be accumulated in the first hour of the following day
 - Davis WLL, and Davis Cloud stations, fixed a problem where the rollover would not be performed if historic data was not available and MX was stopped before the rollover and restarted after
 - Improved Ctrl-C shutdown of Cumulus MX for Davis VP2 stations when they are failing to connect with the station
 - Fix Ecowitt firmware check when running test firmware
