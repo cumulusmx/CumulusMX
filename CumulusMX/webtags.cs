@@ -5413,17 +5413,17 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.LastDataReadTimestamp.ToLocalTime(), "G", tagParams);
 		}
 
-		private string TagLatestError(Dictionary<string, string> tagParams)
+		private static string TagLatestError(Dictionary<string, string> tagParams)
 		{
 			return Cumulus.LatestError;
 		}
 
-		private string TagLatestErrorEnc(Dictionary<string, string> tagParams)
+		private static string TagLatestErrorEnc(Dictionary<string, string> tagParams)
 		{
 			return EncodeForWeb(Cumulus.LatestError);
 		}
 
-		private string TagLatestErrorJsEnc(Dictionary<string, string> tagParams)
+		private static string TagLatestErrorJsEnc(Dictionary<string, string> tagParams)
 		{
 			return EncodeForJs(Cumulus.LatestError);
 		}
