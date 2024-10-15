@@ -5,7 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Web;
 
@@ -54,11 +53,12 @@ namespace CumulusMX
 		private static string CheckRcDp(double val, Dictionary<string, string> tagParams, int decimals, string format = null)
 		{
 			string ret;
+			var rc = tagParams.Get("rc") == "y";
 			try
 			{
-				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var numFormat = rc ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
 
-				if (tagParams.Get("tc") == "y")
+				if (rc)
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
@@ -84,11 +84,12 @@ namespace CumulusMX
 		private static string CheckRcDp(decimal val, Dictionary<string, string> tagParams, int decimals)
 		{
 			string ret;
+			var rc = tagParams.Get("rc") == "y";
 			try
 			{
-				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var numFormat = rc ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
 
-				if (tagParams.Get("tc") == "y")
+				if (rc)
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
@@ -5596,7 +5597,7 @@ namespace CumulusMX
 			return station.GW1000FirmwareVersion;
 		}
 
-		private string TagGw1000Reception(Dictionary<string, string> tagParams)
+		private static string TagGw1000Reception(Dictionary<string, string> tagParams)
 		{
 			var json = tagParams.Get("format") == "json";
 
@@ -5958,8 +5959,8 @@ namespace CumulusMX
 			var where = tagParams.Get("where");
 			var from = tagParams.Get("from");
 			var to = tagParams.Get("to");
-			var showDate = tagParams.Get("showDate");
-			var dateOnly = tagParams.Get("dateOnly");
+			var showDate = tagParams.Get("showDate") == "y";
+			var dateOnly = tagParams.Get("dateOnly") == "y";
 			var resfunc = tagParams.Get("resFunc");
 
 			tagParams.Add("tc", function == "count" ? "y" : "n");
@@ -5970,7 +5971,7 @@ namespace CumulusMX
 
 			if (ret.value < -9998)
 			{
-				if (showDate == "y")
+				if (showDate)
 				{
 					return "[\"-\",\"-\"]";
 				}
@@ -5981,11 +5982,11 @@ namespace CumulusMX
 			}
 			else
 			{
-				if (showDate == "y")
+				if (showDate)
 				{
 					return "[\"" + CheckRcDp(ret.value, tagParams, 1) + "\",\"" + GetFormattedDateTime(ret.time, defaultFormat, tagParams) + "\"]";
 				}
-				else if (dateOnly == "y")
+				else if (dateOnly)
 				{ 
 					return GetFormattedDateTime(ret.time, defaultFormat, tagParams);
 				}
