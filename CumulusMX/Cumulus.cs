@@ -1644,7 +1644,7 @@ namespace CumulusMX
 			try
 			{
 				request.Headers.Add("Accept", "text/html");
-				request.Headers.Add("Accept-Encoding", "gzip, deflate");
+				request.Headers.Add("Accept-Encoding", "gzip, deflate, br");
 
 				// we do this async
 				var response = phpUploadHttpClient.SendAsync(request).Result;
@@ -11187,7 +11187,7 @@ namespace CumulusMX
 						request.Method = HttpMethod.Post;
 
 						// Compress? if supported and payload exceeds 500 bytes
-						if (data.Length >= 500 && (FtpOptions.PhpCompression == "gzip" || FtpOptions.PhpCompression == "deflate"))
+						if (data.Length >= 500 && (FtpOptions.PhpCompression == "gzip" || FtpOptions.PhpCompression == "deflate" || FtpOptions.PhpCompression == "br"))
 						{
 							using var ms = new MemoryStream();
 							var byteData = encoding.GetBytes(data);
@@ -11202,10 +11202,15 @@ namespace CumulusMX
 								using var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true);
 								await zipped.WriteAsync(byteData.AsMemory(0, byteData.Length), cancellationToken);
 							}
+							else if (FtpOptions.PhpCompression == "br")
+							{
+								using var zipped = new System.IO.Compression.BrotliStream(ms, System.IO.Compression.CompressionMode.Compress, true);
+								await zipped.WriteAsync(byteData.AsMemory(0, byteData.Length), cancellationToken);
+							}
 
 							ms.Position = 0;
 							byte[] compressed = new byte[ms.Length];
-							await ms.ReadAsync(compressed.AsMemory(0, compressed.Length), cancellationToken);
+							_ = await ms.ReadAsync(compressed.AsMemory(0, compressed.Length), cancellationToken);
 
 							outStream = new MemoryStream(compressed);
 							streamContent = new StreamContent(outStream);

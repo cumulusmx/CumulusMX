@@ -686,6 +686,8 @@ namespace CumulusMX
 				{
 					var len = GW1000Api.ConvertBigEndianUInt16(data, 3);
 
+					LowBatteryDevices.Clear();
+
 					// Only loop as far as last record (7 bytes) minus the checksum byte
 					for (int i = 5; i <= len - 6; i += 7)
 					{
@@ -787,17 +789,23 @@ namespace CumulusMX
 
 						break;
 
-					case "WH65":
 					case "WH24":
-					case "WH26":
 					case "WH24/WH65":
-					case "WS69":
+					case "WH25":
+					case "WH26":
+					case string wh31 when wh31.StartsWith("WH31"):  // ch 1-8
+					case "WH65":
 						batt = TestBattery1(data[battPos], 1);  // 0 or 1
 						break;
 
-					case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
-					case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
-					case "WH90":
+					case string wh41 when wh41.StartsWith("WH41"): // ch 1-4
+					case "WH45":
+					case string wh55 when wh55.StartsWith("WH55"): // ch 1-4
+					case "WH57":
+						batt = TestBattery3(data[battPos]);  // 0-5 + 6, 9
+						break;
+
+					case "WS90":
 						// if a WS90 is connected, it has a 8.8 second update rate, so reduce the MX update rate from the default 10 seconds
 						if (updateRate > 8000 && updateRate != 8000)
 						{
@@ -808,22 +816,17 @@ namespace CumulusMX
 						batt = $"{battV:f2}V ({(battV > 2.4 ? "OK" : "Low")})";
 						break;
 
-					case string wh31 when wh31.StartsWith("WH31"):  // ch 1-8
-						batt = $"{data[battPos]} ({TestBattery1(data[battPos], 1)})";
+					case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
+					case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
+					case "WH68":
+					case "WS69":
+						battV = data[battPos] * 0.02;
+						batt = $"{battV:f2}V ({(battV > 1.2 ? "OK" : "Low")})";
 						break;
 
-					case "WH68":
 					case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
 						battV = data[battPos] * 0.1;
 						batt = $"{battV:f2}V ({TestBattery10(data[battPos])})"; // volts/10, low = 1.2V
-						break;
-
-					case "WH25":
-					case "WH45":
-					case "WH57":
-					case string wh41 when wh41.StartsWith("WH41"): // ch 1-4
-					case string wh55 when wh55.StartsWith("WH55"): // ch 1-4
-						batt = $"{data[battPos]} ({TestBattery3(data[battPos])})"; // 0-5, low = 1
 						break;
 
 					case "WH80":
@@ -837,6 +840,7 @@ namespace CumulusMX
 						battV = data[battPos] * 0.02;
 						batt = $"{battV:f2}V ({(battV > 2.4 ? "OK" : "Low")})";
 						break;
+
 					case "WS85":
 						// if a WS85 is connected, it has a 8.5 second update rate, so reduce the MX update rate from the default 10 seconds
 						if (updateRate > 8000 && updateRate != 8000)
@@ -853,7 +857,10 @@ namespace CumulusMX
 				}
 
 				if (batt.Contains("Low"))
+				{
 					batteryLow = true;
+					LowBatteryDevices.Add(type + "-" + batt);
+				}
 
 				SensorReception[type] = data[sigPos];
 

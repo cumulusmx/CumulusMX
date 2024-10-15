@@ -53,11 +53,12 @@ namespace CumulusMX
 		private static string CheckRcDp(double val, Dictionary<string, string> tagParams, int decimals, string format = null)
 		{
 			string ret;
+			var rc = tagParams.Get("rc") == "y";
 			try
 			{
-				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var numFormat = rc ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
 
-				if (tagParams.Get("tc") == "y")
+				if (rc)
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
@@ -83,11 +84,12 @@ namespace CumulusMX
 		private static string CheckRcDp(decimal val, Dictionary<string, string> tagParams, int decimals)
 		{
 			string ret;
+			var rc = tagParams.Get("rc") == "y";
 			try
 			{
-				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var numFormat = rc ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
 
-				if (tagParams.Get("tc") == "y")
+				if (rc)
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
@@ -488,6 +490,28 @@ namespace CumulusMX
 			var timeToday = station.WindRunHourMult[cumulus.Units.Wind] * hours;
 			// just after rollover the numbers will be silly, so return zero for the first 15 minutes
 			return CheckRcDp(CheckWindUnit(hours > 0.25 ? station.WindRunToday / timeToday : 0, tagParams), tagParams, cumulus.WindAvgDPlaces);
+		}
+
+		private string TagWindAvgCust(Dictionary<string, string> tagParams)
+		{
+			// m parater is the minutes to average
+			int mins = int.TryParse(tagParams.Get("m"), out mins) ? mins : cumulus.AvgSpeedTime.Minutes;
+			var fromTime = DateTime.Now.AddMinutes(-mins);
+			var ws = station.GetWindAverageFromArray(fromTime);
+			// we want any calibration to be applied from uncalibrated values
+			ws = cumulus.Calib.WindSpeed.Calibrate(ws);
+			return CheckRcDp(CheckWindUnit(ws, tagParams), tagParams, cumulus.WindAvgDPlaces);
+		}
+
+		private string TagWindGustCust(Dictionary<string, string> tagParams)
+		{
+			// m parater is the minutes to find the gust
+			int mins = int.TryParse(tagParams.Get("m"), out mins) ? mins : cumulus.PeakGustTime.Minutes;
+			var fromTime = DateTime.Now.AddMinutes(-mins);
+			var ws = station.GetWindGustFromArray(fromTime);
+			// we want any calibration to be applied from uncalibrated values
+			ws = cumulus.Calib.WindGust.Calibrate(ws);
+			return CheckRcDp(CheckWindUnit(ws, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string Tagwchill(Dictionary<string, string> tagParams)
@@ -1663,10 +1687,9 @@ namespace CumulusMX
 			return station.AllTime.LowDailyTempRange.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
-		private string Tagerrorlight(Dictionary<string, string> tagParams)
+		private static string Tagerrorlight(Dictionary<string, string> tagParams)
 		{
-			// TODO
-			return "0";
+			return Cumulus.LatestError.Length > 0 ? "1" : "0";
 		}
 
 		private string TagtempTh(Dictionary<string, string> tagParams)
@@ -5389,17 +5412,17 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.LastDataReadTimestamp.ToLocalTime(), "G", tagParams);
 		}
 
-		private string TagLatestError(Dictionary<string, string> tagParams)
+		private static string TagLatestError(Dictionary<string, string> tagParams)
 		{
 			return Cumulus.LatestError;
 		}
 
-		private string TagLatestErrorEnc(Dictionary<string, string> tagParams)
+		private static string TagLatestErrorEnc(Dictionary<string, string> tagParams)
 		{
 			return EncodeForWeb(Cumulus.LatestError);
 		}
 
-		private string TagLatestErrorJsEnc(Dictionary<string, string> tagParams)
+		private static string TagLatestErrorJsEnc(Dictionary<string, string> tagParams)
 		{
 			return EncodeForJs(Cumulus.LatestError);
 		}
@@ -5573,7 +5596,7 @@ namespace CumulusMX
 			return station.GW1000FirmwareVersion;
 		}
 
-		private string TagGw1000Reception(Dictionary<string, string> tagParams)
+		private static string TagGw1000Reception(Dictionary<string, string> tagParams)
 		{
 			var json = tagParams.Get("format") == "json";
 
@@ -5935,7 +5958,8 @@ namespace CumulusMX
 			var where = tagParams.Get("where");
 			var from = tagParams.Get("from");
 			var to = tagParams.Get("to");
-			var showDate = tagParams.Get("showDate");
+			var showDate = tagParams.Get("showDate") == "y";
+			var dateOnly = tagParams.Get("dateOnly") == "y";
 			var resfunc = tagParams.Get("resFunc");
 
 			tagParams.Add("tc", function == "count" ? "y" : "n");
@@ -5946,7 +5970,7 @@ namespace CumulusMX
 
 			if (ret.value < -9998)
 			{
-				if (showDate == "y")
+				if (showDate)
 				{
 					return "[\"-\",\"-\"]";
 				}
@@ -5957,9 +5981,13 @@ namespace CumulusMX
 			}
 			else
 			{
-				if (showDate == "y")
+				if (showDate)
 				{
 					return "[\"" + CheckRcDp(ret.value, tagParams, 1) + "\",\"" + GetFormattedDateTime(ret.time, defaultFormat, tagParams) + "\"]";
+				}
+				else if (dateOnly)
+				{ 
+					return GetFormattedDateTime(ret.time, defaultFormat, tagParams);
 				}
 				else
 				{
@@ -6498,7 +6526,7 @@ namespace CumulusMX
 				{ "CO2_pm2p5_aqi", TagCO2_pm2p5_aqi },
 				{ "CO2_pm2p5_24h_aqi", TagCO2_pm2p5_24h_aqi },
 				{ "CO2_pm10_aqi", TagCO2_pm10_aqi },
-				{ "CO2_pm10_24_aqih", TagCO2_pm10_24h_aqi },
+				{ "CO2_pm10_24h_aqi", TagCO2_pm10_24h_aqi },
 				{ "LeakSensor1", TagLeakSensor1 },
 				{ "LeakSensor2", TagLeakSensor2 },
 				{ "LeakSensor3", TagLeakSensor3 },
@@ -6834,6 +6862,9 @@ namespace CumulusMX
 				{ "RCRecentPressure", TagRcRecentPressure },
 				{ "RCRecentRainToday", TagRcRecentRainToday },
 				{ "RCRecentUV", TagRcRecentUv },
+				// Custom Intervals
+				{ "WindAvgCust", TagWindAvgCust },
+				{ "WindGustCust", TagWindGustCust },
 				// Month-by-month highs and lows - values
 				{ "ByMonthTempH", TagByMonthTempH },
 				{ "ByMonthTempL", TagByMonthTempL },

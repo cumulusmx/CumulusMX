@@ -11,9 +11,6 @@ using ServiceStack.Text;
 
 using SQLite;
 
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
-
 namespace CumulusMX
 {
 
@@ -22,18 +19,63 @@ namespace CumulusMX
 		private readonly SQLiteConnection db = databaseConnection;
 		private readonly static CultureInfo inv = CultureInfo.InvariantCulture;
 		internal static readonly string[] funcNameArray = { "min", "max", "sum", "avg", "count" };
+		private static readonly Dictionary<string, string> properties = new()
+		{
+			{"HighGust", "HighGustTime"},
+			{"WindRun", "Date"},
+			{"HighAvgWind", "HighAvgWindTime"},
+			{"LowTemp", "LowTempTime"},
+			{"HighTemp", "HighTempTime"},
+			{"AvgTemp", "Date"},
+			{"HighHeatIndex", "HighHeatIndexTime"},
+			{"HighAppTemp", "HighAppTempTime"},
+			{"LowAppTemp", "LowAppTempTime"},
+			{"LowWindChill", "LowWindChillTime"},
+			{"HighDewPoint", "HighDewPointTime"},
+			{"LowDewPoint", "LowDewPoint"},
+			{"HighFeelsLike", "HighFeelsLikeTime"},
+			{"LowFeelsLike", "LowFeelsLikeTime"},
+			{"HighHumidex", "HighHumidexTime"},
+			{"LowPress", "LowPressTime"},
+			{"HighPress", "HighPressTime"},
+			{"HighRainRate", "HighRainRateTime"},
+			{"TotalRain", "Date"},
+			{"HighHourlyRain", "HighHourlyRainTime"},
+			{"HighRain24h", "HighRain24hTime"},
+			{"LowHumidity", "LowHumidityTime"},
+			{"HighHumidity", "HighHumidityTime"},
+			{"SunShineHours", "Date"},
+			{"HighSolar", "HighSolarTime"},
+			{"HighUv", "HighUvTime"},
+			{"ET", "Date"},
+			{"HeatingDegreeDays", "Date"},
+			{"CoolingDegreeDays", "Date"},
+			{"ChillHours", "Date"}
+		};
+		private static readonly int[] daysInMonth = { 0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 
 		public (double value, DateTime time) DayFile(string propertyName, string function, string where, string from, string to, string resfunc)
 		{
 			var fromDate = DateTime.MinValue;
 			var toDate = DateTime.MinValue;
+			var byDay = string.Empty;
 			var byMonth = string.Empty;
 			var yearly = false;
 
-			if (!funcNameArray.Contains(function))
+			if ((from != "ThisDay" && from[0..3] != "Day") && !funcNameArray.Contains(function))
 			{
 				throw new ArgumentException($"Invalid function name - '{function}'");
+			}
+
+			if (!properties.TryGetValue(propertyName, out string timeProp))
+			{
+				throw new ArgumentException($"Invalid property name - '{propertyName}'");
+			}
+
+			if (function == "sum")
+			{
+				timeProp = "Date";
 			}
 
 			try
@@ -50,8 +92,17 @@ namespace CumulusMX
 						toDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month), 0, 0, 0, DateTimeKind.Local);
 						break;
 
-					case string s when s.StartsWith("Month-"):
+					case "ThisDay":
+						byDay = DateTime.Now.ToString("MM-dd");
+						break;
+
+					case string s when s.StartsWith("Day-"):
 						var rel = int.Parse(s.Split('-')[1]);
+						byDay = DateTime.Now.AddDays(-rel).ToString("MM-dd");
+						break;
+
+					case string s when s.StartsWith("Month-"):
+						rel = int.Parse(s.Split('-')[1]);
 						fromDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(-rel);
 						toDate = fromDate.AddMonths(1).AddDays(-1);
 						break;
@@ -60,6 +111,26 @@ namespace CumulusMX
 						rel = int.Parse(s.Split('-')[1]);
 						fromDate = new DateTime(DateTime.Now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local).AddYears(-rel);
 						toDate = fromDate.AddYears(1).AddDays(-1);
+						break;
+
+					case string s when s.StartsWith("Day"):
+						// by specified day
+						if (s.Length != 7)
+						{
+							throw new ArgumentException(s + " invalid length");
+						}
+						var mon = s[3..5];
+						var day = s[5..];
+						if (int.Parse(mon) > 12 || int.Parse(mon) < 1)
+						{
+							throw new ArgumentException(s + " exceeds month range 1-12!");
+						}
+						if (int.Parse(day) < 1 || int.Parse(day) > daysInMonth[int.Parse(mon)])
+						{
+							throw new ArgumentException($"{s} exceeds day range 1-{daysInMonth[int.Parse(mon)]}");
+						}
+
+						byDay = $"{mon}-{day}";
 						break;
 
 					case string s when s.Length > 5 && s.StartsWith("Month"):
@@ -103,8 +174,6 @@ namespace CumulusMX
 			DateTime logTime = DateTime.MinValue;
 			double value = -9999;
 
-			var timeProp = function == "sum" ? "Date" : propToTime(propertyName);
-
 			// Combinations:-
 			// count:
 			//    where [mandatory]
@@ -129,7 +198,7 @@ namespace CumulusMX
 						if (ret.Count == 1)
 						{
 							value = ret[0].value;
-							logTime = new DateTime(int.Parse(ret[0].year_month), 1, 1, 0, 0, 0, DateTimeKind.Local);
+							logTime = new DateTime(int.Parse(ret[0].groupBy), 1, 1, 0, 0, 0, DateTimeKind.Local);
 						}
 					}
 					else
@@ -139,7 +208,7 @@ namespace CumulusMX
 						if (ret.Count == 1)
 						{
 							value = ret[0].value;
-							var arr = ret[0].year_month.Split("-");
+							var arr = ret[0].groupBy.Split("-");
 							logTime = new DateTime(int.Parse(arr[0]), int.Parse(arr[1]), 1, 0, 0, 0, DateTimeKind.Local);
 						}
 					}
@@ -147,7 +216,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				if (byMonth == string.Empty && !yearly)
+				if (byDay == string.Empty && byMonth == string.Empty && !yearly)
 				{
 					List<RetValTime> ret;
 
@@ -170,7 +239,16 @@ namespace CumulusMX
 				{
 					var sort = resfunc == "max" ? "DESC" : "ASC";
 
-					if (yearly)
+					if (byDay != string.Empty)
+					{
+						var ret = db.Query<RetValTime>($"SELECT {timeProp} AS time, {propertyName} AS value FROM DayFileRec WHERE {(string.IsNullOrEmpty(where) ? string.Empty : $"{propertyName} {where} AND")} strftime(\"%m-%d\", Date) = \"{byDay}\" ORDER BY value {sort} LIMIT 1");
+						if (ret.Count == 1)
+						{
+							value = ret[0].value;
+							logTime = ret[0].time;
+						}
+					}
+					else if (yearly)
 					{
 						var ret = db.Query<RetValTime>($"SELECT {function}({propertyName}) value, {timeProp} time, strftime('%Y', Date) year FROM DayFileRec GROUP BY year ORDER BY value {sort} LIMIT 1");
 						
@@ -189,7 +267,7 @@ namespace CumulusMX
 							if (ret.Count == 1)
 							{
 								value = ret[0].value;
-								var arr = ret[0].year_month.Split("-");
+								var arr = ret[0].groupBy.Split("-");
 								logTime = new DateTime(int.Parse(arr[0]), int.Parse(arr[1]), 1, 0, 0, 0, DateTimeKind.Local);
 							}
 						}
@@ -274,51 +352,6 @@ namespace CumulusMX
 		}
 
 
-		private static string propToTime(string prop)
-		{
-			return prop switch
-			{
-				"HighGust" => "HighGustTime",
-				"WindRun" => "Date",
-				"HighAvgWind" => "HighAvgWindTime",
-
-				"LowTemp" => "LowTempTime",
-				"HighTemp" => "HighTempTime",
-				"AvgTemp" => "Date",
-				"HighHeatIndex" => "HighHeatIndexTime",
-				"HighAppTemp" => "HighAppTempTime",
-				"LowAppTemp" => "LowAppTempTime",
-				"LowWindChill" => "LowWindChillTime",
-				"HighDewPoint" => "HighDewPointTime",
-				"LowDewPoint" => "LowDewPoint",
-				"HighFeelsLike" => "HighFeelsLikeTime",
-				"LowFeelsLike" => "LowFeelsLikeTime",
-				"HighHumidex" => "HighHumidexTime",
-
-				"LowPress" => "LowPressTime",
-				"HighPress" => "HighPressTime",
-
-				"HighRainRate" => "HighRainRateTime",
-				"TotalRain" => "Date",
-				"HighHourlyRain" => "HighHourlyRainTime",
-				"HighRain24h" => "HighRain24hTime",
-
-				"LowHumidity" => "LowHumidityTime",
-				"HighHumidity" => "HighHumidityTime",
-
-				"SunShineHours" => "Date",
-				"HighSolar" => "HighSolarTime",
-				"HighUv" => "HighUvTime",
-				"ET" => "Date",
-
-				"HeatingDegreeDays" => "Date",
-				"CoolingDegreeDays" => "Date",
-				"ChillHours" => "Date",
-
-				_ => "Invalid"
-			};
-		}
-
 		private sealed class RetValTime
 		{
 			public double value { get; set; }
@@ -328,7 +361,7 @@ namespace CumulusMX
 		private sealed class RetValString
 		{
 			public int value { get; set; }
-			public string year_month { get; set; }
+			public string groupBy { get; set; }
 		}
 
 		private sealed class WebReq
