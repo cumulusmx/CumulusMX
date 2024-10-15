@@ -5959,6 +5959,7 @@ namespace CumulusMX
 			var from = tagParams.Get("from");
 			var to = tagParams.Get("to");
 			var showDate = tagParams.Get("showDate");
+			var dateOnly = tagParams.Get("dateOnly");
 			var resfunc = tagParams.Get("resFunc");
 
 			tagParams.Add("tc", function == "count" ? "y" : "n");
@@ -5983,6 +5984,10 @@ namespace CumulusMX
 				if (showDate == "y")
 				{
 					return "[\"" + CheckRcDp(ret.value, tagParams, 1) + "\",\"" + GetFormattedDateTime(ret.time, defaultFormat, tagParams) + "\"]";
+				}
+				else if (dateOnly == "y")
+				{ 
+					return GetFormattedDateTime(ret.time, defaultFormat, tagParams);
 				}
 				else
 				{
