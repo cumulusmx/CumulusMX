@@ -15,7 +15,9 @@ Alternatively, view it [online on GitHub](https://github.com/cumulusmx/CumulusMX
 ### New
 - The web tag `<#DayFileQuery>` has been extended to allow "on this day" type queries.
 	- Please read the separate documention (`/MXutils/QueryDayFile.md`) for more details
-- The `Daily Data Query` page on the dashboard has also been extended to support "on this day" queries
+- The web tag `<#DayFileQuery>` has been extended to add the optional parameter dateOnly=y
+- Please read the separate documention (`/MXutils/QueryDayFile.md`) for more details
+	- The `Daily Data Query` page on the dashboard has also been extended to support "on this day" queries
 - Ecowitt TCP API station now supports the LowBatteryList web tag
 - Adds Brotli compression support to PHP uploads
 - Two new web tags for wind speeds. These allow you to extract the average and gust speeds for custom intervals. If you have 10 minutes defined as your average and gust speed intervals in Cumulus,
