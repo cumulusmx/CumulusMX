@@ -31,6 +31,7 @@ but you also want to see the two minute values, then you can use these new tags
 	To return to the previous behaviour of using integer values, set your Air Quality decimal places to zero in `Station Settings > General Settings > Units > Advanced Options`
 - The web tag `<#CO2_pm10_24_aqih>` has been corrected to `<#CO2_pm10_24h_aqi>`<br>
 	If you use this tag in any of your files, please amend your files to match the corrected tag name
+- Clean-up of the AI2 pages for Interval and Daily Data viewers
 
 ### Fixed
 - Interval data viewer not working over month ends for extra sensor values
