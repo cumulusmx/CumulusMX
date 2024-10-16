@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 
 
-## 4.2.1 \[b4041\] - 2024-10-16
+## 4.2.1 \[b4042\] - 2024-10-16
 
 ### New
 - The web tag `<#DayFileQuery>` has been extended to allow "on this day" type queries.
