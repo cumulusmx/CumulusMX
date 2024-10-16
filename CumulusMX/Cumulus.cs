@@ -1649,7 +1649,15 @@ namespace CumulusMX
 
 				// we do this async
 				var response = phpUploadHttpClient.SendAsync(request).Result;
+
+				if (response.StatusCode == HttpStatusCode.NotFound)
+				{
+					LogErrorMessage("TestPhpUploadCompression: Failed to find the upload.php script on your server - check the path");
+					return;
+				}
+
 				response.EnsureSuccessStatusCode();
+
 				var encoding = response.Content.Headers.ContentEncoding;
 
 				FtpOptions.PhpCompression = encoding.Count == 0 ? "none" : encoding.First();
@@ -13030,13 +13038,13 @@ namespace CumulusMX
 						LogWarningMessage(msg);
 						UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
 						UpgradeAlarm.Triggered = true;
-						LatestBuild = latestBeta != null ? latestBeta.tag_name[1..] : latestLive.tag_name[1..];
+						LatestBuild = latestLive.tag_name[1..];
 					}
 					else if (int.Parse(latestLive.tag_name[1..]) == cmxBuild)
 					{
 						LogMessage($"This Cumulus MX instance is running the latest release version");
 						UpgradeAlarm.Triggered = false;
-						LatestBuild = latestBeta != null ? latestBeta.tag_name[1..] : latestLive.tag_name[1..];
+						LatestBuild = latestLive.tag_name[1..];
 					}
 					else
 					{

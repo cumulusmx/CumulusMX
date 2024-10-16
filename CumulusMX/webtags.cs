@@ -6797,7 +6797,7 @@ namespace CumulusMX
 				{ "LatestErrorJsEnc", TagLatestErrorJsEnc },
 				{ "LatestErrorDate", TagLatestErrorDate },
 				{ "LatestErrorTime", TagLatestErrorTime },
-				{ "ErrorLight", Tagerrorlight },
+				{ "ErrorLight", TagErrorLight },
 				{ "MoonPercent", TagMoonPercent },
 				{ "MoonPercentAbs", TagMoonPercentAbs },
 				{ "MoonAge", TagMoonAge },
