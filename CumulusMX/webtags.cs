@@ -1687,9 +1687,9 @@ namespace CumulusMX
 			return station.AllTime.LowDailyTempRange.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
-		private static string Tagerrorlight(Dictionary<string, string> tagParams)
+		private static string TagErrorLight(Dictionary<string, string> tagParams)
 		{
-			return Cumulus.LatestError.Length > 0 ? "1" : "0";
+			return string.IsNullOrEmpty(Cumulus.LatestError) ? "0" : "1";
 		}
 
 		private string TagtempTh(Dictionary<string, string> tagParams)
@@ -6797,7 +6797,7 @@ namespace CumulusMX
 				{ "LatestErrorJsEnc", TagLatestErrorJsEnc },
 				{ "LatestErrorDate", TagLatestErrorDate },
 				{ "LatestErrorTime", TagLatestErrorTime },
-				{ "ErrorLight", Tagerrorlight },
+				{ "ErrorLight", TagErrorLight },
 				{ "MoonPercent", TagMoonPercent },
 				{ "MoonPercentAbs", TagMoonPercentAbs },
 				{ "MoonAge", TagMoonAge },

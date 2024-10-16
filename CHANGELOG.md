@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 
 
-## 4.2.1 \[b4040\] - 2024-10-15
+## 4.2.1 \[b4041\] - 2024-10-16
 
 ### New
 - The web tag `<#DayFileQuery>` has been extended to allow "on this day" type queries.
@@ -20,6 +20,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The `Daily Data Query` page on the dashboard has also been extended to support "on this day" queries
 - Ecowitt TCP API station now supports the LowBatteryList web tag
 - Adds Brotli compression support to PHP uploads
+	- Enabled via `Internet Settings > Web/Upload Site > Advanced Settings`
+	- Using this option also requires PHP support for Brotli compression on your web server. Check this available before enabling this option
+	- Also requires the latest version of `upload.php` to be uploaded to your web server
 - Two new web tags for wind speeds. These allow you to extract the average and gust speeds for custom intervals. If for example you have 10 minutes defined as your average and gust speed intervals in Cumulus,
 but you also want to see the two minute values then you can use these new tags
 	- `<#WindAvgCust m=N>` - returns the average windspeed for the last N minutes
@@ -37,7 +40,8 @@ but you also want to see the two minute values then you can use these new tags
 - Interval data viewer not working over month ends for extra sensor values
 - Ecowitt TCP API Station, incorrect interpretation of Ecowitt WH34 sensor low battery state
 - Ecowitt TCP API Station, false detection of WS90 when a WH34 sensor was detected
-- Web tag `<#errorlight>` is now functional again. It is triggered if Latest Error has any text, and cleared when you clear the latest error list from the interface
+- Web tag `<#ErrorLight>` is now functional again. It is triggered if Latest Error has any text, and cleared when you clear the latest error list from the interface
+- Fix web tag `<#NewBuildNumber>` showing the latest build number as "0000"
 
 ### Package Updates
 - SQLite

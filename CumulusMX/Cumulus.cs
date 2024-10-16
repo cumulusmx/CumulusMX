@@ -941,6 +941,7 @@ namespace CumulusMX
 			{
 				LogMessage("Maximum concurrent PHP Uploads = " + FtpOptions.MaxConcurrentUploads);
 				LogMessage("PHP using GET = " + FtpOptions.PhpUseGet);
+				LogMessage("PHP using Brotli = " + FtpOptions.PhpUseBrotli);
 			}
 			uploadCountLimitSemaphoreSlim = new SemaphoreSlim(FtpOptions.MaxConcurrentUploads);
 
@@ -1644,11 +1645,19 @@ namespace CumulusMX
 			try
 			{
 				request.Headers.Add("Accept", "text/html");
-				request.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+				request.Headers.Add("Accept-Encoding", "gzip, deflate" + (FtpOptions.PhpUseBrotli ? "" : ", br"));
 
 				// we do this async
 				var response = phpUploadHttpClient.SendAsync(request).Result;
+
+				if (response.StatusCode == HttpStatusCode.NotFound)
+				{
+					LogErrorMessage("TestPhpUploadCompression: Failed to find the upload.php script on your server - check the path");
+					return;
+				}
+
 				response.EnsureSuccessStatusCode();
+
 				var encoding = response.Content.Headers.ContentEncoding;
 
 				FtpOptions.PhpCompression = encoding.Count == 0 ? "none" : encoding.First();
@@ -4158,6 +4167,7 @@ namespace CumulusMX
 			FtpOptions.PhpIgnoreCertErrors = ini.GetValue("FTP site", "PHP-IgnoreCertErrors", false);
 			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", 2, 1);
 			FtpOptions.PhpUseGet = ini.GetValue("FTP site", "PHP-UseGet", true);
+			FtpOptions.PhpUseBrotli = ini.GetValue("FTP site", "PHP-UseBrotli", false);
 
 			if (FtpOptions.Enabled && FtpOptions.PhpUrl == string.Empty && FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
@@ -13028,13 +13038,13 @@ namespace CumulusMX
 						LogWarningMessage(msg);
 						UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
 						UpgradeAlarm.Triggered = true;
-						LatestBuild = latestBeta != null ? latestBeta.tag_name[1..] : latestLive.tag_name[1..];
+						LatestBuild = latestLive.tag_name[1..];
 					}
 					else if (int.Parse(latestLive.tag_name[1..]) == cmxBuild)
 					{
 						LogMessage($"This Cumulus MX instance is running the latest release version");
 						UpgradeAlarm.Triggered = false;
-						LatestBuild = latestBeta != null ? latestBeta.tag_name[1..] : latestLive.tag_name[1..];
+						LatestBuild = latestLive.tag_name[1..];
 					}
 					else
 					{
@@ -13643,6 +13653,7 @@ namespace CumulusMX
 		public string PhpCompression { get; set; } = "notchecked";
 		public int MaxConcurrentUploads { get; set; }
 		public bool PhpUseGet { get; set; }
+		public bool PhpUseBrotli { get; set;}
 	}
 
 	public class FileGenerationOptions
