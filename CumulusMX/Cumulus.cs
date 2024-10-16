@@ -37,6 +37,8 @@ using MySqlConnector;
 
 using NReco.Logging.File;
 
+using Org.BouncyCastle.Asn1.Ocsp;
+
 using Renci.SshNet;
 
 using ServiceStack;
@@ -1656,6 +1658,17 @@ namespace CumulusMX
 					return;
 				}
 
+				if (response.StatusCode == HttpStatusCode.InternalServerError)
+				{
+					var rawMessage = response.Content.ReadAsStringAsync().Result;
+
+					if (rawMessage == "You must change the default secret")
+					{
+						LogErrorMessage("TestPhpUploadCompression: The upload.php script on your server still has the default secret set in it");
+						return;
+					}
+				}
+
 				response.EnsureSuccessStatusCode();
 
 				var encoding = response.Content.Headers.ContentEncoding;
@@ -1676,7 +1689,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogExceptionMessage(ex, "TestPhpUploadCompression: Error - ");
+				LogExceptionMessage(ex, "TestPhpUploadCompression: Error");
 			}
 		}
 
@@ -5905,6 +5918,7 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "PHP-Secret", Crypto.EncryptString(FtpOptions.PhpSecret, Program.InstanceId, "FtpOptions.PhpSecret"));
 			ini.SetValue("FTP site", "PHP-IgnoreCertErrors", FtpOptions.PhpIgnoreCertErrors);
 			ini.SetValue("FTP site", "PHP-UseGet", FtpOptions.PhpUseGet);
+			ini.SetValue("FTP site", "PHP-UseBrotli", FtpOptions.PhpUseBrotli);
 			ini.SetValue("FTP site", "MaxConcurrentUploads", FtpOptions.MaxConcurrentUploads);
 
 
