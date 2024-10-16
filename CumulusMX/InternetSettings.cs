@@ -107,6 +107,7 @@ namespace CumulusMX
 							cumulus.FtpOptions.PhpIgnoreCertErrors = settings.website.advanced.phpignorecerts;
 							cumulus.FtpOptions.PhpUseGet = settings.website.advanced.phpuseget;
 							cumulus.FtpOptions.MaxConcurrentUploads = settings.website.advanced.maxuploads;
+							cumulus.FtpOptions.PhpUseBrotli = settings.website.advanced.phpusebrotli;
 						}
 
 						if (cumulus.FtpOptions.FtpMode != Cumulus.FtpProtocols.PHP && settings.websettings.realtime.enabled && settings.websettings.realtime.enablerealtimeftp)
@@ -361,6 +362,7 @@ namespace CumulusMX
 				ignorecerts = cumulus.FtpOptions.IgnoreCertErrors,
 				phpignorecerts = cumulus.FtpOptions.PhpIgnoreCertErrors,
 				phpuseget = cumulus.FtpOptions.PhpUseGet,
+				phpusebrotli = cumulus.FtpOptions.PhpUseBrotli,
 				maxuploads = cumulus.FtpOptions.MaxConcurrentUploads
 			};
 
@@ -717,6 +719,7 @@ namespace CumulusMX
 		public bool phpignorecerts { get; set; }
 		public int maxuploads { get; set; }
 		public bool phpuseget { get; set; }
+		public bool phpusebrotli { get; set; }
 	}
 
 	public class JsonInternetSettingsWebsite

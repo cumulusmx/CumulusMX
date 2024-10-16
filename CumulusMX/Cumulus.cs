@@ -941,6 +941,7 @@ namespace CumulusMX
 			{
 				LogMessage("Maximum concurrent PHP Uploads = " + FtpOptions.MaxConcurrentUploads);
 				LogMessage("PHP using GET = " + FtpOptions.PhpUseGet);
+				LogMessage("PHP using Brotli = " + FtpOptions.PhpUseBrotli);
 			}
 			uploadCountLimitSemaphoreSlim = new SemaphoreSlim(FtpOptions.MaxConcurrentUploads);
 
@@ -1644,7 +1645,7 @@ namespace CumulusMX
 			try
 			{
 				request.Headers.Add("Accept", "text/html");
-				request.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+				request.Headers.Add("Accept-Encoding", "gzip, deflate" + (FtpOptions.PhpUseBrotli ? "" : ", br"));
 
 				// we do this async
 				var response = phpUploadHttpClient.SendAsync(request).Result;
@@ -4158,6 +4159,7 @@ namespace CumulusMX
 			FtpOptions.PhpIgnoreCertErrors = ini.GetValue("FTP site", "PHP-IgnoreCertErrors", false);
 			FtpOptions.MaxConcurrentUploads = ini.GetValue("FTP site", "MaxConcurrentUploads", 2, 1);
 			FtpOptions.PhpUseGet = ini.GetValue("FTP site", "PHP-UseGet", true);
+			FtpOptions.PhpUseBrotli = ini.GetValue("FTP site", "PHP-UseBrotli", false);
 
 			if (FtpOptions.Enabled && FtpOptions.PhpUrl == string.Empty && FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
@@ -13643,6 +13645,7 @@ namespace CumulusMX
 		public string PhpCompression { get; set; } = "notchecked";
 		public int MaxConcurrentUploads { get; set; }
 		public bool PhpUseGet { get; set; }
+		public bool PhpUseBrotli { get; set;}
 	}
 
 	public class FileGenerationOptions
