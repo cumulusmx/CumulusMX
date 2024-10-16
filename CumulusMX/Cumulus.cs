@@ -1645,7 +1645,7 @@ namespace CumulusMX
 			try
 			{
 				request.Headers.Add("Accept", "text/html");
-				request.Headers.Add("Accept-Encoding", "gzip, deflate" + (FtpOptions.PhpUseBrotli ? "" : ", br"));
+				request.Headers.Add("Accept-Encoding", "gzip, deflate" + (FtpOptions.PhpUseBrotli ? ", br" : ""));
 
 				// we do this async
 				var response = phpUploadHttpClient.SendAsync(request).Result;
