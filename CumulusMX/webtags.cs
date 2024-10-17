@@ -53,12 +53,11 @@ namespace CumulusMX
 		private static string CheckRcDp(double val, Dictionary<string, string> tagParams, int decimals, string format = null)
 		{
 			string ret;
-			var rc = tagParams.Get("rc") == "y";
 			try
 			{
-				var numFormat = rc ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
 
-				if (rc)
+				if (tagParams.Get("tc") == "y")
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
@@ -84,12 +83,11 @@ namespace CumulusMX
 		private static string CheckRcDp(decimal val, Dictionary<string, string> tagParams, int decimals)
 		{
 			string ret;
-			var rc = tagParams.Get("rc") == "y";
 			try
 			{
-				var numFormat = rc ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
 
-				if (rc)
+				if (tagParams.Get("tc") == "y")
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
