@@ -287,8 +287,8 @@ namespace CumulusMX.ThirdParty
 				if (started) sb.Append('&'); else started = true;
 				for (var i = 1; i <= 4; i++)
 				{
-					if (station.SoilTemp[i] > Cumulus.DefaultHiVal)
-						sb.Append($"soiltemp{i}={ConvertUnits.UserTempToC(station.SoilTemp[i]).ToString("F1", InvC)}");
+					if (station.SoilTemp[i].HasValue)
+						sb.Append($"soiltemp{i}={ConvertUnits.UserTempToC(station.SoilTemp[i].Value).ToString("F1", InvC)}");
 				}
 			}
 
@@ -421,8 +421,8 @@ namespace CumulusMX.ThirdParty
 				sb.Append(sep + sep);
 			}
 
-			if (SendSoilTemp && station.SoilTemp[1] > Cumulus.DefaultHiVal)
-				sb.Append(ConvertUnits.UserTempToC(station.SoilTemp[1]).ToString("F1", InvC) + sep);    // 21
+			if (SendSoilTemp && station.SoilTemp[1].HasValue)
+				sb.Append(ConvertUnits.UserTempToC(station.SoilTemp[1].Value).ToString("F1", InvC) + sep);    // 21
 			else
 				sb.Append(sep);
 

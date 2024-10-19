@@ -405,7 +405,7 @@ namespace CumulusMX
 			ExtraHum = new double?[11];
 			ExtraDewPoint = new double?[11];
 			UserTemp = new double[9];
-			SoilTemp = new double[17];
+			SoilTemp = new double?[17];
 
 			windcounts = new double[16];
 			WindRecent = new TWindRecent[MaxWindRecent];
@@ -1479,7 +1479,7 @@ namespace CumulusMX
 		/// <summary>
 		/// Soil Temp 1-16 in C
 		/// </summary>
-		public double[] SoilTemp { get; set; }
+		public double?[] SoilTemp { get; set; }
 
 		public double RainYesterday { get; set; }
 
@@ -10862,9 +10862,9 @@ namespace CumulusMX
 			{
 				Data.Append("&solarradiation=" + SolarRad.ToString("F0"));
 			}
-			if (cumulus.WOW.SendSoilTemp)
+			if (cumulus.WOW.SendSoilTemp && SoilTemp[cumulus.WOW.SoilTempSensor].HasValue)
 			{
-				Data.Append($"&soiltempf=" + TempFstr(SoilTemp[cumulus.WOW.SoilTempSensor]));
+				Data.Append($"&soiltempf=" + TempFstr(SoilTemp[cumulus.WOW.SoilTempSensor].Value));
 			}
 
 			Data.Append("&softwaretype=Cumulus%20v" + cumulus.Version);
@@ -11352,7 +11352,7 @@ namespace CumulusMX
 			{
 				if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i - 1, true))
 				{
-					json.Append($"[\"{cumulus.Trans.SoilTempCaptions[i - 1]}\",\"{SoilTemp[i].ToString(cumulus.TempFormat)}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+					json.Append($"[\"{cumulus.Trans.SoilTempCaptions[i - 1]}\",\"{(SoilTemp[i].HasValue ? SoilTemp[i].Value.ToString(cumulus.TempFormat) : "-")}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
 				}
 			}
 

@@ -975,7 +975,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[1] == 0)
 								station.UserTemp[1] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[1]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[1]] = null;
 
 							cumulus.EcowittMapWN34[1] = settings.ecowittmaps.wn34chan1;
 						}
@@ -985,7 +985,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[2] == 0)
 								station.UserTemp[2] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[2]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[2]] = null;
 
 							cumulus.EcowittMapWN34[2] = settings.ecowittmaps.wn34chan2;
 						}
@@ -995,7 +995,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[3] == 0)
 								station.UserTemp[3] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[3]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[3]] = null;
 
 							cumulus.EcowittMapWN34[3] = settings.ecowittmaps.wn34chan3;
 						}
@@ -1005,7 +1005,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[4] == 0)
 								station.UserTemp[4] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[4]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[4]] = null;
 
 							cumulus.EcowittMapWN34[4] = settings.ecowittmaps.wn34chan4;
 						}
@@ -1015,7 +1015,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[5] == 0)
 								station.UserTemp[5] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[5]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[5]] = null;
 
 							cumulus.EcowittMapWN34[5] = settings.ecowittmaps.wn34chan5;
 						}
@@ -1025,7 +1025,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[6] == 0)
 								station.UserTemp[6] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[6]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[6]] = null;
 
 							cumulus.EcowittMapWN34[6] = settings.ecowittmaps.wn34chan6;
 						}
@@ -1035,7 +1035,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[7] == 0)
 								station.UserTemp[7] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[7]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[7]] = null;
 
 							cumulus.EcowittMapWN34[7] = settings.ecowittmaps.wn34chan7;
 						}
@@ -1045,7 +1045,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[8] == 0)
 								station.UserTemp[8] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[8]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[8]] = null;
 
 							cumulus.EcowittMapWN34[8] = settings.ecowittmaps.wn34chan8;
 						}

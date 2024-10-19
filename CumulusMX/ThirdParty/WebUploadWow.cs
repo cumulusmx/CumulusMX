@@ -167,8 +167,8 @@ namespace CumulusMX.ThirdParty
 				Data.Append("&UV=" + station.UV.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture.NumberFormat));
 			if (SendSolar && station.SolarRad >= 0)
 				Data.Append("&solarradiation=" + station.SolarRad);
-			if (SendSoilTemp && station.SoilTemp[SoilTempSensor] > Cumulus.DefaultHiVal)
-				Data.Append($"&soiltempf=" + WeatherStation.TempFstr(station.SoilTemp[SoilTempSensor]));
+			if (SendSoilTemp && station.SoilTemp[SoilTempSensor].HasValue)
+				Data.Append($"&soiltempf=" + WeatherStation.TempFstr(station.SoilTemp[SoilTempSensor].Value));
 
 			Data.Append("&softwaretype=Cumulus%20v" + cumulus.Version);
 			Data.Append("&action=updateraw");

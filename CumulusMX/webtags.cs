@@ -4002,82 +4002,87 @@ namespace CumulusMX
 
 		private string TagSoilTemp1(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[1], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(1, tagParams);
 		}
 
 		private string TagSoilTemp2(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[2], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(2, tagParams);
 		}
 
 		private string TagSoilTemp3(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[3], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(3, tagParams);
 		}
 
 		private string TagSoilTemp4(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[4], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(4, tagParams);
 		}
 
 		private string TagSoilTemp5(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[5], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(5, tagParams);
 		}
 
 		private string TagSoilTemp6(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[6], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(6, tagParams);
 		}
 
 		private string TagSoilTemp7(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[7], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(7, tagParams);
 		}
 
 		private string TagSoilTemp8(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[8], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(8, tagParams);
 		}
 
 		private string TagSoilTemp9(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[9], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(9, tagParams);
 		}
 
 		private string TagSoilTemp10(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[10], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(10, tagParams);
 		}
 
 		private string TagSoilTemp11(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[11], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(11, tagParams);
 		}
 
 		private string TagSoilTemp12(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[12], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(12, tagParams);
 		}
 
 		private string TagSoilTemp13(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[13], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(13, tagParams);
 		}
 
 		private string TagSoilTemp14(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[14], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(14, tagParams);
 		}
 
 		private string TagSoilTemp15(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[15], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(15, tagParams);
 		}
 
 		private string TagSoilTemp16(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.SoilTemp[16], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetSoilTemp(16, tagParams);
+		}
+
+		private string GetSoilTemp(int index, Dictionary<string, string> tagParams)
+		{
+			return station.SoilTemp[index].HasValue ? CheckRcDp(station.SoilTemp[index].Value, tagParams, cumulus.TempDPlaces) : "-";
 		}
 
 		private string TagSoilMoisture1(Dictionary<string, string> tagParams)

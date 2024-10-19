@@ -7736,7 +7736,7 @@ namespace CumulusMX
 			}
 			for (int i = 1; i <= 4; i++)
 			{
-				sb.Append(station.SoilTemp[i].ToString(TempFormat, inv) + sep);     //32-35
+				sb.Append((station.SoilTemp[i].HasValue ? station.SoilTemp[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);     //32-35
 			}
 
 			sb.Append(station.SoilMoisture1 + sep);                      //36
@@ -7752,7 +7752,7 @@ namespace CumulusMX
 
 			for (int i = 5; i <= 16; i++)
 			{
-				sb.Append(station.SoilTemp[i].ToString(TempFormat, inv) + sep);     //44-55
+				sb.Append((station.SoilTemp[i].HasValue ? station.SoilTemp[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);     //44-55
 			}
 
 			sb.Append(station.SoilMoisture5 + sep);      //56

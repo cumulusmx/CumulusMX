@@ -233,14 +233,14 @@ namespace CumulusMX.ThirdParty
 					Data.Append($"&indoorhumidity={station.IndoorHumidity}");
 			}
 			// Davis soil and leaf sensors
-			if (SendSoilTemp1 && station.SoilTemp[1] >= Cumulus.DefaultHiVal)
-				Data.Append($"&soiltempf={WeatherStation.TempFstr(station.SoilTemp[1])}");
-			if (SendSoilTemp2 && station.SoilTemp[2] >= Cumulus.DefaultHiVal)
-				Data.Append($"&soiltempf2={WeatherStation.TempFstr(station.SoilTemp[2])}");
-			if (SendSoilTemp3 && station.SoilTemp[3] >= Cumulus.DefaultHiVal)
-				Data.Append($"&soiltempf3={WeatherStation.TempFstr(station.SoilTemp[3])}");
-			if (SendSoilTemp4 && station.SoilTemp[4] >= Cumulus.DefaultHiVal)
-				Data.Append($"&soiltempf4={WeatherStation.TempFstr(station.SoilTemp[4])}");
+			if (SendSoilTemp1 && station.SoilTemp[1].HasValue)
+				Data.Append($"&soiltempf={WeatherStation.TempFstr(station.SoilTemp[1].Value)}");
+			if (SendSoilTemp2 && station.SoilTemp[2].HasValue)
+				Data.Append($"&soiltempf2={WeatherStation.TempFstr(station.SoilTemp[2].Value)}");
+			if (SendSoilTemp3 && station.SoilTemp[3].HasValue)
+				Data.Append($"&soiltempf3={WeatherStation.TempFstr(station.SoilTemp[3].Value)}");
+			if (SendSoilTemp4 && station.SoilTemp[4].HasValue)
+				Data.Append($"&soiltempf4={WeatherStation.TempFstr(station.SoilTemp[4].Value)}");
 
 			if (SendSoilMoisture1 && station.SoilMoisture1 >= Cumulus.DefaultHiVal)
 				Data.Append($"&soilmoisture={station.SoilMoisture1}");
