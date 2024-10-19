@@ -4082,7 +4082,7 @@ namespace CumulusMX
 
 		private string GetSoilTemp(int index, Dictionary<string, string> tagParams)
 		{
-			return station.SoilTemp[index].HasValue ? CheckRcDp(station.SoilTemp[index].Value, tagParams, cumulus.TempDPlaces) : "-";
+			return station.SoilTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.SoilTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
 		}
 
 		private string TagSoilMoisture1(Dictionary<string, string> tagParams)
@@ -4167,122 +4167,127 @@ namespace CumulusMX
 
 		private string TagUserTemp1(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.UserTemp[1], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetUserTemp(1, tagParams);
 		}
 
 		private string TagUserTemp2(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.UserTemp[2], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetUserTemp(2, tagParams);
 		}
 
 		private string TagUserTemp3(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.UserTemp[3], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetUserTemp(3, tagParams);
 		}
 
 		private string TagUserTemp4(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.UserTemp[4], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetUserTemp(4, tagParams);
 		}
 
 		private string TagUserTemp5(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.UserTemp[5], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetUserTemp(5, tagParams);
 		}
 
 		private string TagUserTemp6(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.UserTemp[6], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetUserTemp(6, tagParams);
 		}
 
 		private string TagUserTemp7(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.UserTemp[7], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetUserTemp(7, tagParams);
 		}
 
 		private string TagUserTemp8(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.UserTemp[8], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetUserTemp(8, tagParams);
+		}
+
+		private string GetUserTemp(int index, Dictionary<string, string> tagParams)
+		{
+			return station.UserTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.UserTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
 		}
 
 		private string TagAirQuality1(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQuality1, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQuality1.HasValue ? CheckRcDp(station.AirQuality1.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQuality2(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQuality2, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQuality2.HasValue ? CheckRcDp(station.AirQuality2.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQuality3(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQuality3, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQuality3.HasValue ? CheckRcDp(station.AirQuality3.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQuality4(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQuality4, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQuality4.HasValue ? CheckRcDp(station.AirQuality4.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityAvg1(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQualityAvg1, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityAvg1.HasValue ? CheckRcDp(station.AirQualityAvg1.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityAvg2(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQualityAvg2, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityAvg2.HasValue ? CheckRcDp(station.AirQualityAvg2.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityAvg3(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQuality3, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityAvg3.HasValue ? CheckRcDp(station.AirQualityAvg3.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityAvg4(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQualityAvg4, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityAvg4.HasValue ? CheckRcDp(station.AirQualityAvg4.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityIdx1(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQualityIdx1, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityIdx1.HasValue ? CheckRcDp(station.AirQualityIdx1.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityIdx2(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQualityIdx2, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityIdx2.HasValue ? CheckRcDp(station.AirQualityIdx2.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityIdx3(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQualityIdx3, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityIdx3.HasValue ? CheckRcDp(station.AirQualityIdx3.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityIdx4(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQualityIdx4, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityIdx4.HasValue ? CheckRcDp(station.AirQualityIdx4.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityAvgIdx1(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQualityAvgIdx1, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityAvgIdx1.HasValue ? CheckRcDp(station.AirQualityAvgIdx1.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityAvgIdx2(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQualityAvgIdx2, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityAvgIdx2.HasValue ? CheckRcDp(station.AirQualityAvgIdx2.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityAvgIdx3(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQualityAvgIdx3, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityAvgIdx3.HasValue ? CheckRcDp(station.AirQualityAvgIdx3.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagAirQualityAvgIdx4(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AirQualityAvgIdx4, tagParams, cumulus.AirQualityDPlaces);
+			return station.AirQualityAvgIdx4.HasValue ? CheckRcDp(station.AirQualityAvgIdx4.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCo2(Dictionary<string, string> tagParams)

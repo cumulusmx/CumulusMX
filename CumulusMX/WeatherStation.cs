@@ -404,7 +404,7 @@ namespace CumulusMX
 			ExtraTemp = new double?[11];
 			ExtraHum = new double?[11];
 			ExtraDewPoint = new double?[11];
-			UserTemp = new double[9];
+			UserTemp = new double?[9];
 			SoilTemp = new double?[17];
 
 			windcounts = new double[16];
@@ -1464,7 +1464,7 @@ namespace CumulusMX
 		/// <summary>
 		/// User allocated Temps
 		/// </summary>
-		public double[] UserTemp { get; set; }
+		public double?[] UserTemp { get; set; }
 
 		/// <summary>
 		/// Extra Humidity
@@ -1517,23 +1517,23 @@ namespace CumulusMX
 
 		public int? SoilMoisture16 { get; set; }
 
-		public double AirQuality1 { get; set; }
-		public double AirQuality2 { get; set; }
-		public double AirQuality3 { get; set; }
-		public double AirQuality4 { get; set; }
-		public double AirQualityAvg1 { get; set; }
-		public double AirQualityAvg2 { get; set; }
-		public double AirQualityAvg3 { get; set; }
-		public double AirQualityAvg4 { get; set; }
+		public double? AirQuality1 { get; set; }
+		public double? AirQuality2 { get; set; }
+		public double? AirQuality3 { get; set; }
+		public double? AirQuality4 { get; set; }
+		public double? AirQualityAvg1 { get; set; }
+		public double? AirQualityAvg2 { get; set; }
+		public double? AirQualityAvg3 { get; set; }
+		public double? AirQualityAvg4 { get; set; }
 
-		public double AirQualityIdx1 { get; set; }
-		public double AirQualityIdx2 { get; set; }
-		public double AirQualityIdx3 { get; set; }
-		public double AirQualityIdx4 { get; set; }
-		public double AirQualityAvgIdx1 { get; set; }
-		public double AirQualityAvgIdx2 { get; set; }
-		public double AirQualityAvgIdx3 { get; set; }
-		public double AirQualityAvgIdx4 { get; set; }
+		public double? AirQualityIdx1 { get; set; }
+		public double? AirQualityIdx2 { get; set; }
+		public double? AirQualityIdx3 { get; set; }
+		public double? AirQualityIdx4 { get; set; }
+		public double? AirQualityAvgIdx1 { get; set; }
+		public double? AirQualityAvgIdx2 { get; set; }
+		public double? AirQualityAvgIdx3 { get; set; }
+		public double? AirQualityAvgIdx4 { get; set; }
 
 		public int CO2 { get; set; }
 		public int CO2_24h { get; set; }
@@ -2797,7 +2797,7 @@ namespace CumulusMX
 				for (var i = 0; i < data.Count; i++)
 				{
 					var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
-					var val = data[i].Pm2p5 < -0.5 ? "null" : data[i].Pm2p5.ToString("F1", InvC);
+					var val = data[i].Pm2p5 < -0.5 ? "null" : data[i].Pm2p5.Value.ToString("F1", InvC);
 					sb2p5.Append($"[{jsTime},{val}],");
 
 					// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
@@ -2806,7 +2806,7 @@ namespace CumulusMX
 						cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2)
 					{
 						append = true;
-						val = data[i].Pm10 < -0.5 ? "null" : data[i].Pm10.ToString("F1", InvC);
+						val = data[i].Pm10 < -0.5 ? "null" : data[i].Pm10.Value.ToString("F1", InvC);
 						sb10.Append($"[{jsTime},{val}],");
 					}
 				}
@@ -4755,7 +4755,7 @@ namespace CumulusMX
 
 		public void AddRecentDataEntry(DateTime timestamp, double windAverage, double recentMaxGust, double windLatest, int bearing, int avgBearing, double outsidetemp,
 			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, double solarRad, double uv, double rainCounter, double feelslike, double humidex,
-			double appTemp, double insideTemp, int insideHum, double solarMax, double rainrate, double pm2p5, double pm10)
+			double appTemp, double insideTemp, int insideHum, double solarMax, double rainrate, double? pm2p5, double? pm10)
 		{
 			try
 			{
@@ -8079,8 +8079,8 @@ namespace CumulusMX
 			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, double solarRad, double uv, double rainCounter, double feelslike, double humidex,
 			double appTemp, double insideTemp, int insideHum, double solarMax, double rainrate)
 		{
-			double pm2p5 = -1;
-			double pm10 = -1;
+			double? pm2p5 = -1;
+			double? pm10 = -1;
 			// Check for Air Quality readings
 			switch (cumulus.StationOptions.PrimaryAqSensor)
 			{
@@ -11283,7 +11283,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.UserTempCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(UserTemp[sensor].ToString(cumulus.TempFormat));
+					json.Append(UserTemp[sensor].HasValue ? UserTemp[sensor].Value.ToString(cumulus.TempFormat) : "-");
 					json.Append("\",\"&deg;");
 					json.Append(cumulus.Units.TempText[1]);
 					json.Append("\"],");
@@ -11413,21 +11413,21 @@ namespace CumulusMX
 			if (cumulus.GraphOptions.Visible.AqSensor.IsVisible(local))
 			{
 				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(0, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[0]}\",\"{AirQuality1:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[0]}\",\"{(AirQuality1.HasValue ? AirQuality1.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(1, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[1]}\",\"{AirQuality2:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[1]}\",\"{(AirQuality2.HasValue ? AirQuality2.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(2, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[2]}\",\"{AirQuality3:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[2]}\",\"{(AirQuality3.HasValue ? AirQuality3.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(3, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[3]}\",\"{AirQuality4:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[3]}\",\"{(AirQuality4.HasValue ? AirQuality4.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(0, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[0]}\",\"{AirQualityAvg1:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[0]}\",\"{(AirQualityAvg1.HasValue ? AirQualityAvg1.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(1, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[1]}\",\"{AirQualityAvg2:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[1]}\",\"{(AirQualityAvg2.HasValue ? AirQualityAvg2.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(2, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[2]}\",\"{AirQualityAvg3:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[2]}\",\"{(AirQualityAvg3.HasValue ? AirQualityAvg3.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(3, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[3]}\",\"{AirQualityAvg4:F1}\",\"{cumulus.Units.AirQualityUnitText}\"]");
+					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[3]}\",\"{(AirQualityAvg4.HasValue ? AirQualityAvg4.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"]");
 			}
 
 			if (json[^1] == ',')
@@ -14266,8 +14266,8 @@ namespace CumulusMX
 		public double IndoorTemp { get; set; }
 		public int IndoorHumidity { get; set; }
 		public int SolarMax { get; set; }
-		public double Pm2p5 { get; set; }
-		public double Pm10 { get; set; }
+		public double? Pm2p5 { get; set; }
+		public double? Pm10 { get; set; }
 		public double RainRate { get; set; }
 	}
 

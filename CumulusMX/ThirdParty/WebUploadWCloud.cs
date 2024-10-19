@@ -209,28 +209,28 @@ namespace CumulusMX.ThirdParty
 						}
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
-						if (station.AirQuality1 >= 0)
+						if (station.AirQuality1.HasValue)
 							sb.Append($"&pm25={station.AirQuality1:F0}");
-						if (station.AirQualityAvg1 >= 0)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg1)}");
+						if (station.AirQualityAvg1.HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg1.Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
-						if (station.AirQuality2 >= 0)
+						if (station.AirQuality2.HasValue)
 							sb.Append($"&pm25={station.AirQuality2:F0}");
-						if (station.AirQualityAvg2 >= 0)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg2)}");
+						if (station.AirQualityAvg2.HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg2.Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
-						if (station.AirQuality3 >= 0)
+						if (station.AirQuality3.HasValue)
 							sb.Append($"&pm25={station.AirQuality3:F0}");
-						if (station.AirQualityAvg3 >= 0)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg3)}");
+						if (station.AirQualityAvg3.HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg3.Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
-						if (station.AirQuality4 >= 0)
+						if (station.AirQuality4.HasValue)
 							sb.Append($"&pm25={station.AirQuality4:F0}");
-						if (station.AirQualityAvg4 >= 0)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg4)}");
+						if (station.AirQualityAvg4.HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg4.Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 						if (station.CO2_pm2p5 >= 0)

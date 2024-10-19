@@ -267,20 +267,20 @@ namespace CumulusMX.ThirdParty
 						}
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
-						if (station.AirQuality1 >= Cumulus.DefaultHiVal)
-							Data.Append($"&AqPM2.5={station.AirQuality1.ToString("F1", invC)}");
+						if (station.AirQuality1.HasValue)
+							Data.Append($"&AqPM2.5={station.AirQuality1.Value.ToString("F1", invC)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
-						if (station.AirQuality2 >= Cumulus.DefaultHiVal)
-							Data.Append($"&AqPM2.5={station.AirQuality2.ToString("F1", invC)}");
+						if (station.AirQuality2.HasValue)
+							Data.Append($"&AqPM2.5={station.AirQuality2.Value.ToString("F1", invC)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
-						if (station.AirQuality3 >= Cumulus.DefaultHiVal)
-							Data.Append($"&AqPM2.5={station.AirQuality3.ToString("F1", invC)}");
+						if (station.AirQuality3.HasValue)
+							Data.Append($"&AqPM2.5={station.AirQuality3.Value.ToString("F1", invC)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
-						if (station.AirQuality4 >= Cumulus.DefaultHiVal)
-							Data.Append($"&AqPM2.5={station.AirQuality4.ToString("F1", invC)}");
+						if (station.AirQuality4.HasValue)
+							Data.Append($"&AqPM2.5={station.AirQuality4.Value.ToString("F1", invC)}");
 						break;
 				}
 			}

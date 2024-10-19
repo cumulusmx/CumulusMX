@@ -7739,13 +7739,13 @@ namespace CumulusMX
 				sb.Append((station.SoilTemp[i].HasValue ? station.SoilTemp[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);     //32-35
 			}
 
-			sb.Append(station.SoilMoisture1 + sep);                      //36
-			sb.Append(station.SoilMoisture2 + sep);                      //37
-			sb.Append(station.SoilMoisture3 + sep);                      //38
-			sb.Append(station.SoilMoisture4 + sep);                      //39
+			sb.Append((station.SoilMoisture1.HasValue ? station.SoilMoisture1 : string.Empty) + sep);                      //36
+			sb.Append((station.SoilMoisture2.HasValue ? station.SoilMoisture2 : string.Empty) + sep);                      //37
+			sb.Append((station.SoilMoisture3.HasValue ? station.SoilMoisture3 : string.Empty) + sep);                      //38
+			sb.Append((station.SoilMoisture4.HasValue ? station.SoilMoisture4 : string.Empty) + sep);                      //39
 
-			sb.Append("0" + sep);     //40 - was leaf temp 1
-			sb.Append("0" + sep);     //41 - was leaf temp 2
+			sb.Append(sep);     //40 - was leaf temp 1
+			sb.Append(sep);     //41 - was leaf temp 2
 
 			sb.Append(station.LeafWetness1.ToString(LeafWetFormat, inv) + sep);    //42
 			sb.Append(station.LeafWetness2.ToString(LeafWetFormat, inv) + sep);    //43
@@ -7768,18 +7768,18 @@ namespace CumulusMX
 			sb.Append(station.SoilMoisture15 + sep);     //66
 			sb.Append(station.SoilMoisture16 + sep);     //67
 
-			sb.Append(station.AirQuality1.ToString("F1", inv) + sep);     //68
-			sb.Append(station.AirQuality2.ToString("F1", inv) + sep);     //69
-			sb.Append(station.AirQuality3.ToString("F1", inv) + sep);     //70
-			sb.Append(station.AirQuality4.ToString("F1", inv) + sep);     //71
-			sb.Append(station.AirQualityAvg1.ToString("F1", inv) + sep);  //72
-			sb.Append(station.AirQualityAvg2.ToString("F1", inv) + sep);  //73
-			sb.Append(station.AirQualityAvg3.ToString("F1", inv) + sep);  //74
-			sb.Append(station.AirQualityAvg4.ToString("F1", inv) + sep);  //75
+			sb.Append((station.AirQuality1.HasValue ? station.AirQuality1.Value.ToString("F1", inv) : string.Empty) + sep);     //68
+			sb.Append((station.AirQuality2.HasValue ? station.AirQuality2.Value.ToString("F1", inv) : string.Empty) + sep);     //69
+			sb.Append((station.AirQuality3.HasValue ? station.AirQuality3.Value.ToString("F1", inv) : string.Empty) + sep);     //70
+			sb.Append((station.AirQuality4.HasValue ? station.AirQuality4.Value.ToString("F1", inv) : string.Empty) + sep);     //71
+			sb.Append((station.AirQualityAvg1.HasValue ? station.AirQualityAvg1.Value.ToString("F1", inv) : string.Empty) + sep);  //72
+			sb.Append((station.AirQualityAvg2.HasValue ? station.AirQualityAvg2.Value.ToString("F1", inv) : string.Empty) + sep);  //73
+			sb.Append((station.AirQualityAvg3.HasValue ? station.AirQualityAvg3.Value.ToString("F1", inv) : string.Empty) + sep);  //74
+			sb.Append((station.AirQualityAvg4.HasValue ? station.AirQualityAvg4.Value.ToString("F1", inv) : string.Empty) + sep);  //75
 
 			for (int i = 1; i < 9; i++)
 			{
-				sb.Append(station.UserTemp[i].ToString(TempFormat, inv) + sep);   //76-83
+				sb.Append((station.UserTemp[i].HasValue ? station.UserTemp[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);   //76-83
 			}
 
 			sb.Append(station.CO2 + sep);                                    //84

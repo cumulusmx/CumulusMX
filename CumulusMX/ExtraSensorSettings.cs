@@ -287,7 +287,7 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[1] != settings.httpSensors.ecowitt.mappings.wn34chan1)
 						{
 							if (cumulus.EcowittMapWN34[1] == 0)
-								station.UserTemp[1] = 0;
+								station.UserTemp[1] = null;
 							else
 								station.SoilTemp[cumulus.EcowittMapWN34[1]] = null;
 
@@ -297,7 +297,7 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[2] != settings.httpSensors.ecowitt.mappings.wn34chan2)
 						{
 							if (cumulus.EcowittMapWN34[2] == 0)
-								station.UserTemp[2] = 0;
+								station.UserTemp[2] = null;
 							else
 								station.SoilTemp[cumulus.EcowittMapWN34[2]] = null;
 
@@ -307,7 +307,7 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[3] != settings.httpSensors.ecowitt.mappings.wn34chan3)
 						{
 							if (cumulus.EcowittMapWN34[3] == 0)
-								station.UserTemp[3] = 0;
+								station.UserTemp[3] = null;
 							else
 								station.SoilTemp[cumulus.EcowittMapWN34[3]] = null;
 
@@ -317,7 +317,7 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[4] != settings.httpSensors.ecowitt.mappings.wn34chan4)
 						{
 							if (cumulus.EcowittMapWN34[4] == 0)
-								station.UserTemp[4] = 0;
+								station.UserTemp[4] = null;
 							else
 								station.SoilTemp[cumulus.EcowittMapWN34[4]] = null;
 
@@ -327,7 +327,7 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[5] != settings.httpSensors.ecowitt.mappings.wn34chan5)
 						{
 							if (cumulus.EcowittMapWN34[5] == 0)
-								station.UserTemp[5] = 0;
+								station.UserTemp[5] = null;
 							else
 								station.SoilTemp[cumulus.EcowittMapWN34[5]] = null;
 
@@ -337,7 +337,7 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[6] != settings.httpSensors.ecowitt.mappings.wn34chan6)
 						{
 							if (cumulus.EcowittMapWN34[6] == 0)
-								station.UserTemp[6] = 0;
+								station.UserTemp[6] = null;
 							else
 								station.SoilTemp[cumulus.EcowittMapWN34[6]] = null;
 
@@ -347,7 +347,7 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[7] != settings.httpSensors.ecowitt.mappings.wn34chan7)
 						{
 							if (cumulus.EcowittMapWN34[7] == 0)
-								station.UserTemp[7] = 0;
+								station.UserTemp[7] = null;
 							else
 								station.SoilTemp[cumulus.EcowittMapWN34[7]] = null;
 
@@ -357,7 +357,7 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[8] != settings.httpSensors.ecowitt.mappings.wn34chan8)
 						{
 							if (cumulus.EcowittMapWN34[8] == 0)
-								station.UserTemp[8] = 0;
+								station.UserTemp[8] = null;
 							else
 								station.SoilTemp[cumulus.EcowittMapWN34[8]] = null;
 
