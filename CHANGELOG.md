@@ -42,6 +42,8 @@ but you also want to see the two minute values then you can use these new tags
 - Ecowitt TCP API Station, false detection of WS90 when a WH34 sensor was detected
 - Web tag `<#ErrorLight>` is now functional again. It is triggered if Latest Error has any text, and cleared when you clear the latest error list from the interface
 - Fix web tag `<#NewBuildNumber>` showing the latest build number as "0000"
+- Error when logging enabled at start-up with SFTP uploads
+- Windy pressure uploads failing
 
 ### Package Updates
 - SQLite

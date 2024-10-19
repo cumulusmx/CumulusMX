@@ -10712,8 +10712,8 @@ namespace CumulusMX
 
 		public static string PressPAstr(double pressure)
 		{
-			// return value to 0.1 hPa
-			return (ConvertUnits.UserPressToMB(pressure) / 100).ToString("F4", CultureInfo.InvariantCulture);
+			// return value to 100 * hPa
+			return (ConvertUnits.UserPressToMB(pressure) * 100).ToString("F0", CultureInfo.InvariantCulture);
 		}
 
 		public string WindMPHStr(double wind)
