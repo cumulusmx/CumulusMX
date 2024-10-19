@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 
 
-## 4.2.1 \[b4042\] - 2024-10-16
+## 4.2.1 \[b4043\] - 2024-10-19
 
 ### New
 - The web tag `<#DayFileQuery>` has been extended to allow "on this day" type queries.
@@ -42,6 +42,9 @@ but you also want to see the two minute values then you can use these new tags
 - Ecowitt TCP API Station, false detection of WS90 when a WH34 sensor was detected
 - Web tag `<#ErrorLight>` is now functional again. It is triggered if Latest Error has any text, and cleared when you clear the latest error list from the interface
 - Fix web tag `<#NewBuildNumber>` showing the latest build number as "0000"
+- Error when logging enabled at start-up with SFTP uploads
+- Windy pressure uploads failing
+- Fix Ecowitt WS69 battery state decode in TCP API station
 
 ### Package Updates
 - SQLite

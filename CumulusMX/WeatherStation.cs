@@ -10,7 +10,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.X86;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
@@ -9290,7 +9289,7 @@ namespace CumulusMX
 				{
 					Date = Utils.ddmmyyhhmmStrToDate(st[0], st[1]),
 					OutdoorTemperature = Convert.ToDouble(st[2], inv),
-					OutdoorHumidity = Convert.ToInt32(Convert.ToDouble(st[3])),
+					OutdoorHumidity = Convert.ToInt32(Convert.ToDouble(st[3], inv)),
 					OutdoorDewpoint = Convert.ToDouble(st[4], inv),
 					WindAverage = Convert.ToDouble(st[5], inv),
 					RecentMaxGust = Convert.ToDouble(st[6], inv),
@@ -10713,8 +10712,8 @@ namespace CumulusMX
 
 		public static string PressPAstr(double pressure)
 		{
-			// return value to 0.1 hPa
-			return (ConvertUnits.UserPressToMB(pressure) / 100).ToString("F4", CultureInfo.InvariantCulture);
+			// return value to 100 * hPa
+			return (ConvertUnits.UserPressToMB(pressure) * 100).ToString("F0", CultureInfo.InvariantCulture);
 		}
 
 		public string WindMPHStr(double wind)

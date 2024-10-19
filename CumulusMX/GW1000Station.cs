@@ -789,12 +789,10 @@ namespace CumulusMX
 
 						break;
 
-					case "WH24":
-					case "WH24/WH65":
 					case "WH25":
 					case "WH26":
 					case string wh31 when wh31.StartsWith("WH31"):  // ch 1-8
-					case "WH65":
+					case "WS69":
 						batt = TestBattery1(data[battPos], 1);  // 0 or 1
 						break;
 
@@ -819,17 +817,15 @@ namespace CumulusMX
 					case string wh34 when wh34.StartsWith("WH34"):  // ch 1-8
 					case string wh35 when wh35.StartsWith("WH35"):  // ch 1-8
 					case "WH68":
-					case "WS69":
 						battV = data[battPos] * 0.02;
 						batt = $"{battV:f2}V ({(battV > 1.2 ? "OK" : "Low")})";
 						break;
 
-					case string wh51 when wh51.StartsWith("WH51"):  // ch 1-8
+					case string wh51 when wh51.StartsWith("WH51"):  // ch 1-16
 						battV = data[battPos] * 0.1;
 						batt = $"{battV:f2}V ({TestBattery10(data[battPos])})"; // volts/10, low = 1.2V
 						break;
 
-					case "WH80":
 					case "WS80":
 						// if a WS80 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
 						if (updateRate > 4000 && updateRate != 4000)
