@@ -295,10 +295,22 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilMoisture)
 			{
 				if (started) sb.Append('&'); else started = true;
-				sb.Append("soilmoisture1=" + station.SoilMoisture1);
-				sb.Append("&soilmoisture2=" + station.SoilMoisture2);
-				sb.Append("&soilmoisture3=" + station.SoilMoisture3);
-				sb.Append("&soilmoisture4=" + station.SoilMoisture4);
+				if (station.SoilMoisture1.HasValue)
+				{
+					sb.Append("soilmoisture1=" + station.SoilMoisture1);
+				}
+				if (station.SoilMoisture2.HasValue)
+				{
+					sb.Append("&soilmoisture2=" + station.SoilMoisture2);
+				}
+				if (station.SoilMoisture3.HasValue)
+				{
+					sb.Append("&soilmoisture3=" + station.SoilMoisture3);
+				}
+				if (station.SoilMoisture4.HasValue)
+				{
+					sb.Append("&soilmoisture4=" + station.SoilMoisture4);
+				}
 			}
 
 			if (SendLeafWetness)

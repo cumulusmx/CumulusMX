@@ -1485,37 +1485,37 @@ namespace CumulusMX
 
 		public double RainLastHour { get; set; }
 
-		public int SoilMoisture1 { get; set; }
+		public int? SoilMoisture1 { get; set; }
 
-		public int SoilMoisture2 { get; set; }
+		public int? SoilMoisture2 { get; set; }
 
-		public int SoilMoisture3 { get; set; }
+		public int? SoilMoisture3 { get; set; }
 
-		public int SoilMoisture4 { get; set; }
+		public int? SoilMoisture4 { get; set; }
 
-		public int SoilMoisture5 { get; set; }
+		public int? SoilMoisture5 { get; set; }
 
-		public int SoilMoisture6 { get; set; }
+		public int? SoilMoisture6 { get; set; }
 
-		public int SoilMoisture7 { get; set; }
+		public int? SoilMoisture7 { get; set; }
 
-		public int SoilMoisture8 { get; set; }
+		public int? SoilMoisture8 { get; set; }
 
-		public int SoilMoisture9 { get; set; }
+		public int? SoilMoisture9 { get; set; }
 
-		public int SoilMoisture10 { get; set; }
+		public int? SoilMoisture10 { get; set; }
 
-		public int SoilMoisture11 { get; set; }
+		public int? SoilMoisture11 { get; set; }
 
-		public int SoilMoisture12 { get; set; }
+		public int? SoilMoisture12 { get; set; }
 
-		public int SoilMoisture13 { get; set; }
+		public int? SoilMoisture13 { get; set; }
 
-		public int SoilMoisture14 { get; set; }
+		public int? SoilMoisture14 { get; set; }
 
-		public int SoilMoisture15 { get; set; }
+		public int? SoilMoisture15 { get; set; }
 
-		public int SoilMoisture16 { get; set; }
+		public int? SoilMoisture16 { get; set; }
 
 		public double AirQuality1 { get; set; }
 		public double AirQuality2 { get; set; }
@@ -11368,37 +11368,37 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 1024);
 
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(0, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[0]}\",\"{SoilMoisture1:F0}\",\"{cumulus.Units.SoilMoistureUnitText[0]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[0]}\",\"{(SoilMoisture1.HasValue ? SoilMoisture1.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[0]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(1, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[1]}\",\"{SoilMoisture2:F0}\",\"{cumulus.Units.SoilMoistureUnitText[1]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[1]}\",\"{(SoilMoisture2.HasValue ? SoilMoisture2.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[1]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(2, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[2]}\",\"{SoilMoisture3:F0}\",\"{cumulus.Units.SoilMoistureUnitText[2]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[2]}\",\"{(SoilMoisture3.HasValue ? SoilMoisture3.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[2]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(3, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[3]}\",\"{SoilMoisture4:F0}\",\"{cumulus.Units.SoilMoistureUnitText[3]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[3]}\",\"{(SoilMoisture4.HasValue ? SoilMoisture4.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[3]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(4, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[4]}\",\"{SoilMoisture5:F0}\",\"{cumulus.Units.SoilMoistureUnitText[4]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[4]}\",\"{(SoilMoisture5.HasValue ? SoilMoisture5.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[4]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(5, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[5]}\",\"{SoilMoisture6:F0}\",\"{cumulus.Units.SoilMoistureUnitText[5]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[5]}\",\"{(SoilMoisture6.HasValue ? SoilMoisture6.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[5]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(6, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[6]}\",\"{SoilMoisture7:F0}\",\"{cumulus.Units.SoilMoistureUnitText[6]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[6]}\",\"{(SoilMoisture7.HasValue ? SoilMoisture7.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[6]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(7, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[7]}\",\"{SoilMoisture8:F0}\",\"{cumulus.Units.SoilMoistureUnitText[7]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[7]}\",\"{(SoilMoisture8.HasValue ? SoilMoisture8.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[7]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(8, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[8]}\",\"{SoilMoisture9:F0}\",\"{cumulus.Units.SoilMoistureUnitText[8]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[8]}\",\"{(SoilMoisture9.HasValue ? SoilMoisture9.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[8]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(9, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[9]}\",\"{SoilMoisture10:F0}\",\"{cumulus.Units.SoilMoistureUnitText[9]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[9]}\",\"{(SoilMoisture10.HasValue ? SoilMoisture10.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[9]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(10, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[10]}\",\"{SoilMoisture11:F0}\",\"{cumulus.Units.SoilMoistureUnitText[10]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[10]}\",\"{(SoilMoisture11.HasValue ? SoilMoisture11.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[10]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(11, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[11]}\",\"{SoilMoisture12:F0}\",\"{cumulus.Units.SoilMoistureUnitText[11]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[11]}\",\"{(SoilMoisture12.HasValue ? SoilMoisture12.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[11]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(12, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[12]}\",\"{SoilMoisture13:F0}\",\"{cumulus.Units.SoilMoistureUnitText[12]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[12]}\",\"{(SoilMoisture13.HasValue ? SoilMoisture13.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[12]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(13, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[13]}\",\"{SoilMoisture14:F0}\",\"{cumulus.Units.SoilMoistureUnitText[13]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[13]}\",\"{(SoilMoisture14.HasValue ? SoilMoisture14.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[13]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(14, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[14]}\",\"{SoilMoisture15:F0}\",\"{cumulus.Units.SoilMoistureUnitText[14]}\"],");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[14]}\",\"{(SoilMoisture15.HasValue ? SoilMoisture15.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[14]}\"],");
 			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(15, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[15]}\",\"{SoilMoisture16:F0}\",\"{cumulus.Units.SoilMoistureUnitText[15]}\"]");
+				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[15]}\",\"{(SoilMoisture16.HasValue ? SoilMoisture16.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[15]}\"]");
 
 			if (json[^1] == ',')
 				json.Length--;

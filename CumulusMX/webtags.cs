@@ -4087,82 +4087,82 @@ namespace CumulusMX
 
 		private string TagSoilMoisture1(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture1.ToString();
+			return station.SoilMoisture1.HasValue ? station.SoilMoisture1.ToString() : "-";
 		}
 
 		private string TagSoilMoisture2(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture2.ToString();
+			return station.SoilMoisture2.HasValue ? station.SoilMoisture2.ToString() : "-";
 		}
 
 		private string TagSoilMoisture3(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture3.ToString();
+			return station.SoilMoisture3.HasValue ? station.SoilMoisture3.ToString() : "-";
 		}
 
 		private string TagSoilMoisture4(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture4.ToString();
+			return station.SoilMoisture4.HasValue ? station.SoilMoisture4.ToString() : "-";
 		}
 
 		private string TagSoilMoisture5(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture5.ToString();
+			return station.SoilMoisture5.HasValue ? station.SoilMoisture5.ToString() : "-";
 		}
 
 		private string TagSoilMoisture6(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture6.ToString();
+			return station.SoilMoisture6.HasValue ? station.SoilMoisture6.ToString() : "-";
 		}
 
 		private string TagSoilMoisture7(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture7.ToString();
+			return station.SoilMoisture7.HasValue ? station.SoilMoisture7.ToString() : "-";
 		}
 
 		private string TagSoilMoisture8(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture8.ToString();
+			return station.SoilMoisture8.HasValue ? station.SoilMoisture8.ToString() : "-";
 		}
 
 		private string TagSoilMoisture9(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture9.ToString();
+			return station.SoilMoisture9.HasValue ? station.SoilMoisture9.ToString() : "-";
 		}
 
 		private string TagSoilMoisture10(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture10.ToString();
+			return station.SoilMoisture10.HasValue ? station.SoilMoisture10.ToString() : "-";
 		}
 
 		private string TagSoilMoisture11(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture12.ToString();
+			return station.SoilMoisture11.HasValue ? station.SoilMoisture11.ToString() : "-";
 		}
 
 		private string TagSoilMoisture12(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture12.ToString();
+			return station.SoilMoisture12.HasValue ? station.SoilMoisture12.ToString() : "-";
 		}
 
 		private string TagSoilMoisture13(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture13.ToString();
+			return station.SoilMoisture13.HasValue ? station.SoilMoisture13.ToString() : "-";
 		}
 
 		private string TagSoilMoisture14(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture14.ToString();
+			return station.SoilMoisture14.HasValue ? station.SoilMoisture14.ToString() : "-";
 		}
 
 		private string TagSoilMoisture15(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture15.ToString();
+			return station.SoilMoisture15.HasValue ? station.SoilMoisture15.ToString() : "-";
 		}
 
 		private string TagSoilMoisture16(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture16.ToString();
+			return station.SoilMoisture16.HasValue ? station.SoilMoisture16.ToString() : "-";
 		}
 
 		private string TagUserTemp1(Dictionary<string, string> tagParams)

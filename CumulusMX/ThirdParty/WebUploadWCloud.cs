@@ -247,7 +247,7 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilMoisture)
 			{
 				// Weathercloud wants soil moisture in centibar. Davis supplies this, but Ecowitt provide a percentage
-				int moist = 0;
+				int? moist;
 
 				switch (cumulus.WCloud.SoilMoistureSensor)
 				{
@@ -299,15 +299,21 @@ namespace CumulusMX.ThirdParty
 					case 16:
 						moist = station.SoilMoisture16;
 						break;
+					default:
+						moist = null;
+						break;
 				}
 
-				if (cumulus.Manufacturer == Cumulus.EW)
+				if (moist.HasValue)
 				{
-					// very! approximate conversion from percentage to cb
-					moist = (100 - moist) * 2;
-				}
+					if (cumulus.Manufacturer == Cumulus.EW)
+					{
+						// very! approximate conversion from percentage to cb
+						moist = (100 - moist) * 2;
+					}
 
-				sb.Append($"&soilmoist={moist}");
+					sb.Append($"&soilmoist={moist}");
+				}
 			}
 
 			// leaf wetness
