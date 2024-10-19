@@ -44,6 +44,7 @@ but you also want to see the two minute values then you can use these new tags
 - Fix web tag `<#NewBuildNumber>` showing the latest build number as "0000"
 - Error when logging enabled at start-up with SFTP uploads
 - Windy pressure uploads failing
+- Fix Ecowitt WS69 battery state decode in TCP API station
 
 ### Package Updates
 - SQLite
