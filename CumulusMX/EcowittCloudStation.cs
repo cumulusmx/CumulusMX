@@ -647,8 +647,11 @@ namespace CumulusMX
 				{
 					station.DoExtraHum(data.temp_and_humidity_ch1.humidity.value, 1);
 
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[1]), station.ExtraHum[1]);
-					station.ExtraDewPoint[1] = ConvertUnits.TempCToUser(dp);
+					if (station.ExtraTemp[1].HasValue)
+					{
+						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[1].Value), station.ExtraHum[1].Value);
+						station.ExtraDewPoint[1] = ConvertUnits.TempCToUser(dp);
+					}
 				}
 			}
 
@@ -666,8 +669,11 @@ namespace CumulusMX
 				{
 					station.DoExtraHum(data.temp_and_humidity_ch2.humidity.value, 2);
 
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[2]), station.ExtraHum[2]);
-					station.ExtraDewPoint[2] = ConvertUnits.TempCToUser(dp);
+					if (station.ExtraTemp[2].HasValue)
+					{
+						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[2].Value), station.ExtraHum[2].Value);
+						station.ExtraDewPoint[2] = ConvertUnits.TempCToUser(dp);
+					}
 				}
 			}
 
@@ -685,8 +691,11 @@ namespace CumulusMX
 				{
 					station.DoExtraHum(data.temp_and_humidity_ch3.humidity.value, 3);
 
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[3]), station.ExtraHum[3]);
-					station.ExtraDewPoint[3] = ConvertUnits.TempCToUser(dp);
+					if (station.ExtraTemp[3].HasValue)
+					{
+						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[3].Value), station.ExtraHum[3].Value);
+						station.ExtraDewPoint[3] = ConvertUnits.TempCToUser(dp);
+					}
 				}
 			}
 
@@ -704,8 +713,11 @@ namespace CumulusMX
 				{
 					station.DoExtraHum(data.temp_and_humidity_ch4.humidity.value, 4);
 
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[4]), station.ExtraHum[4]);
-					station.ExtraDewPoint[4] = ConvertUnits.TempCToUser(dp);
+					if (station.ExtraTemp[4].HasValue)
+					{
+						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[4].Value), station.ExtraHum[4].Value);
+						station.ExtraDewPoint[4] = ConvertUnits.TempCToUser(dp);
+					}
 				}
 			}
 
@@ -723,8 +735,11 @@ namespace CumulusMX
 				{
 					station.DoExtraHum(data.temp_and_humidity_ch5.humidity.value, 5);
 
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[5]), station.ExtraHum[5]);
-					station.ExtraDewPoint[5] = ConvertUnits.TempCToUser(dp);
+					if (station.ExtraTemp[5].HasValue)
+					{
+						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[5].Value), station.ExtraHum[5].Value);
+						station.ExtraDewPoint[5] = ConvertUnits.TempCToUser(dp);
+					}
 				}
 			}
 
@@ -742,8 +757,11 @@ namespace CumulusMX
 				{
 					station.DoExtraHum(data.temp_and_humidity_ch6.humidity.value, 6);
 
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[6]), station.ExtraHum[6]);
-					station.ExtraDewPoint[6] = ConvertUnits.TempCToUser(dp);
+					if (station.ExtraTemp[6].HasValue)
+					{
+						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[6].Value), station.ExtraHum[6].Value);
+						station.ExtraDewPoint[6] = ConvertUnits.TempCToUser(dp);
+					}
 				}
 			}
 
@@ -761,8 +779,11 @@ namespace CumulusMX
 				{
 					station.DoExtraHum(data.temp_and_humidity_ch7.humidity.value, 7);
 
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[7]), station.ExtraHum[7]);
-					station.ExtraDewPoint[7] = ConvertUnits.TempCToUser(dp);
+					if (station.ExtraTemp[7].HasValue)
+					{
+						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[7].Value), station.ExtraHum[7].Value);
+						station.ExtraDewPoint[7] = ConvertUnits.TempCToUser(dp);
+					}
 				}
 			}
 
@@ -780,8 +801,11 @@ namespace CumulusMX
 				{
 					station.DoExtraHum(data.temp_and_humidity_ch8.humidity.value, 8);
 
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[8]), station.ExtraHum[8]);
-					station.ExtraDewPoint[8] = ConvertUnits.TempCToUser(dp);
+					if (station.ExtraTemp[8].HasValue)
+					{
+						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[8].Value), station.ExtraHum[8].Value);
+						station.ExtraDewPoint[8] = ConvertUnits.TempCToUser(dp);
+					}
 				}
 			}
 		}

@@ -1886,7 +1886,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum1, 1);
 						if (loopData.ExtraTemp1 < 255)
 						{
-							ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1]), ExtraHum[1]));
+							ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1].Value), ExtraHum[1].Value));
 						}
 					}
 
@@ -1895,7 +1895,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum2, 2);
 						if (loopData.ExtraTemp2 < 255)
 						{
-							ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2]), ExtraHum[2]));
+							ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2].Value), ExtraHum[2].Value));
 						}
 					}
 
@@ -1904,7 +1904,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum3, 3);
 						if (loopData.ExtraTemp3 < 255)
 						{
-							ExtraDewPoint[3] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[3]), ExtraHum[3]));
+							ExtraDewPoint[3] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[3].Value), ExtraHum[3].Value));
 						}
 					}
 
@@ -1913,7 +1913,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum4, 4);
 						if (loopData.ExtraTemp4 < 255)
 						{
-							ExtraDewPoint[4] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[4]), ExtraHum[4]));
+							ExtraDewPoint[4] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[4].Value), ExtraHum[4].Value));
 						}
 					}
 
@@ -2831,7 +2831,7 @@ namespace CumulusMX
 									DoExtraHum(archiveData.ExtraHum1, 1);
 									if (archiveData.ExtraTemp1 < 255)
 									{
-										ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1]), ExtraHum[1]));
+										ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1].Value), ExtraHum[1].Value));
 									}
 								}
 
@@ -2840,7 +2840,7 @@ namespace CumulusMX
 									DoExtraHum(archiveData.ExtraHum2, 2);
 									if (archiveData.ExtraTemp2 < 255)
 									{
-										ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2]), ExtraHum[2]));
+										ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2].Value), ExtraHum[2].Value));
 									}
 								}
 

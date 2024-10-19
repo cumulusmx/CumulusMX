@@ -242,9 +242,9 @@ namespace CumulusMX
 								// Same for extra T/H sensors
 								for (var i = 1; i <= 8; i++)
 								{
-									if (ExtraHum[i] > 0)
+									if (ExtraHum[i].HasValue && ExtraTemp[i].HasValue)
 									{
-										var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i]), ExtraHum[i]);
+										var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i].Value), ExtraHum[i].Value);
 										ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
 									}
 								}

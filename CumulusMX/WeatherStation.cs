@@ -401,9 +401,9 @@ namespace CumulusMX
 			CumulusForecast = cumulus.Trans.ForecastNotAvailable;
 			wsforecast = cumulus.Trans.ForecastNotAvailable;
 
-			ExtraTemp = new double[11];
-			ExtraHum = new double[11];
-			ExtraDewPoint = new double[11];
+			ExtraTemp = new double?[11];
+			ExtraHum = new double?[11];
+			ExtraDewPoint = new double?[11];
 			UserTemp = new double[9];
 			SoilTemp = new double[17];
 
@@ -1459,7 +1459,7 @@ namespace CumulusMX
 		/// <summary>
 		/// Extra Temps
 		/// </summary>
-		public double[] ExtraTemp { get; set; }
+		public double?[] ExtraTemp { get; set; }
 
 		/// <summary>
 		/// User allocated Temps
@@ -1469,12 +1469,12 @@ namespace CumulusMX
 		/// <summary>
 		/// Extra Humidity
 		/// </summary>
-		public double[] ExtraHum { get; set; }
+		public double?[] ExtraHum { get; set; }
 
 		/// <summary>
 		/// Extra dewpoint
 		/// </summary>
-		public double[] ExtraDewPoint { get; set; }
+		public double?[] ExtraDewPoint { get; set; }
 
 		/// <summary>
 		/// Soil Temp 1-16 in C
@@ -5999,7 +5999,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoExtraTemp(double temp, int channel)
+		public void DoExtraTemp(double? temp, int channel)
 		{
 			if ((channel > 0) && (channel < ExtraTemp.Length))
 			{
@@ -11258,7 +11258,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.ExtraTempCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(ExtraTemp[sensor].ToString(cumulus.TempFormat));
+					json.Append(ExtraTemp[sensor].HasValue ? ExtraTemp[sensor].Value.ToString(cumulus.TempFormat) : "-");
 					json.Append("\",\"&deg;");
 					json.Append(cumulus.Units.TempText[1]);
 					json.Append("\"],");
@@ -11308,7 +11308,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.ExtraHumCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(ExtraHum[sensor].ToString(cumulus.HumFormat));
+					json.Append(ExtraHum[sensor].HasValue ? ExtraHum[sensor].Value.ToString(cumulus.HumFormat) : "-");
 					json.Append("\",\"%\"],");
 				}
 			}
@@ -11330,7 +11330,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.ExtraDPCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(ExtraDewPoint[sensor].ToString(cumulus.TempFormat));
+					json.Append(ExtraDewPoint[sensor].HasValue ? ExtraDewPoint[sensor].Value.ToString(cumulus.TempFormat) : "-");
 					json.Append("\",\"&deg;");
 					json.Append(cumulus.Units.TempText[1]);
 					json.Append("\"],");

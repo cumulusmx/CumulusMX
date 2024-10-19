@@ -853,7 +853,7 @@ namespace CumulusMX
 			{
 				if (data["temp" + i + "f"] != null && data["humidity" + i] != null)
 				{
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[i]), station.ExtraHum[i]);
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[i].Value), station.ExtraHum[i].Value);
 					station.ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
 				}
 			}

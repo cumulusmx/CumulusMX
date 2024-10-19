@@ -285,21 +285,21 @@ namespace CumulusMX.ThirdParty
 				}
 			}
 
-			if (cumulus.Wund.SendExtraTemp1 > 0 && cumulus.Wund.SendExtraTemp1 <= 10)
+			if (cumulus.Wund.SendExtraTemp1 > 0 && cumulus.Wund.SendExtraTemp1 <= 10 && station.ExtraTemp[cumulus.Wund.SendExtraTemp1].HasValue)
 			{
-				Data.Append($"&temp2f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp1])}");
+				Data.Append($"&temp2f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp1].Value)}");
 			}
-			if (cumulus.Wund.SendExtraTemp2 > 0 && cumulus.Wund.SendExtraTemp2 <= 10)
+			if (cumulus.Wund.SendExtraTemp2 > 0 && cumulus.Wund.SendExtraTemp2 <= 10 && station.ExtraTemp[cumulus.Wund.SendExtraTemp2].HasValue)
 			{
-				Data.Append($"&temp3f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp2])}");
+				Data.Append($"&temp3f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp2].Value)}");
 			}
-			if (cumulus.Wund.SendExtraTemp3 > 0 && cumulus.Wund.SendExtraTemp3 <= 10)
+			if (cumulus.Wund.SendExtraTemp3 > 0 && cumulus.Wund.SendExtraTemp3 <= 10 && station.ExtraTemp[cumulus.Wund.SendExtraTemp3].HasValue)
 			{
-				Data.Append($"&temp4f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp3])}");
+				Data.Append($"&temp4f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp3].Value)}");
 			}
-			if (cumulus.Wund.SendExtraTemp4 > 0 && cumulus.Wund.SendExtraTemp4 <= 10)
+			if (cumulus.Wund.SendExtraTemp4 > 0 && cumulus.Wund.SendExtraTemp4 <= 10 && station.ExtraTemp[cumulus.Wund.SendExtraTemp4].HasValue)
 			{
-				Data.Append($"&temp5f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp4])}");
+				Data.Append($"&temp5f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp4].Value)}");
 			}
 
 			Data.Append($"&softwaretype=Cumulus%20v{cumulus.Version}");

@@ -7724,15 +7724,15 @@ namespace CumulusMX
 
 			for (int i = 1; i <= 10; i++)
 			{
-				sb.Append(station.ExtraTemp[i].ToString(TempFormat, inv) + sep);      //2-11
+				sb.Append((station.ExtraTemp[i].HasValue ? station.ExtraTemp[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);       //2-11
 			}
 			for (int i = 1; i <= 10; i++)
 			{
-				sb.Append(station.ExtraHum[i].ToString(HumFormat, inv) + sep);        //12-21
+				sb.Append((station.ExtraHum[i].HasValue ? station.ExtraHum[i].Value.ToString(HumFormat, inv) : string.Empty) + sep);        //12-21
 			}
 			for (int i = 1; i <= 10; i++)
 			{
-				sb.Append(station.ExtraDewPoint[i].ToString(TempFormat, inv) + sep);  //22-31
+				sb.Append((station.ExtraDewPoint[i].HasValue ? station.ExtraDewPoint[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);  //22-31
 			}
 			for (int i = 1; i <= 4; i++)
 			{

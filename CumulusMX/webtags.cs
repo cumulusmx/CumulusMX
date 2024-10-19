@@ -3837,152 +3837,167 @@ namespace CumulusMX
 		// Extra sensors
 		private string TagExtraTemp1(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraTemp[1], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraTemp(1, tagParams);
 		}
 
 		private string TagExtraTemp2(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraTemp[2], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraTemp(2, tagParams);
 		}
 
 		private string TagExtraTemp3(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraTemp[3], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraTemp(3, tagParams);
 		}
 
 		private string TagExtraTemp4(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraTemp[4], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraTemp(4, tagParams);
 		}
 
 		private string TagExtraTemp5(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraTemp[5], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraTemp(5, tagParams);
 		}
 
 		private string TagExtraTemp6(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraTemp[6], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraTemp(6, tagParams);
 		}
 
 		private string TagExtraTemp7(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraTemp[7], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraTemp(7, tagParams);
 		}
 
 		private string TagExtraTemp8(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraTemp[8], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraTemp(8, tagParams);
 		}
 
 		private string TagExtraTemp9(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraTemp[9], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraTemp(9, tagParams);
 		}
 
 		private string TagExtraTemp10(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraTemp[10], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraTemp(10, tagParams);
+		}
+
+		private string GetExtraTemp(int index, Dictionary<string, string> tagParams)
+		{
+			return station.ExtraTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.ExtraTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
 		}
 
 		private string TagExtraDp1(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraDewPoint[1], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraDP(1, tagParams);
 		}
 
 		private string TagExtraDp2(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraDewPoint[2], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraDP(2, tagParams);
 		}
 
 		private string TagExtraDp3(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraDewPoint[3], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraDP(3, tagParams);
 		}
 
 		private string TagExtraDp4(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraDewPoint[4], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraDP(4, tagParams);
 		}
 
 		private string TagExtraDp5(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraDewPoint[5], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraDP(5, tagParams);
 		}
 
 		private string TagExtraDp6(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraDewPoint[6], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraDP(6, tagParams);
 		}
 
 		private string TagExtraDp7(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraDewPoint[7], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraDP(7, tagParams);
 		}
 
 		private string TagExtraDp8(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraDewPoint[8], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraDP(8, tagParams);
 		}
 
 		private string TagExtraDp9(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraDewPoint[9], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraDP(9, tagParams);
 		}
 
 		private string TagExtraDp10(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ExtraDewPoint[10], tagParams), tagParams, cumulus.TempDPlaces);
+			return GetExtraDP(10, tagParams);
+		}
+
+		private string GetExtraDP(int index, Dictionary<string, string> tagParams)
+		{
+			return station.ExtraDewPoint[index].HasValue ? CheckRcDp(CheckTempUnit(station.ExtraDewPoint[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
 		}
 
 		private string TagExtraHum1(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ExtraHum[1], tagParams, cumulus.HumDPlaces);
+			return GetExtraHum(1, tagParams);
 		}
 
 		private string TagExtraHum2(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ExtraHum[2], tagParams, cumulus.HumDPlaces);
+			return GetExtraHum(2, tagParams);
 		}
 
 		private string TagExtraHum3(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ExtraHum[3], tagParams, cumulus.HumDPlaces);
+			return GetExtraHum(3, tagParams);
 		}
 
 		private string TagExtraHum4(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ExtraHum[4], tagParams, cumulus.HumDPlaces);
+			return GetExtraHum(4, tagParams);
 		}
 
 		private string TagExtraHum5(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ExtraHum[5], tagParams, cumulus.HumDPlaces);
+			return GetExtraHum(5, tagParams);
 		}
 
 		private string TagExtraHum6(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ExtraHum[6], tagParams, cumulus.HumDPlaces);
+			return GetExtraHum(6, tagParams);
 		}
 
 		private string TagExtraHum7(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ExtraHum[7], tagParams, cumulus.HumDPlaces);
+			return GetExtraHum(7, tagParams);
 		}
 
 		private string TagExtraHum8(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ExtraHum[8], tagParams, cumulus.HumDPlaces);
+			return GetExtraHum(8, tagParams);
 		}
 
 		private string TagExtraHum9(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ExtraHum[9], tagParams, cumulus.HumDPlaces);
+			return GetExtraHum(9, tagParams);
 		}
 
 		private string TagExtraHum10(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ExtraHum[10], tagParams, cumulus.HumDPlaces);
+			return GetExtraHum(10, tagParams);
+		}
+
+		private string GetExtraHum(int index, Dictionary<string, string> tagParams)
+		{
+			return station.ExtraHum[index].HasValue ? CheckRcDp(station.ExtraHum[index].Value, tagParams, cumulus.HumDPlaces) : "-";
 		}
 
 		private string TagSoilTemp1(Dictionary<string, string> tagParams)
