@@ -1722,10 +1722,7 @@ namespace CumulusMX
 			// === Indoor CO2 ===
 			try
 			{
-				if (rec.Value.IndoorCo2.HasValue)
-				{
-					station.CO2 = rec.Value.IndoorCo2.Value;
-				}
+				station.CO2 = rec.Value.IndoorCo2;
 			}
 			catch (Exception ex)
 			{
@@ -1735,10 +1732,7 @@ namespace CumulusMX
 			// === Indoor CO2 24hr avg ===
 			try
 			{
-				if (rec.Value.IndoorCo2hr24.HasValue)
-				{
-					station.CO2_24h = rec.Value.IndoorCo2hr24.Value;
-				}
+				station.CO2_24h = rec.Value.IndoorCo2hr24;
 			}
 			catch (Exception ex)
 			{
@@ -1748,9 +1742,9 @@ namespace CumulusMX
 			// === Combo CO2 ===
 			try
 			{
-				if (rec.Value.AqiComboCO2.HasValue)
+				if (rec.Value.AqiComboCO2.HasValue && !rec.Value.IndoorCo2.HasValue)
 				{
-					station.CO2 = rec.Value.AqiComboCO2.Value;
+					station.CO2 = rec.Value.AqiComboCO2;
 				}
 			}
 			catch (Exception ex)
@@ -1761,9 +1755,9 @@ namespace CumulusMX
 			// === Combo CO2 24hr avg ===
 			try
 			{
-				if (rec.Value.AqiComboCO2hr24.HasValue)
+				if (rec.Value.AqiComboCO2hr24.HasValue && !rec.Value.IndoorCo2hr24.HasValue)
 				{
-					station.CO2_24h = rec.Value.AqiComboCO2hr24.Value;
+					station.CO2_24h = rec.Value.AqiComboCO2hr24;
 				}
 			}
 			catch (Exception ex)
@@ -1774,11 +1768,8 @@ namespace CumulusMX
 			// === PM 2.5 Combo ===
 			try
 			{
-				if (rec.Value.AqiComboPm25.HasValue)
-				{
-					station.CO2_pm2p5 = (double) rec.Value.AqiComboPm25.Value;
-					station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
-				}
+				station.CO2_pm2p5 = (double?) rec.Value.AqiComboPm25;
+				station.CO2_pm2p5_aqi = station.CO2_pm2p5.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5.Value) : null;
 			}
 			catch (Exception ex)
 			{
@@ -1788,12 +1779,8 @@ namespace CumulusMX
 			// === PM 10 Combo ===
 			try
 			{
-				if (rec.Value.AqiComboPm10.HasValue)
-				{
-					station.CO2_pm10 = (double) rec.Value.AqiComboPm10.Value;
-					station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
-
-				}
+				station.CO2_pm10 = (double?) rec.Value.AqiComboPm10.Value;
+				station.CO2_pm10_aqi = station.CO2_pm10.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10.Value) : null;
 			}
 			catch (Exception ex)
 			{
@@ -1803,10 +1790,7 @@ namespace CumulusMX
 			// === temp Combo ===
 			try
 			{
-				if (rec.Value.AqiComboTemp.HasValue)
-				{
-					station.CO2_temperature = (double) rec.Value.AqiComboTemp.Value;
-				}
+				station.CO2_temperature = (double?) rec.Value.AqiComboTemp;
 			}
 			catch (Exception ex)
 			{
@@ -1816,10 +1800,7 @@ namespace CumulusMX
 			// === humidity Combo ===
 			try
 			{
-				if (rec.Value.AqiComboHum.HasValue)
-				{
-					station.CO2_humidity = (double) rec.Value.AqiComboHum.Value;
-				}
+				station.CO2_humidity = (double?) rec.Value.AqiComboHum;
 			}
 			catch (Exception ex)
 			{

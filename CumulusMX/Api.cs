@@ -244,7 +244,7 @@ namespace CumulusMX
 					switch (req)
 					{
 						case "dayfile":
-							await writer.WriteAsync(Station.GetDayfile(draw, start, length, search));
+							await writer.WriteAsync(Station.ReadDayfile(draw, start, length, search));
 							break;
 						case "logfile":
 							await writer.WriteAsync(Station.GetLogfile(from, to, draw, start, length, search, false));

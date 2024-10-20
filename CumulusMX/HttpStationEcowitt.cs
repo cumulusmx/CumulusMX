@@ -1310,43 +1310,18 @@ namespace CumulusMX
 			// co2
 			// co2_24h
 
-			if (data["tf_co2"] != null)
-			{
-				station.CO2_temperature = ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_co2"], invNum));
-			}
-			if (data["humi_co2"] != null)
-			{
-				station.CO2_humidity = Convert.ToInt32(data["humi_co2"], invNum);
-			}
-			if (data["pm25_co2"] != null)
-			{
-				station.CO2_pm2p5 = Convert.ToDouble(data["pm25_co2"], invNum);
-				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
-			}
-			if (data["pm25_24h_co2"] != null)
-			{
-				station.CO2_pm2p5_24h = Convert.ToDouble(data["pm25_24h_co2"], invNum);
-				station.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5h24, station.CO2_pm2p5_24h);
-
-			}
-			if (data["pm10_co2"] != null)
-			{
-				station.CO2_pm10 = Convert.ToDouble(data["pm10_co2"], invNum);
-				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
-			}
-			if (data["pm10_24h_co2"] != null)
-			{
-				station.CO2_pm10_24h = Convert.ToDouble(data["pm10_24h_co2"], invNum);
-				station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10h24, station.CO2_pm10_24h);
-			}
-			if (data["co2"] != null)
-			{
-				station.CO2 = Convert.ToInt32(data["co2"], invNum);
-			}
-			if (data["co2_24h"] != null)
-			{
-				station.CO2_24h = Convert.ToInt32(data["co2_24h"], invNum);
-			}
+			station.CO2_temperature = data["tf_co2"] != null ? ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_co2"], invNum)) : null;
+			station.CO2_humidity = data["humi_co2"] != null ? Convert.ToInt32(data["humi_co2"], invNum) : null;
+			station.CO2_pm2p5 = data["pm25_co2"] != null ? Convert.ToDouble(data["pm25_co2"], invNum) : null;
+			station.CO2_pm2p5_aqi = station.CO2_pm2p5.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5.Value) : null;
+			station.CO2_pm2p5_24h = data["pm25_24h_co2"] != null ? Convert.ToDouble(data["pm25_24h_co2"], invNum) : null;
+			station.CO2_pm2p5_24h_aqi = station.CO2_pm2p5_24h.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm2p5h24, station.CO2_pm2p5_24h.Value) : null;
+			station.CO2_pm10 = data["pm10_co2"] != null ? Convert.ToDouble(data["pm10_co2"], invNum) : null;
+			station.CO2_pm10_aqi = station.CO2_pm10.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10.Value) : null;
+			station.CO2_pm10_24h = data["pm10_24h_co2"] != null ? Convert.ToDouble(data["pm10_24h_co2"], invNum) : null;
+			station.CO2_pm10_24h_aqi = station.CO2_pm10_24h.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm10h24, station.CO2_pm10_24h.Value) : null;
+			station.CO2 = data["co2"] != null ? Convert.ToInt32(data["co2"], invNum) : null;
+			station.CO2_24h = data["co2_24h"] != null ? Convert.ToInt32(data["co2_24h"], invNum) : null;
 		}
 
 		private void ProcessLightning(NameValueCollection data, WeatherStation station)

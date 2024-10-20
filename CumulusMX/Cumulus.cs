@@ -7747,8 +7747,8 @@ namespace CumulusMX
 			sb.Append(sep);     //40 - was leaf temp 1
 			sb.Append(sep);     //41 - was leaf temp 2
 
-			sb.Append(station.LeafWetness1.ToString(LeafWetFormat, inv) + sep);    //42
-			sb.Append(station.LeafWetness2.ToString(LeafWetFormat, inv) + sep);    //43
+			sb.Append((station.LeafWetness1.HasValue ? station.LeafWetness1.Value.ToString(LeafWetFormat, inv) : string.Empty) + sep);    //42
+			sb.Append((station.LeafWetness2.HasValue ? station.LeafWetness2.Value.ToString(LeafWetFormat, inv) : string.Empty) + sep);    //43
 
 			for (int i = 5; i <= 16; i++)
 			{
@@ -7782,14 +7782,14 @@ namespace CumulusMX
 				sb.Append((station.UserTemp[i].HasValue ? station.UserTemp[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);   //76-83
 			}
 
-			sb.Append(station.CO2 + sep);                                    //84
-			sb.Append(station.CO2_24h + sep);                                //85
-			sb.Append(station.CO2_pm2p5.ToString("F1", inv) + sep);               //86
-			sb.Append(station.CO2_pm2p5_24h.ToString("F1", inv) + sep);           //87
-			sb.Append(station.CO2_pm10.ToString("F1", inv) + sep);                //88
-			sb.Append(station.CO2_pm10_24h.ToString("F1", inv) + sep);            //89
-			sb.Append(station.CO2_temperature.ToString(TempFormat, inv) + sep);   //90
-			sb.Append(station.CO2_humidity.ToString("F0"));                       //91
+			sb.Append((station.CO2.HasValue ? station.CO2 : string.Empty) + sep);                                                           //84
+			sb.Append((station.CO2_24h.HasValue ? station.CO2_24h : string.Empty) + sep);                                                   //85
+			sb.Append((station.CO2_pm2p5.HasValue ? station.CO2_pm2p5.Value.ToString("F1", inv) : string.Empty) + sep);                     //86
+			sb.Append((station.CO2_pm2p5_24h.HasValue ? station.CO2_pm2p5_24h.Value.ToString("F1", inv) : string.Empty) + sep);             //87
+			sb.Append((station.CO2_pm10.HasValue ? station.CO2_pm10.Value.ToString("F1", inv) : string.Empty) + sep);                       //88
+			sb.Append((station.CO2_pm10_24h.HasValue ? station.CO2_pm10_24h.Value.ToString("F1", inv) : string.Empty) + sep);               //89
+			sb.Append((station.CO2_temperature.HasValue ? station.CO2_temperature.Value.ToString(TempFormat, inv) : string.Empty) + sep);   //90
+			sb.Append((station.CO2_humidity.HasValue ? station.CO2_humidity.Value.ToString("F0") : string.Empty));                          //91
 			sb.Append(Environment.NewLine);
 
 			var success = false;

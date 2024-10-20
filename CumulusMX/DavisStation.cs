@@ -2886,12 +2886,12 @@ namespace CumulusMX
 
 								if (archiveData.LeafWetness1 >= 0 && archiveData.LeafWetness1 < 16)
 								{
-									DoLeafWetness(LeafWetness1, 1);
+									DoLeafWetness(archiveData.LeafWetness1, 1);
 								}
 
 								if (archiveData.LeafWetness2 >= 0 && archiveData.LeafWetness2 < 16)
 								{
-									DoLeafWetness(LeafWetness2, 2);
+									DoLeafWetness(archiveData.LeafWetness2, 2);
 								}
 							}
 

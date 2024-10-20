@@ -316,10 +316,22 @@ namespace CumulusMX.ThirdParty
 			if (SendLeafWetness)
 			{
 				if (started) sb.Append('&'); else started = true;
-				sb.Append("leafwetness1=" + station.LeafWetness1.ToString(cumulus.LeafWetFormat));
-				sb.Append("&leafwetness2=" + station.LeafWetness2.ToString(cumulus.LeafWetFormat));
-				sb.Append("&leafwetness3=" + station.LeafWetness3.ToString(cumulus.LeafWetFormat));
-				sb.Append("&leafwetness4=" + station.LeafWetness4.ToString(cumulus.LeafWetFormat));
+				if (station.LeafWetness1.HasValue)
+				{ 
+					sb.Append("leafwetness1=" + station.LeafWetness1.Value.ToString(cumulus.LeafWetFormat));
+				}
+				if (station.LeafWetness2.HasValue)
+				{
+					sb.Append("&leafwetness2=" + station.LeafWetness2.Value.ToString(cumulus.LeafWetFormat));
+				}
+				if (station.LeafWetness3.HasValue)
+				{
+					sb.Append("&leafwetness3=" + station.LeafWetness3.Value.ToString(cumulus.LeafWetFormat));
+				}
+				if (station.LeafWetness4.HasValue)
+				{
+					sb.Append("&leafwetness4=" + station.LeafWetness4.Value.ToString(cumulus.LeafWetFormat));
+				}
 			}
 
 			if (SendAirQuality)
@@ -363,14 +375,14 @@ namespace CumulusMX.ThirdParty
 							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg4.Value.ToString("F1", InvC)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
-						if (station.CO2_pm2p5 >= Cumulus.DefaultHiVal)
-							sb.Append($"AqPM2.5={station.CO2_pm2p5.ToString("F1", InvC)}");
-						if (station.CO2_pm2p5_24h >= Cumulus.DefaultHiVal)
-							sb.Append($"&AqPM2.5_avg_24h={station.CO2_pm2p5_24h.ToString("F1", InvC)}");
-						if (station.CO2_pm10 >= Cumulus.DefaultHiVal)
-							sb.Append($"&AqPM10={station.CO2_pm10.ToString("F1", InvC)}");
-						if (station.CO2_pm10_24h >= Cumulus.DefaultHiVal)
-							sb.Append($"&AqPM10_avg_24h={station.CO2_pm10_24h.ToString("F1", InvC)}");
+						if (station.CO2_pm2p5.HasValue)
+							sb.Append($"AqPM2.5={station.CO2_pm2p5.Value.ToString("F1", InvC)}");
+						if (station.CO2_pm2p5_24h.HasValue)
+							sb.Append($"&AqPM2.5_avg_24h={station.CO2_pm2p5_24h.Value.ToString("F1", InvC)}");
+						if (station.CO2_pm10.HasValue)
+							sb.Append($"&AqPM10={station.CO2_pm10.Value.ToString("F1", InvC)}");
+						if (station.CO2_pm10_24h.HasValue)
+							sb.Append($"&AqPM10_avg_24h={station.CO2_pm10_24h.Value.ToString("F1", InvC)}");
 						break;
 				}
 			}

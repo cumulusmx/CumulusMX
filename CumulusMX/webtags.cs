@@ -4302,72 +4302,72 @@ namespace CumulusMX
 
 		private string TagCO2_pm2p5(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm2p5, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm2p5.HasValue ? CheckRcDp(station.CO2_pm2p5.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCO2_pm2p5_24h(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm2p5_24h, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm2p5_24h.HasValue ? CheckRcDp(station.CO2_pm2p5_24h.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCO2_pm10(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm10, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm10.HasValue ? CheckRcDp(station.CO2_pm10.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCO2_pm10_24h(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm10_24h, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm10_24h.HasValue ? CheckRcDp(station.CO2_pm10_24h.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCO2_temp(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.CO2_temperature, tagParams), tagParams, cumulus.TempDPlaces);
+			return station.CO2_temperature.HasValue ? CheckRcDp(CheckTempUnit(station.CO2_temperature.Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
 		}
 
 		private string TagCO2_hum(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_humidity, tagParams, cumulus.HumDPlaces);
+			return station.CO2_humidity.HasValue ? CheckRcDp(station.CO2_humidity.Value, tagParams, cumulus.HumDPlaces) : "-";
 		}
 
 		private string TagCO2_pm1(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm1, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm1.HasValue ? CheckRcDp(station.CO2_pm1.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCO2_pm1_24h(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm1_24h, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm1_24h.HasValue ? CheckRcDp(station.CO2_pm1_24h.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCO2_pm4(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm4, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm4.HasValue ? CheckRcDp(station.CO2_pm4.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCO2_pm4_24h(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm4_24h, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm4_24h.HasValue ? CheckRcDp(station.CO2_pm4_24h.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCO2_pm2p5_aqi(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm2p5_aqi, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm2p5_aqi.HasValue ? CheckRcDp(station.CO2_pm2p5_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCO2_pm2p5_24h_aqi(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm2p5_24h_aqi, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm2p5_24h_aqi.HasValue ? CheckRcDp(station.CO2_pm2p5_24h_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCO2_pm10_aqi(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm10_aqi, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm10_aqi.HasValue ? CheckRcDp(station.CO2_pm10_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagCO2_pm10_24h_aqi(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.CO2_pm10_24h_aqi, tagParams, cumulus.AirQualityDPlaces);
+			return station.CO2_pm10_24h_aqi.HasValue ? CheckRcDp(station.CO2_pm10_24h_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
 		}
 
 		private string TagLeakSensor1(Dictionary<string, string> tagParams)
@@ -4407,42 +4407,42 @@ namespace CumulusMX
 
 		private string TagLeafWetness1(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.LeafWetness1, tagParams, 1);
+			return station.LeafWetness1.HasValue ? CheckRcDp(station.LeafWetness1.Value, tagParams, 1) : "-";
 		}
 
 		private string TagLeafWetness2(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.LeafWetness2, tagParams, 1);
+			return station.LeafWetness2.HasValue ? CheckRcDp(station.LeafWetness2.Value, tagParams, 1) : "-";
 		}
 
 		private string TagLeafWetness3(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.LeafWetness3, tagParams, 1);
+			return station.LeafWetness3.HasValue ? CheckRcDp(station.LeafWetness3.Value, tagParams, 1) : "-";
 		}
 
 		private string TagLeafWetness4(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.LeafWetness4, tagParams, 1);
+			return station.LeafWetness4.HasValue ? CheckRcDp(station.LeafWetness4.Value, tagParams, 1) : "-";
 		}
 
 		private string TagLeafWetness5(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.LeafWetness5, tagParams, 1);
+			return station.LeafWetness5.HasValue ? CheckRcDp(station.LeafWetness5.Value, tagParams, 1) : "-";
 		}
 
 		private string TagLeafWetness6(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.LeafWetness6, tagParams, 1);
+			return station.LeafWetness6.HasValue ? CheckRcDp(station.LeafWetness6.Value, tagParams, 1) : "-";
 		}
 
 		private string TagLeafWetness7(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.LeafWetness7, tagParams, 1);
+			return station.LeafWetness7.HasValue ? CheckRcDp(station.LeafWetness7.Value, tagParams, 1) : "-";
 		}
 
 		private string TagLeafWetness8(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.LeafWetness8, tagParams, 1);
+			return station.LeafWetness8.HasValue ? CheckRcDp(station.LeafWetness8.Value, tagParams, 1) : "-";
 		}
 
 

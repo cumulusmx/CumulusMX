@@ -1535,22 +1535,22 @@ namespace CumulusMX
 		public double? AirQualityAvgIdx3 { get; set; }
 		public double? AirQualityAvgIdx4 { get; set; }
 
-		public int CO2 { get; set; }
-		public int CO2_24h { get; set; }
-		public double CO2_pm2p5 { get; set; }
-		public double CO2_pm2p5_24h { get; set; }
-		public double CO2_pm10 { get; set; }
-		public double CO2_pm10_24h { get; set; }
-		public double CO2_temperature { get; set; }
-		public double CO2_humidity { get; set; }
-		public double CO2_pm1 { get; set; }
-		public double CO2_pm1_24h { get; set; }
-		public double CO2_pm4 { get; set; }
-		public double CO2_pm4_24h { get; set; }
-		public double CO2_pm2p5_aqi { get; set; }
-		public double CO2_pm2p5_24h_aqi { get; set; }
-		public double CO2_pm10_aqi { get; set; }
-		public double CO2_pm10_24h_aqi { get; set; }
+		public int? CO2 { get; set; }
+		public int? CO2_24h { get; set; }
+		public double? CO2_pm2p5 { get; set; }
+		public double? CO2_pm2p5_24h { get; set; }
+		public double? CO2_pm10 { get; set; }
+		public double? CO2_pm10_24h { get; set; }
+		public double? CO2_temperature { get; set; }
+		public double? CO2_humidity { get; set; }
+		public double? CO2_pm1 { get; set; }
+		public double? CO2_pm1_24h { get; set; }
+		public double? CO2_pm4 { get; set; }
+		public double? CO2_pm4_24h { get; set; }
+		public double? CO2_pm2p5_aqi { get; set; }
+		public double? CO2_pm2p5_24h_aqi { get; set; }
+		public double? CO2_pm10_aqi { get; set; }
+		public double? CO2_pm10_24h_aqi { get; set; }
 
 		public int LeakSensor1 { get; set; }
 		public int LeakSensor2 { get; set; }
@@ -1561,14 +1561,14 @@ namespace CumulusMX
 		public DateTime LightningTime { get; set; }
 		public int LightningStrikesToday { get; set; }
 
-		public double LeafWetness1 { get; set; }
-		public double LeafWetness2 { get; set; }
-		public double LeafWetness3 { get; set; }
-		public double LeafWetness4 { get; set; }
-		public double LeafWetness5 { get; set; }
-		public double LeafWetness6 { get; set; }
-		public double LeafWetness7 { get; set; }
-		public double LeafWetness8 { get; set; }
+		public double? LeafWetness1 { get; set; }
+		public double? LeafWetness2 { get; set; }
+		public double? LeafWetness3 { get; set; }
+		public double? LeafWetness4 { get; set; }
+		public double? LeafWetness5 { get; set; }
+		public double? LeafWetness6 { get; set; }
+		public double? LeafWetness7 { get; set; }
+		public double? LeafWetness8 { get; set; }
 
 		public double SunshineHours { get; set; } = 0;
 
@@ -11444,21 +11444,21 @@ namespace CumulusMX
 			if (cumulus.GraphOptions.Visible.CO2Sensor.IsVisible(local))
 			{
 				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_CurrentCaption}\",\"{CO2}\",\"{cumulus.Units.CO2UnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_CurrentCaption}\",\"{(CO2.HasValue ? CO2 : "-")}\",\"{cumulus.Units.CO2UnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_24HourCaption}\",\"{CO2_24h}\",\"{cumulus.Units.CO2UnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_24HourCaption}\",\"{(CO2_24h.HasValue ? CO2_24h : "-")}\",\"{cumulus.Units.CO2UnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm2p5Caption}\",\"{CO2_pm2p5:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm2p5Caption}\",\"{(CO2_pm2p5.HasValue ? CO2_pm2p5.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm2p5_24hrCaption}\",\"{CO2_pm2p5_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm2p5_24hrCaption}\",\"{(CO2_pm2p5_24h.HasValue ? CO2_pm2p5_24h.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm10Caption}\",\"{CO2_pm10:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm10Caption}\",\"{(CO2_pm10.HasValue ? CO2_pm10.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h:F1}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{(CO2_pm10_24h.HasValue ? CO2_pm10_24h.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_TemperatureCaption}\",\"{CO2_temperature:F1}\",\"{cumulus.Units.TempText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_TemperatureCaption}\",\"{(CO2_temperature.HasValue ? CO2_temperature.Value.ToString(cumulus.TempFormat) : "-")}\",\"{cumulus.Units.TempText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_HumidityCaption}\",\"{CO2_humidity:F1}\",\"%\"]");
+					json.Append($"[\"{cumulus.Trans.CO2_HumidityCaption}\",\"{(CO2_humidity.HasValue ? CO2_humidity.Value.ToString("F0") : "-")}\",\"%\"]");
 			}
 
 			if (json[^1] == ',')
@@ -11485,21 +11485,21 @@ namespace CumulusMX
 			if (cumulus.GraphOptions.Visible.LeafWetness.IsVisible(local))
 			{
 				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(0, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[0]}\",\"{LeafWetness1.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[0]}\",\"{(LeafWetness1.HasValue ? LeafWetness1.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(1, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[1]}\",\"{LeafWetness2.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[1]}\",\"{(LeafWetness2.HasValue ? LeafWetness2.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(2, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[2]}\",\"{LeafWetness3.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[2]}\",\"{(LeafWetness3.HasValue ? LeafWetness3.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(3, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[3]}\",\"{LeafWetness4.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[3]}\",\"{(LeafWetness4.HasValue ? LeafWetness4.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(4, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[4]}\",\"{LeafWetness5.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[4]}\",\"{(LeafWetness5.HasValue ? LeafWetness5.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(5, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[5]}\",\"{LeafWetness6.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[5]}\",\"{(LeafWetness6.HasValue ? LeafWetness6.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(6, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[6]}\",\"{LeafWetness7.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[6]}\",\"{(LeafWetness7.HasValue ? LeafWetness7.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(7, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[7]}\",\"{LeafWetness8.ToString(cumulus.LeafWetFormat)}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
+					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[7]}\",\"{(LeafWetness8.HasValue ? LeafWetness8.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
 			}
 
 			if (json[^1] == ',')
@@ -11985,7 +11985,7 @@ namespace CumulusMX
 		/// <param name="start"></param>
 		/// <param name="length"></param>
 		/// <returns>JSON encoded section of the dayfile</returns>
-		public string GetDayfile(string draw, int start, int length, string search)
+		public string ReadDayfile(string draw, int start, int length, string search)
 		{
 			try
 			{

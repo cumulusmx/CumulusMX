@@ -251,10 +251,10 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilMoisture4 && station.SoilMoisture4.HasValue)
 				Data.Append($"&soilmoisture4={station.SoilMoisture4}");
 
-			if (SendLeafWetness1 && station.LeafWetness1 >= Cumulus.DefaultHiVal)
-				Data.Append($"&leafwetness={station.LeafWetness1}");
-			if (SendLeafWetness2 && station.LeafWetness2 >= Cumulus.DefaultHiVal)
-				Data.Append($"&leafwetness2={station.LeafWetness2}");
+			if (SendLeafWetness1 && station.LeafWetness1.HasValue)
+				Data.Append($"&leafwetness={station.LeafWetness1:cumulus.LeafWetFormat}");
+			if (SendLeafWetness2 && station.LeafWetness2.HasValue)
+				Data.Append($"&leafwetness2={station.LeafWetness2:cumulus.LeafWetFormat}");
 
 			if (SendAirQuality && cumulus.StationOptions.PrimaryAqSensor > (int) Cumulus.PrimaryAqSensor.Undefined)
 			{

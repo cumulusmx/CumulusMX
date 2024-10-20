@@ -1157,28 +1157,17 @@ namespace CumulusMX
 					{
 						CO2_temperature = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
 					}
-					if (sensor.humidityVal.HasValue)
+					else
 					{
-						// humidty sent as "value%"
-						CO2_humidity = sensor.humidityVal.Value;
+						CO2_temperature = null;
 					}
-					if (sensor.PM25.HasValue)
-					{
-						CO2_pm2p5 = sensor.PM25.Value;
-					}
-					if (sensor.PM10.HasValue)
-					{
-						CO2_pm10 = sensor.PM10.Value;
-					}
-					// HTTP protocol does not send a pm 24 hour values :( On useless AQI values
-					if (sensor.CO2.HasValue)
-					{
-						CO2 = sensor.CO2.Value;
-					}
-					if (sensor.CO2_24H.HasValue)
-					{
-						CO2_24h = sensor.CO2_24H.Value;
-					}
+					// humidty sent as "value%"
+					CO2_humidity = sensor.humidityVal;
+					CO2_pm2p5 = sensor.PM25;
+					CO2_pm10 = sensor.PM10;
+					// HTTP protocol does not send a pm 24 hour values :( Only useless AQI values
+					CO2 = sensor.CO2;
+					CO2_24h = sensor.CO2_24H;
 				}
 				catch (Exception ex)
 				{
@@ -1186,8 +1175,9 @@ namespace CumulusMX
 				}
 			}
 
-			CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5);
-			CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
+
+			CO2_pm2p5_aqi = CO2_pm2p5.HasValue ? GetAqi(AqMeasure.pm2p5, CO2_pm2p5.Value) : null;
+			CO2_pm10_aqi = CO2_pm10.HasValue ? GetAqi(AqMeasure.pm10, CO2_pm10.Value) : null;
 		}
 
 		private void ProcessChPm25(EcowittLocalApi.ChPm25Sensor[] sensors)

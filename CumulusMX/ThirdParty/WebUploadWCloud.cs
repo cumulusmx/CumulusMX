@@ -233,12 +233,12 @@ namespace CumulusMX.ThirdParty
 							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg4.Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
-						if (station.CO2_pm2p5 >= 0)
+						if (station.CO2_pm2p5.HasValue)
 							sb.Append($"&pm25={station.CO2_pm2p5:F0}");
-						if (station.CO2_pm10 >= 0)
+						if (station.CO2_pm10.HasValue)
 							sb.Append($"&pm10={station.CO2_pm10:F0}");
-						if (station.CO2_pm2p5_24h >= 0)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.CO2_pm2p5_24h)}");
+						if (station.CO2_pm2p5_24h.HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.CO2_pm2p5_24h.Value)}");
 						break;
 				}
 			}
@@ -319,7 +319,7 @@ namespace CumulusMX.ThirdParty
 			// leaf wetness
 			if (SendLeafWetness)
 			{
-				double wet = 0;
+				double? wet;
 
 				switch (cumulus.WCloud.LeafWetnessSensor)
 				{
@@ -347,9 +347,15 @@ namespace CumulusMX.ThirdParty
 					case 8:
 						wet = station.LeafWetness8;
 						break;
+					default:
+						wet = null;
+						break;
 				}
 
-				sb.Append($"&leafwet={wet.ToString(cumulus.LeafWetFormat)}");
+				if (wet.HasValue)
+				{
+					sb.Append($"&leafwet={wet.Value.ToString(cumulus.LeafWetFormat)}");
+				}
 			}
 
 			// date - UTC

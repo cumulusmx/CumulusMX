@@ -1054,7 +1054,13 @@ namespace CumulusMX
 
 		private static void ProcessCo2(EcowittApi.CurrentDataData data, WeatherStation station)
 		{
-			if (data.co2_aqi_combo != null)
+			// indoor overrides the combo
+			if (data.indoor_co2 != null)
+			{
+				station.CO2 = data.indoor_co2.co2.value;
+				station.CO2_24h = data.indoor_co2.Avg24h.value;
+			}
+			else if (data.co2_aqi_combo != null)
 			{
 				station.CO2 = data.co2_aqi_combo.co2.value;
 				station.CO2_24h = data.co2_aqi_combo.Avg24h.value;
@@ -1064,27 +1070,20 @@ namespace CumulusMX
 			{
 				station.CO2_pm2p5 = data.pm25_aqi_combo.pm25.value;
 				//station.CO2_pm2p5_24h = data.pm25_aqi_combo.AqiAvg24h.value
-				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
+				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5.Value);
 			}
 
 			if (data.pm10_aqi_combo != null)
 			{
 				station.CO2_pm10 = data.pm10_aqi_combo.pm10.value;
 				//station.CO2_pm10_24h = data.pm10_aqi_combo.AqiAvg24h.value
-				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
+				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10.Value);
 			}
 
 			if (data.t_rh_aqi_combo != null)
 			{
 				station.CO2_temperature = data.t_rh_aqi_combo.temperature.value;
 				station.CO2_humidity = data.t_rh_aqi_combo.humidity.value;
-			}
-
-			// indoor overrides the combo
-			if (data.indoor_co2 != null)
-			{
-				station.CO2 = data.indoor_co2.co2.value;
-				station.CO2_24h = data.indoor_co2.Avg24h.value;
 			}
 		}
 
