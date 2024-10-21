@@ -10,6 +10,20 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 
 
+## 4.3.0 \[b4044\] - 2024-11-xx
+
+### New
+
+### Changed
+- The extra sensors and the extra sensors log file now records null value values for absent readings. This will void logging spurious zero values at start-up
+- AirLinks and the AirLinks log file now records null value values for absent readings. This will void logging spurious zero values at start-up
+
+### Fixed
+
+### Package Updates
+- None
+---
+
 ## 4.2.1 \[b4043\] - 2024-10-19
 
 ### New

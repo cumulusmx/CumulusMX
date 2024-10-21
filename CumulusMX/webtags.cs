@@ -1143,131 +1143,131 @@ namespace CumulusMX
 		// AirLink Indoor
 		private string TagAirLinkTempIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(CheckTempUnit(cumulus.airLinkDataIn.temperature, tagParams), tagParams, cumulus.TempDPlaces);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(CheckTempUnit(cumulus.airLinkDataIn.temperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 		private string TagAirLinkHumIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp((decimal) cumulus.airLinkDataIn.humidity, tagParams, cumulus.HumDPlaces);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp((decimal) cumulus.airLinkDataIn.humidity, tagParams, cumulus.HumDPlaces);
 		}
 		private string TagAirLinkPm1In(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm1, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm1, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5In(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_1hrIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_1hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_1hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_3hrIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_3hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_3hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_24hrIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_24hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_24hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_NowcastIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_nowcast, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_nowcast, tagParams, 1);
 		}
 		private string TagAirLinkPm10In(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10, tagParams, 1);
 		}
 		private string TagAirLinkPm10_1hrIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_1hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_1hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_3hrIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_3hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_3hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_24hrIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_24hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_24hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_NowcastIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_nowcast, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_nowcast, tagParams, 1);
 		}
 		private string TagAirLinkFirmwareVersionIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : cumulus.airLinkDataIn.firmwareVersion;
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.firmwareVersion;
 		}
 		private string TagAirLinkWifiRssiIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : cumulus.airLinkDataIn.wifiRssi.ToString();
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.wifiRssi.ToString();
 		}
 
 
 		// AirLink Outdoor
 		private string TagAirLinkTempOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(CheckTempUnit(cumulus.airLinkDataOut.temperature, tagParams), tagParams, cumulus.TempDPlaces);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(CheckTempUnit(cumulus.airLinkDataOut.temperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 		private string TagAirLinkHumOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp((decimal) cumulus.airLinkDataOut.humidity, tagParams, cumulus.HumDPlaces);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp((decimal) cumulus.airLinkDataOut.humidity, tagParams, cumulus.HumDPlaces);
 		}
 		private string TagAirLinkPm1Out(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm1, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm1, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5Out(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_1hrOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_1hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_1hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_3hrOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_3hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_3hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_24hrOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_24hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_24hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_NowcastOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_nowcast, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_nowcast, tagParams, 1);
 		}
 		private string TagAirLinkPm10Out(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10, tagParams, 1);
 		}
 		private string TagAirLinkPm10_1hrOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_1hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_1hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_3hrOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_3hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_3hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_24hrOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_24hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_24hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_NowcastOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_nowcast, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_nowcast, tagParams, 1);
 		}
 		private string TagAirLinkFirmwareVersionOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : cumulus.airLinkDataOut.firmwareVersion;
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.firmwareVersion;
 		}
 		private string TagAirLinkWifiRssiOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : cumulus.airLinkDataOut.wifiRssi.ToString();
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.wifiRssi.ToString();
 		}
 
 		private string TagAirLinkAqiPm2P5In(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataIn == null)
+			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm2p5, tagParams, cumulus.AirQualityDPlaces);
@@ -1275,63 +1275,63 @@ namespace CumulusMX
 
 		private string TagAirLinkAqiPm2p5_1hrIn(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataIn == null)
+			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm2p5_1hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_3hrIn(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataIn == null)
+			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm2p5_3hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_24hrIn(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataIn == null)
+			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm2p5_24hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_NowcastIn(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataIn == null)
+			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm2p5_nowcast, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10In(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataIn == null)
+			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm10, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_1hrIn(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataIn == null)
+			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm10_1hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_3hrIn(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataIn == null)
+			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm10_3hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_24hrIn(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataIn == null)
+			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm10_24hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_NowcastIn(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataIn == null)
+			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm10_nowcast, tagParams, cumulus.AirQualityDPlaces);
@@ -1339,70 +1339,70 @@ namespace CumulusMX
 
 		private string TagAirLinkAqiPm2P5Out(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataOut == null)
+			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm2p5, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_1hrOut(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataOut == null)
+			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm2p5_1hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_3hrOut(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataOut == null)
+			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm2p5_3hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_24hrOut(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataOut == null)
+			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm2p5_24hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_NowcastOut(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataOut == null)
+			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm2p5_nowcast, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10Out(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataOut == null)
+			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm10, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_1hrOut(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataOut == null)
+			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm10_1hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_3hrOut(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataOut == null)
+			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm10_3hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_24hrOut(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataOut == null)
+			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm10_24hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_NowcastOut(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.airLinkDataOut == null)
+			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
 				return "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm10_nowcast, tagParams, cumulus.AirQualityDPlaces);
@@ -1411,35 +1411,35 @@ namespace CumulusMX
 
 		private string AirLinkPct_1hrIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : cumulus.airLinkDataIn.pct_1hr.ToString();
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.pct_1hr.ToString();
 		}
 		private string AirLinkPct_3hrIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : cumulus.airLinkDataIn.pct_3hr.ToString();
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.pct_3hr.ToString();
 		}
 		private string AirLinkPct_24hrIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : cumulus.airLinkDataIn.pct_24hr.ToString();
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.pct_24hr.ToString();
 		}
 		private string AirLinkPct_NowcastIn(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataIn == null ? "--" : cumulus.airLinkDataIn.pct_nowcast.ToString();
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.pct_nowcast.ToString();
 		}
 		private string AirLinkPct_1hrOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : cumulus.airLinkDataOut.pct_1hr.ToString();
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.pct_1hr.ToString();
 		}
 		private string AirLinkPct_3hrOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : cumulus.airLinkDataOut.pct_3hr.ToString();
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.pct_3hr.ToString();
 		}
 		private string AirLinkPct_24hrOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : cumulus.airLinkDataOut.pct_24hr.ToString();
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.pct_24hr.ToString();
 		}
 		private string AirLinkPct_NowcastOut(Dictionary<string, string> tagParams)
 		{
-			return cumulus.airLinkDataOut == null ? "--" : cumulus.airLinkDataOut.pct_nowcast.ToString();
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.pct_nowcast.ToString();
 		}
 
 

@@ -8085,14 +8085,14 @@ namespace CumulusMX
 			switch (cumulus.StationOptions.PrimaryAqSensor)
 			{
 				case (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor:
-					if (cumulus.airLinkDataOut != null)
+					if (cumulus.airLinkDataOut != null && cumulus.airLinkDataOut.dataValid)
 					{
 						pm2p5 = cumulus.airLinkDataOut.pm2p5;
 						pm10 = cumulus.airLinkDataOut.pm10;
 					}
 					break;
 				case (int) Cumulus.PrimaryAqSensor.AirLinkIndoor:
-					if (cumulus.airLinkDataIn != null)
+					if (cumulus.airLinkDataIn != null && cumulus.airLinkDataIn.dataValid)
 					{
 						pm2p5 = cumulus.airLinkDataIn.pm2p5;
 						pm10 = cumulus.airLinkDataIn.pm10;
@@ -11513,7 +11513,7 @@ namespace CumulusMX
 		public string GetAirLinkCountsOut()
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
-			if (cumulus.airLinkOut != null)
+			if (cumulus.airLinkOut != null && cumulus.airLinkDataOut.dataValid)
 			{
 				json.Append($"[\"1 μm\",\"{cumulus.airLinkDataOut.pm1:F1}\",\"--\",\"--\",\"--\",\"--\"],");
 				json.Append($"[\"2.5 μm\",\"{cumulus.airLinkDataOut.pm2p5:F1}\",\"{cumulus.airLinkDataOut.pm2p5_1hr:F1}\",\"{cumulus.airLinkDataOut.pm2p5_3hr:F1}\",\"{cumulus.airLinkDataOut.pm2p5_24hr:F1}\",\"{cumulus.airLinkDataOut.pm2p5_nowcast:F1}\"],");
@@ -11532,7 +11532,7 @@ namespace CumulusMX
 		public string GetAirLinkAqiOut()
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
-			if (cumulus.airLinkOut != null)
+			if (cumulus.airLinkOut != null && cumulus.airLinkDataOut.dataValid)
 			{
 				json.Append($"[\"2.5 μm\",\"{cumulus.airLinkDataOut.aqiPm2p5:F1}\",\"{cumulus.airLinkDataOut.aqiPm2p5_1hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm2p5_3hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm2p5_24hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm2p5_nowcast:F1}\"],");
 				json.Append($"[\"10 μm\",\"{cumulus.airLinkDataOut.aqiPm10:F1}\",\"{cumulus.airLinkDataOut.aqiPm10_1hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm10_3hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm10_24hr:F1}\",\"{cumulus.airLinkDataOut.aqiPm10_nowcast:F1}\"]");
@@ -11549,7 +11549,7 @@ namespace CumulusMX
 		public string GetAirLinkPctOut()
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
-			if (cumulus.airLinkOut != null)
+			if (cumulus.airLinkOut != null && cumulus.airLinkDataOut.dataValid)
 			{
 				json.Append($"[\"All sizes\",\"--\",\"{cumulus.airLinkDataOut.pct_1hr}%\",\"{cumulus.airLinkDataOut.pct_3hr}%\",\"{cumulus.airLinkDataOut.pct_24hr}%\",\"{cumulus.airLinkDataOut.pct_nowcast}%\"]");
 			}
@@ -11564,7 +11564,7 @@ namespace CumulusMX
 		public string GetAirLinkCountsIn()
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
-			if (cumulus.airLinkIn != null)
+			if (cumulus.airLinkIn != null && cumulus.airLinkDataIn.dataValid)
 			{
 				json.Append($"[\"1 μm\",\"{cumulus.airLinkDataIn.pm1:F1}\",\"--\",\"--\",\"--\",\"--\"],");
 				json.Append($"[\"2.5 μm\",\"{cumulus.airLinkDataIn.pm2p5:F1}\",\"{cumulus.airLinkDataIn.pm2p5_1hr:F1}\",\"{cumulus.airLinkDataIn.pm2p5_3hr:F1}\",\"{cumulus.airLinkDataIn.pm2p5_24hr:F1}\",\"{cumulus.airLinkDataIn.pm2p5_nowcast:F1}\"],");
@@ -11583,7 +11583,7 @@ namespace CumulusMX
 		public string GetAirLinkAqiIn()
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
-			if (cumulus.airLinkIn != null)
+			if (cumulus.airLinkIn != null && cumulus.airLinkDataIn.dataValid)
 			{
 				json.Append($"[\"2.5 μm\",\"{cumulus.airLinkDataIn.aqiPm2p5:F1}\",\"{cumulus.airLinkDataIn.aqiPm2p5_1hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm2p5_3hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm2p5_24hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm2p5_nowcast:F1}\"],");
 				json.Append($"[\"10 μm\",\"{cumulus.airLinkDataIn.aqiPm10:F1}\",\"{cumulus.airLinkDataIn.aqiPm10_1hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm10_3hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm10_24hr:F1}\",\"{cumulus.airLinkDataIn.aqiPm10_nowcast:F1}\"]");
@@ -11600,7 +11600,7 @@ namespace CumulusMX
 		public string GetAirLinkPctIn()
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
-			if (cumulus.airLinkIn != null)
+			if (cumulus.airLinkIn != null && cumulus.airLinkDataIn.dataValid)
 			{
 				json.Append($"[\"All sizes\",\"--\",\"{cumulus.airLinkDataIn.pct_1hr}%\",\"{cumulus.airLinkDataIn.pct_3hr}%\",\"{cumulus.airLinkDataIn.pct_24hr}%\",\"{cumulus.airLinkDataIn.pct_nowcast}%\"]");
 			}

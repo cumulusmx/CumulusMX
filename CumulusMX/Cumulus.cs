@@ -7892,7 +7892,7 @@ namespace CumulusMX
 			sb.Append(timestamp.ToString("dd/MM/yy", inv) + sep);
 			sb.Append(timestamp.ToString("HH:mm", inv) + sep);
 
-			if (AirLinkInEnabled && airLinkDataIn != null)
+			if (AirLinkInEnabled && airLinkDataIn != null && airLinkDataIn.dataValid)
 			{
 				sb.Append(airLinkDataIn.temperature.ToString("F1", inv) + sep);
 				sb.Append(airLinkDataIn.humidity + sep);
@@ -7943,11 +7943,11 @@ namespace CumulusMX
 				// write zero values - subtract 2 for firmware version, WiFi RSSI
 				for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 2; i++)
 				{
-					sb.Append("0" + sep);
+					sb.Append(sep);
 				}
 			}
 
-			if (AirLinkOutEnabled && airLinkDataOut != null)
+			if (AirLinkOutEnabled && airLinkDataOut != null && airLinkDataOut.dataValid)
 			{
 				sb.Append(airLinkDataOut.temperature.ToString("F1", inv) + sep);
 				sb.Append(airLinkDataOut.humidity + sep);
@@ -7982,9 +7982,8 @@ namespace CumulusMX
 				// write zero values - subtract 2 for firmware version, WiFi RSSI - subtract 1 for end field
 				for (var i = 0; i < typeof(AirLinkData).GetProperties().Length - 3; i++)
 				{
-					sb.Append("0" + sep);
+					sb.Append(sep);
 				}
-				sb.Append('0');
 			}
 			sb.Append(Environment.NewLine);
 
