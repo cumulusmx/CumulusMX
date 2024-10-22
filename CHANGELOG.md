@@ -13,6 +13,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## 4.3.0 \[b4044\] - 2024-11-xx
 
 ### New
+- Adds Rain Week to the dashboard
+	- There is also a new web tag `<#rweek>`
+	- Configure the start of week day in `Station Settings > Rainfall`
 
 ### Changed
 - The extra sensors and the extra sensors log file now records null value values for absent readings. This will void logging spurious zero values at start-up

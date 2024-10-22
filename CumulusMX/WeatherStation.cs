@@ -743,7 +743,8 @@ namespace CumulusMX
 
 		public void GetRainFallTotals()
 		{
-			cumulus.LogMessage("GetRainFallTotals: Getting rain totals, rain season start = " + cumulus.RainSeasonStart);
+			cumulus.LogMessage($"GetRainFallTotals: Getting rain totals, rain season start = {cumulus.RainSeasonStart}, rain week start = {cumulus.RainWeekStart}-{((DayOfWeek)cumulus.RainWeekStart)}");
+			RainThisWeek = 0;
 			RainThisMonth = 0;
 			RainThisYear = 0;
 			// get today's date for month check; allow for 0900 roll-over
@@ -754,6 +755,8 @@ namespace CumulusMX
 			cumulus.LogMessage("GetRainFallTotals: Today = " + Today);
 			// get today's date offset by rain season start for year check
 			int offsetYearToday = ModifiedNow.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
+			// get this weeks date offset
+			var offsetWeek = ModifiedNow.AddDays(-(int)ModifiedNow.DayOfWeek + cumulus.RainWeekStart);
 
 			try
 			{
@@ -770,6 +773,12 @@ namespace CumulusMX
 					{
 						RainThisMonth += rec.TotalRain;
 					}
+					// This Week?
+					if (rec.Date >= offsetWeek.Date)
+					{
+						RainThisWeek += rec.TotalRain;
+					}
+
 				}
 			}
 			catch (Exception ex)
@@ -777,6 +786,7 @@ namespace CumulusMX
 				cumulus.LogMessage("GetRainfallTotals: Error - " + ex.Message);
 			}
 
+			cumulus.LogMessage("GetRainFallTotals: Rainthisweek from dayfile: " + RainThisWeek);
 			cumulus.LogMessage("GetRainFallTotals: Rainthismonth from dayfile: " + RainThisMonth);
 			cumulus.LogMessage("GetRainFallTotals: Rainthisyear from dayfile: " + RainThisYear);
 
@@ -786,19 +796,36 @@ namespace CumulusMX
 				cumulus.LogMessage($"GetRainFallTotals: Adding YTD rain: {cumulus.YTDrain}, new Rainthisyear: {RainThisYear}");
 				RainThisYear += cumulus.YTDrain;
 			}
+			RainWeek = RainThisWeek;
 			RainMonth = RainThisMonth;
 			RainYear = RainThisYear;
 		}
 
 		public void UpdateYearMonthRainfall()
 		{
+			var _week = RainWeek;
 			var _month = RainMonth;
 			var _year = RainYear;
+			RainWeek = RainWeek + RainToday;
 			RainMonth = RainThisMonth + RainToday;
 			RainYear = RainThisYear + RainToday;
+			cumulus.LogMessage($"Rainthisweek Updated from: {_week.ToString(cumulus.RainFormat)} to: {RainWeek.ToString(cumulus.RainFormat)}");
 			cumulus.LogMessage($"Rainthismonth Updated from: {_month.ToString(cumulus.RainFormat)} to: {RainMonth.ToString(cumulus.RainFormat)}");
 			cumulus.LogMessage($"Rainthisyear Updated from: {_year.ToString(cumulus.RainFormat)} to: {RainYear.ToString(cumulus.RainFormat)}");
 
+		}
+
+		public void UpdateWeekRainfall()
+		{
+			var _rainWeek = RainWeek;
+			RainThisWeek = 0;
+			// get this weeks date offset
+			var now = DateTime.Now;
+			var offsetWeek = now.AddDays(-(int) now.DayOfWeek + cumulus.RainWeekStart).Date;
+			// recalculate rain this week - we may have gone over a week boundary
+			RainThisWeek = DayFile.Where(day => day.Date >= offsetWeek).Sum(day => day.TotalRain);
+			RainWeek = RainThisWeek + RainToday;
+			cumulus.LogMessage($"UpdateWeekRainfall: Updated RainWeek from {_rainWeek.ToString(cumulus.RainFormat)} to {RainWeek.ToString(cumulus.RainFormat)}");
 		}
 
 		public void ReadTodayFile()
@@ -1384,6 +1411,11 @@ namespace CumulusMX
 		/// Rainfall today
 		/// </summary>
 		public double RainToday { get; set; } = 0;
+
+		/// <summary>
+		/// Rain this month
+		/// </summary>
+		public double RainWeek { get; set; } = 0;
 
 		/// <summary>
 		/// Rain this month
@@ -5900,7 +5932,7 @@ namespace CumulusMX
 					cumulus.IsRainingAlarm.Triggered = false;
 				}
 
-				// Calculate today"s rainfall
+				// Calculate today's rainfall
 				RainToday = (RainCounter - RainCounterDayStart) * cumulus.Calib.Rain.Mult;
 				// Allow for rounding errors
 				if (RainToday < 0) RainToday = 0;
@@ -5919,6 +5951,9 @@ namespace CumulusMX
 				{
 					RainSinceMidnight = trendval * cumulus.Calib.Rain.Mult;
 				}
+
+				// rain this week so far
+				RainWeek = RainThisWeek + RainToday;
 
 				// rain this month so far
 				RainMonth = RainThisMonth + RainToday;
@@ -6712,6 +6747,7 @@ namespace CumulusMX
 		private bool initialiseRainDayStart = true;
 		private bool initialiseMidnightRain = true;
 		private bool initialiseRainCounter = true;
+		private double RainThisWeek = 0;
 		private double RainThisMonth = 0;
 		private double RainThisYear = 0;
 		public bool noET = false;
@@ -6935,7 +6971,7 @@ namespace CumulusMX
 
 				cumulus.DoCustomDailyLogs(timestamp);
 
-				// First save today"s extremes
+				// First save today's extremes
 				_ = DoDayfile(timestamp);
 				cumulus.LogMessage("Raincounter = " + RainCounter + " Raindaystart = " + RainCounterDayStart);
 
@@ -7387,6 +7423,9 @@ namespace CumulusMX
 				cumulus.LogMessage("Raindaystart set to " + RainCounterDayStart);
 
 				RainToday = 0;
+
+				// recalculate rain this week - we may have gone over a week boundary
+				UpdateWeekRainfall();
 
 				TempTotalToday = OutdoorTemperature;
 				tempsamplestoday = 1;
@@ -14106,7 +14145,7 @@ namespace CumulusMX
 
 
 			var data = new DataStruct(cumulus, OutdoorTemperature, OutdoorHumidity, TempTotalToday / tempsamplestoday, IndoorTemperature, OutdoorDewpoint, WindChill, IndoorHumidity,
-				Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainMonth, RainYear, RainRate,
+				Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainWeek, RainMonth, RainYear, RainRate,
 				RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, HiLoToday.HighGust, HiLoToday.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighWind,
 				HiLoToday.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), HiLoToday.HighTemp, HiLoToday.LowTemp,
 				HiLoToday.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighPress, HiLoToday.LowPress, HiLoToday.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat),

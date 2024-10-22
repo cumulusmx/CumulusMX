@@ -8,7 +8,7 @@ namespace CumulusMX
 	[DataContract]
 	public class DataStruct(Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double? indoorTemp, double outdoorDewpoint, double windChill,
 						int? indoorHum, double pressure, double windLatest, double windAverage, double recentmaxgust, double windRunToday, int bearing, int avgbearing,
-						double rainToday, double rainYesterday, double rainMonth, double rainYear, double rainRate, double rainLastHour, double heatIndex, double humidex,
+						double rainToday, double rainYesterday, double rainWeek, double rainMonth, double rainYear, double rainRate, double rainLastHour, double heatIndex, double humidex,
 						double appTemp, double tempTrend, double pressTrend, double highGustToday, string highGustTodayTime, double highWindToday, int highGustBearingToday,
 						string windUnit, string windRunUnit, int bearingRangeFrom10, int bearingRangeTo10, string windRoseData, double highTempToday, double lowTempToday, string highTempTodayToday,
 						string lowTempTodayTime, double highPressToday, double lowPressToday, string highPressTodayTime, string lowPressTodayTime, double highRainRateToday,
@@ -408,6 +408,16 @@ namespace CumulusMX
 		{
 			get => RainYesterday.ToString(cumulus.RainFormat);
 		}
+
+		[IgnoreDataMember]
+		public double RainWeek { get; } = rainWeek;
+
+		[DataMember(Name = "RainWeek")]
+		public string RainWeekRounded
+		{
+			get => RainWeek.ToString(cumulus.RainFormat);
+		}
+
 
 		[IgnoreDataMember]
 		public double RainMonth { get; } = rainMonth;

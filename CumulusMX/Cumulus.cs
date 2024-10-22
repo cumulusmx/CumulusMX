@@ -3935,6 +3935,7 @@ namespace CumulusMX
 			FCPressureThreshold = ini.GetValue("Station", "FCPressureThreshold", -1.0, -1.0);
 
 			RainSeasonStart = ini.GetValue("Station", "RainSeasonStart", 1, 1, 12);
+			RainWeekStart = ini.GetValue("Station", "RainWeekStart", 1, 0, 1);
 			ChillHourSeasonStart = ini.GetValue("Station", "ChillHourSeasonStart", Latitude >= 0 ? 10 : 4, 1, 12);
 			ChillHourThreshold = ini.GetValue("Station", "ChillHourThreshold", -999.0);
 			if (ChillHourThreshold < -998)
@@ -5643,6 +5644,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "EWinHumiditydiff", Spike.InHumDiff);
 
 			ini.SetValue("Station", "RainSeasonStart", RainSeasonStart);
+			ini.SetValue("Station", "RainWeekStart", RainWeekStart);
 			ini.SetValue("Station", "RainDayThreshold", RainDayThreshold);
 
 			ini.SetValue("Station", "ChillHourSeasonStart", ChillHourSeasonStart);
@@ -7279,6 +7281,8 @@ namespace CumulusMX
 		public int ChillHourSeasonStart { get; set; }
 
 		public int RainSeasonStart { get; set; }
+		public int RainWeekStart { get; set; }
+
 
 		public double FCPressureThreshold { get; set; }
 

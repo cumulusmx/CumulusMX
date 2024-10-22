@@ -1029,6 +1029,11 @@ namespace CumulusMX
 			return CheckRcDp(CheckRainUnit(station.RainMonth, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
+		private string Tagrweek(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(CheckRainUnit(station.RainWeek, tagParams), tagParams, cumulus.RainDPlaces);
+		}
+
 		private string Tagrhour(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(CheckRainUnit(station.RainLastHour, tagParams), tagParams, cumulus.RainDPlaces);
@@ -6161,6 +6166,7 @@ namespace CumulusMX
 				{ "ConsecutiveDryDays", TagConsecutiveDryDays },
 				{ "rmidnight", Tagrmidnight },
 				{ "rmonth", Tagrmonth },
+				{ "rweek", Tagrweek },
 				{ "rhour", Tagrhour },
 				{ "r24hour", Tagr24Hour },
 				{ "ryear", Tagryear },

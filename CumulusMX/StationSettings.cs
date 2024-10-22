@@ -289,6 +289,7 @@ namespace CumulusMX
 			var annualrainfall = new JsonStationSettingsAnnualRainfall()
 			{
 				rainseasonstart = cumulus.RainSeasonStart,
+				rainweekstart = cumulus.RainWeekStart,
 				ytdamount = cumulus.YTDrain,
 				ytdyear = cumulus.YTDrainyear
 			};
@@ -554,6 +555,12 @@ namespace CumulusMX
 					cumulus.RainSeasonStart = settings.AnnualRainfall.rainseasonstart;
 					cumulus.YTDrain = settings.AnnualRainfall.ytdamount;
 					cumulus.YTDrainyear = settings.AnnualRainfall.ytdyear;
+					if (cumulus.RainWeekStart != settings.AnnualRainfall.rainweekstart)
+					{
+						cumulus.RainWeekStart = settings.AnnualRainfall.rainweekstart;
+						// we need to recalculate the rainfall
+						station.UpdateWeekRainfall();
+					}
 				}
 				catch (Exception ex)
 				{
@@ -2021,6 +2028,7 @@ namespace CumulusMX
 		public double ytdamount { get; set; }
 		public int ytdyear { get; set; }
 		public int rainseasonstart { get; set; }
+		public int rainweekstart { get; set; }
 	}
 
 	public class JsonSelectaChartSettings
