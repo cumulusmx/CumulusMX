@@ -3367,8 +3367,8 @@ namespace CumulusMX
 							updt.Append($"TodayRainSoFar={LogRec.RainToday.ToString(cumulus.RainFormat, InvC)},");
 							updt.Append($"Pressure={LogRec.Pressure.ToString(cumulus.PressFormat, InvC)},");
 							updt.Append($"Raincounter={LogRec.Raincounter.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"InsideTemp={LogRec.IndoorTemperature.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"InsideHumidity={LogRec.IndoorHumidity},");
+							updt.Append($"InsideTemp={(LogRec.IndoorTemperature.HasValue ? LogRec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+							updt.Append($"InsideHumidity={(LogRec.IndoorHumidity.HasValue ? LogRec.IndoorHumidity : "NULL")},");
 							updt.Append($"LatestWindGust={LogRec.WindLatest.ToString(cumulus.WindFormat, InvC)},");
 							updt.Append($"WindChill={LogRec.WindChill.ToString(cumulus.TempFormat, InvC)},");
 							updt.Append($"HeatIndex={LogRec.HeatIndex.ToString(cumulus.TempFormat, InvC)},");

@@ -1046,12 +1046,12 @@ namespace CumulusMX
 
 		private string Taginhum(Dictionary<string, string> tagParams)
 		{
-			return station.IndoorHumidity.ToString();
+			return station.IndoorHumidity.HasValue ? station.IndoorHumidity.ToString() : "-";
 		}
 
 		private string Tagintemp(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.IndoorTemperature, tagParams), tagParams, cumulus.TempDPlaces);
+			return station.IndoorTemperature.HasValue ? CheckRcDp(CheckTempUnit(station.IndoorTemperature.Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
 		}
 
 		private string Tagbattery(Dictionary<string, string> tagParams)
@@ -5867,7 +5867,24 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(result.Count == 0 ? station.IndoorTemperature : result[0].IndoorTemp, tagParams, cumulus.TempDPlaces);
+			string indoorTempValue;
+			if (result.Count == 0)
+			{
+				if (station.IndoorTemperature.HasValue)
+				{
+					indoorTempValue = CheckRcDp(station.IndoorTemperature.Value, tagParams, cumulus.TempDPlaces);
+				}
+				else
+				{
+					indoorTempValue = "-";
+				}
+			}
+			else
+			{
+				indoorTempValue = CheckRcDp(result[0].IndoorTemp.Value, tagParams, cumulus.TempDPlaces); ;
+			}
+
+			return indoorTempValue;
 		}
 
 		private string TagRecentIndoorHumidity(Dictionary<string, string> tagParams)
@@ -5876,7 +5893,24 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return result.Count == 0 ? station.IndoorHumidity.ToString() : result[0].IndoorHumidity.ToString();
+			string indoorHumidityValue;
+			if (result.Count == 0)
+			{
+				if (station.IndoorHumidity.HasValue)
+				{
+					indoorHumidityValue = station.IndoorHumidity.ToString();
+				}
+				else
+				{
+					indoorHumidityValue = "-";
+				}
+			}
+			else
+			{
+				indoorHumidityValue = result[0].IndoorHumidity.ToString();
+			}
+
+			return indoorHumidityValue;
 		}
 
 		private string TagRecentTs(Dictionary<string, string> tagParams)

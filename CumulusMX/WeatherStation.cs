@@ -85,8 +85,8 @@ namespace CumulusMX
 			public double RainToday;
 			public double Pressure;
 			public double Raincounter;
-			public double IndoorTemperature;
-			public int IndoorHumidity;
+			public double? IndoorTemperature;
+			public int? IndoorHumidity;
 			public double WindLatest;
 			public double WindChill;
 			public double HeatIndex;
@@ -1161,7 +1161,7 @@ namespace CumulusMX
 		/// <summary>
 		/// Indoor temperature in C
 		/// </summary>
-		public double IndoorTemperature { get; set; } = 0;
+		public double? IndoorTemperature { get; set; }
 
 		/// <summary>
 		/// Solar Radiation in W/m2
@@ -1294,7 +1294,7 @@ namespace CumulusMX
 		/// <summary>
 		/// Indoor relative humidity in %
 		/// </summary>
-		public int IndoorHumidity { get; set; } = 0;
+		public int? IndoorHumidity { get; set; }
 
 		/// <summary>
 		/// Sea-level pressure
@@ -2657,8 +2657,8 @@ namespace CumulusMX
 			{
 				var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
 
-				if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
-					sbIn.Append($"[{jsTime},{data[i].IndoorTemp.ToString(cumulus.TempFormat, InvC)}],");
+				if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local) && data[i].IndoorTemp.HasValue)
+					sbIn.Append($"[{jsTime},{data[i].IndoorTemp.Value.ToString(cumulus.TempFormat, InvC)}],");
 
 				if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 					sbDew.Append($"[{jsTime},{data[i].DewPoint.ToString(cumulus.TempFormat, InvC)}],");
@@ -4130,8 +4130,8 @@ namespace CumulusMX
 
 							var jsTime = Utils.ToPseudoJSTime(rec.Date);
 
-							if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
-								sbIn.Append($"[{jsTime},{rec.IndoorTemperature.ToString(cumulus.TempFormat, InvC)}],");
+							if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local) && rec.IndoorTemperature.HasValue)
+								sbIn.Append($"[{jsTime},{rec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC)}],");
 
 							if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 								sbDew.Append($"[{jsTime},{rec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)}],");
@@ -4755,7 +4755,7 @@ namespace CumulusMX
 
 		public void AddRecentDataEntry(DateTime timestamp, double windAverage, double recentMaxGust, double windLatest, int bearing, int avgBearing, double outsidetemp,
 			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, double solarRad, double uv, double rainCounter, double feelslike, double humidex,
-			double appTemp, double insideTemp, int insideHum, double solarMax, double rainrate, double? pm2p5, double? pm10)
+			double appTemp, double? insideTemp, int? insideHum, double solarMax, double rainrate, double? pm2p5, double? pm10)
 		{
 			try
 			{
@@ -8077,7 +8077,7 @@ namespace CumulusMX
 
 		public void AddRecentDataWithAq(DateTime timestamp, double windAverage, double recentMaxGust, double windLatest, int bearing, int avgBearing, double outsidetemp,
 			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, double solarRad, double uv, double rainCounter, double feelslike, double humidex,
-			double appTemp, double insideTemp, int insideHum, double solarMax, double rainrate)
+			double appTemp, double? insideTemp, int? insideHum, double solarMax, double rainrate)
 		{
 			double? pm2p5 = -1;
 			double? pm10 = -1;
@@ -14263,8 +14263,8 @@ namespace CumulusMX
 		public double Humidex { get; set; }
 		public double AppTemp { get; set; }
 
-		public double IndoorTemp { get; set; }
-		public int IndoorHumidity { get; set; }
+		public double? IndoorTemp { get; set; }
+		public int? IndoorHumidity { get; set; }
 		public int SolarMax { get; set; }
 		public double? Pm2p5 { get; set; }
 		public double? Pm10 { get; set; }

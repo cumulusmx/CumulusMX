@@ -227,9 +227,9 @@ namespace CumulusMX.ThirdParty
 				Data.Append($"&solarradiation={station.SolarRad:F0}");
 			if (SendIndoor)
 			{
-				if (station.IndoorTemperature >= Cumulus.DefaultHiVal)
-					Data.Append($"&indoortempf={WeatherStation.TempFstr(station.IndoorTemperature)}");
-				if (station.IndoorHumidity >= 0)
+				if (station.IndoorTemperature.HasValue)
+					Data.Append($"&indoortempf={WeatherStation.TempFstr(station.IndoorTemperature.Value)}");
+				if (station.IndoorHumidity.HasValue)
 					Data.Append($"&indoorhumidity={station.IndoorHumidity}");
 			}
 			// Davis soil and leaf sensors

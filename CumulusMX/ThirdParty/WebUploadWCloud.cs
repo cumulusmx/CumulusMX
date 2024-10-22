@@ -139,8 +139,8 @@ namespace CumulusMX.ThirdParty
 			StringBuilder sb = new StringBuilder($"https://api.weathercloud.net/v01/set?wid={ID}&key={PW}");
 
 			//Temperature
-			if (station.IndoorTemperature > Cumulus.DefaultHiVal)
-				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(station.IndoorTemperature) * 10));
+			if (station.IndoorTemperature.HasValue)
+				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(station.IndoorTemperature.Value) * 10));
 			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
 				sb.Append("&temp=" + (int) Math.Round(ConvertUnits.UserTempToC(station.OutdoorTemperature) * 10));
 			if (station.WindChill > Cumulus.DefaultHiVal)
@@ -151,7 +151,7 @@ namespace CumulusMX.ThirdParty
 				sb.Append("&heat=" + (int) Math.Round(ConvertUnits.UserTempToC(station.HeatIndex) * 10));
 
 			// Humidity
-			if (station.IndoorHumidity >= 0)
+			if (station.IndoorHumidity.HasValue)
 				sb.Append("&humin=" + station.IndoorHumidity);
 			if (station.OutdoorHumidity >= 0)
 				sb.Append("&hum=" + station.OutdoorHumidity);

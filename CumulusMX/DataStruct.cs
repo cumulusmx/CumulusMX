@@ -6,8 +6,8 @@ namespace CumulusMX
 {
 	// The annotations on this class are so it can be serialised as JSON
 	[DataContract]
-	public class DataStruct(Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double indoorTemp, double outdoorDewpoint, double windChill,
-						int indoorHum, double pressure, double windLatest, double windAverage, double recentmaxgust, double windRunToday, int bearing, int avgbearing,
+	public class DataStruct(Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double? indoorTemp, double outdoorDewpoint, double windChill,
+						int? indoorHum, double pressure, double windLatest, double windAverage, double recentmaxgust, double windRunToday, int bearing, int avgbearing,
 						double rainToday, double rainYesterday, double rainMonth, double rainYear, double rainRate, double rainLastHour, double heatIndex, double humidex,
 						double appTemp, double tempTrend, double pressTrend, double highGustToday, string highGustTodayTime, double highWindToday, int highGustBearingToday,
 						string windUnit, string windRunUnit, int bearingRangeFrom10, int bearingRangeTo10, string windRoseData, double highTempToday, double lowTempToday, string highTempTodayToday,
@@ -98,12 +98,12 @@ namespace CumulusMX
 		public int SolarRad { get; } = solarRad;
 
 		[IgnoreDataMember]
-		public double IndoorTemp { get; } = indoorTemp;
+		public double? IndoorTemp { get; } = indoorTemp;
 
 		[DataMember(Name = "IndoorTemp")]
 		public string IndoorTempRounded
 		{
-			get => IndoorTemp.ToString(cumulus.TempFormat);
+			get => IndoorTemp.HasValue ? IndoorTemp.Value.ToString(cumulus.TempFormat) : "-";
 		}
 
 		[IgnoreDataMember]
@@ -320,7 +320,7 @@ namespace CumulusMX
 		}
 
 		[DataMember]
-		public int IndoorHum { get; } = indoorHum;
+		public int? IndoorHum { get; } = indoorHum;
 
 		[IgnoreDataMember]
 		public double Pressure { get; } = pressure;
