@@ -1341,7 +1341,6 @@ namespace CumulusMX
 			// get the local v4 IP addresses
 			Console.WriteLine();
 			var ips = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
-			LogMessage($"Cumulus running at: http://localhost:{HTTPport}/");
 			Console.Write("Cumulus running at: ");
 			Console.ForegroundColor = ConsoleColor.Yellow;
 			Console.WriteLine($"http://localhost:{HTTPport}/");
@@ -1351,6 +1350,7 @@ namespace CumulusMX
 				if (ip.AddressFamily == AddressFamily.InterNetwork)
 				{
 					LogConsoleMessage($"                    http://{ip}:{HTTPport}/", ConsoleColor.Yellow);
+					LogMessage($"Cumulus running at: http://{ip}:{HTTPport}/");
 				}
 			}
 
@@ -1369,9 +1369,15 @@ namespace CumulusMX
 
 			SyncInit.Wait();
 
-			LogMessage("Opening station type " + StationType);
 			if (StationType >= 0 && StationType < StationDesc.Length)
+			{
 				LogConsoleMessage($"Opening station type {StationType} - {StationDesc[StationType]}");
+				LogMessage($"Opening station type {StationType} - {StationDesc[StationType]}");
+			}
+			else
+			{
+				LogMessage("Opening station type " + StationType);
+			}
 
 			Manufacturer = GetStationManufacturer(StationType);
 			switch (StationType)
