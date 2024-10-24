@@ -14,7 +14,7 @@ namespace CumulusMX
 						string lowTempTodayTime, double highPressToday, double lowPressToday, string highPressTodayTime, string lowPressTodayTime, double highRainRateToday,
 						string highRainRateTodayTime, int highHumToday, int lowHumToday, string highHumTodayTime, string lowHumTodayTime, string pressUnit, string tempUnit,
 						string rainUnit, double highDewpointToday, double lowDewpointToday, string highDewpointTodayTime, string lowDewpointTodayTime, double lowWindChillToday,
-						string lowWindChillTodayTime, int solarRad, int highSolarRadToday, string highSolarRadTodayTime, double uvindex, double highUVindexToday,
+						string lowWindChillTodayTime, int? solarRad, int highSolarRadToday, string highSolarRadTodayTime, double? uvindex, double highUVindexToday,
 						string highUVindexTodayTime, string forecast, string sunrise, string sunset, string moonrise, string moonset, double highHeatIndexToday,
 						string highHeatIndexTodayTime, double highAppTempToday, double lowAppTempToday, string highAppTempTodayTime, string lowAppTempTodayTime,
 						int currentSolarMax, double alltimeHighPressure, double alltimeLowPressure, double sunshineHours, string domWindDir, string lastRainTipISO,
@@ -68,12 +68,12 @@ namespace CumulusMX
 		public string Forecast { get; } = forecast;
 
 		[IgnoreDataMember]
-		public double UVindex { get; } = uvindex;
+		public double? UVindex { get; } = uvindex;
 
 		[DataMember(Name = "UVindex")]
 		public string UVindexRounded
 		{
-			get => UVindex.ToString(cumulus.UVFormat);
+			get => UVindex.HasValue ? UVindex.Value.ToString(cumulus.UVFormat) : "-";
 		}
 
 		[IgnoreDataMember]
@@ -94,8 +94,13 @@ namespace CumulusMX
 		[DataMember]
 		public int HighSolarRadToday { get; } = highSolarRadToday;
 
-		[DataMember]
-		public int SolarRad { get; } = solarRad;
+		[IgnoreDataMember]
+		public int? SolarRad { get; } = solarRad;
+		[DataMember(Name = "SolarRad")]
+		public string SolarRadRounded
+		{
+			get => SolarRad.HasValue ? SolarRad.ToString() : "-";
+		}
 
 		[IgnoreDataMember]
 		public double? IndoorTemp { get; } = indoorTemp;

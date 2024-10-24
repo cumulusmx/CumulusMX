@@ -421,13 +421,13 @@ namespace CumulusMX.ThirdParty
 				sb.Append(ConvertUnits.UserWindToKPH(station.RecentMaxGust).ToString("F1", InvC) + sep);      // 16
 			else
 				sb.Append(sep);
-			if (SendSolar && station.SolarRad >= 0)
-				sb.Append(station.SolarRad.ToString("F1", InvC) + sep);                                       // 17
+			if (SendSolar && station.SolarRad.HasValue)
+				sb.Append(station.SolarRad.Value.ToString("F1", InvC) + sep);                                 // 17
 			else
 				sb.Append(sep);
 
-			if (SendUV && station.UV >= 0)
-				sb.Append(station.UV.ToString("F1", InvC) + sep);                                             // 18
+			if (SendUV && station.UV.HasValue)
+				sb.Append(station.UV.Value.ToString("F1", InvC) + sep);                                      // 18
 			else
 				sb.Append(sep);
 

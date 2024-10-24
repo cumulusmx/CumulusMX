@@ -3542,12 +3542,12 @@ namespace CumulusMX
 
 		private string TagUv(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.UV, tagParams, cumulus.UVDPlaces);
+			return station.UV.HasValue ? CheckRcDp(station.UV.Value, tagParams, cumulus.UVDPlaces) : "-";
 		}
 
 		private string TagSolarRad(Dictionary<string, string> tagParams)
 		{
-			return station.SolarRad.ToString();
+			return station.SolarRad.HasValue ? station.SolarRad.ToString() : "-";
 		}
 
 		private string TagCurrentSolarMax(Dictionary<string, string> tagParams)
@@ -5682,126 +5682,126 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select OutsideTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(CheckTempUnit(result.Count == 0 ? station.OutdoorTemperature : result[0].OutsideTemp, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.OutdoorTemperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentWindSpeed(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindSpeed from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(CheckWindUnit(result.Count == 0 ? station.WindAverage : result[0].WindSpeed, tagParams), tagParams, cumulus.WindAvgDPlaces);
+			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.WindAverage, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string TagRecentWindGust(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindGust from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(CheckWindUnit(result.Count == 0 ? station.RecentMaxGust : result[0].WindGust, tagParams), tagParams, cumulus.WindDPlaces);
+			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.RecentMaxGust, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string TagRecentWindLatest(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindLatest from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(CheckWindUnit(result.Count == 0 ? station.WindLatest : result[0].WindLatest, tagParams), tagParams, cumulus.WindDPlaces);
+			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.WindLatest, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string TagRecentWindDir(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return result.Count == 0 ? station.Bearing.ToString() : result[0].WindDir.ToString();
+			return result.HasValue ? result.ToString() : station.Bearing.ToString();
 		}
 
 		private string TagRecentWindAvgDir(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindAvgDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return result.Count != 0 ? result[0].WindAvgDir.ToString() : station.AvgBearing.ToString();
+			return result.HasValue ? result.ToString() : station.AvgBearing.ToString();
 		}
 
 		private string TagRecentWindChill(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindChill from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(CheckTempUnit(result.Count == 0 ? station.WindChill : result[0].WindChill, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.WindChill, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentDewPoint(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select DewPoint from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(CheckTempUnit(result.Count == 0 ? station.OutdoorDewpoint : result[0].DewPoint, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.OutdoorDewpoint, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentHeatIndex(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select HeatIndex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(CheckTempUnit(result.Count == 0 ? station.HeatIndex : result[0].HeatIndex, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.HeatIndex, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentFeelsLike(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select FeelsLike from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(CheckTempUnit(result.Count == 0 ? station.FeelsLike : result[0].FeelsLike, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.FeelsLike, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentApparent(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select AppTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(CheckTempUnit(result.Count == 0 ? station.ApparentTemperature : result[0].AppTemp, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.ApparentTemperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentHumidex(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(result.Count == 0 ? station.Humidex : result[0].Humidex, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(result.HasValue ? result.Value : station.Humidex, tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentHumidity(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidity from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return result.Count == 0 ? station.OutdoorHumidity.ToString() : result[0].Humidity.ToString();
+			return result.HasValue ? result.Value.ToString() : station.OutdoorHumidity.ToString();
 		}
 
 		private string TagRecentPressure(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select Pressure from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(CheckPressUnit(result.Count == 0 ? station.Pressure : result[0].Pressure, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(result.HasValue ? result.Value : station.Pressure, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagRecentRain(Dictionary<string, string> tagParams)
@@ -5811,7 +5811,7 @@ namespace CumulusMX
 			double? result = null;
 			// pesky raincounter can reset, so first we have to test if it has.
 			// get the max value
-			var max = station.RecentDataDb.Query<RecentData>("select Timestamp, max(raincounter) from RecentData where Timestamp >= ?", recentTs);
+			var max = station.RecentDataDb.Query<RecentData>("select Timestamp, max(raincounter) as raincounter from RecentData where Timestamp >= ?", recentTs);
 			// get the last value
 			var last = station.RecentDataDb.ExecuteScalar<double?>("select raincounter from RecentData order by Timestamp Desc limit 1");
 
@@ -5843,52 +5843,62 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select RainToday from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(CheckRainUnit(result.Count == 0 ? station.RainToday : result[0].RainToday, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(result.HasValue ? result.Value : station.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagRecentSolarRad(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select SolarRad from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return result.Count == 0 ? station.SolarRad.ToString("F0") : result[0].SolarRad.ToString("F0");
+			string solValue;
+			if (result.HasValue)
+			{
+				solValue = result.Value.ToString();
+			}
+			else
+			{
+				solValue = station.SolarRad.HasValue ? station.SolarRad.ToString() : "-";
+			}
+			return solValue;
 		}
 
 		private string TagRecentUv(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select UV from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return CheckRcDp(result.Count == 0 ? station.UV : result[0].UV, tagParams, cumulus.UVDPlaces);
+			string uvValue;
+			if (result.HasValue)
+			{
+				uvValue = CheckRcDp(result.Value, tagParams, cumulus.UVDPlaces);
+			}
+			else
+			{
+				uvValue = station.UV.HasValue ? CheckRcDp(station.UV.Value, tagParams, cumulus.UVDPlaces) : "-";
+			}
+			return uvValue;
 		}
 
 		private string TagRecentIndoorTemp(Dictionary<string, string> tagParams)
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select IndoorTemperature from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
 			string indoorTempValue;
-			if (result.Count == 0)
+			if (result.HasValue)
 			{
-				if (station.IndoorTemperature.HasValue)
-				{
-					indoorTempValue = CheckRcDp(station.IndoorTemperature.Value, tagParams, cumulus.TempDPlaces);
-				}
-				else
-				{
-					indoorTempValue = "-";
-				}
+				indoorTempValue = CheckRcDp(result.Value, tagParams, cumulus.TempDPlaces);				 
 			}
 			else
 			{
-				indoorTempValue = CheckRcDp(result[0].IndoorTemp.Value, tagParams, cumulus.TempDPlaces); ;
+				indoorTempValue = station.IndoorTemperature.HasValue ? CheckRcDp(station.IndoorTemperature.Value, tagParams, cumulus.TempDPlaces) : "-";
 			}
-
 			return indoorTempValue;
 		}
 
@@ -5896,23 +5906,16 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select IndoorHumidity from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
 			string indoorHumidityValue;
-			if (result.Count == 0)
+			if (result.HasValue)
 			{
-				if (station.IndoorHumidity.HasValue)
-				{
-					indoorHumidityValue = station.IndoorHumidity.ToString();
-				}
-				else
-				{
-					indoorHumidityValue = "-";
-				}
+				indoorHumidityValue = result.ToString();
 			}
 			else
 			{
-				indoorHumidityValue = result[0].IndoorHumidity.ToString();
+				indoorHumidityValue = station.IndoorHumidity.HasValue ? station.IndoorHumidity.ToString() : "-";
 			}
 
 			return indoorHumidityValue;
@@ -5922,9 +5925,9 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<DateTime?>("select Timestamp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
-			return GetFormattedDateTime(result.Count == 0 ? DateTime.Now : result[0].Timestamp, tagParams);
+			return GetFormattedDateTime(result.HasValue ? result.Value : DateTime.Now , tagParams);
 		}
 
 		// Recent history with commas replaced

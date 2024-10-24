@@ -1007,31 +1007,45 @@ namespace CumulusMX
 								}
 							}
 
-							if (cumulus.WllPrimaryUV == data1.txid && data1.uv_index.HasValue)
+							if (cumulus.WllPrimaryUV == data1.txid)
 							{
-								try
+								if (data1.uv_index.HasValue)
 								{
-									cumulus.LogDebugMessage($"WLL current: using UV data from TxId {data1.txid}");
-									DoUV(data1.uv_index.Value, dateTime);
+									try
+									{
+										cumulus.LogDebugMessage($"WLL current: using UV data from TxId {data1.txid}");
+										DoUV(data1.uv_index.Value, dateTime);
+									}
+									catch (Exception ex)
+									{
+										cumulus.LogErrorMessage($"WLL current: Error processing UV value on TxId {data1.txid}");
+										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									}
 								}
-								catch (Exception ex)
+								else
 								{
-									cumulus.LogErrorMessage($"WLL current: Error processing UV value on TxId {data1.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									UV = null;
 								}
 							}
 
-							if (cumulus.WllPrimarySolar == data1.txid && data1.solar_rad.HasValue)
+							if (cumulus.WllPrimarySolar == data1.txid)
 							{
-								try
+								if (data1.solar_rad.HasValue)
 								{
-									cumulus.LogDebugMessage($"WLL current: using solar data from TxId {data1.txid}");
-									DoSolarRad(data1.solar_rad.Value, dateTime);
+									try
+									{
+										cumulus.LogDebugMessage($"WLL current: using solar data from TxId {data1.txid}");
+										DoSolarRad(data1.solar_rad.Value, dateTime);
+									}
+									catch (Exception ex)
+									{
+										cumulus.LogErrorMessage($"WLL current: Error processing Solar value on TxId {data1.txid}");
+										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									}
 								}
-								catch (Exception ex)
+								else
 								{
-									cumulus.LogErrorMessage($"WLL current: Error processing Solar value on TxId {data1.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									SolarRad = null;
 								}
 							}
 							break;
@@ -2233,6 +2247,7 @@ namespace CumulusMX
 								}
 								else
 								{
+									UV = null;
 									cumulus.LogWarningMessage($"WL.com historic: Warning, no valid UV data on TxId {data11.tx_id}");
 								}
 							}
@@ -2271,6 +2286,7 @@ namespace CumulusMX
 								}
 								else
 								{
+									SolarRad = null;
 									cumulus.LogWarningMessage($"WL.com historic: Warning, no valid Solar data on TxId {data11.tx_id}");
 								}
 

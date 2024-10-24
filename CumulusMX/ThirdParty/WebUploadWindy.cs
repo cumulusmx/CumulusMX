@@ -145,10 +145,10 @@ namespace CumulusMX.ThirdParty
 			if (station.OutdoorHumidity >= 0)
 				Data.Append("&humidity=" + station.OutdoorHumidity);
 
-			if (SendUV && station.UV >= 0)
-				Data.Append("&uv=" + station.UV.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
-			if (SendSolar && station.SolarRad >= 0)
-				Data.Append("&solarradiation=" + station.SolarRad.ToString("F0"));
+			if (SendUV && station.UV.HasValue)
+				Data.Append("&uv=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
+			if (SendSolar && station.SolarRad.HasValue)
+				Data.Append("&solarradiation=" + station.SolarRad);
 
 			URL.Append(Data);
 

@@ -21,7 +21,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The extra sensors and the extra sensors log file now records null value values for absent readings. This will void logging spurious zero values at start-up
 - AirLinks and the AirLink log file now records null value values for absent readings. This will void logging spurious zero values at start-up
 - Indoor temperature and humidity now record null values
+- Solar Rad and UV-I now record null values
 - Removed NOT NULL requirements from the MySQL table definitions for Realtime, Monthly, and Dayfile
+- Efficiency improvements to all the "recent data" web tags
 
 ### Fixed
 - Nothing

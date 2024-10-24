@@ -1193,12 +1193,12 @@ namespace CumulusMX
 		/// <summary>
 		/// Solar Radiation in W/m2
 		/// </summary>
-		public int SolarRad { get; set; } = 0;
+		public int? SolarRad { get; set; }
 
 		/// <summary>
 		/// UV index
 		/// </summary>
-		public double UV { get; set; } = 0;
+		public double? UV { get; set; }
 
 		public void UpdatePressureTrendString()
 		{
@@ -1843,7 +1843,7 @@ namespace CumulusMX
 					{
 						ReadBlakeLarsenData();
 					}
-					else if ((SolarRad > (CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.0)) && (SolarRad >= cumulus.SolarOptions.SolarMinimum))
+					else if (SolarRad.HasValue && (SolarRad > (CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.0)) && (SolarRad >= cumulus.SolarOptions.SolarMinimum))
 					{
 						SunshineHours += 1.0 / 60.0;
 					}
@@ -2386,9 +2386,9 @@ namespace CumulusMX
 			{
 				var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
 
-				if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
+				if (cumulus.GraphOptions.Visible.UV.IsVisible(local) && data[i].UV.HasValue)
 				{
-					sbUv.Append($"[{jsTime},{data[i].UV.ToString(cumulus.UVFormat, InvC)}],");
+					sbUv.Append($"[{jsTime},{data[i].UV.Value.ToString(cumulus.UVFormat, InvC)}],");
 				}
 
 				if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
@@ -4786,7 +4786,7 @@ namespace CumulusMX
 
 
 		public void AddRecentDataEntry(DateTime timestamp, double windAverage, double recentMaxGust, double windLatest, int bearing, int avgBearing, double outsidetemp,
-			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, double solarRad, double uv, double rainCounter, double feelslike, double humidex,
+			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, double? solarRad, double? uv, double rainCounter, double feelslike, double humidex,
 			double appTemp, double? insideTemp, int? insideHum, double solarMax, double rainrate, double? pm2p5, double? pm10)
 		{
 			try
@@ -4895,9 +4895,9 @@ namespace CumulusMX
 			string data = String.Format("{0}\n{1:000}/{2:000}g{3:000}t{4}r{5:000}p{6:000}P{7:000}h{8:00}b{9:00000}", timestamp, AvgBearing, mphwind, mphgust, ftempstr, in100rainlasthour,
 				in100rainlast24hours, in100raintoday, hum, mb10press);
 
-			if (cumulus.APRS.SendSolar)
+			if (cumulus.APRS.SendSolar && SolarRad.HasValue)
 			{
-				data += APRSsolarradStr(SolarRad);
+				data += APRSsolarradStr(SolarRad.Value);
 			}
 
 			if (!String.IsNullOrWhiteSpace(cumulus.WxnowComment))
@@ -6530,9 +6530,15 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoUV(double value, DateTime timestamp)
+		public void DoUV(double? uv, DateTime timestamp)
 		{
-			UV = cumulus.Calib.UV.Calibrate(value);
+			if (!uv.HasValue)
+			{
+				UV = null;
+				return;
+			}
+
+			UV = cumulus.Calib.UV.Calibrate(uv.Value);
 			if (UV < 0)
 				UV = 0;
 			if (UV > 16)
@@ -6540,35 +6546,50 @@ namespace CumulusMX
 
 			if (UV > HiLoToday.HighUv)
 			{
-				HiLoToday.HighUv = UV;
+				HiLoToday.HighUv = UV.Value;
 				HiLoToday.HighUvTime = timestamp;
 			}
 
 			HaveReadData = true;
 		}
 
-		public void DoSolarRad(int value, DateTime timestamp)
+		public void DoSolarRad(int? solar, DateTime timestamp)
 		{
+			if (!solar.HasValue)
+			{
+				SolarRad = solar;
+				return;
+			}
+
+
 			try
 			{
-				SolarRad = (int) Math.Round(cumulus.Calib.Solar.Calibrate(value));
+				SolarRad = (int) Math.Round(cumulus.Calib.Solar.Calibrate(solar.Value));
 			}
 			catch
 			{
-				SolarRad = 0;
-			}
-			if (SolarRad < 0)
-				SolarRad = 0;
-
-			if (SolarRad > HiLoToday.HighSolar)
-			{
-				HiLoToday.HighSolar = SolarRad;
-				HiLoToday.HighSolarTime = timestamp;
+				SolarRad = null;
 			}
 
-			if (!cumulus.SolarOptions.UseBlakeLarsen)
+			if (SolarRad.HasValue)
 			{
-				IsSunny = (SolarRad > (CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100)) && (SolarRad >= cumulus.SolarOptions.SolarMinimum);
+				if (SolarRad < 0)
+				{
+					SolarRad = 0;
+				}
+				else
+				{
+					if (SolarRad > HiLoToday.HighSolar)
+					{
+						HiLoToday.HighSolar = SolarRad.Value;
+						HiLoToday.HighSolarTime = timestamp;
+					}
+
+					if (!cumulus.SolarOptions.UseBlakeLarsen)
+					{
+						IsSunny = (SolarRad > (CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100)) && (SolarRad >= cumulus.SolarOptions.SolarMinimum);
+					}
+				}
 			}
 			HaveReadData = true;
 		}
@@ -7562,12 +7583,12 @@ namespace CumulusMX
 				// solar
 				HiLoYest.HighSolar = HiLoToday.HighSolar;
 				HiLoYest.HighSolarTime = HiLoToday.HighSolarTime;
-				HiLoToday.HighSolar = SolarRad;
+				HiLoToday.HighSolar = SolarRad ?? 0;
 				HiLoToday.HighSolarTime = timestamp;
 
 				HiLoYest.HighUv = HiLoToday.HighUv;
 				HiLoYest.HighUvTime = HiLoToday.HighUvTime;
-				HiLoToday.HighUv = UV;
+				HiLoToday.HighUv = UV ?? 0;
 				HiLoToday.HighUvTime = timestamp;
 
 				// Feels like
@@ -8115,7 +8136,7 @@ namespace CumulusMX
 		}
 
 		public void AddRecentDataWithAq(DateTime timestamp, double windAverage, double recentMaxGust, double windLatest, int bearing, int avgBearing, double outsidetemp,
-			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, double solarRad, double uv, double rainCounter, double feelslike, double humidex,
+			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, double? solarRad, double? uv, double rainCounter, double feelslike, double humidex,
 			double appTemp, double? insideTemp, int? insideHum, double solarMax, double rainrate)
 		{
 			double? pm2p5 = -1;
@@ -8166,7 +8187,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				RecentDataDb.Execute("update RecentData set Pm2p5=?, Pm10=? where Timestamp=?", pm2p5, pm10, ts);
+				RecentDataDb.Execute("update RecentData set Pm2p5=?, Pm10=? where Timestamp=?", (pm2p5 < 0 ? "NULL" : pm2p5), (pm10 < 0 ? "NULL" : pm10), ts);
 			}
 			catch (Exception e)
 			{
@@ -8766,33 +8787,37 @@ namespace CumulusMX
 								{
 									// entry is from required period
 									double pm2p5, pm10;
+									string str2p5, str10;
 									if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor)
 									{
 										// AirLink Indoor
-										pm2p5 = Convert.ToDouble(st[5], inv);
-										pm10 = Convert.ToDouble(st[10], inv);
+										str2p5 = st[5];
+										str10 = st[10];
 									}
 									else if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor)
 									{
 										// AirLink Outdoor
-										pm2p5 = Convert.ToDouble(st[32], inv);
-										pm10 = Convert.ToDouble(st[37], inv);
+										str2p5 = st[32];
+										str10 = st[37];
 									}
 									else if (cumulus.StationOptions.PrimaryAqSensor >= (int) Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int) Cumulus.PrimaryAqSensor.Ecowitt4)
 									{
 										// Ecowitt sensor 1-4 - fields 68 -> 71
-										pm2p5 = Convert.ToDouble(st[67 + cumulus.StationOptions.PrimaryAqSensor], inv);
-										pm10 = -1;
+										str2p5 = st[67 + cumulus.StationOptions.PrimaryAqSensor];
+										str10 = "-1";
 									}
 									else
 									{
 										// Ecowitt CO2 sensor
-										pm2p5 = Convert.ToDouble(st[86], inv);
-										pm10 = Convert.ToDouble(st[88], inv);
+										str2p5 = st[86];
+										str10 = st[88];
 									}
 
-									UpdateRecentDataAqEntry(entrydate, pm2p5, pm10);
-									updatedCount++;
+									if (double.TryParse(str2p5, NumberStyles.Number, inv, out pm2p5) && double.TryParse(str10, NumberStyles.Number, inv, out pm10))
+									{
+										UpdateRecentDataAqEntry(entrydate, pm2p5, pm10);
+										updatedCount++;
+									}
 								}
 							}
 							catch (Exception e)
@@ -10843,14 +10868,14 @@ namespace CumulusMX
 			}
 			Data.Append("&baromin=" + PressINstr(Pressure));
 			Data.Append("&dewptf=" + TempFstr(OutdoorDewpoint));
-			if (cumulus.PWS.SendUV)
+			if (cumulus.PWS.SendUV && UV.HasValue)
 			{
-				Data.Append("&UV=" + UV.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
+				Data.Append("&UV=" + UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
 			}
 
-			if (cumulus.PWS.SendSolar)
+			if (cumulus.PWS.SendSolar && SolarRad.HasValue)
 			{
-				Data.Append("&solarradiation=" + SolarRad.ToString("F0"));
+				Data.Append("&solarradiation=" + SolarRad);
 			}
 
 			Data.Append("&softwaretype=Cumulus%20v" + cumulus.Version);
@@ -10893,13 +10918,13 @@ namespace CumulusMX
 			}
 			Data.Append("&baromin=" + PressINstr(Pressure));
 			Data.Append("&dewptf=" + TempFstr(OutdoorDewpoint));
-			if (cumulus.WOW.SendUV)
+			if (cumulus.WOW.SendUV && UV.HasValue)
 			{
-				Data.Append("&UV=" + UV.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
+				Data.Append("&UV=" + UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
 			}
-			if (cumulus.WOW.SendSolar)
+			if (cumulus.WOW.SendSolar && SolarRad.HasValue)
 			{
-				Data.Append("&solarradiation=" + SolarRad.ToString("F0"));
+				Data.Append("&solarradiation=" + SolarRad);
 			}
 			if (cumulus.WOW.SendSoilTemp && SoilTemp[cumulus.WOW.SoilTempSensor].HasValue)
 			{
@@ -14295,8 +14320,8 @@ namespace CumulusMX
 		public double Humidity { get; set; }
 		public double Pressure { get; set; }
 		public double RainToday { get; set; }
-		public int SolarRad { get; set; }
-		public double UV { get; set; }
+		public int? SolarRad { get; set; }
+		public double? UV { get; set; }
 		public double raincounter { get; set; }
 		public double FeelsLike { get; set; }
 		public double Humidex { get; set; }

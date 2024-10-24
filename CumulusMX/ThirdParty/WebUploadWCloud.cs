@@ -184,15 +184,15 @@ namespace CumulusMX.ThirdParty
 			}
 
 			// solar
-			if (SendSolar && station.SolarRad >= 0)
+			if (SendSolar && station.SolarRad.HasValue)
 			{
 				sb.Append("&solarrad=" + station.SolarRad * 10);
 			}
 
 			// uv
-			if (SendUV && station.UV >= 0)
+			if (SendUV && station.UV.HasValue)
 			{
-				sb.Append("&uvi=" + (int) Math.Round(station.UV * 10));
+				sb.Append("&uvi=" + (int) Math.Round(station.UV.Value * 10));
 			}
 
 			// aq

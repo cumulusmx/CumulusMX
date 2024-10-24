@@ -1361,7 +1361,7 @@ namespace CumulusMX
 				}
 
 				// add in archive period worth of sunshine, if sunny
-				if (station.CurrentSolarMax > 0 &&
+				if (station.CurrentSolarMax > 0 && station.SolarRad.HasValue &&
 					station.SolarRad > station.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
 					station.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)

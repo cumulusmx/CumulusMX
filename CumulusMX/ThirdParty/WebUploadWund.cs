@@ -221,10 +221,10 @@ namespace CumulusMX.ThirdParty
 				Data.Append($"&baromin={WeatherStation.PressINstr(station.Pressure)}");
 			if (station.OutdoorDewpoint >= Cumulus.DefaultHiVal)
 				Data.Append($"&dewptf={WeatherStation.TempFstr(station.OutdoorDewpoint)}");
-			if (SendUV && station.UV >= 0)
-				Data.Append($"&UV={station.UV.ToString(cumulus.UVFormat, invC)}");
-			if (SendSolar)
-				Data.Append($"&solarradiation={station.SolarRad:F0}");
+			if (SendUV && station.UV.HasValue)
+				Data.Append($"&UV={station.UV.Value.ToString(cumulus.UVFormat, invC)}");
+			if (SendSolar && station.SolarRad.HasValue)
+				Data.Append($"&solarradiation={station.SolarRad}");
 			if (SendIndoor)
 			{
 				if (station.IndoorTemperature.HasValue)
