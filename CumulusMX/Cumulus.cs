@@ -1156,36 +1156,55 @@ namespace CumulusMX
 
 			// Open diary database (create file if it doesn't exist)
 			DiaryDB = new SQLiteConnection(new SQLiteConnectionString(diaryfile, flags, false, null, null, null, null, "yyyy-MM-dd 00:00:00"));
-			DiaryDB.CreateTable<DiaryData>();
+			DiaryDB.CreateTable<DiaryData2>();
 
 			try
 			{
-				// clean-up the diary db, change any entries to use date+time to just use date
-				// first see if there will be any days with more than one record
-				var duplicates = DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE rowid < (SELECT max(rowid) FROM DiaryData d2 WHERE date(DiaryData.Timestamp) = date(d2.Timestamp))");
-				if (duplicates.Count > 0)
+				if (DiaryDB.ExecuteScalar<int>("SELECT EXISTS (SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'DiaryData')") == 1)
 				{
-					LogConsoleMessage($"WARNING: Duplicate entries ({duplicates.Count}) found in your Weather Diary database - please see log file for details");
-					LogWarningMessage($"Duplicate entries ({duplicates.Count}) found in the Weather Diary database. The following entries will be removed...");
-
-					foreach (var rec in duplicates)
+					try
 					{
-						LogMessage($"  Date: {rec.Timestamp.Date}, Falling: {rec.snowFalling}, Lying: {rec.snowLying}, Depth: {rec.snowDepth}, Entry: '{rec.entry}'");
+						// clean-up the diary db, change any entries to use date+time to just use date
+						// first see if there will be any days with more than one record
+						var duplicates = DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE rowid < (SELECT max(rowid) FROM DiaryData d2 WHERE date(DiaryData.Timestamp) = date(d2.Timestamp))");
+						if (duplicates.Count > 0)
+						{
+							LogConsoleMessage($"WARNING: Duplicate entries ({duplicates.Count}) found in your Weather Diary database - please see log file for details");
+							LogWarningMessage($"Duplicate entries ({duplicates.Count}) found in the Weather Diary database. The following entries will be removed...");
+
+							foreach (var rec in duplicates)
+							{
+								LogMessage($"  Date: {rec.Timestamp.Date}, Falling: {rec.snowFalling}, Lying: {rec.snowLying}, Depth: {rec.snowDepth}, Entry: '{rec.entry}'");
+							}
+
+							// Remove the duplicates, leave the latest, remove the oldest
+							var deleted = DiaryDB.Execute("DELETE FROM DiaryData WHERE rowid < (SELECT max(rowid) FROM DiaryData d2 WHERE date(DiaryData.Timestamp) = date(d2.Timestamp))");
+							if (deleted > 0)
+							{
+								LogMessage($"{deleted} duplicate records deleted from the weather diary database");
+							}
+						}
+						// Now reset the now unique-by-day records to have a time of 00:00:00
+						DiaryDB.Execute("UPDATE DiaryData SET Timestamp = datetime(date(TimeStamp)) WHERE time(Timestamp) <> '00:00:00'");
+					}
+					catch (Exception ex)
+					{
+						LogErrorMessage("Error cleaning up the Diary DB, exception = " + ex.Message);
 					}
 
-					// Remove the duplicates, leave the latest, remove the oldest
-					var deleted = DiaryDB.Execute("DELETE FROM DiaryData WHERE rowid < (SELECT max(rowid) FROM DiaryData d2 WHERE date(DiaryData.Timestamp) = date(d2.Timestamp))");
-					if (deleted > 0)
-					{
-						LogMessage($"{deleted} duplicate records deleted from the weather diary database");
-					}
+
+					LogMessage("Migrating the weather diary database to version 2");
+					var res = DiaryDB.Execute("INSERT OR REPLACE INTO DiaryData2 (Timestamp, entry, snowDepth) SELECT Timestamp, entry, snowDepth FROM DiaryData");
+					LogMessage("Migrated " + res + " weather diary records");
+
+					LogMessage("Dropping the old weather diary database");
+					DiaryDB.Execute("DROP TABLE DiaryData");
+					LogMessage("Dropped the old weather diary database");
 				}
-				// Now reset the now unique-by-day records to have a time of 00:00:00
-				DiaryDB.Execute("UPDATE DiaryData SET Timestamp = datetime(date(TimeStamp)) WHERE time(Timestamp) <> '00:00:00'");
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("Error cleaning up the Diary DB, exception = " + ex.Message);
+				LogErrorMessage("Error migrating the Diary DB, exception = " + ex.Message);
 			}
 
 			LogMessage("Debug logging :" + (ProgramOptions.DebugLogging ? "enabled" : "disabled"));
@@ -1969,6 +1988,16 @@ namespace CumulusMX
 				case 3:
 					Units.WindText = "kts";
 					Units.WindRunText = "nm";
+					break;
+			}
+
+			switch (Units.SnowDepth)
+			{
+				case 0:
+					Units.SnowText = "cm";
+					break;
+				case 1:
+					Units.SnowText = "in";
 					break;
 			}
 		}
@@ -3801,9 +3830,9 @@ namespace CumulusMX
 
 			Units.Wind = ini.GetValue("Station", "WindUnit", 2, 0, 3);
 			Units.Press = ini.GetValue("Station", "PressureUnit", 1, 0, 3);
-
 			Units.Rain = ini.GetValue("Station", "RainUnit", 0, 0, 1);
 			Units.Temp = ini.GetValue("Station", "TempUnit", 0, 0, 1);
+			Units.SnowDepth = ini.GetValue("Station", "SnowDepthUnit", 0, 0, 1);
 
 			StationOptions.RoundWindSpeed = ini.GetValue("Station", "RoundWindSpeed", false);
 			StationOptions.PrimaryAqSensor = ini.GetValue("Station", "PrimaryAqSensor", -1, -1);
@@ -5604,6 +5633,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "PressureUnit", Units.Press);
 			ini.SetValue("Station", "RainUnit", Units.Rain);
 			ini.SetValue("Station", "TempUnit", Units.Temp);
+			ini.SetValue("Station", "SnowDepthUnit", Units.SnowDepth);
 
 			ini.SetValue("Station", "WindSpeedDecimals", WindDPlaces);
 			ini.SetValue("Station", "WindSpeedAvgDecimals", WindAvgDPlaces);
@@ -13571,6 +13601,15 @@ namespace CumulusMX
 		public double snowDepth { get; set; }
 	}
 
+	public class DiaryData2
+	{
+		[PrimaryKey]
+		public DateTime Timestamp { get; set; }
+		public string? entry { get; set; }
+		public double? snow24h { get; set; }
+		public double? snowDepth { get; set; }
+	}
+
 	public class ProgramOptionsClass
 	{
 		public bool EnableAccessibility { get; set; }
@@ -13613,11 +13652,14 @@ namespace CumulusMX
 		public int Rain { get; set; }
 		/// <value> 0=C, 1=F </value>
 		public int Temp { get; set; }
+		/// <value> 0=cm, 1=inch </value>
+		public int SnowDepth { get; set; }
 
 		public string WindText { get; set; }
 		public string PressText { get; set; }
 		public string RainText { get; set; }
 		public string TempText { get; set; }
+		public string SnowText { get; set; }
 
 		public string TempTrendText { get; set; }
 		public string RainTrendText { get; set; }

@@ -12146,22 +12146,34 @@ namespace CumulusMX
 
 			StringBuilder json = new StringBuilder("{\"entry\":\"", 1024);
 
-			var result = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData where date(Timestamp) = ? order by Timestamp limit 1", date);
+			var result = cumulus.DiaryDB.Query<DiaryData2>("select * from DiaryData2 where date(Timestamp) = ? order by Timestamp limit 1", date);
 
 			if (result.Count > 0)
 			{
-				json.Append(result[0].entry + "\",");
-				json.Append("\"snowFalling\":");
-				json.Append(result[0].snowFalling + ",");
-				json.Append("\"snowLying\":");
-				json.Append(result[0].snowLying + ",");
+				json.Append((result[0].entry ?? "") + "\",");
+				json.Append("\"snow24h\":");
+				if (result[0].snow24h.HasValue)
+				{
+					json.Append(result[0].snow24h.Value.ToString("F1") + ",");
+				}
+				else
+				{
+					json.Append("\"\",");
+				}
 				json.Append("\"snowDepth\":\"");
-				json.Append(result[0].snowDepth);
+				if (result[0].snowDepth.HasValue)
+				{
+					json.Append(result[0].snowDepth.Value.ToString("F1"));
+				}
+				else
+				{
+					json.Append("\"\"");
+				}
 				json.Append("\"}");
 			}
 			else
 			{
-				json.Append("\",\"snowFalling\":0,\"snowLying\":0,\"snowDepth\":\"\"}");
+				json.Append("\",\"snow24h\":\"\",\"snowDepth\":\"\"}");
 			}
 
 			return json.ToString();
@@ -12171,7 +12183,7 @@ namespace CumulusMX
 		internal string GetDiarySummary()
 		{
 			var json = new StringBuilder(512);
-			var result = cumulus.DiaryDB.Query<DiaryData>("select Timestamp from DiaryData order by Timestamp");
+			var result = cumulus.DiaryDB.Query<DiaryData2>("select Timestamp from DiaryData2 order by Timestamp");
 
 			if (result.Count > 0)
 			{
@@ -12690,7 +12702,8 @@ namespace CumulusMX
 			json.Append($"\"soilmoisture\":[\"{string.Join("\",\"", cumulus.Units.SoilMoistureUnitText)}\"],");
 			json.Append($"\"co2\":\"{cumulus.Units.CO2UnitText}\",");
 			json.Append($"\"leafwet\":\"{cumulus.Units.LeafWetnessUnitText}\",");
-			json.Append($"\"aq\":\"{cumulus.Units.AirQualityUnitText}\"");
+			json.Append($"\"aq\":\"{cumulus.Units.AirQualityUnitText}\",");
+			json.Append($"\"snow\":\"{cumulus.Units.SnowText}\"");
 			json.Append('}');
 			return json.ToString();
 		}
@@ -12705,6 +12718,7 @@ namespace CumulusMX
 			json.Append($"\"press\":{{\"units\":\"{cumulus.Units.PressText}\",\"decimals\":{cumulus.PressDPlaces}}},");
 			json.Append($"\"hum\":{{\"decimals\":{cumulus.HumDPlaces}}},");
 			json.Append($"\"uv\":{{\"decimals\":{cumulus.UVDPlaces}}},");
+			json.Append($"\"snow\":{{\"units\":\"{cumulus.Units.SnowText}\",\"decimals\":1}},");
 			json.Append($"\"soilmoisture\":{{\"units\":[\"{string.Join("\",\"", cumulus.Units.SoilMoistureUnitText)}\"]}},");
 			json.Append($"\"co2\":{{\"units\":\"{cumulus.Units.CO2UnitText}\"}},");
 			json.Append($"\"leafwet\":{{\"units\":\"{cumulus.Units.LeafWetnessUnitText}\",\"decimals\":{cumulus.LeafWetDPlaces}}},");

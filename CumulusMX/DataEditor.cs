@@ -112,10 +112,16 @@ namespace CumulusMX
 				};
 
 
-				var newData = text.FromJson<DiaryData>();
+				var newData = text.FromJson<DiaryData2>();
 
 				// write new/updated entry to the database
-				var result = cumulus.DiaryDB.InsertOrReplace(newData);
+				// first try to update existing record
+				var result = cumulus.DiaryDB.Update(newData);
+				if (result == 0)
+				{
+					// if update failed, insert new record
+					result = cumulus.DiaryDB.InsertOrReplace(newData);
+				}
 
 				return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
 
@@ -150,7 +156,7 @@ namespace CumulusMX
 					return resultLocal;
 				};
 
-				var record = text.FromJson<DiaryData>();
+				var record = text.FromJson<DiaryData2>();
 
 				// Delete the corresponding entry from the database
 				var result = cumulus.DiaryDB.Delete(record);

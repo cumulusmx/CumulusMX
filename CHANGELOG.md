@@ -24,6 +24,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Solar Rad and UV-I now record null values
 - Removed NOT NULL requirements from the MySQL table definitions for Realtime, Monthly, and Dayfile
 - Efficiency improvements to all the "recent data" web tags
+- The Weather Diary has been revamped with revised fields to make it more useful
+	- The existing Weather Diary data is migrated to the new format on first run of v4.3.0
 
 ### Fixed
 - Nothing

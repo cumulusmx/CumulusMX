@@ -30,7 +30,8 @@ namespace CumulusMX
 				wind = cumulus.Units.Wind,
 				pressure = cumulus.Units.Press,
 				temp = cumulus.Units.Temp,
-				rain = cumulus.Units.Rain
+				rain = cumulus.Units.Rain,
+				snow = cumulus.Units.SnowDepth
 			};
 
 			var logs = new JsonWizardLogs()
@@ -477,6 +478,8 @@ namespace CumulusMX
 						cumulus.ChangeRainUnits();
 						cumulus.RainDPlaces = cumulus.RainDPlaceDefaults[cumulus.Units.Rain];
 					}
+
+					cumulus.Units.SnowDepth = settings.units.snow;
 				}
 				catch (Exception ex)
 				{
@@ -839,6 +842,7 @@ namespace CumulusMX
 		public int pressure { get; set; }
 		public int temp { get; set; }
 		public int rain { get; set; }
+		public int snow { get; set; }
 	}
 
 	internal class JsonWizardLogs

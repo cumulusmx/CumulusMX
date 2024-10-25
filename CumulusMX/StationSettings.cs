@@ -90,6 +90,7 @@ namespace CumulusMX
 				temp = cumulus.Units.Temp,
 				rain = cumulus.Units.Rain,
 				cloudbaseft = cumulus.CloudBaseInFeet,
+				snow = cumulus.Units.SnowDepth,
 				advanced = unitsAdv
 			};
 
@@ -1289,6 +1290,8 @@ namespace CumulusMX
 						cumulus.ChangeRainUnits();
 						settings.general.units.advanced.raindp = cumulus.RainDPlaceDefaults[cumulus.Units.Rain];
 					}
+					cumulus.Units.SnowDepth = settings.general.units.snow;
+					cumulus.SetupUnitText();
 
 					cumulus.CloudBaseInFeet = settings.general.units.cloudbaseft;
 				}
@@ -1695,6 +1698,7 @@ namespace CumulusMX
 		public int temp { get; set; }
 		public int rain { get; set; }
 		public bool cloudbaseft { get; set; }
+		public int snow { get; set; }
 
 		public JsonStationSettingsUnitsAdvanced advanced { get; set; }
 	}
