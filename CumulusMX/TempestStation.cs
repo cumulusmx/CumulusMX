@@ -89,6 +89,7 @@ namespace CumulusMX
 			var luhour = cumulus.LastUpdateTime.Hour;
 			var rolloverdone = luhour == rollHour;
 			var midnightraindone = luhour == 0;
+			var rollover9amdone = luhour == 9;
 
 			var ticks = Environment.TickCount;
 			foreach (var historydata in datalist)
@@ -124,6 +125,13 @@ namespace CumulusMX
 					ResetSunshineHours(timestamp);
 					ResetMidnightTemperatures(timestamp);
 					midnightraindone = true;
+				}
+
+				// 9am rollover items
+				if (h == 9 && !rollover9amdone)
+				{
+					Reset9amTemperatures(timestamp);
+					rollover9amdone = true;
 				}
 
 				// Pressure =============================================================

@@ -16,6 +16,24 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Adds Rain Week to the dashboard
 	- There is also a new web tag `<#rweek>`
 	- Configure the start of week day in `Station Settings > Rainfall`
+- Added displaying snowfall data on the dashboard and default web site
+	- Enable display of snow data on the dashboard, default web site, and graphs in `Display Options`
+	- New web tag `<#Option_showSnow>`
+	- You will need to re-upload the default web site files for this:<br>
+		`webfiles\historic.htm`<br>
+		`webfiles\js\historiccharts.js`
+- New web tags for 9am High/Low temperatures
+	`<#temp9amTH>`,`<#Ttemp9amTH>`<br>
+	`<#temp9amTL>`,`<#Ttemp9amTL>`<br>
+	`<#temp9amTH>`,`<#Ttemp9amTH>`<br>
+	`<#temp9amRangeT>`<br>
+	`<#temp9amTL>`,`<#Ttemp9amTL>`<br>
+	`<#temp9amYH>`,`<#Ttemp9amYH>`<br>
+	`<#temp9amYL>`,`<#Ttemp9amYL>`<br>
+	`<#temp9amYH>`,`<#Ttemp9amYH>`<br>
+	`<#temp9amYL>`,`<#Ttemp9amYL>`<br>
+	`<#temp9amRangeY>`
+
 
 ### Changed
 - The extra sensors and the extra sensors log file now records null value values for absent readings. This will void logging spurious zero values at start-up
@@ -25,7 +43,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Removed NOT NULL requirements from the MySQL table definitions for Realtime, Monthly, and Dayfile
 - Efficiency improvements to all the "recent data" web tags
 - The Weather Diary has been revamped with revised fields to make it more useful
-	- The existing Weather Diary data is migrated to the new format on first run of v4.3.0
+	- The existing Weather Diary database data is migrated to the new format on first run of v4.3.0
+	- The SQLite table name has been changed to `DiaryData2` as part of this process
+
 
 ### Fixed
 - Nothing

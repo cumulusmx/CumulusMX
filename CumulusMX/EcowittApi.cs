@@ -1309,6 +1309,7 @@ namespace CumulusMX
 			var luhour = cumulus.LastUpdateTime.Hour;
 			var rolloverdone = luhour == rollHour;
 			var midnightraindone = luhour == 0;
+			var rollover9amdone = luhour == 9;
 
 			foreach (var rec in buffer)
 			{
@@ -1346,6 +1347,13 @@ namespace CumulusMX
 					station.ResetSunshineHours(rec.Key);
 					station.ResetMidnightTemperatures(rec.Key);
 					midnightraindone = true;
+				}
+
+				// 9am rollover items
+				if (h == 9 && !rollover9amdone)
+				{
+					station.Reset9amTemperatures(rec.Key);
+					rollover9amdone = true;
 				}
 
 				// finally apply this data

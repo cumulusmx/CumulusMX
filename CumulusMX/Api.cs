@@ -623,6 +623,9 @@ namespace CumulusMX
 						case "degdaydata.json":
 							await writer.WriteAsync(Station.GetAllDegreeDaysGraphData(true));
 							break;
+						case "dailysnow.json":
+							await writer.WriteAsync(Station.GetAllSnowGraphData(true));
+							break;
 						case "tempsumdata.json":
 							await writer.WriteAsync(Station.GetAllTempSumGraphData(true));
 							break;

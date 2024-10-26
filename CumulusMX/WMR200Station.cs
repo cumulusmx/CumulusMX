@@ -34,6 +34,7 @@ namespace CumulusMX
 		//private int ArchiveDataCount = 0;
 		private bool firstArchiveData = true;
 		private bool midnightraindone;
+		private bool rollover9amdone;
 		private double hourInc;
 		private int rollHour;
 		private bool rolloverdone;
@@ -147,6 +148,7 @@ namespace CumulusMX
 			rolloverdone = luhour == rollHour;
 
 			midnightraindone = luhour == 0;
+			rollover9amdone = luhour == 9;
 
 			gettingHistory = true;
 			livePacketCount = 0;
@@ -1400,6 +1402,12 @@ namespace CumulusMX
 				ResetSunshineHours(timestamp);
 				ResetMidnightTemperatures(timestamp);
 				midnightraindone = true;
+			}
+			// 9am rollover items
+			if (h == 9 && !rollover9amdone)
+			{
+				Reset9amTemperatures(timestamp);
+				rollover9amdone = true;
 			}
 			// there seems to be no way of determining the log interval other than subtracting one logMainUnit.Units.MainUnit.cumulus.LogMessage
 			// timestamp from another, so we'll have to ignore the first one

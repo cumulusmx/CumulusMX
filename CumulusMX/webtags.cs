@@ -1740,6 +1740,31 @@ namespace CumulusMX
 			return CheckRcDp(CheckTempUnitAbs((station.HiLoTodayMidnight.HighTemp - station.HiLoTodayMidnight.LowTemp), tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
+		private string Tagtemp9amTh(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(CheckTempUnit(station.HiLoToday9am.HighTemp, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagTtemp9amTh(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.HiLoToday9am.HighTempTime, "HH:mm", tagParams);
+		}
+
+		private string Tagtemp9amTl(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(CheckTempUnit(station.HiLoToday9am.LowTemp, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagTtemp9amTl(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.HiLoToday9am.LowTempTime, "HH:mm", tagParams);
+		}
+
+		private string Tagtemp9amRangeT(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(CheckTempUnitAbs((station.HiLoToday9am.HighTemp - station.HiLoToday9am.LowTemp), tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
 		private string TagTempAvg24Hrs(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(CheckTempUnit(station.TempAvg24Hrs(), tagParams), tagParams, cumulus.TempDPlaces);
@@ -2137,6 +2162,31 @@ namespace CumulusMX
 		private string TagtempMidnightRangeY(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(CheckTempUnitAbs((station.HiLoYestMidnight.HighTemp - station.HiLoYestMidnight.LowTemp), tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string Tagtemp9amYh(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(CheckTempUnit(station.HiLoYest9am.HighTemp, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagTtemp9amYh(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.HiLoYest9am.HighTempTime, "HH:mm", tagParams);
+		}
+
+		private string Tagtemp9amYl(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(CheckTempUnit(station.HiLoYest9am.LowTemp, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagTtemp9amYl(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.HiLoYest9am.LowTempTime, "HH:mm", tagParams);
+		}
+
+		private string Tagtemp9amRangeY(Dictionary<string, string> tagParams)
+		{
+			return CheckRcDp(CheckTempUnitAbs((station.HiLoYest9am.HighTemp - station.HiLoYest9am.LowTemp), tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagapptempYh(Dictionary<string, string> tagParams)
@@ -6006,6 +6056,11 @@ namespace CumulusMX
 			return cumulus.DisplayOptions.ShowUV ? "1" : "0";
 		}
 
+		private string TagOption_showSnow(Dictionary<string, string> tagParams)
+		{
+			return cumulus.DisplayOptions.ShowSnow ? "1" : "0";
+		}
+
 		private string TagMySqlRealtimeTime(Dictionary<string, string> tagParams)
 		{
 			return GetFormattedDateTime(cumulus.MySqlLastRealtimeTime, "yyyy-MM-dd HH:mm:ss", tagParams);
@@ -6229,6 +6284,11 @@ namespace CumulusMX
 				{ "tempMidnightTL", TagtempMidnightTl },
 				{ "TtempMidnightTL", TagTtempMidnightTl },
 				{ "tempMidnightRangeT", TagtempMidnightRangeT },
+				{ "temp9amTH", Tagtemp9amTh },
+				{ "Ttemp9amTH", TagTtemp9amTh },
+				{ "temp9amTL", Tagtemp9amTl },
+				{ "Ttemp9amTL", TagTtemp9amTl },
+				{ "temp9amRangeT", Tagtemp9amRangeT },
 				{ "wchillTL", TagwchillTl },
 				{ "TwchillTL", TagTwchillTl },
 				{ "apptempTH", TagapptempTh },
@@ -6291,6 +6351,11 @@ namespace CumulusMX
 				{ "tempMidnightYL", TagtempMidnightYl },
 				{ "TtempMidnightYL", TagTtempMidnightYl },
 				{ "tempMidnightRangeY", TagtempMidnightRangeY },
+				{ "temp9amYH", Tagtemp9amYh },
+				{ "Ttemp9amYH", TagTtemp9amYh },
+				{ "temp9amYL", Tagtemp9amYl },
+				{ "Ttemp9amYL", TagTtemp9amYl },
+				{ "temp9amRangeY", Tagtemp9amRangeY },
 				{ "wchillYL", TagwchillYl },
 				{ "TwchillYL", TagTwchillYl },
 				{ "apptempYH", TagapptempYh },
@@ -7003,6 +7068,7 @@ namespace CumulusMX
 				{ "Option_useApparent", TagOption_useApparent },
 				{ "Option_showSolar", TagOption_showSolar },
 				{ "Option_showUV", TagOption_showUV },
+				{ "Option_showSnow", TagOption_showSnow },
 				// MySQL insert times
 				{ "MySqlRealtimeTime", TagMySqlRealtimeTime },
 				{ "MySqlIntervalTime", TagMySqlIntervalTime },

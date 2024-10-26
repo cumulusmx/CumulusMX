@@ -2248,6 +2248,7 @@ namespace CumulusMX
 			bool rolloverdone = luhour == rollHour;
 
 			bool midnightraindone = luhour == 0;
+			bool rollover9amdone = luhour == 9;
 
 			// work out the next logger interval after the last CMX update
 			var nextLoggerTime = Utils.RoundTimeUpToInterval(cumulus.LastUpdateTime.AddMinutes(-1), TimeSpan.FromMinutes(loggerInterval));
@@ -2692,6 +2693,13 @@ namespace CumulusMX
 								ResetSunshineHours(timestamp);
 								ResetMidnightTemperatures(timestamp);
 								midnightraindone = true;
+							}
+
+							// 9am rollover items
+							if (h == 9 && !rollover9amdone)
+							{
+								Reset9amTemperatures(timestamp);
+								rollover9amdone = true;
 							}
 
 							if ((archiveData.InsideTemperature > -200) && (archiveData.InsideTemperature < 300))

@@ -366,6 +366,7 @@ namespace CumulusMX
 			int luhour = cumulus.LastUpdateTime.Hour;
 			bool rolloverdone = luhour == rollHour;
 			bool midnightraindone = luhour == 0;
+			bool rollover9amdone = luhour == 9;
 			int recCount = datalist.Count;
 			int processedCount = 0;
 
@@ -410,6 +411,13 @@ namespace CumulusMX
 					ResetSunshineHours(timestamp);
 					ResetMidnightTemperatures(timestamp);
 					midnightraindone = true;
+				}
+
+				// 9am rollover items
+				if (h == 9 && !rollover9amdone)
+				{
+					Reset9amTemperatures(timestamp);
+					rollover9amdone = true;
 				}
 
 				// Indoor Humidity ======================================================

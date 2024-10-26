@@ -307,8 +307,22 @@ namespace CumulusMX
 			LowTemp = 999
 		};
 
-		// todays midnight highs and lows
+		// yesterdays midnight highs and lows
 		public DailyHighLow HiLoYestMidnight = new()
+		{
+			HighTemp = -500,
+			LowTemp = 999
+		};
+
+		// todays 9am highs and lows
+		public DailyHighLow HiLoToday9am = new()
+		{
+			HighTemp = -500,
+			LowTemp = 999
+		};
+
+		// yesterdays 9am highs and lows
+		public DailyHighLow HiLoYest9am = new()
 		{
 			HighTemp = -500,
 			LowTemp = 999
@@ -932,6 +946,12 @@ namespace CumulusMX
 			HiLoTodayMidnight.HighTemp = ini.GetValue("TempMidnight", "High", -999.0);
 			HiLoTodayMidnight.HighTempTime = ini.GetValue("TempMidnight", "HTime", metoTodayDate);
 
+			// Temperature 9am rollover
+			HiLoToday9am.LowTemp = ini.GetValue("Temp9am", "Low", 999.0);
+			HiLoToday9am.LowTempTime = ini.GetValue("Temp9am", "LTime", metoTodayDate);
+			HiLoToday9am.HighTemp = ini.GetValue("Temp9am", "High", -999.0);
+			HiLoToday9am.HighTempTime = ini.GetValue("Temp9am", "HTime", metoTodayDate);
+
 			// Pressure
 			HiLoToday.LowPress = ini.GetValue("Pressure", "Low", 9999.0);
 			HiLoToday.LowPressTime = ini.GetValue("Pressure", "LTime", metoTodayDate);
@@ -1083,6 +1103,11 @@ namespace CumulusMX
 				ini.SetValue("TempMidnight", "LTime", HiLoTodayMidnight.LowTempTime);
 				ini.SetValue("TempMidnight", "High", HiLoTodayMidnight.HighTemp);
 				ini.SetValue("TempMidnight", "HTime", HiLoTodayMidnight.HighTempTime);
+				// Temperature 9am rollover
+				ini.SetValue("Temp9am", "Low", HiLoToday9am.LowTemp);
+				ini.SetValue("Temp9am", "LTime", HiLoToday9am.LowTempTime);
+				ini.SetValue("Temp9am", "High", HiLoToday9am.HighTemp);
+				ini.SetValue("Temp9am", "HTime", HiLoToday9am.HighTempTime);
 				// Pressure
 				ini.SetValue("Pressure", "Low", HiLoToday.LowPress);
 				ini.SetValue("Pressure", "LTime", HiLoToday.LowPressTime);
@@ -2130,6 +2155,12 @@ namespace CumulusMX
 				ResetMidnightTemperatures(now);
 			}
 
+			// 9am rollover items
+			if (now.Hour == 9)
+			{
+				Reset9amTemperatures(now);
+			}
+
 			RemoveOldRecentData(now);
 
 			System.Runtime.GCSettings.LargeObjectHeapCompactionMode = System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
@@ -2356,6 +2387,7 @@ namespace CumulusMX
 				"alldailysolardata.json" => GetAllDailySolarGraphData(false),
 				"alldailydegdaydata.json" => GetAllDegreeDaysGraphData(false),
 				"alltempsumdata.json" => GetAllTempSumGraphData(false),
+				"alldailysnowdata.json" => GetAllSnowGraphData(false),
 				_ => "{}",
 			};
 		}
@@ -4976,6 +5008,19 @@ namespace CumulusMX
 			WriteYesterdayFile(logdate);
 		}
 
+		public void Reset9amTemperatures(DateTime logdate) // called at 9am irrespective of roll-over time
+		{
+			HiLoYest9am.LowTemp = HiLoToday9am.LowTemp;
+			HiLoYest9am.HighTemp = HiLoToday9am.HighTemp;
+			HiLoYest9am.LowTempTime = HiLoToday9am.LowTempTime;
+			HiLoYest9am.HighTempTime = HiLoToday9am.HighTempTime;
+
+			HiLoToday9am.LowTemp = 999;
+			HiLoToday9am.HighTemp = -999;
+
+			WriteYesterdayFile(logdate);
+		}
+
 		public void SwitchToNormalRunning()
 		{
 			cumulus.NormalRunning = true;
@@ -5186,31 +5231,52 @@ namespace CumulusMX
 			CheckMonthlyAlltime("HighTemp", OutdoorTemperature, true, timestamp);
 			CheckMonthlyAlltime("LowTemp", OutdoorTemperature, false, timestamp);
 
+			var writeToday = false;
+
 			if (OutdoorTemperature > HiLoToday.HighTemp)
 			{
 				HiLoToday.HighTemp = OutdoorTemperature;
 				HiLoToday.HighTempTime = timestamp;
-				WriteTodayFile(timestamp, false);
+				writeToday = true;
 			}
 
 			if (OutdoorTemperature < HiLoToday.LowTemp)
 			{
 				HiLoToday.LowTemp = OutdoorTemperature;
 				HiLoToday.LowTempTime = timestamp;
-				WriteTodayFile(timestamp, false);
+				writeToday = true;
 			}
 
 			if (OutdoorTemperature > HiLoTodayMidnight.HighTemp)
 			{
 				HiLoTodayMidnight.HighTemp = OutdoorTemperature;
 				HiLoTodayMidnight.HighTempTime = timestamp;
-				WriteTodayFile(timestamp, false);
+				writeToday = true;
 			}
 
 			if (OutdoorTemperature < HiLoTodayMidnight.LowTemp)
 			{
 				HiLoTodayMidnight.LowTemp = OutdoorTemperature;
 				HiLoTodayMidnight.LowTempTime = timestamp;
+				writeToday = true;
+			}
+
+			if (OutdoorTemperature > HiLoToday9am.HighTemp)
+			{
+				HiLoToday9am.HighTemp = OutdoorTemperature;
+				HiLoToday9am.HighTempTime = timestamp;
+				writeToday = true;
+			}
+
+			if (OutdoorTemperature < HiLoToday9am.LowTemp)
+			{
+				HiLoToday9am.LowTemp = OutdoorTemperature;
+				HiLoToday9am.LowTempTime = timestamp;
+				writeToday = true;
+			}
+
+			if (writeToday)
+			{
 				WriteTodayFile(timestamp, false);
 			}
 
@@ -6826,6 +6892,11 @@ namespace CumulusMX
 			ini.SetValue("TempMidnight", "LTime", HiLoYestMidnight.LowTempTime);
 			ini.SetValue("TempMidnight", "High", HiLoYestMidnight.HighTemp);
 			ini.SetValue("TempMidnight", "HTime", HiLoYestMidnight.HighTempTime);
+			// Temperature 9am
+			ini.SetValue("Temp9am", "Low", HiLoYest9am.LowTemp);
+			ini.SetValue("Temp9am", "LTime", HiLoYest9am.LowTempTime);
+			ini.SetValue("Temp9am", "High", HiLoYest9am.HighTemp);
+			ini.SetValue("Temp9am", "HTime", HiLoYest9am.HighTempTime);
 			// Pressure
 			ini.SetValue("Pressure", "Low", HiLoYest.LowPress);
 			ini.SetValue("Pressure", "LTime", HiLoYest.LowPressTime);
@@ -6909,6 +6980,11 @@ namespace CumulusMX
 			HiLoYestMidnight.LowTempTime = ini.GetValue("TempMidnight", "LTime", DateTime.MinValue);
 			HiLoYestMidnight.HighTemp = ini.GetValue("TempMidnight", "High", 0.0);
 			HiLoYestMidnight.HighTempTime = ini.GetValue("TempMidnight", "HTime", DateTime.MinValue);
+			// Temperature 9am
+			HiLoYest9am.LowTemp = ini.GetValue("Temp9am", "Low", 0.0);
+			HiLoYest9am.LowTempTime = ini.GetValue("Temp9am", "LTime", DateTime.MinValue);
+			HiLoYest9am.HighTemp = ini.GetValue("Temp9am", "High", 0.0);
+			HiLoYest9am.HighTempTime = ini.GetValue("Temp9am", "HTime", DateTime.MinValue);
 			// Pressure
 			HiLoYest.LowPress = ini.GetValue("Pressure", "Low", 0.0);
 			HiLoYest.LowPressTime = ini.GetValue("Pressure", "LTime", DateTime.MinValue);
@@ -8537,6 +8613,7 @@ namespace CumulusMX
 				ResetMidnightRain(DateTime.Now);
 				ResetSunshineHours(DateTime.Now);
 				ResetMidnightTemperatures(DateTime.Now);
+				Reset9amTemperatures(DateTime.Now);
 			}
 		}
 
@@ -12829,6 +12906,12 @@ namespace CumulusMX
 			if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
 				json.Append($"\"maxhumidex\":{{\"name\":\"Humidex\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxHumidex}\"}},");
 
+			// Snow
+			if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
+				json.Append($"\"snowdepth\":{{\"name\":\"Snow Depth\",\"colour\":\"{cumulus.GraphOptions.Colour.Temp}\"}},");
+			if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
+				json.Append($"\"snow24\":{{\"name\":\"Snowfall in 24h\",\"colour\":\"{cumulus.GraphOptions.Colour.AppTemp}\"}},");
+
 			#endregion daily
 
 			#region extra sensors
@@ -13138,6 +13221,20 @@ namespace CumulusMX
 					if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local))
 						json.Append($"\"{cumulus.Trans.LeafWetnessCaptions[i]}\",");
 				}
+				if (json[^1] == ',')
+					json.Length--;
+
+				json.Append(']');
+			}
+
+			// Snow
+			if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local) || cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
+			{
+				json.Append(",\"Snow\":[");
+				if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
+					json.Append("\"Snow Depth\",");
+				if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
+					json.Append("\"Snow 24 hours\"");
 				if (json[^1] == ',')
 					json.Length--;
 
@@ -14110,6 +14207,77 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
+		public string GetAllSnowGraphData(bool local)
+		{
+			/* returns:
+			 *	snowdepth:[[date1,val1],[date2,val2]...],
+			 *	snow24h:[[date1,val1],[date2,val2]...]
+			 */
+
+			var InvC = CultureInfo.InvariantCulture;
+
+			StringBuilder sb = new StringBuilder("{");
+			StringBuilder snowdepth = new StringBuilder("[", 32768);
+			StringBuilder snow24h = new StringBuilder("[", 32768);
+
+			// Read the diary database
+
+			var data = cumulus.DiaryDB.Query<DiaryData2>("SELECT Timestamp, SnowDepth, Snow24h FROM DiaryData2 ORDER BY Timestamp ASC");
+			//long lastDate = 0;
+
+			if (data.Count > 0)
+			{
+				for (var i = 0; i < data.Count; i++)
+				{
+					long recDate = Utils.ToPseudoJSTime(data[i].Timestamp);
+					/*
+					// we have skipped a date, insert a zero record at the end of the previous data, and another before the start of this one
+					if (lastDate > 0 && recDate > lastDate)
+					{
+						if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
+						{
+							snowdepth.Append($"[{lastDate},0],");
+							snowdepth.Append($"[{recDate - 86400000},0],");
+						}
+					}
+					*/
+
+					if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local) && data[i].snowDepth.HasValue)
+					{
+						// snow depth
+						snowdepth.Append($"[{recDate},{data[i].snowDepth.Value.ToString("F1",InvC)}],");
+					}
+
+					if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local) && data[i].snow24h.HasValue)
+					{
+						// snowfall 24h
+						snow24h.Append($"[{recDate},{data[i].snow24h.Value.ToString("F1",InvC)}],");
+					}
+
+					//lastDate = recDate + 86400000;
+				}
+			}
+
+			if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
+			{
+				snowdepth.Length--;
+				sb.Append("\"snowdepth\":" + snowdepth.ToString() + "]");
+			}
+
+			if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
+			{
+				if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
+					sb.Append(',');
+
+				snow24h.Length--;
+				sb.Append("\"snow24h\":" + snow24h.ToString() + "]");
+
+			}
+
+			sb.Append('}');
+
+			return sb.ToString();
+		}
 
 
 		internal string GetCurrentData()

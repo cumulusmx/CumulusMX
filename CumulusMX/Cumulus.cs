@@ -900,6 +900,12 @@ namespace CumulusMX
 					LocalPath = WebPath,
 					LocalFileName = "alltempsumdata.json",
 					RemoteFileName = "alltempsumdata.json"
+				},
+				new()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailysnowdata.json",
+					RemoteFileName = "alldailysnowdata.json"
 				}
 			];
 
@@ -4427,6 +4433,9 @@ namespace CumulusMX
 			GraphOptions.Visible.CO2Sensor.Pm10Avg.Val = ini.GetValue("Graphs", "CO2-Pm10Avg", 0, 0, 2);
 			GraphOptions.Visible.CO2Sensor.Temp.Val = ini.GetValue("Graphs", "CO2-Temp", 0, 0, 2);
 			GraphOptions.Visible.CO2Sensor.Hum.Val = ini.GetValue("Graphs", "CO2-Hum", 0, 0, 2);
+			GraphOptions.Visible.SnowDepth.Val = ini.GetValue("Graphs", "SnowDepth", 0, 0, 2);
+			GraphOptions.Visible.Snow24h.Val = ini.GetValue("Graphs", "Snow24h", 0, 0, 2);
+
 
 			GraphOptions.Colour.Temp = ini.GetValue("GraphColours", "TempColour", "#ff0000");
 			GraphOptions.Colour.InTemp = ini.GetValue("GraphColours", "InTempColour", "#50b432");
@@ -5188,6 +5197,7 @@ namespace CumulusMX
 			DisplayOptions.UseApparent = ini.GetValue("Display", "UseApparent", false);
 			DisplayOptions.ShowSolar = ini.GetValue("Display", "DisplaySolarData", false);
 			DisplayOptions.ShowUV = ini.GetValue("Display", "DisplayUvData", false);
+			DisplayOptions.ShowSnow = ini.GetValue("Display", "DisplaySnowData", false);
 
 			// MySQL - common
 			MySqlConnSettings.Server = ini.GetValue("MySQL", "Host", "127.0.0.1");
@@ -6472,6 +6482,7 @@ namespace CumulusMX
 			ini.SetValue("Display", "UseApparent", DisplayOptions.UseApparent);
 			ini.SetValue("Display", "DisplaySolarData", DisplayOptions.ShowSolar);
 			ini.SetValue("Display", "DisplayUvData", DisplayOptions.ShowUV);
+			ini.SetValue("Display", "DisplaySnowData", DisplayOptions.ShowSnow);
 
 			ini.SetValue("Graphs", "ChartMaxDays", GraphDays);
 			ini.SetValue("Graphs", "GraphHours", GraphHours);
@@ -6520,6 +6531,8 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "CO2-Pm10Avg", GraphOptions.Visible.CO2Sensor.Pm10Avg.Val);
 			ini.SetValue("Graphs", "CO2-Temp", GraphOptions.Visible.CO2Sensor.Temp.Val);
 			ini.SetValue("Graphs", "CO2-Hum", GraphOptions.Visible.CO2Sensor.Hum.Val);
+			ini.SetValue("Graphs", "SnowDepth", GraphOptions.Visible.SnowDepth.Val);
+			ini.SetValue("Graphs", "Snow24h", GraphOptions.Visible.Snow24h.Val);
 
 			ini.SetValue("GraphColours", "TempColour", GraphOptions.Colour.Temp);
 			ini.SetValue("GraphColours", "InTempColour", GraphOptions.Colour.InTemp);
@@ -6899,6 +6912,9 @@ namespace CumulusMX
 			Trans.CO2_TemperatureCaption = ini.GetValue("CO2Captions", "CO2-Temperature", "Temperature");
 			Trans.CO2_HumidityCaption = ini.GetValue("CO2Captions", "CO2-Humidity", "Humidity");
 
+			// Snow
+			Trans.SnowDepth = ini.GetValue("Snow", "SnowDepth", "Snow Depth");
+			Trans.Snow24h = ini.GetValue("Snow", "Snow24h", "Snowfall 24h");
 
 			Trans.thereWillBeMinSLessDaylightTomorrow = ini.GetValue("Solar", "LessDaylightTomorrow", "There will be {0}min {1}s less daylight tomorrow");
 			Trans.thereWillBeMinSMoreDaylightTomorrow = ini.GetValue("Solar", "MoreDaylightTomorrow", "There will be {0}min {1}s more daylight tomorrow");
@@ -7102,6 +7118,9 @@ namespace CumulusMX
 			ini.SetValue("CO2Captions", "CO2-Temperature", Trans.CO2_TemperatureCaption);
 			ini.SetValue("CO2Captions", "CO2-Humidity", Trans.CO2_HumidityCaption);
 
+			// Snow
+			ini.SetValue("Snow", "SnowDepth", Trans.SnowDepth);
+			ini.SetValue("Snow", "Snow24h", Trans.Snow24h);
 
 			ini.SetValue("Solar", "LessDaylightTomorrow", Trans.thereWillBeMinSLessDaylightTomorrow);
 			ini.SetValue("Solar", "MoreDaylightTomorrow", Trans.thereWillBeMinSMoreDaylightTomorrow);
@@ -13993,6 +14012,7 @@ namespace CumulusMX
 		public bool UseApparent { get; set; }
 		public bool ShowSolar { get; set; }
 		public bool ShowUV { get; set; }
+		public bool ShowSnow { get; set; }
 	}
 
 	public class AlarmEmails

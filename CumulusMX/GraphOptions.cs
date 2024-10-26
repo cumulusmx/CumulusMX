@@ -49,6 +49,8 @@ namespace CumulusMX
 			public GraphDataValue MinTemp { get; set; } = new GraphDataValue();
 			public GraphOptionsCo2Sensor CO2Sensor { get; set; } = new GraphOptionsCo2Sensor();
 			public GraphOptionsAQSensor AqSensor { get; set; } = new GraphOptionsAQSensor();
+			public GraphDataValue SnowDepth { get; set; } = new GraphDataValue();
+			public GraphDataValue Snow24h { get; set; } = new GraphDataValue();
 
 			public GraphOptionsVisible()
 			{

@@ -472,6 +472,7 @@ namespace CumulusMX
 			bool rolloverdone = luhour == rollHour;
 
 			bool midnightraindone = luhour == 0;
+			bool rollover9amdone = luhour == 9;
 
 			WlHistory histObj;
 			int noOfRecs = 0;
@@ -621,6 +622,13 @@ namespace CumulusMX
 						ResetSunshineHours(timestamp);
 						ResetMidnightTemperatures(timestamp);
 						midnightraindone = true;
+					}
+
+					// 9am rollover items
+					if (h == 9 && !rollover9amdone)
+					{
+						Reset9amTemperatures(timestamp);
+						rollover9amdone = true;
 					}
 
 					DecodeHistoric(sensorWithMostRecs.data_structure_type, sensorWithMostRecs.sensor_type, sensorWithMostRecs.data[dataIndex]);

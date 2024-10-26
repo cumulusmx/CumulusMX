@@ -524,6 +524,7 @@ namespace CumulusMX
 					var rolloverdone = luhour == rollHour;
 
 					var midnightraindone = luhour == 0;
+					var rollover9amdone = luhour == 9;
 
 					for (int i = startindex; i < numrecs; i++)
 					{
@@ -707,6 +708,13 @@ namespace CumulusMX
 								ResetSunshineHours(timestamp);
 								ResetMidnightTemperatures(timestamp);
 								midnightraindone = true;
+							}
+
+							// 9am rollover items
+							if (hour == 9 && !rollover9amdone)
+							{
+								Reset9amTemperatures(timestamp);
+								rollover9amdone = true;
 							}
 						}
 						catch (Exception E)

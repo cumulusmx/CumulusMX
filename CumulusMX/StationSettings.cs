@@ -2047,6 +2047,7 @@ namespace CumulusMX
 		public bool useapparent { get; set; }
 		public bool displaysolar { get; set; }
 		public bool displayuv { get; set; }
+		public bool displaysnow { get; set; }
 	}
 
 	public class JsonGrowingDDSettings
