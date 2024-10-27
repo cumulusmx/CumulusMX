@@ -178,6 +178,8 @@ namespace CumulusMX
 			public string WindRun { get; set; }
 			public string MaxOutHum { get; set; }
 			public string MinOutHum { get; set; }
+			public string SnowDepth { get; set; }
+			public string Snow24h { get; set; }
 
 			public GraphOptionsCo2SensorColour CO2Sensor { get; set; }
 

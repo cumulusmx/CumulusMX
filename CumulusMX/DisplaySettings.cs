@@ -289,6 +289,12 @@ namespace CumulusMX
 				hum = cumulus.GraphOptions.Colour.CO2Sensor.Hum
 			};
 
+			var graphColSnow = new JsonGraphColSnow()
+			{
+				Depth = cumulus.GraphOptions.Colour.SnowDepth,
+				Last24h = cumulus.GraphOptions.Colour.Snow24h
+			};
+
 			var graphCol = new JsonColour()
 			{
 				temperature = graphColTemp,
@@ -309,7 +315,8 @@ namespace CumulusMX
 				soilmoist = graphColSoilMoist,
 				leafwet = graphColLeafWet,
 				usertemp = graphColUserTemp,
-				co2 = graphColCo2
+				co2 = graphColCo2,
+				snow = graphColSnow
 			};
 
 			var graphs = new JsonGraphs()
@@ -481,6 +488,9 @@ namespace CumulusMX
 					cumulus.GraphOptions.Colour.CO2Sensor.Pm10Avg = settings.Graphs.colour.co2.pm10avg;
 					cumulus.GraphOptions.Colour.CO2Sensor.Temp = settings.Graphs.colour.co2.temp;
 					cumulus.GraphOptions.Colour.CO2Sensor.Hum = settings.Graphs.colour.co2.hum;
+
+					cumulus.GraphOptions.Colour.SnowDepth = settings.Graphs.colour.snow.Depth;
+					cumulus.GraphOptions.Colour.Snow24h = settings.Graphs.colour.snow.Last24h;
 				}
 				catch (Exception ex)
 				{
@@ -679,6 +689,7 @@ namespace CumulusMX
 			public JsonGraphColExtraSensors leafwet { get; set; }
 			public JsonGraphColExtraSensors usertemp { get; set; }
 			public JsonGraphColCo2 co2 { get; set; }
+			public JsonGraphColSnow snow { get; set; }
 		}
 
 
@@ -776,5 +787,12 @@ namespace CumulusMX
 			public string temp { get; set; }
 			public string hum { get; set; }
 		}
+
+		private sealed class JsonGraphColSnow
+		{
+			public string Depth { get; set; }
+			public string Last24h { get; set; }
+		}
+
 	}
 }

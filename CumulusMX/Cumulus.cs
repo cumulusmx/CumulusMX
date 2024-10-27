@@ -4496,7 +4496,8 @@ namespace CumulusMX
 			GraphOptions.Colour.CO2Sensor.Pm10Avg = ini.GetValue("GraphColours", "CO2-Pm10AvgColour", "#b8860b");
 			GraphOptions.Colour.CO2Sensor.Temp = ini.GetValue("GraphColours", "CO2-TempColour", "#ff0000");
 			GraphOptions.Colour.CO2Sensor.Hum = ini.GetValue("GraphColours", "CO2-HumColour", "#008000");
-
+			GraphOptions.Colour.SnowDepth = ini.GetValue("GraphColours", "SnowDepthColour", "#6495ed");
+			GraphOptions.Colour.Snow24h = ini.GetValue("GraphColours", "Snow24hColour", "#008000");
 
 			Wund.ID = ini.GetValue("Wunderground", "ID", string.Empty);
 			Wund.PW = ini.GetValue("Wunderground", "Password", string.Empty);
@@ -6588,6 +6589,9 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "CO2-Pm10AvgColour", GraphOptions.Colour.CO2Sensor.Pm10Avg);
 			ini.SetValue("GraphColours", "CO2-TempColour", GraphOptions.Colour.CO2Sensor.Temp);
 			ini.SetValue("GraphColours", "CO2-HumColour", GraphOptions.Colour.CO2Sensor.Hum);
+			ini.SetValue("GraphColours", "SnowDepthColour", GraphOptions.Colour.SnowDepth);
+			ini.SetValue("GraphColours", "Snow24hColour", GraphOptions.Colour.Snow24h);
+
 
 			ini.SetValue("MySQL", "Host", MySqlConnSettings.Server);
 			ini.SetValue("MySQL", "Port", (int) MySqlConnSettings.Port);

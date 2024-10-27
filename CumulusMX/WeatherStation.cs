@@ -5002,8 +5002,10 @@ namespace CumulusMX
 			HiLoYestMidnight.LowTempTime = HiLoTodayMidnight.LowTempTime;
 			HiLoYestMidnight.HighTempTime = HiLoTodayMidnight.HighTempTime;
 
-			HiLoTodayMidnight.LowTemp = 999;
-			HiLoTodayMidnight.HighTemp = -999;
+			HiLoTodayMidnight.LowTemp = OutdoorTemperature;
+			HiLoTodayMidnight.HighTemp = OutdoorTemperature;
+			HiLoTodayMidnight.LowTempTime = logdate;
+			HiLoTodayMidnight.HighTempTime = logdate;
 
 			WriteYesterdayFile(logdate);
 		}
@@ -5015,8 +5017,10 @@ namespace CumulusMX
 			HiLoYest9am.LowTempTime = HiLoToday9am.LowTempTime;
 			HiLoYest9am.HighTempTime = HiLoToday9am.HighTempTime;
 
-			HiLoToday9am.LowTemp = 999;
-			HiLoToday9am.HighTemp = -999;
+			HiLoToday9am.LowTemp = OutdoorTemperature;
+			HiLoToday9am.HighTemp = OutdoorTemperature;
+			HiLoToday9am.LowTempTime = logdate;
+			HiLoToday9am.HighTempTime = logdate;
 
 			WriteYesterdayFile(logdate);
 		}
@@ -12937,9 +12941,9 @@ namespace CumulusMX
 
 			// Snow
 			if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
-				json.Append($"\"snowdepth\":{{\"name\":\"Snow Depth\",\"colour\":\"{cumulus.GraphOptions.Colour.Temp}\"}},");
+				json.Append($"\"snowdepth\":{{\"name\":\"Snow Depth\",\"colour\":\"{cumulus.GraphOptions.Colour.SnowDepth}\"}},");
 			if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
-				json.Append($"\"snow24\":{{\"name\":\"Snowfall in 24h\",\"colour\":\"{cumulus.GraphOptions.Colour.AppTemp}\"}},");
+				json.Append($"\"snow24h\":{{\"name\":\"Snowfall in 24h\",\"colour\":\"{cumulus.GraphOptions.Colour.Snow24h}\"}},");
 
 			#endregion daily
 
