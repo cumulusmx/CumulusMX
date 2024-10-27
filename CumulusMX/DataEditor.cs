@@ -157,12 +157,17 @@ namespace CumulusMX
 				};
 
 				var record = text.FromJson<DiaryData2>();
-
+				int result = 0;
 				// Delete the corresponding entry from the database
-				var result = cumulus.DiaryDB.Delete(record);
-
-				return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
-
+				if (cumulus.DiaryDB.Find<DiaryData2>(record.Date) != null)
+				{
+					result = cumulus.DiaryDB.Delete(record);
+					return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
+				}
+				else
+				{
+					return "{\"result\":\"Record not found\"}";
+				}
 			}
 			catch (Exception ex)
 			{

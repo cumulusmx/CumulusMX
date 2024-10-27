@@ -1158,10 +1158,10 @@ namespace CumulusMX
 			AppDomain.CurrentDomain.SetData("DataDirectory", Datapath);
 
 			// Open database (create file if it doesn't exist)
-			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
+			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite ;
 
 			// Open diary database (create file if it doesn't exist)
-			DiaryDB = new SQLiteConnection(new SQLiteConnectionString(diaryfile, flags, false, null, null, null, null, "yyyy-MM-dd 00:00:00"));
+			DiaryDB = new SQLiteConnection(new SQLiteConnectionString(diaryfile, flags, false, null, null, null, null, "yyyy-MM-dd 00:00:00", false));
 			DiaryDB.CreateTable<DiaryData2>();
 
 			try
@@ -1200,7 +1200,8 @@ namespace CumulusMX
 
 
 					LogMessage("Migrating the weather diary database to version 2");
-					var res = DiaryDB.Execute("INSERT OR REPLACE INTO DiaryData2 (Timestamp, entry, snowDepth) SELECT Timestamp, entry, snowDepth FROM DiaryData");
+					var snowHr = new TimeSpan(SnowDepthHour, 0, 0);
+					var res = DiaryDB.Execute("INSERT OR REPLACE INTO DiaryData2 (Date, Time, Entry, SnowDepth) SELECT Timestamp, ?, entry, snowDepth FROM DiaryData WHERE Timestamp > \"1900-01-01\" ORDER BY Timestamp", snowHr);
 					LogMessage("Migrated " + res + " weather diary records");
 
 					LogMessage("Dropping the old weather diary database");
@@ -3964,7 +3965,7 @@ namespace CumulusMX
 			//UseWindChillCutoff = ini.GetValue("Station", "UseWindChillCutoff", false)
 			RecordSetTimeoutHrs = ini.GetValue("Station", "RecordSetTimeoutHrs", 24, 0);
 
-			SnowDepthHour = ini.GetValue("Station", "SnowDepthHour", 0, 0, 23);
+			SnowDepthHour = ini.GetValue("Station", "SnowDepthHour", 9, 0, 23);
 
 			StationOptions.UseZeroBearing = ini.GetValue("Station", "UseZeroBearing", false);
 
@@ -13623,10 +13624,12 @@ namespace CumulusMX
 	public class DiaryData2
 	{
 		[PrimaryKey]
-		public DateTime Timestamp { get; set; }
-		public string? entry { get; set; }
-		public double? snow24h { get; set; }
-		public double? snowDepth { get; set; }
+		public DateTime Date { get; set; }
+		[NotNullAttribute]
+		public TimeSpan Time { get; set; }
+		public string? Entry { get; set; }
+		public double? Snow24h { get; set; }
+		public double? SnowDepth { get; set; }
 	}
 
 	public class ProgramOptionsClass

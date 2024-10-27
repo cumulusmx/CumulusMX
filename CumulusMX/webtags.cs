@@ -197,9 +197,9 @@ namespace CumulusMX
 			double depth;
 			try
 			{
-				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Timestamp = ?", day.Date);
+				var result = cumulus.DiaryDB.Query<DiaryData2>("SELECT * FROM DiaryData2 WHERE Date = ?", day.Date);
 
-				depth = result.Count == 1 ? result[0].snowDepth : 0;
+				depth = result.Count == 1 ? result[0].SnowDepth ?? 0 : 0;
 			}
 			catch (Exception e)
 			{
@@ -209,38 +209,38 @@ namespace CumulusMX
 			return depth;
 		}
 
-		private int GetSnowLying(DateTime day)
+		private double GetSnow24h(DateTime day)
 		{
-			int lying;
+			double snow24h;
 			try
 			{
-				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Timestamp = ?", day.Date);
+				var result = cumulus.DiaryDB.Query<DiaryData2>("SELECT * FROM DiaryData2 WHERE Date = ?", day.Date);
 
-				lying = result.Count == 1 ? result[0].snowLying : 0;
+				snow24h = result.Count == 1 ? result[0].Snow24h ?? 0 : 0;
 			}
 			catch (Exception e)
 			{
 				cumulus.LogErrorMessage("Error reading diary database: " + e.Message);
-				lying = 0;
+				snow24h = 0;
 			}
-			return lying;
+			return snow24h;
 		}
 
-		private int GetSnowFalling(DateTime day)
+		private bool GetSnowLying(DateTime day)
 		{
-			int falling;
+			bool lying;
 			try
 			{
-				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Timestamp = ?", day.Date);
+				var result = cumulus.DiaryDB.Query<DiaryData2>("SELECT * FROM DiaryData2 WHERE Date = ?", day.Date);
 
-				falling = result.Count == 1 ? result[0].snowFalling : 0;
+				lying = result.Count == 1 && result[0].SnowDepth > 0;
 			}
 			catch (Exception e)
 			{
 				cumulus.LogErrorMessage("Error reading diary database: " + e.Message);
-				falling = 0;
+				lying = false;
 			}
-			return falling;
+			return lying;
 		}
 
 		private static string EncodeForWeb(string aStr)
@@ -1451,7 +1451,7 @@ namespace CumulusMX
 		private string Tagsnowdepth(Dictionary<string, string> tagParams)
 		{
 			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
-			return CheckRc(GetSnowDepth(ts.Date).ToString(), tagParams);
+			return CheckRc(GetSnowDepth(ts.Date).ToString("F1"), tagParams);
 		}
 
 		private string Tagsnowlying(Dictionary<string, string> tagParams)
@@ -1460,10 +1460,16 @@ namespace CumulusMX
 			return GetSnowLying(ts.Date).ToString();
 		}
 
-		private string Tagsnowfalling(Dictionary<string, string> tagParams)
+		private string Tagsnow24hr(Dictionary<string, string> tagParams)
 		{
 			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
-			return GetSnowFalling(ts.Date).ToString();
+			return GetSnow24h(ts.Date).ToString("F1");
+		}
+
+
+		private static string Tagsnowfalling(Dictionary<string, string> tagParams)
+		{
+			return string.Empty;
 		}
 
 		private string Tagnewrecord(Dictionary<string, string> tagParams)
@@ -6240,6 +6246,7 @@ namespace CumulusMX
 				{ "snowdepth", Tagsnowdepth },
 				{ "snowlying", Tagsnowlying },
 				{ "snowfalling", Tagsnowfalling },
+				{ "snow24hr", Tagsnow24hr },
 				{ "newrecord", Tagnewrecord },
 				{ "TempRecordSet", TagTempRecordSet },
 				{ "WindRecordSet", TagWindRecordSet },

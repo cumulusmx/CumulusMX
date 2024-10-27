@@ -45,6 +45,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The Weather Diary has been revamped with revised fields to make it more useful
 	- The existing Weather Diary database data is migrated to the new format on first run of v4.3.0
 	- The SQLite table name has been changed to `DiaryData2` as part of this process
+	- The Editor page gains a new "Export All" button to export your diary to CSV format
+	- The Editor page now also has a Time field which defaults to the configured snow recording time, but you may override it
+	- A new web tag `<#snow24h>`
+	- The web tag `<#snowfalling>` has been deprecated (it will return an empty string until it is removed)
 
 
 ### Fixed
