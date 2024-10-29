@@ -1857,7 +1857,7 @@ namespace CumulusMX
 
 					CalculateDominantWindBearing(AvgBearing, WindAverage, 1);
 
-					if (OutdoorTemperature < cumulus.ChillHourThreshold)
+					if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 					{
 						// add 1 minute to chill hours
 						ChillHours += 1.0 / 60.0;
@@ -14245,6 +14245,213 @@ namespace CumulusMX
 
 			return sb.ToString();
 		}
+
+		public string GetAllTempSumGraphData(bool local)
+		{
+			var InvC = CultureInfo.InvariantCulture;
+
+			StringBuilder sb = new StringBuilder("{");
+			StringBuilder tempSumYears0 = new StringBuilder("{", 32768);
+			StringBuilder tempSumYears1 = new StringBuilder("{", 32768);
+			StringBuilder tempSumYears2 = new StringBuilder("{", 32768);
+
+			StringBuilder tempSum0 = new StringBuilder("[", 8600);
+			StringBuilder tempSum1 = new StringBuilder("[", 8600);
+			StringBuilder tempSum2 = new StringBuilder("[", 8600);
+
+			DateTime nextYear;
+
+			// 2000 was a leap year, so make sure February falls in 2000
+			// for Southern hemisphere this means the start year must be 1999
+			var plotYear = cumulus.TempSumYearStarts < 3 ? 2000 : 1999;
+
+			int startYear;
+			var annualTempSum0 = 0.0;
+			var annualTempSum1 = 0.0;
+			var annualTempSum2 = 0.0;
+
+			var options = $"\"options\":{{\"sumBase1\":{cumulus.TempSumBase1},\"sumBase2\":{cumulus.TempSumBase2},\"startMon\":{cumulus.TempSumYearStarts}}}";
+
+			// Read the day file list and extract the data from there
+			if (DayFile.Count > 0 && (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) || cumulus.GraphOptions.Visible.TempSum2.IsVisible(local)))
+			{
+				// we have to detect a new year is starting
+				nextYear = new DateTime(DayFile[0].Date.Year, cumulus.TempSumYearStarts, 1, 0, 0, 0, DateTimeKind.Local);
+
+				if (DayFile[0].Date >= nextYear)
+				{
+					nextYear = nextYear.AddYears(1);
+				}
+
+				// are we starting part way through a year that does not start in January?
+				if (DayFile[0].Date.Year == nextYear.Year)
+				{
+					startYear = DayFile[0].Date.Year - 1;
+				}
+				else
+				{
+					startYear = DayFile[0].Date.Year;
+				}
+
+				if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
+				{
+					tempSumYears0.Append($"\"{startYear}\":");
+				}
+				if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
+				{
+					tempSumYears1.Append($"\"{startYear}\":");
+				}
+				if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
+				{
+					tempSumYears2.Append($"\"{startYear}\":");
+				}
+
+				for (var i = 0; i < DayFile.Count; i++)
+				{
+					// we have rolled over into a new GDD year, write out what we have and reset
+					if (DayFile[i].Date >= nextYear)
+					{
+						if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local) && tempSum0.Length > 10)
+						{
+							// remove last comma
+							tempSum0.Length--;
+							// close the year data
+							tempSum0.Append("],");
+							// append to years array
+							tempSumYears0.Append(tempSum0);
+
+							tempSum0.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+						}
+						if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local) && tempSum1.Length > 10)
+						{
+							// remove last comma
+							tempSum1.Length--;
+							// close the year data
+							tempSum1.Append("],");
+							// append to years array
+							tempSumYears1.Append(tempSum1);
+
+							tempSum1.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+						}
+						if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local) && tempSum2.Length > 10)
+						{
+							// remove last comma
+							tempSum2.Length--;
+							// close the year data
+							tempSum2.Append("],");
+							// append to years array
+							tempSumYears2.Append(tempSum2);
+
+							tempSum2.Clear().Append($"\"{DayFile[i].Date.Year}\":[");
+						}
+
+						// reset the plot year for Southern hemisphere
+						plotYear = cumulus.TempSumYearStarts < 3 ? 2000 : 1999;
+
+						annualTempSum0 = 0;
+						annualTempSum1 = 0;
+						annualTempSum2 = 0;
+
+						do
+						{
+							nextYear = nextYear.AddYears(1);
+						}
+						while (DayFile[i].Date >= nextYear);
+					}
+					// make all series the same year so they plot together
+					// 2000 was a leap year, so make sure February falls in 2000
+					// for Southern hemisphere this means the start year must be 1999
+					if (cumulus.TempSumYearStarts > 2 && plotYear == 1999 && DayFile[i].Date.Month < cumulus.TempSumYearStarts)
+					{
+						plotYear++;
+					}
+
+					long recDate = Utils.ToPseudoJSTime(new DateTime(plotYear, DayFile[i].Date.Month, DayFile[i].Date.Day, 0, 0, 0, DateTimeKind.Utc));
+
+					if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
+					{
+						// annual accumulation
+						annualTempSum0 += DayFile[i].AvgTemp;
+						tempSum0.Append($"[{recDate},{annualTempSum0.ToString("F0", InvC)}],");
+					}
+					if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
+					{
+						// annual accumulation
+						annualTempSum1 += DayFile[i].AvgTemp - cumulus.TempSumBase1;
+						tempSum1.Append($"[{recDate},{annualTempSum1.ToString("F0", InvC)}],");
+					}
+					if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
+					{
+						// annual accumulation
+						annualTempSum2 += DayFile[i].AvgTemp - cumulus.TempSumBase2;
+						tempSum2.Append($"[{recDate},{annualTempSum2.ToString("F0", InvC)}],");
+					}
+				}
+			}
+
+			// remove last commas from the years arrays and close them off
+			if (cumulus.GraphOptions.Visible.TempSum0.IsVisible(local))
+			{
+				if (tempSum0[^1] == ',')
+				{
+					tempSum0.Length--;
+				}
+
+				// have previous years been appended?
+				if (tempSumYears0[^1] == ']')
+				{
+					tempSumYears0.Append(',');
+				}
+
+				tempSumYears0.Append(tempSum0 + "]");
+
+				// add to main json
+				sb.Append("\"Sum0\":" + tempSumYears0 + "},");
+			}
+			if (cumulus.GraphOptions.Visible.TempSum1.IsVisible(local))
+			{
+				if (tempSum1[^1] == ',')
+				{
+					tempSum1.Length--;
+				}
+
+				// have previous years been appended?
+				if (tempSumYears1[^1] == ']')
+				{
+					tempSumYears1.Append(',');
+				}
+
+				tempSumYears1.Append(tempSum1 + "]");
+
+				// add to main json
+				sb.Append("\"Sum1\":" + tempSumYears1 + "},");
+			}
+			if (cumulus.GraphOptions.Visible.TempSum2.IsVisible(local))
+			{
+				if (tempSum2[^1] == ',')
+				{
+					tempSum2.Length--;
+				}
+
+				// have previous years been appended?
+				if (tempSumYears2[^1] == ']')
+				{
+					tempSumYears2.Append(',');
+				}
+
+				tempSumYears2.Append(tempSum2 + "]");
+
+				// add to main json
+				sb.Append("\"Sum2\":" + tempSumYears2 + "},");
+			}
+
+			sb.Append(options);
+
+			sb.Append('}');
+
+			return sb.ToString();
+		}
+
 
 		public string GetAllSnowGraphData(bool local)
 		{

@@ -599,7 +599,7 @@ namespace CumulusMX
 								TempTotalToday += (OutdoorTemperature * interval);
 
 								// update chill hours
-								if (OutdoorTemperature < cumulus.ChillHourThreshold)
+								if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 								{
 									// add 1 minute to chill hours
 									ChillHours += interval / 60.0;

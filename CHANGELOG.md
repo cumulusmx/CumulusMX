@@ -50,7 +50,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The Editor page now also has a Time field which defaults to the configured snow recording time, but you may override it
 	- A new web tag `<#snow24h>`
 	- The web tag `<#snowfalling>` has been deprecated (it will return an empty string until it is removed)
-
+- Chill hours now allows you to define a base temperature, where chill hours are only counted if the temperature is > base and < threshold
+	- The base temperature defaults to -99 (°C or °F) to mimic the current behaviour where chill hours are counted if the temperature < threshold
+	- Some seed cold stratification in the UK for instance only counts chill hours between 1°C and 10°C
 
 ### Fixed
 - Fix error editing extra log file data when MySQL updates enabled

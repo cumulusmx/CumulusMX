@@ -313,6 +313,7 @@ namespace CumulusMX
 			var chillhrs = new JsonChillHours()
 			{
 				threshold = cumulus.ChillHourThreshold,
+				basetemp = cumulus.ChillHourBase,
 				month = cumulus.ChillHourSeasonStart
 			};
 
@@ -606,6 +607,7 @@ namespace CumulusMX
 				try
 				{
 					cumulus.ChillHourThreshold = settings.ChillHrs.threshold;
+					cumulus.ChillHourBase = settings.ChillHrs.basetemp;
 					cumulus.ChillHourSeasonStart = settings.ChillHrs.month;
 				}
 				catch (Exception ex)
@@ -2068,6 +2070,7 @@ namespace CumulusMX
 	public class JsonChillHours
 	{
 		public double threshold { get; set; }
+		public double basetemp { get; set; }
 		public int month { get; set; }
 	}
 

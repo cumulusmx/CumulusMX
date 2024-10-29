@@ -2022,6 +2022,7 @@ namespace CumulusMX
 			NOAAconf.MinTempComp2 = Units.Temp == 0 ? -18 : 0;
 
 			ChillHourThreshold = Units.Temp == 0 ? 7 : 45;
+			ChillHourBase = Units.Temp == 0 ? -99 : -99;
 
 			GrowingBase1 = Units.Temp == 0 ? 5.0 : 40.0;
 			GrowingBase2 = Units.Temp == 0 ? 10.0 : 50.0;
@@ -3986,6 +3987,7 @@ namespace CumulusMX
 				LogMessage("Cumulus.ini: Defaulting ChillHourThreshold to " + ChillHourThreshold);
 				rewriteRequired = true;
 			}
+			ChillHourBase = ini.GetValue("Station", "ChillHourBase", -99);
 
 			RG11Enabled = ini.GetValue("Station", "RG11Enabled", false);
 			RG11Port = ini.GetValue("Station", "RG11portName", DefaultComportName);
@@ -5697,6 +5699,7 @@ namespace CumulusMX
 
 			ini.SetValue("Station", "ChillHourSeasonStart", ChillHourSeasonStart);
 			ini.SetValue("Station", "ChillHourThreshold", ChillHourThreshold);
+			ini.SetValue("Station", "ChillHourBase", ChillHourBase);
 
 			ini.SetValue("Station", "ErrorLogSpikeRemoval", ErrorLogSpikeRemoval);
 
@@ -7337,6 +7340,7 @@ namespace CumulusMX
 		public bool RG11Enabled2 { get; set; }
 
 		public double ChillHourThreshold { get; set; }
+		public double ChillHourBase {  get; set; }
 
 		public int ChillHourSeasonStart { get; set; }
 

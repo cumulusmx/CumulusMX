@@ -1997,7 +1997,7 @@ namespace CumulusMX
 										TempTotalToday += ConvertUnits.TempFToUser(data11.temp_avg) * data11.arch_int / 60;
 
 										// update chill hours
-										if (OutdoorTemperature < cumulus.ChillHourThreshold)
+										if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 										{
 											// add interval minutes to chill hours - arch_int in seconds
 											ChillHours += (data11.arch_int / 3600.0);
