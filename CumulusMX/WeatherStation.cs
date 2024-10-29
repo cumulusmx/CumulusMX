@@ -10865,7 +10865,10 @@ namespace CumulusMX
 		{
 			var windMPH = ConvertUnits.UserWindToMPH(wind);
 			if (cumulus.StationOptions.RoundWindSpeed)
+			{
 				windMPH = Math.Round(windMPH);
+				return windMPH.ToString("F0", CultureInfo.InvariantCulture);
+			}
 
 			return windMPH.ToString("F1", CultureInfo.InvariantCulture);
 		}
@@ -10874,7 +10877,10 @@ namespace CumulusMX
 		{
 			var windMS = ConvertUnits.UserWindToMS(wind);
 			if (cumulus.StationOptions.RoundWindSpeed)
+			{
 				windMS = Math.Round(windMS);
+				return windMS.ToString("F0", CultureInfo.InvariantCulture);
+			}
 
 			return windMS.ToString("F1", CultureInfo.InvariantCulture);
 		}

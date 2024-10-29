@@ -33,6 +33,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#temp9amYH>`,`<#Ttemp9amYH>`<br>
 	`<#temp9amYL>`,`<#Ttemp9amYL>`<br>
 	`<#temp9amRangeY>`
+- Added some validation to the fields in the log editors
 
 
 ### Changed
@@ -52,7 +53,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 
 ### Fixed
-- Nothing
+- Fix error editing extra log file data when MySQL updates enabled
 
 ### Package Updates
 - None

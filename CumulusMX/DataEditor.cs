@@ -3349,69 +3349,71 @@ namespace CumulusMX
 					// Update internal database
 					// This does not really work, as the recent data is every minute, the logged data could be every 5, 15, 30 minutes
 
-					var LogRec = station.ParseLogFileRec(newLine, false);
+					if (!newData.extra)
+					{ 
+						var LogRec = station.ParseLogFileRec(newLine, false);
 
-					// Update the MySQL record
-					if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
-						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
-						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
-						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
-						cumulus.MySqlSettings.UpdateOnEdit &&
-						!newData.extra  // Only the monthly log file is stored in MySQL
-						)
-					{
-						var updateStr = string.Empty;
-
-						try
+						// Update the MySQL record
+						if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
+							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
+							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
+							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
+							cumulus.MySqlSettings.UpdateOnEdit
+							)
 						{
-							var updt = new StringBuilder(1024);
+							var updateStr = string.Empty;
+
+							try
+							{
+								var updt = new StringBuilder(1024);
 
 
-							updt.Append($"UPDATE {cumulus.MySqlSettings.Monthly.TableName} SET ");
-							updt.Append($"Temp={LogRec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"Humidity={LogRec.OutdoorHumidity},");
-							updt.Append($"Dewpoint={LogRec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"Windspeed={LogRec.WindAverage.ToString(cumulus.WindAvgFormat, InvC)},");
-							updt.Append($"Windgust={LogRec.RecentMaxGust.ToString(cumulus.WindFormat, InvC)},");
-							updt.Append($"Windbearing={LogRec.AvgBearing},");
-							updt.Append($"RainRate={LogRec.RainRate.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"TodayRainSoFar={LogRec.RainToday.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"Pressure={LogRec.Pressure.ToString(cumulus.PressFormat, InvC)},");
-							updt.Append($"Raincounter={LogRec.Raincounter.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"InsideTemp={(LogRec.IndoorTemperature.HasValue ? LogRec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC) : "NULL")},");
-							updt.Append($"InsideHumidity={(LogRec.IndoorHumidity.HasValue ? LogRec.IndoorHumidity : "NULL")},");
-							updt.Append($"LatestWindGust={LogRec.WindLatest.ToString(cumulus.WindFormat, InvC)},");
-							updt.Append($"WindChill={LogRec.WindChill.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"HeatIndex={LogRec.HeatIndex.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"UVindex={LogRec.UV.ToString(cumulus.UVFormat, InvC)},");
-							updt.Append($"SolarRad={LogRec.SolarRad},");
-							updt.Append($"Evapotrans={LogRec.ET.ToString(cumulus.ETFormat, InvC)},");
-							updt.Append($"AnnualEvapTran={LogRec.AnnualETTotal.ToString(cumulus.ETFormat, InvC)},");
-							updt.Append($"ApparentTemp={LogRec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"MaxSolarRad={(Math.Round(LogRec.CurrentSolarMax))},");
-							updt.Append($"HrsSunShine={LogRec.SunshineHours.ToString(cumulus.SunFormat, InvC)},");
-							updt.Append($"CurrWindBearing={LogRec.Bearing},");
-							updt.Append($"RG11rain={LogRec.RG11RainToday.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"RainSinceMidnight={LogRec.RainSinceMidnight.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"WindbearingSym='{station.CompassPoint(LogRec.AvgBearing)}',");
-							updt.Append($"CurrWindBearingSym='{station.CompassPoint(LogRec.Bearing)}',");
-							updt.Append($"FeelsLike={LogRec.FeelsLike.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"Humidex={LogRec.Humidex.ToString(cumulus.TempFormat, InvC)} ");
+								updt.Append($"UPDATE {cumulus.MySqlSettings.Monthly.TableName} SET ");
+								updt.Append($"Temp={LogRec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"Humidity={LogRec.OutdoorHumidity},");
+								updt.Append($"Dewpoint={LogRec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"Windspeed={LogRec.WindAverage.ToString(cumulus.WindAvgFormat, InvC)},");
+								updt.Append($"Windgust={LogRec.RecentMaxGust.ToString(cumulus.WindFormat, InvC)},");
+								updt.Append($"Windbearing={LogRec.AvgBearing},");
+								updt.Append($"RainRate={LogRec.RainRate.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"TodayRainSoFar={LogRec.RainToday.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"Pressure={LogRec.Pressure.ToString(cumulus.PressFormat, InvC)},");
+								updt.Append($"Raincounter={LogRec.Raincounter.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"InsideTemp={(LogRec.IndoorTemperature.HasValue ? LogRec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"InsideHumidity={(LogRec.IndoorHumidity.HasValue ? LogRec.IndoorHumidity : "NULL")},");
+								updt.Append($"LatestWindGust={LogRec.WindLatest.ToString(cumulus.WindFormat, InvC)},");
+								updt.Append($"WindChill={LogRec.WindChill.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"HeatIndex={LogRec.HeatIndex.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"UVindex={LogRec.UV.ToString(cumulus.UVFormat, InvC)},");
+								updt.Append($"SolarRad={LogRec.SolarRad},");
+								updt.Append($"Evapotrans={LogRec.ET.ToString(cumulus.ETFormat, InvC)},");
+								updt.Append($"AnnualEvapTran={LogRec.AnnualETTotal.ToString(cumulus.ETFormat, InvC)},");
+								updt.Append($"ApparentTemp={LogRec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"MaxSolarRad={(Math.Round(LogRec.CurrentSolarMax))},");
+								updt.Append($"HrsSunShine={LogRec.SunshineHours.ToString(cumulus.SunFormat, InvC)},");
+								updt.Append($"CurrWindBearing={LogRec.Bearing},");
+								updt.Append($"RG11rain={LogRec.RG11RainToday.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"RainSinceMidnight={LogRec.RainSinceMidnight.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"WindbearingSym='{station.CompassPoint(LogRec.AvgBearing)}',");
+								updt.Append($"CurrWindBearingSym='{station.CompassPoint(LogRec.Bearing)}',");
+								updt.Append($"FeelsLike={LogRec.FeelsLike.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"Humidex={LogRec.Humidex.ToString(cumulus.TempFormat, InvC)} ");
 
-							updt.Append($"WHERE LogDateTime='{LogRec.Date:yyyy-MM-dd HH:mm}';");
-							updateStr = updt.ToString();
+								updt.Append($"WHERE LogDateTime='{LogRec.Date:yyyy-MM-dd HH:mm}';");
+								updateStr = updt.ToString();
 
 
-							cumulus.MySqlCommandSync(updateStr, "EditLogFile");
-							cumulus.LogMessage($"EditDataLog: SQL Updated");
-						}
-						catch (Exception ex)
-						{
-							cumulus.LogErrorMessage($"EditDataLog: Failed, to update MySQL. Error = {ex.Message}");
-							cumulus.LogMessage($"EditDataLog: SQL Update statement = {updateStr}");
-							context.Response.StatusCode = 501; // Use 501 to signal that SQL failed but file update was OK
+								cumulus.MySqlCommandSync(updateStr, "EditLogFile");
+								cumulus.LogMessage($"EditDataLog: SQL Updated");
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogErrorMessage($"EditDataLog: Failed, to update MySQL. Error = {ex.Message}");
+								cumulus.LogMessage($"EditDataLog: SQL Update statement = {updateStr}");
+								context.Response.StatusCode = 501; // Use 501 to signal that SQL failed but file update was OK
 
-							return "{\"errors\": { \"Logfile\":[\"<br>Updated the log file OK\"], \"MySQL\":[\"<br>Failed to update MySQL. Error: " + ex.Message + "\"] }}";
+								return "{\"errors\": { \"Logfile\":[\"<br>Updated the log file OK\"], \"MySQL\":[\"<br>Failed to update MySQL. Error: " + ex.Message + "\"] }}";
+							}
 						}
 					}
 				}
