@@ -36,6 +36,7 @@ namespace CumulusMX
 			public GraphDataValue TempSum0 { get; set; } = new GraphDataValue();
 			public GraphDataValue TempSum1 { get; set; } = new GraphDataValue();
 			public GraphDataValue TempSum2 { get; set; } = new GraphDataValue();
+			public GraphDataValue ChillHours { get; set; } = new GraphDataValue();
 			public GraphOptionsDataArray ExtraTemp { get; set; } = new GraphOptionsDataArray();
 			public GraphOptionsDataArray ExtraHum { get; set; } = new GraphOptionsDataArray();
 			public GraphOptionsDataArray ExtraDewPoint { get; set; } = new GraphOptionsDataArray();

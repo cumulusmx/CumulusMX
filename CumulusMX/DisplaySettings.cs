@@ -73,6 +73,11 @@ namespace CumulusMX
 
 			};
 
+			var grahpVisChillhrs = new JsonGraphVisChillHrs()
+			{
+				ChillHrs = cumulus.GraphOptions.Visible.ChillHours.Val
+			};
+
 			var graphVisExtraTemp = new JsonGraphVisExtraSensors()
 			{
 				sensors = cumulus.GraphOptions.Visible.ExtraTemp.Vals
@@ -145,6 +150,7 @@ namespace CumulusMX
 				solar = graphVisSolar,
 				degreedays = graphVisDegreeDays,
 				tempsum = grapVisTempSum,
+				chillhrs = grahpVisChillhrs,
 				extratemp = graphVisExtraTemp,
 				extrahum = graphVisExtraHum,
 				extradew = graphVisExtraDP,
@@ -394,6 +400,7 @@ namespace CumulusMX
 					cumulus.GraphOptions.Visible.TempSum2.Val = settings.DataVisibility.tempsum.TempSum2;
 					cumulus.GraphOptions.Visible.GrowingDegreeDays1.Val = settings.DataVisibility.degreedays.GrowingDegreeDays1;
 					cumulus.GraphOptions.Visible.GrowingDegreeDays2.Val = settings.DataVisibility.degreedays.GrowingDegreeDays2;
+					cumulus.GraphOptions.Visible.ChillHours.Val = settings.DataVisibility.chillhrs.ChillHrs;
 					cumulus.GraphOptions.Visible.ExtraTemp.Vals = settings.DataVisibility.extratemp.sensors;
 					cumulus.GraphOptions.Visible.ExtraHum.Vals = settings.DataVisibility.extrahum.sensors;
 					cumulus.GraphOptions.Visible.ExtraDewPoint.Vals = settings.DataVisibility.extradew.sensors;
@@ -597,7 +604,6 @@ namespace CumulusMX
 			public int hum { get; set; }
 		}
 
-
 		private sealed class JsonVisibility
 		{
 			public JsonGraphVisTemperature temperature { get; set; }
@@ -605,6 +611,7 @@ namespace CumulusMX
 			public JsonGraphVisSolar solar { get; set; }
 			public JsonGraphVisDegreeDays degreedays { get; set; }
 			public JsonGraphVisTempSum tempsum { get; set; }
+			public JsonGraphVisChillHrs chillhrs { get; set; }
 			public JsonGraphVisExtraSensors extratemp { get; set; }
 			public JsonGraphVisExtraSensors extrahum { get; set; }
 			public JsonGraphVisExtraSensors extradew { get; set; }
@@ -661,6 +668,11 @@ namespace CumulusMX
 			public int TempSum0 { get; set; }
 			public int TempSum1 { get; set; }
 			public int TempSum2 { get; set; }
+		}
+
+		private sealed class JsonGraphVisChillHrs
+		{
+			public int ChillHrs { get; set; }
 		}
 
 		private sealed class JsonGraphVisExtraSensors

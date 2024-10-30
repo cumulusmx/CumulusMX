@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 
 
-## 4.3.0 \[b4044\] - 2024-11-xx
+## 4.3.0 \[b4045\] - 2024-11-xx
 
 ### New
 - Adds Rain Week to the dashboard
@@ -34,7 +34,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#temp9amYL>`,`<#Ttemp9amYL>`<br>
 	`<#temp9amRangeY>`
 - Added some validation to the fields in the log editors
-
+- The dashboard and default web site can now display Chill Hours charts
 
 ### Changed
 - The extra sensors and the extra sensors log file now records null value values for absent readings. This will void logging spurious zero values at start-up
@@ -50,9 +50,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The Editor page now also has a Time field which defaults to the configured snow recording time, but you may override it
 	- A new web tag `<#snow24h>`
 	- The web tag `<#snowfalling>` has been deprecated (it will return an empty string until it is removed)
-- Chill hours now allows you to define a base temperature, where chill hours are only counted if the temperature is > base and < threshold
-	- The base temperature defaults to -99 (°C or °F) to mimic the current behaviour where chill hours are counted if the temperature < threshold
-	- Some seed cold stratification in the UK for instance only counts chill hours between 1°C and 10°C
+- Chill Hours now allows you to define a base temperature, where chill hours are only counted if the temperature is < threshold AND > base
+	- The base temperature defaults to -99 (°C or °F) to mimic the current behaviour where chill hours are counted if the temperature is just < threshold
+	- Some cold stratification of seeds in the UK for instance only counts chill hours when it is between 1°C and 10°C
 
 ### Fixed
 - Fix error editing extra log file data when MySQL updates enabled

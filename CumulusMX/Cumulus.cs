@@ -904,6 +904,12 @@ namespace CumulusMX
 				new()
 				{
 					LocalPath = WebPath,
+					LocalFileName = "allchillhrsdata.json",
+					RemoteFileName = "allchillhrsdata.json"
+				},
+				new()
+				{
+					LocalPath = WebPath,
 					LocalFileName = "alldailysnowdata.json",
 					RemoteFileName = "alldailysnowdata.json"
 				}
@@ -4417,6 +4423,7 @@ namespace CumulusMX
 			GraphOptions.Visible.TempSum0.Val = ini.GetValue("Graphs", "TempSumVisible0", 1, 0, 2);
 			GraphOptions.Visible.TempSum1.Val = ini.GetValue("Graphs", "TempSumVisible1", 1, 0, 2);
 			GraphOptions.Visible.TempSum2.Val = ini.GetValue("Graphs", "TempSumVisible2", 1, 0, 2);
+			GraphOptions.Visible.ChillHours.Val = ini.GetValue("Graphs", "ChillHoursVisible", 1, 0, 2);
 			GraphOptions.Visible.ExtraTemp.Vals = ini.GetValue("Graphs", "ExtraTempVisible", new int[10]);
 			GraphOptions.Visible.ExtraHum.Vals = ini.GetValue("Graphs", "ExtraHumVisible", new int[10]);
 			GraphOptions.Visible.ExtraDewPoint.Vals = ini.GetValue("Graphs", "ExtraDewPointVisible", new int[10]);
@@ -6517,6 +6524,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "TempSumVisible0", GraphOptions.Visible.TempSum0.Val);
 			ini.SetValue("Graphs", "TempSumVisible1", GraphOptions.Visible.TempSum1.Val);
 			ini.SetValue("Graphs", "TempSumVisible2", GraphOptions.Visible.TempSum2.Val);
+			ini.SetValue("Graphs", "ChillHoursVisible", GraphOptions.Visible.ChillHours.Val);
 			ini.SetValue("Graphs", "ExtraTempVisible", GraphOptions.Visible.ExtraTemp.Vals);
 			ini.SetValue("Graphs", "ExtraHumVisible", GraphOptions.Visible.ExtraHum.Vals);
 			ini.SetValue("Graphs", "ExtraDewPointVisible", GraphOptions.Visible.ExtraDewPoint.Vals);

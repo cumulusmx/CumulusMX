@@ -633,6 +633,9 @@ namespace CumulusMX
 						case "tempsumdata.json":
 							await writer.WriteAsync(Station.GetAllTempSumGraphData(true));
 							break;
+						case "chillhrsdata.json":
+							await writer.WriteAsync(Station.GetAllChillHrsGraphData(true));
+							break;
 						case "units.json":
 							await writer.WriteAsync(Station.GetUnits());
 							break;
