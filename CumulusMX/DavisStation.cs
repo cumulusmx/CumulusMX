@@ -2145,7 +2145,7 @@ namespace CumulusMX
 				{
 					// Spike removal is in user units
 					var pressUser = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
-					if ((previousPressStation != 9999) && (Math.Abs(pressUser - previousPressStation) > cumulus.Spike.PressDiff))
+					if ((previousPressStation < 9998) && (Math.Abs(pressUser - previousPressStation) > cumulus.Spike.PressDiff))
 					{
 						cumulus.LogSpikeRemoval("Station Pressure difference greater than spike value; reading ignored");
 						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} OldVal={previousPressStation.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}");
@@ -2526,9 +2526,16 @@ namespace CumulusMX
 							}
 
 							// Read the response
-							stream.Read(buff, 0, pageSize);
+							var size = stream.Read(buff, 0, pageSize);
 
-							cumulus.LogDataMessage("GetArchiveData: Response data - " + BitConverter.ToString(buff));
+							if (size != pageSize)
+							{
+								cumulus.LogMessage($"GetArchiveData: Response data ( expecting {pageSize} bytes, got {size} bytes) - " + BitConverter.ToString(buff));
+							}
+							else
+							{
+								cumulus.LogDataMessage("GetArchiveData: Response data - " + BitConverter.ToString(buff));
+							}
 
 							if (CrcOk(buff))
 								badCRC = false;

@@ -152,13 +152,13 @@ namespace CumulusMX
 			public string Sunshine { get; set; }
 			public string Pm2p5 { get; set; }
 			public string Pm10 { get; set; }
-			public string[] ExtraTemp = new string[10];
-			public string[] ExtraHum = new string[10];
-			public string[] ExtraDewPoint = new string[10];
-			public string[] SoilTemp = new string[16];
-			public string[] SoilMoist = new string[16];
-			public string[] LeafWetness = new string[2];
-			public string[] UserTemp = new string[8];
+			public string[] ExtraTemp { get; set; } = new string[10];
+			public string[] ExtraHum { get; set; } = new string[10];
+			public string[] ExtraDewPoint { get; set; } = new string[10];
+			public string[] SoilTemp { get; set; } = new string[16];
+			public string[] SoilMoist { get; set; } = new string[16];
+			public string[] LeafWetness { get; set; } = new string[2];
+			public string[] UserTemp { get; set; } = new string[8];
 			// daily values
 			public string MaxTemp { get; set; }
 			public string MinTemp { get; set; }

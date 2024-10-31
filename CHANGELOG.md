@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 
 
-## [4.3.0 \[b4045\]][9] - 2024-11-xx
+## [4.3.0 \[b4046\]][9] - 2024-11-xx
 
 ### New
 
@@ -59,6 +59,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Fix error editing extra log file data when MySQL updates enabled
+- Lightning Time showing a 1900 date when no lightning has been detected
 
 ### Package Updates
 

@@ -220,7 +220,7 @@ namespace CumulusMX
 		/// <returns>Dew Point temperature in Celsius</returns>
 		public static double DewPoint(double tempC, double humidity)
 		{
-			if (humidity == 0 || humidity == 100)
+			if ((int) humidity == 0 || (int) humidity == 100)
 				return tempC;
 
 			// Davis algorithm
@@ -345,7 +345,7 @@ namespace CumulusMX
 			double a = 9.80665;// gravity
 			double r = .0065; //standard atmosphere lapse rate
 			double s = 1013.25;// standard sea level pressure
-			double n = 273.15 + tempC; //288.15  standard sea level temp;
+			double n = 273.15 + tempC; //288.15  standard sea level temp
 
 			double l = a / (i * r);
 			double c = i * r / a;
@@ -533,6 +533,7 @@ namespace CumulusMX
 			return et0;
 		}
 
+#pragma warning disable S125 // Sections of code should not be commented out
 		/// <summary>
 		/// Calculates the Davis version (almost) of Evapotranspiration
 		/// </summary>

@@ -434,6 +434,7 @@ namespace CumulusMX
 			Wh51Ch16        // 57 39
 		};
 
+#pragma warning disable S125
 		/*
 		[Flags]
 		internal enum SigSen : byte
@@ -579,6 +580,7 @@ namespace CumulusMX
 			public byte batt;			// 0-5
 		}
 		*/
+#pragma warning restore S125
 
 
 		private readonly struct CommandPayload

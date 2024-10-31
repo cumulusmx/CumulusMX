@@ -1057,6 +1057,11 @@ namespace CumulusMX
 			// Lightning (GW1000 for now)
 			LightningDistance = ini.GetValue("Lightning", "Distance", -1.0);
 			LightningTime = ini.GetValue("Lightning", "LastStrike", DateTime.MinValue);
+			if (LightningTime.Year == 1900)
+			{
+				// legacy - used to be 1/1/1900
+				LightningTime = DateTime.MinValue;
+			}
 		}
 
 		public void WriteTodayFile(DateTime timestamp, bool Log)
@@ -1615,7 +1620,7 @@ namespace CumulusMX
 		public int LeakSensor4 { get; set; }
 
 		public double LightningDistance { get; set; }
-		public DateTime LightningTime { get; set; }
+		public DateTime LightningTime { get; set; } = DateTime.MinValue;
 		public int LightningStrikesToday { get; set; }
 
 		public double? LeafWetness1 { get; set; }
@@ -7700,7 +7705,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						var noaa = new NOAAReports(cumulus, this);
+						var noaa = new NoaaReports(cumulus, this);
 
 						DateTime noaats = timestamp.AddDays(-1);
 

@@ -627,7 +627,7 @@ namespace CumulusMX
 							{
 								var raintotal = Convert.ToDouble(sl[RAINPOS], provider);
 								double raindiff;
-								if (prevraintotal == -1)
+								if (prevraintotal < 0)
 								{
 									raindiff = 0;
 								}

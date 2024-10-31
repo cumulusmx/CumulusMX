@@ -251,7 +251,7 @@ namespace CumulusMX
 					// number of ticks in a logging interval
 					var intTicks = TimeSpan.FromMinutes(Cumulus.logints[cumulus.DataLogInterval]).Ticks;
 					// date/time of the last log interval
-					var lastLogInterval = new DateTime((DateTime.Now.Ticks / intTicks) * intTicks);
+					var lastLogInterval = new DateTime((DateTime.Now.Ticks / intTicks) * intTicks, DateTimeKind.Local);
 					// which log interval does this data belong to, the last or the one before that?
 					timestamp = timestamp > lastLogInterval ? lastLogInterval : lastLogInterval.AddTicks(-intTicks);
 				}
@@ -742,9 +742,11 @@ namespace CumulusMX
 			Thread.Sleep(cumulus.FineOffsetOptions.ReadTime);
 			for (int i = 1; i < 5; i++)
 			{
+				int read;
+
 				try
 				{
-					stream.Read(response, 0, responseLength);
+					read = stream.Read(response, 0, responseLength);
 				}
 				catch (Exception ex)
 				{
@@ -761,8 +763,8 @@ namespace CumulusMX
 					return false;
 				}
 
-				var recData = " Data" + i + ": " + BitConverter.ToString(response, startByte, responseLength - startByte);
-				for (int j = startByte; j < responseLength; j++)
+				var recData = " Data" + i + ": " + BitConverter.ToString(response, startByte, read - startByte);
+				for (int j = startByte; j < read; j++)
 				{
 					buff[ptr++] = response[j];
 				}

@@ -2759,7 +2759,7 @@ namespace CumulusMX
 		}
 
 		//TODO: OK this works, but ouch!
-		// refactor data as a dictionary object and parse each item indivually
+		// refactor data as a dictionary object and parse each item indivualy
 		internal class EcowittHistoricData
 		{
 			public HistoricTempHum indoor { get; set; }

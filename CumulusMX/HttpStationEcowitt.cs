@@ -1334,14 +1334,14 @@ namespace CumulusMX
 			{
 				// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
 				var valDist = Convert.ToDouble(dist, invNum);
-				if (valDist != 255)
+				if ((int) valDist != 255)
 				{
 					station.LightningDistance = ConvertUnits.KmtoUserUnits(valDist);
 				}
 
 				var valTime = Convert.ToDouble(time, invNum);
 				// Sends a default value until the first strike is detected of 0xFFFFFFFF
-				if (valTime != 0xFFFFFFFF)
+				if ((long) valTime != 0xFFFFFFFF)
 				{
 					var dtDateTime = DateTime.UnixEpoch;
 					dtDateTime = dtDateTime.AddSeconds(valTime).ToLocalTime();

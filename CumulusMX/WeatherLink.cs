@@ -176,8 +176,6 @@ namespace CumulusMX
 
 		public int ForecastRule { get; private set; }
 
-		public int HiSolarRad { get; private set; }
-
 		public int SolarRad { get; private set; }
 
 		public byte TXbattStatus { get; private set; }
@@ -292,7 +290,7 @@ namespace CumulusMX
 			string windDirString;
 
 			// The wind direction is given in degrees - 0-359 - convert to string representing the direction
-			if (WindDirection >= 337 || WindDirection <= 23)
+			if (WindDirection >= 337 && WindDirection < 360)
 				windDirString = "N";
 			else if (WindDirection > 292)
 				windDirString = "NW";
@@ -308,6 +306,8 @@ namespace CumulusMX
 				windDirString = "E";
 			else if (WindDirection > 23)
 				windDirString = "NE";
+			else if (WindDirection >= 0)
+				windDirString = "N";
 			else
 				windDirString = "??";
 

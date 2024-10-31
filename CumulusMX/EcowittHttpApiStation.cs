@@ -794,6 +794,7 @@ namespace CumulusMX
 
 		private void ProcessWh25(EcowittLocalApi.Wh25Sensor[] sensors, DateTime dateTime)
 		{
+#pragma warning disable S125
 			//"wh25":	[{
 			//	"intemp":	"23.8",
 			//	"unit":	"C",
@@ -801,6 +802,7 @@ namespace CumulusMX
 			//	"abs":	"1006.5 hPa",
 			//	"rel":	"1010.5 hPa"
 			//}]
+#pragma warning restore S125
 
 			for (var i = 0; i < sensors.Length; i++)
 			{
@@ -894,6 +896,7 @@ namespace CumulusMX
 
 		private void ProcessRain(EcowittLocalApi.CommonSensor[] sensors, bool isRainingOnly)
 		{
+#pragma warning disable S125
 			//"rain"/"piezoRain": [
 			//	{
 			//		"id": "0x0D",
@@ -921,7 +924,7 @@ namespace CumulusMX
 			//		"battery": "5"
 			//	}
 			//],
-
+#pragma warning restore S125
 
 			for (var i = 0; i < sensors.Length; i++)
 			{
@@ -1049,12 +1052,15 @@ namespace CumulusMX
 
 		private void ProcessLightning(EcowittLocalApi.LightningSensor[] sensors, DateTime dateTime)
 		{
+#pragma warning disable S125
 			// "lightning":	[{
 			//		"distance": "16.7 mi",
 			//		"timestamp": "09/01/2024 18:45:14",
 			//		"count": "0",
 			//		"battery": "5"
 			// }]
+#pragma warning restore S125
+
 			for (var i = 0; i < sensors.Length; i++)
 			{
 				try
@@ -1084,7 +1090,7 @@ namespace CumulusMX
 					{
 						if (sensor.timestamp.Contains("--"))
 						{
-							newLightningTime = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+							newLightningTime = DateTime.MinValue;
 						}
 						else
 						{
@@ -1127,6 +1133,7 @@ namespace CumulusMX
 
 		private void ProcessCo2(EcowittLocalApi.Co2Sensor[] sensors)
 		{
+#pragma warning disable S125
 			// "co2": [
 			//	{
 			//		"temp": "24.4",
@@ -1143,6 +1150,7 @@ namespace CumulusMX
 			//		"battery": "6"
 			//	}
 			// ]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage("WH45 CO₂: Decoding...");
 
@@ -1181,7 +1189,8 @@ namespace CumulusMX
 
 		private void ProcessChPm25(EcowittLocalApi.ChPm25Sensor[] sensors)
 		{
-			//"ch_pm25": [
+#pragma warning disable S125
+			//"ch_pm25": [                          
 			//	{
 			//		"channel": "1",
 			//		"PM25": "6.0",
@@ -1190,6 +1199,7 @@ namespace CumulusMX
 			//		"battery": "5"
 			//	}
 			//]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage($"ProcessChPm25: Processing {sensors.Length} sensors");
 
@@ -1213,7 +1223,8 @@ namespace CumulusMX
 
 		private void ProcessLeak(EcowittLocalApi.ChLeakSensor[] sensors)
 		{
-			//"ch_leak": [
+#pragma warning disable S125
+			//"ch_leak": [                          
 			//	{
 			//		"channel": "2",
 			//		"name": "",
@@ -1221,6 +1232,7 @@ namespace CumulusMX
 			//		"status": "Normal"
 			//	}
 			//]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage($"ProcessLeak: Processing {sensors.Length} sensors");
 
@@ -1246,6 +1258,7 @@ namespace CumulusMX
 
 		private void ProcessExtraTempHum(EcowittLocalApi.TempHumSensor[] sensors, DateTime dateTime)
 		{
+#pragma warning disable S125
 			//"ch_aisle": [
 			//	{
 			//		"channel": "1",
@@ -1256,6 +1269,7 @@ namespace CumulusMX
 			//		"humidity": "61%"
 			//	}
 			//]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage($"ProcessExtraTempHum: Processing {sensors.Length} sensors");
 
@@ -1288,6 +1302,7 @@ namespace CumulusMX
 
 		private void ProcessUserTemp(EcowittLocalApi.TempHumSensor[] sensors)
 		{
+#pragma warning disable S125
 			//"ch_temp": [
 			//	{
 			//		"channel": "1",
@@ -1297,6 +1312,7 @@ namespace CumulusMX
 			//		"battery": "3"
 			//	}
 			//]
+#pragma warning restore S125
 
 			// user temp = WH34 8 channel Soil or Water temperature sensors
 			cumulus.LogDebugMessage($"ProcessUserTemp: Processing {sensors.Length} sensors");
@@ -1329,6 +1345,7 @@ namespace CumulusMX
 
 		private void ProcessSoilMoisture(EcowittLocalApi.TempHumSensor[] sensors)
 		{
+#pragma warning disable S125
 			//"ch_soil": [
 			//	{
 			//		"channel": "1",
@@ -1337,6 +1354,7 @@ namespace CumulusMX
 			//		"humidity": "56%"
 			//	}
 			//]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage($"ProcessSoilMoisture: Processing {sensors.Length} sensors");
 
@@ -1360,6 +1378,7 @@ namespace CumulusMX
 
 		private void ProcessLeafWet(EcowittLocalApi.TempHumSensor[] sensors)
 		{
+#pragma warning disable S125
 			//"ch_leaf": [
 			//	{
 			//		"channel": "1",
@@ -1368,6 +1387,7 @@ namespace CumulusMX
 			//		"battery": "5"
 			//	}
 			//]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage($"ProcessLeafWet: Processing {sensors.Length} sensors");
 

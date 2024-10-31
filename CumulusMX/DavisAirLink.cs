@@ -882,7 +882,7 @@ namespace CumulusMX
 						{
 							cumulus.LogDebugMessage($"DecodeAlHistoric: {locationStr} - Using temp/hum data");
 
-							if (data17.temp_avg == -99)
+							if (data17.temp_avg < -98)
 							{
 								cumulus.LogWarningMessage($"DecodeAlHistoric: No valid temperature value found");
 							}

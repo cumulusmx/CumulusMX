@@ -529,7 +529,7 @@ namespace CumulusMX
 						// co2_in_24h - [float, ppm]
 
 						// NOT YET IMPLEMENTED
-						//ProcessCo2(data, this);
+						//ProcessCo2(data, this)
 					}
 					catch (Exception ex)
 					{
@@ -682,13 +682,10 @@ namespace CumulusMX
 		{
 			for (var i = 1; i <= 10; i++)
 			{
-				if (data["soilhum" + i] != null)
+				if (data["soilhum" + i] != null && station != null)
 				{
 					station.DoSoilMoisture(Convert.ToDouble(data["soilhum" + i], CultureInfo.InvariantCulture), i);
-					if (station != null)
-					{
-						cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
-					}
+					cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
 				}
 			}
 		}
@@ -715,6 +712,7 @@ namespace CumulusMX
 		}
 
 
+#pragma warning disable S125
 		/*
 		 * Not yet used
 		private void ProcessCo2(NameValueCollection data, WeatherStation station)
@@ -762,6 +760,7 @@ namespace CumulusMX
 			}
 		}
 		*/
+#pragma warning restore S125
 
 		private void ProcessLightning(NameValueCollection data, WeatherStation station)
 		{

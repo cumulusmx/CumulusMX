@@ -362,7 +362,7 @@ namespace CumulusMX
 					{
 						cumulus.FtpOptions.RealtimeEnabled = settings.website.realtime.enablerealtimeftp;
 						cumulus.RealtimeInterval = settings.website.realtime.realtimeinterval * 1000;
-						if (cumulus.RealtimeTimer.Interval != cumulus.RealtimeInterval)
+						if ((int) cumulus.RealtimeTimer.Interval != cumulus.RealtimeInterval)
 							cumulus.RealtimeTimer.Interval = cumulus.RealtimeInterval;
 					}
 					cumulus.RealtimeTimer.Enabled = cumulus.RealtimeIntervalEnabled;
@@ -377,7 +377,7 @@ namespace CumulusMX
 					{
 						cumulus.FtpOptions.IntervalEnabled = settings.website.interval.enableintervalftp;
 						cumulus.UpdateInterval = settings.website.interval.ftpinterval;
-						if (cumulus.WebTimer.Interval != cumulus.UpdateInterval * 60 * 1000)
+						if ((int) cumulus.WebTimer.Interval != cumulus.UpdateInterval * 60 * 1000)
 							cumulus.WebTimer.Interval = cumulus.UpdateInterval * 60 * 1000;
 					}
 				}

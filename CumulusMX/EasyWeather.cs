@@ -174,7 +174,7 @@ namespace CumulusMX
 
 						var uVreading = GetConvertedValue(st[EW_UV]);
 
-						if (uVreading == 255)
+						if ((int) uVreading == 255)
 						{
 							// ignore
 						}

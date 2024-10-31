@@ -1356,7 +1356,7 @@ namespace CumulusMX
 			Api.thirdpartySettings = new ThirdPartySettings(this);
 			Api.extraSensorSettings = new ExtraSensorSettings(this);
 			Api.calibrationSettings = new CalibrationSettings(this);
-			Api.noaaSettings = new NOAASettings(this);
+			Api.noaaSettings = new NoaaSettings(this);
 			Api.alarmSettings = new AlarmSettings(this);
 			Api.alarmUserSettings = new AlarmUserSettings(this);
 			Api.mySqlSettings = new MysqlSettings(this);
@@ -13317,12 +13317,12 @@ namespace CumulusMX
 			}
 			else if (input == "<noaayearfile>")
 			{
-				NOAAReports noaa = new NOAAReports(this, station);
+				NoaaReports noaa = new NoaaReports(this, station);
 				return noaa.GetLastNoaaYearReportFilename(dat, true);
 			}
 			else if (input == "<noaamonthfile>")
 			{
-				NOAAReports noaa = new NOAAReports(this, station);
+				NoaaReports noaa = new NoaaReports(this, station);
 				return noaa.GetLastNoaaMonthReportFilename(dat, true);
 			}
 			else if (input.StartsWith("<custinterval"))
@@ -13373,12 +13373,12 @@ namespace CumulusMX
 			}
 			else if (input.Contains("<noaayearfile>"))
 			{
-				NOAAReports noaa = new NOAAReports(this, station);
+				NoaaReports noaa = new NoaaReports(this, station);
 				return input.Replace("<noaayearfile>", Path.GetFileName(noaa.GetLastNoaaYearReportFilename(dat, false)));
 			}
 			else if (input.Contains("<noaamonthfile>"))
 			{
-				NOAAReports noaa = new NOAAReports(this, station);
+				NoaaReports noaa = new NoaaReports(this, station);
 				return input.Replace("<noaamonthfile>", Path.GetFileName(noaa.GetLastNoaaMonthReportFilename(dat, false)));
 			}
 			else if (input.Contains("<custinterval"))

@@ -3309,7 +3309,6 @@ namespace CumulusMX
 				logfile = (newData.extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts));
 
 				// read the log file into a List
-				lines.Clear();
 				lines = File.ReadAllLines(logfile).ToList();
 
 

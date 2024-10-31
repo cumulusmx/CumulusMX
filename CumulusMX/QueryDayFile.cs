@@ -18,7 +18,7 @@ namespace CumulusMX
 	{
 		private readonly SQLiteConnection db = databaseConnection;
 		private readonly static CultureInfo inv = CultureInfo.InvariantCulture;
-		internal static readonly string[] funcNameArray = { "min", "max", "sum", "avg", "count" };
+		internal static readonly string[] funcNameArray = ["min", "max", "sum", "avg", "count"];
 		private static readonly Dictionary<string, string> properties = new()
 		{
 			{"HighGust", "HighGustTime"},
@@ -52,7 +52,7 @@ namespace CumulusMX
 			{"CoolingDegreeDays", "Date"},
 			{"ChillHours", "Date"}
 		};
-		private static readonly int[] daysInMonth = { 0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+		private static readonly int[] daysInMonth = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 
 		public (double value, DateTime time) DayFile(string propertyName, string function, string where, string from, string to, string resfunc)
@@ -351,6 +351,10 @@ namespace CumulusMX
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
+
+		// These are set using the deserializer which confuses the error checker
+#pragma warning disable S1144 // Unused private types or members should be removed
+#pragma warning disable S3459 // Unused parameters should be removed
 
 		private sealed class RetValTime
 		{

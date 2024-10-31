@@ -21,7 +21,7 @@ namespace CumulusMX
 		public static ThirdPartySettings thirdpartySettings { get; set; }
 		public static ExtraSensorSettings extraSensorSettings { get; set; }
 		public static CalibrationSettings calibrationSettings { get; set; }
-		public static NOAASettings noaaSettings { get; set; }
+		public static NoaaSettings noaaSettings { get; set; }
 		public static MysqlSettings mySqlSettings { get; set; }
 		public static MqttSettings mqttSettings { get; set; }
 		public static CustomLogs customLogs { get; set; }
@@ -1315,7 +1315,7 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/reports/{req}")]
 			public async Task GetData(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(cumulus, Station);
+				NoaaReports noaarpts = new NoaaReports(cumulus, Station);
 				try
 				{
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
@@ -1361,7 +1361,7 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/genreports/{req}")]
 			public async Task GenReports(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(cumulus, Station);
+				NoaaReports noaarpts = new NoaaReports(cumulus, Station);
 				try
 				{
 					if (!(await Authenticate(HttpContext)))
@@ -1420,7 +1420,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					NOAAReports noaarpts = new NOAAReports(cumulus, Station);
+					NoaaReports noaarpts = new NoaaReports(cumulus, Station);
 
 					if (!(await Authenticate(HttpContext)))
 					{
