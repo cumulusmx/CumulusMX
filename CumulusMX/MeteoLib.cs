@@ -64,7 +64,7 @@ namespace CumulusMX
 		{
 			double chill = WindChill(tempC, windSpeedKph, false);
 			double svp = SaturationVapourPressure1980(tempC);   // Saturation Vapour Pressure in hPa
-			double avp = (float) humidity / 100.0 * svp / 10.0;             // Actual Vapour Pressure in kPa
+			double avp = humidity / 100.0 * svp / 10.0;             // Actual Vapour Pressure in kPa
 			if (windSpeedKph > 72) windSpeedKph = 72;           // Windspeed limited to 20 m/s = 72 km/h
 			double apptemp = (1.04 * tempC) + (2 * avp) - (windSpeedKph * 0.1805553) - 2.7;
 			double feels;

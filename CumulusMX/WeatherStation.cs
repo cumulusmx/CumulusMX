@@ -704,7 +704,7 @@ namespace CumulusMX
 			{
 				if (midnightrainfound)
 				{
-					if (Math.Round(MidnightRainCount, cumulus.RainDPlaces) == Math.Round(midnightraincounter, cumulus.RainDPlaces))
+					if (Math.Abs(MidnightRainCount - midnightraincounter) < Math.Pow(10, - cumulus.RainDPlaces))
 					{
 						cumulus.LogMessage($"GetRainCounter: Rain day start counter {RainCounterDayStart:F4} and midnight rain counter {midnightraincounter:F4} match within rounding error, setting midnight rain to rain day start value");
 						MidnightRainCount = RainCounterDayStart;
@@ -820,7 +820,7 @@ namespace CumulusMX
 			var _week = RainWeek;
 			var _month = RainMonth;
 			var _year = RainYear;
-			RainWeek = RainWeek + RainToday;
+			RainWeek += RainToday;
 			RainMonth = RainThisMonth + RainToday;
 			RainYear = RainThisYear + RainToday;
 			cumulus.LogMessage($"Rainthisweek Updated from: {_week.ToString(cumulus.RainFormat)} to: {RainWeek.ToString(cumulus.RainFormat)}");
@@ -1993,7 +1993,7 @@ namespace CumulusMX
 						_ = cumulus.WindGuru.DoUpdate(now);
 					}
 
-					if (cumulus.AWEKAS.Enabled && (now.Minute % ((double) cumulus.AWEKAS.Interval / 60) == 0) && cumulus.AWEKAS.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
+					if (cumulus.AWEKAS.Enabled && (now.Minute & (cumulus.AWEKAS.Interval / 60 - 1)) == 0 && cumulus.AWEKAS.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
 					{
 						_ = cumulus.AWEKAS.DoUpdate(now);
 					}
@@ -5866,7 +5866,7 @@ namespace CumulusMX
 			// Davis VP2 console loses todays rainfall when it is power cycled
 			// so check if the current value is less than previous and has returned to the previous midnight value
 			if (Math.Round(RainCounter, cumulus.RainDPlaces) < Math.Round(previoustotal, cumulus.RainDPlaces) &&
-				Math.Round(RainCounter, cumulus.RainDPlaces) == Math.Round(MidnightRainCount, cumulus.RainDPlaces) &&
+				Math.Abs(RainCounter - MidnightRainCount)  < Math.Pow(10, -cumulus.RainDPlaces) &&
 				cumulus.StationType == StationTypes.VantagePro2)
 			{
 				var counterLost = previoustotal - MidnightRainCount;
@@ -6425,7 +6425,7 @@ namespace CumulusMX
 					}
 				}
 			}
-			if (totalwindX == 0)
+			if (Math.Abs(totalwindX) < 0.001 && Math.Abs(totalwindY) < 0.001)
 			{
 				AvgBearing = 0;
 			}
@@ -8190,7 +8190,7 @@ namespace CumulusMX
 			double totalwindX = Last10MinWindList.Sum(o => o.gustX);
 			double totalwindY = Last10MinWindList.Sum(o => o.gustY);
 
-			if (totalwindX == 0)
+			if (Math.Abs(totalwindX) < 0.001 && Math.Abs(totalwindY) < 0.001)
 			{
 				return 0;
 			}
@@ -8582,7 +8582,7 @@ namespace CumulusMX
 			DominantWindBearingY += (minutes * averageSpeed * Math.Cos(DegToRad(averageBearing)));
 			DominantWindBearingMinutes += minutes;
 
-			if (DominantWindBearingX == 0)
+			if (Math.Abs(DominantWindBearingX) < 0.001 && Math.Abs(DominantWindBearingY) < 0.001)
 			{
 				DominantWindBearing = 0;
 			}
@@ -9991,7 +9991,7 @@ namespace CumulusMX
 				}
 			} // END North / South
 
-			if (z_hpa == z_baro_top)
+			if (Math.Abs(z_hpa - z_baro_top) < 0.0001)
 			{
 				z_hpa = z_baro_top - 1;
 			}
@@ -12232,33 +12232,40 @@ namespace CumulusMX
 		internal string GetDiaryData(string date)
 		{
 
-			StringBuilder json = new StringBuilder("{\"Entry\":\"", 1024);
+			StringBuilder json = new StringBuilder("{\"Time\":\"", 1024);
 
 			var result = cumulus.DiaryDB.Query<DiaryData2>("select * from DiaryData2 where date(Date) = ? order by Date limit 1", date);
 
 			if (result.Count > 0)
 			{
-				json.Append((result[0].Entry ?? "") + "\",");
-				json.Append($"\"Time\":\"{result[0].Time.ToString("c")}\",");
-				json.Append("\"Snow24h\":");
-				if (result[0].Snow24h.HasValue)
+				json.Append($"{result[0].Time.ToString("c")}\",\"Entry\":");
+				if (string.IsNullOrEmpty(result[0].Entry))
 				{
-					json.Append(result[0].Snow24h.Value.ToString("F1") + ",");
+					json.Append("null");
 				}
 				else
 				{
-					json.Append("\"\",");
+					json.Append($"\"{result[0].Entry}\"");
 				}
-				json.Append("\"SnowDepth\":\"");
+				json.Append(",\"Snow24h\":");
+				if (result[0].Snow24h.HasValue)
+				{
+					json.Append(result[0].Snow24h.Value.ToString("F1") );
+				}
+				else
+				{
+					json.Append("null");
+				}
+				json.Append(",\"SnowDepth\":");
 				if (result[0].SnowDepth.HasValue)
 				{
 					json.Append(result[0].SnowDepth.Value.ToString("F1"));
 				}
 				else
 				{
-					json.Append("\"\"");
+					json.Append("null");
 				}
-				json.Append("\"}");
+				json.Append('}');
 			}
 			else
 			{
@@ -14783,7 +14790,7 @@ namespace CumulusMX
 
 		public string GetValString(string format = "")
 		{
-			if (Val == Cumulus.DefaultHiVal || Val == Cumulus.DefaultLoVal)
+			if (Val < Cumulus.DefaultHiVal + 1 || Val > Cumulus.DefaultLoVal - 1)
 				return "-";
 			else
 				return Val.ToString(format);

@@ -2944,7 +2944,7 @@ namespace CumulusMX
 
 						numdone++;
 						if (!Program.service)
-							Console.Write("\r - processed " + ((double) numdone / (double) numtodo).ToString("P0"));
+							Console.Write("\r - processed " + (numdone / (double) numtodo).ToString("P0"));
 						cumulus.LogMessage(numdone + " archive entries processed");
 					}
 				}

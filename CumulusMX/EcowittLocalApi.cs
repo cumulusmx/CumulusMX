@@ -143,8 +143,6 @@ namespace CumulusMX
 			int responseCode;
 			int retries = 2;
 
-			int retry = 1;
-
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
 				cumulus.LogErrorMessage("GetLiveData: Invalid station IP address: " + cumulus.Gw1000IpAddress);
@@ -277,7 +275,7 @@ namespace CumulusMX
 		}
 
 
-		public void GetVersion(CancellationToken token)
+		public static void GetVersion(CancellationToken token)
 		{
 			// http://ip-address/get_version
 
@@ -290,7 +288,7 @@ namespace CumulusMX
 
 		}
 
-		public void GetDeviceInfo(CancellationToken token) 
+		public static void GetDeviceInfo(CancellationToken token) 
 		{
 			// http://ip-address/get_device_info
 
@@ -314,7 +312,7 @@ namespace CumulusMX
 			//}
 		}
 
-		public void SetDeviceInfo(CancellationToken token)
+		public static void SetDeviceInfo(CancellationToken token)
 		{
 			// http://ip-address/set_device_info
 
@@ -322,7 +320,7 @@ namespace CumulusMX
 
 		}
 
-		public void GetUnits(CancellationToken token)
+		public static void GetUnits(CancellationToken token)
 		{
 			// http://ip-address/get_units_info
 			
@@ -336,7 +334,7 @@ namespace CumulusMX
 			//}
 		}
 
-		public void SetUnits(CancellationToken token)
+		public static void SetUnits(CancellationToken token)
 		{
 			// http://ip-address/set_units_info
 
@@ -347,7 +345,7 @@ namespace CumulusMX
 		}
 
 
-		public void SetLogin(string password)
+		public static  void SetLogin(string password)
 		{
 			// http://ip-address/set_login_info
 
@@ -364,7 +362,7 @@ namespace CumulusMX
 			//}
 		}
 
-		public void GetRainTotals(CancellationToken token)
+		public static void GetRainTotals(CancellationToken token)
 		{
 			// http://ip-address/get_rain_totals
 
@@ -397,7 +395,7 @@ namespace CumulusMX
 
 		}
 
-		public void SetRainTotals(CancellationToken token)
+		public static void SetRainTotals(CancellationToken token)
 		{
 			// http://ip-address/set_rain_totals
 
@@ -419,7 +417,7 @@ namespace CumulusMX
 		}
 
 
-		public void CheckForUpgrade(CancellationToken token)
+		public static void CheckForUpgrade(CancellationToken token)
 		{
 			// http://ip-address/upgrade_process
 
@@ -434,7 +432,7 @@ namespace CumulusMX
 
 		}
 
-		public void StartUpgrade(CancellationToken token)
+		public static void StartUpgrade(CancellationToken token)
 		{
 			// http://ip-address/upgrade_process
 
@@ -448,7 +446,7 @@ namespace CumulusMX
 
 		}
 
-		public void Login(string password, CancellationToken token)
+		public static void Login(string password, CancellationToken token)
 		{
 			// http://ip-address/set_login_info
 
@@ -457,7 +455,7 @@ namespace CumulusMX
 		}
 
 
-		public void Reboot(CancellationToken token)
+		public static void Reboot(CancellationToken token)
 		{
 			// http://ip-address/set_device_info
 

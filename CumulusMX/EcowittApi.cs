@@ -1808,7 +1808,7 @@ namespace CumulusMX
 			// === humidity Combo ===
 			try
 			{
-				station.CO2_humidity = (double?) rec.Value.AqiComboHum;
+				station.CO2_humidity = rec.Value.AqiComboHum;
 			}
 			catch (Exception ex)
 			{

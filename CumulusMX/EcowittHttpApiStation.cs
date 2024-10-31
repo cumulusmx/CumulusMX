@@ -36,17 +36,16 @@ namespace CumulusMX
 		internal static readonly char[] dotSeparator = ['.'];
 		internal static readonly string[] underscoreV = ["_V"];
 
-		// local variables to hold data until all sensors have been read. Then they are set and derviced values calculated
+		// local variables to hold data until all sensors have been read. Then they are set and derived values calculated
 		double windSpeedLast = -999, rainRateLast = -999, rainLast = -999, gustLast = -999;
 		int windDirLast = -999;
 		double outdoortemp = -999;
-		double dewpoint;
 		double windchill = -999;
 		bool batteryLow = false;
 
 		// We check the new value against what we have already, if older then ignore it!
 		double newLightningDistance = 999;
-		DateTime newLightningTime = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+		DateTime newLightningTime = new(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
 
 		public EcowittHttpApiStation(Cumulus cumulus) : base(cumulus)
@@ -481,7 +480,7 @@ namespace CumulusMX
 		}
 
 
-		private string GetFirmwareVersion()
+		private static string GetFirmwareVersion()
 		{
 			var response = "???";
 			return response;

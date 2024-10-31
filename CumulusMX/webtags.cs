@@ -1152,7 +1152,7 @@ namespace CumulusMX
 		}
 		private string TagAirLinkHumIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp((decimal) cumulus.airLinkDataIn.humidity, tagParams, cumulus.HumDPlaces);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.humidity, tagParams, cumulus.HumDPlaces);
 		}
 		private string TagAirLinkPm1In(Dictionary<string, string> tagParams)
 		{
@@ -1215,7 +1215,7 @@ namespace CumulusMX
 		}
 		private string TagAirLinkHumOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp((decimal) cumulus.airLinkDataOut.humidity, tagParams, cumulus.HumDPlaces);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.humidity, tagParams, cumulus.HumDPlaces);
 		}
 		private string TagAirLinkPm1Out(Dictionary<string, string> tagParams)
 		{
@@ -2548,22 +2548,22 @@ namespace CumulusMX
 
 		private string TagLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.AllTime.LongestDryPeriod.Val.ToString("F0");
+			return station.AllTime.LongestDryPeriod.Val < 0 ? "--" : station.AllTime.LongestDryPeriod.Val.ToString("F0");
 		}
 
 		private string TagTLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.AllTime.LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return station.AllTime.LongestDryPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.AllTime.LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.AllTime.LongestWetPeriod.Val.ToString("F0");
+			return station.AllTime.LongestWetPeriod.Val  < 0 ? "--" : station.AllTime.LongestWetPeriod.Val.ToString("F0");
 		}
 
 		private string TagTLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.AllTime.LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return station.AllTime.LongestWetPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.AllTime.LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagLowDailyTempRange(Dictionary<string, string> tagParams)
@@ -2917,25 +2917,25 @@ namespace CumulusMX
 		private string TagByMonthLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestDryPeriod, tagParams, 0);
+			return station.MonthlyRecs[month].LongestDryPeriod.Val < 0 ? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestDryPeriod, tagParams, 0);
 		}
 
 		private string TagByMonthLongestDryPeriodT(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return station.MonthlyRecs[month].LongestDryPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagByMonthLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestWetPeriod, tagParams, 0);
+			return station.MonthlyRecs[month].LongestWetPeriod.Val < 0 ? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestWetPeriod, tagParams, 0);
 		}
 
 		private string TagByMonthLongestWetPeriodT(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return station.MonthlyRecs[month].LongestWetPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagByMonthLowDailyTempRange(Dictionary<string, string> tagParams)
@@ -3641,7 +3641,7 @@ namespace CumulusMX
 				start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
 			}
 
-			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours == Cumulus.DefaultHiVal ? 0 : rec.SunShineHours), tagParams, 1);
+			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours < 0 ? 0 : rec.SunShineHours), tagParams, 1);
 		}
 
 		private string TagSunshineHoursYear(Dictionary<string, string> tagParams)
@@ -3668,7 +3668,7 @@ namespace CumulusMX
 				start = new DateTime(end.Year, 1, 1, 0, 0, 0, DateTimeKind.Local);
 			}
 
-			return CheckRcDp(station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours == Cumulus.DefaultHiVal ? 0 : x.SunShineHours), tagParams, 1);
+			return CheckRcDp(station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours < 0 ? 0 : x.SunShineHours), tagParams, 1);
 		}
 
 		private string TagMonthTempAvg(Dictionary<string, string> tagParams)
@@ -3826,7 +3826,7 @@ namespace CumulusMX
 
 		private string TagChillHoursToday(Dictionary<string, string> tagParams)
 		{
-			if (station.YestChillHours == -1)
+			if (station.YestChillHours < 0)
 				return "n/a";
 
 			// subtract today from yesterday, unless it has been reset, then its just today
@@ -3849,7 +3849,7 @@ namespace CumulusMX
 
 
 			double hrs;
-			if (station.YestChillHours == -1)
+			if (station.YestChillHours < 0)
 				return "n/a";
 
 			if (Math.Round(station.YestChillHours, 1) >= rec.ChillHours)
@@ -4453,7 +4453,7 @@ namespace CumulusMX
 
 		private string TagLightningDistance(Dictionary<string, string> tagParams)
 		{
-			return station.LightningDistance == -1 ? "--" : CheckRcDp(station.LightningDistance, tagParams, cumulus.WindRunDPlaces);
+			return station.LightningDistance < 0 ? "--" : CheckRcDp(station.LightningDistance, tagParams, cumulus.WindRunDPlaces);
 		}
 
 		private string TagLightningTime(Dictionary<string, string> tagParams)
@@ -4837,12 +4837,12 @@ namespace CumulusMX
 
 		private string TagMonthLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.ThisMonth.LongestDryPeriod.Val.ToString();
+			return station.ThisMonth.LongestDryPeriod.Val < 0 ? "--" : station.ThisMonth.LongestDryPeriod.Val.ToString();
 		}
 
 		private string TagMonthLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.ThisMonth.LongestWetPeriod.Val.ToString();
+			return station.ThisMonth.LongestWetPeriod.Val < 0 ? "--" : station.ThisMonth.LongestWetPeriod.Val.ToString();
 		}
 
 		private string TagMonthHighDailyTempRange(Dictionary<string, string> tagParams)
@@ -5089,12 +5089,12 @@ namespace CumulusMX
 
 		private string TagMonthLongestDryPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.ThisMonth.LongestDryPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisMonth.LongestDryPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.ThisMonth.LongestDryPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthLongestWetPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.ThisMonth.LongestWetPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisMonth.LongestWetPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.ThisMonth.LongestWetPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		// Yearly highs and lows - values
@@ -5220,12 +5220,12 @@ namespace CumulusMX
 
 		private string TagYearLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.ThisYear.LongestDryPeriod.Val.ToString();
+			return station.ThisYear.LongestDryPeriod.Val < 0 ? "--" : station.ThisYear.LongestDryPeriod.Val.ToString();
 		}
 
 		private string TagYearLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : station.ThisYear.LongestWetPeriod.Val.ToString();
+			return station.ThisYear.LongestWetPeriod.Val < 0 ? "--" : station.ThisYear.LongestWetPeriod.Val.ToString();
 		}
 
 		private string TagYearHighDailyTempRange(Dictionary<string, string> tagParams)
@@ -5476,12 +5476,12 @@ namespace CumulusMX
 
 		private string TagYearLongestDryPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestDryPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.ThisYear.LongestDryPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisYear.LongestDryPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.ThisYear.LongestDryPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearLongestWetPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestWetPeriod.Val == Cumulus.DefaultHiVal ? "--" : GetFormattedDateTime(station.ThisYear.LongestWetPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisYear.LongestWetPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.ThisYear.LongestWetPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearMonthlyRainHd(Dictionary<string, string> tagParams)

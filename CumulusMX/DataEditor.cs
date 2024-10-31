@@ -454,7 +454,7 @@ namespace CumulusMX
 						{
 							currentWetPeriod = 1;
 							isDryNow = false;
-							if (!(dryPeriod.Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
+							if (!(double.IsInfinity(dryPeriod.Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
 							{
 								dryPeriod.Value = currentDryPeriod;
 								dryPeriod.Ts = thisDateDry;
@@ -478,7 +478,7 @@ namespace CumulusMX
 						{
 							currentDryPeriod = 1;
 							isDryNow = true;
-							if (!(wetPeriod.Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
+							if (!(double.IsInfinity(wetPeriod.Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
 							{
 								wetPeriod.Value = currentWetPeriod;
 								wetPeriod.Ts = thisDateWet;
@@ -573,12 +573,12 @@ namespace CumulusMX
 				}
 
 				// We need to check if the run or wet/dry days at the end of logs exceeds any records
-				if (!(wetPeriod.Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
+				if (!(double.IsNegativeInfinity(wetPeriod.Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
 				{
 					wetPeriod.Value = currentWetPeriod;
 					wetPeriod.Ts = thisDateWet;
 				}
-				if (!(dryPeriod.Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
+				if (!(double.IsNegativeInfinity(dryPeriod.Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
 				{
 					dryPeriod.Value = currentDryPeriod;
 					dryPeriod.Ts = thisDateDry;
@@ -774,7 +774,6 @@ namespace CumulusMX
 			var watch = System.Diagnostics.Stopwatch.StartNew();
 
 			double _day24h = 0;
-			DateTime _dayTs;
 
 			while (!finished)
 			{
@@ -1007,7 +1006,7 @@ namespace CumulusMX
 									{
 										currentWetPeriod = 1;
 										isDryNow = false;
-										if (!(dryPeriod.Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
+										if (!(double.IsNegativeInfinity(dryPeriod.Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
 										{
 											dryPeriod.Value = currentDryPeriod;
 											dryPeriod.Ts = thisDateDry;
@@ -1031,7 +1030,7 @@ namespace CumulusMX
 									{
 										currentDryPeriod = 1;
 										isDryNow = true;
-										if (!(wetPeriod.Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
+										if (!(double.IsNegativeInfinity(wetPeriod.Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
 										{
 											wetPeriod.Value = currentWetPeriod;
 											wetPeriod.Ts = thisDateWet;
@@ -1081,7 +1080,6 @@ namespace CumulusMX
 							if (rain24h > _day24h)
 							{
 								_day24h = rain24h;
-								_dayTs = rec.Date;
 							}
 
 							// new meteo day, part 2
@@ -1094,7 +1092,6 @@ namespace CumulusMX
 								totalRainfall += dayRain;
 
 								_day24h = rain24h;
-								_dayTs = rec.Date;
 							}
 
 							lastentrydate = rec.Date;
@@ -1128,12 +1125,12 @@ namespace CumulusMX
 			rain24hLog.Clear();
 
 			// We need to check if the run or wet/dry days at the end of logs exceeds any records
-			if (!(wetPeriod.Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
+			if (!(double.IsNegativeInfinity(wetPeriod.Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
 			{
 				wetPeriod.Value = currentWetPeriod;
 				wetPeriod.Ts = thisDateWet;
 			}
-			if (!(dryPeriod.Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
+			if (!(double.IsNegativeInfinity(dryPeriod.Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
 			{
 				dryPeriod.Value = currentDryPeriod;
 				dryPeriod.Ts = thisDateDry;
@@ -1757,7 +1754,7 @@ namespace CumulusMX
 							currentWetPeriod = 1;
 							isDryNow = false;
 							var dryMonthOffset = thisDateDry.Month - 1;
-							if (!(dryPeriod[dryMonthOffset].Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod[dryMonthOffset].Value)
+							if (!(double.IsNegativeInfinity(dryPeriod[dryMonthOffset].Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod[dryMonthOffset].Value)
 							{
 								dryPeriod[dryMonthOffset].Value = currentDryPeriod;
 								dryPeriod[dryMonthOffset].Ts = thisDateDry;
@@ -1782,7 +1779,7 @@ namespace CumulusMX
 							currentDryPeriod = 1;
 							isDryNow = true;
 							var wetMonthOffset = thisDateWet.Month - 1;
-							if (!(wetPeriod[wetMonthOffset].Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod[wetMonthOffset].Value)
+							if (!(double.IsNegativeInfinity(wetPeriod[wetMonthOffset].Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod[wetMonthOffset].Value)
 							{
 								wetPeriod[wetMonthOffset].Value = currentWetPeriod;
 								wetPeriod[wetMonthOffset].Ts = thisDateWet;
@@ -1885,12 +1882,12 @@ namespace CumulusMX
 				}
 
 				// We need to check if the run or wet/dry days at the end of log exceeds any records
-				if (!(wetPeriod[thisDateWet.Month - 1].Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod[thisDateWet.Month - 1].Value)
+				if (!(double.IsNegativeInfinity(wetPeriod[thisDateWet.Month - 1].Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod[thisDateWet.Month - 1].Value)
 				{
 					wetPeriod[thisDateWet.Month - 1].Value = currentWetPeriod;
 					wetPeriod[thisDateWet.Month - 1].Ts = thisDateWet;
 				}
-				if (!(dryPeriod[thisDateDry.Month - 1].Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod[thisDateDry.Month - 1].Value)
+				if (!(double.IsNegativeInfinity(dryPeriod[thisDateDry.Month - 1].Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod[thisDateDry.Month - 1].Value)
 				{
 					dryPeriod[thisDateDry.Month - 1].Value = currentDryPeriod;
 					dryPeriod[thisDateDry.Month - 1].Ts = thisDateDry;
@@ -3595,12 +3592,12 @@ namespace CumulusMX
 
 		private sealed class LocalRec(bool HighVal)
 		{
-			public double Value { get; set; } = HighVal ? Cumulus.DefaultHiVal : Cumulus.DefaultLoVal;
+			public double Value { get; set; } = HighVal ? double.NegativeInfinity : double.PositiveInfinity;
 			public DateTime Ts { get; set; } = DateTime.MinValue;
 
 			public string GetValString(string format = "")
 			{
-				if (Value == Cumulus.DefaultHiVal || Value == Cumulus.DefaultLoVal)
+				if (double.IsInfinity(Value))
 					return "-";
 				else
 					return Value.ToString(format);

@@ -2028,7 +2028,7 @@ namespace CumulusMX
 			NOAAconf.MinTempComp2 = Units.Temp == 0 ? -18 : 0;
 
 			ChillHourThreshold = Units.Temp == 0 ? 7 : 45;
-			ChillHourBase = Units.Temp == 0 ? -99 : -99;
+			ChillHourBase = -99;
 
 			GrowingBase1 = Units.Temp == 0 ? 5.0 : 40.0;
 			GrowingBase2 = Units.Temp == 0 ? 10.0 : 50.0;
@@ -11750,6 +11750,7 @@ namespace CumulusMX
 
 
 
+#pragma warning disable S6670 // "Trace.Write" and "Trace.WriteLine" should not be used
 
 		public void LogMessage(string message, MxLogLevel level = MxLogLevel.Info)
 		{
@@ -11786,6 +11787,8 @@ namespace CumulusMX
 				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
 			}
 		}
+
+#pragma warning restore S6670 // "Trace.Write" and "Trace.WriteLine" should not be used
 
 		public void LogFtpMessage(string message)
 		{
@@ -13544,48 +13547,24 @@ namespace CumulusMX
 			FtpLoggerMX = loggerFactory.CreateLogger("CMX");
 		}
 
-		private int GetStationManufacturer(int type)
+		private static int GetStationManufacturer(int type)
 		{
-			switch (type)
+			return type switch
 			{
-				case StationTypes.FineOffset:
-				case StationTypes.FineOffsetSolar:
-				case StationTypes.EasyWeather:
-					return EW;
-				case StationTypes.VantagePro:
-				case StationTypes.VantagePro2:
-				case StationTypes.WLL:
-				case StationTypes.DavisCloudWll:
-				case StationTypes.DavisCloudVP2:
-					return DAVIS;
-				case StationTypes.WMR928:
-				case StationTypes.WM918:
-					return OREGON;
-				case StationTypes.WMR200:
-				case StationTypes.WMR100:
-					return OREGONUSB;
-				case StationTypes.WS2300:
-					return LACROSSE;
-				case StationTypes.Instromet:
-					return INSTROMET;
-				case StationTypes.GW1000:
-				case StationTypes.HttpEcowitt:
-				case StationTypes.EcowittCloud:
-				case StationTypes.EcowittHttpApi:
-					return ECOWITT;
-				case StationTypes.Tempest:
-					return WEATHERFLOW;
-				case StationTypes.HttpWund:
-					return HTTPSTATION;
-				case StationTypes.HttpAmbient:
-					return AMBIENT;
-				case StationTypes.Simulator:
-					return SIMULATOR;
-				case StationTypes.JsonStation:
-					return JSONSTATION;
-				default:
-					return -1;
-			}
+				StationTypes.FineOffset or StationTypes.FineOffsetSolar or StationTypes.EasyWeather => EW,
+				StationTypes.VantagePro or StationTypes.VantagePro2 or StationTypes.WLL or StationTypes.DavisCloudWll or StationTypes.DavisCloudVP2 => DAVIS,
+				StationTypes.WMR928 or StationTypes.WM918 => OREGON,
+				StationTypes.WMR200 or StationTypes.WMR100 => OREGONUSB,
+				StationTypes.WS2300 => LACROSSE,
+				StationTypes.Instromet => INSTROMET,
+				StationTypes.GW1000 or StationTypes.HttpEcowitt or StationTypes.EcowittCloud or StationTypes.EcowittHttpApi => ECOWITT,
+				StationTypes.Tempest => WEATHERFLOW,
+				StationTypes.HttpWund => HTTPSTATION,
+				StationTypes.HttpAmbient => AMBIENT,
+				StationTypes.Simulator => SIMULATOR,
+				StationTypes.JsonStation => JSONSTATION,
+				_ => -1,
+			};
 		}
 
 

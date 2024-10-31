@@ -603,8 +603,8 @@ namespace CumulusMX
 
 				Data = new byte[5 + data.Length];
 
-				Data[0] = (byte) 0xff;
-				Data[1] = (byte) 0xff;
+				Data[0] = 0xff;
+				Data[1] = 0xff;
 				Data[2] = (byte) command;
 				Data[3] = (byte) (3 + data.Length);
 				data.CopyTo(Data, 4);
