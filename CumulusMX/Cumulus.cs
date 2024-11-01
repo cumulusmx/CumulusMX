@@ -1168,50 +1168,23 @@ namespace CumulusMX
 
 			// Open diary database (create file if it doesn't exist)
 			DiaryDB = new SQLiteConnection(new SQLiteConnectionString(diaryfile, flags, false, null, null, null, null, "yyyy-MM-dd 00:00:00", false));
-			DiaryDB.CreateTable<DiaryData2>();
 
 			try
 			{
-				if (DiaryDB.ExecuteScalar<int>("SELECT EXISTS (SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'DiaryData')") == 1)
+				if (DiaryDB.ExecuteScalar<int>("SELECT 1 FROM PRAGMA_TABLE_INFO('DiaryData') WHERE name='Timestamp'") == 1)
 				{
-					try
-					{
-						// clean-up the diary db, change any entries to use date+time to just use date
-						// first see if there will be any days with more than one record
-						var duplicates = DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE rowid < (SELECT max(rowid) FROM DiaryData d2 WHERE date(DiaryData.Timestamp) = date(d2.Timestamp))");
-						if (duplicates.Count > 0)
-						{
-							LogConsoleMessage($"WARNING: Duplicate entries ({duplicates.Count}) found in your Weather Diary database - please see log file for details");
-							LogWarningMessage($"Duplicate entries ({duplicates.Count}) found in the Weather Diary database. The following entries will be removed...");
-
-							foreach (var rec in duplicates)
-							{
-								LogMessage($"  Date: {rec.Timestamp.Date}, Falling: {rec.snowFalling}, Lying: {rec.snowLying}, Depth: {rec.snowDepth}, Entry: '{rec.entry}'");
-							}
-
-							// Remove the duplicates, leave the latest, remove the oldest
-							var deleted = DiaryDB.Execute("DELETE FROM DiaryData WHERE rowid < (SELECT max(rowid) FROM DiaryData d2 WHERE date(DiaryData.Timestamp) = date(d2.Timestamp))");
-							if (deleted > 0)
-							{
-								LogMessage($"{deleted} duplicate records deleted from the weather diary database");
-							}
-						}
-						// Now reset the now unique-by-day records to have a time of 00:00:00
-						DiaryDB.Execute("UPDATE DiaryData SET Timestamp = datetime(date(TimeStamp)) WHERE time(Timestamp) <> '00:00:00'");
-					}
-					catch (Exception ex)
-					{
-						LogErrorMessage("Error cleaning up the Diary DB, exception = " + ex.Message);
-					}
-
-
 					LogMessage("Migrating the weather diary database to version 2");
+
+					// rename the old table, create the new version, migrate the data, and drop the old table
+					DiaryDB.Execute("ALTER TABLE DiaryData RENAME TO DiaryDataOld");
+					DiaryDB.CreateTable<DiaryData>();
+
 					var snowHr = new TimeSpan(SnowDepthHour, 0, 0);
-					var res = DiaryDB.Execute("INSERT OR REPLACE INTO DiaryData2 (Date, Time, Entry, SnowDepth) SELECT Timestamp, ?, entry, snowDepth FROM DiaryData WHERE Timestamp > \"1900-01-01\" ORDER BY Timestamp", snowHr);
+					var res = DiaryDB.Execute("INSERT OR REPLACE INTO DiaryData (Date, Time, Entry, SnowDepth) SELECT date(Timestamp), ?, entry, snowDepth FROM DiaryDataOld WHERE Timestamp > \"1900-01-01\" ORDER BY Timestamp", snowHr);
 					LogMessage("Migrated " + res + " weather diary records");
 
 					LogMessage("Dropping the old weather diary database");
-					DiaryDB.Execute("DROP TABLE DiaryData");
+					DiaryDB.Execute("DROP TABLE DiaryDataOld");
 					LogMessage("Dropped the old weather diary database");
 				}
 			}
@@ -13606,25 +13579,73 @@ namespace CumulusMX
 		public const int EcowittHttpApi = 22;
 	}
 
-	public class DiaryData
-	{
-		[PrimaryKey]
-		public DateTime Timestamp { get; set; }
-		public string entry { get; set; }
-		public int snowFalling { get; set; }
-		public int snowLying { get; set; }
-		public double snowDepth { get; set; }
-	}
 
-	public class DiaryData2
+	public class DiaryData
 	{
 		[PrimaryKey]
 		public DateTime Date { get; set; }
 		[NotNullAttribute]
 		public TimeSpan Time { get; set; }
 		public string? Entry { get; set; }
-		public double? Snow24h { get; set; }
-		public double? SnowDepth { get; set; }
+		public decimal? Snow24h { get; set; }
+		public decimal? SnowDepth { get; set; }
+
+		public string ToCsvString()
+		{
+			var txt = new StringBuilder('"');
+			txt.Append(Date.ToString("yyyy-MM-dd"));
+			txt.Append("\",\"");
+			txt.Append(Time.ToString(@"hh\:mm"));
+			txt.Append("\",");
+			txt.Append(SnowDepth.HasValue ? SnowDepth.Value.ToString("F1") : string.Empty);
+			txt.Append(',');
+			txt.Append(Snow24h.HasValue ? Snow24h.Value.ToString("F1") : string.Empty);
+			txt.Append(",\"");
+			txt.Append((Entry ?? string.Empty) + "\"");
+
+			return txt.ToString();
+		}
+
+		public bool FromCSVString(string csv)
+		{
+			var parts = csv.Split(',');
+
+			if (DateTime.TryParseExact(parts[0][1..^1], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime dat))
+			{
+				if (DateTime.TryParseExact(parts[1][1..^1], "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime time))
+				{
+					if (parts.Length < 5)
+					{
+						return false;
+					}
+
+					Date = dat.Date;
+					Time = time.TimeOfDay;
+					SnowDepth = string.IsNullOrEmpty(parts[2]) ? null : decimal.Parse(parts[2], CultureInfo.InvariantCulture);
+					Snow24h = string.IsNullOrEmpty(parts[3]) ? null : decimal.Parse(parts[3], CultureInfo.InvariantCulture);
+
+					if (parts.Length > 5)
+					{
+						// we split on quoted commas in Entry, recombine them
+						Entry = string.Join(",", parts[4..])[1..^1];
+					}
+					else
+					{
+						Entry = string.IsNullOrEmpty(parts[4]) ? null : parts[4][1..^1];
+					}
+
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else
+			{
+				return false;
+			}
+		}
 	}
 
 	public class ProgramOptionsClass

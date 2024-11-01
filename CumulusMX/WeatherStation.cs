@@ -12239,7 +12239,7 @@ namespace CumulusMX
 
 			StringBuilder json = new StringBuilder("{\"Time\":\"", 1024);
 
-			var result = cumulus.DiaryDB.Query<DiaryData2>("select * from DiaryData2 where date(Date) = ? order by Date limit 1", date);
+			var result = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData where date(Date) = ? order by Date limit 1", date);
 
 			if (result.Count > 0)
 			{
@@ -12284,7 +12284,7 @@ namespace CumulusMX
 		internal string GetDiarySummary()
 		{
 			var json = new StringBuilder($"{{\"snowHour\":{cumulus.SnowDepthHour},", 1024);
-			var result = cumulus.DiaryDB.Query<DiaryData2>("select Date from DiaryData2 order by Date");
+			var result = cumulus.DiaryDB.Query<DiaryData>("select Date from DiaryData order by Date");
 
 			if (result.Count > 0)
 			{
@@ -12309,7 +12309,7 @@ namespace CumulusMX
 		internal string GetDiaryExport()
 		{
 			var txt = new StringBuilder(10240);
-			var result = cumulus.DiaryDB.Query<DiaryData2>("select * from DiaryData2 order by Date");
+			var result = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData order by Date");
 
 			txt.AppendLine("\"Date\",\"Time\",\"Snow Depth\",\"Snow 24h\",\"Entry\"");
 
@@ -12317,16 +12317,7 @@ namespace CumulusMX
 			{
 				for (int i = 0; i < result.Count; i++)
 				{
-					txt.Append('"');
-					txt.Append(result[i].Date.ToString("yyyy-MM-dd"));
-					txt.Append("\",");
-					txt.Append(result[i].Time.ToString(@"hh\:mm"));
-					txt.Append("\",");
-					txt.Append(result[i].SnowDepth.HasValue ? result[i].SnowDepth.Value.ToString("F1") : string.Empty);
-					txt.Append(',');
-					txt.Append(result[i].Snow24h.HasValue ? result[i].Snow24h.Value.ToString("F1") : string.Empty);
-					txt.Append(",\"");
-					txt.AppendLine((result[i].Entry ?? string.Empty) + "\"");
+					txt.AppendLine(result[i].ToCsvString());
 				}
 			}
 
@@ -14396,25 +14387,13 @@ namespace CumulusMX
 
 			// Read the diary database
 
-			var data = cumulus.DiaryDB.Query<DiaryData2>("SELECT Date, SnowDepth, Snow24h FROM DiaryData2 ORDER BY Date ASC");
-			//long lastDate = 0;
+			var data = cumulus.DiaryDB.Query<DiaryData>("SELECT Date, SnowDepth, Snow24h FROM DiaryData ORDER BY Date ASC");
 
 			if (data.Count > 0)
 			{
 				for (var i = 0; i < data.Count; i++)
 				{
 					long recDate = Utils.ToPseudoJSTime(data[i].Date);
-					/*
-					// we have skipped a date, insert a zero record at the end of the previous data, and another before the start of this one
-					if (lastDate > 0 && recDate > lastDate)
-					{
-						if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
-						{
-							snowdepth.Append($"[{lastDate},0],");
-							snowdepth.Append($"[{recDate - 86400000},0],");
-						}
-					}
-					*/
 
 					if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local) && data[i].SnowDepth.HasValue)
 					{
@@ -14427,8 +14406,6 @@ namespace CumulusMX
 						// snowfall 24h
 						snow24h.Append($"[{recDate},{data[i].Snow24h.Value.ToString("F1",InvC)}],");
 					}
-
-					//lastDate = recDate + 86400000;
 				}
 			}
 

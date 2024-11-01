@@ -192,12 +192,12 @@ namespace CumulusMX
 		}
 
 
-		private double GetSnowDepth(DateTime day)
+		private decimal GetSnowDepth(DateTime day)
 		{
-			double depth;
+			decimal depth;
 			try
 			{
-				var result = cumulus.DiaryDB.Query<DiaryData2>("SELECT * FROM DiaryData2 WHERE Date = ?", day.Date);
+				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Date = ?", day.Date);
 
 				depth = result.Count == 1 ? result[0].SnowDepth ?? 0 : 0;
 			}
@@ -209,12 +209,12 @@ namespace CumulusMX
 			return depth;
 		}
 
-		private double GetSnow24h(DateTime day)
+		private decimal GetSnow24h(DateTime day)
 		{
-			double snow24h;
+			decimal snow24h;
 			try
 			{
-				var result = cumulus.DiaryDB.Query<DiaryData2>("SELECT * FROM DiaryData2 WHERE Date = ?", day.Date);
+				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Date = ?", day.Date);
 
 				snow24h = result.Count == 1 ? result[0].Snow24h ?? 0 : 0;
 			}
@@ -231,7 +231,7 @@ namespace CumulusMX
 			bool lying;
 			try
 			{
-				var result = cumulus.DiaryDB.Query<DiaryData2>("SELECT * FROM DiaryData2 WHERE Date = ?", day.Date);
+				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Date = ?", day.Date);
 
 				lying = result.Count == 1 && result[0].SnowDepth > 0;
 			}

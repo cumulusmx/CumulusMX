@@ -154,6 +154,9 @@ namespace CumulusMX
 						case "diarydelete":
 							await writer.WriteAsync(dataEditor.DeleteDiary(HttpContext));
 							break;
+						case "diaryupload":
+							await writer.WriteAsync(dataEditor.UploadDiary(HttpContext));
+							break;
 						case "currcond":
 							await writer.WriteAsync(dataEditor.EditCurrentCond(HttpContext));
 							break;

@@ -8,8 +8,12 @@ using System.Web;
 
 using EmbedIO;
 
+using HttpMultipartParser;
+
 using ServiceStack;
 using ServiceStack.Text;
+
+using static SQLite.SQLite3;
 
 namespace CumulusMX
 {
@@ -112,7 +116,7 @@ namespace CumulusMX
 				};
 
 
-				var newData = text.FromJson<DiaryData2>();
+				var newData = text.FromJson<DiaryData>();
 
 				// write new/updated entry to the database
 				// first try to update existing record
@@ -156,10 +160,10 @@ namespace CumulusMX
 					return resultLocal;
 				};
 
-				var record = text.FromJson<DiaryData2>();
+				var record = text.FromJson<DiaryData>();
 				int result = 0;
 				// Delete the corresponding entry from the database
-				if (cumulus.DiaryDB.Find<DiaryData2>(record.Date) != null)
+				if (cumulus.DiaryDB.Find<DiaryData>(record.Date) != null)
 				{
 					result = cumulus.DiaryDB.Delete(record);
 					return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
@@ -172,6 +176,75 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("Delete Diary: " + ex.Message);
+				return "{\"result\":\"Failed\"}";
+			}
+		}
+
+		internal string UploadDiary(IHttpContext context)
+		{
+			try
+			{
+				var parser = MultipartFormDataParser.Parse(context.Request.InputStream);
+
+				if (!parser.Files.Any())
+				{
+					cumulus.LogErrorMessage("Upload Diary: No file atached!");
+					return "{\"result\":\"Failed: No file atached!\"}";
+				}
+
+				var file = parser.Files[0];
+				Stream data = file.Data;
+				var lines = data.ReadToEnd().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToList();
+				int inserted = 0;
+
+				if (lines.Count < 2)
+				{
+					cumulus.LogErrorMessage("Upload Diary: No data atached!");
+					return "{\"result\":\"Failed: No data atached!\"}";
+				}
+
+				var dbRecs = new List<DiaryData>();
+
+				for (var i = 1; i < lines.Count; i++)
+				{
+					if (lines[i].Length == 0)
+					{
+						continue;
+					}
+
+					try
+					{
+						var rec = new DiaryData();
+						if (rec.FromCSVString(lines[i]))
+						{
+							dbRecs.Add(rec);
+						}
+						else
+						{
+							// invalid record
+							cumulus.LogErrorMessage($"Upload Diary: Failed to parse record on line {i}: {lines[i]}");
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage("Upload Diary: " + ex.Message);
+						return "{\"result\":\"Failed\"}";
+					}
+				}
+
+				if (dbRecs.Count > 0)
+				{
+					// clear the old data from the table
+					cumulus.DiaryDB.DeleteAll<DiaryData>();
+
+					inserted = cumulus.DiaryDB.InsertAll(dbRecs);
+				}
+
+				return $"{{\"result\":\"Success: inserted {inserted} records\"}}";
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("Upload Diary: " + ex.Message);
 				return "{\"result\":\"Failed\"}";
 			}
 		}
