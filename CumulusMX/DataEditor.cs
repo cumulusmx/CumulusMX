@@ -21,7 +21,7 @@ namespace CumulusMX
 	{
 		private WeatherStation station;
 		private readonly Cumulus cumulus;
-
+		internal static readonly string[] lineEndings = new[] { "\r\n", "\r", "\n" };
 
 		internal DataEditor(Cumulus cumulus)
 		{
@@ -188,18 +188,18 @@ namespace CumulusMX
 
 				if (!parser.Files.Any())
 				{
-					cumulus.LogErrorMessage("Upload Diary: No file atached!");
+					cumulus.LogErrorMessage("UploadDiary: No file atached!");
 					return "{\"result\":\"Failed: No file atached!\"}";
 				}
 
 				var file = parser.Files[0];
 				Stream data = file.Data;
-				var lines = data.ReadToEnd().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToList();
+				var lines = data.ReadToEnd().Split(lineEndings, StringSplitOptions.None).ToList();
 				int inserted = 0;
 
 				if (lines.Count < 2)
 				{
-					cumulus.LogErrorMessage("Upload Diary: No data atached!");
+					cumulus.LogErrorMessage("UploadDiary: No data atached!");
 					return "{\"result\":\"Failed: No data atached!\"}";
 				}
 
@@ -222,12 +222,12 @@ namespace CumulusMX
 						else
 						{
 							// invalid record
-							cumulus.LogErrorMessage($"Upload Diary: Failed to parse record on line {i}: {lines[i]}");
+							cumulus.LogErrorMessage($"UploadDiary: Failed to parse record on line {i}: {lines[i]}");
 						}
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogErrorMessage("Upload Diary: " + ex.Message);
+						cumulus.LogErrorMessage("UploadDiary: " + ex.Message);
 						return "{\"result\":\"Failed\"}";
 					}
 				}
@@ -235,16 +235,18 @@ namespace CumulusMX
 				if (dbRecs.Count > 0)
 				{
 					// clear the old data from the table
+					cumulus.LogMessage("UploadDiary: Clearing diary database");
 					cumulus.DiaryDB.DeleteAll<DiaryData>();
 
 					inserted = cumulus.DiaryDB.InsertAll(dbRecs);
 				}
 
+				cumulus.LogMessage("UploadDiary: Inserted " + inserted + " records");
 				return $"{{\"result\":\"Success: inserted {inserted} records\"}}";
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("Upload Diary: " + ex.Message);
+				cumulus.LogErrorMessage("UploadDiary: " + ex.Message);
 				return "{\"result\":\"Failed\"}";
 			}
 		}

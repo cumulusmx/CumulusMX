@@ -264,8 +264,8 @@ namespace CumulusMX
 						case "diarysummary":
 							await writer.WriteAsync(Station.GetDiarySummary());
 							break;
-						case "diaryexport":
-							Response.ContentType = "text/csv";
+						case "diaryexport.txt":
+							Response.ContentType = "text/plain";
 							await writer.WriteAsync(Station.GetDiaryExport());
 							break;
 						case "mysqlcache.json":

@@ -13592,11 +13592,11 @@ namespace CumulusMX
 
 		public string ToCsvString()
 		{
-			var txt = new StringBuilder('"');
+			var txt = new StringBuilder();
 			txt.Append(Date.ToString("yyyy-MM-dd"));
-			txt.Append("\",\"");
+			txt.Append(',');
 			txt.Append(Time.ToString(@"hh\:mm"));
-			txt.Append("\",");
+			txt.Append(',');
 			txt.Append(SnowDepth.HasValue ? SnowDepth.Value.ToString("F1") : string.Empty);
 			txt.Append(',');
 			txt.Append(Snow24h.HasValue ? Snow24h.Value.ToString("F1") : string.Empty);
@@ -13610,9 +13610,9 @@ namespace CumulusMX
 		{
 			var parts = csv.Split(',');
 
-			if (DateTime.TryParseExact(parts[0][1..^1], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime dat))
+			if (DateTime.TryParseExact(parts[0], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime dat))
 			{
-				if (DateTime.TryParseExact(parts[1][1..^1], "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime time))
+				if (DateTime.TryParseExact(parts[1], "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime time))
 				{
 					if (parts.Length < 5)
 					{
@@ -13624,15 +13624,31 @@ namespace CumulusMX
 					SnowDepth = string.IsNullOrEmpty(parts[2]) ? null : decimal.Parse(parts[2], CultureInfo.InvariantCulture);
 					Snow24h = string.IsNullOrEmpty(parts[3]) ? null : decimal.Parse(parts[3], CultureInfo.InvariantCulture);
 
+					string entry;
 					if (parts.Length > 5)
 					{
 						// we split on quoted commas in Entry, recombine them
-						Entry = string.Join(",", parts[4..])[1..^1];
+						entry = string.Join(",", parts[4..]).Trim();
 					}
 					else
 					{
-						Entry = string.IsNullOrEmpty(parts[4]) ? null : parts[4][1..^1];
+						if (string.IsNullOrEmpty(parts[4]))
+						{
+							entry = null;
+						}
+						else
+						{
+							entry = parts[4].Trim();
+						}
 					}
+
+					// check if it's quoted
+					if (entry != null && entry[0] == '"')
+					{
+						entry = entry[1..^1];
+					}
+
+					Entry = entry;
 
 					return true;
 				}

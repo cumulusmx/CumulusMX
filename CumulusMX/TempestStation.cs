@@ -409,6 +409,10 @@ namespace CumulusMX.Tempest
 					}
 				}
 			}
+			catch (TaskCanceledException)
+			{
+				// Ignore
+			}
 			catch (Exception e)
 			{
 				var ex = e;

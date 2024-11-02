@@ -12311,7 +12311,7 @@ namespace CumulusMX
 			var txt = new StringBuilder(10240);
 			var result = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData order by Date");
 
-			txt.AppendLine("\"Date\",\"Time\",\"Snow Depth\",\"Snow 24h\",\"Entry\"");
+			txt.AppendLine("Date,Time,Snow Depth,Snow 24h,Entry");
 
 			if (result.Count > 0)
 			{
