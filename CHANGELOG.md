@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 
 
-## [4.3.0 \[b4047\]][9] - 2024-11-02
+## BETA [4.3.0 \[b4047\]][9] - 2024-11-02
 
 ### New
 
@@ -61,6 +61,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Fix error editing extra log file data when MySQL updates enabled
 - Lightning Time showing a 1900 date when no lightning has been detected
+- Suppress Tempest station TaskCancellation message to the console on shutdown
 
 ### Package Updates
 

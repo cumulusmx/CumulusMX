@@ -8,12 +8,9 @@ using System.Web;
 
 using EmbedIO;
 
-using HttpMultipartParser;
-
 using ServiceStack;
 using ServiceStack.Text;
 
-using static SQLite.SQLite3;
 
 namespace CumulusMX
 {
@@ -21,7 +18,7 @@ namespace CumulusMX
 	{
 		private WeatherStation station;
 		private readonly Cumulus cumulus;
-		internal static readonly string[] lineEndings = new[] { "\r\n", "\r", "\n" };
+		internal static readonly string[] lineEndings = ["\r\n", "\r", "\n"];
 
 		internal DataEditor(Cumulus cumulus)
 		{
@@ -184,26 +181,27 @@ namespace CumulusMX
 		{
 			try
 			{
-				var parser = MultipartFormDataParser.Parse(context.Request.InputStream);
+				var request = context.Request;
 
-				if (!parser.Files.Any())
+				if (request.ContentLength64 == 0)
 				{
-					cumulus.LogErrorMessage("UploadDiary: No file atached!");
-					return "{\"result\":\"Failed: No file atached!\"}";
+					cumulus.LogErrorMessage("UploadDiary: No data atached!");
+					return "Failed: No data atached!";
 				}
 
-				var file = parser.Files[0];
-				Stream data = file.Data;
-				var lines = data.ReadToEnd().Split(lineEndings, StringSplitOptions.None).ToList();
-				int inserted = 0;
+				using var reader = new StreamReader(request.InputStream, request.ContentEncoding) ;
+
+				var lines = reader.ReadToEnd().Split(lineEndings, StringSplitOptions.None).ToList();
 
 				if (lines.Count < 2)
 				{
 					cumulus.LogErrorMessage("UploadDiary: No data atached!");
-					return "{\"result\":\"Failed: No data atached!\"}";
+					return "Failed: No data atached!";
 				}
 
+				int inserted = 0;
 				var dbRecs = new List<DiaryData>();
+
 
 				for (var i = 1; i < lines.Count; i++)
 				{
@@ -227,8 +225,8 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogErrorMessage("UploadDiary: " + ex.Message);
-						return "{\"result\":\"Failed\"}";
+						cumulus.LogExceptionMessage(ex, "UploadDiary: Error ");
+						return "Failed: " + ex.Message;
 					}
 				}
 
@@ -241,13 +239,13 @@ namespace CumulusMX
 					inserted = cumulus.DiaryDB.InsertAll(dbRecs);
 				}
 
-				cumulus.LogMessage("UploadDiary: Inserted " + inserted + " records");
-				return $"{{\"result\":\"Success: inserted {inserted} records\"}}";
+				cumulus.LogMessage("UploadDiary: Inserted " + inserted + " new records");
+				return $"Success: inserted {inserted} records";
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("UploadDiary: " + ex.Message);
-				return "{\"result\":\"Failed\"}";
+				cumulus.LogExceptionMessage(ex, "UploadDiary: Error");
+				return "Failed: " + ex.Message;
 			}
 		}
 
