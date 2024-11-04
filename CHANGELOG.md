@@ -57,6 +57,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Chill Hours now allows you to define a base temperature, where chill hours are only counted if the temperature is < threshold AND > base
 	- The base temperature defaults to -99 (°C or °F) to mimic the current behaviour where chill hours are counted if the temperature is just < threshold
 	- Some cold stratification of seeds in the UK for instance only counts chill hours when it is between 1°C and 10°C
+- APRS/CWOP now send the sull "Ecowiit/Ambient/Tempest" station types
 
 ### Fixed
 
