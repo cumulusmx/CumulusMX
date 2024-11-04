@@ -420,6 +420,7 @@ namespace CumulusMX
 			ExtraDewPoint = new double?[11];
 			UserTemp = new double?[9];
 			SoilTemp = new double?[17];
+			LaserDist = new double?[9];
 
 			windcounts = new double[16];
 			WindRecent = new TWindRecent[MaxWindRecent];
@@ -1542,6 +1543,11 @@ namespace CumulusMX
 		/// Soil Temp 1-16 in C
 		/// </summary>
 		public double?[] SoilTemp { get; set; }
+
+		/// <summary>
+		/// Laser distance
+		/// </summary>
+		public double?[] LaserDist { get; set; }
 
 		public double RainYesterday { get; set; }
 
@@ -6126,12 +6132,19 @@ namespace CumulusMX
 			}
 		}
 
-
 		public void DoExtraDP(double dp, int channel)
 		{
 			if ((channel > 0) && (channel < ExtraDewPoint.Length))
 			{
 				ExtraDewPoint[channel] = dp;
+			}
+		}
+
+		public void DoLaserDist(double dist, int channel)
+		{
+			if ((channel > 0) && (channel < LaserDist.Length))
+			{
+				LaserDist[channel] = dist;
 			}
 		}
 

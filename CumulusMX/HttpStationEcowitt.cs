@@ -1612,11 +1612,7 @@ namespace CumulusMX
 
 		private async Task CheckAvailableFirmware(string deviceModel)
 		{
-			if (EcowittApi.FirmwareSupportedModels.Contains(deviceModel[..6]))
-			{
-				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, "V" + deviceFirmware.ToString(), cumulus.cancellationToken);
-			}
-			else
+			if (EcowittApi.SimpleSupportedModels.Contains(deviceModel[..6]))
 			{
 				var retVal = await ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken);
 				if (retVal != null)
@@ -1634,6 +1630,10 @@ namespace CumulusMX
 						cumulus.LogDebugMessage($"FirmwareVersion: Already on the latest Version {retVal[0]}");
 					}
 				}
+			}
+			else
+			{
+				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, "V" + deviceFirmware.ToString(), cumulus.cancellationToken);
 			}
 		}
 

@@ -22,8 +22,7 @@ namespace CumulusMX
 		private const string stationUrl = "https://api.ecowitt.net/api/v3/device/list?";
 		private const string firmwareUrl = "http://ota.ecowitt.net/api/ota/v1/version/info?";
 		private const string simpleFirmwareUrl = "http://download.ecowitt.net/down/filewave?v=FirwaveReadme.txt";
-		public static readonly string[] FirmwareSupportedModels = ["GW1100", "GW1200", "GW2000"];
-		private static readonly string[] simpleSupportedModels = ["GW1000", "WH2650", "WS1900", "HP10", "WH2680", "WH6006", "WL6006"];
+		public static readonly string[] SimpleSupportedModels = ["GW1000", "WH2650", "WS1900", "HP10", "WH2680", "WH6006", "WL6006"];
 
 
 
@@ -1787,7 +1786,7 @@ namespace CumulusMX
 			// === PM 10 Combo ===
 			try
 			{
-				station.CO2_pm10 = (double?) rec.Value.AqiComboPm10.Value;
+				station.CO2_pm10 = (double?) rec.Value.AqiComboPm10;
 				station.CO2_pm10_aqi = station.CO2_pm10.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10.Value) : null;
 			}
 			catch (Exception ex)
@@ -2522,12 +2521,6 @@ namespace CumulusMX
 		{
 			// Credit: https://www.wxforum.net/index.php?topic=46414.msg469692#msg469692
 
-			if (model == null || !FirmwareSupportedModels.Contains(model[0..6]))
-			{
-				cumulus.LogMessage($"API.GetLatestFirmwareVersion: Your model - {model ?? "null"} - is not not currently supported");
-				return null;
-			}
-
 			if (version == null)
 			{
 				cumulus.LogMessage("API.GetLatestFirmwareVersion: No version supplied, cannot continue");
@@ -2650,7 +2643,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage("API.GetSimpleLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
 
-			if (model == null || !simpleSupportedModels.Contains(model[0..6]))
+			if (model == null || !SimpleSupportedModels.Contains(model[0..6]))
 			{
 				cumulus.LogMessage($"API.GetSimpleLatestFirmwareVersion: Your model - {model ?? "null"} - is not not currently supported");
 				return null;

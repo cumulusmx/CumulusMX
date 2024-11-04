@@ -36,6 +36,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#temp9amRangeY>`
 - Added some validation to the fields in the log editors
 - The dashboard and default web site can now display Chill Hours charts
+- Initial support for the new Ecowitt WH54 LDS01 Laser Distance sensors, just sensor info/battery decoding for now as that is all that is documented
 
 ### Changed
 
@@ -62,6 +63,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix error editing extra log file data when MySQL updates enabled
 - Lightning Time showing a 1900 date when no lightning has been detected
 - Suppress Tempest station TaskCancellation message to the console on shutdown
+- Ecowitt WH51 channels 9-16 decoding in HTTP API fixed(?) Still all undocumented by Ecowitt, sigh!
+- Improvements to Ecowitt latest firmware checking
+- Error message output processing historic Ecowitt AQI Combo PM10 data
 
 ### Package Updates
 

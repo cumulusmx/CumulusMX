@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Globalization;
+using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -275,7 +277,7 @@ namespace CumulusMX
 		}
 
 
-		public static void GetVersion(CancellationToken token)
+		public async Task<string> GetVersion(CancellationToken token)
 		{
 			// http://ip-address/get_version
 
@@ -286,6 +288,58 @@ namespace CumulusMX
 			//		"platform":	"ecowitt"
 			//	}
 
+			string responseBody;
+			int responseCode;
+			var unknown = "unknown";
+
+			try
+			{
+				var url = $"http://{cumulus.Gw1000IpAddress}/get_version";
+
+				// we want to do this synchronously, so .Result
+				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
+				{
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"LocalApi.GetVersion: Ecowitt Local API GetVersion Response code: {responseCode}");
+					cumulus.LogDataMessage($"LocalApi.GetVersion: Ecowitt Local API GetVersion Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					cumulus.LogWarningMessage($"LocalApi.GetVersion: Ecowitt Local API GetVersion Error: {responseCode}");
+					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					return unknown;
+				}
+
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("LocalApi.GetVersion: Ecowitt Local API GetVersion: No data was returned.");
+					Cumulus.LogConsoleMessage(" - No Live data available");
+					return unknown;
+				}
+				else if (responseBody.StartsWith('{')) // sanity check
+				{
+					// Convert JSON string to an object
+					var ver = responseBody.FromJson<VersionInfo>().version.Split(':')[1].Trim().Split('_')[1];
+					cumulus.LogMessage("Station firmware version is " + ver);
+					return ver;
+				}
+			}
+			catch (System.Net.Http.HttpRequestException ex)
+			{
+				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage("GetVersion: Error - This Station does not support the HTTP API!");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "GetVersion: HTTP Error");
+				}
+			}
+
+			return unknown;
 		}
 
 		public static void GetDeviceInfo(CancellationToken token) 
@@ -416,8 +470,7 @@ namespace CumulusMX
 
 		}
 
-
-		public static void CheckForUpgrade(CancellationToken token)
+		public async Task<bool> CheckForUpgrade(CancellationToken token)
 		{
 			// http://ip-address/upgrade_process
 
@@ -429,6 +482,68 @@ namespace CumulusMX
 			//	"is_new": false,
 			//	"msg": "It's the latest version\r\nCurrent version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries."
 			//}
+
+
+			string responseBody;
+			int responseCode;
+
+			try
+			{
+				var url = $"http://{cumulus.Gw1000IpAddress}/upgrade_process";
+
+				var data = new StringContent("{\"upgrade\": \"check\"}", Encoding.UTF8, "application/json");
+				using (var response = await cumulus.MyHttpClient.PostAsync(url, data, token))
+				{
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion Response code: {responseCode}");
+					cumulus.LogDataMessage($"LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					cumulus.LogWarningMessage($"LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion Error: {responseCode}");
+					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					return false;
+				}
+
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion: No data was returned.");
+					Cumulus.LogConsoleMessage(" - No Live data available");
+					return false;
+				}
+				else if (responseBody.StartsWith('{')) // sanity check
+				{
+					// Convert JSON string to an object
+					var result = responseBody.FromJson<CheckUpgrade>();
+					if (result.is_new)
+					{
+						cumulus.LogWarningMessage("Station firmware is out of date");
+						cumulus.LogMessage("New firmware: " + result.msg);
+					}
+					else
+					{
+						cumulus.LogMessage("Station firmware is up to date");
+					}
+
+					return result.is_new;
+				}
+			}
+			catch (System.Net.Http.HttpRequestException ex)
+			{
+				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage("CheckForUpgrade: Error - This Station does not support the HTTP API!");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "CheckForUpgrade: HTTP Error");
+				}
+			}
+
+			return false;
 
 		}
 
@@ -623,6 +738,14 @@ namespace CumulusMX
 			public string status { get; set; }
 		}
 
+		public class Wh54Sensor
+		{
+			public int? channel { get; set; }
+			public string name { get; set; }
+			public int? battery { get; set; }
+			public string status { get; set; }
+		}
+
 		public class LiveData
 		{
 			public CommonSensor[] common_list { get; set; }
@@ -637,6 +760,7 @@ namespace CumulusMX
 			public TempHumSensor[]? ch_soil { get; set; }
 			public TempHumSensor[]? ch_temp { get; set; }
 			public TempHumSensor[]? ch_leaf { get; set; }
+			public Wh54Sensor[]? wh54 { get; set; }
 		}
 
 		public class SensorInfo
@@ -648,6 +772,19 @@ namespace CumulusMX
 			public int batt { get; set; }
 			public int signal { get; set; }
 			public bool idst { get; set; }
+		}
+
+		public class VersionInfo
+		{
+			public string version { get; set; }
+			public string newVersion { get; set; }
+			public string platform { get; set; }
+		}
+
+		private class CheckUpgrade
+		{
+			public bool is_new { get; set; }
+			public string msg { get; set; }
 		}
 	}
 }

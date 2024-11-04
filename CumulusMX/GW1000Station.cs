@@ -626,17 +626,15 @@ namespace CumulusMX
 
 		private async Task CheckAvailableFirmware()
 		{
+			cumulus.LogMessage("Checking for firmware updates");
+
 			if (deviceModel == null)
 			{
 				cumulus.LogMessage("Device Model not determined, firmware check skipped.");
 				return;
 			}
 
-			if (EcowittApi.FirmwareSupportedModels.Contains(deviceModel[..6]))
-			{
-				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken);
-			}
-			else
+			if (EcowittApi.SimpleSupportedModels.Contains(deviceModel[..6]))
 			{
 				var retVal = ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken).Result;
 				if (retVal != null)
@@ -654,6 +652,10 @@ namespace CumulusMX
 						cumulus.LogDebugMessage($"FirmwareVersion: Already on the latest Version {retVal[0]}");
 					}
 				}
+			}
+			else
+			{
+				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken);
 			}
 		}
 
@@ -794,6 +796,7 @@ namespace CumulusMX
 
 					case string wh41 when wh41.StartsWith("WH41"): // ch 1-4
 					case "WH45":
+					case string wh54 when wh54.StartsWith("WH54"): // ch 1-4
 					case string wh55 when wh55.StartsWith("WH55"): // ch 1-4
 					case "WH57":
 						batt = TestBattery3(data[battPos]);  // 0-5 + 6, 9

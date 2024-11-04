@@ -4271,6 +4271,31 @@ namespace CumulusMX
 			return station.UserTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.UserTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
 		}
 
+		private string TagLaserDist1(Dictionary<string, string> tagParams)
+		{
+			return GetLaserDist(1, tagParams);
+		}
+
+		private string TagLaserDist2(Dictionary<string, string> tagParams)
+		{
+			return GetLaserDist(2, tagParams);
+		}
+
+		private string TagLaserDist3(Dictionary<string, string> tagParams)
+		{
+			return GetLaserDist(3, tagParams);
+		}
+
+		private string TagLaserDist4(Dictionary<string, string> tagParams)
+		{
+			return GetLaserDist(1, tagParams);
+		}
+
+		private string GetLaserDist(int index, Dictionary<string, string> tagParams)
+		{
+			return station.LaserDist[index].HasValue ? CheckRcDp(station.LaserDist[index].Value, tagParams, 1) : "-";
+		}
+
 		private string TagAirQuality1(Dictionary<string, string> tagParams)
 		{
 			return station.AirQuality1.HasValue ? CheckRcDp(station.AirQuality1.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
@@ -6769,6 +6794,11 @@ namespace CumulusMX
 				{ "AirLinkPct_24hrOut", AirLinkPct_24hrOut },
 				{ "AirLinkPct_NowcastOut", AirLinkPct_NowcastOut },
 
+				{ "LaserDist1", TagLaserDist1 },
+				{ "LaserDist2", TagLaserDist2 },
+				{ "LaserDist3", TagLaserDist3 },
+				{ "LaserDist4", TagLaserDist4 },
+
 				// This month's highs and lows - values
 				{ "MonthTempH", TagMonthTempH },
 				{ "MonthTempL", TagMonthTempL },
@@ -6929,7 +6959,7 @@ namespace CumulusMX
 				{ "YearLongestWetPeriodD", TagYearLongestWetPeriodD },
 				{ "YearHighDailyTempRangeD", TagYearHighDailyTempRangeD },
 				{ "YearLowDailyTempRangeD", TagYearLowDailyTempRangeD },
-				// misc
+				// misc CMX and System values
 				{ "LatestError", TagLatestError },
 				{ "LatestErrorEnc", TagLatestErrorEnc },
 				{ "LatestErrorJsEnc", TagLatestErrorJsEnc },

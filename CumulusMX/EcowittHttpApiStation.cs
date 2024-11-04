@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -111,8 +110,6 @@ namespace CumulusMX
 
 			ecowittApi = new EcowittApi(cumulus, this);
 
-			_ = CheckAvailableFirmware();
-
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
 			historyTask = Task.Run(getAndProcessHistoryData, cumulus.cancellationToken);
@@ -140,6 +137,18 @@ namespace CumulusMX
 
 			// Get the sensor list
 			GetSensorIds().Wait();
+
+			// Check firmware
+			try
+			{
+				_ = localApi.CheckForUpgrade(cumulus.cancellationToken).Result;
+				GW1000FirmwareVersion = localApi.GetVersion(cumulus.cancellationToken).Result;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "Error checking for firmware upgrade/version");
+				GW1000FirmwareVersion = "unknown";
+			}
 
 			liveTask = Task.Run(() =>
 			{
@@ -222,6 +231,11 @@ namespace CumulusMX
 								if (rawData.ch_leaf != null)
 								{
 									ProcessLeafWet(rawData.ch_leaf);
+								}
+
+								if (rawData.wh54 != null)
+								{
+
 								}
 
 								// Now do the stuff that requires more than one input parameter
@@ -310,26 +324,8 @@ namespace CumulusMX
 
 										if (hour == 13)
 										{
-											var fw = GetFirmwareVersion();
-											if (fw != "???")
-											{
-												GW1000FirmwareVersion = fw;
-												deviceModel = GW1000FirmwareVersion.Split('_')[0];
-												deviceFirmware = GW1000FirmwareVersion.Split('_')[1];
-
-												var fwString = GW1000FirmwareVersion.Split(underscoreV, StringSplitOptions.None);
-												if (fwString.Length > 1)
-												{
-													fwVersion = new Version(fwString[1]);
-												}
-												else
-												{
-													// failed to get the version, lets assume it's fairly new
-													fwVersion = new Version("1.6.5");
-												}
-											}
-
-											_ = CheckAvailableFirmware();
+											_ = localApi.CheckForUpgrade(cumulus.cancellationToken);
+											GW1000FirmwareVersion = localApi.GetVersion(cumulus.cancellationToken).Result;
 										}
 									}
 								}
@@ -479,46 +475,6 @@ namespace CumulusMX
 			return null;
 		}
 
-
-		private static string GetFirmwareVersion()
-		{
-			var response = "???";
-			return response;
-		}
-
-		private async Task CheckAvailableFirmware()
-		{
-			if (deviceModel == null)
-			{
-				cumulus.LogMessage("Device Model not determined, firmware check skipped.");
-				return;
-			}
-
-			if (EcowittApi.FirmwareSupportedModels.Contains(deviceModel[..6]))
-			{
-				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken);
-			}
-			else
-			{
-				var retVal = ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken).Result;
-				if (retVal != null)
-				{
-					var verVer = new Version(retVal[0]);
-					if (fwVersion < verVer)
-					{
-						cumulus.FirmwareAlarm.LastMessage = $"A new firmware version is available: {retVal[0]}.\nChange log:\n{string.Join('\n', retVal[1].Split(';'))}";
-						cumulus.FirmwareAlarm.Triggered = true;
-						cumulus.LogWarningMessage($"FirmwareVersion: Latest Version {retVal[0]}, Change log:\n{string.Join('\n', retVal[1].Split(';'))}");
-					}
-					else
-					{
-						cumulus.FirmwareAlarm.Triggered = false;
-						cumulus.LogDebugMessage($"FirmwareVersion: Already on the latest Version {retVal[0]}");
-					}
-				}
-			}
-		}
-
 		private async Task GetSensorIds()
 		{
 			cumulus.LogMessage("Reading sensor ids");
@@ -610,10 +566,12 @@ namespace CumulusMX
 										updateRate = 8000;
 									}
 									goto case 1003;
-								case int n when (n > 49 && n < 58): // wh51 - soil moisture (chan 9-16)
-									name = "wh51ch" + (sensor.type - 49 + 8);
+								case int n when (n > 57 && n < 66): // wh51 - soil moisture (chan 9-16)
+									name = "wh51ch" + (sensor.type - 57 + 8);
 									goto case 1001;
-
+								case int n when (n > 65 && n < 70): // wh54 - laser depth (4 chan)
+									name = "wh54ch" + (sensor.type - 65);
+									goto case 1003;
 
 
 								case 1001: // battery type 1 (0=OK, 1=LOW)
