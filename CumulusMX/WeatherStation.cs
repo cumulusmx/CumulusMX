@@ -9204,7 +9204,10 @@ namespace CumulusMX
 				else
 				{
 					var msg1 = "LoadDayFile: No Dayfile found - No entries added to recent daily data list";
-					cumulus.LogErrorMessage(msg1);
+					if (File.Exists(cumulus.YesterdayFile))
+					{
+						cumulus.LogErrorMessage(msg1);
+					}
 					dayfileReloading = false;
 					return msg1;
 				}
@@ -12710,7 +12713,7 @@ namespace CumulusMX
 
 				if (!File.Exists(cumulus.DayFileName))
 				{
-					cumulus.LogErrorMessage("GetDailylData: Error, dar file does not exist");
+					cumulus.LogErrorMessage("GetDailylData: Error, day file does not exist");
 					return "[]";
 				}
 
