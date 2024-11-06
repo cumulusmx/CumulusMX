@@ -157,6 +157,9 @@ namespace CumulusMX
 						case "diaryupload":
 							await writer.WriteAsync(dataEditor.UploadDiary(HttpContext));
 							break;
+						case "diaryautomate":
+							await writer.WriteAsync(dataEditor.AutomateDiary(HttpContext));
+							break;
 						case "currcond":
 							await writer.WriteAsync(dataEditor.EditCurrentCond(HttpContext));
 							break;
@@ -1740,6 +1743,9 @@ namespace CumulusMX
 							break;
 						case "units.json":
 							await writer.WriteAsync(Station.GetUnits());
+							break;
+						case "snowinfo.json":
+							await writer.WriteAsync(Station.GetSnowInfo());
 							break;
 						default:
 							Response.StatusCode = 404;

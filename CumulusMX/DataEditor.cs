@@ -177,6 +177,28 @@ namespace CumulusMX
 			}
 		}
 
+		internal string AutomateDiary(IHttpContext context)
+		{
+			try
+			{
+				var request = context.Request;
+				string text;
+
+				using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+				{
+					text = reader.ReadToEnd();
+				}
+
+				cumulus.SnowAutomated = int.Parse(text);
+				return "Success: Set automated to " + cumulus.SnowAutomated;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("Delete Diary: " + ex.Message);
+				return "Failed: " + ex.Message;
+			}
+		}
+
 		internal string UploadDiary(IHttpContext context)
 		{
 			try

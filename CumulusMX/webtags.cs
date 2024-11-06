@@ -4288,7 +4288,7 @@ namespace CumulusMX
 
 		private string TagLaserDist4(Dictionary<string, string> tagParams)
 		{
-			return GetLaserDist(1, tagParams);
+			return GetLaserDist(4, tagParams);
 		}
 
 		private string GetLaserDist(int index, Dictionary<string, string> tagParams)

@@ -26,11 +26,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New web tags for 9am High/Low temperatures<br>
 	`<#temp9amTH>`,`<#Ttemp9amTH>`<br>
 	`<#temp9amTL>`,`<#Ttemp9amTL>`<br>
-	`<#temp9amTH>`,`<#Ttemp9amTH>`<br>
 	`<#temp9amRangeT>`<br>
-	`<#temp9amTL>`,`<#Ttemp9amTL>`<br>
-	`<#temp9amYH>`,`<#Ttemp9amYH>`<br>
-	`<#temp9amYL>`,`<#Ttemp9amYL>`<br>
 	`<#temp9amYH>`,`<#Ttemp9amYH>`<br>
 	`<#temp9amYL>`,`<#Ttemp9amYL>`<br>
 	`<#temp9amRangeY>`
@@ -51,6 +47,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The Editor page gains a new "Export All" button to export your diary to CSV format
 	- The Editor page gains a new "Upload File" button to re-import your exported CSV files
 	- The Editor page now also has a Time field which defaults to the configured snow recording time, but you may override it
+	- There is a new option to automatically create a snow depth record on your snow recording hour. This requires the connection of an Ecowitt WH54/LDS01 sensor to your station
 	- A new web tag `<#snow24h>`
 	- The web tag `<#snowfalling>` has been deprecated (it will return an empty string until it is removed)
 	- A new daily graph data file `alldailysnowdata.json`

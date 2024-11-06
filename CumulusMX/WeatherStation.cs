@@ -420,7 +420,7 @@ namespace CumulusMX
 			ExtraDewPoint = new double?[11];
 			UserTemp = new double?[9];
 			SoilTemp = new double?[17];
-			LaserDist = new double?[9];
+			LaserDist = new double?[5];
 
 			windcounts = new double[16];
 			WindRecent = new TWindRecent[MaxWindRecent];
@@ -2170,6 +2170,12 @@ namespace CumulusMX
 			if (now.Hour == 9)
 			{
 				Reset9amTemperatures(now);
+			}
+
+			// snow reading rollover
+			if (now.Hour == cumulus.SnowDepthHour && cumulus.SnowAutomated > 0)
+			{
+				CreateNewSnowRecord(now);
 			}
 
 			RemoveOldRecentData(now);
@@ -5035,6 +5041,27 @@ namespace CumulusMX
 			HiLoToday9am.HighTempTime = logdate;
 
 			WriteYesterdayFile(logdate);
+		}
+
+		private void CreateNewSnowRecord(DateTime now)
+		{
+			try
+			{
+				var record = new DiaryData
+				{
+					Date = now.Date,
+					Time = now.TimeOfDay,
+					SnowDepth = (decimal?) LaserDist[cumulus.SnowAutomated],
+					Entry = "Automated entry"
+				};
+
+				cumulus.DiaryDB.Insert(record);
+				cumulus.LogMessage("Created new automated snow record: " + record.SnowDepth);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "Failed to create automated snow depth record");
+			}
 		}
 
 		public void SwitchToNormalRunning()
@@ -12252,14 +12279,13 @@ namespace CumulusMX
 
 		internal string GetDiaryData(string date)
 		{
-
 			StringBuilder json = new StringBuilder("{\"Time\":\"", 1024);
 
 			var result = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData where date(Date) = ? order by Date limit 1", date);
 
 			if (result.Count > 0)
 			{
-				json.Append($"{result[0].Time.ToString("c")}\",\"Entry\":");
+				json.Append($"{result[0].Time.ToString(@"hh\:mm")}:00\",\"Entry\":");
 				if (string.IsNullOrEmpty(result[0].Entry))
 				{
 					json.Append("null");
@@ -12299,12 +12325,13 @@ namespace CumulusMX
 		// Fetches all days that have a diary entry
 		internal string GetDiarySummary()
 		{
-			var json = new StringBuilder($"{{\"snowHour\":{cumulus.SnowDepthHour},", 1024);
+			var json = new StringBuilder(1024);
+
 			var result = cumulus.DiaryDB.Query<DiaryData>("select Date from DiaryData order by Date");
 
 			if (result.Count > 0)
 			{
-				json.Append("\"dates\":[");
+				json.Append("{\"dates\":[");
 				for (int i = 0; i < result.Count; i++)
 				{
 					json.Append('"');
@@ -12842,6 +12869,11 @@ namespace CumulusMX
 			json.Append($"\"snow\":\"{cumulus.Units.SnowText}\"");
 			json.Append('}');
 			return json.ToString();
+		}
+
+		public string GetSnowInfo()
+		{
+			return $"{{\"snowHour\":{cumulus.SnowDepthHour},\"automated\":{cumulus.SnowAutomated}}}";
 		}
 
 		public string GetGraphConfig(bool local)

@@ -181,7 +181,8 @@ namespace CumulusMX
 
 		/*
 		 * UK Air Quality Index - Committee on the Medical Effects of Air Pollutants (COMEAP)
-		 * https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/304633/COMEAP_review_of_the_uk_air_quality_index.pdf
+		 * https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/304633/COMEAP_review_of_the_uk_air_quality_index.pdf (2011)
+		 * https://assets.publishing.service.gov.uk/media/5a749a66e5274a44083b8003/COMEAP_review_of_the_uk_air_quality_index.pdf (2011)
 		 * Only integer values are defined, but we will interpolate between them
 		 */
 		public static double UK_COMEAPpm10(double pmVal)

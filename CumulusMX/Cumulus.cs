@@ -3946,6 +3946,7 @@ namespace CumulusMX
 			RecordSetTimeoutHrs = ini.GetValue("Station", "RecordSetTimeoutHrs", 24, 0);
 
 			SnowDepthHour = ini.GetValue("Station", "SnowDepthHour", 9, 0, 23);
+			SnowAutomated = ini.GetValue("Station", "SnowAutomated", 0, 0, 4);
 
 			StationOptions.UseZeroBearing = ini.GetValue("Station", "UseZeroBearing", false);
 
@@ -5576,6 +5577,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "LCMaxWind", LCMaxWind);
 			ini.SetValue("Station", "RecordSetTimeoutHrs", RecordSetTimeoutHrs);
 			ini.SetValue("Station", "SnowDepthHour", SnowDepthHour);
+			ini.SetValue("Station", "SnowAutomated", SnowAutomated);
 			ini.SetValue("Station", "UseRainForIsRaining", StationOptions.UseRainForIsRaining);
 			ini.SetValue("Station", "LeafWetnessIsRainingIdx", StationOptions.LeafWetnessIsRainingIdx);
 			ini.SetValue("Station", "LeafWetnessIsRainingVal", StationOptions.LeafWetnessIsRainingThrsh);
@@ -7340,6 +7342,8 @@ namespace CumulusMX
 		public double RainDayThreshold { get; set; }
 
 		public int SnowDepthHour { get; set; }
+		public int SnowAutomated { get; set; }
+
 
 		public bool HourlyForecast { get; set; }
 
