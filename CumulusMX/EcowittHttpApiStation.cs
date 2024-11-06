@@ -13,8 +13,6 @@ namespace CumulusMX
 	{
 		private static readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
-		private string deviceModel;
-		private string deviceFirmware;
 		private int updateRate = 10000; // 10 seconds by default
 		private int lastMinute = -1;
 		private int lastHour = -1;
@@ -31,7 +29,6 @@ namespace CumulusMX
 		private readonly Task historyTask;
 		private Task liveTask;
 
-		private Version fwVersion;
 		internal static readonly char[] dotSeparator = ['.'];
 		internal static readonly string[] underscoreV = ["_V"];
 
@@ -44,7 +41,7 @@ namespace CumulusMX
 
 		// We check the new value against what we have already, if older then ignore it!
 		double newLightningDistance = 999;
-		DateTime newLightningTime = new(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+		DateTime newLightningTime = DateTime.MinValue;
 
 
 		public EcowittHttpApiStation(Cumulus cumulus) : base(cumulus)

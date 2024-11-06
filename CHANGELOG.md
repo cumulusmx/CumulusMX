@@ -10,20 +10,20 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 
 
-## BETA [4.3.0 \[b4047\]][9] - 2024-11-02
+## BETA [4.3.0 \[b4048\]][9] - 2024-11-06
 
 ### New
 
 - Adds Rain Week to the dashboard
 	- There is also a new web tag `<#rweek>`
-	- Configure the start of week day in `Station Settings > Rainfall`
+	- Configure the start-of-week day in `Station Settings > Rainfall`
 - Added displaying snowfall data on the dashboard and default web site
 	- Enable display of snow data on the dashboard, default web site, and graphs in `Display Options`
 	- New web tag `<#Option_showSnow>`
 	- You will need to re-upload the default web site files for this:<br>
 		`webfiles\historic.htm`<br>
 		`webfiles\js\historiccharts.js`
-- New web tags for 9am High/Low temperatures
+- New web tags for 9am High/Low temperatures<br>
 	`<#temp9amTH>`,`<#Ttemp9amTH>`<br>
 	`<#temp9amTL>`,`<#Ttemp9amTL>`<br>
 	`<#temp9amTH>`,`<#Ttemp9amTH>`<br>
@@ -48,16 +48,17 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Efficiency improvements to all the "recent data" web tags
 - The Weather Diary has been revamped with revised fields to make it more useful
 	- The existing Weather Diary database data is migrated to the new format on first run of v4.3.0
-	- The SQLite table name has been changed to `DiaryData2` as part of this process
 	- The Editor page gains a new "Export All" button to export your diary to CSV format
 	- The Editor page gains a new "Upload File" button to re-import your exported CSV files
 	- The Editor page now also has a Time field which defaults to the configured snow recording time, but you may override it
 	- A new web tag `<#snow24h>`
 	- The web tag `<#snowfalling>` has been deprecated (it will return an empty string until it is removed)
+	- A new daily graph data file `alldailysnowdata.json`
 - Chill Hours now allows you to define a base temperature, where chill hours are only counted if the temperature is < threshold AND > base
 	- The base temperature defaults to -99 (°C or °F) to mimic the current behaviour where chill hours are counted if the temperature is just < threshold
 	- Some cold stratification of seeds in the UK for instance only counts chill hours when it is between 1°C and 10°C
 - APRS/CWOP now sends the full "Ecowitt/Ambient/Tempest" station types
+- Revised US EPA PM2.5 AQI index to match February 2024 update
 
 ### Fixed
 

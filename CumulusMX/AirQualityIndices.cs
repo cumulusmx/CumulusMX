@@ -7,6 +7,7 @@ namespace CumulusMX
 		/*
 		 * US AQI - United States Environmental Protection Agency (EPA)
 		 * https://www.airnow.gov/sites/default/files/2018-05/aqi-technical-assistance-document-may2016.pdf
+		 * https://www.epa.gov/system/files/documents/2024-02/pm-naaqs-air-quality-index-fact-sheet.pdf
 		 */
 
 		public static int US_EPApm2p5(double pmVal)
@@ -58,7 +59,7 @@ namespace CumulusMX
 			}
 			else if (pmVal >= 12)
 			{
-				//Clow = 12.1
+				//Clow = 9.1
 				//Chigh = 35.4
 				//Ilow = 51
 				//Ihigh = 100
@@ -67,7 +68,7 @@ namespace CumulusMX
 			else
 			{
 				//Clow = 0
-				//Chigh = 12
+				//Chigh = 9
 				//Ilow = 0
 				//Ihigh = 50
 				retVal = Interpolate(0, 12, pmVal) * 50;
