@@ -57,13 +57,13 @@ namespace CumulusMX
 				//Ihigh = 150
 				retVal = 100 + Interpolate(35.4, 55.4, pmVal) * 50;
 			}
-			else if (pmVal >= 12)
+			else if (pmVal >= 9)
 			{
 				//Clow = 9.1
 				//Chigh = 35.4
 				//Ilow = 51
 				//Ihigh = 100
-				retVal = 50 + Interpolate(12, 35.4, pmVal) * 50;
+				retVal = 50 + Interpolate(9, 35.4, pmVal) * 50;
 			}
 			else
 			{
@@ -71,7 +71,7 @@ namespace CumulusMX
 				//Chigh = 9
 				//Ilow = 0
 				//Ihigh = 50
-				retVal = Interpolate(0, 12, pmVal) * 50;
+				retVal = Interpolate(0, 9, pmVal) * 50;
 			}
 			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow
 			return (int) Math.Round(retVal);
