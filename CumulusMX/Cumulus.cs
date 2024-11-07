@@ -12005,14 +12005,14 @@ namespace CumulusMX
 				sb.Append(station.Humidex.ToString(TempFormat, InvC) + ' ');                  // 43
 				sb.Append((station.UV ?? 0).ToString(UVFormat, InvC) + ' ');                  // 44
 				sb.Append(station.ET.ToString(ETFormat, InvC) + ' ');                         // 45
-				sb.Append((station.SolarRad ?? 0) + ' ');                                     // 46
+				sb.Append((station.SolarRad ?? 0).ToString() + ' ');                          // 46
 				sb.Append(station.AvgBearing.ToString() + ' ');                               // 47
 				sb.Append(station.RainLastHour.ToString(RainFormat, InvC) + ' ');             // 48
 				sb.Append(station.Forecastnumber.ToString() + ' ');                           // 49
 				sb.Append(IsDaylight() ? "1 " : "0 ");                                        // 50
 				sb.Append(station.SensorContactLost ? "1 " : "0 ");                           // 51
 				sb.Append(station.CompassPoint(station.AvgBearing) + ' ');                    // 52
-				sb.Append(station.CloudBase + ' ');                                           // 53
+				sb.Append(station.CloudBase.ToString() + ' ');                                // 53
 				sb.Append(CloudBaseInFeet ? "ft " : "m ");                                    // 54
 				sb.Append(station.ApparentTemperature.ToString(TempFormat, InvC) + ' ');      // 55
 				sb.Append(station.SunshineHours.ToString(SunFormat, InvC) + ' ');             // 56

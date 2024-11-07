@@ -10,11 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 
 
-## BETA [4.3.0 \[b4048\]][9] - 2024-11-06
+## BETA [4.3.0 \[b4049\]][9] - 2024-11-08
 
-#### Changes from last Beta
-- Automated diary entries
-- Fix Airlink log file formatting
+### Changes from last Beta
+
+- Fix realtime.txt file
 
 ### New
 
