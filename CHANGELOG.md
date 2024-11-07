@@ -12,6 +12,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## BETA [4.3.0 \[b4048\]][9] - 2024-11-06
 
+#### Changes from last Beta
+- Automated diary entries
+- Fix Airlink log file formatting
+
 ### New
 
 - Adds Rain Week to the dashboard
