@@ -47,7 +47,7 @@ namespace CumulusMX
 				outdoor = outdoor
 			};
 
-			var ecowittwn34map = new JsonStationSettingsEcowittMappings
+			var ecowittwn34map = new StationSettings.JsonEcowittMappings
 			{
 				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
 
@@ -93,11 +93,11 @@ namespace CumulusMX
 			{
 				if (!string.IsNullOrEmpty(cumulus.EcowittExtraForwarders[i]))
 				{
-					ecowitt.forwarders.forward.Add(new JsonEcowittForwardList() { url = cumulus.EcowittExtraForwarders[i] });
+					ecowitt.forwarders.forward.Add(new StationSettings.JsonEcowittForwardList() { url = cumulus.EcowittExtraForwarders[i] });
 				}
 			}
 
-			var ecowittapi = new JsonStationSettingsEcowittApi
+			var ecowittapi = new StationSettings.JsonEcowittApi
 			{
 				applicationkey = cumulus.EcowittApplicationKey,
 				userkey = cumulus.EcowittUserApiKey,
@@ -546,7 +546,7 @@ namespace CumulusMX
 		public int extraStation { get; set; }
 		public JsonExtraSensorEcowitt ecowitt { get; set; }
 		public JsonExtraSensorAmbient ambient { get; set; }
-		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
+		public StationSettings.JsonEcowittApi ecowittapi { get; set; }
 	}
 
 	public class JsonExtraSensorAmbient
@@ -570,14 +570,14 @@ namespace CumulusMX
 		public string gwaddr { get; set; }
 		public string localaddr { get; set; }
 		public int interval { get; set; }
-		public JsonStationSettingsEcowittMappings mappings { get; set; }
+		public StationSettings.JsonEcowittMappings mappings { get; set; }
 		public JsonExtraSensorForwarders forwarders { get; set; }
 	}
 
 	public class JsonExtraSensorForwarders
 	{
 		public bool usemain { get; set; }
-		public List<JsonEcowittForwardList> forward { get; set; }
+		public List<StationSettings.JsonEcowittForwardList> forward { get; set; }
 	}
 
 	public class JsonExtraSensorBlakeLarsen

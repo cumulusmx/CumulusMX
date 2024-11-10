@@ -1600,13 +1600,13 @@ namespace CumulusMX
 						}
 						tmrComm.Stop();
 
-						if (socket.Available < loopDataLength)
-						{
-							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {socket.Available}");
-						}
-
 						// Read the first 99 bytes of the buffer into the array
-						socket.GetStream().Read(loopString, 0, loopDataLength);
+						var read = socket.GetStream().Read(loopString, 0, loopDataLength);
+
+						if (read < loopDataLength)
+						{
+							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not received, expected {loopDataLength} bytes, got {read}");
+						}
 					}
 					catch (System.IO.IOException ex)
 					{

@@ -15,7 +15,7 @@ namespace CumulusMX
 
 		public string GetAlpacaFormData()
 		{
-			var location = new JsonWizardLocation()
+			var location = new JsonLocation()
 			{
 				sitename = cumulus.LocationName,
 				description = cumulus.LocationDesc,
@@ -25,7 +25,7 @@ namespace CumulusMX
 				altitudeunit = cumulus.AltitudeInFeet ? "feet" : "metres",
 			};
 
-			var units = new JsonWizardUnits()
+			var units = new JsonUnits()
 			{
 				wind = cumulus.Units.Wind,
 				pressure = cumulus.Units.Press,
@@ -34,41 +34,41 @@ namespace CumulusMX
 				snow = cumulus.Units.SnowDepth
 			};
 
-			var logs = new JsonWizardLogs()
+			var logs = new JsonLogs()
 			{
 				loginterval = cumulus.DataLogInterval,
-				logrollover = new JsonStationSettingsLogRollover()
+				logrollover = new StationSettings.JsonLogRollover()
 				{
 					time = cumulus.RolloverHour == 9 ? "9am" : "midnight",
 					summer10am = cumulus.Use10amInSummer
 				}
 			};
 
-			var davisvp = new JsonWizardDavisVp()
+			var davisvp = new JsonDavisVp()
 			{
 				conntype = cumulus.DavisOptions.ConnectionType,
 				comportname = cumulus.ComportName,
-				tcpsettings = new JsonStationSettingsTCPsettings()
+				tcpsettings = new StationSettings.JsonTCPsettings()
 				{
 					ipaddress = cumulus.DavisOptions.IPAddr,
 					disconperiod = cumulus.DavisOptions.PeriodicDisconnectInterval
 				}
 			};
 
-			var daviswll = new JsonWizardDavisWll()
+			var daviswll = new JsonDavisWll()
 			{
-				network = new JsonStationSettingsWllNetwork()
+				network = new StationSettings.JsonWllNetwork()
 				{
 					autoDiscover = cumulus.WLLAutoUpdateIpAddress,
 					ipaddress = cumulus.DavisOptions.IPAddr
 				},
-				api = new JsonStationSettingsWllApi()
+				api = new StationSettings.JsonWllApi()
 				{
 					apiKey = cumulus.WllApiKey,
 					apiSecret = cumulus.WllApiSecret,
 					apiStationId = cumulus.WllStationId
 				},
-				primary = new JsonStationSettingsWllPrimary()
+				primary = new StationSettings.JsonWllPrimary()
 				{
 					wind = cumulus.WllPrimaryWind,
 					temphum = cumulus.WllPrimaryTempHum,
@@ -78,15 +78,15 @@ namespace CumulusMX
 				}
 			};
 
-			var daviscloud = new JsonWizardDavisWll()
+			var daviscloud = new JsonDavisWll()
 			{
-				api = new JsonStationSettingsWllApi()
+				api = new StationSettings.JsonWllApi()
 				{
 					apiKey = cumulus.WllApiKey,
 					apiSecret = cumulus.WllApiSecret,
 					apiStationId = cumulus.WllStationId
 				},
-				primary = new JsonStationSettingsWllPrimary()
+				primary = new StationSettings.JsonWllPrimary()
 				{
 					wind = cumulus.WllPrimaryWind,
 					temphum = cumulus.WllPrimaryTempHum,
@@ -96,7 +96,7 @@ namespace CumulusMX
 				}
 			};
 
-			var weatherflow = new JsonStationSettingsWeatherFlow()
+			var weatherflow = new StationSettings.JsonWeatherFlow()
 			{
 				deviceid = cumulus.WeatherFlowOptions.WFDeviceId,
 				tcpport = cumulus.WeatherFlowOptions.WFTcpPort,
@@ -104,49 +104,49 @@ namespace CumulusMX
 				dayshistory = cumulus.WeatherFlowOptions.WFDaysHist
 			};
 
-			var gw1000 = new JsonStationSettingsGw1000Conn()
+			var gw1000 = new StationSettings.JsonGw1000Conn()
 			{
 				ipaddress = cumulus.Gw1000IpAddress,
 				autoDiscover = cumulus.Gw1000AutoUpdateIpAddress,
 				macaddress = cumulus.Gw1000MacAddress
 			};
 
-			var ecowittHttpApi = new JsonStationSettingsHttpApi()
+			var ecowittHttpApi = new StationSettings.JsonHttpApi()
 			{
 				ipaddress = cumulus.Gw1000IpAddress
 			};
 
-			var fineoffset = new JsonWizardFineOffset()
+			var fineoffset = new JsonFineOffset()
 			{
 				syncreads = cumulus.FineOffsetOptions.SyncReads,
 				readavoid = cumulus.FineOffsetOptions.ReadAvoidPeriod
 			};
 
-			var easyweather = new JsonWizardEasyWeather()
+			var easyweather = new JsonEasyWeather()
 			{
 				interval = cumulus.EwOptions.Interval,
 				filename = cumulus.EwOptions.Filename
 			};
 
-			var imet = new JsonWizardImet()
+			var imet = new JsonImet()
 			{
 				comportname = cumulus.ComportName,
 				baudrate = cumulus.ImetOptions.BaudRate
 			};
 
-			var wmr = new JsonStationSettingsWmr928()
+			var wmr = new StationSettings.JsonWmr928()
 			{
 				comportname = cumulus.ComportName
 			};
 
-			var ecowittapi = new JsonStationSettingsEcowittApi()
+			var ecowittapi = new StationSettings.JsonEcowittApi()
 			{
 				applicationkey = cumulus.EcowittApplicationKey,
 				userkey = cumulus.EcowittUserApiKey,
 				mac = cumulus.EcowittMacAddress
 			};
 
-			var jsonstn = new JsonJsonStation()
+			var jsonstn = new StationSettings.JsonJsonStation()
 			{
 				conntype = cumulus.JsonStationOptions.Connectiontype,
 				filename = cumulus.JsonStationOptions.SourceFile,
@@ -158,7 +158,7 @@ namespace CumulusMX
 			};
 
 
-			var station = new JsonWizardStation()
+			var station = new JsonStation()
 			{
 				manufacturer = cumulus.Manufacturer,
 				stationtype = cumulus.StationType,
@@ -177,13 +177,13 @@ namespace CumulusMX
 				jsonstation = jsonstn
 			};
 
-			var copy = new JsonWizardInternetCopy()
+			var copy = new JsonInternetCopy()
 			{
 				localcopy = cumulus.FtpOptions.LocalCopyEnabled,
 				localcopyfolder = cumulus.FtpOptions.LocalCopyFolder,
 			};
 
-			var ftp = new JsonWizardInternetFtp()
+			var ftp = new JsonInternetFtp()
 			{
 				enabled = cumulus.FtpOptions.Enabled,
 				directory = cumulus.FtpOptions.Directory,
@@ -197,21 +197,21 @@ namespace CumulusMX
 				phpurl = cumulus.FtpOptions.PhpUrl,
 				phpsecret = cumulus.FtpOptions.PhpSecret,
 			};
-			var internet = new JsonWizardInternet()
+			var internet = new JsonInternet()
 			{
 				copy = copy,
 				ftp = ftp
 			};
 
-			var website = new JsonWizardWebSite()
+			var website = new JsonWebSite()
 			{
-				interval = new JsonWizardWebInterval()
+				interval = new JsonWebInterval()
 				{
 					enabled = cumulus.WebIntervalEnabled,
 					enableintervalftp = cumulus.FtpOptions.IntervalEnabled,
 					ftpinterval = cumulus.UpdateInterval
 				},
-				realtime = new JsonWizardWebRealtime()
+				realtime = new JsonWebRealtime()
 				{
 					enabled = cumulus.RealtimeIntervalEnabled,
 					enablerealtimeftp = cumulus.FtpOptions.RealtimeEnabled,
@@ -813,141 +813,139 @@ namespace CumulusMX
 
 			return $"{hemi}&nbsp;{degs:D2}&deg;&nbsp;{mins:D2}&#39;&nbsp;{secs:D2}&quot;";
 		}
+
+		private sealed class JsonWizard
+		{
+			public JsonLocation location { get; set; }
+			public JsonUnits units { get; set; }
+			public JsonStation station { get; set; }
+			public JsonLogs logs { get; set; }
+			public JsonInternet internet { get; set; }
+			public JsonWebSite website { get; set; }
+		}
+
+		private sealed class JsonLocation
+		{
+			public decimal latitude { get; set; }
+			public decimal longitude { get; set; }
+			public int altitude { get; set; }
+			public string altitudeunit { get; set; }
+			public string sitename { get; set; }
+			public string description { get; set; }
+		}
+
+		private sealed class JsonUnits
+		{
+			public int wind { get; set; }
+			public int pressure { get; set; }
+			public int temp { get; set; }
+			public int rain { get; set; }
+			public int snow { get; set; }
+		}
+
+		private sealed class JsonLogs
+		{
+			public int loginterval { get; set; }
+			public StationSettings.JsonLogRollover logrollover { get; set; }
+		}
+
+		private sealed class JsonStation
+		{
+			public int manufacturer { get; set; }
+			public int stationtype { get; set; }
+			public string stationmodel { get; set; }
+			public JsonDavisVp davisvp2 { get; set; }
+			public JsonDavisWll daviswll { get; set; }
+			public JsonDavisWll daviscloud { get; set; }
+			public StationSettings.JsonGw1000Conn gw1000 { get; set; }
+			public StationSettings.JsonHttpApi ecowitthttpapi { get; set; }
+			public JsonFineOffset fineoffset { get; set; }
+			public JsonEasyWeather easyw { get; set; }
+			public JsonImet imet { get; set; }
+			public StationSettings.JsonWmr928 wmr928 { get; set; }
+			public StationSettings.JsonWeatherFlow weatherflow { get; set; }
+			public StationSettings.JsonEcowittApi ecowittapi { get; set; }
+			public StationSettings.JsonJsonStation jsonstation { get; set; }
+		}
+
+		private sealed class JsonDavisVp
+		{
+			public int conntype { get; set; }
+			public string comportname { get; set; }
+			public StationSettings.JsonTCPsettings tcpsettings { get; set; }
+		}
+
+		private sealed class JsonDavisWll
+		{
+			public StationSettings.JsonWllNetwork network { get; set; }
+			public StationSettings.JsonWllApi api { get; set; }
+			public StationSettings.JsonWllPrimary primary { get; set; }
+		}
+
+		private sealed class JsonFineOffset
+		{
+			public bool syncreads { get; set; }
+			public int readavoid { get; set; }
+		}
+
+		private sealed class JsonEasyWeather
+		{
+			public double interval { get; set; }
+			public string filename { get; set; }
+		}
+
+		private sealed class JsonImet
+		{
+			public string comportname { get; set; }
+			public int baudrate { get; set; }
+		}
+
+		private sealed class JsonInternet
+		{
+			public JsonInternetCopy copy { get; set; }
+			public JsonInternetFtp ftp { get; set; }
+		}
+
+		private sealed class JsonInternetCopy
+		{
+			public bool localcopy { get; set; }
+			public string localcopyfolder { get; set; }
+
+		}
+
+		private sealed class JsonInternetFtp
+		{
+			public bool enabled { get; set; }
+			public string hostname { get; set; }
+			public int ftpport { get; set; }
+			public int sslftp { get; set; }
+			public string directory { get; set; }
+			public string username { get; set; }
+			public string password { get; set; }
+			public string sshAuth { get; set; }
+			public string pskFile { get; set; }
+			public string phpurl { get; set; }
+			public string phpsecret { get; set; }
+		}
+
+		private sealed class JsonWebSite
+		{
+			public JsonWebInterval interval { get; set; }
+			public JsonWebRealtime realtime { get; set; }
+		}
+
+		private sealed class JsonWebInterval
+		{
+			public bool enabled { get; set; }
+			public bool enableintervalftp { get; set; }
+			public int ftpinterval { get; set; }
+		}
+
+		private sealed class JsonWebRealtime
+		{
+			public bool enabled { get; set; }
+			public bool enablerealtimeftp { get; set; }
+			public int realtimeinterval { get; set; }
+		}
 	}
-
-	internal class JsonWizard
-	{
-		public JsonWizardLocation location { get; set; }
-		public JsonWizardUnits units { get; set; }
-		public JsonWizardStation station { get; set; }
-		public JsonWizardLogs logs { get; set; }
-		public JsonWizardInternet internet { get; set; }
-		public JsonWizardWebSite website { get; set; }
-	}
-
-	internal class JsonWizardLocation
-	{
-		public decimal latitude { get; set; }
-		public decimal longitude { get; set; }
-		public int altitude { get; set; }
-		public string altitudeunit { get; set; }
-		public string sitename { get; set; }
-		public string description { get; set; }
-	}
-
-
-	internal class JsonWizardUnits
-	{
-		public int wind { get; set; }
-		public int pressure { get; set; }
-		public int temp { get; set; }
-		public int rain { get; set; }
-		public int snow { get; set; }
-	}
-
-	internal class JsonWizardLogs
-	{
-		public int loginterval { get; set; }
-		public JsonStationSettingsLogRollover logrollover { get; set; }
-	}
-
-	internal class JsonWizardStation
-	{
-		public int manufacturer { get; set; }
-		public int stationtype { get; set; }
-		public string stationmodel { get; set; }
-		public JsonWizardDavisVp davisvp2 { get; set; }
-		public JsonWizardDavisWll daviswll { get; set; }
-		public JsonWizardDavisWll daviscloud { get; set; }
-		public JsonStationSettingsGw1000Conn gw1000 { get; set; }
-		public JsonStationSettingsHttpApi ecowitthttpapi { get; set; }
-		public JsonWizardFineOffset fineoffset { get; set; }
-		public JsonWizardEasyWeather easyw { get; set; }
-		public JsonWizardImet imet { get; set; }
-		public JsonStationSettingsWmr928 wmr928 { get; set; }
-		public JsonStationSettingsWeatherFlow weatherflow { get; set; }
-		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
-		public JsonJsonStation jsonstation { get; set; }
-	}
-
-	internal class JsonWizardDavisVp
-	{
-		public int conntype { get; set; }
-		public string comportname { get; set; }
-		public JsonStationSettingsTCPsettings tcpsettings { get; set; }
-	}
-
-	internal class JsonWizardDavisWll
-	{
-		public JsonStationSettingsWllNetwork network { get; set; }
-		public JsonStationSettingsWllApi api { get; set; }
-		public JsonStationSettingsWllPrimary primary { get; set; }
-	}
-
-	internal class JsonWizardFineOffset
-	{
-		public bool syncreads { get; set; }
-		public int readavoid { get; set; }
-	}
-
-	internal class JsonWizardEasyWeather
-	{
-		public double interval { get; set; }
-		public string filename { get; set; }
-	}
-
-	internal class JsonWizardImet
-	{
-		public string comportname { get; set; }
-		public int baudrate { get; set; }
-	}
-
-	internal class JsonWizardInternet
-	{
-		public JsonWizardInternetCopy copy { get; set; }
-		public JsonWizardInternetFtp ftp { get; set; }
-	}
-
-	internal class JsonWizardInternetCopy
-	{
-		public bool localcopy { get; set; }
-		public string localcopyfolder { get; set; }
-
-	}
-
-	internal class JsonWizardInternetFtp
-	{
-		public bool enabled { get; set; }
-		public string hostname { get; set; }
-		public int ftpport { get; set; }
-		public int sslftp { get; set; }
-		public string directory { get; set; }
-		public string username { get; set; }
-		public string password { get; set; }
-		public string sshAuth { get; set; }
-		public string pskFile { get; set; }
-		public string phpurl { get; set; }
-		public string phpsecret { get; set; }
-	}
-
-	internal class JsonWizardWebSite
-	{
-		public JsonWizardWebInterval interval { get; set; }
-		public JsonWizardWebRealtime realtime { get; set; }
-	}
-
-	internal class JsonWizardWebInterval
-	{
-		public bool enabled { get; set; }
-		public bool enableintervalftp { get; set; }
-		public int ftpinterval { get; set; }
-	}
-
-	internal class JsonWizardWebRealtime
-	{
-		public bool enabled { get; set; }
-		public bool enablerealtimeftp { get; set; }
-		public int realtimeinterval { get; set; }
-	}
-
 }

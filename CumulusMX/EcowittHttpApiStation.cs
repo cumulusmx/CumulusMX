@@ -1162,16 +1162,16 @@ namespace CumulusMX
 			{
 				var sensor = sensors[i];
 
-				try
+				if (sensor.channel.HasValue && sensor.PM25.HasValue)
 				{
-					if (sensor.channel.HasValue && sensor.PM25.HasValue)
+					try
 					{
 						DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
 					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, "ProcessChPm25: Error");
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessChPm25: Error on sensor {sensor.channel}");
+					}
 				}
 			}
 		}
@@ -1195,19 +1195,18 @@ namespace CumulusMX
 			{
 				var sensor = sensors[i];
 
-				try
+				if (sensor.channel.HasValue && !string.IsNullOrEmpty(sensor.status))
 				{
-					if (sensor.channel.HasValue && !string.IsNullOrEmpty(sensor.status))
+					try
 					{
 						var val = sensor.status == "NORMAL" ? 0 : 1;
 						DoLeakSensor(val, sensor.channel.Value);
 					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessLeak: Error processing channel {sensor.channel.Value}");
+					}
 				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, $"ProcessLeak: Error processing channel {sensor.channel.Value}");
-				}
-
 			}
 		}
 
@@ -1276,9 +1275,9 @@ namespace CumulusMX
 			{
 				var sensor = sensors[i];
 
-				try
+				if (sensor.temp.HasValue)
 				{
-					if (sensor.temp.HasValue)
+					try
 					{
 						var val = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
 						if (cumulus.EcowittMapWN34[sensor.channel] == 0) // false = user temp, true = soil temp
@@ -1290,10 +1289,10 @@ namespace CumulusMX
 							DoSoilTemp(val, cumulus.EcowittMapWN34[sensor.channel]);
 						}
 					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, $"ProcessUserTemp: Error processing sensor channel {sensor.channel}");
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessUserTemp: Error processing sensor channel {sensor.channel}");
+					}
 				}
 			}
 		}
@@ -1315,18 +1314,18 @@ namespace CumulusMX
 
 			for (var i = 0; i < sensors.Length; i++)
 			{
-				try
-				{
-					var sensor = sensors[i];
+				var sensor = sensors[i];
 
-					if (sensor.humidityVal.HasValue)
+				if (sensor.humidityVal.HasValue)
+				{
+					try
 					{
 						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel);
 					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, "ProcessSoilMoisture: Error");
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessSoilMoisture: Error on sensor {sensor.channel}");
+					}
 				}
 			}
 		}
@@ -1350,16 +1349,16 @@ namespace CumulusMX
 			{
 				var sensor = sensors[i];
 
-				try
+				if (sensor.humidityVal.HasValue)
 				{
-					if (sensor.humidityVal.HasValue)
+					try
 					{
 						DoLeafWetness(sensor.humidityVal.Value, sensor.channel);
 					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, $"ProcessLeafWet: Error processing channel {sensor.channel}");
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessLeafWet: Error processing channel {sensor.channel}");
+					}
 				}
 			}
 		}

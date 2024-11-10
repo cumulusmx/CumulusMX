@@ -10,11 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 
 
-## BETA [4.3.0 \[b4049\]][9] - 2024-11-08
+## BETA [4.3.0 \[b4050\]][9] - 2024-11-11
 
 ### Changes from last Beta
 
-- Fix realtime.txt file
+- Added laser distance units
 
 ### New
 

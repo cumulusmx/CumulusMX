@@ -571,6 +571,16 @@ namespace CumulusMX
 			public JsonVisibility DataVisibility { get; set; }
 		}
 
+		private sealed class JsonDisplayOptions
+		{
+			public int windrosepoints { get; set; }
+			public bool useapparent { get; set; }
+			public bool displaysolar { get; set; }
+			public bool displayuv { get; set; }
+			public bool displaysnow { get; set; }
+		}
+
+
 		private sealed class JsonGraphs
 		{
 			public int graphhours { get; set; }

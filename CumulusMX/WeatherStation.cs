@@ -5047,11 +5047,29 @@ namespace CumulusMX
 		{
 			try
 			{
+				decimal? dist = null;
+				if (LaserDist[cumulus.SnowAutomated].HasValue)
+				{
+					if (cumulus.Units.SnowDepth == cumulus.Units.LaserDistance)
+					{
+						dist = (decimal) Math.Round(LaserDist[cumulus.SnowAutomated].Value, cumulus.Units.SnowDepth);
+					}
+					else if (cumulus.Units.SnowDepth == 0)
+					{
+						// laser dist must be 1 (inches)
+						dist = (decimal) Math.Round(LaserDist[cumulus.SnowAutomated].Value * 25.4, 0);
+					}
+					else
+					{
+						// laser dist must be 0 (cm)
+						dist = (decimal) Math.Round(LaserDist[cumulus.SnowAutomated].Value / 25.4, 1);
+					}
+				}
 				var record = new DiaryData
 				{
 					Date = now.Date,
 					Time = now.TimeOfDay,
-					SnowDepth = (decimal?) LaserDist[cumulus.SnowAutomated],
+					SnowDepth = dist,
 					Entry = "Automated entry"
 				};
 
@@ -9858,6 +9876,8 @@ namespace CumulusMX
 				case 8:
 					LeafWetness8 = value;
 					break;
+				default:
+					return;
 			}
 
 			if (cumulus.StationOptions.LeafWetnessIsRainingIdx == index)
@@ -12867,6 +12887,7 @@ namespace CumulusMX
 			json.Append($"\"leafwet\":\"{cumulus.Units.LeafWetnessUnitText}\",");
 			json.Append($"\"aq\":\"{cumulus.Units.AirQualityUnitText}\",");
 			json.Append($"\"snow\":\"{cumulus.Units.SnowText}\"");
+			json.Append($"\"laser\":\"{cumulus.Units.LaserDistanceText}\"");
 			json.Append('}');
 			return json.ToString();
 		}

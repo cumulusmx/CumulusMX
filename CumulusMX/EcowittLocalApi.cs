@@ -781,7 +781,7 @@ namespace CumulusMX
 			public string platform { get; set; }
 		}
 
-		private class CheckUpgrade
+		private sealed class CheckUpgrade
 		{
 			public bool is_new { get; set; }
 			public string msg { get; set; }

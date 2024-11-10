@@ -1977,15 +1977,8 @@ namespace CumulusMX
 					break;
 			}
 
-			switch (Units.SnowDepth)
-			{
-				case 0:
-					Units.SnowText = "cm";
-					break;
-				case 1:
-					Units.SnowText = "in";
-					break;
-			}
+			Units.SnowText = Units.SnowDepth == 0 ? "cm" : "in";
+			Units.LaserDistanceText = Units.LaserDistance == 0 ? "cm" : "in";
 		}
 
 		// If the temperature units are changed, reset NOAA thresholds to defaults
@@ -3820,6 +3813,7 @@ namespace CumulusMX
 			Units.Rain = ini.GetValue("Station", "RainUnit", 0, 0, 1);
 			Units.Temp = ini.GetValue("Station", "TempUnit", 0, 0, 1);
 			Units.SnowDepth = ini.GetValue("Station", "SnowDepthUnit", 0, 0, 1);
+			Units.LaserDistance = ini.GetValue("Station", "LaserDistancehUnit", Units.SnowDepth, 0, 1);
 
 			StationOptions.RoundWindSpeed = ini.GetValue("Station", "RoundWindSpeed", false);
 			StationOptions.PrimaryAqSensor = ini.GetValue("Station", "PrimaryAqSensor", -1, -1);
@@ -5630,6 +5624,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "RainUnit", Units.Rain);
 			ini.SetValue("Station", "TempUnit", Units.Temp);
 			ini.SetValue("Station", "SnowDepthUnit", Units.SnowDepth);
+			ini.SetValue("Station", "LaserDistancehUnit", Units.LaserDistance);
 
 			ini.SetValue("Station", "WindSpeedDecimals", WindDPlaces);
 			ini.SetValue("Station", "WindSpeedAvgDecimals", WindAvgDPlaces);
@@ -13722,12 +13717,15 @@ namespace CumulusMX
 		public int Temp { get; set; }
 		/// <value> 0=cm, 1=inch </value>
 		public int SnowDepth { get; set; }
+		/// <value> 0=cm, 1=inch </value>
+		public int LaserDistance { get; set; }
 
 		public string WindText { get; set; }
 		public string PressText { get; set; }
 		public string RainText { get; set; }
 		public string TempText { get; set; }
 		public string SnowText { get; set; }
+		public string LaserDistanceText { get; set; }
 
 		public string TempTrendText { get; set; }
 		public string RainTrendText { get; set; }
