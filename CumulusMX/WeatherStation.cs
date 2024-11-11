@@ -19,8 +19,6 @@ using System.Web;
 
 using EmbedIO.Utilities;
 
-using Org.BouncyCastle.Ocsp;
-
 using ServiceStack.Text;
 
 using SQLite;
@@ -565,28 +563,38 @@ namespace CumulusMX
 
 			if (File.Exists(fileName))
 			{
-				var lines = File.ReadAllLines(fileName);
+				try
+				{
+					var rewrite = false;
+					var lines = File.ReadAllLines(fileName);
 
-				if (string.IsNullOrEmpty(lines[^1]))
-				{
-					cumulus.LogMessage($"{prefix} {fileName} empty line removed");
-					lines = lines.Take(lines.Length - 1).ToArray();
-				}
-				else
-				{
-					//Strip the "null line" from file
-					if (lines[^1][0] < 32)
+					while (string.IsNullOrEmpty(lines[^1]))
+					{
+						cumulus.LogMessage($"{prefix} {fileName} empty line removed");
+						lines = lines.Take(lines.Length - 1).ToArray();
+						rewrite = true;
+					}
+						//Strip the "null line" from file
+					while (lines[^1][0] < 32)
 					{
 						cumulus.LogMessage($"{prefix} {fileName} Removed last line of nul's from file");
 						lines = lines.Take(lines.Length - 1).ToArray();
+						rewrite = true;
+					}
+
+					if (rewrite)
+					{
+						File.WriteAllLines(fileName, lines);
 					}
 					else
 					{
 						cumulus.LogMessage($"{prefix} {fileName} Checked OK");
 					}
 				}
-
-				File.WriteAllLines(fileName, lines);
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "CheckMonthlyLogFile: Error");
+				}
 			}
 			else
 			{
