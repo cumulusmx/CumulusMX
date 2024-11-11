@@ -138,7 +138,7 @@ namespace CumulusMX
 			// If the Station ID is missing, this will populate it if the user only has one station associated with the API key or the UUID is known
 			if (useWeatherLinkDotCom && cumulus.WllStationId < 10)
 			{
-				var msg = $"No WeatherLink API station ID {(cumulus.WllStationUuid == string.Empty ? "or UUID" : "")}in the cumulus.ini file" + (cumulus.WllStationUuid == string.Empty ? "" : ", but a UUID has been configured");
+				var msg = $"No WeatherLink API station ID {(cumulus.WllStationUuid == string.Empty ? "or UUID" : "")} in the cumulus.ini file" + (cumulus.WllStationUuid == string.Empty ? "" : ", but a UUID has been configured");
 				cumulus.LogMessage(msg);
 				Cumulus.LogConsoleMessage(msg);
 

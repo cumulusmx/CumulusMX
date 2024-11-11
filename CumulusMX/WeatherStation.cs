@@ -6195,14 +6195,6 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoLaserDist(double dist, int channel)
-		{
-			if ((channel > 0) && (channel < LaserDist.Length))
-			{
-				LaserDist[channel] = dist;
-			}
-		}
-
 		public void DoForecast(string forecast, bool hourly)
 		{
 			// store weather station forecast if available

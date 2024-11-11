@@ -19,10 +19,9 @@ namespace CumulusMX
 		private bool haveHum = false;
 		private bool haveWind = false;
 
-		private double mm2cm = 0.1;
-		private double mm2in = 0.0393701;
-		private double cm2in = 0.393701;
-		private double in2cm = 2.54;
+		private static readonly double mm2in = 0.0393701;
+		private static readonly double cm2in = 0.393701;
+		private static readonly double in2cm = 2.54;
 
 		private FileSystemWatcher watcher;
 
