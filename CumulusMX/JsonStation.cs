@@ -19,6 +19,11 @@ namespace CumulusMX
 		private bool haveHum = false;
 		private bool haveWind = false;
 
+		private double mm2cm = 0.1;
+		private double mm2in = 0.0393701;
+		private double cm2in = 0.393701;
+		private double in2cm = 2.54;
+
 		private FileSystemWatcher watcher;
 
 		public JsonStation(Cumulus cumulus) : base(cumulus)
@@ -699,6 +704,52 @@ namespace CumulusMX
 				retStr.AppendLine("Error processing CO2");
 			}
 
+			// Laser distance
+			if (data.laserdist != null && data.units != null)
+			{
+				if (data.units.laserdist == null)
+				{
+					cumulus.LogErrorMessage("ApplyData: No laser distance units supplied!");
+					retStr.AppendLine("No laser distance units");
+				}
+				else
+				{
+					foreach (var rec in data.laserdist)
+					{
+						try
+						{
+							if (rec.value.HasValue)
+							{
+								double dist;
+
+								switch (data.units.laserdist)
+								{
+									case "mm":
+										dist = cumulus.Units.LaserDistance == 0 ? rec.value.Value / 10 : rec.value.Value * mm2in;
+										break;
+									case "in":
+										dist = cumulus.Units.LaserDistance == 0 ? rec.value.Value * in2cm : rec.value.Value;
+										break;
+									case "cm":
+										dist = cumulus.Units.LaserDistance == 0 ? rec.value.Value : rec.value.Value * cm2in;
+										break;
+									default:
+										dist = rec.value.Value;
+										break;
+								}
+
+								DoLaserDistance(dist, rec.index);
+							}
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, "ApplyData: Error processing Laser Distance");
+							retStr.AppendLine("Error processing Laser Distance");
+						}
+					}
+				}
+			}
+
 			// Do derived values after the primary values
 
 
@@ -760,6 +811,7 @@ namespace CumulusMX
 			public ExtraValue[] leafwetness { get; set; }
 			public PmData[] airquality { get; set; }
 			public Co2Data co2 { get; set; }
+			public ExtraValue[] laserdist { get; set; }
 		}
 
 		private sealed class UnitsObject
@@ -769,6 +821,7 @@ namespace CumulusMX
 			public string rainfall { get; set; }
 			public string pressure { get; set; }
 			public string soilmoisture { get; set; }
+			public string laserdist { get; set; }
 		}
 
 		private sealed class Temperature

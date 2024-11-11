@@ -19,6 +19,8 @@ using System.Web;
 
 using EmbedIO.Utilities;
 
+using Org.BouncyCastle.Ocsp;
+
 using ServiceStack.Text;
 
 using SQLite;
@@ -9884,6 +9886,14 @@ namespace CumulusMX
 			{
 				IsRaining = value >= cumulus.StationOptions.LeafWetnessIsRainingThrsh;
 				cumulus.IsRainingAlarm.Triggered = IsRaining;
+			}
+		}
+
+		public void DoLaserDistance(double value, int index)
+		{
+			if (index > 0 && index < LaserDist.Length)
+			{
+				LaserDist[index] = value;
 			}
 		}
 

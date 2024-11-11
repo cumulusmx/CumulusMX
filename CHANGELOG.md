@@ -60,6 +60,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Some cold stratification of seeds in the UK for instance only counts chill hours when it is between 1°C and 10°C
 - APRS/CWOP now sends the full "Ecowitt/Ambient/Tempest" station types
 - Revised US EPA PM2.5 AQI index to match February 2024 update
+- JSON station type now accepts laser distance measurements
 
 ### Fixed
 
