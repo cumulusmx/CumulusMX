@@ -11885,7 +11885,7 @@ namespace CumulusMX
 		private string CreateRealtimeFileString(int cycle)
 		{
 			/*
-			Example: 18/10/08 16:03:45 8.4 84 5.8 24.2 33.0 261 0.0 1.0 999.7 W 6 mph C mb mm 146.6 +0.1 85.2 588.4 11.6 20.3 57 3.6 -0.7 10.9 12:00 7.8 14:41 37.4 14:38 44.0 14:28 999.8 16:01 998.4 12:06 1.8.2 448 36.0 10.3 10.5 0 9.3
+			Example: 18/10/08 16:03:45 8.4 84 5.8 24.2 33.0 261 0.0 1.0 999.7 W 6 mph C mb mm 146.6 +0.1 85.2 588.4 11.6 20.3 57 3.6 -0.7 10.9 12:00 7.8 14:41 37.4 14:38 44.0 14:28 999.8 16:01 998.4 12:06 1.8.2 448 36.0 10.3 10.5 0 9.3 6.8
 
 			Field  Example    Description
 			1      18/10/08   date (always dd/mm/yy)
@@ -11947,6 +11947,7 @@ namespace CumulusMX
 			57     420        Current theoretical max solar radiation
 			58     1          Is sunny?
 			59     8.4        Feels Like temperature
+			60     6.8        weekly rainfall
 		  */
 
 			DateTime timestamp = DateTime.Now;
@@ -12013,7 +12014,8 @@ namespace CumulusMX
 				sb.Append(station.SunshineHours.ToString(SunFormat, InvC) + ' ');             // 56
 				sb.Append(Convert.ToInt32(station.CurrentSolarMax).ToString() + ' ');         // 57
 				sb.Append(station.IsSunny ? "1 " : "0 ");                                     // 58
-				sb.AppendLine(station.FeelsLike.ToString(TempFormat, InvC));                  // 59
+				sb.Append(station.FeelsLike.ToString(TempFormat, InvC) + ' ');                // 59
+				sb.AppendLine(station.RainWeek.ToString(RainFormat, InvC));                   // 60
 				return sb.ToString();
 			}
 			catch (Exception ex)

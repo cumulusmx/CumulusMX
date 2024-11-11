@@ -61,6 +61,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - APRS/CWOP now sends the full "Ecowitt/Ambient/Tempest" station types
 - Revised US EPA PM2.5 AQI index to match February 2024 update
 - JSON station type now accepts laser distance measurements
+- Adds weekly rainfall to the end of the realtime.txt file
 
 ### Fixed
 
