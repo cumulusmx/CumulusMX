@@ -3121,7 +3121,7 @@ namespace CumulusMX
 						try
 						{
 							// Update the in memory record
-							station.DayFile[lineNum] = station.ParseDayFileRec(newLine);
+							station.DayFile[lineNum] = new DayFileRec(newLine);
 
 							// update SQLite
 							station.RecentDataDb.Update(station.DayFile[lineNum]);

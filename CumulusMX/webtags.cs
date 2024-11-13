@@ -3837,7 +3837,7 @@ namespace CumulusMX
 		private string TagChillHoursYesterday(Dictionary<string, string> tagParams)
 		{
 			var dayb4yest = DateTime.Now.Date.AddDays(-2);
-			WeatherStation.DayFileRec rec;
+			DayFileRec rec;
 			try
 			{
 				rec = station.DayFile.Single(r => r.Date == dayb4yest);

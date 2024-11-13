@@ -8,13 +8,14 @@ This file is formatted as [markdown](https://www.markdownguide.org/), any decent
 Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/main/CHANGELOG.md)
 
 ---
+---
 
-
-## BETA [4.3.0 \[b4050\]][9] - 2024-11-11
+## BETA [4.3.0 \[b4050\]][9] - 2024-11-13
 
 ### Changes from last Beta
 
 - Added laser distance units
+- Can now use JSON station for extra sensors
 
 ### New
 
@@ -237,7 +238,7 @@ No changes
 	- For Custom format specifiers see: [Custom TimeSpan formats](https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-timespan-format-strings)
 	- For Standard format specifiers see: [Standard TimeSpan formats](https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-timespan-format-strings)
 	- The default output is generated using the format string `"{0:%d} days {0:%h} hours"`
-	- You can customise this like this example: `<#SystemUpTime format="{0:%d}d {0:%h}h {0:%m}m">`  --> "12d 9h 46m"
+	- You can customise this like this example: `<#SystemUpTime format="{0:%d}d {0:%h}h {0:%m}m">`  >> "12d 9h 46m"
 - New web tag `<#AnnualRainfall>`
 	- Defaults to the current year if no year is specified, so is equivalent to the preferred web tag `<#ryear>`
 	- Accepts a tag parameter of `y=nnnn`, which will return the total rainfall for the specified year. Eg. `<#AnnualRainfall y=2021>`

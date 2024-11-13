@@ -512,9 +512,13 @@ namespace CumulusMX
 										updateRate = 4000;
 									}
 									goto case 1003;
-								case 3: // wh40
-									name = "wh40";
-									goto case 1003;
+								case 3: // wh40 - rain gauge
+									name = "wh25";
+									if (sensor.batt > 0) // some send a voltage, some don't :(
+									{
+										goto case 1003;
+									}
+									break;
 								case 4: // wh25
 									name = "wh25";
 									goto case 1003;
