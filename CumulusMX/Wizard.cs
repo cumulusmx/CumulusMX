@@ -764,7 +764,7 @@ namespace CumulusMX
 						{
 							cumulus.JsonStationOptions.SourceFile = settings.station.jsonstation.filename.Trim();
 						}
-						if (cumulus.JsonStationOptions.Connectiontype == 2)
+						else if (cumulus.JsonStationOptions.Connectiontype == 2)
 						{
 							cumulus.JsonStationOptions.MqttServer = string.IsNullOrWhiteSpace(settings.station.jsonstation.mqttserver) ? null : settings.station.jsonstation.mqttserver.Trim();
 							cumulus.JsonStationOptions.MqttPort = settings.station.jsonstation.mqttport;

@@ -39,6 +39,7 @@ namespace CumulusMX
 		internal static HttpStationAmbient stationAmbient { get; set; }
 		internal static HttpStationAmbient stationAmbientExtra { get; set; }
 		internal static JsonStation stationJson { get; set; }
+		internal static JsonStation stationJsonExtra { get; set; }
 		private static readonly char[] separator = [':'];
 
 
@@ -1516,6 +1517,17 @@ namespace CumulusMX
 							if (stationJson != null)
 							{
 								await writer.WriteAsync(stationJson.ReceiveDataFromApi(HttpContext, false));
+							}
+							else
+							{
+								Response.StatusCode = 503;
+								await writer.WriteAsync("{\"Error\":\"JSON Station is not running}\"");
+							}
+							break;
+						case "jsonextra":
+							if (stationJsonExtra != null)
+							{
+								await writer.WriteAsync(stationJsonExtra.ReceiveDataFromApi(HttpContext, false));
 							}
 							else
 							{

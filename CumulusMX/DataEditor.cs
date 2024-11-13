@@ -258,7 +258,7 @@ namespace CumulusMX
 					cumulus.LogMessage("UploadDiary: Clearing diary database");
 					cumulus.DiaryDB.DeleteAll<DiaryData>();
 
-					inserted = cumulus.DiaryDB.InsertAll(dbRecs);
+					inserted = cumulus.DiaryDB.InsertAll(dbRecs, true);
 				}
 
 				cumulus.LogMessage("UploadDiary: Inserted " + inserted + " new records");

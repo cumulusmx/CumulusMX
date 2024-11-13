@@ -137,6 +137,7 @@ namespace CumulusMX
 		internal HttpStationEcowitt ecowittExtra;
 		internal HttpStationAmbient ambientExtra;
 		internal EcowittCloudStation ecowittCloudExtra;
+		internal JsonStation jsonStationExtra;
 
 		internal DateTime LastUpdateTime; // use UTC to avoid DST issues
 
@@ -287,6 +288,8 @@ namespace CumulusMX
 		internal EasyWeatherOptions EwOptions = new();
 		internal WeatherFlowOptions WeatherFlowOptions = new();
 		internal JsonStationOptions JsonStationOptions = new();
+		internal JsonStationOptions JsonExtraStationOptions = new();
+
 
 		internal GraphOptions GraphOptions = new();
 
@@ -1518,6 +1521,13 @@ namespace CumulusMX
 					LogConsoleMessage($"Opening Ecowitt cloud extra sensors");
 					ecowittCloudExtra = new EcowittCloudStation(this, station);
 				}
+				if (JsonExtraStationOptions.ExtraSensorsEnabled)
+				{
+					LogMessage("Creating JSON station extra sensors station");
+					LogConsoleMessage($"Opening JSON extra sensors");
+					Api.stationJsonExtra = new JsonStation(this, station);
+				}
+
 
 				// set the third party upload station
 				Wund.station = station;
@@ -4044,18 +4054,6 @@ namespace CumulusMX
 			EcowittIsRainingUsePiezo = ini.GetValue("GW1000", "UsePiezoIsRaining", false);
 			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
 			EcowittCloudExtraEnabled = ini.GetValue("GW1000", "ExtraCloudSensorDataEnabled", false);
-			EcowittExtraUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
-			EcowittExtraUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", true);
-			EcowittExtraUseTempHum = ini.GetValue("GW1000", "ExtraSensorUseTempHum", true);
-			EcowittExtraUseSoilTemp = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", true);
-			EcowittExtraUseSoilMoist = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", true);
-			EcowittExtraUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", true);
-			EcowittExtraUseUserTemp = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", true);
-			EcowittExtraUseAQI = ini.GetValue("GW1000", "ExtraSensorUseAQI", true);
-			EcowittExtraUseCo2 = ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
-			EcowittExtraUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
-			EcowittExtraUseLeak = ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
-			EcowittExtraUseCamera = ini.GetValue("GW1000", "ExtraSensorUseCamera", true);
 			EcowittSetCustomServer = ini.GetValue("GW1000", "SetCustomServer", false);
 			EcowittGatewayAddr = ini.GetValue("GW1000", "EcowittGwAddr", "0.0.0.0");
 			var localIp = Utils.GetIpWithDefaultGateway();
@@ -4116,6 +4114,141 @@ namespace CumulusMX
 			JsonStationOptions.MqttPassword = ini.GetValue("JsonStation", "MqttPassword", string.Empty);
 			JsonStationOptions.MqttUseTls = ini.GetValue("JsonStation", "MqttUseTls", false);
 			JsonStationOptions.MqttTopic = ini.GetValue("JsonStation", "MqttTopic", string.Empty);
+			// JSON station Extra Sensors
+			JsonExtraStationOptions.ExtraSensorsEnabled = ini.GetValue("JsonExtraStation", "ExtraSensorDataEnabled", false);
+			JsonExtraStationOptions.Connectiontype = ini.GetValue("JsonExtraStation", "ConnectionType", 1, 0, 2);
+			JsonExtraStationOptions.SourceFile = ini.GetValue("JsonExtraStation", "SourceFile", string.Empty);
+			JsonExtraStationOptions.FileReadDelay = ini.GetValue("JsonExtraStation", "FileDelay", 200, 0);
+			JsonExtraStationOptions.MqttServer = ini.GetValue("JsonExtraStation", "MqttServer", string.Empty);
+			JsonExtraStationOptions.MqttPort = ini.GetValue("JsonExtraStation", "MqttServerPort", 1883, 1, 65353);
+			JsonExtraStationOptions.MqttUsername = ini.GetValue("JsonExtraStation", "MqttUsername", string.Empty);
+			JsonExtraStationOptions.MqttPassword = ini.GetValue("JsonExtraStation", "MqttPassword", string.Empty);
+			JsonExtraStationOptions.MqttUseTls = ini.GetValue("JsonExtraStation", "MqttUseTls", false);
+			JsonExtraStationOptions.MqttTopic = ini.GetValue("JsonExtraStation", "MqttTopic", string.Empty);
+
+			// Extra Sensor Options
+			if (ini.ValueExists("GW1000", "ExtraSensorUseSolar"))
+			{
+				ExtraSensorUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseSolar");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseSolar = ini.GetValue("ExtraSensors", "ExtraSensorUseSolar", true);
+			}
+			if (ini.ValueExists("GW1000", "ExtraSensorUseUv"))
+			{
+				ExtraSensorUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseUv");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseUv = ini.GetValue("ExtraSensors", "ExtraSensorUseUv", true);
+			}
+			if (ini.ValueExists("GW1000", "ExtraSensorUseTempHum"))
+			{
+				ExtraSensorUseTempHum = ini.GetValue("GW1000", "ExtraSensorUseTempHum", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseTempHum");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseTempHum = ini.GetValue("ExtraSensors", "ExtraSensorUseTempHum", true);
+			}
+			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilTemp"))
+			{
+				ExtraSensorUseSoilTemp = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseSoilTemp");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseSoilTemp = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilTemp", true);
+			}
+			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilMoist"))
+			{
+				ExtraSensorUseSoilMoist = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseSoilMoist");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseSoilMoist = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilMoist", true);
+			}
+			if (ini.ValueExists("GW1000", "ExtraSensorUseLeafWet"))
+			{
+				ExtraSensorUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseLeafWet");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseLeafWet = ini.GetValue("ExtraSensors", "ExtraSensorUseLeafWet", true);
+			}
+			if (ini.ValueExists("GW1000", "ExtraSensorUseUserTemp"))
+			{
+				ExtraSensorUseUserTemp = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseUserTemp");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseUserTemp = ini.GetValue("ExtraSensors", "ExtraSensorUseUserTemp", true);
+			}
+			if (ini.ValueExists("GW1000", "ExtraSensorUseAQI"))
+			{
+				ExtraSensorUseAQI = ini.GetValue("GW1000", "ExtraSensorUseAQI", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseAQI");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseAQI = ini.GetValue("ExtraSensors", "ExtraSensorUseAQI", true);
+			}
+			if (ini.ValueExists("GW1000", "ExtraSensorUseCo2"))
+			{
+				ExtraSensorUseCo2 = ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseCo2");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseCo2 = ini.GetValue("ExtraSensors", "ExtraSensorUseCo2", true);
+			}
+			if (ini.ValueExists("GW1000", "ExtraSensorUseLightning"))
+			{
+				ExtraSensorUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseLightning");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseLightning = ini.GetValue("ExtraSensors", "ExtraSensorUseLightning", true);
+			}
+			if (ini.ValueExists("GW1000", "ExtraSensorUseLeak"))
+			{
+				ExtraSensorUseLeak = ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseLeak");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseLeak = ini.GetValue("ExtraSensors", "ExtraSensorUseLeak", true);
+			}
+			if (ini.ValueExists("GW1000", "ExtraSensorUseCamera"))
+			{
+				ExtraSensorUseCamera = ini.GetValue("GW1000", "ExtraSensorUseCamera", true);
+				ini.DeleteValue("GW1000", "ExtraSensorUseCamera");
+				rewriteRequired = true;
+			}
+			else
+			{
+				ExtraSensorUseCamera = ini.GetValue("ExtraSensors", "ExtraSensorUseCamera", true);
+			}
+			ExtraSensorUseLaserDist = ini.GetValue("ExtraSensors", "ExtraSensorUseLaserDist", true);
+
 
 			// AirLink settings
 			// We have to convert previous per AL IsNode config to global
@@ -5755,18 +5888,6 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "UsePiezoIsRaining", EcowittIsRainingUsePiezo);
 			ini.SetValue("GW1000", "ExtraSensorDataEnabled", EcowittExtraEnabled);
 			ini.SetValue("GW1000", "ExtraCloudSensorDataEnabled", EcowittCloudExtraEnabled);
-			ini.SetValue("GW1000", "ExtraSensorUseSolar", EcowittExtraUseSolar);
-			ini.SetValue("GW1000", "ExtraSensorUseUv", EcowittExtraUseUv);
-			ini.SetValue("GW1000", "ExtraSensorUseTempHum", EcowittExtraUseTempHum);
-			ini.SetValue("GW1000", "ExtraSensorUseSoilTemp", EcowittExtraUseSoilTemp);
-			ini.SetValue("GW1000", "ExtraSensorUseSoilMoist", EcowittExtraUseSoilMoist);
-			ini.SetValue("GW1000", "ExtraSensorUseLeafWet", EcowittExtraUseLeafWet);
-			ini.SetValue("GW1000", "ExtraSensorUseUserTemp", EcowittExtraUseUserTemp);
-			ini.SetValue("GW1000", "ExtraSensorUseAQI", EcowittExtraUseAQI);
-			ini.SetValue("GW1000", "ExtraSensorUseCo2", EcowittExtraUseCo2);
-			ini.SetValue("GW1000", "ExtraSensorUseLightning", EcowittExtraUseLightning);
-			ini.SetValue("GW1000", "ExtraSensorUseLeak", EcowittExtraUseLeak);
-			ini.SetValue("GW1000", "ExtraSensorUseCamera", EcowittExtraUseCamera);
 			ini.SetValue("GW1000", "SetCustomServer", EcowittSetCustomServer);
 			ini.SetValue("GW1000", "EcowittGwAddr", EcowittGatewayAddr);
 			ini.SetValue("GW1000", "EcowittLocalAddr", EcowittLocalAddr);
@@ -5827,6 +5948,32 @@ namespace CumulusMX
 			ini.SetValue("JsonStation", "MqttPassword", Crypto.EncryptString(JsonStationOptions.MqttPassword, Program.InstanceId, "JsonStationMqttPassword"));
 			ini.SetValue("JsonStation", "MqttUseTls", JsonStationOptions.MqttUseTls);
 			ini.SetValue("JsonStation", "MqttTopic", JsonStationOptions.MqttTopic);
+			// JSON station Extra Sensors
+			ini.SetValue("JsonExtraStation", "ExtraSensorDataEnabled", JsonExtraStationOptions.ExtraSensorsEnabled);
+			ini.SetValue("JsonExtraStation", "ConnectionType", JsonExtraStationOptions.Connectiontype);
+			ini.SetValue("JsonExtraStation", "SourceFile", JsonExtraStationOptions.SourceFile);
+			ini.SetValue("JsonExtraStation", "FileDelay", JsonExtraStationOptions.FileReadDelay);
+			ini.SetValue("JsonExtraStation", "MqttServer", JsonExtraStationOptions.MqttServer);
+			ini.SetValue("JsonExtraStation", "MqttServerPort", JsonExtraStationOptions.MqttPort);
+			ini.SetValue("JsonExtraStation", "MqttUsername", JsonExtraStationOptions.MqttUsername);
+			ini.SetValue("JsonExtraStation", "MqttPassword", JsonExtraStationOptions.MqttPassword);
+			ini.SetValue("JsonExtraStation", "MqttUseTls", JsonExtraStationOptions.MqttUseTls);
+			ini.SetValue("JsonExtraStation", "MqttTopic", JsonExtraStationOptions.MqttTopic);
+
+			// Extra Sensor Settings
+			ini.SetValue("ExtraSensors", "ExtraSensorUseSolar", ExtraSensorUseSolar);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseUv", ExtraSensorUseUv);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseTempHum", ExtraSensorUseTempHum);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseSoilTemp", ExtraSensorUseSoilTemp);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseSoilMoist", ExtraSensorUseSoilMoist);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseLeafWet", ExtraSensorUseLeafWet);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseUserTemp", ExtraSensorUseUserTemp);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseAQI", ExtraSensorUseAQI);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseCo2", ExtraSensorUseCo2);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseLightning", ExtraSensorUseLightning);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseLeak", ExtraSensorUseLeak);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseCamera", ExtraSensorUseCamera);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseLaserDist", ExtraSensorUseLaserDist);
 
 			// AirLink settings
 			ini.SetValue("AirLink", "IsWllNode", AirLinkIsNode);
@@ -5919,6 +6066,24 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "DisableEPSV", FtpOptions.DisableEPSV);
 			ini.SetValue("FTP site", "DisableFtpsExplicit", FtpOptions.DisableExplicit);
 
+			ini.SetValue("FTP site", "ExternalProgram", ExternalProgram);
+			ini.SetValue("FTP site", "RealtimeProgram", RealtimeProgram);
+			ini.SetValue("FTP site", "DailyProgram", DailyProgram);
+			ini.SetValue("FTP site", "ExternalParams", ExternalParams);
+			ini.SetValue("FTP site", "RealtimeParams", RealtimeParams);
+			ini.SetValue("FTP site", "DailyParams", DailyParams);
+
+			// Local Copy Options
+			ini.SetValue("FTP site", "EnableLocalCopy", FtpOptions.LocalCopyEnabled);
+			ini.SetValue("FTP site", "LocalCopyFolder", FtpOptions.LocalCopyFolder);
+
+			// PHP upload options
+			ini.SetValue("FTP site", "PHP-URL", FtpOptions.PhpUrl);
+			ini.SetValue("FTP site", "PHP-Secret", Crypto.EncryptString(FtpOptions.PhpSecret, Program.InstanceId, "FtpOptions.PhpSecret"));
+			ini.SetValue("FTP site", "PHP-IgnoreCertErrors", FtpOptions.PhpIgnoreCertErrors);
+			ini.SetValue("FTP site", "PHP-UseGet", FtpOptions.PhpUseGet);
+			ini.SetValue("FTP site", "PHP-UseBrotli", FtpOptions.PhpUseBrotli);
+			ini.SetValue("FTP site", "MaxConcurrentUploads", FtpOptions.MaxConcurrentUploads);
 
 			for (int i = 0; i < numextrafiles; i++)
 			{
@@ -5949,26 +6114,6 @@ namespace CumulusMX
 					ini.SetValue("FTP site", "ExtraIncLogFile" + i, ExtraFiles[i].incrementalLogfile);
 				}
 			}
-
-			ini.SetValue("FTP site", "ExternalProgram", ExternalProgram);
-			ini.SetValue("FTP site", "RealtimeProgram", RealtimeProgram);
-			ini.SetValue("FTP site", "DailyProgram", DailyProgram);
-			ini.SetValue("FTP site", "ExternalParams", ExternalParams);
-			ini.SetValue("FTP site", "RealtimeParams", RealtimeParams);
-			ini.SetValue("FTP site", "DailyParams", DailyParams);
-
-			// Local Copy Options
-			ini.SetValue("FTP site", "EnableLocalCopy", FtpOptions.LocalCopyEnabled);
-			ini.SetValue("FTP site", "LocalCopyFolder", FtpOptions.LocalCopyFolder);
-
-			// PHP upload options
-			ini.SetValue("FTP site", "PHP-URL", FtpOptions.PhpUrl);
-			ini.SetValue("FTP site", "PHP-Secret", Crypto.EncryptString(FtpOptions.PhpSecret, Program.InstanceId, "FtpOptions.PhpSecret"));
-			ini.SetValue("FTP site", "PHP-IgnoreCertErrors", FtpOptions.PhpIgnoreCertErrors);
-			ini.SetValue("FTP site", "PHP-UseGet", FtpOptions.PhpUseGet);
-			ini.SetValue("FTP site", "PHP-UseBrotli", FtpOptions.PhpUseBrotli);
-			ini.SetValue("FTP site", "MaxConcurrentUploads", FtpOptions.MaxConcurrentUploads);
-
 
 			ini.SetValue("Station", "CloudBaseInFeet", CloudBaseInFeet);
 
@@ -7250,20 +7395,23 @@ namespace CumulusMX
 
 		public bool AirLinkOutEnabled { get; set; }
 
+		public bool ExtraSensorUseSolar { get; set; }
+		public bool ExtraSensorUseUv { get; set; }
+		public bool ExtraSensorUseTempHum { get; set; }
+		public bool ExtraSensorUseSoilTemp { get; set; }
+		public bool ExtraSensorUseSoilMoist { get; set; }
+		public bool ExtraSensorUseLeafWet { get; set; }
+		public bool ExtraSensorUseAQI { get; set; }
+		public bool ExtraSensorUseUserTemp { get; set; }
+		public bool ExtraSensorUseLightning { get; set; }
+		public bool ExtraSensorUseCo2 { get; set; }
+		public bool ExtraSensorUseLeak { get; set; }
+		public bool ExtraSensorUseCamera { get; set; }
+		public bool ExtraSensorUseLaserDist { get; set; }
+
+
 		public bool EcowittExtraEnabled { get; set; }
 		public bool EcowittCloudExtraEnabled { get; set; }
-		public bool EcowittExtraUseSolar { get; set; }
-		public bool EcowittExtraUseUv { get; set; }
-		public bool EcowittExtraUseTempHum { get; set; }
-		public bool EcowittExtraUseSoilTemp { get; set; }
-		public bool EcowittExtraUseSoilMoist { get; set; }
-		public bool EcowittExtraUseLeafWet { get; set; }
-		public bool EcowittExtraUseUserTemp { get; set; }
-		public bool EcowittExtraUseAQI { get; set; }
-		public bool EcowittExtraUseCo2 { get; set; }
-		public bool EcowittExtraUseLightning { get; set; }
-		public bool EcowittExtraUseLeak { get; set; }
-		public bool EcowittExtraUseCamera { get; set; }
 		public string EcowittApplicationKey { get; set; }
 		public string EcowittUserApiKey { get; set; }
 		public string EcowittMacAddress { get; set; }
@@ -8674,6 +8822,8 @@ namespace CumulusMX
 				ecowittExtra?.Stop();
 				// If we have a Ambient Extra Sensors, stop it
 				ambientExtra?.Stop();
+				// If we have a JSON Extra Sensors, stop it
+				jsonStationExtra?.Stop();
 
 				LogMessage("Extra sensors stopped");
 
@@ -12199,15 +12349,16 @@ namespace CumulusMX
 
 		public void StartTimersAndSensors()
 		{
-			if (airLinkOut != null || airLinkIn != null || ecowittExtra != null || ambientExtra != null || ecowittCloudExtra != null)
+			if (airLinkOut != null || airLinkIn != null || ecowittExtra != null || ambientExtra != null || ecowittCloudExtra != null || jsonStationExtra != null)
 			{
 				LogMessage("Starting Extra Sensors");
+				airLinkOut?.Start();
+				airLinkIn?.Start();
+				ecowittExtra?.Start();
+				ambientExtra?.Start();
+				ecowittCloudExtra?.Start();
+				jsonStationExtra?.Start();
 			}
-			airLinkOut?.Start();
-			airLinkIn?.Start();
-			ecowittExtra?.Start();
-			ambientExtra?.Start();
-			ecowittCloudExtra?.Start();
 
 			LogMessage("Start Timers");
 			// start the general one-minute timer
@@ -13868,7 +14019,7 @@ namespace CumulusMX
 		public string MqttPassword { get; set; }
 		public bool MqttUseTls { get; set; }
 		public string MqttTopic { get; set; }
-
+		public bool ExtraSensorsEnabled { get; set; }
 	}
 
 	public class WeatherFlowOptions

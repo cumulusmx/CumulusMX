@@ -112,7 +112,7 @@ namespace CumulusMX
 				cumulus.LogMessage("Ecowitt Extra Gateway Custom Server configuration complete");
 			}
 
-			if (mainStation || cumulus.EcowittExtraUseAQI)
+			if (mainStation || cumulus.ExtraSensorUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
@@ -120,7 +120,7 @@ namespace CumulusMX
 			{
 				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
-			if (mainStation || cumulus.EcowittExtraUseLeafWet)
+			if (mainStation || cumulus.ExtraSensorUseLeafWet)
 			{
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
@@ -164,7 +164,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+						var retVal = ecowittApi.GetStationList(cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
 						if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
 						{
 							deviceFirmware = new Version(retVal[0]);
@@ -270,7 +270,7 @@ namespace CumulusMX
 
 		public override string GetEcowittCameraUrl()
 		{
-			if ((cumulus.EcowittExtraUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if ((cumulus.ExtraSensorUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 			{
 				try
 				{
@@ -288,7 +288,7 @@ namespace CumulusMX
 
 		public override string GetEcowittVideoUrl()
 		{
-			if ((cumulus.EcowittExtraUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if ((cumulus.ExtraSensorUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 			{
 				try
 				{
@@ -701,7 +701,7 @@ namespace CumulusMX
 
 
 				// === Extra Humidity ===
-				if (main || cumulus.EcowittExtraUseTempHum)
+				if (main || cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -716,7 +716,7 @@ namespace CumulusMX
 
 
 				// === Extra Temperature ===
-				if (main || cumulus.EcowittExtraUseTempHum)
+				if (main || cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -730,7 +730,7 @@ namespace CumulusMX
 				}
 
 				// === Solar ===
-				if (main || cumulus.EcowittExtraUseSolar)
+				if (main || cumulus.ExtraSensorUseSolar)
 				{
 					try
 					{
@@ -745,7 +745,7 @@ namespace CumulusMX
 
 
 				// === UV ===
-				if (main || cumulus.EcowittExtraUseUv)
+				if (main || cumulus.ExtraSensorUseUv)
 				{
 					try
 					{
@@ -760,7 +760,7 @@ namespace CumulusMX
 
 
 				// === Soil Temp ===
-				if (main || cumulus.EcowittExtraUseSoilTemp)
+				if (main || cumulus.ExtraSensorUseSoilTemp)
 				{
 					try
 					{
@@ -776,7 +776,7 @@ namespace CumulusMX
 
 
 				// === Soil Moisture ===
-				if (main || cumulus.EcowittExtraUseSoilMoist)
+				if (main || cumulus.ExtraSensorUseSoilMoist)
 				{
 					try
 					{
@@ -790,7 +790,7 @@ namespace CumulusMX
 				}
 
 				// === Soil Moisture Raw ===
-				if (main || cumulus.EcowittExtraUseSoilMoist)
+				if (main || cumulus.ExtraSensorUseSoilMoist)
 				{
 					try
 					{
@@ -805,7 +805,7 @@ namespace CumulusMX
 				}
 
 				// === Leaf Wetness ===
-				if (main || cumulus.EcowittExtraUseLeafWet)
+				if (main || cumulus.ExtraSensorUseLeafWet)
 				{
 					try
 					{
@@ -821,7 +821,7 @@ namespace CumulusMX
 
 
 				// === User Temp (Soil or Water) ===
-				if (main || cumulus.EcowittExtraUseUserTemp)
+				if (main || cumulus.ExtraSensorUseUserTemp)
 				{
 					try
 					{
@@ -836,7 +836,7 @@ namespace CumulusMX
 
 
 				// === Air Quality ===
-				if (main || cumulus.EcowittExtraUseAQI)
+				if (main || cumulus.ExtraSensorUseAQI)
 				{
 					try
 					{
@@ -852,7 +852,7 @@ namespace CumulusMX
 
 
 				// === CO₂ ===
-				if (main || cumulus.EcowittExtraUseCo2)
+				if (main || cumulus.ExtraSensorUseCo2)
 				{
 					try
 					{
@@ -874,7 +874,7 @@ namespace CumulusMX
 
 
 				// === Lightning ===
-				if (main || cumulus.EcowittExtraUseLightning)
+				if (main || cumulus.ExtraSensorUseLightning)
 				{
 					try
 					{
@@ -891,7 +891,7 @@ namespace CumulusMX
 
 
 				// === Leak ===
-				if (main || cumulus.EcowittExtraUseLeak)
+				if (main || cumulus.ExtraSensorUseLeak)
 				{
 					try
 					{
@@ -934,7 +934,7 @@ namespace CumulusMX
 
 
 				// === Extra Dew point ===
-				if (main || cumulus.EcowittExtraUseTempHum)
+				if (main || cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -1111,7 +1111,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							var retVal = ecowittApi.GetStationList(main || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+							var retVal = ecowittApi.GetStationList(main || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
 							if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 							{
 								deviceFirmware = new Version(retVal[0]);

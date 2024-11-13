@@ -37,6 +37,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Added some validation to the fields in the log editors
 - The dashboard and default web site can now display Chill Hours charts
 - Initial support for the new Ecowitt WH54 LDS01 Laser Distance sensors, just sensor info/battery decoding for now as that is all that is documented
+- The JSON Station type can now be used to input Extra Sensor data.
+	- This supports all the JSON Station input feed types: file watcher, HTTP POST, and MQTT
 
 ### Changed
 
@@ -71,6 +73,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt WH51 channels 9-16 decoding in HTTP API fixed(?) Still all undocumented by Ecowitt, sigh!
 - Improvements to Ecowitt latest firmware checking
 - Error message output processing historic Ecowitt AQI Combo PM10 data
+- SQLite exception loading duplicate dayfile entries
 
 ### Package Updates
 

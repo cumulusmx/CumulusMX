@@ -90,7 +90,7 @@ namespace CumulusMX
 				DataTimeoutMins = 2;
 			}
 
-			if (mainStation || cumulus.EcowittExtraUseAQI)
+			if (mainStation || cumulus.ExtraSensorUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
@@ -98,7 +98,7 @@ namespace CumulusMX
 			{
 				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
-			if (mainStation || cumulus.EcowittExtraUseLeafWet)
+			if (mainStation || cumulus.ExtraSensorUseLeafWet)
 			{
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
@@ -122,7 +122,7 @@ namespace CumulusMX
 				else
 				{
 					// see if we have a camera attached
-					var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+					var retVal = ecowittApi.GetStationList(cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
 					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 					{
 						// EasyWeather seems to contain the WiFi version
@@ -187,7 +187,7 @@ namespace CumulusMX
 								{
 									try
 									{
-										var retVal = ecowittApi.GetStationList(mainStation || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+										var retVal = ecowittApi.GetStationList(mainStation || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
 										if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 										{
 											// EasyWeather seems to contain the WiFi version
@@ -253,7 +253,7 @@ namespace CumulusMX
 
 		public override string GetEcowittCameraUrl()
 		{
-			if ((cumulus.EcowittExtraUseCamera || mainStation) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if ((cumulus.ExtraSensorUseCamera || mainStation) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 			{
 				try
 				{
@@ -271,7 +271,7 @@ namespace CumulusMX
 
 		public override string GetEcowittVideoUrl()
 		{
-			if ((cumulus.EcowittExtraUseCamera || mainStation) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if ((cumulus.ExtraSensorUseCamera || mainStation) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 			{
 				try
 				{
@@ -459,7 +459,7 @@ namespace CumulusMX
 				}
 
 				// Solar
-				if ((mainStation || cumulus.EcowittExtraUseSolar) && data.solar_and_uvi != null)
+				if ((mainStation || cumulus.ExtraSensorUseSolar) && data.solar_and_uvi != null)
 				{
 					try
 					{
@@ -476,7 +476,7 @@ namespace CumulusMX
 				}
 
 				// Extra Temperature
-				if (mainStation || cumulus.EcowittExtraUseTempHum)
+				if (mainStation || cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -489,7 +489,7 @@ namespace CumulusMX
 				}
 
 				// === Soil/Water Temp ===
-				if (mainStation || cumulus.EcowittExtraUseUserTemp)
+				if (mainStation || cumulus.ExtraSensorUseUserTemp)
 				{
 					try
 					{
@@ -502,7 +502,7 @@ namespace CumulusMX
 				}
 
 				// === Soil Moisture ===
-				if (mainStation || cumulus.EcowittExtraUseSoilMoist)
+				if (mainStation || cumulus.ExtraSensorUseSoilMoist)
 				{
 					try
 					{
@@ -515,7 +515,7 @@ namespace CumulusMX
 				}
 
 				// === Leaf Wetness ===
-				if (mainStation || cumulus.EcowittExtraUseLeafWet)
+				if (mainStation || cumulus.ExtraSensorUseLeafWet)
 				{
 					try
 					{
@@ -528,7 +528,7 @@ namespace CumulusMX
 				}
 
 				// === Air Quality ===
-				if (mainStation || cumulus.EcowittExtraUseAQI)
+				if (mainStation || cumulus.ExtraSensorUseAQI)
 				{
 					try
 					{
@@ -541,7 +541,7 @@ namespace CumulusMX
 				}
 
 				// === CO₂ ===
-				if (mainStation || cumulus.EcowittExtraUseCo2)
+				if (mainStation || cumulus.ExtraSensorUseCo2)
 				{
 					try
 					{
@@ -554,7 +554,7 @@ namespace CumulusMX
 				}
 
 				// === Lightning ===
-				if (mainStation || cumulus.EcowittExtraUseLightning)
+				if (mainStation || cumulus.ExtraSensorUseLightning)
 				{
 					try
 					{
@@ -567,7 +567,7 @@ namespace CumulusMX
 				}
 
 				// === Leak ===
-				if (mainStation || cumulus.EcowittExtraUseLeak)
+				if (mainStation || cumulus.ExtraSensorUseLeak)
 				{
 					try
 					{

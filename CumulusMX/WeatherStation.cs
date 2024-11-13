@@ -8841,7 +8841,7 @@ namespace CumulusMX
 					try
 					{
 						if (rowsToAdd.Count > 0)
-							numadded = RecentDataDb.InsertAll(rowsToAdd, "OR IGNORE");
+							numadded = RecentDataDb.InsertAll(rowsToAdd, "OR IGNORE", true);
 					}
 					catch (Exception e)
 					{
@@ -9158,7 +9158,8 @@ namespace CumulusMX
 
 		public string LoadDayFile()
 		{
-			int addedEntries = 0;
+			int addedToList = 0;
+			int addedToDb = 0;
 
 			StringBuilder msg = new();
 
@@ -9205,7 +9206,7 @@ namespace CumulusMX
 
 							DayFile.Add(newRec);
 
-							addedEntries++;
+							addedToList++;
 						}
 						catch (Exception e)
 						{
@@ -9220,13 +9221,25 @@ namespace CumulusMX
 						}
 					}
 
-					RecentDataDb.InsertAll(DayFile);
+					if (duplicateCount == 0)
+					{
+						try
+						{
+							addedToDb = RecentDataDb.InsertAll(DayFile, true);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, "Error adding day file entries to SQLite");
+						}
+					}
 
 					watch.Stop();
 					cumulus.LogDebugMessage($"LoadDayFile: Dayfile parse = {watch.ElapsedMilliseconds} ms");
 
-					cumulus.LogMessage($"LoadDayFile: Loaded {addedEntries} entries to recent daily data list");
-					msg.Append($"Loaded {addedEntries} entries to recent daily data list<br>");
+					cumulus.LogMessage($"LoadDayFile: Loaded {addedToList} entries to recent daily data list");
+					cumulus.LogMessage($"LoadDayFile: Loaded {addedToDb} entries to SQLite database");
+					msg.Append($"Loaded {addedToList} entries to recent daily data list<br>");
+					msg.Append($"Loaded {addedToDb} entries to SQLite database");
 
 					if (errorCount > 20)
 					{
