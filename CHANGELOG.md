@@ -78,7 +78,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Package Updates
 
-None
+- MySqlConnector
+- SSH.NET
+- Lots of System/Microsoft packages updated from v8.0 to v9.0
 
 ---
 
