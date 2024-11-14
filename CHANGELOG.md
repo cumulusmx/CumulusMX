@@ -10,12 +10,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4050\]][9] - 2024-11-13
+## BETA [4.3.0 \[b4050\]][9] - 2024-11-14
 
 ### Changes from last Beta
 
 - Added laser distance units
 - Can now use JSON station for extra sensors
+- Third party package updates
 
 ### New
 
