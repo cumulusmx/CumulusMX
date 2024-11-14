@@ -1478,7 +1478,7 @@ namespace CumulusMX
 			}
 		}
 
-		// HTTP Station
+		// HTTP Station, prefix /station/
 		public class HttpStation : WebApiController
 		{
 			[Route(HttpVerbs.Post, "/{req}")]

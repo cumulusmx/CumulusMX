@@ -10,13 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4050\]][9] - 2024-11-14
-
-### Changes from last Beta
-
-- Added laser distance units
-- Can now use JSON station for extra sensors
-- Third party package updates
+## BETA [4.3.0 \[b4050\]][9] - 2024-11-15
 
 ### New
 
@@ -432,4 +426,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [6]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4028
 [7]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4039
 [8]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4043
-[9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b40xx
+[9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4050
