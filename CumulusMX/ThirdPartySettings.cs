@@ -17,7 +17,7 @@ namespace CumulusMX
 		{
 			var errorMsg = string.Empty;
 			var json = string.Empty;
-			JsonThirdPartySettings settings;
+			JsonSettings settings;
 			context.Response.StatusCode = 200;
 
 			try
@@ -28,7 +28,7 @@ namespace CumulusMX
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonThirdPartySettings>();
+				settings = json.FromJson<JsonSettings>();
 			}
 			catch (Exception ex)
 			{
@@ -359,7 +359,7 @@ namespace CumulusMX
 
 		public string GetAlpacaFormData()
 		{
-			var wusettings = new JsonThirdPartySettingsWunderground()
+			var wusettings = new JsonWunderground()
 			{
 				catchup = cumulus.Wund.CatchUp,
 				enabled = cumulus.Wund.Enabled,
@@ -378,7 +378,7 @@ namespace CumulusMX
 				extratemp4 = cumulus.Wund.SendExtraTemp4,
 			};
 
-			var windysettings = new JsonThirdPartySettingsWindy()
+			var windysettings = new JsonWindy()
 			{
 				catchup = cumulus.Windy.CatchUp,
 				enabled = cumulus.Windy.Enabled,
@@ -388,7 +388,7 @@ namespace CumulusMX
 				stationidx = cumulus.Windy.StationIdx
 			};
 
-			var awekassettings = new JsonThirdPartySettingsAwekas()
+			var awekassettings = new JsonAwekas()
 			{
 				enabled = cumulus.AWEKAS.Enabled,
 				includesolar = cumulus.AWEKAS.SendSolar,
@@ -404,7 +404,7 @@ namespace CumulusMX
 				user = cumulus.AWEKAS.ID
 			};
 
-			var wcloudsettings = new JsonThirdPartySettingsWCloud()
+			var wcloudsettings = new JsonWCloud()
 			{
 				enabled = cumulus.WCloud.Enabled,
 				interval = cumulus.WCloud.Interval,
@@ -419,7 +419,7 @@ namespace CumulusMX
 				wid = cumulus.WCloud.ID
 			};
 
-			var pwssettings = new JsonThirdPartySettingsPWSweather()
+			var pwssettings = new JsonPWSweather()
 			{
 				catchup = cumulus.PWS.CatchUp,
 				enabled = cumulus.PWS.Enabled,
@@ -430,7 +430,7 @@ namespace CumulusMX
 				stationid = cumulus.PWS.ID
 			};
 
-			var wowsettings = new JsonThirdPartySettingsWow()
+			var wowsettings = new JsonWow()
 			{
 				catchup = cumulus.WOW.CatchUp,
 				enabled = cumulus.WOW.Enabled,
@@ -443,7 +443,7 @@ namespace CumulusMX
 				stationid = cumulus.WOW.ID
 			};
 
-			var cwopsettings = new JsonThirdPartySettingsCwop()
+			var cwopsettings = new JsonCwop()
 			{
 				enabled = cumulus.APRS.Enabled,
 				id = cumulus.APRS.ID,
@@ -454,7 +454,7 @@ namespace CumulusMX
 				server = cumulus.APRS.Server
 			};
 
-			var openweathermapsettings = new JsonThirdPartySettingsOpenweatherMap()
+			var openweathermapsettings = new JsonOpenweatherMap()
 			{
 				enabled = cumulus.OpenWeatherMap.Enabled,
 				catchup = cumulus.OpenWeatherMap.CatchUp,
@@ -463,7 +463,7 @@ namespace CumulusMX
 				interval = cumulus.OpenWeatherMap.Interval
 			};
 
-			var windgurusettings = new JsonThirdPartySettingsWindGuru()
+			var windgurusettings = new JsonWindGuru()
 			{
 				enabled = cumulus.WindGuru.Enabled,
 				uid = cumulus.WindGuru.ID,
@@ -472,7 +472,7 @@ namespace CumulusMX
 				interval = cumulus.WindGuru.Interval
 			};
 
-			var customseconds = new JsonThirdPartySettingsCustomHttpSeconds()
+			var customseconds = new JsonCustomHttpSeconds()
 			{
 				enabled = cumulus.CustomHttpSecondsEnabled,
 				interval = cumulus.CustomHttpSecondsInterval
@@ -493,7 +493,7 @@ namespace CumulusMX
 					customseconds.url[index++] = cumulus.CustomHttpSecondsStrings[i];
 			}
 
-			var customminutes = new JsonThirdPartySettingsCustomHttpMinutes()
+			var customminutes = new JsonCustomHttpMinutes()
 			{
 				enabled = cumulus.CustomHttpMinutesEnabled,
 				intervalindex = cumulus.CustomHttpMinutesIntervalIndex
@@ -515,7 +515,7 @@ namespace CumulusMX
 					customminutes.url[index++] = cumulus.CustomHttpMinutesStrings[i];
 			}
 
-			var customrollover = new JsonThirdPartySettingsCustomHttpRollover()
+			var customrollover = new JsonCustomHttpRollover()
 			{
 				enabled = cumulus.CustomHttpRolloverEnabled
 			};
@@ -536,9 +536,9 @@ namespace CumulusMX
 					customrollover.url[index] = cumulus.CustomHttpRolloverStrings[i];
 			}
 
-			var customhttp = new JsonThirdPartySettingsCustomHttpSettings() { customseconds = customseconds, customminutes = customminutes, customrollover = customrollover };
+			var customhttp = new JsonCustomHttpSettings() { customseconds = customseconds, customminutes = customminutes, customrollover = customrollover };
 
-			var data = new JsonThirdPartySettings()
+			var data = new JsonSettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				wunderground = wusettings,
@@ -555,162 +555,161 @@ namespace CumulusMX
 
 			return data.ToJson();
 		}
-	}
 
+		private sealed class JsonSettings
+		{
+			public bool accessible { get; set; }
+			public JsonWunderground wunderground { get; set; }
+			public JsonWindy windy { get; set; }
+			public JsonPWSweather pwsweather { get; set; }
+			public JsonWow wow { get; set; }
+			public JsonCwop cwop { get; set; }
+			public JsonAwekas awekas { get; set; }
+			public JsonWCloud weathercloud { get; set; }
+			public JsonOpenweatherMap openweathermap { get; set; }
+			public JsonWindGuru windguru { get; set; }
+			public JsonCustomHttpSettings customhttp { get; set; }
+		}
 
-	public class JsonThirdPartySettings
-	{
-		public bool accessible { get; set; }
-		public JsonThirdPartySettingsWunderground wunderground { get; set; }
-		public JsonThirdPartySettingsWindy windy { get; set; }
-		public JsonThirdPartySettingsPWSweather pwsweather { get; set; }
-		public JsonThirdPartySettingsWow wow { get; set; }
-		public JsonThirdPartySettingsCwop cwop { get; set; }
-		public JsonThirdPartySettingsAwekas awekas { get; set; }
-		public JsonThirdPartySettingsWCloud weathercloud { get; set; }
-		public JsonThirdPartySettingsOpenweatherMap openweathermap { get; set; }
-		public JsonThirdPartySettingsWindGuru windguru { get; set; }
-		public JsonThirdPartySettingsCustomHttpSettings customhttp { get; set; }
-	}
+		private sealed class JsonWunderground
+		{
+			public bool enabled { get; set; }
+			public bool includeindoor { get; set; }
+			public bool includeuv { get; set; }
+			public bool includesolar { get; set; }
+			public bool includeaq { get; set; }
+			public bool rapidfire { get; set; }
+			public bool sendavgwind { get; set; }
+			public bool catchup { get; set; }
+			public string stationid { get; set; }
+			public string password { get; set; }
+			public int interval { get; set; }
+			public int extratemp1 { get; set; }
+			public int extratemp2 { get; set; }
+			public int extratemp3 { get; set; }
+			public int extratemp4 { get; set; }
+		}
 
-	public class JsonThirdPartySettingsWunderground
-	{
-		public bool enabled { get; set; }
-		public bool includeindoor { get; set; }
-		public bool includeuv { get; set; }
-		public bool includesolar { get; set; }
-		public bool includeaq { get; set; }
-		public bool rapidfire { get; set; }
-		public bool sendavgwind { get; set; }
-		public bool catchup { get; set; }
-		public string stationid { get; set; }
-		public string password { get; set; }
-		public int interval { get; set; }
-		public int extratemp1 { get; set; }
-		public int extratemp2 { get; set; }
-		public int extratemp3 { get; set; }
-		public int extratemp4 { get; set; }
-	}
+		private sealed class JsonWindy
+		{
+			public bool enabled { get; set; }
+			public bool includeuv { get; set; }
+			public bool catchup { get; set; }
+			public int interval { get; set; }
+			public string apikey { get; set; }
+			public int stationidx { get; set; }
+		}
 
-	public class JsonThirdPartySettingsWindy
-	{
-		public bool enabled { get; set; }
-		public bool includeuv { get; set; }
-		public bool catchup { get; set; }
-		public int interval { get; set; }
-		public string apikey { get; set; }
-		public int stationidx { get; set; }
-	}
+		private sealed class JsonAwekas
+		{
+			public bool enabled { get; set; }
+			public bool includeuv { get; set; }
+			public bool includesolar { get; set; }
+			public bool includesoiltemp { get; set; }
+			public bool includesoilmoisture { get; set; }
+			public bool includeleafwetness { get; set; }
+			public bool includeindoor { get; set; }
+			public bool includeaq { get; set; }
+			public string user { get; set; }
+			public string password { get; set; }
+			public string lang { get; set; }
+			public int interval { get; set; }
+		}
 
-	public class JsonThirdPartySettingsAwekas
-	{
-		public bool enabled { get; set; }
-		public bool includeuv { get; set; }
-		public bool includesolar { get; set; }
-		public bool includesoiltemp { get; set; }
-		public bool includesoilmoisture { get; set; }
-		public bool includeleafwetness { get; set; }
-		public bool includeindoor { get; set; }
-		public bool includeaq { get; set; }
-		public string user { get; set; }
-		public string password { get; set; }
-		public string lang { get; set; }
-		public int interval { get; set; }
-	}
+		private sealed class JsonWCloud
+		{
+			public bool enabled { get; set; }
+			public int interval { get; set; }
+			public bool includeuv { get; set; }
+			public bool includesolar { get; set; }
+			public bool includeaqi { get; set; }
+			public string wid { get; set; }
+			public string key { get; set; }
+			public bool includesoilmoist { get; set; }
+			public int moistsensor { get; set; }
+			public bool includeleafwet { get; set; }
+			public int leafwetsensor { get; set; }
 
-	public class JsonThirdPartySettingsWCloud
-	{
-		public bool enabled { get; set; }
-		public int interval { get; set; }
-		public bool includeuv { get; set; }
-		public bool includesolar { get; set; }
-		public bool includeaqi { get; set; }
-		public string wid { get; set; }
-		public string key { get; set; }
-		public bool includesoilmoist { get; set; }
-		public int moistsensor { get; set; }
-		public bool includeleafwet { get; set; }
-		public int leafwetsensor { get; set; }
+		}
 
-	}
+		private sealed class JsonPWSweather
+		{
+			public bool enabled { get; set; }
+			public bool includeuv { get; set; }
+			public bool includesolar { get; set; }
+			public bool catchup { get; set; }
+			public string stationid { get; set; }
+			public string password { get; set; }
+			public int interval { get; set; }
+		}
 
-	public class JsonThirdPartySettingsPWSweather
-	{
-		public bool enabled { get; set; }
-		public bool includeuv { get; set; }
-		public bool includesolar { get; set; }
-		public bool catchup { get; set; }
-		public string stationid { get; set; }
-		public string password { get; set; }
-		public int interval { get; set; }
-	}
+		private sealed class JsonWow
+		{
+			public bool enabled { get; set; }
+			public bool includeuv { get; set; }
+			public bool includesolar { get; set; }
+			public bool includesoiltemp { get; set; }
+			public int soiltempsensor { get; set; }
+			public bool catchup { get; set; }
+			public string stationid { get; set; }
+			public string password { get; set; }
+			public int interval { get; set; }
+		}
 
-	public class JsonThirdPartySettingsWow
-	{
-		public bool enabled { get; set; }
-		public bool includeuv { get; set; }
-		public bool includesolar { get; set; }
-		public bool includesoiltemp { get; set; }
-		public int soiltempsensor { get; set; }
-		public bool catchup { get; set; }
-		public string stationid { get; set; }
-		public string password { get; set; }
-		public int interval { get; set; }
-	}
+		private sealed class JsonCwop
+		{
+			public bool enabled { get; set; }
+			public bool includesolar { get; set; }
+			public string id { get; set; }
+			public string password { get; set; }
+			public string server { get; set; }
+			public int port { get; set; }
+			public int interval { get; set; }
+		}
 
-	public class JsonThirdPartySettingsCwop
-	{
-		public bool enabled { get; set; }
-		public bool includesolar { get; set; }
-		public string id { get; set; }
-		public string password { get; set; }
-		public string server { get; set; }
-		public int port { get; set; }
-		public int interval { get; set; }
-	}
+		private sealed class JsonWindGuru
+		{
+			public bool enabled { get; set; }
+			public string uid { get; set; }
+			public string password { get; set; }
+			public bool includerain { get; set; }
+			public int interval { get; set; }
+		}
 
-	public class JsonThirdPartySettingsWindGuru
-	{
-		public bool enabled { get; set; }
-		public string uid { get; set; }
-		public string password { get; set; }
-		public bool includerain { get; set; }
-		public int interval { get; set; }
-	}
+		private sealed class JsonOpenweatherMap
+		{
+			public bool enabled { get; set; }
+			public string apikey { get; set; }
+			public string stationid { get; set; }
+			public int interval { get; set; }
+			public bool catchup { get; set; }
+		}
 
-	public class JsonThirdPartySettingsOpenweatherMap
-	{
-		public bool enabled { get; set; }
-		public string apikey { get; set; }
-		public string stationid { get; set; }
-		public int interval { get; set; }
-		public bool catchup { get; set; }
-	}
+		private sealed class JsonCustomHttpSeconds
+		{
+			public string[] url { get; set; }
+			public bool enabled { get; set; }
+			public int interval { get; set; }
+		}
 
-	public class JsonThirdPartySettingsCustomHttpSeconds
-	{
-		public string[] url { get; set; }
-		public bool enabled { get; set; }
-		public int interval { get; set; }
-	}
+		private sealed class JsonCustomHttpMinutes
+		{
+			public string[] url { get; set; }
+			public bool enabled { get; set; }
+			public int intervalindex { get; set; }
+		}
 
-	public class JsonThirdPartySettingsCustomHttpMinutes
-	{
-		public string[] url { get; set; }
-		public bool enabled { get; set; }
-		public int intervalindex { get; set; }
-	}
+		private sealed class JsonCustomHttpRollover
+		{
+			public string[] url { get; set; }
+			public bool enabled { get; set; }
+		}
 
-	public class JsonThirdPartySettingsCustomHttpRollover
-	{
-		public string[] url { get; set; }
-		public bool enabled { get; set; }
-	}
-
-	public class JsonThirdPartySettingsCustomHttpSettings
-	{
-		public JsonThirdPartySettingsCustomHttpSeconds customseconds { get; set; }
-		public JsonThirdPartySettingsCustomHttpMinutes customminutes { get; set; }
-		public JsonThirdPartySettingsCustomHttpRollover customrollover { get; set; }
+		private sealed class JsonCustomHttpSettings
+		{
+			public JsonCustomHttpSeconds customseconds { get; set; }
+			public JsonCustomHttpMinutes customminutes { get; set; }
+			public JsonCustomHttpRollover customrollover { get; set; }
+		}
 	}
 }
