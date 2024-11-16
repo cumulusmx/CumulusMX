@@ -279,8 +279,7 @@ namespace CumulusMX
 
 									if (cumulus.StationOptions.CalculateSLP)
 									{
-										var abs = cumulus.Calib.Press.Calibrate(StationPressure);
-										var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(abs), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+										var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 										DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
 									}
 								}
@@ -839,8 +838,7 @@ namespace CumulusMX
 
 							if (abs > 0)
 							{
-								StationPressure = abs;
-								AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(abs, AltitudeM(cumulus.Altitude)));
+								DoStationPressure(abs);
 								// Leave calculate SLP until the end as it depends on temperature
 							}
 						}

@@ -384,7 +384,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							StationPressure = data.pressure.absolute.value;
+							DoStationPressure(data.pressure.absolute.value);
 
 							// leave cmx calculated SLP until the end as it depends on temperature
 
@@ -604,8 +604,7 @@ namespace CumulusMX
 
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var abs = cumulus.Calib.Press.Calibrate(StationPressure);
-					var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(abs), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 					DoPressure(ConvertUnits.PressMBToUser(slp), Utils.FromUnixTime(data.pressure.absolute.time));
 				}
 
