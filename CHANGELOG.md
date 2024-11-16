@@ -10,7 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4050\]][9] - 2024-11-15
+## BETA [4.3.0 \[b4051\]][9] - 2024-11-17
+
+### Changes since last beta build
+
+- Fix for diary database not being created correctly for clean installs
+- Adds calibration for Station pressure (and so also for Altimeter pressure)
 
 ### New
 
@@ -35,6 +40,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Initial support for the new Ecowitt WH54 LDS01 Laser Distance sensors, just sensor info/battery decoding for now as that is all that is documented
 - The JSON Station type can now be used to input Extra Sensor data.
 	- This supports all the JSON Station input feed types: file watcher, HTTP POST, and MQTT
+- Adds calibration for Station pressure (and so also for Altimeter pressure)
+	- Note: If you use the option for Cumulus to calculate sea level pressure, then this new station pressure calibration is the one that will applied to the SLP as well
 
 ### Changed
 
