@@ -1740,6 +1740,12 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"LOOP: Ignoring pressure data. Pressure={loopData.Pressure} inHg.");
 				}
 
+				if ((cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2) || cumulus.StationType == StationTypes.VantagePro)
+				{
+					// Loop2 data not available, just use sea level (for now, anyway)
+					AltimeterPressure = Pressure;
+				}
+
 				double wind = ConvertUnits.WindMPHToUser(loopData.CurrentWindSpeed);
 				double avgwind = ConvertUnits.WindMPHToUser(loopData.AvgWindSpeed);
 
@@ -2803,6 +2809,10 @@ namespace CumulusMX
 							{
 								DoPressure(ConvertUnits.PressINHGToUser(archiveData.Pressure), timestamp);
 							}
+
+							// No station pressure in archive data
+							StationPressure = 0;
+							AltimeterPressure = 0;
 
 							if (archiveData.HiUVIndex >= 0 && archiveData.HiUVIndex < 25)
 							{
