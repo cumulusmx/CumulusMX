@@ -663,8 +663,7 @@ namespace CumulusMX
 
 				if ((Pressure > 850) && (Pressure < 1200))
 				{
-					StationPressure = ConvertUnits.PressMBToUser(cumulus.Calib.Press.Calibrate(pressure));
-					// AltimeterPressure := ConvertOregonPress(StationToAltimeter(PressureHPa(StationPressure),AltitudeM(Altitude)));
+					DoStationPressure(ConvertUnits.PressMBToUser(pressure));
 				}
 			}
 

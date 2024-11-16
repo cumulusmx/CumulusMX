@@ -323,7 +323,7 @@ namespace CumulusMX
 			DoOutdoorDewpoint(ConvertUnits.TempCToUser(BCDchartoint(buff[18])), DateTime.Now);
 
 			double locPress = BCDchartoint(buff[1]) + (BCDchartoint(buff[2]) * 100);
-			StationPressure = ConvertUnits.PressMBToUser(locPress);
+			DoStationPressure(ConvertUnits.PressMBToUser(locPress));
 
 			double pressure = ConvertUnits.PressMBToUser((BCDchartoint(buff[3]) / 10) + (BCDchartoint(buff[4]) * 10) +
 				((BCDchartoint(buff[5]) % 10) * 1000));

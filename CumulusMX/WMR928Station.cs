@@ -507,7 +507,7 @@ namespace CumulusMX
 
 			// local pressure (not BCD); byte 8, with 856mb offset
 			double loc = buff[8] + 856;
-			StationPressure = ConvertUnits.PressMBToUser(loc);
+			DoStationPressure(ConvertUnits.PressMBToUser(loc));
 			double num = BCDchartoint((buff[10]) / 10) + BCDchartoint(buff[11]) * 10 + (BCDchartoint(buff[12]) * 1000);
 			double slcorr = num / 10.0 - 600;
 
@@ -564,7 +564,7 @@ namespace CumulusMX
 
 			// local pressure (not BCD); byte 8, with 795mb offset
 			double loc = buff[8] + 795;
-			StationPressure = ConvertUnits.PressMBToUser(loc);
+			DoStationPressure(ConvertUnits.PressMBToUser(loc));
 			// SL pressure correction; bytes 10 (LSB) and 11 (MSB)
 			double num = BCDchartoint(buff[10] / 10) + (BCDchartoint(buff[11]) * 10) + buff[8];
 			DoPressure(num, DateTime.Now);

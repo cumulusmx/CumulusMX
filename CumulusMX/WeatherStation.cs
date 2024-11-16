@@ -5717,30 +5717,6 @@ namespace CumulusMX
 			// If we calculate SLP, then the calibration is applied to the station pressure
 			Pressure = cumulus.StationOptions.CalculateSLP ? sl : cumulus.Calib.Press.Calibrate(sl);
 
-			// TODO: This is bollocks, several stations set the altimeter correctly
-			// TODO: This logic needs moving to each station class
-			if (cumulus.Manufacturer == Cumulus.DAVIS)
-			{
-				if ((cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2) || cumulus.StationType == StationTypes.VantagePro)
-				{
-					// Loop2 data not available, just use sea level (for now, anyway)
-					AltimeterPressure = Pressure;
-				}
-			}
-			else if (cumulus.Manufacturer == Cumulus.OREGONUSB)
-			{
-				AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
-			}
-			else if (cumulus.StationType == StationTypes.WLL || cumulus.StationType == StationTypes.DavisCloudWll || cumulus.StationType == StationTypes.EcowittCloud || cumulus.StationType == StationTypes.GW1000)
-			{
-				// do nothing, these stations set the Altimeter value
-			}
-			else
-			{
-				// For all other stations, altimeter is same as sea-level
-				AltimeterPressure = Pressure; 
-			}
-
 			first_press = false;
 
 			if (Pressure > AllTime.HighPress.Val)
