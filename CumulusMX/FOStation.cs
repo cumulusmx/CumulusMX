@@ -451,7 +451,7 @@ namespace CumulusMX
 				else
 				{
 					DoPressure(ConvertUnits.PressMBToUser(historydata.pressure), timestamp);
-					StationPressure = historydata.stationPress;
+					DoStationPressure(historydata.stationPress);
 				}
 
 				if (historydata.SensorContactLost)
@@ -1190,7 +1190,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					StationPressure = cumulus.Calib.Press.Calibrate(ConvertUnits.PressMBToUser(pressure));
+					DoStationPressure(ConvertUnits.PressMBToUser(stnPress));
 
 					if (!cumulus.StationOptions.CalculateSLP)
 					{
