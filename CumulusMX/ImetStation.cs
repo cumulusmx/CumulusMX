@@ -657,6 +657,7 @@ namespace CumulusMX
 							if (sl[PRESSAVGPOS].Length > 0)
 							{
 								DoPressure(ConvertUnits.PressMBToUser(Convert.ToDouble(sl[PRESSAVGPOS], provider)), timestamp);
+								AltimeterPressure = Pressure;
 							}
 
 							// Cause wind chill calc
@@ -879,6 +880,7 @@ namespace CumulusMX
 				if (!string.IsNullOrEmpty(sl[PRESSPOS]) && double.TryParse(sl[PRESSPOS], NumberStyles.Float, provider, out varDbl))
 				{
 					DoPressure(ConvertUnits.PressMBToUser(varDbl), now);
+					AltimeterPressure = Pressure;
 				}
 				else
 				{

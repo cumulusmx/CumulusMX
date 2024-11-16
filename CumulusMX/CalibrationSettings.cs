@@ -17,7 +17,7 @@ namespace CumulusMX
 		public string UpdateConfig(IHttpContext context)
 		{
 			var json = string.Empty;
-			JsonCalibrationSettingsData settings;
+			JsonSettingsData settings;
 			var invC = CultureInfo.InvariantCulture;
 
 			try
@@ -27,7 +27,7 @@ namespace CumulusMX
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonCalibrationSettingsData>();
+				settings = json.FromJson<JsonSettingsData>();
 			}
 			catch (Exception ex)
 			{
@@ -45,6 +45,7 @@ namespace CumulusMX
 
 				// offsets
 				cumulus.Calib.Press.Offset = Convert.ToDouble(settings.pressure.offset, invC);
+				cumulus.Calib.PressStn.Offset = Convert.ToDouble(settings.pressureStn.offset, invC);
 				cumulus.Calib.Temp.Offset = Convert.ToDouble(settings.temp.offset, invC);
 				cumulus.Calib.InTemp.Offset = Convert.ToDouble(settings.tempin.offset, invC);
 				cumulus.Calib.Hum.Offset = settings.hum.offset;
@@ -56,6 +57,7 @@ namespace CumulusMX
 
 				// multipliers
 				cumulus.Calib.Press.Mult = Convert.ToDouble(settings.pressure.multiplier, invC);
+				cumulus.Calib.PressStn.Mult = Convert.ToDouble(settings.pressureStn.multiplier, invC);
 				cumulus.Calib.WindSpeed.Mult = Convert.ToDouble(settings.windspd.multiplier, invC);
 				cumulus.Calib.WindGust.Mult = Convert.ToDouble(settings.gust.multiplier, invC);
 				cumulus.Calib.Temp.Mult = Convert.ToDouble(settings.temp.multiplier, invC);
@@ -69,6 +71,7 @@ namespace CumulusMX
 
 				//multipliers2
 				cumulus.Calib.Press.Mult2 = Convert.ToDouble(settings.pressure.multiplier2, invC);
+				cumulus.Calib.PressStn.Mult2 = Convert.ToDouble(settings.pressureStn.multiplier2, invC);
 				cumulus.Calib.WindSpeed.Mult2 = Convert.ToDouble(settings.windspd.multiplier2, invC);
 				cumulus.Calib.WindGust.Mult2 = Convert.ToDouble(settings.gust.multiplier2, invC);
 				cumulus.Calib.Temp.Mult2 = Convert.ToDouble(settings.temp.multiplier2, invC);
@@ -122,7 +125,7 @@ namespace CumulusMX
 
 		public string GetAlpacaFormData()
 		{
-			var pressure = new JsonCalibrationSettings()
+			var pressure = new JsonSettings()
 			{
 				offset = cumulus.Calib.Press.Offset,
 				multiplier = cumulus.Calib.Press.Mult,
@@ -132,7 +135,14 @@ namespace CumulusMX
 				limitmin = Math.Round(cumulus.Limit.PressLow, cumulus.PressDPlaces)
 			};
 
-			var temp = new JsonCalibrationSettings()
+			var pressurestn = new JsonSettings()
+			{
+				offset = cumulus.Calib.PressStn.Offset,
+				multiplier = cumulus.Calib.PressStn.Mult,
+				multiplier2 = cumulus.Calib.PressStn.Mult2
+			};
+
+			var temp = new JsonSettings()
 			{
 				offset = cumulus.Calib.Temp.Offset,
 				multiplier = cumulus.Calib.Temp.Mult,
@@ -142,7 +152,7 @@ namespace CumulusMX
 				limitmin = Math.Round(cumulus.Limit.TempLow, cumulus.TempDPlaces),
 			};
 
-			var tempin = new JsonCalibrationSettings()
+			var tempin = new JsonSettings()
 			{
 				offset = cumulus.Calib.InTemp.Offset,
 				multiplier = cumulus.Calib.InTemp.Mult,
@@ -150,7 +160,7 @@ namespace CumulusMX
 				spike = Math.Round(cumulus.Spike.InTempDiff, cumulus.TempDPlaces)
 			};
 
-			var hum = new JsonCalibrationSettings()
+			var hum = new JsonSettings()
 			{
 				offset = (int) cumulus.Calib.Hum.Offset,
 				multiplier = cumulus.Calib.Hum.Mult,
@@ -158,7 +168,7 @@ namespace CumulusMX
 				spike = cumulus.Spike.HumidityDiff
 			};
 
-			var humin = new JsonCalibrationSettings()
+			var humin = new JsonSettings()
 			{
 				offset = (int) cumulus.Calib.InHum.Offset,
 				multiplier = cumulus.Calib.InHum.Mult,
@@ -166,14 +176,14 @@ namespace CumulusMX
 				spike = cumulus.Spike.InHumDiff
 			};
 
-			var windspd = new JsonCalibrationSettings()
+			var windspd = new JsonSettings()
 			{
 				multiplier = cumulus.Calib.WindSpeed.Mult,
 				multiplier2 = cumulus.Calib.WindSpeed.Mult2,
 				spike = Math.Round(cumulus.Spike.WindDiff, cumulus.WindAvgDPlaces)
 			};
 
-			var gust = new JsonCalibrationSettings()
+			var gust = new JsonSettings()
 			{
 				multiplier = cumulus.Calib.WindGust.Mult,
 				multiplier2 = cumulus.Calib.WindGust.Mult2,
@@ -181,48 +191,49 @@ namespace CumulusMX
 				limitmax = Math.Round(cumulus.Limit.WindHigh, cumulus.WindDPlaces)
 			};
 
-			var winddir = new JsonCalibrationSettings()
+			var winddir = new JsonSettings()
 			{
 				offset = (int) cumulus.Calib.WindDir.Offset
 			};
 
-			var rain = new JsonCalibrationSettings()
+			var rain = new JsonSettings()
 			{
 				multiplier = cumulus.Calib.Rain.Mult,
 				spikehour = Math.Round(cumulus.Spike.MaxHourlyRain, cumulus.RainDPlaces),
 				spikerate = Math.Round(cumulus.Spike.MaxRainRate, cumulus.RainDPlaces)
 			};
 
-			var solar = new JsonCalibrationSettings()
+			var solar = new JsonSettings()
 			{
 				offset = cumulus.Calib.Solar.Offset,
 				multiplier = cumulus.Calib.Solar.Mult,
 				multiplier2 = cumulus.Calib.Solar.Mult2
 			};
 
-			var uv = new JsonCalibrationSettings()
+			var uv = new JsonSettings()
 			{
 				offset = cumulus.Calib.UV.Offset,
 				multiplier = cumulus.Calib.UV.Mult,
 				multiplier2 = cumulus.Calib.UV.Mult2
 			};
 
-			var wetbulb = new JsonCalibrationSettings()
+			var wetbulb = new JsonSettings()
 			{
 				offset = Math.Round(cumulus.Calib.WetBulb.Offset, cumulus.TempDPlaces),
 				multiplier = cumulus.Calib.WetBulb.Mult,
 				multiplier2 = cumulus.Calib.WetBulb.Mult2
 			};
 
-			var dewpt = new JsonCalibrationSettings()
+			var dewpt = new JsonSettings()
 			{
 				limitmax = Math.Round(cumulus.Limit.DewHigh, cumulus.TempDPlaces)
 			};
 
-			var data = new JsonCalibrationSettingsData()
+			var data = new JsonSettingsData()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				pressure = pressure,
+				pressureStn = pressurestn,
 				temp = temp,
 				tempin = tempin,
 				hum = hum,
@@ -239,38 +250,37 @@ namespace CumulusMX
 
 			return data.ToJson();
 		}
+
+		private sealed class JsonSettingsData
+		{
+			public bool accessible { get; set; }
+			public JsonSettings pressure { get; set; }
+			public JsonSettings pressureStn { get; set; }
+			public JsonSettings temp { get; set; }
+			public JsonSettings tempin { get; set; }
+			public JsonSettings hum { get; set; }
+			public JsonSettings humin { get; set; }
+			public JsonSettings windspd { get; set; }
+			public JsonSettings gust { get; set; }
+			public JsonSettings winddir { get; set; }
+			public JsonSettings rain { get; set; }
+			public JsonSettings solar { get; set; }
+			public JsonSettings uv { get; set; }
+			public JsonSettings wetbulb { get; set; }
+			public JsonSettings dewpt { get; set; }
+		}
+
+		private sealed class JsonSettings
+		{
+			public double offset { get; set; }
+			public double multiplier { get; set; }
+			public double multiplier2 { get; set; }
+			public double spike { get; set; }
+			public double spikehour { get; set; }
+			public double spikerate { get; set; }
+			public double limitmin { get; set; }
+			public double limitmax { get; set; }
+		}
+
 	}
-
-	public class JsonCalibrationSettingsData
-	{
-		public bool accessible { get; set; }
-		public JsonCalibrationSettings pressure { get; set; }
-		public JsonCalibrationSettings temp { get; set; }
-		public JsonCalibrationSettings tempin { get; set; }
-		public JsonCalibrationSettings hum { get; set; }
-		public JsonCalibrationSettings humin { get; set; }
-		public JsonCalibrationSettings windspd { get; set; }
-		public JsonCalibrationSettings gust { get; set; }
-		public JsonCalibrationSettings winddir { get; set; }
-		public JsonCalibrationSettings rain { get; set; }
-		public JsonCalibrationSettings solar { get; set; }
-		public JsonCalibrationSettings uv { get; set; }
-		public JsonCalibrationSettings wetbulb { get; set; }
-		public JsonCalibrationSettings dewpt { get; set; }
-	}
-
-
-	public class JsonCalibrationSettings
-	{
-		public double offset { get; set; }
-		public double multiplier { get; set; }
-		public double multiplier2 { get; set; }
-		public double spike { get; set; }
-		public double spikehour { get; set; }
-		public double spikerate { get; set; }
-		public double limitmin { get; set; }
-		public double limitmax { get; set; }
-	}
-
-
 }

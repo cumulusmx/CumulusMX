@@ -9,6 +9,7 @@
 			Hum = new Settings();
 			InHum = new Settings();
 			Press = new Settings();
+			PressStn = new Settings();
 			Rain = new Settings();
 			WindSpeed = new Settings();
 			WindGust = new Settings();
@@ -22,6 +23,7 @@
 		public Settings Hum { get; set; }
 		public Settings InHum { get; set; }
 		public Settings Press { get; set; }
+		public Settings PressStn { get; set; }
 		public Settings Rain { get; set; }
 		public Settings WindSpeed { get; set; }
 		public Settings WindGust { get; set; }

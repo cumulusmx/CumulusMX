@@ -24,6 +24,8 @@ namespace CumulusMX
 
 			cumulus.LogMessage("Station type = Tempest");
 
+			// Tempest does not provide a sea level pressure
+			cumulus.StationOptions.CalculateSLP = true;
 			// Tempest does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 
@@ -135,9 +137,8 @@ namespace CumulusMX
 				}
 
 				// Pressure =============================================================
-				var alt = AltitudeM(cumulus.Altitude);
-				var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) historydata.StationPressure, (double) historydata.Temperature);
-				DoPressure(ConvertUnits.PressMBToUser(seaLevel), timestamp);
+				DoStationPressure(ConvertUnits.PressMBToUser((double) historydata.StationPressure));
+				DoPressure(ConvertUnits.PressMBToUser(MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), (double) historydata.Temperature)), timestamp);
 
 				// Outdoor Humidity =====================================================
 				DoOutdoorHumidity((int) historydata.Humidity, timestamp);

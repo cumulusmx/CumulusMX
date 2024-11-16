@@ -316,8 +316,7 @@ namespace CumulusMX
 
 					if (cumulus.StationOptions.CalculateSLP)
 					{
-						histData.stationPress = cumulus.Calib.Press.Calibrate(histData.stationPress);
-						histData.pressure = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), histData.stationPress, histData.outTemp, cumulus.Latitude);
+						histData.pressure = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), cumulus.Calib.PressStn.Calibrate(histData.stationPress), histData.outTemp, cumulus.Latitude);
 					}
 					else
 					{

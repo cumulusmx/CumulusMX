@@ -5797,9 +5797,7 @@ namespace CumulusMX
 
 		public void DoStationPressure(double sp)
 		{
-			// If we calculate SLP, then the calibration is applied to the station pressure
-			//StationPressure = cumulus.Calib.PressStn.Calibrate(sp);
-			StationPressure = sp;
+			StationPressure = cumulus.Calib.PressStn.Calibrate(sp);
 			AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 		}
 
@@ -12646,7 +12644,7 @@ namespace CumulusMX
 			json.Append($"\"co2\":\"{cumulus.Units.CO2UnitText}\",");
 			json.Append($"\"leafwet\":\"{cumulus.Units.LeafWetnessUnitText}\",");
 			json.Append($"\"aq\":\"{cumulus.Units.AirQualityUnitText}\",");
-			json.Append($"\"snow\":\"{cumulus.Units.SnowText}\"");
+			json.Append($"\"snow\":\"{cumulus.Units.SnowText}\",");
 			json.Append($"\"laser\":\"{cumulus.Units.LaserDistanceText}\"");
 			json.Append('}');
 			return json.ToString();
