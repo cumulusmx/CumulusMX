@@ -137,7 +137,7 @@ namespace CumulusMX
 		internal HttpStationEcowitt ecowittExtra;
 		internal HttpStationAmbient ambientExtra;
 		internal EcowittCloudStation ecowittCloudExtra;
-		internal JsonStation jsonStationExtra;
+		internal JsonStation stationJsonExtra;
 
 		internal DateTime LastUpdateTime; // use UTC to avoid DST issues
 
@@ -1533,7 +1533,8 @@ namespace CumulusMX
 				{
 					LogMessage("Creating JSON station extra sensors station");
 					LogConsoleMessage($"Opening JSON extra sensors");
-					Api.stationJsonExtra = new JsonStation(this, station);
+					stationJsonExtra = new JsonStation(this, station);
+					Api.stationJsonExtra = stationJsonExtra;
 				}
 
 
@@ -8837,7 +8838,7 @@ namespace CumulusMX
 				// If we have a Ambient Extra Sensors, stop it
 				ambientExtra?.Stop();
 				// If we have a JSON Extra Sensors, stop it
-				jsonStationExtra?.Stop();
+				stationJsonExtra?.Stop();
 
 				LogMessage("Extra sensors stopped");
 
@@ -12363,7 +12364,7 @@ namespace CumulusMX
 
 		public void StartTimersAndSensors()
 		{
-			if (airLinkOut != null || airLinkIn != null || ecowittExtra != null || ambientExtra != null || ecowittCloudExtra != null || jsonStationExtra != null)
+			if (airLinkOut != null || airLinkIn != null || ecowittExtra != null || ambientExtra != null || ecowittCloudExtra != null || stationJsonExtra != null)
 			{
 				LogMessage("Starting Extra Sensors");
 				airLinkOut?.Start();
@@ -12371,7 +12372,7 @@ namespace CumulusMX
 				ecowittExtra?.Start();
 				ambientExtra?.Start();
 				ecowittCloudExtra?.Start();
-				jsonStationExtra?.Start();
+				stationJsonExtra?.Start();
 			}
 
 			LogMessage("Start Timers");

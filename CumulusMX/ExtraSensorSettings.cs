@@ -23,7 +23,7 @@ namespace CumulusMX
 
 		public string GetAlpacaFormData()
 		{
-			var indoor = new JsonExtraSensorAirLinkDevice
+			var indoor = new JsonAirLinkDevice
 			{
 				enabled = cumulus.AirLinkInEnabled,
 				ipAddress = cumulus.AirLinkInIPAddr,
@@ -31,7 +31,7 @@ namespace CumulusMX
 				stationId = cumulus.AirLinkInStationId
 			};
 
-			var outdoor = new JsonExtraSensorAirLinkDevice
+			var outdoor = new JsonAirLinkDevice
 			{
 				enabled = cumulus.AirLinkOutEnabled,
 				ipAddress = cumulus.AirLinkOutIPAddr,
@@ -39,7 +39,7 @@ namespace CumulusMX
 				stationId = cumulus.AirLinkOutStationId
 			};
 
-			var airlink = new JsonExtraSensorAirLinkSettings
+			var airlink = new JsonAirLinkSettings
 			{
 				isNode = cumulus.AirLinkIsNode,
 				apiKey = cumulus.AirLinkApiKey,
@@ -63,7 +63,7 @@ namespace CumulusMX
 				wn34chan8 = cumulus.EcowittMapWN34[8]
 			};
 
-			var ecowitt = new JsonExtraSensorEcowitt
+			var ecowitt = new JsonEcowitt
 			{
 				useSolar = cumulus.ExtraSensorUseSolar,
 				useUv = cumulus.ExtraSensorUseUv,
@@ -85,7 +85,7 @@ namespace CumulusMX
 				interval = cumulus.EcowittExtraCustomInterval,
 
 				mappings = ecowittwn34map,
-				forwarders = new JsonExtraSensorForwarders
+				forwarders = new JsonForwarders
 				{
 					usemain = cumulus.EcowittExtraUseMainForwarders
 				}
@@ -107,7 +107,7 @@ namespace CumulusMX
 				mac = cumulus.EcowittMacAddress
 			};
 
-			var ambient = new JsonExtraSensorAmbient
+			var ambient = new JsonAmbient
 			{
 				useSolar = cumulus.AmbientExtraUseSolar,
 				useUv = cumulus.AmbientExtraUseUv,
@@ -127,7 +127,7 @@ namespace CumulusMX
 				mqtttls = cumulus.JsonExtraStationOptions.MqttUseTls
 			};
 
-			var json = new JsonExtraSensorJson
+			var json = new JsonJson
 			{
 				conntype = cumulus.JsonExtraStationOptions.Connectiontype,
 				filename = cumulus.JsonExtraStationOptions.SourceFile,
@@ -149,12 +149,12 @@ namespace CumulusMX
 				useLaserDist = cumulus.ExtraSensorUseLaserDist
 			};
 
-			var httpStation = new JsonExtraSensorHttp
+			var httpStation = new JsonHttp
 			{
 				ecowitt = ecowitt,
 				ecowittapi = ecowittapi,
 				ambient = ambient,
-				jsonstation =json
+				jsonstation = json
 			};
 
 			if (cumulus.EcowittExtraEnabled)
@@ -169,28 +169,28 @@ namespace CumulusMX
 				httpStation.extraStation = -1;
 
 
-			var bl = new JsonExtraSensorBlakeLarsen
+			var bl = new JsonBlakeLarsen
 			{
 				enabled = cumulus.SolarOptions.UseBlakeLarsen
 			};
 
-			var rg11port1 = new JsonExtraSensorRg11Device(cumulus.RG11Enabled, cumulus.RG11Port, cumulus.RG11TBRmode, cumulus.RG11tipsize, default, cumulus.RG11TBRmode);
+			var rg11port1 = new JsonRg11Device(cumulus.RG11Enabled, cumulus.RG11Port, cumulus.RG11TBRmode, cumulus.RG11tipsize, default, cumulus.RG11TBRmode);
 
-			var rg11port2 = new JsonExtraSensorRg11Device(cumulus.RG11Enabled2, cumulus.RG11Port2, cumulus.RG11TBRmode2, cumulus.RG11tipsize2, default, cumulus.RG11TBRmode2);
+			var rg11port2 = new JsonRg11Device(cumulus.RG11Enabled2, cumulus.RG11Port2, cumulus.RG11TBRmode2, cumulus.RG11tipsize2, default, cumulus.RG11TBRmode2);
 
-			var rg11 = new JsonExtraSensorRG11
+			var rg11 = new JsonRG11
 			{
 				port1 = rg11port1,
 				port2 = rg11port2
 			};
 
-			var aq = new JsonExtraSensorAirQuality
+			var aq = new JsonAirQuality
 			{
 				primaryaqsensor = cumulus.StationOptions.PrimaryAqSensor,
 				aqi = cumulus.airQualityIndex,
 			};
 
-			var data = new JsonExtraSensorSettings
+			var data = new JsonSettings
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				airquality = aq,
@@ -207,7 +207,7 @@ namespace CumulusMX
 		{
 			var errorMsg = string.Empty;
 			var json = string.Empty;
-			JsonExtraSensorSettings settings;
+			JsonSettings settings;
 			context.Response.StatusCode = 200;
 
 			try
@@ -218,7 +218,7 @@ namespace CumulusMX
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonExtraSensorSettings>();
+				settings = json.FromJson<JsonSettings>();
 			}
 			catch (Exception ex)
 			{
@@ -589,106 +589,106 @@ namespace CumulusMX
 
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
+
+		private sealed class JsonSettings
+		{
+			public bool accessible { get; set; }
+			public JsonAirQuality airquality { get; set; }
+			public JsonAirLinkSettings airLink { get; set; }
+			public JsonHttp httpSensors { get; set; }
+			public JsonBlakeLarsen blakeLarsen { get; set; }
+			public JsonRG11 rg11 { get; set; }
+		}
+
+		private sealed class JsonAirQuality
+		{
+			public int primaryaqsensor { get; set; }
+			public int aqi { get; set; }
+		}
+
+		private sealed class JsonAirLinkSettings
+		{
+			public bool isNode { get; set; }
+			public string apiKey { get; set; }
+			public string apiSecret { get; set; }
+			public bool autoUpdateIp { get; set; }
+			public JsonAirLinkDevice indoor { get; set; }
+			public JsonAirLinkDevice outdoor { get; set; }
+		}
+
+		private sealed class JsonAirLinkDevice
+		{
+			public bool enabled { get; set; }
+			public string ipAddress { get; set; }
+			public string hostname { get; set; }
+			public int stationId { get; set; }
+		}
+
+		private sealed class JsonHttp
+		{
+			public int extraStation { get; set; }
+			public JsonEcowitt ecowitt { get; set; }
+			public JsonAmbient ambient { get; set; }
+			public StationSettings.JsonEcowittApi ecowittapi { get; set; }
+			public JsonJson jsonstation { get; set; }
+		}
+
+		private class JsonAmbient
+		{
+			public bool useSolar { get; set; }
+			public bool useUv { get; set; }
+			public bool useTempHum { get; set; }
+			public bool useSoilMoist { get; set; }
+			public bool useLeafWet { get; set; }
+			public bool useUserTemp { get; set; }
+			public bool useAQI { get; set; }
+			public bool useCo2 { get; set; }
+			public bool useLightning { get; set; }
+			public bool useLeak { get; set; }
+			public bool useCamera { get; set; }
+			public bool useLaserDist { get; set; }
+		}
+
+		private sealed class JsonEcowitt : JsonAmbient
+		{
+			public bool setcustom { get; set; }
+			public string gwaddr { get; set; }
+			public string localaddr { get; set; }
+			public int interval { get; set; }
+			public StationSettings.JsonEcowittMappings mappings { get; set; }
+			public JsonForwarders forwarders { get; set; }
+		}
+
+		private sealed class JsonJson : JsonAmbient
+		{
+			public int conntype { get; set; }
+			public string filename { get; set; }
+			public string mqttserver { get; set; }
+			public int mqttport { get; set; }
+			public string mqttuser { get; set; }
+			public string mqttpass { get; set; }
+			public string mqtttopic { get; set; }
+
+			public JsonJsonStationAdvanced advanced { get; set; }
+		}
+
+		private sealed class JsonForwarders
+		{
+			public bool usemain { get; set; }
+			public List<StationSettings.JsonEcowittForwardList> forward { get; set; }
+		}
+
+		private sealed class JsonBlakeLarsen
+		{
+			public bool enabled { get; set; }
+		}
+
+		private sealed class JsonRG11
+		{
+			public JsonRg11Device port1 { get; set; }
+			public JsonRg11Device port2 { get; set; }
+		}
+
+		private sealed record JsonRg11Device(bool enabled, string commPort, bool tipMode, double tipSize, bool ignoreFirst, bool dtrMode);
 	}
-
-	public class JsonExtraSensorSettings
-	{
-		public bool accessible { get; set; }
-		public JsonExtraSensorAirQuality airquality { get; set; }
-		public JsonExtraSensorAirLinkSettings airLink { get; set; }
-		public JsonExtraSensorHttp httpSensors { get; set; }
-		public JsonExtraSensorBlakeLarsen blakeLarsen { get; set; }
-		public JsonExtraSensorRG11 rg11 { get; set; }
-	}
-
-	public class JsonExtraSensorAirQuality
-	{
-		public int primaryaqsensor { get; set; }
-		public int aqi { get; set; }
-	}
-
-	public class JsonExtraSensorAirLinkSettings
-	{
-		public bool isNode { get; set; }
-		public string apiKey { get; set; }
-		public string apiSecret { get; set; }
-		public bool autoUpdateIp { get; set; }
-		public JsonExtraSensorAirLinkDevice indoor { get; set; }
-		public JsonExtraSensorAirLinkDevice outdoor { get; set; }
-	}
-
-	public class JsonExtraSensorAirLinkDevice
-	{
-		public bool enabled { get; set; }
-		public string ipAddress { get; set; }
-		public string hostname { get; set; }
-		public int stationId { get; set; }
-	}
-
-	public class JsonExtraSensorHttp
-	{
-		public int extraStation { get; set; }
-		public JsonExtraSensorEcowitt ecowitt { get; set; }
-		public JsonExtraSensorAmbient ambient { get; set; }
-		public StationSettings.JsonEcowittApi ecowittapi { get; set; }
-		public JsonExtraSensorJson jsonstation { get; set; }
-	}
-
-	public class JsonExtraSensorAmbient
-	{
-		public bool useSolar { get; set; }
-		public bool useUv { get; set; }
-		public bool useTempHum { get; set; }
-		public bool useSoilMoist { get; set; }
-		public bool useLeafWet { get; set; }
-		public bool useUserTemp { get; set; }
-		public bool useAQI { get; set; }
-		public bool useCo2 { get; set; }
-		public bool useLightning { get; set; }
-		public bool useLeak { get; set; }
-		public bool useCamera { get; set; }
-		public bool useLaserDist { get; set; }
-	}
-
-	public class JsonExtraSensorEcowitt : JsonExtraSensorAmbient
-	{
-		public bool setcustom { get; set; }
-		public string gwaddr { get; set; }
-		public string localaddr { get; set; }
-		public int interval { get; set; }
-		public StationSettings.JsonEcowittMappings mappings { get; set; }
-		public JsonExtraSensorForwarders forwarders { get; set; }
-	}
-
-	public class JsonExtraSensorJson : JsonExtraSensorAmbient
-	{
-		public int conntype { get; set; }
-		public string filename { get; set; }
-		public string mqttserver { get; set; }
-		public int mqttport { get; set; }
-		public string mqttuser { get; set; }
-		public string mqttpass { get; set; }
-		public string mqtttopic { get; set; }
-
-		public JsonJsonStationAdvanced advanced { get; set; }
-	}
-
-	public class JsonExtraSensorForwarders
-	{
-		public bool usemain { get; set; }
-		public List<StationSettings.JsonEcowittForwardList> forward { get; set; }
-	}
-
-	public class JsonExtraSensorBlakeLarsen
-	{
-		public bool enabled { get; set; }
-	}
-
-	public class JsonExtraSensorRG11
-	{
-		public JsonExtraSensorRg11Device port1 { get; set; }
-		public JsonExtraSensorRg11Device port2 { get; set; }
-	}
-
-	public record JsonExtraSensorRg11Device(bool enabled, string commPort, bool tipMode, double tipSize, bool ignoreFirst, bool dtrMode);
 }
