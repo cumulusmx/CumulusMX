@@ -2811,7 +2811,7 @@ namespace CumulusMX
 
 							// No station pressure in archive data
 							StationPressure = 0;
-							AltimeterPressure = 0;
+							AltimeterPressure = Pressure;
 
 							if (archiveData.HiUVIndex >= 0 && archiveData.HiUVIndex < 25)
 							{
