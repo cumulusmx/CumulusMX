@@ -271,11 +271,10 @@ namespace CumulusMX
 						}
 						else
 						{
-							StationPressure = ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, CultureInfo.InvariantCulture));
+							DoStationPressure(ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, CultureInfo.InvariantCulture)));
 
 							if (cumulus.StationOptions.CalculateSLP)
 							{
-								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
 								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 
 								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
