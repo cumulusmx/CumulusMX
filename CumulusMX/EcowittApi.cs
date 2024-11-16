@@ -1361,8 +1361,7 @@ namespace CumulusMX
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var abs = cumulus.Calib.Press.Calibrate(station.StationPressure);
-					var slp = MeteoLib.GetSeaLevelPressure(station.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(abs), ConvertUnits.UserTempToC(station.OutdoorTemperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(station.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(station.StationPressure), ConvertUnits.UserTempToC(station.OutdoorTemperature), cumulus.Latitude);
 
 					station.DoPressure(ConvertUnits.PressMBToUser(slp), rec.Key);
 				}
@@ -1503,8 +1502,7 @@ namespace CumulusMX
 
 				if (rec.Value.StationPressure.HasValue)
 				{
-					station.StationPressure = (double) rec.Value.StationPressure;
-					station.AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(station.StationPressure, station.AltitudeM(cumulus.Altitude)));
+					station.DoStationPressure((double) rec.Value.StationPressure);
 					// Leave CMX calculated SLP until the end as it uses Temperature
 				}
 				else
