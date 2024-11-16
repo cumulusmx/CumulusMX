@@ -989,8 +989,7 @@ namespace CumulusMX
 								break;
 							case 0x08: //Absolute Barometric (hPa)
 								tempUint16 = GW1000Api.ConvertBigEndianUInt16(data, idx);
-								StationPressure = ConvertUnits.PressMBToUser(tempUint16 / 10.0);
-								AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(tempUint16 / 10.0, AltitudeM(cumulus.Altitude)));
+								DoStationPressure(ConvertUnits.PressMBToUser(tempUint16 / 10.0));
 								// Leave calculate SLP until the end as it depends on temperature
 								idx += 2;
 								break;
@@ -1395,8 +1394,7 @@ namespace CumulusMX
 
 						if (cumulus.StationOptions.CalculateSLP)
 						{
-							var abs = cumulus.Calib.Press.Calibrate(StationPressure);
-							var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(abs), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+							var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 							DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
 						}
 					}
