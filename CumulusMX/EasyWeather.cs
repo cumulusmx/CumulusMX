@@ -145,7 +145,7 @@ namespace CumulusMX
 
 					DoPressure(ConvertUnits.PressMBToUser(GetConvertedValue(st[EW_REL_PRESSURE])), now);
 
-					StationPressure = ConvertUnits.PressMBToUser(GetConvertedValue(st[EW_ABS_PRESSURE]));
+					DoStationPressure(ConvertUnits.PressMBToUser(GetConvertedValue(st[EW_ABS_PRESSURE])));
 
 					DoIndoorTemp(ConvertUnits.TempCToUser(GetConvertedValue(st[EW_INDOOR_TEMP])));
 

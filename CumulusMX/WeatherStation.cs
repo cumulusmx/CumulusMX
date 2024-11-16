@@ -5819,6 +5819,14 @@ namespace CumulusMX
 			}
 		}
 
+		public void DoStationPressure(double sp)
+		{
+			// If we calculate SLP, then the calibration is applied to the station pressure
+			//StationPressure = cumulus.Calib.PressStn.Calibrate(sp);
+			StationPressure = sp;
+			AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+		}
+
 		public void DoRain(double total, double rate, DateTime timestamp)
 		{
 			DateTime readingTS = timestamp.AddHours(cumulus.GetHourInc(timestamp));
