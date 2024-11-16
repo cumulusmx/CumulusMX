@@ -2179,8 +2179,7 @@ namespace CumulusMX
 					{
 						// all good!
 						previousPressStation = pressUser;
-						StationPressure = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
-						AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+						DoStationPressure(ConvertUnits.PressINHGToUser(loopData.AbsolutePressure));
 					}
 				}
 

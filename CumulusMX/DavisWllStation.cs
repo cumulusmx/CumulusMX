@@ -1264,9 +1264,7 @@ namespace CumulusMX
 								// Altimeter from absolute
 								if (data3.bar_absolute.HasValue)
 								{
-									StationPressure = ConvertUnits.PressINHGToUser(data3.bar_absolute.Value);
-									// Or do we use calibration? The VP2 code doesn't?
-									AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+									DoStationPressure(ConvertUnits.PressINHGToUser(data3.bar_absolute.Value));
 								}
 							}
 							catch (Exception ex)
@@ -2589,8 +2587,7 @@ namespace CumulusMX
 									// Altimeter from absolute
 									if (data13baro.bar_absolute != null)
 									{
-										StationPressure = ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute);
-										AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+										DoStationPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute));
 									}
 								}
 								catch (Exception ex)
