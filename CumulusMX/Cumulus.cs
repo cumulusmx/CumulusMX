@@ -11944,9 +11944,7 @@ namespace CumulusMX
 
 			if (FtpOptions.Logging)
 			{
-#pragma warning disable CA2254 // Template should be a static expression
-				FtpLoggerMX.LogInformation(message);
-#pragma warning restore CA2254 // Template should be a static expression
+				FtpLoggerMX.LogInformation("{Msg}", message);
 			}
 		}
 
@@ -11956,9 +11954,7 @@ namespace CumulusMX
 			{
 				if (!string.IsNullOrEmpty(message))
 					LogDebugMessage(message);
-#pragma warning disable CA2254 // Template should be a static expression
-				FtpLoggerMX.LogInformation(message);
-#pragma warning restore CA2254 // Template should be a static expression
+				FtpLoggerMX.LogInformation("{Msg}", message);
 			}
 		}
 

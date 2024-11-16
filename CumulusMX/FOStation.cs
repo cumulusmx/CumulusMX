@@ -11,9 +11,7 @@ using Timer = System.Timers.Timer;
 
 namespace CumulusMX
 {
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal class FOStation : WeatherStation
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		private readonly double pressureOffset;
 		private HidDevice hidDevice;
