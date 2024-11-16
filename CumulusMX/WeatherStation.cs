@@ -2229,10 +2229,13 @@ namespace CumulusMX
 			{
 				if (cumulus.GraphDataFiles[i].Create && cumulus.GraphDataFiles[i].CreateRequired)
 				{
+					cumulus.LogDebugMessage("CreateGraphDataFiles: Creating " + cumulus.GraphDataFiles[i].LocalFileName);
 					json = CreateGraphDataJson(cumulus.GraphDataFiles[i].LocalFileName, false);
 
 					try
 					{
+						cumulus.LogDebugMessage("CreateGraphDataFiles: Writing " + cumulus.GraphDataFiles[i].LocalFileName);
+
 						var dest = cumulus.GraphDataFiles[i].LocalPath + cumulus.GraphDataFiles[i].LocalFileName;
 						using (var file = new StreamWriter(dest, false))
 						{
@@ -2251,6 +2254,8 @@ namespace CumulusMX
 					{
 						cumulus.LogErrorMessage($"Error writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}");
 					}
+
+					cumulus.LogDebugMessage("CreateGraphDataFiles: Completed " + cumulus.GraphDataFiles[i].LocalFileName);
 				}
 			}
 		}
@@ -5713,6 +5718,7 @@ namespace CumulusMX
 			Pressure = cumulus.StationOptions.CalculateSLP ? sl : cumulus.Calib.Press.Calibrate(sl);
 
 			// TODO: This is bollocks, several stations set the altimeter correctly
+			// TODO: This logic needs moving to each station class
 			if (cumulus.Manufacturer == Cumulus.DAVIS)
 			{
 				if ((cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2) || cumulus.StationType == StationTypes.VantagePro)
@@ -5732,7 +5738,7 @@ namespace CumulusMX
 			else
 			{
 				// For all other stations, altimeter is same as sea-level
-				AltimeterPressure = Pressure;
+				AltimeterPressure = Pressure; 
 			}
 
 			first_press = false;

@@ -1057,11 +1057,12 @@ namespace CumulusMX
 										// Altimeter from absolute
 										if (rec.bar_absolute.HasValue)
 										{
-											var abs = ConvertUnits.PressINHGToUser(rec.bar_absolute.Value);
-											StationPressure = cumulus.StationOptions.CalculateSLP ? cumulus.Calib.Press.Calibrate(abs) : abs;
+											StationPressure = ConvertUnits.PressINHGToUser(rec.bar_absolute.Value);
+											var abs = cumulus.StationOptions.CalculateSLP ? cumulus.Calib.Press.Calibrate(StationPressure) : StationPressure;
 											// Or do we use calibration? The VP2 code doesn't?
-											AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+											AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(abs), AltitudeM(cumulus.Altitude)));
 										}
+
 									}
 								}
 								catch (Exception ex)

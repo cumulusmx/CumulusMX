@@ -593,22 +593,21 @@ namespace CumulusMX
 
 						if (stnPress == null)
 						{
-							cumulus.LogDebugMessage($"{procName}: Error, missing absolute baro pressure");
+							cumulus.LogWarningMessage($"{procName}: Error, missing absolute baro pressure");
 						}
 						else
 						{
 							StationPressure = ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, invNum));
+							AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 
 							if (cumulus.StationOptions.CalculateSLP)
 							{
-								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
+								var calStnPress = cumulus.Calib.Press.Calibrate(StationPressure);
 
-								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(calStnPress), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 
 								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
 							}
-
-							AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 						}
 					}
 					catch (Exception ex)

@@ -1179,21 +1179,29 @@ namespace CumulusMX
 					LogMessage("Migrating the weather diary database to version 2");
 
 					// rename the old table, create the new version, migrate the data, and drop the old table
+					LogMessage("Renaming old weather diary table");
 					DiaryDB.Execute("ALTER TABLE DiaryData RENAME TO DiaryDataOld");
+					LogMessage("Creating new weather diary table");
 					DiaryDB.CreateTable<DiaryData>();
 
 					var snowHr = new TimeSpan(SnowDepthHour, 0, 0);
 					var res = DiaryDB.Execute("INSERT OR REPLACE INTO DiaryData (Date, Time, Entry, SnowDepth) SELECT date(Timestamp), ?, entry, snowDepth FROM DiaryDataOld WHERE Timestamp > \"1900-01-01\" ORDER BY Timestamp", snowHr);
 					LogMessage("Migrated " + res + " weather diary records");
 
-					LogMessage("Dropping the old weather diary database");
+					LogMessage("Dropping the old weather diary table");
 					DiaryDB.Execute("DROP TABLE DiaryDataOld");
-					LogMessage("Dropped the old weather diary database");
+					LogMessage("Dropped the old weather diary table");
+					LogMessage("Weather diary database migration to version 2 complete");
+				}
+				else
+				{
+					// try to create the table, could be  new empty db
+					DiaryDB.CreateTable<DiaryData>();
 				}
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage("Error migrating the Diary DB, exception = " + ex.Message);
+				LogErrorMessage("Error migrating or creating the Diary DB, exception = " + ex.Message);
 			}
 
 			LogMessage("Debug logging :" + (ProgramOptions.DebugLogging ? "enabled" : "disabled"));
