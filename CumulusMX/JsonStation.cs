@@ -482,15 +482,15 @@ namespace CumulusMX
 									{
 										case "hPa":
 											slp = ConvertUnits.PressMBToUser(slp);
-											StationPressure = ConvertUnits.PressMBToUser(abs);
+											DoStationPressure(ConvertUnits.PressMBToUser(abs));
 											break;
 										case "kPa":
 											slp = ConvertUnits.PressKPAToUser(slp);
-											StationPressure = ConvertUnits.PressKPAToUser(abs);
+											DoStationPressure(ConvertUnits.PressKPAToUser(abs));
 											break;
 										case "inHg":
 											slp = ConvertUnits.PressINHGToUser(slp);
-											StationPressure = ConvertUnits.PressINHGToUser(abs);
+											DoStationPressure(ConvertUnits.PressINHGToUser(abs));
 											break;
 										default:
 											cumulus.LogErrorMessage("ApplyData: Invalid pressure units supplied: " + data.units.pressure);
@@ -498,8 +498,6 @@ namespace CumulusMX
 											doit = false;
 											break;
 									}
-
-									StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
 
 									if (doit)
 									{
