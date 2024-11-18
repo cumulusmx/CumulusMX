@@ -16,6 +16,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Fix for diary database not being created correctly for clean installs
 - Adds calibration for Station pressure (and so also for Altimeter pressure)
+- Fix web tag `<#RecentIndoorTemp>`
+- Add ability to post to Bluesky
 
 ### New
 
@@ -42,6 +44,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- This supports all the JSON Station input feed types: file watcher, HTTP POST, and MQTT
 - Adds calibration for Station pressure (and so also for Altimeter pressure)
 	- Note: If you use the option for Cumulus to calculate sea level pressure, then this new station pressure calibration is the one that will applied to the SLP as well
+- Adds Bluesky posting to the Third Party uploads list
+	- The content to be posted is contained in the `web/Bluesky.txt` file, you can include all the usual web tags
+	- You can include web links using the syntax: `https:\\my.site.com\page|Text for link|`
+	- You can include hash tags using the normal `#MyTagName`
+	- Cumulus will convert these to active links and tags when posting the message
+	- After editing the `web/Bluesky.txt` file, you can load it back into Cumulus by viewing the `Third party uploads` page where it will display the contents
 
 ### Changed
 

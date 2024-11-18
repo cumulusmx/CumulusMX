@@ -277,6 +277,27 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// BlueSky
+				try
+				{
+					cumulus.Bluesky.Enabled = settings.bluesky.enabled;
+					if (cumulus.Bluesky.Enabled)
+					{
+						cumulus.Bluesky.Interval = settings.bluesky.interval;
+						cumulus.Bluesky.ID = string.IsNullOrWhiteSpace(settings.bluesky.id) ? string.Empty : settings.bluesky.id.Trim();
+						cumulus.Bluesky.PW = string.IsNullOrWhiteSpace(settings.bluesky.password) ? string.Empty : settings.bluesky.password.Trim();
+						cumulus.Bluesky.Language = string.IsNullOrWhiteSpace(settings.bluesky.lang) ? string.Empty : settings.bluesky.lang.Trim();
+						cumulus.Bluesky.BaseUrl = string.IsNullOrWhiteSpace(settings.bluesky.baseUrl) ? string.Empty : settings.bluesky.baseUrl.Trim();
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing WOW settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// Custom HTTP
 				try
 				{
@@ -472,6 +493,19 @@ namespace CumulusMX
 				interval = cumulus.WindGuru.Interval
 			};
 
+			cumulus.Bluesky.ContentTemplate = File.ReadAllText("web/Bluesky.txt", new System.Text.UTF8Encoding(false));
+
+			var blueskysettings = new JsonBlueSky()
+			{
+				enabled = cumulus.Bluesky.Enabled,
+				id = cumulus.Bluesky.ID,
+				password = cumulus.Bluesky.PW,
+				interval = cumulus.Bluesky.Interval,
+				contentTemplate = cumulus.Bluesky.ContentTemplate,
+				lang = cumulus.Bluesky.Language,
+				baseUrl = cumulus.Bluesky.BaseUrl
+			};
+
 			var customseconds = new JsonCustomHttpSeconds()
 			{
 				enabled = cumulus.CustomHttpSecondsEnabled,
@@ -550,6 +584,7 @@ namespace CumulusMX
 				cwop = cwopsettings,
 				openweathermap = openweathermapsettings,
 				windguru = windgurusettings,
+				bluesky = blueskysettings,
 				customhttp = customhttp
 			};
 
@@ -568,6 +603,7 @@ namespace CumulusMX
 			public JsonWCloud weathercloud { get; set; }
 			public JsonOpenweatherMap openweathermap { get; set; }
 			public JsonWindGuru windguru { get; set; }
+			public JsonBlueSky bluesky { get; set; }
 			public JsonCustomHttpSettings customhttp { get; set; }
 		}
 
@@ -683,6 +719,17 @@ namespace CumulusMX
 			public string stationid { get; set; }
 			public int interval { get; set; }
 			public bool catchup { get; set; }
+		}
+
+		private sealed class JsonBlueSky
+		{
+			public bool enabled { get; set; }
+			public string id { get; set; }
+			public string password { get; set; }
+			public int interval { get; set; }
+			public string contentTemplate { get; set; }
+			public string lang { get; set; }
+			public string baseUrl { get; set; }
 		}
 
 		private sealed class JsonCustomHttpSeconds

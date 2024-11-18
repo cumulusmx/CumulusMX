@@ -5969,7 +5969,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select IndoorTemperature from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select IndoorTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
 
 			string indoorTempValue;
 			if (result.HasValue)

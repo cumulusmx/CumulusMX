@@ -336,6 +336,9 @@ namespace CumulusMX
 		// WeatherCloud object
 		internal ThirdParty.WebUploadWCloud WCloud;
 
+		// BlueSky object
+		internal ThirdParty.WebUploadBlueSky Bluesky;
+
 		// OpenWeatherMap object
 		internal ThirdParty.WebUploadOwm OpenWeatherMap;
 		internal string WxnowComment = string.Empty;
@@ -680,6 +683,11 @@ namespace CumulusMX
 			AWEKAS = new ThirdParty.WebUploadAwekas(this, "AWEKAS");
 			WCloud = new ThirdParty.WebUploadWCloud(this, "WCloud");
 			OpenWeatherMap = new ThirdParty.WebUploadOwm(this, "OpenWeatherMap");
+			Bluesky = new ThirdParty.WebUploadBlueSky(this, "BlueSky")
+			{
+				ContentTemplate = File.ReadAllText(WebPath + "Bluesky.txt", Encoding.UTF8),
+				DefaultInterval = 60
+			};
 
 			// Set the default upload intervals for web services
 			Wund.DefaultInterval = 15;
@@ -1548,6 +1556,8 @@ namespace CumulusMX
 				AWEKAS.station = station;
 				WCloud.station = station;
 				OpenWeatherMap.station = station;
+				Bluesky.station = station;
+				Bluesky.CancelToken = cancellationToken;
 
 				WebTags = new WebTags(this, station);
 				WebTags.InitialiseWebtags();
@@ -4734,6 +4744,14 @@ namespace CumulusMX
 			OpenWeatherMap.ID = ini.GetValue("OpenWeatherMap", "StationId", string.Empty);
 			OpenWeatherMap.Interval = ini.GetValue("OpenWeatherMap", "Interval", OpenWeatherMap.DefaultInterval, 1);
 
+			Bluesky.Enabled = ini.GetValue("Bluesky", "Enabled", false);
+			Bluesky.ID = ini.GetValue("Bluesky", "ID", string.Empty);
+			Bluesky.PW = ini.GetValue("Bluesky", "Password", string.Empty);
+			Bluesky.Interval = ini.GetValue("Bluesky", "Interval", Bluesky.DefaultInterval);
+			Bluesky.Language = ini.GetValue("Bluesky", "Language", CultureInfo.CurrentCulture.Name);
+			Bluesky.BaseUrl = ini.GetValue("Bluesky", "BaseUrl", "https://bsky.social");
+			Bluesky.CatchUp = false;
+
 			MQTT.Server = ini.GetValue("MQTT", "Server", string.Empty);
 			MQTT.Port = ini.GetValue("MQTT", "Port", 1883, 1, 65535);
 			MQTT.IpVersion = ini.GetValue("MQTT", "IPversion", 0, 0, 6); // 0 = unspecified, 4 = force IPv4, 6 = force IPv6
@@ -5611,6 +5629,7 @@ namespace CumulusMX
 					APRS.PW = Crypto.DecryptString(APRS.PW, Program.InstanceId, "APRS.PW");
 				}
 				OpenWeatherMap.PW = Crypto.DecryptString(OpenWeatherMap.PW, Program.InstanceId, "OpenWeatherMap.PW");
+				Bluesky.PW = Crypto.DecryptString(Bluesky.PW, Program.InstanceId, "Bluesky.PW");
 				MQTT.Username = Crypto.DecryptString(MQTT.Username, Program.InstanceId, "MQTT.Username");
 				MQTT.Password = Crypto.DecryptString(MQTT.Password, Program.InstanceId, "MQTT.Password");
 				MySqlConnSettings.UserID = Crypto.DecryptString(MySqlConnSettings.UserID, Program.InstanceId, "MySql UserID");
@@ -6233,6 +6252,13 @@ namespace CumulusMX
 			ini.SetValue("WindGuru", "Password", Crypto.EncryptString(WindGuru.PW, Program.InstanceId, "WindGuru.PW"));
 			ini.SetValue("WindGuru", "Interval", WindGuru.Interval);
 			ini.SetValue("WindGuru", "SendRain", WindGuru.SendRain);
+
+			ini.SetValue("Bluesky", "Enabled", Bluesky.Enabled);
+			ini.SetValue("Bluesky", "ID", Bluesky.ID);
+			ini.SetValue("Bluesky", "Password", Crypto.EncryptString(Bluesky.PW, Program.InstanceId, "Bluesky.PW"));
+			ini.SetValue("Bluesky", "Interval", Bluesky.Interval);
+			ini.SetValue("Bluesky", "Language", Bluesky.Language);
+			ini.SetValue("Bluesky", "BaseUrl", Bluesky.BaseUrl);
 
 			ini.SetValue("MQTT", "Server", MQTT.Server);
 			ini.SetValue("MQTT", "Port", MQTT.Port);
@@ -13440,7 +13466,7 @@ namespace CumulusMX
 			Wund.AddToList(timestamp);
 			Windy.AddToList(timestamp);
 			PWS.AddToList(timestamp);
-			WOW.AddToList(timestamp);
+			//WOW.AddToList(timestamp);
 			OpenWeatherMap.AddToList(timestamp);
 		}
 

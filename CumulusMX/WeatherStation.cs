@@ -1984,6 +1984,17 @@ namespace CumulusMX
 						_ = cumulus.APRS.DoUpdate(now);
 					}
 
+					if (cumulus.Bluesky.Enabled && (now.Minute % cumulus.Bluesky.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.Bluesky.ID) && !cumulus.Bluesky.Updating)
+					{
+						var parser = new TokenParser(cumulus.TokenParserOnToken)
+						{
+							InputText = cumulus.Bluesky.ContentTemplate
+						};
+
+						_ = cumulus.Bluesky.DoUpdate(parser.ToStringFromString());
+					}
+
+
 					if (cumulus.xapEnabled)
 					{
 						using Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -12075,7 +12086,7 @@ namespace CumulusMX
 				json.Append(",\"Snow24h\":");
 				if (result[0].Snow24h.HasValue)
 				{
-					json.Append(result[0].Snow24h.Value.ToString("F1") );
+					json.Append(result[0].Snow24h.Value.ToString("F2") );
 				}
 				else
 				{
@@ -12084,7 +12095,7 @@ namespace CumulusMX
 				json.Append(",\"SnowDepth\":");
 				if (result[0].SnowDepth.HasValue)
 				{
-					json.Append(result[0].SnowDepth.Value.ToString("F1"));
+					json.Append(result[0].SnowDepth.Value.ToString("F2"));
 				}
 				else
 				{
