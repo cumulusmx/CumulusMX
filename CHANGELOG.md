@@ -16,6 +16,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Fix for errors if Bluesky.txt does not exist
 - Bluesky posts could only be sent at a maximum interval of 1 hour
+- Bluesky can now have scheduled posting times
+- Fix incorrect Bluesky link and hash-tag offsets in posts
 
 ### New
 

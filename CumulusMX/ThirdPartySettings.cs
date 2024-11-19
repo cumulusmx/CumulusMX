@@ -288,11 +288,18 @@ namespace CumulusMX
 						cumulus.Bluesky.PW = string.IsNullOrWhiteSpace(settings.bluesky.password) ? string.Empty : settings.bluesky.password.Trim();
 						cumulus.Bluesky.Language = string.IsNullOrWhiteSpace(settings.bluesky.lang) ? string.Empty : settings.bluesky.lang.Trim();
 						cumulus.Bluesky.BaseUrl = string.IsNullOrWhiteSpace(settings.bluesky.baseUrl) ? string.Empty : settings.bluesky.baseUrl.Trim();
+						for (var i = 0; i < settings.bluesky.times.Length; i++)
+						{
+							if (string.IsNullOrEmpty(settings.bluesky.times[i].time))
+								cumulus.Bluesky.TimedPosts[i] = TimeSpan.MaxValue;
+							else
+								cumulus.Bluesky.TimedPosts[i] = DateTime.ParseExact(settings.bluesky.times[i].time, "HH:mm", System.Globalization.CultureInfo.InvariantCulture).TimeOfDay;
+						}
 					}
 				}
 				catch (Exception ex)
 				{
-					var msg = "Error processing WOW settings: " + ex.Message;
+					var msg = "Error processing Bluesky settings: " + ex.Message;
 					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -510,6 +517,14 @@ namespace CumulusMX
 				cumulus.Bluesky.ContentTemplate = string.Empty;
 			}
 
+			var timedPostCnt = 0;
+			for (var i = 0; i < 5; i++)
+			{
+				if (cumulus.Bluesky.TimedPosts[i] < TimeSpan.MaxValue)
+					timedPostCnt++;
+			}
+
+
 			var blueskysettings = new JsonBlueSky()
 			{
 				enabled = cumulus.Bluesky.Enabled,
@@ -518,8 +533,16 @@ namespace CumulusMX
 				interval = cumulus.Bluesky.Interval,
 				contentTemplate = cumulus.Bluesky.ContentTemplate,
 				lang = cumulus.Bluesky.Language,
-				baseUrl = cumulus.Bluesky.BaseUrl
+				baseUrl = cumulus.Bluesky.BaseUrl,
+				times = new JsonBlueskyTime[timedPostCnt]
 			};
+
+			var index = 0;
+			for (var i = 0; i < 5; i++)
+			{
+				if (cumulus.Bluesky.TimedPosts[i] < TimeSpan.MaxValue)
+					blueskysettings.times[index++] = new JsonBlueskyTime() { time = cumulus.Bluesky.TimedPosts[i].ToString(@"hh\:mm") };
+			}
 
 			var customseconds = new JsonCustomHttpSeconds()
 			{
@@ -535,7 +558,7 @@ namespace CumulusMX
 			}
 			customseconds.url = new string[urlCnt];
 
-			var index = 0;
+			index = 0;
 			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.CustomHttpSecondsStrings[i]))
@@ -736,12 +759,18 @@ namespace CumulusMX
 			public bool catchup { get; set; }
 		}
 
+		private sealed class JsonBlueskyTime
+		{
+			public string time { get; set; }
+		}
+
 		private sealed class JsonBlueSky
 		{
 			public bool enabled { get; set; }
 			public string id { get; set; }
 			public string password { get; set; }
 			public int interval { get; set; }
+			public JsonBlueskyTime[] times { get; set; }
 			public string contentTemplate { get; set; }
 			public string lang { get; set; }
 			public string baseUrl { get; set; }

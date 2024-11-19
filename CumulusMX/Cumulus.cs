@@ -468,6 +468,8 @@ namespace CumulusMX
 		private bool customMySqlRolloverUpdateInProgress;
 		private bool customMySqlTimedUpdateInProgress;
 
+		private bool BlueskyTimedUpdateInProgress;
+
 		private HttpFiles httpFiles;
 
 		internal AirLinkData airLinkDataIn;
@@ -4762,6 +4764,14 @@ namespace CumulusMX
 			Bluesky.Language = ini.GetValue("Bluesky", "Language", CultureInfo.CurrentCulture.Name);
 			Bluesky.BaseUrl = ini.GetValue("Bluesky", "BaseUrl", "https://bsky.social");
 			Bluesky.CatchUp = false;
+			for (var i = 0; i < 5; i++)
+			{
+				if (ini.ValueExists("Bluesky", "TimedPost" + i) && !string.IsNullOrEmpty(ini.GetValue("Bluesky", "TimedPost" + i, string.Empty)))
+					Bluesky.TimedPosts[i] = DateTime.ParseExact(ini.GetValue("Bluesky", "TimedPost" + i, "00:00"), "HH:mm", System.Globalization.CultureInfo.InvariantCulture).TimeOfDay;
+				else
+					Bluesky.TimedPosts[i] = TimeSpan.MaxValue;
+			}
+
 
 			MQTT.Server = ini.GetValue("MQTT", "Server", string.Empty);
 			MQTT.Port = ini.GetValue("MQTT", "Port", 1883, 1, 65535);
@@ -6270,6 +6280,13 @@ namespace CumulusMX
 			ini.SetValue("Bluesky", "Interval", Bluesky.Interval);
 			ini.SetValue("Bluesky", "Language", Bluesky.Language);
 			ini.SetValue("Bluesky", "BaseUrl", Bluesky.BaseUrl);
+			for (var i = 0; i < 5; i++)
+			{
+				if (Bluesky.TimedPosts[i] < TimeSpan.MaxValue)
+					ini.SetValue("Bluesky", "TimedPost" + i, Bluesky.TimedPosts[i].ToString(@"hh\:mm"));
+				else
+					ini.DeleteValue("Bluesky", "TimedPost" + i);
+			}
 
 			ini.SetValue("MQTT", "Server", MQTT.Server);
 			ini.SetValue("MQTT", "Port", MQTT.Port);
@@ -12486,6 +12503,56 @@ namespace CumulusMX
 			NormalRunning = true;
 			LogMessage("Normal running");
 			LogConsoleMessage("Normal running", ConsoleColor.Green);
+		}
+
+		internal async Task BlueskyTimedUpdate(DateTime now)
+		{
+			if (station.DataStopped || Bluesky.TimedPostsCount == 0)
+			{
+				// No data coming in, do not do anything
+				return;
+			}
+
+			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
+			{
+				// not all the data is ready and NoSensorCheck is not enabled
+				LogMessage($"BlueskyTimedUpdate: Not all data is ready, aborting process");
+				return;
+			}
+
+			if (!BlueskyTimedUpdateInProgress)
+			{
+				BlueskyTimedUpdateInProgress = true;
+
+				var roundedTime = new TimeSpan(now.Hour, now.Minute, 0);
+
+				for (var i = 0; i < 5; i++)
+				{
+					try
+					{
+						if (Bluesky.TimedPosts[i] == TimeSpan.MaxValue)
+						{
+							continue;
+						}
+
+						// is this a one-off, or a repeater
+						if (Bluesky.TimedPosts[i] == roundedTime)
+						{
+						var parser = new TokenParser(TokenParserOnToken)
+						{
+							InputText = Bluesky.ContentTemplate
+						};
+
+						_ = Bluesky.DoUpdate(parser.ToStringFromString());
+						}
+					}
+					catch (Exception ex)
+					{
+						LogExceptionMessage(ex, $"BlueskyTimedUpdate[{i}]: Error");
+					}
+				}
+				BlueskyTimedUpdateInProgress = false;
+			}
 		}
 
 		private async void CustomMysqlSecondsTimerTick(object sender, ElapsedEventArgs e)
