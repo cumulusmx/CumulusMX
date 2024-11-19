@@ -685,9 +685,20 @@ namespace CumulusMX
 			OpenWeatherMap = new ThirdParty.WebUploadOwm(this, "OpenWeatherMap");
 			Bluesky = new ThirdParty.WebUploadBlueSky(this, "BlueSky")
 			{
-				ContentTemplate = File.ReadAllText(WebPath + "Bluesky.txt", Encoding.UTF8),
 				DefaultInterval = 60
 			};
+			if (File.Exists(WebPath + "Bluesky.txt"))
+			{
+				try
+				{
+					Bluesky.ContentTemplate = File.ReadAllText(WebPath + "Bluesky.txt", new System.Text.UTF8Encoding(false));
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, "Error reading Bluesky.txt file");
+				}
+			}
+
 
 			// Set the default upload intervals for web services
 			Wund.DefaultInterval = 15;

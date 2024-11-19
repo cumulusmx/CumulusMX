@@ -493,7 +493,22 @@ namespace CumulusMX
 				interval = cumulus.WindGuru.Interval
 			};
 
-			cumulus.Bluesky.ContentTemplate = File.ReadAllText("web/Bluesky.txt", new System.Text.UTF8Encoding(false));
+			if (File.Exists("web/Bluesky.txt"))
+			{
+				try
+				{
+					cumulus.Bluesky.ContentTemplate = File.ReadAllText("web/Bluesky.txt", new System.Text.UTF8Encoding(false));
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "Error reading web/Bluesky.txt");
+					cumulus.Bluesky.ContentTemplate = string.Empty;
+				}
+			}
+			else
+			{
+				cumulus.Bluesky.ContentTemplate = string.Empty;
+			}
 
 			var blueskysettings = new JsonBlueSky()
 			{

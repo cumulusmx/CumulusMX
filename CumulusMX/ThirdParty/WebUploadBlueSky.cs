@@ -27,7 +27,7 @@ namespace CumulusMX.ThirdParty
 
 
 		public CancellationToken CancelToken { get; set; }
-		public string ContentTemplate { get; set; }
+		public string ContentTemplate { get; set; } = string.Empty;
 		public string BaseUrl { get; set; }
 		public string Language { get; set; }
 

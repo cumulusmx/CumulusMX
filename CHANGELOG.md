@@ -10,17 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4052\]][9] - 2024-11-19
+## BETA [4.3.0 \[b4053\]][9] - 2024-11-xx
 
 ### Changes since last beta build
 
-- Fix for diary database not being created correctly for clean installs
-- Fix for Weather Diary not recording the time in the database
-- Fix for Weather Diary not displaying values to a resolution < 0.1 (relevant if you use inches)
-- Adds calibration for Station pressure (and so also for Altimeter pressure)
-- Fix web tag `<#RecentIndoorTemp>`
-- Add ability to post to Bluesky
-- Fix no live data being added to the recent data database if you do no have a solar sensor
+- Fix for errors if Bluesky.txt does not exist
+- Bluesky posts could only be sent at a maximum interval of 1 hour
 
 ### New
 

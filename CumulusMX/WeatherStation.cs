@@ -1984,7 +1984,7 @@ namespace CumulusMX
 						_ = cumulus.APRS.DoUpdate(now);
 					}
 
-					if (cumulus.Bluesky.Enabled && (now.Minute % cumulus.Bluesky.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.Bluesky.ID) && !cumulus.Bluesky.Updating)
+					if (cumulus.Bluesky.Enabled && (now.TimeOfDay.TotalMinutes % cumulus.Bluesky.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.Bluesky.ID) && !cumulus.Bluesky.Updating)
 					{
 						var parser = new TokenParser(cumulus.TokenParserOnToken)
 						{
