@@ -2240,13 +2240,16 @@ namespace CumulusMX
 			{
 				if (cumulus.GraphDataFiles[i].Create && cumulus.GraphDataFiles[i].CreateRequired)
 				{
+#if DEBUG
 					cumulus.LogDebugMessage("CreateGraphDataFiles: Creating " + cumulus.GraphDataFiles[i].LocalFileName);
+#endif
 					json = CreateGraphDataJson(cumulus.GraphDataFiles[i].LocalFileName, false);
 
 					try
 					{
+#if DEBUG
 						cumulus.LogDebugMessage("CreateGraphDataFiles: Writing " + cumulus.GraphDataFiles[i].LocalFileName);
-
+#endif
 						var dest = cumulus.GraphDataFiles[i].LocalPath + cumulus.GraphDataFiles[i].LocalFileName;
 						using (var file = new StreamWriter(dest, false))
 						{
@@ -2265,8 +2268,9 @@ namespace CumulusMX
 					{
 						cumulus.LogErrorMessage($"Error writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}");
 					}
-
+#if DEBUG
 					cumulus.LogDebugMessage("CreateGraphDataFiles: Completed " + cumulus.GraphDataFiles[i].LocalFileName);
+#endif
 				}
 			}
 		}
