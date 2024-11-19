@@ -4820,7 +4820,7 @@ namespace CumulusMX
 					OutsideTemp = outsidetemp,
 					Pressure = pressure,
 					RainToday = rainToday,
-					SolarRad = (int) solarRad,
+					SolarRad = (int?) solarRad,
 					UV = uv,
 					WindAvgDir = avgBearing,
 					WindGust = recentMaxGust,
@@ -4842,7 +4842,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogDebugMessage("AddRecentDataEntry: " + ex.Message);
+				cumulus.LogExceptionMessage(ex, "AddRecentDataEntry: Error");
 			}
 		}
 
