@@ -16,6 +16,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Adds new web tag `<#snowcomment>`
 - `<#snow24h>` and `<#snowdepth>` now return values with decimal places appropriate to the units used
+- Fix Bluesky interval posts broken in b4053
 
 ### New
 

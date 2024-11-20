@@ -1984,7 +1984,7 @@ namespace CumulusMX
 						_ = cumulus.APRS.DoUpdate(now);
 					}
 
-					if (cumulus.Bluesky.Enabled && cumulus.Bluesky.Interval > 0 && (now.TimeOfDay.TotalMinutes % cumulus.Bluesky.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.Bluesky.ID) && !cumulus.Bluesky.Updating)
+					if (cumulus.Bluesky.Enabled && cumulus.Bluesky.Interval > 0 && ((int)now.TimeOfDay.TotalMinutes % cumulus.Bluesky.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.Bluesky.ID) && !cumulus.Bluesky.Updating)
 					{
 						var parser = new TokenParser(cumulus.TokenParserOnToken)
 						{
@@ -12109,7 +12109,7 @@ namespace CumulusMX
 				json.Append(",\"Snow24h\":");
 				if (result[0].Snow24h.HasValue)
 				{
-					json.Append(result[0].Snow24h.Value.ToString("F2") );
+					json.Append(result[0].Snow24h.Value.ToString("F2", CultureInfo.InvariantCulture) );
 				}
 				else
 				{
@@ -12118,7 +12118,7 @@ namespace CumulusMX
 				json.Append(",\"SnowDepth\":");
 				if (result[0].SnowDepth.HasValue)
 				{
-					json.Append(result[0].SnowDepth.Value.ToString("F2"));
+					json.Append(result[0].SnowDepth.Value.ToString("F2", CultureInfo.InvariantCulture));
 				}
 				else
 				{
