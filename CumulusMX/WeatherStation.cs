@@ -1997,7 +1997,7 @@ namespace CumulusMX
 					if (cumulus.Bluesky.Enabled && cumulus.Bluesky.TimedPostsCount > 0)
 					{
 						_ = cumulus.BlueskyTimedUpdate(now);
-					}					
+					}
 
 
 					if (cumulus.xapEnabled)
@@ -2248,13 +2248,11 @@ namespace CumulusMX
 #if DEBUG
 					cumulus.LogDebugMessage("CreateGraphDataFiles: Creating " + cumulus.GraphDataFiles[i].LocalFileName);
 #endif
-					json = CreateGraphDataJson(cumulus.GraphDataFiles[i].LocalFileName, false);
-
 					try
 					{
-#if DEBUG
+						json = CreateGraphDataJson(cumulus.GraphDataFiles[i].LocalFileName, false);
+
 						cumulus.LogDebugMessage("CreateGraphDataFiles: Writing " + cumulus.GraphDataFiles[i].LocalFileName);
-#endif
 						var dest = cumulus.GraphDataFiles[i].LocalPath + cumulus.GraphDataFiles[i].LocalFileName;
 						using (var file = new StreamWriter(dest, false))
 						{
@@ -2271,7 +2269,7 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogErrorMessage($"Error writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}");
+						cumulus.LogErrorMessage($"Error creating/writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}");
 					}
 #if DEBUG
 					cumulus.LogDebugMessage("CreateGraphDataFiles: Completed " + cumulus.GraphDataFiles[i].LocalFileName);
@@ -2854,17 +2852,33 @@ namespace CumulusMX
 				for (var i = 0; i < data.Count; i++)
 				{
 					var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
-					var val = data[i].Pm2p5 < -0.5 ? "null" : data[i].Pm2p5.Value.ToString("F1", InvC);
-					sb2p5.Append($"[{jsTime},{val}],");
 
-					// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
-					if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
-						cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor ||
-						cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2)
+					if (data[i].Pm2p5.HasValue)
 					{
-						append = true;
-						val = data[i].Pm10 < -0.5 ? "null" : data[i].Pm10.Value.ToString("F1", InvC);
-						sb10.Append($"[{jsTime},{val}],");
+						var val = data[i].Pm2p5 < -0.5 ? "null" : data[i].Pm2p5.Value.ToString("F1", InvC);
+						sb2p5.Append($"[{jsTime},{val}],");
+
+						// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
+						if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
+							cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor ||
+							cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2)
+						{
+							append = true;
+							val = data[i].Pm10 < -0.5 ? "null" : data[i].Pm10.Value.ToString("F1", InvC);
+							sb10.Append($"[{jsTime},{val}],");
+						}
+					}
+					else
+					{
+						sb2p5.Append($"[{jsTime},null],");
+						// Only the AirLink and Ecowitt CO2 servers provide PM10 values at the moment
+						if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor ||
+							cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor ||
+							cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2)
+						{
+							append = true;
+							sb10.Append($"[{jsTime},null],");
+						}
 					}
 				}
 

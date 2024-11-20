@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4053\]][9] - 2024-11-xx
+## BETA [4.3.0 \[b4053\]][9] - 2024-11-20
 
 ### Changes since last beta build
 
@@ -18,6 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Bluesky posts could only be sent at a maximum interval of 1 hour
 - Bluesky can now have scheduled posting times
 - Fix incorrect Bluesky link and hash-tag offsets in posts
+- Fix(?) for AQ graph data failing
 
 ### New
 
