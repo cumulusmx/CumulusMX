@@ -12535,15 +12535,15 @@ namespace CumulusMX
 							continue;
 						}
 
-						// is this a one-off, or a repeater
+						// is this the time?
 						if (Bluesky.TimedPosts[i] == roundedTime)
 						{
-						var parser = new TokenParser(TokenParserOnToken)
-						{
-							InputText = Bluesky.ContentTemplate
-						};
+							var parser = new TokenParser(TokenParserOnToken)
+							{
+								InputText = Bluesky.ContentTemplate
+							};
 
-						await Bluesky.DoUpdate(parser.ToStringFromString());
+							await Bluesky.DoUpdate(parser.ToStringFromString());
 						}
 					}
 					catch (Exception ex)
