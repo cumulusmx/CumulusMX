@@ -30,7 +30,7 @@ namespace CumulusMX.ThirdParty
 		public string BaseUrl { get; set; }
 		public string Language { get; set; }
 		public TimeSpan[] TimedPosts { get; set; }
-		public int TimedPostsCount { 
+		public int TimedPostsCount {
 			get
 			{
 				var cnt = 0;
@@ -143,7 +143,7 @@ namespace CumulusMX.ThirdParty
 						}
 						else
 						{
-							cumulus.LogDebugMessage($"BlueSky Authentication Response: ERROR - Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
+							cumulus.LogWarningMessage($"BlueSky Authentication Response: ERROR - Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
 							cumulus.LogMessage($"BlueSky: Authentication Retrying in {delay / retryCount} seconds");
 
 							await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
@@ -174,11 +174,11 @@ namespace CumulusMX.ThirdParty
 					{
 						if (ex.InnerException is TimeoutException)
 						{
-							cumulus.LogDebugMessage($"BlueSky: Authentication Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
+							cumulus.LogWarningMessage($"BlueSky: Authentication Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
 						}
 						else
 						{
-							cumulus.LogDebugMessage("BlueSky: Authentication Error - " + ex.Message);
+							cumulus.LogWarningMessage("BlueSky: Authentication Error - " + ex.Message);
 						}
 
 						cumulus.LogMessage($"BlueSky: Authentication Retrying in {delay / retryCount} seconds");
@@ -252,7 +252,7 @@ namespace CumulusMX.ThirdParty
 				cumulus.LogDebugMessage("BlueSky: Post ended");
 			}
 			catch (Exception ex)
-			{ 
+			{
 				cumulus.LogExceptionMessage(ex, "BlueSky createPost error");
 			}
 		}
@@ -268,10 +268,10 @@ namespace CumulusMX.ThirdParty
 
 			while ((match = regex.Match(content[pos..])).Success)
 			{
-				if (match.Groups.Count == 3) 
-				{ 
-					string url = match.Groups[1].Value; 
-					string label = match.Groups[2].Value; 
+				if (match.Groups.Count == 3)
+				{
+					string url = match.Groups[1].Value;
+					string label = match.Groups[2].Value;
 
 					var facet = new Facet();
 
@@ -312,11 +312,11 @@ namespace CumulusMX.ThirdParty
 
 			var regex = new Regex(@"#\w+");
 
-			foreach (Match match in regex.Matches(content)) 
-			{ 
+			foreach (Match match in regex.Matches(content))
+			{
 				if (match.Groups.Count == 1)
-				{ 
-					string tag = match.Groups[0].Value; 
+				{
+					string tag = match.Groups[0].Value;
 
 					var facet = new Facet();
 
