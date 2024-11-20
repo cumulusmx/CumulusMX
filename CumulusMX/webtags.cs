@@ -4,6 +4,7 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
@@ -241,6 +242,23 @@ namespace CumulusMX
 				lying = false;
 			}
 			return lying;
+		}
+
+		private string GetSnowComment(DateTime day)
+		{
+			string comment;
+			try
+			{
+				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Date = ?", day.Date);
+
+				comment = result.Count == 1 && !string.IsNullOrEmpty(result[0].Entry) ? result[0].Entry : "";
+			}
+			catch (Exception e)
+			{
+				cumulus.LogErrorMessage("Error reading diary database: " + e.Message);
+				comment = string.Empty;
+			}
+			return comment;
 		}
 
 		private static string EncodeForWeb(string aStr)
@@ -1451,7 +1469,7 @@ namespace CumulusMX
 		private string Tagsnowdepth(Dictionary<string, string> tagParams)
 		{
 			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
-			return CheckRc(GetSnowDepth(ts.Date).ToString("F1"), tagParams);
+			return CheckRc(GetSnowDepth(ts.Date).ToString(cumulus.SnowFormat), tagParams);
 		}
 
 		private string Tagsnowlying(Dictionary<string, string> tagParams)
@@ -1463,9 +1481,14 @@ namespace CumulusMX
 		private string Tagsnow24hr(Dictionary<string, string> tagParams)
 		{
 			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
-			return GetSnow24h(ts.Date).ToString("F1");
+			return GetSnow24h(ts.Date).ToString(cumulus.SnowFormat);
 		}
 
+		private string Tagsnowcomment(Dictionary<string, string> tagParams)
+		{
+			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
+			return GetSnowComment(ts.Date);
+		}
 
 		private static string Tagsnowfalling(Dictionary<string, string> tagParams)
 		{
@@ -3762,7 +3785,7 @@ namespace CumulusMX
 						end = start.AddMonths(1);
 						total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(rec => rec.TotalRain);
 					}
-					else 
+					else
 					{
 						return "-";
 					}
@@ -5974,7 +5997,7 @@ namespace CumulusMX
 			string indoorTempValue;
 			if (result.HasValue)
 			{
-				indoorTempValue = CheckRcDp(result.Value, tagParams, cumulus.TempDPlaces);				 
+				indoorTempValue = CheckRcDp(result.Value, tagParams, cumulus.TempDPlaces);
 			}
 			else
 			{
@@ -6137,7 +6160,7 @@ namespace CumulusMX
 					return "[\"" + CheckRcDp(ret.value, tagParams, 1) + "\",\"" + GetFormattedDateTime(ret.time, defaultFormat, tagParams) + "\"]";
 				}
 				else if (dateOnly)
-				{ 
+				{
 					return GetFormattedDateTime(ret.time, defaultFormat, tagParams);
 				}
 				else
@@ -6272,6 +6295,7 @@ namespace CumulusMX
 				{ "snowlying", Tagsnowlying },
 				{ "snowfalling", Tagsnowfalling },
 				{ "snow24hr", Tagsnow24hr },
+				{ "snowcomment", Tagsnowcomment },
 				{ "newrecord", Tagnewrecord },
 				{ "TempRecordSet", TagTempRecordSet },
 				{ "WindRecordSet", TagWindRecordSet },

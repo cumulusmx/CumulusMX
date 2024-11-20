@@ -480,6 +480,8 @@ namespace CumulusMX
 					}
 
 					cumulus.Units.SnowDepth = settings.units.snow;
+					cumulus.SnowDPlaces = settings.units.snow == 0 ? 1 : 2;
+					cumulus.SnowFormat = "F" + cumulus.SnowDPlaces;
 				}
 				catch (Exception ex)
 				{

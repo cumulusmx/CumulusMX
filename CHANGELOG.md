@@ -10,15 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4053\]][9] - 2024-11-20
+## BETA [4.3.0 \[b4054\]][9] - 2024-11-xx
 
 ### Changes since last beta build
 
-- Fix for errors if Bluesky.txt does not exist
-- Bluesky posts could only be sent at a maximum interval of 1 hour
-- Bluesky can now have scheduled posting times
-- Fix incorrect Bluesky link and hash-tag offsets in posts
-- Fix(?) for AQ graph data failing
+- Adds new web tag `<#snowcomment>`
+- `<#snow24h>` and `<#snowdepth>` now return values with decimal places appropriate to the units used
 
 ### New
 
@@ -66,7 +63,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The Editor page gains a new "Upload File" button to re-import your exported CSV files
 	- The Editor page now also has a Time field which defaults to the configured snow recording time, but you may override it
 	- There is a new option to automatically create a snow depth record on your snow recording hour. This requires the connection of an Ecowitt WH54/LDS01 sensor to your station
-	- A new web tag `<#snow24h>`
+	- A new web tags `<#snow24h>` and `<#snowcomment>`
 	- The web tag `<#snowfalling>` has been deprecated (it will return an empty string until it is removed)
 	- A new daily graph data file `alldailysnowdata.json`
 - Chill Hours now allows you to define a base temperature, where chill hours are only counted if the temperature is < threshold AND > base

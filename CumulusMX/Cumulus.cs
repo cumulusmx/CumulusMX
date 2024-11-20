@@ -203,6 +203,9 @@ namespace CumulusMX
 		internal int UVDPlaces = 1;
 		internal string UVFormat;
 
+		internal int SnowDPlaces = 0;
+		internal string SnowFormat = "F1";
+
 		internal string ETFormat;
 
 		internal int LeafWetDPlaces = 0;
@@ -2020,7 +2023,9 @@ namespace CumulusMX
 			}
 
 			Units.SnowText = Units.SnowDepth == 0 ? "cm" : "in";
-			Units.LaserDistanceText = Units.LaserDistance == 0 ? "cm" : "in";
+			SnowDPlaces = Units.SnowDepth == 0 ? 1 : 2;
+			SnowFormat = "F" + SnowDPlaces;
+		Units.LaserDistanceText = Units.LaserDistance == 0 ? "cm" : "in";
 		}
 
 		// If the temperature units are changed, reset NOAA thresholds to defaults
@@ -3868,6 +3873,9 @@ namespace CumulusMX
 			WindDPlaces = StationOptions.RoundWindSpeed ? 0 : WindDPlaceDefaults[Units.Wind];
 			WindAvgDPlaces = WindDPlaces;
 			AirQualityDPlaces = 1;
+			SnowDPlaces = Units.SnowDepth == 0 ? 1 : 2;
+			SnowFormat = "F" + SnowDPlaces;
+
 
 			// Unit decimal overrides
 			WindDPlaces = ini.GetValue("Station", "WindSpeedDecimals", WindDPlaces, 0);
