@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 
 using EmbedIO;
@@ -517,13 +518,7 @@ namespace CumulusMX
 				cumulus.Bluesky.ContentTemplate = string.Empty;
 			}
 
-			var timedPostCnt = 0;
-			for (var i = 0; i < 5; i++)
-			{
-				if (cumulus.Bluesky.TimedPosts[i] < TimeSpan.MaxValue)
-					timedPostCnt++;
-			}
-
+			var timedPostCnt = Array.FindAll(cumulus.Bluesky.TimedPosts, tp => tp < TimeSpan.MaxValue).Length;
 
 			var blueskysettings = new JsonBlueSky()
 			{
@@ -537,12 +532,8 @@ namespace CumulusMX
 				times = new JsonBlueskyTime[timedPostCnt]
 			};
 
-			var index = 0;
-			for (var i = 0; i < 5; i++)
-			{
-				if (cumulus.Bluesky.TimedPosts[i] < TimeSpan.MaxValue)
-					blueskysettings.times[index++] = new JsonBlueskyTime() { time = cumulus.Bluesky.TimedPosts[i].ToString(@"hh\:mm") };
-			}
+			var timedPosts = cumulus.Bluesky.TimedPosts.Where(tp => tp < TimeSpan.MaxValue).ToArray();
+			blueskysettings.times = timedPosts.Select(tp => new JsonBlueskyTime { time = tp.ToString(@"hh\:mm") }).ToArray();
 
 			var customseconds = new JsonCustomHttpSeconds()
 			{
@@ -558,7 +549,7 @@ namespace CumulusMX
 			}
 			customseconds.url = new string[urlCnt];
 
-			index = 0;
+			var index = 0;
 			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.CustomHttpSecondsStrings[i]))

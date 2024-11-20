@@ -10,13 +10,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4054\]][9] - 2024-11-xx
+## BETA [4.3.0 \[b4054\]][9] - 2024-11-20
 
 ### Changes since last beta build
 
 - Adds new web tag `<#snowcomment>`
 - `<#snow24h>` and `<#snowdepth>` now return values with decimal places appropriate to the units used
 - Fix Bluesky interval posts broken in b4053
+- Adds ability to add Bluesky @mentions to posts
 
 ### New
 
@@ -45,9 +46,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Note: If you use the option for Cumulus to calculate sea level pressure, then this new station pressure calibration is the one that will applied to the SLP as well
 - Adds Bluesky posting to the Third Party uploads list
 	- The content to be posted is contained in the `web/Bluesky.txt` file, you can include all the usual web tags
+	- A sample file is included in the web folder for you to edit `web/BlueskySample.txt`
 	- You can include web links using the syntax: `https:\\my.site.com\page|Text for link|`
-	- You can include hash tags using the normal `#MyTagName`
-	- Cumulus will convert these to active links and tags when posting the message
+	- You can include hashtags using the normal `#MyTagName`
+	- You can include mentions using the normal `@identifier`
+	- Cumulus will convert these to active links, tags, and mentions when posting the message
 	- After editing the `web/Bluesky.txt` file, you can load it back into Cumulus by viewing the `Third party uploads` page where it will display the contents
 
 ### Changed

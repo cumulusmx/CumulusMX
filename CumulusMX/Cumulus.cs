@@ -4772,7 +4772,7 @@ namespace CumulusMX
 			Bluesky.Language = ini.GetValue("Bluesky", "Language", CultureInfo.CurrentCulture.Name);
 			Bluesky.BaseUrl = ini.GetValue("Bluesky", "BaseUrl", "https://bsky.social");
 			Bluesky.CatchUp = false;
-			for (var i = 0; i < 5; i++)
+			for (var i = 0; i < Bluesky.TimedPosts.Length; i++)
 			{
 				if (ini.ValueExists("Bluesky", "TimedPost" + i) && !string.IsNullOrEmpty(ini.GetValue("Bluesky", "TimedPost" + i, string.Empty)))
 					Bluesky.TimedPosts[i] = DateTime.ParseExact(ini.GetValue("Bluesky", "TimedPost" + i, "00:00"), "HH:mm", System.Globalization.CultureInfo.InvariantCulture).TimeOfDay;
@@ -6288,7 +6288,7 @@ namespace CumulusMX
 			ini.SetValue("Bluesky", "Interval", Bluesky.Interval);
 			ini.SetValue("Bluesky", "Language", Bluesky.Language);
 			ini.SetValue("Bluesky", "BaseUrl", Bluesky.BaseUrl);
-			for (var i = 0; i < 5; i++)
+			for (var i = 0; i < Bluesky.TimedPosts.Length; i++)
 			{
 				if (Bluesky.TimedPosts[i] < TimeSpan.MaxValue)
 					ini.SetValue("Bluesky", "TimedPost" + i, Bluesky.TimedPosts[i].ToString(@"hh\:mm"));
@@ -12534,7 +12534,7 @@ namespace CumulusMX
 
 				var roundedTime = new TimeSpan(now.Hour, now.Minute, 0);
 
-				for (var i = 0; i < 5; i++)
+				for (var i = 0; i < Bluesky.TimedPosts.Length; i++)
 				{
 					try
 					{

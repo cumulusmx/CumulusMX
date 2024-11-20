@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -10,20 +9,16 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ServiceStack;
-using ServiceStack.Text;
 
-using Swan.Formatters;
-
-using static System.Net.Mime.MediaTypeNames;
-using static System.Net.WebRequestMethods;
-using static SQLite.SQLite3;
+using System.Linq;
 
 namespace CumulusMX.ThirdParty
 {
-	internal class WebUploadBlueSky : WebUploadServiceBase
+	internal partial class WebUploadBlueSky : WebUploadServiceBase
 	{
 		private string authToken;
 		private string did;
+		private readonly Dictionary<string, string> dids = [];
 
 		public CancellationToken CancelToken { get; set; }
 		public string ContentTemplate { get; set; } = string.Empty;
@@ -48,7 +43,7 @@ namespace CumulusMX.ThirdParty
 
 		public WebUploadBlueSky(Cumulus cumulus, string name) : base(cumulus, name)
 		{
-			TimedPosts = new TimeSpan[5];
+			TimedPosts = new TimeSpan[10];
 			for (var i = 0; i < TimedPosts.Length; i++)
 			{
 				TimedPosts[i] = TimeSpan.MaxValue;
@@ -199,7 +194,7 @@ namespace CumulusMX.ThirdParty
 
 			try
 			{
-				var facets = detectLinkFacets(content, out var modContent);
+				var facets = detectLinks(content, out var modContent);
 
 				var body = new Content
 				{
@@ -211,7 +206,14 @@ namespace CumulusMX.ThirdParty
 					}
 				};
 
-				var tagFacets = detectTagFacets(modContent);
+				var tagFacets = detectTags(modContent);
+
+				if (tagFacets.Count > 0)
+				{
+					facets.AddRange(tagFacets);
+				}
+
+				tagFacets = detectMentions(modContent);
 
 				if (tagFacets.Count > 0)
 				{
@@ -257,47 +259,40 @@ namespace CumulusMX.ThirdParty
 			}
 		}
 
-		private static List<Facet> detectLinkFacets(string content, out string modifiedContent)
+		private static List<Facet> detectLinks(string content, out string modifiedContent)
 		{
 			var facets = new List<Facet>();
 
-			var regex = new Regex(@"(https?:\/\/[\S]+)\|([\S\s]+?)\|", RegexOptions.Compiled);
+			var regex = RegexLink();
 
 			Match match;
 			var pos = 0;
-
-			while ((match = regex.Match(content[pos..])).Success)
+			while (true)
 			{
-				if (match.Groups.Count == 3)
-				{
-					string url = match.Groups[1].Value;
-					string label = match.Groups[2].Value;
+				match = regex.Match(content[pos..]);
+				if (!match.Success) break;
 
-					var facet = new Facet();
+				string url = match.Groups[1].Value;
+				string label = match.Groups[2].Value;
 
-					int start = match.Groups[1].Index;
+				int start = match.Groups[1].Index;
 
-					// remove the URL plus pipe character from the start of the text
-					content = content.Remove(start, url.Length + 1);
-					// remove the pipe character from the end of the text
-					content = content.Remove(start + label.Length, 1);
+				// remove the URL plus pipe character from the start of the text
+				content = content.Remove(start, url.Length + 1);
+				// remove the pipe character from the end of the text
+				content = content.Remove(start + label.Length, 1);
 
-					facet.index.byteStart = GetUtf8BytePosition(content, start);
-					facet.index.byteEnd = GetUtf8BytePosition(content, start + label.Length);
+				var facet = new Facet();
+				facet.index.byteStart = GetUtf8BytePosition(content, start);
+				facet.index.byteEnd = GetUtf8BytePosition(content, start + label.Length);
+				facet.features[0].type = "app.bsky.richtext.facet#link";
+				facet.features[0].uri = url;
 
+				facets.Add(facet);
 
-					facet.features[0].type = "app.bsky.richtext.facet#link";
-					facet.features[0].uri = url;
+				pos = start + label.Length;
 
-					facets.Add(facet);
-
-					pos = start + label.Length;
-
-					if (pos >= content.Length)
-					{
-						break;
-					}
-				}
+				if (pos >= content.Length) break;
 			}
 
 			modifiedContent = content;
@@ -306,35 +301,111 @@ namespace CumulusMX.ThirdParty
 		}
 
 
-		private static List<Facet> detectTagFacets(string content)
+		private static List<Facet> detectTags(string content)
 		{
 			var facets = new List<Facet>();
 
-			var regex = new Regex(@"#\w+");
+			var regex = RegexHashtag();
 
-			foreach (Match match in regex.Matches(content))
+			foreach (var (tag, start) in
+				from Match match in regex.Matches(content)
+				where match.Groups.Count == 1
+				let tag = match.Groups[0].Value
+
+				let start = match.Groups[0].Index
+				select (tag, start))
 			{
-				if (match.Groups.Count == 1)
-				{
-					string tag = match.Groups[0].Value;
-
-					var facet = new Facet();
-
-					int start = match.Groups[0].Index;
-
-					facet.index.byteStart = GetUtf8BytePosition(content, start);
-					facet.index.byteEnd = GetUtf8BytePosition(content, start + tag.Length);
-
-
-					facet.features[0].type = "app.bsky.richtext.facet#tag";
-					// remove the # from the start of the tag
-					facet.features[0].tag = tag.Remove(0, 1);
-
-					facets.Add(facet);
-				}
+				var facet = new Facet();
+				facet.index.byteStart = GetUtf8BytePosition(content, start);
+				facet.index.byteEnd = GetUtf8BytePosition(content, start + tag.Length);
+				facet.features[0].type = "app.bsky.richtext.facet#tag";
+				// remove the # from the start of the tag
+				facet.features[0].tag = tag.Remove(0, 1);
+				facets.Add(facet);
 			}
 
 			return facets;
+		}
+
+		private List<Facet> detectMentions(string content)
+		{
+			var facets = new List<Facet>();
+
+			var regex = RegexMention();
+
+			foreach (var (id, start) in
+				from Match match in regex.Matches(content)
+				where match.Groups.Count == 2
+				let id = match.Groups[1].Value
+
+				let start = match.Groups[0].Index
+				select (id, start))
+			{
+				var resolvedDid = resolveDid(id);
+				if (string.IsNullOrEmpty(resolvedDid))
+				{
+					continue;
+				}
+
+				var facet = new Facet();
+				facet.index.byteStart = GetUtf8BytePosition(content, start);
+				facet.index.byteEnd = GetUtf8BytePosition(content, start + id.Length + 1);
+				facet.features[0].type = "app.bsky.richtext.facet#mention";
+				facet.features[0].did = resolvedDid;
+				facets.Add(facet);
+			}
+
+			return facets;
+		}
+
+		private string resolveDid(string uid)
+		{
+			var url = BaseUrl + "/xrpc/com.atproto.identity.resolveHandle?handle=";
+
+			try
+			{
+
+				if (dids.TryGetValue(uid, out var value))
+				{
+					return value;
+				}
+
+				var request = new HttpRequestMessage(HttpMethod.Get, url + uid);
+				request.Headers.Add("Authorization", "Bearer " + authToken);
+
+				using var response = cumulus.MyHttpClient.SendAsync(request).Result;
+				var responseBodyAsText = response.Content.ReadAsStringAsync(CancelToken).Result;
+
+				if (response.StatusCode == HttpStatusCode.OK)
+				{
+					cumulus.LogDebugMessage("BlueSky: Resolve Handle response = OK");
+
+					var resp = responseBodyAsText.FromJson<ResolveHandleResp>();
+
+					if (string.IsNullOrEmpty(resp.did) || !resp.did.StartsWith("did:"))
+					{
+						return null;
+					}
+
+					cumulus.LogDataMessage("BlueSky: Resolve Handle response = " + responseBodyAsText);
+
+					dids[uid] = resp.did;
+					return resp.did;
+				}
+				else
+				{
+					var err = responseBodyAsText.FromJson<ErrorResp>();
+
+					cumulus.LogWarningMessage($"BlueSky: Error - Resolve Handle failed. Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
+					cumulus.ThirdPartyAlarm.LastMessage = $"BlueSky: Resolve Handle HTTP Response code = {response.StatusCode},  Error = {err.error}, Message = {err.message}";
+					cumulus.ThirdPartyAlarm.Triggered = true;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "BlueSky ResolveDid error");
+			}
+			return null;
 		}
 
 		private static int GetUtf8BytePosition(string text, int index)
@@ -368,6 +439,7 @@ namespace CumulusMX.ThirdParty
 
 			public string uri { get; set; }
 			public string tag { get; set; }
+			public string did { get; set; }
 		}
 
 		private sealed class Facet
@@ -413,5 +485,20 @@ namespace CumulusMX.ThirdParty
 			public string error { get; set; }
 			public string message { get; set; }
 		}
+
+		private sealed class ResolveHandleResp
+		{
+			public string did { get; set; }
+		}
+
+		[GeneratedRegex(@"#\w+")]
+		private static partial Regex RegexHashtag();
+
+		[GeneratedRegex(@"(https?:\/\/[\S]+)\|([\S\s]+?)\|", RegexOptions.Compiled)]
+		private static partial Regex RegexLink();
+
+		[GeneratedRegex(@"@([a-zA-Z0-9.-]+)")]
+		private static partial Regex RegexMention();
+
 	}
 }
