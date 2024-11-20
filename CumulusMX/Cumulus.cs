@@ -12543,7 +12543,7 @@ namespace CumulusMX
 							InputText = Bluesky.ContentTemplate
 						};
 
-						_ = Bluesky.DoUpdate(parser.ToStringFromString());
+						await Bluesky.DoUpdate(parser.ToStringFromString());
 						}
 					}
 					catch (Exception ex)
