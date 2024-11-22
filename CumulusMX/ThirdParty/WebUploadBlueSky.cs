@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,8 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ServiceStack;
+using SixLabors.ImageSharp;
 
-using System.Linq;
 
 namespace CumulusMX.ThirdParty
 {
@@ -52,7 +55,7 @@ namespace CumulusMX.ThirdParty
 
 		internal override async Task DoUpdate(DateTime timestamp)
 		{
-			// do nothing
+			await Task.CompletedTask;
 		}
 
 		internal async Task DoUpdate(string content)
@@ -194,17 +197,28 @@ namespace CumulusMX.ThirdParty
 
 			try
 			{
-				var facets = detectLinks(content, out var modContent);
-
 				var body = new Content
 				{
 					repo = did,
 					record = new Record
 					{
-						text = modContent,
 						langs = [Language]
 					}
 				};
+
+				// Must do images first as it affects the offsets for everything else
+				var embed = detectImages(content, out var modContent);
+
+				if (embed != null)
+				{
+					body.record.embed = embed;
+				}
+
+				// Must do links next as it affects the offsets for tags and mentions
+				var facets = detectLinks(modContent, out modContent);
+
+				// we have finsihed altering the content
+				body.record.text = modContent;
 
 				var tagFacets = detectTags(modContent);
 
@@ -227,7 +241,7 @@ namespace CumulusMX.ThirdParty
 
 				var bodyText = body.ToJson();
 
-				cumulus.LogDataMessage("BlueSky: Post content: " + modContent);
+				cumulus.LogDataMessage("BlueSky: Post JSON: " + bodyText);
 
 				var data = new StringContent(bodyText, Encoding.UTF8, "application/json");
 
@@ -235,7 +249,7 @@ namespace CumulusMX.ThirdParty
 				request.Headers.Add("Authorization", "Bearer " + authToken);
 				request.Content = data;
 
-				using var response = await cumulus.MyHttpClient.SendAsync(request);
+				using var response = await cumulus.MyHttpClient.SendAsync(request, CancelToken);
 				var responseBodyAsText = await response.Content.ReadAsStringAsync(CancelToken);
 
 				if (response.StatusCode == HttpStatusCode.OK)
@@ -261,15 +275,16 @@ namespace CumulusMX.ThirdParty
 
 		private static List<Facet> detectLinks(string content, out string modifiedContent)
 		{
+			// present in the text as "https://url|label|"
+
 			var facets = new List<Facet>();
 
 			var regex = RegexLink();
 
 			Match match;
-			var pos = 0;
 			while (true)
 			{
-				match = regex.Match(content[pos..]);
+				match = regex.Match(content);
 				if (!match.Success) break;
 
 				string url = match.Groups[1].Value;
@@ -290,9 +305,7 @@ namespace CumulusMX.ThirdParty
 
 				facets.Add(facet);
 
-				pos = start + label.Length;
-
-				if (pos >= content.Length) break;
+				if (start + label.Length >= content.Length) break;
 			}
 
 			modifiedContent = content;
@@ -303,6 +316,8 @@ namespace CumulusMX.ThirdParty
 
 		private static List<Facet> detectTags(string content)
 		{
+			// present in the text as "#tagname"
+
 			var facets = new List<Facet>();
 
 			var regex = RegexHashtag();
@@ -329,6 +344,8 @@ namespace CumulusMX.ThirdParty
 
 		private List<Facet> detectMentions(string content)
 		{
+			// present in the text as "@username"
+
 			var facets = new List<Facet>();
 
 			var regex = RegexMention();
@@ -358,6 +375,69 @@ namespace CumulusMX.ThirdParty
 			return facets;
 		}
 
+
+		private Embed detectImages(string content, out string modifiedContent)
+		{
+			// present in the text as "image:filepath|Alt text|
+
+			var images = new List<Images>();
+			int noOfImages = 0; // only allowed to attach 4 per post
+
+			var regex = RegexImage();
+
+			var embed = new Embed();
+
+			Match match;
+			while (true)
+			{
+				match = regex.Match(content);
+				if (!match.Success) break;
+
+				// groups
+				// 1 = image:
+				// 2 = filepath
+				// 3 = alt text
+				if (match.Groups.Count != 4) continue;
+
+				if (++noOfImages > 4) break;
+
+				string filepath = match.Groups[2].Value;
+				string altText = match.Groups[3].Value;
+
+				int start = match.Groups[1].Index;
+
+				// remove the whole "image:url|alt text|"
+				content = content.Remove(start, match.Length);
+
+				var blob = uploadBlob(filepath);
+				if (blob == null)
+				{
+					continue;
+				}
+
+				var image = new Images
+				{
+					alt = altText,
+					image = blob
+				};
+
+				images.Add(image);
+
+				if (start >= content.Length) break;
+			}
+
+			modifiedContent = content;
+
+			if (images.Count > 0)
+			{
+				embed.images = images.ToArray();
+				return embed;
+			}
+
+			return null;
+		}
+
+
 		private string resolveDid(string uid)
 		{
 			var url = BaseUrl + "/xrpc/com.atproto.identity.resolveHandle?handle=";
@@ -373,7 +453,7 @@ namespace CumulusMX.ThirdParty
 				var request = new HttpRequestMessage(HttpMethod.Get, url + uid);
 				request.Headers.Add("Authorization", "Bearer " + authToken);
 
-				using var response = cumulus.MyHttpClient.SendAsync(request).Result;
+				using var response = cumulus.MyHttpClient.SendAsync(request, CancelToken).Result;
 				var responseBodyAsText = response.Content.ReadAsStringAsync(CancelToken).Result;
 
 				if (response.StatusCode == HttpStatusCode.OK)
@@ -408,6 +488,96 @@ namespace CumulusMX.ThirdParty
 			return null;
 		}
 
+		private Blob uploadBlob(string filepath)
+		{
+			var apiUrl = BaseUrl + "/xrpc/com.atproto.repo.uploadBlob";
+			byte[] imageData;
+			string imageType;
+
+			if (filepath.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase) || filepath.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase))
+			{
+				// get file from URL
+				try
+				{
+					using var httpStream = cumulus.MyHttpClient.GetStreamAsync(filepath).Result;
+					var image = SixLabors.ImageSharp.Image.Load(httpStream);
+					var format = image.Metadata.DecodedImageFormat;
+					imageType = format.DefaultMimeType;
+					using var ms = new MemoryStream();
+					image.SaveAsync(ms, format, CancelToken).Wait();
+					imageData = ms.ToArray();
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "BlueSky: Get File from URL error - " + filepath);
+					return null;
+				}
+			}
+			else
+			{
+				try
+				{
+					imageData = File.ReadAllBytes(filepath);
+
+					imageType = filepath.Substring(filepath.LastIndexOf('.') + 1) switch
+					{
+						"jpg" => "image/jpeg",
+						"jpeg" => "image/jpeg",
+						"png" => "image/png",
+						_ => string.Empty
+					};
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "BlueSky: Get File error - " + filepath);
+					return null;
+				}
+			}
+
+			if (imageData.Length > 1000000)
+			{
+				cumulus.LogWarningMessage("Bluesky: Image too large - " + filepath);
+				return null;
+			}
+
+			if (imageType == string.Empty)
+			{
+				cumulus.LogDataMessage("Bluesky: Unknown image type - " + filepath);
+				return null;
+			}
+
+			var imageContent = new ByteArrayContent(imageData);
+			imageContent.Headers.ContentType = new MediaTypeHeaderValue(imageType);
+			imageContent.Headers.ContentLength = imageData.Length;
+
+			var request = new HttpRequestMessage(HttpMethod.Post, apiUrl);
+			request.Headers.Add("Authorization", "Bearer " + authToken);
+			request.Content = imageContent;
+
+			var response = cumulus.MyHttpClient.SendAsync(request, CancelToken).Result;
+			var responseBodyAsText = response.Content.ReadAsStringAsync(CancelToken).Result;
+
+			if (response.StatusCode == HttpStatusCode.OK)
+			{
+				cumulus.LogDebugMessage("BlueSky: Upload image response = OK");
+
+				cumulus.LogDataMessage("BlueSky: Upload image response = " + responseBodyAsText);
+
+				var root = responseBodyAsText.FromJson<BlobRoot>();
+				return root.blob;
+			}
+			else
+			{
+				var err = responseBodyAsText.FromJson<ErrorResp>();
+
+				cumulus.LogWarningMessage($"BlueSky: Error - Upload image failed. Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
+				cumulus.ThirdPartyAlarm.LastMessage = $"BlueSky: Upload image HTTP Response code = {response.StatusCode},  Error = {err.error}, Message = {err.message}";
+				cumulus.ThirdPartyAlarm.Triggered = true;
+			}
+
+			return null;
+		}
+
 		private static int GetUtf8BytePosition(string text, int index)
 		{
 			var substring = text[..index];
@@ -429,13 +599,8 @@ namespace CumulusMX.ThirdParty
 
 		private sealed class FacetFeature
 		{
-			[IgnoreDataMember]
-			public string type { get; set; }
 			[DataMember(Name = "$type")]
-			public string dollarType
-			{
-				get => type;
-			}
+			public string type { get; set; }
 
 			public string uri { get; set; }
 			public string tag { get; set; }
@@ -455,6 +620,51 @@ namespace CumulusMX.ThirdParty
 			}
 		}
 
+		private sealed class ImageAspect
+		{
+			public int width { get; set; }
+			public int height { get; set; }
+		}
+
+
+		private sealed class Images
+		{
+			public string alt { get; set; }
+			public Blob image { get; set; }
+		}
+
+
+		private sealed class Embed
+		{
+			[DataMember(Name = "$type")]
+			public string type { get; set; } = "app.bsky.embed.images";
+
+			public Images[] images { get; set; }
+		}
+
+		private sealed class BlobRef
+		{
+			[DataMember(Name = "$link")]
+			public string link { get; set; }
+		}
+
+		private sealed class Blob
+		{
+			[DataMember(Name = "$type")]
+			public string type { get; set; } = "blob";
+
+			[DataMember(Name = "ref")]
+			public BlobRef reference { get; set; }
+
+			public string mimeType { get; set; }
+			public int size { get; set; }
+		}
+
+		private sealed class BlobRoot
+		{
+			public Blob blob { get; set; }
+		}
+
 		private sealed class Record
 		{
 			public string text { get; set; }
@@ -462,19 +672,16 @@ namespace CumulusMX.ThirdParty
 			public string[] langs { get; set; }
 
 			public Facet[] facets { get; set; }
+
+			public Embed embed { get; set; }
 		}
 
 		private sealed class Content
 		{
 			public string repo { get; set; }
 
-			[IgnoreDataMember]
-			public string type { get; } = "app.bsky.feed.post";
 			[DataMember(Name = "$type")]
-			public string dollarType
-			{
-				get => type;
-			}
+			public string type { get; set; } = "app.bsky.feed.post";
 
 			public string collection { get; } = "app.bsky.feed.post";
 			public Record record { get; set; }
@@ -500,5 +707,8 @@ namespace CumulusMX.ThirdParty
 		[GeneratedRegex(@"@([a-zA-Z0-9.-]+)")]
 		private static partial Regex RegexMention();
 
+
+		[GeneratedRegex(@"(image:)([\S]+)\|([\S\s]+?)\|", RegexOptions.Compiled)]
+		private static partial Regex RegexImage();
 	}
 }

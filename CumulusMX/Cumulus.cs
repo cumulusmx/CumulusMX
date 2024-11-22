@@ -4171,7 +4171,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
 				ini.DeleteValue("GW1000", "ExtraSensorUseSolar");
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
@@ -4181,7 +4181,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", true);
 				ini.DeleteValue("GW1000", "ExtraSensorUseUv");
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
@@ -4191,7 +4191,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseTempHum = ini.GetValue("GW1000", "ExtraSensorUseTempHum", true);
 				ini.DeleteValue("GW1000", "ExtraSensorUseTempHum");
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
@@ -4211,7 +4211,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseSoilMoist = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", true);
 				ini.DeleteValue("GW1000", "ExtraSensorUseSoilMoist");
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
@@ -4221,7 +4221,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", true);
 				ini.DeleteValue("GW1000", "ExtraSensorUseLeafWet");
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
@@ -4231,7 +4231,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseUserTemp = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", true);
 				ini.DeleteValue("GW1000", "ExtraSensorUseUserTemp");
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
@@ -4241,7 +4241,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseAQI = ini.GetValue("GW1000", "ExtraSensorUseAQI", true);
 				ini.DeleteValue("GW1000", "ExtraSensorUseAQI");
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
@@ -4251,7 +4251,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseCo2 = ini.GetValue("GW1000", "ExtraSensorUseCo2", true);
 				ini.DeleteValue("GW1000", "ExtraSensorUseCo2");
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
@@ -4261,7 +4261,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
 				ini.DeleteValue("GW1000", "ExtraSensorUseLightning");
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{
@@ -4271,7 +4271,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseLeak = ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
 				ini.DeleteValue("GW1000", "ExtraSensorUseLeak");
-				rewriteRequired = true;
+				recreateRequired = true;
 			}
 			else
 			{

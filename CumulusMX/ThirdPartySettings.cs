@@ -284,17 +284,21 @@ namespace CumulusMX
 					cumulus.Bluesky.Enabled = settings.bluesky.enabled;
 					if (cumulus.Bluesky.Enabled)
 					{
-						cumulus.Bluesky.Interval = settings.bluesky.interval;
+						cumulus.Bluesky.Interval = settings.bluesky.interval ?? 0;
 						cumulus.Bluesky.ID = string.IsNullOrWhiteSpace(settings.bluesky.id) ? string.Empty : settings.bluesky.id.Trim();
 						cumulus.Bluesky.PW = string.IsNullOrWhiteSpace(settings.bluesky.password) ? string.Empty : settings.bluesky.password.Trim();
 						cumulus.Bluesky.Language = string.IsNullOrWhiteSpace(settings.bluesky.lang) ? string.Empty : settings.bluesky.lang.Trim();
 						cumulus.Bluesky.BaseUrl = string.IsNullOrWhiteSpace(settings.bluesky.baseUrl) ? string.Empty : settings.bluesky.baseUrl.Trim();
-						for (var i = 0; i < settings.bluesky.times.Length; i++)
+						for (var i = 0; i < cumulus.Bluesky.TimedPosts.Length; i++)
 						{
-							if (string.IsNullOrEmpty(settings.bluesky.times[i].time))
+							if (i >= settings.bluesky.times.Length || string.IsNullOrEmpty(settings.bluesky.times[i].time))
+							{
 								cumulus.Bluesky.TimedPosts[i] = TimeSpan.MaxValue;
+							}
 							else
+							{
 								cumulus.Bluesky.TimedPosts[i] = DateTime.ParseExact(settings.bluesky.times[i].time, "HH:mm", System.Globalization.CultureInfo.InvariantCulture).TimeOfDay;
+							}
 						}
 					}
 				}
@@ -525,7 +529,7 @@ namespace CumulusMX
 				enabled = cumulus.Bluesky.Enabled,
 				id = cumulus.Bluesky.ID,
 				password = cumulus.Bluesky.PW,
-				interval = cumulus.Bluesky.Interval,
+				interval = cumulus.Bluesky.Interval == 0 ? null : cumulus.Bluesky.Interval,
 				contentTemplate = cumulus.Bluesky.ContentTemplate,
 				lang = cumulus.Bluesky.Language,
 				baseUrl = cumulus.Bluesky.BaseUrl,
@@ -760,7 +764,7 @@ namespace CumulusMX
 			public bool enabled { get; set; }
 			public string id { get; set; }
 			public string password { get; set; }
-			public int interval { get; set; }
+			public int? interval { get; set; }
 			public JsonBlueskyTime[] times { get; set; }
 			public string contentTemplate { get; set; }
 			public string lang { get; set; }

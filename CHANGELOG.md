@@ -10,14 +10,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4054\]][9] - 2024-11-20
+## BETA [4.3.0 \[b4055\]][9] - 2024-11-22
 
 ### Changes since last beta build
 
-- Adds new web tag `<#snowcomment>`
-- `<#snow24h>` and `<#snowdepth>` now return values with decimal places appropriate to the units used
-- Fix Bluesky interval posts broken in b4053
-- Adds ability to add Bluesky @mentions to posts
+- Fix for multiple links in Bluesky text
+- Fix for deleted Bluesky timed entries not being removed from Cumulus.ini
+- Adds ability to attach images to Bluesky posts
+- Third party updates for NReco.Logging.File, and Sixlabors.ImageSharp
+- Fix for Cumulus.ini being rewritten at every startup
 
 ### New
 
@@ -50,6 +51,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- You can include web links using the syntax: `https:\\my.site.com\page|Text for link|`
 	- You can include hashtags using the normal `#MyTagName`
 	- You can include mentions using the normal `@identifier`
+	- You can attach images (max 4) to a post using the syntax: `image:path_to_file|Alternative text|`
+		- The path_to_file can be either a local filesystem path, or a http url
 	- Cumulus will convert these to active links, tags, and mentions when posting the message
 	- After editing the `web/Bluesky.txt` file, you can load it back into Cumulus by viewing the `Third party uploads` page where it will display the contents
 
@@ -92,6 +95,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - MySqlConnector
 - SSH.NET
+- Sixlabors.ImageSharp
+- NReco.Logging.File
 - Lots of System/Microsoft packages updated from v8.0 to v9.0
 
 ---

@@ -90,8 +90,8 @@
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
     <PackageReference Include="FluentFTP.Logging" Version="1.0.0" />
     <PackageReference Include="Microsoft.Win32.SystemEvents" Version="9.0.0" />
-    <PackageReference Include="NReco.Logging.File" Version="1.2.1" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+    <PackageReference Include="NReco.Logging.File" Version="1.2.2" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10" />
     <PackageReference Include="System.CodeDom" Version="9.0.0" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.0" />
