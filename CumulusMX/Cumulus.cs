@@ -4768,16 +4768,22 @@ namespace CumulusMX
 			Bluesky.Enabled = ini.GetValue("Bluesky", "Enabled", false);
 			Bluesky.ID = ini.GetValue("Bluesky", "ID", string.Empty);
 			Bluesky.PW = ini.GetValue("Bluesky", "Password", string.Empty);
-			Bluesky.Interval = ini.GetValue("Bluesky", "Interval", Bluesky.DefaultInterval);
+			Bluesky.Interval = ini.GetValue("Bluesky", "Interval", Bluesky.DefaultInterval, 10, 1440);
 			Bluesky.Language = ini.GetValue("Bluesky", "Language", CultureInfo.CurrentCulture.Name);
 			Bluesky.BaseUrl = ini.GetValue("Bluesky", "BaseUrl", "https://bsky.social");
 			Bluesky.CatchUp = false;
-			for (var i = 0; i < Bluesky.TimedPosts.Length; i++)
+			for (var i = 0; i < Bluesky.TimedPostsTime.Length; i++)
 			{
-				if (ini.ValueExists("Bluesky", "TimedPost" + i) && !string.IsNullOrEmpty(ini.GetValue("Bluesky", "TimedPost" + i, string.Empty)))
-					Bluesky.TimedPosts[i] = DateTime.ParseExact(ini.GetValue("Bluesky", "TimedPost" + i, "00:00"), "HH:mm", System.Globalization.CultureInfo.InvariantCulture).TimeOfDay;
+				if (ini.ValueExists("Bluesky", "TimedPost" + i) )
+				{
+					Bluesky.TimedPostsTime[i] = DateTime.ParseExact(ini.GetValue("Bluesky", "TimedPost" + i, "00:00"), "HH:mm", System.Globalization.CultureInfo.InvariantCulture).TimeOfDay;
+					Bluesky.TimedPostsFile[i] = ini.GetValue("Bluesky", "TimedPostFile" + i, "web" + DirectorySeparator + "Bluesky.txt");
+				}
 				else
-					Bluesky.TimedPosts[i] = TimeSpan.MaxValue;
+				{
+					Bluesky.TimedPostsTime[i] = TimeSpan.MaxValue;
+					Bluesky.TimedPostsFile[i] = null;
+				}
 			}
 
 
@@ -6288,12 +6294,19 @@ namespace CumulusMX
 			ini.SetValue("Bluesky", "Interval", Bluesky.Interval);
 			ini.SetValue("Bluesky", "Language", Bluesky.Language);
 			ini.SetValue("Bluesky", "BaseUrl", Bluesky.BaseUrl);
-			for (var i = 0; i < Bluesky.TimedPosts.Length; i++)
+			for (var i = 0; i < Bluesky.TimedPostsTime.Length; i++)
 			{
-				if (Bluesky.TimedPosts[i] < TimeSpan.MaxValue)
-					ini.SetValue("Bluesky", "TimedPost" + i, Bluesky.TimedPosts[i].ToString(@"hh\:mm"));
+				if (Bluesky.TimedPostsTime[i] < TimeSpan.MaxValue)
+					ini.SetValue("Bluesky", "TimedPost" + i, Bluesky.TimedPostsTime[i].ToString(@"hh\:mm"));
 				else
 					ini.DeleteValue("Bluesky", "TimedPost" + i);
+			}
+			for (var i = 0; i < Bluesky.TimedPostsFile.Length; i++)
+			{
+				if (!string.IsNullOrEmpty(Bluesky.TimedPostsFile[i]))
+					ini.SetValue("Bluesky", "TimedPostFile" + i, Bluesky.TimedPostsFile[i]);
+				else
+					ini.DeleteValue("Bluesky", "TimedPostFile" + i);
 			}
 
 			ini.SetValue("MQTT", "Server", MQTT.Server);
@@ -12534,21 +12547,31 @@ namespace CumulusMX
 
 				var roundedTime = new TimeSpan(now.Hour, now.Minute, 0);
 
-				for (var i = 0; i < Bluesky.TimedPosts.Length; i++)
+				for (var i = 0; i < Bluesky.TimedPostsTime.Length; i++)
 				{
 					try
 					{
-						if (Bluesky.TimedPosts[i] == TimeSpan.MaxValue)
+						if (Bluesky.TimedPostsTime[i] == TimeSpan.MaxValue)
 						{
 							continue;
 						}
 
 						// is this the time?
-						if (Bluesky.TimedPosts[i] == roundedTime)
+						if (Bluesky.TimedPostsTime[i] == roundedTime)
 						{
+							string content;
+
+							if (Bluesky.TimedPostsFile[i] == "web\\Bluesky.txt" || Bluesky.TimedPostsFile[i] == "web/Bluesky.txt")
+							{
+								content = Bluesky.ContentTemplate;
+							}
+							else
+							{
+								content = await File.ReadAllTextAsync(Bluesky.TimedPostsFile[i]);
+							}
 							var parser = new TokenParser(TokenParserOnToken)
 							{
-								InputText = Bluesky.ContentTemplate
+								InputText = content
 							};
 
 							await Bluesky.DoUpdate(parser.ToStringFromString());

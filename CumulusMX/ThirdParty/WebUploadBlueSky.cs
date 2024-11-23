@@ -27,14 +27,15 @@ namespace CumulusMX.ThirdParty
 		public string ContentTemplate { get; set; } = string.Empty;
 		public string BaseUrl { get; set; }
 		public string Language { get; set; }
-		public TimeSpan[] TimedPosts { get; set; }
+		public TimeSpan[] TimedPostsTime { get; set; }
+		public string[] TimedPostsFile { get; set; }
 		public int TimedPostsCount {
 			get
 			{
 				var cnt = 0;
-				for (var i = 0; i < TimedPosts.Length; i++)
+				for (var i = 0; i < TimedPostsTime.Length; i++)
 				{
-					if (TimedPosts[i] < TimeSpan.MaxValue)
+					if (TimedPostsTime[i] < TimeSpan.MaxValue && !string.IsNullOrEmpty(TimedPostsFile[i]))
 					{
 						cnt++;
 					}
@@ -46,10 +47,13 @@ namespace CumulusMX.ThirdParty
 
 		public WebUploadBlueSky(Cumulus cumulus, string name) : base(cumulus, name)
 		{
-			TimedPosts = new TimeSpan[10];
-			for (var i = 0; i < TimedPosts.Length; i++)
+			TimedPostsTime = new TimeSpan[10];
+			TimedPostsFile = new string[10];
+
+			for (var i = 0; i < TimedPostsTime.Length; i++)
 			{
-				TimedPosts[i] = TimeSpan.MaxValue;
+				TimedPostsTime[i] = TimeSpan.MaxValue;
+				TimedPostsFile[i] = null;
 			}
 		}
 

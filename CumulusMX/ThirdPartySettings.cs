@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 
 using EmbedIO;
@@ -289,15 +289,17 @@ namespace CumulusMX
 						cumulus.Bluesky.PW = string.IsNullOrWhiteSpace(settings.bluesky.password) ? string.Empty : settings.bluesky.password.Trim();
 						cumulus.Bluesky.Language = string.IsNullOrWhiteSpace(settings.bluesky.lang) ? string.Empty : settings.bluesky.lang.Trim();
 						cumulus.Bluesky.BaseUrl = string.IsNullOrWhiteSpace(settings.bluesky.baseUrl) ? string.Empty : settings.bluesky.baseUrl.Trim();
-						for (var i = 0; i < cumulus.Bluesky.TimedPosts.Length; i++)
+						for (var i = 0; i < cumulus.Bluesky.TimedPostsTime.Length; i++)
 						{
-							if (i >= settings.bluesky.times.Length || string.IsNullOrEmpty(settings.bluesky.times[i].time))
+							if (i >= settings.bluesky.times.Length || string.IsNullOrEmpty(settings.bluesky.times[i].time) || string.IsNullOrEmpty(settings.bluesky.times[i].file))
 							{
-								cumulus.Bluesky.TimedPosts[i] = TimeSpan.MaxValue;
+								cumulus.Bluesky.TimedPostsTime[i] = TimeSpan.MaxValue;
+								cumulus.Bluesky.TimedPostsFile[i] = null;
 							}
 							else
 							{
-								cumulus.Bluesky.TimedPosts[i] = DateTime.ParseExact(settings.bluesky.times[i].time, "HH:mm", System.Globalization.CultureInfo.InvariantCulture).TimeOfDay;
+								cumulus.Bluesky.TimedPostsTime[i] = DateTime.ParseExact(settings.bluesky.times[i].time, "HH:mm", System.Globalization.CultureInfo.InvariantCulture).TimeOfDay;
+								cumulus.Bluesky.TimedPostsFile[i] = settings.bluesky.times[i].file;
 							}
 						}
 					}
@@ -522,7 +524,19 @@ namespace CumulusMX
 				cumulus.Bluesky.ContentTemplate = string.Empty;
 			}
 
-			var timedPostCnt = Array.FindAll(cumulus.Bluesky.TimedPosts, tp => tp < TimeSpan.MaxValue).Length;
+			var timedPosts = new List<JsonBlueskyTime>();
+			for (int i = 0; i < cumulus.Bluesky.TimedPostsTime.Length; i++)
+			{
+				if (cumulus.Bluesky.TimedPostsTime[i] < TimeSpan.MaxValue && !string.IsNullOrEmpty(cumulus.Bluesky.TimedPostsFile[i]))
+				{
+					timedPosts.Add(new JsonBlueskyTime()
+					{
+						time = cumulus.Bluesky.TimedPostsTime[i].ToString(@"hh\:mm"),
+						file = cumulus.Bluesky.TimedPostsFile[i]
+					});
+				}
+			}
+
 
 			var blueskysettings = new JsonBlueSky()
 			{
@@ -533,11 +547,8 @@ namespace CumulusMX
 				contentTemplate = cumulus.Bluesky.ContentTemplate,
 				lang = cumulus.Bluesky.Language,
 				baseUrl = cumulus.Bluesky.BaseUrl,
-				times = new JsonBlueskyTime[timedPostCnt]
+				times = timedPosts.ToArray()
 			};
-
-			var timedPosts = cumulus.Bluesky.TimedPosts.Where(tp => tp < TimeSpan.MaxValue).ToArray();
-			blueskysettings.times = timedPosts.Select(tp => new JsonBlueskyTime { time = tp.ToString(@"hh\:mm") }).ToArray();
 
 			var customseconds = new JsonCustomHttpSeconds()
 			{
@@ -757,6 +768,7 @@ namespace CumulusMX
 		private sealed class JsonBlueskyTime
 		{
 			public string time { get; set; }
+			public string file { get; set; }
 		}
 
 		private sealed class JsonBlueSky

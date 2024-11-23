@@ -10,15 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4055\]][9] - 2024-11-22
+## BETA [4.3.0 \[b4056\]][9] - 2024-11-23
 
 ### Changes since last beta build
 
-- Fix for multiple links in Bluesky text
-- Fix for deleted Bluesky timed entries not being removed from Cumulus.ini
-- Adds ability to attach images to Bluesky posts
-- Third party updates for NReco.Logging.File, and Sixlabors.ImageSharp
-- Fix for Cumulus.ini being rewritten at every startup
+- Timed Bluesky posts can now have individual template files (defaults to web\Bluesky.txt)
 
 ### New
 
@@ -46,14 +42,17 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Adds calibration for Station pressure (and so also for Altimeter pressure)
 	- Note: If you use the option for Cumulus to calculate sea level pressure, then this new station pressure calibration is the one that will applied to the SLP as well
 - Adds Bluesky posting to the Third Party uploads list
-	- The content to be posted is contained in the `web/Bluesky.txt` file, you can include all the usual web tags
+	- The content to be posted at fixed intervals is contained in the `web/Bluesky.txt` file, you can include all the usual web tags
 	- A sample file is included in the web folder for you to edit `web/BlueskySample.txt`
-	- You can include web links using the syntax: `https:\\my.site.com\page|Text for link|`
-	- You can include hashtags using the normal `#MyTagName`
-	- You can include mentions using the normal `@identifier`
-	- You can attach images (max 4) to a post using the syntax: `image:path_to_file|Alternative text|`
-		- The path_to_file can be either a local filesystem path, or a http url
-	- Cumulus will convert these to active links, tags, and mentions when posting the message
+	- Timed posts default to using the same Interval tempate file `web/Bluesky.txt`, but you can override this so posts at different time can have independent content
+	- In the template file(s), you may use the following features:
+		- Include web links using the syntax: `https:\\my.site.com\page|Text for link|`
+		- Include hashtags using the normal `#MyTagName`
+		- Include mentions using the normal `@identifier`
+		- Attach images (max 4) to a post using the syntax: `image:path_to_file|Alternative text|`
+			- The path_to_file can be either a local filesystem path, or a http url
+			- Image formats supported: JPEG and PNG - it is best to post jpg images as Bluesky converts other formats to jpg and may alter them in the process
+		- Cumulus will convert these to active links, tags, and mentions when posting the message
 	- After editing the `web/Bluesky.txt` file, you can load it back into Cumulus by viewing the `Third party uploads` page where it will display the contents
 
 ### Changed
