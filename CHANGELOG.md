@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changes since last beta build
 
 - Timed Bluesky posts can now have individual template files (defaults to web\Bluesky.txt)
+- AWEKAS uploads to now increase the interval up to 10 minutes in the event of being rate limited
 
 ### New
 
