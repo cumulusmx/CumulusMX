@@ -79,6 +79,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Revised US EPA PM2.5 AQI index to match February 2024 update
 - JSON station type now accepts laser distance measurements
 - Adds weekly rainfall to the end of the realtime.txt file
+- AWEKAS uploads to now increase the interval up to 10 minutes in the event of being rate limited
 
 ### Fixed
 

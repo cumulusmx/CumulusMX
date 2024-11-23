@@ -137,13 +137,21 @@ namespace CumulusMX.ThirdParty
 								cumulus.LogWarningMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
 							}
 							// AWEKAS normal allows minimum of 300 second updates, revert to that
-							else
+							else if (!RateLimited && Interval < 300)
 							{
 								RateLimited = true;
 								Interval = 300;
 								IntTimer.Interval = Interval * 1000;
 								SynchronisedUpdate = true;
 								cumulus.LogWarningMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to rate limit");
+							}
+							else
+							{
+								RateLimited = true;
+								Interval = 600;
+								IntTimer.Interval = Interval * 1000;
+								SynchronisedUpdate = true;
+								cumulus.LogWarningMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 600 seconds due to rate limit");
 							}
 						}
 						else
@@ -317,7 +325,7 @@ namespace CumulusMX.ThirdParty
 			{
 				if (started) sb.Append('&'); else started = true;
 				if (station.LeafWetness1.HasValue)
-				{ 
+				{
 					sb.Append("leafwetness1=" + station.LeafWetness1.Value.ToString(cumulus.LeafWetFormat));
 				}
 				if (station.LeafWetness2.HasValue)
