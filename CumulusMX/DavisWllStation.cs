@@ -871,8 +871,9 @@ namespace CumulusMX
 
 									cumulus.LogDebugMessage($"WLL current: Checking recent gust using wind data from TxId {data1.txid}");
 
-									// Check for spikes, and set highs
-									if (CheckHighGust(gustCal, gustDirCal, dateTime))
+									// Check for spikes, and set highs - Only if we are past the rollover time plus the gust time, otherwise we can get peaks from yesterday attributed to today
+									if (DateTime.Now.TimeOfDay > new TimeSpan(cumulus.RolloverHour, cumulus.StationOptions.PeakGustMinutes < 10 ? 2 : 10, 0) &&
+										CheckHighGust(gustCal, gustDirCal, dateTime))
 									{
 										cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 										RecentMaxGust = gustCal;
@@ -1339,7 +1340,7 @@ namespace CumulusMX
 				// If the station isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
 				// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
 				LowBatteryDevices.Clear();
-				
+
 				if (!cumulus.StationOptions.UseDataLogger && TxBatText.Contains("LOW"))
 				{
 					cumulus.BatteryLowAlarm.Triggered = true;

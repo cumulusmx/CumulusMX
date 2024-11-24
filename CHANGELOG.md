@@ -10,12 +10,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4056\]][9] - 2024-11-23
+## BETA [4.3.0 \[b4057\]][9] - 2024-11-24
 
 ### Changes since last beta build
 
-- Timed Bluesky posts can now have individual template files (defaults to web\Bluesky.txt)
-- AWEKAS uploads to now increase the interval up to 10 minutes in the event of being rate limited
+- Fix for Davis WLL gust checking attributing gusts from the last minutes of the previous day to the current day
+- Fix for the rain week calculation
+- Fix for Bluesky interval being reset to 10 minutes on start-up when it is previously disabled
+
 
 ### New
 
@@ -91,6 +93,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Improvements to Ecowitt latest firmware checking
 - Error message output processing historic Ecowitt AQI Combo PM10 data
 - SQLite exception loading duplicate dayfile entries
+- Fix for Davis WLL gust checking attributing gusts from the last minutes of the previous day to the current day
 
 ### Package Updates
 

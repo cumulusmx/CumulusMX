@@ -721,7 +721,13 @@ namespace CumulusMX
 			// get today's date offset by rain season start for year check
 			int offsetYearToday = ModifiedNow.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
 			// get this weeks date offset
-			var offsetWeek = ModifiedNow.AddDays(-(int)ModifiedNow.DayOfWeek + cumulus.RainWeekStart);
+			var dasysSinceStartOfWeek = (int)ModifiedNow.DayOfWeek - cumulus.RainWeekStart;
+			if (dasysSinceStartOfWeek < 0)
+			{
+				dasysSinceStartOfWeek += 7;
+			}
+			var offsetWeek = ModifiedNow.AddDays(-dasysSinceStartOfWeek);
+
 
 			try
 			{
