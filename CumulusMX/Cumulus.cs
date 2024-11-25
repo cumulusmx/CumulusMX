@@ -4773,6 +4773,7 @@ namespace CumulusMX
 			Bluesky.ID = ini.GetValue("Bluesky", "ID", string.Empty);
 			Bluesky.PW = ini.GetValue("Bluesky", "Password", string.Empty);
 			Bluesky.Interval = ini.GetValue("Bluesky", "Interval", Bluesky.DefaultInterval, 0, 1440);
+			if (Bluesky.Interval > 0 && Bluesky.Interval < 60) Bluesky.Interval = 60;
 			Bluesky.Language = ini.GetValue("Bluesky", "Language", CultureInfo.CurrentCulture.Name);
 			Bluesky.BaseUrl = ini.GetValue("Bluesky", "BaseUrl", "https://bsky.social");
 			Bluesky.CatchUp = false;

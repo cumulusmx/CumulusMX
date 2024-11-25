@@ -9230,6 +9230,13 @@ namespace CumulusMX
 					dayfileReloading = false;
 					return msg.ToString();
 				}
+				else if (cumulus.RecordsBeganDateTime.Date == DateTime.Now.Date)
+				{
+					var msg1 = "LoadDayFile: No Dayfile has been created yet";
+					cumulus.LogMessage(msg1);
+					dayfileReloading = false;
+					return msg1;
+				}
 				else
 				{
 					var msg1 = "LoadDayFile: No Dayfile found - No entries added to recent daily data list";
@@ -12006,6 +12013,12 @@ namespace CumulusMX
 		/// <returns>JSON encoded section of the dayfile</returns>
 		public string ReadDayfile(string draw, int start, int length, string search)
 		{
+			// sanity check for first day of data - there is no dayfile!
+			if (cumulus.RecordsBeganDateTime.Date == DateTime.Now.Date)
+			{
+				return "";
+			}
+
 			try
 			{
 				var lines = File.ReadAllLines(cumulus.DayFileName);
@@ -12088,9 +12101,13 @@ namespace CumulusMX
 
 				return json.ToString();
 			}
+			catch (FieldAccessException)
+			{
+				cumulus.LogErrorMessage("GetDayFile: Error: Dayfile is not not found!");
+			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("GetDayFile: Error - " + ex.ToString());
+				cumulus.LogExceptionMessage(ex, "GetDayFile: Error");
 			}
 
 			return "";
