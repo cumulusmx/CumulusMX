@@ -44,6 +44,7 @@ namespace CumulusMX.ThirdParty
 			}
 		}
 
+		private readonly SemaphoreSlim _updateSemaphore = new SemaphoreSlim(1, 1);
 
 		public WebUploadBlueSky(Cumulus cumulus, string name) : base(cumulus, name)
 		{
@@ -65,18 +66,28 @@ namespace CumulusMX.ThirdParty
 		internal async Task DoUpdate(string content)
 		{
 			Updating = true;
-			var auth = await authenticate();
 
-			if (!auth)
+			await _updateSemaphore.WaitAsync();
+
+			try
 			{
-				cumulus.LogMessage("BlueSky: Authentication failed");
-				Updating = false;
-				return;
+				var auth = await authenticate();
+
+				if (!auth)
+				{
+					cumulus.LogMessage("BlueSky: Authentication failed");
+					Updating = false;
+					return;
+				}
+
+				await createPost(content);
 			}
-
-			await createPost(content);
-
-			Updating = false;
+			finally
+			{
+				await Task.Delay(5000);
+				_updateSemaphore.Release();
+				Updating = false;
+			}
 		}
 
 		internal override string GetURL(out string pwstring, DateTime timestamp)

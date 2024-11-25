@@ -17,7 +17,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix for Davis WLL gust checking attributing gusts from the last minutes of the previous day to the current day
 - Fix for the rain week calculation
 - Fix for Bluesky interval being reset to 10 minutes on start-up when it is previously disabled
-
+- Dashboard Select-a-Period chart now defaults to a range of one month
+- Accessibility improvements to the Dashboard main menu
+- You can now trigger Bluesky posts from Alarms and User Alarms
+- Bluesky posting is now thread safe, so two posts will not be sent at the same time.
+	- In addition where two or more posts are requested concurrently a five second delay will be introduced between them as Bluesky only seems to accept posts with a delay between them.
 
 ### New
 
@@ -57,6 +61,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 			- Image formats supported: JPEG and PNG - it is best to post jpg images as Bluesky converts other formats to jpg and may alter them in the process
 		- Cumulus will convert these to active links, tags, and mentions when posting the message
 	- After editing the `web/Bluesky.txt` file, you can load it back into Cumulus by viewing the `Third party uploads` page where it will display the contents
+- Adds Bluesky posting from Alarms and User Alarms
+	- Each alarm can have a different template file, but they all default to `web/BlueskyAlarm.txt`
+	- A sample file is included in the web folder for you to edit `web/BlueskyAlarmSample.txt`
+	- You can include the same features as the regular template above
+	- In addition you can include the text `|IncludeAlarmMessage|` and this will include at the point the message that would be sent via email. These messages are editable
+		in the `Settings > Locale Strings` page
+
 
 ### Changed
 
@@ -83,6 +94,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - JSON station type now accepts laser distance measurements
 - Adds weekly rainfall to the end of the realtime.txt file
 - AWEKAS uploads to now increase the interval up to 10 minutes in the event of being rate limited
+- Dashboard Select-a-Period chart now defaults to a range of one month
+- Accessibility improvements to the Dashboard main menu
 
 ### Fixed
 

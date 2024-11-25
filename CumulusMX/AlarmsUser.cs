@@ -50,6 +50,7 @@ namespace CumulusMX
 		public bool Latch { get; set; }
 		public double LatchHours { get; set; }
 		public string EmailMsg { get; set; }
+		public string BskyFile { get; set; }
 		public string Units { get; set; }
 		public int TriggerThreshold { get; set; }
 		public string Type
@@ -181,6 +182,39 @@ namespace CumulusMX
 									cumulus.LogErrorMessage($"User Alarm ({Name}): Error executing external program '{Action}': {ex.Message}");
 								}
 							}
+						}
+					}
+
+					if (cumulus.Bluesky.Enabled && !string.IsNullOrEmpty(BskyFile))
+					{
+						if (File.Exists(BskyFile))
+						{
+							if (!string.IsNullOrEmpty(cumulus.Bluesky.ID) && !string.IsNullOrEmpty(cumulus.Bluesky.PW))
+							{
+								// read the template contents
+								var template = File.ReadAllText(BskyFile);
+
+								// check for including teh default alarm message
+								if (template.Contains("|IncludeAlarmMessage|"))
+								{
+									// Construct the message - preamble, plus values
+									var msg = string.Format(EmailMsg, Value, Units);
+
+									template = template.Replace("|IncludeAlarmMessage|", msg);
+
+									var parser = new TokenParser(cumulus.TokenParserOnToken)
+									{
+										InputText = template
+									};
+									template = parser.ToStringFromString();
+								}
+
+								_ = cumulus.Bluesky.DoUpdate(template);
+							}
+						}
+						else
+						{
+							cumulus.LogWarningMessage($"Warning: Alarm ({Name}): Bluesky file: '{BskyFile}' does not exist");
 						}
 					}
 

@@ -65,6 +65,7 @@ namespace CumulusMX
 						Value = settings.alarms[i].Value,
 						Email = settings.alarms[i].Email,
 						EmailMsg = settings.alarms[i].EmailMsg,
+						BskyFile = settings.alarms[i].BskyFile,
 						Action = settings.alarms[i].Action,
 						ActionParams = settings.alarms[i].ActionParams,
 						Latch = settings.alarms[i].Latch,

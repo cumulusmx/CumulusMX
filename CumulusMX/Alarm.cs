@@ -52,6 +52,7 @@ namespace CumulusMX
 		public bool Latch { get; set; }
 		public double LatchHours { get; set; }
 		public string EmailMsg { get; set; }
+		public string BskyFile { get; set; }
 		public string Units { get; set; } = units;
 		public string LastMessage { get; set; }
 		public int TriggerThreshold { get; set; }
@@ -144,6 +145,39 @@ namespace CumulusMX
 								{
 									cumulus.LogErrorMessage($"Alarm ({Name}): Error executing external program '{Action}': {ex.Message}");
 								}
+							}
+						}
+
+						if (cumulus.Bluesky.Enabled && !string.IsNullOrEmpty(BskyFile) && BskyFile != "none")
+						{
+							if (File.Exists(BskyFile))
+							{
+								if (!string.IsNullOrEmpty(cumulus.Bluesky.ID) && !string.IsNullOrEmpty(cumulus.Bluesky.PW))
+								{
+									// read the template contents
+									var template = File.ReadAllText(BskyFile);
+
+									// check for including teh default alarm message
+									if (template.Contains("|IncludeAlarmMessage|"))
+									{
+										// Construct the message - preamble, plus values
+										var msg = string.Format(EmailMsg, Value, Units);
+
+										template = template.Replace("|IncludeAlarmMessage|", msg);
+
+										var parser = new TokenParser(cumulus.TokenParserOnToken)
+										{
+											InputText = template
+										};
+										template = parser.ToStringFromString();
+									}
+
+									_ = cumulus.Bluesky.DoUpdate(template);
+								}
+							}
+							else
+							{
+								cumulus.LogWarningMessage($"Warning: Alarm ({Name}): Bluesky file: '{BskyFile}' does not exist");
 							}
 						}
 					}
@@ -302,7 +336,7 @@ namespace CumulusMX
 					{
 						if (!File.Exists(Action))
 						{
-							cumulus.LogWarningMessage($"Warning: Alarm ({Name}): External program: '{Action}' does not exist");
+							cumulus.LogWarningMessage($"Warning: Alarm ({NameUp}): External program: '{Action}' does not exist");
 						}
 						else
 						{
@@ -326,6 +360,39 @@ namespace CumulusMX
 								cumulus.LogErrorMessage($"Alarm ({NameUp}): Error executing external program '{Action}': {ex.Message}");
 							}
 						}
+					}
+				}
+
+				if (cumulus.Bluesky.Enabled && !string.IsNullOrEmpty(BskyFile) && BskyFile != "none")
+				{
+					if (File.Exists(BskyFile))
+					{
+						if (!string.IsNullOrEmpty(cumulus.Bluesky.ID) && !string.IsNullOrEmpty(cumulus.Bluesky.PW))
+						{
+							// read the template contents
+							var template = File.ReadAllText(BskyFile);
+
+							// check for including teh default alarm message
+							if (template.Contains("|IncludeAlarmMessage|"))
+							{
+								// Construct the message - preamble, plus values
+								var msg = string.Format(EmailMsgUp, Value, Units);
+
+								template = template.Replace("|IncludeAlarmMessage|", msg);
+
+								var parser = new TokenParser(cumulus.TokenParserOnToken)
+								{
+									InputText = template
+								};
+								template = parser.ToStringFromString();
+							}
+
+							_ = cumulus.Bluesky.DoUpdate(template);
+						}
+					}
+					else
+					{
+						cumulus.LogWarningMessage($"Warning: Alarm ({NameUp}): Bluesky file: '{BskyFile}' does not exist");
 					}
 				}
 
@@ -389,7 +456,7 @@ namespace CumulusMX
 					{
 						if (!File.Exists(Action))
 						{
-							cumulus.LogWarningMessage($"Warning: Alarm ({Name}): External program: '{Action}' does not exist");
+							cumulus.LogWarningMessage($"Warning: Alarm ({NameDown}): External program: '{Action}' does not exist");
 						}
 						else
 						{
@@ -413,6 +480,39 @@ namespace CumulusMX
 							{
 								cumulus.LogErrorMessage($"Alarm ({NameDown}): Error executing external program '{Action}': {ex.Message}");
 							}
+						}
+					}
+
+					if (cumulus.Bluesky.Enabled && !string.IsNullOrEmpty(BskyFile) && BskyFile != "none")
+					{
+						if (File.Exists(BskyFile))
+						{
+							if (!string.IsNullOrEmpty(cumulus.Bluesky.ID) && !string.IsNullOrEmpty(cumulus.Bluesky.PW))
+							{
+								// read the template contents
+								var template = File.ReadAllText(BskyFile);
+
+								// check for including teh default alarm message
+								if (template.Contains("|IncludeAlarmMessage|"))
+								{
+									// Construct the message - preamble, plus values
+									var msg = string.Format(EmailMsgDn, Value, Units);
+
+									template = template.Replace("|IncludeAlarmMessage|", msg);
+
+									var parser = new TokenParser(cumulus.TokenParserOnToken)
+									{
+										InputText = template
+									};
+									template = parser.ToStringFromString();
+								}
+
+								_ = cumulus.Bluesky.DoUpdate(template);
+							}
+						}
+						else
+						{
+							cumulus.LogWarningMessage($"Warning: Alarm ({NameDown}): Bluesky file: '{BskyFile}' does not exist");
 						}
 					}
 				}
