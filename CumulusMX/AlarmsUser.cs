@@ -169,7 +169,7 @@ namespace CumulusMX
 									args = parser.ToStringFromString();
 								}
 								cumulus.LogMessage($"User Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
-								Utils.RunExternalTask(Action, args, false, false, ShowWindow);
+								_ = Utils.RunExternalTask(Action, args, false, false, ShowWindow);
 							}
 							catch (FileNotFoundException ex)
 							{

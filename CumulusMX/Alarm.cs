@@ -133,7 +133,7 @@ namespace CumulusMX
 									args = parser.ToStringFromString();
 								}
 								cumulus.LogMessage($"Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
-								Utils.RunExternalTask(Action, args, false, false, ShowWindow);
+								_ = Utils.RunExternalTask(Action, args, false, false, ShowWindow);
 							}
 							catch (FileNotFoundException ex)
 							{
@@ -344,7 +344,7 @@ namespace CumulusMX
 								args = parser.ToStringFromString();
 							}
 							cumulus.LogMessage($"Alarm ({NameUp}): Starting external program: '{Action}', with parameters: {args}");
-							Utils.RunExternalTask(Action, args, false, false, ShowWindow);
+							_ = Utils.RunExternalTask(Action, args, false, false, ShowWindow);
 						}
 						catch (FileNotFoundException ex)
 						{
@@ -354,6 +354,7 @@ namespace CumulusMX
 						{
 							cumulus.LogExceptionMessage(ex, $"Alarm ({NameUp}): Error executing external program '{Action}'");
 						}
+					}
 				}
 
 				if (cumulus.Bluesky.Enabled && !string.IsNullOrEmpty(BskyFile) && BskyFile != "none")
@@ -460,7 +461,7 @@ namespace CumulusMX
 								args = parser.ToStringFromString();
 							}
 							cumulus.LogMessage($"Alarm ({NameDown}): Starting external program: '{Action}', with parameters: {args}");
-							Utils.RunExternalTask(Action, args, false, false, ShowWindow);
+							_ = Utils.RunExternalTask(Action, args, false, false, ShowWindow);
 						}
 						catch (FileNotFoundException ex)
 						{

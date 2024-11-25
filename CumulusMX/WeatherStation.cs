@@ -665,6 +665,8 @@ namespace CumulusMX
 						cumulus.LogMessage($"GetRainCounter: Midnight rain counter found, setting existing midnight rain counter {MidnightRainCount:F4} to log file value {midnightraincounter:F4}");
 						MidnightRainCount = midnightraincounter;
 					}
+
+					initialiseMidnightRain = false;
 				}
 				else
 				{
@@ -672,7 +674,6 @@ namespace CumulusMX
 					MidnightRainCount = RainCounterDayStart;
 				}
 
-				initialiseMidnightRain = false;
 			}
 
 			if ((logdate[..2] == "01") && (logdate.Substring(3, 2) == cumulus.RainSeasonStart.ToString("D2")) && (cumulus.Manufacturer == Cumulus.DAVIS))
@@ -5871,18 +5872,18 @@ namespace CumulusMX
 
 			if (initialiseRainDayStart || initialiseMidnightRain)
 			{
-				initialiseRainDayStart = false;
-				initialiseMidnightRain = false;
 
 				if (initialiseRainDayStart)
 				{
 					RainCounterDayStart = RainCounter;
 					cumulus.LogMessage(" First rain data, raindaystart = " + RainCounterDayStart);
+					initialiseRainDayStart = false;
 				}
 
 				if (initialiseMidnightRain)
 				{
 					MidnightRainCount = RainCounter;
+					initialiseMidnightRain = false;
 				}
 
 				WriteTodayFile(timestamp, false);
@@ -7796,7 +7797,7 @@ namespace CumulusMX
 								args = parser.ToStringFromString();
 							}
 							cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);
-							Utils.RunExternalTask(cumulus.DailyProgram, args, false);
+							_ = Utils.RunExternalTask(cumulus.DailyProgram, args, false);
 						}
 						catch (Exception ex)
 						{

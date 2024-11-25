@@ -1172,11 +1172,15 @@ namespace CumulusMX
 					LogMessage($"Running start-up task: {ProgramOptions.StartupTask}, arguments: {ProgramOptions.StartupTaskParams}, wait: {ProgramOptions.StartupTaskWait}");
 					try
 					{
-						Utils.RunExternalTask(ProgramOptions.StartupTask, ProgramOptions.StartupTaskParams, ProgramOptions.StartupTaskWait);
+						var output = Utils.RunExternalTask(ProgramOptions.StartupTask, ProgramOptions.StartupTaskParams, ProgramOptions.StartupTaskWait);
+						if (ProgramOptions.StartupTaskWait)
+						{
+							LogDebugMessage($"Start-up task output: {output}");
+						}
 					}
 					catch (Exception ex)
 					{
-						LogErrorMessage($"Error running start-up task: {ex.Message}");
+						LogExceptionMessage(ex, $"Error running start-up task");
 					}
 				}
 			}
@@ -2430,7 +2434,7 @@ namespace CumulusMX
 									args = parser.ToStringFromString();
 								}
 								LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
-								Utils.RunExternalTask(RealtimeProgram, args, false);
+								_ = Utils.RunExternalTask(RealtimeProgram, args, false);
 							}
 							catch (Exception ex)
 							{
@@ -8535,7 +8539,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					Utils.RunExternalTask("chmod", "777 " + _lockFilename, false, true);
+					_ = Utils.RunExternalTask("chmod", "777 " + _lockFilename, false, true);
 				}
 
 				LogMessage("Stop second instance: No other running instances of Cumulus found");
@@ -9017,7 +9021,7 @@ namespace CumulusMX
 							args = parser.ToStringFromString();
 						}
 						LogMessage($"Running shutdown task: {ProgramOptions.ShutdownTask}, arguments: {args}");
-						Utils.RunExternalTask(ProgramOptions.ShutdownTask, args, false);
+						_ = Utils.RunExternalTask(ProgramOptions.ShutdownTask, args, false);
 					}
 					catch (Exception ex)
 					{
@@ -9141,7 +9145,7 @@ namespace CumulusMX
 								args = parser.ToStringFromString();
 							}
 							LogDebugMessage("Interval: Executing external program " + ExternalProgram + " " + args);
-							Utils.RunExternalTask(ExternalProgram, args, false);
+							_ = Utils.RunExternalTask(ExternalProgram, args, false);
 							LogDebugMessage("Interval: External program started");
 						}
 						catch (Exception ex)

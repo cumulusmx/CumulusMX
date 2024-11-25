@@ -10,18 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4057\]][9] - 2024-11-24
+## BETA [4.3.0 \[b4058\]][9] - 2024-11-26
 
 ### Changes since last beta build
 
-- Fix for Davis WLL gust checking attributing gusts from the last minutes of the previous day to the current day
-- Fix for the rain week calculation
-- Fix for Bluesky interval being reset to 10 minutes on start-up when it is previously disabled
-- Dashboard Select-a-Period chart now defaults to a range of one month
-- Accessibility improvements to the Dashboard main menu
-- You can now trigger Bluesky posts from Alarms and User Alarms
-- Bluesky posting is now thread safe, so two posts will not be sent at the same time.
-	- In addition where two or more posts are requested concurrently a five second delay will be introduced between them as Bluesky only seems to accept posts with a delay between them.
+- Fix for new installs registering the year-to-date rainfall as todays rainfall
 
 ### New
 
@@ -110,6 +103,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix for Davis WLL gust checking attributing gusts from the last minutes of the previous day to the current day
 - Fix low battery warning for old model Ecowitt WH40 sensors that do not send the battery status when using the Ecowitt HTTP Local API
 - Alarms: removes checks for File.Exists(Action) and traps FileNotFound exceptions instead
+- Fix for new installs registering the year-to-date rainfall as todays rainfall
 
 ### Package Updates
 
