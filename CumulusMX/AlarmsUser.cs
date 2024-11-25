@@ -177,7 +177,7 @@ namespace CumulusMX
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogErrorMessage($"User Alarm ({Name}): Error executing external program '{Action}': {ex.Message}");
+								cumulus.LogExceptionMessage(ex, $"User Alarm ({Name}): Error executing external program '{Action}'");
 							}
 						}
 					}

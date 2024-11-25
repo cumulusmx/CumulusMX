@@ -109,6 +109,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - SQLite exception loading duplicate dayfile entries
 - Fix for Davis WLL gust checking attributing gusts from the last minutes of the previous day to the current day
 - Fix low battery warning for old model Ecowitt WH40 sensors that do not send the battery status when using the Ecowitt HTTP Local API
+- Alarms: removes checks for File.Exists(Action) and traps FileNotFound exceptions instead
 
 ### Package Updates
 
