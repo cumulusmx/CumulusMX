@@ -716,7 +716,7 @@ namespace CumulusMX.ThirdParty
 		[GeneratedRegex(@"#\w+")]
 		private static partial Regex RegexHashtag();
 
-		[GeneratedRegex(@"(https?:\/\/[\S]+)\|([\S\s]+?)\|", RegexOptions.Compiled)]
+		[GeneratedRegex(@"(https?:\/\/[^|]+?)\|([^|]+?)\|", RegexOptions.Compiled)]
 		private static partial Regex RegexLink();
 
 		[GeneratedRegex(@"@([a-zA-Z0-9.-]+)")]
