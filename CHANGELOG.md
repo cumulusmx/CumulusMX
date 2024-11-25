@@ -67,6 +67,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- You can include the same features as the regular template above
 	- In addition you can include the text `|IncludeAlarmMessage|` and this will include at the point the message that would be sent via email. These messages are editable
 		in the `Settings > Locale Strings` page
+	- **Note**: You must enter your Bluesky credentials in the Third Party Uploads settings, but you need not configure any Interval or Timed posts.
 
 
 ### Changed

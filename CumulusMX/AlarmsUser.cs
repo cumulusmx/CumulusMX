@@ -156,31 +156,28 @@ namespace CumulusMX
 
 						if (!string.IsNullOrEmpty(Action))
 						{
-							if (!File.Exists(Action))
+							try
 							{
-								cumulus.LogWarningMessage($"Warning: Alarm ({Name}): External program: '{Action}' does not exist");
-							}
-							else
-							{
-								try
+								var args = string.Empty;
+								// Prepare the process to run
+								if (!string.IsNullOrEmpty(ActionParams))
 								{
-									var args = string.Empty;
-									// Prepare the process to run
-									if (!string.IsNullOrEmpty(ActionParams))
+									var parser = new TokenParser(cumulus.TokenParserOnToken)
 									{
-										var parser = new TokenParser(cumulus.TokenParserOnToken)
-										{
-											InputText = ActionParams
-										};
-										args = parser.ToStringFromString();
-									}
-									cumulus.LogMessage($"User Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
-									Utils.RunExternalTask(Action, args, false, false, ShowWindow);
+										InputText = ActionParams
+									};
+									args = parser.ToStringFromString();
 								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"User Alarm ({Name}): Error executing external program '{Action}': {ex.Message}");
-								}
+								cumulus.LogMessage($"User Alarm ({Name}): Starting external program: '{Action}', with parameters: {args}");
+								Utils.RunExternalTask(Action, args, false, false, ShowWindow);
+							}
+							catch (FileNotFoundException ex)
+							{
+								cumulus.LogWarningMessage($"Warning: Alarm ({Name}): External program: '{Action}' does not exist - " + ex.Message);
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogErrorMessage($"User Alarm ({Name}): Error executing external program '{Action}': {ex.Message}");
 							}
 						}
 					}
