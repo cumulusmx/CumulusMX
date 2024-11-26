@@ -716,14 +716,14 @@ namespace CumulusMX.ThirdParty
 		[GeneratedRegex(@"#\w+")]
 		private static partial Regex RegexHashtag();
 
-		[GeneratedRegex(@"(https?:\/\/[^|]+?)\|([^|]+?)\|", RegexOptions.Compiled)]
+		[GeneratedRegex(@"(https?:\/\/[^|]+?)\|([^|]+?)\|")]
 		private static partial Regex RegexLink();
 
-		[GeneratedRegex(@"@([a-zA-Z0-9.-]+)")]
+		[GeneratedRegex(@"@([\S]+)")]
 		private static partial Regex RegexMention();
 
 
-		[GeneratedRegex(@"(image:)([\S]+)\|([\S\s]+?)\|", RegexOptions.Compiled)]
+		[GeneratedRegex(@"(image:)([^|]+)\|([^|]+?)\|)"]
 		private static partial Regex RegexImage();
 	}
 }
