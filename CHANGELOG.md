@@ -10,15 +10,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4059\]][9] - 2024-11-26
+## BETA [4.3.0 \[b4060\]][9] - 2024-11-27
 
 ### Changes since last beta build
 
-- Fix for new installs registering the year-to-date rainfall as todays rainfall
-- Fix for Bluesky embedded link parsing
-- Minimum Bluesky Interval now 60 minutes
-- Suppress Dayfile file not found on new installs of MX. Change dayfile file not found errors to simple messages rather than an exception dump
-- Fix for b4058 not starting on unix based OS's
+- Fix custom alarms sending Bluesky posts every minute
+- Fix custom alarms and alarms not parsing Bluesky posts for web tags if they do contain the alarm message tag |IncludeAlarmMessage|
+
 
 ### New
 
@@ -115,6 +113,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - SSH.NET
 - Sixlabors.ImageSharp
 - NReco.Logging.File
+- ServceStack.Text
 - Lots of System/Microsoft packages updated from v8.0 to v9.0
 
 ---
