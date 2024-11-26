@@ -723,7 +723,7 @@ namespace CumulusMX.ThirdParty
 		private static partial Regex RegexMention();
 
 
-		[GeneratedRegex(@"(image:)([^|]+)\|([^|]+?)\|)"]
+		[GeneratedRegex(@"(image:)([^|]+)\|([^|]+?)\|")]
 		private static partial Regex RegexImage();
 	}
 }
