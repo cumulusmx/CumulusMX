@@ -154,20 +154,17 @@ namespace CumulusMX
 									// read the template contents
 									var template = File.ReadAllText(BskyFile);
 
-									// check for including teh default alarm message
+									// check for including the default alarm message
 									if (template.Contains("|IncludeAlarmMessage|"))
 									{
-										// Construct the message - preamble, plus values
-										var msg = string.Format(EmailMsg, Value, Units);
-
-										template = template.Replace("|IncludeAlarmMessage|", msg);
-
-										var parser = new TokenParser(cumulus.TokenParserOnToken)
-										{
-											InputText = template
-										};
-										template = parser.ToStringFromString();
+										template = template.Replace("|IncludeAlarmMessage|", string.Format(EmailMsg, Value, Units));
 									}
+
+									var parser = new TokenParser(cumulus.TokenParserOnToken)
+									{
+										InputText = template
+									};
+									template = parser.ToStringFromString();
 
 									_ = cumulus.Bluesky.DoUpdate(template);
 								}
@@ -366,20 +363,17 @@ namespace CumulusMX
 							// read the template contents
 							var template = File.ReadAllText(BskyFile);
 
-							// check for including teh default alarm message
+							// check for including the default alarm message
 							if (template.Contains("|IncludeAlarmMessage|"))
 							{
-								// Construct the message - preamble, plus values
-								var msg = string.Format(EmailMsgUp, Value, Units);
-
-								template = template.Replace("|IncludeAlarmMessage|", msg);
-
-								var parser = new TokenParser(cumulus.TokenParserOnToken)
-								{
-									InputText = template
-								};
-								template = parser.ToStringFromString();
+								template = template.Replace("|IncludeAlarmMessage|", string.Format(EmailMsg, Value, Units));
 							}
+
+							var parser = new TokenParser(cumulus.TokenParserOnToken)
+							{
+								InputText = template
+							};
+							template = parser.ToStringFromString();
 
 							_ = cumulus.Bluesky.DoUpdate(template);
 						}
@@ -482,20 +476,17 @@ namespace CumulusMX
 								// read the template contents
 								var template = File.ReadAllText(BskyFile);
 
-								// check for including teh default alarm message
+								// check for including the default alarm message
 								if (template.Contains("|IncludeAlarmMessage|"))
 								{
-									// Construct the message - preamble, plus values
-									var msg = string.Format(EmailMsgDn, Value, Units);
-
-									template = template.Replace("|IncludeAlarmMessage|", msg);
-
-									var parser = new TokenParser(cumulus.TokenParserOnToken)
-									{
-										InputText = template
-									};
-									template = parser.ToStringFromString();
+									template = template.Replace("|IncludeAlarmMessage|", string.Format(EmailMsg, Value, Units));
 								}
+
+								var parser = new TokenParser(cumulus.TokenParserOnToken)
+								{
+									InputText = template
+								};
+								template = parser.ToStringFromString();
 
 								_ = cumulus.Bluesky.DoUpdate(template);
 							}
