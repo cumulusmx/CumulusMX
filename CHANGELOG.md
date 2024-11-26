@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4058\]][9] - 2024-11-26
+## BETA [4.3.0 \[b4059\]][9] - 2024-11-26
 
 ### Changes since last beta build
 
@@ -18,6 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix for Bluesky embedded link parsing
 - Minimum Bluesky Interval now 60 minutes
 - Suppress Dayfile file not found on new installs of MX. Change dayfile file not found errors to simple messages rather than an exception dump
+- Fix for b4058 not starting on unix based OS's
 
 ### New
 

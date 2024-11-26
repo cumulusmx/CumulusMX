@@ -1178,6 +1178,10 @@ namespace CumulusMX
 							LogDebugMessage($"Start-up task output: {output}");
 						}
 					}
+					catch (FileNotFoundException)
+					{
+						LogErrorMessage("Start-up task Error: File " + ProgramOptions.StartupTask + " does not exist");
+					}
 					catch (Exception ex)
 					{
 						LogExceptionMessage(ex, $"Error running start-up task");
@@ -2435,6 +2439,10 @@ namespace CumulusMX
 								}
 								LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
 								_ = Utils.RunExternalTask(RealtimeProgram, args, false);
+							}
+							catch (FileNotFoundException)
+							{
+								LogErrorMessage($"Realtime[{cycle}]: Error: Realtime program '{RealtimeProgram}' does not exist");
 							}
 							catch (Exception ex)
 							{
@@ -8532,15 +8540,37 @@ namespace CumulusMX
 				if (Windows)
 				{
 #pragma warning disable CA1416 // Validate platform compatibility
-					FileInfo fileInfo = new FileInfo(_lockFilename);
-					FileSecurity accessControl = fileInfo.GetAccessControl();
-					accessControl.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), FileSystemRights.FullControl, AccessControlType.Allow));
-					fileInfo.SetAccessControl(accessControl);
+					try
+					{
+						FileInfo fileInfo = new FileInfo(_lockFilename);
+						FileSecurity accessControl = fileInfo.GetAccessControl();
+						accessControl.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), FileSystemRights.FullControl, AccessControlType.Allow));
+						fileInfo.SetAccessControl(accessControl);
+					}
+					catch (FileNotFoundException)
+					{
+						LogErrorMessage("Error setting lock file permissions - file not found");
+					}
+					catch (Exception ex)
+					{
+						LogExceptionMessage(ex, "Error setting lock file permissions");
+					}
 #pragma warning restore CA1416 // Validate platform compatibility
 				}
 				else
 				{
-					_ = Utils.RunExternalTask("chmod", "777 " + _lockFilename, false, true);
+					try
+					{
+						_ = Utils.RunExternalTask("/bin/bash", "-c \"chmod 755 " + _lockFilename, false, true);
+					}
+					catch (FileNotFoundException)
+					{
+						LogErrorMessage("Error setting lock file permissions - bash command not found");
+					}
+					catch (Exception ex)
+					{
+						LogExceptionMessage(ex, "Error setting lock file permissions");
+					}
 				}
 
 				LogMessage("Stop second instance: No other running instances of Cumulus found");
@@ -9024,9 +9054,13 @@ namespace CumulusMX
 						LogMessage($"Running shutdown task: {ProgramOptions.ShutdownTask}, arguments: {args}");
 						_ = Utils.RunExternalTask(ProgramOptions.ShutdownTask, args, false);
 					}
+					catch (FileNotFoundException)
+					{
+						LogErrorMessage("Error running shutdown task: file not found - " + ProgramOptions.ShutdownTask);
+					}
 					catch (Exception ex)
 					{
-						LogMessage($"Error running shutdown task: {ex.Message}");
+						LogExceptionMessage(ex, "Error running shutdown task");
 					}
 				}
 			}
@@ -9148,6 +9182,10 @@ namespace CumulusMX
 							LogDebugMessage("Interval: Executing external program " + ExternalProgram + " " + args);
 							_ = Utils.RunExternalTask(ExternalProgram, args, false);
 							LogDebugMessage("Interval: External program started");
+						}
+						catch (FileNotFoundException)
+						{
+							LogWarningMessage("Interval: Error starting external program: file not found - " + ExternalProgram);
 						}
 						catch (Exception ex)
 						{

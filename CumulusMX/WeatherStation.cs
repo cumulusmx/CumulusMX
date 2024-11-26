@@ -7799,6 +7799,10 @@ namespace CumulusMX
 							cumulus.LogMessage("Executing daily program: " + cumulus.DailyProgram + " params: " + args);
 							_ = Utils.RunExternalTask(cumulus.DailyProgram, args, false);
 						}
+						catch (FileNotFoundException)
+						{
+							cumulus.LogErrorMessage("Error executing external program: File not found");
+						}
 						catch (Exception ex)
 						{
 							cumulus.LogErrorMessage("Error executing external program: " + ex.Message);
