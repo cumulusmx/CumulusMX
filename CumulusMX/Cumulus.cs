@@ -4817,8 +4817,6 @@ namespace CumulusMX
 			MQTT.EnableInterval = ini.GetValue("MQTT", "EnableInterval", false);
 			MQTT.IntervalTemplate = ini.GetValue("MQTT", "IntervalTemplate", "IntervalTemplate.txt");
 
-			var defaultAlarmBskyFile = "web" + DirectorySeparator + "BlueskyAlarm.txt";
-
 			LowTempAlarm.Value = ini.GetValue("Alarms", "alarmlowtemp", 0.0);
 			LowTempAlarm.Enabled = ini.GetValue("Alarms", "LowTempAlarmSet", false);
 			LowTempAlarm.Sound = ini.GetValue("Alarms", "LowTempAlarmSound", false);
@@ -4835,7 +4833,7 @@ namespace CumulusMX
 			LowTempAlarm.Action = ini.GetValue("Alarms", "LowTempAlarmAction", string.Empty);
 			LowTempAlarm.ActionParams = ini.GetValue("Alarms", "LowTempAlarmActionParams", string.Empty);
 			LowTempAlarm.ShowWindow = ini.GetValue("Alarms", "LowTempAlarmActionWindow", false);
-			LowTempAlarm.BskyFile = ini.GetValue("Alarms", "LowTempAlarmBlueskyFile", defaultAlarmBskyFile);
+			LowTempAlarm.BskyFile = ini.GetValue("Alarms", "LowTempAlarmBlueskyFile", string.Empty);
 
 			HighTempAlarm.Value = ini.GetValue("Alarms", "alarmhightemp", 0.0);
 			HighTempAlarm.Enabled = ini.GetValue("Alarms", "HighTempAlarmSet", false);
@@ -4853,7 +4851,7 @@ namespace CumulusMX
 			HighTempAlarm.Action = ini.GetValue("Alarms", "HighTempAlarmAction", string.Empty);
 			HighTempAlarm.ActionParams = ini.GetValue("Alarms", "HighTempAlarmActionParams", string.Empty);
 			HighTempAlarm.ShowWindow = ini.GetValue("Alarms", "HighTempAlarmActionWindow", false);
-			HighTempAlarm.BskyFile = ini.GetValue("Alarms", "HighTempAlarmBlueskyFile", defaultAlarmBskyFile);
+			HighTempAlarm.BskyFile = ini.GetValue("Alarms", "HighTempAlarmBlueskyFile", string.Empty);
 
 			TempChangeAlarm.Value = ini.GetValue("Alarms", "alarmtempchange", 0.0);
 			TempChangeAlarm.Enabled = ini.GetValue("Alarms", "TempChangeAlarmSet", false);
@@ -4871,7 +4869,7 @@ namespace CumulusMX
 			TempChangeAlarm.Action = ini.GetValue("Alarms", "TempChangeAlarmAction", string.Empty);
 			TempChangeAlarm.ActionParams = ini.GetValue("Alarms", "TempChangeAlarmActionParams", string.Empty);
 			TempChangeAlarm.ShowWindow = ini.GetValue("Alarms", "TempChangeAlarmActionWindow", false);
-			TempChangeAlarm.BskyFile = ini.GetValue("Alarms", "TempChangeAlarmBlueskyFile", defaultAlarmBskyFile);
+			TempChangeAlarm.BskyFile = ini.GetValue("Alarms", "TempChangeAlarmBlueskyFile", string.Empty);
 
 			LowPressAlarm.Value = ini.GetValue("Alarms", "alarmlowpress", 0.0);
 			LowPressAlarm.Enabled = ini.GetValue("Alarms", "LowPressAlarmSet", false);
@@ -4889,7 +4887,7 @@ namespace CumulusMX
 			LowPressAlarm.Action = ini.GetValue("Alarms", "LowPressAlarmAction", string.Empty);
 			LowPressAlarm.ActionParams = ini.GetValue("Alarms", "LowPressAlarmActionParams", string.Empty);
 			LowPressAlarm.ShowWindow = ini.GetValue("Alarms", "LowPressAlarmActionWindow", false);
-			LowPressAlarm.BskyFile = ini.GetValue("Alarms", "LowPressAlarmBlueskyFile", defaultAlarmBskyFile);
+			LowPressAlarm.BskyFile = ini.GetValue("Alarms", "LowPressAlarmBlueskyFile", string.Empty);
 
 			HighPressAlarm.Value = ini.GetValue("Alarms", "alarmhighpress", 0.0, 0.0);
 			HighPressAlarm.Enabled = ini.GetValue("Alarms", "HighPressAlarmSet", false);
@@ -4907,7 +4905,7 @@ namespace CumulusMX
 			HighPressAlarm.Action = ini.GetValue("Alarms", "HighPressAlarmAction", string.Empty);
 			HighPressAlarm.ActionParams = ini.GetValue("Alarms", "HighPressAlarmActionParams", string.Empty);
 			HighPressAlarm.ShowWindow = ini.GetValue("Alarms", "HighPressAlarmAlarmActionWindow", false);
-			HighPressAlarm.BskyFile = ini.GetValue("Alarms", "HighPressAlarmBlueskyFile", defaultAlarmBskyFile);
+			HighPressAlarm.BskyFile = ini.GetValue("Alarms", "HighPressAlarmBlueskyFile", string.Empty);
 
 			PressChangeAlarm.Value = ini.GetValue("Alarms", "alarmpresschange", 0.0, 0.0);
 			PressChangeAlarm.Enabled = ini.GetValue("Alarms", "PressChangeAlarmSet", false);
@@ -4925,7 +4923,7 @@ namespace CumulusMX
 			PressChangeAlarm.Action = ini.GetValue("Alarms", "PressChangeAlarmAction", string.Empty);
 			PressChangeAlarm.ActionParams = ini.GetValue("Alarms", "PressChangeAlarmActionParams", string.Empty);
 			PressChangeAlarm.ShowWindow = ini.GetValue("Alarms", "PressChangeAlarmActionWindow", false);
-			PressChangeAlarm.BskyFile = ini.GetValue("Alarms", "PressChangeAlarmBlueskyFile", defaultAlarmBskyFile);
+			PressChangeAlarm.BskyFile = ini.GetValue("Alarms", "PressChangeAlarmBlueskyFile", string.Empty);
 
 			HighRainTodayAlarm.Value = ini.GetValue("Alarms", "alarmhighraintoday", 0.0, 0.0);
 			HighRainTodayAlarm.Enabled = ini.GetValue("Alarms", "HighRainTodayAlarmSet", false);
@@ -4943,7 +4941,7 @@ namespace CumulusMX
 			HighRainTodayAlarm.Action = ini.GetValue("Alarms", "HighRainTodayAlarmAction", string.Empty);
 			HighRainTodayAlarm.ActionParams = ini.GetValue("Alarms", "HighRainTodayAlarmActionParams", string.Empty);
 			HighRainTodayAlarm.ShowWindow = ini.GetValue("Alarms", "HighRainTodayAlarmActionWindow", false);
-			HighRainTodayAlarm.BskyFile = ini.GetValue("Alarms", "HighRainTodayAlarmBlueskyFile", defaultAlarmBskyFile);
+			HighRainTodayAlarm.BskyFile = ini.GetValue("Alarms", "HighRainTodayAlarmBlueskyFile", string.Empty);
 
 			HighRainRateAlarm.Value = ini.GetValue("Alarms", "alarmhighrainrate", 0.0, 0.0);
 			HighRainRateAlarm.Enabled = ini.GetValue("Alarms", "HighRainRateAlarmSet", false);
@@ -4961,7 +4959,7 @@ namespace CumulusMX
 			HighRainRateAlarm.Action = ini.GetValue("Alarms", "HighRainRateAlarmAction", string.Empty);
 			HighRainRateAlarm.ActionParams = ini.GetValue("Alarms", "HighRainRateAlarmActionParams", string.Empty);
 			HighRainRateAlarm.ShowWindow = ini.GetValue("Alarms", "HighRainRateAlarmActionWindow", false);
-			HighRainRateAlarm.BskyFile = ini.GetValue("Alarms", "HighRainRateAlarmBlueskyFile", defaultAlarmBskyFile);
+			HighRainRateAlarm.BskyFile = ini.GetValue("Alarms", "HighRainRateAlarmBlueskyFile", string.Empty);
 
 			IsRainingAlarm.Enabled = ini.GetValue("Alarms", "IsRainingAlarmSet", false);
 			IsRainingAlarm.Sound = ini.GetValue("Alarms", "IsRainingAlarmSound", false);
@@ -4973,7 +4971,7 @@ namespace CumulusMX
 			IsRainingAlarm.Action = ini.GetValue("Alarms", "IsRainingAlarmAction", string.Empty);
 			IsRainingAlarm.ActionParams = ini.GetValue("Alarms", "IsRainingAlarmActionParams", string.Empty);
 			IsRainingAlarm.ShowWindow = ini.GetValue("Alarms", "IsRainingAlarmActionWindow", false);
-			IsRainingAlarm.BskyFile = ini.GetValue("Alarms", "IsRainingAlarmBlueskyFile", defaultAlarmBskyFile);
+			IsRainingAlarm.BskyFile = ini.GetValue("Alarms", "IsRainingAlarmBlueskyFile", string.Empty);
 
 			HighGustAlarm.Value = ini.GetValue("Alarms", "alarmhighgust", 0.0, 0.0);
 			HighGustAlarm.Enabled = ini.GetValue("Alarms", "HighGustAlarmSet", false);
@@ -4991,7 +4989,7 @@ namespace CumulusMX
 			HighGustAlarm.Action = ini.GetValue("Alarms", "HighGustAlarmAction", string.Empty);
 			HighGustAlarm.ActionParams = ini.GetValue("Alarms", "HighGustAlarmActionParams", string.Empty);
 			HighGustAlarm.ShowWindow = ini.GetValue("Alarms", "HighGustActionWindow", false);
-			HighGustAlarm.BskyFile = ini.GetValue("Alarms", "HighGustAlarmBlueskyFile", defaultAlarmBskyFile);
+			HighGustAlarm.BskyFile = ini.GetValue("Alarms", "HighGustAlarmBlueskyFile", string.Empty);
 
 			HighWindAlarm.Value = ini.GetValue("Alarms", "alarmhighwind", 0.0, 0.0);
 			HighWindAlarm.Enabled = ini.GetValue("Alarms", "HighWindAlarmSet", false);
@@ -5009,7 +5007,7 @@ namespace CumulusMX
 			HighWindAlarm.Action = ini.GetValue("Alarms", "HighWindAlarmAction", string.Empty);
 			HighWindAlarm.ActionParams = ini.GetValue("Alarms", "HighWindAlarmActionParams", string.Empty);
 			HighWindAlarm.ShowWindow = ini.GetValue("Alarms", "HighWindAlarmActionWindow", false);
-			HighWindAlarm.BskyFile = ini.GetValue("Alarms", "HighWindAlarmBlueskyFile", defaultAlarmBskyFile);
+			HighWindAlarm.BskyFile = ini.GetValue("Alarms", "HighWindAlarmBlueskyFile", string.Empty);
 
 			SensorAlarm.Enabled = ini.GetValue("Alarms", "SensorAlarmSet", true);
 			SensorAlarm.Sound = ini.GetValue("Alarms", "SensorAlarmSound", false);
@@ -5133,7 +5131,7 @@ namespace CumulusMX
 			NewRecordAlarm.Action = ini.GetValue("Alarms", "NewRecordAlarmAction", string.Empty);
 			NewRecordAlarm.ActionParams = ini.GetValue("Alarms", "NewRecordAlarmActionParams", string.Empty);
 			NewRecordAlarm.ShowWindow = ini.GetValue("Alarms", "NewRecordAlarmActionWindow", false);
-			NewRecordAlarm.BskyFile = ini.GetValue("Alarms", "NewRecordAlarmBlueskyFile", defaultAlarmBskyFile);
+			NewRecordAlarm.BskyFile = ini.GetValue("Alarms", "NewRecordAlarmBlueskyFile", string.Empty);
 
 			FtpAlarm.Enabled = ini.GetValue("Alarms", "FtpAlarmSet", false);
 			FtpAlarm.Sound = ini.GetValue("Alarms", "FtpAlarmSound", false);
