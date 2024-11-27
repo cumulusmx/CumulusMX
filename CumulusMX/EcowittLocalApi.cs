@@ -134,6 +134,17 @@ namespace CumulusMX
 			//				"battery": "[INT]",
 			//			},
 			//			{etc}
+			//		],
+			//		"ch_lds": [
+			//			{
+			//				"channel": "[1-4]",
+			//				"name": "",
+			//				"unit": "[mm|cm|in]",
+			//				"battery": "[INT]",
+			//				"air": "[DECIMAL]",
+			//				"depth": "[DECIMAL]"
+			//			},
+			//			{etc}
 			//		]
 			//	}
 			//
@@ -342,7 +353,7 @@ namespace CumulusMX
 			return unknown;
 		}
 
-		public static void GetDeviceInfo(CancellationToken token) 
+		public static void GetDeviceInfo(CancellationToken token)
 		{
 			// http://ip-address/get_device_info
 
@@ -377,7 +388,7 @@ namespace CumulusMX
 		public static void GetUnits(CancellationToken token)
 		{
 			// http://ip-address/get_units_info
-			
+
 			// response
 			//{
 			//	"temperature": "0",      0=C 1=F
@@ -556,7 +567,7 @@ namespace CumulusMX
 
 			// response
 			// object
-			// status: N   1=running 
+			// status: N   1=running
 			// 'over'
 
 		}
@@ -738,12 +749,31 @@ namespace CumulusMX
 			public string status { get; set; }
 		}
 
-		public class Wh54Sensor
+		public class LdsSensor
 		{
-			public int? channel { get; set; }
+			public int channel { get; set; }
 			public string name { get; set; }
-			public int? battery { get; set; }
-			public string status { get; set; }
+			public int battery { get; set; }
+			public string air { get; set; }
+			public string depth { get; set; }
+
+			public double? airVal
+			{
+				get
+				{
+					var temp = air.Split(' ');
+					return double.TryParse(temp[0], invNum, out double result) ? result : null;
+				}
+			}
+
+			public double? depthVal
+			{
+				get
+				{
+					var temp = depth.Split(' ');
+					return double.TryParse(temp[0], invNum, out double result) ? result : null;
+				}
+			}
 		}
 
 		public class LiveData
@@ -760,7 +790,7 @@ namespace CumulusMX
 			public TempHumSensor[]? ch_soil { get; set; }
 			public TempHumSensor[]? ch_temp { get; set; }
 			public TempHumSensor[]? ch_leaf { get; set; }
-			public Wh54Sensor[]? wh54 { get; set; }
+			public LdsSensor[]? ch_lds { get; set; }
 		}
 
 		public class SensorInfo

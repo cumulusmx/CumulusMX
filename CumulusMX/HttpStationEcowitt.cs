@@ -657,7 +657,7 @@ namespace CumulusMX
 							IsRaining = (cumulus.StationOptions.UseRainForIsRaining == 0 ? Convert.ToDouble(rRate, invNum): Convert.ToDouble(data["rrain_piezo"], invNum)) > 0;
 							cumulus.IsRainingAlarm.Triggered = IsRaining;
 						}
-						
+
 
 						if (rRate == null)
 						{
@@ -901,6 +901,20 @@ namespace CumulusMX
 				}
 
 
+				// === Laser Distance ===
+				if (main || cumulus.ExtraSensorUseLaserDist)
+				{
+					try
+					{
+						// laser_distance
+						ProcessLds(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in Laser Distance data - {ex.Message}");
+					}
+				}
+
 				// === Batteries ===
 				try
 				{
@@ -919,6 +933,7 @@ namespace CumulusMX
 					pm25batt[1-4] (wh41/wh43)
 					leakbatt[1-4] (wh55)
 					co2_batt
+					ldsbatt1[1-4]
 					*/
 
 					ProcessBatteries(data);
@@ -1366,6 +1381,23 @@ namespace CumulusMX
 			}
 		}
 
+		private void ProcessLds(NameValueCollection data, WeatherStation station)
+		{
+			for (var i = 1; i <= 4; i++)
+			{
+				if (data["air_ch" + i] != null)
+				{
+					station.DoLaserDistance(ConvertUnits.LaserMmtoUser(Convert.ToInt32(data["air_ch" + i], invNum)), i);
+				}
+
+				if (data["depth_ch" + i] != null)
+				{
+					station.DoLaserDistance(ConvertUnits.LaserMmtoUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i);
+				}
+			}
+		}
+
+
 		private void ProcessBatteries(NameValueCollection data)
 		{
 			var lowBatt = false;
@@ -1386,6 +1418,7 @@ namespace CumulusMX
 				lowBatt = lowBatt || (data["leakbatt" + i] != null && data["leakbatt" + i] == "1");
 				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["ldsbatt" + i] != null && Convert.ToDouble(data["ldsbatt" + i], invNum) <= 1.2);
 			}
 			for (var i = 5; i < 9; i++)
 			{

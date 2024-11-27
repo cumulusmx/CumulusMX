@@ -1527,6 +1527,7 @@ namespace CumulusMX
 			}
 		}
 
+
 #pragma warning disable S3459 // Unassigned members should be removed
 #pragma warning disable S1144 // Unused private types or members should be removed
 		private sealed class UploadNowData

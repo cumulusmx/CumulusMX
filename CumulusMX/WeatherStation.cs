@@ -361,6 +361,7 @@ namespace CumulusMX
 			UserTemp = new double?[9];
 			SoilTemp = new double?[17];
 			LaserDist = new double?[5];
+			LaserDepth = new double?[5];
 
 			windcounts = new double[16];
 			WindRecent = new TWindRecent[MaxWindRecent];
@@ -1505,6 +1506,7 @@ namespace CumulusMX
 		/// Laser distance
 		/// </summary>
 		public double?[] LaserDist { get; set; }
+		public double?[] LaserDepth { get; set; }
 
 		public double RainYesterday { get; set; }
 
@@ -5044,21 +5046,21 @@ namespace CumulusMX
 			try
 			{
 				decimal? dist = null;
-				if (LaserDist[cumulus.SnowAutomated].HasValue)
+				if (LaserDepth[cumulus.SnowAutomated].HasValue)
 				{
 					if (cumulus.Units.SnowDepth == cumulus.Units.LaserDistance)
 					{
-						dist = (decimal) Math.Round(LaserDist[cumulus.SnowAutomated].Value, cumulus.Units.SnowDepth);
+						dist = (decimal) Math.Round(LaserDepth[cumulus.SnowAutomated].Value, cumulus.Units.SnowDepth);
 					}
 					else if (cumulus.Units.SnowDepth == 0)
 					{
 						// laser dist must be 1 (inches)
-						dist = (decimal) Math.Round(LaserDist[cumulus.SnowAutomated].Value * 25.4, 0);
+						dist = (decimal) Math.Round(LaserDepth[cumulus.SnowAutomated].Value * 25.4, 0);
 					}
 					else
 					{
 						// laser dist must be 0 (cm)
-						dist = (decimal) Math.Round(LaserDist[cumulus.SnowAutomated].Value / 25.4, 1);
+						dist = (decimal) Math.Round(LaserDepth[cumulus.SnowAutomated].Value / 25.4, 1);
 					}
 				}
 				var record = new DiaryData
@@ -9696,6 +9698,15 @@ namespace CumulusMX
 				LaserDist[index] = value;
 			}
 		}
+
+		public void DoLaserDepth(double value, int index)
+		{
+			if (index > 0 && index < LaserDepth.Length)
+			{
+				LaserDepth[index] = value;
+			}
+		}
+
 
 		public string BetelCast(double z_hpa, int z_month, string z_wind, int z_trend, bool z_north, double z_baro_top, double z_baro_bottom)
 		{

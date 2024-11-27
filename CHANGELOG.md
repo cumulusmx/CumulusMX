@@ -16,7 +16,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Fix custom alarms sending Bluesky posts every minute
 - Fix custom alarms and alarms not parsing Bluesky posts for web tags if they do contain the alarm message tag |IncludeAlarmMessage|
-
+- Adds support for the new Ecowitt Laser Distance Sensors to Ecowitt Local HTTP API and HTTP Station (Ecowitt) stations
+	- Adds new web tags `<#LaserDist[1-4]>` and `<#LaserDepth[1-4]>`
 
 ### New
 
@@ -63,7 +64,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- In addition you can include the text `|IncludeAlarmMessage|` and this will include at the point the message that would be sent via email. These messages are editable
 		in the `Settings > Locale Strings` page
 	- **Note**: You must enable Bluesky and enter your Bluesky credentials in the Third Party Uploads settings, but you need not configure any Interval or Timed posts.
-
+- Adds support for the new Ecowitt Laser Distance Sensors to Ecowitt HTTP API and HTTP Station (Ecowitt) stations
+	- Adds new web tags `<#LaserDist1> - <#LaserDist4>` and `<#LaserDepth1> - <#LaserDepth4>`
 
 ### Changed
 
@@ -325,7 +327,7 @@ No changes
 - Cumulus now calculates the AQi for Ecowitt PM and CO₂ sensors
 	- New web tags:
 
-	`<#AirQualityIdx1[-4]>`, `<#AirQualityAvgIdx1[-4]>`<br>
+	`<#AirQualityIdx[1-4]>`, `<#AirQualityAvgIdx[1-4]>`<br>
 	`<#CO2_pm2p5_aqi>`, `<#CO2_pm2p5_24h_aqi>`<br>
 	`<#CO2_pm10_aqi>`, `<#CO2_pm10_24_aqi>`
 

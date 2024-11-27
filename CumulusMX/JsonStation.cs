@@ -762,21 +762,26 @@ namespace CumulusMX
 				}
 				else
 				{
+					var multiplier = data.units.laserdist switch
+					{
+						"mm" => cumulus.Units.LaserDistance == 0 ? 0.1 : mm2in,
+						"in" => cumulus.Units.LaserDistance == 0 ? in2cm : 1,
+						"cm" => cumulus.Units.LaserDistance == 0 ? 1 : cm2in,
+						_ => 1,
+					};
+
 					foreach (var rec in data.laserdist)
 					{
 						try
 						{
-							if (rec.value.HasValue)
+							if (rec.range.HasValue)
 							{
-								var dist = data.units.laserdist switch
-								{
-									"mm" => cumulus.Units.LaserDistance == 0 ? rec.value.Value / 10 : rec.value.Value * mm2in,
-									"in" => cumulus.Units.LaserDistance == 0 ? rec.value.Value * in2cm : rec.value.Value,
-									"cm" => cumulus.Units.LaserDistance == 0 ? rec.value.Value : rec.value.Value * cm2in,
-									_ => rec.value.Value,
-								};
+								station.DoLaserDistance(rec.range.Value * multiplier, rec.index);
+							}
 
-								station.DoLaserDistance(dist, rec.index);
+							if (rec.depth.HasValue)
+							{
+								station.DoLaserDepth(rec.depth.Value * multiplier, rec.index);
 							}
 						}
 						catch (Exception ex)
@@ -851,7 +856,7 @@ namespace CumulusMX
 			public ExtraValue[] leafwetness { get; set; }
 			public PmData[] airquality { get; set; }
 			public Co2Data co2 { get; set; }
-			public ExtraValueDbl[] laserdist { get; set; }
+			public Lds[] laserdist { get; set; }
 		}
 
 		private sealed class UnitsObject
@@ -929,5 +934,12 @@ namespace CumulusMX
 			public int? co2 { get; set; }
 			public int? co2_24h { get; set; }
 		}
+		private sealed class Lds
+		{
+			public int index { get; set; }
+			public double? range { get; set; }
+			public double? depth { get; set; }
+		}
+
 	}
 }

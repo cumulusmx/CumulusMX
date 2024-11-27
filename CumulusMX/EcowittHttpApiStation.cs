@@ -230,9 +230,9 @@ namespace CumulusMX
 									ProcessLeafWet(rawData.ch_leaf);
 								}
 
-								if (rawData.wh54 != null)
+								if (rawData.ch_lds != null)
 								{
-
+									ProcessLds(rawData.ch_lds);
 								}
 
 								// Now do the stuff that requires more than one input parameter
@@ -1147,7 +1147,7 @@ namespace CumulusMX
 		private void ProcessChPm25(EcowittLocalApi.ChPm25Sensor[] sensors)
 		{
 #pragma warning disable S125
-			//"ch_pm25": [                          
+			//"ch_pm25": [
 			//	{
 			//		"channel": "1",
 			//		"PM25": "6.0",
@@ -1181,7 +1181,7 @@ namespace CumulusMX
 		private void ProcessLeak(EcowittLocalApi.ChLeakSensor[] sensors)
 		{
 #pragma warning disable S125
-			//"ch_leak": [                          
+			//"ch_leak": [
 			//	{
 			//		"channel": "2",
 			//		"name": "",
@@ -1360,6 +1360,51 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogExceptionMessage(ex, $"ProcessLeafWet: Error processing channel {sensor.channel}");
+					}
+				}
+			}
+		}
+
+		private void ProcessLds(EcowittLocalApi.LdsSensor[] sensors)
+		{
+#pragma warning disable S125
+			//"ch_lds": [
+			//	{
+			//		"channel": "1",
+			//		"name": "Laser Dist Tank",
+			//		"unit": "mm",
+			//		"battery": "5",
+			//		"air": "13 mm",
+			//		"depth": "3987 mm"
+			//	}
+			//]
+#pragma warning restore S125
+
+			for (var i = 0; i < sensors.Length; i++)
+			{
+				var sensor = sensors[i];
+
+				if (sensor.airVal.HasValue)
+				{
+					try
+					{
+						DoLaserDistance(sensor.airVal.Value, sensor.channel);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessLds: Error processing channel {sensor.channel} 'air' distance");
+					}
+				}
+
+				if (sensor.depthVal.HasValue)
+				{
+					try
+					{
+						DoLaserDepth(sensor.depthVal.Value, sensor.channel);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessLds: Error processing channel {sensor.channel} 'depth' value");
 					}
 				}
 			}
