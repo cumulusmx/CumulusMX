@@ -531,6 +531,7 @@ namespace CumulusMX
 	{
 		Above,
 		Below,
+		Equals,
 		Change,
 		Trigger
 	}

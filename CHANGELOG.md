@@ -10,14 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4060\]][9] - 2024-11-27
+## BETA [4.3.0 \[b4061\]][9] - 2024-11-28
 
 ### Changes since last beta build
 
-- Fix custom alarms sending Bluesky posts every minute
-- Fix custom alarms and alarms not parsing Bluesky posts for web tags if they do contain the alarm message tag |IncludeAlarmMessage|
-- Adds support for the new Ecowitt Laser Distance Sensors to Ecowitt Local HTTP API and HTTP Station (Ecowitt) stations
-	- Adds new web tags `<#LaserDist[1-4]>` and `<#LaserDepth[1-4]>`
+- Fix mySQL Realtime table create command
 
 ### New
 
@@ -94,6 +91,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - AWEKAS uploads to now increase the interval up to 10 minutes in the event of being rate limited
 - Dashboard Select-a-Period chart now defaults to a range of one month
 - Accessibility improvements to the Dashboard main menu
+- User Alarms:
+	- You can now use multiple web tags and arithmetic in the data field
+	- You now have the option of data == value type alarms as well as Above and Below, the equivalents of > and <
 
 ### Fixed
 

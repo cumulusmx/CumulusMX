@@ -1844,7 +1844,7 @@ namespace CumulusMX
 			RealtimeTable.AddColumn("humidex", "decimal(4," + TempDPlaces + ")");
 			RealtimeTable.AddColumn("UV", "decimal(3," + UVDPlaces + ")");
 			RealtimeTable.AddColumn("ET", "decimal(4," + RainDPlaces + ")");
-			RealtimeTable.AddColumn("SolarRad", "decimal(5,1");
+			RealtimeTable.AddColumn("SolarRad", "decimal(5,1)");
 			RealtimeTable.AddColumn("avgbearing", "varchar(3)");
 			RealtimeTable.AddColumn("rhour", "decimal(4," + RainDPlaces + ")");
 			RealtimeTable.AddColumn("forecastnumber", "varchar(2)");

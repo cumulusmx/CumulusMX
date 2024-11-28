@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -84,6 +85,7 @@ namespace CumulusMX
 			{
 				"above" => AlarmTypes.Above,
 				"below" => AlarmTypes.Below,
+				"equals" => AlarmTypes.Equals,
 				_ => AlarmTypes.Above,
 			};
 			cumulus = cuml;
@@ -98,11 +100,12 @@ namespace CumulusMX
 		{
 			if (enabled && cumulus.NormalRunning)
 			{
-				if (double.TryParse(tokenParser.ToStringFromString(), out tagValue))
+				try
 				{
-					doTriggered((type == AlarmTypes.Above && tagValue > Value) || (type == AlarmTypes.Below && tagValue < Value));
+					tagValue = Convert.ToDouble(new DataTable().Compute(tokenParser.ToStringFromString(), null), System.Globalization.CultureInfo.InvariantCulture);
+					doTriggered((type == AlarmTypes.Above && tagValue > Value) || (type == AlarmTypes.Below && tagValue < Value) || (type == AlarmTypes.Equals && tagValue == Value));
 				}
-				else
+				catch
 				{
 					cumulus.LogErrorMessage($"User Alarm ({Name}): Error parsing web tag value: {WebTag}");
 				}
