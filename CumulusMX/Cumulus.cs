@@ -13,6 +13,7 @@ using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -4798,6 +4799,19 @@ namespace CumulusMX
 					Bluesky.TimedPostsFile[i] = null;
 				}
 			}
+			for (var i = 0; i < Bluesky.VariablePostsTime.Length; i++)
+			{
+				if (ini.ValueExists("Bluesky", "VariablePost" + i))
+				{
+					Bluesky.VariablePostsTime[i] = ini.GetValue("Bluesky", "VariablePost" + i, string.Empty);
+					Bluesky.VariablePostsFile[i] = ini.GetValue("Bluesky", "VariablePostFile" + i, string.Empty);
+				}
+				else
+				{
+					Bluesky.VariablePostsTime[i] = null;
+					Bluesky.VariablePostsFile[i] = null;
+				}
+			}
 
 
 			MQTT.Server = ini.GetValue("MQTT", "Server", string.Empty);
@@ -6343,6 +6357,19 @@ namespace CumulusMX
 					ini.SetValue("Bluesky", "TimedPostFile" + i, Bluesky.TimedPostsFile[i]);
 				else
 					ini.DeleteValue("Bluesky", "TimedPostFile" + i);
+			}
+			for (var i = 0; i < Bluesky.VariablePostsTime.Length; i++)
+			{
+				if (string.IsNullOrEmpty(Bluesky.VariablePostsTime[i]))
+				{
+					ini.DeleteValue("Bluesky", "VariablePost" + i);
+					ini.DeleteValue("Bluesky", "VariablePostFile" + i);
+				}
+				else
+				{
+					ini.SetValue("Bluesky", "VariablePost" + i, Bluesky.VariablePostsTime[i]);
+					ini.SetValue("Bluesky", "VariablePostFile" + i, Bluesky.VariablePostsFile[i]);
+				}
 			}
 
 			ini.SetValue("MQTT", "Server", MQTT.Server);
@@ -12669,8 +12696,55 @@ namespace CumulusMX
 						LogExceptionMessage(ex, $"BlueskyTimedUpdate[{i}]: Error");
 					}
 				}
-				BlueskyTimedUpdateInProgress = false;
+
+				for (var i = 0; i < Bluesky.VariablePostsTime.Length; i++)
+				{
+					try
+					{
+						var tim = Bluesky.VariablePostsTime[i] switch
+						{
+							"sunrise" => SunRiseTime,
+							"sunset" => SunSetTime,
+							"dawn" => Dawn,
+							"dusk" => Dusk,
+							_ => DateTime.MaxValue
+						};
+
+
+						if (tim == DateTime.MaxValue)
+						{
+							continue;
+						}
+
+						if (tim.Hour == roundedTime.Hours && tim.Minute == roundedTime.Minutes)
+						{
+							string content;
+
+							if (Bluesky.VariablePostsFile[i] == "web\\Bluesky.txt" || Bluesky.VariablePostsFile[i] == "web/Bluesky.txt")
+							{
+								content = Bluesky.ContentTemplate;
+							}
+							else
+							{
+								content = await File.ReadAllTextAsync(Bluesky.VariablePostsFile[i]);
+							}
+
+							var parser = new TokenParser(TokenParserOnToken)
+							{
+								InputText = content
+							};
+
+							await Bluesky.DoUpdate(parser.ToStringFromString());
+						}
+					}
+					catch (Exception ex)
+					{
+						LogExceptionMessage(ex, $"BlueskyVariableUpdate[{i}]: Error");
+					}
+				}
 			}
+
+			BlueskyTimedUpdateInProgress = false;
 		}
 
 		private async void CustomMysqlSecondsTimerTick(object sender, ElapsedEventArgs e)

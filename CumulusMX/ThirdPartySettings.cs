@@ -303,6 +303,19 @@ namespace CumulusMX
 							}
 						}
 					}
+					for (var i = 0; i < cumulus.Bluesky.VariablePostsTime.Length; i++)
+					{
+						if (i >= settings.bluesky.variable.Length || string.IsNullOrEmpty(settings.bluesky.variable[i].time) || string.IsNullOrEmpty(settings.bluesky.variable[i].file))
+						{
+							cumulus.Bluesky.VariablePostsTime[i] = null;
+							cumulus.Bluesky.VariablePostsFile[i] = null;
+						}
+						else
+						{
+							cumulus.Bluesky.VariablePostsTime[i] = settings.bluesky.variable[i].time;
+							cumulus.Bluesky.VariablePostsFile[i] = settings.bluesky.variable[i].file;
+						}
+					}
 				}
 				catch (Exception ex)
 				{
@@ -536,6 +549,18 @@ namespace CumulusMX
 					});
 				}
 			}
+			var variablePosts = new List<JsonBlueskyTime>();
+			for (int i = 0; i < cumulus.Bluesky.VariablePostsTime.Length; i++)
+			{
+				if (!string.IsNullOrEmpty(cumulus.Bluesky.VariablePostsTime[i]) && !string.IsNullOrEmpty(cumulus.Bluesky.VariablePostsFile[i]))
+				{
+					timedPosts.Add(new JsonBlueskyTime()
+					{
+						time = cumulus.Bluesky.VariablePostsTime[i],
+						file = cumulus.Bluesky.VariablePostsFile[i]
+					});
+				}
+			}
 
 
 			var blueskysettings = new JsonBlueSky()
@@ -547,7 +572,8 @@ namespace CumulusMX
 				contentTemplate = cumulus.Bluesky.ContentTemplate,
 				lang = cumulus.Bluesky.Language,
 				baseUrl = cumulus.Bluesky.BaseUrl,
-				times = timedPosts.ToArray()
+				times = timedPosts.ToArray(),
+				variable = variablePosts.ToArray()
 			};
 
 			var customseconds = new JsonCustomHttpSeconds()
@@ -778,6 +804,7 @@ namespace CumulusMX
 			public string password { get; set; }
 			public int? interval { get; set; }
 			public JsonBlueskyTime[] times { get; set; }
+			public JsonBlueskyTime[] variable { get; set; }
 			public string contentTemplate { get; set; }
 			public string lang { get; set; }
 			public string baseUrl { get; set; }

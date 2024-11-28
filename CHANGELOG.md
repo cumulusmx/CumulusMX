@@ -15,6 +15,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changes since last beta build
 
 - Fix mySQL Realtime table create command
+- User Alarms:
+	- You can now use multiple web tags and arithmetic in the data field
+	- You now have the option of data Equals value type alarms as well as Above and Below
+- Add variable timed posts to Bluesky: Sun Rise/Set, Dawn, Dusk
 
 ### New
 
@@ -53,7 +57,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 			- The path_to_file can be either a local filesystem path, or a http url
 			- Image formats supported: JPEG and PNG - it is best to post jpg images as Bluesky converts other formats to jpg and may alter them in the process
 		- Cumulus will convert these to active links, tags, and mentions when posting the message
-	- After editing the `web/Bluesky.txt` file, you can load it back into Cumulus by viewing the `Third party uploads` page where it will display the contents
+	- After editing the `web/Bluesky.txt` file, you must load it back into Cumulus by viewing the `Third party uploads` page where it will display the contents
 - Adds Bluesky posting from Alarms and User Alarms
 	- Each alarm can have a different template file, but they all default to `web/BlueskyAlarm.txt`
 	- A sample file is included in the web folder for you to edit `web/BlueskyAlarmSample.txt`
@@ -77,7 +81,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The Editor page gains a new "Export All" button to export your diary to CSV format
 	- The Editor page gains a new "Upload File" button to re-import your exported CSV files
 	- The Editor page now also has a Time field which defaults to the configured snow recording time, but you may override it
-	- There is a new option to automatically create a snow depth record on your snow recording hour. This requires the connection of an Ecowitt WH54/LDS01 sensor to your station
+	- There is a new option to automatically create a snow depth record on your snow recording hour. This requires the connection of an Ecowitt WH54/LDS-01 sensor to your station
 	- A new web tags `<#snow24h>` and `<#snowcomment>`
 	- The web tag `<#snowfalling>` has been deprecated (it will return an empty string until it is removed)
 	- A new daily graph data file `alldailysnowdata.json`
@@ -92,8 +96,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Dashboard Select-a-Period chart now defaults to a range of one month
 - Accessibility improvements to the Dashboard main menu
 - User Alarms:
-	- You can now use multiple web tags and arithmetic in the data field
-	- You now have the option of data == value type alarms as well as Above and Below, the equivalents of > and <
+	- You can now use multiple web tags and arithmetic operators in the data field
+	- You now have the option of data Equals value type alarms as well as Above and Below
 
 ### Fixed
 

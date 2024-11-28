@@ -29,6 +29,8 @@ namespace CumulusMX.ThirdParty
 		public string Language { get; set; }
 		public TimeSpan[] TimedPostsTime { get; set; }
 		public string[] TimedPostsFile { get; set; }
+		public string[] VariablePostsTime { get; set; }
+		public string[] VariablePostsFile { get; set; }
 		public int TimedPostsCount {
 			get
 			{
@@ -50,6 +52,8 @@ namespace CumulusMX.ThirdParty
 		{
 			TimedPostsTime = new TimeSpan[10];
 			TimedPostsFile = new string[10];
+			VariablePostsTime = new string[4];
+			VariablePostsFile = new string[4];
 
 			for (var i = 0; i < TimedPostsTime.Length; i++)
 			{
