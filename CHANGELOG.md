@@ -10,15 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4061\]][9] - 2024-11-28
+## BETA [4.3.0 \[b4062\]][9] - 2024-11-29
 
 ### Changes since last beta build
 
-- Fix mySQL Realtime table create command
-- User Alarms:
-	- You can now use multiple web tags and arithmetic in the data field
-	- You now have the option of data Equals value type alarms as well as Above and Below
-- Add variable timed posts to Bluesky: Sun Rise/Set, Dawn, Dusk
+- All time record alarms now add the record name and value to Bluesky posts
 
 ### New
 

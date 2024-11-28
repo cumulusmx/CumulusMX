@@ -157,7 +157,14 @@ namespace CumulusMX
 									// check for including the default alarm message
 									if (template.Contains("|IncludeAlarmMessage|"))
 									{
-										template = template.Replace("|IncludeAlarmMessage|", string.Format(EmailMsg, Value, Units));
+										var msg = EmailMsg;
+
+										if (!string.IsNullOrEmpty(LastMessage))
+										{
+											msg += "\r\nLast message: " + LastMessage;
+										}
+
+										template = template.Replace("|IncludeAlarmMessage|", string.Format(msg, Value, Units));
 									}
 
 									var parser = new TokenParser(cumulus.TokenParserOnToken)
@@ -366,7 +373,14 @@ namespace CumulusMX
 							// check for including the default alarm message
 							if (template.Contains("|IncludeAlarmMessage|"))
 							{
-								template = template.Replace("|IncludeAlarmMessage|", string.Format(EmailMsg, Value, Units));
+								var msg = EmailMsg;
+
+								if (!string.IsNullOrEmpty(LastMessage))
+								{
+									msg += "\r\nLast message: " + LastMessage;
+								}
+
+								template = template.Replace("|IncludeAlarmMessage|", string.Format(msg, Value, Units));
 							}
 
 							var parser = new TokenParser(cumulus.TokenParserOnToken)
@@ -479,7 +493,14 @@ namespace CumulusMX
 								// check for including the default alarm message
 								if (template.Contains("|IncludeAlarmMessage|"))
 								{
-									template = template.Replace("|IncludeAlarmMessage|", string.Format(EmailMsg, Value, Units));
+									var msg = EmailMsg;
+
+									if (!string.IsNullOrEmpty(LastMessage))
+									{
+										msg += "\r\nLast message: " + LastMessage;
+									}
+
+									template = template.Replace("|IncludeAlarmMessage|", string.Format(msg, Value, Units));
 								}
 
 								var parser = new TokenParser(cumulus.TokenParserOnToken)
