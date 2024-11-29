@@ -63,6 +63,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- **Note**: You must enable Bluesky and enter your Bluesky credentials in the Third Party Uploads settings, but you need not configure any Interval or Timed posts.
 - Adds support for the new Ecowitt Laser Distance Sensors to Ecowitt HTTP API and HTTP Station (Ecowitt) stations
 	- Adds new web tags `<#LaserDist1> - <#LaserDist4>` and `<#LaserDepth1> - <#LaserDepth4>`
+- The upload.php script has been updated, it will now create the upload destination folder if it does not exist.
 
 ### Changed
 

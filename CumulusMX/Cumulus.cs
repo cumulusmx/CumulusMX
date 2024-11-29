@@ -13,9 +13,9 @@ using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -37,8 +37,6 @@ using Microsoft.Extensions.Logging;
 using MySqlConnector;
 
 using NReco.Logging.File;
-
-using Org.BouncyCastle.Asn1.Ocsp;
 
 using Renci.SshNet;
 
@@ -1339,9 +1337,12 @@ namespace CumulusMX
 
 			WebSock = new MxWebSocket("/ws/", this);
 
+			//var cert = new X509Certificate2(new X509Certificate("c:\\temp\\CumulusMX.pfx", "password", X509KeyStorageFlags.UserKeySet));
+
 			WebServer httpServer = new WebServer(o => o
 					.WithUrlPrefix($"http://*:{HTTPport}/")
 					.WithMode(HttpListenerMode.EmbedIO)
+			//		.WithCertificate(cert)
 				)
 				.WithWebApi("/api/", m => m
 					.WithController<Api.EditController>()
@@ -1363,6 +1364,8 @@ namespace CumulusMX
 				.WithStaticFolder("/", htmlRootPath, true, m => m
 					.WithoutContentCaching()
 				);
+
+			//httpServer.Listener.AddPrefix($"https://*:{HTTPport + 1000}/");
 
 			// Set up the API web server
 			// Some APi functions require the station, so set them after station initialisation

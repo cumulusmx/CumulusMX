@@ -101,7 +101,7 @@
     <PackageReference Include="MailKit" Version="4.8.0" />
     <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
-    <PackageReference Include="ServiceStack.Text" Version="8.5.0" />
+    <PackageReference Include="ServiceStack.Text" Version="8.5.2" />
     <PackageReference Include="SSH.NET" Version="2024.2.0" />
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
