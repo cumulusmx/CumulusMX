@@ -3252,6 +3252,16 @@ namespace CumulusMX
 			return cumulus.IsSunUp() ? "1" : "0";
 		}
 
+		private string TagIsDawn(Dictionary<string, string> tagParams)
+		{
+			return cumulus.IsDawn() ? "1" : "0";
+		}
+
+		private string TagIsDusk(Dictionary<string, string> tagParams)
+		{
+			return cumulus.IsDusk() ? "1" : "0";
+		}
+
 		private string TagSensorContactLost(Dictionary<string, string> tagParams)
 		{
 			return station.SensorContactLost ? "1" : "0";
@@ -6562,6 +6572,8 @@ namespace CumulusMX
 				{ "daylightlength", Tagdaylightlength },
 				{ "isdaylight", Tagisdaylight },
 				{ "IsSunUp", TagIsSunUp },
+				{ "IsDawn", TagIsDawn },
+				{ "IsDusk", TagIsDusk },
 				{ "SensorContactLost", TagSensorContactLost },
 				{ "moonrise", Tagmoonrise },
 				{ "moonset", Tagmoonset },

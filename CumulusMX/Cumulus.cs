@@ -3583,6 +3583,34 @@ namespace CumulusMX
 			}
 		}
 
+		public bool IsDawn()
+		{
+			if (TwilightAlways)
+			{
+				return true;
+			}
+			if (TwilightNever)
+			{
+				return false;
+			}
+			// 'Normal' case where sun sets before midnight
+			return (DateTime.Now >= Dawn) && (DateTime.Now < SunRiseTime);
+		}
+
+		public bool IsDusk()
+		{
+			if (TwilightAlways)
+			{
+				return true;
+			}
+			if (TwilightNever)
+			{
+				return false;
+			}
+			// 'Normal' case where sun sets before midnight
+			return (DateTime.Now > SunSetTime) && (DateTime.Now <= Dusk);
+		}
+
 		public string RemoveOldDiagsFiles(string logType)
 		{
 			const int maxEntries = 12;

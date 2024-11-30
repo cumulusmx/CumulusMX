@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changes since last beta build
 
 - All time record alarms now add the record name and value to Bluesky posts
+- New web tags for dawn and dusk
 
 ### New
 
@@ -34,6 +35,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#temp9amYH>`,`<#Ttemp9amYH>`<br>
 	`<#temp9amYL>`,`<#Ttemp9amYL>`<br>
 	`<#temp9amRangeY>`
+- New web tags for dawn and dusk<br>
+	`<#IsDawn>`, `<#IsDusk>`
 - Added some validation to the fields in the log editors
 - The dashboard and default web site can now display Chill Hours charts
 - Initial support for the new Ecowitt WH54 LDS01 Laser Distance sensors, just sensor info/battery decoding for now as that is all that is documented
