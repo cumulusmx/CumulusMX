@@ -554,7 +554,7 @@ namespace CumulusMX
 			{
 				if (!string.IsNullOrEmpty(cumulus.Bluesky.VariablePostsTime[i]) && !string.IsNullOrEmpty(cumulus.Bluesky.VariablePostsFile[i]))
 				{
-					timedPosts.Add(new JsonBlueskyTime()
+					variablePosts.Add(new JsonBlueskyTime()
 					{
 						time = cumulus.Bluesky.VariablePostsTime[i],
 						file = cumulus.Bluesky.VariablePostsFile[i]

@@ -10,12 +10,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4062\]][9] - 2024-11-29
+## BETA [4.3.0 \[b4062\]][9] - 2024-11-31
 
 ### Changes since last beta build
 
 - All time record alarms now add the record name and value to Bluesky posts
 - New web tags for dawn and dusk
+- Fix Bluesky Variable post fields being loaded into the Timed posts fields of the settings page
 
 ### New
 
