@@ -157,7 +157,7 @@ namespace CumulusMX
 									// check for including the default alarm message
 									if (template.Contains("|IncludeAlarmMessage|"))
 									{
-										var msg = EmailMsg;
+										var msg = EmailMsg ?? string.Empty;
 
 										if (!string.IsNullOrEmpty(LastMessage))
 										{
@@ -373,7 +373,7 @@ namespace CumulusMX
 							// check for including the default alarm message
 							if (template.Contains("|IncludeAlarmMessage|"))
 							{
-								var msg = EmailMsg;
+								var msg = EmailMsg ?? string.Empty;
 
 								if (!string.IsNullOrEmpty(LastMessage))
 								{
@@ -493,7 +493,7 @@ namespace CumulusMX
 								// check for including the default alarm message
 								if (template.Contains("|IncludeAlarmMessage|"))
 								{
-									var msg = EmailMsg;
+									var msg = EmailMsg ?? string.Empty;
 
 									if (!string.IsNullOrEmpty(LastMessage))
 									{

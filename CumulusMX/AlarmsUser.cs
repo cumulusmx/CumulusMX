@@ -196,7 +196,7 @@ namespace CumulusMX
 									// check for including the default alarm message
 									if (template.Contains("|IncludeAlarmMessage|"))
 									{
-										template = template.Replace("|IncludeAlarmMessage|", string.Format(EmailMsg, Value, Units));
+										template = template.Replace("|IncludeAlarmMessage|", string.Format(EmailMsg ?? string.Empty, Value, Units));
 									}
 
 									var parser = new TokenParser(cumulus.TokenParserOnToken)
