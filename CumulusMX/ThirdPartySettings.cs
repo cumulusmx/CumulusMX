@@ -302,18 +302,19 @@ namespace CumulusMX
 								cumulus.Bluesky.TimedPostsFile[i] = settings.bluesky.times[i].file;
 							}
 						}
-					}
-					for (var i = 0; i < cumulus.Bluesky.VariablePostsTime.Length; i++)
-					{
-						if (i >= settings.bluesky.variable.Length || string.IsNullOrEmpty(settings.bluesky.variable[i].time) || string.IsNullOrEmpty(settings.bluesky.variable[i].file))
+
+						for (var i = 0; i < cumulus.Bluesky.VariablePostsTime.Length; i++)
 						{
-							cumulus.Bluesky.VariablePostsTime[i] = null;
-							cumulus.Bluesky.VariablePostsFile[i] = null;
-						}
-						else
-						{
-							cumulus.Bluesky.VariablePostsTime[i] = settings.bluesky.variable[i].time;
-							cumulus.Bluesky.VariablePostsFile[i] = settings.bluesky.variable[i].file;
+							if (i >= settings.bluesky.variable.Length || string.IsNullOrEmpty(settings.bluesky.variable[i].time) || string.IsNullOrEmpty(settings.bluesky.variable[i].file))
+							{
+								cumulus.Bluesky.VariablePostsTime[i] = null;
+								cumulus.Bluesky.VariablePostsFile[i] = null;
+							}
+							else
+							{
+								cumulus.Bluesky.VariablePostsTime[i] = settings.bluesky.variable[i].time;
+								cumulus.Bluesky.VariablePostsFile[i] = settings.bluesky.variable[i].file;
+							}
 						}
 					}
 				}

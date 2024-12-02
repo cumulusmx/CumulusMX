@@ -10,13 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.3.0 \[b4062\]][9] - 2024-11-31
-
-### Changes since last beta build
-
-- All time record alarms now add the record name and value to Bluesky posts
-- New web tags for dawn and dusk
-- Fix Bluesky Variable post fields being loaded into the Timed posts fields of the settings page
+## [4.3.0 \[b4063\]][9] - 2024-12-03
 
 ### New
 
@@ -99,6 +93,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - User Alarms:
 	- You can now use multiple web tags and arithmetic operators in the data field
 	- You now have the option of data Equals value type alarms as well as Above and Below
+- Changed Custom Alarms to User defined alarms in the dashboard menu
 
 ### Fixed
 
@@ -113,6 +108,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix low battery warning for old model Ecowitt WH40 sensors that do not send the battery status when using the Ecowitt HTTP Local API
 - Alarms: removes checks for File.Exists(Action) and traps FileNotFound exceptions instead
 - Fix for new installs registering the year-to-date rainfall as todays rainfall
+- Fix for alarm sounds not playing on main dashboard after the initial page load
 
 ### Package Updates
 
@@ -472,4 +468,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [6]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4028
 [7]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4039
 [8]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4043
-[9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4050
+[9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4063
