@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http;
 using System.Text;
@@ -14,6 +15,7 @@ namespace CumulusMX
 	{
 		private readonly Cumulus cumulus = cumul;
 		private static readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
+		internal static readonly string[] lineEnds = ["\r\n", "\n"];
 
 		public LiveData GetLiveData(CancellationToken token)
 		{
@@ -307,7 +309,6 @@ namespace CumulusMX
 			{
 				var url = $"http://{cumulus.Gw1000IpAddress}/get_version";
 
-				// we want to do this synchronously, so .Result
 				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
 				{
 					responseBody = response.Content.ReadAsStringAsync(token).Result;
@@ -408,7 +409,6 @@ namespace CumulusMX
 
 			// response = 200 - OK
 		}
-
 
 		public static  void SetLogin(string password)
 		{
@@ -580,7 +580,6 @@ namespace CumulusMX
 			//{pwd: "base64_string"}
 		}
 
-
 		public static void Reboot(CancellationToken token)
 		{
 			// http://ip-address/set_device_info
@@ -588,6 +587,115 @@ namespace CumulusMX
 			// POST
 			// { sysreboot: 1 }
 
+		}
+
+		public async Task<SdCard> GetSdCardInfo(CancellationToken token)
+		{
+			// http://IP-address/get_sdmmc_info
+
+			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
+			{
+				cumulus.LogErrorMessage("GetSensorInfo: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				return null;
+			}
+
+			string responseBody;
+			int responseCode;
+
+			try
+			{
+				var url = $"http://{cumulus.Gw1000IpAddress}/get_sdmmc_info";
+
+				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
+				{
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Response code: {responseCode}");
+					cumulus.LogDataMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					cumulus.LogWarningMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Error: {responseCode}");
+					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					return null;
+				}
+
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo: No data was returned.");
+					Cumulus.LogConsoleMessage(" - No data available");
+					return null;
+				}
+				else if (responseBody.StartsWith('{')) // sanity check
+				{
+					// Convert JSON string to an object
+					return responseBody.FromJson<SdCard>();
+				}
+			}
+			catch (System.Net.Http.HttpRequestException ex)
+			{
+				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage("GetSdCardInfo: Error - This Station does not support the HTTP API!");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "GetSdCardInfo: HTTP Error");
+				}
+			}
+
+			return null;
+		}
+
+		public async Task<List<string>> GetSdFileContents(string fileName, CancellationToken token)
+		{
+			// http://IP-address:81/filename (where filename is YYYYMMZ.csv resp. YYYMMAllSensors_Z.csv)
+
+			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
+			{
+				cumulus.LogErrorMessage("GetSdFileContents: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				return null;
+			}
+
+			string responseBody;
+			int responseCode;
+
+			try
+			{
+				var url = $"http://{cumulus.Gw1000IpAddress}:81/" + fileName;
+
+				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
+				{
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response code: {responseCode}");
+					cumulus.LogDataMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response: {responseBody}");
+
+					if (responseCode != 200)
+					{
+						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Error: {responseCode}");
+						Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+						return null;
+					}
+
+					return new List<string>(responseBody.Split(lineEnds, StringSplitOptions.None)); ;
+				}
+			}
+			catch (System.Net.Http.HttpRequestException ex)
+			{
+				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage("GetSdFileContents: Error - This Station does not support the HTTP API!");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "GetSdFileContents: HTTP Error");
+				}
+			}
+
+			return null;
 		}
 
 		private static string decodePassword(string base64EncodedData)
@@ -809,6 +917,28 @@ namespace CumulusMX
 			public string version { get; set; }
 			public string newVersion { get; set; }
 			public string platform { get; set; }
+		}
+
+		public class SdCardInfo
+		{
+			public string Name { get; set; }
+			public string Type { get; set; }
+			public string Speed { get; set; }
+			public string Size { get; set; }
+			public int Interval { get; set; }
+		}
+
+		public class SdCardfile
+		{
+			public string name { get; set; }
+			public int type { get; set; }
+			public int size { get; set; }
+		}
+
+		public class SdCard
+		{
+			public SdCardInfo info { get; set; }
+			public SdCardfile[] file_list { get; set; }
 		}
 
 		private sealed class CheckUpgrade
