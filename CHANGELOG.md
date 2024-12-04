@@ -32,6 +32,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#temp9amRangeY>`
 - New web tags for dawn and dusk<br>
 	`<#IsDawn>`, `<#IsDusk>`
+- New web tags for user defined wind speeds<br>
+	`<#WindAvgCust m=NN>`, `<#WindGustCust m=NN>`
+	- Where m=NN defines the period NN minutes to average the wind speed, or measure the peak gust speed
 - Added some validation to the fields in the log editors
 - The dashboard and default web site can now display Chill Hours charts
 - Initial support for the new Ecowitt WH54 LDS01 Laser Distance sensors, just sensor info/battery decoding for now as that is all that is documented
@@ -77,7 +80,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The Editor page gains a new "Upload File" button to re-import your exported CSV files
 	- The Editor page now also has a Time field which defaults to the configured snow recording time, but you may override it
 	- There is a new option to automatically create a snow depth record on your snow recording hour. This requires the connection of an Ecowitt WH54/LDS-01 sensor to your station
-	- A new web tags `<#snow24h>` and `<#snowcomment>`
+	- A new web tags `<#snow24h>`, `<#snowcomment>`, and `<#Option_showSnow>`
 	- The web tag `<#snowfalling>` has been deprecated (it will return an empty string until it is removed)
 	- A new daily graph data file `alldailysnowdata.json`
 - Chill Hours now allows you to define a base temperature, where chill hours are only counted if the temperature is < threshold AND > base
