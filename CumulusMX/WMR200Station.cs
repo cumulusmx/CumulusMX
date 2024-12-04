@@ -34,6 +34,7 @@ namespace CumulusMX
 		//private int ArchiveDataCount = 0;
 		private bool firstArchiveData = true;
 		private bool midnightraindone;
+		private bool rollover9amdone;
 		private double hourInc;
 		private int rollHour;
 		private bool rolloverdone;
@@ -147,6 +148,7 @@ namespace CumulusMX
 			rolloverdone = luhour == rollHour;
 
 			midnightraindone = luhour == 0;
+			rollover9amdone = luhour == 9;
 
 			gettingHistory = true;
 			livePacketCount = 0;
@@ -949,7 +951,7 @@ namespace CumulusMX
 			double slp = ((packetBuffer[10] & 0xF) * 256) + packetBuffer[9];
 			DoPressure(ConvertUnits.PressMBToUser(slp), DateTime.Now);
 
-			StationPressure = ConvertUnits.PressMBToUser(((packetBuffer[8] & 0xF) * 256) + packetBuffer[7]);
+			DoStationPressure(ConvertUnits.PressMBToUser(((packetBuffer[8] & 0xF) * 256) + packetBuffer[7]));
 
 			var forecast = packetBuffer[8] / 16;
 			var fcstr = forecast switch
@@ -1401,6 +1403,12 @@ namespace CumulusMX
 				ResetMidnightTemperatures(timestamp);
 				midnightraindone = true;
 			}
+			// 9am rollover items
+			if (h == 9 && !rollover9amdone)
+			{
+				Reset9amTemperatures(timestamp);
+				rollover9amdone = true;
+			}
 			// there seems to be no way of determining the log interval other than subtracting one logMainUnit.Units.MainUnit.cumulus.LogMessage
 			// timestamp from another, so we'll have to ignore the first one
 			if (previousHistoryTimeStamp > DateTime.MinValue)
@@ -1413,7 +1421,7 @@ namespace CumulusMX
 			}
 			previousHistoryTimeStamp = timestamp;
 			// pressure
-			StationPressure = ConvertUnits.PressMBToUser(((packetBuffer[29] & 0xF) * 256) + packetBuffer[28]);
+			DoStationPressure(ConvertUnits.PressMBToUser(((packetBuffer[29] & 0xF) * 256) + packetBuffer[28]));
 			double num = ((packetBuffer[31] & 0xF) * 256) + packetBuffer[30];
 			DoPressure(ConvertUnits.PressMBToUser(num), timestamp);
 
@@ -1478,7 +1486,7 @@ namespace CumulusMX
 						TempTotalToday += (OutdoorTemperature * interval);
 
 						// update chill hours
-						if (OutdoorTemperature < cumulus.ChillHourThreshold)
+						if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 						{
 							// add 1 minute to chill hours
 							ChillHours += (interval / 60.0);

@@ -112,7 +112,7 @@ namespace CumulusMX
 				cumulus.LogMessage("Ecowitt Extra Gateway Custom Server configuration complete");
 			}
 
-			if (mainStation || cumulus.EcowittExtraUseAQI)
+			if (mainStation || cumulus.ExtraSensorUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
@@ -120,7 +120,7 @@ namespace CumulusMX
 			{
 				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
-			if (mainStation || cumulus.EcowittExtraUseLeafWet)
+			if (mainStation || cumulus.ExtraSensorUseLeafWet)
 			{
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
@@ -164,7 +164,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						var retVal = ecowittApi.GetStationList(cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+						var retVal = ecowittApi.GetStationList(cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
 						if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
 						{
 							deviceFirmware = new Version(retVal[0]);
@@ -270,7 +270,7 @@ namespace CumulusMX
 
 		public override string GetEcowittCameraUrl()
 		{
-			if ((cumulus.EcowittExtraUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if ((cumulus.ExtraSensorUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 			{
 				try
 				{
@@ -288,7 +288,7 @@ namespace CumulusMX
 
 		public override string GetEcowittVideoUrl()
 		{
-			if ((cumulus.EcowittExtraUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if ((cumulus.ExtraSensorUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 			{
 				try
 				{
@@ -593,22 +593,18 @@ namespace CumulusMX
 
 						if (stnPress == null)
 						{
-							cumulus.LogDebugMessage($"{procName}: Error, missing absolute baro pressure");
+							cumulus.LogWarningMessage($"{procName}: Error, missing absolute baro pressure");
 						}
 						else
 						{
-							StationPressure = ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, invNum));
+							DoStationPressure(ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, invNum)));
 
 							if (cumulus.StationOptions.CalculateSLP)
 							{
-								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
-
 								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 
 								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
 							}
-
-							AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
 						}
 					}
 					catch (Exception ex)
@@ -661,7 +657,7 @@ namespace CumulusMX
 							IsRaining = (cumulus.StationOptions.UseRainForIsRaining == 0 ? Convert.ToDouble(rRate, invNum): Convert.ToDouble(data["rrain_piezo"], invNum)) > 0;
 							cumulus.IsRainingAlarm.Triggered = IsRaining;
 						}
-						
+
 
 						if (rRate == null)
 						{
@@ -701,7 +697,7 @@ namespace CumulusMX
 
 
 				// === Extra Humidity ===
-				if (main || cumulus.EcowittExtraUseTempHum)
+				if (main || cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -716,7 +712,7 @@ namespace CumulusMX
 
 
 				// === Extra Temperature ===
-				if (main || cumulus.EcowittExtraUseTempHum)
+				if (main || cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -730,7 +726,7 @@ namespace CumulusMX
 				}
 
 				// === Solar ===
-				if (main || cumulus.EcowittExtraUseSolar)
+				if (main || cumulus.ExtraSensorUseSolar)
 				{
 					try
 					{
@@ -745,7 +741,7 @@ namespace CumulusMX
 
 
 				// === UV ===
-				if (main || cumulus.EcowittExtraUseUv)
+				if (main || cumulus.ExtraSensorUseUv)
 				{
 					try
 					{
@@ -760,7 +756,7 @@ namespace CumulusMX
 
 
 				// === Soil Temp ===
-				if (main || cumulus.EcowittExtraUseSoilTemp)
+				if (main || cumulus.ExtraSensorUseSoilTemp)
 				{
 					try
 					{
@@ -776,7 +772,7 @@ namespace CumulusMX
 
 
 				// === Soil Moisture ===
-				if (main || cumulus.EcowittExtraUseSoilMoist)
+				if (main || cumulus.ExtraSensorUseSoilMoist)
 				{
 					try
 					{
@@ -790,7 +786,7 @@ namespace CumulusMX
 				}
 
 				// === Soil Moisture Raw ===
-				if (main || cumulus.EcowittExtraUseSoilMoist)
+				if (main || cumulus.ExtraSensorUseSoilMoist)
 				{
 					try
 					{
@@ -805,7 +801,7 @@ namespace CumulusMX
 				}
 
 				// === Leaf Wetness ===
-				if (main || cumulus.EcowittExtraUseLeafWet)
+				if (main || cumulus.ExtraSensorUseLeafWet)
 				{
 					try
 					{
@@ -821,7 +817,7 @@ namespace CumulusMX
 
 
 				// === User Temp (Soil or Water) ===
-				if (main || cumulus.EcowittExtraUseUserTemp)
+				if (main || cumulus.ExtraSensorUseUserTemp)
 				{
 					try
 					{
@@ -836,7 +832,7 @@ namespace CumulusMX
 
 
 				// === Air Quality ===
-				if (main || cumulus.EcowittExtraUseAQI)
+				if (main || cumulus.ExtraSensorUseAQI)
 				{
 					try
 					{
@@ -852,7 +848,7 @@ namespace CumulusMX
 
 
 				// === CO₂ ===
-				if (main || cumulus.EcowittExtraUseCo2)
+				if (main || cumulus.ExtraSensorUseCo2)
 				{
 					try
 					{
@@ -874,7 +870,7 @@ namespace CumulusMX
 
 
 				// === Lightning ===
-				if (main || cumulus.EcowittExtraUseLightning)
+				if (main || cumulus.ExtraSensorUseLightning)
 				{
 					try
 					{
@@ -891,7 +887,7 @@ namespace CumulusMX
 
 
 				// === Leak ===
-				if (main || cumulus.EcowittExtraUseLeak)
+				if (main || cumulus.ExtraSensorUseLeak)
 				{
 					try
 					{
@@ -904,6 +900,20 @@ namespace CumulusMX
 					}
 				}
 
+
+				// === Laser Distance ===
+				if (main || cumulus.ExtraSensorUseLaserDist)
+				{
+					try
+					{
+						// laser_distance
+						ProcessLds(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in Laser Distance data - {ex.Message}");
+					}
+				}
 
 				// === Batteries ===
 				try
@@ -923,6 +933,7 @@ namespace CumulusMX
 					pm25batt[1-4] (wh41/wh43)
 					leakbatt[1-4] (wh55)
 					co2_batt
+					ldsbatt1[1-4]
 					*/
 
 					ProcessBatteries(data);
@@ -934,7 +945,7 @@ namespace CumulusMX
 
 
 				// === Extra Dew point ===
-				if (main || cumulus.EcowittExtraUseTempHum)
+				if (main || cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -1111,7 +1122,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							var retVal = ecowittApi.GetStationList(main || cumulus.EcowittExtraUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+							var retVal = ecowittApi.GetStationList(main || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
 							if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 							{
 								deviceFirmware = new Version(retVal[0]);
@@ -1310,43 +1321,18 @@ namespace CumulusMX
 			// co2
 			// co2_24h
 
-			if (data["tf_co2"] != null)
-			{
-				station.CO2_temperature = ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_co2"], invNum));
-			}
-			if (data["humi_co2"] != null)
-			{
-				station.CO2_humidity = Convert.ToInt32(data["humi_co2"], invNum);
-			}
-			if (data["pm25_co2"] != null)
-			{
-				station.CO2_pm2p5 = Convert.ToDouble(data["pm25_co2"], invNum);
-				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
-			}
-			if (data["pm25_24h_co2"] != null)
-			{
-				station.CO2_pm2p5_24h = Convert.ToDouble(data["pm25_24h_co2"], invNum);
-				station.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5h24, station.CO2_pm2p5_24h);
-
-			}
-			if (data["pm10_co2"] != null)
-			{
-				station.CO2_pm10 = Convert.ToDouble(data["pm10_co2"], invNum);
-				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
-			}
-			if (data["pm10_24h_co2"] != null)
-			{
-				station.CO2_pm10_24h = Convert.ToDouble(data["pm10_24h_co2"], invNum);
-				station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10h24, station.CO2_pm10_24h);
-			}
-			if (data["co2"] != null)
-			{
-				station.CO2 = Convert.ToInt32(data["co2"], invNum);
-			}
-			if (data["co2_24h"] != null)
-			{
-				station.CO2_24h = Convert.ToInt32(data["co2_24h"], invNum);
-			}
+			station.CO2_temperature = data["tf_co2"] != null ? ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_co2"], invNum)) : null;
+			station.CO2_humidity = data["humi_co2"] != null ? Convert.ToInt32(data["humi_co2"], invNum) : null;
+			station.CO2_pm2p5 = data["pm25_co2"] != null ? Convert.ToDouble(data["pm25_co2"], invNum) : null;
+			station.CO2_pm2p5_aqi = station.CO2_pm2p5.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5.Value) : null;
+			station.CO2_pm2p5_24h = data["pm25_24h_co2"] != null ? Convert.ToDouble(data["pm25_24h_co2"], invNum) : null;
+			station.CO2_pm2p5_24h_aqi = station.CO2_pm2p5_24h.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm2p5h24, station.CO2_pm2p5_24h.Value) : null;
+			station.CO2_pm10 = data["pm10_co2"] != null ? Convert.ToDouble(data["pm10_co2"], invNum) : null;
+			station.CO2_pm10_aqi = station.CO2_pm10.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10.Value) : null;
+			station.CO2_pm10_24h = data["pm10_24h_co2"] != null ? Convert.ToDouble(data["pm10_24h_co2"], invNum) : null;
+			station.CO2_pm10_24h_aqi = station.CO2_pm10_24h.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm10h24, station.CO2_pm10_24h.Value) : null;
+			station.CO2 = data["co2"] != null ? Convert.ToInt32(data["co2"], invNum) : null;
+			station.CO2_24h = data["co2_24h"] != null ? Convert.ToInt32(data["co2_24h"], invNum) : null;
 		}
 
 		private void ProcessLightning(NameValueCollection data, WeatherStation station)
@@ -1359,14 +1345,14 @@ namespace CumulusMX
 			{
 				// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
 				var valDist = Convert.ToDouble(dist, invNum);
-				if (valDist != 255)
+				if ((int) valDist != 255)
 				{
 					station.LightningDistance = ConvertUnits.KmtoUserUnits(valDist);
 				}
 
 				var valTime = Convert.ToDouble(time, invNum);
 				// Sends a default value until the first strike is detected of 0xFFFFFFFF
-				if (valTime != 0xFFFFFFFF)
+				if ((long) valTime != 0xFFFFFFFF)
 				{
 					var dtDateTime = DateTime.UnixEpoch;
 					dtDateTime = dtDateTime.AddSeconds(valTime).ToLocalTime();
@@ -1395,6 +1381,23 @@ namespace CumulusMX
 			}
 		}
 
+		private void ProcessLds(NameValueCollection data, WeatherStation station)
+		{
+			for (var i = 1; i <= 4; i++)
+			{
+				if (data["air_ch" + i] != null)
+				{
+					station.DoLaserDistance(ConvertUnits.LaserMmtoUser(Convert.ToInt32(data["air_ch" + i], invNum)), i);
+				}
+
+				if (data["depth_ch" + i] != null)
+				{
+					station.DoLaserDistance(ConvertUnits.LaserMmtoUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i);
+				}
+			}
+		}
+
+
 		private void ProcessBatteries(NameValueCollection data)
 		{
 			var lowBatt = false;
@@ -1415,6 +1418,7 @@ namespace CumulusMX
 				lowBatt = lowBatt || (data["leakbatt" + i] != null && data["leakbatt" + i] == "1");
 				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["ldsbatt" + i] != null && Convert.ToDouble(data["ldsbatt" + i], invNum) <= 1.2);
 			}
 			for (var i = 5; i < 9; i++)
 			{
@@ -1433,7 +1437,7 @@ namespace CumulusMX
 			{
 				if (data["temp" + i + "f"] != null && data["humidity" + i] != null)
 				{
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[i]), station.ExtraHum[i]);
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[i].Value), station.ExtraHum[i].Value);
 					station.ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
 				}
 			}
@@ -1637,11 +1641,7 @@ namespace CumulusMX
 
 		private async Task CheckAvailableFirmware(string deviceModel)
 		{
-			if (EcowittApi.FirmwareSupportedModels.Contains(deviceModel[..6]))
-			{
-				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, "V" + deviceFirmware.ToString(), cumulus.cancellationToken);
-			}
-			else
+			if (EcowittApi.SimpleSupportedModels.Contains(deviceModel[..6]))
 			{
 				var retVal = await ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken);
 				if (retVal != null)
@@ -1659,6 +1659,10 @@ namespace CumulusMX
 						cumulus.LogDebugMessage($"FirmwareVersion: Already on the latest Version {retVal[0]}");
 					}
 				}
+			}
+			else
+			{
+				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, "V" + deviceFirmware.ToString(), cumulus.cancellationToken);
 			}
 		}
 

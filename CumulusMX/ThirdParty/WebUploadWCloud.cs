@@ -139,8 +139,8 @@ namespace CumulusMX.ThirdParty
 			StringBuilder sb = new StringBuilder($"https://api.weathercloud.net/v01/set?wid={ID}&key={PW}");
 
 			//Temperature
-			if (station.IndoorTemperature > Cumulus.DefaultHiVal)
-				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(station.IndoorTemperature) * 10));
+			if (station.IndoorTemperature.HasValue)
+				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(station.IndoorTemperature.Value) * 10));
 			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
 				sb.Append("&temp=" + (int) Math.Round(ConvertUnits.UserTempToC(station.OutdoorTemperature) * 10));
 			if (station.WindChill > Cumulus.DefaultHiVal)
@@ -151,7 +151,7 @@ namespace CumulusMX.ThirdParty
 				sb.Append("&heat=" + (int) Math.Round(ConvertUnits.UserTempToC(station.HeatIndex) * 10));
 
 			// Humidity
-			if (station.IndoorHumidity >= 0)
+			if (station.IndoorHumidity.HasValue)
 				sb.Append("&humin=" + station.IndoorHumidity);
 			if (station.OutdoorHumidity >= 0)
 				sb.Append("&hum=" + station.OutdoorHumidity);
@@ -184,15 +184,15 @@ namespace CumulusMX.ThirdParty
 			}
 
 			// solar
-			if (SendSolar && station.SolarRad >= 0)
+			if (SendSolar && station.SolarRad.HasValue)
 			{
 				sb.Append("&solarrad=" + station.SolarRad * 10);
 			}
 
 			// uv
-			if (SendUV && station.UV >= 0)
+			if (SendUV && station.UV.HasValue)
 			{
-				sb.Append("&uvi=" + (int) Math.Round(station.UV * 10));
+				sb.Append("&uvi=" + (int) Math.Round(station.UV.Value * 10));
 			}
 
 			// aq
@@ -209,36 +209,36 @@ namespace CumulusMX.ThirdParty
 						}
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
-						if (station.AirQuality1 >= 0)
+						if (station.AirQuality1.HasValue)
 							sb.Append($"&pm25={station.AirQuality1:F0}");
-						if (station.AirQualityAvg1 >= 0)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg1)}");
+						if (station.AirQualityAvg1.HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg1.Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
-						if (station.AirQuality2 >= 0)
+						if (station.AirQuality2.HasValue)
 							sb.Append($"&pm25={station.AirQuality2:F0}");
-						if (station.AirQualityAvg2 >= 0)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg2)}");
+						if (station.AirQualityAvg2.HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg2.Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
-						if (station.AirQuality3 >= 0)
+						if (station.AirQuality3.HasValue)
 							sb.Append($"&pm25={station.AirQuality3:F0}");
-						if (station.AirQualityAvg3 >= 0)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg3)}");
+						if (station.AirQualityAvg3.HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg3.Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
-						if (station.AirQuality4 >= 0)
+						if (station.AirQuality4.HasValue)
 							sb.Append($"&pm25={station.AirQuality4:F0}");
-						if (station.AirQualityAvg4 >= 0)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg4)}");
+						if (station.AirQualityAvg4.HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg4.Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
-						if (station.CO2_pm2p5 >= 0)
+						if (station.CO2_pm2p5.HasValue)
 							sb.Append($"&pm25={station.CO2_pm2p5:F0}");
-						if (station.CO2_pm10 >= 0)
+						if (station.CO2_pm10.HasValue)
 							sb.Append($"&pm10={station.CO2_pm10:F0}");
-						if (station.CO2_pm2p5_24h >= 0)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.CO2_pm2p5_24h)}");
+						if (station.CO2_pm2p5_24h.HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.CO2_pm2p5_24h.Value)}");
 						break;
 				}
 			}
@@ -247,7 +247,7 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilMoisture)
 			{
 				// Weathercloud wants soil moisture in centibar. Davis supplies this, but Ecowitt provide a percentage
-				int moist = 0;
+				int? moist;
 
 				switch (cumulus.WCloud.SoilMoistureSensor)
 				{
@@ -299,21 +299,27 @@ namespace CumulusMX.ThirdParty
 					case 16:
 						moist = station.SoilMoisture16;
 						break;
+					default:
+						moist = null;
+						break;
 				}
 
-				if (cumulus.Manufacturer == Cumulus.EW)
+				if (moist.HasValue)
 				{
-					// very! approximate conversion from percentage to cb
-					moist = (100 - moist) * 2;
-				}
+					if (cumulus.Manufacturer == Cumulus.EW)
+					{
+						// very! approximate conversion from percentage to cb
+						moist = (100 - moist) * 2;
+					}
 
-				sb.Append($"&soilmoist={moist}");
+					sb.Append($"&soilmoist={moist}");
+				}
 			}
 
 			// leaf wetness
 			if (SendLeafWetness)
 			{
-				double wet = 0;
+				double? wet;
 
 				switch (cumulus.WCloud.LeafWetnessSensor)
 				{
@@ -341,9 +347,15 @@ namespace CumulusMX.ThirdParty
 					case 8:
 						wet = station.LeafWetness8;
 						break;
+					default:
+						wet = null;
+						break;
 				}
 
-				sb.Append($"&leafwet={wet.ToString(cumulus.LeafWetFormat)}");
+				if (wet.HasValue)
+				{
+					sb.Append($"&leafwet={wet.Value.ToString(cumulus.LeafWetFormat)}");
+				}
 			}
 
 			// date - UTC

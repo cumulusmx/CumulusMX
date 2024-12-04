@@ -24,6 +24,8 @@ namespace CumulusMX
 
 			cumulus.LogMessage("Station type = Tempest");
 
+			// Tempest does not provide a sea level pressure
+			cumulus.StationOptions.CalculateSLP = true;
 			// Tempest does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 
@@ -89,6 +91,7 @@ namespace CumulusMX
 			var luhour = cumulus.LastUpdateTime.Hour;
 			var rolloverdone = luhour == rollHour;
 			var midnightraindone = luhour == 0;
+			var rollover9amdone = luhour == 9;
 
 			var ticks = Environment.TickCount;
 			foreach (var historydata in datalist)
@@ -126,10 +129,16 @@ namespace CumulusMX
 					midnightraindone = true;
 				}
 
+				// 9am rollover items
+				if (h == 9 && !rollover9amdone)
+				{
+					Reset9amTemperatures(timestamp);
+					rollover9amdone = true;
+				}
+
 				// Pressure =============================================================
-				var alt = AltitudeM(cumulus.Altitude);
-				var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) historydata.StationPressure, (double) historydata.Temperature);
-				DoPressure(ConvertUnits.PressMBToUser(seaLevel), timestamp);
+				DoStationPressure(ConvertUnits.PressMBToUser((double) historydata.StationPressure));
+				DoPressure(ConvertUnits.PressMBToUser(MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), (double) historydata.Temperature)), timestamp);
 
 				// Outdoor Humidity =====================================================
 				DoOutdoorHumidity((int) historydata.Humidity, timestamp);
@@ -145,7 +154,7 @@ namespace CumulusMX
 				TempTotalToday += OutdoorTemperature * historydata.ReportInterval;
 
 				// update chill hours
-				if (OutdoorTemperature < cumulus.ChillHourThreshold)
+				if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 					// add 1 minute to chill hours
 					ChillHours += historydata.ReportInterval / 60.0;
 
@@ -400,6 +409,10 @@ namespace CumulusMX.Tempest
 						PacketReceived?.Invoke(this, new PacketReceivedEventArgs(data));
 					}
 				}
+			}
+			catch (TaskCanceledException)
+			{
+				// Ignore
 			}
 			catch (Exception e)
 			{

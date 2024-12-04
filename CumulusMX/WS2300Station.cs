@@ -218,6 +218,7 @@ namespace CumulusMX
 			bool rolloverdone = luhour == rollHour;
 
 			bool midnightraindone = luhour == 0;
+			bool rollover9amdone = luhour == 9;
 
 			double prevraintotal = -1;
 			double raindiff, rainrate;
@@ -265,6 +266,12 @@ namespace CumulusMX
 					midnightraindone = true;
 				}
 
+				// 9am rollover items
+				if (h == 9 && !rollover9amdone)
+				{
+					Reset9amTemperatures(timestamp);
+					rollover9amdone = true;
+				}
 				// Humidity ====================================================================
 				if ((historydata.inHum > 0) && (historydata.inHum <= 100))
 					DoIndoorHumidity(historydata.inHum);
@@ -285,7 +292,7 @@ namespace CumulusMX
 					tempsamplestoday += historydata.interval;
 					TempTotalToday += (OutdoorTemperature * historydata.interval);
 
-					if (OutdoorTemperature < cumulus.ChillHourThreshold)
+					if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 					// add 1 minute to chill hours
 					{
 						ChillHours += (historydata.interval / 60.0);
@@ -656,8 +663,7 @@ namespace CumulusMX
 
 				if ((Pressure > 850) && (Pressure < 1200))
 				{
-					StationPressure = ConvertUnits.PressMBToUser(cumulus.Calib.Press.Calibrate(pressure));
-					// AltimeterPressure := ConvertOregonPress(StationToAltimeter(PressureHPa(StationPressure),AltitudeM(Altitude)));
+					DoStationPressure(ConvertUnits.PressMBToUser(pressure));
 				}
 			}
 

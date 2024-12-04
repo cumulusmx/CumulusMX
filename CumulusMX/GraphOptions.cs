@@ -36,6 +36,7 @@ namespace CumulusMX
 			public GraphDataValue TempSum0 { get; set; } = new GraphDataValue();
 			public GraphDataValue TempSum1 { get; set; } = new GraphDataValue();
 			public GraphDataValue TempSum2 { get; set; } = new GraphDataValue();
+			public GraphDataValue ChillHours { get; set; } = new GraphDataValue();
 			public GraphOptionsDataArray ExtraTemp { get; set; } = new GraphOptionsDataArray();
 			public GraphOptionsDataArray ExtraHum { get; set; } = new GraphOptionsDataArray();
 			public GraphOptionsDataArray ExtraDewPoint { get; set; } = new GraphOptionsDataArray();
@@ -49,6 +50,8 @@ namespace CumulusMX
 			public GraphDataValue MinTemp { get; set; } = new GraphDataValue();
 			public GraphOptionsCo2Sensor CO2Sensor { get; set; } = new GraphOptionsCo2Sensor();
 			public GraphOptionsAQSensor AqSensor { get; set; } = new GraphOptionsAQSensor();
+			public GraphDataValue SnowDepth { get; set; } = new GraphDataValue();
+			public GraphDataValue Snow24h { get; set; } = new GraphDataValue();
 
 			public GraphOptionsVisible()
 			{
@@ -149,13 +152,13 @@ namespace CumulusMX
 			public string Sunshine { get; set; }
 			public string Pm2p5 { get; set; }
 			public string Pm10 { get; set; }
-			public string[] ExtraTemp = new string[10];
-			public string[] ExtraHum = new string[10];
-			public string[] ExtraDewPoint = new string[10];
-			public string[] SoilTemp = new string[16];
-			public string[] SoilMoist = new string[16];
-			public string[] LeafWetness = new string[2];
-			public string[] UserTemp = new string[8];
+			public string[] ExtraTemp { get; set; } = new string[10];
+			public string[] ExtraHum { get; set; } = new string[10];
+			public string[] ExtraDewPoint { get; set; } = new string[10];
+			public string[] SoilTemp { get; set; } = new string[16];
+			public string[] SoilMoist { get; set; } = new string[16];
+			public string[] LeafWetness { get; set; } = new string[2];
+			public string[] UserTemp { get; set; } = new string[8];
 			// daily values
 			public string MaxTemp { get; set; }
 			public string MinTemp { get; set; }
@@ -176,6 +179,8 @@ namespace CumulusMX
 			public string WindRun { get; set; }
 			public string MaxOutHum { get; set; }
 			public string MinOutHum { get; set; }
+			public string SnowDepth { get; set; }
+			public string Snow24h { get; set; }
 
 			public GraphOptionsCo2SensorColour CO2Sensor { get; set; }
 

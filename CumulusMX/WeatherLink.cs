@@ -176,8 +176,6 @@ namespace CumulusMX
 
 		public int ForecastRule { get; private set; }
 
-		public int HiSolarRad { get; private set; }
-
 		public int SolarRad { get; private set; }
 
 		public byte TXbattStatus { get; private set; }
@@ -200,11 +198,11 @@ namespace CumulusMX
 			WindDirection = BitConverter.ToInt16(byteArray, 16); // Uint16
 			CurrentWindSpeed = Convert.ToInt32(byteArray[14]); // Byte - unsigned byte
 			AvgWindSpeed = Convert.ToInt32(byteArray[15]); // Byte - unsigned byte
-			DailyRain = (double) (BitConverter.ToInt16(byteArray, 50)); // Uint16
-			MonthRain = (double) (BitConverter.ToInt16(byteArray, 52)); // Uint16
-			YearRain = (double) (BitConverter.ToInt16(byteArray, 54)); // Uint16
-			RainRate = (double) (BitConverter.ToInt16(byteArray, 41)); // Uint16
-			StormRain = (double) (BitConverter.ToInt16(byteArray, 46));
+			DailyRain = BitConverter.ToInt16(byteArray, 50); // Uint16
+			MonthRain = BitConverter.ToInt16(byteArray, 52); // Uint16
+			YearRain = BitConverter.ToInt16(byteArray, 54); // Uint16
+			RainRate = BitConverter.ToInt16(byteArray, 41); // Uint16
+			StormRain = BitConverter.ToInt16(byteArray, 46);
 			ForecastRule = Convert.ToInt32(byteArray[90]);
 			LeafTemp1 = Convert.ToInt32(byteArray[29]);
 			LeafTemp2 = Convert.ToInt32(byteArray[30]);
@@ -292,7 +290,7 @@ namespace CumulusMX
 			string windDirString;
 
 			// The wind direction is given in degrees - 0-359 - convert to string representing the direction
-			if (WindDirection >= 337 || WindDirection <= 23)
+			if (WindDirection >= 337 && WindDirection < 360)
 				windDirString = "N";
 			else if (WindDirection > 292)
 				windDirString = "NW";
@@ -308,6 +306,8 @@ namespace CumulusMX
 				windDirString = "E";
 			else if (WindDirection > 23)
 				windDirString = "NE";
+			else if (WindDirection >= 0)
+				windDirString = "N";
 			else
 				windDirString = "??";
 
@@ -496,12 +496,12 @@ namespace CumulusMX
 
 		public void Load(byte[] byteArray, out DateTime lastArchiveDate)
 		{
-			Pressure = (double) (BitConverter.ToInt16(byteArray, 14)) / 1000.0; // Uint16
-			InsideTemperature = (double) (BitConverter.ToInt16(byteArray, 20)) / 10.0; // Uint16
+			Pressure = BitConverter.ToInt16(byteArray, 14) / 1000.0; // Uint16
+			InsideTemperature = BitConverter.ToInt16(byteArray, 20) / 10.0; // Uint16
 			InsideHumidity = Convert.ToInt32(byteArray[22]); // Byte - unsigned byte
-			OutsideTemperature = (double) (BitConverter.ToInt16(byteArray, 4)) / 10.0; // Uint16
-			HiOutsideTemp = (double) (BitConverter.ToInt16(byteArray, 6)) / 10.0; // Uint16
-			LoOutsideTemp = (double) (BitConverter.ToInt16(byteArray, 8)) / 10.0; // Uint16
+			OutsideTemperature = BitConverter.ToInt16(byteArray, 4) / 10.0; // Uint16
+			HiOutsideTemp = BitConverter.ToInt16(byteArray, 6) / 10.0; // Uint16
+			LoOutsideTemp = BitConverter.ToInt16(byteArray, 8) / 10.0; // Uint16
 			OutsideHumidity = Convert.ToInt32(byteArray[23]); // Byte - unsigned byte
 			HiWindDirection = Convert.ToInt32(byteArray[26]); // Uint16
 			WindDirection = Convert.ToInt32(byteArray[27]); // Uint16
@@ -509,8 +509,8 @@ namespace CumulusMX
 			HiSolarRad = BitConverter.ToInt16(byteArray, 30); // Uint16
 			AvgWindSpeed = Convert.ToInt32(byteArray[24]); // Byte - unsigned byte
 			HiWindSpeed = Convert.ToInt32(byteArray[25]); // Byte - unsigned byte
-			Rainfall = (double) (BitConverter.ToInt16(byteArray, 10)); // Uint16
-			HiRainRate = (double) (BitConverter.ToInt16(byteArray, 12)); // Uint16
+			Rainfall = BitConverter.ToInt16(byteArray, 10); // Uint16
+			HiRainRate = BitConverter.ToInt16(byteArray, 12); // Uint16
 			ForecastRule = Convert.ToInt32(byteArray[33]);
 			LeafTemp1 = Convert.ToInt32(byteArray[34]);
 			LeafTemp2 = Convert.ToInt32(byteArray[35]);

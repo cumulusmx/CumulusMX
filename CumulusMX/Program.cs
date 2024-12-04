@@ -334,7 +334,10 @@ namespace CumulusMX
 			{
 				Console.CursorVisible = true;
 			}
-			catch { }
+			catch
+			{
+				// this errors when running as a service and there is no console - ignore it
+			}
 			Environment.Exit(1);
 		}
 

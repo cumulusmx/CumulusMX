@@ -463,6 +463,16 @@
 			};
 		}
 
+		public static double LaserMmtoUser(double value)
+		{
+			return Program.cumulus.Units.LaserDistance switch
+			{
+				0 => value * 0.1,
+				1 => value * 0.03937008,
+				_ => 0,
+			};
+		}
+
 		/// <summary>
 		/// Takes speed in user units, returns Bft number
 		/// </summary>

@@ -497,7 +497,7 @@ namespace CumulusMX
 
 			num = ((packetBuffer[3] & 0xF) * 256) + packetBuffer[2];
 
-			StationPressure = ConvertUnits.PressMBToUser(num);
+			DoStationPressure(ConvertUnits.PressMBToUser(num));
 
 			DoPressure(slp, DateTime.Now);
 

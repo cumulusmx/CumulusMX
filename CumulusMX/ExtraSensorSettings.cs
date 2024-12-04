@@ -7,6 +7,8 @@ using EmbedIO;
 
 using ServiceStack;
 
+using static CumulusMX.StationSettings;
+
 namespace CumulusMX
 {
 	public class ExtraSensorSettings(Cumulus cumulus)
@@ -21,7 +23,7 @@ namespace CumulusMX
 
 		public string GetAlpacaFormData()
 		{
-			var indoor = new JsonExtraSensorAirLinkDevice
+			var indoor = new JsonAirLinkDevice
 			{
 				enabled = cumulus.AirLinkInEnabled,
 				ipAddress = cumulus.AirLinkInIPAddr,
@@ -29,7 +31,7 @@ namespace CumulusMX
 				stationId = cumulus.AirLinkInStationId
 			};
 
-			var outdoor = new JsonExtraSensorAirLinkDevice
+			var outdoor = new JsonAirLinkDevice
 			{
 				enabled = cumulus.AirLinkOutEnabled,
 				ipAddress = cumulus.AirLinkOutIPAddr,
@@ -37,7 +39,7 @@ namespace CumulusMX
 				stationId = cumulus.AirLinkOutStationId
 			};
 
-			var airlink = new JsonExtraSensorAirLinkSettings
+			var airlink = new JsonAirLinkSettings
 			{
 				isNode = cumulus.AirLinkIsNode,
 				apiKey = cumulus.AirLinkApiKey,
@@ -47,7 +49,7 @@ namespace CumulusMX
 				outdoor = outdoor
 			};
 
-			var ecowittwn34map = new JsonStationSettingsEcowittMappings
+			var ecowittwn34map = new StationSettings.JsonEcowittMappings
 			{
 				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
 
@@ -61,20 +63,21 @@ namespace CumulusMX
 				wn34chan8 = cumulus.EcowittMapWN34[8]
 			};
 
-			var ecowitt = new JsonExtraSensorEcowitt
+			var ecowitt = new JsonEcowitt
 			{
-				useSolar = cumulus.EcowittExtraUseSolar,
-				useUv = cumulus.EcowittExtraUseUv,
-				useTempHum = cumulus.EcowittExtraUseTempHum,
+				useSolar = cumulus.ExtraSensorUseSolar,
+				useUv = cumulus.ExtraSensorUseUv,
+				useTempHum = cumulus.ExtraSensorUseTempHum,
 				//useSoilTemp = cumulus.EcowittExtraUseSoilTemp,
-				useSoilMoist = cumulus.EcowittExtraUseSoilMoist,
-				useLeafWet = cumulus.EcowittExtraUseLeafWet,
-				useUserTemp = cumulus.EcowittExtraUseUserTemp,
-				useAQI = cumulus.EcowittExtraUseAQI,
-				useCo2 = cumulus.EcowittExtraUseCo2,
-				useLightning = cumulus.EcowittExtraUseLightning,
-				useLeak = cumulus.EcowittExtraUseLeak,
-				useCamera = cumulus.EcowittExtraUseCamera,
+				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
+				useLeafWet = cumulus.ExtraSensorUseLeafWet,
+				useUserTemp = cumulus.ExtraSensorUseUserTemp,
+				useAQI = cumulus.ExtraSensorUseAQI,
+				useCo2 = cumulus.ExtraSensorUseCo2,
+				useLightning = cumulus.ExtraSensorUseLightning,
+				useLeak = cumulus.ExtraSensorUseLeak,
+				useCamera = cumulus.ExtraSensorUseCamera,
+				useLaserDist = cumulus.ExtraSensorUseLaserDist,
 
 				setcustom = cumulus.EcowittExtraSetCustomServer,
 				gwaddr = cumulus.EcowittExtraGatewayAddr,
@@ -82,7 +85,7 @@ namespace CumulusMX
 				interval = cumulus.EcowittExtraCustomInterval,
 
 				mappings = ecowittwn34map,
-				forwarders = new JsonExtraSensorForwarders
+				forwarders = new JsonForwarders
 				{
 					usemain = cumulus.EcowittExtraUseMainForwarders
 				}
@@ -93,18 +96,18 @@ namespace CumulusMX
 			{
 				if (!string.IsNullOrEmpty(cumulus.EcowittExtraForwarders[i]))
 				{
-					ecowitt.forwarders.forward.Add(new JsonEcowittForwardList() { url = cumulus.EcowittExtraForwarders[i] });
+					ecowitt.forwarders.forward.Add(new StationSettings.JsonEcowittForwardList() { url = cumulus.EcowittExtraForwarders[i] });
 				}
 			}
 
-			var ecowittapi = new JsonStationSettingsEcowittApi
+			var ecowittapi = new StationSettings.JsonEcowittApi
 			{
 				applicationkey = cumulus.EcowittApplicationKey,
 				userkey = cumulus.EcowittUserApiKey,
 				mac = cumulus.EcowittMacAddress
 			};
 
-			var ambient = new JsonExtraSensorAmbient
+			var ambient = new JsonAmbient
 			{
 				useSolar = cumulus.AmbientExtraUseSolar,
 				useUv = cumulus.AmbientExtraUseUv,
@@ -118,11 +121,40 @@ namespace CumulusMX
 				useLeak = cumulus.AmbientExtraUseLeak
 			};
 
-			var httpStation = new JsonExtraSensorHttp
+			var jsonstnadv = new JsonJsonStationAdvanced()
+			{
+				filedelay = cumulus.JsonExtraStationOptions.FileReadDelay,
+				mqtttls = cumulus.JsonExtraStationOptions.MqttUseTls
+			};
+
+			var json = new JsonJson
+			{
+				conntype = cumulus.JsonExtraStationOptions.Connectiontype,
+				filename = cumulus.JsonExtraStationOptions.SourceFile,
+				mqttserver = cumulus.JsonExtraStationOptions.MqttServer,
+				mqttport = cumulus.JsonExtraStationOptions.MqttPort,
+				mqttuser = cumulus.JsonExtraStationOptions.MqttUsername,
+				mqttpass = cumulus.JsonExtraStationOptions.MqttPassword,
+				mqtttopic = cumulus.JsonExtraStationOptions.MqttTopic,
+				advanced = jsonstnadv,
+
+				useSolar = cumulus.ExtraSensorUseSolar,
+				useUv = cumulus.ExtraSensorUseUv,
+				useTempHum = cumulus.ExtraSensorUseTempHum,
+				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
+				useLeafWet = cumulus.ExtraSensorUseLeafWet,
+				useUserTemp = cumulus.ExtraSensorUseUserTemp,
+				useAQI = cumulus.ExtraSensorUseAQI,
+				useCo2 = cumulus.ExtraSensorUseCo2,
+				useLaserDist = cumulus.ExtraSensorUseLaserDist
+			};
+
+			var httpStation = new JsonHttp
 			{
 				ecowitt = ecowitt,
 				ecowittapi = ecowittapi,
-				ambient = ambient
+				ambient = ambient,
+				jsonstation = json
 			};
 
 			if (cumulus.EcowittExtraEnabled)
@@ -131,32 +163,34 @@ namespace CumulusMX
 				httpStation.extraStation = 1;
 			else if (cumulus.EcowittCloudExtraEnabled)
 				httpStation.extraStation = 2;
+			else if (cumulus.JsonExtraStationOptions.ExtraSensorsEnabled)
+				httpStation.extraStation = 3;
 			else
 				httpStation.extraStation = -1;
 
 
-			var bl = new JsonExtraSensorBlakeLarsen
+			var bl = new JsonBlakeLarsen
 			{
 				enabled = cumulus.SolarOptions.UseBlakeLarsen
 			};
 
-			var rg11port1 = new JsonExtraSensorRg11Device(cumulus.RG11Enabled, cumulus.RG11Port, cumulus.RG11TBRmode, cumulus.RG11tipsize, default, cumulus.RG11TBRmode);
+			var rg11port1 = new JsonRg11Device(cumulus.RG11Enabled, cumulus.RG11Port, cumulus.RG11TBRmode, cumulus.RG11tipsize, default, cumulus.RG11TBRmode);
 
-			var rg11port2 = new JsonExtraSensorRg11Device(cumulus.RG11Enabled2, cumulus.RG11Port2, cumulus.RG11TBRmode2, cumulus.RG11tipsize2, default, cumulus.RG11TBRmode2);
+			var rg11port2 = new JsonRg11Device(cumulus.RG11Enabled2, cumulus.RG11Port2, cumulus.RG11TBRmode2, cumulus.RG11tipsize2, default, cumulus.RG11TBRmode2);
 
-			var rg11 = new JsonExtraSensorRG11
+			var rg11 = new JsonRG11
 			{
 				port1 = rg11port1,
 				port2 = rg11port2
 			};
 
-			var aq = new JsonExtraSensorAirQuality
+			var aq = new JsonAirQuality
 			{
 				primaryaqsensor = cumulus.StationOptions.PrimaryAqSensor,
 				aqi = cumulus.airQualityIndex,
 			};
 
-			var data = new JsonExtraSensorSettings
+			var data = new JsonSettings
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				airquality = aq,
@@ -173,7 +207,7 @@ namespace CumulusMX
 		{
 			var errorMsg = string.Empty;
 			var json = string.Empty;
-			JsonExtraSensorSettings settings;
+			JsonSettings settings;
 			context.Response.StatusCode = 200;
 
 			try
@@ -184,7 +218,7 @@ namespace CumulusMX
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonExtraSensorSettings>();
+				settings = json.FromJson<JsonSettings>();
 			}
 			catch (Exception ex)
 			{
@@ -261,18 +295,19 @@ namespace CumulusMX
 
 					if (cumulus.EcowittExtraEnabled || cumulus.EcowittCloudExtraEnabled)
 					{
-						cumulus.EcowittExtraUseSolar = settings.httpSensors.ecowitt.useSolar;
-						cumulus.EcowittExtraUseUv = settings.httpSensors.ecowitt.useUv;
-						cumulus.EcowittExtraUseTempHum = settings.httpSensors.ecowitt.useTempHum;
+						cumulus.ExtraSensorUseSolar = settings.httpSensors.ecowitt.useSolar;
+						cumulus.ExtraSensorUseUv = settings.httpSensors.ecowitt.useUv;
+						cumulus.ExtraSensorUseTempHum = settings.httpSensors.ecowitt.useTempHum;
 						//cumulus.EcowittExtraUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp
-						cumulus.EcowittExtraUseSoilMoist = settings.httpSensors.ecowitt.useSoilMoist;
-						cumulus.EcowittExtraUseLeafWet = settings.httpSensors.ecowitt.useLeafWet;
-						cumulus.EcowittExtraUseUserTemp = settings.httpSensors.ecowitt.useUserTemp;
-						cumulus.EcowittExtraUseAQI = settings.httpSensors.ecowitt.useAQI;
-						cumulus.EcowittExtraUseCo2 = settings.httpSensors.ecowitt.useCo2;
-						cumulus.EcowittExtraUseLightning = settings.httpSensors.ecowitt.useLightning;
-						cumulus.EcowittExtraUseLeak = settings.httpSensors.ecowitt.useLeak;
-						cumulus.EcowittExtraUseCamera = settings.httpSensors.ecowitt.useCamera;
+						cumulus.ExtraSensorUseSoilMoist = settings.httpSensors.ecowitt.useSoilMoist;
+						cumulus.ExtraSensorUseLeafWet = settings.httpSensors.ecowitt.useLeafWet;
+						cumulus.ExtraSensorUseUserTemp = settings.httpSensors.ecowitt.useUserTemp;
+						cumulus.ExtraSensorUseAQI = settings.httpSensors.ecowitt.useAQI;
+						cumulus.ExtraSensorUseCo2 = settings.httpSensors.ecowitt.useCo2;
+						cumulus.ExtraSensorUseLightning = settings.httpSensors.ecowitt.useLightning;
+						cumulus.ExtraSensorUseLeak = settings.httpSensors.ecowitt.useLeak;
+						cumulus.ExtraSensorUseLaserDist = settings.httpSensors.ecowitt.useLaserDist;
+						cumulus.ExtraSensorUseCamera = settings.httpSensors.ecowitt.useCamera;
 
 						cumulus.EcowittExtraSetCustomServer = settings.httpSensors.ecowitt.setcustom;
 						if (cumulus.EcowittExtraSetCustomServer)
@@ -287,9 +322,9 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[1] != settings.httpSensors.ecowitt.mappings.wn34chan1)
 						{
 							if (cumulus.EcowittMapWN34[1] == 0)
-								station.UserTemp[1] = 0;
+								station.UserTemp[1] = null;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[1]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[1]] = null;
 
 							cumulus.EcowittMapWN34[1] = settings.httpSensors.ecowitt.mappings.wn34chan1;
 						}
@@ -297,9 +332,9 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[2] != settings.httpSensors.ecowitt.mappings.wn34chan2)
 						{
 							if (cumulus.EcowittMapWN34[2] == 0)
-								station.UserTemp[2] = 0;
+								station.UserTemp[2] = null;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[2]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[2]] = null;
 
 							cumulus.EcowittMapWN34[2] = settings.httpSensors.ecowitt.mappings.wn34chan2;
 						}
@@ -307,9 +342,9 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[3] != settings.httpSensors.ecowitt.mappings.wn34chan3)
 						{
 							if (cumulus.EcowittMapWN34[3] == 0)
-								station.UserTemp[3] = 0;
+								station.UserTemp[3] = null;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[3]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[3]] = null;
 
 							cumulus.EcowittMapWN34[3] = settings.httpSensors.ecowitt.mappings.wn34chan3;
 						}
@@ -317,9 +352,9 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[4] != settings.httpSensors.ecowitt.mappings.wn34chan4)
 						{
 							if (cumulus.EcowittMapWN34[4] == 0)
-								station.UserTemp[4] = 0;
+								station.UserTemp[4] = null;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[4]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[4]] = null;
 
 							cumulus.EcowittMapWN34[4] = settings.httpSensors.ecowitt.mappings.wn34chan4;
 						}
@@ -327,9 +362,9 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[5] != settings.httpSensors.ecowitt.mappings.wn34chan5)
 						{
 							if (cumulus.EcowittMapWN34[5] == 0)
-								station.UserTemp[5] = 0;
+								station.UserTemp[5] = null;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[5]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[5]] = null;
 
 							cumulus.EcowittMapWN34[5] = settings.httpSensors.ecowitt.mappings.wn34chan5;
 						}
@@ -337,9 +372,9 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[6] != settings.httpSensors.ecowitt.mappings.wn34chan6)
 						{
 							if (cumulus.EcowittMapWN34[6] == 0)
-								station.UserTemp[6] = 0;
+								station.UserTemp[6] = null;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[6]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[6]] = null;
 
 							cumulus.EcowittMapWN34[6] = settings.httpSensors.ecowitt.mappings.wn34chan6;
 						}
@@ -347,9 +382,9 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[7] != settings.httpSensors.ecowitt.mappings.wn34chan7)
 						{
 							if (cumulus.EcowittMapWN34[7] == 0)
-								station.UserTemp[7] = 0;
+								station.UserTemp[7] = null;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[7]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[7]] = null;
 
 							cumulus.EcowittMapWN34[7] = settings.httpSensors.ecowitt.mappings.wn34chan7;
 						}
@@ -357,9 +392,9 @@ namespace CumulusMX
 						if (cumulus.EcowittMapWN34[8] != settings.httpSensors.ecowitt.mappings.wn34chan8)
 						{
 							if (cumulus.EcowittMapWN34[8] == 0)
-								station.UserTemp[8] = 0;
+								station.UserTemp[8] = null;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[8]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[8]] = null;
 
 							cumulus.EcowittMapWN34[8] = settings.httpSensors.ecowitt.mappings.wn34chan8;
 						}
@@ -382,7 +417,7 @@ namespace CumulusMX
 						}
 
 						// Also enable extra logging if applicable
-						if (cumulus.EcowittExtraUseTempHum || cumulus.EcowittExtraUseSoilTemp || cumulus.EcowittExtraUseSoilMoist || cumulus.EcowittExtraUseLeafWet || cumulus.EcowittExtraUseUserTemp || cumulus.EcowittExtraUseAQI || cumulus.EcowittExtraUseCo2)
+						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseLeafWet || cumulus.ExtraSensorUseUserTemp || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2)
 						{
 							cumulus.StationOptions.LogExtraSensors = true;
 						}
@@ -447,6 +482,55 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// JSON Station Extra settings
+				try
+				{
+					cumulus.JsonExtraStationOptions.ExtraSensorsEnabled = settings.httpSensors.extraStation == 3;
+
+					if (cumulus.JsonExtraStationOptions.ExtraSensorsEnabled)
+					{
+						cumulus.JsonExtraStationOptions.Connectiontype = settings.httpSensors.jsonstation.conntype;
+						if (cumulus.JsonExtraStationOptions.Connectiontype == 0)
+						{
+							cumulus.JsonExtraStationOptions.SourceFile = string.IsNullOrWhiteSpace(settings.httpSensors.jsonstation.filename) ? null : settings.httpSensors.jsonstation.filename.Trim();
+							cumulus.JsonExtraStationOptions.FileReadDelay = settings.httpSensors.jsonstation.advanced.filedelay;
+						}
+						else if (cumulus.JsonExtraStationOptions.Connectiontype == 2)
+						{
+							cumulus.JsonExtraStationOptions.MqttServer = string.IsNullOrWhiteSpace(settings.httpSensors.jsonstation.mqttserver) ? null : settings.httpSensors.jsonstation.mqttserver.Trim();
+							cumulus.JsonExtraStationOptions.MqttPort = settings.httpSensors.jsonstation.mqttport;
+							cumulus.JsonExtraStationOptions.MqttUsername = string.IsNullOrWhiteSpace(settings.httpSensors.jsonstation.mqttuser) ? null : settings.httpSensors.jsonstation.mqttuser.Trim();
+							cumulus.JsonExtraStationOptions.MqttPassword = string.IsNullOrWhiteSpace(settings.httpSensors.jsonstation.mqttpass) ? null : settings.httpSensors.jsonstation.mqttpass.Trim();
+							cumulus.JsonExtraStationOptions.MqttTopic = string.IsNullOrWhiteSpace(settings.httpSensors.jsonstation.mqtttopic) ? null : settings.httpSensors.jsonstation.mqtttopic.Trim();
+
+							cumulus.JsonExtraStationOptions.MqttUseTls = settings.httpSensors.jsonstation.advanced.mqtttls;
+						}
+
+						cumulus.ExtraSensorUseSolar = settings.httpSensors.jsonstation.useSolar;
+						cumulus.ExtraSensorUseUv = settings.httpSensors.jsonstation.useUv;
+						cumulus.ExtraSensorUseTempHum = settings.httpSensors.jsonstation.useTempHum;
+						cumulus.ExtraSensorUseSoilMoist = settings.httpSensors.jsonstation.useSoilMoist;
+						cumulus.ExtraSensorUseLeafWet = settings.httpSensors.jsonstation.useLeafWet;
+						cumulus.ExtraSensorUseUserTemp = settings.httpSensors.jsonstation.useUserTemp;
+						cumulus.ExtraSensorUseAQI = settings.httpSensors.jsonstation.useAQI;
+						cumulus.ExtraSensorUseCo2 = settings.httpSensors.jsonstation.useCo2;
+						cumulus.ExtraSensorUseLaserDist = settings.httpSensors.jsonstation.useLaserDist;
+
+						// Also enable extra logging if applicable
+						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseLeafWet || cumulus.ExtraSensorUseUserTemp || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2 || cumulus.ExtraSensorUseLaserDist)
+						{
+							cumulus.StationOptions.LogExtraSensors = true;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing JSON Station settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// Blake-Larsen settings
 				try
 				{
@@ -505,91 +589,106 @@ namespace CumulusMX
 
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
-	}
 
-	public class JsonExtraSensorSettings
-	{
-		public bool accessible { get; set; }
-		public JsonExtraSensorAirQuality airquality { get; set; }
-		public JsonExtraSensorAirLinkSettings airLink { get; set; }
-		public JsonExtraSensorHttp httpSensors { get; set; }
-		public JsonExtraSensorBlakeLarsen blakeLarsen { get; set; }
-		public JsonExtraSensorRG11 rg11 { get; set; }
-	}
+		private sealed class JsonSettings
+		{
+			public bool accessible { get; set; }
+			public JsonAirQuality airquality { get; set; }
+			public JsonAirLinkSettings airLink { get; set; }
+			public JsonHttp httpSensors { get; set; }
+			public JsonBlakeLarsen blakeLarsen { get; set; }
+			public JsonRG11 rg11 { get; set; }
+		}
 
-	public class JsonExtraSensorAirQuality
-	{
-		public int primaryaqsensor { get; set; }
-		public int aqi { get; set; }
-	}
+		private sealed class JsonAirQuality
+		{
+			public int primaryaqsensor { get; set; }
+			public int aqi { get; set; }
+		}
 
-	public class JsonExtraSensorAirLinkSettings
-	{
-		public bool isNode { get; set; }
-		public string apiKey { get; set; }
-		public string apiSecret { get; set; }
-		public bool autoUpdateIp { get; set; }
-		public JsonExtraSensorAirLinkDevice indoor { get; set; }
-		public JsonExtraSensorAirLinkDevice outdoor { get; set; }
-	}
+		private sealed class JsonAirLinkSettings
+		{
+			public bool isNode { get; set; }
+			public string apiKey { get; set; }
+			public string apiSecret { get; set; }
+			public bool autoUpdateIp { get; set; }
+			public JsonAirLinkDevice indoor { get; set; }
+			public JsonAirLinkDevice outdoor { get; set; }
+		}
 
-	public class JsonExtraSensorAirLinkDevice
-	{
-		public bool enabled { get; set; }
-		public string ipAddress { get; set; }
-		public string hostname { get; set; }
-		public int stationId { get; set; }
-	}
+		private sealed class JsonAirLinkDevice
+		{
+			public bool enabled { get; set; }
+			public string ipAddress { get; set; }
+			public string hostname { get; set; }
+			public int stationId { get; set; }
+		}
 
-	public class JsonExtraSensorHttp
-	{
-		public int extraStation { get; set; }
-		public JsonExtraSensorEcowitt ecowitt { get; set; }
-		public JsonExtraSensorAmbient ambient { get; set; }
-		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
-	}
+		private sealed class JsonHttp
+		{
+			public int extraStation { get; set; }
+			public JsonEcowitt ecowitt { get; set; }
+			public JsonAmbient ambient { get; set; }
+			public StationSettings.JsonEcowittApi ecowittapi { get; set; }
+			public JsonJson jsonstation { get; set; }
+		}
 
-	public class JsonExtraSensorAmbient
-	{
-		public bool useSolar { get; set; }
-		public bool useUv { get; set; }
-		public bool useTempHum { get; set; }
-		public bool useSoilMoist { get; set; }
-		public bool useLeafWet { get; set; }
-		public bool useUserTemp { get; set; }
-		public bool useAQI { get; set; }
-		public bool useCo2 { get; set; }
-		public bool useLightning { get; set; }
-		public bool useLeak { get; set; }
-		public bool useCamera { get; set; }
-	}
+		private class JsonAmbient
+		{
+			public bool useSolar { get; set; }
+			public bool useUv { get; set; }
+			public bool useTempHum { get; set; }
+			public bool useSoilMoist { get; set; }
+			public bool useLeafWet { get; set; }
+			public bool useUserTemp { get; set; }
+			public bool useAQI { get; set; }
+			public bool useCo2 { get; set; }
+			public bool useLightning { get; set; }
+			public bool useLeak { get; set; }
+			public bool useCamera { get; set; }
+			public bool useLaserDist { get; set; }
+		}
 
-	public class JsonExtraSensorEcowitt : JsonExtraSensorAmbient
-	{
-		public bool setcustom { get; set; }
-		public string gwaddr { get; set; }
-		public string localaddr { get; set; }
-		public int interval { get; set; }
-		public JsonStationSettingsEcowittMappings mappings { get; set; }
-		public JsonExtraSensorForwarders forwarders { get; set; }
-	}
+		private sealed class JsonEcowitt : JsonAmbient
+		{
+			public bool setcustom { get; set; }
+			public string gwaddr { get; set; }
+			public string localaddr { get; set; }
+			public int interval { get; set; }
+			public StationSettings.JsonEcowittMappings mappings { get; set; }
+			public JsonForwarders forwarders { get; set; }
+		}
 
-	public class JsonExtraSensorForwarders
-	{
-		public bool usemain { get; set; }
-		public List<JsonEcowittForwardList> forward { get; set; }
-	}
+		private sealed class JsonJson : JsonAmbient
+		{
+			public int conntype { get; set; }
+			public string filename { get; set; }
+			public string mqttserver { get; set; }
+			public int mqttport { get; set; }
+			public string mqttuser { get; set; }
+			public string mqttpass { get; set; }
+			public string mqtttopic { get; set; }
 
-	public class JsonExtraSensorBlakeLarsen
-	{
-		public bool enabled { get; set; }
-	}
+			public JsonJsonStationAdvanced advanced { get; set; }
+		}
 
-	public class JsonExtraSensorRG11
-	{
-		public JsonExtraSensorRg11Device port1 { get; set; }
-		public JsonExtraSensorRg11Device port2 { get; set; }
-	}
+		private sealed class JsonForwarders
+		{
+			public bool usemain { get; set; }
+			public List<StationSettings.JsonEcowittForwardList> forward { get; set; }
+		}
 
-	public record JsonExtraSensorRg11Device(bool enabled, string commPort, bool tipMode, double tipSize, bool ignoreFirst, bool dtrMode);
+		private sealed class JsonBlakeLarsen
+		{
+			public bool enabled { get; set; }
+		}
+
+		private sealed class JsonRG11
+		{
+			public JsonRg11Device port1 { get; set; }
+			public JsonRg11Device port2 { get; set; }
+		}
+
+		private sealed record JsonRg11Device(bool enabled, string commPort, bool tipMode, double tipSize, bool ignoreFirst, bool dtrMode);
+	}
 }

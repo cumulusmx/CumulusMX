@@ -221,40 +221,40 @@ namespace CumulusMX.ThirdParty
 				Data.Append($"&baromin={WeatherStation.PressINstr(station.Pressure)}");
 			if (station.OutdoorDewpoint >= Cumulus.DefaultHiVal)
 				Data.Append($"&dewptf={WeatherStation.TempFstr(station.OutdoorDewpoint)}");
-			if (SendUV && station.UV >= 0)
-				Data.Append($"&UV={station.UV.ToString(cumulus.UVFormat, invC)}");
-			if (SendSolar)
-				Data.Append($"&solarradiation={station.SolarRad:F0}");
+			if (SendUV && station.UV.HasValue)
+				Data.Append($"&UV={station.UV.Value.ToString(cumulus.UVFormat, invC)}");
+			if (SendSolar && station.SolarRad.HasValue)
+				Data.Append($"&solarradiation={station.SolarRad}");
 			if (SendIndoor)
 			{
-				if (station.IndoorTemperature >= Cumulus.DefaultHiVal)
-					Data.Append($"&indoortempf={WeatherStation.TempFstr(station.IndoorTemperature)}");
-				if (station.IndoorHumidity >= 0)
+				if (station.IndoorTemperature.HasValue)
+					Data.Append($"&indoortempf={WeatherStation.TempFstr(station.IndoorTemperature.Value)}");
+				if (station.IndoorHumidity.HasValue)
 					Data.Append($"&indoorhumidity={station.IndoorHumidity}");
 			}
 			// Davis soil and leaf sensors
-			if (SendSoilTemp1 && station.SoilTemp[1] >= Cumulus.DefaultHiVal)
-				Data.Append($"&soiltempf={WeatherStation.TempFstr(station.SoilTemp[1])}");
-			if (SendSoilTemp2 && station.SoilTemp[2] >= Cumulus.DefaultHiVal)
-				Data.Append($"&soiltempf2={WeatherStation.TempFstr(station.SoilTemp[2])}");
-			if (SendSoilTemp3 && station.SoilTemp[3] >= Cumulus.DefaultHiVal)
-				Data.Append($"&soiltempf3={WeatherStation.TempFstr(station.SoilTemp[3])}");
-			if (SendSoilTemp4 && station.SoilTemp[4] >= Cumulus.DefaultHiVal)
-				Data.Append($"&soiltempf4={WeatherStation.TempFstr(station.SoilTemp[4])}");
+			if (SendSoilTemp1 && station.SoilTemp[1].HasValue)
+				Data.Append($"&soiltempf={WeatherStation.TempFstr(station.SoilTemp[1].Value)}");
+			if (SendSoilTemp2 && station.SoilTemp[2].HasValue)
+				Data.Append($"&soiltempf2={WeatherStation.TempFstr(station.SoilTemp[2].Value)}");
+			if (SendSoilTemp3 && station.SoilTemp[3].HasValue)
+				Data.Append($"&soiltempf3={WeatherStation.TempFstr(station.SoilTemp[3].Value)}");
+			if (SendSoilTemp4 && station.SoilTemp[4].HasValue)
+				Data.Append($"&soiltempf4={WeatherStation.TempFstr(station.SoilTemp[4].Value)}");
 
-			if (SendSoilMoisture1 && station.SoilMoisture1 >= Cumulus.DefaultHiVal)
+			if (SendSoilMoisture1 && station.SoilMoisture1.HasValue)
 				Data.Append($"&soilmoisture={station.SoilMoisture1}");
-			if (SendSoilMoisture2 && station.SoilMoisture2 >= Cumulus.DefaultHiVal)
+			if (SendSoilMoisture2 && station.SoilMoisture2.HasValue)
 				Data.Append($"&soilmoisture2={station.SoilMoisture2}");
-			if (SendSoilMoisture3 && station.SoilMoisture3 >= Cumulus.DefaultHiVal)
+			if (SendSoilMoisture3 && station.SoilMoisture3.HasValue)
 				Data.Append($"&soilmoisture3={station.SoilMoisture3}");
-			if (SendSoilMoisture4 && station.SoilMoisture4 >= Cumulus.DefaultHiVal)
+			if (SendSoilMoisture4 && station.SoilMoisture4.HasValue)
 				Data.Append($"&soilmoisture4={station.SoilMoisture4}");
 
-			if (SendLeafWetness1 && station.LeafWetness1 >= Cumulus.DefaultHiVal)
-				Data.Append($"&leafwetness={station.LeafWetness1}");
-			if (SendLeafWetness2 && station.LeafWetness2 >= Cumulus.DefaultHiVal)
-				Data.Append($"&leafwetness2={station.LeafWetness2}");
+			if (SendLeafWetness1 && station.LeafWetness1.HasValue)
+				Data.Append($"&leafwetness={station.LeafWetness1:cumulus.LeafWetFormat}");
+			if (SendLeafWetness2 && station.LeafWetness2.HasValue)
+				Data.Append($"&leafwetness2={station.LeafWetness2:cumulus.LeafWetFormat}");
 
 			if (SendAirQuality && cumulus.StationOptions.PrimaryAqSensor > (int) Cumulus.PrimaryAqSensor.Undefined)
 			{
@@ -267,39 +267,39 @@ namespace CumulusMX.ThirdParty
 						}
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
-						if (station.AirQuality1 >= Cumulus.DefaultHiVal)
-							Data.Append($"&AqPM2.5={station.AirQuality1.ToString("F1", invC)}");
+						if (station.AirQuality1.HasValue)
+							Data.Append($"&AqPM2.5={station.AirQuality1.Value.ToString("F1", invC)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
-						if (station.AirQuality2 >= Cumulus.DefaultHiVal)
-							Data.Append($"&AqPM2.5={station.AirQuality2.ToString("F1", invC)}");
+						if (station.AirQuality2.HasValue)
+							Data.Append($"&AqPM2.5={station.AirQuality2.Value.ToString("F1", invC)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
-						if (station.AirQuality3 >= Cumulus.DefaultHiVal)
-							Data.Append($"&AqPM2.5={station.AirQuality3.ToString("F1", invC)}");
+						if (station.AirQuality3.HasValue)
+							Data.Append($"&AqPM2.5={station.AirQuality3.Value.ToString("F1", invC)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
-						if (station.AirQuality4 >= Cumulus.DefaultHiVal)
-							Data.Append($"&AqPM2.5={station.AirQuality4.ToString("F1", invC)}");
+						if (station.AirQuality4.HasValue)
+							Data.Append($"&AqPM2.5={station.AirQuality4.Value.ToString("F1", invC)}");
 						break;
 				}
 			}
 
-			if (cumulus.Wund.SendExtraTemp1 > 0 && cumulus.Wund.SendExtraTemp1 <= 10)
+			if (cumulus.Wund.SendExtraTemp1 > 0 && cumulus.Wund.SendExtraTemp1 <= 10 && station.ExtraTemp[cumulus.Wund.SendExtraTemp1].HasValue)
 			{
-				Data.Append($"&temp2f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp1])}");
+				Data.Append($"&temp2f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp1].Value)}");
 			}
-			if (cumulus.Wund.SendExtraTemp2 > 0 && cumulus.Wund.SendExtraTemp2 <= 10)
+			if (cumulus.Wund.SendExtraTemp2 > 0 && cumulus.Wund.SendExtraTemp2 <= 10 && station.ExtraTemp[cumulus.Wund.SendExtraTemp2].HasValue)
 			{
-				Data.Append($"&temp3f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp2])}");
+				Data.Append($"&temp3f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp2].Value)}");
 			}
-			if (cumulus.Wund.SendExtraTemp3 > 0 && cumulus.Wund.SendExtraTemp3 <= 10)
+			if (cumulus.Wund.SendExtraTemp3 > 0 && cumulus.Wund.SendExtraTemp3 <= 10 && station.ExtraTemp[cumulus.Wund.SendExtraTemp3].HasValue)
 			{
-				Data.Append($"&temp4f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp3])}");
+				Data.Append($"&temp4f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp3].Value)}");
 			}
-			if (cumulus.Wund.SendExtraTemp4 > 0 && cumulus.Wund.SendExtraTemp4 <= 10)
+			if (cumulus.Wund.SendExtraTemp4 > 0 && cumulus.Wund.SendExtraTemp4 <= 10 && station.ExtraTemp[cumulus.Wund.SendExtraTemp4].HasValue)
 			{
-				Data.Append($"&temp5f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp4])}");
+				Data.Append($"&temp5f={WeatherStation.TempFstr(station.ExtraTemp[cumulus.Wund.SendExtraTemp4].Value)}");
 			}
 
 			Data.Append($"&softwaretype=Cumulus%20v{cumulus.Version}");

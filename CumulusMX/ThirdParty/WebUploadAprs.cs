@@ -38,7 +38,7 @@ namespace CumulusMX.ThirdParty
 					cumulus.LogDebugMessage("Sending user and pass to CWOP");
 
 					await writer.WriteLineAsync(message.ToString());
-					writer.Flush();
+					await writer.FlushAsync();
 
 					await Task.Delay(3000);
 
@@ -83,7 +83,7 @@ namespace CumulusMX.ThirdParty
 					{
 						message.Append($"b{APRSpress(station.AltimeterPressure)}");
 					}
-					if (cumulus.APRS.SendSolar)
+					if (cumulus.APRS.SendSolar && station.SolarRad.HasValue)
 					{
 						message.Append(APRSsolarradStr(Convert.ToInt32(station.SolarRad)));
 					}
@@ -94,7 +94,7 @@ namespace CumulusMX.ThirdParty
 					cumulus.LogDebugMessage($"Sending: {message}");
 
 					await writer.WriteLineAsync(message.ToString());
-					writer.Flush();
+					await writer.FlushAsync();
 
 					await Task.Delay(3000);
 					writer.Close();

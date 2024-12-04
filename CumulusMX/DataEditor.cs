@@ -11,13 +11,14 @@ using EmbedIO;
 using ServiceStack;
 using ServiceStack.Text;
 
+
 namespace CumulusMX
 {
 	internal class DataEditor
 	{
 		private WeatherStation station;
 		private readonly Cumulus cumulus;
-
+		internal static readonly string[] lineEndings = ["\r\n", "\r", "\n"];
 
 		internal DataEditor(Cumulus cumulus)
 		{
@@ -115,7 +116,13 @@ namespace CumulusMX
 				var newData = text.FromJson<DiaryData>();
 
 				// write new/updated entry to the database
-				var result = cumulus.DiaryDB.InsertOrReplace(newData);
+				// first try to update existing record
+				var result = cumulus.DiaryDB.Update(newData);
+				if (result == 0)
+				{
+					// if update failed, insert new record
+					result = cumulus.DiaryDB.InsertOrReplace(newData);
+				}
 
 				return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
 
@@ -151,17 +158,116 @@ namespace CumulusMX
 				};
 
 				var record = text.FromJson<DiaryData>();
-
+				int result = 0;
 				// Delete the corresponding entry from the database
-				var result = cumulus.DiaryDB.Delete(record);
-
-				return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
-
+				if (cumulus.DiaryDB.Find<DiaryData>(record.Date) != null)
+				{
+					result = cumulus.DiaryDB.Delete(record);
+					return "{\"result\":\"" + ((result == 1) ? "Success" : "Failed") + "\"}";
+				}
+				else
+				{
+					return "{\"result\":\"Record not found\"}";
+				}
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("Delete Diary: " + ex.Message);
 				return "{\"result\":\"Failed\"}";
+			}
+		}
+
+		internal string AutomateDiary(IHttpContext context)
+		{
+			try
+			{
+				var request = context.Request;
+				string text;
+
+				using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+				{
+					text = reader.ReadToEnd();
+				}
+
+				cumulus.SnowAutomated = int.Parse(text);
+				return "Success: Set automated to " + cumulus.SnowAutomated;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("Delete Diary: " + ex.Message);
+				return "Failed: " + ex.Message;
+			}
+		}
+
+		internal string UploadDiary(IHttpContext context)
+		{
+			try
+			{
+				var request = context.Request;
+
+				if (request.ContentLength64 == 0)
+				{
+					cumulus.LogErrorMessage("UploadDiary: No data atached!");
+					return "Failed: No data atached!";
+				}
+
+				using var reader = new StreamReader(request.InputStream, request.ContentEncoding) ;
+
+				var lines = reader.ReadToEnd().Split(lineEndings, StringSplitOptions.None).ToList();
+
+				if (lines.Count < 2)
+				{
+					cumulus.LogErrorMessage("UploadDiary: No data atached!");
+					return "Failed: No data atached!";
+				}
+
+				int inserted = 0;
+				var dbRecs = new List<DiaryData>();
+
+
+				for (var i = 1; i < lines.Count; i++)
+				{
+					if (lines[i].Length == 0)
+					{
+						continue;
+					}
+
+					try
+					{
+						var rec = new DiaryData();
+						if (rec.FromCSVString(lines[i]))
+						{
+							dbRecs.Add(rec);
+						}
+						else
+						{
+							// invalid record
+							cumulus.LogErrorMessage($"UploadDiary: Failed to parse record on line {i}: {lines[i]}");
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "UploadDiary: Error ");
+						return "Failed: " + ex.Message;
+					}
+				}
+
+				if (dbRecs.Count > 0)
+				{
+					// clear the old data from the table
+					cumulus.LogMessage("UploadDiary: Clearing diary database");
+					cumulus.DiaryDB.DeleteAll<DiaryData>();
+
+					inserted = cumulus.DiaryDB.InsertAll(dbRecs, true);
+				}
+
+				cumulus.LogMessage("UploadDiary: Inserted " + inserted + " new records");
+				return $"Success: inserted {inserted} records";
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "UploadDiary: Error");
+				return "Failed: " + ex.Message;
 			}
 		}
 
@@ -443,7 +549,7 @@ namespace CumulusMX
 						{
 							currentWetPeriod = 1;
 							isDryNow = false;
-							if (!(dryPeriod.Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
+							if (!(double.IsInfinity(dryPeriod.Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
 							{
 								dryPeriod.Value = currentDryPeriod;
 								dryPeriod.Ts = thisDateDry;
@@ -467,7 +573,7 @@ namespace CumulusMX
 						{
 							currentDryPeriod = 1;
 							isDryNow = true;
-							if (!(wetPeriod.Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
+							if (!(double.IsInfinity(wetPeriod.Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
 							{
 								wetPeriod.Value = currentWetPeriod;
 								wetPeriod.Ts = thisDateWet;
@@ -562,12 +668,12 @@ namespace CumulusMX
 				}
 
 				// We need to check if the run or wet/dry days at the end of logs exceeds any records
-				if (!(wetPeriod.Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
+				if (!(double.IsNegativeInfinity(wetPeriod.Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
 				{
 					wetPeriod.Value = currentWetPeriod;
 					wetPeriod.Ts = thisDateWet;
 				}
-				if (!(dryPeriod.Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
+				if (!(double.IsNegativeInfinity(dryPeriod.Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
 				{
 					dryPeriod.Value = currentDryPeriod;
 					dryPeriod.Ts = thisDateDry;
@@ -763,7 +869,6 @@ namespace CumulusMX
 			var watch = System.Diagnostics.Stopwatch.StartNew();
 
 			double _day24h = 0;
-			DateTime _dayTs;
 
 			while (!finished)
 			{
@@ -996,7 +1101,7 @@ namespace CumulusMX
 									{
 										currentWetPeriod = 1;
 										isDryNow = false;
-										if (!(dryPeriod.Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
+										if (!(double.IsNegativeInfinity(dryPeriod.Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
 										{
 											dryPeriod.Value = currentDryPeriod;
 											dryPeriod.Ts = thisDateDry;
@@ -1020,7 +1125,7 @@ namespace CumulusMX
 									{
 										currentDryPeriod = 1;
 										isDryNow = true;
-										if (!(wetPeriod.Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
+										if (!(double.IsNegativeInfinity(wetPeriod.Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
 										{
 											wetPeriod.Value = currentWetPeriod;
 											wetPeriod.Ts = thisDateWet;
@@ -1070,7 +1175,6 @@ namespace CumulusMX
 							if (rain24h > _day24h)
 							{
 								_day24h = rain24h;
-								_dayTs = rec.Date;
 							}
 
 							// new meteo day, part 2
@@ -1083,7 +1187,6 @@ namespace CumulusMX
 								totalRainfall += dayRain;
 
 								_day24h = rain24h;
-								_dayTs = rec.Date;
 							}
 
 							lastentrydate = rec.Date;
@@ -1117,12 +1220,12 @@ namespace CumulusMX
 			rain24hLog.Clear();
 
 			// We need to check if the run or wet/dry days at the end of logs exceeds any records
-			if (!(wetPeriod.Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
+			if (!(double.IsNegativeInfinity(wetPeriod.Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod.Value)
 			{
 				wetPeriod.Value = currentWetPeriod;
 				wetPeriod.Ts = thisDateWet;
 			}
-			if (!(dryPeriod.Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
+			if (!(double.IsNegativeInfinity(dryPeriod.Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod.Value)
 			{
 				dryPeriod.Value = currentDryPeriod;
 				dryPeriod.Ts = thisDateDry;
@@ -1746,7 +1849,7 @@ namespace CumulusMX
 							currentWetPeriod = 1;
 							isDryNow = false;
 							var dryMonthOffset = thisDateDry.Month - 1;
-							if (!(dryPeriod[dryMonthOffset].Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod[dryMonthOffset].Value)
+							if (!(double.IsNegativeInfinity(dryPeriod[dryMonthOffset].Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod[dryMonthOffset].Value)
 							{
 								dryPeriod[dryMonthOffset].Value = currentDryPeriod;
 								dryPeriod[dryMonthOffset].Ts = thisDateDry;
@@ -1771,7 +1874,7 @@ namespace CumulusMX
 							currentDryPeriod = 1;
 							isDryNow = true;
 							var wetMonthOffset = thisDateWet.Month - 1;
-							if (!(wetPeriod[wetMonthOffset].Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod[wetMonthOffset].Value)
+							if (!(double.IsNegativeInfinity(wetPeriod[wetMonthOffset].Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod[wetMonthOffset].Value)
 							{
 								wetPeriod[wetMonthOffset].Value = currentWetPeriod;
 								wetPeriod[wetMonthOffset].Ts = thisDateWet;
@@ -1874,12 +1977,12 @@ namespace CumulusMX
 				}
 
 				// We need to check if the run or wet/dry days at the end of log exceeds any records
-				if (!(wetPeriod[thisDateWet.Month - 1].Value == Cumulus.DefaultHiVal && currentWetPeriod == 0) && currentWetPeriod > wetPeriod[thisDateWet.Month - 1].Value)
+				if (!(double.IsNegativeInfinity(wetPeriod[thisDateWet.Month - 1].Value) && currentWetPeriod == 0) && currentWetPeriod > wetPeriod[thisDateWet.Month - 1].Value)
 				{
 					wetPeriod[thisDateWet.Month - 1].Value = currentWetPeriod;
 					wetPeriod[thisDateWet.Month - 1].Ts = thisDateWet;
 				}
-				if (!(dryPeriod[thisDateDry.Month - 1].Value == Cumulus.DefaultHiVal && currentDryPeriod == 0) && currentDryPeriod > dryPeriod[thisDateDry.Month - 1].Value)
+				if (!(double.IsNegativeInfinity(dryPeriod[thisDateDry.Month - 1].Value) && currentDryPeriod == 0) && currentDryPeriod > dryPeriod[thisDateDry.Month - 1].Value)
 				{
 					dryPeriod[thisDateDry.Month - 1].Value = currentDryPeriod;
 					dryPeriod[thisDateDry.Month - 1].Ts = thisDateDry;
@@ -3018,7 +3121,7 @@ namespace CumulusMX
 						try
 						{
 							// Update the in memory record
-							station.DayFile[lineNum] = station.ParseDayFileRec(newLine);
+							station.DayFile[lineNum] = new DayFileRec(newLine);
 
 							// update SQLite
 							station.RecentDataDb.Update(station.DayFile[lineNum]);
@@ -3301,7 +3404,6 @@ namespace CumulusMX
 				logfile = (newData.extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts));
 
 				// read the log file into a List
-				lines.Clear();
 				lines = File.ReadAllLines(logfile).ToList();
 
 
@@ -3338,69 +3440,71 @@ namespace CumulusMX
 					// Update internal database
 					// This does not really work, as the recent data is every minute, the logged data could be every 5, 15, 30 minutes
 
-					var LogRec = station.ParseLogFileRec(newLine, false);
+					if (!newData.extra)
+					{ 
+						var LogRec = station.ParseLogFileRec(newLine, false);
 
-					// Update the MySQL record
-					if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
-						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
-						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
-						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
-						cumulus.MySqlSettings.UpdateOnEdit &&
-						!newData.extra  // Only the monthly log file is stored in MySQL
-						)
-					{
-						var updateStr = string.Empty;
-
-						try
+						// Update the MySQL record
+						if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
+							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
+							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
+							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
+							cumulus.MySqlSettings.UpdateOnEdit
+							)
 						{
-							var updt = new StringBuilder(1024);
+							var updateStr = string.Empty;
+
+							try
+							{
+								var updt = new StringBuilder(1024);
 
 
-							updt.Append($"UPDATE {cumulus.MySqlSettings.Monthly.TableName} SET ");
-							updt.Append($"Temp={LogRec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"Humidity={LogRec.OutdoorHumidity},");
-							updt.Append($"Dewpoint={LogRec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"Windspeed={LogRec.WindAverage.ToString(cumulus.WindAvgFormat, InvC)},");
-							updt.Append($"Windgust={LogRec.RecentMaxGust.ToString(cumulus.WindFormat, InvC)},");
-							updt.Append($"Windbearing={LogRec.AvgBearing},");
-							updt.Append($"RainRate={LogRec.RainRate.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"TodayRainSoFar={LogRec.RainToday.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"Pressure={LogRec.Pressure.ToString(cumulus.PressFormat, InvC)},");
-							updt.Append($"Raincounter={LogRec.Raincounter.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"InsideTemp={LogRec.IndoorTemperature.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"InsideHumidity={LogRec.IndoorHumidity},");
-							updt.Append($"LatestWindGust={LogRec.WindLatest.ToString(cumulus.WindFormat, InvC)},");
-							updt.Append($"WindChill={LogRec.WindChill.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"HeatIndex={LogRec.HeatIndex.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"UVindex={LogRec.UV.ToString(cumulus.UVFormat, InvC)},");
-							updt.Append($"SolarRad={LogRec.SolarRad},");
-							updt.Append($"Evapotrans={LogRec.ET.ToString(cumulus.ETFormat, InvC)},");
-							updt.Append($"AnnualEvapTran={LogRec.AnnualETTotal.ToString(cumulus.ETFormat, InvC)},");
-							updt.Append($"ApparentTemp={LogRec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"MaxSolarRad={(Math.Round(LogRec.CurrentSolarMax))},");
-							updt.Append($"HrsSunShine={LogRec.SunshineHours.ToString(cumulus.SunFormat, InvC)},");
-							updt.Append($"CurrWindBearing={LogRec.Bearing},");
-							updt.Append($"RG11rain={LogRec.RG11RainToday.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"RainSinceMidnight={LogRec.RainSinceMidnight.ToString(cumulus.RainFormat, InvC)},");
-							updt.Append($"WindbearingSym='{station.CompassPoint(LogRec.AvgBearing)}',");
-							updt.Append($"CurrWindBearingSym='{station.CompassPoint(LogRec.Bearing)}',");
-							updt.Append($"FeelsLike={LogRec.FeelsLike.ToString(cumulus.TempFormat, InvC)},");
-							updt.Append($"Humidex={LogRec.Humidex.ToString(cumulus.TempFormat, InvC)} ");
+								updt.Append($"UPDATE {cumulus.MySqlSettings.Monthly.TableName} SET ");
+								updt.Append($"Temp={LogRec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"Humidity={LogRec.OutdoorHumidity},");
+								updt.Append($"Dewpoint={LogRec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"Windspeed={LogRec.WindAverage.ToString(cumulus.WindAvgFormat, InvC)},");
+								updt.Append($"Windgust={LogRec.RecentMaxGust.ToString(cumulus.WindFormat, InvC)},");
+								updt.Append($"Windbearing={LogRec.AvgBearing},");
+								updt.Append($"RainRate={LogRec.RainRate.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"TodayRainSoFar={LogRec.RainToday.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"Pressure={LogRec.Pressure.ToString(cumulus.PressFormat, InvC)},");
+								updt.Append($"Raincounter={LogRec.Raincounter.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"InsideTemp={(LogRec.IndoorTemperature.HasValue ? LogRec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC) : "NULL")},");
+								updt.Append($"InsideHumidity={(LogRec.IndoorHumidity.HasValue ? LogRec.IndoorHumidity : "NULL")},");
+								updt.Append($"LatestWindGust={LogRec.WindLatest.ToString(cumulus.WindFormat, InvC)},");
+								updt.Append($"WindChill={LogRec.WindChill.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"HeatIndex={LogRec.HeatIndex.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"UVindex={LogRec.UV.ToString(cumulus.UVFormat, InvC)},");
+								updt.Append($"SolarRad={LogRec.SolarRad},");
+								updt.Append($"Evapotrans={LogRec.ET.ToString(cumulus.ETFormat, InvC)},");
+								updt.Append($"AnnualEvapTran={LogRec.AnnualETTotal.ToString(cumulus.ETFormat, InvC)},");
+								updt.Append($"ApparentTemp={LogRec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"MaxSolarRad={(Math.Round(LogRec.CurrentSolarMax))},");
+								updt.Append($"HrsSunShine={LogRec.SunshineHours.ToString(cumulus.SunFormat, InvC)},");
+								updt.Append($"CurrWindBearing={LogRec.Bearing},");
+								updt.Append($"RG11rain={LogRec.RG11RainToday.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"RainSinceMidnight={LogRec.RainSinceMidnight.ToString(cumulus.RainFormat, InvC)},");
+								updt.Append($"WindbearingSym='{station.CompassPoint(LogRec.AvgBearing)}',");
+								updt.Append($"CurrWindBearingSym='{station.CompassPoint(LogRec.Bearing)}',");
+								updt.Append($"FeelsLike={LogRec.FeelsLike.ToString(cumulus.TempFormat, InvC)},");
+								updt.Append($"Humidex={LogRec.Humidex.ToString(cumulus.TempFormat, InvC)} ");
 
-							updt.Append($"WHERE LogDateTime='{LogRec.Date:yyyy-MM-dd HH:mm}';");
-							updateStr = updt.ToString();
+								updt.Append($"WHERE LogDateTime='{LogRec.Date:yyyy-MM-dd HH:mm}';");
+								updateStr = updt.ToString();
 
 
-							cumulus.MySqlCommandSync(updateStr, "EditLogFile");
-							cumulus.LogMessage($"EditDataLog: SQL Updated");
-						}
-						catch (Exception ex)
-						{
-							cumulus.LogErrorMessage($"EditDataLog: Failed, to update MySQL. Error = {ex.Message}");
-							cumulus.LogMessage($"EditDataLog: SQL Update statement = {updateStr}");
-							context.Response.StatusCode = 501; // Use 501 to signal that SQL failed but file update was OK
+								cumulus.MySqlCommandSync(updateStr, "EditLogFile");
+								cumulus.LogMessage($"EditDataLog: SQL Updated");
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogErrorMessage($"EditDataLog: Failed, to update MySQL. Error = {ex.Message}");
+								cumulus.LogMessage($"EditDataLog: SQL Update statement = {updateStr}");
+								context.Response.StatusCode = 501; // Use 501 to signal that SQL failed but file update was OK
 
-							return "{\"errors\": { \"Logfile\":[\"<br>Updated the log file OK\"], \"MySQL\":[\"<br>Failed to update MySQL. Error: " + ex.Message + "\"] }}";
+								return "{\"errors\": { \"Logfile\":[\"<br>Updated the log file OK\"], \"MySQL\":[\"<br>Failed to update MySQL. Error: " + ex.Message + "\"] }}";
+							}
 						}
 					}
 				}
@@ -3582,12 +3686,12 @@ namespace CumulusMX
 
 		private sealed class LocalRec(bool HighVal)
 		{
-			public double Value { get; set; } = HighVal ? Cumulus.DefaultHiVal : Cumulus.DefaultLoVal;
+			public double Value { get; set; } = HighVal ? double.NegativeInfinity : double.PositiveInfinity;
 			public DateTime Ts { get; set; } = DateTime.MinValue;
 
 			public string GetValString(string format = "")
 			{
-				if (Value == Cumulus.DefaultHiVal || Value == Cumulus.DefaultLoVal)
+				if (double.IsInfinity(Value))
 					return "-";
 				else
 					return Value.ToString(format);

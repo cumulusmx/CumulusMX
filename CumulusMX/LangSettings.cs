@@ -168,6 +168,12 @@ namespace CumulusMX
 				recwetdrytimedate = cumulus.Trans.WebTagRecDryWetDate
 			};
 
+			var snow = new Snow()
+			{
+				snowdepth = cumulus.Trans.SnowDepth,
+				snow24h = cumulus.Trans.Snow24h
+			};
+
 			var settings = new Settings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
@@ -188,7 +194,8 @@ namespace CumulusMX
 				davisForecast = davisForecast,
 				co2 = co2,
 				alarms = alarmSettings,
-				webtags = webtags
+				webtags = webtags,
+				snow = snow
 			};
 
 
@@ -468,6 +475,20 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// snow
+				try
+				{
+					cumulus.Trans.SnowDepth = settings.snow.snowdepth;
+					cumulus.Trans.Snow24h = settings.snow.snow24h;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Snow settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 
 				// Save the settings
 				cumulus.WriteStringsFile();
@@ -608,6 +629,12 @@ namespace CumulusMX
 			public string recwetdrytimedate { get; set; }
 		}
 
+		private sealed class Snow
+		{
+			public string snowdepth { get; set; }
+			public string snow24h { get; set; }
+		}
+
 		private sealed class Settings
 		{
 			public bool accessible { get; set; }
@@ -629,6 +656,7 @@ namespace CumulusMX
 			public Co2Captions co2 { get; set; }
 			public AlarmSettings alarms { get; set; }
 			public WebTags webtags { get; set; }
+			public Snow snow { get; set; }
 		}
 	}
 }

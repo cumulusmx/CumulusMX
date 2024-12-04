@@ -1600,13 +1600,13 @@ namespace CumulusMX
 						}
 						tmrComm.Stop();
 
-						if (socket.Available < loopDataLength)
-						{
-							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not received, expected 99 bytes, got {socket.Available}");
-						}
-
 						// Read the first 99 bytes of the buffer into the array
-						socket.GetStream().Read(loopString, 0, loopDataLength);
+						var read = socket.GetStream().Read(loopString, 0, loopDataLength);
+
+						if (read < loopDataLength)
+						{
+							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not received, expected {loopDataLength} bytes, got {read}");
+						}
 					}
 					catch (System.IO.IOException ex)
 					{
@@ -1738,6 +1738,12 @@ namespace CumulusMX
 				else
 				{
 					cumulus.LogDebugMessage($"LOOP: Ignoring pressure data. Pressure={loopData.Pressure} inHg.");
+				}
+
+				if ((cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2) || cumulus.StationType == StationTypes.VantagePro)
+				{
+					// Loop2 data not available, just use sea level (for now, anyway)
+					AltimeterPressure = Pressure;
 				}
 
 				double wind = ConvertUnits.WindMPHToUser(loopData.CurrentWindSpeed);
@@ -1886,7 +1892,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum1, 1);
 						if (loopData.ExtraTemp1 < 255)
 						{
-							ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1]), ExtraHum[1]));
+							ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1].Value), ExtraHum[1].Value));
 						}
 					}
 
@@ -1895,7 +1901,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum2, 2);
 						if (loopData.ExtraTemp2 < 255)
 						{
-							ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2]), ExtraHum[2]));
+							ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2].Value), ExtraHum[2].Value));
 						}
 					}
 
@@ -1904,7 +1910,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum3, 3);
 						if (loopData.ExtraTemp3 < 255)
 						{
-							ExtraDewPoint[3] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[3]), ExtraHum[3]));
+							ExtraDewPoint[3] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[3].Value), ExtraHum[3].Value));
 						}
 					}
 
@@ -1913,7 +1919,7 @@ namespace CumulusMX
 						DoExtraHum(loopData.ExtraHum4, 4);
 						if (loopData.ExtraTemp4 < 255)
 						{
-							ExtraDewPoint[4] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[4]), ExtraHum[4]));
+							ExtraDewPoint[4] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[4].Value), ExtraHum[4].Value));
 						}
 					}
 
@@ -2145,7 +2151,7 @@ namespace CumulusMX
 				{
 					// Spike removal is in user units
 					var pressUser = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
-					if ((previousPressStation != 9999) && (Math.Abs(pressUser - previousPressStation) > cumulus.Spike.PressDiff))
+					if ((previousPressStation < 9998) && (Math.Abs(pressUser - previousPressStation) > cumulus.Spike.PressDiff))
 					{
 						cumulus.LogSpikeRemoval("Station Pressure difference greater than spike value; reading ignored");
 						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} OldVal={previousPressStation.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}");
@@ -2173,8 +2179,7 @@ namespace CumulusMX
 					{
 						// all good!
 						previousPressStation = pressUser;
-						StationPressure = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
-						AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+						DoStationPressure(ConvertUnits.PressINHGToUser(loopData.AbsolutePressure));
 					}
 				}
 
@@ -2248,6 +2253,7 @@ namespace CumulusMX
 			bool rolloverdone = luhour == rollHour;
 
 			bool midnightraindone = luhour == 0;
+			bool rollover9amdone = luhour == 9;
 
 			// work out the next logger interval after the last CMX update
 			var nextLoggerTime = Utils.RoundTimeUpToInterval(cumulus.LastUpdateTime.AddMinutes(-1), TimeSpan.FromMinutes(loggerInterval));
@@ -2525,9 +2531,16 @@ namespace CumulusMX
 							}
 
 							// Read the response
-							stream.Read(buff, 0, pageSize);
+							var size = stream.Read(buff, 0, pageSize);
 
-							cumulus.LogDataMessage("GetArchiveData: Response data - " + BitConverter.ToString(buff));
+							if (size != pageSize)
+							{
+								cumulus.LogMessage($"GetArchiveData: Response data ( expecting {pageSize} bytes, got {size} bytes) - " + BitConverter.ToString(buff));
+							}
+							else
+							{
+								cumulus.LogDataMessage("GetArchiveData: Response data - " + BitConverter.ToString(buff));
+							}
 
 							if (CrcOk(buff))
 								badCRC = false;
@@ -2637,7 +2650,7 @@ namespace CumulusMX
 									TempTotalToday += (temp * interval);
 
 									// update chill hours
-									if (temp < cumulus.ChillHourThreshold)
+									if (temp < cumulus.ChillHourThreshold && temp > cumulus.ChillHourBase)
 									{
 										// add 1 minute to chill hours
 										ChillHours += (interval / 60.0);
@@ -2694,6 +2707,13 @@ namespace CumulusMX
 								midnightraindone = true;
 							}
 
+							// 9am rollover items
+							if (h == 9 && !rollover9amdone)
+							{
+								Reset9amTemperatures(timestamp);
+								rollover9amdone = true;
+							}
+
 							if ((archiveData.InsideTemperature > -200) && (archiveData.InsideTemperature < 300))
 							{
 								DoIndoorTemp(ConvertUnits.TempFToUser(archiveData.InsideTemperature));
@@ -2734,7 +2754,7 @@ namespace CumulusMX
 									TempTotalToday += (OutdoorTemperature * interval);
 
 									// update chill hours
-									if (OutdoorTemperature < cumulus.ChillHourThreshold)
+									if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 									{
 										// add 1 minute to chill hours
 										ChillHours += (interval / 60.0);
@@ -2789,6 +2809,10 @@ namespace CumulusMX
 								DoPressure(ConvertUnits.PressINHGToUser(archiveData.Pressure), timestamp);
 							}
 
+							// No station pressure in archive data
+							StationPressure = 0;
+							AltimeterPressure = Pressure;
+
 							if (archiveData.HiUVIndex >= 0 && archiveData.HiUVIndex < 25)
 							{
 								DoUV(archiveData.HiUVIndex, timestamp);
@@ -2831,7 +2855,7 @@ namespace CumulusMX
 									DoExtraHum(archiveData.ExtraHum1, 1);
 									if (archiveData.ExtraTemp1 < 255)
 									{
-										ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1]), ExtraHum[1]));
+										ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1].Value), ExtraHum[1].Value));
 									}
 								}
 
@@ -2840,7 +2864,7 @@ namespace CumulusMX
 									DoExtraHum(archiveData.ExtraHum2, 2);
 									if (archiveData.ExtraTemp2 < 255)
 									{
-										ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2]), ExtraHum[2]));
+										ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2].Value), ExtraHum[2].Value));
 									}
 								}
 
@@ -2886,12 +2910,12 @@ namespace CumulusMX
 
 								if (archiveData.LeafWetness1 >= 0 && archiveData.LeafWetness1 < 16)
 								{
-									DoLeafWetness(LeafWetness1, 1);
+									DoLeafWetness(archiveData.LeafWetness1, 1);
 								}
 
 								if (archiveData.LeafWetness2 >= 0 && archiveData.LeafWetness2 < 16)
 								{
-									DoLeafWetness(LeafWetness2, 2);
+									DoLeafWetness(archiveData.LeafWetness2, 2);
 								}
 							}
 
@@ -2936,7 +2960,7 @@ namespace CumulusMX
 
 						numdone++;
 						if (!Program.service)
-							Console.Write("\r - processed " + ((double) numdone / (double) numtodo).ToString("P0"));
+							Console.Write("\r - processed " + (numdone / (double) numtodo).ToString("P0"));
 						cumulus.LogMessage(numdone + " archive entries processed");
 					}
 				}

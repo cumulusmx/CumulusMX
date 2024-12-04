@@ -192,5 +192,8 @@ dotnet_style_qualification_for_method = false:suggestion
 dotnet_style_qualification_for_event = false:suggestion
 dotnet_style_prefer_collection_expression = true:suggestion
 
+dotnet_remove_unnecessary_suppression_exclusions = CA1416
+
+
 [SQLite.cs]
 generated_code = true

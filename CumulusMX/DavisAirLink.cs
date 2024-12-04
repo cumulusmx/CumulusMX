@@ -342,6 +342,14 @@ namespace CumulusMX
 								station.DoDayResetIfNeeded();
 								startupDayResetIfRequired = false;
 							}
+							if (indoor)
+							{
+								cumulus.airLinkDataIn.dataValid = true;
+							}
+							else
+							{
+								cumulus.airLinkDataOut.dataValid = true;
+							}
 						}
 						catch (Exception ex)
 						{
@@ -384,6 +392,8 @@ namespace CumulusMX
 				if (rec.pct_pm_data_last_1_hour == 0 && rec.pm2p5_last == 0 && rec.pm_10_last == 0)
 				{
 					cumulus.LogMessage("Ignoring AirLink data with zero values and percent in last hour is also 0 - possibly restarted");
+					cumulus.airLinkDataIn.dataValid = false;
+					cumulus.airLinkDataOut.dataValid = false;
 					return;
 				}
 
@@ -872,7 +882,7 @@ namespace CumulusMX
 						{
 							cumulus.LogDebugMessage($"DecodeAlHistoric: {locationStr} - Using temp/hum data");
 
-							if (data17.temp_avg == -99)
+							if (data17.temp_avg < -98)
 							{
 								cumulus.LogWarningMessage($"DecodeAlHistoric: No valid temperature value found");
 							}
@@ -1705,8 +1715,10 @@ namespace CumulusMX
 #pragma warning restore S3459, S1144 // Unassigned members should be removed
 	}
 
+
 	public class AirLinkData
 	{
+		public bool dataValid { get; set; }
 		public double temperature { get; set; }
 		public int humidity { get; set; }
 		public double pm1 { get; set; }

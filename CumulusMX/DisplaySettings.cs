@@ -27,7 +27,8 @@ namespace CumulusMX
 				windrosepoints = cumulus.NumWindRosePoints,
 				useapparent = cumulus.DisplayOptions.UseApparent,
 				displaysolar = cumulus.DisplayOptions.ShowSolar,
-				displayuv = cumulus.DisplayOptions.ShowUV
+				displayuv = cumulus.DisplayOptions.ShowUV,
+				displaysnow = cumulus.DisplayOptions.ShowSnow
 			};
 
 			var graphVisTemp = new JsonGraphVisTemperature()
@@ -70,6 +71,11 @@ namespace CumulusMX
 				TempSum1 = cumulus.GraphOptions.Visible.TempSum1.Val,
 				TempSum2 = cumulus.GraphOptions.Visible.TempSum2.Val
 
+			};
+
+			var grahpVisChillhrs = new JsonGraphVisChillHrs()
+			{
+				ChillHrs = cumulus.GraphOptions.Visible.ChillHours.Val
 			};
 
 			var graphVisExtraTemp = new JsonGraphVisExtraSensors()
@@ -130,6 +136,12 @@ namespace CumulusMX
 				graphVisAq.sensors[i].hum = cumulus.GraphOptions.Visible.AqSensor.Hum.Vals[i];
 			}
 
+			var graphVisSnow = new JsonGraphVisSnow()
+			{
+				Depth = cumulus.GraphOptions.Visible.SnowDepth.Val,
+				Last24h = cumulus.GraphOptions.Visible.Snow24h.Val
+			};
+
 
 			var graphVis = new JsonVisibility()
 			{
@@ -138,6 +150,7 @@ namespace CumulusMX
 				solar = graphVisSolar,
 				degreedays = graphVisDegreeDays,
 				tempsum = grapVisTempSum,
+				chillhrs = grahpVisChillhrs,
 				extratemp = graphVisExtraTemp,
 				extrahum = graphVisExtraHum,
 				extradew = graphVisExtraDP,
@@ -146,7 +159,8 @@ namespace CumulusMX
 				leafwet = graphVisLeafWet,
 				usertemp = graphVisUserTemp,
 				aq = graphVisAq,
-				co2 = graphVisCo2
+				co2 = graphVisCo2,
+				snow = graphVisSnow
 			};
 
 			var graphColTemp = new JsonGraphColTemperature()
@@ -281,6 +295,12 @@ namespace CumulusMX
 				hum = cumulus.GraphOptions.Colour.CO2Sensor.Hum
 			};
 
+			var graphColSnow = new JsonGraphColSnow()
+			{
+				Depth = cumulus.GraphOptions.Colour.SnowDepth,
+				Last24h = cumulus.GraphOptions.Colour.Snow24h
+			};
+
 			var graphCol = new JsonColour()
 			{
 				temperature = graphColTemp,
@@ -301,7 +321,8 @@ namespace CumulusMX
 				soilmoist = graphColSoilMoist,
 				leafwet = graphColLeafWet,
 				usertemp = graphColUserTemp,
-				co2 = graphColCo2
+				co2 = graphColCo2,
+				snow = graphColSnow
 			};
 
 			var graphs = new JsonGraphs()
@@ -379,6 +400,7 @@ namespace CumulusMX
 					cumulus.GraphOptions.Visible.TempSum2.Val = settings.DataVisibility.tempsum.TempSum2;
 					cumulus.GraphOptions.Visible.GrowingDegreeDays1.Val = settings.DataVisibility.degreedays.GrowingDegreeDays1;
 					cumulus.GraphOptions.Visible.GrowingDegreeDays2.Val = settings.DataVisibility.degreedays.GrowingDegreeDays2;
+					cumulus.GraphOptions.Visible.ChillHours.Val = settings.DataVisibility.chillhrs.ChillHrs;
 					cumulus.GraphOptions.Visible.ExtraTemp.Vals = settings.DataVisibility.extratemp.sensors;
 					cumulus.GraphOptions.Visible.ExtraHum.Vals = settings.DataVisibility.extrahum.sensors;
 					cumulus.GraphOptions.Visible.ExtraDewPoint.Vals = settings.DataVisibility.extradew.sensors;
@@ -401,6 +423,8 @@ namespace CumulusMX
 					cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.Val = settings.DataVisibility.co2.pm10avg;
 					cumulus.GraphOptions.Visible.CO2Sensor.Temp.Val = settings.DataVisibility.co2.temp;
 					cumulus.GraphOptions.Visible.CO2Sensor.Hum.Val = settings.DataVisibility.co2.hum;
+					cumulus.GraphOptions.Visible.SnowDepth.Val = settings.DataVisibility.snow.Depth;
+					cumulus.GraphOptions.Visible.Snow24h.Val = settings.DataVisibility.snow.Last24h;
 
 					cumulus.GraphHours = settings.Graphs.graphhours;
 					cumulus.RecentDataDays = (int) Math.Ceiling(Math.Max(7, cumulus.GraphHours / 24.0));
@@ -471,6 +495,9 @@ namespace CumulusMX
 					cumulus.GraphOptions.Colour.CO2Sensor.Pm10Avg = settings.Graphs.colour.co2.pm10avg;
 					cumulus.GraphOptions.Colour.CO2Sensor.Temp = settings.Graphs.colour.co2.temp;
 					cumulus.GraphOptions.Colour.CO2Sensor.Hum = settings.Graphs.colour.co2.hum;
+
+					cumulus.GraphOptions.Colour.SnowDepth = settings.Graphs.colour.snow.Depth;
+					cumulus.GraphOptions.Colour.Snow24h = settings.Graphs.colour.snow.Last24h;
 				}
 				catch (Exception ex)
 				{
@@ -494,6 +521,7 @@ namespace CumulusMX
 					cumulus.DisplayOptions.UseApparent = settings.DisplayOptions.useapparent;
 					cumulus.DisplayOptions.ShowSolar = settings.DisplayOptions.displaysolar;
 					cumulus.DisplayOptions.ShowUV = settings.DisplayOptions.displayuv;
+					cumulus.DisplayOptions.ShowSnow = settings.DisplayOptions.displaysnow;
 				}
 				catch (Exception ex)
 				{
@@ -543,6 +571,16 @@ namespace CumulusMX
 			public JsonVisibility DataVisibility { get; set; }
 		}
 
+		private sealed class JsonDisplayOptions
+		{
+			public int windrosepoints { get; set; }
+			public bool useapparent { get; set; }
+			public bool displaysolar { get; set; }
+			public bool displayuv { get; set; }
+			public bool displaysnow { get; set; }
+		}
+
+
 		private sealed class JsonGraphs
 		{
 			public int graphhours { get; set; }
@@ -576,7 +614,6 @@ namespace CumulusMX
 			public int hum { get; set; }
 		}
 
-
 		private sealed class JsonVisibility
 		{
 			public JsonGraphVisTemperature temperature { get; set; }
@@ -584,6 +621,7 @@ namespace CumulusMX
 			public JsonGraphVisSolar solar { get; set; }
 			public JsonGraphVisDegreeDays degreedays { get; set; }
 			public JsonGraphVisTempSum tempsum { get; set; }
+			public JsonGraphVisChillHrs chillhrs { get; set; }
 			public JsonGraphVisExtraSensors extratemp { get; set; }
 			public JsonGraphVisExtraSensors extrahum { get; set; }
 			public JsonGraphVisExtraSensors extradew { get; set; }
@@ -593,6 +631,7 @@ namespace CumulusMX
 			public JsonGraphVisExtraSensors usertemp { get; set; }
 			public JsonGraphVisAq aq { get; set; }
 			public JsonGraphVisCo2 co2 { get; set; }
+			public JsonGraphVisSnow snow { get; set; }
 		}
 
 		private sealed class JsonGraphVisTemperature
@@ -623,6 +662,11 @@ namespace CumulusMX
 			public int Sunshine { get; set; }
 		}
 
+		private sealed class JsonGraphVisSnow
+		{
+			public int Depth { get; set; }
+			public int Last24h { get; set; }
+		}
 		private sealed class JsonGraphVisDegreeDays
 		{
 			public int GrowingDegreeDays1 { get; set; }
@@ -634,6 +678,11 @@ namespace CumulusMX
 			public int TempSum0 { get; set; }
 			public int TempSum1 { get; set; }
 			public int TempSum2 { get; set; }
+		}
+
+		private sealed class JsonGraphVisChillHrs
+		{
+			public int ChillHrs { get; set; }
 		}
 
 		private sealed class JsonGraphVisExtraSensors
@@ -662,6 +711,7 @@ namespace CumulusMX
 			public JsonGraphColExtraSensors leafwet { get; set; }
 			public JsonGraphColExtraSensors usertemp { get; set; }
 			public JsonGraphColCo2 co2 { get; set; }
+			public JsonGraphColSnow snow { get; set; }
 		}
 
 
@@ -759,5 +809,12 @@ namespace CumulusMX
 			public string temp { get; set; }
 			public string hum { get; set; }
 		}
+
+		private sealed class JsonGraphColSnow
+		{
+			public string Depth { get; set; }
+			public string Last24h { get; set; }
+		}
+
 	}
 }

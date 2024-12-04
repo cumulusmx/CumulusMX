@@ -22,8 +22,9 @@ namespace CumulusMX
 			int httpport = Program.Httpport;
 			bool debug = false;
 			StringBuilder startParams = new();
-
-			for (int i = 0; i < args.Length; i++)
+			int i = 0;
+			
+			while (i < args.Length)
 			{
 				startParams.Append(args[i] + " ");
 				try
@@ -55,6 +56,8 @@ namespace CumulusMX
 				{
 					// Ignore any errors
 				}
+
+				i++;
 			}
 
 			Program.cumulus = new Cumulus();

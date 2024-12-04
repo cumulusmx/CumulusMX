@@ -145,7 +145,7 @@ namespace CumulusMX
 					{
 						cumulus.FtpOptions.RealtimeEnabled = settings.websettings.realtime.enablerealtimeftp;
 						cumulus.RealtimeInterval = settings.websettings.realtime.realtimeinterval * 1000;
-						if (cumulus.RealtimeTimer.Interval != cumulus.RealtimeInterval)
+						if ((int) cumulus.RealtimeTimer.Interval != cumulus.RealtimeInterval)
 							cumulus.RealtimeTimer.Interval = cumulus.RealtimeInterval;
 
 						for (var i = 0; i < cumulus.RealtimeFiles.Length; i++)
@@ -166,7 +166,7 @@ namespace CumulusMX
 					{
 						cumulus.FtpOptions.IntervalEnabled = settings.websettings.interval.enableintervalftp;
 						cumulus.UpdateInterval = settings.websettings.interval.ftpinterval;
-						if (cumulus.WebTimer.Interval != cumulus.UpdateInterval * 60 * 1000)
+						if ((int) cumulus.WebTimer.Interval != cumulus.UpdateInterval * 60 * 1000)
 							cumulus.WebTimer.Interval = cumulus.UpdateInterval * 60 * 1000;
 
 						for (var i = 0; i < cumulus.StdWebFiles.Length; i++)

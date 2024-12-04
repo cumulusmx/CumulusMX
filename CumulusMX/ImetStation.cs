@@ -524,6 +524,7 @@ namespace CumulusMX
 					var rolloverdone = luhour == rollHour;
 
 					var midnightraindone = luhour == 0;
+					var rollover9amdone = luhour == 9;
 
 					for (int i = startindex; i < numrecs; i++)
 					{
@@ -598,7 +599,7 @@ namespace CumulusMX
 								TempTotalToday += (OutdoorTemperature * interval);
 
 								// update chill hours
-								if (OutdoorTemperature < cumulus.ChillHourThreshold)
+								if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 								{
 									// add 1 minute to chill hours
 									ChillHours += interval / 60.0;
@@ -626,7 +627,7 @@ namespace CumulusMX
 							{
 								var raintotal = Convert.ToDouble(sl[RAINPOS], provider);
 								double raindiff;
-								if (prevraintotal == -1)
+								if (prevraintotal < 0)
 								{
 									raindiff = 0;
 								}
@@ -656,6 +657,7 @@ namespace CumulusMX
 							if (sl[PRESSAVGPOS].Length > 0)
 							{
 								DoPressure(ConvertUnits.PressMBToUser(Convert.ToDouble(sl[PRESSAVGPOS], provider)), timestamp);
+								AltimeterPressure = Pressure;
 							}
 
 							// Cause wind chill calc
@@ -707,6 +709,13 @@ namespace CumulusMX
 								ResetSunshineHours(timestamp);
 								ResetMidnightTemperatures(timestamp);
 								midnightraindone = true;
+							}
+
+							// 9am rollover items
+							if (hour == 9 && !rollover9amdone)
+							{
+								Reset9amTemperatures(timestamp);
+								rollover9amdone = true;
 							}
 						}
 						catch (Exception E)
@@ -871,6 +880,7 @@ namespace CumulusMX
 				if (!string.IsNullOrEmpty(sl[PRESSPOS]) && double.TryParse(sl[PRESSPOS], NumberStyles.Float, provider, out varDbl))
 				{
 					DoPressure(ConvertUnits.PressMBToUser(varDbl), now);
+					AltimeterPressure = Pressure;
 				}
 				else
 				{

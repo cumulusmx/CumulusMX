@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Memory;
@@ -1321,6 +1322,7 @@ namespace CumulusMX
 			return (rev(pa));
 		}
 
+#pragma warning disable S125 // Sections of code should not be commented out
 		/*
 		private double[] MoonQuarters(int year , int month , int day )
 		{
@@ -1439,15 +1441,16 @@ namespace CumulusMX
 			return quarters;
 		}
 		*/
-
+#pragma warning restore S125
 
 		public static double MoonAge()
 		{
 			var now = DateTime.Now;
-			DateTime lastNewMoon = new DateTime();
+			string format = "yyyy-MM-dd HH:mm zzz";
+			DateTime lastNewMoon = DateTime.MinValue;
 			foreach (var thisDate in NewMoons)
 			{
-				var newMoon = DateTime.Parse(thisDate);
+				var newMoon = DateTime.ParseExact(thisDate, format, CultureInfo.InvariantCulture);
 				if (newMoon.CompareTo(now) <= 0)
 				{
 					// this date is older than now, save it as previous
@@ -1491,7 +1494,7 @@ namespace CumulusMX
 				bmp.ProcessPixelRows(accessor =>
 				{
 					// we need to reverse a couple of settings beyond full moon
-					double corr = -1;
+					int corr = -1;
 
 					if (phaseAngle > 180)
 					{

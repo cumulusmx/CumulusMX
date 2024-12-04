@@ -3,6 +3,11 @@
 // **************************
 // *** (C)2009 S.T.A. snc ***
 // **************************
+// 
+// Lots of mods and extensions by M Crossley
+//
+
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -127,82 +132,78 @@ namespace CumulusMX
 		{
 			lock (m_Lock)
 			{
-				FileStream fs = null;
-				StreamReader sr = null;
 				try
 				{
 					// *** Clear local cache ***
 					m_Sections.Clear();
 
 					// *** Open the INI file ***
-					if (File.Exists(m_FileName))
-					{
-						fs = new FileStream(m_FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-						sr = new StreamReader(fs);
-					}
-					else
+					if (!File.Exists(m_FileName))
 					{
 						return;
 					}
-
-					// *** Read up the file content ***
-					Dictionary<string, string> CurrentSection = null;
-					string s;
-					while ((s = sr.ReadLine()) != null)
+					else
 					{
-						s = s.Trim();
 
-						// *** Check for section names ***
-						if (s.StartsWith('[') && s.EndsWith(']'))
+						using FileStream fs = new FileStream(m_FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+						using StreamReader sr = new StreamReader(fs);
+
+						// *** Read up the file content ***
+						Dictionary<string, string> CurrentSection = null;
+						string s;
+
+						while ((s = sr.ReadLine()) != null)
 						{
-							if (s.Length > 2)
-							{
-								string SectionName = s[1..^1];
+							s = s.Trim();
 
-								// *** Only first occurrence of a section is loaded ***
-								if (m_Sections.ContainsKey(SectionName))
+							// *** Check for section names ***
+							if (s.StartsWith('[') && s.EndsWith(']'))
+							{
+								if (s.Length > 2)
 								{
-									CurrentSection = null;
-								}
-								else
-								{
-									CurrentSection = [];
-									m_Sections.Add(SectionName, CurrentSection);
+									string SectionName = s[1..^1];
+
+									// *** Only first occurrence of a section is loaded ***
+									if (m_Sections.ContainsKey(SectionName))
+									{
+										CurrentSection = null;
+									}
+									else
+									{
+										CurrentSection = [];
+										m_Sections.Add(SectionName, CurrentSection);
+									}
 								}
 							}
-						}
-						else if (CurrentSection != null)
-						{
-							// *** Check for key+value pair ***
-							int i;
-							if (s.StartsWith('#'))
+							else if (CurrentSection != null)
 							{
-								// It's a comment
-								// *** Only first occurrence of a key is loaded ***
-								CurrentSection.TryAdd(s, "");
-							}
-							else if ((i = s.IndexOf('=')) > 0)
-							{
-								// It's a value
-								int j = s.Length - i - 1;
-								string Key = s[..i].Trim();
-								if (Key.Length > 0 && !CurrentSection.ContainsKey(Key))
+								// *** Check for key+value pair ***
+								int i;
+								if (s.StartsWith('#'))
 								{
+									// It's a comment
 									// *** Only first occurrence of a key is loaded ***
-									string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : ("");
-									CurrentSection.Add(Key, Value);
+									CurrentSection.TryAdd(s, "");
+								}
+								else if ((i = s.IndexOf('=')) > 0)
+								{
+									// It's a value
+									int j = s.Length - i - 1;
+									string Key = s[..i].Trim();
+									if (Key.Length > 0 && !CurrentSection.ContainsKey(Key))
+									{
+										// *** Only first occurrence of a key is loaded ***
+										string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : ("");
+										CurrentSection.Add(Key, Value);
+									}
 								}
 							}
 						}
 					}
 				}
-				finally
+				catch
 				{
-					// *** Cleanup: close file ***
-					if (sr != null) sr.Close();
-					if (fs != null) fs.Close();
-					sr = null;
-					fs = null;
+					// ignore
 				}
 			}
 		}

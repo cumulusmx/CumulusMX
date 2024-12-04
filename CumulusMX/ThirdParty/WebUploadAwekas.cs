@@ -137,13 +137,21 @@ namespace CumulusMX.ThirdParty
 								cumulus.LogWarningMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
 							}
 							// AWEKAS normal allows minimum of 300 second updates, revert to that
-							else
+							else if (!RateLimited && Interval < 300)
 							{
 								RateLimited = true;
 								Interval = 300;
 								IntTimer.Interval = Interval * 1000;
 								SynchronisedUpdate = true;
 								cumulus.LogWarningMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to rate limit");
+							}
+							else
+							{
+								RateLimited = true;
+								Interval = 600;
+								IntTimer.Interval = Interval * 1000;
+								SynchronisedUpdate = true;
+								cumulus.LogWarningMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 600 seconds due to rate limit");
 							}
 						}
 						else
@@ -274,10 +282,10 @@ namespace CumulusMX.ThirdParty
 			// indoor temp/humidity
 			if (SendIndoor)
 			{
-				if (station.IndoorTemperature > Cumulus.DefaultHiVal)
-					sb.Append("indoortemp=" + ConvertUnits.UserTempToC(station.IndoorTemperature).ToString("F1", InvC));
+				if (station.IndoorTemperature.HasValue)
+					sb.Append("indoortemp=" + ConvertUnits.UserTempToC(station.IndoorTemperature.Value).ToString("F1", InvC));
 
-				if (station.IndoorHumidity >= 0)
+				if (station.IndoorHumidity.HasValue)
 					sb.Append("&indoorhumidity=" + station.IndoorHumidity);
 				started = true;
 			}
@@ -287,27 +295,51 @@ namespace CumulusMX.ThirdParty
 				if (started) sb.Append('&'); else started = true;
 				for (var i = 1; i <= 4; i++)
 				{
-					if (station.SoilTemp[i] > Cumulus.DefaultHiVal)
-						sb.Append($"soiltemp{i}={ConvertUnits.UserTempToC(station.SoilTemp[i]).ToString("F1", InvC)}");
+					if (station.SoilTemp[i].HasValue)
+						sb.Append($"soiltemp{i}={ConvertUnits.UserTempToC(station.SoilTemp[i].Value).ToString("F1", InvC)}");
 				}
 			}
 
 			if (SendSoilMoisture)
 			{
 				if (started) sb.Append('&'); else started = true;
-				sb.Append("soilmoisture1=" + station.SoilMoisture1);
-				sb.Append("&soilmoisture2=" + station.SoilMoisture2);
-				sb.Append("&soilmoisture3=" + station.SoilMoisture3);
-				sb.Append("&soilmoisture4=" + station.SoilMoisture4);
+				if (station.SoilMoisture1.HasValue)
+				{
+					sb.Append("soilmoisture1=" + station.SoilMoisture1);
+				}
+				if (station.SoilMoisture2.HasValue)
+				{
+					sb.Append("&soilmoisture2=" + station.SoilMoisture2);
+				}
+				if (station.SoilMoisture3.HasValue)
+				{
+					sb.Append("&soilmoisture3=" + station.SoilMoisture3);
+				}
+				if (station.SoilMoisture4.HasValue)
+				{
+					sb.Append("&soilmoisture4=" + station.SoilMoisture4);
+				}
 			}
 
 			if (SendLeafWetness)
 			{
 				if (started) sb.Append('&'); else started = true;
-				sb.Append("leafwetness1=" + station.LeafWetness1.ToString(cumulus.LeafWetFormat));
-				sb.Append("&leafwetness2=" + station.LeafWetness2.ToString(cumulus.LeafWetFormat));
-				sb.Append("&leafwetness3=" + station.LeafWetness3.ToString(cumulus.LeafWetFormat));
-				sb.Append("&leafwetness4=" + station.LeafWetness4.ToString(cumulus.LeafWetFormat));
+				if (station.LeafWetness1.HasValue)
+				{
+					sb.Append("leafwetness1=" + station.LeafWetness1.Value.ToString(cumulus.LeafWetFormat));
+				}
+				if (station.LeafWetness2.HasValue)
+				{
+					sb.Append("&leafwetness2=" + station.LeafWetness2.Value.ToString(cumulus.LeafWetFormat));
+				}
+				if (station.LeafWetness3.HasValue)
+				{
+					sb.Append("&leafwetness3=" + station.LeafWetness3.Value.ToString(cumulus.LeafWetFormat));
+				}
+				if (station.LeafWetness4.HasValue)
+				{
+					sb.Append("&leafwetness4=" + station.LeafWetness4.Value.ToString(cumulus.LeafWetFormat));
+				}
 			}
 
 			if (SendAirQuality)
@@ -327,38 +359,38 @@ namespace CumulusMX.ThirdParty
 						}
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
-						if (station.AirQuality1 > Cumulus.DefaultHiVal)
-							sb.Append($"AqPM2.5={station.AirQuality1.ToString("F1", InvC)}");
-						if (station.AirQualityAvg1 > Cumulus.DefaultHiVal)
-							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg1.ToString("F1", InvC)}");
+						if (station.AirQuality1.HasValue)
+							sb.Append($"AqPM2.5={station.AirQuality1.Value.ToString("F1", InvC)}");
+						if (station.AirQualityAvg1.HasValue)
+							sb.Append($"&AqPM2.5_avg_24h={station.AirQuality1.Value.ToString("F1", InvC)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
-						if (station.AirQualityAvg2 > Cumulus.DefaultHiVal)
-							sb.Append($"AqPM2.5={station.AirQuality2.ToString("F1", InvC)}");
-						if (station.AirQualityAvg2 > Cumulus.DefaultHiVal)
-							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg2.ToString("F1", InvC)}");
+						if (station.AirQualityAvg2.HasValue)
+							sb.Append($"AqPM2.5={station.AirQuality2.Value.ToString("F1", InvC)}");
+						if (station.AirQualityAvg2.HasValue)
+							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg2.Value.ToString("F1", InvC)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
-						if (station.AirQualityAvg3 > Cumulus.DefaultHiVal)
-							sb.Append($"AqPM2.5={station.AirQuality3.ToString("F1", InvC)}");
-						if (station.AirQualityAvg3 > Cumulus.DefaultHiVal)
-							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg3.ToString("F1", InvC)}");
+						if (station.AirQualityAvg3.HasValue)
+							sb.Append($"AqPM2.5={station.AirQuality3.Value.ToString("F1", InvC)}");
+						if (station.AirQualityAvg3.HasValue)
+							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg3.Value.ToString("F1", InvC)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
-						if (station.AirQualityAvg4 > Cumulus.DefaultHiVal)
-							sb.Append($"AqPM2.5={station.AirQuality4.ToString("F1", InvC)}");
-						if (station.AirQualityAvg4 > Cumulus.DefaultHiVal)
-							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg4.ToString("F1", InvC)}");
+						if (station.AirQualityAvg4.HasValue)
+							sb.Append($"AqPM2.5={station.AirQuality4.Value.ToString("F1", InvC)}");
+						if (station.AirQualityAvg4.HasValue)
+							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg4.Value.ToString("F1", InvC)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
-						if (station.CO2_pm2p5 >= Cumulus.DefaultHiVal)
-							sb.Append($"AqPM2.5={station.CO2_pm2p5.ToString("F1", InvC)}");
-						if (station.CO2_pm2p5_24h >= Cumulus.DefaultHiVal)
-							sb.Append($"&AqPM2.5_avg_24h={station.CO2_pm2p5_24h.ToString("F1", InvC)}");
-						if (station.CO2_pm10 >= Cumulus.DefaultHiVal)
-							sb.Append($"&AqPM10={station.CO2_pm10.ToString("F1", InvC)}");
-						if (station.CO2_pm10_24h >= Cumulus.DefaultHiVal)
-							sb.Append($"&AqPM10_avg_24h={station.CO2_pm10_24h.ToString("F1", InvC)}");
+						if (station.CO2_pm2p5.HasValue)
+							sb.Append($"AqPM2.5={station.CO2_pm2p5.Value.ToString("F1", InvC)}");
+						if (station.CO2_pm2p5_24h.HasValue)
+							sb.Append($"&AqPM2.5_avg_24h={station.CO2_pm2p5_24h.Value.ToString("F1", InvC)}");
+						if (station.CO2_pm10.HasValue)
+							sb.Append($"&AqPM10={station.CO2_pm10.Value.ToString("F1", InvC)}");
+						if (station.CO2_pm10_24h.HasValue)
+							sb.Append($"&AqPM10_avg_24h={station.CO2_pm10_24h.Value.ToString("F1", InvC)}");
 						break;
 				}
 			}
@@ -397,13 +429,13 @@ namespace CumulusMX.ThirdParty
 				sb.Append(ConvertUnits.UserWindToKPH(station.RecentMaxGust).ToString("F1", InvC) + sep);      // 16
 			else
 				sb.Append(sep);
-			if (SendSolar && station.SolarRad >= 0)
-				sb.Append(station.SolarRad.ToString("F1", InvC) + sep);                                       // 17
+			if (SendSolar && station.SolarRad.HasValue)
+				sb.Append(station.SolarRad.Value.ToString("F1", InvC) + sep);                                 // 17
 			else
 				sb.Append(sep);
 
-			if (SendUV && station.UV >= 0)
-				sb.Append(station.UV.ToString("F1", InvC) + sep);                                             // 18
+			if (SendUV && station.UV.HasValue)
+				sb.Append(station.UV.Value.ToString("F1", InvC) + sep);                                      // 18
 			else
 				sb.Append(sep);
 
@@ -421,8 +453,8 @@ namespace CumulusMX.ThirdParty
 				sb.Append(sep + sep);
 			}
 
-			if (SendSoilTemp && station.SoilTemp[1] > Cumulus.DefaultHiVal)
-				sb.Append(ConvertUnits.UserTempToC(station.SoilTemp[1]).ToString("F1", InvC) + sep);    // 21
+			if (SendSoilTemp && station.SoilTemp[1].HasValue)
+				sb.Append(ConvertUnits.UserTempToC(station.SoilTemp[1].Value).ToString("F1", InvC) + sep);    // 21
 			else
 				sb.Append(sep);
 

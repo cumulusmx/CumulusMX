@@ -226,26 +226,29 @@ namespace CumulusMX
 		}
 
 
-		public static void RunExternalTask(string task, string parameters, bool wait, bool redirectError = false, bool createwindow = false)
+		public static string RunExternalTask(string task, string parameters, bool wait, bool redirectError = false, bool createwindow = false)
 		{
 			var file = new FileInfo(task);
-			if (file.Exists)
-			{
-				using var process = new System.Diagnostics.Process();
-				process.StartInfo.FileName = file.FullName;
-				process.StartInfo.Arguments = parameters;
-				process.StartInfo.WorkingDirectory = file.DirectoryName;
-				process.StartInfo.UseShellExecute = false;
-				process.StartInfo.RedirectStandardError = redirectError;
-				process.StartInfo.WindowStyle = createwindow ? System.Diagnostics.ProcessWindowStyle.Normal : System.Diagnostics.ProcessWindowStyle.Hidden;
-				process.StartInfo.CreateNoWindow = !createwindow;
-				process.Start();
+			var output = string.Empty;
 
-				if (wait)
-				{
-					process.WaitForExit();
-				}
+			using var process = new System.Diagnostics.Process();
+			process.StartInfo.FileName = file.FullName;
+			process.StartInfo.Arguments = parameters;
+			process.StartInfo.UseShellExecute = false;
+			process.StartInfo.RedirectStandardError = redirectError;
+			process.StartInfo.RedirectStandardOutput = !createwindow && wait;
+			process.StartInfo.WindowStyle = createwindow ? System.Diagnostics.ProcessWindowStyle.Normal : System.Diagnostics.ProcessWindowStyle.Hidden;
+			process.StartInfo.CreateNoWindow = !createwindow;
+			process.Start();
+
+
+			if (wait)
+			{
+				output = process.StandardOutput.ReadToEnd();
+				process.WaitForExit();
 			}
+
+			return output;
 		}
 
 		public static bool ByteArraysEqual(byte[] b1, byte[] b2)

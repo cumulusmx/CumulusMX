@@ -21,7 +21,7 @@ namespace CumulusMX
 		public static ThirdPartySettings thirdpartySettings { get; set; }
 		public static ExtraSensorSettings extraSensorSettings { get; set; }
 		public static CalibrationSettings calibrationSettings { get; set; }
-		public static NOAASettings noaaSettings { get; set; }
+		public static NoaaSettings noaaSettings { get; set; }
 		public static MysqlSettings mySqlSettings { get; set; }
 		public static MqttSettings mqttSettings { get; set; }
 		public static CustomLogs customLogs { get; set; }
@@ -39,6 +39,7 @@ namespace CumulusMX
 		internal static HttpStationAmbient stationAmbient { get; set; }
 		internal static HttpStationAmbient stationAmbientExtra { get; set; }
 		internal static JsonStation stationJson { get; set; }
+		internal static JsonStation stationJsonExtra { get; set; }
 		private static readonly char[] separator = [':'];
 
 
@@ -154,6 +155,12 @@ namespace CumulusMX
 						case "diarydelete":
 							await writer.WriteAsync(dataEditor.DeleteDiary(HttpContext));
 							break;
+						case "diaryupload":
+							await writer.WriteAsync(dataEditor.UploadDiary(HttpContext));
+							break;
+						case "diaryautomate":
+							await writer.WriteAsync(dataEditor.AutomateDiary(HttpContext));
+							break;
 						case "currcond":
 							await writer.WriteAsync(dataEditor.EditCurrentCond(HttpContext));
 							break;
@@ -244,7 +251,7 @@ namespace CumulusMX
 					switch (req)
 					{
 						case "dayfile":
-							await writer.WriteAsync(Station.GetDayfile(draw, start, length, search));
+							await writer.WriteAsync(Station.ReadDayfile(draw, start, length, search));
 							break;
 						case "logfile":
 							await writer.WriteAsync(Station.GetLogfile(from, to, draw, start, length, search, false));
@@ -260,6 +267,10 @@ namespace CumulusMX
 							break;
 						case "diarysummary":
 							await writer.WriteAsync(Station.GetDiarySummary());
+							break;
+						case "diaryexport.txt":
+							Response.ContentType = "text/plain";
+							await writer.WriteAsync(Station.GetDiaryExport());
 							break;
 						case "mysqlcache.json":
 							if (await Authenticate(HttpContext))
@@ -623,8 +634,14 @@ namespace CumulusMX
 						case "degdaydata.json":
 							await writer.WriteAsync(Station.GetAllDegreeDaysGraphData(true));
 							break;
+						case "dailysnow.json":
+							await writer.WriteAsync(Station.GetAllSnowGraphData(true));
+							break;
 						case "tempsumdata.json":
 							await writer.WriteAsync(Station.GetAllTempSumGraphData(true));
+							break;
+						case "chillhrsdata.json":
+							await writer.WriteAsync(Station.GetAllChillHrsGraphData(true));
 							break;
 						case "units.json":
 							await writer.WriteAsync(Station.GetUnits());
@@ -1305,7 +1322,7 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/reports/{req}")]
 			public async Task GetData(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(cumulus, Station);
+				NoaaReports noaarpts = new NoaaReports(cumulus, Station);
 				try
 				{
 					var query = HttpUtility.ParseQueryString(Request.Url.Query);
@@ -1351,7 +1368,7 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/genreports/{req}")]
 			public async Task GenReports(string req)
 			{
-				NOAAReports noaarpts = new NOAAReports(cumulus, Station);
+				NoaaReports noaarpts = new NoaaReports(cumulus, Station);
 				try
 				{
 					if (!(await Authenticate(HttpContext)))
@@ -1410,7 +1427,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					NOAAReports noaarpts = new NOAAReports(cumulus, Station);
+					NoaaReports noaarpts = new NoaaReports(cumulus, Station);
 
 					if (!(await Authenticate(HttpContext)))
 					{
@@ -1461,7 +1478,7 @@ namespace CumulusMX
 			}
 		}
 
-		// HTTP Station
+		// HTTP Station, prefix /station/
 		public class HttpStation : WebApiController
 		{
 			[Route(HttpVerbs.Post, "/{req}")]
@@ -1500,6 +1517,17 @@ namespace CumulusMX
 							if (stationJson != null)
 							{
 								await writer.WriteAsync(stationJson.ReceiveDataFromApi(HttpContext, false));
+							}
+							else
+							{
+								Response.StatusCode = 503;
+								await writer.WriteAsync("{\"Error\":\"JSON Station is not running}\"");
+							}
+							break;
+						case "jsonextra":
+							if (stationJsonExtra != null)
+							{
+								await writer.WriteAsync(stationJsonExtra.ReceiveDataFromApi(HttpContext, false));
 							}
 							else
 							{
@@ -1727,6 +1755,9 @@ namespace CumulusMX
 							break;
 						case "units.json":
 							await writer.WriteAsync(Station.GetUnits());
+							break;
+						case "snowinfo.json":
+							await writer.WriteAsync(Station.GetSnowInfo());
 							break;
 						default:
 							Response.StatusCode = 404;

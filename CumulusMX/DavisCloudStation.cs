@@ -472,6 +472,7 @@ namespace CumulusMX
 			bool rolloverdone = luhour == rollHour;
 
 			bool midnightraindone = luhour == 0;
+			bool rollover9amdone = luhour == 9;
 
 			WlHistory histObj;
 			int noOfRecs = 0;
@@ -623,6 +624,13 @@ namespace CumulusMX
 						midnightraindone = true;
 					}
 
+					// 9am rollover items
+					if (h == 9 && !rollover9amdone)
+					{
+						Reset9amTemperatures(timestamp);
+						rollover9amdone = true;
+					}
+
 					DecodeHistoric(sensorWithMostRecs.data_structure_type, sensorWithMostRecs.sensor_type, sensorWithMostRecs.data[dataIndex]);
 
 					foreach (var sensor in histObj.sensors)
@@ -713,8 +721,7 @@ namespace CumulusMX
 
 					if (cumulus.StationOptions.CalculateSLP && StationPressure > 0)
 					{
-						var abs = cumulus.Calib.Press.Calibrate(StationPressure);
-						var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(abs), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+						var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(slp), timestamp);
 					}
 
@@ -1049,11 +1056,9 @@ namespace CumulusMX
 										// Altimeter from absolute
 										if (rec.bar_absolute.HasValue)
 										{
-											var abs = ConvertUnits.PressINHGToUser(rec.bar_absolute.Value);
-											StationPressure = cumulus.StationOptions.CalculateSLP ? cumulus.Calib.Press.Calibrate(abs) : abs;
-											// Or do we use calibration? The VP2 code doesn't?
-											AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+											DoStationPressure(ConvertUnits.PressINHGToUser(rec.bar_absolute.Value));
 										}
+
 									}
 								}
 								catch (Exception ex)
@@ -2097,8 +2102,7 @@ namespace CumulusMX
 			{
 				if (StationPressure > 0)
 				{
-					var stnCal = cumulus.Calib.Press.Calibrate(StationPressure);
-					var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(stnCal), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 					DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
 				}
 				else
@@ -2229,7 +2233,7 @@ namespace CumulusMX
 											TempTotalToday += ConvertUnits.TempFToUser(data.temp_out.Value) * data.arch_int / 60;
 
 											// update chill hours
-											if (OutdoorTemperature < cumulus.ChillHourThreshold)
+											if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 											{
 												// add interval minutes to chill hours - arch_int in seconds
 												ChillHours += (data.arch_int / 3600.0);
@@ -2420,9 +2424,7 @@ namespace CumulusMX
 								// Altimeter from absolute
 								if (data.abs_press != null)
 								{
-									StationPressure = ConvertUnits.PressINHGToUser((double) data.abs_press);
-									// Or do we use calibration? The VP2 code doesn't?
-									AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+									DoStationPressure(ConvertUnits.PressINHGToUser((double) data.abs_press));
 								}
 							}
 							catch (Exception ex)
@@ -2720,7 +2722,7 @@ namespace CumulusMX
 												TempTotalToday += ConvertUnits.TempFToUser(data.temp_avg) * data.arch_int / 60;
 
 												// update chill hours
-												if (OutdoorTemperature < cumulus.ChillHourThreshold)
+												if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 												{
 													// add interval minutes to chill hours - arch_int in seconds
 													ChillHours += (data.arch_int / 3600.0);
@@ -3330,10 +3332,7 @@ namespace CumulusMX
 									if (data13baro.bar_absolute != null)
 									{
 										// leave possible calculation of SLP until later when we have temp and humidity
-
-										StationPressure = ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute);
-										// Or do we use calibration? The VP2 code doesn't?
-										AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+										DoStationPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute));
 									}
 								}
 								catch (Exception ex)

@@ -424,16 +424,22 @@ namespace CumulusMX
 			Wh35Ch8,        // 47 2F
 			WS90,           // 48 30
 			Ws85,           // 49 31
-			Wh51Ch9,        // 50 32
-			Wh51Ch10,       // 51 33
-			Wh51Ch11,       // 52 34
-			Wh51Ch12,       // 53 35
-			Wh51Ch13,       // 54 36
-			Wh51Ch14,       // 55 37
-			Wh51Ch15,       // 56 38
-			Wh51Ch16        // 57 39
+			// missing 8 channel device?
+			Wh51Ch9,        // 58 3A
+			Wh51Ch10,       // 59 3B
+			Wh51Ch11,       // 60 3C
+			Wh51Ch12,       // 61 3D
+			Wh51Ch13,       // 62 3E
+			Wh51Ch14,       // 63 3F
+			Wh51Ch15,       // 64 40
+			Wh51Ch16,       // 65 41
+			Wh54Ch1,        // 66 42
+			Wh54Ch2,        // 67 43
+			Wh54Ch3,        // 68 44
+			Wh54Ch4         // 69 45
 		};
 
+#pragma warning disable S125
 		/*
 		[Flags]
 		internal enum SigSen : byte
@@ -579,6 +585,7 @@ namespace CumulusMX
 			public byte batt;			// 0-5
 		}
 		*/
+#pragma warning restore S125
 
 
 		private readonly struct CommandPayload
@@ -603,8 +610,8 @@ namespace CumulusMX
 
 				Data = new byte[5 + data.Length];
 
-				Data[0] = (byte) 0xff;
-				Data[1] = (byte) 0xff;
+				Data[0] = 0xff;
+				Data[1] = 0xff;
 				Data[2] = (byte) command;
 				Data[3] = (byte) (3 + data.Length);
 				data.CopyTo(Data, 4);

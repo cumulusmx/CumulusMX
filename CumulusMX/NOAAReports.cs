@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CumulusMX
 {
-	internal class NOAAReports(Cumulus cumulus, WeatherStation station)
+	internal class NoaaReports(Cumulus cumulus, WeatherStation station)
 	{
 		private readonly Cumulus cumulus = cumulus;
 		private readonly WeatherStation station = station;
@@ -14,8 +14,8 @@ namespace CumulusMX
 		public string GenerateNoaaYearReport(int year)
 		{
 			string noaafile;
-			NOAA noaa = new NOAA(cumulus, station);
-			DateTime noaats = new DateTime(year, 1, 1);
+			Noaa noaa = new Noaa(cumulus, station);
+			DateTime noaats = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Local);
 
 			cumulus.LogMessage("Creating NOAA yearly report");
 			var report = noaa.CreateYearlyReport(noaats);
@@ -39,8 +39,8 @@ namespace CumulusMX
 
 		public string GenerateNoaaMonthReport(int year, int month)
 		{
-			NOAA noaa = new NOAA(cumulus, station);
-			DateTime noaats = new DateTime(year, month, 1);
+			Noaa noaa = new Noaa(cumulus, station);
+			DateTime noaats = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Local);
 			string noaafile;
 
 			cumulus.LogMessage("Creating NOAA monthly report");
@@ -161,7 +161,7 @@ namespace CumulusMX
 
 		public string GetNoaaYearReport(int year)
 		{
-			DateTime noaats = new DateTime(year, 1, 1);
+			DateTime noaats = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Local);
 			var reportName = string.Empty;
 			string report;
 			string noaafile;
@@ -183,7 +183,7 @@ namespace CumulusMX
 
 		public string GetNoaaMonthReport(int year, int month)
 		{
-			DateTime noaats = new DateTime(year, month, 1);
+			DateTime noaats = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Local);
 			var reportName = string.Empty;
 			string report;
 			string noaafile;
@@ -268,7 +268,8 @@ namespace CumulusMX
 
 		public string UploadNoaaReport(int year, int month = -1)
 		{
-			DateTime noaats = month == -1 ? new DateTime(year, 1, 1) : new DateTime(year, month, 1);
+			var mon = month == -1 ? 1 : month;
+			DateTime noaats = new DateTime(year, mon, 1, 0, 0, 0, DateTimeKind.Local);
 			var reportName = string.Empty;
 			string result;
 			try

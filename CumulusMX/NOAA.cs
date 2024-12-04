@@ -8,7 +8,7 @@ using System.Text;
 
 namespace CumulusMX
 {
-	internal class NOAA(Cumulus cumulus, WeatherStation station)
+	internal class Noaa(Cumulus cumulus, WeatherStation station)
 	{
 		private struct Tdaysummary
 		{
@@ -125,7 +125,7 @@ namespace CumulusMX
 			var inv = CultureInfo.InvariantCulture.NumberFormat;
 
 			// Use the second of the month to allow for 9am roll-over
-			var logFile = cumulus.GetLogFileName(new DateTime(year, month, 2));
+			var logFile = cumulus.GetLogFileName(new DateTime(year, month, 2, 0, 0, 0, DateTimeKind.Local));
 			if (File.Exists(logFile))
 			{
 				var idx = 0;
@@ -313,7 +313,6 @@ namespace CumulusMX
 					}
 					else if (day.AvgTemp > Cumulus.DefaultHiVal)
 					{
-						idx = 15;
 						meantemp = day.AvgTemp;
 						totalmeantemp += meantemp;
 						dayList[daynumber].meantemp = meantemp;
@@ -355,7 +354,7 @@ namespace CumulusMX
 							// Use the MX minute by minute heat/cool days calculation
 
 							// heating degree day
-							if (day.HeatingDegreeDays != Cumulus.DefaultHiVal)
+							if ((int) day.HeatingDegreeDays != (int) Cumulus.DefaultHiVal)
 							{
 								// read HDD from dayfile.txt
 								dayList[daynumber].heatingdegdays = day.HeatingDegreeDays;
@@ -372,7 +371,7 @@ namespace CumulusMX
 							}
 
 							// cooling degree days
-							if (day.CoolingDegreeDays != Cumulus.DefaultHiVal)
+							if ((int) day.CoolingDegreeDays != (int) Cumulus.DefaultHiVal)
 							{
 								// read CDD from dayfile.txt
 								dayList[daynumber].coolingdegdays = day.CoolingDegreeDays;
@@ -422,7 +421,7 @@ namespace CumulusMX
 					}
 
 					// dominant wind bearing
-					if (day.DominantWindBearing != Cumulus.DefaultHiVal)
+					if (day.DominantWindBearing != (int) Cumulus.DefaultHiVal)
 					{
 						dayList[daynumber].winddomdir = day.DominantWindBearing;
 					}
@@ -439,7 +438,7 @@ namespace CumulusMX
 
 			// Calculate average wind speed from log file
 			// Use the second of the month in case of 9am roll-over
-			var logFile = cumulus.GetLogFileName(new DateTime(thedate.Year, thedate.Month, 2));
+			var logFile = cumulus.GetLogFileName(new DateTime(thedate.Year, thedate.Month, 2, 0, 0, 0, DateTimeKind.Local));
 
 			if (File.Exists(logFile))
 			{
@@ -521,7 +520,7 @@ namespace CumulusMX
 				// calculate dominant wind bearing if (required
 				if (dayList[i].winddomdir == 0)
 				{
-					if (dayList[i].totalwinddirX == 0)
+					if (Math.Abs(dayList[i].totalwinddirX) < 0.01 && Math.Abs(dayList[i].totalwinddirY) < 0.01)
 						dayList[i].winddomdir = 0;
 					else
 					{
@@ -882,7 +881,7 @@ namespace CumulusMX
 						else
 						{
 							// heating degree days
-							if (day.HeatingDegreeDays != Cumulus.DefaultHiVal)
+							if ((int) day.HeatingDegreeDays != (int) Cumulus.DefaultHiVal)
 							{
 								// read HDD from dayfile.txt
 								MonthList[month].heatingdegdays += day.HeatingDegreeDays;
@@ -894,7 +893,7 @@ namespace CumulusMX
 								totalheating += cumulus.NOAAconf.HeatThreshold - meantemp;
 							}
 							// cooling degree days
-							if (day.CoolingDegreeDays != Cumulus.DefaultLoVal)
+							if ((int) day.CoolingDegreeDays != (int) Cumulus.DefaultLoVal)
 							{
 								// read CDD from dayfile.txt
 								MonthList[month].coolingdegdays += day.CoolingDegreeDays;
@@ -1145,7 +1144,7 @@ namespace CumulusMX
 					repLine.Clear();
 					repLine.Append(string.Format("{0,12}", totalrain.ToString(cumulus.RainFormat, culture)));
 
-					if (totalnormrain == 0)
+					if ((int) totalnormrain == 0)
 					{
 						// dummy value for "departure from norm"
 						repLine.Append("   0.0");

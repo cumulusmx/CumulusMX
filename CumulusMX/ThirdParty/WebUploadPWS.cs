@@ -154,14 +154,14 @@ namespace CumulusMX.ThirdParty
 				Data.Append("&baromin=" + WeatherStation.PressINstr(station.Pressure));
 			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
 				Data.Append("&dewptf=" + WeatherStation.TempFstr(station.OutdoorDewpoint));
-			if (SendUV && station.UV >= 0)
+			if (SendUV && station.UV.HasValue)
 			{
-				Data.Append("&UV=" + station.UV.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
+				Data.Append("&UV=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
 			}
 
-			if (SendSolar && station.SolarRad >= 0)
+			if (SendSolar && station.SolarRad.HasValue)
 			{
-				Data.Append("&solarradiation=" + station.SolarRad.ToString("F0"));
+				Data.Append("&solarradiation=" + station.SolarRad);
 			}
 
 			Data.Append("&softwaretype=Cumulus%20v" + cumulus.Version);

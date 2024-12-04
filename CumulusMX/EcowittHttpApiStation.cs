@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -14,8 +13,6 @@ namespace CumulusMX
 	{
 		private static readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
-		private string deviceModel;
-		private string deviceFirmware;
 		private int updateRate = 10000; // 10 seconds by default
 		private int lastMinute = -1;
 		private int lastHour = -1;
@@ -32,21 +29,19 @@ namespace CumulusMX
 		private readonly Task historyTask;
 		private Task liveTask;
 
-		private Version fwVersion;
 		internal static readonly char[] dotSeparator = ['.'];
 		internal static readonly string[] underscoreV = ["_V"];
 
-		// local variables to hold data until all sensors have been read. Then they are set and derviced values calculated
+		// local variables to hold data until all sensors have been read. Then they are set and derived values calculated
 		double windSpeedLast = -999, rainRateLast = -999, rainLast = -999, gustLast = -999;
 		int windDirLast = -999;
 		double outdoortemp = -999;
-		double dewpoint;
 		double windchill = -999;
 		bool batteryLow = false;
 
 		// We check the new value against what we have already, if older then ignore it!
 		double newLightningDistance = 999;
-		DateTime newLightningTime = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+		DateTime newLightningTime = DateTime.MinValue;
 
 
 		public EcowittHttpApiStation(Cumulus cumulus) : base(cumulus)
@@ -112,8 +107,6 @@ namespace CumulusMX
 
 			ecowittApi = new EcowittApi(cumulus, this);
 
-			_ = CheckAvailableFirmware();
-
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
 			historyTask = Task.Run(getAndProcessHistoryData, cumulus.cancellationToken);
@@ -141,6 +134,18 @@ namespace CumulusMX
 
 			// Get the sensor list
 			GetSensorIds().Wait();
+
+			// Check firmware
+			try
+			{
+				_ = localApi.CheckForUpgrade(cumulus.cancellationToken).Result;
+				GW1000FirmwareVersion = localApi.GetVersion(cumulus.cancellationToken).Result;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "Error checking for firmware upgrade/version");
+				GW1000FirmwareVersion = "unknown";
+			}
 
 			liveTask = Task.Run(() =>
 			{
@@ -225,6 +230,11 @@ namespace CumulusMX
 									ProcessLeafWet(rawData.ch_leaf);
 								}
 
+								if (rawData.ch_lds != null)
+								{
+									ProcessLds(rawData.ch_lds);
+								}
+
 								// Now do the stuff that requires more than one input parameter
 
 								// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
@@ -242,9 +252,9 @@ namespace CumulusMX
 								// Same for extra T/H sensors
 								for (var i = 1; i <= 8; i++)
 								{
-									if (ExtraHum[i] > 0)
+									if (ExtraHum[i].HasValue && ExtraTemp[i].HasValue)
 									{
-										var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i]), ExtraHum[i]);
+										var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i].Value), ExtraHum[i].Value);
 										ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
 									}
 								}
@@ -269,8 +279,7 @@ namespace CumulusMX
 
 									if (cumulus.StationOptions.CalculateSLP)
 									{
-										var abs = cumulus.Calib.Press.Calibrate(StationPressure);
-										var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(abs), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+										var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 										DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
 									}
 								}
@@ -311,26 +320,8 @@ namespace CumulusMX
 
 										if (hour == 13)
 										{
-											var fw = GetFirmwareVersion();
-											if (fw != "???")
-											{
-												GW1000FirmwareVersion = fw;
-												deviceModel = GW1000FirmwareVersion.Split('_')[0];
-												deviceFirmware = GW1000FirmwareVersion.Split('_')[1];
-
-												var fwString = GW1000FirmwareVersion.Split(underscoreV, StringSplitOptions.None);
-												if (fwString.Length > 1)
-												{
-													fwVersion = new Version(fwString[1]);
-												}
-												else
-												{
-													// failed to get the version, lets assume it's fairly new
-													fwVersion = new Version("1.6.5");
-												}
-											}
-
-											_ = CheckAvailableFirmware();
+											_ = localApi.CheckForUpgrade(cumulus.cancellationToken);
+											GW1000FirmwareVersion = localApi.GetVersion(cumulus.cancellationToken).Result;
 										}
 									}
 								}
@@ -480,46 +471,6 @@ namespace CumulusMX
 			return null;
 		}
 
-
-		private string GetFirmwareVersion()
-		{
-			var response = "???";
-			return response;
-		}
-
-		private async Task CheckAvailableFirmware()
-		{
-			if (deviceModel == null)
-			{
-				cumulus.LogMessage("Device Model not determined, firmware check skipped.");
-				return;
-			}
-
-			if (EcowittApi.FirmwareSupportedModels.Contains(deviceModel[..6]))
-			{
-				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken);
-			}
-			else
-			{
-				var retVal = ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken).Result;
-				if (retVal != null)
-				{
-					var verVer = new Version(retVal[0]);
-					if (fwVersion < verVer)
-					{
-						cumulus.FirmwareAlarm.LastMessage = $"A new firmware version is available: {retVal[0]}.\nChange log:\n{string.Join('\n', retVal[1].Split(';'))}";
-						cumulus.FirmwareAlarm.Triggered = true;
-						cumulus.LogWarningMessage($"FirmwareVersion: Latest Version {retVal[0]}, Change log:\n{string.Join('\n', retVal[1].Split(';'))}");
-					}
-					else
-					{
-						cumulus.FirmwareAlarm.Triggered = false;
-						cumulus.LogDebugMessage($"FirmwareVersion: Already on the latest Version {retVal[0]}");
-					}
-				}
-			}
-		}
-
 		private async Task GetSensorIds()
 		{
 			cumulus.LogMessage("Reading sensor ids");
@@ -560,9 +511,13 @@ namespace CumulusMX
 										updateRate = 4000;
 									}
 									goto case 1003;
-								case 3: // wh40
-									name = "wh40";
-									goto case 1003;
+								case 3: // wh40 - rain gauge
+									name = "wh25";
+									if (sensor.batt > 0) // some send a voltage, some don't :(
+									{
+										goto case 1003;
+									}
+									break;
 								case 4: // wh25
 									name = "wh25";
 									goto case 1003;
@@ -611,10 +566,12 @@ namespace CumulusMX
 										updateRate = 8000;
 									}
 									goto case 1003;
-								case int n when (n > 49 && n < 58): // wh51 - soil moisture (chan 9-16)
-									name = "wh51ch" + (sensor.type - 49 + 8);
+								case int n when (n > 57 && n < 66): // wh51 - soil moisture (chan 9-16)
+									name = "wh51ch" + (sensor.type - 57 + 8);
 									goto case 1001;
-
+								case int n when (n > 65 && n < 70): // wh54 - laser depth (4 chan)
+									name = "wh54ch" + (sensor.type - 65);
+									goto case 1003;
 
 
 								case 1001: // battery type 1 (0=OK, 1=LOW)
@@ -795,6 +752,7 @@ namespace CumulusMX
 
 		private void ProcessWh25(EcowittLocalApi.Wh25Sensor[] sensors, DateTime dateTime)
 		{
+#pragma warning disable S125
 			//"wh25":	[{
 			//	"intemp":	"23.8",
 			//	"unit":	"C",
@@ -802,6 +760,7 @@ namespace CumulusMX
 			//	"abs":	"1006.5 hPa",
 			//	"rel":	"1010.5 hPa"
 			//}]
+#pragma warning restore S125
 
 			for (var i = 0; i < sensors.Length; i++)
 			{
@@ -879,8 +838,7 @@ namespace CumulusMX
 
 							if (abs > 0)
 							{
-								StationPressure = abs;
-								AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(abs, AltitudeM(cumulus.Altitude)));
+								DoStationPressure(abs);
 								// Leave calculate SLP until the end as it depends on temperature
 							}
 						}
@@ -895,6 +853,7 @@ namespace CumulusMX
 
 		private void ProcessRain(EcowittLocalApi.CommonSensor[] sensors, bool isRainingOnly)
 		{
+#pragma warning disable S125
 			//"rain"/"piezoRain": [
 			//	{
 			//		"id": "0x0D",
@@ -922,7 +881,7 @@ namespace CumulusMX
 			//		"battery": "5"
 			//	}
 			//],
-
+#pragma warning restore S125
 
 			for (var i = 0; i < sensors.Length; i++)
 			{
@@ -1050,12 +1009,15 @@ namespace CumulusMX
 
 		private void ProcessLightning(EcowittLocalApi.LightningSensor[] sensors, DateTime dateTime)
 		{
+#pragma warning disable S125
 			// "lightning":	[{
 			//		"distance": "16.7 mi",
 			//		"timestamp": "09/01/2024 18:45:14",
 			//		"count": "0",
 			//		"battery": "5"
 			// }]
+#pragma warning restore S125
+
 			for (var i = 0; i < sensors.Length; i++)
 			{
 				try
@@ -1085,7 +1047,7 @@ namespace CumulusMX
 					{
 						if (sensor.timestamp.Contains("--"))
 						{
-							newLightningTime = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+							newLightningTime = DateTime.MinValue;
 						}
 						else
 						{
@@ -1128,6 +1090,7 @@ namespace CumulusMX
 
 		private void ProcessCo2(EcowittLocalApi.Co2Sensor[] sensors)
 		{
+#pragma warning disable S125
 			// "co2": [
 			//	{
 			//		"temp": "24.4",
@@ -1144,6 +1107,7 @@ namespace CumulusMX
 			//		"battery": "6"
 			//	}
 			// ]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage("WH45 CO₂: Decoding...");
 
@@ -1157,28 +1121,17 @@ namespace CumulusMX
 					{
 						CO2_temperature = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
 					}
-					if (sensor.humidityVal.HasValue)
+					else
 					{
-						// humidty sent as "value%"
-						CO2_humidity = sensor.humidityVal.Value;
+						CO2_temperature = null;
 					}
-					if (sensor.PM25.HasValue)
-					{
-						CO2_pm2p5 = sensor.PM25.Value;
-					}
-					if (sensor.PM10.HasValue)
-					{
-						CO2_pm10 = sensor.PM10.Value;
-					}
-					// HTTP protocol does not send a pm 24 hour values :( On useless AQI values
-					if (sensor.CO2.HasValue)
-					{
-						CO2 = sensor.CO2.Value;
-					}
-					if (sensor.CO2_24H.HasValue)
-					{
-						CO2_24h = sensor.CO2_24H.Value;
-					}
+					// humidty sent as "value%"
+					CO2_humidity = sensor.humidityVal;
+					CO2_pm2p5 = sensor.PM25;
+					CO2_pm10 = sensor.PM10;
+					// HTTP protocol does not send a pm 24 hour values :( Only useless AQI values
+					CO2 = sensor.CO2;
+					CO2_24h = sensor.CO2_24H;
 				}
 				catch (Exception ex)
 				{
@@ -1186,12 +1139,14 @@ namespace CumulusMX
 				}
 			}
 
-			CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5);
-			CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
+
+			CO2_pm2p5_aqi = CO2_pm2p5.HasValue ? GetAqi(AqMeasure.pm2p5, CO2_pm2p5.Value) : null;
+			CO2_pm10_aqi = CO2_pm10.HasValue ? GetAqi(AqMeasure.pm10, CO2_pm10.Value) : null;
 		}
 
 		private void ProcessChPm25(EcowittLocalApi.ChPm25Sensor[] sensors)
 		{
+#pragma warning disable S125
 			//"ch_pm25": [
 			//	{
 			//		"channel": "1",
@@ -1201,6 +1156,7 @@ namespace CumulusMX
 			//		"battery": "5"
 			//	}
 			//]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage($"ProcessChPm25: Processing {sensors.Length} sensors");
 
@@ -1208,22 +1164,23 @@ namespace CumulusMX
 			{
 				var sensor = sensors[i];
 
-				try
+				if (sensor.channel.HasValue && sensor.PM25.HasValue)
 				{
-					if (sensor.channel.HasValue && sensor.PM25.HasValue)
+					try
 					{
 						DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
 					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, "ProcessChPm25: Error");
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessChPm25: Error on sensor {sensor.channel}");
+					}
 				}
 			}
 		}
 
 		private void ProcessLeak(EcowittLocalApi.ChLeakSensor[] sensors)
 		{
+#pragma warning disable S125
 			//"ch_leak": [
 			//	{
 			//		"channel": "2",
@@ -1232,6 +1189,7 @@ namespace CumulusMX
 			//		"status": "Normal"
 			//	}
 			//]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage($"ProcessLeak: Processing {sensors.Length} sensors");
 
@@ -1239,24 +1197,24 @@ namespace CumulusMX
 			{
 				var sensor = sensors[i];
 
-				try
+				if (sensor.channel.HasValue && !string.IsNullOrEmpty(sensor.status))
 				{
-					if (sensor.channel.HasValue && !string.IsNullOrEmpty(sensor.status))
+					try
 					{
 						var val = sensor.status == "NORMAL" ? 0 : 1;
 						DoLeakSensor(val, sensor.channel.Value);
 					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessLeak: Error processing channel {sensor.channel.Value}");
+					}
 				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, $"ProcessLeak: Error processing channel {sensor.channel.Value}");
-				}
-
 			}
 		}
 
 		private void ProcessExtraTempHum(EcowittLocalApi.TempHumSensor[] sensors, DateTime dateTime)
 		{
+#pragma warning disable S125
 			//"ch_aisle": [
 			//	{
 			//		"channel": "1",
@@ -1267,6 +1225,7 @@ namespace CumulusMX
 			//		"humidity": "61%"
 			//	}
 			//]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage($"ProcessExtraTempHum: Processing {sensors.Length} sensors");
 
@@ -1299,6 +1258,7 @@ namespace CumulusMX
 
 		private void ProcessUserTemp(EcowittLocalApi.TempHumSensor[] sensors)
 		{
+#pragma warning disable S125
 			//"ch_temp": [
 			//	{
 			//		"channel": "1",
@@ -1308,6 +1268,7 @@ namespace CumulusMX
 			//		"battery": "3"
 			//	}
 			//]
+#pragma warning restore S125
 
 			// user temp = WH34 8 channel Soil or Water temperature sensors
 			cumulus.LogDebugMessage($"ProcessUserTemp: Processing {sensors.Length} sensors");
@@ -1316,9 +1277,9 @@ namespace CumulusMX
 			{
 				var sensor = sensors[i];
 
-				try
+				if (sensor.temp.HasValue)
 				{
-					if (sensor.temp.HasValue)
+					try
 					{
 						var val = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
 						if (cumulus.EcowittMapWN34[sensor.channel] == 0) // false = user temp, true = soil temp
@@ -1330,16 +1291,17 @@ namespace CumulusMX
 							DoSoilTemp(val, cumulus.EcowittMapWN34[sensor.channel]);
 						}
 					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, $"ProcessUserTemp: Error processing sensor channel {sensor.channel}");
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessUserTemp: Error processing sensor channel {sensor.channel}");
+					}
 				}
 			}
 		}
 
 		private void ProcessSoilMoisture(EcowittLocalApi.TempHumSensor[] sensors)
 		{
+#pragma warning disable S125
 			//"ch_soil": [
 			//	{
 			//		"channel": "1",
@@ -1348,29 +1310,31 @@ namespace CumulusMX
 			//		"humidity": "56%"
 			//	}
 			//]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage($"ProcessSoilMoisture: Processing {sensors.Length} sensors");
 
 			for (var i = 0; i < sensors.Length; i++)
 			{
-				try
-				{
-					var sensor = sensors[i];
+				var sensor = sensors[i];
 
-					if (sensor.humidityVal.HasValue)
+				if (sensor.humidityVal.HasValue)
+				{
+					try
 					{
 						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel);
 					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, "ProcessSoilMoisture: Error");
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessSoilMoisture: Error on sensor {sensor.channel}");
+					}
 				}
 			}
 		}
 
 		private void ProcessLeafWet(EcowittLocalApi.TempHumSensor[] sensors)
 		{
+#pragma warning disable S125
 			//"ch_leaf": [
 			//	{
 			//		"channel": "1",
@@ -1379,6 +1343,7 @@ namespace CumulusMX
 			//		"battery": "5"
 			//	}
 			//]
+#pragma warning restore S125
 
 			cumulus.LogDebugMessage($"ProcessLeafWet: Processing {sensors.Length} sensors");
 
@@ -1386,16 +1351,61 @@ namespace CumulusMX
 			{
 				var sensor = sensors[i];
 
-				try
+				if (sensor.humidityVal.HasValue)
 				{
-					if (sensor.humidityVal.HasValue)
+					try
 					{
 						DoLeafWetness(sensor.humidityVal.Value, sensor.channel);
 					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessLeafWet: Error processing channel {sensor.channel}");
+					}
 				}
-				catch (Exception ex)
+			}
+		}
+
+		private void ProcessLds(EcowittLocalApi.LdsSensor[] sensors)
+		{
+#pragma warning disable S125
+			//"ch_lds": [
+			//	{
+			//		"channel": "1",
+			//		"name": "Laser Dist Tank",
+			//		"unit": "mm",
+			//		"battery": "5",
+			//		"air": "13 mm",
+			//		"depth": "3987 mm"
+			//	}
+			//]
+#pragma warning restore S125
+
+			for (var i = 0; i < sensors.Length; i++)
+			{
+				var sensor = sensors[i];
+
+				if (sensor.airVal.HasValue)
 				{
-					cumulus.LogExceptionMessage(ex, $"ProcessLeafWet: Error processing channel {sensor.channel}");
+					try
+					{
+						DoLaserDistance(sensor.airVal.Value, sensor.channel);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessLds: Error processing channel {sensor.channel} 'air' distance");
+					}
+				}
+
+				if (sensor.depthVal.HasValue)
+				{
+					try
+					{
+						DoLaserDepth(sensor.depthVal.Value, sensor.channel);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessLds: Error processing channel {sensor.channel} 'depth' value");
+					}
 				}
 			}
 		}

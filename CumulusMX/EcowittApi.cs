@@ -22,8 +22,7 @@ namespace CumulusMX
 		private const string stationUrl = "https://api.ecowitt.net/api/v3/device/list?";
 		private const string firmwareUrl = "http://ota.ecowitt.net/api/ota/v1/version/info?";
 		private const string simpleFirmwareUrl = "http://download.ecowitt.net/down/filewave?v=FirwaveReadme.txt";
-		public static readonly string[] FirmwareSupportedModels = ["GW1100", "GW1200", "GW2000"];
-		private static readonly string[] simpleSupportedModels = ["GW1000", "WH2650", "WS1900", "HP10", "WH2680", "WH6006", "WL6006"];
+		public static readonly string[] SimpleSupportedModels = ["GW1000", "WH2650", "WS1900", "HP10", "WH2680", "WH6006", "WL6006"];
 
 
 
@@ -1309,6 +1308,7 @@ namespace CumulusMX
 			var luhour = cumulus.LastUpdateTime.Hour;
 			var rolloverdone = luhour == rollHour;
 			var midnightraindone = luhour == 0;
+			var rollover9amdone = luhour == 9;
 
 			foreach (var rec in buffer)
 			{
@@ -1348,20 +1348,26 @@ namespace CumulusMX
 					midnightraindone = true;
 				}
 
+				// 9am rollover items
+				if (h == 9 && !rollover9amdone)
+				{
+					station.Reset9amTemperatures(rec.Key);
+					rollover9amdone = true;
+				}
+
 				// finally apply this data
 				ApplyHistoricData(rec);
 
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var abs = cumulus.Calib.Press.Calibrate(station.StationPressure);
-					var slp = MeteoLib.GetSeaLevelPressure(station.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(abs), ConvertUnits.UserTempToC(station.OutdoorTemperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(station.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(station.StationPressure), ConvertUnits.UserTempToC(station.OutdoorTemperature), cumulus.Latitude);
 
 					station.DoPressure(ConvertUnits.PressMBToUser(slp), rec.Key);
 				}
 
 				// add in archive period worth of sunshine, if sunny
-				if (station.CurrentSolarMax > 0 &&
+				if (station.CurrentSolarMax > 0 && station.SolarRad.HasValue &&
 					station.SolarRad > station.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
 					station.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
@@ -1496,8 +1502,7 @@ namespace CumulusMX
 
 				if (rec.Value.StationPressure.HasValue)
 				{
-					station.StationPressure = (double) rec.Value.StationPressure;
-					station.AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(station.StationPressure, station.AltitudeM(cumulus.Altitude)));
+					station.DoStationPressure((double) rec.Value.StationPressure);
 					// Leave CMX calculated SLP until the end as it uses Temperature
 				}
 				else
@@ -1722,10 +1727,7 @@ namespace CumulusMX
 			// === Indoor CO2 ===
 			try
 			{
-				if (rec.Value.IndoorCo2.HasValue)
-				{
-					station.CO2 = rec.Value.IndoorCo2.Value;
-				}
+				station.CO2 = rec.Value.IndoorCo2;
 			}
 			catch (Exception ex)
 			{
@@ -1735,10 +1737,7 @@ namespace CumulusMX
 			// === Indoor CO2 24hr avg ===
 			try
 			{
-				if (rec.Value.IndoorCo2hr24.HasValue)
-				{
-					station.CO2_24h = rec.Value.IndoorCo2hr24.Value;
-				}
+				station.CO2_24h = rec.Value.IndoorCo2hr24;
 			}
 			catch (Exception ex)
 			{
@@ -1748,9 +1747,9 @@ namespace CumulusMX
 			// === Combo CO2 ===
 			try
 			{
-				if (rec.Value.AqiComboCO2.HasValue)
+				if (rec.Value.AqiComboCO2.HasValue && !rec.Value.IndoorCo2.HasValue)
 				{
-					station.CO2 = rec.Value.AqiComboCO2.Value;
+					station.CO2 = rec.Value.AqiComboCO2;
 				}
 			}
 			catch (Exception ex)
@@ -1761,9 +1760,9 @@ namespace CumulusMX
 			// === Combo CO2 24hr avg ===
 			try
 			{
-				if (rec.Value.AqiComboCO2hr24.HasValue)
+				if (rec.Value.AqiComboCO2hr24.HasValue && !rec.Value.IndoorCo2hr24.HasValue)
 				{
-					station.CO2_24h = rec.Value.AqiComboCO2hr24.Value;
+					station.CO2_24h = rec.Value.AqiComboCO2hr24;
 				}
 			}
 			catch (Exception ex)
@@ -1774,11 +1773,8 @@ namespace CumulusMX
 			// === PM 2.5 Combo ===
 			try
 			{
-				if (rec.Value.AqiComboPm25.HasValue)
-				{
-					station.CO2_pm2p5 = (double) rec.Value.AqiComboPm25.Value;
-					station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
-				}
+				station.CO2_pm2p5 = (double?) rec.Value.AqiComboPm25;
+				station.CO2_pm2p5_aqi = station.CO2_pm2p5.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5.Value) : null;
 			}
 			catch (Exception ex)
 			{
@@ -1788,12 +1784,8 @@ namespace CumulusMX
 			// === PM 10 Combo ===
 			try
 			{
-				if (rec.Value.AqiComboPm10.HasValue)
-				{
-					station.CO2_pm10 = (double) rec.Value.AqiComboPm10.Value;
-					station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
-
-				}
+				station.CO2_pm10 = (double?) rec.Value.AqiComboPm10;
+				station.CO2_pm10_aqi = station.CO2_pm10.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10.Value) : null;
 			}
 			catch (Exception ex)
 			{
@@ -1803,10 +1795,7 @@ namespace CumulusMX
 			// === temp Combo ===
 			try
 			{
-				if (rec.Value.AqiComboTemp.HasValue)
-				{
-					station.CO2_temperature = (double) rec.Value.AqiComboTemp.Value;
-				}
+				station.CO2_temperature = (double?) rec.Value.AqiComboTemp;
 			}
 			catch (Exception ex)
 			{
@@ -1816,10 +1805,7 @@ namespace CumulusMX
 			// === humidity Combo ===
 			try
 			{
-				if (rec.Value.AqiComboHum.HasValue)
-				{
-					station.CO2_humidity = (double) rec.Value.AqiComboHum.Value;
-				}
+				station.CO2_humidity = rec.Value.AqiComboHum;
 			}
 			catch (Exception ex)
 			{
@@ -2533,12 +2519,6 @@ namespace CumulusMX
 		{
 			// Credit: https://www.wxforum.net/index.php?topic=46414.msg469692#msg469692
 
-			if (model == null || !FirmwareSupportedModels.Contains(model[0..6]))
-			{
-				cumulus.LogMessage($"API.GetLatestFirmwareVersion: Your model - {model ?? "null"} - is not not currently supported");
-				return null;
-			}
-
 			if (version == null)
 			{
 				cumulus.LogMessage("API.GetLatestFirmwareVersion: No version supplied, cannot continue");
@@ -2661,7 +2641,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage("API.GetSimpleLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
 
-			if (model == null || !simpleSupportedModels.Contains(model[0..6]))
+			if (model == null || !SimpleSupportedModels.Contains(model[0..6]))
 			{
 				cumulus.LogMessage($"API.GetSimpleLatestFirmwareVersion: Your model - {model ?? "null"} - is not not currently supported");
 				return null;

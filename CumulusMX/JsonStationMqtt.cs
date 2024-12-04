@@ -24,11 +24,11 @@ namespace CumulusMX
 
 			/*
 			var protocolType = cumulus.MQTT.IpVersion switch
-			{
+			{x
 				4 => System.Net.Sockets.ProtocolType.IPv4,
 				6 => System.Net.Sockets.ProtocolType.IPv6,
 				_ => System.Net.Sockets.ProtocolType.Unspecified,
-			};
+			}x
 			*/
 
 			var options = new MqttClientOptionsBuilder()

@@ -8,11 +8,124 @@ This file is formatted as [markdown](https://www.markdownguide.org/), any decent
 Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/main/CHANGELOG.md)
 
 ---
+---
 
-
-## 4.2.1 \[b4043\] - 2024-10-19
+## [4.3.0 \[b4063\]][9] - 2024-12-04
 
 ### New
+
+- Adds Rain Week to the dashboard
+	- There is also a new web tag `<#rweek>`
+	- Configure the start-of-week day in `Station Settings > Rainfall`
+- Added displaying snowfall data on the dashboard and default web site
+	- Enable display of snow data on the dashboard, default web site, and graphs in `Display Options`
+	- New web tag `<#Option_showSnow>`
+	- You will need to re-upload the default web site files for this:<br>
+		`webfiles\historic.htm`<br>
+		`webfiles\js\historiccharts.js`
+- New web tags for 9am High/Low temperatures<br>
+	`<#temp9amTH>`,`<#Ttemp9amTH>`<br>
+	`<#temp9amTL>`,`<#Ttemp9amTL>`<br>
+	`<#temp9amRangeT>`<br>
+	`<#temp9amYH>`,`<#Ttemp9amYH>`<br>
+	`<#temp9amYL>`,`<#Ttemp9amYL>`<br>
+	`<#temp9amRangeY>`
+- New web tags for dawn and dusk<br>
+	`<#IsDawn>`, `<#IsDusk>`
+- Added some validation to the fields in the log editors
+- The dashboard and default web site can now display Chill Hours charts
+- Initial support for the new Ecowitt WH54 LDS01 Laser Distance sensors, just sensor info/battery decoding for now as that is all that is documented
+- The JSON Station type can now be used to input Extra Sensor data.
+	- This supports all the JSON Station input feed types: file watcher, HTTP POST, and MQTT
+- Adds calibration for Station pressure (and so also for Altimeter pressure)
+	- Note: If you use the option for Cumulus to calculate sea level pressure, then this new station pressure calibration is the one that will applied to the SLP as well
+- Adds Bluesky posting to the Third Party uploads list
+	- The content to be posted at fixed intervals is contained in the `web/Bluesky.txt` file, you can include all the usual web tags
+	- A sample file is included in the web folder for you to edit `web/BlueskySample.txt`
+	- Timed posts default to using the same Interval tempate file `web/Bluesky.txt`, but you can override this so posts at different time can have independent content
+	- In the template file(s), you may use the following features:
+		- Include web links using the syntax: `https:\\my.site.com\page|Text for link|`
+		- Include hashtags using the normal `#MyTagName`
+		- Include mentions using the normal `@identifier`
+		- Attach images (max 4) to a post using the syntax: `image:path_to_file|Alternative text|`
+			- The path_to_file can be either a local filesystem path, or a http url
+			- Image formats supported: JPEG and PNG - it is best to post jpg images as Bluesky converts other formats to jpg and may alter them in the process
+		- Cumulus will convert these to active links, tags, and mentions when posting the message
+	- After editing the `web/Bluesky.txt` file, you must load it back into Cumulus by viewing the `Third party uploads` page where it will display the contents
+- Adds Bluesky posting from Alarms and User Alarms
+	- Each alarm can have a different template file, but they all default to `web/BlueskyAlarm.txt`
+	- A sample file is included in the web folder for you to edit `web/BlueskyAlarmSample.txt`
+	- You can include the same features as the regular template above
+	- In addition you can include the text `|IncludeAlarmMessage|` and this will include at the point the message that would be sent via email. These messages are editable
+		in the `Settings > Locale Strings` page
+	- **Note**: You must enable Bluesky and enter your Bluesky credentials in the Third Party Uploads settings, but you need not configure any Interval or Timed posts.
+- Adds support for the new Ecowitt Laser Distance Sensors to Ecowitt HTTP API and HTTP Station (Ecowitt) stations
+	- Adds new web tags `<#LaserDist1> - <#LaserDist4>` and `<#LaserDepth1> - <#LaserDepth4>`
+- The upload.php script has been updated, it will now create the upload destination folder if it does not exist.
+
+### Changed
+
+- The extra sensors and the extra sensors log file now records null value values for absent readings. This will void logging spurious zero values at start-up
+- AirLinks and the AirLink log file now records null value values for absent readings. This will void logging spurious zero values at start-up
+- Indoor temperature and humidity now record null values
+- Solar Rad and UV-I now record null values
+- Removed NOT NULL requirements from the MySQL table definitions for Realtime, Monthly, and Dayfile
+- Efficiency improvements to all the "recent data" web tags
+- The Weather Diary has been revamped with revised fields to make it more useful
+	- The existing Weather Diary database data is migrated to the new format on first run of v4.3.0
+	- The Editor page gains a new "Export All" button to export your diary to CSV format
+	- The Editor page gains a new "Upload File" button to re-import your exported CSV files
+	- The Editor page now also has a Time field which defaults to the configured snow recording time, but you may override it
+	- There is a new option to automatically create a snow depth record on your snow recording hour. This requires the connection of an Ecowitt WH54/LDS-01 sensor to your station
+	- A new web tags `<#snow24h>` and `<#snowcomment>`
+	- The web tag `<#snowfalling>` has been deprecated (it will return an empty string until it is removed)
+	- A new daily graph data file `alldailysnowdata.json`
+- Chill Hours now allows you to define a base temperature, where chill hours are only counted if the temperature is < threshold AND > base
+	- The base temperature defaults to -99 (°C or °F) to mimic the current behaviour where chill hours are counted if the temperature is just < threshold
+	- Some cold stratification of seeds in the UK for instance only counts chill hours when it is between 1°C and 10°C
+- APRS/CWOP now sends the full "Ecowitt/Ambient/Tempest" station types
+- Revised US EPA PM2.5 AQI index to match February 2024 update
+- JSON station type now accepts laser distance measurements
+- Adds weekly rainfall to the end of the realtime.txt file
+- AWEKAS uploads to now increase the interval up to 10 minutes in the event of being rate limited
+- Dashboard Select-a-Period chart now defaults to a range of one month
+- Accessibility improvements to the Dashboard main menu
+- User Alarms:
+	- You can now use multiple web tags and arithmetic operators in the data field
+	- You now have the option of data Equals value type alarms as well as Above and Below
+- Changed Custom Alarms to User defined alarms in the dashboard menu
+- Reverts the change in v4.2.0 where External Programs sets the working directory to the location of the executable/script rather than the Cumulus MX home directory
+
+### Fixed
+
+- Fix error editing extra log file data when MySQL updates enabled
+- Lightning Time showing a 1900 date when no lightning has been detected
+- Suppress Tempest station TaskCancellation message to the console on shutdown
+- Ecowitt WH51 channels 9-16 decoding in HTTP API fixed(?) Still all undocumented by Ecowitt, sigh!
+- Improvements to Ecowitt latest firmware checking
+- Error message output processing historic Ecowitt AQI Combo PM10 data
+- SQLite exception loading duplicate dayfile entries
+- Fix for Davis WLL gust checking attributing gusts from the last minutes of the previous day to the current day
+- Fix low battery warning for old model Ecowitt WH40 sensors that do not send the battery status when using the Ecowitt HTTP Local API
+- Alarms: removes checks for File.Exists(Action) and traps FileNotFound exceptions instead
+- Fix for new installs registering the year-to-date rainfall as todays rainfall
+- Fix for alarm sounds not playing on main dashboard after the initial page load
+
+### Package Updates
+
+- MySqlConnector
+- SSH.NET
+- Sixlabors.ImageSharp
+- NReco.Logging.File
+- ServceStack.Text
+- Lots of System/Microsoft packages updated from v8.0 to v9.0
+
+---
+
+## [4.2.1 \[b4043\]][8] - 2024-10-19
+
+### New
+
 - The web tag `<#DayFileQuery>` has been extended to allow "on this day" type queries.
 	- Please read the separate documention (`/MXutils/QueryDayFile.md`) for more details
 - The web tag `<#DayFileQuery>` has been extended to add the optional parameter dateOnly=y
@@ -30,6 +143,7 @@ but you also want to see the two minute values then you can use these new tags
 	- **Note:** *You should not use values for m greater than around 20 minutes due to the limited storage time of 'live' wind values. This is station update rate dependent*
 
 ### Changed
+
 - The AQI web tag now returns a decimal value when using the Canada AQHI calculation<br>
 	To return to the previous behaviour of using integer values, set your Air Quality decimal places to zero in `Station Settings > General Settings > Units > Advanced Options`
 - The web tag `<#CO2_pm10_24_aqih>` has been corrected to `<#CO2_pm10_24h_aqi>`<br>
@@ -37,6 +151,7 @@ but you also want to see the two minute values then you can use these new tags
 - Clean-up of the AI2 pages for Interval and Daily Data viewers
 
 ### Fixed
+
 - Interval data viewer not working over month ends for extra sensor values
 - Ecowitt TCP API Station, incorrect interpretation of Ecowitt WH34 sensor low battery state
 - Ecowitt TCP API Station, false detection of WS90 when a WH34 sensor was detected
@@ -47,6 +162,7 @@ but you also want to see the two minute values then you can use these new tags
 - Fix Ecowitt WS69 battery state decode in TCP API station
 
 ### Package Updates
+
 - SQLite
 - MailKit
 - System.Diagnostics.PerformanceCounter
@@ -54,9 +170,10 @@ but you also want to see the two minute values then you can use these new tags
 
 ---
 
-## 4.2.0 \[b4039\] - 2024-10-01
+## [4.2.0 \[b4039\]][7] - 2024-10-01
 
 ### New
+
 - New station type: Ecowitt Local HTTP API
 	- Ecowitt Local HTTP API is an alternative the local TCP API used by the gateways and some stations
 	- Currently it is slightly less capable than the TCP API, but does provide all the sensor values
@@ -83,6 +200,7 @@ but you also want to see the two minute values then you can use these new tags
 - Added a script `/MXutils/linux/Fix_FineOffset_USB.sh` to fix Fine Offset USB stations
 
 ### Changed
+
 - Davis WLL/Davis Cloud stations now use the WL.com subscription level to determine if they use WL.com as a logger
 - The Station Settings screen now does a two-stage selection: First the manufacturer, then the station model. This shortens the long and list to select from.
 - AI2 dashboard now shows some Davis WLL hardware information
@@ -91,6 +209,7 @@ but you also want to see the two minute values then you can use these new tags
 - Updates.txt is now `CHANGELOG.md`
 
 ### Fixed
+
 - Davis Cloud stations in endless loop at startup if there is no historic data to process or access is denied
 - Davis Cloud stations no longer continuously try to fetch history data if there is no Pro subscription
 - WMR928 Station now correctly converts indoor temperatures to the user defined units
@@ -103,6 +222,7 @@ but you also want to see the two minute values then you can use these new tags
 - Fix crash in Ecowitt getting station firmware version in some circumstances
 
 ### Package Updates
+
 - SQLite: Reverted to v2.1.8 pending fix from author
 - MQTTnet
 - FluentFTP
@@ -111,17 +231,20 @@ but you also want to see the two minute values then you can use these new tags
 
 ---
 
-## 4.1.3 \[b4028\] - 2024-08-20
+## [4.1.3 \[b4028\]][6] - 2024-08-20
 
 ### New
+
 - New web tag `<#stationId>` which returns the internal station number used by CMX to determine the station type
 - For Davis WLL and WeatherLink Cloud stations you can now specify the station identifier using the stations UUID instead of the numeric Id. The UUID is simpler to find
 	as it forms part of the URL of every web page related to your station on weatherlink.com
 
 ### Changed
+
 No changes
 
 ### Fixed
+
 - The Cumulus MX version comparison with latest online at startup and daily
 - Fix CMX version check when no betas are available on GitHub repo
 - Davis Cloud Station can now accurately determine the current conditions update rate
@@ -134,6 +257,7 @@ No changes
 - Fix Ecowitt firmware check when running test firmware
 
 ### Package Updates
+
 - SixLabors.ImageSharp
 - FluentFTP
 - MailKit
@@ -144,24 +268,27 @@ No changes
 
 ---
 
-## 4.1.2 \[b4027\] - 2024-07-23
+## [4.1.2 \[b4027\]][5] - 2024-07-23
 
 ### New
+
 - Adds wind run to the dashboard "now" page
 - Adds support for the format parameter to the `<#ProgramUpTime>` and `<#SystemUpTime>` web tags
 	- The format syntax is different from date/time web tags as these two tags use a elapsed time.
 	- For Custom format specifiers see: [Custom TimeSpan formats](https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-timespan-format-strings)
 	- For Standard format specifiers see: [Standard TimeSpan formats](https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-timespan-format-strings)
 	- The default output is generated using the format string `"{0:%d} days {0:%h} hours"`
-	- You can customise this like this example: `<#SystemUpTime format="{0:%d}d {0:%h}h {0:%m}m">`  --> "12d 9h 46m"
+	- You can customise this like this example: `<#SystemUpTime format="{0:%d}d {0:%h}h {0:%m}m">`  >> "12d 9h 46m"
 - New web tag `<#AnnualRainfall>`
 	- Defaults to the current year if no year is specified, so is equivalent to the preferred web tag `<#ryear>`
 	- Accepts a tag parameter of `y=nnnn`, which will return the total rainfall for the specified year. Eg. `<#AnnualRainfall y=2021>`
 
 ### Changed
+
 - Daily backup now runs asynchronously to prevent it stopping MX continue to run
 
 ### Fixed
+
 - Davis VP2 connection type being decoded from Cumulus.ini incorrectly
 - Add missing knots input to JSON station
 - Solar W/m2 should use superscript in dashboard
@@ -175,15 +302,18 @@ No changes
 
 ---
 
-## 4.1.1 \[b4025\] - 2024-06-19
+## [4.1.1 \[b4025\]][4] - 2024-06-19
 
 ### New
+
 No new features
 
 ### Changed
+
 No changes
 
 ### Fixed
+
 - Davis VP2/Vue raincounter reset problems
 - Another raincounter reset issue that has been lurking
 - Wizard made Ecowitt API key and secret mandatory
@@ -191,14 +321,15 @@ No changes
 
 ---
 
-## 4.1.0 \[b4024\] - 2024-06-05
+## [4.1.0 \[b4024\]][3] - 2024-06-05
 
 ### New
+
 - HTTP (Ecowitt) station now accepts the data via a simple GET url as well as POST
 - Cumulus now calculates the AQi for Ecowitt PM and CO₂ sensors
 	- New web tags:
 
-	`<#AirQualityIdx1[-4]>`, `<#AirQualityAvgIdx1[-4]>`<br>
+	`<#AirQualityIdx[1-4]>`, `<#AirQualityAvgIdx[1-4]>`<br>
 	`<#CO2_pm2p5_aqi>`, `<#CO2_pm2p5_24h_aqi>`<br>
 	`<#CO2_pm10_aqi>`, `<#CO2_pm10_24_aqi>`
 
@@ -212,10 +343,12 @@ No changes
 - Locale Strings now has settings for the default record date/time text
 
 ### Changed
+
 - Removed option for WOW catch-up, it isn't supported by WOW
 - Moved the log file header info files to the `MXutils/fileheaders` folder
 
 ### Fixed
+
 - Temperature Sum graph data when Sum0 is the only selected range
 - Fix `<#NewBuildAvailable>` and `<#NewBuildNumber>` web tags
 - Fix for Davis VP2 consoles losing todays rainfall on a full power cycle
@@ -225,35 +358,40 @@ No changes
 - Alarm actions errored if the action parameter field is empty
 
 ### Package Updates
+
 - MQTTnet
 - MailKit
 - BouncyCastle
 
 ---
 
-## 4.0.1 \[b4023\] - 2024-05-16
+## [4.0.1 \[b4023\]][2] - 2024-05-16
 
 ### New
+
 - There is now a 32 Windows specific version of executable - `CumulusMX32.exe`
 	- The same applies to `MigrateData3to4` and `CreateMissing`
 
 ### Changed
+
 - Removed the experimental Gmail OATH2 authentication method
 - Third party uploads now have retries and the timeout increased to 30 seconds
 
 
 ### Fixed
+
 - Fixed Spike handling for outdoor temperature
 - Fixed David Cloud (VP2) station sometimes not decoding dew point, adds indoor temp/hum decode
 - The -install option now works on 32 bit Windows
 
 ---
 
-## 4.0.0 \[b4022\] - 2024-05-11
+## [4.0.0 \[b4022\]][1] - 2024-05-11
 
 Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and removes the requirement for the Mono runtime environment on Linux.
 
 ### New
+
 - Moon Image now supports transparent shadows
 - The -install/-unistall command line switches now support both Windows and Linux
 	- Under Linux run<br>
@@ -285,6 +423,7 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 - Added localisation of records web tag date/time formats
 
 ### Changed
+
 - Now **requires** Microsoft .Net 8.0 rather than mono to run under Linux and MacOS
 - All data files are now written/read as invariant - dayfile, monthly log files, extra log files, AirLink, and custom log files
 	- NOTE: Custom log files may require the user to alter their configuration to use comma separators and add the `rc=y` parameter to numeric web tags
@@ -305,6 +444,7 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 	- In Cloud Access API for Cloud and HTTP station types
 
 ### Fixed
+
 - Problems when using a 9am rollover in the records editors for values from the monthly log files
 - Select-a-Period charts not respecting the interval dates: Air Quality, CO₂, Soil Moisture, Leaf Wetness
 - Calibration Limits not changing when the user changes units - eg initial install
@@ -319,3 +459,14 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 	- No broadcasts are received
 - Davis WLL improved recovery from loss of broadcast messages
 - Spike/limit improvements
+
+
+[1]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4022
+[2]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4023
+[3]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4024
+[4]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4025
+[5]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4027
+[6]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4028
+[7]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4039
+[8]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4043
+[9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4063

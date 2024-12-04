@@ -11,9 +11,7 @@ using Timer = System.Timers.Timer;
 
 namespace CumulusMX
 {
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal class FOStation : WeatherStation
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		private readonly double pressureOffset;
 		private HidDevice hidDevice;
@@ -251,7 +249,7 @@ namespace CumulusMX
 					// number of ticks in a logging interval
 					var intTicks = TimeSpan.FromMinutes(Cumulus.logints[cumulus.DataLogInterval]).Ticks;
 					// date/time of the last log interval
-					var lastLogInterval = new DateTime((DateTime.Now.Ticks / intTicks) * intTicks);
+					var lastLogInterval = new DateTime((DateTime.Now.Ticks / intTicks) * intTicks, DateTimeKind.Local);
 					// which log interval does this data belong to, the last or the one before that?
 					timestamp = timestamp > lastLogInterval ? lastLogInterval : lastLogInterval.AddTicks(-intTicks);
 				}
@@ -316,8 +314,7 @@ namespace CumulusMX
 
 					if (cumulus.StationOptions.CalculateSLP)
 					{
-						histData.stationPress = cumulus.Calib.Press.Calibrate(histData.stationPress);
-						histData.pressure = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), histData.stationPress, histData.outTemp, cumulus.Latitude);
+						histData.pressure = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), cumulus.Calib.PressStn.Calibrate(histData.stationPress), histData.outTemp, cumulus.Latitude);
 					}
 					else
 					{
@@ -366,6 +363,7 @@ namespace CumulusMX
 			int luhour = cumulus.LastUpdateTime.Hour;
 			bool rolloverdone = luhour == rollHour;
 			bool midnightraindone = luhour == 0;
+			bool rollover9amdone = luhour == 9;
 			int recCount = datalist.Count;
 			int processedCount = 0;
 
@@ -412,6 +410,13 @@ namespace CumulusMX
 					midnightraindone = true;
 				}
 
+				// 9am rollover items
+				if (h == 9 && !rollover9amdone)
+				{
+					Reset9amTemperatures(timestamp);
+					rollover9amdone = true;
+				}
+
 				// Indoor Humidity ======================================================
 				if (historydata.inHum > 100 || historydata.inHum < 0)
 				{
@@ -443,7 +448,7 @@ namespace CumulusMX
 				else
 				{
 					DoPressure(ConvertUnits.PressMBToUser(historydata.pressure), timestamp);
-					StationPressure = historydata.stationPress;
+					DoStationPressure(historydata.stationPress);
 				}
 
 				if (historydata.SensorContactLost)
@@ -491,7 +496,7 @@ namespace CumulusMX
 					}
 
 					// update chill hours
-					if (OutdoorTemperature < cumulus.ChillHourThreshold)
+					if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 					{
 						// add 1 minute to chill hours
 						ChillHours += (historydata.interval / 60.0);
@@ -734,9 +739,11 @@ namespace CumulusMX
 			Thread.Sleep(cumulus.FineOffsetOptions.ReadTime);
 			for (int i = 1; i < 5; i++)
 			{
+				int read;
+
 				try
 				{
-					stream.Read(response, 0, responseLength);
+					read = stream.Read(response, 0, responseLength);
 				}
 				catch (Exception ex)
 				{
@@ -753,8 +760,8 @@ namespace CumulusMX
 					return false;
 				}
 
-				var recData = " Data" + i + ": " + BitConverter.ToString(response, startByte, responseLength - startByte);
-				for (int j = startByte; j < responseLength; j++)
+				var recData = " Data" + i + ": " + BitConverter.ToString(response, startByte, read - startByte);
+				for (int j = startByte; j < read; j++)
 				{
 					buff[ptr++] = response[j];
 				}
@@ -1180,7 +1187,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					StationPressure = cumulus.Calib.Press.Calibrate(ConvertUnits.PressMBToUser(pressure));
+					DoStationPressure(ConvertUnits.PressMBToUser(stnPress));
 
 					if (!cumulus.StationOptions.CalculateSLP)
 					{

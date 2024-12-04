@@ -7,6 +7,7 @@ namespace CumulusMX
 		/*
 		 * US AQI - United States Environmental Protection Agency (EPA)
 		 * https://www.airnow.gov/sites/default/files/2018-05/aqi-technical-assistance-document-may2016.pdf
+		 * https://www.epa.gov/system/files/documents/2024-02/pm-naaqs-air-quality-index-fact-sheet.pdf
 		 */
 
 		public static int US_EPApm2p5(double pmVal)
@@ -56,21 +57,21 @@ namespace CumulusMX
 				//Ihigh = 150
 				retVal = 100 + Interpolate(35.4, 55.4, pmVal) * 50;
 			}
-			else if (pmVal >= 12)
+			else if (pmVal >= 9)
 			{
-				//Clow = 12.1
+				//Clow = 9.1
 				//Chigh = 35.4
 				//Ilow = 51
 				//Ihigh = 100
-				retVal = 50 + Interpolate(12, 35.4, pmVal) * 50;
+				retVal = 50 + Interpolate(9, 35.4, pmVal) * 50;
 			}
 			else
 			{
 				//Clow = 0
-				//Chigh = 12
+				//Chigh = 9
 				//Ilow = 0
 				//Ihigh = 50
-				retVal = Interpolate(0, 12, pmVal) * 50;
+				retVal = Interpolate(0, 9, pmVal) * 50;
 			}
 			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow
 			return (int) Math.Round(retVal);
@@ -180,7 +181,8 @@ namespace CumulusMX
 
 		/*
 		 * UK Air Quality Index - Committee on the Medical Effects of Air Pollutants (COMEAP)
-		 * https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/304633/COMEAP_review_of_the_uk_air_quality_index.pdf
+		 * https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/304633/COMEAP_review_of_the_uk_air_quality_index.pdf (2011)
+		 * https://assets.publishing.service.gov.uk/media/5a749a66e5274a44083b8003/COMEAP_review_of_the_uk_air_quality_index.pdf (2011)
 		 * Only integer values are defined, but we will interpolate between them
 		 */
 		public static double UK_COMEAPpm10(double pmVal)

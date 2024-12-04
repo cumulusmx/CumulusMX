@@ -271,11 +271,10 @@ namespace CumulusMX
 						}
 						else
 						{
-							StationPressure = ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, CultureInfo.InvariantCulture));
+							DoStationPressure(ConvertUnits.PressINHGToUser(Convert.ToDouble(stnPress, CultureInfo.InvariantCulture)));
 
 							if (cumulus.StationOptions.CalculateSLP)
 							{
-								StationPressure = cumulus.Calib.Press.Calibrate(StationPressure);
 								var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 
 								DoPressure(ConvertUnits.PressMBToUser(slp), recDate);
@@ -529,7 +528,7 @@ namespace CumulusMX
 						// co2_in_24h - [float, ppm]
 
 						// NOT YET IMPLEMENTED
-						//ProcessCo2(data, this);
+						//ProcessCo2(data, this)
 					}
 					catch (Exception ex)
 					{
@@ -682,13 +681,10 @@ namespace CumulusMX
 		{
 			for (var i = 1; i <= 10; i++)
 			{
-				if (data["soilhum" + i] != null)
+				if (data["soilhum" + i] != null && station != null)
 				{
 					station.DoSoilMoisture(Convert.ToDouble(data["soilhum" + i], CultureInfo.InvariantCulture), i);
-					if (station != null)
-					{
-						cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
-					}
+					cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
 				}
 			}
 		}
@@ -715,6 +711,7 @@ namespace CumulusMX
 		}
 
 
+#pragma warning disable S125
 		/*
 		 * Not yet used
 		private void ProcessCo2(NameValueCollection data, WeatherStation station)
@@ -762,6 +759,7 @@ namespace CumulusMX
 			}
 		}
 		*/
+#pragma warning restore S125
 
 		private void ProcessLightning(NameValueCollection data, WeatherStation station)
 		{
@@ -853,7 +851,7 @@ namespace CumulusMX
 			{
 				if (data["temp" + i + "f"] != null && data["humidity" + i] != null)
 				{
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[i]), station.ExtraHum[i]);
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[i].Value), station.ExtraHum[i].Value);
 					station.ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
 				}
 			}

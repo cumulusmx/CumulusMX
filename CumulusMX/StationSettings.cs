@@ -14,7 +14,7 @@ using ServiceStack.Text;
 
 namespace CumulusMX
 {
-	internal class StationSettings
+	public class StationSettings
 	{
 		private readonly Cumulus cumulus;
 		private WeatherStation station;
@@ -34,7 +34,7 @@ namespace CumulusMX
 			// Build the settings data, convert to JSON, and return it
 
 			// Common > Advanced Settings
-			var optionsAdv = new JsonStationSettingsOptionsAdvanced()
+			var optionsAdv = new JsonOptionsAdvanced()
 			{
 				usespeedforavg = cumulus.StationOptions.UseSpeedForAvgCalc,
 				avgbearingmins = cumulus.StationOptions.AvgBearingMinutes,
@@ -48,7 +48,7 @@ namespace CumulusMX
 			};
 
 			// Common Settings
-			var options = new JsonStationSettingsOptions()
+			var options = new JsonOptions()
 			{
 				usezerobearing = cumulus.StationOptions.UseZeroBearing,
 				calcwindaverage = cumulus.StationOptions.CalcuateAverageWindSpeed,
@@ -69,7 +69,7 @@ namespace CumulusMX
 			};
 
 			// Units > Advanced
-			var unitsAdv = new JsonStationSettingsUnitsAdvanced
+			var unitsAdv = new JsonUnitsAdvanced
 			{
 				airqulaitydp = cumulus.AirQualityDPlaces,
 				pressdp = cumulus.PressDPlaces,
@@ -83,24 +83,26 @@ namespace CumulusMX
 			};
 
 			// Units
-			var units = new JsonStationSettingsUnits()
+			var units = new JsonUnits()
 			{
 				wind = cumulus.Units.Wind,
 				pressure = cumulus.Units.Press,
 				temp = cumulus.Units.Temp,
 				rain = cumulus.Units.Rain,
 				cloudbaseft = cumulus.CloudBaseInFeet,
+				snow = cumulus.Units.SnowDepth,
+				laser = cumulus.Units.LaserDistance,
 				advanced = unitsAdv
 			};
 
-			var tcpsettings = new JsonStationSettingsTCPsettings()
+			var tcpsettings = new JsonTCPsettings()
 			{
 				ipaddress = cumulus.DavisOptions.IPAddr,
 				disconperiod = cumulus.DavisOptions.PeriodicDisconnectInterval
 			};
 
 
-			var davisvp2advanced = new JsonStationSettingsDavisVp2Advanced()
+			var davisvp2advanced = new JsonsDavisVp2Advanced()
 			{
 				syncstationclock = cumulus.StationOptions.SyncTime,
 				syncclockhour = cumulus.StationOptions.ClockSettingHour,
@@ -115,20 +117,20 @@ namespace CumulusMX
 				setloggerinterval = cumulus.DavisOptions.SetLoggerInterval
 			};
 
-			var davisvp2conn = new JsonStationSettingsDavisVp2Connection()
+			var davisvp2conn = new JsonDavisVp2Connection()
 			{
 				conntype = cumulus.DavisOptions.ConnectionType,
 				comportname = cumulus.ComportName,
 				tcpsettings = tcpsettings
 			};
 
-			var davisvp2 = new JsonStationSettingsDavisVp2()
+			var davisvp2 = new JsonDavisVp2()
 			{
 				davisconn = davisvp2conn,
 				advanced = davisvp2advanced
 			};
 
-			var weatherflow = new JsonStationSettingsWeatherFlow()
+			var weatherflow = new JsonWeatherFlow()
 			{
 				deviceid = cumulus.WeatherFlowOptions.WFDeviceId,
 				tcpport = cumulus.WeatherFlowOptions.WFTcpPort,
@@ -136,7 +138,7 @@ namespace CumulusMX
 				dayshistory = cumulus.WeatherFlowOptions.WFDaysHist
 			};
 
-			var ecowittmaps = new JsonStationSettingsEcowittMappings()
+			var ecowittmaps = new JsonEcowittMappings()
 			{
 				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
 				primaryRainSensor = cumulus.Gw1000PrimaryRainSensor,
@@ -151,20 +153,20 @@ namespace CumulusMX
 				wn34chan8 = cumulus.EcowittMapWN34[8]
 			};
 
-			var gw1000 = new JsonStationSettingsGw1000Conn()
+			var gw1000 = new JsonGw1000Conn()
 			{
 				ipaddress = cumulus.Gw1000IpAddress,
 				autoDiscover = cumulus.Gw1000AutoUpdateIpAddress,
 				macaddress = cumulus.Gw1000MacAddress,
 			};
 
-			var ecowittHttpApi = new JsonStationSettingsHttpApi()
+			var ecowittHttpApi = new JsonHttpApi()
 			{
 				ipaddress = cumulus.Gw1000IpAddress,
 				password = cumulus.EcowittHttpPassword
 			};
 
-			var ecowitt = new JsonStationSettingsEcowitt
+			var ecowitt = new JsonEcowitt
 			{
 				setcustom = cumulus.EcowittSetCustomServer,
 				gwaddr = cumulus.EcowittGatewayAddr,
@@ -181,20 +183,20 @@ namespace CumulusMX
 				}
 			}
 
-			var ecowittapi = new JsonStationSettingsEcowittApi()
+			var ecowittapi = new JsonEcowittApi()
 			{
 				applicationkey = cumulus.EcowittApplicationKey,
 				userkey = cumulus.EcowittUserApiKey,
 				mac = cumulus.EcowittMacAddress
 			};
 
-			var logrollover = new JsonStationSettingsLogRollover()
+			var logrollover = new JsonLogRollover()
 			{
 				time = cumulus.RolloverHour == 9 ? "9am" : "midnight",
 				summer10am = cumulus.Use10amInSummer
 			};
 
-			var fineoffsetadvanced = new JsonStationSettingsFineOffsetAdvanced()
+			var fineoffsetadvanced = new JsonFineOffsetAdvanced()
 			{
 				readtime = cumulus.FineOffsetOptions.ReadTime,
 				setlogger = cumulus.FineOffsetOptions.SetLoggerInterval,
@@ -202,14 +204,14 @@ namespace CumulusMX
 				pid = cumulus.FineOffsetOptions.ProductID
 			};
 
-			var fineoffset = new JsonStationSettingsFineOffset()
+			var fineoffset = new JsonFineOffset()
 			{
 				syncreads = cumulus.FineOffsetOptions.SyncReads,
 				readavoid = cumulus.FineOffsetOptions.ReadAvoidPeriod,
 				advanced = fineoffsetadvanced
 			};
 
-			var easyweather = new JsonStationSettingsEasyWeather()
+			var easyweather = new JsonEasyWeather()
 			{
 				interval = cumulus.EwOptions.Interval,
 				filename = cumulus.EwOptions.Filename,
@@ -219,12 +221,12 @@ namespace CumulusMX
 				pressoffset = cumulus.EwOptions.PressOffset
 			};
 
-			var wmr928 = new JsonStationSettingsWmr928()
+			var wmr928 = new JsonWmr928()
 			{
 				comportname = cumulus.ComportName
 			};
 
-			var imetAdvanced = new JsonStationSettingsImetAdvanced()
+			var imetAdvanced = new JsonImetAdvanced()
 			{
 				syncstationclock = cumulus.StationOptions.SyncTime,
 				syncclockhour = cumulus.StationOptions.ClockSettingHour,
@@ -233,7 +235,7 @@ namespace CumulusMX
 				updatelogpointer = cumulus.ImetOptions.UpdateLogPointer
 			};
 
-			var imet = new JsonStationSettingsImet()
+			var imet = new JsonImet()
 			{
 				comportname = cumulus.ComportName,
 				baudrate = cumulus.ImetOptions.BaudRate,
@@ -245,13 +247,13 @@ namespace CumulusMX
 
 			LatToDMS(cumulus.Latitude, out deg, out min, out sec, out hem);
 
-			var latitude = new JsonStationSettingsLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
+			var latitude = new JsonLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
 
 			LongToDMS(cumulus.Longitude, out deg, out min, out sec, out hem);
 
-			var longitude = new JsonStationSettingsLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
+			var longitude = new JsonLatLong() { degrees = deg, minutes = min, seconds = sec, hemisphere = hem };
 
-			var location = new JsonStationSettingsLocation()
+			var location = new JsonLocation()
 			{
 				altitude = (int) cumulus.Altitude,
 				altitudeunit = cumulus.AltitudeInFeet ? "feet" : "metres",
@@ -261,7 +263,7 @@ namespace CumulusMX
 				sitename = cumulus.LocationName
 			};
 
-			var forecast = new JsonStationSettingsForecast()
+			var forecast = new JsonForecast()
 			{
 				highpressureextreme = cumulus.FChighpress,
 				lowpressureextreme = cumulus.FClowpress,
@@ -275,7 +277,7 @@ namespace CumulusMX
 				forecast.pressureunit = "inHg";
 			}
 
-			var solar = new JsonStationSettingsSolar()
+			var solar = new JsonSolar()
 			{
 				solarmin = cumulus.SolarOptions.SolarMinimum,
 				sunthreshold = cumulus.SolarOptions.SunThreshold,
@@ -286,9 +288,10 @@ namespace CumulusMX
 				turbidityDec = cumulus.SolarOptions.BrasTurbidityDec
 			};
 
-			var annualrainfall = new JsonStationSettingsAnnualRainfall()
+			var annualrainfall = new JsonAnnualRainfall()
 			{
 				rainseasonstart = cumulus.RainSeasonStart,
+				rainweekstart = cumulus.RainWeekStart,
 				ytdamount = cumulus.YTDrain,
 				ytdyear = cumulus.YTDrainyear
 			};
@@ -311,23 +314,24 @@ namespace CumulusMX
 			var chillhrs = new JsonChillHours()
 			{
 				threshold = cumulus.ChillHourThreshold,
+				basetemp = cumulus.ChillHourBase,
 				month = cumulus.ChillHourSeasonStart
 			};
 
-			var wllNetwork = new JsonStationSettingsWllNetwork()
+			var wllNetwork = new JsonWllNetwork()
 			{
 				autoDiscover = cumulus.WLLAutoUpdateIpAddress,
 				ipaddress = cumulus.DavisOptions.IPAddr
 			};
 
-			var wllAdvanced = new JsonStationSettingsWllAdvanced()
+			var wllAdvanced = new JsonWllAdvanced()
 			{
 				raingaugetype = cumulus.DavisOptions.RainGaugeType,
 				tcpport = cumulus.DavisOptions.TCPPort,
 				datastopped = cumulus.WllTriggerDataStoppedOnBroadcast
 			};
 
-			var wllApi = new JsonStationSettingsWllApi()
+			var wllApi = new JsonWllApi()
 			{
 				apiKey = cumulus.WllApiKey,
 				apiSecret = cumulus.WllApiSecret,
@@ -335,7 +339,7 @@ namespace CumulusMX
 				apiStationUuid = cumulus.WllStationUuid
 			};
 
-			var wllPrimary = new JsonStationSettingsWllPrimary()
+			var wllPrimary = new JsonWllPrimary()
 			{
 				wind = cumulus.WllPrimaryWind,
 				temphum = cumulus.WllPrimaryTempHum,
@@ -344,7 +348,7 @@ namespace CumulusMX
 				uv = cumulus.WllPrimaryUV
 			};
 
-			var wllExtraSoilTemp = new JsonStationSettingsWllSoilTemp()
+			var wllExtraSoilTemp = new JsonWllSoilTemp()
 			{
 
 				soilTempTx1 = cumulus.WllExtraSoilTempTx1,
@@ -357,7 +361,7 @@ namespace CumulusMX
 				soilTempIdx4 = cumulus.WllExtraSoilTempIdx4
 			};
 
-			var wllExtraSoilMoist = new JsonStationSettingsWllSoilMoist()
+			var wllExtraSoilMoist = new JsonWllSoilMoist()
 			{
 				soilMoistTx1 = cumulus.WllExtraSoilMoistureTx1,
 				soilMoistIdx1 = cumulus.WllExtraSoilMoistureIdx1,
@@ -369,7 +373,7 @@ namespace CumulusMX
 				soilMoistIdx4 = cumulus.WllExtraSoilMoistureIdx4
 			};
 
-			var wllExtraLeaf = new JsonStationSettingsWllExtraLeaf()
+			var wllExtraLeaf = new JsonWllExtraLeaf()
 			{
 				leafTx1 = cumulus.WllExtraLeafTx1,
 				leafIdx1 = cumulus.WllExtraLeafIdx1,
@@ -377,14 +381,14 @@ namespace CumulusMX
 				leafIdx2 = cumulus.WllExtraLeafIdx2
 			};
 
-			var wllSoilLeaf = new JsonStationSettingsWllSoilLeaf()
+			var wllSoilLeaf = new JsonWllSoilLeaf()
 			{
 				extraSoilTemp = wllExtraSoilTemp,
 				extraSoilMoist = wllExtraSoilMoist,
 				extraLeaf = wllExtraLeaf
 			};
 
-			var wllExtraTemp = new JsonStationSettingsWllExtraTemp();
+			var wllExtraTemp = new JsonWllExtraTemp();
 			for (int i = 1; i <= 8; i++)
 			{
 				PropertyInfo propInfo = wllExtraTemp.GetType().GetProperty("extraTempTx" + i);
@@ -394,7 +398,7 @@ namespace CumulusMX
 				propInfo.SetValue(wllExtraTemp, Convert.ChangeType(cumulus.WllExtraHumTx[i], propInfo.PropertyType), null);
 			}
 
-			var wll = new JsonStationSettingsWll()
+			var wll = new JsonWll()
 			{
 				network = wllNetwork,
 				api = wllApi,
@@ -404,12 +408,12 @@ namespace CumulusMX
 				advanced = wllAdvanced
 			};
 
-			var generalAdvanced = new JsonStationSettingsAdvanced()
+			var generalAdvanced = new JsonAdvanced()
 			{
 				recsbegandate = cumulus.RecordsBeganDateTime.ToString("yyyy-MM-dd")
 			};
 
-			var general = new JsonStationGeneral()
+			var general = new JsonGeneral()
 			{
 				manufacturer = cumulus.Manufacturer,
 				stationtype = cumulus.StationType,
@@ -439,7 +443,7 @@ namespace CumulusMX
 				advanced = jsonstnadv
 			};
 
-			var data = new JsonStationSettingsData()
+			var data = new JsonData()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				stationid = cumulus.StationType,
@@ -521,7 +525,7 @@ namespace CumulusMX
 			var errorMsg = string.Empty;
 			var json = string.Empty;
 			context.Response.StatusCode = 200;
-			JsonStationSettingsData settings;
+			JsonData settings;
 
 			// get the response
 			try
@@ -534,7 +538,7 @@ namespace CumulusMX
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = JsonSerializer.DeserializeFromString<JsonStationSettingsData>(json);
+				settings = JsonSerializer.DeserializeFromString<JsonData>(json);
 			}
 			catch (Exception ex)
 			{
@@ -554,6 +558,12 @@ namespace CumulusMX
 					cumulus.RainSeasonStart = settings.AnnualRainfall.rainseasonstart;
 					cumulus.YTDrain = settings.AnnualRainfall.ytdamount;
 					cumulus.YTDrainyear = settings.AnnualRainfall.ytdyear;
+					if (cumulus.RainWeekStart != settings.AnnualRainfall.rainweekstart)
+					{
+						cumulus.RainWeekStart = settings.AnnualRainfall.rainweekstart;
+						// we need to recalculate the rainfall
+						station.UpdateWeekRainfall();
+					}
 				}
 				catch (Exception ex)
 				{
@@ -598,6 +608,7 @@ namespace CumulusMX
 				try
 				{
 					cumulus.ChillHourThreshold = settings.ChillHrs.threshold;
+					cumulus.ChillHourBase = settings.ChillHrs.basetemp;
 					cumulus.ChillHourSeasonStart = settings.ChillHrs.month;
 				}
 				catch (Exception ex)
@@ -975,7 +986,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[1] == 0)
 								station.UserTemp[1] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[1]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[1]] = null;
 
 							cumulus.EcowittMapWN34[1] = settings.ecowittmaps.wn34chan1;
 						}
@@ -985,7 +996,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[2] == 0)
 								station.UserTemp[2] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[2]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[2]] = null;
 
 							cumulus.EcowittMapWN34[2] = settings.ecowittmaps.wn34chan2;
 						}
@@ -995,7 +1006,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[3] == 0)
 								station.UserTemp[3] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[3]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[3]] = null;
 
 							cumulus.EcowittMapWN34[3] = settings.ecowittmaps.wn34chan3;
 						}
@@ -1005,7 +1016,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[4] == 0)
 								station.UserTemp[4] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[4]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[4]] = null;
 
 							cumulus.EcowittMapWN34[4] = settings.ecowittmaps.wn34chan4;
 						}
@@ -1015,7 +1026,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[5] == 0)
 								station.UserTemp[5] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[5]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[5]] = null;
 
 							cumulus.EcowittMapWN34[5] = settings.ecowittmaps.wn34chan5;
 						}
@@ -1025,7 +1036,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[6] == 0)
 								station.UserTemp[6] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[6]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[6]] = null;
 
 							cumulus.EcowittMapWN34[6] = settings.ecowittmaps.wn34chan6;
 						}
@@ -1035,7 +1046,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[7] == 0)
 								station.UserTemp[7] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[7]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[7]] = null;
 
 							cumulus.EcowittMapWN34[7] = settings.ecowittmaps.wn34chan7;
 						}
@@ -1045,7 +1056,7 @@ namespace CumulusMX
 							if (cumulus.EcowittMapWN34[8] == 0)
 								station.UserTemp[8] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[8]] = 0;
+								station.SoilTemp[cumulus.EcowittMapWN34[8]] = null;
 
 							cumulus.EcowittMapWN34[8] = settings.ecowittmaps.wn34chan8;
 						}
@@ -1282,6 +1293,9 @@ namespace CumulusMX
 						cumulus.ChangeRainUnits();
 						settings.general.units.advanced.raindp = cumulus.RainDPlaceDefaults[cumulus.Units.Rain];
 					}
+					cumulus.Units.SnowDepth = settings.general.units.snow;
+					cumulus.Units.LaserDistance = settings.general.units.laser;
+					cumulus.SetupUnitText();
 
 					cumulus.CloudBaseInFeet = settings.general.units.cloudbaseft;
 				}
@@ -1513,6 +1527,7 @@ namespace CumulusMX
 			}
 		}
 
+
 #pragma warning disable S3459 // Unassigned members should be removed
 #pragma warning disable S1144 // Unused private types or members should be removed
 		private sealed class UploadNowData
@@ -1621,459 +1636,455 @@ namespace CumulusMX
 		{
 			return "{\"Version\":\"" + cumulus.Version + "\",\"Build\":\"" + cumulus.Build + "\"}";
 		}
-	}
 
-	internal class JsonStationSettingsData
-	{
-		public bool accessible { get; set; }
-		public int stationid { get; set; }
-		public JsonStationGeneral general { get; set; }
-		public JsonStationSettingsDavisVp2 davisvp2 { get; set; }
-		public JsonStationSettingsGw1000Conn gw1000 { get; set; }
-		public JsonStationSettingsHttpApi ecowitthttpapi { get; set; }
-		public JsonStationSettingsEcowitt ecowitt { get; set; }
-		public JsonStationSettingsEcowittApi ecowittapi { get; set; }
-		public JsonStationSettingsEcowittMappings ecowittmaps { get; set; }
-		public JsonStationSettingsWeatherFlow weatherflow { get; set; }
-		public JsonStationSettingsWll daviswll { get; set; }
-		public JsonStationSettingsFineOffset fineoffset { get; set; }
-		public JsonStationSettingsEasyWeather easyw { get; set; }
-		public JsonStationSettingsImet imet { get; set; }
-		public JsonStationSettingsWmr928 wmr928 { get; set; }
-		public JsonJsonStation jsonstation { get; set; }
-		public JsonStationSettingsOptions Options { get; set; }
-		public JsonStationSettingsForecast Forecast { get; set; }
-		public JsonStationSettingsSolar Solar { get; set; }
-		public JsonStationSettingsAnnualRainfall AnnualRainfall { get; set; }
-		public JsonGrowingDDSettings GrowingDD { get; set; }
-		public JsonTempSumSettings TempSum { get; set; }
-		public JsonChillHours ChillHrs { get; set; }
-	}
+		private sealed class JsonData
+		{
+			public bool accessible { get; set; }
+			public int stationid { get; set; }
+			public JsonGeneral general { get; set; }
+			public JsonDavisVp2 davisvp2 { get; set; }
+			public JsonGw1000Conn gw1000 { get; set; }
+			public JsonHttpApi ecowitthttpapi { get; set; }
+			public JsonEcowitt ecowitt { get; set; }
+			public JsonEcowittApi ecowittapi { get; set; }
+			public JsonEcowittMappings ecowittmaps { get; set; }
+			public JsonWeatherFlow weatherflow { get; set; }
+			public JsonWll daviswll { get; set; }
+			public JsonFineOffset fineoffset { get; set; }
+			public JsonEasyWeather easyw { get; set; }
+			public JsonImet imet { get; set; }
+			public JsonWmr928 wmr928 { get; set; }
+			public JsonJsonStation jsonstation { get; set; }
+			public JsonOptions Options { get; set; }
+			public JsonForecast Forecast { get; set; }
+			public JsonSolar Solar { get; set; }
+			public JsonAnnualRainfall AnnualRainfall { get; set; }
+			public JsonGrowingDDSettings GrowingDD { get; set; }
+			public JsonTempSumSettings TempSum { get; set; }
+			public JsonChillHours ChillHrs { get; set; }
+		}
 
-	internal class JsonStationGeneral
-	{
-		public int manufacturer { get; set; }
-		public int stationtype { get; set; }
-		public string stationmodel { get; set; }
-		public int loginterval { get; set; }
-		public JsonStationSettingsLogRollover logrollover { get; set; }
-		public JsonStationSettingsUnits units { get; set; }
-		public JsonStationSettingsLocation Location { get; set; }
-		public JsonStationSettingsAdvanced advanced { get; set; }
-	}
+		private sealed class JsonGeneral
+		{
+			public int manufacturer { get; set; }
+			public int stationtype { get; set; }
+			public string stationmodel { get; set; }
+			public int loginterval { get; set; }
+			public JsonLogRollover logrollover { get; set; }
+			public JsonUnits units { get; set; }
+			public JsonLocation Location { get; set; }
+			public JsonAdvanced advanced { get; set; }
+		}
 
-	internal class JsonStationSettingsAdvanced
-	{
-		public string recsbegandate { get; set; }
-	}
+		private sealed class JsonAdvanced
+		{
+			public string recsbegandate { get; set; }
+		}
 
-	internal class JsonStationSettingsUnitsAdvanced
-	{
-		public int uvdp { get; set; }
-		public int raindp { get; set; }
-		public int tempdp { get; set; }
-		public int pressdp { get; set; }
-		public int winddp { get; set; }
-		public int windavgdp { get; set; }
-		public int windrundp { get; set; }
-		public int sunshinedp { get; set; }
-		public int airqulaitydp { get; set; }
+		private sealed class JsonUnitsAdvanced
+		{
+			public int uvdp { get; set; }
+			public int raindp { get; set; }
+			public int tempdp { get; set; }
+			public int pressdp { get; set; }
+			public int winddp { get; set; }
+			public int windavgdp { get; set; }
+			public int windrundp { get; set; }
+			public int sunshinedp { get; set; }
+			public int airqulaitydp { get; set; }
 
-	}
+		}
 
-	internal class JsonStationSettingsUnits
-	{
-		public int wind { get; set; }
-		public int pressure { get; set; }
-		public int temp { get; set; }
-		public int rain { get; set; }
-		public bool cloudbaseft { get; set; }
+		private sealed class JsonUnits
+		{
+			public int wind { get; set; }
+			public int pressure { get; set; }
+			public int temp { get; set; }
+			public int rain { get; set; }
+			public bool cloudbaseft { get; set; }
+			public int snow { get; set; }
+			public int laser { get; set; }
 
-		public JsonStationSettingsUnitsAdvanced advanced { get; set; }
-	}
+			public JsonUnitsAdvanced advanced { get; set; }
+		}
 
-	internal class JsonStationSettingsOptionsAdvanced
-	{
-		public bool usespeedforavg { get; set; }
-		public int avgbearingmins { get; set; }
-		public int avgspeedmins { get; set; }
-		public int peakgustmins { get; set; }
-		public int maxwind { get; set; }
-		public int recordtimeout { get; set; }
-		public int snowdepthhour { get; set; }
-		public double raindaythreshold { get; set; }
-		public bool uselogger { get; set; }
-	}
+		private sealed class JsonOptionsAdvanced
+		{
+			public bool usespeedforavg { get; set; }
+			public int avgbearingmins { get; set; }
+			public int avgspeedmins { get; set; }
+			public int peakgustmins { get; set; }
+			public int maxwind { get; set; }
+			public int recordtimeout { get; set; }
+			public int snowdepthhour { get; set; }
+			public double raindaythreshold { get; set; }
+			public bool uselogger { get; set; }
+		}
 
-	internal class JsonStationSettingsOptions
-	{
-		public bool usezerobearing { get; set; }
-		public bool calcwindaverage { get; set; }
-		public bool use100for98hum { get; set; }
-		public bool calculatedewpoint { get; set; }
-		public bool calculatewindchill { get; set; }
-		public bool calculateet { get; set; }
-		public bool calculateslp { get; set; }
-		public bool cumuluspresstrendnames { get; set; }
-		public bool roundwindspeeds { get; set; }
-		public bool ignorelacrosseclock { get; set; }
-		public bool extrasensors { get; set; }
-		public bool debuglogging { get; set; }
-		public bool datalogging { get; set; }
-		public bool stopsecondinstance { get; set; }
-		public bool nosensorcheck { get; set; }
-		public int leafwetisrainingidx { get; set; }
-		public double leafwetisrainingthrsh { get; set; }
-		public int userainforisraining { get; set; }
-		public JsonStationSettingsOptionsAdvanced advanced { get; set; }
-	}
+		private sealed class JsonOptions
+		{
+			public bool usezerobearing { get; set; }
+			public bool calcwindaverage { get; set; }
+			public bool use100for98hum { get; set; }
+			public bool calculatedewpoint { get; set; }
+			public bool calculatewindchill { get; set; }
+			public bool calculateet { get; set; }
+			public bool calculateslp { get; set; }
+			public bool cumuluspresstrendnames { get; set; }
+			public bool roundwindspeeds { get; set; }
+			public bool ignorelacrosseclock { get; set; }
+			public bool extrasensors { get; set; }
+			public bool debuglogging { get; set; }
+			public bool datalogging { get; set; }
+			public bool stopsecondinstance { get; set; }
+			public bool nosensorcheck { get; set; }
+			public int leafwetisrainingidx { get; set; }
+			public double leafwetisrainingthrsh { get; set; }
+			public int userainforisraining { get; set; }
+			public JsonOptionsAdvanced advanced { get; set; }
+		}
 
-	internal class JsonStationSettingsTCPsettings
-	{
-		public string ipaddress { get; set; }
-		public int disconperiod { get; set; }
-	}
+		public class JsonTCPsettings
+		{
+			public string ipaddress { get; set; }
+			public int disconperiod { get; set; }
+		}
 
-	internal class JsonStationSettingsDavisVp2Connection
-	{
-		public int conntype { get; set; }
-		public string comportname { get; set; }
-		public JsonStationSettingsTCPsettings tcpsettings { get; set; }
-	}
+		private sealed class JsonDavisVp2Connection
+		{
+			public int conntype { get; set; }
+			public string comportname { get; set; }
+			public JsonTCPsettings tcpsettings { get; set; }
+		}
 
-	internal class JsonStationSettingsDavisVp2
-	{
-		public JsonStationSettingsDavisVp2Connection davisconn { get; set; }
+		private sealed class JsonDavisVp2
+		{
+			public JsonDavisVp2Connection davisconn { get; set; }
 
-		public JsonStationSettingsDavisVp2Advanced advanced { get; set; }
-	}
+			public JsonsDavisVp2Advanced advanced { get; set; }
+		}
 
-	internal class JsonStationSettingsDavisVp2Advanced
-	{
-		public bool syncstationclock { get; set; }
-		public int syncclockhour { get; set; }
-		public bool readreceptionstats { get; set; }
-		public bool setloggerinterval { get; set; }
-		public bool useloop2 { get; set; }
-		public int raingaugetype { get; set; }
-		public bool vp1minbarupdate { get; set; }
-		public int initwaittime { get; set; }
-		public int ipresponsetime { get; set; }
-		public int baudrate { get; set; }
-		public int tcpport { get; set; }
+		private sealed class JsonsDavisVp2Advanced
+		{
+			public bool syncstationclock { get; set; }
+			public int syncclockhour { get; set; }
+			public bool readreceptionstats { get; set; }
+			public bool setloggerinterval { get; set; }
+			public bool useloop2 { get; set; }
+			public int raingaugetype { get; set; }
+			public bool vp1minbarupdate { get; set; }
+			public int initwaittime { get; set; }
+			public int ipresponsetime { get; set; }
+			public int baudrate { get; set; }
+			public int tcpport { get; set; }
 
-	}
+		}
 
-	internal class JsonStationSettingsFineOffsetAdvanced
-	{
-		public int readtime { get; set; }
-		public bool setlogger { get; set; }
-		public int vid { get; set; }
-		public int pid { get; set; }
-	}
+		private sealed class JsonFineOffsetAdvanced
+		{
+			public int readtime { get; set; }
+			public bool setlogger { get; set; }
+			public int vid { get; set; }
+			public int pid { get; set; }
+		}
 
-	internal class JsonStationSettingsFineOffset
-	{
-		public bool syncreads { get; set; }
-		public int readavoid { get; set; }
-		public JsonStationSettingsFineOffsetAdvanced advanced { get; set; }
-	}
+		private sealed class JsonFineOffset
+		{
+			public bool syncreads { get; set; }
+			public int readavoid { get; set; }
+			public JsonFineOffsetAdvanced advanced { get; set; }
+		}
 
-	internal class JsonStationSettingsEasyWeather
-	{
-		public double interval { get; set; }
-		public string filename { get; set; }
-		public int minpressmb { get; set; }
-		public int maxpressmb { get; set; }
-		public int raintipdiff { get; set; }
-		public double pressoffset { get; set; }
-	}
+		private sealed class JsonEasyWeather
+		{
+			public double interval { get; set; }
+			public string filename { get; set; }
+			public int minpressmb { get; set; }
+			public int maxpressmb { get; set; }
+			public int raintipdiff { get; set; }
+			public double pressoffset { get; set; }
+		}
 
-	internal class JsonStationSettingsWeatherFlow
-	{
-		public int tcpport { get; set; }
-		public int deviceid { get; set; }
-		public string token { get; set; }
-		public int dayshistory { get; set; }
-	}
+		public class JsonWeatherFlow
+		{
+			public int tcpport { get; set; }
+			public int deviceid { get; set; }
+			public string token { get; set; }
+			public int dayshistory { get; set; }
+		}
 
-	internal class JsonStationSettingsGw1000Conn
-	{
-		public string ipaddress { get; set; }
-		public bool autoDiscover { get; set; }
-		public string macaddress { get; set; }
-		public int primaryTHsensor { get; set; }
-		public int primaryRainSensor { get; set; }
-	}
+		public class JsonGw1000Conn
+		{
+			public string ipaddress { get; set; }
+			public bool autoDiscover { get; set; }
+			public string macaddress { get; set; }
+			public int primaryTHsensor { get; set; }
+			public int primaryRainSensor { get; set; }
+		}
 
-	internal class JsonStationSettingsHttpApi
-	{
-		public string ipaddress { get; set; }
-		public string password { get; set; }
-	}
+		public class JsonHttpApi
+		{
+			public string ipaddress { get; set; }
+			public string password { get; set; }
+		}
 
-	internal class JsonStationSettingsEcowitt
-	{
-		public bool setcustom { get; set; }
-		public string gwaddr { get; set; }
-		public string localaddr { get; set; }
-		public int interval { get; set; }
-		public List<JsonEcowittForwardList> forward { get; set; }
-	}
+		private sealed class JsonEcowitt
+		{
+			public bool setcustom { get; set; }
+			public string gwaddr { get; set; }
+			public string localaddr { get; set; }
+			public int interval { get; set; }
+			public List<JsonEcowittForwardList> forward { get; set; }
+		}
 
-	public class JsonEcowittForwardList
-	{
-		public string url { get; set; }
-	}
+		public class JsonEcowittForwardList
+		{
+			public string url { get; set; }
+		}
 
-	public class JsonStationSettingsEcowittApi
-	{
-		public string applicationkey { get; set; }
-		public string userkey { get; set; }
-		public string mac { get; set; }
-	}
+		public class JsonEcowittApi
+		{
+			public string applicationkey { get; set; }
+			public string userkey { get; set; }
+			public string mac { get; set; }
+		}
 
-	public class JsonStationSettingsEcowittMappings
-	{
-		public int primaryTHsensor { get; set; }
-		public int primaryRainSensor { get; set; }
-		public bool piezosrain { get; set; }
+		public class JsonEcowittMappings
+		{
+			public int primaryTHsensor { get; set; }
+			public int primaryRainSensor { get; set; }
+			public bool piezosrain { get; set; }
 
-		public int wn34chan1 { get; set; }
-		public int wn34chan2 { get; set; }
-		public int wn34chan3 { get; set; }
-		public int wn34chan4 { get; set; }
-		public int wn34chan5 { get; set; }
-		public int wn34chan6 { get; set; }
-		public int wn34chan7 { get; set; }
-		public int wn34chan8 { get; set; }
-	}
+			public int wn34chan1 { get; set; }
+			public int wn34chan2 { get; set; }
+			public int wn34chan3 { get; set; }
+			public int wn34chan4 { get; set; }
+			public int wn34chan5 { get; set; }
+			public int wn34chan6 { get; set; }
+			public int wn34chan7 { get; set; }
+			public int wn34chan8 { get; set; }
+		}
 
-	internal class JsonStationSettingsWmr928
-	{
-		public string comportname { get; set; }
-	}
+		public class JsonWmr928
+		{
+			public string comportname { get; set; }
+		}
 
-	internal class JsonStationSettingsImet
-	{
-		public string comportname { get; set; }
+		private sealed class JsonImet
+		{
+			public string comportname { get; set; }
 
-		public int baudrate { get; set; }
-		public JsonStationSettingsImetAdvanced advanced { get; set; }
-	}
+			public int baudrate { get; set; }
+			public JsonImetAdvanced advanced { get; set; }
+		}
 
-	internal class JsonStationSettingsImetAdvanced
-	{
-		public bool syncstationclock { get; set; }
-		public int syncclockhour { get; set; }
-		public int waittime { get; set; }
-		public int readdelay { get; set; }
-		public bool updatelogpointer { get; set; }
-	}
+		private sealed class JsonImetAdvanced
+		{
+			public bool syncstationclock { get; set; }
+			public int syncclockhour { get; set; }
+			public int waittime { get; set; }
+			public int readdelay { get; set; }
+			public bool updatelogpointer { get; set; }
+		}
 
-	internal class JsonStationSettingsLogRollover
-	{
-		public string time { get; set; }
-		public bool summer10am { get; set; }
-	}
+		public class JsonLogRollover
+		{
+			public string time { get; set; }
+			public bool summer10am { get; set; }
+		}
 
-	internal class JsonStationSettingsLatLong
-	{
-		public int degrees { get; set; }
-		public int minutes { get; set; }
-		public int seconds { get; set; }
-		public string hemisphere { get; set; }
-	}
+		private sealed class JsonLatLong
+		{
+			public int degrees { get; set; }
+			public int minutes { get; set; }
+			public int seconds { get; set; }
+			public string hemisphere { get; set; }
+		}
 
-	internal class JsonStationSettingsLocation
-	{
-		public JsonStationSettingsLatLong Latitude { get; set; }
-		public JsonStationSettingsLatLong Longitude { get; set; }
-		public int altitude { get; set; }
-		public string altitudeunit { get; set; }
-		public string sitename { get; set; }
-		public string description { get; set; }
-	}
+		private sealed class JsonLocation
+		{
+			public JsonLatLong Latitude { get; set; }
+			public JsonLatLong Longitude { get; set; }
+			public int altitude { get; set; }
+			public string altitudeunit { get; set; }
+			public string sitename { get; set; }
+			public string description { get; set; }
+		}
 
-	internal class JsonStationSettingsForecast
-	{
-		public bool usecumulusforecast { get; set; }
-		public bool updatehourly { get; set; }
-		public double lowpressureextreme { get; set; }
-		public double highpressureextreme { get; set; }
-		public string pressureunit { get; set; }
-	}
+		private sealed class JsonForecast
+		{
+			public bool usecumulusforecast { get; set; }
+			public bool updatehourly { get; set; }
+			public double lowpressureextreme { get; set; }
+			public double highpressureextreme { get; set; }
+			public string pressureunit { get; set; }
+		}
 
-	internal class JsonStationSettingsSolar
-	{
-		public int sunthreshold { get; set; }
-		public int solarmin { get; set; }
-		public int solarcalc { get; set; }
-		public double transfactorJun { get; set; }
-		public double transfactorDec { get; set; }
-		public double turbidityJun { get; set; }
-		public double turbidityDec { get; set; }
-	}
+		private sealed class JsonSolar
+		{
+			public int sunthreshold { get; set; }
+			public int solarmin { get; set; }
+			public int solarcalc { get; set; }
+			public double transfactorJun { get; set; }
+			public double transfactorDec { get; set; }
+			public double turbidityJun { get; set; }
+			public double turbidityDec { get; set; }
+		}
 
-	internal class JsonStationSettingsWll
-	{
-		public JsonStationSettingsWllNetwork network { get; set; }
-		public JsonStationSettingsWllApi api { get; set; }
-		public JsonStationSettingsWllPrimary primary { get; set; }
-		public JsonStationSettingsWllSoilLeaf soilLeaf { get; set; }
-		public JsonStationSettingsWllExtraTemp extraTemp { get; set; }
-		public JsonStationSettingsWllAdvanced advanced { get; set; }
-	}
+		private sealed class JsonWll
+		{
+			public JsonWllNetwork network { get; set; }
+			public JsonWllApi api { get; set; }
+			public JsonWllPrimary primary { get; set; }
+			public JsonWllSoilLeaf soilLeaf { get; set; }
+			public JsonWllExtraTemp extraTemp { get; set; }
+			public JsonWllAdvanced advanced { get; set; }
+		}
 
-	public class JsonStationSettingsWllAdvanced
-	{
-		public int raingaugetype { get; set; }
-		public int tcpport { get; set; }
-		public bool datastopped { get; set; }
-	}
+		private sealed class JsonWllAdvanced
+		{
+			public int raingaugetype { get; set; }
+			public int tcpport { get; set; }
+			public bool datastopped { get; set; }
+		}
 
-	internal class JsonStationSettingsWllNetwork
-	{
-		public bool autoDiscover { get; set; }
-		public string ipaddress { get; set; }
+		public class JsonWllNetwork
+		{
+			public bool autoDiscover { get; set; }
+			public string ipaddress { get; set; }
 
-	}
+		}
 
-	internal class JsonStationSettingsWllApi
-	{
-		public string apiKey { get; set; }
-		public string apiSecret { get; set; }
-		public int apiStationId { get; set; }
-		public string apiStationUuid { get; set; }
-	}
+		public class JsonWllApi
+		{
+			public string apiKey { get; set; }
+			public string apiSecret { get; set; }
+			public int apiStationId { get; set; }
+			public string apiStationUuid { get; set; }
+		}
 
-	internal class JsonStationSettingsWllPrimary
-	{
-		public int wind { get; set; }
-		public int temphum { get; set; }
-		public int rain { get; set; }
-		public int solar { get; set; }
-		public int uv { get; set; }
-	}
+		public class JsonWllPrimary
+		{
+			public int wind { get; set; }
+			public int temphum { get; set; }
+			public int rain { get; set; }
+			public int solar { get; set; }
+			public int uv { get; set; }
+		}
 
-	internal class JsonStationSettingsWllSoilLeaf
-	{
-		public JsonStationSettingsWllSoilTemp extraSoilTemp { get; set; }
-		public JsonStationSettingsWllSoilMoist extraSoilMoist { get; set; }
-		public JsonStationSettingsWllExtraLeaf extraLeaf { get; set; }
-	}
+		private sealed class JsonWllSoilLeaf
+		{
+			public JsonWllSoilTemp extraSoilTemp { get; set; }
+			public JsonWllSoilMoist extraSoilMoist { get; set; }
+			public JsonWllExtraLeaf extraLeaf { get; set; }
+		}
 
-	internal class JsonStationSettingsWllSoilTemp
-	{
-		public int soilTempTx1 { get; set; }
-		public int soilTempIdx1 { get; set; }
-		public int soilTempTx2 { get; set; }
-		public int soilTempIdx2 { get; set; }
-		public int soilTempTx3 { get; set; }
-		public int soilTempIdx3 { get; set; }
-		public int soilTempTx4 { get; set; }
-		public int soilTempIdx4 { get; set; }
-	}
+		private sealed class JsonWllSoilTemp
+		{
+			public int soilTempTx1 { get; set; }
+			public int soilTempIdx1 { get; set; }
+			public int soilTempTx2 { get; set; }
+			public int soilTempIdx2 { get; set; }
+			public int soilTempTx3 { get; set; }
+			public int soilTempIdx3 { get; set; }
+			public int soilTempTx4 { get; set; }
+			public int soilTempIdx4 { get; set; }
+		}
 
-	internal class JsonStationSettingsWllSoilMoist
-	{
-		public int soilMoistTx1 { get; set; }
-		public int soilMoistIdx1 { get; set; }
-		public int soilMoistTx2 { get; set; }
-		public int soilMoistIdx2 { get; set; }
-		public int soilMoistTx3 { get; set; }
-		public int soilMoistIdx3 { get; set; }
-		public int soilMoistTx4 { get; set; }
-		public int soilMoistIdx4 { get; set; }
-	}
+		private sealed class JsonWllSoilMoist
+		{
+			public int soilMoistTx1 { get; set; }
+			public int soilMoistIdx1 { get; set; }
+			public int soilMoistTx2 { get; set; }
+			public int soilMoistIdx2 { get; set; }
+			public int soilMoistTx3 { get; set; }
+			public int soilMoistIdx3 { get; set; }
+			public int soilMoistTx4 { get; set; }
+			public int soilMoistIdx4 { get; set; }
+		}
 
-	internal class JsonStationSettingsWllExtraLeaf
-	{
-		public int leafTx1 { get; set; }
-		public int leafIdx1 { get; set; }
-		public int leafTx2 { get; set; }
-		public int leafIdx2 { get; set; }
-	}
+		private sealed class JsonWllExtraLeaf
+		{
+			public int leafTx1 { get; set; }
+			public int leafIdx1 { get; set; }
+			public int leafTx2 { get; set; }
+			public int leafIdx2 { get; set; }
+		}
 
-	public class JsonStationSettingsWllExtraTemp
-	{
-		public int extraTempTx1 { get; set; }
-		public int extraTempTx2 { get; set; }
-		public int extraTempTx3 { get; set; }
-		public int extraTempTx4 { get; set; }
-		public int extraTempTx5 { get; set; }
-		public int extraTempTx6 { get; set; }
-		public int extraTempTx7 { get; set; }
-		public int extraTempTx8 { get; set; }
+		private sealed class JsonWllExtraTemp
+		{
+			public int extraTempTx1 { get; set; }
+			public int extraTempTx2 { get; set; }
+			public int extraTempTx3 { get; set; }
+			public int extraTempTx4 { get; set; }
+			public int extraTempTx5 { get; set; }
+			public int extraTempTx6 { get; set; }
+			public int extraTempTx7 { get; set; }
+			public int extraTempTx8 { get; set; }
 
-		public bool extraHumTx1 { get; set; }
-		public bool extraHumTx2 { get; set; }
-		public bool extraHumTx3 { get; set; }
-		public bool extraHumTx4 { get; set; }
-		public bool extraHumTx5 { get; set; }
-		public bool extraHumTx6 { get; set; }
-		public bool extraHumTx7 { get; set; }
-		public bool extraHumTx8 { get; set; }
-	}
+			public bool extraHumTx1 { get; set; }
+			public bool extraHumTx2 { get; set; }
+			public bool extraHumTx3 { get; set; }
+			public bool extraHumTx4 { get; set; }
+			public bool extraHumTx5 { get; set; }
+			public bool extraHumTx6 { get; set; }
+			public bool extraHumTx7 { get; set; }
+			public bool extraHumTx8 { get; set; }
+		}
 
-	public class JsonStationSettingsAnnualRainfall
-	{
-		public double ytdamount { get; set; }
-		public int ytdyear { get; set; }
-		public int rainseasonstart { get; set; }
-	}
+		private sealed class JsonAnnualRainfall
+		{
+			public double ytdamount { get; set; }
+			public int ytdyear { get; set; }
+			public int rainseasonstart { get; set; }
+			public int rainweekstart { get; set; }
+		}
 
-	public class JsonSelectaChartSettings
-	{
-		public string[] series { get; set; }
-		public string[] colours { get; set; }
-	}
+		private sealed class JsonSelectaChartSettings
+		{
+			public string[] series { get; set; }
+			public string[] colours { get; set; }
+		}
 
-	public class JsonDisplayOptions
-	{
-		public int windrosepoints { get; set; }
-		public bool useapparent { get; set; }
-		public bool displaysolar { get; set; }
-		public bool displayuv { get; set; }
-	}
+		private sealed class JsonGrowingDDSettings
+		{
+			public double basetemp1 { get; set; }
+			public double basetemp2 { get; set; }
+			public int starts { get; set; }
+			public bool cap30C { get; set; }
+		}
 
-	public class JsonGrowingDDSettings
-	{
-		public double basetemp1 { get; set; }
-		public double basetemp2 { get; set; }
-		public int starts { get; set; }
-		public bool cap30C { get; set; }
-	}
+		private sealed class JsonTempSumSettings
+		{
+			public int starts { get; set; }
+			public double basetemp1 { get; set; }
+			public double basetemp2 { get; set; }
+		}
 
-	public class JsonTempSumSettings
-	{
-		public int starts { get; set; }
-		public double basetemp1 { get; set; }
-		public double basetemp2 { get; set; }
-	}
+		private sealed class JsonChillHours
+		{
+			public double threshold { get; set; }
+			public double basetemp { get; set; }
+			public int month { get; set; }
+		}
 
-	public class JsonChillHours
-	{
-		public double threshold { get; set; }
-		public int month { get; set; }
-	}
+		public class JsonJsonStation
+		{
+			public int conntype { get; set; }
+			public string filename { get; set; }
+			public string mqttserver { get; set; }
+			public int mqttport { get; set; }
+			public string mqttuser { get; set; }
+			public string mqttpass { get; set; }
+			public string mqtttopic { get; set; }
 
-	public class JsonJsonStation
-	{
-		public int conntype { get; set; }
-		public string filename { get; set; }
-		public string mqttserver { get; set; }
-		public int mqttport { get; set; }
-		public string mqttuser { get; set; }
-		public string mqttpass { get; set; }
-		public string mqtttopic { get; set; }
+			public JsonJsonStationAdvanced advanced { get; set; }
+		}
 
-		public JsonJsonStationAdvanced advanced { get; set; }
-	}
-
-	public class JsonJsonStationAdvanced
-	{
-		public int filedelay { get; set; }
-		public bool mqtttls { get; set; }
+		public class JsonJsonStationAdvanced
+		{
+			public int filedelay { get; set; }
+			public bool mqtttls { get; set; }
+		}
 	}
 }

@@ -138,7 +138,7 @@ namespace CumulusMX
 			// If the Station ID is missing, this will populate it if the user only has one station associated with the API key or the UUID is known
 			if (useWeatherLinkDotCom && cumulus.WllStationId < 10)
 			{
-				var msg = $"No WeatherLink API station ID {(cumulus.WllStationUuid == string.Empty ? "or UUID" : "")}in the cumulus.ini file" + (cumulus.WllStationUuid == string.Empty ? "" : ", but a UUID has been configured");
+				var msg = $"No WeatherLink API station ID {(cumulus.WllStationUuid == string.Empty ? "or UUID" : "")} in the cumulus.ini file" + (cumulus.WllStationUuid == string.Empty ? "" : ", but a UUID has been configured");
 				cumulus.LogMessage(msg);
 				Cumulus.LogConsoleMessage(msg);
 
@@ -871,8 +871,9 @@ namespace CumulusMX
 
 									cumulus.LogDebugMessage($"WLL current: Checking recent gust using wind data from TxId {data1.txid}");
 
-									// Check for spikes, and set highs
-									if (CheckHighGust(gustCal, gustDirCal, dateTime))
+									// Check for spikes, and set highs - Only if we are past the rollover time plus the gust time, otherwise we can get peaks from yesterday attributed to today
+									if (DateTime.Now.TimeOfDay > new TimeSpan(cumulus.RolloverHour, cumulus.StationOptions.PeakGustMinutes < 10 ? 2 : 10, 0) &&
+										CheckHighGust(gustCal, gustDirCal, dateTime))
 									{
 										cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 										RecentMaxGust = gustCal;
@@ -1007,31 +1008,45 @@ namespace CumulusMX
 								}
 							}
 
-							if (cumulus.WllPrimaryUV == data1.txid && data1.uv_index.HasValue)
+							if (cumulus.WllPrimaryUV == data1.txid)
 							{
-								try
+								if (data1.uv_index.HasValue)
 								{
-									cumulus.LogDebugMessage($"WLL current: using UV data from TxId {data1.txid}");
-									DoUV(data1.uv_index.Value, dateTime);
+									try
+									{
+										cumulus.LogDebugMessage($"WLL current: using UV data from TxId {data1.txid}");
+										DoUV(data1.uv_index.Value, dateTime);
+									}
+									catch (Exception ex)
+									{
+										cumulus.LogErrorMessage($"WLL current: Error processing UV value on TxId {data1.txid}");
+										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									}
 								}
-								catch (Exception ex)
+								else
 								{
-									cumulus.LogErrorMessage($"WLL current: Error processing UV value on TxId {data1.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									UV = null;
 								}
 							}
 
-							if (cumulus.WllPrimarySolar == data1.txid && data1.solar_rad.HasValue)
+							if (cumulus.WllPrimarySolar == data1.txid)
 							{
-								try
+								if (data1.solar_rad.HasValue)
 								{
-									cumulus.LogDebugMessage($"WLL current: using solar data from TxId {data1.txid}");
-									DoSolarRad(data1.solar_rad.Value, dateTime);
+									try
+									{
+										cumulus.LogDebugMessage($"WLL current: using solar data from TxId {data1.txid}");
+										DoSolarRad(data1.solar_rad.Value, dateTime);
+									}
+									catch (Exception ex)
+									{
+										cumulus.LogErrorMessage($"WLL current: Error processing Solar value on TxId {data1.txid}");
+										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									}
 								}
-								catch (Exception ex)
+								else
 								{
-									cumulus.LogErrorMessage($"WLL current: Error processing Solar value on TxId {data1.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									SolarRad = null;
 								}
 							}
 							break;
@@ -1250,9 +1265,7 @@ namespace CumulusMX
 								// Altimeter from absolute
 								if (data3.bar_absolute.HasValue)
 								{
-									StationPressure = ConvertUnits.PressINHGToUser(data3.bar_absolute.Value);
-									// Or do we use calibration? The VP2 code doesn't?
-									AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+									DoStationPressure(ConvertUnits.PressINHGToUser(data3.bar_absolute.Value));
 								}
 							}
 							catch (Exception ex)
@@ -1327,7 +1340,7 @@ namespace CumulusMX
 				// If the station isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
 				// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
 				LowBatteryDevices.Clear();
-				
+
 				if (!cumulus.StationOptions.UseDataLogger && TxBatText.Contains("LOW"))
 				{
 					cumulus.BatteryLowAlarm.Triggered = true;
@@ -1567,6 +1580,7 @@ namespace CumulusMX
 			bool rolloverdone = luhour == rollHour;
 
 			bool midnightraindone = luhour == 0;
+			bool rollover9amdone = luhour == 9;
 
 			WlHistory histObj;
 			int noOfRecs = 0;
@@ -1712,6 +1726,13 @@ namespace CumulusMX
 						ResetSunshineHours(timestamp);
 						ResetMidnightTemperatures(timestamp);
 						midnightraindone = true;
+					}
+
+					// 9am rollover items
+					if (h == 9 && !rollover9amdone)
+					{
+						Reset9amTemperatures(timestamp);
+						rollover9amdone = true;
 					}
 
 					DecodeHistoric(sensorWithMostRecs.data_structure_type, sensorWithMostRecs.sensor_type, sensorWithMostRecs.data[dataIndex]);
@@ -1975,7 +1996,7 @@ namespace CumulusMX
 										TempTotalToday += ConvertUnits.TempFToUser(data11.temp_avg) * data11.arch_int / 60;
 
 										// update chill hours
-										if (OutdoorTemperature < cumulus.ChillHourThreshold)
+										if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 										{
 											// add interval minutes to chill hours - arch_int in seconds
 											ChillHours += (data11.arch_int / 3600.0);
@@ -2233,6 +2254,7 @@ namespace CumulusMX
 								}
 								else
 								{
+									UV = null;
 									cumulus.LogWarningMessage($"WL.com historic: Warning, no valid UV data on TxId {data11.tx_id}");
 								}
 							}
@@ -2271,6 +2293,7 @@ namespace CumulusMX
 								}
 								else
 								{
+									SolarRad = null;
 									cumulus.LogWarningMessage($"WL.com historic: Warning, no valid Solar data on TxId {data11.tx_id}");
 								}
 
@@ -2565,8 +2588,7 @@ namespace CumulusMX
 									// Altimeter from absolute
 									if (data13baro.bar_absolute != null)
 									{
-										StationPressure = ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute);
-										AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+										DoStationPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_absolute));
 									}
 								}
 								catch (Exception ex)

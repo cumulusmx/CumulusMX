@@ -219,9 +219,9 @@ namespace CumulusMX
 			{
 				csum = checksum(s);
 
-				if (csum != s[s.Count - 1])
+				if (csum != s[^1])
 				{
-					cumulus.LogErrorMessage("Invalid checksum. Expected " + csum + ", got " + s[s.Count - 1]);
+					cumulus.LogErrorMessage("Invalid checksum. Expected " + csum + ", got " + s[^1]);
 					result = false;
 				}
 				else
@@ -258,10 +258,10 @@ namespace CumulusMX
 						WM918Wind(buff);
 						break;
 					default:
-						Trace.Write("Unrecognised packet:");
+						cumulus.LogMessage("Unrecognised packet type: " + buff[0].ToString("X2"));
 						for (int i = 0; i < buff.Count; i++)
 						{
-							Trace.Write(" " + buff[i].ToString("X2"));
+							cumulus.LogMessage(" " + buff[i].ToString("X2"));
 						}
 						cumulus.LogMessage(" ");
 						return;
@@ -274,7 +274,7 @@ namespace CumulusMX
 				cumulus.LogMessage("Invalid packet:");
 				for (int i = 0; i < buff.Count; i++)
 				{
-					Trace.Write(" " + buff[i].ToString("X2"));
+					cumulus.LogMessage(" " + buff[i].ToString("X2"));
 				}
 				cumulus.LogMessage(" ");
 			}
@@ -323,7 +323,7 @@ namespace CumulusMX
 			DoOutdoorDewpoint(ConvertUnits.TempCToUser(BCDchartoint(buff[18])), DateTime.Now);
 
 			double locPress = BCDchartoint(buff[1]) + (BCDchartoint(buff[2]) * 100);
-			StationPressure = ConvertUnits.PressMBToUser(locPress);
+			DoStationPressure(ConvertUnits.PressMBToUser(locPress));
 
 			double pressure = ConvertUnits.PressMBToUser((BCDchartoint(buff[3]) / 10) + (BCDchartoint(buff[4]) * 10) +
 				((BCDchartoint(buff[5]) % 10) * 1000));

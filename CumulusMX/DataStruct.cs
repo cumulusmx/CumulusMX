@@ -6,15 +6,15 @@ namespace CumulusMX
 {
 	// The annotations on this class are so it can be serialised as JSON
 	[DataContract]
-	public class DataStruct(Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double indoorTemp, double outdoorDewpoint, double windChill,
-						int indoorHum, double pressure, double windLatest, double windAverage, double recentmaxgust, double windRunToday, int bearing, int avgbearing,
-						double rainToday, double rainYesterday, double rainMonth, double rainYear, double rainRate, double rainLastHour, double heatIndex, double humidex,
+	public class DataStruct(Cumulus cumulus, double outdoorTemp, int outdoorHum, double avgTempToday, double? indoorTemp, double outdoorDewpoint, double windChill,
+						int? indoorHum, double pressure, double windLatest, double windAverage, double recentmaxgust, double windRunToday, int bearing, int avgbearing,
+						double rainToday, double rainYesterday, double rainWeek, double rainMonth, double rainYear, double rainRate, double rainLastHour, double heatIndex, double humidex,
 						double appTemp, double tempTrend, double pressTrend, double highGustToday, string highGustTodayTime, double highWindToday, int highGustBearingToday,
 						string windUnit, string windRunUnit, int bearingRangeFrom10, int bearingRangeTo10, string windRoseData, double highTempToday, double lowTempToday, string highTempTodayToday,
 						string lowTempTodayTime, double highPressToday, double lowPressToday, string highPressTodayTime, string lowPressTodayTime, double highRainRateToday,
 						string highRainRateTodayTime, int highHumToday, int lowHumToday, string highHumTodayTime, string lowHumTodayTime, string pressUnit, string tempUnit,
 						string rainUnit, double highDewpointToday, double lowDewpointToday, string highDewpointTodayTime, string lowDewpointTodayTime, double lowWindChillToday,
-						string lowWindChillTodayTime, int solarRad, int highSolarRadToday, string highSolarRadTodayTime, double uvindex, double highUVindexToday,
+						string lowWindChillTodayTime, int? solarRad, int highSolarRadToday, string highSolarRadTodayTime, double? uvindex, double highUVindexToday,
 						string highUVindexTodayTime, string forecast, string sunrise, string sunset, string moonrise, string moonset, double highHeatIndexToday,
 						string highHeatIndexTodayTime, double highAppTempToday, double lowAppTempToday, string highAppTempTodayTime, string lowAppTempTodayTime,
 						int currentSolarMax, double alltimeHighPressure, double alltimeLowPressure, double sunshineHours, string domWindDir, string lastRainTipISO,
@@ -68,12 +68,12 @@ namespace CumulusMX
 		public string Forecast { get; } = forecast;
 
 		[IgnoreDataMember]
-		public double UVindex { get; } = uvindex;
+		public double? UVindex { get; } = uvindex;
 
 		[DataMember(Name = "UVindex")]
 		public string UVindexRounded
 		{
-			get => UVindex.ToString(cumulus.UVFormat);
+			get => UVindex.HasValue ? UVindex.Value.ToString(cumulus.UVFormat) : "-";
 		}
 
 		[IgnoreDataMember]
@@ -94,16 +94,21 @@ namespace CumulusMX
 		[DataMember]
 		public int HighSolarRadToday { get; } = highSolarRadToday;
 
-		[DataMember]
-		public int SolarRad { get; } = solarRad;
+		[IgnoreDataMember]
+		public int? SolarRad { get; } = solarRad;
+		[DataMember(Name = "SolarRad")]
+		public string SolarRadRounded
+		{
+			get => SolarRad.HasValue ? SolarRad.ToString() : "-";
+		}
 
 		[IgnoreDataMember]
-		public double IndoorTemp { get; } = indoorTemp;
+		public double? IndoorTemp { get; } = indoorTemp;
 
 		[DataMember(Name = "IndoorTemp")]
 		public string IndoorTempRounded
 		{
-			get => IndoorTemp.ToString(cumulus.TempFormat);
+			get => IndoorTemp.HasValue ? IndoorTemp.Value.ToString(cumulus.TempFormat) : "-";
 		}
 
 		[IgnoreDataMember]
@@ -320,7 +325,7 @@ namespace CumulusMX
 		}
 
 		[DataMember]
-		public int IndoorHum { get; } = indoorHum;
+		public int? IndoorHum { get; } = indoorHum;
 
 		[IgnoreDataMember]
 		public double Pressure { get; } = pressure;
@@ -408,6 +413,16 @@ namespace CumulusMX
 		{
 			get => RainYesterday.ToString(cumulus.RainFormat);
 		}
+
+		[IgnoreDataMember]
+		public double RainWeek { get; } = rainWeek;
+
+		[DataMember(Name = "RainWeek")]
+		public string RainWeekRounded
+		{
+			get => RainWeek.ToString(cumulus.RainFormat);
+		}
+
 
 		[IgnoreDataMember]
 		public double RainMonth { get; } = rainMonth;
