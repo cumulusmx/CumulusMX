@@ -94,6 +94,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- You can now use multiple web tags and arithmetic operators in the data field
 	- You now have the option of data Equals value type alarms as well as Above and Below
 - Changed Custom Alarms to User defined alarms in the dashboard menu
+- Reverts the change in v4.2.0 where External Programs sets the working directory to the location of the executable/script rather than the Cumulus MX home directory
 
 ### Fixed
 

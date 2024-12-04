@@ -234,7 +234,6 @@ namespace CumulusMX
 			using var process = new System.Diagnostics.Process();
 			process.StartInfo.FileName = file.FullName;
 			process.StartInfo.Arguments = parameters;
-			process.StartInfo.WorkingDirectory = file.DirectoryName;
 			process.StartInfo.UseShellExecute = false;
 			process.StartInfo.RedirectStandardError = redirectError;
 			process.StartInfo.RedirectStandardOutput = !createwindow && wait;
