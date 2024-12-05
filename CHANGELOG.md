@@ -10,6 +10,21 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.3.1 \[b4064\]][10] - 2024-12-06
+
+### New
+
+Nothing yet
+
+### Changed
+
+Nothing yet
+
+### Fixed
+
+- AWEKAS uploads fix to avoid frequent rate limiting messages
+
+
 ## [4.3.0 \[b4063\]][9] - 2024-12-04
 
 ### New
@@ -473,3 +488,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [7]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4039
 [8]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4043
 [9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4063
+[10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064

@@ -42,8 +42,8 @@ namespace CumulusMX.ThirdParty
 
 			Updating = true;
 
-			// Random jitter
-			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+			// 40 seconds after the minute
+			await Task.Delay(40000);
 
 			string pwstring;
 			string url = GetURL(out pwstring, timestamp);
@@ -62,6 +62,7 @@ namespace CumulusMX.ThirdParty
 			{
 				try
 				{
+					cumulus.LogDebugMessage("AWEKAS upload sent" + (retryCount == 2 ? " (first attempt)" : " retry #" + (2 - retryCount)));
 					using var response = await cumulus.MyHttpClient.GetAsync(url);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					cumulus.LogDebugMessage("AWEKAS Response code = " + response.StatusCode);
@@ -121,6 +122,7 @@ namespace CumulusMX.ThirdParty
 								Interval = 300;
 								Enabled = true;
 								SynchronisedUpdate = true;
+								IntTimer.Enabled = !SynchronisedUpdate;
 								cumulus.LogMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to authentication error");
 							}
 						}
@@ -134,6 +136,7 @@ namespace CumulusMX.ThirdParty
 								RateLimited = true;
 								Interval = 60;
 								SynchronisedUpdate = true;
+								IntTimer.Enabled = !SynchronisedUpdate;
 								cumulus.LogWarningMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 60 seconds due to rate limit");
 							}
 							// AWEKAS normal allows minimum of 300 second updates, revert to that
@@ -141,16 +144,16 @@ namespace CumulusMX.ThirdParty
 							{
 								RateLimited = true;
 								Interval = 300;
-								IntTimer.Interval = Interval * 1000;
 								SynchronisedUpdate = true;
+								IntTimer.Enabled = !SynchronisedUpdate;
 								cumulus.LogWarningMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 300 seconds due to rate limit");
 							}
 							else
 							{
 								RateLimited = true;
 								Interval = 600;
-								IntTimer.Interval = Interval * 1000;
 								SynchronisedUpdate = true;
+								IntTimer.Enabled = !SynchronisedUpdate;
 								cumulus.LogWarningMessage("AWEKAS: Temporarily increasing AWEKAS upload interval to 600 seconds due to rate limit");
 							}
 						}
@@ -180,7 +183,7 @@ namespace CumulusMX.ThirdParty
 						// We are currently rate limited, it could have been a transient thing because
 						// we just got a valid response, and our interval is >= the minimum allowed.
 						// So we just undo the limit, and resume as before
-						cumulus.LogMessage($"AWEKAS: Removing temporary increase in upload interval to 60 secs, resuming uploads every {OriginalInterval} secs");
+						cumulus.LogMessage($"AWEKAS: Removing temporary increase in upload interval to {Interval} secs, resuming uploads every {OriginalInterval} secs");
 						Interval = OriginalInterval;
 						IntTimer.Interval = Interval * 1000;
 						SynchronisedUpdate = Interval % 60 == 0;
@@ -199,7 +202,7 @@ namespace CumulusMX.ThirdParty
 					{
 						if (ex.InnerException is TimeoutException)
 						{
-							msg = $"AWEKAS: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+							msg = $"AWEKAS: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds three times in a row";
 							cumulus.LogWarningMessage(msg);
 						}
 						else
@@ -214,7 +217,7 @@ namespace CumulusMX.ThirdParty
 					{
 						if (ex.InnerException is TimeoutException)
 						{
-							cumulus.LogDebugMessage($"AWEKAS: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
+							cumulus.LogMessage($"AWEKAS: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
 						}
 						else
 						{

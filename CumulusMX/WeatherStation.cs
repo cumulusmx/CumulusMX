@@ -1963,7 +1963,7 @@ namespace CumulusMX
 						_ = cumulus.WindGuru.DoUpdate(now);
 					}
 
-					if (cumulus.AWEKAS.Enabled && (now.Minute & (cumulus.AWEKAS.Interval / 60 - 1)) == 0 && cumulus.AWEKAS.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
+					if (cumulus.AWEKAS.Enabled && cumulus.AWEKAS.SynchronisedUpdate && (now.Minute % (cumulus.AWEKAS.Interval/60)) == 0 &&  !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
 					{
 						_ = cumulus.AWEKAS.DoUpdate(now);
 					}
