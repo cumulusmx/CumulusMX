@@ -18,11 +18,13 @@ Nothing yet
 
 ### Changed
 
-Nothing yet
+- Add weekly rain (rweek) to websitedataT.json
 
 ### Fixed
 
 - AWEKAS uploads fix to avoid frequent rate limiting messages
+- Ability to edit sunshine hours to two decimal palces in the log and day file editors
+- Fix recent Solar graph data bad format if solar or UV sensor data is null
 
 
 ## [4.3.0 \[b4063\]][9] - 2024-12-04

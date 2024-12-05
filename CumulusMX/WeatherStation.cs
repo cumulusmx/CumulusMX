@@ -2420,12 +2420,15 @@ namespace CumulusMX
 
 				if (cumulus.GraphOptions.Visible.UV.IsVisible(local) && data[i].UV.HasValue)
 				{
-					sbUv.Append($"[{jsTime},{data[i].UV.Value.ToString(cumulus.UVFormat, InvC)}],");
+					sbUv.Append($"[{jsTime},{(data[i].UV ?? 0).ToString(cumulus.UVFormat, InvC)}],");
 				}
 
 				if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 				{
-					sbSol.Append($"[{jsTime},{data[i].SolarRad}],");
+					if (data[i].SolarRad.HasValue)
+					{
+						sbSol.Append($"[{jsTime},{data[i].SolarRad ?? 0}],");
+					}
 
 					sbMax.Append($"[{jsTime},{data[i].SolarMax}],");
 				}
