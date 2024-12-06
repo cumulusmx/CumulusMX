@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.3.1 \[b4064\]][10] - 2024-12-06
+## [4.3.1 \[b4064\]][10] - 2024-12-07
 
 ### New
 
@@ -25,6 +25,7 @@ Nothing yet
 - AWEKAS uploads fix to avoid frequent rate limiting messages
 - Ability to edit sunshine hours to two decimal palces in the log and day file editors
 - Fix recent Solar graph data bad format if solar or UV sensor data is null
+- Add check for CustomHttpXXX URLs beginning with http
 
 
 ## [4.3.0 \[b4063\]][9] - 2024-12-04

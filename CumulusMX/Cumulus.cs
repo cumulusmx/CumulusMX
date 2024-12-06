@@ -13655,17 +13655,24 @@ namespace CumulusMX
 					{
 						if (!string.IsNullOrEmpty(CustomHttpSecondsStrings[i]))
 						{
-							var parser = new TokenParser(TokenParserOnToken)
+							if (CustomHttpSecondsStrings[i].StartsWith("http", StringComparison.OrdinalIgnoreCase))
 							{
-								InputText = CustomHttpSecondsStrings[i]
-							};
-							var processedString = parser.ToStringFromString();
-							LogDebugMessage($"CustomHttpSeconds[{i}]: Querying - {processedString}");
-							using var response = await MyHttpClient.GetAsync(processedString);
-							response.EnsureSuccessStatusCode();
-							var responseBodyAsText = await response.Content.ReadAsStringAsync();
-							LogDebugMessage($"CustomHttpSeconds[{i}]: Response - {response.StatusCode}");
-							LogDataMessage($"CustomHttpSeconds[{i}]: Response Text - {responseBodyAsText}");
+								var parser = new TokenParser(TokenParserOnToken)
+								{
+									InputText = CustomHttpSecondsStrings[i]
+								};
+								var processedString = parser.ToStringFromString();
+								LogDebugMessage($"CustomHttpSeconds[{i}]: Querying - {processedString}");
+								using var response = await MyHttpClient.GetAsync(processedString);
+								response.EnsureSuccessStatusCode();
+								var responseBodyAsText = await response.Content.ReadAsStringAsync();
+								LogDebugMessage($"CustomHttpSeconds[{i}]: Response - {response.StatusCode}");
+								LogDataMessage($"CustomHttpSeconds[{i}]: Response Text - {responseBodyAsText}");
+							}
+							else
+							{
+								Cumulus.LogConsoleMessage($"CustomHttpSeconds[{i}]: Invalid URL - {CustomHttpSecondsStrings[i]}");
+							}
 						}
 					}
 					catch (Exception ex)
@@ -13694,16 +13701,23 @@ namespace CumulusMX
 					{
 						if (!string.IsNullOrEmpty(CustomHttpMinutesStrings[i]))
 						{
-							var parser = new TokenParser(TokenParserOnToken)
+							if (CustomHttpMinutesStrings[i].StartsWith("http", StringComparison.OrdinalIgnoreCase))
 							{
-								InputText = CustomHttpMinutesStrings[i]
-							};
-							var processedString = parser.ToStringFromString();
-							LogDebugMessage($"CustomHttpMinutes[{i}]: Querying - {processedString}");
-							using var response = await MyHttpClient.GetAsync(processedString);
-							var responseBodyAsText = await response.Content.ReadAsStringAsync();
-							LogDebugMessage($"CustomHttpMinutes[{i}]: Response code - {response.StatusCode}");
-							LogDataMessage($"CustomHttpMinutes[{i}]: Response text - {responseBodyAsText}");
+								var parser = new TokenParser(TokenParserOnToken)
+								{
+									InputText = CustomHttpMinutesStrings[i]
+								};
+								var processedString = parser.ToStringFromString();
+								LogDebugMessage($"CustomHttpMinutes[{i}]: Querying - {processedString}");
+								using var response = await MyHttpClient.GetAsync(processedString);
+								var responseBodyAsText = await response.Content.ReadAsStringAsync();
+								LogDebugMessage($"CustomHttpMinutes[{i}]: Response code - {response.StatusCode}");
+								LogDataMessage($"CustomHttpMinutes[{i}]: Response text - {responseBodyAsText}");
+							}
+							else
+							{
+								Cumulus.LogConsoleMessage($"CustomHttpMinutes[{i}]: Invalid URL - {CustomHttpMinutesStrings[i]}");
+							}
 						}
 					}
 					catch (Exception ex)
@@ -13728,16 +13742,23 @@ namespace CumulusMX
 					{
 						if (!string.IsNullOrEmpty(CustomHttpRolloverStrings[i]))
 						{
-							var parser = new TokenParser(TokenParserOnToken)
+							if (!string.IsNullOrEmpty(CustomHttpRolloverStrings[i]))
 							{
-								InputText = CustomHttpRolloverStrings[i]
-							};
-							var processedString = parser.ToStringFromString();
-							LogDebugMessage($"CustomHttpRollover[{i}]: Querying - {processedString}");
-							using var response = await MyHttpClient.GetAsync(processedString);
-							var responseBodyAsText = await response.Content.ReadAsStringAsync();
-							LogDebugMessage($"CustomHttpRollover[{i}]: Response code - {response.StatusCode}");
-							LogDataMessage($"CustomHttpRollover[{i}]: Response text - {responseBodyAsText}");
+								var parser = new TokenParser(TokenParserOnToken)
+								{
+									InputText = CustomHttpRolloverStrings[i]
+								};
+								var processedString = parser.ToStringFromString();
+								LogDebugMessage($"CustomHttpRollover[{i}]: Querying - {processedString}");
+								using var response = await MyHttpClient.GetAsync(processedString);
+								var responseBodyAsText = await response.Content.ReadAsStringAsync();
+								LogDebugMessage($"CustomHttpRollover[{i}]: Response code - {response.StatusCode}");
+								LogDataMessage($"CustomHttpRollover[{i}]: Response text - {responseBodyAsText}");
+							}
+						}
+						else
+						{
+							Cumulus.LogConsoleMessage($"CustomHttpRollover[{i}]: Invalid URL - {CustomHttpRolloverStrings[i]}");
 						}
 					}
 					catch (Exception ex)
