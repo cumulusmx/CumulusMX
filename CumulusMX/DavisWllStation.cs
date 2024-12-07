@@ -877,11 +877,6 @@ namespace CumulusMX
 									{
 										cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
 										RecentMaxGust = gustCal;
-
-										if (!broadcastStopped)
-										{
-											AddValuesToRecentWind(gust, WindAverage, gustDirCal, dateTime, dateTime);
-										}
 									}
 
 								}
