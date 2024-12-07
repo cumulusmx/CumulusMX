@@ -14298,16 +14298,16 @@ namespace CumulusMX
 				{
 					long recDate = Utils.ToPseudoJSTime(data[i].Date);
 
-					if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local) && data[i].SnowDepth.HasValue)
+					if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
 					{
 						// snow depth
-						snowdepth.Append($"[{recDate},{data[i].SnowDepth.Value.ToString("F1",InvC)}],");
+						snowdepth.Append($"[{recDate},{(data[i].SnowDepth.HasValue ? data[i].SnowDepth.Value.ToString("F1",InvC) : "null")}],");
 					}
 
-					if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local) && data[i].Snow24h.HasValue)
+					if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
 					{
 						// snowfall 24h
-						snow24h.Append($"[{recDate},{data[i].Snow24h.Value.ToString("F1",InvC)}],");
+						snow24h.Append($"[{recDate},{(data[i].Snow24h.HasValue ? data[i].Snow24h.Value.ToString("F1",InvC) : "null")}],");
 					}
 				}
 			}
