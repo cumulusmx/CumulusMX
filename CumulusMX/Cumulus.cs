@@ -5415,6 +5415,7 @@ namespace CumulusMX
 			}
 			NOAAconf.YearFile = ini.GetValue("NOAA", "YearFileFormat", "'NOAAYR'yyyy'.txt'");
 			NOAAconf.UseUtf8 = ini.GetValue("NOAA", "NOAAUseUTF8", true);
+			NOAAconf.OutputText = ini.GetValue("NOAA", "NOAAUOutputText", true);
 			NOAAconf.UseDotDecimal = ini.GetValue("NOAA", "UseDotDecimal", false);
 			NOAAconf.UseNoaaHeatCoolDays = ini.GetValue("NOAA", "UseNoaaHeatCoolDays", false);
 			NOAAconf.UseMinMaxAvg = ini.GetValue("NOAA", "UseMinMaxAvg", false);
@@ -6775,6 +6776,7 @@ namespace CumulusMX
 			ini.SetValue("NOAA", "MonthFileFormat", NOAAconf.MonthFile);
 			ini.SetValue("NOAA", "YearFileFormat", NOAAconf.YearFile);
 			ini.SetValue("NOAA", "NOAAUseUTF8", NOAAconf.UseUtf8);
+			ini.SetValue("NOAA", "NOAAUOutputText", NOAAconf.OutputText);
 			ini.SetValue("NOAA", "UseDotDecimal", NOAAconf.UseDotDecimal);
 			ini.SetValue("NOAA", "UseNoaaHeatCoolDays", NOAAconf.UseNoaaHeatCoolDays);
 			ini.SetValue("NOAA", "UseMinMaxAvg", NOAAconf.UseMinMaxAvg);
@@ -14722,6 +14724,7 @@ namespace CumulusMX
 		public bool UseMinMaxAvg { get; set; }
 		public bool UseNoaaHeatCoolDays { get; set; }
 		public bool UseDotDecimal { get; set; }
+		public bool OutputText { get; set; }
 		public bool Create { get; set; }
 		public bool AutoFtp { get; set; }
 		public bool AutoCopy { get; set; }

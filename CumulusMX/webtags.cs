@@ -6152,6 +6152,11 @@ namespace CumulusMX
 			return cumulus.DisplayOptions.ShowSnow ? "1" : "0";
 		}
 
+		private string TagOption_noaaFormat(Dictionary<string, string> tagParams)
+		{
+			return cumulus.NOAAconf.OutputText ? "text" : "html";
+		}
+
 		private string TagMySqlRealtimeTime(Dictionary<string, string> tagParams)
 		{
 			return GetFormattedDateTime(cumulus.MySqlLastRealtimeTime, "yyyy-MM-dd HH:mm:ss", tagParams);
@@ -7174,6 +7179,7 @@ namespace CumulusMX
 				{ "Option_showSolar", TagOption_showSolar },
 				{ "Option_showUV", TagOption_showUV },
 				{ "Option_showSnow", TagOption_showSnow },
+				{ "Option_noaaFormat", TagOption_noaaFormat },
 				// MySQL insert times
 				{ "MySqlRealtimeTime", TagMySqlRealtimeTime },
 				{ "MySqlIntervalTime", TagMySqlIntervalTime },

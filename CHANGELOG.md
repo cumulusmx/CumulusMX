@@ -10,6 +10,29 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.4.0 \[b4065\]][11] - 2025-01-01
+
+### New
+
+- NOAA Reports can now be created as HTML
+	- Two sample templates are included for annual and monthly reports: `Reports/SampleHtmlTemplateYear.txt`, and `SampleHtmlTemplateMonth.txt`
+	- The reports are generated from the "in-use" templates: `Reports/HtmlTemplateYear.txt`, and `HtmlTemplateMonth.txt`
+	- If you enable HTML reports and do not create "in-use" templates, the sample templates will be copied to "in-use" templates
+	- You can edit the "in-use" templates to alter the localisation, adjust formatting etc
+	- A new web tag `<#Option_noaaFormat>` which returns "text" or "html"
+	- Changes to the default web site files to accommodate this:
+		- `noaarpts.htm`
+		- `js/noaarpts.js`
+
+### Changed
+
+- Add NOAA report format (options.noaaFormat) to websitedataT.json
+
+### Fixed
+
+Nothing yet
+
+
 ## [4.3.1 \[b4064\]][10] - 2024-12-07
 
 ### New
@@ -492,3 +515,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [8]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4043
 [9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4063
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
+[11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4065
