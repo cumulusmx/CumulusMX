@@ -875,10 +875,8 @@ namespace CumulusMX
 									if (DateTime.Now.TimeOfDay > new TimeSpan(cumulus.RolloverHour, cumulus.StationOptions.PeakGustMinutes < 10 ? 2 : 10, 0) &&
 										CheckHighGust(gustCal, gustDirCal, dateTime))
 									{
-										cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-										RecentMaxGust = gustCal;
+										cumulus.LogDebugMessage("Setting today's max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + HiLoToday.HighGust.ToString(cumulus.WindFormat));
 									}
-
 								}
 								catch (Exception ex)
 								{
