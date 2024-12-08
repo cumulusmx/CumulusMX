@@ -18,9 +18,13 @@ namespace CumulusMX
 {
 	internal class TempestStation : WeatherStation
 	{
+		// Need a reference to the logger in the internal classes
+		internal static Cumulus? CumulusLogger;
+
 		public TempestStation(Cumulus cumulus) : base(cumulus)
 		{
 			calculaterainrate = false;
+			CumulusLogger=cumulus;
 
 			cumulus.LogMessage("Station type = Tempest");
 
@@ -542,8 +546,12 @@ namespace CumulusMX.Tempest
 					using var response = httpClient.GetAsync($"{url}device/{deviceId}?token={token}&time_start={st}&time_end={end_time}");
 					string apiResponse = response.Result.Content.ReadAsStringAsync().Result;
 					var rp = JsonSerializer.DeserializeFromString<RestPacket>(apiResponse);
-					if (rp != null && rp.status.status_message.Equals("SUCCESS") && rp.obs != null)
+					if (rp != null && (rp.status.status_message.Equals("SUCCESS") || rp.status.status_code==2) && rp.obs != null)
 					{
+						if (rp.status.status_code == 2)
+						{
+							cumulus.LogErrorMessage($"Online data reported '{rp.status.status_message}', likely data error in result between observations '{tpStart}' and '{end}'");
+						}
 						foreach (var ob in rp.obs)
 						{
 							ret.Add(new Observation(ob));
@@ -713,14 +721,19 @@ namespace CumulusMX.Tempest
 			return (long) t.TotalSeconds;
 		}
 
-		public static decimal GetDecimal(decimal? d)
+		public static decimal GetDecimal(decimal? d, string source)
 		{
+			if (d == null)
+			{
+				if (TempestStation.CumulusLogger != null)
+					TempestStation.CumulusLogger.LogErrorMessage($"Null Data Warning: {source}, defaulting to '0'");
+			}
 			return d ?? 0M;
 		}
 
-		public static int GetInt(decimal? d)
+		public static int GetInt(decimal? d, string source)
 		{
-			var dec = GetDecimal(d);
+			var dec = GetDecimal(d, source);
 			int i;
 			try
 			{
@@ -734,9 +747,9 @@ namespace CumulusMX.Tempest
 			return i;
 		}
 
-		public static long Getlong(decimal? d)
+		public static long Getlong(decimal? d, string source)
 		{
-			var dec = GetDecimal(d);
+			var dec = GetDecimal(d, source);
 			long i;
 			try
 			{
@@ -890,39 +903,41 @@ namespace CumulusMX.Tempest
 
 		private static void LoadObservation(Observation o, decimal?[] ob)
 		{
-			o.Timestamp = WeatherPacket.FromUnixTimeSeconds(WeatherPacket.Getlong(ob[0]));
-			o.WindLull = WeatherPacket.GetDecimal(ob[1]);
-			o.WindAverage = WeatherPacket.GetDecimal(ob[2]);
-			o.WindGust = WeatherPacket.GetDecimal(ob[3]);
-			o.WindDirection = WeatherPacket.GetInt(ob[4]);
-			o.WindSampleInt = WeatherPacket.GetInt(ob[5]);
-			o.StationPressure = WeatherPacket.GetDecimal(ob[6]);
-			o.Temperature = WeatherPacket.GetDecimal(ob[7]);
-			o.Humidity = WeatherPacket.GetDecimal(ob[8]);
-			o.Illuminance = WeatherPacket.GetInt(ob[9]);
-			o.UV = WeatherPacket.GetDecimal(ob[10]);
-			o.SolarRadiation = WeatherPacket.GetInt(ob[11]);
-			o.Precipitation = WeatherPacket.GetDecimal(ob[12]);
+			o.Timestamp = WeatherPacket.FromUnixTimeSeconds(WeatherPacket.Getlong(ob[0],"Timestamp"));
 
-			o.PrecipType = WeatherPacket.GetInt(ob[13]) switch
+			o.WindLull = WeatherPacket.GetDecimal(ob[1],"WindLull");
+			o.WindAverage = WeatherPacket.GetDecimal(ob[2],"WindAverage");
+			o.WindGust = WeatherPacket.GetDecimal(ob[3],"WindGust");
+			o.WindDirection = WeatherPacket.GetInt(ob[4],"WindDirection");
+			o.WindSampleInt = WeatherPacket.GetInt(ob[5],"WindSampleInt");
+			o.StationPressure = WeatherPacket.GetDecimal(ob[6],"StationPressure");
+			o.Temperature = WeatherPacket.GetDecimal(ob[7],"Temperature");
+			o.Humidity = WeatherPacket.GetDecimal(ob[8],"Humidity");
+			o.Illuminance = WeatherPacket.GetInt(ob[9],"Illuminance");
+			o.UV = WeatherPacket.GetDecimal(ob[10],"UV");
+			o.SolarRadiation = WeatherPacket.GetInt(ob[11],"SolarRadiation");
+			o.Precipitation = WeatherPacket.GetDecimal(ob[12],"Precipitation");
+
+			o.PrecipType = WeatherPacket.GetInt(ob[13],"PrecipType") switch
 			{
 				0 => WeatherPacket.PrecipType.None,
 				1 => WeatherPacket.PrecipType.Rain,
 				2 => WeatherPacket.PrecipType.Hail,
 				_ => WeatherPacket.PrecipType.None,
 			};
-			o.LightningAvgDist = WeatherPacket.GetInt(ob[14]);
-			o.LightningCount = WeatherPacket.GetInt(ob[15]);
-			o.BatteryVoltage = WeatherPacket.GetDecimal(ob[16]);
-			o.ReportInterval = WeatherPacket.GetInt(ob[17]);
+			o.LightningAvgDist = WeatherPacket.GetInt(ob[14],"LightningAvgDist");
+			o.LightningCount = WeatherPacket.GetInt(ob[15],"LightningCount");
+			o.BatteryVoltage = WeatherPacket.GetDecimal(ob[16],"BatteryVoltage");
+			o.ReportInterval = WeatherPacket.GetInt(ob[17],"ReportInterval");
 
 			if (ob.Length >= 21)
 			{
 				// these are only available for history data, not from the UDP message
-				o.LocalDayRain = WeatherPacket.GetInt(ob[18]);
-				o.FinalRainChecked = WeatherPacket.GetInt(ob[19]);
-				o.LocalRainChecked = WeatherPacket.GetInt(ob[20]);
+				o.LocalDayRain = WeatherPacket.GetInt(ob[18],"LocalDayRain");
+				o.FinalRainChecked = WeatherPacket.GetInt(ob[19],"FinalRainChecked");
+				o.LocalRainChecked = WeatherPacket.GetInt(ob[20],"LocalRainChecked");
 			}
+			if (TempestStation.CumulusLogger!=null)TempestStation.CumulusLogger.LogDebugMessage(o.ToString());
 		}
 
 		public string SerialNumber { get; set; }
@@ -951,6 +966,36 @@ namespace CumulusMX.Tempest
 		public int FinalRainChecked { get; set; }// mm
 		public int LocalRainChecked { get; set; }// mm
 
+		// override ToString() to dump all data values
+		public override string ToString()
+		{
+			StringBuilder s = new StringBuilder();
+			s.Append($"SerialNumber:{SerialNumber ?? "NULL"},");
+			s.Append($"HubSN:{HubSN ?? "NULL"},");
+			s.Append($"FirmwareRevision:{FirmwareRevision},");
+			s.Append($"Timestamp:{Timestamp},");
+			s.Append($"WindLull:{WindLull},");
+			s.Append($"WindAverage:{WindAverage},");
+			s.Append($"WindGust:{WindGust},");
+			s.Append($"WindDirection:{WindDirection},");
+			s.Append($"WindSampleInt:{WindSampleInt},");
+			s.Append($"StationPressure:{StationPressure},");
+			s.Append($"Temperature:{Temperature},");
+			s.Append($"Humidity:{Humidity},");
+			s.Append($"Illuminance:{Illuminance},");
+			s.Append($"UV:{UV},");
+			s.Append($"SolarRadiation:{SolarRadiation},");
+			s.Append($"Precipitation:{Precipitation},");
+			s.Append($"PrecipType:{PrecipType},");
+			s.Append($"LightningAvgDist:{LightningAvgDist},");
+			s.Append($"LightningCount:{LightningCount},");
+			s.Append($"BatteryVoltage:{BatteryVoltage},");
+			s.Append($"ReportInterval:{ReportInterval},");
+			s.Append($"LocalDayRain:{LocalDayRain},");
+			s.Append($"FinalRainChecked:{FinalRainChecked},");
+			s.Append($"LocalRainChecked:{LocalRainChecked}");
+			return s.ToString();
+		}
 	}
 	public class PrecipEvent(WeatherPacket packet)
 	{
