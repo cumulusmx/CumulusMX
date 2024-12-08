@@ -1993,17 +1993,7 @@ namespace CumulusMX
 						_ = cumulus.APRS.DoUpdate(now);
 					}
 
-					if (cumulus.Bluesky.Enabled && cumulus.Bluesky.Interval > 0 && ((int)now.TimeOfDay.TotalMinutes % cumulus.Bluesky.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.Bluesky.ID) && !cumulus.Bluesky.Updating)
-					{
-						var parser = new TokenParser(cumulus.TokenParserOnToken)
-						{
-							InputText = cumulus.Bluesky.ContentTemplate
-						};
-
-						_ = cumulus.Bluesky.DoUpdate(parser.ToStringFromString());
-					}
-
-					if (cumulus.Bluesky.Enabled && cumulus.Bluesky.TimedPostsCount > 0)
+					if (cumulus.Bluesky.Enabled)
 					{
 						_ = cumulus.BlueskyTimedUpdate(now);
 					}

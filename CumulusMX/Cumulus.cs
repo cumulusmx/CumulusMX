@@ -470,8 +470,6 @@ namespace CumulusMX
 		private bool customMySqlRolloverUpdateInProgress;
 		private bool customMySqlTimedUpdateInProgress;
 
-		private bool BlueskyTimedUpdateInProgress;
-
 		private HttpFiles httpFiles;
 
 		internal AirLinkData airLinkDataIn;
@@ -12673,7 +12671,7 @@ namespace CumulusMX
 
 		internal async Task BlueskyTimedUpdate(DateTime now)
 		{
-			if (station.DataStopped || Bluesky.TimedPostsCount == 0)
+			if (station.DataStopped)
 			{
 				// No data coming in, do not do anything
 				return;
@@ -12686,96 +12684,111 @@ namespace CumulusMX
 				return;
 			}
 
-			if (!BlueskyTimedUpdateInProgress)
+			// Test if an interval update is due
+			if (Bluesky.Interval > 0 && (int) now.TimeOfDay.TotalMinutes % Bluesky.Interval == 0)
 			{
-				BlueskyTimedUpdateInProgress = true;
+				LogDebugMessage("BlueskyTimedUpdate: Creating interval post for: " + now.ToString("HH:mm"));
 
-				var roundedTime = new TimeSpan(now.Hour, now.Minute, 0);
-
-				for (var i = 0; i < Bluesky.TimedPostsTime.Length; i++)
+				var parser = new TokenParser(TokenParserOnToken)
 				{
-					try
-					{
-						if (Bluesky.TimedPostsTime[i] == TimeSpan.MaxValue)
-						{
-							continue;
-						}
+					InputText = Bluesky.ContentTemplate
+				};
 
-						// is this the time?
-						if (Bluesky.TimedPostsTime[i] == roundedTime)
-						{
-							string content;
+				await Bluesky.DoUpdate(parser.ToStringFromString());
+			}
 
-							if (Bluesky.TimedPostsFile[i] == "web\\Bluesky.txt" || Bluesky.TimedPostsFile[i] == "web/Bluesky.txt")
-							{
-								content = Bluesky.ContentTemplate;
-							}
-							else
-							{
-								content = await File.ReadAllTextAsync(Bluesky.TimedPostsFile[i]);
-							}
-							var parser = new TokenParser(TokenParserOnToken)
-							{
-								InputText = content
-							};
 
-							await Bluesky.DoUpdate(parser.ToStringFromString());
-						}
-					}
-					catch (Exception ex)
-					{
-						LogExceptionMessage(ex, $"BlueskyTimedUpdate[{i}]: Error");
-					}
-				}
+			var roundedTime = new TimeSpan(now.Hour, now.Minute, 0);
 
-				for (var i = 0; i < Bluesky.VariablePostsTime.Length; i++)
+			for (var i = 0; i < Bluesky.TimedPostsTime.Length; i++)
+			{
+				try
 				{
-					try
+					if (Bluesky.TimedPostsTime[i] == TimeSpan.MaxValue)
 					{
-						var tim = Bluesky.VariablePostsTime[i] switch
+						continue;
+					}
+
+					// is this the time?
+					if (Bluesky.TimedPostsTime[i] == roundedTime)
+					{
+						string content;
+
+						LogDebugMessage("BlueskyTimedUpdate: Creating timed post for: " + now.ToString("HH:mm"));
+
+						if (Bluesky.TimedPostsFile[i] == "web\\Bluesky.txt" || Bluesky.TimedPostsFile[i] == "web/Bluesky.txt")
 						{
-							"sunrise" => SunRiseTime,
-							"sunset" => SunSetTime,
-							"dawn" => Dawn,
-							"dusk" => Dusk,
-							_ => DateTime.MaxValue
+							content = Bluesky.ContentTemplate;
+						}
+						else
+						{
+							content = await File.ReadAllTextAsync(Bluesky.TimedPostsFile[i]);
+						}
+						var parser = new TokenParser(TokenParserOnToken)
+						{
+							InputText = content
 						};
 
-
-						if (tim == DateTime.MaxValue)
-						{
-							continue;
-						}
-
-						if (tim.Hour == roundedTime.Hours && tim.Minute == roundedTime.Minutes)
-						{
-							string content;
-
-							if (Bluesky.VariablePostsFile[i] == "web\\Bluesky.txt" || Bluesky.VariablePostsFile[i] == "web/Bluesky.txt")
-							{
-								content = Bluesky.ContentTemplate;
-							}
-							else
-							{
-								content = await File.ReadAllTextAsync(Bluesky.VariablePostsFile[i]);
-							}
-
-							var parser = new TokenParser(TokenParserOnToken)
-							{
-								InputText = content
-							};
-
-							await Bluesky.DoUpdate(parser.ToStringFromString());
-						}
+						await Bluesky.DoUpdate(parser.ToStringFromString());
 					}
-					catch (Exception ex)
-					{
-						LogExceptionMessage(ex, $"BlueskyVariableUpdate[{i}]: Error");
-					}
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, $"BlueskyTimedUpdate[{i}]: Error");
 				}
 			}
 
-			BlueskyTimedUpdateInProgress = false;
+			for (var i = 0; i < Bluesky.VariablePostsTime.Length; i++)
+			{
+				try
+				{
+					var tim = Bluesky.VariablePostsTime[i] switch
+					{
+						"sunrise" => SunRiseTime,
+						"sunset" => SunSetTime,
+						"dawn" => Dawn,
+						"dusk" => Dusk,
+						_ => DateTime.MaxValue
+					};
+
+
+					if (tim == DateTime.MaxValue)
+					{
+						continue;
+					}
+
+					LogDebugMessage("BlueskyTimedUp: Created variable timed post for: " + Bluesky.VariablePostsTime[i]);
+
+					if (tim.Hour == roundedTime.Hours && tim.Minute == roundedTime.Minutes)
+					{
+						string content;
+
+						if (Bluesky.VariablePostsFile[i] == "web\\Bluesky.txt" || Bluesky.VariablePostsFile[i] == "web/Bluesky.txt")
+						{
+							content = Bluesky.ContentTemplate;
+						}
+						else
+						{
+							content = await File.ReadAllTextAsync(Bluesky.VariablePostsFile[i]);
+						}
+
+						var parser = new TokenParser(TokenParserOnToken)
+						{
+							InputText = content
+						};
+
+						await Bluesky.DoUpdate(parser.ToStringFromString());
+					}
+				}
+				catch (FileNotFoundException)
+				{
+					LogWarningMessage("Bluesky variable timed post failed to find the template file: " + Bluesky.VariablePostsFile[i]);
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, $"BlueskyVariableUpdate[{i}]: Error");
+				}
+			}
 		}
 
 		private async void CustomMysqlSecondsTimerTick(object sender, ElapsedEventArgs e)
