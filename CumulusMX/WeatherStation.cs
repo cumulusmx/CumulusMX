@@ -9297,7 +9297,8 @@ namespace CumulusMX
 			{
 				var inv = CultureInfo.InvariantCulture;
 				var st = new List<string>(data.Split(','));
-
+				double resultDbl;
+				int resultInt;
 				// We allow int values to have a decimal point because log files sometimes get mangled by Excel etc!
 				var rec = new LogFileRec()
 				{
@@ -9312,8 +9313,8 @@ namespace CumulusMX
 					RainToday = Convert.ToDouble(st[9], inv),
 					Pressure = Convert.ToDouble(st[10], inv),
 					Raincounter = Convert.ToDouble(st[11], inv),
-					IndoorTemperature = Convert.ToDouble(st[12], inv),
-					IndoorHumidity = Convert.ToInt32(Convert.ToDouble(st[13], inv)),
+					IndoorTemperature = double.TryParse(st[12], out resultDbl) ? resultDbl : null,
+					IndoorHumidity = int.TryParse(st[13], out resultInt) ? resultInt : null,
 					WindLatest = Convert.ToDouble(st[14], inv)
 				};
 

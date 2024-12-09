@@ -10,11 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.3.1 \[b4064\]][10] - 2024-12-10
-
-### New
-
-Nothing yet
+## [4.3.1 \[b4064\]][10] - 2024-12-09
 
 ### Changed
 
@@ -30,6 +26,9 @@ Nothing yet
 - Bluesky variable timed posts not firing if no timed posts are defined
 - Snow graphs now show all days
 - Fix Rain Week calculation
+- Fix for LoadRecent failing if indoor sensors are absent
+- Fix for Tempest stations not reading historic data
+
 
 ## [4.3.0 \[b4063\]][9] - 2024-12-04
 
