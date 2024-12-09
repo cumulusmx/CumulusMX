@@ -107,6 +107,7 @@ csharp_style_prefer_extended_property_pattern = true:suggestion
 csharp_space_after_cast = true
 csharp_style_prefer_top_level_statements = true:silent
 csharp_style_prefer_primary_constructors = true:suggestion
+csharp_prefer_system_threading_lock = true:suggestion
 
 
 [*.{cs,vb}]

@@ -33,11 +33,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 Nothing yet
 
 
-## [4.3.1 \[b4064\]][10] - 2024-12-07
-
-### New
-
-Nothing yet
+## [4.3.1 \[b4064\]][10] - 2024-12-09
 
 ### Changed
 
@@ -48,8 +44,13 @@ Nothing yet
 - AWEKAS uploads fix to avoid frequent rate limiting messages
 - Ability to edit sunshine hours to two decimal palces in the log and day file editors
 - Fix recent Solar graph data bad format if solar or UV sensor data is null
-- Add check for CustomHttpXXX URLs beginning with http
-- Davis WLL change to avoid potential extension of 10 minute gust values when broadcast are working OK
+- Add check for CustomHttpXXX URLs to begin with http
+- Davis WLL change to avoid potential extension of 10 minute gust values when broadcasts are working
+- Bluesky variable timed posts not firing if no timed posts are defined
+- Snow graphs now show all days
+- Fix Rain Week calculation
+- Fix for LoadRecent failing if indoor sensors are absent
+- Fix for Tempest stations not reading historic data
 
 
 ## [4.3.0 \[b4063\]][9] - 2024-12-04
