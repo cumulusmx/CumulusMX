@@ -794,7 +794,9 @@ namespace CumulusMX
 			RainThisWeek = 0;
 			// get this weeks date offset
 			var now = DateTime.Now;
-			var offsetWeek = now.AddDays(-(int) now.DayOfWeek + cumulus.RainWeekStart).Date;
+			// get the difference in days
+			var diff = (7 + ((int)now.DayOfWeek - cumulus.RainWeekStart)) % 7;
+			var offsetWeek = now.AddDays(-1 * diff).Date;
 			// recalculate rain this week - we may have gone over a week boundary
 			RainThisWeek = DayFile.Where(day => day.Date >= offsetWeek).Sum(day => day.TotalRain);
 			RainWeek = RainThisWeek + RainToday;

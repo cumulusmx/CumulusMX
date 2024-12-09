@@ -29,7 +29,7 @@ Nothing yet
 - Davis WLL change to avoid potential extension of 10 minute gust values when broadcasts are working
 - Bluesky variable timed posts not firing if no timed posts are defined
 - Snow graphs now show all days
-
+- Fix Rain Week calculation
 
 ## [4.3.0 \[b4063\]][9] - 2024-12-04
 
