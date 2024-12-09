@@ -792,9 +792,10 @@ namespace CumulusMX
 		{
 			var _rainWeek = RainWeek;
 			RainThisWeek = 0;
-			// get this weeks date offset
-			var now = DateTime.Now;
-			var offsetWeek = now.AddDays(-(int) now.DayOfWeek + cumulus.RainWeekStart).Date;
+			// get this weeks date offset, allow for meteo
+			// get the difference in days
+			var diff = (7 + ((int) CurrentDate.DayOfWeek - cumulus.RainWeekStart)) % 7;
+			var offsetWeek = CurrentDate.AddDays(-1 * diff).Date;
 			// recalculate rain this week - we may have gone over a week boundary
 			RainThisWeek = DayFile.Where(day => day.Date >= offsetWeek).Sum(day => day.TotalRain);
 			RainWeek = RainThisWeek + RainToday;
@@ -829,6 +830,7 @@ namespace CumulusMX
 			CurrentYear = ini.GetValue("General", "CurrentYear", defaultyear);
 			CurrentMonth = ini.GetValue("General", "CurrentMonth", defaultmonth);
 			CurrentDay = ini.GetValue("General", "CurrentDay", defaultday);
+			CurrentDate = new DateTime(CurrentYear, CurrentMonth, CurrentDay, 0, 0, 0, DateTimeKind.Local);
 
 			cumulus.LogMessage("ReadTodayFile: Date = " + todayfiledate + ", LastUpdateTime = " + cumulus.LastUpdateTime + ", Month = " + CurrentMonth);
 
@@ -1306,6 +1308,8 @@ namespace CumulusMX
 		public int CurrentMonth { get; set; }
 
 		public int CurrentYear { get; set; }
+
+		public DateTime CurrentDate { get; set; }
 
 		/// <summary>
 		/// Indoor relative humidity in %
@@ -1963,7 +1967,7 @@ namespace CumulusMX
 						_ = cumulus.WindGuru.DoUpdate(now);
 					}
 
-					if (cumulus.AWEKAS.Enabled && (now.Minute & (cumulus.AWEKAS.Interval / 60 - 1)) == 0 && cumulus.AWEKAS.SynchronisedUpdate && !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
+					if (cumulus.AWEKAS.Enabled && cumulus.AWEKAS.SynchronisedUpdate && (now.Minute % (cumulus.AWEKAS.Interval/60)) == 0 &&  !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
 					{
 						_ = cumulus.AWEKAS.DoUpdate(now);
 					}
@@ -1993,17 +1997,7 @@ namespace CumulusMX
 						_ = cumulus.APRS.DoUpdate(now);
 					}
 
-					if (cumulus.Bluesky.Enabled && cumulus.Bluesky.Interval > 0 && ((int)now.TimeOfDay.TotalMinutes % cumulus.Bluesky.Interval == 0) && !String.IsNullOrWhiteSpace(cumulus.Bluesky.ID) && !cumulus.Bluesky.Updating)
-					{
-						var parser = new TokenParser(cumulus.TokenParserOnToken)
-						{
-							InputText = cumulus.Bluesky.ContentTemplate
-						};
-
-						_ = cumulus.Bluesky.DoUpdate(parser.ToStringFromString());
-					}
-
-					if (cumulus.Bluesky.Enabled && cumulus.Bluesky.TimedPostsCount > 0)
+					if (cumulus.Bluesky.Enabled)
 					{
 						_ = cumulus.BlueskyTimedUpdate(now);
 					}
@@ -2420,12 +2414,15 @@ namespace CumulusMX
 
 				if (cumulus.GraphOptions.Visible.UV.IsVisible(local) && data[i].UV.HasValue)
 				{
-					sbUv.Append($"[{jsTime},{data[i].UV.Value.ToString(cumulus.UVFormat, InvC)}],");
+					sbUv.Append($"[{jsTime},{(data[i].UV ?? 0).ToString(cumulus.UVFormat, InvC)}],");
 				}
 
 				if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 				{
-					sbSol.Append($"[{jsTime},{data[i].SolarRad}],");
+					if (data[i].SolarRad.HasValue)
+					{
+						sbSol.Append($"[{jsTime},{data[i].SolarRad ?? 0}],");
+					}
 
 					sbMax.Append($"[{jsTime},{data[i].SolarMax}],");
 				}
@@ -5848,7 +5845,7 @@ namespace CumulusMX
 		{
 			DateTime readingTS = timestamp.AddHours(cumulus.GetHourInc(timestamp));
 
-			if ((CurrentDay != readingTS.Day) || (CurrentMonth != readingTS.Month) || (CurrentYear != readingTS.Year))
+			if (CurrentDate != readingTS.Date)
 			{
 				// A reading has apparently arrived at the start of a new day, but before we have done the roll-over
 				// Ignore it, as otherwise it may cause a new monthly record to be logged using last month's total
@@ -7815,6 +7812,7 @@ namespace CumulusMX
 				CurrentDay = timestamp.Day;
 				CurrentMonth = timestamp.Month;
 				CurrentYear = timestamp.Year;
+				CurrentDate = timestamp.Date;
 				DayResetInProgress = false;
 
 				cumulus.LogMessage("=== Day reset complete");
@@ -9299,7 +9297,8 @@ namespace CumulusMX
 			{
 				var inv = CultureInfo.InvariantCulture;
 				var st = new List<string>(data.Split(','));
-
+				double resultDbl;
+				int resultInt;
 				// We allow int values to have a decimal point because log files sometimes get mangled by Excel etc!
 				var rec = new LogFileRec()
 				{
@@ -9314,8 +9313,8 @@ namespace CumulusMX
 					RainToday = Convert.ToDouble(st[9], inv),
 					Pressure = Convert.ToDouble(st[10], inv),
 					Raincounter = Convert.ToDouble(st[11], inv),
-					IndoorTemperature = Convert.ToDouble(st[12], inv),
-					IndoorHumidity = Convert.ToInt32(Convert.ToDouble(st[13], inv)),
+					IndoorTemperature = double.TryParse(st[12], out resultDbl) ? resultDbl : null,
+					IndoorHumidity = int.TryParse(st[13], out resultInt) ? resultInt : null,
 					WindLatest = Convert.ToDouble(st[14], inv)
 				};
 
@@ -14295,16 +14294,16 @@ namespace CumulusMX
 				{
 					long recDate = Utils.ToPseudoJSTime(data[i].Date);
 
-					if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local) && data[i].SnowDepth.HasValue)
+					if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
 					{
 						// snow depth
-						snowdepth.Append($"[{recDate},{data[i].SnowDepth.Value.ToString("F1",InvC)}],");
+						snowdepth.Append($"[{recDate},{(data[i].SnowDepth.HasValue ? data[i].SnowDepth.Value.ToString("F1",InvC) : "null")}],");
 					}
 
-					if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local) && data[i].Snow24h.HasValue)
+					if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
 					{
 						// snowfall 24h
-						snow24h.Append($"[{recDate},{data[i].Snow24h.Value.ToString("F1",InvC)}],");
+						snow24h.Append($"[{recDate},{(data[i].Snow24h.HasValue ? data[i].Snow24h.Value.ToString("F1",InvC) : "null")}],");
 					}
 				}
 			}
