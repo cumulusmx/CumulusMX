@@ -792,11 +792,10 @@ namespace CumulusMX
 		{
 			var _rainWeek = RainWeek;
 			RainThisWeek = 0;
-			// get this weeks date offset
-			var now = DateTime.Now;
+			// get this weeks date offset, allow for meteo
 			// get the difference in days
-			var diff = (7 + ((int)now.DayOfWeek - cumulus.RainWeekStart)) % 7;
-			var offsetWeek = now.AddDays(-1 * diff).Date;
+			var diff = (7 + ((int) CurrentDate.DayOfWeek - cumulus.RainWeekStart)) % 7;
+			var offsetWeek = CurrentDate.AddDays(-1 * diff).Date;
 			// recalculate rain this week - we may have gone over a week boundary
 			RainThisWeek = DayFile.Where(day => day.Date >= offsetWeek).Sum(day => day.TotalRain);
 			RainWeek = RainThisWeek + RainToday;
@@ -831,6 +830,7 @@ namespace CumulusMX
 			CurrentYear = ini.GetValue("General", "CurrentYear", defaultyear);
 			CurrentMonth = ini.GetValue("General", "CurrentMonth", defaultmonth);
 			CurrentDay = ini.GetValue("General", "CurrentDay", defaultday);
+			CurrentDate = new DateTime(CurrentYear, CurrentMonth, CurrentDay, 0, 0, 0, DateTimeKind.Local);
 
 			cumulus.LogMessage("ReadTodayFile: Date = " + todayfiledate + ", LastUpdateTime = " + cumulus.LastUpdateTime + ", Month = " + CurrentMonth);
 
@@ -1308,6 +1308,8 @@ namespace CumulusMX
 		public int CurrentMonth { get; set; }
 
 		public int CurrentYear { get; set; }
+
+		public DateTime CurrentDate { get; set; }
 
 		/// <summary>
 		/// Indoor relative humidity in %
@@ -5843,7 +5845,7 @@ namespace CumulusMX
 		{
 			DateTime readingTS = timestamp.AddHours(cumulus.GetHourInc(timestamp));
 
-			if ((CurrentDay != readingTS.Day) || (CurrentMonth != readingTS.Month) || (CurrentYear != readingTS.Year))
+			if (CurrentDate != readingTS.Date)
 			{
 				// A reading has apparently arrived at the start of a new day, but before we have done the roll-over
 				// Ignore it, as otherwise it may cause a new monthly record to be logged using last month's total
@@ -7810,6 +7812,7 @@ namespace CumulusMX
 				CurrentDay = timestamp.Day;
 				CurrentMonth = timestamp.Month;
 				CurrentYear = timestamp.Year;
+				CurrentDate = timestamp.Date;
 				DayResetInProgress = false;
 
 				cumulus.LogMessage("=== Day reset complete");
