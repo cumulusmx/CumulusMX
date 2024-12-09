@@ -14285,25 +14285,42 @@ namespace CumulusMX
 			StringBuilder snow24h = new StringBuilder("[", 32768);
 
 			// Read the diary database
+			// get the earlist record date
+			var earliest = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData order by Date limit 1");
 
-			var data = cumulus.DiaryDB.Query<DiaryData>("SELECT Date, SnowDepth, Snow24h FROM DiaryData ORDER BY Date ASC");
-
-			if (data.Count > 0)
+			if (earliest.Count == 1)
 			{
-				for (var i = 0; i < data.Count; i++)
+				var query = string.Format(
+@"WITH RECURSIVE dates(date) AS (
+  VALUES('{0}')
+  UNION ALL
+  SELECT date(date, '+1 day')
+  FROM dates
+  WHERE date < DATE('now')
+)
+SELECT rd.date, dd.snowDepth, dd.snow24h FROM dates rd
+LEFT JOIN DiaryData dd ON date(dd.Date) = rd.date
+ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
+
+				var data = cumulus.DiaryDB.Query<DiaryData>(query);
+
+				if (data.Count > 0)
 				{
-					long recDate = Utils.ToPseudoJSTime(data[i].Date);
-
-					if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
+					for (var i = 0; i < data.Count; i++)
 					{
-						// snow depth
-						snowdepth.Append($"[{recDate},{(data[i].SnowDepth.HasValue ? data[i].SnowDepth.Value.ToString("F1",InvC) : "null")}],");
-					}
+						long recDate = Utils.ToPseudoJSTime(data[i].Date);
 
-					if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
-					{
-						// snowfall 24h
-						snow24h.Append($"[{recDate},{(data[i].Snow24h.HasValue ? data[i].Snow24h.Value.ToString("F1",InvC) : "null")}],");
+						if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
+						{
+							// snow depth
+							snowdepth.Append($"[{recDate},{(data[i].SnowDepth.HasValue ? data[i].SnowDepth.Value.ToString("F1", InvC) : "null")}],");
+						}
+
+						if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
+						{
+							// snowfall 24h
+							snow24h.Append($"[{recDate},{(data[i].Snow24h.HasValue ? data[i].Snow24h.Value.ToString("F1", InvC) : "null")}],");
+						}
 					}
 				}
 			}
