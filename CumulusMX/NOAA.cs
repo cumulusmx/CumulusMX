@@ -1630,7 +1630,7 @@ namespace CumulusMX
 					double meanmin = totalmeanmintemp / samples;
 					double meantemp = totalmeantemp / samples;
 
-					output.Add($"      <td>{string.Format(culture, "{0:F1}", meanmax)}</td>");
+					output.Add($"<td>{string.Format(culture, "{0:F1}", meanmax)}</td>");
 					output.Add($"      <td>{string.Format(culture, "{0:F1}", meanmin)}</td>");
 					output.Add($"      <td>{string.Format(culture, "{0:F1}", meantemp)}</td>");
 
@@ -1732,7 +1732,7 @@ namespace CumulusMX
 
 				if (samples > 0)
 				{
-					output.Add($"      <td>{string.Format("{0}", totalrain.ToString(cumulus.RainFormat, culture))}</td>");
+					output.Add($"<td>{string.Format("{0}", totalrain.ToString(cumulus.RainFormat, culture))}</td>");
 
 					if ((int) totalnormrain == 0)
 					{
@@ -1797,7 +1797,7 @@ namespace CumulusMX
 							// String.Format the high wind speed and dominant direction into the display line
 							output.Add($"      <td>{string.Format(culture, "{0:F1}", MonthList[m].highwindspeed)}</td>");
 							output.Add($"      <td>{string.Format(culture, "{0:D}", MonthList[m].highwindday)}</td>");
-							output.Add($"      <td>{string.Format("{0}", CompassPoint(MonthList[m].winddomdir))}</td");
+							output.Add($"      <td>{string.Format("{0}", CompassPoint(MonthList[m].winddomdir))}</td>");
 
 							// check for highest annual wind speed
 							if (MonthList[m].highwindspeed > highwind)
@@ -1833,9 +1833,9 @@ namespace CumulusMX
 					if (samples > 0)
 					{
 						if (avgwindcount == 0)
-							output.Add("      <td>--</td>");
+							output.Add("<td>--</td>");
 						else
-							output.Add($"      <td>{string.Format(culture, "{0:F1}", totalavgwind / avgwindcount)}</td>");
+							output.Add($"<td>{string.Format(culture, "{0:F1}", totalavgwind / avgwindcount)}</td>");
 
 						output.Add($"      <td>{string.Format(culture, "{0:F1}", highwind)}</td>");
 						if (highwindmonth == 0)
