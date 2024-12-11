@@ -324,8 +324,15 @@ namespace CumulusMX
 			get => AvgTempToday.ToString(cumulus.TempFormat);
 		}
 
-		[DataMember]
+
+		[IgnoreDataMember]
 		public int? IndoorHum { get; } = indoorHum;
+
+		[DataMember(Name = "IndoorHum")]
+		public string IndoorHumNull
+		{
+			get => IndoorHum.HasValue ? IndoorHum.ToString() : "-";
+		}
 
 		[IgnoreDataMember]
 		public double Pressure { get; } = pressure;
