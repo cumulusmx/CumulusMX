@@ -9312,7 +9312,7 @@ namespace CumulusMX
 					RainToday = Convert.ToDouble(st[9], inv),
 					Pressure = Convert.ToDouble(st[10], inv),
 					Raincounter = Convert.ToDouble(st[11], inv),
-					IndoorTemperature = double.TryParse(st[12], out resultDbl) ? resultDbl : null,
+					IndoorTemperature = double.TryParse(st[12], inv, out resultDbl) ? resultDbl : null,
 					IndoorHumidity = int.TryParse(st[13], out resultInt) ? resultInt : null,
 					WindLatest = Convert.ToDouble(st[14], inv)
 				};
