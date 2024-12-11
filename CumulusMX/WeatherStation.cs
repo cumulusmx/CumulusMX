@@ -5131,7 +5131,6 @@ namespace CumulusMX
 			{
 				IndoorHumidity = 100;
 			}
-			IndoorHumidity = null;
 			HaveReadData = true;
 		}
 
@@ -5151,7 +5150,6 @@ namespace CumulusMX
 			previousInTemp = temp;
 			IndoorTemperature = cumulus.Calib.InTemp.Calibrate(temp);
 			HaveReadData = true;
-			IndoorTemperature = null;
 		}
 
 		public void DoOutdoorHumidity(int humpar, DateTime timestamp)
