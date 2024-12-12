@@ -4,7 +4,6 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
@@ -193,14 +192,14 @@ namespace CumulusMX
 		}
 
 
-		private decimal GetSnowDepth(DateTime day)
+		private decimal? GetSnowDepth(DateTime day)
 		{
-			decimal depth;
+			decimal? depth;
 			try
 			{
 				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Date = ?", day.Date);
 
-				depth = result.Count == 1 ? result[0].SnowDepth ?? 0 : 0;
+				depth = result.Count == 1 ? result[0].SnowDepth : null;
 			}
 			catch (Exception e)
 			{
@@ -210,14 +209,14 @@ namespace CumulusMX
 			return depth;
 		}
 
-		private decimal GetSnow24h(DateTime day)
+		private decimal? GetSnow24h(DateTime day)
 		{
-			decimal snow24h;
+			decimal? snow24h;
 			try
 			{
 				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Date = ?", day.Date);
 
-				snow24h = result.Count == 1 ? result[0].Snow24h ?? 0 : 0;
+				snow24h = result.Count == 1 ? result[0].Snow24h : null;
 			}
 			catch (Exception e)
 			{
@@ -251,7 +250,7 @@ namespace CumulusMX
 			{
 				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Date = ?", day.Date);
 
-				comment = result.Count == 1 && !string.IsNullOrEmpty(result[0].Entry) ? result[0].Entry : "";
+				comment = result.Count == 1 && !string.IsNullOrEmpty(result[0].Entry) ? result[0].Entry : null;
 			}
 			catch (Exception e)
 			{
@@ -404,7 +403,7 @@ namespace CumulusMX
 			string s;
 			if (dt <= cumulus.defaultRecordTS)
 			{
-				s = "----";
+				s = tagParams.Get("nv") ?? "----";
 			}
 			else
 			{
@@ -1069,22 +1068,22 @@ namespace CumulusMX
 
 		private string Taginhum(Dictionary<string, string> tagParams)
 		{
-			return station.IndoorHumidity.HasValue ? station.IndoorHumidity.ToString() : "-";
+			return station.IndoorHumidity.HasValue ? station.IndoorHumidity.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagintemp(Dictionary<string, string> tagParams)
 		{
-			return station.IndoorTemperature.HasValue ? CheckRcDp(CheckTempUnit(station.IndoorTemperature.Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
+			return station.IndoorTemperature.HasValue ? CheckRcDp(CheckTempUnit(station.IndoorTemperature.Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagbattery(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.ConBatText ?? "--", tagParams);
+			return CheckRc(station.ConBatText ?? tagParams.Get("nv") ?? "--", tagParams);
 		}
 
 		private string TagConsoleSupplyV(Dictionary<string, string> tagParams)
 		{
-			return CheckRc(station.ConSupplyVoltageText ?? "--", tagParams);
+			return CheckRc(station.ConSupplyVoltageText ?? tagParams.Get("nv") ?? "--", tagParams);
 		}
 
 		private string Tagtxbattery(Dictionary<string, string> tagParams)
@@ -1166,132 +1165,132 @@ namespace CumulusMX
 		// AirLink Indoor
 		private string TagAirLinkTempIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(CheckTempUnit(cumulus.airLinkDataIn.temperature, tagParams), tagParams, cumulus.TempDPlaces);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(CheckTempUnit(cumulus.airLinkDataIn.temperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 		private string TagAirLinkHumIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.humidity, tagParams, cumulus.HumDPlaces);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.humidity, tagParams, cumulus.HumDPlaces);
 		}
 		private string TagAirLinkPm1In(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm1, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.pm1, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5In(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_1hrIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_1hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_1hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_3hrIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_3hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_3hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_24hrIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_24hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_24hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_NowcastIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_nowcast, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.pm2p5_nowcast, tagParams, 1);
 		}
 		private string TagAirLinkPm10In(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10, tagParams, 1);
 		}
 		private string TagAirLinkPm10_1hrIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_1hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_1hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_3hrIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_3hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_3hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_24hrIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_24hr, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_24hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_NowcastIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_nowcast, tagParams, 1);
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataIn.pm10_nowcast, tagParams, 1);
 		}
 		private string TagAirLinkFirmwareVersionIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.firmwareVersion;
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataIn.firmwareVersion;
 		}
 		private string TagAirLinkWifiRssiIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.wifiRssi.ToString();
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataIn.wifiRssi.ToString();
 		}
 
 
 		// AirLink Outdoor
 		private string TagAirLinkTempOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(CheckTempUnit(cumulus.airLinkDataOut.temperature, tagParams), tagParams, cumulus.TempDPlaces);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(CheckTempUnit(cumulus.airLinkDataOut.temperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 		private string TagAirLinkHumOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.humidity, tagParams, cumulus.HumDPlaces);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.humidity, tagParams, cumulus.HumDPlaces);
 		}
 		private string TagAirLinkPm1Out(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm1, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.pm1, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5Out(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_1hrOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_1hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_1hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_3hrOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_3hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_3hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_24hrOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_24hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_24hr, tagParams, 1);
 		}
 		private string TagAirLinkPm2p5_NowcastOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_nowcast, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.pm2p5_nowcast, tagParams, 1);
 		}
 		private string TagAirLinkPm10Out(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10, tagParams, 1);
 		}
 		private string TagAirLinkPm10_1hrOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_1hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_1hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_3hrOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_3hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_3hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_24hrOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_24hr, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_24hr, tagParams, 1);
 		}
 		private string TagAirLinkPm10_NowcastOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_nowcast, tagParams, 1);
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : CheckRcDp(cumulus.airLinkDataOut.pm10_nowcast, tagParams, 1);
 		}
 		private string TagAirLinkFirmwareVersionOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.firmwareVersion;
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataOut.firmwareVersion;
 		}
 		private string TagAirLinkWifiRssiOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.wifiRssi.ToString();
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataOut.wifiRssi.ToString();
 		}
 
 		private string TagAirLinkAqiPm2P5In(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm2p5, tagParams, cumulus.AirQualityDPlaces);
 		}
@@ -1299,63 +1298,63 @@ namespace CumulusMX
 		private string TagAirLinkAqiPm2p5_1hrIn(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm2p5_1hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_3hrIn(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm2p5_3hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_24hrIn(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm2p5_24hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_NowcastIn(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm2p5_nowcast, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10In(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm10, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_1hrIn(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm10_1hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_3hrIn(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm10_3hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_24hrIn(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm10_24hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_NowcastIn(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataIn.aqiPm10_nowcast, tagParams, cumulus.AirQualityDPlaces);
 		}
@@ -1363,70 +1362,70 @@ namespace CumulusMX
 		private string TagAirLinkAqiPm2P5Out(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm2p5, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_1hrOut(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm2p5_1hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_3hrOut(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm2p5_3hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_24hrOut(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm2p5_24hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm2p5_NowcastOut(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm2p5_nowcast, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10Out(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm10, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_1hrOut(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm10_1hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_3hrOut(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm10_3hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_24hrOut(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm10_24hr, tagParams, cumulus.AirQualityDPlaces);
 		}
 		private string TagAirLinkAqiPm10_NowcastOut(Dictionary<string, string> tagParams)
 		{
 			if (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid)
-				return "--";
+				return tagParams.Get("nv") ?? "--";
 
 			return CheckRcDp(cumulus.airLinkDataOut.aqiPm10_nowcast, tagParams, cumulus.AirQualityDPlaces);
 		}
@@ -1434,42 +1433,43 @@ namespace CumulusMX
 
 		private string AirLinkPct_1hrIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.pct_1hr.ToString();
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataIn.pct_1hr.ToString();
 		}
 		private string AirLinkPct_3hrIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.pct_3hr.ToString();
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataIn.pct_3hr.ToString();
 		}
 		private string AirLinkPct_24hrIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.pct_24hr.ToString();
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataIn.pct_24hr.ToString();
 		}
 		private string AirLinkPct_NowcastIn(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? "--" : cumulus.airLinkDataIn.pct_nowcast.ToString();
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataIn.pct_nowcast.ToString();
 		}
 		private string AirLinkPct_1hrOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.pct_1hr.ToString();
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataOut.pct_1hr.ToString();
 		}
 		private string AirLinkPct_3hrOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.pct_3hr.ToString();
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataOut.pct_3hr.ToString();
 		}
 		private string AirLinkPct_24hrOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.pct_24hr.ToString();
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataOut.pct_24hr.ToString();
 		}
 		private string AirLinkPct_NowcastOut(Dictionary<string, string> tagParams)
 		{
-			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? "--" : cumulus.airLinkDataOut.pct_nowcast.ToString();
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataOut.pct_nowcast.ToString();
 		}
 
 
 		private string Tagsnowdepth(Dictionary<string, string> tagParams)
 		{
 			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
-			return CheckRc(GetSnowDepth(ts.Date).ToString(cumulus.SnowFormat), tagParams);
+			var val = GetSnowDepth(ts.Date);
+			return val.HasValue ? CheckRc(val.Value.ToString(cumulus.SnowFormat), tagParams) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagsnowlying(Dictionary<string, string> tagParams)
@@ -1481,13 +1481,15 @@ namespace CumulusMX
 		private string Tagsnow24hr(Dictionary<string, string> tagParams)
 		{
 			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
-			return GetSnow24h(ts.Date).ToString(cumulus.SnowFormat);
+			var val = GetSnow24h(ts.Date);
+			return val.HasValue ? CheckRc(val.Value.ToString(cumulus.SnowFormat), tagParams) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagsnowcomment(Dictionary<string, string> tagParams)
 		{
 			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
-			return GetSnowComment(ts.Date);
+			var val = GetSnowComment(ts.Date);
+			return string.IsNullOrEmpty(val) ? tagParams.Get("nv") ?? "" : val;
 		}
 
 		private static string Tagsnowfalling(Dictionary<string, string> tagParams)
@@ -2571,22 +2573,22 @@ namespace CumulusMX
 
 		private string TagLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestDryPeriod.Val < 0 ? "--" : station.AllTime.LongestDryPeriod.Val.ToString("F0");
+			return station.AllTime.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : station.AllTime.LongestDryPeriod.Val.ToString("F0");
 		}
 
 		private string TagTLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestDryPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.AllTime.LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return station.AllTime.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.AllTime.LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestWetPeriod.Val  < 0 ? "--" : station.AllTime.LongestWetPeriod.Val.ToString("F0");
+			return station.AllTime.LongestWetPeriod.Val  < 0 ? tagParams.Get("nv") ?? "--" : station.AllTime.LongestWetPeriod.Val.ToString("F0");
 		}
 
 		private string TagTLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestWetPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.AllTime.LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return station.AllTime.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.AllTime.LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagLowDailyTempRange(Dictionary<string, string> tagParams)
@@ -2705,7 +2707,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighTemp;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthTempHt(Dictionary<string, string> tagParams)
@@ -2718,7 +2720,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].LowTemp;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthTempLt(Dictionary<string, string> tagParams)
@@ -2747,7 +2749,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighAppTemp;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthAppTempHt(Dictionary<string, string> tagParams)
@@ -2760,7 +2762,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].LowAppTemp;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthAppTempLt(Dictionary<string, string> tagParams)
@@ -2773,7 +2775,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighFeelsLike;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthFeelsLikeHt(Dictionary<string, string> tagParams)
@@ -2786,7 +2788,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].LowFeelsLike;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthFeelsLikeLt(Dictionary<string, string> tagParams)
@@ -2811,7 +2813,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighDewPoint;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthDewPointHt(Dictionary<string, string> tagParams)
@@ -2824,7 +2826,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].LowDewPoint;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthDewPointLt(Dictionary<string, string> tagParams)
@@ -2837,7 +2839,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighHeatIndex;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthHeatIndexHt(Dictionary<string, string> tagParams)
@@ -2850,7 +2852,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighGust;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckWindUnit(rec.Val, tagParams), tagParams, cumulus.WindDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckWindUnit(rec.Val, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string TagByMonthGustHt(Dictionary<string, string> tagParams)
@@ -2863,7 +2865,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighWind;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckWindUnit(rec.Val, tagParams), tagParams, cumulus.WindDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckWindUnit(rec.Val, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string TagByMonthWindHt(Dictionary<string, string> tagParams)
@@ -2876,7 +2878,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].LowChill;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthWChillLt(Dictionary<string, string> tagParams)
@@ -2889,7 +2891,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighRainRate;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagByMonthRainRateHt(Dictionary<string, string> tagParams)
@@ -2902,7 +2904,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighWindRun;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckWindRunUnit(rec.Val, tagParams), tagParams, cumulus.WindRunDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckWindRunUnit(rec.Val, tagParams), tagParams, cumulus.WindRunDPlaces);
 		}
 
 		private string TagByMonthWindRunHt(Dictionary<string, string> tagParams)
@@ -2915,7 +2917,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].DailyRain;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagByMonthDailyRainHt(Dictionary<string, string> tagParams)
@@ -2928,7 +2930,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighRain24Hours;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagByMonthRain24HourHt(Dictionary<string, string> tagParams)
@@ -2940,39 +2942,39 @@ namespace CumulusMX
 		private string TagByMonthLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestDryPeriod.Val < 0 ? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestDryPeriod, tagParams, 0);
+			return station.MonthlyRecs[month].LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestDryPeriod, tagParams, 0);
 		}
 
 		private string TagByMonthLongestDryPeriodT(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestDryPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return station.MonthlyRecs[month].LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagByMonthLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestWetPeriod.Val < 0 ? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestWetPeriod, tagParams, 0);
+			return station.MonthlyRecs[month].LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestWetPeriod, tagParams, 0);
 		}
 
 		private string TagByMonthLongestWetPeriodT(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestWetPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return station.MonthlyRecs[month].LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagByMonthLowDailyTempRange(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].LowDailyTempRange;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnitAbs(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnitAbs(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthHighDailyTempRange(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighDailyTempRange;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnitAbs(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnitAbs(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthLowDailyTempRangeT(Dictionary<string, string> tagParams)
@@ -2991,7 +2993,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HourlyRain;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagByMonthHourlyRainHt(Dictionary<string, string> tagParams)
@@ -3004,7 +3006,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].MonthlyRain;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagByMonthMonthlyRainHt(Dictionary<string, string> tagParams)
@@ -3017,7 +3019,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighPress;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckPressUnit(rec.Val, tagParams), tagParams, cumulus.PressDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckPressUnit(rec.Val, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagByMonthPressHt(Dictionary<string, string> tagParams)
@@ -3030,7 +3032,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].LowPress;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckPressUnit(rec.Val, tagParams), tagParams, cumulus.PressDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckPressUnit(rec.Val, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagByMonthPressLt(Dictionary<string, string> tagParams)
@@ -3067,7 +3069,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighMinTemp;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthMinTempHt(Dictionary<string, string> tagParams)
@@ -3080,7 +3082,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].LowMaxTemp;
-			return rec.Ts <= cumulus.defaultRecordTS ? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthMaxTempLt(Dictionary<string, string> tagParams)
@@ -3274,12 +3276,12 @@ namespace CumulusMX
 
 		private string Tagmoonrise(Dictionary<string, string> tagParams)
 		{
-			return cumulus.MoonRiseTime.Hours < 0 ? "-----" : GetFormattedDateTime(DateTime.Now.Date.AddSeconds(cumulus.MoonRiseTime.TotalSeconds), "HH:mm", tagParams);
+			return cumulus.MoonRiseTime.Hours < 0 ? tagParams.Get("nv") ?? "-----" : GetFormattedDateTime(DateTime.Now.Date.AddSeconds(cumulus.MoonRiseTime.TotalSeconds), "HH:mm", tagParams);
 		}
 
 		private string Tagmoonset(Dictionary<string, string> tagParams)
 		{
-			return cumulus.MoonSetTime.Hours < 0 ? "-----" : GetFormattedDateTime(DateTime.Now.Date.AddSeconds(cumulus.MoonSetTime.TotalSeconds), "HH:mm", tagParams);
+			return cumulus.MoonSetTime.Hours < 0 ? tagParams.Get("nv") ?? "-----" : GetFormattedDateTime(DateTime.Now.Date.AddSeconds(cumulus.MoonSetTime.TotalSeconds), "HH:mm", tagParams);
 		}
 
 		private string Tagmoonphase(Dictionary<string, string> tagParams)
@@ -3481,7 +3483,7 @@ namespace CumulusMX
 			}
 			catch (Exception)
 			{
-				return "---";
+				return tagParams.Get("nv") ?? "---";
 			}
 		}
 
@@ -3494,7 +3496,7 @@ namespace CumulusMX
 			}
 			catch (Exception)
 			{
-				return "---";
+				return tagParams.Get("nv") ?? "---";
 			}
 
 			return ((int) (DateTime.Now.ToUniversalTime() - lastTip.ToUniversalTime()).TotalMinutes).ToString();
@@ -3726,7 +3728,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						return "-";
+						return tagParams.Get("nv") ?? "-";
 					}
 				}
 				else
@@ -3797,13 +3799,13 @@ namespace CumulusMX
 					}
 					else
 					{
-						return "-";
+						return tagParams.Get("nv") ?? "-";
 					}
 				}
 				catch
 				{
 					// error or no data found
-					return "-";
+					return tagParams.Get("nv") ?? "-";
 				}
 			}
 			else
@@ -3981,7 +3983,7 @@ namespace CumulusMX
 
 		private string GetExtraTemp(int index, Dictionary<string, string> tagParams)
 		{
-			return station.ExtraTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.ExtraTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
+			return station.ExtraTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.ExtraTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagExtraDp1(Dictionary<string, string> tagParams)
@@ -4036,7 +4038,7 @@ namespace CumulusMX
 
 		private string GetExtraDP(int index, Dictionary<string, string> tagParams)
 		{
-			return station.ExtraDewPoint[index].HasValue ? CheckRcDp(CheckTempUnit(station.ExtraDewPoint[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
+			return station.ExtraDewPoint[index].HasValue ? CheckRcDp(CheckTempUnit(station.ExtraDewPoint[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagExtraHum1(Dictionary<string, string> tagParams)
@@ -4091,7 +4093,7 @@ namespace CumulusMX
 
 		private string GetExtraHum(int index, Dictionary<string, string> tagParams)
 		{
-			return station.ExtraHum[index].HasValue ? CheckRcDp(station.ExtraHum[index].Value, tagParams, cumulus.HumDPlaces) : "-";
+			return station.ExtraHum[index].HasValue ? CheckRcDp(station.ExtraHum[index].Value, tagParams, cumulus.HumDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilTemp1(Dictionary<string, string> tagParams)
@@ -4176,87 +4178,87 @@ namespace CumulusMX
 
 		private string GetSoilTemp(int index, Dictionary<string, string> tagParams)
 		{
-			return station.SoilTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.SoilTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
+			return station.SoilTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.SoilTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture1(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture1.HasValue ? station.SoilMoisture1.ToString() : "-";
+			return station.SoilMoisture1.HasValue ? station.SoilMoisture1.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture2(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture2.HasValue ? station.SoilMoisture2.ToString() : "-";
+			return station.SoilMoisture2.HasValue ? station.SoilMoisture2.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture3(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture3.HasValue ? station.SoilMoisture3.ToString() : "-";
+			return station.SoilMoisture3.HasValue ? station.SoilMoisture3.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture4(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture4.HasValue ? station.SoilMoisture4.ToString() : "-";
+			return station.SoilMoisture4.HasValue ? station.SoilMoisture4.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture5(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture5.HasValue ? station.SoilMoisture5.ToString() : "-";
+			return station.SoilMoisture5.HasValue ? station.SoilMoisture5.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture6(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture6.HasValue ? station.SoilMoisture6.ToString() : "-";
+			return station.SoilMoisture6.HasValue ? station.SoilMoisture6.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture7(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture7.HasValue ? station.SoilMoisture7.ToString() : "-";
+			return station.SoilMoisture7.HasValue ? station.SoilMoisture7.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture8(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture8.HasValue ? station.SoilMoisture8.ToString() : "-";
+			return station.SoilMoisture8.HasValue ? station.SoilMoisture8.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture9(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture9.HasValue ? station.SoilMoisture9.ToString() : "-";
+			return station.SoilMoisture9.HasValue ? station.SoilMoisture9.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture10(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture10.HasValue ? station.SoilMoisture10.ToString() : "-";
+			return station.SoilMoisture10.HasValue ? station.SoilMoisture10.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture11(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture11.HasValue ? station.SoilMoisture11.ToString() : "-";
+			return station.SoilMoisture11.HasValue ? station.SoilMoisture11.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture12(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture12.HasValue ? station.SoilMoisture12.ToString() : "-";
+			return station.SoilMoisture12.HasValue ? station.SoilMoisture12.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture13(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture13.HasValue ? station.SoilMoisture13.ToString() : "-";
+			return station.SoilMoisture13.HasValue ? station.SoilMoisture13.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture14(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture14.HasValue ? station.SoilMoisture14.ToString() : "-";
+			return station.SoilMoisture14.HasValue ? station.SoilMoisture14.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture15(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture15.HasValue ? station.SoilMoisture15.ToString() : "-";
+			return station.SoilMoisture15.HasValue ? station.SoilMoisture15.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture16(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture16.HasValue ? station.SoilMoisture16.ToString() : "-";
+			return station.SoilMoisture16.HasValue ? station.SoilMoisture16.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagUserTemp1(Dictionary<string, string> tagParams)
@@ -4301,7 +4303,7 @@ namespace CumulusMX
 
 		private string GetUserTemp(int index, Dictionary<string, string> tagParams)
 		{
-			return station.UserTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.UserTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
+			return station.UserTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.UserTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLaserDist1(Dictionary<string, string> tagParams)
@@ -4326,7 +4328,7 @@ namespace CumulusMX
 
 		private string GetLaserDist(int index, Dictionary<string, string> tagParams)
 		{
-			return station.LaserDist[index].HasValue ? CheckRcDp(station.LaserDist[index].Value, tagParams, 1) : "-";
+			return station.LaserDist[index].HasValue ? CheckRcDp(station.LaserDist[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 
@@ -4352,88 +4354,88 @@ namespace CumulusMX
 
 		private string GetLaserDepth(int index, Dictionary<string, string> tagParams)
 		{
-			return station.LaserDepth[index].HasValue ? CheckRcDp(station.LaserDepth[index].Value, tagParams, 1) : "-";
+			return station.LaserDepth[index].HasValue ? CheckRcDp(station.LaserDepth[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 
 		private string TagAirQuality1(Dictionary<string, string> tagParams)
 		{
-			return station.AirQuality1.HasValue ? CheckRcDp(station.AirQuality1.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQuality1.HasValue ? CheckRcDp(station.AirQuality1.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQuality2(Dictionary<string, string> tagParams)
 		{
-			return station.AirQuality2.HasValue ? CheckRcDp(station.AirQuality2.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQuality2.HasValue ? CheckRcDp(station.AirQuality2.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQuality3(Dictionary<string, string> tagParams)
 		{
-			return station.AirQuality3.HasValue ? CheckRcDp(station.AirQuality3.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQuality3.HasValue ? CheckRcDp(station.AirQuality3.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQuality4(Dictionary<string, string> tagParams)
 		{
-			return station.AirQuality4.HasValue ? CheckRcDp(station.AirQuality4.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQuality4.HasValue ? CheckRcDp(station.AirQuality4.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityAvg1(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityAvg1.HasValue ? CheckRcDp(station.AirQualityAvg1.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityAvg1.HasValue ? CheckRcDp(station.AirQualityAvg1.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityAvg2(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityAvg2.HasValue ? CheckRcDp(station.AirQualityAvg2.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityAvg2.HasValue ? CheckRcDp(station.AirQualityAvg2.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityAvg3(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityAvg3.HasValue ? CheckRcDp(station.AirQualityAvg3.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityAvg3.HasValue ? CheckRcDp(station.AirQualityAvg3.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityAvg4(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityAvg4.HasValue ? CheckRcDp(station.AirQualityAvg4.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityAvg4.HasValue ? CheckRcDp(station.AirQualityAvg4.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityIdx1(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityIdx1.HasValue ? CheckRcDp(station.AirQualityIdx1.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityIdx1.HasValue ? CheckRcDp(station.AirQualityIdx1.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityIdx2(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityIdx2.HasValue ? CheckRcDp(station.AirQualityIdx2.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityIdx2.HasValue ? CheckRcDp(station.AirQualityIdx2.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityIdx3(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityIdx3.HasValue ? CheckRcDp(station.AirQualityIdx3.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityIdx3.HasValue ? CheckRcDp(station.AirQualityIdx3.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityIdx4(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityIdx4.HasValue ? CheckRcDp(station.AirQualityIdx4.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityIdx4.HasValue ? CheckRcDp(station.AirQualityIdx4.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityAvgIdx1(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityAvgIdx1.HasValue ? CheckRcDp(station.AirQualityAvgIdx1.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityAvgIdx1.HasValue ? CheckRcDp(station.AirQualityAvgIdx1.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityAvgIdx2(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityAvgIdx2.HasValue ? CheckRcDp(station.AirQualityAvgIdx2.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityAvgIdx2.HasValue ? CheckRcDp(station.AirQualityAvgIdx2.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityAvgIdx3(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityAvgIdx3.HasValue ? CheckRcDp(station.AirQualityAvgIdx3.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityAvgIdx3.HasValue ? CheckRcDp(station.AirQualityAvgIdx3.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityAvgIdx4(Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityAvgIdx4.HasValue ? CheckRcDp(station.AirQualityAvgIdx4.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.AirQualityAvgIdx4.HasValue ? CheckRcDp(station.AirQualityAvgIdx4.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCo2(Dictionary<string, string> tagParams)
@@ -4448,72 +4450,72 @@ namespace CumulusMX
 
 		private string TagCO2_pm2p5(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm2p5.HasValue ? CheckRcDp(station.CO2_pm2p5.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm2p5.HasValue ? CheckRcDp(station.CO2_pm2p5.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm2p5_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm2p5_24h.HasValue ? CheckRcDp(station.CO2_pm2p5_24h.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm2p5_24h.HasValue ? CheckRcDp(station.CO2_pm2p5_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm10(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm10.HasValue ? CheckRcDp(station.CO2_pm10.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm10.HasValue ? CheckRcDp(station.CO2_pm10.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm10_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm10_24h.HasValue ? CheckRcDp(station.CO2_pm10_24h.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm10_24h.HasValue ? CheckRcDp(station.CO2_pm10_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_temp(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_temperature.HasValue ? CheckRcDp(CheckTempUnit(station.CO2_temperature.Value, tagParams), tagParams, cumulus.TempDPlaces) : "-";
+			return station.CO2_temperature.HasValue ? CheckRcDp(CheckTempUnit(station.CO2_temperature.Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_hum(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_humidity.HasValue ? CheckRcDp(station.CO2_humidity.Value, tagParams, cumulus.HumDPlaces) : "-";
+			return station.CO2_humidity.HasValue ? CheckRcDp(station.CO2_humidity.Value, tagParams, cumulus.HumDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm1(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm1.HasValue ? CheckRcDp(station.CO2_pm1.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm1.HasValue ? CheckRcDp(station.CO2_pm1.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm1_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm1_24h.HasValue ? CheckRcDp(station.CO2_pm1_24h.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm1_24h.HasValue ? CheckRcDp(station.CO2_pm1_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm4(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm4.HasValue ? CheckRcDp(station.CO2_pm4.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm4.HasValue ? CheckRcDp(station.CO2_pm4.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm4_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm4_24h.HasValue ? CheckRcDp(station.CO2_pm4_24h.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm4_24h.HasValue ? CheckRcDp(station.CO2_pm4_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm2p5_aqi(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm2p5_aqi.HasValue ? CheckRcDp(station.CO2_pm2p5_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm2p5_aqi.HasValue ? CheckRcDp(station.CO2_pm2p5_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm2p5_24h_aqi(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm2p5_24h_aqi.HasValue ? CheckRcDp(station.CO2_pm2p5_24h_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm2p5_24h_aqi.HasValue ? CheckRcDp(station.CO2_pm2p5_24h_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm10_aqi(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm10_aqi.HasValue ? CheckRcDp(station.CO2_pm10_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm10_aqi.HasValue ? CheckRcDp(station.CO2_pm10_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm10_24h_aqi(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm10_24h_aqi.HasValue ? CheckRcDp(station.CO2_pm10_24h_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : "-";
+			return station.CO2_pm10_24h_aqi.HasValue ? CheckRcDp(station.CO2_pm10_24h_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLeakSensor1(Dictionary<string, string> tagParams)
@@ -4543,7 +4545,7 @@ namespace CumulusMX
 
 		private string TagLightningTime(Dictionary<string, string> tagParams)
 		{
-			return DateTime.Equals(station.LightningTime, DateTime.MinValue) ? "---" : GetFormattedDateTime(station.LightningTime, "t", tagParams);
+			return DateTime.Equals(station.LightningTime, DateTime.MinValue) ? tagParams.Get("nv") ?? "---" : GetFormattedDateTime(station.LightningTime, "t", tagParams);
 		}
 
 		private string TagLightningStrikesToday(Dictionary<string, string> tagParams)
@@ -4553,42 +4555,42 @@ namespace CumulusMX
 
 		private string TagLeafWetness1(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness1.HasValue ? CheckRcDp(station.LeafWetness1.Value, tagParams, 1) : "-";
+			return station.LeafWetness1.HasValue ? CheckRcDp(station.LeafWetness1.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLeafWetness2(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness2.HasValue ? CheckRcDp(station.LeafWetness2.Value, tagParams, 1) : "-";
+			return station.LeafWetness2.HasValue ? CheckRcDp(station.LeafWetness2.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLeafWetness3(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness3.HasValue ? CheckRcDp(station.LeafWetness3.Value, tagParams, 1) : "-";
+			return station.LeafWetness3.HasValue ? CheckRcDp(station.LeafWetness3.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLeafWetness4(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness4.HasValue ? CheckRcDp(station.LeafWetness4.Value, tagParams, 1) : "-";
+			return station.LeafWetness4.HasValue ? CheckRcDp(station.LeafWetness4.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLeafWetness5(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness5.HasValue ? CheckRcDp(station.LeafWetness5.Value, tagParams, 1) : "-";
+			return station.LeafWetness5.HasValue ? CheckRcDp(station.LeafWetness5.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLeafWetness6(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness6.HasValue ? CheckRcDp(station.LeafWetness6.Value, tagParams, 1) : "-";
+			return station.LeafWetness6.HasValue ? CheckRcDp(station.LeafWetness6.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLeafWetness7(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness7.HasValue ? CheckRcDp(station.LeafWetness7.Value, tagParams, 1) : "-";
+			return station.LeafWetness7.HasValue ? CheckRcDp(station.LeafWetness7.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLeafWetness8(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness8.HasValue ? CheckRcDp(station.LeafWetness8.Value, tagParams, 1) : "-";
+			return station.LeafWetness8.HasValue ? CheckRcDp(station.LeafWetness8.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 
@@ -4857,12 +4859,12 @@ namespace CumulusMX
 
 		private string TagMonthMinTempH(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.HighMinTemp.Val > -999 ? CheckRcDp(CheckTempUnit(station.ThisMonth.HighMinTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : "--";
+			return station.ThisMonth.HighMinTemp.Val > -999 ? CheckRcDp(CheckTempUnit(station.ThisMonth.HighMinTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagMonthMaxTempL(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LowMaxTemp.Val < 999 ? CheckRcDp(CheckTempUnit(station.ThisMonth.LowMaxTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : "--";
+			return station.ThisMonth.LowMaxTemp.Val < 999 ? CheckRcDp(CheckTempUnit(station.ThisMonth.LowMaxTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagMonthPressH(Dictionary<string, string> tagParams)
@@ -4932,12 +4934,12 @@ namespace CumulusMX
 
 		private string TagMonthHighDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.HighDailyTempRange.Val > -999 ? CheckRcDp(CheckTempUnitAbs(station.ThisMonth.HighDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : "--";
+			return station.ThisMonth.HighDailyTempRange.Val > -999 ? CheckRcDp(CheckTempUnitAbs(station.ThisMonth.HighDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagMonthLowDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LowDailyTempRange.Val < 999 ? CheckRcDp(CheckTempUnitAbs(station.ThisMonth.LowDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : "--";
+			return station.ThisMonth.LowDailyTempRange.Val < 999 ? CheckRcDp(CheckTempUnitAbs(station.ThisMonth.LowDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		// Monthly highs and lows - times
@@ -5099,12 +5101,12 @@ namespace CumulusMX
 
 		private string TagMonthMinTempHd(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.HighMinTemp.Val > -999 ? GetFormattedDateTime(station.ThisMonth.HighMinTemp.Ts, "dd MMMM", tagParams) : "---";
+			return station.ThisMonth.HighMinTemp.Val > -999 ? GetFormattedDateTime(station.ThisMonth.HighMinTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
 		}
 
 		private string TagMonthMaxTempLd(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LowMaxTemp.Val < 999 ? GetFormattedDateTime(station.ThisMonth.LowMaxTemp.Ts, "dd MMMM", tagParams) : "---";
+			return station.ThisMonth.LowMaxTemp.Val < 999 ? GetFormattedDateTime(station.ThisMonth.LowMaxTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
 		}
 
 		private string TagMonthPressHd(Dictionary<string, string> tagParams)
@@ -5154,12 +5156,12 @@ namespace CumulusMX
 
 		private string TagMonthHighDailyTempRangeD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.HighDailyTempRange.Val < 999 ? GetFormattedDateTime(station.ThisMonth.HighDailyTempRange.Ts, "dd MMMM", tagParams) : "------";
+			return station.ThisMonth.HighDailyTempRange.Val < 999 ? GetFormattedDateTime(station.ThisMonth.HighDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
 		}
 
 		private string TagMonthLowDailyTempRangeD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LowDailyTempRange.Val > -999 ? GetFormattedDateTime(station.ThisMonth.LowDailyTempRange.Ts, "dd MMMM", tagParams) : "------";
+			return station.ThisMonth.LowDailyTempRange.Val > -999 ? GetFormattedDateTime(station.ThisMonth.LowDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
 		}
 
 		private string TagMonthWindRunHd(Dictionary<string, string> tagParams)
@@ -5174,12 +5176,12 @@ namespace CumulusMX
 
 		private string TagMonthLongestDryPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestDryPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.ThisMonth.LongestDryPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisMonth.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.ThisMonth.LongestDryPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthLongestWetPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestWetPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.ThisMonth.LongestWetPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisMonth.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.ThisMonth.LongestWetPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		// Yearly highs and lows - values
@@ -5240,12 +5242,12 @@ namespace CumulusMX
 
 		private string TagYearMinTempH(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.HighMinTemp.Val > -999 ? CheckRcDp(CheckTempUnit(station.ThisYear.HighMinTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : "--";
+			return station.ThisYear.HighMinTemp.Val > -999 ? CheckRcDp(CheckTempUnit(station.ThisYear.HighMinTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagYearMaxTempL(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LowMaxTemp.Val < 999 ? CheckRcDp(CheckTempUnit(station.ThisYear.LowMaxTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : "--";
+			return station.ThisYear.LowMaxTemp.Val < 999 ? CheckRcDp(CheckTempUnit(station.ThisYear.LowMaxTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagYearPressH(Dictionary<string, string> tagParams)
@@ -5305,22 +5307,22 @@ namespace CumulusMX
 
 		private string TagYearLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestDryPeriod.Val < 0 ? "--" : station.ThisYear.LongestDryPeriod.Val.ToString();
+			return station.ThisYear.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : station.ThisYear.LongestDryPeriod.Val.ToString();
 		}
 
 		private string TagYearLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestWetPeriod.Val < 0 ? "--" : station.ThisYear.LongestWetPeriod.Val.ToString();
+			return station.ThisYear.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : station.ThisYear.LongestWetPeriod.Val.ToString();
 		}
 
 		private string TagYearHighDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.HighDailyTempRange.Val > -999 ? CheckRcDp(CheckTempUnitAbs(station.ThisYear.HighDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : "--";
+			return station.ThisYear.HighDailyTempRange.Val > -999 ? CheckRcDp(CheckTempUnitAbs(station.ThisYear.HighDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagYearLowDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LowDailyTempRange.Val < 999 ? CheckRcDp(CheckTempUnitAbs(station.ThisYear.LowDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : "--";
+			return station.ThisYear.LowDailyTempRange.Val < 999 ? CheckRcDp(CheckTempUnitAbs(station.ThisYear.LowDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagYearMonthlyRainH(Dictionary<string, string> tagParams)
@@ -5486,12 +5488,12 @@ namespace CumulusMX
 
 		private string TagYearMinTempHd(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.HighMinTemp.Val > -999 ? GetFormattedDateTime(station.ThisYear.HighMinTemp.Ts, "dd MMMM", tagParams) : "---";
+			return station.ThisYear.HighMinTemp.Val > -999 ? GetFormattedDateTime(station.ThisYear.HighMinTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
 		}
 
 		private string TagYearMaxTempLd(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LowMaxTemp.Val < 999 ? GetFormattedDateTime(station.ThisYear.LowMaxTemp.Ts, "dd MMMM", tagParams) : "---";
+			return station.ThisYear.LowMaxTemp.Val < 999 ? GetFormattedDateTime(station.ThisYear.LowMaxTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
 		}
 
 		private string TagYearPressHd(Dictionary<string, string> tagParams)
@@ -5541,12 +5543,12 @@ namespace CumulusMX
 
 		private string TagYearHighDailyTempRangeD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.HighDailyTempRange.Val > -999 ? GetFormattedDateTime(station.ThisYear.HighDailyTempRange.Ts, "dd MMMM", tagParams) : "------";
+			return station.ThisYear.HighDailyTempRange.Val > -999 ? GetFormattedDateTime(station.ThisYear.HighDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
 		}
 
 		private string TagYearLowDailyTempRangeD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LowDailyTempRange.Val < 999 ? GetFormattedDateTime(station.ThisYear.LowDailyTempRange.Ts, "dd MMMM", tagParams) : "------";
+			return station.ThisYear.LowDailyTempRange.Val < 999 ? GetFormattedDateTime(station.ThisYear.LowDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
 		}
 
 		private string TagYearWindRunHd(Dictionary<string, string> tagParams)
@@ -5598,12 +5600,12 @@ namespace CumulusMX
 
 		private string TagLatestErrorDate(Dictionary<string, string> tagParams)
 		{
-			return Cumulus.LatestErrorTS == DateTime.MinValue ? "------" : GetFormattedDateTime(Cumulus.LatestErrorTS, "ddddd", tagParams);
+			return Cumulus.LatestErrorTS == DateTime.MinValue ? tagParams.Get("nv") ?? "------" : GetFormattedDateTime(Cumulus.LatestErrorTS, "ddddd", tagParams);
 		}
 
 		private string TagLatestErrorTime(Dictionary<string, string> tagParams)
 		{
-			return Cumulus.LatestErrorTS == DateTime.MinValue ? "------" : GetFormattedDateTime(Cumulus.LatestErrorTS, "t", tagParams);
+			return Cumulus.LatestErrorTS == DateTime.MinValue ? tagParams.Get("nv") ?? "------" : GetFormattedDateTime(Cumulus.LatestErrorTS, "t", tagParams);
 		}
 
 		private static string TagOsVersion(Dictionary<string, string> tagParams)
@@ -5794,7 +5796,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				return json ? "{}" : "n/a";
+				return json ? "{}" : tagParams.Get("nv") ?? "n/a";
 			}
 		}
 
@@ -6002,7 +6004,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				solValue = station.SolarRad.HasValue ? station.SolarRad.ToString() : "-";
+				solValue = station.SolarRad.HasValue ? station.SolarRad.ToString() : tagParams.Get("nv") ?? "-";
 			}
 			return solValue;
 		}
@@ -6020,7 +6022,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				uvValue = station.UV.HasValue ? CheckRcDp(station.UV.Value, tagParams, cumulus.UVDPlaces) : "-";
+				uvValue = station.UV.HasValue ? CheckRcDp(station.UV.Value, tagParams, cumulus.UVDPlaces) : tagParams.Get("nv") ?? "-";
 			}
 			return uvValue;
 		}
@@ -6038,7 +6040,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				indoorTempValue = station.IndoorTemperature.HasValue ? CheckRcDp(station.IndoorTemperature.Value, tagParams, cumulus.TempDPlaces) : "-";
+				indoorTempValue = station.IndoorTemperature.HasValue ? CheckRcDp(station.IndoorTemperature.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 			}
 			return indoorTempValue;
 		}

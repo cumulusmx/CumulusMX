@@ -10,7 +10,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.3.2 \[b4065\]][10] - 2024-12-11
+## [4.3.2 \[b4065\]][11] - 2024-12-12
+
+### New
+
+- Web tags now have the optional null value parameter `nv=xxxx`
+	- This overrides the default string returned when the value is null or not available
+	- The default for most web tags is a dashed value like "--"
 
 ### Changed
 
@@ -507,3 +513,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [8]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4043
 [9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4063
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
+[11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4065
