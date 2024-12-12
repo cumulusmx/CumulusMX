@@ -3441,7 +3441,7 @@ namespace CumulusMX
 					// This does not really work, as the recent data is every minute, the logged data could be every 5, 15, 30 minutes
 
 					if (!newData.extra)
-					{ 
+					{
 						var LogRec = station.ParseLogFileRec(newLine, false);
 
 						// Update the MySQL record
@@ -3475,8 +3475,8 @@ namespace CumulusMX
 								updt.Append($"LatestWindGust={LogRec.WindLatest.ToString(cumulus.WindFormat, InvC)},");
 								updt.Append($"WindChill={LogRec.WindChill.ToString(cumulus.TempFormat, InvC)},");
 								updt.Append($"HeatIndex={LogRec.HeatIndex.ToString(cumulus.TempFormat, InvC)},");
-								updt.Append($"UVindex={LogRec.UV.ToString(cumulus.UVFormat, InvC)},");
-								updt.Append($"SolarRad={LogRec.SolarRad},");
+								updt.Append($"UVindex={(LogRec.UV.HasValue ? LogRec.UV.Value.ToString(cumulus.UVFormat, InvC) : "NULL")},");
+								updt.Append($"SolarRad={(LogRec.SolarRad.HasValue ? (int)LogRec.SolarRad.Value : "NULL")},");
 								updt.Append($"Evapotrans={LogRec.ET.ToString(cumulus.ETFormat, InvC)},");
 								updt.Append($"AnnualEvapTran={LogRec.AnnualETTotal.ToString(cumulus.ETFormat, InvC)},");
 								updt.Append($"ApparentTemp={LogRec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)},");

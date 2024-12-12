@@ -90,8 +90,8 @@ namespace CumulusMX
 			public double WindLatest;
 			public double WindChill;
 			public double HeatIndex;
-			public double UV;
-			public double SolarRad;
+			public double? UV;
+			public double? SolarRad;
 			public double ET;
 			public double AnnualETTotal;
 			public double ApparentTemperature;
@@ -2412,17 +2412,14 @@ namespace CumulusMX
 			{
 				var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
 
-				if (cumulus.GraphOptions.Visible.UV.IsVisible(local) && data[i].UV.HasValue)
+				if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 				{
-					sbUv.Append($"[{jsTime},{(data[i].UV ?? 0).ToString(cumulus.UVFormat, InvC)}],");
+					sbUv.Append($"[{jsTime},{(data[i].UV.HasValue ? data[i].UV.Value.ToString(cumulus.UVFormat, InvC) : "null")}],");
 				}
 
 				if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 				{
-					if (data[i].SolarRad.HasValue)
-					{
-						sbSol.Append($"[{jsTime},{data[i].SolarRad ?? 0}],");
-					}
+					sbSol.Append($"[{jsTime},{(data[i].SolarRad.HasValue ? data[i].SolarRad : "null")}],");
 
 					sbMax.Append($"[{jsTime},{data[i].SolarMax}],");
 				}
@@ -2532,7 +2529,7 @@ namespace CumulusMX
 				}
 				if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
 				{
-					sbIn.Append($"[{jsTime},{data[i].IndoorHumidity}],");
+					sbIn.Append($"[{jsTime},{(data[i].IndoorHumidity.HasValue ? data[i].IndoorHumidity.Value : "null")}],");
 				}
 			}
 
@@ -2718,8 +2715,11 @@ namespace CumulusMX
 			{
 				var jsTime = Utils.ToPseudoJSTime(data[i].Timestamp);
 
-				if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local) && data[i].IndoorTemp.HasValue)
-					sbIn.Append($"[{jsTime},{data[i].IndoorTemp.Value.ToString(cumulus.TempFormat, InvC)}],");
+				if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
+				{
+					var val = data[i].IndoorTemp.HasValue ? data[i].IndoorTemp.Value.ToString(cumulus.TempFormat, InvC) : "null";
+					sbIn.Append($"[{jsTime},{val}],");
+				}
 
 				if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 					sbDew.Append($"[{jsTime},{data[i].DewPoint.ToString(cumulus.TempFormat, InvC)}],");
@@ -3000,8 +3000,11 @@ namespace CumulusMX
 									var jsTime = Utils.ToPseudoJSTime(entrydate);
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length; i++)
 									{
-										if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local) && double.TryParse(st[i + 2], InvC, out temp))
-											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
+										if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local))
+										{
+											var val = double.TryParse(st[i + 2], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											sbExt[i].Append($"[{jsTime},{val}],");
+										}
 									}
 								}
 							}
@@ -3141,10 +3144,14 @@ namespace CumulusMX
 									// entry is from required period
 									var jsTime = Utils.ToPseudoJSTime(entrydate);
 									var temp = 0.0;
+									var val = string.Empty;
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length; i++)
 									{
-										if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local) && double.TryParse(st[i + 22], InvC, out temp))
-											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
+										if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local))
+										{
+											val = double.TryParse(st[i + 22], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											sbExt[i].Append($"[{jsTime},{val}],");
+										}
 									}
 								}
 							}
@@ -3286,8 +3293,11 @@ namespace CumulusMX
 									var jsTime = Utils.ToPseudoJSTime(entrydate);
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Vals.Length; i++)
 									{
-										if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(i, local) && int.TryParse(st[i + 12], out temp))
-											sbExt[i].Append($"[{jsTime},{temp}],");
+										if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(i, local))
+										{
+											var val = int.TryParse(st[i + 12], out temp) ? temp.ToString() : "null";
+											sbExt[i].Append($"[{jsTime},{val}],");
+										}
 									}
 								}
 							}
@@ -3430,13 +3440,19 @@ namespace CumulusMX
 
 									for (var i = 0; i < 4; i++)
 									{
-										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local) && double.TryParse(st[i + 32], InvC, out temp))
-											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
+										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local))
+										{
+											var val = double.TryParse(st[i + 32], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											sbExt[i].Append($"[{jsTime},{val}],");
+										}
 									}
 									for (var i = 4; i < 16; i++)
 									{
-										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local) && double.TryParse(st[i + 40], InvC, out temp))
-											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
+										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local))
+										{
+											var val =  double.TryParse(st[i + 40], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											sbExt[i].Append($"[{jsTime},{val}],");
+										}
 									}
 								}
 							}
@@ -3578,13 +3594,19 @@ namespace CumulusMX
 
 									for (var i = 0; i < 4; i++)
 									{
-										if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local) && int.TryParse(st[i + 36], out temp))
-											sbExt[i].Append($"[{jsTime},{temp}],");
+										if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
+										{
+											var val = int.TryParse(st[i + 36], out temp) ? temp.ToString() : "null";
+											sbExt[i].Append($"[{jsTime},{val}],");
+										}
 									}
 									for (var i = 4; i < 16; i++)
 									{
-										if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local) && int.TryParse(st[i + 52], out temp))
-											sbExt[i].Append($"[{jsTime},{temp}],");
+										if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
+										{
+											var val = int.TryParse(st[i + 52], out temp) ? temp.ToString() : "null";
+											sbExt[i].Append($"[{jsTime},{val}],");
+										}
 									}
 								}
 							}
@@ -3871,8 +3893,11 @@ namespace CumulusMX
 
 									for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Vals.Length; i++)
 									{
-										if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local) && double.TryParse(st[i + 76], InvC, out temp))
-											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
+										if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local))
+										{
+											var val = double.TryParse(st[i + 76], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											sbExt[i].Append($"[{jsTime},{val}],");
+										}
 									}
 								}
 							}
@@ -4207,8 +4232,8 @@ namespace CumulusMX
 
 							var jsTime = Utils.ToPseudoJSTime(rec.Date);
 
-							if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local) && rec.IndoorTemperature.HasValue)
-								sbIn.Append($"[{jsTime},{rec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC)}],");
+							if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
+								sbIn.Append($"[{jsTime},{(rec.IndoorTemperature.HasValue ? rec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
 
 							if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 								sbDew.Append($"[{jsTime},{rec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)}],");
@@ -4391,7 +4416,7 @@ namespace CumulusMX
 							}
 							if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
 							{
-								sbIn.Append($"[{jsTime},{rec.IndoorHumidity}],");
+								sbIn.Append($"[{jsTime},{(rec.IndoorHumidity.HasValue ? rec.IndoorHumidity.Value : "null")}],");
 							}
 						}
 					}
@@ -4497,12 +4522,12 @@ namespace CumulusMX
 
 							if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 							{
-								sbUv.Append($"[{jsTime},{rec.UV.ToString(cumulus.UVFormat, InvC)}],");
+								sbUv.Append($"[{jsTime},{(rec.UV.HasValue ? rec.UV.Value.ToString(cumulus.UVFormat, InvC) : "null")}],");
 							}
 
 							if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 							{
-								sbSol.Append($"[{jsTime},{(int) rec.SolarRad}],");
+								sbSol.Append($"[{jsTime},{(rec.SolarRad.HasValue ?(int) rec.SolarRad.Value : "null")}],");
 
 								sbMax.Append($"[{jsTime},{(int) rec.CurrentSolarMax}],");
 							}
@@ -9318,73 +9343,73 @@ namespace CumulusMX
 				};
 
 
-				if (st.Count > 15 && !string.IsNullOrWhiteSpace(st[15]))
-					rec.WindChill = Convert.ToDouble(st[15], inv);
+				if (st.Count > 15 && double.TryParse(st[15], inv, out resultDbl))
+					rec.WindChill = resultDbl;
 				else
 					rec.WindChill = minMax ? Cumulus.DefaultLoVal : 0.0;
 
-				if (st.Count > 16 && !string.IsNullOrWhiteSpace(st[16]))
-					rec.HeatIndex = Convert.ToDouble(st[16], inv);
+				if (st.Count > 16 && double.TryParse(st[16], inv, out resultDbl))
+					rec.HeatIndex = resultDbl;
 				else
 					rec.HeatIndex = minMax ? Cumulus.DefaultHiVal : 0.0;
 
-				if (st.Count > 17 && !string.IsNullOrWhiteSpace(st[17]))
-					rec.UV = Convert.ToDouble(st[17], inv);
+				if (st.Count > 17 && double.TryParse(st[17], inv, out resultDbl))
+					rec.UV = resultDbl;
 				else
-					rec.UV = minMax ? Cumulus.DefaultHiVal : 0.0;
+					rec.UV = null;
 
-				if (st.Count > 18 && !string.IsNullOrWhiteSpace(st[18]))
-					rec.SolarRad = Convert.ToDouble(st[18], inv);
+				if (st.Count > 18 && double.TryParse(st[18], inv, out resultDbl))
+					rec.UV = resultDbl;
 				else
-					rec.SolarRad = minMax ? Cumulus.DefaultHiVal : 0.0;
+					rec.SolarRad = null;
 
-				if (st.Count > 19 && !string.IsNullOrWhiteSpace(st[19]))
-					rec.ET = Convert.ToDouble(st[19], inv);
+				if (st.Count > 19 && double.TryParse(st[19], inv, out resultDbl))
+					rec.UV = resultDbl;
 				else
 					rec.ET = minMax ? Cumulus.DefaultHiVal : 0.0;
 
-				if (st.Count > 20 && !string.IsNullOrWhiteSpace(st[20]))
-					rec.AnnualETTotal = Convert.ToDouble(st[20], inv);
+				if (st.Count > 20 && double.TryParse(st[20], inv, out resultDbl))
+					rec.UV = resultDbl;
 				else
 					rec.AnnualETTotal = minMax ? Cumulus.DefaultHiVal : 0.0;
 
-				if (st.Count > 21 && !string.IsNullOrWhiteSpace(st[21]))
-					rec.ApparentTemperature = Convert.ToDouble(st[21], inv);
+				if (st.Count > 21 && double.TryParse(st[21], inv, out resultDbl))
+					rec.UV = resultDbl;
 				else
 					rec.ApparentTemperature = minMax ? Cumulus.DefaultHiVal : 0.0;
 
-				if (st.Count > 22 && !string.IsNullOrWhiteSpace(st[22]))
-					rec.CurrentSolarMax = Convert.ToDouble(st[22], inv);
+				if (st.Count > 22 && double.TryParse(st[22], inv, out resultDbl))
+					rec.UV = resultDbl;
 				else
 					rec.CurrentSolarMax = minMax ? Cumulus.DefaultHiVal : 0.0;
 
-				if (st.Count > 23 && !string.IsNullOrWhiteSpace(st[23]))
-					rec.SunshineHours = Convert.ToDouble(st[23], inv);
+				if (st.Count > 23 && double.TryParse(st[23], inv, out resultDbl))
+					rec.UV = resultDbl;
 				else
 					rec.SunshineHours = minMax ? Cumulus.DefaultHiVal : 0.0;
 
-				if (st.Count > 24 && !string.IsNullOrWhiteSpace(st[24]))
-					rec.Bearing = Convert.ToInt32(Convert.ToDouble(st[24]));
+				if (st.Count > 24 && int.TryParse(st[24], out resultInt))
+					rec.Bearing = resultInt;
 				else
 					rec.Bearing = 0;
 
-				if (st.Count > 25 && !string.IsNullOrWhiteSpace(st[25]))
-					rec.RG11RainToday = Convert.ToDouble(st[25], inv);
+				if (st.Count > 25 && double.TryParse(st[25], inv, out resultDbl))
+					rec.UV = resultDbl;
 				else
 					rec.RG11RainToday = minMax ? Cumulus.DefaultHiVal : 0.0;
 
-				if (st.Count > 26 && !string.IsNullOrWhiteSpace(st[26]))
-					rec.RainSinceMidnight = Convert.ToDouble(st[26], inv);
+				if (st.Count > 26 && double.TryParse(st[26], inv, out resultDbl))
+					rec.UV = resultDbl;
 				else
 					rec.RainSinceMidnight = minMax ? Cumulus.DefaultHiVal : 0.0;
 
-				if (st.Count > 27 && !string.IsNullOrWhiteSpace(st[27]))
-					rec.FeelsLike = Convert.ToDouble(st[27], inv);
+				if (st.Count > 27 && double.TryParse(st[27], inv, out resultDbl))
+					rec.UV = resultDbl;
 				else
 					rec.FeelsLike = minMax ? Cumulus.DefaultHiVal : 0.0;
 
-				if (st.Count > 28 && !string.IsNullOrWhiteSpace(st[28]))
-					rec.Humidex = Convert.ToDouble(st[28], inv);
+				if (st.Count > 28 && double.TryParse(st[28], inv, out resultDbl))
+					rec.UV = resultDbl;
 				else
 					rec.Humidex = minMax ? Cumulus.DefaultHiVal : 0.0;
 
@@ -12552,7 +12577,7 @@ namespace CumulusMX
 		}
 
 
-		public string GetDailylData(string from, string to, string fields)
+		public string GetDailyData(string from, string to, string fields)
 		{
 			var fromDate = Utils.FromUnixTime(long.Parse(from));
 			var toDate = Utils.FromUnixTime(long.Parse(to));
@@ -12577,7 +12602,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("GetDailylData: Error processing input fields: " + ex.Message);
+				cumulus.LogErrorMessage("GetDailyData: Error processing input fields: " + ex.Message);
 				return "[]";
 			}
 
@@ -12585,15 +12610,15 @@ namespace CumulusMX
 
 			try
 			{
-				cumulus.LogDebugMessage("GetDailylData: Processing day file records");
+				cumulus.LogDebugMessage("GetDailyData: Processing day file records");
 
 				if (!File.Exists(cumulus.DayFileName))
 				{
-					cumulus.LogErrorMessage("GetDailylData: Error, day file does not exist");
+					cumulus.LogErrorMessage("GetDailyData: Error, day file does not exist");
 					return "[]";
 				}
 
-				cumulus.LogDebugMessage("GetDailylData: Processing day file");
+				cumulus.LogDebugMessage("GetDailyData: Processing day file");
 
 				// read the log file into a List
 				var lines = File.ReadAllLines(cumulus.DayFileName).ToList();
@@ -12628,7 +12653,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("GetDailylData: Error - " + ex.ToString());
+				cumulus.LogErrorMessage("GetDailyData: Error - " + ex.ToString());
 			}
 
 			return "[]";
@@ -13730,22 +13755,22 @@ namespace CumulusMX
 				{
 					long recDate = Utils.ToPseudoJSTime(DayFile[i].Date);
 
-					if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local) && DayFile[i].SunShineHours > Cumulus.DefaultHiVal)
+					if (cumulus.GraphOptions.Visible.Sunshine.IsVisible(local))
 					{
 						// sunshine hours
-						sunHours.Append($"[{recDate},{DayFile[i].SunShineHours.ToString(InvC)}],");
+						sunHours.Append($"[{recDate},{(DayFile[i].SunShineHours > Cumulus.DefaultHiVal ? DayFile[i].SunShineHours.ToString(InvC) : "null")}],");
 					}
 
-					if (cumulus.GraphOptions.Visible.Solar.IsVisible(local) && DayFile[i].HighSolar > Cumulus.DefaultHiVal)
+					if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 					{
 						// hi solar rad
-						solarRad.Append($"[{recDate},{DayFile[i].HighSolar}],");
+						solarRad.Append($"[{recDate},{(DayFile[i].HighSolar > Cumulus.DefaultHiVal ? DayFile[i].HighSolar : "null")}],");
 					}
 
-					if (cumulus.GraphOptions.Visible.UV.IsVisible(local) && DayFile[i].HighUv > Cumulus.DefaultHiVal)
+					if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 					{
 						// hi UV-I
-						uvi.Append($"[{recDate},{DayFile[i].HighUv.ToString(cumulus.UVFormat, InvC)}],");
+						uvi.Append($"[{recDate},{(DayFile[i].HighUv > Cumulus.DefaultHiVal ? DayFile[i].HighUv.ToString(cumulus.UVFormat, InvC) : "null")}],");
 					}
 				}
 			}

@@ -12,11 +12,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.3.2 \[b4065\]][10] - 2024-12-11
 
+### Changed
+
+- Improvements to graph data creation when there are null values present. Affects Solar, UV, Indoor Temp/Hum, Extra Sensors
+
 ### Fixed
 
 - Fix non-present indoor humidity values causing the dashboard gauges to fail
 - Indoor temperature in Select-a-period graphs show 10x value in comma decimal locales
 - Snow graphs now show all days from the first diary entry to present
+
 
 ## [4.3.1 \[b4064\]][10] - 2024-12-09
 
