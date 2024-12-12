@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b4065\]][11] - 2025-01-01
+## [4.4.0 \[b4066\]][12] - 2025-01-01
 
 ### New
 
@@ -31,6 +31,23 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 Nothing yet
+## [4.3.2 \[b4065\]][11] - 2024-12-12
+
+### New
+
+- Web tags now have the optional null value parameter `nv=xxxx`
+	- This overrides the default string returned when the value is null or not available
+	- The default for most web tags is a dashed value like "--"
+
+### Changed
+
+- Improvements to graph data creation when there are null values present. Affects Solar, UV, Indoor Temp/Hum, Extra Sensors
+
+### Fixed
+
+- Fix non-present indoor humidity values causing the dashboard gauges to fail
+- Indoor temperature in Select-a-period graphs show 10x value in comma decimal locales
+- Snow graphs now show all days from the first diary entry to present
 
 
 ## [4.3.1 \[b4064\]][10] - 2024-12-09
@@ -518,3 +535,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4063
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4065
+[12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4066

@@ -31,56 +31,65 @@ namespace CumulusMX
 			}x
 			*/
 
-			var options = new MqttClientOptionsBuilder()
-				.WithClientId("CumulusMXJsonStn" + cumulus.wsPort)
-				.WithTcpServer(cumulus.JsonStationOptions.MqttServer, cumulus.JsonStationOptions.MqttPort)
-				//.WithProtocolType(protocolType)
-				.WithCredentials(string.IsNullOrEmpty(cumulus.JsonStationOptions.MqttPassword) ? null : new MqttClientCredentials(cumulus.JsonStationOptions.MqttUsername, System.Text.Encoding.UTF8.GetBytes(cumulus.JsonStationOptions.MqttPassword)))
-				.WithTlsOptions(
-					new MqttClientTlsOptions()
-					{
-						UseTls = cumulus.JsonStationOptions.MqttUseTls
-					}
-				)
-				.WithoutPacketFragmentation()
-				.WithCleanSession()
-				.Build();
-
-			mqttClient = (MqttClient) mqttFactory.CreateMqttClient();
-
-			Connect(options).Wait();
-
-			SubscribeTopic(cumulus.JsonStationOptions.MqttTopic).Wait();
-
-			mqttClient.DisconnectedAsync += (async e =>
+			try
 			{
-				var delay = 10.0;
-				do
+				var options = new MqttClientOptionsBuilder()
+					.WithClientId("CumulusMXJsonStn" + cumulus.wsPort)
+					.WithTcpServer(cumulus.JsonStationOptions.MqttServer, cumulus.JsonStationOptions.MqttPort)
+					//.WithProtocolType(protocolType)
+					.WithCredentials(string.IsNullOrEmpty(cumulus.JsonStationOptions.MqttPassword) ? null : new MqttClientCredentials(cumulus.JsonStationOptions.MqttUsername, System.Text.Encoding.UTF8.GetBytes(cumulus.JsonStationOptions.MqttPassword)))
+					.WithTlsOptions(
+						new MqttClientTlsOptions()
+						{
+							UseTls = cumulus.JsonStationOptions.MqttUseTls
+						}
+					)
+					.WithoutPacketFragmentation()
+					.WithCleanSession()
+					.Build();
+
+				mqttClient = (MqttClient) mqttFactory.CreateMqttClient();
+
+				Connect(options).Wait();
+
+				SubscribeTopic(cumulus.JsonStationOptions.MqttTopic).Wait();
+
+				mqttClient.DisconnectedAsync += (async e =>
 				{
-					cumulus.LogWarningMessage("Error: JSON Station MQTT disconnected from the server");
-					await Task.Delay(TimeSpan.FromSeconds(delay));
-
-					cumulus.LogDebugMessage("JSON Station MQTT attempting to reconnect with server");
-					try
+					var delay = 10.0;
+					do
 					{
-						Connect(options).Wait();
-						cumulus.LogDebugMessage("JSON Station MQTT reconnected OK");
-					}
-					catch
-					{
-						cumulus.LogErrorMessage("Error: JSON Station MQTT reconnection to server failed");
-					}
+						cumulus.LogWarningMessage("Error: JSON Station MQTT disconnected from the server");
+						await Task.Delay(TimeSpan.FromSeconds(delay));
 
-					delay = Math.Round(delay * 1.5);
-				} while (!mqttClient.IsConnected);
-			});
+						cumulus.LogDebugMessage("JSON Station MQTT attempting to reconnect with server");
+						try
+						{
+							Connect(options).Wait();
+							cumulus.LogDebugMessage("JSON Station MQTT reconnected OK");
+						}
+						catch
+						{
+							cumulus.LogErrorMessage("Error: JSON Station MQTT reconnection to server failed");
+						}
 
-			mqttClient.ApplicationMessageReceivedAsync += e =>
+						delay = Math.Round(delay * 1.5);
+					} while (!mqttClient.IsConnected);
+				});
+
+				mqttClient.ApplicationMessageReceivedAsync += e =>
+				{
+					station.ReceiveDataFromMqtt(e.ApplicationMessage);
+
+					return Task.CompletedTask;
+				};
+			}
+			catch (Exception ex)
 			{
-				station.ReceiveDataFromMqtt(e.ApplicationMessage);
-
-				return Task.CompletedTask;
-			};
+				cumulus.LogExceptionMessage(ex,"JSON MQTT Error: failed to create or connect to the host");
+				cumulus.LogMessage("JSON MQTT: terminating...");
+				Program.exitSystem = true;
+			}
 		}
 
 
