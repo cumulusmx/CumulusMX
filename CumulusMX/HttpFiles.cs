@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
@@ -149,6 +150,12 @@ namespace CumulusMX
 			}
 			else
 			{
+				var parser = new TokenParser(cumulus.TokenParserOnToken)
+				{
+					InputText = url
+				};
+				url = parser.ToStringFromString();
+
 				modUrl = url + (url.Contains('?') ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
 			}
 
@@ -173,7 +180,32 @@ namespace CumulusMX
 
 		public async Task<string> DownloadHttpFileBase64String(string url)
 		{
-			var modUrl = url + (url.Contains('?') ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
+			string modUrl;
+
+			if (url == "<ecowittcameraurl>")
+			{
+				if (string.IsNullOrEmpty(station.EcowittCameraUrl))
+				{
+					cumulus.LogWarningMessage("DownloadHttpFile: The Ecowitt Camera URL is not available");
+					return string.Empty;
+				}
+				else
+				{
+					url = station.EcowittCameraUrl;
+					// do not append timestamp, it is already unique
+					modUrl = url;
+				}
+			}
+			else
+			{
+				var parser = new TokenParser(cumulus.TokenParserOnToken)
+				{
+					InputText = url
+				};
+				url = parser.ToStringFromString();
+
+				modUrl = url + (url.Contains('?') ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
+			}
 
 			cumulus.LogDebugMessage($"DownloadHttpFileString: Downloading from {url}");
 
@@ -202,7 +234,32 @@ namespace CumulusMX
 
 		public async Task<Stream> DownloadHttpFileStream(string url)
 		{
-			var modUrl = url + (url.Contains('?') ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
+			string modUrl;
+
+			if (url == "<ecowittcameraurl>")
+			{
+				if (string.IsNullOrEmpty(station.EcowittCameraUrl))
+				{
+					cumulus.LogWarningMessage("DownloadHttpFile: The Ecowitt Camera URL is not available");
+					return Stream.Null;
+				}
+				else
+				{
+					url = station.EcowittCameraUrl;
+					// do not append timestamp, it is already unique
+					modUrl = url;
+				}
+			}
+			else
+			{
+				var parser = new TokenParser(cumulus.TokenParserOnToken)
+				{
+					InputText = url
+				};
+				url = parser.ToStringFromString();
+
+				modUrl = url + (url.Contains('?') ? "&" : "?") + "_=" + DateTime.Now.ToUnixTime();
+			}
 
 			cumulus.LogDebugMessage($"DownloadHttpFileStream: Downloading from {url}");
 

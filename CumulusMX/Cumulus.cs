@@ -5591,7 +5591,7 @@ namespace CumulusMX
 				if (ini.ValueExists("HTTP", "HttpFileUrl" + i))
 				{
 					HttpFilesConfig[i].Enabled = ini.GetValue("HTTP", "HttpFileEnabled" + i, false);
-					HttpFilesConfig[i].Url = ini.GetValue("HTTP", "HttpFileUrl" + i, string.Empty);
+					HttpFilesConfig[i].Url = System.Web.HttpUtility.UrlDecode(ini.GetValue("HTTP", "HttpFileUrl" + i, string.Empty));
 					HttpFilesConfig[i].Remote = ini.GetValue("HTTP", "HttpFileRemote" + i, string.Empty);
 					HttpFilesConfig[i].Interval = ini.GetValue("HTTP", "HttpFileInterval" + i, 0);
 					HttpFilesConfig[i].Upload = ini.GetValue("HTTP", "HttpFileUpload" + i, false);

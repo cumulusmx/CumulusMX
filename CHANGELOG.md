@@ -10,17 +10,19 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.3.2 \[b4065\]][11] - 2024-12-12
+## [4.3.2 \[b4065\]][11] - 2024-12-15
 
 ### New
 
 - Web tags now have the optional null value parameter `nv=xxxx`
 	- This overrides the default string returned when the value is null or not available
 	- The default for most web tags is a dashed value like "--"
+	- Example, if extra temp sensor #4 is missing `<#ExtraTemp4>` outputs "-" by default, but `<#ExtraTemp4 nv=null>` outputs "null", `<#ExtraTemp4 nv=0>` outputs "0"
 
 ### Changed
 
 - Improvements to graph data creation when there are null values present. Affects Solar, UV, Indoor Temp/Hum, Extra Sensors
+- HTTP Files now correctly allows the custom entry `<ecowittcameraurl>`, other URLs can now contain web tags
 
 ### Fixed
 
