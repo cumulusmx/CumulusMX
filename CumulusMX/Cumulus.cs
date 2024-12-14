@@ -1224,29 +1224,32 @@ namespace CumulusMX
 				}
 				else
 				{
-					// try to create the table, could be  new empty db
+					// try to create the table, could be new empty db
 					DiaryDB.CreateTable<DiaryData>();
 
-					LogMessage("Fixing any previous version migration issues");
-					var res = DiaryDB.Execute("DELETE FROM DiaryData WHERE Date IN (SELECT Date FROM DiaryData GROUP BY Date(Date) HAVING count(*) = 2) AND Date = date(Date)");
-					if  (res == 0)
+					if (DiaryDB.Execute("SELECT * FROM DiaryData") > 0)
 					{
-						LogMessage("No duplicate date entries to fix");
+						LogMessage("Fixing any previous version migration issues");
+						var res = DiaryDB.Execute("DELETE FROM DiaryData WHERE Date IN (SELECT Date FROM DiaryData GROUP BY Date(Date) HAVING count(*) = 2) AND Date = date(Date)");
+						if (res == 0)
+						{
+							LogMessage("No duplicate date entries to fix");
+						}
+						else
+						{
+							LogMessage("Fixed " + res + " duplicate date entries");
+						}
+						res = DiaryDB.Execute("UPDATE DiaryData SET Date = datetime(Date) WHERE Date = date(Date)");
+						if (res == 0)
+						{
+							LogMessage("No old date format entries to fix");
+						}
+						else
+						{
+							LogMessage("Fixed " + res + " old date format entries");
+						}
+						LogMessage("Previous version migration issues fixes complete");
 					}
-					else
-					{
-						LogMessage("Fixed " + res + " duplicate date entries");
-					}
-					res = DiaryDB.Execute("UPDATE DiaryData SET Date = datetime(Date) WHERE Date = date(Date)");
-					if (res == 0)
-					{
-						LogMessage("No old date format entries to fix");
-					}
-					else
-					{
-						LogMessage("Fixed " + res + " old date format entries");
-					}
-					LogMessage("Previous version migration issues fixes complete");
 				}
 			}
 			catch (Exception ex)
