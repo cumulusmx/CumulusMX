@@ -57,6 +57,7 @@ Nothing yet
 - Snow graphs now show all days from the first diary entry to present
 - Weather Diary database migration process updated. Databases migrated by v4.3.0 and v4.3.1 are now scanned for issues, and fixes automatically applied
 
+
 ## [4.3.1 \[b4064\]][10] - 2024-12-09
 
 ### Changed
