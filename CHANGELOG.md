@@ -31,24 +31,31 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 Nothing yet
-## [4.3.2 \[b4065\]][11] - 2024-12-12
+
+
+## [4.3.2 \[b4065\]][11] - 2024-12-15
 
 ### New
 
 - Web tags now have the optional null value parameter `nv=xxxx`
 	- This overrides the default string returned when the value is null or not available
 	- The default for most web tags is a dashed value like "--"
+	- Example, if extra temp sensor #4 is missing `<#ExtraTemp4>` outputs "-" by default, but `<#ExtraTemp4 nv=null>` outputs "null", `<#ExtraTemp4 nv=0>` outputs "0"
 
 ### Changed
 
 - Improvements to graph data creation when there are null values present. Affects Solar, UV, Indoor Temp/Hum, Extra Sensors
+- HTTP Files now correctly allows the custom entry `<ecowittcameraurl>`, other URLs can now contain web tags
+- Rain week was added to the Realtime file in v4.3.0 but not to the Realtime MySQL table. This version adds it to MySQL as well
+	- You can use the 'Update Realtime' button on the MySQL Settings page to amend your existing realtime table.
+	- Or, there is a SQL script included to update existing Realtime MySQL tables with the new column: `/MXtils/v4.3.2-AlterMySqlTables.sql`
 
 ### Fixed
 
 - Fix non-present indoor humidity values causing the dashboard gauges to fail
 - Indoor temperature in Select-a-period graphs show 10x value in comma decimal locales
 - Snow graphs now show all days from the first diary entry to present
-
+- Weather Diary database migration process updated. Databases migrated by v4.3.0 and v4.3.1 are now scanned for issues, and fixes automatically applied
 
 ## [4.3.1 \[b4064\]][10] - 2024-12-09
 
