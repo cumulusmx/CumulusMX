@@ -15,7 +15,6 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
-using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -1214,18 +1213,40 @@ namespace CumulusMX
 					DiaryDB.CreateTable<DiaryData>();
 
 					var snowHr = new TimeSpan(SnowDepthHour, 0, 0);
-					var res = DiaryDB.Execute("INSERT OR REPLACE INTO DiaryData (Date, Time, Entry, SnowDepth) SELECT date(Timestamp), ?, entry, snowDepth FROM DiaryDataOld WHERE Timestamp > \"1900-01-01\" ORDER BY Timestamp", snowHr);
+					var res = DiaryDB.Execute("INSERT OR REPLACE INTO DiaryData (Date, Time, Entry, SnowDepth) SELECT Timestamp, ?, entry, snowDepth FROM DiaryDataOld WHERE Timestamp > \"1900-01-01\" ORDER BY Timestamp", snowHr);
 					LogMessage("Migrated " + res + " weather diary records");
 
 					LogMessage("Dropping the old weather diary table");
 					DiaryDB.Execute("DROP TABLE DiaryDataOld");
 					LogMessage("Dropped the old weather diary table");
 					LogMessage("Weather diary database migration to version 2 complete");
+
 				}
 				else
 				{
 					// try to create the table, could be  new empty db
 					DiaryDB.CreateTable<DiaryData>();
+
+					LogMessage("Fixing any previous version migration issues");
+					var res = DiaryDB.Execute("DELETE FROM DiaryData WHERE Date IN (SELECT Date FROM DiaryData GROUP BY Date(Date) HAVING count(*) = 2) AND Date = date(Date)");
+					if  (res == 0)
+					{
+						LogMessage("No duplicate date entries to fix");
+					}
+					else
+					{
+						LogMessage("Fixed " + res + " duplicate date entries");
+					}
+					res = DiaryDB.Execute("UPDATE DiaryData SET Date = datetime(Date) WHERE Date = date(Date)");
+					if (res == 0)
+					{
+						LogMessage("No old date format entries to fix");
+					}
+					else
+					{
+						LogMessage("Fixed " + res + " old date format entries");
+					}
+					LogMessage("Previous version migration issues fixes complete");
 				}
 			}
 			catch (Exception ex)
@@ -1860,6 +1881,7 @@ namespace CumulusMX
 			RealtimeTable.AddColumn("CurrentSolarMax", "decimal(5,1)");
 			RealtimeTable.AddColumn("IsSunny", "varchar(1)");
 			RealtimeTable.AddColumn("FeelsLike", "decimal(4," + TempDPlaces + ")");
+			RealtimeTable.AddColumn("rweek", "decimal(4," + RainDPlaces + ")");
 			RealtimeTable.PrimaryKey = "LogDateTime";
 			RealtimeTable.Comment = "\"Realtime log\"";
 		}
@@ -12479,7 +12501,8 @@ namespace CumulusMX
 			values.Append(station.SunshineHours.ToString(SunFormat, InvC) + ',');
 			values.Append(station.CurrentSolarMax + ",'");
 			values.Append((station.IsSunny ? "1" : "0") + "',");
-			values.Append(station.FeelsLike.ToString(TempFormat, InvC));
+			values.Append(station.FeelsLike.ToString(TempFormat, InvC) + "',");
+			values.Append(station.RainWeek.ToString(RainFormat, InvC));
 			values.Append(')');
 
 			string valuesString = values.ToString();
