@@ -1198,10 +1198,12 @@ namespace CumulusMX
 			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite ;
 
 			// Open diary database (create file if it doesn't exist)
-			DiaryDB = new SQLiteConnection(new SQLiteConnectionString(diaryfile, flags, false, null, null, null, null, "yyyy-MM-dd 00:00:00", false));
+			DiaryDB = new SQLiteConnection(new SQLiteConnectionString(diaryfile, flags, false, null, null, null, null, "yyyy-MM-dd", false));
 
 			try
 			{
+				var dbVer = 2;
+
 				if (DiaryDB.ExecuteScalar<int>("SELECT 1 FROM PRAGMA_TABLE_INFO('DiaryData') WHERE name='Timestamp'") == 1)
 				{
 					LogMessage("Migrating the weather diary database to version 2");
@@ -1213,7 +1215,7 @@ namespace CumulusMX
 					DiaryDB.CreateTable<DiaryData>();
 
 					var snowHr = new TimeSpan(SnowDepthHour, 0, 0);
-					var res = DiaryDB.Execute("INSERT OR REPLACE INTO DiaryData (Date, Time, Entry, SnowDepth) SELECT Timestamp, ?, entry, snowDepth FROM DiaryDataOld WHERE Timestamp > \"1900-01-01\" ORDER BY Timestamp", snowHr);
+					var res = DiaryDB.Execute("INSERT OR REPLACE INTO DiaryData (Date, Time, Entry, SnowDepth) SELECT date(Timestamp), ?, entry, snowDepth FROM DiaryDataOld WHERE Timestamp > \"1900-01-01\" ORDER BY Timestamp", snowHr);
 					LogMessage("Migrated " + res + " weather diary records");
 
 					LogMessage("Dropping the old weather diary table");
@@ -1222,33 +1224,56 @@ namespace CumulusMX
 					LogMessage("Weather diary database migration to version 2 complete");
 
 				}
+				else if (DiaryDB.ExecuteScalar<int>("SELECT 1 FROM sqlite_master WHERE type='table' AND name='DiaryData'") == 1)
+				{
+					// DiaryData table exists
+
+					if (DiaryDB.ExecuteScalar<int>("SELECT 1 FROM sqlite_master WHERE type='table' AND name='dbversion'") == 0
+						|| DiaryDB.ExecuteScalar<int>("SELECT max(ver) FROM dbversion") < dbVer)
+					{
+						// dbversion table does not exist, or the dbversion is less than current
+
+						// Does the diary table contain any rows?
+						if (DiaryDB.ExecuteScalar<int>("SELECT EXISTS(SELECT 1 FROM DiaryData)") == 1)
+						{
+							LogMessage("Fixing any previous version migration issues");
+							var res = DiaryDB.Execute("DELETE FROM DiaryData WHERE Date IN (SELECT Date FROM DiaryData GROUP BY Date(Date) HAVING count(*) = 2) AND Date = date(Date)");
+							if (res == 0)
+							{
+								LogMessage("No duplicate date entries to fix");
+							}
+							else
+							{
+								LogMessage("Fixed " + res + " duplicate date entries");
+							}
+							res = DiaryDB.Execute("UPDATE DiaryData SET Date = date(Date) WHERE Date != date(Date)");
+							if (res == 0)
+							{
+								LogMessage("No old date format entries to fix");
+							}
+							else
+							{
+								LogMessage("Fixed " + res + " old date format entries");
+							}
+						}
+
+						DiaryDB.Execute("CREATE TABLE dbversion (ver INTEGER PRIMARY KEY)");
+						DiaryDB.Execute("INSERT INTO dbversion (ver) VALUES (?)", dbVer);
+
+						LogMessage("Previous version migration issues fixes complete");
+					}
+				}
 				else
 				{
+					// The table does not exist
 					// try to create the table, could be new empty db
 					DiaryDB.CreateTable<DiaryData>();
+					DiaryDB.Execute("CREATE TABLE dbversion (ver INTEGER PRIMARY KEY)");
 
-					if (DiaryDB.Execute("SELECT * FROM DiaryData") > 0)
+					// Check if the dbversion table exists, and if it does if the version is less than current
+					if (DiaryDB.ExecuteScalar<int>("SELECT max(ver) FROM dbversion") < dbVer)
 					{
-						LogMessage("Fixing any previous version migration issues");
-						var res = DiaryDB.Execute("DELETE FROM DiaryData WHERE Date IN (SELECT Date FROM DiaryData GROUP BY Date(Date) HAVING count(*) = 2) AND Date = date(Date)");
-						if (res == 0)
-						{
-							LogMessage("No duplicate date entries to fix");
-						}
-						else
-						{
-							LogMessage("Fixed " + res + " duplicate date entries");
-						}
-						res = DiaryDB.Execute("UPDATE DiaryData SET Date = datetime(Date) WHERE Date = date(Date)");
-						if (res == 0)
-						{
-							LogMessage("No old date format entries to fix");
-						}
-						else
-						{
-							LogMessage("Fixed " + res + " old date format entries");
-						}
-						LogMessage("Previous version migration issues fixes complete");
+						DiaryDB.Execute("INSERT INTO dbversion (ver) VALUES (?)", dbVer);
 					}
 				}
 			}

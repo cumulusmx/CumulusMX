@@ -32,7 +32,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix non-present indoor humidity values causing the dashboard gauges to fail
 - Indoor temperature in Select-a-period graphs show 10x value in comma decimal locales
 - Snow graphs now show all days from the first diary entry to present
-- Weather Diary database migration process updated. Databases migrated by v4.3.0 and v4.3.1 are now scanned for issues, and fixes automatically applied
+- Weather Diary database migration process updated
+	- Databases migrated by v4.3.0 and v4.3.1 are now scanned for issues, and fixes automatically applied
 
 
 ## [4.3.1 \[b4064\]][10] - 2024-12-09
