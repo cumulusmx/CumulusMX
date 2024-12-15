@@ -173,7 +173,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, $"DownloadHttpFile: Error downloading from {url} to {filename}");
+				cumulus.LogExceptionMessage(ex, $"DownloadHttpFile: Error downloading from {new Uri(modUrl)} to {filename}");
 			}
 		}
 
@@ -211,7 +211,7 @@ namespace CumulusMX
 			try
 			{
 				string ret = null;
-				var request = new HttpRequestMessage(HttpMethod.Get, modUrl);
+				var request = new HttpRequestMessage(HttpMethod.Get, new Uri(modUrl));
 				var sendTask = cumulus.MyHttpClient.SendAsync(request);
 				using (var response = sendTask.Result.EnsureSuccessStatusCode())
 				{
@@ -226,7 +226,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, $"DownloadHttpFileString: Error downloading from {url}");
+				cumulus.LogExceptionMessage(ex, $"DownloadHttpFileString: Error downloading from {new Uri(modUrl)}");
 				return null;
 			}
 		}
@@ -264,14 +264,14 @@ namespace CumulusMX
 
 			try
 			{
-				using var request = new HttpRequestMessage(HttpMethod.Get, modUrl);
+				using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(modUrl));
 				using var response = await cumulus.MyHttpClient.SendAsync(request);
 				response.EnsureSuccessStatusCode();
 				return response.Content.ReadAsStreamAsync().Result;
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, $"DownloadHttpFileStream: Error downloading from {url}");
+				cumulus.LogExceptionMessage(ex, $"DownloadHttpFileStream: Error downloading from {new Uri(modUrl)}");
 				return null;
 			}
 		}
