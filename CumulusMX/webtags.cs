@@ -442,7 +442,7 @@ namespace CumulusMX
 		{
 			if (rec.Ts <= cumulus.defaultRecordTS)
 			{
-				return "---";
+				return tagParams.Get("nv") ?? "---";
 			}
 
 			return CheckRcDp(rec.Val, tagParams, decimals);
@@ -549,7 +549,7 @@ namespace CumulusMX
 
 			if (station.StartOfStorm == DateTime.MinValue)
 			{
-				return "-----";
+				return tagParams.Get("nv") ?? "-----";
 			}
 
 			string dtformat = tagParams.Get("format") ?? "d";
@@ -2740,7 +2740,7 @@ namespace CumulusMX
 			catch
 			{
 				// no data found
-				return "-";
+				return tagParams.Get("nv") ?? "-";
 			}
 			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -3633,12 +3633,12 @@ namespace CumulusMX
 
 		private string TagUv(Dictionary<string, string> tagParams)
 		{
-			return station.UV.HasValue ? CheckRcDp(station.UV.Value, tagParams, cumulus.UVDPlaces) : "-";
+			return station.UV.HasValue ? CheckRcDp(station.UV.Value, tagParams, cumulus.UVDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSolarRad(Dictionary<string, string> tagParams)
 		{
-			return station.SolarRad.HasValue ? station.SolarRad.ToString() : "-";
+			return station.SolarRad.HasValue ? station.SolarRad.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCurrentSolarMax(Dictionary<string, string> tagParams)
@@ -3749,7 +3749,7 @@ namespace CumulusMX
 			catch
 			{
 				// no data found
-				return "-";
+				return tagParams.Get("nv") ?? "-";
 			}
 
 			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
@@ -4540,7 +4540,7 @@ namespace CumulusMX
 
 		private string TagLightningDistance(Dictionary<string, string> tagParams)
 		{
-			return station.LightningDistance < 0 ? "--" : CheckRcDp(station.LightningDistance, tagParams, cumulus.WindRunDPlaces);
+			return station.LightningDistance < 0 ? tagParams.Get("nv") ?? "--" : CheckRcDp(station.LightningDistance, tagParams, cumulus.WindRunDPlaces);
 		}
 
 		private string TagLightningTime(Dictionary<string, string> tagParams)
@@ -4924,12 +4924,12 @@ namespace CumulusMX
 
 		private string TagMonthLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestDryPeriod.Val < 0 ? "--" : station.ThisMonth.LongestDryPeriod.Val.ToString();
+			return station.ThisMonth.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : station.ThisMonth.LongestDryPeriod.Val.ToString();
 		}
 
 		private string TagMonthLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestWetPeriod.Val < 0 ? "--" : station.ThisMonth.LongestWetPeriod.Val.ToString();
+			return station.ThisMonth.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : station.ThisMonth.LongestWetPeriod.Val.ToString();
 		}
 
 		private string TagMonthHighDailyTempRange(Dictionary<string, string> tagParams)
@@ -5563,12 +5563,12 @@ namespace CumulusMX
 
 		private string TagYearLongestDryPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestDryPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.ThisYear.LongestDryPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisYear.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.ThisYear.LongestDryPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearLongestWetPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestWetPeriod.Val < 0 ? "--" : GetFormattedDateTime(station.ThisYear.LongestWetPeriod.Ts, "dd MMMM", tagParams);
+			return station.ThisYear.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.ThisYear.LongestWetPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearMonthlyRainHd(Dictionary<string, string> tagParams)
@@ -6058,7 +6058,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				indoorHumidityValue = station.IndoorHumidity.HasValue ? station.IndoorHumidity.ToString() : "-";
+				indoorHumidityValue = station.IndoorHumidity.HasValue ? station.IndoorHumidity.ToString() : tagParams.Get("nv") ?? "-";
 			}
 
 			return indoorHumidityValue;
@@ -6185,11 +6185,11 @@ namespace CumulusMX
 			{
 				if (showDate)
 				{
-					return "[\"-\",\"-\"]";
+					return tagParams.Get("nv") ?? "[\"-\",\"-\"]";
 				}
 				else
 				{
-					return "-";
+					return tagParams.Get("nv") ?? "-";
 				}
 			}
 			else
