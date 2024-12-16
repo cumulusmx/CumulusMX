@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.3.2 \[b4065\]][11] - 2024-12-16
+## [4.3.2 \[b4066\]][11] - 2024-12-16
 
 ### New
 
@@ -25,7 +25,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - HTTP Files now correctly allows the custom entry `<ecowittcameraurl>`, other URLs can now contain web tags
 - Rain week was added to the Realtime file in v4.3.0 but not to the Realtime MySQL table. This version adds it to MySQL as well
 	- You can use the 'Update Realtime' button on the MySQL Settings page to amend your existing realtime table.
-	- Or, there is a SQL script included to update existing Realtime MySQL tables with the new column: `/MXtils/v4.3.2-AlterMySqlTables.sql`
+	- Or there is a SQL script included to update existing Realtime MySQL tables with the new column: `/MXtils/v4.3.2-AlterMySqlTables.sql`
 
 ### Fixed
 
@@ -520,4 +520,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [8]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4043
 [9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4063
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
-[11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4065
+[11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4066

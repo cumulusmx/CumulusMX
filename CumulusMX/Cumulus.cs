@@ -12529,7 +12529,7 @@ namespace CumulusMX
 			values.Append(station.SunshineHours.ToString(SunFormat, InvC) + ',');
 			values.Append(station.CurrentSolarMax + ",'");
 			values.Append((station.IsSunny ? "1" : "0") + "',");
-			values.Append(station.FeelsLike.ToString(TempFormat, InvC) + "',");
+			values.Append(station.FeelsLike.ToString(TempFormat, InvC) + ',');
 			values.Append(station.RainWeek.ToString(RainFormat, InvC));
 			values.Append(')');
 
