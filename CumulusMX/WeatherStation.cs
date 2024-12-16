@@ -7583,9 +7583,6 @@ namespace CumulusMX
 
 				RainToday = 0;
 
-				// recalculate rain this week - we may have gone over a week boundary
-				UpdateWeekRainfall();
-
 				TempTotalToday = OutdoorTemperature;
 				tempsamplestoday = 1;
 
@@ -7837,6 +7834,11 @@ namespace CumulusMX
 				CurrentMonth = timestamp.Month;
 				CurrentYear = timestamp.Year;
 				CurrentDate = timestamp.Date;
+
+				// recalculate rain this week - we may have gone over a week boundary
+				// this uses the CurrentDate
+				UpdateWeekRainfall();
+
 				DayResetInProgress = false;
 
 				cumulus.LogMessage("=== Day reset complete");
@@ -8794,7 +8796,7 @@ namespace CumulusMX
 										OutsideTemp = rec.OutdoorTemperature,
 										Pressure = rec.Pressure,
 										RainToday = rec.RainToday,
-										SolarRad = (int) rec.SolarRad,
+										SolarRad = (int?) rec.SolarRad,
 										UV = rec.UV,
 										WindAvgDir = rec.AvgBearing,
 										WindGust = rec.RecentMaxGust,
@@ -9714,7 +9716,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoLaserDistance(double value, int index)
+		public void DoLaserDistance(double? value, int index)
 		{
 			if (index > 0 && index < LaserDist.Length)
 			{
@@ -9722,7 +9724,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoLaserDepth(double value, int index)
+		public void DoLaserDepth(double? value, int index)
 		{
 			if (index > 0 && index < LaserDepth.Length)
 			{

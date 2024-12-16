@@ -776,12 +776,12 @@ namespace CumulusMX
 						{
 							if (rec.range.HasValue)
 							{
-								station.DoLaserDistance(rec.range.Value * multiplier, rec.index);
+								station.DoLaserDistance(rec.range.HasValue ? rec.range.Value * multiplier : null, rec.index);
 							}
 
 							if (rec.depth.HasValue)
 							{
-								station.DoLaserDepth(rec.depth.Value * multiplier, rec.index);
+								station.DoLaserDepth(rec.depth.HasValue ? rec.depth.Value * multiplier : null, rec.index);
 							}
 						}
 						catch (Exception ex)
