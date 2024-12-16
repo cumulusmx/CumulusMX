@@ -9716,7 +9716,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoLaserDistance(double value, int index)
+		public void DoLaserDistance(double? value, int index)
 		{
 			if (index > 0 && index < LaserDist.Length)
 			{
@@ -9724,7 +9724,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoLaserDepth(double value, int index)
+		public void DoLaserDepth(double? value, int index)
 		{
 			if (index > 0 && index < LaserDepth.Length)
 			{
