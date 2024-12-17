@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.3.2 \[b4066\]][11] - 2024-12-17
+## [4.3.2 \[b4067\]][11] - 2024-12-18
 
 ### New
 
@@ -36,6 +36,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Weather Diary database migration process updated
 	- Databases migrated by v4.3.0 and v4.3.1 are now scanned for issues, and fixes automatically applied
 - Fix some errors parsing log file entries, affects load recent data, and graph files
+- Fix Unknown sensor errors in Ecowitt TCP API sensor info
 
 
 ## [4.3.1 \[b4064\]][10] - 2024-12-09
@@ -522,4 +523,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [8]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4043
 [9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4063
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
-[11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4066
+[11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
