@@ -878,12 +878,15 @@ namespace CumulusMX
 					var linenum = 0;
 					try
 					{
-						var logfile = File.ReadAllLines(logFile);
+						var lines = File.ReadAllLines(logFile);
 
-						foreach (var line in logfile)
+						foreach (var line in lines)
 						{
 							// process each record in the file
 							linenum++;
+
+							// skip empty lines
+							if (string.IsNullOrWhiteSpace(line)) continue;
 
 							var rec = station.ParseLogFileRec(line, true);
 
@@ -2195,8 +2198,8 @@ namespace CumulusMX
 					var linenum = 0;
 					try
 					{
-						var logfile = File.ReadAllLines(logFile);
-						foreach (var line in logfile)
+						var lines = File.ReadAllLines(logFile);
+						foreach (var line in lines)
 						{
 							// process each record in the file
 							linenum++;

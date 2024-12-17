@@ -4209,58 +4209,78 @@ namespace CumulusMX
 				{
 					cumulus.LogDebugMessage($"GetIntervalTempGraphData: Processing log file - {logFile}");
 					var linenum = 0;
+					int errorCount = 0;
+
 					try
 					{
-						var logfile = File.ReadAllLines(logFile);
+						var lines = File.ReadAllLines(logFile);
 
-						foreach (var line in logfile)
+						foreach (var line in lines)
 						{
-							// process each record in the file
-							linenum++;
-
-							var rec = ParseLogFileRec(line, true);
-
-							if (rec.Date < dateFrom)
-								continue;
-
-							if (rec.Date > dateTo)
+							try
 							{
-								finished = true;
-								cumulus.LogDebugMessage("GetIntervalTempGraphData: Finished processing the log files");
-								break;
+								// process each record in the file
+								linenum++;
+
+								// skip empty lines
+								if (string.IsNullOrWhiteSpace(line))
+									continue;
+
+								var rec = ParseLogFileRec(line, true);
+
+								if (rec.Date < dateFrom)
+									continue;
+
+								if (rec.Date > dateTo)
+								{
+									finished = true;
+									cumulus.LogDebugMessage("GetIntervalTempGraphData: Finished processing the log files");
+									break;
+								}
+
+								var jsTime = Utils.ToPseudoJSTime(rec.Date);
+
+								if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
+									sbIn.Append($"[{jsTime},{(rec.IndoorTemperature.HasValue ? rec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
+
+								if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
+									sbDew.Append($"[{jsTime},{rec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)}],");
+
+								if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
+									sbApp.Append($"[{jsTime},{rec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)}],");
+
+								if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
+									sbFeel.Append($"[{jsTime},{rec.FeelsLike.ToString(cumulus.TempFormat, InvC)}],");
+
+								if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
+									sbChill.Append($"[{jsTime},{rec.WindChill.ToString(cumulus.TempFormat, InvC)}],");
+
+								if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
+									sbHeat.Append($"[{jsTime},{rec.HeatIndex.ToString(cumulus.TempFormat, InvC)}],");
+
+								if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
+									sbTemp.Append($"[{jsTime},{rec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)}],");
+
+								if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
+									sbHumidex.Append($"[{jsTime},{rec.Humidex.ToString(cumulus.TempFormat, InvC)}],");
 							}
-
-							var jsTime = Utils.ToPseudoJSTime(rec.Date);
-
-							if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
-								sbIn.Append($"[{jsTime},{(rec.IndoorTemperature.HasValue ? rec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
-
-							if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
-								sbDew.Append($"[{jsTime},{rec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)}],");
-
-							if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
-								sbApp.Append($"[{jsTime},{rec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)}],");
-
-							if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
-								sbFeel.Append($"[{jsTime},{rec.FeelsLike.ToString(cumulus.TempFormat, InvC)}],");
-
-							if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
-								sbChill.Append($"[{jsTime},{rec.WindChill.ToString(cumulus.TempFormat, InvC)}],");
-
-							if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
-								sbHeat.Append($"[{jsTime},{rec.HeatIndex.ToString(cumulus.TempFormat, InvC)}],");
-
-							if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
-								sbTemp.Append($"[{jsTime},{rec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)}],");
-
-							if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
-								sbHumidex.Append($"[{jsTime},{rec.Humidex.ToString(cumulus.TempFormat, InvC)}],");
+							catch (Exception e)
+							{
+								cumulus.LogWarningMessage($"GetIntervalTempGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogDebugMessage($"GetIntervalTempGraphData: Error at line {linenum}, content: {lines[linenum]}");
+								cumulus.LogMessage("Please edit the file to correct the error");
+								errorCount++;
+								if (errorCount >= 10)
+								{
+									cumulus.LogErrorMessage($"GetIntervalTempGraphData: Too many errors reading {logFile} - aborting load of graph data");
+									break;
+								}
+							}
 						}
-
 					}
 					catch (Exception e)
 					{
-						cumulus.LogErrorMessage($"GetIntervalTempGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogErrorMessage($"GetIntervalTempGraphData: Error reading the logfile {logFile} : {e.Message}");
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 				}
@@ -4387,36 +4407,57 @@ namespace CumulusMX
 				{
 					cumulus.LogDebugMessage($"GetIntervalHumGraphData: Processing log file - {logFile}");
 					var linenum = 0;
+					int errorCount = 0;
+
 					try
 					{
-						var logfile = File.ReadAllLines(logFile);
+						var lines = File.ReadAllLines(logFile);
 
-						foreach (var line in logfile)
+						foreach (var line in lines)
 						{
-							// process each record in the file
-							linenum++;
-
-							var rec = ParseLogFileRec(line, true);
-
-							if (rec.Date < dateFrom)
-								continue;
-
-							if (rec.Date > dateTo)
+							try
 							{
-								finished = true;
-								cumulus.LogDebugMessage("GetIntervalHumGraphData: Finished processing the log files");
-								break;
+								// process each record in the file
+								linenum++;
+
+								// skip empty lines
+								if (string.IsNullOrWhiteSpace(line))
+									continue;
+
+								var rec = ParseLogFileRec(line, true);
+
+								if (rec.Date < dateFrom)
+									continue;
+
+								if (rec.Date > dateTo)
+								{
+									finished = true;
+									cumulus.LogDebugMessage("GetIntervalHumGraphData: Finished processing the log files");
+									break;
+								}
+
+								var jsTime = Utils.ToPseudoJSTime(rec.Date);
+
+								if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
+								{
+									sbOut.Append($"[{jsTime},{rec.OutdoorHumidity}],");
+								}
+								if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
+								{
+									sbIn.Append($"[{jsTime},{(rec.IndoorHumidity.HasValue ? rec.IndoorHumidity.Value : "null")}],");
+								}
 							}
-
-							var jsTime = Utils.ToPseudoJSTime(rec.Date);
-
-							if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
+							catch (Exception e)
 							{
-								sbOut.Append($"[{jsTime},{rec.OutdoorHumidity}],");
-							}
-							if (cumulus.GraphOptions.Visible.InHum.IsVisible(local))
-							{
-								sbIn.Append($"[{jsTime},{(rec.IndoorHumidity.HasValue ? rec.IndoorHumidity.Value : "null")}],");
+								cumulus.LogWarningMessage($"GetIntervalHumGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogDebugMessage($"GetIntervalHumGraphData: Error at line {linenum}, content: {lines[linenum]}");
+								cumulus.LogMessage("Please edit the file to correct the error");
+								errorCount++;
+								if (errorCount >= 10)
+								{
+									cumulus.LogErrorMessage($"GetIntervalHumGraphData: Too many errors reading {logFile} - aborting load of data");
+									break;
+								}
 							}
 						}
 					}
@@ -4497,39 +4538,59 @@ namespace CumulusMX
 				{
 					cumulus.LogDebugMessage($"GetIntervalSolarGraphData: Processing log file - {logFile}");
 					var linenum = 0;
+					int errorCount = 0;
+
 					try
 					{
-						var logfile = File.ReadAllLines(logFile);
+						var lines = File.ReadAllLines(logFile);
 
-						foreach (var line in logfile)
+						foreach (var line in lines)
 						{
-							// process each record in the file
-							linenum++;
-
-							var rec = ParseLogFileRec(line, true);
-
-							if (rec.Date < dateFrom)
-								continue;
-
-							if (rec.Date > dateTo)
+							try
 							{
-								finished = true;
-								cumulus.LogDebugMessage("GetIntervalSolarGraphData: Finished processing the log files");
-								break;
+								// process each record in the file
+								linenum++;
+
+								// skip empty lines
+								if (string.IsNullOrWhiteSpace(line)) continue;
+
+								var rec = ParseLogFileRec(line, true);
+
+								if (rec.Date < dateFrom)
+									continue;
+
+								if (rec.Date > dateTo)
+								{
+									finished = true;
+									cumulus.LogDebugMessage("GetIntervalSolarGraphData: Finished processing the log files");
+									break;
+								}
+
+								var jsTime = Utils.ToPseudoJSTime(rec.Date);
+
+								if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
+								{
+									sbUv.Append($"[{jsTime},{(rec.UV.HasValue ? rec.UV.Value.ToString(cumulus.UVFormat, InvC) : "null")}],");
+								}
+
+								if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
+								{
+									sbSol.Append($"[{jsTime},{(rec.SolarRad.HasValue ?(int) rec.SolarRad.Value : "null")}],");
+
+									sbMax.Append($"[{jsTime},{(int) rec.CurrentSolarMax}],");
+								}
 							}
-
-							var jsTime = Utils.ToPseudoJSTime(rec.Date);
-
-							if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
+							catch (Exception e)
 							{
-								sbUv.Append($"[{jsTime},{(rec.UV.HasValue ? rec.UV.Value.ToString(cumulus.UVFormat, InvC) : "null")}],");
-							}
-
-							if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
-							{
-								sbSol.Append($"[{jsTime},{(rec.SolarRad.HasValue ?(int) rec.SolarRad.Value : "null")}],");
-
-								sbMax.Append($"[{jsTime},{(int) rec.CurrentSolarMax}],");
+								cumulus.LogWarningMessage($"GetIntervalSolarGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogDebugMessage($"GetIntervalSolarGraphData: Error at line {linenum}, content: {lines[linenum]}");
+								cumulus.LogMessage("Please edit the file to correct the error");
+								errorCount++;
+								if (errorCount >= 10)
+								{
+									cumulus.LogErrorMessage($"GetIntervalSolarGraphData: Too many errors reading {logFile} - aborting load of graph data");
+									break;
+								}
 							}
 						}
 					}
@@ -4610,28 +4671,49 @@ namespace CumulusMX
 				{
 					cumulus.LogDebugMessage($"GetIntervaPressGraphData: Processing log file - {logFile}");
 					var linenum = 0;
+					int errorCount = 0;
+
 					try
 					{
-						var logfile = File.ReadAllLines(logFile);
+						var lines = File.ReadAllLines(logFile);
 
-						foreach (var line in logfile)
+						foreach (var line in lines)
 						{
-							// process each record in the file
-							linenum++;
-
-							var rec = ParseLogFileRec(line, true);
-
-							if (rec.Date < dateFrom)
-								continue;
-
-							if (rec.Date > dateTo)
+							try
 							{
-								finished = true;
-								cumulus.LogDebugMessage("GetIntervaPressGraphData: Finished processing the log files");
-								break;
-							}
+								// process each record in the file
+								linenum++;
 
-							sb.Append($"[{Utils.ToPseudoJSTime(rec.Date)},{rec.Pressure.ToString(cumulus.PressFormat, InvC)}],");
+								// skip empty lines
+								if (string.IsNullOrWhiteSpace(line))
+									continue;
+
+								var rec = ParseLogFileRec(line, true);
+
+								if (rec.Date < dateFrom)
+									continue;
+
+								if (rec.Date > dateTo)
+								{
+									finished = true;
+									cumulus.LogDebugMessage("GetIntervaPressGraphData: Finished processing the log files");
+									break;
+								}
+
+								sb.Append($"[{Utils.ToPseudoJSTime(rec.Date)},{rec.Pressure.ToString(cumulus.PressFormat, InvC)}],");
+							}
+							catch (Exception e)
+							{
+								cumulus.LogWarningMessage($"GetIntervaPressGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogDebugMessage($"GetIntervaPressGraphData: Error at line {linenum}, content: {lines[linenum]}");
+								cumulus.LogMessage("Please edit the file to correct the error");
+								errorCount++;
+								if (errorCount >= 10)
+								{
+									cumulus.LogErrorMessage($"GetIntervaPressGraphData: Too many errors reading {logFile} - aborting load of graph data");
+									break;
+								}
+							}
 						}
 					}
 					catch (Exception e)
@@ -4691,36 +4773,57 @@ namespace CumulusMX
 				{
 					cumulus.LogDebugMessage($"GetIntervalWindGraphData: Processing log file - {logFile}");
 					var linenum = 0;
+					int errorCount = 0;
+
 					try
 					{
-						var logfile = File.ReadAllLines(logFile);
+						var lines = File.ReadAllLines(logFile);
 
-						foreach (var line in logfile)
+						foreach (var line in lines)
 						{
-							// process each record in the file
-							linenum++;
-
-							var rec = ParseLogFileRec(line, true);
-
-							if (rec.Date < dateFrom)
-								continue;
-
-							if (rec.Date > dateTo)
+							try
 							{
-								finished = true;
-								cumulus.LogDebugMessage("GetIntervalWindGraphData: Finished processing the log files");
-								break;
+								// process each record in the file
+								linenum++;
+
+								// skip empty lines
+								if (string.IsNullOrWhiteSpace(line))
+									continue;
+
+								var rec = ParseLogFileRec(line, true);
+
+								if (rec.Date < dateFrom)
+									continue;
+
+								if (rec.Date > dateTo)
+								{
+									finished = true;
+									cumulus.LogDebugMessage("GetIntervalWindGraphData: Finished processing the log files");
+									break;
+								}
+
+								var jsTime = Utils.ToPseudoJSTime(rec.Date);
+
+								sb.Append($"[{jsTime},{rec.RecentMaxGust.ToString(cumulus.WindFormat, InvC)}],");
+
+								sbSpd.Append($"[{jsTime},{rec.WindAverage.ToString(cumulus.WindAvgFormat, InvC)}],");
+
+								sbBrg.Append($"[{jsTime},{rec.Bearing}],");
+
+								sbAvgBrg.Append($"[{jsTime},{rec.AvgBearing}],");
 							}
-
-							var jsTime = Utils.ToPseudoJSTime(rec.Date);
-
-							sb.Append($"[{jsTime},{rec.RecentMaxGust.ToString(cumulus.WindFormat, InvC)}],");
-
-							sbSpd.Append($"[{jsTime},{rec.WindAverage.ToString(cumulus.WindAvgFormat, InvC)}],");
-
-							sbBrg.Append($"[{jsTime},{rec.Bearing}],");
-
-							sbAvgBrg.Append($"[{jsTime},{rec.AvgBearing}],");
+							catch (Exception e)
+							{
+								cumulus.LogWarningMessage($"GetIntervalWindGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogDebugMessage($"GetIntervalWindGraphData: Error at line {linenum}, content: {lines[linenum]}");
+								cumulus.LogMessage("Please edit the file to correct the error");
+								errorCount++;
+								if (errorCount >= 10)
+								{
+									cumulus.LogErrorMessage($"GetIntervalWindGraphData: Too many errors reading {logFile} - aborting load of graph data");
+									break;
+								}
+							}
 						}
 					}
 					catch (Exception e)
@@ -4789,32 +4892,49 @@ namespace CumulusMX
 				{
 					cumulus.LogDebugMessage($"GetIntervaRainGraphData: Processing log file - {logFile}");
 					var linenum = 0;
+					int errorCount = 0;
+
 					try
 					{
-						var logfile = File.ReadAllLines(logFile);
+						var lines = File.ReadAllLines(logFile);
 
-						foreach (var line in logfile)
+						foreach (var line in lines)
 						{
-							// process each record in the file
-							linenum++;
-
-							var rec = ParseLogFileRec(line, true);
-
-							if (rec.Date < dateFrom)
-								continue;
-
-							if (rec.Date > dateTo)
+							try
 							{
-								finished = true;
-								cumulus.LogDebugMessage("GetIntervaRainGraphData: Finished processing the log files");
-								break;
+								// process each record in the file
+								linenum++;
+
+								var rec = ParseLogFileRec(line, true);
+
+								if (rec.Date < dateFrom)
+									continue;
+
+								if (rec.Date > dateTo)
+								{
+									finished = true;
+									cumulus.LogDebugMessage("GetIntervaRainGraphData: Finished processing the log files");
+									break;
+								}
+
+								var jsTime = Utils.ToPseudoJSTime(rec.Date);
+
+								sbRain.Append($"[{jsTime},{rec.RainToday.ToString(cumulus.RainFormat, InvC)}],");
+
+								sbRate.Append($"[{jsTime},{rec.RainRate.ToString(cumulus.RainFormat, InvC)}],");
 							}
-
-							var jsTime = Utils.ToPseudoJSTime(rec.Date);
-
-							sbRain.Append($"[{jsTime},{rec.RainToday.ToString(cumulus.RainFormat, InvC)}],");
-
-							sbRate.Append($"[{jsTime},{rec.RainRate.ToString(cumulus.RainFormat, InvC)}],");
+							catch (Exception e)
+							{
+								cumulus.LogWarningMessage($"GetIntervaRainGraphData: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogDebugMessage($"GetIntervaRainGraphData: Error at line {linenum}, content: {lines[linenum]}");
+								cumulus.LogMessage("Please edit the file to correct the error");
+								errorCount++;
+								if (errorCount >= 10)
+								{
+									cumulus.LogErrorMessage($"GetIntervaRainGraphData: Too many errors reading {logFile} - aborting load of graph data");
+									break;
+								}
+							}
 						}
 					}
 					catch (Exception e)
@@ -8783,6 +8903,10 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 
+								// skip empty lines
+								if (string.IsNullOrWhiteSpace(line))
+									continue;
+
 								var rec = ParseLogFileRec(line, false);
 
 								if (rec.Date >= datefrom && entrydate <= dateto)
@@ -8821,11 +8945,12 @@ namespace CumulusMX
 							catch (Exception e)
 							{
 								cumulus.LogWarningMessage($"LoadRecent: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogDebugMessage($"LoadRecent: Error at line {linenum}, content: {lines[linenum]}");
 								cumulus.LogMessage("Please edit the file to correct the error");
 								errorCount++;
 								if (errorCount >= 10)
 								{
-									cumulus.LogErrorMessage($"LoadRecent: Too many errors reading {logFile} - aborting load of graph data");
+									cumulus.LogErrorMessage($"LoadRecent: Too many errors reading {logFile} - aborting load of data");
 									break;
 								}
 							}
@@ -8833,7 +8958,7 @@ namespace CumulusMX
 					}
 					catch (Exception e)
 					{
-						cumulus.LogErrorMessage($"LoadRecent: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogErrorMessage($"LoadRecent: Error reading the logfile {logFile} : {e.Message}");
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
 
@@ -9361,32 +9486,32 @@ namespace CumulusMX
 					rec.UV = null;
 
 				if (st.Count > 18 && double.TryParse(st[18], inv, out resultDbl))
-					rec.UV = resultDbl;
+					rec.SolarRad = resultDbl;
 				else
 					rec.SolarRad = null;
 
 				if (st.Count > 19 && double.TryParse(st[19], inv, out resultDbl))
-					rec.UV = resultDbl;
+					rec.ET = resultDbl;
 				else
 					rec.ET = minMax ? Cumulus.DefaultHiVal : 0.0;
 
 				if (st.Count > 20 && double.TryParse(st[20], inv, out resultDbl))
-					rec.UV = resultDbl;
+					rec.AnnualETTotal = resultDbl;
 				else
 					rec.AnnualETTotal = minMax ? Cumulus.DefaultHiVal : 0.0;
 
 				if (st.Count > 21 && double.TryParse(st[21], inv, out resultDbl))
-					rec.UV = resultDbl;
+					rec.ApparentTemperature = resultDbl;
 				else
 					rec.ApparentTemperature = minMax ? Cumulus.DefaultHiVal : 0.0;
 
 				if (st.Count > 22 && double.TryParse(st[22], inv, out resultDbl))
-					rec.UV = resultDbl;
+					rec.CurrentSolarMax = resultDbl;
 				else
 					rec.CurrentSolarMax = minMax ? Cumulus.DefaultHiVal : 0.0;
 
 				if (st.Count > 23 && double.TryParse(st[23], inv, out resultDbl))
-					rec.UV = resultDbl;
+					rec.SunshineHours = resultDbl;
 				else
 					rec.SunshineHours = minMax ? Cumulus.DefaultHiVal : 0.0;
 
@@ -9396,22 +9521,22 @@ namespace CumulusMX
 					rec.Bearing = 0;
 
 				if (st.Count > 25 && double.TryParse(st[25], inv, out resultDbl))
-					rec.UV = resultDbl;
+					rec.RG11RainToday = resultDbl;
 				else
 					rec.RG11RainToday = minMax ? Cumulus.DefaultHiVal : 0.0;
 
 				if (st.Count > 26 && double.TryParse(st[26], inv, out resultDbl))
-					rec.UV = resultDbl;
+					rec.RainSinceMidnight = resultDbl;
 				else
 					rec.RainSinceMidnight = minMax ? Cumulus.DefaultHiVal : 0.0;
 
 				if (st.Count > 27 && double.TryParse(st[27], inv, out resultDbl))
-					rec.UV = resultDbl;
+					rec.FeelsLike = resultDbl;
 				else
 					rec.FeelsLike = minMax ? Cumulus.DefaultHiVal : 0.0;
 
 				if (st.Count > 28 && double.TryParse(st[28], inv, out resultDbl))
-					rec.UV = resultDbl;
+					rec.Humidex = resultDbl;
 				else
 					rec.Humidex = minMax ? Cumulus.DefaultHiVal : 0.0;
 
