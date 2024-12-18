@@ -2,7 +2,7 @@
   "profiles": {
     "CumulusMX": {
       "commandName": "Project",
-      "commandLineArgs": "-lang en-GB -port 8998"
+      "commandLineArgs": "-lang fr-FR -port 8998"
     }
   }
 }

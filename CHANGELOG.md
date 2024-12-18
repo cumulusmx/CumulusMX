@@ -37,6 +37,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Databases migrated by v4.3.0 and v4.3.1 are now scanned for issues, and fixes automatically applied
 - Fix some errors parsing log file entries, affects load recent data, and graph files
 - Fix Unknown sensor errors in Ecowitt TCP API sensor info
+- Ecowitt historic catch-up average wind speed was being mishandled by MX = a lower value than reality
 
 
 ## [4.3.1 \[b4064\]][10] - 2024-12-09
