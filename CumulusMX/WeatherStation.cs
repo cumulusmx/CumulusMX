@@ -6678,7 +6678,7 @@ namespace CumulusMX
 				}
 			}
 			// average the values, if we have enough samples
-			if (numvalues > 5)
+			if (numvalues > 5 || cumulus.StationOptions.UseSpeedForAvgCalc)
 			{
 				avg = totalwind / numvalues;
 			}

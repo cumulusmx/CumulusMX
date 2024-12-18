@@ -425,6 +425,14 @@ namespace CumulusMX
 			WS90,           // 48 30
 			Ws85,           // 49 31
 			// missing 8 channel device?
+			UNKNOWN1,        // 50 32
+			UNKNOWN2,        // 51 33
+			UNKNOWN3,        // 52 34
+			UNKNOWN4,        // 53 35
+			UNKNOWN5,        // 54 36
+			UNKNOWN6,        // 55 37
+			UNKNOWN7,        // 56 38
+			UNKNOWN8,        // 57 39
 			Wh51Ch9,        // 58 3A
 			Wh51Ch10,       // 59 3B
 			Wh51Ch11,       // 60 3C
