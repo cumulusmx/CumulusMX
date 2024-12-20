@@ -48,7 +48,7 @@ Nothing yet
 - HTTP Files now correctly allows the custom entry `<ecowittcameraurl>`, other URLs can now contain web tags
 - Rain week was added to the Realtime file in v4.3.0 but not to the Realtime MySQL table. This version adds it to MySQL as well
 	- You can use the 'Update Realtime' button on the MySQL Settings page to amend your existing realtime table.
-	- Or there is a SQL script included to update existing Realtime MySQL tables with the new column: `/MXtils/v4.3.2-AlterMySqlTables.sql`
+	- Or there is a SQL script included to update existing Realtime MySQL tables with the new column: `/MXutils/v4.3.2-AlterMySqlTables.sql`
 - AI2 switching to default dashboard now opens the dashboard in the same tab
 
 ### Fixed

@@ -12,9 +12,7 @@ using ServiceStack.Text;
 
 namespace CumulusMX
 {
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal class GW1000Station : WeatherStation
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		private string ipaddr;
 		private readonly string macaddr;
@@ -846,7 +844,7 @@ namespace CumulusMX
 						batt = $"{data[battPos]} ({TestBattery3(data[battPos])})"; // 0-5 (6+9), low = 1
 						break;
 					default:
-						// Don't know what this is 
+						// Don't know what this is
 						batt = "???";
 						break;
 				}
