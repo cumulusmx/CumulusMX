@@ -685,14 +685,12 @@ namespace CumulusMX
 
 		private string TagMetDate(Dictionary<string, string> tagParams)
 		{
-			int offset = cumulus.GetHourInc();
-			return GetFormattedDateTime(DateTime.Now.AddHours(offset), "d", tagParams);
+			return GetFormattedDateTime(cumulus.MeteoDate(), "d", tagParams);
 		}
 
 		private string TagMetDateYesterday(Dictionary<string, string> tagParams)
 		{
-			int offset = cumulus.GetHourInc(DateTime.Now.AddDays(-1));
-			return GetFormattedDateTime(DateTime.Now.AddHours(offset).AddDays(-1), "d", tagParams);
+			return GetFormattedDateTime(cumulus.MeteoDate(DateTime.Now.AddDays(-1)), "d", tagParams);
 		}
 
 		private static string TagDay(Dictionary<string, string> tagParams)

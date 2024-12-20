@@ -466,7 +466,7 @@ namespace CumulusMX
 
 						var entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
-						entrydate = entrydate.AddHours(cumulus.GetHourInc(entrydate));
+						entrydate = cumulus.MeteoDate(entrydate);
 
 						daynumber = entrydate.Day;
 

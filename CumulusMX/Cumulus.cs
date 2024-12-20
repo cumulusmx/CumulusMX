@@ -7927,7 +7927,7 @@ namespace CumulusMX
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
-			DateTime logfiledate = thedate.AddHours(GetHourInc(thedate));
+			DateTime logfiledate = MeteoDate(thedate);
 
 			var datestring = logfiledate.ToString("yyyyMM");
 
@@ -7939,7 +7939,7 @@ namespace CumulusMX
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
-			DateTime logfiledate = thedate.AddHours(GetHourInc(thedate));
+			DateTime logfiledate = MeteoDate(thedate);
 
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
@@ -7952,7 +7952,7 @@ namespace CumulusMX
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
-			DateTime logfiledate = thedate.AddHours(GetHourInc(thedate));
+			DateTime logfiledate = MeteoDate(thedate);
 
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
@@ -7965,7 +7965,7 @@ namespace CumulusMX
 			// First determine the date for the log file.
 			// If we're using 9am roll-over, the date should be 9 hours (10 in summer)
 			// before 'Now'
-			DateTime logfiledate = thedate.AddHours(GetHourInc(thedate));
+			DateTime logfiledate = MeteoDate(thedate);
 
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
@@ -9020,6 +9020,17 @@ namespace CumulusMX
 		{
 			return GetHourInc(DateTime.Now);
 		}
+
+		public DateTime MeteoDate()
+		{
+			return DateTime.Now.AddHours(GetHourInc());
+		}
+
+		public DateTime MeteoDate(DateTime dat)
+		{
+			return dat.AddHours(GetHourInc(dat));
+		}
+
 
 		public static string Beaufort(double Bspeed) // Takes speed in current unit, returns Bft number as text
 		{
