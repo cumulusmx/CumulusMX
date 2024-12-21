@@ -30,7 +30,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Fixed
 
-Nothing yet
+- Fix writing of the first Custom MySQL Minutes interval value to Cumulus.ini
 
 
 ## [4.3.2 \[b4067\]][11] - 2024-12-18
