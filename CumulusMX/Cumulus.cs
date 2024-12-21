@@ -7004,7 +7004,7 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "CustomMySqlRolloverCommandString", MySqlSettings.CustomRollover.Commands[0]);
 			ini.SetValue("MySQL", "CustomMySqlStartUpCommandString", MySqlSettings.CustomStartUp.Commands[0]);
 
-			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIdx", MySqlSettings.CustomMins.IntervalIndexes[0]);
+			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIndex", MySqlSettings.CustomMins.IntervalIndexes[0]);
 
 			for (var i = 1; i < 10; i++)
 			{
