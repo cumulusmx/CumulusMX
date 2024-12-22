@@ -229,7 +229,7 @@ namespace CumulusMX
 
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
-				cumulus.LogErrorMessage("GetSensorInfo: Invalid station IP address: " +  cumulus.Gw1000IpAddress);
+				cumulus.LogErrorMessage("GetSensorInfo: Invalid station IP address: " + cumulus.Gw1000IpAddress);
 				return null;
 			}
 
@@ -410,7 +410,7 @@ namespace CumulusMX
 			// response = 200 - OK
 		}
 
-		public static  void SetLogin(string password)
+		public static void SetLogin(string password)
 		{
 			// http://ip-address/set_login_info
 
@@ -911,7 +911,7 @@ namespace CumulusMX
 
 		public class SensorInfo
 		{
-			public string img {  get; set; }
+			public string img { get; set; }
 			public int type { get; set; }
 			public string name { get; set; }
 			public string id { get; set; }
@@ -953,6 +953,181 @@ namespace CumulusMX
 		{
 			public bool is_new { get; set; }
 			public string msg { get; set; }
+		}
+
+		public class LogFileRecord
+		{
+			// YYYYMM[A - Z].csv
+			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
+			// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
+
+			public DateTime Time { get; set; }
+			public double? IndoorTemperature { get; set; }
+			public int? IndoorHumidity { get; set; }
+			public double? Temperature { get; set; }
+			public int? Humidity { get; set; }
+			public double? DewPoint { get; set; }
+			public double? FeelsLike { get; set; }
+			public double? Wind { get; set; }
+			public double? Gust { get; set; }
+			public int? WindDirection { get; set; }
+			public double? AbsPressure { get; set; }
+			public double? RelPressure { get; set; }
+			public int? SolarRad { get; set; }
+			public double? UVIndex { get; set; }
+			public double? ConsoleBattery { get; set; }
+			public double? ExternalSupply { get; set; }
+			public bool? Charge { get; set; }
+			public double? HourlyRain { get; set; }
+			public double? EventRain { get; set; }
+			public double? DailyRain { get; set; }
+			public double? WeeklyRain { get; set; }
+			public double? MonthlyRain { get; set; }
+			public double? YearlyRain { get; set; }
+
+			public LogFileRecord(string line = null)
+			{
+				if (line != null)
+					ParseString(line);
+			}
+
+			public void ParseString(string line)
+			{
+				var data = line.Split(',');
+
+				Time = DateTime.ParseExact(data[0], "yyyy-MM-dd hh:mm", CultureInfo.InvariantCulture);
+				IndoorTemperature = double.TryParse(data[1], invNum, out double resultDbl) ? resultDbl : null;
+				IndoorHumidity = int.TryParse(data[2], out int result) ? result : null;
+				Temperature = double.TryParse(data[3], invNum, out resultDbl) ? resultDbl : null;
+				Humidity = int.TryParse(data[4], out int resultInt) ? resultInt : null;
+				DewPoint = double.TryParse(data[5], invNum, out resultDbl) ? resultDbl : null;
+				FeelsLike = double.TryParse(data[6], invNum, out resultDbl) ? resultDbl : null;
+				Wind = double.TryParse(data[7], invNum, out resultDbl) ? resultDbl : null;
+				Gust = double.TryParse(data[8], invNum, out resultDbl) ? resultDbl : null;
+				WindDirection = int.TryParse(data[9], out result) ? result : null;
+				AbsPressure = double.TryParse(data[10], invNum, out resultDbl) ? resultDbl : null;
+				RelPressure = double.TryParse(data[11], invNum, out resultDbl) ? resultDbl : null;
+				SolarRad = int.TryParse(data[12], out result) ? result : null;
+				UVIndex = double.TryParse(data[13], invNum, out resultDbl) ? resultDbl : null;
+				ConsoleBattery = double.TryParse(data[14], invNum, out resultDbl) ? resultDbl : null;
+				ExternalSupply = double.TryParse(data[15], invNum, out resultDbl) ? resultDbl : null;
+				Charge = bool.TryParse(data[16], out bool resultBool) ? resultBool : null;
+				HourlyRain = double.TryParse(data[17], invNum, out resultDbl) ? resultDbl : null;
+				EventRain = double.TryParse(data[18], invNum, out resultDbl) ? resultDbl : null;
+				DailyRain = double.TryParse(data[19], invNum, out resultDbl) ? resultDbl : null;
+				WeeklyRain = double.TryParse(data[20], invNum, out resultDbl) ? resultDbl : null;
+				MonthlyRain = double.TryParse(data[21], invNum, out resultDbl) ? resultDbl : null;
+				YearlyRain = double.TryParse(data[22], invNum, out resultDbl) ? resultDbl : null;
+			}
+		}
+
+		public class ExtraLogFileRecord
+		{
+			// Time
+			// CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%),CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%),CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃),CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃),CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃),CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃),CH8 HeatIndex(℃),CH8 Humidity(%),
+			// WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),
+			// Thunder count,Thunder distance(km),
+			// AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),
+			// SoilMoisture CH1(%),SoilMoisture CH2(%),SoilMoisture CH3(%),SoilMoisture CH4(%),SoilMoisture CH5(%),SoilMoisture CH6(%),SoilMoisture CH7(%),SoilMoisture CH8(%),SoilMoisture CH9(%),SoilMoisture CH10(%),SoilMoisture CH11(%),SoilMoisture CH12(%),SoilMoisture CH13(%),SoilMoisture CH14(%),SoilMoisture CH15(%),SoilMoisture CH16(%),
+			// Water CH1,Water CH2,Water CH3,Water CH4,
+			// Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),
+			// WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),
+
+			// 2024-09-18 14:25,24.5,14.3,24.5,53,30.0,17.5,30.5,47,24.0,13.6,24.0,52,--.-,--.-,--.-,--,-15.5,--.-,--.-,--,38.1,23.8,45.6,44,6.6,-1.5,6.6,56,--.-,--.-,--.-,--,19,--,--,--,--,--,--,--,0,--.-,20.3,66,479,10.4,10.8,--.-,--.-,69,51,78,49,44,52,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,--.-,--.-,--.-,--.-,11.5,16.8,24.0,--.-,--.-,--.-,--.-,--.-
+
+			public DateTime Time { get; set; }
+			public ExtraThSensor[] TempHum { get; set; } = new ExtraThSensor[8];
+			public int?[] Wh35Hum { get; set; } = new int?[8];
+			public int? LightningCount { get; set; }
+			public double? LightningDistance { get; set; }
+			public AqiIn AqiIndoor { get; set; }
+			public int?[] SoilMoisture { get; set; } = new int?[16];
+			public string[] Water { get; set; } = new string[4];
+			public double?[] Pm25 { get; set; } = new double?[4];
+			public double?[] Wh34Temp { get; set; } = new double?[8];
+
+			public ExtraLogFileRecord(string line = null)
+			{
+				if (line != null)
+					ParseString(line);
+			}
+
+			public void ParseString(string line)
+			{
+				var data = line.Split(',');
+				int resultInt;
+				double resultDbl;
+
+				Time = DateTime.ParseExact(data[0], "yyyy-MM-dd hh:mm", CultureInfo.InvariantCulture);
+				for (int i = 0; i < 8; i++)
+				{
+					TempHum[i] = new ExtraThSensor
+					{
+						Temperature = double.TryParse(data[1 + i * 4], invNum, out resultDbl) ? resultDbl : null,
+						DewPoint = double.TryParse(data[2 + i * 4], invNum, out resultDbl) ? resultDbl : null,
+						HeatIndex = double.TryParse(data[3 + i * 4], invNum, out resultDbl) ? resultDbl : null,
+						Humidity = int.TryParse(data[4 + i * 4], out resultInt) ? resultInt : null
+					};
+				}
+
+				for (int i = 0; i < 8; i++)
+				{
+					Wh35Hum[i] = int.TryParse(data[33 + i], out int result) ? result : null;
+				}
+
+				LightningCount = int.TryParse(data[41], out resultInt) ? resultInt : null;
+				LightningDistance = double.TryParse(data[42], invNum, out resultDbl) ? resultDbl : null;
+
+				AqiIndoor = new AqiIn
+				{
+					Temperature = double.TryParse(data[43], invNum, out resultDbl) ? resultDbl : null,
+					Humidity = int.TryParse(data[44], out resultInt) ? resultInt : null,
+					CO2 = int.TryParse(data[45], out resultInt) ? resultInt : null,
+					PM25 = double.TryParse(data[46], invNum, out resultDbl) ? resultDbl : null,
+					PM10 = double.TryParse(data[47], invNum, out resultDbl) ? resultDbl : null,
+					PM1 = double.TryParse(data[48], invNum, out resultDbl) ? resultDbl : null,
+					PM4 = double.TryParse(data[49], invNum, out resultDbl) ? resultDbl : null
+				};
+
+				for (int i = 0; i < 16; i++)
+				{
+					SoilMoisture[i] = int.TryParse(data[50 + i], out resultInt) ? resultInt : null;
+				}
+
+				for (int i = 0; i < 4; i++)
+				{
+					Water[i] = data[66 + i];
+				}
+
+				for (int i = 0; i < 4; i++)
+				{
+					Pm25[i] = double.TryParse(data[70 + i], invNum, out resultDbl) ? resultDbl : null;
+				}
+
+				for (int i = 0; i < 8; i++)
+				{
+					Wh34Temp[i] = double.TryParse(data[74 + i], invNum, out resultDbl) ? resultDbl : null;
+				}
+			}
+		}
+
+		public class ExtraThSensor
+		{
+			public double? Temperature { get; set; }
+			public double? DewPoint { get; set; }
+			public double? HeatIndex { get; set; }
+			public int? Humidity { get; set; }
+		}
+
+		public class AqiIn
+		{
+			public double? Temperature { get; set; }
+			public int? Humidity { get; set; }
+			public int? CO2 { get; set; }
+			public double? PM25 { get; set; }
+			public double? PM10 { get; set; }
+			public double? PM1 { get; set; }
+			public double? PM4 { get; set; }
 		}
 	}
 }
