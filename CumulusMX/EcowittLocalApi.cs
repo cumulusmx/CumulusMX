@@ -592,6 +592,8 @@ namespace CumulusMX
 		public async Task<SdCard> GetSdCardInfo(CancellationToken token)
 		{
 			// http://IP-address/get_sdmmc_info
+			//
+			// {"info":{"Name":"SZYL","Type":"SDHC/SDXC","Speed":"20 MHz","Size":"7580 MB","Interval":"5"},"file_list":[{"name":"202409A.csv","type":"1","size":"3212"},{"name":"202409Allsensors_A.csv","type":"1","size":"10075"},{"name":"log","type":"2","size":"-"},{"name":"202401A.csv","type":"1","size":"604"},{"name":"202401Allsensors_A.csv","type":"1","size":"2123"},{"name":"202409B.csv","type":"1","size":"398829"},{"name":"202409Allsensors_B.csv", "type":"1","size":"1160913"},{"name":"202410B.csv","type":"1","size":"1051061"},{"name":"202410Allsensors_B.csv","type":"1","size":"3039518"},{"name":"202411B.csv","type":"1","size":"986611"},{"name":"202411Allsensors_B.csv","type":"1","size":"2861108"},{"name":"202412B.csv","type":"1","size":"78625"},{"name":"202412Allsensors_B.csv","type":"1","size":"228437"}]}
 
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
@@ -726,7 +728,7 @@ namespace CumulusMX
 			}
 			catch
 			{
-				// do nothing
+				// do nothing, the boy does nothing!
 			}
 		}
 
