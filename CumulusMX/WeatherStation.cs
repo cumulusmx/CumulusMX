@@ -7247,7 +7247,6 @@ namespace CumulusMX
 				DayResetDay = drday;
 
 				// any last updates?
-				// subtract 1 minute to keep within the previous met day
 				DoTrendValues(timestamp, true);
 
 				if (cumulus.MySqlSettings.CustomRollover.Enabled)
@@ -8520,16 +8519,16 @@ namespace CumulusMX
 			List<RecentData> retVals;
 			var recTs = ts;
 
-			// if this is the special case of rollover processing, we want the High today record to on the previous day at 23:59 or 08:59
+			// if this is the special case of rollover processing, we want the High today record to on the previous day at 23:59:59.999 or 08:59:59.999
 			if (rollover)
 			{
-				recTs = recTs.AddMinutes(-1);
+				recTs = recTs.Date;
 			}
 
 			// Do 3 hour trends
 			try
 			{
-				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, Pressure from RecentData where Timestamp >=? order by Timestamp limit 1", ts.AddHours(-3));
+				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, Pressure from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddHours(-3));
 
 				if (retVals.Count != 1)
 				{
@@ -8562,7 +8561,7 @@ namespace CumulusMX
 			try
 			{
 				// Do 1 hour trends
-				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, raincounter from RecentData where Timestamp >=? order by Timestamp limit 1", ts.AddHours(-1));
+				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddHours(-1));
 
 				if (retVals.Count != 1)
 				{

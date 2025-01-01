@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b40xx\]][12] - 2025-01-01
+## [4.4.0 \[b40xx\]][13] - 2025-02-01
 
 ### New
 
@@ -31,6 +31,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Fix writing of the first Custom MySQL Minutes interval value to Cumulus.ini
+
+
+## [4.3.3 \[b4070\]][12] - 2025-01-01
+
+### Fixed
+
+- JSON Station null reference Exception
+- Error rewriting Cumulus.ini on some Windows installations
+- Trend values on rollover (rates, rain in last hour etc) now include the last minute before rollover
 
 
 ## [4.3.2 \[b4067\]][11] - 2024-12-18
@@ -548,4 +557,5 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [9]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4063
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
-[12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4068
+[12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4071

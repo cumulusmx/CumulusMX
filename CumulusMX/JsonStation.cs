@@ -40,6 +40,7 @@ namespace CumulusMX
 			if (mainStation)
 			{
 				cumulus.LogMessage("Creating JSON Station");
+				this.station = this;
 			}
 			else
 			{
@@ -267,28 +268,28 @@ namespace CumulusMX
 						{
 							if (data.temperature.outdoor.HasValue)
 							{
-								station.DoOutdoorTemp(ConvertUnits.TempCToUser(data.temperature.outdoor.Value), data.lastupdated);
+								DoOutdoorTemp(ConvertUnits.TempCToUser(data.temperature.outdoor.Value), data.lastupdated);
 								haveTemp = true;
 							}
 							if (data.temperature.indoor.HasValue)
 							{
-								station.DoIndoorTemp(ConvertUnits.TempCToUser(data.temperature.indoor.Value));
+								DoIndoorTemp(ConvertUnits.TempCToUser(data.temperature.indoor.Value));
 							}
 							if (!cumulus.StationOptions.CalculatedDP && data.temperature.dewpoint.HasValue)
 							{
-								station.DoOutdoorDewpoint(ConvertUnits.TempCToUser(data.temperature.dewpoint.Value), data.lastupdated);
+								DoOutdoorDewpoint(ConvertUnits.TempCToUser(data.temperature.dewpoint.Value), data.lastupdated);
 							}
 						}
 						else if (data.units.temperature == "F")
 						{
 							if (data.temperature.outdoor.HasValue)
 							{
-								station.DoOutdoorTemp(ConvertUnits.TempFToUser(data.temperature.outdoor.Value), data.lastupdated);
+								DoOutdoorTemp(ConvertUnits.TempFToUser(data.temperature.outdoor.Value), data.lastupdated);
 								haveTemp = true;
 							}
 							if (data.temperature.indoor.HasValue)
 							{
-								station.DoIndoorTemp(ConvertUnits.TempFToUser(data.temperature.indoor.Value));
+								DoIndoorTemp(ConvertUnits.TempFToUser(data.temperature.indoor.Value));
 							}
 						}
 						else
@@ -311,12 +312,12 @@ namespace CumulusMX
 					{
 						if (data.humidity.outdoor != null)
 						{
-							station.DoOutdoorHumidity(data.humidity.outdoor.Value, data.lastupdated);
+							DoOutdoorHumidity(data.humidity.outdoor.Value, data.lastupdated);
 							haveHum = true;
 						}
 						if (data.humidity.indoor != null)
 						{
-							station.DoIndoorHumidity(data.humidity.indoor.Value);
+							DoIndoorHumidity(data.humidity.indoor.Value);
 						}
 					}
 					catch (Exception ex)
@@ -376,7 +377,7 @@ namespace CumulusMX
 
 								if (doit)
 								{
-									station.DoWind(gust, data.wind.direction ?? 0, avg, data.lastupdated);
+									DoWind(gust, data.wind.direction ?? 0, avg, data.lastupdated);
 									haveWind = true;
 								}
 							}
@@ -425,7 +426,7 @@ namespace CumulusMX
 
 								if (data.rain.counter.HasValue)
 								{
-									station.DoRain(ConvertUnits.RainMMToUser(counter), rate, data.lastupdated);
+									DoRain(ConvertUnits.RainMMToUser(counter), rate, data.lastupdated);
 								}
 							}
 							else if (data.units.rainfall == "in")
@@ -434,7 +435,7 @@ namespace CumulusMX
 
 								if (data.rain.counter.HasValue)
 								{
-									station.DoRain(ConvertUnits.RainINToUser(counter), rate, data.lastupdated);
+									DoRain(ConvertUnits.RainINToUser(counter), rate, data.lastupdated);
 								}
 							}
 							else
@@ -477,8 +478,8 @@ namespace CumulusMX
 
 								if (cumulus.StationOptions.CalculateSLP && abs < 0)
 								{
-									cumulus.LogErrorMessage("ApplyData: Calculate SLP is enabled, but no abosolute pressure value in data");
-									retStr.AppendLine("Calculate SLP is enabled, but no abosolute pressure value in data");
+									cumulus.LogErrorMessage("ApplyData: Calculate SLP is enabled, but no absolute pressure value in data");
+									retStr.AppendLine("Calculate SLP is enabled, but no absolute pressure value in data");
 								}
 								else
 								{
@@ -511,7 +512,7 @@ namespace CumulusMX
 											slp = ConvertUnits.PressMBToUser(slp);
 										}
 
-										station.DoPressure(slp, data.lastupdated);
+										DoPressure(slp, data.lastupdated);
 									}
 								}
 							}
