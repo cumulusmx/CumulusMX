@@ -15,13 +15,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### New
 
 - NOAA Reports can now be created as HTML
-	- Two sample templates are included for annual and monthly reports: `Reports/SampleHtmlTemplateYear.txt`, and `SampleHtmlTemplateMonth.txt`
-	- The reports are generated from the "in-use" templates: `Reports/HtmlTemplateYear.txt`, and `HtmlTemplateMonth.txt`
-	- If you enable HTML reports and do not create "in-use" templates, the sample templates will be copied to "in-use" templates
+	- Two sample templates are included for annual and monthly reports: `Reports/SampleHtmlTemplateYear.htm`, and `SampleHtmlTemplateMonth.htm`
+	- The reports are generated from the "in-use" templates: `Reports/HtmlTemplateYear.htm`, and `HtmlTemplateMonth.htm`
+	- If you enable HTML reports and do not create custom "in-use" templates, the sample templates will be copied to "in-use" templates
 	- You can edit the "in-use" templates to alter the localisation, adjust formatting etc
 	- A new web tag `<#Option_noaaFormat>` which returns "text" or "html"
 	- Changes to the default web site files to accommodate this:
-		- `noaarpts.htm`
+		- `noaareports.htm`
 		- `js/noaarpts.js`
 
 ### Changed
@@ -30,7 +30,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Fixed
 
-Nothing yet
+- Fix writing of the first Custom MySQL Minutes interval value to Cumulus.ini
 
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
