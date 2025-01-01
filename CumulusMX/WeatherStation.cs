@@ -8615,7 +8615,7 @@ namespace CumulusMX
 							{
 								HiLoToday.HighHourlyRain = RainLastHour;
 								HiLoToday.HighHourlyRainTime = recDtTm;
-								WriteTodayFile(recDtTm, false);
+								WriteTodayFile(ts, false);
 							}
 
 							if (RainLastHour > ThisMonth.HourlyRain.Val)
@@ -8683,7 +8683,9 @@ namespace CumulusMX
 							RainRate = tempRainRate;
 
 							if (RainRate > AllTime.HighRainRate.Val)
+							{
 								SetAlltime(AllTime.HighRainRate, RainRate, recDtTm);
+							}
 
 							CheckMonthlyAlltime("HighRainRate", RainRate, true, recDtTm);
 
@@ -8693,7 +8695,7 @@ namespace CumulusMX
 							{
 								HiLoToday.HighRainRate = RainRate;
 								HiLoToday.HighRainRateTime = recDtTm;
-								WriteTodayFile(recDtTm, false);
+								WriteTodayFile(ts, false);
 							}
 
 							if (RainRate > ThisMonth.HighRainRate.Val)
