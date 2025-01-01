@@ -8506,17 +8506,19 @@ namespace CumulusMX
 			double trendval;
 			List<RecentData> retVals;
 			var recTs = ts;
+			var recDtTm = ts;
 
-			// if this is the special case of rollover processing, we want the High today record to on the previous day at 23:59:59.999 or 08:59:59.999
+			// if this is the special case of rollover processing, we want the High today record to on the previous day at 23:59 or 08:59
 			if (rollover)
 			{
 				recTs = recTs.Date;
+				recDtTm = recDtTm.Date.AddMinutes(-1);  // set record date/time at at 23:59 or 08:59 at rollover to avoid confusion with start of day at 00:00 or 09:00
 			}
 
 			// Do 3 hour trends
 			try
 			{
-				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, Pressure from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddHours(-3));
+				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, Pressure from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddHours(-3));
 
 				if (retVals.Count != 1)
 				{
@@ -8549,7 +8551,7 @@ namespace CumulusMX
 			try
 			{
 				// Do 1 hour trends
-				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddHours(-1));
+				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddHours(-1));
 
 				if (retVals.Count != 1)
 				{
@@ -8591,28 +8593,30 @@ namespace CumulusMX
 							RainLastHour = tempRainLastHour;
 
 							if (RainLastHour > AllTime.HourlyRain.Val)
-								SetAlltime(AllTime.HourlyRain, RainLastHour, ts);
+							{
+								SetAlltime(AllTime.HourlyRain, RainLastHour, recDtTm);
+							}
 
-							CheckMonthlyAlltime("HourlyRain", RainLastHour, true, ts);
+							CheckMonthlyAlltime("HourlyRain", RainLastHour, true, recDtTm);
 
 							if (RainLastHour > HiLoToday.HighHourlyRain)
 							{
 								HiLoToday.HighHourlyRain = RainLastHour;
-								HiLoToday.HighHourlyRainTime = recTs;
+								HiLoToday.HighHourlyRainTime = recDtTm;
 								WriteTodayFile(ts, false);
 							}
 
 							if (RainLastHour > ThisMonth.HourlyRain.Val)
 							{
 								ThisMonth.HourlyRain.Val = RainLastHour;
-								ThisMonth.HourlyRain.Ts = ts;
+								ThisMonth.HourlyRain.Ts = recDtTm;
 								WriteMonthIniFile();
 							}
 
 							if (RainLastHour > ThisYear.HourlyRain.Val)
 							{
 								ThisYear.HourlyRain.Val = RainLastHour;
-								ThisYear.HourlyRain.Ts = ts;
+								ThisYear.HourlyRain.Ts = recDtTm;
 								WriteYearIniFile();
 							}
 						}
@@ -8632,7 +8636,7 @@ namespace CumulusMX
 
 				try
 				{
-					retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddMinutes(-5.5));
+					retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddMinutes(-5.5));
 
 					if (retVals.Count != 1 || RainCounter < retVals[0].raincounter)
 					{
@@ -8667,30 +8671,32 @@ namespace CumulusMX
 							RainRate = tempRainRate;
 
 							if (RainRate > AllTime.HighRainRate.Val)
-								SetAlltime(AllTime.HighRainRate, RainRate, ts);
+							{
+								SetAlltime(AllTime.HighRainRate, RainRate, recDtTm);
+							}
 
-							CheckMonthlyAlltime("HighRainRate", RainRate, true, ts);
+							CheckMonthlyAlltime("HighRainRate", RainRate, true, recDtTm);
 
 							cumulus.HighRainRateAlarm.CheckAlarm(RainRate);
 
 							if (RainRate > HiLoToday.HighRainRate)
 							{
 								HiLoToday.HighRainRate = RainRate;
-								HiLoToday.HighRainRateTime = recTs;
+								HiLoToday.HighRainRateTime = recDtTm;
 								WriteTodayFile(ts, false);
 							}
 
 							if (RainRate > ThisMonth.HighRainRate.Val)
 							{
 								ThisMonth.HighRainRate.Val = RainRate;
-								ThisMonth.HighRainRate.Ts = ts;
+								ThisMonth.HighRainRate.Ts = recDtTm;
 								WriteMonthIniFile();
 							}
 
 							if (RainRate > ThisYear.HighRainRate.Val)
 							{
 								ThisYear.HighRainRate.Val = RainRate;
-								ThisYear.HighRainRate.Ts = ts;
+								ThisYear.HighRainRate.Ts = recDtTm;
 								WriteYearIniFile();
 							}
 						}
@@ -8706,7 +8712,7 @@ namespace CumulusMX
 			// calculate and display rainfall in last 24 hour
 			try
 			{
-				retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", ts.AddDays(-1));
+				retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddDays(-1));
 
 				if (retVals.Count != 1 || RainCounter < retVals[0].raincounter)
 				{
@@ -8726,28 +8732,28 @@ namespace CumulusMX
 					if (RainLast24Hour > HiLoToday.HighRain24h)
 					{
 						HiLoToday.HighRain24h = RainLast24Hour;
-						HiLoToday.HighRain24hTime = recTs;
-						WriteTodayFile(recTs, false);
+						HiLoToday.HighRain24hTime = recDtTm;
+						WriteTodayFile(ts, false);
 					}
 
 					if (RainLast24Hour > AllTime.HighRain24Hours.Val)
 					{
-						SetAlltime(AllTime.HighRain24Hours, RainLast24Hour, ts);
+						SetAlltime(AllTime.HighRain24Hours, RainLast24Hour, recDtTm);
 					}
 
-					CheckMonthlyAlltime("HighRain24Hours", RainLast24Hour, true, ts);
+					CheckMonthlyAlltime("HighRain24Hours", RainLast24Hour, true, recDtTm);
 
 					if (RainLast24Hour > ThisMonth.HighRain24Hours.Val)
 					{
 						ThisMonth.HighRain24Hours.Val = RainLast24Hour;
-						ThisMonth.HighRain24Hours.Ts = ts;
+						ThisMonth.HighRain24Hours.Ts = recDtTm;
 						WriteMonthIniFile();
 					}
 
 					if (RainLast24Hour > ThisYear.HighRain24Hours.Val)
 					{
 						ThisYear.HighRain24Hours.Val = RainLast24Hour;
-						ThisYear.HighRain24Hours.Ts = ts;
+						ThisYear.HighRain24Hours.Ts = recDtTm;
 						WriteYearIniFile();
 					}
 				}
