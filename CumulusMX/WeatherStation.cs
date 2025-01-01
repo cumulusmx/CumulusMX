@@ -8693,7 +8693,7 @@ namespace CumulusMX
 							{
 								HiLoToday.HighRainRate = RainRate;
 								HiLoToday.HighRainRateTime = recDtTm;
-								WriteTodayFile(ts, false);
+								WriteTodayFile(recDtTm, false);
 							}
 
 							if (RainRate > ThisMonth.HighRainRate.Val)
