@@ -5195,13 +5195,27 @@ namespace CumulusMX
 					}
 					else if (cumulus.Units.SnowDepth == 0)
 					{
-						// laser dist must be 1 (inches)
-						dist = (decimal) Math.Round(LaserDepth[cumulus.SnowAutomated].Value * 25.4, 0);
+						// snow depth = cm
+						var mult = cumulus.Units.LaserDistance switch
+						{
+							0 => 1,
+							1 => 0.3937008,
+							2 => 10,
+							_ => 0
+						};
+						dist = (decimal) Math.Round(LaserDepth[cumulus.SnowAutomated].Value * mult, 0);
 					}
 					else
 					{
-						// laser dist must be 0 (cm)
-						dist = (decimal) Math.Round(LaserDepth[cumulus.SnowAutomated].Value / 25.4, 1);
+						// snow depth = inches
+						var mult = cumulus.Units.LaserDistance switch
+						{
+							0 => 2.54,
+							1 => 1,
+							2 => 25.4,
+							_ => 0
+						};
+						dist = (decimal) Math.Round(LaserDepth[cumulus.SnowAutomated].Value * mult, 1);
 					}
 				}
 				var record = new DiaryData

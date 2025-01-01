@@ -9,6 +9,8 @@ using MQTTnet;
 using ServiceStack;
 using ServiceStack.Text;
 
+using static Org.BouncyCastle.Asn1.Cmp.Challenge;
+
 
 namespace CumulusMX
 {
@@ -24,6 +26,8 @@ namespace CumulusMX
 		private static readonly double mm2in = 0.0393701;
 		private static readonly double cm2in = 0.393701;
 		private static readonly double in2cm = 2.54;
+		private static readonly double in2mm = 25.4;
+		private static readonly double mm2in = 1 / 25.4;
 
 		private FileSystemWatcher watcher;
 
@@ -764,9 +768,9 @@ namespace CumulusMX
 				{
 					var multiplier = data.units.laserdist switch
 					{
-						"mm" => cumulus.Units.LaserDistance == 0 ? 0.1 : mm2in,
-						"in" => cumulus.Units.LaserDistance == 0 ? in2cm : 1,
-						"cm" => cumulus.Units.LaserDistance == 0 ? 1 : cm2in,
+						"mm" => 1,
+						"in" => in2mm,
+						"cm" => 0.1,
 						_ => 1,
 					};
 
@@ -776,12 +780,14 @@ namespace CumulusMX
 						{
 							if (rec.range.HasValue)
 							{
-								station.DoLaserDistance(rec.range.HasValue ? rec.range.Value * multiplier : null, rec.index);
+								double? range = rec.range.HasValue ? ConvertUnits.LaserMmtoUser(rec.range.Value * multiplier) : null;
+								station.DoLaserDistance(range, rec.index);
 							}
 
 							if (rec.depth.HasValue)
 							{
-								station.DoLaserDepth(rec.depth.HasValue ? rec.depth.Value * multiplier : null, rec.index);
+								double? depth = rec.depth.HasValue ? ConvertUnits.LaserMmtoUser(rec.depth.Value * multiplier) : null;
+								station.DoLaserDepth(depth, rec.index);
 							}
 						}
 						catch (Exception ex)

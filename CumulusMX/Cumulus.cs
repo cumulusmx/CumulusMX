@@ -2085,7 +2085,13 @@ namespace CumulusMX
 			Units.SnowText = Units.SnowDepth == 0 ? "cm" : "in";
 			SnowDPlaces = Units.SnowDepth == 0 ? 1 : 2;
 			SnowFormat = "F" + SnowDPlaces;
-		Units.LaserDistanceText = Units.LaserDistance == 0 ? "cm" : "in";
+			Units.LaserDistanceText = Units.LaserDistance switch
+			{
+				0 => "cm",
+				1 => "in",
+				2 => "mm",
+				_ => "??"
+			};
 		}
 
 		// If the temperature units are changed, reset NOAA thresholds to defaults
@@ -3952,7 +3958,7 @@ namespace CumulusMX
 			Units.Rain = ini.GetValue("Station", "RainUnit", 0, 0, 1);
 			Units.Temp = ini.GetValue("Station", "TempUnit", 0, 0, 1);
 			Units.SnowDepth = ini.GetValue("Station", "SnowDepthUnit", 0, 0, 1);
-			Units.LaserDistance = ini.GetValue("Station", "LaserDistancehUnit", Units.SnowDepth, 0, 1);
+			Units.LaserDistance = ini.GetValue("Station", "LaserDistancehUnit", Units.SnowDepth, 0, 2);
 
 			StationOptions.RoundWindSpeed = ini.GetValue("Station", "RoundWindSpeed", false);
 			StationOptions.PrimaryAqSensor = ini.GetValue("Station", "PrimaryAqSensor", -1, -1);
@@ -14306,7 +14312,7 @@ namespace CumulusMX
 		public int Temp { get; set; }
 		/// <value> 0=cm, 1=inch </value>
 		public int SnowDepth { get; set; }
-		/// <value> 0=cm, 1=inch </value>
+		/// <value> 0=cm, 1=inch, 2=mm </value>
 		public int LaserDistance { get; set; }
 
 		public string WindText { get; set; }
