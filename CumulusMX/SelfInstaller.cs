@@ -25,7 +25,7 @@ namespace CumulusMX
 				Console.WriteLine("Installing as a Windows Service...");
 
 				// sc create CumulusMX binpath=C:\CumulusMX\CumulusMX.dll start= delayed-auto depend= LanmanWorkstation
-				var createExitCode = RunCommand("sc.exe", $"create CumulusMX binpath= \"{path}\" start= delayed-auto depend= Netman obj= \"\"NT Authority\\NetworkService\"\"");
+				var createExitCode = RunCommand("sc.exe", $"create CumulusMX binPath= \"{path}\" start= delayed-auto depend= Netman obj= \"NT Authority\\NetworkService\"");
 
 				if (createExitCode != 0)
 					return false;

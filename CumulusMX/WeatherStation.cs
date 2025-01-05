@@ -360,8 +360,6 @@ namespace CumulusMX
 			ExtraDewPoint = new double?[11];
 			UserTemp = new double?[9];
 			SoilTemp = new double?[17];
-			LaserDist = new double?[5];
-			LaserDepth = new double?[5];
 
 			windcounts = new double[16];
 			WindRecent = new TWindRecent[MaxWindRecent];
@@ -1508,8 +1506,9 @@ namespace CumulusMX
 		/// <summary>
 		/// Laser distance
 		/// </summary>
-		public double?[] LaserDist { get; set; }
-		public double?[] LaserDepth { get; set; }
+		public double?[] LaserDist { get; set; } = new double?[5];
+		public double?[] LaserDepth { get; set; } = new double?[5];
+		public decimal?[] Snow24h { get; set; } = new decimal?[5];
 
 		public double RainYesterday { get; set; }
 
@@ -2141,9 +2140,16 @@ namespace CumulusMX
 			}
 
 			// snow reading rollover
-			if (now.Hour == cumulus.SnowDepthHour && cumulus.SnowAutomated > 0)
+			if (now.Hour == cumulus.SnowDepthHour)
 			{
+				if (cumulus.SnowAutomated > 0)
 				CreateNewSnowRecord(now);
+
+				// reset the accumalted snow depth(s)
+				for (int i = 0; i < Snow24h.Length; i++)
+				{
+					Snow24h[i] = null;
+				}
 			}
 
 			RemoveOldRecentData(now);
@@ -5218,11 +5224,13 @@ namespace CumulusMX
 						dist = (decimal) Math.Round(LaserDepth[cumulus.SnowAutomated].Value * mult, 1);
 					}
 				}
+
 				var record = new DiaryData
 				{
 					Date = now.Date,
 					Time = now.TimeOfDay,
 					SnowDepth = dist,
+					Snow24h = Snow24h[cumulus.SnowAutomated],
 					Entry = "Automated entry"
 				};
 
@@ -9870,6 +9878,16 @@ namespace CumulusMX
 		{
 			if (index > 0 && index < LaserDepth.Length)
 			{
+				if (value.HasValue)
+				{
+					// calculate the snowfall
+					var snow = value.Value - LaserDepth[index].Value;
+					if (snow > 0)
+					{
+						Snow24h[index] += (decimal) Math.Round(snow, 2);
+					}
+				}
+
 				LaserDepth[index] = value;
 			}
 		}
