@@ -49,6 +49,7 @@ namespace CumulusMX
 		public readonly Object yearIniThreadLock = new();
 		public readonly Object alltimeIniThreadLock = new();
 		public readonly Object monthlyalltimeIniThreadLock = new();
+		public readonly Object recentwindLock = new();
 
 		private static readonly SemaphoreSlim webSocketSemaphore = new(1, 1);
 
@@ -2143,7 +2144,9 @@ namespace CumulusMX
 			if (now.Hour == cumulus.SnowDepthHour)
 			{
 				if (cumulus.SnowAutomated > 0)
-				CreateNewSnowRecord(now);
+				{
+					CreateNewSnowRecord(now);
+				}
 
 				// reset the accumalted snow depth(s)
 				for (int i = 0; i < Snow24h.Length; i++)
@@ -6519,10 +6522,13 @@ namespace CumulusMX
 
 			CheckHighGust(calibratedgust, Bearing, timestamp);
 
-			WindRecent[nextwind].Gust = gustpar; // We store uncalibrated gust values, so if we need to calculate the average from them we do not need to uncalibrate
-			WindRecent[nextwind].Speed = uncalibratedspeed;
-			WindRecent[nextwind].Timestamp = timestamp;
-			nextwind = (nextwind + 1) % MaxWindRecent;
+			lock (recentwindLock)
+			{
+				WindRecent[nextwind].Gust = gustpar; // We store uncalibrated gust values, so if we need to calculate the average from them we do not need to uncalibrate
+				WindRecent[nextwind].Speed = uncalibratedspeed;
+				WindRecent[nextwind].Timestamp = timestamp;
+				nextwind = (nextwind + 1) % MaxWindRecent;
+			}
 
 #if DEBUGWIND
 			cumulus.LogDebugMessage($"Wind calc using speed: {cumulus.StationOptions.UseSpeedForAvgCalc}");
@@ -6686,16 +6692,19 @@ namespace CumulusMX
 			double totalwind = 0;
 			double avg = 0;
 
-			for (int i = 0; i < MaxWindRecent; i++)
+			lock (recentwindLock)
 			{
-				if (WindRecent[i].Timestamp >= fromTime)
+				for (int i = 0; i < MaxWindRecent; i++)
 				{
+					if (WindRecent[i].Timestamp >= fromTime)
+					{
 #if DEBUGWIND
 //						cumulus.LogDebugMessage($"Wind Time:{WindRecent[i].Timestamp.ToLongTimeString()} Gust:{WindRecent[i].Gust:F1} Speed:{WindRecent[i].Speed:F1}");
 #endif
 
-					numvalues++;
-					totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? WindRecent[i].Speed : WindRecent[i].Gust;
+						numvalues++;
+						totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? WindRecent[i].Speed : WindRecent[i].Gust;
+					}
 				}
 			}
 			// average the values, if we have enough samples
@@ -6715,14 +6724,16 @@ namespace CumulusMX
 		public double GetWindGustFromArray(DateTime fromTime)
 		{
 			double maxgust = 0;
-			for (int i = 0; i <= MaxWindRecent - 1; i++)
+			lock (recentwindLock)
 			{
-				if (WindRecent[i].Timestamp >= fromTime && WindRecent[i].Gust > maxgust)
+				for (int i = 0; i <= MaxWindRecent - 1; i++)
 				{
-					maxgust = WindRecent[i].Gust;
+					if (WindRecent[i].Timestamp >= fromTime && WindRecent[i].Gust > maxgust)
+					{
+						maxgust = WindRecent[i].Gust;
+					}
 				}
 			}
-
 			return maxgust;
 		}
 
@@ -6734,12 +6745,15 @@ namespace CumulusMX
 			var numvalues = 0;
 			var totalwind = 0.0;
 
-			for (int i = 0; i < MaxWindRecent; i++)
+			lock (recentwindLock)
 			{
-				if (WindRecent[i].Timestamp >= fromTime)
+				for (int i = 0; i < MaxWindRecent; i++)
 				{
-					numvalues++;
-					totalwind += WindRecent[i].Speed;
+					if (WindRecent[i].Timestamp >= fromTime)
+					{
+						numvalues++;
+						totalwind += WindRecent[i].Speed;
+					}
 				}
 			}
 			// average the values, if we have enough samples
@@ -6749,11 +6763,14 @@ namespace CumulusMX
 			// now the gust
 			fromTime = cumulus.LastUpdateTime.Subtract(cumulus.PeakGustTime);
 
-			for (int i = 0; i < MaxWindRecent; i++)
+			lock (recentwindLock)
 			{
-				if (WindRecent[i].Timestamp >= fromTime && (WindRecent[i].Gust > RecentMaxGust))
+				for (int i = 0; i < MaxWindRecent; i++)
 				{
-					RecentMaxGust = WindRecent[i].Gust;
+					if (WindRecent[i].Timestamp >= fromTime && (WindRecent[i].Gust > RecentMaxGust))
+					{
+						RecentMaxGust = WindRecent[i].Gust;
+					}
 				}
 			}
 			RecentMaxGust = cumulus.Calib.WindGust.Calibrate(RecentMaxGust);
@@ -6785,17 +6802,19 @@ namespace CumulusMX
 				}
 			}
 
-
-			for (DateTime ts = start; ts <= end; ts = ts.AddSeconds(3))
+			lock (recentwindLock)
 			{
-				WindRecent[nextwind].Gust = gust;
-				WindRecent[nextwind].Speed = speed;
-				WindRecent[nextwind].Timestamp = ts;
-				nextwind = (nextwind + 1) % MaxWindRecent;
+				for (DateTime ts = start; ts <= end; ts = ts.AddSeconds(3))
+				{
+					WindRecent[nextwind].Gust = gust;
+					WindRecent[nextwind].Speed = speed;
+					WindRecent[nextwind].Timestamp = ts;
+					nextwind = (nextwind + 1) % MaxWindRecent;
 
-				windspeeds[nextwindvalue] = calGust;
-				windbears[nextwindvalue] = calBearing;
-				nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
+					windspeeds[nextwindvalue] = calGust;
+					windbears[nextwindvalue] = calBearing;
+					nextwindvalue = (nextwindvalue + 1) % maxwindvalues;
+				}
 			}
 		}
 
@@ -9193,39 +9212,41 @@ namespace CumulusMX
 			var minWindTs = DateTime.MaxValue;
 			var maxWindTs = DateTime.MinValue;
 
-#pragma warning disable S3267 // Loops should be simplified with "LINQ" expressions
-			foreach (var rec in WindRecent)
+			lock (recentwindLock)
 			{
-				if (rec.Timestamp < minWindTs)
-					minWindTs = rec.Timestamp;
-				if (rec.Timestamp > maxWindTs)
-					maxWindTs = rec.Timestamp;
-			}
-#pragma warning restore S3267 // Loops should be simplified with "LINQ" expressions
-
-			foreach (var rec in result)
-			{
-				try
+				foreach (var rec in WindRecent)
 				{
-					if (rec.Timestamp < minWindTs || rec.Timestamp > maxWindTs)
+					if (rec.Timestamp < minWindTs)
+						minWindTs = rec.Timestamp;
+					if (rec.Timestamp > maxWindTs)
+						maxWindTs = rec.Timestamp;
+				}
+
+				foreach (var rec in result)
+				{
+					try
 					{
-						WindRecent[nextwind].Gust = rec.WindGust;
-						WindRecent[nextwind].Speed = rec.WindSpeed;
-						WindRecent[nextwind].Timestamp = rec.Timestamp;
-						nextwind = (nextwind + 1) % MaxWindRecent;
-					}
+						if (rec.Timestamp < minWindTs || rec.Timestamp > maxWindTs)
+						{
+							WindRecent[nextwind].Gust = rec.WindGust;
+							WindRecent[nextwind].Speed = rec.WindSpeed;
+							WindRecent[nextwind].Timestamp = rec.Timestamp;
+							nextwind = (nextwind + 1) % MaxWindRecent;
+						}
 
-					WindVec[nextwindvec].X = rec.WindGust * Math.Sin(DegToRad(rec.WindDir));
-					WindVec[nextwindvec].Y = rec.WindGust * Math.Cos(DegToRad(rec.WindDir));
-					WindVec[nextwindvec].Timestamp = rec.Timestamp;
-					WindVec[nextwindvec].Bearing = Bearing; // savedBearing
-					nextwindvec = (nextwindvec + 1) % MaxWindRecent;
-				}
-				catch (Exception e)
-				{
-					cumulus.LogErrorMessage($"LoadLast3Hour: Error loading data from database : {e.Message}");
+						WindVec[nextwindvec].X = rec.WindGust * Math.Sin(DegToRad(rec.WindDir));
+						WindVec[nextwindvec].Y = rec.WindGust * Math.Cos(DegToRad(rec.WindDir));
+						WindVec[nextwindvec].Timestamp = rec.Timestamp;
+						WindVec[nextwindvec].Bearing = Bearing; // savedBearing
+						nextwindvec = (nextwindvec + 1) % MaxWindRecent;
+					}
+					catch (Exception e)
+					{
+						cumulus.LogErrorMessage($"LoadLast3Hour: Error loading data from database : {e.Message}");
+					}
 				}
 			}
+
 			cumulus.LogMessage($"LoadLast3Hour: Loaded {result.Count} entries to last 3 hour data list");
 		}
 
@@ -9273,17 +9294,19 @@ namespace CumulusMX
 				RecentDataDb.Execute("delete from WindRecentPointer");
 
 				// save the type array
-				for (int i = 0; i < WindRecent.Length; i++)
+				lock (recentwindLock)
 				{
-					if (WindRecent[i].Timestamp > DateTime.MinValue)
-						RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", WindRecent[i].Timestamp, WindRecent[i].Gust, WindRecent[i].Speed);
+					for (int i = 0; i < WindRecent.Length; i++)
+					{
+						if (WindRecent[i].Timestamp > DateTime.MinValue)
+							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", WindRecent[i].Timestamp, WindRecent[i].Gust, WindRecent[i].Speed);
+					}
+
+					// and save the pointer
+					RecentDataDb.Execute("insert into WindRecentPointer (pntr) values (?)", nextwind);
+
+					RecentDataDb.Commit();
 				}
-
-				// and save the pointer
-				RecentDataDb.Execute("insert into WindRecentPointer (pntr) values (?)", nextwind);
-
-				RecentDataDb.Commit();
-
 				cumulus.LogMessage($"SaveWindData: Saved the wind speeds array");
 			}
 			catch (Exception ex)
@@ -9881,10 +9904,10 @@ namespace CumulusMX
 				if (value.HasValue)
 				{
 					// calculate the snowfall
-					var snow = value.Value - LaserDepth[index].Value;
-					if (snow > 0)
+					var snowInc = value.Value - LaserDepth[index] ?? value.Value;
+					if (snowInc >= 0)
 					{
-						Snow24h[index] += (decimal) Math.Round(snow, 2);
+						Snow24h[index] = (Snow24h[index] ?? 0) + (decimal) Math.Round(snowInc, 2);
 					}
 				}
 

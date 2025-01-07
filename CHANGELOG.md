@@ -24,9 +24,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		- `noaareports.htm`
 		- `js/noaarpts.js`
 
+- Adds 24 hour snowfall accumulation totals
+	- The selected laser sensor accumulation is included in automated diary entries
+	- The accumulators reset at the defined snow recording hour
+	- The current values can be retrieved with new web tags `<#SnowAccum24h[1-4]>`
+
 ### Changed
 
 - Add NOAA report format (options.noaaFormat) to websitedataT.json
+- Davis WLL checks for missed wind gusts in multicasts, now uses the "current" 2 minute gust value, and "back dates" it one minute in the recent wind data.
 
 ### Fixed
 

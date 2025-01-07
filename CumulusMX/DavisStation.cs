@@ -2211,10 +2211,13 @@ namespace CumulusMX
 						RecentMaxGust = gust10min;
 
 						// add to recent values so normal calculation includes this value
-						WindRecent[nextwind].Gust = rawGust10min;
-						WindRecent[nextwind].Speed = -1;
-						WindRecent[nextwind].Timestamp = now;
-						nextwind = (nextwind + 1) % MaxWindRecent;
+						lock (recentwindLock)
+						{
+							WindRecent[nextwind].Gust = rawGust10min;
+							WindRecent[nextwind].Speed = -1;
+							WindRecent[nextwind].Timestamp = now;
+							nextwind = (nextwind + 1) % MaxWindRecent;
+						}
 					}
 				}
 

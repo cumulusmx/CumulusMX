@@ -865,17 +865,36 @@ namespace CumulusMX
 
 										DoWind(wind, wdirCal, currentAvgWindSpd, dateTime);
 									}
-
-									// See if the current speed is higher than the current max
-									// We can then update the figure before the next data packet is read
-
-									cumulus.LogDebugMessage($"WLL current: Checking recent gust using wind data from TxId {data1.txid}");
-
-									// Check for spikes, and set highs - Only if we are past the rollover time plus the gust time, otherwise we can get peaks from yesterday attributed to today
-									if (DateTime.Now.TimeOfDay > new TimeSpan(cumulus.RolloverHour, cumulus.StationOptions.PeakGustMinutes < 10 ? 2 : 10, 0) &&
-										CheckHighGust(gustCal, gustDirCal, dateTime))
+									else
 									{
-										cumulus.LogDebugMessage("Setting today's max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + HiLoToday.HighGust.ToString(cumulus.WindFormat));
+										// See if the current speed is higher than the current max
+										// We can then update the figure before the next data packet is read
+
+										cumulus.LogDebugMessage($"WLL current: Checking recent gust using wind data from TxId {data1.txid}");
+
+										// Check for spikes, and set highs - Only if we are past the rollover time plus the gust time, otherwise we can get peaks from yesterday attributed to today
+										if (dateTime.AddHours(cumulus.GetHourInc(dateTime)).TimeOfDay > new TimeSpan(0, 2, 10))
+										{
+											var gust2min = cumulus.Calib.WindGust.Calibrate(ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0));
+
+											if (gust2min > HiLoToday.HighGust)
+											{
+												var dir2min = (int) cumulus.Calib.WindDir.Calibrate(data1.wind_dir_at_hi_speed_last_2_min ?? 0);
+												var time2min = dateTime.AddMinutes(-1);
+
+												cumulus.LogMessage("DecodeCurrent: Setting today's max gust from current value: " + gust2min.ToString(cumulus.WindFormat) + " was: " + HiLoToday.HighGust.ToString(cumulus.WindFormat));
+												_ = CheckHighGust(gust2min, dir2min, time2min);
+
+												// add the uncalibrated values to the recent wind data
+												lock (recentwindLock)
+												{
+													WindRecent[nextwind].Gust = data1.wind_dir_at_hi_speed_last_2_min ?? 0;
+													WindRecent[nextwind].Speed = WindAverageUncalibrated;
+													WindRecent[nextwind].Timestamp = time2min;
+													nextwind = (nextwind + 1) % MaxWindRecent;
+												}
+											}
+										}
 									}
 								}
 								catch (Exception ex)

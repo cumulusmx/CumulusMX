@@ -4355,6 +4355,30 @@ namespace CumulusMX
 			return station.LaserDepth[index].HasValue ? CheckRcDp(station.LaserDepth[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
+		private string TagSnowAcc24h1(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAcc24h(1, tagParams);
+		}
+
+		private string TagSnowAcc24h2(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAcc24h(2, tagParams);
+		}
+
+		private string TagSnowAcc24h3(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAcc24h(3, tagParams);
+		}
+
+		private string TagSnowAcc24h4(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAcc24h(4, tagParams);
+		}
+
+		private string GetSnowAcc24h(int index,  Dictionary<string, string> tagParams)
+		{
+			return station.Snow24h[index].HasValue ? CheckRcDp(station.Snow24h[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+		}
 
 		private string TagAirQuality1(Dictionary<string, string> tagParams)
 		{
@@ -6871,6 +6895,11 @@ namespace CumulusMX
 				{ "LaserDepth2", TagLaserDepth2 },
 				{ "LaserDepth3", TagLaserDepth3 },
 				{ "LaserDepth4", TagLaserDepth4 },
+
+				{ "SnowAccum24h1", TagSnowAcc24h1 },
+				{ "SnowAccum24h2", TagSnowAcc24h2 },
+				{ "SnowAccum24h3", TagSnowAcc24h3 },
+				{ "SnowAccum24h5", TagSnowAcc24h4 },
 
 				// This month's highs and lows - values
 				{ "MonthTempH", TagMonthTempH },

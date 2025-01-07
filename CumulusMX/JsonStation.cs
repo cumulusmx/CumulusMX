@@ -23,8 +23,7 @@ namespace CumulusMX
 		private bool haveHum = false;
 		private bool haveWind = false;
 
-		private static readonly double mm2in = 0.0393701;
-		private static readonly double cm2in = 0.393701;
+		private static readonly double cm2in = 1 / 2.54;
 		private static readonly double in2cm = 2.54;
 		private static readonly double in2mm = 25.4;
 		private static readonly double mm2in = 1 / 25.4;
@@ -771,7 +770,7 @@ namespace CumulusMX
 					{
 						"mm" => 1,
 						"in" => in2mm,
-						"cm" => 0.1,
+						"cm" => 10,
 						_ => 1,
 					};
 
