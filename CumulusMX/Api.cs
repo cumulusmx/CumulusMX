@@ -1093,6 +1093,12 @@ namespace CumulusMX
 						case "usertemp.json":
 							await writer.WriteAsync(Station.GetUserTemp());
 							break;
+						case "laserdepth.json":
+							await writer.WriteAsync(Station.GetLaserDepth());
+							break;
+						case "laserdistance.json":
+							await writer.WriteAsync(Station.GetLaserDistance());
+							break;
 
 						case "airLinkCountsOut.json":
 							await writer.WriteAsync(Station.GetAirLinkCountsOut());

@@ -195,9 +195,9 @@ namespace CumulusMX
 				co2 = co2,
 				alarms = alarmSettings,
 				webtags = webtags,
-				snow = snow
+				snow = snow,
+				laser = cumulus.Trans.Laser
 			};
-
 
 			return JsonSerializer.SerializeToString(settings);
 		}
@@ -489,6 +489,19 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// laser
+				try
+				{
+					cumulus.Trans.Laser = settings.laser;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Laser settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 
 				// Save the settings
 				cumulus.WriteStringsFile();
@@ -657,6 +670,7 @@ namespace CumulusMX
 			public AlarmSettings alarms { get; set; }
 			public WebTags webtags { get; set; }
 			public Snow snow { get; set; }
+			public string[] laser { get; set; }
 		}
 	}
 }

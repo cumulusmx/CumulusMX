@@ -7364,6 +7364,11 @@ namespace CumulusMX
 				Trans.SoilMoistureCaptions[i] = ini.GetValue("SoilMoistureCaptions", "Sensor" + (i + 1), Trans.SoilMoistureCaptions[i]);
 			}
 
+			for (var i = 0; i < 4; i++)
+			{
+				Trans.Laser[i] = ini.GetValue("LaserCaptions", "Sensor" + (i + 1), Trans.Laser[i]);
+			}
+
 			// CO2 captions - Ecowitt WH45 sensor
 			Trans.CO2_CurrentCaption = ini.GetValue("CO2Captions", "CO2-Current", "CO&#8322 Current");
 			Trans.CO2_24HourCaption = ini.GetValue("CO2Captions", "CO2-24hr", "CO&#8322 24h avg");
@@ -7569,6 +7574,12 @@ namespace CumulusMX
 				// soil moisture captions (for Extra Sensor Data screen)
 				ini.SetValue("SoilMoistureCaptions", "Sensor" + (i + 1), Trans.SoilMoistureCaptions[i]);
 			}
+
+			for (var i = 0; i < 4; i++)
+			{
+				ini.SetValue("LaserCaptions", "Sensor" + (i + 1), Trans.Laser[i]);
+			}
+
 
 			// CO2 captions - Ecowitt WH45 sensor
 			ini.SetValue("CO2Captions", "CO2-Current", Trans.CO2_CurrentCaption);

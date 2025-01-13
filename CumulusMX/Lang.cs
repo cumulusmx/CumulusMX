@@ -53,6 +53,8 @@
 
 			SoilMoistureCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16"];
 
+			Laser = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4"];
+
 			DavisForecast1 =
 			[
 				"FORECAST REQUIRES 3 HRS. OF RECENT DATA",
@@ -203,5 +205,7 @@
 		// Snow
 		public string SnowDepth { get; set; }
 		public string Snow24h { get; set; }
+		// Laser
+		public string[] Laser { get; set; }
 	}
 }

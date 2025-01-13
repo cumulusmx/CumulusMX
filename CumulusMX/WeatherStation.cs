@@ -11593,6 +11593,56 @@ namespace CumulusMX
 			return json.ToString();
 		}
 
+		public string GetLaserDepth()
+		{
+			var json = new StringBuilder("{\"data\":[", 1024);
+
+			for (int sensor = 1; sensor < 5; sensor++)
+			{
+				if (cumulus.GraphOptions.Visible.LaserDepth.ValVisible(sensor - 1, true))
+				{
+					json.Append("[\"");
+					json.Append(cumulus.Trans.Laser[sensor - 1]);
+					json.Append("\",\"");
+					json.Append(LaserDepth[sensor].HasValue ? LaserDepth[sensor].Value.ToString("F2") : "-");
+					json.Append("\",\"");
+					json.Append(cumulus.Units.LaserDistanceText);
+					json.Append("\"],");
+				}
+			}
+
+			if (json[^1] == ',')
+				json.Length--;
+
+			json.Append("]}");
+			return json.ToString();
+		}
+
+		public string GetLaserDistance()
+		{
+			var json = new StringBuilder("{\"data\":[", 1024);
+
+			for (int sensor = 1; sensor < 5; sensor++)
+			{
+				if (cumulus.GraphOptions.Visible.LaserDist.ValVisible(sensor - 1, true))
+				{
+					json.Append("[\"");
+					json.Append(cumulus.Trans.Laser[sensor - 1]);
+					json.Append("\",\"");
+					json.Append(LaserDist[sensor].HasValue ? LaserDist[sensor].Value.ToString("F2") : "-");
+					json.Append("\",\"");
+					json.Append(cumulus.Units.LaserDistanceText);
+					json.Append("\"],");
+				}
+			}
+
+			if (json[^1] == ',')
+				json.Length--;
+
+			json.Append("]}");
+			return json.ToString();
+		}
+
 		public string GetSoilTemp()
 		{
 			var json = new StringBuilder("{\"data\":[", 2048);
