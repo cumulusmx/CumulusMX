@@ -52,6 +52,9 @@ namespace CumulusMX
 			public GraphOptionsAQSensor AqSensor { get; set; } = new GraphOptionsAQSensor();
 			public GraphDataValue SnowDepth { get; set; } = new GraphDataValue();
 			public GraphDataValue Snow24h { get; set; } = new GraphDataValue();
+			public GraphOptionsDataArray LaserDepth { get; set; } = new GraphOptionsDataArray();
+			public GraphOptionsDataArray LaserDist { get; set; } = new GraphOptionsDataArray();
+
 
 			public GraphOptionsVisible()
 			{
@@ -62,6 +65,8 @@ namespace CumulusMX
 				SoilMoist.Vals = new int[16];
 				UserTemp.Vals = new int[8];
 				LeafWetness.Vals = new int[8];
+				LaserDepth.Vals = new int[4];
+				LaserDist.Vals = new int[4];
 			}
 		}
 
