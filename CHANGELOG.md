@@ -19,7 +19,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The reports are generated from the "in-use" templates: `Reports/HtmlTemplateYear.htm`, and `HtmlTemplateMonth.htm`
 	- If you enable HTML reports and do not create custom "in-use" templates, the sample templates will be copied to "in-use" templates
 	- You can edit the "in-use" templates to alter the localisation, adjust formatting etc
-	- A new web tag `<#Option_noaaFormat>` which returns "text" or "html"
+	- A new web tag `<#Option_noaaFormat>` which returns `"text"` or `"html"`
 	- Changes to the default web site files to accommodate this:
 		- `noaareports.htm`
 		- `js/noaarpts.js`
@@ -28,6 +28,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The selected laser sensor accumulation is included in automated diary entries
 	- The accumulators reset at the defined snow recording hour
 	- The current values can be retrieved with new web tags `<#SnowAccum24h[1-4]>`
+	- Added to Display Settings and Extra Sensors dashboard pages
+
+- Adds laser sensors to Display Settings, Locale Strings, and Extra Sensors dashboard pages
+
 
 ### Changed
 

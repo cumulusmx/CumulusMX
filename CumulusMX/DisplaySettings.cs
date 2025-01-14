@@ -139,7 +139,11 @@ namespace CumulusMX
 			var graphVisSnow = new JsonGraphVisSnow()
 			{
 				Depth = cumulus.GraphOptions.Visible.SnowDepth.Val,
-				Last24h = cumulus.GraphOptions.Visible.Snow24h.Val
+				Last24h = cumulus.GraphOptions.Visible.Snow24h.Val,
+				CurrLast24h = new JsonGraphVisExtraSensors()
+				{
+					sensors = cumulus.GraphOptions.Visible.CurrSnow24h.Vals
+				}
 			};
 
 
@@ -438,6 +442,8 @@ namespace CumulusMX
 					cumulus.GraphOptions.Visible.CO2Sensor.Hum.Val = settings.DataVisibility.co2.hum;
 					cumulus.GraphOptions.Visible.SnowDepth.Val = settings.DataVisibility.snow.Depth;
 					cumulus.GraphOptions.Visible.Snow24h.Val = settings.DataVisibility.snow.Last24h;
+					cumulus.GraphOptions.Visible.CurrSnow24h.Vals = settings.DataVisibility.snow.CurrLast24h.sensors;
+
 					cumulus.GraphOptions.Visible.LaserDepth.Vals = settings.DataVisibility.laser.Depth.sensors;
 					cumulus.GraphOptions.Visible.LaserDist.Vals = settings.DataVisibility.laser.Dist.sensors;
 
@@ -682,7 +688,10 @@ namespace CumulusMX
 		{
 			public int Depth { get; set; }
 			public int Last24h { get; set; }
+			public JsonGraphVisExtraSensors CurrLast24h { get; set; }
+
 		}
+
 		private sealed class JsonGraphVisDegreeDays
 		{
 			public int GrowingDegreeDays1 { get; set; }

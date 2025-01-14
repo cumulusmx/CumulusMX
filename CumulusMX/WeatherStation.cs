@@ -9904,7 +9904,7 @@ namespace CumulusMX
 				if (value.HasValue)
 				{
 					// calculate the snowfall
-					var snowInc = value.Value - LaserDepth[index] ?? value.Value;
+					var snowInc = value.Value - (LaserDepth[index] ?? value.Value);
 					if (snowInc >= 0)
 					{
 						Snow24h[index] = (Snow24h[index] ?? 0) + (decimal) Math.Round(snowInc, 2);
@@ -11632,6 +11632,31 @@ namespace CumulusMX
 					json.Append(LaserDist[sensor].HasValue ? LaserDist[sensor].Value.ToString("F2") : "-");
 					json.Append("\",\"");
 					json.Append(cumulus.Units.LaserDistanceText);
+					json.Append("\"],");
+				}
+			}
+
+			if (json[^1] == ',')
+				json.Length--;
+
+			json.Append("]}");
+			return json.ToString();
+		}
+
+		public string GetSnow24h()
+		{
+			var json = new StringBuilder("{\"data\":[", 1024);
+
+			for (int sensor = 1; sensor < 5; sensor++)
+			{
+				if (cumulus.GraphOptions.Visible.CurrSnow24h.ValVisible(sensor - 1, true))
+				{
+					json.Append("[\"");
+					json.Append(cumulus.Trans.Laser[sensor - 1]);
+					json.Append("\",\"");
+					json.Append($"{(Snow24h[sensor].HasValue ? Snow24h[sensor].Value.ToString("F1") : "-")}");
+					json.Append("\",\"");
+					json.Append(cumulus.Units.SnowText);
 					json.Append("\"],");
 				}
 			}

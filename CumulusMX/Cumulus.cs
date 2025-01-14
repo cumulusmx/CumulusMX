@@ -4704,6 +4704,8 @@ namespace CumulusMX
 			GraphOptions.Visible.CO2Sensor.Hum.Val = ini.GetValue("Graphs", "CO2-Hum", 0, 0, 2);
 			GraphOptions.Visible.SnowDepth.Val = ini.GetValue("Graphs", "SnowDepth", 0, 0, 2);
 			GraphOptions.Visible.Snow24h.Val = ini.GetValue("Graphs", "Snow24h", 0, 0, 2);
+			GraphOptions.Visible.CurrSnow24h.Vals = ini.GetValue("Graphs", "CurrSnow24h", new int[4]);
+
 			GraphOptions.Visible.LaserDepth.Vals = ini.GetValue("Graphs", "LaserDepthVisible", new int[4]);
 			GraphOptions.Visible.LaserDist.Vals = ini.GetValue("Graphs", "LaserDistanceVisible", new int[4]);
 
@@ -6990,6 +6992,8 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "CO2-Hum", GraphOptions.Visible.CO2Sensor.Hum.Val);
 			ini.SetValue("Graphs", "SnowDepth", GraphOptions.Visible.SnowDepth.Val);
 			ini.SetValue("Graphs", "Snow24h", GraphOptions.Visible.Snow24h.Val);
+			ini.SetValue("Graphs", "CurrSnow24h", GraphOptions.Visible.CurrSnow24h.Vals);
+
 			ini.SetValue("Graphs", "LaserDepthVisible", GraphOptions.Visible.LaserDepth.Vals);
 			ini.SetValue("Graphs", "LaserDistanceVisible", GraphOptions.Visible.LaserDist.Vals);
 
