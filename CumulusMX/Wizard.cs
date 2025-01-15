@@ -801,7 +801,7 @@ namespace CumulusMX
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
-		private static string degToString(decimal degrees, bool lat)
+		private string degToString(decimal degrees, bool lat)
 		{
 			var degs = (int) Math.Floor(Math.Abs(degrees));
 			var minsF = (Math.Abs(degrees) - degs) * 60;
@@ -809,9 +809,9 @@ namespace CumulusMX
 			var mins = (int) Math.Floor(minsF);
 			string hemi;
 			if (lat)
-				hemi = degrees >= 0 ? "N" : "S";
+				hemi = degrees >= 0 ? cumulus.Trans.compassp[0] : cumulus.Trans.compassp[8];
 			else
-				hemi = degrees <= 0 ? "W" : "E";
+				hemi = degrees <= 0 ? cumulus.Trans.compassp[12] : cumulus.Trans.compassp[4];
 
 			return $"{hemi}&nbsp;{degs:D2}&deg;&nbsp;{mins:D2}&#39;&nbsp;{secs:D2}&quot;";
 		}

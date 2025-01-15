@@ -676,21 +676,25 @@ namespace CumulusMX
 					cumulus.LocationDesc = string.IsNullOrWhiteSpace(settings.general.Location.description) ? null : settings.general.Location.description.Trim();
 
 					cumulus.Latitude = (decimal) (settings.general.Location.Latitude.degrees + (settings.general.Location.Latitude.minutes / 60.0) + (settings.general.Location.Latitude.seconds / 3600.0));
+					string northSouth = cumulus.Trans.compassp[0];
 					if (settings.general.Location.Latitude.hemisphere == "South")
 					{
 						cumulus.Latitude = -cumulus.Latitude;
+						northSouth = cumulus.Trans.compassp[8];
 					}
 
-					cumulus.LatTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", settings.general.Location.Latitude.hemisphere[0], settings.general.Location.Latitude.degrees, settings.general.Location.Latitude.minutes,
+					cumulus.LatTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", northSouth, settings.general.Location.Latitude.degrees, settings.general.Location.Latitude.minutes,
 						settings.general.Location.Latitude.seconds);
 
+					string eastWest = cumulus.Trans.compassp[4];
 					cumulus.Longitude = (decimal) (settings.general.Location.Longitude.degrees + (settings.general.Location.Longitude.minutes / 60.0) + (settings.general.Location.Longitude.seconds / 3600.0));
 					if (settings.general.Location.Longitude.hemisphere == "West")
 					{
 						cumulus.Longitude = -cumulus.Longitude;
+						eastWest = cumulus.Trans.compassp[12];
 					}
 
-					cumulus.LonTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", settings.general.Location.Longitude.hemisphere[0], settings.general.Location.Longitude.degrees, settings.general.Location.Longitude.minutes,
+					cumulus.LonTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", eastWest, settings.general.Location.Longitude.degrees, settings.general.Location.Longitude.minutes,
 						settings.general.Location.Longitude.seconds);
 				}
 				catch (Exception ex)

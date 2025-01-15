@@ -32,15 +32,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Adds laser sensors to Display Settings, Locale Strings, and Extra Sensors dashboard pages
 
-
 ### Changed
 
 - Add NOAA report format (options.noaaFormat) to websitedataT.json
-- Davis WLL checks for missed wind gusts in multicasts, now uses the "current" 2 minute gust value, and "back dates" it one minute in the recent wind data.
+- Davis WLL checks for missed wind gusts in multicasts, now uses the "current" 2 minute gust value, and "back dates" it one minute in the recent wind data
+- The latitude and longitude strings now use localised compass point directions (set in Locale strings)
 
 ### Fixed
 
 - Fix writing of the first Custom MySQL Minutes interval value to Cumulus.ini
+- Ecowitt HTTP Local API station not mapping extra temperature to outdoor tempertaure correctly
 
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
