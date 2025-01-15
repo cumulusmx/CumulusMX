@@ -1238,15 +1238,21 @@ namespace CumulusMX
 					if (sensor.temp.HasValue)
 					{
 						DoExtraTemp(sensor.temp.Value, sensor.channel);
+
+						if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
+						{
+							DoOutdoorTemp(sensor.temp.Value, dateTime);
+						}
 					}
 
 					if (sensor.humidityVal.HasValue)
 					{
+						DoExtraHum(sensor.humidityVal.Value, sensor.channel);
+
 						if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
 						{
 							DoOutdoorHumidity(sensor.humidityVal.Value, dateTime);
 						}
-						DoExtraHum(sensor.humidityVal.Value, sensor.channel);
 					}
 				}
 				catch (Exception ex)
