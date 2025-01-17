@@ -3230,6 +3230,7 @@ namespace CumulusMX
 					}
 					else if (insideQuotes && start == -1)
 					{
+						// allow leading spaces inside quotes
 						start = i;
 					}
 				}
@@ -3255,15 +3256,16 @@ namespace CumulusMX
 						start = -1;
 					}
 				}
-				else
+				else if (start == -1)
 				{
-					if (start == -1)
-						start = i;
+					start = i;
 				}
 			}
 
 			if (start != -1)
+			{
 				parts.Add(line[start..]);
+			}
 
 			return parts;
 		}
