@@ -874,6 +874,7 @@ namespace CumulusMX
 			public int battery { get; set; }
 			public string air { get; set; }
 			public string depth { get; set; }
+			public string unit { get; set; }
 
 			public double? airVal
 			{

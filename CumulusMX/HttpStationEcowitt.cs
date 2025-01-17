@@ -1385,18 +1385,18 @@ namespace CumulusMX
 		{
 			// air_ch[1-4] - air gap mm
 			// thi_ch[1-4] - total height mm
-			// depth_ch[1 - 4] - depth mm
-			// ldsbatt[1 - 4] - battery voltage, eg 1.1
+			// depth_ch[1-4] - depth mm
+			// ldsbatt[1-4] - battery voltage, eg 1.1
 			for (var i = 1; i <= 4; i++)
 			{
 				if (data["air_ch" + i] != null)
 				{
-					station.DoLaserDistance(ConvertUnits.LaserMmtoUser(Convert.ToInt32(data["air_ch" + i], invNum)), i);
+					station.DoLaserDistance(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["air_ch" + i], invNum)), i);
 				}
 
 				if (data["depth_ch" + i] != null)
 				{
-					station.DoLaserDepth(ConvertUnits.LaserMmtoUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i);
+					station.DoLaserDepth(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i);
 				}
 			}
 		}

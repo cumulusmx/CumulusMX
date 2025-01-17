@@ -190,6 +190,26 @@ namespace CumulusMX
 				aqi = cumulus.airQualityIndex,
 			};
 
+			var laser = new JsonLaser
+			{
+				sensor1 = new JsonLaserDevice
+				{
+					depth = cumulus.LaserDepthBaseline[1]
+				},
+				sensor2 = new JsonLaserDevice
+				{
+					depth = cumulus.LaserDepthBaseline[2]
+				},
+				sensor3 = new JsonLaserDevice
+				{
+					depth = cumulus.LaserDepthBaseline[3]
+				},
+				sensor4 = new JsonLaserDevice
+				{
+					depth = cumulus.LaserDepthBaseline[4]
+				}
+			};
+
 			var data = new JsonSettings
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
@@ -197,6 +217,7 @@ namespace CumulusMX
 				airLink = airlink,
 				httpSensors = httpStation,
 				blakeLarsen = bl,
+				laser = laser,
 				rg11 = rg11
 			};
 
@@ -544,6 +565,22 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// Laser settings
+				try
+				{
+					cumulus.LaserDepthBaseline[1] = settings.laser.sensor1.depth;
+					cumulus.LaserDepthBaseline[2] = settings.laser.sensor2.depth;
+					cumulus.LaserDepthBaseline[3] = settings.laser.sensor3.depth;
+					cumulus.LaserDepthBaseline[4] = settings.laser.sensor4.depth;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Laser settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// RG-11 settings
 				try
 				{
@@ -597,6 +634,7 @@ namespace CumulusMX
 			public JsonAirLinkSettings airLink { get; set; }
 			public JsonHttp httpSensors { get; set; }
 			public JsonBlakeLarsen blakeLarsen { get; set; }
+			public JsonLaser laser { get; set; }
 			public JsonRG11 rg11 { get; set; }
 		}
 
@@ -681,6 +719,20 @@ namespace CumulusMX
 		private sealed class JsonBlakeLarsen
 		{
 			public bool enabled { get; set; }
+		}
+
+		private sealed class JsonLaser
+		{
+			public JsonLaserDevice sensor1 { get; set; }
+			public JsonLaserDevice sensor2 { get; set; }
+			public JsonLaserDevice sensor3 { get; set; }
+			public JsonLaserDevice sensor4 { get; set; }
+
+		}
+
+		private sealed class JsonLaserDevice
+		{
+			public decimal depth { get; set; }
 		}
 
 		private sealed class JsonRG11

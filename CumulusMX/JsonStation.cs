@@ -780,13 +780,13 @@ namespace CumulusMX
 						{
 							if (rec.range.HasValue)
 							{
-								double? range = rec.range.HasValue ? ConvertUnits.LaserMmtoUser(rec.range.Value * multiplier) : null;
+								double? range = rec.range.HasValue ? ConvertUnits.LaserMmToUser(rec.range.Value * multiplier) : null;
 								station.DoLaserDistance(range, rec.index);
 							}
 
 							if (rec.depth.HasValue)
 							{
-								double? depth = rec.depth.HasValue ? ConvertUnits.LaserMmtoUser(rec.depth.Value * multiplier) : null;
+								double? depth = rec.depth.HasValue ? ConvertUnits.LaserMmToUser(rec.depth.Value * multiplier) : null;
 								station.DoLaserDepth(depth, rec.index);
 							}
 						}

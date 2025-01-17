@@ -31,6 +31,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Added to Display Settings and Extra Sensors dashboard pages
 
 - Adds laser sensors to Display Settings, Locale Strings, and Extra Sensors dashboard pages
+- Adds laser depth calculation to the Extra Sensor settings. Use this with simple laser distance sensors to allow Cumulus to calculate a depth value. Note Ecowitt already provide this ability with their LDS01 sensors.
 
 ### Changed
 
@@ -42,6 +43,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Fix writing of the first Custom MySQL Minutes interval value to Cumulus.ini
 - Ecowitt HTTP Local API station not mapping extra temperature to outdoor tempertaure correctly
+- The web tag parser now accepts empty parameter values. eg. `nv=""`
 
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01

@@ -463,13 +463,24 @@
 			};
 		}
 
-		public static double LaserMmtoUser(double value)
+		public static double LaserMmToUser(double value)
 		{
 			return Program.cumulus.Units.LaserDistance switch
 			{
 				0 => value * 0.1,
 				1 => value * 0.03937008,
 				2 => value,
+				_ => 0,
+			};
+		}
+
+		public static double LaserInchesToUser(double value)
+		{
+			return Program.cumulus.Units.LaserDistance switch
+			{
+				0 => value * 2.54,
+				1 => value,
+				2 => value * 25.4,
 				_ => 0,
 			};
 		}

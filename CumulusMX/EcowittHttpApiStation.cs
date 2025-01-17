@@ -1394,7 +1394,8 @@ namespace CumulusMX
 				{
 					try
 					{
-						DoLaserDistance(sensor.airVal.Value, sensor.channel);
+						var val = sensor.unit == "mm" ? ConvertUnits.LaserMmToUser(sensor.airVal.Value) : ConvertUnits.LaserInchesToUser(sensor.airVal.Value);
+						DoLaserDistance(val, sensor.channel);
 					}
 					catch (Exception ex)
 					{
@@ -1406,7 +1407,8 @@ namespace CumulusMX
 				{
 					try
 					{
-						DoLaserDepth(sensor.depthVal.Value, sensor.channel);
+						var val = sensor.unit == "mm" ? ConvertUnits.LaserMmToUser(sensor.depthVal.Value) : ConvertUnits.LaserInchesToUser(sensor.depthVal.Value);
+						DoLaserDepth(val, sensor.channel);
 					}
 					catch (Exception ex)
 					{

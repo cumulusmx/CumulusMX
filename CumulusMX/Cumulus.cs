@@ -3236,6 +3236,11 @@ namespace CumulusMX
 						parts.Add(line[start..i]);
 						start = -1;
 					}
+					else if (insideQuotes)
+					{
+						// not started and found closing quote = empty string
+						parts.Add(string.Empty);
+					}
 					insideQuotes = !insideQuotes;
 				}
 				else if (line[i] == '=')
@@ -5806,6 +5811,12 @@ namespace CumulusMX
 				}
 			}
 
+			// laser sensors
+			for (var i = 1; i < LaserDepthBaseline.Length; i++)
+			{
+				LaserDepthBaseline[i] = ini.GetValue("Laser", "LaserDepthOffset" + i, (decimal) -1);
+			}
+
 			// do we need to decrypt creds?
 			if (ProgramOptions.EncryptedCreds)
 			{
@@ -7262,6 +7273,13 @@ namespace CumulusMX
 				}
 			}
 
+			// laser sensors
+			for (var i = 1; i < LaserDepthBaseline.Length; i++)
+			{
+				 ini.SetValue("Laser", "LaserDepthOffset" + i, LaserDepthBaseline[i]);
+			}
+
+
 			ini.Flush();
 
 			LogMessage("Completed writing Cumulus.ini file");
@@ -7787,6 +7805,8 @@ namespace CumulusMX
 		public bool AmbientExtraUseCo2 { get; set; }
 		public bool AmbientExtraUseLightning { get; set; }
 		public bool AmbientExtraUseLeak { get; set; }
+
+		public decimal[] LaserDepthBaseline { get; set; } = new decimal[5];
 
 		public bool RG11DTRmode2 { get; set; }
 

@@ -9894,6 +9894,12 @@ namespace CumulusMX
 			if (index > 0 && index < LaserDist.Length)
 			{
 				LaserDist[index] = value;
+
+				// calculate depth?
+				if (cumulus.LaserDepthBaseline[index] > -1)
+				{
+					DoLaserDepth((double) cumulus.LaserDepthBaseline[index] - value, index);
+				}
 			}
 		}
 
