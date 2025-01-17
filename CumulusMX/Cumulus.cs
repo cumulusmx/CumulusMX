@@ -3228,6 +3228,10 @@ namespace CumulusMX
 						parts.Add(line[start..i]);
 						start = -1;
 					}
+					else if (insideQuotes && start == -1)
+					{
+						start = i;
+					}
 				}
 				else if (line[i] == '"')
 				{
