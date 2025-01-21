@@ -24,7 +24,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		- `noaareports.htm`
 		- `js/noaarpts.js`
 
-- Adds 24 hour snowfall accumulation totals
+- Adds 24-hour snowfall accumulation totals
 	- The selected laser sensor accumulation is included in automated diary entries
 	- The accumulators reset at the defined snow recording hour
 	- The current values can be retrieved with new web tags `<#SnowAccum24h[1-4]>`
@@ -36,14 +36,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changed
 
 - Add NOAA report format (options.noaaFormat) to websitedataT.json
-- Davis WLL checks for missed wind gusts in multicasts, now uses the "current" 2 minute gust value, and "back dates" it one minute in the recent wind data
+- Davis WLL checks for missed wind gusts in multicasts, now uses the "current" 2-minute gust value, and "back dates" it one minute in the recent wind data
 - The latitude and longitude strings now use localised compass point directions (set in Locale strings)
 
 ### Fixed
 
 - Fix writing of the first Custom MySQL Minutes interval value to Cumulus.ini
-- Ecowitt HTTP Local API station not mapping extra temperature to outdoor tempertaure correctly
+- Ecowitt HTTP Local API station not mapping extra temperature to outdoor temperature correctly
 - The web tag parser now accepts empty parameter values. eg. `nv=""`
+- Web camera not appearing in Ecowitt Extra Sensor settings page
 
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01

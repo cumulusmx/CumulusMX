@@ -2031,7 +2031,25 @@ namespace CumulusMX
 				if (!token.IsCancellationRequested)
 				{
 					// pressure values should always be present, so use them for the data timestamp, if not try the outdoor temp
-					var dataTime = Utils.FromUnixTime(currObj.data.pressure == null ? currObj.data.outdoor.temperature.time : currObj.data.pressure.absolute.time);
+					DateTime dataTime;
+					if (currObj.data.pressure != null)
+					{
+						dataTime = Utils.FromUnixTime(currObj.data.pressure.absolute.time);
+					}
+					else if (currObj.data.outdoor.temperature != null)
+					{
+						dataTime = Utils.FromUnixTime(currObj.data.outdoor.temperature.time);
+					}
+					else if (currObj.data.indoor.temperature != null)
+					{
+						dataTime = Utils.FromUnixTime(currObj.data.indoor.temperature.time);
+					}
+					else
+					{
+						dataTime = Utils.FromUnixTime(currObj.time);
+					}
+
+
 					cumulus.LogDebugMessage($"EcowittCloud: Last data update {dataTime:s}");
 
 					if (dataTime.ToUniversalTime() != LastCurrentDataTime)
