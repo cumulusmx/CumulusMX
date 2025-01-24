@@ -23,10 +23,10 @@ namespace CumulusMX
 		private bool haveHum = false;
 		private bool haveWind = false;
 
-		private static readonly double cm2in = 1 / 2.54;
-		private static readonly double in2cm = 2.54;
-		private static readonly double in2mm = 25.4;
-		private static readonly double mm2in = 1 / 25.4;
+		private static readonly decimal cm2in = 1 / (decimal) 2.54;
+		//private static readonly decimal in2cm = 2.54;
+		private static readonly decimal in2mm = (decimal) 25.4;
+		//private static readonly decimal mm2in = 1 / (decimal) 25.4;
 
 		private FileSystemWatcher watcher;
 
@@ -766,7 +766,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					var multiplier = data.units.laserdist switch
+					decimal multiplier = data.units.laserdist switch
 					{
 						"mm" => 1,
 						"in" => in2mm,
@@ -780,13 +780,13 @@ namespace CumulusMX
 						{
 							if (rec.range.HasValue)
 							{
-								double? range = rec.range.HasValue ? ConvertUnits.LaserMmToUser(rec.range.Value * multiplier) : null;
+								decimal? range = rec.range.HasValue ? ConvertUnits.LaserMmToUser(rec.range.Value * multiplier) : null;
 								station.DoLaserDistance(range, rec.index);
 							}
 
 							if (rec.depth.HasValue)
 							{
-								double? depth = rec.depth.HasValue ? ConvertUnits.LaserMmToUser(rec.depth.Value * multiplier) : null;
+								decimal? depth = rec.depth.HasValue ? ConvertUnits.LaserMmToUser(rec.depth.Value * multiplier) : null;
 								station.DoLaserDepth(depth, rec.index);
 							}
 						}
@@ -943,8 +943,8 @@ namespace CumulusMX
 		private sealed class Lds
 		{
 			public int index { get; set; }
-			public double? range { get; set; }
-			public double? depth { get; set; }
+			public decimal? range { get; set; }
+			public decimal? depth { get; set; }
 		}
 
 	}

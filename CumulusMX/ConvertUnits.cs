@@ -1,4 +1,6 @@
-﻿namespace CumulusMX
+﻿using System;
+
+namespace CumulusMX
 {
 
 	internal static class ConvertUnits
@@ -463,26 +465,60 @@
 			};
 		}
 
-		public static double LaserMmToUser(double value)
+		public static decimal LaserMmToUser(decimal value)
 		{
 			return Program.cumulus.Units.LaserDistance switch
 			{
-				0 => value * 0.1,
-				1 => value * 0.03937008,
+				0 => Math.Round(value * (decimal) 0.1, 1),
+				1 => Math.Round(value * (decimal) 0.03937008, 2),
 				2 => value,
 				_ => 0,
 			};
 		}
 
-		public static double LaserInchesToUser(double value)
+		public static decimal LaserInchesToUser(decimal value)
 		{
 			return Program.cumulus.Units.LaserDistance switch
 			{
-				0 => value * 2.54,
-				1 => value,
-				2 => value * 25.4,
+				0 => Math.Round(value * (decimal) 2.54, 1),
+				1 => Math.Round(value, 2),
+				2 => Math.Round(value *	(decimal) 25.4, 0),
 				_ => 0,
 			};
+		}
+
+		public static decimal LaserToSnow(decimal value)
+		{
+			if (Program.cumulus.Units.SnowDepth == Program.cumulus.Units.LaserDistance)
+			{
+				return value;
+			}
+
+			if (Program.cumulus.Units.SnowDepth == 0)
+			{
+				// snow depth = cm
+				decimal mult = Program.cumulus.Units.LaserDistance switch
+				{
+					0 => 1,
+					1 => (decimal) 0.3937008,
+					2 => 10,
+					_ => 0
+				};
+				return Math.Round(value * mult, 0);
+			}
+			else
+			{
+				// snow depth = inches
+				decimal mult = Program.cumulus.Units.LaserDistance switch
+				{
+					0 => (decimal) 2.54,
+					1 => 1,
+					2 => (decimal) 25.4,
+					_ => 0
+				};
+				return Math.Round(value * mult, 1);
+			}
+
 		}
 
 		/// <summary>

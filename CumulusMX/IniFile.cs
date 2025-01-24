@@ -3,7 +3,7 @@
 // **************************
 // *** (C)2009 S.T.A. snc ***
 // **************************
-// 
+//
 // Lots of mods and extensions by M Crossley
 //
 
@@ -518,6 +518,23 @@ namespace CumulusMX
 			return DefaultValue;
 		}
 
+		internal decimal? GetValue(string SectionName, string Key, decimal? DefaultValue, decimal MinValue = decimal.MinValue, decimal MaxValue = decimal.MaxValue)
+		{
+			string StringValue = GetValue(SectionName, Key, DefaultValue.HasValue ? DefaultValue.Value.ToString(CultureInfo.InvariantCulture) : string.Empty);
+			if (string.IsNullOrEmpty(StringValue))
+			{
+				return DefaultValue;
+			}
+
+			if (decimal.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal Value))
+			{
+				if (Value < MinValue) return MinValue;
+				if (Value > MaxValue) return MaxValue;
+				return Value;
+			}
+			return DefaultValue;
+		}
+
 		internal byte[] GetValue(string SectionName, string Key, byte[] DefaultValue)
 		{
 			string StringValue = GetValue(SectionName, Key, EncodeByteArray(DefaultValue));
@@ -627,6 +644,11 @@ namespace CumulusMX
 		internal void SetValue(string SectionName, string Key, decimal Value)
 		{
 			SetValue(SectionName, Key, Value.ToString(CultureInfo.InvariantCulture));
+		}
+
+		internal void SetValue(string SectionName, string Key, decimal? Value)
+		{
+			SetValue(SectionName, Key, Value.HasValue ? Value.Value.ToString(CultureInfo.InvariantCulture) : string.Empty);
 		}
 
 		internal void SetValue(string SectionName, string Key, byte[] Value)

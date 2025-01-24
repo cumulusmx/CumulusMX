@@ -876,21 +876,21 @@ namespace CumulusMX
 			public string depth { get; set; }
 			public string unit { get; set; }
 
-			public double? airVal
+			public decimal? airVal
 			{
 				get
 				{
 					var temp = air.Split(' ');
-					return double.TryParse(temp[0], invNum, out double result) ? result : null;
+					return decimal.TryParse(temp[0], invNum, out decimal result) ? result : null;
 				}
 			}
 
-			public double? depthVal
+			public decimal? depthVal
 			{
 				get
 				{
 					var temp = depth.Split(' ');
-					return double.TryParse(temp[0], invNum, out double result) ? result : null;
+					return decimal.TryParse(temp[0], invNum, out decimal result) ? result : null;
 				}
 			}
 		}

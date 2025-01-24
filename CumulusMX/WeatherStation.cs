@@ -1023,6 +1023,12 @@ namespace CumulusMX
 				// legacy - used to be 1/1/1900
 				LightningTime = DateTime.MinValue;
 			}
+
+			// Snow accumulation
+			for (var i = 1; i < Snow24h.Length; i++)
+			{
+				Snow24h[i] = ini.GetValue("Snow", "Snow24h" + i, (decimal?) null);
+			}
 		}
 
 		public void WriteTodayFile(DateTime timestamp, bool Log)
@@ -1151,6 +1157,14 @@ namespace CumulusMX
 				ini.SetValue("Lightning", "Distance", LightningDistance);
 				ini.SetValue("Lightning", "LastStrike", LightningTime);
 
+				// Snow accumulation
+				for (var i = 1; i < Snow24h.Length; i++)
+				{
+					if (cumulus.SnowAutomated == i)
+					{
+						ini.SetValue("Snow", "Snow24h" + i, Snow24h[i]);
+					}
+				}
 
 				if (Log)
 				{
@@ -1507,8 +1521,8 @@ namespace CumulusMX
 		/// <summary>
 		/// Laser distance
 		/// </summary>
-		public double?[] LaserDist { get; set; } = new double?[5];
-		public double?[] LaserDepth { get; set; } = new double?[5];
+		public decimal?[] LaserDist { get; set; } = new decimal?[5];
+		public decimal?[] LaserDepth { get; set; } = new decimal?[5];
 		public decimal?[] Snow24h { get; set; } = new decimal?[5];
 
 		public double RainYesterday { get; set; }
@@ -5195,44 +5209,11 @@ namespace CumulusMX
 		{
 			try
 			{
-				decimal? dist = null;
-				if (LaserDepth[cumulus.SnowAutomated].HasValue)
-				{
-					if (cumulus.Units.SnowDepth == cumulus.Units.LaserDistance)
-					{
-						dist = (decimal) Math.Round(LaserDepth[cumulus.SnowAutomated].Value, cumulus.Units.SnowDepth);
-					}
-					else if (cumulus.Units.SnowDepth == 0)
-					{
-						// snow depth = cm
-						var mult = cumulus.Units.LaserDistance switch
-						{
-							0 => 1,
-							1 => 0.3937008,
-							2 => 10,
-							_ => 0
-						};
-						dist = (decimal) Math.Round(LaserDepth[cumulus.SnowAutomated].Value * mult, 0);
-					}
-					else
-					{
-						// snow depth = inches
-						var mult = cumulus.Units.LaserDistance switch
-						{
-							0 => 2.54,
-							1 => 1,
-							2 => 25.4,
-							_ => 0
-						};
-						dist = (decimal) Math.Round(LaserDepth[cumulus.SnowAutomated].Value * mult, 1);
-					}
-				}
-
 				var record = new DiaryData
 				{
 					Date = now.Date,
 					Time = now.TimeOfDay,
-					SnowDepth = dist,
+					SnowDepth = LaserDepth[cumulus.SnowAutomated].HasValue ? ConvertUnits.LaserToSnow(LaserDepth[cumulus.SnowAutomated].Value) : null,
 					Snow24h = Snow24h[cumulus.SnowAutomated],
 					Entry = "Automated entry"
 				};
@@ -9889,7 +9870,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoLaserDistance(double? value, int index)
+		public void DoLaserDistance(decimal? value, int index)
 		{
 			if (index > 0 && index < LaserDist.Length)
 			{
@@ -9898,22 +9879,37 @@ namespace CumulusMX
 				// calculate depth?
 				if (cumulus.LaserDepthBaseline[index] > -1)
 				{
-					DoLaserDepth((double) cumulus.LaserDepthBaseline[index] - value, index);
+					DoLaserDepth(cumulus.LaserDepthBaseline[index] - value, index);
 				}
 			}
 		}
 
-		public void DoLaserDepth(double? value, int index)
+		public void DoLaserDepth(decimal? value, int index)
 		{
 			if (index > 0 && index < LaserDepth.Length)
 			{
-				if (value.HasValue)
+				if (value.HasValue && cumulus.SnowAutomated == index)
 				{
 					// calculate the snowfall
-					var snowInc = value.Value - (LaserDepth[index] ?? value.Value);
+					decimal maxInc = cumulus.Units.LaserDistance switch
+					{
+						0 => 2,
+						1 => 1,
+						2 => 20,
+						_ => throw new ArgumentOutOfRangeException(nameof(cumulus.Units.LaserDistance), "Invalid LaserDistance unit")
+					};
+
+					decimal snowInc = value.Value - (LaserDepth[index] ?? value.Value);
 					if (snowInc >= 0)
 					{
-						Snow24h[index] = (Snow24h[index] ?? 0) + (decimal) Math.Round(snowInc, 2);
+						if (snowInc < maxInc)
+						{
+							Snow24h[index] = (Snow24h[index] ?? 0) + ConvertUnits.LaserToSnow(snowInc);
+						}
+						else
+						{
+							cumulus.LogWarningMessage($"Laser depth increase is greater than allowed: {snowInc.ToString(cumulus.SnowFormat)}, max = {maxInc} {cumulus.Units.LaserDistanceText}");
+						}
 					}
 				}
 
@@ -11660,7 +11656,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.Laser[sensor - 1]);
 					json.Append("\",\"");
-					json.Append($"{(Snow24h[sensor].HasValue ? Snow24h[sensor].Value.ToString("F1") : "-")}");
+					json.Append($"{(Snow24h[sensor].HasValue ? Snow24h[sensor].Value.ToString(cumulus.SnowFormat) : "-")}");
 					json.Append("\",\"");
 					json.Append(cumulus.Units.SnowText);
 					json.Append("\"],");

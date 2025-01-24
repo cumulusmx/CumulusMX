@@ -209,6 +209,8 @@ namespace CumulusMX
 		internal int LeafWetDPlaces = 0;
 		internal string LeafWetFormat = "F0";
 
+		internal string LaserFormat = "F1";
+
 		internal string ComportName;
 		internal string DefaultComportName;
 
@@ -1299,6 +1301,13 @@ namespace CumulusMX
 			TempTrendFormat = "+0.0;-0.0;0.0";
 			PressTrendFormat = $"+0.{new string('0', PressDPlaces)};-0.{new string('0', PressDPlaces)};0.{new string('0', PressDPlaces)}";
 			AirQualityFormat = "F" + AirQualityDPlaces;
+			LaserFormat = "F" + Units.LaserDistance switch
+			{
+				0 => 1,
+				1 => 2,
+				2 => 0,
+				_ => 2
+			};
 
 			SetupRealtimeMySqlTable();
 			SetupMonthlyMySqlTable();
@@ -2079,6 +2088,7 @@ namespace CumulusMX
 			Units.SnowText = Units.SnowDepth == 0 ? "cm" : "in";
 			SnowDPlaces = Units.SnowDepth == 0 ? 1 : 2;
 			SnowFormat = "F" + SnowDPlaces;
+
 			Units.LaserDistanceText = Units.LaserDistance switch
 			{
 				0 => "cm",

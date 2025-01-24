@@ -12,6 +12,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.4.0 \[b40xx\]][13] - 2025-02-01
 
+## B072 changes
+- Fixed NOAA 12 hour option
+- Improved NOAA HTML CSS and moved to separate .css file
+- Snow accumuluation now persists across MX runs - stored in today.ini
+
+
+
 ### New
 
 - NOAA Reports can now be created as HTML
@@ -45,6 +52,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt HTTP Local API station not mapping extra temperature to outdoor temperature correctly
 - The web tag parser now accepts empty parameter values. eg. `nv=""`
 - Web camera not appearing in Ecowitt Extra Sensor settings page
+- Improve Ecowitt API Current data date/time detection - now defaults to query time if no data time found
 
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01

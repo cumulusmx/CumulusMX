@@ -611,7 +611,7 @@ namespace CumulusMX
 
 				var repLine = new StringBuilder(200);
 
-				var timeFormat = cumulus.NOAAconf.Use12hour ? "h:mmtt" : "HH:mm";
+				var timeFormat = cumulus.NOAAconf.Use12hour ? "h:mm tt" : "HH:mm";
 
 				for (int i = 1; i <= DateTime.DaysInMonth(year, month); i++)
 				{
@@ -779,7 +779,7 @@ namespace CumulusMX
 				template = template.Replace("[#WINDUNIT#]", cumulus.Units.WindText);
 
 
-				var timeFormat = cumulus.NOAAconf.Use12hour ? "h:mmtt" : "HH:mm";
+				var timeFormat = cumulus.NOAAconf.Use12hour ? "h:mm tt" : "HH:mm";
 
 				output.Clear();
 
