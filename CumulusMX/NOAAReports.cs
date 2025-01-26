@@ -99,14 +99,14 @@ namespace CumulusMX
 					missingMonths.Add(checkDate);
 				}
 
-				// increment the month
-				// note this may reset the day
-				checkDate = checkDate.AddMonths(1);
-
 				if (checkDate.Year == lastRptDate.Year && checkDate.Month == lastRptDate.Month)
 				{
 					doMore = false;
 				}
+
+				// increment the month
+				// note this may reset the day
+				checkDate = checkDate.AddMonths(1);
 			}
 
 

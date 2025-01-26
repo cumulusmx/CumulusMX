@@ -15,8 +15,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## B072 changes
 - Fixed NOAA 12 hour option
 - Improved NOAA HTML CSS and moved to separate .css file
+- Updated NOAA HTML templates
 - Snow accumuluation now persists across MX runs - stored in today.ini
-
+- Fix "Regenerate all missing reports" not creating current year/month reports
 
 
 ### New
@@ -53,6 +54,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The web tag parser now accepts empty parameter values. eg. `nv=""`
 - Web camera not appearing in Ecowitt Extra Sensor settings page
 - Improve Ecowitt API Current data date/time detection - now defaults to query time if no data time found
+- Fix "Regenerate all missing reports" not creating current year/month reports
 
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
@@ -580,4 +582,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
-[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4071
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4072
