@@ -18,6 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Updated NOAA HTML templates
 - Snow accumuluation now persists across MX runs - stored in today.ini
 - Fix "Regenerate all missing reports" not creating current year/month reports
+- Ecowitt camera URLs not working when the station is configured as an Extra Station
 
 
 ### New
@@ -55,6 +56,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Web camera not appearing in Ecowitt Extra Sensor settings page
 - Improve Ecowitt API Current data date/time detection - now defaults to query time if no data time found
 - Fix "Regenerate all missing reports" not creating current year/month reports
+- Ecowitt camera URLs not working when the station is configured as an Extra Station
 
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01

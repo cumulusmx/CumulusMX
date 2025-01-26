@@ -3338,9 +3338,17 @@ namespace CumulusMX
 
 		private string TagEcowittCameraUrl(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.StationType == StationTypes.GW1000 || cumulus.StationType == StationTypes.HttpEcowitt || cumulus.StationType == StationTypes.EcowittCloud)
+			if (!cumulus.ExtraSensorUseCamera)
 			{
-				return string.IsNullOrEmpty(station.GetEcowittCameraUrl()) ? string.Empty : station.EcowittCameraUrl;
+				return station.GetEcowittCameraUrl();
+			}
+			else if (cumulus.ecowittExtra != null)
+			{
+				return cumulus.ecowittExtra.GetEcowittCameraUrl();
+			}
+			else if (cumulus.ecowittCloudExtra != null)
+			{
+				return cumulus.ecowittCloudExtra.GetEcowittCameraUrl();
 			}
 			else
 			{
@@ -3350,9 +3358,17 @@ namespace CumulusMX
 
 		private string TagEcowittVideoUrl(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.StationType == StationTypes.GW1000 || cumulus.StationType == StationTypes.HttpEcowitt || cumulus.StationType == StationTypes.EcowittCloud)
+			if (!cumulus.ExtraSensorUseCamera)
 			{
-				return string.IsNullOrEmpty(station.GetEcowittVideoUrl()) ? string.Empty : station.EcowittVideoUrl;
+				return station.GetEcowittVideoUrl();
+			}
+			else if (cumulus.ecowittExtra != null)
+			{
+				return cumulus.ecowittExtra.GetEcowittVideoUrl();
+			}
+			else if (cumulus.ecowittCloudExtra != null)
+			{
+				return cumulus.ecowittCloudExtra.GetEcowittVideoUrl();
 			}
 			else
 			{

@@ -283,7 +283,7 @@ namespace CumulusMX
 				}
 			}
 
-			return null;
+			return string.Empty;
 		}
 
 		public override string GetEcowittVideoUrl()
@@ -301,7 +301,7 @@ namespace CumulusMX
 				}
 			}
 
-			return null;
+			return string.Empty;
 		}
 
 		public string ProcessData(IHttpContext context, bool main, DateTime? ts = null)

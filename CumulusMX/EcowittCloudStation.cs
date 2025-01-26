@@ -266,7 +266,7 @@ namespace CumulusMX
 				}
 			}
 
-			return null;
+			return string.Empty;
 		}
 
 		public override string GetEcowittVideoUrl()
@@ -284,7 +284,7 @@ namespace CumulusMX
 				}
 			}
 
-			return null;
+			return string.Empty;
 		}
 
 		private void GetHistoricData()
