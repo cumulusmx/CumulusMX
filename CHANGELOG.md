@@ -12,11 +12,24 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.4.0 \[b40xx\]][13] - 2025-02-01
 
+## B4073 changes
+- Updated packages
+	- BouncyCastle.Cryptography
+	- FluentFTP
+	- MailKit
+	- Microsoft.Win32.SystemEvents
+	- MQTTnet
+	- System.CodeDem
+	- System.Diagnostics.PerformanceCounter
+	- System.IO.Ports
+	- System.ServiceProcess.ServiceController
+
+
 ## B072 changes
 - Fixed NOAA 12 hour option
 - Improved NOAA HTML CSS and moved to separate .css file
 - Updated NOAA HTML templates
-- Snow accumuluation now persists across MX runs - stored in today.ini
+- Snow accumulation now persists across MX runs - stored in today.ini
 - Fix "Regenerate all missing reports" not creating current year/month reports
 - Ecowitt camera URLs not working when the station is configured as an Extra Station
 
@@ -584,4 +597,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
-[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4072
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4073

@@ -23,7 +23,7 @@ namespace CumulusMX
 		private bool haveHum = false;
 		private bool haveWind = false;
 
-		private static readonly decimal cm2in = 1 / (decimal) 2.54;
+		//private static readonly decimal cm2in = 1 / (decimal) 2.54;
 		//private static readonly decimal in2cm = 2.54;
 		private static readonly decimal in2mm = (decimal) 25.4;
 		//private static readonly decimal mm2in = 1 / (decimal) 25.4;

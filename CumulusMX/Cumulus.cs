@@ -14238,8 +14238,8 @@ namespace CumulusMX
 					return logBuilder.ToString();
 				}
 			};
-			var fileLogger = new FileLoggerProvider("MXdiags" + Path.DirectorySeparatorChar + "ftp.log", fileLoggerOptions);
-			loggerFactory.AddProvider(fileLogger);
+			var realtimeFileLogger = new FileLoggerProvider("MXdiags" + Path.DirectorySeparatorChar + "ftp.log", fileLoggerOptions);
+			loggerFactory.AddProvider(realtimeFileLogger);
 			FtpLoggerRT = loggerFactory.CreateLogger("R-T");
 			FtpLoggerIN = loggerFactory.CreateLogger("INT");
 			FtpLoggerMX = loggerFactory.CreateLogger("CMX");
