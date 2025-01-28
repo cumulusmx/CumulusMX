@@ -13,7 +13,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## [4.4.0 \[b40xx\]][13] - 2025-02-01
 
 ## B4073 changes
-- Updated packages
+- Updated/Changed packages
 	- BouncyCastle.Cryptography
 	- FluentFTP
 	- MailKit
@@ -23,6 +23,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- System.Diagnostics.PerformanceCounter
 	- System.IO.Ports
 	- System.ServiceProcess.ServiceController
+	- NReco.Logging.File (Removed)
+	- NLog (New)
 
 
 ## B072 changes
@@ -60,6 +62,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add NOAA report format (options.noaaFormat) to websitedataT.json
 - Davis WLL checks for missed wind gusts in multicasts, now uses the "current" 2-minute gust value, and "back dates" it one minute in the recent wind data
 - The latitude and longitude strings now use localised compass point directions (set in Locale strings)
+- Switched from NRec.Logging.File to NLog for FTP logging
+- FTP logging now creates separate log files for realtime and interval FTP activities
 
 ### Fixed
 

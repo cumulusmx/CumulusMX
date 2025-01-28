@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using MQTTnet;
-using MQTTnet.Client;
 
 using ServiceStack;
 using ServiceStack.Text;
@@ -25,7 +24,7 @@ namespace CumulusMX
 		{
 			MqttPublisher.cumulus = cumulus;
 
-			var mqttFactory = new MqttFactory();
+			var mqttFactory = new MqttClientFactory();
 
 			var protocolType = cumulus.MQTT.IpVersion switch
 			{
@@ -148,7 +147,7 @@ namespace CumulusMX
 			}
 		}
 
-		private static async Task Connect(MQTTnet.Client.MqttClientOptions options)
+		private static async Task Connect(MQTTnet.MqttClientOptions options)
 		{
 			try
 			{

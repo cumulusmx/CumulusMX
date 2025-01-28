@@ -220,7 +220,7 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("GetDataFromMqtt: Processing data");
 			cumulus.LogDataMessage("GetDataFromMqtt: data = " + appMessage.ConvertPayloadToString());
 
-			if (appMessage.PayloadSegment.Count > 0)
+			if (!appMessage.Payload.IsEmpty && appMessage.Payload.Length > 0)
 			{
 				ApplyData(appMessage.ConvertPayloadToString());
 			}
