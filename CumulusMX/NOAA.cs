@@ -791,7 +791,7 @@ namespace CumulusMX
 						output.Add($"        <td>{i:D2}</td>");
 						if (dayList[i].meantemp < -999)
 						{
-							output.Add("        <td>--<td>");
+							output.Add("        <td>--</td>");
 						}
 						else
 						{
@@ -807,7 +807,7 @@ namespace CumulusMX
 
 						if (dayList[i].meantemp < -999)
 						{
-							output.Add("        <td>--<td>");
+							output.Add("        <td>--</td>");
 						}
 						else
 						{
@@ -817,9 +817,13 @@ namespace CumulusMX
 						output.Add($"        <td>{string.Format("{0}", dayList[i].rain.ToString(cumulus.RainFormat, culture))}</td>");
 
 						if (dayList[i].avgwindspeed < -999)
-							output.Add("        <td>--<td>");
+						{
+							output.Add("        <td>--</td>");
+						}
 						else
+						{
 							output.Add($"        <td>{string.Format(culture, "{0:F1}", dayList[i].avgwindspeed)}</td>");
+						}
 
 						output.Add($"        <td>{string.Format(culture, "{0:F1}", dayList[i].highwindspeed)}</td>");
 						timestr = dayList[i].highwindtimestamp.ToString(timeFormat);
@@ -1636,8 +1640,10 @@ namespace CumulusMX
 
 
 					if (normtempsamples == 0)
+					{
 						// dummy value for "departure from norm"
 						output.Add("        <td>0.0</td>");
+					}
 					else
 					{
 						output.Add($"        <td>{string.Format(culture, "{0:F1}", (meantemp - (totalnormtemp / normtempsamples)))}</td>");
@@ -1658,7 +1664,9 @@ namespace CumulusMX
 
 					output.Add($"        <td>{string.Format(culture, "{0:F1}", mintemp)}</td>");
 					if (mintempmonth == 0)
+					{
 						output.Add("        <td>--</td>");
+					}
 					else
 					{
 						output.Add($"        <td>{string.Format(culture, "{0}", CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(mintempmonth))}</td>");
@@ -1702,8 +1710,10 @@ namespace CumulusMX
 						}
 
 						if (cumulus.NOAAconf.RainNorms[m] < -999)
+						{
 							// dummy value for "departure from norm"
 							output.Add("        <td>0.0</td>");
+						}
 						else
 						{
 							output.Add($"        <td>{string.Format("{0}", (MonthList[m].totrain - cumulus.NOAAconf.RainNorms[m]).ToString(cumulus.RainFormat, culture))}</td>");
@@ -1833,9 +1843,13 @@ namespace CumulusMX
 					if (samples > 0)
 					{
 						if (avgwindcount == 0)
+						{
 							output.Add("        <td>--</td>");
+						}
 						else
+						{
 							output.Add($"        <td>{string.Format(culture, "{0:F1}", totalavgwind / avgwindcount)}</td>");
+						}
 
 						output.Add($"        <td>{string.Format(culture, "{0:F1}", highwind)}</td>");
 						if (highwindmonth == 0)

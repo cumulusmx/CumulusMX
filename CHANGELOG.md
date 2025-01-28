@@ -25,7 +25,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- System.ServiceProcess.ServiceController
 	- NReco.Logging.File (Removed)
 	- NLog (New)
-
+- Switched from NRec.Logging.File to NLog for FTP logging
+- FTP logging now creates separate log files for realtime and interval FTP activities
+- Fix monthly NOAA HTML format for days without wind data
 
 ## B072 changes
 - Fixed NOAA 12 hour option
