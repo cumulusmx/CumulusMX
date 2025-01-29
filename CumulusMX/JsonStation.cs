@@ -9,8 +9,6 @@ using MQTTnet;
 using ServiceStack;
 using ServiceStack.Text;
 
-using static Org.BouncyCastle.Asn1.Cmp.Challenge;
-
 
 namespace CumulusMX
 {
@@ -29,6 +27,8 @@ namespace CumulusMX
 		//private static readonly decimal mm2in = 1 / (decimal) 25.4;
 
 		private FileSystemWatcher watcher;
+
+		private DateTime lastFileUpdateTime = DateTime.MinValue;
 
 		public JsonStation(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
@@ -134,20 +134,27 @@ namespace CumulusMX
 
 			try
 			{
-				var fileInfo = new FileInfo(srcFile);
+				var fullPath = Path.GetFullPath(srcFile);
+				var fileName = Path.GetFileName(fullPath);
+				var directoryPath = Path.GetDirectoryName(fullPath);
 
-				watcher = new FileSystemWatcher(fileInfo.DirectoryName)
+				watcher = new FileSystemWatcher(directoryPath)
 				{
-					NotifyFilter = NotifyFilters.LastWrite,
-					Filter = fileInfo.Name
+					NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size,
+					Filter = fileName
 				};
 
 				watcher.Changed += OnFileChanged;
 				watcher.Created += OnFileChanged;
 				watcher.EnableRaisingEvents = true;
 
+				cumulus.LogMessage("JSON Data: FileWatcher created to monitor file = " + srcFile);
+
 				// trigger an inital read of the file
-				OnFileChanged(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, fileInfo.DirectoryName, fileInfo.Name));
+				if (File.Exists(srcFile))
+				{
+					OnFileChanged(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, directoryPath, fileName));
+				}
 			}
 			catch (Exception ex)
 			{
@@ -159,18 +166,35 @@ namespace CumulusMX
 		private void OnFileChanged(object sender, FileSystemEventArgs e)
 		{
 			cumulus.LogDebugMessage("OnFileChanged: File change type = " + e.ChangeType);
-			if (e.ChangeType != WatcherChangeTypes.Changed)
+			if (e.ChangeType != WatcherChangeTypes.Changed && e.ChangeType != WatcherChangeTypes.Created)
 			{
+				cumulus.LogDebugMessage("OnFileChanged: Ignoring file change type = " + e.ChangeType);
 				return;
 			}
 
 			try
 			{
-				System.Threading.Thread.Sleep(mainStation ? cumulus.JsonStationOptions.FileReadDelay : cumulus.JsonExtraStationOptions.FileReadDelay);
-				var content = File.ReadAllText(e.FullPath);
-				cumulus.LogDataMessage($"OnFileChanged: Content = {content}");
+				var timeDiff = DateTime.UtcNow.ToUnixTimeMs() - lastFileUpdateTime.ToUnixTimeMs();
+				var delay = mainStation ? cumulus.JsonStationOptions.FileIgnoreTime : cumulus.JsonExtraStationOptions.FileIgnoreTime;
 
-				ApplyData(content);
+				cumulus.LogDebugMessage($"OnFileChanged: File change time diff = " + timeDiff);
+
+				if (timeDiff < delay)
+				{
+					cumulus.LogDebugMessage($"OnFileChanged: File update occured within the File Read Delay time ({delay} ms), ignoring this change");
+					return;
+				}
+
+				lastFileUpdateTime = DateTime.UtcNow;
+
+				if (File.Exists(e.FullPath))
+				{
+					System.Threading.Thread.Sleep(mainStation ? cumulus.JsonStationOptions.FileReadDelay : cumulus.JsonExtraStationOptions.FileReadDelay);
+					var content = File.ReadAllText(e.FullPath);
+					cumulus.LogDataMessage($"OnFileChanged: Content = {content}");
+
+					ApplyData(content);
+				}
 			}
 			catch (Exception ex)
 			{

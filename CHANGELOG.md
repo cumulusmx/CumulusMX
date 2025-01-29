@@ -28,6 +28,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Switched from NRec.Logging.File to NLog for FTP logging
 - FTP logging now creates separate log files for realtime and interval FTP activities
 - Fix monthly NOAA HTML format for days without wind data
+- Fix default web site noaareport.htm page not loading CSS
+- New version of MigrateData3to4 to now finds custom daily files correctly
+- Add File Ignore time to JSON station advanced settings
 
 ## B072 changes
 - Fixed NOAA 12 hour option
@@ -58,6 +61,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Adds laser sensors to Display Settings, Locale Strings, and Extra Sensors dashboard pages
 - Adds laser depth calculation to the Extra Sensor settings. Use this with simple laser distance sensors to allow Cumulus to calculate a depth value. Note Ecowitt already provide this ability with their LDS01 sensors.
+- New version of MigrateData3to4 to now finds custom daily files correctly
+- Add File Ignore time to JSON station advanced settings
 
 ### Changed
 

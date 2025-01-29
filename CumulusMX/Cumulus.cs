@@ -4268,6 +4268,7 @@ namespace CumulusMX
 			JsonStationOptions.Connectiontype = ini.GetValue("JsonStation", "ConnectionType", 1, 0, 2);
 			JsonStationOptions.SourceFile = ini.GetValue("JsonStation", "SourceFile", string.Empty);
 			JsonStationOptions.FileReadDelay = ini.GetValue("JsonStation", "FileDelay", 200, 0);
+			JsonStationOptions.FileIgnoreTime = ini.GetValue("JsonStation", "FileIgnore", 600, 0);
 			JsonStationOptions.MqttServer = ini.GetValue("JsonStation", "MqttServer", string.Empty);
 			JsonStationOptions.MqttPort = ini.GetValue("JsonStation", "MqttServerPort", 1883, 1, 65353);
 			JsonStationOptions.MqttUsername = ini.GetValue("JsonStation", "MqttUsername", string.Empty);
@@ -4279,6 +4280,7 @@ namespace CumulusMX
 			JsonExtraStationOptions.Connectiontype = ini.GetValue("JsonExtraStation", "ConnectionType", 1, 0, 2);
 			JsonExtraStationOptions.SourceFile = ini.GetValue("JsonExtraStation", "SourceFile", string.Empty);
 			JsonExtraStationOptions.FileReadDelay = ini.GetValue("JsonExtraStation", "FileDelay", 200, 0);
+			JsonExtraStationOptions.FileIgnoreTime = ini.GetValue("JsonExtraStation", "FileIgnore", 600, 0);
 			JsonExtraStationOptions.MqttServer = ini.GetValue("JsonExtraStation", "MqttServer", string.Empty);
 			JsonExtraStationOptions.MqttPort = ini.GetValue("JsonExtraStation", "MqttServerPort", 1883, 1, 65353);
 			JsonExtraStationOptions.MqttUsername = ini.GetValue("JsonExtraStation", "MqttUsername", string.Empty);
@@ -6245,7 +6247,7 @@ namespace CumulusMX
 			ini.SetValue("JsonStation", "ConnectionType", JsonStationOptions.Connectiontype);
 			ini.SetValue("JsonStation", "SourceFile", JsonStationOptions.SourceFile);
 			ini.SetValue("JsonStation", "FileDelay", JsonStationOptions.FileReadDelay);
-			ini.SetValue("JsonStation", "MqttServer", JsonStationOptions.MqttServer);
+			ini.SetValue("JsonStation", "FileIgnore", JsonStationOptions.FileIgnoreTime);
 			ini.SetValue("JsonStation", "MqttServerPort", JsonStationOptions.MqttPort);
 			ini.SetValue("JsonStation", "MqttUsername", Crypto.EncryptString(JsonStationOptions.MqttUsername, Program.InstanceId, "JsonStationMqttUsername"));
 			ini.SetValue("JsonStation", "MqttPassword", Crypto.EncryptString(JsonStationOptions.MqttPassword, Program.InstanceId, "JsonStationMqttPassword"));
@@ -6256,6 +6258,7 @@ namespace CumulusMX
 			ini.SetValue("JsonExtraStation", "ConnectionType", JsonExtraStationOptions.Connectiontype);
 			ini.SetValue("JsonExtraStation", "SourceFile", JsonExtraStationOptions.SourceFile);
 			ini.SetValue("JsonExtraStation", "FileDelay", JsonExtraStationOptions.FileReadDelay);
+			ini.SetValue("JsonExtraStation", "FileIgnore", JsonExtraStationOptions.FileIgnoreTime);
 			ini.SetValue("JsonExtraStation", "MqttServer", JsonExtraStationOptions.MqttServer);
 			ini.SetValue("JsonExtraStation", "MqttServerPort", JsonExtraStationOptions.MqttPort);
 			ini.SetValue("JsonExtraStation", "MqttUsername", JsonExtraStationOptions.MqttUsername);
@@ -14611,6 +14614,7 @@ namespace CumulusMX
 		public int Connectiontype { get; set; }
 		public string SourceFile { get; set; }
 		public int FileReadDelay { get; set; }
+		public int FileIgnoreTime { get; set; }
 		public string MqttServer { get; set; }
 		public int MqttPort { get; set; }
 		public string MqttUsername { get; set; }

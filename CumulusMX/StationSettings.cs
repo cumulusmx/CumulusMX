@@ -428,6 +428,7 @@ namespace CumulusMX
 			var jsonstnadv = new JsonJsonStationAdvanced()
 			{
 				filedelay = cumulus.JsonStationOptions.FileReadDelay,
+				fileignore = cumulus.JsonStationOptions.FileIgnoreTime,
 				mqtttls = cumulus.JsonStationOptions.MqttUseTls
 			};
 
@@ -1210,6 +1211,7 @@ namespace CumulusMX
 						{
 							cumulus.JsonStationOptions.SourceFile = string.IsNullOrWhiteSpace(settings.jsonstation.filename) ? null : settings.jsonstation.filename.Trim();
 							cumulus.JsonStationOptions.FileReadDelay = settings.jsonstation.advanced.filedelay;
+							cumulus.JsonStationOptions.FileIgnoreTime = settings.jsonstation.advanced.fileignore;
 						}
 						if (cumulus.JsonStationOptions.Connectiontype == 2)
 						{
@@ -2088,6 +2090,7 @@ namespace CumulusMX
 		public class JsonJsonStationAdvanced
 		{
 			public int filedelay { get; set; }
+			public int fileignore { get; set; }
 			public bool mqtttls { get; set; }
 		}
 	}
