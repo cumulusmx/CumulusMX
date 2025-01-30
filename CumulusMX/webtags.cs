@@ -5751,7 +5751,7 @@ namespace CumulusMX
 
 		private string TagCpuTemp(Dictionary<string, string> tagParams)
 		{
-			return cumulus.CPUtemp.ToString(cumulus.TempFormat);
+			return CheckRcDp(CheckTempUnit(cumulus.CPUtemp, tagParams), tagParams, cumulus.TempDPlaces, cumulus.TempFormat);
 		}
 
 		private string TagDavisTotalPacketsReceived(Dictionary<string, string> tagParams)

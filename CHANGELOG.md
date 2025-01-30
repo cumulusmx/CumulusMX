@@ -31,6 +31,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix default web site noaareport.htm page not loading CSS
 - New version of MigrateData3to4 to now finds custom daily files correctly
 - Add File Ignore time to JSON station advanced settings
+- Web tag `<#CPUtemp>` now supports options `rc`, `dp`, `tc`, `unit`
 
 ## B072 changes
 - Fixed NOAA 12 hour option
@@ -81,6 +82,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Improve Ecowitt API Current data date/time detection - now defaults to query time if no data time found
 - Fix "Regenerate all missing reports" not creating current year/month reports
 - Ecowitt camera URLs not working when the station is configured as an Extra Station
+- Web tag `<#CPUtemp>` now supports options `rc`, `dp`, `tc`, `unit`
 
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
