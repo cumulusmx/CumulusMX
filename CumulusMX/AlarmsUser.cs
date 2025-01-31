@@ -28,7 +28,7 @@ namespace CumulusMX
 			}
 		}
 		public string WebTag { get; set; }
-		public double Value { get; set; }
+		public decimal Value { get; set; }
 		[IgnoreDataMember]
 		public bool Triggered
 		{
@@ -75,7 +75,7 @@ namespace CumulusMX
 		DateTime triggeredTime;
 
 		private readonly TokenParser tokenParser;
-		private double tagValue;
+		private decimal tagValue;
 
 		public AlarmUser(string AlarmName, string AlarmType, string webTag, Cumulus cuml)
 		{
@@ -102,7 +102,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					tagValue = Convert.ToDouble(new DataTable().Compute(tokenParser.ToStringFromString(), null), System.Globalization.CultureInfo.InvariantCulture);
+					tagValue = Convert.ToDecimal(new DataTable().Compute(tokenParser.ToStringFromString(), null), System.Globalization.CultureInfo.InvariantCulture);
 					doTriggered((type == AlarmTypes.Above && tagValue > Value) || (type == AlarmTypes.Below && tagValue < Value) || (type == AlarmTypes.Equals && tagValue == Value));
 				}
 				catch

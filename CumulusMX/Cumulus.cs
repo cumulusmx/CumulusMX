@@ -5323,7 +5323,7 @@ namespace CumulusMX
 					var name = ini.GetValue("UserAlarms", "AlarmName" + i, string.Empty);
 					var tag = ini.GetValue("UserAlarms", "AlarmTag" + i, string.Empty);
 					var type = ini.GetValue("UserAlarms", "AlarmType" + i, string.Empty);
-					var value = ini.GetValue("UserAlarms", "AlarmValue" + i, 0.0);
+					var value = ini.GetValue("UserAlarms", "AlarmValue" + i, (decimal) 0.0);
 					var enabled = ini.GetValue("UserAlarms", "AlarmEnabled" + i, false);
 					var email = ini.GetValue("UserAlarms", "AlarmEmail" + i, false);
 					var emailMsg = ini.GetValue("UserAlarms", "AlarmEmailMsg" + i, string.Empty);
