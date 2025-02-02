@@ -35,6 +35,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add Laser Sensors and Snow 24h to Extra Log file
 - 9am values not always rolling over correctly during "catch-up"
 - Fix Monthly Log/Extra Monthly log viewers for 9am meteo day users
+- Davis station: Fix for the 00:00 (or 09:00) rainfall being counted on both days during catch-up
 
 ## B072 changes
 - Fixed NOAA 12 hour option
@@ -88,6 +89,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Web tag `<#CPUtemp>` now supports options `rc`, `dp`, `tc`, `unit`
 - 9am values not always rolling over correctly during "catch-up"
 - Fix Monthly Log/Extra Monthly log viewers for 9am meteo day users
+- Davis station: Fix for the 00:00 (or 09:00) rainfall being counted on both days during catch-up
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
 

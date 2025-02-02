@@ -2427,7 +2427,7 @@ namespace CumulusMX
 				}
 
 				// Read the response
-				stream.Read(data, 0, 6);
+				_ = stream.Read(data, 0, 6);
 
 				cumulus.LogDataMessage("GetArchiveData: Response - " + BitConverter.ToString(data));
 			}
@@ -2615,7 +2615,7 @@ namespace CumulusMX
 							// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
 							// Windrun (done)
 							// Dominant wind bearing (done)
-							// ET - if MX calculated
+							// ET - if MX calculated (done)
 							// Degree days (done)
 							// Rainfall (done)
 
@@ -2703,7 +2703,7 @@ namespace CumulusMX
 							}
 							else if (!midnightraindone)
 							{
-							// In midnight hour and midnight rain (and sun) not yet done
+								// In midnight hour and midnight rain (and sun) not yet done
 								ResetMidnightRain(timestamp);
 								ResetSunshineHours(timestamp);
 								ResetMidnightTemperatures(timestamp);
@@ -2823,15 +2823,19 @@ namespace CumulusMX
 							}
 
 
-							double rain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
-							double rainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
-
-							if (rainrate < 0)
+							// we don't want to add rainfall from first record of the day to the current day, it has already been added to the previous day
+							if (h != rollHour || timestamp.Minute != 0)
 							{
-								rainrate = 0;
-							}
+								double rain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
+								double rainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
 
-							DoRain(rain, rainrate, timestamp);
+								if (rainrate < 0)
+								{
+									rainrate = 0;
+								}
+
+								DoRain(rain, rainrate, timestamp);
+							}
 
 							if ((archiveData.Pressure > 0) && (archiveData.Pressure < 40))
 							{
