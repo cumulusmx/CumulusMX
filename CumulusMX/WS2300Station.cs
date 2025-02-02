@@ -219,6 +219,7 @@ namespace CumulusMX
 
 			bool midnightraindone = luhour == 0;
 			bool rollover9amdone = luhour == 9;
+			bool snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			double prevraintotal = -1;
 			double raindiff, rainrate;
@@ -242,8 +243,7 @@ namespace CumulusMX
 				{
 					rolloverdone = false;
 				}
-
-				if ((h == rollHour) && !rolloverdone)
+				else if (!rolloverdone)
 				{
 					// do roll-over
 					cumulus.LogMessage("WS2300: Day roll-over " + timestamp);
@@ -257,8 +257,7 @@ namespace CumulusMX
 				{
 					midnightraindone = false;
 				}
-
-				if ((h == 0) && !midnightraindone)
+				else if (!midnightraindone)
 				{
 					ResetMidnightRain(timestamp);
 					ResetSunshineHours(timestamp);
@@ -267,11 +266,38 @@ namespace CumulusMX
 				}
 
 				// 9am rollover items
-				if (h == 9 && !rollover9amdone)
+				if (h == 9 )
+				{
+					rollover9amdone = false;
+				}
+				if (!rollover9amdone)
 				{
 					Reset9amTemperatures(timestamp);
 					rollover9amdone = true;
 				}
+
+				// Not in snow hour, snow yet to be done
+				if (h != cumulus.SnowDepthHour)
+				{
+					snowhourdone = false;
+				}
+				else if (!snowhourdone)
+				{
+					// snowhour items
+					if (cumulus.SnowAutomated > 0)
+					{
+						CreateNewSnowRecord(timestamp);
+					}
+
+					// reset the accumulated snow depth(s)
+					for (int i = 0; i < Snow24h.Length; i++)
+					{
+						Snow24h[i] = null;
+					}
+
+					snowhourdone = true;
+				}
+
 				// Humidity ====================================================================
 				if ((historydata.inHum > 0) && (historydata.inHum <= 100))
 					DoIndoorHumidity(historydata.inHum);

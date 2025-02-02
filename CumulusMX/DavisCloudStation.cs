@@ -473,6 +473,7 @@ namespace CumulusMX
 
 			bool midnightraindone = luhour == 0;
 			bool rollover9amdone = luhour == 9;
+			bool snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			WlHistory histObj;
 			int noOfRecs = 0;
@@ -587,12 +588,6 @@ namespace CumulusMX
 
 					var h = timestamp.Hour;
 
-					//  if outside roll-over hour, roll-over yet to be done
-					if (h != rollHour)
-					{
-						rolloverdone = false;
-					}
-
 					// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
 					// Windrun
 					// Dominant wind bearing
@@ -600,9 +595,14 @@ namespace CumulusMX
 					// Degree days
 					// Rainfall
 
-					// In roll-over hour and roll-over not yet done
-					if ((h == rollHour) && !rolloverdone)
+					//  if outside roll-over hour, roll-over yet to be done
+					if (h != rollHour)
 					{
+						rolloverdone = false;
+					}
+					else if (!rolloverdone)
+					{
+						// In roll-over hour and roll-over not yet done
 						// do roll-over
 						cumulus.LogMessage("GetHistoricData: Day roll-over " + timestamp.ToShortTimeString());
 						DayReset(timestamp);
@@ -614,10 +614,9 @@ namespace CumulusMX
 					{
 						midnightraindone = false;
 					}
-
-					// In midnight hour and midnight rain (and sun) not yet done
-					if ((h == 0) && !midnightraindone)
+					else if (!midnightraindone)
 					{
+						// In midnight hour and midnight rain (and sun) not yet done
 						ResetMidnightRain(timestamp);
 						ResetSunshineHours(timestamp);
 						ResetMidnightTemperatures(timestamp);
@@ -625,10 +624,36 @@ namespace CumulusMX
 					}
 
 					// 9am rollover items
-					if (h == 9 && !rollover9amdone)
+					if (h != 9)
+					{
+						rollover9amdone = false;
+					}
+					else if (!rollover9amdone)
 					{
 						Reset9amTemperatures(timestamp);
 						rollover9amdone = true;
+					}
+
+					// Not in snow hour, snow yet to be done
+					if (h != cumulus.SnowDepthHour)
+					{
+						snowhourdone = false;
+					}
+					else if (!snowhourdone)
+					{
+						// snowhour items
+						if (cumulus.SnowAutomated > 0)
+						{
+							CreateNewSnowRecord(timestamp);
+						}
+
+						// reset the accumulated snow depth(s)
+						for (int i = 0; i < Snow24h.Length; i++)
+						{
+							Snow24h[i] = null;
+						}
+
+						snowhourdone = true;
 					}
 
 					DecodeHistoric(sensorWithMostRecs.data_structure_type, sensorWithMostRecs.sensor_type, sensorWithMostRecs.data[dataIndex]);

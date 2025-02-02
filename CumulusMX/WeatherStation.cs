@@ -2162,7 +2162,7 @@ namespace CumulusMX
 					CreateNewSnowRecord(now);
 				}
 
-				// reset the accumalted snow depth(s)
+				// reset the accumulated snow depth(s)
 				for (int i = 0; i < Snow24h.Length; i++)
 				{
 					Snow24h[i] = null;
@@ -5205,7 +5205,7 @@ namespace CumulusMX
 			WriteYesterdayFile(logdate);
 		}
 
-		private void CreateNewSnowRecord(DateTime now)
+		public void CreateNewSnowRecord(DateTime now)
 		{
 			try
 			{
@@ -12519,6 +12519,8 @@ namespace CumulusMX
 				var ts = new DateTime(int.Parse(stDate[0]), int.Parse(stDate[1]), int.Parse(stDate[2]), 0, 0, 0, DateTimeKind.Local);
 				var te = new DateTime(int.Parse(enDate[0]), int.Parse(enDate[1]), int.Parse(enDate[2]), 0, 0, 0, DateTimeKind.Local);
 
+				// we want the records up to but not including the end date at midnight
+				te = te.AddDays(1);
 
 				var fileDate = ts;
 
@@ -13022,6 +13024,7 @@ namespace CumulusMX
 			json.Append($"\"co2\":{{\"units\":\"{cumulus.Units.CO2UnitText}\"}},");
 			json.Append($"\"leafwet\":{{\"units\":\"{cumulus.Units.LeafWetnessUnitText}\",\"decimals\":{cumulus.LeafWetDPlaces}}},");
 			json.Append($"\"aq\":{{\"units\":\"{cumulus.Units.AirQualityUnitText}\"}},");
+			json.Append($"\"laser\":{{\"units\":\"{cumulus.Units.LaserDistanceText}\",\"decimals\":{cumulus.LaserDPlaces}}},");
 
 			#region data series
 

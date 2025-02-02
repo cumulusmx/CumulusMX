@@ -205,7 +205,7 @@ namespace CumulusMX
 		internal int UVDPlaces = 1;
 		internal string UVFormat;
 
-		internal int SnowDPlaces = 0;
+		internal int SnowDPlaces = 1;
 		internal string SnowFormat = "F1";
 
 		internal string ETFormat;
@@ -213,6 +213,7 @@ namespace CumulusMX
 		internal int LeafWetDPlaces = 0;
 		internal string LeafWetFormat = "F0";
 
+		internal int LaserDPlaces = 1;
 		internal string LaserFormat = "F1";
 
 		internal string ComportName;
@@ -2099,6 +2100,14 @@ namespace CumulusMX
 				1 => "in",
 				2 => "mm",
 				_ => "??"
+			};
+
+			LaserDPlaces = Units.LaserDistance switch
+			{
+				0 => 1,
+				1 => 2,
+				2 => 0,
+				_ => 0
 			};
 		}
 
@@ -8269,7 +8278,7 @@ namespace CumulusMX
 			}
 		}
 
-		public const int NumExtraLogFileFields = 92;
+		public const int NumExtraLogFileFields = 101;
 
 		public async Task DoExtraLogFile(DateTime timestamp)
 		{
@@ -8296,6 +8305,9 @@ namespace CumulusMX
 			// 89  CO2 pm10 avg
 			// 90  CO2 temp
 			// 91  CO2 hum
+			// 92-95 Laser Distance 1-4
+			// 96-99 Laser Depth 1-4
+			// 100 Snowfall Accumulation 24h
 
 			var filename = GetExtraLogFileName(timestamp);
 			var inv = CultureInfo.InvariantCulture;
@@ -8374,7 +8386,19 @@ namespace CumulusMX
 			sb.Append((station.CO2_pm10.HasValue ? station.CO2_pm10.Value.ToString("F1", inv) : string.Empty) + sep);                       //88
 			sb.Append((station.CO2_pm10_24h.HasValue ? station.CO2_pm10_24h.Value.ToString("F1", inv) : string.Empty) + sep);               //89
 			sb.Append((station.CO2_temperature.HasValue ? station.CO2_temperature.Value.ToString(TempFormat, inv) : string.Empty) + sep);   //90
-			sb.Append((station.CO2_humidity.HasValue ? station.CO2_humidity.Value.ToString("F0") : string.Empty));                          //91
+			sb.Append((station.CO2_humidity.HasValue ? station.CO2_humidity.Value.ToString("F0") : string.Empty) + sep);                          //91
+
+			for (int i = 1; i < station.LaserDist.Length; i++)
+			{
+				sb.Append((station.LaserDist[i].HasValue ? station.LaserDist[i].Value.ToString(LaserFormat, inv) : string.Empty) + sep); //92-95
+			}
+			for (int i = 1; i < station.LaserDepth.Length; i++)
+			{
+				sb.Append((station.LaserDepth[i].HasValue ? station.LaserDepth[i].Value.ToString(LaserFormat, inv) : string.Empty) + sep); //96-99
+			}
+
+			sb.Append((station.Snow24h[SnowAutomated].HasValue ? station.Snow24h[SnowAutomated].Value.ToString(SnowFormat, inv) : string.Empty)); //100
+
 			sb.Append(Environment.NewLine);
 
 			var success = false;

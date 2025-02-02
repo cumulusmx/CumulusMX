@@ -1309,6 +1309,7 @@ namespace CumulusMX
 			var rolloverdone = luhour == rollHour;
 			var midnightraindone = luhour == 0;
 			var rollover9amdone = luhour == 9;
+			bool snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			foreach (var rec in buffer)
 			{
@@ -1324,11 +1325,13 @@ namespace CumulusMX
 				rollHour = Math.Abs(cumulus.GetHourInc(rec.Key));
 
 				//  if outside rollover hour, rollover yet to be done
-				if (h != rollHour) rolloverdone = false;
-
-				// In rollover hour and rollover not yet done
-				if (h == rollHour && !rolloverdone)
+				if (h != rollHour)
 				{
+					rolloverdone = false;
+				}
+				else if (!rolloverdone)
+				{
+					// In rollover hour and rollover not yet done
 					// do rollover
 					cumulus.LogMessage("Day rollover " + rec.Key.ToShortTimeString());
 					station.DayReset(rec.Key);
@@ -1337,11 +1340,13 @@ namespace CumulusMX
 				}
 
 				// Not in midnight hour, midnight rain yet to be done
-				if (h != 0) midnightraindone = false;
-
-				// In midnight hour and midnight rain (and sun) not yet done
-				if (h == 0 && !midnightraindone)
+				if (h != 0)
 				{
+					midnightraindone = false;
+				}
+				else if (!midnightraindone)
+				{
+					// In midnight hour and midnight rain (and sun) not yet done
 					station.ResetMidnightRain(rec.Key);
 					station.ResetSunshineHours(rec.Key);
 					station.ResetMidnightTemperatures(rec.Key);
@@ -1349,10 +1354,36 @@ namespace CumulusMX
 				}
 
 				// 9am rollover items
-				if (h == 9 && !rollover9amdone)
+				if (h != 9)
+				{
+					rollover9amdone = false;
+				}
+				else if (!rollover9amdone)
 				{
 					station.Reset9amTemperatures(rec.Key);
 					rollover9amdone = true;
+				}
+
+				// Not in snow hour, snow yet to be done
+				if (h != 0)
+				{
+					snowhourdone = false;
+				}
+				else if ((h == cumulus.SnowDepthHour) && !snowhourdone)
+				{
+					// snowhour items
+					if (cumulus.SnowAutomated > 0)
+					{
+						station.CreateNewSnowRecord(rec.Key);
+					}
+
+					// reset the accumulated snow depth(s)
+					for (int i = 0; i < station.Snow24h.Length; i++)
+					{
+						station.Snow24h[i] = null;
+					}
+
+					snowhourdone = true;
 				}
 
 				// finally apply this data

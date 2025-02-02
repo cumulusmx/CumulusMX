@@ -2257,6 +2257,7 @@ namespace CumulusMX
 
 			bool midnightraindone = luhour == 0;
 			bool rollover9amdone = luhour == 9;
+			bool snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			// work out the next logger interval after the last CMX update
 			var nextLoggerTime = Utils.RoundTimeUpToInterval(cumulus.LastUpdateTime.AddMinutes(-1), TimeSpan.FromMinutes(loggerInterval));
@@ -2700,10 +2701,9 @@ namespace CumulusMX
 							{
 								midnightraindone = false;
 							}
-
-							// In midnight hour and midnight rain (and sun) not yet done
-							if ((h == 0) && !midnightraindone)
+							else if (!midnightraindone)
 							{
+							// In midnight hour and midnight rain (and sun) not yet done
 								ResetMidnightRain(timestamp);
 								ResetSunshineHours(timestamp);
 								ResetMidnightTemperatures(timestamp);
@@ -2711,10 +2711,36 @@ namespace CumulusMX
 							}
 
 							// 9am rollover items
-							if (h == 9 && !rollover9amdone)
+							if (h != 9)
+							{
+								rollover9amdone = false;
+							}
+							else if (!rollover9amdone)
 							{
 								Reset9amTemperatures(timestamp);
 								rollover9amdone = true;
+							}
+
+							// Not in snow hour, snow yet to be done
+							if (h != 0)
+							{
+								snowhourdone = false;
+							}
+							else if (!snowhourdone)
+							{
+								// snowhour items
+								if (cumulus.SnowAutomated > 0)
+								{
+									CreateNewSnowRecord(timestamp);
+								}
+
+								// reset the accumulated snow depth(s)
+								for (int i = 0; i < Snow24h.Length; i++)
+								{
+									Snow24h[i] = null;
+								}
+
+								snowhourdone = true;
 							}
 
 							if ((archiveData.InsideTemperature > -200) && (archiveData.InsideTemperature < 300))

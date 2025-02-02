@@ -35,6 +35,8 @@ namespace CumulusMX
 		private bool firstArchiveData = true;
 		private bool midnightraindone;
 		private bool rollover9amdone;
+		private bool snowhourdone;
+
 		private double hourInc;
 		private int rollHour;
 		private bool rolloverdone;
@@ -146,9 +148,9 @@ namespace CumulusMX
 			int luhour = cumulus.LastUpdateTime.Hour;
 
 			rolloverdone = luhour == rollHour;
-
 			midnightraindone = luhour == 0;
 			rollover9amdone = luhour == 9;
+			snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			gettingHistory = true;
 			livePacketCount = 0;
@@ -1385,18 +1387,19 @@ namespace CumulusMX
 			{
 				rolloverdone = false;
 			}
-			if ((h == rollHour) && !rolloverdone)
+			else if (!rolloverdone)
 			{
 				// do roll-over
 				cumulus.LogMessage("Day roll-over " + timestamp);
 				DayReset(timestamp);
 				rolloverdone = true;
 			}
+
 			if (h != 0)
 			{
 				midnightraindone = false;
 			}
-			if ((h == 0) && !midnightraindone)
+			else if (!midnightraindone)
 			{
 				ResetMidnightRain(timestamp);
 				ResetSunshineHours(timestamp);
@@ -1404,11 +1407,37 @@ namespace CumulusMX
 				midnightraindone = true;
 			}
 			// 9am rollover items
-			if (h == 9 && !rollover9amdone)
+			if (h!= 9)
+			{
+				rollover9amdone = false;
+			}
+			else if (!rollover9amdone)
 			{
 				Reset9amTemperatures(timestamp);
 				rollover9amdone = true;
 			}
+			// Not in snow hour, snow yet to be done
+			if (h != cumulus.SnowDepthHour)
+			{
+				snowhourdone = false;
+			}
+			else if (!snowhourdone)
+			{
+				// snowhour items
+				if (cumulus.SnowAutomated > 0)
+				{
+					CreateNewSnowRecord(timestamp);
+				}
+
+				// reset the accumulated snow depth(s)
+				for (int j = 0; j < Snow24h.Length; j++)
+				{
+					Snow24h[j] = null;
+				}
+
+				snowhourdone = true;
+			}
+
 			// there seems to be no way of determining the log interval other than subtracting one logMainUnit.Units.MainUnit.cumulus.LogMessage
 			// timestamp from another, so we'll have to ignore the first one
 			if (previousHistoryTimeStamp > DateTime.MinValue)

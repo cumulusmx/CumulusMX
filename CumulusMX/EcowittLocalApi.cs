@@ -676,22 +676,21 @@ namespace CumulusMX
 			{
 				var url = $"http://{cumulus.Gw1000IpAddress}:81/" + fileName;
 
-				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
+				using var response = await cumulus.MyHttpClient.GetAsync(url, token);
+
+				responseBody = response.Content.ReadAsStringAsync(token).Result;
+				responseCode = (int) response.StatusCode;
+				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response code: {responseCode}");
+				cumulus.LogDataMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response: {responseBody}");
+
+				if (responseCode != 200)
 				{
-					responseBody = response.Content.ReadAsStringAsync(token).Result;
-					responseCode = (int) response.StatusCode;
-					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response code: {responseCode}");
-					cumulus.LogDataMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response: {responseBody}");
-
-					if (responseCode != 200)
-					{
-						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Error: {responseCode}");
-						Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
-						return null;
-					}
-
-					return new List<string>(responseBody.Split(lineEnds, StringSplitOptions.None)); ;
+					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Error: {responseCode}");
+					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					return null;
 				}
+
+				return new List<string>(responseBody.Split(lineEnds, StringSplitOptions.None)); ;
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{

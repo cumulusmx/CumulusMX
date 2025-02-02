@@ -32,6 +32,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New version of MigrateData3to4 to now finds custom daily files correctly
 - Add File Ignore time to JSON station advanced settings
 - Web tag `<#CPUtemp>` now supports options `rc`, `dp`, `tc`, `unit`
+- Add Laser Sensors and Snow 24h to Extra Log file
 
 ## B072 changes
 - Fixed NOAA 12 hour option
