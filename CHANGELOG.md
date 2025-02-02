@@ -33,6 +33,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add File Ignore time to JSON station advanced settings
 - Web tag `<#CPUtemp>` now supports options `rc`, `dp`, `tc`, `unit`
 - Add Laser Sensors and Snow 24h to Extra Log file
+- 9am values not always rolling over correctly during "catch-up"
+- Fix Monthly Log/Extra Monthly log viewers for 9am meteo day users
 
 ## B072 changes
 - Fixed NOAA 12 hour option
@@ -84,7 +86,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix "Regenerate all missing reports" not creating current year/month reports
 - Ecowitt camera URLs not working when the station is configured as an Extra Station
 - Web tag `<#CPUtemp>` now supports options `rc`, `dp`, `tc`, `unit`
-
+- 9am values not always rolling over correctly during "catch-up"
+- Fix Monthly Log/Extra Monthly log viewers for 9am meteo day users
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
 

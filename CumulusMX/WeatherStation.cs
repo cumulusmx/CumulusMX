@@ -12522,6 +12522,10 @@ namespace CumulusMX
 				// we want the records up to but not including the end date at midnight
 				te = te.AddDays(1);
 
+				// allow for 9am start time
+				ts = ts.AddHours(-cumulus.GetHourInc(ts));
+				te = te.AddHours(-cumulus.GetHourInc(te));
+
 				var fileDate = ts;
 
 				var logfile = extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts);
