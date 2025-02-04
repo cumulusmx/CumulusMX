@@ -2592,6 +2592,8 @@ namespace CumulusMX
 						{
 							cumulus.LogMessage("GetArchiveData: Processing archive record for " + timestamp);
 
+							rollHour = Math.Abs(cumulus.GetHourInc(timestamp));
+
 							int h = timestamp.Hour;
 
 							if (h != rollHour)
@@ -2816,7 +2818,8 @@ namespace CumulusMX
 
 							// add in 'archivePeriod' minutes worth of wind speed to windrun
 							// we don't want to do the this for the first instant of the day
-							if (h != rollHour || timestamp.Minute != 0)
+							var notFirstRec = timestamp.Minute != 0 || h != rollHour;
+							if (notFirstRec)
 							{
 								WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
 								CheckForWindrunHighLow(timestamp);
@@ -2824,7 +2827,7 @@ namespace CumulusMX
 
 
 							// we don't want to add rainfall from first record of the day to the current day, it has already been added to the previous day
-							if (h != rollHour || timestamp.Minute != 0)
+							if (notFirstRec)
 							{
 								double rain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
 								double rainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
@@ -2861,7 +2864,7 @@ namespace CumulusMX
 							}
 
 							// we don't want to do the this for the first instant of the day
-							if ((h != rollHour || timestamp.Minute != 0) && !cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
+							if (notFirstRec && !cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
 							{
 								DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
 							}
