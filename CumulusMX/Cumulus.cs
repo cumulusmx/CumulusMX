@@ -4048,7 +4048,14 @@ namespace CumulusMX
 			Spike.MaxHourlyRain = ini.GetValue("Station", "EWmaxHourlyRain", 999.0);
 			Spike.InTempDiff = ini.GetValue("Station", "EWinTempdiff", 999.0);
 			Spike.InHumDiff = ini.GetValue("Station", "EWinHumiditydiff", 999.0);
-			Spike.SnowDiff = ini.GetValue("Station", "EWsnowdiff", 999.0);
+			var maxSnowInc = Units.LaserDistance switch
+			{
+				0 => 5,
+				1 => 2,
+				2 => 50,
+				_ => 999.0
+			};
+			Spike.SnowDiff = ini.GetValue("Station", "EWsnowdiff", maxSnowInc);
 			if (Spike.TempDiff < 999)
 			{
 				Spike.TempDiff = ConvertUnits.TempCToUser(Spike.TempDiff);
