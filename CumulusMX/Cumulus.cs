@@ -4048,6 +4048,7 @@ namespace CumulusMX
 			Spike.MaxHourlyRain = ini.GetValue("Station", "EWmaxHourlyRain", 999.0);
 			Spike.InTempDiff = ini.GetValue("Station", "EWinTempdiff", 999.0);
 			Spike.InHumDiff = ini.GetValue("Station", "EWinHumiditydiff", 999.0);
+			Spike.SnowDiff = ini.GetValue("Station", "EWsnowdiff", 999.0);
 			if (Spike.TempDiff < 999)
 			{
 				Spike.TempDiff = ConvertUnits.TempCToUser(Spike.TempDiff);
@@ -6116,6 +6117,8 @@ namespace CumulusMX
 			ini.SetValue("Station", "EWmaxRainRate", Spike.MaxRainRate < 999 ? ConvertUnits.UserRainToMM(Spike.MaxRainRate) : 999.0);
 			ini.SetValue("Station", "EWinTempdiff", Spike.InTempDiff < 999 ? ConvertUnits.UserTempToC(Spike.InTempDiff) : 999.0);
 			ini.SetValue("Station", "EWinHumiditydiff", Spike.InHumDiff);
+			ini.SetValue("Station", "EWsnowdiff", Spike.SnowDiff);
+
 
 			ini.SetValue("Station", "RainSeasonStart", RainSeasonStart);
 			ini.SetValue("Station", "RainWeekStart", RainWeekStart);

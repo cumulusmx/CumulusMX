@@ -9891,24 +9891,17 @@ namespace CumulusMX
 				if (value.HasValue && cumulus.SnowAutomated == index)
 				{
 					// calculate the snowfall
-					decimal maxInc = cumulus.Units.LaserDistance switch
-					{
-						0 => 2,
-						1 => 1,
-						2 => 20,
-						_ => throw new ArgumentOutOfRangeException(nameof(cumulus.Units.LaserDistance), "Invalid LaserDistance unit")
-					};
-
 					decimal snowInc = value.Value - (LaserDepth[index] ?? value.Value);
+
 					if (snowInc >= 0)
 					{
-						if (snowInc < maxInc)
+						if ((double) snowInc < cumulus.Spike.SnowDiff)
 						{
 							Snow24h[index] = (Snow24h[index] ?? 0) + ConvertUnits.LaserToSnow(snowInc);
 						}
 						else
 						{
-							cumulus.LogWarningMessage($"Laser depth increase is greater than allowed: {snowInc.ToString(cumulus.SnowFormat)}, max = {maxInc} {cumulus.Units.LaserDistanceText}");
+							cumulus.LogWarningMessage($"Laser depth increase is greater than allowed for snow accumulation: {snowInc.ToString(cumulus.SnowFormat)}, max = {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
 						}
 					}
 				}

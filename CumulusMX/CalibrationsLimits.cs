@@ -65,5 +65,6 @@
 		public double TempDiff { get; set; } = 999;
 		public double InTempDiff { get; set; } = 999;
 		public double InHumDiff { get; set; } = 999;
+		public double SnowDiff { get; set; } = 999;
 	}
 }
