@@ -10,7 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b40xx\]][13] - 2025-02-01
+## [4.4.0 \[b40xx\]][13] - 2025-02-05
+
+## B4074 changes
+- Web tag `<#CPUTemp>` default changed from -999 to "-" and it now accepts the `nv=` parameter
+
 
 ## B4073 changes
 - Updated/Changed packages
@@ -76,6 +80,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The latitude and longitude strings now use localised compass point directions (set in Locale strings)
 - Switched from NRec.Logging.File to NLog for FTP logging
 - FTP logging now creates separate log files for realtime and interval FTP activities
+- Web tag `<#CPUtemp>` now returns `"-"` if no value present, or whatever is specifed by `nv=`
 
 ### Fixed
 
@@ -616,4 +621,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
-[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4073
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4074
