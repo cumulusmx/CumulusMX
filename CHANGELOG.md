@@ -14,7 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## B4074 changes
 - Web tag `<#CPUTemp>` default changed from -999 to "-" and it now accepts the `nv=` parameter
-
+- Snowfall now added to Calibration settings. The minimum increment and ignore above spike values can be altered
 
 ## B4073 changes
 - Updated/Changed packages

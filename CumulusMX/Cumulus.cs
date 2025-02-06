@@ -4048,14 +4048,22 @@ namespace CumulusMX
 			Spike.MaxHourlyRain = ini.GetValue("Station", "EWmaxHourlyRain", 999.0);
 			Spike.InTempDiff = ini.GetValue("Station", "EWinTempdiff", 999.0);
 			Spike.InHumDiff = ini.GetValue("Station", "EWinHumiditydiff", 999.0);
-			var maxSnowInc = Units.LaserDistance switch
+			decimal maxSnowInc = Units.LaserDistance switch
 			{
 				0 => 5,
 				1 => 2,
 				2 => 50,
-				_ => 999.0
+				_ => (decimal) 999.0
 			};
-			Spike.SnowDiff = ini.GetValue("Station", "EWsnowdiff", maxSnowInc);
+			Spike.SnowDiff = ini.GetValue("Station", "EWsnowdiff", maxSnowInc, 0, 999);
+			decimal minSnowInc = (decimal) (Units.LaserDistance switch
+			{
+				0 => 0.5,
+				1 => 0.2,
+				2 => 5,
+				_ => 0
+			});
+			SnowMinInc = ini.GetValue("Station", "EWsnowMinInc", minSnowInc, 0);
 			if (Spike.TempDiff < 999)
 			{
 				Spike.TempDiff = ConvertUnits.TempCToUser(Spike.TempDiff);
@@ -6125,6 +6133,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "EWinTempdiff", Spike.InTempDiff < 999 ? ConvertUnits.UserTempToC(Spike.InTempDiff) : 999.0);
 			ini.SetValue("Station", "EWinHumiditydiff", Spike.InHumDiff);
 			ini.SetValue("Station", "EWsnowdiff", Spike.SnowDiff);
+			ini.SetValue("Station", "EWsnowMinInc", SnowMinInc);
 
 
 			ini.SetValue("Station", "RainSeasonStart", RainSeasonStart);
@@ -7894,6 +7903,7 @@ namespace CumulusMX
 
 		public int SnowDepthHour { get; set; }
 		public int SnowAutomated { get; set; }
+		public decimal SnowMinInc { get; set; }
 
 
 		public bool HourlyForecast { get; set; }

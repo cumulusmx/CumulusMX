@@ -92,7 +92,7 @@ namespace CumulusMX
 				cumulus.Spike.PressDiff = Convert.ToDouble(settings.pressure.spike, invC);
 				cumulus.Spike.InTempDiff = Convert.ToDouble(settings.tempin.spike, invC);
 				cumulus.Spike.InHumDiff = Convert.ToDouble(settings.humin.spike, invC);
-				cumulus.Spike.SnowDiff = Convert.ToDouble(settings.snow.spike, invC);
+				cumulus.Spike.SnowDiff = Convert.ToDecimal(settings.snow.spike, invC);
 
 				// limits
 				cumulus.Limit.TempHigh = Convert.ToDouble(settings.temp.limitmax, invC);
@@ -101,6 +101,9 @@ namespace CumulusMX
 				cumulus.Limit.PressHigh = Convert.ToDouble(settings.pressure.limitmax, invC);
 				cumulus.Limit.PressLow = Convert.ToDouble(settings.pressure.limitmin, invC);
 				cumulus.Limit.WindHigh = Convert.ToDouble(settings.gust.limitmax, invC);
+
+				// snow
+				cumulus.SnowMinInc = Convert.ToDecimal(settings.snow.mininc, invC);
 
 				// Save the settings
 				cumulus.WriteIniFile();
@@ -230,9 +233,10 @@ namespace CumulusMX
 				limitmax = Math.Round(cumulus.Limit.DewHigh, cumulus.TempDPlaces)
 			};
 
-			var snow = new JsonSettings()
+			var snow = new SnowSettings()
 			{
-				spike = Math.Round(cumulus.Spike.SnowDiff, cumulus.SnowDPlaces)
+				spike = Math.Round(cumulus.Spike.SnowDiff, cumulus.LaserDPlaces),
+				mininc = Math.Round(cumulus.SnowMinInc, cumulus.LaserDPlaces)
 			};
 
 			var data = new JsonSettingsData()
@@ -275,7 +279,7 @@ namespace CumulusMX
 			public JsonSettings uv { get; set; }
 			public JsonSettings wetbulb { get; set; }
 			public JsonSettings dewpt { get; set; }
-			public JsonSettings snow { get; set; }
+			public SnowSettings snow { get; set; }
 		}
 
 		private sealed class JsonSettings
@@ -290,5 +294,10 @@ namespace CumulusMX
 			public double limitmax { get; set; }
 		}
 
+		private sealed class SnowSettings
+		{
+			public decimal spike { get; set; }
+			public decimal mininc { get; set; }
+		}
 	}
 }

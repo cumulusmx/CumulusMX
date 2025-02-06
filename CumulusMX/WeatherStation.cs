@@ -9895,13 +9895,17 @@ namespace CumulusMX
 
 					if (snowInc >= 0)
 					{
-						if ((double) snowInc < cumulus.Spike.SnowDiff)
+						if (snowInc < cumulus.SnowMinInc)
+						{
+							cumulus.LogDebugMessage($"Laser depth increase is less than required for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, min = {cumulus.SnowMinInc} {cumulus.Units.LaserDistanceText}");
+						}
+						else if (snowInc < cumulus.Spike.SnowDiff)
 						{
 							Snow24h[index] = (Snow24h[index] ?? 0) + ConvertUnits.LaserToSnow(snowInc);
 						}
 						else
 						{
-							cumulus.LogWarningMessage($"Laser depth increase is greater than allowed for snow accumulation: {snowInc.ToString(cumulus.SnowFormat)}, max = {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
+							cumulus.LogWarningMessage($"Laser depth increase is greater than allowed for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, max = {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
 						}
 					}
 				}
