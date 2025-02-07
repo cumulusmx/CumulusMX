@@ -80,7 +80,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The latitude and longitude strings now use localised compass point directions (set in Locale strings)
 - Switched from NRec.Logging.File to NLog for FTP logging
 - FTP logging now creates separate log files for realtime and interval FTP activities
-- Web tag `<#CPUtemp>` now returns `"-"` if no value present, or whatever is specifed by `nv=`
+- Web tag `<#CPUtemp>` now returns `"-"` if no value present, or whatever is specified by `nv=`
 
 ### Fixed
 
