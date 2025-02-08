@@ -13,7 +13,7 @@ namespace CumulusMX
 
 		private const int fieldCount = 23;
 		private List<string> Data { get; set; }
-		private Cumulus cumulus;
+		private readonly Cumulus cumulus;
 
 		public EcowittLogFile(List<string> data, Cumulus cumul)
 		{
