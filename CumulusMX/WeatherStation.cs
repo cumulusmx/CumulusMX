@@ -9900,7 +9900,11 @@ namespace CumulusMX
 					// calculate the snowfall
 					decimal snowInc = value.Value - LastLaserDepth[index].Value;
 
-					if (snowInc >= 0)
+					if (snowInc == 0)
+					{
+						// no change in depth
+					}
+					else if (snowInc > 0)
 					{
 						if (snowInc < cumulus.SnowMinInc)
 						{
@@ -9925,10 +9929,10 @@ namespace CumulusMX
 						cumulus.LogDebugMessage($"Laser depth decrease is less than required for snow removal: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
 #endif
 					}
-					else if (snowInc < -cumulus.Spike.SnowDiff)
-					{
-						cumulus.LogSpikeRemoval($"Laser depth decrease is greater than allowed for snow removal: {snowInc.ToString(cumulus.LaserFormat)} - max = {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
-					}
+					//else if (snowInc < -cumulus.Spike.SnowDiff)
+					//{
+					//	cumulus.LogSpikeRemoval($"Laser depth decrease is greater than allowed for snow removal: {snowInc.ToString(cumulus.LaserFormat)} - max = {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
+					//}
 					else
 					{
 						cumulus.LogDebugMessage($"Laser depth decreased to: {value.Value.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
