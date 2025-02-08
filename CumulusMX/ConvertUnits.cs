@@ -99,6 +99,12 @@ namespace CumulusMX
 			};
 		}
 
+		public static double? WindMSToUser(double? value)
+		{
+			return value.HasValue ? WindMSToUser(value.Value) : null;
+		}
+
+
 		/// <summary>
 		///  Converts wind supplied in mph to user units
 		/// </summary>
@@ -115,6 +121,12 @@ namespace CumulusMX
 				_ => 0,
 			};
 		}
+
+		public static double? WindMPHToUser(double? value)
+		{
+			return value.HasValue ? WindMPHToUser(value.Value) : null;
+		}
+
 
 		/// <summary>
 		///  Converts wind supplied in knots to user units
@@ -133,6 +145,11 @@ namespace CumulusMX
 			};
 		}
 
+		public static double? WindKnotsToUser(double? value)
+		{
+			return value.HasValue ? WindKnotsToUser(value.Value) : null;
+		}
+
 		/// <summary>
 		///  Converts wind supplied in kph to user units
 		/// </summary>
@@ -148,6 +165,11 @@ namespace CumulusMX
 				3 => value * 0.5399568,
 				_ => 0,
 			};
+		}
+
+		public static double? WindKPHToUser(double? value)
+		{
+			return value.HasValue ? WindKPHToUser(value.Value) : null;
 		}
 
 		/// <summary>
@@ -310,6 +332,12 @@ namespace CumulusMX
 			return Program.cumulus.Units.Rain == 1 ? value / mm2in : value;
 		}
 
+		public static double? RainMMToUser(double? value)
+		{
+			return value.HasValue ? RainMMToUser(value.Value) : null;
+		}
+
+
 		/// <summary>
 		/// Converts rain in inches to units in use
 		/// </summary>
@@ -318,6 +346,11 @@ namespace CumulusMX
 		public static double RainINToUser(double value)
 		{
 			return Program.cumulus.Units.Rain == 1 ? value : value * mm2in;
+		}
+
+		public static double? RainINToUser(double? value)
+		{
+			return value.HasValue ? RainINToUser(value.Value) : null;
 		}
 
 		/// <summary>
@@ -353,6 +386,11 @@ namespace CumulusMX
 			};
 		}
 
+		public static double? PressMBToUser(double? value)
+		{
+			return value.HasValue ? PressMBToUser(value.Value) : null;
+		}
+
 		/// <summary>
 		/// Convert pressure in kPa to units in use
 		/// </summary>
@@ -368,6 +406,10 @@ namespace CumulusMX
 				3 => value,
 				_ => 0,
 			};
+		}
+		public static double? PressKPAToUser(double? value)
+		{
+			return value.HasValue ? PressKPAToUser(value.Value) : null;
 		}
 
 		/// <summary>
@@ -385,6 +427,10 @@ namespace CumulusMX
 				3 => value * inHg2kPa,
 				_ => 0,
 			};
+		}
+		public static double? PressINHGToUser(double? value)
+		{
+			return value.HasValue ? PressINHGToUser(value.Value) : null;
 		}
 
 		/// <summary>

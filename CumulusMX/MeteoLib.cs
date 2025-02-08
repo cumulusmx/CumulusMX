@@ -284,9 +284,23 @@ namespace CumulusMX
 			return ((tempC * 9.0) / 5.0) + 32;
 		}
 
+		public static double? CToF(double? tempC)
+		{
+			if (tempC == null)
+				return null;
+			return CToF(tempC);
+		}
+
 		public static double FtoC(double tempF)
 		{
 			return ((tempF - 32) * 5.0) / 9.0;
+		}
+
+		public static double? FtoC(double? tempF)
+		{
+			if (tempF == null)
+				return null;
+			return FtoC(tempF);
 		}
 
 		/// <summary>
