@@ -12,6 +12,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.4.0 \[b40xx\]][13] - 2025-02-05
 
+## B4075 changes
+- Fix User Alarms not accepting  "equals" type
+- Snow accumulation, spike value is no longer applie to depth decrements
+
 ## B4074 changes
 - Web tag `<#CPUTemp>` not available default changed from -999 to "-" and it now accepts the `nv=` parameter
 - Snowfall now added to Calibration settings. The minimum increment and ignore above spike values can be altered
@@ -95,6 +99,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - 9am values not always rolling over correctly during "catch-up"
 - Fix Monthly Log/Extra Monthly log viewers for 9am meteo day users
 - Davis station: Fix for the 00:00 (or 09:00) rainfall being counted on both days during catch-up
+- User Alarms not accepting "equals" type
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
 

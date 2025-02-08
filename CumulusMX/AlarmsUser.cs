@@ -63,6 +63,7 @@ namespace CumulusMX
 				{
 					"above" => AlarmTypes.Above,
 					"below" => AlarmTypes.Below,
+					"equals" => AlarmTypes.Equals,
 					_ => AlarmTypes.Above,
 				};
 			}
