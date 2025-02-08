@@ -380,10 +380,15 @@ namespace CumulusMX
 		{
 			Cumulus.SyncInit.Wait();
 
-			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
+			// Use SDcard or ecowitt.net
+			if (cumulus.EcowittUseSdcard)
+			{
+
+			}
+			else if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
 				cumulus.LogWarningMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
-				cumulus.LastUpdateTime = DateTime.Now;
+				GetHistoricDataSdCard();
 			}
 			else
 			{
@@ -393,7 +398,7 @@ namespace CumulusMX
 				{
 					do
 					{
-						GetHistoricData();
+						GetHistoricDataOnline();
 						archiveRun++;
 					} while (archiveRun < maxArchiveRuns && !cumulus.cancellationToken.IsCancellationRequested);
 				}
@@ -416,9 +421,9 @@ namespace CumulusMX
 			StartLoop();
 		}
 
-		private void GetHistoricData()
+		private void GetHistoricDataOnline()
 		{
-			cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
+			cumulus.LogMessage("GetHistoricDataOnline: Starting Historic Data Process");
 
 			// add one minute to the time to avoid duplicating the last log entry
 			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
@@ -433,6 +438,29 @@ namespace CumulusMX
 			}
 
 			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+		}
+
+		private void GetHistoricDataSdCard()
+		{
+			cumulus.LogMessage("GetHistoricDataSdCard: Starting Historic Data Process");
+
+			// add one minute to the time to avoid duplicating the last log entry
+			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
+
+			var files = localApi.GetSdFileList(startTime, cumulus.cancellationToken);
+
+			if (files != null && files.Length > 0)
+			{
+				foreach (var file in files)
+				{
+					if (cumulus.cancellationToken.IsCancellationRequested)
+					{
+						break;
+					}
+
+					ecowittApi.GetHistoricDataSdCard(file, cumulus.cancellationToken);
+				}
+			}
 		}
 
 		public override string GetEcowittCameraUrl()

@@ -708,6 +708,41 @@ namespace CumulusMX
 			return null;
 		}
 
+		public async Task<List<string>> GetSdFileList(DateTime startTime, CancellationToken token)
+		{
+			// Get the full list of files on the SD card
+			var sdCard = await GetSdCardInfo(token);
+			if (sdCard == null)
+			{
+				cumulus.LogErrorMessage("GetSdFileList: Error - Unable to get SD card info");
+				return null;
+			}
+
+			// Get the list of files
+			if (sdCard.file_list == null)
+			{
+				cumulus.LogErrorMessage("GetSdFileList: Error - No files found on SD card");
+				return null;
+			}
+
+			// Filter the list of files to those that are within the requested time frame
+			var files = new List<string>();
+			foreach (var file in sdCard.file_list)
+			{
+				if (file.name.EndsWith(".csv"))
+				{
+					var fileDate = DateTime.ParseExact(file.name.Substring(0, 6), "yyyyMM", CultureInfo.InvariantCulture);
+					if (fileDate >= startTime)
+					{
+						files.Add(file.name);
+					}
+				}
+			}
+
+			return files;
+		}
+
+
 		private static string decodePassword(string base64EncodedData)
 		{
 			var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
@@ -949,7 +984,7 @@ namespace CumulusMX
 		public class SdCard
 		{
 			public SdCardInfo info { get; set; }
-			public SdCardfile[] file_list { get; set; }
+			public List<SdCardfile> file_list { get; set; }
 		}
 
 		private sealed class CheckUpgrade
