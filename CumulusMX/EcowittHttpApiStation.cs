@@ -440,16 +440,16 @@ namespace CumulusMX
 			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
 		}
 
-		private void GetHistoricDataSdCard()
+		private async void GetHistoricDataSdCard()
 		{
 			cumulus.LogMessage("GetHistoricDataSdCard: Starting Historic Data Process");
 
 			// add one minute to the time to avoid duplicating the last log entry
 			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
 
-			var files = localApi.GetSdFileList(startTime, cumulus.cancellationToken);
+			var files = await localApi.GetSdFileList(startTime, cumulus.cancellationToken);
 
-			if (files != null && files.Length > 0)
+			if (files != null && files.Count > 0)
 			{
 				foreach (var file in files)
 				{
@@ -458,7 +458,6 @@ namespace CumulusMX
 						break;
 					}
 
-					ecowittApi.GetHistoricDataSdCard(file, cumulus.cancellationToken);
 				}
 			}
 		}

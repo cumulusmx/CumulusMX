@@ -7838,6 +7838,7 @@ namespace CumulusMX
 		public string EcowittGatewayAddr { get; set; }
 		public string EcowittLocalAddr { get; set; }
 		public int EcowittCustomInterval { get; set; }
+		public bool EcowittUseSdcard { get; set; }
 		public bool EcowittExtraSetCustomServer { get; set; }
 		public string EcowittExtraGatewayAddr { get; set; }
 		public string EcowittExtraLocalAddr { get; set; }
