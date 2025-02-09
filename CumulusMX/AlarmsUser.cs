@@ -81,14 +81,8 @@ namespace CumulusMX
 		public AlarmUser(string AlarmName, string AlarmType, string webTag, Cumulus cuml)
 		{
 			Name = AlarmName;
+			Type = AlarmType;
 
-			type = AlarmType.ToLower() switch
-			{
-				"above" => AlarmTypes.Above,
-				"below" => AlarmTypes.Below,
-				"equals" => AlarmTypes.Equals,
-				_ => AlarmTypes.Above,
-			};
 			cumulus = cuml;
 			WebTag = webTag;
 			tokenParser = new TokenParser(cumulus.TokenParserOnToken)
