@@ -9893,10 +9893,16 @@ namespace CumulusMX
 			{
 				if (value.HasValue && cumulus.SnowAutomated == index)
 				{
+					if (!Snow24h[index].HasValue)
+					{
+						Snow24h[index] = 0;
+					}
+
 					if (!LastLaserDepth[index].HasValue)
 					{
 						LastLaserDepth[index] = value;
 					}
+
 					// calculate the snowfall
 					decimal snowInc = value.Value - LastLaserDepth[index].Value;
 

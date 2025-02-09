@@ -651,7 +651,7 @@ namespace CumulusMX
 			return null;
 		}
 
-		public async Task<List<string>> GetSdFileContents(string fileName, CancellationToken token)
+		public async Task<List<string>> GetSdFileContents(string fileName, DateTime startTime, CancellationToken token)
 		{
 			// http://IP-address:81/filename (where filename is YYYYMM[A-Z].csv resp. YYYMMAllSensors_[A-Z].csv)
 			//
@@ -679,7 +679,7 @@ namespace CumulusMX
 
 				using var response = await cumulus.MyHttpClient.GetAsync(url, token);
 
-				responseBody = response.Content.ReadAsStringAsync(token).Result;
+				responseBody = await response.Content.ReadAsStringAsync(token);
 				responseCode = (int) response.StatusCode;
 				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response code: {responseCode}");
 				cumulus.LogDataMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response: {responseBody}");
@@ -691,7 +691,18 @@ namespace CumulusMX
 					return null;
 				}
 
-				return new List<string>(responseBody.Split(lineEnds, StringSplitOptions.None)); ;
+				var lines = new List<string>(responseBody.Split(lineEnds, StringSplitOptions.None));
+				List<string> result = new List<string>();
+				lines.ForEach(line =>
+				{
+					var fields = line.Split(',');
+					if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd hh:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
+					{
+						result.Add(line);
+					}
+				});
+
+				return result;
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{

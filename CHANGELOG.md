@@ -14,7 +14,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## B4075 changes
 - Fix User Alarms not accepting  "equals" type
-- Snow accumulation, spike value is no longer applie to depth decrements
+- Snow accumulation, spike value is no longer applies to depth decrements
+- Set snow accumulation to zero on first laser reading after rollover
 
 ## B4074 changes
 - Web tag `<#CPUTemp>` not available default changed from -999 to "-" and it now accepts the `nv=` parameter
@@ -626,4 +627,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
-[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4074
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4075
