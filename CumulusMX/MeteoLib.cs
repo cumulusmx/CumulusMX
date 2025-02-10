@@ -291,6 +291,13 @@ namespace CumulusMX
 			return CToF(tempC);
 		}
 
+		public static decimal? CToF(decimal? tempC)
+		{
+			if (tempC == null)
+				return null;
+			return ((tempC * 9) / 5) + 32;
+		}
+
 		public static double FtoC(double tempF)
 		{
 			return ((tempF - 32) * 5.0) / 9.0;
@@ -301,6 +308,13 @@ namespace CumulusMX
 			if (tempF == null)
 				return null;
 			return FtoC(tempF);
+		}
+
+		public static decimal? FtoC(decimal? tempF)
+		{
+			if (tempF == null)
+				return null;
+			return ((tempF - 32) * 5) / 9;
 		}
 
 		/// <summary>

@@ -163,7 +163,8 @@ namespace CumulusMX
 			var ecowittHttpApi = new JsonHttpApi()
 			{
 				ipaddress = cumulus.Gw1000IpAddress,
-				password = cumulus.EcowittHttpPassword
+				password = cumulus.EcowittHttpPassword,
+				usesdcard = cumulus.EcowittUseSdCard
 			};
 
 			var ecowitt = new JsonEcowitt
@@ -936,6 +937,7 @@ namespace CumulusMX
 					{
 						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.ipaddress) ? null : settings.ecowitthttpapi.ipaddress.Trim();
 						cumulus.EcowittHttpPassword = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.password) ? null : settings.ecowitthttpapi.password.Trim();
+						cumulus.EcowittUseSdCard = settings.ecowitthttpapi.usesdcard;
 					}
 				}
 				catch (Exception ex)
@@ -1832,6 +1834,7 @@ namespace CumulusMX
 		{
 			public string ipaddress { get; set; }
 			public string password { get; set; }
+			public bool usesdcard { get; set; }
 		}
 
 		private sealed class JsonEcowitt

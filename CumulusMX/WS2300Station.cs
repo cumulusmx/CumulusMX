@@ -389,7 +389,7 @@ namespace CumulusMX
 				// Pressure ======================================================================
 				double slpress = historydata.pressure + pressureoffset;
 
-				if ((slpress > ConvertUnits.PressMBToUser(900)) && (slpress < ConvertUnits.PressMBToUser(1200)))
+				if ((slpress > ConvertUnits.PressMBToUser(900.0)) && (slpress < ConvertUnits.PressMBToUser(1200.0)))
 				{
 					DoPressure(slpress, timestamp);
 				}

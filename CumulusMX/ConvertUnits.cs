@@ -104,6 +104,11 @@ namespace CumulusMX
 			return value.HasValue ? WindMSToUser(value.Value) : null;
 		}
 
+		public static decimal? WindMSToUser(decimal? value)
+		{
+			return value.HasValue ? WindMSToUser(value.Value) : null;
+		}
+
 
 		/// <summary>
 		///  Converts wind supplied in mph to user units
@@ -122,11 +127,20 @@ namespace CumulusMX
 			};
 		}
 
+		public static double WindMPHToUser(int value)
+		{
+			return WindMPHToUser((double) value);
+		}
+
 		public static double? WindMPHToUser(double? value)
 		{
 			return value.HasValue ? WindMPHToUser(value.Value) : null;
 		}
 
+		public static decimal? WindMPHToUser(decimal? value)
+		{
+			return value.HasValue ? WindMPHToUser(value.Value) : null;
+		}
 
 		/// <summary>
 		///  Converts wind supplied in knots to user units
@@ -150,6 +164,11 @@ namespace CumulusMX
 			return value.HasValue ? WindKnotsToUser(value.Value) : null;
 		}
 
+		public static decimal? WindKnotsToUser(decimal? value)
+		{
+			return value.HasValue ? WindKnotsToUser(value.Value) : null;
+		}
+
 		/// <summary>
 		///  Converts wind supplied in kph to user units
 		/// </summary>
@@ -168,6 +187,11 @@ namespace CumulusMX
 		}
 
 		public static double? WindKPHToUser(double? value)
+		{
+			return value.HasValue ? WindKPHToUser(value.Value) : null;
+		}
+
+		public static decimal? WindKPHToUser(decimal? value)
 		{
 			return value.HasValue ? WindKPHToUser(value.Value) : null;
 		}
@@ -337,6 +361,10 @@ namespace CumulusMX
 			return value.HasValue ? RainMMToUser(value.Value) : null;
 		}
 
+		public static decimal? RainMMToUser(decimal? value)
+		{
+			return value.HasValue ? RainMMToUser(value.Value) : null;
+		}
 
 		/// <summary>
 		/// Converts rain in inches to units in use
@@ -349,6 +377,11 @@ namespace CumulusMX
 		}
 
 		public static double? RainINToUser(double? value)
+		{
+			return value.HasValue ? RainINToUser(value.Value) : null;
+		}
+
+		public static decimal? RainINToUser(decimal? value)
 		{
 			return value.HasValue ? RainINToUser(value.Value) : null;
 		}
@@ -391,6 +424,11 @@ namespace CumulusMX
 			return value.HasValue ? PressMBToUser(value.Value) : null;
 		}
 
+		public static decimal? PressMBToUser(decimal? value)
+		{
+			return value.HasValue ? PressMBToUser(value.Value) : null;
+		}
+
 		/// <summary>
 		/// Convert pressure in kPa to units in use
 		/// </summary>
@@ -429,6 +467,11 @@ namespace CumulusMX
 			};
 		}
 		public static double? PressINHGToUser(double? value)
+		{
+			return value.HasValue ? PressINHGToUser(value.Value) : null;
+		}
+
+		public static decimal? PressINHGToUser(decimal? value)
 		{
 			return value.HasValue ? PressINHGToUser(value.Value) : null;
 		}

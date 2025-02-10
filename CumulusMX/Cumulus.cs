@@ -4244,7 +4244,7 @@ namespace CumulusMX
 			var localIp = Utils.GetIpWithDefaultGateway();
 			EcowittLocalAddr = ini.GetValue("GW1000", "EcowittLocalAddr", localIp.ToString());
 			EcowittCustomInterval = ini.GetValue("GW1000", "EcowittCustomInterval", 16, 1);
-			EcowittUseSdcard = ini.GetValue("GW1000", "EcowittUseSdcard", false);
+			EcowittUseSdCard = ini.GetValue("GW1000", "EcowittUseSdcard", false);
 
 			EcowittHttpPassword = ini.GetValue("GW1000", "HttpPassword", "");
 
@@ -5387,7 +5387,7 @@ namespace CumulusMX
 			}
 
 			Calib.Press.Offset = ini.GetValue("Offsets", "PressOffset", 0.0);
-			Calib.PressStn.Offset = ini.GetValue("Offsets", "PressOffset", Calib.Press.Offset);
+			Calib.PressStn.Offset = ini.GetValue("Offsets", "PressStnOffset", 0);
 			Calib.Temp.Offset = ini.GetValue("Offsets", "TempOffset", 0.0);
 			Calib.Hum.Offset = ini.GetValue("Offsets", "HumOffset", 0);
 			Calib.WindDir.Offset = ini.GetValue("Offsets", "WindDirOffset", 0);
@@ -5398,7 +5398,7 @@ namespace CumulusMX
 			Calib.InHum.Offset = ini.GetValue("Offsets", "InHumOffset", 0);
 
 			Calib.Press.Mult = ini.GetValue("Offsets", "PressMult", 1.0);
-			Calib.PressStn.Mult = ini.GetValue("Offsets", "PressMult", Calib.Press.Mult);
+			Calib.PressStn.Mult = ini.GetValue("Offsets", "PressStnMult", 1.0);
 			Calib.WindSpeed.Mult = ini.GetValue("Offsets", "WindSpeedMult", 1.0);
 			Calib.WindGust.Mult = ini.GetValue("Offsets", "WindGustMult", 1.0);
 			Calib.Temp.Mult = ini.GetValue("Offsets", "TempMult", 1.0);
@@ -5411,7 +5411,7 @@ namespace CumulusMX
 			Calib.InHum.Mult = ini.GetValue("Offsets", "InHumMult", 1.0);
 
 			Calib.Press.Mult2 = ini.GetValue("Offsets", "PressMult2", 0.0);
-			Calib.PressStn.Mult2 = ini.GetValue("Offsets", "PressMult2", Calib.Press.Mult2);
+			Calib.PressStn.Mult2 = ini.GetValue("Offsets", "PressStnMult2", 0.0);
 			Calib.WindSpeed.Mult2 = ini.GetValue("Offsets", "WindSpeedMult2", 0.0);
 			Calib.WindGust.Mult2 = ini.GetValue("Offsets", "WindGustMult2", 0.0);
 			Calib.Temp.Mult2 = ini.GetValue("Offsets", "TempMult2", 0.0);
@@ -6230,7 +6230,7 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "EcowittExtraGwAddr", EcowittExtraGatewayAddr);
 			ini.SetValue("GW1000", "EcowittExtraLocalAddr", EcowittExtraLocalAddr);
 			ini.SetValue("GW1000", "EcowittExtraCustomInterval", EcowittExtraCustomInterval);
-			ini.SetValue("GW1000", "EcowittUseSdcard", EcowittUseSdcard);
+			ini.SetValue("GW1000", "EcowittUseSdcard", EcowittUseSdCard);
 
 
 			ini.SetValue("GW1000", "HttpPassword", Crypto.EncryptString(EcowittHttpPassword, Program.InstanceId, "EcowittSettings.HttpPassword"));
@@ -7838,7 +7838,7 @@ namespace CumulusMX
 		public string EcowittGatewayAddr { get; set; }
 		public string EcowittLocalAddr { get; set; }
 		public int EcowittCustomInterval { get; set; }
-		public bool EcowittUseSdcard { get; set; }
+		public bool EcowittUseSdCard { get; set; }
 		public bool EcowittExtraSetCustomServer { get; set; }
 		public string EcowittExtraGatewayAddr { get; set; }
 		public string EcowittExtraLocalAddr { get; set; }

@@ -10,12 +10,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b40xx\]][13] - 2025-02-05
+## [4.4.0 \[b40xx\]][13] - 2025-02-10
 
 ## B4075 changes
 - Fix User Alarms not accepting  "equals" type
 - Snow accumulation, spike value is no longer applies to depth decrements
 - Set snow accumulation to zero on first laser reading after rollover
+- EXPERIMENTAL
+	- Adds ability to the Ecowitt local HTTP API station to read historic data from the SD card
+	- Currently only supported by the GW3000 and WS6210
+
 
 ## B4074 changes
 - Web tag `<#CPUTemp>` not available default changed from -999 to "-" and it now accepts the `nv=` parameter
@@ -78,6 +82,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New version of MigrateData3to4 to now finds custom daily files correctly
 - Add File Ignore time to JSON station advanced settings
 
+- EXPERIMENTAL
+	- Adds ability to the Ecowitt local HTTP API station to read historic data from the SD card
+	- Currently only supported by the GW3000 and WS6210
+
 ### Changed
 
 - Add NOAA report format (options.noaaFormat) to websitedataT.json
@@ -101,6 +109,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Monthly Log/Extra Monthly log viewers for 9am meteo day users
 - Davis station: Fix for the 00:00 (or 09:00) rainfall being counted on both days during catch-up
 - User Alarms not accepting "equals" type
+- Fix Station Pressure calibration settings being read from the Pressure settings in Cumulus.ini
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
 

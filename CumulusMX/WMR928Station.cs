@@ -439,8 +439,8 @@ namespace CumulusMX
 			RainBattStatus = buff[3] / 16;
 			// MainForm.Rainbatt.Position := (15-rain_batt_status)*100 DIV 15;
 
-			double raincounter = ConvertUnits.RainMMToUser(BCDchartoint(buff[6]) + (BCDchartoint(buff[7]) * 100));
-			double rainrate = ConvertUnits.RainMMToUser(BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100));
+			double raincounter = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[6]) + (BCDchartoint(buff[7]) * 100));
+			double rainrate = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100));
 
 			DoRain(raincounter, rainrate, DateTime.Now);
 		}

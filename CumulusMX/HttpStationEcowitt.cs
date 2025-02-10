@@ -1393,10 +1393,18 @@ namespace CumulusMX
 				{
 					station.DoLaserDistance(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["air_ch" + i], invNum)), i);
 				}
+				else
+				{
+					station.DoLaserDistance(null, i);
+				}
 
 				if (data["depth_ch" + i] != null)
 				{
 					station.DoLaserDepth(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i);
+				}
+				else
+				{
+					station.DoLaserDepth(null, i);
 				}
 			}
 		}

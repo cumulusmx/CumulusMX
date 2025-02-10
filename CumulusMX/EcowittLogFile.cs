@@ -24,141 +24,142 @@ namespace CumulusMX
 			HeaderParser(data[0]);
 		}
 
-		public Record DataParser(int index)
+		public SortedList<DateTime, EcowittApi.HistoricData> DataParser()
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
+			var retList = new SortedList<DateTime, EcowittApi.HistoricData>();
 
-			if (index >= Data.Count)
+			for (var index = 0; index < Data.Count; index++)
 			{
-				cumulus.LogErrorMessage("EcowittLogFile: Index out of range - " + index);
-			}
-			// split on commas
-			var fields = Data[index].Split(',');
+				// split on commas
+				var fields = Data[index].Split(',');
 
-			if (fields.Length < fieldCount)
-			{
-				cumulus.LogErrorMessage($"EcowittLogFile: Error on line {index + 1} it contains {fields.Length} fields should be {fieldCount}");
-				return null;
-			}
-
-			// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
-
-			var rec = new Record()
-			{
-				Time = DateTime.ParseExact(fields[0], "yyyy-MM-dd HH:mm", invc)
-			};
-
-			double varDbl;
-			int varInt;
-
-			if (double.TryParse(fields[1], invc, out varDbl))	rec.IndoorTemp = varDbl;
-			if (int.TryParse(fields[2], out varInt))			rec.IndoorHumidity = varInt;
-			if (double.TryParse(fields[3], invc, out varDbl))	rec.OutdoorTemp = varDbl;
-			if (int.TryParse(fields[4], out varInt))			rec.OutdoorHumidity = varInt;
-			if (double.TryParse(fields[5], invc, out varDbl))	rec.DewPoint = varDbl;
-			if (double.TryParse(fields[6], invc, out varDbl))	rec.FeelsLike = varDbl;
-			if (double.TryParse(fields[7], invc, out varDbl))	rec.Wind = varDbl;
-			if (double.TryParse(fields[8], invc, out varDbl))	rec.Gust = varDbl;
-			if (int.TryParse(fields[9], out varInt))			rec.WindDirection = varInt;
-			if (double.TryParse(fields[10], invc, out varDbl))	rec.ABSPressure = varDbl;
-			if (double.TryParse(fields[11], invc, out varDbl))	rec.RELPressure = varDbl;
-			if (int.TryParse(fields[12], invc, out varInt))		rec.SolarRad = varInt;
-			if (double.TryParse(fields[13], invc, out varDbl))	rec.UVIndex = varDbl;
-			if (double.TryParse(fields[14], invc, out varDbl))	rec.ConsoleBattery = varDbl;
-			if (double.TryParse(fields[15], invc, out varDbl))	rec.ExternalSupplyBattery = varDbl;
-			if (double.TryParse(fields[16], invc, out varDbl))	rec.Charge = varDbl;
-			if (double.TryParse(fields[17], invc, out varDbl))	rec.HourlyRain = varDbl;
-			if (double.TryParse(fields[18], invc, out varDbl))	rec.EventRain = varDbl;
-			if (double.TryParse(fields[19], invc, out varDbl))	rec.DailyRain = varDbl;
-			if (double.TryParse(fields[20], invc, out varDbl))	rec.WeeklyRain = varDbl;
-			if (double.TryParse(fields[21], invc, out varDbl))	rec.MonthlyRain = varDbl;
-			if (double.TryParse(fields[22], invc, out varDbl))	rec.YearlyRain = varDbl;
-
-			if ((int) TempUnit != cumulus.Units.Temp)
-			{
-				// convert all the temperatures to user units
-				if (cumulus.Units.Temp == 0)
+				if (fields.Length < fieldCount)
 				{
-					// C
-					rec.IndoorTemp = MeteoLib.FtoC(rec.IndoorTemp);
-					rec.OutdoorTemp = MeteoLib.FtoC(rec.OutdoorTemp);
-					rec.DewPoint = MeteoLib.FtoC(rec.DewPoint);
-					rec.FeelsLike = MeteoLib.FtoC(rec.FeelsLike);
-				}
-				else
-				{
-					// F
-					rec.IndoorTemp = MeteoLib.CToF(rec.IndoorTemp);
-					rec.OutdoorTemp = MeteoLib.CToF(rec.OutdoorTemp);
-					rec.DewPoint = MeteoLib.CToF(rec.DewPoint);
-					rec.FeelsLike = MeteoLib.CToF(rec.FeelsLike);
+					cumulus.LogErrorMessage($"EcowittLogFile: Error on line {index + 1} it contains {fields.Length} fields should be {fieldCount}");
+					continue;
 				}
 
-				// convert wind to user units
-				if ((int) WindUnit != cumulus.Units.Wind)
+				// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
+
+				var rec = new EcowittApi.HistoricData();
+
+				var time = Utils.RoundTimeToInterval(DateTime.ParseExact(fields[0], "yyyy-MM-dd HH:mm", invc), 5);
+
+				decimal varDec;
+				int varInt;
+
+				if (decimal.TryParse(fields[1], invc, out varDec)) rec.IndoorTemp = varDec;
+				if (int.TryParse(fields[2], out varInt)) rec.IndoorHum = varInt;
+				if (decimal.TryParse(fields[3], invc, out varDec)) rec.Temp = varDec;
+				if (int.TryParse(fields[4], out varInt)) rec.Humidity = varInt;
+				if (decimal.TryParse(fields[5], invc, out varDec)) rec.DewPoint = varDec;
+				if (decimal.TryParse(fields[6], invc, out varDec)) rec.FeelsLike = varDec;
+				if (decimal.TryParse(fields[7], invc, out varDec)) rec.WindSpd = varDec;
+				if (decimal.TryParse(fields[8], invc, out varDec)) rec.WindGust = varDec;
+				if (int.TryParse(fields[9], out varInt)) rec.WindDir = varInt;
+				if (decimal.TryParse(fields[10], invc, out varDec)) rec.StationPressure = varDec;
+				if (decimal.TryParse(fields[11], invc, out varDec)) rec.Pressure = varDec;
+				if (int.TryParse(fields[12], invc, out varInt)) rec.Solar = varInt;
+				if (decimal.TryParse(fields[13], invc, out varDec)) rec.UVI = varDec;
+				//if (decimal.TryParse(fields[14], invc, out varDec)) rec.ConsoleBattery = varDec;
+				//if (decimal.TryParse(fields[15], invc, out varDec)) rec.ExternalSupplyBattery = varDec;
+				//if (decimal.TryParse(fields[16], invc, out varDec)) rec.Charge = varDec;
+				if (decimal.TryParse(fields[17], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
+				//if (decimal.TryParse(fields[18], invc, out varDec)) rec.EventRain = varDec;
+				//if (decimal.TryParse(fields[19], invc, out varDec)) rec.DailyRain = varDec;
+				//if (decimal.TryParse(fields[20], invc, out varDec)) rec.WeeklyRain = varDec;
+				//if (decimal.TryParse(fields[21], invc, out varDec)) rec.MonthlyRain = varDec;
+				if (decimal.TryParse(fields[22], invc, out varDec)) rec.RainYear = varDec;
+
+				if ((int) TempUnit != cumulus.Units.Temp)
 				{
-					switch (WindUnit)
+					// convert all the temperatures to user units
+					if (cumulus.Units.Temp == 0)
 					{
-						case WindUnits.ms:
-							rec.Wind = ConvertUnits.WindMSToUser(rec.Wind);
-							rec.Gust = ConvertUnits.WindMSToUser(rec.Gust);
-							break;
-						case WindUnits.mph:
-							rec.Wind = ConvertUnits.WindMPHToUser(rec.Wind);
-							rec.Gust = ConvertUnits.WindMPHToUser(rec.Gust);
-							break;
-						case WindUnits.kph:
-							rec.Wind = ConvertUnits.WindKPHToUser(rec.Wind);
-							rec.Gust = ConvertUnits.WindKPHToUser(rec.Gust);
-							break;
-						case WindUnits.knots:
-							rec.Wind = ConvertUnits.WindKnotsToUser(rec.Wind);
-							rec.Gust = ConvertUnits.WindKnotsToUser(rec.Gust);
-							break;
-					}
-				}
-
-				// convert rain to user units
-				if ((int) RainUnit != cumulus.Units.Rain)
-				{
-					if (RainUnit == RainUnits.mm)
-					{
-						rec.HourlyRain = ConvertUnits.RainMMToUser(rec.HourlyRain);
-						rec.EventRain = ConvertUnits.RainMMToUser(rec.EventRain);
-						rec.DailyRain = ConvertUnits.RainMMToUser(rec.DailyRain);
-						rec.WeeklyRain = ConvertUnits.RainMMToUser(rec.WeeklyRain);
-						rec.MonthlyRain = ConvertUnits.RainMMToUser(rec.MonthlyRain);
-						rec.YearlyRain = ConvertUnits.RainMMToUser(rec.YearlyRain);
+						// C
+						rec.IndoorTemp = MeteoLib.FtoC(rec.IndoorTemp);
+						rec.Temp = MeteoLib.FtoC(rec.Temp);
+						rec.DewPoint = MeteoLib.FtoC(rec.DewPoint);
+						rec.FeelsLike = MeteoLib.FtoC(rec.FeelsLike);
 					}
 					else
 					{
-						rec.HourlyRain = ConvertUnits.RainINToUser(rec.HourlyRain);
-						rec.EventRain = ConvertUnits.RainINToUser(rec.EventRain);
-						rec.DailyRain = ConvertUnits.RainINToUser(rec.DailyRain);
-						rec.WeeklyRain = ConvertUnits.RainINToUser(rec.WeeklyRain);
-						rec.MonthlyRain = ConvertUnits.RainINToUser(rec.MonthlyRain);
-						rec.YearlyRain = ConvertUnits.RainINToUser(rec.YearlyRain);
+						// F
+						rec.IndoorTemp = MeteoLib.CToF(rec.IndoorTemp);
+						rec.Temp = MeteoLib.CToF(rec.Temp);
+						rec.DewPoint = MeteoLib.CToF(rec.DewPoint);
+						rec.FeelsLike = MeteoLib.CToF(rec.FeelsLike);
+					}
+
+					// convert wind to user units
+					if ((int) WindUnit != cumulus.Units.Wind)
+					{
+						switch (WindUnit)
+						{
+							case WindUnits.ms:
+								rec.WindSpd = ConvertUnits.WindMSToUser(rec.WindSpd);
+								rec.WindGust = ConvertUnits.WindMSToUser(rec.WindGust);
+								break;
+							case WindUnits.mph:
+								rec.WindSpd = ConvertUnits.WindMPHToUser(rec.WindSpd);
+								rec.WindGust = ConvertUnits.WindMPHToUser(rec.WindGust);
+								break;
+							case WindUnits.kph:
+								rec.WindSpd = ConvertUnits.WindKPHToUser(rec.WindSpd);
+								rec.WindGust = ConvertUnits.WindKPHToUser(rec.WindGust);
+								break;
+							case WindUnits.knots:
+								rec.WindSpd = ConvertUnits.WindKnotsToUser(rec.WindSpd);
+								rec.WindGust = ConvertUnits.WindKnotsToUser(rec.WindGust);
+								break;
+						}
+					}
+
+					// convert rain to user units
+					if ((int) RainUnit != cumulus.Units.Rain)
+					{
+						if (RainUnit == RainUnits.mm)
+						{
+							rec.RainRate = ConvertUnits.RainMMToUser(rec.RainRate);
+							//rec.EventRain = ConvertUnits.RainMMToUser(rec.EventRain);
+							//rec.DailyRain = ConvertUnits.RainMMToUser(rec.DailyRain);
+							//rec.WeeklyRain = ConvertUnits.RainMMToUser(rec.WeeklyRain);
+							//rec.MonthlyRain = ConvertUnits.RainMMToUser(rec.MonthlyRain);
+							rec.RainYear = ConvertUnits.RainMMToUser(rec.RainYear);
+						}
+						else
+						{
+							rec.RainRate = ConvertUnits.RainINToUser(rec.RainRate);
+							//rec.EventRain = ConvertUnits.RainINToUser(rec.EventRain);
+							//rec.DailyRain = ConvertUnits.RainINToUser(rec.DailyRain);
+							//rec.WeeklyRain = ConvertUnits.RainINToUser(rec.WeeklyRain);
+							//rec.MonthlyRain = ConvertUnits.RainINToUser(rec.MonthlyRain);
+							rec.RainYear = ConvertUnits.RainINToUser(rec.RainYear);
+						}
+					}
+
+					// convert pressure to user units
+					var cumPress = (cumulus.Units.Press == 0 || cumulus.Units.Press == 1) ? PressUnits.hPa : (PressUnits) cumulus.Units.Press;
+					if (PressUnit != cumPress)
+					{
+						if (PressUnit == PressUnits.hPa)
+						{
+							rec.StationPressure = ConvertUnits.PressMBToUser(rec.StationPressure);
+							rec.Pressure = ConvertUnits.PressMBToUser(rec.Pressure);
+						}
+						else
+						{
+							rec.StationPressure = ConvertUnits.PressINHGToUser(rec.StationPressure);
+							rec.Pressure = ConvertUnits.PressINHGToUser(rec.Pressure);
+						}
 					}
 				}
 
-				// convert pressure to user units
-				var cumPress = (cumulus.Units.Press == 0 || cumulus.Units.Press == 1) ? PressUnits.hPa : (PressUnits) cumulus.Units.Press;
-				if (PressUnit != cumPress)
-				{
-					if (PressUnit == PressUnits.hPa)
-					{
-						rec.ABSPressure = ConvertUnits.PressMBToUser(rec.ABSPressure);
-						rec.RELPressure = ConvertUnits.PressMBToUser(rec.RELPressure);
-					}
-					else
-					{
-						rec.ABSPressure = ConvertUnits.PressINHGToUser(rec.ABSPressure);
-						rec.RELPressure = ConvertUnits.PressINHGToUser(rec.RELPressure);
-					}
-				}
+				retList.Add(time, rec);
 			}
 
-			return rec;
+			return retList;
 		}
 
 

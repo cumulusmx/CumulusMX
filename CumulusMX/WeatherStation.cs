@@ -9889,7 +9889,7 @@ namespace CumulusMX
 
 		public void DoLaserDepth(decimal? value, int index)
 		{
-			if (index > 0 && index < LaserDepth.Length)
+			if (index > 0 && index < LaserDepth.Length && cumulus.LaserDepthBaseline[index] == -1)
 			{
 				if (value.HasValue && cumulus.SnowAutomated == index)
 				{

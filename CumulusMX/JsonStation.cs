@@ -802,17 +802,11 @@ namespace CumulusMX
 					{
 						try
 						{
-							if (rec.range.HasValue)
-							{
-								decimal? range = rec.range.HasValue ? ConvertUnits.LaserMmToUser(rec.range.Value * multiplier) : null;
-								station.DoLaserDistance(range, rec.index);
-							}
+							decimal? range = rec.range.HasValue ? ConvertUnits.LaserMmToUser(rec.range.Value * multiplier) : null;
+							station.DoLaserDistance(range, rec.index);
 
-							if (rec.depth.HasValue)
-							{
-								decimal? depth = rec.depth.HasValue ? ConvertUnits.LaserMmToUser(rec.depth.Value * multiplier) : null;
-								station.DoLaserDepth(depth, rec.index);
-							}
+							decimal? depth = rec.depth.HasValue ? ConvertUnits.LaserMmToUser(rec.depth.Value * multiplier) : null;
+							station.DoLaserDepth(depth, rec.index);
 						}
 						catch (Exception ex)
 						{

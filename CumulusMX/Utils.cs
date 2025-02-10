@@ -60,8 +60,8 @@ namespace CumulusMX
 		public static DateTime RoundTimeToInterval(DateTime dateTime, int intvl)
 		{
 			int minutes = dateTime.Minute;
-        	int roundedMinutes = (int)(Math.Round((decimal) minutes / intvl) * intvl);
-        	return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, roundedMinutes, 0);
+			int roundedMinutes = (int)(Math.Round((decimal) minutes / intvl) * intvl);
+			return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, roundedMinutes, 0);
 		}
 
 		public static string ByteArrayToHexString(byte[] ba)

@@ -953,7 +953,7 @@ namespace CumulusMX
 			double slp = ((packetBuffer[10] & 0xF) * 256) + packetBuffer[9];
 			DoPressure(ConvertUnits.PressMBToUser(slp), DateTime.Now);
 
-			DoStationPressure(ConvertUnits.PressMBToUser(((packetBuffer[8] & 0xF) * 256) + packetBuffer[7]));
+			DoStationPressure(ConvertUnits.PressMBToUser(((double) (packetBuffer[8] & 0xF) * 256) + packetBuffer[7]));
 
 			var forecast = packetBuffer[8] / 16;
 			var fcstr = forecast switch
@@ -1450,7 +1450,7 @@ namespace CumulusMX
 			}
 			previousHistoryTimeStamp = timestamp;
 			// pressure
-			DoStationPressure(ConvertUnits.PressMBToUser(((packetBuffer[29] & 0xF) * 256) + packetBuffer[28]));
+			DoStationPressure(ConvertUnits.PressMBToUser(((double) (packetBuffer[29] & 0xF) * 256) + packetBuffer[28]));
 			double num = ((packetBuffer[31] & 0xF) * 256) + packetBuffer[30];
 			DoPressure(ConvertUnits.PressMBToUser(num), timestamp);
 

@@ -696,7 +696,7 @@ namespace CumulusMX
 				lines.ForEach(line =>
 				{
 					var fields = line.Split(',');
-					if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd hh:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
+					if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd hh:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && Utils.RoundTimeToInterval(dt, 5) >= startTime)
 					{
 						result.Add(line);
 					}
@@ -722,6 +722,9 @@ namespace CumulusMX
 		public async Task<List<string>> GetSdFileList(DateTime startTime, CancellationToken token)
 		{
 			// Get the full list of files on the SD card
+
+			cumulus.LogDebugMessage("GetSdFileList: Getting SD card info");
+
 			var sdCard = await GetSdCardInfo(token);
 			if (sdCard == null)
 			{
@@ -749,6 +752,8 @@ namespace CumulusMX
 					}
 				}
 			}
+
+			cumulus.LogDebugMessage($"GetSdFileList: Found {files.Count} files matching start time");
 
 			return files;
 		}

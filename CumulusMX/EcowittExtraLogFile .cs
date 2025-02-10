@@ -20,131 +20,154 @@ namespace CumulusMX
 			HeaderParser(data[0]);
 		}
 
-		public Record DataParser(int index)
+		public SortedList<DateTime, EcowittApi.HistoricData> DataParser()
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
+			var retList = new SortedList<DateTime, EcowittApi.HistoricData>();
 
-			if (index >= Data.Count)
+			for (var index = 0; index < Data.Count; index++)
 			{
-				cumulus.LogErrorMessage("EcowittLogFile: Index out of range - " + index);
-			}
-			// split on commas
-			var fields = Data[index].Split(',');
+				// split on commas
+				var fields = Data[index].Split(',');
 
-			if (fields.Length < fieldCount)
-			{
-				cumulus.LogErrorMessage($"EcowittLogFile: Error on line {index + 1} it contains {fields.Length} fields should be {fieldCount}");
-				return null;
-			}
-
-			// 2025-01-10 12:34,1.8,0.8,1.8,93,3.3,1.5,3.3,88,1.5,-0.1,1.5,89,1.6,-0.3,1.6,87,-19.3,--,--,--,3.9,2.7,3.9,92,7.0,-3.0,7.0,49,--,--,--,--,77,--,--,--,--,--,--,--,0,--,15.3,60,775,6.4,6.7,--,--,60,45,56,72,50,74,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,12.0,9.0,--,--,2.5,2.5,2.0,--,--,--,--,--,--,--,--,--
-
-
-			var rec = new Record()
-			{
-				Time = DateTime.ParseExact(fields[0], "yyyy-MM-dd HH:mm", invc)
-			};
-
-			double varDbl;
-			int varInt;
-
-			var field = 1;
-
-			// Extra Temp/Hum sensors
-			for (var i = 0; i < 8; i++)
-			{
-				if (double.TryParse(fields[field++], invc, out varDbl)) rec.ExtraTemp[i] = varDbl;
-				if (double.TryParse(fields[field++], invc, out varDbl)) rec.ExtraDewPoint[i] = varDbl;
-				if (double.TryParse(fields[field++], invc, out varDbl)) rec.ExtraHeatIndex[i] = varDbl;
-				if (int.TryParse(fields[field++], out varInt)) rec.ExtraHumidity[i] = varInt;
-			}
-
-			// Leaf Moisture Sensors
-			for (var i = 0; i < 8; i++)
-			{
-				if (int.TryParse(fields[field++], out varInt)) rec.LeafMoist[i] = varInt;
-			}
-
-			// Lightning
-			if (int.TryParse(fields[field++], out varInt)) rec.LightningCount = varInt;
-			if (int.TryParse(fields[field++], out varInt)) rec.LightningDist = varInt;
-
-			// AQ Indoor
-			if (double.TryParse(fields[field++], invc, out varDbl)) rec.AqiInTemp = varDbl;
-			if (int.TryParse(fields[field++], out varInt)) rec.AqiInHum = varInt;
-			if (int.TryParse(fields[field++], out varInt)) rec.AqiInCO2 = varInt;
-			if (double.TryParse(fields[field++], invc, out varDbl)) rec.AqiInPm2p5 = varDbl;
-			if (double.TryParse(fields[field++], invc, out varDbl)) rec.AqiInPm10 = varDbl;
-			if (double.TryParse(fields[field++], invc, out varDbl)) rec.AqiInPm1 = varDbl;
-			if (double.TryParse(fields[field++], invc, out varDbl)) rec.AqiInPm4 = varDbl;
-
-			// Soil Moisture
-			for (int i = 0; i < 16; i++)
-			{
-				if (int.TryParse(fields[field++], out varInt)) rec.SoilMoist[i] = varInt;
-			}
-
-			// Water
-			for (int i = 0; i < 4; i++)
-			{
-				if (fields[field++] != "--") rec.Water[i] = fields[field++];
-			}
-
-			// AQI
-			for (int i = 0; i < 4; i++)
-			{
-				if (double.TryParse(fields[field++], invc, out varDbl)) rec.AqiPm2p5[i] = varDbl;
-			}
-
-			// User Temps
-			for (var i = 0; i < 8; i++)
-			{
-				if (double.TryParse(fields[field++], invc, out varDbl)) rec.UserTemp[i] = varDbl;
-			}
-
-			// LDS Air
-			for (int i = 0; i < 4; i++)
-			{
-				if (double.TryParse(fields[field++], invc, out varDbl)) rec.LdsAir[i] = varDbl;
-			}
-
-			// end of records
-
-			if ((int) TempUnit != cumulus.Units.Temp)
-			{
-				// convert all the temperatures to user units
-				if (cumulus.Units.Temp == 0)
+				if (fields.Length < fieldCount)
 				{
-					// C
-					for (var i = 0; i < 8; i++)
-					{
-						rec.ExtraTemp[i] = MeteoLib.FtoC(rec.ExtraTemp[i]);
-						rec.ExtraDewPoint[i] = MeteoLib.FtoC(rec.ExtraDewPoint[i]);
-						rec.ExtraHeatIndex[i] = MeteoLib.FtoC(rec.ExtraHeatIndex[i]);
-						rec.UserTemp[i] = MeteoLib.FtoC(rec.UserTemp[i]);
-					}
-
-					rec.AqiInTemp = MeteoLib.FtoC(rec.AqiInTemp);
+					cumulus.LogErrorMessage($"EcowittLogFile: Error on line {index + 1} it contains {fields.Length} fields should be {fieldCount}");
+					return null;
 				}
-				else
+
+				// 2025-01-10 12:34,1.8,0.8,1.8,93,3.3,1.5,3.3,88,1.5,-0.1,1.5,89,1.6,-0.3,1.6,87,-19.3,--,--,--,3.9,2.7,3.9,92,7.0,-3.0,7.0,49,--,--,--,--,77,--,--,--,--,--,--,--,0,--,15.3,60,775,6.4,6.7,--,--,60,45,56,72,50,74,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,12.0,9.0,--,--,2.5,2.5,2.0,--,--,--,--,--,--,--,--,--
+
+
+				var rec = new EcowittApi.HistoricData();
+				var time = Utils.RoundTimeToInterval(DateTime.ParseExact(fields[0], "yyyy-MM-dd HH:mm", invc), 5);
+
+				decimal varDec;
+				int varInt;
+
+				var field = 1;
+
+				// Extra Temp/Hum sensors
+				for (var i = 1; i <= 8; i++)
 				{
-					// F
-					for (var i = 0; i < 8; i++)
-					{
-						rec.ExtraTemp[i] = MeteoLib.CToF(rec.ExtraTemp[i]);
-						rec.ExtraDewPoint[i] = MeteoLib.CToF(rec.ExtraDewPoint[i]);
-						rec.ExtraHeatIndex[i] = MeteoLib.CToF(rec.ExtraHeatIndex[i]);
-						rec.UserTemp[i] = MeteoLib.CToF(rec.UserTemp[i]);
-					}
-
-					rec.AqiInTemp = MeteoLib.CToF(rec.AqiInTemp);
+					if (decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraTemp[i] = varDec;
+					//if (decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraDewPoint[i] = varDec;
+					field++;
+					//if (decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraHeatIndex[i] = varDec;
+					field++;
+					if (int.TryParse(fields[field++], out varInt)) rec.ExtraHumidity[i] = varInt;
 				}
+
+				// Leaf Moisture Sensors
+				for (var i = 1; i <= 8; i++)
+				{
+					if (int.TryParse(fields[field++], out varInt)) rec.LeafWetness[i] = varInt;
+				}
+
+				// Lightning
+				if (int.TryParse(fields[field++], out varInt)) rec.LightningCount = varInt;
+				if (int.TryParse(fields[field++], out varInt)) rec.LightningDist = varInt;
+
+				// AQ Indoor
+				if (decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboTemp = varDec;
+				if (int.TryParse(fields[field++], out varInt)) rec.AqiComboHum = varInt;
+				if (int.TryParse(fields[field++], out varInt)) rec.AqiComboCO2 = varInt;
+				if (decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboPm25 = varDec;
+				if (decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboPm10 = varDec;
+				//if (double.TryParse(fields[field++], invc, out varDec)) rec.AqiInPm1 = varDec;
+				field++;
+				//if (double.TryParse(fields[field++], invc, out varDec)) rec.AqiInPm4 = varDec;
+				field++;
+
+				// Soil Moisture
+				for (int i = 1; i <= 16; i++)
+				{
+					if (int.TryParse(fields[field++], out varInt)) rec.SoilMoist[i] = varInt;
+				}
+
+				// Water
+				for (int i = 1; i <= 4; i++)
+				{
+					//if (fields[field++] != "--") rec.Water[i] = fields[field++];
+					field++;
+				}
+
+				// AQI
+				for (int i = 1; i <= 4; i++)
+				{
+					if (decimal.TryParse(fields[field++], invc, out varDec)) rec.pm25[i] = varDec;
+				}
+
+				// User Temps
+				for (var i = 1; i <= 8 ; i++)
+				{
+					if (decimal.TryParse(fields[field++], invc, out varDec)) rec.UserTemp[i] = varDec;
+				}
+
+				// LDS Air
+				for (int i = 1; i <= 4; i++)
+				{
+					if (decimal.TryParse(fields[field++], invc, out varDec)) rec.LdsAir[i] = varDec;
+				}
+
+				// end of records
+
+				if ((int) TempUnit != cumulus.Units.Temp)
+				{
+					// convert all the temperatures to user units
+					if (cumulus.Units.Temp == 0)
+					{
+						// C
+						for (var i = 0; i < 8; i++)
+						{
+							rec.ExtraTemp[i] = MeteoLib.FtoC(rec.ExtraTemp[i]);
+							//rec.ExtraDewPoint[i] = MeteoLib.FtoC(rec.ExtraDewPoint[i]);
+							//rec.ExtraHeatIndex[i] = MeteoLib.FtoC(rec.ExtraHeatIndex[i]);
+							rec.UserTemp[i] = MeteoLib.FtoC(rec.UserTemp[i]);
+						}
+
+						rec.AqiComboTemp = MeteoLib.FtoC(rec.AqiComboTemp);
+					}
+					else
+					{
+						// F
+						for (var i = 0; i < 8; i++)
+						{
+							rec.ExtraTemp[i] = MeteoLib.CToF(rec.ExtraTemp[i]);
+							//rec.ExtraDewPoint[i] = MeteoLib.CToF(rec.ExtraDewPoint[i]);
+							//rec.ExtraHeatIndex[i] = MeteoLib.CToF(rec.ExtraHeatIndex[i]);
+							rec.UserTemp[i] = MeteoLib.CToF(rec.UserTemp[i]);
+						}
+
+						rec.AqiComboTemp = MeteoLib.CToF(rec.AqiComboTemp);
+					}
+				}
+
+				retList.Add(time, rec);
 			}
 
-			return rec;
+			return retList;
 		}
 
+		public static EcowittApi.HistoricData Merge(EcowittApi.HistoricData baseRec, EcowittApi.HistoricData extraRec)
+		{
+			baseRec.ExtraTemp = extraRec.ExtraTemp;
+			baseRec.ExtraHumidity = extraRec.ExtraHumidity;
+			baseRec.LeafWetness = extraRec.LeafWetness;
+			baseRec.LightningCount = extraRec.LightningCount;
+			baseRec.LightningDist = extraRec.LightningDist;
+			baseRec.AqiComboTemp = extraRec.AqiComboTemp;
+			baseRec.AqiComboHum = extraRec.AqiComboHum;
+			baseRec.AqiComboCO2 = extraRec.AqiComboCO2;
+			baseRec.AqiComboPm25 = extraRec.AqiComboPm25;
+			baseRec.AqiComboPm10 = extraRec.AqiComboPm10;
+			baseRec.SoilMoist = extraRec.SoilMoist;
+			baseRec.pm25 = extraRec.pm25;
+			baseRec.UserTemp = extraRec.UserTemp;
+			baseRec.LdsAir = extraRec.LdsAir;
 
+			return baseRec;
+		}
 
 		private void HeaderParser (string header)
 		{

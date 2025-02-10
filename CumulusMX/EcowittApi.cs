@@ -1451,7 +1451,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void ApplyHistoricData(KeyValuePair<DateTime, HistoricData> rec)
+		public void ApplyHistoricData(KeyValuePair<DateTime, HistoricData> rec)
 		{
 			// === Wind ==
 			// WindGust = max for period
@@ -1856,6 +1856,19 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra temperature data - {ex.Message}");
+				}
+			}
+
+			// === Laser Distance====
+			for (var i = 1; i <= 4; i++)
+			{
+				try
+				{
+					station.DoLaserDistance(rec.Value.LdsAir[i], i);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in laser data - {ex.Message}");
 				}
 			}
 
@@ -2963,12 +2976,12 @@ namespace CumulusMX
 			public decimal? UVI { get; set; }
 			public decimal? LightningDist { get; set; }
 			public int? LightningCount { get; set; }
-			public decimal?[] ExtraTemp { get; set; }
-			public int?[] ExtraHumidity { get; set; }
-			public int?[] SoilMoist { get; set; }
-			public decimal?[] UserTemp { get; set; }
-			public int?[] LeafWetness { get; set; }
-			public decimal?[] pm25 { get; set; }
+			public decimal?[] ExtraTemp { get; set; } = new decimal?[9];
+			public int?[] ExtraHumidity { get; set; } = new int?[9];
+			public int?[] SoilMoist { get; set; } = new int?[9];
+			public decimal?[] UserTemp { get; set; } = new decimal?[9];
+			public int?[] LeafWetness { get; set; } = new int?[9];
+			public decimal?[] pm25 { get; set; } = new decimal?[5];
 			public decimal? AqiComboPm25 { get; set; }
 			public decimal? AqiComboPm10 { get; set; }
 			public decimal? AqiComboTemp { get; set; }
@@ -2977,16 +2990,7 @@ namespace CumulusMX
 			public int? AqiComboCO2hr24 { get; set; }
 			public int? IndoorCo2 { get; set; }
 			public int? IndoorCo2hr24 { get; set; }
-
-			public HistoricData()
-			{
-				pm25 = new decimal?[5];
-				ExtraTemp = new decimal?[9];
-				ExtraHumidity = new int?[9];
-				SoilMoist = new int?[9];
-				UserTemp = new decimal?[9];
-				LeafWetness = new int?[9];
-			}
+			public decimal?[] LdsAir { get; set; } = new decimal?[5];
 		}
 
 
