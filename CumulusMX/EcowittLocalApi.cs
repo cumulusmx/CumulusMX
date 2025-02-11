@@ -682,7 +682,6 @@ namespace CumulusMX
 				responseBody = await response.Content.ReadAsStringAsync(token);
 				responseCode = (int) response.StatusCode;
 				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response code: {responseCode}");
-				cumulus.LogDataMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response: {responseBody}");
 
 				if (responseCode != 200)
 				{
@@ -745,7 +744,7 @@ namespace CumulusMX
 			{
 				if (file.name.EndsWith(".csv"))
 				{
-					var fileDate = DateTime.ParseExact(file.name.Substring(0, 6), "yyyyMM", CultureInfo.InvariantCulture);
+					var fileDate = DateTime.ParseExact(file.name[..6], "yyyyMM", CultureInfo.InvariantCulture);
 					if (fileDate >= startTime)
 					{
 						files.Add(file.name);
@@ -994,7 +993,7 @@ namespace CumulusMX
 		{
 			public string name { get; set; }
 			public int type { get; set; }
-			public int size { get; set; }
+			public string size { get; set; }
 		}
 
 		public class SdCard

@@ -12,8 +12,9 @@ namespace CumulusMX
 
 
 		private const int fieldCount = 23;
-		private List<string> Data { get; set; }
+		private readonly List<string> Data;
 		private readonly Cumulus cumulus;
+		private DateTime lastLogTime = DateTime.MinValue;
 
 		public EcowittLogFile(List<string> data, Cumulus cumul)
 		{
@@ -36,15 +37,34 @@ namespace CumulusMX
 
 				if (fields.Length < fieldCount)
 				{
-					cumulus.LogErrorMessage($"EcowittLogFile: Error on line {index + 1} it contains {fields.Length} fields should be {fieldCount}");
+					cumulus.LogErrorMessage($"EcowittLogFile.DataParser: Error on line {index + 1} it contains {fields.Length} fields should be {fieldCount} or more");
+					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Line = " + Data[index]);
 					continue;
 				}
 
 				// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
 
+				var time = Utils.RoundTimeToInterval(DateTime.ParseExact(fields[0], "yyyy-MM-dd HH:mm", invc), 5);
+
+
+				if (retList.ContainsKey(time))
+				{
+					cumulus.LogErrorMessage("EcowittLogFile.DataParser: Duplicate timestamp found, ignoring second instance - " + fields[0]);
+					continue;
+				}
+
 				var rec = new EcowittApi.HistoricData();
 
-				var time = Utils.RoundTimeToInterval(DateTime.ParseExact(fields[0], "yyyy-MM-dd HH:mm", invc), 5);
+				if (lastLogTime == DateTime.MinValue)
+				{
+					rec.Interval = 1;
+					lastLogTime = time;
+				}
+				else
+				{
+					rec.Interval = (time - lastLogTime).Minutes;
+					lastLogTime = time;
+				}
 
 				decimal varDec;
 				int varInt;
@@ -156,7 +176,10 @@ namespace CumulusMX
 					}
 				}
 
-				retList.Add(time, rec);
+				if (!retList.TryAdd(time, rec))
+				{
+					cumulus.LogErrorMessage("EcowittLogFile.DataParser: Error adding record to list - " + fields[0]);
+				}
 			}
 
 			return retList;
@@ -167,6 +190,8 @@ namespace CumulusMX
 		private void HeaderParser (string header)
 		{
 			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
+
+			cumulus.LogDataMessage($"EcowittLogFile.HeaderParser: File header: {header}");
 
 			// split on commas
 			var fields = header.Split(',');

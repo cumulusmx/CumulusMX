@@ -8,7 +8,7 @@ namespace CumulusMX
 		private TempUnits TempUnit;
 
 		private const int fieldCount = 83;
-		private List<string> Data { get; set; }
+		private readonly List<string> Data;
 		private readonly Cumulus cumulus;
 
 		public EcowittExtraLogFile(List<string> data, Cumulus cumul)
@@ -32,15 +32,16 @@ namespace CumulusMX
 
 				if (fields.Length < fieldCount)
 				{
-					cumulus.LogErrorMessage($"EcowittLogFile: Error on line {index + 1} it contains {fields.Length} fields should be {fieldCount}");
-					return null;
+					cumulus.LogErrorMessage($"EcowittExtraLogFile.DataParser: Error on line {index + 1} it contains {fields.Length} fields should be {fieldCount} or more");
+					cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Line = " + Data[index]);
+					return retList;
 				}
 
 				// 2025-01-10 12:34,1.8,0.8,1.8,93,3.3,1.5,3.3,88,1.5,-0.1,1.5,89,1.6,-0.3,1.6,87,-19.3,--,--,--,3.9,2.7,3.9,92,7.0,-3.0,7.0,49,--,--,--,--,77,--,--,--,--,--,--,--,0,--,15.3,60,775,6.4,6.7,--,--,60,45,56,72,50,74,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,12.0,9.0,--,--,2.5,2.5,2.0,--,--,--,--,--,--,--,--,--
 
 
 				var rec = new EcowittApi.HistoricData();
-				var time = Utils.RoundTimeToInterval(DateTime.ParseExact(fields[0], "yyyy-MM-dd HH:mm", invc), 5);
+				var time = DateTime.ParseExact(fields[0], "yyyy-MM-dd HH:mm", invc);
 
 				decimal varDec;
 				int varInt;
@@ -173,6 +174,7 @@ namespace CumulusMX
 		{
 			// Time,CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%),CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%),CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃),CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃),CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃),CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃),CH8 HeatIndex(℃),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),SoilMoisture CH2(%),SoilMoisture CH3(%),SoilMoisture CH4(%),SoilMoisture CH5(%),SoilMoisture CH6(%),SoilMoisture CH7(%),SoilMoisture CH8(%),SoilMoisture CH9(%),SoilMoisture CH10(%),SoilMoisture CH11(%),SoilMoisture CH12(%),SoilMoisture CH13(%),SoilMoisture CH14(%),SoilMoisture CH15(%),SoilMoisture CH16(%),Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),LDS_Air CH1(mm),LDS_Air CH2(mm),LDS_Air CH3(mm),LDS_Air CH4(mm),
 
+			cumulus.LogDataMessage($"EcowittExtraLogFile.HeaderParser: File header: {header}");
 
 			// split on commas
 			var fields = header.Split(',');

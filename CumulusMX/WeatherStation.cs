@@ -1029,6 +1029,7 @@ namespace CumulusMX
 			{
 				Snow24h[i] = ini.GetValue("Snow", "Snow24h" + i, (decimal?) null);
 				LastLaserDepth[i] = ini.GetValue("Snow", "LastLaserDepth" + i, (decimal?) null);
+				SnowSeason[i] = ini.GetValue("Snow", "SnowSeason" + i, (decimal?) null);
 			}
 		}
 
@@ -1165,6 +1166,7 @@ namespace CumulusMX
 					{
 						ini.SetValue("Snow", "Snow24h" + i, Snow24h[i]);
 						ini.SetValue("Snow", "LastLaserDepth" + i, LastLaserDepth[i]);
+						ini.SetValue("Snow", "SnowSeason" + i, SnowSeason[i]);
 					}
 				}
 
@@ -1527,6 +1529,7 @@ namespace CumulusMX
 		public decimal?[] LaserDepth { get; set; } = new decimal?[5];
 		private decimal?[] LastLaserDepth { get; set; } = new decimal?[5];
 		public decimal?[] Snow24h { get; set; } = new decimal?[5];
+		public decimal?[] SnowSeason { get; set; } = new decimal?[5];
 
 		public double RainYesterday { get; set; }
 
@@ -9898,6 +9901,11 @@ namespace CumulusMX
 						Snow24h[index] = 0;
 					}
 
+					if (!SnowSeason[index].HasValue)
+					{
+						SnowSeason[index] = 0;
+					}
+
 					if (!LastLaserDepth[index].HasValue)
 					{
 						LastLaserDepth[index] = value;
@@ -9921,7 +9929,10 @@ namespace CumulusMX
 						else if (snowInc < cumulus.Spike.SnowDiff)
 						{
 							cumulus.LogDebugMessage($"Laser depth increase added to snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
-							Snow24h[index] = (Snow24h[index] ?? 0) + ConvertUnits.LaserToSnow(snowInc);
+
+							var inc = ConvertUnits.LaserToSnow(snowInc);
+							Snow24h[index] = (Snow24h[index] ?? 0) + inc;
+							SnowSeason[index] = (SnowSeason[index] ?? 0) + inc;
 							LastLaserDepth[index] = value;
 						}
 						else

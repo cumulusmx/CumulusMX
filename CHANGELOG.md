@@ -10,10 +10,21 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b40xx\]][13] - 2025-02-10
+## [4.4.0 \[b40xx\]][13] - 2025-02-11
+
+## B4076 changes
+- Ecowitt SD card
+	- Fix filename search
+	- Fix station starting before historic data processed
+	- Check for duplicates
+- Fix read-only Reports folder in the distribution zips
+- Add Snow Season
+	- Define start month in Station Settings | Common Options
+	- New web tags `<#SnowAccumSeason[1-4]>`
+
 
 ## B4075 changes
-- Fix User Alarms not accepting  "equals" type
+- Fix User Alarms not accepting "equals" type
 - Snow accumulation, spike value is no longer applies to depth decrements
 - Set snow accumulation to zero on first laser reading after rollover
 - EXPERIMENTAL
@@ -636,4 +647,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
-[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4075
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4076

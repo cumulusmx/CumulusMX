@@ -65,6 +65,7 @@ namespace CumulusMX
 				leafwetisrainingidx = cumulus.StationOptions.LeafWetnessIsRainingIdx,
 				leafwetisrainingthrsh = cumulus.StationOptions.LeafWetnessIsRainingThrsh,
 				userainforisraining = cumulus.StationOptions.UseRainForIsRaining,
+				snowseasonstart = cumulus.SnowSeasonStart,
 				advanced = optionsAdv
 			};
 
@@ -725,6 +726,7 @@ namespace CumulusMX
 					cumulus.StationOptions.LeafWetnessIsRainingIdx = settings.Options.leafwetisrainingidx;
 					cumulus.StationOptions.LeafWetnessIsRainingThrsh = settings.Options.leafwetisrainingthrsh;
 					cumulus.StationOptions.UseRainForIsRaining = settings.Options.userainforisraining;
+					cumulus.SnowSeasonStart = settings.Options.snowseasonstart;
 
 					cumulus.StationOptions.UseSpeedForAvgCalc = settings.Options.advanced.usespeedforavg;
 					cumulus.StationOptions.AvgBearingMinutes = settings.Options.advanced.avgbearingmins;
@@ -1749,6 +1751,7 @@ namespace CumulusMX
 			public int leafwetisrainingidx { get; set; }
 			public double leafwetisrainingthrsh { get; set; }
 			public int userainforisraining { get; set; }
+			public int snowseasonstart { get; set; }
 			public JsonOptionsAdvanced advanced { get; set; }
 		}
 

@@ -389,7 +389,7 @@ namespace CumulusMX
 			// Use SDcard or ecowitt.net
 			if (cumulus.EcowittUseSdCard)
 			{
-				GetHistoricDataSdCard();
+				GetHistoricDataSdCard().Wait();
 
 			}
 			else if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
@@ -446,7 +446,7 @@ namespace CumulusMX
 			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
 		}
 
-		private async void GetHistoricDataSdCard()
+		private async Task GetHistoricDataSdCard()
 		{
 			cumulus.LogMessage("GetHistoricDataSdCard: Starting Historic Data Process");
 

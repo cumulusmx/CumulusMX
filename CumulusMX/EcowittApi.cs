@@ -201,6 +201,7 @@ namespace CumulusMX
 				int responseCode;
 				int retries = 3;
 				bool success = false;
+
 				do
 				{
 					// we want to do this synchronously, so .Result
@@ -1310,6 +1311,7 @@ namespace CumulusMX
 			var midnightraindone = luhour == 0;
 			var rollover9amdone = luhour == 9;
 			bool snowhourdone = luhour == cumulus.SnowDepthHour;
+			var lastRecDate = DateTime.MinValue;
 
 			foreach (var rec in buffer)
 			{
@@ -1319,6 +1321,17 @@ namespace CumulusMX
 				}
 
 				cumulus.LogMessage("Processing data for " + rec.Key);
+
+				if (lastRecDate == DateTime.MinValue)
+				{
+					rec.Value.Interval = 5;
+					lastRecDate = rec.Key;
+				}
+				else
+				{
+					rec.Value.Interval = (rec.Key - lastRecDate).Minutes;
+					lastRecDate = rec.Key;
+				}
 
 				var h = rec.Key.Hour;
 
@@ -1403,8 +1416,8 @@ namespace CumulusMX
 					station.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
-					station.SunshineHours += 5 / 60.0;
-					cumulus.LogDebugMessage("Adding 5 minutes to Sunshine Hours");
+					station.SunshineHours += rec.Value.Interval / 60.0;
+					cumulus.LogDebugMessage($"Adding {rec.Value.Interval} minutes to Sunshine Hours");
 				}
 
 				// add in archive period minutes worth of temperature to the temp samples
@@ -1412,16 +1425,16 @@ namespace CumulusMX
 				station.TempTotalToday += (station.OutdoorTemperature * 5);
 
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + station.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + 5 + " minutes = " +
-								   (station.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * 5 / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				cumulus.LogMessage("Windrun: " + station.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + rec.Value.Interval + " minutes = " +
+								   (station.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				station.WindRunToday += station.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * 5 / 60.0;
+				station.WindRunToday += station.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0;
 
 				// update heating/cooling degree days
 				station.UpdateDegreeDays(5);
 
 				// update dominant wind bearing
-				station.CalculateDominantWindBearing(station.Bearing, station.WindAverage, 5);
+				station.CalculateDominantWindBearing(station.Bearing, station.WindAverage, rec.Value.Interval);
 
 				station.CheckForWindrunHighLow(rec.Key);
 
@@ -2958,6 +2971,7 @@ namespace CumulusMX
 
 		internal class HistoricData
 		{
+			public int Interval { get; set; }
 			public decimal? IndoorTemp { get; set; }
 			public int? IndoorHum { get; set; }
 			public decimal? Temp { get; set; }
