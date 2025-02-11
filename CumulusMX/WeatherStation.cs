@@ -7718,6 +7718,15 @@ namespace CumulusMX
 				GrowingDegreeDaysThisYear1 += MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(HiLoToday.HighTemp), ConvertUnits.UserTempToC(HiLoToday.LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase1), cumulus.GrowingCap30C);
 				GrowingDegreeDaysThisYear2 += MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(HiLoToday.HighTemp), ConvertUnits.UserTempToC(HiLoToday.LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
 
+
+				if (day == 1 && month == cumulus.SnowSeasonStart)
+				{
+					for (var i = 1; i <= 4; i++)
+					{
+						SnowSeason[i] = 0;
+					}
+				}
+
 				// Now reset all values to the current or default ones
 				// We may be doing a roll-over from the first logger entry,
 				// && as we do the roll-over before processing the entry, the
