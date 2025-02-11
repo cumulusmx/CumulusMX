@@ -805,8 +805,13 @@ namespace CumulusMX
 							decimal? range = rec.range.HasValue ? ConvertUnits.LaserMmToUser(rec.range.Value * multiplier) : null;
 							station.DoLaserDistance(range, rec.index);
 
-							decimal? depth = rec.depth.HasValue ? ConvertUnits.LaserMmToUser(rec.depth.Value * multiplier) : null;
-							station.DoLaserDepth(depth, rec.index);
+							if (cumulus.LaserDepthBaseline[rec.index] == -1)
+							{
+								// MX is not calculating depth
+
+								decimal? depth = rec.depth.HasValue ? ConvertUnits.LaserMmToUser(rec.depth.Value * multiplier) : null;
+								station.DoLaserDepth(depth, rec.index);
+							}
 						}
 						catch (Exception ex)
 						{

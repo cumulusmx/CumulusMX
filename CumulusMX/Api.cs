@@ -1102,6 +1102,9 @@ namespace CumulusMX
 						case "snow24h.json":
 							await writer.WriteAsync(Station.GetSnow24h());
 							break;
+						case "snowseason.json":
+							await writer.WriteAsync(Station.GetSnowSeason());
+							break;
 
 						case "airLinkCountsOut.json":
 							await writer.WriteAsync(Station.GetAirLinkCountsOut());

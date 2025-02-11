@@ -9,6 +9,7 @@ using static System.Collections.Specialized.BitVector32;
 using Swan.Parsers;
 
 using static CumulusMX.EcowittApi;
+using Org.BouncyCastle.Ocsp;
 
 
 namespace CumulusMX
@@ -1624,8 +1625,18 @@ namespace CumulusMX
 
 				try
 				{
-					var val = sensor.unit == "mm" ? ConvertUnits.LaserMmToUser(sensor.depthVal.Value) : ConvertUnits.LaserInchesToUser(sensor.depthVal.Value);
-					DoLaserDepth(val, sensor.channel);
+					if (cumulus.LaserDepthBaseline[sensor.channel] == -1)
+					{
+						// MX is not calculating depth
+
+						decimal? val = null;
+
+						if (sensor.depthVal.HasValue)
+						{
+							val = sensor.unit == "mm" ? ConvertUnits.LaserMmToUser(sensor.depthVal.Value) : ConvertUnits.LaserInchesToUser(sensor.depthVal.Value);
+						}
+						DoLaserDepth(val, sensor.channel);
+					}
 				}
 				catch (Exception ex)
 				{

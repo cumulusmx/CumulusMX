@@ -2109,6 +2109,8 @@ namespace CumulusMX
 				2 => 0,
 				_ => 0
 			};
+
+			LaserFormat = "F" + LaserDPlaces;
 		}
 
 		// If the temperature units are changed, reset NOAA thresholds to defaults

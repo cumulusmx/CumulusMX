@@ -9901,7 +9901,7 @@ namespace CumulusMX
 
 		public void DoLaserDepth(decimal? value, int index)
 		{
-			if (index > 0 && index < LaserDepth.Length && cumulus.LaserDepthBaseline[index] == -1)
+			if (index > 0 && index < LaserDepth.Length)
 			{
 				if (value.HasValue && cumulus.SnowAutomated == index)
 				{
@@ -11659,7 +11659,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.Laser[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(LaserDepth[sensor].HasValue ? LaserDepth[sensor].Value.ToString("F2") : "-");
+					json.Append(LaserDepth[sensor].HasValue ? LaserDepth[sensor].Value.ToString(cumulus.LaserFormat) : "-");
 					json.Append("\",\"");
 					json.Append(cumulus.Units.LaserDistanceText);
 					json.Append("\"],");
@@ -11684,7 +11684,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.Laser[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(LaserDist[sensor].HasValue ? LaserDist[sensor].Value.ToString("F2") : "-");
+					json.Append(LaserDist[sensor].HasValue ? LaserDist[sensor].Value.ToString(cumulus.LaserFormat) : "-");
 					json.Append("\",\"");
 					json.Append(cumulus.Units.LaserDistanceText);
 					json.Append("\"],");
@@ -11710,6 +11710,31 @@ namespace CumulusMX
 					json.Append(cumulus.Trans.Laser[sensor - 1]);
 					json.Append("\",\"");
 					json.Append($"{(Snow24h[sensor].HasValue ? Snow24h[sensor].Value.ToString(cumulus.SnowFormat) : "-")}");
+					json.Append("\",\"");
+					json.Append(cumulus.Units.SnowText);
+					json.Append("\"],");
+				}
+			}
+
+			if (json[^1] == ',')
+				json.Length--;
+
+			json.Append("]}");
+			return json.ToString();
+		}
+
+		public string GetSnowSeason()
+		{
+			var json = new StringBuilder("{\"data\":[", 1024);
+
+			for (int sensor = 1; sensor < 5; sensor++)
+			{
+				if (cumulus.GraphOptions.Visible.CurrSnow24h.ValVisible(sensor - 1, true))
+				{
+					json.Append("[\"");
+					json.Append(cumulus.Trans.Laser[sensor - 1]);
+					json.Append("\",\"");
+					json.Append($"{(SnowSeason[sensor].HasValue ? SnowSeason[sensor].Value.ToString(cumulus.SnowFormat) : "-")}");
 					json.Append("\",\"");
 					json.Append(cumulus.Units.SnowText);
 					json.Append("\"],");

@@ -1398,13 +1398,17 @@ namespace CumulusMX
 					station.DoLaserDistance(null, i);
 				}
 
-				if (data["depth_ch" + i] != null)
+				if (cumulus.LaserDepthBaseline[i] == -1)
 				{
-					station.DoLaserDepth(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i);
-				}
-				else
-				{
-					station.DoLaserDepth(null, i);
+					// MX is not calculating depth
+					if (data["depth_ch" + i] != null)
+					{
+						station.DoLaserDepth(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i);
+					}
+					else
+					{
+						station.DoLaserDepth(null, i);
+					}
 				}
 			}
 		}
