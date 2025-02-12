@@ -6948,7 +6948,7 @@ namespace CumulusMX
 				{ "SnowAccum24h1", TagSnowAcc24h1 },
 				{ "SnowAccum24h2", TagSnowAcc24h2 },
 				{ "SnowAccum24h3", TagSnowAcc24h3 },
-				{ "SnowAccum24h5", TagSnowAcc24h4 },
+				{ "SnowAccum24h4", TagSnowAcc24h4 },
 
 				{ "SnowAccumSeason1", TagSnowAccSeason1 },
 				{ "SnowAccumSeason2", TagSnowAccSeason2 },
