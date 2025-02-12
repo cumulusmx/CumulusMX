@@ -12,6 +12,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.4.0 \[b40xx\]][13] - 2025-02-11
 
+## B4077 changes
+- Fix web tag `<#SnowAccum24h4>`
+
 ## B4076 changes
 - Ecowitt SD card
 	- Fix filename search
@@ -87,6 +90,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The accumulators reset at the defined snow recording hour
 	- The current values can be retrieved with new web tags `<#SnowAccum24h[1-4]>`
 	- Added to Display Settings and Extra Sensors dashboard pages
+- Add Snow Season
+	- Define start month in Station Settings | Common Options
+	- New web tags `<#SnowAccumSeason[1-4]>`
 
 - Adds laser sensors to Display Settings, Locale Strings, and Extra Sensors dashboard pages
 - Adds laser depth calculation to the Extra Sensor settings. Use this with simple laser distance sensors to allow Cumulus to calculate a depth value. Note Ecowitt already provide this ability with their LDS01 sensors.
@@ -647,4 +653,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
-[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4076
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4077
