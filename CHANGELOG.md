@@ -14,6 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## B4077 changes
 - Fix web tag `<#SnowAccum24h4>`
+- GW1000 station skip the 8 UNKNOWN sensors in SensorInfo output
 
 ## B4076 changes
 - Ecowitt SD card

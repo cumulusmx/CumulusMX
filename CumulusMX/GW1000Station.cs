@@ -748,6 +748,12 @@ namespace CumulusMX
 				// Wh65 could be a Wh65 or a Wh24, we found out using the System Info command
 				// So, Ecowitt reused this id for the third time! It is now the WS69
 
+				if (type.StartsWith("UNKNOWN"))
+				{
+					// one of the 8 dummy sensors - skip it
+					return false;
+				}
+
 				switch (id)
 				{
 					case 0xFFFFFFFE:
