@@ -15,6 +15,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## B4077 changes
 - Fix web tag `<#SnowAccum24h4>`
 - GW1000 station skip the 8 UNKNOWN sensors in SensorInfo output
+- Log file editors now scroll the data horizontally and vertically with a fixed header and fixed first two columns
+- Kludge for GW3000/WS6210 log file differences
+- Fix to Snow increment processing
+
 
 ## B4076 changes
 - Ecowitt SD card
@@ -112,6 +116,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Switched from NRec.Logging.File to NLog for FTP logging
 - FTP logging now creates separate log files for realtime and interval FTP activities
 - Web tag `<#CPUtemp>` now returns `"-"` if no value present, or whatever is specified by `nv=`
+- Log file editors now scroll the data horizontally and vertically with a fixed header and fixed first two columns
 
 ### Fixed
 

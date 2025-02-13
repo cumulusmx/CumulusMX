@@ -2979,7 +2979,7 @@ namespace CumulusMX
 			var logFile = cumulus.GetExtraLogFileName(fileDate);
 
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 1  Current time - HH:mm
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -3125,7 +3125,7 @@ namespace CumulusMX
 			var logFile = cumulus.GetExtraLogFileName(fileDate);
 
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 1  Current time - HH:mm
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -9937,19 +9937,22 @@ namespace CumulusMX
 						}
 						else if (snowInc < cumulus.Spike.SnowDiff)
 						{
-							cumulus.LogDebugMessage($"Laser depth increase added to snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+							if (snowInc >= cumulus.SnowMinInc)
+							{
+								cumulus.LogDebugMessage($"Laser depth increase added to snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
 
-							var inc = ConvertUnits.LaserToSnow(snowInc);
-							Snow24h[index] = (Snow24h[index] ?? 0) + inc;
-							SnowSeason[index] = (SnowSeason[index] ?? 0) + inc;
-							LastLaserDepth[index] = value;
+								var inc = ConvertUnits.LaserToSnow(snowInc);
+								Snow24h[index] = (Snow24h[index] ?? 0) + inc;
+								SnowSeason[index] = (SnowSeason[index] ?? 0) + inc;
+								LastLaserDepth[index] = value;
+							}
 						}
 						else
 						{
 							cumulus.LogSpikeRemoval($"Laser depth increase is greater than allowed for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} - max = {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
 						}
 					}
-					else if (snowInc > -cumulus.SnowMinInc)
+					else if (snowInc >= -cumulus.SnowMinInc)
 					{
 #if DEBUG
 						cumulus.LogDebugMessage($"Laser depth decrease is less than required for snow removal: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");

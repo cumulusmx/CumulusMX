@@ -390,7 +390,7 @@ namespace CumulusMX
 			// Use SDcard or ecowitt.net
 			if (cumulus.EcowittUseSdCard)
 			{
-				GetHistoricDataSdCard().Wait();
+				GetHistoricDataSdCard();
 
 			}
 			else if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
@@ -447,7 +447,7 @@ namespace CumulusMX
 			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
 		}
 
-		private async Task GetHistoricDataSdCard()
+		private void GetHistoricDataSdCard()
 		{
 			cumulus.LogMessage("GetHistoricDataSdCard: Starting Historic Data Process");
 
@@ -455,7 +455,12 @@ namespace CumulusMX
 			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
 			var fileStart = startTime.Year * 10 + startTime.Month;
 
-			var files = await localApi.GetSdFileList(startTime, cumulus.cancellationToken);
+			var files = localApi.GetSdFileList(startTime, cumulus.cancellationToken).Result;
+
+			if (files == null)
+			{
+				return;
+			}
 
 			var baseFiles = new SortedList<int, string>();
 			var extraFiles = new SortedList<int, string>();
@@ -474,7 +479,7 @@ namespace CumulusMX
 					{
 						// split into two sorted lists
 						// filename is YYYYMM[A-Z].csv  or  YYYMMAllSensors_[A-Z].csv
-						if (file.Contains("AllSensors"))
+						if (file.Contains("All"))
 						{
 							extraFiles.Add(prefix, file);
 						}
@@ -494,7 +499,7 @@ namespace CumulusMX
 
 			foreach (var file in baseFiles)
 			{
-				var lines = await localApi.GetSdFileContents(file.Value, startTime, cumulus.cancellationToken);
+				var lines = localApi.GetSdFileContents(file.Value, startTime, cumulus.cancellationToken).Result;
 
 				var data = new EcowittLogFile(lines, cumulus);
 
@@ -510,7 +515,7 @@ namespace CumulusMX
 
 			foreach (var file in extraFiles)
 			{
-				var lines = await localApi.GetSdFileContents(file.Value, startTime, cumulus.cancellationToken);
+				var lines = localApi.GetSdFileContents(file.Value, startTime, cumulus.cancellationToken).Result;
 
 				var data = new EcowittExtraLogFile(lines, cumulus);
 

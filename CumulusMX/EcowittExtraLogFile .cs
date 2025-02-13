@@ -41,7 +41,12 @@ namespace CumulusMX
 
 
 				var rec = new EcowittApi.HistoricData();
-				var time = DateTime.ParseExact(fields[0], "yyyy-MM-dd HH:mm", invc);
+
+				if (!DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out DateTime time))
+				{
+					cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Failed to parse datetime - " + fields[0]);
+					continue;
+				}
 
 				decimal varDec;
 				int varInt;
@@ -185,7 +190,10 @@ namespace CumulusMX
 				throw new ArgumentException("Invalid header", nameof(header));
 			}
 
-			TempUnit = fields[1].Contains("C") ? TempUnits.C : TempUnits.F;
+			TempUnit = fields[1].Contains('℃') ? TempUnits.C : TempUnits.F;
+
+			// remove header line from the data
+			Data.RemoveAt(0);
 		}
 
 

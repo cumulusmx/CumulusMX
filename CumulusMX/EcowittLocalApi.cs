@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -604,6 +605,9 @@ namespace CumulusMX
 			string responseBody;
 			int responseCode;
 
+			//responseBody = "{\"info\":{\"Name\":\"     \",\"Type\":\"SDHC/SDXC\",\"Speed\":\"20 MHz\",\"Size\":\"30223 MB\",\"Interval\":\"1\"},\"file_list\":[{\n\t\t\"name\":\t\"202502B.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"71 KB\"\n\t}, {\n\t\t\"name\":\t\"202502Allsensors_A.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"202 KB\"\n\t}]}";
+			//return responseBody.FromJson<SdCard>();
+
 			try
 			{
 				var url = $"http://{cumulus.Gw1000IpAddress}/get_sdmmc_info";
@@ -691,15 +695,26 @@ namespace CumulusMX
 				}
 
 				var lines = new List<string>(responseBody.Split(lineEnds, StringSplitOptions.None));
+
+				if (lines.Count == 0)
+				{
+					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any data");
+					return null;
+				}
+
 				List<string> result = new List<string>();
-				lines.ForEach(line =>
+
+				// always add the header line
+				result.Add(lines[0]);
+
+				foreach(var line in lines.Skip(1))
 				{
 					var fields = line.Split(',');
-					if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd hh:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && Utils.RoundTimeToInterval(dt, 5) >= startTime)
+					if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
 					{
 						result.Add(line);
 					}
-				});
+				}
 
 				return result;
 			}
@@ -740,12 +755,16 @@ namespace CumulusMX
 
 			// Filter the list of files to those that are within the requested time frame
 			var files = new List<string>();
+			var startMonth = new DateTime(startTime.Year, startTime.Month, 1, 0, 0, 0, DateTimeKind.Local);
+
 			foreach (var file in sdCard.file_list)
 			{
 				if (file.name.EndsWith(".csv"))
 				{
-					var fileDate = DateTime.ParseExact(file.name[..6], "yyyyMM", CultureInfo.InvariantCulture);
-					if (fileDate >= startTime)
+					var filePrefix = file.name[..6];
+
+					var fileDate = DateTime.ParseExact(filePrefix, "yyyyMM", CultureInfo.InvariantCulture);
+					if (fileDate >= startMonth)
 					{
 						files.Add(file.name);
 					}
@@ -992,14 +1011,15 @@ namespace CumulusMX
 		public class SdCardfile
 		{
 			public string name { get; set; }
-			public int type { get; set; }
+			public string type { get; set; }
 			public string size { get; set; }
 		}
 
 		public class SdCard
 		{
 			public SdCardInfo info { get; set; }
-			public List<SdCardfile> file_list { get; set; }
+
+			public SdCardfile[] file_list { get; set; }
 		}
 
 		private sealed class CheckUpgrade
@@ -1048,7 +1068,7 @@ namespace CumulusMX
 			{
 				var data = line.Split(',');
 
-				Time = DateTime.ParseExact(data[0], "yyyy-MM-dd hh:mm", CultureInfo.InvariantCulture);
+				Time = DateTime.ParseExact(data[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 				IndoorTemperature = double.TryParse(data[1], invNum, out double resultDbl) ? resultDbl : null;
 				IndoorHumidity = int.TryParse(data[2], out int result) ? result : null;
 				Temperature = double.TryParse(data[3], invNum, out resultDbl) ? resultDbl : null;
@@ -1111,7 +1131,7 @@ namespace CumulusMX
 				int resultInt;
 				double resultDbl;
 
-				Time = DateTime.ParseExact(data[0], "yyyy-MM-dd hh:mm", CultureInfo.InvariantCulture);
+				Time = DateTime.ParseExact(data[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 				for (int i = 0; i < 8; i++)
 				{
 					TempHum[i] = new ExtraThSensor

@@ -11,7 +11,7 @@ namespace CumulusMX
 		private RainUnits RainUnit;
 
 
-		private const int fieldCount = 23;
+		private const int fieldCount = 20;
 		private readonly List<string> Data;
 		private readonly Cumulus cumulus;
 		private DateTime lastLogTime = DateTime.MinValue;
@@ -44,8 +44,11 @@ namespace CumulusMX
 
 				// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
 
-				var time = Utils.RoundTimeToInterval(DateTime.ParseExact(fields[0], "yyyy-MM-dd HH:mm", invc), 5);
-
+				if (!DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out DateTime time))
+				{
+					cumulus.LogErrorMessage("EcowittLogFile.DataParser: Failed to parse datetime - " + fields[0]);
+					continue;
+				}
 
 				if (retList.ContainsKey(time))
 				{
@@ -82,15 +85,19 @@ namespace CumulusMX
 				if (decimal.TryParse(fields[11], invc, out varDec)) rec.Pressure = varDec;
 				if (int.TryParse(fields[12], invc, out varInt)) rec.Solar = varInt;
 				if (decimal.TryParse(fields[13], invc, out varDec)) rec.UVI = varDec;
+				// These fields 14,15,16 do not appear in the GW3000 log files :(
 				//if (decimal.TryParse(fields[14], invc, out varDec)) rec.ConsoleBattery = varDec;
 				//if (decimal.TryParse(fields[15], invc, out varDec)) rec.ExternalSupplyBattery = varDec;
 				//if (decimal.TryParse(fields[16], invc, out varDec)) rec.Charge = varDec;
-				if (decimal.TryParse(fields[17], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
+
+				var offset = fields.Length == 21 ? 14 : 17;
+
+				if (decimal.TryParse(fields[offset], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
 				//if (decimal.TryParse(fields[18], invc, out varDec)) rec.EventRain = varDec;
 				//if (decimal.TryParse(fields[19], invc, out varDec)) rec.DailyRain = varDec;
 				//if (decimal.TryParse(fields[20], invc, out varDec)) rec.WeeklyRain = varDec;
 				//if (decimal.TryParse(fields[21], invc, out varDec)) rec.MonthlyRain = varDec;
-				if (decimal.TryParse(fields[22], invc, out varDec)) rec.RainYear = varDec;
+				if (decimal.TryParse(fields[offset + 5], invc, out varDec)) rec.RainYear = varDec;
 
 				if ((int) TempUnit != cumulus.Units.Temp)
 				{
@@ -202,26 +209,24 @@ namespace CumulusMX
 				throw new ArgumentException("Invalid header", nameof(header));
 			}
 
-			TempUnit = fields[1].Contains("C") ? TempUnits.C : TempUnits.F;
+			TempUnit = fields[1].Contains('℃') ? TempUnits.C : TempUnits.F;
 
-			WindUnit =  fields[7] switch
-			{
-				"m/s" => WindUnits.ms,
-				"mph" => WindUnits.mph,
-				"km/h" => WindUnits.kph,
-				"knots" => WindUnits.knots,
-				_ => 0
-			};
+			if (fields[7].Contains("m/s")) WindUnit = WindUnits.ms;
+			else if (fields[7].Contains("mph")) WindUnit = WindUnits.mph;
+			else if (fields[7].Contains("km/h")) WindUnit = WindUnits.kph;
+			else if (fields[7].Contains("knots")) WindUnit = WindUnits.knots;
+			else WindUnit = 0;
 
-			PressUnit = fields[11] switch
-			{
-				"hPa" => PressUnits.hPa,
-				"kPa" => PressUnits.kPa,
-				"inHg" => PressUnits.inHg,
-				_ => 0
-			};
+
+			if (fields[11].Contains("hPa")) PressUnit = PressUnits.hPa;
+			else if (fields[11].Contains("inHg")) PressUnit = PressUnits.inHg;
+			else if (fields[11].Contains("kPa")) PressUnit = PressUnits.kPa;
+			else PressUnit = 0;
 
 			RainUnit = fields[15].Contains("mm") ? RainUnits.mm : RainUnits.inch;
+
+			// remove header line from the data
+			Data.RemoveAt(0);
 		}
 
 
