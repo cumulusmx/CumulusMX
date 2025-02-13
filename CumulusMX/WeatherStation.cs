@@ -9952,7 +9952,7 @@ namespace CumulusMX
 							cumulus.LogSpikeRemoval($"Laser depth increase is greater than allowed for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} - max = {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
 						}
 					}
-					else if (snowInc >= -cumulus.SnowMinInc)
+					else if (snowInc > -cumulus.SnowMinInc)
 					{
 #if DEBUG
 						cumulus.LogDebugMessage($"Laser depth decrease is less than required for snow removal: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
