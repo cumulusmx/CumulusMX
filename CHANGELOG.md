@@ -13,7 +13,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## [4.4.0 \[b40xx\]][13] - 2025-02-14
 
 ## B4078 changes
-- Additional SD card logging
+- Additional SD card logging & fixes
 
 ## B4077 changes
 - Fix web tag `<#SnowAccum24h4>`

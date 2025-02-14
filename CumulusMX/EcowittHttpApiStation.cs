@@ -460,11 +460,14 @@ namespace CumulusMX
 
 			if (files == null)
 			{
+				cumulus.LogMessage("GetHistoricDataSdCard: No log files returned from localApi.GetSdFileList(), exiting catch-up");
 				return;
 			}
 
 			var baseFiles = new SortedList<int, string>();
 			var extraFiles = new SortedList<int, string>();
+
+			cumulus.LogMessage("GetHistoricDataSdCard: Sort the files into base files and extra files");
 
 			if (files != null && files.Count > 0)
 			{
@@ -472,6 +475,7 @@ namespace CumulusMX
 				{
 					if (cumulus.cancellationToken.IsCancellationRequested)
 					{
+						cumulus.LogMessage("GetHistoricDataSdCard: Cancellation requested");
 						break;
 					}
 
@@ -482,10 +486,12 @@ namespace CumulusMX
 						// filename is YYYYMM[A-Z].csv  or  YYYMMAllSensors_[A-Z].csv
 						if (file.Contains("All"))
 						{
+							cumulus.LogMessage("GetHistoricDataSdCard: Adding base file " + file);
 							extraFiles.Add(prefix, file);
 						}
 						else
 						{
+							cumulus.LogMessage("GetHistoricDataSdCard: Adding extra file " + file);
 							baseFiles.Add(prefix, file);
 						}
 					}
