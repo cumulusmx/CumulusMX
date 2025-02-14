@@ -13,7 +13,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## [4.4.0 \[b40xx\]][13] - 2025-02-14
 
 ## B4078 changes
-- Additional SD card logging & fixes
+- Additional SD card logging & fixes, some optimisation
+- Console logging output during SD card catch-up
+- Fix dashboard data logs and extra data logs viewers "time" column being hidden on horizontal scroll
+
 
 ## B4077 changes
 - Fix web tag `<#SnowAccum24h4>`

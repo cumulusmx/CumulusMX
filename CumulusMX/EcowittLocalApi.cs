@@ -707,7 +707,7 @@ namespace CumulusMX
 				}
 
 				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {lines.Count} lines");
-				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime:yyyy-MM-dd HH:mm}");
+				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
 
 				List<string> result = new List<string>();
 
@@ -719,7 +719,6 @@ namespace CumulusMX
 					var fields = line.Split(',');
 					if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
 					{
-						cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} saving record {fields[0]}");
 						result.Add(line);
 					}
 				}
@@ -745,19 +744,19 @@ namespace CumulusMX
 		{
 			// Get the full list of files on the SD card
 
-			cumulus.LogDebugMessage("GetSdFileList: Getting SD card info");
+			cumulus.LogDebugMessage("LocalApi.GetSdFileList: Getting SD card info");
 
 			var sdCard = await GetSdCardInfo(token);
 			if (sdCard == null)
 			{
-				cumulus.LogErrorMessage("GetSdFileList: Error - Unable to get SD card info");
+				cumulus.LogErrorMessage("LocalApi.GetSdFileList: Error - Unable to get SD card info");
 				return null;
 			}
 
 			// Get the list of files
 			if (sdCard.file_list == null)
 			{
-				cumulus.LogErrorMessage("GetSdFileList: Error - No files found on SD card");
+				cumulus.LogErrorMessage("LocalApi.GetSdFileList: Error - No files found on SD card");
 				return null;
 			}
 
@@ -767,11 +766,9 @@ namespace CumulusMX
 
 			foreach (var file in sdCard.file_list)
 			{
-				if (file.name.EndsWith(".csv"))
+				if (file.type == 1 && file.name.EndsWith(".csv"))
 				{
-					var filePrefix = file.name[..6];
-
-					var fileDate = DateTime.ParseExact(filePrefix, "yyyyMM", CultureInfo.InvariantCulture);
+					var fileDate = DateTime.ParseExact(file.name[..6], "yyyyMM", CultureInfo.InvariantCulture);
 					if (fileDate >= startMonth)
 					{
 						files.Add(file.name);
@@ -779,7 +776,7 @@ namespace CumulusMX
 				}
 			}
 
-			cumulus.LogDebugMessage($"GetSdFileList: Found {files.Count} files matching start time");
+			cumulus.LogDebugMessage($"LocalApi.GetSdFileList: Found {files.Count} files matching start time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
 
 			return files;
 		}
@@ -1019,8 +1016,8 @@ namespace CumulusMX
 		public class SdCardfile
 		{
 			public string name { get; set; }
-			public string type { get; set; }
-			public string size { get; set; }
+			public int type { get; set; }
+			public int size { get; set; }
 		}
 
 		public class SdCard

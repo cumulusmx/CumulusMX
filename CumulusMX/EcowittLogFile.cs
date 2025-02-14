@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace CumulusMX
 {
@@ -28,7 +29,7 @@ namespace CumulusMX
 
 		public SortedList<DateTime, EcowittApi.HistoricData> DataParser()
 		{
-			var invc = System.Globalization.CultureInfo.InvariantCulture;
+			var invc = CultureInfo.InvariantCulture;
 			var retList = new SortedList<DateTime, EcowittApi.HistoricData>();
 
 			for (var index = 0; index < Data.Count; index++)
@@ -36,7 +37,7 @@ namespace CumulusMX
 				// split on commas
 				var fields = Data[index].Split(',');
 
-				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Processing record {fields[0]}");
+				//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Processing record {fields[0]}");
 
 				if (fields.Length < fieldCount)
 				{
@@ -47,7 +48,7 @@ namespace CumulusMX
 
 				// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
 
-				if (!DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out DateTime time))
+				if (!DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, DateTimeStyles.AssumeLocal, out DateTime time))
 				{
 					cumulus.LogErrorMessage("EcowittLogFile.DataParser: Failed to parse datetime - " + fields[0]);
 					continue;
@@ -59,7 +60,7 @@ namespace CumulusMX
 					continue;
 				}
 
-				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]}");
+				//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]}");
 
 				var rec = new EcowittApi.HistoricData();
 
@@ -104,7 +105,7 @@ namespace CumulusMX
 				//if (decimal.TryParse(fields[21], invc, out varDec)) rec.MonthlyRain = varDec;
 				if (decimal.TryParse(fields[offset + 5], invc, out varDec)) rec.RainYear = varDec;
 
-				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Converting record {fields[0]} to MX units");
+				//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Converting record {fields[0]} to MX units");
 
 
 				if ((int) TempUnit != cumulus.Units.Temp)
@@ -196,7 +197,7 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("EcowittLogFile.DataParser: Error adding record to list - " + fields[0]);
 				}
 
-				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record {fields[0]} added to history list");
+				//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record {fields[0]} added to history list");
 			}
 
 			return retList;

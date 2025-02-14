@@ -451,70 +451,73 @@ namespace CumulusMX
 		private void GetHistoricDataSdCard()
 		{
 			cumulus.LogMessage("GetHistoricDataSdCard: Starting Historic Data Process");
+			Cumulus.LogConsoleMessage("Starting historic data catchup from SD card");
 
 			// add one minute to the time to avoid duplicating the last log entry
 			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
-			var fileStart = startTime.Year * 10 + startTime.Month;
 
 			var files = localApi.GetSdFileList(startTime, cumulus.cancellationToken).Result;
 
-			if (files == null)
+			if (files == null || files.Count == 0)
 			{
 				cumulus.LogMessage("GetHistoricDataSdCard: No log files returned from localApi.GetSdFileList(), exiting catch-up");
+				Cumulus.LogConsoleMessage("No log files returned from your station, exiting catch-up");
 				return;
 			}
 
-			var baseFiles = new SortedList<int, string>();
-			var extraFiles = new SortedList<int, string>();
+			var baseFiles = new List<string>();
+			var extraFiles = new List<string>();
 
 			cumulus.LogMessage("GetHistoricDataSdCard: Sort the files into base files and extra files");
 
-			if (files != null && files.Count > 0)
+			foreach (var file in files)
 			{
-				foreach (var file in files)
+				if (cumulus.cancellationToken.IsCancellationRequested)
 				{
-					if (cumulus.cancellationToken.IsCancellationRequested)
-					{
-						cumulus.LogMessage("GetHistoricDataSdCard: Cancellation requested");
-						break;
-					}
+					cumulus.LogMessage("GetHistoricDataSdCard: Cancellation requested");
+					break;
+				}
 
-					// All files that match or exceed start date
-					if (file.Length > 9 && int.TryParse(file[..6], out int prefix) && prefix >= fileStart)
-					{
-						// split into two sorted lists
-						// filename is YYYYMM[A-Z].csv  or  YYYMMAllSensors_[A-Z].csv
-						if (file.Contains("All"))
-						{
-							cumulus.LogMessage("GetHistoricDataSdCard: Adding base file " + file);
-							extraFiles.Add(prefix, file);
-						}
-						else
-						{
-							cumulus.LogMessage("GetHistoricDataSdCard: Adding extra file " + file);
-							baseFiles.Add(prefix, file);
-						}
-					}
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Checking file {file} with prefix {file[..6]}");
+
+				// split into two lists
+				// filename is YYYYMM[A-Z].csv  or  YYYMMAllSensors_[A-Z].csv
+				if (file.Contains("All"))
+				{
+					cumulus.LogMessage("GetHistoricDataSdCard: Adding base file " + file);
+					extraFiles.Add(file);
+				}
+				else
+				{
+					cumulus.LogMessage("GetHistoricDataSdCard: Adding extra file " + file);
+					baseFiles.Add(file);
 				}
 			}
+
+			// sort the lists - just in case!
+			cumulus.LogDebugMessage("GetHistoricDataSdCard: Sorting the file lists");
+			baseFiles.Sort();
+			extraFiles.Sort();
 
 			var buffer = new SortedList<DateTime, HistoricData>();
 
 			// process the base files first
 
 			cumulus.LogDebugMessage($"GetHistoricDataSdCard: Processing {baseFiles.Count} base files");
+			Cumulus.LogConsoleMessage("Preprocessing the base sensor file(s)...");
 
 			foreach (var file in baseFiles)
 			{
-				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Processing file {file.Value}");
+				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
+				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
-				var lines = localApi.GetSdFileContents(file.Value, startTime, cumulus.cancellationToken).Result;
+				var lines = localApi.GetSdFileContents(file, startTime, cumulus.cancellationToken).Result;
 
 				var logfile = new EcowittLogFile(lines, cumulus);
 
 				var data = logfile.DataParser();
 
-				cumulus.LogDebugMessage($"GetHistoricDataSdCard: EcowittLogFile.DataParser returned {data.Count} records for file {file.Value}");
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: EcowittLogFile.DataParser returned {data.Count} records for file {file}");
 
 				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Adding {data.Count} records to the processing list");
 				foreach (var rec in data)
@@ -526,18 +529,21 @@ namespace CumulusMX
 			// now merge in the extra sensor data
 
 			cumulus.LogDebugMessage($"GetHistoricDataSdCard: Processing {extraFiles.Count} extra files");
+			Cumulus.LogConsoleMessage("Preprocessing the extra sensor file(s)...");
+
 
 			foreach (var file in extraFiles)
 			{
-				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Processing file {file.Value}");
+				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
+				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
-				var lines = localApi.GetSdFileContents(file.Value, startTime, cumulus.cancellationToken).Result;
+				var lines = localApi.GetSdFileContents(file, startTime, cumulus.cancellationToken).Result;
 
 				var logfile = new EcowittExtraLogFile(lines, cumulus);
 
 				var data = logfile.DataParser();
 
-				cumulus.LogDebugMessage($"GetHistoricDataSdCard: EcowittExtraLogFile.DataParser returned {data.Count} records for file {file.Value}");
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: EcowittExtraLogFile.DataParser returned {data.Count} records for file {file}");
 
 				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Merging {data.Count} extra sensor records into the existing processing list records");
 
@@ -564,7 +570,10 @@ namespace CumulusMX
 			var rollover9amdone = luhour == 9;
 			bool snowhourdone = luhour == cumulus.SnowDepthHour;
 
-			cumulus.LogDebugMessage("GetHistoricDataSdCard: Adding historic data into Cumulus...");
+			cumulus.LogMessage("GetHistoricDataSdCard: Adding historic data into Cumulus...");
+			Cumulus.LogConsoleMessage("Adding historic data...");
+
+			var recNo = 1;
 
 			foreach (var rec in buffer)
 			{
@@ -573,7 +582,7 @@ namespace CumulusMX
 					return;
 				}
 
-				cumulus.LogMessage("Processing data for " + rec.Key);
+				//cumulus.LogMessage("Processing data for " + rec.Key);
 
 				var h = rec.Key.Hour;
 
@@ -588,7 +597,9 @@ namespace CumulusMX
 				{
 					// In rollover hour and rollover not yet done
 					// do rollover
-					cumulus.LogMessage("Day rollover " + rec.Key.ToShortTimeString());
+					cumulus.LogMessage("Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+					Cumulus.LogConsoleMessage("\n  Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+
 					DayReset(rec.Key);
 
 					rolloverdone = true;
@@ -697,7 +708,13 @@ namespace CumulusMX
 				UpdateStatusPanel(rec.Key);
 				cumulus.AddToWebServiceLists(rec.Key);
 				LastDataReadTime = rec.Key;
+
+				if (!Program.service)
+					Console.Write("\r - processed " + (((double) recNo++) / buffer.Count).ToString("P0"));
+
 			}
+
+			Cumulus.LogConsoleMessage("Historic data processing complete");
 		}
 		public override string GetEcowittCameraUrl()
 		{
