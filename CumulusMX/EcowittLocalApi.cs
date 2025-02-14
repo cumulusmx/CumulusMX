@@ -668,9 +668,11 @@ namespace CumulusMX
 			// 2024-09-18 14:25,24.5,14.3,24.5,53,30.0,17.5,30.5,47,24.0,13.6,24.0,52,--.-,--.-,--.-,--,-15.5,--.-,--.-,--,38.1,23.8,45.6,44,6.6,-1.5,6.6,56,--.-,--.-,--.-,--,19,--,--,--,--,--,--,--,0,--.-,20.3,66,479,10.4,10.8,--.-,--.-,69,51,78,49,44,52,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,--.-,--.-,--.-,--.-,11.5,16.8,24.0,--.-,--.-,--.-,--.-,--.-
 			// 2025-01-10 12:34,1.8,0.8,1.8,93,3.3,1.5,3.3,88,1.5,-0.1,1.5,89,1.6,-0.3,1.6,87,-19.3,--,--,--,3.9,2.7,3.9,92,7.0,-3.0,7.0,49,--,--,--,--,77,--,--,--,--,--,--,--,0,--,15.3,60,775,6.4,6.7,--,--,60,45,56,72,50,74,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,12.0,9.0,--,--,2.5,2.5,2.0,--,--,--,--,--,--,--,--,--
 
+			cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Requesting file {fileName} from station");
+
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
-				cumulus.LogErrorMessage("GetSdFileContents: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				cumulus.LogErrorMessage("LocalApi.GetSdFileContents: Invalid station IP address: " + cumulus.Gw1000IpAddress);
 				return null;
 			}
 
@@ -694,13 +696,18 @@ namespace CumulusMX
 					return null;
 				}
 
+				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {(responseBody.Length / 1024)} KB");
+
 				var lines = new List<string>(responseBody.Split(lineEnds, StringSplitOptions.None));
 
 				if (lines.Count == 0)
 				{
-					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any data");
+					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any lines");
 					return null;
 				}
+
+				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {lines.Count} lines");
+				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime:yyyy-MM-dd HH:mm}");
 
 				List<string> result = new List<string>();
 
@@ -712,6 +719,7 @@ namespace CumulusMX
 					var fields = line.Split(',');
 					if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
 					{
+						cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} saving record {fields[0]}");
 						result.Add(line);
 					}
 				}

@@ -10,6 +10,7 @@ using Swan.Parsers;
 
 using static CumulusMX.EcowittApi;
 using Org.BouncyCastle.Ocsp;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace CumulusMX
@@ -499,11 +500,18 @@ namespace CumulusMX
 
 			foreach (var file in baseFiles)
 			{
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Processing file {file.Value}");
+
 				var lines = localApi.GetSdFileContents(file.Value, startTime, cumulus.cancellationToken).Result;
 
-				var data = new EcowittLogFile(lines, cumulus);
+				var logfile = new EcowittLogFile(lines, cumulus);
 
-				foreach (var rec in data.DataParser())
+				var data = logfile.DataParser();
+
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: EcowittLogFile.DataParser returned {data.Count} records for file {file.Value}");
+
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Adding {data.Count} records to the processing list");
+				foreach (var rec in data)
 				{
 					buffer.Add(rec.Key, rec.Value);
 				}
@@ -515,15 +523,27 @@ namespace CumulusMX
 
 			foreach (var file in extraFiles)
 			{
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Processing file {file.Value}");
+
 				var lines = localApi.GetSdFileContents(file.Value, startTime, cumulus.cancellationToken).Result;
 
-				var data = new EcowittExtraLogFile(lines, cumulus);
+				var logfile = new EcowittExtraLogFile(lines, cumulus);
 
-				foreach (var rec in data.DataParser())
+				var data = logfile.DataParser();
+
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: EcowittExtraLogFile.DataParser returned {data.Count} records for file {file.Value}");
+
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Merging {data.Count} extra sensor records into the existing processing list records");
+
+				foreach (var rec in data)
 				{
 					if (buffer.TryGetValue(rec.Key, out var value))
 					{
 						buffer[rec.Key] = EcowittExtraLogFile.Merge(value, rec.Value);
+					}
+					else
+					{
+						cumulus.LogMessage($"GetHistoricDataSdCard: Warning - Extra sensor record {rec.Key} not added because no matching primary record found");
 					}
 				}
 			}
@@ -537,6 +557,8 @@ namespace CumulusMX
 			var midnightraindone = luhour == 0;
 			var rollover9amdone = luhour == 9;
 			bool snowhourdone = luhour == cumulus.SnowDepthHour;
+
+			cumulus.LogDebugMessage("GetHistoricDataSdCard: Adding historic data into Cumulus...");
 
 			foreach (var rec in buffer)
 			{

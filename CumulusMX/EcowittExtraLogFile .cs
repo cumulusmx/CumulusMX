@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using MimeKit;
+
 namespace CumulusMX
 {
 	internal class EcowittExtraLogFile
@@ -9,6 +11,7 @@ namespace CumulusMX
 
 		private const int fieldCount = 83;
 		private readonly List<string> Data;
+		private string[] Header;
 		private readonly Cumulus cumulus;
 
 		public EcowittExtraLogFile(List<string> data, Cumulus cumul)
@@ -191,6 +194,9 @@ namespace CumulusMX
 			}
 
 			TempUnit = fields[1].Contains('℃') ? TempUnits.C : TempUnits.F;
+
+			// Save the header
+			Header = fields;
 
 			// remove header line from the data
 			Data.RemoveAt(0);

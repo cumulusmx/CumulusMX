@@ -13,6 +13,7 @@ namespace CumulusMX
 
 		private const int fieldCount = 20;
 		private readonly List<string> Data;
+		private string[] Header;
 		private readonly Cumulus cumulus;
 		private DateTime lastLogTime = DateTime.MinValue;
 
@@ -35,10 +36,12 @@ namespace CumulusMX
 				// split on commas
 				var fields = Data[index].Split(',');
 
+				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Processing record {fields[0]}");
+
 				if (fields.Length < fieldCount)
 				{
-					cumulus.LogErrorMessage($"EcowittLogFile.DataParser: Error on line {index + 1} it contains {fields.Length} fields should be {fieldCount} or more");
-					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Line = " + Data[index]);
+					cumulus.LogErrorMessage($"EcowittLogFile.DataParser: Error on record {index + 1} it contains {fields.Length} fields should be {fieldCount} or more");
+					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record = " + Data[index]);
 					continue;
 				}
 
@@ -55,6 +58,8 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("EcowittLogFile.DataParser: Duplicate timestamp found, ignoring second instance - " + fields[0]);
 					continue;
 				}
+
+				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]}");
 
 				var rec = new EcowittApi.HistoricData();
 
@@ -90,7 +95,7 @@ namespace CumulusMX
 				//if (decimal.TryParse(fields[15], invc, out varDec)) rec.ExternalSupplyBattery = varDec;
 				//if (decimal.TryParse(fields[16], invc, out varDec)) rec.Charge = varDec;
 
-				var offset = fields.Length == 21 ? 14 : 17;
+				var offset = Header[14][..6] == "Hourly" ? 14 : 17; // could be "Hourly Rain(mm)" or "Console Battery (V)"
 
 				if (decimal.TryParse(fields[offset], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
 				//if (decimal.TryParse(fields[18], invc, out varDec)) rec.EventRain = varDec;
@@ -98,6 +103,9 @@ namespace CumulusMX
 				//if (decimal.TryParse(fields[20], invc, out varDec)) rec.WeeklyRain = varDec;
 				//if (decimal.TryParse(fields[21], invc, out varDec)) rec.MonthlyRain = varDec;
 				if (decimal.TryParse(fields[offset + 5], invc, out varDec)) rec.RainYear = varDec;
+
+				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Converting record {fields[0]} to MX units");
+
 
 				if ((int) TempUnit != cumulus.Units.Temp)
 				{
@@ -187,6 +195,8 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage("EcowittLogFile.DataParser: Error adding record to list - " + fields[0]);
 				}
+
+				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record {fields[0]} added to history list");
 			}
 
 			return retList;
@@ -197,6 +207,7 @@ namespace CumulusMX
 		private void HeaderParser (string header)
 		{
 			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
+			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(mph),Gust(mph),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
 
 			cumulus.LogDataMessage($"EcowittLogFile.HeaderParser: File header: {header}");
 
@@ -224,6 +235,9 @@ namespace CumulusMX
 			else PressUnit = 0;
 
 			RainUnit = fields[15].Contains("mm") ? RainUnits.mm : RainUnits.inch;
+
+			// Save the header
+			Header = fields;
 
 			// remove header line from the data
 			Data.RemoveAt(0);

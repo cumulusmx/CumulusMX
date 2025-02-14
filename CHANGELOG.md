@@ -10,7 +10,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b40xx\]][13] - 2025-02-11
+## [4.4.0 \[b40xx\]][13] - 2025-02-14
+
+## B4078 changes
+- Additional SD card logging
 
 ## B4077 changes
 - Fix web tag `<#SnowAccum24h4>`
@@ -57,6 +60,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- System.ServiceProcess.ServiceController
 	- NReco.Logging.File (Removed)
 	- NLog (New)
+	- ServiceStack.Text
 - Switched from NRec.Logging.File to NLog for FTP logging
 - FTP logging now creates separate log files for realtime and interval FTP activities
 - Fix monthly NOAA HTML format for days without wind data
@@ -659,4 +663,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
-[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4077
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4078
