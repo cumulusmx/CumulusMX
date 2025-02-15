@@ -11,6 +11,8 @@ using Swan.Parsers;
 using static CumulusMX.EcowittApi;
 using Org.BouncyCastle.Ocsp;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using ServiceStack.Text;
+using System.Collections;
 
 
 namespace CumulusMX
@@ -391,8 +393,12 @@ namespace CumulusMX
 			// Use SDcard or ecowitt.net
 			if (cumulus.EcowittUseSdCard)
 			{
-				GetHistoricDataSdCard();
-
+				// do this until we are fully caught-up, or we have done it three times
+				int archiveRun = 0;
+				while (GetHistoricDataSdCard() && archiveRun < 3)
+				{
+					archiveRun++;
+				};
 			}
 			else if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
@@ -448,7 +454,19 @@ namespace CumulusMX
 			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
 		}
 
-		private void GetHistoricDataSdCard()
+		/// <summary>
+		/// Retrieves and processes historic data from the SD card of the weather station.
+		/// This method performs the following steps:
+		/// 1. Logs the start of the historic data process.
+		/// 2. Retrieves the list of log files from the SD card.
+		/// 3. Sorts the files into base files and extra files.
+		/// 4. Processes the base files to extract and store data.
+		/// 5. Merges extra sensor data into the existing data.
+		/// 6. Processes the combined data, handling day rollover, midnight rain reset, and other periodic tasks.
+		/// 7. Applies the processed data to the system and updates various metrics and logs.
+		/// </summary>
+		/// <returns>Returns true if there could be more data to process, otherwise false.</returns>
+		private bool GetHistoricDataSdCard()
 		{
 			cumulus.LogMessage("GetHistoricDataSdCard: Starting Historic Data Process");
 			Cumulus.LogConsoleMessage("Starting historic data catchup from SD card");
@@ -462,7 +480,7 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("GetHistoricDataSdCard: No log files returned from localApi.GetSdFileList(), exiting catch-up");
 				Cumulus.LogConsoleMessage("No log files returned from your station, exiting catch-up");
-				return;
+				return false;
 			}
 
 			var baseFiles = new List<string>();
@@ -574,15 +592,27 @@ namespace CumulusMX
 			Cumulus.LogConsoleMessage("Adding historic data...");
 
 			var recNo = 1;
+			var lastRecTime = DateTime.MinValue;
+			var interval = 1;
 
 			foreach (var rec in buffer)
 			{
 				if (cumulus.cancellationToken.IsCancellationRequested)
 				{
-					return;
+					return false;
 				}
 
 				//cumulus.LogMessage("Processing data for " + rec.Key);
+
+				if (lastRecTime != DateTime.MinValue)
+				{
+					interval = (int) rec.Key.Subtract(lastRecTime).TotalMinutes;
+					lastRecTime = rec.Key;
+				}
+				else
+				{
+					lastRecTime = rec.Key;
+				}
 
 				var h = rec.Key.Hour;
 
@@ -668,24 +698,24 @@ namespace CumulusMX
 					SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
-					SunshineHours += 5 / 60.0;
-					cumulus.LogDebugMessage("Adding 5 minutes to Sunshine Hours");
+					SunshineHours += interval / 60.0;
+					cumulus.LogDebugMessage($"Adding {interval} minutes to Sunshine Hours");
 				}
 
 				// add in archive period minutes worth of temperature to the temp samples
-				tempsamplestoday += 5;
-				TempTotalToday += (OutdoorTemperature * 5);
+				tempsamplestoday += interval;
+				TempTotalToday += (OutdoorTemperature * interval);
 
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + 5 + " minutes = " +
-				(WindAverage * WindRunHourMult[cumulus.Units.Wind] * 5 / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
-				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * 5 / 60.0;
+				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + interval + " minutes = " +
+				(WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
 
 				// update heating/cooling degree days
 				UpdateDegreeDays(5);
 
 				// update dominant wind bearing
-				CalculateDominantWindBearing(Bearing, WindAverage, 5);
+				CalculateDominantWindBearing(Bearing, WindAverage, interval);
 				CheckForWindrunHighLow(rec.Key);
 
 				_ = cumulus.DoLogFile(rec.Key, false);
@@ -710,11 +740,15 @@ namespace CumulusMX
 				LastDataReadTime = rec.Key;
 
 				if (!Program.service)
+				{
 					Console.Write("\r - processed " + (((double) recNo++) / buffer.Count).ToString("P0"));
-
+				}
 			}
 
 			Cumulus.LogConsoleMessage("Historic data processing complete");
+
+			return cumulus.LastUpdateTime.AddMinutes(interval + 1) < DateTime.Now;
+
 		}
 		public override string GetEcowittCameraUrl()
 		{

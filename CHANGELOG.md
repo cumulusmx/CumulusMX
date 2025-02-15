@@ -10,12 +10,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b40xx\]][13] - 2025-02-14
+## [4.4.0 \[b40xx\]][13] - 2025-02-15
 
 ## B4078 changes
-- Additional SD card logging & fixes, some optimisation
+- Fix dashboard data logs and extra data logs viewers "time" column still being hidden on horizontal scroll
+- SD card logging changes & fixes, some optimisation
 - Console logging output during SD card catch-up
-- Fix dashboard data logs and extra data logs viewers "time" column being hidden on horizontal scroll
+- Fix SD card catch-up using a hard coded interval of 5 minutes for calculating: Average temperature, Sunshine hours, Windrun, Dominant wind direction
+- SD card catch-up is now re-run if the last archive time is not within the current time minus the interval, or we have run catch-up three times
 
 
 ## B4077 changes

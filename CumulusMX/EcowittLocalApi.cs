@@ -766,7 +766,7 @@ namespace CumulusMX
 
 			foreach (var file in sdCard.file_list)
 			{
-				if (file.type == 1 && file.name.EndsWith(".csv"))
+				if (file.name.EndsWith(".csv"))
 				{
 					var fileDate = DateTime.ParseExact(file.name[..6], "yyyyMM", CultureInfo.InvariantCulture);
 					if (fileDate >= startMonth)
@@ -1016,7 +1016,7 @@ namespace CumulusMX
 		public class SdCardfile
 		{
 			public string name { get; set; }
-			public int type { get; set; }
+			public string type { get; set; }
 			public int size { get; set; }
 		}
 
