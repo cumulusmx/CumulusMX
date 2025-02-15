@@ -9,7 +9,7 @@ namespace CumulusMX
 	{
 		private TempUnits TempUnit;
 
-		private const int fieldCount = 83;
+		private const int fieldCount = 82;
 		private readonly List<string> Data;
 		private string[] Header;
 		private readonly Cumulus cumulus;
@@ -27,6 +27,7 @@ namespace CumulusMX
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
 			var retList = new SortedList<DateTime, EcowittApi.HistoricData>();
+			ReadOnlySpan<char> nul = "--";
 
 			for (var index = 0; index < Data.Count; index++)
 			{
@@ -56,67 +57,67 @@ namespace CumulusMX
 
 				var field = 1;
 
-				// Extra Temp/Hum sensors
+				// Extra Temp/Hum sensors, fields 1 - 32
 				for (var i = 1; i <= 8; i++)
 				{
-					if (fields[field] != "--" && decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraTemp[i] = varDec;
-					//if (fields[field] != "--" && decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraDewPoint[i] = varDec;
+					if (fields[field].AsSpan(0,2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraTemp[i] = varDec;
+					//if (fields[field.AsSpan(0,2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraDewPoint[i] = varDec;
 					field++;
-					//if (fields[field] != "--" && decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraHeatIndex[i] = varDec;
+					//if (fields[field].AsSpan(0,2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraHeatIndex[i] = varDec;
 					field++;
-					if (fields[field] != "--" && int.TryParse(fields[field++], out varInt)) rec.ExtraHumidity[i] = varInt;
+					if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.ExtraHumidity[i] = varInt;
 				}
 
-				// Leaf Moisture Sensors
+				// Leaf Moisture Sensors, fields 33 - 40
 				for (var i = 1; i <= 8; i++)
 				{
-					if (fields[field] != "--" && int.TryParse(fields[field++], out varInt)) rec.LeafWetness[i] = varInt;
+					if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.LeafWetness[i] = varInt;
 				}
 
-				// Lightning
-				if (fields[field] != "--" && int.TryParse(fields[field++], out varInt)) rec.LightningCount = varInt;
-				if (fields[field] != "--" && int.TryParse(fields[field++], out varInt)) rec.LightningDist = varInt;
+				// Lightning, fields 41, 42
+				if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.LightningCount = varInt;
+				if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], out varDec)) rec.LightningDist = varDec;
 
-				// AQ Indoor
-				if (fields[field] != "--" && decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboTemp = varDec;
-				if (fields[field] != "--" && int.TryParse(fields[field++], out varInt)) rec.AqiComboHum = varInt;
-				if (fields[field] != "--" && int.TryParse(fields[field++], out varInt)) rec.AqiComboCO2 = varInt;
-				if (fields[field] != "--" && decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboPm25 = varDec;
-				if (fields[field] != "--" && decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboPm10 = varDec;
-				//if (fields[field] != "--" && double.TryParse(fields[field++], invc, out varDec)) rec.AqiInPm1 = varDec;
+				// AQ Indoor, fields 43 - 49
+				if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboTemp = varDec;
+				if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.AqiComboHum = varInt;
+				if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.AqiComboCO2 = varInt;
+				if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboPm25 = varDec;
+				if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboPm10 = varDec;
+				//if (fields[field].AsSpan(0,2) != nul && double.TryParse(fields[field++], invc, out varDec)) rec.AqiInPm1 = varDec;
 				field++;
-				//if (fields[field] != "--" && double.TryParse(fields[field++], invc, out varDec)) rec.AqiInPm4 = varDec;
+				//if (fields[field].AsSpan(0,2) != nul && double.TryParse(fields[field++], invc, out varDec)) rec.AqiInPm4 = varDec;
 				field++;
 
-				// Soil Moisture
+				// Soil Moisture, fields 50 - 65
 				for (int i = 1; i <= 16; i++)
 				{
-					if (fields[field] != "--" && int.TryParse(fields[field++], out varInt)) rec.SoilMoist[i] = varInt;
+					if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.SoilMoist[i] = varInt;
 				}
 
-				// Water
+				// Water, fields 66 - 69
 				for (int i = 1; i <= 4; i++)
 				{
-					//if (fields[field] != "--" && fields[field++] != "--") rec.Water[i] = fields[field++];
+					//if (fields[field].AsSpan(0,2) != nul) rec.Water[i] = fields[field++];
 					field++;
 				}
 
-				// AQI
+				// AQI, fields 70 - 73
 				for (int i = 1; i <= 4; i++)
 				{
-					if (fields[field] != "--" && decimal.TryParse(fields[field++], invc, out varDec)) rec.pm25[i] = varDec;
+					if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.pm25[i] = varDec;
 				}
 
-				// User Temps
+				// User Temps, fields 74 - 81
 				for (var i = 1; i <= 8 ; i++)
 				{
-					if (fields[field] != "--" && decimal.TryParse(fields[field++], invc, out varDec)) rec.UserTemp[i] = varDec;
+					if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.UserTemp[i] = varDec;
 				}
 
-				// LDS Air
+				// LDS Air, fields 82 - 85
 				for (int i = 1; i <= 4; i++)
 				{
-					if (fields[field] != "--" && decimal.TryParse(fields[field++], invc, out varDec)) rec.LdsAir[i] = varDec;
+					if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.LdsAir[i] = varDec;
 				}
 
 				// end of records

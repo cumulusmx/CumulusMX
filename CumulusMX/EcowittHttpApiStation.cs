@@ -493,7 +493,7 @@ namespace CumulusMX
 				if (cumulus.cancellationToken.IsCancellationRequested)
 				{
 					cumulus.LogMessage("GetHistoricDataSdCard: Cancellation requested");
-					break;
+					return false;
 				}
 
 				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Checking file {file} with prefix {file[..6]}");
@@ -538,6 +538,13 @@ namespace CumulusMX
 				cumulus.LogDebugMessage($"GetHistoricDataSdCard: EcowittLogFile.DataParser returned {data.Count} records for file {file}");
 
 				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Adding {data.Count} records to the processing list");
+
+				if (data.Count == 0)
+				{
+					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process, exiting catch-up");
+					return false;
+				}
+
 				foreach (var rec in data)
 				{
 					buffer.Add(rec.Key, rec.Value);
