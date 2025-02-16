@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.IO;
 using System.Runtime.Serialization;
@@ -133,7 +133,13 @@ namespace CumulusMX
 						if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 						{
 							// Construct the message - preamble, plus values
-							var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsg, tagValue);
+							var parser = new TokenParser(cumulus.TokenParserOnToken)
+							{
+								InputText = string.Format(EmailMsg, tagValue)
+							};
+							var body = parser.ToStringFromString();
+
+							var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + body;
 							_ = Task.Run(async () =>
 							{
 								// try to send the email 3 times

@@ -10,7 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b40xx\]][13] - 2025-02-15
+## [4.4.0 \[b40xx\]][13] - 2025-02-16
+
+## B4079
+- You can now embed web tags in User Defined Alarm messages
+
 
 ## B4078 changes
 - Fix dashboard data logs and extra data logs viewers "time" column still being hidden on horizontal scroll
@@ -18,73 +22,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Console logging output during SD card catch-up
 - Fix SD card catch-up using a hard coded interval of 5 minutes for calculating: Average temperature, Sunshine hours, Windrun, Dominant wind direction
 - SD card catch-up is now re-run if the last archive time is not within the current time minus the interval, or we have run catch-up three times
+- Attempted to make AI2 work for NOAA reports and Log Editors updates
+	- NOAA seems to work OK - Neil may want to tidy up my changes!
+	- Logs, the column freeze works, but AI2 does something I do not understand with the header and gives it its own scroll-bar. The data and header now scroll independently of each other! Neil, HELP!
 
-
-## B4077 changes
-- Fix web tag `<#SnowAccum24h4>`
-- GW1000 station skip the 8 UNKNOWN sensors in SensorInfo output
-- Log file editors now scroll the data horizontally and vertically with a fixed header and fixed first two columns
-- Kludge for GW3000/WS6210 log file differences
-- Fix to Snow increment processing
-
-
-## B4076 changes
-- Ecowitt SD card
-	- Fix filename search
-	- Fix station starting before historic data processed
-	- Check for duplicates
-- Fix read-only Reports folder in the distribution zips
-- Add Snow Season
-	- Define start month in Station Settings | Common Options
-	- New web tags `<#SnowAccumSeason[1-4]>`
-
-
-## B4075 changes
-- Fix User Alarms not accepting "equals" type
-- Snow accumulation, spike value is no longer applies to depth decrements
-- Set snow accumulation to zero on first laser reading after rollover
-- EXPERIMENTAL
-	- Adds ability to the Ecowitt local HTTP API station to read historic data from the SD card
-	- Currently only supported by the GW3000 and WS6210
-
-
-## B4074 changes
-- Web tag `<#CPUTemp>` not available default changed from -999 to "-" and it now accepts the `nv=` parameter
-- Snowfall now added to Calibration settings. The minimum increment and ignore above spike values can be altered
-
-## B4073 changes
-- Updated/Changed packages
-	- BouncyCastle.Cryptography
-	- FluentFTP
-	- MailKit
-	- Microsoft.Win32.SystemEvents
-	- MQTTnet
-	- System.CodeDem
-	- System.Diagnostics.PerformanceCounter
-	- System.IO.Ports
-	- System.ServiceProcess.ServiceController
-	- NReco.Logging.File (Removed)
-	- NLog (New)
-	- ServiceStack.Text
-- Switched from NRec.Logging.File to NLog for FTP logging
-- FTP logging now creates separate log files for realtime and interval FTP activities
-- Fix monthly NOAA HTML format for days without wind data
-- Fix default web site noaareport.htm page not loading CSS
-- New version of MigrateData3to4 to now finds custom daily files correctly
-- Add File Ignore time to JSON station advanced settings
-- Web tag `<#CPUtemp>` now supports options `rc`, `dp`, `tc`, `unit`
-- Add Laser Sensors and Snow 24h to Extra Log file
-- 9am values not always rolling over correctly during "catch-up"
-- Fix Monthly Log/Extra Monthly log viewers for 9am meteo day users
-- Davis station: Fix for the 00:00 (or 09:00) rainfall being counted on both days during catch-up
-
-## B072 changes
-- Fixed NOAA 12 hour option
-- Improved NOAA HTML CSS and moved to separate .css file
-- Updated NOAA HTML templates
-- Snow accumulation now persists across MX runs - stored in today.ini
-- Fix "Regenerate all missing reports" not creating current year/month reports
-- Ecowitt camera URLs not working when the station is configured as an Extra Station
 
 
 ### New
@@ -112,6 +53,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Adds laser depth calculation to the Extra Sensor settings. Use this with simple laser distance sensors to allow Cumulus to calculate a depth value. Note Ecowitt already provide this ability with their LDS01 sensors.
 - New version of MigrateData3to4 to now finds custom daily files correctly
 - Add File Ignore time to JSON station advanced settings
+- You can now embed web tags in User Defined Alarm messages
 
 - EXPERIMENTAL
 	- Adds ability to the Ecowitt local HTTP API station to read historic data from the SD card
