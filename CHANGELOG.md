@@ -13,7 +13,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## [4.4.0 \[b40xx\]][13] - 2025-02-16
 
 ## B4079
-- You can now embed web tags in User Defined Alarm email messages
+- You can now embed web tags in both Standard Alarms and User Defined Alarm email messages
 
 
 ## B4078 changes
@@ -53,7 +53,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Adds laser depth calculation to the Extra Sensor settings. Use this with simple laser distance sensors to allow Cumulus to calculate a depth value. Note Ecowitt already provide this ability with their LDS01 sensors.
 - New version of MigrateData3to4 to now finds custom daily files correctly
 - Add File Ignore time to JSON station advanced settings
-- You can now embed web tags in User Defined Alarm messages
+- You can now embed web tags in both Standard Alarms and User Defined Alarm email messages
 
 - EXPERIMENTAL
 	- Adds ability to the Ecowitt local HTTP API station to read historic data from the SD card
