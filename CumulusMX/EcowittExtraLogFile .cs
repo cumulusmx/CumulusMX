@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using MimeKit;
@@ -194,7 +194,7 @@ namespace CumulusMX
 				throw new ArgumentException("Invalid header", nameof(header));
 			}
 
-			TempUnit = fields[1].Contains('℃') ? TempUnits.C : TempUnits.F;
+			TempUnit = fields[1].Contains("(C") || fields[1].Contains('℃') ? TempUnits.C : TempUnits.F;
 
 			// Save the header
 			Header = fields;

@@ -13,7 +13,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## [4.4.0 \[b40xx\]][13] - 2025-02-16
 
 ## B4079
-- You can now embed web tags in User Defined Alarm messages
+- You can now embed web tags in User Defined Alarm email messages
 
 
 ## B4078 changes

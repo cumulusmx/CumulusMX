@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -221,7 +221,7 @@ namespace CumulusMX
 				throw new ArgumentException("Invalid header", nameof(header));
 			}
 
-			TempUnit = fields[1].Contains('℃') ? TempUnits.C : TempUnits.F;
+			TempUnit = fields[1].Contains('C') || fields[1].Contains('℃') ? TempUnits.C : TempUnits.F;
 
 			if (fields[7].Contains("m/s")) WindUnit = WindUnits.ms;
 			else if (fields[7].Contains("mph")) WindUnit = WindUnits.mph;
