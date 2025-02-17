@@ -68,6 +68,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - FTP logging now creates separate log files for realtime and interval FTP activities
 - Web tag `<#CPUtemp>` now returns `"-"` if no value present, or whatever is specified by `nv=`
 - Log file editors now scroll the data horizontally and vertically with a fixed header and fixed first two columns
+- Change of name of the Ecowitt "TCP Local API" station to "Binary Local API (Legacy)" to reflect the status of the protocol
 
 ### Fixed
 
@@ -84,6 +85,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Davis station: Fix for the 00:00 (or 09:00) rainfall being counted on both days during catch-up
 - User Alarms not accepting "equals" type
 - Fix Station Pressure calibration settings being read from the Pressure settings in Cumulus.ini
+
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
 

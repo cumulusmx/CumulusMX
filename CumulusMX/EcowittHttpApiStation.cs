@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
@@ -143,7 +143,7 @@ namespace CumulusMX
 			cumulus.StartTimersAndSensors();
 
 			// Get the sensor list
-			GetSensorIds().Wait();
+			GetSensorIds(false).Wait();
 
 			// Check firmware
 			try
@@ -314,7 +314,7 @@ namespace CumulusMX
 									// at the start of every 20 minutes to trigger battery status check
 									if ((minute % 20) == 0 && !cumulus.cancellationToken.IsCancellationRequested)
 									{
-										_ = GetSensorIds();
+										_ = GetSensorIds(true);
 									}
 
 									// every day dump the clock drift at midday each day
@@ -789,10 +789,24 @@ namespace CumulusMX
 			}
 			return string.Empty;
 		}
-		private async Task GetSensorIds()
+		private async Task GetSensorIds(bool delay)
 		{
+			// pause for two seconds to get out of sync with the live data requests
+			if (delay)
+			{
+				await Task.Delay(2000, cumulus.cancellationToken);
+				if (cumulus.cancellationToken.IsCancellationRequested)
+				{
+					return;
+				}
+			}
+
 			cumulus.LogMessage("Reading sensor ids");
 			var sensors = await localApi.GetSensorInfo(cumulus.cancellationToken);
+			if (cumulus.cancellationToken.IsCancellationRequested)
+			{
+				return;
+			}
 			batteryLow = false;
 			LowBatteryDevices.Clear();
 			if (sensors != null && sensors.Length > 0)
