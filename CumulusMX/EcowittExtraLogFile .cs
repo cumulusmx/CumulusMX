@@ -120,6 +120,12 @@ namespace CumulusMX
 					if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.LdsAir[i] = varDec;
 				}
 
+				// TODO: Add LDS Depth
+				for (int i = 1; i <= 4 ; i++)
+				{
+					//if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.LsdDepth[i] = varDec;
+				}
+
 				// end of records
 
 				if ((int) TempUnit != cumulus.Units.Temp)
@@ -175,6 +181,7 @@ namespace CumulusMX
 			baseRec.pm25 = extraRec.pm25;
 			baseRec.UserTemp = extraRec.UserTemp;
 			baseRec.LdsAir = extraRec.LdsAir;
+			baseRec.LsdDepth = extraRec.LsdDepth;
 
 			return baseRec;
 		}

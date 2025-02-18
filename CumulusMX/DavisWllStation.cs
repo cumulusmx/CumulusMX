@@ -1859,6 +1859,13 @@ namespace CumulusMX
 					DoFeelsLike(timestamp);
 					DoHumidex(timestamp);
 					DoCloudBaseHeatIndex(timestamp);
+					DoTrendValues(timestamp);
+
+					if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+					{
+						// Start of a new hour, and we want to calculate ET in Cumulus
+						CalculateEvapotranspiration(timestamp);
+					}
 
 					// Log all the data
 					_ = cumulus.DoLogFile(timestamp, false);
@@ -1876,15 +1883,14 @@ namespace CumulusMX
 						_ = cumulus.DoAirLinkLogFile(timestamp);
 					}
 
+					// Custom MySQL update - minutes interval
+					if (cumulus.MySqlSettings.CustomMins.Enabled)
+					{
+						_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
+					}
+
 					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
-					DoTrendValues(timestamp);
-
-					if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
-					{
-						// Start of a new hour, and we want to calculate ET in Cumulus
-						CalculateEvapotranspiration(timestamp);
-					}
 
 					UpdateStatusPanel(timestamp);
 					cumulus.AddToWebServiceLists(timestamp);

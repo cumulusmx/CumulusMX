@@ -1617,6 +1617,7 @@ namespace CumulusMX
 			DoFeelsLike(timestamp);
 			DoHumidex(timestamp);
 			DoCloudBaseHeatIndex(timestamp);
+			DoTrendValues(timestamp);
 
 			_ = cumulus.DoLogFile(timestamp, false);
 			cumulus.MySqlRealtimeFile(999, false, timestamp);
@@ -1627,9 +1628,14 @@ namespace CumulusMX
 				_ = cumulus.DoExtraLogFile(timestamp);
 			}
 
+			// Custom MySQL update - minutes interval
+			if (cumulus.MySqlSettings.CustomMins.Enabled)
+			{
+				_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
+			}
+
 			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 							Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
-			DoTrendValues(timestamp);
 			UpdateStatusPanel(timestamp);
 			// Add current data to the lists of web service updates to be done
 			cumulus.AddToWebServiceLists(timestamp);

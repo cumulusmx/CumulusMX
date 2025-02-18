@@ -14,6 +14,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## B4079
 - You can now embed web tags in both Standard Alarms and User Defined Alarm email messages
+- Tweak to the timing of Ecowitt HTTP station GetSensorInfo
+- Custom MySQL Minutes queries are now processed during catch-up
+- AI2 - log viewer/editors should now scroll correctly
 
 
 ## B4078 changes
@@ -54,6 +57,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New version of MigrateData3to4 to now finds custom daily files correctly
 - Add File Ignore time to JSON station advanced settings
 - You can now embed web tags in both Standard Alarms and User Defined Alarm email messages
+- Custom MySQL Minutes queries are now processed during catch-up
 
 - EXPERIMENTAL
 	- Adds ability to the Ecowitt local HTTP API station to read historic data from the SD card

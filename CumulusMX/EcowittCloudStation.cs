@@ -265,6 +265,10 @@ namespace CumulusMX
 					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Camera URL");
 				}
 			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittCameraUrl: Warning - URL requested, but no camera MAC address is configured");
+			}
 
 			return string.Empty;
 		}
@@ -282,6 +286,10 @@ namespace CumulusMX
 				{
 					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Video URL");
 				}
+			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittVideoUrl: Warning - URL requested, but no camera MAC address is configured");
 			}
 
 			return string.Empty;

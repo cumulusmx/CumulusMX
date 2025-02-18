@@ -1921,7 +1921,7 @@ namespace CumulusMX
 					// Custom MySQL update - minutes interval
 					if (cumulus.MySqlSettings.CustomMins.Enabled)
 					{
-						_ = cumulus.CustomMysqlMinutesUpdate(now);
+						_ = cumulus.CustomMysqlMinutesUpdate(now, true);
 					}
 
 					// Custom MySQL Timed interval

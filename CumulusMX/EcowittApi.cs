@@ -1435,6 +1435,13 @@ namespace CumulusMX
 
 				// update dominant wind bearing
 				station.CalculateDominantWindBearing(station.Bearing, station.WindAverage, rec.Value.Interval);
+				station.DoTrendValues(rec.Key);
+
+				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
+				{
+					// Start of a new hour, and we want to calculate ET in Cumulus
+					station.CalculateEvapotranspiration(rec.Key);
+				}
 
 				station.CheckForWindrunHighLow(rec.Key);
 
@@ -1448,16 +1455,15 @@ namespace CumulusMX
 					_ = cumulus.DoExtraLogFile(rec.Key);
 				}
 
+				// Custom MySQL update - minutes interval
+				if (cumulus.MySqlSettings.CustomMins.Enabled)
+				{
+					_ = cumulus.CustomMysqlMinutesUpdate(rec.Key, false);
+				}
+
 				station.AddRecentDataWithAq(rec.Key, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, station.OutdoorTemperature, station.WindChill, station.OutdoorDewpoint, station.HeatIndex,
 					station.OutdoorHumidity, station.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, station.IndoorTemperature, station.IndoorHumidity, station.CurrentSolarMax, station.RainRate);
 
-				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
-				{
-					// Start of a new hour, and we want to calculate ET in Cumulus
-					station.CalculateEvapotranspiration(rec.Key);
-				}
-
-				station.DoTrendValues(rec.Key);
 				station.UpdateStatusPanel(rec.Key);
 				cumulus.AddToWebServiceLists(rec.Key);
 				station.LastDataReadTime = rec.Key;
@@ -3005,6 +3011,7 @@ namespace CumulusMX
 			public int? IndoorCo2 { get; set; }
 			public int? IndoorCo2hr24 { get; set; }
 			public decimal?[] LdsAir { get; set; } = new decimal?[5];
+			public decimal?[] LsdDepth { get; set; } = new decimal?[5];
 		}
 
 

@@ -724,6 +724,13 @@ namespace CumulusMX
 				// update dominant wind bearing
 				CalculateDominantWindBearing(Bearing, WindAverage, interval);
 				CheckForWindrunHighLow(rec.Key);
+				DoTrendValues(rec.Key);
+
+				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
+				{
+					// Start of a new hour, and we want to calculate ET in Cumulus
+					CalculateEvapotranspiration(rec.Key);
+				}
 
 				_ = cumulus.DoLogFile(rec.Key, false);
 				cumulus.DoCustomIntervalLogs(rec.Key);
@@ -734,14 +741,16 @@ namespace CumulusMX
 				{
 					_ = cumulus.DoExtraLogFile(rec.Key);
 				}
-				AddRecentDataWithAq(rec.Key, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-				OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
-				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
+
+				// Custom MySQL update - minutes interval
+				if (cumulus.MySqlSettings.CustomMins.Enabled)
 				{
-					// Start of a new hour, and we want to calculate ET in Cumulus
-					CalculateEvapotranspiration(rec.Key);
+					_ = cumulus.CustomMysqlMinutesUpdate(rec.Key, false);
 				}
-				DoTrendValues(rec.Key);
+
+				AddRecentDataWithAq(rec.Key, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
+
 				UpdateStatusPanel(rec.Key);
 				cumulus.AddToWebServiceLists(rec.Key);
 				LastDataReadTime = rec.Key;
@@ -771,6 +780,11 @@ namespace CumulusMX
 					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
 				}
 			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittCameraUrl: Warning - URL requested, but no camera MAC address is configured");
+			}
+
 			return string.Empty;
 		}
 		public override string GetEcowittVideoUrl()
@@ -787,6 +801,11 @@ namespace CumulusMX
 					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Video URL");
 				}
 			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittVideoUrl: Warning - URL requested, but no camera MAC address is configured");
+			}
+
 			return string.Empty;
 		}
 		private async Task GetSensorIds(bool delay)

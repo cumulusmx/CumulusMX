@@ -601,6 +601,13 @@ namespace CumulusMX
 				CalculateDominantWindBearing(Bearing, WindAverage, historydata.interval);
 
 				CheckForWindrunHighLow(timestamp);
+				DoTrendValues(timestamp);
+
+				if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+				{
+					// Start of a new hour, and we want to calculate ET in Cumulus
+					CalculateEvapotranspiration(timestamp);
+				}
 
 				bw.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
@@ -611,17 +618,17 @@ namespace CumulusMX
 				{
 					_ = cumulus.DoExtraLogFile(timestamp);
 				}
+
 				cumulus.MySqlRealtimeFile(999, false, timestamp);
+
+				// Custom MySQL update - minutes interval
+				if (cumulus.MySqlSettings.CustomMins.Enabled)
+				{
+					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
+				}
 
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
-				DoTrendValues(timestamp);
-
-				if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
-				{
-					// Start of a new hour, and we want to calculate ET in Cumulus
-					CalculateEvapotranspiration(timestamp);
-				}
 
 				UpdateStatusPanel(timestamp);
 				cumulus.AddToWebServiceLists(timestamp);

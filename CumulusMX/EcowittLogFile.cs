@@ -105,6 +105,9 @@ namespace CumulusMX
 				//if (decimal.TryParse(fields[21], invc, out varDec)) rec.MonthlyRain = varDec;
 				if (decimal.TryParse(fields[offset + 5], invc, out varDec)) rec.RainYear = varDec;
 
+				// TODO: Add piezo rain parsing
+
+
 				//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Converting record {fields[0]} to MX units");
 
 

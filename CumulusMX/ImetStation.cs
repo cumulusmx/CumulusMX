@@ -658,6 +658,13 @@ namespace CumulusMX
 							DoFeelsLike(timestamp);
 							DoHumidex(timestamp);
 							DoCloudBaseHeatIndex(timestamp);
+							DoTrendValues(timestamp);
+
+							if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+							{
+								// Start of a new hour, and we want to calculate ET in Cumulus
+								CalculateEvapotranspiration(timestamp);
+							}
 
 							// sunshine hours
 							if (sl[SUNPOS].Length > 0)
@@ -669,16 +676,14 @@ namespace CumulusMX
 							cumulus.MySqlRealtimeFile(999, false, timestamp);
 							cumulus.DoCustomIntervalLogs(timestamp);
 
-							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
-							DoTrendValues(timestamp);
-
-							if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+							// Custom MySQL update - minutes interval
+							if (cumulus.MySqlSettings.CustomMins.Enabled)
 							{
-								// Start of a new hour, and we want to calculate ET in Cumulus
-								CalculateEvapotranspiration(timestamp);
+								_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 							}
 
+							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 							UpdateStatusPanel(timestamp);
 
 							// Add current data to the lists of web service updates to be done
