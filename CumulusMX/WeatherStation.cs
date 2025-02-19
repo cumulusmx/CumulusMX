@@ -1529,10 +1529,10 @@ namespace CumulusMX
 		/// </summary>
 		public decimal?[] LaserDist { get; set; } = new decimal?[5];
 		public decimal?[] LaserDepth { get; set; } = new decimal?[5];
-		private decimal?[] LastLaserDepth { get; set; } = new decimal?[5];
+		private decimal?[] LastLaserDepth = new decimal?[5];
 		public decimal?[] Snow24h { get; set; } = new decimal?[5];
-		private int[] Snow24hCountInc { get; set; } = { 0, 0, 0, 0, 0 };
-		private int[] Snow24hCountDec { get; set; } = { 0, 0, 0, 0, 0 };
+		private readonly int[] Snow24hCountInc = { 0, 0, 0, 0, 0 };
+		private readonly int[] Snow24hCountDec = { 0, 0, 0, 0, 0 };
 		public decimal?[] SnowSeason { get; set; } = new decimal?[5];
 
 		public double RainYesterday { get; set; }
@@ -9934,10 +9934,10 @@ namespace CumulusMX
 					if (snowInc == 0)
 					{
 						// no change in depth
-						Snow24hCountInc[index] = 0;
-						Snow24hCountDec[index] = 0;
+						//Snow24hCountInc[index] = 0;
+						//Snow24hCountDec[index] = 0;
 					}
-					else if (snowInc > 0)
+					else if (snowInc > 0 && value != LaserDepth[index])
 					{
 						if (snowInc < cumulus.SnowMinInc)
 						{
@@ -9977,7 +9977,7 @@ namespace CumulusMX
 							cumulus.LogSpikeRemoval($"Laser depth increase is greater than allowed for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} - max = {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
 						}
 					}
-					else if (snowInc > -cumulus.SnowMinInc)
+					else if (snowInc > -cumulus.SnowMinInc && value != LaserDepth[index])
 					{
 						Snow24hCountInc[index] = 0;
 						Snow24hCountDec[index] = 0;
@@ -9989,7 +9989,7 @@ namespace CumulusMX
 					//{
 					//	cumulus.LogSpikeRemoval($"Laser depth decrease is greater than allowed for snow removal: {snowInc.ToString(cumulus.LaserFormat)} - max = {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
 					//}
-					else
+					else if (snowInc <=  -cumulus.SnowMinInc && value != LaserDepth[index])
 					{
 						Snow24hCountInc[index] = 0;
 						Snow24hCountDec[index]++;
