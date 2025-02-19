@@ -335,7 +335,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
+					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Camera URL");
 				}
 			}
 			else

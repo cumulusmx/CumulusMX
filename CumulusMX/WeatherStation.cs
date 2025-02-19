@@ -321,11 +321,13 @@ namespace CumulusMX
 
 		public virtual string GetEcowittCameraUrl()
 		{
+			cumulus.LogMessage("GetEcowittCameraUrl: Not implemented for this station");
 			return string.Empty;
 		}
 
 		public virtual string GetEcowittVideoUrl()
 		{
+			cumulus.LogMessage("GetEcowittVideoUrl: Not implemented for this station");
 			return string.Empty;
 		}
 
@@ -1529,6 +1531,8 @@ namespace CumulusMX
 		public decimal?[] LaserDepth { get; set; } = new decimal?[5];
 		private decimal?[] LastLaserDepth { get; set; } = new decimal?[5];
 		public decimal?[] Snow24h { get; set; } = new decimal?[5];
+		private int[] Snow24hCountInc { get; set; } = { 0, 0, 0, 0, 0 };
+		private int[] Snow24hCountDec { get; set; } = { 0, 0, 0, 0, 0 };
 		public decimal?[] SnowSeason { get; set; } = new decimal?[5];
 
 		public double RainYesterday { get; set; }
@@ -9908,6 +9912,8 @@ namespace CumulusMX
 					if (!Snow24h[index].HasValue)
 					{
 						Snow24h[index] = 0;
+						Snow24hCountInc[index] = 0;
+						Snow24hCountDec[index] = 0;
 					}
 
 					if (!SnowSeason[index].HasValue)
@@ -9918,6 +9924,8 @@ namespace CumulusMX
 					if (!LastLaserDepth[index].HasValue)
 					{
 						LastLaserDepth[index] = value;
+						Snow24hCountInc[index] = 0;
+						Snow24hCountDec[index] = 0;
 					}
 
 					// calculate the snowfall
@@ -9926,11 +9934,15 @@ namespace CumulusMX
 					if (snowInc == 0)
 					{
 						// no change in depth
+						Snow24hCountInc[index] = 0;
+						Snow24hCountDec[index] = 0;
 					}
 					else if (snowInc > 0)
 					{
 						if (snowInc < cumulus.SnowMinInc)
 						{
+							Snow24hCountInc[index] = 0;
+							Snow24hCountDec[index] = 0;
 #if DEBUG
 							cumulus.LogDebugMessage($"Laser depth increase is less than required for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} - min = {cumulus.SnowMinInc} {cumulus.Units.LaserDistanceText}");
 #endif
@@ -9939,12 +9951,25 @@ namespace CumulusMX
 						{
 							if (snowInc >= cumulus.SnowMinInc)
 							{
-								cumulus.LogDebugMessage($"Laser depth increase added to snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+								Snow24hCountInc[index]++;
+								Snow24hCountDec[index] = 0;
 
-								var inc = ConvertUnits.LaserToSnow(snowInc);
-								Snow24h[index] = (Snow24h[index] ?? 0) + inc;
-								SnowSeason[index] = (SnowSeason[index] ?? 0) + inc;
-								LastLaserDepth[index] = value;
+								if (Snow24hCountInc[index] >= 3)
+								{
+									cumulus.LogDebugMessage($"Laser depth increase added to snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+
+									var inc = ConvertUnits.LaserToSnow(snowInc);
+									Snow24h[index] = (Snow24h[index] ?? 0) + inc;
+									SnowSeason[index] = (SnowSeason[index] ?? 0) + inc;
+									LastLaserDepth[index] = value;
+									Snow24hCountInc[index] = 0;
+								}
+								else
+								{
+#if DEBUG
+									cumulus.LogDebugMessage($"Laser depth increase count for snow accumulation not reached: Count = {Snow24hCountInc[index]}, Increment = {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+#endif
+								}
 							}
 						}
 						else
@@ -9954,6 +9979,8 @@ namespace CumulusMX
 					}
 					else if (snowInc > -cumulus.SnowMinInc)
 					{
+						Snow24hCountInc[index] = 0;
+						Snow24hCountDec[index] = 0;
 #if DEBUG
 						cumulus.LogDebugMessage($"Laser depth decrease is less than required for snow removal: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
 #endif
@@ -9964,8 +9991,21 @@ namespace CumulusMX
 					//}
 					else
 					{
-						cumulus.LogDebugMessage($"Laser depth decreased to: {value.Value.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
-						LastLaserDepth[index] = value;
+						Snow24hCountInc[index] = 0;
+						Snow24hCountDec[index]++;
+
+						if (Snow24hCountDec[index] >= 3)
+						{
+							cumulus.LogDebugMessage($"Laser depth decreased to: {value.Value.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+							LastLaserDepth[index] = value;
+							Snow24hCountDec[index] = 0;
+						}
+						else
+						{
+#if DEBUG
+							cumulus.LogDebugMessage($"Laser depth decrease count for snow removal not reached: Count = {Snow24hCountDec[index]}, Decrement = {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+#endif
+						}
 					}
 				}
 

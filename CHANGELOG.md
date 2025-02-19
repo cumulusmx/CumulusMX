@@ -17,7 +17,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Tweak to the timing of Ecowitt HTTP station GetSensorInfo
 - Custom MySQL Minutes queries are now processed during catch-up
 - AI2 - log viewer/editors should now scroll correctly
-
+- Change the defaults for Snow Minimum Increment to 1cm, 0.5in, 10mm
+- Snow accumulation now requires three consecutive increments/decrements above the minimum threshold to be added to the total.
 
 ## B4078 changes
 - Fix dashboard data logs and extra data logs viewers "time" column still being hidden on horizontal scroll

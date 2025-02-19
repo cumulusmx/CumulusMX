@@ -3309,12 +3309,7 @@ namespace CumulusMX
 
 		private string Tagforumurl(Dictionary<string, string> tagParams)
 		{
-			if (string.IsNullOrEmpty(cumulus.ForumURL))
-			{
-				return string.Empty;
-			}
-
-			return cumulus.ForumURL;
+			return cumulus.ForumURL ?? string.Empty;
 		}
 
 		private string Tagwebcam(Dictionary<string, string> tagParams)
@@ -3328,51 +3323,38 @@ namespace CumulusMX
 		}
 		private string Tagwebcamurl(Dictionary<string, string> tagParams)
 		{
-			if (string.IsNullOrEmpty(cumulus.WebcamURL))
-			{
-				return string.Empty;
-			}
-
-			return cumulus.WebcamURL;
+			return cumulus.WebcamURL ?? string.Empty;
 		}
 
 		private string TagEcowittCameraUrl(Dictionary<string, string> tagParams)
 		{
-			if (!cumulus.ExtraSensorUseCamera)
-			{
-				return station.GetEcowittCameraUrl();
-			}
-			else if (cumulus.ecowittExtra != null)
+			if (cumulus.ecowittExtra != null && cumulus.ExtraSensorUseCamera)
 			{
 				return cumulus.ecowittExtra.GetEcowittCameraUrl();
 			}
-			else if (cumulus.ecowittCloudExtra != null)
+			else if (cumulus.ecowittCloudExtra != null && cumulus.ExtraSensorUseCamera)
 			{
 				return cumulus.ecowittCloudExtra.GetEcowittCameraUrl();
 			}
 			else
 			{
-				return string.Empty;
+				return station.GetEcowittCameraUrl();
 			}
 		}
 
 		private string TagEcowittVideoUrl(Dictionary<string, string> tagParams)
 		{
-			if (!cumulus.ExtraSensorUseCamera)
-			{
-				return station.GetEcowittVideoUrl();
-			}
-			else if (cumulus.ecowittExtra != null)
+			if (cumulus.ecowittExtra != null && cumulus.ExtraSensorUseCamera)
 			{
 				return cumulus.ecowittExtra.GetEcowittVideoUrl();
 			}
-			else if (cumulus.ecowittCloudExtra != null)
+			else if (cumulus.ecowittCloudExtra != null && cumulus.ExtraSensorUseCamera)
 			{
 				return cumulus.ecowittCloudExtra.GetEcowittVideoUrl();
 			}
 			else
 			{
-				return string.Empty;
+				return station.GetEcowittVideoUrl();
 			}
 		}
 

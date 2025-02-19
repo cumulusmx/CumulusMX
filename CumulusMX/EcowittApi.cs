@@ -2565,7 +2565,7 @@ namespace CumulusMX
 						{
 							// we have a camera
 							cumulus.EcowittCameraMacAddress = stn.mac;
-							cumulus.LogDebugMessage($"API.GetStationList: Found Camera name={stn.name ?? "-"}, vers={stn.stationtype ?? "-"}");
+							cumulus.LogDebugMessage($"API.GetStationList: Found Camera name={stn.name ?? "-"}, vers={stn.stationtype ?? "-"}, mac={cumulus.EcowittCameraMacAddress}");
 						}
 						else if (stn.type == 1 && stn.mac.Equals(macAddress, StringComparison.CurrentCultureIgnoreCase))
 						{

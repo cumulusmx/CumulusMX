@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -4060,9 +4060,9 @@ namespace CumulusMX
 			Spike.SnowDiff = ini.GetValue("Station", "EWsnowdiff", maxSnowInc, 0, 999);
 			decimal minSnowInc = (decimal) (Units.LaserDistance switch
 			{
-				0 => 0.5,
-				1 => 0.2,
-				2 => 5,
+				0 => 1.0,
+				1 => 0.5,
+				2 => 10,
 				_ => 0
 			});
 			SnowMinInc = ini.GetValue("Station", "EWsnowMinInc", minSnowInc, 0);
