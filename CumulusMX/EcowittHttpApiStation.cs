@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
@@ -1516,6 +1516,7 @@ namespace CumulusMX
 					try
 					{
 						DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
+						//DoAirQualityAvg(sensor.PM25_24H.Value, sensor.channel.Value);
 					}
 					catch (Exception ex)
 					{

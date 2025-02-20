@@ -10,28 +10,21 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b40xx\]][13] - 2025-02-16
+## [4.4.0 \[b40xx\]][13] - 2025-02-20
+
+## B4080
+- Add averaging to 3 snow increment values
+
 
 ## B4079
 - You can now embed web tags in both Standard Alarms and User Defined Alarm email messages
 - Tweak to the timing of Ecowitt HTTP station GetSensorInfo
 - Custom MySQL Minutes queries are now processed during catch-up
 - AI2 - log viewer/editors should now scroll correctly
+- AI2 - fix to records editors to make buttons work
 - Change the defaults for Snow Minimum Increment to 1cm, 0.5in, 10mm
 - Snow accumulation now requires three consecutive increments/decrements above the minimum threshold to be added to the total
 - Fix Ecowitt web cam URL web tags when camera is on the main station
-
-
-
-## B4078 changes
-- Fix dashboard data logs and extra data logs viewers "time" column still being hidden on horizontal scroll
-- SD card logging changes & fixes, some optimisation
-- Console logging output during SD card catch-up
-- Fix SD card catch-up using a hard coded interval of 5 minutes for calculating: Average temperature, Sunshine hours, Windrun, Dominant wind direction
-- SD card catch-up is now re-run if the last archive time is not within the current time minus the interval, or we have run catch-up three times
-- Attempted to make AI2 work for NOAA reports and Log Editors updates
-	- NOAA seems to work OK - Neil may want to tidy up my changes!
-	- Logs, the column freeze works, but AI2 does something I do not understand with the header and gives it its own scroll-bar. The data and header now scroll independently of each other! Neil, HELP!
 
 
 
@@ -620,4 +613,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
-[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4078
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4080
