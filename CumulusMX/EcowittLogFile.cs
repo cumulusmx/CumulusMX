@@ -111,7 +111,7 @@ namespace CumulusMX
 					//if (decimal.TryParse(fields[offset + 4], invc, out varDec)) rec.MonthlyRain = varDec;
 					if (decimal.TryParse(fields[offset + 5], invc, out varDec)) rec.RainYear = varDec;
 				}
-				else
+				else if (fields.Length >= offset + 12)
 				{
 					// piezo rain
 					if (decimal.TryParse(fields[offset + 6], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
@@ -120,6 +120,10 @@ namespace CumulusMX
 					//if (decimal.TryParse(fields[offset + 9], invc, out varDec)) rec.WeeklyRain = varDec;
 					//if (decimal.TryParse(fields[offset + 10], invc, out varDec)) rec.MonthlyRain = varDec;
 					if (decimal.TryParse(fields[offset + 11], invc, out varDec)) rec.RainYear = varDec;
+				}
+				else
+				{
+					cumulus.LogErrorMessage($"EcowittLogFile.DataParser: Error processing piezo rain, the log entry does not contain sufficent records, it contains {fields.Length} fields should be {offset + 12} or more");
 				}
 
 				//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Converting record {fields[0]} to MX units");

@@ -3049,7 +3049,7 @@ namespace CumulusMX
 		{
 			var buffer = new byte[6];
 			Program.RandGenerator.NextBytes(buffer);
-			var result = String.Concat(buffer.Select(x => string.Format("{0}:", x.ToString("X2"))).ToArray());
+			var result = string.Concat(buffer.Select(x => string.Format("{0}:", x.ToString("X2"))).ToArray());
 			return result.TrimEnd(':');
 		}
 
