@@ -19,7 +19,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Add "live" LDS-01 data
 	- Add speculative "historic" LDS-01 data
 - Add piezo rain processing to Ecowitt SD card catch-up
-
+- Web tags `<#snowdepth>` and `<#snow24h>` now accept the dp= and tc= web tag parameters
 
 ## B4079
 - You can now embed web tags in both Standard Alarms and User Defined Alarm email messages
@@ -91,6 +91,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Davis station: Fix for the 00:00 (or 09:00) rainfall being counted on both days during catch-up
 - User Alarms not accepting "equals" type
 - Fix Station Pressure calibration settings being read from the Pressure settings in Cumulus.ini
+- Web tags `<#snowdepth>` and `<#snow24h>` now accept the dp= and tc= web tag parameters
 
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01

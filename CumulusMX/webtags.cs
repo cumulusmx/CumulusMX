@@ -1467,7 +1467,7 @@ namespace CumulusMX
 		{
 			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
 			var val = GetSnowDepth(ts.Date);
-			return val.HasValue ? CheckRc(val.Value.ToString(cumulus.SnowFormat), tagParams) : tagParams.Get("nv") ?? "-";
+			return val.HasValue ? CheckRcDp(val.Value, tagParams, cumulus.SnowDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagsnowlying(Dictionary<string, string> tagParams)
@@ -1480,7 +1480,7 @@ namespace CumulusMX
 		{
 			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
 			var val = GetSnow24h(ts.Date);
-			return val.HasValue ? CheckRc(val.Value.ToString(cumulus.SnowFormat), tagParams) : tagParams.Get("nv") ?? "-";
+			return val.HasValue ? CheckRcDp(val.Value, tagParams, cumulus.SnowDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagsnowcomment(Dictionary<string, string> tagParams)
@@ -4486,12 +4486,12 @@ namespace CumulusMX
 
 		private string TagCo2(Dictionary<string, string> tagParams)
 		{
-			return station.CO2.ToString();
+			return station.CO2.HasValue ? station.CO2.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_24h.ToString();
+			return station.CO2_24h.HasValue ? station.CO2_24h.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm2p5(Dictionary<string, string> tagParams)
