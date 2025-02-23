@@ -160,7 +160,7 @@ namespace CumulusMX
 
 			var station = new JsonStation()
 			{
-				manufacturer = cumulus.Manufacturer,
+				manufacturer = (int) cumulus.Manufacturer,
 				stationtype = cumulus.StationType,
 				stationmodel = cumulus.StationModel,
 				davisvp2 = davisvp,
@@ -516,7 +516,7 @@ namespace CumulusMX
 						cumulus.LogWarningMessage("Station type changed, restart required");
 						Cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow);
 					}
-					cumulus.Manufacturer = settings.station.manufacturer;
+					cumulus.Manufacturer = (Cumulus.StationManufacturer) settings.station.manufacturer;
 					cumulus.StationType = settings.station.stationtype;
 					cumulus.StationModel = settings.station.stationmodel;
 				}

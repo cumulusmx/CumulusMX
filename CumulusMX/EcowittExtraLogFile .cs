@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using MimeKit;
@@ -181,7 +181,7 @@ namespace CumulusMX
 			baseRec.pm25 = extraRec.pm25;
 			baseRec.UserTemp = extraRec.UserTemp;
 			baseRec.LdsAir = extraRec.LdsAir;
-			baseRec.LsdDepth = extraRec.LsdDepth;
+			baseRec.LdsDepth = extraRec.LdsDepth;
 
 			return baseRec;
 		}

@@ -1,6 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+
+using static System.Collections.Specialized.BitVector32;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CumulusMX
 {
@@ -98,15 +101,26 @@ namespace CumulusMX
 
 				var offset = Header[14][..6] == "Hourly" ? 14 : 17; // could be "Hourly Rain(mm)" or "Console Battery (V)"
 
-				if (decimal.TryParse(fields[offset], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
-				//if (decimal.TryParse(fields[18], invc, out varDec)) rec.EventRain = varDec;
-				//if (decimal.TryParse(fields[19], invc, out varDec)) rec.DailyRain = varDec;
-				//if (decimal.TryParse(fields[20], invc, out varDec)) rec.WeeklyRain = varDec;
-				//if (decimal.TryParse(fields[21], invc, out varDec)) rec.MonthlyRain = varDec;
-				if (decimal.TryParse(fields[offset + 5], invc, out varDec)) rec.RainYear = varDec;
-
-				// TODO: Add piezo rain parsing
-
+				if (cumulus.Gw1000PrimaryRainSensor == 0)
+				{
+					// Tipping bucket
+					if (decimal.TryParse(fields[offset], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
+					//if (decimal.TryParse(fields[offset + 1], invc, out varDec)) rec.EventRain = varDec;
+					//if (decimal.TryParse(fields[offset + 2], invc, out varDec)) rec.DailyRain = varDec;
+					//if (decimal.TryParse(fields[offset + 3], invc, out varDec)) rec.WeeklyRain = varDec;
+					//if (decimal.TryParse(fields[offset + 4], invc, out varDec)) rec.MonthlyRain = varDec;
+					if (decimal.TryParse(fields[offset + 5], invc, out varDec)) rec.RainYear = varDec;
+				}
+				else
+				{
+					// piezo rain
+					if (decimal.TryParse(fields[offset + 6], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
+					//if (decimal.TryParse(fields[offset + 7], invc, out varDec)) rec.EventRain = varDec;
+					//if (decimal.TryParse(fields[offset + 8], invc, out varDec)) rec.DailyRain = varDec;
+					//if (decimal.TryParse(fields[offset + 9], invc, out varDec)) rec.WeeklyRain = varDec;
+					//if (decimal.TryParse(fields[offset + 10], invc, out varDec)) rec.MonthlyRain = varDec;
+					if (decimal.TryParse(fields[offset + 11], invc, out varDec)) rec.RainYear = varDec;
+				}
 
 				//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Converting record {fields[0]} to MX units");
 
@@ -210,8 +224,9 @@ namespace CumulusMX
 
 		private void HeaderParser (string header)
 		{
-			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
 			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(mph),Gust(mph),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
+			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
+			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm),Piezo Hourly Rain(mm),Piezo Event Rain(mm),Piezo Daily Rain(mm),Piezo Weekly Rain(mm),Piezo Monthly Rain(mm),Piezo Yearly Rain(mm)
 
 			cumulus.LogDataMessage($"EcowittLogFile.HeaderParser: File header: {header}");
 

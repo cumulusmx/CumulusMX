@@ -1486,7 +1486,7 @@ namespace CumulusMX
 				LogMessage("Opening station type " + StationType);
 			}
 
-			Manufacturer = GetStationManufacturer(StationType);
+			Manufacturer = GetStationManufacturerFromType(StationType);
 			switch (StationType)
 			{
 				case StationTypes.FineOffset:
@@ -1699,7 +1699,7 @@ namespace CumulusMX
 					StartTimersAndSensors();
 				}
 
-				if ((StationType == StationTypes.WMR100) || (StationType == StationTypes.EasyWeather) || (Manufacturer == OREGON) || StationType == StationTypes.Simulator)
+				if ((StationType == StationTypes.WMR100) || (StationType == StationTypes.EasyWeather) || (Manufacturer == StationManufacturer.OREGON) || StationType == StationTypes.Simulator)
 				{
 					station.StartLoop();
 				}
@@ -3855,7 +3855,7 @@ namespace CumulusMX
 
 			StationType = ini.GetValue("Station", "Type", -1);
 			StationModel = ini.GetValue("Station", "Model", string.Empty);
-			Manufacturer = GetStationManufacturer(StationType);
+			Manufacturer = GetStationManufacturerFromType(StationType);
 
 			FineOffsetStation = (StationType == StationTypes.FineOffset || StationType == StationTypes.FineOffsetSolar);
 			DavisStation = (StationType == StationTypes.VantagePro || StationType == StationTypes.VantagePro2);
@@ -7992,7 +7992,7 @@ namespace CumulusMX
 		public string PressTrendFormat { get; set; }
 		public string AppDir { get; set; }
 
-		public int Manufacturer { get; set; }
+		public StationManufacturer Manufacturer { get; set; }
 		public int ImetLoggerInterval { get; set; }
 		public TimeSpan DayLength { get; set; }
 		internal DateTime Dawn;
@@ -8058,23 +8058,36 @@ namespace CumulusMX
 		internal string Gw1000IpAddress;
 		internal string Gw1000MacAddress;
 		internal bool Gw1000AutoUpdateIpAddress = true;
+		/// <summary>
+		/// 0 = default
+		/// 1-8 = extra t/h sensor number
+		/// 99 =use indoor sensor
+		/// </summary>
 		internal int Gw1000PrimaryTHSensor;
+		/// <summary>
+		/// 0 = Tipping bucket
+		/// 1 = Piezo
+		/// </summary>
 		internal int Gw1000PrimaryRainSensor;
 
 		internal Timer WebTimer = new();
 
-		public const int DAVIS = 0;
-		public const int OREGON = 1;
-		public const int EW = 2;
-		public const int LACROSSE = 3;
-		public const int OREGONUSB = 4;
-		public const int INSTROMET = 5;
-		public const int ECOWITT = 6;
-		public const int HTTPSTATION = 7;
-		public const int AMBIENT = 8;
-		public const int WEATHERFLOW = 9;
-		public const int SIMULATOR = 10;
-		public const int JSONSTATION = 11;
+		public enum StationManufacturer
+		{
+			UNKNOWN = -1,
+			DAVIS = 0,
+			OREGON = 1,
+			EW = 2,
+			LACROSSE = 3,
+			OREGONUSB = 4,
+			INSTROMET = 5,
+			ECOWITT = 6,
+			HTTPSTATION = 7,
+			AMBIENT = 8,
+			WEATHERFLOW = 9,
+			SIMULATOR = 10,
+			JSONSTATION = 11
+		}
 
 		internal string ReportPath;
 		public static string LatestError { get; set; }
@@ -14347,23 +14360,23 @@ namespace CumulusMX
 			FtpLoggerMXIN = serviceProvider.GetService<ILoggerFactory>().CreateLogger("MXI");
 		}
 
-		private static int GetStationManufacturer(int type)
+		private static StationManufacturer GetStationManufacturerFromType(int type)
 		{
 			return type switch
 			{
-				StationTypes.FineOffset or StationTypes.FineOffsetSolar or StationTypes.EasyWeather => EW,
-				StationTypes.VantagePro or StationTypes.VantagePro2 or StationTypes.WLL or StationTypes.DavisCloudWll or StationTypes.DavisCloudVP2 => DAVIS,
-				StationTypes.WMR928 or StationTypes.WM918 => OREGON,
-				StationTypes.WMR200 or StationTypes.WMR100 => OREGONUSB,
-				StationTypes.WS2300 => LACROSSE,
-				StationTypes.Instromet => INSTROMET,
-				StationTypes.GW1000 or StationTypes.HttpEcowitt or StationTypes.EcowittCloud or StationTypes.EcowittHttpApi => ECOWITT,
-				StationTypes.Tempest => WEATHERFLOW,
-				StationTypes.HttpWund => HTTPSTATION,
-				StationTypes.HttpAmbient => AMBIENT,
-				StationTypes.Simulator => SIMULATOR,
-				StationTypes.JsonStation => JSONSTATION,
-				_ => -1,
+				StationTypes.FineOffset or StationTypes.FineOffsetSolar or StationTypes.EasyWeather => StationManufacturer.EW,
+				StationTypes.VantagePro or StationTypes.VantagePro2 or StationTypes.WLL or StationTypes.DavisCloudWll or StationTypes.DavisCloudVP2 => StationManufacturer.DAVIS,
+				StationTypes.WMR928 or StationTypes.WM918 => StationManufacturer.OREGON,
+				StationTypes.WMR200 or StationTypes.WMR100 => StationManufacturer.OREGONUSB,
+				StationTypes.WS2300 => StationManufacturer.LACROSSE,
+				StationTypes.Instromet => StationManufacturer.INSTROMET,
+				StationTypes.GW1000 or StationTypes.HttpEcowitt or StationTypes.EcowittCloud or StationTypes.EcowittHttpApi => StationManufacturer.ECOWITT,
+				StationTypes.Tempest => StationManufacturer.WEATHERFLOW,
+				StationTypes.HttpWund => StationManufacturer.HTTPSTATION,
+				StationTypes.HttpAmbient => StationManufacturer.AMBIENT,
+				StationTypes.Simulator => StationManufacturer.SIMULATOR,
+				StationTypes.JsonStation => StationManufacturer.JSONSTATION,
+				_ => StationManufacturer.UNKNOWN,
 			};
 		}
 

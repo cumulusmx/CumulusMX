@@ -30,7 +30,7 @@ namespace CumulusMX
 
 		public WS2300Station(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = Cumulus.LACROSSE;
+			cumulus.Manufacturer = Cumulus.StationManufacturer.LACROSSE;
 			calculaterainrate = true;
 
 			cumulus.LogMessage("WS2300: Attempting to open " + cumulus.ComportName);

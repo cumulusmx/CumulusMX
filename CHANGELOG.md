@@ -10,10 +10,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b40xx\]][13] - 2025-02-20
+## [4.4.0 \[b40xx\]][13] - 2025-02-23
 
 ## B4080
 - Add averaging to 3 snow increment values
+- Fix AI2 Ecowitt TCP station name change
+- Ecowitt Cloud Station
+	- Add "live" LDS-01 data
+	- Add speculative "historic" LDS-01 data
+- Add piezo rain processing to Ecowitt SD card catch-up
 
 
 ## B4079

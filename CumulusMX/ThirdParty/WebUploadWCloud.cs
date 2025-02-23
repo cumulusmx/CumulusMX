@@ -178,7 +178,7 @@ namespace CumulusMX.ThirdParty
 				sb.Append("&rainrate=" + (int) Math.Round(ConvertUnits.UserRainToMM(station.RainRate) * 10));
 
 			// ET
-			if (SendSolar && cumulus.Manufacturer == Cumulus.DAVIS)
+			if (SendSolar && cumulus.Manufacturer == Cumulus.StationManufacturer.DAVIS)
 			{
 				sb.Append("&et=" + (int) Math.Round(ConvertUnits.UserRainToMM(station.ET) * 10));
 			}
@@ -306,7 +306,7 @@ namespace CumulusMX.ThirdParty
 
 				if (moist.HasValue)
 				{
-					if (cumulus.Manufacturer == Cumulus.EW)
+					if (cumulus.Manufacturer == Cumulus.StationManufacturer.EW)
 					{
 						// very! approximate conversion from percentage to cb
 						moist = (100 - moist) * 2;

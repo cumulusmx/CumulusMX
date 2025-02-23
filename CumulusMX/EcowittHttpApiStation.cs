@@ -1511,17 +1511,32 @@ namespace CumulusMX
 			{
 				var sensor = sensors[i];
 
-				if (sensor.channel.HasValue && sensor.PM25.HasValue)
+				if (sensor.channel.HasValue)
 				{
-					try
+					if (sensor.PM25.HasValue)
 					{
-						DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
-						//DoAirQualityAvg(sensor.PM25_24H.Value, sensor.channel.Value);
+						try
+						{
+							DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, $"ProcessChPm25: Error on sensor {sensor.channel}");
+						}
 					}
-					catch (Exception ex)
+					/*
+					if (sensor.PM25_24H.HasValue)
 					{
-						cumulus.LogExceptionMessage(ex, $"ProcessChPm25: Error on sensor {sensor.channel}");
+						try
+						{
+							DoAirQualityAvg(sensor.PM25_24H.Value, sensor.channel.Value);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, $"ProcessChPm25_24H: Error on sensor {sensor.channel}");
+						}
 					}
+					*/
 				}
 			}
 		}
