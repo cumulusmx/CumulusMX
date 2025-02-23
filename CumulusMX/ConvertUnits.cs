@@ -565,6 +565,23 @@ namespace CumulusMX
 			};
 		}
 
+		public static decimal? LaserMmToUser(decimal? value)
+		{
+			if (!value.HasValue)
+			{
+				return null;
+			}
+
+			return Program.cumulus.Units.LaserDistance switch
+			{
+				0 => Math.Round(value.Value * (decimal) 0.1, 1),
+				1 => Math.Round(value.Value * (decimal) 0.03937008, 2),
+				2 => value,
+				_ => 0,
+			};
+		}
+
+
 		public static decimal LaserInchesToUser(decimal value)
 		{
 			return Program.cumulus.Units.LaserDistance switch
@@ -572,6 +589,22 @@ namespace CumulusMX
 				0 => Math.Round(value * (decimal) 2.54, 1),
 				1 => Math.Round(value, 2),
 				2 => Math.Round(value *	(decimal) 25.4, 0),
+				_ => 0,
+			};
+		}
+
+		public static decimal? LaserInchesToUser(decimal? value)
+		{
+			if (!value.HasValue)
+			{
+				return null;
+			}
+
+			return Program.cumulus.Units.LaserDistance switch
+			{
+				0 => Math.Round(value.Value * (decimal) 2.54, 1),
+				1 => Math.Round(value.Value, 2),
+				2 => Math.Round(value.Value * (decimal) 25.4, 0),
 				_ => 0,
 			};
 		}

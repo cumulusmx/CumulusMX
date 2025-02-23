@@ -8,6 +8,7 @@ namespace CumulusMX
 	internal class EcowittExtraLogFile
 	{
 		private TempUnits TempUnit;
+		private LaserUnits LaserUnit;
 
 		private const int fieldCount = 82;
 		private readonly List<string> Data;
@@ -114,16 +115,14 @@ namespace CumulusMX
 					if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.UserTemp[i] = varDec;
 				}
 
-				// LDS Air, fields 82 - 85
+				// LDS Air,   fields 82, 85, 88, 91
+				// LDS Depth, fields 83, 86, 89, 92
+				// LDS Heat,  fields 84, 87, 90, 93
 				for (int i = 1; i <= 4; i++)
 				{
 					if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.LdsAir[i] = varDec;
-				}
-
-				// TODO: Add LDS Depth
-				for (int i = 1; i <= 4 ; i++)
-				{
-					//if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.LsdDepth[i] = varDec;
+					if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.LdsDepth[i] = varDec;
+					field++; // skip heat
 				}
 
 				// end of records
@@ -159,6 +158,54 @@ namespace CumulusMX
 					}
 				}
 
+				if ((int) LaserUnit != cumulus.Units.LaserDistance)
+				{
+					// convert all the laser distances to user units
+					switch (LaserUnit)
+					{
+						case LaserUnits.mm:
+							for (var i = 0; i < 4; i++)
+							{
+								rec.LdsAir[i] = ConvertUnits.LaserMmToUser(rec.LdsAir[i]);
+								rec.LdsDepth[i] = ConvertUnits.LaserMmToUser(rec.LdsDepth[i]);
+							}
+							break;
+
+						case LaserUnits.cm:
+							for (var i = 0; i < 4; i++)
+							{
+								rec.LdsAir[i] = ConvertUnits.LaserMmToUser(rec.LdsAir[i] * 10);
+								rec.LdsDepth[i] = ConvertUnits.LaserMmToUser(rec.LdsDepth[i] * 10);
+							}
+							break;
+
+						case LaserUnits.inch:
+							for (var i = 0; i < 4; i++)
+							{
+								rec.LdsAir[i] = ConvertUnits.LaserInchesToUser(rec.LdsAir[i]);
+								rec.LdsDepth[i] = ConvertUnits.LaserInchesToUser(rec.LdsDepth[i]);
+							}
+							break;
+
+						case LaserUnits.ft:
+							for (var i = 0; i < 4; i++)
+							{
+								rec.LdsAir[i] = ConvertUnits.LaserInchesToUser(rec.LdsAir[i] / 12);
+								rec.LdsDepth[i] = ConvertUnits.LaserInchesToUser(rec.LdsDepth[i] / 12);
+							}
+							break;
+
+						case LaserUnits.m:
+							for (var i = 0; i < 4; i++)
+							{
+								rec.LdsAir[i] = ConvertUnits.LaserMmToUser(rec.LdsAir[i] * 1000);
+								rec.LdsDepth[i] = ConvertUnits.LaserMmToUser(rec.LdsDepth[i] * 1000);
+							}
+							break;
+					}
+				}
+
+
 				retList.Add(time, rec);
 			}
 
@@ -189,6 +236,7 @@ namespace CumulusMX
 		private void HeaderParser (string header)
 		{
 			// Time,CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%),CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%),CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃),CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃),CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃),CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃),CH8 HeatIndex(℃),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),SoilMoisture CH2(%),SoilMoisture CH3(%),SoilMoisture CH4(%),SoilMoisture CH5(%),SoilMoisture CH6(%),SoilMoisture CH7(%),SoilMoisture CH8(%),SoilMoisture CH9(%),SoilMoisture CH10(%),SoilMoisture CH11(%),SoilMoisture CH12(%),SoilMoisture CH13(%),SoilMoisture CH14(%),SoilMoisture CH15(%),SoilMoisture CH16(%),Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),LDS_Air CH1(mm),LDS_Air CH2(mm),LDS_Air CH3(mm),LDS_Air CH4(mm),
+			// Time,CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%),CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%),CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃),CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃),CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃),CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃),CH8 HeatIndex(℃),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),SoilMoisture CH2(%),SoilMoisture CH3(%),SoilMoisture CH4(%),SoilMoisture CH5(%),SoilMoisture CH6(%),SoilMoisture CH7(%),SoilMoisture CH8(%),SoilMoisture CH9(%),SoilMoisture CH10(%),SoilMoisture CH11(%),SoilMoisture CH12(%),SoilMoisture CH13(%),SoilMoisture CH14(%),SoilMoisture CH15(%),SoilMoisture CH16(%),Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),LDS_Air CH1(mm),LDS_Depth CH1(mm),LDS_Heat CH1,LDS_Air CH2(mm),LDS_Depth CH2(mm),LDS_Heat CH2,LDS_Air CH3(mm),LDS_Depth CH3(mm),LDS_Heat CH3,LDS_Air CH4(mm),LDS_Depth CH4(mm),LDS_Heat CH4,
 
 			cumulus.LogDataMessage($"EcowittExtraLogFile.HeaderParser: File header: {header}");
 
@@ -202,6 +250,38 @@ namespace CumulusMX
 			}
 
 			TempUnit = fields[1].Contains("(C") || fields[1].Contains('℃') ? TempUnits.C : TempUnits.F;
+
+			if (fields.Length < 94)
+			{
+				cumulus.LogWarningMessage("EcowittExtraLogFile.HeaderParser: Header is missing LDS Depth fields");
+			}
+			else
+			{
+				if (fields[82].Contains("mm"))
+				{
+					LaserUnit = LaserUnits.mm;
+				}
+				else if (fields[82].Contains("inch"))
+				{
+					LaserUnit = LaserUnits.inch;
+				}
+				else if (fields[82].Contains("cm"))
+				{
+					LaserUnit = LaserUnits.cm;
+				}
+				else if (fields[82].Contains("ft"))
+				{
+					LaserUnit = LaserUnits.ft;
+				}
+				else if (fields[82].Contains("m"))
+				{
+					LaserUnit = LaserUnits.m;
+				}
+				else
+				{
+					throw new ArgumentException("Invalid header", nameof(header));
+				}
+			}
 
 			// Save the header
 			Header = fields;
@@ -217,6 +297,14 @@ namespace CumulusMX
 			F = 1
 		}
 
+		private enum LaserUnits
+		{
+			cm = 0,
+			inch = 1,
+			mm = 2,
+			ft = 3,
+			m = 4
+		}
 
 		public class Record
 		{
