@@ -205,7 +205,6 @@ namespace CumulusMX
 					}
 				}
 
-
 				retList.Add(time, rec);
 			}
 

@@ -10,7 +10,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b40xx\]][13] - 2025-02-23
+## [4.4.0 \[b40xx\]][13] - 2025-02-25
+
+## B4001
+- Adds battery level decode for LDS sensors to the Ecowitt Cloud station
 
 ## B4080
 - Add averaging to 3 snow increment values
@@ -20,16 +23,6 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Add speculative "historic" LDS-01 data
 - Add piezo rain processing to Ecowitt SD card catch-up
 - Web tags `<#snowdepth>` and `<#snow24h>` now accept the dp= and tc= web tag parameters
-
-## B4079
-- You can now embed web tags in both Standard Alarms and User Defined Alarm email messages
-- Tweak to the timing of Ecowitt HTTP station GetSensorInfo
-- Custom MySQL Minutes queries are now processed during catch-up
-- AI2 - log viewer/editors should now scroll correctly
-- AI2 - fix to records editors to make buttons work
-- Change the defaults for Snow Minimum Increment to 1cm, 0.5in, 10mm
-- Snow accumulation now requires three consecutive increments/decrements above the minimum threshold to be added to the total
-- Fix Ecowitt web cam URL web tags when camera is on the main station
 
 
 
@@ -619,4 +612,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
-[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4080
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4081

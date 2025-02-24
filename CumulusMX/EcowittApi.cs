@@ -3545,6 +3545,10 @@ namespace CumulusMX
 			public CurrentSensorValDbl leaf_wetness_sensor_ch6 { get; set; }
 			public CurrentSensorValDbl leaf_wetness_sensor_ch7 { get; set; }
 			public CurrentSensorValDbl leaf_wetness_sensor_ch8 { get; set; }
+			public CurrentSensorValDbl ldsbatt_1 { get; set; }
+			public CurrentSensorValDbl ldsbatt_2 { get; set; }
+			public CurrentSensorValDbl ldsbatt_3 { get; set; }
+			public CurrentSensorValDbl ldsbatt_4 { get; set; }
 		}
 
 		internal class CurrentCamera

@@ -1321,6 +1321,10 @@ namespace CumulusMX
 				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch6 != null && data.battery.leaf_wetness_sensor_ch6.value < 1.2);      // volts
 				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch7 != null && data.battery.leaf_wetness_sensor_ch7.value < 1.2);      // volts
 				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch8 != null && data.battery.leaf_wetness_sensor_ch8.value < 1.2);      // volts
+				lowBatt = lowBatt || (data.battery.ldsbatt_1 != null && data.battery.ldsbatt_1.value < 1.2);      // volts
+				lowBatt = lowBatt || (data.battery.ldsbatt_2 != null && data.battery.ldsbatt_2.value < 1.2);      // volts
+				lowBatt = lowBatt || (data.battery.ldsbatt_3 != null && data.battery.ldsbatt_3.value < 1.2);      // volts
+				lowBatt = lowBatt || (data.battery.ldsbatt_4 != null && data.battery.ldsbatt_4.value < 1.2);      // volts
 
 				cumulus.BatteryLowAlarm.Triggered = lowBatt;
 			}
