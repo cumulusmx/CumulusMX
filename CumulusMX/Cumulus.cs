@@ -1392,7 +1392,7 @@ namespace CumulusMX
 
 			WebSock = new MxWebSocket("/ws/", this);
 
-			//var cert = new X509Certificate2(new X509Certificate("c:\\temp\\CumulusMX.pfx", "password", X509KeyStorageFlags.UserKeySet));
+			//var cert = new X509Certificate2(new X509Certificate("c:\\temp\\CumulusMX.pfx", "password", X509KeyStorageFlags.UserKeySet))
 
 			WebServer httpServer = new WebServer(o => o
 					.WithUrlPrefix($"http://*:{HTTPport}/")
@@ -1420,7 +1420,7 @@ namespace CumulusMX
 					.WithoutContentCaching()
 				);
 
-			//httpServer.Listener.AddPrefix($"https://*:{HTTPport + 1000}/");
+			//httpServer.Listener.AddPrefix($"https://*:{HTTPport + 1000}/")
 
 			// Set up the API web server
 			// Some APi functions require the station, so set them after station initialisation
@@ -3227,7 +3227,7 @@ namespace CumulusMX
 				for (int i = 1; i < paramList.Count; i += 2)
 				{
 					// odd numbered entries are keys with "=" on the end - remove that
-					string key = paramList[i].Remove(paramList[i].Length - 1);
+					string key = paramList[i][..^1];
 					// even numbered entries are values
 					string value = paramList[i + 1];
 					tagParams.Add(key, value);
@@ -3705,7 +3705,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => regexLogFileName().Match(f).Success));
+					List<string> fileEntries = [.. Directory.GetFiles(directory).Where(f => regexLogFileName().Match(f).Success)];
 
 					fileEntries.Sort();
 
@@ -3726,7 +3726,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					List<string> fileEntries = new List<string>(Directory.GetFiles(directory).Where(f => regexFtpLogFileName().Match(f).Success));
+					List<string> fileEntries = [.. Directory.GetFiles(directory).Where(f => regexFtpLogFileName().Match(f).Success)];
 
 					fileEntries.Sort();
 
@@ -14108,7 +14108,7 @@ namespace CumulusMX
 			Wund.AddToList(timestamp);
 			Windy.AddToList(timestamp);
 			PWS.AddToList(timestamp);
-			//WOW.AddToList(timestamp);
+			//WOW.AddToList(timestamp)
 			OpenWeatherMap.AddToList(timestamp);
 		}
 

@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-
-using static System.Collections.Specialized.BitVector32;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Text.RegularExpressions;
 
 namespace CumulusMX
 {
-	internal class EcowittLogFile
+	internal partial class EcowittLogFile
 	{
 		private TempUnits TempUnit;
 		private WindUnits WindUnit;
@@ -20,6 +18,8 @@ namespace CumulusMX
 		private string[] Header;
 		private readonly Cumulus cumulus;
 		private DateTime lastLogTime = DateTime.MinValue;
+		private readonly Dictionary<string, int> FieldIndex = [];
+
 
 		public EcowittLogFile(List<string> data, Cumulus cumul)
 		{
@@ -29,6 +29,8 @@ namespace CumulusMX
 			// parse the header
 			HeaderParser(data[0]);
 		}
+
+#pragma warning disable S125 // Sections of code should not be commented out
 
 		public SortedList<DateTime, EcowittApi.HistoricData> DataParser()
 		{
@@ -63,6 +65,7 @@ namespace CumulusMX
 					continue;
 				}
 
+
 				//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]}");
 
 				var rec = new EcowittApi.HistoricData();
@@ -80,50 +83,46 @@ namespace CumulusMX
 
 				decimal varDec;
 				int varInt;
+				int idx;
 
-				if (decimal.TryParse(fields[1], invc, out varDec)) rec.IndoorTemp = varDec;
-				if (int.TryParse(fields[2], out varInt)) rec.IndoorHum = varInt;
-				if (decimal.TryParse(fields[3], invc, out varDec)) rec.Temp = varDec;
-				if (int.TryParse(fields[4], out varInt)) rec.Humidity = varInt;
-				if (decimal.TryParse(fields[5], invc, out varDec)) rec.DewPoint = varDec;
-				if (decimal.TryParse(fields[6], invc, out varDec)) rec.FeelsLike = varDec;
-				if (decimal.TryParse(fields[7], invc, out varDec)) rec.WindSpd = varDec;
-				if (decimal.TryParse(fields[8], invc, out varDec)) rec.WindGust = varDec;
-				if (int.TryParse(fields[9], out varInt)) rec.WindDir = varInt;
-				if (decimal.TryParse(fields[10], invc, out varDec)) rec.StationPressure = varDec;
-				if (decimal.TryParse(fields[11], invc, out varDec)) rec.Pressure = varDec;
-				if (int.TryParse(fields[12], invc, out varInt)) rec.Solar = varInt;
-				if (decimal.TryParse(fields[13], invc, out varDec)) rec.UVI = varDec;
+				if (FieldIndex.TryGetValue("Indoor Temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.IndoorTemp = varDec;
+				if (FieldIndex.TryGetValue("Indoor Humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.IndoorHum = varInt;
+				if (FieldIndex.TryGetValue("Outdoor Temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Temp = varDec;
+				if (FieldIndex.TryGetValue("Outdoor Humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.Humidity = varInt;
+				if (FieldIndex.TryGetValue("Dew Point", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DewPoint = varDec;
+				if (FieldIndex.TryGetValue("Feels Like", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.FeelsLike = varDec;
+				if (FieldIndex.TryGetValue("Wind", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WindSpd = varDec;
+				if (FieldIndex.TryGetValue("Gust", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WindGust = varDec;
+				if (FieldIndex.TryGetValue("Wind Direction", out idx) && int.TryParse(fields[idx], out varInt)) rec.WindDir = varInt;
+				if (FieldIndex.TryGetValue("ABS Pressure", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.StationPressure = varDec;
+				if (FieldIndex.TryGetValue("REL Pressure", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Pressure = varDec;
+				if (FieldIndex.TryGetValue("Solar Rad", out idx) && int.TryParse(fields[idx], invc, out varInt)) rec.Solar = varInt;
+				if (FieldIndex.TryGetValue("UV-Index", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.UVI = varDec;
 				// These fields 14,15,16 do not appear in the GW3000 log files :(
-				//if (decimal.TryParse(fields[14], invc, out varDec)) rec.ConsoleBattery = varDec;
-				//if (decimal.TryParse(fields[15], invc, out varDec)) rec.ExternalSupplyBattery = varDec;
-				//if (decimal.TryParse(fields[16], invc, out varDec)) rec.Charge = varDec;
+				//if (FieldIndex.TryGetValue("Console Battery", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.ConsoleBattery = varDec;
+				//if (FieldIndex.TryGetValue("External Supply Battery", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.ExternalSupplyBattery = varDec;
+				//if (FieldIndex.TryGetValue("Charge", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Charge = varDec;
 
-				var offset = Header[14][..6] == "Hourly" ? 14 : 17; // could be "Hourly Rain(mm)" or "Console Battery (V)"
 
 				if (cumulus.Gw1000PrimaryRainSensor == 0)
 				{
 					// Tipping bucket
-					if (decimal.TryParse(fields[offset], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
-					//if (decimal.TryParse(fields[offset + 1], invc, out varDec)) rec.EventRain = varDec;
-					//if (decimal.TryParse(fields[offset + 2], invc, out varDec)) rec.DailyRain = varDec;
-					//if (decimal.TryParse(fields[offset + 3], invc, out varDec)) rec.WeeklyRain = varDec;
-					//if (decimal.TryParse(fields[offset + 4], invc, out varDec)) rec.MonthlyRain = varDec;
-					if (decimal.TryParse(fields[offset + 5], invc, out varDec)) rec.RainYear = varDec;
+					if (FieldIndex.TryGetValue("Hourly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
+					//if (FieldIndex.TryGetValue("Event Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.EventRain = varDec;
+					//if (FieldIndex.TryGetValue("Daily Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DailyRain = varDec;
+					//if (FieldIndex.TryGetValue("Weekly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WeeklyRain = varDec;
+					//if (FieldIndex.TryGetValue("Monthly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.MonthlyRain = varDec;
+					if (FieldIndex.TryGetValue("Yearly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.RainYear = varDec;
 				}
-				else if (fields.Length >= offset + 12)
+				else if (fields.Length >= 25)
 				{
 					// piezo rain
-					if (decimal.TryParse(fields[offset + 6], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
-					//if (decimal.TryParse(fields[offset + 7], invc, out varDec)) rec.EventRain = varDec;
-					//if (decimal.TryParse(fields[offset + 8], invc, out varDec)) rec.DailyRain = varDec;
-					//if (decimal.TryParse(fields[offset + 9], invc, out varDec)) rec.WeeklyRain = varDec;
-					//if (decimal.TryParse(fields[offset + 10], invc, out varDec)) rec.MonthlyRain = varDec;
-					if (decimal.TryParse(fields[offset + 11], invc, out varDec)) rec.RainYear = varDec;
-				}
-				else
-				{
-					cumulus.LogErrorMessage($"EcowittLogFile.DataParser: Error processing piezo rain, the log entry does not contain sufficent records, it contains {fields.Length} fields should be {offset + 12} or more");
+					if (FieldIndex.TryGetValue("Piezo Hourly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
+					//if (FieldIndex.TryGetValue("Piezo Event Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.EventRain = varDec;
+					//if (FieldIndex.TryGetValue("Piezo Daily Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DailyRain = varDec;
+					//if (FieldIndex.TryGetValue("Piezo Weekly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WeeklyRain = varDec;
+					//if ((FieldIndex.TryGetValue("Piezo Monthly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.MonthlyRain = varDec;
+					if (FieldIndex.TryGetValue("Piezo Yearly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.RainYear = varDec;
 				}
 
 				//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Converting record {fields[0]} to MX units");
@@ -224,6 +223,7 @@ namespace CumulusMX
 			return retList;
 		}
 
+#pragma warning restore S125 // Sections of code should not be commented out
 
 
 		private void HeaderParser (string header)
@@ -237,33 +237,46 @@ namespace CumulusMX
 			// split on commas
 			var fields = header.Split(',');
 
-			if (fields.Length < fieldCount)
-			{
-				// invalid header
-				throw new ArgumentException("Invalid header", nameof(header));
-			}
-
-			TempUnit = fields[1].Contains('C') || fields[1].Contains('℃') ? TempUnits.C : TempUnits.F;
-
-			if (fields[7].Contains("m/s")) WindUnit = WindUnits.ms;
-			else if (fields[7].Contains("mph")) WindUnit = WindUnits.mph;
-			else if (fields[7].Contains("km/h")) WindUnit = WindUnits.kph;
-			else if (fields[7].Contains("knots")) WindUnit = WindUnits.knots;
-			else WindUnit = 0;
-
-
-			if (fields[11].Contains("hPa")) PressUnit = PressUnits.hPa;
-			else if (fields[11].Contains("inHg")) PressUnit = PressUnits.inHg;
-			else if (fields[11].Contains("kPa")) PressUnit = PressUnits.kPa;
-			else PressUnit = 0;
-
-			RainUnit = fields[15].Contains("mm") ? RainUnits.mm : RainUnits.inch;
-
 			// Save the header
 			Header = fields;
 
 			// remove header line from the data
 			Data.RemoveAt(0);
+
+			if (fields.Length < fieldCount)
+			{
+				// invalid header
+				cumulus.LogErrorMessage("EcowittLogFile.HeaderParser: Invalid header in file = " + header);
+				return;
+			}
+
+			// create a fields index
+			var unitRegex = UnitRegEx();
+
+			for (var i = 0; i < fields.Length; i++)
+			{
+				string cleanedHeader = unitRegex.Replace(fields[i], "").Trim();
+				FieldIndex[cleanedHeader] = i;
+			}
+
+			TempUnit = fields[FieldIndex["Indoor Temperature"]].EndsWith("C)") || fields[FieldIndex["Indoor Temperature"]].EndsWith("℃)") ? TempUnits.C : TempUnits.F;
+
+			var wind = FieldIndex["Wind"];
+
+			if (fields[wind].EndsWith("m/s)")) WindUnit = WindUnits.ms;
+			else if (fields[wind].EndsWith("mph)")) WindUnit = WindUnits.mph;
+			else if (fields[wind].EndsWith("km/h)")) WindUnit = WindUnits.kph;
+			else if (fields[wind].EndsWith("knots)")) WindUnit = WindUnits.knots;
+			else WindUnit = 0;
+
+
+			var press = FieldIndex["ABS Pressure"];
+			if (fields[press].EndsWith("hPa)")) PressUnit = PressUnits.hPa;
+			else if (fields[press].EndsWith("inHg)")) PressUnit = PressUnits.inHg;
+			else if (fields[press].EndsWith("kPa)")) PressUnit = PressUnits.kPa;
+			else PressUnit = 0;
+
+			RainUnit = fields[FieldIndex["Hourly Rain"]].EndsWith("mm)") ? RainUnits.mm : RainUnits.inch;
 		}
 
 
@@ -322,5 +335,8 @@ namespace CumulusMX
 			public double? MonthlyRain { get; set; }
 			public double? YearlyRain { get; set; }
 		}
+
+		[GeneratedRegex(@"\(.*?\)")]
+		private partial Regex UnitRegEx();
 	}
 }

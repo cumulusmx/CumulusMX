@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace CumulusMX
 {
@@ -277,6 +277,20 @@ namespace CumulusMX
 				return tempC;
 			else
 				return tempC + ((5.0 / 9.0) * (ActualVapourPressure2008(tempC, humidity) - 10.0));
+		}
+
+		/// <summary>
+		/// Calculates the Vapour Pressure Deficit in hPa
+		/// </summary>
+		/// <remarks>
+		/// https://en.wikipedia.org/wiki/Vapour-pressure_deficit
+		/// </remarks>
+		/// <param name="tempC">Temperature in Celsius</param>
+		/// <param name="humidity">Relative humidity in percentage</param>
+		/// <returns>Vapour Pressure Deficit in hPa</returns>
+		public static double VapourPressureDeficit(double tempC, int humidity)
+		{
+			return SaturationVapourPressure2008(tempC) * (1 - humidity / 100);
 		}
 
 		public static double CToF(double tempC)

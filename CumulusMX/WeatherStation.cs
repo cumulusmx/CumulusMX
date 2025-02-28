@@ -516,7 +516,7 @@ namespace CumulusMX
 						lines = lines.Take(lines.Length - 1).ToArray();
 						rewrite = true;
 					}
-						//Strip the "null line" from file
+					//Strip the "null line" from file
 					while (lines[^1][0] < 32)
 					{
 						cumulus.LogMessage($"{prefix} {fileName} Removed last line of nul's from file");
@@ -658,7 +658,7 @@ namespace CumulusMX
 			{
 				if (midnightrainfound)
 				{
-					if (Math.Abs(MidnightRainCount - midnightraincounter) < Math.Pow(10, - cumulus.RainDPlaces))
+					if (Math.Abs(MidnightRainCount - midnightraincounter) < Math.Pow(10, -cumulus.RainDPlaces))
 					{
 						cumulus.LogMessage($"GetRainCounter: Rain day start counter {RainCounterDayStart:F4} and midnight rain counter {midnightraincounter:F4} match within rounding error, setting midnight rain to rain day start value");
 						MidnightRainCount = RainCounterDayStart;
@@ -712,7 +712,7 @@ namespace CumulusMX
 
 		public void GetRainFallTotals()
 		{
-			cumulus.LogMessage($"GetRainFallTotals: Getting rain totals, rain season start = {cumulus.RainSeasonStart}, rain week start = {cumulus.RainWeekStart}-{((DayOfWeek)cumulus.RainWeekStart)}");
+			cumulus.LogMessage($"GetRainFallTotals: Getting rain totals, rain season start = {cumulus.RainSeasonStart}, rain week start = {cumulus.RainWeekStart}-{((DayOfWeek) cumulus.RainWeekStart)}");
 			RainThisWeek = 0;
 			RainThisMonth = 0;
 			RainThisYear = 0;
@@ -725,7 +725,7 @@ namespace CumulusMX
 			// get today's date offset by rain season start for year check
 			int offsetYearToday = ModifiedNow.AddMonths(-(cumulus.RainSeasonStart - 1)).Year;
 			// get this weeks date offset
-			var dasysSinceStartOfWeek = (int)ModifiedNow.DayOfWeek - cumulus.RainWeekStart;
+			var dasysSinceStartOfWeek = (int) ModifiedNow.DayOfWeek - cumulus.RainWeekStart;
 			if (dasysSinceStartOfWeek < 0)
 			{
 				dasysSinceStartOfWeek += 7;
@@ -1991,7 +1991,7 @@ namespace CumulusMX
 						_ = cumulus.WindGuru.DoUpdate(now);
 					}
 
-					if (cumulus.AWEKAS.Enabled && cumulus.AWEKAS.SynchronisedUpdate && (now.Minute % (cumulus.AWEKAS.Interval/60)) == 0 &&  !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
+					if (cumulus.AWEKAS.Enabled && cumulus.AWEKAS.SynchronisedUpdate && (now.Minute % (cumulus.AWEKAS.Interval / 60)) == 0 && !String.IsNullOrWhiteSpace(cumulus.AWEKAS.ID))
 					{
 						_ = cumulus.AWEKAS.DoUpdate(now);
 					}
@@ -3483,7 +3483,7 @@ namespace CumulusMX
 									{
 										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local))
 										{
-											var val =  double.TryParse(st[i + 40], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											var val = double.TryParse(st[i + 40], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
 									}
@@ -4608,7 +4608,7 @@ namespace CumulusMX
 
 								if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
 								{
-									sbSol.Append($"[{jsTime},{(rec.SolarRad.HasValue ?(int) rec.SolarRad.Value : "null")}],");
+									sbSol.Append($"[{jsTime},{(rec.SolarRad.HasValue ? (int) rec.SolarRad.Value : "null")}],");
 
 									sbMax.Append($"[{jsTime},{(int) rec.CurrentSolarMax}],");
 								}
@@ -6060,7 +6060,7 @@ namespace CumulusMX
 			// Davis VP2 console loses todays rainfall when it is power cycled
 			// so check if the current value is less than previous and has returned to the previous midnight value
 			if (Math.Round(RainCounter, cumulus.RainDPlaces) < Math.Round(previoustotal, cumulus.RainDPlaces) &&
-				Math.Abs(RainCounter - MidnightRainCount)  < Math.Pow(10, -cumulus.RainDPlaces) &&
+				Math.Abs(RainCounter - MidnightRainCount) < Math.Pow(10, -cumulus.RainDPlaces) &&
 				cumulus.StationType == StationTypes.VantagePro2)
 			{
 				var counterLost = previoustotal - MidnightRainCount;
@@ -12563,7 +12563,7 @@ namespace CumulusMX
 				json.Append(",\"Snow24h\":");
 				if (result[0].Snow24h.HasValue)
 				{
-					json.Append(result[0].Snow24h.Value.ToString("F2", CultureInfo.InvariantCulture) );
+					json.Append(result[0].Snow24h.Value.ToString("F2", CultureInfo.InvariantCulture));
 				}
 				else
 				{
@@ -14952,6 +14952,28 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			cumulus.HighWindAlarm.CheckAlarm(WindAverage);
 		}
 
+		public double? VapourPressureDeficit(int sensor)
+		{
+			int hum;
+			double tempC;
+
+			if (sensor == 0)
+			{
+				hum = OutdoorHumidity;
+				tempC = ConvertUnits.UserTempToC(OutdoorTemperature);
+			}
+			else if (sensor <= 8 && ExtraHum[sensor].HasValue && ExtraTemp[sensor].HasValue)
+			{
+				hum = (int) ExtraHum[sensor].Value;
+				tempC = ConvertUnits.UserTempToC(ExtraTemp[sensor].Value);
+			}
+			else
+			{
+				return null;
+			}
+
+			return ConvertUnits.PressMBToUser(MeteoLib.VapourPressureDeficit(tempC, hum));
+		}
 	}
 
 	public class CWindRecent

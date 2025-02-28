@@ -12,8 +12,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.4.0 \[b40xx\]][13] - 2025-02-25
 
-## B4001
+## B4081
 - Adds battery level decode for LDS sensors to the Ecowitt Cloud station
+- New web tag for Vapour Pressure deficit `<#VapourPressDeficit>`
+	- Takes a parameter of `sensor=N` to calculate the VPD for outdoor (=0, default if ommitted), or any extra temp/humidity sensor (=1-8)
+	- Returns the VPD in user pressure units
+	- The returned units can be changed using the standard `unit=` parameter
+
 
 ## B4080
 - Add averaging to 3 snow increment values
@@ -53,6 +58,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add File Ignore time to JSON station advanced settings
 - You can now embed web tags in both Standard Alarms and User Defined Alarm email messages
 - Custom MySQL Minutes queries are now processed during catch-up
+- New web tag for Vapour Pressure deficit `<#VapourPressDeficit>`
+	- Takes a parameter of `sensor=N` to calculate the VPD for outdoor (=0, default if ommitted), or any extra temp/humidity sensor (=1-8)
+	- Returns the VPD in user pressure units
+	- The returned units can be changed using the standard `unit=` parameter
 
 - EXPERIMENTAL
 	- Adds ability to the Ecowitt local HTTP API station to read historic data from the SD card

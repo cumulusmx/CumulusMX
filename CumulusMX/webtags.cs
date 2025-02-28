@@ -4640,6 +4640,20 @@ namespace CumulusMX
 		}
 
 
+		private string TagVapourPressDeficit(Dictionary<string, string> tagParams)
+		{
+			int sensor = 0;
+			if (int.TryParse(tagParams.Get("sensor"), out int val))
+			{
+				sensor = val;
+			}
+
+			var vpd = station.VapourPressureDeficit(sensor);
+
+			return vpd.HasValue ? CheckRcDp(CheckPressUnit(vpd.Value, tagParams), tagParams, cumulus.PressDPlaces) : tagParams.Get("nv") ?? "-";
+		}
+
+
 		// Alarms
 		private string TagLowTempAlarm(Dictionary<string, string> tagParams)
 		{
@@ -6828,6 +6842,8 @@ namespace CumulusMX
 				{ "LeafWetness6", TagLeafWetness6 },
 				{ "LeafWetness7", TagLeafWetness7 },
 				{ "LeafWetness8", TagLeafWetness8 },
+
+				{ "VapourPressDeficit", TagVapourPressDeficit },
 
 				{ "LowTempAlarm", TagLowTempAlarm },
 				{ "HighTempAlarm", TagHighTempAlarm },

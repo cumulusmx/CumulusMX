@@ -3298,6 +3298,7 @@ namespace CumulusMX
 			public decimal? StationPressure { get; set; }
 			public int? Solar { get; set; }
 			public decimal? UVI { get; set; }
+			public DateTime LightningTime { get; set; }
 			public decimal? LightningDist { get; set; }
 			public int? LightningCount { get; set; }
 			public decimal?[] ExtraTemp { get; set; } = new decimal?[9];

@@ -20,6 +20,7 @@ namespace CumulusMX
 
 		public LiveData GetLiveData(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_livedata_info
 			//
 			// Returns an almighty mess! They couldn't have made this any worse if they tried!
@@ -27,6 +28,7 @@ namespace CumulusMX
 			// Some values include the units in the value string, others have a separate field for the unit
 			// The separate sensors return an arrays that only ever contain a single object
 			//
+
 			//	{
 			//		"common_list": [
 			//			{
@@ -154,6 +156,7 @@ namespace CumulusMX
 			//
 			// Sample:
 			// {"common_list": [{"id": "0x02", "val": "23.5", "unit": "C"}, {"id": "0x07", "val": "57%"}, {"id": "3", "val": "23.5", "unit": "C"}, {"id": "0x03", "val": "14.5", "unit": "C"}, {"id": "0x0B", "val": "9.00 km/h"}, {"id": "0x0C", "val": "9.00 km/h"}, {"id": "0x19", "val": "26.64 km/h"}, {"id": "0x15", "val": "646.57 W/m2"}, {"id": "0x17", "val": "3"}, {"id": "0x0A", "val": "295"}], "rain": [{"id": "0x0D", "val": "0.0 mm"}, {"id": "0x0E", "val": "0.0 mm/Hr"}, {"id": "0x10", "val": "0.0 mm"}, {"id": "0x11", "val": "5.0 mm"}, {"id": "0x12", "val": "27.1 mm"}, {"id": "0x13", "val": "681.4 mm", "battery": "0"}], "piezoRain": [{"id": "0x0D", "val": "0.0 mm"}, {"id": "0x0E", "val": "0.0 mm/Hr"}, {"id": "0x10", "val": "0.0 mm"}, {"id": "0x11", "val": "10.7 mm"}, {"id": "0x12", "val": "32.3 mm"}, {"id": "0x13", "val": "678.3 mm", "battery": "5"}], "wh25": [{"intemp": "26.0", "unit": "C", "inhumi": "56%", "abs": "993.0 hPa", "rel": "1027.4 hPa", "battery": "0"}], "lightning": [{"distance": "12 km", "timestamp": "07/15/2024 20: 46: 42", "count": "0", "battery": "3"}], "co2": [{"temp": "24.4", "unit": "C", "humidity": "62%", "PM25": "0.9", "PM25_RealAQI": "4", "PM25_24HAQI": "7", "PM10": "0.9", "PM10_RealAQI": "1", "PM10_24HAQI": "2", "CO2": "323", "CO2_24H": "348", "battery": "6"}], "ch_pm25": [{"channel": "1", "PM25": "6.0", "PM25_RealAQI": "25", "PM25_24HAQI": "24", "battery": "5"}, {"channel": "2", "PM25": "8.0", "PM25_RealAQI": "33", "PM25_24HAQI": "32", "battery": "5"}], "ch_leak": [{"channel": "2", "name": "", "battery": "4", "status": "Normal"}], "ch_aisle": [{"channel": "1", "name": "", "battery": "0", "temp": "24.9", "unit": "C", "humidity": "61%"}, {"channel": "2", "name": "", "battery": "0", "temp": "25.7", "unit": "C", "humidity": "64%"}, {"channel": "3", "name": "", "battery": "0", "temp": "23.6", "unit": "C", "humidity": "63%"}, {"channel": "4", "name": "", "battery": "0", "temp": "34.9", "unit": "C", "humidity": "83%"}, {"channel": "5", "name": "", "battery": "0", "temp": "-14.4", "unit": "C", "humidity": "None"}, {"channel": "6", "name": "", "battery": "0", "temp": "31.5", "unit": "C", "humidity": "56%"}, {"channel": "7", "name": "", "battery": "0", "temp": "8.2", "unit": "C", "humidity": "50%"}], "ch_soil": [{"channel": "1", "name": "", "battery": "5", "humidity": "56%"}, {"channel": "2", "name": "", "battery": "4", "humidity": "47%"}, {"channel": "3", "name": "", "battery": "5", "humidity": "27%"}, {"channel": "4", "name": "", "battery": "5", "humidity": "50%"}, {"channel": "5", "name": "", "battery": "4", "humidity": "54%"}, {"channel": "6", "name": "", "battery": "4", "humidity": "47%"}], "ch_temp": [{"channel": "1", "name": "", "temp": "21.5", "unit": "C", "battery": "3"}, {"channel": "2", "name": "", "temp": "16.4", "unit": "C", "battery": "5"}], "ch_leaf": [{"channel": "1", "name": "CH1 Leaf Wetness", "humidity": "10%", "battery": "5"}]}
+#pragma warning restore S125 // Sections of code should not be commented out
 
 			string responseBody;
 			int responseCode;
@@ -293,6 +296,7 @@ namespace CumulusMX
 
 		public async Task<string> GetVersion(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_version
 
 			// response
@@ -300,7 +304,8 @@ namespace CumulusMX
 			//		"version":	"Version: GW1100A_V2.3.4",
 			//		"newVersion":	"0",
 			//		"platform":	"ecowitt"
-			//	}
+			//	}}
+#pragma warning restore S125 // Sections of code should not be commented out
 
 			string responseBody;
 			int responseCode;
@@ -357,6 +362,7 @@ namespace CumulusMX
 
 		public static void GetDeviceInfo(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_device_info
 
 			//{
@@ -377,6 +383,7 @@ namespace CumulusMX
 			//	"APpwd":	"",
 			//	"time":	"20"
 			//}
+#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void SetDeviceInfo(CancellationToken token)
@@ -389,6 +396,7 @@ namespace CumulusMX
 
 		public static void GetUnits(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_units_info
 
 			// response
@@ -399,6 +407,7 @@ namespace CumulusMX
 			//	"rain": "0",             0=mm 1=in
 			//	"light": "1"             0=kLux=? 1=W/m2 2=kfc
 			//}
+#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void SetUnits(CancellationToken token)
@@ -413,6 +422,7 @@ namespace CumulusMX
 
 		public static void SetLogin(string password)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/set_login_info
 
 			// POST
@@ -426,10 +436,12 @@ namespace CumulusMX
 			//	"online":	"0",
 			//	"msg":	"success"
 			//}
+#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void GetRainTotals(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_rain_totals
 
 			// response
@@ -458,11 +470,12 @@ namespace CumulusMX
 			//}
 
 			// response = 200 - OK
-
+#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void SetRainTotals(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/set_rain_totals
 
 			// POST
@@ -479,11 +492,12 @@ namespace CumulusMX
 			//}
 
 			// response = 200 - OK
-
+#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public async Task<bool> CheckForUpgrade(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/upgrade_process
 
 			// POST
@@ -494,7 +508,7 @@ namespace CumulusMX
 			//	"is_new": false,
 			//	"msg": "It's the latest version\r\nCurrent version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries."
 			//}
-
+#pragma warning restore S125 // Sections of code should not be commented out
 
 			string responseBody;
 			int responseCode;
@@ -605,8 +619,8 @@ namespace CumulusMX
 			string responseBody;
 			int responseCode;
 
-			//responseBody = "{\"info\":{\"Name\":\"     \",\"Type\":\"SDHC/SDXC\",\"Speed\":\"20 MHz\",\"Size\":\"30223 MB\",\"Interval\":\"1\"},\"file_list\":[{\n\t\t\"name\":\t\"202502B.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"71 KB\"\n\t}, {\n\t\t\"name\":\t\"202502Allsensors_A.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"202 KB\"\n\t}]}";
-			//return responseBody.FromJson<SdCard>();
+			//responseBody = "{\"info\":{\"Name\":\"     \",\"Type\":\"SDHC/SDXC\",\"Speed\":\"20 MHz\",\"Size\":\"30223 MB\",\"Interval\":\"1\"},\"file_list\":[{\n\t\t\"name\":\t\"202502B.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"71 KB\"\n\t}, {\n\t\t\"name\":\t\"202502Allsensors_A.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"202 KB\"\n\t}]}"
+			//return responseBody.FromJson<SdCard>()
 
 			try
 			{
@@ -709,15 +723,22 @@ namespace CumulusMX
 				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {lines.Count} lines");
 				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
 
-				List<string> result = new List<string>();
+				// quick check if there is any data in the file!
+				if ((DateTime.TryParseExact(lines[^1].Split(',')[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt < startTime))
+				{
+					return null;
+				}
 
-				// always add the header line
-				result.Add(lines[0]);
+				List<string> result =
+				[
+					// always add the header line
+					lines[0],
+				];
 
-				foreach(var line in lines.Skip(1))
+				foreach (var line in lines.Skip(1))
 				{
 					var fields = line.Split(',');
-					if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
+					if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out dt) && dt >= startTime)
 					{
 						result.Add(line);
 					}
@@ -763,19 +784,11 @@ namespace CumulusMX
 			// Filter the list of files to those that are within the requested time frame
 			var files = new List<string>();
 			var startMonth = new DateTime(startTime.Year, startTime.Month, 1, 0, 0, 0, DateTimeKind.Local);
-
-			foreach (var file in sdCard.file_list)
-			{
-				if (file.name.EndsWith(".csv"))
-				{
-					var fileDate = DateTime.ParseExact(file.name[..6], "yyyyMM", CultureInfo.InvariantCulture);
-					if (fileDate >= startMonth)
-					{
-						files.Add(file.name);
-					}
-				}
-			}
-
+			files.AddRange(from file in sdCard.file_list
+						   where file.name.EndsWith(".csv")
+						   let fileDate = DateTime.ParseExact(file.name[..6], "yyyyMM", CultureInfo.InvariantCulture)
+						   where fileDate >= startMonth
+						   select file.name);
 			cumulus.LogDebugMessage($"LocalApi.GetSdFileList: Found {files.Count} files matching start time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
 
 			return files;

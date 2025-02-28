@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using MimeKit;
-
 namespace CumulusMX
 {
-	internal class EcowittExtraLogFile
+	internal partial class EcowittExtraLogFile
 	{
 		private TempUnits TempUnit;
 		private LaserUnits LaserUnit;
@@ -14,6 +12,7 @@ namespace CumulusMX
 		private readonly List<string> Data;
 		private string[] Header;
 		private readonly Cumulus cumulus;
+		private readonly Dictionary<string, int> FieldIndex = [];
 
 		public EcowittExtraLogFile(List<string> data, Cumulus cumul)
 		{
@@ -56,73 +55,80 @@ namespace CumulusMX
 				decimal varDec;
 				int varInt;
 
-				var field = 1;
+				int idx;
+
+#pragma warning disable S125 // Sections of code should not be commented out
 
 				// Extra Temp/Hum sensors, fields 1 - 32
 				for (var i = 1; i <= 8; i++)
 				{
-					if (fields[field].AsSpan(0,2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraTemp[i] = varDec;
-					//if (fields[field.AsSpan(0,2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraDewPoint[i] = varDec;
-					field++;
-					//if (fields[field].AsSpan(0,2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.ExtraHeatIndex[i] = varDec;
-					field++;
-					if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.ExtraHumidity[i] = varInt;
+					if (FieldIndex.TryGetValue($"CH{i} Temperature", out idx) && fields[idx].AsSpan(0, 2) != nul && decimal.TryParse(fields[idx], invc, out varDec))
+					{
+						rec.ExtraTemp[i] = varDec;
+					}
+
+					if (FieldIndex.TryGetValue($"CH{i} Humidity", out idx) && fields[idx].AsSpan(0, 2) != nul && int.TryParse(fields[idx], out varInt))
+					{
+						rec.ExtraHumidity[i] = varInt;
+					}
 				}
 
-				// Leaf Moisture Sensors, fields 33 - 40
+				// Leaf Moisture Sensors
 				for (var i = 1; i <= 8; i++)
 				{
-					if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.LeafWetness[i] = varInt;
+					if (FieldIndex.TryGetValue($"WH35 CH{i}hum", out idx) && fields[idx].AsSpan(0, 2) != nul && int.TryParse(fields[idx], out varInt))
+					{
+						rec.LeafWetness[i] = varInt;
+					}
 				}
 
-				// Lightning, fields 41, 42
-				if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.LightningCount = varInt;
-				if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], out varDec)) rec.LightningDist = varDec;
+				// Lightning
+				if (FieldIndex.TryGetValue("Thunder time", out idx) && fields[idx].AsSpan(0, 2) != nul && long.TryParse(fields[idx], out long varLong)) rec.LightningTime = Utils.FromUnixTime(varLong);
+				if (FieldIndex.TryGetValue("Thunder count", out idx) && fields[idx].AsSpan(0, 2) != nul && int.TryParse(fields[idx], out varInt)) rec.LightningCount = varInt;
+				if (FieldIndex.TryGetValue("Thunder distance", out idx) && fields[idx].AsSpan(0, 2) != nul && decimal.TryParse(fields[idx], out varDec)) rec.LightningDist = varDec;
 
-				// AQ Indoor, fields 43 - 49
-				if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboTemp = varDec;
-				if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.AqiComboHum = varInt;
-				if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.AqiComboCO2 = varInt;
-				if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboPm25 = varDec;
-				if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.AqiComboPm10 = varDec;
-				//if (fields[field].AsSpan(0,2) != nul && double.TryParse(fields[field++], invc, out varDec)) rec.AqiInPm1 = varDec;
-				field++;
-				//if (fields[field].AsSpan(0,2) != nul && double.TryParse(fields[field++], invc, out varDec)) rec.AqiInPm4 = varDec;
-				field++;
+				// AQ Indoor
+				if (FieldIndex.TryGetValue("AQIN Temperature", out idx) && fields[idx].AsSpan(0, 2) != nul && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboTemp = varDec;
+				if (FieldIndex.TryGetValue("AQIN Humidity", out idx) && fields[idx].AsSpan(0, 2) != nul && int.TryParse(fields[idx], out varInt)) rec.AqiComboHum = varInt;
+				if (FieldIndex.TryGetValue("AQIN CO2", out idx) && fields[idx].AsSpan(0, 2) != nul && int.TryParse(fields[idx], out varInt)) rec.AqiComboCO2 = varInt;
+				if (FieldIndex.TryGetValue("AQIN Pm2.5", out idx) && fields[idx].AsSpan(0, 2) != nul && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm25 = varDec;
+				if (FieldIndex.TryGetValue("AQIN Pm10", out idx) && fields[idx].AsSpan(0, 2) != nul && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm10 = varDec;
+				//if (FieldIndex.TryGetValue("AQIN Pm1.0", out idx) && fields[idx].AsSpan(0, 2) != nul && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm1 = varDec;
+				//if (FieldIndex.TryGetValue("AQIN Pm4.0", out idx) && fields[idx].AsSpan(0, 2) != nul && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm4 = varDec;
 
-				// Soil Moisture, fields 50 - 65
+				// Soil Moisture
 				for (int i = 1; i <= 16; i++)
 				{
-					if (fields[field].AsSpan(0, 2) != nul && int.TryParse(fields[field++], out varInt)) rec.SoilMoist[i] = varInt;
+					if (FieldIndex.TryGetValue("SoilMoisture CH" + i, out idx) && fields[idx].AsSpan(0, 2) != nul && int.TryParse(fields[idx], out varInt)) rec.SoilMoist[i] = varInt;
 				}
 
-				// Water, fields 66 - 69
+				// Water - unused
+				/*
 				for (int i = 1; i <= 4; i++)
 				{
-					//if (fields[field].AsSpan(0,2) != nul) rec.Water[i] = fields[field++];
-					field++;
+					if (FieldIndex.TryGetValue("Water CH" + i, out idx) && fields[idx].AsSpan(0, 2) != nul && int.TryParse(fields[idx], out varInt)) rec.Water[i] = varInt;
 				}
+				*/
 
-				// AQI, fields 70 - 73
+				// AQI
 				for (int i = 1; i <= 4; i++)
 				{
-					if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.pm25[i] = varDec;
+					if (FieldIndex.TryGetValue("Pm2.5 CH" + i, out idx) && fields[idx].AsSpan(0, 2) != nul && decimal.TryParse(fields[idx], invc, out varDec)) rec.pm25[i] = varDec;
 				}
 
-				// User Temps, fields 74 - 81
+				// User Temps
 				for (var i = 1; i <= 8 ; i++)
 				{
-					if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.UserTemp[i] = varDec;
+					if (FieldIndex.TryGetValue("WN34 CH" + i, out idx) && fields[idx].AsSpan(0, 2) != nul && decimal.TryParse(fields[idx], invc, out varDec)) rec.UserTemp[i] = varDec;
 				}
 
-				// LDS Air,   fields 82, 85, 88, 91
-				// LDS Depth, fields 83, 86, 89, 92
-				// LDS Heat,  fields 84, 87, 90, 93
+				// LDS Air
+				// LDS Depth
+				// LDS Heat
 				for (int i = 1; i <= 4; i++)
 				{
-					if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.LdsAir[i] = varDec;
-					if (fields[field].AsSpan(0, 2) != nul && decimal.TryParse(fields[field++], invc, out varDec)) rec.LdsDepth[i] = varDec;
-					field++; // skip heat
+					if (FieldIndex.TryGetValue("LDS_Air CH" + i, out idx) && fields[idx].AsSpan(0, 2) != nul && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsAir[i] = varDec;
+					if (FieldIndex.TryGetValue("LDS_LDS_Depth CH" + i, out idx) && fields[idx].AsSpan(0, 2) != nul && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsDepth[i] = varDec;
 				}
 
 				// end of records
@@ -157,6 +163,7 @@ namespace CumulusMX
 						rec.AqiComboTemp = MeteoLib.CToF(rec.AqiComboTemp);
 					}
 				}
+#pragma warning restore S125 // Sections of code should not be commented out
 
 				if ((int) LaserUnit != cumulus.Units.LaserDistance)
 				{
@@ -242,51 +249,71 @@ namespace CumulusMX
 			// split on commas
 			var fields = header.Split(',');
 
-			if (fields.Length < fieldCount)
-			{
-				// invalid header
-				throw new ArgumentException("Invalid header", nameof(header));
-			}
-
-			TempUnit = fields[1].Contains("(C") || fields[1].Contains('℃') ? TempUnits.C : TempUnits.F;
-
-			if (fields.Length < 94)
-			{
-				cumulus.LogWarningMessage("EcowittExtraLogFile.HeaderParser: Header is missing LDS Depth fields");
-			}
-			else
-			{
-				if (fields[82].Contains("mm"))
-				{
-					LaserUnit = LaserUnits.mm;
-				}
-				else if (fields[82].Contains("inch"))
-				{
-					LaserUnit = LaserUnits.inch;
-				}
-				else if (fields[82].Contains("cm"))
-				{
-					LaserUnit = LaserUnits.cm;
-				}
-				else if (fields[82].Contains("ft"))
-				{
-					LaserUnit = LaserUnits.ft;
-				}
-				else if (fields[82].Contains("m"))
-				{
-					LaserUnit = LaserUnits.m;
-				}
-				else
-				{
-					throw new ArgumentException("Invalid header", nameof(header));
-				}
-			}
-
 			// Save the header
 			Header = fields;
 
 			// remove header line from the data
 			Data.RemoveAt(0);
+
+			if (fields.Length < fieldCount)
+			{
+				// invalid header
+				cumulus.LogErrorMessage("EcowittExtraLogFile.HeaderParser: Invalid header in file = " + header);
+				return;
+			}
+
+			// create a fields index
+			var unitRegex = UnitsRegEx();
+
+			for (var i = 0; i < fields.Length; i++)
+			{
+				string cleanedHeader = unitRegex.Replace(fields[i], "").Trim();
+				FieldIndex[cleanedHeader] = i;
+			}
+
+			TempUnit = fields[FieldIndex["CH1 Temperature"]].EndsWith("C)") || fields[FieldIndex["CH1 Temperature"]].EndsWith("℃)") ? TempUnits.C : TempUnits.F;
+
+			if (fields.Length < 94)
+			{
+				cumulus.LogWarningMessage("EcowittExtraLogFile.HeaderParser: Header is missing LDS Depth fields");
+				// assume it matches the MX units?
+				LaserUnit = cumulus.Units.LaserDistance switch
+				{
+					0 => LaserUnits.cm,
+					1 => LaserUnits.inch,
+					2 => LaserUnits.mm,
+					_ => LaserUnits.mm
+				};
+			}
+			else
+			{
+				var laserIndex = FieldIndex["LDS_Air CH1"];
+
+				if (fields[laserIndex].EndsWith("mm)"))
+				{
+					LaserUnit = LaserUnits.mm;
+				}
+				else if (fields[laserIndex].EndsWith("inch)"))
+				{
+					LaserUnit = LaserUnits.inch;
+				}
+				else if (fields[laserIndex].EndsWith("cm)"))
+				{
+					LaserUnit = LaserUnits.cm;
+				}
+				else if (fields[laserIndex].EndsWith("ft)"))
+				{
+					LaserUnit = LaserUnits.ft;
+				}
+				else if (fields[laserIndex].EndsWith("(m)"))
+				{
+					LaserUnit = LaserUnits.m;
+				}
+				else
+				{
+					cumulus.LogErrorMessage("EcowittExtraLogFile.HeaderParser: Invalid unit supplied for Laser = " + fields[laserIndex]);
+				}
+			}
 		}
 
 
@@ -328,5 +355,8 @@ namespace CumulusMX
 			public double?[] UserTemp { get; set; } = new double?[8];
 			public double?[] LdsAir { get; set; } = new double?[4];
 		}
+
+		[System.Text.RegularExpressions.GeneratedRegex(@"\(([^)]*)\)")]
+		private partial System.Text.RegularExpressions.Regex UnitsRegEx();
 	}
 }

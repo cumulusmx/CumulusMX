@@ -531,6 +531,12 @@ namespace CumulusMX
 
 				var lines = localApi.GetSdFileContents(file, startTime, cumulus.cancellationToken).Result;
 
+				if (lines == null)
+				{
+					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file");
+					continue;
+				}
+
 				var logfile = new EcowittLogFile(lines, cumulus);
 
 				var data = logfile.DataParser();
@@ -541,8 +547,8 @@ namespace CumulusMX
 
 				if (data.Count == 0)
 				{
-					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process, exiting catch-up");
-					return false;
+					cumulus.LogMessage($"GetHistoricDataSdCard: No data parsed from this file");
+					continue;
 				}
 
 				foreach (var rec in data)
@@ -1000,6 +1006,9 @@ namespace CumulusMX
 							break;
 						case "0x05": //Heat index
 									 // cumulus calculates this
+							break;
+						case "5": // Vapour Pressure Deficit
+								  // do nothing with this for now - MX calcuates VPD
 							break;
 						case "0x07": //Outdoor Humidity (%)
 							if (sensor.valInt.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
