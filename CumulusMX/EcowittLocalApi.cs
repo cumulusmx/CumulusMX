@@ -625,6 +625,8 @@ namespace CumulusMX
 			try
 			{
 				var url = $"http://{cumulus.Gw1000IpAddress}/get_sdmmc_info";
+				// my test server uses port 81 for everything
+				//var url = $"http://{cumulus.Gw1000IpAddress}:81/get_sdmmc_info";
 
 				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
 				{

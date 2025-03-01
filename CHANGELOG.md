@@ -18,6 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Takes a parameter of `sensor=N` to calculate the VPD for outdoor (=0, default if ommitted), or any extra temp/humidity sensor (=1-8)
 	- Returns the VPD in user pressure units
 	- The returned units can be changed using the standard `unit=` parameter
+- Ecowitt SD card log file decoing is now based on the header text so should be more robust to changes
 
 
 ## B4080

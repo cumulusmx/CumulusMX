@@ -531,7 +531,7 @@ namespace CumulusMX
 
 				var lines = localApi.GetSdFileContents(file, startTime, cumulus.cancellationToken).Result;
 
-				if (lines == null)
+				if (lines == null || lines.Count == 1)
 				{
 					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file");
 					continue;
@@ -569,6 +569,12 @@ namespace CumulusMX
 				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
 				var lines = localApi.GetSdFileContents(file, startTime, cumulus.cancellationToken).Result;
+
+				if (lines == null || lines.Count == 1)
+				{
+					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file");
+					continue;
+				}
 
 				var logfile = new EcowittExtraLogFile(lines, cumulus);
 
