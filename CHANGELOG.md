@@ -12,6 +12,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.4.0 \[b40xx\]][13] - 2025-02-25
 
+## B4082
+- Changes to how MQTT connects and reconnects to the server
+
 ## B4081
 - Adds battery level decode for LDS sensors to the Ecowitt Cloud station
 - New web tag for Vapour Pressure deficit `<#VapourPressDeficit>`
@@ -95,6 +98,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - User Alarms not accepting "equals" type
 - Fix Station Pressure calibration settings being read from the Pressure settings in Cumulus.ini
 - Web tags `<#snowdepth>` and `<#snow24h>` now accept the dp= and tc= web tag parameters
+- Changes to how MQTT connects and reconnects to the server
 
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
