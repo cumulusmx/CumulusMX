@@ -96,7 +96,7 @@ namespace CumulusMX
 				if (FieldIndex.TryGetValue("Wind Direction", out idx) && int.TryParse(fields[idx], out varInt)) rec.WindDir = varInt;
 				if (FieldIndex.TryGetValue("ABS Pressure", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.StationPressure = varDec;
 				if (FieldIndex.TryGetValue("REL Pressure", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Pressure = varDec;
-				if (FieldIndex.TryGetValue("Solar Rad", out idx) && int.TryParse(fields[idx], invc, out varInt)) rec.Solar = varInt;
+				if (FieldIndex.TryGetValue("Solar Rad", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Solar = (int?) varDec;
 				if (FieldIndex.TryGetValue("UV-Index", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.UVI = varDec;
 				// These fields 14,15,16 do not appear in the GW3000 log files :(
 				//if (FieldIndex.TryGetValue("Console Battery", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.ConsoleBattery = varDec;
