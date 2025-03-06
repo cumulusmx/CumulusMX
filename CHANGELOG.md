@@ -10,30 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b40xx\]][13] - 2025-02-25
-
-## B4082
-- Changes to how MQTT connects and reconnects to the server
-
-## B4081
-- Adds battery level decode for LDS sensors to the Ecowitt Cloud station
-- New web tag for Vapour Pressure deficit `<#VapourPressDeficit>`
-	- Takes a parameter of `sensor=N` to calculate the VPD for outdoor (=0, default if ommitted), or any extra temp/humidity sensor (=1-8)
-	- Returns the VPD in user pressure units
-	- The returned units can be changed using the standard `unit=` parameter
-- Ecowitt SD card log file decoing is now based on the header text so should be more robust to changes
-
-
-## B4080
-- Add averaging to 3 snow increment values
-- Fix AI2 Ecowitt TCP station name change
-- Ecowitt Cloud Station
-	- Add "live" LDS-01 data
-	- Add speculative "historic" LDS-01 data
-- Add piezo rain processing to Ecowitt SD card catch-up
-- Web tags `<#snowdepth>` and `<#snow24h>` now accept the dp= and tc= web tag parameters
-
-
+## [4.4.0 \[b4082\]][13] - 2025-03-06
 
 ### New
 
@@ -626,4 +603,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
-[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4081
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4082
