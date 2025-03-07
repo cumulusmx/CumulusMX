@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b4082\]][13] - 2025-03-06
+## [4.4.0 \[b4083\]][13] - 2025-03-07
 
 ### New
 
@@ -76,6 +76,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Station Pressure calibration settings being read from the Pressure settings in Cumulus.ini
 - Web tags `<#snowdepth>` and `<#snow24h>` now accept the dp= and tc= web tag parameters
 - Changes to how MQTT connects and reconnects to the server
+
+### Package Updates
+
+- Sixlabors.ImageSharp
 
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
@@ -603,4 +607,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
-[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4082
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4083
