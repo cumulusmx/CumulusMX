@@ -5,21 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
-using static System.Collections.Specialized.BitVector32;
-using Swan.Parsers;
-
 using static CumulusMX.EcowittApi;
-using Org.BouncyCastle.Ocsp;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using ServiceStack.Text;
-using System.Collections;
-
 
 namespace CumulusMX
 {
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal class EcowittHttpApiStation : WeatherStation
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		private static readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 
@@ -398,7 +388,7 @@ namespace CumulusMX
 				while (GetHistoricDataSdCard() && archiveRun < 3)
 				{
 					archiveRun++;
-				};
+				}
 			}
 			else if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
