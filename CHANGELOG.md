@@ -10,19 +10,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.1 \[b4084\]][14] - 2025-03-10
-
-### New
-
-Nothing
-
-### Changed
-
-Nothing
+## [4.4.1 \[b4084\]][14] - 2025-03-09
 
 ### Fixed
 
-
+- Fix for FTP Logger errors when FTP logging is not enabled
+- Fix for "jumbled" NOAA plain text reports on the default web site
+	- Updated `websitedataT.json`
+	- Updated `\webfiles\js\noaarpts.js` to default to plain text rather than HTML if the option is not visible
+	You will need to upload this file to your web site
 
 
 ## [4.4.0 \[b4083\]][13] - 2025-03-09

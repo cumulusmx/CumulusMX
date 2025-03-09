@@ -12439,16 +12439,20 @@ namespace CumulusMX
 
 		public void LogFtpMessage(string message, bool realTime)
 		{
-			if (!string.IsNullOrEmpty(message))
-				LogMessage(message);
+			if (FtpOptions.Logging)
+			{
 
-			if (realTime)
-			{
-				FtpLoggerMXRT.LogInformation("{Msg}", message);
-			}
-			else
-			{
-				FtpLoggerMXIN.LogInformation("{Msg}", message);
+				if (!string.IsNullOrEmpty(message))
+					LogMessage(message);
+
+				if (realTime)
+				{
+					FtpLoggerMXRT.LogInformation("{Msg}", message);
+				}
+				else
+				{
+					FtpLoggerMXIN.LogInformation("{Msg}", message);
+				}
 			}
 		}
 
