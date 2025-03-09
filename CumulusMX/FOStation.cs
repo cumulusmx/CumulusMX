@@ -364,6 +364,7 @@ namespace CumulusMX
 			bool rolloverdone = luhour == rollHour;
 			bool midnightraindone = luhour == 0;
 			bool rollover9amdone = luhour == 9;
+			bool snowhourdone = luhour == cumulus.SnowDepthHour;
 			int recCount = datalist.Count;
 			int processedCount = 0;
 
@@ -384,10 +385,9 @@ namespace CumulusMX
 				{
 					rolloverdone = false;
 				}
-
-				// In roll-over hour and roll-over not yet done
-				if (h == rollHour && !rolloverdone)
+				else if (!rolloverdone)
 				{
+					// In roll-over hour and roll-over not yet done
 					// do roll-over
 					cumulus.LogMessage("Day roll-over " + timestamp.ToShortTimeString());
 					DayReset(timestamp);
@@ -400,10 +400,9 @@ namespace CumulusMX
 				{
 					midnightraindone = false;
 				}
-
-				// In midnight hour and midnight rain (and sun) not yet done
-				if (h == 0 && !midnightraindone)
+				else if (!midnightraindone)
 				{
+					// In midnight hour and midnight rain (and sun) not yet done
 					ResetMidnightRain(timestamp);
 					ResetSunshineHours(timestamp);
 					ResetMidnightTemperatures(timestamp);
@@ -411,10 +410,33 @@ namespace CumulusMX
 				}
 
 				// 9am rollover items
-				if (h == 9 && !rollover9amdone)
+				if (h != 9)
+				{
+					rollover9amdone = false;
+				}
+				else if (!rollover9amdone)
 				{
 					Reset9amTemperatures(timestamp);
 					rollover9amdone = true;
+				}
+
+				// snowhour items
+				if (h != cumulus.SnowDepthHour)
+				{
+					snowhourdone = false;
+				}
+				else if (!snowhourdone)
+				{
+					if (cumulus.SnowAutomated > 0)
+					{
+						CreateNewSnowRecord(timestamp);
+					}
+
+					// reset the accumulated snow depth(s)
+					for (int i = 0; i < Snow24h.Length; i++)
+					{
+						Snow24h[i] = null;
+					}
 				}
 
 				// Indoor Humidity ======================================================
@@ -579,6 +601,13 @@ namespace CumulusMX
 				CalculateDominantWindBearing(Bearing, WindAverage, historydata.interval);
 
 				CheckForWindrunHighLow(timestamp);
+				DoTrendValues(timestamp);
+
+				if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+				{
+					// Start of a new hour, and we want to calculate ET in Cumulus
+					CalculateEvapotranspiration(timestamp);
+				}
 
 				bw.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
@@ -589,17 +618,17 @@ namespace CumulusMX
 				{
 					_ = cumulus.DoExtraLogFile(timestamp);
 				}
+
 				cumulus.MySqlRealtimeFile(999, false, timestamp);
+
+				// Custom MySQL update - minutes interval
+				if (cumulus.MySqlSettings.CustomMins.Enabled)
+				{
+					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
+				}
 
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
-				DoTrendValues(timestamp);
-
-				if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
-				{
-					// Start of a new hour, and we want to calculate ET in Cumulus
-					CalculateEvapotranspiration(timestamp);
-				}
 
 				UpdateStatusPanel(timestamp);
 				cumulus.AddToWebServiceLists(timestamp);

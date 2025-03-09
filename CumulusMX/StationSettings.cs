@@ -65,6 +65,7 @@ namespace CumulusMX
 				leafwetisrainingidx = cumulus.StationOptions.LeafWetnessIsRainingIdx,
 				leafwetisrainingthrsh = cumulus.StationOptions.LeafWetnessIsRainingThrsh,
 				userainforisraining = cumulus.StationOptions.UseRainForIsRaining,
+				snowseasonstart = cumulus.SnowSeasonStart,
 				advanced = optionsAdv
 			};
 
@@ -163,7 +164,8 @@ namespace CumulusMX
 			var ecowittHttpApi = new JsonHttpApi()
 			{
 				ipaddress = cumulus.Gw1000IpAddress,
-				password = cumulus.EcowittHttpPassword
+				password = cumulus.EcowittHttpPassword,
+				usesdcard = cumulus.EcowittUseSdCard
 			};
 
 			var ecowitt = new JsonEcowitt
@@ -415,7 +417,7 @@ namespace CumulusMX
 
 			var general = new JsonGeneral()
 			{
-				manufacturer = cumulus.Manufacturer,
+				manufacturer = (int) cumulus.Manufacturer,
 				stationtype = cumulus.StationType,
 				stationmodel = cumulus.StationModel,
 				loginterval = cumulus.DataLogInterval,
@@ -428,6 +430,7 @@ namespace CumulusMX
 			var jsonstnadv = new JsonJsonStationAdvanced()
 			{
 				filedelay = cumulus.JsonStationOptions.FileReadDelay,
+				fileignore = cumulus.JsonStationOptions.FileIgnoreTime,
 				mqtttls = cumulus.JsonStationOptions.MqttUseTls
 			};
 
@@ -676,21 +679,25 @@ namespace CumulusMX
 					cumulus.LocationDesc = string.IsNullOrWhiteSpace(settings.general.Location.description) ? null : settings.general.Location.description.Trim();
 
 					cumulus.Latitude = (decimal) (settings.general.Location.Latitude.degrees + (settings.general.Location.Latitude.minutes / 60.0) + (settings.general.Location.Latitude.seconds / 3600.0));
+					string northSouth = cumulus.Trans.compassp[0];
 					if (settings.general.Location.Latitude.hemisphere == "South")
 					{
 						cumulus.Latitude = -cumulus.Latitude;
+						northSouth = cumulus.Trans.compassp[8];
 					}
 
-					cumulus.LatTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", settings.general.Location.Latitude.hemisphere[0], settings.general.Location.Latitude.degrees, settings.general.Location.Latitude.minutes,
+					cumulus.LatTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", northSouth, settings.general.Location.Latitude.degrees, settings.general.Location.Latitude.minutes,
 						settings.general.Location.Latitude.seconds);
 
+					string eastWest = cumulus.Trans.compassp[4];
 					cumulus.Longitude = (decimal) (settings.general.Location.Longitude.degrees + (settings.general.Location.Longitude.minutes / 60.0) + (settings.general.Location.Longitude.seconds / 3600.0));
 					if (settings.general.Location.Longitude.hemisphere == "West")
 					{
 						cumulus.Longitude = -cumulus.Longitude;
+						eastWest = cumulus.Trans.compassp[12];
 					}
 
-					cumulus.LonTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", settings.general.Location.Longitude.hemisphere[0], settings.general.Location.Longitude.degrees, settings.general.Location.Longitude.minutes,
+					cumulus.LonTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", eastWest, settings.general.Location.Longitude.degrees, settings.general.Location.Longitude.minutes,
 						settings.general.Location.Longitude.seconds);
 				}
 				catch (Exception ex)
@@ -719,6 +726,7 @@ namespace CumulusMX
 					cumulus.StationOptions.LeafWetnessIsRainingIdx = settings.Options.leafwetisrainingidx;
 					cumulus.StationOptions.LeafWetnessIsRainingThrsh = settings.Options.leafwetisrainingthrsh;
 					cumulus.StationOptions.UseRainForIsRaining = settings.Options.userainforisraining;
+					cumulus.SnowSeasonStart = settings.Options.snowseasonstart;
 
 					cumulus.StationOptions.UseSpeedForAvgCalc = settings.Options.advanced.usespeedforavg;
 					cumulus.StationOptions.AvgBearingMinutes = settings.Options.advanced.avgbearingmins;
@@ -931,6 +939,7 @@ namespace CumulusMX
 					{
 						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.ipaddress) ? null : settings.ecowitthttpapi.ipaddress.Trim();
 						cumulus.EcowittHttpPassword = string.IsNullOrWhiteSpace(settings.ecowitthttpapi.password) ? null : settings.ecowitthttpapi.password.Trim();
+						cumulus.EcowittUseSdCard = settings.ecowitthttpapi.usesdcard;
 					}
 				}
 				catch (Exception ex)
@@ -1206,6 +1215,7 @@ namespace CumulusMX
 						{
 							cumulus.JsonStationOptions.SourceFile = string.IsNullOrWhiteSpace(settings.jsonstation.filename) ? null : settings.jsonstation.filename.Trim();
 							cumulus.JsonStationOptions.FileReadDelay = settings.jsonstation.advanced.filedelay;
+							cumulus.JsonStationOptions.FileIgnoreTime = settings.jsonstation.advanced.fileignore;
 						}
 						if (cumulus.JsonStationOptions.Connectiontype == 2)
 						{
@@ -1368,7 +1378,7 @@ namespace CumulusMX
 						cumulus.LogWarningMessage("Station type changed, restart required");
 						Cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow, true);
 					}
-					cumulus.Manufacturer = settings.general.manufacturer;
+					cumulus.Manufacturer = (Cumulus.StationManufacturer) settings.general.manufacturer;
 					cumulus.StationType = settings.general.stationtype;
 					cumulus.StationModel = settings.general.stationmodel;
 				}
@@ -1741,6 +1751,7 @@ namespace CumulusMX
 			public int leafwetisrainingidx { get; set; }
 			public double leafwetisrainingthrsh { get; set; }
 			public int userainforisraining { get; set; }
+			public int snowseasonstart { get; set; }
 			public JsonOptionsAdvanced advanced { get; set; }
 		}
 
@@ -1826,6 +1837,7 @@ namespace CumulusMX
 		{
 			public string ipaddress { get; set; }
 			public string password { get; set; }
+			public bool usesdcard { get; set; }
 		}
 
 		private sealed class JsonEcowitt
@@ -2084,6 +2096,7 @@ namespace CumulusMX
 		public class JsonJsonStationAdvanced
 		{
 			public int filedelay { get; set; }
+			public int fileignore { get; set; }
 			public bool mqtttls { get; set; }
 		}
 	}

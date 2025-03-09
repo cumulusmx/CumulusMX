@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -19,6 +20,7 @@ namespace CumulusMX
 
 		public LiveData GetLiveData(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_livedata_info
 			//
 			// Returns an almighty mess! They couldn't have made this any worse if they tried!
@@ -26,6 +28,7 @@ namespace CumulusMX
 			// Some values include the units in the value string, others have a separate field for the unit
 			// The separate sensors return an arrays that only ever contain a single object
 			//
+
 			//	{
 			//		"common_list": [
 			//			{
@@ -153,6 +156,7 @@ namespace CumulusMX
 			//
 			// Sample:
 			// {"common_list": [{"id": "0x02", "val": "23.5", "unit": "C"}, {"id": "0x07", "val": "57%"}, {"id": "3", "val": "23.5", "unit": "C"}, {"id": "0x03", "val": "14.5", "unit": "C"}, {"id": "0x0B", "val": "9.00 km/h"}, {"id": "0x0C", "val": "9.00 km/h"}, {"id": "0x19", "val": "26.64 km/h"}, {"id": "0x15", "val": "646.57 W/m2"}, {"id": "0x17", "val": "3"}, {"id": "0x0A", "val": "295"}], "rain": [{"id": "0x0D", "val": "0.0 mm"}, {"id": "0x0E", "val": "0.0 mm/Hr"}, {"id": "0x10", "val": "0.0 mm"}, {"id": "0x11", "val": "5.0 mm"}, {"id": "0x12", "val": "27.1 mm"}, {"id": "0x13", "val": "681.4 mm", "battery": "0"}], "piezoRain": [{"id": "0x0D", "val": "0.0 mm"}, {"id": "0x0E", "val": "0.0 mm/Hr"}, {"id": "0x10", "val": "0.0 mm"}, {"id": "0x11", "val": "10.7 mm"}, {"id": "0x12", "val": "32.3 mm"}, {"id": "0x13", "val": "678.3 mm", "battery": "5"}], "wh25": [{"intemp": "26.0", "unit": "C", "inhumi": "56%", "abs": "993.0 hPa", "rel": "1027.4 hPa", "battery": "0"}], "lightning": [{"distance": "12 km", "timestamp": "07/15/2024 20: 46: 42", "count": "0", "battery": "3"}], "co2": [{"temp": "24.4", "unit": "C", "humidity": "62%", "PM25": "0.9", "PM25_RealAQI": "4", "PM25_24HAQI": "7", "PM10": "0.9", "PM10_RealAQI": "1", "PM10_24HAQI": "2", "CO2": "323", "CO2_24H": "348", "battery": "6"}], "ch_pm25": [{"channel": "1", "PM25": "6.0", "PM25_RealAQI": "25", "PM25_24HAQI": "24", "battery": "5"}, {"channel": "2", "PM25": "8.0", "PM25_RealAQI": "33", "PM25_24HAQI": "32", "battery": "5"}], "ch_leak": [{"channel": "2", "name": "", "battery": "4", "status": "Normal"}], "ch_aisle": [{"channel": "1", "name": "", "battery": "0", "temp": "24.9", "unit": "C", "humidity": "61%"}, {"channel": "2", "name": "", "battery": "0", "temp": "25.7", "unit": "C", "humidity": "64%"}, {"channel": "3", "name": "", "battery": "0", "temp": "23.6", "unit": "C", "humidity": "63%"}, {"channel": "4", "name": "", "battery": "0", "temp": "34.9", "unit": "C", "humidity": "83%"}, {"channel": "5", "name": "", "battery": "0", "temp": "-14.4", "unit": "C", "humidity": "None"}, {"channel": "6", "name": "", "battery": "0", "temp": "31.5", "unit": "C", "humidity": "56%"}, {"channel": "7", "name": "", "battery": "0", "temp": "8.2", "unit": "C", "humidity": "50%"}], "ch_soil": [{"channel": "1", "name": "", "battery": "5", "humidity": "56%"}, {"channel": "2", "name": "", "battery": "4", "humidity": "47%"}, {"channel": "3", "name": "", "battery": "5", "humidity": "27%"}, {"channel": "4", "name": "", "battery": "5", "humidity": "50%"}, {"channel": "5", "name": "", "battery": "4", "humidity": "54%"}, {"channel": "6", "name": "", "battery": "4", "humidity": "47%"}], "ch_temp": [{"channel": "1", "name": "", "temp": "21.5", "unit": "C", "battery": "3"}, {"channel": "2", "name": "", "temp": "16.4", "unit": "C", "battery": "5"}], "ch_leaf": [{"channel": "1", "name": "CH1 Leaf Wetness", "humidity": "10%", "battery": "5"}]}
+#pragma warning restore S125 // Sections of code should not be commented out
 
 			string responseBody;
 			int responseCode;
@@ -229,7 +233,7 @@ namespace CumulusMX
 
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
-				cumulus.LogErrorMessage("GetSensorInfo: Invalid station IP address: " +  cumulus.Gw1000IpAddress);
+				cumulus.LogErrorMessage("GetSensorInfo: Invalid station IP address: " + cumulus.Gw1000IpAddress);
 				return null;
 			}
 
@@ -292,6 +296,7 @@ namespace CumulusMX
 
 		public async Task<string> GetVersion(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_version
 
 			// response
@@ -299,7 +304,8 @@ namespace CumulusMX
 			//		"version":	"Version: GW1100A_V2.3.4",
 			//		"newVersion":	"0",
 			//		"platform":	"ecowitt"
-			//	}
+			//	}}
+#pragma warning restore S125 // Sections of code should not be commented out
 
 			string responseBody;
 			int responseCode;
@@ -356,6 +362,7 @@ namespace CumulusMX
 
 		public static void GetDeviceInfo(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_device_info
 
 			//{
@@ -376,6 +383,7 @@ namespace CumulusMX
 			//	"APpwd":	"",
 			//	"time":	"20"
 			//}
+#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void SetDeviceInfo(CancellationToken token)
@@ -388,6 +396,7 @@ namespace CumulusMX
 
 		public static void GetUnits(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_units_info
 
 			// response
@@ -398,6 +407,7 @@ namespace CumulusMX
 			//	"rain": "0",             0=mm 1=in
 			//	"light": "1"             0=kLux=? 1=W/m2 2=kfc
 			//}
+#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void SetUnits(CancellationToken token)
@@ -410,8 +420,9 @@ namespace CumulusMX
 			// response = 200 - OK
 		}
 
-		public static  void SetLogin(string password)
+		public static void SetLogin(string password)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/set_login_info
 
 			// POST
@@ -425,10 +436,12 @@ namespace CumulusMX
 			//	"online":	"0",
 			//	"msg":	"success"
 			//}
+#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void GetRainTotals(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_rain_totals
 
 			// response
@@ -457,11 +470,12 @@ namespace CumulusMX
 			//}
 
 			// response = 200 - OK
-
+#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void SetRainTotals(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/set_rain_totals
 
 			// POST
@@ -478,11 +492,12 @@ namespace CumulusMX
 			//}
 
 			// response = 200 - OK
-
+#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public async Task<bool> CheckForUpgrade(CancellationToken token)
 		{
+#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/upgrade_process
 
 			// POST
@@ -493,7 +508,7 @@ namespace CumulusMX
 			//	"is_new": false,
 			//	"msg": "It's the latest version\r\nCurrent version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries."
 			//}
-
+#pragma warning restore S125 // Sections of code should not be commented out
 
 			string responseBody;
 			int responseCode;
@@ -592,6 +607,8 @@ namespace CumulusMX
 		public async Task<SdCard> GetSdCardInfo(CancellationToken token)
 		{
 			// http://IP-address/get_sdmmc_info
+			//
+			// {"info":{"Name":"SZYL","Type":"SDHC/SDXC","Speed":"20 MHz","Size":"7580 MB","Interval":"5"},"file_list":[{"name":"202409A.csv","type":"1","size":"3212"},{"name":"202409Allsensors_A.csv","type":"1","size":"10075"},{"name":"log","type":"2","size":"-"},{"name":"202401A.csv","type":"1","size":"604"},{"name":"202401Allsensors_A.csv","type":"1","size":"2123"},{"name":"202409B.csv","type":"1","size":"398829"},{"name":"202409Allsensors_B.csv", "type":"1","size":"1160913"},{"name":"202410B.csv","type":"1","size":"1051061"},{"name":"202410Allsensors_B.csv","type":"1","size":"3039518"},{"name":"202411B.csv","type":"1","size":"986611"},{"name":"202411Allsensors_B.csv","type":"1","size":"2861108"},{"name":"202412B.csv","type":"1","size":"78625"},{"name":"202412Allsensors_B.csv","type":"1","size":"228437"}]}
 
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
@@ -602,9 +619,14 @@ namespace CumulusMX
 			string responseBody;
 			int responseCode;
 
+			//responseBody = "{\"info\":{\"Name\":\"     \",\"Type\":\"SDHC/SDXC\",\"Speed\":\"20 MHz\",\"Size\":\"30223 MB\",\"Interval\":\"1\"},\"file_list\":[{\n\t\t\"name\":\t\"202502B.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"71 KB\"\n\t}, {\n\t\t\"name\":\t\"202502Allsensors_A.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"202 KB\"\n\t}]}"
+			//return responseBody.FromJson<SdCard>()
+
 			try
 			{
 				var url = $"http://{cumulus.Gw1000IpAddress}/get_sdmmc_info";
+				// my test server uses port 81 for everything
+				//var url = $"http://{cumulus.Gw1000IpAddress}:81/get_sdmmc_info";
 
 				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
 				{
@@ -649,7 +671,7 @@ namespace CumulusMX
 			return null;
 		}
 
-		public async Task<List<string>> GetSdFileContents(string fileName, CancellationToken token)
+		public async Task<List<string>> GetSdFileContents(string fileName, DateTime startTime, CancellationToken token)
 		{
 			// http://IP-address:81/filename (where filename is YYYYMM[A-Z].csv resp. YYYMMAllSensors_[A-Z].csv)
 			//
@@ -658,12 +680,15 @@ namespace CumulusMX
 			// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
 			//
 			// YYYMMAllSensors_[A-Z].csv
-			// Time,CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%),CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%),CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃),CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃),CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃),CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃),CH8 HeatIndex(℃),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),SoilMoisture CH2(%),SoilMoisture CH3(%),SoilMoisture CH4(%),SoilMoisture CH5(%),SoilMoisture CH6(%),SoilMoisture CH7(%),SoilMoisture CH8(%),SoilMoisture CH9(%),SoilMoisture CH10(%),SoilMoisture CH11(%),SoilMoisture CH12(%),SoilMoisture CH13(%),SoilMoisture CH14(%),SoilMoisture CH15(%),SoilMoisture CH16(%),Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),
+			// Time,CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%),CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%),CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃),CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃),CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃),CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃),CH8 HeatIndex(℃),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),SoilMoisture CH2(%),SoilMoisture CH3(%),SoilMoisture CH4(%),SoilMoisture CH5(%),SoilMoisture CH6(%),SoilMoisture CH7(%),SoilMoisture CH8(%),SoilMoisture CH9(%),SoilMoisture CH10(%),SoilMoisture CH11(%),SoilMoisture CH12(%),SoilMoisture CH13(%),SoilMoisture CH14(%),SoilMoisture CH15(%),SoilMoisture CH16(%),Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),LDS_Air CH1(mm),LDS_Air CH2(mm),LDS_Air CH3(mm),LDS_Air CH4(mm),
 			// 2024-09-18 14:25,24.5,14.3,24.5,53,30.0,17.5,30.5,47,24.0,13.6,24.0,52,--.-,--.-,--.-,--,-15.5,--.-,--.-,--,38.1,23.8,45.6,44,6.6,-1.5,6.6,56,--.-,--.-,--.-,--,19,--,--,--,--,--,--,--,0,--.-,20.3,66,479,10.4,10.8,--.-,--.-,69,51,78,49,44,52,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,--.-,--.-,--.-,--.-,11.5,16.8,24.0,--.-,--.-,--.-,--.-,--.-
+			// 2025-01-10 12:34,1.8,0.8,1.8,93,3.3,1.5,3.3,88,1.5,-0.1,1.5,89,1.6,-0.3,1.6,87,-19.3,--,--,--,3.9,2.7,3.9,92,7.0,-3.0,7.0,49,--,--,--,--,77,--,--,--,--,--,--,--,0,--,15.3,60,775,6.4,6.7,--,--,60,45,56,72,50,74,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,12.0,9.0,--,--,2.5,2.5,2.0,--,--,--,--,--,--,--,--,--
+
+			cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Requesting file {fileName} from station");
 
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
-				cumulus.LogErrorMessage("GetSdFileContents: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				cumulus.LogErrorMessage("LocalApi.GetSdFileContents: Invalid station IP address: " + cumulus.Gw1000IpAddress);
 				return null;
 			}
 
@@ -674,22 +699,54 @@ namespace CumulusMX
 			{
 				var url = $"http://{cumulus.Gw1000IpAddress}:81/" + fileName;
 
-				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
+				using var response = await cumulus.MyHttpClient.GetAsync(url, token);
+
+				responseBody = await response.Content.ReadAsStringAsync(token);
+				responseCode = (int) response.StatusCode;
+				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response code: {responseCode}");
+
+				if (responseCode != 200)
 				{
-					responseBody = response.Content.ReadAsStringAsync(token).Result;
-					responseCode = (int) response.StatusCode;
-					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response code: {responseCode}");
-					cumulus.LogDataMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response: {responseBody}");
-
-					if (responseCode != 200)
-					{
-						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Error: {responseCode}");
-						Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
-						return null;
-					}
-
-					return new List<string>(responseBody.Split(lineEnds, StringSplitOptions.None)); ;
+					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Error: {responseCode}");
+					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					return null;
 				}
+
+				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {(responseBody.Length / 1024)} KB");
+
+				var lines = new List<string>(responseBody.Split(lineEnds, StringSplitOptions.None));
+
+				if (lines.Count == 0)
+				{
+					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any lines");
+					return null;
+				}
+
+				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {lines.Count} lines");
+				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
+
+				// quick check if there is any data in the file!
+				if ((DateTime.TryParseExact(lines[^1].Split(',')[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt < startTime))
+				{
+					return null;
+				}
+
+				List<string> result =
+				[
+					// always add the header line
+					lines[0],
+				];
+
+				foreach (var line in lines.Skip(1))
+				{
+					var fields = line.Split(',');
+					if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out dt) && dt >= startTime)
+					{
+						result.Add(line);
+					}
+				}
+
+				return result;
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
@@ -705,6 +762,40 @@ namespace CumulusMX
 
 			return null;
 		}
+
+		public async Task<List<string>> GetSdFileList(DateTime startTime, CancellationToken token)
+		{
+			// Get the full list of files on the SD card
+
+			cumulus.LogDebugMessage("LocalApi.GetSdFileList: Getting SD card info");
+
+			var sdCard = await GetSdCardInfo(token);
+			if (sdCard == null)
+			{
+				cumulus.LogErrorMessage("LocalApi.GetSdFileList: Error - Unable to get SD card info");
+				return null;
+			}
+
+			// Get the list of files
+			if (sdCard.file_list == null)
+			{
+				cumulus.LogErrorMessage("LocalApi.GetSdFileList: Error - No files found on SD card");
+				return null;
+			}
+
+			// Filter the list of files to those that are within the requested time frame
+			var files = new List<string>();
+			var startMonth = new DateTime(startTime.Year, startTime.Month, 1, 0, 0, 0, DateTimeKind.Local);
+			files.AddRange(from file in sdCard.file_list
+						   where file.name.EndsWith(".csv")
+						   let fileDate = DateTime.ParseExact(file.name[..6], "yyyyMM", CultureInfo.InvariantCulture)
+						   where fileDate >= startMonth
+						   select file.name);
+			cumulus.LogDebugMessage($"LocalApi.GetSdFileList: Found {files.Count} files matching start time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
+
+			return files;
+		}
+
 
 		private static string decodePassword(string base64EncodedData)
 		{
@@ -726,7 +817,7 @@ namespace CumulusMX
 			}
 			catch
 			{
-				// do nothing
+				// do nothing, the boy does nothing!
 			}
 		}
 
@@ -872,22 +963,23 @@ namespace CumulusMX
 			public int battery { get; set; }
 			public string air { get; set; }
 			public string depth { get; set; }
+			public string unit { get; set; }
 
-			public double? airVal
+			public decimal? airVal
 			{
 				get
 				{
 					var temp = air.Split(' ');
-					return double.TryParse(temp[0], invNum, out double result) ? result : null;
+					return decimal.TryParse(temp[0], invNum, out decimal result) ? result : null;
 				}
 			}
 
-			public double? depthVal
+			public decimal? depthVal
 			{
 				get
 				{
 					var temp = depth.Split(' ');
-					return double.TryParse(temp[0], invNum, out double result) ? result : null;
+					return decimal.TryParse(temp[0], invNum, out decimal result) ? result : null;
 				}
 			}
 		}
@@ -911,7 +1003,7 @@ namespace CumulusMX
 
 		public class SensorInfo
 		{
-			public string img {  get; set; }
+			public string img { get; set; }
 			public int type { get; set; }
 			public string name { get; set; }
 			public string id { get; set; }
@@ -939,13 +1031,14 @@ namespace CumulusMX
 		public class SdCardfile
 		{
 			public string name { get; set; }
-			public int type { get; set; }
+			public string type { get; set; }
 			public int size { get; set; }
 		}
 
 		public class SdCard
 		{
 			public SdCardInfo info { get; set; }
+
 			public SdCardfile[] file_list { get; set; }
 		}
 
@@ -953,6 +1046,181 @@ namespace CumulusMX
 		{
 			public bool is_new { get; set; }
 			public string msg { get; set; }
+		}
+
+		public class LogFileRecord
+		{
+			// YYYYMM[A - Z].csv
+			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
+			// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
+
+			public DateTime Time { get; set; }
+			public double? IndoorTemperature { get; set; }
+			public int? IndoorHumidity { get; set; }
+			public double? Temperature { get; set; }
+			public int? Humidity { get; set; }
+			public double? DewPoint { get; set; }
+			public double? FeelsLike { get; set; }
+			public double? Wind { get; set; }
+			public double? Gust { get; set; }
+			public int? WindDirection { get; set; }
+			public double? AbsPressure { get; set; }
+			public double? RelPressure { get; set; }
+			public int? SolarRad { get; set; }
+			public double? UVIndex { get; set; }
+			public double? ConsoleBattery { get; set; }
+			public double? ExternalSupply { get; set; }
+			public bool? Charge { get; set; }
+			public double? HourlyRain { get; set; }
+			public double? EventRain { get; set; }
+			public double? DailyRain { get; set; }
+			public double? WeeklyRain { get; set; }
+			public double? MonthlyRain { get; set; }
+			public double? YearlyRain { get; set; }
+
+			public LogFileRecord(string line = null)
+			{
+				if (line != null)
+					ParseString(line);
+			}
+
+			public void ParseString(string line)
+			{
+				var data = line.Split(',');
+
+				Time = DateTime.ParseExact(data[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+				IndoorTemperature = double.TryParse(data[1], invNum, out double resultDbl) ? resultDbl : null;
+				IndoorHumidity = int.TryParse(data[2], out int result) ? result : null;
+				Temperature = double.TryParse(data[3], invNum, out resultDbl) ? resultDbl : null;
+				Humidity = int.TryParse(data[4], out int resultInt) ? resultInt : null;
+				DewPoint = double.TryParse(data[5], invNum, out resultDbl) ? resultDbl : null;
+				FeelsLike = double.TryParse(data[6], invNum, out resultDbl) ? resultDbl : null;
+				Wind = double.TryParse(data[7], invNum, out resultDbl) ? resultDbl : null;
+				Gust = double.TryParse(data[8], invNum, out resultDbl) ? resultDbl : null;
+				WindDirection = int.TryParse(data[9], out result) ? result : null;
+				AbsPressure = double.TryParse(data[10], invNum, out resultDbl) ? resultDbl : null;
+				RelPressure = double.TryParse(data[11], invNum, out resultDbl) ? resultDbl : null;
+				SolarRad = int.TryParse(data[12], out result) ? result : null;
+				UVIndex = double.TryParse(data[13], invNum, out resultDbl) ? resultDbl : null;
+				ConsoleBattery = double.TryParse(data[14], invNum, out resultDbl) ? resultDbl : null;
+				ExternalSupply = double.TryParse(data[15], invNum, out resultDbl) ? resultDbl : null;
+				Charge = bool.TryParse(data[16], out bool resultBool) ? resultBool : null;
+				HourlyRain = double.TryParse(data[17], invNum, out resultDbl) ? resultDbl : null;
+				EventRain = double.TryParse(data[18], invNum, out resultDbl) ? resultDbl : null;
+				DailyRain = double.TryParse(data[19], invNum, out resultDbl) ? resultDbl : null;
+				WeeklyRain = double.TryParse(data[20], invNum, out resultDbl) ? resultDbl : null;
+				MonthlyRain = double.TryParse(data[21], invNum, out resultDbl) ? resultDbl : null;
+				YearlyRain = double.TryParse(data[22], invNum, out resultDbl) ? resultDbl : null;
+			}
+		}
+
+		public class ExtraLogFileRecord
+		{
+			// Time
+			// CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%),CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%),CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃),CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃),CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃),CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃),CH8 HeatIndex(℃),CH8 Humidity(%),
+			// WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),
+			// Thunder count,Thunder distance(km),
+			// AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),
+			// SoilMoisture CH1(%),SoilMoisture CH2(%),SoilMoisture CH3(%),SoilMoisture CH4(%),SoilMoisture CH5(%),SoilMoisture CH6(%),SoilMoisture CH7(%),SoilMoisture CH8(%),SoilMoisture CH9(%),SoilMoisture CH10(%),SoilMoisture CH11(%),SoilMoisture CH12(%),SoilMoisture CH13(%),SoilMoisture CH14(%),SoilMoisture CH15(%),SoilMoisture CH16(%),
+			// Water CH1,Water CH2,Water CH3,Water CH4,
+			// Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),
+			// WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),
+
+			// 2024-09-18 14:25,24.5,14.3,24.5,53,30.0,17.5,30.5,47,24.0,13.6,24.0,52,--.-,--.-,--.-,--,-15.5,--.-,--.-,--,38.1,23.8,45.6,44,6.6,-1.5,6.6,56,--.-,--.-,--.-,--,19,--,--,--,--,--,--,--,0,--.-,20.3,66,479,10.4,10.8,--.-,--.-,69,51,78,49,44,52,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,--.-,--.-,--.-,--.-,11.5,16.8,24.0,--.-,--.-,--.-,--.-,--.-
+
+			public DateTime Time { get; set; }
+			public ExtraThSensor[] TempHum { get; set; } = new ExtraThSensor[8];
+			public int?[] Wh35Hum { get; set; } = new int?[8];
+			public int? LightningCount { get; set; }
+			public double? LightningDistance { get; set; }
+			public AqiIn AqiIndoor { get; set; }
+			public int?[] SoilMoisture { get; set; } = new int?[16];
+			public string[] Water { get; set; } = new string[4];
+			public double?[] Pm25 { get; set; } = new double?[4];
+			public double?[] Wh34Temp { get; set; } = new double?[8];
+
+			public ExtraLogFileRecord(string line = null)
+			{
+				if (line != null)
+					ParseString(line);
+			}
+
+			public void ParseString(string line)
+			{
+				var data = line.Split(',');
+				int resultInt;
+				double resultDbl;
+
+				Time = DateTime.ParseExact(data[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+				for (int i = 0; i < 8; i++)
+				{
+					TempHum[i] = new ExtraThSensor
+					{
+						Temperature = double.TryParse(data[1 + i * 4], invNum, out resultDbl) ? resultDbl : null,
+						DewPoint = double.TryParse(data[2 + i * 4], invNum, out resultDbl) ? resultDbl : null,
+						HeatIndex = double.TryParse(data[3 + i * 4], invNum, out resultDbl) ? resultDbl : null,
+						Humidity = int.TryParse(data[4 + i * 4], out resultInt) ? resultInt : null
+					};
+				}
+
+				for (int i = 0; i < 8; i++)
+				{
+					Wh35Hum[i] = int.TryParse(data[33 + i], out int result) ? result : null;
+				}
+
+				LightningCount = int.TryParse(data[41], out resultInt) ? resultInt : null;
+				LightningDistance = double.TryParse(data[42], invNum, out resultDbl) ? resultDbl : null;
+
+				AqiIndoor = new AqiIn
+				{
+					Temperature = double.TryParse(data[43], invNum, out resultDbl) ? resultDbl : null,
+					Humidity = int.TryParse(data[44], out resultInt) ? resultInt : null,
+					CO2 = int.TryParse(data[45], out resultInt) ? resultInt : null,
+					PM25 = double.TryParse(data[46], invNum, out resultDbl) ? resultDbl : null,
+					PM10 = double.TryParse(data[47], invNum, out resultDbl) ? resultDbl : null,
+					PM1 = double.TryParse(data[48], invNum, out resultDbl) ? resultDbl : null,
+					PM4 = double.TryParse(data[49], invNum, out resultDbl) ? resultDbl : null
+				};
+
+				for (int i = 0; i < 16; i++)
+				{
+					SoilMoisture[i] = int.TryParse(data[50 + i], out resultInt) ? resultInt : null;
+				}
+
+				for (int i = 0; i < 4; i++)
+				{
+					Water[i] = data[66 + i];
+				}
+
+				for (int i = 0; i < 4; i++)
+				{
+					Pm25[i] = double.TryParse(data[70 + i], invNum, out resultDbl) ? resultDbl : null;
+				}
+
+				for (int i = 0; i < 8; i++)
+				{
+					Wh34Temp[i] = double.TryParse(data[74 + i], invNum, out resultDbl) ? resultDbl : null;
+				}
+			}
+		}
+
+		public class ExtraThSensor
+		{
+			public double? Temperature { get; set; }
+			public double? DewPoint { get; set; }
+			public double? HeatIndex { get; set; }
+			public int? Humidity { get; set; }
+		}
+
+		public class AqiIn
+		{
+			public double? Temperature { get; set; }
+			public int? Humidity { get; set; }
+			public int? CO2 { get; set; }
+			public double? PM25 { get; set; }
+			public double? PM10 { get; set; }
+			public double? PM1 { get; set; }
+			public double? PM4 { get; set; }
 		}
 	}
 }

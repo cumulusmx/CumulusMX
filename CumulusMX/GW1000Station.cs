@@ -335,11 +335,15 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
+					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Camera URL");
 				}
 			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittCameraUrl: Warning - URL requested, but no camera MAC address is configured");
+			}
 
-			return null;
+			return string.Empty;
 		}
 
 		public override string GetEcowittVideoUrl()
@@ -356,8 +360,12 @@ namespace CumulusMX
 					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Video URL");
 				}
 			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittVideoUrl: Warning - URL requested, but no camera MAC address is configured");
+			}
 
-			return null;
+			return string.Empty;
 		}
 
 
@@ -747,6 +755,12 @@ namespace CumulusMX
 				var sigPos = idx + 6;
 				// Wh65 could be a Wh65 or a Wh24, we found out using the System Info command
 				// So, Ecowitt reused this id for the third time! It is now the WS69
+
+				if (type.StartsWith("UNKNOWN"))
+				{
+					// one of the 8 dummy sensors - skip it
+					return false;
+				}
 
 				switch (id)
 				{

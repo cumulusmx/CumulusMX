@@ -891,7 +891,7 @@ namespace CumulusMX
 							var rec = station.ParseLogFileRec(line, true);
 
 							// We need to work in meteo dates not clock dates for day hi/lows
-							var metoDate = rec.Date.AddHours(cumulus.GetHourInc(rec.Date));
+							var metoDate = cumulus.MeteoDate(rec.Date);
 
 							if (!started)
 							{
@@ -2073,7 +2073,7 @@ namespace CumulusMX
 
 			var datefrom = cumulus.RecordsBeganDateTime;
 			datefrom = new DateTime(datefrom.Year, datefrom.Month, 1, 0, 0, 0, DateTimeKind.Local);
-			datefrom = datefrom.AddHours(cumulus.GetHourInc(datefrom));
+			datefrom = datefrom.AddHours(-cumulus.GetHourInc(datefrom));
 			var dateto = DateTime.Now.Date;
 			var filedate = datefrom;
 
@@ -2207,19 +2207,19 @@ namespace CumulusMX
 							var rec = station.ParseLogFileRec(line, true);
 
 							// We need to work in meteo dates not clock dates for day hi/lows
-							var metoDate = rec.Date.AddHours(cumulus.GetHourInc(rec.Date));
-							var monthOffset = metoDate.Month - 1;
+							var meteoDate = cumulus.MeteoDate(rec.Date);
+							var monthOffset = meteoDate.Month - 1;
 
 							if (!started)
 							{
-								if (metoDate >= datefrom)
+								if (meteoDate >= datefrom)
 								{
 									lastentrydate = rec.Date;
-									currentDay = metoDate;
+									currentDay = meteoDate;
 									started = true;
 									totalRainfall = lastentryrain;
 								}
-								else if (metoDate < filedate)
+								else if (meteoDate < filedate)
 								{
 									continue;
 								}
@@ -2361,7 +2361,7 @@ namespace CumulusMX
 							}
 
 							// new meteo day
-							if (currentDay.Date != metoDate.Date)
+							if (currentDay.Date != meteoDate.Date)
 							{
 								var lastEntryMonthOffset = currentDay.Month - 1;
 								if (dayHighTemp.Value < lowMaxTemp[lastEntryMonthOffset].Value)
@@ -2414,7 +2414,7 @@ namespace CumulusMX
 									highRainMonth[lastEntryMonthOffset].Ts = currentDay;
 								}
 
-								if (currentDay.Month != metoDate.Month)
+								if (currentDay.Month != meteoDate.Month)
 								{
 									monthlyRain = 0;
 								}
@@ -2500,9 +2500,9 @@ namespace CumulusMX
 							}
 
 							// new meteo day, part 2
-							if (currentDay.Date != metoDate.Date)
+							if (currentDay.Date != meteoDate.Date)
 							{
-								currentDay = metoDate;
+								currentDay = meteoDate;
 								dayHighTemp.Value = rec.OutdoorTemperature;
 								dayLowTemp.Value = rec.OutdoorTemperature;
 								dayWindRun = 0;

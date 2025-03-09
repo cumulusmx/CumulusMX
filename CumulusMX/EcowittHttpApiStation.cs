@@ -1,8 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+
+using static System.Collections.Specialized.BitVector32;
+using Swan.Parsers;
+
+using static CumulusMX.EcowittApi;
+using Org.BouncyCastle.Ocsp;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using ServiceStack.Text;
+using System.Collections;
 
 
 namespace CumulusMX
@@ -133,7 +143,7 @@ namespace CumulusMX
 			cumulus.StartTimersAndSensors();
 
 			// Get the sensor list
-			GetSensorIds().Wait();
+			GetSensorIds(false).Wait();
 
 			// Check firmware
 			try
@@ -304,7 +314,7 @@ namespace CumulusMX
 									// at the start of every 20 minutes to trigger battery status check
 									if ((minute % 20) == 0 && !cumulus.cancellationToken.IsCancellationRequested)
 									{
-										_ = GetSensorIds();
+										_ = GetSensorIds(true);
 									}
 
 									// every day dump the clock drift at midday each day
@@ -380,10 +390,19 @@ namespace CumulusMX
 		{
 			Cumulus.SyncInit.Wait();
 
-			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
+			// Use SDcard or ecowitt.net
+			if (cumulus.EcowittUseSdCard)
+			{
+				// do this until we are fully caught-up, or we have done it three times
+				int archiveRun = 0;
+				while (GetHistoricDataSdCard() && archiveRun < 3)
+				{
+					archiveRun++;
+				};
+			}
+			else if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittMacAddress))
 			{
 				cumulus.LogWarningMessage("API.GetHistoricData: Missing Ecowitt API data in the configuration, aborting!");
-				cumulus.LastUpdateTime = DateTime.Now;
 			}
 			else
 			{
@@ -393,7 +412,7 @@ namespace CumulusMX
 				{
 					do
 					{
-						GetHistoricData();
+						GetHistoricDataOnline();
 						archiveRun++;
 					} while (archiveRun < maxArchiveRuns && !cumulus.cancellationToken.IsCancellationRequested);
 				}
@@ -416,9 +435,9 @@ namespace CumulusMX
 			StartLoop();
 		}
 
-		private void GetHistoricData()
+		private void GetHistoricDataOnline()
 		{
-			cumulus.LogMessage("GetHistoricData: Starting Historic Data Process");
+			cumulus.LogMessage("GetHistoricDataOnline: Starting Historic Data Process");
 
 			// add one minute to the time to avoid duplicating the last log entry
 			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
@@ -435,6 +454,330 @@ namespace CumulusMX
 			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
 		}
 
+		/// <summary>
+		/// Retrieves and processes historic data from the SD card of the weather station.
+		/// This method performs the following steps:
+		/// 1. Logs the start of the historic data process.
+		/// 2. Retrieves the list of log files from the SD card.
+		/// 3. Sorts the files into base files and extra files.
+		/// 4. Processes the base files to extract and store data.
+		/// 5. Merges extra sensor data into the existing data.
+		/// 6. Processes the combined data, handling day rollover, midnight rain reset, and other periodic tasks.
+		/// 7. Applies the processed data to the system and updates various metrics and logs.
+		/// </summary>
+		/// <returns>Returns true if there could be more data to process, otherwise false.</returns>
+		private bool GetHistoricDataSdCard()
+		{
+			cumulus.LogMessage("GetHistoricDataSdCard: Starting Historic Data Process");
+			Cumulus.LogConsoleMessage("Starting historic data catchup from SD card");
+
+			// add one minute to the time to avoid duplicating the last log entry
+			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
+
+			var files = localApi.GetSdFileList(startTime, cumulus.cancellationToken).Result;
+
+			if (files == null || files.Count == 0)
+			{
+				cumulus.LogMessage("GetHistoricDataSdCard: No log files returned from localApi.GetSdFileList(), exiting catch-up");
+				Cumulus.LogConsoleMessage("No log files returned from your station, exiting catch-up");
+				return false;
+			}
+
+			var baseFiles = new List<string>();
+			var extraFiles = new List<string>();
+
+			cumulus.LogMessage("GetHistoricDataSdCard: Sort the files into base files and extra files");
+
+			foreach (var file in files)
+			{
+				if (cumulus.cancellationToken.IsCancellationRequested)
+				{
+					cumulus.LogMessage("GetHistoricDataSdCard: Cancellation requested");
+					return false;
+				}
+
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Checking file {file} with prefix {file[..6]}");
+
+				// split into two lists
+				// filename is YYYYMM[A-Z].csv  or  YYYMMAllSensors_[A-Z].csv
+				if (file.Contains("All"))
+				{
+					cumulus.LogMessage("GetHistoricDataSdCard: Adding base file " + file);
+					extraFiles.Add(file);
+				}
+				else
+				{
+					cumulus.LogMessage("GetHistoricDataSdCard: Adding extra file " + file);
+					baseFiles.Add(file);
+				}
+			}
+
+			// sort the lists - just in case!
+			cumulus.LogDebugMessage("GetHistoricDataSdCard: Sorting the file lists");
+			baseFiles.Sort();
+			extraFiles.Sort();
+
+			var buffer = new SortedList<DateTime, HistoricData>();
+
+			// process the base files first
+
+			cumulus.LogDebugMessage($"GetHistoricDataSdCard: Processing {baseFiles.Count} base files");
+			Cumulus.LogConsoleMessage("Preprocessing the base sensor file(s)...");
+
+			foreach (var file in baseFiles)
+			{
+				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
+				Cumulus.LogConsoleMessage($"  Processing file {file}");
+
+				var lines = localApi.GetSdFileContents(file, startTime, cumulus.cancellationToken).Result;
+
+				if (lines == null || lines.Count == 1)
+				{
+					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file");
+					continue;
+				}
+
+				var logfile = new EcowittLogFile(lines, cumulus);
+
+				var data = logfile.DataParser();
+
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: EcowittLogFile.DataParser returned {data.Count} records for file {file}");
+
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Adding {data.Count} records to the processing list");
+
+				if (data.Count == 0)
+				{
+					cumulus.LogMessage($"GetHistoricDataSdCard: No data parsed from this file");
+					continue;
+				}
+
+				foreach (var rec in data)
+				{
+					buffer.Add(rec.Key, rec.Value);
+				}
+			}
+
+			// now merge in the extra sensor data
+
+			cumulus.LogDebugMessage($"GetHistoricDataSdCard: Processing {extraFiles.Count} extra files");
+			Cumulus.LogConsoleMessage("Preprocessing the extra sensor file(s)...");
+
+
+			foreach (var file in extraFiles)
+			{
+				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
+				Cumulus.LogConsoleMessage($"  Processing file {file}");
+
+				var lines = localApi.GetSdFileContents(file, startTime, cumulus.cancellationToken).Result;
+
+				if (lines == null || lines.Count == 1)
+				{
+					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file");
+					continue;
+				}
+
+				var logfile = new EcowittExtraLogFile(lines, cumulus);
+
+				var data = logfile.DataParser();
+
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: EcowittExtraLogFile.DataParser returned {data.Count} records for file {file}");
+
+				cumulus.LogDebugMessage($"GetHistoricDataSdCard: Merging {data.Count} extra sensor records into the existing processing list records");
+
+				foreach (var rec in data)
+				{
+					if (buffer.TryGetValue(rec.Key, out var value))
+					{
+						buffer[rec.Key] = EcowittExtraLogFile.Merge(value, rec.Value);
+					}
+					else
+					{
+						cumulus.LogMessage($"GetHistoricDataSdCard: Warning - Extra sensor record {rec.Key} not added because no matching primary record found");
+					}
+				}
+			}
+
+			// finally we can process the data
+
+			// now we have all the data for this period, for each record create the string expected by ProcessData and get it processed
+			var rollHour = Math.Abs(cumulus.GetHourInc());
+			var luhour = cumulus.LastUpdateTime.Hour;
+			var rolloverdone = luhour == rollHour;
+			var midnightraindone = luhour == 0;
+			var rollover9amdone = luhour == 9;
+			bool snowhourdone = luhour == cumulus.SnowDepthHour;
+
+			cumulus.LogMessage("GetHistoricDataSdCard: Adding historic data into Cumulus...");
+			Cumulus.LogConsoleMessage("Adding historic data...");
+
+			var recNo = 1;
+			var lastRecTime = DateTime.MinValue;
+			var interval = 1;
+
+			foreach (var rec in buffer)
+			{
+				if (cumulus.cancellationToken.IsCancellationRequested)
+				{
+					return false;
+				}
+
+				//cumulus.LogMessage("Processing data for " + rec.Key);
+
+				if (lastRecTime != DateTime.MinValue)
+				{
+					interval = (int) rec.Key.Subtract(lastRecTime).TotalMinutes;
+					lastRecTime = rec.Key;
+				}
+				else
+				{
+					lastRecTime = rec.Key;
+				}
+
+				var h = rec.Key.Hour;
+
+				rollHour = Math.Abs(cumulus.GetHourInc(rec.Key));
+
+				//  if outside rollover hour, rollover yet to be done
+				if (h != rollHour)
+				{
+					rolloverdone = false;
+				}
+				else if (!rolloverdone)
+				{
+					// In rollover hour and rollover not yet done
+					// do rollover
+					cumulus.LogMessage("Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+					Cumulus.LogConsoleMessage("\n  Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+
+					DayReset(rec.Key);
+
+					rolloverdone = true;
+				}
+
+				// Not in midnight hour, midnight rain yet to be done
+				if (h != 0)
+				{
+					midnightraindone = false;
+				}
+				else if (!midnightraindone)
+				{
+					// In midnight hour and midnight rain (and sun) not yet done
+					ResetMidnightRain(rec.Key);
+					ResetSunshineHours(rec.Key);
+					ResetMidnightTemperatures(rec.Key);
+					midnightraindone = true;
+				}
+
+				// 9am rollover items
+				if (h != 9)
+				{
+					rollover9amdone = false;
+				}
+				else if (!rollover9amdone)
+				{
+					Reset9amTemperatures(rec.Key);
+					rollover9amdone = true;
+				}
+
+				// Not in snow hour, snow yet to be done
+				if (h != 0)
+				{
+					snowhourdone = false;
+				}
+				else if ((h == cumulus.SnowDepthHour) && !snowhourdone)
+				{
+					// snowhour items
+					if (cumulus.SnowAutomated > 0)
+					{
+						CreateNewSnowRecord(rec.Key);
+					}
+
+					// reset the accumulated snow depth(s)
+					for (int i = 0; i < Snow24h.Length; i++)
+					{
+						Snow24h[i] = null;
+					}
+
+					snowhourdone = true;
+				}
+
+				// finally apply this data
+				ecowittApi.ApplyHistoricData(rec);
+
+				// Do the CMX calculate SLP now as it depends on temperature
+				if (cumulus.StationOptions.CalculateSLP)
+				{
+					var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+					DoPressure(ConvertUnits.PressMBToUser(slp), rec.Key);
+				}
+
+				// add in archive period worth of sunshine, if sunny
+				if (CurrentSolarMax > 0 && SolarRad.HasValue &&
+				SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
+					SolarRad >= cumulus.SolarOptions.SolarMinimum &&
+					!cumulus.SolarOptions.UseBlakeLarsen)
+				{
+					SunshineHours += interval / 60.0;
+					cumulus.LogDebugMessage($"Adding {interval} minutes to Sunshine Hours");
+				}
+
+				// add in archive period minutes worth of temperature to the temp samples
+				tempsamplestoday += interval;
+				TempTotalToday += (OutdoorTemperature * interval);
+
+				// add in 'following interval' minutes worth of wind speed to windrun
+				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + interval + " minutes = " +
+				(WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
+
+				// update heating/cooling degree days
+				UpdateDegreeDays(5);
+
+				// update dominant wind bearing
+				CalculateDominantWindBearing(Bearing, WindAverage, interval);
+				CheckForWindrunHighLow(rec.Key);
+				DoTrendValues(rec.Key);
+
+				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
+				{
+					// Start of a new hour, and we want to calculate ET in Cumulus
+					CalculateEvapotranspiration(rec.Key);
+				}
+
+				_ = cumulus.DoLogFile(rec.Key, false);
+				cumulus.DoCustomIntervalLogs(rec.Key);
+
+				cumulus.MySqlRealtimeFile(999, false, rec.Key);
+
+				if (cumulus.StationOptions.LogExtraSensors)
+				{
+					_ = cumulus.DoExtraLogFile(rec.Key);
+				}
+
+				// Custom MySQL update - minutes interval
+				if (cumulus.MySqlSettings.CustomMins.Enabled)
+				{
+					_ = cumulus.CustomMysqlMinutesUpdate(rec.Key, false);
+				}
+
+				AddRecentDataWithAq(rec.Key, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
+
+				UpdateStatusPanel(rec.Key);
+				cumulus.AddToWebServiceLists(rec.Key);
+				LastDataReadTime = rec.Key;
+
+				if (!Program.service)
+				{
+					Console.Write("\r - processed " + (((double) recNo++) / buffer.Count).ToString("P0"));
+				}
+			}
+
+			Cumulus.LogConsoleMessage("Historic data processing complete");
+
+			return cumulus.LastUpdateTime.AddMinutes(interval + 1) < DateTime.Now;
+
+		}
 		public override string GetEcowittCameraUrl()
 		{
 			if (!string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
@@ -449,10 +792,13 @@ namespace CumulusMX
 					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
 				}
 			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittCameraUrl: Warning - URL requested, but no camera MAC address is configured");
+			}
 
-			return null;
+			return string.Empty;
 		}
-
 		public override string GetEcowittVideoUrl()
 		{
 			if (!string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
@@ -467,26 +813,39 @@ namespace CumulusMX
 					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Video URL");
 				}
 			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittVideoUrl: Warning - URL requested, but no camera MAC address is configured");
+			}
 
-			return null;
+			return string.Empty;
 		}
-
-		private async Task GetSensorIds()
+		private async Task GetSensorIds(bool delay)
 		{
+			// pause for two seconds to get out of sync with the live data requests
+			if (delay)
+			{
+				await Task.Delay(2000, cumulus.cancellationToken);
+				if (cumulus.cancellationToken.IsCancellationRequested)
+				{
+					return;
+				}
+			}
+
 			cumulus.LogMessage("Reading sensor ids");
-
 			var sensors = await localApi.GetSensorInfo(cumulus.cancellationToken);
+			if (cumulus.cancellationToken.IsCancellationRequested)
+			{
+				return;
+			}
 			batteryLow = false;
-
 			LowBatteryDevices.Clear();
-
 			if (sensors != null && sensors.Length > 0)
 			{
 				for (var i = 0; i< sensors.Length; i++)
 				{
 					var sensor = sensors[i];
 					var name = string.Empty;
-
 					try
 					{
 						cumulus.LogDebugMessage($" - enabled={sensor.idst}, type={sensor.img}, sensor id={sensor.id}, signal={sensor.signal}, battery={sensor.batt}, name={sensor.name}");
@@ -653,6 +1012,9 @@ namespace CumulusMX
 							break;
 						case "0x05": //Heat index
 									 // cumulus calculates this
+							break;
+						case "5": // Vapour Pressure Deficit
+								  // do nothing with this for now - MX calcuates VPD
 							break;
 						case "0x07": //Outdoor Humidity (%)
 							if (sensor.valInt.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
@@ -1164,16 +1526,32 @@ namespace CumulusMX
 			{
 				var sensor = sensors[i];
 
-				if (sensor.channel.HasValue && sensor.PM25.HasValue)
+				if (sensor.channel.HasValue)
 				{
-					try
+					if (sensor.PM25.HasValue)
 					{
-						DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
+						try
+						{
+							DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, $"ProcessChPm25: Error on sensor {sensor.channel}");
+						}
 					}
-					catch (Exception ex)
+					/*
+					if (sensor.PM25_24H.HasValue)
 					{
-						cumulus.LogExceptionMessage(ex, $"ProcessChPm25: Error on sensor {sensor.channel}");
+						try
+						{
+							DoAirQualityAvg(sensor.PM25_24H.Value, sensor.channel.Value);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, $"ProcessChPm25_24H: Error on sensor {sensor.channel}");
+						}
 					}
+					*/
 				}
 			}
 		}
@@ -1238,15 +1616,21 @@ namespace CumulusMX
 					if (sensor.temp.HasValue)
 					{
 						DoExtraTemp(sensor.temp.Value, sensor.channel);
+
+						if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
+						{
+							DoOutdoorTemp(sensor.temp.Value, dateTime);
+						}
 					}
 
 					if (sensor.humidityVal.HasValue)
 					{
+						DoExtraHum(sensor.humidityVal.Value, sensor.channel);
+
 						if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
 						{
 							DoOutdoorHumidity(sensor.humidityVal.Value, dateTime);
 						}
-						DoExtraHum(sensor.humidityVal.Value, sensor.channel);
 					}
 				}
 				catch (Exception ex)
@@ -1384,28 +1768,34 @@ namespace CumulusMX
 			{
 				var sensor = sensors[i];
 
-				if (sensor.airVal.HasValue)
+				try
 				{
-					try
-					{
-						DoLaserDistance(sensor.airVal.Value, sensor.channel);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogExceptionMessage(ex, $"ProcessLds: Error processing channel {sensor.channel} 'air' distance");
-					}
+					var val = sensor.unit == "mm" ? ConvertUnits.LaserMmToUser(sensor.airVal.Value) : ConvertUnits.LaserInchesToUser(sensor.airVal.Value);
+					DoLaserDistance(val, sensor.channel);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, $"ProcessLds: Error processing channel {sensor.channel} 'air' distance");
 				}
 
-				if (sensor.depthVal.HasValue)
+				try
 				{
-					try
+					if (cumulus.LaserDepthBaseline[sensor.channel] == -1)
 					{
-						DoLaserDepth(sensor.depthVal.Value, sensor.channel);
+						// MX is not calculating depth
+
+						decimal? val = null;
+
+						if (sensor.depthVal.HasValue)
+						{
+							val = sensor.unit == "mm" ? ConvertUnits.LaserMmToUser(sensor.depthVal.Value) : ConvertUnits.LaserInchesToUser(sensor.depthVal.Value);
+						}
+						DoLaserDepth(val, sensor.channel);
 					}
-					catch (Exception ex)
-					{
-						cumulus.LogExceptionMessage(ex, $"ProcessLds: Error processing channel {sensor.channel} 'depth' value");
-					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, $"ProcessLds: Error processing channel {sensor.channel} 'depth' value");
 				}
 			}
 		}

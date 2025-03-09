@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.IO;
 using System.Runtime.Serialization;
@@ -28,7 +28,7 @@ namespace CumulusMX
 			}
 		}
 		public string WebTag { get; set; }
-		public double Value { get; set; }
+		public decimal Value { get; set; }
 		[IgnoreDataMember]
 		public bool Triggered
 		{
@@ -63,6 +63,7 @@ namespace CumulusMX
 				{
 					"above" => AlarmTypes.Above,
 					"below" => AlarmTypes.Below,
+					"equals" => AlarmTypes.Equals,
 					_ => AlarmTypes.Above,
 				};
 			}
@@ -75,19 +76,13 @@ namespace CumulusMX
 		DateTime triggeredTime;
 
 		private readonly TokenParser tokenParser;
-		private double tagValue;
+		private decimal tagValue;
 
 		public AlarmUser(string AlarmName, string AlarmType, string webTag, Cumulus cuml)
 		{
 			Name = AlarmName;
+			Type = AlarmType;
 
-			type = AlarmType.ToLower() switch
-			{
-				"above" => AlarmTypes.Above,
-				"below" => AlarmTypes.Below,
-				"equals" => AlarmTypes.Equals,
-				_ => AlarmTypes.Above,
-			};
 			cumulus = cuml;
 			WebTag = webTag;
 			tokenParser = new TokenParser(cumulus.TokenParserOnToken)
@@ -102,7 +97,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					tagValue = Convert.ToDouble(new DataTable().Compute(tokenParser.ToStringFromString(), null), System.Globalization.CultureInfo.InvariantCulture);
+					tagValue = Convert.ToDecimal(new DataTable().Compute(tokenParser.ToStringFromString(), null), System.Globalization.CultureInfo.InvariantCulture);
 					doTriggered((type == AlarmTypes.Above && tagValue > Value) || (type == AlarmTypes.Below && tagValue < Value) || (type == AlarmTypes.Equals && tagValue == Value));
 				}
 				catch
@@ -138,7 +133,13 @@ namespace CumulusMX
 						if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 						{
 							// Construct the message - preamble, plus values
-							var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsg, tagValue);
+							var parser = new TokenParser(cumulus.TokenParserOnToken)
+							{
+								InputText = string.Format(EmailMsg, tagValue)
+							};
+							var body = parser.ToStringFromString();
+
+							var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + body;
 							_ = Task.Run(async () =>
 							{
 								// try to send the email 3 times

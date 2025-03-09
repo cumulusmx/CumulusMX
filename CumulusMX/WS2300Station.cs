@@ -30,7 +30,7 @@ namespace CumulusMX
 
 		public WS2300Station(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = Cumulus.LACROSSE;
+			cumulus.Manufacturer = Cumulus.StationManufacturer.LACROSSE;
 			calculaterainrate = true;
 
 			cumulus.LogMessage("WS2300: Attempting to open " + cumulus.ComportName);
@@ -219,6 +219,7 @@ namespace CumulusMX
 
 			bool midnightraindone = luhour == 0;
 			bool rollover9amdone = luhour == 9;
+			bool snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			double prevraintotal = -1;
 			double raindiff, rainrate;
@@ -242,8 +243,7 @@ namespace CumulusMX
 				{
 					rolloverdone = false;
 				}
-
-				if ((h == rollHour) && !rolloverdone)
+				else if (!rolloverdone)
 				{
 					// do roll-over
 					cumulus.LogMessage("WS2300: Day roll-over " + timestamp);
@@ -257,8 +257,7 @@ namespace CumulusMX
 				{
 					midnightraindone = false;
 				}
-
-				if ((h == 0) && !midnightraindone)
+				else if (!midnightraindone)
 				{
 					ResetMidnightRain(timestamp);
 					ResetSunshineHours(timestamp);
@@ -267,11 +266,38 @@ namespace CumulusMX
 				}
 
 				// 9am rollover items
-				if (h == 9 && !rollover9amdone)
+				if (h == 9 )
+				{
+					rollover9amdone = false;
+				}
+				if (!rollover9amdone)
 				{
 					Reset9amTemperatures(timestamp);
 					rollover9amdone = true;
 				}
+
+				// Not in snow hour, snow yet to be done
+				if (h != cumulus.SnowDepthHour)
+				{
+					snowhourdone = false;
+				}
+				else if (!snowhourdone)
+				{
+					// snowhour items
+					if (cumulus.SnowAutomated > 0)
+					{
+						CreateNewSnowRecord(timestamp);
+					}
+
+					// reset the accumulated snow depth(s)
+					for (int i = 0; i < Snow24h.Length; i++)
+					{
+						Snow24h[i] = null;
+					}
+
+					snowhourdone = true;
+				}
+
 				// Humidity ====================================================================
 				if ((historydata.inHum > 0) && (historydata.inHum <= 100))
 					DoIndoorHumidity(historydata.inHum);
@@ -363,7 +389,7 @@ namespace CumulusMX
 				// Pressure ======================================================================
 				double slpress = historydata.pressure + pressureoffset;
 
-				if ((slpress > ConvertUnits.PressMBToUser(900)) && (slpress < ConvertUnits.PressMBToUser(1200)))
+				if ((slpress > ConvertUnits.PressMBToUser(900.0)) && (slpress < ConvertUnits.PressMBToUser(1200.0)))
 				{
 					DoPressure(slpress, timestamp);
 				}
@@ -375,6 +401,7 @@ namespace CumulusMX
 				DoFeelsLike(timestamp);
 				DoHumidex(timestamp);
 				DoCloudBaseHeatIndex(timestamp);
+				DoTrendValues(timestamp);
 
 				CalculateDominantWindBearing(Bearing, WindAverage, historydata.interval);
 
@@ -388,6 +415,12 @@ namespace CumulusMX
 					_ = cumulus.DoExtraLogFile(timestamp);
 				}
 				cumulus.MySqlRealtimeFile(999, false, timestamp);
+
+				// Custom MySQL update - minutes interval
+				if (cumulus.MySqlSettings.CustomMins.Enabled)
+				{
+					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
+				}
 
 				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, rainrate, -1, -1);
 				UpdateStatusPanel(timestamp);

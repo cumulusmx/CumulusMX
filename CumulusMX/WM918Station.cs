@@ -23,7 +23,7 @@ namespace CumulusMX
 		public WM918Station(Cumulus cumulus)
 			: base(cumulus)
 		{
-			cumulus.Manufacturer = Cumulus.OREGON;
+			cumulus.Manufacturer = Cumulus.StationManufacturer.OREGON;
 			// station supplies rain rate
 			calculaterainrate = false;
 
@@ -325,7 +325,7 @@ namespace CumulusMX
 			double locPress = BCDchartoint(buff[1]) + (BCDchartoint(buff[2]) * 100);
 			DoStationPressure(ConvertUnits.PressMBToUser(locPress));
 
-			double pressure = ConvertUnits.PressMBToUser((BCDchartoint(buff[3]) / 10) + (BCDchartoint(buff[4]) * 10) +
+			double pressure = ConvertUnits.PressMBToUser((double) (BCDchartoint(buff[3]) / 10) + (BCDchartoint(buff[4]) * 10) +
 				((BCDchartoint(buff[5]) % 10) * 1000));
 
 			DoPressure(pressure, DateTime.Now);
@@ -396,8 +396,8 @@ namespace CumulusMX
 			//                           Month M1M2)
 			// Checksum C1C2
 
-			double raincounter = ConvertUnits.RainMMToUser(BCDchartoint(buff[5]) + (BCDchartoint(buff[6]) * 100));
-			double rainrate = ConvertUnits.RainMMToUser(BCDchartoint(buff[1]) + ((BCDchartoint(buff[2]) % 10) * 100));
+			double raincounter = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[5]) + (BCDchartoint(buff[6]) * 100));
+			double rainrate = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[1]) + ((BCDchartoint(buff[2]) % 10) * 100));
 
 			DoRain(raincounter, rainrate, DateTime.Now);
 		}

@@ -1,4 +1,6 @@
-﻿namespace CumulusMX
+﻿using System;
+
+namespace CumulusMX
 {
 
 	internal static class ConvertUnits
@@ -97,6 +99,17 @@
 			};
 		}
 
+		public static double? WindMSToUser(double? value)
+		{
+			return value.HasValue ? WindMSToUser(value.Value) : null;
+		}
+
+		public static decimal? WindMSToUser(decimal? value)
+		{
+			return value.HasValue ? WindMSToUser(value.Value) : null;
+		}
+
+
 		/// <summary>
 		///  Converts wind supplied in mph to user units
 		/// </summary>
@@ -112,6 +125,21 @@
 				3 => value * 0.868976,
 				_ => 0,
 			};
+		}
+
+		public static double WindMPHToUser(int value)
+		{
+			return WindMPHToUser((double) value);
+		}
+
+		public static double? WindMPHToUser(double? value)
+		{
+			return value.HasValue ? WindMPHToUser(value.Value) : null;
+		}
+
+		public static decimal? WindMPHToUser(decimal? value)
+		{
+			return value.HasValue ? WindMPHToUser(value.Value) : null;
 		}
 
 		/// <summary>
@@ -131,6 +159,16 @@
 			};
 		}
 
+		public static double? WindKnotsToUser(double? value)
+		{
+			return value.HasValue ? WindKnotsToUser(value.Value) : null;
+		}
+
+		public static decimal? WindKnotsToUser(decimal? value)
+		{
+			return value.HasValue ? WindKnotsToUser(value.Value) : null;
+		}
+
 		/// <summary>
 		///  Converts wind supplied in kph to user units
 		/// </summary>
@@ -146,6 +184,16 @@
 				3 => value * 0.5399568,
 				_ => 0,
 			};
+		}
+
+		public static double? WindKPHToUser(double? value)
+		{
+			return value.HasValue ? WindKPHToUser(value.Value) : null;
+		}
+
+		public static decimal? WindKPHToUser(decimal? value)
+		{
+			return value.HasValue ? WindKPHToUser(value.Value) : null;
 		}
 
 		/// <summary>
@@ -308,6 +356,16 @@
 			return Program.cumulus.Units.Rain == 1 ? value / mm2in : value;
 		}
 
+		public static double? RainMMToUser(double? value)
+		{
+			return value.HasValue ? RainMMToUser(value.Value) : null;
+		}
+
+		public static decimal? RainMMToUser(decimal? value)
+		{
+			return value.HasValue ? RainMMToUser(value.Value) : null;
+		}
+
 		/// <summary>
 		/// Converts rain in inches to units in use
 		/// </summary>
@@ -316,6 +374,16 @@
 		public static double RainINToUser(double value)
 		{
 			return Program.cumulus.Units.Rain == 1 ? value : value * mm2in;
+		}
+
+		public static double? RainINToUser(double? value)
+		{
+			return value.HasValue ? RainINToUser(value.Value) : null;
+		}
+
+		public static decimal? RainINToUser(decimal? value)
+		{
+			return value.HasValue ? RainINToUser(value.Value) : null;
 		}
 
 		/// <summary>
@@ -351,6 +419,16 @@
 			};
 		}
 
+		public static double? PressMBToUser(double? value)
+		{
+			return value.HasValue ? PressMBToUser(value.Value) : null;
+		}
+
+		public static decimal? PressMBToUser(decimal? value)
+		{
+			return value.HasValue ? PressMBToUser(value.Value) : null;
+		}
+
 		/// <summary>
 		/// Convert pressure in kPa to units in use
 		/// </summary>
@@ -366,6 +444,10 @@
 				3 => value,
 				_ => 0,
 			};
+		}
+		public static double? PressKPAToUser(double? value)
+		{
+			return value.HasValue ? PressKPAToUser(value.Value) : null;
 		}
 
 		/// <summary>
@@ -383,6 +465,15 @@
 				3 => value * inHg2kPa,
 				_ => 0,
 			};
+		}
+		public static double? PressINHGToUser(double? value)
+		{
+			return value.HasValue ? PressINHGToUser(value.Value) : null;
+		}
+
+		public static decimal? PressINHGToUser(decimal? value)
+		{
+			return value.HasValue ? PressINHGToUser(value.Value) : null;
 		}
 
 		/// <summary>
@@ -463,14 +554,93 @@
 			};
 		}
 
-		public static double LaserMmtoUser(double value)
+		public static decimal LaserMmToUser(decimal value)
 		{
 			return Program.cumulus.Units.LaserDistance switch
 			{
-				0 => value * 0.1,
-				1 => value * 0.03937008,
+				0 => Math.Round(value * (decimal) 0.1, 1),
+				1 => Math.Round(value * (decimal) 0.03937008, 2),
+				2 => value,
 				_ => 0,
 			};
+		}
+
+		public static decimal? LaserMmToUser(decimal? value)
+		{
+			if (!value.HasValue)
+			{
+				return null;
+			}
+
+			return Program.cumulus.Units.LaserDistance switch
+			{
+				0 => Math.Round(value.Value * (decimal) 0.1, 1),
+				1 => Math.Round(value.Value * (decimal) 0.03937008, 2),
+				2 => value,
+				_ => 0,
+			};
+		}
+
+
+		public static decimal LaserInchesToUser(decimal value)
+		{
+			return Program.cumulus.Units.LaserDistance switch
+			{
+				0 => Math.Round(value * (decimal) 2.54, 1),
+				1 => Math.Round(value, 2),
+				2 => Math.Round(value *	(decimal) 25.4, 0),
+				_ => 0,
+			};
+		}
+
+		public static decimal? LaserInchesToUser(decimal? value)
+		{
+			if (!value.HasValue)
+			{
+				return null;
+			}
+
+			return Program.cumulus.Units.LaserDistance switch
+			{
+				0 => Math.Round(value.Value * (decimal) 2.54, 1),
+				1 => Math.Round(value.Value, 2),
+				2 => Math.Round(value.Value * (decimal) 25.4, 0),
+				_ => 0,
+			};
+		}
+
+		public static decimal LaserToSnow(decimal value)
+		{
+			if (Program.cumulus.Units.SnowDepth == Program.cumulus.Units.LaserDistance)
+			{
+				return value;
+			}
+
+			if (Program.cumulus.Units.SnowDepth == 0)
+			{
+				// snow depth = cm
+				decimal mult = Program.cumulus.Units.LaserDistance switch
+				{
+					0 => 1,
+					1 => (decimal) 0.3937008,
+					2 => 10,
+					_ => 0
+				};
+				return Math.Round(value * mult, 0);
+			}
+			else
+			{
+				// snow depth = inches
+				decimal mult = Program.cumulus.Units.LaserDistance switch
+				{
+					0 => (decimal) 2.54,
+					1 => 1,
+					2 => (decimal) 25.4,
+					_ => 0
+				};
+				return Math.Round(value * mult, 1);
+			}
+
 		}
 
 		/// <summary>

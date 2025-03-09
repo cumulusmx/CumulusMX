@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -95,7 +95,13 @@ namespace CumulusMX
 						if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 						{
 							// Construct the message - preamble, plus values
-							var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsg, Value, Units);
+							var parser = new TokenParser(cumulus.TokenParserOnToken)
+							{
+								InputText = string.Format(EmailMsg, Value, Units)
+							};
+							var body = parser.ToStringFromString();
+							var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + body;
+
 							if (!string.IsNullOrEmpty(LastMessage))
 							{
 								msg += "\r\nLast message: " + LastMessage;
@@ -314,7 +320,13 @@ namespace CumulusMX
 					if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 					{
 						// Construct the message - preamble, plus values
-						var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + string.Format(EmailMsgUp, Value, Units);
+						var parser = new TokenParser(cumulus.TokenParserOnToken)
+						{
+							InputText = string.Format(EmailMsg, Value, Units)
+						};
+						var body = parser.ToStringFromString();
+						var msg = cumulus.Trans.AlarmEmailPreamble + "\r\n" + body;
+
 						_ = Task.Run(async () =>
 						{
 							// try to send the email 3 times
@@ -435,7 +447,13 @@ namespace CumulusMX
 					if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
 					{
 						// Construct the message - preamble, plus values
-						var msg = cumulus.Trans.AlarmEmailPreamble + "\n" + string.Format(EmailMsgDn, Value, Units);
+						var parser = new TokenParser(cumulus.TokenParserOnToken)
+						{
+							InputText = string.Format(EmailMsg, Value, Units)
+						};
+						var body = parser.ToStringFromString();
+						var msg = cumulus.Trans.AlarmEmailPreamble + "\n" + body;
+
 						_ = Task.Run(async () =>
 						{
 							// try to send the email 3 times

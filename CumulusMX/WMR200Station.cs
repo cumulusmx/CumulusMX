@@ -35,6 +35,8 @@ namespace CumulusMX
 		private bool firstArchiveData = true;
 		private bool midnightraindone;
 		private bool rollover9amdone;
+		private bool snowhourdone;
+
 		private double hourInc;
 		private int rollHour;
 		private bool rolloverdone;
@@ -49,7 +51,7 @@ namespace CumulusMX
 
 		public WMR200Station(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Manufacturer = Cumulus.OREGONUSB;
+			cumulus.Manufacturer = Cumulus.StationManufacturer.OREGONUSB;
 			var devicelist = DeviceList.Local;
 			var station = devicelist.GetHidDeviceOrNull(Vendorid, Productid);
 
@@ -146,9 +148,9 @@ namespace CumulusMX
 			int luhour = cumulus.LastUpdateTime.Hour;
 
 			rolloverdone = luhour == rollHour;
-
 			midnightraindone = luhour == 0;
 			rollover9amdone = luhour == 9;
+			snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			gettingHistory = true;
 			livePacketCount = 0;
@@ -951,7 +953,7 @@ namespace CumulusMX
 			double slp = ((packetBuffer[10] & 0xF) * 256) + packetBuffer[9];
 			DoPressure(ConvertUnits.PressMBToUser(slp), DateTime.Now);
 
-			DoStationPressure(ConvertUnits.PressMBToUser(((packetBuffer[8] & 0xF) * 256) + packetBuffer[7]));
+			DoStationPressure(ConvertUnits.PressMBToUser(((double) (packetBuffer[8] & 0xF) * 256) + packetBuffer[7]));
 
 			var forecast = packetBuffer[8] / 16;
 			var fcstr = forecast switch
@@ -1385,18 +1387,19 @@ namespace CumulusMX
 			{
 				rolloverdone = false;
 			}
-			if ((h == rollHour) && !rolloverdone)
+			else if (!rolloverdone)
 			{
 				// do roll-over
 				cumulus.LogMessage("Day roll-over " + timestamp);
 				DayReset(timestamp);
 				rolloverdone = true;
 			}
+
 			if (h != 0)
 			{
 				midnightraindone = false;
 			}
-			if ((h == 0) && !midnightraindone)
+			else if (!midnightraindone)
 			{
 				ResetMidnightRain(timestamp);
 				ResetSunshineHours(timestamp);
@@ -1404,11 +1407,37 @@ namespace CumulusMX
 				midnightraindone = true;
 			}
 			// 9am rollover items
-			if (h == 9 && !rollover9amdone)
+			if (h!= 9)
+			{
+				rollover9amdone = false;
+			}
+			else if (!rollover9amdone)
 			{
 				Reset9amTemperatures(timestamp);
 				rollover9amdone = true;
 			}
+			// Not in snow hour, snow yet to be done
+			if (h != cumulus.SnowDepthHour)
+			{
+				snowhourdone = false;
+			}
+			else if (!snowhourdone)
+			{
+				// snowhour items
+				if (cumulus.SnowAutomated > 0)
+				{
+					CreateNewSnowRecord(timestamp);
+				}
+
+				// reset the accumulated snow depth(s)
+				for (int j = 0; j < Snow24h.Length; j++)
+				{
+					Snow24h[j] = null;
+				}
+
+				snowhourdone = true;
+			}
+
 			// there seems to be no way of determining the log interval other than subtracting one logMainUnit.Units.MainUnit.cumulus.LogMessage
 			// timestamp from another, so we'll have to ignore the first one
 			if (previousHistoryTimeStamp > DateTime.MinValue)
@@ -1421,7 +1450,7 @@ namespace CumulusMX
 			}
 			previousHistoryTimeStamp = timestamp;
 			// pressure
-			DoStationPressure(ConvertUnits.PressMBToUser(((packetBuffer[29] & 0xF) * 256) + packetBuffer[28]));
+			DoStationPressure(ConvertUnits.PressMBToUser(((double) (packetBuffer[29] & 0xF) * 256) + packetBuffer[28]));
 			double num = ((packetBuffer[31] & 0xF) * 256) + packetBuffer[30];
 			DoPressure(ConvertUnits.PressMBToUser(num), timestamp);
 
@@ -1588,6 +1617,7 @@ namespace CumulusMX
 			DoFeelsLike(timestamp);
 			DoHumidex(timestamp);
 			DoCloudBaseHeatIndex(timestamp);
+			DoTrendValues(timestamp);
 
 			_ = cumulus.DoLogFile(timestamp, false);
 			cumulus.MySqlRealtimeFile(999, false, timestamp);
@@ -1598,9 +1628,14 @@ namespace CumulusMX
 				_ = cumulus.DoExtraLogFile(timestamp);
 			}
 
+			// Custom MySQL update - minutes interval
+			if (cumulus.MySqlSettings.CustomMins.Enabled)
+			{
+				_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
+			}
+
 			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 							Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
-			DoTrendValues(timestamp);
 			UpdateStatusPanel(timestamp);
 			// Add current data to the lists of web service updates to be done
 			cumulus.AddToWebServiceLists(timestamp);

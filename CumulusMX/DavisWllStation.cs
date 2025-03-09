@@ -865,17 +865,36 @@ namespace CumulusMX
 
 										DoWind(wind, wdirCal, currentAvgWindSpd, dateTime);
 									}
-
-									// See if the current speed is higher than the current max
-									// We can then update the figure before the next data packet is read
-
-									cumulus.LogDebugMessage($"WLL current: Checking recent gust using wind data from TxId {data1.txid}");
-
-									// Check for spikes, and set highs - Only if we are past the rollover time plus the gust time, otherwise we can get peaks from yesterday attributed to today
-									if (DateTime.Now.TimeOfDay > new TimeSpan(cumulus.RolloverHour, cumulus.StationOptions.PeakGustMinutes < 10 ? 2 : 10, 0) &&
-										CheckHighGust(gustCal, gustDirCal, dateTime))
+									else
 									{
-										cumulus.LogDebugMessage("Setting today's max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + HiLoToday.HighGust.ToString(cumulus.WindFormat));
+										// See if the current speed is higher than the current max
+										// We can then update the figure before the next data packet is read
+
+										cumulus.LogDebugMessage($"WLL current: Checking recent gust using wind data from TxId {data1.txid}");
+
+										// Check for spikes, and set highs - Only if we are past the rollover time plus the gust time, otherwise we can get peaks from yesterday attributed to today
+										if (dateTime.AddHours(cumulus.GetHourInc(dateTime)).TimeOfDay > new TimeSpan(0, 2, 10))
+										{
+											var gust2min = cumulus.Calib.WindGust.Calibrate(ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0));
+
+											if (gust2min > HiLoToday.HighGust)
+											{
+												var dir2min = (int) cumulus.Calib.WindDir.Calibrate(data1.wind_dir_at_hi_speed_last_2_min ?? 0);
+												var time2min = dateTime.AddMinutes(-1);
+
+												cumulus.LogMessage("DecodeCurrent: Setting today's max gust from current value: " + gust2min.ToString(cumulus.WindFormat) + " was: " + HiLoToday.HighGust.ToString(cumulus.WindFormat));
+												_ = CheckHighGust(gust2min, dir2min, time2min);
+
+												// add the uncalibrated values to the recent wind data
+												lock (recentwindLock)
+												{
+													WindRecent[nextwind].Gust = data1.wind_dir_at_hi_speed_last_2_min ?? 0;
+													WindRecent[nextwind].Speed = WindAverageUncalibrated;
+													WindRecent[nextwind].Timestamp = time2min;
+													nextwind = (nextwind + 1) % MaxWindRecent;
+												}
+											}
+										}
 									}
 								}
 								catch (Exception ex)
@@ -1574,6 +1593,7 @@ namespace CumulusMX
 
 			bool midnightraindone = luhour == 0;
 			bool rollover9amdone = luhour == 9;
+			bool snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			WlHistory histObj;
 			int noOfRecs = 0;
@@ -1684,12 +1704,6 @@ namespace CumulusMX
 
 					var h = timestamp.Hour;
 
-					//  if outside roll-over hour, roll-over yet to be done
-					if (h != rollHour)
-					{
-						rolloverdone = false;
-					}
-
 					// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
 					// Windrun
 					// Dominant wind bearing
@@ -1697,9 +1711,14 @@ namespace CumulusMX
 					// Degree days
 					// Rainfall
 
-					// In roll-over hour and roll-over not yet done
-					if ((h == rollHour) && !rolloverdone)
+					//  if outside roll-over hour, roll-over yet to be done
+					if (h != rollHour)
 					{
+						rolloverdone = false;
+					}
+					else if (!rolloverdone)
+					{
+						// In roll-over hour and roll-over not yet done
 						// do roll-over
 						cumulus.LogMessage("GetWlHistoricData: Day roll-over " + timestamp.ToShortTimeString());
 						DayReset(timestamp);
@@ -1711,10 +1730,9 @@ namespace CumulusMX
 					{
 						midnightraindone = false;
 					}
-
-					// In midnight hour and midnight rain (and sun) not yet done
-					if ((h == 0) && !midnightraindone)
+					else if (!midnightraindone)
 					{
+						// In midnight hour and midnight rain (and sun) not yet done
 						ResetMidnightRain(timestamp);
 						ResetSunshineHours(timestamp);
 						ResetMidnightTemperatures(timestamp);
@@ -1722,10 +1740,36 @@ namespace CumulusMX
 					}
 
 					// 9am rollover items
-					if (h == 9 && !rollover9amdone)
+					if (h != 9)
+					{
+						rollover9amdone = false;
+					}
+					else if (!rollover9amdone)
 					{
 						Reset9amTemperatures(timestamp);
 						rollover9amdone = true;
+					}
+
+					// Not in snow hour, snow yet to be done
+					if (h != 0)
+					{
+						snowhourdone = false;
+					}
+					else if ((h == cumulus.SnowDepthHour) && !snowhourdone)
+					{
+						// snowhour items
+						if (cumulus.SnowAutomated > 0)
+						{
+							CreateNewSnowRecord(timestamp);
+						}
+
+						// reset the accumulated snow depth(s)
+						for (int i = 0; i < Snow24h.Length; i++)
+						{
+							Snow24h[i] = null;
+						}
+
+						snowhourdone = true;
 					}
 
 					DecodeHistoric(sensorWithMostRecs.data_structure_type, sensorWithMostRecs.sensor_type, sensorWithMostRecs.data[dataIndex]);
@@ -1815,6 +1859,13 @@ namespace CumulusMX
 					DoFeelsLike(timestamp);
 					DoHumidex(timestamp);
 					DoCloudBaseHeatIndex(timestamp);
+					DoTrendValues(timestamp);
+
+					if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
+					{
+						// Start of a new hour, and we want to calculate ET in Cumulus
+						CalculateEvapotranspiration(timestamp);
+					}
 
 					// Log all the data
 					_ = cumulus.DoLogFile(timestamp, false);
@@ -1832,15 +1883,14 @@ namespace CumulusMX
 						_ = cumulus.DoAirLinkLogFile(timestamp);
 					}
 
+					// Custom MySQL update - minutes interval
+					if (cumulus.MySqlSettings.CustomMins.Enabled)
+					{
+						_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
+					}
+
 					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
-					DoTrendValues(timestamp);
-
-					if (cumulus.StationOptions.CalculatedET && timestamp.Minute == 0)
-					{
-						// Start of a new hour, and we want to calculate ET in Cumulus
-						CalculateEvapotranspiration(timestamp);
-					}
 
 					UpdateStatusPanel(timestamp);
 					cumulus.AddToWebServiceLists(timestamp);

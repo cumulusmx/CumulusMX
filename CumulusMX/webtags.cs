@@ -685,14 +685,12 @@ namespace CumulusMX
 
 		private string TagMetDate(Dictionary<string, string> tagParams)
 		{
-			int offset = cumulus.GetHourInc();
-			return GetFormattedDateTime(DateTime.Now.AddHours(offset), "d", tagParams);
+			return GetFormattedDateTime(cumulus.MeteoDate(), "d", tagParams);
 		}
 
 		private string TagMetDateYesterday(Dictionary<string, string> tagParams)
 		{
-			int offset = cumulus.GetHourInc(DateTime.Now.AddDays(-1));
-			return GetFormattedDateTime(DateTime.Now.AddHours(offset).AddDays(-1), "d", tagParams);
+			return GetFormattedDateTime(cumulus.MeteoDate(DateTime.Now.AddDays(-1)), "d", tagParams);
 		}
 
 		private static string TagDay(Dictionary<string, string> tagParams)
@@ -1469,7 +1467,7 @@ namespace CumulusMX
 		{
 			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
 			var val = GetSnowDepth(ts.Date);
-			return val.HasValue ? CheckRc(val.Value.ToString(cumulus.SnowFormat), tagParams) : tagParams.Get("nv") ?? "-";
+			return val.HasValue ? CheckRcDp(val.Value, tagParams, cumulus.SnowDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagsnowlying(Dictionary<string, string> tagParams)
@@ -1482,7 +1480,7 @@ namespace CumulusMX
 		{
 			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
 			var val = GetSnow24h(ts.Date);
-			return val.HasValue ? CheckRc(val.Value.ToString(cumulus.SnowFormat), tagParams) : tagParams.Get("nv") ?? "-";
+			return val.HasValue ? CheckRcDp(val.Value, tagParams, cumulus.SnowDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagsnowcomment(Dictionary<string, string> tagParams)
@@ -3311,12 +3309,7 @@ namespace CumulusMX
 
 		private string Tagforumurl(Dictionary<string, string> tagParams)
 		{
-			if (string.IsNullOrEmpty(cumulus.ForumURL))
-			{
-				return string.Empty;
-			}
-
-			return cumulus.ForumURL;
+			return cumulus.ForumURL ?? string.Empty;
 		}
 
 		private string Tagwebcam(Dictionary<string, string> tagParams)
@@ -3330,35 +3323,38 @@ namespace CumulusMX
 		}
 		private string Tagwebcamurl(Dictionary<string, string> tagParams)
 		{
-			if (string.IsNullOrEmpty(cumulus.WebcamURL))
-			{
-				return string.Empty;
-			}
-
-			return cumulus.WebcamURL;
+			return cumulus.WebcamURL ?? string.Empty;
 		}
 
 		private string TagEcowittCameraUrl(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.StationType == StationTypes.GW1000 || cumulus.StationType == StationTypes.HttpEcowitt || cumulus.StationType == StationTypes.EcowittCloud)
+			if (cumulus.ecowittExtra != null && cumulus.ExtraSensorUseCamera)
 			{
-				return string.IsNullOrEmpty(station.GetEcowittCameraUrl()) ? string.Empty : station.EcowittCameraUrl;
+				return cumulus.ecowittExtra.GetEcowittCameraUrl();
+			}
+			else if (cumulus.ecowittCloudExtra != null && cumulus.ExtraSensorUseCamera)
+			{
+				return cumulus.ecowittCloudExtra.GetEcowittCameraUrl();
 			}
 			else
 			{
-				return string.Empty;
+				return station.GetEcowittCameraUrl();
 			}
 		}
 
 		private string TagEcowittVideoUrl(Dictionary<string, string> tagParams)
 		{
-			if (cumulus.StationType == StationTypes.GW1000 || cumulus.StationType == StationTypes.HttpEcowitt || cumulus.StationType == StationTypes.EcowittCloud)
+			if (cumulus.ecowittExtra != null && cumulus.ExtraSensorUseCamera)
 			{
-				return string.IsNullOrEmpty(station.GetEcowittVideoUrl()) ? string.Empty : station.EcowittVideoUrl;
+				return cumulus.ecowittExtra.GetEcowittVideoUrl();
+			}
+			else if (cumulus.ecowittCloudExtra != null && cumulus.ExtraSensorUseCamera)
+			{
+				return cumulus.ecowittCloudExtra.GetEcowittVideoUrl();
 			}
 			else
 			{
-				return string.Empty;
+				return station.GetEcowittVideoUrl();
 			}
 		}
 
@@ -4357,6 +4353,56 @@ namespace CumulusMX
 			return station.LaserDepth[index].HasValue ? CheckRcDp(station.LaserDepth[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
+		private string TagSnowAcc24h1(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAcc24h(1, tagParams);
+		}
+
+		private string TagSnowAcc24h2(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAcc24h(2, tagParams);
+		}
+
+		private string TagSnowAcc24h3(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAcc24h(3, tagParams);
+		}
+
+		private string TagSnowAcc24h4(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAcc24h(4, tagParams);
+		}
+
+		private string GetSnowAcc24h(int index,  Dictionary<string, string> tagParams)
+		{
+			return station.Snow24h[index].HasValue ? CheckRcDp(station.Snow24h[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+		}
+
+		private string TagSnowAccSeason1(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAccSeason(1, tagParams);
+		}
+
+		private string TagSnowAccSeason2(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAccSeason(2, tagParams);
+		}
+
+		private string TagSnowAccSeason3(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAccSeason(3, tagParams);
+		}
+
+		private string TagSnowAccSeason4(Dictionary<string, string> tagParams)
+		{
+			return GetSnowAccSeason(4, tagParams);
+		}
+
+		private string GetSnowAccSeason(int index, Dictionary<string, string> tagParams)
+		{
+			return station.SnowSeason[index].HasValue ? CheckRcDp(station.SnowSeason[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+		}
+
 
 		private string TagAirQuality1(Dictionary<string, string> tagParams)
 		{
@@ -4440,12 +4486,12 @@ namespace CumulusMX
 
 		private string TagCo2(Dictionary<string, string> tagParams)
 		{
-			return station.CO2.ToString();
+			return station.CO2.HasValue ? station.CO2.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_24h.ToString();
+			return station.CO2_24h.HasValue ? station.CO2_24h.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm2p5(Dictionary<string, string> tagParams)
@@ -4591,6 +4637,20 @@ namespace CumulusMX
 		private string TagLeafWetness8(Dictionary<string, string> tagParams)
 		{
 			return station.LeafWetness8.HasValue ? CheckRcDp(station.LeafWetness8.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+		}
+
+
+		private string TagVapourPressDeficit(Dictionary<string, string> tagParams)
+		{
+			int sensor = 0;
+			if (int.TryParse(tagParams.Get("sensor"), out int val))
+			{
+				sensor = val;
+			}
+
+			var vpd = station.VapourPressureDeficit(sensor);
+
+			return vpd.HasValue ? CheckRcDp(CheckPressUnit(vpd.Value, tagParams), tagParams, cumulus.PressDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 
@@ -5713,7 +5773,14 @@ namespace CumulusMX
 
 		private string TagCpuTemp(Dictionary<string, string> tagParams)
 		{
-			return cumulus.CPUtemp.ToString(cumulus.TempFormat);
+			if (cumulus.CPUtemp == -999)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+			else
+			{
+				return CheckRcDp(CheckTempUnit(cumulus.CPUtemp, tagParams), tagParams, cumulus.TempDPlaces, cumulus.TempFormat);
+			}
 		}
 
 		private string TagDavisTotalPacketsReceived(Dictionary<string, string> tagParams)
@@ -6152,6 +6219,11 @@ namespace CumulusMX
 		private string TagOption_showSnow(Dictionary<string, string> tagParams)
 		{
 			return cumulus.DisplayOptions.ShowSnow ? "1" : "0";
+		}
+
+		private string TagOption_noaaFormat(Dictionary<string, string> tagParams)
+		{
+			return cumulus.NOAAconf.OutputText ? "text" : "html";
 		}
 
 		private string TagMySqlRealtimeTime(Dictionary<string, string> tagParams)
@@ -6771,6 +6843,8 @@ namespace CumulusMX
 				{ "LeafWetness7", TagLeafWetness7 },
 				{ "LeafWetness8", TagLeafWetness8 },
 
+				{ "VapourPressDeficit", TagVapourPressDeficit },
+
 				{ "LowTempAlarm", TagLowTempAlarm },
 				{ "HighTempAlarm", TagHighTempAlarm },
 				{ "TempChangeUpAlarm", TagTempChangeUpAlarm },
@@ -6868,6 +6942,16 @@ namespace CumulusMX
 				{ "LaserDepth2", TagLaserDepth2 },
 				{ "LaserDepth3", TagLaserDepth3 },
 				{ "LaserDepth4", TagLaserDepth4 },
+
+				{ "SnowAccum24h1", TagSnowAcc24h1 },
+				{ "SnowAccum24h2", TagSnowAcc24h2 },
+				{ "SnowAccum24h3", TagSnowAcc24h3 },
+				{ "SnowAccum24h4", TagSnowAcc24h4 },
+
+				{ "SnowAccumSeason1", TagSnowAccSeason1 },
+				{ "SnowAccumSeason2", TagSnowAccSeason2 },
+				{ "SnowAccumSeason3", TagSnowAccSeason3 },
+				{ "SnowAccumSeason4", TagSnowAccSeason4 },
 
 				// This month's highs and lows - values
 				{ "MonthTempH", TagMonthTempH },
@@ -7176,6 +7260,7 @@ namespace CumulusMX
 				{ "Option_showSolar", TagOption_showSolar },
 				{ "Option_showUV", TagOption_showUV },
 				{ "Option_showSnow", TagOption_showSnow },
+				{ "Option_noaaFormat", TagOption_noaaFormat },
 				// MySQL insert times
 				{ "MySqlRealtimeTime", TagMySqlRealtimeTime },
 				{ "MySqlIntervalTime", TagMySqlIntervalTime },

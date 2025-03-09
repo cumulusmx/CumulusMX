@@ -160,7 +160,7 @@ namespace CumulusMX
 
 			var station = new JsonStation()
 			{
-				manufacturer = cumulus.Manufacturer,
+				manufacturer = (int) cumulus.Manufacturer,
 				stationtype = cumulus.StationType,
 				stationmodel = cumulus.StationModel,
 				davisvp2 = davisvp,
@@ -516,7 +516,7 @@ namespace CumulusMX
 						cumulus.LogWarningMessage("Station type changed, restart required");
 						Cumulus.LogConsoleMessage("*** Station type changed, restart required ***", ConsoleColor.Yellow);
 					}
-					cumulus.Manufacturer = settings.station.manufacturer;
+					cumulus.Manufacturer = (Cumulus.StationManufacturer) settings.station.manufacturer;
 					cumulus.StationType = settings.station.stationtype;
 					cumulus.StationModel = settings.station.stationmodel;
 				}
@@ -801,7 +801,7 @@ namespace CumulusMX
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
-		private static string degToString(decimal degrees, bool lat)
+		private string degToString(decimal degrees, bool lat)
 		{
 			var degs = (int) Math.Floor(Math.Abs(degrees));
 			var minsF = (Math.Abs(degrees) - degs) * 60;
@@ -809,9 +809,9 @@ namespace CumulusMX
 			var mins = (int) Math.Floor(minsF);
 			string hemi;
 			if (lat)
-				hemi = degrees >= 0 ? "N" : "S";
+				hemi = degrees >= 0 ? cumulus.Trans.compassp[0] : cumulus.Trans.compassp[8];
 			else
-				hemi = degrees <= 0 ? "W" : "E";
+				hemi = degrees <= 0 ? cumulus.Trans.compassp[12] : cumulus.Trans.compassp[4];
 
 			return $"{hemi}&nbsp;{degs:D2}&deg;&nbsp;{mins:D2}&#39;&nbsp;{secs:D2}&quot;";
 		}

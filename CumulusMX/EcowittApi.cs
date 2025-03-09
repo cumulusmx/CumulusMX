@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.Text;
 
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace CumulusMX
 {
@@ -174,7 +176,11 @@ namespace CumulusMX
 				"pm1_aqi_combo",
 				"pm25_aqi_combo",
 				"pm10_aqi_combo",
-				"t_rh_aqi_combo"
+				"t_rh_aqi_combo",
+				"ch_lds1",
+				"ch_lds2",
+				"ch_lds3",
+				"ch_lds4"
 			};
 
 			sb.Append("&call_back=");
@@ -201,6 +207,7 @@ namespace CumulusMX
 				int responseCode;
 				int retries = 3;
 				bool success = false;
+
 				do
 				{
 					// we want to do this synchronously, so .Result
@@ -1303,12 +1310,267 @@ namespace CumulusMX
 				}
 			}
 
+			// 4 channel LDS-01 sensors
+			try
+			{
+				// Laser AIR
+				if (data.ch_lds1 != null)
+				{
+					foreach (var item in data.ch_lds1.air_ch1.list)
+					{
+						var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							continue;
+
+						decimal? dist = data.ch_lds1.air_ch1.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(item.Value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value / 12),
+							_ => item.Value.Value
+						};
+
+						if (buffer.TryGetValue(itemDate, out var value))
+						{
+							value.LdsAir[1] = dist;
+						}
+						else
+						{
+							var newItem = new HistoricData();
+							newItem.LdsAir[1] = dist;
+							buffer.Add(itemDate, newItem);
+						}
+					}
+				}
+				if (data.ch_lds2 != null)
+				{
+					foreach (var item in data.ch_lds2.air_ch2.list)
+					{
+						var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							continue;
+
+						decimal? dist = data.ch_lds2.air_ch2.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(item.Value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value / 12),
+							_ => item.Value.Value
+						};
+
+						if (buffer.TryGetValue(itemDate, out var value))
+						{
+							value.LdsAir[2] = dist;
+						}
+						else
+						{
+							var newItem = new HistoricData();
+							newItem.LdsAir[2] = dist;
+							buffer.Add(itemDate, newItem);
+						}
+					}
+				}
+				if (data.ch_lds3 != null)
+				{
+					foreach (var item in data.ch_lds3.air_ch3.list)
+					{
+						var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							continue;
+
+						decimal? dist = data.ch_lds3.air_ch3.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(item.Value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value / 12),
+							_ => item.Value.Value
+						};
+
+						if (buffer.TryGetValue(itemDate, out var value))
+						{
+							value.LdsAir[3] = dist;
+						}
+						else
+						{
+							var newItem = new HistoricData();
+							newItem.LdsAir[3] = dist;
+							buffer.Add(itemDate, newItem);
+						}
+					}
+				}
+				if (data.ch_lds4 != null)
+				{
+					foreach (var item in data.ch_lds4.air_ch4.list)
+					{
+						var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							continue;
+
+						decimal? dist = data.ch_lds4.air_ch4.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(item.Value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value / 12),
+							_ => item.Value.Value
+						};
+
+						if (buffer.TryGetValue(itemDate, out var value))
+						{
+							value.LdsAir[4] = dist;
+						}
+						else
+						{
+							var newItem = new HistoricData();
+							newItem.LdsAir[4] = dist;
+							buffer.Add(itemDate, newItem);
+						}
+					}
+				}
+				// Laser DEPTH
+				if (data.ch_lds1 != null && data.ch_lds1.depth_ch1 != null)
+				{
+					foreach (var item in data.ch_lds1.depth_ch1.list)
+					{
+						var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							continue;
+
+						decimal? dist = data.ch_lds1.depth_ch1.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(item.Value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value / 12),
+							_ => item.Value.Value
+						};
+
+						if (buffer.TryGetValue(itemDate, out var value))
+						{
+							value.LdsDepth[1] = dist;
+						}
+						else
+						{
+							var newItem = new HistoricData();
+							newItem.LdsDepth[1] = dist;
+							buffer.Add(itemDate, newItem);
+						}
+					}
+				}
+				if (data.ch_lds2 != null && data.ch_lds2.depth_ch2 != null)
+				{
+					foreach (var item in data.ch_lds2.depth_ch2.list)
+					{
+						var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							continue;
+
+						decimal? dist = data.ch_lds2.depth_ch2.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(item.Value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value / 12),
+							_ => item.Value.Value
+						};
+
+						if (buffer.TryGetValue(itemDate, out var value))
+						{
+							value.LdsDepth[2] = dist;
+						}
+						else
+						{
+							var newItem = new HistoricData();
+							newItem.LdsDepth[2] = dist;
+							buffer.Add(itemDate, newItem);
+						}
+					}
+				}
+				if (data.ch_lds3 != null && data.ch_lds3.depth_ch3 != null)
+				{
+					foreach (var item in data.ch_lds3.depth_ch3.list)
+					{
+						var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							continue;
+
+						decimal? dist = data.ch_lds3.depth_ch3.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(item.Value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value / 12),
+							_ => item.Value.Value
+						};
+
+						if (buffer.TryGetValue(itemDate, out var value))
+						{
+							value.LdsDepth[3] = dist;
+						}
+						else
+						{
+							var newItem = new HistoricData();
+							newItem.LdsDepth[3] = dist;
+							buffer.Add(itemDate, newItem);
+						}
+					}
+				}
+				if (data.ch_lds4 != null && data.ch_lds4.depth_ch4 != null)
+				{
+					foreach (var item in data.ch_lds4.depth_ch4.list)
+					{
+						var itemDate = item.Key.AddMinutes(EcowittApiFudgeFactor);
+
+						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							continue;
+
+						decimal? dist = data.ch_lds4.depth_ch4.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(item.Value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value / 12),
+							_ => item.Value.Value
+						};
+
+						if (buffer.TryGetValue(itemDate, out var value))
+						{
+							value.LdsDepth[4] = dist;
+						}
+						else
+						{
+							var newItem = new HistoricData();
+							newItem.LdsDepth[4] = dist;
+							buffer.Add(itemDate, newItem);
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage($"API.ProcessHistoryData: Error in pre-processing LDS-01 data. Exception: {ex.Message}");
+			}
+
+
+
 			// now we have all the data for this period, for each record create the string expected by ProcessData and get it processed
 			var rollHour = Math.Abs(cumulus.GetHourInc());
 			var luhour = cumulus.LastUpdateTime.Hour;
 			var rolloverdone = luhour == rollHour;
 			var midnightraindone = luhour == 0;
 			var rollover9amdone = luhour == 9;
+			bool snowhourdone = luhour == cumulus.SnowDepthHour;
+			var lastRecDate = DateTime.MinValue;
 
 			foreach (var rec in buffer)
 			{
@@ -1319,16 +1581,29 @@ namespace CumulusMX
 
 				cumulus.LogMessage("Processing data for " + rec.Key);
 
+				if (lastRecDate == DateTime.MinValue)
+				{
+					rec.Value.Interval = 5;
+					lastRecDate = rec.Key;
+				}
+				else
+				{
+					rec.Value.Interval = (rec.Key - lastRecDate).Minutes;
+					lastRecDate = rec.Key;
+				}
+
 				var h = rec.Key.Hour;
 
 				rollHour = Math.Abs(cumulus.GetHourInc(rec.Key));
 
 				//  if outside rollover hour, rollover yet to be done
-				if (h != rollHour) rolloverdone = false;
-
-				// In rollover hour and rollover not yet done
-				if (h == rollHour && !rolloverdone)
+				if (h != rollHour)
 				{
+					rolloverdone = false;
+				}
+				else if (!rolloverdone)
+				{
+					// In rollover hour and rollover not yet done
 					// do rollover
 					cumulus.LogMessage("Day rollover " + rec.Key.ToShortTimeString());
 					station.DayReset(rec.Key);
@@ -1337,11 +1612,13 @@ namespace CumulusMX
 				}
 
 				// Not in midnight hour, midnight rain yet to be done
-				if (h != 0) midnightraindone = false;
-
-				// In midnight hour and midnight rain (and sun) not yet done
-				if (h == 0 && !midnightraindone)
+				if (h != 0)
 				{
+					midnightraindone = false;
+				}
+				else if (!midnightraindone)
+				{
+					// In midnight hour and midnight rain (and sun) not yet done
 					station.ResetMidnightRain(rec.Key);
 					station.ResetSunshineHours(rec.Key);
 					station.ResetMidnightTemperatures(rec.Key);
@@ -1349,10 +1626,36 @@ namespace CumulusMX
 				}
 
 				// 9am rollover items
-				if (h == 9 && !rollover9amdone)
+				if (h != 9)
+				{
+					rollover9amdone = false;
+				}
+				else if (!rollover9amdone)
 				{
 					station.Reset9amTemperatures(rec.Key);
 					rollover9amdone = true;
+				}
+
+				// Not in snow hour, snow yet to be done
+				if (h != 0)
+				{
+					snowhourdone = false;
+				}
+				else if ((h == cumulus.SnowDepthHour) && !snowhourdone)
+				{
+					// snowhour items
+					if (cumulus.SnowAutomated > 0)
+					{
+						station.CreateNewSnowRecord(rec.Key);
+					}
+
+					// reset the accumulated snow depth(s)
+					for (int i = 0; i < station.Snow24h.Length; i++)
+					{
+						station.Snow24h[i] = null;
+					}
+
+					snowhourdone = true;
 				}
 
 				// finally apply this data
@@ -1372,8 +1675,8 @@ namespace CumulusMX
 					station.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
-					station.SunshineHours += 5 / 60.0;
-					cumulus.LogDebugMessage("Adding 5 minutes to Sunshine Hours");
+					station.SunshineHours += rec.Value.Interval / 60.0;
+					cumulus.LogDebugMessage($"Adding {rec.Value.Interval} minutes to Sunshine Hours");
 				}
 
 				// add in archive period minutes worth of temperature to the temp samples
@@ -1381,16 +1684,23 @@ namespace CumulusMX
 				station.TempTotalToday += (station.OutdoorTemperature * 5);
 
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + station.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + 5 + " minutes = " +
-								   (station.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * 5 / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				cumulus.LogMessage("Windrun: " + station.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + rec.Value.Interval + " minutes = " +
+								   (station.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				station.WindRunToday += station.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * 5 / 60.0;
+				station.WindRunToday += station.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0;
 
 				// update heating/cooling degree days
 				station.UpdateDegreeDays(5);
 
 				// update dominant wind bearing
-				station.CalculateDominantWindBearing(station.Bearing, station.WindAverage, 5);
+				station.CalculateDominantWindBearing(station.Bearing, station.WindAverage, rec.Value.Interval);
+				station.DoTrendValues(rec.Key);
+
+				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
+				{
+					// Start of a new hour, and we want to calculate ET in Cumulus
+					station.CalculateEvapotranspiration(rec.Key);
+				}
 
 				station.CheckForWindrunHighLow(rec.Key);
 
@@ -1404,23 +1714,22 @@ namespace CumulusMX
 					_ = cumulus.DoExtraLogFile(rec.Key);
 				}
 
+				// Custom MySQL update - minutes interval
+				if (cumulus.MySqlSettings.CustomMins.Enabled)
+				{
+					_ = cumulus.CustomMysqlMinutesUpdate(rec.Key, false);
+				}
+
 				station.AddRecentDataWithAq(rec.Key, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, station.OutdoorTemperature, station.WindChill, station.OutdoorDewpoint, station.HeatIndex,
 					station.OutdoorHumidity, station.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, station.IndoorTemperature, station.IndoorHumidity, station.CurrentSolarMax, station.RainRate);
 
-				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
-				{
-					// Start of a new hour, and we want to calculate ET in Cumulus
-					station.CalculateEvapotranspiration(rec.Key);
-				}
-
-				station.DoTrendValues(rec.Key);
 				station.UpdateStatusPanel(rec.Key);
 				cumulus.AddToWebServiceLists(rec.Key);
 				station.LastDataReadTime = rec.Key;
 			}
 		}
 
-		private void ApplyHistoricData(KeyValuePair<DateTime, HistoricData> rec)
+		public void ApplyHistoricData(KeyValuePair<DateTime, HistoricData> rec)
 		{
 			// === Wind ==
 			// WindGust = max for period
@@ -1828,6 +2137,31 @@ namespace CumulusMX
 				}
 			}
 
+			// === Laser Distance ====
+			for (var i = 1; i <= 4; i++)
+			{
+				try
+				{
+					station.DoLaserDistance(rec.Value.LdsAir[i], i);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in laser air data - {ex.Message}");
+				}
+			}
+
+			// === Laser Depth ====
+			for (var i = 1; i <= 4; i++)
+			{
+				try
+				{
+					station.DoLaserDepth(rec.Value.LdsDepth[i], i);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in laser depth data - {ex.Message}");
+				}
+			}
 
 			// Do all the derived values after the primary data
 
@@ -2031,7 +2365,25 @@ namespace CumulusMX
 				if (!token.IsCancellationRequested)
 				{
 					// pressure values should always be present, so use them for the data timestamp, if not try the outdoor temp
-					var dataTime = Utils.FromUnixTime(currObj.data.pressure == null ? currObj.data.outdoor.temperature.time : currObj.data.pressure.absolute.time);
+					DateTime dataTime;
+					if (currObj.data.pressure != null)
+					{
+						dataTime = Utils.FromUnixTime(currObj.data.pressure.absolute.time);
+					}
+					else if (currObj.data.outdoor.temperature != null)
+					{
+						dataTime = Utils.FromUnixTime(currObj.data.outdoor.temperature.time);
+					}
+					else if (currObj.data.indoor.temperature != null)
+					{
+						dataTime = Utils.FromUnixTime(currObj.data.indoor.temperature.time);
+					}
+					else
+					{
+						dataTime = Utils.FromUnixTime(currObj.time);
+					}
+
+
 					cumulus.LogDebugMessage($"EcowittCloud: Last data update {dataTime:s}");
 
 					if (dataTime.ToUniversalTime() != LastCurrentDataTime)
@@ -2484,7 +2836,7 @@ namespace CumulusMX
 						{
 							// we have a camera
 							cumulus.EcowittCameraMacAddress = stn.mac;
-							cumulus.LogDebugMessage($"API.GetStationList: Found Camera name={stn.name ?? "-"}, vers={stn.stationtype ?? "-"}");
+							cumulus.LogDebugMessage($"API.GetStationList: Found Camera name={stn.name ?? "-"}, vers={stn.stationtype ?? "-"}, mac={cumulus.EcowittCameraMacAddress}");
 						}
 						else if (stn.type == 1 && stn.mac.Equals(macAddress, StringComparison.CurrentCultureIgnoreCase))
 						{
@@ -2697,7 +3049,7 @@ namespace CumulusMX
 		{
 			var buffer = new byte[6];
 			Program.RandGenerator.NextBytes(buffer);
-			var result = String.Concat(buffer.Select(x => string.Format("{0}:", x.ToString("X2"))).ToArray());
+			var result = string.Concat(buffer.Select(x => string.Format("{0}:", x.ToString("X2"))).ToArray());
 			return result.TrimEnd(':');
 		}
 
@@ -2802,6 +3154,10 @@ namespace CumulusMX
 			public HistoricDataPm25Aqi pm25_ch2 { get; set; }
 			public HistoricDataPm25Aqi pm25_ch3 { get; set; }
 			public HistoricDataPm25Aqi pm25_ch4 { get; set; }
+			public HistoricDataLdsCh1 ch_lds1 { get; set; }
+			public HistoricDataLdsCh2 ch_lds2 { get; set; }
+			public HistoricDataLdsCh3 ch_lds3 { get; set; }
+			public HistoricDataLdsCh4 ch_lds4 { get; set; }
 		}
 
 		internal class HistoricDataTypeInt
@@ -2894,8 +3250,38 @@ namespace CumulusMX
 			public HistoricDataTypeInt pm10 { get; set; }
 		}
 
+		internal class HistoricDataLdsCh1
+		{
+			public HistoricDataTypeDbl air_ch1 { get; set; }
+			public HistoricDataTypeDbl depth_ch1 { get; set; }
+			public HistoricDataTypeInt ldsheat_ch1 { get; set; }
+		}
+
+		internal class HistoricDataLdsCh2
+		{
+			public HistoricDataTypeDbl air_ch2 { get; set; }
+			public HistoricDataTypeDbl depth_ch2 { get; set; }
+			public HistoricDataTypeInt ldsheat_ch2 { get; set; }
+		}
+
+		internal class HistoricDataLdsCh3
+		{
+			public HistoricDataTypeDbl air_ch3 { get; set; }
+			public HistoricDataTypeDbl depth_ch3 { get; set; }
+			public HistoricDataTypeInt ldsheat_ch3 { get; set; }
+		}
+
+		internal class HistoricDataLdsCh4
+		{
+			public HistoricDataTypeDbl air_ch4 { get; set; }
+			public HistoricDataTypeDbl depth_ch4 { get; set; }
+			public HistoricDataTypeInt ldsheat_ch4 { get; set; }
+		}
+
+
 		internal class HistoricData
 		{
+			public int Interval { get; set; }
 			public decimal? IndoorTemp { get; set; }
 			public int? IndoorHum { get; set; }
 			public decimal? Temp { get; set; }
@@ -2912,14 +3298,15 @@ namespace CumulusMX
 			public decimal? StationPressure { get; set; }
 			public int? Solar { get; set; }
 			public decimal? UVI { get; set; }
+			public DateTime LightningTime { get; set; }
 			public decimal? LightningDist { get; set; }
 			public int? LightningCount { get; set; }
-			public decimal?[] ExtraTemp { get; set; }
-			public int?[] ExtraHumidity { get; set; }
-			public int?[] SoilMoist { get; set; }
-			public decimal?[] UserTemp { get; set; }
-			public int?[] LeafWetness { get; set; }
-			public decimal?[] pm25 { get; set; }
+			public decimal?[] ExtraTemp { get; set; } = new decimal?[9];
+			public int?[] ExtraHumidity { get; set; } = new int?[9];
+			public int?[] SoilMoist { get; set; } = new int?[9];
+			public decimal?[] UserTemp { get; set; } = new decimal?[9];
+			public int?[] LeafWetness { get; set; } = new int?[9];
+			public decimal?[] pm25 { get; set; } = new decimal?[5];
 			public decimal? AqiComboPm25 { get; set; }
 			public decimal? AqiComboPm10 { get; set; }
 			public decimal? AqiComboTemp { get; set; }
@@ -2928,16 +3315,8 @@ namespace CumulusMX
 			public int? AqiComboCO2hr24 { get; set; }
 			public int? IndoorCo2 { get; set; }
 			public int? IndoorCo2hr24 { get; set; }
-
-			public HistoricData()
-			{
-				pm25 = new decimal?[5];
-				ExtraTemp = new decimal?[9];
-				ExtraHumidity = new int?[9];
-				SoilMoist = new int?[9];
-				UserTemp = new decimal?[9];
-				LeafWetness = new int?[9];
-			}
+			public decimal?[] LdsAir { get; set; } = new decimal?[5];
+			public decimal?[] LdsDepth { get; set; } = new decimal?[5];
 		}
 
 
@@ -3004,6 +3383,10 @@ namespace CumulusMX
 			public CurrentLeaf leaf_ch8 { get; set; }
 			public CurrentBattery battery { get; set; }
 			public CurrentCamera camera { get; set; }
+			public CurrentDataLdsCh1 ch_lds1 { get; set; }
+			public CurrentDataLdsCh2 ch_lds2 { get; set; }
+			public CurrentDataLdsCh3 ch_lds3 { get; set; }
+			public CurrentDataLdsCh4 ch_lds4 { get; set; }
 		}
 
 		internal class CurrentOutdoor
@@ -3163,6 +3546,10 @@ namespace CumulusMX
 			public CurrentSensorValDbl leaf_wetness_sensor_ch6 { get; set; }
 			public CurrentSensorValDbl leaf_wetness_sensor_ch7 { get; set; }
 			public CurrentSensorValDbl leaf_wetness_sensor_ch8 { get; set; }
+			public CurrentSensorValDbl ldsbatt_1 { get; set; }
+			public CurrentSensorValDbl ldsbatt_2 { get; set; }
+			public CurrentSensorValDbl ldsbatt_3 { get; set; }
+			public CurrentSensorValDbl ldsbatt_4 { get; set; }
 		}
 
 		internal class CurrentCamera
@@ -3188,6 +3575,41 @@ namespace CumulusMX
 		{
 			public long time { get; set; }
 			public string url { get; set; }
+		}
+
+		internal class CurrentDataLdsCh1
+		{
+			public CurrentDataLdsProp air_ch1 { get; set; }
+			public CurrentDataLdsProp depth_ch1 { get; set; }
+			public CurrentDataLdsProp ldsheat_ch1 { get; set; }
+		}
+
+		internal class CurrentDataLdsCh2
+		{
+			public CurrentDataLdsProp air_ch2 { get; set; }
+			public CurrentDataLdsProp depth_ch2 { get; set; }
+			public CurrentDataLdsProp ldsheat_ch2 { get; set; }
+		}
+
+		internal class CurrentDataLdsCh3
+		{
+			public CurrentDataLdsProp air_ch3 { get; set; }
+			public CurrentDataLdsProp depth_ch3 { get; set; }
+			public CurrentDataLdsProp ldsheat_ch3 { get; set; }
+		}
+
+		internal class CurrentDataLdsCh4
+		{
+			public CurrentDataLdsProp air_ch4 { get; set; }
+			public CurrentDataLdsProp depth_ch4 { get; set; }
+			public CurrentDataLdsProp ldsheat_ch4 { get; set; }
+		}
+
+		internal class CurrentDataLdsProp
+		{
+			public int time { get; set; }
+			public string unit { get; set; }
+			public decimal? value { get; set; }
 		}
 
 		internal class StationList

@@ -10,6 +10,78 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.4.0 \[b4083\]][13] - 2025-03-09
+
+### New
+
+- NOAA Reports can now be created as HTML
+	- Two sample templates are included for annual and monthly reports: `Reports/SampleHtmlTemplateYear.htm`, and `SampleHtmlTemplateMonth.htm`
+	- The reports are generated from the "in-use" templates: `Reports/HtmlTemplateYear.htm`, and `HtmlTemplateMonth.htm`
+	- If you enable HTML reports and do not create custom "in-use" templates, the sample templates will be copied to "in-use" templates
+	- You can edit the "in-use" templates to alter the localisation, adjust formatting etc
+	- A new web tag `<#Option_noaaFormat>` which returns `"text"` or `"html"`
+	- Changes to the default web site files to accommodate this:
+		- `noaareports.htm`
+		- `js/noaarpts.js`
+
+- Adds 24-hour snowfall accumulation totals
+	- The selected laser sensor accumulation is included in automated diary entries
+	- The accumulators reset at the defined snow recording hour
+	- The current values can be retrieved with new web tags `<#SnowAccum24h[1-4]>`
+	- Added to Display Settings and Extra Sensors dashboard pages
+- Add Snow Season
+	- Define start month in Station Settings | Common Options
+	- New web tags `<#SnowAccumSeason[1-4]>`
+
+- Adds laser sensors to Display Settings, Locale Strings, and Extra Sensors dashboard pages
+- Adds laser depth calculation to the Extra Sensor settings. Use this with simple laser distance sensors to allow Cumulus to calculate a depth value. Note Ecowitt already provide this ability with their LDS01 sensors.
+- New version of MigrateData3to4 to now finds custom daily files correctly
+- Add File Ignore time to JSON station advanced settings
+- You can now embed web tags in both Standard Alarms and User Defined Alarm email messages
+- Custom MySQL Minutes queries are now processed during catch-up
+- New web tag for Vapour Pressure deficit `<#VapourPressDeficit>`
+	- Takes a parameter of `sensor=N` to calculate the VPD for outdoor (=0, default if ommitted), or any extra temp/humidity sensor (=1-8)
+	- Returns the VPD in user pressure units
+	- The returned units can be changed using the standard `unit=` parameter
+
+- EXPERIMENTAL
+	- Adds ability to the Ecowitt local HTTP API station to read historic data from the SD card
+	- Currently only supported by the GW3000 and WS6210
+
+### Changed
+
+- Add NOAA report format (options.noaaFormat) to websitedataT.json
+- Davis WLL checks for missed wind gusts in multicasts, now uses the "current" 2-minute gust value, and "back dates" it one minute in the recent wind data
+- The latitude and longitude strings now use localised compass point directions (set in Locale strings)
+- Switched from NRec.Logging.File to NLog for FTP logging
+- FTP logging now creates separate log files for realtime and interval FTP activities
+- Web tag `<#CPUtemp>` now returns `"-"` if no value present, or whatever is specified by `nv=`
+- Log file editors now scroll the data horizontally and vertically with a fixed header and fixed first two columns
+- Change of name of the Ecowitt "TCP Local API" station to "Binary Local API (Legacy)" to reflect the status of the protocol
+
+### Fixed
+
+- Fix writing of the first Custom MySQL Minutes interval value to Cumulus.ini
+- Ecowitt HTTP Local API station not mapping extra temperature to outdoor temperature correctly
+- The web tag parser now accepts empty parameter values. eg. `nv=""`
+- Web camera not appearing in Ecowitt Extra Sensor settings page
+- Improve Ecowitt API Current data date/time detection - now defaults to query time if no data time found
+- Fix "Regenerate all missing reports" not creating current year/month reports
+- Ecowitt camera URLs not working when the station is configured as an Extra Station
+- Web tag `<#CPUtemp>` now supports options `rc`, `dp`, `tc`, `unit`
+- 9am values not always rolling over correctly during "catch-up"
+- Fix Monthly Log/Extra Monthly log viewers for 9am meteo day users
+- Davis station: Fix for the 00:00 (or 09:00) rainfall being counted on both days during catch-up
+- User Alarms not accepting "equals" type
+- Fix Station Pressure calibration settings being read from the Pressure settings in Cumulus.ini
+- Web tags `<#snowdepth>` and `<#snow24hr>` now accept the dp= and tc= web tag parameters
+- Changes to how MQTT connects and reconnects to the server
+
+### Package Updates
+
+- Sixlabors.ImageSharp
+
+
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
 
 ### Fixed
@@ -139,7 +211,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The Editor page gains a new "Upload File" button to re-import your exported CSV files
 	- The Editor page now also has a Time field which defaults to the configured snow recording time, but you may override it
 	- There is a new option to automatically create a snow depth record on your snow recording hour. This requires the connection of an Ecowitt WH54/LDS-01 sensor to your station
-	- A new web tags `<#snow24h>`, `<#snowcomment>`, and `<#Option_showSnow>`
+	- A new web tags `<#snow24hr>`, `<#snowcomment>`, and `<#Option_showSnow>`
 	- The web tag `<#snowfalling>` has been deprecated (it will return an empty string until it is removed)
 	- A new daily graph data file `alldailysnowdata.json`
 - Chill Hours now allows you to define a base temperature, where chill hours are only counted if the temperature is < threshold AND > base
@@ -535,3 +607,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [10]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4064
 [11]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4067
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
+[13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4083

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace CumulusMX
 {
@@ -279,14 +279,56 @@ namespace CumulusMX
 				return tempC + ((5.0 / 9.0) * (ActualVapourPressure2008(tempC, humidity) - 10.0));
 		}
 
+		/// <summary>
+		/// Calculates the Vapour Pressure Deficit in hPa
+		/// </summary>
+		/// <remarks>
+		/// https://en.wikipedia.org/wiki/Vapour-pressure_deficit
+		/// </remarks>
+		/// <param name="tempC">Temperature in Celsius</param>
+		/// <param name="humidity">Relative humidity in percentage</param>
+		/// <returns>Vapour Pressure Deficit in hPa</returns>
+		public static double VapourPressureDeficit(double tempC, int humidity)
+		{
+			return SaturationVapourPressure2008(tempC) * (1 - humidity / 100);
+		}
+
 		public static double CToF(double tempC)
 		{
 			return ((tempC * 9.0) / 5.0) + 32;
 		}
 
+		public static double? CToF(double? tempC)
+		{
+			if (tempC == null)
+				return null;
+			return CToF(tempC);
+		}
+
+		public static decimal? CToF(decimal? tempC)
+		{
+			if (tempC == null)
+				return null;
+			return ((tempC * 9) / 5) + 32;
+		}
+
 		public static double FtoC(double tempF)
 		{
 			return ((tempF - 32) * 5.0) / 9.0;
+		}
+
+		public static double? FtoC(double? tempF)
+		{
+			if (tempF == null)
+				return null;
+			return FtoC(tempF);
+		}
+
+		public static decimal? FtoC(decimal? tempF)
+		{
+			if (tempF == null)
+				return null;
+			return ((tempF - 32) * 5) / 9;
 		}
 
 		/// <summary>

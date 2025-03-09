@@ -21,11 +21,14 @@ namespace CumulusMX
 		private bool haveHum = false;
 		private bool haveWind = false;
 
-		private static readonly double mm2in = 0.0393701;
-		private static readonly double cm2in = 0.393701;
-		private static readonly double in2cm = 2.54;
+		//private static readonly decimal cm2in = 1 / (decimal) 2.54;
+		//private static readonly decimal in2cm = 2.54;
+		private static readonly decimal in2mm = (decimal) 25.4;
+		//private static readonly decimal mm2in = 1 / (decimal) 25.4;
 
 		private FileSystemWatcher watcher;
+
+		private DateTime lastFileUpdateTime = DateTime.MinValue;
 
 		public JsonStation(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
@@ -131,20 +134,27 @@ namespace CumulusMX
 
 			try
 			{
-				var fileInfo = new FileInfo(srcFile);
+				var fullPath = Path.GetFullPath(srcFile);
+				var fileName = Path.GetFileName(fullPath);
+				var directoryPath = Path.GetDirectoryName(fullPath);
 
-				watcher = new FileSystemWatcher(fileInfo.DirectoryName)
+				watcher = new FileSystemWatcher(directoryPath)
 				{
-					NotifyFilter = NotifyFilters.LastWrite,
-					Filter = fileInfo.Name
+					NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size,
+					Filter = fileName
 				};
 
 				watcher.Changed += OnFileChanged;
 				watcher.Created += OnFileChanged;
 				watcher.EnableRaisingEvents = true;
 
+				cumulus.LogMessage("JSON Data: FileWatcher created to monitor file = " + srcFile);
+
 				// trigger an inital read of the file
-				OnFileChanged(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, fileInfo.DirectoryName, fileInfo.Name));
+				if (File.Exists(srcFile))
+				{
+					OnFileChanged(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, directoryPath, fileName));
+				}
 			}
 			catch (Exception ex)
 			{
@@ -156,18 +166,35 @@ namespace CumulusMX
 		private void OnFileChanged(object sender, FileSystemEventArgs e)
 		{
 			cumulus.LogDebugMessage("OnFileChanged: File change type = " + e.ChangeType);
-			if (e.ChangeType != WatcherChangeTypes.Changed)
+			if (e.ChangeType != WatcherChangeTypes.Changed && e.ChangeType != WatcherChangeTypes.Created)
 			{
+				cumulus.LogDebugMessage("OnFileChanged: Ignoring file change type = " + e.ChangeType);
 				return;
 			}
 
 			try
 			{
-				System.Threading.Thread.Sleep(mainStation ? cumulus.JsonStationOptions.FileReadDelay : cumulus.JsonExtraStationOptions.FileReadDelay);
-				var content = File.ReadAllText(e.FullPath);
-				cumulus.LogDataMessage($"OnFileChanged: Content = {content}");
+				var timeDiff = DateTime.UtcNow.ToUnixTimeMs() - lastFileUpdateTime.ToUnixTimeMs();
+				var delay = mainStation ? cumulus.JsonStationOptions.FileIgnoreTime : cumulus.JsonExtraStationOptions.FileIgnoreTime;
 
-				ApplyData(content);
+				cumulus.LogDebugMessage($"OnFileChanged: File change time diff = " + timeDiff);
+
+				if (timeDiff < delay)
+				{
+					cumulus.LogDebugMessage($"OnFileChanged: File update occured within the File Read Delay time ({delay} ms), ignoring this change");
+					return;
+				}
+
+				lastFileUpdateTime = DateTime.UtcNow;
+
+				if (File.Exists(e.FullPath))
+				{
+					System.Threading.Thread.Sleep(mainStation ? cumulus.JsonStationOptions.FileReadDelay : cumulus.JsonExtraStationOptions.FileReadDelay);
+					var content = File.ReadAllText(e.FullPath);
+					cumulus.LogDataMessage($"OnFileChanged: Content = {content}");
+
+					ApplyData(content);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -217,7 +244,7 @@ namespace CumulusMX
 			cumulus.LogDebugMessage("GetDataFromMqtt: Processing data");
 			cumulus.LogDataMessage("GetDataFromMqtt: data = " + appMessage.ConvertPayloadToString());
 
-			if (appMessage.PayloadSegment.Count > 0)
+			if (!appMessage.Payload.IsEmpty && appMessage.Payload.Length > 0)
 			{
 				ApplyData(appMessage.ConvertPayloadToString());
 			}
@@ -763,11 +790,11 @@ namespace CumulusMX
 				}
 				else
 				{
-					var multiplier = data.units.laserdist switch
+					decimal multiplier = data.units.laserdist switch
 					{
-						"mm" => cumulus.Units.LaserDistance == 0 ? 0.1 : mm2in,
-						"in" => cumulus.Units.LaserDistance == 0 ? in2cm : 1,
-						"cm" => cumulus.Units.LaserDistance == 0 ? 1 : cm2in,
+						"mm" => 1,
+						"in" => in2mm,
+						"cm" => 10,
 						_ => 1,
 					};
 
@@ -775,14 +802,15 @@ namespace CumulusMX
 					{
 						try
 						{
-							if (rec.range.HasValue)
-							{
-								station.DoLaserDistance(rec.range.HasValue ? rec.range.Value * multiplier : null, rec.index);
-							}
+							decimal? range = rec.range.HasValue ? ConvertUnits.LaserMmToUser(rec.range.Value * multiplier) : null;
+							station.DoLaserDistance(range, rec.index);
 
-							if (rec.depth.HasValue)
+							if (cumulus.LaserDepthBaseline[rec.index] == -1)
 							{
-								station.DoLaserDepth(rec.depth.HasValue ? rec.depth.Value * multiplier : null, rec.index);
+								// MX is not calculating depth
+
+								decimal? depth = rec.depth.HasValue ? ConvertUnits.LaserMmToUser(rec.depth.Value * multiplier) : null;
+								station.DoLaserDepth(depth, rec.index);
 							}
 						}
 						catch (Exception ex)
@@ -938,8 +966,8 @@ namespace CumulusMX
 		private sealed class Lds
 		{
 			public int index { get; set; }
-			public double? range { get; set; }
-			public double? depth { get; set; }
+			public decimal? range { get; set; }
+			public decimal? depth { get; set; }
 		}
 
 	}

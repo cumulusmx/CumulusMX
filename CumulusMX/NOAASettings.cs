@@ -63,6 +63,7 @@ namespace CumulusMX
 			{
 				timeformat = cumulus.NOAAconf.Use12hour ? 1 : 0,
 				utf8 = cumulus.NOAAconf.UseUtf8,
+				outputtext = cumulus.NOAAconf.OutputText ? 1 : 0,
 				dotdecimal = cumulus.NOAAconf.UseDotDecimal,
 				noaacoolheat = cumulus.NOAAconf.UseNoaaHeatCoolDays,
 				minmaxavg = cumulus.NOAAconf.UseMinMaxAvg
@@ -152,6 +153,8 @@ namespace CumulusMX
 
 				cumulus.NOAAconf.Use12hour = settings.options.timeformat == 1;
 				cumulus.NOAAconf.UseUtf8 = settings.options.utf8;
+				cumulus.NOAAconf.OutputText = settings.options.outputtext == 1;
+
 				cumulus.NOAAconf.UseDotDecimal = settings.options.dotdecimal;
 				cumulus.NOAAconf.UseNoaaHeatCoolDays = settings.options.noaacoolheat;
 				cumulus.NOAAconf.UseMinMaxAvg = settings.options.minmaxavg;
@@ -247,6 +250,7 @@ namespace CumulusMX
 		{
 			public int timeformat { get; set; }
 			public bool utf8 { get; set; }
+			public int outputtext { get; set; }
 			public bool dotdecimal { get; set; }
 			public bool noaacoolheat { get; set; }
 			public bool minmaxavg { get; set; }

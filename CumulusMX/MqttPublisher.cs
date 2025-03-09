@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 
 using MQTTnet;
-using MQTTnet.Client;
 
 using ServiceStack;
 using ServiceStack.Text;
@@ -16,16 +14,19 @@ namespace CumulusMX
 	{
 		private static Cumulus cumulus;
 		private static IMqttClient mqttClient;
+		private static MQTTnet.MqttClientOptions options;
 		public static bool configured { get; set; }
 		private static readonly Dictionary<String, String> publishedTopics = [];
 		private static MqttTemplate updateTemplate;
 		private static MqttTemplate intervalTemplate;
 
+		private static readonly bool starting = true;
+
 		public static void Setup(Cumulus cumulus)
 		{
 			MqttPublisher.cumulus = cumulus;
 
-			var mqttFactory = new MqttFactory();
+			var mqttFactory = new MqttClientFactory();
 
 			var protocolType = cumulus.MQTT.IpVersion switch
 			{
@@ -34,7 +35,7 @@ namespace CumulusMX
 				_ => System.Net.Sockets.ProtocolType.Unspecified,
 			};
 
-			var options = new MqttClientOptionsBuilder()
+			options = new MqttClientOptionsBuilder()
 				.WithClientId(Guid.NewGuid().ToString())
 				.WithTcpServer(cumulus.MQTT.Server, cumulus.MQTT.Port)
 				.WithProtocolType(protocolType)
@@ -51,22 +52,48 @@ namespace CumulusMX
 			mqttClient = (MqttClient) mqttFactory.CreateMqttClient();
 
 
-			Connect(options).Wait();
-
-			mqttClient.DisconnectedAsync += (async e =>
+			// Start the task to check the connection state
+			_ = Task.Run(async () =>
 			{
-				cumulus.LogWarningMessage("Error: MQTT disconnected from the server");
-				await Task.Delay(TimeSpan.FromSeconds(30));
+				while (!cumulus.cancellationToken.IsCancellationRequested)
+				{
+					try
+					{
+						// This code will also do the very first connect! So no call to _ConnectAsync_ is required in the first place.
+						if (!await mqttClient.TryPingAsync())
+						{
+							if (starting)
+							{
+								cumulus.LogMessage("MQTT: Connecting to server - " + cumulus.MQTT.Server);
+							}
+							else
+							{
+								// Do not log the first time
+								cumulus.LogWarningMessage("MQTT: Error: MQTT disconnected from the server - " + cumulus.MQTT.Server);
+							}
 
-				cumulus.LogDebugMessage("MQTT attempting to reconnect with server");
-				try
-				{
-					Connect(options).Wait();
-					cumulus.LogDebugMessage("MQTT reconnected OK");
-				}
-				catch
-				{
-					cumulus.LogErrorMessage("Error: MQTT reconnection to server failed");
+							await mqttClient.ConnectAsync(options, cumulus.cancellationToken);
+
+							if (mqttClient.IsConnected)
+							{
+								cumulus.LogMessage("MQTT: Connected to server OK - " + cumulus.MQTT.Server);
+							}
+							else
+							{
+								cumulus.LogMessage("MQTT: Failed to connect to server - " + cumulus.MQTT.Server);
+							}
+
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "MQTT: Error: Failed to connect to the server - " + cumulus.MQTT.Server);
+					}
+					finally
+					{
+						// Check the connection state every 20 seconds and perform a reconnect if required.
+						await Task.Delay(TimeSpan.FromSeconds(20), cumulus.cancellationToken);
+					}
 				}
 			});
 
@@ -131,33 +158,30 @@ namespace CumulusMX
 
 		private static async Task SendMessageAsync(string topic, string message, bool retain)
 		{
-			cumulus.LogDataMessage($"MQTT: publishing to topic '{topic}', message '{message}'");
 			if (mqttClient.IsConnected)
 			{
+				cumulus.LogDataMessage($"MQTT.SendMessageAsync: Publishing to topic '{topic}', message '{message}'");
+
 				var mqttMsg = new MqttApplicationMessageBuilder()
 					.WithTopic(topic)
 					.WithPayload(message)
 					.WithRetainFlag(retain)
 					.Build();
 
-				await mqttClient.PublishAsync(mqttMsg, CancellationToken.None);
+				var res = await mqttClient.PublishAsync(mqttMsg, cumulus.cancellationToken);
+
+				if (res.IsSuccess)
+				{
+					cumulus.LogDebugMessage($"MQTT.SendMessageAsync: Topic '{topic}' published OK");
+				}
+				else
+				{
+					cumulus.LogErrorMessage($"MQTT.SendMessageAsync: Error - Topic '{topic}' failed to publish");
+				}
 			}
 			else
 			{
-				cumulus.LogErrorMessage("MQTT: Error - Not connected to MQTT server - message not sent");
-			}
-		}
-
-		private static async Task Connect(MQTTnet.Client.MqttClientOptions options)
-		{
-			try
-			{
-				await mqttClient.ConnectAsync(options, CancellationToken.None);
-			}
-			catch (Exception e)
-			{
-				cumulus.LogErrorMessage("MQTT Error: failed to connect to the host");
-				cumulus.LogMessage(e.Message);
+				cumulus.LogErrorMessage("MQTT.SendMessageAsync: Error - Not connected to MQTT server - message not sent");
 			}
 		}
 

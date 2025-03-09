@@ -265,8 +265,12 @@ namespace CumulusMX
 					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Camera URL");
 				}
 			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittCameraUrl: Warning - URL requested, but no camera MAC address is configured");
+			}
 
-			return null;
+			return string.Empty;
 		}
 
 		public override string GetEcowittVideoUrl()
@@ -283,8 +287,12 @@ namespace CumulusMX
 					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Video URL");
 				}
 			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittVideoUrl: Warning - URL requested, but no camera MAC address is configured");
+			}
 
-			return null;
+			return string.Empty;
 		}
 
 		private void GetHistoricData()
@@ -607,6 +615,17 @@ namespace CumulusMX
 					var slp = MeteoLib.GetSeaLevelPressure(AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
 					DoPressure(ConvertUnits.PressMBToUser(slp), Utils.FromUnixTime(data.pressure.absolute.time));
 				}
+
+				// === LDS ===
+				try
+				{
+					ProcessLDS(data, thisStation);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in LDS data - {ex.Message}");
+				}
+
 
 				thisStation.DoForecast("", false);
 
@@ -1128,6 +1147,120 @@ namespace CumulusMX
 			}
 		}
 
+		private static void ProcessLDS(EcowittApi.CurrentDataData data, WeatherStation station)
+		{
+			if (data.ch_lds1 != null)
+			{
+				if (data.ch_lds1.air_ch1 != null)
+				{
+					decimal? dist = data.ch_lds1.air_ch1.unit switch
+					{
+						"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value),
+						"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value / 10),
+						"in" => ConvertUnits.LaserInchesToUser(data.ch_lds1.air_ch1.value.Value),
+						"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.air_ch1.value.Value / 12),
+						_ => data.ch_lds1.air_ch1.value
+					};
+					station.DoLaserDistance(dist, 1);
+				}
+				if (data.ch_lds1.depth_ch1 != null)
+				{
+					decimal? dist = data.ch_lds1.depth_ch1.unit switch
+					{
+						"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value),
+						"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value),
+						"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.depth_ch1.value.Value / 12),
+						_ => data.ch_lds1.depth_ch1.value
+					};
+					station.DoLaserDepth(dist, 1);
+				}
+
+				if (data.ch_lds2 != null)
+				{
+					if (data.ch_lds2.air_ch2 != null)
+					{
+						decimal? dist = data.ch_lds2.air_ch2.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds2.air_ch2.value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.air_ch2.value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds2.air_ch2.value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds2.air_ch2.value.Value / 12),
+							_ => data.ch_lds2.air_ch2.value
+						};
+						station.DoLaserDistance(dist, 2);
+					}
+					if (data.ch_lds2.depth_ch2 != null)
+					{
+						decimal? dist = data.ch_lds2.depth_ch2.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds2.depth_ch2.value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.depth_ch2.value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds2.depth_ch2.value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds2.depth_ch2.value.Value / 12),
+							_ => data.ch_lds2.depth_ch2.value
+						};
+						station.DoLaserDepth(dist, 1);
+					}
+				}
+
+				if (data.ch_lds3 != null)
+				{
+					if (data.ch_lds3.air_ch3 != null)
+					{
+						decimal? dist = data.ch_lds3.air_ch3.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds3.air_ch3.value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.air_ch3.value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds3.air_ch3.value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds3.air_ch3.value.Value / 12),
+							_ => data.ch_lds3.air_ch3.value
+						};
+						station.DoLaserDistance(dist, 2);
+					}
+					if (data.ch_lds3.depth_ch3 != null)
+					{
+						decimal? dist = data.ch_lds3.depth_ch3.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds3.depth_ch3.value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.depth_ch3.value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds3.depth_ch3.value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds3.depth_ch3.value.Value / 12),
+							_ => data.ch_lds3.depth_ch3.value
+						};
+						station.DoLaserDepth(dist, 1);
+					}
+				}
+
+				if (data.ch_lds4 != null)
+				{
+					if (data.ch_lds4.air_ch4 != null)
+					{
+						decimal? dist = data.ch_lds4.air_ch4.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds4.air_ch4.value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.air_ch4.value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds4.air_ch4.value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds4.air_ch4.value.Value / 12),
+							_ => data.ch_lds4.air_ch4.value
+						};
+						station.DoLaserDistance(dist, 2);
+					}
+					if (data.ch_lds4.depth_ch4 != null)
+					{
+						decimal? dist = data.ch_lds4.depth_ch4.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds4.depth_ch4.value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.depth_ch4.value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds4.depth_ch4.value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds4.depth_ch4.value.Value / 12),
+							_ => data.ch_lds4.depth_ch4.value
+						};
+						station.DoLaserDepth(dist, 1);
+					}
+				}
+			}
+		}
+
 		private void ProcessBatteries(EcowittApi.CurrentDataData data)
 		{
 			var lowBatt = false;
@@ -1188,6 +1321,10 @@ namespace CumulusMX
 				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch6 != null && data.battery.leaf_wetness_sensor_ch6.value < 1.2);      // volts
 				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch7 != null && data.battery.leaf_wetness_sensor_ch7.value < 1.2);      // volts
 				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch8 != null && data.battery.leaf_wetness_sensor_ch8.value < 1.2);      // volts
+				lowBatt = lowBatt || (data.battery.ldsbatt_1 != null && data.battery.ldsbatt_1.value < 1.2);      // volts
+				lowBatt = lowBatt || (data.battery.ldsbatt_2 != null && data.battery.ldsbatt_2.value < 1.2);      // volts
+				lowBatt = lowBatt || (data.battery.ldsbatt_3 != null && data.battery.ldsbatt_3.value < 1.2);      // volts
+				lowBatt = lowBatt || (data.battery.ldsbatt_4 != null && data.battery.ldsbatt_4.value < 1.2);      // volts
 
 				cumulus.BatteryLowAlarm.Triggered = lowBatt;
 			}

@@ -282,8 +282,12 @@ namespace CumulusMX
 					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
 				}
 			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittCameraUrl: Warning - URL requested, but no camera MAC address is configured");
+			}
 
-			return null;
+			return string.Empty;
 		}
 
 		public override string GetEcowittVideoUrl()
@@ -300,8 +304,12 @@ namespace CumulusMX
 					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Video URL");
 				}
 			}
+			else
+			{
+				cumulus.LogWarningMessage("GetEcowittVideoUrl: Warning - URL requested, but no camera MAC address is configured");
+			}
 
-			return null;
+			return string.Empty;
 		}
 
 		public string ProcessData(IHttpContext context, bool main, DateTime? ts = null)
@@ -317,6 +325,11 @@ namespace CumulusMX
 			PASSKEY=<PassKey>&stationtype=GW1100A_V2.1.4&runtime=2336207&dateutc=2022-05-13+08:55:11&tempinf=73.0&humidityin=38&baromrelin=30.156&baromabsin=29.297&tempf=63.0&humidity=49&winddir=71&windspeedmph=2.68&windgustmph=11.86&maxdailygust=15.21&solarradiation=694.87&uv=5&rainratein=0.000&eventrainin=0.000&hourlyrainin=0.000&dailyrainin=0.000&weeklyrainin=0.000&monthlyrainin=0.591&yearlyrainin=14.591&temp1f=67.8&humidity1=43&temp2f=68.7&humidity2=47&temp3f=62.6&humidity3=51&temp4f=62.6&humidity4=51&temp5f=-1.5&temp6f=76.1&humidity6=47&temp7f=44.4&humidity7=49&soilmoisture1=14&soilmoisture2=50&soilmoisture3=20&soilmoisture4=25&pm25_ch1=7.0&pm25_avg_24h_ch1=7.6&pm25_ch2=6.0&pm25_avg_24h_ch2=8.3&tf_co2=72.9&humi_co2=44&pm25_co2=1.2&pm25_24h_co2=2.6&pm10_co2=1.5&pm10_24h_co2=3.0&co2=387&co2_24h=536&lightning_num=0&lightning=31&lightning_time=1652304268&leak_ch2=0&wh65batt=0&wh80batt=2.74&wh26batt=0&batt1=0&batt2=0&batt3=0&batt4=0&batt5=0&batt6=0&batt7=0&soilbatt1=1.3&soilbatt2=1.4&soilbatt3=1.4&soilbatt4=1.4&pm25batt1=4&pm25batt2=4&wh57batt=5&leakbatt2=4&co2_batt=6&freq=868M&model=GW1100A
 
 			PASSKEY=<PassKey>&stationtype=EasyWeatherPro_V5.1.1&runtime=4&dateutc=2023-09-03+07:29:16&tempinf=70.0&humidityin=89&baromrelin=29.811&baromabsin=29.811&tempf=52.7&humidity=92&winddir=223&windspeedmph=1.79&windgustmph=4.92&maxdailygust=15.88&solarradiation=39.31&uv=0&pm25_ch1=4.0&pm25_avg_24h_ch1=3.1&rrain_piezo=0.254&erain_piezo=0.126&hrain_piezo=0.016&drain_piezo=0.126&wrain_piezo=0.189&mrain_piezo=0.126&yrain_piezo=34.882&ws90cap_volt=3.7&ws90_ver=126&gain10_piezo=1.00&gain20_piezo=1.00&gain30_piezo=1.00&gain40_piezo=1.00&gain50_piezo=1.00&pm25batt1=3&wh90batt=2.94&freq=868M&model=HP2564AE_Pro_V1.8.1&interval=16
+
+			 later versions add LDS strings...
+				ldsbatt[1-4]=2.91?&thi_ch[1-4]=4000&air_ch[1-4]=123&depth_ch[1-4]=3987&ldsheat_ch[1-4]=13
+				thi_ch[1-4] = user defined depth baseline
+
 			 */
 
 			var procName = main ? "ProcessData" : "ProcessExtraData";
@@ -1383,16 +1396,32 @@ namespace CumulusMX
 
 		private void ProcessLds(NameValueCollection data, WeatherStation station)
 		{
+			// air_ch[1-4] - air gap mm
+			// thi_ch[1-4] - total height mm
+			// depth_ch[1-4] - depth mm
+			// ldsbatt[1-4] - battery voltage, eg 1.1
 			for (var i = 1; i <= 4; i++)
 			{
 				if (data["air_ch" + i] != null)
 				{
-					station.DoLaserDistance(ConvertUnits.LaserMmtoUser(Convert.ToInt32(data["air_ch" + i], invNum)), i);
+					station.DoLaserDistance(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["air_ch" + i], invNum)), i);
+				}
+				else
+				{
+					station.DoLaserDistance(null, i);
 				}
 
-				if (data["depth_ch" + i] != null)
+				if (cumulus.LaserDepthBaseline[i] == -1)
 				{
-					station.DoLaserDistance(ConvertUnits.LaserMmtoUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i);
+					// MX is not calculating depth
+					if (data["depth_ch" + i] != null)
+					{
+						station.DoLaserDepth(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i);
+					}
+					else
+					{
+						station.DoLaserDepth(null, i);
+					}
 				}
 			}
 		}
