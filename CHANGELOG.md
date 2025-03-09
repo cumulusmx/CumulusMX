@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.0 \[b4083\]][13] - 2025-03-07
+## [4.4.0 \[b4083\]][13] - 2025-03-09
 
 ### New
 
@@ -74,7 +74,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Davis station: Fix for the 00:00 (or 09:00) rainfall being counted on both days during catch-up
 - User Alarms not accepting "equals" type
 - Fix Station Pressure calibration settings being read from the Pressure settings in Cumulus.ini
-- Web tags `<#snowdepth>` and `<#snow24h>` now accept the dp= and tc= web tag parameters
+- Web tags `<#snowdepth>` and `<#snow24hr>` now accept the dp= and tc= web tag parameters
 - Changes to how MQTT connects and reconnects to the server
 
 ### Package Updates
@@ -211,7 +211,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The Editor page gains a new "Upload File" button to re-import your exported CSV files
 	- The Editor page now also has a Time field which defaults to the configured snow recording time, but you may override it
 	- There is a new option to automatically create a snow depth record on your snow recording hour. This requires the connection of an Ecowitt WH54/LDS-01 sensor to your station
-	- A new web tags `<#snow24h>`, `<#snowcomment>`, and `<#Option_showSnow>`
+	- A new web tags `<#snow24hr>`, `<#snowcomment>`, and `<#Option_showSnow>`
 	- The web tag `<#snowfalling>` has been deprecated (it will return an empty string until it is removed)
 	- A new daily graph data file `alldailysnowdata.json`
 - Chill Hours now allows you to define a base temperature, where chill hours are only counted if the temperature is < threshold AND > base
