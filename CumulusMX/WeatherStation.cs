@@ -8772,8 +8772,8 @@ namespace CumulusMX
 					if (RainLast24Hour > HiLoToday.HighRain24h)
 					{
 						HiLoToday.HighRain24h = RainLast24Hour;
-						HiLoToday.HighRain24hTime = recDtTm;
-						WriteTodayFile(recDtTm, false);
+						HiLoToday.HighRain24hTime = recTs;
+						WriteTodayFile(recTs, false);
 					}
 
 					if (RainLast24Hour > AllTime.HighRain24Hours.Val)
