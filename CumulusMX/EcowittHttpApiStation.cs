@@ -247,7 +247,9 @@ namespace CumulusMX
 
 								// Process outdoor temperature here, as GW1000 currently does not supply Dew Point so we have to calculate it in DoOutdoorTemp()
 								if (outdoortemp > -999)
-									DoOutdoorTemp(ConvertUnits.TempCToUser(outdoortemp), dataLastRead);
+								{
+									DoOutdoorTemp(outdoortemp, dataLastRead);
+								}
 
 								// Same for extra T/H sensors
 								for (var i = 1; i <= 8; i++)
@@ -974,8 +976,8 @@ namespace CumulusMX
 							if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
 							{
 								// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
-								outdoortemp = sensor.valDbl.Value;
-								outdoortemp = sensor.unit == "C" ? ConvertUnits.TempCToUser(outdoortemp) : ConvertUnits.TempFToUser(outdoortemp);
+								var temp = sensor.valDbl.Value;
+								outdoortemp = sensor.unit == "C" ? ConvertUnits.TempCToUser(temp) : ConvertUnits.TempFToUser(temp);
 							}
 							break;
 						case "0x03": //Dew point
@@ -993,8 +995,8 @@ namespace CumulusMX
 						case "0x04": //Wind chill
 							if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
 							{
-								windchill = sensor.valDbl.Value;
-								windchill = sensor.unit == "C" ? ConvertUnits.TempCToUser(windchill) : ConvertUnits.TempFToUser(windchill);
+								var temp = sensor.valDbl.Value;
+								windchill = sensor.unit == "C" ? ConvertUnits.TempCToUser(temp) : ConvertUnits.TempFToUser(temp);
 							}
 							break;
 						case "4": //Apparent
@@ -1605,11 +1607,13 @@ namespace CumulusMX
 				{
 					if (sensor.temp.HasValue)
 					{
-						DoExtraTemp(sensor.temp.Value, sensor.channel);
+						var temp = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
+
+						DoExtraTemp(temp, sensor.channel);
 
 						if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
 						{
-							DoOutdoorTemp(sensor.temp.Value, dateTime);
+							DoOutdoorTemp(temp, dateTime);
 						}
 					}
 
@@ -1656,6 +1660,7 @@ namespace CumulusMX
 					try
 					{
 						var val = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
+
 						if (cumulus.EcowittMapWN34[sensor.channel] == 0) // false = user temp, true = soil temp
 						{
 							DoUserTemp(val, sensor.channel);
