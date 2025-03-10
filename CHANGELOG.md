@@ -10,6 +10,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.4.2 \[b4085\]][15] - 2025-03-10
+
+### Fixed
+
+- Fix Ecowitt HTTP Local API not processing temps in F correctly
+
+
+
 ## [4.4.1 \[b4084\]][14] - 2025-03-09
 
 ### Fixed
@@ -620,3 +628,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [12]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4070
 [13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4083
 [14]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4084
+[15]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4085
