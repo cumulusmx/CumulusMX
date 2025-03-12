@@ -20,7 +20,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Fixed
 
-- Fix Ecowitt HTTP Local API not processing temps in F correctly
+- Fix Ecowitt HTTP Local API not processing temps in Fahrenheit correctly
 - Fix the table background colours of the dashboard records editors pages
 
 
