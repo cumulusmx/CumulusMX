@@ -5665,6 +5665,7 @@ namespace CumulusMX
 
 			MySqlSettings.CustomMins.Commands[0] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", string.Empty);
 			MySqlSettings.CustomMins.IntervalIndexes[0] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIndex", 6);
+			MySqlSettings.CustomMins.CatchUp[0] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp", false);
 			if (MySqlSettings.CustomMins.IntervalIndexes[0] < 0 && MySqlSettings.CustomMins.IntervalIndexes[0] >= FactorsOf60.Length)
 			{
 				MySqlSettings.CustomMins.IntervalIndexes[0] = 6;
@@ -5676,6 +5677,8 @@ namespace CumulusMX
 				{
 					MySqlSettings.CustomMins.Commands[i] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString" + i, string.Empty);
 					MySqlSettings.CustomMins.IntervalIndexes[i] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlSettings.CustomMins.IntervalIndexes[0]);
+					MySqlSettings.CustomMins.CatchUp[i] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp" + i, false);
+
 					if (MySqlSettings.CustomMins.IntervalIndexes[i] < 0 && MySqlSettings.CustomMins.IntervalIndexes[i] > FactorsOf60.Length)
 					{
 						MySqlSettings.CustomMins.IntervalIndexes[i] = 6;
@@ -7155,6 +7158,7 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "CustomMySqlStartUpCommandString", MySqlSettings.CustomStartUp.Commands[0]);
 
 			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIndex", MySqlSettings.CustomMins.IntervalIndexes[0]);
+			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp", MySqlSettings.CustomMins.CatchUp[0]);
 
 			for (var i = 1; i < 10; i++)
 			{
@@ -7167,11 +7171,13 @@ namespace CumulusMX
 				{
 					ini.DeleteValue("MySQL", "CustomMySqlMinutesCommandString" + i);
 					ini.DeleteValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i);
+					ini.DeleteValue("MySQL", "CustomMySqlMinutesIntervalCatchUp" + i);
 				}
 				else
 				{
 					ini.SetValue("MySQL", "CustomMySqlMinutesCommandString" + i, MySqlSettings.CustomMins.Commands[i]);
 					ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlSettings.CustomMins.IntervalIndexes[i]);
+					ini.SetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp" + i, MySqlSettings.CustomMins.CatchUp[i]);
 				}
 
 				if (string.IsNullOrEmpty(MySqlSettings.CustomRollover.Commands[i]))
@@ -13158,8 +13164,15 @@ namespace CumulusMX
 				{
 					try
 					{
+						if (!live && !MySqlSettings.CustomMins.CatchUp[i])
+						{
+							// doing catch-up and catch-up is disabled for this entry
+							continue;
+						}
+
 						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]) && now.Minute % MySqlSettings.CustomMins.Intervals[i] == 0)
 						{
+
 							tokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
 
 							if (live)
@@ -14965,6 +14978,7 @@ namespace CumulusMX
 			CustomMins.Commands = new string[10];
 			CustomMins.IntervalIndexes = new int[10];
 			CustomMins.Intervals = new int[10];
+			CustomMins.CatchUp = new bool[10];
 			CustomRollover.Commands = new string[10];
 			CustomTimed.Commands = new string[10];
 			CustomTimed.Intervals = new int[10];
@@ -14995,6 +15009,7 @@ namespace CumulusMX
 	{
 		public int[] IntervalIndexes { get; set; }
 		public int[] Intervals { get; set; }
+		public bool[] CatchUp { get; set; }
 	}
 
 	public class MySqlTableTimedSettings : MySqlTableSettings

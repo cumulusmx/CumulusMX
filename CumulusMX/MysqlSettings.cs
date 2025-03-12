@@ -64,7 +64,9 @@ namespace CumulusMX
 			for (var i = 1; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomSecs.Commands[i]))
+				{
 					cmdCnt++;
+				}
 			}
 			customseconds.command = new string[cmdCnt];
 
@@ -72,7 +74,9 @@ namespace CumulusMX
 			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomSecs.Commands[i]))
+				{
 					customseconds.command[index++] = cumulus.MySqlSettings.CustomSecs.Commands[i];
+				}
 			}
 
 
@@ -86,7 +90,9 @@ namespace CumulusMX
 			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomMins.Commands[i]))
+				{
 					cmdCnt++;
+				}
 			}
 
 			if (cmdCnt > 0)
@@ -102,10 +108,13 @@ namespace CumulusMX
 					{
 						customminutes.entries[index].command = cumulus.MySqlSettings.CustomMins.Commands[i];
 						customminutes.entries[index].intervalidx = cumulus.MySqlSettings.CustomMins.IntervalIndexes[i];
+						customminutes.entries[index].catchup = cumulus.MySqlSettings.CustomMins.CatchUp[i];
 						index++;
 
 						if (index == cmdCnt)
+						{
 							break;
+						}
 					}
 				}
 			}
@@ -118,7 +127,9 @@ namespace CumulusMX
 			for (var i = 1; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomRollover.Commands[i]))
+				{
 					cmdCnt++;
+				}
 			}
 			customrollover.command = new string[cmdCnt];
 
@@ -126,7 +137,9 @@ namespace CumulusMX
 			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomRollover.Commands[i]))
+				{
 					customrollover.command[index++] = cumulus.MySqlSettings.CustomRollover.Commands[i];
+				}
 			}
 
 			var customtimed = new JsonSettingsCustomTimed()
@@ -139,7 +152,9 @@ namespace CumulusMX
 			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomTimed.Commands[i]))
+				{
 					cmdCnt++;
+				}
 			}
 			if (cmdCnt > 0)
 			{
@@ -159,7 +174,9 @@ namespace CumulusMX
 						index++;
 
 						if (index == cmdCnt)
+						{
 							break;
+						}
 					}
 				}
 			}
@@ -173,7 +190,9 @@ namespace CumulusMX
 			for (var i = 1; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomStartUp.Commands[i]))
+				{
 					cmdCnt++;
+				}
 			}
 			customstartup.command = new string[cmdCnt];
 
@@ -181,7 +200,9 @@ namespace CumulusMX
 			for (var i = 0; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.MySqlSettings.CustomStartUp.Commands[i]))
+				{
 					customstartup.command[index++] = cumulus.MySqlSettings.CustomStartUp.Commands[i];
+				}
 			}
 
 			var options = new JsonSettingsOptions()
@@ -314,6 +335,7 @@ namespace CumulusMX
 						{
 							cumulus.MySqlSettings.CustomMins.Commands[i] = String.IsNullOrWhiteSpace(settings.customminutes.entries[i].command) ? null : settings.customminutes.entries[i].command.Trim();
 							cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] = settings.customminutes.entries[i].intervalidx;
+							cumulus.MySqlSettings.CustomMins.CatchUp[i] = settings.customminutes.entries[i].catchup;
 							if (cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] >= 0 && cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] < Cumulus.FactorsOf60.Length)
 							{
 								cumulus.MySqlSettings.CustomMins.Intervals[i] = Cumulus.FactorsOf60[cumulus.MySqlSettings.CustomMins.IntervalIndexes[i]];
@@ -329,6 +351,7 @@ namespace CumulusMX
 							cumulus.MySqlSettings.CustomMins.Commands[i] = null;
 							cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] = 6;
 							cumulus.MySqlSettings.CustomMins.Intervals[i] = 10;
+							cumulus.MySqlSettings.CustomMins.CatchUp[i] = false;
 						}
 					}
 				}
@@ -598,6 +621,7 @@ namespace CumulusMX
 		{
 			public string command { get; set; }
 			public int intervalidx { get; set; }
+			public bool catchup { get; set; }
 		}
 
 		private sealed class JsonSettingsCustomRolloverStart
