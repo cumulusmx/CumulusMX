@@ -583,6 +583,7 @@ namespace CumulusMX
 
 					var refData = sensorWithMostRecs.data[dataIndex].FromJsv<WlHistorySensorDataType13Baro>();
 					var timestamp = Utils.FromUnixTime(refData.ts);
+					DataDateTime = timestamp;
 
 					cumulus.LogMessage($"GetHistoricData: Processing record {timestamp:yyyy-MM-dd HH:mm}");
 

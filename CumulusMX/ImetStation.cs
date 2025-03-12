@@ -543,6 +543,7 @@ namespace CumulusMX
 							year = Convert.ToInt32(sl[DATEPOS].Substring(6, 4));
 							timestamp = new DateTime(year, month, day, hour, minute, sec, DateTimeKind.Local);
 							cumulus.LogMessage("Processing logger data entry " + i + " for " + timestamp);
+							DataDateTime = timestamp;
 
 							int interval = (int) (Convert.ToDouble(sl[INTERVALPOS], provider) / 60);
 

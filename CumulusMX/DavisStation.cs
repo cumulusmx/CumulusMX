@@ -2592,6 +2592,8 @@ namespace CumulusMX
 						{
 							cumulus.LogMessage("GetArchiveData: Processing archive record for " + timestamp);
 
+							DataDateTime = timestamp;
+
 							rollHour = Math.Abs(cumulus.GetHourInc(timestamp));
 
 							int h = timestamp.Hour;

@@ -646,6 +646,11 @@ namespace CumulusMX
 			return GetFormattedDateTime(DateTime.Now, cumulus.Trans.WebTagGenTimeDate, tagParams);
 		}
 
+		private string TagDataDateTime(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.DataDateTime, cumulus.Trans.WebTagGenTimeDate, tagParams);
+		}
+
 		private static string TagDaysSince30Dec1899(Dictionary<string, string> tagParams)
 		{
 			DateTime startDate = new DateTime(1899, 12, 30, 0, 0, 0, DateTimeKind.Local);
@@ -7264,6 +7269,8 @@ namespace CumulusMX
 				// MySQL insert times
 				{ "MySqlRealtimeTime", TagMySqlRealtimeTime },
 				{ "MySqlIntervalTime", TagMySqlIntervalTime },
+				// DateTime of current data
+				{ "DataDateTime", TagDataDateTime},
 				// General queries
 				{ "QueryDayFile", TagQueryDayFile }
 			};

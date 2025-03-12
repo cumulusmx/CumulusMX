@@ -1596,6 +1596,8 @@ namespace CumulusMX
 
 				rollHour = Math.Abs(cumulus.GetHourInc(rec.Key));
 
+				station.DataDateTime = rec.Key;
+
 				//  if outside rollover hour, rollover yet to be done
 				if (h != rollHour)
 				{

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -373,6 +373,7 @@ namespace CumulusMX
 				HistoryData historydata = datalist[^1];
 
 				DateTime timestamp = historydata.timestamp;
+				DataDateTime = timestamp;
 
 				cumulus.LogMessage("Processing data for " + timestamp);
 

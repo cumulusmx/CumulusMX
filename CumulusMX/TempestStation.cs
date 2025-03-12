@@ -102,6 +102,7 @@ namespace CumulusMX
 			foreach (var historydata in datalist)
 			{
 				var timestamp = historydata.Timestamp;
+				DataDateTime = timestamp;
 
 				cumulus.LogMessage("Processing data for " + timestamp);
 

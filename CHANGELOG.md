@@ -10,7 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.2 \[b4085\]][15] - 2025-03-10
+## [4.4.2 \[b4085\]][15] - 2025-03-11
+
+### New
+
+- New web tag `<#DataDateTime>` which reflects the current date time with respect to the data
+	- Use this web tag in things like Custom MySQL INSERT statements to pick up the historic data's date/time rather than the current clock date/time
 
 ### Fixed
 

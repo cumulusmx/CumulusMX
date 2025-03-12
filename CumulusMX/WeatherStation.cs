@@ -284,6 +284,7 @@ namespace CumulusMX
 		public double[] WMR200ExtraTempValues { get; set; }
 
 		public DateTime LastDataReadTime;
+		public DateTime DataDateTime;
 		public bool haveReadData = false;
 
 		public bool ExtraSensorsDetected = false;
@@ -1658,6 +1659,7 @@ namespace CumulusMX
 		public void SecondTimer(object sender, ElapsedEventArgs e)
 		{
 			var timeNow = DateTime.Now; // b3085 change to using a single fixed point in time to make it independent of how long the process takes
+			DataDateTime = timeNow;
 
 			if (timeNow.Minute != lastMinute)
 			{
