@@ -10,17 +10,18 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.2 \[b4085\]][15] - 2025-03-11
+## [4.4.2 \[b4085\]][15] - 2025-03-12
 
 ### New
 
 - New web tag `<#DataDateTime>` which reflects the current date time with respect to the data
 	- Use this web tag in things like Custom MySQL INSERT statements to pick up the historic data's date/time rather than the current clock date/time
+- Add catch-up option to MySQL Custom Interval Minutes commands - this defaults to disabled
 
 ### Fixed
 
 - Fix Ecowitt HTTP Local API not processing temps in F correctly
-
+- Fix the table background colours of the dashboard records editors pages
 
 
 ## [4.4.1 \[b4084\]][14] - 2025-03-09
