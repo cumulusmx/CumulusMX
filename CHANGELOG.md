@@ -10,6 +10,17 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.4.3 \[b4086\]][16] - 2025-03-12
+
+### Changed
+
+- MQTT settings now has an Advanced Settings section, this allows you to override the default values for:
+	- Using TLS
+	- IP version
+	- MQTT protocol version
+
+
+
 ## [4.4.2 \[b4085\]][15] - 2025-03-12
 
 ### New
@@ -635,3 +646,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4083
 [14]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4084
 [15]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4085
+[16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086
