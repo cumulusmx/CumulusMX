@@ -107,7 +107,14 @@ namespace CumulusMX
 				if (cumulus.Gw1000PrimaryRainSensor == 0)
 				{
 					// Tipping bucket
-					if (FieldIndex.TryGetValue("Hourly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
+					if (FieldIndex.TryGetValue("Rain Rate", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+					{
+						rec.RainRate = varDec;
+					}
+					else if (FieldIndex.TryGetValue("Hourly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+					{
+						rec.RainRate = varDec; // really this is hourly rain from the file
+					}
 					//if (FieldIndex.TryGetValue("Event Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.EventRain = varDec;
 					//if (FieldIndex.TryGetValue("Daily Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DailyRain = varDec;
 					//if (FieldIndex.TryGetValue("Weekly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WeeklyRain = varDec;
@@ -117,7 +124,14 @@ namespace CumulusMX
 				else if (fields.Length >= 25)
 				{
 					// piezo rain
-					if (FieldIndex.TryGetValue("Piezo Hourly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.RainRate = varDec; // really this is hourly rain from the file
+					if (FieldIndex.TryGetValue("PPiezo Rate", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+					{
+						rec.RainRate = varDec;
+					}
+					else if (FieldIndex.TryGetValue("Piezo Hourly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+					{
+						rec.RainRate = varDec; // really this is hourly rain from the file
+					}
 					//if (FieldIndex.TryGetValue("Piezo Event Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.EventRain = varDec;
 					//if (FieldIndex.TryGetValue("Piezo Daily Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DailyRain = varDec;
 					//if (FieldIndex.TryGetValue("Piezo Weekly Rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WeeklyRain = varDec;

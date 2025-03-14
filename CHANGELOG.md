@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.3 \[b4086\]][16] - 2025-03-12
+## [4.4.3 \[b4086\]][16] - 2025-03-15
 
 ### Changed
 
@@ -18,7 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Using TLS
 	- IP version
 	- MQTT protocol version
-
+- Ecowitt Rainfall Rate now read from SD card log files (if present), previously the field was missing and the hourly rain figure was used
 
 
 ## [4.4.2 \[b4085\]][15] - 2025-03-12
