@@ -10,7 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.3 \[b4086\]][16] - 2025-03-15
+## [4.4.3 \[b4086\]][16] - 2025-03-16
+
+## New
+
+- Ecowitt Rainfall Rate now read from SD card log files (if present), previously the field was missing and the hourly rain figure was used
+- Ecowitt SD card log file lightning units are now converted if required
 
 ### Changed
 
@@ -18,7 +23,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Using TLS
 	- IP version
 	- MQTT protocol version
-- Ecowitt Rainfall Rate now read from SD card log files (if present), previously the field was missing and the hourly rain figure was used
+
+## Fixed
+
+-Exclude possible empty lines from SD card log files
 
 
 ## [4.4.2 \[b4085\]][15] - 2025-03-12

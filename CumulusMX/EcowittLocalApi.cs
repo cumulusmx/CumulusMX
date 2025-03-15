@@ -714,7 +714,9 @@ namespace CumulusMX
 
 				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {(responseBody.Length / 1024)} KB");
 
-				var lines = new List<string>(responseBody.Split(lineEnds, StringSplitOptions.None));
+				var lines = new List<string>(responseBody
+					.Split(lineEnds, StringSplitOptions.None)
+					.Where(line => !string.IsNullOrWhiteSpace(line)));
 
 				if (lines.Count == 0)
 				{

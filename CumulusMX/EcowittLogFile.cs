@@ -290,7 +290,14 @@ namespace CumulusMX
 			else if (fields[press].EndsWith("kPa)")) PressUnit = PressUnits.kPa;
 			else PressUnit = 0;
 
-			RainUnit = fields[FieldIndex["Hourly Rain"]].EndsWith("mm)") ? RainUnits.mm : RainUnits.inch;
+			if (FieldIndex.TryGetValue("Hourly Rain", out var idx))
+			{
+				RainUnit = fields[idx].EndsWith("mm)") ? RainUnits.mm : RainUnits.inch;
+			}
+			else if (FieldIndex.TryGetValue("Piezo Hourly Rain", out idx))
+			{
+				RainUnit = fields[idx].EndsWith("mm)") ? RainUnits.mm : RainUnits.inch;
+			}
 		}
 
 

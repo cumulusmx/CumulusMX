@@ -7,6 +7,7 @@ namespace CumulusMX
 	{
 		private TempUnits TempUnit;
 		private LaserUnits LaserUnit;
+		private LightningDist LightningUnit;
 
 		private const int fieldCount = 82;
 		private readonly List<string> Data;
@@ -133,6 +134,8 @@ namespace CumulusMX
 
 				// end of records
 
+				// Do any required conversions
+
 				if ((int) TempUnit != cumulus.Units.Temp)
 				{
 					// convert all the temperatures to user units
@@ -164,6 +167,26 @@ namespace CumulusMX
 					}
 				}
 #pragma warning restore S125 // Sections of code should not be commented out
+
+				switch (cumulus.Units.Wind)
+				{
+					case 0: // m/s
+					case 2: // km/h
+							// Convert miles to km if needed
+						if (LightningUnit != LightningDist.km)
+						{
+							rec.LightningDist *= (decimal) 1.609344;
+						}
+						break;
+					case 1: // mph
+					case 3: // knots
+							// Convert km to miles if needed
+						if (LightningUnit != LightningDist.miles)
+						{
+							rec.LightningDist *= (decimal) 0.6213712;
+						}
+						break;
+				}
 
 				if ((int) LaserUnit != cumulus.Units.LaserDistance)
 				{
@@ -304,6 +327,15 @@ namespace CumulusMX
 			{
 				cumulus.LogErrorMessage("EcowittExtraLogFile.HeaderParser: Invalid unit supplied for Laser = " + fields[laserIndex]);
 			}
+
+			if (fields[FieldIndex["Thunder distance"]].EndsWith("km)"))
+			{
+				LightningUnit = LightningDist.km;
+			}
+			else
+			{
+				LightningUnit = LightningDist.miles;
+			}
 		}
 
 
@@ -320,6 +352,12 @@ namespace CumulusMX
 			mm = 2,
 			ft = 3,
 			m = 4
+		}
+
+		private enum LightningDist
+		{
+			km = 0,
+			miles = 1
 		}
 
 		public class Record
