@@ -24,6 +24,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- IP version
 	- MQTT protocol version
 - Ecowitt SD card log file processing removes corresponding extra log file from the processing list if no data is found in the a base file
+- Changing the PHP Brotli Compression setting is changed, the Test of supported compressions is now rerun
 
 ## Fixed
 
