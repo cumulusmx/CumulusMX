@@ -233,6 +233,23 @@ namespace CumulusMX
 		}
 
 		/// <summary>
+		/// Converts value in kilometres to distance unit based on users configured wind units
+		/// </summary>
+		/// <param name="val"></param>
+		/// <returns>Wind in configured units</returns>
+		public static double MilestoUserUnits(double val)
+		{
+			return Program.cumulus.Units.Wind switch
+			{
+				// m/s, km/h
+				0 or 2 => val * 1.609344,
+				// mph, knots
+				1 or 3 => val,
+				_ => val,
+			};
+		}
+
+		/// <summary>
 		///  Converts windrun supplied in user units to km
 		/// </summary>
 		/// <param name="value">Windrun in configured units</param>
