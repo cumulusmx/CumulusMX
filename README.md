@@ -10,7 +10,9 @@ In order to function correctly the program needs the supporting distribution fil
 
 The original source was post build b3043 - it incorporated some changes that were being worked on by Steve before he retired.
 
-The support forum for this software can [be found here](https://cumulus.hosiene.co.uk/)
+**The support forum for this software can [be found here](https://cumulus.hosiene.co.uk/)**
+
+**Please use the support forum for reporting issues rather than GitHub**
 
 
 The change log [is here](CHANGELOG.md)
