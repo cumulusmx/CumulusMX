@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
+using Org.BouncyCastle.Ocsp;
+
 namespace CumulusMX
 {
 	internal partial class EcowittLogFile
@@ -65,8 +67,7 @@ namespace CumulusMX
 					continue;
 				}
 
-
-				//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]}");
+				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]}");
 
 				var rec = new EcowittApi.HistoricData();
 
@@ -161,68 +162,68 @@ namespace CumulusMX
 						rec.DewPoint = MeteoLib.CToF(rec.DewPoint);
 						rec.FeelsLike = MeteoLib.CToF(rec.FeelsLike);
 					}
+				}
 
-					// convert wind to user units
-					if ((int) WindUnit != cumulus.Units.Wind)
+				// convert wind to user units
+				if ((int) WindUnit != cumulus.Units.Wind)
+				{
+					switch (WindUnit)
 					{
-						switch (WindUnit)
-						{
-							case WindUnits.ms:
-								rec.WindSpd = ConvertUnits.WindMSToUser(rec.WindSpd);
-								rec.WindGust = ConvertUnits.WindMSToUser(rec.WindGust);
-								break;
-							case WindUnits.mph:
-								rec.WindSpd = ConvertUnits.WindMPHToUser(rec.WindSpd);
-								rec.WindGust = ConvertUnits.WindMPHToUser(rec.WindGust);
-								break;
-							case WindUnits.kph:
-								rec.WindSpd = ConvertUnits.WindKPHToUser(rec.WindSpd);
-								rec.WindGust = ConvertUnits.WindKPHToUser(rec.WindGust);
-								break;
-							case WindUnits.knots:
-								rec.WindSpd = ConvertUnits.WindKnotsToUser(rec.WindSpd);
-								rec.WindGust = ConvertUnits.WindKnotsToUser(rec.WindGust);
-								break;
-						}
+						case WindUnits.ms:
+							rec.WindSpd = ConvertUnits.WindMSToUser(rec.WindSpd);
+							rec.WindGust = ConvertUnits.WindMSToUser(rec.WindGust);
+							break;
+						case WindUnits.mph:
+							rec.WindSpd = ConvertUnits.WindMPHToUser(rec.WindSpd);
+							rec.WindGust = ConvertUnits.WindMPHToUser(rec.WindGust);
+							break;
+						case WindUnits.kph:
+							rec.WindSpd = ConvertUnits.WindKPHToUser(rec.WindSpd);
+							rec.WindGust = ConvertUnits.WindKPHToUser(rec.WindGust);
+							break;
+						case WindUnits.knots:
+							rec.WindSpd = ConvertUnits.WindKnotsToUser(rec.WindSpd);
+							rec.WindGust = ConvertUnits.WindKnotsToUser(rec.WindGust);
+							break;
 					}
+				}
 
-					// convert rain to user units
-					if ((int) RainUnit != cumulus.Units.Rain)
+				// convert rain to user units
+				if ((int) RainUnit != cumulus.Units.Rain)
+				{
+					if (RainUnit == RainUnits.mm)
 					{
-						if (RainUnit == RainUnits.mm)
-						{
-							rec.RainRate = ConvertUnits.RainMMToUser(rec.RainRate);
-							//rec.EventRain = ConvertUnits.RainMMToUser(rec.EventRain);
-							//rec.DailyRain = ConvertUnits.RainMMToUser(rec.DailyRain);
-							//rec.WeeklyRain = ConvertUnits.RainMMToUser(rec.WeeklyRain);
-							//rec.MonthlyRain = ConvertUnits.RainMMToUser(rec.MonthlyRain);
-							rec.RainYear = ConvertUnits.RainMMToUser(rec.RainYear);
-						}
-						else
-						{
-							rec.RainRate = ConvertUnits.RainINToUser(rec.RainRate);
-							//rec.EventRain = ConvertUnits.RainINToUser(rec.EventRain);
-							//rec.DailyRain = ConvertUnits.RainINToUser(rec.DailyRain);
-							//rec.WeeklyRain = ConvertUnits.RainINToUser(rec.WeeklyRain);
-							//rec.MonthlyRain = ConvertUnits.RainINToUser(rec.MonthlyRain);
-							rec.RainYear = ConvertUnits.RainINToUser(rec.RainYear);
-						}
+						rec.RainRate = ConvertUnits.RainMMToUser(rec.RainRate);
+						//rec.EventRain = ConvertUnits.RainMMToUser(rec.EventRain);
+						//rec.DailyRain = ConvertUnits.RainMMToUser(rec.DailyRain);
+						//rec.WeeklyRain = ConvertUnits.RainMMToUser(rec.WeeklyRain);
+						//rec.MonthlyRain = ConvertUnits.RainMMToUser(rec.MonthlyRain);
+						rec.RainYear = ConvertUnits.RainMMToUser(rec.RainYear);
 					}
-
-					// convert pressure to user units
-					var cumPress = (cumulus.Units.Press == 0 || cumulus.Units.Press == 1) ? PressUnits.hPa : (PressUnits) cumulus.Units.Press;
-					if (PressUnit != cumPress)
+					else
 					{
-						if (PressUnit == PressUnits.hPa)
-						{
-							rec.StationPressure = ConvertUnits.PressMBToUser(rec.StationPressure);
-							rec.Pressure = ConvertUnits.PressMBToUser(rec.Pressure);
-						}
-						else
-						{
-							rec.StationPressure = ConvertUnits.PressINHGToUser(rec.StationPressure);
-							rec.Pressure = ConvertUnits.PressINHGToUser(rec.Pressure);
-						}
+						rec.RainRate = ConvertUnits.RainINToUser(rec.RainRate);
+						//rec.EventRain = ConvertUnits.RainINToUser(rec.EventRain);
+						//rec.DailyRain = ConvertUnits.RainINToUser(rec.DailyRain);
+						//rec.WeeklyRain = ConvertUnits.RainINToUser(rec.WeeklyRain);
+						//rec.MonthlyRain = ConvertUnits.RainINToUser(rec.MonthlyRain);
+						rec.RainYear = ConvertUnits.RainINToUser(rec.RainYear);
+					}
+				}
+
+				// convert pressure to user units
+				var cumPress = (cumulus.Units.Press == 0 || cumulus.Units.Press == 1) ? PressUnits.hPa : (PressUnits) cumulus.Units.Press;
+				if (PressUnit != cumPress)
+				{
+					if (PressUnit == PressUnits.hPa)
+					{
+						rec.StationPressure = ConvertUnits.PressMBToUser(rec.StationPressure);
+						rec.Pressure = ConvertUnits.PressMBToUser(rec.Pressure);
+					}
+					else
+					{
+						rec.StationPressure = ConvertUnits.PressINHGToUser(rec.StationPressure);
+						rec.Pressure = ConvertUnits.PressINHGToUser(rec.Pressure);
 					}
 				}
 
@@ -273,30 +274,74 @@ namespace CumulusMX
 				FieldIndex[cleanedHeader.ToLower()] = i; // Ecowitt tend to mess around with the case!
 			}
 
-			TempUnit = fields[FieldIndex["Indoor Temperature"]].EndsWith("C)") || fields[FieldIndex["Indoor Temperature"]].EndsWith("℃)") ? TempUnits.C : TempUnits.F;
+			if (FieldIndex.TryGetValue("indoor temperature", out int idx))
+			{
+				TempUnit = fields[idx].ToLower().EndsWith("c)") || fields[idx].EndsWith("℃)") ? TempUnits.C : TempUnits.F;
+			}
+			else
+			{
+				cumulus.LogErrorMessage("EcowittLogFile.HeaderParser: Unable to determine temperature units, defaulting to Cumulus units");
+				TempUnit = (TempUnits) cumulus.Units.Temp;
+			}
 
-			var wind = FieldIndex["Wind"];
+			if (FieldIndex.TryGetValue("wind", out idx))
+			{
 
-			if (fields[wind].ToLower().EndsWith("m/s)")) WindUnit = WindUnits.ms;
-			else if (fields[wind].ToLower().EndsWith("mph)")) WindUnit = WindUnits.mph;
-			else if (fields[wind].ToLower().EndsWith("km/h)")) WindUnit = WindUnits.kph;
-			else if (fields[wind].ToLower().EndsWith("knots)")) WindUnit = WindUnits.knots;
-			else WindUnit = 0;
+				if (fields[idx].ToLower().EndsWith("m/s)")) WindUnit = WindUnits.ms;
+				else if (fields[idx].ToLower().EndsWith("mph)")) WindUnit = WindUnits.mph;
+				else if (fields[idx].ToLower().EndsWith("km/h)")) WindUnit = WindUnits.kph;
+				else if (fields[idx].ToLower().EndsWith("knots)")) WindUnit = WindUnits.knots;
+				else WindUnit = (WindUnits) cumulus.Units.Wind;
+			}
+			else
+			{
+				cumulus.LogErrorMessage("EcowittLogFile.HeaderParser: Unable to determine wind units, defaulting to Cumulus units");
+				WindUnit = (WindUnits) cumulus.Units.Wind;
+			}
 
+			if (FieldIndex.TryGetValue("abs pressure", out idx))
+			{
+				if (fields[idx].ToLower().EndsWith("hpa)")) PressUnit = PressUnits.hPa;
+				else if (fields[idx].ToLower().EndsWith("inhg)")) PressUnit = PressUnits.inHg;
+				else if (fields[idx].ToLower().EndsWith("kpa)")) PressUnit = PressUnits.kPa;
+				else if (fields[idx].ToLower().EndsWith("mmhg)")) PressUnit = PressUnits.mmHg;
+				else PressUnit = cumulus.Units.Press switch
+				{
+					0 or 1 => PressUnits.hPa,
+					2 => PressUnits.inHg,
+					3 => PressUnits.kPa,
+					_ => PressUnits.hPa
+				};
+			}
+			else
+			{
+				cumulus.LogErrorMessage("EcowittLogFile.HeaderParser: Unable to determine pressure units, defaulting to Cumulus units");
+				PressUnit = cumulus.Units.Press switch
+				{
+					0 or 1 => PressUnits.hPa,
+					2 => PressUnits.inHg,
+					3 => PressUnits.kPa,
+					_ => PressUnits.hPa
+				};
+			}
 
-			var press = FieldIndex["abs pressure"];
-			if (fields[press].ToLower().EndsWith("hpa)")) PressUnit = PressUnits.hPa;
-			else if (fields[press].ToLower().EndsWith("inhg)")) PressUnit = PressUnits.inHg;
-			else if (fields[press].ToLower().EndsWith("kpa)")) PressUnit = PressUnits.kPa;
-			else PressUnit = 0;
-
-			if (FieldIndex.TryGetValue("hourly rain", out var idx))
+			if (FieldIndex.TryGetValue("hourly rain", out idx))
 			{
 				RainUnit = fields[idx].ToLower().EndsWith("mm)") ? RainUnits.mm : RainUnits.inch;
 			}
 			else if (FieldIndex.TryGetValue("piezo hourly rain", out idx))
 			{
 				RainUnit = fields[idx].ToLower().EndsWith("mm)") ? RainUnits.mm : RainUnits.inch;
+			}
+			else
+			{
+				cumulus.LogErrorMessage("EcowittLogFile.HeaderParser: Unable to determine rain units, defaulting to Cumulus units");
+				RainUnit = cumulus.Units.Rain switch
+				{
+					0 => RainUnits.mm,
+					1 => RainUnits.inch,
+					_ => RainUnits.mm
+				};
 			}
 		}
 

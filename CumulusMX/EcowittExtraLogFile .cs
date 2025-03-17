@@ -52,6 +52,8 @@ namespace CumulusMX
 					continue;
 				}
 
+				cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Preprocessing record {fields[0]}");
+
 				decimal varDec;
 				int varInt;
 
@@ -294,47 +296,59 @@ namespace CumulusMX
 				FieldIndex[cleanedHeader.ToLower()] = i;
 			}
 
-			TempUnit = fields[FieldIndex["ch1 temperature"]].ToLower().EndsWith("c)") || fields[FieldIndex["ch1 temperature"]].EndsWith("℃)") ? TempUnits.C : TempUnits.F;
-
-			if (fields.Length < 94)
+			if (FieldIndex.TryGetValue("ch1 temperature", out int idx))
 			{
-				cumulus.LogWarningMessage("EcowittExtraLogFile.HeaderParser: Header is missing LDS Depth fields");
-			}
-
-			var laserIndex = FieldIndex["lds_air ch1"];
-
-			if (fields[laserIndex].ToLower().EndsWith("mm)"))
-			{
-				LaserUnit = LaserUnits.mm;
-			}
-			else if (fields[laserIndex].ToLower().EndsWith("inch)"))
-			{
-				LaserUnit = LaserUnits.inch;
-			}
-			else if (fields[laserIndex].ToLower().EndsWith("cm)"))
-			{
-				LaserUnit = LaserUnits.cm;
-			}
-			else if (fields[laserIndex].ToLower().EndsWith("ft)"))
-			{
-				LaserUnit = LaserUnits.ft;
-			}
-			else if (fields[laserIndex].ToLower().EndsWith("(m)"))
-			{
-				LaserUnit = LaserUnits.m;
+				TempUnit = fields[idx].ToLower().EndsWith("c)") || fields[idx].EndsWith("℃)") ? TempUnits.C : TempUnits.F;
 			}
 			else
 			{
-				cumulus.LogErrorMessage("EcowittExtraLogFile.HeaderParser: Invalid unit supplied for Laser = " + fields[laserIndex]);
+				cumulus.LogErrorMessage("EcowittExtraLogFile.HeaderParser: Unable to determine temperature units, defaulting to Cumulus units");
+				TempUnit = (TempUnits) cumulus.Units.Temp;
 			}
 
-			if (fields[FieldIndex["thunder distance"]].ToLower().EndsWith("km)"))
+			if (FieldIndex.TryGetValue("lds_air ch1", out idx))
 			{
-				LightningUnit = LightningDist.km;
+				switch (fields[idx].ToLower())
+				{
+					case string s when s.EndsWith("mm)"):
+						LaserUnit = LaserUnits.mm;
+						break;
+					case string s when s.EndsWith("inch)"):
+						LaserUnit = LaserUnits.inch;
+						break;
+					case string s when s.EndsWith("cm)"):
+						LaserUnit = LaserUnits.cm;
+						break;
+					case string s when s.EndsWith("ft)"):
+						LaserUnit = LaserUnits.ft;
+						break;
+					case string s when s.EndsWith("(m)"):
+						LaserUnit = LaserUnits.m;
+						break;
+					default:
+						cumulus.LogErrorMessage("EcowittExtraLogFile.HeaderParser: Invalid unit supplied for Laser = " + fields[idx]);
+						break;
+				}
 			}
 			else
 			{
-				LightningUnit = LightningDist.miles;
+				cumulus.LogErrorMessage("EcowittExtraLogFile.HeaderParser: Unable to determine laser units, defaulting to Cumulus units");
+				LaserUnit = (LaserUnits) cumulus.Units.LaserDistance;
+			}
+
+			if (FieldIndex.TryGetValue("thunder distance", out idx))
+			{
+				LightningUnit = fields[FieldIndex["thunder distance"]].ToLower().EndsWith("km)") ? LightningDist.km : LightningDist.miles;
+			}
+			else
+			{
+				cumulus.LogErrorMessage("EcowittExtraLogFile.HeaderParser: Unable to determine thunder distance units, defaulting to Cumulus units");
+				LightningUnit = cumulus.Units.Wind switch
+				{
+					0 or 2 => LightningDist.km,
+					1 or 3 => LightningDist.miles,
+					_ => LightningDist.km
+				};
 			}
 		}
 

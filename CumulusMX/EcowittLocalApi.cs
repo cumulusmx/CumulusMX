@@ -730,6 +730,7 @@ namespace CumulusMX
 				// quick check if there is any data in the file!
 				if ((DateTime.TryParseExact(lines[^1].Split(',')[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt < startTime))
 				{
+					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any matching lines");
 					return null;
 				}
 
@@ -747,6 +748,8 @@ namespace CumulusMX
 						result.Add(line);
 					}
 				}
+
+				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Returning {result.Count} lines from {fileName}");
 
 				return result;
 			}

@@ -15,7 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## New
 
 - Ecowitt Rainfall Rate now read from SD card log files (if present), previously the field was missing and the hourly rain figure was used
-- Ecowitt SD card log file lightning units are now converted if required
+- Ecowitt SD card log file lightning distance units are now converted if required
 
 ### Changed
 
@@ -24,7 +24,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- IP version
 	- MQTT protocol version
 - Ecowitt SD card log file processing removes corresponding extra log file from the processing list if no data is found in the base file
-- Changing the PHP Brotli Compression setting is changed, the Test of supported compressions is now rerun
+- Changing the PHP Brotli Compression setting now forces the test of supported compressions to be rerun
 - Ecowitt Local HTTP API current data decode now uses case insensitive checks on the value units
 - Ecowitt SD card log file processing now uses case insensitive checks for all field names
 
