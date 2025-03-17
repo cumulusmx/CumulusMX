@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.3 \[b4086\]][16] - 2025-03-17
+## [4.4.3 \[b4086\]][16] - 2025-03-18
 
 ## New
 
@@ -33,7 +33,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Exclude possible empty lines from SD card log files
 - Fix handing of pressures in mmHg in the Ecowitt HTTP API
 - Ecowitt SD card log file decode of LDS Depth values
-
+- Davis WLL was saving the gust direction as the speed when a new daily high gust was detected that had been missed in the broadcast data
 
 
 ## [4.4.2 \[b4085\]][15] - 2025-03-12

@@ -888,7 +888,7 @@ namespace CumulusMX
 												// add the uncalibrated values to the recent wind data
 												lock (recentwindLock)
 												{
-													WindRecent[nextwind].Gust = data1.wind_dir_at_hi_speed_last_2_min ?? 0;
+													WindRecent[nextwind].Gust = ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
 													WindRecent[nextwind].Speed = WindAverageUncalibrated;
 													WindRecent[nextwind].Timestamp = time2min;
 													nextwind = (nextwind + 1) % MaxWindRecent;
