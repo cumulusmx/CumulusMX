@@ -26,11 +26,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt SD card log file processing removes corresponding extra log file from the processing list if no data is found in the base file
 - Changing the PHP Brotli Compression setting is changed, the Test of supported compressions is now rerun
 - Ecowitt Local HTTP API current data decode now uses case insensitive checks on the value units
+- Ecowitt SD card log file processing now uses case insensitive checks for all field names
 
 ## Fixed
 
 - Exclude possible empty lines from SD card log files
 - Fix handing of pressures in mmHg in the Ecowitt HTTP API
+- Ecowitt SD card log file decode of LDS Depth values
+
 
 
 ## [4.4.2 \[b4085\]][15] - 2025-03-12

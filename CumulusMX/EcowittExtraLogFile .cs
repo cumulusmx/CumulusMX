@@ -62,12 +62,12 @@ namespace CumulusMX
 				// Extra Temp/Hum sensors, fields 1 - 32
 				for (var i = 1; i <= 8; i++)
 				{
-					if (FieldIndex.TryGetValue($"CH{i} Temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+					if (FieldIndex.TryGetValue($"ch{i} temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
 					{
 						rec.ExtraTemp[i] = varDec;
 					}
 
-					if (FieldIndex.TryGetValue($"CH{i} Humidity", out idx) && int.TryParse(fields[idx], out varInt))
+					if (FieldIndex.TryGetValue($"ch{i} humidity", out idx) && int.TryParse(fields[idx], out varInt))
 					{
 						rec.ExtraHumidity[i] = varInt;
 					}
@@ -76,50 +76,50 @@ namespace CumulusMX
 				// Leaf Moisture Sensors
 				for (var i = 1; i <= 8; i++)
 				{
-					if (FieldIndex.TryGetValue($"WH35 CH{i}hum", out idx) && int.TryParse(fields[idx], out varInt))
+					if (FieldIndex.TryGetValue($"wh35 ch{i}hum", out idx) && int.TryParse(fields[idx], out varInt))
 					{
 						rec.LeafWetness[i] = varInt;
 					}
 				}
 
 				// Lightning
-				if (FieldIndex.TryGetValue("Thunder time", out idx) && long.TryParse(fields[idx], invc, out long varLong)) rec.LightningTime = Utils.FromUnixTime(varLong);
-				if (FieldIndex.TryGetValue("Thunder count", out idx) && int.TryParse(fields[idx], out varInt)) rec.LightningCount = varInt;
-				if (FieldIndex.TryGetValue("Thunder distance", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LightningDist = varDec;
+				if (FieldIndex.TryGetValue("thunder time", out idx) && long.TryParse(fields[idx], invc, out long varLong)) rec.LightningTime = Utils.FromUnixTime(varLong);
+				if (FieldIndex.TryGetValue("thunder count", out idx) && int.TryParse(fields[idx], out varInt)) rec.LightningCount = varInt;
+				if (FieldIndex.TryGetValue("thunder distance", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LightningDist = varDec;
 
 				// AQ Indoor
-				if (FieldIndex.TryGetValue("AQIN Temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboTemp = varDec;
-				if (FieldIndex.TryGetValue("AQIN Humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.AqiComboHum = varInt;
-				if (FieldIndex.TryGetValue("AQIN CO2", out idx) && int.TryParse(fields[idx], out varInt)) rec.AqiComboCO2 = varInt;
-				if (FieldIndex.TryGetValue("AQIN Pm2.5", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm25 = varDec;
-				if (FieldIndex.TryGetValue("AQIN Pm10", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm10 = varDec;
-				//if (FieldIndex.TryGetValue("AQIN Pm1.0", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm1 = varDec;
-				//if (FieldIndex.TryGetValue("AQIN Pm4.0", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm4 = varDec;
+				if (FieldIndex.TryGetValue("aqin temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboTemp = varDec;
+				if (FieldIndex.TryGetValue("aqin humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.AqiComboHum = varInt;
+				if (FieldIndex.TryGetValue("aqin co2", out idx) && int.TryParse(fields[idx], out varInt)) rec.AqiComboCO2 = varInt;
+				if (FieldIndex.TryGetValue("aqin pm2.5", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm25 = varDec;
+				if (FieldIndex.TryGetValue("aqin pm10", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm10 = varDec;
+				//if (FieldIndex.TryGetValue("aqin pm1.0", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm1 = varDec;
+				//if (FieldIndex.TryGetValue("aqin pm4.0", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm4 = varDec;
 
 				// Soil Moisture
 				for (int i = 1; i <= 16; i++)
 				{
-					if (FieldIndex.TryGetValue("SoilMoisture CH" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.SoilMoist[i] = varInt;
+					if (FieldIndex.TryGetValue("soilmoisture ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.SoilMoist[i] = varInt;
 				}
 
 				// Water - unused
 				/*
 				for (int i = 1; i <= 4; i++)
 				{
-					if (FieldIndex.TryGetValue("Water CH" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.Water[i] = varInt;
+					if (FieldIndex.TryGetValue("water ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.Water[i] = varInt;
 				}
 				*/
 
 				// AQI
 				for (int i = 1; i <= 4; i++)
 				{
-					if (FieldIndex.TryGetValue("Pm2.5 CH" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.pm25[i] = varDec;
+					if (FieldIndex.TryGetValue("pm2.5 ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.pm25[i] = varDec;
 				}
 
 				// User Temps
 				for (var i = 1; i <= 8 ; i++)
 				{
-					if (FieldIndex.TryGetValue("WN34 CH" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.UserTemp[i] = varDec;
+					if (FieldIndex.TryGetValue("wn34 ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.UserTemp[i] = varDec;
 				}
 
 				// LDS Air
@@ -127,9 +127,9 @@ namespace CumulusMX
 				// LDS Heat
 				for (int i = 1; i <= 4; i++)
 				{
-					if (FieldIndex.TryGetValue("LDS_Air CH" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsAir[i] = varDec;
-					if (FieldIndex.TryGetValue("LDS_LDS_Depth CH" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsDepth[i] = varDec;
-					//if (FieldIndex.TryGetValue("LDS_LDS_Heat CH" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.LdsHeat[i] = varInt;
+					if (FieldIndex.TryGetValue("lds_air ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsAir[i] = varDec;
+					if (FieldIndex.TryGetValue("lds_depth ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsDepth[i] = varDec;
+					//if (FieldIndex.TryGetValue("lds_heat ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.LdsHeat[i] = varInt;
 				}
 
 				// end of records
@@ -291,35 +291,35 @@ namespace CumulusMX
 			for (var i = 0; i < fields.Length; i++)
 			{
 				string cleanedHeader = unitRegex.Replace(fields[i], "").Trim();
-				FieldIndex[cleanedHeader] = i;
+				FieldIndex[cleanedHeader.ToLower()] = i;
 			}
 
-			TempUnit = fields[FieldIndex["CH1 Temperature"]].EndsWith("C)") || fields[FieldIndex["CH1 Temperature"]].EndsWith("℃)") ? TempUnits.C : TempUnits.F;
+			TempUnit = fields[FieldIndex["ch1 temperature"]].ToLower().EndsWith("c)") || fields[FieldIndex["ch1 temperature"]].EndsWith("℃)") ? TempUnits.C : TempUnits.F;
 
 			if (fields.Length < 94)
 			{
 				cumulus.LogWarningMessage("EcowittExtraLogFile.HeaderParser: Header is missing LDS Depth fields");
 			}
 
-			var laserIndex = FieldIndex["LDS_Air CH1"];
+			var laserIndex = FieldIndex["lds_air ch1"];
 
-			if (fields[laserIndex].EndsWith("mm)"))
+			if (fields[laserIndex].ToLower().EndsWith("mm)"))
 			{
 				LaserUnit = LaserUnits.mm;
 			}
-			else if (fields[laserIndex].EndsWith("inch)"))
+			else if (fields[laserIndex].ToLower().EndsWith("inch)"))
 			{
 				LaserUnit = LaserUnits.inch;
 			}
-			else if (fields[laserIndex].EndsWith("cm)"))
+			else if (fields[laserIndex].ToLower().EndsWith("cm)"))
 			{
 				LaserUnit = LaserUnits.cm;
 			}
-			else if (fields[laserIndex].EndsWith("ft)"))
+			else if (fields[laserIndex].ToLower().EndsWith("ft)"))
 			{
 				LaserUnit = LaserUnits.ft;
 			}
-			else if (fields[laserIndex].EndsWith("(m)"))
+			else if (fields[laserIndex].ToLower().EndsWith("(m)"))
 			{
 				LaserUnit = LaserUnits.m;
 			}
@@ -328,7 +328,7 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("EcowittExtraLogFile.HeaderParser: Invalid unit supplied for Laser = " + fields[laserIndex]);
 			}
 
-			if (fields[FieldIndex["Thunder distance"]].EndsWith("km)"))
+			if (fields[FieldIndex["thunder distance"]].ToLower().EndsWith("km)"))
 			{
 				LightningUnit = LightningDist.km;
 			}
