@@ -1169,9 +1169,9 @@ namespace CumulusMX
 						{
 							var slp = arr[1].ToLower() switch
 							{
-								"hpa" => ConvertUnits.PressKPAToUser(val / 10),
+								"hpa" => ConvertUnits.PressMBToUser(val),
 								"inhg" => ConvertUnits.PressINHGToUser(val),
-								"mmhg" => ConvertUnits.PressINHGToUser(val * 25.4),
+								"mmhg" => ConvertUnits.PressMMHGToUser(val),
 								_ => val,
 							};
 
@@ -1188,9 +1188,9 @@ namespace CumulusMX
 						{
 							var abs = arr[1].ToLower() switch
 							{
-								"hpa" => ConvertUnits.PressKPAToUser(val / 10),
+								"hpa" => ConvertUnits.PressMBToUser(val),
 								"inhg" => ConvertUnits.PressINHGToUser(val),
-								"mmhg" => ConvertUnits.PressINHGToUser(val * 25.4),
+								"mmhg" => ConvertUnits.PressMMHGToUser(val),
 								_ => -val
 							};
 

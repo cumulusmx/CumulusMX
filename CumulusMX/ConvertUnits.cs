@@ -8,7 +8,8 @@ namespace CumulusMX
 		private const double inHg2hPa = 33.8638866667;
 		private const double inHg2kPa = 3.38638866667;
 		private const int kPa2hPa = 10;
-		private const double mm2in = 25.4;
+		private const double mm2in = 1 / 25.4;
+		private const double in2mm = 25.4;
 
 		/// <summary>
 		///  Convert temp supplied in C to units in use
@@ -17,15 +18,7 @@ namespace CumulusMX
 		/// <returns>Temp in configured units</returns>
 		public static double TempCToUser(double value)
 		{
-			if (Program.cumulus.Units.Temp == 1)
-			{
-				return MeteoLib.CToF(value);
-			}
-			else
-			{
-				// C
-				return value;
-			}
+			return Program.cumulus.Units.Temp == 1 ? MeteoLib.CToF(value) : value;
 		}
 
 		/// <summary>
@@ -35,15 +28,7 @@ namespace CumulusMX
 		/// <returns>Temp in configured units</returns>
 		public static double TempFToUser(double value)
 		{
-			if (Program.cumulus.Units.Temp == 0)
-			{
-				return MeteoLib.FtoC(value);
-			}
-			else
-			{
-				// F
-				return value;
-			}
+			return Program.cumulus.Units.Temp == 0 ? MeteoLib.FtoC(value) : value;
 		}
 
 		/// <summary>
@@ -53,15 +38,7 @@ namespace CumulusMX
 		/// <returns>Temp in C</returns>
 		public static double UserTempToC(double value)
 		{
-			if (Program.cumulus.Units.Temp == 1)
-			{
-				return MeteoLib.FtoC(value);
-			}
-			else
-			{
-				// C
-				return value;
-			}
+			return Program.cumulus.Units.Temp == 1 ? MeteoLib.FtoC(value) : value;
 		}
 
 		/// <summary>
@@ -71,15 +48,7 @@ namespace CumulusMX
 		/// <returns>Temp in F</returns>
 		public static double UserTempToF(double value)
 		{
-			if (Program.cumulus.Units.Temp == 1)
-			{
-				return value;
-			}
-			else
-			{
-				// C
-				return MeteoLib.CToF(value);
-			}
+			return Program.cumulus.Units.Temp == 1 ? value : MeteoLib.CToF(value);
 		}
 
 		/// <summary>
@@ -241,10 +210,9 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Wind switch
 			{
-				// m/s, km/h
-				0 or 2 => val * 1.609344,
-				// mph, knots
-				1 or 3 => val,
+
+				0 or 2 => val * 1.609344,   // m/s or km/h
+				1 or 3 => val,              // mph or knots
 				_ => val,
 			};
 		}
@@ -258,12 +226,9 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Wind switch
 			{
-				// m/s
-				0 or 2 => value,
-				// mph
-				1 => value / 0.621371192,
-				// knots
-				3 => value / 0.539957,
+				0 or 2 => value,			// m/s or km/h
+				1 => value / 0.621371192,   // mph
+				3 => value / 0.539957,      // knots
 				_ => 0,
 			};
 		}
@@ -277,12 +242,9 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Wind switch
 			{
-				// m/s
-				0 or 2 => value * 0.621371192,
-				// mph
-				1 => value,
-				// knots
-				3 => value / 0.8689762,
+				0 or 2 => value * 0.621371192,  // m/s or km/h
+				1 => value,                     // mph
+				3 => value / 0.8689762,         // knots
 				_ => 0,
 			};
 		}
@@ -296,12 +258,9 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Wind switch
 			{
-				// m/s
-				0 or 2 => value * 0.539956803,
-				// mph
-				1 => value * 0.8689762,
-				// knots
-				3 => value,
+				0 or 2 => value * 0.539956803,	// m/s, km/h
+				1 => value * 0.8689762,			// mph
+				3 => value,						// knots
 				_ => 0,
 			};
 		}
@@ -310,14 +269,10 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Wind switch
 			{
-				// m/s
-				0 => wind * 3.6,
-				// mph
-				1 => wind * 1.609344,
-				// kph
-				2 => wind,
-				// knots
-				3 => wind * 1.852,
+				0 => wind * 3.6,        // m/s
+				1 => wind * 1.609344,   // mph
+				2 => wind,              // kph
+				3 => wind * 1.852,      // knots
 				_ => wind,
 			};
 		}
@@ -326,14 +281,10 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Wind switch
 			{
-				// m/s
-				0 => wind,
-				// mph
-				1 => wind * 0.44704,
-				// kph
-				2 => wind * 0.2777778,
-				// knots
-				3 => wind * 0.5144444,
+				0 => wind,              // m/s
+				1 => wind * 0.44704,    // mph
+				2 => wind * 0.2777778,  // kph
+				3 => wind * 0.5144444,  // knots
 				_ => wind,
 			};
 		}
@@ -370,7 +321,7 @@ namespace CumulusMX
 		/// <returns>Rain in configured units</returns>
 		public static double RainMMToUser(double value)
 		{
-			return Program.cumulus.Units.Rain == 1 ? value / mm2in : value;
+			return Program.cumulus.Units.Rain == 0 ? value : value * mm2in;
 		}
 
 		public static double? RainMMToUser(double? value)
@@ -390,7 +341,7 @@ namespace CumulusMX
 		/// <returns>Rain in configured units</returns>
 		public static double RainINToUser(double value)
 		{
-			return Program.cumulus.Units.Rain == 1 ? value : value * mm2in;
+			return Program.cumulus.Units.Rain == 0 ? value * in2mm : value;
 		}
 
 		public static double? RainINToUser(double? value)
@@ -410,12 +361,12 @@ namespace CumulusMX
 		/// <returns>Rain in mm</returns>
 		public static double UserRainToMM(double value)
 		{
-			return Program.cumulus.Units.Rain == 1 ? value * mm2in : value;
+			return Program.cumulus.Units.Rain == 0 ? value : value * in2mm;
 		}
 
 		public static double UserRainToIN(double rain)
 		{
-			return Program.cumulus.Units.Rain == 0 ? rain / mm2in : rain;
+			return Program.cumulus.Units.Rain == 0 ? rain * mm2in : rain;
 		}
 
 
@@ -428,11 +379,10 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Press switch
 			{
-				0 => value,
-				1 => value,
+				0 or 1 => value,
 				2 => value / inHg2hPa,
 				3 => value / kPa2hPa,
-				_ => 0,
+				_ => 0
 			};
 		}
 
@@ -455,11 +405,10 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Press switch
 			{
-				0 => value * kPa2hPa,
-				1 => value * kPa2hPa,
+				0 or 1 => value * kPa2hPa,
 				2 => value / inHg2kPa,
 				3 => value,
-				_ => 0,
+				_ => 0
 			};
 		}
 		public static double? PressKPAToUser(double? value)
@@ -476,11 +425,10 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Press switch
 			{
-				0 => value * inHg2hPa,
-				1 => value * inHg2hPa,
+				0 or 1 => value * inHg2hPa,
 				2 => value,
 				3 => value * inHg2kPa,
-				_ => 0,
+				_ => 0
 			};
 		}
 		public static double? PressINHGToUser(double? value)
@@ -504,6 +452,16 @@ namespace CumulusMX
 		}
 
 		/// <summary>
+		/// Convert pressure in mmHg to units in use
+		/// </summary>
+		/// <param name="value">pressure in mmHg</param>
+		/// <returns>pressure in configured units</returns>
+		public static double PressMMHGToUser(double value)
+		{
+			return PressINHGToHpa(value * mm2in);
+		}
+
+		/// <summary>
 		/// Convert pressure in units in use to mb
 		/// </summary>
 		/// <param name="value">pressure in configured units</param>
@@ -512,11 +470,10 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Press switch
 			{
-				0 => value,
-				1 => value,
+				0 or 1 => value,
 				2 => value * inHg2hPa,
 				3 => value * kPa2hPa,
-				_ => 0,
+				_ => 0
 			};
 		}
 
@@ -529,11 +486,10 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Press switch
 			{
-				0 => value,
-				1 => value,
+				0 or 1 => value,
 				2 => value * inHg2hPa,
 				3 => value * kPa2hPa,
-				_ => 0,
+				_ => 0
 			};
 		}
 
@@ -546,11 +502,10 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Press switch
 			{
-				0 => value / kPa2hPa,
-				1 => value / kPa2hPa,
+				0 or 1 => value / kPa2hPa,
 				2 => value * inHg2kPa,
 				3 => value,
-				_ => 0,
+				_ => 0
 			};
 		}
 
@@ -563,11 +518,10 @@ namespace CumulusMX
 		{
 			return Program.cumulus.Units.Press switch
 			{
-				0 => value / inHg2hPa,
-				1 => value / inHg2hPa,
+				0 or 1 => value / inHg2hPa,
 				2 => value,
 				3 => value / inHg2kPa,
-				_ => 0,
+				_ => 0
 			};
 		}
 
@@ -668,32 +622,22 @@ namespace CumulusMX
 		public static int Beaufort(double speed)
 		{
 			double windspeedMS = UserWindToMS(speed);
-			if (windspeedMS < 0.3)
-				return 0;
-			else if (windspeedMS < 1.6)
-				return 1;
-			else if (windspeedMS < 3.4)
-				return 2;
-			else if (windspeedMS < 5.5)
-				return 3;
-			else if (windspeedMS < 8.0)
-				return 4;
-			else if (windspeedMS < 10.8)
-				return 5;
-			else if (windspeedMS < 13.9)
-				return 6;
-			else if (windspeedMS < 17.2)
-				return 7;
-			else if (windspeedMS < 20.8)
-				return 8;
-			else if (windspeedMS < 24.5)
-				return 9;
-			else if (windspeedMS < 28.5)
-				return 10;
-			else if (windspeedMS < 32.7)
-				return 11;
-			else return 12;
+			return windspeedMS switch
+			{
+				< 0.3 => 0,
+				< 1.6 => 1,
+				< 3.4 => 2,
+				< 5.5 => 3,
+				< 8.0 => 4,
+				< 10.8 => 5,
+				< 13.9 => 6,
+				< 17.2 => 7,
+				< 20.8 => 8,
+				< 24.5 => 9,
+				< 28.5 => 10,
+				< 32.7 => 11,
+				_ => 12
+			};
 		}
-
 	}
 }
