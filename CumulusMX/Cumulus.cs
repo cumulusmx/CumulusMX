@@ -13956,7 +13956,7 @@ namespace CumulusMX
 					}
 					else if (latestBeta != null && int.Parse(latestBeta.tag_name[1..]) > cmxBuild)
 					{
-						LogMessage($"This Cumulus MX beta instance is not running the latest beta version of Cumulsus MX, build {latestBeta.name} is available.");
+						LogMessage($"This Cumulus MX beta instance is not running the latest beta version of Cumulsus MX, {latestBeta.name} is available.");
 						UpgradeAlarm.Triggered = false;
 						LatestBuild = latestLive.tag_name[1..];
 					}
@@ -13970,10 +13970,10 @@ namespace CumulusMX
 				{
 					if (int.Parse(latestLive.tag_name[1..]) > cmxBuild)
 					{
-						var msg = $"You are not running the latest version of Cumulus MX, build {latestLive.name} is available.";
+						var msg = $"You are not running the latest version of Cumulus MX, {latestLive.name} is available.";
 						LogConsoleMessage(msg, ConsoleColor.Cyan);
 						LogWarningMessage(msg);
-						UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
+						UpgradeAlarm.LastMessage = $"Release {latestLive.name} is available";
 						UpgradeAlarm.Triggered = true;
 						LatestBuild = latestLive.tag_name[1..];
 					}
