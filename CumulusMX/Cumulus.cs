@@ -356,12 +356,16 @@ namespace CumulusMX
 		{
 			public string Server { get; set; }
 			public int Port { get; set; }
-			public int IpVersion { get; set; }
-			public bool UseTLS { get; set; }
 			public string Username { get; set; }
 			public string Password { get; set; }
+
+			public int IpVersion { get; set; }
+			public bool UseTLS { get; set; }
+			public int ProtocolVersion { get; set; }
+
 			public bool EnableDataUpdate { get; set; }
 			public string UpdateTemplate { get; set; }
+
 			public bool EnableInterval { get; set; }
 			public string IntervalTemplate { get; set; }
 		}
@@ -4983,6 +4987,10 @@ namespace CumulusMX
 
 			MQTT.Server = ini.GetValue("MQTT", "Server", string.Empty);
 			MQTT.Port = ini.GetValue("MQTT", "Port", 1883, 1, 65535);
+			MQTT.Username = ini.GetValue("MQTT", "Username", string.Empty);
+			MQTT.Password = ini.GetValue("MQTT", "Password", string.Empty);
+
+			MQTT.UseTLS = ini.GetValue("MQTT", "UseTLS", false);
 			MQTT.IpVersion = ini.GetValue("MQTT", "IPversion", 0, 0, 6); // 0 = unspecified, 4 = force IPv4, 6 = force IPv6
 			if (MQTT.IpVersion != 0 && MQTT.IpVersion != 4 && MQTT.IpVersion != 6)
 			{
@@ -4991,9 +4999,15 @@ namespace CumulusMX
 				ini.SetValue("MQTT", "IPversion", MQTT.IpVersion);
 				rewriteRequired = true;
 			}
-			MQTT.UseTLS = ini.GetValue("MQTT", "UseTLS", false);
-			MQTT.Username = ini.GetValue("MQTT", "Username", string.Empty);
-			MQTT.Password = ini.GetValue("MQTT", "Password", string.Empty);
+			MQTT.ProtocolVersion = ini.GetValue("MQTT", "ProtocolVersion", 5); // 0 = unspecified, 3 = MQTT 3.1.1, 4 = MQTT 3.1.1 with TLS, 5 = MQTT 5.0
+			if (MQTT.ProtocolVersion != 0 && MQTT.ProtocolVersion != 3 && MQTT.ProtocolVersion != 4 && MQTT.ProtocolVersion != 5)
+			{
+				LogMessage("Cumulus.ini: MQTT Protocol Version invalid, restting to v5.0.0");
+				MQTT.ProtocolVersion = 5;
+				ini.SetValue("MQTT", "ProtocolVersion", MQTT.ProtocolVersion);
+				rewriteRequired = true;
+			}
+
 			MQTT.EnableDataUpdate = ini.GetValue("MQTT", "EnableDataUpdate", false);
 			MQTT.UpdateTemplate = ini.GetValue("MQTT", "UpdateTemplate", "DataUpdateTemplate.txt");
 			MQTT.EnableInterval = ini.GetValue("MQTT", "EnableInterval", false);
@@ -6603,9 +6617,11 @@ namespace CumulusMX
 
 			ini.SetValue("MQTT", "Server", MQTT.Server);
 			ini.SetValue("MQTT", "Port", MQTT.Port);
-			ini.SetValue("MQTT", "UseTLS", MQTT.UseTLS);
 			ini.SetValue("MQTT", "Username", Crypto.EncryptString(MQTT.Username, Program.InstanceId, "MQTT.Username,"));
 			ini.SetValue("MQTT", "Password", Crypto.EncryptString(MQTT.Password, Program.InstanceId, "MQTT.Password"));
+			ini.SetValue("MQTT", "UseTLS", MQTT.UseTLS);
+			ini.GetValue("MQTT", "IPversion", MQTT.IpVersion);
+			ini.SetValue("MQTT", "ProtocolVersion", MQTT.ProtocolVersion);
 			ini.SetValue("MQTT", "EnableDataUpdate", MQTT.EnableDataUpdate);
 			ini.SetValue("MQTT", "UpdateTemplate", MQTT.UpdateTemplate);
 			ini.SetValue("MQTT", "EnableInterval", MQTT.EnableInterval);
@@ -13940,7 +13956,7 @@ namespace CumulusMX
 					}
 					else if (latestBeta != null && int.Parse(latestBeta.tag_name[1..]) > cmxBuild)
 					{
-						LogMessage($"This Cumulus MX beta instance is not running the latest beta version of Cumulsus MX, build {latestBeta.name} is available.");
+						LogMessage($"This Cumulus MX beta instance is not running the latest beta version of Cumulsus MX, {latestBeta.name} is available.");
 						UpgradeAlarm.Triggered = false;
 						LatestBuild = latestLive.tag_name[1..];
 					}
@@ -13954,10 +13970,10 @@ namespace CumulusMX
 				{
 					if (int.Parse(latestLive.tag_name[1..]) > cmxBuild)
 					{
-						var msg = $"You are not running the latest version of Cumulus MX, build {latestLive.name} is available.";
+						var msg = $"You are not running the latest version of Cumulus MX, {latestLive.name} is available.";
 						LogConsoleMessage(msg, ConsoleColor.Cyan);
 						LogWarningMessage(msg);
-						UpgradeAlarm.LastMessage = $"Release build {latestLive.name} is available";
+						UpgradeAlarm.LastMessage = $"Release {latestLive.name} is available";
 						UpgradeAlarm.Triggered = true;
 						LatestBuild = latestLive.tag_name[1..];
 					}

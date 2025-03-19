@@ -526,6 +526,10 @@ namespace CumulusMX
 				if (lines == null || lines.Count == 1)
 				{
 					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file");
+					// remove the corresponding extra file from the processing list
+					var extra = file[0..5] + "Allsensors_" + file[6..];
+					cumulus.LogMessage($"GetHistoricDataSdCard: removing corresponding extra file from the processing list - " + extra);
+					extraFiles.Remove(extra);
 					continue;
 				}
 
@@ -1024,13 +1028,13 @@ namespace CumulusMX
 							var arr = sensor.val.Split(' ');
 							if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var valDbl))
 							{
-								var spd = arr[1] switch
+								var spd = arr[1].ToLower() switch
 								{
 									"km/h" => ConvertUnits.WindKPHToUser(valDbl),
 									"m/s" => ConvertUnits.WindMSToUser(valDbl),
 									"mph" => ConvertUnits.WindMPHToUser(valDbl),
 									"knots" => ConvertUnits.WindKnotsToUser(valDbl),
-									_ => -999
+									_ => -valDbl
 								};
 
 								if (spd >= 0)
@@ -1043,13 +1047,13 @@ namespace CumulusMX
 							arr = sensor.val.Split(' ');
 							if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
 							{
-								var spd = arr[1] switch
+								var spd = arr[1].ToLower() switch
 								{
 									"km/h" => ConvertUnits.WindKPHToUser(valDbl),
 									"m/s" => ConvertUnits.WindMSToUser(valDbl),
 									"mph" => ConvertUnits.WindMPHToUser(valDbl),
 									"knots" => ConvertUnits.WindKnotsToUser(valDbl),
-									_ => -999
+									_ => -valDbl
 								};
 
 								if (spd >= 0)
@@ -1062,12 +1066,12 @@ namespace CumulusMX
 							arr = sensor.val.Split(' ');
 							if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
 							{
-								var light = arr[1] switch
+								var light = arr[1].ToLower() switch
 								{
 									"fc" => valDbl * 0.015759751708199,
 									"lux" => valDbl * cumulus.SolarOptions.LuxToWM2, // convert Lux to W/m² - approximately!
-									"W/m2" => valDbl,
-									_ => -999
+									"w/m2" => valDbl,
+									_ => -valDbl
 								};
 
 								LightValue = valDbl;
@@ -1163,12 +1167,12 @@ namespace CumulusMX
 						var arr = sensor.rel.Split(' ');
 						if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 						{
-							var slp = arr[1] switch
+							var slp = arr[1].ToLower() switch
 							{
-								"hPa" => ConvertUnits.PressKPAToUser(val / 10),
-								"inHg" => ConvertUnits.PressINHGToUser(val),
-								"mmHg" => ConvertUnits.PressINHGToUser(val * 25.4),
-								_ => -999,
+								"hpa" => ConvertUnits.PressMBToUser(val),
+								"inhg" => ConvertUnits.PressINHGToUser(val),
+								"mmhg" => ConvertUnits.PressMMHGToUser(val),
+								_ => val,
 							};
 
 							if (slp > 0)
@@ -1182,12 +1186,12 @@ namespace CumulusMX
 						var arr = sensor.abs.Split(' ');
 						if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 						{
-							var abs = arr[1] switch
+							var abs = arr[1].ToLower() switch
 							{
-								"hPa" => ConvertUnits.PressKPAToUser(val / 10),
-								"inHg" => ConvertUnits.PressINHGToUser(val),
-								"mmHg" => ConvertUnits.PressINHGToUser(val * 25.4),
-								_ => -999
+								"hpa" => ConvertUnits.PressMBToUser(val),
+								"inhg" => ConvertUnits.PressINHGToUser(val),
+								"mmhg" => ConvertUnits.PressMMHGToUser(val),
+								_ => -val
 							};
 
 							if (abs > 0)
@@ -1254,11 +1258,11 @@ namespace CumulusMX
 								var arr = sensor.val.Split(' ');
 								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 								{
-									var evnt = arr[1] switch
+									var evnt = arr[1].ToLower() switch
 									{
 										"mm" => ConvertUnits.RainMMToUser(val),
 										"in" => ConvertUnits.RainINToUser(val),
-										_ => -999
+										_ => val
 									};
 
 									if (evnt >= 0)
@@ -1282,11 +1286,11 @@ namespace CumulusMX
 								var arr = sensor.val.Split(' ');
 								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 								{
-									var rate = arr[1] switch
+									var rate = arr[1].ToLower() switch
 									{
-										"mm/Hr" => ConvertUnits.RainMMToUser(val),
-										"in/Hr" => ConvertUnits.RainINToUser(val),
-										_ => -999
+										"mm/hr" => ConvertUnits.RainMMToUser(val),
+										"in/hr" => ConvertUnits.RainINToUser(val),
+										_ => val
 									};
 
 									if (rate >= 0)
@@ -1316,11 +1320,11 @@ namespace CumulusMX
 								var arr = sensor.val.Split(' ');
 								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 								{
-									var yr = arr[1] switch
+									var yr = arr[1].ToLower() switch
 									{
 										"mm" => ConvertUnits.RainMMToUser(val),
 										"in" => ConvertUnits.RainINToUser(val),
-										_ => -999
+										_ => val
 									};
 
 									if (yr >= 0)
@@ -1388,7 +1392,12 @@ namespace CumulusMX
 						}
 						else
 						{
-							newLightningDistance = ConvertUnits.KmtoUserUnits(sensor.distanceVal.Value);
+							newLightningDistance = sensor.distanceUnit.ToLower() switch
+							{
+								"km" => ConvertUnits.KmtoUserUnits(sensor.distanceVal.Value),
+								"mi" => sensor.distanceVal.Value,
+								_ => sensor.distanceVal.Value,
+							};
 						}
 					}
 					else if (sensor.distance.Contains("--"))
@@ -1765,7 +1774,7 @@ namespace CumulusMX
 
 				try
 				{
-					var val = sensor.unit == "mm" ? ConvertUnits.LaserMmToUser(sensor.airVal.Value) : ConvertUnits.LaserInchesToUser(sensor.airVal.Value);
+					var val = sensor.unit.Equals("mm", StringComparison.CurrentCultureIgnoreCase) ? ConvertUnits.LaserMmToUser(sensor.airVal.Value) : ConvertUnits.LaserInchesToUser(sensor.airVal.Value);
 					DoLaserDistance(val, sensor.channel);
 				}
 				catch (Exception ex)
@@ -1783,7 +1792,7 @@ namespace CumulusMX
 
 						if (sensor.depthVal.HasValue)
 						{
-							val = sensor.unit == "mm" ? ConvertUnits.LaserMmToUser(sensor.depthVal.Value) : ConvertUnits.LaserInchesToUser(sensor.depthVal.Value);
+							val = sensor.unit.Equals("mm", StringComparison.CurrentCultureIgnoreCase) ? ConvertUnits.LaserMmToUser(sensor.depthVal.Value) : ConvertUnits.LaserInchesToUser(sensor.depthVal.Value);
 						}
 						DoLaserDepth(val, sensor.channel);
 					}

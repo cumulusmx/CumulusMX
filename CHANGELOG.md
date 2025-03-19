@@ -10,6 +10,32 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.4.3 \[b4086\]][16] - 2025-03-18
+
+## New
+
+- Ecowitt Rainfall Rate now read from SD card log files (if present), previously the field was missing and the hourly rain figure was used
+- Ecowitt SD card log file lightning distance units are now converted if required
+
+### Changed
+
+- MQTT settings now has an Advanced Settings section, this allows you to override the default values for:
+	- Using TLS
+	- IP version
+	- MQTT protocol version
+- Ecowitt SD card log file processing removes corresponding extra log file from the processing list if no data is found in the base file
+- Changing the PHP Brotli Compression setting now forces the test of supported compressions to be rerun
+- Ecowitt Local HTTP API current data decode now uses case insensitive checks on the value units
+- Ecowitt SD card log file processing now uses case insensitive checks for all field names
+
+## Fixed
+
+- Exclude possible empty lines from SD card log files
+- Fix handing of pressures in mmHg in the Ecowitt HTTP API
+- Ecowitt SD card log file decode of LDS Depth values
+- Davis WLL was saving the gust direction as the speed when a new daily high gust was detected that had been missed in the broadcast data
+
+
 ## [4.4.2 \[b4085\]][15] - 2025-03-12
 
 ### New
@@ -635,3 +661,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [13]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4083
 [14]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4084
 [15]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4085
+[16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086

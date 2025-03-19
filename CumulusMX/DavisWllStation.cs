@@ -875,7 +875,8 @@ namespace CumulusMX
 										// Check for spikes, and set highs - Only if we are past the rollover time plus the gust time, otherwise we can get peaks from yesterday attributed to today
 										if (dateTime.AddHours(cumulus.GetHourInc(dateTime)).TimeOfDay > new TimeSpan(0, 2, 10))
 										{
-											var gust2min = cumulus.Calib.WindGust.Calibrate(ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0));
+											var gust2minUncalibrated = ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
+											var gust2min = cumulus.Calib.WindGust.Calibrate(gust2minUncalibrated);
 
 											if (gust2min > HiLoToday.HighGust)
 											{
@@ -888,7 +889,7 @@ namespace CumulusMX
 												// add the uncalibrated values to the recent wind data
 												lock (recentwindLock)
 												{
-													WindRecent[nextwind].Gust = data1.wind_dir_at_hi_speed_last_2_min ?? 0;
+													WindRecent[nextwind].Gust = gust2minUncalibrated;
 													WindRecent[nextwind].Speed = WindAverageUncalibrated;
 													WindRecent[nextwind].Timestamp = time2min;
 													nextwind = (nextwind + 1) % MaxWindRecent;

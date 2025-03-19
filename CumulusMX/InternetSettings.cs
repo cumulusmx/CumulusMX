@@ -107,7 +107,12 @@ namespace CumulusMX
 							cumulus.FtpOptions.PhpIgnoreCertErrors = settings.website.advanced.phpignorecerts;
 							cumulus.FtpOptions.PhpUseGet = settings.website.advanced.phpuseget;
 							cumulus.FtpOptions.MaxConcurrentUploads = settings.website.advanced.maxuploads;
-							cumulus.FtpOptions.PhpUseBrotli = settings.website.advanced.phpusebrotli;
+
+							if (cumulus.FtpOptions.PhpUseBrotli != settings.website.advanced.phpusebrotli)
+							{
+								cumulus.FtpOptions.PhpUseBrotli = settings.website.advanced.phpusebrotli;
+								Task.Run(() => cumulus.TestPhpUploadCompression());
+							}
 						}
 
 						if (cumulus.FtpOptions.FtpMode != Cumulus.FtpProtocols.PHP && settings.websettings.realtime.enabled && settings.websettings.realtime.enablerealtimeftp)

@@ -39,6 +39,7 @@ namespace CumulusMX
 				.WithClientId(Guid.NewGuid().ToString())
 				.WithTcpServer(cumulus.MQTT.Server, cumulus.MQTT.Port)
 				.WithProtocolType(protocolType)
+				.WithProtocolVersion((MQTTnet.Formatter.MqttProtocolVersion) cumulus.MQTT.ProtocolVersion)
 				.WithCredentials(string.IsNullOrEmpty(cumulus.MQTT.Password) ? null : new MqttClientCredentials(cumulus.MQTT.Username, System.Text.Encoding.UTF8.GetBytes(cumulus.MQTT.Password)))
 				.WithTlsOptions(
 					new MqttClientTlsOptions()
@@ -60,6 +61,8 @@ namespace CumulusMX
 					try
 					{
 						// This code will also do the very first connect! So no call to _ConnectAsync_ is required in the first place.
+						cumulus.LogDebugMessage($"MQTT: Connection parameters - IP={cumulus.MQTT.IpVersion}, TLS={cumulus.MQTT.UseTLS}, Protocol={cumulus.MQTT.ProtocolVersion}");
+
 						if (!await mqttClient.TryPingAsync())
 						{
 							if (starting)
@@ -72,7 +75,7 @@ namespace CumulusMX
 								cumulus.LogWarningMessage("MQTT: Error: MQTT disconnected from the server - " + cumulus.MQTT.Server);
 							}
 
-							await mqttClient.ConnectAsync(options, cumulus.cancellationToken);
+							var response = await mqttClient.ConnectAsync(options, cumulus.cancellationToken);
 
 							if (mqttClient.IsConnected)
 							{
@@ -81,8 +84,8 @@ namespace CumulusMX
 							else
 							{
 								cumulus.LogMessage("MQTT: Failed to connect to server - " + cumulus.MQTT.Server);
+								cumulus.LogMessage(response.Dump());
 							}
-
 						}
 					}
 					catch (Exception ex)

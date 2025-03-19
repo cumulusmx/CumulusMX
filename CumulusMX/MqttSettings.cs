@@ -51,9 +51,13 @@ namespace CumulusMX
 				{
 					cumulus.MQTT.Server = settings.server ?? string.Empty;
 					cumulus.MQTT.Port = settings.port;
-					cumulus.MQTT.UseTLS = settings.useTls;
 					cumulus.MQTT.Username = settings.username ?? string.Empty;
 					cumulus.MQTT.Password = settings.password ?? string.Empty;
+
+					cumulus.MQTT.UseTLS = settings.advanced.useTls;
+					cumulus.MQTT.IpVersion = settings.advanced.ipVersion;
+					cumulus.MQTT.ProtocolVersion = settings.advanced.protocolVersion;
+
 					cumulus.MQTT.EnableDataUpdate = settings.dataUpdate.enabled;
 					if (cumulus.MQTT.EnableDataUpdate)
 					{
@@ -118,13 +122,20 @@ namespace CumulusMX
 				template = cumulus.MQTT.IntervalTemplate
 			};
 
+			var mqttAdvanced = new MqttAdvanced()
+			{
+				useTls = cumulus.MQTT.UseTLS,
+				ipVersion = cumulus.MQTT.IpVersion,
+				protocolVersion = cumulus.MQTT.ProtocolVersion
+			};
+
 			var mqttsettings = new MqttConfig()
 			{
 				server = cumulus.MQTT.Server,
 				port = cumulus.MQTT.Port,
-				useTls = cumulus.MQTT.UseTLS,
 				username = cumulus.MQTT.Username,
 				password = cumulus.MQTT.Password,
+				advanced = mqttAdvanced,
 				dataUpdate = mqttUpdate,
 				interval = mqttInterval
 			};
@@ -136,11 +147,19 @@ namespace CumulusMX
 		{
 			public string server { get; set; }
 			public int port { get; set; }
-			public bool useTls { get; set; }
 			public string username { get; set; }
 			public string password { get; set; }
+
+			public MqttAdvanced advanced { get; set; }
 			public MqttData dataUpdate { get; set; }
 			public MqttData interval { get; set; }
+		}
+
+		private sealed class MqttAdvanced
+		{
+			public bool useTls { get; set; }
+			public int ipVersion { get; set; }
+			public int protocolVersion { get; set; }
 		}
 
 		private sealed class MqttData
