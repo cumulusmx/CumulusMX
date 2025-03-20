@@ -41,6 +41,8 @@ namespace CumulusMX
 
 			for (var index = 0; index < Data.Count; index++)
 			{
+				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocess record # {index + 1} of {Data.Count}");
+
 				// split on commas
 				var fields = Data[index].Split(',');
 
@@ -231,8 +233,10 @@ namespace CumulusMX
 				{
 					cumulus.LogErrorMessage("EcowittLogFile.DataParser: Error adding record to list - " + fields[0]);
 				}
-
-				//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record {fields[0]} added to history list");
+				else
+				{
+					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record {fields[0]} added to history list");
+				}
 			}
 
 			return retList;

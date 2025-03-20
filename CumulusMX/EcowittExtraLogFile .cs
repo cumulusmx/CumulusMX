@@ -31,6 +31,8 @@ namespace CumulusMX
 
 			for (var index = 0; index < Data.Count; index++)
 			{
+				cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Preprocess record # {index + 1} of {Data.Count}");
+
 				// split on commas
 				var fields = Data[index].Split(',');
 
@@ -238,6 +240,8 @@ namespace CumulusMX
 				}
 
 				retList.Add(time, rec);
+
+				cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Record {fields[0]} added to the list");
 			}
 
 			return retList;
