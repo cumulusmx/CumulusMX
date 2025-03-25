@@ -10,9 +10,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.4.4 \[b4087\]][17] - 2025-03-30
+
+### Fixed
+
+- NaN error when Wunderground rapid fire is enabled and an upload fails
+
+
 ## [4.4.3 \[b4086\]][16] - 2025-03-18
 
-## New
+### New
 
 - Ecowitt Rainfall Rate now read from SD card log files (if present), previously the field was missing and the hourly rain figure was used
 - Ecowitt SD card log file lightning distance units are now converted if required
@@ -28,7 +35,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt Local HTTP API current data decode now uses case insensitive checks on the value units
 - Ecowitt SD card log file processing now uses case insensitive checks for all field names
 
-## Fixed
+### Fixed
 
 - Exclude possible empty lines from SD card log files
 - Fix handing of pressures in mmHg in the Ecowitt HTTP API
