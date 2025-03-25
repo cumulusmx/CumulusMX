@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text.RegularExpressions;
-
-using Org.BouncyCastle.Ocsp;
 
 namespace CumulusMX
 {
@@ -36,7 +33,7 @@ namespace CumulusMX
 
 		public SortedList<DateTime, EcowittApi.HistoricData> DataParser()
 		{
-			var invc = CultureInfo.InvariantCulture;
+			var invc = System.Globalization.CultureInfo.InvariantCulture;
 			var retList = new SortedList<DateTime, EcowittApi.HistoricData>();
 
 			for (var index = 0; index < Data.Count; index++)
@@ -59,7 +56,7 @@ namespace CumulusMX
 
 					// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
 
-					if (!DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, DateTimeStyles.AssumeLocal, out DateTime time))
+					if (!DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out DateTime time))
 					{
 						cumulus.LogErrorMessage("EcowittLogFile.DataParser: Failed to parse datetime - " + fields[0]);
 						continue;
