@@ -15,10 +15,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### New
 
 - Locale Strings has a new Web Tags format for general dates
+- Added PM2.5 24 hour value handling to Ecowitt local HTTP API
 
 ## Changed
-
-- Added PM2.5 24 hour value handling to Ecowitt local HTTP API
 
 Nothing
 

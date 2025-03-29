@@ -769,7 +769,7 @@ namespace CumulusMX
 				}
 			}
 
-			Cumulus.LogConsoleMessage("Historic data processing complete");
+			Cumulus.LogConsoleMessage("\rHistoric data processing complete");
 
 			return cumulus.LastUpdateTime.AddMinutes(interval + 1) < DateTime.Now;
 
