@@ -12,6 +12,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.4.4 \[b4087\]][17] - 2025-03-30
 
+### New
+
+Nothing
+
+## Changed
+
+- Added PM2.5 24 hour value handling to Ecowitt local HTTP API
+
+Nothing
+
 ### Fixed
 
 - NaN error when Wunderground rapid fire is enabled and an upload fails
