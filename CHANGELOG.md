@@ -14,7 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-Nothing
+- Locale Strings has a new Web Tags format for general dates
 
 ## Changed
 
@@ -25,6 +25,8 @@ Nothing
 ### Fixed
 
 - NaN error when Wunderground rapid fire is enabled and an upload fails
+- Web tag `<#recordsbegandate>` now uses the Locale Strings "General Date" format by default
+- Error in dashboard script `locale.js` when setting laser sensor field titles
 
 
 ## [4.4.3 \[b4086\]][16] - 2025-03-18

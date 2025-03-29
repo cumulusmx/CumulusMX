@@ -7565,6 +7565,7 @@ namespace CumulusMX
 
 			// web tag defaults
 			Trans.WebTagGenTimeDate = ini.GetValue("WebTags", "GeneralTimeDate", "HH:mm 'on' dd MMMM yyyy");
+			Trans.WebTagGenDate = ini.GetValue("WebTags", "GeneralDate", "dd MMMM yyyy");
 			Trans.WebTagRecDate = ini.GetValue("WebTags", "RecordDate", "'on' dd MMMM yyyy");
 			Trans.WebTagRecTimeDate = ini.GetValue("WebTags", "RecordTimeDate", "'at' HH:mm 'on' dd MMMM yyyy");
 			Trans.WebTagRecDryWetDate = ini.GetValue("WebTags", "RecordDryWetDate", "'to' dd MMMM yyyy");
@@ -7773,6 +7774,7 @@ namespace CumulusMX
 
 			// web tag defaults
 			ini.SetValue("WebTags", "GeneralTimeDate", Trans.WebTagGenTimeDate);
+			ini.SetValue("WebTags", "GeneralDate", Trans.WebTagGenDate);
 			ini.SetValue("WebTags", "RecordDate", Trans.WebTagRecDate);
 			ini.SetValue("WebTags", "RecordTimeDate", Trans.WebTagRecTimeDate);
 			ini.SetValue("WebTags", "RecordDryWetDate", Trans.WebTagRecDryWetDate);

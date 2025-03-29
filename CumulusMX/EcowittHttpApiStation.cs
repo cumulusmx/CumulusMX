@@ -844,7 +844,7 @@ namespace CumulusMX
 					var name = string.Empty;
 					try
 					{
-						cumulus.LogDebugMessage($" - enabled={sensor.idst}, type={sensor.img}, sensor id={sensor.id}, signal={sensor.signal}, battery={sensor.batt}, name={sensor.name}");
+						cumulus.LogDebugMessage($" - type={sensor.img}, enabled={sensor.idst}" + (sensor.idst ? $", sensor id={sensor.id}, signal={sensor.signal}, battery={sensor.batt}, name={sensor.name}" : ""));
 
 						// check the battery status
 						if (sensor.idst && sensor.signal > 0)
