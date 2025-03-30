@@ -593,8 +593,8 @@ namespace CumulusMX
 				decimal mult = Program.cumulus.Units.LaserDistance switch
 				{
 					0 => 1,
-					1 => (decimal) 0.3937008,
-					2 => 10,
+					1 => (decimal) 2.54,
+					2 => (decimal) 0.1,
 					_ => 0
 				};
 				return Math.Round(value * mult, 0);
@@ -604,9 +604,9 @@ namespace CumulusMX
 				// snow depth = inches
 				decimal mult = Program.cumulus.Units.LaserDistance switch
 				{
-					0 => (decimal) 2.54,
+					0 => (decimal) 0.3937008,
 					1 => 1,
-					2 => (decimal) 25.4,
+					2 => (decimal) 0.03937008,
 					_ => 0
 				};
 				return Math.Round(value * mult, 1);

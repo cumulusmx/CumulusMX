@@ -19,6 +19,8 @@ using System.Web;
 
 using EmbedIO.Utilities;
 
+using HidSharp.Reports;
+
 using ServiceStack.Text;
 
 using SQLite;
@@ -9946,9 +9948,7 @@ namespace CumulusMX
 					{
 						if (snowInc < cumulus.SnowMinInc)
 						{
-							Snow24hCountInc[index] = 0;
-							Snow24hCountDec[index] = 0;
-							Snow24IncSum[index] = 0;
+							InitialiseSnowVariables(index);
 
 #if DEBUG
 							cumulus.LogDebugMessage($"Laser depth increase is less than required for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} - min = {cumulus.SnowMinInc} {cumulus.Units.LaserDistanceText}");
@@ -9989,9 +9989,7 @@ namespace CumulusMX
 					}
 					else if (snowInc > -cumulus.SnowMinInc && value != LaserDepth[index])
 					{
-						Snow24hCountInc[index] = 0;
-						Snow24hCountDec[index] = 0;
-						Snow24IncSum[index] = 0;
+						InitialiseSnowVariables(index);
 #if DEBUG
 						cumulus.LogDebugMessage($"Laser depth decrease is less than required for snow removal: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
 #endif
@@ -10024,6 +10022,12 @@ namespace CumulusMX
 			}
 		}
 
+		public void InitialiseSnowVariables(int index)
+		{
+			Snow24hCountInc[index] = 0;
+			Snow24hCountDec[index] = 0;
+			Snow24IncSum[index] = 0;
+		}
 
 		public string BetelCast(double z_hpa, int z_month, string z_wind, int z_trend, bool z_north, double z_baro_top, double z_baro_bottom)
 		{
