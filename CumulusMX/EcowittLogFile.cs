@@ -256,6 +256,8 @@ namespace CumulusMX
 			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(mph),Gust(mph),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
 			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
 			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm),Piezo Hourly Rain(mm),Piezo Event Rain(mm),Piezo Daily Rain(mm),Piezo Weekly Rain(mm),Piezo Monthly Rain(mm),Piezo Yearly Rain(mm)
+			// Time,Indoor Temperature(°C),Indoor Humidity(%),Outdoor Temperature(°C),Outdoor Humidity(%),Dew Point(°C),Feels Like(°C),VPD(kPa),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Rain Rate(mm/Hr),Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm),Piezo Rate(mm/Hr),Piezo Hourly Rain(mm),Piezo Event Rain(mm),Piezo Daily Rain(mm),Piezo Weekly Rain(mm),Piezo Monthly Rain(mm),Piezo Yearly Rain(mm)
+			// Time,Indoor Temperature(°C),Indoor Humidity(%),Outdoor Temperature(°C),Outdoor Humidity(%),Dew Point(°C),Feels Like(°C),VPD(kPa),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Rain Rate(mm/Hr),Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm),Piezo Rate(mm/Hr),Piezo Hourly Rain(mm),Piezo Event Rain(mm),Piezo Daily Rain(mm),Piezo Weekly Rain(mm),Piezo Monthly Rain(mm),Piezo Yearly Rain(mm)
 
 			cumulus.LogDataMessage($"EcowittLogFile.HeaderParser: File header: {header}");
 
@@ -296,11 +298,12 @@ namespace CumulusMX
 
 			if (FieldIndex.TryGetValue("wind", out idx))
 			{
+				var fld = fields[idx].ToLower();
 
-				if (fields[idx].ToLower().EndsWith("m/s)")) WindUnit = WindUnits.ms;
-				else if (fields[idx].ToLower().EndsWith("mph)")) WindUnit = WindUnits.mph;
-				else if (fields[idx].ToLower().EndsWith("km/h)")) WindUnit = WindUnits.kph;
-				else if (fields[idx].ToLower().EndsWith("knots)")) WindUnit = WindUnits.knots;
+				if (fld.EndsWith("m/s)")) WindUnit = WindUnits.ms;
+				else if (fld.EndsWith("mph)")) WindUnit = WindUnits.mph;
+				else if (fld.EndsWith("km/h)")) WindUnit = WindUnits.kph;
+				else if (fld.EndsWith("knots)")) WindUnit = WindUnits.knots;
 				else WindUnit = (WindUnits) cumulus.Units.Wind;
 			}
 			else
@@ -311,10 +314,12 @@ namespace CumulusMX
 
 			if (FieldIndex.TryGetValue("abs pressure", out idx))
 			{
-				if (fields[idx].ToLower().EndsWith("hpa)")) PressUnit = PressUnits.hPa;
-				else if (fields[idx].ToLower().EndsWith("inhg)")) PressUnit = PressUnits.inHg;
-				else if (fields[idx].ToLower().EndsWith("kpa)")) PressUnit = PressUnits.kPa;
-				else if (fields[idx].ToLower().EndsWith("mmhg)")) PressUnit = PressUnits.mmHg;
+				var fld = fields[idx].ToLower();
+
+				if (fld.EndsWith("hpa)")) PressUnit = PressUnits.hPa;
+				else if (fld.EndsWith("inhg)")) PressUnit = PressUnits.inHg;
+				else if (fld.EndsWith("kpa)")) PressUnit = PressUnits.kPa;
+				else if (fld.EndsWith("mmhg)")) PressUnit = PressUnits.mmHg;
 				else PressUnit = cumulus.Units.Press switch
 				{
 					0 or 1 => PressUnits.hPa,

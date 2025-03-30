@@ -553,6 +553,12 @@ namespace CumulusMX
 				}
 			}
 
+			if (buffer.Count == 0)
+			{
+				cumulus.LogMessage("GetHistoricDataSdCard: No data to process in the base files");
+				return false;
+			}
+
 			// now merge in the extra sensor data
 
 			cumulus.LogDebugMessage($"GetHistoricDataSdCard: Processing {extraFiles.Count} extra files");
