@@ -678,3 +678,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [14]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4084
 [15]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4085
 [16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086
+[17]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4087
