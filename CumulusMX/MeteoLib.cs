@@ -300,16 +300,12 @@ namespace CumulusMX
 
 		public static double? CToF(double? tempC)
 		{
-			if (tempC == null)
-				return null;
-			return CToF(tempC);
+			return tempC.HasValue ? CToF(tempC) : null;
 		}
 
 		public static decimal? CToF(decimal? tempC)
 		{
-			if (tempC == null)
-				return null;
-			return ((tempC * 9) / 5) + 32;
+			return tempC.HasValue ? ((tempC * 9) / 5) + 32 : null;
 		}
 
 		public static double FtoC(double tempF)
@@ -319,16 +315,12 @@ namespace CumulusMX
 
 		public static double? FtoC(double? tempF)
 		{
-			if (tempF == null)
-				return null;
-			return FtoC(tempF);
+			return tempF.HasValue ? FtoC(tempF) : null;
 		}
 
 		public static decimal? FtoC(decimal? tempF)
 		{
-			if (tempF == null)
-				return null;
-			return ((tempF - 32) * 5) / 9;
+			return tempF.HasValue ? ((tempF - 32) * 5) / 9 : null;
 		}
 
 		/// <summary>
