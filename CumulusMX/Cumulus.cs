@@ -7565,6 +7565,7 @@ namespace CumulusMX
 
 			// web tag defaults
 			Trans.WebTagGenTimeDate = ini.GetValue("WebTags", "GeneralTimeDate", "HH:mm 'on' dd MMMM yyyy");
+			Trans.WebTagGenDate = ini.GetValue("WebTags", "GeneralDate", "dd MMMM yyyy");
 			Trans.WebTagRecDate = ini.GetValue("WebTags", "RecordDate", "'on' dd MMMM yyyy");
 			Trans.WebTagRecTimeDate = ini.GetValue("WebTags", "RecordTimeDate", "'at' HH:mm 'on' dd MMMM yyyy");
 			Trans.WebTagRecDryWetDate = ini.GetValue("WebTags", "RecordDryWetDate", "'to' dd MMMM yyyy");
@@ -7773,6 +7774,7 @@ namespace CumulusMX
 
 			// web tag defaults
 			ini.SetValue("WebTags", "GeneralTimeDate", Trans.WebTagGenTimeDate);
+			ini.SetValue("WebTags", "GeneralDate", Trans.WebTagGenDate);
 			ini.SetValue("WebTags", "RecordDate", Trans.WebTagRecDate);
 			ini.SetValue("WebTags", "RecordTimeDate", Trans.WebTagRecTimeDate);
 			ini.SetValue("WebTags", "RecordDryWetDate", Trans.WebTagRecDryWetDate);
@@ -14268,7 +14270,7 @@ namespace CumulusMX
 			LogMessage("Spike removal:");
 			LogMessage($"TD={Spike.TempDiff:F3} GD={Spike.GustDiff:F3} WD={Spike.WindDiff:F3} HD={Spike.HumidityDiff:F3} PD={Spike.PressDiff:F3} MR={Spike.MaxRainRate:F3} MH={Spike.MaxHourlyRain:F3} ITD={Spike.InTempDiff:F3} IHD={Spike.InHumDiff:F3} Snow={Spike.SnowDiff:F2}");
 			LogMessage("Limits:");
-			LogMessage($"TH={Limit.TempHigh.ToString(TempFormat)} TL={Limit.TempLow.ToString(TempFormat)} DH={Limit.DewHigh.ToString(TempFormat)} PH={Limit.PressHigh.ToString(PressFormat)} PL={Limit.PressLow.ToString(PressFormat)} GH={Limit.WindHigh:F3} Snow={SnowMinInc}");
+			LogMessage($"TH={Limit.TempHigh.ToString(TempFormat)} TL={Limit.TempLow.ToString(TempFormat)} DH={Limit.DewHigh.ToString(TempFormat)} PH={Limit.PressHigh.ToString(PressFormat)} PL={Limit.PressLow.ToString(PressFormat)} GH={Limit.WindHigh:F3} SnowMinInc={SnowMinInc:F2}");
 		}
 
 		private void LogPrimaryAqSensor()

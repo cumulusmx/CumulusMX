@@ -553,6 +553,12 @@ namespace CumulusMX
 				}
 			}
 
+			if (buffer.Count == 0)
+			{
+				cumulus.LogMessage("GetHistoricDataSdCard: No data to process in the base files");
+				return false;
+			}
+
 			// now merge in the extra sensor data
 
 			cumulus.LogDebugMessage($"GetHistoricDataSdCard: Processing {extraFiles.Count} extra files");
@@ -769,7 +775,7 @@ namespace CumulusMX
 				}
 			}
 
-			Cumulus.LogConsoleMessage("Historic data processing complete");
+			Cumulus.LogConsoleMessage("\rHistoric data processing complete");
 
 			return cumulus.LastUpdateTime.AddMinutes(interval + 1) < DateTime.Now;
 
@@ -844,7 +850,7 @@ namespace CumulusMX
 					var name = string.Empty;
 					try
 					{
-						cumulus.LogDebugMessage($" - enabled={sensor.idst}, type={sensor.img}, sensor id={sensor.id}, signal={sensor.signal}, battery={sensor.batt}, name={sensor.name}");
+						cumulus.LogDebugMessage($" - type={sensor.img}, enabled={sensor.idst}" + (sensor.idst ? $", sensor id={sensor.id}, signal={sensor.signal}, battery={sensor.batt}, name={sensor.name}" : ""));
 
 						// check the battery status
 						if (sensor.idst && sensor.signal > 0)
@@ -1514,6 +1520,7 @@ namespace CumulusMX
 			//	{
 			//		"channel": "1",
 			//		"PM25": "6.0",
+			//		"PM25_24H": "2.0",
 			//		"PM25_RealAQI": "25",
 			//		"PM25_24HAQI": "24",
 			//		"battery": "5"
@@ -1540,7 +1547,6 @@ namespace CumulusMX
 							cumulus.LogExceptionMessage(ex, $"ProcessChPm25: Error on sensor {sensor.channel}");
 						}
 					}
-					/*
 					if (sensor.PM25_24H.HasValue)
 					{
 						try
@@ -1552,7 +1558,6 @@ namespace CumulusMX
 							cumulus.LogExceptionMessage(ex, $"ProcessChPm25_24H: Error on sensor {sensor.channel}");
 						}
 					}
-					*/
 				}
 			}
 		}

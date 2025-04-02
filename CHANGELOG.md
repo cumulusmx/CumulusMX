@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4087\]][17] - 2025-04-01
+## [4.5.0 \[b4087\]][17] - 2025-05-01
 
 ## New
 
@@ -22,9 +22,25 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 
 
+## [4.4.4 \[b4087\]][17] - 2025-04-01
+
+### New
+
+- Locale Strings has a new Web Tags format for general dates
+- Added PM2.5 24 hour value handling to Ecowitt local HTTP API
+
+### Fixed
+
+- NaN error when Wunderground rapid fire is enabled and an upload fails
+- Web tag `<#recordsbegandate>` now uses the Locale Strings "General Date" format by default
+- Error in dashboard script `locale.js` when setting laser sensor field titles
+- Laser unit to snow unit conversion when the units are different
+- Fix stack overflow when converting units from Ecowitt SD Card log files
+
+
 ## [4.4.3 \[b4086\]][16] - 2025-03-18
 
-## New
+### New
 
 - Ecowitt Rainfall Rate now read from SD card log files (if present), previously the field was missing and the hourly rain figure was used
 - Ecowitt SD card log file lightning distance units are now converted if required
@@ -40,7 +56,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt Local HTTP API current data decode now uses case insensitive checks on the value units
 - Ecowitt SD card log file processing now uses case insensitive checks for all field names
 
-## Fixed
+### Fixed
 
 - Exclude possible empty lines from SD card log files
 - Fix handing of pressures in mmHg in the Ecowitt HTTP API

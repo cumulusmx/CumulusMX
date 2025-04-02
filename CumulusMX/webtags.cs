@@ -2676,7 +2676,7 @@ namespace CumulusMX
 
 		private string Tagrecordsbegandate(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(cumulus.RecordsBeganDateTime, "dd MMMM yyyy", tagParams);
+			return GetFormattedDateTime(cumulus.RecordsBeganDateTime, cumulus.Trans.WebTagGenDate, tagParams);
 		}
 
 		private string TagDaysSinceRecordsBegan(Dictionary<string, string> tagParams)

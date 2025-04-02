@@ -948,6 +948,7 @@ namespace CumulusMX
 		{
 			public int? channel { get; set; }
 			public double? PM25 { get; set; }
+			public double? PM25_24H { get; set; }
 			public double? PM25_RealAQI { get; set; }
 			public double? PM25_24HAQI { get; set; }
 			public int? battery { get; set; }

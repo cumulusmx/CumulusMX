@@ -75,7 +75,7 @@ namespace CumulusMX
 
 		public static decimal? WindMSToUser(decimal? value)
 		{
-			return value.HasValue ? WindMSToUser(value.Value) : null;
+			return value.HasValue ? (decimal) WindMSToUser((double) value.Value) : null;
 		}
 
 
@@ -108,7 +108,7 @@ namespace CumulusMX
 
 		public static decimal? WindMPHToUser(decimal? value)
 		{
-			return value.HasValue ? WindMPHToUser(value.Value) : null;
+			return value.HasValue ? (decimal) WindMPHToUser((double) value.Value) : null;
 		}
 
 		/// <summary>
@@ -135,7 +135,7 @@ namespace CumulusMX
 
 		public static decimal? WindKnotsToUser(decimal? value)
 		{
-			return value.HasValue ? WindKnotsToUser(value.Value) : null;
+			return value.HasValue ? (decimal) WindKnotsToUser((double) value.Value) : null;
 		}
 
 		/// <summary>
@@ -162,7 +162,7 @@ namespace CumulusMX
 
 		public static decimal? WindKPHToUser(decimal? value)
 		{
-			return value.HasValue ? WindKPHToUser(value.Value) : null;
+			return value.HasValue ? (decimal) WindKPHToUser((double) value.Value) : null;
 		}
 
 		/// <summary>
@@ -331,7 +331,7 @@ namespace CumulusMX
 
 		public static decimal? RainMMToUser(decimal? value)
 		{
-			return value.HasValue ? RainMMToUser(value.Value) : null;
+			return value.HasValue ? (decimal) RainMMToUser((double) value.Value) : null;
 		}
 
 		/// <summary>
@@ -351,7 +351,7 @@ namespace CumulusMX
 
 		public static decimal? RainINToUser(decimal? value)
 		{
-			return value.HasValue ? RainINToUser(value.Value) : null;
+			return value.HasValue ? (decimal) RainINToUser((double) value.Value) : null;
 		}
 
 		/// <summary>
@@ -393,7 +393,7 @@ namespace CumulusMX
 
 		public static decimal? PressMBToUser(decimal? value)
 		{
-			return value.HasValue ? PressMBToUser(value.Value) : null;
+			return value.HasValue ? (decimal) PressMBToUser((double) value.Value) : null;
 		}
 
 		/// <summary>
@@ -438,7 +438,7 @@ namespace CumulusMX
 
 		public static decimal? PressINHGToUser(decimal? value)
 		{
-			return value.HasValue ? PressINHGToUser(value.Value) : null;
+			return value.HasValue ? (decimal) PressINHGToUser((double) value.Value) : null;
 		}
 
 		/// <summary>
@@ -593,8 +593,8 @@ namespace CumulusMX
 				decimal mult = Program.cumulus.Units.LaserDistance switch
 				{
 					0 => 1,
-					1 => (decimal) 0.3937008,
-					2 => 10,
+					1 => (decimal) 2.54,
+					2 => (decimal) 0.1,
 					_ => 0
 				};
 				return Math.Round(value * mult, 0);
@@ -604,9 +604,9 @@ namespace CumulusMX
 				// snow depth = inches
 				decimal mult = Program.cumulus.Units.LaserDistance switch
 				{
-					0 => (decimal) 2.54,
+					0 => (decimal) 0.3937008,
 					1 => 1,
-					2 => (decimal) 25.4,
+					2 => (decimal) 0.03937008,
 					_ => 0
 				};
 				return Math.Round(value * mult, 1);

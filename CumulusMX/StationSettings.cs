@@ -8,6 +8,8 @@ using System.Threading;
 
 using EmbedIO;
 
+using HidSharp.Reports;
+
 using ServiceStack;
 using ServiceStack.Text;
 
@@ -1304,7 +1306,14 @@ namespace CumulusMX
 						settings.general.units.advanced.raindp = cumulus.RainDPlaceDefaults[cumulus.Units.Rain];
 					}
 					cumulus.Units.SnowDepth = settings.general.units.snow;
-					cumulus.Units.LaserDistance = settings.general.units.laser;
+					if (cumulus.Units.LaserDistance != settings.general.units.laser)
+					{
+						cumulus.Units.LaserDistance = settings.general.units.laser;
+						for (var i = 1; i <= 4; i++)
+						{
+							station.InitialiseSnowVariables(i);
+						}
+					}
 					cumulus.SetupUnitText();
 
 					cumulus.CloudBaseInFeet = settings.general.units.cloudbaseft;
