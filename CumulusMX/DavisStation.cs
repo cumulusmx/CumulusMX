@@ -13,7 +13,6 @@ namespace CumulusMX
 	internal class DavisStation : WeatherStation
 	{
 		private readonly bool isSerial;
-		private readonly string ipaddr;
 		private readonly int port;
 		private int previousMinuteDisconnect = 60;
 		private const int ACK = 6;
@@ -88,10 +87,9 @@ namespace CumulusMX
 			}
 			else
 			{
-				ipaddr = cumulus.DavisOptions.IPAddr;
 				port = Convert.ToInt32(cumulus.DavisOptions.TCPPort);
 
-				cumulus.LogMessage("IP address = " + ipaddr + " Port = " + port);
+				cumulus.LogMessage("IP address = " + cumulus.DavisOptions.IPAddr + " Port = " + port);
 				cumulus.LogMessage("periodic disconnect = " + cumulus.DavisOptions.PeriodicDisconnectInterval);
 
 				InitTCP();
@@ -665,7 +663,7 @@ namespace CumulusMX
 					{
 						Client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
 					};
-					client.Connect(ipaddr, port);
+					client.Connect(cumulus.DavisOptions.IPAddr, port);
 
 
 					if (!client.Connected)
