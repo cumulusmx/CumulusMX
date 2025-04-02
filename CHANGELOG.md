@@ -16,6 +16,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Changed
 
+- Davis VP2 IP logger IP address can now be changed and take effect without restarting MX
+
 ## Fixed
 
 ### Package Updates
