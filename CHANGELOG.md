@@ -17,8 +17,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changed
 
 - Davis VP2 IP logger IP address can now be changed and take effect without restarting MX
+- Third Party and MySQL password fields now 'reveal' when they receive focus
+- Renamed WoW settings screen upload 'PIN' to 'Authentication Key'
 
 ## Fixed
+
 
 ### Package Updates
 
