@@ -69,95 +69,92 @@ namespace CumulusMX.ThirdParty
 
 			// we will try this twice in case the first attempt fails
 			// but no retries for rapid fire
-			if (!RapidFireEnabled)
+			var maxRetryAttempts = RapidFireEnabled ? 1 : 2;
+			var delay = maxRetryAttempts * 5.0;
+
+			for (int retryCount = maxRetryAttempts; retryCount >= 0; retryCount--)
 			{
-				var maxRetryAttempts = 2;
-				var delay = maxRetryAttempts * 5.0;
-
-				for (int retryCount = maxRetryAttempts; retryCount >= 0; retryCount--)
+				try
 				{
-					try
+					using var response = await cumulus.MyHttpClient.GetAsync(URL);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					if (response.StatusCode == HttpStatusCode.OK)
 					{
-						using var response = await cumulus.MyHttpClient.GetAsync(URL);
-						var responseBodyAsText = await response.Content.ReadAsStringAsync();
-						if (response.StatusCode == HttpStatusCode.OK)
-						{
-							cumulus.LogDebugMessage("Wunderground: Successful upload");
-							cumulus.ThirdPartyAlarm.Triggered = false;
-							ErrorFlagCount = 0;
-							Updating = false;
-							return;
-						}
-						else if (response.StatusCode == HttpStatusCode.Unauthorized)
-						{
-							// Flag the error immediately if no rapid fire
-							// Flag error after every 12 rapid fire failures (1 minute)
-							ErrorFlagCount++;
-							if (!RapidFireEnabled || (RapidFireEnabled && ErrorFlagCount >= 12))
-							{
-								cumulus.LogWarningMessage("Wunderground: Unauthorized, check credentials");
-							}
-							cumulus.ThirdPartyAlarm.LastMessage = "Wunderground: Unauthorized, check credentials";
-							cumulus.ThirdPartyAlarm.Triggered = true;
-							Updating = false;
-							return;
-						}
-						else
-						{
-							// Flag the error immediately if no rapid fire
-							// Flag error after every 12 rapid fire failures (1 minute)
-							ErrorFlagCount++;
-							if ((!RapidFireEnabled && retryCount == 0) || ErrorFlagCount >= 12)
-							{
-								cumulus.LogWarningMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
-								cumulus.ThirdPartyAlarm.LastMessage = "Wunderground: HTTP response - " + response.StatusCode;
-								cumulus.ThirdPartyAlarm.Triggered = true;
-								ErrorFlagCount = 0;
-							}
-							else
-							{
-								cumulus.LogDebugMessage($"Wunderground Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
-								cumulus.LogMessage($"Wunderground: Retrying in {delay / retryCount} seconds");
-
-								await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
-							}
-						}
+						cumulus.LogDebugMessage("Wunderground: Successful upload");
+						cumulus.ThirdPartyAlarm.Triggered = false;
+						ErrorFlagCount = 0;
+						Updating = false;
+						return;
 					}
-					catch (Exception ex)
+					else if (response.StatusCode == HttpStatusCode.Unauthorized)
 					{
-						string msg;
-
-						if (retryCount == 0)
+						// Flag the error immediately if no rapid fire
+						// Flag error after every 12 rapid fire failures (1 minute)
+						ErrorFlagCount++;
+						if (!RapidFireEnabled || (RapidFireEnabled && ErrorFlagCount >= 12))
 						{
-							if (ex.InnerException is TimeoutException)
-							{
-								msg = $"Wunderground: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
-								cumulus.LogWarningMessage(msg);
-							}
-							else
-							{
-								msg = "Wunderground: " + ex.Message;
-								cumulus.LogExceptionMessage(ex, "Wunderground: Error");
-							}
-
-							cumulus.ThirdPartyAlarm.LastMessage = msg;
+							cumulus.LogWarningMessage("Wunderground: Unauthorized, check credentials");
+						}
+						cumulus.ThirdPartyAlarm.LastMessage = "Wunderground: Unauthorized, check credentials";
+						cumulus.ThirdPartyAlarm.Triggered = true;
+						Updating = false;
+						return;
+					}
+					else
+					{
+						// Flag the error immediately if no rapid fire
+						// Flag error after every 12 rapid fire failures (1 minute)
+						ErrorFlagCount++;
+						if ((!RapidFireEnabled && retryCount == 0) || ErrorFlagCount >= 12)
+						{
+							cumulus.LogWarningMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
+							cumulus.ThirdPartyAlarm.LastMessage = "Wunderground: HTTP response - " + response.StatusCode;
 							cumulus.ThirdPartyAlarm.Triggered = true;
+							ErrorFlagCount = 0;
 						}
 						else
 						{
-							if (ex.InnerException is TimeoutException)
-							{
-								cumulus.LogDebugMessage($"Wunderground: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
-							}
-							else
-							{
-								cumulus.LogDebugMessage("Wunderground: Error - " + ex.Message);
-							}
-
+							cumulus.LogDebugMessage($"Wunderground Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
 							cumulus.LogMessage($"Wunderground: Retrying in {delay / retryCount} seconds");
 
 							await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
 						}
+					}
+				}
+				catch (Exception ex)
+				{
+					string msg;
+
+					if (retryCount == 0)
+					{
+						if (ex.InnerException is TimeoutException)
+						{
+							msg = $"Wunderground: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+							cumulus.LogWarningMessage(msg);
+						}
+						else
+						{
+							msg = "Wunderground: " + ex.Message;
+							cumulus.LogExceptionMessage(ex, "Wunderground: Error");
+						}
+
+						cumulus.ThirdPartyAlarm.LastMessage = msg;
+						cumulus.ThirdPartyAlarm.Triggered = true;
+					}
+					else
+					{
+						if (ex.InnerException is TimeoutException)
+						{
+							cumulus.LogDebugMessage($"Wunderground: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
+						}
+						else
+						{
+							cumulus.LogDebugMessage("Wunderground: Error - " + ex.Message);
+						}
+
+						cumulus.LogMessage($"Wunderground: Retrying in {delay / retryCount} seconds");
+
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
 					}
 				}
 			}
