@@ -16,6 +16,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - WeatherUnderground rapid fire no longer uploading in v4.4.5
 - Remove spurious messages about non-present HTTP Rollover commands being invalid
+- Ecowitt binary API CO2 sensor causing decode unknown sensor detection and unpredictable decodes
 
 
 ## [4.4.4 \[b4087\]][17] - 2025-04-01
