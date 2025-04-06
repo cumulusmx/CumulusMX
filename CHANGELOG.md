@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4088\]][18] - 2025-05-01
+## [4.5.0 \[b4089\]][19] - 2025-05-01
 
 ## New
 
@@ -25,6 +25,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Package Updates
 
+## [4.4.5 \[b4088\]][18] - 2025-04-04
+
+### Fixed
+
+- WeatherUnderground rapid fire no longer uploading in v4.4.5
+- Remove spurious messages about non-present HTTP Rollover commands being invalid
+- Ecowitt binary API CO2 sensor causing decode unknown sensor detection and unpredictable decodes
 
 
 ## [4.4.4 \[b4087\]][17] - 2025-04-01
@@ -697,3 +704,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086
 [17]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4087
 [18]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4088
+[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4089

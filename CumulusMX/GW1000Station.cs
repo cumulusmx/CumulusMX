@@ -1275,7 +1275,7 @@ namespace CumulusMX
 								else
 								{
 									batteryLow = batteryLow || DoCO2DecodeNew(data, idx);
-									idx += 23;
+									idx += 24;
 								}
 								break;
 							case 0x6C: // Heap size - has constant offset of +3692 to GW1100 HTTP value????

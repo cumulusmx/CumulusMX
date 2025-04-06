@@ -14063,15 +14063,15 @@ namespace CumulusMX
 									InputText = CustomHttpMinutesStrings[i]
 								};
 								var processedString = parser.ToStringFromString();
-								LogDebugMessage($"CustomHttpMinutes[{i}]: Querying - {processedString}");
+								LogDebugMessage($"CustomHttpMinutes[{i + 1}]: Querying - {processedString}");
 								using var response = await MyHttpClient.GetAsync(processedString);
 								var responseBodyAsText = await response.Content.ReadAsStringAsync();
-								LogDebugMessage($"CustomHttpMinutes[{i}]: Response code - {response.StatusCode}");
-								LogDataMessage($"CustomHttpMinutes[{i}]: Response text - {responseBodyAsText}");
+								LogDebugMessage($"CustomHttpMinutes[{i + 1}]: Response code - {response.StatusCode}");
+								LogDataMessage($"CustomHttpMinutes[{i + 1}]: Response text - {responseBodyAsText}");
 							}
 							else
 							{
-								Cumulus.LogConsoleMessage($"CustomHttpMinutes[{i}]: Invalid URL - {CustomHttpMinutesStrings[i]}");
+								Cumulus.LogConsoleMessage($"CustomHttpMinutes[{i + 1}]: Invalid URL - {CustomHttpMinutesStrings[i]}");
 							}
 						}
 					}
@@ -14097,23 +14097,23 @@ namespace CumulusMX
 					{
 						if (!string.IsNullOrEmpty(CustomHttpRolloverStrings[i]))
 						{
-							if (!string.IsNullOrEmpty(CustomHttpRolloverStrings[i]))
+							if (CustomHttpRolloverStrings[i].StartsWith("http", StringComparison.OrdinalIgnoreCase))
 							{
 								var parser = new TokenParser(TokenParserOnToken)
 								{
 									InputText = CustomHttpRolloverStrings[i]
 								};
 								var processedString = parser.ToStringFromString();
-								LogDebugMessage($"CustomHttpRollover[{i}]: Querying - {processedString}");
+								LogDebugMessage($"CustomHttpRollover[{i + 1}]: Querying - {processedString}");
 								using var response = await MyHttpClient.GetAsync(processedString);
 								var responseBodyAsText = await response.Content.ReadAsStringAsync();
-								LogDebugMessage($"CustomHttpRollover[{i}]: Response code - {response.StatusCode}");
-								LogDataMessage($"CustomHttpRollover[{i}]: Response text - {responseBodyAsText}");
+								LogDebugMessage($"CustomHttpRollover[{i + 1}]: Response code - {response.StatusCode}");
+								LogDataMessage($"CustomHttpRollover[{i + 1}]: Response text - {responseBodyAsText}");
 							}
-						}
-						else
-						{
-							Cumulus.LogConsoleMessage($"CustomHttpRollover[{i}]: Invalid URL - {CustomHttpRolloverStrings[i]}");
+							else
+							{
+								Cumulus.LogConsoleMessage($"CustomHttpRollover[{i + 1}]: Invalid URL - {CustomHttpRolloverStrings[i]}");
+							}
 						}
 					}
 					catch (Exception ex)
