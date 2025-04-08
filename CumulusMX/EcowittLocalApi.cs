@@ -386,6 +386,11 @@ namespace CumulusMX
 #pragma warning restore S125 // Sections of code should not be commented out
 		}
 
+		public static void GetIotList(CancellationToken token)
+		{
+			// http://ip-address/get_iot_device_list
+		}
+
 		public static void SetDeviceInfo(CancellationToken token)
 		{
 			// http://ip-address/set_device_info
@@ -959,8 +964,8 @@ namespace CumulusMX
 			public int? channel { get; set; }
 			public double? PM25 { get; set; }
 			public double? PM25_24H { get; set; }
-			public double? PM25_RealAQI { get; set; }
-			public double? PM25_24HAQI { get; set; }
+			//public double? PM25_RealAQI { get; set; }
+			//public double? PM25_24HAQI { get; set; }
 			public int? battery { get; set; }
 		}
 
