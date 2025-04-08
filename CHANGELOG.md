@@ -10,7 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.5 \[b4088\]][18] - 2025-04-04
+## [4.4.5 \[b4088\]][18] - 2025-04-08
+
+### New
+
+- Adds current values for Ecowitt CO2 sensor pm1 and pm4, and 24 hour averages for pm 2.5, 10, 1, 4
 
 ### Fixed
 

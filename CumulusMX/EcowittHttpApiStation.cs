@@ -1496,9 +1496,19 @@ namespace CumulusMX
 					}
 					// humidty sent as "value%"
 					CO2_humidity = sensor.humidityVal;
+
 					CO2_pm2p5 = sensor.PM25;
+					CO2_pm2p5_24h = sensor.PM25_24H;
+
 					CO2_pm10 = sensor.PM10;
-					// HTTP protocol does not send a pm 24 hour values :( Only useless AQI values
+					CO2_pm10_24h = sensor.PM10_24H;
+
+					CO2_pm1 = sensor.PM1;
+					CO2_pm1_24h = sensor.PM1_24H;
+
+					CO2_pm4 = sensor.PM4;
+					CO2_pm4_24h = sensor.PM4_24H;
+
 					CO2 = sensor.CO2;
 					CO2_24h = sensor.CO2_24H;
 				}

@@ -926,11 +926,21 @@ namespace CumulusMX
 			public string unit { get; set; }
 			public string humidity { get; set; }
 			public double? PM25 { get; set; }
-			public double? PM25_RealAQI { get; set; }
-			public double? PM25_24HAQI { get; set; }
+			public double? PM25_24H { get; set; }
+			//public double? PM25_RealAQI { get; set; }
+			//public double? PM25_24HAQI { get; set; }
 			public double? PM10 { get; set; }
-			public double? PM10_RealAQI { get; set; }
-			public double? PM10_24HAQI { get; set; }
+			public double? PM10_24H { get; set; }
+			//public double? PM10_RealAQI { get; set; }
+			//public double? PM10_24HAQI { get; set; }
+			public double? PM1 { get; set; }
+			public double? PM1_24H { get; set; }
+			//public double? PM1_RealAQI { get; set; }
+			//public double? PM1_24HAQI { get; set; }
+			public double? PM4 { get; set; }
+			public double? PM4_24H { get; set; }
+			//public double? PM4_RealAQI { get; set; }
+			//public double? PM4_24HAQI { get; set; }
 			public int? CO2 { get; set; }
 			public int? CO2_24H { get; set; }
 			public int? battery { get; set; }
