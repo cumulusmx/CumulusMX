@@ -16,11 +16,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Adds current values for Ecowitt CO2 sensor pm1 and pm4, and 24 hour averages for pm 2.5, 10, 1, 4
 
+### Changed
+
+- Removed Cumulus snow accumulation from laser depth filtering/averaging as this is now available in the station
+
 ### Fixed
 
 - WeatherUnderground rapid fire no longer uploading in v4.4.5
 - Remove spurious messages about non-present HTTP Rollover commands being invalid
 - Ecowitt binary API CO2 sensor causing decode unknown sensor detection and unpredictable decodes
+- Rounding error on laser depth increases to snowfall accumulation meant small increments were rounded to zero
 
 
 ## [4.4.4 \[b4087\]][17] - 2025-04-01
