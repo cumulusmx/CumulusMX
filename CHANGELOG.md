@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.4.5 \[b4088\]][18] - 2025-04-08
+## [4.4.5 \[b4088\]][18] - 2025-04-10
 
 ### New
 
@@ -18,7 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Changed
 
-- Removed Cumulus snow accumulation from laser depth filtering/averaging as this is now available in the station
+- Removed Cumulus snow accumulation filtering/averaging from laser depth as this is now available in the station
 
 ### Fixed
 
