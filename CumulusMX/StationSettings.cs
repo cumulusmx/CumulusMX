@@ -1309,10 +1309,6 @@ namespace CumulusMX
 					if (cumulus.Units.LaserDistance != settings.general.units.laser)
 					{
 						cumulus.Units.LaserDistance = settings.general.units.laser;
-						for (var i = 1; i <= 4; i++)
-						{
-							station.InitialiseSnowVariables(i);
-						}
 					}
 					cumulus.SetupUnitText();
 

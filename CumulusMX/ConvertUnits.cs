@@ -597,7 +597,7 @@ namespace CumulusMX
 					2 => (decimal) 0.1,
 					_ => 0
 				};
-				return Math.Round(value * mult, 0);
+				return value * mult;
 			}
 			else
 			{
@@ -609,7 +609,7 @@ namespace CumulusMX
 					2 => (decimal) 0.03937008,
 					_ => 0
 				};
-				return Math.Round(value * mult, 1);
+				return value * mult;
 			}
 
 		}
