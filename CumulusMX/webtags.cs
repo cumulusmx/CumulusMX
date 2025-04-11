@@ -4,6 +4,7 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
@@ -4383,6 +4384,50 @@ namespace CumulusMX
 			return station.Snow24h[index].HasValue ? CheckRcDp(station.Snow24h[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
+		private string TagSnowAccSeason(Dictionary<string, string> tagParams)
+		{
+			double? res;
+			try
+			{
+				string startDate, endDate;
+
+				var year = tagParams.Get("y");
+				int yr;
+
+				if (year == null)
+				{
+					var now = DateTime.Now;
+
+					if (DateTime.Now.Month >= cumulus.SnowSeasonStart)
+					{
+						yr = now.Year;
+					}
+					else
+					{
+						yr = now.Year - 1;
+					}
+				}
+				else
+				{
+					yr = int.Parse(year);
+				}
+
+				startDate = yr + "-" + cumulus.SnowSeasonStart.ToString("D2") + "-01";
+				endDate = (yr + 1) + "-" + cumulus.SnowSeasonStart.ToString("D2") + "-01";
+
+				var result = cumulus.DiaryDB.ExecuteScalar<double?>("SELECT SUM(Snow24h) FROM DiaryData WHERE Date >= ? AND Date < ?", startDate, endDate);
+
+				res = result;
+			}
+			catch (Exception e)
+			{
+				cumulus.LogErrorMessage("Error reading diary database: " + e.Message);
+				res = null;
+			}
+
+			return res.HasValue ? CheckRcDp(res.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+		}
+
 		private string TagSnowAccSeason1(Dictionary<string, string> tagParams)
 		{
 			return GetSnowAccSeason(1, tagParams);
@@ -6953,6 +6998,7 @@ namespace CumulusMX
 				{ "SnowAccum24h3", TagSnowAcc24h3 },
 				{ "SnowAccum24h4", TagSnowAcc24h4 },
 
+				{ "SnowAccumSeason", TagSnowAccSeason },
 				{ "SnowAccumSeason1", TagSnowAccSeason1 },
 				{ "SnowAccumSeason2", TagSnowAccSeason2 },
 				{ "SnowAccumSeason3", TagSnowAccSeason3 },

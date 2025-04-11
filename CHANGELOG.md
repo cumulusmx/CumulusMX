@@ -14,6 +14,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## New
 
+- New web tag `<#SnowAccumSeason>` - this tag queries the Weather Diary for the current snow season total snow fall
+	- The tag takes an optional parameter `y=YYYY` which you can use to specify the snow season starting year for which you want the total
+
 ### Changed
 
 - Davis VP2 IP logger IP address can now be changed and take effect without restarting MX
