@@ -27,9 +27,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Revert 12h time format change in NOAA reports, 12h times now reported as "h:mmtt" rather than "h:mm tt"
 
-
-
 ### Package Updates
+
+- FluentFTP
+- MailKit
+- Microsoft.Win32.SystemEvents
+- SQLitePCLRaw.bundle_green
+- System.CodeDom
+- System.Diagnostics.PerformanceCounter
+- System.IO.Ports
+- System.ServiceProcess.ServiceController
 
 
 
