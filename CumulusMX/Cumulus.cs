@@ -33,6 +33,7 @@ using FluentFTP.Logging;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 using MySqlConnector;
 
@@ -1232,6 +1233,8 @@ namespace CumulusMX
 				else if (DiaryDB.ExecuteScalar<int>("SELECT 1 FROM sqlite_master WHERE type='table' AND name='DiaryData'") == 1)
 				{
 					// DiaryData table exists
+					// run the create again to add any new columns
+					DiaryDB.CreateTable<DiaryData>();
 
 					if (DiaryDB.ExecuteScalar<int>("SELECT 1 FROM sqlite_master WHERE type='table' AND name='dbversion'") == 0
 						|| DiaryDB.ExecuteScalar<int>("SELECT max(ver) FROM dbversion") < dbVer)
@@ -14464,6 +14467,10 @@ namespace CumulusMX
 		public string? Entry { get; set; }
 		public decimal? Snow24h { get; set; }
 		public decimal? SnowDepth { get; set; }
+		public bool Thunder { get; set; }
+		public bool Hail { get; set; }
+		public bool Fog { get; set; }
+		public bool Gales { get; set; }
 
 		public string ToCsvString()
 		{
@@ -14472,58 +14479,45 @@ namespace CumulusMX
 			txt.Append(',');
 			txt.Append(Time.ToString(@"hh\:mm"));
 			txt.Append(',');
-			txt.Append(SnowDepth.HasValue ? SnowDepth.Value.ToString("F1") : string.Empty);
+			txt.Append(SnowDepth.HasValue ? SnowDepth.Value.ToString("F1", CultureInfo.InvariantCulture) : string.Empty);
 			txt.Append(',');
-			txt.Append(Snow24h.HasValue ? Snow24h.Value.ToString("F1") : string.Empty);
-			txt.Append(",\"");
-			txt.Append((Entry ?? string.Empty) + "\"");
+			txt.Append(Snow24h.HasValue ? Snow24h.Value.ToString("F1", CultureInfo.InvariantCulture) : string.Empty);
+			txt.Append(',');
+			txt.Append(string.IsNullOrEmpty(Entry) ? string.Empty : $"\"{Entry}\"");
+			txt.Append(',');
+			txt.Append(Thunder ? 1 : 0);
+			txt.Append(',');
+			txt.Append(Hail ? 1 : 0);
+			txt.Append(',');
+			txt.Append(Fog ? 1 : 0);
+			txt.Append(',');
+			txt.Append(Gales ? 1 : 0);
 
 			return txt.ToString();
 		}
 
 		public bool FromCSVString(string csv)
 		{
-			var parts = csv.Split(',');
+			var parts = Utils.SplitCsv(csv);
+
+			if (parts.Length < 9)
+			{
+				return false;
+			}
 
 			if (DateTime.TryParseExact(parts[0], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime dat))
 			{
 				if (DateTime.TryParseExact(parts[1], "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime time))
 				{
-					if (parts.Length < 5)
-					{
-						return false;
-					}
-
 					Date = dat.Date;
 					Time = time.TimeOfDay;
 					SnowDepth = string.IsNullOrEmpty(parts[2]) ? null : decimal.Parse(parts[2], CultureInfo.InvariantCulture);
 					Snow24h = string.IsNullOrEmpty(parts[3]) ? null : decimal.Parse(parts[3], CultureInfo.InvariantCulture);
-
-					string entry;
-					if (parts.Length > 5)
-					{
-						// we split on quoted commas in Entry, recombine them
-						entry = string.Join(",", parts[4..]).Trim();
-					}
-					else
-					{
-						if (string.IsNullOrEmpty(parts[4]))
-						{
-							entry = null;
-						}
-						else
-						{
-							entry = parts[4].Trim();
-						}
-					}
-
-					// check if it's quoted
-					if (entry != null && entry[0] == '"')
-					{
-						entry = entry[1..^1];
-					}
-
-					Entry = entry;
+					Entry = parts[4];
+					Thunder = parts[5].Equals("1");
+					Hail = parts[6].Equals("1");
+					Fog = parts[7].Equals("1");
+					Gales = parts[8].Equals("1");
 
 					return true;
 				}

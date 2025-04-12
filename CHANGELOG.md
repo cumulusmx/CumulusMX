@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -12,10 +12,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.5.0 \[b4089\]][19] - 2025-05-01
 
-## New
+### New
 
 - New web tag `<#SnowAccumSeason>` - this tag queries the Weather Diary for the current snow season total snow fall
 	- The tag takes an optional parameter `y=YYYY` which you can use to specify the snow season starting year for which you want the total
+- The Weather Diary now has tick boxes for: Thunder, Hail, Fog, Gales
+
 
 ### Changed
 
@@ -23,7 +25,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Third Party and MySQL password fields now 'reveal' when they receive focus
 - Renamed WoW settings screen upload 'PIN' to 'Authentication Key'
 
-## Fixed
+### Fixed
 
 - Revert 12h time format change in NOAA reports, 12h times now reported as "h:mmtt" rather than "h:mm tt"
 

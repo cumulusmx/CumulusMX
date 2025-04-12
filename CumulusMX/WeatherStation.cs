@@ -12523,11 +12523,18 @@ namespace CumulusMX
 				{
 					json.Append("null");
 				}
+
+				// binary fields
+				json.Append(",\"Thunder\":" + result[0].Thunder.ToString().ToLower());
+				json.Append(",\"Hail\":" + result[0].Hail.ToString().ToLower());
+				json.Append(",\"Fog\":" + result[0].Fog.ToString().ToLower());
+				json.Append(",\"Gales\":" + result[0].Gales.ToString().ToLower());
+
 				json.Append('}');
 			}
 			else
 			{
-				json.Append($"\",\"Time\":\"{cumulus.SnowDepthHour:D2}:00:00\",\"Snow24h\":\"\",\"SnowDepth\":\"\"}}");
+				json.Append($"\",\"Time\":\"{cumulus.SnowDepthHour:D2}:00:00\",\"Snow24h\":\"\",\"SnowDepth\":\"\",\"Thunder\":false,\"Hail\":false,\"Fog\":false,\"Gales\":false}}");
 			}
 
 			return json.ToString();
@@ -12565,7 +12572,7 @@ namespace CumulusMX
 			var txt = new StringBuilder(10240);
 			var result = cumulus.DiaryDB.Query<DiaryData>("select * from DiaryData order by Date");
 
-			txt.AppendLine("Date,Time,Snow Depth,Snow 24h,Entry");
+			txt.AppendLine("Date,Time,Snow Depth,Snow 24h,Entry,Thunder,Hail,Fog,Gales");
 
 			if (result.Count > 0)
 			{
