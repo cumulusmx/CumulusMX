@@ -17,6 +17,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New web tag `<#SnowAccumSeason>` - this tag queries the Weather Diary for the current snow season total snow fall
 	- The tag takes an optional parameter `y=YYYY` which you can use to specify the snow season starting year for which you want the total
 - The Weather Diary now has tick boxes for: Thunder, Hail, Fog, Gales
+	- New web tags to fetch these values:
+	`<#DiaryThunder>`, `<#DiaryHail>`, `<#DiaryFog>`, `<#DiaryGales>`
+	- The tags return "true", "false", or "-" if no diary entry exists. This null value can be overidden with the usual `nv=` parameter
+	- All web tags take an optional parameter of the date to be queried `date=YYYY-MM-DD`
 
 
 ### Changed

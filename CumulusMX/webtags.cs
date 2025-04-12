@@ -1501,6 +1501,61 @@ namespace CumulusMX
 			return string.Empty;
 		}
 
+		private static string TagDiaryThunder(Dictionary<string, string> tagParams)
+		{
+			return GetDiaryBoolean("Thunder", tagParams);
+		}
+
+		private static string TagDiaryHail(Dictionary<string, string> tagParams)
+		{
+			return GetDiaryBoolean("Hail", tagParams);
+		}
+
+		private static string TagDiaryFog(Dictionary<string, string> tagParams)
+		{
+			return GetDiaryBoolean("Fog", tagParams);
+		}
+
+		private static string TagDiaryGales(Dictionary<string, string> tagParams)
+		{
+			return GetDiaryBoolean("Gales", tagParams);
+		}
+
+		private static string GetDiaryBoolean(string column, Dictionary<string, string> tagParams)
+		{
+			var date = tagParams.Get("date");
+			var day = DateTime.Now;
+
+			if (date != null)
+			{
+				if (!DateTime.TryParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out day))
+				{
+					Program.cumulus.LogErrorMessage($"Wegtag Diary{column} Error: Invalid date = {date}");
+					return tagParams.Get("nv") ?? "-";
+				}
+			}
+
+			try
+			{
+				var result = Program.cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Date = ?", day.Date);
+
+				if (result.Count == 0)
+				{
+					return tagParams.Get("nv") ?? "-";
+				}
+				else
+				{
+					return (result.Count == 1 && (bool) result[0].GetType().GetProperty(column).GetValue(result[0], null)).ToString().ToLower();
+				}
+			}
+			catch (Exception e)
+			{
+				Program.cumulus.LogErrorMessage($"Wegtag Diary{column} Error reading diary database: " + e.Message);
+				return tagParams.Get("nv") ?? "-";
+			}
+		}
+
+
 		private string Tagnewrecord(Dictionary<string, string> tagParams)
 		{
 			return station.AlltimeRecordTimestamp < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
@@ -6457,6 +6512,10 @@ namespace CumulusMX
 				{ "snowfalling", Tagsnowfalling },
 				{ "snow24hr", Tagsnow24hr },
 				{ "snowcomment", Tagsnowcomment },
+				{ "DiaryThunder", TagDiaryThunder },
+				{ "DiaryHail", TagDiaryHail },
+				{ "DiaryFog", TagDiaryFog },
+				{ "DiaryGales", TagDiaryGales },
 				{ "newrecord", Tagnewrecord },
 				{ "TempRecordSet", TagTempRecordSet },
 				{ "WindRecordSet", TagWindRecordSet },
