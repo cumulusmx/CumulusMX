@@ -32,6 +32,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Revert 12h time format change in NOAA reports, 12h times now reported as "h:mmtt" rather than "h:mm tt"
+- Missing times of Feels Like highs and lows on the dashboard gauges page
 
 ### Package Updates
 
