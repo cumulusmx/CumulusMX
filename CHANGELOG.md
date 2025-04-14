@@ -21,7 +21,18 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#DiaryThunder>`, `<#DiaryHail>`, `<#DiaryFog>`, `<#DiaryGales>`
 	- The tags return "true", "false", or "-" if no diary entry exists. This null value can be overidden with the usual `nv=` parameter
 	- All web tags take an optional parameter of the date to be queried `date=YYYY-MM-DD`
-
+- New monthly average web tags
+	- These are the average values for a month across all your Cumulus MX history
+	- The average excludes any partial month at the start of the history, and the current month, but assumes the data between is complete
+	- Defaults to the current month, specify a specifc month using the `mon=NN` tag parameter
+	`<#MonthAvgTemp>`
+	`<#MonthAvgTempHigh>`
+	`<#MonthAvgTempLow>`
+	`<#MonthAvgTotalRainfall>`
+	`<#MonthAvgTotalWindRun>`
+	`<#MonthAvgTotalSunHours>`
+	`<#MonthAvgTotalET>`
+	`<#MonthAvgTotalChillHrs>`
 
 ### Changed
 

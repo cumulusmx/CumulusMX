@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Formats.Tar;
 using System.Globalization;
 using System.IO;
 using System.IO.Ports;
@@ -10,6 +11,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
@@ -18,12 +20,9 @@ using System.Timers;
 using System.Web;
 
 using EmbedIO.Utilities;
-
-using HidSharp.Reports;
-
 using ServiceStack.Text;
-
 using SQLite;
+
 
 using Timer = System.Timers.Timer;
 
@@ -14926,6 +14925,62 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 
 			return ConvertUnits.PressMBToUser(MeteoLib.VapourPressureDeficit(tempC, hum));
 		}
+
+
+		public double GetAverageByMonth<T>(int mon, Func<DayFileRec, T> selector) where T : struct
+		{
+			try
+			{
+				// Determine the first and last full months
+				var firstFullMonth = new DateTime(DayFile.First().Date.Year, DayFile.First().Date.Month, 1).AddMonths(1);
+				var lastFullMonth = new DateTime(DayFile.Last().Date.Year, DayFile.Last().Date.Month, 1).AddDays(-1);
+
+				// Filter data to include only complete months and calculate the average
+				var avg = DayFile
+					.Where(d => d.Date >= firstFullMonth && d.Date <= lastFullMonth && d.Date.Month == mon)
+					.Average(d => Convert.ToDouble(selector(d))); // Convert property to double
+
+				// Get the name of the property being selected (using reflection)
+				var propertyName = selector.Method.GetParameters()[0].Name;
+
+				Console.WriteLine($"GetAverageByMonth: Month: {mon}, Average {propertyName}: {avg}");
+
+				return avg;
+			}
+			catch
+			{
+				return -999; // Error fallback value
+			}
+		}
+
+		public double GetAverageTotalByMonth<T>(int mon, Func<DayFileRec, T> selector) where T : struct
+		{
+			try
+			{
+				// Determine the first and last full months
+				var firstFullMonth = new DateTime(DayFile.First().Date.Year, DayFile.First().Date.Month, 1).AddMonths(1);
+				var lastFullMonth = new DateTime(DayFile.Last().Date.Year, DayFile.Last().Date.Month, 1).AddDays(-1);
+
+				// Filter data to include only complete months
+				var avgSum = DayFile
+					.Where(d => d.Date >= firstFullMonth && d.Date <= lastFullMonth && d.Date.Month == mon)
+					.GroupBy(d => d.Date.Month)
+					.Select(g => g.Sum(d => Convert.ToDouble(selector(d))))
+					.Average();
+
+				// Get the name of the property being selected (using reflection)
+				var propertyName = selector.Method.GetParameters()[0].Name;
+
+				Console.WriteLine($"GetAverageTotalByMonth: Month: {mon}, Average {propertyName}: {avgSum}");
+
+				return avgSum;
+			}
+			catch
+			{
+				return -999;
+			}
+		}
+
 	}
 
 	public class CWindRecent

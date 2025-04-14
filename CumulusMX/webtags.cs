@@ -4,11 +4,9 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
-
 
 using Swan;
 
@@ -3151,6 +3149,112 @@ namespace CumulusMX
 		}
 
 		// end of month-by-month all-time records
+
+		// month averages
+
+		private string TagMonthAvgTemp(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetAverageByMonth(month, d => d.AvgTemp);
+
+			if (val < -998)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+
+			return CheckRcDp(CheckTempUnit(val, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagMonthAvgTempHigh(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetAverageByMonth(month, d => d.HighTemp);
+
+			if (val < -998)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+
+			return CheckRcDp(CheckTempUnit(val, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagMonthAvgTempLow(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetAverageByMonth(month, d => d.LowTemp);
+
+			if (val < -998)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+
+			return CheckRcDp(CheckTempUnit(val, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagMonthAvgTotalRainfall(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetAverageTotalByMonth(month, d => d.AvgTemp);
+
+			if (val < -998)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+
+			return CheckRcDp(CheckRainUnit(val, tagParams), tagParams, cumulus.RainDPlaces);
+		}
+
+		private string TagMonthAvgTotalWindRun(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetAverageTotalByMonth(month, d => d.WindRun);
+
+			if (val < -998)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+
+			return CheckRcDp(CheckRainUnit(val, tagParams), tagParams, cumulus.RainDPlaces);
+		}
+
+		private string TagMonthAvgTotalSunHours(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetAverageTotalByMonth(month, d => d.SunShineHours);
+
+			if (val < -998)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+
+			return CheckRcDp(CheckRainUnit(val, tagParams), tagParams, cumulus.RainDPlaces);
+		}
+
+		private string TagMonthAvgTotalET(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetAverageTotalByMonth(month, d => d.ET);
+
+			if (val < -998)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+
+			return CheckRcDp(CheckRainUnit(val, tagParams), tagParams, cumulus.RainDPlaces);
+		}
+		private string TagMonthAvgTotalChillHrs(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetAverageTotalByMonth(month, d => d.ChillHours);
+
+			if (val < -998)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+
+			return CheckRcDp(val, tagParams, 1);
+		}
+
 
 		private string Taggraphperiod(Dictionary<string, string> tagParams)
 		{
@@ -7360,6 +7464,16 @@ namespace CumulusMX
 				{ "ByMonthLongestWetPeriodT", TagByMonthLongestWetPeriodT },
 				{ "ByMonthLowDailyTempRangeT", TagByMonthLowDailyTempRangeT },
 				{ "ByMonthHighDailyTempRangeT", TagByMonthHighDailyTempRangeT },
+				// Monthly averages
+				{ "MonthAvgTemp", TagMonthAvgTemp },
+				{ "MonthAvgTempHigh", TagMonthAvgTempHigh },
+				{ "MonthAvgTempLow", TagMonthAvgTempLow },
+				{ "MonthAvgTotalRainfall", TagMonthAvgTotalRainfall },
+				{ "MonthAvgTotalWindRun", TagMonthAvgTotalWindRun },
+				{ "MonthAvgTotalSunHours", TagMonthAvgTotalSunHours },
+				{ "MonthAvgTotalET", TagMonthAvgTotalET },
+				{ "MonthAvgTotalChillHrs", TagMonthAvgTotalChillHrs },
+
 				// Specifc Month/Year values
 				{ "MonthTempAvg", TagMonthTempAvg },
 				{ "YearTempAvg", TagYearTempAvg },
