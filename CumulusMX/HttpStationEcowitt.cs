@@ -92,6 +92,17 @@ namespace CumulusMX
 					cumulus.LogMessage("Using the piezo rain sensor data");
 				}
 
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+				{
+					// We are using the primary indoor T/H sensor
+					cumulus.LogMessage("Using the default indoor temp/hum sensor data");
+				}
+				else
+				{
+					// We are not using the primary indoor T/H sensor
+					cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryIndoorTHSensor);
+				}
+
 				if (cumulus.EcowittSetCustomServer)
 				{
 					cumulus.LogMessage("Checking Ecowitt Gateway Custom Server configuration...");
@@ -498,7 +509,10 @@ namespace CumulusMX
 						else
 						{
 							var humVal = Convert.ToInt32(data["humidityin"], invNum);
-							DoIndoorHumidity(humVal);
+							if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+							{
+								DoIndoorHumidity(humVal);
+							}
 
 							// user has mapped indoor humidity to outdoor
 							if (cumulus.Gw1000PrimaryTHSensor == 99)
@@ -540,7 +554,10 @@ namespace CumulusMX
 						else
 						{
 							var tempVal = ConvertUnits.TempFToUser(Convert.ToDouble(data["tempinf"], invNum));
-							DoIndoorTemp(tempVal);
+							if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+							{
+								DoIndoorTemp(tempVal);
+							}
 
 							// user has mapped indoor temperature to outdoor
 							if (cumulus.Gw1000PrimaryTHSensor == 99)
@@ -1169,12 +1186,18 @@ namespace CumulusMX
 			{
 				if (data["temp" + i + "f"] != null)
 				{
+					station.DoExtraTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["temp" + i + "f"], invNum)), i);
+
 					if (i == cumulus.Gw1000PrimaryTHSensor)
 					{
-						station.DoOutdoorTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["temp" + i + "f"], invNum)), ts);
+						station.DoOutdoorTemp(ExtraTemp[i].Value, ts);
 						alreadyHaveTemp = true;
 					}
-					station.DoExtraTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["temp" + i + "f"], invNum)), i);
+
+					if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+					{
+						DoIndoorTemp(ExtraTemp[i].Value);
+					}
 				}
 				else if (i == cumulus.Gw1000PrimaryTHSensor)
 				{
@@ -1190,12 +1213,19 @@ namespace CumulusMX
 			{
 				if (data["humidity" + i] != null)
 				{
+					station.DoExtraHum(Convert.ToDouble(data["humidity" + i], invNum), i);
+
 					if (i == cumulus.Gw1000PrimaryTHSensor)
 					{
-						station.DoOutdoorHumidity(Convert.ToInt32(data["humidity" + i], invNum), ts);
+						station.DoOutdoorHumidity((int) ExtraHum[i].Value, ts);
 						alreadyHaveHum = true;
 					}
-					station.DoExtraHum(Convert.ToDouble(data["humidity" + i], invNum), i);
+
+					if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+					{
+						DoIndoorHumidity((int) ExtraHum[i].Value);
+					}
+
 				}
 				else if (i == cumulus.Gw1000PrimaryTHSensor)
 				{

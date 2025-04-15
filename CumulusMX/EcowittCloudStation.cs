@@ -87,6 +87,17 @@ namespace CumulusMX
 					cumulus.LogMessage("Using the piezo rain sensor data");
 				}
 
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+				{
+					// We are using the primary indoor T/H sensor
+					cumulus.LogMessage("Using the default indoor temp/hum sensor data");
+				}
+				else
+				{
+					// We are not using the primary indoor T/H sensor
+					cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryIndoorTHSensor);
+				}
+
 				DataTimeoutMins = 2;
 			}
 
@@ -374,8 +385,11 @@ namespace CumulusMX
 								DoCloudBaseHeatIndex(time);
 							}
 
-							DoIndoorTemp(data.indoor.temperature.value);
-							DoIndoorHumidity(data.indoor.humidity.value);
+							if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+							{
+								DoIndoorTemp(data.indoor.temperature.value);
+								DoIndoorHumidity(data.indoor.humidity.value);
+							}
 						}
 						catch (Exception ex)
 						{
@@ -656,13 +670,28 @@ namespace CumulusMX
 				if (cumulus.Gw1000PrimaryTHSensor == 1)
 				{
 					station.DoOutdoorTemp(data.temp_and_humidity_ch1.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch1.temperature.time));
-					station.DoOutdoorHumidity(data.temp_and_humidity_ch1.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch1.humidity.time));
 				}
+
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == 1)
+				{
+					station.DoIndoorTemp(data.temp_and_humidity_ch1.temperature.value);
+				}
+
 				station.DoExtraTemp(data.temp_and_humidity_ch1.temperature.value, 1);
 
 				// Not all sensor types have humidity
 				if (data.temp_and_humidity_ch1.humidity != null)
 				{
+					if (cumulus.Gw1000PrimaryTHSensor == 1)
+					{
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch1.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch1.humidity.time));
+					}
+
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 1)
+					{
+						station.DoIndoorHumidity(data.temp_and_humidity_ch1.humidity.value);
+					}
+
 					station.DoExtraHum(data.temp_and_humidity_ch1.humidity.value, 1);
 
 					if (station.ExtraTemp[1].HasValue)
@@ -678,13 +707,28 @@ namespace CumulusMX
 				if (cumulus.Gw1000PrimaryTHSensor == 2)
 				{
 					station.DoOutdoorTemp(data.temp_and_humidity_ch2.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch2.temperature.time));
-					station.DoOutdoorHumidity(data.temp_and_humidity_ch2.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch2.humidity.time));
 				}
+
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == 2)
+				{
+					station.DoIndoorTemp(data.temp_and_humidity_ch2.temperature.value);
+				}
+
 				station.DoExtraTemp(data.temp_and_humidity_ch2.temperature.value, 2);
 
 				// Not all sensor types have humidity
 				if (data.temp_and_humidity_ch2.humidity != null)
 				{
+					if (cumulus.Gw1000PrimaryTHSensor == 2)
+					{
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch2.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch2.humidity.time));
+					}
+
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 2)
+					{
+						station.DoIndoorHumidity(data.temp_and_humidity_ch2.humidity.value);
+					}
+
 					station.DoExtraHum(data.temp_and_humidity_ch2.humidity.value, 2);
 
 					if (station.ExtraTemp[2].HasValue)
@@ -700,13 +744,28 @@ namespace CumulusMX
 				if (cumulus.Gw1000PrimaryTHSensor == 3)
 				{
 					station.DoOutdoorTemp(data.temp_and_humidity_ch3.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch3.temperature.time));
-					station.DoOutdoorHumidity(data.temp_and_humidity_ch3.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch3.humidity.time));
 				}
+
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == 3)
+				{
+					station.DoIndoorTemp(data.temp_and_humidity_ch3.temperature.value);
+				}
+
 				station.DoExtraTemp(data.temp_and_humidity_ch3.temperature.value, 3);
 
 				// Not all sensor types have humidity
 				if (data.temp_and_humidity_ch3.humidity != null)
 				{
+					if (cumulus.Gw1000PrimaryTHSensor == 3)
+					{
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch3.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch3.humidity.time));
+					}
+
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 3)
+					{
+						station.DoIndoorHumidity(data.temp_and_humidity_ch3.humidity.value);
+					}
+
 					station.DoExtraHum(data.temp_and_humidity_ch3.humidity.value, 3);
 
 					if (station.ExtraTemp[3].HasValue)
@@ -722,13 +781,28 @@ namespace CumulusMX
 				if (cumulus.Gw1000PrimaryTHSensor == 4)
 				{
 					station.DoOutdoorTemp(data.temp_and_humidity_ch4.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch4.temperature.time));
-					station.DoOutdoorHumidity(data.temp_and_humidity_ch4.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch4.humidity.time));
 				}
+
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == 4)
+				{
+					station.DoIndoorTemp(data.temp_and_humidity_ch4.temperature.value);
+				}
+
 				station.DoExtraTemp(data.temp_and_humidity_ch4.temperature.value, 4);
 
 				// Not all sensor types have humidity
 				if (data.temp_and_humidity_ch4.humidity != null)
 				{
+					if (cumulus.Gw1000PrimaryTHSensor == 4)
+					{
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch4.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch4.humidity.time));
+					}
+
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 4)
+					{
+						station.DoIndoorHumidity(data.temp_and_humidity_ch4.humidity.value);
+					}
+
 					station.DoExtraHum(data.temp_and_humidity_ch4.humidity.value, 4);
 
 					if (station.ExtraTemp[4].HasValue)
@@ -744,13 +818,28 @@ namespace CumulusMX
 				if (cumulus.Gw1000PrimaryTHSensor == 5)
 				{
 					station.DoOutdoorTemp(data.temp_and_humidity_ch5.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch5.temperature.time));
-					station.DoOutdoorHumidity(data.temp_and_humidity_ch5.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch5.humidity.time));
 				}
+
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == 5)
+				{
+					station.DoIndoorTemp(data.temp_and_humidity_ch5.temperature.value);
+				}
+
 				station.DoExtraTemp(data.temp_and_humidity_ch5.temperature.value, 5);
 
 				// Not all sensor types have humidity
 				if (data.temp_and_humidity_ch5.humidity != null)
 				{
+					if (cumulus.Gw1000PrimaryTHSensor == 5)
+					{
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch5.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch5.humidity.time));
+					}
+
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 5)
+					{
+						station.DoIndoorHumidity(data.temp_and_humidity_ch5.humidity.value);
+					}
+
 					station.DoExtraHum(data.temp_and_humidity_ch5.humidity.value, 5);
 
 					if (station.ExtraTemp[5].HasValue)
@@ -766,13 +855,28 @@ namespace CumulusMX
 				if (cumulus.Gw1000PrimaryTHSensor == 6)
 				{
 					station.DoOutdoorTemp(data.temp_and_humidity_ch6.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch6.temperature.time));
-					station.DoOutdoorHumidity(data.temp_and_humidity_ch6.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch6.humidity.time));
 				}
+
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == 6)
+				{
+					station.DoIndoorTemp(data.temp_and_humidity_ch6.temperature.value);
+				}
+
 				station.DoExtraTemp(data.temp_and_humidity_ch6.temperature.value, 6);
 
 				// Not all sensor types have humidity
 				if (data.temp_and_humidity_ch6.humidity != null)
 				{
+					if (cumulus.Gw1000PrimaryTHSensor == 6)
+					{
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch6.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch6.humidity.time));
+					}
+
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 6)
+					{
+						station.DoIndoorHumidity(data.temp_and_humidity_ch6.humidity.value);
+					}
+
 					station.DoExtraHum(data.temp_and_humidity_ch6.humidity.value, 6);
 
 					if (station.ExtraTemp[6].HasValue)
@@ -788,13 +892,28 @@ namespace CumulusMX
 				if (cumulus.Gw1000PrimaryTHSensor == 7)
 				{
 					station.DoOutdoorTemp(data.temp_and_humidity_ch7.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch7.temperature.time));
-					station.DoOutdoorHumidity(data.temp_and_humidity_ch7.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch7.humidity.time));
 				}
+
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == 7)
+				{
+					station.DoIndoorTemp(data.temp_and_humidity_ch7.temperature.value);
+				}
+
 				station.DoExtraTemp(data.temp_and_humidity_ch7.temperature.value, 7);
 
 				// Not all sensor types have humidity
 				if (data.temp_and_humidity_ch7.humidity != null)
 				{
+					if (cumulus.Gw1000PrimaryTHSensor == 7)
+					{
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch7.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch7.humidity.time));
+					}
+
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 7)
+					{
+						station.DoIndoorHumidity(data.temp_and_humidity_ch7.humidity.value);
+					}
+
 					station.DoExtraHum(data.temp_and_humidity_ch7.humidity.value, 7);
 
 					if (station.ExtraTemp[7].HasValue)
@@ -810,13 +929,28 @@ namespace CumulusMX
 				if (cumulus.Gw1000PrimaryTHSensor == 8)
 				{
 					station.DoOutdoorTemp(data.temp_and_humidity_ch8.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch8.temperature.time));
-					station.DoOutdoorHumidity(data.temp_and_humidity_ch8.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch8.humidity.time));
 				}
+
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == 8)
+				{
+					station.DoIndoorTemp(data.temp_and_humidity_ch8.temperature.value);
+				}
+
 				station.DoExtraTemp(data.temp_and_humidity_ch8.temperature.value, 8);
 
 				// Not all sensor types have humidity
 				if (data.temp_and_humidity_ch8.humidity != null)
 				{
+					if (cumulus.Gw1000PrimaryTHSensor == 8)
+					{
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch8.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch8.humidity.time));
+					}
+
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 8)
+					{
+						station.DoIndoorHumidity(data.temp_and_humidity_ch8.humidity.value);
+					}
+
 					station.DoExtraHum(data.temp_and_humidity_ch8.humidity.value, 8);
 
 					if (station.ExtraTemp[8].HasValue)

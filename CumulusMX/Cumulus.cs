@@ -4246,6 +4246,7 @@ namespace CumulusMX
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0, 0, 99);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
 			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0, 0, 1); //0=main station (tipping bucket) 1=piezo
+			Gw1000PrimaryIndoorTHSensor = ini.GetValue("GW1000", "PrimaryIndoorTHSensor", 0, 0, 8);  // 0=default, 1-8=extra t/h sensor number
 			EcowittIsRainingUsePiezo = ini.GetValue("GW1000", "UsePiezoIsRaining", false);
 			EcowittExtraEnabled = ini.GetValue("GW1000", "ExtraSensorDataEnabled", false);
 			EcowittCloudExtraEnabled = ini.GetValue("GW1000", "ExtraCloudSensorDataEnabled", false);
@@ -6244,6 +6245,7 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "AutoUpdateIpAddress", Gw1000AutoUpdateIpAddress);
 			ini.SetValue("GW1000", "PrimaryTHSensor", Gw1000PrimaryTHSensor);
 			ini.SetValue("GW1000", "PrimaryRainSensor", Gw1000PrimaryRainSensor);
+			ini.SetValue("GW1000", "PrimaryIndoorTHSensor", Gw1000PrimaryIndoorTHSensor);  // 0=default, 1-8=extra t/h sensor number
 			ini.SetValue("GW1000", "UsePiezoIsRaining", EcowittIsRainingUsePiezo);
 			ini.SetValue("GW1000", "ExtraSensorDataEnabled", EcowittExtraEnabled);
 			ini.SetValue("GW1000", "ExtraCloudSensorDataEnabled", EcowittCloudExtraEnabled);
@@ -8096,6 +8098,13 @@ namespace CumulusMX
 		/// 1 = Piezo
 		/// </summary>
 		internal int Gw1000PrimaryRainSensor;
+
+		/// <summary>
+		/// 0 = default
+		/// 1-8 = extra t/h sensor number
+		/// </summary>
+		internal int Gw1000PrimaryIndoorTHSensor;
+
 
 		internal Timer WebTimer = new();
 

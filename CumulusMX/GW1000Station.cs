@@ -98,6 +98,18 @@ namespace CumulusMX
 				cumulus.LogMessage("Using the piezo rain sensor data");
 			}
 
+			if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+			{
+				// We are using the primary indoor T/H sensor
+				cumulus.LogMessage("Using the default indoor temp/hum sensor data");
+			}
+			else
+			{
+				// We are not using the primary indoor T/H sensor
+				cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
+			}
+
+
 			ipaddr = cumulus.Gw1000IpAddress;
 			macaddr = cumulus.Gw1000MacAddress;
 
@@ -954,7 +966,10 @@ namespace CumulusMX
 									// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
 									outdoortemp = tempInt16 / 10.0;
 								}
-								DoIndoorTemp(ConvertUnits.TempCToUser(tempInt16 / 10.0));
+								if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+								{
+									DoIndoorTemp(ConvertUnits.TempCToUser(tempInt16 / 10.0));
+								}
 								idx += 2;
 								break;
 							case 0x02: //Outdoor Temperature (℃)
@@ -989,7 +1004,10 @@ namespace CumulusMX
 								{
 									DoOutdoorHumidity(data[idx], dateTime);
 								}
-								DoIndoorHumidity(data[idx]);
+								if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+								{
+									DoIndoorHumidity(data[idx]);
+								}
 								idx += 1;
 								break;
 							case 0x07: //Outdoor Humidity (%)
@@ -1092,11 +1110,15 @@ namespace CumulusMX
 							case 0x21: //Temperature 8(℃)
 								chan = data[idx - 1] - 0x1A + 1;
 								tempInt16 = GW1000Api.ConvertBigEndianInt16(data, idx);
+								DoExtraTemp(ConvertUnits.TempCToUser(tempInt16 / 10.0), chan);
 								if (cumulus.Gw1000PrimaryTHSensor == chan)
 								{
-									outdoortemp = tempInt16 / 10.0;
+									outdoortemp = ExtraTemp[chan].Value;
 								}
-								DoExtraTemp(ConvertUnits.TempCToUser(tempInt16 / 10.0), chan);
+								if (cumulus.Gw1000PrimaryIndoorTHSensor == chan)
+								{
+									DoIndoorTemp(ExtraTemp[chan].Value);
+								}
 								idx += 2;
 								break;
 							case 0x22: //Humidity 1, 0-100%
@@ -1108,11 +1130,15 @@ namespace CumulusMX
 							case 0x28: //Humidity 7, 0-100%
 							case 0x29: //Humidity 8, 0-100%
 								chan = data[idx - 1] - 0x22 + 1;
+								DoExtraHum(data[idx], chan);
 								if (cumulus.Gw1000PrimaryTHSensor == chan)
 								{
 									DoOutdoorHumidity(data[idx], dateTime);
 								}
-								DoExtraHum(data[idx], chan);
+								if (cumulus.Gw1000PrimaryIndoorTHSensor == chan)
+								{
+									DoIndoorHumidity(data[idx]);
+								}
 								idx += 1;
 								break;
 							case 0x2B: //Soil Temperature1 (℃)

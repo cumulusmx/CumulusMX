@@ -145,6 +145,7 @@ namespace CumulusMX
 			{
 				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
 				primaryRainSensor = cumulus.Gw1000PrimaryRainSensor,
+				primaryIndoorTHsensor = cumulus.Gw1000PrimaryIndoorTHSensor,
 				piezosrain = cumulus.EcowittIsRainingUsePiezo,
 				wn34chan1 = cumulus.EcowittMapWN34[1],
 				wn34chan2 = cumulus.EcowittMapWN34[2],
@@ -990,6 +991,7 @@ namespace CumulusMX
 					{
 						cumulus.Gw1000PrimaryTHSensor = settings.ecowittmaps.primaryTHsensor;
 						cumulus.Gw1000PrimaryRainSensor = settings.ecowittmaps.primaryRainSensor;
+						cumulus.Gw1000PrimaryIndoorTHSensor = settings.ecowittmaps.primaryIndoorTHsensor;
 						cumulus.EcowittIsRainingUsePiezo = settings.ecowittmaps.piezosrain;
 
 						if (cumulus.EcowittMapWN34[1] != settings.ecowittmaps.wn34chan1)
@@ -1870,6 +1872,7 @@ namespace CumulusMX
 		{
 			public int primaryTHsensor { get; set; }
 			public int primaryRainSensor { get; set; }
+			public int primaryIndoorTHsensor { get; set; }
 			public bool piezosrain { get; set; }
 
 			public int wn34chan1 { get; set; }

@@ -103,6 +103,17 @@ namespace CumulusMX
 				cumulus.LogMessage("Using the piezo rain sensor data");
 			}
 
+			if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+			{
+				// We are using the primary indoor T/H sensor
+				cumulus.LogMessage("Using the default indoor temp/hum sensor data");
+			}
+			else
+			{
+				// We are not using the primary indoor T/H sensor
+				cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryIndoorTHSensor);
+			}
+
 			localApi = new EcowittLocalApi(cumulus);
 
 			ecowittApi = new EcowittApi(cumulus, this);
@@ -1142,7 +1153,11 @@ namespace CumulusMX
 						// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
 						DoOutdoorTemp(temp, dateTime);
 					}
-					DoIndoorTemp(temp);
+
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+					{
+						DoIndoorTemp(temp);
+					}
 				}
 				catch (Exception ex)
 				{
@@ -1158,7 +1173,11 @@ namespace CumulusMX
 					{
 						DoOutdoorHumidity(hum, dateTime);
 					}
-					DoIndoorHumidity(hum);
+
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+					{
+						DoIndoorHumidity(hum);
+					}
 				}
 				catch (Exception ex)
 				{
@@ -1639,6 +1658,11 @@ namespace CumulusMX
 						{
 							DoOutdoorTemp(temp, dateTime);
 						}
+
+						if (cumulus.Gw1000PrimaryIndoorTHSensor == sensor.channel)
+						{
+							DoIndoorTemp(temp);
+						}
 					}
 
 					if (sensor.humidityVal.HasValue)
@@ -1648,6 +1672,11 @@ namespace CumulusMX
 						if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
 						{
 							DoOutdoorHumidity(sensor.humidityVal.Value, dateTime);
+						}
+
+						if (cumulus.Gw1000PrimaryIndoorTHSensor != sensor.channel)
+						{
+							DoIndoorHumidity(sensor.humidityVal.Value);
 						}
 					}
 				}

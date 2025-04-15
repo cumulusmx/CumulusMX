@@ -1769,7 +1769,10 @@ namespace CumulusMX
 						station.DoOutdoorHumidity(rec.Value.IndoorHum.Value, rec.Key);
 					}
 
-					station.DoIndoorHumidity(rec.Value.IndoorHum.Value);
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+					{
+						station.DoIndoorHumidity(rec.Value.IndoorHum.Value);
+					}
 				}
 				else
 				{
@@ -1839,7 +1842,10 @@ namespace CumulusMX
 						station.DoOutdoorTemp(tempVal, rec.Key);
 					}
 
-					station.DoIndoorTemp(tempVal);
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+					{
+						station.DoIndoorTemp(tempVal);
+					}
 				}
 				else
 				{
@@ -1948,10 +1954,19 @@ namespace CumulusMX
 						{
 							station.DoOutdoorTemp(tempVal, rec.Key);
 						}
+
+						if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+						{
+							station.DoIndoorTemp(tempVal);
+						}
 					}
 					else if (i == cumulus.Gw1000PrimaryTHSensor)
 					{
 						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra temperature #{i} mapped to outdoor temperature data");
+					}
+					else if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+					{
+						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra temperature #{i} mapped to indoor temperature data");
 					}
 				}
 				catch (Exception ex)
@@ -1969,10 +1984,19 @@ namespace CumulusMX
 						{
 							station.DoOutdoorHumidity(rec.Value.ExtraHumidity[i].Value, rec.Key);
 						}
+
+						if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+						{
+							station.DoIndoorHumidity(rec.Value.ExtraHumidity[i].Value);
+						}
 					}
 					else if (i == cumulus.Gw1000PrimaryTHSensor)
 					{
 						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to outdoor humidity data");
+					}
+					else if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+					{
+						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to indoor humidity data");
 					}
 				}
 				catch (Exception ex)

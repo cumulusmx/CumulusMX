@@ -33,6 +33,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#MonthAvgTotalSunHours>`
 	`<#MonthAvgTotalET>`
 	`<#MonthAvgTotalChillHrs>`
+- Ecowitt stations can now map the values from an Extra Temp/Humidity sensor to the indoor T/H values (previously only outdoor T/H mapping was implemented)
 
 ### Changed
 
