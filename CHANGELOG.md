@@ -45,12 +45,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Revert 12h time format change in NOAA reports, 12h times now reported as "h:mmtt" rather than "h:mm tt"
 - Missing times of Feels Like highs and lows on the dashboard gauges page
+- Entry of EMEI codes on the Station Settings page for Ecowitt stations
 
 ### Package Updates
 
 - FluentFTP
 - MailKit
 - Microsoft.Win32.SystemEvents
+- ServiceStack.Text
 - SQLitePCLRaw.bundle_green
 - System.CodeDom
 - System.Diagnostics.PerformanceCounter
