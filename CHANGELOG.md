@@ -45,7 +45,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Revert 12h time format change in NOAA reports, 12h times now reported as "h:mmtt" rather than "h:mm tt"
 - Missing times of Feels Like highs and lows on the dashboard gauges page
-- Entry of EMEI codes on the Station Settings page for Ecowitt stations
+- Entry of EMEI codes on the Station Settings and Wizard pages for Ecowitt stations
 
 ### Package Updates
 
