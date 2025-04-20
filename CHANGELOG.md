@@ -34,6 +34,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#MonthAvgTotalET>`
 	`<#MonthAvgTotalChillHrs>`
 - Ecowitt stations can now map the values from an Extra Temp/Humidity sensor to the indoor T/H values (previously only outdoor T/H mapping was implemented)
+- Locale Strings value for web tag elapsed time, applies to `SystemUpTime` and `ProgramUpTime` web tags
 
 ### Changed
 
@@ -46,7 +47,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Revert 12h time format change in NOAA reports, 12h times now reported as "h:mmtt" rather than "h:mm tt"
 - Missing times of Feels Like highs and lows on the dashboard gauges page
 - Entry of EMEI codes on the Station Settings and Wizard pages for Ecowitt stations
-- Fixed the web tage `ProgramUpTimeMs`, it now returns a integer value as originally intended
+- Fixed the web tag `ProgramUpTimeMs`, it now returns a integer value as originally intended
 
 ### Package Updates
 

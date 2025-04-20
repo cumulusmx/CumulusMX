@@ -203,6 +203,7 @@
 		public string WebTagRecTimeDate { get; set; }
 		public string WebTagRecDate { get; set; }
 		public string WebTagRecDryWetDate { get; set; }
+		public string WebTagElapsedTime { get; set; }
 		// Snow
 		public string SnowDepth { get; set; }
 		public string Snow24h { get; set; }

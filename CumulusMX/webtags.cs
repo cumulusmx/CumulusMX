@@ -5923,7 +5923,7 @@ namespace CumulusMX
 
 				TimeSpan ts = TimeSpan.FromSeconds(upTime);
 
-				return GetFormattedTimeSpan(ts, "{0:%d} days {0:%h} hours", tagParams);
+				return GetFormattedTimeSpan(ts, cumulus.Trans.WebTagElapsedTime, tagParams);
 			}
 			catch (Exception ex)
 			{
@@ -5933,10 +5933,10 @@ namespace CumulusMX
 			}
 		}
 
-		private static string TagProgramUpTime(Dictionary<string, string> tagParams)
+		private string TagProgramUpTime(Dictionary<string, string> tagParams)
 		{
 			TimeSpan ts = DateTime.Now.ToUniversalTime() - Program.StartTime.ToUniversalTime();
-			return GetFormattedTimeSpan(ts, "{0:%d} days {0:%h} hours", tagParams);
+			return GetFormattedTimeSpan(ts, cumulus.Trans.WebTagElapsedTime, tagParams);
 		}
 
 		private static string TagProgramUpTimeMs(Dictionary<string, string> tagParams)

@@ -7574,6 +7574,7 @@ namespace CumulusMX
 			Trans.WebTagRecDate = ini.GetValue("WebTags", "RecordDate", "'on' dd MMMM yyyy");
 			Trans.WebTagRecTimeDate = ini.GetValue("WebTags", "RecordTimeDate", "'at' HH:mm 'on' dd MMMM yyyy");
 			Trans.WebTagRecDryWetDate = ini.GetValue("WebTags", "RecordDryWetDate", "'to' dd MMMM yyyy");
+			Trans.WebTagElapsedTime = ini.GetValue("WebTags", "ElapsedTime", "{0:%d} days {0:%h} hours");
 
 			if (!File.Exists("strings.ini"))
 			{
@@ -7783,6 +7784,8 @@ namespace CumulusMX
 			ini.SetValue("WebTags", "RecordDate", Trans.WebTagRecDate);
 			ini.SetValue("WebTags", "RecordTimeDate", Trans.WebTagRecTimeDate);
 			ini.SetValue("WebTags", "RecordDryWetDate", Trans.WebTagRecDryWetDate);
+			ini.SetValue("WebTags", "ElapsedTime", Trans.WebTagElapsedTime);
+
 
 			ini.Flush();
 

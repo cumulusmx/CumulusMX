@@ -166,7 +166,8 @@ namespace CumulusMX
 				gendate = cumulus.Trans.WebTagGenDate,
 				recdate = cumulus.Trans.WebTagRecDate,
 				rectimedate = cumulus.Trans.WebTagRecTimeDate,
-				recwetdrytimedate = cumulus.Trans.WebTagRecDryWetDate
+				recwetdrytimedate = cumulus.Trans.WebTagRecDryWetDate,
+				elapsedtime = cumulus.Trans.WebTagElapsedTime
 			};
 
 			var snow = new Snow()
@@ -468,6 +469,7 @@ namespace CumulusMX
 					cumulus.Trans.WebTagRecDate = settings.webtags.recdate;
 					cumulus.Trans.WebTagRecTimeDate = settings.webtags.rectimedate;
 					cumulus.Trans.WebTagRecDryWetDate = settings.webtags.recwetdrytimedate;
+					cumulus.Trans.WebTagElapsedTime = settings.webtags.elapsedtime;
 				}
 				catch (Exception ex)
 				{
@@ -643,6 +645,7 @@ namespace CumulusMX
 			public string recdate { get; set; }
 			public string rectimedate { get; set; }
 			public string recwetdrytimedate { get; set; }
+			public string elapsedtime {  get; set; }
 		}
 
 		private sealed class Snow
