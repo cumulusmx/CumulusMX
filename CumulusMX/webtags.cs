@@ -5942,7 +5942,7 @@ namespace CumulusMX
 		private static string TagProgramUpTimeMs(Dictionary<string, string> tagParams)
 		{
 			TimeSpan ts = DateTime.Now.ToUniversalTime() - Program.StartTime.ToUniversalTime();
-			return ts.TotalMilliseconds.ToString();
+			return ts.TotalMilliseconds.ToString("F0");
 		}
 
 		private static string TagCpuName(Dictionary<string, string> tagParams)
