@@ -14943,8 +14943,6 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				// Get the name of the property being selected (using reflection)
 				var propertyName = selector.Method.GetParameters()[0].Name;
 
-				Console.WriteLine($"GetAverageByMonth: Month: {mon}, Average {propertyName}: {avg}");
-
 				return avg;
 			}
 			catch
@@ -14970,8 +14968,6 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 
 				// Get the name of the property being selected (using reflection)
 				var propertyName = selector.Method.GetParameters()[0].Name;
-
-				Console.WriteLine($"GetAverageTotalByMonth: Month: {mon}, Average {propertyName}: {avgSum}");
 
 				return avgSum;
 			}
