@@ -14936,12 +14936,19 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				var firstFullMonth = firstDate.Day == 1 ? firstDate : new DateTime(firstDate.Year, firstDate.Month, 1, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(1);
 				var lastFullMonth = new DateTime(DayFile[-1].Date.Year, DayFile[-1].Date.Month, 1, 0, 0, 0, DateTimeKind.Local).AddDays(-1);
 
-				// Filter data to include only complete months and calculate the average
-				var avg = DayFile
-					.Where(d => d.Date >= firstFullMonth && d.Date <= lastFullMonth && d.Date.Month == mon)
-					.Average(d => Convert.ToDouble(selector(d))); // Convert property to double
+				if (lastFullMonth > firstFullMonth)
+				{
+					// Filter data to include only complete months and calculate the average
+					var avg = DayFile
+						.Where(d => d.Date >= firstFullMonth && d.Date <= lastFullMonth && d.Date.Month == mon)
+						.Average(d => Convert.ToDouble(selector(d))); // Convert property to double
 
-				return avg;
+					return avg;
+				}
+				else
+				{
+					return -999;
+				}
 			}
 			catch
 			{
@@ -14958,14 +14965,21 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				var firstFullMonth = firstDate.Day == 1 ? firstDate : new DateTime(firstDate.Year, firstDate.Month, 1, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(1);
 				var lastFullMonth = new DateTime(DayFile[-1].Date.Year, DayFile[-1].Date.Month, 1, 0, 0, 0, DateTimeKind.Local).AddDays(-1);
 
-				// Filter data to include only complete months
-				var avgSum = DayFile
+				if (lastFullMonth > firstFullMonth)
+				{
+					// Filter data to include only complete months
+					var avgSum = DayFile
 					.Where(d => d.Date >= firstFullMonth && d.Date <= lastFullMonth && d.Date.Month == mon)
 					.GroupBy(d => d.Date.Month)
 					.Select(g => g.Sum(d => Convert.ToDouble(selector(d))))
 					.Average();
 
-				return avgSum;
+					return avgSum;
+				}
+				else
+				{
+					return -999;
+				}
 			}
 			catch
 			{
