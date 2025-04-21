@@ -14932,16 +14932,14 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			try
 			{
 				// Determine the first and last full months
-				var firstFullMonth = new DateTime(DayFile.First().Date.Year, DayFile.First().Date.Month, 1).AddMonths(1);
-				var lastFullMonth = new DateTime(DayFile.Last().Date.Year, DayFile.Last().Date.Month, 1).AddDays(-1);
+				var firstDate = DayFile[0].Date;
+				var firstFullMonth = firstDate.Day == 1 ? firstDate : new DateTime(firstDate.Year, firstDate.Month, 1, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(1);
+				var lastFullMonth = new DateTime(DayFile[-1].Date.Year, DayFile[-1].Date.Month, 1, 0, 0, 0, DateTimeKind.Local).AddDays(-1);
 
 				// Filter data to include only complete months and calculate the average
 				var avg = DayFile
 					.Where(d => d.Date >= firstFullMonth && d.Date <= lastFullMonth && d.Date.Month == mon)
 					.Average(d => Convert.ToDouble(selector(d))); // Convert property to double
-
-				// Get the name of the property being selected (using reflection)
-				var propertyName = selector.Method.GetParameters()[0].Name;
 
 				return avg;
 			}
@@ -14956,8 +14954,9 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			try
 			{
 				// Determine the first and last full months
-				var firstFullMonth = new DateTime(DayFile.First().Date.Year, DayFile.First().Date.Month, 1).AddMonths(1);
-				var lastFullMonth = new DateTime(DayFile.Last().Date.Year, DayFile.Last().Date.Month, 1).AddDays(-1);
+				var firstDate = DayFile[0].Date;
+				var firstFullMonth = firstDate.Day == 1 ? firstDate : new DateTime(firstDate.Year, firstDate.Month, 1, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(1);
+				var lastFullMonth = new DateTime(DayFile[-1].Date.Year, DayFile[-1].Date.Month, 1, 0, 0, 0, DateTimeKind.Local).AddDays(-1);
 
 				// Filter data to include only complete months
 				var avgSum = DayFile
@@ -14965,9 +14964,6 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 					.GroupBy(d => d.Date.Month)
 					.Select(g => g.Sum(d => Convert.ToDouble(selector(d))))
 					.Average();
-
-				// Get the name of the property being selected (using reflection)
-				var propertyName = selector.Method.GetParameters()[0].Name;
 
 				return avgSum;
 			}
