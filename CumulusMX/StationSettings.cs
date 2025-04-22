@@ -8,8 +8,6 @@ using System.Threading;
 
 using EmbedIO;
 
-using HidSharp.Reports;
-
 using ServiceStack;
 using ServiceStack.Text;
 
