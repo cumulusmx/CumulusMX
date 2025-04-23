@@ -35,6 +35,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#MonthAvgTotalChillHrs>`
 - Ecowitt stations can now map the values from an Extra Temp/Humidity sensor to the indoor T/H values (previously only outdoor T/H mapping was implemented)
 - Locale Strings value for web tag elapsed time, applies to `SystemUpTime` and `ProgramUpTime` web tags
+- Locale Strings value for web tag times, applies to 60+ web tags
+	- By default they output the time as 24-hour HH:mm, you can now override this and use 12-hour format as the default
+- New Program Options > General Options setting to disable the use of WebSockets in the dashboard and use HTTP polling instead
+	- Previously this required manual editing of the Dashboard, Now, and Gauges page scripts
 
 ### Changed
 
@@ -48,6 +52,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Missing times of Feels Like highs and lows on the dashboard gauges page
 - Entry of EMEI codes on the Station Settings and Wizard pages for Ecowitt stations
 - Fixed the web tag `ProgramUpTimeMs`, it now returns a integer value as originally intended
+- Dashboard Select-a-Period AQ PM2.5 chart only showed data from the last N days - N defined by the recent data setting
 
 ### Package Updates
 
@@ -55,6 +60,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - MailKit
 - Microsoft.Win32.SystemEvents
 - ServiceStack.Text
+- SSH.NET
 - SQLitePCLRaw.bundle_green
 - System.CodeDom
 - System.Diagnostics.PerformanceCounter

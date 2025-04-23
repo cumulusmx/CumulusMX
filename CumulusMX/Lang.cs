@@ -199,6 +199,7 @@
 		public string AlarmEmailSubject { get; set; }
 		// web tag defaults
 		public string WebTagGenTimeDate { get; set; }
+		public string WebTagGenTime { get; set; }
 		public string WebTagGenDate { get; set; }
 		public string WebTagRecTimeDate { get; set; }
 		public string WebTagRecDate { get; set; }

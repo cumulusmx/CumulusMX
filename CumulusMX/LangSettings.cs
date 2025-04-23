@@ -164,6 +164,7 @@ namespace CumulusMX
 			{
 				gentimedate = cumulus.Trans.WebTagGenTimeDate,
 				gendate = cumulus.Trans.WebTagGenDate,
+				gentime = cumulus.Trans.WebTagGenTime,
 				recdate = cumulus.Trans.WebTagRecDate,
 				rectimedate = cumulus.Trans.WebTagRecTimeDate,
 				recwetdrytimedate = cumulus.Trans.WebTagRecDryWetDate,
@@ -466,6 +467,7 @@ namespace CumulusMX
 				{
 					cumulus.Trans.WebTagGenTimeDate = settings.webtags.gentimedate;
 					cumulus.Trans.WebTagGenDate = settings.webtags.gendate;
+					cumulus.Trans.WebTagGenTime = settings.webtags.gentime;
 					cumulus.Trans.WebTagRecDate = settings.webtags.recdate;
 					cumulus.Trans.WebTagRecTimeDate = settings.webtags.rectimedate;
 					cumulus.Trans.WebTagRecDryWetDate = settings.webtags.recwetdrytimedate;
@@ -641,6 +643,7 @@ namespace CumulusMX
 		private sealed class WebTags
 		{
 			public string gentimedate { get; set; }
+			public string gentime { get; set; }
 			public string gendate { get; set; }
 			public string recdate { get; set; }
 			public string rectimedate { get; set; }

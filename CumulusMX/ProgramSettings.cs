@@ -59,7 +59,8 @@ namespace CumulusMX
 			var options = new JsonProgramSettingsGeneralOptions()
 			{
 				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple,
-				listwebtags = cumulus.ProgramOptions.ListWebTags
+				listwebtags = cumulus.ProgramOptions.ListWebTags,
+				usewebsockets = cumulus.ProgramOptions.UseWebSockets
 			};
 
 			var culture = new JsonProgramSettingsCultureOptions()
@@ -146,6 +147,8 @@ namespace CumulusMX
 
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
+				cumulus.ProgramOptions.UseWebSockets = settings.options.usewebsockets;
+
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
 
 				// Does the culture need to be tweaked - either way
@@ -241,6 +244,7 @@ namespace CumulusMX
 	{
 		public bool stopsecondinstance { get; set; }
 		public bool listwebtags { get; set; }
+		public bool usewebsockets { get; set; }
 	}
 	public class JsonProgramSettingsCultureOptions
 	{

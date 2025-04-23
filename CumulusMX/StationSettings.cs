@@ -1644,12 +1644,12 @@ namespace CumulusMX
 
 		internal string GetWSport()
 		{
-			return "{\"wsport\":\"" + cumulus.wsPort + "\"}";
+			return $"{{\"wsport\":{cumulus.wsPort},\"UseWebSockets\":{cumulus.ProgramOptions.UseWebSockets.ToString().ToLower()}}}";
 		}
 
 		internal string GetVersion()
 		{
-			return "{\"Version\":\"" + cumulus.Version + "\",\"Build\":\"" + cumulus.Build + "\"}";
+			return $"{{\"Version\":\"{cumulus.Version}\",\"Build\":\"{cumulus.Build}\"}}";
 		}
 
 		private sealed class JsonData

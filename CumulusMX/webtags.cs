@@ -1800,7 +1800,7 @@ namespace CumulusMX
 
 		private string TagTtempTl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.LowTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagtempMidnightTh(Dictionary<string, string> tagParams)
@@ -1810,7 +1810,7 @@ namespace CumulusMX
 
 		private string TagTtempMidnightTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoTodayMidnight.HighTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoTodayMidnight.HighTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagtempMidnightTl(Dictionary<string, string> tagParams)
@@ -1820,7 +1820,7 @@ namespace CumulusMX
 
 		private string TagTtempMidnightTl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoTodayMidnight.LowTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoTodayMidnight.LowTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagtempMidnightRangeT(Dictionary<string, string> tagParams)
@@ -1835,7 +1835,7 @@ namespace CumulusMX
 
 		private string TagTtemp9amTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday9am.HighTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday9am.HighTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagtemp9amTl(Dictionary<string, string> tagParams)
@@ -1845,7 +1845,7 @@ namespace CumulusMX
 
 		private string TagTtemp9amTl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday9am.LowTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday9am.LowTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagtemp9amRangeT(Dictionary<string, string> tagParams)
@@ -1866,7 +1866,7 @@ namespace CumulusMX
 
 		private string TagTsolarTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighSolarTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighSolarTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagUvth(Dictionary<string, string> tagParams)
@@ -1876,7 +1876,7 @@ namespace CumulusMX
 
 		private string TagTuvth(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighUvTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighUvTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagapptempTh(Dictionary<string, string> tagParams)
@@ -1892,7 +1892,7 @@ namespace CumulusMX
 
 		private string TagTapptempTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighAppTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighAppTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagapptempTl(Dictionary<string, string> tagParams)
@@ -1908,7 +1908,7 @@ namespace CumulusMX
 
 		private string TagTapptempTl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.LowAppTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowAppTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagfeelslikeTh(Dictionary<string, string> tagParams)
@@ -1918,7 +1918,7 @@ namespace CumulusMX
 
 		private string TagTfeelslikeTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighFeelsLikeTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighFeelsLikeTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagfeelslikeTl(Dictionary<string, string> tagParams)
@@ -1928,7 +1928,7 @@ namespace CumulusMX
 
 		private string TagTfeelslikeTl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.LowFeelsLikeTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowFeelsLikeTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TaghumidexTh(Dictionary<string, string> tagParams)
@@ -1938,7 +1938,7 @@ namespace CumulusMX
 
 		private string TagThumidexTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighHumidexTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighHumidexTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagdewpointTh(Dictionary<string, string> tagParams)
@@ -1954,7 +1954,7 @@ namespace CumulusMX
 
 		private string TagTdewpointTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighDewPointTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighDewPointTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagdewpointTl(Dictionary<string, string> tagParams)
@@ -1970,7 +1970,7 @@ namespace CumulusMX
 
 		private string TagTdewpointTl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.LowDewPointTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowDewPointTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagwchillTl(Dictionary<string, string> tagParams)
@@ -1986,7 +1986,7 @@ namespace CumulusMX
 
 		private string TagTwchillTl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.LowWindChillTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowWindChillTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagheatindexTh(Dictionary<string, string> tagParams)
@@ -2002,7 +2002,7 @@ namespace CumulusMX
 
 		private string TagTheatindexTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighHeatIndexTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighHeatIndexTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagheatindexYh(Dictionary<string, string> tagParams)
@@ -2012,7 +2012,7 @@ namespace CumulusMX
 
 		private string TagTheatindexYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighHeatIndexTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighHeatIndexTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagpressTh(Dictionary<string, string> tagParams)
@@ -2022,7 +2022,7 @@ namespace CumulusMX
 
 		private string TagTpressTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighPressTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighPressTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagpressTl(Dictionary<string, string> tagParams)
@@ -2032,7 +2032,7 @@ namespace CumulusMX
 
 		private string TagTpressTl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.LowPressTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowPressTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TaghumTh(Dictionary<string, string> tagParams)
@@ -2042,7 +2042,7 @@ namespace CumulusMX
 
 		private string TagThumTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighHumidityTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighHumidityTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TaghumTl(Dictionary<string, string> tagParams)
@@ -2052,7 +2052,7 @@ namespace CumulusMX
 
 		private string TagThumTl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.LowHumidityTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.LowHumidityTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagwindTm(Dictionary<string, string> tagParams)
@@ -2077,7 +2077,7 @@ namespace CumulusMX
 
 		private string TagTwindTm(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighWindTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighWindTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagwgustTm(Dictionary<string, string> tagParams)
@@ -2087,7 +2087,7 @@ namespace CumulusMX
 
 		private string TagTwgustTm(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighGustTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighGustTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagbearingTm(Dictionary<string, string> tagParams)
@@ -2107,7 +2107,7 @@ namespace CumulusMX
 
 		private string TagTrrateTm(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighRainRateTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighRainRateTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TaghourlyrainTh(Dictionary<string, string> tagParams)
@@ -2117,7 +2117,7 @@ namespace CumulusMX
 
 		private string TagThourlyrainTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighHourlyRainTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighHourlyRainTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagrain24hourTh(Dictionary<string, string> tagParams)
@@ -2127,7 +2127,7 @@ namespace CumulusMX
 
 		private string TagTrain24hourTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighRain24hTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighRain24hTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TaghourlyrainYh(Dictionary<string, string> tagParams)
@@ -2137,7 +2137,7 @@ namespace CumulusMX
 
 		private string TagThourlyrainYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighHourlyRainTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighHourlyRainTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagrain24hourYh(Dictionary<string, string> tagParams)
@@ -2147,7 +2147,7 @@ namespace CumulusMX
 
 		private string TagTrain24hourYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighRain24hTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighRain24hTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagSolarYh(Dictionary<string, string> tagParams)
@@ -2157,7 +2157,7 @@ namespace CumulusMX
 
 		private string TagTsolarYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighSolarTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighSolarTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagUvyh(Dictionary<string, string> tagParams)
@@ -2167,7 +2167,7 @@ namespace CumulusMX
 
 		private string TagTuvyh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighUvTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighUvTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagrollovertime(Dictionary<string, string> tagParams)
@@ -2214,7 +2214,7 @@ namespace CumulusMX
 
 		private string TagTtempYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagtempYl(Dictionary<string, string> tagParams)
@@ -2224,7 +2224,7 @@ namespace CumulusMX
 
 		private string TagTtempYl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.LowTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagtempMidnightYh(Dictionary<string, string> tagParams)
@@ -2234,7 +2234,7 @@ namespace CumulusMX
 
 		private string TagTtempMidnightYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYestMidnight.HighTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYestMidnight.HighTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagtempMidnightYl(Dictionary<string, string> tagParams)
@@ -2244,7 +2244,7 @@ namespace CumulusMX
 
 		private string TagTtempMidnightYl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYestMidnight.LowTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYestMidnight.LowTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagtempMidnightRangeY(Dictionary<string, string> tagParams)
@@ -2259,7 +2259,7 @@ namespace CumulusMX
 
 		private string TagTtemp9amYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest9am.HighTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest9am.HighTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagtemp9amYl(Dictionary<string, string> tagParams)
@@ -2269,7 +2269,7 @@ namespace CumulusMX
 
 		private string TagTtemp9amYl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest9am.LowTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest9am.LowTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagtemp9amRangeY(Dictionary<string, string> tagParams)
@@ -2284,7 +2284,7 @@ namespace CumulusMX
 
 		private string TagTapptempYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighAppTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighAppTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagapptempYl(Dictionary<string, string> tagParams)
@@ -2294,7 +2294,7 @@ namespace CumulusMX
 
 		private string TagTapptempYl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.LowAppTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowAppTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagdewpointYh(Dictionary<string, string> tagParams)
@@ -2309,7 +2309,7 @@ namespace CumulusMX
 
 		private string TagTfeelslikeYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighFeelsLikeTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighFeelsLikeTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagfeelslikeYl(Dictionary<string, string> tagParams)
@@ -2319,7 +2319,7 @@ namespace CumulusMX
 
 		private string TagTfeelslikeYl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.LowFeelsLikeTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowFeelsLikeTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TaghumidexYh(Dictionary<string, string> tagParams)
@@ -2329,12 +2329,12 @@ namespace CumulusMX
 
 		private string TagThumidexYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighHumidexTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighHumidexTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagTdewpointYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighDewPointTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighDewPointTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagdewpointYl(Dictionary<string, string> tagParams)
@@ -2344,7 +2344,7 @@ namespace CumulusMX
 
 		private string TagTdewpointYl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.LowDewPointTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowDewPointTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagwchillYl(Dictionary<string, string> tagParams)
@@ -2354,7 +2354,7 @@ namespace CumulusMX
 
 		private string TagTwchillYl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.LowWindChillTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowWindChillTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagpressYh(Dictionary<string, string> tagParams)
@@ -2364,7 +2364,7 @@ namespace CumulusMX
 
 		private string TagTpressYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighPressTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighPressTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagpressYl(Dictionary<string, string> tagParams)
@@ -2374,7 +2374,7 @@ namespace CumulusMX
 
 		private string TagTpressYl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.LowPressTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowPressTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TaghumYh(Dictionary<string, string> tagParams)
@@ -2384,7 +2384,7 @@ namespace CumulusMX
 
 		private string TagThumYh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighHumidityTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighHumidityTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TaghumYl(Dictionary<string, string> tagParams)
@@ -2394,7 +2394,7 @@ namespace CumulusMX
 
 		private string TagThumYl(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.LowHumidityTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.LowHumidityTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagwindYm(Dictionary<string, string> tagParams)
@@ -2419,7 +2419,7 @@ namespace CumulusMX
 
 		private string TagTwindYm(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighWindTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighWindTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagwgustYm(Dictionary<string, string> tagParams)
@@ -2429,7 +2429,7 @@ namespace CumulusMX
 
 		private string TagTwgustYm(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighGustTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighGustTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagbearingYm(Dictionary<string, string> tagParams)
@@ -2449,7 +2449,7 @@ namespace CumulusMX
 
 		private string TagTrrateYm(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoYest.HighRainRateTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoYest.HighRainRateTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagrfallY(Dictionary<string, string> tagParams)
@@ -3379,32 +3379,32 @@ namespace CumulusMX
 
 		private string Tagsunrise(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(SunriseSunset.RoundToMinute(cumulus.SunRiseTime), "HH:mm", tagParams);
+			return GetFormattedDateTime(SunriseSunset.RoundToMinute(cumulus.SunRiseTime), cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagsunset(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(SunriseSunset.RoundToMinute(cumulus.SunSetTime), "HH:mm", tagParams);
+			return GetFormattedDateTime(SunriseSunset.RoundToMinute(cumulus.SunSetTime), cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagdaylength(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(cumulus.DayLength, "HH:mm", tagParams);
+			return GetFormattedDateTime(cumulus.DayLength, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagdawn(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(SunriseSunset.RoundToMinute(cumulus.Dawn), "HH:mm", tagParams);
+			return GetFormattedDateTime(SunriseSunset.RoundToMinute(cumulus.Dawn), cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagdusk(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(SunriseSunset.RoundToMinute(cumulus.Dusk), "HH:mm", tagParams);
+			return GetFormattedDateTime(SunriseSunset.RoundToMinute(cumulus.Dusk), cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagdaylightlength(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(cumulus.DaylightLength, "HH:mm", tagParams);
+			return GetFormattedDateTime(cumulus.DaylightLength, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagisdaylight(Dictionary<string, string> tagParams)
@@ -3439,12 +3439,12 @@ namespace CumulusMX
 
 		private string Tagmoonrise(Dictionary<string, string> tagParams)
 		{
-			return cumulus.MoonRiseTime.Hours < 0 ? tagParams.Get("nv") ?? "-----" : GetFormattedDateTime(DateTime.Now.Date.AddSeconds(cumulus.MoonRiseTime.TotalSeconds), "HH:mm", tagParams);
+			return cumulus.MoonRiseTime.Hours < 0 ? tagParams.Get("nv") ?? "-----" : GetFormattedDateTime(DateTime.Now.Date.AddSeconds(cumulus.MoonRiseTime.TotalSeconds), cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagmoonset(Dictionary<string, string> tagParams)
 		{
-			return cumulus.MoonSetTime.Hours < 0 ? tagParams.Get("nv") ?? "-----" : GetFormattedDateTime(DateTime.Now.Date.AddSeconds(cumulus.MoonSetTime.TotalSeconds), "HH:mm", tagParams);
+			return cumulus.MoonSetTime.Hours < 0 ? tagParams.Get("nv") ?? "-----" : GetFormattedDateTime(DateTime.Now.Date.AddSeconds(cumulus.MoonSetTime.TotalSeconds), cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string Tagmoonphase(Dictionary<string, string> tagParams)
