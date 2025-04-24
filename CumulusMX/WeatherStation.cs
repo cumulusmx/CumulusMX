@@ -14782,7 +14782,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			for (var i = 0; i < cumulus.UserAlarms.Count; i++)
 			{
 				if (cumulus.UserAlarms[i].Enabled)
-					alarms.Add(new DashboardAlarms("AlarmUser" + i, cumulus.UserAlarms[i].Triggered));
+					alarms.Add(new DashboardAlarms(cumulus.UserAlarms[i].Id, cumulus.UserAlarms[i].Triggered));
 			}
 
 

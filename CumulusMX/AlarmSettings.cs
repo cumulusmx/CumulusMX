@@ -345,7 +345,7 @@ namespace CumulusMX
 			if (cumulus.LowTempAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.LowTempAlarm.Id,
+					Id = cumulus.LowTempAlarm.Id.ToString(),
 					Name = cumulus.LowTempAlarm.Name,
 					SoundEnabled = cumulus.LowTempAlarm.Sound,
 					Sound = cumulus.LowTempAlarm.SoundFile,
@@ -354,7 +354,7 @@ namespace CumulusMX
 			if (cumulus.HighTempAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.HighTempAlarm.Id,
+					Id = cumulus.HighTempAlarm.Id.ToString(),
 					Name = cumulus.HighTempAlarm.Name,
 					SoundEnabled = cumulus.HighTempAlarm.Sound,
 					Sound = cumulus.HighTempAlarm.SoundFile,
@@ -364,7 +364,7 @@ namespace CumulusMX
 			{
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.TempChangeAlarm.IdUp,
+					Id = cumulus.TempChangeAlarm.IdUp.ToString(),
 					Name = cumulus.TempChangeAlarm.NameUp,
 					SoundEnabled = cumulus.TempChangeAlarm.Sound,
 					Sound = cumulus.TempChangeAlarm.SoundFile,
@@ -372,7 +372,7 @@ namespace CumulusMX
 				});
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.TempChangeAlarm.IdDown,
+					Id = cumulus.TempChangeAlarm.IdDown.ToString(),
 					Name = cumulus.TempChangeAlarm.NameDown,
 					SoundEnabled = cumulus.TempChangeAlarm.Sound,
 					Sound = cumulus.TempChangeAlarm.SoundFile,
@@ -382,7 +382,7 @@ namespace CumulusMX
 			if (cumulus.LowPressAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.LowPressAlarm.Id,
+					Id = cumulus.LowPressAlarm.Id.ToString(),
 					Name = cumulus.LowPressAlarm.Name,
 					SoundEnabled = cumulus.LowPressAlarm.Sound,
 					Sound = cumulus.LowPressAlarm.SoundFile,
@@ -391,7 +391,7 @@ namespace CumulusMX
 			if (cumulus.HighPressAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.HighPressAlarm.Id,
+					Id = cumulus.HighPressAlarm.Id.ToString(),
 					Name = cumulus.HighPressAlarm.Name,
 					SoundEnabled = cumulus.HighPressAlarm.Sound,
 					Sound = cumulus.HighPressAlarm.SoundFile,
@@ -401,7 +401,7 @@ namespace CumulusMX
 			{
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.PressChangeAlarm.IdUp,
+					Id = cumulus.PressChangeAlarm.IdUp.ToString(),
 					Name = cumulus.PressChangeAlarm.NameUp,
 					SoundEnabled = cumulus.PressChangeAlarm.Sound,
 					Sound = cumulus.PressChangeAlarm.SoundFile,
@@ -409,7 +409,7 @@ namespace CumulusMX
 				});
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.PressChangeAlarm.IdDown,
+					Id = cumulus.PressChangeAlarm.IdDown.ToString(),
 					Name = cumulus.PressChangeAlarm.NameDown,
 					SoundEnabled = cumulus.PressChangeAlarm.Sound,
 					Sound = cumulus.PressChangeAlarm.SoundFile,
@@ -419,7 +419,7 @@ namespace CumulusMX
 			if (cumulus.HighRainTodayAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.HighRainTodayAlarm.Id,
+					Id = cumulus.HighRainTodayAlarm.Id.ToString(),
 					Name = cumulus.HighRainTodayAlarm.Name,
 					SoundEnabled = cumulus.HighRainTodayAlarm.Sound,
 					Sound = cumulus.HighRainTodayAlarm.SoundFile,
@@ -428,7 +428,7 @@ namespace CumulusMX
 			if (cumulus.HighRainRateAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.HighRainRateAlarm.Id,
+					Id = cumulus.HighRainRateAlarm.Id.ToString(),
 					Name = cumulus.HighRainRateAlarm.Name,
 					SoundEnabled = cumulus.HighRainRateAlarm.Sound,
 					Sound = cumulus.HighRainRateAlarm.SoundFile,
@@ -437,7 +437,7 @@ namespace CumulusMX
 			if (cumulus.IsRainingAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.IsRainingAlarm.Id,
+					Id = cumulus.IsRainingAlarm.Id.ToString(),
 					Name = cumulus.IsRainingAlarm.Name,
 					SoundEnabled = cumulus.IsRainingAlarm.Sound,
 					Sound = cumulus.IsRainingAlarm.SoundFile,
@@ -446,7 +446,7 @@ namespace CumulusMX
 			if (cumulus.HighGustAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.HighGustAlarm.Id,
+					Id = cumulus.HighGustAlarm.Id.ToString(),
 					Name = cumulus.HighGustAlarm.Name,
 					SoundEnabled = cumulus.HighGustAlarm.Sound,
 					Sound = cumulus.HighGustAlarm.SoundFile,
@@ -455,7 +455,7 @@ namespace CumulusMX
 			if (cumulus.HighWindAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.HighWindAlarm.Id,
+					Id = cumulus.HighWindAlarm.Id.ToString(),
 					Name = cumulus.HighWindAlarm.Name,
 					SoundEnabled = cumulus.HighWindAlarm.Sound,
 					Sound = cumulus.HighWindAlarm.SoundFile,
@@ -464,7 +464,7 @@ namespace CumulusMX
 			if (cumulus.SensorAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.SensorAlarm.Id,
+					Id = cumulus.SensorAlarm.Id.ToString(),
 					Name = cumulus.SensorAlarm.Name,
 					SoundEnabled = cumulus.SensorAlarm.Sound,
 					Sound = cumulus.SensorAlarm.SoundFile,
@@ -473,7 +473,7 @@ namespace CumulusMX
 			if (cumulus.NewRecordAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.NewRecordAlarm.Id,
+					Id = cumulus.NewRecordAlarm.Id.ToString(),
 					Name = cumulus.NewRecordAlarm.Name,
 					SoundEnabled = cumulus.NewRecordAlarm.Sound,
 					Sound = cumulus.NewRecordAlarm.SoundFile,
@@ -482,7 +482,7 @@ namespace CumulusMX
 			if (cumulus.DataStoppedAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.DataStoppedAlarm.Id,
+					Id = cumulus.DataStoppedAlarm.Id.ToString(),
 					Name = cumulus.DataStoppedAlarm.Name,
 					SoundEnabled = cumulus.DataStoppedAlarm.Sound,
 					Sound = cumulus.DataStoppedAlarm.SoundFile,
@@ -491,7 +491,7 @@ namespace CumulusMX
 			if (cumulus.BatteryLowAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.BatteryLowAlarm.Id,
+					Id = cumulus.BatteryLowAlarm.Id.ToString(),
 					Name = cumulus.BatteryLowAlarm.Name,
 					SoundEnabled = cumulus.BatteryLowAlarm.Sound,
 					Sound = cumulus.BatteryLowAlarm.SoundFile,
@@ -500,7 +500,7 @@ namespace CumulusMX
 			if (cumulus.SpikeAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.SpikeAlarm.Id,
+					Id = cumulus.SpikeAlarm.Id.ToString(),
 					Name = cumulus.SpikeAlarm.Name,
 					SoundEnabled = cumulus.SpikeAlarm.Sound,
 					Sound = cumulus.SpikeAlarm.SoundFile,
@@ -509,7 +509,7 @@ namespace CumulusMX
 			if (cumulus.UpgradeAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.UpgradeAlarm.Id,
+					Id = cumulus.UpgradeAlarm.Id.ToString(),
 					Name = cumulus.UpgradeAlarm.Name,
 					SoundEnabled = cumulus.UpgradeAlarm.Sound,
 					Sound = cumulus.UpgradeAlarm.SoundFile,
@@ -518,7 +518,7 @@ namespace CumulusMX
 			if (cumulus.FirmwareAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.FirmwareAlarm.Id,
+					Id = cumulus.FirmwareAlarm.Id.ToString(),
 					Name = cumulus.FirmwareAlarm.Name,
 					SoundEnabled = cumulus.FirmwareAlarm.Sound,
 					Sound = cumulus.FirmwareAlarm.SoundFile,
@@ -527,7 +527,7 @@ namespace CumulusMX
 			if (cumulus.ThirdPartyAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.ThirdPartyAlarm.Id,
+					Id = cumulus.ThirdPartyAlarm.Id.ToString(),
 					Name = cumulus.ThirdPartyAlarm.Name,
 					SoundEnabled = cumulus.ThirdPartyAlarm.Sound,
 					Sound = cumulus.ThirdPartyAlarm.SoundFile,
@@ -536,7 +536,7 @@ namespace CumulusMX
 			if (cumulus.MySqlUploadAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.MySqlUploadAlarm.Id,
+					Id = cumulus.MySqlUploadAlarm.Id.ToString(),
 					Name = cumulus.MySqlUploadAlarm.Name,
 					SoundEnabled = cumulus.MySqlUploadAlarm.Sound,
 					Sound = cumulus.MySqlUploadAlarm.SoundFile,
@@ -545,7 +545,7 @@ namespace CumulusMX
 			if (cumulus.FtpAlarm.Enabled)
 				alarms.Add(new JsonAlarmInfo()
 				{
-					Id = cumulus.FtpAlarm.Id,
+					Id = cumulus.FtpAlarm.Id.ToString(),
 					Name = cumulus.FtpAlarm.Name,
 					SoundEnabled = cumulus.FtpAlarm.Sound,
 					Sound = cumulus.FtpAlarm.SoundFile,
@@ -558,7 +558,7 @@ namespace CumulusMX
 				{
 					alarms.Add(new JsonAlarmInfo()
 					{
-						Id = "AlarmUser" + i,
+						Id = "User" + (i + 1),
 						Name = cumulus.UserAlarms[i].Name,
 						SoundEnabled = false,
 						Sound = "",

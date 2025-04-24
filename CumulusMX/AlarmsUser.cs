@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Data;
 using System.IO;
 using System.Runtime.Serialization;
@@ -10,6 +10,7 @@ namespace CumulusMX
 	{
 		private readonly Cumulus cumulus;
 
+		public AlarmIds Id { get; set; }
 		public string Name { get; set; }
 		public virtual bool Enabled
 		{
@@ -78,8 +79,9 @@ namespace CumulusMX
 		private readonly TokenParser tokenParser;
 		private decimal tagValue;
 
-		public AlarmUser(string AlarmName, string AlarmType, string webTag, Cumulus cuml)
+		public AlarmUser(AlarmIds id, string AlarmName, string AlarmType, string webTag, Cumulus cuml)
 		{
+			Id = id;
 			Name = AlarmName;
 			Type = AlarmType;
 

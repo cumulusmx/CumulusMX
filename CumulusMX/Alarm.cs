@@ -1,15 +1,15 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace CumulusMX
 {
-	public class Alarm(string id, AlarmTypes AlarmType, Cumulus cumul, string units = null)
+	public class Alarm(AlarmIds id, AlarmTypes AlarmType, Cumulus cumul, string units = null)
 	{
 		public readonly Cumulus cumulus = cumul;
 
-		public string Id { get; } = id;
+		public AlarmIds Id { get; } = id;
 
 		public string Name { get; set; }
 		public virtual bool Enabled
@@ -90,6 +90,11 @@ namespace CumulusMX
 					// If we were not set before, so we need to send an email?
 					if (!triggered)
 					{
+						if (Id == AlarmIds.BatteryLow && cumulus.Station.LowBatteryDevices.Count > 0)
+						{
+							LastMessage += "\r\n" + string.Join(", ", cumulus.Station.LowBatteryDevices);
+						}
+
 						cumulus.LogMessage($"Alarm ({Name}): Triggered, value = {value}, threshold = {Value}" + (string.IsNullOrEmpty(LastMessage) ? "" : $", Message = {LastMessage}"));
 
 						if (Email && cumulus.SmtpOptions.Enabled && cumulus.emailer != null)
@@ -218,10 +223,10 @@ namespace CumulusMX
 	}
 
 
-	public class AlarmChange(string idUp, string idDwn, Cumulus cumul, string units = null) : Alarm("", AlarmTypes.Change, cumul, units)
+	public class AlarmChange(AlarmIds idUp, AlarmIds idDwn, Cumulus cumul, string units = null) : Alarm(AlarmIds.ChangeAlarm, AlarmTypes.Change, cumul, units)
 	{
-		public string IdUp { get; } = idUp;
-		public string IdDown { get; } = idDwn;
+		public AlarmIds IdUp { get; } = idUp;
+		public AlarmIds IdDown { get; } = idDwn;
 
 		public string NameUp { get; set; }
 		public string NameDown { get; set; }
@@ -575,11 +580,49 @@ namespace CumulusMX
 		Trigger
 	}
 
+	public enum AlarmIds
+	{
+		ChangeAlarm,
+		DataStopped,
+		BatteryLow,
+		Sensor,
+		Spike,
+		WindHigh,
+		WindGust,
+		RainRate,
+		Rainfall,
+		PressUp,
+		PressDown,
+		PressHigh,
+		PressLow,
+		TempUp,
+		TempDown,
+		TempLow,
+		TempHigh,
+		Upgrade,
+		Firmware,
+		Thirdparty,
+		MySQL,
+		IsRaining,
+		Record,
+		FTP,
+		User1 = 101,
+		User2 = 102,
+		User3 = 103,
+		User4 = 104,
+		User5 = 105,
+		User6 = 106,
+		User7 = 107,
+		User8 = 108,
+		User9 = 109,
+		User10 = 110
+	}
+
 	[DataContract]
-	public class DashboardAlarms(string Id, bool Triggered)
+	public class DashboardAlarms(AlarmIds Id, bool Triggered)
 	{
 		[DataMember]
-		public string id { get; set; } = Id;
+		public string id { get; set; } = "Alarm" + Id.ToString();
 		[DataMember]
 		public bool triggered { get; set; } = Triggered;
 	}

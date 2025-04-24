@@ -59,7 +59,7 @@ namespace CumulusMX
 
 				for (var i = 0; i < settings.alarms.Count; i++)
 				{
-					cumulus.UserAlarms.Add(new AlarmUser(settings.alarms[i].Name, settings.alarms[i].Type, settings.alarms[i].WebTag, cumulus)
+					cumulus.UserAlarms.Add(new AlarmUser((AlarmIds)(101 + i), settings.alarms[i].Name, settings.alarms[i].Type, settings.alarms[i].WebTag, cumulus)
 					{
 						Enabled = settings.alarms[i].Enabled,
 						Value = settings.alarms[i].Value,

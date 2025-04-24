@@ -955,27 +955,27 @@ namespace CumulusMX
 			}
 
 			// initialise the alarms
-			DataStoppedAlarm = new Alarm("AlarmData", AlarmTypes.Trigger, this);
-			BatteryLowAlarm = new Alarm("AlarmBattery", AlarmTypes.Trigger, this);
-			SensorAlarm = new Alarm("AlarmSensor", AlarmTypes.Trigger, this);
-			SpikeAlarm = new Alarm("AlarmSpike", AlarmTypes.Trigger, this);
-			HighWindAlarm = new Alarm("AlarmWind", AlarmTypes.Above, this, Units.WindText);
-			HighGustAlarm = new Alarm("AlarmGust", AlarmTypes.Above, this, Units.WindText);
-			HighRainRateAlarm = new Alarm("AlarmRainRate", AlarmTypes.Above, this, Units.RainTrendText);
-			HighRainTodayAlarm = new Alarm("AlarmRain", AlarmTypes.Above, this, Units.RainText);
-			PressChangeAlarm = new AlarmChange("AlarmPressUp", "AlarmPressDn", this, Units.PressTrendText);
-			HighPressAlarm = new Alarm("AlarmHighPress", AlarmTypes.Above, this, Units.PressText);
-			LowPressAlarm = new Alarm("AlarmLowPress", AlarmTypes.Below, this, Units.PressText);
-			TempChangeAlarm = new AlarmChange("AlarmTempUp", "AlarmTempDn", this, Units.TempTrendText);
-			HighTempAlarm = new Alarm("AlarmHighTemp", AlarmTypes.Above, this, Units.TempText);
-			LowTempAlarm = new Alarm("AlarmLowTemp", AlarmTypes.Below, this, Units.TempText);
-			UpgradeAlarm = new Alarm("AlarmUpgrade", AlarmTypes.Trigger, this);
-			FirmwareAlarm = new Alarm("AlarmFirmware", AlarmTypes.Trigger, this);
-			ThirdPartyAlarm = new Alarm("AlarmHttp", AlarmTypes.Trigger, this);
-			MySqlUploadAlarm = new Alarm("AlarmMySql", AlarmTypes.Trigger, this);
-			IsRainingAlarm = new Alarm("AlarmIsRaining", AlarmTypes.Trigger, this);
-			NewRecordAlarm = new Alarm("AlarmNewRec", AlarmTypes.Trigger, this);
-			FtpAlarm = new Alarm("AlarmFtp", AlarmTypes.Trigger, this);
+			DataStoppedAlarm = new Alarm(AlarmIds.DataStopped, AlarmTypes.Trigger, this);
+			BatteryLowAlarm = new Alarm(AlarmIds.BatteryLow, AlarmTypes.Trigger, this);
+			SensorAlarm = new Alarm(AlarmIds.Sensor, AlarmTypes.Trigger, this);
+			SpikeAlarm = new Alarm(AlarmIds.Spike, AlarmTypes.Trigger, this);
+			HighWindAlarm = new Alarm(AlarmIds.WindHigh, AlarmTypes.Above, this, Units.WindText);
+			HighGustAlarm = new Alarm(AlarmIds.WindGust, AlarmTypes.Above, this, Units.WindText);
+			HighRainRateAlarm = new Alarm(AlarmIds.RainRate, AlarmTypes.Above, this, Units.RainTrendText);
+			HighRainTodayAlarm = new Alarm(AlarmIds.Rainfall, AlarmTypes.Above, this, Units.RainText);
+			PressChangeAlarm = new AlarmChange(AlarmIds.PressUp, AlarmIds.PressDown, this, Units.PressTrendText);
+			HighPressAlarm = new Alarm(AlarmIds.PressHigh, AlarmTypes.Above, this, Units.PressText);
+			LowPressAlarm = new Alarm(AlarmIds.PressLow, AlarmTypes.Below, this, Units.PressText);
+			TempChangeAlarm = new AlarmChange(AlarmIds.TempUp, AlarmIds.TempDown, this, Units.TempTrendText);
+			HighTempAlarm = new Alarm(AlarmIds.TempHigh, AlarmTypes.Above, this, Units.TempText);
+			LowTempAlarm = new Alarm(AlarmIds.TempLow, AlarmTypes.Below, this, Units.TempText);
+			UpgradeAlarm = new Alarm(AlarmIds.Upgrade, AlarmTypes.Trigger, this);
+			FirmwareAlarm = new Alarm(AlarmIds.Firmware, AlarmTypes.Trigger, this);
+			ThirdPartyAlarm = new Alarm(AlarmIds.Thirdparty, AlarmTypes.Trigger, this);
+			MySqlUploadAlarm = new Alarm(AlarmIds.MySQL, AlarmTypes.Trigger, this);
+			IsRainingAlarm = new Alarm(AlarmIds.IsRaining, AlarmTypes.Trigger, this);
+			NewRecordAlarm = new Alarm(AlarmIds.Record, AlarmTypes.Trigger, this);
+			FtpAlarm = new Alarm(AlarmIds.FTP, AlarmTypes.Trigger, this);
 
 			ReadIniFile();
 
@@ -5386,7 +5386,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							UserAlarms.Add(new AlarmUser(name, type, tag, this)
+							UserAlarms.Add(new AlarmUser((AlarmIds)(101 + i), name, type, tag, this)
 							{
 								Value = value,
 								Enabled = enabled,
@@ -8135,6 +8135,8 @@ namespace CumulusMX
 		internal string ReportPath;
 		public static string LatestError { get; set; }
 		public static DateTime LatestErrorTS { get; set; } = DateTime.MinValue;
+		internal WeatherStation Station { get => station; set => station = value; }
+
 		internal DateTime defaultRecordTS = DateTime.MinValue;
 		internal const string WxnowFile = "wxnow.txt";
 		private readonly string RealtimeFile = "realtime.txt";

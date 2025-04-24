@@ -1401,64 +1401,294 @@ namespace CumulusMX
 
 			if (data.battery != null)
 			{
-				lowBatt = lowBatt || (data.battery.t_rh_p_sensor != null && data.battery.t_rh_p_sensor.value == 1);                 // flag
-				lowBatt = lowBatt || (data.battery.ws1900_console != null && data.battery.ws1900_console.value < 1.2);              // volts - val ???
-				lowBatt = lowBatt || (data.battery.ws1800_console != null && data.battery.ws1800_console.value < 1.2);              // volts - val ???
-				lowBatt = lowBatt || (data.battery.ws6006_console != null && data.battery.ws6006_console.value < 15);               // %  val ???
-				lowBatt = lowBatt || (data.battery.console != null && data.battery.console.value < 2.4);                            // volts  val ???
-				lowBatt = lowBatt || (data.battery.outdoor_t_rh_sensor != null && data.battery.outdoor_t_rh_sensor.value == 1);     // flag
-				lowBatt = lowBatt || (data.battery.wind_sensor != null && data.battery.wind_sensor.value < 1.2);                    // volts
-				lowBatt = lowBatt || (data.battery.haptic_array_battery != null && data.battery.haptic_array_battery.value < 2.4);  // volts
-																																	//lowBatt = lowBatt || (data.battery.haptic_array_capacitor != null && data.battery.haptic_array_capacitor.value == 2.4); // volts
-				lowBatt = lowBatt || (data.battery.sonic_array != null && data.battery.sonic_array.value < 1.2);                    // volts
-				lowBatt = lowBatt || (data.battery.rainfall_sensor != null && data.battery.rainfall_sensor.value < 1.2);            // volts
-				lowBatt = lowBatt || (data.battery.sensor_array != null && data.battery.sensor_array.value == 1);                   // flag
-				lowBatt = lowBatt || (data.battery.lightning_sensor != null && data.battery.lightning_sensor.value == 1);           // flag
-				lowBatt = lowBatt || (data.battery.aqi_combo_sensor != null && data.battery.aqi_combo_sensor.value == 1);           // flag
-				lowBatt = lowBatt || (data.battery.water_leak_sensor_ch1 != null && data.battery.water_leak_sensor_ch1.value == 1); // flag
-				lowBatt = lowBatt || (data.battery.water_leak_sensor_ch2 != null && data.battery.water_leak_sensor_ch2.value == 1); // flag
-				lowBatt = lowBatt || (data.battery.water_leak_sensor_ch3 != null && data.battery.water_leak_sensor_ch3.value == 1); // flag
-				lowBatt = lowBatt || (data.battery.water_leak_sensor_ch4 != null && data.battery.water_leak_sensor_ch4.value == 1); // flag
-				lowBatt = lowBatt || (data.battery.pm25_sensor_ch1 != null && data.battery.pm25_sensor_ch1.value == 1);             // flag
-				lowBatt = lowBatt || (data.battery.pm25_sensor_ch2 != null && data.battery.pm25_sensor_ch2.value == 1);             // flag
-				lowBatt = lowBatt || (data.battery.pm25_sensor_ch3 != null && data.battery.pm25_sensor_ch3.value == 1);             // flag
-				lowBatt = lowBatt || (data.battery.pm25_sensor_ch4 != null && data.battery.pm25_sensor_ch4.value == 1);             // flag
-				lowBatt = lowBatt || (data.battery.temp_humidity_sensor_ch1 != null && data.battery.temp_humidity_sensor_ch1.value == 1);  // flag
-				lowBatt = lowBatt || (data.battery.temp_humidity_sensor_ch2 != null && data.battery.temp_humidity_sensor_ch2.value == 1);  // flag
-				lowBatt = lowBatt || (data.battery.temp_humidity_sensor_ch3 != null && data.battery.temp_humidity_sensor_ch3.value == 1);  // flag
-				lowBatt = lowBatt || (data.battery.temp_humidity_sensor_ch4 != null && data.battery.temp_humidity_sensor_ch4.value == 1);  // flag
-				lowBatt = lowBatt || (data.battery.temp_humidity_sensor_ch5 != null && data.battery.temp_humidity_sensor_ch5.value == 1);  // flag
-				lowBatt = lowBatt || (data.battery.temp_humidity_sensor_ch6 != null && data.battery.temp_humidity_sensor_ch6.value == 1);  // flag
-				lowBatt = lowBatt || (data.battery.temp_humidity_sensor_ch7 != null && data.battery.temp_humidity_sensor_ch7.value == 1);  // flag
-				lowBatt = lowBatt || (data.battery.temp_humidity_sensor_ch8 != null && data.battery.temp_humidity_sensor_ch8.value == 1);  // flag
-				lowBatt = lowBatt || (data.battery.soilmoisture_sensor_ch1 != null && data.battery.soilmoisture_sensor_ch1.value < 1.2);    // volts
-				lowBatt = lowBatt || (data.battery.soilmoisture_sensor_ch2 != null && data.battery.soilmoisture_sensor_ch2.value < 1.2);    // volts
-				lowBatt = lowBatt || (data.battery.soilmoisture_sensor_ch3 != null && data.battery.soilmoisture_sensor_ch3.value < 1.2);    // volts
-				lowBatt = lowBatt || (data.battery.soilmoisture_sensor_ch4 != null && data.battery.soilmoisture_sensor_ch4.value < 1.2);    // volts
-				lowBatt = lowBatt || (data.battery.soilmoisture_sensor_ch5 != null && data.battery.soilmoisture_sensor_ch5.value < 1.2);    // volts
-				lowBatt = lowBatt || (data.battery.soilmoisture_sensor_ch6 != null && data.battery.soilmoisture_sensor_ch6.value < 1.2);    // volts
-				lowBatt = lowBatt || (data.battery.soilmoisture_sensor_ch7 != null && data.battery.soilmoisture_sensor_ch7.value < 1.2);    // volts
-				lowBatt = lowBatt || (data.battery.soilmoisture_sensor_ch8 != null && data.battery.soilmoisture_sensor_ch8.value < 1.2);    // volts
-				lowBatt = lowBatt || (data.battery.temperature_sensor_ch1 != null && data.battery.temperature_sensor_ch1.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.temperature_sensor_ch2 != null && data.battery.temperature_sensor_ch2.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.temperature_sensor_ch3 != null && data.battery.temperature_sensor_ch3.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.temperature_sensor_ch4 != null && data.battery.temperature_sensor_ch4.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.temperature_sensor_ch5 != null && data.battery.temperature_sensor_ch5.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.temperature_sensor_ch6 != null && data.battery.temperature_sensor_ch6.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.temperature_sensor_ch7 != null && data.battery.temperature_sensor_ch7.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.temperature_sensor_ch8 != null && data.battery.temperature_sensor_ch8.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch1 != null && data.battery.leaf_wetness_sensor_ch1.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch2 != null && data.battery.leaf_wetness_sensor_ch2.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch3 != null && data.battery.leaf_wetness_sensor_ch3.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch4 != null && data.battery.leaf_wetness_sensor_ch4.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch5 != null && data.battery.leaf_wetness_sensor_ch5.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch6 != null && data.battery.leaf_wetness_sensor_ch6.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch7 != null && data.battery.leaf_wetness_sensor_ch7.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.leaf_wetness_sensor_ch8 != null && data.battery.leaf_wetness_sensor_ch8.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.ldsbatt_1 != null && data.battery.ldsbatt_1.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.ldsbatt_2 != null && data.battery.ldsbatt_2.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.ldsbatt_3 != null && data.battery.ldsbatt_3.value < 1.2);      // volts
-				lowBatt = lowBatt || (data.battery.ldsbatt_4 != null && data.battery.ldsbatt_4.value < 1.2);      // volts
+				LowBatteryDevices.Clear();
+
+				if (data.battery.t_rh_p_sensor != null && data.battery.t_rh_p_sensor.value == 1) // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("THP=LOW");
+				}
+				if (data.battery.ws1900_console != null && data.battery.ws1900_console.value < 1.2)              // volts - val ???
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("WS1900=" + data.battery.ws1900_console.value + "V");
+				}
+				if (data.battery.ws1800_console != null && data.battery.ws1800_console.value < 1.2)              // volts - val ???
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("WS1800=" + data.battery.ws1800_console.value + "V");
+				}
+				if (data.battery.ws6006_console != null && data.battery.ws6006_console.value < 15)               // %  val ???
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("WS6006=" + (data.battery.ws6006_console.value / 10) + "V");
+				}
+				if (data.battery.console != null && data.battery.console.value < 2.4)                            // volts  val ???
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Console=" + (data.battery.console.value) + "V");
+				}
+				if (data.battery.outdoor_t_rh_sensor != null && data.battery.outdoor_t_rh_sensor.value == 1)     // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("OutdoorTH=LOW");
+				}
+				if (data.battery.wind_sensor != null && data.battery.wind_sensor.value < 1.2)                    // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("WindSensor=" + data.battery.wind_sensor.value + "V");
+				}
+				if (data.battery.haptic_array_battery != null && data.battery.haptic_array_battery.value < 2.4)  // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Haptic=" + data.battery.haptic_array_battery.value + "V");
+				}
+				//lowBatt = lowBatt || (data.battery.haptic_array_capacitor != null && data.battery.haptic_array_capacitor.value == 2.4); // volts
+				if (data.battery.sonic_array != null && data.battery.sonic_array.value < 1.2)                    // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Sonic=" + data.battery.sonic_array.value + "V");
+				}
+				if (data.battery.rainfall_sensor != null && data.battery.rainfall_sensor.value < 1.2)            // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Rainfall=" + data.battery.rainfall_sensor.value + "V");
+				}
+				if (data.battery.sensor_array != null && data.battery.sensor_array.value == 1)                   // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SensorArray=LOW");
+				}
+				if (data.battery.lightning_sensor != null && data.battery.lightning_sensor.value == 1)           // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Lightning=LOW");
+				}
+				if (data.battery.aqi_combo_sensor != null && data.battery.aqi_combo_sensor.value == 1)           // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("AQIcombo=LOW");
+				}
+				if (data.battery.water_leak_sensor_ch1 != null && data.battery.water_leak_sensor_ch1.value == 1) // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leak#1=LOW");
+				}
+				if (data.battery.water_leak_sensor_ch2 != null && data.battery.water_leak_sensor_ch2.value == 1) // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leak#2=LOW");
+				}
+				if (data.battery.water_leak_sensor_ch3 != null && data.battery.water_leak_sensor_ch3.value == 1) // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leak#3=LOW");
+				}
+				if (data.battery.water_leak_sensor_ch4 != null && data.battery.water_leak_sensor_ch4.value == 1) // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leak#4=LOW");
+				}
+				if (data.battery.pm25_sensor_ch1 != null && data.battery.pm25_sensor_ch1.value == 1)             // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("pm2.5#1=LOW");
+				}
+				if (data.battery.pm25_sensor_ch2 != null && data.battery.pm25_sensor_ch2.value == 1)             // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("pm2.5#2=LOW");
+				}
+				if (data.battery.pm25_sensor_ch3 != null && data.battery.pm25_sensor_ch3.value == 1)             // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("pm2.5#3=LOW");
+				}
+				if (data.battery.pm25_sensor_ch4 != null && data.battery.pm25_sensor_ch4.value == 1)             // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("pm2.5#4=LOW");
+				}
+				if (data.battery.temp_humidity_sensor_ch1 != null && data.battery.temp_humidity_sensor_ch1.value == 1)  // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("TH#1=LOW");
+				}
+				if (data.battery.temp_humidity_sensor_ch2 != null && data.battery.temp_humidity_sensor_ch2.value == 1)  // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("TH#2=LOW");
+				}
+				if (data.battery.temp_humidity_sensor_ch3 != null && data.battery.temp_humidity_sensor_ch3.value == 1)  // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("TH#3=LOW");
+				}
+				if (data.battery.temp_humidity_sensor_ch4 != null && data.battery.temp_humidity_sensor_ch4.value == 1)  // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("TH#4=LOW");
+				}
+				if (data.battery.temp_humidity_sensor_ch5 != null && data.battery.temp_humidity_sensor_ch5.value == 1)  // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("TH#5=LOW");
+				}
+				if (data.battery.temp_humidity_sensor_ch6 != null && data.battery.temp_humidity_sensor_ch6.value == 1)  // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("TH#6=LOW");
+				}
+				if (data.battery.temp_humidity_sensor_ch7 != null && data.battery.temp_humidity_sensor_ch7.value == 1)  // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("TH#7=LOW");
+				}
+				if (data.battery.temp_humidity_sensor_ch8 != null && data.battery.temp_humidity_sensor_ch8.value == 1)  // flag
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("TH#8=LOW");
+				}
+				if (data.battery.soilmoisture_sensor_ch1 != null && data.battery.soilmoisture_sensor_ch1.value < 1.2)    // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilMoist#1=" + data.battery.soilmoisture_sensor_ch1.value + "V");
+				}
+				if (data.battery.soilmoisture_sensor_ch2 != null && data.battery.soilmoisture_sensor_ch2.value < 1.2)    // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilMoist#2=" + data.battery.soilmoisture_sensor_ch2.value + "V");
+				}
+				if (data.battery.soilmoisture_sensor_ch3 != null && data.battery.soilmoisture_sensor_ch3.value < 1.2)    // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilMoist#3=" + data.battery.soilmoisture_sensor_ch3.value + "V");
+				}
+				if (data.battery.soilmoisture_sensor_ch4 != null && data.battery.soilmoisture_sensor_ch4.value < 1.2)    // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilMoist#4=" + data.battery.soilmoisture_sensor_ch4.value + "V");
+				}
+				if (data.battery.soilmoisture_sensor_ch5 != null && data.battery.soilmoisture_sensor_ch5.value < 1.2)    // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilMoist#5=" + data.battery.soilmoisture_sensor_ch5.value + "V");
+				}
+				if (data.battery.soilmoisture_sensor_ch6 != null && data.battery.soilmoisture_sensor_ch6.value < 1.2)    // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilMoist#6=" + data.battery.soilmoisture_sensor_ch6.value + "V");
+				}
+				if (data.battery.soilmoisture_sensor_ch7 != null && data.battery.soilmoisture_sensor_ch7.value < 1.2)    // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilMoist#7=" + data.battery.soilmoisture_sensor_ch7.value + "V");
+				}
+				if (data.battery.soilmoisture_sensor_ch8 != null && data.battery.soilmoisture_sensor_ch8.value < 1.2)    // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilMoist#8=" + data.battery.soilmoisture_sensor_ch8.value + "V");
+				}
+				if (data.battery.temperature_sensor_ch1 != null && data.battery.temperature_sensor_ch1.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Temp#1=" + data.battery.temperature_sensor_ch1.value + "V");
+				}
+				if (data.battery.temperature_sensor_ch2 != null && data.battery.temperature_sensor_ch2.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Temp#2=" + data.battery.temperature_sensor_ch2.value + "V");
+				}
+				if (data.battery.temperature_sensor_ch3 != null && data.battery.temperature_sensor_ch3.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Temp#3=" + data.battery.temperature_sensor_ch3.value + "V");
+				}
+				if (data.battery.temperature_sensor_ch4 != null && data.battery.temperature_sensor_ch4.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Temp#4=" + data.battery.temperature_sensor_ch4.value + "V");
+				}
+				if (data.battery.temperature_sensor_ch5 != null && data.battery.temperature_sensor_ch5.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Temp#5=" + data.battery.temperature_sensor_ch5.value + "V");
+				}
+				if (data.battery.temperature_sensor_ch6 != null && data.battery.temperature_sensor_ch6.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Temp#6=" + data.battery.temperature_sensor_ch6.value + "V");
+				}
+				if (data.battery.temperature_sensor_ch7 != null && data.battery.temperature_sensor_ch7.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Temp#7=" + data.battery.temperature_sensor_ch7.value + "V");
+				}
+				if (data.battery.temperature_sensor_ch8 != null && data.battery.temperature_sensor_ch8.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Temp#8=" + data.battery.temperature_sensor_ch8.value + "V");
+				}
+				if (data.battery.leaf_wetness_sensor_ch1 != null && data.battery.leaf_wetness_sensor_ch1.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leaf#1=" + data.battery.leaf_wetness_sensor_ch1.value + "V");
+				}
+				if (data.battery.leaf_wetness_sensor_ch2 != null && data.battery.leaf_wetness_sensor_ch2.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leaf#2=" + data.battery.leaf_wetness_sensor_ch2.value + "V");
+				}
+				if (data.battery.leaf_wetness_sensor_ch3 != null && data.battery.leaf_wetness_sensor_ch3.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leaf#3=" + data.battery.leaf_wetness_sensor_ch3.value + "V");
+				}
+				if (data.battery.leaf_wetness_sensor_ch4 != null && data.battery.leaf_wetness_sensor_ch4.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leaf#4=" + data.battery.leaf_wetness_sensor_ch4.value + "V");
+				}
+				if (data.battery.leaf_wetness_sensor_ch5 != null && data.battery.leaf_wetness_sensor_ch5.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leaf#5=" + data.battery.leaf_wetness_sensor_ch5.value + "V");
+				}
+				if (data.battery.leaf_wetness_sensor_ch6 != null && data.battery.leaf_wetness_sensor_ch6.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leaf#6=" + data.battery.leaf_wetness_sensor_ch6.value + "V");
+				}
+				if (data.battery.leaf_wetness_sensor_ch7 != null && data.battery.leaf_wetness_sensor_ch7.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leaf#7=" + data.battery.leaf_wetness_sensor_ch7.value + "V");
+				}
+				if (data.battery.leaf_wetness_sensor_ch8 != null && data.battery.leaf_wetness_sensor_ch8.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("Leaf#8=" + data.battery.leaf_wetness_sensor_ch8.value + "V");
+				}
+				if (data.battery.ldsbatt_1 != null && data.battery.ldsbatt_1.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("LDS#1=" + data.battery.ldsbatt_1.value + "V");
+				}
+				if (data.battery.ldsbatt_2 != null && data.battery.ldsbatt_2.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("LDS#2=" + data.battery.ldsbatt_2.value + "V");
+				}
+				if (data.battery.ldsbatt_3 != null && data.battery.ldsbatt_3.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("LDS#3=" + data.battery.ldsbatt_3.value + "V");
+				}
+				if (data.battery.ldsbatt_4 != null && data.battery.ldsbatt_4.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("LDS#4=" + data.battery.ldsbatt_4.value + "V");
+				}
 
 				cumulus.BatteryLowAlarm.Triggered = lowBatt;
 			}

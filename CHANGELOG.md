@@ -39,12 +39,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- By default they output the time as 24-hour HH:mm, you can now override this and use 12-hour format as the default
 - New Program Options > General Options setting to disable the use of WebSockets in the dashboard and use HTTP polling instead
 	- Previously this required manual editing of the Dashboard, Now, and Gauges page scripts
+- Ecowitt.Net station type now reports individual low battery sensors to the low battery array
 
 ### Changed
 
 - Davis VP2 IP logger IP address can now be changed and take effect without restarting MX
 - Third Party and MySQL password fields now 'reveal' when they receive focus
 - Renamed WoW settings screen upload 'PIN' to 'Authentication Key'
+- Low Battery Alarms now append the low battery status strings to the message
+	- Plus quite a few internal Alarm code changes
 
 ### Fixed
 

@@ -851,8 +851,10 @@ namespace CumulusMX
 			{
 				return;
 			}
+
 			batteryLow = false;
 			LowBatteryDevices.Clear();
+
 			if (sensors != null && sensors.Length > 0)
 			{
 				for (var i = 0; i< sensors.Length; i++)
