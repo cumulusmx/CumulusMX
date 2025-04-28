@@ -14,12 +14,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
+- Realtime FTP (and FTPS) handling changed
+	- MX now runs a watchdog process that regularly checks the FTP connection is functional
 - New web tag `<#SnowAccumSeason>` - this tag queries the Weather Diary for the current snow season total snow fall
 	- The tag takes an optional parameter `y=YYYY` which you can use to specify the snow season starting year for which you want the total
 - The Weather Diary now has tick boxes for: Thunder, Hail, Fog, Gales
 	- New web tags to fetch these values:
 	`<#DiaryThunder>`, `<#DiaryHail>`, `<#DiaryFog>`, `<#DiaryGales>`
-	- The tags return "true", "false", or "-" if no diary entry exists. This null value can be overidden with the usual `nv=` parameter
+	- The tags return "true", "false", or "-" if no diary entry exists. This null value can be overridden with the usual `nv=` parameter
 	- All web tags take an optional parameter of the date to be queried `date=YYYY-MM-DD`
 - New monthly average web tags
 	- These are the average values for a month across all your Cumulus MX history
@@ -63,6 +65,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - MailKit
 - Microsoft.Win32.SystemEvents
 - ServiceStack.Text
+- SixLabors.ImageSharp
 - SSH.NET
 - SQLitePCLRaw.bundle_green
 - System.CodeDom
@@ -110,7 +113,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-- Ecowitt Rainfall Rate now read from SD card log files (if present), previously the field was missing and the hourly rain figure was used
+- Ecowitt Rainfall Rate now read from SD card log files (if present), previously the field was missing, and the hourly rain figure was used
 - Ecowitt SD card log file lightning distance units are now converted if required
 
 ### Changed
@@ -187,7 +190,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - You can now embed web tags in both Standard Alarms and User Defined Alarm email messages
 - Custom MySQL Minutes queries are now processed during catch-up
 - New web tag for Vapour Pressure deficit `<#VapourPressDeficit>`
-	- Takes a parameter of `sensor=N` to calculate the VPD for outdoor (=0, default if ommitted), or any extra temp/humidity sensor (=1-8)
+	- Takes a parameter of `sensor=N` to calculate the VPD for outdoor (=0, default if omitted), or any extra temp/humidity sensor (=1-8)
 	- Returns the VPD in user pressure units
 	- The returned units can be changed using the standard `unit=` parameter
 

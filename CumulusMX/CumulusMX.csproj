@@ -65,17 +65,16 @@
 
   <ItemGroup>
     <Compile Remove="MxFtpClient.cs" />
+    <Compile Remove="Properties\Settings.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Remove="App.config" />
+    <None Remove="Properties\Settings.settings" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="Properties\app.manifest" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -92,7 +91,7 @@
     <PackageReference Include="Microsoft.Win32.SystemEvents" Version="9.0.4" />
     <PackageReference Include="NLog" Version="5.4.0" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.4.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.8" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
     <PackageReference Include="System.CodeDom" Version="9.0.4" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.4" />

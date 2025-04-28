@@ -119,12 +119,16 @@ namespace CumulusMX
 						{
 							try
 							{
-								cumulus.RealtimeFTPLogin();
+								cumulus.RealtimeFtpWatchDog();
 							}
 							catch
 							{
 								// do nothing
 							}
+						}
+						else if (!cumulus.RealTimeWdTokenSource.IsCancellationRequested)
+						{
+							cumulus.RealTimeWdTokenSource.Cancel();
 						}
 					}
 
