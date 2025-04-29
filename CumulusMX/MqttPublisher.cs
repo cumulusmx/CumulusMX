@@ -90,6 +90,10 @@ namespace CumulusMX
 								cumulus.LogMessage(response.Dump());
 							}
 						}
+						else
+						{
+							cumulus.LogDataMessage("MQTT: Server ping OK");
+						}
 					}
 					catch (Exception ex)
 					{
