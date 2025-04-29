@@ -6713,7 +6713,7 @@ namespace CumulusMX
 			ini.SetValue("MQTT", "Username", Crypto.EncryptString(MQTT.Username, Program.InstanceId, "MQTT.Username,"));
 			ini.SetValue("MQTT", "Password", Crypto.EncryptString(MQTT.Password, Program.InstanceId, "MQTT.Password"));
 			ini.SetValue("MQTT", "UseTLS", MQTT.UseTLS);
-			ini.GetValue("MQTT", "IPversion", MQTT.IpVersion);
+			ini.SetValue("MQTT", "IPversion", MQTT.IpVersion);
 			ini.SetValue("MQTT", "ProtocolVersion", MQTT.ProtocolVersion);
 			ini.SetValue("MQTT", "EnableDataUpdate", MQTT.EnableDataUpdate);
 			ini.SetValue("MQTT", "UpdateTemplate", MQTT.UpdateTemplate);

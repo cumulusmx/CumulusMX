@@ -61,10 +61,10 @@ namespace CumulusMX
 					try
 					{
 						// This code will also do the very first connect! So no call to _ConnectAsync_ is required in the first place.
-						cumulus.LogDebugMessage($"MQTT: Connection parameters - IP={cumulus.MQTT.IpVersion}, TLS={cumulus.MQTT.UseTLS}, Protocol={cumulus.MQTT.ProtocolVersion}");
 
-						if (!await mqttClient.TryPingAsync())
+						if (!(await mqttClient.TryPingAsync()))
 						{
+
 							if (starting)
 							{
 								cumulus.LogMessage("MQTT: Connecting to server - " + cumulus.MQTT.Server);
@@ -72,8 +72,11 @@ namespace CumulusMX
 							else
 							{
 								// Do not log the first time
-								cumulus.LogWarningMessage("MQTT: Error: MQTT disconnected from the server - " + cumulus.MQTT.Server);
+								cumulus.LogMessage("MQTT: Error, ping failed to server - " + cumulus.MQTT.Server);
+								cumulus.LogMessage("MQTT: Attempting to reconnect to server - " + cumulus.MQTT.Server);
 							}
+
+							cumulus.LogDebugMessage($"MQTT: Connection parameters - IP={cumulus.MQTT.IpVersion}, TLS={cumulus.MQTT.UseTLS}, Protocol={cumulus.MQTT.ProtocolVersion}");
 
 							var response = await mqttClient.ConnectAsync(options, cumulus.cancellationToken);
 
@@ -192,6 +195,7 @@ namespace CumulusMX
 		public static void UpdateMQTTfeed(string feedType, DateTime? now)
 		{
 			MqttTemplate mqttTemplate;
+			int secondsToday = 0;
 
 			if (feedType == "Interval")
 			{
@@ -199,6 +203,7 @@ namespace CumulusMX
 					return;
 
 				mqttTemplate = intervalTemplate;
+				secondsToday = (int) (now.Value.TimeOfDay.Ticks / TimeSpan.TicksPerSecond);
 			}
 			else
 			{
@@ -212,17 +217,18 @@ namespace CumulusMX
 			// process each of the topics in turn
 			try
 			{
+
 				foreach (var topic in mqttTemplate.topics)
 				{
 					if (topic == null) continue;
 
-					if (feedType == "Interval" && now.Value.ToUnixTime() % (topic.interval ?? 600) != 0)
+					if (feedType == "Interval" && secondsToday % (topic.interval ?? 600) != 0)
 					{
 						// this topic is not ready to update
 						continue;
 					}
 
-					cumulus.LogDebugMessage($"MQTT: Processing {feedType} Topic: {topic.topic}");
+					cumulus.LogDebugMessage($"MQTT: Processing {feedType} Topic: {topic.topic} Time: {now:s}");
 
 					bool useAltResult = false;
 					var mqttTokenParser = new TokenParser(cumulus.TokenParserOnToken) { Encoding = new System.Text.UTF8Encoding(false) };

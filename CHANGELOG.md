@@ -58,6 +58,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Entry of EMEI codes on the Station Settings and Wizard pages for Ecowitt stations
 - Fixed the web tag `ProgramUpTimeMs`, it now returns a integer value as originally intended
 - Dashboard Select-a-Period AQ PM2.5 chart only showed data from the last N days - N defined by the recent data setting
+- MQTT IP protocol version not saving to Cumulus.ini
+
 
 ### Package Updates
 
