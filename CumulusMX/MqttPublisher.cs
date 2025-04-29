@@ -240,7 +240,7 @@ namespace CumulusMX
 						continue;
 					}
 
-					cumulus.LogDebugMessage($"MQTT: Processing {feedType} Topic: {topic.topic} Time: {now:s}");
+					cumulus.LogDebugMessage($"MQTT: Processing {feedType} Topic: {topic.topic}");
 
 					bool useAltResult = false;
 					var mqttTokenParser = new TokenParser(cumulus.TokenParserOnToken) { Encoding = new System.Text.UTF8Encoding(false) };
