@@ -35,11 +35,19 @@ namespace CumulusMX
 				_ => System.Net.Sockets.ProtocolType.Unspecified,
 			};
 
+			var protocolVersion = cumulus.MQTT.ProtocolVersion switch
+			{
+				3 => MQTTnet.Formatter.MqttProtocolVersion.V310,
+				4 => MQTTnet.Formatter.MqttProtocolVersion.V311,
+				5 => MQTTnet.Formatter.MqttProtocolVersion.V500,
+				_ => MQTTnet.Formatter.MqttProtocolVersion.V311,
+			};
+
 			options = new MqttClientOptionsBuilder()
 				.WithClientId(Guid.NewGuid().ToString())
 				.WithTcpServer(cumulus.MQTT.Server, cumulus.MQTT.Port)
 				.WithProtocolType(protocolType)
-				.WithProtocolVersion((MQTTnet.Formatter.MqttProtocolVersion) cumulus.MQTT.ProtocolVersion)
+				.WithProtocolVersion(protocolVersion)
 				.WithCredentials(string.IsNullOrEmpty(cumulus.MQTT.Password) ? null : new MqttClientCredentials(cumulus.MQTT.Username, System.Text.Encoding.UTF8.GetBytes(cumulus.MQTT.Password)))
 				.WithTlsOptions(
 					new MqttClientTlsOptions()

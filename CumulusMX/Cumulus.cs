@@ -5090,14 +5090,7 @@ namespace CumulusMX
 				ini.SetValue("MQTT", "IPversion", MQTT.IpVersion);
 				rewriteRequired = true;
 			}
-			MQTT.ProtocolVersion = ini.GetValue("MQTT", "ProtocolVersion", 5); // 0 = unspecified, 3 = MQTT 3.1.1, 4 = MQTT 3.1.1 with TLS, 5 = MQTT 5.0
-			if (MQTT.ProtocolVersion != 0 && MQTT.ProtocolVersion != 3 && MQTT.ProtocolVersion != 4 && MQTT.ProtocolVersion != 5)
-			{
-				LogMessage("Cumulus.ini: MQTT Protocol Version invalid, restting to v5.0.0");
-				MQTT.ProtocolVersion = 5;
-				ini.SetValue("MQTT", "ProtocolVersion", MQTT.ProtocolVersion);
-				rewriteRequired = true;
-			}
+			MQTT.ProtocolVersion = ini.GetValue("MQTT", "ProtocolVersion", 5, 3, 5); // 3 = MQTT 3.1.0, 4 = MQTT 3.1.1 with TLS, 5 = MQTT 5.0
 
 			MQTT.EnableDataUpdate = ini.GetValue("MQTT", "EnableDataUpdate", false);
 			MQTT.UpdateTemplate = ini.GetValue("MQTT", "UpdateTemplate", "DataUpdateTemplate.txt");
