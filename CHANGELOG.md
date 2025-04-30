@@ -42,6 +42,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New Program Options > General Options setting to disable the use of WebSockets in the dashboard and use HTTP polling instead
 	- Previously this required manual editing of the Dashboard, Now, and Gauges page scripts
 - Ecowitt.Net station type now reports individual low battery sensors to the low battery array
+- Davis AirLink: new web tags for uptime and link uptime
+	`<#AirLinkUptimeIn> <#AirLinkLinkUptimeIn>`
+	`<#AirLinkUptimeOut> <#AirLinkLinkUptimeOut>`
 
 ### Changed
 

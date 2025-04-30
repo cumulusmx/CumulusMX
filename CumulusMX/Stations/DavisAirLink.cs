@@ -1242,6 +1242,15 @@ namespace CumulusMX
 								upt.Minutes,
 								upt.Seconds);
 						cumulus.LogDebugMessage($"AirLinkHealth: {locationStr} - Uptime = " + uptStr);
+
+						if (indoor)
+						{
+							cumulus.airLinkDataIn.uptime = upt;
+						}
+						else
+						{
+							cumulus.airLinkDataOut.uptime = upt;
+						}
 					}
 					catch (Exception ex)
 					{
@@ -1257,6 +1266,15 @@ namespace CumulusMX
 								upt.Minutes,
 								upt.Seconds);
 						cumulus.LogDebugMessage($"AirLinkHealth: {locationStr} - Link Uptime = " + uptStr);
+
+						if (indoor)
+						{
+							cumulus.airLinkDataIn.linkUptime = upt;
+						}
+						else
+						{
+							cumulus.airLinkDataOut.linkUptime = upt;
+						}
 					}
 					catch (Exception ex)
 					{
@@ -1748,5 +1766,7 @@ namespace CumulusMX
 		public double aqiPm10_nowcast { get; set; }
 		public string firmwareVersion { get; set; }
 		public int wifiRssi { get; set; }
+		public TimeSpan uptime { get; set; }
+		public TimeSpan linkUptime { get; set; }
 	}
 }

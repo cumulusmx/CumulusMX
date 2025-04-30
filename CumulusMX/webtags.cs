@@ -1225,7 +1225,14 @@ namespace CumulusMX
 		{
 			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataIn.wifiRssi.ToString();
 		}
-
+		private string TagAirLinkUptimeIn(Dictionary<string, string> tagParams)
+		{
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : GetFormattedTimeSpan(cumulus.airLinkDataIn.uptime, cumulus.Trans.WebTagElapsedTime, tagParams);
+		}
+		private string TagAirLinkLinkUptimeIn(Dictionary<string, string> tagParams)
+		{
+			return (cumulus.airLinkDataIn == null || !cumulus.airLinkDataIn.dataValid) ? tagParams.Get("nv") ?? "--" : GetFormattedTimeSpan(cumulus.airLinkDataIn.linkUptime, cumulus.Trans.WebTagElapsedTime, tagParams);
+		}
 
 		// AirLink Outdoor
 		private string TagAirLinkTempOut(Dictionary<string, string> tagParams)
@@ -1287,6 +1294,14 @@ namespace CumulusMX
 		private string TagAirLinkWifiRssiOut(Dictionary<string, string> tagParams)
 		{
 			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : cumulus.airLinkDataOut.wifiRssi.ToString();
+		}
+		private string TagAirLinkUptimeOut(Dictionary<string, string> tagParams)
+		{
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : GetFormattedTimeSpan(cumulus.airLinkDataOut.uptime, cumulus.Trans.WebTagElapsedTime, tagParams);
+		}
+		private string TagAirLinkLinkUptimeOut(Dictionary<string, string> tagParams)
+		{
+			return (cumulus.airLinkDataOut == null || !cumulus.airLinkDataOut.dataValid) ? tagParams.Get("nv") ?? "--" : GetFormattedTimeSpan(cumulus.airLinkDataOut.linkUptime, cumulus.Trans.WebTagElapsedTime, tagParams);
 		}
 
 		private string TagAirLinkAqiPm2P5In(Dictionary<string, string> tagParams)
@@ -7085,6 +7100,8 @@ namespace CumulusMX
 
 				{ "AirLinkFirmwareVersionIn", TagAirLinkFirmwareVersionIn },
 				{ "AirLinkWifiRssiIn", TagAirLinkWifiRssiIn },
+				{ "AirLinkUptimeIn", TagAirLinkUptimeIn },
+				{ "AirLinkLinkUptimeIn", TagAirLinkLinkUptimeIn },
 				{ "AirLinkTempIn", TagAirLinkTempIn },
 				{ "AirLinkHumIn", TagAirLinkHumIn },
 				{ "AirLinkPm1In", TagAirLinkPm1In },
@@ -7101,6 +7118,8 @@ namespace CumulusMX
 
 				{ "AirLinkFirmwareVersionOut", TagAirLinkFirmwareVersionOut },
 				{ "AirLinkWifiRssiOut", TagAirLinkWifiRssiOut },
+				{ "AirLinkUptimeOut", TagAirLinkUptimeOut },
+				{ "AirLinkLinkUptimeOut", TagAirLinkLinkUptimeOut },
 				{ "AirLinkTempOut", TagAirLinkTempOut },
 				{ "AirLinkHumOut", TagAirLinkHumOut },
 				{ "AirLinkPm1Out", TagAirLinkPm1Out },
