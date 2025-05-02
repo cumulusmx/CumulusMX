@@ -773,7 +773,7 @@ namespace CumulusMX
 							}
 							else
 							{   // Check for Extra temperature/humidity settings
-								for (var tempTxId = 1; tempTxId <= 8; tempTxId++)
+								for (var tempTxId = 1; tempTxId <= 16; tempTxId++)
 								{
 									if (cumulus.WllExtraTempTx[tempTxId] != data1.txid) continue;
 
@@ -1064,7 +1064,7 @@ namespace CumulusMX
 							}
 							break;
 
-						case 2: // Leaf/Soil Moisture
+						case 2: // Leaf/Soil/Temp Moisture
 							/*
 							 * Available fields
 							 * "temp_1":null,                                 // most recent valid soil temp slot 1 **(°F)**
@@ -1124,6 +1124,48 @@ namespace CumulusMX
 									var val = (double?) data2[idx];
 									if (val.HasValue)
 										DoLeafWetness(val.Value, 2);
+								}
+								if (cumulus.WllExtraLeafTx3 == data2.txid)
+								{
+									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx3;
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoLeafWetness(val.Value, 3);
+								}
+								if (cumulus.WllExtraLeafTx4 == data2.txid)
+								{
+									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx4;
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoLeafWetness(val.Value,4);
+								}
+								if (cumulus.WllExtraLeafTx5 == data2.txid)
+								{
+									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx5;
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoLeafWetness(val.Value, 5);
+								}
+								if (cumulus.WllExtraLeafTx6 == data2.txid)
+								{
+									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx6;
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoLeafWetness(val.Value, 6);
+								}
+								if (cumulus.WllExtraLeafTx7 == data2.txid)
+								{
+									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx7;
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoLeafWetness(val.Value, 7);
+								}
+								if (cumulus.WllExtraLeafTx8 == data2.txid)
+								{
+									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx8;
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoLeafWetness(val.Value, 8);
 								}
 							}
 							catch (Exception e)
@@ -1194,7 +1236,7 @@ namespace CumulusMX
 								}
 							}
 
-							// SoilTemperature
+							// Soil Temperature
 							if (cumulus.WllExtraSoilTempTx1 == data2.txid)
 							{
 								idx = "temp_" + cumulus.WllExtraSoilTempIdx1;

@@ -358,9 +358,9 @@ namespace CumulusMX
 			CumulusForecast = cumulus.Trans.ForecastNotAvailable;
 			wsforecast = cumulus.Trans.ForecastNotAvailable;
 
-			ExtraTemp = new double?[11];
-			ExtraHum = new double?[11];
-			ExtraDewPoint = new double?[11];
+			ExtraTemp = new double?[17];
+			ExtraHum = new double?[17];
+			ExtraDewPoint = new double?[17];
 			UserTemp = new double?[9];
 			SoilTemp = new double?[17];
 

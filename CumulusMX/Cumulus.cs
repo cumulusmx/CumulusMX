@@ -4321,6 +4321,18 @@ namespace CumulusMX
 			WllExtraLeafIdx1 = ini.GetValue("WLL", "ExtraLeafIdx1", 1, 1, 2);
 			WllExtraLeafTx2 = ini.GetValue("WLL", "ExtraLeafTxId2", 0, 0, 8);
 			WllExtraLeafIdx2 = ini.GetValue("WLL", "ExtraLeafIdx2", 2, 1, 2);
+			WllExtraLeafTx3 = ini.GetValue("WLL", "ExtraLeafTxId3", 0, 0, 8);
+			WllExtraLeafIdx3 = ini.GetValue("WLL", "ExtraLeafIdx3", 1, 1, 2);
+			WllExtraLeafTx4 = ini.GetValue("WLL", "ExtraLeafTxId4", 0, 0, 8);
+			WllExtraLeafIdx4 = ini.GetValue("WLL", "ExtraLeafIdx4", 2, 1, 2);
+			WllExtraLeafTx5 = ini.GetValue("WLL", "ExtraLeafTxId5", 0, 0, 8);
+			WllExtraLeafIdx5 = ini.GetValue("WLL", "ExtraLeafIdx5", 1, 1, 2);
+			WllExtraLeafTx6 = ini.GetValue("WLL", "ExtraLeafTxId6", 0, 0, 8);
+			WllExtraLeafIdx6 = ini.GetValue("WLL", "ExtraLeafIdx6", 2, 1, 2);
+			WllExtraLeafTx7 = ini.GetValue("WLL", "ExtraLeafTxId7", 0, 0, 8);
+			WllExtraLeafIdx7 = ini.GetValue("WLL", "ExtraLeafIdx7", 1, 1, 2);
+			WllExtraLeafTx8 = ini.GetValue("WLL", "ExtraLeafTxId8", 0, 0, 8);
+			WllExtraLeafIdx8 = ini.GetValue("WLL", "ExtraLeafIdx8", 2, 1, 2);
 			for (int i = 1; i <= 8; i++)
 			{
 				WllExtraTempTx[i] = ini.GetValue("WLL", "ExtraTempTxId" + i, 0, 0, 8);
@@ -6314,6 +6326,18 @@ namespace CumulusMX
 			ini.SetValue("WLL", "ExtraLeafIdx1", WllExtraLeafIdx1);
 			ini.SetValue("WLL", "ExtraLeafTxId2", WllExtraLeafTx2);
 			ini.SetValue("WLL", "ExtraLeafIdx2", WllExtraLeafIdx2);
+			ini.SetValue("WLL", "ExtraLeafTxId3", WllExtraLeafTx3);
+			ini.SetValue("WLL", "ExtraLeafIdx3", WllExtraLeafIdx3);
+			ini.SetValue("WLL", "ExtraLeafTxId4", WllExtraLeafTx4);
+			ini.SetValue("WLL", "ExtraLeafIdx4", WllExtraLeafIdx4);
+			ini.SetValue("WLL", "ExtraLeafTxId5", WllExtraLeafTx5);
+			ini.SetValue("WLL", "ExtraLeafIdx5", WllExtraLeafIdx5);
+			ini.SetValue("WLL", "ExtraLeafTxId6", WllExtraLeafTx6);
+			ini.SetValue("WLL", "ExtraLeafIdx6", WllExtraLeafIdx6);
+			ini.SetValue("WLL", "ExtraLeafTxId7", WllExtraLeafTx7);
+			ini.SetValue("WLL", "ExtraLeafIdx7", WllExtraLeafIdx7);
+			ini.SetValue("WLL", "ExtraLeafTxId8", WllExtraLeafTx8);
+			ini.SetValue("WLL", "ExtraLeafIdx8", WllExtraLeafIdx8);
 			for (int i = 1; i <= 8; i++)
 			{
 				ini.SetValue("WLL", "ExtraTempTxId" + i, WllExtraTempTx[i]);
@@ -8202,6 +8226,19 @@ namespace CumulusMX
 		internal int WllExtraLeafIdx1 = 1;
 		internal int WllExtraLeafTx2;
 		internal int WllExtraLeafIdx2 = 2;
+		internal int WllExtraLeafTx3;
+		internal int WllExtraLeafIdx3 = 1;
+		internal int WllExtraLeafTx4;
+		internal int WllExtraLeafIdx4 = 2;
+		internal int WllExtraLeafTx5;
+		internal int WllExtraLeafIdx5 = 1;
+		internal int WllExtraLeafTx6;
+		internal int WllExtraLeafIdx6 = 2;
+		internal int WllExtraLeafTx7;
+		internal int WllExtraLeafIdx7 = 1;
+		internal int WllExtraLeafTx8;
+		internal int WllExtraLeafIdx8 = 2;
+
 
 		internal int[] WllExtraTempTx = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 
