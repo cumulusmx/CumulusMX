@@ -1235,6 +1235,186 @@ namespace CumulusMX
 									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
 								}
 							}
+							if (cumulus.WllExtraSoilMoistureTx5 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx5;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 5);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx5} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx6 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx6;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 6);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx6} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx7 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx7;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 7);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx7} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx8 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx8;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 8);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx8} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx9 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx9;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 9);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx9} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx10 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx10;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 10);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx10} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx11 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx11;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 11);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx11} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx12 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx12;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 12);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx12} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx13 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx13;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 13);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx13} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx14 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx14;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 14);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx14} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx15 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx15;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 15);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx15} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
+							if (cumulus.WllExtraSoilMoistureTx16 == data2.txid)
+							{
+								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx16;
+								try
+								{
+									var val = (double?) data2[idx];
+									if (val.HasValue)
+										DoSoilMoisture(val.Value, 16);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx16} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
 
 							// Soil Temperature
 							if (cumulus.WllExtraSoilTempTx1 == data2.txid)
