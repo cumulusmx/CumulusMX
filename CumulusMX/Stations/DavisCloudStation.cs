@@ -850,27 +850,24 @@ namespace CumulusMX
 									lsidLastUpdate[sensor.lsid] = rec.ts;
 
 									// We are relying on user configuration here, trap any errors
-									try
+									for (var i = 1; i <= 8; i++)
 									{
-										if (cumulus.WllExtraLeafTx1 == txid)
+										try
 										{
-											var idx = "wet_leaf_" + cumulus.WllExtraLeafIdx1;
-											var val = (double?) rec[idx];
-											if (val.HasValue)
-												DoLeafWetness(val.Value, 1);
+											if (cumulus.WllLeafWetTx[i] == txid)
+											{
+												var idx = "wet_leaf_" + cumulus.WllLeafWetIdx[i];
+												var val = (double?) rec[idx];
+												if (val.HasValue)
+												{
+													DoLeafWetness(val.Value, i);
+												}
+											}
 										}
-
-										if (cumulus.WllExtraLeafTx2 == txid)
+										catch (Exception e)
 										{
-											var idx = "wet_leaf_" + cumulus.WllExtraLeafIdx2;
-											var val = (double?) rec[idx];
-											if (val.HasValue)
-												DoLeafWetness(val.Value, 2);
+											cumulus.LogErrorMessage($"Error, DecodeCurrent, LeafWetness: {e.Message}");
 										}
-									}
-									catch (Exception e)
-									{
-										cumulus.LogErrorMessage($"Error, DecodeCurrent, LeafWetness: {e.Message}");
 									}
 
 									/*
@@ -883,63 +880,23 @@ namespace CumulusMX
 									 *
 									 */
 
-									if (cumulus.WllExtraSoilMoistureTx1 == txid)
+									for (var i = 1; i <= 16; i++)
 									{
-										var idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx1;
 										try
 										{
-											var val = (double?) rec[idx];
-											if (val.HasValue)
-												DoSoilMoisture(val.Value, 1);
+											if (cumulus.WllSoilMoistureTx[i] == txid)
+											{
+												var idx = "moist_soil_last_" + cumulus.WllSoilMoistureIdx[i];
+												var val = (double?) rec[idx];
+												if (val.HasValue)
+												{
+													DoSoilMoisture(val.Value, i);
+												}
+											}
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx1} on TxId {txid}");
-											cumulus.LogDebugMessage($"DecodeCurrent: Exception: {ex.Message}");
-										}
-									}
-									if (cumulus.WllExtraSoilMoistureTx2 == txid)
-									{
-										var idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx2;
-										try
-										{
-											var val = (double?) rec[idx];
-											if (val.HasValue)
-												DoSoilMoisture(val.Value, 2);
-										}
-										catch (Exception ex)
-										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx2} on TxId {txid}");
-											cumulus.LogDebugMessage($"DecodeCurrent: Exception: {ex.Message}");
-										}
-									}
-									if (cumulus.WllExtraSoilMoistureTx3 == txid)
-									{
-										var idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx3;
-										try
-										{
-											var val = (double?) rec[idx];
-											if (val.HasValue)
-												DoSoilMoisture(val.Value, 3);
-										}
-										catch (Exception ex)
-										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx3} on TxId {txid}");
-											cumulus.LogDebugMessage($"DecodeCurrent: Exception: {ex.Message}");
-										}
-									}
-									if (cumulus.WllExtraSoilMoistureTx4 == txid)
-									{
-										var idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx4;
-										try
-										{
-											var val = (double?) rec[idx];
-											if (val.HasValue)
-												DoSoilMoisture(val.Value, 4);
-										}
-										catch (Exception ex)
-										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx4} on TxId {txid}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing soil moisture #{cumulus.WllSoilMoistureIdx[i]} on TxId {txid}");
 											cumulus.LogDebugMessage($"DecodeCurrent: Exception: {ex.Message}");
 										}
 									}
@@ -953,63 +910,36 @@ namespace CumulusMX
 									* temp_4
 									*/
 
-									if (cumulus.WllExtraSoilTempTx1 == txid)
+									for (var i = 1; i <= 16; i++)
 									{
-										var idx = "temp_" + cumulus.WllExtraSoilTempIdx1;
 										try
 										{
-											var val = (double?) rec[idx];
-											if (val.HasValue)
-												DoSoilTemp(ConvertUnits.TempFToUser(val.Value), 1);
+											// allocated to soil temp?
+											if (cumulus.WllSoilTempTx[i] == txid)
+											{
+												var idx = "temp_" + cumulus.WllSoilTempIdx[i];
+												var val = (double?) rec[idx];
+												if (val.HasValue)
+												{
+													DoSoilTemp(ConvertUnits.TempFToUser(val.Value), i);
+												}
+											}
+
+											// allocated to extra temp?
+											else if (cumulus.WllExtraTempTx[i] == txid)
+											{
+												var idx = "temp_" + cumulus.WllExtraTempIdx[i];
+												var val = (double?) rec[idx];
+												if (val.HasValue)
+												{
+													DoExtraTemp(ConvertUnits.TempFToUser(val.Value), i);
+												}
+											}
+
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx1} on TxId {txid}");
-											cumulus.LogDebugMessage($"DecodeCurrent: Exception: {ex.Message}");
-										}
-									}
-									if (cumulus.WllExtraSoilTempTx2 == txid)
-									{
-										var idx = "temp_" + cumulus.WllExtraSoilTempIdx2;
-										try
-										{
-											var val = (double?) rec[idx];
-											if (val.HasValue)
-												DoSoilTemp(ConvertUnits.TempFToUser(val.Value), 2);
-										}
-										catch (Exception ex)
-										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx2} on TxId {txid}");
-											cumulus.LogDebugMessage($"DecodeCurrent: Exception: {ex.Message}");
-										}
-									}
-									if (cumulus.WllExtraSoilTempTx3 == txid)
-									{
-										var idx = "temp_" + cumulus.WllExtraSoilTempIdx3;
-										try
-										{
-											var val = (double?) rec[idx];
-											if (val.HasValue)
-												DoSoilTemp(ConvertUnits.TempFToUser(val.Value), 3);
-										}
-										catch (Exception ex)
-										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx3} on TxId {txid}");
-											cumulus.LogDebugMessage($"DecodeCurrent: Exception: {ex.Message}");
-										}
-									}
-									if (cumulus.WllExtraSoilTempTx4 == txid)
-									{
-										var idx = "temp_" + cumulus.WllExtraSoilTempIdx4;
-										try
-										{
-											var val = (double?) rec[idx];
-											if (val.HasValue)
-												DoSoilTemp(ConvertUnits.TempFToUser(val.Value), 4);
-										}
-										catch (Exception ex)
-										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx4} on TxId {txid}");
+											cumulus.LogErrorMessage($"DecodeCurrent: Error processing extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {txid}");
 											cumulus.LogDebugMessage($"DecodeCurrent: Exception: {ex.Message}");
 										}
 									}
@@ -2872,8 +2802,6 @@ namespace CumulusMX
 										cumulus.LogDebugMessage($"DecodeHistoric: Exception {ex.Message}");
 									}
 
-									if (!cumulus.WllExtraHumTx[tempTxId]) continue;
-
 									try
 									{
 										if (data.hum_last != null)
@@ -3111,24 +3039,23 @@ namespace CumulusMX
 								cumulus.LogDebugMessage($"DecodeHistoric: found Leaf/Soil data on TxId {data.tx_id}");
 
 								// We are relying on user configuration here, trap any errors
-								try
+								for (var i = 1; i <= 8; i++)
 								{
-									if (cumulus.WllExtraLeafTx1 == data.tx_id)
+									try
 									{
-										idx = "wet_leaf_last_" + cumulus.WllExtraLeafIdx1;
-										if (data[idx] != null)
-											DoLeafWetness((double) data[idx], 1);
+										if (cumulus.WllLeafWetTx[i] == data.tx_id)
+										{
+											idx = "wet_leaf_last_" + cumulus.WllLeafWetIdx[i];
+											if (data[idx] != null)
+											{
+												DoLeafWetness((double) data[idx], i);
+											}
+										}
 									}
-									if (cumulus.WllExtraLeafTx2 == data.tx_id)
+									catch (Exception e)
 									{
-										idx = "wet_leaf_last_" + cumulus.WllExtraLeafIdx2;
-										if (data[idx] != null)
-											DoLeafWetness((double) data[idx], 2);
+										cumulus.LogErrorMessage($"Error, DecodeHistoric, LeafWetness txid={data.tx_id}, idx={idx}: {e.Message}");
 									}
-								}
-								catch (Exception e)
-								{
-									cumulus.LogErrorMessage($"Error, DecodeHistoric, LeafWetness txid={data.tx_id}, idx={idx}: {e.Message}");
 								}
 								/*
 								 * Soil Moisture
@@ -3159,60 +3086,29 @@ namespace CumulusMX
 								 * "moist_soil_lo_at_4"
 								 */
 
-								try
+								for (var i = 1; i <= 16; i++)
 								{
-									if (cumulus.WllExtraSoilMoistureTx1 == data.tx_id)
+									try
 									{
-										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx1;
-										if (data[idx] == null)
+										if (cumulus.WllSoilMoistureTx[i] == data.tx_id)
 										{
-											cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx1} on TxId {data.tx_id}");
-										}
-										else
-										{
-											DoSoilMoisture((double) data[idx], 1);
+											idx = "moist_soil_last_" + cumulus.WllSoilMoistureIdx[i];
+
+											if (data[idx] == null)
+											{
+												cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid soil moisture #{cumulus.WllSoilMoistureIdx[i]} on TxId {data.tx_id}");
+											}
+											else
+											{
+												DoSoilMoisture((double) data[idx], i);
+											}
 										}
 									}
-									if (cumulus.WllExtraSoilMoistureTx2 == data.tx_id)
+									catch (Exception ex)
 									{
-										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx2;
-										if (data[idx] == null)
-										{
-											cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx2} on TxId {data.tx_id}");
-										}
-										else
-										{
-											DoSoilMoisture((double) data[idx], 2);
-										}
+										cumulus.LogErrorMessage($"DecodeHistoric: Error processing soil moisture #{cumulus.WllSoilMoistureIdx[i]} on TxId {data.tx_id}");
+										cumulus.LogDebugMessage($"DecodeHistoric: Exception: {ex.Message}");
 									}
-									if (cumulus.WllExtraSoilMoistureTx3 == data.tx_id)
-									{
-										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx3;
-										if (data[idx] == null)
-										{
-											cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx3} on TxId {data.tx_id}");
-										}
-										else
-										{
-											DoSoilMoisture((double) data[idx], 3);
-										}
-									}
-									if (cumulus.WllExtraSoilMoistureTx4 == data.tx_id)
-									{
-										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx4;
-										if (data[idx] == null)
-										{
-											cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx4} on TxId {data.tx_id}");
-										}
-										else
-										{
-											DoSoilMoisture((double) data[idx], 4);
-										}
-									}
-								}
-								catch (Exception e)
-								{
-									cumulus.LogErrorMessage($"Error, DecodeHistoric, SoilMoisture txid={data.tx_id}, idx={idx}: {e.Message}");
 								}
 
 								/*
@@ -3244,60 +3140,43 @@ namespace CumulusMX
 								 * "temp_lo_at_4"
 								 */
 
-								try
+								for (var i = 1; i <= 16; i++)
 								{
-									if (cumulus.WllExtraSoilTempTx1 == data.tx_id)
+									try
 									{
-										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx1;
-										if (data[idx] == null)
+										// allocated to soil temp?
+										if (cumulus.WllSoilTempTx[i] == data.tx_id)
 										{
-											cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx1} on TxId {data.tx_id}");
+											idx = "temp_last_" + cumulus.WllSoilTempIdx[i];
+											if (data[idx] == null)
+											{
+												cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {data.tx_id}");
+											}
+											else
+											{
+												DoSoilTemp(ConvertUnits.TempFToUser((double) data[idx]), i);
+											}
 										}
-										else
+
+										// alocated to extra temp?
+										else if (cumulus.WllExtraTempTx[i] == data.tx_id)
 										{
-											DoSoilTemp(ConvertUnits.TempFToUser((double) data[idx]), 1);
+											idx = "temp_last_" + cumulus.WllExtraTempIdx[i];
+											if (data[idx] == null)
+											{
+												cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {data.tx_id}");
+											}
+											else
+											{
+												DoExtraTemp(ConvertUnits.TempFToUser((double) data[idx]), i);
+											}
 										}
+
 									}
-									if (cumulus.WllExtraSoilTempTx2 == data.tx_id)
+									catch (Exception e)
 									{
-										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx2;
-										if (data[idx] == null)
-										{
-											cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx2} on TxId {data.tx_id}");
-										}
-										else
-										{
-											DoSoilTemp(ConvertUnits.TempFToUser((double) data[idx]), 2);
-										}
+										cumulus.LogErrorMessage($"Error, DecodeHistoric, SoilTemp txid={data.tx_id}, idx={idx}: {e.Message}");
 									}
-									if (cumulus.WllExtraSoilTempTx3 == data.tx_id)
-									{
-										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx3;
-										if (data[idx] == null)
-										{
-											cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx3} on TxId {data.tx_id}");
-										}
-										else
-										{
-											DoSoilTemp(ConvertUnits.TempFToUser((double) data[idx]), 3);
-										}
-									}
-									if (cumulus.WllExtraSoilTempTx4 == data.tx_id)
-									{
-										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx4;
-										if (data[idx] == null)
-										{
-											cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx4} on TxId {data.tx_id}");
-										}
-										else
-										{
-											DoSoilTemp(ConvertUnits.TempFToUser((double) data[idx]), 4);
-										}
-									}
-								}
-								catch (Exception e)
-								{
-									cumulus.LogErrorMessage($"Error, DecodeHistoric, SoilTemp txid={data.tx_id}, idx={idx}: {e.Message}");
 								}
 
 								break;

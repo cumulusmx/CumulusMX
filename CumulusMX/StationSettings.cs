@@ -351,74 +351,41 @@ namespace CumulusMX
 				uv = cumulus.WllPrimaryUV
 			};
 
-			var wllExtraSoilTemp = new JsonWllSoilTemp()
-			{
+			var wllExtraSoilTemp = new JsonWllSensor[16];
 
-				soilTempTx1 = cumulus.WllExtraSoilTempTx1,
-				soilTempIdx1 = cumulus.WllExtraSoilTempIdx1,
-				soilTempTx2 = cumulus.WllExtraSoilTempTx2,
-				soilTempIdx2 = cumulus.WllExtraSoilTempIdx2,
-				soilTempTx3 = cumulus.WllExtraSoilTempTx3,
-				soilTempIdx3 = cumulus.WllExtraSoilTempIdx3,
-				soilTempTx4 = cumulus.WllExtraSoilTempTx4,
-				soilTempIdx4 = cumulus.WllExtraSoilTempIdx4
-			};
-
-			var wllExtraSoilMoist = new JsonWllSoilMoist()
+			for (int i = 1; i <= 16; i++)
 			{
-				soilMoistTx1 = cumulus.WllExtraSoilMoistureTx1,
-				soilMoistIdx1 = cumulus.WllExtraSoilMoistureIdx1,
-				soilMoistTx2 = cumulus.WllExtraSoilMoistureTx2,
-				soilMoistIdx2 = cumulus.WllExtraSoilMoistureIdx2,
-				soilMoistTx3 = cumulus.WllExtraSoilMoistureTx3,
-				soilMoistIdx3 = cumulus.WllExtraSoilMoistureIdx3,
-				soilMoistTx4 = cumulus.WllExtraSoilMoistureTx4,
-				soilMoistIdx4 = cumulus.WllExtraSoilMoistureIdx4,
-				soilMoistTx5 = cumulus.WllExtraSoilMoistureTx5,
-				soilMoistIdx5 = cumulus.WllExtraSoilMoistureIdx5,
-				soilMoistTx6 = cumulus.WllExtraSoilMoistureTx6,
-				soilMoistIdx6 = cumulus.WllExtraSoilMoistureIdx6,
-				soilMoistTx7 = cumulus.WllExtraSoilMoistureTx7,
-				soilMoistIdx7 = cumulus.WllExtraSoilMoistureIdx7,
-				soilMoistTx8 = cumulus.WllExtraSoilMoistureTx8,
-				soilMoistIdx8 = cumulus.WllExtraSoilMoistureIdx8,
-				soilMoistTx9 = cumulus.WllExtraSoilMoistureTx9,
-				soilMoistIdx9 = cumulus.WllExtraSoilMoistureIdx9,
-				soilMoistTx10 = cumulus.WllExtraSoilMoistureTx10,
-				soilMoistIdx10 = cumulus.WllExtraSoilMoistureIdx10,
-				soilMoistTx11 = cumulus.WllExtraSoilMoistureTx11,
-				soilMoistIdx11 = cumulus.WllExtraSoilMoistureIdx11,
-				soilMoistTx12 = cumulus.WllExtraSoilMoistureTx12,
-				soilMoistIdx12 = cumulus.WllExtraSoilMoistureIdx12,
-				soilMoistTx13 = cumulus.WllExtraSoilMoistureTx13,
-				soilMoistIdx13 = cumulus.WllExtraSoilMoistureIdx13,
-				soilMoistTx14 = cumulus.WllExtraSoilMoistureTx14,
-				soilMoistIdx14 = cumulus.WllExtraSoilMoistureIdx14,
-				soilMoistTx15 = cumulus.WllExtraSoilMoistureTx15,
-				soilMoistIdx15 = cumulus.WllExtraSoilMoistureIdx15,
-				soilMoistTx16 = cumulus.WllExtraSoilMoistureTx16,
-				soilMoistIdx16 = cumulus.WllExtraSoilMoistureIdx16
-			};
+				wllExtraSoilTemp[i - 1] = new JsonWllSensor()
+				{
+					name = "Sensor " + i,
+					tx = cumulus.WllSoilTempTx[i],
+					idx = cumulus.WllSoilTempIdx[i]
+				};
+			}
 
-			var wllExtraLeaf = new JsonWllExtraLeaf()
+			var wllExtraSoilMoist = new JsonWllSensor[16];
+
+			for (int i = 1; i <= 16; i++)
 			{
-				leafTx1 = cumulus.WllExtraLeafTx1,
-				leafIdx1 = cumulus.WllExtraLeafIdx1,
-				leafTx2 = cumulus.WllExtraLeafTx2,
-				leafIdx2 = cumulus.WllExtraLeafIdx2,
-				leafTx3 = cumulus.WllExtraLeafTx3,
-				leafIdx3 = cumulus.WllExtraLeafIdx3,
-				leafTx4 = cumulus.WllExtraLeafTx4,
-				leafIdx4 = cumulus.WllExtraLeafIdx4,
-				leafTx5 = cumulus.WllExtraLeafTx5,
-				leafIdx5 = cumulus.WllExtraLeafIdx5,
-				leafTx6 = cumulus.WllExtraLeafTx6,
-				leafIdx6 = cumulus.WllExtraLeafIdx6,
-				leafTx7 = cumulus.WllExtraLeafTx7,
-				leafIdx7 = cumulus.WllExtraLeafIdx7,
-				leafTx8 = cumulus.WllExtraLeafTx8,
-				leafIdx8 = cumulus.WllExtraLeafIdx8
-			};
+				wllExtraSoilMoist[i - 1] = new JsonWllSensor()
+				{
+					name = "Sensor " + i,
+					tx = cumulus.WllSoilMoistureTx[i],
+					idx = cumulus.WllSoilMoistureIdx[i]
+				};
+			}
+
+			var wllExtraLeaf = new JsonWllSensor[8];
+
+			for (int i = 1; i <= 8; i++)
+			{
+				wllExtraLeaf[i - 1] = new JsonWllSensor()
+				{
+					name = "Sensor " + i,
+					tx = cumulus.WllLeafWetTx[i],
+					idx = cumulus.WllLeafWetIdx[i]
+				};
+			}
 
 			var wllSoilLeaf = new JsonWllSoilLeaf()
 			{
@@ -427,14 +394,16 @@ namespace CumulusMX
 				extraLeaf = wllExtraLeaf
 			};
 
-			var wllExtraTemp = new JsonWllExtraTemp();
-			for (int i = 1; i <= 8; i++)
-			{
-				PropertyInfo propInfo = wllExtraTemp.GetType().GetProperty("extraTempTx" + i);
-				propInfo.SetValue(wllExtraTemp, Convert.ChangeType(cumulus.WllExtraTempTx[i], propInfo.PropertyType), null);
+			var wllExtraTemp = new JsonWllSensor[16];
 
-				propInfo = wllExtraTemp.GetType().GetProperty("extraHumTx" + i);
-				propInfo.SetValue(wllExtraTemp, Convert.ChangeType(cumulus.WllExtraHumTx[i], propInfo.PropertyType), null);
+			for (int i = 1; i <= 16; i++)
+			{
+				wllExtraTemp[i - 1] = new JsonWllSensor()
+				{
+					name = "Sensor " + i,
+					tx = cumulus.WllExtraTempTx[i],
+					idx = cumulus.WllExtraTempIdx[i]
+				};
 			}
 
 			var wll = new JsonWll()
@@ -866,82 +835,29 @@ namespace CumulusMX
 							cumulus.WllPrimaryUV = settings.daviswll.primary.uv;
 							cumulus.WllPrimaryWind = settings.daviswll.primary.wind;
 
-							cumulus.WllExtraLeafTx1 = settings.daviswll.soilLeaf.extraLeaf.leafTx1;
-							cumulus.WllExtraLeafTx2 = settings.daviswll.soilLeaf.extraLeaf.leafTx2;
-							cumulus.WllExtraLeafTx3 = settings.daviswll.soilLeaf.extraLeaf.leafTx3;
-							cumulus.WllExtraLeafTx4 = settings.daviswll.soilLeaf.extraLeaf.leafTx4;
-							cumulus.WllExtraLeafTx5 = settings.daviswll.soilLeaf.extraLeaf.leafTx5;
-							cumulus.WllExtraLeafTx6 = settings.daviswll.soilLeaf.extraLeaf.leafTx6;
-							cumulus.WllExtraLeafTx7 = settings.daviswll.soilLeaf.extraLeaf.leafTx7;
-							cumulus.WllExtraLeafTx8 = settings.daviswll.soilLeaf.extraLeaf.leafTx8;
-							cumulus.WllExtraLeafIdx1 = settings.daviswll.soilLeaf.extraLeaf.leafIdx1 ?? 1;
-							cumulus.WllExtraLeafIdx2 = settings.daviswll.soilLeaf.extraLeaf.leafIdx2 ?? 2;
-							cumulus.WllExtraLeafIdx3 = settings.daviswll.soilLeaf.extraLeaf.leafIdx3 ?? 1;
-							cumulus.WllExtraLeafIdx4 = settings.daviswll.soilLeaf.extraLeaf.leafIdx4 ?? 2;
-							cumulus.WllExtraLeafIdx5 = settings.daviswll.soilLeaf.extraLeaf.leafIdx5 ?? 1;
-							cumulus.WllExtraLeafIdx6 = settings.daviswll.soilLeaf.extraLeaf.leafIdx6 ?? 2;
-							cumulus.WllExtraLeafIdx7 = settings.daviswll.soilLeaf.extraLeaf.leafIdx7 ?? 1;
-							cumulus.WllExtraLeafIdx8 = settings.daviswll.soilLeaf.extraLeaf.leafIdx8 ?? 2;
+							for (var i = 0; i < settings.daviswll.soilLeaf.extraLeaf.Length; i++)
+							{
+								cumulus.WllLeafWetTx[i + 1] = settings.daviswll.soilLeaf.extraLeaf[i].tx;
+								cumulus.WllLeafWetIdx[i + 1] = settings.daviswll.soilLeaf.extraLeaf[i].idx;
+							}
 
-							cumulus.WllExtraSoilMoistureIdx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx1 ?? 1;
-							cumulus.WllExtraSoilMoistureIdx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx2 ?? 2;
-							cumulus.WllExtraSoilMoistureIdx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx3 ?? 3;
-							cumulus.WllExtraSoilMoistureIdx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx4 ?? 4;
-							cumulus.WllExtraSoilMoistureIdx5 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx5 ?? 1;
-							cumulus.WllExtraSoilMoistureIdx6 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx6 ?? 2;
-							cumulus.WllExtraSoilMoistureIdx7 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx7 ?? 3;
-							cumulus.WllExtraSoilMoistureIdx8 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx8 ?? 4;
-							cumulus.WllExtraSoilMoistureIdx9 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx9 ?? 1;
-							cumulus.WllExtraSoilMoistureIdx10 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx10 ?? 2;
-							cumulus.WllExtraSoilMoistureIdx11 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx11 ?? 3;
-							cumulus.WllExtraSoilMoistureIdx12 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx12 ?? 4;
-							cumulus.WllExtraSoilMoistureIdx13 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx13 ?? 1;
-							cumulus.WllExtraSoilMoistureIdx14 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx14 ?? 2;
-							cumulus.WllExtraSoilMoistureIdx15 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx15 ?? 3;
-							cumulus.WllExtraSoilMoistureIdx16 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistIdx16 ?? 4;
-							cumulus.WllExtraSoilMoistureTx1 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx1;
-							cumulus.WllExtraSoilMoistureTx2 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx2;
-							cumulus.WllExtraSoilMoistureTx3 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx3;
-							cumulus.WllExtraSoilMoistureTx4 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx4;
-							cumulus.WllExtraSoilMoistureTx5 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx5;
-							cumulus.WllExtraSoilMoistureTx6 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx6;
-							cumulus.WllExtraSoilMoistureTx7 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx7;
-							cumulus.WllExtraSoilMoistureTx8 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx8;
-							cumulus.WllExtraSoilMoistureTx9 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx9;
-							cumulus.WllExtraSoilMoistureTx10 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx10;
-							cumulus.WllExtraSoilMoistureTx11 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx11;
-							cumulus.WllExtraSoilMoistureTx12 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx12;
-							cumulus.WllExtraSoilMoistureTx13 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx13;
-							cumulus.WllExtraSoilMoistureTx14 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx14;
-							cumulus.WllExtraSoilMoistureTx15 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx15;
-							cumulus.WllExtraSoilMoistureTx16 = settings.daviswll.soilLeaf.extraSoilMoist.soilMoistTx16;
+							for (var i = 0; i < settings.daviswll.soilLeaf.extraSoilMoist.Length; i++)
+							{
+								cumulus.WllSoilMoistureTx[i + 1] = settings.daviswll.soilLeaf.extraSoilMoist[i].tx;
+								cumulus.WllSoilMoistureIdx[i + 1] = settings.daviswll.soilLeaf.extraSoilMoist[i].idx;
+							}
 
-							cumulus.WllExtraSoilTempIdx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx1;
-							cumulus.WllExtraSoilTempIdx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx2;
-							cumulus.WllExtraSoilTempIdx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx3;
-							cumulus.WllExtraSoilTempIdx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempIdx4;
-							cumulus.WllExtraSoilTempTx1 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx1;
-							cumulus.WllExtraSoilTempTx2 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx2;
-							cumulus.WllExtraSoilTempTx3 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx3;
-							cumulus.WllExtraSoilTempTx4 = settings.daviswll.soilLeaf.extraSoilTemp.soilTempTx4;
+							for (var i = 0; i < settings.daviswll.soilLeaf.extraSoilTemp.Length; i++)
+							{
+								cumulus.WllSoilTempTx[i + 1] = settings.daviswll.soilLeaf.extraSoilTemp[i].tx;
+								cumulus.WllSoilTempIdx[i + 1] = settings.daviswll.soilLeaf.extraSoilTemp[i].idx;
+							}
 
-							cumulus.WllExtraTempTx[1] = settings.daviswll.extraTemp.extraTempTx1;
-							cumulus.WllExtraTempTx[2] = settings.daviswll.extraTemp.extraTempTx2;
-							cumulus.WllExtraTempTx[3] = settings.daviswll.extraTemp.extraTempTx3;
-							cumulus.WllExtraTempTx[4] = settings.daviswll.extraTemp.extraTempTx4;
-							cumulus.WllExtraTempTx[5] = settings.daviswll.extraTemp.extraTempTx5;
-							cumulus.WllExtraTempTx[6] = settings.daviswll.extraTemp.extraTempTx6;
-							cumulus.WllExtraTempTx[7] = settings.daviswll.extraTemp.extraTempTx7;
-							cumulus.WllExtraTempTx[8] = settings.daviswll.extraTemp.extraTempTx8;
-
-							cumulus.WllExtraHumTx[1] = settings.daviswll.extraTemp.extraHumTx1;
-							cumulus.WllExtraHumTx[2] = settings.daviswll.extraTemp.extraHumTx2;
-							cumulus.WllExtraHumTx[3] = settings.daviswll.extraTemp.extraHumTx3;
-							cumulus.WllExtraHumTx[4] = settings.daviswll.extraTemp.extraHumTx4;
-							cumulus.WllExtraHumTx[5] = settings.daviswll.extraTemp.extraHumTx5;
-							cumulus.WllExtraHumTx[6] = settings.daviswll.extraTemp.extraHumTx6;
-							cumulus.WllExtraHumTx[7] = settings.daviswll.extraTemp.extraHumTx7;
-							cumulus.WllExtraHumTx[8] = settings.daviswll.extraTemp.extraHumTx8;
+							for (var i = 0; i < settings.daviswll.extraTemp.Length; i++)
+							{
+								cumulus.WllExtraTempTx[i + 1] = settings.daviswll.extraTemp[i].tx;
+								cumulus.WllExtraTempIdx[i + 1] = settings.daviswll.extraTemp[i].idx;
+							}
 						}
 
 						cumulus.DavisOptions.RainGaugeType = settings.daviswll.advanced.raingaugetype;
@@ -949,6 +865,7 @@ namespace CumulusMX
 
 						// Automatically enable extra logging?
 						// Should we auto disable it too?
+						/*
 						if (cumulus.WllExtraLeafTx1 > 0 ||
 							cumulus.WllExtraLeafTx2 > 0 ||
 							cumulus.WllExtraSoilMoistureTx1 > 0 ||
@@ -964,6 +881,7 @@ namespace CumulusMX
 						{
 							cumulus.StationOptions.LogExtraSensors = true;
 						}
+						*/
 					}
 				}
 				catch (Exception ex)
@@ -2027,7 +1945,7 @@ namespace CumulusMX
 			public JsonWllApi api { get; set; }
 			public JsonWllPrimary primary { get; set; }
 			public JsonWllSoilLeaf soilLeaf { get; set; }
-			public JsonWllExtraTemp extraTemp { get; set; }
+			public JsonWllSensor[] extraTemp { get; set; }
 			public JsonWllAdvanced advanced { get; set; }
 		}
 
@@ -2064,100 +1982,19 @@ namespace CumulusMX
 
 		private sealed class JsonWllSoilLeaf
 		{
-			public JsonWllSoilTemp extraSoilTemp { get; set; }
-			public JsonWllSoilMoist extraSoilMoist { get; set; }
-			public JsonWllExtraLeaf extraLeaf { get; set; }
+			public JsonWllSensor[] extraSoilTemp { get; set; }
+			public JsonWllSensor[] extraSoilMoist { get; set; }
+			public JsonWllSensor[] extraLeaf { get; set; }
 		}
 
-		private sealed class JsonWllSoilTemp
+
+		private sealed class JsonWllSensor
 		{
-			public int soilTempTx1 { get; set; }
-			public int soilTempIdx1 { get; set; }
-			public int soilTempTx2 { get; set; }
-			public int soilTempIdx2 { get; set; }
-			public int soilTempTx3 { get; set; }
-			public int soilTempIdx3 { get; set; }
-			public int soilTempTx4 { get; set; }
-			public int soilTempIdx4 { get; set; }
+			public string name { get; set; }
+			public int tx { get; set; }
+			public int idx { get; set; }
 		}
 
-		private sealed class JsonWllSoilMoist
-		{
-			public int soilMoistTx1 { get; set; }
-			public int? soilMoistIdx1 { get; set; }
-			public int soilMoistTx2 { get; set; }
-			public int? soilMoistIdx2 { get; set; }
-			public int soilMoistTx3 { get; set; }
-			public int? soilMoistIdx3 { get; set; }
-			public int soilMoistTx4 { get; set; }
-			public int? soilMoistIdx4 { get; set; }
-			public int soilMoistTx5 { get; set; }
-			public int? soilMoistIdx5 { get; set; }
-			public int soilMoistTx6 { get; set; }
-			public int? soilMoistIdx6 { get; set; }
-			public int soilMoistTx7 { get; set; }
-			public int? soilMoistIdx7 { get; set; }
-			public int soilMoistTx8 { get; set; }
-			public int? soilMoistIdx8 { get; set; }
-			public int soilMoistTx9 { get; set; }
-			public int? soilMoistIdx9 { get; set; }
-			public int soilMoistTx10 { get; set; }
-			public int? soilMoistIdx10 { get; set; }
-			public int soilMoistTx11 { get; set; }
-			public int? soilMoistIdx11 { get; set; }
-			public int soilMoistTx12 { get; set; }
-			public int? soilMoistIdx12 { get; set; }
-			public int soilMoistTx13 { get; set; }
-			public int? soilMoistIdx13 { get; set; }
-			public int soilMoistTx14 { get; set; }
-			public int? soilMoistIdx14 { get; set; }
-			public int soilMoistTx15 { get; set; }
-			public int? soilMoistIdx15 { get; set; }
-			public int soilMoistTx16 { get; set; }
-			public int? soilMoistIdx16 { get; set; }
-
-		}
-
-		private sealed class JsonWllExtraLeaf
-		{
-			public int leafTx1 { get; set; }
-			public int? leafIdx1 { get; set; }
-			public int leafTx2 { get; set; }
-			public int? leafIdx2 { get; set; }
-			public int leafTx3 { get; set; }
-			public int? leafIdx3 { get; set; }
-			public int leafTx4 { get; set; }
-			public int? leafIdx4 { get; set; }
-			public int leafTx5 { get; set; }
-			public int? leafIdx5 { get; set; }
-			public int leafTx6 { get; set; }
-			public int? leafIdx6 { get; set; }
-			public int leafTx7 { get; set; }
-			public int? leafIdx7 { get; set; }
-			public int leafTx8 { get; set; }
-			public int? leafIdx8 { get; set; }
-		}
-
-		private sealed class JsonWllExtraTemp
-		{
-			public int extraTempTx1 { get; set; }
-			public int extraTempTx2 { get; set; }
-			public int extraTempTx3 { get; set; }
-			public int extraTempTx4 { get; set; }
-			public int extraTempTx5 { get; set; }
-			public int extraTempTx6 { get; set; }
-			public int extraTempTx7 { get; set; }
-			public int extraTempTx8 { get; set; }
-
-			public bool extraHumTx1 { get; set; }
-			public bool extraHumTx2 { get; set; }
-			public bool extraHumTx3 { get; set; }
-			public bool extraHumTx4 { get; set; }
-			public bool extraHumTx5 { get; set; }
-			public bool extraHumTx6 { get; set; }
-			public bool extraHumTx7 { get; set; }
-			public bool extraHumTx8 { get; set; }
-		}
 
 		private sealed class JsonAnnualRainfall
 		{

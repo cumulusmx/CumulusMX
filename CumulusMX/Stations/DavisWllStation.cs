@@ -779,23 +779,20 @@ namespace CumulusMX
 
 									try
 									{
-										if (cumulus.WllExtraTempTx[tempTxId] == data1.txid)
+										if (!data1.temp.HasValue || data1.temp.Value < -98)
 										{
-											if (!data1.temp.HasValue || data1.temp.Value < -98)
-											{
-												cumulus.LogDebugMessage($"WLL current: no valid Extra temperature value found [{data1.temp}] on TxId {data1.txid}");
-											}
-											else
-											{
-												cumulus.LogDebugMessage($"WLL current: using extra temp data from TxId {data1.txid}");
+											cumulus.LogDebugMessage($"WLL current: no valid Extra temperature value found [{data1.temp}] on TxId {data1.txid}");
+										}
+										else
+										{
+											cumulus.LogDebugMessage($"WLL current: using extra temp data from TxId {data1.txid}");
 
-												DoExtraTemp(ConvertUnits.TempFToUser(data1.temp.Value), tempTxId);
-											}
+											DoExtraTemp(ConvertUnits.TempFToUser(data1.temp.Value), tempTxId);
+										}
 
-											if (cumulus.WllExtraHumTx[tempTxId] && data1.hum.HasValue)
-											{
-												DoExtraHum(data1.hum.Value, tempTxId);
-											}
+										if (data1.hum.HasValue)
+										{
+											DoExtraHum(data1.hum.Value, tempTxId);
 										}
 									}
 									catch (Exception ex)
@@ -1109,376 +1106,80 @@ namespace CumulusMX
 							// For leaf wetness, soil temp/moisture we rely on user configuration, trap any errors
 
 							// Leaf wetness
-							try
+							for (var i = 1; i <= 8; i++)
 							{
-								if (cumulus.WllExtraLeafTx1 == data2.txid)
+								try
 								{
-									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx1;
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoLeafWetness(val.Value, 1);
+									if (cumulus.WllLeafWetTx[i] == data2.txid)
+									{
+										idx = "wet_leaf_" + cumulus.WllLeafWetIdx[i];
+										var val = (double?) data2[idx];
+										if (val.HasValue)
+										{
+											DoLeafWetness(val.Value, i);
+										}
+									}
 								}
-								if (cumulus.WllExtraLeafTx2 == data2.txid)
+								catch (Exception e)
 								{
-									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx2;
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoLeafWetness(val.Value, 2);
+									cumulus.LogErrorMessage($"WLL current: Error processing LeafWetness txid={data2.txid}, idx={idx}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {e.Message}");
 								}
-								if (cumulus.WllExtraLeafTx3 == data2.txid)
-								{
-									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx3;
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoLeafWetness(val.Value, 3);
-								}
-								if (cumulus.WllExtraLeafTx4 == data2.txid)
-								{
-									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx4;
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoLeafWetness(val.Value,4);
-								}
-								if (cumulus.WllExtraLeafTx5 == data2.txid)
-								{
-									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx5;
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoLeafWetness(val.Value, 5);
-								}
-								if (cumulus.WllExtraLeafTx6 == data2.txid)
-								{
-									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx6;
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoLeafWetness(val.Value, 6);
-								}
-								if (cumulus.WllExtraLeafTx7 == data2.txid)
-								{
-									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx7;
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoLeafWetness(val.Value, 7);
-								}
-								if (cumulus.WllExtraLeafTx8 == data2.txid)
-								{
-									idx = "wet_leaf_" + cumulus.WllExtraLeafIdx8;
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoLeafWetness(val.Value, 8);
-								}
-							}
-							catch (Exception e)
-							{
-								cumulus.LogErrorMessage($"WLL current: Error processing LeafWetness txid={data2.txid}, idx={idx}");
-								cumulus.LogDebugMessage($"WLL current: Exception: {e.Message}");
 							}
 
 							// Soil moisture
-							if (cumulus.WllExtraSoilMoistureTx1 == data2.txid)
+							for (var i = 1; i <= 16; i++)
 							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx1;
 								try
 								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 1);
+									if (cumulus.WllSoilMoistureTx[i] == data2.txid)
+									{
+										idx = "moist_soil_" + cumulus.WllSoilMoistureIdx[i];
+											var val = (double?) data2[idx];
+											if (val.HasValue)
+												DoSoilMoisture(val.Value, i);
+									}
 								}
 								catch (Exception ex)
 								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx1} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx2 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx2;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 2);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx2} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx3 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx3;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 3);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx3} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx4 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx4;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 4);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx4} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx5 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx5;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 5);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx5} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx6 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx6;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 6);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx6} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx7 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx7;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 7);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx7} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx8 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx8;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 8);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx8} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx9 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx9;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 9);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx9} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx10 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx10;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 10);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx10} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx11 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx11;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 11);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx11} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx12 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx12;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 12);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx12} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx13 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx13;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 13);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx13} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx14 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx14;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 14);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx14} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx15 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx15;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 15);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx15} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilMoistureTx16 == data2.txid)
-							{
-								idx = "moist_soil_" + cumulus.WllExtraSoilMoistureIdx16;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilMoisture(val.Value, 16);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllExtraSoilMoistureIdx16} on TxId {data2.txid}");
+									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllSoilMoistureIdx[i]} on TxId {data2.txid}");
 									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
 								}
 							}
 
 							// Soil Temperature
-							if (cumulus.WllExtraSoilTempTx1 == data2.txid)
+							for (var i = 1; i <= 16; i++)
 							{
-								idx = "temp_" + cumulus.WllExtraSoilTempIdx1;
 								try
 								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilTemp(ConvertUnits.TempFToUser(val.Value), 1);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx1} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilTempTx2 == data2.txid)
-							{
-								idx = "temp_" + cumulus.WllExtraSoilTempIdx2;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilTemp(ConvertUnits.TempFToUser(val.Value), 2);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx2} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilTempTx3 == data2.txid)
-							{
-								idx = "temp_" + cumulus.WllExtraSoilTempIdx3;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilTemp(ConvertUnits.TempFToUser(val.Value), 3);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx3} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
-							if (cumulus.WllExtraSoilTempTx4 == data2.txid)
-							{
-								idx = "temp_" + cumulus.WllExtraSoilTempIdx4;
-								try
-								{
-									var val = (double?) data2[idx];
-									if (val.HasValue)
-										DoSoilTemp(ConvertUnits.TempFToUser(val.Value), 4);
-								}
-								catch (Exception ex)
-								{
-									cumulus.LogErrorMessage($"WLL current: Error processing extra soil temp #{cumulus.WllExtraSoilTempIdx4} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
-								}
-							}
+									// allocated to soil temp?
+									if (cumulus.WllSoilTempTx[i] == data2.txid)
+									{
+										idx = "temp_" + cumulus.WllSoilTempIdx[i];
+										var val = (double?) data2[idx];
+										if (val.HasValue)
+										{
+											DoSoilTemp(ConvertUnits.TempFToUser(val.Value), i);
+										}
+									}
 
-							// TODO: Extra Humidity? No type for this on WLL
+									// allocated to extra temp?
+									else if (cumulus.WllExtraTempTx[i] == data2.txid)
+									{
+										idx = "temp_" + cumulus.WllExtraTempIdx[i];
+										var val = (double?) data2[idx];
+										if (val.HasValue)
+										{
+											DoExtraTemp(ConvertUnits.TempFToUser(val.Value), i);
+										}
+									}
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogErrorMessage($"WLL current: Error processing extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								}
+							}
 
 							break;
 
@@ -2380,8 +2081,6 @@ namespace CumulusMX
 									cumulus.LogDebugMessage($"WL.com historic: Exception {ex.Message}");
 								}
 
-								if (!cumulus.WllExtraHumTx[tempTxId]) continue;
-
 								try
 								{
 									if (data11.hum_last != null)
@@ -2612,24 +2311,23 @@ namespace CumulusMX
 								cumulus.LogDebugMessage($"WL.com historic: found Leaf/Soil data on TxId {data13.tx_id}");
 
 								// We are relying on user configuration here, trap any errors
-								try
+								for (var i = 1; i <= 8; i++)
 								{
-									if (cumulus.WllExtraLeafTx1 == data13.tx_id)
+									try
 									{
-										idx = "wet_leaf_last_" + cumulus.WllExtraLeafIdx1;
-										if (data13[idx] != null)
-											DoLeafWetness((double) data13[idx], 1);
+										if (cumulus.WllLeafWetTx[i] == data13.tx_id)
+										{
+											idx = "wet_leaf_last_" + cumulus.WllLeafWetIdx[i];
+											if (data13[idx] != null)
+											{
+												DoLeafWetness((double) data13[idx], i);
+											}
+										}
 									}
-									if (cumulus.WllExtraLeafTx2 == data13.tx_id)
+									catch (Exception e)
 									{
-										idx = "wet_leaf_last_" + cumulus.WllExtraLeafIdx2;
-										if (data13[idx] != null)
-											DoLeafWetness((double) data13[idx], 2);
+										cumulus.LogErrorMessage($"Error, DecodeHistoric, LeafWetness txid={data13.tx_id}, idx={idx}: {e.Message}");
 									}
-								}
-								catch (Exception e)
-								{
-									cumulus.LogErrorMessage($"Error, DecodeHistoric, LeafWetness txid={data13.tx_id}, idx={idx}: {e.Message}");
 								}
 								/*
 								 * Soil Moisture
@@ -2660,62 +2358,29 @@ namespace CumulusMX
 								 * "moist_soil_lo_at_4"
 								 */
 
-								try
-								{
-									if (cumulus.WllExtraSoilMoistureTx1 == data13.tx_id)
-									{
-										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx1;
-										if (data13[idx] == null)
-										{
-											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx1} on TxId {data13.tx_id}");
-										}
-										else
-										{
-											DoSoilMoisture((double) data13[idx], 1);
-										}
-									}
-									if (cumulus.WllExtraSoilMoistureTx2 == data13.tx_id)
-									{
-										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx2;
-										if (data13[idx] == null)
-										{
-											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx2} on TxId {data13.tx_id}");
-										}
-										else
-										{
-											DoSoilMoisture((double) data13[idx], 2);
-										}
-									}
-									if (cumulus.WllExtraSoilMoistureTx3 == data13.tx_id)
-									{
-										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx3;
-										if (data13[idx] == null)
-										{
-											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx3} on TxId {data13.tx_id}");
-										}
-										else
-										{
-											DoSoilMoisture((double) data13[idx], 3);
-										}
-									}
-									if (cumulus.WllExtraSoilMoistureTx4 == data13.tx_id)
-									{
-										idx = "moist_soil_last_" + cumulus.WllExtraSoilMoistureIdx4;
-										if (data13[idx] == null)
-										{
-											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllExtraSoilMoistureIdx4} on TxId {data13.tx_id}");
-										}
-										else
-										{
-											DoSoilMoisture((double) data13[idx], 4);
-										}
-									}
-								}
-								catch (Exception e)
-								{
-									cumulus.LogErrorMessage($"Error, DecodeHistoric, SoilMoisture txid={data13.tx_id}, idx={idx}: {e.Message}");
-								}
 
+								for (var i = 1; i <= 16; i++)
+								{
+									try
+									{
+										if (cumulus.WllSoilMoistureTx[i] == data13.tx_id)
+										{
+											idx = "moist_soil_last_" + cumulus.WllSoilMoistureIdx[i];
+											if (data13[idx] == null)
+											{
+												cumulus.LogDebugMessage($"WL.com historic: Warning, no valid soil moisture #{cumulus.WllSoilMoistureIdx[i]} on TxId {data13.tx_id}");
+											}
+											else
+											{
+												DoSoilMoisture((double) data13[idx], i);
+											}
+										}
+									}
+									catch (Exception e)
+									{
+										cumulus.LogErrorMessage($"Error, DecodeHistoric, SoilMoisture txid={data13.tx_id}, idx={idx}: {e.Message}");
+									}
+								}
 								/*
 								 * Soil Temperature
 								 * Available fields
@@ -2745,60 +2410,42 @@ namespace CumulusMX
 								 * "temp_lo_at_4"
 								 */
 
-								try
+								for (var i = 1; i <= 16; i++)
 								{
-									if (cumulus.WllExtraSoilTempTx1 == data13.tx_id)
+									try
 									{
-										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx1;
-										if (data13[idx] == null)
+										// allocated to soil temp?
+										if (cumulus.WllSoilTempTx[i] == data13.tx_id)
 										{
-											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx1} on TxId {data13.tx_id}");
+											idx = "temp_last_" + cumulus.WllSoilTempIdx[i];
+											if (data13[idx] == null)
+											{
+												cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {data13.tx_id}");
+											}
+											else
+											{
+												DoSoilTemp(ConvertUnits.TempFToUser((double) data13[idx]), i);
+											}
 										}
-										else
+
+										// allocated to extra temp?
+										else if (cumulus.WllExtraTempTx[i] == data13.tx_id)
 										{
-											DoSoilTemp(ConvertUnits.TempFToUser((double) data13[idx]), 1);
+											idx = "temp_last_" + cumulus.WllExtraTempIdx[i];
+											if (data13[idx] == null)
+											{
+												cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {data13.tx_id}");
+											}
+											else
+											{
+												DoExtraTemp(ConvertUnits.TempFToUser((double) data13[idx]), i);
+											}
 										}
 									}
-									if (cumulus.WllExtraSoilTempTx2 == data13.tx_id)
+									catch (Exception e)
 									{
-										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx2;
-										if (data13[idx] == null)
-										{
-											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx2} on TxId {data13.tx_id}");
-										}
-										else
-										{
-											DoSoilTemp(ConvertUnits.TempFToUser((double) data13[idx]), 2);
-										}
+										cumulus.LogErrorMessage($"Error, DecodeHistoric, SoilTemp txid={data13.tx_id}, idx={idx}: {e.Message}");
 									}
-									if (cumulus.WllExtraSoilTempTx3 == data13.tx_id)
-									{
-										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx3;
-										if (data13[idx] == null)
-										{
-											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx3} on TxId {data13.tx_id}");
-										}
-										else
-										{
-											DoSoilTemp(ConvertUnits.TempFToUser((double) data13[idx]), 3);
-										}
-									}
-									if (cumulus.WllExtraSoilTempTx4 == data13.tx_id)
-									{
-										idx = "temp_last_" + cumulus.WllExtraSoilTempIdx4;
-										if (data13[idx] == null)
-										{
-											cumulus.LogDebugMessage($"WL.com historic: Warning, no valid extra soil temp #{cumulus.WllExtraSoilTempIdx4} on TxId {data13.tx_id}");
-										}
-										else
-										{
-											DoSoilTemp(ConvertUnits.TempFToUser((double) data13[idx]), 4);
-										}
-									}
-								}
-								catch (Exception e)
-								{
-									cumulus.LogErrorMessage($"Error, DecodeHistoric, SoilTemp txid={data13.tx_id}, idx={idx}: {e.Message}");
 								}
 
 								break;

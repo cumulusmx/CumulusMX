@@ -4301,66 +4301,25 @@ namespace CumulusMX
 			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1, 1, 8);
 			WllPrimarySolar = ini.GetValue("WLL", "PrimarySolarTxId", 0, 0, 8);
 			WllPrimaryUV = ini.GetValue("WLL", "PrimaryUvTxId", 0, 0, 8);
-			WllExtraSoilTempTx1 = ini.GetValue("WLL", "ExtraSoilTempTxId1", 0, 0, 8);
-			WllExtraSoilTempIdx1 = ini.GetValue("WLL", "ExtraSoilTempIdx1", 1, 1, 4);
-			WllExtraSoilTempTx2 = ini.GetValue("WLL", "ExtraSoilTempTxId2", 0, 0, 8);
-			WllExtraSoilTempIdx2 = ini.GetValue("WLL", "ExtraSoilTempIdx2", 2, 1, 4);
-			WllExtraSoilTempTx3 = ini.GetValue("WLL", "ExtraSoilTempTxId3", 0, 0, 8);
-			WllExtraSoilTempIdx3 = ini.GetValue("WLL", "ExtraSoilTempIdx3", 3, 1, 4);
-			WllExtraSoilTempTx4 = ini.GetValue("WLL", "ExtraSoilTempTxId4", 0, 0, 8);
-			WllExtraSoilTempIdx4 = ini.GetValue("WLL", "ExtraSoilTempIdx4", 4, 1, 4);
-			WllExtraSoilMoistureTx1 = ini.GetValue("WLL", "ExtraSoilMoistureTxId1", 0, 0, 8);
-			WllExtraSoilMoistureIdx1 = ini.GetValue("WLL", "ExtraSoilMoistureIdx1", 1, 1, 4);
-			WllExtraSoilMoistureTx2 = ini.GetValue("WLL", "ExtraSoilMoistureTxId2", 0, 0, 8);
-			WllExtraSoilMoistureIdx2 = ini.GetValue("WLL", "ExtraSoilMoistureIdx2", 2, 1, 4);
-			WllExtraSoilMoistureTx3 = ini.GetValue("WLL", "ExtraSoilMoistureTxId3", 0, 0, 8);
-			WllExtraSoilMoistureIdx3 = ini.GetValue("WLL", "ExtraSoilMoistureIdx3", 3, 1, 4);
-			WllExtraSoilMoistureTx4 = ini.GetValue("WLL", "ExtraSoilMoistureTxId4", 0, 0, 8);
-			WllExtraSoilMoistureIdx4 = ini.GetValue("WLL", "ExtraSoilMoistureIdx4", 4, 1, 4);
-			WllExtraSoilMoistureTx5 = ini.GetValue("WLL", "ExtraSoilMoistureTxId5", 0, 0, 8);
-			WllExtraSoilMoistureIdx5 = ini.GetValue("WLL", "ExtraSoilMoistureIdx5", 1, 1, 4);
-			WllExtraSoilMoistureTx6 = ini.GetValue("WLL", "ExtraSoilMoistureTxId6", 0, 0, 8);
-			WllExtraSoilMoistureIdx6 = ini.GetValue("WLL", "ExtraSoilMoistureIdx6", 2, 1, 4);
-			WllExtraSoilMoistureTx7 = ini.GetValue("WLL", "ExtraSoilMoistureTxId7", 0, 0, 8);
-			WllExtraSoilMoistureIdx7 = ini.GetValue("WLL", "ExtraSoilMoistureIdx7", 3, 1, 4);
-			WllExtraSoilMoistureTx8 = ini.GetValue("WLL", "ExtraSoilMoistureTxId8", 0, 0, 8);
-			WllExtraSoilMoistureIdx8 = ini.GetValue("WLL", "ExtraSoilMoistureIdx8", 4, 1, 4);
-			WllExtraSoilMoistureTx9 = ini.GetValue("WLL", "ExtraSoilMoistureTxId9", 0, 0, 8);
-			WllExtraSoilMoistureIdx9 = ini.GetValue("WLL", "ExtraSoilMoistureIdx9", 1, 1, 4);
-			WllExtraSoilMoistureTx10 = ini.GetValue("WLL", "ExtraSoilMoistureTxId10", 0, 0, 8);
-			WllExtraSoilMoistureIdx10 = ini.GetValue("WLL", "ExtraSoilMoistureIdx10", 2, 1, 4);
-			WllExtraSoilMoistureTx11 = ini.GetValue("WLL", "ExtraSoilMoistureTxId11", 0, 0, 8);
-			WllExtraSoilMoistureIdx11 = ini.GetValue("WLL", "ExtraSoilMoistureIdx11", 3, 1, 4);
-			WllExtraSoilMoistureTx12 = ini.GetValue("WLL", "ExtraSoilMoistureTxId12", 0, 0, 8);
-			WllExtraSoilMoistureIdx12 = ini.GetValue("WLL", "ExtraSoilMoistureIdx12", 4, 1, 4);
-			WllExtraSoilMoistureTx13 = ini.GetValue("WLL", "ExtraSoilMoistureTxId13", 0, 0, 8);
-			WllExtraSoilMoistureIdx13 = ini.GetValue("WLL", "ExtraSoilMoistureIdx13", 1, 1, 4);
-			WllExtraSoilMoistureTx14 = ini.GetValue("WLL", "ExtraSoilMoistureTxId14", 0, 0, 8);
-			WllExtraSoilMoistureIdx14 = ini.GetValue("WLL", "ExtraSoilMoistureIdx14", 2, 1, 4);
-			WllExtraSoilMoistureTx15 = ini.GetValue("WLL", "ExtraSoilMoistureTxId15", 0, 0, 8);
-			WllExtraSoilMoistureIdx15 = ini.GetValue("WLL", "ExtraSoilMoistureIdx15", 3, 1, 4);
-			WllExtraSoilMoistureTx16 = ini.GetValue("WLL", "ExtraSoilMoistureTxId16", 0, 0, 8);
-			WllExtraSoilMoistureIdx16 = ini.GetValue("WLL", "ExtraSoilMoistureIdx16", 4, 1, 4);
-			WllExtraLeafTx1 = ini.GetValue("WLL", "ExtraLeafTxId1", 0, 0, 8);
-			WllExtraLeafIdx1 = ini.GetValue("WLL", "ExtraLeafIdx1", 1, 1, 2);
-			WllExtraLeafTx2 = ini.GetValue("WLL", "ExtraLeafTxId2", 0, 0, 8);
-			WllExtraLeafIdx2 = ini.GetValue("WLL", "ExtraLeafIdx2", 2, 1, 2);
-			WllExtraLeafTx3 = ini.GetValue("WLL", "ExtraLeafTxId3", 0, 0, 8);
-			WllExtraLeafIdx3 = ini.GetValue("WLL", "ExtraLeafIdx3", 1, 1, 2);
-			WllExtraLeafTx4 = ini.GetValue("WLL", "ExtraLeafTxId4", 0, 0, 8);
-			WllExtraLeafIdx4 = ini.GetValue("WLL", "ExtraLeafIdx4", 2, 1, 2);
-			WllExtraLeafTx5 = ini.GetValue("WLL", "ExtraLeafTxId5", 0, 0, 8);
-			WllExtraLeafIdx5 = ini.GetValue("WLL", "ExtraLeafIdx5", 1, 1, 2);
-			WllExtraLeafTx6 = ini.GetValue("WLL", "ExtraLeafTxId6", 0, 0, 8);
-			WllExtraLeafIdx6 = ini.GetValue("WLL", "ExtraLeafIdx6", 2, 1, 2);
-			WllExtraLeafTx7 = ini.GetValue("WLL", "ExtraLeafTxId7", 0, 0, 8);
-			WllExtraLeafIdx7 = ini.GetValue("WLL", "ExtraLeafIdx7", 1, 1, 2);
-			WllExtraLeafTx8 = ini.GetValue("WLL", "ExtraLeafTxId8", 0, 0, 8);
-			WllExtraLeafIdx8 = ini.GetValue("WLL", "ExtraLeafIdx8", 2, 1, 2);
-			for (int i = 1; i <= 8; i++)
+			for (var i = 1; i <= 16; i++)
+			{
+				WllSoilTempTx[i] = ini.GetValue("WLL", "ExtraSoilTempTxId" + i, 0, 0, 8);
+				WllSoilTempIdx[i] = ini.GetValue("WLL", "ExtraSoilTempIdx", ((i - 1) % 4) + 1, 1, 4);
+			}
+			for (var i = 1; i <= 16; i++)
+			{
+				WllSoilMoistureTx[i] = ini.GetValue("WLL", "ExtraSoilMoistureTxId" + i, 0, 0, 8);
+				WllSoilMoistureIdx[i] = ini.GetValue("WLL", "ExtraSoilMoistureIdx", ((i - 1) % 4) + 1, 1, 4);
+			}
+			for (var i = 1; i <= 8; i++)
+			{
+				WllLeafWetTx[i] = ini.GetValue("WLL", "ExtraLeafTxId" + i, 0, 0, 8);
+				WllLeafWetIdx[i] = ini.GetValue("WLL", "ExtraLeafIdx", ((i - 1) % 2) + 1, 1, 2);
+			}
+			for (int i = 1; i <= 16; i++)
 			{
 				WllExtraTempTx[i] = ini.GetValue("WLL", "ExtraTempTxId" + i, 0, 0, 8);
-				WllExtraHumTx[i] = ini.GetValue("WLL", "ExtraHumOnTxId" + i, false);
+				WllExtraTempIdx[i] = ini.GetValue("WLL", "ExtraTempIdx" + i, ((i - 1) % 4) + 1, 1, 4);
 			}
 
 			// GW1000 settings
@@ -6330,66 +6289,58 @@ namespace CumulusMX
 			ini.SetValue("WLL", "PrimaryRainTxId", WllPrimaryRain);
 			ini.SetValue("WLL", "PrimarySolarTxId", WllPrimarySolar);
 			ini.SetValue("WLL", "PrimaryUvTxId", WllPrimaryUV);
-			ini.SetValue("WLL", "ExtraSoilTempTxId1", WllExtraSoilTempTx1);
-			ini.SetValue("WLL", "ExtraSoilTempIdx1", WllExtraSoilTempIdx1);
-			ini.SetValue("WLL", "ExtraSoilTempTxId2", WllExtraSoilTempTx2);
-			ini.SetValue("WLL", "ExtraSoilTempIdx2", WllExtraSoilTempIdx2);
-			ini.SetValue("WLL", "ExtraSoilTempTxId3", WllExtraSoilTempTx3);
-			ini.SetValue("WLL", "ExtraSoilTempIdx3", WllExtraSoilTempIdx3);
-			ini.SetValue("WLL", "ExtraSoilTempTxId4", WllExtraSoilTempTx4);
-			ini.SetValue("WLL", "ExtraSoilTempIdx4", WllExtraSoilTempIdx4);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId1", WllExtraSoilMoistureTx1);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx1", WllExtraSoilMoistureIdx1);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId2", WllExtraSoilMoistureTx2);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx2", WllExtraSoilMoistureIdx2);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId3", WllExtraSoilMoistureTx3);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx3", WllExtraSoilMoistureIdx3);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId4", WllExtraSoilMoistureTx4);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx4", WllExtraSoilMoistureIdx4);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId5", WllExtraSoilMoistureTx5);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx5", WllExtraSoilMoistureIdx5);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId6", WllExtraSoilMoistureTx6);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx6", WllExtraSoilMoistureIdx6);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId7", WllExtraSoilMoistureTx7);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx7", WllExtraSoilMoistureIdx7);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId8", WllExtraSoilMoistureTx8);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx8", WllExtraSoilMoistureIdx8);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId9", WllExtraSoilMoistureTx9);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx9", WllExtraSoilMoistureIdx9);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId10", WllExtraSoilMoistureTx10);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx10", WllExtraSoilMoistureIdx10);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId11", WllExtraSoilMoistureTx11);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx11", WllExtraSoilMoistureIdx11);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId12", WllExtraSoilMoistureTx12);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx12", WllExtraSoilMoistureIdx12);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId13", WllExtraSoilMoistureTx13);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx13", WllExtraSoilMoistureIdx13);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId14", WllExtraSoilMoistureTx14);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx14", WllExtraSoilMoistureIdx14);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId15", WllExtraSoilMoistureTx15);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx15", WllExtraSoilMoistureIdx15);
-			ini.SetValue("WLL", "ExtraSoilMoistureTxId16", WllExtraSoilMoistureTx16);
-			ini.SetValue("WLL", "ExtraSoilMoistureIdx16", WllExtraSoilMoistureIdx16);
-			ini.SetValue("WLL", "ExtraLeafTxId1", WllExtraLeafTx1);
-			ini.SetValue("WLL", "ExtraLeafIdx1", WllExtraLeafIdx1);
-			ini.SetValue("WLL", "ExtraLeafTxId2", WllExtraLeafTx2);
-			ini.SetValue("WLL", "ExtraLeafIdx2", WllExtraLeafIdx2);
-			ini.SetValue("WLL", "ExtraLeafTxId3", WllExtraLeafTx3);
-			ini.SetValue("WLL", "ExtraLeafIdx3", WllExtraLeafIdx3);
-			ini.SetValue("WLL", "ExtraLeafTxId4", WllExtraLeafTx4);
-			ini.SetValue("WLL", "ExtraLeafIdx4", WllExtraLeafIdx4);
-			ini.SetValue("WLL", "ExtraLeafTxId5", WllExtraLeafTx5);
-			ini.SetValue("WLL", "ExtraLeafIdx5", WllExtraLeafIdx5);
-			ini.SetValue("WLL", "ExtraLeafTxId6", WllExtraLeafTx6);
-			ini.SetValue("WLL", "ExtraLeafIdx6", WllExtraLeafIdx6);
-			ini.SetValue("WLL", "ExtraLeafTxId7", WllExtraLeafTx7);
-			ini.SetValue("WLL", "ExtraLeafIdx7", WllExtraLeafIdx7);
-			ini.SetValue("WLL", "ExtraLeafTxId8", WllExtraLeafTx8);
-			ini.SetValue("WLL", "ExtraLeafIdx8", WllExtraLeafIdx8);
+			for (var i = 1; i <= 16; i++)
+			{
+				if (WllSoilTempTx[i] == 0)
+				{
+					ini.DeleteValue("WLL", "ExtraSoilTempTxId" + i);
+					ini.DeleteValue("WLL", "ExtraSoilTempIdx" + i);
+				}
+				else
+				{
+					ini.SetValue("WLL", "ExtraSoilTempTxId" + i, WllSoilTempTx[i]);
+					ini.SetValue("WLL", "ExtraSoilTempIdx" + i, WllSoilTempIdx[i]);
+				}
+			}
+			for (var i = 1; i <= 16; i++)
+			{
+				if (WllSoilMoistureTx[i] == 0)
+				{
+					ini.DeleteValue("WLL", "ExtraSoilMoistureTxId" + i);
+					ini.DeleteValue("WLL", "ExtraSoilMoistureIdx" + i);
+				}
+				else
+				{
+					ini.SetValue("WLL", "ExtraSoilMoistureTxId" + i, WllSoilMoistureTx[i]);
+					ini.SetValue("WLL", "ExtraSoilMoistureIdx" + i, WllSoilMoistureIdx[i]);
+				}
+			}
+			for (var i = 1; i <= 8; i++)
+			{
+				if (WllLeafWetTx[i] == 0)
+				{
+					ini.DeleteValue("WLL", "ExtraLeafTxId" + i);
+					ini.DeleteValue("WLL", "ExtraLeafIdx" + i);
+				}
+				else
+				{
+					ini.SetValue("WLL", "ExtraLeafTxId" + i, WllLeafWetTx[i]);
+					ini.SetValue("WLL", "ExtraLeafIdx" + i, WllSoilMoistureIdx[i]);
+				}
+			}
 			for (int i = 1; i <= 8; i++)
 			{
-				ini.SetValue("WLL", "ExtraTempTxId" + i, WllExtraTempTx[i]);
-				ini.SetValue("WLL", "ExtraHumOnTxId" + i, WllExtraHumTx[i]);
+				if (WllExtraTempTx[i] == 0)
+				{
+					ini.DeleteValue("WLL", "ExtraTempTxId" + i);
+					ini.DeleteValue("WLL", "ExtraTempIdx" + i);
+					ini.DeleteValue("WLL", "ExtraHumOnTxId" + i);
+				}
+				else
+				{
+					ini.SetValue("WLL", "ExtraTempTxId" + i, WllExtraTempTx[i]);
+					ini.SetValue("WLL", "ExtraTempIdx" + i, WllExtraTempIdx[i]);
+				}
 			}
 
 			// GW1000 settings
@@ -8252,69 +8203,18 @@ namespace CumulusMX
 		internal int WllPrimarySolar;
 		internal int WllPrimaryUV;
 
-		internal int WllExtraSoilTempTx1;
-		internal int WllExtraSoilTempIdx1 = 1;
-		internal int WllExtraSoilTempTx2;
-		internal int WllExtraSoilTempIdx2 = 2;
-		internal int WllExtraSoilTempTx3;
-		internal int WllExtraSoilTempIdx3 = 3;
-		internal int WllExtraSoilTempTx4;
-		internal int WllExtraSoilTempIdx4 = 4;
+		internal int[] WllSoilTempTx = new int[17];
+		internal int[] WllSoilTempIdx = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
 
-		internal int WllExtraSoilMoistureTx1;
-		internal int WllExtraSoilMoistureIdx1 = 1;
-		internal int WllExtraSoilMoistureTx2;
-		internal int WllExtraSoilMoistureIdx2 = 2;
-		internal int WllExtraSoilMoistureTx3;
-		internal int WllExtraSoilMoistureIdx3 = 3;
-		internal int WllExtraSoilMoistureTx4;
-		internal int WllExtraSoilMoistureIdx4 = 4;
-		internal int WllExtraSoilMoistureTx5;
-		internal int WllExtraSoilMoistureIdx5 = 1;
-		internal int WllExtraSoilMoistureTx6;
-		internal int WllExtraSoilMoistureIdx6 = 2;
-		internal int WllExtraSoilMoistureTx7;
-		internal int WllExtraSoilMoistureIdx7 = 3;
-		internal int WllExtraSoilMoistureTx8;
-		internal int WllExtraSoilMoistureIdx8 = 4;
-		internal int WllExtraSoilMoistureTx9;
-		internal int WllExtraSoilMoistureIdx9 = 1;
-		internal int WllExtraSoilMoistureTx10;
-		internal int WllExtraSoilMoistureIdx10 = 2;
-		internal int WllExtraSoilMoistureTx11;
-		internal int WllExtraSoilMoistureIdx11 = 3;
-		internal int WllExtraSoilMoistureTx12;
-		internal int WllExtraSoilMoistureIdx12 = 4;
-		internal int WllExtraSoilMoistureTx13;
-		internal int WllExtraSoilMoistureIdx13 = 1;
-		internal int WllExtraSoilMoistureTx14;
-		internal int WllExtraSoilMoistureIdx14 = 2;
-		internal int WllExtraSoilMoistureTx15;
-		internal int WllExtraSoilMoistureIdx15 = 3;
-		internal int WllExtraSoilMoistureTx16;
-		internal int WllExtraSoilMoistureIdx16 = 4;
+		internal int[] WllSoilMoistureTx = new int[17];
+		internal int[] WllSoilMoistureIdx = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
 
-		internal int WllExtraLeafTx1;
-		internal int WllExtraLeafIdx1 = 1;
-		internal int WllExtraLeafTx2;
-		internal int WllExtraLeafIdx2 = 2;
-		internal int WllExtraLeafTx3;
-		internal int WllExtraLeafIdx3 = 1;
-		internal int WllExtraLeafTx4;
-		internal int WllExtraLeafIdx4 = 2;
-		internal int WllExtraLeafTx5;
-		internal int WllExtraLeafIdx5 = 1;
-		internal int WllExtraLeafTx6;
-		internal int WllExtraLeafIdx6 = 2;
-		internal int WllExtraLeafTx7;
-		internal int WllExtraLeafIdx7 = 1;
-		internal int WllExtraLeafTx8;
-		internal int WllExtraLeafIdx8 = 2;
+		internal int[] WllLeafWetTx = new int[9];
+		internal int[] WllLeafWetIdx = [0, 1, 2, 1, 2, 1, 2, 1, 2];
 
 
-		internal int[] WllExtraTempTx = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-		internal bool[] WllExtraHumTx = [false, false, false, false, false, false, false, false, false];
+		internal int[] WllExtraTempTx = new int[17];
+		internal int[] WllExtraTempIdx = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
 
 		// WeatherLink Live transmitter Ids and indexes
 		internal bool AirLinkIsNode;
