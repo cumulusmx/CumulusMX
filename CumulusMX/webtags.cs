@@ -4159,7 +4159,11 @@ namespace CumulusMX
 
 		private string TagExtraTemp(Dictionary<string, string> tagParams)
 		{
-			var sensor = int.Parse(tagParams.Get("sensor") ?? "1");
+			int sensor = 1;
+			if (int.TryParse(tagParams.Get("sensor"), out int val))
+			{
+				sensor = val;
+			}
 			return GetExtraTemp(sensor, tagParams);
 		}
 
@@ -4220,7 +4224,11 @@ namespace CumulusMX
 
 		private string TagExtraDp(Dictionary<string, string> tagParams)
 		{
-			var sensor = int.Parse(tagParams.Get("sensor") ?? "1");
+			int sensor = 1;
+			if (int.TryParse(tagParams.Get("sensor"), out int val))
+			{
+				sensor = val;
+			}
 			return GetExtraDP(sensor, tagParams);
 		}
 
@@ -4281,7 +4289,11 @@ namespace CumulusMX
 
 		private string TagExtraHum(Dictionary<string, string> tagParams)
 		{
-			var sensor = int.Parse(tagParams.Get("sensor") ?? "1");
+			int sensor = 1;
+			if (int.TryParse(tagParams.Get("sensor"), out int val))
+			{
+				sensor = val;
+			}
 			return GetExtraHum(sensor, tagParams);
 		}
 
