@@ -53,7 +53,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Renamed WoW settings screen upload 'PIN' to 'Authentication Key'
 - Low Battery Alarms now append the low battery status strings to the message
 	- Plus quite a few internal Alarm code changes
-- Number of supported Extra Temperature sensors increased from 10 to 16
+- Number of supported Extra Temperature/Humidity/Dewpoint sensors increased from 10 to 16
+	- New web tags to access these new values and the existing sensors 1-10:
+	`<#ExtraTemp sensor=N>`, `<#ExtraHum sensor=N>`, `<#ExtraDP sensor=N>`
 - Davis WLL: number of supported extra sensors increased
 	- Soil Temperature from 4 to 16
 	- Soil Moisture from 4 to 16
