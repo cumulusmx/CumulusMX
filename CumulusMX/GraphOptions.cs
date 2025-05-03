@@ -59,9 +59,9 @@ namespace CumulusMX
 
 			public GraphOptionsVisible()
 			{
-				ExtraTemp.Vals = new int[10];
-				ExtraHum.Vals = new int[10];
-				ExtraDewPoint.Vals = new int[10];
+				ExtraTemp.Vals = new int[16];
+				ExtraHum.Vals = new int[16];
+				ExtraDewPoint.Vals = new int[16];
 				SoilTemp.Vals = new int[16];
 				SoilMoist.Vals = new int[16];
 				UserTemp.Vals = new int[8];

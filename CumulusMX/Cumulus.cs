@@ -4829,9 +4829,9 @@ namespace CumulusMX
 			GraphOptions.Visible.TempSum1.Val = ini.GetValue("Graphs", "TempSumVisible1", 1, 0, 2);
 			GraphOptions.Visible.TempSum2.Val = ini.GetValue("Graphs", "TempSumVisible2", 1, 0, 2);
 			GraphOptions.Visible.ChillHours.Val = ini.GetValue("Graphs", "ChillHoursVisible", 1, 0, 2);
-			GraphOptions.Visible.ExtraTemp.Vals = ini.GetValue("Graphs", "ExtraTempVisible", new int[10]);
-			GraphOptions.Visible.ExtraHum.Vals = ini.GetValue("Graphs", "ExtraHumVisible", new int[10]);
-			GraphOptions.Visible.ExtraDewPoint.Vals = ini.GetValue("Graphs", "ExtraDewPointVisible", new int[10]);
+			GraphOptions.Visible.ExtraTemp.Vals = ini.GetValue("Graphs", "ExtraTempVisible", new int[16]);
+			GraphOptions.Visible.ExtraHum.Vals = ini.GetValue("Graphs", "ExtraHumVisible", new int[16]);
+			GraphOptions.Visible.ExtraDewPoint.Vals = ini.GetValue("Graphs", "ExtraDewPointVisible", new int[16]);
 			GraphOptions.Visible.SoilTemp.Vals = ini.GetValue("Graphs", "SoilTempVisible", new int[16]);
 			GraphOptions.Visible.SoilMoist.Vals = ini.GetValue("Graphs", "SoilMoistVisible", new int[16]);
 			GraphOptions.Visible.UserTemp.Vals = ini.GetValue("Graphs", "UserTempVisible", new int[8]);
@@ -4899,9 +4899,9 @@ namespace CumulusMX
 			var colours10 = colours16.Take(10).ToArray();
 			var colours8 = colours16.Take(8).ToArray();
 			var colours2 = colours16.Take(2).ToArray();
-			GraphOptions.Colour.ExtraTemp = ini.GetValue("GraphColours", "ExtraTempColour", colours10);
-			GraphOptions.Colour.ExtraHum = ini.GetValue("GraphColours", "ExtraHumColour", colours10);
-			GraphOptions.Colour.ExtraDewPoint = ini.GetValue("GraphColours", "ExtraDewPointColour", colours10);
+			GraphOptions.Colour.ExtraTemp = ini.GetValue("GraphColours", "ExtraTempColour", colours16.ToArray());
+			GraphOptions.Colour.ExtraHum = ini.GetValue("GraphColours", "ExtraHumColour", colours16.ToArray());
+			GraphOptions.Colour.ExtraDewPoint = ini.GetValue("GraphColours", "ExtraDewPointColour", colours16.ToArray());
 			GraphOptions.Colour.SoilTemp = ini.GetValue("GraphColours", "SoilTempColour", colours16.ToArray());
 			GraphOptions.Colour.SoilMoist = ini.GetValue("GraphColours", "SoilMoistColour", colours16.ToArray());
 			GraphOptions.Colour.LeafWetness = ini.GetValue("GraphColours", "LeafWetness", colours2);
@@ -7542,43 +7542,43 @@ namespace CumulusMX
 			for (var i = 0; i < 4; i++)
 			{
 				// air quality captions (for Extra Sensor Data screen)
-				Trans.AirQualityCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor" + (i + 1), Trans.AirQualityCaptions[i]);
-				Trans.AirQualityAvgCaptions[i] = ini.GetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[i]);
+				Trans.AirQualityCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor" + (i + 1), "Sensor " + (i + 1));
+				Trans.AirQualityAvgCaptions[i] = ini.GetValue("AirQualityCaptions", "SensorAvg" + (i + 1), "Sensor Avg " + (i + 1));
+
+				Trans.Laser[i] = ini.GetValue("LaserCaptions", "Sensor" + (i + 1), "Sensor " + (i + 1));
 			}
 
 			for (var i = 0; i < 8; i++)
 			{
+				var name = "Sensor" + (i + 1);
+				var caption = "Sensor " + (i + 1);
+
 				// leaf wetness captions (for Extra Sensor Data screen)
-				Trans.LeafWetnessCaptions[i] = ini.GetValue("LeafWetnessCaptions", "Sensor" + (i + 1), Trans.LeafWetnessCaptions[i]);
+				Trans.LeafWetnessCaptions[i] = ini.GetValue("LeafWetnessCaptions", name, caption);
 
 				// User temperature captions (for Extra Sensor Data screen)
-				Trans.UserTempCaptions[i] = ini.GetValue("UserTempCaptions", "Sensor" + (i + 1), Trans.UserTempCaptions[i]);
-			}
-
-			for (var i = 0; i < 10; i++)
-			{
-				// Extra temperature captions (for Extra Sensor Data screen)
-				Trans.ExtraTempCaptions[i] = ini.GetValue("ExtraTempCaptions", "Sensor" + (i + 1), Trans.ExtraTempCaptions[i]);
-
-				// Extra humidity captions (for Extra Sensor Data screen)
-				Trans.ExtraHumCaptions[i] = ini.GetValue("ExtraHumCaptions", "Sensor" + (i + 1), Trans.ExtraHumCaptions[i]);
-
-				// Extra dew point captions (for Extra Sensor Data screen)
-				Trans.ExtraDPCaptions[i] = ini.GetValue("ExtraDPCaptions", "Sensor" + (i + 1), Trans.ExtraDPCaptions[i]);
+				Trans.UserTempCaptions[i] = ini.GetValue("UserTempCaptions", name, caption);
 			}
 
 			for (var i = 0; i < 16; i++)
 			{
+				var name = "Sensor" + (i + 1);
+				var caption = "Sensor " + (i + 1);
+
+				// Extra temperature captions (for Extra Sensor Data screen)
+				Trans.ExtraTempCaptions[i] = ini.GetValue("ExtraTempCaptions", name, caption);
+
+				// Extra humidity captions (for Extra Sensor Data screen)
+				Trans.ExtraHumCaptions[i] = ini.GetValue("ExtraHumCaptions", name, caption);
+
+				// Extra dew point captions (for Extra Sensor Data screen)
+				Trans.ExtraDPCaptions[i] = ini.GetValue("ExtraDPCaptions", name, caption);
+
 				// soil temp captions (for Extra Sensor Data screen)
-				Trans.SoilTempCaptions[i] = ini.GetValue("SoilTempCaptions", "Sensor" + (i + 1), Trans.SoilTempCaptions[i]);
+				Trans.SoilTempCaptions[i] = ini.GetValue("SoilTempCaptions", name, caption);
 
 				// soil moisture captions (for Extra Sensor Data screen)
-				Trans.SoilMoistureCaptions[i] = ini.GetValue("SoilMoistureCaptions", "Sensor" + (i + 1), Trans.SoilMoistureCaptions[i]);
-			}
-
-			for (var i = 0; i < 4; i++)
-			{
-				Trans.Laser[i] = ini.GetValue("LaserCaptions", "Sensor" + (i + 1), Trans.Laser[i]);
+				Trans.SoilMoistureCaptions[i] = ini.GetValue("SoilMoistureCaptions", name, caption);
 			}
 
 			// CO2 captions - Ecowitt WH45 sensor
@@ -7769,25 +7769,27 @@ namespace CumulusMX
 				ini.SetValue("UserTempCaptions", "Sensor" + (i + 1), Trans.UserTempCaptions[i]);
 			}
 
-			for (var i = 0; i < 10; i++)
+			for (var i = 0; i < 16; i++)
 			{
+				var name = "Sensor" + (i + 1);
 				// Extra temperature captions (for Extra Sensor Data screen)
-				ini.SetValue("ExtraTempCaptions", "Sensor" + (i + 1), Trans.ExtraTempCaptions[i]);
+				ini.SetValue("ExtraTempCaptions", name, Trans.ExtraTempCaptions[i]);
 
 				// Extra humidity captions (for Extra Sensor Data screen)
-				ini.SetValue("ExtraHumCaptions", "Sensor" + (i + 1), Trans.ExtraHumCaptions[i]);
+				ini.SetValue("ExtraHumCaptions", name, Trans.ExtraHumCaptions[i]);
 
 				// Extra dew point captions (for Extra Sensor Data screen)
-				ini.SetValue("ExtraDPCaptions", "Sensor" + (i + 1), Trans.ExtraDPCaptions[i]);
+				ini.SetValue("ExtraDPCaptions", name, Trans.ExtraDPCaptions[i]);
 			}
 
 			for (var i = 0; i < 16; i++)
 			{
+				var name = "Sensor" + (i + 1);
 				// soil temp captions (for Extra Sensor Data screen)
-				ini.SetValue("SoilTempCaptions", "Sensor" + (i + 1), Trans.SoilTempCaptions[i]);
+				ini.SetValue("SoilTempCaptions", name, Trans.SoilTempCaptions[i]);
 
 				// soil moisture captions (for Extra Sensor Data screen)
-				ini.SetValue("SoilMoistureCaptions", "Sensor" + (i + 1), Trans.SoilMoistureCaptions[i]);
+				ini.SetValue("SoilMoistureCaptions", name, Trans.SoilMoistureCaptions[i]);
 			}
 
 			for (var i = 0; i < 4; i++)

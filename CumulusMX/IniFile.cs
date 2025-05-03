@@ -1,4 +1,4 @@
-// **************************
+﻿// **************************
 // *** IniFile class V1.0    ***
 // **************************
 // *** (C)2009 S.T.A. snc ***
@@ -350,16 +350,19 @@ namespace CumulusMX
 		}
 
 		// *** Decode byte array ***
-		private static byte[] DecodeByteArray(string Value)
+		private static byte[] DecodeByteArray(string Value, byte[] Default)
 		{
 			if (Value == null) return [];
 
-			int l = Value.Length;
+			int l = Math.Max(Value.Length, Default.Length);
 			if (l < 2) return [];
 
 			l /= 2;
 			byte[] Result = new byte[l];
-			for (int i = 0; i < l; i++) Result[i] = Convert.ToByte(Value.Substring(i * 2, 2), 16);
+			for (int i = 0; i < l; i++)
+			{
+				Result[i] = Value.Length > i * 2 ? Convert.ToByte(Value.Substring(i * 2, 2), 16) : Default[i*2];
+			}
 			return Result;
 		}
 
@@ -380,15 +383,15 @@ namespace CumulusMX
 		}
 
 		// *** Decode bool array
-		private static bool[] DecodeBoolArray(string Value, int Length)
+		private static bool[] DecodeBoolArray(string Value, bool[] Default)
 		{
 			if (Value == null) return [];
 
 			var arr = Value.Split(',');
-			var ret = new bool[Math.Max(arr.Length, Length)];
+			var ret = new bool[Math.Max(arr.Length, Default.Length)];
 			for (var i = 0; i < ret.Length; i++)
 			{
-				ret[i] = Convert.ToBoolean(Convert.ToInt32(arr[i]));
+				ret[i] = arr.Length > i ? Convert.ToBoolean(Convert.ToInt32(arr[i])) : Default[i];
 			}
 
 			return ret;
@@ -411,13 +414,19 @@ namespace CumulusMX
 		}
 
 		// *** Decode string array - very basic, no escaped quotes allowed
-		private static string[] DecodeStringArray(string Value)
+		private static string[] DecodeStringArray(string Value, string[] Default)
 		{
 			if (Value == null) return [];
 
-			var x = Value[1..^1];
+			var arr = Value[1..^1].Split(quoteCommaQuote, StringSplitOptions.None);
+			var ret = new string[Math.Max(arr.Length, Default.Length)];
 
-			return x.Split(quoteCommaQuote, StringSplitOptions.None);
+			for (var i = 0; i < ret.Length; i++)
+			{
+				ret[i] = arr.Length > i ? arr[i] : Default[i];
+			}
+
+			return ret;
 		}
 
 		private static string EncodeIntArray(int[] Value)
@@ -429,15 +438,15 @@ namespace CumulusMX
 		}
 
 		// *** Decode string array - very basic, no escaped quotes allowed
-		private static int[] DecodeIntArray(string Value, int Length)
+		private static int[] DecodeIntArray(string Value, int[] Default)
 		{
 			if (Value == null) return [];
 
 			var arr = Value.Split(',');
-			var ret = new int[Math.Max(arr.Length, Length)];
+			var ret = new int[Math.Max(arr.Length, Default.Length)];
 			for (var i = 0; i < ret.Length; i++)
 			{
-				ret[i] = Convert.ToInt32(arr[i]);
+				ret[i] = arr.Length > i ? Convert.ToInt32(arr[i]) : Default[i];
 			}
 
 			return ret;
@@ -540,7 +549,7 @@ namespace CumulusMX
 			string StringValue = GetValue(SectionName, Key, EncodeByteArray(DefaultValue));
 			try
 			{
-				return DecodeByteArray(StringValue);
+				return DecodeByteArray(StringValue, DefaultValue);
 			}
 			catch (FormatException)
 			{
@@ -553,7 +562,7 @@ namespace CumulusMX
 			string StringValue = GetValue(SectionName, Key, EncodeBoolArray(DefaultValue));
 			try
 			{
-				return DecodeBoolArray(StringValue, DefaultValue.Length);
+				return DecodeBoolArray(StringValue, DefaultValue);
 			}
 			catch (FormatException)
 			{
@@ -566,7 +575,7 @@ namespace CumulusMX
 			string StringValue = GetValue(SectionName, Key, EncodeStringArray(DefaultValue));
 			try
 			{
-				return DecodeStringArray(StringValue);
+				return DecodeStringArray(StringValue, DefaultValue);
 			}
 			catch (FormatException)
 			{
@@ -579,7 +588,7 @@ namespace CumulusMX
 			string StringValue = GetValue(SectionName, Key, EncodeIntArray(DefaultValue));
 			try
 			{
-				return DecodeIntArray(StringValue, DefaultValue.Length);
+				return DecodeIntArray(StringValue, DefaultValue);
 			}
 			catch (FormatException)
 			{

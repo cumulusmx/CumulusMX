@@ -11549,7 +11549,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (int sensor = 1; sensor < 11; sensor++)
+			for (int sensor = 1; sensor < 17; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(sensor - 1, true))
 				{
@@ -11599,7 +11599,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (int sensor = 1; sensor < 11; sensor++)
+			for (int sensor = 1; sensor < 17; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(sensor - 1, true))
 				{
@@ -11621,7 +11621,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (int sensor = 1; sensor < 11; sensor++)
+			for (int sensor = 1; sensor < 17; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(sensor - 1, true))
 				{

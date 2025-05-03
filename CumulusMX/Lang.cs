@@ -36,24 +36,18 @@
 
 			compassp = new string[16];
 
-			AirQualityCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4"];
-			AirQualityAvgCaptions = ["Sensor Avg 1", "Sensor Avg 2", "Sensor Avg 3", "Sensor Avg 4"];
+			AirQualityCaptions = new string[4];
+			AirQualityAvgCaptions = new string[4]; ;
 
-			LeafWetnessCaptions = ["Wetness 1", "Wetness 2", "Wetness 3", "Wetness 4", "Wetness 5", "Wetness 6", "Wetness 7", "Wetness 8"];
+			Laser = new string[4]; ;
 
-			UserTempCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8"];
-
-			ExtraTempCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10"];
-
-			ExtraHumCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10"];
-
-			ExtraDPCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10"];
-
-			SoilTempCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16"];
-
-			SoilMoistureCaptions = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4", "Sensor 5", "Sensor 6", "Sensor 7", "Sensor 8", "Sensor 9", "Sensor 10", "Sensor 11", "Sensor 12", "Sensor 13", "Sensor 14", "Sensor 15", "Sensor 16"];
-
-			Laser = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4"];
+			LeafWetnessCaptions = new string[8];
+			UserTempCaptions = new string[8];
+			ExtraTempCaptions = new string[16];
+			ExtraHumCaptions = new string[16];
+			ExtraDPCaptions = new string[16];
+			SoilTempCaptions = new string[16];
+			SoilMoistureCaptions = new string[16];
 
 			DavisForecast1 =
 			[
