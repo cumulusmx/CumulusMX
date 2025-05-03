@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4089\]][19] - 2025-05-01
+## [4.5.0 \[b4089\]][19] - 2025-05-05
 
 ### New
 
@@ -67,7 +67,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Revert 12h time format change in NOAA reports, 12h times now reported as "h:mmtt" rather than "h:mm tt"
 - Missing times of Feels Like highs and lows on the dashboard gauges page
 - Entry of EMEI codes on the Station Settings and Wizard pages for Ecowitt stations
-- Fixed the web tag `ProgramUpTimeMs`, it now returns a integer value as originally intended
+- Fixed the web tag `<#ProgramUpTimeMs>`, it now returns a integer value as originally intended
 - Dashboard Select-a-Period AQ PM2.5 chart only showed data from the last N days - N defined by the recent data setting
 - MQTT IP protocol version not saving to Cumulus.ini
 - MQTT Protocol version - removed Auto detect as it does not work
