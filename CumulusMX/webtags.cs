@@ -4157,6 +4157,12 @@ namespace CumulusMX
 			return GetExtraTemp(10, tagParams);
 		}
 
+		private string TagExtraTemp(Dictionary<string, string> tagParams)
+		{
+			var sensor = int.Parse(tagParams.Get("sensor") ?? "1");
+			return GetExtraTemp(sensor, tagParams);
+		}
+
 		private string GetExtraTemp(int index, Dictionary<string, string> tagParams)
 		{
 			return station.ExtraTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.ExtraTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
@@ -4212,6 +4218,12 @@ namespace CumulusMX
 			return GetExtraDP(10, tagParams);
 		}
 
+		private string TagExtraDp(Dictionary<string, string> tagParams)
+		{
+			var sensor = int.Parse(tagParams.Get("sensor") ?? "1");
+			return GetExtraDP(sensor, tagParams);
+		}
+
 		private string GetExtraDP(int index, Dictionary<string, string> tagParams)
 		{
 			return station.ExtraDewPoint[index].HasValue ? CheckRcDp(CheckTempUnit(station.ExtraDewPoint[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
@@ -4265,6 +4277,12 @@ namespace CumulusMX
 		private string TagExtraHum10(Dictionary<string, string> tagParams)
 		{
 			return GetExtraHum(10, tagParams);
+		}
+
+		private string TagExtraHum(Dictionary<string, string> tagParams)
+		{
+			var sensor = int.Parse(tagParams.Get("sensor") ?? "1");
+			return GetExtraHum(sensor, tagParams);
 		}
 
 		private string GetExtraHum(int index, Dictionary<string, string> tagParams)
@@ -6953,6 +6971,7 @@ namespace CumulusMX
 				{ "IsFreezing", TagIsFreezing },
 				{ "THWindex", TagThwIndex },
 				{ "THSWindex", TagThswIndex },
+				{ "ExtraTemp", TagExtraTemp },
 				{ "ExtraTemp1", TagExtraTemp1 },
 				{ "ExtraTemp2", TagExtraTemp2 },
 				{ "ExtraTemp3", TagExtraTemp3 },
@@ -6963,6 +6982,7 @@ namespace CumulusMX
 				{ "ExtraTemp8", TagExtraTemp8 },
 				{ "ExtraTemp9", TagExtraTemp9 },
 				{ "ExtraTemp10", TagExtraTemp10 },
+				{ "ExtraDP", TagExtraDp },
 				{ "ExtraDP1", TagExtraDp1 },
 				{ "ExtraDP2", TagExtraDp2 },
 				{ "ExtraDP3", TagExtraDp3 },
@@ -6973,6 +6993,7 @@ namespace CumulusMX
 				{ "ExtraDP8", TagExtraDp8 },
 				{ "ExtraDP9", TagExtraDp9 },
 				{ "ExtraDP10", TagExtraDp10 },
+				{ "ExtraHum", TagExtraHum },
 				{ "ExtraHum1", TagExtraHum1 },
 				{ "ExtraHum2", TagExtraHum2 },
 				{ "ExtraHum3", TagExtraHum3 },
