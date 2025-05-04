@@ -715,7 +715,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage("Reading archive data from logger");
 			bw = new BackgroundWorker();
-			bw.DoWork += bw_DoWork;
+			bw.DoWork += bw_DoArchiveData;
 			bw.RunWorkerCompleted += bw_RunWorkerCompleted;
 			bw.WorkerReportsProgress = true;
 			bw.RunWorkerAsync();
@@ -772,13 +772,13 @@ namespace CumulusMX
 			Cumulus.SyncInit.Release();
 		}
 
-		private void bw_DoWork(object sender, DoWorkEventArgs e)
+		private void bw_DoArchiveData(object sender, DoWorkEventArgs e)
 		{
 			int archiveRun = 0;
 			Cumulus.SyncInit.Wait();
-			try
+			do
 			{
-				do
+				try
 				{
 					if (stop)
 					{
@@ -796,15 +796,15 @@ namespace CumulusMX
 					{
 						WakeVP(socket, true);
 					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "Exception occurred reading archive data");
+				}
 
+				archiveRun++;
+			} while (archiveRun < maxArchiveRuns);
 
-					archiveRun++;
-				} while (archiveRun < maxArchiveRuns);
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogExceptionMessage(ex, "Exception occurred reading archive data");
-			}
 			Cumulus.SyncInit.Release();
 		}
 
