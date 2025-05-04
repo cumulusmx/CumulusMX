@@ -354,7 +354,7 @@ namespace CumulusMX
 		{
 			if (Value == null) return [];
 
-			int l = Math.Max(Value.Length, Default.Length);
+			int l = Default.Length;
 			if (l < 2) return [];
 
 			l /= 2;
@@ -388,7 +388,7 @@ namespace CumulusMX
 			if (Value == null) return [];
 
 			var arr = Value.Split(',');
-			var ret = new bool[Math.Max(arr.Length, Default.Length)];
+			var ret = new bool[Default.Length];
 			for (var i = 0; i < ret.Length; i++)
 			{
 				ret[i] = arr.Length > i ? Convert.ToBoolean(Convert.ToInt32(arr[i])) : Default[i];
@@ -419,7 +419,7 @@ namespace CumulusMX
 			if (Value == null) return [];
 
 			var arr = Value[1..^1].Split(quoteCommaQuote, StringSplitOptions.None);
-			var ret = new string[Math.Max(arr.Length, Default.Length)];
+			var ret = new string[Default.Length];
 
 			for (var i = 0; i < ret.Length; i++)
 			{
@@ -443,7 +443,7 @@ namespace CumulusMX
 			if (Value == null) return [];
 
 			var arr = Value.Split(',');
-			var ret = new int[Math.Max(arr.Length, Default.Length)];
+			var ret = new int[Default.Length];
 			for (var i = 0; i < ret.Length; i++)
 			{
 				ret[i] = arr.Length > i ? Convert.ToInt32(arr[i]) : Default[i];
