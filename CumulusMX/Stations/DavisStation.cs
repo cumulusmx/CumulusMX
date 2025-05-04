@@ -803,7 +803,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("Exception occurred reading archive data: " + ex.Message);
+				cumulus.LogExceptionMessage(ex, "Exception occurred reading archive data");
 			}
 			Cumulus.SyncInit.Release();
 		}
@@ -2572,441 +2572,458 @@ namespace CumulusMX
 
 					for (int r = start; r < 5; r++)
 					{
-						VPArchiveData archiveData = new VPArchiveData();
-
-						byte[] record = new byte[recordSize];
-
-						DateTime timestamp;
-
-						// Copy the next record from the buffer...
-						Array.Copy(buff, (r * recordSize) + 1, record, 0, recordSize);
-
-						// ...and load it into the archive data...
-						archiveData.Load(record, out timestamp);
-
-						cumulus.LogMessage("GetArchiveData: Loaded archive record for Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
-
-						if (timestamp > LastDataReadTime)
+						try
 						{
-							cumulus.LogMessage("GetArchiveData: Processing archive record for " + timestamp);
 
-							DataDateTime = timestamp;
+							VPArchiveData archiveData = new VPArchiveData();
 
-							rollHour = Math.Abs(cumulus.GetHourInc(timestamp));
+							byte[] record = new byte[recordSize];
 
-							int h = timestamp.Hour;
+							DateTime timestamp;
 
-							if (h != rollHour)
+							// Copy the next record from the buffer...
+							Array.Copy(buff, (r * recordSize) + 1, record, 0, recordSize);
+
+							// ...and load it into the archive data...
+							archiveData.Load(record, out timestamp);
+
+							cumulus.LogMessage("GetArchiveData: Loaded archive record for Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
+
+							if (timestamp > LastDataReadTime)
 							{
-								rolloverdone = false;
-							}
+								cumulus.LogMessage("GetArchiveData: Processing archive record for " + timestamp);
 
-							int interval;
-							if (starting && timestamp > nextLoggerTime)
-							{
-								interval = loggerInterval;
-								starting = false;
-							}
-							else
-							{
-								interval = (int) (timestamp - LastDataReadTime).TotalMinutes;
-							}
+								DataDateTime = timestamp;
 
-							// ..and then process it
+								rollHour = Math.Abs(cumulus.GetHourInc(timestamp));
 
-							// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
-							// Windrun (done)
-							// Dominant wind bearing (done)
-							// ET - if MX calculated (done)
-							// Degree days (done)
-							// Rainfall (done)
+								int h = timestamp.Hour;
 
-							if (h == rollHour && !rolloverdone)
-							{
-								double lastAvg = ConvertUnits.WindMPHToUser(archiveData.AvgWindSpeed);
+								if (h != rollHour)
+								{
+									rolloverdone = false;
+								}
+
+								int interval;
+								if (starting && timestamp > nextLoggerTime)
+								{
+									interval = loggerInterval;
+									starting = false;
+								}
+								else
+								{
+									interval = (int) (timestamp - LastDataReadTime).TotalMinutes;
+								}
+
+								// ..and then process it
+
+								// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
+								// Windrun (done)
+								// Dominant wind bearing (done)
+								// ET - if MX calculated (done)
+								// Degree days (done)
+								// Rainfall (done)
+
+								if (h == rollHour && !rolloverdone)
+								{
+									double lastAvg = ConvertUnits.WindMPHToUser(archiveData.AvgWindSpeed);
+									if (archiveData.HiWindSpeed < 250 && archiveData.AvgWindSpeed < 250)
+									{
+										int bearing = archiveData.WindDirection;
+										bearing = bearing == 255 ? 0 : (int) (bearing * 22.5);
+
+										// update dominant wind bearing
+										CalculateDominantWindBearing(bearing, WindAverage, interval);
+									}
+
+									// add in 'archivePeriod' minutes worth of wind speed to windrun
+									WindRunToday += ((lastAvg * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+
+									var preDayTS = timestamp.AddDays(-1).Date.AddHours(23).AddMinutes(59);
+
+									CheckForWindrunHighLow(preDayTS);
+
+
+									if (!cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
+									{
+										DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, preDayTS);
+									}
+
+
+									// Now process the "average" interval temperature - use this as our
+									if ((archiveData.OutsideTemperature > -200) && (archiveData.OutsideTemperature < 300))
+									{
+										var temp = ConvertUnits.TempFToUser(archiveData.OutsideTemperature);
+										// add in 'archivePeriod' minutes worth of temperature to the temp samples
+										tempsamplestoday += interval;
+										TempTotalToday += (temp * interval);
+
+										// update chill hours
+										if (temp < cumulus.ChillHourThreshold && temp > cumulus.ChillHourBase)
+										{
+											// add 1 minute to chill hours
+											ChillHours += (interval / 60.0);
+										}
+
+										// update heating/cooling degree days
+										UpdateDegreeDays(interval);
+									}
+
+									var lastRain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
+									double lastRainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
+
+									if (lastRainrate < 0)
+									{
+										lastRainrate = 0;
+									}
+
+									DoRain(lastRain, lastRainrate, preDayTS);
+								}
+
+
+								// In roll-over hour and roll-over not yet done
+								if ((h == rollHour) && !rolloverdone)
+								{
+									// do roll-over
+									cumulus.LogMessage("GetArchiveData: Day roll-over " + timestamp.ToShortTimeString());
+									// If the roll-over processing takes more that ~10 seconds the station times out sending the archive data
+									// If this happens, add another run to the archive processing, so we start it again to pick up records for the next day
+									var watch = new Stopwatch();
+									watch.Start();
+									DayReset(timestamp);
+									watch.Stop();
+									if (watch.ElapsedMilliseconds > 10000)
+									{
+										// EOD processing took longer than 10 seconds, add another run
+										cumulus.LogDebugMessage("GetArchiveData: End of day processing took more than 10 seconds, adding another archive data run");
+										maxArchiveRuns++;
+									}
+									rolloverdone = true;
+								}
+
+								// Not in midnight hour, midnight rain yet to be done
+								if (h != 0)
+								{
+									midnightraindone = false;
+								}
+								else if (!midnightraindone)
+								{
+									// In midnight hour and midnight rain (and sun) not yet done
+									ResetMidnightRain(timestamp);
+									ResetSunshineHours(timestamp);
+									ResetMidnightTemperatures(timestamp);
+									midnightraindone = true;
+								}
+
+								// 9am rollover items
+								if (h != 9)
+								{
+									rollover9amdone = false;
+								}
+								else if (!rollover9amdone)
+								{
+									Reset9amTemperatures(timestamp);
+									rollover9amdone = true;
+								}
+
+								// Not in snow hour, snow yet to be done
+								if (h != 0)
+								{
+									snowhourdone = false;
+								}
+								else if (!snowhourdone)
+								{
+									// snowhour items
+									if (cumulus.SnowAutomated > 0)
+									{
+										CreateNewSnowRecord(timestamp);
+									}
+
+									// reset the accumulated snow depth(s)
+									for (int i = 0; i < Snow24h.Length; i++)
+									{
+										Snow24h[i] = null;
+									}
+
+									snowhourdone = true;
+								}
+
+								if ((archiveData.InsideTemperature > -200) && (archiveData.InsideTemperature < 300))
+								{
+									DoIndoorTemp(ConvertUnits.TempFToUser(archiveData.InsideTemperature));
+								}
+
+								if ((archiveData.InsideHumidity >= 0) && (archiveData.InsideHumidity <= 100))
+								{
+									DoIndoorHumidity(archiveData.InsideHumidity);
+								}
+
+								if ((archiveData.OutsideHumidity >= 0) && (archiveData.OutsideHumidity <= 100))
+								{
+									DoOutdoorHumidity(archiveData.OutsideHumidity, timestamp);
+								}
+
+								// Check if the archive hi/lo temps break any records
+								if ((archiveData.HiOutsideTemp > -200) && (archiveData.HiOutsideTemp < 300))
+								{
+									DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.HiOutsideTemp), timestamp);
+								}
+
+								// Check if the archive hi/lo temps break any records
+								if ((archiveData.LoOutsideTemp > -200) && (archiveData.LoOutsideTemp < 300))
+								{
+									DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.LoOutsideTemp), timestamp);
+								}
+
+								// Now process the "average" interval temperature - use this as our
+								if ((archiveData.OutsideTemperature > -200) && (archiveData.OutsideTemperature < 300))
+								{
+									DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.OutsideTemperature), timestamp);
+
+									// we don't want to do the totals for the first instant of the day
+									if (h != rollHour || timestamp.Minute != 0)
+									{
+										// add in 'archivePeriod' minutes worth of temperature to the temp samples
+										tempsamplestoday += interval;
+										TempTotalToday += (OutdoorTemperature * interval);
+
+										// update chill hours
+										if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
+										{
+											// add 1 minute to chill hours
+											ChillHours += (interval / 60.0);
+										}
+
+										// update heating/cooling degree days
+										UpdateDegreeDays(interval);
+									}
+								}
+
+								double wind = ConvertUnits.WindMPHToUser(archiveData.HiWindSpeed);
+								double avgwind = ConvertUnits.WindMPHToUser(archiveData.AvgWindSpeed);
 								if (archiveData.HiWindSpeed < 250 && archiveData.AvgWindSpeed < 250)
 								{
 									int bearing = archiveData.WindDirection;
 									bearing = bearing == 255 ? 0 : (int) (bearing * 22.5);
 
+									AddValuesToRecentWind(avgwind, avgwind, bearing, timestamp.AddMinutes(-interval), timestamp);
+									DoWind(wind, bearing, avgwind, timestamp);
+									DoWindChill(OutdoorTemperature, timestamp);
+
 									// update dominant wind bearing
 									CalculateDominantWindBearing(bearing, WindAverage, interval);
 								}
 
+								DoApparentTemp(timestamp);
+								DoFeelsLike(timestamp);
+								DoHumidex(timestamp);
+								DoCloudBaseHeatIndex(timestamp);
+
 								// add in 'archivePeriod' minutes worth of wind speed to windrun
-								WindRunToday += ((lastAvg * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
-
-								var preDayTS = timestamp.AddDays(-1).Date.AddHours(23).AddMinutes(59);
-
-								CheckForWindrunHighLow(preDayTS);
-
-
-								if (!cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
+								// we don't want to do the this for the first instant of the day
+								var notFirstRec = timestamp.Minute != 0 || h != rollHour;
+								if (notFirstRec)
 								{
-									DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, preDayTS);
+									WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+									CheckForWindrunHighLow(timestamp);
 								}
 
 
-								// Now process the "average" interval temperature - use this as our
-								if ((archiveData.OutsideTemperature > -200) && (archiveData.OutsideTemperature < 300))
+								// we don't want to add rainfall from first record of the day to the current day, it has already been added to the previous day
+								if (notFirstRec)
 								{
-									var temp = ConvertUnits.TempFToUser(archiveData.OutsideTemperature);
-									// add in 'archivePeriod' minutes worth of temperature to the temp samples
-									tempsamplestoday += interval;
-									TempTotalToday += (temp * interval);
+									double rain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
+									double rainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
 
-									// update chill hours
-									if (temp < cumulus.ChillHourThreshold && temp > cumulus.ChillHourBase)
+									if (rainrate < 0)
 									{
-										// add 1 minute to chill hours
-										ChillHours += (interval / 60.0);
+										rainrate = 0;
 									}
 
-									// update heating/cooling degree days
-									UpdateDegreeDays(interval);
+									DoRain(rain, rainrate, timestamp);
 								}
 
-								var lastRain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
-								double lastRainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
-
-								if (lastRainrate < 0)
+								if ((archiveData.Pressure > 0) && (archiveData.Pressure < 40))
 								{
-									lastRainrate = 0;
+									DoPressure(ConvertUnits.PressINHGToUser(archiveData.Pressure), timestamp);
 								}
 
-								DoRain(lastRain, lastRainrate, preDayTS);
-							}
+								// No station pressure in archive data
+								StationPressure = 0;
+								AltimeterPressure = Pressure;
 
-
-							// In roll-over hour and roll-over not yet done
-							if ((h == rollHour) && !rolloverdone)
-							{
-								// do roll-over
-								cumulus.LogMessage("GetArchiveData: Day roll-over " + timestamp.ToShortTimeString());
-								// If the roll-over processing takes more that ~10 seconds the station times out sending the archive data
-								// If this happens, add another run to the archive processing, so we start it again to pick up records for the next day
-								var watch = new Stopwatch();
-								watch.Start();
-								DayReset(timestamp);
-								watch.Stop();
-								if (watch.ElapsedMilliseconds > 10000)
+								if (archiveData.HiUVIndex >= 0 && archiveData.HiUVIndex < 25)
 								{
-									// EOD processing took longer than 10 seconds, add another run
-									cumulus.LogDebugMessage("GetArchiveData: End of day processing took more than 10 seconds, adding another archive data run");
-									maxArchiveRuns++;
-								}
-								rolloverdone = true;
-							}
-
-							// Not in midnight hour, midnight rain yet to be done
-							if (h != 0)
-							{
-								midnightraindone = false;
-							}
-							else if (!midnightraindone)
-							{
-								// In midnight hour and midnight rain (and sun) not yet done
-								ResetMidnightRain(timestamp);
-								ResetSunshineHours(timestamp);
-								ResetMidnightTemperatures(timestamp);
-								midnightraindone = true;
-							}
-
-							// 9am rollover items
-							if (h != 9)
-							{
-								rollover9amdone = false;
-							}
-							else if (!rollover9amdone)
-							{
-								Reset9amTemperatures(timestamp);
-								rollover9amdone = true;
-							}
-
-							// Not in snow hour, snow yet to be done
-							if (h != 0)
-							{
-								snowhourdone = false;
-							}
-							else if (!snowhourdone)
-							{
-								// snowhour items
-								if (cumulus.SnowAutomated > 0)
-								{
-									CreateNewSnowRecord(timestamp);
+									DoUV(archiveData.HiUVIndex, timestamp);
 								}
 
-								// reset the accumulated snow depth(s)
-								for (int i = 0; i < Snow24h.Length; i++)
+								if (archiveData.SolarRad >= 0 && archiveData.SolarRad < 5000)
 								{
-									Snow24h[i] = null;
+									DoSolarRad(archiveData.SolarRad, timestamp);
+
+									// add in archive period worth of sunshine, if sunny
+									if (IsSunny)
+										SunshineHours += (interval / 60.0);
 								}
 
-								snowhourdone = true;
-							}
-
-							if ((archiveData.InsideTemperature > -200) && (archiveData.InsideTemperature < 300))
-							{
-								DoIndoorTemp(ConvertUnits.TempFToUser(archiveData.InsideTemperature));
-							}
-
-							if ((archiveData.InsideHumidity >= 0) && (archiveData.InsideHumidity <= 100))
-							{
-								DoIndoorHumidity(archiveData.InsideHumidity);
-							}
-
-							if ((archiveData.OutsideHumidity >= 0) && (archiveData.OutsideHumidity <= 100))
-							{
-								DoOutdoorHumidity(archiveData.OutsideHumidity, timestamp);
-							}
-
-							// Check if the archive hi/lo temps break any records
-							if ((archiveData.HiOutsideTemp > -200) && (archiveData.HiOutsideTemp < 300))
-							{
-								DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.HiOutsideTemp), timestamp);
-							}
-
-							// Check if the archive hi/lo temps break any records
-							if ((archiveData.LoOutsideTemp > -200) && (archiveData.LoOutsideTemp < 300))
-							{
-								DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.LoOutsideTemp), timestamp);
-							}
-
-							// Now process the "average" interval temperature - use this as our
-							if ((archiveData.OutsideTemperature > -200) && (archiveData.OutsideTemperature < 300))
-							{
-								DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.OutsideTemperature), timestamp);
-
-								// we don't want to do the totals for the first instant of the day
-								if (h != rollHour || timestamp.Minute != 0)
+								// we don't want to do the this for the first instant of the day
+								if (notFirstRec && !cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
 								{
-									// add in 'archivePeriod' minutes worth of temperature to the temp samples
-									tempsamplestoday += interval;
-									TempTotalToday += (OutdoorTemperature * interval);
-
-									// update chill hours
-									if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
-									{
-										// add 1 minute to chill hours
-										ChillHours += (interval / 60.0);
-									}
-
-									// update heating/cooling degree days
-									UpdateDegreeDays(interval);
-								}
-							}
-
-							double wind = ConvertUnits.WindMPHToUser(archiveData.HiWindSpeed);
-							double avgwind = ConvertUnits.WindMPHToUser(archiveData.AvgWindSpeed);
-							if (archiveData.HiWindSpeed < 250 && archiveData.AvgWindSpeed < 250)
-							{
-								int bearing = archiveData.WindDirection;
-								bearing = bearing == 255 ? 0 : (int) (bearing * 22.5);
-
-								AddValuesToRecentWind(avgwind, avgwind, bearing, timestamp.AddMinutes(-interval), timestamp);
-								DoWind(wind, bearing, avgwind, timestamp);
-								DoWindChill(OutdoorTemperature, timestamp);
-
-								// update dominant wind bearing
-								CalculateDominantWindBearing(bearing, WindAverage, interval);
-							}
-
-							DoApparentTemp(timestamp);
-							DoFeelsLike(timestamp);
-							DoHumidex(timestamp);
-							DoCloudBaseHeatIndex(timestamp);
-
-							// add in 'archivePeriod' minutes worth of wind speed to windrun
-							// we don't want to do the this for the first instant of the day
-							var notFirstRec = timestamp.Minute != 0 || h != rollHour;
-							if (notFirstRec)
-							{
-								WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
-								CheckForWindrunHighLow(timestamp);
-							}
-
-
-							// we don't want to add rainfall from first record of the day to the current day, it has already been added to the previous day
-							if (notFirstRec)
-							{
-								double rain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
-								double rainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
-
-								if (rainrate < 0)
-								{
-									rainrate = 0;
+									DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
 								}
 
-								DoRain(rain, rainrate, timestamp);
-							}
-
-							if ((archiveData.Pressure > 0) && (archiveData.Pressure < 40))
-							{
-								DoPressure(ConvertUnits.PressINHGToUser(archiveData.Pressure), timestamp);
-							}
-
-							// No station pressure in archive data
-							StationPressure = 0;
-							AltimeterPressure = Pressure;
-
-							if (archiveData.HiUVIndex >= 0 && archiveData.HiUVIndex < 25)
-							{
-								DoUV(archiveData.HiUVIndex, timestamp);
-							}
-
-							if (archiveData.SolarRad >= 0 && archiveData.SolarRad < 5000)
-							{
-								DoSolarRad(archiveData.SolarRad, timestamp);
-
-								// add in archive period worth of sunshine, if sunny
-								if (IsSunny)
-									SunshineHours += (interval / 60.0);
-							}
-
-							// we don't want to do the this for the first instant of the day
-							if (notFirstRec && !cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
-							{
-								DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
-							}
-
-							if (cumulus.StationOptions.LogExtraSensors)
-							{
-								if (archiveData.ExtraTemp1 < 255)
+								if (cumulus.StationOptions.LogExtraSensors)
 								{
-									DoExtraTemp(ConvertUnits.TempFToUser(archiveData.ExtraTemp1 - 90), 1);
-								}
-
-								if (archiveData.ExtraTemp2 < 255)
-								{
-									DoExtraTemp(ConvertUnits.TempFToUser(archiveData.ExtraTemp2 - 90), 2);
-								}
-
-								if (archiveData.ExtraTemp3 < 255)
-								{
-									DoExtraTemp(ConvertUnits.TempFToUser(archiveData.ExtraTemp3 - 90), 3);
-								}
-
-								if (archiveData.ExtraHum1 >= 0 && archiveData.ExtraHum1 <= 100)
-								{
-									DoExtraHum(archiveData.ExtraHum1, 1);
 									if (archiveData.ExtraTemp1 < 255)
 									{
-										ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1].Value), ExtraHum[1].Value));
+										DoExtraTemp(ConvertUnits.TempFToUser(archiveData.ExtraTemp1 - 90), 1);
 									}
-								}
 
-								if (archiveData.ExtraHum2 >= 0 && archiveData.ExtraHum2 <= 100)
-								{
-									DoExtraHum(archiveData.ExtraHum2, 2);
 									if (archiveData.ExtraTemp2 < 255)
 									{
-										ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2].Value), ExtraHum[2].Value));
+										DoExtraTemp(ConvertUnits.TempFToUser(archiveData.ExtraTemp2 - 90), 2);
+									}
+
+									if (archiveData.ExtraTemp3 < 255)
+									{
+										DoExtraTemp(ConvertUnits.TempFToUser(archiveData.ExtraTemp3 - 90), 3);
+									}
+
+									if (archiveData.ExtraHum1 >= 0 && archiveData.ExtraHum1 <= 100)
+									{
+										DoExtraHum(archiveData.ExtraHum1, 1);
+										if (archiveData.ExtraTemp1 < 255)
+										{
+											ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1].Value), ExtraHum[1].Value));
+										}
+									}
+
+									if (archiveData.ExtraHum2 >= 0 && archiveData.ExtraHum2 <= 100)
+									{
+										DoExtraHum(archiveData.ExtraHum2, 2);
+										if (archiveData.ExtraTemp2 < 255)
+										{
+											ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2].Value), ExtraHum[2].Value));
+										}
+									}
+
+									if (archiveData.SoilMoisture1 >= 0 && archiveData.SoilMoisture1 <= 250)
+									{
+										DoSoilMoisture(archiveData.SoilMoisture1, 1);
+									}
+
+									if (archiveData.SoilMoisture2 >= 0 && archiveData.SoilMoisture2 <= 250)
+									{
+										DoSoilMoisture(archiveData.SoilMoisture2, 2);
+									}
+
+									if (archiveData.SoilMoisture3 >= 0 && archiveData.SoilMoisture3 <= 250)
+									{
+										DoSoilMoisture(archiveData.SoilMoisture3, 3);
+									}
+
+									if (archiveData.SoilMoisture4 >= 0 && archiveData.SoilMoisture4 <= 250)
+									{
+										DoSoilMoisture(archiveData.SoilMoisture4, 4);
+									}
+
+									if (archiveData.SoilTemp1 < 255 && archiveData.SoilTemp1 > 0)
+									{
+										DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp1 - 90), 1);
+									}
+
+									if (archiveData.SoilTemp2 < 255 && archiveData.SoilTemp2 > 0)
+									{
+										DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp2 - 90), 2);
+									}
+
+									if (archiveData.SoilTemp3 < 255 && archiveData.SoilTemp3 > 0)
+									{
+										DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp3 - 90), 3);
+									}
+
+									if (archiveData.SoilTemp4 < 255 && archiveData.SoilTemp4 > 0)
+									{
+										DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp4 - 90), 4);
+									}
+
+									if (archiveData.LeafWetness1 >= 0 && archiveData.LeafWetness1 < 16)
+									{
+										DoLeafWetness(archiveData.LeafWetness1, 1);
+									}
+
+									if (archiveData.LeafWetness2 >= 0 && archiveData.LeafWetness2 < 16)
+									{
+										DoLeafWetness(archiveData.LeafWetness2, 2);
 									}
 								}
 
-								if (archiveData.SoilMoisture1 >= 0 && archiveData.SoilMoisture1 <= 250)
+								cumulus.LogMessage("GetArchiveData: Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
+
+								DoWindChill(-999, timestamp);
+
+								DoApparentTemp(timestamp);
+								DoFeelsLike(timestamp);
+								DoHumidex(timestamp);
+								DoTrendValues(timestamp);
+
+								// we don't want to do the this for the first instant of the day
+								if (cumulus.StationOptions.CalculatedET && h != rollHour && timestamp.Minute != 0)
 								{
-									DoSoilMoisture(archiveData.SoilMoisture1, 1);
+									// Start of a new hour, and we want to calculate ET in Cumulus
+									CalculateEvapotranspiration(timestamp);
 								}
 
-								if (archiveData.SoilMoisture2 >= 0 && archiveData.SoilMoisture2 <= 250)
+								LastDataReadTime = timestamp;
+
+								_ = cumulus.DoLogFile(timestamp, false);
+								cumulus.LogMessage("GetArchiveData: Log file entry written");
+
+								try
 								{
-									DoSoilMoisture(archiveData.SoilMoisture2, 2);
+									cumulus.MySqlRealtimeFile(999, false, timestamp);
+									cumulus.DoCustomIntervalLogs(timestamp);
+
+									if (cumulus.StationOptions.LogExtraSensors)
+									{
+										_ = cumulus.DoExtraLogFile(timestamp);
+									}
+
+									// Custom MySQL update - minutes interval
+									if (cumulus.MySqlSettings.CustomMins.Enabled)
+									{
+										_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
+									}
+									cumulus.AddToWebServiceLists(timestamp);
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogExceptionMessage(ex, "GetArchiveData: Error in extra logging etc");
 								}
 
-								if (archiveData.SoilMoisture3 >= 0 && archiveData.SoilMoisture3 <= 250)
-								{
-									DoSoilMoisture(archiveData.SoilMoisture3, 3);
-								}
+								AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+									OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 
-								if (archiveData.SoilMoisture4 >= 0 && archiveData.SoilMoisture4 <= 250)
-								{
-									DoSoilMoisture(archiveData.SoilMoisture4, 4);
-								}
 
-								if (archiveData.SoilTemp1 < 255 && archiveData.SoilTemp1 > 0)
-								{
-									DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp1 - 90), 1);
-								}
-
-								if (archiveData.SoilTemp2 < 255 && archiveData.SoilTemp2 > 0)
-								{
-									DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp2 - 90), 2);
-								}
-
-								if (archiveData.SoilTemp3 < 255 && archiveData.SoilTemp3 > 0)
-								{
-									DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp3 - 90), 3);
-								}
-
-								if (archiveData.SoilTemp4 < 255 && archiveData.SoilTemp4 > 0)
-								{
-									DoSoilTemp(ConvertUnits.TempFToUser(archiveData.SoilTemp4 - 90), 4);
-								}
-
-								if (archiveData.LeafWetness1 >= 0 && archiveData.LeafWetness1 < 16)
-								{
-									DoLeafWetness(archiveData.LeafWetness1, 1);
-								}
-
-								if (archiveData.LeafWetness2 >= 0 && archiveData.LeafWetness2 < 16)
-								{
-									DoLeafWetness(archiveData.LeafWetness2, 2);
-								}
+								UpdateStatusPanel(timestamp);
 							}
-
-							cumulus.LogMessage("GetArchiveData: Page=" + p + " Record=" + r + " Timestamp=" + archiveData.Timestamp);
-
-							DoWindChill(-999, timestamp);
-
-							DoApparentTemp(timestamp);
-							DoFeelsLike(timestamp);
-							DoHumidex(timestamp);
-							DoTrendValues(timestamp);
-
-							// we don't want to do the this for the first instant of the day
-							if (cumulus.StationOptions.CalculatedET && h != rollHour && timestamp.Minute != 0)
+							else
 							{
-								// Start of a new hour, and we want to calculate ET in Cumulus
-								CalculateEvapotranspiration(timestamp);
+								cumulus.LogMessage("GetArchiveData: Ignoring old archive data");
 							}
 
-							LastDataReadTime = timestamp;
-
-							_ = cumulus.DoLogFile(timestamp, false);
-							cumulus.LogMessage("GetArchiveData: Log file entry written");
-							cumulus.MySqlRealtimeFile(999, false, timestamp);
-							cumulus.DoCustomIntervalLogs(timestamp);
-
-							if (cumulus.StationOptions.LogExtraSensors)
-							{
-								_ = cumulus.DoExtraLogFile(timestamp);
-							}
-
-							// Custom MySQL update - minutes interval
-							if (cumulus.MySqlSettings.CustomMins.Enabled)
-							{
-								_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
-							}
-
-							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
-
-
-							UpdateStatusPanel(timestamp);
-							cumulus.AddToWebServiceLists(timestamp);
+							numdone++;
+							if (!Program.service)
+								Console.Write("\r - processed " + (numdone / (double) numtodo).ToString("P0"));
+							cumulus.LogMessage(numdone + " archive entries processed");
 						}
-						else
+						catch (Exception ex)
 						{
-							cumulus.LogMessage("GetArchiveData: Ignoring old archive data");
+						cumulus.LogExceptionMessage(ex, "GetArchiveData: Unspecified page error");
 						}
-
-						numdone++;
-						if (!Program.service)
-							Console.Write("\r - processed " + (numdone / (double) numtodo).ToString("P0"));
-						cumulus.LogMessage(numdone + " archive entries processed");
 					}
 				}
+
 				if (!Program.service)
 				{
 					Console.WriteLine(""); // flush the progress line
