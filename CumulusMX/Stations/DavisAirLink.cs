@@ -875,6 +875,14 @@ namespace CumulusMX
 						 * pm_10_hi_num_part
 						 */
 
+						if (indoor)
+						{
+							cumulus.airLinkDataIn.dataValid = true;
+						}
+						else
+						{
+							cumulus.airLinkDataOut.dataValid = true;
+						}
 
 						var data17 = json.FromJsv<WlHistorySensorDataType17>();
 
@@ -988,8 +996,16 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							cumulus.LogDebugMessage(
-								$"DecodeAlHistoric: {locationStr} - Error processing PM data. Error: {ex.Message}");
+							cumulus.LogDebugMessage($"DecodeAlHistoric: {locationStr} - Error processing PM data. Error: {ex.Message}");
+
+							if (indoor)
+							{
+								cumulus.airLinkDataIn.dataValid = false;
+							}
+							else
+							{
+								cumulus.airLinkDataOut.dataValid = false;
+							}
 						}
 
 						break;

@@ -16,6 +16,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Realtime FTP (and FTPS) handling changed
 	- MX now runs a watchdog process that regularly checks the FTP connection is functional
+- All-new Alternative Interface for the dashboard
 - New web tag `<#SnowAccumSeason>` - this tag queries the Weather Diary for the current snow season total snow fall
 	- The tag takes an optional parameter `y=YYYY` which you can use to specify the snow season starting year for which you want the total
 - The Weather Diary now has tick boxes for: Thunder, Hail, Fog, Gales
@@ -26,7 +27,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New monthly average web tags
 	- These are the average values for a month across all your Cumulus MX history
 	- The average excludes any partial month at the start of the history, and the current month, but assumes the data between is complete
-	- Defaults to the current month, specify a specifc month using the `mon=NN` tag parameter
+	- Defaults to the current month, specify a month using the `mon=NN` tag parameter
 	`<#MonthAvgTemp>`
 	`<#MonthAvgTempHigh>`
 	`<#MonthAvgTempLow>`
@@ -36,9 +37,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#MonthAvgTotalET>`
 	`<#MonthAvgTotalChillHrs>`
 - Ecowitt stations can now map the values from an Extra Temp/Humidity sensor to the indoor T/H values (previously only outdoor T/H mapping was implemented)
-- Locale Strings value for web tag elapsed time, applies to `SystemUpTime` and `ProgramUpTime` web tags
+- Locale Strings value for web tag elapsed time, applies to `<#SystemUpTime>` and `<#ProgramUpTime>` web tags
 - Locale Strings value for web tag times, applies to 60+ web tags
-	- By default they output the time as 24-hour HH:mm, you can now override this and use 12-hour format as the default
+	- By default, they output the time as 24-hour HH:mm, you can now override this and use 12-hour format as the default
 - New Program Options > General Options setting to disable the use of WebSockets in the dashboard and use HTTP polling instead
 	- Previously this required manual editing of the Dashboard, Now, and Gauges page scripts
 - Ecowitt.Net station type now reports individual low battery sensors to the low battery array
@@ -49,10 +50,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changed
 
 - Davis VP2 IP logger IP address can now be changed and take effect without restarting MX
-- Third Party and MySQL password fields now 'reveal' when they receive focus
+- Third Party, MQTT, and MySQL password fields now 'reveal' when they receive focus
 - Renamed WoW settings screen upload 'PIN' to 'Authentication Key'
 - Low Battery Alarms now append the low battery status strings to the message
-	- Plus quite a few internal Alarm code changes
+	- Plus, quite a few internal Alarm code changes
 - Number of supported Extra Temperature/Humidity/Dewpoint sensors increased from 10 to 16
 	- New web tags to access these new values and the existing sensors 1-10:
 	`<#ExtraTemp sensor=N>`, `<#ExtraHum sensor=N>`, `<#ExtraDP sensor=N>`
@@ -67,10 +68,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Revert 12h time format change in NOAA reports, 12h times now reported as "h:mmtt" rather than "h:mm tt"
 - Missing times of Feels Like highs and lows on the dashboard gauges page
 - Entry of EMEI codes on the Station Settings and Wizard pages for Ecowitt stations
-- Fixed the web tag `<#ProgramUpTimeMs>`, it now returns a integer value as originally intended
+- Fixed the web tag `<#ProgramUpTimeMs>`, it now returns an integer value as originally intended
 - Dashboard Select-a-Period AQ PM2.5 chart only showed data from the last N days - N defined by the recent data setting
 - MQTT IP protocol version not saving to Cumulus.ini
 - MQTT Protocol version - removed Auto detect as it does not work
+- Davis AirLink not writing to the log file during catch-up. Note not all values are available in catch-up
 
 
 ### Package Updates

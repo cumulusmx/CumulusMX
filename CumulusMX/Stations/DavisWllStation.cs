@@ -1728,7 +1728,9 @@ namespace CumulusMX
 									}
 								}
 								if (!found)
+								{
 									cumulus.LogDebugMessage("GetWlHistoricData: Warning. No outdoor AirLink data for this log interval !!");
+								}
 							}
 							else
 							{
