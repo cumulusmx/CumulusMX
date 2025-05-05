@@ -1805,7 +1805,7 @@ namespace CumulusMX
 
 		private string TagTtempTh(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.HiLoToday.HighTempTime, "HH:mm", tagParams);
+			return GetFormattedDateTime(station.HiLoToday.HighTempTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
 		private string TagtempTl(Dictionary<string, string> tagParams)
@@ -3404,7 +3404,7 @@ namespace CumulusMX
 
 		private string Tagdaylength(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(cumulus.DayLength, cumulus.Trans.WebTagGenTime, tagParams);
+			return GetFormattedDateTime(cumulus.DayLength, "HH:mm", tagParams);
 		}
 
 		private string Tagdawn(Dictionary<string, string> tagParams)
@@ -3419,7 +3419,7 @@ namespace CumulusMX
 
 		private string Tagdaylightlength(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(cumulus.DaylightLength, cumulus.Trans.WebTagGenTime, tagParams);
+			return GetFormattedDateTime(cumulus.DaylightLength, "HH:mm", tagParams);
 		}
 
 		private string Tagisdaylight(Dictionary<string, string> tagParams)
