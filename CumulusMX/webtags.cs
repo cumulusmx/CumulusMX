@@ -3404,7 +3404,7 @@ namespace CumulusMX
 
 		private string Tagdaylength(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(cumulus.DayLength, "HH:mm", tagParams);
+			return GetFormattedTimeSpan(cumulus.DayLength, "{0:%h}:{0:mm}", tagParams);
 		}
 
 		private string Tagdawn(Dictionary<string, string> tagParams)
@@ -3419,7 +3419,7 @@ namespace CumulusMX
 
 		private string Tagdaylightlength(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(cumulus.DaylightLength, "HH:mm", tagParams);
+			return GetFormattedTimeSpan(cumulus.DaylightLength, "{0:%h}:{0:mm}", tagParams);
 		}
 
 		private string Tagisdaylight(Dictionary<string, string> tagParams)
