@@ -2466,41 +2466,39 @@ namespace CumulusMX
 
 				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
 				{
-					if (RealtimeFtpInProgress)
+					if (!realtimeFtpSemaphore.Wait(1000, cancellationToken))
 					{
-						LogWarningMessage($"Realtime[{cycle}]: Warning, a previous cycle is still FTPing files. Skipping FTP for this interval");
-					}
-					else if (RealtimeFtpReconnecting)
-					{
-						LogWarningMessage($"Realtime[{cycle}]: Warning, FTP is reconnecting. Skipping FTP this interval.");
+						// we cannot get the lock - abort
+						LogDebugMessage($"Realtime[{cycle}]: Warning, could not get the FTP lock, aborting FTP for this cycle");
 					}
 					else
 					{
-						RealtimeFtpInProgress = true;
-
-						if (!realtimeFtpSemaphore.Wait(1000, cancellationToken))
+						if (RealtimeFtpLocked)
 						{
-							// we cannot get the lock - abort
-							LogDebugMessage($"Realtime[{cycle}]: Warning, could not get the FTP lock, aborting FTP for this cycle");
-							RealtimeFtpInProgress = false;
+							LogWarningMessage($"Realtime[{cycle}]: Warning, FTP is busy. Skipping FTP for this interval");
 						}
 						else
 						{
+							RealtimeFtpLocked = true;
+
 							// Finally we can do some FTP!
 							try
 							{
 								RealtimeUpload(cycle).Wait();
-								realtimeFtpSemaphore.Release();
 							}
 							catch (Exception ex)
 							{
 								LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during realtime upload.");
+								// signal the wd to attmpt to reconnect
+								RealTimeWdTokenSource.Cancel();
 							}
 							finally
 							{
-								RealtimeFtpInProgress = false;
+								RealtimeFtpLocked = false;
 							}
 						}
+
+						realtimeFtpSemaphore.Release();
 					}
 				}
 
@@ -2544,12 +2542,12 @@ namespace CumulusMX
 			{
 				LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during update");
 
-				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled && !RealtimeFtpReconnecting)
+				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
 				{
 					realtimeFtpSemaphore.Release();
 				}
 				RealtimeCopyInProgress = false;
-				RealtimeFtpInProgress = false;
+				RealtimeFtpLocked = false;
 			}
 
 			LogDebugMessage($"Realtime[{cycle}]: End cycle");
@@ -2589,12 +2587,10 @@ namespace CumulusMX
 						LogDebugMessage("RealtimeFtpWatchDog: Timed out waiting for the semaphore");
 					}
 
-					RealtimeFtpInProgress = true;
+					RealtimeFtpLocked = true;
 
 					if (reinit)
 					{
-						RealtimeFtpReconnecting = true;
-
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
 							try
@@ -2687,7 +2683,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									LogMessage($"RealtimeFtpWatchDog: Realtime sftp connection test found Present Working Directory OK - [{pwd}]");
+									LogDebugMessage($"RealtimeFtpWatchDog: Realtime sftp connection test found Present Working Directory OK - [{pwd}]");
 								}
 
 								// create an read back a test file
@@ -2723,7 +2719,7 @@ namespace CumulusMX
 								}
 								else
 								{
-									LogMessage($"RealtimeFtpWatchDog: Realtime ftp connection test found Present Working Directory OK - [{pwd}]");
+									LogDebugMessage($"RealtimeFtpWatchDog: Realtime ftp connection test found Present Working Directory OK - [{pwd}]");
 								}
 
 								var testBytes = Encoding.ASCII.GetBytes("test");
@@ -2765,7 +2761,7 @@ namespace CumulusMX
 							if (ex.InnerException != null)
 							{
 								ex = Utils.GetOriginalException(ex);
-								LogDebugMessage($"RealtimeFtpWatchDog: Base exception - {ex.Message}");
+								LogExceptionMessage(ex, $"RealtimeFtpWatchDog: Base exception follows");
 							}
 
 							connected = false;
@@ -2773,13 +2769,9 @@ namespace CumulusMX
 					}
 
 					// OK we are reconnected, let the FTP recommence
-					LogMessage("RealtimeReconnect: Realtime FTP connected to server (tested)");
-					LogMessage("RealtimeReconnect: Realtime FTP operations can be resumed");
-					RealtimeFtpReconnecting = false;
-					RealtimeFtpInProgress = false;
+					LogMessage("RealtimeReconnect: Realtime FTP connected to server (tested), operations can be resumed");
+					RealtimeFtpLocked = false;
 					RealtimeCopyInProgress = false;
-					FtpAlarm.LastMessage = "Realtime re-connected";
-					FtpAlarm.Triggered = false;
 					try
 					{
 						realtimeFtpSemaphore.Release();
@@ -2788,14 +2780,16 @@ namespace CumulusMX
 					{
 						// do nothing
 					}
+					FtpAlarm.LastMessage = "Realtime re-connected";
+					FtpAlarm.Triggered = false;
 
-					LogMessage($"RealtimeFtpWatchDog: Sleeping for {realtimeFtpWdInterval} seconds before testing the connection again...");
+					LogDebugMessage($"RealtimeFtpWatchDog: Sleeping for {realtimeFtpWdInterval} seconds before testing the connection again...");
 
 					var signal = WaitHandle.WaitAny(handles, realtimeFtpWdInterval * 1000);
 					if (signal == WaitHandle.WaitTimeout)
 					{
 						// normal timeout, go round again and test
-						LogDebugMessage("RealtimeFtpWatchDog: Wait timeout - lets go again");
+						LogDebugMessage("RealtimeFtpWatchDog: It's time go again");
 					}
 					else if (signal == 0)
 					{
@@ -2874,7 +2868,7 @@ namespace CumulusMX
 			var taskCount = 0;
 			var runningTaskCount = 0;
 
-			RealtimeFtpInProgress = true;
+			RealtimeFtpLocked = true;
 
 			if (FtpOptions.Directory.Length > 0)
 			{
@@ -3127,7 +3121,7 @@ namespace CumulusMX
 				LogDebugMessage($"RealtimePHP[{cycle}]: Real time files process end");
 				tasklist.Clear();
 
-				RealtimeFtpInProgress = false;
+				RealtimeFtpLocked = false;
 			}
 			else // It's old fashioned FTP/FTPS/SFTP
 			{
@@ -3245,7 +3239,7 @@ namespace CumulusMX
 					}
 				}
 				// all done
-				RealtimeFtpInProgress = false;
+				RealtimeFtpLocked = false;
 			}
 		}
 
@@ -8281,9 +8275,8 @@ namespace CumulusMX
 		private readonly string RealtimeFile = "realtime.txt";
 		private FtpClient RealtimeFTP;
 		private SftpClient RealtimeSSH;
-		private volatile bool RealtimeFtpInProgress;
+		private volatile bool RealtimeFtpLocked;
 		private volatile bool RealtimeCopyInProgress;
-		private volatile bool RealtimeFtpReconnecting;
 		private int realtimeFtpWdInterval;
 		private byte RealtimeCycleCounter;
 
