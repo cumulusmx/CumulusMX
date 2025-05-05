@@ -247,61 +247,10 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilMoisture)
 			{
 				// Weathercloud wants soil moisture in centibar. Davis supplies this, but Ecowitt provide a percentage
-				int? moist;
-
-				switch (cumulus.WCloud.SoilMoistureSensor)
+				int? moist = null;
+				if (cumulus.WCloud.SoilMoistureSensor < station.SoilMoisture.Length)
 				{
-					case 1:
-						moist = station.SoilMoisture1;
-						break;
-					case 2:
-						moist = station.SoilMoisture2;
-						break;
-					case 3:
-						moist = station.SoilMoisture3;
-						break;
-					case 4:
-						moist = station.SoilMoisture4;
-						break;
-					case 5:
-						moist = station.SoilMoisture5;
-						break;
-					case 6:
-						moist = station.SoilMoisture6;
-						break;
-					case 7:
-						moist = station.SoilMoisture7;
-						break;
-					case 8:
-						moist = station.SoilMoisture8;
-						break;
-					case 9:
-						moist = station.SoilMoisture9;
-						break;
-					case 10:
-						moist = station.SoilMoisture10;
-						break;
-					case 11:
-						moist = station.SoilMoisture11;
-						break;
-					case 12:
-						moist = station.SoilMoisture12;
-						break;
-					case 13:
-						moist = station.SoilMoisture13;
-						break;
-					case 14:
-						moist = station.SoilMoisture14;
-						break;
-					case 15:
-						moist = station.SoilMoisture15;
-						break;
-					case 16:
-						moist = station.SoilMoisture16;
-						break;
-					default:
-						moist = null;
-						break;
+					moist = station.SoilMoisture[cumulus.WCloud.SoilMoistureSensor];
 				}
 
 				if (moist.HasValue)
@@ -319,37 +268,11 @@ namespace CumulusMX.ThirdParty
 			// leaf wetness
 			if (SendLeafWetness)
 			{
-				double? wet;
+				double? wet = null;
 
-				switch (cumulus.WCloud.LeafWetnessSensor)
+				if (cumulus.WCloud.LeafWetnessSensor < station.LeafWetness.Length)
 				{
-					case 1:
-						wet = station.LeafWetness1;
-						break;
-					case 2:
-						wet = station.LeafWetness2;
-						break;
-					case 3:
-						wet = station.LeafWetness3;
-						break;
-					case 4:
-						wet = station.LeafWetness4;
-						break;
-					case 5:
-						wet = station.LeafWetness5;
-						break;
-					case 6:
-						wet = station.LeafWetness6;
-						break;
-					case 7:
-						wet = station.LeafWetness7;
-						break;
-					case 8:
-						wet = station.LeafWetness8;
-						break;
-					default:
-						wet = null;
-						break;
+					wet = station.LeafWetness[cumulus.WCloud.LeafWetnessSensor];
 				}
 
 				if (wet.HasValue)

@@ -4389,82 +4389,87 @@ namespace CumulusMX
 
 		private string TagSoilMoisture1(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture1.HasValue ? station.SoilMoisture1.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(1, tagParams);
 		}
 
 		private string TagSoilMoisture2(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture2.HasValue ? station.SoilMoisture2.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(2, tagParams);
 		}
 
 		private string TagSoilMoisture3(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture3.HasValue ? station.SoilMoisture3.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(3, tagParams);
 		}
 
 		private string TagSoilMoisture4(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture4.HasValue ? station.SoilMoisture4.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(4, tagParams);
 		}
 
 		private string TagSoilMoisture5(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture5.HasValue ? station.SoilMoisture5.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(5, tagParams);
 		}
 
 		private string TagSoilMoisture6(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture6.HasValue ? station.SoilMoisture6.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(6, tagParams);
 		}
 
 		private string TagSoilMoisture7(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture7.HasValue ? station.SoilMoisture7.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(7, tagParams);
 		}
 
 		private string TagSoilMoisture8(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture8.HasValue ? station.SoilMoisture8.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(8, tagParams);
 		}
 
 		private string TagSoilMoisture9(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture9.HasValue ? station.SoilMoisture9.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(9, tagParams);
 		}
 
 		private string TagSoilMoisture10(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture10.HasValue ? station.SoilMoisture10.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(10, tagParams);
 		}
 
 		private string TagSoilMoisture11(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture11.HasValue ? station.SoilMoisture11.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(11, tagParams);
 		}
 
 		private string TagSoilMoisture12(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture12.HasValue ? station.SoilMoisture12.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(12, tagParams);
 		}
 
 		private string TagSoilMoisture13(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture13.HasValue ? station.SoilMoisture13.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(13, tagParams);
 		}
 
 		private string TagSoilMoisture14(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture14.HasValue ? station.SoilMoisture14.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(14, tagParams);
 		}
 
 		private string TagSoilMoisture15(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture15.HasValue ? station.SoilMoisture15.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(15, tagParams);
 		}
 
 		private string TagSoilMoisture16(Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture16.HasValue ? station.SoilMoisture16.ToString() : tagParams.Get("nv") ?? "-";
+			return GetSoilMoisture(16, tagParams);
+		}
+
+		private string GetSoilMoisture(int index, Dictionary<string, string> tagParams)
+		{
+			return station.SoilMoisture[index].HasValue ? station.SoilMoisture[index].ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagUserTemp1(Dictionary<string, string> tagParams)
@@ -4855,44 +4860,48 @@ namespace CumulusMX
 
 		private string TagLeafWetness1(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness1.HasValue ? CheckRcDp(station.LeafWetness1.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return GetLeafWetness(1, tagParams);
 		}
 
 		private string TagLeafWetness2(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness2.HasValue ? CheckRcDp(station.LeafWetness2.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return GetLeafWetness(2, tagParams);
 		}
 
 		private string TagLeafWetness3(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness3.HasValue ? CheckRcDp(station.LeafWetness3.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return GetLeafWetness(3, tagParams);
 		}
 
 		private string TagLeafWetness4(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness4.HasValue ? CheckRcDp(station.LeafWetness4.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return GetLeafWetness(4, tagParams);
 		}
 
 		private string TagLeafWetness5(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness5.HasValue ? CheckRcDp(station.LeafWetness5.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return GetLeafWetness(5, tagParams);
 		}
 
 		private string TagLeafWetness6(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness6.HasValue ? CheckRcDp(station.LeafWetness6.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return GetLeafWetness(6, tagParams);
 		}
 
 		private string TagLeafWetness7(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness7.HasValue ? CheckRcDp(station.LeafWetness7.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return GetLeafWetness(7, tagParams);
 		}
 
 		private string TagLeafWetness8(Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness8.HasValue ? CheckRcDp(station.LeafWetness8.Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return GetLeafWetness(8, tagParams);
 		}
 
+		private string GetLeafWetness(int index, Dictionary<string, string> tagParams)
+		{
+			return station.LeafWetness[index].HasValue ? CheckRcDp(station.LeafWetness[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+		}
 
 		private string TagVapourPressDeficit(Dictionary<string, string> tagParams)
 		{

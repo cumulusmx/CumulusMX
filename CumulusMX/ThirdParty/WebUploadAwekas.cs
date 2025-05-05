@@ -306,42 +306,24 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilMoisture)
 			{
 				if (started) sb.Append('&'); else started = true;
-				if (station.SoilMoisture1.HasValue)
+				for (var i = 1; i <= 4; i++)
 				{
-					sb.Append("soilmoisture1=" + station.SoilMoisture1);
-				}
-				if (station.SoilMoisture2.HasValue)
-				{
-					sb.Append("&soilmoisture2=" + station.SoilMoisture2);
-				}
-				if (station.SoilMoisture3.HasValue)
-				{
-					sb.Append("&soilmoisture3=" + station.SoilMoisture3);
-				}
-				if (station.SoilMoisture4.HasValue)
-				{
-					sb.Append("&soilmoisture4=" + station.SoilMoisture4);
+					if (station.SoilMoisture[i].HasValue)
+					{
+						sb.Append("soilmoisture1=" + station.SoilMoisture[i]);
+					}
 				}
 			}
 
 			if (SendLeafWetness)
 			{
 				if (started) sb.Append('&'); else started = true;
-				if (station.LeafWetness1.HasValue)
+				for (var i = 1; i <= 4; i++)
 				{
-					sb.Append("leafwetness1=" + station.LeafWetness1.Value.ToString(cumulus.LeafWetFormat));
-				}
-				if (station.LeafWetness2.HasValue)
-				{
-					sb.Append("&leafwetness2=" + station.LeafWetness2.Value.ToString(cumulus.LeafWetFormat));
-				}
-				if (station.LeafWetness3.HasValue)
-				{
-					sb.Append("&leafwetness3=" + station.LeafWetness3.Value.ToString(cumulus.LeafWetFormat));
-				}
-				if (station.LeafWetness4.HasValue)
-				{
-					sb.Append("&leafwetness4=" + station.LeafWetness4.Value.ToString(cumulus.LeafWetFormat));
+					if (station.LeafWetness[i].HasValue)
+					{
+						sb.Append("leafwetness1=" + station.LeafWetness[i].Value.ToString(cumulus.LeafWetFormat));
+					}
 				}
 			}
 

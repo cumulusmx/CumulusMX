@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 
 namespace CumulusMX
@@ -110,69 +110,19 @@ namespace CumulusMX
 
 		public DateTime StormRainStart { get; private set; }
 
-		public int SoilMoisture1 { get; private set; }
+		public int[] SoilMoisture { get; private set; }
 
-		public int SoilMoisture2 { get; private set; }
+		public int[] ExtraTemp { get; private set; }
 
-		public int SoilMoisture3 { get; private set; }
+		public int[] ExtraHum { get; private set; }
 
-		public int SoilMoisture4 { get; private set; }
-
-		public int ExtraTemp1 { get; private set; }
-
-		public int ExtraTemp2 { get; private set; }
-
-		public int ExtraTemp3 { get; private set; }
-
-		public int ExtraTemp4 { get; private set; }
-
-		public int ExtraTemp5 { get; private set; }
-
-		public int ExtraTemp6 { get; private set; }
-
-		public int ExtraTemp7 { get; private set; }
-
-		public int ExtraHum1 { get; private set; }
-
-		public int ExtraHum2 { get; private set; }
-
-		public int ExtraHum3 { get; private set; }
-
-		public int ExtraHum4 { get; private set; }
-
-		public int ExtraHum5 { get; private set; }
-
-		public int ExtraHum6 { get; private set; }
-
-		public int ExtraHum7 { get; private set; }
-
-		public int SoilTemp1 { get; private set; }
-
-		public int SoilTemp2 { get; private set; }
-
-		public int SoilTemp3 { get; private set; }
-
-		public int SoilTemp4 { get; private set; }
+		public int[] SoilTemp { get; private set; }
 
 		public double AnnualET { get; private set; }
 
 		public double UVIndex { get; private set; }
 
-		public int LeafWetness4 { get; private set; }
-
-		public int LeafWetness3 { get; private set; }
-
-		public int LeafWetness2 { get; private set; }
-
-		public int LeafWetness1 { get; private set; }
-
-		public int LeafTemp4 { get; private set; }
-
-		public int LeafTemp3 { get; private set; }
-
-		public int LeafTemp2 { get; private set; }
-
-		public int LeafTemp1 { get; private set; }
+		public int[] LeafWetness { get; private set; }
 
 		public int ForecastRule { get; private set; }
 
@@ -204,36 +154,36 @@ namespace CumulusMX
 			RainRate = BitConverter.ToInt16(byteArray, 41); // Uint16
 			StormRain = BitConverter.ToInt16(byteArray, 46);
 			ForecastRule = Convert.ToInt32(byteArray[90]);
-			LeafTemp1 = Convert.ToInt32(byteArray[29]);
-			LeafTemp2 = Convert.ToInt32(byteArray[30]);
-			LeafTemp3 = Convert.ToInt32(byteArray[31]);
-			LeafTemp4 = Convert.ToInt32(byteArray[32]);
-			LeafWetness1 = Convert.ToInt32(byteArray[66]);
-			LeafWetness2 = Convert.ToInt32(byteArray[67]);
-			LeafWetness3 = Convert.ToInt32(byteArray[68]);
-			LeafWetness4 = Convert.ToInt32(byteArray[69]);
-			SoilTemp1 = Convert.ToInt32(byteArray[25]);
-			SoilTemp2 = Convert.ToInt32(byteArray[26]);
-			SoilTemp3 = Convert.ToInt32(byteArray[27]);
-			SoilTemp4 = Convert.ToInt32(byteArray[28]);
-			ExtraHum1 = Convert.ToInt32(byteArray[34]);
-			ExtraHum2 = Convert.ToInt32(byteArray[35]);
-			ExtraHum3 = Convert.ToInt32(byteArray[36]);
-			ExtraHum4 = Convert.ToInt32(byteArray[37]);
-			ExtraHum5 = Convert.ToInt32(byteArray[38]);
-			ExtraHum6 = Convert.ToInt32(byteArray[39]);
-			ExtraHum7 = Convert.ToInt32(byteArray[40]);
-			ExtraTemp1 = Convert.ToInt32(byteArray[18]);
-			ExtraTemp2 = Convert.ToInt32(byteArray[19]);
-			ExtraTemp3 = Convert.ToInt32(byteArray[20]);
-			ExtraTemp4 = Convert.ToInt32(byteArray[21]);
-			ExtraTemp5 = Convert.ToInt32(byteArray[22]);
-			ExtraTemp6 = Convert.ToInt32(byteArray[23]);
-			ExtraTemp7 = Convert.ToInt32(byteArray[24]);
-			SoilMoisture1 = Convert.ToInt32(byteArray[62]);
-			SoilMoisture2 = Convert.ToInt32(byteArray[63]);
-			SoilMoisture3 = Convert.ToInt32(byteArray[64]);
-			SoilMoisture4 = Convert.ToInt32(byteArray[65]);
+			//LeafTemp1 = Convert.ToInt32(byteArray[29]) // No such thing!
+			//LeafTemp2 = Convert.ToInt32(byteArray[30])
+			//LeafTemp3 = Convert.ToInt32(byteArray[31])
+			//LeafTemp4 = Convert.ToInt32(byteArray[32])
+			LeafWetness[1] = Convert.ToInt32(byteArray[66]);
+			LeafWetness[2] = Convert.ToInt32(byteArray[67]);
+			LeafWetness[3] = Convert.ToInt32(byteArray[68]);
+			LeafWetness[4] = Convert.ToInt32(byteArray[69]);
+			SoilTemp[1] = Convert.ToInt32(byteArray[25]);
+			SoilTemp[2] = Convert.ToInt32(byteArray[26]);
+			SoilTemp[3] = Convert.ToInt32(byteArray[27]);
+			SoilTemp[4] = Convert.ToInt32(byteArray[28]);
+			ExtraHum[1] = Convert.ToInt32(byteArray[34]);
+			ExtraHum[2] = Convert.ToInt32(byteArray[35]);
+			ExtraHum[3] = Convert.ToInt32(byteArray[36]);
+			ExtraHum[4] = Convert.ToInt32(byteArray[37]);
+			ExtraHum[5] = Convert.ToInt32(byteArray[38]);
+			ExtraHum[6] = Convert.ToInt32(byteArray[39]);
+			ExtraHum[7] = Convert.ToInt32(byteArray[40]);
+			ExtraTemp[1] = Convert.ToInt32(byteArray[18]);
+			ExtraTemp[2] = Convert.ToInt32(byteArray[19]);
+			ExtraTemp[3] = Convert.ToInt32(byteArray[20]);
+			ExtraTemp[4] = Convert.ToInt32(byteArray[21]);
+			ExtraTemp[5] = Convert.ToInt32(byteArray[22]);
+			ExtraTemp[6] = Convert.ToInt32(byteArray[23]);
+			ExtraTemp[7] = Convert.ToInt32(byteArray[24]);
+			SoilMoisture[1] = Convert.ToInt32(byteArray[62]);
+			SoilMoisture[2] = Convert.ToInt32(byteArray[63]);
+			SoilMoisture[3] = Convert.ToInt32(byteArray[64]);
+			SoilMoisture[4] = Convert.ToInt32(byteArray[65]);
 			UVIndex = (double) (Convert.ToInt32(byteArray[43])) / 10;
 			SolarRad = BitConverter.ToInt16(byteArray, 44);
 			var dayET = (double) (BitConverter.ToInt16(byteArray, 56)) / 1000;
@@ -344,6 +294,11 @@ namespace CumulusMX
 			MonthRain = 0.0F;
 			YearRain = 0.0F;
 			RainRate = 0.0F;
+			ExtraTemp = new int[8];
+			ExtraHum = new int[8];
+			SoilMoisture = new int[5];
+			SoilTemp = new int[5];
+			LeafWetness = new int[5];
 		}
 	}
 
@@ -456,9 +411,6 @@ namespace CumulusMX
 
 		public int LeafWetness1 { get; private set; }
 
-		public int LeafTemp2 { get; private set; }
-
-		public int LeafTemp1 { get; private set; }
 
 		public int ForecastRule { get; private set; }
 
@@ -512,8 +464,8 @@ namespace CumulusMX
 			Rainfall = BitConverter.ToInt16(byteArray, 10); // Uint16
 			HiRainRate = BitConverter.ToInt16(byteArray, 12); // Uint16
 			ForecastRule = Convert.ToInt32(byteArray[33]);
-			LeafTemp1 = Convert.ToInt32(byteArray[34]);
-			LeafTemp2 = Convert.ToInt32(byteArray[35]);
+			//LeafTemp1 = Convert.ToInt32(byteArray[34]) // Does not exist
+			//LeafTemp2 = Convert.ToInt32(byteArray[35])
 			LeafWetness1 = Convert.ToInt32(byteArray[36]);
 			LeafWetness2 = Convert.ToInt32(byteArray[37]);
 			SoilTemp1 = Convert.ToInt32(byteArray[38]);
@@ -560,8 +512,6 @@ namespace CumulusMX
 			ET = 0.0F;
 			LeafWetness1 = 0;
 			LeafWetness2 = 0;
-			LeafTemp1 = 0;
-			LeafTemp2 = 0;
 			SoilTemp1 = 0;
 			SoilTemp2 = 0;
 			SoilTemp3 = 0;

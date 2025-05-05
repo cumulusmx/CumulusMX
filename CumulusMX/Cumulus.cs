@@ -2485,16 +2485,14 @@ namespace CumulusMX
 							try
 							{
 								RealtimeUpload(cycle).Wait();
+								// Leave the lock set so nothing else runs until we are connected
+								RealtimeFtpLocked = false;
 							}
 							catch (Exception ex)
 							{
 								LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during realtime upload.");
 								// signal the wd to attmpt to reconnect
 								RealTimeWdTokenSource.Cancel();
-							}
-							finally
-							{
-								RealtimeFtpLocked = false;
 							}
 						}
 
@@ -2572,10 +2570,10 @@ namespace CumulusMX
 				bool connected = false;
 				bool reinit = true;
 
-				var handles = new WaitHandle[] { cancellationToken.WaitHandle, RealtimeFtpWatchDogToken.WaitHandle };
-
 				do
 				{
+					RealtimeFtpLocked = true;
+
 					if (realtimeFtpSemaphore.Wait(5000, cancellationToken))
 					{
 #if DEBUG
@@ -2589,187 +2587,191 @@ namespace CumulusMX
 
 					RealtimeFtpLocked = true;
 
-					if (reinit)
+					do
 					{
-						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+						if (reinit)
 						{
-							try
-							{
-								LogMessage("RealtimeFtpWatchDog: Realtime ftp attempting disconnect");
-								if (RealtimeSSH != null)
-								{
-									RealtimeSSH.Disconnect();
-								}
-								LogMessage("RealtimeFtpWatchDog: Realtime ftp disconnected");
-							}
-							catch (ObjectDisposedException)
-							{
-								LogDebugMessage($"RealtimeFtpWatchDog: Error, connection is disposed");
-							}
-							catch (Exception ex)
-							{
-								LogDebugMessage($"RealtimeFtpWatchDog: Error disconnecting from server - {ex.Message}");
-							}
-							// Attempt a simple reconnect
-							try
-							{
-								LogMessage("RealtimeFtpWatchDog: Realtime ftp attempting to reconnect");
-								RealtimeSSH.Connect();
-								connected = RealtimeSSH.ConnectionInfo.IsAuthenticated;
-								LogMessage("RealtimeFtpWatchDog: Reconnected with server (we think)");
-							}
-							catch (ObjectDisposedException)
-							{
-								reinit = true;
-								LogDebugMessage($"RealtimeFtpWatchDog: Error, connection is disposed");
-							}
-							catch (Exception ex)
-							{
-								reinit = true;
-								LogErrorMessage($"RealtimeFtpWatchDog: Error reconnecting ftp server - {ex.Message}");
-								if (ex.InnerException != null)
-								{
-									ex = Utils.GetOriginalException(ex);
-									LogErrorMessage($"RealtimeFtpWatchDog: Base exception - {ex.Message}");
-								}
-							}
-						}
-						else // RealtimeXXXLogin() has its own error handling
-						{
-							LogMessage("RealtimeFtpWatchDog: Realtime ftp attempting to reinitialise the connection");
 							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 							{
-								RealtimeSSHLogin();
-								connected = RealtimeSSH.ConnectionInfo.IsAuthenticated;
+								try
+								{
+									LogMessage("RealtimeFtpWatchDog: Realtime ftp attempting disconnect");
+									if (RealtimeSSH != null)
+									{
+										RealtimeSSH.Disconnect();
+									}
+									LogMessage("RealtimeFtpWatchDog: Realtime ftp disconnected");
+								}
+								catch (ObjectDisposedException)
+								{
+									LogDebugMessage($"RealtimeFtpWatchDog: Error, connection is disposed");
+								}
+								catch (Exception ex)
+								{
+									LogDebugMessage($"RealtimeFtpWatchDog: Error disconnecting from server - {ex.Message}");
+								}
+								// Attempt a simple reconnect
+								try
+								{
+									LogMessage("RealtimeFtpWatchDog: Realtime ftp attempting to reconnect");
+									RealtimeSSH.Connect();
+									connected = RealtimeSSH.ConnectionInfo.IsAuthenticated;
+									LogMessage("RealtimeFtpWatchDog: Reconnected with server (we think)");
+								}
+								catch (ObjectDisposedException)
+								{
+									reinit = true;
+									LogDebugMessage($"RealtimeFtpWatchDog: Error, connection is disposed");
+								}
+								catch (Exception ex)
+								{
+									reinit = true;
+									LogErrorMessage($"RealtimeFtpWatchDog: Error reconnecting ftp server - {ex.Message}");
+									if (ex.InnerException != null)
+									{
+										ex = Utils.GetOriginalException(ex);
+										LogErrorMessage($"RealtimeFtpWatchDog: Base exception - {ex.Message}");
+									}
+								}
 							}
-							else
+							else // RealtimeXXXLogin() has its own error handling
 							{
+								LogMessage("RealtimeFtpWatchDog: Realtime ftp attempting to reinitialise the connection");
 								RealtimeFTPLogin();
 								connected = RealtimeFTP.IsConnected;
-							}
 
-							if (connected)
-							{
-								LogMessage("RealtimeFtpWatchDog: Realtime ftp connection reinitialised");
-							}
-							else
-							{
-								LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection failed to connect after reinitialisation");
+								if (connected)
+								{
+									LogMessage("RealtimeFtpWatchDog: Realtime ftp connection reinitialised");
+								}
+								else
+								{
+									LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection failed to connect after reinitialisation");
+								}
 							}
 						}
-					}
 
 
-					// We *think* we are connected, now try and do something!
-					if (connected)
-					{
-						reinit = false;
-
-						try
+						// We *think* we are connected, now try and do something!
+						if (connected)
 						{
-							string pwd;
-							LogMessage("RealtimeFtpWatchDog: Realtime ftp testing the connection");
+							reinit = false;
 
-							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+							if (realtimeFtpSemaphore.CurrentCount > 0)
 							{
-								// check we can get the PWD OK
-								pwd = RealtimeSSH.WorkingDirectory;
-								if (pwd.Length == 0)
-								{
-									connected = false;
-									reinit = true;
-
-									LogWarningMessage("RealtimeFtpWatchDog: Realtime sftp connection test failed to get Present Working Directory");
-								}
-								else
-								{
-									LogDebugMessage($"RealtimeFtpWatchDog: Realtime sftp connection test found Present Working Directory OK - [{pwd}]");
-								}
-
-								// create an read back a test file
-								RealtimeSSH.WriteAllText("_cumulusmxwd.txt", "test");
-								if (RealtimeSSH.ReadAllText("_cumulusmxwd.txt") != "test")
-								{
-									connected = false;
-									reinit = true;
-									LogWarningMessage("RealtimeFtpWatchDog: Realtime sftp connection test failed to write and read a test file");
-								}
-								else
-								{
-									LogDebugMessage("RealtimeFtpWatchDog: Realtime sftp connection test created a test file OK");
-								}
-
-								RealtimeSSH.DeleteFile("_cumulusmxwd.txt");
-
-								// Double check
-								if (!RealtimeSSH.IsConnected)
-								{
-									connected = false;
-									reinit = true;
-								}
+								realtimeFtpSemaphore.Wait(100, cancellationToken);
 							}
-							else
+
+							try
 							{
-								pwd = RealtimeFTP.GetWorkingDirectory();
-								if (pwd.Length == 0)
-								{
-									connected = false;
-									reinit = true;
-									LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection test failed to get Present Working Directory");
-								}
-								else
-								{
-									LogDebugMessage($"RealtimeFtpWatchDog: Realtime ftp connection test found Present Working Directory OK - [{pwd}]");
-								}
+								LogMessage("RealtimeFtpWatchDog: Realtime ftp testing the connection");
 
-								var testBytes = Encoding.ASCII.GetBytes("test");
-
-								if (RealtimeFTP.UploadBytes(testBytes, "cumulusmx_watchdog.txt", FtpRemoteExists.Overwrite).IsFailure())
+								if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 								{
-									connected = false;
-									reinit = true;
-									LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection test failed to write a test file");
-								}
-								else
-								{
-									if (!RealtimeFTP.DownloadBytes(out byte[] _bytes, "cumulusmx_watchdog.txt") || !_bytes.SequenceEqual(testBytes))
+									// check we are still flagged as connected
+									if (!RealtimeSSH.IsConnected)
 									{
 										connected = false;
 										reinit = true;
-										LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection test failed to read a test file");
+
+										LogWarningMessage("RealtimeFtpWatchDog: Realtime sftp connection is flagged as not connected");
 									}
 									else
 									{
-										LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp connection test created a test file OK");
+										LogDebugMessage("RealtimeFtpWatchDog: Realtime sftp connection test is flagged as connected OK");
 
-										RealtimeFTP.DeleteFile("cumulusmx_watchdog.txt");
-
-										if (!RealtimeFTP.IsStillConnected())
+										// create an read back a test file
+										RealtimeSSH.WriteAllText("_cumulusmxwd.txt", "test");
+										if (RealtimeSSH.ReadAllText("_cumulusmxwd.txt") != "test")
 										{
 											connected = false;
 											reinit = true;
-											LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection test failed to delete a test file");
+											LogWarningMessage("RealtimeFtpWatchDog: Realtime sftp connection test failed to write and read a test file");
+										}
+										else
+										{
+											LogDebugMessage("RealtimeFtpWatchDog: Realtime sftp connection test created a test file OK");
+
+											RealtimeSSH.DeleteFile("_cumulusmxwd.txt");
+
+											// Double check
+											if (!RealtimeSSH.IsConnected)
+											{
+												connected = false;
+												reinit = true;
+											}
+										}
+									}
+								}
+								else
+								{
+									if (!RealtimeFTP.IsStillConnected())
+									{
+										connected = false;
+										reinit = true;
+										LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp basic connection test failed");
+									}
+									else
+									{
+										LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp basic connection test OK");
+
+										var testBytes = Encoding.ASCII.GetBytes("test");
+
+										if (RealtimeFTP.UploadBytes(testBytes, "cumulusmx_watchdog.txt", FtpRemoteExists.Overwrite).IsFailure())
+										{
+											connected = false;
+											reinit = true;
+											LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection test failed to write a test file");
+										}
+										else
+										{
+											if (!RealtimeFTP.DownloadBytes(out byte[] _bytes, "cumulusmx_watchdog.txt") || !_bytes.SequenceEqual(testBytes))
+											{
+												connected = false;
+												reinit = true;
+												LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection test failed to read a test file");
+											}
+											else
+											{
+												LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp connection test created a test file OK");
+
+												RealtimeFTP.DeleteFile("cumulusmx_watchdog.txt");
+
+												if (!RealtimeFTP.IsStillConnected())
+												{
+													connected = false;
+													reinit = true;
+													LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection test failed to delete a test file");
+												}
+											}
 										}
 									}
 								}
 							}
-						}
-						catch (Exception ex)
-						{
-							LogErrorMessage($"RealtimeFtpWatchDog: Realtime ftp connection test Failed - {ex.Message}");
-
-							if (ex.InnerException != null)
+							catch (Exception ex)
 							{
-								ex = Utils.GetOriginalException(ex);
-								LogExceptionMessage(ex, $"RealtimeFtpWatchDog: Base exception follows");
-							}
+								LogErrorMessage($"RealtimeFtpWatchDog: Realtime ftp connection test Failed - {ex.Message}");
 
-							connected = false;
+								if (ex.InnerException != null)
+								{
+									ex = Utils.GetOriginalException(ex);
+									LogExceptionMessage(ex, $"RealtimeFtpWatchDog: Base exception follows");
+								}
+
+								connected = false;
+							}
 						}
-					}
+
+						if (!connected)
+						{
+							// add a 30 second delay between reties
+							LogMessage("RealtimeFtpWatchDog: Connection failed - waiting 30 seconds before trying again");
+							Thread.Sleep(30000);
+						}
+					} while (!connected && !cancellationToken.IsCancellationRequested);
 
 					// OK we are reconnected, let the FTP recommence
-					LogMessage("RealtimeReconnect: Realtime FTP connected to server (tested), operations can be resumed");
+					LogMessage("RealtimeFtpWatchDog: Realtime FTP connected to server (tested), operations can be resumed");
 					RealtimeFtpLocked = false;
 					RealtimeCopyInProgress = false;
 					try
@@ -2785,7 +2787,7 @@ namespace CumulusMX
 
 					LogDebugMessage($"RealtimeFtpWatchDog: Sleeping for {realtimeFtpWdInterval} seconds before testing the connection again...");
 
-					var signal = WaitHandle.WaitAny(handles, realtimeFtpWdInterval * 1000);
+					var signal = WaitHandle.WaitAny([cancellationToken.WaitHandle, RealtimeFtpWatchDogToken.WaitHandle], realtimeFtpWdInterval * 1000);
 					if (signal == WaitHandle.WaitTimeout)
 					{
 						// normal timeout, go round again and test
@@ -2804,7 +2806,6 @@ namespace CumulusMX
 						RealtimeFtpWatchDogToken = RealTimeWdTokenSource.Token;
 					}
 				} while (!cancellationToken.IsCancellationRequested);
-
 			});
 		}
 
@@ -4890,7 +4891,6 @@ namespace CumulusMX
 			GraphOptions.Colour.Pm2p5 = ini.GetValue("GraphColours", "Pm2p5Colour", "#6495ed");
 			GraphOptions.Colour.Pm10 = ini.GetValue("GraphColours", "Pm10Colour", "#008000");
 			var colours16 = new List<string>(16) { "#ff0000", "#008000", "#0000ff", "#ffa500", "#dada00", "#ffc0cb", "#00ffff", "#800080", "#808080", "#a52a2a", "#c7b72a", "#7fffd4", "#adff2f", "#ff7f50", "#ff00ff", "#00b2ff" };
-			var colours10 = colours16.Take(10).ToArray();
 			var colours8 = colours16.Take(8).ToArray();
 			var colours2 = colours16.Take(2).ToArray();
 			GraphOptions.Colour.ExtraTemp = ini.GetValue("GraphColours", "ExtraTempColour", colours16.ToArray());
@@ -7903,20 +7903,20 @@ namespace CumulusMX
 					var obj = (File.ReadAllText("CumulusMX.runtimeconfig.json")).FromJson<ConfigFile>();
 					phpMaxConnectionsPerServer = obj.runtimeOptions.configProperties.PhpMaxConnections;
 					realtimeFtpWdInterval = obj.runtimeOptions.configProperties.RealtimeFtpWatchDogInterval;
+					return;
 				}
 				catch (Exception ex)
 				{
 					LogExceptionMessage(ex, "Error reading CumulusMX.runtimeconfig.json");
-					phpMaxConnectionsPerServer = 3;
-					realtimeFtpWdInterval = 60;
 				}
 			}
 			else
 			{
 				LogWarningMessage("Config file 'CumulusMX.runtimeconfig.json' not found! Using defaults");
-				phpMaxConnectionsPerServer = 3;
-				realtimeFtpWdInterval = 60;
 			}
+
+			phpMaxConnectionsPerServer = 3;
+			realtimeFtpWdInterval = 60;
 		}
 
 
@@ -7977,7 +7977,7 @@ namespace CumulusMX
 
 		public Timer RealtimeTimer { get; set; } = new();
 
-		public Task RealtimeWatchDog;
+		private Task RealtimeWatchDog;
 
 		internal Timer CustomMysqlSecondsTimer;
 
@@ -8557,34 +8557,26 @@ namespace CumulusMX
 				sb.Append((station.SoilTemp[i].HasValue ? station.SoilTemp[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);     //32-35
 			}
 
-			sb.Append((station.SoilMoisture1.HasValue ? station.SoilMoisture1 : string.Empty) + sep);                      //36
-			sb.Append((station.SoilMoisture2.HasValue ? station.SoilMoisture2 : string.Empty) + sep);                      //37
-			sb.Append((station.SoilMoisture3.HasValue ? station.SoilMoisture3 : string.Empty) + sep);                      //38
-			sb.Append((station.SoilMoisture4.HasValue ? station.SoilMoisture4 : string.Empty) + sep);                      //39
+			for (int i = 1; i <= 4; i++)
+			{
+				sb.Append((station.SoilMoisture[i].HasValue ? station.SoilMoisture[i] : string.Empty) + sep);                      //36-39
+			}
 
 			sb.Append(sep);     //40 - was leaf temp 1
 			sb.Append(sep);     //41 - was leaf temp 2
 
-			sb.Append((station.LeafWetness1.HasValue ? station.LeafWetness1.Value.ToString(LeafWetFormat, inv) : string.Empty) + sep);    //42
-			sb.Append((station.LeafWetness2.HasValue ? station.LeafWetness2.Value.ToString(LeafWetFormat, inv) : string.Empty) + sep);    //43
+			sb.Append((station.LeafWetness[1].HasValue ? station.LeafWetness[1].Value.ToString(LeafWetFormat, inv) : string.Empty) + sep);    //42
+			sb.Append((station.LeafWetness[2].HasValue ? station.LeafWetness[2].Value.ToString(LeafWetFormat, inv) : string.Empty) + sep);    //43
 
 			for (int i = 5; i <= 16; i++)
 			{
 				sb.Append((station.SoilTemp[i].HasValue ? station.SoilTemp[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);     //44-55
 			}
 
-			sb.Append(station.SoilMoisture5 + sep);      //56
-			sb.Append(station.SoilMoisture6 + sep);      //57
-			sb.Append(station.SoilMoisture7 + sep);      //58
-			sb.Append(station.SoilMoisture8 + sep);      //59
-			sb.Append(station.SoilMoisture9 + sep);      //60
-			sb.Append(station.SoilMoisture10 + sep);     //61
-			sb.Append(station.SoilMoisture11 + sep);     //62
-			sb.Append(station.SoilMoisture12 + sep);     //63
-			sb.Append(station.SoilMoisture13 + sep);     //64
-			sb.Append(station.SoilMoisture14 + sep);     //65
-			sb.Append(station.SoilMoisture15 + sep);     //66
-			sb.Append(station.SoilMoisture16 + sep);     //67
+			for (int i = 5; i <= 16; i++)
+			{
+				sb.Append(station.SoilMoisture[i] + sep);      //56-67
+			}
 
 			sb.Append((station.AirQuality1.HasValue ? station.AirQuality1.Value.ToString("F1", inv) : string.Empty) + sep);     //68
 			sb.Append((station.AirQuality2.HasValue ? station.AirQuality2.Value.ToString("F1", inv) : string.Empty) + sep);     //69
@@ -11669,6 +11661,12 @@ namespace CumulusMX
 					return true;
 				}
 
+				if (!conn.IsConnected)
+				{
+					LogDebugMessage($"FTP[{cycleStr}]: Not connected, skipping upload of {remotefile}");
+					return false;
+				}
+
 				if (FTPRename)
 				{
 					// delete the existing tmp file
@@ -11717,6 +11715,8 @@ namespace CumulusMX
 							LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}", realtime);
 						}
 
+						RealTimeWdTokenSource.Cancel();
+
 						return conn.IsConnected;
 					}
 				}
@@ -11732,6 +11732,8 @@ namespace CumulusMX
 				{
 					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}", realtime);
 				}
+
+				RealTimeWdTokenSource.Cancel();
 			}
 
 			return conn.IsConnected;
@@ -11750,6 +11752,12 @@ namespace CumulusMX
 				LogWarningMessage($"SFTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
 				FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
 				FtpAlarm.Triggered = true;
+				return false;
+			}
+
+			if (!conn.IsConnected)
+			{
+				LogDebugMessage($"SFTP[{cycleStr}]: Not connected, skipping upload of {remotefile}");
 				return false;
 			}
 
@@ -11811,7 +11819,7 @@ namespace CumulusMX
 					}
 
 					// Lets start again anyway! Too hard to tell if the error is recoverable
-					conn.Dispose();
+					RealTimeWdTokenSource.Cancel();
 					return false;
 				}
 
@@ -11844,6 +11852,7 @@ namespace CumulusMX
 							LogFtpMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}", realtime);
 						}
 
+						RealTimeWdTokenSource.Cancel();
 						return true;
 					}
 				}
@@ -11869,6 +11878,7 @@ namespace CumulusMX
 					LogDebugMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}");
 				}
 
+				RealTimeWdTokenSource.Cancel();
 			}
 			return true;
 		}

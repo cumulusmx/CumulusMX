@@ -8,6 +8,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
+using Org.BouncyCastle.Bcpg;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 namespace CumulusMX
 {
 	internal class DavisStation : WeatherStation
@@ -222,9 +225,12 @@ namespace CumulusMX
 
 		private void DecodeReceptionStats(string recepStats)
 		{
+			// e.g. <LF><CR>OK<LF><CR> 21629 15 0 3204 128<LF><CR>
+			//       0   1  23 4   5  6
+			// total packets, packets missed, resynchronizations, packets received in a row, CRC errors
 			try
 			{
-				var vals = recepStats.Split(' ');
+				var vals = recepStats.Split(' ', StringSplitOptions.TrimEntries);
 
 				DavisTotalPacketsReceived = Convert.ToInt32(vals[0]);
 				if (DavisTotalPacketsReceived < 0)
@@ -1229,7 +1235,7 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					// any others, log them and carry on
-					cumulus.LogErrorMessage("Davis Start: Exception - " + ex.Message);
+					cumulus.LogExceptionMessage(ex, "Davis Start: Exception");
 				}
 			}
 
@@ -1790,15 +1796,9 @@ namespace CumulusMX
 				StormRain = ConvertRainClicksToUser(loopData.StormRain);
 				StartOfStorm = loopData.StormRainStart;
 
-				if (loopData.UVIndex >= 0 && loopData.UVIndex < 17)
-				{
-					DoUV(loopData.UVIndex, now);
-				}
+				DoUV(loopData.UVIndex >= 0 && loopData.UVIndex < 17 ? loopData.UVIndex : null, now);
 
-				if (loopData.SolarRad >= 0 && loopData.SolarRad < 1801)
-				{
-					DoSolarRad(loopData.SolarRad, now);
-				}
+				DoSolarRad(loopData.SolarRad >= 0 && loopData.SolarRad < 1801 ? loopData.SolarRad : null, now);
 
 				if ((loopData.AnnualET >= 0) && (loopData.AnnualET < 32000))
 				{
@@ -1850,150 +1850,22 @@ namespace CumulusMX
 
 				if (cumulus.StationOptions.LogExtraSensors)
 				{
-					if (loopData.ExtraTemp1 < 255)
+					for (var sensor = 1; sensor < 8; sensor++)
 					{
-						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp1 - 90), 1);
-					}
+						ExtraTemp[sensor] = loopData.ExtraTemp[sensor] == 255 ? null : ConvertUnits.TempFToUser(loopData.ExtraTemp[sensor] - 90);
+						ExtraHum[1] = loopData.ExtraHum[sensor] > 100 ? null : loopData.ExtraHum[sensor];
 
-					if (loopData.ExtraTemp2 < 255)
-					{
-						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp2 - 90), 2);
-					}
-
-					if (loopData.ExtraTemp3 < 255)
-					{
-						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp3 - 90), 3);
-					}
-
-					if (loopData.ExtraTemp4 < 255)
-					{
-						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp4 - 90), 4);
-					}
-
-					if (loopData.ExtraTemp5 < 255)
-					{
-						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp5 - 90), 5);
-					}
-
-					if (loopData.ExtraTemp6 < 255)
-					{
-						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp6 - 90), 6);
-					}
-
-					if (loopData.ExtraTemp7 < 255)
-					{
-						DoExtraTemp(ConvertUnits.TempFToUser(loopData.ExtraTemp7 - 90), 7);
-					}
-
-					if (loopData.ExtraHum1 >= 0 && loopData.ExtraHum1 <= 100)
-					{
-						DoExtraHum(loopData.ExtraHum1, 1);
-						if (loopData.ExtraTemp1 < 255)
+						if (ExtraTemp[sensor].HasValue && ExtraHum[sensor].HasValue)
 						{
-							ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1].Value), ExtraHum[1].Value));
+							ExtraDewPoint[sensor] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[sensor].Value), ExtraHum[sensor].Value));
 						}
 					}
 
-					if (loopData.ExtraHum2 >= 0 && loopData.ExtraHum2 <= 100)
+					for (var sensor = 1; sensor < 5; sensor++)
 					{
-						DoExtraHum(loopData.ExtraHum2, 2);
-						if (loopData.ExtraTemp2 < 255)
-						{
-							ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2].Value), ExtraHum[2].Value));
-						}
-					}
-
-					if (loopData.ExtraHum3 >= 0 && loopData.ExtraHum3 <= 100)
-					{
-						DoExtraHum(loopData.ExtraHum3, 3);
-						if (loopData.ExtraTemp3 < 255)
-						{
-							ExtraDewPoint[3] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[3].Value), ExtraHum[3].Value));
-						}
-					}
-
-					if (loopData.ExtraHum4 >= 0 && loopData.ExtraHum4 <= 100)
-					{
-						DoExtraHum(loopData.ExtraHum4, 4);
-						if (loopData.ExtraTemp4 < 255)
-						{
-							ExtraDewPoint[4] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[4].Value), ExtraHum[4].Value));
-						}
-					}
-
-					if (loopData.ExtraHum5 >= 0 && loopData.ExtraHum5 <= 100)
-					{
-						DoExtraHum(loopData.ExtraHum5, 5);
-					}
-
-					if (loopData.ExtraHum6 >= 0 && loopData.ExtraHum6 <= 100)
-					{
-						DoExtraHum(loopData.ExtraHum6, 6);
-					}
-
-					if (loopData.ExtraHum7 >= 0 && loopData.ExtraHum7 <= 100)
-					{
-						DoExtraHum(loopData.ExtraHum7, 7);
-					}
-
-					if (loopData.SoilMoisture1 >= 0 && loopData.SoilMoisture1 <= 250)
-					{
-						DoSoilMoisture(loopData.SoilMoisture1, 1);
-					}
-
-					if (loopData.SoilMoisture2 >= 0 && loopData.SoilMoisture2 <= 250)
-					{
-						DoSoilMoisture(loopData.SoilMoisture2, 2);
-					}
-
-					if (loopData.SoilMoisture3 >= 0 && loopData.SoilMoisture3 <= 250)
-					{
-						DoSoilMoisture(loopData.SoilMoisture3, 3);
-					}
-
-					if (loopData.SoilMoisture4 >= 0 && loopData.SoilMoisture4 <= 250)
-					{
-						DoSoilMoisture(loopData.SoilMoisture4, 4);
-					}
-
-					if (loopData.SoilTemp1 < 255 && loopData.SoilTemp1 > 0)
-					{
-						DoSoilTemp(ConvertUnits.TempFToUser(loopData.SoilTemp1 - 90), 1);
-					}
-
-					if (loopData.SoilTemp2 < 255 && loopData.SoilTemp2 > 0)
-					{
-						DoSoilTemp(ConvertUnits.TempFToUser(loopData.SoilTemp2 - 90), 2);
-					}
-
-					if (loopData.SoilTemp3 < 255 && loopData.SoilTemp3 > 0)
-					{
-						DoSoilTemp(ConvertUnits.TempFToUser(loopData.SoilTemp3 - 90), 3);
-					}
-
-					if (loopData.SoilTemp4 < 255 && loopData.SoilTemp4 > 0)
-					{
-						DoSoilTemp(ConvertUnits.TempFToUser(loopData.SoilTemp4 - 90), 4);
-					}
-
-					if (loopData.LeafWetness1 >= 0 && loopData.LeafWetness1 < 16)
-					{
-						DoLeafWetness(loopData.LeafWetness1, 1);
-					}
-
-					if (loopData.LeafWetness2 >= 0 && loopData.LeafWetness2 < 16)
-					{
-						DoLeafWetness(loopData.LeafWetness2, 2);
-					}
-
-					if (loopData.LeafWetness3 >= 0 && loopData.LeafWetness3 < 16)
-					{
-						DoLeafWetness(loopData.LeafWetness3, 3);
-					}
-
-					if (loopData.LeafWetness4 >= 0 && loopData.LeafWetness4 < 16)
-					{
-						DoLeafWetness(loopData.LeafWetness4, 4);
+						SoilMoisture[sensor] = loopData.SoilMoisture[sensor] >= 0 && loopData.SoilMoisture[sensor] <= 250 ? loopData.SoilMoisture[sensor] : null;
+						SoilTemp[sensor] = loopData.SoilTemp[sensor] < 255 && loopData.SoilTemp[sensor] > 0 ? ConvertUnits.TempFToUser(loopData.SoilTemp[sensor] - 90) : null;
+						LeafWetness[sensor] = loopData.LeafWetness[sensor] >= 0 && loopData.LeafWetness[sensor] < 16 ? loopData.LeafWetness[sensor] : null;
 					}
 				}
 				UpdateStatusPanel(DateTime.Now);
@@ -3518,7 +3390,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("InitTCP: Error - " + ex.Message);
+				cumulus.LogExceptionMessage(ex, "InitTCP: Error");
 			}
 		}
 

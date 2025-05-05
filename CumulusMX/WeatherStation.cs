@@ -1539,37 +1539,7 @@ namespace CumulusMX
 
 		public double RainLastHour { get; set; }
 
-		public int? SoilMoisture1 { get; set; }
-
-		public int? SoilMoisture2 { get; set; }
-
-		public int? SoilMoisture3 { get; set; }
-
-		public int? SoilMoisture4 { get; set; }
-
-		public int? SoilMoisture5 { get; set; }
-
-		public int? SoilMoisture6 { get; set; }
-
-		public int? SoilMoisture7 { get; set; }
-
-		public int? SoilMoisture8 { get; set; }
-
-		public int? SoilMoisture9 { get; set; }
-
-		public int? SoilMoisture10 { get; set; }
-
-		public int? SoilMoisture11 { get; set; }
-
-		public int? SoilMoisture12 { get; set; }
-
-		public int? SoilMoisture13 { get; set; }
-
-		public int? SoilMoisture14 { get; set; }
-
-		public int? SoilMoisture15 { get; set; }
-
-		public int? SoilMoisture16 { get; set; }
+		public int?[] SoilMoisture { get; set; } = new int?[17];
 
 		public double? AirQuality1 { get; set; }
 		public double? AirQuality2 { get; set; }
@@ -1615,14 +1585,7 @@ namespace CumulusMX
 		public DateTime LightningTime { get; set; } = DateTime.MinValue;
 		public int LightningStrikesToday { get; set; }
 
-		public double? LeafWetness1 { get; set; }
-		public double? LeafWetness2 { get; set; }
-		public double? LeafWetness3 { get; set; }
-		public double? LeafWetness4 { get; set; }
-		public double? LeafWetness5 { get; set; }
-		public double? LeafWetness6 { get; set; }
-		public double? LeafWetness7 { get; set; }
-		public double? LeafWetness8 { get; set; }
+		public double?[] LeafWetness { get; set; } = new double?[9];
 
 		public double SunshineHours { get; set; } = 0;
 
@@ -3782,8 +3745,11 @@ namespace CumulusMX
 
 									for (var i = 0; i < 2; i++)
 									{
-										if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local) && double.TryParse(st[i + 42], InvC, out temp))
-											sbExt[i].Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
+										if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local))
+										{
+											var val = double.TryParse(st[i + 42], out temp) ? temp.ToString("F1", InvC) : "null";
+											sbExt[i].Append($"[{jsTime},{val}],");
+										}
 									}
 								}
 							}
@@ -9647,62 +9613,13 @@ namespace CumulusMX
 			HaveReadData = true;
 		}
 
-		public void DoSoilMoisture(double value, int index)
+		public void DoSoilMoisture(double? value, int index)
 		{
-			switch (index)
-			{
-				case 1:
-					SoilMoisture1 = (int) value;
-					break;
-				case 2:
-					SoilMoisture2 = (int) value;
-					break;
-				case 3:
-					SoilMoisture3 = (int) value;
-					break;
-				case 4:
-					SoilMoisture4 = (int) value;
-					break;
-				case 5:
-					SoilMoisture5 = (int) value;
-					break;
-				case 6:
-					SoilMoisture6 = (int) value;
-					break;
-				case 7:
-					SoilMoisture7 = (int) value;
-					break;
-				case 8:
-					SoilMoisture8 = (int) value;
-					break;
-				case 9:
-					SoilMoisture9 = (int) value;
-					break;
-				case 10:
-					SoilMoisture10 = (int) value;
-					break;
-				case 11:
-					SoilMoisture11 = (int) value;
-					break;
-				case 12:
-					SoilMoisture12 = (int) value;
-					break;
-				case 13:
-					SoilMoisture13 = (int) value;
-					break;
-				case 14:
-					SoilMoisture14 = (int) value;
-					break;
-				case 15:
-					SoilMoisture15 = (int) value;
-					break;
-				case 16:
-					SoilMoisture16 = (int) value;
-					break;
-			}
+			if (index > 0 && index < SoilMoisture.Length)
+				SoilMoisture[index] = (int?) value;
 		}
 
-		public void DoSoilTemp(double value, int index)
+		public void DoSoilTemp(double? value, int index)
 		{
 			if (index > 0 && index < SoilTemp.Length)
 				SoilTemp[index] = value;
@@ -9851,41 +9768,14 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoLeafWetness(double value, int index)
+		public void DoLeafWetness(double? value, int index)
 		{
-			switch (index)
-			{
-				case 1:
-					LeafWetness1 = value;
-					break;
-				case 2:
-					LeafWetness2 = value;
-					break;
-				case 3:
-					LeafWetness3 = value;
-					break;
-				case 4:
-					LeafWetness4 = value;
-					break;
-				case 5:
-					LeafWetness5 = value;
-					break;
-				case 6:
-					LeafWetness6 = value;
-					break;
-				case 7:
-					LeafWetness7 = value;
-					break;
-				case 8:
-					LeafWetness8 = value;
-					break;
-				default:
-					return;
-			}
+			if (index > 0 && index < LeafWetness.Length)
+				LeafWetness[index] = value;
 
 			if (cumulus.StationOptions.LeafWetnessIsRainingIdx == index)
 			{
-				IsRaining = value >= cumulus.StationOptions.LeafWetnessIsRainingThrsh;
+				IsRaining = (value ?? 0) >= cumulus.StationOptions.LeafWetnessIsRainingThrsh;
 				cumulus.IsRainingAlarm.Triggered = IsRaining;
 			}
 		}
@@ -11767,38 +11657,11 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(0, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[0]}\",\"{(SoilMoisture1.HasValue ? SoilMoisture1.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[0]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(1, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[1]}\",\"{(SoilMoisture2.HasValue ? SoilMoisture2.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[1]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(2, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[2]}\",\"{(SoilMoisture3.HasValue ? SoilMoisture3.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[2]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(3, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[3]}\",\"{(SoilMoisture4.HasValue ? SoilMoisture4.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[3]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(4, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[4]}\",\"{(SoilMoisture5.HasValue ? SoilMoisture5.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[4]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(5, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[5]}\",\"{(SoilMoisture6.HasValue ? SoilMoisture6.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[5]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(6, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[6]}\",\"{(SoilMoisture7.HasValue ? SoilMoisture7.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[6]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(7, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[7]}\",\"{(SoilMoisture8.HasValue ? SoilMoisture8.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[7]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(8, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[8]}\",\"{(SoilMoisture9.HasValue ? SoilMoisture9.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[8]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(9, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[9]}\",\"{(SoilMoisture10.HasValue ? SoilMoisture10.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[9]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(10, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[10]}\",\"{(SoilMoisture11.HasValue ? SoilMoisture11.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[10]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(11, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[11]}\",\"{(SoilMoisture12.HasValue ? SoilMoisture12.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[11]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(12, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[12]}\",\"{(SoilMoisture13.HasValue ? SoilMoisture13.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[12]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(13, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[13]}\",\"{(SoilMoisture14.HasValue ? SoilMoisture14.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[13]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(14, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[14]}\",\"{(SoilMoisture15.HasValue ? SoilMoisture15.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[14]}\"],");
-			if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(15, true))
-				json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[15]}\",\"{(SoilMoisture16.HasValue ? SoilMoisture16.Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[15]}\"]");
+			for (var i = 1; i <= SoilMoisture.Length; i++)
+			{
+				if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i - 1, true))
+					json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[i - 1]}\",\"{(SoilMoisture[i].HasValue ? SoilMoisture[i].Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[i - 1]}\"],");
+			}
 
 			if (json[^1] == ',')
 				json.Length--;
@@ -11884,22 +11747,13 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 256);
 			if (cumulus.GraphOptions.Visible.LeafWetness.IsVisible(local))
 			{
-				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(0, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[0]}\",\"{(LeafWetness1.HasValue ? LeafWetness1.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(1, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[1]}\",\"{(LeafWetness2.HasValue ? LeafWetness2.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(2, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[2]}\",\"{(LeafWetness3.HasValue ? LeafWetness3.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(3, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[3]}\",\"{(LeafWetness4.HasValue ? LeafWetness4.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(4, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[4]}\",\"{(LeafWetness5.HasValue ? LeafWetness5.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(5, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[5]}\",\"{(LeafWetness6.HasValue ? LeafWetness6.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(6, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[6]}\",\"{(LeafWetness7.HasValue ? LeafWetness7.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(7, local))
-					json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[7]}\",\"{(LeafWetness8.HasValue ? LeafWetness8.Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"]");
+				for (var i = 1; i <= LeafWetness.Length; i++)
+				{
+					if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i - 1, local))
+					{
+						json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[i - 1]}\",\"{(LeafWetness[i].HasValue ? LeafWetness[i].Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+					}
+				}
 			}
 
 			if (json[^1] == ',')

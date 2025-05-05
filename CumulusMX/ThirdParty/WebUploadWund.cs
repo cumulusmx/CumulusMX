@@ -243,19 +243,19 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilTemp4 && station.SoilTemp[4].HasValue)
 				Data.Append($"&soiltempf4={WeatherStation.TempFstr(station.SoilTemp[4].Value)}");
 
-			if (SendSoilMoisture1 && station.SoilMoisture1.HasValue)
-				Data.Append($"&soilmoisture={station.SoilMoisture1}");
-			if (SendSoilMoisture2 && station.SoilMoisture2.HasValue)
-				Data.Append($"&soilmoisture2={station.SoilMoisture2}");
-			if (SendSoilMoisture3 && station.SoilMoisture3.HasValue)
-				Data.Append($"&soilmoisture3={station.SoilMoisture3}");
-			if (SendSoilMoisture4 && station.SoilMoisture4.HasValue)
-				Data.Append($"&soilmoisture4={station.SoilMoisture4}");
+			if (SendSoilMoisture1 && station.SoilMoisture[1].HasValue)
+				Data.Append($"&soilmoisture={station.SoilMoisture[1]}");
+			if (SendSoilMoisture2 && station.SoilMoisture[2].HasValue)
+				Data.Append($"&soilmoisture2={station.SoilMoisture[2]}");
+			if (SendSoilMoisture3 && station.SoilMoisture[3].HasValue)
+				Data.Append($"&soilmoisture3={station.SoilMoisture[3]}");
+			if (SendSoilMoisture4 && station.SoilMoisture[4].HasValue)
+				Data.Append($"&soilmoisture4={station.SoilMoisture[4]}");
 
-			if (SendLeafWetness1 && station.LeafWetness1.HasValue)
-				Data.Append($"&leafwetness={station.LeafWetness1:cumulus.LeafWetFormat}");
-			if (SendLeafWetness2 && station.LeafWetness2.HasValue)
-				Data.Append($"&leafwetness2={station.LeafWetness2:cumulus.LeafWetFormat}");
+			if (SendLeafWetness1 && station.LeafWetness[1].HasValue)
+				Data.Append($"&leafwetness={station.LeafWetness[1]:cumulus.LeafWetFormat}");
+			if (SendLeafWetness2 && station.LeafWetness[2].HasValue)
+				Data.Append($"&leafwetness2={station.LeafWetness[2]:cumulus.LeafWetFormat}");
 
 			if (SendAirQuality && cumulus.StationOptions.PrimaryAqSensor > (int) Cumulus.PrimaryAqSensor.Undefined)
 			{

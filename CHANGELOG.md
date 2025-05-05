@@ -12,6 +12,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.5.0 \[b4089\]][19] - 2025-05-05
 
+### b4089 changes
+- FT WD improvements
+- Davis LOOP handling improvements
+- Refactoring of SoilMoisture, Leafwetness, SoilTemp
+- Two new web tags for the Station Up-time, and Station Link Up-time (see below)
+- Davis AirLink not writing to the log file during catch-up. Note not all values are available in catch-up
+- Fix leaf wetness graph data when null
+
 ### New
 
 - Realtime FTP (and FTPS) handling changed
@@ -79,7 +87,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - MQTT IP protocol version not saving to Cumulus.ini
 - MQTT Protocol version - removed Auto detect as it does not work
 - Davis AirLink not writing to the log file during catch-up. Note not all values are available in catch-up
-
+- Fix leaf wetness graph data when null
 
 ### Package Updates
 
