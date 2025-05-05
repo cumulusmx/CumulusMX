@@ -334,6 +334,8 @@ namespace CumulusMX
 		public int StationFreeMemory;
 		public int ExtraStationFreeMemory;
 		public int StationRuntime;
+		public TimeSpan StationUptime;
+		public TimeSpan StationLinkUptime;
 
 		public QueryDayFile DayFileQuery;
 

@@ -2678,6 +2678,7 @@ namespace CumulusMX
 							upt.Minutes,
 							upt.Seconds);
 					cumulus.LogDebugMessage("WLL Uptime = " + uptStr);
+					StationUptime = upt;
 
 					// Only present if WiFi attached
 					if (data15.wifi_rssi.HasValue)
@@ -2693,6 +2694,7 @@ namespace CumulusMX
 							upt.Minutes,
 							upt.Seconds);
 					cumulus.LogDebugMessage("WLL Link Uptime = " + uptStr);
+					StationLinkUptime = upt;
 				}
 				catch (Exception ex)
 				{

@@ -1027,6 +1027,8 @@ namespace CumulusMX
 					if (data["runtime"] != null)
 					{
 						StationRuntime = int.Parse(data["runtime"]);
+						StationUptime = TimeSpan.FromSeconds(StationRuntime);
+
 					}
 				}
 				catch (Exception ex)

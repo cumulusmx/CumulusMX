@@ -3413,6 +3413,7 @@ namespace CumulusMX
 						upt.Minutes,
 						upt.Seconds);
 				cumulus.LogDebugMessage("WLL/WLC Uptime = " + uptStr);
+				StationUptime = upt;
 
 				// Only present if WiFi attached
 				if (data.wifi_rssi.HasValue)
@@ -3428,6 +3429,7 @@ namespace CumulusMX
 						upt.Minutes,
 						upt.Seconds);
 				cumulus.LogDebugMessage("WLL Link Uptime = " + uptStr);
+				StationLinkUptime = upt;
 			}
 			catch (Exception ex)
 			{
@@ -3538,6 +3540,8 @@ namespace CumulusMX
 						upt.Seconds);
 				cumulus.LogDebugMessage("WLC App Uptime = " + uptStr);
 
+				StationUptime = upt;
+
 				upt = TimeSpan.FromSeconds(data.os_uptime.Value);
 				uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
 						(int) upt.TotalDays,
@@ -3560,6 +3564,8 @@ namespace CumulusMX
 						upt.Minutes,
 						upt.Seconds);
 				cumulus.LogDebugMessage("Link Uptime = " + uptStr);
+
+				StationLinkUptime = upt;
 			}
 			catch (Exception ex)
 			{

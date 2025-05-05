@@ -6136,6 +6136,16 @@ namespace CumulusMX
 			return station.StationRuntime.ToString();
 		}
 
+		private string TagStationUptime(Dictionary<string, string> tagParams)
+		{
+			return station.StationUptime == TimeSpan.Zero ? tagParams.Get("nv") ?? "--" : GetFormattedTimeSpan(station.StationUptime, cumulus.Trans.WebTagElapsedTime, tagParams);
+		}
+
+		private string TagStationLinkUptime(Dictionary<string, string> tagParams)
+		{
+			return station.StationLinkUptime == TimeSpan.Zero ? tagParams.Get("nv") ?? "--" : GetFormattedTimeSpan(station.StationLinkUptime, cumulus.Trans.WebTagElapsedTime, tagParams);
+		}
+
 		private string Tagdailygraphperiod(Dictionary<string, string> tagparams)
 		{
 			return cumulus.GraphDays.ToString();
@@ -7416,6 +7426,8 @@ namespace CumulusMX
 				{ "StationFreeMemory", TagStationFreeMemory },
 				{ "ExtraStationFreeMemory", TagExtraStationFreeMemory },
 				{ "StationRuntime", TagStationRuntime },
+				{ "StationUptime", TagStationUptime },
+				{ "StationLinkUptime", TagStationLinkUptime },
 				{ "DataStopped", TagDataStopped },
 				// Recent history
 				{ "RecentOutsideTemp", TagRecentOutsideTemp },

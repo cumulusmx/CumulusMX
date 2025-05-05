@@ -46,6 +46,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Davis AirLink: new web tags for uptime and link uptime
 	`<#AirLinkUptimeIn> <#AirLinkLinkUptimeIn>`
 	`<#AirLinkUptimeOut> <#AirLinkLinkUptimeOut>`
+- Two new web tags for the Station Up-time, and Station Link Up-time as time spans
+	`<#StationUptime>`, `<#StationLinkUptime>`
+	- Currently only the following stations supply this information:
+		Davis WLL - both
+		Davis WLC - both
+		Ecowitt HTTP API - Uptime only
 
 ### Changed
 
