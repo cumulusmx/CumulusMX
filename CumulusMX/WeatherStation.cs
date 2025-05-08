@@ -1603,7 +1603,7 @@ namespace CumulusMX
 
 		public double RainSinceMidnight { get; set; }
 
-		public void StartMinuteTimer()
+		public void StartSecondsTimer()
 		{
 			lastMinute = DateTime.Now.Minute;
 			lastHour = DateTime.Now.Hour;
@@ -1620,11 +1620,30 @@ namespace CumulusMX
 		public void SecondTimer(object sender, ElapsedEventArgs e)
 		{
 			var timeNow = DateTime.Now; // b3085 change to using a single fixed point in time to make it independent of how long the process takes
+			if (timeNow.Second == lastSecond)
+			{
+				// skip this interval it's the same second
+				return;
+			}
+
 			DataDateTime = timeNow;
+			lastSecond = timeNow.Second;
 
 			if (timeNow.Minute != lastMinute)
 			{
 				lastMinute = timeNow.Minute;
+
+				if (DataStopped)
+				{
+					// check if we want to exit on data stopped
+					if (cumulus.ProgramOptions.DataStoppedExit && DataStoppedTime.AddMinutes(cumulus.ProgramOptions.DataStoppedMins) < DateTime.Now)
+					{
+						cumulus.LogMessage($"*** Exiting Cumulus due to Data Stopped condition for > {cumulus.ProgramOptions.DataStoppedMins} minutes");
+						Program.exitSystem = true;
+					}
+					// No data coming in, do not do anything else
+					return;
+				}
 
 				if ((timeNow.Minute % 10) == 0)
 				{
@@ -1638,39 +1657,27 @@ namespace CumulusMX
 				}
 
 				MinuteChanged(timeNow);
-
-				if (DataStopped)
-				{
-					// check if we want to exit on data stopped
-					if (cumulus.ProgramOptions.DataStoppedExit && DataStoppedTime.AddMinutes(cumulus.ProgramOptions.DataStoppedMins) < DateTime.Now)
-					{
-						cumulus.LogMessage($"*** Exiting Cumulus due to Data Stopped condition for > {cumulus.ProgramOptions.DataStoppedMins} minutes");
-						Program.exitSystem = true;
-					}
-					// No data coming in, do not do anything else
-					return;
-				}
 			}
 
-			if (timeNow.Second != lastSecond)
+			// send current data to web-socket every 5 seconds, unless it has already been sent within the 10 seconds
+			if (LastDataReadTimestamp.AddSeconds(5) < timeNow.ToUniversalTime() && (int) timeNow.TimeOfDay.TotalMilliseconds % 10000 <= 500)
 			{
-				lastSecond = timeNow.Second;
-
-				// send current data to web-socket every 5 seconds, unless it has already been sent within the 10 seconds
-				if (LastDataReadTimestamp.AddSeconds(5) < timeNow.ToUniversalTime() && (int) timeNow.TimeOfDay.TotalMilliseconds % 10000 <= 500)
-				{
-					_ = sendWebSocketData();
-				}
-
-				// lets spread some the processing over the minute, 10 seconds past the minute...
-				var millisecs = (int) timeNow.TimeOfDay.TotalMilliseconds % 60000;
-				if (millisecs >= 10000 && millisecs < 10500)
-				{
-					MinutePlus10Changed();
-				}
-
-				cumulus.MQTTSecondChanged(timeNow);
+				_ = sendWebSocketData();
 			}
+
+			// lets spread some the processing over the minute, 10 seconds past the minute...
+			var millisecs = (int) timeNow.TimeOfDay.TotalMilliseconds % 60000;
+			if (millisecs >= 10000 && millisecs < 10500)
+			{
+				MinutePlus10Changed();
+			}
+
+			if (cumulus.MySqlSettings.CustomSecs.Enabled && (int)(timeNow.TimeOfDay.TotalSeconds) % cumulus.MySqlSettings.CustomSecs.Interval == 0)
+			{
+				cumulus.CustomMysqlSecondsChanged();
+			}
+
+			cumulus.MQTTSecondChanged(timeNow);
 		}
 
 		internal async Task sendWebSocketData(bool wait = false)
@@ -7236,7 +7243,7 @@ namespace CumulusMX
 
 				if (cumulus.MySqlSettings.CustomRollover.Enabled)
 				{
-					_ = cumulus.CustomMysqlRolloverTimerTick();
+					_ = cumulus.CustomMysqlRollover();
 				}
 
 				if (cumulus.CustomHttpRolloverEnabled)

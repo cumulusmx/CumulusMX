@@ -459,6 +459,7 @@ namespace CumulusMX
 		private int phpMaxConnectionsPerServer;
 
 		internal Thread ftpThread;
+		private Task RealtimeWatchDog;
 
 		internal string xapHeartbeat;
 		internal string xapsource;
@@ -1338,11 +1339,6 @@ namespace CumulusMX
 				TestPhpUploadCompression();
 			}
 
-
-			CustomMysqlSecondsTimer = new Timer { Interval = MySqlSettings.CustomSecs.Interval * 1000 };
-			CustomMysqlSecondsTimer.Elapsed += CustomMysqlSecondsTimerTick;
-			CustomMysqlSecondsTimer.AutoReset = true;
-
 			CustomHttpSecondsTimer = new Timer { Interval = CustomHttpSecondsInterval * 1000 };
 			CustomHttpSecondsTimer.Elapsed += CustomHttpSecondsTimerTick;
 			CustomHttpSecondsTimer.AutoReset = true;
@@ -1657,23 +1653,6 @@ namespace CumulusMX
 
 				Api.httpFiles = httpFiles;
 
-				if (FtpOptions.FtpMode != Cumulus.FtpProtocols.PHP && RealtimeIntervalEnabled && FtpOptions.RealtimeEnabled)
-				{
-					// start the realtime watchdog which will do the initial login
-					//_ = RealtimeFtpWatchDog();
-
-					/*
-
-					if (FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
-					{
-						RealtimeSSHLogin();
-					}
-					else
-					{
-						RealtimeFTPLogin();
-					}
-					*/
-				}
 				RealtimeTimer.Interval = RealtimeInterval;
 				RealtimeTimer.Elapsed += RealtimeTimerTick;
 				RealtimeTimer.AutoReset = true;
@@ -2485,7 +2464,7 @@ namespace CumulusMX
 							try
 							{
 								RealtimeUpload(cycle).Wait();
-								// Leave the lock set so nothing else runs until we are connected
+								// Leave the lock set on error so nothing else runs until we are connected
 								RealtimeFtpLocked = false;
 							}
 							catch (Exception ex)
@@ -2569,6 +2548,7 @@ namespace CumulusMX
 			{
 				bool connected = false;
 				bool reinit = true;
+				const string filename = "_cumulusmx_watchdog.txt";
 
 				do
 				{
@@ -2614,7 +2594,7 @@ namespace CumulusMX
 								try
 								{
 									LogMessage("RealtimeFtpWatchDog: Realtime ftp attempting to reconnect");
-									RealtimeSSH.Connect();
+									RealtimeSSHLogin();
 									connected = RealtimeSSH.ConnectionInfo.IsAuthenticated;
 									LogMessage("RealtimeFtpWatchDog: Reconnected with server (we think)");
 								}
@@ -2636,7 +2616,8 @@ namespace CumulusMX
 							}
 							else // RealtimeXXXLogin() has its own error handling
 							{
-								LogMessage("RealtimeFtpWatchDog: Realtime ftp attempting to reinitialise the connection");
+								LogFtpMessage("RealtimeFtpWatchDog: Realtime ftp attempting to reinitialise the connection", true);
+
 								RealtimeFTPLogin();
 								connected = RealtimeFTP.IsConnected;
 
@@ -2664,7 +2645,7 @@ namespace CumulusMX
 
 							try
 							{
-								LogMessage("RealtimeFtpWatchDog: Realtime ftp testing the connection");
+								LogFtpMessage("RealtimeFtpWatchDog: Realtime ftp testing the connection", true);
 
 								if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 								{
@@ -2678,70 +2659,69 @@ namespace CumulusMX
 									}
 									else
 									{
-										LogDebugMessage("RealtimeFtpWatchDog: Realtime sftp connection test is flagged as connected OK");
+										LogDebugMessage("RealtimeFtpWatchDog: Realtime sftp connection is flagged as connected OK");
 
 										// create an read back a test file
-										RealtimeSSH.WriteAllText("_cumulusmxwd.txt", "test");
-										if (RealtimeSSH.ReadAllText("_cumulusmxwd.txt") != "test")
+										RealtimeSSH.WriteAllText(filename, "test");
+										if (RealtimeSSH.ReadAllText(filename) != "test")
 										{
 											connected = false;
 											reinit = true;
-											LogWarningMessage("RealtimeFtpWatchDog: Realtime sftp connection test failed to write and read a test file");
+											LogWarningMessage("RealtimeFtpWatchDog: Realtime sftp failed to write and read a test file");
 										}
 										else
 										{
-											LogDebugMessage("RealtimeFtpWatchDog: Realtime sftp connection test created a test file OK");
+											LogDebugMessage("RealtimeFtpWatchDog: Realtime sftp created a test file OK");
 
-											RealtimeSSH.DeleteFile("_cumulusmxwd.txt");
-
-											// Double check
-											if (!RealtimeSSH.IsConnected)
-											{
-												connected = false;
-												reinit = true;
-											}
+											RealtimeSSH.DeleteFile(filename);
 										}
 									}
 								}
 								else
 								{
-									if (!RealtimeFTP.IsStillConnected())
+									// IsStillConnected performs an active check that the server responds
+									// There is a problem in FluentFTP 52.1.0 that this does not work on all servers and causes a disconnect!
+									//if (!RealtimeFTP.IsStillConnected())
+
+									if (!RealtimeFTP.IsConnected || !RealtimeFTP.IsAuthenticated)
 									{
 										connected = false;
 										reinit = true;
-										LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp basic connection test failed");
+										LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection flagged as not connected");
 									}
 									else
 									{
-										LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp basic connection test OK");
-
-										var testBytes = Encoding.ASCII.GetBytes("test");
-
-										if (RealtimeFTP.UploadBytes(testBytes, "cumulusmx_watchdog.txt", FtpRemoteExists.Overwrite).IsFailure())
+										var pwd = RealtimeFTP.GetWorkingDirectory();
+										if (pwd.Length == 0 || pwd == "./")
 										{
 											connected = false;
 											reinit = true;
-											LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection test failed to write a test file");
+											LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp failed to get PWD");
 										}
 										else
 										{
-											if (!RealtimeFTP.DownloadBytes(out byte[] _bytes, "cumulusmx_watchdog.txt") || !_bytes.SequenceEqual(testBytes))
+											LogDebugMessage($"RealtimeFtpWatchDog: Realtime ftp got PWD OK - [{pwd}]");
+
+											var testBytes = Encoding.ASCII.GetBytes("test");
+
+											if (RealtimeFTP.UploadBytes(testBytes, filename, FtpRemoteExists.Overwrite).IsFailure())
 											{
 												connected = false;
 												reinit = true;
-												LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection test failed to read a test file");
+												LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp failed to write a test file");
 											}
 											else
 											{
-												LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp connection test created a test file OK");
-
-												RealtimeFTP.DeleteFile("cumulusmx_watchdog.txt");
-
-												if (!RealtimeFTP.IsStillConnected())
+												if (!RealtimeFTP.DownloadBytes(out byte[] _bytes, filename) || !_bytes.SequenceEqual(testBytes))
 												{
 													connected = false;
 													reinit = true;
-													LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp connection test failed to delete a test file");
+													LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp failed to read a test file");
+												}
+												else
+												{
+													RealtimeFTP.DeleteFile(filename);
+													LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp created a test file OK");
 												}
 											}
 										}
@@ -2771,7 +2751,7 @@ namespace CumulusMX
 					} while (!connected && !cancellationToken.IsCancellationRequested);
 
 					// OK we are reconnected, let the FTP recommence
-					LogMessage("RealtimeFtpWatchDog: Realtime FTP connected to server (tested), operations can be resumed");
+					LogFtpMessage("RealtimeFtpWatchDog: Realtime FTP OK, operations can be resumed", true);
 					RealtimeFtpLocked = false;
 					RealtimeCopyInProgress = false;
 					try
@@ -2876,7 +2856,14 @@ namespace CumulusMX
 				remotePath = (FtpOptions.Directory.EndsWith('/') ? FtpOptions.Directory : FtpOptions.Directory + '/');
 			}
 
-			LogDebugMessage($"Realtime[{cycle}]: Real time upload files starting");
+			if (FtpOptions.FtpMode != FtpProtocols.PHP)
+			{
+				LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload files starting", true);
+			}
+			else
+			{
+				LogDebugMessage($"Realtime[{cycle}]: Real time PHP upload files starting");
+			}
 
 			for (var i = 0; i < RealtimeFiles.Length; i++)
 			{
@@ -2969,8 +2956,13 @@ namespace CumulusMX
 
 			if (FtpOptions.FtpMode != FtpProtocols.PHP)
 			{
-				LogDebugMessage($"Realtime[{cycle}]: Real time files complete");
+				LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload files complete", true);
 			}
+			else
+			{
+				LogDebugMessage($"Realtime[{cycle}]: Real time PHP upload files complete");
+			}
+
 
 			// Extra files
 
@@ -3126,6 +3118,8 @@ namespace CumulusMX
 			}
 			else // It's old fashioned FTP/FTPS/SFTP
 			{
+				LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload extra files starting", true);
+
 				for (var i = 0; i < ActiveExtraFiles.Count; i++)
 				{
 					var item = ActiveExtraFiles[i];
@@ -3239,6 +3233,9 @@ namespace CumulusMX
 						}
 					}
 				}
+
+				LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload extra files complete", true);
+
 				// all done
 				RealtimeFtpLocked = false;
 			}
@@ -7977,10 +7974,6 @@ namespace CumulusMX
 
 		public Timer RealtimeTimer { get; set; } = new();
 
-		private Task RealtimeWatchDog;
-
-		internal Timer CustomMysqlSecondsTimer;
-
 		public bool WebIntervalEnabled { get; set; }
 
 		public bool WebAutoUpdate { get; set; }
@@ -9468,7 +9461,6 @@ namespace CumulusMX
 			try { WebTimer.Stop(); } catch { /* do nothing */ }
 			try { AWEKAS.IntTimer.Stop(); } catch { /* do nothing */ }
 			try { CustomHttpSecondsTimer.Stop(); } catch { /* do nothing */ }
-			try { CustomMysqlSecondsTimer.Stop(); } catch { /* do nothing */ }
 
 			try
 			{
@@ -13055,9 +13047,9 @@ namespace CumulusMX
 			}
 
 			LogMessage("Start Timers");
-			// start the general one-minute timer
-			LogMessage("Starting 1-minute timer");
-			station.StartMinuteTimer();
+			// start the general one-second timer
+			LogMessage("Starting 1-second timer");
+			station.StartSecondsTimer();
 			LogMessage($"Data logging interval = {DataLogInterval} ({logints[DataLogInterval]} mins)");
 
 
@@ -13068,16 +13060,6 @@ namespace CumulusMX
 					LogConsoleMessage("Connecting real time FTP");
 
 					RealtimeFtpWatchDog();
-					/*
-					if (FtpOptions.FtpMode == FtpProtocols.SFTP)
-					{
-						RealtimeSSHLogin();
-					}
-					else
-					{
-						RealtimeFTPLogin();
-					}
-					*/
 				}
 
 				LogMessage("Starting Realtime timer, interval = " + RealtimeInterval / 1000 + " seconds");
@@ -13088,8 +13070,6 @@ namespace CumulusMX
 			}
 
 			RealtimeTimer.Enabled = RealtimeIntervalEnabled;
-
-			CustomMysqlSecondsTimer.Enabled = MySqlSettings.CustomSecs.Enabled;
 
 			CustomHttpSecondsTimer.Enabled = CustomHttpSecondsEnabled;
 
@@ -13259,7 +13239,7 @@ namespace CumulusMX
 			}
 		}
 
-		private async void CustomMysqlSecondsTimerTick(object sender, ElapsedEventArgs e)
+		internal async void CustomMysqlSecondsChanged()
 		{
 			if (station.DataStopped)
 			{
@@ -13270,7 +13250,7 @@ namespace CumulusMX
 			if ((!station.PressReadyToPlot || !station.TempReadyToPlot || !station.WindReadyToPlot) && !StationOptions.NoSensorCheck)
 			{
 				// not all the data is ready and NoSensorCheck is not enabled
-				LogMessage($"CustomMySqlTimedUpdate: Not all data is ready, aborting process");
+				LogMessage($"CustomMysqlSecondsChanged: Not all data is ready, aborting process");
 				return;
 			}
 
@@ -13357,7 +13337,7 @@ namespace CumulusMX
 			}
 		}
 
-		internal async Task CustomMysqlRolloverTimerTick()
+		internal async Task CustomMysqlRollover()
 		{
 			if (station.DataStopped)
 			{
@@ -13438,11 +13418,11 @@ namespace CumulusMX
 						{
 							if (MySqlSettings.CustomTimed.NextUpdate[i] <= now)
 							{
+								MySqlSettings.CustomTimed.SetNextInterval(i, now);
 								tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
 								var cmd = tokenParser.ToStringFromString();
 								LogDebugMessage("MySQLTimed: Running repeating - " + cmd);
 								await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", cmd);
-								MySqlSettings.CustomTimed.SetNextInterval(i, now);
 							}
 						}
 					}

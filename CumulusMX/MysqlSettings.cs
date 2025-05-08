@@ -411,9 +411,6 @@ namespace CumulusMX
 				// Save the settings
 				cumulus.WriteIniFile();
 
-				cumulus.CustomMysqlSecondsTimer.Interval = cumulus.MySqlSettings.CustomSecs.Interval * 1000;
-				cumulus.CustomMysqlSecondsTimer.Enabled = cumulus.MySqlSettings.CustomSecs.Enabled;
-
 				context.Response.StatusCode = 200;
 			}
 			catch (Exception ex)

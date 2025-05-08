@@ -10,16 +10,18 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4089\]][19] - 2025-05-05
+## [4.5.0 \[b4090\]][19] - 2025-05-05
 
-### b4089 changes
-- FT WD improvements
+### b4090 changes
+- FTP WD improvements
 - Davis LOOP handling improvements
 - Refactoring of SoilMoisture, Leafwetness, SoilTemp
 - Two new web tags for the Station Up-time, and Station Link Up-time (see below)
 - Davis AirLink not writing to the log file during catch-up. Note not all values are available in catch-up
 - Fix leaf wetness graph data when null
-- Fix time format of tags TtempTh, daylength, daylightlength
+- Fix time format of web tags TtempTh, daylength, daylightlength
+- AI2 updates
+- MySQL Custom Seconds has moved off an independent timer to the main seconds timer, this also means that the commands will now be run at intervals based on the clock time
 
 ### New
 
