@@ -3209,7 +3209,7 @@ namespace CumulusMX
 		private string TagMonthAvgTotalRainfall(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var val = station.GetAverageTotalByMonth(month, d => d.AvgTemp);
+			var val = station.GetAverageTotalByMonth(month, d => d.TotalRain);
 
 			if (val < -998)
 			{

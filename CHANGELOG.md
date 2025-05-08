@@ -12,6 +12,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.5.0 \[b4090\]][19] - 2025-05-05
 
+### b4091 changes
+- More FTP WD improvements
+- Fix the MonthAvgXXXXX web tags
+
 ### b4090 changes
 - FTP WD improvements
 - Davis LOOP handling improvements

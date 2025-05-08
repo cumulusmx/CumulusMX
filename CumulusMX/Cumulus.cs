@@ -2691,38 +2691,26 @@ namespace CumulusMX
 									}
 									else
 									{
-										var pwd = RealtimeFTP.GetWorkingDirectory();
-										if (pwd.Length == 0 || pwd == "./")
+										var testBytes = Encoding.ASCII.GetBytes("test");
+
+										if (RealtimeFTP.UploadBytes(testBytes, filename, FtpRemoteExists.Overwrite).IsFailure())
 										{
 											connected = false;
 											reinit = true;
-											LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp failed to get PWD");
+											LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp failed to write a test file");
 										}
 										else
 										{
-											LogDebugMessage($"RealtimeFtpWatchDog: Realtime ftp got PWD OK - [{pwd}]");
-
-											var testBytes = Encoding.ASCII.GetBytes("test");
-
-											if (RealtimeFTP.UploadBytes(testBytes, filename, FtpRemoteExists.Overwrite).IsFailure())
+											if (!RealtimeFTP.DownloadBytes(out byte[] _bytes, filename) || !_bytes.SequenceEqual(testBytes))
 											{
 												connected = false;
 												reinit = true;
-												LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp failed to write a test file");
+												LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp failed to read a test file");
 											}
 											else
 											{
-												if (!RealtimeFTP.DownloadBytes(out byte[] _bytes, filename) || !_bytes.SequenceEqual(testBytes))
-												{
-													connected = false;
-													reinit = true;
-													LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp failed to read a test file");
-												}
-												else
-												{
-													RealtimeFTP.DeleteFile(filename);
-													LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp created a test file OK");
-												}
+												RealtimeFTP.DeleteFile(filename);
+												LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp created a test file OK");
 											}
 										}
 									}
