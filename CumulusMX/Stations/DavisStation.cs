@@ -59,8 +59,6 @@ namespace CumulusMX
 
 		private readonly Stopwatch awakeStopWatch = new();
 
-		private double previousPressStation = 9999;
-
 		private TcpClient socket;
 
 		public DavisStation(Cumulus cumulus) : base(cumulus)
@@ -2029,27 +2027,26 @@ namespace CumulusMX
 						cumulus.SpikeAlarm.LastMessage = $"Station Pressure difference greater than spike value - NewVal={pressUser.ToString(cumulus.PressFormat)} OldVal={previousPressStation.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}";
 						cumulus.SpikeAlarm.Triggered = true;
 					}
-					else if (pressUser > cumulus.Limit.PressHigh)
+					else if (pressUser > cumulus.Limit.StationPressHigh)
 					{
 						cumulus.LogSpikeRemoval("Station Pressure greater than upper limit; reading ignored");
-						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} HighLimit={cumulus.Limit.PressHigh.ToString(cumulus.PressFormat)}");
+						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} HighLimit={cumulus.Limit.StationPressHigh.ToString(cumulus.PressFormat)}");
 						lastSpikeRemoval = DateTime.Now;
 						cumulus.SpikeAlarm.LastMessage = $"Station Pressure greater than upper limit - NewVal={pressUser.ToString(cumulus.PressFormat)} HighLimit={cumulus.Limit.PressHigh.ToString(cumulus.PressFormat)}";
 						cumulus.SpikeAlarm.Triggered = true;
 					}
-					else if (pressUser < cumulus.Limit.PressLow)
+					else if (pressUser < cumulus.Limit.StationPressLow)
 					{
 						cumulus.LogSpikeRemoval("Station Pressure less than lower limit; reading ignored");
 						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} LowLimit={cumulus.Limit.PressLow.ToString(cumulus.PressFormat)}");
 						lastSpikeRemoval = DateTime.Now;
-						cumulus.SpikeAlarm.LastMessage = $"Station Pressure less than lower limit - NewVal={pressUser.ToString(cumulus.PressFormat)} LowLimit={cumulus.Limit.PressLow.ToString(cumulus.PressFormat)}";
+						cumulus.SpikeAlarm.LastMessage = $"Station Pressure less than lower limit - NewVal={pressUser.ToString(cumulus.PressFormat)} LowLimit={cumulus.Limit.StationPressLow.ToString(cumulus.PressFormat)}";
 						cumulus.SpikeAlarm.Triggered = true;
 					}
 					else
 					{
 						// all good!
-						previousPressStation = pressUser;
-						DoStationPressure(ConvertUnits.PressINHGToUser(loopData.AbsolutePressure));
+						DoStationPressure(pressUser);
 					}
 				}
 

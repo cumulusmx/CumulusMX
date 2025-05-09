@@ -439,7 +439,7 @@ namespace CumulusMX
 		/// <summary>
 		/// Calculates the altimeter pressure
 		/// </summary>
-		/// <param name="pressureHpa">Station pressure in inHg</param>
+		/// <param name="pressureHpa">Station pressure in hPa</param>
 		/// <param name="altitudeM">Station altitude in metres</param>
 		/// <returns>Returns the altimeter pressure in hPa</returns>
 		public static double StationToAltimeter(double pressureHPa, double elevationM)
@@ -449,6 +449,19 @@ namespace CumulusMX
 			double k1 = 0.190284; // discrepancy with calculated k1 probably because Smithsonian used less precise gas constant and gravity values
 			double k2 = 8.4184960528E-5; // (standardLapseRate / standardTempK) * (Power(standardSLP, k1)
 			return Math.Pow(Math.Pow(pressureHPa - 0.3, k1) + (k2 * elevationM), 1 / k1);
+		}
+
+		/// <summary>
+		/// Simplified calculation of station pressure from sea level pressure
+		/// </summary>
+		/// <param name="seaLevelPressureHpa">Station pressure in hPag</param>
+		/// <param name="altitudeM">Station altitude in metres</param>
+		/// <returns>Returns the station pressure in hPa</returns>
+		public static double SeaLevelToStation(double pressureHPa, double elevationM)
+		{
+			double k1 = 2.25577;
+			double k2 = 5.25588;
+			return pressureHPa * Math.Pow(1 - Math.Pow(k1, -5) * elevationM, k2);
 		}
 
 

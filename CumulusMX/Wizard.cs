@@ -7,6 +7,8 @@ using EmbedIO;
 using ServiceStack;
 using ServiceStack.Text;
 
+using static System.Collections.Specialized.BitVector32;
+
 namespace CumulusMX
 {
 	public class Wizard(Cumulus cumulus)
@@ -450,6 +452,10 @@ namespace CumulusMX
 								cumulus.Limit.PressLow = ConvertUnits.UserPressToKpa(cumulus.Limit.PressLow);
 								break;
 						}
+
+						cumulus.Limit.StationPressHigh = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(cumulus.Limit.PressHigh), station.AltitudeM(cumulus.Altitude)));
+						cumulus.Limit.StationPressLow = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(cumulus.Limit.PressLow), station.AltitudeM(cumulus.Altitude)));
+
 						cumulus.Units.Press = settings.units.pressure;
 						cumulus.ChangePressureUnits();
 						cumulus.PressDPlaces = cumulus.PressDPlaceDefaults[cumulus.Units.Press];

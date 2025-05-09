@@ -299,6 +299,8 @@ namespace CumulusMX
 		public double presstrendval;
 		public double temptrendval;
 
+		private double previousPressStation = 9999;
+
 		public int multicastsGood, multicastsBad;
 
 		public bool timerStartNeeded = false;
@@ -5970,8 +5972,38 @@ namespace CumulusMX
 
 		public void DoStationPressure(double sp)
 		{
-			StationPressure = cumulus.Calib.PressStn.Calibrate(sp);
-			AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+			// Spike removal is in user units
+			if ((previousPressStation < 9998) && (Math.Abs(sp - previousPressStation) > cumulus.Spike.PressDiff))
+			{
+				cumulus.LogSpikeRemoval("Station Pressure difference greater than spike value; reading ignored");
+				cumulus.LogSpikeRemoval($"NewVal={sp.ToString(cumulus.PressFormat)} OldVal={previousPressStation.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}");
+				lastSpikeRemoval = DateTime.Now;
+				cumulus.SpikeAlarm.LastMessage = $"Station Pressure difference greater than spike value - NewVal={sp.ToString(cumulus.PressFormat)} OldVal={previousPressStation.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}";
+				cumulus.SpikeAlarm.Triggered = true;
+			}
+			else if (sp > cumulus.Limit.StationPressHigh)
+			{
+				cumulus.LogSpikeRemoval("Station Pressure greater than upper limit; reading ignored");
+				cumulus.LogSpikeRemoval($"NewVal={sp.ToString(cumulus.PressFormat)} HighLimit={cumulus.Limit.StationPressHigh.ToString(cumulus.PressFormat)}");
+				lastSpikeRemoval = DateTime.Now;
+				cumulus.SpikeAlarm.LastMessage = $"Station Pressure greater than upper limit - NewVal={sp.ToString(cumulus.PressFormat)} HighLimit={cumulus.Limit.PressHigh.ToString(cumulus.PressFormat)}";
+				cumulus.SpikeAlarm.Triggered = true;
+			}
+			else if (sp < cumulus.Limit.StationPressLow)
+			{
+				cumulus.LogSpikeRemoval("Station Pressure less than lower limit; reading ignored");
+				cumulus.LogSpikeRemoval($"NewVal={sp.ToString(cumulus.PressFormat)} LowLimit={cumulus.Limit.PressLow.ToString(cumulus.PressFormat)}");
+				lastSpikeRemoval = DateTime.Now;
+				cumulus.SpikeAlarm.LastMessage = $"Station Pressure less than lower limit - NewVal={sp.ToString(cumulus.PressFormat)} LowLimit={cumulus.Limit.StationPressLow.ToString(cumulus.PressFormat)}";
+				cumulus.SpikeAlarm.Triggered = true;
+			}
+			else
+			{
+				// all good!
+				previousPressStation = sp;
+				StationPressure = cumulus.Calib.PressStn.Calibrate(sp);
+				AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+			}
 		}
 
 		public void DoRain(double total, double rate, DateTime timestamp)

@@ -15,6 +15,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### b4091 changes
 - More FTP WD improvements
 - Fix the MonthAvgXXXXX web tags
+- Station Pressure limits now derived from sea level limits taking station elevation into account
+- Basic support for live data from PurpleAir sensors
 
 ### b4090 changes
 - FTP WD improvements
@@ -67,6 +69,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		Davis WLL - both
 		Davis WLC - both
 		Ecowitt HTTP API - Uptime only
+- Basic support for live data from PurpleAir sensors
 
 ### Changed
 
@@ -83,6 +86,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Soil Moisture from 4 to 16
 	- Leaf Wetness from 2 to 8
 	- Extra Temperature/Humidity from 8 to 16
+- Station Pressure limits now derived from sea level limits taking station elevation into account
 
 ### Fixed
 

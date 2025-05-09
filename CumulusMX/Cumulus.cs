@@ -141,6 +141,7 @@ namespace CumulusMX
 		internal HttpStationAmbient ambientExtra;
 		internal EcowittCloudStation ecowittCloudExtra;
 		internal JsonStation stationJsonExtra;
+		internal PurpleAir purpleAir;
 
 		internal DateTime LastUpdateTime; // use UTC to avoid DST issues
 
@@ -1630,6 +1631,12 @@ namespace CumulusMX
 					LogConsoleMessage($"Opening JSON extra sensors");
 					stationJsonExtra = new JsonStation(this, station);
 					Api.stationJsonExtra = stationJsonExtra;
+				}
+				if (PurpleAirEnabled)
+				{
+					LogMessage("Creating PurpleAir station");
+					LogConsoleMessage($"Opening PurpleAir");
+					purpleAir = new PurpleAir(this, station);
 				}
 
 
@@ -4351,6 +4358,17 @@ namespace CumulusMX
 				EcowittExtraForwarders[i] = ini.GetValue("GW1000", "ExtraForwarder" + i, string.Empty);
 			}
 
+			// PurpleAir settings
+			PurpleAirEnabled = ini.GetValue("PurpleAir", "Enabled", false);
+			for (var i = 1; i < 5; i++)
+			{
+				PurpleAirIpAddress[i - 1] = ini.GetValue("PurpleAir", "IpAddress" + i, string.Empty);
+				PurpleAirAlgorithm[i - 1] = ini.GetValue("PurpleAir", "Algorithm" + i, 1, 0, 1);
+			}
+			//PurpleAirApiKey = ini.GetValue("PurpleAir", "ApiKey", string.Empty);
+			//PurpleAirSensorIndex = ini.GetValue("PurpleAir", "SensorId", 0, 0);
+			//PurpleAirReadKey = ini.GetValue("PurpleAir", "ReadKey", string.Empty);
+
 			// Ambient settings
 			AmbientExtraEnabled = ini.GetValue("Ambient", "ExtraSensorDataEnabled", false);
 			AmbientExtraUseSolar = ini.GetValue("Ambient", "ExtraSensorUseSolar", true);
@@ -5502,6 +5520,9 @@ namespace CumulusMX
 			Limit.PressHigh = ConvertUnits.PressMBToUser(ini.GetValue("Limits", "PressHighMB", 1090.0));
 			Limit.PressLow = ConvertUnits.PressMBToUser(ini.GetValue("Limits", "PressLowMB", 870.0));
 			Limit.WindHigh = ConvertUnits.WindMSToUser(ini.GetValue("Limits", "WindHighMS", 90.0));
+			Limit.StationPressHigh = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(Limit.PressHigh), Station.AltitudeM(Altitude)));
+			Limit.StationPressLow = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(Limit.PressLow), Station.AltitudeM(Altitude)));
+
 
 			xapEnabled = ini.GetValue("xAP", "Enabled", false);
 			xapUID = ini.GetValue("xAP", "UID", "4375");
@@ -5948,28 +5969,6 @@ namespace CumulusMX
 			{
 				if (!Program.CheckInstanceId(false))
 				{
-					/*
-					 (ProgramOptions.SettingsUsername == string.Empty && ProgramOptions.SettingsPassword == string.Empty &&
-						WllApiKey == string.Empty && WllApiSecret == string.Empty &&
-						AirLinkApiKey == string.Empty && AirLinkApiSecret == string.Empty &&
-						FtpOptions.Username == string.Empty &&
-						FtpOptions.Password == string.Empty &&
-						FtpOptions.PhpSecret == string.Empty &&
-						Wund.PW == string.Empty &&
-						Windy.ApiKey == string.Empty &&
-						AWEKAS.PW == string.Empty &&
-						WindGuru.PW == string.Empty &&
-						WCloud.PW == string.Empty &&
-						WCloud.PW == string.Empty &&
-						WOW.PW == string.Empty &&
-						.. etc
-						)
-					[
-						LogWarningMessage("No UniqueId.txt file found, but no credentials are encrptyed so creating a new UniqueId.txt file")
-						Program.CheckInstanceId(true)
-					]
-					*/
-
 					LogCriticalMessage("ERROR: The UniqueId.txt file is missing or corrupt, please restore it from a backup");
 					LogConsoleMessage("ERROR: The UniqueId.txt file is missing or corrupt, please restore it from a backup", ConsoleColor.Red);
 					Environment.Exit(1);
@@ -5978,6 +5977,9 @@ namespace CumulusMX
 				ProgramOptions.SettingsUsername = Crypto.DecryptString(ProgramOptions.SettingsUsername, Program.InstanceId, "SettingsUsername");
 				ProgramOptions.SettingsPassword = Crypto.DecryptString(ProgramOptions.SettingsPassword, Program.InstanceId, "SettingsPassword");
 				WllApiKey = Crypto.DecryptString(WllApiKey, Program.InstanceId, "WllApiKey");
+				//PurpleAirApiKey = Crypto.DecryptString(PurpleAirApiKey, Program.InstanceId, "PurpleAirApiKey");
+				//PurpleAirReadKey = Crypto.DecryptString(PurpleAirReadKey, Program.InstanceId, "PurpleAirReadKey");
+
 				WllApiSecret = Crypto.DecryptString(WllApiSecret, Program.InstanceId, "WllApiSecret");
 				JsonStationOptions.MqttUsername = Crypto.DecryptString(JsonStationOptions.MqttUsername, Program.InstanceId, "JsonStationMqttUsername");
 				JsonStationOptions.MqttPassword = Crypto.DecryptString(JsonStationOptions.MqttPassword, Program.InstanceId, "JsonStationMqttPassword");
@@ -6371,6 +6373,25 @@ namespace CumulusMX
 				else
 					ini.SetValue("GW1000", "ExtraForwarder" + i, EcowittExtraForwarders[i].ToString());
 			}
+
+			// PurpleAir settings
+			ini.SetValue("PurpleAir", "Enabled", PurpleAirEnabled);
+			for (var i = 1; i < 5; i++)
+			{
+				if (string.IsNullOrEmpty(PurpleAirIpAddress[i - 1]))
+				{
+					ini.DeleteValue("PurpleAir", "IpAddress" + i);
+					ini.DeleteValue("PurpleAir", "Algorithm" + i);
+				}
+				else
+				{
+					ini.SetValue("PurpleAir", "IpAddress" + i, PurpleAirIpAddress[i - 1]);
+					ini.SetValue("PurpleAir", "Algorithm" + i, PurpleAirAlgorithm[i - 1]);
+				}
+			}
+			//ini.SetValue("PurpleAir", "ApiKey", Crypto.EncryptString(PurpleAirApiKey, Program.InstanceId, "PurpleAirApiKey"));
+			//ini.SetValue("PurpleAir", "SensorId", PurpleAirSensorIndex);
+			//ini.SetValue("PurpleAir", "ReadKey", Crypto.EncryptString(PurpleAirReadKey, Program.InstanceId, "PurpleAirReadKey"));
 
 			// Ambient settings
 			ini.SetValue("Ambient", "ExtraSensorDataEnabled", AmbientExtraEnabled);
@@ -8028,6 +8049,13 @@ namespace CumulusMX
 		public bool AmbientExtraUseLightning { get; set; }
 		public bool AmbientExtraUseLeak { get; set; }
 
+		public bool PurpleAirEnabled { get; set; }
+		public string[] PurpleAirIpAddress { get; set; } = new string[4];
+		public int[] PurpleAirAlgorithm { get; set; } = new int[4];
+		//public string PurpleAirApiKey { get; set; }
+		//public int PurpleAirSensorIndex { get; set; }
+		//public string PurpleAirReadKey { get; set; }
+
 		public decimal[] LaserDepthBaseline { get; set; } = new decimal[5];
 
 		public bool RG11DTRmode2 { get; set; }
@@ -9463,6 +9491,8 @@ namespace CumulusMX
 				ambientExtra?.Stop();
 				// If we have a JSON Extra Sensors, stop it
 				stationJsonExtra?.Stop();
+
+				purpleAir?.Stop();
 
 				LogMessage("Extra sensors stopped");
 
@@ -13032,6 +13062,7 @@ namespace CumulusMX
 				ambientExtra?.Start();
 				ecowittCloudExtra?.Start();
 				stationJsonExtra?.Start();
+				purpleAir?.Start();
 			}
 
 			LogMessage("Start Timers");
@@ -14381,7 +14412,8 @@ namespace CumulusMX
 			LogMessage("Spike removal:");
 			LogMessage($"TD={Spike.TempDiff:F3} GD={Spike.GustDiff:F3} WD={Spike.WindDiff:F3} HD={Spike.HumidityDiff:F3} PD={Spike.PressDiff:F3} MR={Spike.MaxRainRate:F3} MH={Spike.MaxHourlyRain:F3} ITD={Spike.InTempDiff:F3} IHD={Spike.InHumDiff:F3} Snow={Spike.SnowDiff:F2}");
 			LogMessage("Limits:");
-			LogMessage($"TH={Limit.TempHigh.ToString(TempFormat)} TL={Limit.TempLow.ToString(TempFormat)} DH={Limit.DewHigh.ToString(TempFormat)} PH={Limit.PressHigh.ToString(PressFormat)} PL={Limit.PressLow.ToString(PressFormat)} GH={Limit.WindHigh:F3} SnowMinInc={SnowMinInc:F2}");
+			LogMessage($"TH={Limit.TempHigh.ToString(TempFormat)} TL={Limit.TempLow.ToString(TempFormat)} DH={Limit.DewHigh.ToString(TempFormat)} GH={Limit.WindHigh:F3} SnowMinInc={SnowMinInc:F2}");
+			LogMessage($"PH={Limit.PressHigh.ToString(PressFormat)} PL={Limit.PressLow.ToString(PressFormat)} SPH={Limit.StationPressHigh.ToString(PressFormat)} SPL={Limit.StationPressLow.ToString(PressFormat)}");
 		}
 
 		private void LogPrimaryAqSensor()

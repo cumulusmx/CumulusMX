@@ -51,6 +51,8 @@
 		public double DewHigh { get; set; } = 40;         // Celsius
 		public double PressHigh { get; set; } = 1090;     // hPa
 		public double PressLow { get; set; } = 870;       // hPa
+		public double StationPressHigh { get; set; } = 0;     // hPa
+		public double StationPressLow { get; set; } = 0;       // hPa
 		public double WindHigh { get; set; } = 90;        // m/s
 	}
 
