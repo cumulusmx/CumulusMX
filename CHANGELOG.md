@@ -19,6 +19,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Station Pressure limits now apply to all stations - previously only Davis implemented them
 - Basic support for live data from PurpleAir sensors
 - CO₂ graphs not using the localised captions
+- AI2 updates
 
 ### b4090 changes
 - FTP WD improvements
