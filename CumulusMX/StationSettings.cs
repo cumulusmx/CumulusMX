@@ -1270,8 +1270,8 @@ namespace CumulusMX
 								break;
 						}
 
-						cumulus.Limit.StationPressHigh = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(cumulus.Limit.PressHigh), station.AltitudeM(cumulus.Altitude)));
-						cumulus.Limit.StationPressLow = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(cumulus.Limit.PressLow), station.AltitudeM(cumulus.Altitude)));
+						cumulus.Limit.StationPressHigh = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(cumulus.Limit.PressHigh), ConvertUnits.AltitudeM(cumulus.Altitude)));
+						cumulus.Limit.StationPressLow = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(cumulus.Limit.PressLow), ConvertUnits.AltitudeM(cumulus.Altitude)));
 
 						cumulus.Units.Press = settings.general.units.pressure;
 						cumulus.ChangePressureUnits();

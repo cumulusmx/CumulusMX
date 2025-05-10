@@ -639,5 +639,23 @@ namespace CumulusMX
 				_ => 12
 			};
 		}
+
+		/// <summary>
+		/// Convert altitude from user units to metres
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static double AltitudeM(double altitude)
+		{
+			if (Program.cumulus.AltitudeInFeet)
+			{
+				return altitude * 0.3048;
+			}
+			else
+			{
+				return altitude;
+			}
+		}
+
 	}
 }

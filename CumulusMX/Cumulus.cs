@@ -2340,7 +2340,7 @@ namespace CumulusMX
 				sb.Append($"\"name\":\"{LocationName}\",");
 				sb.Append($"\"latitude\":{Latitude.ToString(invC)},");
 				sb.Append($"\"longitude\":{Longitude.ToString(invC)},");
-				sb.Append($"\"altitude\":{(int) station.AltitudeM(Altitude)}}}");
+				sb.Append($"\"altitude\":{(int) ConvertUnits.AltitudeM(Altitude)}}}");
 
 				LogMessage($"OpenWeatherMap: Creating new station");
 				LogMessage($"OpenWeatherMap: - {sb}");
@@ -4364,6 +4364,7 @@ namespace CumulusMX
 			{
 				PurpleAirIpAddress[i - 1] = ini.GetValue("PurpleAir", "IpAddress" + i, string.Empty);
 				PurpleAirAlgorithm[i - 1] = ini.GetValue("PurpleAir", "Algorithm" + i, 1, 0, 1);
+				PurpleAirThSensor[i - 1] = ini.GetValue("PurpleAir", "TempHumSensor" + i, 0, 0, 16);
 			}
 			//PurpleAirApiKey = ini.GetValue("PurpleAir", "ApiKey", string.Empty);
 			//PurpleAirSensorIndex = ini.GetValue("PurpleAir", "SensorId", 0, 0);
@@ -5520,8 +5521,8 @@ namespace CumulusMX
 			Limit.PressHigh = ConvertUnits.PressMBToUser(ini.GetValue("Limits", "PressHighMB", 1090.0));
 			Limit.PressLow = ConvertUnits.PressMBToUser(ini.GetValue("Limits", "PressLowMB", 870.0));
 			Limit.WindHigh = ConvertUnits.WindMSToUser(ini.GetValue("Limits", "WindHighMS", 90.0));
-			Limit.StationPressHigh = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(Limit.PressHigh), Station.AltitudeM(Altitude)));
-			Limit.StationPressLow = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(Limit.PressLow), Station.AltitudeM(Altitude)));
+			Limit.StationPressHigh = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(Limit.PressHigh), ConvertUnits.AltitudeM(Altitude)));
+			Limit.StationPressLow = ConvertUnits.PressMBToUser(MeteoLib.SeaLevelToStation(ConvertUnits.UserPressToHpa(Limit.PressLow), ConvertUnits.AltitudeM(Altitude)));
 
 
 			xapEnabled = ini.GetValue("xAP", "Enabled", false);
@@ -6387,6 +6388,7 @@ namespace CumulusMX
 				{
 					ini.SetValue("PurpleAir", "IpAddress" + i, PurpleAirIpAddress[i - 1]);
 					ini.SetValue("PurpleAir", "Algorithm" + i, PurpleAirAlgorithm[i - 1]);
+					ini.SetValue("PurpleAir", "TempHumSensor" + i, PurpleAirThSensor[i - 1]);
 				}
 			}
 			//ini.SetValue("PurpleAir", "ApiKey", Crypto.EncryptString(PurpleAirApiKey, Program.InstanceId, "PurpleAirApiKey"));
@@ -8052,6 +8054,7 @@ namespace CumulusMX
 		public bool PurpleAirEnabled { get; set; }
 		public string[] PurpleAirIpAddress { get; set; } = new string[4];
 		public int[] PurpleAirAlgorithm { get; set; } = new int[4];
+		public int[] PurpleAirThSensor { get; set; } = new int[4];
 		//public string PurpleAirApiKey { get; set; }
 		//public int PurpleAirSensorIndex { get; set; }
 		//public string PurpleAirReadKey { get; set; }
@@ -8389,7 +8392,7 @@ namespace CumulusMX
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("DoLogFile: Writing log entry for " + timestamp);
 			LogDebugMessage("DoLogFile: max gust: " + station.RecentMaxGust.ToString(WindFormat));
-			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, (double) Longitude, (double) Latitude, station.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
+			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, (double) Longitude, (double) Latitude, ConvertUnits.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
 			var filename = GetLogFileName(timestamp);
 			var inv = CultureInfo.InvariantCulture;
 			var sep = ",";

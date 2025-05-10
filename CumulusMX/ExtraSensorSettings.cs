@@ -212,6 +212,25 @@ namespace CumulusMX
 				}
 			};
 
+
+			var pa = new JsonPurpleAir
+			{
+				enabled = cumulus.PurpleAirEnabled,
+			};
+
+			pa.sensors = new JsonPurpleAirSensor[4];
+
+			for (var i = 0; i < 4; i++)
+			{
+				pa.sensors[i] = new JsonPurpleAirSensor
+				{
+					id = "Sensor " + (i+1),
+					ipAddress = cumulus.PurpleAirIpAddress[i],
+					algorithm = cumulus.PurpleAirAlgorithm[i],
+					thsensor = cumulus.PurpleAirThSensor[i],
+				};
+			}
+
 			var data = new JsonSettings
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
@@ -220,7 +239,8 @@ namespace CumulusMX
 				httpSensors = httpStation,
 				blakeLarsen = bl,
 				laser = laser,
-				rg11 = rg11
+				rg11 = rg11,
+				purpleAir = pa
 			};
 
 			return data.ToJson();
@@ -616,6 +636,28 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// Purple Air settings
+				try
+				{
+					cumulus.PurpleAirEnabled = settings.purpleAir.enabled;
+					if (cumulus.PurpleAirEnabled)
+					{
+						for (var i = 0; i < 4; i++)
+						{
+							cumulus.PurpleAirIpAddress[i] = (settings.purpleAir.sensors[i].ipAddress ?? string.Empty).Trim();
+							cumulus.PurpleAirAlgorithm[i] = settings.purpleAir.sensors[i].algorithm;
+							cumulus.PurpleAirThSensor[i] = settings.purpleAir.sensors[i].thsensor;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Purple Air settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// Save the settings
 				cumulus.WriteIniFile();
 			}
@@ -640,6 +682,7 @@ namespace CumulusMX
 			public JsonBlakeLarsen blakeLarsen { get; set; }
 			public JsonLaser laser { get; set; }
 			public JsonRG11 rg11 { get; set; }
+			public JsonPurpleAir purpleAir { get; set; }
 		}
 
 		private sealed class JsonAirQuality
@@ -746,5 +789,19 @@ namespace CumulusMX
 		}
 
 		private sealed record JsonRg11Device(bool enabled, string commPort, bool tipMode, double tipSize, bool ignoreFirst, bool dtrMode);
+
+		private sealed class JsonPurpleAir
+		{
+			public bool enabled { get; set; }
+			public JsonPurpleAirSensor[] sensors { get; set; }
+		}
+
+		private sealed class JsonPurpleAirSensor
+		{
+			public string id { get; set; }
+			public string ipAddress { get; set; }
+			public int algorithm { get; set; }
+			public int thsensor { get; set; }
+		}
 	}
 }

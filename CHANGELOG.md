@@ -16,6 +16,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - More FTP WD improvements
 - Fix the MonthAvgXXXXX web tags
 - Station Pressure limits now derived from sea level limits taking station elevation into account
+- Station Pressure limits now apply to all stations - previously only Davis implemented them
 - Basic support for live data from PurpleAir sensors
 
 ### b4090 changes
@@ -70,6 +71,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		Davis WLC - both
 		Ecowitt HTTP API - Uptime only
 - Basic support for live data from PurpleAir sensors
+	- It uses the existing AirQuality1-4, AirQualityAvg1-4, and Extra Temp/Hum/Dewpoint sensor web tags
 
 ### Changed
 
@@ -87,6 +89,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Leaf Wetness from 2 to 8
 	- Extra Temperature/Humidity from 8 to 16
 - Station Pressure limits now derived from sea level limits taking station elevation into account
+- Station Pressure limits now apply to all stations - previously only Davis VP2 implemented them
 
 ### Fixed
 
@@ -99,6 +102,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - MQTT Protocol version - removed Auto detect as it does not work
 - Davis AirLink not writing to the log file during catch-up. Note not all values are available in catch-up
 - Fix leaf wetness graph data when null
+- CO₂ graphs not using the localised captions
 
 ### Package Updates
 

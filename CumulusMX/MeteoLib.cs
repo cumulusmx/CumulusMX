@@ -446,8 +446,8 @@ namespace CumulusMX
 		{
 			// from MADIS API by NOAA Forecast Systems Lab, see http://madis.noaa.gov/madis_api.html
 
-			double k1 = 0.190284; // discrepancy with calculated k1 probably because Smithsonian used less precise gas constant and gravity values
-			double k2 = 8.4184960528E-5; // (standardLapseRate / standardTempK) * (Power(standardSLP, k1)
+			const double k1 = 0.190284; // discrepancy with calculated k1 probably because Smithsonian used less precise gas constant and gravity values
+			const double k2 = 8.4184960528E-5; // (standardLapseRate / standardTempK) * (Power(standardSLP, k1)
 			return Math.Pow(Math.Pow(pressureHPa - 0.3, k1) + (k2 * elevationM), 1 / k1);
 		}
 
@@ -459,9 +459,9 @@ namespace CumulusMX
 		/// <returns>Returns the station pressure in hPa</returns>
 		public static double SeaLevelToStation(double pressureHPa, double elevationM)
 		{
-			double k1 = 2.25577;
-			double k2 = 5.25588;
-			return pressureHPa * Math.Pow(1 - Math.Pow(k1, -5) * elevationM, k2);
+			const double k1 = 2.25577e-5;
+			const double k2 = 5.25588;
+			return pressureHPa * Math.Pow(1 - k1 * elevationM, k2);
 		}
 
 

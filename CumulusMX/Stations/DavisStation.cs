@@ -2019,35 +2019,7 @@ namespace CumulusMX
 				{
 					// Spike removal is in user units
 					var pressUser = ConvertUnits.PressINHGToUser(loopData.AbsolutePressure);
-					if ((previousPressStation < 9998) && (Math.Abs(pressUser - previousPressStation) > cumulus.Spike.PressDiff))
-					{
-						cumulus.LogSpikeRemoval("Station Pressure difference greater than spike value; reading ignored");
-						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} OldVal={previousPressStation.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}");
-						lastSpikeRemoval = DateTime.Now;
-						cumulus.SpikeAlarm.LastMessage = $"Station Pressure difference greater than spike value - NewVal={pressUser.ToString(cumulus.PressFormat)} OldVal={previousPressStation.ToString(cumulus.PressFormat)} SpikePressDiff={cumulus.Spike.PressDiff.ToString(cumulus.PressFormat)}";
-						cumulus.SpikeAlarm.Triggered = true;
-					}
-					else if (pressUser > cumulus.Limit.StationPressHigh)
-					{
-						cumulus.LogSpikeRemoval("Station Pressure greater than upper limit; reading ignored");
-						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} HighLimit={cumulus.Limit.StationPressHigh.ToString(cumulus.PressFormat)}");
-						lastSpikeRemoval = DateTime.Now;
-						cumulus.SpikeAlarm.LastMessage = $"Station Pressure greater than upper limit - NewVal={pressUser.ToString(cumulus.PressFormat)} HighLimit={cumulus.Limit.PressHigh.ToString(cumulus.PressFormat)}";
-						cumulus.SpikeAlarm.Triggered = true;
-					}
-					else if (pressUser < cumulus.Limit.StationPressLow)
-					{
-						cumulus.LogSpikeRemoval("Station Pressure less than lower limit; reading ignored");
-						cumulus.LogSpikeRemoval($"NewVal={pressUser.ToString(cumulus.PressFormat)} LowLimit={cumulus.Limit.PressLow.ToString(cumulus.PressFormat)}");
-						lastSpikeRemoval = DateTime.Now;
-						cumulus.SpikeAlarm.LastMessage = $"Station Pressure less than lower limit - NewVal={pressUser.ToString(cumulus.PressFormat)} LowLimit={cumulus.Limit.StationPressLow.ToString(cumulus.PressFormat)}";
-						cumulus.SpikeAlarm.Triggered = true;
-					}
-					else
-					{
-						// all good!
-						DoStationPressure(pressUser);
-					}
+					DoStationPressure(pressUser);
 				}
 
 				double wind = ConvertUnits.WindMPHToUser(loopData.CurrentWindSpeed);

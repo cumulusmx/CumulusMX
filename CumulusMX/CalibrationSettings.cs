@@ -101,8 +101,8 @@ namespace CumulusMX
 				cumulus.Limit.PressHigh = Convert.ToDouble(settings.pressure.limitmax, invC);
 				cumulus.Limit.PressLow = Convert.ToDouble(settings.pressure.limitmin, invC);
 				cumulus.Limit.WindHigh = Convert.ToDouble(settings.gust.limitmax, invC);
-				cumulus.Limit.StationPressHigh = MeteoLib.SeaLevelToStation(cumulus.Limit.PressHigh, cumulus.Station.AltitudeM(cumulus.Altitude));
-				cumulus.Limit.StationPressLow = MeteoLib.SeaLevelToStation(cumulus.Limit.PressLow, cumulus.Station.AltitudeM(cumulus.Altitude));
+				cumulus.Limit.StationPressHigh = MeteoLib.SeaLevelToStation(cumulus.Limit.PressHigh, ConvertUnits.AltitudeM(cumulus.Altitude));
+				cumulus.Limit.StationPressLow = MeteoLib.SeaLevelToStation(cumulus.Limit.PressLow, ConvertUnits.AltitudeM(cumulus.Altitude));
 
 				// snow
 				cumulus.SnowMinInc = Convert.ToDecimal(settings.snow.mininc, invC);

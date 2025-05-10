@@ -94,7 +94,7 @@ namespace CumulusMX
 							response.EnsureSuccessStatusCode();
 							var responseBody = await response.Content.ReadAsStringAsync();
 							cumulus.LogDataMessage($"GetPaLiveData: Response - {responseBody}");
-							DecodePaLive(i + 1, responseBody, cumulus.PurpleAirAlgorithm[i]);
+							DecodePaLive(i + 1, responseBody, cumulus.PurpleAirAlgorithm[i], cumulus.PurpleAirThSensor[i]);
 						}
 					}
 				}
@@ -107,7 +107,7 @@ namespace CumulusMX
 			updateInProgress = false;
 		}
 
-		private void DecodePaLive(int indx, string jsonText, int algo)
+		private void DecodePaLive(int indx, string jsonText, int algo, int sensor)
 		{
 			/*
 			{
@@ -207,6 +207,14 @@ namespace CumulusMX
 					station.DoAirQuality(Math.Min(json.pm2_5_cf_1, json.pm2_5_cf_1_b), indx);
 				}
 
+				// Get the average from the recent data database
+
+				if (sensor > 0)
+				{
+					station.DoExtraTemp(ConvertUnits.TempFToUser(json.current_temp_f), indx);
+					station.DoExtraHum(json.current_humidity, indx);
+					station.DoExtraDP(ConvertUnits.TempFToUser(json.current_dewpoint_f), indx);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -376,6 +384,7 @@ namespace CumulusMX
 			public int rssi { get; set; }
 			public int current_temp_f { get; set; }
 			public int current_humidity { get; set; }
+			public int current_dewpoint_f { get; set; }
 			public int pm1_0_cf_1 { get; set; }
 			public int pm2_5_cf_1 { get; set; }
 			public int pm10_0_cf_1 { get; set; }

@@ -382,6 +382,7 @@ namespace CumulusMX
 			RecentDataDb.CreateTable<CWindRecent>();
 			RecentDataDb.Execute("create table if not exists WindRecentPointer (pntr INTEGER)");
 			RecentDataDb.CreateTable<DayFileRec>();
+			RecentDataDb.CreateTable<RecentAqData>();
 			// switch off full synchronisation - the data base isn't that critical and we get a performance boost
 			RecentDataDb.Execute("PRAGMA synchronous = NORMAL");
 
@@ -1769,6 +1770,7 @@ namespace CumulusMX
 			try
 			{
 				RecentDataDb.Execute("delete from RecentData where Timestamp < ?", deleteTime);
+				RecentDataDb.Execute("delete from RecentAqData where Timestamp = ?", deleteTime);
 			}
 			catch (Exception ex)
 			{
@@ -1813,7 +1815,7 @@ namespace CumulusMX
 		{
 			CheckForDataStopped();
 
-			CurrentSolarMax = AstroLib.SolarMax(now, (double) cumulus.Longitude, (double) cumulus.Latitude, AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
+			CurrentSolarMax = AstroLib.SolarMax(now, (double) cumulus.Longitude, (double) cumulus.Latitude, ConvertUnits.AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
 
 			if (!DataStopped)
 			{
@@ -1872,6 +1874,12 @@ namespace CumulusMX
 					DoTrendValues(now);
 					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
+
+					UpdateAirQualityDb();
+					if (cumulus.PurpleAirEnabled)
+					{
+						GetAirQualityAvgsFromDb();
+					}
 
 					// calculate ET just before the hour so it is included in the correct day at roll over - only affects 9am met days really
 					if (cumulus.StationOptions.CalculatedET && now.Minute == 59)
@@ -6002,7 +6010,7 @@ namespace CumulusMX
 				// all good!
 				previousPressStation = sp;
 				StationPressure = cumulus.Calib.PressStn.Calibrate(sp);
-				AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), AltitudeM(cumulus.Altitude)));
+				AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.AltitudeM(cumulus.Altitude)));
 			}
 		}
 
@@ -6398,23 +6406,6 @@ namespace CumulusMX
 		public string wsforecast { get; set; }
 
 		public bool FirstForecastDone = false;
-
-		/// <summary>
-		/// Convert altitude from user units to metres
-		/// </summary>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		public double AltitudeM(double altitude)
-		{
-			if (cumulus.AltitudeInFeet)
-			{
-				return altitude * 0.3048;
-			}
-			else
-			{
-				return altitude;
-			}
-		}
 
 		public bool PressReadyToPlot { get; set; }
 
@@ -9714,6 +9705,57 @@ namespace CumulusMX
 			}
 		}
 
+		public void UpdateAirQualityDb()
+		{
+			var rec = new RecentAqData
+			{
+				Timestamp = DateTime.Now,
+				Pm2p5_1 = AirQuality1,
+				Pm2p5_2 = AirQuality2,
+				Pm2p5_3 = AirQuality3,
+				Pm2p5_4 = AirQuality4
+			};
+
+			try
+			{
+				RecentDataDb.Insert(rec);
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage($"UpdateAirQualityDb: Error inserting recent AQ data into database: {ex.Message}");
+			}
+		}
+
+		public void GetAirQualityAvgsFromDb()
+		{
+			try
+			{
+				var ret = RecentDataDb.Query<RecentAqAvgs>("select avg(Pm2p5_1) Pm2p5_1, avg(Pm2p5_2) Pm2p5_2, avg(Pm2p5_3) Pm2p5_3, avg(Pm2p5_4) Pm2p5_4 from RecentAqData where Timestamp > ?", DateTime.Now.AddHours(-24));
+				if (ret != null)
+				{
+					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[0]))
+					{
+						AirQualityAvg1 = ret[0].Pm2p5_1;
+					}
+					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[1]))
+					{
+						AirQualityAvg2 = ret[0].Pm2p5_2;
+					}
+					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[2]))
+					{
+						AirQualityAvg3 = ret[0].Pm2p5_3;
+					}
+					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[3]))
+					{
+						AirQualityAvg4 = ret[0].Pm2p5_4;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage($"GetAirQualityAvgsFromDb: Error processing AQ averages from database: {ex.Message}");
+			}
+		}
 
 		public enum AqMeasure
 		{
@@ -13148,21 +13190,21 @@ namespace CumulusMX
 			// CO2
 			json.Append("\"co2\":{");
 			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
-				json.Append($"\"co2\":{{\"name\":\"CO₂\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.CO2}\"}},");
+				json.Append($"\"co2\":{{\"name\":\"{cumulus.Trans.CO2_CurrentCaption}\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.CO2}\"}},");
 			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local))
-				json.Append($"\"co2average\":{{\"name\":\"CO₂ Average\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.CO2Avg}\"}},");
+				json.Append($"\"co2average\":{{\"name\":\"{cumulus.Trans.CO2_24HourCaption}\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.CO2Avg}\"}},");
 			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
-				json.Append($"\"pm10\":{{\"name\":\"PM 10\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm10}\"}},");
+				json.Append($"\"pm10\":{{\"name\":\"{cumulus.Trans.CO2_pm10Caption}\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm10}\"}},");
 			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
-				json.Append($"\"pm10average\":{{\"name\":\"PM 10 Avg\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm10Avg}\"}},");
+				json.Append($"\"pm10average\":{{\"name\":\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm10Avg}\"}},");
 			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
-				json.Append($"\"pm2.5\":{{\"name\":\"PM 2.5\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm25}\"}},");
+				json.Append($"\"pm2.5\":{{\"name\":\"{cumulus.Trans.CO2_pm2p5Caption}\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm25}\"}},");
 			if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
-				json.Append($"\"pm2.5average\":{{\"name\":\"PM 2.5 Avg\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm25Avg}\"}},");
+				json.Append($"\"pm2.5average\":{{\"name\":\"{cumulus.Trans.CO2_pm2p5_24hrCaption}\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Pm25Avg}\"}},");
 			if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
-				json.Append($"\"humidity\":{{\"name\":\"Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Hum}\"}},");
+				json.Append($"\"humidity\":{{\"name\":\"{cumulus.Trans.CO2_HumidityCaption}\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Hum}\"}},");
 			if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
-				json.Append($"\"temperature\":{{\"name\":\"Temperature\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Temp}\"}}");
+				json.Append($"\"temperature\":{{\"name\":\"{cumulus.Trans.CO2_TemperatureCaption}\",\"colour\":\"{cumulus.GraphOptions.Colour.CO2Sensor.Temp}\"}}");
 			// remove trailing comma
 			if (json[^1] == ',')
 				json.Length--;
@@ -13445,9 +13487,9 @@ namespace CumulusMX
 			{
 				json.Append(",\"Snow\":[");
 				if (cumulus.GraphOptions.Visible.SnowDepth.IsVisible(local))
-					json.Append("\"Snow Depth\",");
+					json.Append($"\"{cumulus.Trans.SnowDepth}\",");
 				if (cumulus.GraphOptions.Visible.Snow24h.IsVisible(local))
-					json.Append("\"Snow 24 hours\"");
+					json.Append($"\"{cumulus.Trans.Snow24h}\"");
 				if (json[^1] == ',')
 					json.Length--;
 
@@ -13459,21 +13501,21 @@ namespace CumulusMX
 			{
 				json.Append(",\"CO2\":[");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
-					json.Append("\"CO2\",");
+					json.Append($"\"{cumulus.Trans.CO2_CurrentCaption}\",");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local))
-					json.Append("\"CO2Avg\",");
+					json.Append($"\"{cumulus.Trans.CO2_24HourCaption}\",");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
-					json.Append("\"PM25\",");
+					json.Append($"\"{cumulus.Trans.CO2_pm2p5Caption}\",");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local))
-					json.Append("\"PM25Avg\",");
+					json.Append($"\"{cumulus.Trans.CO2_pm2p5_24hrCaption}\",");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
-					json.Append("\"PM10\",");
+					json.Append($"\"{cumulus.Trans.CO2_pm10Caption}\",");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
-					json.Append("\"PM10Avg\",");
+					json.Append($"\"{cumulus.Trans.CO2_pm10_24hrCaption}\",");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
-					json.Append("\"Temp\",");
+					json.Append($"\"{cumulus.Trans.CO2_TemperatureCaption}\",");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
-					json.Append("\"Hum\"");
+					json.Append($"\"{cumulus.Trans.CO2_HumidityCaption}\"");
 
 				if (json[^1] == ',')
 					json.Length--;
@@ -14932,6 +14974,28 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 		public double? Pm2p5 { get; set; }
 		public double? Pm10 { get; set; }
 		public double RainRate { get; set; }
+	}
+
+	public class RecentAqData
+	{
+		[PrimaryKey]
+		public DateTime Timestamp { get; set; }
+		public double? Pm2p5_1 { get; set; }
+		public double? Pm10_1 { get; set; }
+		public double? Pm2p5_2 { get; set; }
+		public double? Pm10_2 { get; set; }
+		public double? Pm2p5_3 { get; set; }
+		public double? Pm10_3 { get; set; }
+		public double? Pm2p5_4 { get; set; }
+		public double? Pm10_4 { get; set; }
+	}
+
+	public class RecentAqAvgs
+	{
+		public double? Pm2p5_1 { get; set; }
+		public double? Pm2p5_2 { get; set; }
+		public double? Pm2p5_3 { get; set; }
+		public double? Pm2p5_4 { get; set; }
 	}
 
 	public class AvgData
