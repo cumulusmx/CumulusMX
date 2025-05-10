@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4090\]][19] - 2025-05-05
+## [4.5.0 \[b4090\]][19] - 2025-05-10
 
 ### b4091 changes
 - More FTP WD improvements
@@ -18,6 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Station Pressure limits now derived from sea level limits taking station elevation into account
 - Station Pressure limits now apply to all stations - previously only Davis implemented them
 - Basic support for live data from PurpleAir sensors
+- CO₂ graphs not using the localised captions
 
 ### b4090 changes
 - FTP WD improvements

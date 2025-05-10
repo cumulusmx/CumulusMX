@@ -209,28 +209,28 @@ namespace CumulusMX.ThirdParty
 						}
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
-						if (station.AirQuality1.HasValue)
-							sb.Append($"&pm25={station.AirQuality1:F0}");
-						if (station.AirQualityAvg1.HasValue)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg1.Value)}");
+						if (station.AirQuality[1].HasValue)
+							sb.Append($"&pm25={station.AirQuality[1]:F0}");
+						if (station.AirQualityAvg[1].HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg[1].Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
-						if (station.AirQuality2.HasValue)
-							sb.Append($"&pm25={station.AirQuality2:F0}");
-						if (station.AirQualityAvg2.HasValue)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg2.Value)}");
+						if (station.AirQuality[2].HasValue)
+							sb.Append($"&pm25={station.AirQuality[2]:F0}");
+						if (station.AirQualityAvg[2].HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg[2].Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
-						if (station.AirQuality3.HasValue)
-							sb.Append($"&pm25={station.AirQuality3:F0}");
-						if (station.AirQualityAvg3.HasValue)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg3.Value)}");
+						if (station.AirQuality[3].HasValue)
+							sb.Append($"&pm25={station.AirQuality[3]:F0}");
+						if (station.AirQualityAvg[3].HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg[3].Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
-						if (station.AirQuality4.HasValue)
-							sb.Append($"&pm25={station.AirQuality4:F0}");
-						if (station.AirQualityAvg4.HasValue)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg4.Value)}");
+						if (station.AirQuality[4].HasValue)
+							sb.Append($"&pm25={station.AirQuality[4]:F0}");
+						if (station.AirQualityAvg[4].HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg[4].Value)}");
 						break;
 					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 						if (station.CO2_pm2p5.HasValue)

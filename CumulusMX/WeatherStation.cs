@@ -1544,23 +1544,10 @@ namespace CumulusMX
 
 		public int?[] SoilMoisture { get; set; } = new int?[17];
 
-		public double? AirQuality1 { get; set; }
-		public double? AirQuality2 { get; set; }
-		public double? AirQuality3 { get; set; }
-		public double? AirQuality4 { get; set; }
-		public double? AirQualityAvg1 { get; set; }
-		public double? AirQualityAvg2 { get; set; }
-		public double? AirQualityAvg3 { get; set; }
-		public double? AirQualityAvg4 { get; set; }
-
-		public double? AirQualityIdx1 { get; set; }
-		public double? AirQualityIdx2 { get; set; }
-		public double? AirQualityIdx3 { get; set; }
-		public double? AirQualityIdx4 { get; set; }
-		public double? AirQualityAvgIdx1 { get; set; }
-		public double? AirQualityAvgIdx2 { get; set; }
-		public double? AirQualityAvgIdx3 { get; set; }
-		public double? AirQualityAvgIdx4 { get; set; }
+		public double?[] AirQuality { get; set; } = new double?[5];
+		public double?[] AirQualityAvg { get; set; } = new double?[5];
+		public double?[] AirQualityIdx { get; set; } = new double?[5];
+		public double?[] AirQualityAvgIdx { get; set; } = new double?[5];
 
 		public int? CO2 { get; set; }
 		public int? CO2_24h { get; set; }
@@ -8459,16 +8446,16 @@ namespace CumulusMX
 					}
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
-					pm2p5 = AirQuality1;
+					pm2p5 = AirQuality[1];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
-					pm2p5 = AirQuality2;
+					pm2p5 = AirQuality[2];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
-					pm2p5 = AirQuality3;
+					pm2p5 = AirQuality[3];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
-					pm2p5 = AirQuality3;
+					pm2p5 = AirQuality[4];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 					pm2p5 = CO2_pm2p5;
@@ -9657,52 +9644,14 @@ namespace CumulusMX
 
 		public void DoAirQuality(double value, int index)
 		{
-			var idx = GetAqi(AqMeasure.pm2p5, value);
-
-			switch (index)
-			{
-				case 1:
-					AirQuality1 = value;
-					AirQualityIdx1 = idx;
-					break;
-				case 2:
-					AirQuality2 = value;
-					AirQualityIdx2 = idx;
-					break;
-				case 3:
-					AirQuality3 = value;
-					AirQualityIdx3 = idx;
-					break;
-				case 4:
-					AirQuality4 = value;
-					AirQualityIdx4 = idx;
-					break;
-			}
+			AirQuality[index] = value;
+			AirQualityIdx[index] = GetAqi(AqMeasure.pm2p5, value);
 		}
 
 		public void DoAirQualityAvg(double value, int index)
 		{
-			var idx = GetAqi(AqMeasure.pm2p5h24, value);
-
-			switch (index)
-			{
-				case 1:
-					AirQualityAvg1 = value;
-					AirQualityAvgIdx1 = idx;
-					break;
-				case 2:
-					AirQualityAvg2 = value;
-					AirQualityAvgIdx2 = idx;
-					break;
-				case 3:
-					AirQualityAvg3 = value;
-					AirQualityAvgIdx3 = idx;
-					break;
-				case 4:
-					AirQualityAvg4 = value;
-					AirQualityAvgIdx4 = idx;
-					break;
-			}
+			AirQualityAvg[index] = value;
+			AirQualityAvgIdx[index] = GetAqi(AqMeasure.pm2p5h24, value);
 		}
 
 		public void UpdateAirQualityDb()
@@ -9710,10 +9659,10 @@ namespace CumulusMX
 			var rec = new RecentAqData
 			{
 				Timestamp = DateTime.Now,
-				Pm2p5_1 = AirQuality1,
-				Pm2p5_2 = AirQuality2,
-				Pm2p5_3 = AirQuality3,
-				Pm2p5_4 = AirQuality4
+				Pm2p5_1 = AirQuality[1],
+				Pm2p5_2 = AirQuality[2],
+				Pm2p5_3 = AirQuality[3],
+				Pm2p5_4 = AirQuality[4]
 			};
 
 			try
@@ -9735,19 +9684,19 @@ namespace CumulusMX
 				{
 					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[0]))
 					{
-						AirQualityAvg1 = ret[0].Pm2p5_1;
+						AirQualityAvg[1] = ret[0].Pm2p5_1;
 					}
 					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[1]))
 					{
-						AirQualityAvg2 = ret[0].Pm2p5_2;
+						AirQualityAvg[2] = ret[0].Pm2p5_2;
 					}
 					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[2]))
 					{
-						AirQualityAvg3 = ret[0].Pm2p5_3;
+						AirQualityAvg[3] = ret[0].Pm2p5_3;
 					}
 					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[3]))
 					{
-						AirQualityAvg4 = ret[0].Pm2p5_4;
+						AirQualityAvg[4] = ret[0].Pm2p5_4;
 					}
 				}
 			}
@@ -11719,7 +11668,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 2048);
 
-			for (var i = 1; i <= 16; i++)
+			for (var i = 1; i < SoilTemp.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i - 1, true))
 				{
@@ -11738,7 +11687,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (var i = 1; i <= SoilMoisture.Length; i++)
+			for (var i = 1; i < SoilMoisture.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i - 1, true))
 					json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[i - 1]}\",\"{(SoilMoisture[i].HasValue ? SoilMoisture[i].Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[i - 1]}\"],");
@@ -11756,22 +11705,20 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 1024);
 			if (cumulus.GraphOptions.Visible.AqSensor.IsVisible(local))
 			{
-				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(0, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[0]}\",\"{(AirQuality1.HasValue ? AirQuality1.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(1, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[1]}\",\"{(AirQuality2.HasValue ? AirQuality2.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(2, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[2]}\",\"{(AirQuality3.HasValue ? AirQuality3.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(3, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityCaptions[3]}\",\"{(AirQuality4.HasValue ? AirQuality4.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(0, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[0]}\",\"{(AirQualityAvg1.HasValue ? AirQualityAvg1.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(1, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[1]}\",\"{(AirQualityAvg2.HasValue ? AirQualityAvg2.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(2, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[2]}\",\"{(AirQualityAvg3.HasValue ? AirQualityAvg3.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
-				if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(3, local))
-					json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[3]}\",\"{(AirQualityAvg4.HasValue ? AirQualityAvg4.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"]");
+				for (int i = 1; i <= 4; i++)
+				{
+					if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(i - 1, local))
+					{
+						json.Append($"[\"{cumulus.Trans.AirQualityCaptions[i - 1]}\",\"{(AirQuality[i].HasValue ? AirQuality[i].Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					}
+				}
+				for (int i = 1; i <= 4; i++)
+				{
+					if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(i - 1, local))
+					{
+						json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[i - 1]}\",\"{(AirQualityAvg[i].HasValue ? AirQualityAvg[i].Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					}
+				}
 			}
 
 			if (json[^1] == ',')
@@ -11828,7 +11775,7 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 256);
 			if (cumulus.GraphOptions.Visible.LeafWetness.IsVisible(local))
 			{
-				for (var i = 1; i <= LeafWetness.Length; i++)
+				for (var i = 1; i < LeafWetness.Length; i++)
 				{
 					if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i - 1, local))
 					{

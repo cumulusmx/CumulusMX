@@ -8590,14 +8590,15 @@ namespace CumulusMX
 				sb.Append(station.SoilMoisture[i] + sep);      //56-67
 			}
 
-			sb.Append((station.AirQuality1.HasValue ? station.AirQuality1.Value.ToString("F1", inv) : string.Empty) + sep);     //68
-			sb.Append((station.AirQuality2.HasValue ? station.AirQuality2.Value.ToString("F1", inv) : string.Empty) + sep);     //69
-			sb.Append((station.AirQuality3.HasValue ? station.AirQuality3.Value.ToString("F1", inv) : string.Empty) + sep);     //70
-			sb.Append((station.AirQuality4.HasValue ? station.AirQuality4.Value.ToString("F1", inv) : string.Empty) + sep);     //71
-			sb.Append((station.AirQualityAvg1.HasValue ? station.AirQualityAvg1.Value.ToString("F1", inv) : string.Empty) + sep);  //72
-			sb.Append((station.AirQualityAvg2.HasValue ? station.AirQualityAvg2.Value.ToString("F1", inv) : string.Empty) + sep);  //73
-			sb.Append((station.AirQualityAvg3.HasValue ? station.AirQualityAvg3.Value.ToString("F1", inv) : string.Empty) + sep);  //74
-			sb.Append((station.AirQualityAvg4.HasValue ? station.AirQualityAvg4.Value.ToString("F1", inv) : string.Empty) + sep);  //75
+			for (int i = 1; i <= 4; i++)
+			{
+				sb.Append((station.AirQuality[i].HasValue ? station.AirQuality[i].Value.ToString("F1", inv) : string.Empty) + sep);     //68-71
+			}
+
+			for (int i = 1; i <= 4; i++)
+			{
+				sb.Append((station.AirQualityAvg[i].HasValue ? station.AirQualityAvg[i].Value.ToString("F1", inv) : string.Empty) + sep); //72-75
+			}
 
 			for (int i = 1; i < 9; i++)
 			{

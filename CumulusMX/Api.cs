@@ -1135,7 +1135,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogErrorMessage($"api/extra: Unexpected Error, Description: \"{ex.Message}\"");
+					cumulus.LogExceptionMessage(ex, $"api/extra: Unexpected Error");
 					Response.StatusCode = 500;
 				}
 			}
