@@ -11471,7 +11471,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (int sensor = 1; sensor < 17; sensor++)
+			for (int sensor = 1; sensor < ExtraTemp.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(sensor - 1, true))
 				{
@@ -11496,7 +11496,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (int sensor = 1; sensor < 9; sensor++)
+			for (int sensor = 1; sensor < UserTemp.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(sensor - 1, true))
 				{
@@ -11521,7 +11521,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (int sensor = 1; sensor < 17; sensor++)
+			for (int sensor = 1; sensor < ExtraHum.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(sensor - 1, true))
 				{
@@ -11543,7 +11543,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (int sensor = 1; sensor < 17; sensor++)
+			for (int sensor = 1; sensor < ExtraDewPoint.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(sensor - 1, true))
 				{
@@ -11568,7 +11568,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (int sensor = 1; sensor < 5; sensor++)
+			for (int sensor = 1; sensor < LaserDepth.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.LaserDepth.ValVisible(sensor - 1, true))
 				{
@@ -11593,7 +11593,7 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (int sensor = 1; sensor < 5; sensor++)
+			for (int sensor = 1; sensor < LaserDist.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.LaserDist.ValVisible(sensor - 1, true))
 				{
@@ -11705,14 +11705,14 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 1024);
 			if (cumulus.GraphOptions.Visible.AqSensor.IsVisible(local))
 			{
-				for (int i = 1; i <= 4; i++)
+				for (int i = 1; i < AirQuality.Length; i++)
 				{
 					if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(i - 1, local))
 					{
 						json.Append($"[\"{cumulus.Trans.AirQualityCaptions[i - 1]}\",\"{(AirQuality[i].HasValue ? AirQuality[i].Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 					}
 				}
-				for (int i = 1; i <= 4; i++)
+				for (int i = 1; i < AirQualityAvg.Length; i++)
 				{
 					if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(i - 1, local))
 					{
