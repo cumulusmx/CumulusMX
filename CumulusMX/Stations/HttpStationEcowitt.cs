@@ -281,21 +281,24 @@ namespace CumulusMX
 
 		public override string GetEcowittCameraUrl()
 		{
-			if ((cumulus.ExtraSensorUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if (cumulus.ExtraSensorUseCamera ^ mainStation)
 			{
-				try
+				if (string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 				{
-					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, cumulus.cancellationToken);
-					return EcowittCameraUrl;
+					cumulus.LogWarningMessage("GetEcowittCameraUrl: Warning - URL requested, but no camera MAC address is configured");
 				}
-				catch (Exception ex)
+				else
 				{
-					cumulus.LogExceptionMessage(ex, "Error runing Ecowitt Camera URL");
+					try
+					{
+						EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, cumulus.cancellationToken);
+						return EcowittCameraUrl;
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "Error getting Ecowitt Camera URL");
+					}
 				}
-			}
-			else
-			{
-				cumulus.LogWarningMessage("GetEcowittCameraUrl: Warning - URL requested, but no camera MAC address is configured");
 			}
 
 			return string.Empty;
@@ -303,21 +306,24 @@ namespace CumulusMX
 
 		public override string GetEcowittVideoUrl()
 		{
-			if ((cumulus.ExtraSensorUseCamera || station == null) && !string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if (cumulus.ExtraSensorUseCamera ^ mainStation)
 			{
-				try
+				if (string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 				{
-					EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, cumulus.cancellationToken);
-					return EcowittVideoUrl;
+					cumulus.LogWarningMessage("GetEcowittVideoUrl: Warning - URL requested, but no camera MAC address is configured");
 				}
-				catch (Exception ex)
+				else
 				{
-					cumulus.LogExceptionMessage(ex, "Error running Ecowitt Video URL");
+					try
+					{
+						EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, cumulus.cancellationToken);
+						return EcowittVideoUrl;
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "Error getting Ecowitt Video URL");
+					}
 				}
-			}
-			else
-			{
-				cumulus.LogWarningMessage("GetEcowittVideoUrl: Warning - URL requested, but no camera MAC address is configured");
 			}
 
 			return string.Empty;

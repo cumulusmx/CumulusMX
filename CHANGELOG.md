@@ -10,7 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4090\]][19] - 2025-05-10
+## [4.5.0 \[b4090\]][19] - 2025-05-12
+
+### b4092 changes
+- Ecowitt Camera webtag logic changes
+- Internal refactoring of Extra Sensor t/h/dp data handing
 
 ### b4091 changes
 - More FTP WD improvements
@@ -105,6 +109,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Davis AirLink not writing to the log file during catch-up. Note not all values are available in catch-up
 - Fix leaf wetness graph data when null
 - CO₂ graphs not using the localised captions
+- Ecowitt Camera webtag logic changes
 
 ### Package Updates
 

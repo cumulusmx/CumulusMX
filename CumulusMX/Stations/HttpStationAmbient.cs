@@ -700,6 +700,11 @@ namespace CumulusMX
 
 			var pm = data["pm25"];
 			var pmAvg = data["pm25_24h"];
+			if (pm == null)
+			{
+				pm = data["pm25_in"];
+				pmAvg = data["pm25_in_24h"];
+			}
 			if (pm != null)
 			{
 				station.DoAirQuality(Convert.ToDouble(pm, CultureInfo.InvariantCulture), 1);
