@@ -187,7 +187,7 @@ namespace CumulusMX.ThirdParty
 		/// <returns></returns>
 		private static string APRSwind(double wind)
 		{
-			var windMPH = Convert.ToInt32(ConvertUnits.UserWindToMPH(wind));
+			var windMPH = Math.Round(ConvertUnits.UserWindToMPH(wind));
 			return windMPH.ToString("D3");
 		}
 
@@ -199,7 +199,7 @@ namespace CumulusMX.ThirdParty
 		/// <returns></returns>
 		private static string APRSpress(double press)
 		{
-			var press10mb = Convert.ToInt32(ConvertUnits.UserPressToMB(press) * 10);
+			var press10mb = Math.Round(ConvertUnits.UserPressToMB(press) * 10);
 			return press10mb.ToString("D5");
 		}
 
@@ -233,7 +233,7 @@ namespace CumulusMX.ThirdParty
 		/// <returns></returns>
 		private static string APRSrain(double rain)
 		{
-			var rain100IN = Convert.ToInt32(ConvertUnits.UserRainToIN(rain) * 100);
+			var rain100IN = Math.Round(ConvertUnits.UserRainToIN(rain) * 100);
 			return rain100IN.ToString("D3");
 		}
 
@@ -257,11 +257,11 @@ namespace CumulusMX.ThirdParty
 
 			if (units == 0)
 			{
-				num = Convert.ToInt32(((temp * 1.8) + 32));
+				num = (int)Math.Round(((temp * 1.8) + 32));
 			}
 			else
 			{
-				num = Convert.ToInt32(temp);
+				num = (int)Math.Round(temp);
 			}
 
 			if (num < 0)

@@ -16,6 +16,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt Camera webtag logic changes
 - Internal refactoring of Extra Sensor t/h/dp data handing
 - Fix PurpleAir not starting if no other extra sensors are configured
+- APRS/CWOP, rounding applied to transferred values
 
 ### b4091 changes
 - More FTP WD improvements
@@ -97,6 +98,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Extra Temperature/Humidity from 8 to 16
 - Station Pressure limits now derived from sea level limits taking station elevation into account
 - Station Pressure limits now apply to all stations - previously only Davis VP2 implemented them
+- APRS/CWOP, rounding applied to transferred values
 
 ### Fixed
 
