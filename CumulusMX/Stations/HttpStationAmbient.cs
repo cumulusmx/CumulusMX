@@ -509,6 +509,12 @@ namespace CumulusMX
 						// pm10_in_24h - [float, µg/m^3]
 						// pm_in_temp - [float, F]
 						// pm_in_humidity - [int, %]
+						// pm25_in_aqin - [float, µg/m^3]
+						// pm25_in_24h_aqin - [float, µg/m^3]
+						// pm10_in_aqin - [float, µg/m^3]
+						// pm10_in_24h_aqin - [float, µg/m^3]
+						// pm_in_temp_aqin - [float, F]
+						// pm_in_humidity_aqin - [int, %]
 						ProcessAirQuality(data, thisStation);
 					}
 					catch (Exception ex)
@@ -691,6 +697,21 @@ namespace CumulusMX
 
 		private static void ProcessAirQuality(NameValueCollection data, WeatherStation station)
 		{
+			// pm25 - [int, µg/m^3]
+			// pm25_24h - [float, µg/m^3]
+			// pm25_in - [int, µg/m^3]
+			// pm25_in_24h - [float, µg/m^3]
+			// pm10_in - [int, µg/m^3]
+			// pm10_in_24h - [float, µg/m^3]
+			// pm_in_temp - [float, F]
+			// pm_in_humidity - [int, %]
+			// pm25_in_aqin - [float, µg/m^3]
+			// pm25_in_24h_aqin - [float, µg/m^3]
+			// pm10_in_aqin - [float, µg/m^3]
+			// pm10_in_24h_aqin - [float, µg/m^3]
+			// pm_in_temp_aqin - [float, F]
+			// pm_in_humidity_aqin - [int, %]
+
 			// pm25
 			// pm25_24h
 
@@ -698,13 +719,9 @@ namespace CumulusMX
 			// pm25_AQIlvl_ch[1-4]
 			// pm25_AQIlvl_avg_24h_ch1
 
-			var pm = data["pm25"];
-			var pmAvg = data["pm25_24h"];
-			if (pm == null)
-			{
-				pm = data["pm25_in"];
-				pmAvg = data["pm25_in_24h"];
-			}
+			var pm = data["pm25"] ?? data["pm25_aqin"] ?? data["pm25_in"] ?? data["pm25_in_aqin"];
+			var pmAvg = data["pm25_24h"] ?? data["pm25_24h_aqin"] ?? data["pm25_in_24h"] ?? data["pm25_in_24h_aqin"];
+
 			if (pm != null)
 			{
 				station.DoAirQuality(Convert.ToDouble(pm, CultureInfo.InvariantCulture), 1);
