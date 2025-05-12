@@ -4979,8 +4979,8 @@ namespace CumulusMX
 
 
 		public void AddRecentDataEntry(DateTime timestamp, double windAverage, double recentMaxGust, double windLatest, int bearing, int avgBearing, double outsidetemp,
-			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, double? solarRad, double? uv, double rainCounter, double feelslike, double humidex,
-			double appTemp, double? insideTemp, int? insideHum, double solarMax, double rainrate, double? pm2p5, double? pm10)
+			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, int? solarRad, double? uv, double rainCounter, double feelslike, double humidex,
+			double appTemp, double? insideTemp, int? insideHum, int solarMax, double rainrate, double? pm2p5, double? pm10)
 		{
 			try
 			{
@@ -4993,7 +4993,7 @@ namespace CumulusMX
 					OutsideTemp = outsidetemp,
 					Pressure = pressure,
 					RainToday = rainToday,
-					SolarRad = (int?) solarRad,
+					SolarRad = solarRad,
 					UV = uv,
 					WindAvgDir = avgBearing,
 					WindGust = recentMaxGust,
@@ -5007,7 +5007,7 @@ namespace CumulusMX
 					AppTemp = appTemp,
 					IndoorTemp = insideTemp,
 					IndoorHumidity = insideHum,
-					SolarMax = (int) solarMax,
+					SolarMax = solarMax,
 					RainRate = rainrate,
 					Pm2p5 = pm2p5,
 					Pm10 = pm10
@@ -8423,8 +8423,8 @@ namespace CumulusMX
 		}
 
 		public void AddRecentDataWithAq(DateTime timestamp, double windAverage, double recentMaxGust, double windLatest, int bearing, int avgBearing, double outsidetemp,
-			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, double? solarRad, double? uv, double rainCounter, double feelslike, double humidex,
-			double appTemp, double? insideTemp, int? insideHum, double solarMax, double rainrate)
+			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, int? solarRad, double? uv, double rainCounter, double feelslike, double humidex,
+			double appTemp, double? insideTemp, int? insideHum, int solarMax, double rainrate)
 		{
 			double? pm2p5 = -1;
 			double? pm10 = -1;
