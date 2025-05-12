@@ -13057,7 +13057,10 @@ namespace CumulusMX
 
 		public void StartTimersAndSensors()
 		{
-			if (airLinkOut != null || airLinkIn != null || ecowittExtra != null || ambientExtra != null || ecowittCloudExtra != null || stationJsonExtra != null)
+
+			var extras = new object[] { airLinkOut, airLinkIn, ecowittExtra, ambientExtra, ecowittCloudExtra, stationJsonExtra, purpleAir };
+
+			if (extras.Any(s => s != null))
 			{
 				LogMessage("Starting Extra Sensors");
 				airLinkOut?.Start();
@@ -13067,6 +13070,10 @@ namespace CumulusMX
 				ecowittCloudExtra?.Start();
 				stationJsonExtra?.Start();
 				purpleAir?.Start();
+			}
+			else
+			{
+				LogMessage("No Extra Sensors to start");
 			}
 
 			LogMessage("Start Timers");
@@ -14431,7 +14438,7 @@ namespace CumulusMX
 				case (int) PrimaryAqSensor.Ecowitt2:
 				case (int) PrimaryAqSensor.Ecowitt3:
 				case (int) PrimaryAqSensor.Ecowitt4:
-					LogMessage("Primary AQ Sensor = Ecowitt" + StationOptions.PrimaryAqSensor);
+					LogMessage("Primary AQ Sensor = AQ Sensor " + StationOptions.PrimaryAqSensor);
 					break;
 				case (int) PrimaryAqSensor.EcowittCO2:
 					LogMessage("Primary AQ Sensor = Ecowitt CO2");

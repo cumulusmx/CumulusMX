@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### b4092 changes
 - Ecowitt Camera webtag logic changes
 - Internal refactoring of Extra Sensor t/h/dp data handing
+- Fix PurpleAir not starting if no other extra sensors are configured
 
 ### b4091 changes
 - More FTP WD improvements
