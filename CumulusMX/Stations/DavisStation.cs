@@ -8,8 +8,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-using Org.BouncyCastle.Bcpg;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CumulusMX
 {
@@ -1850,10 +1848,16 @@ namespace CumulusMX
 				{
 					for (var sensor = 1; sensor < 8; sensor++)
 					{
-						ExtraTemp[sensor] = loopData.ExtraTemp[sensor] == 255 ? null : ConvertUnits.TempFToUser(loopData.ExtraTemp[sensor] - 90);
-						ExtraHum[1] = loopData.ExtraHum[sensor] > 100 ? null : loopData.ExtraHum[sensor];
+						if (loopData.ExtraTemp[sensor] < 255)
+						{
+							ExtraTemp[sensor] = ConvertUnits.TempFToUser(loopData.ExtraTemp[sensor] - 90);
+						}
+						if (loopData.ExtraHum[sensor] <= 100)
+						{
+							ExtraHum[1] = loopData.ExtraHum[sensor] > 100 ? null : loopData.ExtraHum[sensor];
+						}
 
-						if (ExtraTemp[sensor].HasValue && ExtraHum[sensor].HasValue)
+						if (loopData.ExtraTemp[sensor] < 255 && loopData.ExtraHum[sensor] <= 100)
 						{
 							ExtraDewPoint[sensor] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[sensor].Value), ExtraHum[sensor].Value));
 						}
@@ -1861,9 +1865,18 @@ namespace CumulusMX
 
 					for (var sensor = 1; sensor < 5; sensor++)
 					{
-						SoilMoisture[sensor] = loopData.SoilMoisture[sensor] >= 0 && loopData.SoilMoisture[sensor] <= 250 ? loopData.SoilMoisture[sensor] : null;
-						SoilTemp[sensor] = loopData.SoilTemp[sensor] < 255 && loopData.SoilTemp[sensor] > 0 ? ConvertUnits.TempFToUser(loopData.SoilTemp[sensor] - 90) : null;
-						LeafWetness[sensor] = loopData.LeafWetness[sensor] >= 0 && loopData.LeafWetness[sensor] < 16 ? loopData.LeafWetness[sensor] : null;
+						if (loopData.SoilMoisture[sensor] >= 0 && loopData.SoilMoisture[sensor] <= 250)
+						{
+							SoilMoisture[sensor] = loopData.SoilMoisture[sensor];
+						}
+						if (loopData.SoilTemp[sensor] < 255)
+						{
+							SoilTemp[sensor] = ConvertUnits.TempFToUser(loopData.SoilTemp[sensor] - 90);
+						}
+						if (loopData.LeafWetness[sensor] >= 0 && loopData.LeafWetness[sensor] < 17)
+						{
+							LeafWetness[sensor] = loopData.LeafWetness[sensor];
+						}
 					}
 				}
 				UpdateStatusPanel(DateTime.Now);

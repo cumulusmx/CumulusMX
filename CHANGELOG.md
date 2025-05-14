@@ -10,7 +10,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4092\]][19] - 2025-05-14
+## [4.5.0 \[b4093\]][19] - 2025-05-15
+
+### b4093 changes
+- Davis station: Fix extra T/H/DP/Soil Moist/Soil Temp/Leaf Wetness being wrongly set to null
 
 ### b4092 changes
 - Ecowitt Camera webtag logic changes
@@ -18,6 +21,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix PurpleAir not starting if no other extra sensors are configured
 - Fix PurpleAir reading too low/zero
 - Ambient Station improved AQ decoding
+- Package Updates
+	- Microsoft.Win32.SystemEvents
+	- System.CodeDom
+	- System.Diagnostics.PerformanceCounter
+	- System.IO.Ports
+	- System.ServiceProcess.ServiceController
 
 ### b4091 changes
 - More FTP WD improvements
@@ -819,4 +828,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086
 [17]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4087
 [18]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4088
-[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4092
+[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4093
