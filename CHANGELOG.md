@@ -10,13 +10,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4090\]][19] - 2025-05-12
+## [4.5.0 \[b4092\]][19] - 2025-05-14
 
 ### b4092 changes
 - Ecowitt Camera webtag logic changes
-- Internal refactoring of Extra Sensor t/h/dp data handing
+- Internal refactoring of Extra Sensor t/h/dp data handling
 - Fix PurpleAir not starting if no other extra sensors are configured
-- APRS/CWOP, rounding applied to transferred values
+- Fix PurpleAir reading too low/zero
+- Ambient Station improved AQ decoding
 
 ### b4091 changes
 - More FTP WD improvements
@@ -98,7 +99,6 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Extra Temperature/Humidity from 8 to 16
 - Station Pressure limits now derived from sea level limits taking station elevation into account
 - Station Pressure limits now apply to all stations - previously only Davis VP2 implemented them
-- APRS/CWOP, rounding applied to transferred values
 
 ### Fixed
 
@@ -113,6 +113,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix leaf wetness graph data when null
 - CO₂ graphs not using the localised captions
 - Ecowitt Camera webtag logic changes
+- Ambient Station improved AQ decoding
 
 ### Package Updates
 
@@ -818,4 +819,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086
 [17]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4087
 [18]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4088
-[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4089
+[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4092

@@ -198,22 +198,25 @@ namespace CumulusMX
 
 				if (algo == 0)
 				{
-					// Algorithm 0 - use the PM2.5 CF1 value
-					station.DoAirQuality(Math.Min(json.pm2_5_cf_1, json.pm2_5_cf_1_b), indx);
+					// Algorithm 0 - use the averaged PM2.5 CF1 value
+					cumulus.LogDebugMessage($"DecodePaLive: Sensor #{indx}, using CF_1 values, a={json.pm2_5_cf_1}, b={json.pm2_5_cf_1_b}");
+					station.DoAirQuality(Math.Round((json.pm2_5_cf_1 + json.pm2_5_cf_1_b) / 2.0, 1), indx);
 				}
 				else
 				{
-					// Algorithm 1 - use the PM2.5 ATM value
-					station.DoAirQuality(Math.Min(json.pm2_5_cf_1, json.pm2_5_cf_1_b), indx);
+					// Algorithm 1 - use the averaged PM2.5 ATM value
+					cumulus.LogDebugMessage($"DecodePaLive: Sensor #{indx}, using CF_1 values, a={json.pm2_5_atm}, b={json.pm2_5_atm_b}");
+					station.DoAirQuality(Math.Round((json.pm2_5_atm + json.pm2_5_atm_b) / 2.0, 1), indx);
 				}
 
 				// Get the average from the recent data database
 
 				if (sensor > 0)
 				{
-					station.DoExtraTemp(ConvertUnits.TempFToUser(json.current_temp_f), indx);
-					station.DoExtraHum(json.current_humidity, indx);
-					station.DoExtraDP(ConvertUnits.TempFToUser(json.current_dewpoint_f), indx);
+					cumulus.LogDebugMessage($"DecodePaLive: Extra T/H  #{sensor}, using values, T={json.current_temp_f}, H={json.current_humidity}, DP={json.current_dewpoint_f}");
+					station.DoExtraTemp(ConvertUnits.TempFToUser(json.current_temp_f), sensor);
+					station.DoExtraHum(json.current_humidity, sensor);
+					station.DoExtraDP(ConvertUnits.TempFToUser(json.current_dewpoint_f), sensor);
 				}
 			}
 			catch (Exception ex)
@@ -385,18 +388,18 @@ namespace CumulusMX
 			public int current_temp_f { get; set; }
 			public int current_humidity { get; set; }
 			public int current_dewpoint_f { get; set; }
-			public int pm1_0_cf_1 { get; set; }
-			public int pm2_5_cf_1 { get; set; }
-			public int pm10_0_cf_1 { get; set; }
-			public int pm1_0_atm { get; set; }
-			public int pm2_5_atm { get; set; }
-			public int pm10_0_atm { get; set; }
-			public int pm1_0_cf_1_b { get; set; }
-			public int pm2_5_cf_1_b { get; set; }
-			public int pm10_0_cf_1_b { get; set; }
-			public int pm1_0_atm_b { get; set; }
-			public int pm2_5_atm_b { get; set; }
-			public int pm10_0_atm_b { get; set; }
+			public double pm1_0_cf_1 { get; set; }
+			public double pm2_5_cf_1 { get; set; }
+			public double pm10_0_cf_1 { get; set; }
+			public double pm1_0_atm { get; set; }
+			public double pm2_5_atm { get; set; }
+			public double pm10_0_atm { get; set; }
+			public double pm1_0_cf_1_b { get; set; }
+			public double pm2_5_cf_1_b { get; set; }
+			public double pm10_0_cf_1_b { get; set; }
+			public double pm1_0_atm_b { get; set; }
+			public double pm2_5_atm_b { get; set; }
+			public double pm10_0_atm_b { get; set; }
 		}
 	}
 }

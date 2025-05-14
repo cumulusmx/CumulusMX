@@ -712,15 +712,12 @@ namespace CumulusMX
 			// pm_in_temp_aqin - [float, F]
 			// pm_in_humidity_aqin - [int, %]
 
-			// pm25
-			// pm25_24h
-
 			// From FOSKplugin
 			// pm25_AQIlvl_ch[1-4]
 			// pm25_AQIlvl_avg_24h_ch1
 
-			var pm = data["pm25"] ?? data["pm25_aqin"] ?? data["pm25_in"] ?? data["pm25_in_aqin"];
-			var pmAvg = data["pm25_24h"] ?? data["pm25_24h_aqin"] ?? data["pm25_in_24h"] ?? data["pm25_in_24h_aqin"];
+			var pm = data["pm25"] ?? data["pm25_in"] ?? data["pm25_in_aqin"];
+			var pmAvg = data["pm25_24h"] ?? data["pm25_in_24h"] ?? data["pm25_in_24h_aqin"];
 
 			if (pm != null)
 			{
