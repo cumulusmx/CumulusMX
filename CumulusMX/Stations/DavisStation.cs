@@ -1855,11 +1855,11 @@ namespace CumulusMX
 						if (loopData.ExtraHum[sensor] <= 100)
 						{
 							ExtraHum[1] = loopData.ExtraHum[sensor] > 100 ? null : loopData.ExtraHum[sensor];
-						}
 
-						if (loopData.ExtraTemp[sensor] < 255 && loopData.ExtraHum[sensor] <= 100)
-						{
-							ExtraDewPoint[sensor] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[sensor].Value), ExtraHum[sensor].Value));
+							if (loopData.ExtraTemp[sensor] < 255)
+							{
+								ExtraDewPoint[sensor] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[sensor].Value), ExtraHum[sensor].Value));
+							}
 						}
 					}
 

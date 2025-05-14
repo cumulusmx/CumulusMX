@@ -2785,7 +2785,7 @@ namespace CumulusMX
 
 									try
 									{
-										if (data.temp_last < -98 || data.temp_last == null)
+										if (data.temp_last == null || data.temp_last < -98)
 										{
 											cumulus.LogDebugMessage($"DecodeHistoric: Warning, no valid Extra temperature value on TxId {data.tx_id}");
 										}
