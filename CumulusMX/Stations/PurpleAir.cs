@@ -108,6 +108,17 @@ namespace CumulusMX
 				}
 			}
 
+			// Now update the database and calculate the averages
+			station.UpdateAirQualityDb();
+
+			for (var i = 0;i < 4; i++)
+			{
+				if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[i]))
+				{
+					// Get the average from the database
+					station.GetAqAvgFromDb(i + 1);
+				}
+			}
 
 			updateInProgress = false;
 		}
@@ -302,9 +313,6 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"DecodePaLive: Sensor #{indx}, using CF_1 values, a={json.pm2_5_atm}, b={json.pm2_5_atm_b}");
 					station.DoAirQuality(Math.Round((json.pm2_5_atm + json.pm2_5_atm_b) / 2.0, 1), indx);
 				}
-
-				// Get the average from the database
-				station.GetAqAvgFromDb(indx);
 
 				if (sensor > 0)
 				{

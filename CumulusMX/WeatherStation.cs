@@ -1862,8 +1862,6 @@ namespace CumulusMX
 					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
-					UpdateAirQualityDb();
-
 					// calculate ET just before the hour so it is included in the correct day at roll over - only affects 9am met days really
 					if (cumulus.StationOptions.CalculatedET && now.Minute == 59)
 					{
@@ -9689,7 +9687,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, $"GetAqAvgFromDb: Error processing AQ average from database");
+				cumulus.LogExceptionMessage(ex, "GetAqAvgFromDb: Error processing AQ average from database");
 			}
 		}
 
