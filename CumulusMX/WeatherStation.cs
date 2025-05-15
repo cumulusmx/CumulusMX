@@ -9679,7 +9679,7 @@ namespace CumulusMX
 
 			try
 			{
-				var ret = RecentDataDb.QueryScalars<double>($"SELECT AVG(Pm2p5_{idx}) FROM RecentAqData WHERE Timestamp > DATE_SUB(NOW(), INTERVAL 24 HOUR)");
+				var ret = RecentDataDb.QueryScalars<double>($"SELECT AVG(Pm2p5_{idx}) FROM RecentAqData WHERE Timestamp > DATETIME('NOW', '-24 HOURS')");
 				if (ret != null && !string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[idx]))
 				{
 					DoAirQualityAvg(ret[0], idx);
