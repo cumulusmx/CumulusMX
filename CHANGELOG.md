@@ -14,6 +14,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### b4093 changes
 - Davis station: Fix extra T/H/DP/Soil Moist/Soil Temp/Leaf Wetness being wrongly set to null
+- Switch PurpleAir station to using the 2-minute average values
+- PurpleAir station now calculates the 24-hour averages
 
 ### b4092 changes
 - Ecowitt Camera webtag logic changes

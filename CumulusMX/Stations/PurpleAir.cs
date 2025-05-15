@@ -84,7 +84,7 @@ namespace CumulusMX
 				{
 					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[i]))
 					{
-						var url = $"http://{cumulus.PurpleAirIpAddress[i]}/json?live=true";
+						var url = $"http://{cumulus.PurpleAirIpAddress[i]}/json";
 
 						cumulus.LogDebugMessage("GetPaLiveData: Sending live data request - " + url);
 
@@ -96,6 +96,10 @@ namespace CumulusMX
 							cumulus.LogDataMessage($"GetPaLiveData: Response - {responseBody}");
 							DecodePaLive(i + 1, responseBody, cumulus.PurpleAirAlgorithm[i], cumulus.PurpleAirThSensor[i]);
 						}
+
+						// Get the average from the database
+						station.GetAqAvgFromDb(i + 1);
+
 					}
 				}
 				catch (Exception ex)
@@ -104,90 +108,180 @@ namespace CumulusMX
 				}
 			}
 
+
 			updateInProgress = false;
 		}
 
 		private void DecodePaLive(int indx, string jsonText, int algo, int sensor)
 		{
-			/*
+			/* Live
 			{
-					"SensorId": "5c:cf:7f:5c:a4:24",
-					"DateTime": "2025/05/08T20:27:22z",
-					"Geo": "PurpleAir-a424",
-					"Mem": 9600,
-					"memfrag": 30,
-					"memfb": 6600,
-					"memcs": 352,
-					"Id": 47756,
-					"lat": 54.634201,
-					"lon": -5.672,
-					"Adc": 0.02,
-					"loggingrate": 15,
-					"place": "outside",
-					"version": "7.04",
-					"uptime": 469314,
-					"rssi": -70,
-					"period": 120,
-					"httpsuccess": 7900,
-					"httpsends": 7951,
-					"hardwareversion": "2.0",
-					"hardwarediscovered": "2.0+OPENLOG+16567 MB+DS3231+BME280+BME68X+PMSX003-B+PMSX003-A",
-					"current_temp_f": 64,
-					"current_humidity": 39,
-					"current_dewpoint_f": 38,
-					"pressure": 1018.62,
-					"current_temp_f_680": 64,
-					"current_humidity_680": 46,
-					"current_dewpoint_f_680": 43,
-					"pressure_680": 1018.51,
-					"gas_680": 79.36,
-					"p25aqic_b": "rgb(199,249,0)",
-					"pm2.5_aqi_b": 46,
-					"pm1_0_cf_1_b": 6,
-					"p_0_3_um_b": 1344,
-					"pm2_5_cf_1_b": 11,
-					"p_0_5_um_b": 361,
-					"pm10_0_cf_1_b": 11,
-					"p_1_0_um_b": 64,
-					"pm1_0_atm_b": 6,
-					"p_2_5_um_b": 5,
-					"pm2_5_atm_b": 11,
-					"p_5_0_um_b": 0,
-					"pm10_0_atm_b": 11,
-					"p_10_0_um_b": 0,
-					"p25aqic": "rgb(73,236,0)",
-					"pm2.5_aqi": 33,
-					"pm1_0_cf_1": 6,
-					"p_0_3_um": 1203,
-					"pm2_5_cf_1": 8,
-					"p_0_5_um": 337,
-					"pm10_0_cf_1": 11,
-					"p_1_0_um": 60,
-					"pm1_0_atm": 6,
-					"p_2_5_um": 7,
-					"pm2_5_atm": 8,
-					"p_5_0_um": 1,
-					"pm10_0_atm": 11,
-					"p_10_0_um": 0,
-					"pa_latency": 648,
-					"response": 201,
-					"response_date": 1746736011,
-					"latency": 898,
-					"wlstate": "Connected",
-					"status_0": 2,
-					"status_1": 0,
-					"status_2": 2,
-					"status_3": 2,
-					"status_4": 2,
-					"status_5": 2,
-					"status_6": 2,
-					"status_7": 0,
-					"status_8": 2,
-					"status_9": 2,
-					"ssid": "xxxxxx"
-				}
+				"SensorId": "84:f3:eb:28:d:ec",
+				"DateTime": "2025/05/12T22:59:13z",
+				"Geo": "PurpleAir-dec",
+				"Mem": 15552,
+				"memfrag": 33,
+				"memfb": 10312,
+				"memcs": 1008,
+				"Id": 14188,
+				"lat": -41.428600,
+				"lon": 148.272095,
+				"Adc": 0.02,
+				"loggingrate": 15,
+				"place": "outside",
+				"version": "7.02",
+				"uptime": 1651094,
+				"rssi": -70,
+				"period": 120,
+				"httpsuccess": 14199,
+				"httpsends": 14215,
+				"hardwareversion": "2.0",
+				"hardwarediscovered": "2.0+OPENLOG+30953 MB+DS3231+BME280+PMSX003-B+PMSX003-A",
+				"current_temp_f": 70,
+				"current_humidity": 100,
+				"current_dewpoint_f": 70,
+				"pressure": 1024.51,
+
+				"p25aqic_b": "rgb(0,228,0)",
+				"p25aqic": "rgb(4,228,0)",
+
+				"pm2.5_aqi_b": 0,
+
+				"pm2.5_aqi": 13,
+
+				"pm1_0_cf_1_b": 0.00,
+				"pm2_5_cf_1_b": 0.00,
+				"pm10_0_cf_1_b": 0.00,
+
+				"pm1_0_cf_1": 0.00,
+				"pm2_5_cf_1": 3.00,
+				"pm10_0_cf_1": 3.00,
+
+				"p_0_3_um_b": 0.00,
+				"p_0_5_um_b": 0.00,
+				"p_1_0_um_b": 0.00,
+				"p_2_5_um_b": 0.00,
+				"p_5_0_um_b": 0.00,
+				"p_10_0_um_b": 0.00,
+
+				"p_0_3_um": 36.00,
+				"p_0_5_um": 12.00,
+				"p_1_0_um": 12.00,
+				"p_2_5_um": 12.00,
+				"p_5_0_um": 0.00,
+				"p_10_0_um": 0.00,
+
+				"pm1_0_atm_b": 0.00,
+				"pm2_5_atm_b": 0.00,
+				"pm10_0_atm_b": 0.00,
+
+				"pm1_0_atm": 0.00,
+				"pm2_5_atm": 3.00,
+				"pm10_0_atm": 3.00,
+
+				"pa_latency": 508,
+				"wlstate": "Connected",
+				"status_0": 2,
+				"status_1": 2,
+				"status_2": 2,
+				"status_3": 2,
+				"status_4": 0,
+				"status_5": 0,
+				"status_7": 0,
+				"status_8": 0,
+				"status_9": 0,
+				"ssid": "TelstraE7F275"
+			}
 			*/
 
+			/* Current 2-minute average
+			 {
+				  "SensorId": "5c:cf:7f:5c:a4:24",
+				  "DateTime": "2025/05/15T11:21:02z",
+				  "Geo": "PurpleAir-a424",
+				  "Mem": 9664,
+				  "memfrag": 24,
+				  "memfb": 7328,
+				  "memcs": 340,
+				  "Id": 42206,
+				  "lat": 54.634201,
+				  "lon": -5.672,
+				  "Adc": 0.02,
+				  "loggingrate": 15,
+				  "place": "outside",
+				  "version": "7.04",
+				  "uptime": 395621,
+				  "rssi": -80,
+				  "period": 120,
+				  "httpsuccess": 6691,
+				  "httpsends": 6702,
+				  "hardwareversion": "2.0",
+				  "hardwarediscovered": "2.0+OPENLOG+16567 MB+DS3231+BME280+BME68X+PMSX003-B+PMSX003-A",
+				  "current_temp_f": 80,
+				  "current_humidity": 26,
+				  "current_dewpoint_f": 42,
+				  "pressure": 1024.99,
+				  "current_temp_f_680": 79,
+				  "current_humidity_680": 32,
+				  "current_dewpoint_f_680": 46,
+				  "pressure_680": 1024.82,
+				  "gas_680": 61.44,
+
+				  "p25aqic_b": "rgb(8,229,0)",
+				  "p25aqic": "rgb(12,229,0)",
+
+				  "pm2.5_aqi_b": 16,
+
+				  "pm2.5_aqi": 18,
+
+				  "pm1_0_cf_1_b": 2.28,
+				  "pm2_5_cf_1_b": 3.9,
+				  "pm10_0_cf_1_b": 5.57,
+
+				  "pm1_0_cf_1": 2.91,
+				  "pm2_5_cf_1": 4.36,
+				  "pm10_0_cf_1": 5.34,
+
+				  "p_0_3_um_b": 651.05,
+				  "p_0_5_um_b": 178.84,
+				  "p_1_0_um_b": 29.22,
+				  "p_2_5_um_b": 4.83,
+				  "p_5_0_um_b": 2.34,
+				  "p_10_0_um_b": 0.67,
+
+				  "p_0_3_um": 675.93,
+				  "p_0_5_um": 188.64,
+				  "p_1_0_um": 31.09,
+				  "p_2_5_um": 3.95,
+				  "p_5_0_um": 1.05,
+				  "p_10_0_um": 0.22,
+
+				  "pm1_0_atm_b": 2.28,
+				  "pm2_5_atm_b": 3.9,
+				  "pm10_0_atm_b": 5.57,
+
+				  "pm1_0_atm": 2.91,
+				  "pm2_5_atm": 4.36,
+				  "pm10_0_atm": 5.34,
+
+				  "pa_latency": 317,
+				  "response": 201,
+				  "response_date": 1747308031,
+				  "latency": 913,
+				  "wlstate": "Connected",
+				  "status_0": 2,
+				  "status_1": 0,
+				  "status_2": 2,
+				  "status_3": 2,
+				  "status_4": 2,
+				  "status_5": 2,
+				  "status_6": 2,
+				  "status_7": 0,
+				  "status_8": 2,
+				  "status_9": 2,
+				  "ssid": "xxxx"
+				}
+			 */
 			try
 			{
 				// Convert JSON string to an object
@@ -198,18 +292,19 @@ namespace CumulusMX
 
 				if (algo == 0)
 				{
-					// Algorithm 0 - use the averaged PM2.5 CF1 value
+					// Algorithm 0 = indoor - use the averaged PM2.5 CF1 value
 					cumulus.LogDebugMessage($"DecodePaLive: Sensor #{indx}, using CF_1 values, a={json.pm2_5_cf_1}, b={json.pm2_5_cf_1_b}");
 					station.DoAirQuality(Math.Round((json.pm2_5_cf_1 + json.pm2_5_cf_1_b) / 2.0, 1), indx);
 				}
 				else
 				{
-					// Algorithm 1 - use the averaged PM2.5 ATM value
+					// Algorithm 1 = outdoor - use the averaged PM2.5 ATM value
 					cumulus.LogDebugMessage($"DecodePaLive: Sensor #{indx}, using CF_1 values, a={json.pm2_5_atm}, b={json.pm2_5_atm_b}");
 					station.DoAirQuality(Math.Round((json.pm2_5_atm + json.pm2_5_atm_b) / 2.0, 1), indx);
 				}
 
-				// Get the average from the recent data database
+				// Get the average from the database
+				station.GetAqAvgFromDb(indx);
 
 				if (sensor > 0)
 				{

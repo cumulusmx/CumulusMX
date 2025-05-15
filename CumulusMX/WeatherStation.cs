@@ -1863,10 +1863,6 @@ namespace CumulusMX
 						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
 					UpdateAirQualityDb();
-					if (cumulus.PurpleAirEnabled)
-					{
-						GetAirQualityAvgsFromDb();
-					}
 
 					// calculate ET just before the hour so it is included in the correct day at roll over - only affects 9am met days really
 					if (cumulus.StationOptions.CalculatedET && now.Minute == 59)
@@ -9667,42 +9663,33 @@ namespace CumulusMX
 
 			try
 			{
-				RecentDataDb.Insert(rec);
+				RecentDataDb.InsertOrReplace(rec);
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage($"UpdateAirQualityDb: Error inserting recent AQ data into database: {ex.Message}");
+				cumulus.LogExceptionMessage(ex, "UpdateAirQualityDb: Error inserting recent AQ data into database");
 			}
 		}
 
-		public void GetAirQualityAvgsFromDb()
+		public void GetAqAvgFromDb(int idx)
 		{
+			if (idx < 1 || idx > 4)
+			{
+				cumulus.LogErrorMessage("GetAqAvgFromDb: Index out of range, idx=" + idx);
+				return;
+			}
+
 			try
 			{
-				var ret = RecentDataDb.Query<RecentAqAvgs>("select avg(Pm2p5_1) Pm2p5_1, avg(Pm2p5_2) Pm2p5_2, avg(Pm2p5_3) Pm2p5_3, avg(Pm2p5_4) Pm2p5_4 from RecentAqData where Timestamp > ?", DateTime.Now.AddHours(-24));
-				if (ret != null)
+				var ret = RecentDataDb.QueryScalars<double>($"SELECT AVG(Pm2p5_{idx}) FROM RecentAqData WHERE Timestamp > DATE_SUB(NOW(), INTERVAL 24 HOUR)");
+				if (ret != null && !string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[idx]))
 				{
-					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[0]))
-					{
-						AirQualityAvg[1] = ret[0].Pm2p5_1;
-					}
-					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[1]))
-					{
-						AirQualityAvg[2] = ret[0].Pm2p5_2;
-					}
-					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[2]))
-					{
-						AirQualityAvg[3] = ret[0].Pm2p5_3;
-					}
-					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[3]))
-					{
-						AirQualityAvg[4] = ret[0].Pm2p5_4;
-					}
+					DoAirQualityAvg(ret[0], idx);
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage($"GetAirQualityAvgsFromDb: Error processing AQ averages from database: {ex.Message}");
+				cumulus.LogExceptionMessage(ex, $"GetAqAvgFromDb: Error processing AQ average from database");
 			}
 		}
 
