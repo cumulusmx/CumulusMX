@@ -14,6 +14,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### b4094 changes
 - Ecowitt camera web tag warning messages changed to plain messages
+- Package Updates
+	- BouncyCastle.Cryptography
+	- ServiceStack.Text
 
 ### b4093 changes
 - Davis station: Fix extra T/H/DP/Soil Moist/Soil Temp/Leaf Wetness being wrongly set to null
