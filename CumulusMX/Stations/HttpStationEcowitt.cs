@@ -285,7 +285,7 @@ namespace CumulusMX
 			{
 				if (string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 				{
-					cumulus.LogWarningMessage("GetEcowittCameraUrl: Warning - URL requested, but no camera MAC address is configured");
+					cumulus.LogMessage("GetEcowittCameraUrl: Warning - URL requested, but no camera MAC address is configured");
 				}
 				else
 				{
@@ -310,7 +310,7 @@ namespace CumulusMX
 			{
 				if (string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 				{
-					cumulus.LogWarningMessage("GetEcowittVideoUrl: Warning - URL requested, but no camera MAC address is configured");
+					cumulus.LogMessage("GetEcowittVideoUrl: Warning - URL requested, but no camera MAC address is configured");
 				}
 				else
 				{
