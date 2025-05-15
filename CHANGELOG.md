@@ -14,6 +14,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### b4094 changes
 - Ecowitt camera web tag warning messages changed to plain messages
+- Fixed PurpleAir 24-hour average
+- PurpleAir now supports pm10 values
+	- New web tags to support this:
+		`<#AirQuality10_[1-4]>`
+		`<#AirQuality10Avg[1-4]>`
+		`<#AirQuality10Idx[1-4]>`
+		`<#AirQuality10AvgIdx[1-4]>`
+	- AWEKAS/WeatherCloud/WeatherUnderground upload of pm10 supported
+
 - Package Updates
 	- BouncyCastle.Cryptography
 	- ServiceStack.Text

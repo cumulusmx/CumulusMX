@@ -4715,6 +4715,56 @@ namespace CumulusMX
 			return station.AirQualityAvg[index].HasValue ? CheckRcDp(station.AirQualityAvg[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
+		private string TagAirQuality10_1(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10(1, tagParams);
+		}
+
+		private string TagAirQuality10_2(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10(2, tagParams);
+		}
+
+		private string TagAirQuality10_3(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10(3, tagParams);
+		}
+
+		private string TagAirQuality10_4(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10(4, tagParams);
+		}
+
+		private string GetAirQuality10(int index, Dictionary<string, string> tagParams)
+		{
+			return station.AirQuality10[index].HasValue ? CheckRcDp(station.AirQuality10[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+		}
+
+		private string TagAirQuality10Avg1(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10Avg(1, tagParams);
+		}
+
+		private string TagAirQuality10Avg2(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10Avg(2, tagParams);
+		}
+
+		private string TagAirQuality10Avg3(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10Avg(3, tagParams);
+		}
+
+		private string TagAirQuality10Avg4(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10Avg(4, tagParams);
+		}
+
+		private string GetAirQuality10Avg(int index, Dictionary<string, string> tagParams)
+		{
+			return station.AirQuality10Avg[index].HasValue ? CheckRcDp(station.AirQuality10Avg[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+		}
+
 		private string TagAirQualityIdx1(Dictionary<string, string> tagParams)
 		{
 			return GetAirQualityIdx(1, tagParams);
@@ -4763,6 +4813,56 @@ namespace CumulusMX
 		private string GetAirQualityAvgIdx(int index, Dictionary<string, string> tagParams)
 		{
 			return station.AirQualityAvgIdx[index].HasValue ? CheckRcDp(station.AirQualityAvgIdx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+		}
+
+		private string TagAirQuality10Idx1(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10Idx(1, tagParams);
+		}
+
+		private string TagAirQuality10Idx2(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10Idx(2, tagParams);
+		}
+
+		private string TagAirQuality10Idx3(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10Idx(3, tagParams);
+		}
+
+		private string TagAirQuality10Idx4(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10Idx(4, tagParams);
+		}
+
+		private string GetAirQuality10Idx(int index, Dictionary<string, string> tagParams)
+		{
+			return station.AirQuality10Idx[index].HasValue ? CheckRcDp(station.AirQualityIdx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+		}
+
+		private string TagAirQuality10AvgIdx1(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10AvgIdx(1, tagParams);
+		}
+
+		private string TagAirQuality10AvgIdx2(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10AvgIdx(2, tagParams);
+		}
+
+		private string TagAirQuality10AvgIdx3(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10AvgIdx(3, tagParams);
+		}
+
+		private string TagAirQuality10AvgIdx4(Dictionary<string, string> tagParams)
+		{
+			return GetAirQuality10AvgIdx(4, tagParams);
+		}
+
+		private string GetAirQuality10AvgIdx(int index, Dictionary<string, string> tagParams)
+		{
+			return station.AirQuality10AvgIdx[index].HasValue ? CheckRcDp(station.AirQuality10AvgIdx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCo2(Dictionary<string, string> tagParams)
@@ -7113,6 +7213,22 @@ namespace CumulusMX
 				{ "AirQualityAvgIdx2", TagAirQualityAvgIdx2 },
 				{ "AirQualityAvgIdx3", TagAirQualityAvgIdx3 },
 				{ "AirQualityAvgIdx4", TagAirQualityAvgIdx4 },
+				{ "AirQuality10_1", TagAirQuality10_1 },
+				{ "AirQuality10_2", TagAirQuality10_2 },
+				{ "AirQuality10_3", TagAirQuality10_3 },
+				{ "AirQuality10_4", TagAirQuality10_4 },
+				{ "AirQuality10Avg1", TagAirQuality10Avg1 },
+				{ "AirQuality10Avg2", TagAirQuality10Avg2 },
+				{ "AirQuality10Avg3", TagAirQuality10Avg3 },
+				{ "AirQuality10Avg4", TagAirQuality10Avg4 },
+				{ "AirQuality10Idx1", TagAirQuality10Idx1 },
+				{ "AirQuality10Idx2", TagAirQuality10Idx2 },
+				{ "AirQuality10Idx3", TagAirQuality10Idx3 },
+				{ "AirQuality10Idx4", TagAirQuality10Idx4 },
+				{ "AirQuality10AvgIdx1", TagAirQuality10AvgIdx1 },
+				{ "AirQuality10AvgIdx2", TagAirQuality10AvgIdx2 },
+				{ "AirQuality10AvgIdx3", TagAirQuality10AvgIdx3 },
+				{ "AirQuality10AvgIdx4", TagAirQuality10AvgIdx4 },
 				{ "CO2", TagCo2 },
 				{ "CO2_24h", TagCO2_24h },
 				{ "CO2_pm2p5", TagCO2_pm2p5 },

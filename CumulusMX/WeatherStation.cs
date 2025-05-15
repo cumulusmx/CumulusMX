@@ -1545,9 +1545,13 @@ namespace CumulusMX
 		public int?[] SoilMoisture { get; set; } = new int?[17];
 
 		public double?[] AirQuality { get; set; } = new double?[5];
-		public double?[] AirQualityAvg { get; set; } = new double?[5];
 		public double?[] AirQualityIdx { get; set; } = new double?[5];
+		public double?[] AirQualityAvg { get; set; } = new double?[5];
 		public double?[] AirQualityAvgIdx { get; set; } = new double?[5];
+		public double?[] AirQuality10 { get; set; } = new double?[5];
+		public double?[] AirQuality10Idx { get; set; } = new double?[5];
+		public double?[] AirQuality10Avg { get; set; } = new double?[5];
+		public double?[] AirQuality10AvgIdx { get; set; } = new double?[5];
 
 		public int? CO2 { get; set; }
 		public int? CO2_24h { get; set; }
@@ -8439,17 +8443,21 @@ namespace CumulusMX
 						pm10 = cumulus.airLinkDataIn.pm10;
 					}
 					break;
-				case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
+				case (int) Cumulus.PrimaryAqSensor.Sensor1:
 					pm2p5 = AirQuality[1];
+					pm10 = AirQuality10[1];
 					break;
-				case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
+				case (int) Cumulus.PrimaryAqSensor.Sensor2:
 					pm2p5 = AirQuality[2];
+					pm10 = AirQuality10[2];
 					break;
-				case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
+				case (int) Cumulus.PrimaryAqSensor.Sensor3:
 					pm2p5 = AirQuality[3];
+					pm10 = AirQuality10[3];
 					break;
-				case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
+				case (int) Cumulus.PrimaryAqSensor.Sensor4:
 					pm2p5 = AirQuality[4];
+					pm10 = AirQuality10[4];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 					pm2p5 = CO2_pm2p5;
@@ -9044,7 +9052,7 @@ namespace CumulusMX
 			{
 				logFile = cumulus.GetAirLinkLogFileName(filedate);
 			}
-			else if ((cumulus.StationOptions.PrimaryAqSensor >= (int) Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int) Cumulus.PrimaryAqSensor.Ecowitt4) ||
+			else if ((cumulus.StationOptions.PrimaryAqSensor >= (int) Cumulus.PrimaryAqSensor.Sensor1 && cumulus.StationOptions.PrimaryAqSensor <= (int) Cumulus.PrimaryAqSensor.Sensor4) ||
 					cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2) // Ecowitt
 			{
 				logFile = cumulus.GetExtraLogFileName(filedate);
@@ -9093,7 +9101,7 @@ namespace CumulusMX
 										str2p5 = st[32];
 										str10 = st[37];
 									}
-									else if (cumulus.StationOptions.PrimaryAqSensor >= (int) Cumulus.PrimaryAqSensor.Ecowitt1 && cumulus.StationOptions.PrimaryAqSensor <= (int) Cumulus.PrimaryAqSensor.Ecowitt4)
+									else if (cumulus.StationOptions.PrimaryAqSensor >= (int) Cumulus.PrimaryAqSensor.Sensor1 && cumulus.StationOptions.PrimaryAqSensor <= (int) Cumulus.PrimaryAqSensor.Sensor4)
 									{
 										// Ecowitt sensor 1-4 - fields 68 -> 71
 										str2p5 = st[67 + cumulus.StationOptions.PrimaryAqSensor];
@@ -9147,8 +9155,8 @@ namespace CumulusMX
 					{
 						logFile = cumulus.GetAirLinkLogFileName(filedate);
 					}
-					else if ((cumulus.StationOptions.PrimaryAqSensor >= (int) Cumulus.PrimaryAqSensor.Ecowitt1
-						&& cumulus.StationOptions.PrimaryAqSensor <= (int) Cumulus.PrimaryAqSensor.Ecowitt4)
+					else if ((cumulus.StationOptions.PrimaryAqSensor >= (int) Cumulus.PrimaryAqSensor.Sensor1
+						&& cumulus.StationOptions.PrimaryAqSensor <= (int) Cumulus.PrimaryAqSensor.Sensor4)
 						|| cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2) // Ecowitt
 					{
 						logFile = cumulus.GetExtraLogFileName(filedate);
@@ -9656,7 +9664,11 @@ namespace CumulusMX
 				Pm2p5_1 = AirQuality[1],
 				Pm2p5_2 = AirQuality[2],
 				Pm2p5_3 = AirQuality[3],
-				Pm2p5_4 = AirQuality[4]
+				Pm2p5_4 = AirQuality[4],
+				Pm10_1 = AirQuality10[1],
+				Pm10_2 = AirQuality10[2],
+				Pm10_3 = AirQuality10[3],
+				Pm10_4 = AirQuality10[4]
 			};
 
 			try
@@ -9690,6 +9702,42 @@ namespace CumulusMX
 				cumulus.LogExceptionMessage(ex, "GetAqAvgFromDb: Error processing AQ average from database");
 			}
 		}
+
+		public void GetAq10AvgFromDb(int idx)
+		{
+			if (idx < 1 || idx > 4)
+			{
+				cumulus.LogErrorMessage("GetAq10AvgFromDb: Index out of range, idx=" + idx);
+				return;
+			}
+
+			try
+			{
+				var ret = RecentDataDb.QueryScalars<double>($"SELECT AVG(Pm10_{idx}) FROM RecentAqData WHERE Timestamp > DATETIME('NOW', '-24 HOURS')");
+				if (ret != null && !string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[idx - 1]))
+				{
+					DoAirQuality10Avg(ret[0], idx);
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "GetAq10AvgFromDb: Error processing AQ average from database");
+			}
+		}
+
+
+		public void DoAirQuality10(double value, int index)
+		{
+			AirQuality10[index] = value;
+			AirQuality10Idx[index] = GetAqi(AqMeasure.pm10, value);
+		}
+
+		public void DoAirQuality10Avg(double value, int index)
+		{
+			AirQuality10Avg[index] = value;
+			AirQuality10AvgIdx[index] = GetAqi(AqMeasure.pm10h24, value);
+		}
+
 
 		public enum AqMeasure
 		{

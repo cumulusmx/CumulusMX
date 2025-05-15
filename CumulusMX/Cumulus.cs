@@ -82,10 +82,10 @@ namespace CumulusMX
 		{
 			Undefined = -1,
 			AirLinkOutdoor = 0,
-			Ecowitt1 = 1,
-			Ecowitt2 = 2,
-			Ecowitt3 = 3,
-			Ecowitt4 = 4,
+			Sensor1 = 1,
+			Sensor2 = 2,
+			Sensor3 = 3,
+			Sensor4 = 4,
 			AirLinkIndoor = 5,
 			EcowittCO2 = 6
 		}
@@ -14434,10 +14434,10 @@ namespace CumulusMX
 				case (int) PrimaryAqSensor.Undefined:
 					LogMessage("Primary AQ Sensor = Undefined");
 					break;
-				case (int) PrimaryAqSensor.Ecowitt1:
-				case (int) PrimaryAqSensor.Ecowitt2:
-				case (int) PrimaryAqSensor.Ecowitt3:
-				case (int) PrimaryAqSensor.Ecowitt4:
+				case (int) PrimaryAqSensor.Sensor1:
+				case (int) PrimaryAqSensor.Sensor2:
+				case (int) PrimaryAqSensor.Sensor3:
+				case (int) PrimaryAqSensor.Sensor4:
 					LogMessage("Primary AQ Sensor = AQ Sensor " + StationOptions.PrimaryAqSensor);
 					break;
 				case (int) PrimaryAqSensor.EcowittCO2:

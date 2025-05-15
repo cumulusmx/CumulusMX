@@ -96,10 +96,6 @@ namespace CumulusMX
 							cumulus.LogDataMessage($"GetPaLiveData: Response - {responseBody}");
 							DecodePaLive(i + 1, responseBody, cumulus.PurpleAirAlgorithm[i], cumulus.PurpleAirThSensor[i]);
 						}
-
-						// Get the average from the database
-						station.GetAqAvgFromDb(i + 1);
-
 					}
 				}
 				catch (Exception ex)
@@ -117,6 +113,7 @@ namespace CumulusMX
 				{
 					// Get the average from the database
 					station.GetAqAvgFromDb(i + 1);
+					station.GetAq10AvgFromDb(i + 1);
 				}
 			}
 
@@ -306,12 +303,14 @@ namespace CumulusMX
 					// Algorithm 0 = indoor - use the averaged PM2.5 CF1 value
 					cumulus.LogDebugMessage($"DecodePaLive: Sensor #{indx}, using CF_1 values, a={json.pm2_5_cf_1}, b={json.pm2_5_cf_1_b}");
 					station.DoAirQuality(Math.Round((json.pm2_5_cf_1 + json.pm2_5_cf_1_b) / 2.0, 1), indx);
+					station.DoAirQuality10(Math.Round((json.pm10_0_cf_1 + json.pm10_0_cf_1_b) / 2.0, 1), indx);
 				}
 				else
 				{
 					// Algorithm 1 = outdoor - use the averaged PM2.5 ATM value
 					cumulus.LogDebugMessage($"DecodePaLive: Sensor #{indx}, using CF_1 values, a={json.pm2_5_atm}, b={json.pm2_5_atm_b}");
 					station.DoAirQuality(Math.Round((json.pm2_5_atm + json.pm2_5_atm_b) / 2.0, 1), indx);
+					station.DoAirQuality10(Math.Round((json.pm10_0_atm + json.pm10_0_atm_b) / 2.0, 1), indx);
 				}
 
 				if (sensor > 0)

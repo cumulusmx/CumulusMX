@@ -208,30 +208,20 @@ namespace CumulusMX.ThirdParty
 							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(cumulus.airLinkDataOut.pm2p5_24hr)}");
 						}
 						break;
-					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
-						if (station.AirQuality[1].HasValue)
-							sb.Append($"&pm25={station.AirQuality[1]:F0}");
-						if (station.AirQualityAvg[1].HasValue)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg[1].Value)}");
-						break;
-					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
-						if (station.AirQuality[2].HasValue)
-							sb.Append($"&pm25={station.AirQuality[2]:F0}");
-						if (station.AirQualityAvg[2].HasValue)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg[2].Value)}");
-						break;
-					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
-						if (station.AirQuality[3].HasValue)
-							sb.Append($"&pm25={station.AirQuality[3]:F0}");
-						if (station.AirQualityAvg[3].HasValue)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg[3].Value)}");
-						break;
-					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
-						if (station.AirQuality[4].HasValue)
-							sb.Append($"&pm25={station.AirQuality[4]:F0}");
-						if (station.AirQualityAvg[4].HasValue)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg[4].Value)}");
-						break;
+					case (int) Cumulus.PrimaryAqSensor.Sensor1:
+					case (int) Cumulus.PrimaryAqSensor.Sensor2:
+					case (int) Cumulus.PrimaryAqSensor.Sensor3:
+					case (int) Cumulus.PrimaryAqSensor.Sensor4:
+						{
+							int idx = cumulus.StationOptions.PrimaryAqSensor;
+							if (station.AirQuality[idx].HasValue)
+								sb.Append($"&pm25={station.AirQuality[idx]:F0}");
+							if (station.AirQualityAvg[idx].HasValue)
+								sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg[idx].Value)}");
+							if (station.AirQuality10[idx].HasValue)
+								sb.Append($"&pm10={station.AirQuality10[idx]:F0}");
+							break;
+						}
 					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 						if (station.CO2_pm2p5.HasValue)
 							sb.Append($"&pm25={station.CO2_pm2p5:F0}");

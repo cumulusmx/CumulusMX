@@ -343,30 +343,22 @@ namespace CumulusMX.ThirdParty
 							sb.Append($"&AqPM10_avg_24h={cumulus.airLinkDataOut.pm10_24hr.ToString("F1", InvC)}");
 						}
 						break;
-					case (int) Cumulus.PrimaryAqSensor.Ecowitt1:
-						if (station.AirQuality[1].HasValue)
-							sb.Append($"AqPM2.5={station.AirQuality[1].Value.ToString("F1", InvC)}");
-						if (station.AirQualityAvg[1].HasValue)
-							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg[1].Value.ToString("F1", InvC)}");
-						break;
-					case (int) Cumulus.PrimaryAqSensor.Ecowitt2:
-						if (station.AirQuality[2].HasValue)
-							sb.Append($"AqPM2.5={station.AirQuality[2].Value.ToString("F1", InvC)}");
-						if (station.AirQualityAvg[2].HasValue)
-							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg[2].Value.ToString("F1", InvC)}");
-						break;
-					case (int) Cumulus.PrimaryAqSensor.Ecowitt3:
-						if (station.AirQuality[3].HasValue)
-							sb.Append($"AqPM2.5={station.AirQuality[3].Value.ToString("F1", InvC)}");
-						if (station.AirQualityAvg[3].HasValue)
-							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg[3].Value.ToString("F1", InvC)}");
-						break;
-					case (int) Cumulus.PrimaryAqSensor.Ecowitt4:
-						if (station.AirQuality[4].HasValue)
-							sb.Append($"AqPM2.5={station.AirQuality[4].Value.ToString("F1", InvC)}");
-						if (station.AirQualityAvg[4].HasValue)
-							sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg[4].Value.ToString("F1", InvC)}");
-						break;
+					case (int)Cumulus.PrimaryAqSensor.Sensor1:
+					case (int)Cumulus.PrimaryAqSensor.Sensor2:
+					case (int)Cumulus.PrimaryAqSensor.Sensor3:
+					case (int)Cumulus.PrimaryAqSensor.Sensor4:
+						{
+							int idx = cumulus.StationOptions.PrimaryAqSensor;
+							if (station.AirQuality[idx].HasValue)
+								sb.Append($"AqPM2.5={station.AirQuality[idx].Value.ToString("F1", InvC)}");
+							if (station.AirQualityAvg[idx].HasValue)
+								sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg[idx].Value.ToString("F1", InvC)}");
+							if (station.AirQuality10[idx].HasValue)
+								sb.Append($"AqPM10={station.AirQuality10[idx].Value.ToString("F1", InvC)}");
+							if (station.AirQuality10Avg[idx].HasValue)
+								sb.Append($"&AqPM10_avg_24h={station.AirQuality10Avg[idx].Value.ToString("F1", InvC)}");
+							break;
+						}
 					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 						if (station.CO2_pm2p5.HasValue)
 							sb.Append($"AqPM2.5={station.CO2_pm2p5.Value.ToString("F1", InvC)}");
