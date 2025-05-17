@@ -350,18 +350,18 @@ namespace CumulusMX.ThirdParty
 						{
 							int idx = cumulus.StationOptions.PrimaryAqSensor;
 							if (station.AirQuality[idx].HasValue)
-								sb.Append($"AqPM2.5={station.AirQuality[idx].Value.ToString("F1", InvC)}");
+								sb.Append($"&AqPM2.5={station.AirQuality[idx].Value.ToString("F1", InvC)}");
 							if (station.AirQualityAvg[idx].HasValue)
 								sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg[idx].Value.ToString("F1", InvC)}");
 							if (station.AirQuality10[idx].HasValue)
-								sb.Append($"AqPM10={station.AirQuality10[idx].Value.ToString("F1", InvC)}");
+								sb.Append($"&AqPM10={station.AirQuality10[idx].Value.ToString("F1", InvC)}");
 							if (station.AirQuality10Avg[idx].HasValue)
 								sb.Append($"&AqPM10_avg_24h={station.AirQuality10Avg[idx].Value.ToString("F1", InvC)}");
 							break;
 						}
 					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 						if (station.CO2_pm2p5.HasValue)
-							sb.Append($"AqPM2.5={station.CO2_pm2p5.Value.ToString("F1", InvC)}");
+							sb.Append($"&AqPM2.5={station.CO2_pm2p5.Value.ToString("F1", InvC)}");
 						if (station.CO2_pm2p5_24h.HasValue)
 							sb.Append($"&AqPM2.5_avg_24h={station.CO2_pm2p5_24h.Value.ToString("F1", InvC)}");
 						if (station.CO2_pm10.HasValue)

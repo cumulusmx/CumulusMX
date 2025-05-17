@@ -10,7 +10,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4094\]][19] - 2025-05-16
+## [4.5.0 \[b4095\]][19] - 2025-05-18
+
+### b4095 changes
+- Fix AWEKAS AQ uploads issue introduced in b4094
 
 ### b4094 changes
 - Ecowitt camera web tag warning messages changed to plain messages
@@ -848,4 +851,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086
 [17]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4087
 [18]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4088
-[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4094
+[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4095
