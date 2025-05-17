@@ -104,19 +104,6 @@ namespace CumulusMX
 				}
 			}
 
-			// Now update the database and calculate the averages
-			station.UpdateAirQualityDb();
-
-			for (var i = 0;i < 4; i++)
-			{
-				if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[i]))
-				{
-					// Get the average from the database
-					station.GetAqAvgFromDb(i + 1);
-					station.GetAq10AvgFromDb(i + 1);
-				}
-			}
-
 			updateInProgress = false;
 		}
 

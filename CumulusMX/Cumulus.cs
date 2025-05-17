@@ -4837,6 +4837,8 @@ namespace CumulusMX
 			GraphOptions.Visible.LeafWetness.Vals = ini.GetValue("Graphs", "LeafWetnessVisible", new int[8]);
 			GraphOptions.Visible.AqSensor.Pm.Vals = ini.GetValue("Graphs", "Aq-PmVisible", new int[4]);
 			GraphOptions.Visible.AqSensor.PmAvg.Vals = ini.GetValue("Graphs", "Aq-PmAvgVisible", new int[4]);
+			GraphOptions.Visible.AqSensor.Pm10.Vals = ini.GetValue("Graphs", "Aq-Pm10Visible", GraphOptions.Visible.AqSensor.Pm.Vals);
+			GraphOptions.Visible.AqSensor.Pm10Avg.Vals = ini.GetValue("Graphs", "Aq-Pm10AvgAvgVisible", GraphOptions.Visible.AqSensor.PmAvg.Vals);
 			GraphOptions.Visible.AqSensor.Temp.Vals = ini.GetValue("Graphs", "Aq-TempVisible", new int[4]);
 			GraphOptions.Visible.AqSensor.Hum.Vals = ini.GetValue("Graphs", "Aq-HumVisible", new int[4]);
 			GraphOptions.Visible.CO2Sensor.CO2.Val = ini.GetValue("Graphs", "CO2-CO2", 0, 0, 2);
@@ -7180,6 +7182,8 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "LeafWetnessVisible", GraphOptions.Visible.LeafWetness.Vals);
 			ini.SetValue("Graphs", "Aq-PmVisible", GraphOptions.Visible.AqSensor.Pm.Vals);
 			ini.SetValue("Graphs", "Aq-PmAvgVisible", GraphOptions.Visible.AqSensor.PmAvg.Vals);
+			ini.SetValue("Graphs", "Aq-Pm10Visible", GraphOptions.Visible.AqSensor.Pm10.Vals);
+			ini.SetValue("Graphs", "Aq-Pm10AvgVisible", GraphOptions.Visible.AqSensor.Pm10Avg.Vals);
 			ini.SetValue("Graphs", "Aq-TempVisible", GraphOptions.Visible.AqSensor.Temp.Vals);
 			ini.SetValue("Graphs", "Aq-HumVisible", GraphOptions.Visible.AqSensor.Hum.Vals);
 			ini.SetValue("Graphs", "CO2-CO2", GraphOptions.Visible.CO2Sensor.CO2.Val);
@@ -7544,8 +7548,10 @@ namespace CumulusMX
 			for (var i = 0; i < 4; i++)
 			{
 				// air quality captions (for Extra Sensor Data screen)
-				Trans.AirQualityCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor" + (i + 1), "Sensor " + (i + 1));
-				Trans.AirQualityAvgCaptions[i] = ini.GetValue("AirQualityCaptions", "SensorAvg" + (i + 1), "Sensor Avg " + (i + 1));
+				Trans.AirQualityCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor" + (i + 1), "pm2.5 Sensor " + (i + 1));
+				Trans.AirQualityAvgCaptions[i] = ini.GetValue("AirQualityCaptions", "SensorAvg" + (i + 1), "pm2.5 Avg Sensor " + (i + 1));
+				Trans.AirQuality10Captions[i] = ini.GetValue("AirQualityCaptions", "Sensor10-" + (i + 1), "pm10 Sensor " + (i + 1));
+				Trans.AirQuality10AvgCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor10Avg" + (i + 1), $"pm10 Sensor Avg " + (i + 1));
 
 				Trans.Laser[i] = ini.GetValue("LaserCaptions", "Sensor" + (i + 1), "Sensor " + (i + 1));
 			}
@@ -8511,7 +8517,7 @@ namespace CumulusMX
 			}
 		}
 
-		public const int NumExtraLogFileFields = 101;
+		public const int NumExtraLogFileFields = 122;
 
 		public async Task DoExtraLogFile(DateTime timestamp)
 		{
@@ -8541,6 +8547,9 @@ namespace CumulusMX
 			// 92-95 Laser Distance 1-4
 			// 96-99 Laser Depth 1-4
 			// 100 Snowfall Accumulation 24h
+			// 101-106 Temperature 11-16
+			// 107-112 Humidity 11-16
+			// 113-118 Dew point 11-16
 
 			var filename = GetExtraLogFileName(timestamp);
 			var inv = CultureInfo.InvariantCulture;
@@ -8571,7 +8580,7 @@ namespace CumulusMX
 
 			for (int i = 1; i <= 4; i++)
 			{
-				sb.Append((station.SoilMoisture[i].HasValue ? station.SoilMoisture[i] : string.Empty) + sep);                      //36-39
+				sb.Append((station.SoilMoisture[i].HasValue ? station.SoilMoisture[i].ToString() : string.Empty) + sep);                      //36-39
 			}
 
 			sb.Append(sep);     //40 - was leaf temp 1
@@ -8605,8 +8614,8 @@ namespace CumulusMX
 				sb.Append((station.UserTemp[i].HasValue ? station.UserTemp[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);   //76-83
 			}
 
-			sb.Append((station.CO2.HasValue ? station.CO2 : string.Empty) + sep);                                                           //84
-			sb.Append((station.CO2_24h.HasValue ? station.CO2_24h : string.Empty) + sep);                                                   //85
+			sb.Append((station.CO2.HasValue ? station.CO2.ToString() : string.Empty) + sep);                                                           //84
+			sb.Append((station.CO2_24h.HasValue ? station.CO2_24h.ToString() : string.Empty) + sep);                                                   //85
 			sb.Append((station.CO2_pm2p5.HasValue ? station.CO2_pm2p5.Value.ToString("F1", inv) : string.Empty) + sep);                     //86
 			sb.Append((station.CO2_pm2p5_24h.HasValue ? station.CO2_pm2p5_24h.Value.ToString("F1", inv) : string.Empty) + sep);             //87
 			sb.Append((station.CO2_pm10.HasValue ? station.CO2_pm10.Value.ToString("F1", inv) : string.Empty) + sep);                       //88
@@ -8623,7 +8632,25 @@ namespace CumulusMX
 				sb.Append((station.LaserDepth[i].HasValue ? station.LaserDepth[i].Value.ToString(LaserFormat, inv) : string.Empty) + sep); //96-99
 			}
 
-			sb.Append((station.Snow24h[SnowAutomated].HasValue ? station.Snow24h[SnowAutomated].Value.ToString(SnowFormat, inv) : string.Empty)); //100
+			sb.Append((station.Snow24h[SnowAutomated].HasValue ? station.Snow24h[SnowAutomated].Value.ToString(SnowFormat, inv) : string.Empty) + sep); //100
+
+			for (int i = 11; i <= 16; i++)
+			{
+				sb.Append((station.ExtraTemp[i].HasValue ? station.ExtraTemp[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);       //101-106
+			}
+			for (int i = 11; i <= 16; i++)
+			{
+				sb.Append((station.ExtraHum[i].HasValue ? station.ExtraHum[i].Value.ToString(HumFormat, inv) : string.Empty) + sep);        //107-112
+			}
+			for (int i = 11; i <= 16; i++)
+			{
+				sb.Append((station.ExtraDewPoint[i].HasValue ? station.ExtraDewPoint[i].Value.ToString(TempFormat, inv) : string.Empty) + sep);  //113-118
+			}
+
+			if (sb[^1] == sep[0])
+			{
+				sb.Length--;
+			}
 
 			sb.Append(Environment.NewLine);
 

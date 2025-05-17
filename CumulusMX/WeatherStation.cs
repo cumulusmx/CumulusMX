@@ -18,9 +18,14 @@ using System.Timers;
 using System.Web;
 
 using EmbedIO.Utilities;
+
+using Org.BouncyCastle.Ocsp;
+
 using ServiceStack.Text;
+
 using SQLite;
 
+using static System.Collections.Specialized.BitVector32;
 
 using Timer = System.Timers.Timer;
 
@@ -1866,6 +1871,8 @@ namespace CumulusMX
 					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
+					UpdateAirQualityDb();
+
 					// calculate ET just before the hour so it is included in the correct day at roll over - only affects 9am met days really
 					if (cumulus.StationOptions.CalculatedET && now.Minute == 59)
 					{
@@ -2949,7 +2956,7 @@ namespace CumulusMX
 			var logFile = cumulus.GetExtraLogFileName(fileDate);
 
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - HH:mm
+			// 1  Current time - hh:mm
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -2970,6 +2977,14 @@ namespace CumulusMX
 			// 89  CO2 pm10 avg
 			// 90  CO2 temp
 			// 91  CO2 hum
+			// 92-95 Laser Distance 1-4
+			// 96-99 Laser Depth 1-4
+			// 100 Snowfall Accumulation 24h
+			// 101-106 Temperature 11-16
+			// 107-112 Humidity 11-16
+			// 113-118 Dew point 11-16
+
+			int[] fields = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 101, 102, 103, 104, 105, 106];
 
 			while (!finished)
 			{
@@ -3000,7 +3015,11 @@ namespace CumulusMX
 									{
 										if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local))
 										{
-											var val = double.TryParse(st[i + 2], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											var val = "null";
+											if (fields[i] < st.Count)
+											{
+												val = (double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null");
+											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
 									}
@@ -3095,7 +3114,7 @@ namespace CumulusMX
 			var logFile = cumulus.GetExtraLogFileName(fileDate);
 
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - HH:mm
+			// 1  Current time - hh:mm
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -3116,6 +3135,14 @@ namespace CumulusMX
 			// 89  CO2 pm10 avg
 			// 90  CO2 temp
 			// 91  CO2 hum
+			// 92-95 Laser Distance 1-4
+			// 96-99 Laser Depth 1-4
+			// 100 Snowfall Accumulation 24h
+			// 101-106 Temperature 11-16
+			// 107-112 Humidity 11-16
+			// 113-118 Dew point 11-16
+
+			int[] fields = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 113, 114, 115, 116, 117, 118];
 
 			while (!finished)
 			{
@@ -3142,12 +3169,15 @@ namespace CumulusMX
 									// entry is from required period
 									var jsTime = Utils.ToPseudoJSTime(entrydate);
 									var temp = 0.0;
-									var val = string.Empty;
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length; i++)
 									{
 										if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local))
 										{
-											val = double.TryParse(st[i + 22], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											var val = "null";
+											if (fields[i] < st.Count)
+											{
+												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
 									}
@@ -3263,6 +3293,14 @@ namespace CumulusMX
 			// 89  CO2 pm10 avg
 			// 90  CO2 temp
 			// 91  CO2 hum
+			// 92-95 Laser Distance 1-4
+			// 96-99 Laser Depth 1-4
+			// 100 Snowfall Accumulation 24h
+			// 101-106 Temperature 11-16
+			// 107-112 Humidity 11-16
+			// 113-118 Dew point 11-16
+
+			int[] fields = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 107, 108, 109, 110, 111, 112];
 
 			while (!finished)
 			{
@@ -3293,7 +3331,11 @@ namespace CumulusMX
 									{
 										if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(i, local))
 										{
-											var val = int.TryParse(st[i + 12], out temp) ? temp.ToString() : "null";
+											var val = "null";
+											if (fields[i] < st.Count)
+											{
+												val = int.TryParse(st[fields[i]], out temp) ? temp.ToString() : "null";
+											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
 									}
@@ -3409,6 +3451,14 @@ namespace CumulusMX
 			// 89  CO2 pm10 avg
 			// 90  CO2 temp
 			// 91  CO2 hum
+			// 92-95 Laser Distance 1-4
+			// 96-99 Laser Depth 1-4
+			// 100 Snowfall Accumulation 24h
+			// 101-106 Temperature 11-16
+			// 107-112 Humidity 11-16
+			// 113-118 Dew point 11-16
+
+			int[] fields = [32, 33, 34, 35, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55];
 
 			while (!finished)
 			{
@@ -3436,19 +3486,15 @@ namespace CumulusMX
 									var temp = 0.0;
 									var jsTime = Utils.ToPseudoJSTime(entrydate);
 
-									for (var i = 0; i < 4; i++)
+									for (var i = 0; i < cumulus.GraphOptions.Visible.SoilTemp.Vals.Length; i++)
 									{
 										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local))
 										{
-											var val = double.TryParse(st[i + 32], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
-											sbExt[i].Append($"[{jsTime},{val}],");
-										}
-									}
-									for (var i = 4; i < 16; i++)
-									{
-										if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local))
-										{
-											var val = double.TryParse(st[i + 40], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											var val = "null";
+											if (fields[i] < st.Count)
+											{
+												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
 									}
@@ -3563,6 +3609,14 @@ namespace CumulusMX
 			// 89  CO2 pm10 avg
 			// 90  CO2 temp
 			// 91  CO2 hum
+			// 92-95 Laser Distance 1-4
+			// 96-99 Laser Depth 1-4
+			// 100 Snowfall Accumulation 24h
+			// 101-106 Temperature 11-16
+			// 107-112 Humidity 11-16
+			// 113-118 Dew point 11-16
+
+			int[] fields = [36, 37, 38, 39, 56, 57,58, 59, 60, 61, 62, 63, 64, 65, 66, 67];
 
 			while (!finished)
 			{
@@ -3590,19 +3644,15 @@ namespace CumulusMX
 									var temp = 0;
 									var jsTime = Utils.ToPseudoJSTime(entrydate);
 
-									for (var i = 0; i < 4; i++)
+									for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Vals.Length; i++)
 									{
 										if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
 										{
-											var val = int.TryParse(st[i + 36], out temp) ? temp.ToString() : "null";
-											sbExt[i].Append($"[{jsTime},{val}],");
-										}
-									}
-									for (var i = 4; i < 16; i++)
-									{
-										if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
-										{
-											var val = int.TryParse(st[i + 52], out temp) ? temp.ToString() : "null";
+											var val = "null";
+											if (fields[i] < st.Count)
+											{
+												val = int.TryParse(st[fields[i]], out temp) ? temp.ToString() : "null";
+											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
 									}
@@ -3718,6 +3768,14 @@ namespace CumulusMX
 			// 89  CO2 pm10 avg
 			// 90  CO2 temp
 			// 91  CO2 hum
+			// 92-95 Laser Distance 1-4
+			// 96-99 Laser Depth 1-4
+			// 100 Snowfall Accumulation 24h
+			// 101-106 Temperature 11-16
+			// 107-112 Humidity 11-16
+			// 113-118 Dew point 11-16
+
+			int[] fields = [42, 43];
 
 			while (!finished)
 			{
@@ -3749,7 +3807,11 @@ namespace CumulusMX
 									{
 										if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local))
 										{
-											var val = double.TryParse(st[i + 42], out temp) ? temp.ToString("F1", InvC) : "null";
+											var val = "null";
+											if (fields[i] < st.Count)
+											{
+												val = double.TryParse(st[fields[i]], out temp) ? temp.ToString("F1", InvC) : "null";
+											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
 									}
@@ -3865,6 +3927,14 @@ namespace CumulusMX
 			// 89  CO2 pm10 avg
 			// 90  CO2 temp
 			// 91  CO2 hum
+			// 92-95 Laser Distance 1-4
+			// 96-99 Laser Depth 1-4
+			// 100 Snowfall Accumulation 24h
+			// 101-106 Temperature 11-16
+			// 107-112 Humidity 11-16
+			// 113-118 Dew point 11-16
+
+			int[] fields = [76, 77, 78, 79, 80, 81, 82, 83];
 
 			while (!finished)
 			{
@@ -3896,7 +3966,11 @@ namespace CumulusMX
 									{
 										if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local))
 										{
-											var val = double.TryParse(st[i + 76], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											var val = "null";
+											if (fields[i] < st.Count)
+											{
+												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
 									}
@@ -8879,6 +8953,7 @@ namespace CumulusMX
 			cumulus.LogMessage("Loading last N hour data from data logs: " + ts);
 			LoadRecentFromDataLogs(ts);
 			LoadRecentAqFromDataLogs(ts);
+			LoadRecentAqFromDataLogsNew(ts);
 			LoadWindData();
 			LoadLast3HourData(ts);
 			LoadRecentWindRose();
@@ -9028,6 +9103,8 @@ namespace CumulusMX
 			int updatedCount = 0;
 			var inv = CultureInfo.InvariantCulture;
 
+			if (cumulus.StationOptions.PrimaryAqSensor < 0) return;
+
 			// try and find the first entry in the database that has a "blank" AQ entry (PM2.5 or PM10 = -1)
 			try
 			{
@@ -9042,8 +9119,6 @@ namespace CumulusMX
 			{
 				cumulus.LogErrorMessage("LoadRecentAqFromDataLogs: Error querying database for oldest record without AQ data - " + e.Message);
 			}
-
-			if (cumulus.StationOptions.PrimaryAqSensor < 0) return;
 
 			cumulus.LogMessage($"LoadRecentAqFromDataLogs: Attempting to load {cumulus.RecentDataDays} days of entries to Air Quality recent data");
 
@@ -9103,7 +9178,7 @@ namespace CumulusMX
 									}
 									else if (cumulus.StationOptions.PrimaryAqSensor >= (int) Cumulus.PrimaryAqSensor.Sensor1 && cumulus.StationOptions.PrimaryAqSensor <= (int) Cumulus.PrimaryAqSensor.Sensor4)
 									{
-										// Ecowitt sensor 1-4 - fields 68 -> 71
+										// Sensor 1-4 - fields 68 -> 71
 										str2p5 = st[67 + cumulus.StationOptions.PrimaryAqSensor];
 										str10 = "-1";
 									}
@@ -9166,6 +9241,117 @@ namespace CumulusMX
 			cumulus.LogMessage($"LoadRecentAqFromDataLogs: Loaded {updatedCount} new entries to recent database");
 		}
 
+		private void LoadRecentAqFromDataLogsNew(DateTime ts)
+		{
+			var datefrom = ts.AddDays(-cumulus.RecentDataDays);
+			var dateto = ts;
+			var entrydate = datefrom;
+			var filedate = datefrom;
+			string logFile;
+			bool finished = false;
+			int updatedCount = 0;
+			var inv = CultureInfo.InvariantCulture;
+
+			if (cumulus.StationOptions.PrimaryAqSensor < 0) return;
+
+			// try and find the first entry in the database that has a "blank" AQ entry (PM2.5 or PM10 = -1)
+			try
+			{
+				var start = RecentDataDb.ExecuteScalar<DateTime>("select max(Timestamp) from RecentAqData");
+				if (start >= cumulus.LastUpdateTime)
+					return;
+
+				if (datefrom < start)
+					datefrom = start;
+			}
+			catch (Exception e)
+			{
+				cumulus.LogErrorMessage("LoadRecentAqFromDataLogsNew: Error querying database for last record - " + e.Message);
+			}
+
+
+			cumulus.LogMessage($"LoadRecentAqFromDataLogsNew: Attempting to load {cumulus.RecentDataDays} days of entries to Air Quality recent data");
+
+			logFile = cumulus.GetExtraLogFileName(filedate);
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					int linenum = 0;
+					int errorCount = 0;
+
+					try
+					{
+						RecentDataDb.BeginTransaction();
+						var lines = File.ReadAllLines(logFile);
+
+						foreach (var line in lines)
+						{
+							try
+							{
+								// process each record in the file
+								linenum++;
+								var st = new List<string>(line.Split(','));
+								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
+
+								if (entrydate >= datefrom && entrydate <= dateto)
+								{
+									// entry is from required period
+
+									// Standard sensor 1-4 - fields 68 -> 71
+
+									var rec = new RecentAqData
+									{
+										Timestamp = entrydate,
+										Pm2p5_1 = string.IsNullOrEmpty(st[68]) ? null : double.Parse(st[68], NumberStyles.Number, inv),
+										Pm2p5_2 = string.IsNullOrEmpty(st[69]) ? null : double.Parse(st[69], NumberStyles.Number, inv),
+										Pm2p5_3 = string.IsNullOrEmpty(st[70]) ? null : double.Parse(st[70], NumberStyles.Number, inv),
+										Pm2p5_4 = string.IsNullOrEmpty(st[71]) ? null : double.Parse(st[71], NumberStyles.Number, inv)
+									};
+
+									if (null != (rec.Pm2p5_1 ?? rec.Pm2p5_2 ?? rec.Pm2p5_3 ?? rec.Pm2p5_4))
+									{
+										updatedCount += RecentDataDb.Insert(rec, "or ignore");
+									}
+								}
+							}
+							catch (Exception e)
+							{
+								cumulus.LogWarningMessage($"LoadRecentAqFromDataLogsNew: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogMessage("Please edit the file to correct the error");
+								errorCount++;
+								if (errorCount >= 20)
+								{
+									cumulus.LogErrorMessage($"LoadRecentAqFromDataLogsNew: Too many errors reading {logFile} - aborting load of AQ data");
+								}
+							}
+						}
+
+						RecentDataDb.Commit();
+					}
+					catch (Exception e)
+					{
+						cumulus.LogErrorMessage($"LoadRecentAqFromDataLogsNew: Error at line {linenum} of {logFile} : {e.Message}");
+						cumulus.LogMessage("Please edit the file to correct the error");
+						RecentDataDb.Rollback();
+					}
+				}
+
+				if (entrydate >= dateto || filedate > dateto.AddMonths(1))
+				{
+					finished = true;
+				}
+				else
+				{
+					filedate = filedate.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(filedate);
+				}
+			}
+			cumulus.LogMessage($"LoadRecentAqFromDataLogsNew: Loaded {updatedCount} new entries to recent database");
+		}
+
+
 		private void LoadRecentWindRose()
 		{
 			// We can now just query the recent data database as it has been populated from the logs
@@ -9194,41 +9380,38 @@ namespace CumulusMX
 
 			var result = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? and Timestamp <= ? order by Timestamp", datefrom, dateto);
 
-			// get the min and max timestamps from the recent wind array
-			var minWindTs = DateTime.MaxValue;
-			var maxWindTs = DateTime.MinValue;
-
-			lock (recentwindLock)
+			if (result.Count != 0)
 			{
-				foreach (var rec in WindRecent)
+				lock (recentwindLock)
 				{
-					if (rec.Timestamp < minWindTs)
-						minWindTs = rec.Timestamp;
-					if (rec.Timestamp > maxWindTs)
-						maxWindTs = rec.Timestamp;
-				}
+					var timestamps = WindRecent.Select(rec => rec.Timestamp);
 
-				foreach (var rec in result)
-				{
-					try
+					// get the min and max timestamps from the recent wind array
+					var minWindTs = timestamps.Min();
+					var maxWindTs = timestamps.Max();
+
+					foreach (var rec in result)
 					{
-						if (rec.Timestamp < minWindTs || rec.Timestamp > maxWindTs)
+						try
 						{
-							WindRecent[nextwind].Gust = rec.WindGust;
-							WindRecent[nextwind].Speed = rec.WindSpeed;
-							WindRecent[nextwind].Timestamp = rec.Timestamp;
-							nextwind = (nextwind + 1) % MaxWindRecent;
-						}
+							if (rec.Timestamp < minWindTs || rec.Timestamp > maxWindTs)
+							{
+								WindRecent[nextwind].Gust = rec.WindGust;
+								WindRecent[nextwind].Speed = rec.WindSpeed;
+								WindRecent[nextwind].Timestamp = rec.Timestamp;
+								nextwind = (nextwind + 1) % MaxWindRecent;
+							}
 
-						WindVec[nextwindvec].X = rec.WindGust * Math.Sin(DegToRad(rec.WindDir));
-						WindVec[nextwindvec].Y = rec.WindGust * Math.Cos(DegToRad(rec.WindDir));
-						WindVec[nextwindvec].Timestamp = rec.Timestamp;
-						WindVec[nextwindvec].Bearing = Bearing; // savedBearing
-						nextwindvec = (nextwindvec + 1) % MaxWindRecent;
-					}
-					catch (Exception e)
-					{
-						cumulus.LogErrorMessage($"LoadLast3Hour: Error loading data from database : {e.Message}");
+							WindVec[nextwindvec].X = rec.WindGust * Math.Sin(DegToRad(rec.WindDir));
+							WindVec[nextwindvec].Y = rec.WindGust * Math.Cos(DegToRad(rec.WindDir));
+							WindVec[nextwindvec].Timestamp = rec.Timestamp;
+							WindVec[nextwindvec].Bearing = Bearing; // savedBearing
+							nextwindvec = (nextwindvec + 1) % MaxWindRecent;
+						}
+						catch (Exception e)
+						{
+							cumulus.LogErrorMessage($"LoadLast3Hour: Error loading data from database : {e.Message}");
+						}
 					}
 				}
 			}
@@ -9650,14 +9833,20 @@ namespace CumulusMX
 			AirQualityIdx[index] = GetAqi(AqMeasure.pm2p5, value);
 		}
 
-		public void DoAirQualityAvg(double value, int index)
+		public void DoAirQualityAvg(double? value, int index)
 		{
 			AirQualityAvg[index] = value;
-			AirQualityAvgIdx[index] = GetAqi(AqMeasure.pm2p5h24, value);
+			AirQualityAvgIdx[index] = value.HasValue ? GetAqi(AqMeasure.pm2p5h24, value.Value) : null;
 		}
 
 		public void UpdateAirQualityDb()
 		{
+			if (null == (AirQuality[1] ?? AirQuality[2] ?? AirQuality[3] ?? AirQuality[4]))
+			{
+				// no data available
+				return;
+			}
+
 			var rec = new RecentAqData
 			{
 				Timestamp = DateTime.Now,
@@ -9674,6 +9863,15 @@ namespace CumulusMX
 			try
 			{
 				RecentDataDb.InsertOrReplace(rec);
+
+				for (var i = 0; i < 4; i++)
+				{
+					if (!string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[i]))
+					{
+						// Get the average from the database
+						GetAqAvgFromDb(i + 1);
+					}
+				}
 			}
 			catch (Exception ex)
 			{
@@ -9689,39 +9887,26 @@ namespace CumulusMX
 				return;
 			}
 
+			if (string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[idx - 1]))
+				return;
+
 			try
 			{
-				var ret = RecentDataDb.QueryScalars<double>($"SELECT AVG(Pm2p5_{idx}) FROM RecentAqData WHERE Timestamp > DATETIME('NOW', '-24 HOURS')");
-				if (ret != null && !string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[idx - 1]))
+				var ret = RecentDataDb.ExecuteScalar<double?>($"SELECT AVG(Pm2p5_{idx}) FROM RecentAqData WHERE Timestamp > DATETIME('NOW', '-24 HOURS')");
+				if (ret != null)
 				{
-					DoAirQualityAvg(ret[0], idx);
+					DoAirQualityAvg(ret, idx);
+				}
+
+				ret = RecentDataDb.ExecuteScalar<double?>($"SELECT AVG(Pm10_{idx}) FROM RecentAqData WHERE Timestamp > DATETIME('NOW', '-24 HOURS')");
+				if (ret != null)
+				{
+					DoAirQuality10Avg(ret, idx);
 				}
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogExceptionMessage(ex, "GetAqAvgFromDb: Error processing AQ average from database");
-			}
-		}
-
-		public void GetAq10AvgFromDb(int idx)
-		{
-			if (idx < 1 || idx > 4)
-			{
-				cumulus.LogErrorMessage("GetAq10AvgFromDb: Index out of range, idx=" + idx);
-				return;
-			}
-
-			try
-			{
-				var ret = RecentDataDb.QueryScalars<double>($"SELECT AVG(Pm10_{idx}) FROM RecentAqData WHERE Timestamp > DATETIME('NOW', '-24 HOURS')");
-				if (ret != null && !string.IsNullOrEmpty(cumulus.PurpleAirIpAddress[idx - 1]))
-				{
-					DoAirQuality10Avg(ret[0], idx);
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogExceptionMessage(ex, "GetAq10AvgFromDb: Error processing AQ average from database");
 			}
 		}
 
@@ -9732,10 +9917,10 @@ namespace CumulusMX
 			AirQuality10Idx[index] = GetAqi(AqMeasure.pm10, value);
 		}
 
-		public void DoAirQuality10Avg(double value, int index)
+		public void DoAirQuality10Avg(double? value, int index)
 		{
 			AirQuality10Avg[index] = value;
-			AirQuality10AvgIdx[index] = GetAqi(AqMeasure.pm10h24, value);
+			AirQuality10AvgIdx[index] = value.HasValue ? GetAqi(AqMeasure.pm10h24, value.Value) : null;
 		}
 
 
@@ -11750,6 +11935,20 @@ namespace CumulusMX
 					if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(i - 1, local))
 					{
 						json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[i - 1]}\",\"{(AirQualityAvg[i].HasValue ? AirQualityAvg[i].Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					}
+				}
+				for (int i = 1; i < AirQuality10.Length; i++)
+				{
+					if (cumulus.GraphOptions.Visible.AqSensor.Pm10.ValVisible(i - 1, local))
+					{
+						json.Append($"[\"{cumulus.Trans.AirQuality10Captions[i - 1]}\",\"{(AirQuality10[i].HasValue ? AirQuality10[i].Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					}
+				}
+				for (int i = 1; i < AirQuality10Avg.Length; i++)
+				{
+					if (cumulus.GraphOptions.Visible.AqSensor.Pm10Avg.ValVisible(i - 1, local))
+					{
+						json.Append($"[\"{cumulus.Trans.AirQuality10AvgCaptions[i - 1]}\",\"{(AirQuality10Avg[i].HasValue ? AirQuality10Avg[i].Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 					}
 				}
 			}

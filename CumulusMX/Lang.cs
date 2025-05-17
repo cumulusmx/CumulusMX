@@ -37,7 +37,9 @@
 			compassp = new string[16];
 
 			AirQualityCaptions = new string[4];
-			AirQualityAvgCaptions = new string[4]; ;
+			AirQualityAvgCaptions = new string[4];
+			AirQuality10Captions = new string[4];
+			AirQuality10AvgCaptions = new string[4];
 
 			Laser = new string[4]; ;
 
@@ -158,6 +160,8 @@
 		// air quality captions
 		public string[] AirQualityCaptions { get; set; }
 		public string[] AirQualityAvgCaptions { get; set; }
+		public string[] AirQuality10Captions { get; set; }
+		public string[] AirQuality10AvgCaptions { get; set; }
 		// leaf wetness captions
 		public string[] LeafWetnessCaptions { get; set; }
 		// user temps

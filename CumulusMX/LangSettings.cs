@@ -71,7 +71,10 @@ namespace CumulusMX
 			var airQuality = new AirQuality()
 			{
 				sensor = cumulus.Trans.AirQualityCaptions,
-				sensorAvg = cumulus.Trans.AirQualityAvgCaptions
+				sensorAvg = cumulus.Trans.AirQualityAvgCaptions,
+				sensor10 = cumulus.Trans.AirQuality10Captions,
+				sensor10Avg = cumulus.Trans.AirQuality10AvgCaptions
+
 			};
 
 			var solar = new Solar()
@@ -579,6 +582,8 @@ namespace CumulusMX
 		{
 			public string[] sensor { get; set; }
 			public string[] sensorAvg { get; set; }
+			public string[] sensor10 { get; set; }
+			public string[] sensor10Avg { get; set; }
 		}
 
 		private sealed class Solar

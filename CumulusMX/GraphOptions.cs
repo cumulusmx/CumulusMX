@@ -104,6 +104,8 @@ namespace CumulusMX
 		{
 			public GraphOptionsDataArray Pm { get; set; } = new GraphOptionsDataArray();
 			public GraphOptionsDataArray PmAvg { get; set; } = new GraphOptionsDataArray();
+			public GraphOptionsDataArray Pm10 { get; set; } = new GraphOptionsDataArray();
+			public GraphOptionsDataArray Pm10Avg { get; set; } = new GraphOptionsDataArray();
 			public GraphOptionsDataArray Temp { get; set; } = new GraphOptionsDataArray();
 			public GraphOptionsDataArray Hum { get; set; } = new GraphOptionsDataArray();
 
@@ -111,11 +113,13 @@ namespace CumulusMX
 			{
 				Pm.Vals = new int[4];
 				PmAvg.Vals = new int[4];
+				Pm10.Vals = new int[4];
+				Pm10Avg.Vals = new int[4];
 			}
 
 			public bool IsVisible(bool local)
 			{
-				return Pm.IsVisible(local) || PmAvg.IsVisible(local) || Temp.IsVisible(local) || Hum.IsVisible(local);
+				return Pm.IsVisible(local) || PmAvg.IsVisible(local) || Pm10.IsVisible(local) || Pm10Avg.IsVisible(local) || Temp.IsVisible(local) || Hum.IsVisible(local);
 			}
 		}
 

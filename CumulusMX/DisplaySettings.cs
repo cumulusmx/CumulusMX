@@ -134,6 +134,8 @@ namespace CumulusMX
 				graphVisAq.sensors[i].pmavg = cumulus.GraphOptions.Visible.AqSensor.PmAvg.Vals[i];
 				graphVisAq.sensors[i].temp = cumulus.GraphOptions.Visible.AqSensor.Temp.Vals[i];
 				graphVisAq.sensors[i].hum = cumulus.GraphOptions.Visible.AqSensor.Hum.Vals[i];
+				graphVisAq.sensors[i].pm10 = cumulus.GraphOptions.Visible.AqSensor.Pm10.Vals[i];
+				graphVisAq.sensors[i].pm10avg = cumulus.GraphOptions.Visible.AqSensor.Pm10Avg.Vals[i];
 			}
 
 			var graphVisSnow = new JsonGraphVisSnow()
@@ -429,6 +431,8 @@ namespace CumulusMX
 					{
 						cumulus.GraphOptions.Visible.AqSensor.Pm.Vals[i] = settings.DataVisibility.aq.sensors[i].pm;
 						cumulus.GraphOptions.Visible.AqSensor.PmAvg.Vals[i] = settings.DataVisibility.aq.sensors[i].pmavg;
+						cumulus.GraphOptions.Visible.AqSensor.Pm10.Vals[i] = settings.DataVisibility.aq.sensors[i].pm10;
+						cumulus.GraphOptions.Visible.AqSensor.Pm10Avg.Vals[i] = settings.DataVisibility.aq.sensors[i].pm10avg;
 						cumulus.GraphOptions.Visible.AqSensor.Temp.Vals[i] = settings.DataVisibility.aq.sensors[i].temp;
 						cumulus.GraphOptions.Visible.AqSensor.Hum.Vals[i] = settings.DataVisibility.aq.sensors[i].hum;
 					}
@@ -631,6 +635,8 @@ namespace CumulusMX
 		{
 			public int pm { get; set; }
 			public int pmavg { get; set; }
+			public int pm10 { get; set; }
+			public int pm10avg { get; set; }
 			public int temp { get; set; }
 			public int hum { get; set; }
 		}

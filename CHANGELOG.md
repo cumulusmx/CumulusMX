@@ -22,6 +22,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		`<#AirQuality10Idx[1-4]>`
 		`<#AirQuality10AvgIdx[1-4]>`
 	- AWEKAS/WeatherCloud/WeatherUnderground upload of pm10 supported
+	- pm10 values are displayed on the Dashboard
+- Adds Extra Temp/Hum/DP sensors to extra log file, log file editor, and graph data
 
 - Package Updates
 	- BouncyCastle.Cryptography
@@ -74,7 +76,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The tag takes an optional parameter `y=YYYY` which you can use to specify the snow season starting year for which you want the total
 - The Weather Diary now has tick boxes for: Thunder, Hail, Fog, Gales
 	- New web tags to fetch these values:
-	`<#DiaryThunder>`, `<#DiaryHail>`, `<#DiaryFog>`, `<#DiaryGales>`
+		`<#DiaryThunder>`, `<#DiaryHail>`, `<#DiaryFog>`, `<#DiaryGales>`
 	- The tags return "true", "false", or "-" if no diary entry exists. This null value can be overridden with the usual `nv=` parameter
 	- All web tags take an optional parameter of the date to be queried `date=YYYY-MM-DD`
 - New monthly average web tags
@@ -117,7 +119,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Plus, quite a few internal Alarm code changes
 - Number of supported Extra Temperature/Humidity/Dewpoint sensors increased from 10 to 16
 	- New web tags to access these new values and the existing sensors 1-10:
-	`<#ExtraTemp sensor=N>`, `<#ExtraHum sensor=N>`, `<#ExtraDP sensor=N>`
+		`<#ExtraTemp sensor=N>`, `<#ExtraHum sensor=N>`, `<#ExtraDP sensor=N>`
+	- Adds Extra Temp/Hum/DP sensors to extra log file, log file editor, and graph data
 - Davis WLL: number of supported extra sensors increased
 	- Soil Temperature from 4 to 16
 	- Soil Moisture from 4 to 16
