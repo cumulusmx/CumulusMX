@@ -9295,11 +9295,12 @@ namespace CumulusMX
 								var st = new List<string>(line.Split(','));
 								entrydate = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
 
-								if (entrydate >= datefrom && entrydate <= dateto)
+								if (st.Count >= 123 && entrydate >= datefrom && entrydate <= dateto)
 								{
 									// entry is from required period
 
 									// Standard sensor 1-4 - fields 68 -> 71
+									// 119-122 AQ PM10
 
 									var rec = new RecentAqData
 									{
@@ -9307,10 +9308,15 @@ namespace CumulusMX
 										Pm2p5_1 = string.IsNullOrEmpty(st[68]) ? null : double.Parse(st[68], NumberStyles.Number, inv),
 										Pm2p5_2 = string.IsNullOrEmpty(st[69]) ? null : double.Parse(st[69], NumberStyles.Number, inv),
 										Pm2p5_3 = string.IsNullOrEmpty(st[70]) ? null : double.Parse(st[70], NumberStyles.Number, inv),
-										Pm2p5_4 = string.IsNullOrEmpty(st[71]) ? null : double.Parse(st[71], NumberStyles.Number, inv)
+										Pm2p5_4 = string.IsNullOrEmpty(st[71]) ? null : double.Parse(st[71], NumberStyles.Number, inv),
+										Pm10_1 = string.IsNullOrEmpty(st[119]) ? null : double.Parse(st[119], NumberStyles.Number, inv),
+										Pm10_2 = string.IsNullOrEmpty(st[120]) ? null : double.Parse(st[120], NumberStyles.Number, inv),
+										Pm10_3 = string.IsNullOrEmpty(st[121]) ? null : double.Parse(st[121], NumberStyles.Number, inv),
+										Pm10_4 = string.IsNullOrEmpty(st[122]) ? null : double.Parse(st[122], NumberStyles.Number, inv),
+
 									};
 
-									if (null != (rec.Pm2p5_1 ?? rec.Pm2p5_2 ?? rec.Pm2p5_3 ?? rec.Pm2p5_4))
+									if (null != (rec.Pm2p5_1 ?? rec.Pm2p5_2 ?? rec.Pm2p5_3 ?? rec.Pm2p5_4 ?? rec.Pm10_1 ?? rec.Pm10_2 ?? rec.Pm10_3 ?? rec.Pm10_4))
 									{
 										updatedCount += RecentDataDb.Insert(rec, "or ignore");
 									}

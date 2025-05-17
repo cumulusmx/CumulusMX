@@ -14,6 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### b4095 changes
 - Fix AWEKAS AQ uploads issue introduced in b4094
+- Adds AQ pm10 and pm10 average to the extra log file
 
 ### b4094 changes
 - Ecowitt camera web tag warning messages changed to plain messages
