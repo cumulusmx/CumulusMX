@@ -10,6 +10,7 @@ namespace CumulusMX
 		private WindUnits WindUnit;
 		private PressUnits PressUnit;
 		private RainUnits RainUnit;
+		private SolarUnits SolarUnit;
 
 
 		private const int fieldCount = 20;
@@ -229,6 +230,19 @@ namespace CumulusMX
 						}
 					}
 
+					// convert solar to W/m2
+					if (rec.Solar.HasValue && SolarUnit != SolarUnits.wm2)
+					{
+						if (SolarUnit == SolarUnits.klux)
+						{
+							rec.Solar = (int) (rec.Solar.Value * 1000 * cumulus.SolarOptions.LuxToWM2);
+						}
+						else if (SolarUnit == SolarUnits.kfc)
+						{
+							rec.Solar = (int) (rec.Solar.Value * 1000 * 0.015759751708199);
+						}
+					}
+
 					if (!retList.TryAdd(time, rec))
 					{
 						cumulus.LogErrorMessage("EcowittLogFile.DataParser: Error adding record to list - " + fields[0]);
@@ -358,6 +372,20 @@ namespace CumulusMX
 					_ => RainUnits.mm
 				};
 			}
+
+			if (FieldIndex.TryGetValue("solar rad", out idx))
+			{
+				var fld = fields[idx].ToLower();
+				if (fld.EndsWith("w/m2)")) SolarUnit = SolarUnits.wm2;
+				else if (fld.EndsWith("klux)")) SolarUnit = SolarUnits.klux;
+				else if (fld.EndsWith("kfc)")) SolarUnit = SolarUnits.kfc;
+				else SolarUnit = SolarUnits.wm2;
+			}
+			else
+			{
+				cumulus.LogErrorMessage("EcowittLogFile.HeaderParser: Unable to determine solar units, defaulting to Cumulus units");
+				SolarUnit = SolarUnits.wm2;
+			}
 		}
 
 
@@ -388,6 +416,13 @@ namespace CumulusMX
 		{
 			mm = 0,
 			inch = 1
+		}
+
+		private enum SolarUnits
+		{
+			wm2 = 0,
+			klux = 1,
+			kfc = 2
 		}
 
 		public class Record
