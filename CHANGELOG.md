@@ -13,7 +13,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## [4.5.0 \[b4095\]][19] - 2025-05-18
 
 ### b4095 changes
-- Fix AWEKAS AQ uploads issue introduced in b4094
+- Fix AWEKAS & APRS/CWOP uploads issue introduced in b4094
 - Adds AQ pm10 and pm10 average to the extra log file
 
 ### b4094 changes

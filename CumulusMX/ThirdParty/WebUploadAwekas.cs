@@ -295,21 +295,23 @@ namespace CumulusMX.ThirdParty
 
 			if (SendSoilTemp)
 			{
-				if (started) sb.Append('&'); else started = true;
 				for (var i = 1; i <= 4; i++)
 				{
 					if (station.SoilTemp[i].HasValue)
+					{
+						if (started) sb.Append('&'); else started = true;
 						sb.Append($"soiltemp{i}={ConvertUnits.UserTempToC(station.SoilTemp[i].Value).ToString("F1", InvC)}");
+					}
 				}
 			}
 
 			if (SendSoilMoisture)
 			{
-				if (started) sb.Append('&'); else started = true;
 				for (var i = 1; i <= 4; i++)
 				{
 					if (station.SoilMoisture[i].HasValue)
 					{
+						if (started) sb.Append('&'); else started = true;
 						sb.Append("soilmoisture1=" + station.SoilMoisture[i]);
 					}
 				}
@@ -317,11 +319,11 @@ namespace CumulusMX.ThirdParty
 
 			if (SendLeafWetness)
 			{
-				if (started) sb.Append('&'); else started = true;
 				for (var i = 1; i <= 4; i++)
 				{
 					if (station.LeafWetness[i].HasValue)
 					{
+						if (started) sb.Append('&'); else started = true;
 						sb.Append("leafwetness1=" + station.LeafWetness[i].Value.ToString(cumulus.LeafWetFormat));
 					}
 				}
@@ -350,7 +352,7 @@ namespace CumulusMX.ThirdParty
 						{
 							int idx = cumulus.StationOptions.PrimaryAqSensor;
 							if (station.AirQuality[idx].HasValue)
-								sb.Append($"&AqPM2.5={station.AirQuality[idx].Value.ToString("F1", InvC)}");
+								sb.Append($"AqPM2.5={station.AirQuality[idx].Value.ToString("F1", InvC)}");
 							if (station.AirQualityAvg[idx].HasValue)
 								sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg[idx].Value.ToString("F1", InvC)}");
 							if (station.AirQuality10[idx].HasValue)
@@ -361,7 +363,7 @@ namespace CumulusMX.ThirdParty
 						}
 					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 						if (station.CO2_pm2p5.HasValue)
-							sb.Append($"&AqPM2.5={station.CO2_pm2p5.Value.ToString("F1", InvC)}");
+							sb.Append($"AqPM2.5={station.CO2_pm2p5.Value.ToString("F1", InvC)}");
 						if (station.CO2_pm2p5_24h.HasValue)
 							sb.Append($"&AqPM2.5_avg_24h={station.CO2_pm2p5_24h.Value.ToString("F1", InvC)}");
 						if (station.CO2_pm10.HasValue)

@@ -57,7 +57,7 @@ namespace CumulusMX.ThirdParty
 						message.Append($"g{APRSwind(station.RecentMaxGust)}");
 					// temp F tnnn
 					if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
-						message.Append($"t{APRStemp(station.OutdoorTemperature, cumulus.Units.Temp)}");
+						message.Append($"t{APRStemp(station.OutdoorTemperature)}");
 					// rain last hour 0.01 inches rnnn
 					message.Append($"r{APRSrain(station.RainLastHour)}");
 					// rain last 24 hours 0.01 inches pnnn
@@ -187,7 +187,7 @@ namespace CumulusMX.ThirdParty
 		/// <returns></returns>
 		private static string APRSwind(double wind)
 		{
-			var windMPH = Math.Round(ConvertUnits.UserWindToMPH(wind));
+			var windMPH = Convert.ToInt32(ConvertUnits.UserWindToMPH(wind));
 			return windMPH.ToString("D3");
 		}
 
@@ -199,7 +199,7 @@ namespace CumulusMX.ThirdParty
 		/// <returns></returns>
 		private static string APRSpress(double press)
 		{
-			var press10mb = Math.Round(ConvertUnits.UserPressToMB(press) * 10);
+			var press10mb = Convert.ToInt32(ConvertUnits.UserPressToMB(press) * 10);
 			return press10mb.ToString("D5");
 		}
 
@@ -233,7 +233,7 @@ namespace CumulusMX.ThirdParty
 		/// <returns></returns>
 		private static string APRSrain(double rain)
 		{
-			var rain100IN = Math.Round(ConvertUnits.UserRainToIN(rain) * 100);
+			var rain100IN = Convert.ToInt32(ConvertUnits.UserRainToIN(rain) * 100);
 			return rain100IN.ToString("D3");
 		}
 
@@ -249,21 +249,11 @@ namespace CumulusMX.ThirdParty
 			}
 		}
 
-		internal static string APRStemp(double temp, int units)
+		internal static string APRStemp(double temp)
 		{
 			// input is in TempUnit units, convert to F for APRS
 			// and return three digits
-			int num;
-
-			if (units == 0)
-			{
-				num = (int)Math.Round(((temp * 1.8) + 32));
-			}
-			else
-			{
-				num = (int)Math.Round(temp);
-			}
-
+			int num = Convert.ToInt32(ConvertUnits.UserTempToF(temp));
 			if (num < 0)
 			{
 				num = -num;
