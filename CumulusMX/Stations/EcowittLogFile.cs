@@ -101,7 +101,7 @@ namespace CumulusMX
 					if (FieldIndex.TryGetValue("wind direction", out idx) && int.TryParse(fields[idx], out varInt)) rec.WindDir = varInt;
 					if (FieldIndex.TryGetValue("abs pressure", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.StationPressure = varDec;
 					if (FieldIndex.TryGetValue("rel pressure", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Pressure = varDec;
-					if (FieldIndex.TryGetValue("solar rad", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Solar = (int?) varDec;
+					if (FieldIndex.TryGetValue("solar rad", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Solar = (double) varDec;
 					if (FieldIndex.TryGetValue("uv-index", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.UVI = varDec;
 
 					// These fields 14,15,16 do not appear in the GW3000 log files :(
@@ -235,7 +235,7 @@ namespace CumulusMX
 					{
 						if (SolarUnit == SolarUnits.klux)
 						{
-							rec.Solar = (int) (rec.Solar.Value * 1000 * cumulus.SolarOptions.LuxToWM2);
+							rec.Solar = (int) (rec.Solar.Value * 1000.0 * cumulus.SolarOptions.LuxToWM2);
 						}
 						else if (SolarUnit == SolarUnits.kfc)
 						{

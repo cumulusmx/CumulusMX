@@ -1917,7 +1917,7 @@ namespace CumulusMX
 			{
 				if (rec.Value.Solar.HasValue)
 				{
-					station.DoSolarRad(rec.Value.Solar.Value, rec.Key);
+					station.DoSolarRad((int)rec.Value.Solar.Value, rec.Key);
 				}
 			}
 			catch (Exception ex)
@@ -3322,7 +3322,7 @@ namespace CumulusMX
 			public int? WindDir { get; set; }
 			public decimal? Pressure { get; set; }
 			public decimal? StationPressure { get; set; }
-			public int? Solar { get; set; }
+			public double? Solar { get; set; }
 			public decimal? UVI { get; set; }
 			public DateTime LightningTime { get; set; }
 			public decimal? LightningDist { get; set; }
