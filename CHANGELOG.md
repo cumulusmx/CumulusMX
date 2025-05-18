@@ -10,12 +10,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4095\]][19] - 2025-05-18
+## [4.5.0 \[b4095\]][19] - 2025-05-19
 
 ### b4095 changes
 - Fix AWEKAS & APRS/CWOP uploads issue introduced in b4094
 - Adds AQ pm10 and pm10 average to the extra log file
 - Ecowitt Local HTTP API adds support for units in "Klux" and "Kfc", in addition to the existing "lux" and "fc"
+- Package Updates
+	- Mailkit
 
 ### b4094 changes
 - Ecowitt camera web tag warning messages changed to plain messages
