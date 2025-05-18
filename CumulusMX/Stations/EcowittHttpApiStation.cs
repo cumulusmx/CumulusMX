@@ -1088,8 +1088,11 @@ namespace CumulusMX
 								var light = arr[1].ToLower() switch
 								{
 									"fc" => valDbl * 0.015759751708199,
+									"Kfc" => valDbl * 1000 * 0.015759751708199,
 									"lux" => valDbl * cumulus.SolarOptions.LuxToWM2, // convert Lux to W/m² - approximately!
+									"Klux" => valDbl * 1000 * cumulus.SolarOptions.LuxToWM2, // convert KLux to W/m² - approximately!
 									"w/m2" => valDbl,
+									"W/m2" => valDbl,
 									_ => -valDbl
 								};
 

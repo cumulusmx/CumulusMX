@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### b4095 changes
 - Fix AWEKAS & APRS/CWOP uploads issue introduced in b4094
 - Adds AQ pm10 and pm10 average to the extra log file
+- Ecowitt Local HTTP API adds support for units in "Klux" and "Kfc", in addition to the existing "lux" and "fc"
 
 ### b4094 changes
 - Ecowitt camera web tag warning messages changed to plain messages
@@ -99,7 +100,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Locale Strings value for web tag elapsed time, applies to `<#SystemUpTime>` and `<#ProgramUpTime>` web tags
 - Locale Strings value for web tag times, applies to 60+ web tags
 	- By default, they output the time as 24-hour HH:mm, you can now override this and use 12-hour format as the default
-- New Program Options > General Options setting to disable the use of WebSockets in the dashboard and use HTTP polling instead
+- New Program *Options > General Options* setting to disable the use of WebSockets in the dashboard and use HTTP polling instead
 	- Previously this required manual editing of the Dashboard, Now, and Gauges page scripts
 - Ecowitt.Net station type now reports individual low battery sensors to the low battery array
 - Davis AirLink: new web tags for uptime and link uptime
@@ -113,6 +114,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		Ecowitt HTTP API - Uptime only
 - Basic support for live data from PurpleAir sensors
 	- It uses the existing AirQuality1-4, AirQualityAvg1-4, and Extra Temp/Hum/Dewpoint sensor web tags
+	- It adds pm10 values
+		- New web tags to support this:
+			`<#AirQuality10_[1-4]>`
+			`<#AirQuality10Avg[1-4]>`
+			`<#AirQuality10Idx[1-4]>`
+			`<#AirQuality10AvgIdx[1-4]>`
+		- Adds these AQ pm10 and pm10 average to the extra log file
+- Ecowitt Local HTTP API adds support for units in "Klux" and "Kfc", in addition to the existing "lux" and "fc"
 
 ### Changed
 
@@ -132,6 +141,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Extra Temperature/Humidity from 8 to 16
 - Station Pressure limits now derived from sea level limits taking station elevation into account
 - Station Pressure limits now apply to all stations - previously only Davis VP2 implemented them
+- Ecowitt camera web tag warning messages changed to plain messages
 
 ### Fixed
 
