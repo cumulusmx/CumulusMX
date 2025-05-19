@@ -12,6 +12,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.5.0 \[b4097\]][19] - 2025-05-19
 
+### b4098
+- Adds monthly dry/wet day records (not yet implemented fully)
+	- New web tags to give the day count and year/month for the specified month with the most dry or wet days
+		`<#ByMonthMostDryDays m=nn>`, `<#ByMonthMostDryDaysT m=nn>`
+		`<#ByMonthMostWetDays m=nn>`, `<#ByMonthMostWetDaysT m=nn>`
+	- New web tags to give the counts of wet or dry days for a particular month
+		`<#MonthDryDays y=nnnn m=nn>`, `<#MonthWetDays y=nnnn m=nn>`
+
 ### b4097
 - Fix error in dayfile format
 

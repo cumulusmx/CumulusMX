@@ -19,13 +19,9 @@ using System.Web;
 
 using EmbedIO.Utilities;
 
-using Org.BouncyCastle.Ocsp;
-
 using ServiceStack.Text;
 
 using SQLite;
-
-using static System.Collections.Specialized.BitVector32;
 
 using Timer = System.Timers.Timer;
 
@@ -15110,6 +15106,102 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			}
 		}
 
+		public int GetMonthDryRainDays(DateTime date, bool dry)
+		{
+			var start = new DateTime(date.Year, date.Month, 1, 0, 0, 0, DateTimeKind.Local);
+			var end = start.AddMonths(1);
+			double thresh;
+			if (cumulus.RainDayThreshold > 0)
+			{
+				thresh = Convert.ToInt32(cumulus.RainDayThreshold);
+			}
+			else
+			{
+				// default
+				if (cumulus.Units.Rain == 0)
+				{
+					thresh = 0.2; // 0.2 mm
+				}
+				else
+				{
+					thresh = 0.01;  // 0.01 in
+				}
+			}
+
+			var rainDays = DayFile
+				.Count(d => d.Date >= start && d.Date < end && d.TotalRain >= thresh);
+
+			return dry ? end.AddDays(-1).Day - rainDays : rainDays;
+		}
+
+		public (DateTime, int) GetByMonthRainDays(int month)
+		{
+			double thresh;
+			if (cumulus.RainDayThreshold > 0)
+			{
+				thresh = Convert.ToInt32(cumulus.RainDayThreshold);
+			}
+			else
+			{
+				// default
+				if (cumulus.Units.Rain == 0)
+				{
+					thresh = 0.2; // 0.2 mm
+				}
+				else
+				{
+					thresh = 0.01;  // 0.01 in
+				}
+			}
+
+			var rainDays = DayFile
+				.Where(d => d.Date.Month == month && d.TotalRain >= thresh)
+				.GroupBy(d => new DateTime(d.Date.Year, d.Date.Month, 1, 0, 0, 0, DateTimeKind.Local))
+				.Select(g => new
+				{
+					date = g.Key,
+					TotalCount = g.Count()
+				})
+				.OrderByDescending(g => g.TotalCount)
+				.FirstOrDefault();
+
+			return rainDays != null ? (rainDays.date, rainDays.TotalCount) : (default, 0);
+		}
+
+		public (DateTime, int) GetByMonthDryDays(int month)
+		{
+			double thresh;
+			if (cumulus.RainDayThreshold > 0)
+			{
+				thresh = Convert.ToInt32(cumulus.RainDayThreshold);
+			}
+			else
+			{
+				// default
+				if (cumulus.Units.Rain == 0)
+				{
+					thresh = 0.2; // 0.2 mm
+				}
+				else
+				{
+					thresh = 0.01;  // 0.01 in
+				}
+			}
+
+			var dryDays = DayFile
+				.Where(d => d.Date.Month == month && d.TotalRain < thresh)
+				.GroupBy(d => new DateTime(d.Date.Year, d.Date.Month, 1, 0, 0, 0, DateTimeKind.Local))
+				.Select(g => new
+				{
+					date = g.Key,
+					TotalCount = g.Count()
+				})
+				.OrderByDescending(g => g.TotalCount)
+				.FirstOrDefault();
+
+			// Fix: Explicitly convert the anonymous type to the tuple (DateTime, int)
+			return dryDays != null ? (dryDays.date, dryDays.TotalCount) : (default, 0);
+		}
 	}
 
 	public class CWindRecent

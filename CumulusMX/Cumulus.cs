@@ -12944,7 +12944,7 @@ namespace CumulusMX
 			values.Append(sep + station.RainRate.ToString(RainFormat, InvC));
 			values.Append(sep + station.RainToday.ToString(RainFormat, InvC));
 			values.Append(sep + station.Pressure.ToString(PressFormat, InvC) );
-			values.Append(sep + station.CompassPoint(station.Bearing));
+			values.Append(sep + "'" + station.CompassPoint(station.Bearing) + "'");
 			values.Append(sep + Beaufort(station.WindAverage));
 			values.Append(sep + "'" + Units.WindText + "'");
 			values.Append(sep + "'" + Units.TempText[1].ToString() + "'");

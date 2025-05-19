@@ -320,7 +320,7 @@ namespace CumulusMX
 		private int GetMonthParam(Dictionary<string, string> tagParams)
 		{
 			int month;
-			var monthstr = tagParams.Get("mon");
+			var monthstr = tagParams.Get("mon") ?? tagParams.Get("m");
 			if (monthstr != null)
 			{
 				// month parameter supplied
@@ -332,7 +332,7 @@ namespace CumulusMX
 				{
 					// problem converting parameter, use current month instead
 					month = DateTime.Now.Month;
-					cumulus.LogWarningMessage($"Error: Webtag <#{tagParams.Get("webtag")}> expecting an integer value for parameter 'mon=n', found 'mon={monthstr}'");
+					cumulus.LogWarningMessage($"Error: Webtag <#{tagParams.Get("webtag")}> expecting an integer value for parameter 'mon=n|m=n', found 'mon={monthstr}'");
 				}
 			}
 			else
@@ -3270,6 +3270,61 @@ namespace CumulusMX
 			return CheckRcDp(val, tagParams, 1);
 		}
 
+		private string TagByMonthMostDryDays(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetByMonthDryDays(month);
+			if (val.Item1 == DateTime.MinValue)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+			else
+			{
+				return val.Item2.ToString();
+			}
+		}
+
+		private string TagByMonthMostRainDays(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetByMonthRainDays(month);
+			if (val.Item1 == DateTime.MinValue)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+			else
+			{
+				return val.Item2.ToString();
+			}
+		}
+
+		private string TagByMonthMostDryDaysT(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetByMonthDryDays(month);
+			if (val.Item1 == DateTime.MinValue)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+			else
+			{
+				return GetFormattedDateTime(val.Item1, "yyyy-MM", tagParams);
+			}
+		}
+
+		private string TagByMonthMostRainDaysT(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var val = station.GetByMonthRainDays(month);
+			if (val.Item1 == DateTime.MinValue)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+			else
+			{
+				return GetFormattedDateTime(val.Item1, "yyyy-MM", tagParams);
+			}
+		}
 
 		private string Taggraphperiod(Dictionary<string, string> tagParams)
 		{
@@ -3992,6 +4047,31 @@ namespace CumulusMX
 			}
 
 			return CheckRcDp(CheckTempUnit(total, tagParams), tagParams, cumulus.RainDPlaces);
+		}
+
+		private string TagMonthDryDays(Dictionary<string, string> tagParams)
+		{
+			return GetMonthDryWetDays(tagParams, true);
+		}
+
+		private string TagMonthWetDays(Dictionary<string, string> tagParams)
+		{
+			return GetMonthDryWetDays(tagParams, false);
+		}
+
+		private string GetMonthDryWetDays(Dictionary<string, string> tagParams, bool dry)
+		{
+			var year = tagParams.Get("y");
+			var month = tagParams.Get("m");
+			var now = DateTime.Now;
+			var date = now;
+
+			if (year != null && month != null)
+			{
+				date = new DateTime(int.Parse(year), int.Parse(month), 1, 0, 0, 0, DateTimeKind.Local);
+			}
+
+			return station.GetMonthDryRainDays(date, dry).ToString();
 		}
 
 		private string TagAnnualRainfall(Dictionary<string, string> tagParams)
@@ -7644,6 +7724,8 @@ namespace CumulusMX
 				{ "ByMonthLongestWetPeriod", TagByMonthLongestWetPeriod },
 				{ "ByMonthLowDailyTempRange", TagByMonthLowDailyTempRange },
 				{ "ByMonthHighDailyTempRange", TagByMonthHighDailyTempRange },
+				{ "ByMonthMostDryDays", TagByMonthMostDryDays },
+				{ "ByMonthMostWetDays", TagByMonthMostRainDays },
 				// Month-by-month highs and lows - timestamps
 				{ "ByMonthTempHT", TagByMonthTempHt },
 				{ "ByMonthTempLT", TagByMonthTempLt },
@@ -7675,6 +7757,8 @@ namespace CumulusMX
 				{ "ByMonthLongestWetPeriodT", TagByMonthLongestWetPeriodT },
 				{ "ByMonthLowDailyTempRangeT", TagByMonthLowDailyTempRangeT },
 				{ "ByMonthHighDailyTempRangeT", TagByMonthHighDailyTempRangeT },
+				{ "ByMonthMostDryDaysT",TagByMonthMostDryDaysT },
+				{ "ByMonthMostWetDaysT",TagByMonthMostRainDaysT },
 				// Monthly averages
 				{ "MonthAvgTemp", TagMonthAvgTemp },
 				{ "MonthAvgTempHigh", TagMonthAvgTempHigh },
@@ -7689,6 +7773,8 @@ namespace CumulusMX
 				{ "MonthTempAvg", TagMonthTempAvg },
 				{ "YearTempAvg", TagYearTempAvg },
 				{ "MonthRainfall", TagMonthRainfall },
+				{ "MonthDryDays", TagMonthDryDays },
+				{ "MonthWetDays", TagMonthWetDays },
 				{ "AnnualRainfall", TagAnnualRainfall },
 				// Options
 				{ "Option_useApparent", TagOption_useApparent },
