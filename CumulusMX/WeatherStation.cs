@@ -8171,6 +8171,7 @@ namespace CumulusMX
 			var strb = new StringBuilder(300);
 			strb.Append(datestring);
 			strb.Append(sep + HiLoToday.HighGust.ToString(cumulus.WindFormat, inv));
+			strb.Append(sep + HiLoToday.HighGustBearing);
 			strb.Append(sep + HiLoToday.HighGustTime.ToString("HH:mm", inv));
 			strb.Append(sep + HiLoToday.LowTemp.ToString(cumulus.TempFormat, inv));
 			strb.Append(sep + HiLoToday.LowTempTime.ToString("HH:mm", inv));
@@ -8183,7 +8184,6 @@ namespace CumulusMX
 			strb.Append(sep + HiLoToday.HighRainRate.ToString(cumulus.RainFormat, inv));
 			strb.Append(sep + HiLoToday.HighRainRateTime.ToString("HH:mm", inv));
 			strb.Append(sep + RainToday.ToString(cumulus.RainFormat, inv));
-			strb.Append(sep + HiLoToday.HighGustBearing);
 			strb.Append(sep + AvgTemp.ToString(cumulus.TempFormat, inv));
 			strb.Append(sep + WindRunToday.ToString("F1", inv));
 			strb.Append(sep + HiLoToday.HighWind.ToString(cumulus.WindAvgFormat, inv));
