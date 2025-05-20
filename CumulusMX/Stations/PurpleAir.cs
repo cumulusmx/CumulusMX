@@ -43,7 +43,7 @@ namespace CumulusMX
 
 				// Create a current conditions thread to poll readings every 30 seconds
 				tmrCurrent.Elapsed += GetPaLiveData;
-				tmrCurrent.Interval = 30 * 1000;  // Every 30 seconds
+				tmrCurrent.Interval = 59.5 * 1000;  // Every 59.5 seconds
 				tmrCurrent.AutoReset = true;
 				tmrCurrent.Start();
 			}
