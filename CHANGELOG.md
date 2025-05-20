@@ -10,7 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4098\]][19] - 2025-05-19
+## [4.5.0 \[b4099\]][19] - 2025-05-20
+
+### b4099
+- Add Dry/Rain days to monthly and this month records (Dashboard and default web site)
+- Add support for Timestamp in Ecowitt SD card log files
 
 ### b4098
 - Adds monthly dry/wet day records (not yet implemented fully)
@@ -158,6 +162,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Station Pressure limits now derived from sea level limits taking station elevation into account
 - Station Pressure limits now apply to all stations - previously only Davis VP2 implemented them
 - Ecowitt camera web tag warning messages changed to plain messages
+- Add support for Timestamp in Ecowitt SD card log files
 
 ### Fixed
 
@@ -878,4 +883,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086
 [17]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4087
 [18]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4088
-[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4098
+[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4099

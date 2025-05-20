@@ -3308,7 +3308,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				return GetFormattedDateTime(val.Item1, "yyyy-MM", tagParams);
+				return GetFormattedDateTime(val.Item1, "MMMM yyyy", tagParams);
 			}
 		}
 
@@ -3322,7 +3322,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				return GetFormattedDateTime(val.Item1, "yyyy-MM", tagParams);
+				return GetFormattedDateTime(val.Item1, "MMMM yyyy", tagParams);
 			}
 		}
 

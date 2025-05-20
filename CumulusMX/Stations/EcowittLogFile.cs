@@ -56,8 +56,15 @@ namespace CumulusMX
 					}
 
 					// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
+					// 2025-05-20 17:46,1747734370,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
 
-					if (!DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out DateTime time))
+					DateTime time;
+
+					if (FieldIndex.ContainsKey("timestamp") && long.TryParse(fields[1], invc, out long unix))
+					{
+						time = Utils.FromUnixTime(unix);
+					}
+					else if (!DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
 					{
 						cumulus.LogErrorMessage("EcowittLogFile.DataParser: Failed to parse datetime - " + fields[0]);
 						continue;
@@ -277,9 +284,6 @@ namespace CumulusMX
 
 			// split on commas
 			var fields = header.Split(',');
-
-			// Save the header
-			Header = fields;
 
 			// remove header line from the data
 			Data.RemoveAt(0);
