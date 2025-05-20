@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4097\]][19] - 2025-05-19
+## [4.5.0 \[b4098\]][19] - 2025-05-19
 
 ### b4098
 - Adds monthly dry/wet day records (not yet implemented fully)
@@ -878,4 +878,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086
 [17]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4087
 [18]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4088
-[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4097
+[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4098

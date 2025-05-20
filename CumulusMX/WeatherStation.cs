@@ -23,6 +23,8 @@ using ServiceStack.Text;
 
 using SQLite;
 
+using static System.Net.Mime.MediaTypeNames;
+
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX
@@ -11491,6 +11493,31 @@ namespace CumulusMX
 			json.Append(',');
 			json.Append(monthlyjsonformat(MonthlyRecs[month].MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			json.Append(',');
+			var dry = GetByMonthDryDays(month);
+			string val, date;
+			if (dry.Item1 == default)
+			{
+				val = date = "-";
+			}
+			else
+			{
+				date = dry.Item1.ToString("Y");
+				val = dry.Item2.ToString();
+			}
+			json.Append($"[\"Most dry days\",\"{val} days\",\"{date}\"]");
+			json.Append(',');
+			dry = GetByMonthRainDays(month);
+			if (dry.Item1 == default)
+			{
+				val = date = "-";
+			}
+			else
+			{
+				date = dry.Item1.ToString("Y");
+				val = dry.Item2.ToString();
+			}
+			json.Append($"[\"Most rain days\",\"{val} days\",\"{date}\"]");
+			json.Append(',');
 			json.Append(monthlyjsonformat(MonthlyRecs[month].LongestDryPeriod, "days", "f0", "D"));
 			json.Append(',');
 			json.Append(monthlyjsonformat(MonthlyRecs[month].LongestWetPeriod, "days", "f0", "D"));
@@ -11586,6 +11613,12 @@ namespace CumulusMX
 			json.Append(monthyearjsonformat(ThisMonth.DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(',');
 			json.Append(monthyearjsonformat(ThisMonth.HighRain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "f"));
+			json.Append(',');
+			var dry = GetMonthDryRainDays(DateTime.Now, true);
+			json.Append($"[\"Dry days\",\"{dry} days\",\"\"]");
+			json.Append(',');
+			var wet = GetMonthDryRainDays(DateTime.Now, false);
+			json.Append($"[\"Rain days\",\"{wet} days\",\"\"]");
 			json.Append(',');
 			json.Append(monthyearjsonformat(ThisMonth.LongestDryPeriod, "days", "f0", "D"));
 			json.Append(',');
@@ -15128,10 +15161,17 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				}
 			}
 
-			var rainDays = DayFile
-				.Count(d => d.Date >= start && d.Date < end && d.TotalRain >= thresh);
+			int days;
+			if (dry)
+			{
+				days = DayFile.Count(d => d.Date >= start && d.Date < end && d.TotalRain < thresh);
+			}
+			else
+			{
+				days = DayFile.Count(d => d.Date >= start && d.Date < end && d.TotalRain >= thresh);
+			}
 
-			return dry ? end.AddDays(-1).Day - rainDays : rainDays;
+			return days;
 		}
 
 		public (DateTime, int) GetByMonthRainDays(int month)
