@@ -1470,7 +1470,9 @@ namespace CumulusMX
 						}
 						else
 						{
-							LightningStrikesToday = sensor.count.Value;
+							// add the incremental strikes to the total, allow for the counter being reset
+							LightningStrikesToday += sensor.count.Value >= LightningCounter ? sensor.count.Value - LightningCounter : sensor.count.Value;
+							LightningCounter = sensor.count.Value;
 						}
 					}
 				}

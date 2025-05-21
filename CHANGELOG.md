@@ -15,6 +15,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### b4099
 - Add Dry/Rain days to monthly and this month records (Dashboard and default web site)
 - Add support for Timestamp in Ecowitt SD card log files
+- PurpleAir now polled every 59.5 seconds
+- Change of Lightning Strikes today from simply using the supplied day count, to using the increment in the count. This means the start of day of the device and Cumulus can now be different
 
 ### b4098
 - Adds monthly dry/wet day records (not yet implemented fully)

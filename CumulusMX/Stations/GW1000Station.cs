@@ -1248,7 +1248,8 @@ namespace CumulusMX
 								}
 								else
 								{
-									LightningStrikesToday = (int) tempUint32;
+									LightningStrikesToday += tempUint32 >= LightningCounter ? (int) tempUint32 - LightningCounter : (int) tempUint32;
+									LightningCounter = (int) tempUint32;
 								}
 								idx += 4;
 								break;

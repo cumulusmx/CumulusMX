@@ -811,7 +811,10 @@ namespace CumulusMX
 
 			if (!string.IsNullOrEmpty(num))
 			{
-				station.LightningStrikesToday = Convert.ToInt32(num, CultureInfo.InvariantCulture);
+				// add the incremental strikes to the total, allow for the counter being reset
+				var cnt = Convert.ToInt32(num, CultureInfo.InvariantCulture);
+				station.LightningStrikesToday += cnt >= station.LightningCounter ? cnt - station.LightningCounter : cnt;
+				station.LightningCounter = cnt;
 			}
 		}
 

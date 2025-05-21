@@ -1249,7 +1249,9 @@ namespace CumulusMX
 		{
 			if (data.lightning != null && data.lightning.distance != null && data.lightning.distance.value != 255)
 			{
-				station.LightningStrikesToday = data.lightning.count.value;
+				// add the incremental strikes to the total, allow for the counter being reset
+				station.LightningStrikesToday += data.lightning.count.value >= station.LightningCounter ? data.lightning.count.value - station.LightningCounter : data.lightning.count.value;
+				station.LightningCounter = data.lightning.count.value;
 				station.LightningDistance = ConvertUnits.KmtoUserUnits(data.lightning.distance.value);
 
 				var tim = Utils.FromUnixTime(data.lightning.distance.time);
