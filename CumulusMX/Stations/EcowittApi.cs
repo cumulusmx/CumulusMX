@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using ServiceStack;
 using ServiceStack.Text;
 
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 
 namespace CumulusMX
 {
