@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Globalization;
-using System.Net.Http;
-using System.Runtime.Serialization;
-using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 
 using ServiceStack;
@@ -19,7 +16,7 @@ namespace CumulusMX
 
 		private readonly System.Timers.Timer tmrCurrent;
 
-
+		private int taskCancelledCount = 0;
 		private bool updateInProgress;
 
 
@@ -96,6 +93,17 @@ namespace CumulusMX
 							cumulus.LogDataMessage($"GetPaLiveData: Response - {responseBody}");
 							DecodePaLive(i + 1, responseBody, cumulus.PurpleAirAlgorithm[i], cumulus.PurpleAirThSensor[i]);
 						}
+						taskCancelledCount = 0;
+					}
+				}
+				catch (TaskCanceledException ex)
+				{
+					taskCancelledCount++;
+					if (taskCancelledCount > 3)
+					{
+						cumulus.LogExceptionMessage(ex, "GetPaLiveData: Error - Request failed four times in a row");
+						taskCancelledCount = 0;
+
 					}
 				}
 				catch (Exception ex)
