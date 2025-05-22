@@ -192,7 +192,8 @@ namespace CumulusMX
 			{
 				applicationkey = cumulus.EcowittApplicationKey,
 				userkey = cumulus.EcowittUserApiKey,
-				mac = cumulus.EcowittMacAddress
+				mac = cumulus.EcowittMacAddress,
+				interval = cumulus.EcowittCloudDataUpdateInterval
 			};
 
 			var logrollover = new JsonLogRollover()
@@ -1189,6 +1190,8 @@ namespace CumulusMX
 							// For all others, there is no local MAC, so we have to define it in the API
 							cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.ecowittapi.mac) ? null : settings.ecowittapi.mac.Trim().ToUpper();
 						}
+
+						cumulus.EcowittCloudDataUpdateInterval = cumulus.StationType == 18 ? settings.ecowittapi.interval : 1;
 					}
 				}
 				catch (Exception ex)
@@ -1860,6 +1863,7 @@ namespace CumulusMX
 			public string applicationkey { get; set; }
 			public string userkey { get; set; }
 			public string mac { get; set; }
+			public int interval { get; set; }
 		}
 
 		public class JsonEcowittMappings

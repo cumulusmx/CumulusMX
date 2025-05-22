@@ -10,7 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4099\]][19] - 2025-05-20
+## [4.5.0 \[b4100\]][19] - 2025-05-22
+
+## b4100
+- Ecowitt Cloud Station now has an additional option to specify the expected data update rate
+	- The data stopped detection is based on this setting
+- Fix for Lightning count incrementing with every update
 
 ### b4099
 - Add Dry/Rain days to monthly and this month records (Dashboard and default web site)
@@ -124,7 +129,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- By default, they output the time as 24-hour HH:mm, you can now override this and use 12-hour format as the default
 - New Program *Options > General Options* setting to disable the use of WebSockets in the dashboard and use HTTP polling instead
 	- Previously this required manual editing of the Dashboard, Now, and Gauges page scripts
-- Ecowitt.Net station type now reports individual low battery sensors to the low battery array
+- Ecowitt Cloud Station type now reports individual low battery sensors to the low battery array
+- Ecowitt Cloud Station now has an additional option to specify the expected data update rate
 - Davis AirLink: new web tags for uptime and link uptime
 	`<#AirLinkUptimeIn> <#AirLinkLinkUptimeIn>`
 	`<#AirLinkUptimeOut> <#AirLinkLinkUptimeOut>`
@@ -885,4 +891,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086
 [17]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4087
 [18]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4088
-[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4099
+[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4100

@@ -4325,6 +4325,7 @@ namespace CumulusMX
 			EcowittLocalAddr = ini.GetValue("GW1000", "EcowittLocalAddr", localIp.ToString());
 			EcowittCustomInterval = ini.GetValue("GW1000", "EcowittCustomInterval", 16, 1);
 			EcowittUseSdCard = ini.GetValue("GW1000", "EcowittUseSdcard", false);
+			EcowittCloudDataUpdateInterval = ini.GetValue("GW1000", "CloudDataUpdateInterval", 1, 1, 10);
 
 			EcowittHttpPassword = ini.GetValue("GW1000", "HttpPassword", "");
 
@@ -6346,7 +6347,7 @@ namespace CumulusMX
 			ini.SetValue("GW1000", "EcowittExtraLocalAddr", EcowittExtraLocalAddr);
 			ini.SetValue("GW1000", "EcowittExtraCustomInterval", EcowittExtraCustomInterval);
 			ini.SetValue("GW1000", "EcowittUseSdcard", EcowittUseSdCard);
-
+			ini.SetValue("GW1000", "CloudDataUpdateInterval", EcowittCloudDataUpdateInterval);
 
 			ini.SetValue("GW1000", "HttpPassword", Crypto.EncryptString(EcowittHttpPassword, Program.InstanceId, "EcowittSettings.HttpPassword"));
 
@@ -8034,6 +8035,7 @@ namespace CumulusMX
 		public string EcowittGatewayAddr { get; set; }
 		public string EcowittLocalAddr { get; set; }
 		public int EcowittCustomInterval { get; set; }
+		public int EcowittCloudDataUpdateInterval { get; set; }
 		public bool EcowittUseSdCard { get; set; }
 		public bool EcowittExtraSetCustomServer { get; set; }
 		public string EcowittExtraGatewayAddr { get; set; }

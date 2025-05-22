@@ -2422,25 +2422,27 @@ namespace CumulusMX
 						LastCurrentDataTime = dataTime.ToUniversalTime();
 
 						// how many seconds to the next update?
-						// the data is updated once a minute, so wait for 15 seonds after the next update
+						// wait for 15 seonds after the next update
+						// Use the data update rate defined by the user
+						var expectedUpdate = cumulus.EcowittCloudDataUpdateInterval * 60;
 
 						var lastUpdateSecs = (int) (DateTime.UtcNow - LastCurrentDataTime).TotalSeconds;
-						if (lastUpdateSecs > 130)
+						if (lastUpdateSecs > expectedUpdate + 30)
 						{
 							// hmm the data is already out of date, query again after a short delay
-							delay = 10;
+							delay = 30;
 							return null;
 						}
 						else if (lastUpdateSecs < 15)
 						{
-							// we're OK, just update again in an "Ecowitt" minute
-							delay = 64;
+							// we're OK, just update again in an "Ecowitt" minute of the interval
+							delay = expectedUpdate + 5;
 							return currObj.data;
 						}
 						else
 						{
 							// lets try and shift the time to be closer to 15 seconds after the next expected update
-							delay = 75 - lastUpdateSecs;
+							delay = expectedUpdate + 15 - lastUpdateSecs;
 							return currObj.data;
 						}
 					}

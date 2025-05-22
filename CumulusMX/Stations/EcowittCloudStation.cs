@@ -98,7 +98,7 @@ namespace CumulusMX
 					cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryIndoorTHSensor);
 				}
 
-				DataTimeoutMins = 2;
+				DataTimeoutMins = cumulus.EcowittCloudDataUpdateInterval + 2;
 			}
 
 			if (mainStation || cumulus.ExtraSensorUseAQI)
