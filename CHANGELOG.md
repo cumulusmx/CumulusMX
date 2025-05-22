@@ -16,6 +16,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt Cloud Station now has an additional option to specify the expected data update rate
 	- The data stopped detection is based on this setting
 - Fix for Lightning count incrementing with every update
+- PurpleAir now suppresses connection errors until four occur consecutively
+- Package Updates
+	- BouncyCastle.Cryptography
 
 ### b4099
 - Add Dry/Rain days to monthly and this month records (Dashboard and default web site)
