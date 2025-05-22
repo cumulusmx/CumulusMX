@@ -312,9 +312,14 @@ namespace CumulusMX
 
 				return true;
 			}
+			catch (TaskCanceledException)
+			{
+				cumulus.LogWarningMessage("API.GetHistoricData: Error - Request timed out, no response");
+				return false;
+			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("API.GetHistoricData: Exception: " + ex.Message);
+				cumulus.LogExceptionMessage(ex, "API.GetHistoricData: Exception occurred");
 				cumulus.LastUpdateTime = endTime;
 				return false;
 			}
@@ -2449,9 +2454,15 @@ namespace CumulusMX
 				delay = 20;
 				return null;
 			}
+			catch (TaskCanceledException)
+			{
+				cumulus.LogWarningMessage("API.GetCurrentData: Error - Request timed out, no response");
+				delay = 10;
+				return null;
+			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("API.GetCurrentData: Exception: " + ex.Message);
+				cumulus.LogExceptionMessage(ex, "API.GetCurrentData: Exception occurred");
 				delay = 10;
 				return null;
 			}
@@ -2581,9 +2592,14 @@ namespace CumulusMX
 					return defaultUrl;
 				}
 			}
+			catch (TaskCanceledException)
+			{
+				cumulus.LogWarningMessage("API.GetCurrentCameraImageUrl: Error - Request timed out, no response");
+				return defaultUrl;
+			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("API.GetCurrentCameraImageUrl: Exception: " + ex.Message);
+				cumulus.LogExceptionMessage(ex, "API.GetCurrentCameraImageUrl: Exception occurred");
 				return defaultUrl;
 			}
 		}
@@ -2746,9 +2762,14 @@ namespace CumulusMX
 					return defaultUrl;
 				}
 			}
+			catch (TaskCanceledException)
+			{
+				cumulus.LogWarningMessage("API.GetLastCameraVideoUrl: Error - Request timed out, no response");
+				return defaultUrl;
+			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("API.GetLastCameraVideoUrl: Exception: " + ex.Message);
+				cumulus.LogExceptionMessage(ex, "API.GetLastCameraVideoUrl: Exception occurred ");
 				return defaultUrl;
 			}
 		}
@@ -2886,9 +2907,14 @@ namespace CumulusMX
 
 				return [];
 			}
+			catch (TaskCanceledException)
+			{
+				cumulus.LogWarningMessage("API.GetStationList: Error - Request timed out, no response");
+				return [];
+			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("API.GetStationList: Exception: " + ex.Message);
+				cumulus.LogExceptionMessage(ex, "API.GetStationList: Exception occurred");
 				return [];
 			}
 		}
@@ -3006,9 +3032,14 @@ namespace CumulusMX
 					return null;
 				}
 			}
+			catch (TaskCanceledException)
+			{
+				cumulus.LogWarningMessage("API.GetLatestFirmwareVersion: Error - Request timed out, no response");
+				return null;
+			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("API.GetLatestFirmwareVersion: Exception: " + ex.Message);
+				cumulus.LogExceptionMessage(ex, "API.GetLatestFirmwareVersion: Exception occurred");
 				return null;
 			}
 		}
@@ -3064,9 +3095,14 @@ namespace CumulusMX
 
 				return [ver.Split('V')[^1], notes];
 			}
+			catch (TaskCanceledException)
+			{
+				cumulus.LogWarningMessage("API.GetSimpleLatestFirmwareVersion: Error - Request timed out, no response");
+				return null;
+			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("API.GetSimpleLatestFirmwareVersion: Exception: " + ex.Message);
+				cumulus.LogExceptionMessage(ex, "API.GetSimpleLatestFirmwareVersion: Exception occurred");
 				return null;
 			}
 		}
