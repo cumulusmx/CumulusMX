@@ -1028,6 +1028,7 @@ namespace CumulusMX
 			// Lightning (GW1000 for now)
 			LightningDistance = ini.GetValue("Lightning", "Distance", -1.0);
 			LightningStrikesToday = ini.GetValue("Lightning", "StrikesToday", 0);
+			LightningCounter = ini.GetValue("Lightning", "Counter", LightningStrikesToday);
 			LightningTime = ini.GetValue("Lightning", "LastStrike", DateTime.MinValue);
 			if (LightningTime.Year == 1900)
 			{
@@ -1170,6 +1171,7 @@ namespace CumulusMX
 				ini.SetValue("Lightning", "Distance", LightningDistance);
 				ini.SetValue("Lightning", "LastStrike", LightningTime);
 				ini.SetValue("Lightning", "StrikesToday", LightningStrikesToday);
+				ini.SetValue("Lightning", "Counter", LightningCounter);
 
 				// Snow accumulation
 				for (var i = 1; i < Snow24h.Length; i++)

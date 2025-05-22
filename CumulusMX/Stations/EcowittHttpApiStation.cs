@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
+using static System.Collections.Specialized.BitVector32;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using static CumulusMX.EcowittApi;
 
 namespace CumulusMX
@@ -1471,7 +1473,11 @@ namespace CumulusMX
 						else
 						{
 							// add the incremental strikes to the total, allow for the counter being reset
-							LightningStrikesToday += sensor.count.Value >= LightningCounter ? sensor.count.Value - LightningCounter : sensor.count.Value;
+							if (sensor.count.Value > LightningCounter)
+							{
+								LightningStrikesToday += sensor.count.Value - LightningCounter;
+								cumulus.LogDebugMessage($"Lightning: Adding {sensor.count.Value - LightningCounter} strikes, total = {LightningStrikesToday} strikes today");
+							}
 							LightningCounter = sensor.count.Value;
 						}
 					}

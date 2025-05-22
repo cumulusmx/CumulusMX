@@ -1419,8 +1419,11 @@ namespace CumulusMX
 			{
 				// add the incremental strikes to the total, allow for the counter being reset
 				var cnt = Convert.ToInt32(num, invNum);
-				station.LightningStrikesToday += cnt >= station.LightningCounter ? cnt - station.LightningCounter : 0;
-				LightningCounter = cnt;
+				if (cnt > station.LightningCounter)
+				{
+					station.LightningStrikesToday += cnt - station.LightningCounter;
+					cumulus.LogDebugMessage($"Lightning: Adding {cnt} strikes, total = {LightningStrikesToday} strikes today");
+				}
 			}
 		}
 

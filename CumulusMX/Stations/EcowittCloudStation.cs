@@ -1250,7 +1250,11 @@ namespace CumulusMX
 			if (data.lightning != null && data.lightning.distance != null && data.lightning.distance.value != 255)
 			{
 				// add the incremental strikes to the total, allow for the counter being reset
-				station.LightningStrikesToday += data.lightning.count.value >= station.LightningCounter ? data.lightning.count.value - station.LightningCounter : data.lightning.count.value;
+				if (data.lightning.count.value > station.LightningCounter)
+				{
+					station.LightningStrikesToday += data.lightning.count.value - station.LightningCounter;
+					cumulus.LogDebugMessage($"Lightning: Adding {data.lightning.count.value - station.LightningCounter} strikes, total = {station.LightningStrikesToday} strikes today");
+				}
 				station.LightningCounter = data.lightning.count.value;
 				station.LightningDistance = ConvertUnits.KmtoUserUnits(data.lightning.distance.value);
 

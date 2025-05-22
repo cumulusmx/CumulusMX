@@ -1248,7 +1248,11 @@ namespace CumulusMX
 								}
 								else
 								{
-									LightningStrikesToday += tempUint32 >= LightningCounter ? (int) tempUint32 - LightningCounter : (int) tempUint32;
+									if (tempUint32 > LightningCounter)
+									{
+										LightningStrikesToday += (int) tempUint32 - LightningCounter;
+										cumulus.LogDebugMessage($"Lightning: Adding {(int) tempUint32 - LightningCounter} strikes, total = {LightningStrikesToday} strikes today");
+									}
 									LightningCounter = (int) tempUint32;
 								}
 								idx += 4;
