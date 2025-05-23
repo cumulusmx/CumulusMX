@@ -10,7 +10,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4100\]][19] - 2025-05-22
+## [4.5.0 \[b4101\]][19] - 2025-05-23
+
+## b4101
+- Add Ecowitt Cloud Station expected data update rate to the config Wizard
 
 ## b4100
 - Ecowitt Cloud Station now has an additional option to specify the expected data update rate

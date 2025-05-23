@@ -7,8 +7,6 @@ using EmbedIO;
 using ServiceStack;
 using ServiceStack.Text;
 
-using static System.Collections.Specialized.BitVector32;
-
 namespace CumulusMX
 {
 	public class Wizard(Cumulus cumulus)
@@ -145,7 +143,8 @@ namespace CumulusMX
 			{
 				applicationkey = cumulus.EcowittApplicationKey,
 				userkey = cumulus.EcowittUserApiKey,
-				mac = cumulus.EcowittMacAddress
+				mac = cumulus.EcowittMacAddress,
+				interval = cumulus.EcowittCloudDataUpdateInterval
 			};
 
 			var jsonstn = new StationSettings.JsonJsonStation()
@@ -752,6 +751,7 @@ namespace CumulusMX
 						cumulus.EcowittApplicationKey = string.IsNullOrWhiteSpace(settings.station.ecowittapi.applicationkey) ? null : settings.station.ecowittapi.applicationkey.Trim();
 						cumulus.EcowittUserApiKey = string.IsNullOrWhiteSpace(settings.station.ecowittapi.userkey) ? null : settings.station.ecowittapi.userkey.Trim();
 						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.station.ecowittapi.mac) ? null : settings.station.ecowittapi.mac.Trim().ToUpper();
+						cumulus.EcowittCloudDataUpdateInterval = settings.station.ecowittapi.interval;
 					}
 				}
 				catch (Exception ex)

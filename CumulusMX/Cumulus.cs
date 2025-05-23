@@ -1016,26 +1016,30 @@ namespace CumulusMX
 			// Take a backup of all the data before we start proper
 			BackupData(false, DateTime.Now);
 
+			// Check uptime
+			double ts = -1;
+
+			if (System.OperatingSystem.IsWindows() && UpTime != null)
+			{
+				UpTime.NextValue();
+				ts = UpTime.NextValue();
+			}
+			else if (File.Exists(@"/proc/uptime"))
+			{
+				var text = File.ReadAllText(@"/proc/uptime");
+				var strTime = text.Split(' ')[0];
+				if (!double.TryParse(strTime, out ts))
+					ts = -1;
+			}
+
+			var uptime = TimeSpan.FromSeconds(ts);
+
+			LogMessage($"System uptime = {ts:F0} secs ({(int) uptime.TotalHours}h {uptime.Minutes:D2}m {uptime.Seconds:D2}s)");
+
 			// Do we delay the start of Cumulus MX for a fixed period?
 			if (ProgramOptions.StartupDelaySecs > 0)
 			{
-				// Check uptime
-				double ts = -1;
-				if (System.OperatingSystem.IsWindows() && UpTime != null)
-				{
-					UpTime.NextValue();
-					ts = UpTime.NextValue();
-				}
-				else if (File.Exists(@"/proc/uptime"))
-				{
-					var text = File.ReadAllText(@"/proc/uptime");
-					var strTime = text.Split(' ')[0];
-					if (!double.TryParse(strTime, out ts))
-						ts = -1;
-				}
-
 				// Only delay if the delay uptime is undefined (0), or the current uptime is less than the user specified max uptime to apply the delay
-				LogMessage($"System uptime = {ts:F0} secs");
 				if (ProgramOptions.StartupDelayMaxUptime == 0 || (ts > -1 && ProgramOptions.StartupDelayMaxUptime > ts))
 				{
 					var msg1 = $"Delaying start for {ProgramOptions.StartupDelaySecs} seconds";
@@ -1399,6 +1403,7 @@ namespace CumulusMX
 
 			//var cert = new X509Certificate2(new X509Certificate("c:\\temp\\CumulusMX.pfx", "password", X509KeyStorageFlags.UserKeySet))
 
+			LogMessage("Starting web server on port " + HTTPport);
 			WebServer httpServer = new WebServer(o => o
 					.WithUrlPrefix($"http://*:{HTTPport}/")
 					.WithMode(HttpListenerMode.EmbedIO)
@@ -1450,20 +1455,29 @@ namespace CumulusMX
 
 			_ = httpServer.RunAsync();
 
-			// get the local v4 IP addresses
 			Console.WriteLine();
-			var ips = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
 			Console.Write("Cumulus running at: ");
 			Console.ForegroundColor = ConsoleColor.Yellow;
 			Console.WriteLine($"http://localhost:{HTTPport}/");
 			Console.ResetColor();
-			foreach (var ip in ips)
+
+			// get the local v4 IP addresses
+			try
 			{
-				if (ip.AddressFamily == AddressFamily.InterNetwork)
+				var ips = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
+				foreach (var ip in ips)
 				{
-					LogConsoleMessage($"                    http://{ip}:{HTTPport}/", ConsoleColor.Yellow);
-					LogMessage($"Cumulus running at: http://{ip}:{HTTPport}/");
+					if (ip.AddressFamily == AddressFamily.InterNetwork)
+					{
+						LogConsoleMessage($"                    http://{ip}:{HTTPport}/", ConsoleColor.Yellow);
+						LogMessage($"Cumulus running at: http://{ip}:{HTTPport}/");
+					}
 				}
+			}
+			catch
+			{
+				LogConsoleMessage("Unable to get local IP address", ConsoleColor.Red);
+				LogMessage("DNS Error: Unable to get local IP address");
 			}
 
 			Console.WriteLine();
