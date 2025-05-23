@@ -1395,11 +1395,6 @@ namespace CumulusMX
 			if (!string.IsNullOrEmpty(dist) && !string.IsNullOrEmpty(time))
 			{
 				// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
-				var valDist = Convert.ToDouble(dist, invNum);
-				if ((int) valDist != 255)
-				{
-					station.LightningDistance = ConvertUnits.KmtoUserUnits(valDist);
-				}
 
 				var valTime = Convert.ToDouble(time, invNum);
 				// Sends a default value until the first strike is detected of 0xFFFFFFFF
@@ -1411,6 +1406,12 @@ namespace CumulusMX
 					if (dtDateTime > LightningTime)
 					{
 						station.LightningTime = dtDateTime;
+
+						var valDist = Convert.ToDouble(dist, invNum);
+						if ((int) valDist != 255)
+						{
+							station.LightningDistance = ConvertUnits.KmtoUserUnits(valDist);
+						}
 					}
 				}
 			}
@@ -1424,6 +1425,8 @@ namespace CumulusMX
 					station.LightningStrikesToday += cnt - station.LightningCounter;
 					cumulus.LogDebugMessage($"Lightning: Adding {cnt} strikes, total = {LightningStrikesToday} strikes today");
 				}
+
+				station.LightningCounter = cnt;
 			}
 		}
 

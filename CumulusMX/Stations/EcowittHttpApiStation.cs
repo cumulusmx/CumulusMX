@@ -8,6 +8,7 @@ using System.Timers;
 using static System.Collections.Specialized.BitVector32;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static CumulusMX.EcowittApi;
+using static CumulusMX.EcowittLocalApi;
 
 namespace CumulusMX
 {
@@ -250,13 +251,6 @@ namespace CumulusMX
 
 								// Now do the stuff that requires more than one input parameter
 
-								// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
-								if (newLightningTime > LightningTime)
-								{
-									LightningTime = newLightningTime;
-									if (newLightningDistance < 999)
-										LightningDistance = newLightningDistance;
-								}
 
 								// Process outdoor temperature here, as GW1000 currently does not supply Dew Point so we have to calculate it in DoOutdoorTemp()
 								if (outdoortemp > -999)
@@ -1408,84 +1402,84 @@ namespace CumulusMX
 			// }]
 #pragma warning restore S125
 
-			for (var i = 0; i < sensors.Length; i++)
+			try
 			{
-				try
-				{
-					var sensor = sensors[i];
+				var sensor = sensors[0];
 
-					//Lightning dist (1-40km)
-					if (sensor.distanceVal.HasValue && sensor.distanceUnit != null)
-					{
-						// Sends a default value of 255km until the first strike is detected
-						if (sensor.distanceVal.Value > 254.9 )
-						{
-							newLightningDistance = 999;
-						}
-						else
-						{
-							newLightningDistance = sensor.distanceUnit.ToLower() switch
-							{
-								"km" => ConvertUnits.KmtoUserUnits(sensor.distanceVal.Value),
-								"mi" => sensor.distanceVal.Value,
-								_ => sensor.distanceVal.Value,
-							};
-						}
-					}
-					else if (sensor.distance.Contains("--"))
+				//Lightning dist (1-40km)
+				if (sensor.distanceVal.HasValue && sensor.distanceUnit != null)
+				{
+					// Sends a default value of 255km until the first strike is detected
+					if (sensor.distanceVal.Value > 254.9 )
 					{
 						newLightningDistance = 999;
 					}
-
-					//Lightning time (UTC)
-					if (!string.IsNullOrEmpty(sensor.timestamp))
+					else
 					{
-						if (sensor.timestamp.Contains("--"))
+						newLightningDistance = sensor.distanceUnit.ToLower() switch
 						{
-							newLightningTime = DateTime.MinValue;
-						}
-						else
-						{
-							// oh my god, it sends the time as "MM/dd/yyyy HH: mm: ss" for some locales
-							// TODO: what is default time if not strikes detected yet?
-							var arr = sensor.timestamp.Replace(": ", ":").Split(' ');
-							var date = arr[0].Split('/');
-							var time = arr[1].Split(':');
-
-							newLightningTime = new DateTime(
-								int.Parse(date[2]),
-								int.Parse(date[0]),
-								int.Parse(date[1]),
-								int.Parse(time[0]),
-								int.Parse(time[1]),
-								int.Parse(time[2]),
-								0, DateTimeKind.Utc);
-						}
-					}
-
-					//Lightning strikes today
-					if (sensor.count.HasValue)
-					{
-						if (sensor.count == 0 && dateTime.Minute == 59 && dateTime.Hour == 23)
-						{
-							// Ecowitt clock drift - if the count resets in the minute before midnight, ignore it until after midnight
-						}
-						else
-						{
-							// add the incremental strikes to the total, allow for the counter being reset
-							if (sensor.count.Value > LightningCounter)
-							{
-								LightningStrikesToday += sensor.count.Value - LightningCounter;
-								cumulus.LogDebugMessage($"Lightning: Adding {sensor.count.Value - LightningCounter} strikes, total = {LightningStrikesToday} strikes today");
-							}
-							LightningCounter = sensor.count.Value;
-						}
+							"km" => ConvertUnits.KmtoUserUnits(sensor.distanceVal.Value),
+							"mi" => sensor.distanceVal.Value,
+							_ => sensor.distanceVal.Value,
+						};
 					}
 				}
-				catch (Exception ex)
+				else if (sensor.distance.Contains("--"))
 				{
-					cumulus.LogExceptionMessage(ex, "ProcessLightning: Error");
+					newLightningDistance = 999;
 				}
+
+				//Lightning time (UTC)
+				if (!string.IsNullOrEmpty(sensor.timestamp))
+				{
+					if (sensor.timestamp.Contains("--"))
+					{
+						newLightningTime = DateTime.MinValue;
+					}
+					else
+					{
+						// oh my god, it sends the time as "MM/dd/yyyy HH: mm: ss" for some locales
+						// TODO: what is default time if not strikes detected yet?
+						var arr = sensor.timestamp.Replace(": ", ":").Split(' ');
+						var date = arr[0].Split('/');
+						var time = arr[1].Split(':');
+
+						newLightningTime = new DateTime(
+							int.Parse(date[2]),
+							int.Parse(date[0]),
+							int.Parse(date[1]),
+							int.Parse(time[0]),
+							int.Parse(time[1]),
+							int.Parse(time[2]),
+							0, DateTimeKind.Utc);
+					}
+				}
+
+				//Lightning strikes today
+				if (sensor.count.HasValue)
+				{
+					// add the incremental strikes to the total, allow for the counter being reset
+					if (sensor.count.Value > LightningCounter)
+					{
+						LightningStrikesToday += sensor.count.Value - LightningCounter;
+						cumulus.LogDebugMessage($"Lightning: Adding {sensor.count.Value - LightningCounter} strikes, total = {LightningStrikesToday} strikes today");
+					}
+					LightningCounter = sensor.count.Value;
+				}
+
+				// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
+				if (newLightningTime > LightningTime)
+				{
+					LightningTime = newLightningTime;
+					if (newLightningDistance < 999)
+					{
+						LightningDistance = newLightningDistance;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "ProcessLightning: Error");
 			}
 		}
 

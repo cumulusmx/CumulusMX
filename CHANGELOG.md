@@ -14,6 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## b4101
 - Add Ecowitt Cloud Station expected data update rate to the config Wizard
+- Final(!?) fix ffor lightning count in HTTP Ecowitt station
 
 ## b4100
 - Ecowitt Cloud Station now has an additional option to specify the expected data update rate
@@ -897,4 +898,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086
 [17]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4087
 [18]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4088
-[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4100
+[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4101
