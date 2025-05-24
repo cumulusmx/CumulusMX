@@ -430,6 +430,8 @@ namespace CumulusMX
 				stationtype = cumulus.StationType,
 				stationmodel = cumulus.StationModel,
 				loginterval = cumulus.DataLogInterval,
+				firstRun = cumulus.FirstRun,
+				beginDate = cumulus.RecordsBeganDateTime.ToString("yyyy-MM-dd"),
 				logrollover = logrollover,
 				units = units,
 				Location = location,
@@ -1394,6 +1396,31 @@ namespace CumulusMX
 					context.Response.StatusCode = 500;
 				}
 
+				// BeginDate
+				try
+				{
+					if (settings.general.firstRun)
+					{
+						cumulus.RecordsBeganDateTime = DateTime.ParseExact(settings.general.beginDate.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+						var startDateTime = cumulus.RecordsBeganDateTime.AddHours(-cumulus.GetHourInc(cumulus.RecordsBeganDateTime));
+						using StreamWriter today = new StreamWriter(cumulus.TodayIniFile);
+						today.WriteLine("[General]");
+						today.WriteLine("Timestamp=" + startDateTime.ToString("s"));
+						today.Close();
+
+						Cumulus.LogConsoleMessage("First run. Cumulus will attempt to backfill data from " + startDateTime.ToString(), ConsoleColor.Yellow, true);
+						cumulus.LogMessage("First run. Cumulus will attempt to backfill data from " + startDateTime.ToString());
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing first run date setting: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// Accessible
 				try
 				{
@@ -1684,6 +1711,8 @@ namespace CumulusMX
 			public int stationtype { get; set; }
 			public string stationmodel { get; set; }
 			public int loginterval { get; set; }
+			public bool firstRun { get; set; }
+			public string beginDate { get; set; }
 			public JsonLogRollover logrollover { get; set; }
 			public JsonUnits units { get; set; }
 			public JsonLocation Location { get; set; }

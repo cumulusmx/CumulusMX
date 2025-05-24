@@ -10,109 +10,32 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4101\]][19] - 2025-05-23
+## [4.5.0 \[b4101\]][19] - 2025-05-24
 
-## b4101
+### b4101
 - Add Ecowitt Cloud Station expected data update rate to the config Wizard
 - Final(!?) fix for lightning count in HTTP Ecowitt station
 - Changed upload of soil moisture to AWEKAS and Weather Underground. AWEKAS now only sends the data if the units are "cb", and WU if the units are "%"
 - Fix AWEKAS only sending soil moisture 1, and leaf wetness 1
-
-## b4100
-- Ecowitt Cloud Station now has an additional option to specify the expected data update rate
-	- The data stopped detection is based on this setting
-- Fix for Lightning count incrementing with every update
-- PurpleAir now suppresses connection errors until four occur consecutively
-- Package Updates
-	- BouncyCastle.Cryptography
-
-### b4099
-- Add Dry/Rain days to monthly and this month records (Dashboard and default web site)
-- Add support for Timestamp in Ecowitt SD card log files
-- PurpleAir now polled every 29.5 seconds
-- Change of Lightning Strikes today from simply using the supplied day count, to using the increment in the count. This means the start of day of the device and Cumulus can now be different
-
-### b4098
-- Adds monthly dry/wet day records (not yet implemented fully)
-	- New web tags to give the day count and year/month for the specified month with the most dry or wet days
-		`<#ByMonthMostDryDays m=nn>`, `<#ByMonthMostDryDaysT m=nn>`
-		`<#ByMonthMostWetDays m=nn>`, `<#ByMonthMostWetDaysT m=nn>`
-	- New web tags to give the counts of wet or dry days for a particular month
-		`<#MonthDryDays y=nnnn m=nn>`, `<#MonthWetDays y=nnnn m=nn>`
-
-### b4097
-- Fix error in dayfile format
-
-### b4096
-- Fix MySQL errors introduced in b4095 (warning, more MySQL updates in this this around realtime and dayfile inserts!)
-
-### b4095 changes
-- Fix AWEKAS & APRS/CWOP uploads issue introduced in b4094
-- Adds AQ pm10 and pm10 average to the extra log file
-- Ecowitt Local HTTP API adds support for units in "Klux" and "Kfc", in addition to the existing "lux" and "fc"
-- Package Updates
-	- Mailkit
-
-### b4094 changes
-- Ecowitt camera web tag warning messages changed to plain messages
-- Fixed PurpleAir 24-hour average
-- PurpleAir now supports pm10 values
-	- New web tags to support this:
-		`<#AirQuality10_[1-4]>`
-		`<#AirQuality10Avg[1-4]>`
-		`<#AirQuality10Idx[1-4]>`
-		`<#AirQuality10AvgIdx[1-4]>`
-	- AWEKAS/WeatherCloud/WeatherUnderground upload of pm10 supported
-	- pm10 values are displayed on the Dashboard
-- Adds Extra Temp/Hum/DP sensors to extra log file, log file editor, and graph data
-
-- Package Updates
-	- BouncyCastle.Cryptography
-	- ServiceStack.Text
-
-### b4093 changes
-- Davis station: Fix extra T/H/DP/Soil Moist/Soil Temp/Leaf Wetness being wrongly set to null
-- Switch PurpleAir station to using the 2-minute average values
-- PurpleAir station now calculates the 24-hour averages
-
-### b4092 changes
-- Ecowitt Camera webtag logic changes
-- Internal refactoring of Extra Sensor t/h/dp data handling
-- Fix PurpleAir not starting if no other extra sensors are configured
-- Fix PurpleAir reading too low/zero
-- Ambient Station improved AQ decoding
-- Package Updates
-	- Microsoft.Win32.SystemEvents
-	- System.CodeDom
-	- System.Diagnostics.PerformanceCounter
-	- System.IO.Ports
-	- System.ServiceProcess.ServiceController
-
-### b4091 changes
-- More FTP WD improvements
-- Fix the MonthAvgXXXXX web tags
-- Station Pressure limits now derived from sea level limits taking station elevation into account
-- Station Pressure limits now apply to all stations - previously only Davis implemented them
-- Basic support for live data from PurpleAir sensors
-- CO₂ graphs not using the localised captions
-- AI2 updates
-
-### b4090 changes
-- FTP WD improvements
-- Davis LOOP handling improvements
-- Refactoring of SoilMoisture, Leafwetness, SoilTemp
-- Two new web tags for the Station Up-time, and Station Link Up-time (see below)
-- Davis AirLink not writing to the log file during catch-up. Note not all values are available in catch-up
-- Fix leaf wetness graph data when null
-- Fix time format of web tags TtempTh, daylength, daylightlength
-- AI2 updates
-- MySQL Custom Seconds has moved off an independent timer to the main seconds timer, this also means that the commands will now be run at intervals based on the clock time
+- Cumulus now supports the back filling of historic on the first run of new installations
+	- If Cumulus detects that it a new installation, a *Backfill Date* field will be shown in the main station settings section
+	- When Cumulus is restarted after setting the station etc, the first run will attempt to backfill the data from the date specified
+	- "First run" is defined as:
+		- No today.ini file present
+		- No Cumulus.ini file present, or Cumulus.ini is present but the [station] type=-1
+- Credential blanking added to Station Settings and the config Wizard
 
 ### New
 
 - Realtime FTP (and FTPS) handling changed
 	- MX now runs a watchdog process that regularly checks the FTP connection is functional
 - All-new Alternative Interface for the dashboard
+- Cumulus now supports the back filling of historic on the first run of new installations
+	- If Cumulus detects that it a new installation, a *Backfill Date* field will be shown in the main station settings section
+	- When Cumulus is restarted after setting the station etc, the first run will attempt to backfill the data from the date specified
+	- "First run" is defined as:
+		- No today.ini file present
+		- No Cumulus.ini file present, or Cumulus.ini is present but the [station] type=-1
 - New web tag `<#SnowAccumSeason>` - this tag queries the Weather Diary for the current snow season total snow fall
 	- The tag takes an optional parameter `y=YYYY` which you can use to specify the snow season starting year for which you want the total
 - The Weather Diary now has tick boxes for: Thunder, Hail, Fog, Gales

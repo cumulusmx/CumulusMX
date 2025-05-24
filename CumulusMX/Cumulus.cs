@@ -8319,6 +8319,13 @@ namespace CumulusMX
 		internal FileGenerationOptions[] GraphDataFiles;
 		internal FileGenerationOptions[] GraphDataEodFiles;
 
+		public bool FirstRun
+		{
+			get
+			{
+				return StationType == -1 && !File.Exists(TodayIniFile);
+			}
+		}
 
 		public string GetLogFileName(DateTime thedate)
 		{
