@@ -309,7 +309,7 @@ namespace CumulusMX.ThirdParty
 			{
 				for (var i = 1; i <= 4; i++)
 				{
-					if (station.SoilMoisture[i].HasValue)
+					if (station.SoilMoisture[i].HasValue && cumulus.Units.SoilMoistureUnitText[i] == "cb")
 					{
 						if (started) sb.Append('&'); else started = true;
 						sb.Append("soilmoisture1=" + station.SoilMoisture[i]);

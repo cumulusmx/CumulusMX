@@ -14,7 +14,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## b4101
 - Add Ecowitt Cloud Station expected data update rate to the config Wizard
-- Final(!?) fix ffor lightning count in HTTP Ecowitt station
+- Final(!?) fix for lightning count in HTTP Ecowitt station
+- Changed upload of soil moisture to AWEKAS and Weather Underground. AWEKAS now only sends the data if the units are "cb", and WU if the units are "%"
 
 ## b4100
 - Ecowitt Cloud Station now has an additional option to specify the expected data update rate
@@ -178,6 +179,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Station Pressure limits now apply to all stations - previously only Davis VP2 implemented them
 - Ecowitt camera web tag warning messages changed to plain messages
 - Add support for Timestamp in Ecowitt SD card log files
+- Changed upload of soil moisture to AWEKAS and Weather Underground. AWEKAS now only sends the data if the units are "cb", and WU if the units are "%"
 
 ### Fixed
 

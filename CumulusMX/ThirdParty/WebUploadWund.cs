@@ -243,13 +243,13 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilTemp4 && station.SoilTemp[4].HasValue)
 				Data.Append($"&soiltempf4={WeatherStation.TempFstr(station.SoilTemp[4].Value)}");
 
-			if (SendSoilMoisture1 && station.SoilMoisture[1].HasValue)
+			if (SendSoilMoisture1 && station.SoilMoisture[1].HasValue && cumulus.Units.SoilMoistureUnitText[1] == "%")
 				Data.Append($"&soilmoisture={station.SoilMoisture[1]}");
-			if (SendSoilMoisture2 && station.SoilMoisture[2].HasValue)
+			if (SendSoilMoisture2 && station.SoilMoisture[2].HasValue && cumulus.Units.SoilMoistureUnitText[2] == "%")
 				Data.Append($"&soilmoisture2={station.SoilMoisture[2]}");
-			if (SendSoilMoisture3 && station.SoilMoisture[3].HasValue)
+			if (SendSoilMoisture3 && station.SoilMoisture[3].HasValue && cumulus.Units.SoilMoistureUnitText[3] == "%")
 				Data.Append($"&soilmoisture3={station.SoilMoisture[3]}");
-			if (SendSoilMoisture4 && station.SoilMoisture[4].HasValue)
+			if (SendSoilMoisture4 && station.SoilMoisture[4].HasValue && cumulus.Units.SoilMoistureUnitText[4] == "%")
 				Data.Append($"&soilmoisture4={station.SoilMoisture[4]}");
 
 			if (SendLeafWetness1 && station.LeafWetness[1].HasValue)
