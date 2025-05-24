@@ -16,6 +16,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add Ecowitt Cloud Station expected data update rate to the config Wizard
 - Final(!?) fix for lightning count in HTTP Ecowitt station
 - Changed upload of soil moisture to AWEKAS and Weather Underground. AWEKAS now only sends the data if the units are "cb", and WU if the units are "%"
+- Fix AWEKAS only sending soil moisture 1, and leaf wetness 1
 
 ## b4100
 - Ecowitt Cloud Station now has an additional option to specify the expected data update rate
@@ -195,6 +196,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - CO₂ graphs not using the localised captions
 - Ecowitt Camera webtag logic changes
 - Ambient Station improved AQ decoding
+- Fix AWEKAS only sending soil moisture 1, and leaf wetness 1
 
 ### Package Updates
 

@@ -312,7 +312,7 @@ namespace CumulusMX.ThirdParty
 					if (station.SoilMoisture[i].HasValue && cumulus.Units.SoilMoistureUnitText[i] == "cb")
 					{
 						if (started) sb.Append('&'); else started = true;
-						sb.Append("soilmoisture1=" + station.SoilMoisture[i]);
+						sb.Append($"soilmoisture{i}={station.SoilMoisture[i]}");
 					}
 				}
 			}
@@ -324,7 +324,7 @@ namespace CumulusMX.ThirdParty
 					if (station.LeafWetness[i].HasValue)
 					{
 						if (started) sb.Append('&'); else started = true;
-						sb.Append("leafwetness1=" + station.LeafWetness[i].Value.ToString(cumulus.LeafWetFormat));
+						sb.Append($"leafwetness{i}={station.LeafWetness[i].Value.ToString(cumulus.LeafWetFormat)}");
 					}
 				}
 			}
