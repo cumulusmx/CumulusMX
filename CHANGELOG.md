@@ -10,20 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.0 \[b4101\]][19] - 2025-05-24
-
-### b4101
-- Add Ecowitt Cloud Station expected data update rate to the config Wizard
-- Final(!?) fix for lightning count in HTTP Ecowitt station
-- Changed upload of soil moisture to AWEKAS and Weather Underground. AWEKAS now only sends the data if the units are "cb", and WU if the units are "%"
-- Fix AWEKAS only sending soil moisture 1, and leaf wetness 1
-- Cumulus now supports the back filling of historic on the first run of new installations
-	- If Cumulus detects that it a new installation, a *Backfill Date* field will be shown in the main station settings section
-	- When Cumulus is restarted after setting the station etc, the first run will attempt to backfill the data from the date specified
-	- "First run" is defined as:
-		- No today.ini file present
-		- No Cumulus.ini file present, or Cumulus.ini is present but the [station] type=-1
-- Credential blanking added to Station Settings and the config Wizard
+## [4.5.0 \[b4102\]][19] - 2025-05-26
 
 ### New
 
@@ -31,7 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- MX now runs a watchdog process that regularly checks the FTP connection is functional
 - All-new Alternative Interface for the dashboard
 - Cumulus now supports the back filling of historic on the first run of new installations
-	- If Cumulus detects that it a new installation, a *Backfill Date* field will be shown in the main station settings section
+	- If Cumulus detects that it is a new installation, a *Backfill Date* field will be shown in the main station settings section
 	- When Cumulus is restarted after setting the station etc, the first run will attempt to backfill the data from the date specified
 	- "First run" is defined as:
 		- No today.ini file present
@@ -825,4 +812,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [16]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4086
 [17]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4087
 [18]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4088
-[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4101
+[19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4102
