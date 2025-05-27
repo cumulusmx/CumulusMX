@@ -325,6 +325,8 @@ namespace CumulusMX
 				{
 					cumulus.Trans.AirQualityCaptions = settings.airQuality.sensor;
 					cumulus.Trans.AirQualityAvgCaptions = settings.airQuality.sensorAvg;
+					cumulus.Trans.AirQuality10Captions = settings.airQuality.sensor10;
+					cumulus.Trans.AirQuality10AvgCaptions = settings.airQuality.sensor10Avg;
 				}
 				catch (Exception ex)
 				{

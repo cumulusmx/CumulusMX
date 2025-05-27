@@ -7781,6 +7781,8 @@ namespace CumulusMX
 				// air quality captions (for Extra Sensor Data screen)
 				ini.SetValue("AirQualityCaptions", "Sensor" + (i + 1), Trans.AirQualityCaptions[i]);
 				ini.SetValue("AirQualityCaptions", "SensorAvg" + (i + 1), Trans.AirQualityAvgCaptions[i]);
+				ini.SetValue("AirQualityCaptions", "Sensor10-" + (i + 1), Trans.AirQuality10Captions[i]);
+				ini.SetValue("AirQualityCaptions", "Sensor10Avg" + (i + 1), Trans.AirQuality10AvgCaptions[i]);
 			}
 
 			for (var i = 0; i < 8; i++)
