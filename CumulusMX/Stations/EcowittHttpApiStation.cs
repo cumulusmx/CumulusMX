@@ -1546,7 +1546,9 @@ namespace CumulusMX
 
 
 			CO2_pm2p5_aqi = CO2_pm2p5.HasValue ? GetAqi(AqMeasure.pm2p5, CO2_pm2p5.Value) : null;
+			CO2_pm2p5_24h_aqi = CO2_pm2p5_24h.HasValue ? GetAqi(AqMeasure.pm2p5, CO2_pm2p5_24h.Value) : null;
 			CO2_pm10_aqi = CO2_pm10.HasValue ? GetAqi(AqMeasure.pm10, CO2_pm10.Value) : null;
+			CO2_pm10_24h_aqi = CO2_pm10_24h.HasValue ? GetAqi(AqMeasure.pm10, CO2_pm10_24h.Value) : null;
 		}
 
 		private void ProcessChPm25(EcowittLocalApi.ChPm25Sensor[] sensors)

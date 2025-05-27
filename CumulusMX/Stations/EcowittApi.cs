@@ -2119,6 +2119,17 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("ApplyHistoricData: Error in AQI Combo pm2.5 data - " + ex.Message);
 			}
 
+			// === PM 2.5 Combo 24h ===
+			try
+			{
+				station.CO2_pm2p5_24h = (double?) rec.Value.AqiComboPm25hr24;
+				station.CO2_pm2p5_24h_aqi = station.CO2_pm2p5.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5_24h.Value) : null;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in AQI Combo pm2.5 24h data - " + ex.Message);
+			}
+
 			// === PM 10 Combo ===
 			try
 			{
@@ -2128,6 +2139,17 @@ namespace CumulusMX
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("ApplyHistoricData: Error in AQI Combo pm10 data - " + ex.Message);
+			}
+
+			// === PM 10 Combo  24h ===
+			try
+			{
+				station.CO2_pm10_24h = (double?) rec.Value.AqiComboPm10hr24;
+				station.CO2_pm10_24h_aqi = station.CO2_pm10.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10_24h.Value) : null;
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in AQI Combo pm10 24h data - " + ex.Message);
 			}
 
 			// === temp Combo ===
@@ -3370,7 +3392,9 @@ namespace CumulusMX
 			public int?[] LeafWetness { get; set; } = new int?[9];
 			public decimal?[] pm25 { get; set; } = new decimal?[5];
 			public decimal? AqiComboPm25 { get; set; }
+			public decimal? AqiComboPm25hr24 { get; set; }
 			public decimal? AqiComboPm10 { get; set; }
+			public decimal? AqiComboPm10hr24 { get; set; }
 			public decimal? AqiComboTemp { get; set; }
 			public int? AqiComboHum { get; set; }
 			public int? AqiComboCO2 { get; set; }

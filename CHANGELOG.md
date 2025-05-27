@@ -10,6 +10,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.5.1 \[b4103\]][20] - 2025-05-30
+
+### Fixed
+
+- Add missing 24h AQI to CO2 sensor values from the Ecowitt HTTP API station and Ecowitt Cloud Station
+
+
 ## [4.5.0 \[b4102\]][19] - 2025-05-26
 
 ### New
@@ -812,3 +819,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [17]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4087
 [18]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4088
 [19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4102
+[20]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4103
