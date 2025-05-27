@@ -12,9 +12,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.5.1 \[b4103\]][20] - 2025-05-30
 
+### New
+- By popular demand, implements web tags:
+	`<#ExtraTemp[11-16]>`, `<#ExtraHum[11-16]>`, `<#ExtraDP[11-16]>`
+
 ### Fixed
 
 - Add missing 24h AQI to CO2 sensor values from the Ecowitt HTTP API station and Ecowitt Cloud Station
+- Air Quality PM10 sensor names not being saved
+
 
 
 ## [4.5.0 \[b4102\]][19] - 2025-05-26

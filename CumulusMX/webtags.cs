@@ -4239,6 +4239,31 @@ namespace CumulusMX
 			return GetExtraTemp(10, tagParams);
 		}
 
+		private string TagExtraTemp11(Dictionary<string, string> tagParams)
+		{
+			return GetExtraTemp(11, tagParams);
+		}
+		private string TagExtraTemp12(Dictionary<string, string> tagParams)
+		{
+			return GetExtraTemp(12, tagParams);
+		}
+		private string TagExtraTemp13(Dictionary<string, string> tagParams)
+		{
+			return GetExtraTemp(13, tagParams);
+		}
+		private string TagExtraTemp14(Dictionary<string, string> tagParams)
+		{
+			return GetExtraTemp(14, tagParams);
+		}
+		private string TagExtraTemp15(Dictionary<string, string> tagParams)
+		{
+			return GetExtraTemp(15, tagParams);
+		}
+		private string TagExtraTemp16(Dictionary<string, string> tagParams)
+		{
+			return GetExtraTemp(16, tagParams);
+		}
+
 		private string TagExtraTemp(Dictionary<string, string> tagParams)
 		{
 			int sensor = 1;
@@ -4302,6 +4327,30 @@ namespace CumulusMX
 		private string TagExtraDp10(Dictionary<string, string> tagParams)
 		{
 			return GetExtraDP(10, tagParams);
+		}
+		private string TagExtraDp11(Dictionary<string, string> tagParams)
+		{
+			return GetExtraDP(11, tagParams);
+		}
+		private string TagExtraDp12(Dictionary<string, string> tagParams)
+		{
+			return GetExtraDP(12, tagParams);
+		}
+		private string TagExtraDp13(Dictionary<string, string> tagParams)
+		{
+			return GetExtraDP(13, tagParams);
+		}
+		private string TagExtraDp14(Dictionary<string, string> tagParams)
+		{
+			return GetExtraDP(14, tagParams);
+		}
+		private string TagExtraDp15(Dictionary<string, string> tagParams)
+		{
+			return GetExtraDP(15, tagParams);
+		}
+		private string TagExtraDp16(Dictionary<string, string> tagParams)
+		{
+			return GetExtraDP(16, tagParams);
 		}
 
 		private string TagExtraDp(Dictionary<string, string> tagParams)
@@ -4367,6 +4416,30 @@ namespace CumulusMX
 		private string TagExtraHum10(Dictionary<string, string> tagParams)
 		{
 			return GetExtraHum(10, tagParams);
+		}
+		private string TagExtraHum11(Dictionary<string, string> tagParams)
+		{
+			return GetExtraHum(11, tagParams);
+		}
+		private string TagExtraHum12(Dictionary<string, string> tagParams)
+		{
+			return GetExtraHum(12, tagParams);
+		}
+		private string TagExtraHum13(Dictionary<string, string> tagParams)
+		{
+			return GetExtraHum(13, tagParams);
+		}
+		private string TagExtraHum14(Dictionary<string, string> tagParams)
+		{
+			return GetExtraHum(14, tagParams);
+		}
+		private string TagExtraHum15(Dictionary<string, string> tagParams)
+		{
+			return GetExtraHum(15, tagParams);
+		}
+		private string TagExtraHum16(Dictionary<string, string> tagParams)
+		{
+			return GetExtraHum(16, tagParams);
 		}
 
 		private string TagExtraHum(Dictionary<string, string> tagParams)
@@ -7215,6 +7288,12 @@ namespace CumulusMX
 				{ "ExtraTemp8", TagExtraTemp8 },
 				{ "ExtraTemp9", TagExtraTemp9 },
 				{ "ExtraTemp10", TagExtraTemp10 },
+				{ "ExtraTemp11", TagExtraTemp11 },
+				{ "ExtraTemp12", TagExtraTemp12 },
+				{ "ExtraTemp13", TagExtraTemp13 },
+				{ "ExtraTemp14", TagExtraTemp14 },
+				{ "ExtraTemp15", TagExtraTemp15 },
+				{ "ExtraTemp15", TagExtraTemp16 },
 				{ "ExtraDP", TagExtraDp },
 				{ "ExtraDP1", TagExtraDp1 },
 				{ "ExtraDP2", TagExtraDp2 },
@@ -7226,6 +7305,12 @@ namespace CumulusMX
 				{ "ExtraDP8", TagExtraDp8 },
 				{ "ExtraDP9", TagExtraDp9 },
 				{ "ExtraDP10", TagExtraDp10 },
+				{ "ExtraDP11", TagExtraDp11 },
+				{ "ExtraDP12", TagExtraDp12 },
+				{ "ExtraDP13", TagExtraDp13 },
+				{ "ExtraDP14", TagExtraDp14 },
+				{ "ExtraDP15", TagExtraDp15 },
+				{ "ExtraDP16", TagExtraDp16 },
 				{ "ExtraHum", TagExtraHum },
 				{ "ExtraHum1", TagExtraHum1 },
 				{ "ExtraHum2", TagExtraHum2 },
@@ -7237,6 +7322,12 @@ namespace CumulusMX
 				{ "ExtraHum8", TagExtraHum8 },
 				{ "ExtraHum9", TagExtraHum9 },
 				{ "ExtraHum10", TagExtraHum10 },
+				{ "ExtraHum11", TagExtraHum11 },
+				{ "ExtraHum12", TagExtraHum12 },
+				{ "ExtraHum13", TagExtraHum13 },
+				{ "ExtraHum14", TagExtraHum14 },
+				{ "ExtraHum15", TagExtraHum15 },
+				{ "ExtraHum16", TagExtraHum16 },
 				{ "SoilTemp1", TagSoilTemp1 },
 				{ "SoilTemp2", TagSoilTemp2 },
 				{ "SoilTemp3", TagSoilTemp3 },
