@@ -23,8 +23,6 @@ using ServiceStack.Text;
 
 using SQLite;
 
-using static System.Net.Mime.MediaTypeNames;
-
 using Timer = System.Timers.Timer;
 
 namespace CumulusMX

@@ -7293,7 +7293,7 @@ namespace CumulusMX
 				{ "ExtraTemp13", TagExtraTemp13 },
 				{ "ExtraTemp14", TagExtraTemp14 },
 				{ "ExtraTemp15", TagExtraTemp15 },
-				{ "ExtraTemp15", TagExtraTemp16 },
+				{ "ExtraTemp16", TagExtraTemp16 },
 				{ "ExtraDP", TagExtraDp },
 				{ "ExtraDP1", TagExtraDp1 },
 				{ "ExtraDP2", TagExtraDp2 },
