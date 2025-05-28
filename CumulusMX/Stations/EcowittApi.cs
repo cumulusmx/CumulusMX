@@ -35,6 +35,8 @@ namespace CumulusMX
 		private string LastCameraVideoTime = string.Empty;
 		private readonly DateTime LastCameraVideoCallTime = DateTime.MinValue;
 
+		private int delayTime = 10;
+
 		public EcowittApi(Cumulus cuml, WeatherStation stn)
 		{
 			cumulus = cuml;
@@ -204,6 +206,7 @@ namespace CumulusMX
 				string responseBody;
 				int responseCode;
 				int retries = 3;
+				int retryTime = 10; // seconds
 				bool success = false;
 
 				do
@@ -279,8 +282,10 @@ namespace CumulusMX
 									return false;
 								}
 
-								cumulus.LogMessage("API.GetHistoricData: System Busy or Rate Limited, waiting 5 secs before retry...");
-								Task.Delay(5000, token).Wait(token);
+								cumulus.LogMessage($"API.GetHistoricData: System Busy or Rate Limited, waiting {retryTime} secs before retry...");
+								Task.Delay(retryTime * 1000, token).Wait(token);
+								retryTime *= 2; // double the retry time
+
 							}
 							else
 							{
@@ -2380,7 +2385,8 @@ namespace CumulusMX
 							if (currObj.data == null)
 							{
 								// There was no data returned.
-								delay = 10;
+								delay = delayTime;
+								delayTime *= 2; // double the delay time
 								return null;
 							}
 						}
@@ -2388,28 +2394,31 @@ namespace CumulusMX
 						{
 							// -1 = system busy, 45001 = rate limited
 
-							cumulus.LogMessage("API.GetCurrentData: System Busy or Rate Limited, waiting 5 secs before retry...");
-							delay = 5;
+							cumulus.LogMessage($"API.GetCurrentData: System Busy or Rate Limited, waiting {delayTime} secs before retry...");
+							delay = delayTime;
+							delayTime *= 2; // double the delay time
 							return null;
 						}
 						else
 						{
-							delay = 10;
+							delay = delayTime;
+							delayTime *= 2; // double the delay time
 							return null;
 						}
 					}
 					else
 					{
-						delay = 10;
+						delay = delayTime;
+						delayTime *= 2; // double the delay time
 						return null;
 					}
-
 				}
 				else // No idea what we got, dump it to the log
 				{
 					cumulus.LogErrorMessage("API.GetCurrentData: Invalid current message received");
 					cumulus.LogDataMessage("API.GetCurrentData: Received: " + responseBody);
-					delay = 10;
+					delay = delayTime;
+					delayTime *= 2; // double the delay time
 					return null;
 				}
 
@@ -2439,6 +2448,8 @@ namespace CumulusMX
 
 					if (dataTime.ToUniversalTime() != LastCurrentDataTime)
 					{
+						delayTime = 10; // reset the delay time to 10 seconds
+
 						LastCurrentDataTime = dataTime.ToUniversalTime();
 
 						// how many seconds to the next update?
@@ -2468,24 +2479,28 @@ namespace CumulusMX
 					}
 					else
 					{
-						delay = 10;
+						delay = delayTime;
+						delayTime *= 2; // double the delay time
 						return null;
 					}
 				}
 
-				delay = 20;
+				delay = delayTime;
+				delayTime *= 2; // double the delay time
 				return null;
 			}
 			catch (TaskCanceledException)
 			{
 				cumulus.LogWarningMessage("API.GetCurrentData: Error - Request timed out, no response");
-				delay = 10;
+				delay = delayTime;
+				delayTime *= 2; // double the delay time
 				return null;
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogExceptionMessage(ex, "API.GetCurrentData: Exception occurred");
-				delay = 10;
+				delay = delayTime;
+				delay *= 2; // double the delay time
 				return null;
 			}
 		}
