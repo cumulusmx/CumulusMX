@@ -1683,7 +1683,7 @@ namespace CumulusMX
 							DoOutdoorHumidity(sensor.humidityVal.Value, dateTime);
 						}
 
-						if (cumulus.Gw1000PrimaryIndoorTHSensor != sensor.channel)
+						if (cumulus.Gw1000PrimaryIndoorTHSensor == sensor.channel)
 						{
 							DoIndoorHumidity(sensor.humidityVal.Value);
 						}
