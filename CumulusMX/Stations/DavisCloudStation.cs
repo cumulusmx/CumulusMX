@@ -27,6 +27,12 @@ namespace CumulusMX
 		private DateTime lastHistoricData;
 		private string subscriptionLevel = string.Empty;
 
+		private int numLeafWetnessSensors = 8;
+		private int numSoilMoistureSensors = 16;
+		private int numSoiltempSensors = 16;
+
+		private bool isVp2Station = false;
+
 		public DavisCloudStation(Cumulus cumulus) : base(cumulus)
 		{
 			calculaterainrate = false;
@@ -70,9 +76,44 @@ namespace CumulusMX
 
 			tmrCurrent = new System.Timers.Timer();
 
-			// The Davis leafwetness sensors send a decimal value via WLL (only integer available via VP2/Vue)
-			cumulus.LeafWetDPlaces = 1;
-			cumulus.LeafWetFormat = "F1";
+			if (cumulus.StationType == StationTypes.DavisCloudVP2)
+			{
+				cumulus.LogMessage("Davis Cloud Station (VP2/Vue) selected");
+				isVp2Station = true;
+
+				// Do not ue the user sensor mappings for VP2 station - they are fixed
+				numLeafWetnessSensors = 2;
+				cumulus.WllLeafWetIdx[1] = 1;
+				cumulus.WllLeafWetIdx[2] = 2;
+
+				numSoilMoistureSensors = 4;
+				cumulus.WllSoilMoistureTx[1] = -1;
+				cumulus.WllSoilMoistureTx[2] = -1;
+				cumulus.WllSoilMoistureTx[3] = -1;
+				cumulus.WllSoilMoistureTx[4] = -1;
+				cumulus.WllSoilMoistureIdx[1] = 1;
+				cumulus.WllSoilMoistureIdx[2] = 2;
+				cumulus.WllSoilMoistureIdx[3] = 3;
+				cumulus.WllSoilMoistureIdx[4] = 4;
+
+				numSoiltempSensors = 4;
+				cumulus.WllSoilTempTx[1] = -1;
+				cumulus.WllSoilTempTx[2] = -1;
+				cumulus.WllSoilTempTx[3] = -1;
+				cumulus.WllSoilTempTx[4] = -1;
+				cumulus.WllSoilTempIdx[1] = 1;
+				cumulus.WllSoilTempIdx[2] = 2;
+				cumulus.WllSoilTempIdx[3] = 3;
+				cumulus.WllSoilTempIdx[4] = 4;
+			}
+			else
+			{
+				cumulus.LogErrorMessage("Davis Cloud Station (WLL/WLC) selected");
+
+				// The Davis leafwetness sensors send a decimal value via WLL (only integer available via VP2/Vue)
+				cumulus.LeafWetDPlaces = 1;
+				cumulus.LeafWetFormat = "F1";
+			}
 
 			CalcRecentMaxGust = false;
 			cumulus.StationOptions.CalcuateAverageWindSpeed = false;
@@ -850,11 +891,11 @@ namespace CumulusMX
 									lsidLastUpdate[sensor.lsid] = rec.ts;
 
 									// We are relying on user configuration here, trap any errors
-									for (var i = 1; i <= 8; i++)
+									for (var i = 1; i <= numLeafWetnessSensors; i++)
 									{
 										try
 										{
-											if (cumulus.WllLeafWetTx[i] == txid)
+											if (cumulus.WllLeafWetTx[i] == txid || isVp2Station)
 											{
 												var idx = "wet_leaf_" + cumulus.WllLeafWetIdx[i];
 												var val = (double?) rec[idx];
@@ -880,13 +921,13 @@ namespace CumulusMX
 									 *
 									 */
 
-									for (var i = 1; i <= 16; i++)
+									for (var i = 1; i <= numSoilMoistureSensors; i++)
 									{
 										try
 										{
-											if (cumulus.WllSoilMoistureTx[i] == txid)
+											if (cumulus.WllSoilMoistureTx[i] == txid || isVp2Station)
 											{
-												var idx = "moist_soil_last_" + cumulus.WllSoilMoistureIdx[i];
+												var idx = "moist_soil_" + cumulus.WllSoilMoistureIdx[i];
 												var val = (double?) rec[idx];
 												if (val.HasValue)
 												{
@@ -909,12 +950,12 @@ namespace CumulusMX
 									* temp_4
 									*/
 
-									for (var i = 1; i <= 16; i++)
+									for (var i = 1; i <= numSoiltempSensors; i++)
 									{
 										try
 										{
 											// allocated to soil temp?
-											if (cumulus.WllSoilTempTx[i] == txid)
+											if (cumulus.WllSoilTempTx[i] == txid || isVp2Station)
 											{
 												var idx = "temp_" + cumulus.WllSoilTempIdx[i];
 												var val = (double?) rec[idx];
@@ -954,7 +995,7 @@ namespace CumulusMX
 									}
 									if (rec.rx_state.HasValue && rec.rx_state != 0)
 									{
-										cumulus.LogWarningMessage($"Recive state for ISS TxId {txid} is: {(rec.rx_state == 1 ? "Rescan" : "Lost")}");
+										cumulus.LogWarningMessage($"Receive state for ISS TxId {txid} is: {(rec.rx_state == 1 ? "Rescan" : "Lost")}");
 									}
 
 								}
@@ -3037,11 +3078,11 @@ namespace CumulusMX
 								cumulus.LogDebugMessage($"DecodeHistoric: found Leaf/Soil data on TxId {data.tx_id}");
 
 								// We are relying on user configuration here, trap any errors
-								for (var i = 1; i <= 8; i++)
+								for (var i = 1; i <= numLeafWetnessSensors; i++)
 								{
 									try
 									{
-										if (cumulus.WllLeafWetTx[i] == data.tx_id)
+										if (cumulus.WllLeafWetTx[i] == data.tx_id || isVp2Station)
 										{
 											idx = "wet_leaf_last_" + cumulus.WllLeafWetIdx[i];
 											if (data[idx] != null)
@@ -3084,11 +3125,11 @@ namespace CumulusMX
 								 * "moist_soil_lo_at_4"
 								 */
 
-								for (var i = 1; i <= 16; i++)
+								for (var i = 1; i <= numSoilMoistureSensors; i++)
 								{
 									try
 									{
-										if (cumulus.WllSoilMoistureTx[i] == data.tx_id)
+										if (cumulus.WllSoilMoistureTx[i] == data.tx_id || isVp2Station)
 										{
 											idx = "moist_soil_last_" + cumulus.WllSoilMoistureIdx[i];
 
@@ -3138,12 +3179,12 @@ namespace CumulusMX
 								 * "temp_lo_at_4"
 								 */
 
-								for (var i = 1; i <= 16; i++)
+								for (var i = 1; i <= numSoiltempSensors; i++)
 								{
 									try
 									{
 										// allocated to soil temp?
-										if (cumulus.WllSoilTempTx[i] == data.tx_id)
+										if (cumulus.WllSoilTempTx[i] == data.tx_id || isVp2Station)
 										{
 											idx = "temp_last_" + cumulus.WllSoilTempIdx[i];
 											if (data[idx] == null)
