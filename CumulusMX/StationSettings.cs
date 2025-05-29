@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Reflection;
 using System.Threading;
 
 using EmbedIO;
 
 using ServiceStack;
 using ServiceStack.Text;
-
-using static System.Collections.Specialized.BitVector32;
 
 
 namespace CumulusMX
@@ -143,18 +140,18 @@ namespace CumulusMX
 
 			var ecowittmaps = new JsonEcowittMappings()
 			{
-				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
+				primaryTHsensor = cumulus.ExtraPrimaryTHSensor,
 				primaryRainSensor = cumulus.Gw1000PrimaryRainSensor,
-				primaryIndoorTHsensor = cumulus.Gw1000PrimaryIndoorTHSensor,
+				primaryIndoorTHsensor = cumulus.ExtraPrimaryIndoorTHSensor,
 				piezosrain = cumulus.EcowittIsRainingUsePiezo,
-				wn34chan1 = cumulus.EcowittMapWN34[1],
-				wn34chan2 = cumulus.EcowittMapWN34[2],
-				wn34chan3 = cumulus.EcowittMapWN34[3],
-				wn34chan4 = cumulus.EcowittMapWN34[4],
-				wn34chan5 = cumulus.EcowittMapWN34[5],
-				wn34chan6 = cumulus.EcowittMapWN34[6],
-				wn34chan7 = cumulus.EcowittMapWN34[7],
-				wn34chan8 = cumulus.EcowittMapWN34[8]
+				wn34chan1 = cumulus.ExtraMapWN34[1],
+				wn34chan2 = cumulus.ExtraMapWN34[2],
+				wn34chan3 = cumulus.ExtraMapWN34[3],
+				wn34chan4 = cumulus.ExtraMapWN34[4],
+				wn34chan5 = cumulus.ExtraMapWN34[5],
+				wn34chan6 = cumulus.ExtraMapWN34[6],
+				wn34chan7 = cumulus.ExtraMapWN34[7],
+				wn34chan8 = cumulus.ExtraMapWN34[8]
 			};
 
 			var gw1000 = new JsonGw1000Conn()
@@ -982,89 +979,89 @@ namespace CumulusMX
 				{
 					if (settings.ecowittmaps != null)
 					{
-						cumulus.Gw1000PrimaryTHSensor = settings.ecowittmaps.primaryTHsensor;
+						cumulus.ExtraPrimaryTHSensor = settings.ecowittmaps.primaryTHsensor;
 						cumulus.Gw1000PrimaryRainSensor = settings.ecowittmaps.primaryRainSensor;
-						cumulus.Gw1000PrimaryIndoorTHSensor = settings.ecowittmaps.primaryIndoorTHsensor;
+						cumulus.ExtraPrimaryIndoorTHSensor = settings.ecowittmaps.primaryIndoorTHsensor;
 						cumulus.EcowittIsRainingUsePiezo = settings.ecowittmaps.piezosrain;
 
-						if (cumulus.EcowittMapWN34[1] != settings.ecowittmaps.wn34chan1)
+						if (cumulus.ExtraMapWN34[1] != settings.ecowittmaps.wn34chan1)
 						{
-							if (cumulus.EcowittMapWN34[1] == 0)
+							if (cumulus.ExtraMapWN34[1] == 0)
 								station.UserTemp[1] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[1]] = null;
+								station.SoilTemp[cumulus.ExtraMapWN34[1]] = null;
 
-							cumulus.EcowittMapWN34[1] = settings.ecowittmaps.wn34chan1;
+							cumulus.ExtraMapWN34[1] = settings.ecowittmaps.wn34chan1;
 						}
 
-						if (cumulus.EcowittMapWN34[2] != settings.ecowittmaps.wn34chan2)
+						if (cumulus.ExtraMapWN34[2] != settings.ecowittmaps.wn34chan2)
 						{
-							if (cumulus.EcowittMapWN34[2] == 0)
+							if (cumulus.ExtraMapWN34[2] == 0)
 								station.UserTemp[2] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[2]] = null;
+								station.SoilTemp[cumulus.ExtraMapWN34[2]] = null;
 
-							cumulus.EcowittMapWN34[2] = settings.ecowittmaps.wn34chan2;
+							cumulus.ExtraMapWN34[2] = settings.ecowittmaps.wn34chan2;
 						}
 
-						if (cumulus.EcowittMapWN34[3] != settings.ecowittmaps.wn34chan3)
+						if (cumulus.ExtraMapWN34[3] != settings.ecowittmaps.wn34chan3)
 						{
-							if (cumulus.EcowittMapWN34[3] == 0)
+							if (cumulus.ExtraMapWN34[3] == 0)
 								station.UserTemp[3] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[3]] = null;
+								station.SoilTemp[cumulus.ExtraMapWN34[3]] = null;
 
-							cumulus.EcowittMapWN34[3] = settings.ecowittmaps.wn34chan3;
+							cumulus.ExtraMapWN34[3] = settings.ecowittmaps.wn34chan3;
 						}
 
-						if (cumulus.EcowittMapWN34[4] != settings.ecowittmaps.wn34chan4)
+						if (cumulus.ExtraMapWN34[4] != settings.ecowittmaps.wn34chan4)
 						{
-							if (cumulus.EcowittMapWN34[4] == 0)
+							if (cumulus.ExtraMapWN34[4] == 0)
 								station.UserTemp[4] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[4]] = null;
+								station.SoilTemp[cumulus.ExtraMapWN34[4]] = null;
 
-							cumulus.EcowittMapWN34[4] = settings.ecowittmaps.wn34chan4;
+							cumulus.ExtraMapWN34[4] = settings.ecowittmaps.wn34chan4;
 						}
 
-						if (cumulus.EcowittMapWN34[5] != settings.ecowittmaps.wn34chan5)
+						if (cumulus.ExtraMapWN34[5] != settings.ecowittmaps.wn34chan5)
 						{
-							if (cumulus.EcowittMapWN34[5] == 0)
+							if (cumulus.ExtraMapWN34[5] == 0)
 								station.UserTemp[5] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[5]] = null;
+								station.SoilTemp[cumulus.ExtraMapWN34[5]] = null;
 
-							cumulus.EcowittMapWN34[5] = settings.ecowittmaps.wn34chan5;
+							cumulus.ExtraMapWN34[5] = settings.ecowittmaps.wn34chan5;
 						}
 
-						if (cumulus.EcowittMapWN34[6] != settings.ecowittmaps.wn34chan6)
+						if (cumulus.ExtraMapWN34[6] != settings.ecowittmaps.wn34chan6)
 						{
-							if (cumulus.EcowittMapWN34[6] == 0)
+							if (cumulus.ExtraMapWN34[6] == 0)
 								station.UserTemp[6] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[6]] = null;
+								station.SoilTemp[cumulus.ExtraMapWN34[6]] = null;
 
-							cumulus.EcowittMapWN34[6] = settings.ecowittmaps.wn34chan6;
+							cumulus.ExtraMapWN34[6] = settings.ecowittmaps.wn34chan6;
 						}
 
-						if (cumulus.EcowittMapWN34[7] != settings.ecowittmaps.wn34chan7)
+						if (cumulus.ExtraMapWN34[7] != settings.ecowittmaps.wn34chan7)
 						{
-							if (cumulus.EcowittMapWN34[7] == 0)
+							if (cumulus.ExtraMapWN34[7] == 0)
 								station.UserTemp[7] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[7]] = null;
+								station.SoilTemp[cumulus.ExtraMapWN34[7]] = null;
 
-							cumulus.EcowittMapWN34[7] = settings.ecowittmaps.wn34chan7;
+							cumulus.ExtraMapWN34[7] = settings.ecowittmaps.wn34chan7;
 						}
 
-						if (cumulus.EcowittMapWN34[8] != settings.ecowittmaps.wn34chan8)
+						if (cumulus.ExtraMapWN34[8] != settings.ecowittmaps.wn34chan8)
 						{
-							if (cumulus.EcowittMapWN34[8] == 0)
+							if (cumulus.ExtraMapWN34[8] == 0)
 								station.UserTemp[8] = 0;
 							else
-								station.SoilTemp[cumulus.EcowittMapWN34[8]] = null;
+								station.SoilTemp[cumulus.ExtraMapWN34[8]] = null;
 
-							cumulus.EcowittMapWN34[8] = settings.ecowittmaps.wn34chan8;
+							cumulus.ExtraMapWN34[8] = settings.ecowittmaps.wn34chan8;
 						}
 					}
 				}

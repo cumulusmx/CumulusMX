@@ -29,6 +29,10 @@ namespace CumulusMX
 		private string deviceModel;
 		private Version deviceFirmware;
 
+		private int PrimaryTHSensor;
+		private int PrimaryIndoorTHSensor;
+		private int[] MapWN34 = new int[9];
+
 		public HttpStationEcowitt(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
 			this.station = station;
@@ -42,6 +46,26 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogMessage("Creating Extra Sensors - HTTP Station (Ecowitt)");
+			}
+
+			// sensor mappings
+			if (mainStation)
+			{
+				PrimaryTHSensor = cumulus.Gw1000PrimaryTHSensor;
+				PrimaryIndoorTHSensor = cumulus.Gw1000PrimaryIndoorTHSensor;
+				for (int i = 0; i < cumulus.EcowittMapWN34.Length; i++)
+				{
+					MapWN34[i] = cumulus.EcowittMapWN34[i];
+				}
+			}
+			else
+			{
+				PrimaryTHSensor = cumulus.ExtraPrimaryTHSensor;
+				PrimaryIndoorTHSensor = cumulus.ExtraPrimaryIndoorTHSensor;
+				for (int i = 0; i < cumulus.ExtraMapWN34.Length; i++)
+				{
+					MapWN34[i] = cumulus.ExtraMapWN34[i];
+				}
 			}
 
 			// Do not set these if we are only using extra sensors
@@ -66,12 +90,12 @@ namespace CumulusMX
 				// does not provide pressure trend strings
 				cumulus.StationOptions.UseCumulusPresstrendstr = true;
 
-				if (cumulus.Gw1000PrimaryTHSensor == 0)
+				if (PrimaryTHSensor == 0)
 				{
 					// We are using the primary T/H sensor
 					cumulus.LogMessage("Using the default outdoor temp/hum sensor data");
 				}
-				else if (cumulus.Gw1000PrimaryTHSensor == 99)
+				else if (PrimaryTHSensor == 99)
 				{
 					// We are not using the primary T/H sensor
 					cumulus.LogMessage("Overriding the default outdoor temp/hum data with Indoor temp/hum sensor");
@@ -79,20 +103,22 @@ namespace CumulusMX
 				else
 				{
 					// We are not using the primary T/H sensor
-					cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
+					cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + PrimaryTHSensor);
+				}
+				if (mainStation)
+				{
+					if (cumulus.Gw1000PrimaryRainSensor == 0)
+					{
+						// We are using the traditional rain tipper
+						cumulus.LogMessage("Using the default traditional rain sensor data");
+					}
+					else
+					{
+						cumulus.LogMessage("Using the piezo rain sensor data");
+					}
 				}
 
-				if (cumulus.Gw1000PrimaryRainSensor == 0)
-				{
-					// We are using the traditional rain tipper
-					cumulus.LogMessage("Using the default traditional rain sensor data");
-				}
-				else
-				{
-					cumulus.LogMessage("Using the piezo rain sensor data");
-				}
-
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+				if (PrimaryIndoorTHSensor == 0)
 				{
 					// We are using the primary indoor T/H sensor
 					cumulus.LogMessage("Using the default indoor temp/hum sensor data");
@@ -100,7 +126,7 @@ namespace CumulusMX
 				else
 				{
 					// We are not using the primary indoor T/H sensor
-					cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryIndoorTHSensor);
+					cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + PrimaryIndoorTHSensor);
 				}
 
 				if (cumulus.EcowittSetCustomServer)
@@ -136,7 +162,7 @@ namespace CumulusMX
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
 
-			ecowittApi = new EcowittApi(cumulus, this);
+			ecowittApi = new EcowittApi(cumulus, this, mainStation);
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
 			if (mainStation)
@@ -515,20 +541,20 @@ namespace CumulusMX
 						else
 						{
 							var humVal = Convert.ToInt32(data["humidityin"], invNum);
-							if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+							if (PrimaryIndoorTHSensor == 0)
 							{
 								DoIndoorHumidity(humVal);
 							}
 
 							// user has mapped indoor humidity to outdoor
-							if (cumulus.Gw1000PrimaryTHSensor == 99)
+							if (PrimaryTHSensor == 99)
 							{
 								DoOutdoorHumidity(humVal, recDate);
 								haveHum = true;
 							}
 						}
 
-						if (cumulus.Gw1000PrimaryTHSensor == 0)
+						if (PrimaryTHSensor == 0)
 						{
 							if (data["humidity"] == null)
 							{
@@ -560,13 +586,13 @@ namespace CumulusMX
 						else
 						{
 							var tempVal = ConvertUnits.TempFToUser(Convert.ToDouble(data["tempinf"], invNum));
-							if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+							if (PrimaryIndoorTHSensor == 0)
 							{
 								DoIndoorTemp(tempVal);
 							}
 
 							// user has mapped indoor temperature to outdoor
-							if (cumulus.Gw1000PrimaryTHSensor == 99)
+							if (PrimaryTHSensor == 99)
 							{
 								DoOutdoorTemp(tempVal, recDate);
 								haveTemp = true;
@@ -1196,18 +1222,18 @@ namespace CumulusMX
 				{
 					station.DoExtraTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["temp" + i + "f"], invNum)), i);
 
-					if (i == cumulus.Gw1000PrimaryTHSensor)
+					if (i == PrimaryTHSensor)
 					{
 						station.DoOutdoorTemp(ExtraTemp[i].Value, ts);
 						alreadyHaveTemp = true;
 					}
 
-					if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+					if (i == PrimaryIndoorTHSensor)
 					{
 						DoIndoorTemp(ExtraTemp[i].Value);
 					}
 				}
-				else if (i == cumulus.Gw1000PrimaryTHSensor)
+				else if (i == PrimaryTHSensor)
 				{
 					cumulus.LogDebugMessage($"ProcessExtraTemps: Error, missing Extra temperature #{i} which is mapped to outdoor temperature");
 				}
@@ -1223,19 +1249,19 @@ namespace CumulusMX
 				{
 					station.DoExtraHum(Convert.ToDouble(data["humidity" + i], invNum), i);
 
-					if (i == cumulus.Gw1000PrimaryTHSensor)
+					if (i == PrimaryTHSensor)
 					{
 						station.DoOutdoorHumidity((int) ExtraHum[i].Value, ts);
 						alreadyHaveHum = true;
 					}
 
-					if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+					if (i == PrimaryIndoorTHSensor)
 					{
 						DoIndoorHumidity((int) ExtraHum[i].Value);
 					}
 
 				}
-				else if (i == cumulus.Gw1000PrimaryTHSensor)
+				else if (i == PrimaryTHSensor)
 				{
 					cumulus.LogDebugMessage($"ProcessExtraHumidity: Error, missing Extra humidity #{i} which is mapped to outdoor humidity");
 				}
@@ -1329,13 +1355,13 @@ namespace CumulusMX
 			{
 				if (data["tf_ch" + i] != null)
 				{
-					if (cumulus.EcowittMapWN34[i] == 0)
+					if (MapWN34[i] == 0)
 					{
 						station.DoUserTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), i);
 					}
 					else
 					{
-						station.DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), cumulus.EcowittMapWN34[i]);
+						station.DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_ch" + i], invNum)), MapWN34[i]);
 					}
 				}
 			}

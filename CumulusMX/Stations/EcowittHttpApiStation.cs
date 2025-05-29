@@ -5,10 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
-using static System.Collections.Specialized.BitVector32;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using static CumulusMX.EcowittApi;
-using static CumulusMX.EcowittLocalApi;
 
 namespace CumulusMX
 {
@@ -119,7 +116,7 @@ namespace CumulusMX
 
 			localApi = new EcowittLocalApi(cumulus);
 
-			ecowittApi = new EcowittApi(cumulus, this);
+			ecowittApi = new EcowittApi(cumulus, this, true);
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 

@@ -37,7 +37,11 @@ namespace CumulusMX
 
 		private int delayTime = 10;
 
-		public EcowittApi(Cumulus cuml, WeatherStation stn)
+		private int PrimaryTHSensor;
+		private int PrimaryIndoorTHSensor;
+		private int[] MapWN34 = new int[9];
+
+		public EcowittApi(Cumulus cuml, WeatherStation stn, bool mainStation)
 		{
 			cumulus = cuml;
 			station = stn;
@@ -63,6 +67,26 @@ namespace CumulusMX
 
 				return DateTime.MinValue;
 			};
+
+			// sensor mappings
+			if (mainStation)
+			{
+				PrimaryTHSensor = cumulus.Gw1000PrimaryTHSensor;
+				PrimaryIndoorTHSensor = cumulus.Gw1000PrimaryIndoorTHSensor;
+				for (int i = 0; i < cumulus.EcowittMapWN34.Length; i++)
+				{
+					MapWN34[i] = cumulus.EcowittMapWN34[i];
+				}
+			}
+			else
+			{
+				PrimaryTHSensor = cumulus.ExtraPrimaryTHSensor;
+				PrimaryIndoorTHSensor = cumulus.ExtraPrimaryIndoorTHSensor;
+				for (int i = 0; i < cumulus.ExtraMapWN34.Length; i++)
+				{
+					MapWN34[i] = cumulus.ExtraMapWN34[i];
+				}
+			}
 		}
 
 
@@ -1772,12 +1796,12 @@ namespace CumulusMX
 				if (rec.Value.IndoorHum.HasValue)
 				{
 					// user has mapped indoor humidity to outdoor
-					if (cumulus.Gw1000PrimaryTHSensor == 99)
+					if (PrimaryTHSensor == 99)
 					{
 						station.DoOutdoorHumidity(rec.Value.IndoorHum.Value, rec.Key);
 					}
 
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+					if (PrimaryIndoorTHSensor == 0)
 					{
 						station.DoIndoorHumidity(rec.Value.IndoorHum.Value);
 					}
@@ -1787,7 +1811,7 @@ namespace CumulusMX
 					cumulus.LogWarningMessage("ApplyHistoricData: Missing indoor humidity data");
 				}
 
-				if (cumulus.Gw1000PrimaryTHSensor == 0)
+				if (PrimaryTHSensor == 0)
 				{
 					if (rec.Value.Humidity.HasValue)
 					{
@@ -1845,12 +1869,12 @@ namespace CumulusMX
 				{
 					var tempVal = (double) rec.Value.IndoorTemp;
 					// user has mapped indoor temperature to outdoor
-					if (cumulus.Gw1000PrimaryTHSensor == 99)
+					if (PrimaryTHSensor == 99)
 					{
 						station.DoOutdoorTemp(tempVal, rec.Key);
 					}
 
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+					if (PrimaryIndoorTHSensor == 0)
 					{
 						station.DoIndoorTemp(tempVal);
 					}
@@ -1869,7 +1893,7 @@ namespace CumulusMX
 			// = avg for period
 			try
 			{
-				if (cumulus.Gw1000PrimaryTHSensor == 0)
+				if (PrimaryTHSensor == 0)
 				{
 					if (rec.Value.Temp.HasValue)
 					{
@@ -1958,21 +1982,21 @@ namespace CumulusMX
 						var tempVal = (double) rec.Value.ExtraTemp[i];
 						station.DoExtraTemp(tempVal, i);
 
-						if (i == cumulus.Gw1000PrimaryTHSensor)
+						if (i == PrimaryTHSensor)
 						{
 							station.DoOutdoorTemp(tempVal, rec.Key);
 						}
 
-						if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+						if (i == PrimaryIndoorTHSensor)
 						{
 							station.DoIndoorTemp(tempVal);
 						}
 					}
-					else if (i == cumulus.Gw1000PrimaryTHSensor)
+					else if (i == PrimaryTHSensor)
 					{
 						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra temperature #{i} mapped to outdoor temperature data");
 					}
-					else if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+					else if (i == PrimaryIndoorTHSensor)
 					{
 						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra temperature #{i} mapped to indoor temperature data");
 					}
@@ -1988,21 +2012,21 @@ namespace CumulusMX
 					{
 						station.DoExtraHum(rec.Value.ExtraHumidity[i].Value, i);
 
-						if (i == cumulus.Gw1000PrimaryTHSensor)
+						if (i == PrimaryTHSensor)
 						{
 							station.DoOutdoorHumidity(rec.Value.ExtraHumidity[i].Value, rec.Key);
 						}
 
-						if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+						if (i == PrimaryIndoorTHSensor)
 						{
 							station.DoIndoorHumidity(rec.Value.ExtraHumidity[i].Value);
 						}
 					}
-					else if (i == cumulus.Gw1000PrimaryTHSensor)
+					else if (i == PrimaryTHSensor)
 					{
 						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to outdoor humidity data");
 					}
-					else if (i == cumulus.Gw1000PrimaryIndoorTHSensor)
+					else if (i == PrimaryIndoorTHSensor)
 					{
 						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to indoor humidity data");
 					}
@@ -2023,13 +2047,13 @@ namespace CumulusMX
 				{
 					if (rec.Value.UserTemp[i].HasValue)
 					{
-						if (cumulus.EcowittMapWN34[i] == 0)
+						if (MapWN34[i] == 0)
 						{
 							station.DoUserTemp((double) rec.Value.UserTemp[i], i);
 						}
 						else
 						{
-							station.DoSoilTemp((double) rec.Value.UserTemp[i], cumulus.EcowittMapWN34[i]);
+							station.DoSoilTemp((double) rec.Value.UserTemp[i], MapWN34[i]);
 						}
 					}
 				}

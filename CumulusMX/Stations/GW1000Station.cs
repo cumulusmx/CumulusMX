@@ -115,7 +115,7 @@ namespace CumulusMX
 
 			Api = new GW1000Api(cumulus);
 
-			ecowittApi = new EcowittApi(cumulus, this);
+			ecowittApi = new EcowittApi(cumulus, this, true);
 
 			DoDiscovery();
 			PostDiscovery();

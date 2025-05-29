@@ -16,9 +16,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - By popular demand, implements web tags:
 	`<#ExtraTemp[11-16]>`, `<#ExtraHum[11-16]>`, `<#ExtraDP[11-16]>`
 
+### Changed
+
+- The extra sensor station sensor mappings are now independent of the main station settings
+
 ### Fixed
 
-- Fix Ecowitt HTTP API station erronously mapping an extra humidity sensor to the indoor value
+- Fix Ecowitt HTTP API station erronously mapping an extra humidity sensor to the indoor valueFix Ecowitt HTTP API station erronously mapping an extra humidity sensor to the indoor value
 - Add missing 24h AQI to CO2 sensor values from the Ecowitt HTTP API station and Ecowitt Cloud Station
 - Air Quality PM10 sensor names not being saved
 
