@@ -866,7 +866,7 @@ namespace CumulusMX
 										}
 										catch (Exception e)
 										{
-											cumulus.LogErrorMessage($"Error, DecodeCurrent, LeafWetness: {e.Message}");
+											cumulus.LogExceptionMessage(e, $"Error, DecodeCurrent, LeafWetness tx={txid}");
 										}
 									}
 
@@ -896,8 +896,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing soil moisture #{cumulus.WllSoilMoistureIdx[i]} on TxId {txid}");
-											cumulus.LogDebugMessage($"DecodeCurrent: Exception: {ex.Message}");
+											cumulus.LogExceptionMessage(ex, $"DecodeCurrent: Error processing soil moisture #{cumulus.WllSoilMoistureIdx[i]} on TxId {txid}");
 										}
 									}
 
@@ -939,8 +938,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {txid}");
-											cumulus.LogDebugMessage($"DecodeCurrent: Exception: {ex.Message}");
+											cumulus.LogExceptionMessage(ex, $"DecodeCurrent: Error processing extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {txid}");
 										}
 									}
 
@@ -1025,7 +1023,7 @@ namespace CumulusMX
 								}
 								catch (Exception ex)
 								{
-									cumulus.LogErrorMessage($"DecodeCurrent: Error processing baro reading. Error: {ex.Message}");
+									cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing baro reading");
 								}
 							}
 
@@ -1082,7 +1080,7 @@ namespace CumulusMX
 									}
 									catch (Exception ex)
 									{
-										cumulus.LogErrorMessage($"DecodeCurrent: Error processing temp-in reading. Error: {ex.Message}]");
+										cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing temp-in reading");
 									}
 
 
@@ -1099,7 +1097,7 @@ namespace CumulusMX
 									}
 									catch (Exception ex)
 									{
-										cumulus.LogDebugMessage($"DecodeCurrent: Error processing humidity-in. Error: {ex.Message}]");
+										cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing humidity-in");
 									}
 								}
 							}
@@ -1247,7 +1245,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing Primary humidity. Error: {ex.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing Primary humidity");
 										}
 
 										// do temperature after humidity as DoOutdoorTemp contains dewpoint calculation (if user selected)
@@ -1274,7 +1272,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing Primary temperature. Error: {ex.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing Primary temperature");
 										}
 
 
@@ -1292,7 +1290,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing dew point value. Error: {ex.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing dew point value");
 										}
 
 										// use wind chill from station - otherwise we calculate it at the end of processing the record when we have all the data
@@ -1310,7 +1308,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind chill. Error: {ex.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing wind chill");
 										}
 
 										// indoor data
@@ -1336,7 +1334,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing indoor temp/humidity. Error: {ex.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing indoor temp/humidity");
 										}
 
 										// Wind
@@ -1371,7 +1369,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind values. Error: {ex.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing wind values");
 										}
 
 										// Rainfall
@@ -1419,7 +1417,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing rain data. Error:{ex.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing rain data");
 										}
 
 										// Pressure
@@ -1442,7 +1440,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing baro reading. Error: {ex.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing baro reading");
 										}
 
 
@@ -1462,7 +1460,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing UV value. Error: {ex.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing UV value");
 										}
 
 										// Solar
@@ -1488,7 +1486,7 @@ namespace CumulusMX
 										}
 										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing Solar value. Error: {ex.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing Solar value");
 										}
 
 
@@ -1513,9 +1511,9 @@ namespace CumulusMX
 												DoLeafWetness(data.wet_leaf_4.Value, 4);
 											}
 										}
-										catch (Exception e)
+										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing LeafWetness. Error: {e.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing LeafWetness");
 										}
 
 
@@ -1539,9 +1537,9 @@ namespace CumulusMX
 												DoSoilMoisture(data.moist_soil_4.Value, 4);
 											}
 										}
-										catch (Exception e)
+										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing SoilMoisture. Error: {e.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing SoilMoisture");
 										}
 
 
@@ -1565,9 +1563,9 @@ namespace CumulusMX
 												DoSoilMoisture(ConvertUnits.TempFToUser(data.temp_soil_4.Value), 4);
 											}
 										}
-										catch (Exception e)
+										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing SoilTemp. Error: {e.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing SoilTemp");
 										}
 
 										// Extra Temperature
@@ -1602,9 +1600,9 @@ namespace CumulusMX
 												DoExtraTemp(ConvertUnits.TempFToUser(data.temp_extra_7.Value), 7);
 											}
 										}
-										catch (Exception e)
+										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing ExtraTemp. Error: {e.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing ExtraTemp");
 										}
 
 										// Extra Humidity
@@ -1639,9 +1637,9 @@ namespace CumulusMX
 												DoExtraHum(data.hum_extra_7.Value, 7);
 											}
 										}
-										catch (Exception e)
+										catch (Exception ex)
 										{
-											cumulus.LogErrorMessage($"DecodeCurrent: Error processing ExtraHum. Error: {e.Message}");
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing ExtraHum");
 										}
 									}
 									break;
@@ -1709,7 +1707,7 @@ namespace CumulusMX
 												}
 												catch (Exception ex)
 												{
-													cumulus.LogErrorMessage($"DecodeCurrent: Error processing Primary humidity value on TxId {rec.tx_id}. Error: {ex.Message}");
+													cumulus.LogExceptionMessage(ex, $"DecodeCurrent: Error processing Primary humidity value on TxId {rec.tx_id}");
 												}
 
 												// do temperature after humidity as DoOutdoorTemp contains dewpoint calculation (if user selected)
@@ -1736,7 +1734,7 @@ namespace CumulusMX
 												}
 												catch (Exception ex)
 												{
-													cumulus.LogErrorMessage($"DecodeCurrent: Error processing Primary temperature value on TxId {rec.tx_id}. Error: {ex.Message}");
+													cumulus.LogExceptionMessage(ex, $"DecodeCurrent: Error processing Primary temperature value on TxId {rec.tx_id}");
 												}
 
 
@@ -1754,7 +1752,7 @@ namespace CumulusMX
 												}
 												catch (Exception ex)
 												{
-													cumulus.LogErrorMessage($"DecodeCurrent: Error processing dew point value on TxId {rec.tx_id}. Error: {ex.Message}");
+													cumulus.LogExceptionMessage(ex, $"DecodeCurrent: Error processing dew point value on TxId {rec.tx_id}");
 												}
 
 												// use wind chill from WL.com - otherwise we calculate it at the end of processing the historic record when we have all the data
@@ -1772,7 +1770,7 @@ namespace CumulusMX
 												}
 												catch (Exception ex)
 												{
-													cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind chill value on TxId {rec.tx_id}. Error: {ex.Message}");
+													cumulus.LogExceptionMessage(ex, $"DecodeCurrent: Error processing wind chill value on TxId {rec.tx_id}");
 												}
 											}
 
@@ -1854,7 +1852,7 @@ namespace CumulusMX
 												}
 												catch (Exception ex)
 												{
-													cumulus.LogErrorMessage($"DecodeCurrent: Error processing wind values on TxId {rec.tx_id}. Error: {ex.Message}");
+													cumulus.LogExceptionMessage(ex, $"DecodeCurrent: Error processing wind values on TxId {rec.tx_id}");
 												}
 											}
 
@@ -1942,7 +1940,7 @@ namespace CumulusMX
 												}
 												catch (Exception ex)
 												{
-													cumulus.LogErrorMessage($"DecodeCurrent: Error processing rain data on TxId {rec.tx_id}. Error:{ex.Message}");
+													cumulus.LogExceptionMessage(ex, $"DecodeCurrent: Error processing rain data on TxId {rec.tx_id}");
 												}
 
 											}
@@ -1970,7 +1968,7 @@ namespace CumulusMX
 												}
 												catch (Exception ex)
 												{
-													cumulus.LogErrorMessage($"DecodeCurrent: Error processing UV value on TxId {rec.tx_id}. Error: {ex.Message}");
+													cumulus.LogExceptionMessage(ex, $"DecodeCurrent: Error processing UV value on TxId {rec.tx_id}");
 												}
 
 											}
@@ -2005,7 +2003,7 @@ namespace CumulusMX
 												}
 												catch (Exception ex)
 												{
-													cumulus.LogErrorMessage($"DecodeCurrent: Error processing Solar value on TxId {rec.tx_id}. Error: {ex.Message}");
+													cumulus.LogExceptionMessage(ex, $"DecodeCurrent: Error processing Solar value on TxId {rec.tx_id}");
 												}
 											}
 
@@ -2021,7 +2019,7 @@ namespace CumulusMX
 											}
 											if (rec.rx_state != 0)
 											{
-												cumulus.LogWarningMessage($"Recive state for ISS TxId {rec.tx_id} is: {(rec.rx_state == 1 ? "Rescan" : "Lost")}");
+												cumulus.LogWarningMessage($"Receive state for ISS TxId {rec.tx_id} is: {(rec.rx_state == 1 ? "Rescan" : "Lost")}");
 											}
 										}
 									}
@@ -2035,9 +2033,9 @@ namespace CumulusMX
 							break;
 					}
 				}
-				catch (Exception e)
+				catch (Exception ex)
 				{
-					cumulus.LogErrorMessage($"Error, DecodeCurrent, DataType={sensor.data_structure_type}, SensorType={sensor.sensor_type}: " + e.Message);
+					cumulus.LogExceptionMessage(ex, $"Error, DecodeCurrent, DataType={sensor.data_structure_type}, SensorType={sensor.sensor_type}");
 				}
 			}
 
