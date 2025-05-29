@@ -8501,7 +8501,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage($"DoLogFile: Error writing entry for {timestamp} - {ex.Message}");
+					LogExceptionMessage(ex, $"DoLogFile: Error writing entry for {timestamp}");
 					retries--;
 					await Task.Delay(250);
 				}
@@ -8512,53 +8512,65 @@ namespace CumulusMX
 
 			if (MySqlSettings.Monthly.Enabled)
 			{
-				MySqlILastntervalTime = timestamp;
-
-				StringBuilder values = new StringBuilder(MonthlyTable.StartOfInsert, 600);
-				values.Append(" Values('");
-				values.Append(timestamp.ToString("yyyy-MM-dd HH:mm") + "'");
-				values.Append(sep + station.OutdoorTemperature.ToString(TempFormat, inv));
-				values.Append(sep + station.OutdoorHumidity);
-				values.Append(sep + station.OutdoorDewpoint.ToString(TempFormat, inv));
-				values.Append(sep + station.WindAverage.ToString(WindAvgFormat, inv));
-				values.Append(sep + station.RecentMaxGust.ToString(WindFormat, inv));
-				values.Append(sep + station.AvgBearing);
-				values.Append(sep + station.RainRate.ToString(RainFormat, inv));
-				values.Append(sep + station.RainToday.ToString(RainFormat, inv));
-				values.Append(sep + station.Pressure.ToString(PressFormat, inv));
-				values.Append(sep + station.RainCounter.ToString(RainFormat, inv));
-				values.Append(sep + (station.IndoorTemperature.HasValue ? station.IndoorTemperature.Value.ToString(TempFormat, inv) : "NULL"));
-				values.Append(sep + (station.IndoorHumidity.HasValue ? station.IndoorHumidity : "NULL"));
-				values.Append(sep + station.WindLatest.ToString(WindFormat, inv));
-				values.Append(sep + station.WindChill.ToString(TempFormat, inv));
-				values.Append(sep + station.HeatIndex.ToString(TempFormat, inv));
-				values.Append(sep + (station.UV.HasValue ? station.UV.Value.ToString(UVFormat, inv) : "NULL"));
-				values.Append(sep + (station.SolarRad.HasValue ? station.SolarRad : "NULL"));
-				values.Append(sep + station.ET.ToString(ETFormat, inv));
-				values.Append(sep + station.AnnualETTotal.ToString(ETFormat, inv));
-				values.Append(sep + station.ApparentTemperature.ToString(TempFormat, inv));
-				values.Append(sep + station.CurrentSolarMax);
-				values.Append(sep + station.SunshineHours.ToString(SunFormat, inv));
-				values.Append(sep + station.Bearing);
-				values.Append(sep + station.RG11RainToday.ToString(RainFormat, inv));
-				values.Append(sep + station.RainSinceMidnight.ToString(RainFormat, inv) );
-				values.Append(sep + "'" + station.CompassPoint(station.AvgBearing) + "'");
-				values.Append(sep + "'" + station.CompassPoint(station.Bearing) + "'");
-				values.Append(sep + station.FeelsLike.ToString(TempFormat, inv));
-				values.Append(sep + station.Humidex.ToString(TempFormat, inv));
-				values.Append(')');
-
-				string queryString = values.ToString();
-
-				if (live)
+				string queryString = string.Empty;
+				try
 				{
-					// do the update
-					_ = CheckMySQLFailedUploads("DoLogFile", queryString);
+					MySqlILastntervalTime = timestamp;
+
+					StringBuilder values = new StringBuilder(MonthlyTable.StartOfInsert, 600);
+					values.Append(" Values('");
+					values.Append(timestamp.ToString("yyyy-MM-dd HH:mm") + "'");
+					values.Append(sep + station.OutdoorTemperature.ToString(TempFormat, inv));
+					values.Append(sep + station.OutdoorHumidity);
+					values.Append(sep + station.OutdoorDewpoint.ToString(TempFormat, inv));
+					values.Append(sep + station.WindAverage.ToString(WindAvgFormat, inv));
+					values.Append(sep + station.RecentMaxGust.ToString(WindFormat, inv));
+					values.Append(sep + station.AvgBearing);
+					values.Append(sep + station.RainRate.ToString(RainFormat, inv));
+					values.Append(sep + station.RainToday.ToString(RainFormat, inv));
+					values.Append(sep + station.Pressure.ToString(PressFormat, inv));
+					values.Append(sep + station.RainCounter.ToString(RainFormat, inv));
+					values.Append(sep + (station.IndoorTemperature.HasValue ? station.IndoorTemperature.Value.ToString(TempFormat, inv) : "NULL"));
+					values.Append(sep + (station.IndoorHumidity.HasValue ? station.IndoorHumidity : "NULL"));
+					values.Append(sep + station.WindLatest.ToString(WindFormat, inv));
+					values.Append(sep + station.WindChill.ToString(TempFormat, inv));
+					values.Append(sep + station.HeatIndex.ToString(TempFormat, inv));
+					values.Append(sep + (station.UV.HasValue ? station.UV.Value.ToString(UVFormat, inv) : "NULL"));
+					values.Append(sep + (station.SolarRad.HasValue ? station.SolarRad : "NULL"));
+					values.Append(sep + station.ET.ToString(ETFormat, inv));
+					values.Append(sep + station.AnnualETTotal.ToString(ETFormat, inv));
+					values.Append(sep + station.ApparentTemperature.ToString(TempFormat, inv));
+					values.Append(sep + station.CurrentSolarMax);
+					values.Append(sep + station.SunshineHours.ToString(SunFormat, inv));
+					values.Append(sep + station.Bearing);
+					values.Append(sep + station.RG11RainToday.ToString(RainFormat, inv));
+					values.Append(sep + station.RainSinceMidnight.ToString(RainFormat, inv));
+					values.Append(sep + "'" + station.CompassPoint(station.AvgBearing) + "'");
+					values.Append(sep + "'" + station.CompassPoint(station.Bearing) + "'");
+					values.Append(sep + station.FeelsLike.ToString(TempFormat, inv));
+					values.Append(sep + station.Humidex.ToString(TempFormat, inv));
+					values.Append(')');
+
+					queryString = values.ToString();
+
 				}
-				else
+				catch (Exception ex)
 				{
-					// save the string for later
-					MySqlList.Enqueue(new SqlCache() { statement = queryString });
+					LogExceptionMessage(ex, "DoLogFile: Error creating MySQL query string");
+				}
+
+				if (queryString != string.Empty)
+				{
+					if (live)
+					{
+						// do the update
+						_ = CheckMySQLFailedUploads("DoLogFile", queryString);
+					}
+					else
+					{
+						// save the string for later
+						MySqlList.Enqueue(new SqlCache() { statement = queryString });
+					}
 				}
 			}
 		}
@@ -13633,7 +13645,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage($"{callingFunction}: Error - " + ex.Message);
+				LogExceptionMessage(ex, $"{callingFunction}: Error during MySQL upload");
 				SqlCatchingUp = false;
 			}
 		}
