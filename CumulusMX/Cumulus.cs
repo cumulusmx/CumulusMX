@@ -3575,134 +3575,159 @@ namespace CumulusMX
 			LogMessage("Calculating sunrise and sunset times");
 			DateTime now = DateTime.Now;
 			DateTime tomorrow = now.AddDays(1);
-			GetSunriseSunset(now, out SunRiseTime, out SunSetTime, out SunAlwaysUp, out SunAlwaysDown);
+			try
+			{
+				GetSunriseSunset(now, out SunRiseTime, out SunSetTime, out SunAlwaysUp, out SunAlwaysDown);
 
-			if (SunAlwaysUp)
-			{
-				LogMessage("Sun always up");
-				DayLength = new TimeSpan(24, 0, 0);
+				if (SunAlwaysUp)
+				{
+					LogMessage("Sun always up");
+					DayLength = new TimeSpan(24, 0, 0);
+				}
+				else if (SunAlwaysDown)
+				{
+					LogMessage("Sun always down");
+					DayLength = new TimeSpan(0, 0, 0);
+				}
+				else
+				{
+					LogMessage("Sunrise: " + SunRiseTime.ToString("HH:mm:ss"));
+					LogMessage("Sunset : " + SunSetTime.ToString("HH:mm:ss"));
+					if (SunRiseTime == DateTime.MinValue)
+					{
+						DayLength = SunSetTime - DateTime.Now.Date;
+					}
+					else if (SunSetTime == DateTime.MinValue)
+					{
+						DayLength = DateTime.Now.Date.AddDays(1) - SunRiseTime;
+					}
+					else if (SunSetTime > SunRiseTime)
+					{
+						DayLength = SunSetTime - SunRiseTime;
+					}
+					else
+					{
+						DayLength = new TimeSpan(24, 0, 0) - (SunRiseTime - SunSetTime);
+					}
+				}
+
+				DateTime tomorrowSunRiseTime;
+				DateTime tomorrowSunSetTime;
+				TimeSpan tomorrowDayLength;
+				bool tomorrowSunAlwaysUp;
+				bool tomorrowSunAlwaysDown;
+
+				GetSunriseSunset(tomorrow, out tomorrowSunRiseTime, out tomorrowSunSetTime, out tomorrowSunAlwaysUp, out tomorrowSunAlwaysDown);
+
+				if (tomorrowSunAlwaysUp)
+				{
+					LogMessage("Tomorrow sun always up");
+					tomorrowDayLength = new TimeSpan(24, 0, 0);
+				}
+				else if (tomorrowSunAlwaysDown)
+				{
+					LogMessage("Tomorrow sun always down");
+					tomorrowDayLength = new TimeSpan(0, 0, 0);
+				}
+				else
+				{
+					LogMessage("Tomorrow sunrise: " + tomorrowSunRiseTime.ToString("HH:mm:ss"));
+					LogMessage("Tomorrow sunset : " + tomorrowSunSetTime.ToString("HH:mm:ss"));
+					tomorrowDayLength = tomorrowSunSetTime - tomorrowSunRiseTime;
+				}
+
+				int tomorrowdiff = Convert.ToInt32(tomorrowDayLength.TotalSeconds - DayLength.TotalSeconds);
+				LogDebugMessage("Tomorrow length diff: " + tomorrowdiff);
+
+				bool tomorrowminus;
+
+				if (tomorrowdiff < 0)
+				{
+					tomorrowminus = true;
+					tomorrowdiff = -tomorrowdiff;
+				}
+				else
+				{
+					tomorrowminus = false;
+				}
+
+				int tomorrowmins = tomorrowdiff / 60;
+				int tomorrowsecs = tomorrowdiff % 60;
+
+				if (tomorrowminus)
+				{
+					try
+					{
+						TomorrowDayLengthText = string.Format(Trans.thereWillBeMinSLessDaylightTomorrow, tomorrowmins, tomorrowsecs);
+					}
+					catch (Exception)
+					{
+						TomorrowDayLengthText = "Error in LessDaylightTomorrow format string";
+					}
+				}
+				else
+				{
+					try
+					{
+						TomorrowDayLengthText = string.Format(Trans.thereWillBeMinSMoreDaylightTomorrow, tomorrowmins, tomorrowsecs);
+					}
+					catch (Exception)
+					{
+						TomorrowDayLengthText = "Error in MoreDaylightTomorrow format string";
+					}
+				}
 			}
-			else if (SunAlwaysDown)
+			catch (Exception ex)
 			{
-				LogMessage("Sun always down");
+				LogExceptionMessage(ex, "Error calculating sunrise and sunset times");
+				SunRiseTime = DateTime.MinValue;
+				SunSetTime = DateTime.MinValue;
+				SunAlwaysUp = false;
+				SunAlwaysDown = false;
 				DayLength = new TimeSpan(0, 0, 0);
+				TomorrowDayLengthText = string.Empty;
 			}
-			else
+
+			try
 			{
-				LogMessage("Sunrise: " + SunRiseTime.ToString("HH:mm:ss"));
-				LogMessage("Sunset : " + SunSetTime.ToString("HH:mm:ss"));
-				if (SunRiseTime == DateTime.MinValue)
+				GetDawnDusk(now, out Dawn, out Dusk, out TwilightAlways, out TwilightNever);
+
+				if (TwilightAlways)
 				{
-					DayLength = SunSetTime - DateTime.Now.Date;
+					DaylightLength = new TimeSpan(24, 0, 0);
 				}
-				else if (SunSetTime == DateTime.MinValue)
+				else if (TwilightNever)
 				{
-					DayLength = DateTime.Now.Date.AddDays(1) - SunRiseTime;
-				}
-				else if (SunSetTime > SunRiseTime)
-				{
-					DayLength = SunSetTime - SunRiseTime;
+					DaylightLength = new TimeSpan(0, 0, 0);
 				}
 				else
 				{
-					DayLength = new TimeSpan(24, 0, 0) - (SunRiseTime - SunSetTime);
+					if (Dawn == DateTime.MinValue)
+					{
+						DaylightLength = Dusk - DateTime.Now.Date;
+					}
+					else if (Dusk == DateTime.MinValue)
+					{
+						DaylightLength = DateTime.Now.Date.AddDays(1) - Dawn;
+					}
+					else if (Dusk > Dawn)
+					{
+						DaylightLength = Dusk - Dawn;
+					}
+					else
+					{
+						DaylightLength = new TimeSpan(24, 0, 0) - (Dawn - Dusk);
+					}
 				}
 			}
-
-			DateTime tomorrowSunRiseTime;
-			DateTime tomorrowSunSetTime;
-			TimeSpan tomorrowDayLength;
-			bool tomorrowSunAlwaysUp;
-			bool tomorrowSunAlwaysDown;
-
-			GetSunriseSunset(tomorrow, out tomorrowSunRiseTime, out tomorrowSunSetTime, out tomorrowSunAlwaysUp, out tomorrowSunAlwaysDown);
-
-			if (tomorrowSunAlwaysUp)
+			catch (Exception ex)
 			{
-				LogMessage("Tomorrow sun always up");
-				tomorrowDayLength = new TimeSpan(24, 0, 0);
-			}
-			else if (tomorrowSunAlwaysDown)
-			{
-				LogMessage("Tomorrow sun always down");
-				tomorrowDayLength = new TimeSpan(0, 0, 0);
-			}
-			else
-			{
-				LogMessage("Tomorrow sunrise: " + tomorrowSunRiseTime.ToString("HH:mm:ss"));
-				LogMessage("Tomorrow sunset : " + tomorrowSunSetTime.ToString("HH:mm:ss"));
-				tomorrowDayLength = tomorrowSunSetTime - tomorrowSunRiseTime;
-			}
-
-			int tomorrowdiff = Convert.ToInt32(tomorrowDayLength.TotalSeconds - DayLength.TotalSeconds);
-			LogDebugMessage("Tomorrow length diff: " + tomorrowdiff);
-
-			bool tomorrowminus;
-
-			if (tomorrowdiff < 0)
-			{
-				tomorrowminus = true;
-				tomorrowdiff = -tomorrowdiff;
-			}
-			else
-			{
-				tomorrowminus = false;
-			}
-
-			int tomorrowmins = tomorrowdiff / 60;
-			int tomorrowsecs = tomorrowdiff % 60;
-
-			if (tomorrowminus)
-			{
-				try
-				{
-					TomorrowDayLengthText = string.Format(Trans.thereWillBeMinSLessDaylightTomorrow, tomorrowmins, tomorrowsecs);
-				}
-				catch (Exception)
-				{
-					TomorrowDayLengthText = "Error in LessDaylightTomorrow format string";
-				}
-			}
-			else
-			{
-				try
-				{
-					TomorrowDayLengthText = string.Format(Trans.thereWillBeMinSMoreDaylightTomorrow, tomorrowmins, tomorrowsecs);
-				}
-				catch (Exception)
-				{
-					TomorrowDayLengthText = "Error in MoreDaylightTomorrow format string";
-				}
-			}
-
-			GetDawnDusk(now, out Dawn, out Dusk, out TwilightAlways, out TwilightNever);
-
-			if (TwilightAlways)
-			{
-				DaylightLength = new TimeSpan(24, 0, 0);
-			}
-			else if (TwilightNever)
-			{
+				LogExceptionMessage(ex, "Error calculating dawn and dusk times");
+				Dawn = DateTime.MinValue;
+				Dusk = DateTime.MinValue;
+				TwilightAlways = false;
+				TwilightNever = false;
 				DaylightLength = new TimeSpan(0, 0, 0);
-			}
-			else
-			{
-				if (Dawn == DateTime.MinValue)
-				{
-					DaylightLength = Dusk - DateTime.Now.Date;
-				}
-				else if (Dusk == DateTime.MinValue)
-				{
-					DaylightLength = DateTime.Now.Date.AddDays(1) - Dawn;
-				}
-				else if (Dusk > Dawn)
-				{
-					DaylightLength = Dusk - Dawn;
-				}
-				else
-				{
-					DaylightLength = new TimeSpan(24, 0, 0) - (Dawn - Dusk);
-				}
 			}
 		}
 
