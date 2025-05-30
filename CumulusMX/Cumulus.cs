@@ -3595,11 +3595,11 @@ namespace CumulusMX
 					LogMessage("Sunset : " + SunSetTime.ToString("HH:mm:ss"));
 					if (SunRiseTime == DateTime.MinValue)
 					{
-						DayLength = SunSetTime - DateTime.Now.Date;
+						DayLength = SunSetTime - DateTime.Now.Date; // ???? not right!
 					}
 					else if (SunSetTime == DateTime.MinValue)
 					{
-						DayLength = DateTime.Now.Date.AddDays(1) - SunRiseTime;
+						DayLength = DateTime.Now.Date.AddDays(1) - SunRiseTime; // ???? not right!
 					}
 					else if (SunSetTime > SunRiseTime)
 					{
@@ -3704,11 +3704,11 @@ namespace CumulusMX
 				{
 					if (Dawn == DateTime.MinValue)
 					{
-						DaylightLength = Dusk - DateTime.Now.Date;
+						DaylightLength = Dusk - DateTime.Now.Date; // ???? not right!
 					}
 					else if (Dusk == DateTime.MinValue)
 					{
-						DaylightLength = DateTime.Now.Date.AddDays(1) - Dawn;
+						DaylightLength = DateTime.Now.Date.AddDays(1) - Dawn; // ???? not right!
 					}
 					else if (Dusk > Dawn)
 					{
