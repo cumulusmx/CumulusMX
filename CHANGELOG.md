@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.1 \[b4103\]][20] - 2025-05-30
+## [4.5.1 \[b4103\]][20] - 2025-05-31
 
 ### New
 - By popular demand, implements web tags:
@@ -27,7 +27,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Ecowitt HTTP API station erronously mapping an extra humidity sensor to the indoor valueFix Ecowitt HTTP API station erronously mapping an extra humidity sensor to the indoor value
 - Add missing 24h AQI to CO2 sensor values from the Ecowitt HTTP API station and Ecowitt Cloud Station
 - Air Quality PM10 sensor names not being saved
-- Sun rise/set daylength calcuation errors now caught and the program continues. But this still requires a longer term fix to the underlying problem
+- Sun rise/set daylength calcuation errors now caught and the program continues on error
+	- Fixes to the calcuations for locations above the artic circles
 - Realtime SFTP not working in v4.5.0
 
 
