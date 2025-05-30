@@ -19,7 +19,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changed
 
 - The extra sensor station sensor mappings are now independent of the main station settings
-- Some basic checking of the PurpleAir response before trying to process it.
+- Some basic checking of the PurpleAir response before trying to process it
 
 ### Fixed
 
@@ -28,6 +28,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add missing 24h AQI to CO2 sensor values from the Ecowitt HTTP API station and Ecowitt Cloud Station
 - Air Quality PM10 sensor names not being saved
 - Sun rise/set daylength calcuation errors now caught and the program continues. But this still requires a longer term fix to the underlying problem
+- Realtime SFTP not working in v4.5.0
 
 
 ## [4.5.0 \[b4102\]][19] - 2025-05-26
@@ -70,15 +71,21 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Previously this required manual editing of the Dashboard, Now, and Gauges page scripts
 - Ecowitt Cloud Station type now reports individual low battery sensors to the low battery array
 - Ecowitt Cloud Station now has an additional option to specify the expected data update rate
-- Davis AirLink: new web tags for uptime and link uptime
-	`<#AirLinkUptimeIn> <#AirLinkLinkUptimeIn>`
-	`<#AirLinkUptimeOut> <#AirLinkLinkUptimeOut>`
-- Two new web tags for the Station Up-time, and Station Link Up-time as time spans
-	`<#StationUptime>`, `<#StationLinkUptime>`
-	- Currently only the following stations supply this information:
-		Davis WLL - both
-		Davis WLC - both
-		Ecowitt HTTP API - Uptime only
+- New uptime web tags
+	- Davis AirLink: new web tags for uptime and link uptime
+		`<#AirLinkUptimeIn> <#AirLinkLinkUptimeIn>`
+		`<#AirLinkUptimeOut> <#AirLinkLinkUptimeOut>`
+	- Two new web tags for the Station Up-time, and Station Link Up-time as time spans
+		`<#StationUptime>`, `<#StationLinkUptime>`
+		- Currently only the following stations supply this information:
+			Davis WLL - both
+			Davis WLC - both
+			Ecowitt HTTP API - Uptime only
+	- The web tag custom format= parameter for these tags is slightly different from the normal DateTime web tags
+		- To get the values for hours use `{0:hh}` (two digits, leading zero) or `{0:h}` (no leading zero)
+		- To get the values for minutes use `{0:mm}` (two digits, leading zero) or `{0:m}` (no leading zero)
+		- A normal the format string can contain free text, for example:
+		`format="Uptime is {0:hh} hrs {0:mm} mins"`
 - Basic support for live data from PurpleAir sensors
 	- It uses the existing AirQuality1-4, AirQualityAvg1-4, and Extra Temp/Hum/Dewpoint sensor web tags
 	- It adds pm10 values
@@ -110,6 +117,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Station Pressure limits now apply to all stations - previously only Davis VP2 implemented them
 - Ecowitt camera web tag warning messages changed to plain messages
 - Add support for Timestamp in Ecowitt SD card log files
+- The web tags `<#daylength>` and `<#daylightlength>` now have revised format strings. **Please see the uptime tags in the New section above for details**
 
 ### Fixed
 

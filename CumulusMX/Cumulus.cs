@@ -2760,7 +2760,14 @@ namespace CumulusMX
 					} while (!connected && !cancellationToken.IsCancellationRequested);
 
 					// OK we are reconnected, let the FTP recommence
-					LogFtpMessage("RealtimeFtpWatchDog: Realtime FTP OK, operations can be resumed", true);
+					if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+					{
+						LogMessage("RealtimeFtpWatchDog: Realtime FTP OK, operations can be resumed");
+					}
+					else
+					{
+						LogFtpMessage("RealtimeFtpWatchDog: Realtime FTP OK, operations can be resumed", true);
+					}
 					RealtimeFtpLocked = false;
 					RealtimeCopyInProgress = false;
 					try
