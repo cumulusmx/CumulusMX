@@ -90,8 +90,21 @@ namespace CumulusMX
 						{
 							response.EnsureSuccessStatusCode();
 							var responseBody = await response.Content.ReadAsStringAsync();
-							cumulus.LogDataMessage($"GetPaLiveData: Response - {responseBody}");
-							DecodePaLive(i + 1, responseBody, cumulus.PurpleAirAlgorithm[i], cumulus.PurpleAirThSensor[i]);
+
+							if (string.IsNullOrWhiteSpace(responseBody))
+							{
+								cumulus.LogMessage("GetPaLiveData: Error, an empty reponse received from the PA sensor");
+							}
+							else if (responseBody[0] != '{')
+							{
+								cumulus.LogMessage("GetPaLiveData: Error, an invalid reponse received from the PA sensor");
+								cumulus.LogMessage("GetPaLiveData:  Response = " + responseBody);
+							}
+							else
+							{
+								cumulus.LogDataMessage($"GetPaLiveData: Response = {responseBody}");
+								DecodePaLive(i + 1, responseBody, cumulus.PurpleAirAlgorithm[i], cumulus.PurpleAirThSensor[i]);
+							}
 						}
 						taskCancelledCount = 0;
 					}
@@ -320,7 +333,6 @@ namespace CumulusMX
 			{
 				cumulus.LogExceptionMessage(ex, "DecodePaCurrent: Error processing returned data");
 			}
-
 		}
 
 

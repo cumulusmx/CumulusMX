@@ -12790,8 +12790,6 @@ namespace CumulusMX
 
 		public void LogExceptionMessage(Exception ex, string message, bool logError = true)
 		{
-			LogMessage(message);
-
 			if (ProgramOptions.DebugLogging)
 			{
 				LogMessage(message + " - " + Utils.ExceptionToString(ex, out _));

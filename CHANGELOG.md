@@ -19,6 +19,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changed
 
 - The extra sensor station sensor mappings are now independent of the main station settings
+- Some basic checking of the PurpleAir response before trying to process it.
 
 ### Fixed
 
