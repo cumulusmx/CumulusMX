@@ -4616,16 +4616,6 @@ namespace CumulusMX
 				ExtraSensorUseCamera = ini.GetValue("ExtraSensors", "ExtraSensorUseCamera", true);
 			}
 			ExtraSensorUseLaserDist = ini.GetValue("ExtraSensors", "ExtraSensorUseLaserDist", true);
-			ExtraPrimaryTHSensor = ini.GetValue("ExtraSensors", "ExtraPrimaryTHSensor", Gw1000PrimaryTHSensor, 0, 99);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
-			ExtraPrimaryRainSensor = ini.GetValue("ExtraSensors", "ExtraPrimaryRainSensor", Gw1000PrimaryRainSensor, 0, 1); //0=main station (tipping bucket) 1=piezo
-			ExtraPrimaryIndoorTHSensor = ini.GetValue("ExtraSensors", "ExtraPrimaryIndoorTHSensor", Gw1000PrimaryIndoorTHSensor, 0, 8);  // 0=default, 1-8=extra t/h sensor number
-			// WN34 sensor mapping
-			for (int i = 1; i <= 8; i++)
-			{
-				ExtraMapWN34[i] = ini.GetValue("ExtraSensors", "WN34MapChan" + i, EcowittMapWN34[i]);
-			}
-
-
 
 			// AirLink settings
 			// We have to convert previous per AL IsNode config to global
@@ -6531,14 +6521,6 @@ namespace CumulusMX
 			ini.SetValue("ExtraSensors", "ExtraSensorUseLeak", ExtraSensorUseLeak);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseCamera", ExtraSensorUseCamera);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseLaserDist", ExtraSensorUseLaserDist);
-			ini.SetValue("ExtraSensors", "ExtraPrimaryTHSensor", ExtraPrimaryTHSensor);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
-			ini.SetValue("ExtraSensors", "ExtraPrimaryRainSensor", ExtraPrimaryRainSensor); //0=main station (tipping bucket) 1=piezo
-			ini.SetValue("ExtraSensors", "ExtraPrimaryIndoorTHSensor", ExtraPrimaryIndoorTHSensor);  // 0=default, 1-8=extra t/h sensor number
-			// WN34 sensor mapping
-			for (int i = 1; i <= 8; i++)
-			{
-				ini.SetValue("ExtraSensors", "WN34MapChan" + i, ExtraMapWN34[i]);
-			}
 
 			// AirLink settings
 			ini.SetValue("AirLink", "IsWllNode", AirLinkIsNode);
@@ -8140,7 +8122,6 @@ namespace CumulusMX
 		public string[] EcowittExtraForwarders { get; set; } = new string[10];
 		public string EcowittHttpPassword { get; set; }
 		public int[] EcowittMapWN34 { get; set; } = new int[9];
-		public int[] ExtraMapWN34 { get; set; } = new int[9];
 		public bool EcowittIsRainingUsePiezo {  get; set; }
 
 		public bool AmbientExtraEnabled { get; set; }
@@ -8346,21 +8327,17 @@ namespace CumulusMX
 		/// 99 =use indoor sensor
 		/// </summary>
 		internal int Gw1000PrimaryTHSensor;
-		internal int ExtraPrimaryTHSensor;
 		/// <summary>
 		/// 0 = Tipping bucket
 		/// 1 = Piezo
 		/// </summary>
 		internal int Gw1000PrimaryRainSensor;
-		internal int ExtraPrimaryRainSensor;
 
 		/// <summary>
 		/// 0 = default
 		/// 1-8 = extra t/h sensor number
 		/// </summary>
 		internal int Gw1000PrimaryIndoorTHSensor;
-		internal int ExtraPrimaryIndoorTHSensor;
-
 
 		internal Timer WebTimer = new();
 

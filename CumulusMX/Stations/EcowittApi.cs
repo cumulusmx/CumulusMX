@@ -69,23 +69,11 @@ namespace CumulusMX
 			};
 
 			// sensor mappings
-			if (mainStation)
+			PrimaryTHSensor = cumulus.Gw1000PrimaryTHSensor;
+			PrimaryIndoorTHSensor = cumulus.Gw1000PrimaryIndoorTHSensor;
+			for (int i = 0; i < cumulus.EcowittMapWN34.Length; i++)
 			{
-				PrimaryTHSensor = cumulus.Gw1000PrimaryTHSensor;
-				PrimaryIndoorTHSensor = cumulus.Gw1000PrimaryIndoorTHSensor;
-				for (int i = 0; i < cumulus.EcowittMapWN34.Length; i++)
-				{
-					MapWN34[i] = cumulus.EcowittMapWN34[i];
-				}
-			}
-			else
-			{
-				PrimaryTHSensor = cumulus.ExtraPrimaryTHSensor;
-				PrimaryIndoorTHSensor = cumulus.ExtraPrimaryIndoorTHSensor;
-				for (int i = 0; i < cumulus.ExtraMapWN34.Length; i++)
-				{
-					MapWN34[i] = cumulus.ExtraMapWN34[i];
-				}
+				MapWN34[i] = cumulus.EcowittMapWN34[i];
 			}
 		}
 
