@@ -19,12 +19,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Davis Cloud Station (VP2/Vue) decoding of soil moisture/temp and leaf wetness
-- Fix Ecowitt HTTP API station erronously mapping an extra humidity sensor to the indoor valueFix Ecowitt HTTP API station erronously mapping an extra humidity sensor to the indoor value
+- Fix Ecowitt HTTP API station erroneously  mapping an extra humidity sensor to the indoor value
 - Add missing 24h AQI to CO2 sensor values from the Ecowitt HTTP API station and Ecowitt Cloud Station
 - Air Quality PM10 sensor names not being saved
 - Some basic checking of the PurpleAir response before trying to process it
-- Sun rise/set daylength calcuation errors now caught and the program continues on error
-	- Fixes to the calcuations for locations above the artic circles
+- Sun rise/set daylength calculation errors now caught and the program continues on error
+	- Fixes to the calculations for locations above the Arctic circles
 - Realtime SFTP not working in v4.5.0
 
 
