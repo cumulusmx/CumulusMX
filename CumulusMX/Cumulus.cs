@@ -2596,12 +2596,12 @@ namespace CumulusMX
 							{
 								try
 								{
-									LogMessage("RealtimeFtpWatchDog: Realtime ftp attempting disconnect");
 									if (RealtimeSSH != null)
 									{
+										LogMessage("RealtimeFtpWatchDog: Realtime ftp attempting disconnect");
 										RealtimeSSH.Disconnect();
+										LogMessage("RealtimeFtpWatchDog: Realtime ftp disconnected");
 									}
-									LogMessage("RealtimeFtpWatchDog: Realtime ftp disconnected");
 								}
 								catch (ObjectDisposedException)
 								{
@@ -2666,10 +2666,11 @@ namespace CumulusMX
 
 							try
 							{
-								LogFtpMessage("RealtimeFtpWatchDog: Realtime ftp testing the connection", true);
 
 								if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 								{
+									LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp testing the connection");
+
 									// check we are still flagged as connected
 									if (!RealtimeSSH.IsConnected)
 									{
@@ -2703,6 +2704,8 @@ namespace CumulusMX
 									// IsStillConnected performs an active check that the server responds
 									// There is a problem in FluentFTP 52.1.0 that this does not work on all servers and causes a disconnect!
 									//if (!RealtimeFTP.IsStillConnected())
+
+									LogFtpMessage("RealtimeFtpWatchDog: Realtime ftp testing the connection", true);
 
 									if (!RealtimeFTP.IsConnected || !RealtimeFTP.IsAuthenticated)
 									{
@@ -13854,6 +13857,19 @@ namespace CumulusMX
 		{
 			if (FtpOptions.Enabled)
 			{
+				// dispose of the previous FTP client
+				try
+				{
+					if (RealtimeSSH != null)
+					{
+						RealtimeSSH.Disconnect();
+					}
+				}
+				finally
+				{
+					RealtimeSSH.Dispose();
+				}
+
 				LogMessage($"RealtimeSSHLogin: Attempting realtime SFTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
 				try
 				{
