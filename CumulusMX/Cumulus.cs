@@ -2763,14 +2763,8 @@ namespace CumulusMX
 					} while (!connected && !cancellationToken.IsCancellationRequested);
 
 					// OK we are reconnected, let the FTP recommence
-					if (FtpOptions.FtpMode == FtpProtocols.SFTP)
-					{
-						LogMessage("RealtimeFtpWatchDog: Realtime FTP OK, operations can be resumed");
-					}
-					else
-					{
-						LogFtpMessage("RealtimeFtpWatchDog: Realtime FTP OK, operations can be resumed", true);
-					}
+					LogFtpMessage("RealtimeFtpWatchDog: Realtime FTP OK, operations can be resumed", true);
+
 					RealtimeFtpLocked = false;
 					RealtimeCopyInProgress = false;
 					try
@@ -2875,14 +2869,7 @@ namespace CumulusMX
 				remotePath = (FtpOptions.Directory.EndsWith('/') ? FtpOptions.Directory : FtpOptions.Directory + '/');
 			}
 
-			if (FtpOptions.FtpMode != FtpProtocols.PHP)
-			{
-				LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload files starting", true);
-			}
-			else
-			{
-				LogDebugMessage($"Realtime[{cycle}]: Real time PHP upload files starting");
-			}
+			LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload files starting", true);
 
 			for (var i = 0; i < RealtimeFiles.Length; i++)
 			{
@@ -2973,14 +2960,7 @@ namespace CumulusMX
 				}
 			}
 
-			if (FtpOptions.FtpMode != FtpProtocols.PHP)
-			{
-				LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload files complete", true);
-			}
-			else
-			{
-				LogDebugMessage($"Realtime[{cycle}]: Real time PHP upload files complete");
-			}
+			LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload files complete", true);
 
 
 			// Extra files
@@ -10177,7 +10157,7 @@ namespace CumulusMX
 				}
 				LogFtpDebugMessage("ProcessHttpFiles: Connection process complete", false);
 			}
-			else if (FtpOptions.FtpMode == FtpProtocols.FTP || (FtpOptions.FtpMode == FtpProtocols.FTPS))
+			else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
 			{
 				using (FtpClient conn = new FtpClient())
 				{
@@ -12753,7 +12733,7 @@ namespace CumulusMX
 			{
 				LogMessage(message);
 			}
-			if (FtpOptions.Logging)
+			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
 			{
 				if (realTime)
 				{
@@ -12773,7 +12753,7 @@ namespace CumulusMX
 				LogDebugMessage(message);
 			}
 
-			if (FtpOptions.Logging)
+			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
 			{
 				if (realTime)
 				{
@@ -13863,11 +13843,11 @@ namespace CumulusMX
 					if (RealtimeSSH != null)
 					{
 						RealtimeSSH.Disconnect();
+						RealtimeSSH.Dispose();
 					}
 				}
 				finally
 				{
-					RealtimeSSH.Dispose();
 				}
 
 				LogMessage($"RealtimeSSHLogin: Attempting realtime SFTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
