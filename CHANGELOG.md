@@ -10,7 +10,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.5.1 \[b4103\]][20] - 2025-05-31
+## [4.5.1 \[b4104\]][21] - 2025-06-14
+
+### Fixed
+
+- Realtime SFTP still not working in v4.5.0 b4103
+
+
+## [4.5.0 \[b4103\]][20] - 2025-05-31
 
 ### New
 - By popular demand, implements web tags:
@@ -25,7 +32,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Some basic checking of the PurpleAir response before trying to process it
 - Sun rise/set daylength calculation errors now caught and the program continues on error
 	- Fixes to the calculations for locations above the Arctic circles
-- Realtime SFTP not working in v4.5.0
+- Realtime SFTP not working in v4.5.0 b4102
 
 
 ## [4.5.0 \[b4102\]][19] - 2025-05-26
@@ -838,3 +845,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [18]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4088
 [19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4102
 [20]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4103
+[21]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4104
