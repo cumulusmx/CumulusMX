@@ -114,7 +114,9 @@ namespace CumulusMX
 
 			var ecowittHttpApi = new StationSettings.JsonHttpApi()
 			{
-				ipaddress = cumulus.Gw1000IpAddress
+				ipaddress = cumulus.Gw1000IpAddress,
+				password = cumulus.EcowittHttpPassword,
+				usesdcard = cumulus.EcowittUseSdCard
 			};
 
 			var fineoffset = new JsonFineOffset()
@@ -650,6 +652,8 @@ namespace CumulusMX
 					if (settings.station.ecowitthttpapi != null)
 					{
 						cumulus.Gw1000IpAddress = string.IsNullOrWhiteSpace(settings.station.ecowitthttpapi.ipaddress) ? null : settings.station.ecowitthttpapi.ipaddress.Trim();
+						cumulus.EcowittHttpPassword = string.IsNullOrWhiteSpace(settings.station.ecowitthttpapi.password) ? null : settings.station.ecowitthttpapi.password.Trim();
+						cumulus.EcowittUseSdCard = settings.station.ecowitthttpapi.usesdcard;
 					}
 				}
 				catch (Exception ex)
@@ -754,7 +758,7 @@ namespace CumulusMX
 						cumulus.EcowittApplicationKey = string.IsNullOrWhiteSpace(settings.station.ecowittapi.applicationkey) ? null : settings.station.ecowittapi.applicationkey.Trim();
 						cumulus.EcowittUserApiKey = string.IsNullOrWhiteSpace(settings.station.ecowittapi.userkey) ? null : settings.station.ecowittapi.userkey.Trim();
 						cumulus.EcowittMacAddress = string.IsNullOrWhiteSpace(settings.station.ecowittapi.mac) ? null : settings.station.ecowittapi.mac.Trim().ToUpper();
-						cumulus.EcowittCloudDataUpdateInterval = settings.station.ecowittapi.interval;
+						cumulus.EcowittCloudDataUpdateInterval = cumulus.StationType == 18 ? settings.station.ecowittapi.interval : 1;
 					}
 				}
 				catch (Exception ex)
