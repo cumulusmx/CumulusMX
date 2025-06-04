@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Realtime SFTP still not working in v4.5.0 b4103
+- Ecowitt HTTP API Station use SD card missing from the Wizard
 
 
 ## [4.5.0 \[b4103\]][20] - 2025-05-31
