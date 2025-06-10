@@ -8611,8 +8611,8 @@ namespace CumulusMX
 			// if this is the special case of rollover processing, we want the High today record to on the previous day at 23:59 or 08:59
 			if (rollover)
 			{
-				recTs = recTs.Date;
-				recDtTm = recDtTm.Date.AddMinutes(-1);  // set record date/time at at 23:59 or 08:59 at rollover to avoid confusion with start of day at 00:00 or 09:00
+				recTs = recTs.Date.AddHours(recTs.Hour);
+				recDtTm = recTs.AddMinutes(-1);  // set record date/time at at 23:59 or 08:59 at rollover to avoid confusion with start of day at 00:00 or 09:00
 			}
 
 			// Do 3 hour trends
