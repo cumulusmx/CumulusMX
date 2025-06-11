@@ -22,6 +22,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt HTTP API Station use SD card missing from the Wizard
 - Fix incorrect trend and last hour values at rollover for stations using 9am rollover
 - Reinstate the page number option on the data file viewer/editors
+- Davis WLL Soil Temp/Moist & Leaf Wetness channels not being read from Cumulus.ini correctly
 
 
 ## [4.5.0 \[b4103\]][20] - 2025-05-31

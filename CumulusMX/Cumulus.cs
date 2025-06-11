@@ -4349,17 +4349,17 @@ namespace CumulusMX
 			for (var i = 1; i <= 16; i++)
 			{
 				WllSoilTempTx[i] = ini.GetValue("WLL", "ExtraSoilTempTxId" + i, 0, 0, 8);
-				WllSoilTempIdx[i] = ini.GetValue("WLL", "ExtraSoilTempIdx", ((i - 1) % 4) + 1, 1, 4);
+				WllSoilTempIdx[i] = ini.GetValue("WLL", "ExtraSoilTempIdx" + i, ((i - 1) % 4) + 1, 1, 4);
 			}
 			for (var i = 1; i <= 16; i++)
 			{
 				WllSoilMoistureTx[i] = ini.GetValue("WLL", "ExtraSoilMoistureTxId" + i, 0, 0, 8);
-				WllSoilMoistureIdx[i] = ini.GetValue("WLL", "ExtraSoilMoistureIdx", ((i - 1) % 4) + 1, 1, 4);
+				WllSoilMoistureIdx[i] = ini.GetValue("WLL", "ExtraSoilMoistureIdx" + i, ((i - 1) % 4) + 1, 1, 4);
 			}
 			for (var i = 1; i <= 8; i++)
 			{
 				WllLeafWetTx[i] = ini.GetValue("WLL", "ExtraLeafTxId" + i, 0, 0, 8);
-				WllLeafWetIdx[i] = ini.GetValue("WLL", "ExtraLeafIdx", ((i - 1) % 2) + 1, 1, 2);
+				WllLeafWetIdx[i] = ini.GetValue("WLL", "ExtraLeafIdx" + i, ((i - 1) % 2) + 1, 1, 2);
 			}
 			for (int i = 1; i <= 16; i++)
 			{
