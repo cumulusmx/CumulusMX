@@ -646,8 +646,6 @@ namespace CumulusMX
 						broadcastStopped = false;
 						tmrCurrent.Interval = 20 * 1000;  // Every 20 seconds
 					}
-					DataStopped = false;
-					cumulus.DataStoppedAlarm.Triggered = false;
 					multicastsGood++;
 				}
 				else if (broadcastJson.StartsWith("STR_BCAST"))
@@ -1270,6 +1268,8 @@ namespace CumulusMX
 
 				UpdateStatusPanel(DateTime.Now);
 				UpdateMQTT();
+
+				LastDataReadTime = DateTime.Now;
 
 				SensorContactLost = localSensorContactLost;
 
@@ -3166,8 +3166,6 @@ namespace CumulusMX
 			if (broadcastReceived)
 			{
 				broadcastReceived = false;
-				DataStopped = false;
-				cumulus.DataStoppedAlarm.Triggered = false;
 			}
 			else
 			{

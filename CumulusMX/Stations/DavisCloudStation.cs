@@ -2118,6 +2118,8 @@ namespace CumulusMX
 			UpdateStatusPanel(DateTime.Now);
 			UpdateMQTT();
 
+			LastDataReadTime = DateTime.Now;
+
 			// If the station isn't using the logger function for WLL - i.e. no API key, then only alarm on Tx battery status
 			// otherwise, trigger the alarm when we read the Health data which also contains the WLL backup battery status
 			LowBatteryDevices.Clear();

@@ -1881,6 +1881,7 @@ namespace CumulusMX
 				}
 				UpdateStatusPanel(DateTime.Now);
 				UpdateMQTT();
+				LastDataReadTime = DateTime.Now;
 			}
 		}
 

@@ -298,8 +298,6 @@ namespace CumulusMX
 								UpdateMQTT();
 
 								dataReceived = true;
-								DataStopped = false;
-								cumulus.DataStoppedAlarm.Triggered = false;
 								LastDataReadTime = dataLastRead;
 
 								var minute = DateTime.Now.Minute;
@@ -1884,8 +1882,6 @@ namespace CumulusMX
 			if (dataReceived)
 			{
 				dataReceived = false;
-				DataStopped = false;
-				cumulus.DataStoppedAlarm.Triggered = false;
 			}
 			else
 			{

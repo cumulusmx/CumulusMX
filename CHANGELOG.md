@@ -16,9 +16,18 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Adds some detection of resuming from a computer suspension (the clock jumping formward by more than 10 minutes), and aborts the program ready for a restart and catch-up
 
+### Changed
+
+- FTP watchdog default interval changed from 1 minute to 5 minutes
+
 ### Fixed
 
+- Fix for a number of related issues
+	- day rollover sometimes not occurring
+	- real-time operations sometimes stopping
+	- third party uploads sometimes stopping
 - Realtime SFTP still not working in v4.5.0 b4103
+- Fix for the FTP watchdog not reconnecting on link failure
 - Ecowitt HTTP API Station use SD card missing from the Wizard
 - Fix incorrect trend and last hour values at rollover for stations using 9am rollover
 - Reinstate the page number option on the data file viewer/editors

@@ -1645,18 +1645,6 @@ namespace CumulusMX
 			{
 				lastMinute = timeNow.Minute;
 
-				if (DataStopped)
-				{
-					// check if we want to exit on data stopped
-					if (cumulus.ProgramOptions.DataStoppedExit && DataStoppedTime.AddMinutes(cumulus.ProgramOptions.DataStoppedMins) < DateTime.Now)
-					{
-						cumulus.LogMessage($"*** Exiting Cumulus due to Data Stopped condition for > {cumulus.ProgramOptions.DataStoppedMins} minutes");
-						Program.exitSystem = true;
-					}
-					// No data coming in, do not do anything else
-					return;
-				}
-
 				if ((timeNow.Minute % 10) == 0)
 				{
 					TenMinuteChanged();
@@ -1669,6 +1657,18 @@ namespace CumulusMX
 				}
 
 				MinuteChanged(timeNow);
+
+				if (DataStopped)
+				{
+					// check if we want to exit on data stopped
+					if (cumulus.ProgramOptions.DataStoppedExit && DataStoppedTime.AddMinutes(cumulus.ProgramOptions.DataStoppedMins) < DateTime.Now)
+					{
+						cumulus.LogMessage($"*** Exiting Cumulus due to Data Stopped condition for > {cumulus.ProgramOptions.DataStoppedMins} minutes");
+						Program.exitSystem = true;
+					}
+					// No data coming in, do not do anything else
+					return;
+				}
 			}
 
 			// send current data to web-socket every 5 seconds, unless it has already been sent within the 10 seconds

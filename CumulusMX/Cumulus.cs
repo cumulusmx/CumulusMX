@@ -12735,11 +12735,11 @@ namespace CumulusMX
 			}
 			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
 			{
-				if (realTime)
+				if (realTime && FtpLoggerMXRT != null)
 				{
 					FtpLoggerMXRT.LogInformation("{Msg}", message);
 				}
-				else
+				else if (FtpLoggerMXIN != null)
 				{
 					FtpLoggerMXIN.LogInformation("{Msg}", message);
 				}
@@ -12755,11 +12755,11 @@ namespace CumulusMX
 
 			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
 			{
-				if (realTime)
+				if (realTime && FtpLoggerMXRT != null)
 				{
 					FtpLoggerMXRT.LogInformation("{Msg}", message);
 				}
-				else
+				else if (FtpLoggerMXIN != null)
 				{
 					FtpLoggerMXIN.LogInformation("{Msg}", message);
 				}

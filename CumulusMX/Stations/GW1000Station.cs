@@ -1451,8 +1451,6 @@ namespace CumulusMX
 					LastDataReadTime = dateTime;
 
 					dataReceived = true;
-					DataStopped = false;
-					cumulus.DataStoppedAlarm.Triggered = false;
 				}
 				else
 				{
@@ -1881,8 +1879,6 @@ namespace CumulusMX
 			if (dataReceived)
 			{
 				dataReceived = false;
-				DataStopped = false;
-				cumulus.DataStoppedAlarm.Triggered = false;
 			}
 			else
 			{
