@@ -76,7 +76,7 @@ namespace CumulusMX
 			// Add an exit handler
 			AppDomain.CurrentDomain.ProcessExit += (s, e) =>
 			{
-				if (cumulus != null)
+				if (cumulus != null && Environment.ExitCode != 999)
 				{
 					Cumulus.LogConsoleMessage("Cumulus terminating", ConsoleColor.Red);
 					cumulus.LogMessage("Cumulus terminating");
@@ -93,6 +93,8 @@ namespace CumulusMX
 					Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
 					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
 				}
+
+				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exit code = " + Environment.ExitCode);
 
 				if (!service)
 				{

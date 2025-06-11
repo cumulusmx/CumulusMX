@@ -12,11 +12,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.5.1 \[b4104\]][21] - 2025-06-14
 
+### New
+
+- Adds some detection of resuming from a computer suspension (the clock jumping formward by more than 10 minutes), and aborts the program ready for a restart and catch-up
+
 ### Fixed
 
 - Realtime SFTP still not working in v4.5.0 b4103
 - Ecowitt HTTP API Station use SD card missing from the Wizard
 - Fix incorrect trend and last hour values at rollover for stations using 9am rollover
+- Reinstate the page number option on the data file viewer/editors
 
 
 ## [4.5.0 \[b4103\]][20] - 2025-05-31

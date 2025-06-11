@@ -23,7 +23,7 @@ namespace CumulusMX
 			bool debug = false;
 			StringBuilder startParams = new();
 			int i = 0;
-			
+
 			while (i < args.Length)
 			{
 				startParams.Append(args[i] + " ");
@@ -81,7 +81,7 @@ namespace CumulusMX
 			base.OnShutdown();
 		}
 
-
+		// Exit code 999 is used to prevent a clean shutdown, it aborts the program, not saving the current state/datetime if it hasn't already been saved
 		protected override bool OnPowerEvent(PowerBroadcastStatus powerStatus)
 		{
 			switch (powerStatus)
@@ -102,17 +102,20 @@ namespace CumulusMX
 					Program.cumulus.LogMessage("POWER: Detected system QUERY SUSPEND FAILED");
 					break;
 				case PowerBroadcastStatus.ResumeAutomatic:
-					Program.cumulus.LogWarningMessage("POWER: Detected system RESUME AUTOMATIC");
+					Program.cumulus.LogMessage("POWER: Detected system RESUME AUTOMATIC, stopping service");
+					Cumulus.LogConsoleMessage("Detected system RESUME AUTOMATIC, stopping service");
+					Environment.Exit(999);
 					break;
 				case PowerBroadcastStatus.ResumeCritical:
 					Program.cumulus.LogMessage("POWER: Detected system RESUME CRITICAL, stopping service");
 					Cumulus.LogConsoleMessage("Detected system RESUME CRITICAL, stopping service");
 					// A critical suspend will not have shutdown Cumulus, so do it now
-					Stop();
-					Program.exitSystem = true;
+					Environment.Exit(999);
 					break;
 				case PowerBroadcastStatus.ResumeSuspend:
-					Program.cumulus.LogWarningMessage("POWER: Detected system RESUMING FROM STANDBY");
+					Program.cumulus.LogMessage("POWER: Detected system RESUMING FROM STANDBY, stopping service");
+					Cumulus.LogConsoleMessage("Detected system RESUMING FROM STANDBY, stopping service");
+					Environment.Exit(999);
 					break;
 				case PowerBroadcastStatus.Suspend:
 					Program.cumulus.LogMessage("POWER: Detected system GOING TO STANDBY, stopping service");

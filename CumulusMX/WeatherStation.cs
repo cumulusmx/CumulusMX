@@ -119,7 +119,7 @@ namespace CumulusMX
 
 		private int lastMinute;
 		private int lastHour;
-		private int lastSecond;
+		private long lastSecond;
 
 		public bool[] WMR928ChannelPresent = [false, false, false, false];
 		public bool[] WMR928ExtraTempValueOnly = [false, false, false, false];
@@ -1605,6 +1605,7 @@ namespace CumulusMX
 
 		public void StartSecondsTimer()
 		{
+			lastSecond = DateTime.Now.ToUnixTime();
 			lastMinute = DateTime.Now.Minute;
 			lastHour = DateTime.Now.Hour;
 			secondTimer = new Timer(500);
@@ -1620,14 +1621,25 @@ namespace CumulusMX
 		public void SecondTimer(object sender, ElapsedEventArgs e)
 		{
 			var timeNow = DateTime.Now; // b3085 change to using a single fixed point in time to make it independent of how long the process takes
-			if (timeNow.Second == lastSecond)
+			var nowSec = timeNow.ToUnixTime();
+			if (nowSec == lastSecond)
 			{
 				// skip this interval it's the same second
 				return;
 			}
+			else if (nowSec > lastSecond + 600 && lastSecond != 0)
+			{
+				// check for the clock skipping forward more than 10 minutes
+				// if this happens it may be because the computer was suspended
+				// we will terminate so that the program can be restarted and the data recovered
+				// Exit code 999 is used to prevent a clean shutdown, it aborts the program, not saving the current state/datetime if it hasn't already been saved
+				cumulus.LogMessage($"*** Clock skipped forward more than 10 minutes, last second was {lastSecond}, now is {nowSec}.\n*** Resuming from standby?\n*** Exiting program.");
+				Environment.Exit(999);
+				return;
+			}
 
 			DataDateTime = timeNow;
-			lastSecond = timeNow.Second;
+			lastSecond = nowSec;
 
 			if (timeNow.Minute != lastMinute)
 			{
