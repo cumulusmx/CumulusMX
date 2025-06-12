@@ -15154,6 +15154,52 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			}
 		}
 
+		public double GetAverageChillHoursByMonth(int mon)
+		{
+			try
+			{
+				// Determine the first and last full months
+				var firstDate = DayFile[0].Date;
+				var lastDate = DayFile[^1].Date;
+				var firstFullMonth = firstDate.Day == 1 ? firstDate : new DateTime(firstDate.Year, firstDate.Month, 1, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(1);
+				var lastFullMonth = new DateTime(lastDate.Year, lastDate.Month, 1, 0, 0, 0, DateTimeKind.Local).AddDays(-1);
+				if (lastFullMonth > firstFullMonth)
+				{
+					var monthlyDiffs = DayFile
+						.Where(d => d.Date >= firstFullMonth && d.Date <= lastFullMonth && d.Date.Month == mon)
+						.GroupBy(d => new { d.Date.Year, d.Date.Month })
+						.Select(g => {
+							double maxVal = g.Max(d => d.ChillHours);
+
+							// Find last day's value from the previous month
+							double lastDayVal;
+							if (mon == cumulus.ChillHourSeasonStart)
+							{
+								lastDayVal = 0;
+							}
+							else
+							{
+								var firstDayOfMonth = new DateTime(g.Key.Year, g.Key.Month, 1, 0, 0, 0, 0, DateTimeKind.Local);
+								var previousMonthData = DayFile.Where(d => d.Date < firstDayOfMonth);
+								lastDayVal = previousMonthData.OrderByDescending(d => d.Date).FirstOrDefault()?.ChillHours ?? 0;
+							}
+
+							return maxVal - lastDayVal;
+						});
+
+					return monthlyDiffs.Average();
+				}
+				else
+				{
+					return -999;
+				}
+			}
+			catch
+			{
+				return -999; // Error fallback value
+			}
+		}
+
 		public int GetMonthDryRainDays(DateTime date, bool dry)
 		{
 			var start = new DateTime(date.Year, date.Month, 1, 0, 0, 0, DateTimeKind.Local);

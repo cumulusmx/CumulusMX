@@ -3260,7 +3260,7 @@ namespace CumulusMX
 		private string TagMonthAvgTotalChillHrs(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var val = station.GetAverageTotalByMonth(month, d => d.ChillHours);
+			var val = station.GetAverageChillHoursByMonth(month);
 
 			if (val < -998)
 			{

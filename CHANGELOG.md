@@ -34,6 +34,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix incorrect trend and last hour values at rollover for stations using 9am rollover
 - Reinstate the page number option on the data file viewer/editors
 - Davis WLL Soil Temp/Moist & Leaf Wetness channels not being read from Cumulus.ini correctly
+- Fix for incorrect values being returned for the `<#MonthAvgTotalChillHrs>` web tag
 
 
 ## [4.5.0 \[b4103\]][20] - 2025-05-31
