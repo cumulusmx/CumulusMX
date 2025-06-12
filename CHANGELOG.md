@@ -14,7 +14,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-- Adds some detection of resuming from a computer suspension (the clock jumping formward by more than 10 minutes), and aborts the program ready for a restart and catch-up
+- Adds some additional detection of resuming from a computer suspension (the clock jumping formward by more than 10 minutes), and aborts the program ready for a restart and catch-up
+	- This should only be used on Linux/MacOS systems
 
 ### Changed
 
@@ -26,6 +27,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- day rollover sometimes not occurring
 	- real-time operations sometimes stopping
 	- third party uploads sometimes stopping
+- Fixed standby/resume not working when Windows Modern Standby is in use
 - Realtime SFTP still not working in v4.5.0 b4103
 - Fix for the FTP watchdog not reconnecting on link failure
 - Ecowitt HTTP API Station use SD card missing from the Wizard

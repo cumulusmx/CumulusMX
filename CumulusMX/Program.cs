@@ -278,7 +278,25 @@ namespace CumulusMX
 			// detect system sleeping/hibernating - Windows only
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(OnPowerModeChanged);
+				IntPtr registrationHandle = new nint();
+				DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS recipient = new DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS();
+				recipient.Callback = DrviceNotifyCallBack;
+				recipient.Context = IntPtr.Zero;
+
+				IntPtr pRecipient = Marshal.AllocHGlobal(Marshal.SizeOf(recipient));
+				Marshal.StructureToPtr(recipient, pRecipient, false);
+
+				uint result = PowerRegisterSuspendResumeNotification(DEVICE_NOTIFY_CALLBACK, ref recipient, ref registrationHandle);
+
+				if (result != 0)
+				{
+					Console.WriteLine("Failed to register for power mode changes, error code: " + result);
+					svcTextListener.WriteLine("Failed to register for power mode changes on Windows, error code: " + result);
+				}
+				else
+				{
+					svcTextListener.WriteLine("Registered for power mode changes on Windows");
+				}
 			}
 
 			// Interactive seems to be always true on Linux :(
@@ -422,20 +440,52 @@ namespace CumulusMX
 			return false;
 		}
 
-		private static void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
-		{
-#pragma warning disable CA1416 // Validate platform compatibility
-			if (e.Mode == PowerModes.Suspend)
-			{
-				if (cumulus != null)
-				{
-					cumulus.LogCriticalMessage("Shutting down due to computer going to sleep");
-					cumulus.Stop();
-				}
 
-				Program.exitSystem = true;
+		private const int PBT_APMSUSPEND = 0x04;
+		private const int PBT_APMRESUMESUSPEND = 0x07;
+		private const int PBT_APMRESUMECRITICAL = 0x06;
+		private const int DEVICE_NOTIFY_CALLBACK = 0x02;
+
+		private static int DrviceNotifyCallBack(IntPtr context, int type, IntPtr setting)
+		{
+			switch (type)
+			{
+				case PBT_APMSUSPEND:
+					// The system is suspending operation.
+					if (cumulus != null)
+					{
+						cumulus.LogCriticalMessage("*** Shutting down due to computer going to sleep");
+					}
+					Environment.Exit(999);
+					return 1; // handled
+
+				case PBT_APMRESUMESUSPEND:
+				case PBT_APMRESUMECRITICAL:
+					// The system is resuming operation after being suspended.
+					if (cumulus != null)
+					{
+						cumulus.LogCriticalMessage("*** Shutting down due to computer resuming from standby");
+					}
+					Environment.Exit(999);
+					return 1; // handled
 			}
-#pragma warning restore CA1416 // Validate platform compatibility
+
+			return 0; // not handled
 		}
+
+		private delegate int DeviceNotifyCallBackRoutine(IntPtr context, int type, IntPtr setting);
+
+		[StructLayout(LayoutKind.Sequential)]
+		private struct DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS
+		{
+			public DeviceNotifyCallBackRoutine Callback;
+			public IntPtr Context;
+		}
+
+		[DllImport("Powrprof.dll", SetLastError = true)]
+		static extern uint PowerRegisterSuspendResumeNotification(
+			uint flags,
+			ref DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS recipient,
+			ref IntPtr RegistrationHandle);
 	}
 }

@@ -2750,15 +2750,17 @@ namespace CumulusMX
 									LogExceptionMessage(ex, $"RealtimeFtpWatchDog: Base exception follows");
 								}
 
+								reinit = true;
 								connected = false;
 							}
 						}
 
 						if (!connected)
 						{
-							// add a 30 second delay between reties
+							// add a 30 second delay between retries
 							LogMessage("RealtimeFtpWatchDog: Connection failed - waiting 30 seconds before trying again");
 							Thread.Sleep(30000);
+							reinit = true;
 						}
 					} while (!connected && !cancellationToken.IsCancellationRequested);
 

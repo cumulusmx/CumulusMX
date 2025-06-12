@@ -1608,7 +1608,7 @@ namespace CumulusMX
 			lastSecond = DateTime.Now.ToUnixTime();
 			lastMinute = DateTime.Now.Minute;
 			lastHour = DateTime.Now.Hour;
-			secondTimer = new Timer(500);
+			secondTimer = new Timer(250);
 			secondTimer.Elapsed += SecondTimer;
 			secondTimer.Start();
 		}
