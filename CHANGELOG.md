@@ -14,7 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Changed
 
-- FTP watchdog now creates it's temp file using the path specified in the Internet Settings
+- FTP watchdog now creates its temp file using the path specified in the Internet Settings
 
 
 

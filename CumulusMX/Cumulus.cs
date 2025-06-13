@@ -2659,6 +2659,18 @@ namespace CumulusMX
 						{
 							reinit = false;
 
+							string tempFile;
+
+							// redo this every time in case the path has been changed
+							if (FtpOptions.Directory.Length > 0)
+							{
+								tempFile = (FtpOptions.Directory.EndsWith('/') ? FtpOptions.Directory : FtpOptions.Directory + '/') + filename;
+							}
+							else
+							{
+								tempFile = filename;
+							}
+
 							if (realtimeFtpSemaphore.CurrentCount > 0)
 							{
 								realtimeFtpSemaphore.Wait(100, cancellationToken);
@@ -2684,18 +2696,19 @@ namespace CumulusMX
 										LogDebugMessage("RealtimeFtpWatchDog: Realtime sftp connection is flagged as connected OK");
 
 										// create an read back a test file
-										RealtimeSSH.WriteAllText(filename, "test");
-										if (RealtimeSSH.ReadAllText(filename) != "test")
+										RealtimeSSH.WriteAllText(tempFile, "test");
+										if (RealtimeSSH.ReadAllText(tempFile) != "test")
 										{
 											connected = false;
 											reinit = true;
 											LogWarningMessage("RealtimeFtpWatchDog: Realtime sftp failed to write and read a test file");
+											LogMessage("RealtimeFtpWatchDog: Realtime sftp failed to write and read a test file - " + tempFile);
 										}
 										else
 										{
 											LogDebugMessage("RealtimeFtpWatchDog: Realtime sftp created a test file OK");
 
-											RealtimeSSH.DeleteFile(filename);
+											RealtimeSSH.DeleteFile(tempFile);
 										}
 									}
 								}
@@ -2717,23 +2730,25 @@ namespace CumulusMX
 									{
 										var testBytes = Encoding.ASCII.GetBytes("test");
 
-										if (RealtimeFTP.UploadBytes(testBytes, filename, FtpRemoteExists.Overwrite).IsFailure())
+										if (RealtimeFTP.UploadBytes(testBytes, tempFile, FtpRemoteExists.Overwrite).IsFailure())
 										{
 											connected = false;
 											reinit = true;
 											LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp failed to write a test file");
+											LogMessage("RealtimeFtpWatchDog: Realtime ftp failed to write a test file - " + tempFile);
 										}
 										else
 										{
-											if (!RealtimeFTP.DownloadBytes(out byte[] _bytes, filename) || !_bytes.SequenceEqual(testBytes))
+											if (!RealtimeFTP.DownloadBytes(out byte[] _bytes, tempFile) || !_bytes.SequenceEqual(testBytes))
 											{
 												connected = false;
 												reinit = true;
 												LogWarningMessage("RealtimeFtpWatchDog: Realtime ftp failed to read a test file");
+												LogMessage("RealtimeFtpWatchDog: Realtime ftp failed to read a test file - " + tempFile);
 											}
 											else
 											{
-												RealtimeFTP.DeleteFile(filename);
+												RealtimeFTP.DeleteFile(tempFile);
 												LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp created a test file OK");
 											}
 										}
