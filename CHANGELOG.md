@@ -10,12 +10,20 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.5.2 \[b4105\]][22] - 2025-06-20
+
+### Changed
+
+- FTP watchdog now creates it's temp file using the path specified in the Internet Settings
+
+
+
 ## [4.5.1 \[b4104\]][21] - 2025-06-14
 
 ### New
 
-- Adds some additional detection of resuming from a computer suspension (the clock jumping formward by more than 10 minutes), and aborts the program ready for a restart and catch-up
-	- This should only be used on Linux/MacOS systems
+- Adds some additional detection of resuming from a computer suspension (the clock jumping forward by more than 10 minutes), and aborts the program ready for a restart and catch-up
+	- This should only be activated on Linux/MacOS systems, Windows has its own suspend detection
 
 ### Changed
 
@@ -866,3 +874,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [19]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4102
 [20]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4103
 [21]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4104
+[22]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4105
