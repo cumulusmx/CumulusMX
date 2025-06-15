@@ -2682,6 +2682,7 @@ namespace CumulusMX
 								if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 								{
 									LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp testing the connection");
+									LogDebugMessage("RealtimeFtpWatchDog: Attempting to create file - " + tempFile);
 
 									// check we are still flagged as connected
 									if (!RealtimeSSH.IsConnected)
@@ -2719,6 +2720,7 @@ namespace CumulusMX
 									//if (!RealtimeFTP.IsStillConnected())
 
 									LogFtpMessage("RealtimeFtpWatchDog: Realtime ftp testing the connection", true);
+									LogDebugMessage("RealtimeFtpWatchDog: Attempting to create file - " + tempFile);
 
 									if (!RealtimeFTP.IsConnected || !RealtimeFTP.IsAuthenticated)
 									{
