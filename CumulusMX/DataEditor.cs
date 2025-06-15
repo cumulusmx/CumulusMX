@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -3231,6 +3231,13 @@ namespace CumulusMX
 								return "{\"errors\":{\"Dayfile\":[\"<br>Updated the dayfile OK\"], \"MySQL\":[\"<br>Failed to update MySQL\"]}}";
 							}
 						}
+
+						// update the rainfall totals
+						station.GetRainFallTotals();
+
+						// and yesterdays rain
+						var yest = cumulus.MeteoDate().AddDays(-1);
+						station.RainYesterday = station.DayFile.LastOrDefault(day => day.Date == yest.Date).TotalRain;
 					}
 					else
 					{

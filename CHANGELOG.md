@@ -12,6 +12,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.5.2 \[b4105\]][22] - 2025-06-20
 
+### New
+
+- Editing rainfall values in the dayfile now automatically updates the yesterday, week, month, year totals without restarting Cumulus MX
+
 ### Changed
 
 - FTP watchdog now creates its temp file using the path specified in the Internet Settings
