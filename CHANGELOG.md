@@ -19,6 +19,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Fix Davis AirLink badly formed URL when requesting health data for standalone sensors
+- Fix and improvements to Ecowitt SD card file handling with timestamps
+
 
 
 ## [4.5.1 \[b4104\]][21] - 2025-06-14

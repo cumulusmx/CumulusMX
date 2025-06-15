@@ -733,10 +733,24 @@ namespace CumulusMX
 				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
 
 				// quick check if there is any data in the file!
-				if ((DateTime.TryParseExact(lines[^1].Split(',')[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt < startTime))
+				var useTimeStamp = lines[0].Split(',')[1].ToLower() == "timestamp";
+				var lastLine = lines[^1].Split(',');
+
+				if (useTimeStamp)
 				{
-					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any matching lines");
-					return null;
+					if (Utils.FromUnixTime(long.Parse(lastLine[1])) < startTime)
+					{
+						cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any matching lines");
+						return null;
+					}
+				}
+				else
+				{
+					if ((DateTime.TryParseExact(lastLine[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt < startTime))
+					{
+						cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any matching lines");
+						return null;
+					}
 				}
 
 				List<string> result =
@@ -748,9 +762,20 @@ namespace CumulusMX
 				foreach (var line in lines.Skip(1))
 				{
 					var fields = line.Split(',');
-					if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out dt) && dt >= startTime)
+					if (useTimeStamp)
 					{
-						result.Add(line);
+						// timestamp is in the second field
+						if (Utils.FromUnixTime(long.Parse(fields[1])) >= startTime)
+						{
+							result.Add(line);
+						}
+					}
+					else
+					{
+						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
+						{
+							result.Add(line);
+						}
 					}
 				}
 

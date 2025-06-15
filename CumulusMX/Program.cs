@@ -7,6 +7,8 @@ using System.ServiceProcess;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Win32;
+
 //#error version
 
 namespace CumulusMX
@@ -276,24 +278,32 @@ namespace CumulusMX
 			// detect system sleeping/hibernating - Windows only
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				IntPtr registrationHandle = new nint();
-				DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS recipient = new DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS();
-				recipient.Callback = DrviceNotifyCallBack;
-				recipient.Context = IntPtr.Zero;
-
-				IntPtr pRecipient = Marshal.AllocHGlobal(Marshal.SizeOf(recipient));
-				Marshal.StructureToPtr(recipient, pRecipient, false);
-
-				uint result = PowerRegisterSuspendResumeNotification(DEVICE_NOTIFY_CALLBACK, ref recipient, ref registrationHandle);
-
-				if (result != 0)
+				// Windows 10 or later uses Modern Standby
+				if (Environment.OSVersion.Version.Major >= 10)
 				{
-					Console.WriteLine("Failed to register for power mode changes, error code: " + result);
-					svcTextListener.WriteLine("Failed to register for power mode changes on Windows, error code: " + result);
+					IntPtr registrationHandle = new nint();
+					DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS recipient = new DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS();
+					recipient.Callback = DrviceNotifyCallBack;
+					recipient.Context = IntPtr.Zero;
+
+					IntPtr pRecipient = Marshal.AllocHGlobal(Marshal.SizeOf(recipient));
+					Marshal.StructureToPtr(recipient, pRecipient, false);
+
+					uint result = PowerRegisterSuspendResumeNotification(DEVICE_NOTIFY_CALLBACK, ref recipient, ref registrationHandle);
+
+					if (result != 0)
+					{
+						Console.WriteLine("Failed to register for power mode changes, error code: " + result);
+						svcTextListener.WriteLine("Failed to register for power mode changes on Windows, error code: " + result);
+					}
+					else
+					{
+						svcTextListener.WriteLine("Registered for power mode changes on Windows");
+					}
 				}
-				else
+				else // Windows 7 or earlier
 				{
-					svcTextListener.WriteLine("Registered for power mode changes on Windows");
+					SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(OnPowerModeChanged);
 				}
 			}
 
@@ -454,7 +464,8 @@ namespace CumulusMX
 					{
 						cumulus.LogCriticalMessage("*** Shutting down due to computer going to sleep");
 					}
-					Environment.Exit(999);
+					cumulus.Stop();
+					Program.exitSystem = true;
 					return 1; // handled
 
 				case PBT_APMRESUMESUSPEND:
@@ -485,5 +496,24 @@ namespace CumulusMX
 			uint flags,
 			ref DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS recipient,
 			ref IntPtr RegistrationHandle);
+
+
+
+		// Windows 7 power management
+		private static void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+		{
+#pragma warning disable CA1416 // Validate platform compatibility
+			if (e.Mode == PowerModes.Suspend)
+			{
+				if (cumulus != null)
+				{
+					cumulus.LogCriticalMessage("Shutting down due to computer going to sleep");
+					cumulus.Stop();
+				}
+
+				Program.exitSystem = true;
+			}
+#pragma warning restore CA1416 // Validate platform compatibility
+		}
 	}
 }

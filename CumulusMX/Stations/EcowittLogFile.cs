@@ -37,6 +37,8 @@ namespace CumulusMX
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
 			var retList = new SortedList<DateTime, EcowittApi.HistoricData>();
 
+			var useTimestamp = FieldIndex.ContainsKey("timestamp");
+
 			for (var index = 0; index < Data.Count; index++)
 			{
 				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocess record # {index + 1} of {Data.Count}");
@@ -61,7 +63,7 @@ namespace CumulusMX
 
 					DateTime time;
 
-					if (FieldIndex.ContainsKey("timestamp") && long.TryParse(fields[1], invc, out long unix))
+					if (useTimestamp && long.TryParse(fields[1], invc, out long unix))
 					{
 						time = Utils.FromUnixTime(unix);
 					}
