@@ -725,7 +725,15 @@ namespace CumulusMX
 
 				if (lines.Count == 0)
 				{
+					// header plus one data line
 					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any lines");
+					return null;
+				}
+				else if (lines.Count == 1)
+				{
+					// header plus one data line
+					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} only contains one line");
+					cumulus.LogDataMessage("File contents = " + responseBody);
 					return null;
 				}
 
@@ -733,6 +741,14 @@ namespace CumulusMX
 				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
 
 				// quick check if there is any data in the file!
+				var fields = lines[0].Split(',');
+				if (fields.Length < 10)
+				{
+					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} header line is malformed");
+					cumulus.LogDataMessage("Header line = " + lines[0]);
+					return null;
+				}
+
 				var useTimeStamp = lines[0].Split(',')[1].ToLower() == "timestamp";
 				var lastLine = lines[^1].Split(',');
 
@@ -756,23 +772,32 @@ namespace CumulusMX
 				List<string> result =
 				[
 					// always add the header line
-					lines[0],
+					lines[0]
 				];
 
-				foreach (var line in lines.Skip(1))
+				for (var i = 1; i < lines.Count; i++)
 				{
-					var fields = line.Split(',');
+					var line = lines[i];
+					var dataFields = line.Split(',');
+
+					if (dataFields.Length < 10)
+					{
+						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {i + 1 } is malformed");
+						cumulus.LogDataMessage($"line # {i+1} = " + line);
+						continue;
+					}
+
 					if (useTimeStamp)
 					{
 						// timestamp is in the second field
-						if (Utils.FromUnixTime(long.Parse(fields[1])) >= startTime)
+						if (Utils.FromUnixTime(long.Parse(dataFields[1])) >= startTime)
 						{
 							result.Add(line);
 						}
 					}
 					else
 					{
-						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
+						if (DateTime.TryParseExact(dataFields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
 						{
 							result.Add(line);
 						}

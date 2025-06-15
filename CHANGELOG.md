@@ -20,6 +20,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Fix Davis AirLink badly formed URL when requesting health data for standalone sensors
 - Fix and improvements to Ecowitt SD card file handling with timestamps
+- Error starting v4.5.1 on Windows systems below version 10 - "Unable to find an entry point named 'PowerRegisterSuspendResumeNotification' in DLL 'Powrprof.dll'!
 
 
 
