@@ -67,12 +67,12 @@ namespace CumulusMX.ThirdParty
 				cumulus.LogDebugMessage("Wunderground: URL = " + logUrl);
 			}
 
-			// we will try this twice in case the first attempt fails
+			// we will try this once in case the first attempt fails
 			// but no retries for rapid fire
 			var maxRetryAttempts = RapidFireEnabled ? 1 : 2;
 			var delay = maxRetryAttempts * 5.0;
 
-			for (int retryCount = maxRetryAttempts; retryCount >= 0; retryCount--)
+			for (int retryCount = maxRetryAttempts; retryCount > 0; retryCount--)
 			{
 				try
 				{
@@ -91,7 +91,7 @@ namespace CumulusMX.ThirdParty
 						// Flag the error immediately if no rapid fire
 						// Flag error after every 12 rapid fire failures (1 minute)
 						ErrorFlagCount++;
-						if (!RapidFireEnabled || (RapidFireEnabled && ErrorFlagCount >= 12))
+						if ((!RapidFireEnabled && retryCount == 1) || (RapidFireEnabled && ErrorFlagCount >= 12))
 						{
 							cumulus.LogWarningMessage("Wunderground: Unauthorized, check credentials");
 						}
@@ -105,14 +105,14 @@ namespace CumulusMX.ThirdParty
 						// Flag the error immediately if no rapid fire
 						// Flag error after every 12 rapid fire failures (1 minute)
 						ErrorFlagCount++;
-						if ((!RapidFireEnabled && retryCount == 0) || ErrorFlagCount >= 12)
+						if ((!RapidFireEnabled && retryCount == 1) || (RapidFireEnabled && ErrorFlagCount >= 12))
 						{
 							cumulus.LogWarningMessage("Wunderground: Response = " + response.StatusCode + ": " + responseBodyAsText);
 							cumulus.ThirdPartyAlarm.LastMessage = "Wunderground: HTTP response - " + response.StatusCode;
 							cumulus.ThirdPartyAlarm.Triggered = true;
 							ErrorFlagCount = 0;
 						}
-						else
+						else if (retryCount > 1)
 						{
 							cumulus.LogDebugMessage($"Wunderground Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
 							cumulus.LogMessage($"Wunderground: Retrying in {delay / retryCount} seconds");
