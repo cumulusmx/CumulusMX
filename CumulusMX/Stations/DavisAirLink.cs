@@ -654,7 +654,7 @@ namespace CumulusMX
 					StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + stationId);
 					historicUrl.Append("?api-key=" + apiKey);
 					historicUrl.Append("&start-timestamp=" + startTime.ToString());
-					historicUrl.Append("&end-timestamp" + endTime.ToString());
+					historicUrl.Append("&end-timestamp=" + endTime.ToString());
 
 					cumulus.LogDebugMessage($"GetWlHistoricData: WeatherLink URL = {historicUrl.ToString().Replace(apiKey, "API_KEY")}");
 					station.lastDataReadTime = airLinkLastUpdateTime;
@@ -1090,7 +1090,7 @@ namespace CumulusMX
 			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + stationId);
 			historicUrl.Append("?api-key=" + apiKey);
 			historicUrl.Append("&start-timestamp=" + startTime.ToString());
-			historicUrl.Append("&end-timestamp" + endTime.ToString());
+			historicUrl.Append("&end-timestamp=" + endTime.ToString());
 
 			cumulus.LogDebugMessage($"AirLinkHealth: WeatherLink URL = {historicUrl.ToString().Replace(apiKey, "API_KEY")}");
 

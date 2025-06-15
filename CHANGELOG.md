@@ -16,6 +16,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - FTP watchdog now creates its temp file using the path specified in the Internet Settings
 
+### Fixed
+
+- Fix Davis AirLink badly formed URL when requesting health data for standalone sensors
 
 
 ## [4.5.1 \[b4104\]][21] - 2025-06-14
