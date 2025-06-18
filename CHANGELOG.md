@@ -23,6 +23,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Fix Davis AirLink badly formed URL when requesting health data for standalone sensors
+- Fix Davis VP2 Extra T/H handling
 - Fix and improvements to Ecowitt SD card file handling with timestamps
 - Error starting v4.5.1 on Windows systems below version 10 - "Unable to find an entry point named 'PowerRegisterSuspendResumeNotification' in DLL 'Powrprof.dll'!"
 - Fix Wunderground upload error - TimeSpan overflowed because the duration is too long
@@ -125,8 +126,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 			Davis WLC - both
 			Ecowitt HTTP API - Uptime only
 	- The web tag custom format= parameter for these tags is slightly different from the normal DateTime web tags
-		- To get the values for hours use `{0:hh}` (two digits, leading zero) or `{0:h}` (no leading zero)
-		- To get the values for minutes use `{0:mm}` (two digits, leading zero) or `{0:m}` (no leading zero)
+		- To get the values for hours use `{0:hh}` (two digits, leading zero) or `{0:%h}` (no leading zero)
+		- To get the values for minutes use `{0:mm}` (two digits, leading zero) or `{0:%m}` (no leading zero)
 		- A normal the format string can contain free text, for example:
 		`format="Uptime is {0:hh} hrs {0:mm} mins"`
 - Basic support for live data from PurpleAir sensors

@@ -1854,7 +1854,7 @@ namespace CumulusMX
 						}
 						if (loopData.ExtraHum[sensor] <= 100)
 						{
-							ExtraHum[1] = loopData.ExtraHum[sensor] > 100 ? null : loopData.ExtraHum[sensor];
+							ExtraHum[sensor] = loopData.ExtraHum[sensor] > 100 ? null : loopData.ExtraHum[sensor];
 
 							if (loopData.ExtraTemp[sensor] < 255)
 							{

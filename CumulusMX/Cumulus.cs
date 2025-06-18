@@ -460,7 +460,6 @@ namespace CumulusMX
 		private int phpMaxConnectionsPerServer;
 
 		internal Thread ftpThread;
-		private Task RealtimeWatchDog;
 
 		internal string xapHeartbeat;
 		internal string xapsource;
@@ -2565,7 +2564,7 @@ namespace CumulusMX
 
 			RealtimeFtpWatchDogToken = RealTimeWdTokenSource.Token;
 
-			RealtimeWatchDog = Task.Run(() =>
+			Task.Run(() =>
 			{
 				bool connected = false;
 				bool reinit = true;
