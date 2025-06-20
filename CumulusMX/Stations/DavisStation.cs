@@ -1533,6 +1533,7 @@ namespace CumulusMX
 							Thread.Sleep(10);
 						}
 						tmrComm.Stop();
+
 						if (comport.BytesToRead < loopDataLength)
 						{
 							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not available, expected 99 bytes, available = {comport.BytesToRead}");
@@ -1542,7 +1543,7 @@ namespace CumulusMX
 						dataRead = comport.Read(loopString, 0, loopDataLength);
 						if (dataRead != loopDataLength)
 						{
-							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not red, expected 99 bytes, read = {comport.BytesToRead}");
+							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not red, expected 99 bytes, read = {dataRead}");
 							continue;
 						}
 					}
@@ -1606,12 +1607,18 @@ namespace CumulusMX
 						}
 						tmrComm.Stop();
 
+						if (socket.Available < loopDataLength)
+						{
+							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not available, expected 99 bytes, available = {socket.Available}");
+						}
+
+
 						// Read the first 99 bytes of the buffer into the array
 						var read = socket.GetStream().Read(loopString, 0, loopDataLength);
 
 						if (read < loopDataLength)
 						{
-							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not received, expected {loopDataLength} bytes, got {read}");
+							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not read, expected {loopDataLength} bytes, read = {read}");
 						}
 					}
 					catch (System.IO.IOException ex)
@@ -1976,7 +1983,7 @@ namespace CumulusMX
 
 						if (socket.Available < loopDataLength)
 						{
-							cumulus.LogWarningMessage($"LOOP2: Expected data not available, expected 99 bytes avaible = {socket.Available}");
+							cumulus.LogWarningMessage($"LOOP2: Expected data not available, expected 99 bytes, avaible = {socket.Available}");
 						}
 
 						int dataRead;
@@ -1985,7 +1992,7 @@ namespace CumulusMX
 						if (dataRead != loopDataLength)
 						{
 							// did not get the 99 bytes requested
-							cumulus.LogWarningMessage($"LOOP2: Expected data not read, expected 99 bytes read = {dataRead}");
+							cumulus.LogWarningMessage($"LOOP2: Expected data not read, expected 99 bytes, read = {dataRead}");
 							continue;
 						}
 					}
