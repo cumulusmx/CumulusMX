@@ -1963,10 +1963,16 @@ namespace CumulusMX
 
 						if (socket.Available < loopDataLength)
 						{
-							cumulus.LogWarningMessage($"LOOP2: Expected data not received, expected 99 bytes got {socket.Available}");
+							cumulus.LogWarningMessage($"LOOP2: Expected data not available, expected 99 bytes avaible = {socket.Available}");
 						}
+
 						// Read the first 99 bytes of the buffer into the array
-						socket.GetStream().Read(loopString, 0, loopDataLength);
+						if (socket.GetStream().Read(loopString, 0, loopDataLength) != 99)
+						{
+							// did not get the 99 bytes requested
+							cumulus.LogWarningMessage($"LOOP2: Expected data not received, expected 99 bytes got {socket.Available}");
+							continue;
+						}
 					}
 					catch (System.IO.IOException ex)
 					{
