@@ -471,11 +471,15 @@ namespace CumulusMX
 				case PBT_APMRESUMESUSPEND:
 				case PBT_APMRESUMECRITICAL:
 					// The system is resuming operation after being suspended.
-					if (cumulus != null)
+					// check if already shutting down...
+					if (!Program.exitSystem)
 					{
-						cumulus.LogCriticalMessage("*** Shutting down due to computer resuming from standby");
+						if (cumulus != null)
+						{
+							cumulus.LogCriticalMessage("*** Shutting down due to computer resuming from standby");
+						}
+						Environment.Exit(999);
 					}
-					Environment.Exit(999);
 					return 1; // handled
 			}
 
