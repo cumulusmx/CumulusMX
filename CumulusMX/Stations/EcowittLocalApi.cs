@@ -434,9 +434,9 @@ namespace CumulusMX
 				var url = $"http://{cumulus.Gw1000IpAddress}/get_calibration_data";
 
 				// we want to do this synchronously, so .Result
-				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
+				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
 				{
-					responseBody = response.Content.ReadAsStringAsync(token).Result;
+					responseBody = await response.Content.ReadAsStringAsync(token);
 					responseCode = (int) response.StatusCode;
 					cumulus.LogDebugMessage($"LocalApi.GetCalibrationData: Ecowitt Local API Response code: {responseCode}");
 					cumulus.LogDataMessage($"LocalApi.GetCalibrationData: Ecowitt Local API Response: {responseBody}");

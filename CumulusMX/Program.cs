@@ -462,7 +462,7 @@ namespace CumulusMX
 					// The system is suspending operation.
 					if (cumulus != null)
 					{
-						cumulus.LogCriticalMessage("*** Shutting down due to computer going to sleep");
+						cumulus.LogCriticalMessage("*** Shutting down due to computer going to modern standby");
 						Console.WriteLine("*** Shutting down due to computer going to sleep");
 					}
 					cumulus.Stop();
@@ -477,14 +477,14 @@ namespace CumulusMX
 					{
 						if (cumulus != null)
 						{
-							cumulus.LogMessage("*** Resuming from standby, but already shutting down, no action");
+							cumulus.LogMessage("*** Resuming from modern standby, but already shutting down, no action");
 						}
 					}
 					else
 					{
 						if (cumulus != null)
 						{
-							cumulus.LogCriticalMessage("*** Shutting down due to computer resuming from standby");
+							cumulus.LogCriticalMessage("*** Shutting down due to computer resuming from modern standby");
 							Console.WriteLine("*** Shutting down due to computer resuming from standby");
 						}
 						Environment.Exit(999);
