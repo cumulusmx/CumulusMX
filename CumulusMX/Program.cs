@@ -473,7 +473,14 @@ namespace CumulusMX
 				case PBT_APMRESUMECRITICAL:
 					// The system is resuming operation after being suspended.
 					// check if already shutting down...
-					if (!Program.exitSystem)
+					if (Program.exitSystem)
+					{
+						if (cumulus != null)
+						{
+							cumulus.LogMessage("*** Resuming from standby, but already shutting down, no action");
+						}
+					}
+					else
 					{
 						if (cumulus != null)
 						{
