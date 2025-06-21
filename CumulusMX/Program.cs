@@ -463,6 +463,7 @@ namespace CumulusMX
 					if (cumulus != null)
 					{
 						cumulus.LogCriticalMessage("*** Shutting down due to computer going to sleep");
+						Console.WriteLine("*** Shutting down due to computer going to sleep");
 					}
 					cumulus.Stop();
 					Program.exitSystem = true;
@@ -477,6 +478,7 @@ namespace CumulusMX
 						if (cumulus != null)
 						{
 							cumulus.LogCriticalMessage("*** Shutting down due to computer resuming from standby");
+							Console.WriteLine("*** Shutting down due to computer resuming from standby");
 						}
 						Environment.Exit(999);
 					}
@@ -512,6 +514,7 @@ namespace CumulusMX
 				if (cumulus != null)
 				{
 					cumulus.LogCriticalMessage("Shutting down due to computer going to sleep");
+					Console.WriteLine("*** Shutting down due to computer going to sleep");
 					cumulus.Stop();
 				}
 
