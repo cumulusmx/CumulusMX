@@ -158,6 +158,20 @@ namespace CumulusMX
 				GW1000FirmwareVersion = "unknown";
 			}
 
+			// Check for UV calibration
+			try
+			{
+				var calib = localApi.GetCalibrationData(cumulus.cancellationToken).Result;
+				if (calib.uvGain == 1)
+				{
+					cumulus.LogWarningMessage("Your stations UV gain is set to the default 1.0, it should have a value of around 0.7");
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "Error checking for default UV gain");
+			}
+
 			liveTask = Task.Run(() =>
 			{
 				var excepMsg = "unknown error";

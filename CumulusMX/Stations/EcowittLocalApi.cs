@@ -399,6 +399,89 @@ namespace CumulusMX
 
 		}
 
+		public async Task<Calibration> GetCalibrationData(CancellationToken token)
+		{
+			// http://ip-address/get_calibration_data
+
+			// response
+			//{
+			//	"SolarRadWave": "126.7",	???
+			//	"solarRadGain": "1.00",		Irradiance gain
+			//	"uvGain": "1.00",
+			//	"windGain": "1.00",
+			//	"inTempOffset": "0.0",
+			//	"inHumOffset": "0.0",
+			//	"absOffset": "0.3",
+			//	"altitude": "72",
+			//	"outTempOffset": "0.0",
+			//	"outHumOffset": "0.0",
+			//	"windDirsOffset": "0",
+			//	"th_cli": true,				Show Multi CH T/H calibration
+			//	"pm25_cli": true			Show PM2.5 calibration
+			//}
+
+			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
+			{
+				cumulus.LogErrorMessage("GetCalibrationData: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				return null;
+			}
+
+			string responseBody;
+			int responseCode;
+
+			try
+			{
+				var url = $"http://{cumulus.Gw1000IpAddress}/get_calibration_data";
+
+				// we want to do this synchronously, so .Result
+				using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
+				{
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"LocalApi.GetCalibrationData: Ecowitt Local API Response code: {responseCode}");
+					cumulus.LogDataMessage($"LocalApi.GetCalibrationData: Ecowitt Local API Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					cumulus.LogWarningMessage($"LocalApi.GetCalibrationData: Ecowitt Local API Error: {responseCode}");
+					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					return null;
+				}
+
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("LocalApi.GetLiveData: Ecowitt Local API: No data was returned.");
+					Cumulus.LogConsoleMessage(" - No Calibration data available");
+					return null;
+				}
+				else if (responseBody.StartsWith('{')) // sanity check
+				{
+					// Convert JSON string to an object
+					Calibration json = responseBody.FromJson<Calibration>();
+					return json;
+				}
+			}
+			catch (System.Net.Http.HttpRequestException ex)
+			{
+				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage("GetCalibrationData: Error - This Station does not support the HTTP API!");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "GetCalibrationData: HTTP Error");
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "GetCalibrationData: Error");
+			}
+
+			return null;
+		}
+
 		public static void GetUnits(CancellationToken token)
 		{
 #pragma warning disable S125 // Sections of code should not be commented out
@@ -1111,6 +1194,11 @@ namespace CumulusMX
 			public SdCardInfo info { get; set; }
 
 			public SdCardfile[] file_list { get; set; }
+		}
+
+		public class Calibration
+		{
+			public double uvGain { get; set; }
 		}
 
 		private sealed class CheckUpgrade
