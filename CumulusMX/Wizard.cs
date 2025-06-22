@@ -67,7 +67,8 @@ namespace CumulusMX
 				{
 					apiKey = cumulus.WllApiKey,
 					apiSecret = cumulus.WllApiSecret,
-					apiStationId = cumulus.WllStationId
+					apiStationId = cumulus.WllStationId,
+					apiStationUuid = cumulus.WllStationUuid
 				},
 				primary = new StationSettings.JsonWllPrimary()
 				{
@@ -85,7 +86,8 @@ namespace CumulusMX
 				{
 					apiKey = cumulus.WllApiKey,
 					apiSecret = cumulus.WllApiSecret,
-					apiStationId = cumulus.WllStationId
+					apiStationId = cumulus.WllStationId,
+					apiStationUuid = cumulus.WllStationUuid
 				},
 				primary = new StationSettings.JsonWllPrimary()
 				{
@@ -583,6 +585,7 @@ namespace CumulusMX
 						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.station.daviswll.api.apiKey) ? string.Empty : settings.station.daviswll.api.apiKey.Trim();
 						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.station.daviswll.api.apiSecret) ? string.Empty : settings.station.daviswll.api.apiSecret.Trim();
 						cumulus.WllStationId = settings.station.daviswll.api.apiStationId;
+						cumulus.WllStationUuid = string.IsNullOrWhiteSpace(settings.station.daviswll.api.apiStationUuid) ? string.Empty : settings.station.daviswll.api.apiStationUuid.Trim();
 
 						cumulus.WllPrimaryRain = settings.station.daviswll.primary.rain;
 						cumulus.WllPrimarySolar = settings.station.daviswll.primary.solar;
@@ -607,6 +610,7 @@ namespace CumulusMX
 						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.station.daviscloud.api.apiKey) ? string.Empty : settings.station.daviscloud.api.apiKey.Trim();
 						cumulus.WllApiSecret = string.IsNullOrWhiteSpace(settings.station.daviscloud.api.apiSecret) ? string.Empty : settings.station.daviscloud.api.apiSecret.Trim();
 						cumulus.WllStationId = settings.station.daviscloud.api.apiStationId;
+						cumulus.WllStationUuid = string.IsNullOrWhiteSpace(settings.station.daviscloud.api.apiStationUuid) ? string.Empty : settings.station.daviscloud.api.apiStationUuid.Trim();
 
 						if (settings.station.daviscloud.primary != null)
 						{
