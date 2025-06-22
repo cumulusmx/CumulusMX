@@ -8958,7 +8958,7 @@ namespace CumulusMX
 			else
 			{
 				// write null values
-				sb.Append(new String(sep[0], 26));
+				sb.Append(new String(sep[0], 27));
 			}
 			sb.Append(Environment.NewLine);
 
