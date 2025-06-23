@@ -2129,7 +2129,7 @@ namespace CumulusMX
 			try
 			{
 				station.CO2_pm2p5 = (double?) rec.Value.AqiComboPm25;
-				station.CO2_pm2p5_aqi = station.CO2_pm2p5.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5.Value) : null;
+				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
 			}
 			catch (Exception ex)
 			{
@@ -2140,7 +2140,7 @@ namespace CumulusMX
 			try
 			{
 				station.CO2_pm2p5_24h = (double?) rec.Value.AqiComboPm25hr24;
-				station.CO2_pm2p5_24h_aqi = station.CO2_pm2p5.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5_24h.Value) : null;
+				station.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5_24h);
 			}
 			catch (Exception ex)
 			{
@@ -2151,7 +2151,7 @@ namespace CumulusMX
 			try
 			{
 				station.CO2_pm10 = (double?) rec.Value.AqiComboPm10;
-				station.CO2_pm10_aqi = station.CO2_pm10.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10.Value) : null;
+				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
 			}
 			catch (Exception ex)
 			{
@@ -2162,7 +2162,7 @@ namespace CumulusMX
 			try
 			{
 				station.CO2_pm10_24h = (double?) rec.Value.AqiComboPm10hr24;
-				station.CO2_pm10_24h_aqi = station.CO2_pm10.HasValue ? station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10_24h.Value) : null;
+				station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10_24h);
 			}
 			catch (Exception ex)
 			{

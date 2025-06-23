@@ -9855,7 +9855,7 @@ namespace CumulusMX
 		public void DoAirQualityAvg(double? value, int index)
 		{
 			AirQualityAvg[index] = value;
-			AirQualityAvgIdx[index] = value.HasValue ? GetAqi(AqMeasure.pm2p5h24, value.Value) : null;
+			AirQualityAvgIdx[index] = GetAqi(AqMeasure.pm2p5h24, value);
 		}
 
 		public void UpdateAirQualityDb()
@@ -9939,7 +9939,7 @@ namespace CumulusMX
 		public void DoAirQuality10Avg(double? value, int index)
 		{
 			AirQuality10Avg[index] = value;
-			AirQuality10AvgIdx[index] = value.HasValue ? GetAqi(AqMeasure.pm10h24, value.Value) : null;
+			AirQuality10AvgIdx[index] = GetAqi(AqMeasure.pm10h24, value);
 		}
 
 
@@ -9951,39 +9951,43 @@ namespace CumulusMX
 			pm10h24
 		}
 
-		public double GetAqi(AqMeasure type, double value)
+		public double? GetAqi(AqMeasure type, double? value)
 		{
+			if (!value.HasValue) return null;
+
+			var val = value.Value;
+
 			switch (cumulus.airQualityIndex)
 			{
 				case 0: // US EPA
 					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
-						return AirQualityIndices.US_EPApm2p5(value);
+						return AirQualityIndices.US_EPApm2p5(val);
 					else
-						return AirQualityIndices.US_EPApm10(value);
+						return AirQualityIndices.US_EPApm10(val);
 
 				case 1: // UK COMEAP
 					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
-						return AirQualityIndices.UK_COMEAPpm2p5(value);
+						return AirQualityIndices.UK_COMEAPpm2p5(val);
 					else
-						return AirQualityIndices.UK_COMEAPpm10(value);
+						return AirQualityIndices.UK_COMEAPpm10(val);
 
 				case 2: // EU AQI
 					return type switch
 					{
-						AqMeasure.pm2p5 => AirQualityIndices.EU_AQIpm2p5h1(value),
-						AqMeasure.pm2p5h24 => AirQualityIndices.EU_AQI2p5h24(value),
-						AqMeasure.pm10 => AirQualityIndices.EU_AQI10h1(value),
-						AqMeasure.pm10h24 => AirQualityIndices.EU_AQI10h24(value),
+						AqMeasure.pm2p5 => AirQualityIndices.EU_AQIpm2p5h1(val),
+						AqMeasure.pm2p5h24 => AirQualityIndices.EU_AQI2p5h24(val),
+						AqMeasure.pm10 => AirQualityIndices.EU_AQI10h1(val),
+						AqMeasure.pm10h24 => AirQualityIndices.EU_AQI10h24(val),
 						_ => 0
 					};
 
 				case 3: // EU CAQI
 					return type switch
 					{
-						AqMeasure.pm2p5 => AirQualityIndices.EU_CAQI2p5h1(value),
-						AqMeasure.pm2p5h24 => AirQualityIndices.EU_CAQI2p5h24(value),
-						AqMeasure.pm10 => AirQualityIndices.EU_CAQI10h1(value),
-						AqMeasure.pm10h24 => AirQualityIndices.EU_CAQI10h24(value),
+						AqMeasure.pm2p5 => AirQualityIndices.EU_CAQI2p5h1(val),
+						AqMeasure.pm2p5h24 => AirQualityIndices.EU_CAQI2p5h24(val),
+						AqMeasure.pm10 => AirQualityIndices.EU_CAQI10h1(val),
+						AqMeasure.pm10h24 => AirQualityIndices.EU_CAQI10h24(val),
 						_ => 0
 					};
 
@@ -9993,21 +9997,21 @@ namespace CumulusMX
 
 				case 5: // Australia NEPM
 					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
-						return AirQualityIndices.AU_NEpm2p5(value);
+						return AirQualityIndices.AU_NEpm2p5(val);
 					else
-						return AirQualityIndices.AU_NEpm10(value);
+						return AirQualityIndices.AU_NEpm10(val);
 
 				case 6: // Netherlands LKI
 					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
-						return AirQualityIndices.NL_LKIpm2p5(value);
+						return AirQualityIndices.NL_LKIpm2p5(val);
 					else
-						return AirQualityIndices.NL_LKIpm10(value);
+						return AirQualityIndices.NL_LKIpm10(val);
 
 				case 7: // Belgium BelAQI
 					if (type == AqMeasure.pm2p5 || type == AqMeasure.pm2p5h24)
-						return AirQualityIndices.BE_BelAQIpm2p5(value);
+						return AirQualityIndices.BE_BelAQIpm2p5(val);
 					else
-						return AirQualityIndices.BE_BelAQIpm10(value);
+						return AirQualityIndices.BE_BelAQIpm10(val);
 
 				default:
 					cumulus.LogErrorMessage($"GetAqi: Invalid AQI formula value set [cumulus.airQualityIndex]");
