@@ -16,7 +16,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Added Davis Cloud API UUID option to the Configuration Wizard
 
+### Fixed
 
+- Bug in Ecowitt.API ApplyHistoricData: AQI = Nullable object must have a value
+- AirLink log files being one comma short if only an indoor AirLink is in use
 
 
 ## [4.5.2 \[b4105\]][22] - 2025-06-21
