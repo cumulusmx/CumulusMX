@@ -8541,11 +8541,19 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogExceptionMessage(ex, $"DoLogFile: Error writing entry for {timestamp}");
 					retries--;
+					if (retries == 0)
+					{
+						LogExceptionMessage(ex, $"DoLogFile: Error writing entry for {timestamp}");
+					}
+					else
+					{
+						LogMessage($"DoLogFile: Error writing entry for {timestamp}, will retry...");
+					}
+
 					await Task.Delay(250);
 				}
-			} while (!success && retries >= 0);
+			} while (!success && retries > 0);
 
 
 			station.WriteTodayFile(timestamp, true);
@@ -8778,11 +8786,19 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage($"DoExtraLogFile: Error writing log entry {timestamp} - {ex.Message}");
 					retries--;
+					if (retries == 0)
+					{
+						LogExceptionMessage(ex, $"DoExtraLogFile: Error writing log entry {timestamp}");
+					}
+					else
+					{
+						LogMessage($"DoExtraLogFile: Error writing entry for {timestamp}, will retry...");
+					}
+
 					await Task.Delay(250);
 				}
-			} while (!success && retries >= 0);
+			} while (!success && retries > 0);
 		}
 
 		public const int NumAirLinkLogFileFields = 56;
@@ -8983,11 +8999,19 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogDebugMessage($"DoAirLinkLogFile: Error writing log entry for {timestamp} - {ex.Message}");
 					retries--;
+					if (retries == 0)
+					{
+						LogExceptionMessage(ex, "DoAirLinkLogFile: Error writing log entry for {timestamp}");
+					}
+					else
+					{
+						LogMessage($"DoAirLinkLogFile: Error writing entry for {timestamp}, will retry...");
+					}
+
 					await Task.Delay(250);
 				}
-			} while (!success && retries >= 0);
+			} while (!success && retries > 0);
 		}
 
 		public void DoCustomIntervalLogs(DateTime timestamp)
@@ -9056,11 +9080,19 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogDebugMessage($"DoCustomIntervalLog: {CustomIntvlLogSettings[idx].FileName} - Error writing log entry for {timestamp} - {ex.Message}");
 					retries--;
+					if (retries == 0)
+					{
+						LogExceptionMessage(ex, $"DoCustomIntervalLog: {CustomIntvlLogSettings[idx].FileName} - Error writing log entry for {timestamp}");
+					}
+					else
+					{
+						LogMessage($"DoCustomIntervalLog: {CustomIntvlLogSettings[idx].FileName} - Error writing log entry for {timestamp}, will retry...");
+					}
+
 					await Task.Delay(250);
 				}
-			} while (!success && retries >= 0);
+			} while (!success && retries > 0);
 		}
 
 		public void DoCustomDailyLogs(DateTime timestamp)
@@ -9117,11 +9149,19 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogDebugMessage($"DoCustomDailyLog: {CustomDailyLogSettings[idx].FileName} - Error writing log entry - {ex.Message}");
 					retries--;
+					if (retries == 0)
+					{
+						LogExceptionMessage(ex, $"DoCustomDailyLog: {CustomDailyLogSettings[idx].FileName} - Error writing log entry");
+					}
+					else
+					{
+						LogMessage($"DoCustomDailyLog: {CustomDailyLogSettings[idx].FileName} - Error writing log entry, will retry...");
+					}
+
 					await Task.Delay(250);
 				}
-			} while (!success && retries >= 0);
+			} while (!success && retries > 0);
 		}
 
 		private void CheckForSingleInstance(bool Windows)
