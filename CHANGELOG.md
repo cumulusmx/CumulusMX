@@ -21,6 +21,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Bug in Ecowitt.API ApplyHistoricData: AQI = Nullable object must have a value
 - AirLink log files being one comma short if only an indoor AirLink is in use
+- Unlike the other log files, the monthly log file name generator did not have the check to remove "dots" from the yyyyMM date part of the filename
 
 
 
