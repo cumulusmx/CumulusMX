@@ -706,6 +706,7 @@ namespace CumulusMX
 
 			string responseBody;
 			int responseCode;
+			int retries = 1;
 
 			//responseBody = "{\"info\":{\"Name\":\"     \",\"Type\":\"SDHC/SDXC\",\"Speed\":\"20 MHz\",\"Size\":\"30223 MB\",\"Interval\":\"1\"},\"file_list\":[{\n\t\t\"name\":\t\"202502B.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"71 KB\"\n\t}, {\n\t\t\"name\":\t\"202502Allsensors_A.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"202 KB\"\n\t}]}"
 			//return responseBody.FromJson<SdCard>()
@@ -716,33 +717,37 @@ namespace CumulusMX
 				// my test server uses port 81 for everything
 				//var url = $"http://{cumulus.Gw1000IpAddress}:81/get_sdmmc_info";
 
-				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
+				do
 				{
-					responseBody = response.Content.ReadAsStringAsync(token).Result;
-					responseCode = (int) response.StatusCode;
-					cumulus.LogDebugMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Response code: {responseCode}");
-					cumulus.LogDataMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Response: {responseBody}");
-				}
+					using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
+					{
+						responseBody = response.Content.ReadAsStringAsync(token).Result;
+						responseCode = (int) response.StatusCode;
+						cumulus.LogDebugMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Response code: {responseCode}");
+						cumulus.LogDataMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Response: {responseBody}");
+					}
 
-				if (responseCode != 200)
-				{
-					cumulus.LogWarningMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Error: {responseCode}");
-					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
-					return null;
-				}
+					if (responseCode != 200)
+					{
+						cumulus.LogWarningMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Error: {responseCode}");
+						Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					}
+					else if (responseBody == "{}")
+					{
+						cumulus.LogMessage("LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo: No data was returned.");
+						Cumulus.LogConsoleMessage(" - No data available");
+					}
+					else if (responseBody.StartsWith('{')) // sanity check
+					{
+						// Convert JSON string to an object
+						return responseBody.FromJson<SdCard>();
+					}
 
+					retries--;
+					Thread.Sleep(250);
+				} while (retries >= 0);
 
-				if (responseBody == "{}")
-				{
-					cumulus.LogMessage("LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo: No data was returned.");
-					Cumulus.LogConsoleMessage(" - No data available");
-					return null;
-				}
-				else if (responseBody.StartsWith('{')) // sanity check
-				{
-					// Convert JSON string to an object
-					return responseBody.FromJson<SdCard>();
-				}
+				return null;
 			}
 			catch (System.Net.Http.HttpRequestException ex)
 			{
@@ -782,21 +787,42 @@ namespace CumulusMX
 
 			string responseBody;
 			int responseCode;
+			int retries = 1;
 
 			try
 			{
 				var url = $"http://{cumulus.Gw1000IpAddress}:81/" + fileName;
 
-				using var response = await cumulus.MyHttpClient.GetAsync(url, token);
-
-				responseBody = await response.Content.ReadAsStringAsync(token);
-				responseCode = (int) response.StatusCode;
-				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response code: {responseCode}");
-
-				if (responseCode != 200)
+				do
 				{
-					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Error: {responseCode}");
-					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					using var response = await cumulus.MyHttpClient.GetAsync(url, token);
+
+					responseBody = await response.Content.ReadAsStringAsync(token);
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response code: {responseCode}");
+
+					if (responseCode != 200)
+					{
+						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Error: {responseCode}");
+						Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					}
+					else if (responseBody.Length < 400)
+					{
+						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} is too short = {responseBody.Length} bytes");
+						cumulus.LogDataMessage("File contents = " + responseBody);
+					}
+					else
+					{
+						break;
+					}
+
+					retries--;
+					Thread.Sleep(250);
+				} while (retries >= 0);
+
+				if (responseCode != 200 || responseBody.Length < 400)
+				{
+					cumulus.LogMessage($"LocalApi.GetSdFileContents: Failed to fetch File {fileName}, giving up!");
 					return null;
 				}
 
@@ -816,7 +842,7 @@ namespace CumulusMX
 				{
 					// header plus one data line
 					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} only contains one line");
-					cumulus.LogDataMessage("File contents = " + responseBody);
+					cumulus.LogDataMessage("File contents (1 KB limit) = " + responseBody.Substring(0, 1024));
 					return null;
 				}
 

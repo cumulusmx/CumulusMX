@@ -1377,7 +1377,7 @@ namespace CumulusMX
 			station.CO2_temperature = data["tf_co2"] != null ? ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_co2"], invNum)) : null;
 			station.CO2_humidity = data["humi_co2"] != null ? Convert.ToInt32(data["humi_co2"], invNum) : null;
 			station.CO2_pm2p5 = data["pm25_co2"] != null ? Convert.ToDouble(data["pm25_co2"], invNum) : null;
-			station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5.);
+			station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
 			station.CO2_pm2p5_24h = data["pm25_24h_co2"] != null ? Convert.ToDouble(data["pm25_24h_co2"], invNum) : null;
 			station.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5h24, station.CO2_pm2p5_24h);
 			station.CO2_pm10 = data["pm10_co2"] != null ? Convert.ToDouble(data["pm10_co2"], invNum) : null;
