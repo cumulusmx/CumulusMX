@@ -8397,6 +8397,7 @@ namespace CumulusMX
 			DateTime logfiledate = MeteoDate(thedate);
 
 			var datestring = logfiledate.ToString("yyyyMM");
+			datestring = datestring.Replace(".", "");
 
 			return Datapath + datestring + "log.txt";
 		}
