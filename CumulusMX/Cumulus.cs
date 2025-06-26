@@ -14689,22 +14689,18 @@ namespace CumulusMX
 			// Create targets for the log files
 			var logfileRT = new FileTarget("logfileRT")
 			{
-				FileName = "MXdiags" + Path.DirectorySeparatorChar + "ftp-realtime.log",
-				ArchiveFileName = "MXdiags" + Path.DirectorySeparatorChar + "ftp-realtime.log",
+				FileName = "MXdiags" + Path.DirectorySeparatorChar + "ftp-realtime_${shortdate}.log",
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
-				ArchiveSuffixFormat = "_{1:yyyyMMdd-HHmmss}",
 				Layout = layout
 			};
 			var logfileIN = new FileTarget("logfileIN")
 			{
-				FileName = "MXdiags" + Path.DirectorySeparatorChar + "ftp-interval.log",
-				ArchiveFileName = "MXdiags" + Path.DirectorySeparatorChar + "ftp-interval.log",
+				FileName = "MXdiags" + Path.DirectorySeparatorChar + "ftp-interval_${shortdate}.log",
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
-				ArchiveSuffixFormat = "_{1:yyyyMMdd-HHmmss}",
 				Layout = layout
 			};
 
