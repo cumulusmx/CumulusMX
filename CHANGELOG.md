@@ -16,12 +16,22 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Added Davis Cloud API UUID option to the Configuration Wizard
 - Add a retry to downloading Ecowitt SD card files if file is empty or on error
+- The FTP log files have changed naming convention (to work better with the new version of NLog)
+	- You will need to manually delete any old log files that use the old convetion of:
+		`ftp-realtime-N.log` or `ftp-interval-N.log`
+
 
 ### Fixed
 
 - Bug in Ecowitt.API ApplyHistoricData: AQI = Nullable object must have a value
 - AirLink log files being one comma short if only an indoor AirLink is in use
 - Unlike the other log files, the monthly log file name generator did not have the check to remove "dots" from the yyyyMM date part of the filename
+
+### Package Updates
+
+- NLog
+- NLog.Extensions.Logging
+
 
 
 
