@@ -14684,6 +14684,8 @@ namespace CumulusMX
 			// Create NLog configuration
 			var config = new LoggingConfiguration();
 
+			var layout = "${longdate}|${level}|${logger:shortName=true}|${message}";
+
 			// Create targets for the log files
 			var logfileRT = new FileTarget("logfileRT")
 			{
@@ -14692,7 +14694,8 @@ namespace CumulusMX
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
-				ArchiveSuffixFormat = "_{1:yyyyMMdd-HHmmss}"
+				ArchiveSuffixFormat = "_{1:yyyyMMdd-HHmmss}",
+				Layout = layout
 			};
 			var logfileIN = new FileTarget("logfileIN")
 			{
@@ -14701,7 +14704,8 @@ namespace CumulusMX
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
-				ArchiveSuffixFormat = "_{1:yyyyMMdd-HHmmss}"
+				ArchiveSuffixFormat = "_{1:yyyyMMdd-HHmmss}",
+				Layout = layout
 			};
 
 			// Add targets to the configuration
@@ -14709,10 +14713,10 @@ namespace CumulusMX
 			config.AddTarget(logfileIN);
 
 			// Define rules for the loggers
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileRT, "R-T");
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileRT, "MXR");
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileIN, "INT");
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileIN, "MXI");
+			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileRT, "FTPr.FTP");
+			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileRT, "CMXr.CMX");
+			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileIN, "FTPi.FTP");
+			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileIN, "CMXi.CMX");
 
 			// Apply configuration
 			LogManager.Configuration = config;
@@ -14726,10 +14730,10 @@ namespace CumulusMX
 				 })
 				 .BuildServiceProvider();
 
-			FtpLoggerRT = serviceProvider.GetService<ILoggerFactory>().CreateLogger("R-T");
-			FtpLoggerMXRT = serviceProvider.GetService<ILoggerFactory>().CreateLogger("MXR");
-			FtpLoggerIN = serviceProvider.GetService<ILoggerFactory>().CreateLogger("INT");
-			FtpLoggerMXIN = serviceProvider.GetService<ILoggerFactory>().CreateLogger("MXI");
+			FtpLoggerRT = serviceProvider.GetService<ILoggerFactory>().CreateLogger("FTPr.FTP");
+			FtpLoggerMXRT = serviceProvider.GetService<ILoggerFactory>().CreateLogger("CMXr.CMX");
+			FtpLoggerIN = serviceProvider.GetService<ILoggerFactory>().CreateLogger("FTPi.FTP");
+			FtpLoggerMXIN = serviceProvider.GetService<ILoggerFactory>().CreateLogger("CMXi.CMX");
 		}
 
 		private static StationManufacturer GetStationManufacturerFromType(int type)
