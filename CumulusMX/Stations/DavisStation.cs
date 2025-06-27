@@ -1543,7 +1543,7 @@ namespace CumulusMX
 						dataRead = comport.Read(loopString, 0, loopDataLength);
 						if (dataRead != loopDataLength)
 						{
-							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not red, expected 99 bytes, read = {dataRead}");
+							cumulus.LogWarningMessage($"LOOP: {i + 1} - Expected data not read, expected 99 bytes, read = {dataRead}");
 							continue;
 						}
 					}
