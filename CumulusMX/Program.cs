@@ -283,7 +283,7 @@ namespace CumulusMX
 				{
 					IntPtr registrationHandle = new nint();
 					DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS recipient = new DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS();
-					recipient.Callback = DrviceNotifyCallBack;
+					recipient.Callback = DeviceNotifyCallBack;
 					recipient.Context = IntPtr.Zero;
 
 					IntPtr pRecipient = Marshal.AllocHGlobal(Marshal.SizeOf(recipient));
@@ -454,7 +454,7 @@ namespace CumulusMX
 		private const int PBT_APMRESUMECRITICAL = 0x06;
 		private const int DEVICE_NOTIFY_CALLBACK = 0x02;
 
-		private static int DrviceNotifyCallBack(IntPtr context, int type, IntPtr setting)
+		private static int DeviceNotifyCallBack(IntPtr context, int type, IntPtr setting)
 		{
 			switch (type)
 			{
