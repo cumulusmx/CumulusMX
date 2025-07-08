@@ -26,6 +26,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		`ftp-realtime-N.log` or `ftp-interval-N.log`
 - CreateMissing updated to v2.0.3 to fix the daily rainfall calculation on raincounter reset at rollover
 - Improvements in the Cumulus MX shutdown process
+- The JSON and Tempset stations now use the same Sea Level Pressure calculation as all other stations
 
 ### Fixed
 

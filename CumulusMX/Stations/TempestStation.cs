@@ -174,7 +174,7 @@ namespace CumulusMX
 
 				// Pressure =============================================================
 				DoStationPressure(ConvertUnits.PressMBToUser((double) historydata.StationPressure));
-				DoPressure(ConvertUnits.PressMBToUser(MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), (double) historydata.Temperature)), timestamp);
+				DoPressure(ConvertUnits.PressMBToUser(MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), (double) historydata.Temperature, cumulus.Latitude)), timestamp);
 
 				// Outdoor Humidity =====================================================
 				DoOutdoorHumidity((int) historydata.Humidity, timestamp);
@@ -331,8 +331,7 @@ namespace CumulusMX
 							ts);
 
 						var alt = ConvertUnits.AltitudeM(cumulus.Altitude);
-						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure,
-							(double) wp.Observation.Temperature);
+						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure, (double) wp.Observation.Temperature, cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(seaLevel), ts);
 						cumulus.LogDebugMessage($"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
 
