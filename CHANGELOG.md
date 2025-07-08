@@ -21,6 +21,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- You will need to manually delete any old log files that use the old convetion of:
 		`ftp-realtime-N.log` or `ftp-interval-N.log`
 - CreateMissing updated to v2.0.3 to fix the daily rainfall calculation on raincounter reset at rollover
+- Improvements in the Cumulus MX shutdown process
 
 ### Fixed
 

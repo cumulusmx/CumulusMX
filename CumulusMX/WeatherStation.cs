@@ -1664,7 +1664,7 @@ namespace CumulusMX
 					if (cumulus.ProgramOptions.DataStoppedExit && DataStoppedTime.AddMinutes(cumulus.ProgramOptions.DataStoppedMins) < DateTime.Now)
 					{
 						cumulus.LogMessage($"*** Exiting Cumulus due to Data Stopped condition for > {cumulus.ProgramOptions.DataStoppedMins} minutes");
-						Program.exitSystem = true;
+						Program.ExitSystemTokenSource.Cancel();
 					}
 					// No data coming in, do not do anything else
 					return;
@@ -7404,7 +7404,9 @@ namespace CumulusMX
 					}
 
 					if (ConsecutiveRainDays > AllTime.LongestWetPeriod.Val)
+					{
 						SetAlltime(AllTime.LongestWetPeriod, ConsecutiveRainDays, yesterday);
+					}
 
 					CheckMonthlyAlltime("LongestWetPeriod", ConsecutiveRainDays, true, yesterday);
 				}
@@ -7432,7 +7434,9 @@ namespace CumulusMX
 					}
 
 					if (ConsecutiveDryDays > AllTime.LongestDryPeriod.Val)
+					{
 						SetAlltime(AllTime.LongestDryPeriod, ConsecutiveDryDays, yesterday);
+					}
 
 					CheckMonthlyAlltime("LongestDryPeriod", ConsecutiveDryDays, true, yesterday);
 				}

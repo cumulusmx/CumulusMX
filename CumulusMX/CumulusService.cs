@@ -68,16 +68,14 @@ namespace CumulusMX
 		{
 			Program.cumulus.LogMessage("Shutting down due to SERVICE STOP");
 			Cumulus.LogConsoleMessage("Shutting down due to SERVICE STOP");
-			Program.cumulus.Stop();
-			Program.exitSystem = true;
+			Program.ExitSystemTokenSource.Cancel();
 		}
 
 		protected override void OnShutdown()
 		{
 			Program.cumulus.LogMessage("Shutting down due to SYSTEM SHUTDOWN");
 			Cumulus.LogConsoleMessage("Shutting down due to SYSTEM SHUTDOWN");
-			Program.cumulus.Stop();
-			Program.exitSystem = true;
+			Program.ExitSystemTokenSource.Cancel();
 			base.OnShutdown();
 		}
 
@@ -121,7 +119,7 @@ namespace CumulusMX
 					Program.cumulus.LogMessage("POWER: Detected system GOING TO STANDBY, stopping service");
 					Cumulus.LogConsoleMessage("Detected system GOING TO STANDBY, stopping service");
 					Stop();
-					Program.exitSystem = true;
+					Program.ExitSystemTokenSource.Cancel();
 					break;
 			}
 

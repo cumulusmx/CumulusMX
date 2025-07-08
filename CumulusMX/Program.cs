@@ -16,7 +16,6 @@ namespace CumulusMX
 	internal static class Program
 	{
 		public static Cumulus cumulus { get; set; }
-		public static bool exitSystem { get; set; } = false;
 		public static bool service { get; set; } = false;
 		public static TextWriterTraceListener svcTextListener { get; set; }
 		public const string AppGuid = "57190d2e-7e45-4efb-8c09-06a176cef3f3";
@@ -28,6 +27,11 @@ namespace CumulusMX
 		public static bool debug { get; set; } = false;
 
 		public static Random RandGenerator { get; } = new Random();
+
+		private static bool ignoreProcessExit = false;
+		public static readonly CancellationTokenSource ExitSystemTokenSource = new();
+		private static nint powerNotificationRegistrationHandle = new nint();
+
 
 		private static async Task Main(string[] args)
 		{
@@ -74,34 +78,7 @@ namespace CumulusMX
 			svcTextListener.Flush();
 
 			// Add an exit handler
-			AppDomain.CurrentDomain.ProcessExit += (s, e) =>
-			{
-				if (cumulus != null && Environment.ExitCode != 999)
-				{
-					Cumulus.LogConsoleMessage("Cumulus terminating", ConsoleColor.Red);
-					cumulus.LogMessage("Cumulus terminating");
-					cumulus.Stop();
-					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
-					svcTextListener.Flush();
-					Console.ForegroundColor = ConsoleColor.Yellow;
-					Console.WriteLine("Cumulus stopped");
-					Console.ResetColor();
-					exitSystem = true;
-				}
-				else
-				{
-					Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
-					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
-				}
-
-				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exit code = " + Environment.ExitCode);
-
-				if (!service)
-				{
-					Console.CursorVisible = true;
-				}
-			};
-
+			AppDomain.CurrentDomain.ProcessExit += ProcessExit;
 
 			// Now we need to catch the console Ctrl-C
 			Console.CancelKeyPress += (s, ev) =>
@@ -109,22 +86,20 @@ namespace CumulusMX
 				if (cumulus != null)
 				{
 					Cumulus.LogConsoleMessage("Ctrl+C pressed", ConsoleColor.Red);
-					cumulus.LogMessage("Ctrl + C pressed");
-					cumulus.Stop();
-					//allow main to run off
-					Thread.Sleep(500);
+					cumulus.LogMessage("*** Ctrl + C pressed");
 				}
 				else
 				{
 					Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Ctrl+C pressed");
 				}
-				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
 				ev.Cancel = true;
-				exitSystem = true;
+
 				if (!service)
 				{
 					Console.CursorVisible = true;
 				}
+
+				Program.ExitSystemTokenSource.Cancel();
 			};
 
 			AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
@@ -281,7 +256,6 @@ namespace CumulusMX
 				// Windows 10 or later uses Modern Standby
 				if (Environment.OSVersion.Version.Major >= 10)
 				{
-					IntPtr registrationHandle = new nint();
 					DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS recipient = new DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS();
 					recipient.Callback = DeviceNotifyCallBack;
 					recipient.Context = IntPtr.Zero;
@@ -289,7 +263,7 @@ namespace CumulusMX
 					IntPtr pRecipient = Marshal.AllocHGlobal(Marshal.SizeOf(recipient));
 					Marshal.StructureToPtr(recipient, pRecipient, false);
 
-					uint result = PowerRegisterSuspendResumeNotification(DEVICE_NOTIFY_CALLBACK, ref recipient, ref registrationHandle);
+					uint result = PowerRegisterSuspendResumeNotification(DEVICE_NOTIFY_CALLBACK, ref recipient, ref powerNotificationRegistrationHandle);
 
 					if (result != 0)
 					{
@@ -335,9 +309,13 @@ namespace CumulusMX
 				RunAsAConsole(Httpport, debug);
 			}
 
-			while (!exitSystem)
+			try
 			{
-				await Task.Delay(500);
+				await Task.Delay(Timeout.Infinite, ExitSystemTokenSource.Token);
+			}
+			catch (TaskCanceledException)
+			{
+				// do nothing, we are exiting
 			}
 
 			if (!service)
@@ -375,11 +353,8 @@ namespace CumulusMX
 
 			cumulus.Initialise(port, debug, "");
 
-			if (!exitSystem)
-			{
-				Console.WriteLine(DateTime.Now.ToString("G"));
-				Console.WriteLine("Type Ctrl-C to terminate\n");
-			}
+			Console.WriteLine(DateTime.Now.ToString("G"));
+			Console.WriteLine("Type Ctrl-C to terminate\n");
 		}
 
 		private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
@@ -410,6 +385,55 @@ namespace CumulusMX
 			catch (Exception)
 			{
 				// do nothing
+			}
+		}
+
+		private static void ProcessExit(object s, EventArgs e)
+		{
+			if (powerNotificationRegistrationHandle != 0)
+			{
+				// Unregister the power notification
+				var result = PowerUnregisterSuspendResumeNotification(powerNotificationRegistrationHandle);
+				if (cumulus != null)
+				{
+					if (result == 0)
+					{
+						cumulus.LogMessage("Unregistered for power mode changes on Windows");
+					}
+					else
+					{
+						cumulus.LogMessage("Failed to unregister for power mode changes, error code: " + result);
+					}
+				}
+			}
+
+			if (!ignoreProcessExit)
+			{
+				if (cumulus != null && Environment.ExitCode != 999)
+				{
+					Cumulus.LogConsoleMessage("Cumulus terminating", ConsoleColor.Red);
+					cumulus.LogMessage("Cumulus terminating");
+					cumulus.Stop();
+					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
+					svcTextListener.Flush();
+					Console.ForegroundColor = ConsoleColor.Yellow;
+					Console.WriteLine("Cumulus stopped");
+					Console.ResetColor();
+					ExitSystemTokenSource.Cancel();
+				}
+				else
+				{
+					Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
+					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
+				}
+
+				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
+				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exit code = " + Environment.ExitCode);
+			}
+
+			if (!service)
+			{
+				Console.CursorVisible = true;
 			}
 		}
 
@@ -465,15 +489,16 @@ namespace CumulusMX
 						cumulus.LogCriticalMessage("*** Shutting down due to computer going to modern standby");
 						Console.WriteLine("*** Shutting down due to computer going to sleep");
 					}
-					cumulus.Stop();
-					Program.exitSystem = true;
+					ProcessExit(null, EventArgs.Empty);
+					ignoreProcessExit = true; // ignore the process exit event when we really exit
+					ExitSystemTokenSource.Cancel();
 					return 1; // handled
 
 				case PBT_APMRESUMESUSPEND:
 				case PBT_APMRESUMECRITICAL:
 					// The system is resuming operation after being suspended.
 					// check if already shutting down...
-					if (Program.exitSystem)
+					if (ExitSystemTokenSource.IsCancellationRequested)
 					{
 						if (cumulus != null)
 						{
@@ -510,6 +535,9 @@ namespace CumulusMX
 			ref DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS recipient,
 			ref IntPtr RegistrationHandle);
 
+		[DllImport("Powrprof.dll", SetLastError = true)]
+		static extern uint PowerUnregisterSuspendResumeNotification(
+			IntPtr registrationHandle);
 
 
 		// Windows 7 power management
@@ -522,10 +550,11 @@ namespace CumulusMX
 				{
 					cumulus.LogCriticalMessage("Shutting down due to computer going to sleep");
 					Console.WriteLine("*** Shutting down due to computer going to sleep");
-					cumulus.Stop();
 				}
 
-				Program.exitSystem = true;
+				ProcessExit(null, EventArgs.Empty);
+				ignoreProcessExit = true; // ignore the process exit event when we really exit
+				ExitSystemTokenSource.Cancel();
 			}
 #pragma warning restore CA1416 // Validate platform compatibility
 		}

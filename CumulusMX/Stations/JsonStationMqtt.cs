@@ -87,7 +87,7 @@ namespace CumulusMX
 			{
 				cumulus.LogExceptionMessage(ex,"JSON MQTT Error: failed to create or connect to the host");
 				cumulus.LogMessage("JSON MQTT: terminating...");
-				Program.exitSystem = true;
+				Program.ExitSystemTokenSource.Cancel();
 			}
 		}
 
