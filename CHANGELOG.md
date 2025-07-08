@@ -12,6 +12,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.6.0 \[b4106\]][23] - 2025-07-20
 
+### New
+
+- Adds support the Ecowitt WH25 CO₂ sensor values on the HTTP API
+
 ### Changed
 
 - Added Davis Cloud API UUID option to the Configuration Wizard
@@ -94,7 +98,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Davis Cloud Station (VP2/Vue) decoding of soil moisture/temp and leaf wetness
 - Fix Ecowitt HTTP API station erroneously  mapping an extra humidity sensor to the indoor value
-- Add missing 24h AQI to CO2 sensor values from the Ecowitt HTTP API station and Ecowitt Cloud Station
+- Add missing 24h AQI to CO₂ sensor values from the Ecowitt HTTP API station and Ecowitt Cloud Station
 - Air Quality PM10 sensor names not being saved
 - Some basic checking of the PurpleAir response before trying to process it
 - Sun rise/set daylength calculation errors now caught and the program continues on error
@@ -226,7 +230,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-- Adds current values for Ecowitt CO2 sensor pm1 and pm4, and 24-hour averages for pm 2.5, 10, 1, 4 to Ecowitt HTTP API
+- Adds current values for Ecowitt CO₂ sensor pm1 and pm4, and 24-hour averages for pm 2.5, 10, 1, 4 to Ecowitt HTTP API
 
 ### Changed
 
@@ -236,7 +240,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - WeatherUnderground rapid fire no longer uploading in v4.4.5
 - Remove spurious messages about non-present HTTP Rollover commands being invalid
-- Ecowitt binary API CO2 sensor causing decode unknown sensor detection and unpredictable decodes
+- Ecowitt binary API CO₂ sensor causing decode unknown sensor detection and unpredictable decodes
 - Rounding error on laser depth increases to snowfall accumulation meant small increments were rounded to zero
 
 

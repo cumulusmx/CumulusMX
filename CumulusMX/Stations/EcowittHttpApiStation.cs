@@ -1143,7 +1143,9 @@ namespace CumulusMX
 			//	"unit":	"C",
 			//	"inhumi":	"68%",
 			//	"abs":	"1006.5 hPa",
-			//	"rel":	"1010.5 hPa"
+			//	"rel":	"1010.5 hPa",
+			//	"CO2":	"511",		// not always present
+			//	"CO2_24H":	"509"	// not always present
 			//}]
 #pragma warning restore S125
 
@@ -1240,6 +1242,25 @@ namespace CumulusMX
 				catch (Exception ex)
 				{
 					cumulus.LogExceptionMessage(ex, "ProcessWh25: Error processing pressure}");
+				}
+
+				// CO2
+				try
+				{
+					if (sensor.CO2 != null && int.TryParse(sensor.CO2, out var co2))
+					{
+						CO2 = co2;
+					}
+
+					if (sensor.CO2_24H != null && int.TryParse(sensor.CO2_24H, out var co2_24h))
+					{
+						CO2_24h = co2_24h;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "ProcessWh25: Error processing CO2}");
+
 				}
 			}
 		}

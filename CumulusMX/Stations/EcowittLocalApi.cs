@@ -1047,6 +1047,8 @@ namespace CumulusMX
 			public string inhumi { get; set; }
 			public string abs { get; set; }
 			public string rel { get; set; }
+			public string CO2 { get; set; }
+			public string CO2_24H { get; set; }
 			public int? battery { get; set; }
 
 			public int? inhumiInt
