@@ -19,10 +19,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changed
 
 - Added Davis Cloud API UUID option to the Configuration Wizard
-- Add a retry to downloading Ecowitt SD card files if file is empty or on error
+- Add a retry to downloading Ecowitt SD card files on error or if returned file is empty
 - The FTP log files have changed naming convention (to work better with the new version of NLog)
 	- The latest file (if more than one), will be one with the highest value for NN for today: `ftp-<logtype>_YYYY-MM-DD_NN.log`
-	- You will need to manually delete any old log files that use the old convetion of:
+	- You will need to manually delete any old log files that use the old naming convention of:
 		`ftp-realtime-N.log` or `ftp-interval-N.log`
 - CreateMissing updated to v2.0.3 to fix the daily rainfall calculation on raincounter reset at rollover
 - Improvements in the Cumulus MX shutdown process
