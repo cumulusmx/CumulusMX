@@ -66,6 +66,8 @@
   <ItemGroup>
     <Compile Remove="MxFtpClient.cs" />
     <Compile Remove="Properties\Settings.Designer.cs" />
+    <Compile Remove="WeatherData.cs" />
+    <Compile Remove="WeatherDataCollection.cs" />
   </ItemGroup>
 
   <ItemGroup>

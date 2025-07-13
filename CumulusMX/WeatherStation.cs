@@ -137,7 +137,8 @@ namespace CumulusMX
 
 		private readonly List<Last10MinWind> Last10MinWindList = [];
 
-		public WeatherDataCollection weatherDataCollection = [];
+		// Not sure what Steve intended to do with this, but it isn't used
+		//public WeatherDataCollection weatherDataCollection = []
 
 		public List<string> LowBatteryDevices { get; set; } = [];
 
@@ -1857,6 +1858,8 @@ namespace CumulusMX
 					// update heating/cooling degree days
 					UpdateDegreeDays(1);
 
+					// Not sure what Steve intended to do with this, it isn't used anywhere
+					/*
 					weatherDataCollection.Add(new WeatherData
 					{
 						//station = this,
@@ -1872,6 +1875,7 @@ namespace CumulusMX
 					{
 						weatherDataCollection.RemoveAt(0);
 					}
+					*/
 
 					if (!first_temp)
 					{
@@ -13001,15 +13005,9 @@ namespace CumulusMX
 
 							if (date >= fromDate && date <= toDate)
 							{
-								var fieldList = new List<string>();
-
-								foreach (var indx in flds)
-								{
-									if (indx < 1000)
-									{
-										fieldList.Add(vars[indx]);
-									}
-								}
+								var fieldList = (from indx in flds
+												 where indx < 1000
+												 select vars[indx]).ToList();
 
 								data.TryAdd(dateStr, fieldList);
 							}
@@ -13040,13 +13038,9 @@ namespace CumulusMX
 
 							if (date >= fromDate && date <= toDate)
 							{
-								foreach (var indx in flds)
-								{
-									if (indx >= 1000)
-									{
-										fieldList.Add(vars[indx - 1000]);
-									}
-								}
+								fieldList.AddRange(from indx in flds
+												   where indx >= 1000
+												   select vars[indx - 1000]);
 
 								if (data.TryGetValue(dateStr, out var value))
 								{
