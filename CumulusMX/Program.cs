@@ -28,7 +28,6 @@ namespace CumulusMX
 
 		public static Random RandGenerator { get; } = new Random();
 
-		private static bool ignoreProcessExit = false;
 		public static readonly CancellationTokenSource ExitSystemTokenSource = new();
 		private static nint powerNotificationRegistrationHandle = new nint();
 
@@ -390,6 +389,27 @@ namespace CumulusMX
 
 		private static void ProcessExit(object s, EventArgs e)
 		{
+			if (cumulus != null && Environment.ExitCode != 999)
+			{
+				Cumulus.LogConsoleMessage("Cumulus terminating", ConsoleColor.Red);
+				cumulus.LogMessage("Cumulus terminating");
+				cumulus.Stop();
+				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
+				svcTextListener.Flush();
+				Console.ForegroundColor = ConsoleColor.Yellow;
+				Console.WriteLine("Cumulus stopped");
+				Console.ResetColor();
+				ExitSystemTokenSource.Cancel();
+			}
+			else
+			{
+				Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
+				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
+			}
+
+			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
+			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exit code = " + Environment.ExitCode);
+
 			if (powerNotificationRegistrationHandle != 0)
 			{
 				// Unregister the power notification
@@ -405,30 +425,6 @@ namespace CumulusMX
 						cumulus.LogMessage("Failed to unregister for power mode changes, error code: " + result);
 					}
 				}
-			}
-
-			if (!ignoreProcessExit)
-			{
-				if (cumulus != null && Environment.ExitCode != 999)
-				{
-					Cumulus.LogConsoleMessage("Cumulus terminating", ConsoleColor.Red);
-					cumulus.LogMessage("Cumulus terminating");
-					cumulus.Stop();
-					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
-					svcTextListener.Flush();
-					Console.ForegroundColor = ConsoleColor.Yellow;
-					Console.WriteLine("Cumulus stopped");
-					Console.ResetColor();
-					ExitSystemTokenSource.Cancel();
-				}
-				else
-				{
-					Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
-					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
-				}
-
-				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
-				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exit code = " + Environment.ExitCode);
 			}
 
 			if (!service)
@@ -489,8 +485,6 @@ namespace CumulusMX
 						cumulus.LogCriticalMessage("*** Shutting down due to computer going to modern standby");
 						Console.WriteLine("*** Shutting down due to computer going to sleep");
 					}
-					ProcessExit(null, EventArgs.Empty);
-					ignoreProcessExit = true; // ignore the process exit event when we really exit
 					ExitSystemTokenSource.Cancel();
 					return 1; // handled
 
@@ -552,8 +546,6 @@ namespace CumulusMX
 					Console.WriteLine("*** Shutting down due to computer going to sleep");
 				}
 
-				ProcessExit(null, EventArgs.Empty);
-				ignoreProcessExit = true; // ignore the process exit event when we really exit
 				ExitSystemTokenSource.Cancel();
 			}
 #pragma warning restore CA1416 // Validate platform compatibility
