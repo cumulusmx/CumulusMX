@@ -14946,6 +14946,8 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				alarms.Add(new DashboardAlarms(cumulus.UpgradeAlarm.Id, cumulus.UpgradeAlarm.Triggered));
 			if (cumulus.FirmwareAlarm.Enabled)
 				alarms.Add(new DashboardAlarms(cumulus.FirmwareAlarm.Id, cumulus.FirmwareAlarm.Triggered));
+			if (cumulus.ErrorAlarm.Enabled)
+				alarms.Add(new DashboardAlarms(cumulus.ErrorAlarm.Id, cumulus.ErrorAlarm.Triggered));
 
 			for (var i = 0; i < cumulus.UserAlarms.Count; i++)
 			{

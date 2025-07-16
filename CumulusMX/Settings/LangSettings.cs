@@ -126,7 +126,8 @@ namespace CumulusMX
 				httpStopped = cumulus.ThirdPartyAlarm.Name,
 				mySqlStopped = cumulus.MySqlUploadAlarm.Name,
 				newRecord = cumulus.NewRecordAlarm.Name,
-				ftpStopped = cumulus.FtpAlarm.Name
+				ftpStopped = cumulus.FtpAlarm.Name,
+				genError = cumulus.ErrorAlarm.Name
 			};
 
 			var alarmEmail = new AlarmStrings()
@@ -152,7 +153,8 @@ namespace CumulusMX
 				httpStopped = cumulus.ThirdPartyAlarm.EmailMsg,
 				mySqlStopped = cumulus.MySqlUploadAlarm.EmailMsg,
 				newRecord = cumulus.NewRecordAlarm.EmailMsg,
-				ftpStopped = cumulus.FtpAlarm.EmailMsg
+				ftpStopped = cumulus.FtpAlarm.EmailMsg,
+				genError = cumulus.ErrorAlarm.EmailMsg
 			};
 
 			var alarmSettings = new AlarmSettings()
@@ -435,6 +437,7 @@ namespace CumulusMX
 					cumulus.MySqlUploadAlarm.Name = settings.alarms.names.mySqlStopped.Trim();
 					cumulus.NewRecordAlarm.Name = settings.alarms.names.newRecord.Trim();
 					cumulus.FtpAlarm.Name = settings.alarms.names.ftpStopped.Trim();
+					cumulus.ErrorAlarm.Name = settings.alarms.names.genError.Trim();
 					// Email
 					cumulus.HighGustAlarm.EmailMsg = settings.alarms.email.windGustAbove.Trim();
 					cumulus.HighPressAlarm.EmailMsg = settings.alarms.email.pressureAbove.Trim();
@@ -458,6 +461,7 @@ namespace CumulusMX
 					cumulus.MySqlUploadAlarm.EmailMsg = settings.alarms.email.mySqlStopped.Trim();
 					cumulus.NewRecordAlarm.EmailMsg = settings.alarms.email.newRecord.Trim();
 					cumulus.FtpAlarm.EmailMsg = settings.alarms.email.ftpStopped.Trim();
+					cumulus.ErrorAlarm.EmailMsg = settings.alarms.email.genError.Trim();
 				}
 				catch (Exception ex)
 				{
@@ -645,6 +649,7 @@ namespace CumulusMX
 			public string mySqlStopped { get; set; }
 			public string newRecord { get; set; }
 			public string ftpStopped { get; set; }
+			public string genError { get; set; }
 		}
 
 		private sealed class WebTags

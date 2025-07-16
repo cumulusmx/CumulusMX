@@ -1721,7 +1721,7 @@ namespace CumulusMX
 							await writer.WriteAsync(stationSettings.UploadNow(HttpContext));
 							break;
 						case "clearerrorlog.json":
-							await writer.WriteAsync(Cumulus.ClearErrorLog());
+							await writer.WriteAsync(cumulus.ClearErrorLog());
 							break;
 						default:
 							Response.StatusCode = 404;

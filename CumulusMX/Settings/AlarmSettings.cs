@@ -317,6 +317,17 @@ namespace CumulusMX
 					Action = cumulus.FtpAlarm.Action,
 					ActionParams = cumulus.FtpAlarm.ActionParams,
 					Bsky = cumulus.FtpAlarm.BskyFile == "none" ? string.Empty : cumulus.FtpAlarm.BskyFile
+				},
+				genError = new JsonAlarmValues()
+				{
+					Enabled = cumulus.ErrorAlarm.Enabled,
+					SoundEnabled = cumulus.ErrorAlarm.Sound,
+					Sound = cumulus.ErrorAlarm.SoundFile,
+					Notify = cumulus.ErrorAlarm.Notify,
+					Email = cumulus.ErrorAlarm.Email,
+					Action = cumulus.ErrorAlarm.Action,
+					ActionParams = cumulus.ErrorAlarm.ActionParams,
+					Bsky = cumulus.ErrorAlarm.BskyFile == "none" ? string.Empty : cumulus.ErrorAlarm.BskyFile
 				}
 			};
 
@@ -550,6 +561,15 @@ namespace CumulusMX
 					SoundEnabled = cumulus.FtpAlarm.Sound,
 					Sound = cumulus.FtpAlarm.SoundFile,
 					Notify = cumulus.FtpAlarm.Notify
+				});
+			if (cumulus.ErrorAlarm.Enabled)
+				alarms.Add(new JsonAlarmInfo()
+				{
+					Id = cumulus.ErrorAlarm.Id.ToString(),
+					Name = cumulus.ErrorAlarm.Name,
+					SoundEnabled = cumulus.ErrorAlarm.Sound,
+					Sound = cumulus.ErrorAlarm.SoundFile,
+					Notify = cumulus.ErrorAlarm.Notify
 				});
 
 			for (var i = 0; i < cumulus.UserAlarms.Count; i++)
@@ -873,6 +893,16 @@ namespace CumulusMX
 				cumulus.FtpAlarm.ActionParams = settings.ftpUpload.ActionParams.Trim();
 				cumulus.FtpAlarm.BskyFile = settings.ftpUpload.Bsky.Trim() == string.Empty ? "none" : settings.ftpUpload.Bsky.Trim();
 
+				cumulus.ErrorAlarm.Enabled = settings.genError.Enabled;
+				cumulus.ErrorAlarm.Sound = settings.genError.SoundEnabled;
+				cumulus.ErrorAlarm.SoundFile = settings.genError.Sound.Trim();
+				cumulus.ErrorAlarm.Notify = settings.genError.Notify;
+				cumulus.ErrorAlarm.Email = settings.genError.Email;
+				emailRequired = emailRequired || (cumulus.ErrorAlarm.Email && cumulus.ErrorAlarm.Enabled);
+				cumulus.ErrorAlarm.Action = settings.genError.Action.Trim();
+				cumulus.ErrorAlarm.ActionParams = settings.genError.ActionParams.Trim();
+				cumulus.ErrorAlarm.BskyFile = settings.genError.Bsky.Trim() == string.Empty ? "none" : settings.genError.Bsky.Trim();
+
 				// validate the from email
 				if (emailRequired && !EmailSender.CheckEmailAddress(result.email.fromEmail.Trim()))
 				{
@@ -1002,6 +1032,7 @@ namespace CumulusMX
 		public JsonAlarmValues mySqlUpload { get; set; }
 		public JsonAlarmValues isRaining { get; set; }
 		public JsonAlarmValues ftpUpload { get; set; }
+		public JsonAlarmValues genError { get; set; }
 	}
 
 	public class JsonAlarmValues

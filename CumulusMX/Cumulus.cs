@@ -413,6 +413,7 @@ namespace CumulusMX
 		internal Alarm IsRainingAlarm;
 		internal Alarm NewRecordAlarm;
 		internal Alarm FtpAlarm;
+		internal Alarm ErrorAlarm;
 
 		internal List<AlarmUser> UserAlarms = [];
 
@@ -977,6 +978,7 @@ namespace CumulusMX
 			IsRainingAlarm = new Alarm(AlarmIds.IsRaining, AlarmTypes.Trigger, this);
 			NewRecordAlarm = new Alarm(AlarmIds.Record, AlarmTypes.Trigger, this);
 			FtpAlarm = new Alarm(AlarmIds.FTP, AlarmTypes.Trigger, this);
+			ErrorAlarm = new Alarm(AlarmIds.Error, AlarmTypes.Trigger, this);
 
 			ReadIniFile();
 			ReadConfigFile();
@@ -5508,6 +5510,16 @@ namespace CumulusMX
 			FtpAlarm.ShowWindow = ini.GetValue("Alarms", "FtpAlarmActionWindow", false);
 			FtpAlarm.BskyFile = ini.GetValue("Alarms", "FtpAlarmBlueskyFile", "none");
 
+			ErrorAlarm.Enabled = ini.GetValue("Alarms", "ErrorAlarmSet", false);
+			ErrorAlarm.Sound = ini.GetValue("Alarms", "ErrorAlarmSound", false);
+			ErrorAlarm.SoundFile = ini.GetValue("Alarms", "ErrorAlarmSoundFile", DefaultSoundFile);
+			ErrorAlarm.Notify = ini.GetValue("Alarms", "ErrorAlarmNotify", false);
+			ErrorAlarm.Email = ini.GetValue("Alarms", "ErrorAlarmEmail", false);
+			ErrorAlarm.Action = ini.GetValue("Alarms", "ErrorAlarmAction", string.Empty);
+			ErrorAlarm.ActionParams = ini.GetValue("Alarms", "ErrorAlarmActionParams", string.Empty);
+			ErrorAlarm.ShowWindow = ini.GetValue("Alarms", "ErrorAlarmActionWindow", false);
+			ErrorAlarm.BskyFile = ini.GetValue("Alarms", "ErrorAlarmBlueskyFile", "none");
+
 			AlarmFromEmail = ini.GetValue("Alarms", "FromEmail", string.Empty);
 			AlarmDestEmail = ini.GetValue("Alarms", "DestEmail", string.Empty).Split(';');
 			AlarmEmailHtml = ini.GetValue("Alarms", "UseHTML", false);
@@ -7064,6 +7076,16 @@ namespace CumulusMX
 			ini.SetValue("Alarms", "FtpAlarmActionParams", FtpAlarm.ActionParams);
 			ini.SetValue("Alarms", "FtpAlarmBlueskyFile", FtpAlarm.BskyFile);
 
+			ini.SetValue("Alarms", "ErrorAlarmSet", ErrorAlarm.Enabled);
+			ini.SetValue("Alarms", "ErrorAlarmSound", ErrorAlarm.Sound);
+			ini.SetValue("Alarms", "ErrorAlarmSoundFile", ErrorAlarm.SoundFile);
+			ini.SetValue("Alarms", "ErrorAlarmNotify", ErrorAlarm.Notify);
+			ini.SetValue("Alarms", "ErrorAlarmEmail", ErrorAlarm.Email);
+			ini.SetValue("Alarms", "ErrorAlarmAction", ErrorAlarm.Action);
+			ini.SetValue("Alarms", "ErrorAlarmActionParams", ErrorAlarm.ActionParams);
+			ini.SetValue("Alarms", "ErrorAlarmActionWindow", ErrorAlarm.ShowWindow);
+			ini.SetValue("Alarms", "ErrorAlarmBlueskyFile", ErrorAlarm.BskyFile);
+
 			ini.SetValue("Alarms", "FromEmail", AlarmFromEmail);
 			ini.SetValue("Alarms", "DestEmail", string.Join(";", AlarmDestEmail));
 			ini.SetValue("Alarms", "UseHTML", AlarmEmailHtml);
@@ -7730,6 +7752,8 @@ namespace CumulusMX
 			IsRainingAlarm.EmailMsg = ini.GetValue("AlarmEmails", "isRaining", "It has started to rain.");
 			NewRecordAlarm.EmailMsg = ini.GetValue("AlarmEmails", "newRecord", "A new all-time record has been set.");
 			FtpAlarm.EmailMsg = ini.GetValue("AlarmEmails", "ftpStopped", "FTP uploads have stopped.");
+			ErrorAlarm.EmailMsg = ini.GetValue("AlarmEmails", "genError", "An error has occurred in Cumulus MX.");
+
 
 			// alarm names
 			HighGustAlarm.Name = ini.GetValue("AlarmNames", "windGustAbove", "High Gust");
@@ -7755,6 +7779,7 @@ namespace CumulusMX
 			IsRainingAlarm.Name = ini.GetValue("AlarmNames", "isRaining", "Is Raining");
 			NewRecordAlarm.Name = ini.GetValue("AlarmNames", "newRecord", "New Record");
 			FtpAlarm.Name = ini.GetValue("AlarmNames", "ftpStopped", "Web Upload");
+			ErrorAlarm.Name = ini.GetValue("AlarmNames", "genError", "Cumulus MX Error");
 
 			// web tag defaults
 			Trans.WebTagGenTimeDate = ini.GetValue("WebTags", "GeneralTimeDate", "HH:mm 'on' dd MMMM yyyy");
@@ -7945,6 +7970,7 @@ namespace CumulusMX
 			ini.SetValue("AlarmEmails", "isRaining", IsRainingAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "newRecord", NewRecordAlarm.EmailMsg);
 			ini.SetValue("AlarmEmails", "ftpStopped", FtpAlarm.EmailMsg);
+			ini.SetValue("AlarmEmails", "genError", ErrorAlarm.EmailMsg);
 
 			// alarm names
 			ini.SetValue("AlarmNames", "windGustAbove", HighGustAlarm.Name);
@@ -7970,6 +7996,7 @@ namespace CumulusMX
 			ini.SetValue("AlarmNames", "isRaining", IsRainingAlarm.Name);
 			ini.SetValue("AlarmNames", "newRecord", NewRecordAlarm.Name);
 			ini.SetValue("AlarmNames", "ftpStopped", FtpAlarm.Name);
+			ini.SetValue("AlarmNames", "genError", ErrorAlarm.Name);
 
 			// web tag defaults
 			ini.SetValue("WebTags", "GeneralTimeDate", Trans.WebTagGenTimeDate);
@@ -12758,13 +12785,14 @@ namespace CumulusMX
 				{
 					_ = ErrorList.Dequeue();
 				}
-				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + WebUtility.HtmlEncode(message)));
-			}
 
-			if (level >= ErrorListLoggingLevel)
-			{
+				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + WebUtility.HtmlEncode(message)));
+
 				LatestError = message;
 				LatestErrorTS = DateTime.Now;
+
+				ErrorAlarm.LastMessage = message;
+				ErrorAlarm.Triggered = true;
 			}
 		}
 
@@ -12860,9 +12888,13 @@ namespace CumulusMX
 				{
 					_ = ErrorList.Dequeue();
 				}
+
 				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.GetInnerMostException().Message));
+
 				LatestError = message + " - " + ex.Message;
 				LatestErrorTS = DateTime.Now;
+				ErrorAlarm.LastMessage = message;
+				ErrorAlarm.Triggered = true;
 			}
 		}
 
@@ -12878,10 +12910,11 @@ namespace CumulusMX
 			return arr.Reverse().ToJson();
 		}
 
-		public static string ClearErrorLog()
+		public string ClearErrorLog()
 		{
 			LatestError = string.Empty;
 			LatestErrorTS = DateTime.MinValue;
+			ErrorAlarm.Triggered = false;
 			ErrorList.Clear();
 			return GetErrorLog();
 		}

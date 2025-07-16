@@ -606,6 +606,7 @@ namespace CumulusMX
 		IsRaining,
 		Record,
 		FTP,
+		Error,
 		User1 = 101,
 		User2 = 102,
 		User3 = 103,

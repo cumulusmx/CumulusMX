@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### New
 
 - Adds support the Ecowitt WH25 CO₂ sensor values on the HTTP API
+- A new Alarm for Cumulus MX general errors, triggered every time something is written to the Recent Errors log, and cleared when the log is cleared
 
 ### Changed
 
