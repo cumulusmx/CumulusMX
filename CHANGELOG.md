@@ -25,7 +25,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The latest file (if more than one), will be one with the highest value for NN for today: `ftp-<logtype>_YYYY-MM-DD_NN.log`
 	- You will need to manually delete any old log files that use the old naming convention of:
 		`ftp-realtime-N.log` or `ftp-interval-N.log`
-- CreateMissing updated to v2.0.3 to fix the daily rainfall calculation on raincounter reset at rollover
+- CreateMissing updated to v2.1.0 to fix the daily rainfall calculation on raincounter reset at rollover, and add support for evapotranspiration calculation
 - Improvements in the Cumulus MX shutdown process
 - The JSON and Tempest stations now use the same Sea Level Pressure calculation as all other stations
 
