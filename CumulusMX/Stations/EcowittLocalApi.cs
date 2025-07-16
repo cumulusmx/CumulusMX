@@ -636,10 +636,13 @@ namespace CumulusMX
 					{
 						cumulus.LogWarningMessage("Station firmware is out of date");
 						cumulus.LogMessage("New firmware: " + result.msg);
+						cumulus.FirmwareAlarm.LastMessage = "New firmware version = " + result.msg;
+						cumulus.FirmwareAlarm.Triggered = true;
 					}
 					else
 					{
 						cumulus.LogMessage("Station firmware is up to date");
+						cumulus.FirmwareAlarm.Triggered = false;
 					}
 
 					return result.is_new;
