@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Timers;
 
 using ServiceStack;
+using ServiceStack.Text;
 
 using Swan;
 
@@ -1081,7 +1082,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage("AirLinkHealth: Get WL.com Historic Data");
 
-			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
+			var unixDateTime = DateTime.Now.ToUnixTime();
 			var startTime = unixDateTime - WeatherLinkArchiveInterval;
 			long endTime = unixDateTime;
 

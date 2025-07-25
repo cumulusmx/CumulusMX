@@ -28,6 +28,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - CreateMissing updated to v2.1.0 to fix the daily rainfall calculation on raincounter reset at rollover, and add support for evapotranspiration calculation
 - Improvements in the Cumulus MX shutdown process
 - The JSON and Tempest stations now use the same Sea Level Pressure calculation as all other stations
+- All dashboard and default web site graph data files now use true UTC time stamps
+	- Previously they were "pseudo-UTC" to force the graphs to display the station times rather the viewers time zone
+	- Highcharts version used by the dashboard and default web site updated to v12.3.0 to support this
+	- The charts will now render correctly at DST changes
 
 ### Fixed
 

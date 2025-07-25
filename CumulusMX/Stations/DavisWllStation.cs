@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Timers;
 
 using ServiceStack;
+using ServiceStack.Text;
 
 using Swan;
 
@@ -1483,8 +1484,8 @@ namespace CumulusMX
 				Cumulus.LogConsoleMessage("GetWlHistoricData: " + msg);
 			}
 
-			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
-			var startTime = Utils.ToUnixTime(lastHistoricData);
+			var unixDateTime = DateTime.Now.ToUnixTime();
+			var startTime = lastHistoricData.ToUnixTime();
 			long endTime = unixDateTime;
 			int unix24hrs = 24 * 60 * 60;
 
@@ -2813,7 +2814,7 @@ namespace CumulusMX
 				return;
 			}
 
-			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
+			var unixDateTime = DateTime.Now.ToUnixTime();
 			var startTime = unixDateTime - weatherLinkArchiveInterval;
 			long endTime = unixDateTime;
 

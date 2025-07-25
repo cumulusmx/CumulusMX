@@ -152,6 +152,81 @@ namespace CumulusMX
 			return DateTime.MinValue;
 		}
 
+		public static DateTime ddmmyyhhmmStrToLocalDate(string d, string t, ref List<DateTime> dates)
+		{
+			if (DateTime.TryParseExact(d + ' ' + t, "dd/MM/yy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+			{
+				// if ambiguous attempt to map to correct DST offset
+				if (TimeZoneInfo.Local.IsAmbiguousTime(result))
+				{
+					// This localDt maps to two possible UTC instants (fall-back overlap).
+					// You can choose:
+					//  - the earlier offset (daylight) or
+					//  - the later offset (standard)
+					var offsets = TimeZoneInfo.Local.GetAmbiguousTimeOffsets(result);
+					TimeSpan chosenOffset;
+					if (dates.Count > 0 && dates[^1] >= result)
+					{
+						chosenOffset = offsets[0];
+					}
+					else
+					{
+						chosenOffset = offsets[1];
+						dates.Add(result);
+					}
+
+					var dto = new DateTimeOffset(result, chosenOffset);
+					return dto.LocalDateTime;
+				}
+				else
+				{
+					// A “normal” unambiguous time
+					dates.Clear();
+					var offset = TimeZoneInfo.Local.GetUtcOffset(result);
+					var dto = new DateTimeOffset(result, offset);
+					return dto.LocalDateTime;
+				}
+			}
+			return DateTime.MinValue;
+		}
+
+
+		public static DateTime AmbiguousDateToLocal(DateTime d, ref List<DateTime> dates)
+		{
+			// if ambiguous attempt to map to correct DST offset
+			if (TimeZoneInfo.Local.IsAmbiguousTime(d))
+			{
+				// This localDt maps to two possible UTC instants (fall-back overlap).
+				// You can choose:
+				//  - the earlier offset (daylight) or
+				//  - the later offset (standard)
+				var offsets = TimeZoneInfo.Local.GetAmbiguousTimeOffsets(d);
+				TimeSpan chosenOffset;
+				if (dates.Count > 0 && dates[^1] >= d)
+				{
+					chosenOffset = offsets[0];
+				}
+				else
+				{
+					chosenOffset = offsets[1];
+					dates.Add(d);
+				}
+
+				var dto = new DateTimeOffset(d, chosenOffset);
+				return dto.LocalDateTime;
+			}
+			else
+			{
+				// A “normal” unambiguous time
+				dates.Clear();
+				var offset = TimeZoneInfo.Local.GetUtcOffset(d);
+				var dto = new DateTimeOffset(d, offset);
+				return dto.LocalDateTime;
+			}
+		}
+
+
+
 		public static IPAddress GetIpWithDefaultGateway()
 		{
 			try

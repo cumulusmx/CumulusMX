@@ -5977,6 +5977,8 @@ namespace CumulusMX
 				SelectaPeriodOptions.series[i] = ini.GetValue("Select-a-Period", "Series" + i, "0");
 				SelectaPeriodOptions.colours[i] = ini.GetValue("Select-a-Period", "Colour" + i, string.Empty);
 			}
+			SelectaPeriodOptions.fromDate = ini.GetValue("Select-a-Period", "FromDate", DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd"));
+			SelectaPeriodOptions.toDate = ini.GetValue("Select-a-Period", "ToDate", DateTime.Now.ToString("yyyy-MM-dd"));
 
 			// Email settings
 			SmtpOptions.Enabled = ini.GetValue("SMTP", "Enabled", false);
@@ -7507,6 +7509,8 @@ namespace CumulusMX
 				ini.SetValue("Select-a-Period", "Series" + i, SelectaPeriodOptions.series[i]);
 				ini.SetValue("Select-a-Period", "Colour" + i, SelectaPeriodOptions.colours[i]);
 			}
+			ini.SetValue("Select-a-Period", "FromDate", SelectaPeriodOptions.fromDate);
+			ini.SetValue("Select-a-Period", "ToDate", SelectaPeriodOptions.toDate);
 
 			// Email settings
 			ini.SetValue("SMTP", "Enabled", SmtpOptions.Enabled);
@@ -9931,41 +9935,34 @@ namespace CumulusMX
 
 
 			var srcfile = string.Empty;
-			string dstfile;
+			var dstfile = string.Empty;
 
 			if (NOAAconf.NeedCopy)
 			{
+				// upload NOAA reports
+				LogDebugMessage("LocalCopy: Copying NOAA reports");
+
 				try
 				{
-					// upload NOAA reports
-					LogDebugMessage("LocalCopy: Copying NOAA reports");
+					var dstPath = string.IsNullOrEmpty(NOAAconf.CopyFolder) ? remotePath : NOAAconf.CopyFolder;
 
-					try
-					{
-						var dstPath = string.IsNullOrEmpty(NOAAconf.CopyFolder) ? remotePath : NOAAconf.CopyFolder;
+					srcfile = ReportPath + NOAAconf.LatestMonthReport;
+					dstfile = dstPath + DirectorySeparator + NOAAconf.LatestMonthReport;
 
-						srcfile = ReportPath + NOAAconf.LatestMonthReport;
-						dstfile = dstPath + DirectorySeparator + NOAAconf.LatestMonthReport;
+					File.Copy(srcfile, dstfile, true);
 
-						File.Copy(srcfile, dstfile, true);
+					srcfile = ReportPath + NOAAconf.LatestYearReport;
+					dstfile = dstPath + DirectorySeparator + NOAAconf.LatestYearReport;
 
-						srcfile = ReportPath + NOAAconf.LatestYearReport;
-						dstfile = dstPath + DirectorySeparator + NOAAconf.LatestYearReport;
+					File.Copy(srcfile, dstfile, true);
 
-						File.Copy(srcfile, dstfile, true);
+					NOAAconf.NeedCopy = false;
 
-						NOAAconf.NeedCopy = false;
-
-						LogDebugMessage("LocalCopy: Done copying NOAA reports");
-					}
-					catch (Exception ex)
-					{
-						LogErrorMessage("LocalCopy: Error copying NOAA reports - " + ex.Message);
-					}
+					LogDebugMessage("LocalCopy: Done copying NOAA reports");
 				}
-				catch (Exception e)
+				catch (Exception ex)
 				{
-					LogErrorMessage($"LocalCopy: Error copying file {srcfile} - {e.Message}");
+					LogErrorMessage($"LocalCopy: Error copying NOAA report {srcfile} to {dstfile}- " + ex.Message);
 				}
 			}
 
@@ -9977,16 +9974,27 @@ namespace CumulusMX
 			{
 				if (StdWebFiles[i].Copy && StdWebFiles[i].CopyRequired)
 				{
-					try
+					dstfile = remotePath + StdWebFiles[i].RemoteFileName;
+					// the files are no longer always created, so gen them on the fly if required
+					if (StdWebFiles[i].Create)
 					{
-						dstfile = remotePath + StdWebFiles[i].RemoteFileName;
-						// the files are no longer always created, so gen them on the fly if required
-						if (StdWebFiles[i].Create)
+						try
 						{
+
 							srcfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
 							File.Copy(srcfile, dstfile, true);
+							success++;
 						}
-						else
+						catch (Exception e)
+						{
+							LogErrorMessage($"LocalCopy: Error copying standard data file {srcfile} to {dstfile}");
+							LogMessage($"LocalCopy: Error = {e.Message}");
+							failed++;
+						}
+					}
+					else
+					{
+						try
 						{
 							string text;
 							if (StdWebFiles[i].LocalFileName == "wxnow.txt")
@@ -9999,14 +10007,14 @@ namespace CumulusMX
 							}
 
 							File.WriteAllText(dstfile, text);
+							success++;
 						}
-						success++;
-					}
-					catch (Exception e)
-					{
-						LogErrorMessage($"LocalCopy: Error copying standard data file [{StdWebFiles[i].LocalFileName}]");
-						LogMessage($"LocalCopy: Error = {e.Message}");
-						failed++;
+						catch (Exception e)
+						{
+							LogErrorMessage($"LocalCopy: Error creating standard data file {dstfile}");
+							LogMessage($"LocalCopy: Error = {e.Message}");
+							failed++;
+						}
 					}
 				}
 			}
@@ -10019,34 +10027,53 @@ namespace CumulusMX
 			{
 				if (GraphDataFiles[i].Copy && GraphDataFiles[i].CopyRequired)
 				{
-					try
-					{
-						dstfile = remotePath + GraphDataFiles[i].RemoteFileName;
+					dstfile = remotePath + GraphDataFiles[i].RemoteFileName;
 
-						// the files are no longer created when using PHP upload, so gen them on the fly
-						if (GraphDataFiles[i].Create)
+					// the files are no longer created when using PHP upload, so gen them on the fly
+					if (GraphDataFiles[i].Create)
+					{
+						try
 						{
+
 							srcfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
 							File.Copy(srcfile, dstfile, true);
+							success++;
+
+							// The config files only need uploading once per change
+							// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
+							if (i == 0 || i == 1 || i == 8 || i == 9 || i == 11)
+							{
+								GraphDataFiles[i].CopyRequired = false;
+							}
 						}
-						else
+						catch (Exception e)
+						{
+							LogErrorMessage($"LocalCopy: Error copying graph data file {srcfile} to {dstfile}");
+							LogMessage($"LocalCopy: Error = {e.Message}");
+							failed++;
+						}
+					}
+					else
+					{
+						try
 						{
 							var text = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
 							File.WriteAllText(dstfile, text);
+							success++;
+
+							// The config files only need uploading once per change
+							// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
+							if (i == 0 || i == 1 || i == 8 || i == 9 || i == 11)
+							{
+								GraphDataFiles[i].CopyRequired = false;
+							}
 						}
-						// The config files only need uploading once per change
-						// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-						if (i == 0 || i == 1 || i == 8 || i == 9 || i == 11)
+						catch (Exception e)
 						{
-							GraphDataFiles[i].CopyRequired = false;
+							LogErrorMessage($"LocalCopy: Error creating graph data file {dstfile}");
+							LogMessage($"LocalCopy: Error = {e.Message}");
+							failed++;
 						}
-						success++;
-					}
-					catch (Exception e)
-					{
-						LogErrorMessage($"LocalCopy: Error copying graph data file [{srcfile}]");
-						LogMessage($"LocalCopy: Error = {e.Message}");
-						failed++;
 					}
 				}
 			}
@@ -10059,30 +10086,43 @@ namespace CumulusMX
 			{
 				if (GraphDataEodFiles[i].Copy && GraphDataEodFiles[i].CopyRequired)
 				{
-					try
-					{
-						dstfile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+					dstfile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 
-						// the files are no longer created when using PHP upload, so gen them on the fly
-						if (GraphDataEodFiles[i].Create)
+					// the files are no longer created when using PHP upload, so gen them on the fly
+					if (GraphDataEodFiles[i].Create)
+					{
+						try
 						{
+
 							srcfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
 							File.Copy(srcfile, dstfile, true);
+							// Uploaded OK, reset the upload required flag
+							GraphDataEodFiles[i].CopyRequired = false;
+							success++;
 						}
-						else
+						catch (Exception e)
+						{
+							LogErrorMessage($"LocalCopy: Error copying daily graph data file {srcfile} to {dstfile}");
+							LogMessage($"LocalCopy: Error = {e.Message}");
+							failed++;
+						}
+					}
+					else
+					{
+						try
 						{
 							var text = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
 							File.WriteAllText(dstfile, text);
+							// Uploaded OK, reset the upload required flag
+							GraphDataEodFiles[i].CopyRequired = false;
+							success++;
 						}
-						// Uploaded OK, reset the upload required flag
-						GraphDataEodFiles[i].CopyRequired = false;
-						success++;
-					}
-					catch (Exception e)
-					{
-						LogErrorMessage($"LocalCopy: Error copying daily graph data file [{srcfile}]");
-						LogMessage($"LocalCopy: Error = {e.Message}");
-						failed++;
+						catch (Exception e)
+						{
+							LogErrorMessage($"LocalCopy: Error creating daily graph data file {dstfile}");
+							LogMessage($"LocalCopy: Error = {e.Message}");
+							failed++;
+						}
 					}
 				}
 			}
@@ -10100,7 +10140,7 @@ namespace CumulusMX
 				}
 				catch (Exception e)
 				{
-					LogErrorMessage($"LocalCopy: Error copying moon image - {e.Message}");
+					LogErrorMessage($"LocalCopy: Error copying moon image to {MoonImage.CopyDest} - {e.Message}");
 				}
 			}
 
@@ -11428,7 +11468,7 @@ namespace CumulusMX
 
 				var oldest = DateTime.Now.AddHours(-GraphHours);
 				// Munge date/time into UTC becuase we use local time as UTC for highCharts consistency across TZs
-				var oldestTs = Utils.ToPseudoJSTime(oldest).ToString();
+				var oldestTs = oldest.ToUnixTimeMs().ToString();
 				var configFiles = new string[] { "graphconfig.json", "availabledata.json", "dailyrain.json", "dailytemp.json", "sunhours.json" };
 
 				GraphDataFiles
@@ -12282,7 +12322,7 @@ namespace CumulusMX
 					var encoding = new UTF8Encoding(false);
 
 					using var request = new HttpRequestMessage();
-					var unixTs = Utils.ToUnixTime(DateTime.Now).ToString();
+					var unixTs = DateTime.Now.ToUnixTime().ToString();
 
 					request.RequestUri = new Uri(FtpOptions.PhpUrl);
 					// disable expect 100 - PHP doesn't support it
@@ -15157,6 +15197,8 @@ namespace CumulusMX
 	{
 		public string[] series { get; set; }
 		public string[] colours { get; set; }
+		public string fromDate { get; set; }
+		public string toDate { get; set; }
 
 		public SelectaChartOptions()
 		{

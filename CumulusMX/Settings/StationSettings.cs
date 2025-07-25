@@ -1642,6 +1642,8 @@ namespace CumulusMX
 				{
 					cumulus.SelectaPeriodOptions.series = settings.series;
 					cumulus.SelectaPeriodOptions.colours = settings.colours;
+					cumulus.SelectaPeriodOptions.fromDate = settings.fromDate;
+					cumulus.SelectaPeriodOptions.toDate = settings.toDate;
 				}
 				catch (Exception ex)
 				{
@@ -2044,6 +2046,8 @@ namespace CumulusMX
 		{
 			public string[] series { get; set; }
 			public string[] colours { get; set; }
+			public string fromDate { get; set; }
+			public string toDate { get; set; }
 		}
 
 		private sealed class JsonGrowingDDSettings

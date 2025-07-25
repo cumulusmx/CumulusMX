@@ -8,7 +8,7 @@ using System.Threading;
 using System.Timers;
 
 using ServiceStack;
-
+using ServiceStack.Text;
 
 namespace CumulusMX
 {
@@ -479,8 +479,8 @@ namespace CumulusMX
 				return;
 			}
 
-			var unixDateTime = Utils.ToUnixTime(DateTime.Now);
-			var startTime = Utils.ToUnixTime(lastHistoricData);
+			var unixDateTime = DateTime.Now.ToUnixTime();
+			var startTime = lastHistoricData.ToUnixTime();
 			long endTime = unixDateTime;
 			int unix24hrs = 24 * 60 * 60;
 

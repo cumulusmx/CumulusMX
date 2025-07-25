@@ -177,7 +177,7 @@ namespace CumulusMX.ThirdParty
 			StringBuilder sb = new StringBuilder($"[{{\"station_id\":\"{ID}\",");
 			var invC = new CultureInfo("");
 
-			sb.Append($"\"dt\":{Utils.ToUnixTime(timestamp)},");
+			sb.Append($"\"dt\":{timestamp.ToUnixTime()},");
 			if (station.OutdoorTemperature >= Cumulus.DefaultHiVal)
 				sb.Append($"\"temperature\":{Math.Round(ConvertUnits.UserTempToC(station.OutdoorTemperature), 1).ToString(invC)},");
 			sb.Append($"\"wind_deg\":{station.AvgBearing},");

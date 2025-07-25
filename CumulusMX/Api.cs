@@ -400,16 +400,17 @@ namespace CumulusMX
 				DateTime? start = null;
 				DateTime? end = null;
 
-				if (Request.QueryString.AllKeys.Contains("start") && long.TryParse(Request.QueryString.Get("start"), out long ts))
+				if (Request.QueryString.AllKeys.Contains("start"))
 				{
-					start = Utils.FromUnixTime(ts);
+					start = DateTime.ParseExact(Request.QueryString.Get("start"), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal);
 					if (!Request.QueryString.AllKeys.Contains("end"))
 						incremental = true;
 				}
 
-				if (Request.QueryString.AllKeys.Contains("end") && long.TryParse(Request.QueryString.Get("end"), out ts))
+				//if (Request.QueryString.AllKeys.Contains("end") && long.TryParse(Request.QueryString.Get("end"), out ts))
+				if (Request.QueryString.AllKeys.Contains("end"))
 				{
-					end = Utils.FromUnixTime(ts);
+					end = DateTime.ParseExact(Request.QueryString.Get("end"), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal);
 					if (end > DateTime.Now)
 						end = DateTime.Now;
 				}
