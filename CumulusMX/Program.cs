@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 
 using Microsoft.Win32;
 
+using NLog;
+
 //#error version
 
 namespace CumulusMX
@@ -426,6 +428,9 @@ namespace CumulusMX
 					}
 				}
 			}
+
+			LogManager.Flush();
+			LogManager.Shutdown();
 
 			if (!service)
 			{

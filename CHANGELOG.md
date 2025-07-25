@@ -32,6 +32,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Previously they were "pseudo-UTC" to force the graphs to display the station times rather the viewers time zone
 	- Highcharts version used by the dashboard and default web site updated to v12.3.0 to support this
 	- The charts will now render correctly at DST changes
+- All logging to the main MXdiag log files is now asynchronous - this should help performance a little
 
 ### Fixed
 
@@ -42,6 +43,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Package Updates
 
+- FluentFTP
 - MailKit
 - Microsoft.Win32.SystemEvents
 - NLog

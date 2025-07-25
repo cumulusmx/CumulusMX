@@ -14768,6 +14768,16 @@ namespace CumulusMX
 				MaxArchiveFiles = 3,
 				Layout = layout
 			};
+
+			var asyncLogFileRT = new NLog.Targets.Wrappers.AsyncTargetWrapper(logfileRT)
+			{
+				Name = "AsyncLogFileRT",
+				OverflowAction = NLog.Targets.Wrappers.AsyncTargetWrapperOverflowAction.Discard,
+				QueueLimit = 1000,
+				BatchSize = 1,
+				TimeToSleepBetweenBatches = 1
+			};
+
 			var logfileIN = new FileTarget("logfileIN")
 			{
 				FileName = "MXdiags" + Path.DirectorySeparatorChar + "ftp-interval_${shortdate}.log",
@@ -14777,15 +14787,24 @@ namespace CumulusMX
 				Layout = layout
 			};
 
+			var asyncLogFileIN = new NLog.Targets.Wrappers.AsyncTargetWrapper(logfileIN)
+			{
+				Name = "AsyncLogFileIN",
+				OverflowAction = NLog.Targets.Wrappers.AsyncTargetWrapperOverflowAction.Discard,
+				QueueLimit = 1000,
+				BatchSize = 1,
+				TimeToSleepBetweenBatches = 1
+			};
+
 			// Add targets to the configuration
-			config.AddTarget(logfileRT);
-			config.AddTarget(logfileIN);
+			config.AddTarget(asyncLogFileRT);
+			config.AddTarget(asyncLogFileIN);
 
 			// Define rules for the loggers
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileRT, "FTPr.FTP");
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileRT, "CMXr.CMX");
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileIN, "FTPi.FTP");
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileIN, "CMXi.CMX");
+			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileRT, "FTPr.FTP");
+			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileRT, "CMXr.CMX");
+			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileIN, "FTPi.FTP");
+			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileIN, "CMXi.CMX");
 
 			// Apply configuration
 			LogManager.Configuration = config;
