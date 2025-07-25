@@ -91,14 +91,14 @@
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.1" />
     <PackageReference Include="FluentFTP.Logging" Version="1.0.0" />
     <PackageReference Include="Microsoft.Win32.SystemEvents" Version="9.0.7" />
-    <PackageReference Include="NLog" Version="6.0.1" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="6.0.1" />
+    <PackageReference Include="NLog" Version="6.0.2" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="6.0.2" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.10" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
     <PackageReference Include="System.CodeDom" Version="9.0.7" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.7" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
-    <PackageReference Include="FluentFTP" Version="52.1.0" />
+    <PackageReference Include="FluentFTP" Version="53.0.1" />
     <PackageReference Include="HidSharp" Version="2.1.0" />
     <PackageReference Include="MailKit" Version="4.13.0" />
     <PackageReference Include="MQTTnet" Version="5.0.1.1416" />
