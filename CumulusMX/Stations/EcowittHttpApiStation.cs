@@ -368,11 +368,11 @@ namespace CumulusMX
 				{
 					if (cumulus.cancellationToken.IsCancellationRequested)
 					{
-						cumulus.LogMessage("Local API task cancelled by request");
+						cumulus.LogMessage("Ecowitt Local HTTP API station background task closed by request");
 					}
 					else
 					{
-						cumulus.LogCriticalMessage("Local API task ended unexpectedly: " + excepMsg);
+						cumulus.LogCriticalMessage("Ecowitt Local HTTP API station background task ended unexpectedly: " + excepMsg);
 					}
 				}
 			}, cumulus.cancellationToken);

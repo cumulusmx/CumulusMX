@@ -218,6 +218,12 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
+					if (token.IsCancellationRequested)
+					{
+						cumulus.LogDebugMessage("GetLiveData: Operation cancelled by user.");
+						return null;
+					}
+
 					cumulus.LogExceptionMessage(ex, "GetLiveData: Error");
 				}
 			} while (retries-- > 0);
@@ -476,6 +482,12 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
+				if (token.IsCancellationRequested)
+				{
+					cumulus.LogDebugMessage("GetCalibrationData: Operation cancelled by user.");
+					return null;
+				}
+
 				cumulus.LogExceptionMessage(ex, "GetCalibrationData: Error");
 			}
 
@@ -659,6 +671,15 @@ namespace CumulusMX
 					cumulus.LogExceptionMessage(ex, "CheckForUpgrade: HTTP Error");
 				}
 			}
+			catch (Exception ex)
+			{
+				if (token.IsCancellationRequested)
+				{
+					cumulus.LogDebugMessage("CheckForUpgrade: Operation cancelled by user.");
+					return false;
+				}
+				cumulus.LogExceptionMessage(ex, "CheckForUpgrade: Error");
+			}
 
 			return false;
 
@@ -714,13 +735,13 @@ namespace CumulusMX
 			//responseBody = "{\"info\":{\"Name\":\"     \",\"Type\":\"SDHC/SDXC\",\"Speed\":\"20 MHz\",\"Size\":\"30223 MB\",\"Interval\":\"1\"},\"file_list\":[{\n\t\t\"name\":\t\"202502B.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"71 KB\"\n\t}, {\n\t\t\"name\":\t\"202502Allsensors_A.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"202 KB\"\n\t}]}"
 			//return responseBody.FromJson<SdCard>()
 
-			try
-			{
-				var url = $"http://{cumulus.Gw1000IpAddress}/get_sdmmc_info";
-				// my test server uses port 81 for everything
-				//var url = $"http://{cumulus.Gw1000IpAddress}:81/get_sdmmc_info";
+			var url = $"http://{cumulus.Gw1000IpAddress}/get_sdmmc_info";
+			// my test server uses port 81 for everything
+			//var url = $"http://{cumulus.Gw1000IpAddress}:81/get_sdmmc_info";
 
-				do
+			do
+			{
+				try
 				{
 					using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
 					{
@@ -746,23 +767,31 @@ namespace CumulusMX
 						return responseBody.FromJson<SdCard>();
 					}
 
-					retries--;
-					Thread.Sleep(250);
-				} while (retries >= 0);
+				}
+				catch (System.Net.Http.HttpRequestException ex)
+				{
+					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+					{
+						cumulus.LogErrorMessage("GetSdCardInfo: Error - This Station does not support the HTTP API!");
+					}
+					else
+					{
+						cumulus.LogExceptionMessage(ex, "GetSdCardInfo: HTTP Error");
+					}
+				}
+				catch (Exception ex)
+				{
+					if (token.IsCancellationRequested)
+					{
+						cumulus.LogDebugMessage("GetSdCardInfo: Operation cancelled by user.");
+						return null;
+					}
+					cumulus.LogExceptionMessage(ex, "GetSdCardInfo: Error");
+				}
 
-				return null;
-			}
-			catch (System.Net.Http.HttpRequestException ex)
-			{
-				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				{
-					cumulus.LogErrorMessage("GetSdCardInfo: Error - This Station does not support the HTTP API!");
-				}
-				else
-				{
-					cumulus.LogExceptionMessage(ex, "GetSdCardInfo: HTTP Error");
-				}
-			}
+				retries--;
+				Thread.Sleep(250);
+			} while (retries >= 0);
 
 			return null;
 		}
@@ -788,15 +817,16 @@ namespace CumulusMX
 				return null;
 			}
 
-			string responseBody;
-			int responseCode;
-			int retries = 1;
+			var responseBody = string.Empty;
+			var responseCode = 0;
+			var retries = 1;
 
-			try
+			var url = $"http://{cumulus.Gw1000IpAddress}:81/" + fileName;
+
+			// Get the contents
+			do
 			{
-				var url = $"http://{cumulus.Gw1000IpAddress}:81/" + fileName;
-
-				do
+				try
 				{
 					using var response = await cumulus.MyHttpClient.GetAsync(url, token);
 
@@ -818,19 +848,43 @@ namespace CumulusMX
 					{
 						break;
 					}
-
-					retries--;
-					Thread.Sleep(250);
-				} while (retries >= 0);
-
-				if (responseCode != 200 || responseBody.Length < 400)
+				}
+				catch (System.Net.Http.HttpRequestException ex)
 				{
-					cumulus.LogMessage($"LocalApi.GetSdFileContents: Failed to fetch File {fileName}, giving up!");
-					return null;
+					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+					{
+						cumulus.LogErrorMessage("GetSdFileContents: Error - This Station does not support the HTTP API!");
+						return null;
+					}
+					else
+					{
+						cumulus.LogExceptionMessage(ex, "GetSdFileContents: HTTP Error");
+					}
+				}
+				catch (Exception ex)
+				{
+					if (token.IsCancellationRequested)
+					{
+						cumulus.LogDebugMessage("GetSdFileContents: Operation cancelled by user.");
+						return null;
+					}
+					cumulus.LogExceptionMessage(ex, "GetSdFileContents: Error");
 				}
 
-				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {(responseBody.Length / 1024)} KB");
+				retries--;
+				Thread.Sleep(250);
+			} while (retries >= 0);
 
+			// check what we got back
+			if (responseCode != 200 || responseBody.Length < 400)
+			{
+				cumulus.LogMessage($"LocalApi.GetSdFileContents: Failed to fetch File {fileName}, giving up!");
+				return null;
+			}
+
+			cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {(responseBody.Length / 1024)} KB");
+
+			try {
 				var lines = new List<string>(responseBody
 					.Split(lineEnds, StringSplitOptions.None)
 					.Where(line => !string.IsNullOrWhiteSpace(line)));
@@ -920,16 +974,15 @@ namespace CumulusMX
 
 				return result;
 			}
-			catch (System.Net.Http.HttpRequestException ex)
+			catch (Exception ex)
 			{
-				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				if (token.IsCancellationRequested)
 				{
-					cumulus.LogErrorMessage("GetSdFileContents: Error - This Station does not support the HTTP API!");
+					cumulus.LogDebugMessage("GetSdFileContents: Operation cancelled by user.");
+					return null;
 				}
-				else
-				{
-					cumulus.LogExceptionMessage(ex, "GetSdFileContents: HTTP Error");
-				}
+
+				cumulus.LogExceptionMessage(ex, "GetSdFileContents: Error processing file contents");
 			}
 
 			return null;

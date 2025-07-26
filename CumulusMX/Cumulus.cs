@@ -9659,7 +9659,7 @@ namespace CumulusMX
 
 		public void Stop()
 		{
-			LogMessage("Cumulus closing");
+			LogMessage("Cumulus close requested");
 
 			tokenSource.Cancel();
 			LogMessage("Stopping timers");

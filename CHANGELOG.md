@@ -32,7 +32,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Previously they were "pseudo-UTC" to force the graphs to display the station times rather the viewers time zone
 	- Highcharts version used by the dashboard and default web site updated to v12.3.0 to support this
 	- The charts will now render correctly at DST changes
-- All FTP logging to log files is now asynchronous
+- All logging to log files is now asynchronous. This means a change to log file naming scheme for the main MX diags
+	- The latest log file will always have just the current date as the main filename: 20250726.log
+		- When The day changes a new log file will be created, this just have the current date as the filename
+	- Rollover:
+		- Rolled over files will have the time appended: 20250726-115412.log
+		- Rollover occurs when log files that have exceeded the rollover size (5MB)
+		- Rollover also occurs when you start Cumulus MX and there is an existing dated log file for today
+		- The timestamp on rollover files is the time of the last entry in the file, not the first
 
 ### Fixed
 

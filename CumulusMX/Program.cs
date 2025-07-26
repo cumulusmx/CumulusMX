@@ -91,8 +91,8 @@ namespace CumulusMX
 			// Now we need to catch the console Ctrl-C
 			Console.CancelKeyPress += (s, ev) =>
 			{
-				Cumulus.LogConsoleMessage("Ctrl+C pressed", ConsoleColor.Red);
-				MxLogger.Info("*** Ctrl + C pressed");
+				Console.WriteLine("Ctrl+C pressed", ConsoleColor.Red);
+				MxLogger.Warn("*** Ctrl + C pressed");
 
 				ev.Cancel = true;
 
@@ -338,6 +338,8 @@ namespace CumulusMX
 				// do nothing, we are exiting
 			}
 
+			MxLogger.Info("Process exiting");
+
 			if (!service)
 			{
 				Console.CursorVisible = true;
@@ -411,29 +413,6 @@ namespace CumulusMX
 
 		private static void ProcessExit(object s, EventArgs e)
 		{
-			MxLogger.Info("Cumulus terminating");
-
-			if (cumulus != null && Environment.ExitCode != 999)
-			{
-				Cumulus.LogConsoleMessage("Cumulus terminating", ConsoleColor.Red);
-				cumulus.Stop();
-				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
-				svcTextListener.Flush();
-				Console.ForegroundColor = ConsoleColor.Yellow;
-				Console.WriteLine("Cumulus stopped");
-				Console.ResetColor();
-				ExitSystemTokenSource.Cancel();
-			}
-			else
-			{
-				Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
-				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
-			}
-
-			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
-			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exit code = " + Environment.ExitCode);
-			MxLogger.Info("Cumulus shutdown exit code = " + Environment.ExitCode);
-
 			if (powerNotificationRegistrationHandle != 0)
 			{
 				// Unregister the power notification
@@ -450,6 +429,31 @@ namespace CumulusMX
 					}
 				}
 			}
+
+			MxLogger.Info("Cumulus termination started");
+
+			if (cumulus != null && Environment.ExitCode != 999)
+			{
+				Console.WriteLine("Cumulus terminating", ConsoleColor.Red);
+				cumulus.Stop();
+				MxLogger.Info("Cumulus has shutdown");
+				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
+				svcTextListener.Flush();
+				Console.ForegroundColor = ConsoleColor.Yellow;
+				Console.WriteLine("Cumulus stopped");
+				Console.ResetColor();
+				if (!ExitSystemTokenSource.IsCancellationRequested)
+					ExitSystemTokenSource.Cancel();
+			}
+			else
+			{
+				Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
+				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus terminating");
+			}
+
+			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
+			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exit code = " + Environment.ExitCode);
+			MxLogger.Info("Cumulus shutdown exit code = " + Environment.ExitCode);
 
 			LogManager.Flush();
 			LogManager.Shutdown();
@@ -505,7 +509,10 @@ namespace CumulusMX
 			var logfile = new FileTarget()
 			{
 				Name = "logfile",
-				FileName = "MXdiags" + Path.DirectorySeparatorChar + "${shortdate}.log",
+				//FileName = "MXdiags" + Path.DirectorySeparatorChar + "${cached:${date:format=yyyyMMdd-HHmmss}}.log",
+				FileName = "MXdiags" + Path.DirectorySeparatorChar + "${date:format=yyyyMMdd}.log",
+				ArchiveSuffixFormat = "{1:-HHmmss}",
+
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 9,
@@ -526,7 +533,7 @@ namespace CumulusMX
 
 			// Config
 			var config = new LoggingConfiguration();
-			config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, asyncLogFile, "CMX");
+			config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, asyncLogFile, "CMX", !Debugger.IsAttached);
 
 			// Debugging?
 			if (Debugger.IsAttached)
@@ -536,11 +543,12 @@ namespace CumulusMX
 				{
 					Layout = "${longdate} ${message}"
 				};
-				config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, debugger, "CMX");
+				config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, debugger, "CMX", true);
 			}
 
 			// Apply configuration
 			LogManager.Configuration = config;
+			LogManager.AutoShutdown = false;
 			MxLogger = LogManager.GetLogger("CMX");
 			MxLogger.Info("Created new log file");
 		}
