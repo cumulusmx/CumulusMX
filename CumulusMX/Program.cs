@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.Win32;
 
 using NLog;
+using NLog.Config;
+using NLog.Targets;
 
 //#error version
 
@@ -28,10 +30,12 @@ namespace CumulusMX
 		private static bool RunningOnWindows;
 		public static bool debug { get; set; } = false;
 
+		public static Logger MxLogger { get; private set; }
+
 		public static Random RandGenerator { get; } = new Random();
 
 		public static readonly CancellationTokenSource ExitSystemTokenSource = new();
-		private static nint powerNotificationRegistrationHandle = new nint();
+		private static nint powerNotificationRegistrationHandle = new();
 
 
 		private static async Task Main(string[] args)
@@ -58,6 +62,7 @@ namespace CumulusMX
 				Console.WriteLine($"Error while attempting to read/create folder /MXdiags, error message: {ex.Message}");
 			}
 
+			SetupLogging();
 
 			var logfile = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog.txt";
 			var logfileOld = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog-Old.txt";
@@ -78,21 +83,17 @@ namespace CumulusMX
 			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Starting on " + (RunningOnWindows ? "Windows" : "Linux"));
 			svcTextListener.Flush();
 
+			MxLogger.Info("Starting Cumulus MX on " + (RunningOnWindows ? "Windows" : "Linux"));
+
 			// Add an exit handler
 			AppDomain.CurrentDomain.ProcessExit += ProcessExit;
 
 			// Now we need to catch the console Ctrl-C
 			Console.CancelKeyPress += (s, ev) =>
 			{
-				if (cumulus != null)
-				{
-					Cumulus.LogConsoleMessage("Ctrl+C pressed", ConsoleColor.Red);
-					cumulus.LogMessage("*** Ctrl + C pressed");
-				}
-				else
-				{
-					Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Ctrl+C pressed");
-				}
+				Cumulus.LogConsoleMessage("Ctrl+C pressed", ConsoleColor.Red);
+				MxLogger.Info("*** Ctrl + C pressed");
+
 				ev.Cancel = true;
 
 				if (!service)
@@ -118,6 +119,8 @@ namespace CumulusMX
 
 			try
 			{
+				MxLogger.Info("Command line: " + Environment.CommandLine);
+
 				int i = 0;
 				while (i < args.Length)
 				{
@@ -147,6 +150,7 @@ namespace CumulusMX
 							i++;
 							Console.WriteLine("The use of the -wsport command line parameter is deprecated");
 							svcTextListener.WriteLine("The use of the -wsport command line parameter is deprecated");
+							MxLogger.Warn("The use of the -wsport command line parameter is deprecated");
 							break;
 						case "-install":
 							install = true;
@@ -169,6 +173,7 @@ namespace CumulusMX
 						default:
 							Console.WriteLine($"Invalid command line argument \"{args[i]}\"");
 							svcTextListener.WriteLine($"Invalid command line argument \"{args[i]}\"");
+							MxLogger.Error($"Invalid command line argument \"{args[i]}\"");
 							Usage();
 							break;
 					}
@@ -192,6 +197,7 @@ namespace CumulusMX
 						Console.ForegroundColor = ConsoleColor.Green;
 						Console.WriteLine("\nCumulus MX is now installed to run as service\n");
 						Console.ResetColor();
+						MxLogger.Info("Cumulus MX is now installed to run as service");
 						Environment.Exit(0);
 					}
 				}
@@ -202,6 +208,7 @@ namespace CumulusMX
 						Console.ForegroundColor = ConsoleColor.Yellow;
 						Console.WriteLine("\nYou must supply a user name when installing the service\n");
 						Console.ResetColor();
+						MxLogger.Warn("You must supply a user name when installing the service");
 						Environment.Exit(0);
 
 					}
@@ -211,6 +218,7 @@ namespace CumulusMX
 						Console.ForegroundColor = ConsoleColor.Green;
 						Console.WriteLine("\nCumulus MX is now installed to run as service\n");
 						Console.ResetColor();
+						MxLogger.Info("Cumulus MX is now installed to run as service");
 						Environment.Exit(0);
 					}
 				}
@@ -218,6 +226,7 @@ namespace CumulusMX
 				Console.ForegroundColor = ConsoleColor.Red;
 				Console.WriteLine("\nCumulus MX failed to install as service\n");
 				Console.ResetColor();
+				MxLogger.Error("Cumulus MX failed to install as service");
 				Environment.Exit(1);
 			}
 
@@ -231,6 +240,7 @@ namespace CumulusMX
 						Console.ForegroundColor = ConsoleColor.Green;
 						Console.WriteLine("\nCumulus MX is no longer installed to run as service\n");
 						Console.ResetColor();
+						MxLogger.Info("Cumulus MX is no longer installed to run as service");
 						Environment.Exit(0);
 					}
 				}
@@ -241,6 +251,7 @@ namespace CumulusMX
 						Console.ForegroundColor = ConsoleColor.Green;
 						Console.WriteLine("\nCumulus MX is no longer installed to run as service\n");
 						Console.ResetColor();
+						MxLogger.Info("Cumulus MX is no longer installed to run as service");
 						Environment.Exit(0);
 					}
 				}
@@ -248,6 +259,7 @@ namespace CumulusMX
 				Console.ForegroundColor = ConsoleColor.Red;
 				Console.WriteLine("\nCumulus MX failed uninstall itself as service\n");
 				Console.ResetColor();
+				MxLogger.Error("Cumulus MX failed to uninstall itself as service");
 				Environment.Exit(1);
 			}
 
@@ -257,9 +269,11 @@ namespace CumulusMX
 				// Windows 10 or later uses Modern Standby
 				if (Environment.OSVersion.Version.Major >= 10)
 				{
-					DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS recipient = new DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS();
-					recipient.Callback = DeviceNotifyCallBack;
-					recipient.Context = IntPtr.Zero;
+					DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS recipient = new DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS
+					{
+						Callback = DeviceNotifyCallBack,
+						Context = IntPtr.Zero
+					};
 
 					IntPtr pRecipient = Marshal.AllocHGlobal(Marshal.SizeOf(recipient));
 					Marshal.StructureToPtr(recipient, pRecipient, false);
@@ -270,10 +284,12 @@ namespace CumulusMX
 					{
 						Console.WriteLine("Failed to register for power mode changes, error code: " + result);
 						svcTextListener.WriteLine("Failed to register for power mode changes on Windows, error code: " + result);
+						MxLogger.Error("Failed to register for power mode changes on Windows, error code: " + result);
 					}
 					else
 					{
 						svcTextListener.WriteLine("Registered for power mode changes on Windows");
+						MxLogger.Info("Registered for power mode changes on Windows");
 					}
 				}
 				else // Windows 7 or earlier
@@ -288,6 +304,7 @@ namespace CumulusMX
 				// Windows and not interactive - must be a service
 				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Windows service");
 				svcTextListener.Flush();
+				MxLogger.Info("We are running as a Windows service");
 				service = true;
 				// Launch as a Windows Service
 				ServiceBase.Run(new CumulusService());
@@ -298,11 +315,13 @@ namespace CumulusMX
 				{
 					// Windows interactive or Linux and no service flag
 					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running interactively");
+					MxLogger.Info("We are running interactively");
 				}
 				else
 				{
 					// Must be a Linux service
 					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Linux service");
+					MxLogger.Info("We are running as a Linux service");
 					service = true;
 				}
 				svcTextListener.Flush();
@@ -362,8 +381,9 @@ namespace CumulusMX
 		{
 			try
 			{
-				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "!!! Unhandled Exception !!!");
-				Trace.WriteLine(e.ExceptionObject.ToString());
+				MxLogger.Fatal("An error has occurred - please zip up the MXdiags folder and post it in the forum");
+				MxLogger.Fatal("!!! Unhandled Exception !!!");
+				MxLogger.Fatal(e.ExceptionObject.ToString());
 
 				if (service)
 				{
@@ -391,10 +411,11 @@ namespace CumulusMX
 
 		private static void ProcessExit(object s, EventArgs e)
 		{
+			MxLogger.Info("Cumulus terminating");
+
 			if (cumulus != null && Environment.ExitCode != 999)
 			{
 				Cumulus.LogConsoleMessage("Cumulus terminating", ConsoleColor.Red);
-				cumulus.LogMessage("Cumulus terminating");
 				cumulus.Stop();
 				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
 				svcTextListener.Flush();
@@ -411,6 +432,7 @@ namespace CumulusMX
 
 			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
 			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exit code = " + Environment.ExitCode);
+			MxLogger.Info("Cumulus shutdown exit code = " + Environment.ExitCode);
 
 			if (powerNotificationRegistrationHandle != 0)
 			{
@@ -420,11 +442,11 @@ namespace CumulusMX
 				{
 					if (result == 0)
 					{
-						cumulus.LogMessage("Unregistered for power mode changes on Windows");
+						MxLogger.Info("Unregistered for power mode changes on Windows");
 					}
 					else
 					{
-						cumulus.LogMessage("Failed to unregister for power mode changes, error code: " + result);
+						MxLogger.Error("Failed to unregister for power mode changes, error code: " + result);
 					}
 				}
 			}
@@ -450,6 +472,7 @@ namespace CumulusMX
 				// Check the length, and ends in "="
 				if (txt != null && (txt.Length > 30 || txt[^1] == '='))
 				{
+					MxLogger.Info("UniqueId.txt exists, and contains a valid instance ID");
 					InstanceId = Convert.FromBase64String(txt);
 					return true;
 				}
@@ -457,6 +480,8 @@ namespace CumulusMX
 				if (create && string.IsNullOrEmpty(txt))
 				{
 					// otherwise, create it with a newly generated id
+					MxLogger.Info("UniqueId.txt exists but the contents is invalid, creating a new instance ID");
+
 					InstanceId = Crypto.GenerateKey();
 					File.WriteAllText("UniqueId.txt", Convert.ToBase64String(InstanceId));
 					return true;
@@ -465,12 +490,59 @@ namespace CumulusMX
 			else if (create)
 			{
 				// otherwise, create it with a newly generated id
+				MxLogger.Info("UniqueId.txt does not exist, creating a new instance ID");
 				InstanceId = Crypto.GenerateKey();
 				File.WriteAllText("UniqueId.txt", Convert.ToBase64String(InstanceId));
 				return true;
 			}
 
 			return false;
+		}
+
+		private static void SetupLogging()
+		{
+			// Log file target
+			var logfile = new FileTarget()
+			{
+				Name = "logfile",
+				FileName = "MXdiags" + Path.DirectorySeparatorChar + "${shortdate}.log",
+				ArchiveAboveSize = 5242880,
+				ArchiveOldFileOnStartup = true,
+				MaxArchiveFiles = 9,
+				Layout = "${longdate}|${level}| ${message}"
+			};
+
+			// Async wrapper
+			var asyncLogFile = new NLog.Targets.Wrappers.AsyncTargetWrapper()
+			{
+				WrappedTarget = logfile,
+				Name = "MxDiags",
+				OverflowAction = NLog.Targets.Wrappers.AsyncTargetWrapperOverflowAction.Discard,
+				QueueLimit = 1000,
+				BatchSize = 100,
+				TimeToSleepBetweenBatches = 1
+			};
+
+
+			// Config
+			var config = new LoggingConfiguration();
+			config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, asyncLogFile, "CMX");
+
+			// Debugging?
+			if (Debugger.IsAttached)
+			{
+				// debugger
+				var debugger = new NLog.Targets.DebuggerTarget()
+				{
+					Layout = "${longdate} ${message}"
+				};
+				config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, debugger, "CMX");
+			}
+
+			// Apply configuration
+			LogManager.Configuration = config;
+			MxLogger = LogManager.GetLogger("CMX");
+			MxLogger.Info("Created new log file");
 		}
 
 
@@ -487,7 +559,7 @@ namespace CumulusMX
 					// The system is suspending operation.
 					if (cumulus != null)
 					{
-						cumulus.LogCriticalMessage("*** Shutting down due to computer going to modern standby");
+						MxLogger.Fatal("*** Shutting down due to computer going to modern standby");
 						Console.WriteLine("*** Shutting down due to computer going to sleep");
 					}
 					ExitSystemTokenSource.Cancel();
@@ -499,18 +571,12 @@ namespace CumulusMX
 					// check if already shutting down...
 					if (ExitSystemTokenSource.IsCancellationRequested)
 					{
-						if (cumulus != null)
-						{
-							cumulus.LogMessage("*** Resuming from modern standby, but already shutting down, no action");
-						}
+						MxLogger.Info("*** Resuming from modern standby, but already shutting down, no action");
 					}
 					else
 					{
-						if (cumulus != null)
-						{
-							cumulus.LogCriticalMessage("*** Shutting down due to computer resuming from modern standby");
-							Console.WriteLine("*** Shutting down due to computer resuming from standby");
-						}
+						MxLogger.Warn("*** Shutting down due to computer resuming from modern standby");
+						Console.WriteLine("*** Shutting down due to computer resuming from standby");
 						Environment.Exit(999);
 					}
 					return 1; // handled
@@ -529,14 +595,14 @@ namespace CumulusMX
 		}
 
 		[DllImport("Powrprof.dll", SetLastError = true)]
-		static extern uint PowerRegisterSuspendResumeNotification(
+		private static extern uint PowerRegisterSuspendResumeNotification(
 			uint flags,
 			ref DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS recipient,
-			ref IntPtr RegistrationHandle);
+			ref IntPtr RegistrationHandle
+		);
 
 		[DllImport("Powrprof.dll", SetLastError = true)]
-		static extern uint PowerUnregisterSuspendResumeNotification(
-			IntPtr registrationHandle);
+		private static extern uint PowerUnregisterSuspendResumeNotification(IntPtr registrationHandle);
 
 
 		// Windows 7 power management
@@ -545,11 +611,8 @@ namespace CumulusMX
 #pragma warning disable CA1416 // Validate platform compatibility
 			if (e.Mode == PowerModes.Suspend)
 			{
-				if (cumulus != null)
-				{
-					cumulus.LogCriticalMessage("Shutting down due to computer going to sleep");
-					Console.WriteLine("*** Shutting down due to computer going to sleep");
-				}
+				MxLogger.Fatal("*** Shutting down due to computer going to sleep");
+				Console.WriteLine("*** Shutting down due to computer going to sleep");
 
 				ExitSystemTokenSource.Cancel();
 			}

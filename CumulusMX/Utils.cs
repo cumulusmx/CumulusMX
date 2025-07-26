@@ -28,31 +28,6 @@ namespace CumulusMX
 			return utcTime.ToLocalTime();
 		}
 
-		public static long ToUnixTime(DateTime dateTime)
-		{
-			return dateTime.ToUnixEpochDate();
-		}
-
-		public static long ToJsTime(DateTime dateTime)
-		{
-			return dateTime.ToUnixEpochDate() * 1000;
-		}
-
-		// SPECIAL Unix TS for graphs. It looks like a Unix TS, but is the local time as if it were UTC.
-		// Used for the graph data, as HighCharts is going to display UTC date/times to be consistent across TZ
-		public static long ToPseudoUnixTime(DateTime timestamp)
-		{
-			return DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToUnixEpochDate();
-		}
-
-		// SPECIAL JS TS for graphs. It looks like a Unix TS, but is the local time as if it were UTC.
-		// Used for the graph data, as HighCharts is going to display UTC date/times to be consistent across TZ
-		public static long ToPseudoJSTime(DateTime timestamp)
-		{
-			return DateTime.SpecifyKind(timestamp, DateTimeKind.Utc).ToUnixEpochDate() * 1000;
-		}
-
-
 		public static DateTime RoundTimeUpToInterval(DateTime dateTime, TimeSpan intvl)
 		{
 			return new DateTime((dateTime.Ticks + intvl.Ticks - 1) / intvl.Ticks * intvl.Ticks, dateTime.Kind);

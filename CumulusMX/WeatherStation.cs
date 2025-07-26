@@ -2117,8 +2117,6 @@ namespace CumulusMX
 			cumulus.DoMoonPhase();
 			cumulus.MoonAge = MoonriseMoonset.MoonAge();
 
-			cumulus.RotateLogFiles();
-
 			ClearAlarms();
 		}
 
@@ -13514,7 +13512,7 @@ namespace CumulusMX
 
 		public string GetGraphConfig(bool local)
 		{
-			var tz = "UTC";
+			string tz;
 			if (TimeZoneInfo.Local.HasIanaId)
 			{
 				tz = TimeZoneInfo.Local.Id;
@@ -13524,7 +13522,6 @@ namespace CumulusMX
 				cumulus.LogWarningMessage("Warning, not IANA TZ code found for " + TimeZoneInfo.Local.Id);
 				tz = "UTC";
 			}
-
 
 			var json = new StringBuilder(200);
 			json.Append('{');

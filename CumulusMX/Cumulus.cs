@@ -532,7 +532,6 @@ namespace CumulusMX
 			"CO2", "CO2Avg", "CO2Pm25", "CO2Pm25Avg", "CO2Pm10", "CO2Pm10Avg", "CO2Temp", "CO2Hum"
 		];
 
-		private string loggingfile;
 		private static readonly Queue<string> queue = new(50);
 		public static Queue<string> ErrorList
 		{
@@ -551,25 +550,8 @@ namespace CumulusMX
 			cancellationToken = tokenSource.Token;
 
 			DirectorySeparator = Path.DirectorySeparatorChar;
-
-			// Set up the diagnostic tracing
-			loggingfile = RemoveOldDiagsFiles("CMX");
-			_ = RemoveOldDiagsFiles("FTP");
-
-			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Creating main MX log file - " + loggingfile);
-			Program.svcTextListener.Flush();
-
-			TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
-
-			// the default trace writes to the debug log, but on Linux it also writes to the /var/log/user.log
-			if (!Debugger.IsAttached)
-			{
-				Trace.Listeners.Clear();
-			}
-
-			Trace.Listeners.Add(myTextListener);
-			Trace.AutoFlush = true;
 		}
+
 		public void Initialise(int HTTPport, bool DebugEnabled, string startParms)
 		{
 			var fullVer = Assembly.GetExecutingAssembly().GetName().Version;
@@ -585,8 +567,6 @@ namespace CumulusMX
 			DebuggingEnabled = DebugEnabled;
 
 			LogMessage(" ========================== Cumulus MX starting ==========================");
-
-			LogMessage("Command line: " + Environment.CommandLine + " " + startParms);
 
 			LogMessage("Cumulus MX v." + Version + " build " + Build);
 			LogConsoleMessage("Cumulus MX v." + Version + " build " + Build);
@@ -3905,22 +3885,6 @@ namespace CumulusMX
 			return filename;
 		}
 
-		public void RotateLogFiles()
-		{
-			// cycle the MXdiags log file?
-			var logfileSize = new FileInfo(loggingfile).Length;
-			// if > 20 MB
-			if (logfileSize > 20971520)
-			{
-				var oldfile = loggingfile;
-				loggingfile = RemoveOldDiagsFiles("CMX");
-				LogMessage("Rotating log file, new log file will be: " + loggingfile.Split(DirectorySeparator)[^1]);
-				TextWriterTraceListener myTextListener = new TextWriterTraceListener(loggingfile, "MXlog");
-				Trace.Listeners.Remove("MXlog");
-				Trace.Listeners.Add(myTextListener);
-				LogMessage("Rotated log file, old log file was: " + oldfile.Split(DirectorySeparator)[^1]);
-			}
-		}
 
 		private void ReadIniFile()
 		{
@@ -9648,27 +9612,48 @@ namespace CumulusMX
 			};
 		}
 
+		private void LatestErrorLog(string message, MxLogLevel level)
+		{
+			if (level >= ErrorListLoggingLevel)
+			{
+				while (ErrorList.Count >= 50)
+				{
+					_ = ErrorList.Dequeue();
+				}
+
+				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + WebUtility.HtmlEncode(message)));
+
+				LatestError = message;
+				LatestErrorTS = DateTime.Now;
+
+				ErrorAlarm.LastMessage = message;
+				ErrorAlarm.Triggered = true;
+			}
+		}
 
 		public void LogCriticalMessage(string message)
 		{
-			LogMessage(message, MxLogLevel.Critical);
+			Program.MxLogger.Error(message);
+			LatestErrorLog(message, MxLogLevel.Critical);
 		}
 
 		public void LogErrorMessage(string message)
 		{
-			LogMessage(message, MxLogLevel.Error);
+			Program.MxLogger.Error(message);
+			LatestErrorLog(message, MxLogLevel.Error);
 		}
 
 		public void LogWarningMessage(string message)
 		{
-			LogMessage(message, MxLogLevel.Warning);
+			Program.MxLogger.Warn(message);
+			LatestErrorLog(message, MxLogLevel.Warning);
 		}
 
 		public void LogSpikeRemoval(string message)
 		{
 			if (ErrorLogSpikeRemoval)
 			{
-				LogErrorMessage("Spike removal: " + message);
+				Program.MxLogger.Warn("Spike removal: " + message);
 			}
 		}
 
@@ -12811,36 +12796,18 @@ namespace CumulusMX
 			}
 		}
 
-
-
-#pragma warning disable S6670 // "Trace.Write" and "Trace.WriteLine" should not be used
-
 		public void LogMessage(string message, MxLogLevel level = MxLogLevel.Info)
 		{
-			Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+			Program.MxLogger.Info(message);
 
-			if (level >= ErrorListLoggingLevel)
-			{
-				while (ErrorList.Count >= 50)
-				{
-					_ = ErrorList.Dequeue();
-				}
-
-				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + WebUtility.HtmlEncode(message)));
-
-				LatestError = message;
-				LatestErrorTS = DateTime.Now;
-
-				ErrorAlarm.LastMessage = message;
-				ErrorAlarm.Triggered = true;
-			}
+			LatestErrorLog(message, level);
 		}
 
 		public void LogDebugMessage(string message)
 		{
 			if (ProgramOptions.DebugLogging || ProgramOptions.DataLogging)
 			{
-				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+				Program.MxLogger.Debug(message);
 			}
 		}
 
@@ -12848,11 +12815,9 @@ namespace CumulusMX
 		{
 			if (ProgramOptions.DataLogging)
 			{
-				Trace.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+				Program.MxLogger.Trace(message);
 			}
 		}
-
-#pragma warning restore S6670 // "Trace.Write" and "Trace.WriteLine" should not be used
 
 		public void LogFtpMessage(string message, bool realTime)
 		{
@@ -12884,11 +12849,11 @@ namespace CumulusMX
 			{
 				if (realTime && FtpLoggerMXRT != null)
 				{
-					FtpLoggerMXRT.LogInformation("{Msg}", message);
+					FtpLoggerMXRT.LogDebug("{Msg}", message);
 				}
 				else if (FtpLoggerMXIN != null)
 				{
-					FtpLoggerMXIN.LogInformation("{Msg}", message);
+					FtpLoggerMXIN.LogDebug("{Msg}", message);
 				}
 			}
 		}
@@ -12915,11 +12880,11 @@ namespace CumulusMX
 		{
 			if (ProgramOptions.DebugLogging)
 			{
-				LogMessage(message + " - " + Utils.ExceptionToString(ex, out _));
+				Program.MxLogger.Error(message + " - " + Utils.ExceptionToString(ex, out _));
 			}
 			else
 			{
-				LogMessage(message + " - " + Utils.ExceptionToString(ex));
+				Program.MxLogger.Error(message + " - " + Utils.ExceptionToString(ex));
 			}
 
 			if (logError)
@@ -14744,8 +14709,16 @@ namespace CumulusMX
 		{
 			if (LogManager.Configuration != null)
 			{
-				LogManager.Configuration.RemoveTarget("logfileRT");
-				LogManager.Configuration.RemoveTarget("logfileIN");
+				if (LogManager.Configuration.FindTargetByName("AsyncLogFileRT") != null)
+				{
+					LogManager.Configuration.RemoveTarget("AsyncLogFileRT");
+				}
+
+				if (LogManager.Configuration.FindTargetByName("AsyncLogFileIN") != null)
+				{
+					LogManager.Configuration.RemoveTarget("AsyncLogFileIN");
+				}
+
 				LogManager.ReconfigExistingLoggers();
 			}
 
@@ -14755,7 +14728,6 @@ namespace CumulusMX
 			}
 
 			// Create NLog configuration
-			var config = new LoggingConfiguration();
 
 			var layout = "${longdate}|${level}|${logger:shortName=true}|${message}";
 
@@ -14796,18 +14768,36 @@ namespace CumulusMX
 				TimeToSleepBetweenBatches = 1
 			};
 
+			//var config = new LoggingConfiguration();
+
 			// Add targets to the configuration
-			config.AddTarget(asyncLogFileRT);
-			config.AddTarget(asyncLogFileIN);
+			//config.AddTarget(asyncLogFileRT);
+			//config.AddTarget(asyncLogFileIN);
+
+			//LogManager.Configuration.AddTarget(logfileRT);
+			//LogManager.Configuration.AddTarget(logfileIN);
+
+			LogManager.Configuration.AddTarget(asyncLogFileRT);
+			LogManager.Configuration.AddTarget(asyncLogFileIN);
 
 			// Define rules for the loggers
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileRT, "FTPr.FTP");
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileRT, "CMXr.CMX");
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileIN, "FTPi.FTP");
-			config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileIN, "CMXi.CMX");
+			//config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileRT, "FTPr.FTP");
+			//config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileRT, "CMXr.CMX");
+			//config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileIN, "FTPi.FTP");
+			//config.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileIN, "CMXi.CMX");
+
+			//LogManager.Configuration.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileRT, "FTPr.FTP");
+			//LogManager.Configuration.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileRT, "CMXr.CMX");
+			//LogManager.Configuration.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileIN, "FTPi.FTP");
+			//LogManager.Configuration.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, logfileIN, "CMXi.CMX");
+
+			LogManager.Configuration.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileRT, "FTPr.FTP");
+			LogManager.Configuration.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileRT, "CMXr.CMX");
+			LogManager.Configuration.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileIN, "FTPi.FTP");
+			LogManager.Configuration.AddRule(NLog.LogLevel.FromOrdinal(FtpOptions.LoggingLevel), NLog.LogLevel.Fatal, asyncLogFileIN, "CMXi.CMX");
 
 			// Apply configuration
-			LogManager.Configuration = config;
+			//LogManager.Configuration = config;
 
 			var serviceProvider = new ServiceCollection()
 				 .AddLogging(loggingBuilder =>
@@ -14822,6 +14812,8 @@ namespace CumulusMX
 			FtpLoggerMXRT = serviceProvider.GetService<ILoggerFactory>().CreateLogger("CMXr.CMX");
 			FtpLoggerIN = serviceProvider.GetService<ILoggerFactory>().CreateLogger("FTPi.FTP");
 			FtpLoggerMXIN = serviceProvider.GetService<ILoggerFactory>().CreateLogger("CMXi.CMX");
+			// load the new config
+			LogManager.ReconfigExistingLoggers();
 		}
 
 		private static StationManufacturer GetStationManufacturerFromType(int type)
