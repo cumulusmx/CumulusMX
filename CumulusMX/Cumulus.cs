@@ -14738,15 +14738,16 @@ namespace CumulusMX
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
-				Layout = layout
+				Layout = layout,
+				Footer = "- - - - - - LOG CLOSED ${longdate} - - - - - -"
 			};
 
 			var asyncLogFileRT = new NLog.Targets.Wrappers.AsyncTargetWrapper(logfileRT)
 			{
 				Name = "AsyncLogFileRT",
 				OverflowAction = NLog.Targets.Wrappers.AsyncTargetWrapperOverflowAction.Discard,
-				QueueLimit = 1000,
-				BatchSize = 1,
+				QueueLimit = 10000,
+				BatchSize = 200,
 				TimeToSleepBetweenBatches = 1
 			};
 
@@ -14756,15 +14757,16 @@ namespace CumulusMX
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
-				Layout = layout
+				Layout = layout,
+				Footer = "- - - - - - LOG CLOSED ${longdate} - - - - - -"
 			};
 
 			var asyncLogFileIN = new NLog.Targets.Wrappers.AsyncTargetWrapper(logfileIN)
 			{
 				Name = "AsyncLogFileIN",
 				OverflowAction = NLog.Targets.Wrappers.AsyncTargetWrapperOverflowAction.Discard,
-				QueueLimit = 1000,
-				BatchSize = 1,
+				QueueLimit = 10000,
+				BatchSize = 200,
 				TimeToSleepBetweenBatches = 1
 			};
 

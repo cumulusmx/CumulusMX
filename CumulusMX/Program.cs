@@ -12,6 +12,7 @@ using Microsoft.Win32;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using NLog.Targets.Wrappers;
 
 //#error version
 
@@ -512,38 +513,39 @@ namespace CumulusMX
 				//FileName = "MXdiags" + Path.DirectorySeparatorChar + "${cached:${date:format=yyyyMMdd-HHmmss}}.log",
 				FileName = "MXdiags" + Path.DirectorySeparatorChar + "${date:format=yyyyMMdd}.log",
 				ArchiveSuffixFormat = "{1:-HHmmss}",
-
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 9,
-				Layout = "${longdate}|${level}| ${message}"
+				//Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss.fff}|${level}| ${message}",
+				Layout = "${longdate}|${level}| ${message}",
+				Footer = "- - - - - - LOG CLOSED ${longdate} - - - - - -"
 			};
 
 			// Async wrapper
-			var asyncLogFile = new NLog.Targets.Wrappers.AsyncTargetWrapper()
+			var asyncLogFile = new AsyncTargetWrapper()
 			{
 				WrappedTarget = logfile,
 				Name = "MxDiags",
-				OverflowAction = NLog.Targets.Wrappers.AsyncTargetWrapperOverflowAction.Discard,
-				QueueLimit = 1000,
-				BatchSize = 100,
+				OverflowAction = AsyncTargetWrapperOverflowAction.Discard,
+				QueueLimit = 10000,
+				BatchSize = 200,
 				TimeToSleepBetweenBatches = 1
 			};
 
 
 			// Config
 			var config = new LoggingConfiguration();
-			config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, asyncLogFile, "CMX", !Debugger.IsAttached);
+			config.AddRule(LogLevel.Trace, LogLevel.Fatal, asyncLogFile, "CMX", !Debugger.IsAttached);
 
 			// Debugging?
 			if (Debugger.IsAttached)
 			{
 				// debugger
-				var debugger = new NLog.Targets.DebuggerTarget()
+				var debugger = new DebuggerTarget()
 				{
 					Layout = "${longdate} ${message}"
 				};
-				config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, debugger, "CMX", true);
+				config.AddRule(LogLevel.Trace, LogLevel.Fatal, debugger, "CMX", true);
 			}
 
 			// Apply configuration
