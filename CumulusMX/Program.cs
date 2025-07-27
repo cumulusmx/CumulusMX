@@ -454,7 +454,7 @@ namespace CumulusMX
 
 			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
 			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exit code = " + Environment.ExitCode);
-			MxLogger.Info("Cumulus shutdown exit code = " + Environment.ExitCode);
+			MxLogger.Info("Cumulus exit code = " + Environment.ExitCode);
 
 			LogManager.Flush();
 			LogManager.Shutdown();
@@ -513,9 +513,9 @@ namespace CumulusMX
 				//FileName = "MXdiags" + Path.DirectorySeparatorChar + "${cached:${date:format=yyyyMMdd-HHmmss}}.log",
 				FileName = "MXdiags" + Path.DirectorySeparatorChar + "${date:format=yyyyMMdd}.log",
 				ArchiveSuffixFormat = "{1:-HHmmss}",
-				ArchiveAboveSize = 5242880,
+				ArchiveAboveSize = 2097152,
 				ArchiveOldFileOnStartup = true,
-				MaxArchiveFiles = 9,
+				MaxArchiveFiles = 25,
 				//Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss.fff}|${level}| ${message}",
 				Layout = "${longdate}|${level}| ${message}",
 				Footer = "- - - - - - LOG CLOSED ${longdate} - - - - - -"
