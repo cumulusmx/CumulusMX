@@ -220,7 +220,7 @@ namespace CumulusMX
 				{
 					if (token.IsCancellationRequested)
 					{
-						cumulus.LogDebugMessage("GetLiveData: Operation cancelled by user.");
+						cumulus.LogDebugMessage("GetLiveData: Operation cancelled due to shutting down");
 						return null;
 					}
 
@@ -484,7 +484,7 @@ namespace CumulusMX
 			{
 				if (token.IsCancellationRequested)
 				{
-					cumulus.LogDebugMessage("GetCalibrationData: Operation cancelled by user.");
+					cumulus.LogDebugMessage("GetCalibrationData: Operation cancelled due to shutting down");
 					return null;
 				}
 
@@ -675,7 +675,7 @@ namespace CumulusMX
 			{
 				if (token.IsCancellationRequested)
 				{
-					cumulus.LogDebugMessage("CheckForUpgrade: Operation cancelled by user.");
+					cumulus.LogDebugMessage("CheckForUpgrade: Operation cancelled due to shutting down");
 					return false;
 				}
 				cumulus.LogExceptionMessage(ex, "CheckForUpgrade: Error");
@@ -783,7 +783,7 @@ namespace CumulusMX
 				{
 					if (token.IsCancellationRequested)
 					{
-						cumulus.LogDebugMessage("GetSdCardInfo: Operation cancelled by user.");
+						cumulus.LogDebugMessage("GetSdCardInfo: Operation cancelled due to shutting down");
 						return null;
 					}
 					cumulus.LogExceptionMessage(ex, "GetSdCardInfo: Error");
@@ -865,7 +865,7 @@ namespace CumulusMX
 				{
 					if (token.IsCancellationRequested)
 					{
-						cumulus.LogDebugMessage("GetSdFileContents: Operation cancelled by user.");
+						cumulus.LogDebugMessage("GetSdFileContents: Operation cancelled due to shutting down");
 						return null;
 					}
 					cumulus.LogExceptionMessage(ex, "GetSdFileContents: Error");
@@ -978,7 +978,7 @@ namespace CumulusMX
 			{
 				if (token.IsCancellationRequested)
 				{
-					cumulus.LogDebugMessage("GetSdFileContents: Operation cancelled by user.");
+					cumulus.LogDebugMessage("GetSdFileContents: Operation cancelled due to shutting down");
 					return null;
 				}
 

@@ -368,7 +368,7 @@ namespace CumulusMX
 				{
 					if (cumulus.cancellationToken.IsCancellationRequested)
 					{
-						cumulus.LogMessage("Ecowitt Local HTTP API station background task closed by request");
+						cumulus.LogMessage("Ecowitt Local HTTP API station background task closed due to shutting down");
 					}
 					else
 					{

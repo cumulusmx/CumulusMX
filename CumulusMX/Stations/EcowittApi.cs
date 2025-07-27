@@ -334,8 +334,15 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, "API.GetHistoricData: Exception occurred");
-				cumulus.LastUpdateTime = endTime;
+				if (token.IsCancellationRequested)
+				{
+					cumulus.LogDebugMessage("API.GetHistoricData: Operation cancelled due to shutting down");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "API.GetHistoricData: Exception occurred");
+					cumulus.LastUpdateTime = endTime;
+				}
 				return false;
 			}
 		}
@@ -2818,7 +2825,10 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, "API.GetLastCameraVideoUrl: Exception occurred ");
+				if (!token.IsCancellationRequested)
+				{
+					cumulus.LogExceptionMessage(ex, "API.GetLastCameraVideoUrl: Exception occurred ");
+				}
 				return defaultUrl;
 			}
 		}
@@ -2963,7 +2973,10 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, "API.GetStationList: Exception occurred");
+				if (!token.IsCancellationRequested)
+				{
+					cumulus.LogExceptionMessage(ex, "API.GetStationList: Exception occurred");
+				}
 				return [];
 			}
 		}
@@ -2979,6 +2992,9 @@ namespace CumulusMX
 			}
 
 			await Task.Delay(Program.RandGenerator.Next(0, 5000), token);
+
+			if (token.IsCancellationRequested)
+				return null;
 
 			cumulus.LogMessage("API.GetLatestFirmwareVersion: Get Ecowitt Latest Firmware Version");
 
@@ -3088,7 +3104,10 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, "API.GetLatestFirmwareVersion: Exception occurred");
+				if (!token.IsCancellationRequested)
+				{
+					cumulus.LogExceptionMessage(ex, "API.GetLatestFirmwareVersion: Exception occurred");
+				}
 				return null;
 			}
 		}

@@ -300,7 +300,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// we want to do this synchronously, so .Result
-				using (var response = await cumulus.MyHttpClient.SendAsync(request))
+				using (var response = await cumulus.MyHttpClient.SendAsync(request, cumulus.cancellationToken))
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -353,8 +353,12 @@ namespace CumulusMX
 				{
 					cumulus.LogWarningMessage($"GetCurrent: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
 				}
-				else
+				else if (cumulus.cancellationToken.IsCancellationRequested)
 				{
+					// do nothing - shutting down
+				}
+				else
+						{
 					cumulus.LogExceptionMessage(ex, "GetCurrent: Error");
 				}
 			}
@@ -449,7 +453,7 @@ namespace CumulusMX
 				{
 					GetHistoricData(worker);
 					archiveRun++;
-				} while (archiveRun < maxArchiveRuns && !worker.CancellationPending);
+				} while (archiveRun < maxArchiveRuns && !worker.CancellationPending && !cumulus.cancellationToken.IsCancellationRequested);
 			}
 			catch (Exception ex)
 			{
@@ -529,7 +533,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// we want to do this synchronously, so .Result
-				using (var response = cumulus.MyHttpClient.SendAsync(request).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request, cumulus.cancellationToken).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -599,14 +603,17 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage("GetHistoricData:  Exception: " + ex.Message);
-				if (ex.InnerException != null)
+				if (!cumulus.cancellationToken.IsCancellationRequested)
 				{
-					ex = Utils.GetOriginalException(ex);
-					cumulus.LogMessage($"GetHistoricData: Base exception - {ex.Message}");
-				}
+					cumulus.LogErrorMessage("GetHistoricData:  Exception: " + ex.Message);
+					if (ex.InnerException != null)
+					{
+						ex = Utils.GetOriginalException(ex);
+						cumulus.LogMessage($"GetHistoricData: Base exception - {ex.Message}");
+					}
 
-				lastHistoricData = Utils.FromUnixTime(endTime);
+					lastHistoricData = Utils.FromUnixTime(endTime);
+				}
 				maxArchiveRuns = -1;
 				return;
 			}
@@ -851,6 +858,11 @@ namespace CumulusMX
 
 			foreach (var sensor in sensors)
 			{
+				if (!cumulus.cancellationToken.IsCancellationRequested)
+				{
+					return;
+				}
+
 				try
 				{
 					// first separate out the "special" sensors
