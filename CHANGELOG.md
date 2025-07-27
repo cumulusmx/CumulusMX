@@ -41,6 +41,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		- Rollover also occurs when you start Cumulus MX and there is an existing dated log file for today
 		- The timestamp on rollover files is the time of the last entry in the file, not the first
 	- The maximum log file size hs been decreased to 2MB, but the number of archives retained increased to 25 which is approximately the same amount of storage as previously
+	- You may notice the logged event times only increment every 16ms, this is an efficiency thing!
 
 ### Fixed
 

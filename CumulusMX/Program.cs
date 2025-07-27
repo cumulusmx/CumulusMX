@@ -513,12 +513,12 @@ namespace CumulusMX
 				//FileName = "MXdiags" + Path.DirectorySeparatorChar + "${cached:${date:format=yyyyMMdd-HHmmss}}.log",
 				FileName = "MXdiags" + Path.DirectorySeparatorChar + "${date:format=yyyyMMdd}.log",
 				ArchiveSuffixFormat = "{1:-HHmmss}",
-				ArchiveAboveSize = 2097152,
+				ArchiveAboveSize = 2096970,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 25,
 				//Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss.fff}|${level}| ${message}",
 				Layout = "${longdate}|${level}| ${message}",
-				Footer = "- - - - - - LOG CLOSED ${longdate} - - - - - -"
+				Footer = "------ LOG CLOSED ${longdate} ------"
 			};
 
 			// Async wrapper
