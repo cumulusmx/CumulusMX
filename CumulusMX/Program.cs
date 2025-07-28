@@ -515,7 +515,7 @@ namespace CumulusMX
 				ArchiveSuffixFormat = "{1:-HHmmss}",
 				ArchiveAboveSize = 2096970,
 				ArchiveOldFileOnStartup = true,
-				MaxArchiveFiles = 25,
+				MaxArchiveFiles = 15,
 				//Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss.fff}|${level}| ${message}",
 				Layout = "${longdate}|${level}| ${message}",
 				Footer = "------ LOG CLOSED ${longdate} ------"
@@ -551,7 +551,20 @@ namespace CumulusMX
 			// Apply configuration
 			LogManager.Configuration = config;
 			LogManager.AutoShutdown = false;
+
 			MxLogger = LogManager.GetLogger("CMX");
+
+			// Debugging?
+			if (Debugger.IsAttached)
+			{
+				// debugger
+				var debugger = new DebuggerTarget()
+				{
+					Layout = "${longdate} ${message}"
+				};
+				LogManager.Configuration.AddRule(LogLevel.Trace, LogLevel.Fatal, debugger, "CMX", true);
+			}
+
 			MxLogger.Info("Created new log file");
 		}
 
