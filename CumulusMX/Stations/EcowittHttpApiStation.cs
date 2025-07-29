@@ -838,6 +838,7 @@ namespace CumulusMX
 
 			return string.Empty;
 		}
+
 		private async Task GetSensorIds(bool delay)
 		{
 			// pause for two seconds to get out of sync with the live data requests
@@ -868,7 +869,7 @@ namespace CumulusMX
 					var name = string.Empty;
 					try
 					{
-						cumulus.LogDebugMessage($" - {sensor.img}, {(sensor.idst ? "enabled" : "disabled")}" + (sensor.idst ? $", id={sensor.id}, signal={sensor.signal}, battery={sensor.batt}, name={sensor.name}" : ""));
+						cumulus.LogDebugMessage($" - {sensor.img}, {(sensor.idst ? "enabled" : "disabled")}" + (sensor.idst ? $", id={sensor.id}, signal={sensor.signal}, {(sensor.rssi.HasValue ? "rssi="+ sensor.rssi+", " : "")}battery={sensor.batt}, name={sensor.name}" : ""));
 
 						// check the battery status
 						if (sensor.idst && sensor.signal > 0)
@@ -951,7 +952,8 @@ namespace CumulusMX
 								case int n when (n > 65 && n < 70): // wh54 - laser depth (4 chan)
 									name = "wh54ch" + (sensor.type - 65);
 									goto case 1003;
-
+								case 70: //wn20 - rain miini
+									goto case 1003;
 
 								case 1001: // battery type 1 (0=OK, 1=LOW)
 									if (sensor.batt == 1)

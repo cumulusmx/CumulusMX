@@ -15,6 +15,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### New
 
 - Adds support the Ecowitt WH25 CO₂ sensor values on the HTTP API
+- Adds support for the Ecowitt WN20 battery status monitoring
+- Adds RSSI value (if available) to the Ecowitt sensor list logging
 - A new Alarm for Cumulus MX general errors, triggered every time something is written to the Recent Errors log, and cleared when the log is cleared
 
 ### Changed
