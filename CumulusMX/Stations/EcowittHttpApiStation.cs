@@ -542,10 +542,6 @@ namespace CumulusMX
 				if (lines == null || lines.Count == 1)
 				{
 					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file");
-					// remove the corresponding extra file from the processing list
-					var extra = file[0..6] + "Allsensors_" + file[6..];
-					cumulus.LogMessage($"GetHistoricDataSdCard: removing corresponding extra file from the processing list - " + extra);
-					extraFiles.Remove(extra);
 					continue;
 				}
 

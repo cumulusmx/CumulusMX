@@ -52,6 +52,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Unlike the other log files, the monthly log file name generator did not have the check to remove "dots" from the yyyyMM date part of the filename
 - Ecowitt HTTP API station not triggering the firmware alarm when new firmware available
 - Handling of cached MySQL statements that are in error because of bad syntax or reference errors
+- An error in the Ecowitt SD card log file handling that removed the corresponding Allsensors log file from the processing list if the primary file did not contain any dates in the required range.
 
 ### Package Updates
 
