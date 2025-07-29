@@ -1628,13 +1628,15 @@ namespace CumulusMX
 				// skip this interval it's the same second
 				return;
 			}
-			else if (nowSec > lastSecond + 600 && lastSecond != 0)
+			else if (nowSec > lastSecond + 300 && lastSecond != 0)
 			{
-				// check for the clock skipping forward more than 10 minutes
+				// check for the clock skipping forward more than 5 minutes
 				// if this happens it may be because the computer was suspended
 				// we will terminate so that the program can be restarted and the data recovered
 				// Exit code 999 is used to prevent a clean shutdown, it aborts the program, not saving the current state/datetime if it hasn't already been saved
-				cumulus.LogMessage($"*** Clock skipped forward more than 10 minutes, last second was {lastSecond}, now is {nowSec}.\n*** Resuming from standby?\n*** Exiting program.");
+				cumulus.LogMessage($"*** Clock skipped forward more than 5 minutes, last second was {lastSecond}, now is {nowSec}");
+				cumulus.LogMessage("*** Resuming from standby?");
+				cumulus.LogMessage("*** Exiting program");
 				Environment.Exit(999);
 				return;
 			}
@@ -15663,7 +15665,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 	public class SqlCache
 	{
 		[AutoIncrement, PrimaryKey]
-		public int? key { get; set; }
+		public int key { get; set; }
 		public string statement { get; set; }
 	}
 

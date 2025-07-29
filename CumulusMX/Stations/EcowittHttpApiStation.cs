@@ -1119,8 +1119,11 @@ namespace CumulusMX
 									 // not used
 							break;
 
+						case "0x6D": // 10 min avg wind direction
+									 // not used
+							break;
 						default:
-							cumulus.LogDebugMessage($"Error: Unknown common_list sensor id found = {sensor.id}");
+							cumulus.LogDebugMessage($"Warning: Unknown common_list sensor id found = {sensor.id}");
 							break;
 					}
 				}
@@ -1278,6 +1281,10 @@ namespace CumulusMX
 			//		"val": "0.0 mm/Hr"
 			//	},
 			//	{
+			//		"id": "0x7C",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
 			//		"id": "0x10",
 			//		"val": "0.0 mm"
 			//	},
@@ -1402,6 +1409,7 @@ namespace CumulusMX
 								cumulus.IsRainingAlarm.Triggered = IsRaining;							}
 							break;
 
+						case "0x7C": // rain 24h
 						case "0x10": // Rain day
 						case "0x11": // Rain week
 						case "0x12": // Rain month
@@ -1409,7 +1417,7 @@ namespace CumulusMX
 							break;
 
 						default:
-							cumulus.LogDebugMessage($"Error: Unknown rain sensor id found = {sensor.id}");
+							cumulus.LogDebugMessage($"Warning: Unknown rain sensor id found = {sensor.id}");
 							break;
 					}
 				}

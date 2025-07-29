@@ -284,18 +284,19 @@ namespace CumulusMX
 					if (result != 0)
 					{
 						Console.WriteLine("Failed to register for power mode changes, error code: " + result);
-						svcTextListener.WriteLine("Failed to register for power mode changes on Windows, error code: " + result);
-						MxLogger.Error("Failed to register for power mode changes on Windows, error code: " + result);
+						svcTextListener.WriteLine("Failed to register for modern power mode changes on Windows, error code: " + result);
+						MxLogger.Error("Failed to register for modern power mode changes on Windows, error code: " + result);
 					}
 					else
 					{
-						svcTextListener.WriteLine("Registered for power mode changes on Windows");
-						MxLogger.Info("Registered for power mode changes on Windows");
+						svcTextListener.WriteLine("Registered for modern power mode changes on Windows");
+						MxLogger.Info("Registered for modern power mode changes on Windows");
 					}
 				}
 				else // Windows 7 or earlier
 				{
 					SystemEvents.PowerModeChanged += new PowerModeChangedEventHandler(OnPowerModeChanged);
+					MxLogger.Info("Registered for legacy power mode changes on Windows");
 				}
 			}
 
@@ -543,7 +544,7 @@ namespace CumulusMX
 				// debugger
 				var debugger = new DebuggerTarget()
 				{
-					Layout = "${longdate} ${message}"
+					Layout = "${time} ${message}"
 				};
 				config.AddRule(LogLevel.Trace, LogLevel.Fatal, debugger, "CMX", true);
 			}
@@ -554,18 +555,7 @@ namespace CumulusMX
 
 			MxLogger = LogManager.GetLogger("CMX");
 
-			// Debugging?
-			if (Debugger.IsAttached)
-			{
-				// debugger
-				var debugger = new DebuggerTarget()
-				{
-					Layout = "${longdate} ${message}"
-				};
-				LogManager.Configuration.AddRule(LogLevel.Trace, LogLevel.Fatal, debugger, "CMX", true);
-			}
-
-			MxLogger.Info("Created new log file");
+			MxLogger.Info("------ Created initial log file for this run of Cumulus MX ------");
 		}
 
 

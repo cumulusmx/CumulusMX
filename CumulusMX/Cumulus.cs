@@ -8543,7 +8543,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogMessage($"DoLogFile: Error writing entry for {timestamp}, will retry...");
+						LogMessage($"DoLogFile: Error writing entry for {timestamp}, error = \"{ex.Message}\", will retry...");
 					}
 
 					await Task.Delay(250);
@@ -8788,7 +8788,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogMessage($"DoExtraLogFile: Error writing entry for {timestamp}, will retry...");
+						LogMessage($"DoExtraLogFile: Error writing entry for {timestamp}, error = \"{ex.Message}\", will retry...");
 					}
 
 					await Task.Delay(250);
@@ -9001,7 +9001,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogMessage($"DoAirLinkLogFile: Error writing entry for {timestamp}, will retry...");
+						LogMessage($"DoAirLinkLogFile: Error writing entry for {timestamp}, error = \"{ex.Message}\", will retry...");
 					}
 
 					await Task.Delay(250);
@@ -9082,7 +9082,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogMessage($"DoCustomIntervalLog: {CustomIntvlLogSettings[idx].FileName} - Error writing log entry for {timestamp}, will retry...");
+						LogMessage($"DoCustomIntervalLog: {CustomIntvlLogSettings[idx].FileName} - Error writing log entry for {timestamp}, error = \"{ex.Message}\", will retry...");
 					}
 
 					await Task.Delay(250);
@@ -9151,7 +9151,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						LogMessage($"DoCustomDailyLog: {CustomDailyLogSettings[idx].FileName} - Error writing log entry, will retry...");
+						LogMessage($"DoCustomDailyLog: {CustomDailyLogSettings[idx].FileName} - Error writing log entry, error = \"{ex.Message}\", will retry...");
 					}
 
 					await Task.Delay(250);
@@ -14057,74 +14057,7 @@ namespace CumulusMX
 			await Task.Run(() =>
 			{
 				var myQueue = UseFailedList ? ref MySqlFailedList : ref Cmds;
-				SqlCache cachedCmd = null;
-
-				try
-				{
-					using var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
-					mySqlConn.Open();
-
-					using var transaction = Cmds.Count > 2 ? mySqlConn.BeginTransaction() : null;
-					do
-					{
-						// Do not remove the item from the stack until we know the command worked
-						if (myQueue.TryPeek(out cachedCmd))
-						{
-							using MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, mySqlConn);
-							LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
-
-							if (transaction != null)
-							{
-								cmd.Transaction = transaction;
-							}
-
-							int aff = cmd.ExecuteNonQuery();
-							LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
-
-							// Success, if using the failed list, delete from the database
-							if (UseFailedList)
-							{
-								station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
-							}
-
-							// and pop the value from the queue
-							myQueue.TryDequeue(out cachedCmd);
-						}
-					} while (!myQueue.IsEmpty);
-
-					if (transaction != null)
-					{
-						LogDebugMessage($"{CallingFunction}: Committing updates to DB");
-						transaction.Commit();
-						LogDebugMessage($"{CallingFunction}: Commit complete");
-					}
-
-					mySqlConn.Close();
-
-					MySqlUploadAlarm.Triggered = false;
-				}
-				catch (Exception ex)
-				{
-					LogErrorMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
-					// if debug logging is disable, then log the failing statement anyway
-					if (!DebuggingEnabled)
-					{
-						LogMessage($"{CallingFunction}: SQL = {cachedCmd.statement}");
-					}
-
-
-					MySqlUploadAlarm.LastMessage = ex.Message;
-					MySqlUploadAlarm.Triggered = true;
-
-					if (MySqlSettings.BufferOnfailure && !UseFailedList)
-					{
-						// do we save this command/commands on failure to be resubmitted?
-						// if we have a syntax error, it is never going to work so do not save it for retry
-						// A selection of the more common(?) errors to ignore...
-						var errorCode = (int) ex.Data["Server Error Code"];
-						MySqlCommandErrorHandler(CallingFunction, errorCode, myQueue);
-					}
-				}
+				ProcessMySqlBuffer(myQueue, CallingFunction, UseFailedList);
 			});
 		}
 
@@ -14138,6 +14071,11 @@ namespace CumulusMX
 		public void MySqlCommandSync(ConcurrentQueue<SqlCache> Cmds, string CallingFunction, bool UseFailedList)
 		{
 			var myQueue = UseFailedList ? ref MySqlFailedList : ref Cmds;
+			ProcessMySqlBuffer(myQueue, CallingFunction, UseFailedList);
+		}
+
+		private void ProcessMySqlBuffer(ConcurrentQueue<SqlCache> myQueue, string CallingFunction, bool UseFailedList)
+		{
 			SqlCache cachedCmd = null;
 
 			try
@@ -14145,13 +14083,13 @@ namespace CumulusMX
 				using var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
 				mySqlConn.Open();
 
-				using var transaction = Cmds.Count > 2 ? mySqlConn.BeginTransaction() : null;
-				do
-				{
-					// Do not remove the item from the stack until we know the command worked
-					if (myQueue.TryPeek(out cachedCmd))
-					{
+				using var transaction = myQueue.Count > 2 ? mySqlConn.BeginTransaction() : null;
 
+				// Do not remove the item from the stack until we know the command worked, or the command is bad
+				while (myQueue.TryPeek(out cachedCmd))
+				{
+					try
+					{
 						using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, mySqlConn))
 						{
 							LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
@@ -14175,62 +14113,132 @@ namespace CumulusMX
 
 						MySqlUploadAlarm.Triggered = false;
 					}
-				} while (!myQueue.IsEmpty);
+					catch (Exception ex)
+					{
+						LogErrorMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
+
+						// if debug logging is disable, then log the failing statement anyway
+						if (!DebuggingEnabled)
+						{
+							LogMessage($"{CallingFunction}: Failing SQL = {cachedCmd}");
+						}
+
+						MySqlUploadAlarm.LastMessage = ex.Message;
+						MySqlUploadAlarm.Triggered = true;
+
+						var errorCode = (int) ex.Data["Server Error Code"];
+
+						// do we save this command/commands on failure to be resubmitted?
+						// if we have a syntax error, it is never going to work so do not save it for retry
+						if (MySqlSettings.BufferOnfailure && !UseFailedList)
+						{
+							// do we save this command/commands on failure to be resubmitted?
+							// if we have a syntax error, it is never going to work so do not save it for retry
+							// A selection of the more common(?) errors to ignore...
+							MySqlCommandErrorHandler(CallingFunction, errorCode, myQueue);
+						}
+						else if (UseFailedList)
+						{
+							// We are processing the buffered list
+							if (MySqlCheckError(errorCode))
+							{
+								// there is something wrong with the command, discard it
+								LogMessage($"{CallingFunction}: Discarding bad SQL = {cachedCmd.statement}. Error = \"{MySqlErrorToText(errorCode)}\"");
+								myQueue.TryDequeue(out _);
+								station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
+							}
+							else
+							{
+								// something else went wrong - abort
+								LogExceptionMessage(ex, $"{CallingFunction}: Something went wrong processing MySQL buffer");
+								break;
+							}
+						}
+					}
+
+				}
 
 				if (transaction != null)
 				{
 					LogDebugMessage($"{CallingFunction}: Committing updates to DB");
-					transaction.Commit();
-					LogDebugMessage($"{CallingFunction}: Commit complete");
+					try
+					{
+						transaction.Commit();
+						LogDebugMessage($"{CallingFunction}: Commit complete");
+					}
+					catch (Exception ex)
+					{
+						LogExceptionMessage(ex, $"{CallingFunction}: Error committing transaction");
+					}
 				}
 
 				mySqlConn.Close();
 			}
 			catch (Exception ex)
 			{
-				LogErrorMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
-				// if debug logging is disable, then log the failing statement anyway
-				if (!DebuggingEnabled)
+				LogErrorMessage($"{CallingFunction}: General failure! Error = {ex.Message}");
+
+				// do we want to add the commands to the failed buffer?
+				if (!UseFailedList)
 				{
-					LogMessage($"{CallingFunction}: SQL = {cachedCmd}");
+					foreach (var item in myQueue)
+					{
+						MySqlFailedList.Enqueue(item);
+					}
 				}
 
 				MySqlUploadAlarm.LastMessage = ex.Message;
 				MySqlUploadAlarm.Triggered = true;
-
-				// do we save this command/commands on failure to be resubmitted?
-				// if we have a syntax error, it is never going to work so do not save it for retry
-				if (MySqlSettings.BufferOnfailure && !UseFailedList)
-				{
-					// do we save this command/commands on failure to be resubmitted?
-					// if we have a syntax error, it is never going to work so do not save it for retry
-					// A selection of the more common(?) errors to ignore...
-					var errorCode = (int) ex.Data["Server Error Code"];
-					MySqlCommandErrorHandler(CallingFunction, errorCode, myQueue);
-				}
-
-				throw;
+				return;
 			}
+
+			MySqlUploadAlarm.Triggered = false;
+		}
+
+		private static bool MySqlCheckError(int ErrorCode)
+		{
+			return ErrorCode == (int) MySqlErrorCode.ParseError ||
+				   ErrorCode == (int) MySqlErrorCode.EmptyQuery ||
+				   ErrorCode == (int) MySqlErrorCode.TooBigSelect ||
+				   ErrorCode == (int) MySqlErrorCode.InvalidUseOfNull ||
+				   ErrorCode == (int) MySqlErrorCode.MixOfGroupFunctionAndFields ||
+				   ErrorCode == (int) MySqlErrorCode.SyntaxError ||
+				   ErrorCode == (int) MySqlErrorCode.TooLongString ||
+				   ErrorCode == (int) MySqlErrorCode.WrongColumnName ||
+				   ErrorCode == (int) MySqlErrorCode.DuplicateUnique ||
+				   ErrorCode == (int) MySqlErrorCode.PrimaryCannotHaveNull ||
+				   ErrorCode == (int) MySqlErrorCode.DivisionByZero ||
+				   ErrorCode == (int) MySqlErrorCode.DuplicateKeyEntry;
+
+		}
+
+		private static string MySqlErrorToText(int ErrorCode)
+		{
+			return (MySqlErrorCode) ErrorCode switch
+			{
+				MySqlErrorCode.ParseError => "Parsing error",
+				MySqlErrorCode.EmptyQuery => "Empty query",
+				MySqlErrorCode.TooBigSelect => "Select statement too big",
+				MySqlErrorCode.InvalidUseOfNull => "Invalid use of null",
+				MySqlErrorCode.MixOfGroupFunctionAndFields => "Mixed group of functions and fields",
+				MySqlErrorCode.SyntaxError => "Syntax error",
+				MySqlErrorCode.TooLongString => "Too long string in query",
+				MySqlErrorCode.WrongColumnName => "Wrong column name used",
+				MySqlErrorCode.DuplicateUnique => "Attempt to create a duplicate unique entry",
+				MySqlErrorCode.PrimaryCannotHaveNull => "Primary column cannot be null",
+				MySqlErrorCode.DivisionByZero => "Division by zero",
+				MySqlErrorCode.DuplicateKeyEntry => "Duplicate key entry",
+			   _ => "Unknown error code " + ErrorCode,
+			};
 		}
 
 		internal void MySqlCommandErrorHandler(string CallingFunction, int ErrorCode, ConcurrentQueue<SqlCache> Cmds)
 		{
-			var ignore = ErrorCode == (int) MySqlErrorCode.ParseError ||
-						 ErrorCode == (int) MySqlErrorCode.EmptyQuery ||
-						 ErrorCode == (int) MySqlErrorCode.TooBigSelect ||
-						 ErrorCode == (int) MySqlErrorCode.InvalidUseOfNull ||
-						 ErrorCode == (int) MySqlErrorCode.MixOfGroupFunctionAndFields ||
-						 ErrorCode == (int) MySqlErrorCode.SyntaxError ||
-						 ErrorCode == (int) MySqlErrorCode.TooLongString ||
-						 ErrorCode == (int) MySqlErrorCode.WrongColumnName ||
-						 ErrorCode == (int) MySqlErrorCode.DuplicateUnique ||
-						 ErrorCode == (int) MySqlErrorCode.PrimaryCannotHaveNull ||
-						 ErrorCode == (int) MySqlErrorCode.DivisionByZero ||
-						 ErrorCode == (int) MySqlErrorCode.DuplicateKeyEntry;
+			var ignore = MySqlCheckError(ErrorCode);
 
 			if (ignore)
 			{
-				LogDebugMessage($"{CallingFunction}: Not buffering this command due to a problem with the query");
+				LogDebugMessage($"{CallingFunction}: Not buffering this command due to a problem with the query. Error = " + MySqlErrorToText(ErrorCode));
 			}
 			else
 			{
@@ -14239,7 +14247,7 @@ namespace CumulusMX
 					try
 					{
 						Cmds.TryDequeue(out var cmd);
-						if (!cmd.statement.StartsWith("DELETE IGNORE FROM"))
+						if (!cmd.statement.StartsWith("DELETE"))
 						{
 							LogDebugMessage($"{CallingFunction}: Buffering command to failed list");
 
