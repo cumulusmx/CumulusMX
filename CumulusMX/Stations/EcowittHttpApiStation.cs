@@ -1116,9 +1116,6 @@ namespace CumulusMX
 							break;
 
 						case "0x19": // max wind today (value unit)
-									 // not used
-							break;
-
 						case "0x6D": // 10 min avg wind direction
 									 // not used
 							break;
