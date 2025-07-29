@@ -60,6 +60,7 @@ namespace CumulusMX
 					// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
 					// 2025-05-20 17:46,1747734370,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
 					// 2025-06-12 13:34,1749731693,20.1,60,22.4,57,13.5,22.4,1.16,2.01,5.14,224,1000.2,1008.5,214.05,2,0.0,0.0,0.0,0.0,5.7,38.8,261.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+					// 2025-07-29 14:23,1753795382,21.0,64,19.8,79,16.1,19.8,0.48,0.00,2.46,179,298,1009.4,1017.8,245.86,2,0.0,0.0,0.0,0.0,2.5,2.5,54.0,341.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
 
 					DateTime time;
 
@@ -108,6 +109,7 @@ namespace CumulusMX
 					if (FieldIndex.TryGetValue("feels like", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.FeelsLike = varDec;
 					if (FieldIndex.TryGetValue("wind", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WindSpd = varDec;
 					if (FieldIndex.TryGetValue("gust", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WindGust = varDec;
+					//if (FieldIndex.TryGetValue("windDir_10min_avg", out idx) && int.TryParse(fields[idx], out varInt)) rec.WindDirAvg = varInt;
 					if (FieldIndex.TryGetValue("wind direction", out idx) && int.TryParse(fields[idx], out varInt)) rec.WindDir = varInt;
 					if (FieldIndex.TryGetValue("abs pressure", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.StationPressure = varDec;
 					if (FieldIndex.TryGetValue("rel pressure", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Pressure = varDec;
@@ -130,6 +132,7 @@ namespace CumulusMX
 						{
 							rec.RainRate = varDec; // really this is hourly rain from the file
 						}
+						//if (FieldIndex.TryGetValue("24h rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Rain24h = varDec;
 						//if (FieldIndex.TryGetValue("event rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.EventRain = varDec;
 						//if (FieldIndex.TryGetValue("daily rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DailyRain = varDec;
 						//if (FieldIndex.TryGetValue("weekly rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WeeklyRain = varDec;
@@ -147,6 +150,7 @@ namespace CumulusMX
 						{
 							rec.RainRate = varDec; // really this is hourly rain from the file
 						}
+						//if (FieldIndex.TryGetValue("piezo 24h rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Rain24h = varDec;
 						//if (FieldIndex.TryGetValue("piezo event rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.EventRain = varDec;
 						//if (FieldIndex.TryGetValue("piezo daily rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DailyRain = varDec;
 						//if (FieldIndex.TryGetValue("piezo weekly rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WeeklyRain = varDec;
@@ -207,6 +211,7 @@ namespace CumulusMX
 						if (RainUnit == RainUnits.mm)
 						{
 							rec.RainRate = ConvertUnits.RainMMToUser(rec.RainRate);
+							//rec.Rain24h = ConvertUnits.RainMMToUser(rec.Rain24h);
 							//rec.EventRain = ConvertUnits.RainMMToUser(rec.EventRain);
 							//rec.DailyRain = ConvertUnits.RainMMToUser(rec.DailyRain);
 							//rec.WeeklyRain = ConvertUnits.RainMMToUser(rec.WeeklyRain);
@@ -216,6 +221,7 @@ namespace CumulusMX
 						else
 						{
 							rec.RainRate = ConvertUnits.RainINToUser(rec.RainRate);
+							//rec.Rain24h = ConvertUnits.RainMMToUser(rec.Rain24h);
 							//rec.EventRain = ConvertUnits.RainINToUser(rec.EventRain);
 							//rec.DailyRain = ConvertUnits.RainINToUser(rec.DailyRain);
 							//rec.WeeklyRain = ConvertUnits.RainINToUser(rec.WeeklyRain);

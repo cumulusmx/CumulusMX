@@ -3424,6 +3424,7 @@ namespace CumulusMX
 			public decimal? WindSpd { get; set; }
 			public decimal? WindGust { get; set; }
 			public int? WindDir { get; set; }
+			//public int? WindDirAvg { get; set; }
 			public decimal? Pressure { get; set; }
 			public decimal? StationPressure { get; set; }
 			public double? Solar { get; set; }
