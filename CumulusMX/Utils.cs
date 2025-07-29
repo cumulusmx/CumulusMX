@@ -91,6 +91,19 @@ namespace CumulusMX
 			return BitConverter.ToString(hashValue).Replace("-", string.Empty).ToLower();
 		}
 
+		public static string RemoveCrTabsFromString(string input)
+		{
+			var sb = new StringBuilder(input.Length);
+			foreach (char i in input)
+			{
+				if (i != '\n' && i != '\r' && i != '\t')
+				{
+					sb.Append(i);
+				}
+			}
+			return sb.ToString();
+		}
+
 		public static bool ValidateIPv4(string ipString)
 		{
 			if (string.IsNullOrWhiteSpace(ipString) || ipString == "0.0.0.0")

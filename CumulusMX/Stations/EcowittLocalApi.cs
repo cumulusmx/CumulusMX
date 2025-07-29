@@ -181,7 +181,7 @@ namespace CumulusMX
 						responseBody = response.Content.ReadAsStringAsync(token).Result;
 						responseCode = (int) response.StatusCode;
 						cumulus.LogDebugMessage($"LocalApi.GetLiveData: Ecowitt Local API GetLiveData Response code: {responseCode}");
-						cumulus.LogDataMessage($"LocalApi.GetLiveData: Ecowitt Local API GetLiveData Response: {responseBody}");
+						cumulus.LogDataMessage($"LocalApi.GetLiveData: Ecowitt Local API GetLiveData Response: {Utils.RemoveCrTabsFromString(responseBody)}");
 					}
 
 					if (responseCode != 200)
@@ -262,8 +262,8 @@ namespace CumulusMX
 				string result1 = await task1;
 				string result2 = await task2;
 
-				cumulus.LogDataMessage("GetSensorInfo: Page 1 = " + result1);
-				cumulus.LogDataMessage("GetSensorInfo: Page 2 = " + result2);
+				cumulus.LogDataMessage("GetSensorInfo: Page 1 = " + Utils.RemoveCrTabsFromString(result1));
+				cumulus.LogDataMessage("GetSensorInfo: Page 2 = " + Utils.RemoveCrTabsFromString(result2));
 
 				if (!string.IsNullOrEmpty(result1))
 				{
@@ -748,7 +748,7 @@ namespace CumulusMX
 						responseBody = response.Content.ReadAsStringAsync(token).Result;
 						responseCode = (int) response.StatusCode;
 						cumulus.LogDebugMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Response code: {responseCode}");
-						cumulus.LogDataMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Response: {responseBody}");
+						cumulus.LogDataMessage($"LocalApi.GetSdCardInfo: Ecowitt Local API GetSdCardInfo Response: {Utils.RemoveCrTabsFromString(responseBody)}");
 					}
 
 					if (responseCode != 200)
