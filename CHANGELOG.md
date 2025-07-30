@@ -44,6 +44,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		- The timestamp on rollover files is the time of the last entry in the file, not the first
 	- The maximum log file size hs been decreased to 2MB, but the number of archives retained increased to 15
 	- You may notice the logged event times only increment every 16ms, this is an efficiency thing!
+- Logging of JSON responses from the Ecowitt Local HTTP API now compacts the output by removing line feeds and tabs from the text
 
 ### Fixed
 

@@ -1634,10 +1634,11 @@ namespace CumulusMX
 				// if this happens it may be because the computer was suspended
 				// we will terminate so that the program can be restarted and the data recovered
 				// Exit code 999 is used to prevent a clean shutdown, it aborts the program, not saving the current state/datetime if it hasn't already been saved
-				cumulus.LogMessage($"*** Clock skipped forward more than 5 minutes, last second was {lastSecond}, now is {nowSec}");
-				cumulus.LogMessage("*** Resuming from standby?");
-				cumulus.LogMessage("*** Exiting program");
-				Environment.Exit(999);
+				cumulus.tokenSource.Cancel();
+				secondTimer.Stop();
+				cumulus.LogMessage($"*** Clock skipped forward more than 5 minutes, last second was {lastSecond}, now is {nowSec}. Assuming we are resuming from an undetected computer sleep and aborting Cumulus");
+				Environment.ExitCode = 999;
+				Program.ExitSystemTokenSource.Cancel();
 				return;
 			}
 

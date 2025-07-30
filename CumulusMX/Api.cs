@@ -1497,6 +1497,12 @@ namespace CumulusMX
 			[Route(HttpVerbs.Post, "/{req}")]
 			public async Task PostStation(string req)
 			{
+				if (cumulus.cancellationToken.IsCancellationRequested)
+				{
+					Response.StatusCode = 503;
+					return;
+				}
+
 				try
 				{
 					Response.ContentType = "application/json";
@@ -1563,6 +1569,12 @@ namespace CumulusMX
 			[Route(HttpVerbs.Get, "/{req}")]
 			public async Task GetStation(string req)
 			{
+				if (cumulus.cancellationToken.IsCancellationRequested)
+				{
+					Response.StatusCode = 503;
+					return;
+				}
+
 				try
 				{
 					Response.ContentType = "application/json";

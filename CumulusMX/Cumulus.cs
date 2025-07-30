@@ -38,7 +38,6 @@ using Microsoft.Extensions.Logging;
 using MySqlConnector;
 
 using NLog;
-using NLog.Config;
 using NLog.Extensions.Logging;
 using NLog.Targets;
 

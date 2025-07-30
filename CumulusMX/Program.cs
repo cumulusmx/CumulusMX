@@ -415,6 +415,9 @@ namespace CumulusMX
 
 		private static void ProcessExit(object s, EventArgs e)
 		{
+			// attempt to delay Windows going to sleep by saying we are doing critical work
+			_ = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+
 			if (powerNotificationRegistrationHandle != 0)
 			{
 				// Unregister the power notification
@@ -464,6 +467,9 @@ namespace CumulusMX
 			{
 				Console.CursorVisible = true;
 			}
+
+			// clear the critical work flag
+			_ = SetThreadExecutionState(ES_CONTINUOUS);
 		}
 
 		public static bool CheckInstanceId(bool create)
@@ -570,11 +576,11 @@ namespace CumulusMX
 			{
 				case PBT_APMSUSPEND:
 					// The system is suspending operation.
-					if (cumulus != null)
-					{
-						MxLogger.Fatal("*** Shutting down due to computer going to modern standby");
+					// attempt to delay Windows going to sleep by saying we are doing critical work
+					_ = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+
+					MxLogger.Fatal("*** Shutting down due to computer going to modern standby");
 						Console.WriteLine("*** Shutting down due to computer going to sleep");
-					}
 					ExitSystemTokenSource.Cancel();
 					return 1; // handled
 
@@ -617,6 +623,12 @@ namespace CumulusMX
 		[DllImport("Powrprof.dll", SetLastError = true)]
 		private static extern uint PowerUnregisterSuspendResumeNotification(IntPtr registrationHandle);
 
+
+		[DllImport("kernel32.dll")]
+		static extern uint SetThreadExecutionState(uint esFlags);
+
+		const uint ES_CONTINUOUS = 0x80000000;
+		const uint ES_SYSTEM_REQUIRED = 0x00000001;
 
 		// Windows 7 power management
 		private static void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
