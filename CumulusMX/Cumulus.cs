@@ -540,14 +540,8 @@ namespace CumulusMX
 		private SemaphoreSlim uploadCountLimitSemaphoreSlim;
 		private SemaphoreSlim realtimeFtpSemaphore = new(1);
 
-		// Global cancellation token for when CMX is stopping
-		public readonly CancellationTokenSource tokenSource = new();
-		internal CancellationToken cancellationToken;
-
 		public Cumulus()
 		{
-			cancellationToken = tokenSource.Token;
-
 			DirectorySeparator = Path.DirectorySeparatorChar;
 		}
 
@@ -1045,12 +1039,12 @@ namespace CumulusMX
 			{
 				var msg2 = $"Received PING response from {ProgramOptions.StartupPingHost}, continuing...";
 				var msg3 = $"No PING response received in {ProgramOptions.StartupPingEscapeTime} minutes, continuing anyway";
-				var escapeTime = DateTime.Now.AddMinutes(ProgramOptions.StartupPingEscapeTime);
+				var escapeTime = DateTime.UtcNow.AddMinutes(ProgramOptions.StartupPingEscapeTime);
 				var attempt = 1;
 				var pingSuccess = false;
 				// This is the timeout for "hung" attempts, we will double this at every failure so we do not create too many hung resources
 				var pingTimeoutSecs = 10;
-				var pingTimeoutDT = DateTime.Now.AddSeconds(pingTimeoutSecs);
+				var pingTimeoutDT = DateTime.UtcNow.AddSeconds(pingTimeoutSecs);
 				using var pingTokenSource = new CancellationTokenSource(pingTimeoutSecs * 1000);
 				var pingCancelToken = pingTokenSource.Token;
 
@@ -1097,7 +1091,7 @@ namespace CumulusMX
 					do
 					{
 						Thread.Sleep(100);
-					} while (pingTask.Status == TaskStatus.Running && DateTime.Now < pingTimeoutDT);
+					} while (pingTask.Status == TaskStatus.Running && DateTime.UtcNow < pingTimeoutDT);
 
 					LogDebugMessage($"PING #{attempt} task status: {pingTask.Status}");
 
@@ -1131,9 +1125,9 @@ namespace CumulusMX
 							}
 						}
 					}
-				} while (!pingSuccess && DateTime.Now < escapeTime);
+				} while (!pingSuccess && DateTime.UtcNow < escapeTime);
 
-				if (DateTime.Now >= escapeTime)
+				if (DateTime.UtcNow >= escapeTime)
 				{
 					LogConsoleMessage(msg3, ConsoleColor.Yellow);
 					LogWarningMessage(msg3);
@@ -1645,7 +1639,7 @@ namespace CumulusMX
 				WCloud.station = station;
 				OpenWeatherMap.station = station;
 				Bluesky.station = station;
-				Bluesky.CancelToken = cancellationToken;
+				Bluesky.CancelToken = Program.ExitSystemToken;
 
 				WebTags = new WebTags(this, station);
 				WebTags.InitialiseWebtags();
@@ -2329,7 +2323,7 @@ namespace CumulusMX
 			string url = "http://api.openweathermap.org/data/3.0/stations?appid=" + OpenWeatherMap.PW;
 			try
 			{
-				var datestr = DateTime.Now.ToUniversalTime().ToString("yyMMddHHmm");
+				var datestr = DateTime.UtcNow.ToString("yyMMddHHmm");
 				StringBuilder sb = new StringBuilder($"{{\"external_id\":\"CMX-{datestr}\",");
 				sb.Append($"\"name\":\"{LocationName}\",");
 				sb.Append($"\"latitude\":{Latitude.ToString(invC)},");
@@ -2446,7 +2440,7 @@ namespace CumulusMX
 
 				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
 				{
-					if (!realtimeFtpSemaphore.Wait(1000, cancellationToken))
+					if (!realtimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
 					{
 						// we cannot get the lock - abort
 						LogDebugMessage($"Realtime[{cycle}]: Warning, could not get the FTP lock, aborting FTP for this cycle");
@@ -2555,7 +2549,7 @@ namespace CumulusMX
 				{
 					RealtimeFtpLocked = true;
 
-					if (realtimeFtpSemaphore.Wait(5000, cancellationToken))
+					if (realtimeFtpSemaphore.Wait(5000, Program.ExitSystemToken))
 					{
 #if DEBUG
 						LogDebugMessage("RealtimeFtpWatchDog: Got the semaphore");
@@ -2653,7 +2647,7 @@ namespace CumulusMX
 
 							if (realtimeFtpSemaphore.CurrentCount > 0)
 							{
-								realtimeFtpSemaphore.Wait(100, cancellationToken);
+								realtimeFtpSemaphore.Wait(100, Program.ExitSystemToken);
 							}
 
 							try
@@ -2759,7 +2753,7 @@ namespace CumulusMX
 							Thread.Sleep(30000);
 							reinit = true;
 						}
-					} while (!connected && !cancellationToken.IsCancellationRequested);
+					} while (!connected && !Program.ExitSystemToken.IsCancellationRequested);
 
 					// OK we are reconnected, let the FTP recommence
 					LogFtpMessage("RealtimeFtpWatchDog: Realtime FTP OK, operations can be resumed", true);
@@ -2779,7 +2773,7 @@ namespace CumulusMX
 
 					LogDebugMessage($"RealtimeFtpWatchDog: Sleeping for {realtimeFtpWdInterval} seconds before testing the connection again...");
 
-					var signal = WaitHandle.WaitAny([cancellationToken.WaitHandle, RealtimeFtpWatchDogToken.WaitHandle], realtimeFtpWdInterval * 1000);
+					var signal = WaitHandle.WaitAny([Program.ExitSystemToken.WaitHandle, RealtimeFtpWatchDogToken.WaitHandle], realtimeFtpWdInterval * 1000);
 					if (signal == WaitHandle.WaitTimeout)
 					{
 						// normal timeout, go round again and test
@@ -2792,12 +2786,12 @@ namespace CumulusMX
 					else if (signal == 1)
 					{
 						LogMessage("RealtimeFtpWatchDog: FTP error detected, waiting 10 seconds before attempting to reconnect");
-						cancellationToken.WaitHandle.WaitOne(10 * 1000);
+						Program.ExitSystemToken.WaitHandle.WaitOne(10 * 1000);
 						RealTimeWdTokenSource.Dispose();
 						RealTimeWdTokenSource = new();
 						RealtimeFtpWatchDogToken = RealTimeWdTokenSource.Token;
 					}
-				} while (!cancellationToken.IsCancellationRequested);
+				} while (!Program.ExitSystemToken.IsCancellationRequested);
 			});
 		}
 
@@ -2909,10 +2903,10 @@ namespace CumulusMX
 						{
 #if DEBUG
 							LogDebugMessage($"RealtimePHP[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 							LogDebugMessage($"RealtimePHP[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
 						}
 						catch (OperationCanceledException)
@@ -2952,7 +2946,7 @@ namespace CumulusMX
 #endif
 							}
 							return true;
-						}, cancellationToken));
+						}, Program.ExitSystemToken));
 
 						Interlocked.Increment(ref runningTaskCount);
 					}
@@ -3014,10 +3008,10 @@ namespace CumulusMX
 					{
 #if DEBUG
 						LogDebugMessage($"RealtimePHP[{cycle}]: Extra File {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 						LogDebugMessage($"RealtimePHP[{cycle}]: Extra File {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
 					}
 					catch (OperationCanceledException)
@@ -3034,7 +3028,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							if (cancellationToken.IsCancellationRequested)
+							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
 							// all checks OK, file needs to be uploaded
@@ -3074,7 +3068,7 @@ namespace CumulusMX
 
 						// no void return which cannot be tracked
 						return true;
-					}, cancellationToken));
+					}, Program.ExitSystemToken));
 
 					Interlocked.Increment(ref runningTaskCount);
 				}
@@ -3082,7 +3076,7 @@ namespace CumulusMX
 				// wait for all the tasks to start
 				while (runningTaskCount < taskCount)
 				{
-					if (cancellationToken.IsCancellationRequested)
+					if (Program.ExitSystemToken.IsCancellationRequested)
 						return;
 
 					await Task.Delay(10);
@@ -9660,7 +9654,6 @@ namespace CumulusMX
 		{
 			LogMessage("Cumulus close requested");
 
-			tokenSource.Cancel();
 			LogMessage("Stopping timers");
 			try { RealtimeTimer.Stop(); } catch { /* do nothing */ }
 			try { Wund.IntTimer.Stop(); } catch { /* do nothing */ }
@@ -10229,7 +10222,7 @@ namespace CumulusMX
 						try
 						{
 
-							if (cancellationToken.IsCancellationRequested)
+							if (Program.ExitSystemToken.IsCancellationRequested)
 								return;
 
 							strm = httpFiles.DownloadHttpFileStream(item.Url).Result;
@@ -10352,7 +10345,7 @@ namespace CumulusMX
 						try
 						{
 
-							if (cancellationToken.IsCancellationRequested)
+							if (Program.ExitSystemToken.IsCancellationRequested)
 								return;
 
 							strm = httpFiles.DownloadHttpFileStream(item.Url).Result;
@@ -10407,17 +10400,17 @@ namespace CumulusMX
 
 #if DEBUG
 					LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-					uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+					uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 					LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-					uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+					uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
 
 					tasklist.Add(Task.Run(async () =>
 					{
 						try
 						{
-							if (cancellationToken.IsCancellationRequested)
+							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
 							var content = await httpFiles.DownloadHttpFileBase64String(item.Url);
@@ -10438,7 +10431,7 @@ namespace CumulusMX
 						}
 						// no void return which cannot be tracked
 						return true;
-					}, cancellationToken));
+					}, Program.ExitSystemToken));
 
 					Interlocked.Increment(ref runningTaskCount);
 				});
@@ -10448,7 +10441,7 @@ namespace CumulusMX
 				// wait for all the files to start
 				while (runningTaskCount < taskCount)
 				{
-					if (cancellationToken.IsCancellationRequested)
+					if (Program.ExitSystemToken.IsCancellationRequested)
 					{
 						LogDebugMessage("ProcessHttpFiles: Upload process aborted");
 						return;
@@ -10457,9 +10450,9 @@ namespace CumulusMX
 				}
 
 				// wait for all the files to complete
-				Task.WaitAll([.. tasklist], cancellationToken);
+				Task.WaitAll([.. tasklist], Program.ExitSystemToken);
 
-				if (cancellationToken.IsCancellationRequested)
+				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
 					LogDebugMessage($"ProcessHttpFiles: Upload process aborted");
 					return;
@@ -11139,10 +11132,10 @@ namespace CumulusMX
 					{
 #if DEBUG
 						LogDebugMessage($"PHP[Int]: NOAA Month report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 						LogDebugMessage($"PHP[Int]: NOAA Month report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
 					}
 					catch (OperationCanceledException)
@@ -11154,7 +11147,7 @@ namespace CumulusMX
 
 					tasklist.Add(Task.Run(async () =>
 					{
-						if (cancellationToken.IsCancellationRequested)
+						if (Program.ExitSystemToken.IsCancellationRequested)
 							return false;
 
 						try
@@ -11184,7 +11177,7 @@ namespace CumulusMX
 
 						// no void return which cannot be tracked
 						return true;
-					}, cancellationToken));
+					}, Program.ExitSystemToken));
 
 					Interlocked.Increment(ref runningTaskCount);
 
@@ -11195,10 +11188,10 @@ namespace CumulusMX
 					{
 #if DEBUG
 						LogDebugMessage($"PHP[Int]: NOAA Year report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 						LogDebugMessage($"PHP[Int]: NOAA Year report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-							await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
 					}
 					catch (OperationCanceledException)
@@ -11210,7 +11203,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							if (cancellationToken.IsCancellationRequested)
+							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
 							LogDebugMessage("PHP[Int]: Uploading NOAA Year report");
@@ -11243,7 +11236,7 @@ namespace CumulusMX
 
 						// no void return which cannot be tracked
 						return true;
-					}, cancellationToken));
+					}, Program.ExitSystemToken));
 
 					Interlocked.Increment(ref runningTaskCount);
 				}
@@ -11305,10 +11298,10 @@ namespace CumulusMX
 					{
 #if DEBUG
 						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
 					}
 					catch (OperationCanceledException)
@@ -11320,7 +11313,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							if (cancellationToken.IsCancellationRequested)
+							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
 							// all checks OK, file needs to be uploaded
@@ -11366,7 +11359,7 @@ namespace CumulusMX
 
 						// no void return which cannot be tracked
 						return true;
-					}, cancellationToken));
+					}, Program.ExitSystemToken));
 
 					Interlocked.Increment(ref runningTaskCount);
 				}
@@ -11390,10 +11383,10 @@ namespace CumulusMX
 					{
 #if DEBUG
 						LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 						LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
 					}
 					catch (OperationCanceledException)
@@ -11405,7 +11398,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							if (cancellationToken.IsCancellationRequested)
+							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
 							string data;
@@ -11442,7 +11435,7 @@ namespace CumulusMX
 
 						// no void return which cannot be tracked
 						return true;
-					}, cancellationToken));
+					}, Program.ExitSystemToken));
 
 					Interlocked.Increment(ref runningTaskCount);
 				});
@@ -11465,10 +11458,10 @@ namespace CumulusMX
 					{
 #if DEBUG
 						LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 						LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
 					}
 					catch (OperationCanceledException)
@@ -11481,7 +11474,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							if (cancellationToken.IsCancellationRequested)
+							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
 							// we want incremental data for PHP
@@ -11520,7 +11513,7 @@ namespace CumulusMX
 
 						// no void return which cannot be tracked
 						return true;
-					}, cancellationToken));
+					}, Program.ExitSystemToken));
 
 					Interlocked.Increment(ref runningTaskCount);
 				});
@@ -11539,10 +11532,10 @@ namespace CumulusMX
 					{
 #if DEBUG
 						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						uploadCountLimitSemaphoreSlim.Wait(cancellationToken);
+						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
 					}
 					catch (OperationCanceledException)
@@ -11554,7 +11547,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							if (cancellationToken.IsCancellationRequested)
+							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
 							var remotefile = item.RemoteFileName;
@@ -11583,7 +11576,7 @@ namespace CumulusMX
 
 						// no void return which cannot be tracked
 						return true;
-					}, cancellationToken));
+					}, Program.ExitSystemToken));
 
 					Interlocked.Increment(ref runningTaskCount);
 				});
@@ -11597,10 +11590,10 @@ namespace CumulusMX
 					{
 #if DEBUG
 						LogDebugMessage($"PHP[Int]: Moon image waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 						LogDebugMessage($"PHP[Int]: Moon image has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-						await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
 					}
 					catch (OperationCanceledException)
@@ -11636,7 +11629,7 @@ namespace CumulusMX
 
 						// no void return which cannot be tracked
 						return true;
-					}, cancellationToken));
+					}, Program.ExitSystemToken));
 
 					Interlocked.Increment(ref runningTaskCount);
 				}
@@ -11644,7 +11637,7 @@ namespace CumulusMX
 				// wait for all the EOD files to start
 				while (runningTaskCount < taskCount)
 				{
-					if (cancellationToken.IsCancellationRequested)
+					if (Program.ExitSystemToken.IsCancellationRequested)
 					{
 						LogDebugMessage($"PHP[Int]: Upload process aborted");
 						return;
@@ -11674,7 +11667,7 @@ namespace CumulusMX
 					}
 				}
 
-				if (cancellationToken.IsCancellationRequested)
+				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
 					LogDebugMessage($"PHP[Int]: Upload process aborted");
 					return;
@@ -12360,22 +12353,22 @@ namespace CumulusMX
 							if (FtpOptions.PhpCompression == "gzip")
 							{
 								using var zipped = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true);
-								await zipped.WriteAsync(byteData.AsMemory(0, byteData.Length), cancellationToken);
+								await zipped.WriteAsync(byteData.AsMemory(0, byteData.Length), Program.ExitSystemToken);
 							}
 							else if (FtpOptions.PhpCompression == "deflate")
 							{
 								using var zipped = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true);
-								await zipped.WriteAsync(byteData.AsMemory(0, byteData.Length), cancellationToken);
+								await zipped.WriteAsync(byteData.AsMemory(0, byteData.Length), Program.ExitSystemToken);
 							}
 							else if (FtpOptions.PhpCompression == "br")
 							{
 								using var zipped = new System.IO.Compression.BrotliStream(ms, System.IO.Compression.CompressionMode.Compress, true);
-								await zipped.WriteAsync(byteData.AsMemory(0, byteData.Length), cancellationToken);
+								await zipped.WriteAsync(byteData.AsMemory(0, byteData.Length), Program.ExitSystemToken);
 							}
 
 							ms.Position = 0;
 							byte[] compressed = new byte[ms.Length];
-							_ = await ms.ReadAsync(compressed.AsMemory(0, compressed.Length), cancellationToken);
+							_ = await ms.ReadAsync(compressed.AsMemory(0, compressed.Length), Program.ExitSystemToken);
 
 							outStream = new MemoryStream(compressed);
 							streamContent = new StreamContent(outStream);
@@ -12706,10 +12699,10 @@ namespace CumulusMX
 				{
 #if DEBUG
 					LogDebugMessage($"PHP[NOAA]: NOAA report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
-					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 					LogDebugMessage($"PHP[NOAA]: NOAA report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
-					await uploadCountLimitSemaphoreSlim.WaitAsync(cancellationToken);
+					await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
 				}
 				catch (OperationCanceledException)
@@ -12721,7 +12714,7 @@ namespace CumulusMX
 
 				tasklist.Add(Task.Run(async () =>
 				{
-					if (cancellationToken.IsCancellationRequested)
+					if (Program.ExitSystemToken.IsCancellationRequested)
 						return false;
 
 					try
@@ -12748,14 +12741,14 @@ namespace CumulusMX
 
 					// no void return which cannot be tracked
 					return true;
-				}, cancellationToken));
+				}, Program.ExitSystemToken));
 
 				Interlocked.Increment(ref runningTaskCount);
 
 				// wait for all the files to start
 				while (runningTaskCount < taskCount)
 				{
-					if (cancellationToken.IsCancellationRequested)
+					if (Program.ExitSystemToken.IsCancellationRequested)
 					{
 						LogDebugMessage($"PHP[NOAA]: Upload process aborted");
 						return;
@@ -12782,7 +12775,7 @@ namespace CumulusMX
 					FtpAlarm.Triggered = true;
 				}
 
-				if (cancellationToken.IsCancellationRequested)
+				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
 					LogDebugMessage($"PHP[NOAA]: Upload process aborted");
 					return;

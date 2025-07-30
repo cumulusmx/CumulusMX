@@ -56,7 +56,7 @@ namespace CumulusMX
 					UpdateStatusPanel(now);
 					UpdateMQTT();
 
-					if (cumulus.cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(dataUpdateRate)))
+					if (Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(dataUpdateRate)))
 					{
 						break;
 					}

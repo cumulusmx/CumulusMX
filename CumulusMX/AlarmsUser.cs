@@ -111,7 +111,7 @@ namespace CumulusMX
 
 		public void ClearAlarm()
 		{
-			if (Latch && triggered && DateTime.Now > triggeredTime.AddHours(LatchHours))
+			if (Latch && triggered && DateTime.UtcNow > triggeredTime.AddHours(LatchHours))
 			{
 				doTriggered(false);
 			}
@@ -122,7 +122,7 @@ namespace CumulusMX
 			if (value)
 			{
 				triggerCount++;
-				triggeredTime = DateTime.Now;
+				triggeredTime = DateTime.UtcNow;
 
 				// do we have a threshold value
 				if (triggerCount >= TriggerThreshold)
@@ -227,7 +227,7 @@ namespace CumulusMX
 				// If the trigger is cleared, check if we should be latching the value
 				if (Latch)
 				{
-					if (DateTime.Now > TriggeredTime.AddHours(LatchHours))
+					if (DateTime.UtcNow > TriggeredTime.AddHours(LatchHours))
 					{
 						// We are latching, but the latch period has expired, clear the trigger
 						triggered = false;

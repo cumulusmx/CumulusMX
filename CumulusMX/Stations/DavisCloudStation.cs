@@ -300,7 +300,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// we want to do this synchronously, so .Result
-				using (var response = await cumulus.MyHttpClient.SendAsync(request, cumulus.cancellationToken))
+				using (var response = await cumulus.MyHttpClient.SendAsync(request, Program.ExitSystemToken))
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -353,7 +353,7 @@ namespace CumulusMX
 				{
 					cumulus.LogWarningMessage($"GetCurrent: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
 				}
-				else if (cumulus.cancellationToken.IsCancellationRequested)
+				else if (Program.ExitSystemToken.IsCancellationRequested)
 				{
 					// do nothing - shutting down
 				}
@@ -453,7 +453,7 @@ namespace CumulusMX
 				{
 					GetHistoricData(worker);
 					archiveRun++;
-				} while (archiveRun < maxArchiveRuns && !worker.CancellationPending && !cumulus.cancellationToken.IsCancellationRequested);
+				} while (archiveRun < maxArchiveRuns && !worker.CancellationPending && !Program.ExitSystemToken.IsCancellationRequested);
 			}
 			catch (Exception ex)
 			{
@@ -483,7 +483,7 @@ namespace CumulusMX
 				return;
 			}
 
-			var unixDateTime = DateTime.Now.ToUnixTime();
+			var unixDateTime = DateTime.UtcNow.ToUnixTime();
 			var startTime = lastHistoricData.ToUnixTime();
 			long endTime = unixDateTime;
 			int unix24hrs = 24 * 60 * 60;
@@ -533,7 +533,7 @@ namespace CumulusMX
 				request.Headers.Add("X-Api-Secret", cumulus.WllApiSecret);
 
 				// we want to do this synchronously, so .Result
-				using (var response = cumulus.MyHttpClient.SendAsync(request, cumulus.cancellationToken).Result)
+				using (var response = cumulus.MyHttpClient.SendAsync(request, Program.ExitSystemToken).Result)
 				{
 					responseBody = response.Content.ReadAsStringAsync().Result;
 					responseCode = (int) response.StatusCode;
@@ -603,7 +603,7 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				if (!cumulus.cancellationToken.IsCancellationRequested)
+				if (!Program.ExitSystemToken.IsCancellationRequested)
 				{
 					cumulus.LogErrorMessage("GetHistoricData:  Exception: " + ex.Message);
 					if (ex.InnerException != null)
@@ -858,7 +858,7 @@ namespace CumulusMX
 
 			foreach (var sensor in sensors)
 			{
-				if (!cumulus.cancellationToken.IsCancellationRequested)
+				if (!Program.ExitSystemToken.IsCancellationRequested)
 				{
 					return;
 				}

@@ -36,6 +36,8 @@ namespace CumulusMX
 		public static Random RandGenerator { get; } = new Random();
 
 		public static readonly CancellationTokenSource ExitSystemTokenSource = new();
+		public static readonly CancellationToken ExitSystemToken = ExitSystemTokenSource.Token;
+
 		private static nint powerNotificationRegistrationHandle = new();
 
 
@@ -416,22 +418,19 @@ namespace CumulusMX
 		private static void ProcessExit(object s, EventArgs e)
 		{
 			// attempt to delay Windows going to sleep by saying we are doing critical work
-			_ = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+			//_ = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
 
 			if (powerNotificationRegistrationHandle != 0)
 			{
 				// Unregister the power notification
 				var result = PowerUnregisterSuspendResumeNotification(powerNotificationRegistrationHandle);
-				if (cumulus != null)
+				if (result == 0)
 				{
-					if (result == 0)
-					{
-						MxLogger.Info("Unregistered for power mode changes on Windows");
-					}
-					else
-					{
-						MxLogger.Error("Failed to unregister for power mode changes, error code: " + result);
-					}
+					MxLogger.Info("Unregistered for power mode changes on Windows");
+				}
+				else
+				{
+					MxLogger.Error("Failed to unregister for power mode changes, error code: " + result);
 				}
 			}
 
@@ -469,7 +468,7 @@ namespace CumulusMX
 			}
 
 			// clear the critical work flag
-			_ = SetThreadExecutionState(ES_CONTINUOUS);
+			//_ = SetThreadExecutionState(ES_CONTINUOUS);
 		}
 
 		public static bool CheckInstanceId(bool create)
@@ -577,11 +576,12 @@ namespace CumulusMX
 				case PBT_APMSUSPEND:
 					// The system is suspending operation.
 					// attempt to delay Windows going to sleep by saying we are doing critical work
-					_ = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+					//_ = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
 
 					MxLogger.Fatal("*** Shutting down due to computer going to modern standby");
 						Console.WriteLine("*** Shutting down due to computer going to sleep");
 					ExitSystemTokenSource.Cancel();
+					Thread.Sleep(500);
 					return 1; // handled
 
 				case PBT_APMRESUMESUSPEND:

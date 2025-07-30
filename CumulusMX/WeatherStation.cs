@@ -1606,7 +1606,7 @@ namespace CumulusMX
 
 		public void StartSecondsTimer()
 		{
-			lastSecond = DateTime.Now.ToUnixTime();
+			lastSecond = DateTime.UtcNow.ToUnixTime();
 			lastMinute = DateTime.Now.Minute;
 			lastHour = DateTime.Now.Hour;
 			secondTimer = new Timer(250);
@@ -1634,7 +1634,6 @@ namespace CumulusMX
 				// if this happens it may be because the computer was suspended
 				// we will terminate so that the program can be restarted and the data recovered
 				// Exit code 999 is used to prevent a clean shutdown, it aborts the program, not saving the current state/datetime if it hasn't already been saved
-				cumulus.tokenSource.Cancel();
 				secondTimer.Stop();
 				cumulus.LogMessage($"*** Clock skipped forward more than 5 minutes, last second was {lastSecond}, now is {nowSec}. Assuming we are resuming from an undetected computer sleep and aborting Cumulus");
 				Environment.ExitCode = 999;
@@ -5260,7 +5259,7 @@ namespace CumulusMX
 			// b10153 - barometric pressure in tenths of a millibar - 1015.3 millibars
 			// CommentString - free format information text
 
-			var timestamp = cumulus.APRS.UseUtcInWxNowFile ? DateTime.Now.ToUniversalTime().ToString(@"MMM dd yyyy HH\:mm") : DateTime.Now.ToString(@"MMM dd yyyy HH\:mm");
+			var timestamp = cumulus.APRS.UseUtcInWxNowFile ? DateTime.UtcNow.ToUniversalTime().ToString(@"MMM dd yyyy HH\:mm") : DateTime.Now.ToString(@"MMM dd yyyy HH\:mm");
 
 			int mphwind = Convert.ToInt32(ConvertUnits.UserWindToMPH(WindAverage));
 			int mphgust = Convert.ToInt32(ConvertUnits.UserWindToMPH(RecentMaxGust));

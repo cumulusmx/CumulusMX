@@ -649,7 +649,7 @@ namespace CumulusMX
 			// Creating the new TCP socket effectively opens it - specify IP address or domain name and port
 			while (attempt < 5 && !stop)
 			{
-				if (cumulus.cancellationToken.IsCancellationRequested)
+				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
 					stop = true;
 					return null;
@@ -683,9 +683,9 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("OpenTcpPort: Error - " + ex.Message);
 				}
 
-				cumulus.cancellationToken.WaitHandle.WaitOne(1000);
+				Program.ExitSystemToken.WaitHandle.WaitOne(1000);
 
-				if (cumulus.cancellationToken.IsCancellationRequested)
+				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
 					stop = true;
 					return null;
@@ -1199,9 +1199,9 @@ namespace CumulusMX
 							if (reconnecting)
 							{
 								cumulus.LogMessage("Failed to connect to the station, waiting 30 seconds before trying again");
-								cumulus.cancellationToken.WaitHandle.WaitOne(30000);
+								Program.ExitSystemToken.WaitHandle.WaitOne(30000);
 
-								if (cumulus.cancellationToken.IsCancellationRequested)
+								if (Program.ExitSystemToken.IsCancellationRequested)
 								{
 									stop = true;
 									return;
@@ -3211,9 +3211,9 @@ namespace CumulusMX
 				if (comport == null || !comport.IsOpen)
 				{
 					cumulus.LogMessage("InitSerial: Failed to connect to the station, waiting 30 seconds before trying again");
-					cumulus.cancellationToken.WaitHandle.WaitOne(30000);
+					Program.ExitSystemToken.WaitHandle.WaitOne(30000);
 
-					if (cumulus.cancellationToken.IsCancellationRequested)
+					if (Program.ExitSystemToken.IsCancellationRequested)
 					{
 						stop = true;
 						return;
@@ -3317,9 +3317,9 @@ namespace CumulusMX
 					cumulus.LogMessage("InitTCP: Failed to connect to the station, waiting 30 seconds before trying again");
 					Cumulus.LogConsoleMessage("Failed to connect to the station, waiting 30 seconds before trying again", ConsoleColor.Red, true);
 
-					cumulus.cancellationToken.WaitHandle.WaitOne(30000);
+					Program.ExitSystemToken.WaitHandle.WaitOne(30000);
 
-					if (cumulus.cancellationToken.IsCancellationRequested)
+					if (Program.ExitSystemToken.IsCancellationRequested)
 					{
 						stop = true;
 						return;

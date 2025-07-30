@@ -153,7 +153,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+						var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 						if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
 						{
 							deviceFirmware = new Version(retVal[0]);
@@ -177,7 +177,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						var retVal = ecowittApi.GetStationList(cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+						var retVal = ecowittApi.GetStationList(cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 						if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather") && !string.IsNullOrEmpty(retVal[0]))
 						{
 							deviceFirmware = new Version(retVal[0]);
@@ -277,7 +277,7 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+			ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
 
 		}
 
@@ -293,7 +293,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, cumulus.cancellationToken);
+						EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, Program.ExitSystemToken);
 						return EcowittCameraUrl;
 					}
 					catch (Exception ex)
@@ -318,7 +318,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, cumulus.cancellationToken);
+						EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, Program.ExitSystemToken);
 						return EcowittVideoUrl;
 					}
 					catch (Exception ex)
@@ -1162,7 +1162,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							var retVal = ecowittApi.GetStationList(main || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+							var retVal = ecowittApi.GetStationList(main || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 							if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 							{
 								deviceFirmware = new Version(retVal[0]);
@@ -1721,7 +1721,7 @@ namespace CumulusMX
 		{
 			if (EcowittApi.SimpleSupportedModels.Contains(deviceModel[..6]))
 			{
-				var retVal = await ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken);
+				var retVal = await ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, Program.ExitSystemToken);
 				if (retVal != null)
 				{
 					var verVer = new Version(retVal[0]);
@@ -1740,7 +1740,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, "V" + deviceFirmware.ToString(), cumulus.cancellationToken);
+				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, "V" + deviceFirmware.ToString(), Program.ExitSystemToken);
 			}
 		}
 

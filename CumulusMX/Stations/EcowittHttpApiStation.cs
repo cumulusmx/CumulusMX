@@ -120,7 +120,7 @@ namespace CumulusMX
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
-			historyTask = Task.Run(getAndProcessHistoryData, cumulus.cancellationToken);
+			historyTask = Task.Run(getAndProcessHistoryData, Program.ExitSystemToken);
 		}
 
 
@@ -149,8 +149,8 @@ namespace CumulusMX
 			// Check firmware
 			try
 			{
-				_ = localApi.CheckForUpgrade(cumulus.cancellationToken).Result;
-				GW1000FirmwareVersion = localApi.GetVersion(cumulus.cancellationToken).Result;
+				_ = localApi.CheckForUpgrade(Program.ExitSystemToken).Result;
+				GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
 			}
 			catch (Exception ex)
 			{
@@ -161,7 +161,7 @@ namespace CumulusMX
 			// Check for UV calibration
 			try
 			{
-				var calib = localApi.GetCalibrationData(cumulus.cancellationToken).Result;
+				var calib = localApi.GetCalibrationData(Program.ExitSystemToken).Result;
 				if (calib.uvGain == 1)
 				{
 					cumulus.LogWarningMessage("Your stations UV gain is set to the default 1.0, it should have a value of around 0.7");
@@ -181,11 +181,11 @@ namespace CumulusMX
 					DateTime dataLastRead = DateTime.Now;
 					double delay;
 
-					while (!cumulus.cancellationToken.IsCancellationRequested)
+					while (!Program.ExitSystemToken.IsCancellationRequested)
 					{
 						if (!DayResetInProgress)
 						{
-							var rawData = localApi.GetLiveData(cumulus.cancellationToken);
+							var rawData = localApi.GetLiveData(Program.ExitSystemToken);
 							if (rawData is not null)
 							{
 								dataLastRead = DateTime.Now;
@@ -320,7 +320,7 @@ namespace CumulusMX
 									lastMinute = minute;
 
 									// at the start of every 20 minutes to trigger battery status check
-									if ((minute % 20) == 0 && !cumulus.cancellationToken.IsCancellationRequested)
+									if ((minute % 20) == 0 && !Program.ExitSystemToken.IsCancellationRequested)
 									{
 										_ = GetSensorIds(true);
 									}
@@ -338,8 +338,8 @@ namespace CumulusMX
 
 										if (hour == 13)
 										{
-											_ = localApi.CheckForUpgrade(cumulus.cancellationToken);
-											GW1000FirmwareVersion = localApi.GetVersion(cumulus.cancellationToken).Result;
+											_ = localApi.CheckForUpgrade(Program.ExitSystemToken);
+											GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
 										}
 									}
 								}
@@ -348,7 +348,7 @@ namespace CumulusMX
 
 						delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
 
-						if (cumulus.cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
+						if (Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
 						{
 							break;
 						}
@@ -366,7 +366,7 @@ namespace CumulusMX
 				}
 				finally
 				{
-					if (cumulus.cancellationToken.IsCancellationRequested)
+					if (Program.ExitSystemToken.IsCancellationRequested)
 					{
 						cumulus.LogMessage("Ecowitt Local HTTP API station background task closed due to shutting down");
 					}
@@ -375,7 +375,7 @@ namespace CumulusMX
 						cumulus.LogCriticalMessage("Ecowitt Local HTTP API station background task ended unexpectedly: " + excepMsg);
 					}
 				}
-			}, cumulus.cancellationToken);
+			}, Program.ExitSystemToken);
 		}
 
 		public override void Stop()
@@ -422,7 +422,7 @@ namespace CumulusMX
 					{
 						GetHistoricDataOnline();
 						archiveRun++;
-					} while (archiveRun < maxArchiveRuns && !cumulus.cancellationToken.IsCancellationRequested);
+					} while (archiveRun < maxArchiveRuns && !Program.ExitSystemToken.IsCancellationRequested);
 				}
 				catch (Exception ex)
 				{
@@ -430,12 +430,12 @@ namespace CumulusMX
 				}
 
 				// get the station list
-				ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+				ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 			}
 
 			_ = Cumulus.SyncInit.Release();
 
-			if (cumulus.cancellationToken.IsCancellationRequested)
+			if (Program.ExitSystemToken.IsCancellationRequested)
 			{
 				return;
 			}
@@ -459,7 +459,7 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+			ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
 		}
 
 		/// <summary>
@@ -482,7 +482,7 @@ namespace CumulusMX
 			// add one minute to the time to avoid duplicating the last log entry
 			var startTime = cumulus.LastUpdateTime.AddMinutes(1);
 
-			var files = localApi.GetSdFileList(startTime, cumulus.cancellationToken).Result;
+			var files = localApi.GetSdFileList(startTime, Program.ExitSystemToken).Result;
 
 			if (files == null || files.Count == 0)
 			{
@@ -498,7 +498,7 @@ namespace CumulusMX
 
 			foreach (var file in files)
 			{
-				if (cumulus.cancellationToken.IsCancellationRequested)
+				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
 					cumulus.LogMessage("GetHistoricDataSdCard: Cancellation requested");
 					return false;
@@ -537,7 +537,7 @@ namespace CumulusMX
 				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
 				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
-				var lines = localApi.GetSdFileContents(file, startTime, cumulus.cancellationToken).Result;
+				var lines = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result;
 
 				if (lines == null || lines.Count == 1)
 				{
@@ -582,7 +582,7 @@ namespace CumulusMX
 				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
 				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
-				var lines = localApi.GetSdFileContents(file, startTime, cumulus.cancellationToken).Result;
+				var lines = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result;
 
 				if (lines == null || lines.Count == 1)
 				{
@@ -630,7 +630,7 @@ namespace CumulusMX
 
 			foreach (var rec in buffer)
 			{
-				if (cumulus.cancellationToken.IsCancellationRequested)
+				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
 					return false;
 				}
@@ -798,7 +798,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, cumulus.cancellationToken);
+					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, Program.ExitSystemToken);
 					return EcowittCameraUrl;
 				}
 				catch (Exception ex)
@@ -819,7 +819,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, cumulus.cancellationToken);
+					EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, Program.ExitSystemToken);
 					return EcowittVideoUrl;
 				}
 				catch (Exception ex)
@@ -840,16 +840,16 @@ namespace CumulusMX
 			// pause for two seconds to get out of sync with the live data requests
 			if (delay)
 			{
-				await Task.Delay(2000, cumulus.cancellationToken);
-				if (cumulus.cancellationToken.IsCancellationRequested)
+				await Task.Delay(2000, Program.ExitSystemToken);
+				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
 					return;
 				}
 			}
 
 			cumulus.LogMessage("Reading sensor ids");
-			var sensors = await localApi.GetSensorInfo(cumulus.cancellationToken);
-			if (cumulus.cancellationToken.IsCancellationRequested)
+			var sensors = await localApi.GetSensorInfo(Program.ExitSystemToken);
+			if (Program.ExitSystemToken.IsCancellationRequested)
 			{
 				return;
 			}

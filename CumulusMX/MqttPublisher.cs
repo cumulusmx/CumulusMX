@@ -64,7 +64,7 @@ namespace CumulusMX
 			// Start the task to check the connection state
 			_ = Task.Run(async () =>
 			{
-				while (!cumulus.cancellationToken.IsCancellationRequested)
+				while (!Program.ExitSystemToken.IsCancellationRequested)
 				{
 					try
 					{
@@ -86,7 +86,7 @@ namespace CumulusMX
 
 							cumulus.LogDebugMessage($"MQTT: Connection parameters - IP={cumulus.MQTT.IpVersion}, TLS={cumulus.MQTT.UseTLS}, Protocol={cumulus.MQTT.ProtocolVersion}");
 
-							var response = await mqttClient.ConnectAsync(options, cumulus.cancellationToken);
+							var response = await mqttClient.ConnectAsync(options, Program.ExitSystemToken);
 
 							if (mqttClient.IsConnected)
 							{
@@ -110,7 +110,7 @@ namespace CumulusMX
 					finally
 					{
 						// Check the connection state every 20 seconds and perform a reconnect if required.
-						await Task.Delay(TimeSpan.FromSeconds(20), cumulus.cancellationToken);
+						await Task.Delay(TimeSpan.FromSeconds(20), Program.ExitSystemToken);
 					}
 				}
 			});
@@ -186,7 +186,7 @@ namespace CumulusMX
 					.WithRetainFlag(retain)
 					.Build();
 
-				var res = await mqttClient.PublishAsync(mqttMsg, cumulus.cancellationToken);
+				var res = await mqttClient.PublishAsync(mqttMsg, Program.ExitSystemToken);
 
 				if (res.IsSuccess)
 				{

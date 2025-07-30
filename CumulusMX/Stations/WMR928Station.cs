@@ -311,12 +311,14 @@ namespace CumulusMX
 				// use this sensor as main temp sensor
 				TempBattStatus = buff[3] / 16;
 
-				DoOutdoorTemp(WMR928ExtraTempValues[channel], DateTime.Now);
+				var now = DateTime.Now;
 
-				DoApparentTemp(DateTime.Now);
-				DoFeelsLike(DateTime.Now);
-				DoHumidex(DateTime.Now);
-				DoCloudBaseHeatIndex(DateTime.Now);
+				DoOutdoorTemp(WMR928ExtraTempValues[channel], now);
+
+				DoApparentTemp(now);
+				DoFeelsLike(now);
+				DoHumidex(now);
+				DoCloudBaseHeatIndex(now);
 			}
 		}
 
@@ -382,12 +384,14 @@ namespace CumulusMX
 				// use this sensor as main temp and hum sensor
 				TempBattStatus = buff[3] / 16;
 
+				var now = DateTime.Now;
+
 				// Extract humidity
-				DoOutdoorHumidity(BCDchartoint(buff[6]), DateTime.Now);
+				DoOutdoorHumidity(BCDchartoint(buff[6]), now);
 
-				DoOutdoorTemp(ConvertUnits.TempCToUser(temp), DateTime.Now);
+				DoOutdoorTemp(ConvertUnits.TempCToUser(temp), now);
 
-				DoOutdoorDewpoint(ConvertUnits.TempCToUser(BCDchartoint(buff[7])), DateTime.Now);
+				DoOutdoorDewpoint(ConvertUnits.TempCToUser(BCDchartoint(buff[7])), now);
 			}
 		}
 
@@ -461,22 +465,24 @@ namespace CumulusMX
 			{
 				TempBattStatus = buff[3] / 16;
 
+				var now = DateTime.Now;
+
 				// Extract humidity
 				int hum = BCDchartoint(buff[6]);
-				DoOutdoorHumidity(hum, DateTime.Now);
+				DoOutdoorHumidity(hum, now);
 
 				// Extract temperature
 				double temp = ExtractTemp(buff[4], buff[5]);
 
-				DoOutdoorTemp(ConvertUnits.TempCToUser(temp), DateTime.Now);
+				DoOutdoorTemp(ConvertUnits.TempCToUser(temp), now);
 
 				// Extract dewpoint
-				DoOutdoorDewpoint(ConvertUnits.TempCToUser(BCDchartoint(buff[7])), DateTime.Now);
+				DoOutdoorDewpoint(ConvertUnits.TempCToUser(BCDchartoint(buff[7])), now);
 
-				DoApparentTemp(DateTime.Now);
-				DoFeelsLike(DateTime.Now);
-				DoHumidex(DateTime.Now);
-				DoCloudBaseHeatIndex(DateTime.Now);
+				DoApparentTemp(now);
+				DoFeelsLike(now);
+				DoHumidex(now);
+				DoCloudBaseHeatIndex(now);
 			}
 		}
 

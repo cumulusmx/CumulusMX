@@ -1082,7 +1082,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage("AirLinkHealth: Get WL.com Historic Data");
 
-			var unixDateTime = DateTime.Now.ToUnixTime();
+			var unixDateTime = DateTime.UtcNow.ToUnixTime();
 			var startTime = unixDateTime - WeatherLinkArchiveInterval;
 			long endTime = unixDateTime;
 

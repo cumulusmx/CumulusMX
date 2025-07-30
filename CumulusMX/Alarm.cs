@@ -73,7 +73,7 @@ namespace CumulusMX
 
 		public void ClearAlarm()
 		{
-			if (Latch && triggered && DateTime.Now > triggeredTime.AddHours(LatchHours))
+			if (Latch && triggered && DateTime.UtcNow > triggeredTime.AddHours(LatchHours))
 				DoTriggered(false);
 		}
 
@@ -82,7 +82,7 @@ namespace CumulusMX
 			if (value)
 			{
 				triggerCount++;
-				triggeredTime = DateTime.Now;
+				triggeredTime = DateTime.UtcNow;
 
 				// do we have a threshold value
 				if (triggerCount >= TriggerThreshold)
@@ -203,7 +203,7 @@ namespace CumulusMX
 				// If the trigger is cleared, check if we should be latching the value
 				if (Latch)
 				{
-					if (DateTime.Now > TriggeredTime.AddHours(LatchHours))
+					if (DateTime.UtcNow > TriggeredTime.AddHours(LatchHours))
 					{
 						// We are latching, but the latch period has expired, clear the trigger
 						triggered = false;
@@ -306,10 +306,10 @@ namespace CumulusMX
 
 		public new void ClearAlarm()
 		{
-			if (Latch && upTriggered && DateTime.Now > UpTriggeredTime.AddHours(LatchHours))
+			if (Latch && upTriggered && DateTime.UtcNow > UpTriggeredTime.AddHours(LatchHours))
 				DoUpTriggered(false);
 
-			if (Latch && downTriggered && DateTime.Now > DownTriggeredTime.AddHours(LatchHours))
+			if (Latch && downTriggered && DateTime.UtcNow > DownTriggeredTime.AddHours(LatchHours))
 				DoDownTriggered(false);
 		}
 
@@ -417,14 +417,14 @@ namespace CumulusMX
 
 				// If we get a new trigger, record the time
 				upTriggered = true;
-				UpTriggeredTime = DateTime.Now;
+				UpTriggeredTime = DateTime.UtcNow;
 			}
 			else if (upTriggered)
 			{
 				// If the trigger is cleared, check if we should be latching the value
 				if (Latch)
 				{
-					if (DateTime.Now > UpTriggeredTime.AddHours(LatchHours))
+					if (DateTime.UtcNow > UpTriggeredTime.AddHours(LatchHours))
 					{
 						// We are latching, but the latch period has expired, clear the trigger
 						upTriggered = false;
@@ -544,14 +544,14 @@ namespace CumulusMX
 
 				// If we get a new trigger, record the time
 				downTriggered = true;
-				DownTriggeredTime = DateTime.Now;
+				DownTriggeredTime = DateTime.UtcNow;
 			}
 			else if (downTriggered)
 			{
 				// If the trigger is cleared, check if we should be latching the value
 				if (Latch)
 				{
-					if (DateTime.Now > DownTriggeredTime.AddHours(LatchHours))
+					if (DateTime.UtcNow > DownTriggeredTime.AddHours(LatchHours))
 					{
 						// We are latching, but the latch period has expired, clear the trigger
 						downTriggered = false;

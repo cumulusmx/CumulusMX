@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
 
+using ServiceStack.Text;
+
 using Swan;
 
 namespace CumulusMX
@@ -668,12 +670,12 @@ namespace CumulusMX
 
 		private static string TagTimeJavascript(Dictionary<string, string> tagParams)
 		{
-			return (DateTime.Now.ToUnixEpochDate() * 1000).ToString();
+			return (DateTime.UtcNow.ToUnixTimeMs()).ToString();
 		}
 
 		private static string TagTimeUnix(Dictionary<string, string> tagParams)
 		{
-			return DateTime.Now.ToUnixEpochDate().ToString();
+			return DateTime.UtcNow.ToUnixTime().ToString();
 		}
 
 		private string TagDate(Dictionary<string, string> tagParams)
@@ -1484,27 +1486,31 @@ namespace CumulusMX
 
 		private string Tagsnowdepth(Dictionary<string, string> tagParams)
 		{
-			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
+			var now = DateTime.Now;
+			var ts = now.Hour < cumulus.SnowDepthHour ? now.AddDays(-1) : now;
 			var val = GetSnowDepth(ts.Date);
 			return val.HasValue ? CheckRcDp(val.Value, tagParams, cumulus.SnowDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagsnowlying(Dictionary<string, string> tagParams)
 		{
-			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
+			var now = DateTime.Now;
+			var ts = now.Hour < cumulus.SnowDepthHour ? now.AddDays(-1) : now;
 			return GetSnowLying(ts.Date).ToString();
 		}
 
 		private string Tagsnow24hr(Dictionary<string, string> tagParams)
 		{
-			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
+			var now = DateTime.Now;
+			var ts = now.Hour < cumulus.SnowDepthHour ? now.AddDays(-1) : now;
 			var val = GetSnow24h(ts.Date);
 			return val.HasValue ? CheckRcDp(val.Value, tagParams, cumulus.SnowDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagsnowcomment(Dictionary<string, string> tagParams)
 		{
-			var ts = DateTime.Now.Hour < cumulus.SnowDepthHour ? DateTime.Now.AddDays(-1) : DateTime.Now;
+			var now = DateTime.Now;
+			var ts = now.Hour < cumulus.SnowDepthHour ? now.AddDays(-1) : now;
 			var val = GetSnowComment(ts.Date);
 			return string.IsNullOrEmpty(val) ? tagParams.Get("nv") ?? "" : val;
 		}
@@ -3732,7 +3738,7 @@ namespace CumulusMX
 				return tagParams.Get("nv") ?? "---";
 			}
 
-			return ((int) (DateTime.Now.ToUniversalTime() - lastTip.ToUniversalTime()).TotalMinutes).ToString();
+			return ((int) (DateTime.UtcNow - lastTip.ToUniversalTime()).TotalMinutes).ToString();
 		}
 
 		private string TagRCtemp(Dictionary<string, string> tagParams)
@@ -6264,13 +6270,13 @@ namespace CumulusMX
 
 		private string TagProgramUpTime(Dictionary<string, string> tagParams)
 		{
-			TimeSpan ts = DateTime.Now.ToUniversalTime() - Program.StartTime.ToUniversalTime();
+			TimeSpan ts = DateTime.UtcNow - Program.StartTime.ToUniversalTime();
 			return GetFormattedTimeSpan(ts, cumulus.Trans.WebTagElapsedTime, tagParams);
 		}
 
 		private static string TagProgramUpTimeMs(Dictionary<string, string> tagParams)
 		{
-			TimeSpan ts = DateTime.Now.ToUniversalTime() - Program.StartTime.ToUniversalTime();
+			TimeSpan ts = DateTime.UtcNow - Program.StartTime.ToUniversalTime();
 			return ts.TotalMilliseconds.ToString("F0");
 		}
 

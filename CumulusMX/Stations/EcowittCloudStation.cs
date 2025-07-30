@@ -121,7 +121,7 @@ namespace CumulusMX
 				if (mainStation)
 				{
 					Task.Run(getAndProcessHistoryData);
-					var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+					var retVal = ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 					{
 						// EasyWeather seems to contain the WiFi version
@@ -132,7 +132,7 @@ namespace CumulusMX
 				else
 				{
 					// see if we have a camera attached
-					var retVal = ecowittApi.GetStationList(cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+					var retVal = ecowittApi.GetStationList(cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 					{
 						// EasyWeather seems to contain the WiFi version
@@ -168,25 +168,25 @@ namespace CumulusMX
 				var delay = 0;
 				var nextFetch = DateTime.MinValue;
 
-				while (!cumulus.cancellationToken.IsCancellationRequested)
+				while (!Program.ExitSystemToken.IsCancellationRequested)
 				{
-					if (DateTime.Now >= nextFetch && !DayResetInProgress)
+					if (DateTime.UtcNow >= nextFetch && !DayResetInProgress)
 					{
 						try
 						{
 
-							var data = ecowittApi.GetCurrentData(ref delay, cumulus.cancellationToken);
+							var data = ecowittApi.GetCurrentData(ref delay, Program.ExitSystemToken);
 
 							if (data != null)
 							{
-								ProcessCurrentData(data, cumulus.cancellationToken);
+								ProcessCurrentData(data, Program.ExitSystemToken);
 							}
 							else
 							{
 								cumulus.LogDebugMessage($"EcowittCloud: No new data to process");
 							}
 							cumulus.LogDebugMessage($"EcowittCloud: Waiting {delay} seconds before next update");
-							nextFetch = DateTime.Now.AddSeconds(delay);
+							nextFetch = DateTime.UtcNow.AddSeconds(delay);
 
 							var hour = DateTime.Now.Hour;
 							if (lastHour != hour)
@@ -197,7 +197,7 @@ namespace CumulusMX
 								{
 									try
 									{
-										var retVal = ecowittApi.GetStationList(mainStation || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+										var retVal = ecowittApi.GetStationList(mainStation || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 										if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 										{
 											// EasyWeather seems to contain the WiFi version
@@ -217,13 +217,13 @@ namespace CumulusMX
 						catch (Exception ex)
 						{
 							cumulus.LogExceptionMessage(ex, "Error running Ecowitt Cloud station");
-							nextFetch = DateTime.Now.AddMinutes(1);
+							nextFetch = DateTime.UtcNow.AddMinutes(1);
 						}
 					}
 
 					Thread.Sleep(1000);
 				}
-			}, cumulus.cancellationToken);
+			}, Program.ExitSystemToken);
 		}
 
 		public override void Stop()
@@ -273,7 +273,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, cumulus.cancellationToken);
+						EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, Program.ExitSystemToken);
 						return EcowittCameraUrl;
 					}
 					catch (Exception ex)
@@ -298,7 +298,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, cumulus.cancellationToken);
+						EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, Program.ExitSystemToken);
 						return EcowittVideoUrl;
 					}
 					catch (Exception ex)
@@ -327,7 +327,7 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+			ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
 		}
 
 		private void ProcessCurrentData(EcowittApi.CurrentDataData data, CancellationToken token)
@@ -1714,7 +1714,7 @@ namespace CumulusMX
 		{
 			if (EcowittApi.SimpleSupportedModels.Contains(deviceModel[..6]))
 			{
-				var retVal = ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken).Result;
+				var retVal = ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, Program.ExitSystemToken).Result;
 				if (retVal != null)
 				{
 					var verVer = new Version(retVal[0]);
@@ -1732,7 +1732,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, "V" + deviceFirmware.ToString(), cumulus.cancellationToken);
+				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, "V" + deviceFirmware.ToString(), Program.ExitSystemToken);
 			}
 		}
 	}

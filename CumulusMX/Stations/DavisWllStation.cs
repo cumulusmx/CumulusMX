@@ -268,7 +268,7 @@ namespace CumulusMX
 							udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, port));
 							var timeout = TimeSpan.FromSeconds(3);
 
-							while (!cumulus.cancellationToken.IsCancellationRequested)
+							while (!Program.ExitSystemToken.IsCancellationRequested)
 							{
 								try
 								{
@@ -281,7 +281,7 @@ namespace CumulusMX
 									{
 										try
 										{
-											await bcastTask.WaitAsync(timeout, cumulus.cancellationToken);
+											await bcastTask.WaitAsync(timeout, Program.ExitSystemToken);
 
 											// we get duplicate packets over IPv4 and IPv6, plus if the host has multiple interfaces to the local LAN
 											if (!Utils.ByteArraysEqual(lastMessage, bcastTask.Result.Buffer))
@@ -306,7 +306,7 @@ namespace CumulusMX
 											var msg = string.Format("WLL: Missed a WLL broadcast message. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float) (multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
 											cumulus.LogDebugMessage(msg);
 										}
-									} while ((bcastTask.Status < TaskStatus.RanToCompletion) && cumulus.cancellationToken.IsCancellationRequested);
+									} while ((bcastTask.Status < TaskStatus.RanToCompletion) && Program.ExitSystemToken.IsCancellationRequested);
 								}
 								catch (SocketException exp)
 								{
@@ -324,7 +324,7 @@ namespace CumulusMX
 						}
 					}
 					cumulus.LogMessage("WLL broadcast listener stopped");
-				}, cumulus.cancellationToken);
+				}, Program.ExitSystemToken);
 
 				cumulus.LogMessage($"WLL Now listening on broadcast port {port}");
 
@@ -1484,7 +1484,7 @@ namespace CumulusMX
 				Cumulus.LogConsoleMessage("GetWlHistoricData: " + msg);
 			}
 
-			var unixDateTime = DateTime.Now.ToUnixTime();
+			var unixDateTime = DateTime.UtcNow.ToUnixTime();
 			var startTime = lastHistoricData.ToUnixTime();
 			long endTime = unixDateTime;
 			int unix24hrs = 24 * 60 * 60;
@@ -2814,7 +2814,7 @@ namespace CumulusMX
 				return;
 			}
 
-			var unixDateTime = DateTime.Now.ToUnixTime();
+			var unixDateTime = DateTime.UtcNow.ToUnixTime();
 			var startTime = unixDateTime - weatherLinkArchiveInterval;
 			long endTime = unixDateTime;
 

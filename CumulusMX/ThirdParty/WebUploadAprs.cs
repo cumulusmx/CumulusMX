@@ -42,7 +42,7 @@ namespace CumulusMX.ThirdParty
 
 					await Task.Delay(3000);
 
-					string timeUTC = DateTime.Now.ToUniversalTime().ToString("ddHHmm");
+					string timeUTC = DateTime.UtcNow.ToString("ddHHmm");
 
 					message.Clear();
 					message.Append($"{cumulus.APRS.ID}>APRS,TCPIP*:@{timeUTC}z{APRSLat(cumulus)}/{APRSLon(cumulus)}");

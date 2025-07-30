@@ -124,7 +124,7 @@ namespace CumulusMX
 
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 
-			historyTask = Task.Run(getAndProcessHistoryData, cumulus.cancellationToken);
+			historyTask = Task.Run(getAndProcessHistoryData, Program.ExitSystemToken);
 		}
 
 
@@ -155,7 +155,7 @@ namespace CumulusMX
 					var dataLastRead = DateTime.MinValue;
 					double delay;
 
-					while (!cumulus.cancellationToken.IsCancellationRequested)
+					while (!Program.ExitSystemToken.IsCancellationRequested)
 					{
 						if (!DayResetInProgress)
 						{
@@ -165,7 +165,7 @@ namespace CumulusMX
 								dataLastRead = DateTime.Now;
 
 								// every 30 seconds read the rain rate
-								if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.StationOptions.UseRainForIsRaining == 2) && (DateTime.UtcNow - piezoLastRead).TotalSeconds >= 30 && !cumulus.cancellationToken.IsCancellationRequested)
+								if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.StationOptions.UseRainForIsRaining == 2) && (DateTime.UtcNow - piezoLastRead).TotalSeconds >= 30 && !Program.ExitSystemToken.IsCancellationRequested)
 								{
 									GetPiezoRainData();
 									piezoLastRead = DateTime.UtcNow;
@@ -177,7 +177,7 @@ namespace CumulusMX
 									lastMinute = minute;
 
 									// at the start of every 20 minutes to trigger battery status check
-									if ((minute % 20) == 0 && !cumulus.cancellationToken.IsCancellationRequested)
+									if ((minute % 20) == 0 && !Program.ExitSystemToken.IsCancellationRequested)
 									{
 										GetSensorIdsNew();
 									}
@@ -232,7 +232,7 @@ namespace CumulusMX
 								{
 									// add a small extra delay before trying again
 									cumulus.LogMessage("Delaying before attempting reconnect");
-									if (cumulus.cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(20000)))
+									if (Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(20000)))
 									{
 										break;
 									}
@@ -242,7 +242,7 @@ namespace CumulusMX
 
 						delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
 
-						if (cumulus.cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
+						if (Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
 						{
 							break;
 						}
@@ -258,7 +258,7 @@ namespace CumulusMX
 					Api.CloseTcpPort();
 					cumulus.LogMessage("Local API task ended");
 				}
-			}, cumulus.cancellationToken);
+			}, Program.ExitSystemToken);
 		}
 
 		public override void Stop()
@@ -296,7 +296,7 @@ namespace CumulusMX
 					{
 						GetHistoricData();
 						archiveRun++;
-					} while (archiveRun < maxArchiveRuns && !cumulus.cancellationToken.IsCancellationRequested);
+					} while (archiveRun < maxArchiveRuns && !Program.ExitSystemToken.IsCancellationRequested);
 				}
 				catch (Exception ex)
 				{
@@ -304,12 +304,12 @@ namespace CumulusMX
 				}
 
 				// get the station list
-				ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, cumulus.cancellationToken);
+				ecowittApi.GetStationList(true, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 			}
 
 			_ = Cumulus.SyncInit.Release();
 
-			if (cumulus.cancellationToken.IsCancellationRequested)
+			if (Program.ExitSystemToken.IsCancellationRequested)
 			{
 				return;
 			}
@@ -333,7 +333,7 @@ namespace CumulusMX
 				maxArchiveRuns++;
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime, cumulus.cancellationToken);
+			ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
 		}
 
 		public override string GetEcowittCameraUrl()
@@ -342,7 +342,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, cumulus.cancellationToken);
+					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, Program.ExitSystemToken);
 					return EcowittCameraUrl;
 				}
 				catch (Exception ex)
@@ -364,7 +364,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, cumulus.cancellationToken);
+					EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, Program.ExitSystemToken);
 					return EcowittVideoUrl;
 				}
 				catch (Exception ex)
@@ -410,7 +410,7 @@ namespace CumulusMX
 				{
 					cumulus.LogDebugMessage("Discovery Run #" + retryCount);
 					// each time we wait 1.5 second for any responses
-					var endTime = DateTime.Now.AddSeconds(1.5);
+					var endTime = DateTime.UtcNow.AddSeconds(1.5);
 
 					try
 					{
@@ -463,7 +463,7 @@ namespace CumulusMX
 								//do nothing
 							}
 
-						} while (DateTime.Now < endTime);
+						} while (DateTime.UtcNow < endTime);
 					}
 					catch (Exception ex)
 					{
@@ -654,7 +654,7 @@ namespace CumulusMX
 
 			if (EcowittApi.SimpleSupportedModels.Contains(deviceModel[..6]))
 			{
-				var retVal = ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, cumulus.cancellationToken).Result;
+				var retVal = ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, Program.ExitSystemToken).Result;
 				if (retVal != null)
 				{
 					var verVer = new Version(retVal[0]);
@@ -673,7 +673,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, cumulus.cancellationToken);
+				_ = await ecowittApi.GetLatestFirmwareVersion(deviceModel, cumulus.EcowittMacAddress, deviceFirmware, Program.ExitSystemToken);
 			}
 		}
 
