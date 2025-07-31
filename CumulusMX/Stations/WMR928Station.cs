@@ -214,7 +214,6 @@ namespace CumulusMX
 
 			if (WMR928valid(buff, out _))
 			{
-				DateTime now = DateTime.Now;
 				switch (buff[2])
 				{
 					case WMR928WindData:
@@ -263,7 +262,7 @@ namespace CumulusMX
 						return;
 				}
 
-				UpdateStatusPanel(now);
+				UpdateStatusPanel(DateTime.UtcNow);
 				UpdateMQTT();
 			}
 			else

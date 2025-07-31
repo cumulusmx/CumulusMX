@@ -652,7 +652,7 @@ namespace CumulusMX
 
 
 				var updateTime = Utils.FromUnixTime(data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time);
-				thisStation.UpdateStatusPanel(updateTime);
+				thisStation.UpdateStatusPanel(updateTime.ToUniversalTime());
 				thisStation.UpdateMQTT();
 			}
 			catch (OperationCanceledException)

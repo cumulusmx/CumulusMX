@@ -1096,7 +1096,7 @@ namespace CumulusMX
 					LogDebugMessage($"PING #{attempt} task status: {pingTask.Status}");
 
 					// did we timeout waiting for the task to end?
-					if (DateTime.Now >= pingTimeoutDT)
+					if (DateTime.UtcNow >= pingTimeoutDT)
 					{
 						// yep, so attempt to cancel the task
 						LogErrorMessage($"Nothing returned from PING #{attempt}, attempting the cancel the task");
@@ -3388,11 +3388,11 @@ namespace CumulusMX
 		internal void DoMoonPhase()
 		{
 			DateTime now = DateTime.Now;
+			DateTime utcNow = now.ToUniversalTime();
 			double[] moonriseset = MoonriseMoonset.MoonRise(now.Year, now.Month, now.Day, TimeZoneInfo.Local.GetUtcOffset(now).TotalHours, (double) Latitude, (double) Longitude);
 			MoonRiseTime = TimeSpan.FromHours(moonriseset[0]);
 			MoonSetTime = TimeSpan.FromHours(moonriseset[1]);
 
-			DateTime utcNow = DateTime.UtcNow;
 			MoonPhaseAngle = MoonriseMoonset.MoonPhase(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour);
 			MoonPercent = (100.0 * (1.0 + Math.Cos(MoonPhaseAngle * Math.PI / 180)) / 2.0);
 
@@ -3459,6 +3459,7 @@ namespace CumulusMX
 		{
 			string rise = SunriseSunset.SunRise(time, TimeZoneInfo.Local.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
 			string set = SunriseSunset.SunSet(time, TimeZoneInfo.Local.GetUtcOffset(time).TotalHours, (double) Longitude, (double) Latitude);
+			var nowDate = DateTime.Now.Date;
 
 			if (rise.Equals("Always Down") || set.Equals("Always Down"))
 			{
@@ -3483,7 +3484,7 @@ namespace CumulusMX
 					int h = Convert.ToInt32(rise[..2]);
 					int m = Convert.ToInt32(rise.Substring(2, 2));
 					int s = Convert.ToInt32(rise.Substring(4, 2));
-					sunrise = DateTime.Now.Date.Add(new TimeSpan(h, m, s));
+					sunrise = nowDate.Add(new TimeSpan(h, m, s));
 				}
 				catch (Exception)
 				{
@@ -3495,7 +3496,7 @@ namespace CumulusMX
 					int h = Convert.ToInt32(set[..2]);
 					int m = Convert.ToInt32(set.Substring(2, 2));
 					int s = Convert.ToInt32(set.Substring(4, 2));
-					sunset = DateTime.Now.Date.Add(new TimeSpan(h, m, s));
+					sunset = nowDate.Add(new TimeSpan(h, m, s));
 				}
 				catch (Exception)
 				{

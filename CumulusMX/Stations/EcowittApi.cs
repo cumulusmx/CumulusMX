@@ -1752,7 +1752,7 @@ namespace CumulusMX
 				station.AddRecentDataWithAq(rec.Key, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, station.OutdoorTemperature, station.WindChill, station.OutdoorDewpoint, station.HeatIndex,
 					station.OutdoorHumidity, station.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, station.IndoorTemperature, station.IndoorHumidity, station.CurrentSolarMax, station.RainRate);
 
-				station.UpdateStatusPanel(rec.Key);
+				station.UpdateStatusPanel(rec.Key.ToUniversalTime());
 				cumulus.AddToWebServiceLists(rec.Key);
 				station.LastDataReadTime = rec.Key;
 			}

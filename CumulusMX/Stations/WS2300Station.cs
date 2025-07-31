@@ -423,7 +423,7 @@ namespace CumulusMX
 				}
 
 				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, rainrate, -1, -1);
-				UpdateStatusPanel(timestamp);
+				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
 
 				datalist.RemoveAt(datalist.Count - 1);
@@ -751,7 +751,7 @@ namespace CumulusMX
 				DoHumidex(now);
 				DoCloudBaseHeatIndex(now);
 
-				UpdateStatusPanel(now);
+				UpdateStatusPanel(now.ToUniversalTime());
 				UpdateMQTT();
 			}
 		}

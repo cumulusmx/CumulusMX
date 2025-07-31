@@ -830,7 +830,7 @@ namespace CumulusMX
 					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
-					UpdateStatusPanel(timestamp);
+					UpdateStatusPanel(timestamp.ToUniversalTime());
 					cumulus.AddToWebServiceLists(timestamp);
 
 
@@ -2127,7 +2127,7 @@ namespace CumulusMX
 
 			DoForecast(string.Empty, false);
 
-			UpdateStatusPanel(DateTime.Now);
+			UpdateStatusPanel(DateTime.UtcNow);
 			UpdateMQTT();
 
 			LastDataReadTime = DateTime.Now;

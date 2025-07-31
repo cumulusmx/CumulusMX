@@ -267,7 +267,7 @@ namespace CumulusMX
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
-				UpdateStatusPanel(timestamp);
+				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
 			}
 
@@ -352,7 +352,7 @@ namespace CumulusMX
 						DoHumidex(ts);
 						DoCloudBaseHeatIndex(ts);
 
-						UpdateStatusPanel(ts);
+						UpdateStatusPanel(ts.ToUniversalTime());
 						UpdateMQTT();
 						DoForecast(string.Empty, false);
 
@@ -369,7 +369,7 @@ namespace CumulusMX
 							rw.WindDirection,
 							-1,
 							rw.Timestamp);
-						UpdateStatusPanel(rw.Timestamp);
+						UpdateStatusPanel(rw.Timestamp.ToUniversalTime());
 						UpdateMQTT();
 						break;
 					case WeatherPacket.MessageType.LightningStrike:

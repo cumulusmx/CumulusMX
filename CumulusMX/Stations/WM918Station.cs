@@ -265,7 +265,7 @@ namespace CumulusMX
 						cumulus.LogMessage(" ");
 						return;
 				}
-				UpdateStatusPanel(now);
+				UpdateStatusPanel(now.ToUniversalTime());
 				UpdateMQTT();
 			}
 			else

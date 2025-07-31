@@ -540,7 +540,7 @@ namespace CumulusMX
 								cumulus.LogErrorMessage($"ERROR: No current data received from the WLL, DataStopped triggered");
 
 								DataStopped = true;
-								DataStoppedTime = DateTime.Now;
+								DataStoppedTime = DateTime.UtcNow;
 								cumulus.DataStoppedAlarm.LastMessage = "No current data is being received from the WLL";
 								cumulus.DataStoppedAlarm.Triggered = true;
 							}
@@ -638,7 +638,7 @@ namespace CumulusMX
 						}
 					}
 
-					UpdateStatusPanel(DateTime.Now);
+					UpdateStatusPanel(DateTime.UtcNow);
 					UpdateMQTT();
 
 					broadcastReceived = true;
@@ -1267,7 +1267,7 @@ namespace CumulusMX
 
 				DoForecast(string.Empty, false);
 
-				UpdateStatusPanel(DateTime.Now);
+				UpdateStatusPanel(DateTime.UtcNow);
 				UpdateMQTT();
 
 				LastDataReadTime = DateTime.Now;
@@ -1820,7 +1820,7 @@ namespace CumulusMX
 					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
-					UpdateStatusPanel(timestamp);
+					UpdateStatusPanel(timestamp.ToUniversalTime());
 					cumulus.AddToWebServiceLists(timestamp);
 
 
@@ -3173,7 +3173,7 @@ namespace CumulusMX
 				cumulus.LogWarningMessage($"ERROR: No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds");
 				if (cumulus.WllTriggerDataStoppedOnBroadcast && !DataStopped)
 				{
-					DataStoppedTime = DateTime.Now;
+					DataStoppedTime = DateTime.UtcNow;
 				}
 				cumulus.DataStoppedAlarm.LastMessage = $"No broadcast data received from the WLL for {tmrBroadcastWatchdog.Interval / 1000} seconds";
 				cumulus.DataStoppedAlarm.Triggered = true;

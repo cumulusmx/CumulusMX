@@ -53,7 +53,7 @@ namespace CumulusMX
 
 					DoForecast(string.Empty, false);
 
-					UpdateStatusPanel(now);
+					UpdateStatusPanel(now.ToUniversalTime());
 					UpdateMQTT();
 
 					if (Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(dataUpdateRate)))

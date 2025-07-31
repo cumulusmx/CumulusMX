@@ -308,7 +308,7 @@ namespace CumulusMX
 
 								cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
-								UpdateStatusPanel(dataLastRead);
+								UpdateStatusPanel(dataLastRead.ToUniversalTime());
 								UpdateMQTT();
 
 								dataReceived = true;
@@ -777,7 +777,7 @@ namespace CumulusMX
 				AddRecentDataWithAq(rec.Key, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
-				UpdateStatusPanel(rec.Key);
+				UpdateStatusPanel(rec.Key.ToUniversalTime());
 				cumulus.AddToWebServiceLists(rec.Key);
 				LastDataReadTime = rec.Key;
 
@@ -1926,7 +1926,7 @@ namespace CumulusMX
 				cumulus.LogErrorMessage($"ERROR: No data received from the station for {tmrDataWatchdog.Interval / 1000} seconds");
 				if (!DataStopped)
 				{
-					DataStoppedTime = DateTime.Now;
+					DataStoppedTime = DateTime.UtcNow;
 					DataStopped = true;
 				}
 				cumulus.DataStoppedAlarm.LastMessage = $"No data received from the station for {tmrDataWatchdog.Interval / 1000} seconds";

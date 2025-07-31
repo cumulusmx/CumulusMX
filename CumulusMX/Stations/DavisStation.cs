@@ -1892,7 +1892,7 @@ namespace CumulusMX
 						}
 					}
 				}
-				UpdateStatusPanel(DateTime.Now);
+				UpdateStatusPanel(DateTime.UtcNow);
 				UpdateMQTT();
 				LastDataReadTime = DateTime.Now;
 			}
@@ -2888,7 +2888,7 @@ namespace CumulusMX
 									OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
 
 
-								UpdateStatusPanel(timestamp);
+								UpdateStatusPanel(timestamp.ToUniversalTime());
 							}
 							else
 							{

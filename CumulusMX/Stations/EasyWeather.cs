@@ -198,7 +198,7 @@ namespace CumulusMX
 						CalculateEvapotranspiration(now);
 					}
 
-					UpdateStatusPanel(now);
+					UpdateStatusPanel(now.ToUniversalTime());
 					UpdateMQTT();
 				}
 				catch (Exception ex)

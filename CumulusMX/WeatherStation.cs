@@ -1671,7 +1671,7 @@ namespace CumulusMX
 				if (DataStopped)
 				{
 					// check if we want to exit on data stopped
-					if (cumulus.ProgramOptions.DataStoppedExit && DataStoppedTime.AddMinutes(cumulus.ProgramOptions.DataStoppedMins) < DateTime.Now)
+					if (cumulus.ProgramOptions.DataStoppedExit && DataStoppedTime.AddMinutes(cumulus.ProgramOptions.DataStoppedMins) < DateTime.UtcNow)
 					{
 						cumulus.LogMessage($"**** Exiting Cumulus due to Data Stopped condition for > {cumulus.ProgramOptions.DataStoppedMins} minutes ****");
 						Program.ExitSystemTokenSource.Cancel();
@@ -2190,7 +2190,7 @@ namespace CumulusMX
 				// Data input appears to have has stopped
 				if (!DataStopped)
 				{
-					DataStoppedTime = DateTime.Now;
+					DataStoppedTime = DateTime.UtcNow;
 				}
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.Triggered = true;
@@ -10055,7 +10055,7 @@ namespace CumulusMX
 
 		internal void UpdateStatusPanel(DateTime timestamp)
 		{
-			LastDataReadTimestamp = timestamp.ToUniversalTime();
+			LastDataReadTimestamp = timestamp;
 			_ = sendWebSocketData();
 		}
 

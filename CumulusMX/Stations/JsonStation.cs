@@ -859,7 +859,7 @@ namespace CumulusMX
 				station.DoForecast(string.Empty, false);
 			}
 
-			station.UpdateStatusPanel(data.lastupdated);
+			station.UpdateStatusPanel(data.lastupdated.ToUniversalTime());
 			station.UpdateMQTT();
 			LastDataReadTime = data.lastupdated;
 

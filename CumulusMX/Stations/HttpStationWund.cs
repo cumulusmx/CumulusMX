@@ -483,7 +483,7 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("ProcessData: Error in Air Quality data - " + ex.Message);
 				}
 
-				UpdateStatusPanel(recDate);
+				UpdateStatusPanel(recDate.ToUniversalTime());
 				UpdateMQTT();
 			}
 			catch (Exception ex)

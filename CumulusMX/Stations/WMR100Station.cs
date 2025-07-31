@@ -270,7 +270,7 @@ namespace CumulusMX
 						return;
 				}
 
-				UpdateStatusPanel(DateTime.Now);
+				UpdateStatusPanel(DateTime.UtcNow);
 				UpdateMQTT();
 			}
 			else

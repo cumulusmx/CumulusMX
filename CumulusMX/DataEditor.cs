@@ -396,12 +396,10 @@ namespace CumulusMX
 					startDate = DateTime.MinValue;
 					break;
 				case "thisyear":
-					var now = DateTime.Now;
-					startDate = new DateTime(now.Year, 1, 1);
+					startDate = new DateTime(endDate.Year, 1, 1);
 					break;
 				case "thismonth":
-					now = DateTime.Now;
-					startDate = new DateTime(now.Year, now.Month, 1);
+					startDate = new DateTime(endDate.Year, endDate.Month, 1);
 					break;
 				case "thisperiod":
 					startDate = start.Value;

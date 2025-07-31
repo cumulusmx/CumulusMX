@@ -1446,7 +1446,7 @@ namespace CumulusMX
 
 					cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
-					UpdateStatusPanel(dateTime);
+					UpdateStatusPanel(dateTime.ToUniversalTime());
 					UpdateMQTT();
 					LastDataReadTime = dateTime;
 
@@ -1885,7 +1885,7 @@ namespace CumulusMX
 				cumulus.LogErrorMessage($"ERROR: No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds");
 				if (!DataStopped)
 				{
-					DataStoppedTime = DateTime.Now;
+					DataStoppedTime = DateTime.UtcNow;
 					DataStopped = true;
 				}
 				cumulus.DataStoppedAlarm.LastMessage = $"No data received from the GW1000 for {tmrDataWatchdog.Interval / 1000} seconds";

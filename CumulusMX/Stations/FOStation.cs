@@ -631,7 +631,7 @@ namespace CumulusMX
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
-				UpdateStatusPanel(timestamp);
+				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
 				datalist.RemoveAt(datalist.Count - 1);
 
@@ -738,7 +738,7 @@ namespace CumulusMX
 			{
 				if (!DataStopped)
 				{
-					DataStoppedTime = DateTime.Now;
+					DataStoppedTime = DateTime.UtcNow;
 				}
 
 				DataStopped = true;
@@ -758,7 +758,7 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("Error sending command to station - it may need resetting");
 				if (!DataStopped)
 				{
-					DataStoppedTime = DateTime.Now;
+					DataStoppedTime = DateTime.UtcNow;
 				}
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.LastMessage = "Error reading data from station - it may need resetting. " + ex.Message;
@@ -782,7 +782,7 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("Error reading data from station - it may need resetting");
 					if (!DataStopped)
 					{
-						DataStoppedTime = DateTime.Now;
+						DataStoppedTime = DateTime.UtcNow;
 					}
 					DataStopped = true;
 					cumulus.DataStoppedAlarm.LastMessage = "Error reading data from station - it may need resetting. " + ex.Message;
@@ -823,7 +823,7 @@ namespace CumulusMX
 				cumulus.LogErrorMessage("Error sending command to station - it may need resetting");
 				if (!DataStopped)
 				{
-					DataStoppedTime = DateTime.Now;
+					DataStoppedTime = DateTime.UtcNow;
 				}
 				DataStopped = true;
 				cumulus.DataStoppedAlarm.LastMessage = "Error sending command to station - it may need resetting: " + ex.Message;
@@ -1375,7 +1375,7 @@ namespace CumulusMX
 						}
 					}
 
-					UpdateStatusPanel(now);
+					UpdateStatusPanel(now.ToUniversalTime());
 					UpdateMQTT();
 					DoForecast(string.Empty, false);
 				}

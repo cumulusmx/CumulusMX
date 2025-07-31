@@ -1636,7 +1636,7 @@ namespace CumulusMX
 
 			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
 							Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
-			UpdateStatusPanel(timestamp);
+			UpdateStatusPanel(timestamp.ToUniversalTime());
 			// Add current data to the lists of web service updates to be done
 			cumulus.AddToWebServiceLists(timestamp);
 		}
@@ -1678,7 +1678,6 @@ namespace CumulusMX
 						{
 							cumulus.LogDebugMessage("Wind packet received");
 							ProcessWindPacket();
-							UpdateStatusPanel(DateTime.Now);
 						}
 						break;
 					case RAIN_PACKET_TYPE:
@@ -1691,7 +1690,6 @@ namespace CumulusMX
 						{
 							cumulus.LogDebugMessage("Rain packet received");
 							ProcessRainPacket();
-							UpdateStatusPanel(DateTime.Now);
 						}
 						break;
 					case UV_PACKET_TYPE:
@@ -1704,7 +1702,6 @@ namespace CumulusMX
 						{
 							cumulus.LogDebugMessage("UV packet received");
 							ProcessUVPacket();
-							UpdateStatusPanel(DateTime.Now);
 						}
 						break;
 					case BARO_PACKET_TYPE:
@@ -1717,7 +1714,6 @@ namespace CumulusMX
 						{
 							cumulus.LogDebugMessage("Baro packet received");
 							ProcessBaroPacket();
-							UpdateStatusPanel(DateTime.Now);
 						}
 						break;
 					case TEMPHUM_PACKET_TYPE:
@@ -1730,7 +1726,6 @@ namespace CumulusMX
 						{
 							cumulus.LogDebugMessage("Temp packet received");
 							ProcessTempHumPacket();
-							UpdateStatusPanel(DateTime.Now);
 						}
 						break;
 					case STATUS_PACKET_TYPE:
@@ -1742,7 +1737,7 @@ namespace CumulusMX
 						return;
 				}
 
-				UpdateStatusPanel(DateTime.Now);
+				UpdateStatusPanel(DateTime.UtcNow);
 
 				if (gettingHistory)
 				{
