@@ -1628,16 +1628,23 @@ namespace CumulusMX
 				// skip this interval it's the same second
 				return;
 			}
-			else if (nowSec > lastSecond + 300 && lastSecond != 0)
+			else if (nowSec - lastSecond > 60)
 			{
-				// check for the clock skipping forward more than 5 minutes
+				// check for the clock skipping forward more than 1 minute
 				// if this happens it may be because the computer was suspended
 				// we will terminate so that the program can be restarted and the data recovered
 				// Exit code 999 is used to prevent a clean shutdown, it aborts the program, not saving the current state/datetime if it hasn't already been saved
 				secondTimer.Stop();
-				cumulus.LogMessage($"*** Clock skipped forward more than 5 minutes, last second was {lastSecond}, now is {nowSec}. Assuming we are resuming from an undetected computer sleep and aborting Cumulus");
-				Environment.ExitCode = 999;
-				Program.ExitSystemTokenSource.Cancel();
+				if (Program.ExitSystemToken.IsCancellationRequested)
+				{
+					cumulus.LogMessage($"**** Clock skipped forward more than a minute, last second was {lastSecond}, now is {nowSec}. Already shutting down, so no more action required");
+				}
+				else
+				{
+					cumulus.LogMessage($"**** Clock skipped forward more than a minute, last second was {lastSecond}, now is {nowSec}. Assuming we are resuming from an undetected computer sleep and aborting Cumulus ****");
+					Environment.ExitCode = 999;
+					Program.ExitSystemTokenSource.Cancel();
+				}
 				return;
 			}
 
@@ -1666,7 +1673,7 @@ namespace CumulusMX
 					// check if we want to exit on data stopped
 					if (cumulus.ProgramOptions.DataStoppedExit && DataStoppedTime.AddMinutes(cumulus.ProgramOptions.DataStoppedMins) < DateTime.Now)
 					{
-						cumulus.LogMessage($"*** Exiting Cumulus due to Data Stopped condition for > {cumulus.ProgramOptions.DataStoppedMins} minutes");
+						cumulus.LogMessage($"**** Exiting Cumulus due to Data Stopped condition for > {cumulus.ProgramOptions.DataStoppedMins} minutes ****");
 						Program.ExitSystemTokenSource.Cancel();
 					}
 					// No data coming in, do not do anything else
@@ -8379,7 +8386,7 @@ namespace CumulusMX
 
 					if ((HiLoToday.HighTemp < -400) || (HiLoToday.LowTemp > 900))
 					{
-						cumulus.LogErrorMessage("***Error: Daily values are still at default at end of day");
+						cumulus.LogErrorMessage("*** Error: Daily values are still at default at end of day");
 						cumulus.LogErrorMessage("Data not logged to dayfile.txt");
 						return;
 					}

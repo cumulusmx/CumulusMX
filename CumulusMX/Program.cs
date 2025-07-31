@@ -95,7 +95,7 @@ namespace CumulusMX
 			Console.CancelKeyPress += (s, ev) =>
 			{
 				Console.WriteLine("Ctrl+C pressed", ConsoleColor.Red);
-				MxLogger.Warn("*** Ctrl + C pressed");
+				MxLogger.Warn("**** Ctrl+C pressed ****");
 
 				ev.Cancel = true;
 
@@ -417,23 +417,6 @@ namespace CumulusMX
 
 		private static void ProcessExit(object s, EventArgs e)
 		{
-			// attempt to delay Windows going to sleep by saying we are doing critical work
-			//_ = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
-
-			if (powerNotificationRegistrationHandle != 0)
-			{
-				// Unregister the power notification
-				var result = PowerUnregisterSuspendResumeNotification(powerNotificationRegistrationHandle);
-				if (result == 0)
-				{
-					MxLogger.Info("Unregistered for power mode changes on Windows");
-				}
-				else
-				{
-					MxLogger.Error("Failed to unregister for power mode changes, error code: " + result);
-				}
-			}
-
 			MxLogger.Info("Cumulus termination started");
 
 			if (cumulus != null && Environment.ExitCode != 999)
@@ -459,16 +442,24 @@ namespace CumulusMX
 			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exit code = " + Environment.ExitCode);
 			MxLogger.Info("Cumulus exit code = " + Environment.ExitCode);
 
-			LogManager.Flush();
-			LogManager.Shutdown();
-
 			if (!service)
 			{
 				Console.CursorVisible = true;
 			}
 
-			// clear the critical work flag
-			//_ = SetThreadExecutionState(ES_CONTINUOUS);
+			if (powerNotificationRegistrationHandle != 0)
+			{
+				// Unregister the power notification
+				var result = PowerUnregisterSuspendResumeNotification(powerNotificationRegistrationHandle);
+				if (result == 0)
+				{
+					MxLogger.Info("Unregistered for power mode changes on Windows");
+				}
+				else
+				{
+					MxLogger.Error("Failed to unregister for power mode changes, error code: " + result);
+				}
+			}
 		}
 
 		public static bool CheckInstanceId(bool create)
@@ -575,11 +566,8 @@ namespace CumulusMX
 			{
 				case PBT_APMSUSPEND:
 					// The system is suspending operation.
-					// attempt to delay Windows going to sleep by saying we are doing critical work
-					//_ = SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
-
-					MxLogger.Fatal("*** Shutting down due to computer going to modern standby");
-						Console.WriteLine("*** Shutting down due to computer going to sleep");
+					MxLogger.Fatal("**** Shutting down due to computer going to modern standby ****");
+					Console.WriteLine("**** Shutting down due to computer going to sleep ****");
 					ExitSystemTokenSource.Cancel();
 					Thread.Sleep(500);
 					return 1; // handled
@@ -590,12 +578,12 @@ namespace CumulusMX
 					// check if already shutting down...
 					if (ExitSystemTokenSource.IsCancellationRequested)
 					{
-						MxLogger.Info("*** Resuming from modern standby, but already shutting down, no action");
+						MxLogger.Info("**** Resuming from modern standby, but already shutting down, no action ****");
 					}
 					else
 					{
-						MxLogger.Warn("*** Shutting down due to computer resuming from modern standby");
-						Console.WriteLine("*** Shutting down due to computer resuming from standby");
+						MxLogger.Warn("**** Shutting down due to computer resuming from modern standby ****");
+						Console.WriteLine("**** Shutting down due to computer resuming from standby ****");
 						Environment.Exit(999);
 					}
 					return 1; // handled
@@ -622,13 +610,6 @@ namespace CumulusMX
 
 		[DllImport("Powrprof.dll", SetLastError = true)]
 		private static extern uint PowerUnregisterSuspendResumeNotification(IntPtr registrationHandle);
-
-
-		[DllImport("kernel32.dll")]
-		static extern uint SetThreadExecutionState(uint esFlags);
-
-		const uint ES_CONTINUOUS = 0x80000000;
-		const uint ES_SYSTEM_REQUIRED = 0x00000001;
 
 		// Windows 7 power management
 		private static void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)

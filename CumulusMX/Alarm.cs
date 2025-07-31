@@ -203,7 +203,7 @@ namespace CumulusMX
 				// If the trigger is cleared, check if we should be latching the value
 				if (Latch)
 				{
-					if (DateTime.UtcNow > TriggeredTime.AddHours(LatchHours))
+					if (DateTime.UtcNow > triggeredTime.AddHours(LatchHours))
 					{
 						// We are latching, but the latch period has expired, clear the trigger
 						triggered = false;
