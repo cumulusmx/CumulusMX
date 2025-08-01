@@ -2872,6 +2872,7 @@ namespace CumulusMX
 				&& cumulus.StationOptions.PrimaryAqSensor != (int) Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
 				DateTime dateFrom;
+
 				if (incremental)
 				{
 					dateFrom = start ?? cumulus.GraphDataFiles[12].LastDataTime;
@@ -2974,6 +2975,10 @@ namespace CumulusMX
 			{
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
+
+				// convert start/end to meteo date/times if required
+				dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+				dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 			}
 			else
 			{
@@ -3084,14 +3089,17 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateTo || fileDate > dateTo)
+				if (!finished)
 				{
-					finished = true;
-				}
-				else
-				{
-					fileDate = fileDate.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(fileDate);
+					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					{
+						finished = true;
+					}
+					else
+					{
+						fileDate = fileDate.AddMonths(1);
+						logFile = cumulus.GetExtraLogFileName(fileDate);
+					}
 				}
 			}
 
@@ -3145,6 +3153,10 @@ namespace CumulusMX
 			{
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
+
+				// convert start/end to meteo date/times if required
+				dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+				dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 			}
 			else
 			{
@@ -3316,6 +3328,10 @@ namespace CumulusMX
 			{
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
+
+				// convert start/end to meteo date/times if required
+				dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+				dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 			}
 			else
 			{
@@ -3487,6 +3503,10 @@ namespace CumulusMX
 			{
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
+
+				// convert start/end to meteo date/times if required
+				dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+				dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 			}
 			else
 			{
@@ -3658,6 +3678,10 @@ namespace CumulusMX
 			{
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
+
+				// convert start/end to meteo date/times if required
+				dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+				dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 			}
 			else
 			{
@@ -3829,6 +3853,10 @@ namespace CumulusMX
 			{
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
+
+				// convert start/end to meteo date/times if required
+				dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+				dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 			}
 			else
 			{
@@ -4000,6 +4028,10 @@ namespace CumulusMX
 			{
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
+
+				// convert start/end to meteo date/times if required
+				dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+				dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 			}
 			else
 			{
@@ -4399,6 +4431,10 @@ namespace CumulusMX
 			var dateTo = end ?? DateTime.Now.Date;
 			dateTo = dateTo.AddDays(1);
 
+			// convert start/end to meteo date/times if required
+			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
+
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
 
@@ -4496,10 +4532,10 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					fileDate = fileDate.AddMonths(1);
+					if (fileDate > dateTo)
+						break;
 
-					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
-						finished = true;
+					fileDate = fileDate.AddMonths(1);
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
@@ -4598,6 +4634,10 @@ namespace CumulusMX
 			var dateTo = end ?? DateTime.Now.Date;
 			dateTo = dateTo.AddDays(1);
 
+			// convert start/end to meteo date/times if required
+			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
+
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
 
@@ -4680,10 +4720,10 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					fileDate = fileDate.AddMonths(1);
+					if (fileDate > dateTo)
+						break;
 
-					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
-						finished = true;
+					fileDate = fileDate.AddMonths(1);
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
@@ -4729,6 +4769,10 @@ namespace CumulusMX
 			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
 			var dateTo = end ?? DateTime.Now.Date;
 			dateTo = dateTo.AddDays(1);
+
+			// convert start/end to meteo date/times if required
+			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
@@ -4814,10 +4858,10 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					fileDate = fileDate.AddMonths(1);
+					if (cumulus.MeteoDate(fileDate) > cumulus.MeteoDate())
+						break;
 
-					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
-						finished = true;
+					fileDate = fileDate.AddMonths(1);
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
@@ -4863,6 +4907,10 @@ namespace CumulusMX
 			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
 			var dateTo = end ?? DateTime.Now.Date;
 			dateTo = dateTo.AddDays(1);
+
+			// convert start/end to meteo date/times if required
+			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
@@ -4937,10 +4985,10 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					fileDate = fileDate.AddMonths(1);
+					if (fileDate > dateTo)
+						break;
 
-					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
-						finished = true;
+					fileDate = fileDate.AddMonths(1);
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
@@ -4966,6 +5014,10 @@ namespace CumulusMX
 			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
 			var dateTo = end ?? DateTime.Now.Date;
 			dateTo = dateTo.AddDays(1);
+
+			// convert start/end to meteo date/times if required
+			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
@@ -5048,10 +5100,10 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					fileDate = fileDate.AddMonths(1);
+					if (fileDate > dateTo)
+						break;
 
-					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
-						finished = true;
+					fileDate = fileDate.AddMonths(1);
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
@@ -5086,6 +5138,10 @@ namespace CumulusMX
 			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
 			var dateTo = end ?? DateTime.Now.Date;
 			dateTo = dateTo.AddDays(1);
+
+			// convert start/end to meteo date/times if required
+			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
@@ -5160,10 +5216,10 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					fileDate = fileDate.AddMonths(1);
+					if (fileDate > dateTo)
+						break;
 
-					if (fileDate.Year > dateTo.Year || (fileDate.Year == dateTo.Year && fileDate.Month > dateTo.Month))
-						finished = true;
+					fileDate = fileDate.AddMonths(1);
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
