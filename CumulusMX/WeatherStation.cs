@@ -4412,6 +4412,193 @@ namespace CumulusMX
 			return sb.ToString();
 		}
 
+		public string GetIntervalAqGraphData(bool local, DateTime? start = null, DateTime? end = null)
+		{
+			var InvC = CultureInfo.InvariantCulture;
+			var sb = new StringBuilder("{", 10240);
+
+			/* returns data in the form of an object with properties for each data series
+				"sensor 1": [[time,val],[time,val],...],
+				"sensor 4": [[time,val],[time,val],...],
+			*/
+
+			var sb2p5 = new StringBuilder("\"pm2p5\":[");
+			var sb10 = new StringBuilder("\"pm10\":[");
+
+			bool useExtraSensorLogFile = true; // use the extra log file or the AirLink log file
+
+			int pm25idx = 0; // index of the PM2.5 sensor in the log file
+			string pm25Caption = "PM2.5";
+
+			int pm10idx = 0; // index of the PM10 sensor in the log file
+			string pm10Caption = "PM10";
+
+			// first determine which if the sensors - if any - to use
+			switch (cumulus.StationOptions.PrimaryAqSensor)
+			{
+				case (int) Cumulus.PrimaryAqSensor.Undefined:
+					return "{}"; // no sensors defined
+				case (int) Cumulus.PrimaryAqSensor.Sensor1:
+					pm25idx = 68;
+					pm10idx = 119;
+					pm25Caption = cumulus.Trans.AirQualityCaptions[0];
+					pm10Caption = cumulus.Trans.AirQuality10Captions[0];
+					useExtraSensorLogFile = true;
+					break;
+				case (int) Cumulus.PrimaryAqSensor.Sensor2:
+					pm25idx = 69;
+					pm10idx = 120;
+					pm25Caption = cumulus.Trans.AirQualityCaptions[1];
+					pm10Caption = cumulus.Trans.AirQuality10Captions[1];
+					useExtraSensorLogFile = true;
+					break;
+				case (int) Cumulus.PrimaryAqSensor.Sensor3:
+					pm25idx = 70;
+					pm10idx = 121;
+					pm25Caption = cumulus.Trans.AirQualityCaptions[2];
+					pm10Caption = cumulus.Trans.AirQuality10Captions[2];
+					useExtraSensorLogFile = true;
+					break;
+				case (int) Cumulus.PrimaryAqSensor.Sensor4:
+					pm25idx = 71;
+					pm10idx = 122;
+					pm25Caption = cumulus.Trans.AirQualityCaptions[3];
+					pm10Caption = cumulus.Trans.AirQuality10Captions[3];
+					useExtraSensorLogFile = true;
+					break;
+				case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
+					pm25idx = 86;
+					pm10idx = 88;
+					pm25Caption = cumulus.Trans.CO2_pm2p5Caption;
+					pm10Caption = cumulus.Trans.CO2_pm10Caption;
+					useExtraSensorLogFile = true;
+					break;
+				case (int) Cumulus.PrimaryAqSensor.AirLinkIndoor:
+					pm25idx = 5;
+					pm10idx = 10;
+					useExtraSensorLogFile = false;
+					break;
+				case (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor:
+					pm25idx = 32;
+					pm10idx = 37;
+					useExtraSensorLogFile = false;
+					break;
+			}
+
+			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
+			var dateTo = end ?? DateTime.Now.Date;
+			dateTo = dateTo.AddDays(1);
+
+			// convert start/end to meteo date/times if required
+			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
+
+			var fileDate = dateFrom;
+			var logFile = useExtraSensorLogFile ? cumulus.GetExtraLogFileName(fileDate) : cumulus.GetAirLinkLogFileName(fileDate);
+
+			var ambiguousDates = new List<DateTime>();
+
+			var entrydate = new DateTime(0, DateTimeKind.Local);
+
+			var finished = false;
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					cumulus.LogDebugMessage($"GetIntervalAqGraphData: Processing log file - {logFile}");
+					int linenum = 0;
+					int errorCount = 0;
+
+					try
+					{
+						var lines = File.ReadAllLines(logFile);
+
+						foreach (var line in lines)
+						{
+							try
+							{
+								// process each record in the file
+								linenum++;
+								var st = new List<string>(line.Split(','));
+								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+
+								if (entrydate > dateFrom)
+								{
+									if (entrydate > dateTo)
+									{
+										finished = true;
+										break;
+									}
+
+									// entry is from required period
+									var temp = 0.0;
+									var jsTime = entrydate.ToUnixTimeMs();
+
+									if (st.Count > pm25idx && double.TryParse(st[pm25idx], InvC, out temp))
+									{
+										sb2p5.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
+									}
+									else
+									{
+										sb2p5.Append($"[{jsTime},null],");
+									}
+
+									if (st.Count > pm10idx && double.TryParse(st[pm10idx], InvC, out temp))
+									{
+										sb10.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
+									}
+									else
+									{
+										sb10.Append($"[{jsTime},null],");
+									}
+								}
+							}
+							catch (Exception ex)
+							{
+								errorCount++;
+								cumulus.LogErrorMessage($"GetIntervalAqGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetIntervalAqGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"GetIntervalAqGraphData: Error reading {logFile}. Error - {ex.Message}");
+					}
+				}
+
+				if (!finished)
+				{
+					if (fileDate > dateTo)
+						break;
+
+					fileDate = fileDate.AddMonths(1);
+					logFile = useExtraSensorLogFile ? cumulus.GetExtraLogFileName(fileDate) : cumulus.GetAirLinkLogFileName(fileDate);
+				}
+			}
+
+			if (sb2p5[^1] == ',')
+				sb2p5.Length--;
+
+			sb2p5.Append("],");
+			sb.Append(sb2p5);
+
+			if (sb10[^1] == ',')
+				sb10.Length--;
+
+			sb10.Append(']');
+			sb.Append(sb10);
+
+			sb.Append('}');
+			return sb.ToString();
+		}
+
 
 		public string GetIntervalTempGraphData(bool local, DateTime? start = null, DateTime? end = null)
 		{

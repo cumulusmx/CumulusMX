@@ -504,7 +504,7 @@ namespace CumulusMX
 							await writer.WriteAsync(Station.GetIntervalSolarGraphData(true, start, end));
 							break;
 						case "intvairquality.json":
-							await writer.WriteAsync(Station.GetAqGraphData(false, start, end));
+							await writer.WriteAsync(Station.GetIntervalAqGraphData(true, start, end));
 							break;
 						case "intvextratemp.json":
 							await writer.WriteAsync(Station.GetExtraTempGraphData(false, true, start, end));
