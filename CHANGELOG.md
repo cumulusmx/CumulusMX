@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4106\]][23] - 2025-07-30
+## [4.6.0 \[b4106\]][23] - 2025-08-03
 
 ### New
 
@@ -45,6 +45,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The maximum log file size hs been decreased to 2MB, but the number of archives retained increased to 15
 	- You may notice the logged event times only increment every 16ms, this is an efficiency thing!
 - Logging of JSON responses from the Ecowitt Local HTTP API now compacts the output by removing line feeds and tabs from the text
+- Improvements to the dashboard Select-a-Period graphing.
+	- This now uses the meteorlogical day you have defined, and the pm2.5/ pm10 values are now pulled from the log files rather than the time restricted recent data
 
 ### Fixed
 
@@ -57,6 +59,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Package Updates
 
+- BouncyCastle.Cryptography
 - FluentFTP
 - MailKit
 - Microsoft.Win32.SystemEvents
