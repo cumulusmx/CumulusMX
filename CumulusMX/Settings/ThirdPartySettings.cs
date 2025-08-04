@@ -202,6 +202,20 @@ namespace CumulusMX
 						cumulus.WOW.SendUV = settings.wow.includeuv;
 						cumulus.WOW.SendSoilTemp = settings.wow.includesoiltemp;
 						cumulus.WOW.SoilTempSensor = settings.wow.soiltempsensor;
+						if (settings.wow.includesoilmoisture && cumulus.Units.SoilMoistureUnitText[settings.wow.soilmoistsensor] == "%")
+						{
+							cumulus.WOW.SendSoilMoisture = settings.wow.includesoilmoisture;
+							cumulus.WOW.SoilMoistureSensor = settings.wow.soilmoistsensor;
+						}
+						else
+						{
+							var msg = "WOW: Soil Moisture sensor is not providing % values - disabling soil moisture upload";
+							cumulus.LogWarningMessage(msg);
+							errorMsg += msg + "\n\n";
+
+							cumulus.WOW.SendSoilMoisture = false;
+							cumulus.WOW.SoilMoistureSensor = 0;
+						}
 						cumulus.WOW.Interval = settings.wow.interval;
 						cumulus.WOW.PW = string.IsNullOrWhiteSpace(settings.wow.password) ? string.Empty : settings.wow.password.Trim();
 						cumulus.WOW.ID = string.IsNullOrWhiteSpace(settings.wow.stationid) ? string.Empty : settings.wow.stationid.Trim();
@@ -487,6 +501,8 @@ namespace CumulusMX
 				includeuv = cumulus.WOW.SendUV,
 				soiltempsensor = cumulus.WOW.SoilTempSensor,
 				includesoiltemp = cumulus.WOW.SendSoilTemp,
+				includesoilmoisture = cumulus.WOW.SendSoilMoisture,
+				soilmoistsensor = cumulus.WOW.SoilMoistureSensor,
 				interval = cumulus.WOW.Interval,
 				password = cumulus.WOW.PW,
 				stationid = cumulus.WOW.ID
@@ -757,6 +773,8 @@ namespace CumulusMX
 			public bool includesolar { get; set; }
 			public bool includesoiltemp { get; set; }
 			public int soiltempsensor { get; set; }
+			public bool includesoilmoisture { get; set; }
+			public int soilmoistsensor { get; set; }
 			public bool catchup { get; set; }
 			public string stationid { get; set; }
 			public string password { get; set; }

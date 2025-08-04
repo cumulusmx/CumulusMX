@@ -128,6 +128,8 @@ namespace CumulusMX.ThirdParty
 
 		internal override string GetURL(out string pwstring, DateTime timestamp)
 		{
+			// See: https://wow.metoffice.gov.uk/support/dataformats
+
 			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH'%3A'mm'%3A'ss");
 			StringBuilder URL = new StringBuilder("http://wow.metoffice.gov.uk/automaticreading?siteid=", 1024);
 
@@ -168,7 +170,9 @@ namespace CumulusMX.ThirdParty
 			if (SendSolar && station.SolarRad.HasValue)
 				Data.Append("&solarradiation=" + station.SolarRad);
 			if (SendSoilTemp && station.SoilTemp[SoilTempSensor].HasValue)
-				Data.Append($"&soiltempf=" + WeatherStation.TempFstr(station.SoilTemp[SoilTempSensor].Value));
+				Data.Append("&soiltempf=" + WeatherStation.TempFstr(station.SoilTemp[SoilTempSensor].Value));
+			if (SendSoilMoisture && station.SoilMoisture[SoilMoistureSensor].HasValue && cumulus.Units.SoilMoistureUnitText[SoilMoistureSensor] == "%")
+				Data.Append("&soilmoisture=" + station.SoilMoisture[SoilMoistureSensor].Value);
 
 			Data.Append("&softwaretype=Cumulus%20v" + cumulus.Version);
 			Data.Append("&action=updateraw");

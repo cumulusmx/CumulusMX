@@ -5052,7 +5052,9 @@ namespace CumulusMX
 			WOW.SendUV = ini.GetValue("WOW", "SendUV", false);
 			WOW.SendSolar = ini.GetValue("WOW", "SendSR", false);
 			WOW.SendSoilTemp = ini.GetValue("WOW", "SendSoilTemp", false);
-			WOW.SoilTempSensor = ini.GetValue("WOW", "SoilTempSensor", 1, 1, 8);
+			WOW.SoilTempSensor = ini.GetValue("WOW", "SoilTempSensor", 1, 1, 16);
+			WOW.SendSoilMoisture = ini.GetValue("WOW", "SendSoilMoist", false);
+			WOW.SoilMoistureSensor = ini.GetValue("WOW", "SoilMoistSensor", 1, 1, 16);
 			WOW.CatchUp = false;
 
 			APRS.ID = ini.GetValue("APRS", "ID", string.Empty);
@@ -6711,7 +6713,10 @@ namespace CumulusMX
 			ini.SetValue("WOW", "SendSR", WOW.SendSolar);
 			ini.SetValue("WOW", "SendSoilTemp", WOW.SendSoilTemp);
 			ini.SetValue("WOW", "SoilTempSensor", WOW.SoilTempSensor);
-			ini.SetValue("WOW", "CatchUp", WOW.CatchUp);
+			ini.SetValue("WOW", "SendSoilMoist", WOW.SendSoilMoisture);
+			ini.SetValue("WOW", "SoilMoistSensor", WOW.SoilMoistureSensor);
+
+			ini.SetValue("WOW", "CatchUp", false);
 
 			ini.SetValue("APRS", "ID", APRS.ID);
 			if (APRS.PW == "-1")

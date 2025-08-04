@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4106\]][23] - 2025-08-03
+## [4.6.0 \[b4106\]][23] - 2025-08-04
 
 ### New
 
@@ -18,6 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Adds support for the Ecowitt WN20 battery status monitoring
 - Adds RSSI value (if available) to the Ecowitt sensor list logging
 - A new Alarm for Cumulus MX general errors, triggered every time something is written to the Recent Errors log, and cleared when the log is cleared
+- Adds Soil Moisture upload to Met Office WOW for stations that report the moisture level as a percentage
 
 ### Changed
 
