@@ -6715,18 +6715,10 @@ namespace CumulusMX
 			ini.SetValue("WOW", "SoilTempSensor", WOW.SoilTempSensor);
 			ini.SetValue("WOW", "SendSoilMoist", WOW.SendSoilMoisture);
 			ini.SetValue("WOW", "SoilMoistSensor", WOW.SoilMoistureSensor);
-
 			ini.SetValue("WOW", "CatchUp", false);
 
 			ini.SetValue("APRS", "ID", APRS.ID);
-			if (APRS.PW == "-1")
-			{
-				ini.SetValue("APRS", "pass", APRS.PW);
-			}
-			else
-			{
-				ini.SetValue("APRS", "pass", Crypto.EncryptString(APRS.PW, Program.InstanceId, "APRS.PW"));
-			}
+			ini.SetValue("APRS", "pass", APRS.PW == "-1" ? APRS.PW : Crypto.EncryptString(APRS.PW, Program.InstanceId, "APRS.PW"));
 			ini.SetValue("APRS", "server", APRS.Server);
 			ini.SetValue("APRS", "port", APRS.Port);
 			ini.SetValue("APRS", "Enabled", APRS.Enabled);

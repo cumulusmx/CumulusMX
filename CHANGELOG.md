@@ -10,15 +10,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4106\]][23] - 2025-08-04
+## [4.6.0 \[b4107\]][23] - 2025-08-05
 
 ### New
 
-- Adds support the Ecowitt WH25 CO₂ sensor values on the HTTP API
+- Adds support the Ecowitt WH45/6 CO₂ sensor values on the HTTP API
 - Adds support for the Ecowitt WN20 battery status monitoring
 - Adds RSSI value (if available) to the Ecowitt sensor list logging
 - A new Alarm for Cumulus MX general errors, triggered every time something is written to the Recent Errors log, and cleared when the log is cleared
 - Adds Soil Moisture upload to Met Office WOW for stations that report the moisture level as a percentage
+- Snow values added to the websitedataT.json file
 
 ### Changed
 
@@ -28,26 +29,26 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The latest file (if more than one), will be one with the highest value for NN for today: `ftp-<logtype>_YYYY-MM-DD_NN.log`
 	- You will need to manually delete any old log files that use the old naming convention of:
 		`ftp-realtime-N.log` or `ftp-interval-N.log`
-- CreateMissing updated to v2.1.0 to fix the daily rainfall calculation on raincounter reset at rollover, and add support for evapotranspiration calculation
-- Improvements in the Cumulus MX shutdown process
+- CreateMissing updated to v2.1.0 to fix the daily rainfall calculation on rain counter reset at rollover, and add support for evapotranspiration calculation
+- Improvements in the Cumulus MX shutdown process - it should now be much faster
 - The JSON and Tempest stations now use the same Sea Level Pressure calculation as all other stations
 - All dashboard and default web site graph data files now use true UTC time stamps
 	- Previously they were "pseudo-UTC" to force the graphs to display the station times rather the viewers time zone
 	- Highcharts version used by the dashboard and default web site updated to v12.3.0 to support this
 	- The charts will now render correctly at DST changes
 - All logging to log files is now asynchronous. This means a change to log file naming scheme for the main MX diags
-	- The latest log file will always have just the current date as the main filename: 20250726.log
-		- When The day changes a new log file will be created, this just have the current date as the filename
+	- The latest log file will always have just the current date as the main filename: eg. 20250726.log
+		- When The day changes a new log file will be created, this too will just have the current date as the filename
 	- Rollover:
-		- Rolled over files will have the time appended: 20250726-115412.log
-		- Rollover occurs when log files that have exceeded the rollover size (5MB)
+		- Rolled over files will have the time appended: eg. 20250726-115412.log
+		- Rollover occurs when log files that have exceeded the rollover size (2MB)
 		- Rollover also occurs when you start Cumulus MX and there is an existing dated log file for today
 		- The timestamp on rollover files is the time of the last entry in the file, not the first
-	- The maximum log file size hs been decreased to 2MB, but the number of archives retained increased to 15
+	- The maximum log file size has been decreased to 2MB, but the number of archives retained increased to 15
 	- You may notice the logged event times only increment every 16ms, this is an efficiency thing!
 - Logging of JSON responses from the Ecowitt Local HTTP API now compacts the output by removing line feeds and tabs from the text
-- Improvements to the dashboard Select-a-Period graphing.
-	- This now uses the meteorlogical day you have defined, and the pm2.5/ pm10 values are now pulled from the log files rather than the time restricted recent data
+- Improvements to the dashboard Select-a-Period graphing
+	- This now uses the meteorological day you have defined, and the pm2.5/ pm10 values are now pulled from the log files rather than the time restricted recent data
 
 ### Fixed
 
@@ -951,4 +952,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [20]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4103
 [21]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4104
 [22]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4105
-[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4106
+[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4107
