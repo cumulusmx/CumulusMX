@@ -49,6 +49,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Logging of JSON responses from the Ecowitt Local HTTP API now compacts the output by removing line feeds and tabs from the text
 - Improvements to the dashboard Select-a-Period graphing
 	- This now uses the meteorological day you have defined, and the pm2.5/ pm10 values are now pulled from the log files rather than the time restricted recent data
+- Adds a default User-Agent header to all HTTP requests of "CumulusMX/4.6.0.4107" - or whatever the current version build is
+
 
 ### Fixed
 

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.ServiceProcess;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ using NLog;
 using NLog.Config;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
+
+using ServiceStack;
 
 //#error version
 
@@ -37,6 +40,8 @@ namespace CumulusMX
 
 		public static readonly CancellationTokenSource ExitSystemTokenSource = new();
 		public static readonly CancellationToken ExitSystemToken = ExitSystemTokenSource.Token;
+
+		public static ConfigFile configFile { get; } = ReadConfigFile();
 
 		private static nint powerNotificationRegistrationHandle = new();
 
@@ -510,9 +515,9 @@ namespace CumulusMX
 				//FileName = "MXdiags" + Path.DirectorySeparatorChar + "${cached:${date:format=yyyyMMdd-HHmmss}}.log",
 				FileName = "MXdiags" + Path.DirectorySeparatorChar + "${date:format=yyyyMMdd}.log",
 				ArchiveSuffixFormat = "{1:-HHmmss}",
-				ArchiveAboveSize = 2096970,
+				ArchiveAboveSize = configFile.runtimeOptions.configProperties.LogFileSize,
 				ArchiveOldFileOnStartup = true,
-				MaxArchiveFiles = 15,
+				MaxArchiveFiles = configFile.runtimeOptions.configProperties.LogFileCount,
 				//Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss.fff}|${level}| ${message}",
 				Layout = "${longdate}|${level}| ${message}",
 				Footer = "------ LOG CLOSED ${longdate} ------"
@@ -552,6 +557,60 @@ namespace CumulusMX
 			MxLogger = LogManager.GetLogger("CMX");
 
 			MxLogger.Info("------ Created initial log file for this run of Cumulus MX ------");
+		}
+
+
+		public static ConfigFile ReadConfigFile()
+		{
+			if (File.Exists("CumulusMX.runtimeconfig.json"))
+			{
+				try
+				{
+					return (File.ReadAllText("CumulusMX.runtimeconfig.json")).FromJson<ConfigFile>();
+				}
+				catch
+				{
+					// do nothing
+				}
+			}
+
+			return new ConfigFile()
+			{
+				runtimeOptions = new ConfigFileRunTime()
+				{
+					configProperties = new ConfigFileProperties()
+					{
+						PhpMaxConnections = 3,
+						RealtimeFtpWatchDogInterval = 300,
+						LogFileSize = 2096970
+					}
+				}
+			};
+		}
+
+		public sealed class ConfigFile
+		{
+			public ConfigFileRunTime runtimeOptions { get; set; }
+		}
+		public sealed class ConfigFileRunTime
+		{
+			public ConfigFileProperties configProperties { get; set; }
+		}
+
+		[DataContract]
+		public sealed class ConfigFileProperties
+		{
+			[DataMember(Name = "User.PhpMaxConnections")]
+			public int PhpMaxConnections { get; set; }
+
+			[DataMember(Name = "User.RealtimeFtpWatchDogInterval")]
+			public int RealtimeFtpWatchDogInterval { get; set; }
+
+			[DataMember(Name = "User.LogFileSize")]
+			public int LogFileSize { get; set; }
+
+			[DataMember(Name = "User.LogfileCount")]
+			public int LogFileCount { get; set; }
 		}
 
 

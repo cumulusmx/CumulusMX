@@ -14,7 +14,6 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
@@ -1746,6 +1745,11 @@ namespace CumulusMX
 				// 15 second timeout
 				Timeout = TimeSpan.FromSeconds(15)
 			};
+
+			var header = new System.Net.Http.Headers.ProductHeaderValue("CumulusMX", $"{Version}.{Build}");
+			var userAgent = new System.Net.Http.Headers.ProductInfoHeaderValue(header);
+
+			phpUploadHttpClient.DefaultRequestHeaders.UserAgent.Add(userAgent);
 		}
 
 		internal void SetupMyHttpClient()
@@ -1759,6 +1763,11 @@ namespace CumulusMX
 			{
 				Timeout = TimeSpan.FromSeconds(30)
 			};
+
+			var header = new System.Net.Http.Headers.ProductHeaderValue("CumulusMX", $"{Version}.{Build}");
+			var userAgent = new System.Net.Http.Headers.ProductInfoHeaderValue(header);
+
+			MyHttpClient.DefaultRequestHeaders.UserAgent.Add(userAgent);
 		}
 
 
@@ -7974,47 +7983,19 @@ namespace CumulusMX
 
 		private void ReadConfigFile()
 		{
-			if (File.Exists("CumulusMX.runtimeconfig.json"))
+			try
 			{
-				try
-				{
-					var obj = (File.ReadAllText("CumulusMX.runtimeconfig.json")).FromJson<ConfigFile>();
-					phpMaxConnectionsPerServer = obj.runtimeOptions.configProperties.PhpMaxConnections;
-					realtimeFtpWdInterval = obj.runtimeOptions.configProperties.RealtimeFtpWatchDogInterval;
-					return;
-				}
-				catch (Exception ex)
-				{
-					LogExceptionMessage(ex, "Error reading CumulusMX.runtimeconfig.json");
-				}
+				phpMaxConnectionsPerServer = Program.configFile.runtimeOptions.configProperties.PhpMaxConnections;
+				realtimeFtpWdInterval = Program.configFile.runtimeOptions.configProperties.RealtimeFtpWatchDogInterval;
+				return;
 			}
-			else
+			catch (Exception ex)
 			{
-				LogWarningMessage("Config file 'CumulusMX.runtimeconfig.json' not found! Using defaults");
+				LogExceptionMessage(ex, "Error reading CumulusMX.runtimeconfig.json Using defaults");
+
+				phpMaxConnectionsPerServer = 3;
+				realtimeFtpWdInterval = 300;
 			}
-
-			phpMaxConnectionsPerServer = 3;
-			realtimeFtpWdInterval = 60;
-		}
-
-
-		private sealed class ConfigFile
-		{
-			public ConfigFileRunTime runtimeOptions { get; set; }
-		}
-		private sealed class ConfigFileRunTime
-		{
-			public ConfigFileProperties configProperties { get; set; }
-		}
-
-		[DataContract]
-		private sealed class ConfigFileProperties
-		{
-			[DataMember(Name = "User.PhpMaxConnections")]
-			public int PhpMaxConnections { get; set; }
-
-			[DataMember(Name = "User.RealtimeFtpWatchDogInterval")]
-			public int RealtimeFtpWatchDogInterval { get; set; }
 		}
 
 
@@ -12981,13 +12962,13 @@ namespace CumulusMX
 			37     998.4      today's low pressure
 			38     12:06      time of today's low pressure (hh:mm)
 			39     1.8.2      Cumulus version
-			40     448        Cumulus build
+			40     4107       Cumulus build
 			41     36.0       10-minute high gust
 			42     10.3       heat index
 			43     10.5       humidex
-			44                UV
-			45                ET
-			46                Solar radiation
+			44     1.2        UV
+			45     0.4        ET
+			46     673        Solar radiation
 			47     234        Average Bearing (degrees)
 			48     2.5        Rain last hour
 			49     5          Forecast number

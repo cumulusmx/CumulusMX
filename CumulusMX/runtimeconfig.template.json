@@ -5,6 +5,8 @@
 		"System.Threading.ThreadPool.MinThreads": 10,
 		"System.Threading.ThreadPool.MaxThreads": 30,
 		"User.PhpMaxConnections": 3,
-		"User.RealtimeFtpWatchDogInterval": 300
+		"User.RealtimeFtpWatchDogInterval": 300,
+		"User.LogFileSize": 2096970,
+		"User.LogFileCount": 15
 	}
 }
