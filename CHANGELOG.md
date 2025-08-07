@@ -61,6 +61,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt HTTP API station not triggering the firmware alarm when new firmware available
 - Handling of cached MySQL statements that are in error because of bad syntax or reference errors
 - An error in the Ecowitt SD card log file handling that removed the corresponding Allsensors log file from the processing list if the primary file did not contain any dates in the required range
+- Ecowitt historic catch-up from SD card was not setting the DataDateTime variable
 
 ### Package Updates
 

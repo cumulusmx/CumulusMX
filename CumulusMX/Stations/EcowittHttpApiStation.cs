@@ -648,6 +648,7 @@ namespace CumulusMX
 				}
 
 				var h = rec.Key.Hour;
+				DataDateTime = rec.Key;
 
 				rollHour = Math.Abs(cumulus.GetHourInc(rec.Key));
 
