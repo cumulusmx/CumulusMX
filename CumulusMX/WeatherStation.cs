@@ -13775,9 +13775,18 @@ namespace CumulusMX
 				tz = "UTC";
 			}
 
+			string timeformat = cumulus.ProgramOptions.TimeFormat switch
+			{
+				"t" => "%[HM]",
+				"h:mm tt" => "%l:%M %p",
+				"HH:MM" => "%H:%M",
+				_ => "%H:%M"
+			};
+
 			var json = new StringBuilder(200);
 			json.Append('{');
 			json.Append($"\"tz\":\"{tz}\",");
+			json.Append($"\"timeformat\":\"{timeformat}\",");
 			json.Append($"\"temp\":{{\"units\":\"{cumulus.Units.TempText[1]}\",\"decimals\":{cumulus.TempDPlaces}}},");
 			json.Append($"\"wind\":{{\"units\":\"{cumulus.Units.WindText}\",\"avgdecimals\":{cumulus.WindAvgDPlaces},\"gustdecimals\":{cumulus.WindDPlaces},\"rununits\":\"{cumulus.Units.WindRunText}\"}},");
 			json.Append($"\"rain\":{{\"units\":\"{cumulus.Units.RainText}\",\"decimals\":{cumulus.RainDPlaces}}},");

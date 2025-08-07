@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4107\]][23] - 2025-08-05
+## [4.6.0 \[b4107\]][23] - 2025-08-07
 
 ### New
 
@@ -44,13 +44,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		- Rollover occurs when log files that have exceeded the rollover size (2MB)
 		- Rollover also occurs when you start Cumulus MX and there is an existing dated log file for today
 		- The timestamp on rollover files is the time of the last entry in the file, not the first
-	- The maximum log file size has been decreased to 2MB, but the number of archives retained increased to 15
+	- The maximum log file size has been decreased to 12MB, but the number of archives retained increased to 20
 	- You may notice the logged event times only increment every 16ms, this is an efficiency thing!
 - Logging of JSON responses from the Ecowitt Local HTTP API now compacts the output by removing line feeds and tabs from the text
 - Improvements to the dashboard Select-a-Period graphing
 	- This now uses the meteorological day you have defined, and the pm2.5/ pm10 values are now pulled from the log files rather than the time restricted recent data
-- Adds a default User-Agent header to all HTTP requests of "CumulusMX/4.6.0.4107" - or whatever the current version build is
-
+- Adds a default User-Agent header to all HTTP requests of "CumulusMX/4.6.0.4107" - or whatever the current version/build is
+- The dashboard charts now honour the time format setting in Settings -> Program Settings -> Culture Over-rides
+	- The new default for the charts is to display in the web browsers TZ settings format
 
 ### Fixed
 
