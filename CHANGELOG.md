@@ -20,6 +20,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - A new Alarm for Cumulus MX general errors, triggered every time something is written to the Recent Errors log, and cleared when the log is cleared
 - Adds Soil Moisture upload to Met Office WOW for stations that report the moisture level as a percentage
 - Snow values added to the websitedataT.json file
+- Cumulus MX now handles Windows shutdow/restart and console window closure gracefully
 
 ### Changed
 

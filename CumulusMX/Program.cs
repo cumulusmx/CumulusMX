@@ -96,22 +96,11 @@ namespace CumulusMX
 			// Add an exit handler
 			AppDomain.CurrentDomain.ProcessExit += ProcessExit;
 
-			// Now we need to catch the console Ctrl-C
-			Console.CancelKeyPress += (s, ev) =>
-			{
-				Console.WriteLine("Ctrl+C pressed", ConsoleColor.Red);
-				MxLogger.Warn("**** Ctrl+C pressed ****");
+			// Now we need to catch the console Ctrl-C and shutdown events
+			// Register the handler
+			SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
 
-				ev.Cancel = true;
-
-				if (!service)
-				{
-					Console.CursorVisible = true;
-				}
-
-				Program.ExitSystemTokenSource.Cancel();
-			};
-
+			// Register the routine for unhandled exceptions
 			AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
 
 #if DEBUG
@@ -614,6 +603,58 @@ namespace CumulusMX
 		}
 
 
+		// Ctrl-C and Windows Power events
+		[DllImport("Kernel32")]
+		static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate handler, bool add);
+
+		delegate bool ConsoleCtrlDelegate(CtrlTypes ctrlType);
+
+		enum CtrlTypes
+		{
+			CTRL_C_EVENT = 0,
+			CTRL_BREAK_EVENT = 1,
+			CTRL_CLOSE_EVENT = 2,
+			CTRL_LOGOFF_EVENT = 5,
+			CTRL_SHUTDOWN_EVENT = 6
+		}
+
+		static bool ConsoleCtrlCheck(CtrlTypes ctrlType)
+		{
+			if (ctrlType == CtrlTypes.CTRL_C_EVENT || ctrlType == CtrlTypes.CTRL_BREAK_EVENT)
+			{
+				// Handle Ctrl-C or Ctrl-Break
+				MxLogger.Warn("**** Ctrl-C or Ctrl-Break pressed ****");
+				Console.WriteLine("**** Ctrl-C or Ctrl-Break pressed ****", ConsoleColor.Red);
+			}
+			else if (ctrlType == CtrlTypes.CTRL_CLOSE_EVENT)
+			{
+				// Handle console close event
+				MxLogger.Warn("**** Console close event received ****");
+				Console.WriteLine("**** Console close event received ****", ConsoleColor.Red);
+			}
+			else if (ctrlType == CtrlTypes.CTRL_SHUTDOWN_EVENT)
+			{
+				// Handle shutdown or logoff
+				MxLogger.Warn("**** System Shutdown event received ****");
+				Console.WriteLine("**** System Shutdown event received ****", ConsoleColor.Red);
+			}
+
+			if (ctrlType != CtrlTypes.CTRL_LOGOFF_EVENT)
+			{
+				if (!service)
+				{
+					Console.CursorVisible = true;
+					ExitSystemTokenSource.Cancel();
+					Thread.Sleep(500);
+				}
+			}
+
+			return true;
+		}
+
+
+
+		// Windows 10 or later uses Modern Standby
 		private const int PBT_APMSUSPEND = 0x04;
 		private const int PBT_APMRESUMESUSPEND = 0x07;
 		private const int PBT_APMRESUMECRITICAL = 0x06;
@@ -669,6 +710,7 @@ namespace CumulusMX
 
 		[DllImport("Powrprof.dll", SetLastError = true)]
 		private static extern uint PowerUnregisterSuspendResumeNotification(IntPtr registrationHandle);
+
 
 		// Windows 7 power management
 		private static void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
