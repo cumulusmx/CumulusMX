@@ -96,9 +96,28 @@ namespace CumulusMX
 			// Add an exit handler
 			AppDomain.CurrentDomain.ProcessExit += ProcessExit;
 
-			// Now we need to catch the console Ctrl-C and shutdown events
-			// Register the handler
-			SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
+			// Now we need to catch the console Ctrl-C - CROSS PLATFORM
+			Console.CancelKeyPress += (s, ev) =>
+			{
+				Console.WriteLine("Ctrl+C pressed", ConsoleColor.Red);
+				MxLogger.Warn("**** Ctrl+C pressed ****");
+
+				ev.Cancel = true;
+
+				if (!service)
+				{
+					Console.CursorVisible = true;
+				}
+
+				Program.ExitSystemTokenSource.Cancel();
+			};
+
+			// Now we need to catch other WINDOWS ONLY console and shutdown events
+			if (RunningOnWindows)
+			{
+				// Register the handler
+				SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
+			}
 
 			// Register the routine for unhandled exceptions
 			AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
@@ -261,7 +280,7 @@ namespace CumulusMX
 			}
 
 			// detect system sleeping/hibernating - Windows only
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			if (RunningOnWindows)
 			{
 				// Windows 10 or later uses Modern Standby
 				if (Environment.OSVersion.Version.Major >= 10)
@@ -620,7 +639,7 @@ namespace CumulusMX
 
 		static bool ConsoleCtrlCheck(CtrlTypes ctrlType)
 		{
-			if (ctrlType == CtrlTypes.CTRL_C_EVENT || ctrlType == CtrlTypes.CTRL_BREAK_EVENT)
+			if (ctrlType == CtrlTypes.CTRL_BREAK_EVENT)
 			{
 				// Handle Ctrl-C or Ctrl-Break
 				MxLogger.Warn("**** Ctrl-C or Ctrl-Break pressed ****");
@@ -639,7 +658,8 @@ namespace CumulusMX
 				Console.WriteLine("**** System Shutdown event received ****", ConsoleColor.Red);
 			}
 
-			if (ctrlType != CtrlTypes.CTRL_LOGOFF_EVENT)
+			// Ignore log-off (it may be another user), and CTRL-C is handled cross platform
+			if (ctrlType != CtrlTypes.CTRL_LOGOFF_EVENT && ctrlType != CtrlTypes.CTRL_C_EVENT)
 			{
 				if (!service)
 				{
