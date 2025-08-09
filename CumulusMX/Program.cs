@@ -99,8 +99,8 @@ namespace CumulusMX
 			// Now we need to catch the console Ctrl-C - CROSS PLATFORM
 			Console.CancelKeyPress += (s, ev) =>
 			{
-				Console.WriteLine("Ctrl+C pressed", ConsoleColor.Red);
-				MxLogger.Warn("**** Ctrl+C pressed ****");
+				MxLogger.Warn("**** Ctrl-C pressed ****");
+				Console.WriteLine("**** Ctrl-C pressed ****", ConsoleColor.Red);
 
 				ev.Cancel = true;
 
@@ -453,7 +453,10 @@ namespace CumulusMX
 
 			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
 			svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Exit code = " + Environment.ExitCode);
+			svcTextListener.Flush();
 			MxLogger.Info("Cumulus exit code = " + Environment.ExitCode);
+			LogManager.Flush();
+			LogManager.Shutdown();
 
 			if (!service)
 			{
@@ -463,15 +466,7 @@ namespace CumulusMX
 			if (powerNotificationRegistrationHandle != 0)
 			{
 				// Unregister the power notification
-				var result = PowerUnregisterSuspendResumeNotification(powerNotificationRegistrationHandle);
-				if (result == 0)
-				{
-					MxLogger.Info("Unregistered for power mode changes on Windows");
-				}
-				else
-				{
-					MxLogger.Error("Failed to unregister for power mode changes, error code: " + result);
-				}
+				_ = PowerUnregisterSuspendResumeNotification(powerNotificationRegistrationHandle);
 			}
 		}
 
@@ -528,7 +523,7 @@ namespace CumulusMX
 				MaxArchiveFiles = configFile.runtimeOptions.configProperties.LogFileCount,
 				//Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss.fff}|${level}| ${message}",
 				Layout = "${longdate}|${level}| ${message}",
-				Footer = "------ LOG CLOSED ${longdate} ------"
+				Footer = "------ LOG ROLL OVER ${longdate} ------"
 			};
 
 			// Async wrapper
@@ -642,8 +637,8 @@ namespace CumulusMX
 			if (ctrlType == CtrlTypes.CTRL_BREAK_EVENT)
 			{
 				// Handle Ctrl-C or Ctrl-Break
-				MxLogger.Warn("**** Ctrl-C or Ctrl-Break pressed ****");
-				Console.WriteLine("**** Ctrl-C or Ctrl-Break pressed ****", ConsoleColor.Red);
+				MxLogger.Warn("**** Ctrl-Break pressed ****");
+				Console.WriteLine("**** Ctrl-Break pressed ****", ConsoleColor.Red);
 			}
 			else if (ctrlType == CtrlTypes.CTRL_CLOSE_EVENT)
 			{
