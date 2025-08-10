@@ -14,7 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-- Adds support the Ecowitt WH45/6 CO₂ sensor values on the HTTP API
+- Adds support the Ecowitt WH45/46 CO₂ sensor values on the HTTP API
 - Adds support for the Ecowitt WN20 battery status monitoring
 - Adds RSSI value (if available) to the Ecowitt sensor list logging
 - A new Alarm for Cumulus MX general errors, triggered every time something is written to the Recent Errors log, and cleared when the log is cleared
@@ -37,6 +37,27 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Previously they were "pseudo-UTC" to force the graphs to display the station times rather the viewers time zone
 	- Highcharts version used by the dashboard and default web site updated to v12.3.0 to support this
 	- The charts will now render correctly at DST changes
+	- **IMPORTANT**: You must upload the latest versions of the default web site pages and scripts files to support this change
+		- If you have your own versions of Highcharts scripts, then the relevant change is from:
+		```json
+		{
+			time: {
+				useUTC: true
+			}
+		}
+		```
+		To (substituting your stations time zone):
+		```json
+		{
+			time: {
+				useUTC: false,
+				timezone: 'Europe/London'
+			}
+		}
+		```
+
+		*Strictly, the 'useUTC: false' is not required as that setting has now been deprecated*
+		- You must also use a version of Highcharts later than v11.2.0 - Cumulus MX now uses v12.3.0
 - All logging to log files is now asynchronous. This means a change to log file naming scheme for the main MX diags
 	- The latest log file will always have just the current date as the main filename: eg. 20250726.log
 		- When The day changes a new log file will be created, this too will just have the current date as the filename
