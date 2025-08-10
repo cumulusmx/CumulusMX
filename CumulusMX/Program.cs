@@ -96,27 +96,31 @@ namespace CumulusMX
 			// Add an exit handler
 			AppDomain.CurrentDomain.ProcessExit += ProcessExit;
 
-			// Now we need to catch the console Ctrl-C - CROSS PLATFORM
-			Console.CancelKeyPress += (s, ev) =>
-			{
-				MxLogger.Warn("**** Ctrl-C pressed ****");
-				Console.WriteLine("**** Ctrl-C pressed ****", ConsoleColor.Red);
 
-				ev.Cancel = true;
-
-				if (!service)
-				{
-					Console.CursorVisible = true;
-				}
-
-				Program.ExitSystemTokenSource.Cancel();
-			};
-
-			// Now we need to catch other WINDOWS ONLY console and shutdown events
 			if (RunningOnWindows)
 			{
+				// Now we need to catch WINDOWS ONLY console and shutdown events
 				// Register the handler
 				SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
+			}
+			else
+			{
+				// On Linux, Ctrl-C is handled by the Console.CancelKeyPress event
+				// Now we need to catch the console Ctrl-C CROSS PLATFORM
+				Console.CancelKeyPress += (s, ev) =>
+				{
+					MxLogger.Warn("**** Ctrl-C pressed ****");
+					Console.WriteLine("**** Ctrl-C pressed ****", ConsoleColor.Red);
+
+					ev.Cancel = true;
+
+					if (!service)
+					{
+						Console.CursorVisible = true;
+					}
+
+					Program.ExitSystemTokenSource.Cancel();
+				};
 			}
 
 			// Register the routine for unhandled exceptions
@@ -634,6 +638,12 @@ namespace CumulusMX
 
 		static bool ConsoleCtrlCheck(CtrlTypes ctrlType)
 		{
+			if (ctrlType == CtrlTypes.CTRL_C_EVENT)
+			{
+				// Handle Ctrl-C
+				MxLogger.Warn("**** Ctrl-C pressed ****");
+				Console.WriteLine("**** Ctrl-C pressed ****", ConsoleColor.Red);
+			}
 			if (ctrlType == CtrlTypes.CTRL_BREAK_EVENT)
 			{
 				// Handle Ctrl-C or Ctrl-Break
@@ -653,18 +663,20 @@ namespace CumulusMX
 				Console.WriteLine("**** System Shutdown event received ****", ConsoleColor.Red);
 			}
 
-			// Ignore log-off (it may be another user), and CTRL-C is handled cross platform
-			if (ctrlType != CtrlTypes.CTRL_LOGOFF_EVENT && ctrlType != CtrlTypes.CTRL_C_EVENT)
+			// Ignore log-off (it may be another user)
+			if (ctrlType != CtrlTypes.CTRL_LOGOFF_EVENT)
 			{
 				if (!service)
 				{
 					Console.CursorVisible = true;
 					ExitSystemTokenSource.Cancel();
 					Thread.Sleep(500);
+					return true; // we have handled the event
 				}
 			}
 
-			return true;
+			// we have NOT handled the event
+			return false;
 		}
 
 
