@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,9 +42,169 @@ namespace CumulusMX
 		internal static JsonStation stationJson { get; set; }
 		internal static JsonStation stationJsonExtra { get; set; }
 		private static readonly char[] separator = [':'];
+		private static string htmlRootPath = Path.Combine(System.AppContext.BaseDirectory, "interface");
+
 
 
 		// Get/Post Edit data
+
+		public class DashboardController : WebApiController
+		{
+			[Route(HttpVerbs.Get, "/")]
+			public async Task GetDashboardIndex()
+			{
+				await GetDashboardData("index.html");
+			}
+
+			[Route(HttpVerbs.Get, "/{req}")]
+			public async Task GetDashboardData(string req)
+			{
+				try
+				{
+					var file = Path.Combine(htmlRootPath, req ?? "index.html");
+
+					if (File.Exists(file))
+					{
+						// exception for the icon file
+						if (req == "favicon.ico")
+						{
+							Response.ContentType = "image/x-icon";
+							using var reader = File.OpenRead(file);
+							await reader.CopyToAsync(HttpContext.Response.OutputStream);
+						}
+						else
+						{
+
+							Response.ContentType = "text/html";
+
+							var lang = HttpContext.Request.QueryString["lang"] ?? DetectPreferredLanguage(HttpContext.Request);
+
+							var manager = new DashboardLocalisationManager();
+							await manager.LoadLocalization(lang);
+
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+						}
+					}
+					else
+					{
+						Response.StatusCode = 404;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"api/dashboard: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+		}
+
+		public class ScriptController : WebApiController
+		{
+			static string[] bypassList = [
+				"airlink.js",
+				"extrawebfiles.js",
+				"gaugefeed.js",
+				"noaamonth.js",
+				"noaayear.js",
+				"raintodayeditor.js",
+				"records.js",
+				"thisperiod.js",
+				"todayyest.js"
+			];
+
+			[Route(HttpVerbs.Get, "/js/{req}")]
+			public async Task GetJavaScriptData(string req)
+			{
+				Response.ContentType = "application/javascript";
+
+				try
+				{
+					var file = Path.Combine(System.AppContext.BaseDirectory, "interface", "js", req);
+
+					if (File.Exists(file))
+					{
+
+						// bypass list for scripts that do not need processing
+						if (bypassList.Contains(req))
+						{
+							using var reader = File.OpenRead(file);
+							await reader.CopyToAsync(HttpContext.Response.OutputStream);
+						}
+						else
+						{
+							var lang = DetectPreferredLanguage(HttpContext.Request);
+
+							var manager = new DashboardLocalisationManager();
+							await manager.LoadLocalization(lang);
+
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+						}
+					}
+					else
+					{
+						Response.StatusCode = 404;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"api/dashboard: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+		}
+
+		public class JsonController : WebApiController
+		{
+			static string[] bypassList = [
+				"CustomLogsDailySchema.json",
+				"CustomLogsIntvlSchema.json",
+				"HttpFilesSchema.json",
+				"QueryDayFileSchema.json",
+				"UserAlarmsSchema.json"
+			];
+
+			[Route(HttpVerbs.Get, "/json/{req}")]
+			public async Task GetJavaScriptData(string req)
+			{
+				Response.ContentType = "application/json";
+
+				try
+				{
+					var file = Path.Combine(System.AppContext.BaseDirectory, "interface", "json", req);
+
+					if (File.Exists(file))
+					{
+
+						// bypass list for scripts that do not need processing
+						if (bypassList.Contains(req))
+						{
+							using var reader = File.OpenRead(file);
+							await reader.CopyToAsync(HttpContext.Response.OutputStream);
+						}
+						else
+						{
+							var lang = DetectPreferredLanguage(HttpContext.Request);
+
+							var manager = new DashboardLocalisationManager();
+							await manager.LoadJsonLocalization(lang, req);
+
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+						}
+					}
+					else
+					{
+						Response.StatusCode = 404;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"api/dashboard: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+		}
+
+
 		public class EditController : WebApiController
 		{
 			[Route(HttpVerbs.Get, "/edit/{req}")]
@@ -1841,6 +2002,39 @@ namespace CumulusMX
 			}
 
 			return true;
+		}
+
+		private static string DetectPreferredLanguage(IHttpRequest request)
+		{
+			var header = request.Headers["Accept-Language"];
+			if (string.IsNullOrWhiteSpace(header))
+			{
+				//default to either the process locale, or if all else fails English
+				var shortLang = CultureInfo.CurrentCulture.Name.Length >= 2 ? CultureInfo.CurrentCulture.Name.Substring(0, 2) : CultureInfo.CurrentCulture.Name;
+				if (Directory.Exists(Path.Combine(htmlRootPath, "locales")) && File.Exists(Path.Combine(htmlRootPath, "locales", $"{shortLang}.json")))
+				{
+					return shortLang;
+				}
+				else
+				{
+					return "en";
+				}
+			}
+
+			var languages = header.Split(',')
+				.Select(part => part.Split(';')[0].Trim().ToLowerInvariant())
+				.Where(lang => !string.IsNullOrEmpty(lang))
+				.ToList();
+
+			foreach (var lang in languages)
+			{
+				// Normalize to two-letter code
+				var shortLang = lang.Length >= 2 ? lang.Substring(0, 2) : lang;
+				if (Directory.Exists(Path.Combine(htmlRootPath, "locales")) && File.Exists(Path.Combine(htmlRootPath, "locales", $"{shortLang}.json")))
+					return shortLang;
+			}
+
+			return "en"; // fallback
 		}
 	}
 }

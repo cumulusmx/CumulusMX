@@ -1224,9 +1224,10 @@ namespace CumulusMX
 			{
 				station.CO2_pm2p5 = data.pm25_aqi_combo.pm25.value;
 				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
-				if (station.CO2_pm2p5_24h != null)
+				if (data.pm25_aqi_combo.AqiAvg24h != null)
 				{
-					station.CO2_pm2p5_24h = data.pm25_aqi_combo.AqiAvg24h.value;
+					// kludge, convert US EPA to average PM2.5
+					station.CO2_pm2p5_24h = AirQualityIndices.US_EPApm2p5toPm(data.pm25_aqi_combo.AqiAvg24h.value);
 					station.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5_24h);
 				}
 			}
@@ -1235,9 +1236,10 @@ namespace CumulusMX
 			{
 				station.CO2_pm10 = data.pm10_aqi_combo.pm10.value;
 				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
-				if (station.CO2_pm10_24h != null)
+				if (data.pm10_aqi_combo.AqiAvg24h != null)
 				{
-					station.CO2_pm10_24h = data.pm10_aqi_combo.AqiAvg24h.value;
+					// kludge, convert US EPA to average PM10
+					station.CO2_pm10_24h = AirQualityIndices.US_EPApm10toPm(data.pm10_aqi_combo.AqiAvg24h.value);
 					station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10_24h);
 				}
 			}

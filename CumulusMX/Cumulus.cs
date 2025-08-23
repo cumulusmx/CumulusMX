@@ -1380,7 +1380,7 @@ namespace CumulusMX
 			WebServer httpServer = new WebServer(o => o
 					.WithUrlPrefix($"http://*:{HTTPport}/")
 					.WithMode(HttpListenerMode.EmbedIO)
-			//		.WithCertificate(cert)
+				//		.WithCertificate(cert)
 				)
 				.WithWebApi("/api/", m => m
 					.WithController<Api.EditController>()
@@ -1399,8 +1399,28 @@ namespace CumulusMX
 					.WithController<Api.HttpStation>()
 				)
 				.WithModule(WebSock)
-				.WithStaticFolder("/", htmlRootPath, true, m => m
+				.WithStaticFolder("/css/", Path.Combine(htmlRootPath, "css"), true, m => m
 					.WithoutContentCaching()
+				)
+				.WithStaticFolder("/fonts/", Path.Combine(htmlRootPath, "fonts"), true, m => m
+					.WithoutContentCaching()
+				)
+				.WithStaticFolder("/img/", Path.Combine(htmlRootPath, "img"), true, m => m
+					.WithoutContentCaching()
+				)
+				.WithStaticFolder("/lib/", Path.Combine(htmlRootPath, "lib"), true, m => m
+					.WithoutContentCaching()
+				)
+				.WithStaticFolder("/sounds/", Path.Combine(htmlRootPath, "sounds"), true, m => m
+					.WithoutContentCaching()
+				)
+				.WithStaticFolder("/ai2/", Path.Combine(htmlRootPath, "ai2"), true, m => m
+					.WithoutContentCaching()
+				)
+				.WithWebApi("/", m => m
+					.WithController<Api.DashboardController>()
+					.WithController<Api.ScriptController>()
+					.WithController<Api.JsonController>()
 				);
 
 			//httpServer.Listener.AddPrefix($"https://*:{HTTPport + 1000}/")
@@ -9997,7 +10017,7 @@ namespace CumulusMX
 
 							// The config files only need uploading once per change
 							// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-							if (i == 0 || i == 1 || i == 8 || i == 9 || i == 11)
+							if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
 							{
 								GraphDataFiles[i].CopyRequired = false;
 							}
@@ -10019,7 +10039,7 @@ namespace CumulusMX
 
 							// The config files only need uploading once per change
 							// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-							if (i == 0 || i == 1 || i == 8 || i == 9 || i == 11)
+							if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
 							{
 								GraphDataFiles[i].CopyRequired = false;
 							}
@@ -10684,8 +10704,8 @@ namespace CumulusMX
 										UploadStream(conn, remotefile, dataStream);
 									}
 
-									// Uploaded OK, reset the upload required flag for the static files
-									if (i == 0 || i == 1)
+									// Uploaded OK, reset the upload required flag for the static and daily files
+									if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
 									{
 										GraphDataFiles[i].FtpRequired = false;
 									}
@@ -11019,8 +11039,8 @@ namespace CumulusMX
 										UploadStream(conn, remotefile, dataStream);
 									}
 
-									// Uploaded OK, reset the upload required flag
-									if (i == 0 || i == 1)
+									// Uploaded OK, reset the upload required flag for files that only need a daily upload
+									if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
 									{
 										GraphDataFiles[i].FtpRequired = false;
 									}
@@ -11423,7 +11443,6 @@ namespace CumulusMX
 				LogDebugMessage("PHP[Int]: Graph files upload starting");
 
 				var oldest = DateTime.Now.AddHours(-GraphHours);
-				// Munge date/time into UTC becuase we use local time as UTC for highCharts consistency across TZs
 				var oldestTs = oldest.ToUnixTimeMs().ToString();
 				var configFiles = new string[] { "graphconfig.json", "availabledata.json", "dailyrain.json", "dailytemp.json", "sunhours.json" };
 
@@ -11461,7 +11480,9 @@ namespace CumulusMX
 							var remotefile = item.RemoteFileName;
 							LogDebugMessage($"PHP[Int]: Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full")}): {item.LocalFileName}");
 
-							if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, -1, false, true))
+							var lastTS = item.Incremental ? item.LastDataTime.ToUnixTimeMs().ToString() : oldestTs.ToString();
+
+							if (await UploadString(phpUploadHttpClient, item.Incremental, lastTS, json, remotefile, -1, false, true))
 							{
 								// The config files only need uploading once per change
 								// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
@@ -15511,4 +15532,30 @@ namespace CumulusMX
 		public bool draft { get; set; }
 		public bool prerelease { get; set; }
 	}
+
+	public enum GraphFileIdx
+	{
+		CONFIG,         // 0
+		AVAILABLE,      // 1
+		TEMP,           // 2
+		PRESS,          // 3
+		WIND,           // 4
+		WINDDIR,        // 5
+		HUM,            // 6
+		RAIN,           // 7
+		DAILYRAIN,      // 8
+		DAILYTEMP,      // 9
+		SOLAR,          // 10
+		SUNHOURS,       // 11
+		AIRQUAL,        // 12
+		EXTRATEMP,      // 13
+		EXTRAHUM,       // 14
+		EXTRADEW,       // 15
+		SOILTEMP,       // 16
+		SOILMOIST,      // 17
+		USERTEMP,       // 18
+		CO2,            // 19
+		LEAFWET,       // 20
+	}
+
 }

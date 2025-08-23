@@ -523,5 +523,142 @@ namespace CumulusMX
 			if (val > max) return 1;
 			return (val - min) / (max - min);
 		}
+
+	// **** Kludges follow! ****
+	// reversing US EPA to PM2.5 and PM10
+	public static int US_EPApm2p5toPm(double val)
+	{
+		double retVal;
+
+			if (val >= 500)
+				return 550;
+
+			if (val >= 401)
+			{
+				//Clow = 350.5
+				//Chigh = 500.4
+				//Ilow = 401
+				//Ihigh = 500
+				retVal = 350.4 + (500.4 - 350.4) * Interpolate(401, 500, val);
+			}
+			else if (val >= 301)
+			{
+				//Clow = 250.5
+				//Chigh = 350.4
+				//Ilow = 301
+				//Ihigh = 400
+				retVal = 250.5 + (350.4 - 250.5) * Interpolate(301, 400, val);
+			}
+			else if (val >= 201)
+			{
+				//Clow = 150.5
+				//Chigh = 250.4
+				//Ilow = 201
+				//Ihigh = 300
+				retVal = 150.5 + (250.4 - 150.5) * Interpolate(201, 300, val);
+			}
+			else if (val >= 151)
+			{
+				//Clow = 55.5
+				//Chigh = 150.4
+				//Ilow = 151
+				//Ihigh = 200
+				retVal = 55.5 + (150.4 - 55.5) * Interpolate(151, 200, val);
+			}
+			else if (val >= 101)
+			{
+				//Clow = 35.5
+				//Chigh = 55.4
+				//Ilow = 101
+				//Ihigh = 150
+				retVal = 35.5 + (55.4 - 35.5) * Interpolate(101, 150, val);
+			}
+			else if (val >= 51)
+			{
+				//Clow = 9.1
+				//Chigh = 35.4
+				//Ilow = 51
+				//Ihigh = 100
+				retVal = 9.1  + (35.4 - 9.1) * Interpolate(51, 100, val);
+			}
+			else
+			{
+				//Clow = 0
+				//Chigh = 9
+				//Ilow = 0
+				//Ihigh = 50
+				retVal = Interpolate(0, 50, val) * 9;
+			}
+			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow
+			return (int) Math.Round(retVal);
+		}
+
+		public static int US_EPApm10toPm(double val)
+		{
+			double retVal;
+
+			if (val >= 500)
+				return 650;
+
+			if (val >= 401)
+			{
+				//Clow = 505
+				//Chigh = 604
+				//Ilow = 401
+				//Ihigh = 500
+				retVal = 505 + (604 - 505) * Interpolate(401, 500, val);
+			}
+			else if (val >= 301)
+			{
+				//Clow = 425
+				//Chigh = 504
+				//Ilow = 301
+				//Ihigh = 400
+				retVal = 425 + (504 - 425) * Interpolate(301, 400, val);
+			}
+			else if (val >= 201)
+			{
+				//Clow = 355
+				//Chigh = 424
+				//Ilow = 201
+				//Ihigh = 300
+				retVal = 355 + (424 - 355) * Interpolate(201, 300, val);
+			}
+			else if (val >= 151)
+			{
+				//Clow = 255
+				//Chigh = 354
+				//Ilow = 151
+				//Ihigh = 200
+				retVal = 255 + (354 - 255) * Interpolate(151, 200, val);
+			}
+			else if (val >= 101)
+			{
+				//Clow = 155
+				//Chigh = 254
+				//Ilow = 101
+				//Ihigh = 150
+				retVal = 155 + (254 - 155) * Interpolate(101, 150, val) * 50;
+			}
+			else if (val >= 51)
+			{
+				//Clow = 55
+				//Chigh = 154
+				//Ilow = 51
+				//Ihigh = 100
+				retVal = 55 + (154 - 55) * Interpolate(51, 100, val);
+			}
+			else
+			{
+				//Clow = 0
+				//Chigh = 54
+				//Ilow = 0
+				//Ihigh = 50
+				retVal = Interpolate(0, 50, val) * 54;
+			}
+			//return (Ihigh - Ilow) / (Chigh - Clow) * (pmVal - Clow) + Ilow
+			return (int) Math.Round(retVal);
+		}
+
 	}
 }

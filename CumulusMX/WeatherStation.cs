@@ -2271,7 +2271,7 @@ namespace CumulusMX
 			// Chart data for Highcharts graphs
 			string json;
 			// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-			int[] createReqOnce = [0, 1, 8, 9, 11];
+			GraphFileIdx[] createReqOnce = [GraphFileIdx.CONFIG, GraphFileIdx.AVAILABLE, GraphFileIdx.DAILYRAIN, GraphFileIdx.DAILYTEMP, GraphFileIdx.SUNHOURS];
 
 			for (var i = 0; i < cumulus.GraphDataFiles.Length; i++)
 			{
@@ -2292,9 +2292,9 @@ namespace CumulusMX
 							file.Close();
 						}
 
-						// The config files only need creating once per change
+						// The config and daily files only need creating once per change
 						// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-						if (createReqOnce.Contains(i))
+						if (createReqOnce.Contains((GraphFileIdx) i))
 						{
 							cumulus.GraphDataFiles[i].CreateRequired = false;
 						}
@@ -2373,7 +2373,7 @@ namespace CumulusMX
 			// daily rain = 8
 			// daily temp = 9
 			// sun hours = 11
-			var eod = new int[] { 8, 9, 11 };
+			var eod = new int[] { (int) GraphFileIdx.DAILYRAIN, (int) GraphFileIdx.DAILYTEMP, (int) GraphFileIdx.SUNHOURS };
 
 			foreach (var i in eod)
 			{
@@ -2427,7 +2427,7 @@ namespace CumulusMX
 			DateTime dateFrom;
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[10].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.SOLAR].LastDataTime;
 			}
 			else
 			{
@@ -2497,7 +2497,7 @@ namespace CumulusMX
 			DateTime dateFrom;
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[7].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.RAIN].LastDataTime;
 			}
 			else
 			{
@@ -2538,7 +2538,7 @@ namespace CumulusMX
 			DateTime dateFrom;
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[6].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.HUM].LastDataTime;
 			}
 			else
 			{
@@ -2597,7 +2597,7 @@ namespace CumulusMX
 			DateTime dateFrom;
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[5].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.WINDDIR].LastDataTime;
 			}
 			else
 			{
@@ -2638,7 +2638,7 @@ namespace CumulusMX
 			DateTime dateFrom;
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[4].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.WIND].LastDataTime;
 			}
 			else
 			{
@@ -2676,7 +2676,7 @@ namespace CumulusMX
 			DateTime dateFrom;
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[3].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.PRESS].LastDataTime;
 			}
 			else
 			{
@@ -2733,7 +2733,7 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[2].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.TEMP].LastDataTime;
 			}
 			else
 			{
@@ -2875,7 +2875,7 @@ namespace CumulusMX
 
 				if (incremental)
 				{
-					dateFrom = start ?? cumulus.GraphDataFiles[12].LastDataTime;
+					dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.AIRQUAL].LastDataTime;
 				}
 				else if (start.HasValue && end.HasValue)
 				{
@@ -2903,7 +2903,7 @@ namespace CumulusMX
 							cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.EcowittCO2)
 						{
 							append = true;
-							val = data[i].Pm10 < -0.5 ? "null" : data[i].Pm10.Value.ToString("F1", InvC);
+							val = (data[i].Pm10 ?? -1) < -0.5 ? "null" : data[i].Pm10.Value.ToString("F1", InvC);
 							sb10.Append($"[{jsTime},{val}],");
 						}
 					}
@@ -2968,7 +2968,7 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[13].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRATEMP].LastDataTime;
 				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			}
 			else if (start.HasValue && end.HasValue)
@@ -3146,7 +3146,7 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[15].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRADEW].LastDataTime;
 				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			}
 			else if (start.HasValue && end.HasValue)
@@ -3321,7 +3321,7 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[14].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRAHUM].LastDataTime;
 				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			}
 			else if (start.HasValue && end.HasValue)
@@ -3496,7 +3496,7 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[16].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.SOILTEMP].LastDataTime;
 				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			}
 			else if (start.HasValue && end.HasValue)
@@ -3671,7 +3671,7 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[17].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.SOILMOIST].LastDataTime;
 				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			}
 			else if (start.HasValue && end.HasValue)
@@ -3846,7 +3846,7 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[20].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.LEAFWET].LastDataTime;
 				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			}
 			else if (start.HasValue && end.HasValue)
@@ -4021,7 +4021,7 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[18].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.USERTEMP].LastDataTime;
 				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			}
 			else if (start.HasValue && end.HasValue)
@@ -4190,7 +4190,6 @@ namespace CumulusMX
 			var sbTemp = new StringBuilder($"\"Temperature\":[");
 			var sbHum = new StringBuilder($"\"Humidity\":[");
 
-
 			var finished = false;
 			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
@@ -4198,7 +4197,7 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[18].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.CO2].LastDataTime;
 				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			}
 			else if (start.HasValue && end.HasValue)

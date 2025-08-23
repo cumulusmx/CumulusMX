@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4108\]][23] - 2025-08-10
+## [4.6.0 \[b4109\]][23] - 2025-08-24
 
 ### New
 
@@ -20,7 +20,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - A new Alarm for Cumulus MX general errors, triggered every time something is written to the Recent Errors log, and cleared when the log is cleared
 - Adds Soil Moisture upload to Met Office WOW for stations that report the moisture level as a percentage
 - Snow values added to the websitedataT.json file
-- Cumulus MX now handles Windows shutdow/restart and console window closure gracefully
+- Cumulus MX now handles Windows shutdown/restart and console window closure gracefully
+- **EARLY DAYS** support for Cumulus MX general localisation of the Dashboard interface. The implementation details may change depending on feedback or tuning etc.
+	- AI2 is excluded for now
+	- The HTML and scripts strings are in `/locales/dashboard/`
+		- There is one strings file per language
+	- The settings strings are in `/locales/dashboard/json/{language}`
+		- There is a folder per language, and a language strings files for each settings file
+	- For now, the language detection is purely on the language setting in your browser. MX iterates down your preferred language list until a match is found or it defaults to English
 
 ### Changed
 
@@ -38,7 +45,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Highcharts version used by the dashboard and default web site updated to v12.3.0 to support this
 	- The charts will now render correctly at DST changes
 	- **IMPORTANT**: You must upload the latest versions of the default web site pages and scripts files to support this change
-		- If you have your own versions of Highcharts scripts, then the relevant change is from:
+	- If you have your own versions of Highcharts scripts, then the relevant change is from:
 		```json
 		{
 			time: {
@@ -57,7 +64,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		```
 
 		*Strictly, the 'useUTC: false' is not required as that setting has now been deprecated*
-		- You must also use a version of Highcharts later than v11.2.0 - Cumulus MX now uses v12.3.0
+	- You must also use a version of Highcharts later than v11.2.0 - Cumulus MX now uses v12.3.0
 - All logging to log files is now asynchronous. This means a change to log file naming scheme for the main MX diags
 	- The latest log file will always have just the current date as the main filename: eg. 20250726.log
 		- When The day changes a new log file will be created, this too will just have the current date as the filename
@@ -84,6 +91,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Handling of cached MySQL statements that are in error because of bad syntax or reference errors
 - An error in the Ecowitt SD card log file handling that removed the corresponding Allsensors log file from the processing list if the primary file did not contain any dates in the required range
 - Ecowitt historic catch-up from SD card was not setting the DataDateTime variable
+- Ecowitt Cloud station decoding of CO₂ 24-hour PM values
+- Ecowitt Cloud station 24-hour CO₂ PM values are now "kludged" from the 24-hour AQI values supplied by Ecowitt
 
 ### Package Updates
 
@@ -978,4 +987,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [20]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4103
 [21]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4104
 [22]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4105
-[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4108
+[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4109

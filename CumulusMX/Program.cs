@@ -320,31 +320,41 @@ namespace CumulusMX
 			}
 
 			// Interactive seems to be always true on Linux :(
-			if (RunningOnWindows && !Environment.UserInteractive)
-			{
-				// Windows and not interactive - must be a service
-				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Windows service");
-				svcTextListener.Flush();
-				MxLogger.Info("We are running as a Windows service");
-				service = true;
-				// Launch as a Windows Service
-				ServiceBase.Run(new CumulusService());
+			if (RunningOnWindows)
+			{   if (Environment.UserInteractive)
+				{
+					// Windows interactive
+					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running interactively");
+					svcTextListener.Flush();
+					MxLogger.Info("We are running interactively");
+					RunAsAConsole(Httpport, debug);
+				}
+				else
+				{
+					// Windows and not interactive - must be a service
+					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Windows service");
+					svcTextListener.Flush();
+					MxLogger.Info("We are running as a Windows service");
+					service = true;
+					// Launch as a Windows Service
+					ServiceBase.Run(new CumulusService());
+				}
 			}
 			else
 			{
-				if (Environment.UserInteractive || (!RunningOnWindows && !service))
-				{
-					// Windows interactive or Linux and no service flag
-					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running interactively");
-					MxLogger.Info("We are running interactively");
-				}
-				else
+				// Must be Linux/macOS
+				if (service)
 				{
 					// Must be a Linux service
 					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running as a Linux service");
 					MxLogger.Info("We are running as a Linux service");
-					service = true;
 				}
+				else
+				{
+					svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Running interactively");
+					MxLogger.Info("We are running interactively");
+				}
+
 				svcTextListener.Flush();
 				// Launch normally - Linux Service runs like this too
 				RunAsAConsole(Httpport, debug);
