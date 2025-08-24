@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4109\]][23] - 2025-08-24
+## [4.6.0 \[b4110\]][23] - 2025-08-24
 
 ### New
 
