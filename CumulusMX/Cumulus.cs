@@ -955,6 +955,264 @@ namespace CumulusMX
 			ReadIniFile();
 			ReadConfigFile();
 
+			StdWebFiles =
+			[
+				new()
+				{
+					TemplateFileName = WebPath + "websitedataT.json",
+					LocalPath = WebPath,
+					LocalFileName = "websitedata.json",
+					RemoteFileName = "websitedata.json"
+				},
+				new()
+				{
+					LocalPath = "",
+					LocalFileName = "wxnow.txt",
+					RemoteFileName = "wxnow.txt"
+				}
+			];
+
+			RealtimeFiles =
+			[
+				new()
+				{
+					LocalFileName = "realtime.txt",
+					RemoteFileName = "realtime.txt"
+				},
+				new()
+				{
+					TemplateFileName = WebPath + "realtimegaugesT.txt",
+					LocalPath = WebPath,
+					LocalFileName = "realtimegauges.txt",
+					RemoteFileName = "realtimegauges.txt"
+				}
+			];
+
+			GraphDataFiles =
+			[
+				new()       // 0
+				{
+					LocalPath = WebPath,
+					LocalFileName = "graphconfig.json",
+					RemoteFileName = "graphconfig.json"
+				},
+				new()       // 1
+				{
+					LocalPath = WebPath,
+					LocalFileName = "availabledata.json",
+					RemoteFileName = "availabledata.json"
+				},
+				new()       // 2
+				{
+					LocalPath = WebPath,
+					LocalFileName = "tempdata.json",
+					RemoteFileName = "tempdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 3
+				{
+					LocalPath = WebPath,
+					LocalFileName = "pressdata.json",
+					RemoteFileName = "pressdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 4
+				{
+					LocalPath = WebPath,
+					LocalFileName = "winddata.json",
+					RemoteFileName = "winddata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 5
+				{
+					LocalPath = WebPath,
+					LocalFileName = "wdirdata.json",
+					RemoteFileName = "wdirdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 6
+				{
+					LocalPath = WebPath,
+					LocalFileName = "humdata.json",
+					RemoteFileName = "humdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 7
+				{
+					LocalPath = WebPath,
+					LocalFileName = "raindata.json",
+					RemoteFileName = "raindata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 8
+				{
+					LocalPath = WebPath,
+					LocalFileName = "dailyrain.json",
+					RemoteFileName = "dailyrain.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 9
+				{
+					LocalPath = WebPath,
+					LocalFileName = "dailytemp.json",
+					RemoteFileName = "dailytemp.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 10
+				{
+					LocalPath = WebPath,
+					LocalFileName = "solardata.json",
+					RemoteFileName = "solardata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 11
+				{
+					LocalPath = WebPath,
+					LocalFileName = "sunhours.json",
+					RemoteFileName = "sunhours.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 12
+				{
+					LocalPath = WebPath,
+					LocalFileName = "airquality.json",
+					RemoteFileName = "airquality.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 13
+				{
+					LocalPath = WebPath,
+					LocalFileName = "extratempdata.json",
+					RemoteFileName = "extratempdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 14
+				{
+					LocalPath = WebPath,
+					LocalFileName = "extrahumdata.json",
+					RemoteFileName = "extrahumdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 15
+				{
+					LocalPath = WebPath,
+					LocalFileName = "extradewdata.json",
+					RemoteFileName = "extradewdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 16
+				{
+					LocalPath = WebPath,
+					LocalFileName = "soiltempdata.json",
+					RemoteFileName = "soiltempdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 17
+				{
+					LocalPath = WebPath,
+					LocalFileName = "soilmoistdata.json",
+					RemoteFileName = "soilmoistdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 18
+				{
+					LocalPath = WebPath,
+					LocalFileName = "usertempdata.json",
+					RemoteFileName = "usertempdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()       // 19
+				{
+					LocalPath = WebPath,
+					LocalFileName = "co2sensordata.json",
+					RemoteFileName = "co2sensordata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()     // 20
+				{
+					LocalPath = WebPath,
+					LocalFileName = "leafwetdata.json",
+					RemoteFileName = "leafwetdata.json",
+					LastDataTime = RecordsBeganDateTime
+				}
+			];
+
+			GraphDataEodFiles =
+			[
+				new()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailytempdata.json",
+					RemoteFileName = "alldailytempdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailypressdata.json",
+					RemoteFileName = "alldailypressdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailywinddata.json",
+					RemoteFileName = "alldailywinddata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailyhumdata.json",
+					RemoteFileName = "alldailyhumdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailyraindata.json",
+					RemoteFileName = "alldailyraindata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailysolardata.json",
+					RemoteFileName = "alldailysolardata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailydegdaydata.json",
+					RemoteFileName = "alldailydegdaydata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alltempsumdata.json",
+					RemoteFileName = "alltempsumdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "allchillhrsdata.json",
+					RemoteFileName = "allchillhrsdata.json",
+					LastDataTime = RecordsBeganDateTime
+				},
+				new()
+				{
+					LocalPath = WebPath,
+					LocalFileName = "alldailysnowdata.json",
+					RemoteFileName = "alldailysnowdata.json",
+					LastDataTime = RecordsBeganDateTime
+				}
+			];
+
+
+
 			// Do we prevent more than one copy of CumulusMX running?
 			CheckForSingleInstance(System.OperatingSystem.IsWindows());
 
@@ -3028,7 +3286,7 @@ namespace CumulusMX
 
 						if (linesAdded == 0)
 						{
-							LogDebugMessage($"RealtimePHP[{cycle}]: Extra file: {uploadfile} - No incremental data found");
+							LogDebugMessage($"RealtimePHP[{cycle}]: Extra file: {uploadfile} - No incremental data found, skipping this upload");
 							continue;
 						}
 					}
@@ -3187,7 +3445,7 @@ namespace CumulusMX
 
 						if (linesAdded == 0)
 						{
-							LogDebugMessage($"Realtime[{cycle}]: Extra file: {uploadfile} - No incremental data found");
+							LogDebugMessage($"Realtime[{cycle}]: Extra file: {uploadfile} - No incremental data found, skipping this upload");
 							continue;
 						}
 
@@ -10605,7 +10863,7 @@ namespace CumulusMX
 
 									if (linesAdded == 0)
 									{
-										LogDebugMessage($"SFTP[Int]: Extra web file: {uploadfile} - No incremental data found");
+										LogDebugMessage($"SFTP[Int]: Extra web file: {uploadfile} - No incremental data found, skipping this upload");
 										continue;
 									}
 
@@ -10939,7 +11197,7 @@ namespace CumulusMX
 
 									if (linesAdded == 0)
 									{
-										LogDebugMessage($"FTP[Int]: Extra web file: {uploadfile} - No incremental data found");
+										LogDebugMessage($"FTP[Int]: Extra web file: {uploadfile} - No incremental data found, skipping this upload");
 										continue;
 									}
 
@@ -11288,7 +11546,7 @@ namespace CumulusMX
 
 						if (linesAdded == 0)
 						{
-							LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} - No incremental data found");
+							LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} - No incremental data found, skipping this upload");
 							continue;
 						}
 					}

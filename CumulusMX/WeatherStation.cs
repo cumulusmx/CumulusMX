@@ -2434,8 +2434,11 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+
+			// no incremental data, send null to supress the upload
+			if (incremental && data.Count == 0)
+				return null;
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2453,7 +2456,6 @@ namespace CumulusMX
 					sbMax.Append($"[{jsTime},{data[i].SolarMax}],");
 				}
 			}
-
 
 			if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 			{
@@ -2507,6 +2509,10 @@ namespace CumulusMX
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
+			// no incremental data, send null to supress the upload
+			if (incremental && data.Count == 0)
+				return null;
+
 			for (var i = 0; i < data.Count; i++)
 			{
 				var jsTime = data[i].Timestamp.ToUnixTimeMs();
@@ -2547,6 +2553,10 @@ namespace CumulusMX
 
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+
+			// no incremental data, send null to supress the upload
+			if (incremental && data.Count == 0)
+				return null;
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2607,6 +2617,10 @@ namespace CumulusMX
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
+			// no incremental data, send null to supress the upload
+			if (incremental && data.Count == 0)
+				return null;
+
 			for (var i = 0; i < data.Count; i++)
 			{
 				var jsTime = data[i].Timestamp.ToUnixTimeMs();
@@ -2647,6 +2661,10 @@ namespace CumulusMX
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
+			// no incremental data, send null to supress the upload
+			if (incremental && data.Count == 0)
+				return null;
+
 			for (var i = 0; i < data.Count; i++)
 			{
 				var jsTime = data[i].Timestamp.ToUnixTimeMs();
@@ -2685,6 +2703,10 @@ namespace CumulusMX
 
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+
+			// no incremental data, send null to supress the upload
+			if (incremental && data.Count == 0)
+				return null;
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2741,6 +2763,10 @@ namespace CumulusMX
 			}
 
 			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+
+			// no incremental data, send null to supress the upload
+			if (incremental && data.Count == 0)
+				return null;
 
 			for (var i = 0; i < data.Count; i++)
 			{
@@ -2888,6 +2914,10 @@ namespace CumulusMX
 
 				var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
 
+				// no incremental data, send null to supress the upload
+				if (incremental && data.Count == 0)
+					return null;
+
 				for (var i = 0; i < data.Count; i++)
 				{
 					var jsTime = data[i].Timestamp.ToUnixTimeMs();
@@ -2962,6 +2992,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
+			var dataAdded = false;
 			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			DateTime dateTo;
@@ -3053,6 +3084,7 @@ namespace CumulusMX
 									}
 
 									// entry is from required period
+									dataAdded = true;
 									var temp = 0.0;
 									var jsTime = entrydate.ToUnixTimeMs();
 
@@ -3103,6 +3135,10 @@ namespace CumulusMX
 				}
 			}
 
+			// no incremental data, send null to supress the upload
+			if (incremental && !dataAdded)
+				return null;
+
 			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(i, local))
@@ -3140,6 +3176,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
+			var dataAdded = false;
 			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			DateTime dateTo;
@@ -3231,6 +3268,7 @@ namespace CumulusMX
 									}
 
 									// entry is from required period
+									dataAdded = true;
 									var temp = 0.0;
 									var jsTime = entrydate.ToUnixTimeMs();
 
@@ -3278,6 +3316,10 @@ namespace CumulusMX
 				}
 			}
 
+			// no incremental data, send null to supress the upload
+			if (incremental && !dataAdded)
+				return null;
+
 			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(i, local))
@@ -3315,6 +3357,7 @@ namespace CumulusMX
 
 
 			var finished = false;
+			var dataAdded = false;
 			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			DateTime dateTo;
@@ -3406,6 +3449,7 @@ namespace CumulusMX
 									}
 
 									// entry is from required period
+									dataAdded = true;
 									var temp = 0;
 									var jsTime = entrydate.ToUnixTimeMs();
 
@@ -3453,6 +3497,10 @@ namespace CumulusMX
 				}
 			}
 
+			// no incremental data, send null to supress the upload
+			if (incremental && !dataAdded)
+				return null;
+
 			for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(i, local))
@@ -3490,6 +3538,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
+			var dataAdded = false;
 			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			DateTime dateTo;
@@ -3582,6 +3631,7 @@ namespace CumulusMX
 									}
 
 									// entry is from required period
+									dataAdded = true;
 									var temp = 0.0;
 									var jsTime = entrydate.ToUnixTimeMs();
 
@@ -3629,6 +3679,10 @@ namespace CumulusMX
 				}
 			}
 
+			// no incremental data, send null to supress the upload
+			if (incremental && !dataAdded)
+				return null;
+
 			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilTemp.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i, local))
@@ -3665,6 +3719,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
+			var dataAdded = false;
 			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			DateTime dateTo;
@@ -3756,6 +3811,7 @@ namespace CumulusMX
 									}
 
 									// entry is from required period
+									dataAdded = true;
 									var temp = 0;
 									var jsTime = entrydate.ToUnixTimeMs();
 
@@ -3803,6 +3859,10 @@ namespace CumulusMX
 				}
 			}
 
+			// no incremental data, send null to supress the upload
+			if (incremental && !dataAdded)
+				return null;
+
 			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
@@ -3840,6 +3900,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
+			var dataAdded = false;
 			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			DateTime dateTo;
@@ -3931,6 +3992,7 @@ namespace CumulusMX
 									}
 
 									// entry is from required period
+									dataAdded = true;
 									var temp = 0.0;
 									var jsTime = entrydate.ToUnixTimeMs();
 
@@ -3978,6 +4040,10 @@ namespace CumulusMX
 				}
 			}
 
+			// no incremental data, send null to supress the upload
+			if (incremental && !dataAdded)
+				return null;
+
 			for (var i = 0; i < 2; i++)
 			{
 				if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i, local))
@@ -4015,6 +4081,7 @@ namespace CumulusMX
 			}
 
 			var finished = false;
+			var dataAdded = false;
 			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			DateTime dateTo;
@@ -4106,6 +4173,7 @@ namespace CumulusMX
 									}
 
 									// entry is from required period
+									dataAdded = true;
 									var temp = 0.0;
 									var jsTime = entrydate.ToUnixTimeMs();
 
@@ -4153,6 +4221,10 @@ namespace CumulusMX
 				}
 			}
 
+			// no incremental data, send null to supress the upload
+			if (incremental && !dataAdded)
+				return null;
+
 			for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(i, local))
@@ -4191,6 +4263,7 @@ namespace CumulusMX
 			var sbHum = new StringBuilder($"\"Humidity\":[");
 
 			var finished = false;
+			var dataAdded = false;
 			var entrydate = new DateTime(0, DateTimeKind.Local);
 			DateTime dateFrom;
 			DateTime dateTo;
@@ -4271,6 +4344,8 @@ namespace CumulusMX
 										break;
 									}
 
+									// entry is from required period
+									dataAdded = true;
 									var jsTime = entrydate.ToUnixTimeMs();
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local) && double.TryParse(st[84], InvC, out temp))
@@ -4327,6 +4402,10 @@ namespace CumulusMX
 					logFile = cumulus.GetExtraLogFileName(fileDate);
 				}
 			}
+
+			// no incremental data, send null to supress the upload
+			if (incremental && !dataAdded)
+				return null;
 
 			if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
 			{

@@ -1506,7 +1506,7 @@ namespace CumulusMX
 					cumulus.GraphDataFiles[i].CopyRequired = true;
 					if (options.graphs)
 						cumulus.GraphDataFiles[i].Incremental = false;
-					cumulus.GraphDataFiles[i].LastDataTime = DateTime.MinValue;
+					cumulus.GraphDataFiles[i].LastDataTime = cumulus.RecordsBeganDateTime;
 				}
 
 				// (re)generate the daily graph data files, and upload if required
@@ -1519,7 +1519,7 @@ namespace CumulusMX
 						cumulus.GraphDataEodFiles[i].FtpRequired = true;
 						cumulus.GraphDataEodFiles[i].CopyRequired = true;
 						cumulus.GraphDataEodFiles[i].Incremental = false;
-						cumulus.GraphDataEodFiles[i].LastDataTime = DateTime.MinValue;
+						cumulus.GraphDataEodFiles[i].LastDataTime = cumulus.RecordsBeganDateTime;
 					}
 				}
 
