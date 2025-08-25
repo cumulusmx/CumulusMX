@@ -179,7 +179,7 @@ namespace CumulusMX
 						else
 						{
 							var manager = new DashboardLocalisationManager();
-							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
+							await manager.LoadJsonLocalization(cumulus.ProgramOptions.DisplayLanguage, file);
 
 							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
 						}

@@ -146,7 +146,8 @@ namespace CumulusMX
 
 			foreach (var locale in locales)
 			{
-				var name = allCultures.FirstOrDefault(c => c.Name == locale).DisplayName;
+				var foundLocale = allCultures.FirstOrDefault(c => c.Name == locale);
+				var name = foundLocale is null ? locale : foundLocale.DisplayName;
 				list.Add(locale, name);
 			}
 
