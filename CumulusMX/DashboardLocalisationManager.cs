@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -13,7 +15,7 @@ namespace CumulusMX
 {
 	public class DashboardLocalisationManager
 	{
-		private Dictionary<string, string> _cache = new();
+		private Dictionary<string, string> _cache = [];
 
 		public async Task LoadLocalization(string lang)
 		{
@@ -112,6 +114,43 @@ namespace CumulusMX
 			}
 
 			await response.OutputStream.FlushAsync();
+		}
+
+		public static List<string> GetAvailableLocales()
+		{
+			var retVal = new List<string>();
+
+			var files = Directory.GetFiles(Path.Combine(System.AppContext.BaseDirectory, "locales", "dashboard"));
+			foreach (var file in files)
+			{
+				retVal.Add(Path.GetFileName(file).Split('.')[0]);
+			}
+
+			return retVal;
+		}
+
+		public static bool ThisLocaleAvailable(string lang)
+		{
+			var locales = GetAvailableLocales();
+
+			return locales.Contains(lang);
+		}
+
+		public static string GetLocalesAndNames()
+		{
+			var locales = GetAvailableLocales();
+
+			var list = new Dictionary<string, string>();
+
+			var allCultures = CultureInfo.GetCultures(CultureTypes.AllCultures);
+
+			foreach (var locale in locales)
+			{
+				var name = allCultures.FirstOrDefault(c => c.Name == locale).DisplayName;
+				list.Add(locale, name);
+			}
+
+			return System.Text.Json.JsonSerializer.Serialize(list);
 		}
 	}
 }

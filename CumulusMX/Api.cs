@@ -42,8 +42,8 @@ namespace CumulusMX
 		internal static JsonStation stationJson { get; set; }
 		internal static JsonStation stationJsonExtra { get; set; }
 		private static readonly char[] separator = [':'];
+		private static string localesPath = Path.Combine(System.AppContext.BaseDirectory, "locales", "dashboard");
 		private static string htmlRootPath = Path.Combine(System.AppContext.BaseDirectory, "interface");
-
 
 
 		// Get/Post Edit data
@@ -61,7 +61,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					var file = Path.Combine(htmlRootPath, req ?? "index.html");
+					var file = Path.Combine(htmlRootPath, req);
 
 					if (File.Exists(file))
 					{
@@ -74,13 +74,10 @@ namespace CumulusMX
 						}
 						else
 						{
-
 							Response.ContentType = "text/html";
 
-							var lang = HttpContext.Request.QueryString["lang"] ?? DetectPreferredLanguage(HttpContext.Request);
-
 							var manager = new DashboardLocalisationManager();
-							await manager.LoadLocalization(lang);
+							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
 
 							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
 						}
@@ -119,7 +116,7 @@ namespace CumulusMX
 
 				try
 				{
-					var file = Path.Combine(System.AppContext.BaseDirectory, "interface", "js", req);
+					var file = Path.Combine(htmlRootPath, "js", req);
 
 					if (File.Exists(file))
 					{
@@ -132,10 +129,8 @@ namespace CumulusMX
 						}
 						else
 						{
-							var lang = DetectPreferredLanguage(HttpContext.Request);
-
 							var manager = new DashboardLocalisationManager();
-							await manager.LoadLocalization(lang);
+							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
 
 							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
 						}
@@ -170,7 +165,7 @@ namespace CumulusMX
 
 				try
 				{
-					var file = Path.Combine(System.AppContext.BaseDirectory, "interface", "json", req);
+					var file = Path.Combine(htmlRootPath, "json", req);
 
 					if (File.Exists(file))
 					{
@@ -183,10 +178,8 @@ namespace CumulusMX
 						}
 						else
 						{
-							var lang = DetectPreferredLanguage(HttpContext.Request);
-
 							var manager = new DashboardLocalisationManager();
-							await manager.LoadJsonLocalization(lang, req);
+							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
 
 							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
 						}
@@ -1945,6 +1938,9 @@ namespace CumulusMX
 						case "snowinfo.json":
 							await writer.WriteAsync(Station.GetSnowInfo());
 							break;
+						case "displaylangs.json":
+							await writer.WriteAsync(DashboardLocalisationManager.GetLocalesAndNames());
+							break;
 						default:
 							Response.StatusCode = 404;
 							break;
@@ -2004,6 +2000,7 @@ namespace CumulusMX
 			return true;
 		}
 
+		/*
 		private static string DetectPreferredLanguage(IHttpRequest request)
 		{
 			var header = request.Headers["Accept-Language"];
@@ -2011,7 +2008,7 @@ namespace CumulusMX
 			{
 				//default to either the process locale, or if all else fails English
 				var shortLang = CultureInfo.CurrentCulture.Name.Length >= 2 ? CultureInfo.CurrentCulture.Name.Substring(0, 2) : CultureInfo.CurrentCulture.Name;
-				if (Directory.Exists(Path.Combine(htmlRootPath, "locales")) && File.Exists(Path.Combine(htmlRootPath, "locales", $"{shortLang}.json")))
+				if (Directory.Exists(localesPath) && File.Exists(Path.Combine(localesPath, $"{shortLang}.json")))
 				{
 					return shortLang;
 				}
@@ -2030,11 +2027,12 @@ namespace CumulusMX
 			{
 				// Normalize to two-letter code
 				var shortLang = lang.Length >= 2 ? lang.Substring(0, 2) : lang;
-				if (Directory.Exists(Path.Combine(htmlRootPath, "locales")) && File.Exists(Path.Combine(htmlRootPath, "locales", $"{shortLang}.json")))
+				if (Directory.Exists(localesPath) && File.Exists(Path.Combine(localesPath, $"{shortLang}.json")))
 					return shortLang;
 			}
 
 			return "en"; // fallback
 		}
+		*/
 	}
 }

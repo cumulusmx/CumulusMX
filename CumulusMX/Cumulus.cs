@@ -3977,6 +3977,10 @@ namespace CumulusMX
 				CultureInfo.DefaultThreadCurrentCulture = newCulture;
 			}
 
+			// get the default display language
+			var defaultLang = DashboardLocalisationManager.ThisLocaleAvailable(CultureInfo.CurrentCulture.TwoLetterISOLanguageName) ? CultureInfo.CurrentCulture.TwoLetterISOLanguageName : "en";
+			ProgramOptions.DisplayLanguage = ini.GetValue("Program", "DisplayLang", defaultLang);
+
 			ProgramOptions.TimeFormat = ini.GetValue("Program", "TimeFormat", "t");
 			if (ProgramOptions.TimeFormat == "t")
 				ProgramOptions.TimeFormatLong = "T";
@@ -6175,6 +6179,8 @@ namespace CumulusMX
 
 			ini.SetValue("Program", "DataStoppedExit", ProgramOptions.DataStoppedExit);
 			ini.SetValue("Program", "DataStoppedMins", ProgramOptions.DataStoppedMins);
+			ini.SetValue("Program", "DisplayLang", ProgramOptions.DisplayLanguage);
+
 			ini.SetValue("Program", "TimeFormat", ProgramOptions.TimeFormat);
 
 			ini.SetValue("Culture", "RemoveSpaceFromDateSeparator", ProgramOptions.Culture.RemoveSpaceFromDateSeparator);
@@ -14983,6 +14989,7 @@ namespace CumulusMX
 		public CultureConfig Culture { get; set; }
 		public bool DataStoppedExit { get; set; }
 		public int DataStoppedMins { get; set; }
+		public string DisplayLanguage { get; set; }
 		public string TimeFormat { get; set; }
 		public string TimeFormatLong { get; set; }
 		public bool EncryptedCreds { get; set; }

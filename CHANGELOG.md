@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4110\]][23] - 2025-08-24
+## [4.6.0 \[b4111\]][23] - 2025-08-25
 
 ### New
 
@@ -27,7 +27,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		- There is one strings file per language
 	- The settings strings are in `/locales/dashboard/json/{language}`
 		- There is a folder per language, and a language strings files for each settings file
-	- For now, the language detection is purely on the language setting in your browser. MX iterates down your preferred language list until a match is found or it defaults to English
+	- Change the display language in Program Settings -> Culture Overrides -> Display Language. Only those languages with translation files will be selectable
 
 ### Changed
 
@@ -987,4 +987,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [20]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4103
 [21]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4104
 [22]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4105
-[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4109
+[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4111

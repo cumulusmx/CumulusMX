@@ -65,6 +65,7 @@ namespace CumulusMX
 
 			var culture = new JsonProgramSettingsCultureOptions()
 			{
+				displayLang = cumulus.ProgramOptions.DisplayLanguage,
 				removespacefromdateseparator = cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator,
 				timeFormat = cumulus.ProgramOptions.TimeFormat
 			};
@@ -148,6 +149,8 @@ namespace CumulusMX
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
 				cumulus.ProgramOptions.ListWebTags = settings.options.listwebtags;
 				cumulus.ProgramOptions.UseWebSockets = settings.options.usewebsockets;
+
+				cumulus.ProgramOptions.DisplayLanguage = settings.culture.displayLang;
 
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
 
@@ -248,6 +251,7 @@ namespace CumulusMX
 	}
 	public class JsonProgramSettingsCultureOptions
 	{
+		public string displayLang { get; set; }
 		public bool removespacefromdateseparator { get; set; }
 		public string timeFormat { get; set; }
 	}
