@@ -11497,9 +11497,7 @@ namespace CumulusMX
 							var remotefile = item.RemoteFileName;
 							LogDebugMessage($"PHP[Int]: Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full")}): {item.LocalFileName}");
 
-							var lastTS = item.Incremental ? item.LastDataTime.ToUnixTimeMs().ToString() : oldestTs.ToString();
-
-							if (await UploadString(phpUploadHttpClient, item.Incremental, lastTS, json, remotefile, -1, false, true))
+							if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, -1, false, true))
 							{
 								// The config files only need uploading once per change
 								// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
