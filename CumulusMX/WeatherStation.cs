@@ -3000,10 +3000,11 @@ namespace CumulusMX
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRATEMP].LastDataTime;
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 			else if (start.HasValue && end.HasValue)
 			{
+				// selected period in whole days
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
 
@@ -3013,8 +3014,9 @@ namespace CumulusMX
 			}
 			else
 			{
+				// all data in the range
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 
 			var fileDate = dateFrom;
@@ -3183,11 +3185,12 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRADEW].LastDataTime;
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRATEMP].LastDataTime;
+				dateTo = DateTime.Now;
 			}
 			else if (start.HasValue && end.HasValue)
 			{
+				// selected period in whole days
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
 
@@ -3197,8 +3200,9 @@ namespace CumulusMX
 			}
 			else
 			{
+				// all data in the range
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 
 			var fileDate = dateFrom;
@@ -3305,14 +3309,17 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateTo || fileDate > dateTo)
+				if (!finished)
 				{
-					finished = true;
-				}
-				else
-				{
-					fileDate = fileDate.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(fileDate);
+					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					{
+						finished = true;
+					}
+					else
+					{
+						fileDate = fileDate.AddMonths(1);
+						logFile = cumulus.GetExtraLogFileName(fileDate);
+					}
 				}
 			}
 
@@ -3364,11 +3371,12 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRAHUM].LastDataTime;
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRATEMP].LastDataTime;
+				dateTo = DateTime.Now;
 			}
 			else if (start.HasValue && end.HasValue)
 			{
+				// selected period in whole days
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
 
@@ -3378,8 +3386,9 @@ namespace CumulusMX
 			}
 			else
 			{
+				// all data in the range
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 
 			var fileDate = dateFrom;
@@ -3486,14 +3495,17 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateTo || fileDate > dateTo)
+				if (!finished)
 				{
-					finished = true;
-				}
-				else
-				{
-					fileDate = fileDate.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(fileDate);
+					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					{
+						finished = true;
+					}
+					else
+					{
+						fileDate = fileDate.AddMonths(1);
+						logFile = cumulus.GetExtraLogFileName(fileDate);
+					}
 				}
 			}
 
@@ -3546,10 +3558,11 @@ namespace CumulusMX
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.SOILTEMP].LastDataTime;
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 			else if (start.HasValue && end.HasValue)
 			{
+				// selected period in whole days
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
 
@@ -3559,11 +3572,11 @@ namespace CumulusMX
 			}
 			else
 			{
+				// all data in the range
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 
-			var dateto = end ?? DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
 			var fileDate = dateFrom;
 
 			// get the log file name to start
@@ -3668,14 +3681,17 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateto || fileDate > dateto)
+				if (!finished)
 				{
-					finished = true;
-				}
-				else
-				{
-					fileDate = fileDate.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(fileDate);
+					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					{
+						finished = true;
+					}
+					else
+					{
+						fileDate = fileDate.AddMonths(1);
+						logFile = cumulus.GetExtraLogFileName(fileDate);
+					}
 				}
 			}
 
@@ -3727,10 +3743,11 @@ namespace CumulusMX
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.SOILMOIST].LastDataTime;
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 			else if (start.HasValue && end.HasValue)
 			{
+				// selected period in whole days
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
 
@@ -3740,8 +3757,9 @@ namespace CumulusMX
 			}
 			else
 			{
+				// all data in the range
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 
 			var fileDate = dateFrom;
@@ -3848,14 +3866,17 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateTo || fileDate > dateTo)
+				if (!finished)
 				{
-					finished = true;
-				}
-				else
-				{
-					fileDate = fileDate.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(fileDate);
+					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					{
+						finished = true;
+					}
+					else
+					{
+						fileDate = fileDate.AddMonths(1);
+						logFile = cumulus.GetExtraLogFileName(fileDate);
+					}
 				}
 			}
 
@@ -3908,10 +3929,11 @@ namespace CumulusMX
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.LEAFWET].LastDataTime;
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 			else if (start.HasValue && end.HasValue)
 			{
+				// selected period in whole days
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
 
@@ -3921,8 +3943,9 @@ namespace CumulusMX
 			}
 			else
 			{
+				// all data in the range
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 
 			var fileDate = dateFrom;
@@ -4029,14 +4052,17 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateTo || fileDate > dateTo)
+				if (!finished)
 				{
-					finished = true;
-				}
-				else
-				{
-					fileDate = fileDate.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(fileDate);
+					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					{
+						finished = true;
+					}
+					else
+					{
+						fileDate = fileDate.AddMonths(1);
+						logFile = cumulus.GetExtraLogFileName(fileDate);
+					}
 				}
 			}
 
@@ -4089,10 +4115,11 @@ namespace CumulusMX
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.USERTEMP].LastDataTime;
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 			else if (start.HasValue && end.HasValue)
 			{
+				// selected period in whole days
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
 
@@ -4102,8 +4129,9 @@ namespace CumulusMX
 			}
 			else
 			{
+				// all data in the range
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 
 			var fileDate = dateFrom;
@@ -4210,14 +4238,17 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateTo || fileDate > dateTo)
+				if (!finished)
 				{
-					finished = true;
-				}
-				else
-				{
-					fileDate = fileDate.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(fileDate);
+					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					{
+						finished = true;
+					}
+					else
+					{
+						fileDate = fileDate.AddMonths(1);
+						logFile = cumulus.GetExtraLogFileName(fileDate);
+					}
 				}
 			}
 
@@ -4271,17 +4302,23 @@ namespace CumulusMX
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.CO2].LastDataTime;
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 			else if (start.HasValue && end.HasValue)
 			{
+				// selected period in whole days
 				dateFrom = start.Value;
 				dateTo = end.Value.AddDays(1);
+
+				// convert start/end to meteo date/times if required
+				dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+				dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
 			}
 			else
 			{
+				// all data in the range
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
-				dateTo = DateTime.Now.AddMinutes(-(Cumulus.logints[cumulus.DataLogInterval] + 1));
+				dateTo = DateTime.Now;
 			}
 
 			var fileDate = dateFrom;
@@ -4392,14 +4429,17 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateTo || fileDate > dateTo)
+				if (!finished)
 				{
-					finished = true;
-				}
-				else
-				{
-					fileDate = fileDate.AddMonths(1);
-					logFile = cumulus.GetExtraLogFileName(fileDate);
+					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					{
+						finished = true;
+					}
+					else
+					{
+						fileDate = fileDate.AddMonths(1);
+						logFile = cumulus.GetExtraLogFileName(fileDate);
+					}
 				}
 			}
 

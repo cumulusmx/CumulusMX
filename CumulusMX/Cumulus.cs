@@ -11497,18 +11497,25 @@ namespace CumulusMX
 							var remotefile = item.RemoteFileName;
 							LogDebugMessage($"PHP[Int]: Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full")}): {item.LocalFileName}");
 
-							if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, -1, false, true))
+							if (string.IsNullOrEmpty(json))
 							{
-								// The config files only need uploading once per change
-								// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-								if (Array.Exists(configFiles, item.LocalFileName.Contains))
+								LogMessage($"[Int]: Uploading to {item.LocalFileName}. No {(item.Incremental ? "incremental" : "")} data found, skipping this upload");
+							}
+							else
+							{
+								if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, -1, false, true))
 								{
-									item.FtpRequired = false;
-								}
-								else
-								{
-									item.LastDataTime = DateTime.Now;
-									item.Incremental = true;
+									// The config files only need uploading once per change
+									// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
+									if (Array.Exists(configFiles, item.LocalFileName.Contains))
+									{
+										item.FtpRequired = false;
+									}
+									else
+									{
+										item.LastDataTime = DateTime.Now;
+										item.Incremental = true;
+									}
 								}
 							}
 						}
@@ -12292,7 +12299,7 @@ namespace CumulusMX
 
 			if (string.IsNullOrEmpty(data))
 			{
-				LogWarningMessage($"{prefix}: Uploading to {remotefile}. Error: The data string is empty, ignoring this upload");
+				LogWarningMessage($"{prefix}: Uploading to {remotefile}. Warning: No {(incremental ? "incremental" : "")} data found, skipping this upload");
 
 				return false;
 			}
