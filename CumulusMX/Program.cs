@@ -356,6 +356,10 @@ namespace CumulusMX
 				}
 
 				svcTextListener.Flush();
+
+				// add the SIGTERM handler
+				SigTermSignalHandler();
+
 				// Launch normally - Linux Service runs like this too
 				RunAsAConsole(Httpport, debug);
 			}
@@ -446,6 +450,9 @@ namespace CumulusMX
 		{
 			MxLogger.Info("Cumulus termination started");
 
+			if (!ExitSystemTokenSource.IsCancellationRequested)
+				ExitSystemTokenSource.Cancel();
+
 			if (cumulus != null && Environment.ExitCode != 999)
 			{
 				Console.WriteLine("Cumulus terminating", ConsoleColor.Red);
@@ -456,8 +463,6 @@ namespace CumulusMX
 				Console.ForegroundColor = ConsoleColor.Yellow;
 				Console.WriteLine("Cumulus stopped");
 				Console.ResetColor();
-				if (!ExitSystemTokenSource.IsCancellationRequested)
-					ExitSystemTokenSource.Cancel();
 			}
 			else
 			{
@@ -676,10 +681,11 @@ namespace CumulusMX
 			// Ignore log-off (it may be another user)
 			if (ctrlType != CtrlTypes.CTRL_LOGOFF_EVENT)
 			{
+				ExitSystemTokenSource.Cancel();
+
 				if (!service)
 				{
 					Console.CursorVisible = true;
-					ExitSystemTokenSource.Cancel();
 					Thread.Sleep(500);
 					return true; // we have handled the event
 				}
@@ -762,5 +768,19 @@ namespace CumulusMX
 			}
 #pragma warning restore CA1416 // Validate platform compatibility
 		}
+
+		// Linux signal handling
+		private static void SigTermSignalHandler()
+		{
+			PosixSignalRegistration.Create(PosixSignal.SIGTERM, context =>
+			{
+				MxLogger.Warn("**** SIGTERM received ****");
+				Console.WriteLine("**** SIGTERM received ****", ConsoleColor.Red);
+
+				ExitSystemTokenSource.Cancel();
+				context.Cancel = true;
+			});
+		}
+
 	}
 }

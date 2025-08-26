@@ -272,10 +272,7 @@ namespace CumulusMX
 							{
 								try
 								{
-									using CancellationTokenSource tokenSource = new();
-									var udpCancellation = tokenSource.Token;
-
-									var bcastTask = udpClient.ReceiveAsync(udpCancellation).AsTask();
+									var bcastTask = udpClient.ReceiveAsync(Program.ExitSystemToken).AsTask();
 
 									do
 									{
@@ -301,7 +298,6 @@ namespace CumulusMX
 										}
 										catch (TimeoutException)
 										{
-											tokenSource.Cancel();
 											multicastsBad++;
 											var msg = string.Format("WLL: Missed a WLL broadcast message. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float) (multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
 											cumulus.LogDebugMessage(msg);
@@ -358,6 +354,20 @@ namespace CumulusMX
 			cumulus.LogMessage("Closing WLL connections");
 			try
 			{
+				if (bw != null && bw.WorkerSupportsCancellation && !bw.CancellationPending)
+				{
+					bw.CancelAsync();
+				}
+
+				bwDoneEvent.WaitOne(2000);
+			}
+			catch
+			{
+				cumulus.LogMessage("Error stopping station background tasks");
+			}
+
+			try
+			{
 				if (tmrRealtime != null)
 					tmrRealtime.Stop();
 				if (tmrCurrent != null)
@@ -373,21 +383,6 @@ namespace CumulusMX
 			}
 
 			StopMinuteTimer();
-			try
-			{
-				if (bw != null && bw.WorkerSupportsCancellation && !bw.CancellationPending)
-				{
-					bw.CancelAsync();
-				}
-				if (broadcastTask != null)
-					broadcastTask.Wait();
-
-				bwDoneEvent.WaitOne(2000);
-			}
-			catch
-			{
-				cumulus.LogMessage("Error stopping station background tasks");
-			}
 		}
 
 		private async void GetWllRealtime(object source, ElapsedEventArgs e)
