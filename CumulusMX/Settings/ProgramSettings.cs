@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Net;
 
@@ -67,7 +68,8 @@ namespace CumulusMX
 			{
 				displayLang = cumulus.ProgramOptions.DisplayLanguage,
 				removespacefromdateseparator = cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator,
-				timeFormat = cumulus.ProgramOptions.TimeFormat
+				timeFormat = cumulus.ProgramOptions.TimeFormat,
+				amPmLowerCase = cumulus.ProgramOptions.TimeAmPmLowerCase
 			};
 
 			var security = new JsonProgramSettingsSecurity()
@@ -153,6 +155,16 @@ namespace CumulusMX
 				cumulus.ProgramOptions.DisplayLanguage = settings.culture.displayLang;
 
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
+				if (settings.culture.amPmLowerCase && settings.culture.amPmLowerCase != cumulus.ProgramOptions.TimeAmPmLowerCase)
+				{
+					var am = CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator.ToLower();
+					var pm = CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator.ToLower();
+					CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator = am;
+					CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator = pm;
+					CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.AMDesignator = am;
+					CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.PMDesignator = pm;
+				}
+				cumulus.ProgramOptions.TimeAmPmLowerCase = settings.culture.amPmLowerCase;
 
 				// Does the culture need to be tweaked - either way
 				if (cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator != settings.culture.removespacefromdateseparator)
@@ -254,6 +266,7 @@ namespace CumulusMX
 		public string displayLang { get; set; }
 		public bool removespacefromdateseparator { get; set; }
 		public string timeFormat { get; set; }
+		public bool amPmLowerCase { get; set; }
 	}
 	public class JsonProgramSettingsShutdownOptions
 	{

@@ -28,6 +28,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The settings strings are in `/locales/dashboard/json/{language}`
 		- There is a folder per language, and a language strings files for each settings file
 	- Change the display language in Program Settings -> Culture Overrides -> Display Language. Only those languages with translation files will be selectable
+- New option to force the am/pm time designators to lower case. See Program Settings -> Culture Overrides
 
 ### Changed
 

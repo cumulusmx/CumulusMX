@@ -3989,6 +3989,18 @@ namespace CumulusMX
 			else
 				ProgramOptions.TimeFormatLong = "HH:mm:ss";
 
+			ProgramOptions.TimeAmPmLowerCase = ini.GetValue("Program", "TimeAmPmLowerCase", false);
+
+			if (ProgramOptions.TimeAmPmLowerCase)
+			{
+				var am = CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator.ToLower();
+				var pm = CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator.ToLower();
+				CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator = am;
+				CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator = pm;
+				CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.AMDesignator = am;
+				CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.PMDesignator = pm;
+			}
+
 			ProgramOptions.EncryptedCreds = ini.GetValue("Program", "EncryptedCreds", false);
 
 			ProgramOptions.WarnMultiple = ini.GetValue("Station", "WarnMultiple", true);
@@ -6182,7 +6194,7 @@ namespace CumulusMX
 			ini.SetValue("Program", "DisplayLang", ProgramOptions.DisplayLanguage);
 
 			ini.SetValue("Program", "TimeFormat", ProgramOptions.TimeFormat);
-
+			ini.SetValue("Program", "TimeAmPmLowerCase", ProgramOptions.TimeAmPmLowerCase);
 			ini.SetValue("Culture", "RemoveSpaceFromDateSeparator", ProgramOptions.Culture.RemoveSpaceFromDateSeparator);
 
 			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
@@ -14997,6 +15009,7 @@ namespace CumulusMX
 		public string DisplayLanguage { get; set; }
 		public string TimeFormat { get; set; }
 		public string TimeFormatLong { get; set; }
+		public bool TimeAmPmLowerCase { get; set; }
 		public bool EncryptedCreds { get; set; }
 		public bool SecureSettings { get; set; }
 		public string SettingsUsername { get; set; }
