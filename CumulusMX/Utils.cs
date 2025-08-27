@@ -448,7 +448,20 @@ namespace CumulusMX
 			var sb = new StringBuilder("{");
 			sb.Append($"\"am\":\"{CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator}\",");
 			sb.Append($"\"pm\":\"{CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator}\",");
-			sb.Append($"\"hours\":\"{(Program.cumulus.ProgramOptions.TimeFormat == "HH:mm" ? 24 : 12)}\"}}");
+
+			var hrs = Program.cumulus.ProgramOptions.TimeFormat switch
+			{
+				"HH:mm" => 24,		// forced 24h
+				"h:mm tt" => 12,	// forced 12h
+				_ => CultureInfo.CurrentCulture.DateTimeFormat.ShortTimePattern switch
+				{
+					// use default, so look it up
+					"HH:mm" => 24,
+					_ => 12
+				}
+			};
+
+			sb.Append($"\"hours\":\"{hrs}\"}}");
 			return sb.ToString();
 		}
 	}

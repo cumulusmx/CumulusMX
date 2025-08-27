@@ -13895,7 +13895,12 @@ namespace CumulusMX
 
 			string timeformat = cumulus.ProgramOptions.TimeFormat switch
 			{
-				"t" => "%[HM]",
+				"t" => CultureInfo.CurrentCulture.DateTimeFormat.ShortTimePattern switch
+				{
+					// use default, so look it up
+					"HH:mm" => "%H:%M",
+					_ => "%l:%M %p"
+				},
 				"h:mm tt" => "%l:%M %p",
 				"HH:MM" => "%H:%M",
 				_ => "%H:%M"
