@@ -442,5 +442,14 @@ namespace CumulusMX
 			result.Add(currentStr.ToString());
 			return result.ToArray(); // Return array of all strings
 		}
+
+		public static string GetTimeFormat()
+		{
+			var sb = new StringBuilder("{");
+			sb.Append($"\"am\":\"{CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator}\",");
+			sb.Append($"\"pm\":\"{CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator}\",");
+			sb.Append($"\"hours\":\"{(Program.cumulus.ProgramOptions.TimeFormat == "HH:mm" ? 24 : 12)}\"}}");
+			return sb.ToString();
+		}
 	}
 }

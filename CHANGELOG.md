@@ -82,6 +82,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The dashboard charts now honour the time format setting in Settings -> Program Settings -> Culture Over-rides
 	- The new default for the charts is to display in the web browsers TZ settings format
 - The system uptime is now obtained differently, this allows the removal of the System.Diagnostics.PerformanceCounter package
+- The Dashboard screen now fully reflects your time presentation choices in Cumulus
 
 ### Fixed
 

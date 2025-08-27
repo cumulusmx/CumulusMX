@@ -1941,6 +1941,9 @@ namespace CumulusMX
 						case "displaylangs.json":
 							await writer.WriteAsync(DashboardLocalisationManager.GetLocalesAndNames());
 							break;
+						case "timeformat.json":
+							await writer.WriteAsync(Utils.GetTimeFormat());
+							break;
 						default:
 							Response.StatusCode = 404;
 							break;

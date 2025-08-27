@@ -155,10 +155,20 @@ namespace CumulusMX
 				cumulus.ProgramOptions.DisplayLanguage = settings.culture.displayLang;
 
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
-				if (settings.culture.amPmLowerCase && settings.culture.amPmLowerCase != cumulus.ProgramOptions.TimeAmPmLowerCase)
+				if (settings.culture.amPmLowerCase != cumulus.ProgramOptions.TimeAmPmLowerCase)
 				{
-					var am = CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator.ToLower();
-					var pm = CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator.ToLower();
+					string am, pm;
+
+					if (settings.culture.amPmLowerCase)
+					{
+						am = CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator.ToLower();
+						pm = CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator.ToLower();
+					}
+					else
+					{
+						am = CultureInfo.CurrentUICulture.DateTimeFormat.AMDesignator;
+						pm = CultureInfo.CurrentUICulture.DateTimeFormat.PMDesignator;
+					}
 					CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator = am;
 					CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator = pm;
 					CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.AMDesignator = am;
