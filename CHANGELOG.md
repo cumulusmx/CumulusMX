@@ -67,12 +67,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		*Strictly, the 'useUTC: false' is not required as that setting has now been deprecated*
 	- You must also use a version of Highcharts later than v11.2.0 - Cumulus MX now uses v12.3.0
 - All logging to log files is now asynchronous. This means a change to log file naming scheme for the main MX diags
-	- The latest log file will always have just the current date as the main filename: eg. 20250726.log
-		- When The day changes a new log file will be created, this too will just have the current date as the filename
+	- The latest log file will always have filename: MxDiags.log
 	- Rollover:
-		- Rolled over files will have the time appended: eg. 20250726-115412.log
-		- Rollover occurs when log files that have exceeded the rollover size (2MB)
-		- Rollover also occurs when you start Cumulus MX and there is an existing dated log file for today
+		- Rolled over files will have the date/time appended: MxDiags-YYMMDD-HHMMSS.log eg. MxDiags-250726-115412.log
+		- Rollover occurs when log files that have exceeded the rollover size (12MB)
+		- Rollover also occurs when you start Cumulus MX, the existing MxDiags.log will be renamed to a timestamped filename
 		- The timestamp on rollover files is the time of the last entry in the file, not the first
 	- The maximum log file size has been decreased to 12MB, but the number of archives retained increased to 20
 	- You may notice the logged event times only increment every 16ms, this is an efficiency thing!

@@ -535,13 +535,11 @@ namespace CumulusMX
 			var logfile = new FileTarget()
 			{
 				Name = "logfile",
-				//FileName = "MXdiags" + Path.DirectorySeparatorChar + "${cached:${date:format=yyyyMMdd-HHmmss}}.log",
-				FileName = "MXdiags" + Path.DirectorySeparatorChar + "${date:format=yyyyMMdd}.log",
-				ArchiveSuffixFormat = "{1:-HHmmss}",
+				FileName = Path.Combine("MXdiags", "MxDiags.log"),
+				ArchiveSuffixFormat = "{1:-yyMMdd-HHmmss}",
 				ArchiveAboveSize = configFile.runtimeOptions.configProperties.LogFileSize,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = configFile.runtimeOptions.configProperties.LogFileCount,
-				//Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss.fff}|${level}| ${message}",
 				Layout = "${longdate}|${level}| ${message}",
 				Footer = "------ LOG CLOSED ${longdate} ------"
 			};
