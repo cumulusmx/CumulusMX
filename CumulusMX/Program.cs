@@ -44,6 +44,7 @@ namespace CumulusMX
 		public static ConfigFile configFile { get; } = ReadConfigFile();
 
 		private static nint powerNotificationRegistrationHandle = new();
+		private static PosixSignalRegistration posixSigTermRegistrationHandle;
 
 
 		private static async Task Main(string[] args)
@@ -542,7 +543,7 @@ namespace CumulusMX
 				MaxArchiveFiles = configFile.runtimeOptions.configProperties.LogFileCount,
 				//Layout = @"${date:format=yyyy-MM-dd HH\:mm\:ss.fff}|${level}| ${message}",
 				Layout = "${longdate}|${level}| ${message}",
-				Footer = "------ LOG ROLL OVER ${longdate} ------"
+				Footer = "------ LOG CLOSED ${longdate} ------"
 			};
 
 			// Async wrapper
@@ -772,11 +773,14 @@ namespace CumulusMX
 		// Linux signal handling
 		private static void SigTermSignalHandler()
 		{
-			PosixSignalRegistration.Create(PosixSignal.SIGTERM, context =>
+			MxLogger.Info("Registering for SIGTERM");
+
+			posixSigTermRegistrationHandle = PosixSignalRegistration.Create(PosixSignal.SIGTERM, context =>
 			{
 				MxLogger.Warn("**** SIGTERM received ****");
 				Console.WriteLine("**** SIGTERM received ****", ConsoleColor.Red);
-
+				svcTextListener.WriteLine("**** SIGTERM received ****");
+				Environment.ExitCode = 0;
 				ExitSystemTokenSource.Cancel();
 				context.Cancel = true;
 			});
