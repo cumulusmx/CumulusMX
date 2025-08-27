@@ -82,6 +82,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Adds a default User-Agent header to all HTTP requests of "CumulusMX/4.6.0.4107" - or whatever the current version/build is
 - The dashboard charts now honour the time format setting in Settings -> Program Settings -> Culture Over-rides
 	- The new default for the charts is to display in the web browsers TZ settings format
+- The system uptime is now obtained differently, this allows the removal of the System.Diagnostics.PerformanceCounter package
 
 ### Fixed
 
@@ -105,7 +106,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - NLog.Extensions.Logging
 - SixLabors.ImageSharp
 - System.CodeDom
-- System.Diagnostics.PerformanceCounter
+- System.Diagnostics.PerformanceCounter [REMOVED]
 - System.IO.Ports
 - System.ServiceProcess.ServiceController
 

@@ -143,8 +143,6 @@ namespace CumulusMX
 
 		internal DateTime LastUpdateTime; // use UTC to avoid DST issues
 
-		internal PerformanceCounter UpTime;
-
 		internal WebTags WebTags;
 
 		internal Lang Trans = new();
@@ -614,23 +612,6 @@ namespace CumulusMX
 			// Set the default comport name depending on platform
 			DefaultComportName = System.OperatingSystem.IsWindows() ? "COM1" : "/dev/ttyUSB0";
 
-			// determine system uptime based on OS
-			if (System.OperatingSystem.IsWindows())
-			{
-				try
-				{
-					// Windows enable the performance counter method
-#pragma warning disable CA1416 // Validate platform compatibility
-					UpTime = new PerformanceCounter("System", "System Up Time");
-#pragma warning restore CA1416 // Validate platform compatibility
-				}
-				catch (Exception e)
-				{
-					LogErrorMessage("Error: Unable to access the System Up Time performance counter. System up time will not be available");
-					LogDebugMessage($"Error: {e}");
-				}
-			}
-
 			// Check if all the folders required by CMX exist, if not create them
 			CreateRequiredFolders();
 
@@ -1001,24 +982,10 @@ namespace CumulusMX
 			BackupData(false, DateTime.Now);
 
 			// Check uptime
-			double ts = -1;
+			var ts = Environment.TickCount64;
+			var uptime = TimeSpan.FromMilliseconds(ts);
 
-			if (System.OperatingSystem.IsWindows() && UpTime != null)
-			{
-				UpTime.NextValue();
-				ts = UpTime.NextValue();
-			}
-			else if (File.Exists(@"/proc/uptime"))
-			{
-				var text = File.ReadAllText(@"/proc/uptime");
-				var strTime = text.Split(' ')[0];
-				if (!double.TryParse(strTime, out ts))
-					ts = -1;
-			}
-
-			var uptime = TimeSpan.FromSeconds(ts);
-
-			LogMessage($"System uptime = {ts:F0} secs ({(int) uptime.TotalHours}h {uptime.Minutes:D2}m {uptime.Seconds:D2}s)");
+			LogMessage($"System uptime = {ts/1000:F0} secs ({(int) uptime.TotalHours}h {uptime.Minutes:D2}m {uptime.Seconds:D2}s)");
 
 			// Do we delay the start of Cumulus MX for a fixed period?
 			if (ProgramOptions.StartupDelaySecs > 0)

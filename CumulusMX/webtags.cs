@@ -6233,30 +6233,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				double upTime = 0;
-				if (cumulus.Platform[..3] == "Win")
-				{
-					try
-					{
-#pragma warning disable CA1416 // Validate platform compatibility
-						cumulus.UpTime.NextValue();
-						upTime = cumulus.UpTime.NextValue();
-#pragma warning restore CA1416 // Validate platform compatibility
-					}
-					catch
-					{
-						// do nothing, already set to zero
-					}
-				}
-				else if (File.Exists(@"/proc/uptime"))
-				{
-					var text = File.ReadAllText(@"/proc/uptime");
-					var strTime = text.Split(' ')[0];
-					if (!double.TryParse(strTime, out upTime))
-						upTime = 0;
-				}
-
-				TimeSpan ts = TimeSpan.FromSeconds(upTime);
+				TimeSpan ts = TimeSpan.FromMilliseconds(Environment.TickCount64);
 
 				return GetFormattedTimeSpan(ts, cumulus.Trans.WebTagElapsedTime, tagParams);
 			}
