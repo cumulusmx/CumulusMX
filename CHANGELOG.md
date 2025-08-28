@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4113\]][23] - 2025-08-27
+## [4.6.0 \[b4114\]][23] - 2025-08-28
 
 ### New
 
@@ -83,6 +83,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The new default for the charts is to display in the web browsers TZ settings format
 - The system uptime is now obtained differently, this allows the removal of the System.Diagnostics.PerformanceCounter package
 - The Dashboard screen now fully reflects your time presentation choices in Cumulus
+- The MySQL updates now use a single persistent connection rather reconnecting for each upload.
 
 ### Fixed
 
@@ -989,4 +990,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [20]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4103
 [21]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4104
 [22]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4105
-[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4113
+[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4114

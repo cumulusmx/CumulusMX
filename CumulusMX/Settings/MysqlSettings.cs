@@ -258,6 +258,34 @@ namespace CumulusMX
 			{
 				cumulus.LogMessage("Updating MySQL settings");
 
+				// first check if any of the connection settings have changed
+				// if they have then disconnect any existing connection so it can be reconnected if required
+				if (cumulus.MySqlConn != null &&
+					(String.IsNullOrWhiteSpace(settings.server.host) ||
+					cumulus.MySqlConnSettings.Server != settings.server.host.Trim() ||
+					cumulus.MySqlConnSettings.Port != settings.server.port ||
+					String.IsNullOrWhiteSpace(settings.server.database) ||
+					cumulus.MySqlConnSettings.Database != settings.server.database.Trim() ||
+					String.IsNullOrWhiteSpace(settings.server.user) ||
+					cumulus.MySqlConnSettings.UserID != settings.server.user.Trim() ||
+					String.IsNullOrWhiteSpace(settings.server.pass) ||
+					cumulus.MySqlConnSettings.Password != settings.server.pass.Trim())
+					)
+				{
+					try
+					{
+						if (cumulus.MySqlConn.State != System.Data.ConnectionState.Closed ||
+							cumulus.MySqlConn.State != System.Data.ConnectionState.Broken)
+						{
+							cumulus.MySqlConn.Close();
+						}
+					}
+					finally
+					{
+						cumulus.MySqlConn = null;
+					}
+				}
+
 				// server
 				cumulus.MySqlConnSettings.Server = String.IsNullOrWhiteSpace(settings.server.host) ? null : settings.server.host.Trim();
 				if (settings.server.port > 0 && settings.server.port < 65536)

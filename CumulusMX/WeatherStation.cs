@@ -3185,7 +3185,7 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRATEMP].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRADEW].LastDataTime;
 				dateTo = DateTime.Now;
 			}
 			else if (start.HasValue && end.HasValue)
@@ -3371,7 +3371,7 @@ namespace CumulusMX
 
 			if (incremental)
 			{
-				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRATEMP].LastDataTime;
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.EXTRAHUM].LastDataTime;
 				dateTo = DateTime.Now;
 			}
 			else if (start.HasValue && end.HasValue)

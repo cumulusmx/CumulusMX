@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -464,6 +463,7 @@ namespace CumulusMX
 		internal string LatestBuild = "n/a";
 
 		internal MySqlConnectionStringBuilder MySqlConnSettings = [];
+		internal MySqlConnection MySqlConn;
 
 		internal MySqlGeneralSettings MySqlSettings = new();
 
@@ -3831,59 +3831,6 @@ namespace CumulusMX
 			}
 			// 'Normal' case where sun sets before midnight
 			return (DateTime.Now > SunSetTime) && (DateTime.Now <= Dusk);
-		}
-
-		public string RemoveOldDiagsFiles(string logType)
-		{
-			const int maxEntries = 12;
-
-			var directory = "MXdiags" + DirectorySeparator;
-			string filename = string.Empty;
-
-			if (logType == "CMX")
-			{
-				try
-				{
-					List<string> fileEntries = [.. Directory.GetFiles(directory).Where(f => regexLogFileName().Match(f).Success)];
-
-					fileEntries.Sort();
-
-					while (fileEntries.Count >= maxEntries)
-					{
-						File.Delete(fileEntries[0]);
-						fileEntries.RemoveAt(0);
-					}
-				}
-				catch (Exception ex)
-				{
-					LogExceptionMessage(ex, "Error removing old MXdiags files");
-				}
-
-				filename = $"{directory}{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-			}
-			else if (logType == "FTP")
-			{
-				try
-				{
-					List<string> fileEntries = [.. Directory.GetFiles(directory).Where(f => regexFtpLogFileName().Match(f).Success)];
-
-					fileEntries.Sort();
-
-					while (fileEntries.Count >= maxEntries)
-					{
-						File.Delete(fileEntries[0]);
-						fileEntries.RemoveAt(0);
-					}
-				}
-				catch (Exception ex)
-				{
-					LogExceptionMessage(ex, "Error removing old FTP log files");
-				}
-
-				filename = $"{directory}FTP-{DateTime.Now:yyyyMMdd-HHmmss}.txt";
-			}
-
-			return filename;
 		}
 
 
@@ -13707,7 +13654,26 @@ namespace CumulusMX
 					SqlCatchingUp = true;
 
 					LogMessage($"{callingFunction}: Failed MySQL updates are present");
-					if (MySqlCheckConnection())
+
+					if (MySqlConn is null)
+					{
+						MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
+						MySqlConn.Open();
+
+						// get the database name to check 100% we have a connection
+						var db = MySqlConn.Database;
+						LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
+					}
+					else if (MySqlConn.State == System.Data.ConnectionState.Closed)
+					{
+						MySqlConn.Open();
+
+						// get the database name to check 100% we have a connection
+						var db = MySqlConn.Database;
+						LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
+					}
+
+					try
 					{
 						Thread.Sleep(500);
 						LogMessage($"{callingFunction}: Connection to MySQL server is OK, trying to upload {MySqlFailedList.Count} failed commands");
@@ -13715,34 +13681,38 @@ namespace CumulusMX
 						await MySqlCommandAsync(MySqlFailedList, callingFunction, true);
 						LogMessage($"{callingFunction}: Upload of failed MySQL commands complete");
 					}
-					else if (MySqlSettings.BufferOnfailure)
+					catch
 					{
-						connectionOK = false;
-						LogMessage($"{callingFunction}: Connection to MySQL server has failed, adding this update to the failed list");
-						if (callingFunction.StartsWith("Realtime["))
+						if (MySqlSettings.BufferOnfailure)
 						{
-							var tmp = new SqlCache() { statement = cmds[0] };
-							_ = station.RecentDataDb.Insert(tmp);
+							connectionOK = false;
+							LogMessage($"{callingFunction}: Connection to MySQL server has failed, adding this update to the failed list");
+							if (callingFunction.StartsWith("Realtime["))
+							{
+								var tmp = new SqlCache() { statement = cmds[0] };
+								_ = station.RecentDataDb.Insert(tmp);
 
-							// don't bother buffering the realtime deletes - if present
-							MySqlFailedList.Enqueue(tmp);
+								// don't bother buffering the realtime deletes - if present
+								MySqlFailedList.Enqueue(tmp);
+							}
+							else
+							{
+								for (var i = 0; i < cmds.Count; i++)
+								{
+									var tmp = new SqlCache() { statement = cmds[i] };
+
+									_ = station.RecentDataDb.Insert(tmp);
+
+									MySqlFailedList.Enqueue(tmp);
+								}
+							}
 						}
 						else
 						{
-							for (var i = 0; i < cmds.Count; i++)
-							{
-								var tmp = new SqlCache() { statement = cmds[i] };
-
-								_ = station.RecentDataDb.Insert(tmp);
-
-								MySqlFailedList.Enqueue(tmp);
-							}
+							connectionOK = false;
 						}
 					}
-					else
-					{
-						connectionOK = false;
-					}
+
 					SqlCatchingUp = false;
 				}
 
@@ -14073,17 +14043,32 @@ namespace CumulusMX
 
 			try
 			{
-				using var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
-				mySqlConn.Open();
+				if (MySqlConn is null)
+				{
+					MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
+					MySqlConn.Open();
 
-				using var transaction = myQueue.Count > 2 ? mySqlConn.BeginTransaction() : null;
+					// get the database name to check 100% we have a connection
+					var db = MySqlConn.Database;
+					LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
+				}
+				else if (MySqlConn.State == System.Data.ConnectionState.Closed)
+				{
+					MySqlConn.Open();
+
+					// get the database name to check 100% we have a connection
+					var db = MySqlConn.Database;
+					LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
+				}
+
+				using var transaction = myQueue.Count > 2 ? MySqlConn.BeginTransaction() : null;
 
 				// Do not remove the item from the stack until we know the command worked, or the command is bad
 				while (myQueue.TryPeek(out cachedCmd))
 				{
 					try
 					{
-						using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, mySqlConn))
+						using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, MySqlConn))
 						{
 							LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
 
@@ -14164,8 +14149,6 @@ namespace CumulusMX
 						LogExceptionMessage(ex, $"{CallingFunction}: Error committing transaction");
 					}
 				}
-
-				mySqlConn.Close();
 			}
 			catch (Exception ex)
 			{
@@ -14842,10 +14825,10 @@ namespace CumulusMX
 
 		[GeneratedRegex(@"max[\s]*=[\s]*([\d]+)")]
 		private static partial Regex regexMaxParam();
+
 		[GeneratedRegex(@"[\\/]+\d{8}-\d{6}\.txt")]
 		private static partial Regex regexLogFileName();
-		[GeneratedRegex(@"[\\/]+FTP-\d{8}-\d{6}\.txt")]
-		private static partial Regex regexFtpLogFileName();
+
 		[GeneratedRegex(@"<custinterval([0-9]{1,2})>")]
 		private static partial Regex regexCustIntvlFileName();
 	}
