@@ -20,13 +20,21 @@ namespace CumulusMX
 
 		public string GetAlpacaFormData()
 		{
+			var advanced = new SettingsServerAdvanced()
+			{
+				sslMode = (uint) cumulus.MySqlConnSettings.SslMode,
+				tlsVers = cumulus.MySqlConnSettings.TlsVersion
+			};
+
+
 			var server = new JsonSettingsServer()
 			{
 				database = cumulus.MySqlConnSettings.Database,
 				host = cumulus.MySqlConnSettings.Server,
 				pass = cumulus.MySqlConnSettings.Password,
 				port = cumulus.MySqlConnSettings.Port,
-				user = cumulus.MySqlConnSettings.UserID
+				user = cumulus.MySqlConnSettings.UserID,
+				advanced = advanced
 			};
 
 			var monthly = new JsonSettingsMonthly()
@@ -269,9 +277,27 @@ namespace CumulusMX
 					String.IsNullOrWhiteSpace(settings.server.user) ||
 					cumulus.MySqlConnSettings.UserID != settings.server.user.Trim() ||
 					String.IsNullOrWhiteSpace(settings.server.pass) ||
-					cumulus.MySqlConnSettings.Password != settings.server.pass.Trim())
+					cumulus.MySqlConnSettings.Password != settings.server.pass.Trim() ||
+					cumulus.MySqlConnSettings.SslMode != (MySqlSslMode) settings.server.advanced.sslMode ||
+					cumulus.MySqlConnSettings.TlsVersion != settings.server.advanced.tlsVers.Trim())
 					)
 				{
+					// server
+					cumulus.MySqlConnSettings.Server = String.IsNullOrWhiteSpace(settings.server.host) ? null : settings.server.host.Trim();
+					if (settings.server.port > 0 && settings.server.port < 65536)
+					{
+						cumulus.MySqlConnSettings.Port = settings.server.port;
+					}
+					else
+					{
+						cumulus.MySqlConnSettings.Port = 3306;
+					}
+					cumulus.MySqlConnSettings.Database = String.IsNullOrWhiteSpace(settings.server.database) ? null : settings.server.database.Trim();
+					cumulus.MySqlConnSettings.UserID = String.IsNullOrWhiteSpace(settings.server.user) ? null : settings.server.user.Trim();
+					cumulus.MySqlConnSettings.Password = String.IsNullOrWhiteSpace(settings.server.pass) ? null : settings.server.pass.Trim();
+					cumulus.MySqlConnSettings.SslMode = (MySqlSslMode) settings.server.advanced.sslMode;
+					cumulus.MySqlConnSettings.TlsVersion = String.IsNullOrWhiteSpace(settings.server.advanced.tlsVers) ? "TLS 1.2,TLS 1.3" : settings.server.advanced.tlsVers.Trim();
+
 					try
 					{
 						if (cumulus.MySqlConn.State != System.Data.ConnectionState.Closed ||
@@ -284,21 +310,23 @@ namespace CumulusMX
 					{
 						cumulus.MySqlConn = null;
 					}
-				}
 
-				// server
-				cumulus.MySqlConnSettings.Server = String.IsNullOrWhiteSpace(settings.server.host) ? null : settings.server.host.Trim();
-				if (settings.server.port > 0 && settings.server.port < 65536)
-				{
-					cumulus.MySqlConnSettings.Port = settings.server.port;
+					if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
+						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
+						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password)
+						)
+					{
+						try
+						{
+							cumulus.MySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString());
+							cumulus.MySqlConn.Open();
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, "MySQL: Error connecting to server");
+						}
+					}
 				}
-				else
-				{
-					cumulus.MySqlConnSettings.Port = 3306;
-				}
-				cumulus.MySqlConnSettings.Database = String.IsNullOrWhiteSpace(settings.server.database) ? null : settings.server.database.Trim();
-				cumulus.MySqlConnSettings.UserID = String.IsNullOrWhiteSpace(settings.server.user) ? null : settings.server.user.Trim();
-				cumulus.MySqlConnSettings.Password = String.IsNullOrWhiteSpace(settings.server.pass) ? null : settings.server.pass.Trim();
 
 				// options
 				cumulus.MySqlSettings.UpdateOnEdit = settings.options.updateonedit;
@@ -454,14 +482,12 @@ namespace CumulusMX
 		private string CreateMySQLTable(string createSQL)
 		{
 			string res;
-			using (var mySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString()))
-			using (MySqlCommand cmd = new MySqlCommand(createSQL, mySqlConn))
+			using (MySqlCommand cmd = new MySqlCommand(createSQL, cumulus.MySqlConn))
 			{
 				cumulus.LogMessage($"MySQL Create Table: {createSQL}");
 
 				try
 				{
-					mySqlConn.Open();
 					int aff = cmd.ExecuteNonQuery();
 					cumulus.LogMessage($"MySQL Create Table: {aff} items were affected.");
 					res = "Database table created successfully";
@@ -471,17 +497,6 @@ namespace CumulusMX
 					cumulus.LogErrorMessage("MySQL Create Table: Error encountered during MySQL operation.");
 					cumulus.LogMessage(ex.Message);
 					res = "Error: " + ex.Message;
-				}
-				finally
-				{
-					try
-					{
-						mySqlConn.Close();
-					}
-					catch
-					{
-						// do nothing
-					}
 				}
 			}
 			return res;
@@ -494,12 +509,9 @@ namespace CumulusMX
 
 			try
 			{
-				using var mySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString());
-				mySqlConn.Open();
-
 				// first get a list of the columns the table currenty has
 				var currCols = new List<string>();
-				using (MySqlCommand cmd = new MySqlCommand($"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", mySqlConn))
+				using (MySqlCommand cmd = new MySqlCommand($"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", cumulus.MySqlConn))
 				using (MySqlDataReader reader = cmd.ExecuteReader())
 				{
 					if (reader.HasRows)
@@ -527,7 +539,7 @@ namespace CumulusMX
 					// strip trailing comma
 					update.Length--;
 
-					using MySqlCommand cmd = new MySqlCommand(update.ToString(), mySqlConn);
+					using MySqlCommand cmd = new MySqlCommand(update.ToString(), cumulus.MySqlConn);
 					_ = cmd.ExecuteNonQuery();
 					res = $"Added {cnt} columns to {table.Name} table";
 					cumulus.LogMessage($"MySQL Update Table: " + res);
@@ -600,6 +612,13 @@ namespace CumulusMX
 			public string user { get; set; }
 			public string pass { get; set; }
 			public string database { get; set; }
+			public SettingsServerAdvanced advanced { get; set; }
+		}
+
+		private sealed class SettingsServerAdvanced
+		{
+			public uint sslMode { get; set; }
+			public string tlsVers { get; set; }
 		}
 
 		private sealed class JsonSettingsOptions

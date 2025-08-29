@@ -29,6 +29,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		- There is a folder per language, and a language strings files for each settings file
 	- Change the display language in Program Settings -> Culture Overrides -> Display Language. Only those languages with translation files will be selectable
 - New option to force the am/pm time designators to lower case. See Program Settings -> Culture Overrides
+- The MySQL settings now has an advanced section where you can force the SSL mode and the TLS versions to use for connections
 
 ### Changed
 
@@ -66,13 +67,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 		*Strictly, the 'useUTC: false' is not required as that setting has now been deprecated*
 	- You must also use a version of Highcharts later than v11.2.0 - Cumulus MX now uses v12.3.0
-- All logging to log files is now asynchronous. This means a change to log file naming scheme for the main MX diags
+- All logging to log files is now asynchronous. This means a change to log file naming scheme for the main MX diagnostics
 	- The latest log file will always have filename: MxDiags.log
-	- Rollover:
-		- Rolled over files will have the date/time appended: MxDiags-YYMMDD-HHMMSS.log eg. MxDiags-250726-115412.log
-		- Rollover occurs when log files that have exceeded the rollover size (12MB)
-		- Rollover also occurs when you start Cumulus MX, the existing MxDiags.log will be renamed to a timestamped filename
-		- The timestamp on rollover files is the time of the last entry in the file, not the first
+	- Archiving:
+		- Archived files will have the date/time appended: MxDiags-YYMMDD-HHMMSS.log eg. MxDiags-250726-115412.log
+		- Archiving occurs when log files have exceeded 12MB in size
+		- Archiving also occurs when you start Cumulus MX, the existing MxDiags.log will be renamed to a timestamped filename
+		- The timestamp on archived files is the time of the last entry in the file, not the first
 	- The maximum log file size has been decreased to 12MB, but the number of archives retained increased to 20
 	- You may notice the logged event times only increment every 16ms, this is an efficiency thing!
 - Logging of JSON responses from the Ecowitt Local HTTP API now compacts the output by removing line feeds and tabs from the text
@@ -81,9 +82,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Adds a default User-Agent header to all HTTP requests of "CumulusMX/4.6.0.4107" - or whatever the current version/build is
 - The dashboard charts now honour the time format setting in Settings -> Program Settings -> Culture Over-rides
 	- The new default for the charts is to display in the web browsers TZ settings format
-- The system uptime is now obtained differently, this allows the removal of the System.Diagnostics.PerformanceCounter package
+- The system uptime is now obtained differently; this allows the removal of the System.Diagnostics.PerformanceCounter package
 - The Dashboard screen now fully reflects your time presentation choices in Cumulus
-- The MySQL updates now use a single persistent connection rather reconnecting for each upload.
+- The MySQL updates now use a single persistent connection rather than reconnecting for each upload
 
 ### Fixed
 

@@ -5747,6 +5747,9 @@ namespace CumulusMX
 			MySqlConnSettings.UserID = ini.GetValue("MySQL", "User", string.Empty);
 			MySqlConnSettings.Password = ini.GetValue("MySQL", "Pass", string.Empty);
 			MySqlConnSettings.Database = ini.GetValue("MySQL", "Database", "database");
+			MySqlConnSettings.SslMode = (MySqlSslMode) ini.GetValue("MySQL", "SSLmode", (int) MySqlSslMode.Preferred);
+			MySqlConnSettings.TlsVersion = ini.GetValue("MySQL", "TLSversions", "TLS 1.2,TLS 1.2");
+
 			MySqlSettings.UpdateOnEdit = ini.GetValue("MySQL", "UpdateOnEdit", true);
 			MySqlSettings.BufferOnfailure = ini.GetValue("MySQL", "BufferOnFailure", false);
 
@@ -7290,6 +7293,9 @@ namespace CumulusMX
 			ini.SetValue("MySQL", "User", Crypto.EncryptString(MySqlConnSettings.UserID, Program.InstanceId, "MySql UserID"));
 			ini.SetValue("MySQL", "Pass", Crypto.EncryptString(MySqlConnSettings.Password, Program.InstanceId, "MySql Password"));
 			ini.SetValue("MySQL", "Database", MySqlConnSettings.Database);
+			ini.SetValue("MySQL", "SSLmode", (int) MySqlConnSettings.SslMode);
+			ini.SetValue("MySQL", "TLSversions", MySqlConnSettings.TlsVersion);
+
 			ini.SetValue("MySQL", "MonthlyMySqlEnabled", MySqlSettings.Monthly.Enabled);
 			ini.SetValue("MySQL", "RealtimeMySqlEnabled", MySqlSettings.Realtime.Enabled);
 			ini.SetValue("MySQL", "RealtimeMySql1MinLimit", MySqlSettings.RealtimeLimit1Minute);
@@ -14236,24 +14242,6 @@ namespace CumulusMX
 						LogErrorMessage($"{CallingFunction}: Error buffering command - " + ex.Message);
 					}
 				}
-			}
-		}
-
-		public bool MySqlCheckConnection()
-		{
-			try
-			{
-				using var mySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
-				mySqlConn.Open();
-				// get the database name to check 100% we have a connection
-				var db = mySqlConn.Database;
-				LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
-				mySqlConn.Close();
-				return true;
-			}
-			catch
-			{
-				return false;
 			}
 		}
 
