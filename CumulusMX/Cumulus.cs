@@ -67,6 +67,8 @@ namespace CumulusMX
 
 		public static SemaphoreSlim SyncInit { get => semaphoreSlim; }
 
+		public static SemaphoreSlim MySqlSemaphore { get => semaphoreSlim; }
+
 		public enum FtpProtocols
 		{
 			FTP = 0,
@@ -8549,7 +8551,7 @@ namespace CumulusMX
 					if (live)
 					{
 						// do the update
-						_ = CheckMySQLFailedUploads("DoLogFile", queryString);
+						await CheckMySQLFailedUploads("DoLogFile", queryString);
 					}
 					else
 					{
@@ -13651,34 +13653,41 @@ namespace CumulusMX
 
 		public async Task CheckMySQLFailedUploads(string callingFunction, List<string> cmds)
 		{
-			var connectionOK = true;
+			// first get the lock
+#if DEBUG
+			LogDebugMessage($"{callingFunction}: Wait for the MySQL lock");
+#endif
+			await MySqlSemaphore.WaitAsync();
+#if DEBUG
+			LogDebugMessage($"{callingFunction}: Has the MySQL lock");
+#endif
 
 			try
 			{
+				if (MySqlConn is null)
+				{
+					MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
+					await MySqlConn.OpenAsync();
+
+					// get the database name to check 100% we have a connection
+					var db = MySqlConn.Database;
+					LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
+				}
+				else if (MySqlConn.State == System.Data.ConnectionState.Closed)
+				{
+					await MySqlConn.OpenAsync();
+
+					// get the database name to check 100% we have a connection
+					var db = MySqlConn.Database;
+					LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
+				}
+
 				if (!MySqlFailedList.IsEmpty)
 				{
 					// flag we are processing the queue so the next task doesn't try as well
 					SqlCatchingUp = true;
 
 					LogMessage($"{callingFunction}: Failed MySQL updates are present");
-
-					if (MySqlConn is null)
-					{
-						MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
-						MySqlConn.Open();
-
-						// get the database name to check 100% we have a connection
-						var db = MySqlConn.Database;
-						LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
-					}
-					else if (MySqlConn.State == System.Data.ConnectionState.Closed)
-					{
-						MySqlConn.Open();
-
-						// get the database name to check 100% we have a connection
-						var db = MySqlConn.Database;
-						LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
-					}
 
 					try
 					{
@@ -13692,7 +13701,6 @@ namespace CumulusMX
 					{
 						if (MySqlSettings.BufferOnfailure)
 						{
-							connectionOK = false;
 							LogMessage($"{callingFunction}: Connection to MySQL server has failed, adding this update to the failed list");
 							if (callingFunction.StartsWith("Realtime["))
 							{
@@ -13714,17 +13722,13 @@ namespace CumulusMX
 								}
 							}
 						}
-						else
-						{
-							connectionOK = false;
-						}
 					}
 
 					SqlCatchingUp = false;
 				}
 
 				// now do what we came here to do
-				if (connectionOK)
+				if (MySqlConn is not null && MySqlConn.State == System.Data.ConnectionState.Open)
 				{
 					await MySqlCommandAsync(cmds, callingFunction);
 				}
@@ -13734,6 +13738,12 @@ namespace CumulusMX
 				LogExceptionMessage(ex, $"{callingFunction}: Error during MySQL upload");
 				SqlCatchingUp = false;
 			}
+
+			// release the lock
+#if DEBUG
+			LogDebugMessage($"{callingFunction}: Releasing the MySQL lock");
+#endif
+			MySqlSemaphore.Release();
 		}
 
 		public void DoExtraEndOfDayFiles()
@@ -14024,11 +14034,8 @@ namespace CumulusMX
 
 		public async Task MySqlCommandAsync(ConcurrentQueue<SqlCache> Cmds, string CallingFunction, bool UseFailedList)
 		{
-			await Task.Run(() =>
-			{
-				var myQueue = UseFailedList ? ref MySqlFailedList : ref Cmds;
-				ProcessMySqlBuffer(myQueue, CallingFunction, UseFailedList);
-			});
+			var myQueue = UseFailedList ? ref MySqlFailedList : ref Cmds;
+			await ProcessMySqlBuffer(myQueue, CallingFunction, UseFailedList);
 		}
 
 		public void MySqlCommandSync(string Cmd, string CallingFunction)
@@ -14041,10 +14048,10 @@ namespace CumulusMX
 		public void MySqlCommandSync(ConcurrentQueue<SqlCache> Cmds, string CallingFunction, bool UseFailedList)
 		{
 			var myQueue = UseFailedList ? ref MySqlFailedList : ref Cmds;
-			ProcessMySqlBuffer(myQueue, CallingFunction, UseFailedList);
+			ProcessMySqlBuffer(myQueue, CallingFunction, UseFailedList).Wait();
 		}
 
-		private void ProcessMySqlBuffer(ConcurrentQueue<SqlCache> myQueue, string CallingFunction, bool UseFailedList)
+		private async Task ProcessMySqlBuffer(ConcurrentQueue<SqlCache> myQueue, string CallingFunction, bool UseFailedList)
 		{
 			SqlCache cachedCmd = null;
 
@@ -14053,7 +14060,7 @@ namespace CumulusMX
 				if (MySqlConn is null)
 				{
 					MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
-					MySqlConn.Open();
+					await MySqlConn.OpenAsync();
 
 					// get the database name to check 100% we have a connection
 					var db = MySqlConn.Database;
@@ -14061,14 +14068,14 @@ namespace CumulusMX
 				}
 				else if (MySqlConn.State == System.Data.ConnectionState.Closed)
 				{
-					MySqlConn.Open();
+					await MySqlConn.OpenAsync();
 
 					// get the database name to check 100% we have a connection
 					var db = MySqlConn.Database;
 					LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
 				}
 
-				using var transaction = myQueue.Count > 2 ? MySqlConn.BeginTransaction() : null;
+				using var transaction = myQueue.Count > 2 ? await MySqlConn.BeginTransactionAsync() : null;
 
 				// Do not remove the item from the stack until we know the command worked, or the command is bad
 				while (myQueue.TryPeek(out cachedCmd))
@@ -14084,7 +14091,7 @@ namespace CumulusMX
 								cmd.Transaction = transaction;
 							}
 
-							int aff = cmd.ExecuteNonQuery();
+							int aff =  await cmd.ExecuteNonQueryAsync();
 							LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
 
 							// Success, if using the failed list, delete from the databasec
@@ -14140,7 +14147,6 @@ namespace CumulusMX
 							}
 						}
 					}
-
 				}
 
 				if (transaction != null)
@@ -14148,7 +14154,7 @@ namespace CumulusMX
 					LogDebugMessage($"{CallingFunction}: Committing updates to DB");
 					try
 					{
-						transaction.Commit();
+						await transaction.CommitAsync();
 						LogDebugMessage($"{CallingFunction}: Commit complete");
 					}
 					catch (Exception ex)
@@ -14176,6 +14182,7 @@ namespace CumulusMX
 			}
 
 			MySqlUploadAlarm.Triggered = false;
+
 		}
 
 		private static bool MySqlCheckError(int ErrorCode)
