@@ -279,7 +279,7 @@ namespace CumulusMX
 					String.IsNullOrWhiteSpace(settings.server.pass) ||
 					cumulus.MySqlConnSettings.Password != settings.server.pass.Trim() ||
 					cumulus.MySqlConnSettings.SslMode != (MySqlSslMode) settings.server.advanced.sslMode ||
-					cumulus.MySqlConnSettings.TlsVersion != settings.server.advanced.tlsVers.Trim())
+					cumulus.MySqlConnSettings.TlsVersion != (String.IsNullOrWhiteSpace(settings.server.advanced.tlsVers) ? "TLS 1.2,TLS 1.3" : settings.server.advanced.tlsVers.Trim()))
 					)
 				{
 					// server

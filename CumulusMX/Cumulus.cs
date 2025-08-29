@@ -5746,9 +5746,9 @@ namespace CumulusMX
 			MySqlConnSettings.Port = (uint) ini.GetValue("MySQL", "Port", 3306, 1, 65535);
 			MySqlConnSettings.UserID = ini.GetValue("MySQL", "User", string.Empty);
 			MySqlConnSettings.Password = ini.GetValue("MySQL", "Pass", string.Empty);
-			MySqlConnSettings.Database = ini.GetValue("MySQL", "Database", "database");
+			MySqlConnSettings.Database = ini.GetValue("MySQL", "Database", "");
 			MySqlConnSettings.SslMode = (MySqlSslMode) ini.GetValue("MySQL", "SSLmode", (int) MySqlSslMode.Preferred);
-			MySqlConnSettings.TlsVersion = ini.GetValue("MySQL", "TLSversions", "TLS 1.2,TLS 1.2");
+			MySqlConnSettings.TlsVersion = ini.GetValue("MySQL", "TLSversions", "TLS 1.2,TLS 1.3");
 
 			MySqlSettings.UpdateOnEdit = ini.GetValue("MySQL", "UpdateOnEdit", true);
 			MySqlSettings.BufferOnfailure = ini.GetValue("MySQL", "BufferOnFailure", false);
