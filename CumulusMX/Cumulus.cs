@@ -6439,6 +6439,7 @@ namespace CumulusMX
 			ini.SetValue("JsonStation", "SourceFile", JsonStationOptions.SourceFile);
 			ini.SetValue("JsonStation", "FileDelay", JsonStationOptions.FileReadDelay);
 			ini.SetValue("JsonStation", "FileIgnore", JsonStationOptions.FileIgnoreTime);
+			ini.SetValue("JsonStation", "MqttServer", JsonStationOptions.MqttServer);
 			ini.SetValue("JsonStation", "MqttServerPort", JsonStationOptions.MqttPort);
 			ini.SetValue("JsonStation", "MqttUsername", Crypto.EncryptString(JsonStationOptions.MqttUsername, Program.InstanceId, "JsonStationMqttUsername"));
 			ini.SetValue("JsonStation", "MqttPassword", Crypto.EncryptString(JsonStationOptions.MqttPassword, Program.InstanceId, "JsonStationMqttPassword"));

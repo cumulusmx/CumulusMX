@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4114\]][23] - 2025-08-28
+## [4.6.0 \[b4115\]][23] - 2025-08-29
 
 ### New
 
@@ -97,6 +97,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt historic catch-up from SD card was not setting the DataDateTime variable
 - Ecowitt Cloud station decoding of CO₂ 24-hour PM values
 - Ecowitt Cloud station 24-hour CO₂ PM values are now "kludged" from the 24-hour AQI values supplied by Ecowitt
+- JSON Data Station not saving the MQTT server name
 
 ### Package Updates
 
@@ -991,4 +992,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [20]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4103
 [21]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4104
 [22]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4105
-[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4114
+[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4115

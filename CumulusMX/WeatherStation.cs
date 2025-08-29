@@ -1628,20 +1628,20 @@ namespace CumulusMX
 				// skip this interval it's the same second
 				return;
 			}
-			else if (nowSec - lastSecond > 60)
+			else if (nowSec - lastSecond > 300)
 			{
-				// check for the clock skipping forward more than 1 minute
+				// check for the clock skipping forward more than 5 minutes
 				// if this happens it may be because the computer was suspended
 				// we will terminate so that the program can be restarted and the data recovered
 				// Exit code 999 is used to prevent a clean shutdown, it aborts the program, not saving the current state/datetime if it hasn't already been saved
 				secondTimer.Stop();
 				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
-					cumulus.LogMessage($"**** Clock skipped forward more than a minute, last second was {lastSecond}, now is {nowSec}. Already shutting down, so no more action required");
+					cumulus.LogMessage($"**** Clock skipped forward more than 5 minutes, last second was {lastSecond}, now is {nowSec}. Already shutting down, so no more action required");
 				}
 				else
 				{
-					cumulus.LogMessage($"**** Clock skipped forward more than a minute, last second was {lastSecond}, now is {nowSec}. Assuming we are resuming from an undetected computer sleep and aborting Cumulus ****");
+					cumulus.LogMessage($"**** Clock skipped forward more than 5 minutes, last second was {lastSecond}, now is {nowSec}. Assuming we are resuming from an undetected computer sleep and aborting Cumulus ****");
 					Environment.ExitCode = 999;
 					Program.ExitSystemTokenSource.Cancel();
 				}
