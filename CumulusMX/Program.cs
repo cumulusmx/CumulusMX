@@ -49,11 +49,12 @@ namespace CumulusMX
 
 		private static async Task Main(string[] args)
 		{
+			// force the current folder to be CumulusMX folder
+			Environment.CurrentDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule!.FileName!)!;
+			Directory.SetCurrentDirectory(Environment.CurrentDirectory);
+
 			StartTime = DateTime.Now;
 			RunningOnWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
-			// force the current folder to be CumulusMX folder
-			Directory.SetCurrentDirectory(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
 
 			try
 			{
@@ -535,7 +536,7 @@ namespace CumulusMX
 			var logfile = new FileTarget()
 			{
 				Name = "logfile",
-				FileName = Path.Combine("MXdiags", "MxDiags.log"),
+				FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MXdiags", "MxDiags.log"),
 				ArchiveSuffixFormat = "{1:-yyMMdd-HHmmss}",
 				ArchiveAboveSize = configFile.runtimeOptions.configProperties.LogFileSize,
 				ArchiveOldFileOnStartup = true,
@@ -555,7 +556,6 @@ namespace CumulusMX
 				TimeToSleepBetweenBatches = 1
 			};
 
-
 			// Config
 			var config = new LoggingConfiguration();
 			config.AddRule(LogLevel.Trace, LogLevel.Fatal, asyncLogFile, "CMX", !Debugger.IsAttached);
@@ -570,6 +570,9 @@ namespace CumulusMX
 				};
 				config.AddRule(LogLevel.Trace, LogLevel.Fatal, debugger, "CMX", true);
 			}
+
+			//NLog.Common.InternalLogger.LogLevel = LogLevel.Trace;
+			//NLog.Common.InternalLogger.LogFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MXdiags", "nlog-internal.txt");
 
 			// Apply configuration
 			LogManager.Configuration = config;

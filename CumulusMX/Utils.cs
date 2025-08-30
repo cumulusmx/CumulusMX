@@ -8,6 +8,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using ServiceStack;
@@ -463,6 +464,65 @@ namespace CumulusMX
 
 			sb.Append($"\"hours\":\"{hrs}\"}}");
 			return sb.ToString();
+		}
+
+		public static void SetDateTimeAmPmDesignators(bool lowerCase)
+		{
+			// hint - we don't use CurrentUICulture
+			string am, pm;
+
+			if (lowerCase)
+			{
+				am = CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator.ToLower();
+				pm = CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator.ToLower();
+			}
+			else
+			{
+				am = CultureInfo.CurrentUICulture.DateTimeFormat.AMDesignator;
+				pm = CultureInfo.CurrentUICulture.DateTimeFormat.PMDesignator;
+			}
+
+			var customCulture = (CultureInfo) CultureInfo.CurrentCulture.Clone();
+			customCulture.DateTimeFormat.AMDesignator = am;
+			customCulture.DateTimeFormat.PMDesignator = pm;
+
+			// set current thread culture and defaults
+			Thread.CurrentThread.CurrentCulture = customCulture;
+			CultureInfo.CurrentCulture = customCulture;
+			if (CultureInfo.DefaultThreadCurrentCulture is not null)
+			{
+				CultureInfo.DefaultThreadCurrentCulture = customCulture;
+			}
+		}
+
+		public static void RemoveSpaceFromDateFormat(bool remove)
+		{
+			// change the date separator
+			// hint - we don't use CurrentUICulture
+			string dateSep, shortDate;
+
+			if (remove)
+			{
+				dateSep = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", string.Empty);
+				shortDate = CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern.Replace(" ", string.Empty);
+			}
+			else
+			{
+				dateSep = CultureInfo.CurrentUICulture.DateTimeFormat.DateSeparator;
+				shortDate = CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern;
+			}
+
+			var customCulture = (CultureInfo) CultureInfo.CurrentCulture.Clone();
+			customCulture.DateTimeFormat.DateSeparator = dateSep;
+			customCulture.DateTimeFormat.ShortDatePattern = shortDate;
+
+			// set current thread culture and defaults
+			Thread.CurrentThread.CurrentCulture = customCulture;
+			CultureInfo.CurrentCulture = customCulture;
+			if (CultureInfo.DefaultThreadCurrentCulture is not null)
+			{
+				CultureInfo.DefaultThreadCurrentCulture = customCulture;
+			}
 		}
 	}
 }

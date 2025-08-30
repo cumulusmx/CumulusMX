@@ -157,30 +157,15 @@ namespace CumulusMX
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
 				if (settings.culture.amPmLowerCase != cumulus.ProgramOptions.TimeAmPmLowerCase)
 				{
-					string am, pm;
-
-					if (settings.culture.amPmLowerCase)
-					{
-						am = CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator.ToLower();
-						pm = CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator.ToLower();
-					}
-					else
-					{
-						am = CultureInfo.CurrentUICulture.DateTimeFormat.AMDesignator;
-						pm = CultureInfo.CurrentUICulture.DateTimeFormat.PMDesignator;
-					}
-					CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator = am;
-					CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator = pm;
-					CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.AMDesignator = am;
-					CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.PMDesignator = pm;
+					cumulus.ProgramOptions.TimeAmPmLowerCase = settings.culture.amPmLowerCase;
+					Utils.SetDateTimeAmPmDesignators(cumulus.ProgramOptions.TimeAmPmLowerCase);
 				}
-				cumulus.ProgramOptions.TimeAmPmLowerCase = settings.culture.amPmLowerCase;
 
 				// Does the culture need to be tweaked - either way
 				if (cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator != settings.culture.removespacefromdateseparator)
 				{
 					cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator = settings.culture.removespacefromdateseparator;
-					returnMessage = "You must restart Cumulus for the Locale setting change to take effect";
+					Utils.RemoveSpaceFromDateFormat(cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator);
 				}
 
 				cumulus.ProgramOptions.SecureSettings = settings.security.securesettings;
@@ -215,9 +200,8 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error processing Program Options: " + ex.Message;
-				cumulus.LogErrorMessage(msg);
-				errorMsg += msg + "\n\n";
+				cumulus.LogExceptionMessage(ex, "Error processing Program Options");
+				errorMsg += "Error processing Program Options: " + ex.Message + "\n\n";
 				context.Response.StatusCode = 500;
 			}
 

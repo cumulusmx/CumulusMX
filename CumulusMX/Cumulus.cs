@@ -3878,19 +3878,8 @@ namespace CumulusMX
 			// if the culture names match, then we apply the new date separator if change is enabled and it contains a space
 			if (ProgramOptions.Culture.RemoveSpaceFromDateSeparator && CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Contains(' '))
 			{
-				// change the date separator
-				var dateSep = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator.Replace(" ", string.Empty);
-				var shortDate = CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern.Replace(" ", string.Empty);
-
-				CultureInfo newCulture = (CultureInfo) Thread.CurrentThread.CurrentCulture.Clone();
-				newCulture.DateTimeFormat.DateSeparator = dateSep;
-				newCulture.DateTimeFormat.ShortDatePattern = shortDate;
-
-				// set current thread culture
-				Thread.CurrentThread.CurrentCulture = newCulture;
-
-				// set the default culture for other threads
-				CultureInfo.DefaultThreadCurrentCulture = newCulture;
+				LogMessage("Cumulus.ini: Removing space from date formats");
+				Utils.RemoveSpaceFromDateFormat(true);
 			}
 
 			// get the default display language
@@ -3909,12 +3898,8 @@ namespace CumulusMX
 
 			if (ProgramOptions.TimeAmPmLowerCase)
 			{
-				var am = CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator.ToLower();
-				var pm = CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator.ToLower();
-				CultureInfo.CurrentCulture.DateTimeFormat.AMDesignator = am;
-				CultureInfo.CurrentCulture.DateTimeFormat.PMDesignator = pm;
-				CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.AMDesignator = am;
-				CultureInfo.DefaultThreadCurrentCulture.DateTimeFormat.PMDesignator = pm;
+				LogMessage("Cumulus.ini: Forcing lower-case am/pm");
+				Utils.SetDateTimeAmPmDesignators(true);
 			}
 
 			ProgramOptions.EncryptedCreds = ini.GetValue("Program", "EncryptedCreds", false);
