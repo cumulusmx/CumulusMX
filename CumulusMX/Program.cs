@@ -66,6 +66,7 @@ namespace CumulusMX
 			catch (UnauthorizedAccessException)
 			{
 				Console.WriteLine("Error, no permission to read/create folder /MXdiags");
+				Environment.Exit(5);
 			}
 			catch (Exception ex)
 			{
