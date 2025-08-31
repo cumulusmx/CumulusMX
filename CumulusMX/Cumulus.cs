@@ -561,6 +561,7 @@ namespace CumulusMX
 			LogMessage(" ========================== Cumulus MX starting ==========================");
 
 			LogMessage("Cumulus MX v." + Version + " build " + Build);
+			LogMessage("Working Folder : " + AppDir);
 			LogConsoleMessage("Cumulus MX v." + Version + " build " + Build);
 			LogConsoleMessage("Working Dir: " + AppDir);
 
@@ -589,11 +590,11 @@ namespace CumulusMX
 			}
 
 			LogMessage($"Current culture: {CultureInfo.CurrentCulture.DisplayName} [{CultureInfo.CurrentCulture.Name}]");
+			LogMessage("Dotnet Version: " + RuntimeInformation.FrameworkDescription);
+			LogMessage("Running userid: " + Environment.UserName);
 
 			LogMessage($"Running as a {(IntPtr.Size == 4 ? "32" : "64")} bit process");
-			LogMessage("Running under userid: " + Environment.UserName);
 
-			LogMessage("Dotnet Version: " + RuntimeInformation.FrameworkDescription);
 
 			// Some .NET 8 clutures use a non-"standard" minus symbol, this causes all sorts of parsing issues down the line and for external scripts
 			// the simplest solution is to override this and set all cultures to use the hypen-minus

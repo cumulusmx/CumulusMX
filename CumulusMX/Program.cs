@@ -50,7 +50,7 @@ namespace CumulusMX
 		private static async Task Main(string[] args)
 		{
 			// force the current folder to be CumulusMX folder
-			Environment.CurrentDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule!.FileName!)!;
+			Environment.CurrentDirectory = Path.GetDirectoryName(Environment.ProcessPath)!;
 			Directory.SetCurrentDirectory(Environment.CurrentDirectory);
 
 			StartTime = DateTime.Now;
