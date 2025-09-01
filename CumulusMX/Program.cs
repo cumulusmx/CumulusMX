@@ -542,7 +542,7 @@ namespace CumulusMX
 				ArchiveAboveSize = configFile.runtimeOptions.configProperties.LogFileSize,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = configFile.runtimeOptions.configProperties.LogFileCount,
-				Layout = "${longdate}|${level}| ${message}",
+				Layout = "${longdate} ${pad:padding=-5:inner=${level:uppercase=true}} ${message}",
 				Footer = "------ LOG CLOSED ${longdate} ------"
 			};
 

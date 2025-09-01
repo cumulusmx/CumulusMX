@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4117\]][23] - 2025-09-01
+## [4.6.0 \[b4118\]][23] - 2025-09-02
 
 ### New
 
@@ -30,24 +30,17 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Change the display language in Program Settings -> Culture Overrides -> Display Language. Only those languages with translation files will be selectable
 - New option to force the am/pm time designators to lower case. See Program Settings -> Culture Overrides
 - The MySQL settings now has an advanced section where you can force the SSL mode and the TLS versions to use for connections
+- Month web tags `<#MonthTempAvg>`, `<#MonthRainfall>`, `<#MonthDryDays>`, `<#MonthWetDays>` will now accept a relative month parameter `relmon=-N` as an alternative to a specific year and month
+	Where: 0 = current month, -1 = last month etc.
 
 ### Changed
 
-- Added Davis Cloud API UUID option to the Configuration Wizard
-- Add a retry to downloading Ecowitt SD card files on error or if returned file is empty
-- The FTP log files have changed naming convention (to work better with the new version of NLog)
-	- The latest file (if more than one), will be one with the highest value for NN for today: `ftp-<logtype>_YYYY-MM-DD_NN.log`
-	- You will need to manually delete any old log files that use the old naming convention of:
-		`ftp-realtime-N.log` or `ftp-interval-N.log`
-- CreateMissing updated to v2.1.0 to fix the daily rainfall calculation on rain counter reset at rollover, and add support for evapotranspiration calculation
-- Improvements in the Cumulus MX shutdown process - it should now be much faster
-- The JSON and Tempest stations now use the same Sea Level Pressure calculation as all other stations
 - All dashboard and default web site graph data files now use true UTC time stamps
 	- Previously they were "pseudo-UTC" to force the graphs to display the station times rather the viewers time zone
 	- Highcharts version used by the dashboard and default web site updated to v12.3.0 to support this
 	- The charts will now render correctly at DST changes
 	- **IMPORTANT**: You must upload the latest versions of the default web site pages and scripts files to support this change
-	- If you have your own versions of Highcharts scripts, then the relevant change is from:
+	- **IMPORTANT**: If you have your own versions of Highcharts scripts, then the relevant change is from:
 		```json
 		{
 			time: {
@@ -67,6 +60,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 		*Strictly, the 'useUTC: false' is not required as that setting has now been deprecated*
 	- You must also use a version of Highcharts later than v11.2.0 - Cumulus MX now uses v12.3.0
+- Added Davis Cloud API UUID option to the Configuration Wizard
+- Add a retry to downloading Ecowitt SD card files on error or if returned file is empty
+- The FTP log files have changed naming convention (to work better with the new version of NLog)
+	- The latest file (if more than one), will be one with the highest value for NN for today: `ftp-<logtype>_YYYY-MM-DD_NN.log`
+	- You will need to manually delete any old log files that use the old naming convention of:
+		`ftp-realtime-N.log` or `ftp-interval-N.log`
+- CreateMissing updated to v2.1.0 to fix the daily rainfall calculation on rain counter reset at rollover, and add support for evapotranspiration calculation
+- Improvements in the Cumulus MX shutdown process - it should now be much faster
+- The JSON and Tempest stations now use the same Sea Level Pressure calculation as all other stations
 - All logging to log files is now asynchronous. This means a change to log file naming scheme for the main MX diagnostics
 	- The latest log file will always have filename: MxDiags.log
 	- Archiving:
@@ -992,4 +994,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [20]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4103
 [21]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4104
 [22]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4105
-[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4117
+[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4118
