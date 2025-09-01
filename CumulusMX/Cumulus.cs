@@ -11662,13 +11662,14 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogFtpMessage($"FTP[{cycleStr}]: Error reading {localfile} - {ex.Message}", realtime);
-				FtpAlarm.LastMessage = $"Error reading {localfile} - {ex.Message}";
+				LogFtpMessage($"FTP[{cycleStr}]: Error {localfile} - {ex.Message}", realtime);
+				FtpAlarm.LastMessage = $"Error {localfile} - {ex.Message}";
 				FtpAlarm.Triggered = true;
 
 				if (ex.InnerException != null)
 				{
 					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}", realtime);
+					LogExceptionMessage(ex, $"FTP[{cycleStr}]: Error {localfile}");
 				}
 			}
 
