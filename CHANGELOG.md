@@ -30,8 +30,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Change the display language in Program Settings -> Culture Overrides -> Display Language. Only those languages with translation files will be selectable
 - New option to force the am/pm time designators to lower case. See Program Settings -> Culture Overrides
 - The MySQL settings now has an advanced section where you can force the SSL mode and the TLS versions to use for connections
-- Month web tags `<#MonthTempAvg>`, `<#MonthRainfall>`, `<#MonthDryDays>`, `<#MonthWetDays>` will now accept a relative month parameter `relmon=-N` as an alternative to a specific year and month
+- Month web tags `<#MonthTempAvg>`, `<#MonthRainfall>`, `<#MonthDryDays>`, `<#MonthWetDays>` will now accept a relative month parameter `r=-N` or `relmon=-N` as an alternative to a specific year and month
 	Where: 0 = current month, -1 = last month etc.
+- Year web tags `<#YearTempAvg>` and `<#AnnualRainfall>` will now accept a relative year parameter `r=-N` or `relyear=-N` as an alternative to a specific year
+- Add lightning data input to JSON Data Station
 
 ### Changed
 

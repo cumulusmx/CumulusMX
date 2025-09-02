@@ -7829,8 +7829,9 @@ namespace CumulusMX
 
 				cumulus.DoCustomDailyLogs(timestamp);
 
-				// First save today's extremes
+				// First save today's extremes, do not wait for this
 				_ = DoDayfile(timestamp);
+
 				cumulus.LogMessage("Raincounter = " + RainCounter + " Raindaystart = " + RainCounterDayStart);
 
 				// Calculate yesterday"s rain, allowing for the multiplier -
@@ -8905,7 +8906,7 @@ namespace CumulusMX
 				queryString.Append(')');
 
 				// run the query async so we do not block the main EOD processing
-				_ = cumulus.MySqlCommandAsync(queryString.ToString(), "MySQL Dayfile");
+				await cumulus.CheckMySQLFailedUploads("MySQL Dayfile", queryString.ToString());
 			}
 		}
 

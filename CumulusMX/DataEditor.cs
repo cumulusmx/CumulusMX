@@ -3217,7 +3217,7 @@ namespace CumulusMX
 								updt.Append($"WHERE LogDate='{station.DayFile[lineNum].Date:yyyy-MM-dd}';");
 								updateStr = updt.ToString();
 
-								cumulus.MySqlCommandSync(updateStr, "EditDayFile");
+								cumulus.CheckMySQLFailedUploads("EditDayFile", updateStr).Wait();
 								cumulus.LogMessage($"EditDayFile: SQL Updated");
 							}
 							catch (Exception ex)
@@ -3501,8 +3501,7 @@ namespace CumulusMX
 								updt.Append($"WHERE LogDateTime='{LogRec.Date:yyyy-MM-dd HH:mm}';");
 								updateStr = updt.ToString();
 
-
-								cumulus.MySqlCommandSync(updateStr, "EditLogFile");
+								cumulus.CheckMySQLFailedUploads("EditLogFile", updateStr).Wait();
 								cumulus.LogMessage($"EditDataLog: SQL Updated");
 							}
 							catch (Exception ex)

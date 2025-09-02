@@ -822,6 +822,20 @@ namespace CumulusMX
 				}
 			}
 
+			// Lightning
+			if (data.lightning != null)
+			{
+				LightningTime = data.lightning.time ?? DateTime.MinValue;
+				LightningStrikesToday += data.lightning.strikes ?? 0 - LightningCounter;
+				LightningCounter = data.lightning.strikes ?? 0;
+				LightningDistance = (data.units.lightning ?? "??") switch
+				{
+					"km" => ConvertUnits.KmtoUserUnits(data.lightning.distance ?? 0),
+					"mi" => data.lightning.distance ?? 0,
+					_ => data.lightning.distance ?? 0
+				};
+			}
+
 			// Do derived values after the primary values
 
 			if (mainStation)
@@ -886,6 +900,7 @@ namespace CumulusMX
 			public PmData[] airquality { get; set; }
 			public Co2Data co2 { get; set; }
 			public Lds[] laserdist { get; set; }
+			public Lightning lightning { get; set; }
 		}
 
 		private sealed class UnitsObject
@@ -896,6 +911,7 @@ namespace CumulusMX
 			public string pressure { get; set; }
 			public string soilmoisture { get; set; }
 			public string laserdist { get; set; }
+			public string lightning { get; set; }
 		}
 
 		private sealed class Temperature
@@ -968,6 +984,13 @@ namespace CumulusMX
 			public int index { get; set; }
 			public decimal? range { get; set; }
 			public decimal? depth { get; set; }
+		}
+
+		private sealed class Lightning
+		{
+			public DateTime? time { get; set; }
+			public int? strikes { get; set; }
+			public double? distance { get; set; }
 		}
 
 	}

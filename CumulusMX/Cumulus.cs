@@ -13277,7 +13277,7 @@ namespace CumulusMX
 			{
 				// start the archive upload thread
 				LogMessage($"Starting MySQL catchup thread. Found {MySqlList.Count} commands to execute");
-				_ = MySqlCommandAsync(MySqlList, "MySQL Archive", false);
+				_ = CheckMySQLFailedUploads("Startup MySQL", string.Empty);
 			}
 
 			WebTimer.Elapsed += WebTimerTick;
@@ -13622,7 +13622,8 @@ namespace CumulusMX
 					if (!string.IsNullOrEmpty(MySqlSettings.CustomStartUp.Commands[i]))
 					{
 						tokenParser.InputText = MySqlSettings.CustomStartUp.Commands[i];
-						MySqlCommandSync(tokenParser.ToStringFromString(), "CustomMySqlStartUp");
+						// do not wait, just queue them up!
+						_ = CheckMySQLFailedUploads("CustomMySqlStartUp", tokenParser.ToStringFromString());
 					}
 				}
 				catch (Exception ex)
@@ -13681,7 +13682,7 @@ namespace CumulusMX
 						Thread.Sleep(500);
 						LogMessage($"{callingFunction}: Connection to MySQL server is OK, trying to upload {MySqlFailedList.Count} failed commands");
 
-						await MySqlCommandAsync(MySqlFailedList, callingFunction, true);
+						await ProcessMySqlBuffer(MySqlFailedList, callingFunction, true);
 						LogMessage($"{callingFunction}: Upload of failed MySQL commands complete");
 					}
 					catch
@@ -13715,7 +13716,7 @@ namespace CumulusMX
 				}
 
 				// now do what we came here to do
-				if (MySqlConn is not null && MySqlConn.State == System.Data.ConnectionState.Open)
+				if (MySqlConn is not null && MySqlConn.State == System.Data.ConnectionState.Open && cmds.Count > 0)
 				{
 					await MySqlCommandAsync(cmds, callingFunction);
 				}
@@ -14002,12 +14003,14 @@ namespace CumulusMX
 			}
 		}
 
+		/*
 		public async Task MySqlCommandAsync(string Cmd, string CallingFunction)
 		{
 			var Cmds = new ConcurrentQueue<SqlCache>();
 			Cmds.Enqueue(new SqlCache() { statement = Cmd });
 			await MySqlCommandAsync(Cmds, CallingFunction, false);
 		}
+		*/
 
 		public async Task MySqlCommandAsync(List<string> Cmds, string CallingFunction)
 		{
@@ -14025,23 +14028,24 @@ namespace CumulusMX
 			await ProcessMySqlBuffer(myQueue, CallingFunction, UseFailedList);
 		}
 
+		/*
 		public void MySqlCommandSync(string Cmd, string CallingFunction)
 		{
 			var Cmds = new ConcurrentQueue<SqlCache>();
 			Cmds.Enqueue(new SqlCache() { statement = Cmd });
 			MySqlCommandSync(Cmds, CallingFunction, false);
 		}
-
+		*/
+		/*
 		public void MySqlCommandSync(ConcurrentQueue<SqlCache> Cmds, string CallingFunction, bool UseFailedList)
 		{
 			var myQueue = UseFailedList ? ref MySqlFailedList : ref Cmds;
 			ProcessMySqlBuffer(myQueue, CallingFunction, UseFailedList).Wait();
 		}
+		*/
 
-		private async Task ProcessMySqlBuffer(ConcurrentQueue<SqlCache> myQueue, string CallingFunction, bool UseFailedList)
+		private async Task ProcessMySqlBuffer(ConcurrentQueue<SqlCache> myQueue, string CallingFunction, bool UsingFailedList)
 		{
-			SqlCache cachedCmd = null;
-
 			try
 			{
 				if (MySqlConn is null)
@@ -14064,33 +14068,42 @@ namespace CumulusMX
 
 				using var transaction = myQueue.Count > 2 ? await MySqlConn.BeginTransactionAsync() : null;
 
+				SqlCache cachedCmd;
 				// Do not remove the item from the stack until we know the command worked, or the command is bad
 				while (myQueue.TryPeek(out cachedCmd))
 				{
 					try
 					{
-						using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, MySqlConn))
+						if (string.IsNullOrEmpty(cachedCmd.statement))
 						{
-							LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
-
-							if (transaction != null)
-							{
-								cmd.Transaction = transaction;
-							}
-
-							int aff =  await cmd.ExecuteNonQueryAsync();
-							LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
-
-							// Success, if using the failed list, delete from the databasec
-							if (UseFailedList)
-							{
-								station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
-							}
-							// and pop the value from the queue
-							myQueue.TryDequeue(out cachedCmd);
+							// remove empty cmd from the queue
+							myQueue.TryDequeue(out _);
 						}
+						else
+						{
+							using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, MySqlConn))
+							{
+								LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
 
-						MySqlUploadAlarm.Triggered = false;
+								if (transaction != null)
+								{
+									cmd.Transaction = transaction;
+								}
+
+								int aff = await cmd.ExecuteNonQueryAsync();
+								LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
+
+								// Success, if using the failed list, delete from the databasec
+								if (UsingFailedList)
+								{
+									station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
+								}
+								// and pop the value from the queue
+								myQueue.TryDequeue(out _);
+							}
+
+							MySqlUploadAlarm.Triggered = false;
+						}
 					}
 					catch (Exception ex)
 					{
@@ -14099,7 +14112,7 @@ namespace CumulusMX
 						// if debug logging is disable, then log the failing statement anyway
 						if (!DebuggingEnabled)
 						{
-							LogMessage($"{CallingFunction}: Failing SQL = {cachedCmd}");
+							LogMessage($"{CallingFunction}: Failing SQL = {cachedCmd.statement}");
 						}
 
 						MySqlUploadAlarm.LastMessage = ex.Message;
@@ -14109,14 +14122,14 @@ namespace CumulusMX
 
 						// do we save this command/commands on failure to be resubmitted?
 						// if we have a syntax error, it is never going to work so do not save it for retry
-						if (MySqlSettings.BufferOnfailure && !UseFailedList)
+						if (MySqlSettings.BufferOnfailure && !UsingFailedList)
 						{
 							// do we save this command/commands on failure to be resubmitted?
 							// if we have a syntax error, it is never going to work so do not save it for retry
 							// A selection of the more common(?) errors to ignore...
 							MySqlCommandErrorHandler(CallingFunction, errorCode, myQueue);
 						}
-						else if (UseFailedList)
+						else if (UsingFailedList)
 						{
 							// We are processing the buffered list
 							if (MySqlCheckError(errorCode))
@@ -14155,7 +14168,7 @@ namespace CumulusMX
 				LogErrorMessage($"{CallingFunction}: General failure! Error = {ex.Message}");
 
 				// do we want to add the commands to the failed buffer?
-				if (!UseFailedList)
+				if (!UsingFailedList)
 				{
 					foreach (var item in myQueue)
 					{
@@ -14169,7 +14182,6 @@ namespace CumulusMX
 			}
 
 			MySqlUploadAlarm.Triggered = false;
-
 		}
 
 		private static bool MySqlCheckError(int ErrorCode)

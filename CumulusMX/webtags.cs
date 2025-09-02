@@ -441,22 +441,19 @@ namespace CumulusMX
 
 		private static (DateTime, DateTime) GetMonthStartEndDates(Dictionary<string, string> tagParams)
 		{
-			var year = tagParams.Get("y");
-			var month = tagParams.Get("m");
-			var relMonth = tagParams.Get("relmon");
+			var year = tagParams.Get("y") ?? tagParams.Get("year");
+			var month = tagParams.Get("m") ?? tagParams.Get("month");
+			var relMonth = tagParams.Get("r") ?? tagParams.Get("relmon");
 			DateTime start;
 			DateTime end;
 
 			try
 			{
-				if (year != null && month != null)
+				if (year != null && month != null && int.TryParse(year, out int yr) && int.TryParse(month, out int mon))
 				{
-					var yr = int.Parse(year);
-					var mon = int.Parse(month);
-
 					if (yr > 1970 && yr <= DateTime.Now.Year && mon > 0 && mon < 13)
 					{
-						start = new DateTime(int.Parse(year), int.Parse(month), 1, 0, 0, 0, DateTimeKind.Local);
+						start = new DateTime(yr, mon, 1, 0, 0, 0, DateTimeKind.Local);
 						end = start.AddMonths(1);
 					}
 					else
@@ -464,9 +461,13 @@ namespace CumulusMX
 						return (DateTime.MinValue, DateTime.MinValue);
 					}
 				}
-				else if (relMonth != null)
+				else if (relMonth != null && int.TryParse(relMonth, out int mons))
 				{
-					var mons = int.Parse(relMonth);
+					if (mons > 0)
+					{
+						mons = 0;
+					}
+
 					DateTime now = DateTime.Now;
 					start = new DateTime(now.Year, now.Month, 1).AddMonths(mons);
 					end = start.AddMonths(1);
@@ -479,6 +480,45 @@ namespace CumulusMX
 
 				return (start, end);
 			}
+			catch
+			{
+				return (DateTime.MinValue, DateTime.MinValue);
+			}
+		}
+
+		private static (DateTime, DateTime) GetYearStartEndDates(Dictionary<string, string> tagParams)
+		{
+			var year = tagParams.Get("y") ?? tagParams.Get("year");
+			var relYear = tagParams.Get("r") ?? tagParams.Get("relyear");
+			DateTime start;
+			DateTime end;
+			try
+			{
+
+				if (year != null && int.TryParse(year, out int yr))
+				{
+					start = new DateTime(yr, 1, 1, 0, 0, 0, DateTimeKind.Local);
+					end = start.AddYears(1);
+				}
+				else if (relYear != null && int.TryParse(relYear, out int relyr))
+				{
+					if (relyr > 0)
+					{
+						relyr = 0;
+					}
+
+					var now = DateTime.Now;
+					start = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local).AddYears(relyr);
+					end = start.AddYears(1);
+				}
+				else
+				{
+					end = DateTime.Now.Date;
+					start = new DateTime(end.Year, 1, 1, 0, 0, 0, DateTimeKind.Local);
+				}
+
+				return (start, end);
+				}
 			catch
 			{
 				return (DateTime.MinValue, DateTime.MinValue);
@@ -508,14 +548,9 @@ namespace CumulusMX
 
 		private string Tagwindrunmonth(Dictionary<string, string> tagParams)
 		{
-			if (!int.TryParse(tagParams.Get("year"), out int year))
-			{
-				year = DateTime.Now.Year;
-			}
-			if (!int.TryParse(tagParams.Get("month"), out int month))
-			{
-				month = DateTime.Now.Month;
-			}
+			var dats = GetMonthStartEndDates(tagParams);
+			var year = dats.Item1.Year;
+			var month = dats.Item1.Month;
 
 			return CheckRcDp(CheckWindRunUnit(station.GetWindRunMonth(year, month), tagParams), tagParams, cumulus.WindRunDPlaces);
 		}
@@ -3939,27 +3974,14 @@ namespace CumulusMX
 
 		private string TagSunshineHoursMonth(Dictionary<string, string> tagParams)
 		{
-			var year = tagParams.Get("y");
-			var month = tagParams.Get("m");
-			var rel = tagParams.Get("r"); // relative month, -1, -2, etc
-			DateTime start;
-			DateTime end;
+			var dats = GetMonthStartEndDates(tagParams);
 
-			if (year != null && month != null)
+			var start = dats.Item1;
+			var end = dats.Item2;
+
+			if (start == DateTime.MinValue)
 			{
-				start = new DateTime(int.Parse(year), int.Parse(month), 1, 0, 0, 0, DateTimeKind.Local);
-				end = start.AddMonths(1);
-			}
-			else if (rel != null)
-			{
-				end = DateTime.Now;
-				start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local).AddMonths(int.Parse(rel));
-				end = start.AddMonths(1);
-			}
-			else
-			{
-				end = DateTime.Now;
-				start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
+				return tagParams.Get("nv") ?? "-";
 			}
 
 			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours < 0 ? 0 : rec.SunShineHours), tagParams, 1);
@@ -3967,26 +3989,14 @@ namespace CumulusMX
 
 		private string TagSunshineHoursYear(Dictionary<string, string> tagParams)
 		{
-			var year = tagParams.Get("y");
-			var rel = tagParams.Get("r"); // relative year, -1, -2, etc
-			DateTime start;
-			DateTime end;
+			var dats = GetYearStartEndDates(tagParams);
 
-			if (year != null)
+			var start = dats.Item1;
+			var end = dats.Item2;
+
+			if (start == DateTime.MinValue)
 			{
-				start = new DateTime(int.Parse(year), 1, 1, 0, 0, 0, DateTimeKind.Local);
-				end = start.AddYears(1);
-			}
-			else if (rel != null)
-			{
-				end = DateTime.Now;
-				start = new DateTime(end.Year, 1, 1, 0, 0, 0, DateTimeKind.Local).AddYears(int.Parse(rel));
-				end = start.AddYears(1);
-			}
-			else
-			{
-				end = DateTime.Now;
-				start = new DateTime(end.Year, 1, 1, 0, 0, 0, DateTimeKind.Local);
+				return tagParams.Get("nv") ?? "-";
 			}
 
 			return CheckRcDp(station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours < 0 ? 0 : x.SunShineHours), tagParams, 1);
@@ -3994,16 +4004,14 @@ namespace CumulusMX
 
 		private string TagMonthTempAvg(Dictionary<string, string> tagParams)
 		{
-			DateTime start;
-			DateTime end;
 			double avg;
 
 			try
 			{
 				var dats = GetMonthStartEndDates(tagParams);
 
-				start = dats.Item1;
-				end = dats.Item2;
+				var start = dats.Item1;
+				var end = dats.Item2;
 
 				if (start == DateTime.MinValue)
 				{
@@ -4032,19 +4040,13 @@ namespace CumulusMX
 
 		private string TagYearTempAvg(Dictionary<string, string> tagParams)
 		{
-			var year = tagParams.Get("y");
-			DateTime start;
-			DateTime end;
+			var dats = GetYearStartEndDates(tagParams);
+			var start = dats.Item1;
+			var end = dats.Item2;
 
-			if (year != null)
+			if (start == DateTime.MinValue)
 			{
-				start = new DateTime(int.Parse(year), 1, 1, 0, 0, 0, DateTimeKind.Local);
-				end = start.AddYears(1);
-			}
-			else
-			{
-				end = DateTime.Now.Date;
-				start = new DateTime(end.Year, 1, 1, 0, 0, 0, DateTimeKind.Local);
+				return tagParams.Get("nv") ?? "-";
 			}
 
 			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
@@ -4053,16 +4055,14 @@ namespace CumulusMX
 
 		private string TagMonthRainfall(Dictionary<string, string> tagParams)
 		{
-			DateTime start;
-			DateTime end;
 			double total;
 
 			try
 			{
 				var dats = GetMonthStartEndDates(tagParams);
 
-				start = dats.Item1;
-				end = dats.Item2;
+				var start = dats.Item1;
+				var end = dats.Item2;
 
 				if (start == DateTime.MinValue)
 				{
@@ -4114,27 +4114,24 @@ namespace CumulusMX
 
 		private string TagAnnualRainfall(Dictionary<string, string> tagParams)
 		{
-			var year = tagParams.Get("y");
-			DateTime start;
-			DateTime end;
 			double total;
 
-			if (year != null)
+			var dats = GetYearStartEndDates(tagParams);
+			var start = dats.Item1;
+			var end = dats.Item2;
+
+			if (start == DateTime.MinValue)
 			{
-				if (int.Parse(year) == DateTime.Now.Year)
-				{
-					total = station.RainYear;
-				}
-				else
-				{
-					start = new DateTime(int.Parse(year), 1, 1, 0, 0, 0, DateTimeKind.Local);
-					end = start.AddYears(1);
-					total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.TotalRain);
-				}
+				return tagParams.Get("nv") ?? "-";
+			}
+
+			if (start.Year == DateTime.Now.Year)
+			{
+				total = station.RainYear;
 			}
 			else
 			{
-				total = station.RainYear;
+				total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.TotalRain);
 			}
 
 			return CheckRcDp(CheckRainUnit(total, tagParams), tagParams, cumulus.RainDPlaces);
