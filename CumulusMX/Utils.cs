@@ -524,5 +524,21 @@ namespace CumulusMX
 				CultureInfo.DefaultThreadCurrentCulture = customCulture;
 			}
 		}
+
+		public static string GetTimeZoneId()
+		{
+			string tz;
+			if (TimeZoneInfo.Local.HasIanaId)
+			{
+				tz = TimeZoneInfo.Local.Id;
+			}
+			else if (!TimeZoneInfo.TryConvertWindowsIdToIanaId(TimeZoneInfo.Local.Id, out tz))
+			{
+				Program.cumulus.LogWarningMessage("Warning, not IANA TZ code found for " + TimeZoneInfo.Local.Id);
+				tz = "UTC";
+			}
+
+			return tz;
+		}
 	}
 }

@@ -13883,17 +13883,6 @@ namespace CumulusMX
 
 		public string GetGraphConfig(bool local)
 		{
-			string tz;
-			if (TimeZoneInfo.Local.HasIanaId)
-			{
-				tz = TimeZoneInfo.Local.Id;
-			}
-			else if (!TimeZoneInfo.TryConvertWindowsIdToIanaId(TimeZoneInfo.Local.Id, out tz))
-			{
-				cumulus.LogWarningMessage("Warning, not IANA TZ code found for " + TimeZoneInfo.Local.Id);
-				tz = "UTC";
-			}
-
 			string timeformat = cumulus.ProgramOptions.TimeFormat switch
 			{
 				"t" => CultureInfo.CurrentCulture.DateTimeFormat.ShortTimePattern.Contains("H") ? "%H:%M" : "%l:%M %p",
@@ -13904,7 +13893,7 @@ namespace CumulusMX
 
 			var json = new StringBuilder(200);
 			json.Append('{');
-			json.Append($"\"tz\":\"{tz}\",");
+			json.Append($"\"tz\":\"{cumulus.ProgramOptions.TimeZoneId}\",");
 			json.Append($"\"timeformat\":\"{timeformat}\",");
 			json.Append($"\"temp\":{{\"units\":\"{cumulus.Units.TempText[1]}\",\"decimals\":{cumulus.TempDPlaces}}},");
 			json.Append($"\"wind\":{{\"units\":\"{cumulus.Units.WindText}\",\"avgdecimals\":{cumulus.WindAvgDPlaces},\"gustdecimals\":{cumulus.WindDPlaces},\"rununits\":\"{cumulus.Units.WindRunText}\"}},");

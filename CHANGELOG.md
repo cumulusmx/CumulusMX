@@ -62,6 +62,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 		*Strictly, the 'useUTC: false' is not required as that setting has now been deprecated*
 	- You must also use a version of Highcharts later than v11.2.0 - Cumulus MX now uses v12.3.0
+- There is a new option in Program Settings -> Culture Overrides to manually change the time zone used in the charts
 - Added Davis Cloud API UUID option to the Configuration Wizard
 - Add a retry to downloading Ecowitt SD card files on error or if returned file is empty
 - The FTP log files have changed naming convention (to work better with the new version of NLog)

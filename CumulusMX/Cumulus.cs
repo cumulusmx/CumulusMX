@@ -3887,6 +3887,7 @@ namespace CumulusMX
 			var defaultLang = DashboardLocalisationManager.ThisLocaleAvailable(CultureInfo.CurrentCulture.TwoLetterISOLanguageName) ? CultureInfo.CurrentCulture.TwoLetterISOLanguageName : "en";
 			ProgramOptions.DisplayLanguage = ini.GetValue("Program", "DisplayLang", defaultLang);
 
+			ProgramOptions.TimeZoneId = ini.GetValue("Program", "TimeZone", Utils.GetTimeZoneId());
 			ProgramOptions.TimeFormat = ini.GetValue("Program", "TimeFormat", "t");
 			if (ProgramOptions.TimeFormat == "t")
 				ProgramOptions.TimeFormatLong = "T";
@@ -6098,6 +6099,7 @@ namespace CumulusMX
 			ini.SetValue("Program", "DataStoppedMins", ProgramOptions.DataStoppedMins);
 			ini.SetValue("Program", "DisplayLang", ProgramOptions.DisplayLanguage);
 
+			ini.SetValue("Program", "TimeZone", ProgramOptions.TimeZoneId);
 			ini.SetValue("Program", "TimeFormat", ProgramOptions.TimeFormat);
 			ini.SetValue("Program", "TimeAmPmLowerCase", ProgramOptions.TimeAmPmLowerCase);
 			ini.SetValue("Culture", "RemoveSpaceFromDateSeparator", ProgramOptions.Culture.RemoveSpaceFromDateSeparator);
@@ -14955,6 +14957,7 @@ namespace CumulusMX
 		public string TimeFormat { get; set; }
 		public string TimeFormatLong { get; set; }
 		public bool TimeAmPmLowerCase { get; set; }
+		public string TimeZoneId { get; set; }
 		public bool EncryptedCreds { get; set; }
 		public bool SecureSettings { get; set; }
 		public string SettingsUsername { get; set; }
