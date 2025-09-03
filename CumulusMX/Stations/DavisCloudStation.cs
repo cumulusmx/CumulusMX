@@ -10,7 +10,7 @@ using System.Timers;
 using ServiceStack;
 using ServiceStack.Text;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal partial class DavisCloudStation : WeatherStation
 	{
@@ -31,7 +31,7 @@ namespace CumulusMX
 		private int numSoilMoistureSensors = 16;
 		private int numSoiltempSensors = 16;
 
-		private bool isVp2Station = false;
+		private readonly bool isVp2Station = false;
 
 		public DavisCloudStation(Cumulus cumulus) : base(cumulus)
 		{

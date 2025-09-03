@@ -11,7 +11,7 @@ using ServiceStack;
 using ServiceStack.Text;
 
 
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	public class StationSettings
 	{
@@ -354,7 +354,7 @@ namespace CumulusMX
 
 			var wllExtraSoilTemp = new JsonWllSensor[16];
 
-			for (int i = 1; i <= 16; i++)
+			for (var i = 1; i <= 16; i++)
 			{
 				wllExtraSoilTemp[i - 1] = new JsonWllSensor()
 				{
@@ -366,7 +366,7 @@ namespace CumulusMX
 
 			var wllExtraSoilMoist = new JsonWllSensor[16];
 
-			for (int i = 1; i <= 16; i++)
+			for (var i = 1; i <= 16; i++)
 			{
 				wllExtraSoilMoist[i - 1] = new JsonWllSensor()
 				{
@@ -378,7 +378,7 @@ namespace CumulusMX
 
 			var wllExtraLeaf = new JsonWllSensor[8];
 
-			for (int i = 1; i <= 8; i++)
+			for (var i = 1; i <= 8; i++)
 			{
 				wllExtraLeaf[i - 1] = new JsonWllSensor()
 				{
@@ -397,7 +397,7 @@ namespace CumulusMX
 
 			var wllExtraTemp = new JsonWllSensor[16];
 
-			for (int i = 1; i <= 16; i++)
+			for (var i = 1; i <= 16; i++)
 			{
 				wllExtraTemp[i - 1] = new JsonWllSensor()
 				{
@@ -498,7 +498,7 @@ namespace CumulusMX
 				coordinate = longitude;
 				hem = "East";
 			}
-			int secs = (int) (coordinate * 60 * 60);
+			var secs = (int) (coordinate * 60 * 60);
 
 			s = secs % 60;
 
@@ -522,7 +522,7 @@ namespace CumulusMX
 				hem = "North";
 			}
 
-			int secs = (int) (coordinate * 60 * 60);
+			var secs = (int) (coordinate * 60 * 60);
 
 			s = secs % 60;
 
@@ -668,7 +668,7 @@ namespace CumulusMX
 						cumulus.FChighpress = settings.Forecast.highpressureextreme;
 						cumulus.FClowpress = settings.Forecast.lowpressureextreme;
 						cumulus.HourlyForecast = settings.Forecast.updatehourly;
-						cumulus.FCpressinMB = (settings.Forecast.pressureunit == "mb/hPa");
+						cumulus.FCpressinMB = settings.Forecast.pressureunit == "mb/hPa";
 					}
 				}
 				catch (Exception ex)
@@ -683,12 +683,12 @@ namespace CumulusMX
 				try
 				{
 					cumulus.Altitude = settings.general.Location.altitude;
-					cumulus.AltitudeInFeet = (settings.general.Location.altitudeunit == "feet");
+					cumulus.AltitudeInFeet = settings.general.Location.altitudeunit == "feet";
 					cumulus.LocationName = string.IsNullOrWhiteSpace(settings.general.Location.sitename) ? null : settings.general.Location.sitename.Trim();
 					cumulus.LocationDesc = string.IsNullOrWhiteSpace(settings.general.Location.description) ? null : settings.general.Location.description.Trim();
 
-					cumulus.Latitude = (decimal) (settings.general.Location.Latitude.degrees + (settings.general.Location.Latitude.minutes / 60.0) + (settings.general.Location.Latitude.seconds / 3600.0));
-					string northSouth = cumulus.Trans.compassp[0];
+					cumulus.Latitude = (decimal) (settings.general.Location.Latitude.degrees + settings.general.Location.Latitude.minutes / 60.0 + settings.general.Location.Latitude.seconds / 3600.0);
+					var northSouth = cumulus.Trans.compassp[0];
 					if (settings.general.Location.Latitude.hemisphere == "South")
 					{
 						cumulus.Latitude = -cumulus.Latitude;
@@ -698,8 +698,8 @@ namespace CumulusMX
 					cumulus.LatTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", northSouth, settings.general.Location.Latitude.degrees, settings.general.Location.Latitude.minutes,
 						settings.general.Location.Latitude.seconds);
 
-					string eastWest = cumulus.Trans.compassp[4];
-					cumulus.Longitude = (decimal) (settings.general.Location.Longitude.degrees + (settings.general.Location.Longitude.minutes / 60.0) + (settings.general.Location.Longitude.seconds / 3600.0));
+					var eastWest = cumulus.Trans.compassp[4];
+					cumulus.Longitude = (decimal) (settings.general.Location.Longitude.degrees + settings.general.Location.Longitude.minutes / 60.0 + settings.general.Location.Longitude.seconds / 3600.0);
 					if (settings.general.Location.Longitude.hemisphere == "West")
 					{
 						cumulus.Longitude = -cumulus.Longitude;
@@ -1404,7 +1404,7 @@ namespace CumulusMX
 						cumulus.RecordsBeganDateTime = DateTime.ParseExact(settings.general.beginDate.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
 						var startDateTime = cumulus.RecordsBeganDateTime.AddHours(-cumulus.GetHourInc(cumulus.RecordsBeganDateTime));
-						using StreamWriter today = new StreamWriter(cumulus.TodayIniFile);
+						using var today = new StreamWriter(cumulus.TodayIniFile);
 						today.WriteLine("[General]");
 						today.WriteLine("Timestamp=" + startDateTime.ToString("s"));
 						today.Close();
@@ -1568,9 +1568,6 @@ namespace CumulusMX
 			}
 		}
 
-
-#pragma warning disable S3459 // Unassigned members should be removed
-#pragma warning disable S1144 // Unused private types or members should be removed
 		private sealed class UploadNowData
 		{
 			public bool dailygraphs { get; set; }
@@ -1578,8 +1575,6 @@ namespace CumulusMX
 			public bool graphs { get; set; }
 			public bool logfiles { get; set; }
 		}
-#pragma warning restore S1144 // Unused private types or members should be removed
-#pragma warning restore S3459 // Unassigned members should be removed
 
 		internal string SetSelectaChartOptions(IHttpContext context)
 		{

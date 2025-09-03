@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using MQTTnet;
 
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	public static class JsonStationMqtt
 	{
@@ -53,7 +53,7 @@ namespace CumulusMX
 
 				SubscribeTopic(cumulus.JsonStationOptions.MqttTopic).Wait();
 
-				mqttClient.DisconnectedAsync += (async e =>
+				mqttClient.DisconnectedAsync += async e =>
 				{
 					var delay = 10.0;
 					do
@@ -74,7 +74,7 @@ namespace CumulusMX
 
 						delay = Math.Round(delay * 1.5);
 					} while (!mqttClient.IsConnected);
-				});
+				};
 
 				mqttClient.ApplicationMessageReceivedAsync += e =>
 				{
@@ -99,7 +99,7 @@ namespace CumulusMX
 		}
 
 
-		private static async Task Connect(MQTTnet.MqttClientOptions options)
+		private static async Task Connect(MqttClientOptions options)
 		{
 			try
 			{

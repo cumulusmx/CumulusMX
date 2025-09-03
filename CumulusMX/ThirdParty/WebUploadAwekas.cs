@@ -553,9 +553,6 @@ namespace CumulusMX.ThirdParty
 				_ = DoUpdate(DateTime.Now);
 		}
 
-
-#pragma warning disable S3459 // Unassigned members should be removed
-#pragma warning disable S1144 // Unused private types or members should be removed
 		private sealed class AwekasResponse
 		{
 			public int status { get; set; }
@@ -622,7 +619,5 @@ namespace CumulusMX.ThirdParty
 			public int leafwetness2 { get; set; }
 			public int report { get; set; }
 		}
-#pragma warning restore S3459 // Unassigned members should be removed
-#pragma warning restore S1144 // Unused private types or members should be removed
 	}
 }

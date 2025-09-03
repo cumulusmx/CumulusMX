@@ -8,7 +8,7 @@ using HidSharp;
 
 using Timer = System.Timers.Timer;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal sealed class WMR200Station : WeatherStation
 	{
@@ -132,7 +132,7 @@ namespace CumulusMX
 				rollHour = 0;
 				hourInc = 0;
 			}
-			else if (cumulus.Use10amInSummer && (TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now)))
+			else if (cumulus.Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now))
 			{
 				// Locale is currently on Daylight time
 				rollHour = cumulus.RolloverHour + 1;
@@ -145,7 +145,7 @@ namespace CumulusMX
 				hourInc = -9;
 			}
 
-			int luhour = cumulus.LastUpdateTime.Hour;
+			var luhour = cumulus.LastUpdateTime.Hour;
 
 			rolloverdone = luhour == rollHour;
 			midnightraindone = luhour == 0;
@@ -183,16 +183,16 @@ namespace CumulusMX
 
 						if (stop) break;
 
-						string str = string.Empty;
+						var str = string.Empty;
 
-						for (int I = startByte; I < responseLength; I++)
+						for (var I = startByte; I < responseLength; I++)
 						{
 							str += " " + usbbuffer[I].ToString("X2");
 						}
 						cumulus.LogDataMessage($"Bytes read {numBytes} = {str}");
 
-						if ((currentPacketLength == 0) // expecting a new packet
-							&& !((usbbuffer[2] >= HISTORY_AVAILABLE_PACKET_TYPE) && (usbbuffer[2] <= TEMPHUM_PACKET_TYPE))
+						if (currentPacketLength == 0 // expecting a new packet
+							&& !(usbbuffer[2] >= HISTORY_AVAILABLE_PACKET_TYPE && usbbuffer[2] <= TEMPHUM_PACKET_TYPE)
 							&& usbbuffer[2] != STATUS_PACKET_TYPE
 							&& usbbuffer[2] != CLEAR_LOGGER_PACKET_TYPE
 							&& usbbuffer[2] != STOP_COMMS_PACKET_TYPE)
@@ -209,20 +209,20 @@ namespace CumulusMX
 							var datalength = usbbuffer[1];
 
 							// Copy valid data to buffer
-							for (int i = 1; i <= datalength; i++)
+							for (var i = 1; i <= datalength; i++)
 							{
 								packetBuffer[currentPacketLength] = usbbuffer[i + 1];
 								currentPacketLength++;
 							}
 
-							if ((currentPacketLength > 1)
+							if (currentPacketLength > 1
 								// We must have at least received the pkt length to
 								// determine the logic following in this "if" condition.
-								&& (currentPacketLength >= packetBuffer[1])
+								&& currentPacketLength >= packetBuffer[1]
 								// Collected length must be at least expected packet
 								// length or greater.
 								&&
-								(((packetBuffer[0] >= HISTORY_DATA_PACKET_TYPE) && (packetBuffer[0] <= TEMPHUM_PACKET_TYPE)) ||
+								(packetBuffer[0] >= HISTORY_DATA_PACKET_TYPE && packetBuffer[0] <= TEMPHUM_PACKET_TYPE ||
 								 packetBuffer[0] == STATUS_PACKET_TYPE))
 							{
 								// Process the packet
@@ -230,7 +230,7 @@ namespace CumulusMX
 								RemovePacketFromBuffer();
 
 								// Check for a history data available packet on the end of the current data
-								if ((currentPacketLength == 1) && (packetBuffer[0] == HISTORY_AVAILABLE_PACKET_TYPE))
+								if (currentPacketLength == 1 && packetBuffer[0] == HISTORY_AVAILABLE_PACKET_TYPE)
 								{
 									//ArchiveDataAvailable = true;
 									cumulus.LogDebugMessage("HISTORY_AVAILABLE_PACKET_TYPE");
@@ -244,9 +244,9 @@ namespace CumulusMX
 							{
 								// process 1-byte packets
 								if
-									((packetBuffer[0] == HISTORY_AVAILABLE_PACKET_TYPE) ||
-									 (packetBuffer[0] == CLEAR_LOGGER_PACKET_TYPE) ||
-									 (packetBuffer[0] == STOP_COMMS_PACKET_TYPE))
+									(packetBuffer[0] == HISTORY_AVAILABLE_PACKET_TYPE ||
+									 packetBuffer[0] == CLEAR_LOGGER_PACKET_TYPE ||
+									 packetBuffer[0] == STOP_COMMS_PACKET_TYPE)
 								{
 									switch (packetBuffer[0])
 									{
@@ -352,7 +352,7 @@ namespace CumulusMX
 		 * Check the CRC for the packet at the start of the packet buffer
 		 **/
 
-		private Boolean CRCOK()
+		private bool CRCOK()
 		{
 			var packetLen = packetBuffer[1];
 
@@ -363,23 +363,23 @@ namespace CumulusMX
 			else
 			{
 				// packet CRC is in last two bytes, low byte then high byte
-				var packetCRC = (packetBuffer[packetLen - 1] * 256) + packetBuffer[packetLen - 2];
+				var packetCRC = packetBuffer[packetLen - 1] * 256 + packetBuffer[packetLen - 2];
 
 				var calculatedCRC = 0;
 
 				// CRC is calculated by summing all but the last two bytes
-				for (int i = 0; i < packetLen - 2; i++)
+				for (var i = 0; i < packetLen - 2; i++)
 				{
 					calculatedCRC += packetBuffer[i];
 				}
 
-				return (packetCRC == calculatedCRC);
+				return packetCRC == calculatedCRC;
 			}
 		}
 
 		private void ClearPacketBuffer()
 		{
-			for (int I = 0; I < PacketBufferBound; I++)
+			for (var I = 0; I < PacketBufferBound; I++)
 			{
 				packetBuffer[I] = 0;
 			}
@@ -391,7 +391,7 @@ namespace CumulusMX
 			// removes packet from start of buffer
 			// there might be a partial packet behind it
 			int actualpacketlength = packetBuffer[1];
-			int overflow = currentPacketLength - actualpacketlength;
+			var overflow = currentPacketLength - actualpacketlength;
 			if (overflow == 0)
 			{
 				// only one packet in buffer, clear it
@@ -400,13 +400,13 @@ namespace CumulusMX
 			else
 			{
 				// need to move surplus data to start of packet
-				for (int I = 0; I < overflow; I++)
+				for (var I = 0; I < overflow; I++)
 				{
 					packetBuffer[I] = packetBuffer[actualpacketlength + I];
 				}
 				currentPacketLength = overflow;
-				string str = " ";
-				for (int I = 0; I < currentPacketLength; I++)
+				var str = " ";
+				for (var I = 0; I < currentPacketLength; I++)
 				{
 					str += packetBuffer[I].ToString("X2");
 				}
@@ -561,11 +561,11 @@ namespace CumulusMX
 			// Byte 15: (cH) Check-sum high byte
 			//
 			int sign;
-			DateTime now = DateTime.Now;
+			var now = DateTime.Now;
 			double num;
 
 			// which sensor is this for? 0 = indoor, 1 = outdoor
-			int sensor = packetBuffer[7] & 0xF;
+			var sensor = packetBuffer[7] & 0xF;
 			if (sensor == cumulus.WMR200TempChannel)
 			{
 				// outdoor hum
@@ -612,10 +612,10 @@ namespace CumulusMX
 				{
 					sign = 1;
 				}
-				num = (sign * ((packetBuffer[9] & 0xF) * 256 + packetBuffer[8])) / 10.0;
+				num = sign * ((packetBuffer[9] & 0xF) * 256 + packetBuffer[8]) / 10.0;
 				DoIndoorTemp(ConvertUnits.TempCToUser(num));
 			}
-			if ((sensor > 1) && (sensor < 11))
+			if (sensor > 1 && sensor < 11)
 			{
 				WMR200ChannelPresent[sensor] = true;
 				// outdoor hum
@@ -631,7 +631,7 @@ namespace CumulusMX
 					sign = 1;
 				}
 
-				WMR200ExtraTempValues[sensor] = ConvertUnits.TempCToUser((sign * ((packetBuffer[9] & 0xF) * 256 + packetBuffer[8])) / 10.0);
+				WMR200ExtraTempValues[sensor] = ConvertUnits.TempCToUser(sign * ((packetBuffer[9] & 0xF) * 256 + packetBuffer[8]) / 10.0);
 				DoExtraTemp(WMR200ExtraTempValues[sensor], sensor);
 				// outdoor dewpoint
 				if ((packetBuffer[12] & 0x80) == 0x80)
@@ -643,7 +643,7 @@ namespace CumulusMX
 					sign = 1;
 				}
 
-				WMR200ExtraDPValues[sensor] = ConvertUnits.TempCToUser((sign * ((packetBuffer[12] & 0xF) * 256 + packetBuffer[11])) / 10.0);
+				WMR200ExtraDPValues[sensor] = ConvertUnits.TempCToUser(sign * ((packetBuffer[12] & 0xF) * 256 + packetBuffer[11]) / 10.0);
 				DoExtraDP(WMR200ExtraDPValues[sensor], sensor);
 				ExtraSensorsDetected = true;
 			}
@@ -723,9 +723,9 @@ namespace CumulusMX
 			//Byte 20: (cL) Check-sum low  byte
 			//Byte 21: (cH) Check-sum high byte
 
-			double counter = (((packetBuffer[14] * 256) + packetBuffer[13]) / 100.0);
+			var counter = (packetBuffer[14] * 256 + packetBuffer[13]) / 100.0;
 
-			var rate = ((packetBuffer[8] * 256) + packetBuffer[7]) / 100.0;
+			var rate = (packetBuffer[8] * 256 + packetBuffer[7]) / 100.0;
 
 			// check for overflow  (9999 mm = approx 393 in) and set to 999 mm/hr
 			if (rate > 393)
@@ -852,14 +852,14 @@ namespace CumulusMX
 			//Byte 20: (cL) Check-sum low  byte
 			//Byte 21: (cH) Check-sum high byte
 
-			DateTime now = DateTime.Now;
+			var now = DateTime.Now;
 
 			// bearing
-			int bearing = (int) ((packetBuffer[7] & 0xF) * 22.5);
+			var bearing = (int) ((packetBuffer[7] & 0xF) * 22.5);
 			// gust
-			double gust = ((packetBuffer[10] & 0xF) * 256 + packetBuffer[9]) / 10.0;
+			var gust = ((packetBuffer[10] & 0xF) * 256 + packetBuffer[9]) / 10.0;
 			// average
-			double average = ((packetBuffer[11] * 16) + (packetBuffer[10] / 16)) / 10.0;
+			var average = (packetBuffer[11] * 16 + packetBuffer[10] / 16) / 10.0;
 
 			DoWind(ConvertUnits.WindMSToUser(gust), bearing, ConvertUnits.WindMSToUser(average), now);
 
@@ -950,10 +950,10 @@ namespace CumulusMX
 			//Byte 11: (cL) Check-sum low  byte
 			//Byte 12: (cH) Check-sum high byte
 
-			double slp = ((packetBuffer[10] & 0xF) * 256) + packetBuffer[9];
+			double slp = (packetBuffer[10] & 0xF) * 256 + packetBuffer[9];
 			DoPressure(ConvertUnits.PressMBToUser(slp), DateTime.Now);
 
-			DoStationPressure(ConvertUnits.PressMBToUser(((double) (packetBuffer[8] & 0xF) * 256) + packetBuffer[7]));
+			DoStationPressure(ConvertUnits.PressMBToUser((double) (packetBuffer[8] & 0xF) * 256 + packetBuffer[7]));
 
 			var forecast = packetBuffer[8] / 16;
 			var fcstr = forecast switch
@@ -1368,7 +1368,7 @@ namespace CumulusMX
 					cumulus.LogMessage("Todayfile matches start of history data");
 					cumulus.LogMessage("LastUpdateTime = " + cumulus.LastUpdateTime);
 					cumulus.LogMessage("Earliest timestamp = " + timestamp);
-					int luh = cumulus.LastUpdateTime.Hour;
+					var luh = cumulus.LastUpdateTime.Hour;
 					//int lum = cumulus.LastUpdateTime.Minute;
 					//int lus = cumulus.LastUpdateTime.Second;
 					//int lums = cumulus.LastUpdateTime.Millisecond;
@@ -1430,7 +1430,7 @@ namespace CumulusMX
 				}
 
 				// reset the accumulated snow depth(s)
-				for (int j = 0; j < Snow24h.Length; j++)
+				for (var j = 0; j < Snow24h.Length; j++)
 				{
 					Snow24h[j] = null;
 				}
@@ -1450,21 +1450,21 @@ namespace CumulusMX
 			}
 			previousHistoryTimeStamp = timestamp;
 			// pressure
-			DoStationPressure(ConvertUnits.PressMBToUser(((double) (packetBuffer[29] & 0xF) * 256) + packetBuffer[28]));
-			double num = ((packetBuffer[31] & 0xF) * 256) + packetBuffer[30];
+			DoStationPressure(ConvertUnits.PressMBToUser((double) (packetBuffer[29] & 0xF) * 256 + packetBuffer[28]));
+			double num = (packetBuffer[31] & 0xF) * 256 + packetBuffer[30];
 			DoPressure(ConvertUnits.PressMBToUser(num), timestamp);
 
 			// bearing
-			int bearing = (int) ((packetBuffer[20] & 0xF) * 22.5);
+			var bearing = (int) ((packetBuffer[20] & 0xF) * 22.5);
 			// gust
-			double gust = ((packetBuffer[23] & 0xF) * 256 + packetBuffer[22]) / 10.0;
+			var gust = ((packetBuffer[23] & 0xF) * 256 + packetBuffer[22]) / 10.0;
 			// average
-			double average = ((packetBuffer[24] * 16) + (packetBuffer[23] / 16)) / 10.0;
+			var average = (packetBuffer[24] * 16 + packetBuffer[23] / 16) / 10.0;
 
 			DoWind(ConvertUnits.WindMSToUser(gust), bearing, ConvertUnits.WindMSToUser(average), timestamp);
 
 			// add in 'interval' minutes worth of wind speed to windrun
-			WindRunToday += (WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval * 60) / 1000.0;
+			WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval * 60 / 1000.0;
 			// update dominant wind bearing
 			CalculateDominantWindBearing(Bearing, WindAverage, interval);
 			int sensorcount = packetBuffer[32];
@@ -1472,7 +1472,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					var offset = 33 + (i * 7);
+					var offset = 33 + i * 7;
 					var sensornumber = packetBuffer[offset] & 0xF;
 					int sign;
 					if (sensornumber == 0)
@@ -1505,20 +1505,20 @@ namespace CumulusMX
 						{
 							sign = 1;
 						}
-						DoOutdoorTemp(ConvertUnits.TempCToUser((sign * ((packetBuffer[offset + 2] & 0xF) * 256 + packetBuffer[offset + 1])) / 10.0), timestamp);
+						DoOutdoorTemp(ConvertUnits.TempCToUser(sign * ((packetBuffer[offset + 2] & 0xF) * 256 + packetBuffer[offset + 1]) / 10.0), timestamp);
 
 						// update heating/cooling degree days
 						UpdateDegreeDays(interval);
 
 						// add in 'archivePeriod' minutes worth of temperature to the temp samples
 						tempsamplestoday += interval;
-						TempTotalToday += (OutdoorTemperature * interval);
+						TempTotalToday += OutdoorTemperature * interval;
 
 						// update chill hours
 						if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 						{
 							// add 1 minute to chill hours
-							ChillHours += (interval / 60.0);
+							ChillHours += interval / 60.0;
 						}
 
 						// dew point
@@ -1531,7 +1531,7 @@ namespace CumulusMX
 							sign = 1;
 						}
 
-						DoOutdoorDewpoint(ConvertUnits.TempCToUser((sign * ((packetBuffer[offset + 5] & 0xF) * 256 + packetBuffer[offset + 4])) / 10.0), timestamp);
+						DoOutdoorDewpoint(ConvertUnits.TempCToUser(sign * ((packetBuffer[offset + 5] & 0xF) * 256 + packetBuffer[offset + 4]) / 10.0), timestamp);
 					}
 
 					if (sensornumber > 1 && sensornumber < 11)
@@ -1550,7 +1550,7 @@ namespace CumulusMX
 							sign = 1;
 						}
 
-						DoExtraTemp(ConvertUnits.TempCToUser((sign * ((packetBuffer[offset + 2] & 0xF) * 256 + packetBuffer[offset + 1])) / 10.0), sensornumber);
+						DoExtraTemp(ConvertUnits.TempCToUser(sign * ((packetBuffer[offset + 2] & 0xF) * 256 + packetBuffer[offset + 1]) / 10.0), sensornumber);
 
 						// dew point
 						if ((packetBuffer[offset + 5] & 0x80) == 0x80)
@@ -1562,7 +1562,7 @@ namespace CumulusMX
 							sign = 1;
 						}
 
-						DoExtraDP(ConvertUnits.TempCToUser((sign * ((packetBuffer[offset + 5] & 0xF) * 256 + packetBuffer[offset + 4])) / 10.0), sensornumber);
+						DoExtraDP(ConvertUnits.TempCToUser(sign * ((packetBuffer[offset + 5] & 0xF) * 256 + packetBuffer[offset + 4]) / 10.0), sensornumber);
 					}
 				}
 				catch (Exception ex)
@@ -1597,9 +1597,9 @@ namespace CumulusMX
 			}
 
 			// rain
-			var counter = ((packetBuffer[14] * 256) + packetBuffer[13]) / 100.0;
+			var counter = (packetBuffer[14] * 256 + packetBuffer[13]) / 100.0;
 
-			var rate = ((packetBuffer[8] * 256) + packetBuffer[7]) / 100.0;
+			var rate = (packetBuffer[8] * 256 + packetBuffer[7]) / 100.0;
 
 			DoRain(ConvertUnits.RainINToUser(counter), ConvertUnits.RainINToUser(rate), timestamp);
 
@@ -1643,8 +1643,8 @@ namespace CumulusMX
 
 		private void ProcessWMR200Packet()
 		{
-			StringBuilder str = new StringBuilder(25);
-			for (int i = 0; i < packetBuffer[1]; i++)
+			var str = new StringBuilder(25);
+			for (var i = 0; i < packetBuffer[1]; i++)
 			{
 				str.Append(packetBuffer[i].ToString("X2"));
 				str.Append(' ');

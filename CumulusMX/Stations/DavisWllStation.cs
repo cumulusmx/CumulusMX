@@ -19,7 +19,7 @@ using Swan;
 
 using Tmds.MDns;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal partial class DavisWllStation : WeatherStation
 	{
@@ -3262,8 +3262,6 @@ namespace CumulusMX
 			}
 		}
 
-#pragma warning disable S1144 // Unused private types or members should be removed
-#pragma warning disable S3459 // Unassigned members should be removed
 		private sealed class WllBroadcast
 		{
 			public string did { get; set; }
@@ -3410,9 +3408,6 @@ namespace CumulusMX
 			public double? dew_point_in { get; set; }
 			public double? heat_index_in { get; set; }
 		}
-#pragma warning restore S3459 // Unassigned members should be removed
-#pragma warning restore S1144 // Unused private types or members should be removed
-
 
 		[System.Text.RegularExpressions.GeneratedRegex("user_email\":\"[^\"]*\"")]
 		private static partial System.Text.RegularExpressions.Regex regexUserEmail();

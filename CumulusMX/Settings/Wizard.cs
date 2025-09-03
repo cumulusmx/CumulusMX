@@ -8,7 +8,7 @@ using EmbedIO;
 using ServiceStack;
 using ServiceStack.Text;
 
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	public class Wizard(Cumulus cumulus)
 	{
@@ -401,7 +401,7 @@ namespace CumulusMX
 				try
 				{
 					cumulus.Altitude = settings.location.altitude;
-					cumulus.AltitudeInFeet = (settings.location.altitudeunit == "feet");
+					cumulus.AltitudeInFeet = settings.location.altitudeunit == "feet";
 					cumulus.LocationName = string.IsNullOrWhiteSpace(settings.location.sitename) ? string.Empty : settings.location.sitename.Trim();
 					cumulus.LocationDesc = string.IsNullOrWhiteSpace(settings.location.description) ? string.Empty : settings.location.description.Trim();
 
@@ -809,7 +809,7 @@ namespace CumulusMX
 						cumulus.RecordsBeganDateTime = DateTime.ParseExact(settings.station.beginDate.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
 						var startDateTime = cumulus.RecordsBeganDateTime.AddHours(-cumulus.GetHourInc(cumulus.RecordsBeganDateTime));
-						using StreamWriter today = new StreamWriter(cumulus.TodayIniFile);
+						using var today = new StreamWriter(cumulus.TodayIniFile);
 						today.WriteLine("[General]");
 						today.WriteLine("Timestamp=" + startDateTime.ToString("s"));
 						today.Close();

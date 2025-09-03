@@ -2,7 +2,7 @@
 using System.IO;
 using System.Timers;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	/*
 	 * EasyWeather.dat file format (* indicates fields used by Cumulus)
@@ -45,9 +45,7 @@ namespace CumulusMX
 	 * 37   Data address        6 digit hex
 	 * 38   Raw data            16x 2-digit hex
 	*/
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal class EasyWeather(Cumulus cumulus) : WeatherStation(cumulus)
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		private readonly Timer tmrDataRead = new();
 
@@ -105,7 +103,7 @@ namespace CumulusMX
 				try
 				{
 					string line;
-					using (FileStream fs = new FileStream(cumulus.EwOptions.Filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+					using (var fs = new FileStream(cumulus.EwOptions.Filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
 					using (var sr = new StreamReader(fs))
 					{
 						do
@@ -122,12 +120,12 @@ namespace CumulusMX
 
 					var st = line.Split(charSeparators, StringSplitOptions.RemoveEmptyEntries);
 
-					string datestr = st[EW_READING_DATE];
-					string timestr = st[EW_READING_TIME];
+					var datestr = st[EW_READING_DATE];
+					var timestr = st[EW_READING_TIME];
 
-					DateTime now = DateTime.Now;
+					var now = DateTime.Now;
 
-					if ((datestr != lastDate) || (timestr != lastTime))
+					if (datestr != lastDate || timestr != lastTime)
 					{
 						lastDate = datestr;
 						lastTime = timestr;
@@ -166,7 +164,7 @@ namespace CumulusMX
 					{
 						var lightReading = GetConvertedValue(st[EW_LIGHT]);
 
-						if ((lightReading >= 0) && (lightReading <= 300000))
+						if (lightReading >= 0 && lightReading <= 300000)
 						{
 							DoSolarRad((int) (lightReading * cumulus.SolarOptions.LuxToWM2), now);
 							LightValue = lightReading;

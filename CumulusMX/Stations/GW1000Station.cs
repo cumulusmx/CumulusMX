@@ -10,7 +10,7 @@ using System.Timers;
 
 using ServiceStack.Text;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal class GW1000Station : WeatherStation
 	{
@@ -177,7 +177,7 @@ namespace CumulusMX
 									lastMinute = minute;
 
 									// at the start of every 20 minutes to trigger battery status check
-									if ((minute % 20) == 0 && !Program.ExitSystemToken.IsCancellationRequested)
+									if (minute % 20 == 0 && !Program.ExitSystemToken.IsCancellationRequested)
 									{
 										GetSensorIdsNew();
 									}
@@ -288,7 +288,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				int archiveRun = 0;
+				var archiveRun = 0;
 
 				try
 				{
@@ -427,7 +427,7 @@ namespace CumulusMX
 								// sanity check the response size - we may see our request back as a receive packet
 								if (recevBuffer.Length > 20)
 								{
-									string ipAddr = $"{recevBuffer[11]}.{recevBuffer[12]}.{recevBuffer[13]}.{recevBuffer[14]}";
+									var ipAddr = $"{recevBuffer[11]}.{recevBuffer[12]}.{recevBuffer[13]}.{recevBuffer[14]}";
 									var macArr = new byte[6];
 
 									Array.Copy(recevBuffer, 5, macArr, 0, 6);
@@ -709,7 +709,7 @@ namespace CumulusMX
 					LowBatteryDevices.Clear();
 
 					// Only loop as far as last record (7 bytes) minus the checksum byte
-					for (int i = 5; i <= len - 6; i += 7)
+					for (var i = 5; i <= len - 6; i += 7)
 					{
 						if (PrintSensorInfoNew(data, i))
 						{
@@ -830,7 +830,7 @@ namespace CumulusMX
 						// if a WS90 is connected, it has a 8.8 second update rate, so reduce the MX update rate from the default 10 seconds
 						if (updateRate > 8000 && updateRate != 8000)
 						{
-							cumulus.LogMessage($"PrintSensorInfoNew: WS90 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
+							cumulus.LogMessage($"PrintSensorInfoNew: WS90 sensor detected, changing the update rate from {updateRate / 1000:D} seconds to 8 seconds");
 							updateRate = 8000;
 						}
 						battV = data[battPos] * 0.02;
@@ -853,7 +853,7 @@ namespace CumulusMX
 						// if a WS80 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
 						if (updateRate > 4000 && updateRate != 4000)
 						{
-							cumulus.LogMessage($"PrintSensorInfoNew: WS80 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 4 seconds");
+							cumulus.LogMessage($"PrintSensorInfoNew: WS80 sensor detected, changing the update rate from {updateRate / 1000:D} seconds to 4 seconds");
 							updateRate = 4000;
 						}
 						battV = data[battPos] * 0.02;
@@ -864,7 +864,7 @@ namespace CumulusMX
 						// if a WS85 is connected, it has a 8.5 second update rate, so reduce the MX update rate from the default 10 seconds
 						if (updateRate > 8000 && updateRate != 8000)
 						{
-							cumulus.LogMessage($"PrintSensorInfoNew: WS85 sensor detected, changing the update rate from {(updateRate / 1000):D} seconds to 8 seconds");
+							cumulus.LogMessage($"PrintSensorInfoNew: WS85 sensor detected, changing the update rate from {updateRate / 1000:D} seconds to 8 seconds");
 							updateRate = 8000;
 						}
 						batt = $"{data[battPos]} ({TestBattery3(data[battPos])})"; // 0-5 (6+9), low = 1
@@ -897,7 +897,7 @@ namespace CumulusMX
 		{
 			cumulus.LogDebugMessage("Reading live data");
 
-			byte[] data = Api.DoCommand(GW1000Api.Commands.CMD_GW1000_LIVEDATA);
+			var data = Api.DoCommand(GW1000Api.Commands.CMD_GW1000_LIVEDATA);
 
 			// sample data = in-temp, in-hum, abs-baro, rel-baro, temp, hum, dir, speed, gust, light, UV uW, UV-I, rain-rate, rain-day, rain-week, rain-month, rain-year, PM2.5, PM-ch1, Soil-1, temp-2, hum-2, temp-3, hum-3, batt
 			//byte[] data = [0xFF, 0xFF, 0x27, 0x00, 0x6D, 0x01, 0x00, 0x96, 0x06, 0x3C, 0x08, 0x27, 0x00, 0x09, 0x27, 0x49, 0x02, 0x00, 0x16, 0x07, 0x61, 0x0A, 0x00, 0x62, 0x0B, 0x00, 0x00, 0x0C, 0x00, 0x06, 0x15, 0x00, 0x01, 0x7D, 0x40, 0x16, 0x00, 0x00, 0x17, 0x00, 0x0E, 0x00, 0x00, 0x10, 0x00, 0x00, 0x11, 0x00, 0xF7, 0x12, 0x00, 0x00, 0x01, 0x5C, 0x13, 0x00, 0x00, 0x15, 0x54, 0x2A, 0x06, 0x40, 0x4D, 0x00, 0xAB, 0x1A, 0xFF, 0x3E, 0x22, 0x39, 0x1B, 0x00, 0x3D, 0x23, 0x51, 0x1C, 0x00, 0xA0, 0x24, 0x45, 0x1D, 0x00, 0xA4, 0x25, 0x3C, 0x1E, 0x00, 0x9D, 0x26, 0x3E, 0x4C, 0x04, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xA4, 0x00, 0xF4, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x19, 0x00, 0x1A, 0x8F ]
@@ -919,7 +919,6 @@ namespace CumulusMX
 			{
 				if (null != data && data.Length > 16)
 				{
-#pragma warning disable S125 // Sections of code should not be commented out
 					/*
 					 * debugging code with example data
 					 *
@@ -931,23 +930,22 @@ namespace CumulusMX
 							bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
 						data = bytes;
 					*/
-#pragma warning restore S125 // Sections of code should not be commented out
 
 					// now decode it
-					Int16 tempInt16;
-					UInt16 tempUint16;
-					UInt32 tempUint32;
+					short tempInt16;
+					ushort tempUint16;
+					uint tempUint32;
 					var idx = 5;
 					var dateTime = DateTime.Now;
 					var size = GW1000Api.ConvertBigEndianUInt16(data, 3);
 
 					double windSpeedLast = -999, rainRateLast = -999, rainLast = -999, gustLast = -999;
-					int windDirLast = -999;
+					var windDirLast = -999;
 					double outdoortemp = -999;
 					//double dewpoint
 					double windchill = -999;
 
-					bool batteryLow = false;
+					var batteryLow = false;
 
 					// We check the new value against what we have already, if older then ignore it!
 					double newLightningDistance = 999;
@@ -1277,7 +1275,7 @@ namespace CumulusMX
 									DoSoilTemp(ConvertUnits.TempCToUser(tempInt16 / 10.0), cumulus.EcowittMapWN34[chan]);
 								}
 								// Firmware version 1.5.9 uses 2 data bytes, 1.6.0+ uses 3 data bytes
-								if ((deviceModel.StartsWith("GW1000") && fwVersion >= new Version("1.6.0")) || !deviceModel.StartsWith("GW1000"))
+								if (deviceModel.StartsWith("GW1000") && fwVersion >= new Version("1.6.0") || !deviceModel.StartsWith("GW1000"))
 								{
 									var volts = TestBattery10V(data[idx + 2]);
 									if (volts <= 1.2)
@@ -1713,8 +1711,8 @@ namespace CumulusMX
 
 		private bool DoCO2Decode(byte[] data, int index)
 		{
-			bool batteryLow = false;
-			int idx = index;
+			var batteryLow = false;
+			var idx = index;
 			cumulus.LogDebugMessage("WH45 CO₂: Decoding...");
 
 			try
@@ -1757,8 +1755,8 @@ namespace CumulusMX
 
 		private bool DoCO2DecodeNew(byte[] data, int index)
 		{
-			bool batteryLow = false;
-			int idx = index;
+			var batteryLow = false;
+			var idx = index;
 			cumulus.LogDebugMessage("WH45 CO₂ New: Decoding...");
 
 			try

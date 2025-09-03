@@ -5,7 +5,7 @@ using System.Globalization;
 using EmbedIO;
 
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	class HttpStationAmbient : WeatherStation
 	{
@@ -730,7 +730,6 @@ namespace CumulusMX
 		}
 
 
-#pragma warning disable S125
 		/*
 		 * Not yet used
 		private void ProcessCo2(NameValueCollection data, WeatherStation station)
@@ -778,7 +777,6 @@ namespace CumulusMX
 			}
 		}
 		*/
-#pragma warning restore S125
 
 		private void ProcessLightning(NameValueCollection data, WeatherStation station)
 		{
@@ -850,22 +848,22 @@ namespace CumulusMX
 			*/
 
 			var lowBatt = false;
-			lowBatt = lowBatt || (data["battout"] != null && data["battout"] == "0");
-			lowBatt = lowBatt || (data["battin"] != null && data["battin"] == "0");
-			lowBatt = lowBatt || (data["batt_25"] != null && data["batt_25"] == "0");
-			lowBatt = lowBatt || (data["batt_25in"] != null && data["batt_25in"] == "0");
-			lowBatt = lowBatt || (data["batt_lightning"] != null && data["batt_lightning"] == "0");
-			lowBatt = lowBatt || (data["battrain"] != null && data["battrain"] == "0");
+			lowBatt = lowBatt || data["battout"] != null && data["battout"] == "0";
+			lowBatt = lowBatt || data["battin"] != null && data["battin"] == "0";
+			lowBatt = lowBatt || data["batt_25"] != null && data["batt_25"] == "0";
+			lowBatt = lowBatt || data["batt_25in"] != null && data["batt_25in"] == "0";
+			lowBatt = lowBatt || data["batt_lightning"] != null && data["batt_lightning"] == "0";
+			lowBatt = lowBatt || data["battrain"] != null && data["battrain"] == "0";
 			for (var i = 1; i <= 4; i++)
 			{
-				lowBatt = lowBatt || (data["batt" + i] != null && data["batt" + i] == "0");
-				lowBatt = lowBatt || (data["batleak" + i] != null && data["batleak" + i] == "0");
-				lowBatt = lowBatt || (data["battsm" + i] != null && data["battsm" + i] == "0");
+				lowBatt = lowBatt || data["batt" + i] != null && data["batt" + i] == "0";
+				lowBatt = lowBatt || data["batleak" + i] != null && data["batleak" + i] == "0";
+				lowBatt = lowBatt || data["battsm" + i] != null && data["battsm" + i] == "0";
 			}
 			for (var i = 5; i <= 10; i++)
 			{
-				lowBatt = lowBatt || (data["batt" + i] != null && data["batt" + i] == "0");
-				lowBatt = lowBatt || (data["battr" + i] != null && data["battr" + i] == "0");
+				lowBatt = lowBatt || data["batt" + i] != null && data["batt" + i] == "0";
+				lowBatt = lowBatt || data["battr" + i] != null && data["battr" + i] == "0";
 			}
 
 			cumulus.BatteryLowAlarm.Triggered = lowBatt;

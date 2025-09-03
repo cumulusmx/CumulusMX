@@ -21,6 +21,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
+using CumulusMX.Settings;
+using CumulusMX.Stations;
+
 using EmbedIO;
 using EmbedIO.Files;
 using EmbedIO.Utilities;

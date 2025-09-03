@@ -353,8 +353,6 @@ namespace CumulusMX
 
 
 		// These are set using the deserializer which confuses the error checker
-#pragma warning disable S1144 // Unused private types or members should be removed
-#pragma warning disable S3459 // Unused parameters should be removed
 
 		private sealed class RetValTime
 		{

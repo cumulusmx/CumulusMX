@@ -4,35 +4,35 @@
 	{
 		public Calibrations()
 		{
-			Temp = new Settings();
-			InTemp = new Settings();
-			Hum = new Settings();
-			InHum = new Settings();
-			Press = new Settings();
-			PressStn = new Settings();
-			Rain = new Settings();
-			WindSpeed = new Settings();
-			WindGust = new Settings();
-			WindDir = new Settings();
-			Solar = new Settings();
-			UV = new Settings();
-			WetBulb = new Settings();
+			Temp = new CalibSettings();
+			InTemp = new CalibSettings();
+			Hum = new CalibSettings();
+			InHum = new CalibSettings();
+			Press = new CalibSettings();
+			PressStn = new CalibSettings();
+			Rain = new CalibSettings();
+			WindSpeed = new CalibSettings();
+			WindGust = new CalibSettings();
+			WindDir = new CalibSettings();
+			Solar = new CalibSettings();
+			UV = new CalibSettings();
+			WetBulb = new CalibSettings();
 		}
-		public Settings Temp { get; set; }
-		public Settings InTemp { get; set; }
-		public Settings Hum { get; set; }
-		public Settings InHum { get; set; }
-		public Settings Press { get; set; }
-		public Settings PressStn { get; set; }
-		public Settings Rain { get; set; }
-		public Settings WindSpeed { get; set; }
-		public Settings WindGust { get; set; }
-		public Settings WindDir { get; set; }
-		public Settings Solar { get; set; }
-		public Settings UV { get; set; }
-		public Settings WetBulb { get; set; }
+		public CalibSettings Temp { get; set; }
+		public CalibSettings InTemp { get; set; }
+		public CalibSettings Hum { get; set; }
+		public CalibSettings InHum { get; set; }
+		public CalibSettings Press { get; set; }
+		public CalibSettings PressStn { get; set; }
+		public CalibSettings Rain { get; set; }
+		public CalibSettings WindSpeed { get; set; }
+		public CalibSettings WindGust { get; set; }
+		public CalibSettings WindDir { get; set; }
+		public CalibSettings Solar { get; set; }
+		public CalibSettings UV { get; set; }
+		public CalibSettings WetBulb { get; set; }
 	}
-	public class Settings
+	public class CalibSettings
 	{
 		public double Offset { get; set; } = 0;
 		public double Mult { get; set; } = 1;

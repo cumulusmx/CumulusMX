@@ -580,7 +580,6 @@ namespace CumulusMX
 			return et0;
 		}
 
-#pragma warning disable S125 // Sections of code should not be commented out
 		/// <summary>
 		/// Calculates the Davis version (almost) of Evapotranspiration
 		/// </summary>

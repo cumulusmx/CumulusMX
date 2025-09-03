@@ -7,7 +7,7 @@ using EmbedIO;
 using ServiceStack;
 
 
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	public class MqttSettings(Cumulus cumulus)
 	{

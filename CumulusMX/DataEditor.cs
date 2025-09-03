@@ -3379,14 +3379,12 @@ namespace CumulusMX
 			}
 		}
 
-#pragma warning disable S3459, S1144 // Unassigned members should be removed. Unused private types or members should be removed
 		private sealed class DayFileEditor
 		{
 			public string action { get; set; }
 			public int[] lines { get; set; }
 			public string[][] data { get; set; }
 		}
-#pragma warning restore S3459, S1144 // Unassigned members should be removed. Unused private types or members should be removed
 
 		internal string EditDatalog(IHttpContext context)
 		{
@@ -3591,7 +3589,6 @@ namespace CumulusMX
 			return "{\"errors\":null}";
 		}
 
-#pragma warning disable S3459, S1144 // Unassigned members should be removed. Unused private types or members should be removed
 		private sealed class DatalogEditor
 		{
 			public string action { get; set; }
@@ -3606,8 +3603,6 @@ namespace CumulusMX
 			public int[] keys { get; set; }
 			public string[] statements { get; set; }
 		}
-#pragma warning restore S3459, S1144 // Unassigned members should be removed. Unused private types or members should be removed
-
 
 		private bool SetCurrCondText(string currCondText)
 		{
@@ -3657,7 +3652,6 @@ namespace CumulusMX
 			h24Queue.Enqueue(lastrain);
 		}
 
-#pragma warning disable S6580 // Use a format provider when parsing date and time
 		private static DateTime localeStrToDate(string dt)
 		{
 			// formats: "dd/MM/yyyy", "dd/MM/yyyy hh:mm", "MMM yyyy" - the space will be encoded as +, so "Dec+2023"
@@ -3680,9 +3674,6 @@ namespace CumulusMX
 				return DateTime.Parse(dt);
 			}
 		}
-#pragma warning restore S6580 // Use a format provider when parsing date and time
-
-
 
 		private sealed class LastHourRainLog(DateTime ts, double rain)
 		{

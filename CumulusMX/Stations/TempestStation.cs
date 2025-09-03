@@ -8,13 +8,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using CumulusMX.Tempest;
-
 using ServiceStack.Text;
+
+using CumulusMX.Stations.Tempest;
 
 #pragma warning disable IDE0025
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal class TempestStation : WeatherStation
 	{
@@ -164,7 +164,7 @@ namespace CumulusMX
 					}
 
 					// reset the accumulated snow depth(s)
-					for (int i = 0; i < Snow24h.Length; i++)
+					for (var i = 0; i < Snow24h.Length; i++)
 					{
 						Snow24h[i] = null;
 					}
@@ -194,7 +194,7 @@ namespace CumulusMX
 					// add 1 minute to chill hours
 					ChillHours += historydata.ReportInterval / 60.0;
 
-				double rainrate = ConvertUnits.RainMMToUser((double) historydata.Precipitation) * (60d / historydata.ReportInterval);
+				var rainrate = ConvertUnits.RainMMToUser((double) historydata.Precipitation) * (60d / historydata.ReportInterval);
 
 				var newRain = RainCounter + ConvertUnits.RainMMToUser((double) historydata.Precipitation);
 				cumulus.LogMessage(
@@ -272,7 +272,7 @@ namespace CumulusMX
 			}
 
 			ticks = Environment.TickCount - ticks;
-			var rate = ((double) totalentries / ticks) * 1000;
+			var rate = (double) totalentries / ticks * 1000;
 			cumulus.LogMessage($"End processing history data. Rate: {rate:f2}/second");
 			Cumulus.LogConsoleMessage($"Completed processing history data. {DateTime.Now.ToLongTimeString()}, Rate: {rate:f2}/second");
 
@@ -337,7 +337,7 @@ namespace CumulusMX
 
 						DoSolarRad(wp.Observation.SolarRadiation, ts);
 						DoUV((double) wp.Observation.UV, ts);
-						double rainrate = ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation) * (60d / wp.Observation.ReportInterval);
+						var rainrate = ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation) * (60d / wp.Observation.ReportInterval);
 
 						var newRain = RainCounter + ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation);
 						cumulus.LogDebugMessage($"TempestDoRain: New Precip: {wp.Observation.Precipitation}, Type: {wp.Observation.PrecipType}, Rate: {rainrate}");
@@ -387,7 +387,7 @@ namespace CumulusMX
 	}
 }
 
-namespace CumulusMX.Tempest
+namespace CumulusMX.Stations.Tempest
 {
 	#region UDP Comms
 
@@ -445,7 +445,7 @@ namespace CumulusMX.Tempest
 					while (!token.IsCancellationRequested && Available == 0) await Task.Delay(10, token);
 					while (!token.IsCancellationRequested && Available > 0)
 					{
-						IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
+						var endPoint = new IPEndPoint(IPAddress.Any, 0);
 						var data = Receive(ref endPoint);
 						PacketReceived?.Invoke(this, new PacketReceivedEventArgs(data));
 					}
@@ -559,7 +559,7 @@ namespace CumulusMX.Tempest
 			{
 				var tpStart = start;
 				var tpEnd = end;
-				double ts = tpEnd.Subtract(tpStart).TotalDays;
+				var ts = tpEnd.Subtract(tpStart).TotalDays;
 
 				while (ts > 0)
 				{
@@ -581,7 +581,7 @@ namespace CumulusMX.Tempest
 					cumulus.LogDebugMessage($"GetRestPacket: Requesting from URL - {url}device/{deviceId}?token=<<token>>&time_start={st}&time_end={end_time}");
 
 					using var response = httpClient.GetAsync($"{url}device/{deviceId}?token={token}&time_start={st}&time_end={end_time}");
-					string apiResponse = response.Result.Content.ReadAsStringAsync().Result;
+					var apiResponse = response.Result.Content.ReadAsStringAsync().Result;
 					var rp = JsonSerializer.DeserializeFromString<RestPacket>(apiResponse);
 					if (rp != null && (rp.status.status_message.Equals("SUCCESS") || rp.status.status_code==2) && rp.obs != null)
 					{
@@ -691,7 +691,7 @@ namespace CumulusMX.Tempest
 		public int uptime { get; set; }
 		public long timestamp { get; set; }
 
-		public DateTime PacketTime => WeatherPacket.FromUnixTimeSeconds(timestamp);
+		public DateTime PacketTime => FromUnixTimeSeconds(timestamp);
 
 		public int rssi { get; set; }
 		public string hub_sn { get; set; }
@@ -747,14 +747,14 @@ namespace CumulusMX.Tempest
 		public static DateTime FromUnixTimeSeconds(long epoch)
 		{
 			// Unix timestamp is seconds past epoch
-			System.DateTime dtDateTime = DateTime.UnixEpoch;
+			var dtDateTime = DateTime.UnixEpoch;
 			dtDateTime = dtDateTime.AddSeconds(epoch).ToLocalTime();
 			return dtDateTime;
 		}
 
 		public static long ToUnixTimeSeconds(DateTime dt)
 		{
-			TimeSpan t = dt.ToUniversalTime() - DateTime.UnixEpoch;
+			var t = dt.ToUniversalTime() - DateTime.UnixEpoch;
 			return (long) t.TotalSeconds;
 		}
 
@@ -1006,7 +1006,7 @@ namespace CumulusMX.Tempest
 		// override ToString() to dump all data values
 		public override string ToString()
 		{
-			StringBuilder s = new StringBuilder();
+			var s = new StringBuilder();
 			s.Append($"SerialNumber:{SerialNumber ?? "NULL"},");
 			s.Append($"HubSN:{HubSN ?? "NULL"},");
 			s.Append($"FirmwareRevision:{FirmwareRevision},");

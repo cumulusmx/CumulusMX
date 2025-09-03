@@ -307,8 +307,6 @@ namespace CumulusMX.ThirdParty
 			}
 		}
 
-#pragma warning disable S3459 // Unassigned members should be removed
-#pragma warning disable S1144 // Unused private types or members should be removed
 		private sealed class OpenWeatherMapStation
 		{
 			public string id { get; set; }
@@ -336,6 +334,4 @@ namespace CumulusMX.ThirdParty
 			public int source_type { get; set; }
 		}
 	}
-#pragma warning restore S3459 // Unassigned members should be removed
-#pragma warning restore S1144 // Unused private types or members should be removed
 }

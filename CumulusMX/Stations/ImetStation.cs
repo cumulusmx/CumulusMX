@@ -5,7 +5,7 @@ using System.Globalization;
 using System.IO.Ports;
 using System.Threading;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal class ImetStation : WeatherStation
 	{
@@ -69,25 +69,25 @@ namespace CumulusMX
 
 			SendCommand("WRST,11," + interval * 60);
 			// read the response
-			string response = GetResponse("wrst");
+			var response = GetResponse("wrst");
 
-			string data = ExtractText(response, "wrst");
+			var data = ExtractText(response, "wrst");
 			cumulus.LogDataMessage("Response: " + data);
 			cumulus.ImetLoggerInterval = interval;
 		}
 
 		private void SetStationClock()
 		{
-			string datestr = DateTime.Now.ToString("yyyyMMdd");
-			string timestr = DateTime.Now.ToString("HHmmss");
+			var datestr = DateTime.Now.ToString("yyyyMMdd");
+			var timestr = DateTime.Now.ToString("HHmmss");
 
 			cumulus.LogDataMessage($"WRTM,{datestr},{timestr}");
 
 			SendCommand($"WRTM,{datestr},{timestr}");
 			// read the response
-			string response = GetResponse("wrtm");
+			var response = GetResponse("wrtm");
 
-			string data = ExtractText(response, "wrtm");
+			var data = ExtractText(response, "wrtm");
 			cumulus.LogDataMessage("WRTM Response: " + data);
 		}
 
@@ -172,8 +172,8 @@ namespace CumulusMX
 
 		private string GetResponse(string expected)
 		{
-			string response = string.Empty;
-			int attempts = 0;
+			var response = string.Empty;
+			var attempts = 0;
 
 			// The Instromet is odd, in that the serial connection is configured for human interaction rather than machine.
 			// Command to logger...
@@ -192,11 +192,11 @@ namespace CumulusMX
 					cumulus.LogDataMessage("Reading response from station, attempt " + attempts);
 					response = comport.ReadTo(sLineBreak);
 					cumulus.LogDataMessage($"Response from station: '{response}'");
-				} while (!(response.Contains(expected)) && attempts < 6);
+				} while (!response.Contains(expected) && attempts < 6);
 
 				// If we got the response and didn't time out, then wait for the command prompt before
 				// returning so we know the logger is ready for the next command
-				if ((response.Contains(expected)) && attempts < 6)
+				if (response.Contains(expected) && attempts < 6)
 				{
 					comport.ReadTo(">"); // just discard this
 				}
@@ -216,9 +216,9 @@ namespace CumulusMX
 			// request the archive data
 			SendCommand("RDLG,1");
 			// read the response
-			string response = GetResponse("rdlg");
+			var response = GetResponse("rdlg");
 			// extract the bit we want from all the other crap (echo, newlines, prompt etc)
-			string data = ExtractText(response, "rdlg");
+			var data = ExtractText(response, "rdlg");
 			cumulus.LogMessage(data);
 
 			if (ValidChecksum(data))
@@ -239,8 +239,8 @@ namespace CumulusMX
 
 		private int GetNumberOfLogs()
 		{
-			int attempts = 0;
-			int num = 0;
+			var attempts = 0;
+			var num = 0;
 			bool valid;
 			string data;
 			do
@@ -251,13 +251,13 @@ namespace CumulusMX
 				SendCommand("LGCT");
 				cumulus.LogMessage("Obtaining log count");
 				// read the response
-				string response = GetResponse("lgct");
+				var response = GetResponse("lgct");
 				// extract the bit we want from all the other crap (echo, newlines, prompt etc)
 				data = ExtractText(response, "lgct");
 				cumulus.LogDataMessage("Response from LGCT=" + data);
 				valid = ValidChecksum(data);
 				cumulus.LogDebugMessage(valid ? "Checksum valid" : "!!! Checksum invalid !!!");
-			} while (!valid && (attempts < 3));
+			} while (!valid && attempts < 3);
 
 			if (valid)
 			{
@@ -293,23 +293,23 @@ namespace CumulusMX
 				var sl = new List<string>(str.Split(','));
 
 				// get number of fields in string
-				int len = sl.Count;
+				var len = sl.Count;
 				// checksum is last field
-				int csum = Convert.ToInt32((sl[len - 1]));
+				var csum = Convert.ToInt32(sl[len - 1]);
 
 				// calculate checksum of string
 				uint sum = 0;
-				int endpos = str.LastIndexOf(',');
+				var endpos = str.LastIndexOf(',');
 
-				for (int i = 0; i <= endpos; i++)
+				for (var i = 0; i <= endpos; i++)
 				{
 					sum = (sum + str[i]) % 256;
 				}
 
 				// 8-bit 1's complement
-				sum = (~sum) % 256;
+				sum = ~sum % 256;
 
-				return (sum == csum);
+				return sum == csum;
 			}
 			catch
 			{
@@ -323,7 +323,7 @@ namespace CumulusMX
 			// used for extracting actual response from reply from station
 			// assumes that the terminating CRLF is not present, as
 			// readto() should have stripped this off
-			int pos1 = input.IndexOf(after);
+			var pos1 = input.IndexOf(after);
 			return pos1 >= 0 ? input[pos1..] : "";
 		}
 
@@ -399,22 +399,22 @@ namespace CumulusMX
 			const int SUNPOS = 22;
 			const int RAINPOS = 23;
 
-			DateTime timestamp = DateTime.MinValue;
+			var timestamp = DateTime.MinValue;
 
-			NumberFormatInfo provider = new NumberFormatInfo { NumberDecimalSeparator = "." };
+			var provider = new NumberFormatInfo { NumberDecimalSeparator = "." };
 
-			DateTime startfrom = cumulus.LastUpdateTime;
-			int startindex = 0;
-			int year = startfrom.Year;
-			int month = startfrom.Month;
-			int day = startfrom.Day;
-			int hour = startfrom.Hour;
-			int minute = startfrom.Minute;
-			int sec = startfrom.Second;
+			var startfrom = cumulus.LastUpdateTime;
+			var startindex = 0;
+			var year = startfrom.Year;
+			var month = startfrom.Month;
+			var day = startfrom.Day;
+			var hour = startfrom.Hour;
+			var minute = startfrom.Minute;
+			var sec = startfrom.Second;
 
 			cumulus.LogMessage($"Last update time = {year}/{month}/{day} {hour}:{minute}:{sec}");
 
-			int recordsdone = 0;
+			var recordsdone = 0;
 
 			if (FirstRun)
 			{
@@ -428,13 +428,13 @@ namespace CumulusMX
 
 			cumulus.LogMessage("Downloading history from " + startfrom);
 			Cumulus.LogConsoleMessage("Reading archive data from " + startfrom + " - please wait");
-			int numrecs = GetNumberOfLogs();
+			var numrecs = GetNumberOfLogs();
 			cumulus.LogMessage("Logs available = " + numrecs);
 			if (numrecs > 0)
 			{
 				cumulus.LogMessage("Number of history records = " + numrecs);
 				// get the earliest record
-				List<string> sl = GetArchiveRecord();
+				var sl = GetArchiveRecord();
 				bool dataOK;
 				try
 				{
@@ -463,7 +463,7 @@ namespace CumulusMX
 						cumulus.LogMessage("-----Earliest timestamp is earlier than required");
 						cumulus.LogMessage("-----Find first entry after " + cumulus.LastUpdateTime);
 						startindex++; //  to allow for first log already read
-						while ((startindex < numrecs) && (timestamp <= cumulus.LastUpdateTime))
+						while (startindex < numrecs && timestamp <= cumulus.LastUpdateTime)
 						{
 							// Move on to next entry
 							ProgressLogs();
@@ -505,7 +505,7 @@ namespace CumulusMX
 					{
 						rollHour = 0;
 					}
-					else if (cumulus.Use10amInSummer && (TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now)))
+					else if (cumulus.Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now))
 					{
 						// Locale is currently on Daylight time
 						rollHour = cumulus.RolloverHour + 1;
@@ -519,7 +519,7 @@ namespace CumulusMX
 					// Check to see if (today"s roll-over has been done
 					// (we might be starting up in the roll-over hour)
 
-					int luhour = cumulus.LastUpdateTime.Hour;
+					var luhour = cumulus.LastUpdateTime.Hour;
 
 					var rolloverdone = luhour == rollHour;
 
@@ -527,7 +527,7 @@ namespace CumulusMX
 					var rollover9amdone = luhour == 9;
 					var snowhourdone = luhour == cumulus.SnowDepthHour;
 
-					for (int i = startindex; i < numrecs; i++)
+					for (var i = startindex; i < numrecs; i++)
 					{
 						try
 						{
@@ -545,26 +545,26 @@ namespace CumulusMX
 							cumulus.LogMessage("Processing logger data entry " + i + " for " + timestamp);
 							DataDateTime = timestamp;
 
-							int interval = (int) (Convert.ToDouble(sl[INTERVALPOS], provider) / 60);
+							var interval = (int) (Convert.ToDouble(sl[INTERVALPOS], provider) / 60);
 
 							if (sl[RELHUMAVGPOS].Length > 0)
 							{
-								DoOutdoorHumidity((int) (Convert.ToDouble(sl[RELHUMAVGPOS], provider)), timestamp);
+								DoOutdoorHumidity((int) Convert.ToDouble(sl[RELHUMAVGPOS], provider), timestamp);
 							}
 
-							if ((sl[WINDAVGPOS].Length > 0) && (sl[WINDMAXPOS].Length > 0) && (sl[DIRPOS].Length > 0))
+							if (sl[WINDAVGPOS].Length > 0 && sl[WINDMAXPOS].Length > 0 && sl[DIRPOS].Length > 0)
 							{
-								double windspeed = Convert.ToDouble(sl[WINDAVGPOS], provider);
-								double windgust = Convert.ToDouble(sl[WINDMAXPOS], provider);
-								int windbearing = Convert.ToInt32(sl[DIRPOS]);
+								var windspeed = Convert.ToDouble(sl[WINDAVGPOS], provider);
+								var windgust = Convert.ToDouble(sl[WINDMAXPOS], provider);
+								var windbearing = Convert.ToInt32(sl[DIRPOS]);
 
 								DoWind(windgust, windbearing, windspeed, timestamp);
 
 								// add in "archivePeriod" minutes worth of wind speed to windrun
-								WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+								WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
 
 								DateTime windruncheckTS;
-								if ((hour == rollHour) && (minute == 0))
+								if (hour == rollHour && minute == 0)
 								// this is the last logger entry before roll-over
 								// fudge the timestamp to make sure it falls in the previous day
 								{
@@ -587,7 +587,7 @@ namespace CumulusMX
 
 								// add in "archivePeriod" minutes worth of temperature to the temp samples
 								tempsamplestoday += interval;
-								TempTotalToday += (OutdoorTemperature * interval);
+								TempTotalToday += OutdoorTemperature * interval;
 
 								// update chill hours
 								if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
@@ -602,7 +602,7 @@ namespace CumulusMX
 
 							if (sl[TEMP2AVGPOS].Length > 0)
 							{
-								double temp2 = Convert.ToDouble(sl[TEMP2AVGPOS], provider);
+								var temp2 = Convert.ToDouble(sl[TEMP2AVGPOS], provider);
 								// supply in CELSIUS
 								if (cumulus.StationOptions.LogExtraSensors)
 								{
@@ -627,19 +627,19 @@ namespace CumulusMX
 									raindiff = raintotal - prevraintotal;
 								}
 
-								double rainrate = ConvertUnits.RainMMToUser((raindiff) * (60.0 / Cumulus.logints[cumulus.DataLogInterval]));
+								var rainrate = ConvertUnits.RainMMToUser(raindiff * (60.0 / Cumulus.logints[cumulus.DataLogInterval]));
 
 								DoRain(ConvertUnits.RainMMToUser(raintotal), rainrate, timestamp);
 
 								prevraintotal = raintotal;
 							}
 
-							if ((sl[WINDAVGPOS].Length > 0) && (sl[TEMP1AVGPOS].Length > 0))
+							if (sl[WINDAVGPOS].Length > 0 && sl[TEMP1AVGPOS].Length > 0)
 							{
 								// wind chill
-								double tempinC = ConvertUnits.UserTempToC(OutdoorTemperature);
-								double windinKPH = ConvertUnits.UserWindToKPH(WindAverage);
-								double value = MeteoLib.WindChill(tempinC, windinKPH);
+								var tempinC = ConvertUnits.UserTempToC(OutdoorTemperature);
+								var windinKPH = ConvertUnits.UserWindToKPH(WindAverage);
+								var value = MeteoLib.WindChill(tempinC, windinKPH);
 								// value is now in Celsius, convert to units in use
 								value = ConvertUnits.TempCToUser(value);
 								DoWindChill(value, timestamp);
@@ -743,7 +743,7 @@ namespace CumulusMX
 								}
 
 								// reset the accumulated snow depth(s)
-								for (int j = 0; j < Snow24h.Length; j++)
+								for (var j = 0; j < Snow24h.Length; j++)
 								{
 									Snow24h[j] = null;
 								}
@@ -811,16 +811,16 @@ namespace CumulusMX
 			const int RAINPOS = 8;
 			//const int CHECKSUMPOS = 9
 
-			DateTime now = DateTime.Now;
+			var now = DateTime.Now;
 
-			int h = now.Hour;
-			int min = now.Minute;
+			var h = now.Hour;
+			var min = now.Minute;
 
 			if (min != previousminute)
 			{
 				previousminute = min;
 
-				if (cumulus.StationOptions.SyncTime && (h == cumulus.StationOptions.ClockSettingHour) && (min == 2))
+				if (cumulus.StationOptions.SyncTime && h == cumulus.StationOptions.ClockSettingHour && min == 2)
 				{
 					// It's 0400, set the station clock
 					SetStationClock();
@@ -843,11 +843,11 @@ namespace CumulusMX
 				}
 
 				// Parse data using decimal points rather than user's decimal separator
-				NumberFormatInfo provider = new NumberFormatInfo { NumberDecimalSeparator = "." };
+				var provider = new NumberFormatInfo { NumberDecimalSeparator = "." };
 
 				double windspeed = -999;
 				double temp1 = -999;
-				int humidity = -999;
+				var humidity = -999;
 
 				double varDbl;
 				int varInt;
@@ -870,7 +870,7 @@ namespace CumulusMX
 					DoOutdoorTemp(ConvertUnits.TempCToUser(temp1), now);
 					if (windspeed > -99)
 					{
-						double windchill = MeteoLib.WindChill(temp1, windspeed * 3.6);
+						var windchill = MeteoLib.WindChill(temp1, windspeed * 3.6);
 						DoWindChill(windchill, now);
 					}
 				}

@@ -3,7 +3,7 @@ using System.Globalization;
 
 using EmbedIO;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	class HttpStationWund : WeatherStation
 	{

@@ -7,7 +7,7 @@ using EmbedIO;
 using ServiceStack.Text;
 
 
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	internal class DisplaySettings
 	{

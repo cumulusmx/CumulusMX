@@ -8,7 +8,7 @@ using EmbedIO;
 using ServiceStack;
 
 
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	public class ThirdPartySettings(Cumulus cumulus)
 	{
@@ -62,7 +62,7 @@ namespace CumulusMX
 						cumulus.Wund.SendAverage = settings.wunderground.sendavgwind;
 						cumulus.Wund.ID = string.IsNullOrWhiteSpace(settings.wunderground.stationid) ? string.Empty : settings.wunderground.stationid.Trim();
 						cumulus.Wund.CatchUp = settings.wunderground.catchup;
-						cumulus.Wund.SynchronisedUpdate = (!cumulus.Wund.RapidFireEnabled) && (60 % cumulus.Wund.Interval == 0);
+						cumulus.Wund.SynchronisedUpdate = !cumulus.Wund.RapidFireEnabled && 60 % cumulus.Wund.Interval == 0;
 						cumulus.Wund.SendExtraTemp1 = settings.wunderground.extratemp1;
 						cumulus.Wund.SendExtraTemp2 = settings.wunderground.extratemp2;
 						cumulus.Wund.SendExtraTemp3 = settings.wunderground.extratemp3;
@@ -127,7 +127,7 @@ namespace CumulusMX
 						cumulus.AWEKAS.SendLeafWetness = settings.awekas.includeleafwetness;
 						cumulus.AWEKAS.SendIndoor = settings.awekas.includeindoor;
 						cumulus.AWEKAS.SendAirQuality = settings.awekas.includeaq;
-						cumulus.AWEKAS.SynchronisedUpdate = (cumulus.AWEKAS.Interval % 60 == 0);
+						cumulus.AWEKAS.SynchronisedUpdate = cumulus.AWEKAS.Interval % 60 == 0;
 						cumulus.AWEKAS.IntTimer.Interval = cumulus.AWEKAS.Interval * 1000;
 						cumulus.AWEKAS.IntTimer.Enabled = !cumulus.AWEKAS.SynchronisedUpdate;
 					}
@@ -555,7 +555,7 @@ namespace CumulusMX
 			}
 
 			var timedPosts = new List<JsonBlueskyTime>();
-			for (int i = 0; i < cumulus.Bluesky.TimedPostsTime.Length; i++)
+			for (var i = 0; i < cumulus.Bluesky.TimedPostsTime.Length; i++)
 			{
 				if (cumulus.Bluesky.TimedPostsTime[i] < TimeSpan.MaxValue && !string.IsNullOrEmpty(cumulus.Bluesky.TimedPostsFile[i]))
 				{
@@ -567,7 +567,7 @@ namespace CumulusMX
 				}
 			}
 			var variablePosts = new List<JsonBlueskyTime>();
-			for (int i = 0; i < cumulus.Bluesky.VariablePostsTime.Length; i++)
+			for (var i = 0; i < cumulus.Bluesky.VariablePostsTime.Length; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.Bluesky.VariablePostsTime[i]) && !string.IsNullOrEmpty(cumulus.Bluesky.VariablePostsFile[i]))
 				{
@@ -600,7 +600,7 @@ namespace CumulusMX
 			};
 
 			var urlCnt = 1;
-			for (int i = 1; i < 10; i++)
+			for (var i = 1; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.CustomHttpSecondsStrings[i]))
 					urlCnt++;
@@ -621,7 +621,7 @@ namespace CumulusMX
 			};
 
 			urlCnt = 1;
-			for (int i = 1; i < 10; i++)
+			for (var i = 1; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.CustomHttpMinutesStrings[i]))
 					urlCnt++;
@@ -642,7 +642,7 @@ namespace CumulusMX
 			};
 
 			urlCnt = 1;
-			for (int i = 1; i < 10; i++)
+			for (var i = 1; i < 10; i++)
 			{
 				if (!string.IsNullOrEmpty(cumulus.CustomHttpRolloverStrings[i]))
 					urlCnt++;

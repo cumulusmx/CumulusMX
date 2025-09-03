@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal class DavisStation : WeatherStation
 	{
@@ -68,7 +68,7 @@ namespace CumulusMX
 			// does not send Wind Chill in LOOP
 			cumulus.StationOptions.CalculatedWC = true;
 
-			isSerial = (cumulus.DavisOptions.ConnectionType == 0);
+			isSerial = cumulus.DavisOptions.ConnectionType == 0;
 
 			bool connectedOK;
 
@@ -123,7 +123,7 @@ namespace CumulusMX
 				{
 					cumulus.LogWarningMessage("Unable to determine the firmware version, LOOP2 may not be supported");
 				}
-				else if ((float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float) 1.9) && cumulus.DavisOptions.UseLoop2)
+				else if (float.Parse(DavisFirmwareVersion, CultureInfo.InvariantCulture.NumberFormat) < (float) 1.9 && cumulus.DavisOptions.UseLoop2)
 				{
 					cumulus.LogWarningMessage("LOOP2 is enabled in Cumulus.ini but this firmware version does not support it. Consider disabling it in Cumulus.ini");
 					Cumulus.LogConsoleMessage("Your console firmware version does not support LOOP2. Consider disabling it in Cumulus.ini", ConsoleColor.Yellow);
@@ -190,9 +190,9 @@ namespace CumulusMX
 			}
 
 
-			DateTime tooold = new DateTime(0, DateTimeKind.Local);
+			var tooold = new DateTime(0, DateTimeKind.Local);
 
-			if ((cumulus.LastUpdateTime <= tooold) || !cumulus.StationOptions.UseDataLogger)
+			if (cumulus.LastUpdateTime <= tooold || !cumulus.StationOptions.UseDataLogger)
 			{
 				// there's nothing in the database, so we haven't got a rain counter
 				// we can't load the history data, so we'll just have to go live
@@ -297,7 +297,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						NetworkStream stream = socket.GetStream();
+						var stream = socket.GetStream();
 						stream.ReadTimeout = TcpWaitTimeMs;
 						stream.WriteTimeout = TcpWaitTimeMs;
 
@@ -346,7 +346,7 @@ namespace CumulusMX
 		{
 			cumulus.LogMessage("CheckLoggerInterval: Reading logger interval");
 			var bytesRead = 0;
-			byte[] readBuffer = new byte[40];
+			var readBuffer = new byte[40];
 
 			// default the logger interval to the CMX interval - change it later if we find different
 			loggerInterval = Cumulus.logints[cumulus.DataLogInterval];
@@ -396,7 +396,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						NetworkStream stream = socket.GetStream();
+						var stream = socket.GetStream();
 						stream.ReadTimeout = TcpWaitTimeMs;
 						stream.WriteTimeout = TcpWaitTimeMs;
 
@@ -462,7 +462,7 @@ namespace CumulusMX
 			// response should be just an ACK
 			if (isSerial)
 			{
-				string commandString = $"SETPER {interval}";
+				var commandString = $"SETPER {interval}";
 				if (WakeVP(comport))
 				{
 					try
@@ -492,12 +492,12 @@ namespace CumulusMX
 			}
 			else
 			{
-				string commandString = $"SETPER {interval}\n";
+				var commandString = $"SETPER {interval}\n";
 				if (WakeVP(socket))
 				{
 					try
 					{
-						NetworkStream stream = socket.GetStream();
+						var stream = socket.GetStream();
 						stream.ReadTimeout = TcpWaitTimeMs;
 						stream.WriteTimeout = TcpWaitTimeMs;
 
@@ -543,7 +543,7 @@ namespace CumulusMX
 			lastRecepStatsTime = DateTime.Now;
 			StringBuilder response = new();
 			var bytesRead = 0;
-			byte[] readBuffer = new byte[40];
+			var readBuffer = new byte[40];
 			int ch;
 
 			if (isSerial)
@@ -588,7 +588,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						NetworkStream stream = socket.GetStream();
+						var stream = socket.GetStream();
 						stream.ReadTimeout = TcpWaitTimeMs;
 						stream.WriteTimeout = TcpWaitTimeMs;
 
@@ -644,7 +644,7 @@ namespace CumulusMX
 		private TcpClient OpenTcpPort()
 		{
 			TcpClient client = null;
-			int attempt = 0;
+			var attempt = 0;
 
 			// Creating the new TCP socket effectively opens it - specify IP address or domain name and port
 			while (attempt < 5 && !stop)
@@ -776,7 +776,7 @@ namespace CumulusMX
 
 		private void bw_DoArchiveData(object sender, DoWorkEventArgs e)
 		{
-			int archiveRun = 0;
+			var archiveRun = 0;
 			Cumulus.SyncInit.Wait();
 			do
 			{
@@ -1075,7 +1075,7 @@ namespace CumulusMX
 
 			foreach (var databyte in data)
 			{
-				crc = (ushort) (crcTable[(crc >> 8) ^ databyte] ^ (crc << 8));
+				crc = (ushort) (crcTable[crc >> 8 ^ databyte] ^ crc << 8);
 			}
 
 			return crc;
@@ -1083,15 +1083,15 @@ namespace CumulusMX
 
 		private static bool CrcOk(byte[] data)
 		{
-			return (calculateCRC(data) == 0);
+			return calculateCRC(data) == 0;
 		}
 
 		public override void Start()
 		{
 			cumulus.LogMessage("Start normal reading loop");
-			int loopcount = cumulus.DavisOptions.ForceVPBarUpdate ? 20 : 50;
+			var loopcount = cumulus.DavisOptions.ForceVPBarUpdate ? 20 : 50;
 			const int loop2count = 1;
-			bool reconnecting = false;
+			var reconnecting = false;
 
 			while (!stop)
 			{
@@ -1261,7 +1261,7 @@ namespace CumulusMX
 
 			StringBuilder response = new();
 			var bytesRead = 0;
-			byte[] readBuffer = new byte[64];
+			var readBuffer = new byte[64];
 
 			// Expected response = "\n\rOK\n\rNNNNN\n\r" - Where NNNNN = ASCII pressure, inHg * 1000
 
@@ -1309,7 +1309,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						NetworkStream stream = socket.GetStream();
+						var stream = socket.GetStream();
 
 						stream.Write(Encoding.ASCII.GetBytes(commandString), 0, commandString.Length);
 
@@ -1359,7 +1359,7 @@ namespace CumulusMX
 
 		private bool SendLoopCommand(SerialPort serialPort, string commandString)
 		{
-			bool foundAck = false;
+			var foundAck = false;
 
 			cumulus.LogMessage("SendLoopCommand: Starting - " + commandString);
 
@@ -1369,7 +1369,7 @@ namespace CumulusMX
 				{
 					WakeVP(serialPort);
 
-					int passCount = 1;
+					var passCount = 1;
 					const int maxPasses = 4;
 
 					// Clear the input buffer
@@ -1421,8 +1421,8 @@ namespace CumulusMX
 		private bool SendLoopCommand(TcpClient tcpPort, string commandString)
 		{
 
-			bool foundAck = false;
-			int passCount = 1;
+			var foundAck = false;
+			var passCount = 1;
 			const int maxPasses = 4;
 
 			cumulus.LogMessage("SendLoopCommand: Starting - " + commandString.Replace("\n", ""));
@@ -1438,7 +1438,7 @@ namespace CumulusMX
 					return false;
 				}
 
-				NetworkStream stream = tcpPort.GetStream();
+				var stream = tcpPort.GetStream();
 
 				// flush the input stream
 				stream.WriteByte(10);
@@ -1492,16 +1492,16 @@ namespace CumulusMX
 		{
 			const int loopDataLength = 99;
 
-			CommTimer tmrComm = new CommTimer();
+			var tmrComm = new CommTimer();
 
-			for (int i = 0; i < number; i++)
+			for (var i = 0; i < number; i++)
 			{
 				if (stop) return;
 
 				// Allocate a byte array to hold the loop data
-				byte[] loopString = new byte[loopDataLength];
+				var loopString = new byte[loopDataLength];
 
-				int min = DateTime.Now.Minute;
+				var min = DateTime.Now.Minute;
 
 				if (min != previousMinuteSetClock)
 				{
@@ -1714,14 +1714,14 @@ namespace CumulusMX
 				loopData.Load(loopString);
 
 				// Process it
-				DateTime now = DateTime.Now;
+				var now = DateTime.Now;
 
-				if ((loopData.InsideHumidity >= 0) && (loopData.InsideHumidity <= 100))
+				if (loopData.InsideHumidity >= 0 && loopData.InsideHumidity <= 100)
 				{
 					DoIndoorHumidity(loopData.InsideHumidity);
 				}
 
-				if ((loopData.OutsideHumidity >= 0) && (loopData.OutsideHumidity <= 100))
+				if (loopData.OutsideHumidity >= 0 && loopData.OutsideHumidity <= 100)
 				{
 					DoOutdoorHumidity(loopData.OutsideHumidity, now);
 				}
@@ -1730,12 +1730,12 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"LOOP: Ignoring outdoor humidity data. RH={loopData.OutsideHumidity} %.");
 				}
 
-				if ((loopData.InsideTemperature > -200) && (loopData.InsideTemperature < 300))
+				if (loopData.InsideTemperature > -200 && loopData.InsideTemperature < 300)
 				{
 					DoIndoorTemp(ConvertUnits.TempFToUser(loopData.InsideTemperature));
 				}
 
-				if ((loopData.OutsideTemperature > -200) && (loopData.OutsideTemperature < 300))
+				if (loopData.OutsideTemperature > -200 && loopData.OutsideTemperature < 300)
 				{
 					DoOutdoorTemp(ConvertUnits.TempFToUser(loopData.OutsideTemperature), now);
 				}
@@ -1744,7 +1744,7 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"LOOP: Ignoring outdoor temp data. Temp={loopData.OutsideTemperature} F.");
 				}
 
-				if ((loopData.Pressure >= 20) && (loopData.Pressure < 32.5))
+				if (loopData.Pressure >= 20 && loopData.Pressure < 32.5)
 				{
 					DoPressure(ConvertUnits.PressINHGToUser(loopData.Pressure), now);
 				}
@@ -1753,20 +1753,20 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"LOOP: Ignoring pressure data. Pressure={loopData.Pressure} inHg.");
 				}
 
-				if ((cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2) || cumulus.StationType == StationTypes.VantagePro)
+				if (cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2 || cumulus.StationType == StationTypes.VantagePro)
 				{
 					// Loop2 data not available, just use sea level (for now, anyway)
 					AltimeterPressure = Pressure;
 				}
 
-				double wind = ConvertUnits.WindMPHToUser(loopData.CurrentWindSpeed);
-				double avgwind = ConvertUnits.WindMPHToUser(loopData.AvgWindSpeed);
+				var wind = ConvertUnits.WindMPHToUser(loopData.CurrentWindSpeed);
+				var avgwind = ConvertUnits.WindMPHToUser(loopData.AvgWindSpeed);
 
 				// Check for sensible figures (spec says max for large cups is 175 mph, but up to 200 mph)
 				// Average = 255 means the console hasn't calculated it yet
 				if (loopData.CurrentWindSpeed < 200 && (loopData.AvgWindSpeed < 200 || loopData.AvgWindSpeed == 255))
 				{
-					int winddir = loopData.WindDirection;
+					var winddir = loopData.WindDirection;
 
 					if (winddir == 0x7FFF) // no reading
 					{
@@ -1792,8 +1792,8 @@ namespace CumulusMX
 					cumulus.LogDebugMessage($"LOOP: Ignoring wind data. Speed={loopData.CurrentWindSpeed} mph, Avg={loopData.AvgWindSpeed} mph.");
 				}
 
-				double rain = ConvertRainClicksToUser(loopData.YearRain);
-				double rainrate = ConvertRainClicksToUser(loopData.RainRate);
+				var rain = ConvertRainClicksToUser(loopData.YearRain);
+				var rainrate = ConvertRainClicksToUser(loopData.RainRate);
 
 				if (rainrate < 0)
 				{
@@ -1809,7 +1809,7 @@ namespace CumulusMX
 
 				DoSolarRad(loopData.SolarRad >= 0 && loopData.SolarRad < 1801 ? loopData.SolarRad : null, now);
 
-				if ((loopData.AnnualET >= 0) && (loopData.AnnualET < 32000))
+				if (loopData.AnnualET >= 0 && loopData.AnnualET < 32000)
 				{
 					DoET(ConvertUnits.RainINToUser(loopData.AnnualET), now);
 				}
@@ -1902,14 +1902,14 @@ namespace CumulusMX
 		{
 			StringBuilder response = new();
 
-			for (int i = 0; i < 8; i++)
+			for (var i = 0; i < 8; i++)
 			{
-				var status = (txStatus & (1 << i)) == 0 ? "-ok " : "-LOW ";
+				var status = (txStatus & 1 << i) == 0 ? "-ok " : "-LOW ";
 				if (status == "-LOW")
 				{
-					LowBatteryDevices.Add((i + 1) + status);
+					LowBatteryDevices.Add(i + 1 + status);
 				}
-				response.Append((i + 1) + status);
+				response.Append(i + 1 + status);
 			}
 
 			response.Length--;
@@ -1918,15 +1918,15 @@ namespace CumulusMX
 
 		private void GetAndProcessLoop2Data(int number)
 		{
-			CommTimer tmrComm = new CommTimer();
+			var tmrComm = new CommTimer();
 			const int loopDataLength = 99;
 
 			cumulus.LogDebugMessage("LOOP2: Waiting for LOOP2 data");
 
-			for (int i = 0; i < number; i++)
+			for (var i = 0; i < number; i++)
 			{
 				// Allocate a byte array to hold the loop data
-				byte[] loopString = new byte[loopDataLength];
+				var loopString = new byte[loopDataLength];
 
 				if (isSerial)
 				{
@@ -2045,7 +2045,7 @@ namespace CumulusMX
 				loopData.Load(loopString);
 
 				// Process it
-				DateTime now = DateTime.Now;
+				var now = DateTime.Now;
 
 				// Extract station pressure, and use it to calculate altimeter pressure
 
@@ -2064,7 +2064,7 @@ namespace CumulusMX
 					DoStationPressure(pressUser);
 				}
 
-				double wind = ConvertUnits.WindMPHToUser(loopData.CurrentWindSpeed);
+				var wind = ConvertUnits.WindMPHToUser(loopData.CurrentWindSpeed);
 
 				// Use current average as we don't have a new value in LOOP2. Allow for calibration.
 				if (loopData.CurrentWindSpeed < 200)
@@ -2123,22 +2123,22 @@ namespace CumulusMX
 			const int pageSize = 267;
 			const int recordSize = 52;
 			bool ack;
-			bool starting = true;
+			var starting = true;
 
 			NetworkStream stream = null;
 
 			LastDataReadTime = cumulus.LastUpdateTime;
-			int luhour = LastDataReadTime.Hour;
+			var luhour = LastDataReadTime.Hour;
 
-			int rollHour = Math.Abs(cumulus.GetHourInc(LastDataReadTime));
+			var rollHour = Math.Abs(cumulus.GetHourInc(LastDataReadTime));
 
 			cumulus.LogMessage("GetArchiveData: Roll-over hour = " + rollHour);
 
-			bool rolloverdone = luhour == rollHour;
+			var rolloverdone = luhour == rollHour;
 
-			bool midnightraindone = luhour == 0;
-			bool rollover9amdone = luhour == 9;
-			bool snowhourdone = luhour == cumulus.SnowDepthHour;
+			var midnightraindone = luhour == 0;
+			var rollover9amdone = luhour == 9;
+			var snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			// work out the next logger interval after the last CMX update
 			var nextLoggerTime = Utils.RoundTimeUpToInterval(cumulus.LastUpdateTime.AddMinutes(-1), TimeSpan.FromMinutes(loggerInterval));
@@ -2152,8 +2152,8 @@ namespace CumulusMX
 			}
 
 			// construct date and time of last record read
-			int vantageDateStamp = nextLoggerTime.Day + nextLoggerTime.Month * 32 + (nextLoggerTime.Year - 2000) * 512;
-			int vantageTimeStamp = (100 * nextLoggerTime.Hour + nextLoggerTime.Minute);
+			var vantageDateStamp = nextLoggerTime.Day + nextLoggerTime.Month * 32 + (nextLoggerTime.Year - 2000) * 512;
+			var vantageTimeStamp = 100 * nextLoggerTime.Hour + nextLoggerTime.Minute;
 
 			cumulus.LogMessage($"GetArchiveData: Last Archive Date: {nextLoggerTime}");
 			cumulus.LogDebugMessage("GetArchiveData: Date: " + vantageDateStamp);
@@ -2161,7 +2161,7 @@ namespace CumulusMX
 
 			if (isSerial)
 			{
-				int retries = 0;
+				var retries = 0;
 				do
 				{
 					comport.DiscardInBuffer();
@@ -2192,7 +2192,7 @@ namespace CumulusMX
 				try
 				{
 					stream = socket.GetStream();
-					int retries = 0;
+					var retries = 0;
 
 					do
 					{
@@ -2237,10 +2237,10 @@ namespace CumulusMX
 
 			// calculate and insert CRC
 
-			byte[] datacopy = new byte[4];
+			var datacopy = new byte[4];
 
 			Array.Copy(data, datacopy, 4);
-			int crc = calculateCRC(datacopy);
+			var crc = calculateCRC(datacopy);
 
 			data[4] = (byte) (crc / 256);
 			data[5] = (byte) (crc % 256);
@@ -2278,7 +2278,7 @@ namespace CumulusMX
 
 				StringBuilder resp = new("Response:");
 
-				for (int i = 0; i < 6; i++)
+				for (var i = 0; i < 6; i++)
 				{
 					resp.Append(" " + data[i].ToString("X2"));
 				}
@@ -2314,9 +2314,9 @@ namespace CumulusMX
 			}
 
 			// extract number of pages and offset into first page
-			int numPages = (data[1] * 256) + data[0];
-			int offset = (data[3] * 256) + data[2];
-			byte[] buff = new byte[pageSize];
+			var numPages = data[1] * 256 + data[0];
+			var offset = data[3] * 256 + data[2];
+			var buff = new byte[pageSize];
 
 			cumulus.LogMessage("GetArchiveData: Reading data: " + numPages + " pages , offset = " + offset);
 			if (numPages == 513)
@@ -2327,8 +2327,8 @@ namespace CumulusMX
 
 			// keep track of how many records processed for percentage display
 			// but there may be some old entries in the last page
-			int numtodo = (numPages * 5) - offset;
-			int numdone = 0;
+			var numtodo = numPages * 5 - offset;
+			var numdone = 0;
 
 			if (numtodo == 0)
 			{
@@ -2337,7 +2337,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				for (int p = 0; p < numPages; p++)
+				for (var p = 0; p < numPages; p++)
 				{
 					cumulus.LogMessage("GetArchiveData: Reading archive page " + p);
 					var passCount = 0;
@@ -2356,11 +2356,11 @@ namespace CumulusMX
 						passCount++;
 
 						cumulus.LogMessage("GetArchiveData: Waiting for response");
-						int responsePasses = 0;
+						var responsePasses = 0;
 						if (isSerial)
 						{
 							// wait for the response
-							CommTimer tmrComm = new CommTimer();
+							var tmrComm = new CommTimer();
 							tmrComm.Start(CommWaitTimeMs);
 							while (!tmrComm.timedout)
 							{
@@ -2436,7 +2436,7 @@ namespace CumulusMX
 								stream.Write(NAKstring, 0, 1);
 							}
 						}
-					} while ((passCount < maxPasses) && badCRC);
+					} while (passCount < maxPasses && badCRC);
 
 					// if we still got bad data after maxPasses, give up
 					if (badCRC)
@@ -2451,21 +2451,21 @@ namespace CumulusMX
 					}
 
 					// use the offset on the first page only
-					int start = (p == 0 ? offset : 0);
+					var start = p == 0 ? offset : 0;
 
-					for (int r = start; r < 5; r++)
+					for (var r = start; r < 5; r++)
 					{
 						try
 						{
 
-							VPArchiveData archiveData = new VPArchiveData();
+							var archiveData = new VPArchiveData();
 
-							byte[] record = new byte[recordSize];
+							var record = new byte[recordSize];
 
 							DateTime timestamp;
 
 							// Copy the next record from the buffer...
-							Array.Copy(buff, (r * recordSize) + 1, record, 0, recordSize);
+							Array.Copy(buff, r * recordSize + 1, record, 0, recordSize);
 
 							// ...and load it into the archive data...
 							archiveData.Load(record, out timestamp);
@@ -2480,7 +2480,7 @@ namespace CumulusMX
 
 								rollHour = Math.Abs(cumulus.GetHourInc(timestamp));
 
-								int h = timestamp.Hour;
+								var h = timestamp.Hour;
 
 								if (h != rollHour)
 								{
@@ -2509,10 +2509,10 @@ namespace CumulusMX
 
 								if (h == rollHour && !rolloverdone)
 								{
-									double lastAvg = ConvertUnits.WindMPHToUser(archiveData.AvgWindSpeed);
+									var lastAvg = ConvertUnits.WindMPHToUser(archiveData.AvgWindSpeed);
 									if (archiveData.HiWindSpeed < 250 && archiveData.AvgWindSpeed < 250)
 									{
-										int bearing = archiveData.WindDirection;
+										var bearing = archiveData.WindDirection;
 										bearing = bearing == 255 ? 0 : (int) (bearing * 22.5);
 
 										// update dominant wind bearing
@@ -2520,7 +2520,7 @@ namespace CumulusMX
 									}
 
 									// add in 'archivePeriod' minutes worth of wind speed to windrun
-									WindRunToday += ((lastAvg * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+									WindRunToday += lastAvg * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
 
 									var preDayTS = timestamp.AddDays(-1).Date.AddHours(23).AddMinutes(59);
 
@@ -2534,18 +2534,18 @@ namespace CumulusMX
 
 
 									// Now process the "average" interval temperature - use this as our
-									if ((archiveData.OutsideTemperature > -200) && (archiveData.OutsideTemperature < 300))
+									if (archiveData.OutsideTemperature > -200 && archiveData.OutsideTemperature < 300)
 									{
 										var temp = ConvertUnits.TempFToUser(archiveData.OutsideTemperature);
 										// add in 'archivePeriod' minutes worth of temperature to the temp samples
 										tempsamplestoday += interval;
-										TempTotalToday += (temp * interval);
+										TempTotalToday += temp * interval;
 
 										// update chill hours
 										if (temp < cumulus.ChillHourThreshold && temp > cumulus.ChillHourBase)
 										{
 											// add 1 minute to chill hours
-											ChillHours += (interval / 60.0);
+											ChillHours += interval / 60.0;
 										}
 
 										// update heating/cooling degree days
@@ -2553,7 +2553,7 @@ namespace CumulusMX
 									}
 
 									var lastRain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
-									double lastRainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
+									var lastRainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
 
 									if (lastRainrate < 0)
 									{
@@ -2565,7 +2565,7 @@ namespace CumulusMX
 
 
 								// In roll-over hour and roll-over not yet done
-								if ((h == rollHour) && !rolloverdone)
+								if (h == rollHour && !rolloverdone)
 								{
 									// do roll-over
 									cumulus.LogMessage("GetArchiveData: Day roll-over " + timestamp.ToShortTimeString());
@@ -2623,7 +2623,7 @@ namespace CumulusMX
 									}
 
 									// reset the accumulated snow depth(s)
-									for (int i = 0; i < Snow24h.Length; i++)
+									for (var i = 0; i < Snow24h.Length; i++)
 									{
 										Snow24h[i] = null;
 									}
@@ -2631,35 +2631,35 @@ namespace CumulusMX
 									snowhourdone = true;
 								}
 
-								if ((archiveData.InsideTemperature > -200) && (archiveData.InsideTemperature < 300))
+								if (archiveData.InsideTemperature > -200 && archiveData.InsideTemperature < 300)
 								{
 									DoIndoorTemp(ConvertUnits.TempFToUser(archiveData.InsideTemperature));
 								}
 
-								if ((archiveData.InsideHumidity >= 0) && (archiveData.InsideHumidity <= 100))
+								if (archiveData.InsideHumidity >= 0 && archiveData.InsideHumidity <= 100)
 								{
 									DoIndoorHumidity(archiveData.InsideHumidity);
 								}
 
-								if ((archiveData.OutsideHumidity >= 0) && (archiveData.OutsideHumidity <= 100))
+								if (archiveData.OutsideHumidity >= 0 && archiveData.OutsideHumidity <= 100)
 								{
 									DoOutdoorHumidity(archiveData.OutsideHumidity, timestamp);
 								}
 
 								// Check if the archive hi/lo temps break any records
-								if ((archiveData.HiOutsideTemp > -200) && (archiveData.HiOutsideTemp < 300))
+								if (archiveData.HiOutsideTemp > -200 && archiveData.HiOutsideTemp < 300)
 								{
 									DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.HiOutsideTemp), timestamp);
 								}
 
 								// Check if the archive hi/lo temps break any records
-								if ((archiveData.LoOutsideTemp > -200) && (archiveData.LoOutsideTemp < 300))
+								if (archiveData.LoOutsideTemp > -200 && archiveData.LoOutsideTemp < 300)
 								{
 									DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.LoOutsideTemp), timestamp);
 								}
 
 								// Now process the "average" interval temperature - use this as our
-								if ((archiveData.OutsideTemperature > -200) && (archiveData.OutsideTemperature < 300))
+								if (archiveData.OutsideTemperature > -200 && archiveData.OutsideTemperature < 300)
 								{
 									DoOutdoorTemp(ConvertUnits.TempFToUser(archiveData.OutsideTemperature), timestamp);
 
@@ -2668,13 +2668,13 @@ namespace CumulusMX
 									{
 										// add in 'archivePeriod' minutes worth of temperature to the temp samples
 										tempsamplestoday += interval;
-										TempTotalToday += (OutdoorTemperature * interval);
+										TempTotalToday += OutdoorTemperature * interval;
 
 										// update chill hours
 										if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
 										{
 											// add 1 minute to chill hours
-											ChillHours += (interval / 60.0);
+											ChillHours += interval / 60.0;
 										}
 
 										// update heating/cooling degree days
@@ -2682,11 +2682,11 @@ namespace CumulusMX
 									}
 								}
 
-								double wind = ConvertUnits.WindMPHToUser(archiveData.HiWindSpeed);
-								double avgwind = ConvertUnits.WindMPHToUser(archiveData.AvgWindSpeed);
+								var wind = ConvertUnits.WindMPHToUser(archiveData.HiWindSpeed);
+								var avgwind = ConvertUnits.WindMPHToUser(archiveData.AvgWindSpeed);
 								if (archiveData.HiWindSpeed < 250 && archiveData.AvgWindSpeed < 250)
 								{
-									int bearing = archiveData.WindDirection;
+									var bearing = archiveData.WindDirection;
 									bearing = bearing == 255 ? 0 : (int) (bearing * 22.5);
 
 									AddValuesToRecentWind(avgwind, avgwind, bearing, timestamp.AddMinutes(-interval), timestamp);
@@ -2707,7 +2707,7 @@ namespace CumulusMX
 								var notFirstRec = timestamp.Minute != 0 || h != rollHour;
 								if (notFirstRec)
 								{
-									WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+									WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
 									CheckForWindrunHighLow(timestamp);
 								}
 
@@ -2715,8 +2715,8 @@ namespace CumulusMX
 								// we don't want to add rainfall from first record of the day to the current day, it has already been added to the previous day
 								if (notFirstRec)
 								{
-									double rain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
-									double rainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
+									var rain = ConvertRainClicksToUser(archiveData.Rainfall) + RainCounter;
+									var rainrate = ConvertRainClicksToUser(archiveData.HiRainRate);
 
 									if (rainrate < 0)
 									{
@@ -2726,7 +2726,7 @@ namespace CumulusMX
 									DoRain(rain, rainrate, timestamp);
 								}
 
-								if ((archiveData.Pressure > 0) && (archiveData.Pressure < 40))
+								if (archiveData.Pressure > 0 && archiveData.Pressure < 40)
 								{
 									DoPressure(ConvertUnits.PressINHGToUser(archiveData.Pressure), timestamp);
 								}
@@ -2746,7 +2746,7 @@ namespace CumulusMX
 
 									// add in archive period worth of sunshine, if sunny
 									if (IsSunny)
-										SunshineHours += (interval / 60.0);
+										SunshineHours += interval / 60.0;
 								}
 
 								// we don't want to do the this for the first instant of the day
@@ -2947,9 +2947,9 @@ namespace CumulusMX
 				}
 				serialPort.DiscardOutBuffer();
 
-				bool woken = false;
-				int i = 1;
-				int lastChar = 0;
+				var woken = false;
+				var i = 1;
+				var lastChar = 0;
 
 				while (!woken && (i < 5 || serialPort.BytesToRead > 0))
 				{
@@ -2994,23 +2994,23 @@ namespace CumulusMX
 					serialPort.DiscardOutBuffer();
 
 					cumulus.LogDebugMessage("WakeVP: Woken");
-					return (true);
+					return true;
 				}
 
 				cumulus.LogWarningMessage("WakeVP: *** VP2 Not woken");
-				return (false);
+				return false;
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("WakeVP: Error - " + ex);
-				return (false);
+				return false;
 			}
 		}
 
 		private bool WakeVP(TcpClient thePort, bool force = false)
 		{
 			const int maxPasses = 3;
-			int retryCount = 0;
+			var retryCount = 0;
 
 			// Check if we haven't sent a command within the last two minutes - use 1:50 () to be safe
 			if (awakeStopWatch.IsRunning && awakeStopWatch.ElapsedMilliseconds < 110000 && !force)
@@ -3057,7 +3057,7 @@ namespace CumulusMX
 
 					if (thePort == null)
 					{
-						return (false);
+						return false;
 					}
 
 					if (thePort.Connected)
@@ -3076,7 +3076,7 @@ namespace CumulusMX
 				Thread.Sleep(250);
 
 				// First flush the stream
-				int cnt = 0;
+				var cnt = 0;
 				while (stream.DataAvailable)
 				{
 					// Read the current character
@@ -3092,7 +3092,7 @@ namespace CumulusMX
 				while (retryCount < 1)
 				{
 					var passCount = 1;
-					int lastChar = 0;
+					var lastChar = 0;
 
 					while (passCount <= maxPasses)
 					{
@@ -3156,19 +3156,19 @@ namespace CumulusMX
 				}
 
 				cumulus.LogWarningMessage("WakeVP: *** Console Not woken");
-				return (false);
+				return false;
 			}
 			catch (Exception ex)
 			{
 				cumulus.LogDebugMessage("WakeVP: Error - " + ex.Message);
-				return (false);
+				return false;
 			}
 		}
 
 		private void InitSerial()
 		{
-			byte[] readBuffer = new byte[1000];
-			int bytesRead = 0;
+			var readBuffer = new byte[1000];
+			var bytesRead = 0;
 
 			awakeStopWatch.Stop();
 
@@ -3240,7 +3240,7 @@ namespace CumulusMX
 				comport.DiscardOutBuffer();
 
 				// now we have purged any data, test the connection
-				int tryCount = 1;
+				var tryCount = 1;
 				var resp = string.Empty;
 				do
 				{
@@ -3336,7 +3336,7 @@ namespace CumulusMX
 				}
 
 				cumulus.LogMessage("InitTCP: Flushing input stream");
-				NetworkStream stream = socket.GetStream();
+				var stream = socket.GetStream();
 				stream.ReadTimeout = 2500;
 				stream.WriteTimeout = 2500;
 
@@ -3345,8 +3345,8 @@ namespace CumulusMX
 
 				Thread.Sleep(cumulus.DavisOptions.InitWaitTime);
 
-				byte[] buffer1 = new byte[1000];
-				byte[] buffer2 = new byte[buffer1.Length];
+				var buffer1 = new byte[1000];
+				var buffer2 = new byte[buffer1.Length];
 
 				while (stream.DataAvailable)
 				{
@@ -3356,7 +3356,7 @@ namespace CumulusMX
 				}
 
 				// now we have purged any data, test the connection
-				int tryCount = 1;
+				var tryCount = 1;
 				do
 				{
 					var idx = 0;
@@ -3486,7 +3486,7 @@ namespace CumulusMX
 
 		private bool WaitForACK(SerialPort serialPort, int timeoutMs = -1)
 		{
-			int tryCount = 0;
+			var tryCount = 0;
 			// Wait for the VP to acknowledge the receipt of the command - sometimes we get a '\n\r'
 			// in the buffer first or no response is given.  If all else fails, try again.
 			cumulus.LogDebugMessage("WaitForACK: Wait for ACK");
@@ -3540,7 +3540,7 @@ namespace CumulusMX
 
 		private bool WaitForACK(NetworkStream stream, int timeoutMs = -1)
 		{
-			int tryCount = 0;
+			var tryCount = 0;
 
 			// Wait for the VP to acknowledge the receipt of the command - sometimes we get a '\n\r'
 			// in the buffer first or no response is given.  If all else fails, try again.
@@ -3627,7 +3627,7 @@ namespace CumulusMX
 
 		private DateTime GetTime()
 		{
-			byte[] readBuffer = new byte[8];
+			var readBuffer = new byte[8];
 			var bytesRead = 0;
 
 			// Expected response - <ACK><42><17><15><28><11><98><2 Bytes of CRC>
@@ -3678,7 +3678,7 @@ namespace CumulusMX
 				{
 					try
 					{
-						NetworkStream stream = socket.GetStream();
+						var stream = socket.GetStream();
 						stream.ReadTimeout = 2500;
 						stream.WriteTimeout = 2500;
 
@@ -3790,9 +3790,9 @@ namespace CumulusMX
 				return;
 			}
 
-			DateTime now = DateTime.Now;
+			var now = DateTime.Now;
 
-			byte[] writeBuffer = new byte[8];
+			var writeBuffer = new byte[8];
 
 			writeBuffer[0] = (byte) now.Second;
 			writeBuffer[1] = (byte) now.Minute;
@@ -3803,10 +3803,10 @@ namespace CumulusMX
 
 			// calculate and insert CRC
 
-			byte[] datacopy = new byte[6];
+			var datacopy = new byte[6];
 
 			Array.Copy(writeBuffer, datacopy, 6);
-			int crc = calculateCRC(datacopy);
+			var crc = calculateCRC(datacopy);
 
 			writeBuffer[6] = (byte) (crc / 256);
 			writeBuffer[7] = (byte) (crc % 256);

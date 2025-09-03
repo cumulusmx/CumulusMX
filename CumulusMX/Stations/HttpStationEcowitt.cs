@@ -11,7 +11,7 @@ using System.Web;
 using EmbedIO;
 
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	partial class HttpStationEcowitt : WeatherStation
 	{
@@ -1293,7 +1293,6 @@ namespace CumulusMX
 			}
 		}
 
-#pragma warning disable S125 // Sections of code should not be commented out
 		/*
 		private static void ProcessSoilMoistRaw(NameValueCollection data, WeatherStation station)
 		{
@@ -1306,7 +1305,6 @@ namespace CumulusMX
 			}
 		}
 		*/
-#pragma warning restore S125 // Sections of code should not be commented out
 
 		private void ProcessLeafWetness(NameValueCollection data, WeatherStation station)
 		{

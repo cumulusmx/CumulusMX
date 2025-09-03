@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace CumulusMX
+
+namespace CumulusMX.Stations
 {
 	internal partial class EcowittLogFile
 	{
@@ -29,8 +30,6 @@ namespace CumulusMX
 			// parse the header
 			HeaderParser(data[0]);
 		}
-
-#pragma warning disable S125 // Sections of code should not be commented out
 
 		public SortedList<DateTime, EcowittApi.HistoricData> DataParser()
 		{
@@ -277,8 +276,6 @@ namespace CumulusMX
 
 			return retList;
 		}
-
-#pragma warning restore S125 // Sections of code should not be commented out
 
 
 		private void HeaderParser (string header)

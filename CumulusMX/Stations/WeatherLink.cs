@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	// The VPLoopData class extracts and stores the weather data from the array of bytes returned from the Vantage weather station
 	// The array is generated from the return of the LOOP command.
@@ -140,10 +140,10 @@ namespace CumulusMX
 		public void Load(byte[] byteArray)
 		{
 			PressureTrend = Convert.ToInt32((sbyte) byteArray[3]); // Sbyte - signed byte
-			Pressure = (double) (BitConverter.ToInt16(byteArray, 7)) / 1000; // Uint16
-			InsideTemperature = (double) (BitConverter.ToInt16(byteArray, 9)) / 10; // Uint16
+			Pressure = (double) BitConverter.ToInt16(byteArray, 7) / 1000; // Uint16
+			InsideTemperature = (double) BitConverter.ToInt16(byteArray, 9) / 10; // Uint16
 			InsideHumidity = Convert.ToInt32(byteArray[11]); // Byte - unsigned byte
-			OutsideTemperature = (double) (BitConverter.ToInt16(byteArray, 12)) / 10; // Uint16
+			OutsideTemperature = (double) BitConverter.ToInt16(byteArray, 12) / 10; // Uint16
 			OutsideHumidity = Convert.ToInt32(byteArray[33]); // Byte - unsigned byte
 			WindDirection = BitConverter.ToInt16(byteArray, 16); // Uint16
 			CurrentWindSpeed = Convert.ToInt32(byteArray[14]); // Byte - unsigned byte
@@ -184,14 +184,14 @@ namespace CumulusMX
 			SoilMoisture[2] = Convert.ToInt32(byteArray[63]);
 			SoilMoisture[3] = Convert.ToInt32(byteArray[64]);
 			SoilMoisture[4] = Convert.ToInt32(byteArray[65]);
-			UVIndex = (double) (Convert.ToInt32(byteArray[43])) / 10;
+			UVIndex = (double) Convert.ToInt32(byteArray[43]) / 10;
 			SolarRad = BitConverter.ToInt16(byteArray, 44);
-			var dayET = (double) (BitConverter.ToInt16(byteArray, 56)) / 1000;
-			var yearET = (double) (BitConverter.ToInt16(byteArray, 60)) / 100;
+			var dayET = (double) BitConverter.ToInt16(byteArray, 56) / 1000;
+			var yearET = (double) BitConverter.ToInt16(byteArray, 60) / 100;
 			// It appears that the annual ET in the loop data does not include today
 			AnnualET = yearET + dayET;
 			TXbattStatus = byteArray[86];
-			ConBatVoltage = ((BitConverter.ToInt16(byteArray, 87) * 300) / 512.0) / 100.0;
+			ConBatVoltage = BitConverter.ToInt16(byteArray, 87) * 300 / 512.0 / 100.0;
 
 			try
 			{
@@ -217,7 +217,7 @@ namespace CumulusMX
 		// This procedure displays the data that we've captured from the Vantage and processed already.
 		public string DebugString()
 		{
-			StringBuilder outputString = new StringBuilder();
+			var outputString = new StringBuilder();
 
 			// Format the string for output
 			outputString.Append("Pressure: " + Pressure.ToString("f2") + "in. " + PressureTrendText() + Environment.NewLine);
@@ -232,7 +232,7 @@ namespace CumulusMX
 			outputString.Append("Sunrise: " + SunRise.ToString("t") + Environment.NewLine);
 			outputString.Append("Sunset: " + SunSet.ToString("t") + Environment.NewLine);
 
-			return (outputString.ToString());
+			return outputString.ToString();
 		}
 
 		private string WindDirectionText()
@@ -271,9 +271,9 @@ namespace CumulusMX
 			{
 				(-60) => "Falling Rapidly",
 				(-20) => "Falling Slowly",
-				(0) => "Steady",
-				(20) => "Rising Slowly",
-				(60) => "Rising Rapidly",
+				0 => "Steady",
+				20 => "Rising Slowly",
+				60 => "Rising Rapidly",
 				_ => "??",
 			};
 		}
@@ -482,18 +482,18 @@ namespace CumulusMX
 			SoilMoisture3 = Convert.ToInt32(byteArray[50]);
 			SoilMoisture4 = Convert.ToInt32(byteArray[51]);
 			AvgUVIndex = Convert.ToInt32(byteArray[28]) / 10.0;
-			ET = (double) (Convert.ToInt32(byteArray[29])) / 1000;
+			ET = (double) Convert.ToInt32(byteArray[29]) / 1000;
 			HiUVIndex = Convert.ToInt32(byteArray[32]) / 10.0;
 
 			// Get timestamp
 			int datevalue = BitConverter.ToInt16(byteArray, 0);
 			int day;
-			int year = Math.DivRem(datevalue, 512, out datevalue) + 2000;
-			int month = Math.DivRem(datevalue, 32, out day);
+			var year = Math.DivRem(datevalue, 512, out datevalue) + 2000;
+			var month = Math.DivRem(datevalue, 32, out day);
 
 			int timevalue = BitConverter.ToInt16(byteArray, 2);
 			int minutes;
-			int hours = Math.DivRem(timevalue, 100, out minutes);
+			var hours = Math.DivRem(timevalue, 100, out minutes);
 
 			try
 			{
@@ -699,7 +699,7 @@ namespace CumulusMX
 			//LastHourRain = BitConverter.ToInt16(byteArray, 54);
 			//DailyET = (double)BitConverter.ToInt16(byteArray, 56) / 1000;
 			//Last24hRain = BitConverter.ToInt16(byteArray, 58);
-			AbsolutePressure = (double) (BitConverter.ToInt16(byteArray, 67)) / 1000; // Uint16
+			AbsolutePressure = (double) BitConverter.ToInt16(byteArray, 67) / 1000; // Uint16
 		}
 	}
 }

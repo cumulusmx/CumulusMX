@@ -7,7 +7,7 @@ using EmbedIO;
 
 using ServiceStack;
 
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	public class AlarmSettings(Cumulus cumulus)
 	{
@@ -644,7 +644,7 @@ namespace CumulusMX
 				cumulus.HighTempAlarm.Email = settings.tempAbove.Email;
 				cumulus.HighTempAlarm.Latch = settings.tempAbove.Latches;
 				cumulus.HighTempAlarm.LatchHours = settings.tempAbove.LatchHrs;
-				emailRequired = emailRequired || (cumulus.HighTempAlarm.Email && cumulus.HighTempAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.HighTempAlarm.Email && cumulus.HighTempAlarm.Enabled;
 				cumulus.HighTempAlarm.Action = settings.tempAbove.Action.Trim();
 				cumulus.HighTempAlarm.ActionParams = settings.tempAbove.ActionParams.Trim();
 				cumulus.HighTempAlarm.BskyFile = settings.tempAbove.Bsky.Trim() == string.Empty ? "none" : settings.tempAbove.Bsky.Trim();
@@ -657,7 +657,7 @@ namespace CumulusMX
 				cumulus.TempChangeAlarm.Email = settings.tempChange.Email;
 				cumulus.TempChangeAlarm.Latch = settings.tempChange.Latches;
 				cumulus.TempChangeAlarm.LatchHours = settings.tempChange.LatchHrs;
-				emailRequired = emailRequired || (cumulus.TempChangeAlarm.Email && cumulus.TempChangeAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.TempChangeAlarm.Email && cumulus.TempChangeAlarm.Enabled;
 				cumulus.TempChangeAlarm.Action = settings.tempChange.Action.Trim();
 				cumulus.TempChangeAlarm.ActionParams = settings.tempChange.ActionParams.Trim();
 				cumulus.TempChangeAlarm.BskyFile = settings.tempChange.Bsky.Trim() == string.Empty ? "none" : settings.tempChange.Bsky.Trim();
@@ -670,7 +670,7 @@ namespace CumulusMX
 				cumulus.LowPressAlarm.Email = settings.pressBelow.Email;
 				cumulus.LowPressAlarm.Latch = settings.pressBelow.Latches;
 				cumulus.LowPressAlarm.LatchHours = settings.pressBelow.LatchHrs;
-				emailRequired = emailRequired || (cumulus.LowPressAlarm.Email && cumulus.LowPressAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.LowPressAlarm.Email && cumulus.LowPressAlarm.Enabled;
 				cumulus.LowPressAlarm.Action = settings.pressBelow.Action.Trim();
 				cumulus.LowPressAlarm.ActionParams = settings.pressBelow.ActionParams.Trim();
 				cumulus.LowPressAlarm.BskyFile = settings.pressBelow.Bsky.Trim() == string.Empty ? "none" : settings.pressBelow.Bsky.Trim();
@@ -683,7 +683,7 @@ namespace CumulusMX
 				cumulus.HighPressAlarm.Email = settings.pressAbove.Email;
 				cumulus.HighPressAlarm.Latch = settings.pressAbove.Latches;
 				cumulus.HighPressAlarm.LatchHours = settings.pressAbove.LatchHrs;
-				emailRequired = emailRequired || (cumulus.HighPressAlarm.Email && cumulus.HighPressAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.HighPressAlarm.Email && cumulus.HighPressAlarm.Enabled;
 				cumulus.HighPressAlarm.Action = settings.pressAbove.Action.Trim();
 				cumulus.HighPressAlarm.ActionParams = settings.pressAbove.ActionParams.Trim();
 				cumulus.HighPressAlarm.BskyFile = settings.pressAbove.Bsky.Trim() == string.Empty ? "none" : settings.pressAbove.Bsky.Trim();
@@ -696,7 +696,7 @@ namespace CumulusMX
 				cumulus.PressChangeAlarm.Email = settings.pressChange.Email;
 				cumulus.PressChangeAlarm.Latch = settings.pressChange.Latches;
 				cumulus.PressChangeAlarm.LatchHours = settings.pressChange.LatchHrs;
-				emailRequired = emailRequired || (cumulus.PressChangeAlarm.Email && cumulus.PressChangeAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.PressChangeAlarm.Email && cumulus.PressChangeAlarm.Enabled;
 				cumulus.PressChangeAlarm.Action = settings.pressChange.Action.Trim();
 				cumulus.PressChangeAlarm.ActionParams = settings.pressChange.ActionParams.Trim();
 				cumulus.PressChangeAlarm.BskyFile = settings.pressChange.Bsky.Trim() == string.Empty ? "none" : settings.pressChange.Bsky.Trim();
@@ -709,7 +709,7 @@ namespace CumulusMX
 				cumulus.HighRainTodayAlarm.Email = settings.rainAbove.Email;
 				cumulus.HighRainTodayAlarm.Latch = settings.rainAbove.Latches;
 				cumulus.HighRainTodayAlarm.LatchHours = settings.rainAbove.LatchHrs;
-				emailRequired = emailRequired || (cumulus.HighRainTodayAlarm.Email && cumulus.HighRainTodayAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.HighRainTodayAlarm.Email && cumulus.HighRainTodayAlarm.Enabled;
 				cumulus.HighRainTodayAlarm.Action = settings.rainAbove.Action.Trim();
 				cumulus.HighRainTodayAlarm.ActionParams = settings.rainAbove.ActionParams.Trim();
 				cumulus.HighRainTodayAlarm.BskyFile = settings.rainAbove.Bsky.Trim() == string.Empty ? "none" : settings.rainAbove.Bsky.Trim();
@@ -722,7 +722,7 @@ namespace CumulusMX
 				cumulus.HighRainRateAlarm.Email = settings.rainRateAbove.Email;
 				cumulus.HighRainRateAlarm.Latch = settings.rainRateAbove.Latches;
 				cumulus.HighRainRateAlarm.LatchHours = settings.rainRateAbove.LatchHrs;
-				emailRequired = emailRequired || (cumulus.HighRainRateAlarm.Email && cumulus.HighRainRateAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.HighRainRateAlarm.Email && cumulus.HighRainRateAlarm.Enabled;
 				cumulus.HighRainRateAlarm.Action = settings.rainRateAbove.Action.Trim();
 				cumulus.HighRainRateAlarm.ActionParams = settings.rainRateAbove.ActionParams.Trim();
 				cumulus.HighRainRateAlarm.BskyFile = settings.rainRateAbove.Bsky.Trim() == string.Empty ? "none" : settings.rainRateAbove.Bsky.Trim();
@@ -734,7 +734,7 @@ namespace CumulusMX
 				cumulus.IsRainingAlarm.Email = settings.isRaining.Email;
 				cumulus.IsRainingAlarm.Latch = settings.isRaining.Latches;
 				cumulus.IsRainingAlarm.LatchHours = settings.isRaining.LatchHrs;
-				emailRequired = emailRequired || (cumulus.IsRainingAlarm.Email && cumulus.IsRainingAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.IsRainingAlarm.Email && cumulus.IsRainingAlarm.Enabled;
 				cumulus.IsRainingAlarm.Action = settings.isRaining.Action.Trim();
 				cumulus.IsRainingAlarm.ActionParams = settings.isRaining.ActionParams.Trim();
 				cumulus.IsRainingAlarm.BskyFile = settings.isRaining.Bsky.Trim() == string.Empty ? "none" : settings.isRaining.Bsky.Trim();
@@ -747,7 +747,7 @@ namespace CumulusMX
 				cumulus.HighGustAlarm.Email = settings.gustAbove.Email;
 				cumulus.HighGustAlarm.Latch = settings.gustAbove.Latches;
 				cumulus.HighGustAlarm.LatchHours = settings.gustAbove.LatchHrs;
-				emailRequired = emailRequired || (cumulus.HighGustAlarm.Email && cumulus.HighGustAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.HighGustAlarm.Email && cumulus.HighGustAlarm.Enabled;
 				cumulus.HighGustAlarm.Action = settings.gustAbove.Action.Trim();
 				cumulus.HighGustAlarm.ActionParams = settings.gustAbove.ActionParams.Trim();
 				cumulus.HighGustAlarm.BskyFile = settings.gustAbove.Bsky.Trim() == string.Empty ? "none" : settings.gustAbove.Bsky.Trim();
@@ -760,7 +760,7 @@ namespace CumulusMX
 				cumulus.HighWindAlarm.Email = settings.windAbove.Email;
 				cumulus.HighWindAlarm.Latch = settings.windAbove.Latches;
 				cumulus.HighWindAlarm.LatchHours = settings.windAbove.LatchHrs;
-				emailRequired = emailRequired || (cumulus.HighWindAlarm.Email && cumulus.HighWindAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.HighWindAlarm.Email && cumulus.HighWindAlarm.Enabled;
 				cumulus.HighWindAlarm.Action = settings.windAbove.Action.Trim();
 				cumulus.HighWindAlarm.ActionParams = settings.windAbove.ActionParams.Trim();
 				cumulus.HighWindAlarm.BskyFile = settings.windAbove.Bsky.Trim() == string.Empty ? "none" : settings.windAbove.Bsky.Trim();
@@ -773,7 +773,7 @@ namespace CumulusMX
 				cumulus.NewRecordAlarm.Latch = settings.newRecord.Latches;
 				cumulus.NewRecordAlarm.LatchHours = settings.newRecord.LatchHrs;
 				cumulus.NewRecordAlarm.TriggerThreshold = settings.newRecord.Threshold;
-				emailRequired = emailRequired || (cumulus.NewRecordAlarm.Email && cumulus.NewRecordAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.NewRecordAlarm.Email && cumulus.NewRecordAlarm.Enabled;
 				cumulus.NewRecordAlarm.Action = settings.newRecord.Action.Trim();
 				cumulus.NewRecordAlarm.ActionParams = settings.newRecord.ActionParams.Trim();
 				cumulus.NewRecordAlarm.BskyFile = settings.newRecord.Bsky.Trim() == string.Empty ? "none" : settings.newRecord.Bsky.Trim();
@@ -786,7 +786,7 @@ namespace CumulusMX
 				cumulus.SensorAlarm.Latch = settings.contactLost.Latches;
 				cumulus.SensorAlarm.LatchHours = settings.contactLost.LatchHrs;
 				cumulus.SensorAlarm.TriggerThreshold = settings.contactLost.Threshold;
-				emailRequired = emailRequired || (cumulus.SensorAlarm.Email && cumulus.SensorAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.SensorAlarm.Email && cumulus.SensorAlarm.Enabled;
 				cumulus.SensorAlarm.Action = settings.contactLost.Action.Trim();
 				cumulus.SensorAlarm.ActionParams = settings.contactLost.ActionParams.Trim();
 				cumulus.SensorAlarm.BskyFile = settings.contactLost.Bsky.Trim() == string.Empty ? "none" : settings.contactLost.Bsky.Trim();
@@ -799,7 +799,7 @@ namespace CumulusMX
 				cumulus.DataStoppedAlarm.Latch = settings.dataStopped.Latches;
 				cumulus.DataStoppedAlarm.LatchHours = settings.dataStopped.LatchHrs;
 				cumulus.DataStoppedAlarm.TriggerThreshold = settings.dataStopped.Threshold;
-				emailRequired = emailRequired || (cumulus.DataStoppedAlarm.Email && cumulus.DataStoppedAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.DataStoppedAlarm.Email && cumulus.DataStoppedAlarm.Enabled;
 				cumulus.DataStoppedAlarm.Action = settings.dataStopped.Action.Trim();
 				cumulus.DataStoppedAlarm.ActionParams = settings.dataStopped.ActionParams.Trim();
 				cumulus.DataStoppedAlarm.BskyFile = settings.dataStopped.Bsky.Trim() == string.Empty ? "none" : settings.dataStopped.Bsky.Trim();
@@ -812,7 +812,7 @@ namespace CumulusMX
 				cumulus.BatteryLowAlarm.Latch = settings.batteryLow.Latches;
 				cumulus.BatteryLowAlarm.LatchHours = settings.batteryLow.LatchHrs;
 				cumulus.BatteryLowAlarm.TriggerThreshold = settings.batteryLow.Threshold;
-				emailRequired = emailRequired || (cumulus.BatteryLowAlarm.Email && cumulus.BatteryLowAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.BatteryLowAlarm.Email && cumulus.BatteryLowAlarm.Enabled;
 				cumulus.BatteryLowAlarm.Action = settings.batteryLow.Action.Trim();
 				cumulus.BatteryLowAlarm.ActionParams = settings.batteryLow.ActionParams.Trim();
 				cumulus.BatteryLowAlarm.BskyFile = settings.batteryLow.Bsky.Trim() == string.Empty ? "none" : settings.batteryLow.Bsky.Trim();
@@ -825,7 +825,7 @@ namespace CumulusMX
 				cumulus.SpikeAlarm.Latch = settings.spike.Latches;
 				cumulus.SpikeAlarm.LatchHours = settings.spike.LatchHrs;
 				cumulus.SpikeAlarm.TriggerThreshold = settings.spike.Threshold;
-				emailRequired = emailRequired || (cumulus.SpikeAlarm.Email && cumulus.SpikeAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.SpikeAlarm.Email && cumulus.SpikeAlarm.Enabled;
 				cumulus.SpikeAlarm.Action = settings.spike.Action.Trim();
 				cumulus.SpikeAlarm.ActionParams = settings.spike.ActionParams.Trim();
 				cumulus.SpikeAlarm.BskyFile = settings.spike.Bsky.Trim() == string.Empty ? "none" : settings.spike.Bsky.Trim();
@@ -837,7 +837,7 @@ namespace CumulusMX
 				cumulus.UpgradeAlarm.Email = settings.upgrade.Email;
 				cumulus.UpgradeAlarm.Latch = settings.upgrade.Latches;
 				cumulus.UpgradeAlarm.LatchHours = settings.upgrade.LatchHrs;
-				emailRequired = emailRequired || (cumulus.UpgradeAlarm.Email && cumulus.UpgradeAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.UpgradeAlarm.Email && cumulus.UpgradeAlarm.Enabled;
 				cumulus.UpgradeAlarm.Action = settings.upgrade.Action.Trim();
 				cumulus.UpgradeAlarm.ActionParams = settings.upgrade.ActionParams.Trim();
 				cumulus.UpgradeAlarm.BskyFile = settings.upgrade.Bsky.Trim() == string.Empty ? "none" : settings.upgrade.Bsky.Trim();
@@ -849,7 +849,7 @@ namespace CumulusMX
 				cumulus.FirmwareAlarm.Email = settings.firmware.Email;
 				cumulus.FirmwareAlarm.Latch = settings.firmware.Latches;
 				cumulus.FirmwareAlarm.LatchHours = settings.firmware.LatchHrs;
-				emailRequired = emailRequired || (cumulus.FirmwareAlarm.Email && cumulus.FirmwareAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.FirmwareAlarm.Email && cumulus.FirmwareAlarm.Enabled;
 				cumulus.FirmwareAlarm.Action = settings.firmware.Action.Trim();
 				cumulus.FirmwareAlarm.ActionParams = settings.firmware.ActionParams.Trim();
 				cumulus.FirmwareAlarm.BskyFile = settings.firmware.Bsky.Trim() == string.Empty ? "none" : settings.firmware.Bsky.Trim();
@@ -862,7 +862,7 @@ namespace CumulusMX
 				cumulus.ThirdPartyAlarm.Latch = settings.httpUpload.Latches;
 				cumulus.ThirdPartyAlarm.LatchHours = settings.httpUpload.LatchHrs;
 				cumulus.ThirdPartyAlarm.TriggerThreshold = settings.httpUpload.Threshold;
-				emailRequired = emailRequired || (cumulus.ThirdPartyAlarm.Email && cumulus.ThirdPartyAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.ThirdPartyAlarm.Email && cumulus.ThirdPartyAlarm.Enabled;
 				cumulus.ThirdPartyAlarm.Action = settings.httpUpload.Action.Trim();
 				cumulus.ThirdPartyAlarm.ActionParams = settings.httpUpload.ActionParams.Trim();
 				cumulus.ThirdPartyAlarm.BskyFile = settings.httpUpload.Bsky.Trim() == string.Empty ? "none" : settings.httpUpload.Bsky.Trim();
@@ -875,7 +875,7 @@ namespace CumulusMX
 				cumulus.MySqlUploadAlarm.Latch = settings.mySqlUpload.Latches;
 				cumulus.MySqlUploadAlarm.LatchHours = settings.mySqlUpload.LatchHrs;
 				cumulus.MySqlUploadAlarm.TriggerThreshold = settings.mySqlUpload.Threshold;
-				emailRequired = emailRequired || (cumulus.MySqlUploadAlarm.Email && cumulus.MySqlUploadAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.MySqlUploadAlarm.Email && cumulus.MySqlUploadAlarm.Enabled;
 				cumulus.MySqlUploadAlarm.Action = settings.mySqlUpload.Action.Trim();
 				cumulus.MySqlUploadAlarm.ActionParams = settings.mySqlUpload.ActionParams.Trim();
 				cumulus.MySqlUploadAlarm.BskyFile = settings.mySqlUpload.Bsky.Trim() == string.Empty ? "none" : settings.mySqlUpload.Bsky.Trim();
@@ -888,7 +888,7 @@ namespace CumulusMX
 				cumulus.FtpAlarm.Latch = settings.ftpUpload.Latches;
 				cumulus.FtpAlarm.LatchHours = settings.ftpUpload.LatchHrs;
 				cumulus.FtpAlarm.TriggerThreshold = settings.ftpUpload.Threshold;
-				emailRequired = emailRequired || (cumulus.FtpAlarm.Email && cumulus.FtpAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.FtpAlarm.Email && cumulus.FtpAlarm.Enabled;
 				cumulus.FtpAlarm.Action = settings.ftpUpload.Action.Trim();
 				cumulus.FtpAlarm.ActionParams = settings.ftpUpload.ActionParams.Trim();
 				cumulus.FtpAlarm.BskyFile = settings.ftpUpload.Bsky.Trim() == string.Empty ? "none" : settings.ftpUpload.Bsky.Trim();
@@ -898,7 +898,7 @@ namespace CumulusMX
 				cumulus.ErrorAlarm.SoundFile = settings.genError.Sound.Trim();
 				cumulus.ErrorAlarm.Notify = settings.genError.Notify;
 				cumulus.ErrorAlarm.Email = settings.genError.Email;
-				emailRequired = emailRequired || (cumulus.ErrorAlarm.Email && cumulus.ErrorAlarm.Enabled);
+				emailRequired = emailRequired || cumulus.ErrorAlarm.Email && cumulus.ErrorAlarm.Enabled;
 				cumulus.ErrorAlarm.Action = settings.genError.Action.Trim();
 				cumulus.ErrorAlarm.ActionParams = settings.genError.ActionParams.Trim();
 				cumulus.ErrorAlarm.BskyFile = settings.genError.Bsky.Trim() == string.Empty ? "none" : settings.genError.Bsky.Trim();

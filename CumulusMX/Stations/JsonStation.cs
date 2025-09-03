@@ -10,7 +10,7 @@ using ServiceStack;
 using ServiceStack.Text;
 
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal class JsonStation : WeatherStation
 	{
@@ -239,7 +239,7 @@ namespace CumulusMX
 			JsonStationMqtt.Setup(cumulus, this);
 		}
 
-		public void ReceiveDataFromMqtt(MQTTnet.MqttApplicationMessage appMessage)
+		public void ReceiveDataFromMqtt(MqttApplicationMessage appMessage)
 		{
 			cumulus.LogDebugMessage("GetDataFromMqtt: Processing data");
 			cumulus.LogDataMessage("GetDataFromMqtt: data = " + appMessage.ConvertPayloadToString());
@@ -765,13 +765,13 @@ namespace CumulusMX
 					CO2 = data.co2.co2;
 					CO2_24h = data.co2.co2_24h;
 					CO2_pm2p5 = data.co2.pm2p5;
-					CO2_pm2p5_aqi = GetAqi(WeatherStation.AqMeasure.pm2p5, CO2_pm2p5);
+					CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5);
 					CO2_pm2p5_24h = data.co2.pm2p5avg24h;
-					CO2_pm2p5_24h_aqi = GetAqi(WeatherStation.AqMeasure.pm2p5h24, CO2_pm2p5_24h);
+					CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5h24, CO2_pm2p5_24h);
 					CO2_pm10 = data.co2.pm10;
-					CO2_pm10_aqi = GetAqi(WeatherStation.AqMeasure.pm10, CO2_pm10);
+					CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
 					CO2_pm10_24h = data.co2.pm10avg24h;
-					CO2_pm10_24h_aqi = GetAqi(WeatherStation.AqMeasure.pm10h24, CO2_pm10_24h);
+					CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10h24, CO2_pm10_24h);
 				}
 				catch (Exception ex)
 				{
@@ -790,7 +790,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					decimal multiplier = data.units.laserdist switch
+					var multiplier = data.units.laserdist switch
 					{
 						"mm" => 1,
 						"in" => in2mm,
@@ -880,8 +880,6 @@ namespace CumulusMX
 			return retStr.ToString();
 		}
 
-
-#pragma warning disable S3459, S1144 // Unused private types or members should be removed
 		private sealed class DataObject
 		{
 			public UnitsObject units { get; set; }

@@ -110,7 +110,7 @@ namespace CumulusMX
 			{
 				// On Linux, Ctrl-C is handled by the Console.CancelKeyPress event
 				// Now we need to catch the console Ctrl-C CROSS PLATFORM
-				Console.CancelKeyPress += (s, ev) =>
+				Console.CancelKeyPress += static (s, ev) =>
 				{
 					MxLogger.Warn("**** Ctrl-C pressed ****");
 					Console.WriteLine("**** Ctrl-C pressed ****", ConsoleColor.Red);

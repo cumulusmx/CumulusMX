@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO.Ports;
 using System.Threading;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	class WM918Station : WeatherStation
 	{
@@ -98,9 +98,9 @@ namespace CumulusMX
 						// wait a little to let more data in
 						Thread.Sleep(200);
 						// Obtain the number of bytes waiting in the port's buffer
-						int bytes = comport.BytesToRead;
+						var bytes = comport.BytesToRead;
 
-						string datastr = "Data: ";
+						var datastr = "Data: ";
 
 						cumulus.LogDebugMessage("Data received, number of bytes = " + bytes);
 
@@ -109,7 +109,7 @@ namespace CumulusMX
 						// Create a byte array buffer to hold the incoming data
 						//byte[] buffer = new byte[bytes];
 
-						for (int i = 0; i < bytes; i++)
+						for (var i = 0; i < bytes; i++)
 						{
 							// Read a byte from the port
 							nextByte = comport.ReadByte();
@@ -237,7 +237,7 @@ namespace CumulusMX
 		{
 			if (WM918valid(buff, out _))
 			{
-				DateTime now = DateTime.Now;
+				var now = DateTime.Now;
 
 				switch (buff[0])
 				{
@@ -258,7 +258,7 @@ namespace CumulusMX
 						break;
 					default:
 						cumulus.LogMessage("Unrecognised packet type: " + buff[0].ToString("X2"));
-						for (int i = 0; i < buff.Count; i++)
+						for (var i = 0; i < buff.Count; i++)
 						{
 							cumulus.LogMessage(" " + buff[i].ToString("X2"));
 						}
@@ -271,7 +271,7 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogMessage("Invalid packet:");
-				for (int i = 0; i < buff.Count; i++)
+				for (var i = 0; i < buff.Count; i++)
 				{
 					cumulus.LogMessage(" " + buff[i].ToString("X2"));
 				}
@@ -290,14 +290,14 @@ namespace CumulusMX
 			// Wind Chill W1W2 (WS bit 1 gives sign)
 			// Checksum C1C2
 
-			double current = ConvertUnits.WindMSToUser((double) (BCDchartoint(buff[1]) + ((BCDchartoint(buff[2]) % 10) * 100)) / 10);
-			double average = ConvertUnits.WindMSToUser((double) (BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100)) / 10);
-			int bearing = BCDchartoint(buff[2]) / 10 + (BCDchartoint(buff[3]) * 10);
+			var current = ConvertUnits.WindMSToUser((double) (BCDchartoint(buff[1]) + BCDchartoint(buff[2]) % 10 * 100) / 10);
+			var average = ConvertUnits.WindMSToUser((double) (BCDchartoint(buff[4]) + BCDchartoint(buff[5]) % 10 * 100) / 10);
+			var bearing = BCDchartoint(buff[2]) / 10 + BCDchartoint(buff[3]) * 10;
 
 			DoWind(current, bearing, average, DateTime.Now);
 
 			// Extract wind chill
-			int wc = BCDchartoint(buff[16]);
+			var wc = BCDchartoint(buff[16]);
 
 			if ((buff[21] / 16 & 2) == 2) wc = -wc;
 
@@ -321,18 +321,18 @@ namespace CumulusMX
 
 			DoOutdoorDewpoint(ConvertUnits.TempCToUser(BCDchartoint(buff[18])), DateTime.Now);
 
-			double locPress = BCDchartoint(buff[1]) + (BCDchartoint(buff[2]) * 100);
+			double locPress = BCDchartoint(buff[1]) + BCDchartoint(buff[2]) * 100;
 			DoStationPressure(ConvertUnits.PressMBToUser(locPress));
 
-			double pressure = ConvertUnits.PressMBToUser((double) (BCDchartoint(buff[3]) / 10) + (BCDchartoint(buff[4]) * 10) +
-				((BCDchartoint(buff[5]) % 10) * 1000));
+			var pressure = ConvertUnits.PressMBToUser((double) (BCDchartoint(buff[3]) / 10) + BCDchartoint(buff[4]) * 10 +
+				BCDchartoint(buff[5]) % 10 * 1000);
 
 			DoPressure(pressure, DateTime.Now);
 
-			string forecast = String.Empty;
+			var forecast = string.Empty;
 
 			// Forecast
-			int num = buff[6] & 0xF;
+			var num = buff[6] & 0xF;
 			switch (num)
 			{
 				case 1:
@@ -360,7 +360,7 @@ namespace CumulusMX
 			// Outdoor Temp O1O2O3 but top bit of O1 gives sign
 
 			// Outdoor temp
-			double temp10 = BCDchartoint(buff[16]) + (((buff[17]) & 0x7) * 100);
+			double temp10 = BCDchartoint(buff[16]) + (buff[17] & 0x7) * 100;
 
 			if ((buff[17] & 0x08) == 8) temp10 = -temp10;
 
@@ -370,7 +370,7 @@ namespace CumulusMX
 			}
 
 			// Indoor temp
-			temp10 = BCDchartoint(buff[1]) + (((buff[2]) & 0x7) * 100);
+			temp10 = BCDchartoint(buff[1]) + (buff[2] & 0x7) * 100;
 
 			if ((buff[2] & 0x08) == 8) temp10 = -temp10;
 
@@ -395,8 +395,8 @@ namespace CumulusMX
 			//                           Month M1M2)
 			// Checksum C1C2
 
-			double raincounter = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[5]) + (BCDchartoint(buff[6]) * 100));
-			double rainrate = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[1]) + ((BCDchartoint(buff[2]) % 10) * 100));
+			var raincounter = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[5]) + BCDchartoint(buff[6]) * 100);
+			var rainrate = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[1]) + BCDchartoint(buff[2]) % 10 * 100);
 
 			DoRain(raincounter, rainrate, DateTime.Now);
 		}

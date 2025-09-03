@@ -8,7 +8,7 @@ using EmbedIO;
 using ServiceStack;
 
 
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	internal class AlarmUserSettings(Cumulus cumulus)
 	{
@@ -28,7 +28,7 @@ namespace CumulusMX
 
 		public string UpdateConfig(IHttpContext context)
 		{
-			string json = string.Empty;
+			var json = string.Empty;
 			Settings settings;
 			try
 			{

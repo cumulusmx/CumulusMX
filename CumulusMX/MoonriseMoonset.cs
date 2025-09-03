@@ -1322,7 +1322,6 @@ namespace CumulusMX
 			return (rev(pa));
 		}
 
-#pragma warning disable S125 // Sections of code should not be commented out
 		/*
 		private double[] MoonQuarters(int year , int month , int day )
 		{
@@ -1441,7 +1440,6 @@ namespace CumulusMX
 			return quarters;
 		}
 		*/
-#pragma warning restore S125
 
 		public static double MoonAge()
 		{

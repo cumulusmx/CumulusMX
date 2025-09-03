@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	public class WlHistory
 	{
@@ -99,8 +99,8 @@ namespace CumulusMX
 		{
 			get
 			{
-				Type myType = typeof(WlHistorySensorDataType13);
-				PropertyInfo myPropInfo = myType.GetProperty(name);
+				var myType = typeof(WlHistorySensorDataType13);
+				var myPropInfo = myType.GetProperty(name);
 				return myPropInfo.GetValue(this, null);
 			}
 		}
@@ -251,8 +251,8 @@ namespace CumulusMX
 		{
 			get
 			{
-				Type myType = typeof(WlHistorySensorDataType13);
-				PropertyInfo myPropInfo = myType.GetProperty(name);
+				var myType = typeof(WlHistorySensorDataType13);
+				var myPropInfo = myType.GetProperty(name);
 				return myPropInfo.GetValue(this, null);
 			}
 		}
@@ -755,8 +755,8 @@ namespace CumulusMX
 		{
 			get
 			{
-				Type myType = typeof(WLCurrentSensorDataType12_25);
-				PropertyInfo myPropInfo = myType.GetProperty(name);
+				var myType = typeof(WLCurrentSensorDataType12_25);
+				var myPropInfo = myType.GetProperty(name);
 				return myPropInfo.GetValue(this, null);
 			}
 		}

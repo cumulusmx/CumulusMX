@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal class WMR928Station : WeatherStation
 	{
@@ -81,21 +81,21 @@ namespace CumulusMX
 						// wait a little to let more data in
 						Thread.Sleep(200);
 						// Obtain the number of bytes waiting in the port's buffer
-						int bytes = comport.BytesToRead;
+						var bytes = comport.BytesToRead;
 
 						if (stop) break;
 
-						string datastr = "Data: ";
+						var datastr = "Data: ";
 
 						cumulus.LogDebugMessage("Data received, number of bytes = " + bytes);
 
 						// Create a byte array buffer to hold the incoming data
 						//byte[] buffer = new byte[bytes];
 
-						for (int i = 0; i < bytes; i++)
+						for (var i = 0; i < bytes; i++)
 						{
 							// Read a byte from the port
-							int nextByte = comport.ReadByte();
+							var nextByte = comport.ReadByte();
 
 							datastr = datastr + " " + nextByte.ToString("X2");
 
@@ -205,9 +205,9 @@ namespace CumulusMX
 
 		private void Parse(List<int> buff)
 		{
-			string msg = "Packet received: ";
+			var msg = "Packet received: ";
 
-			for (int i = 0; i < buff.Count; i++)
+			for (var i = 0; i < buff.Count; i++)
 			{
 				msg += buff[i].ToString("X2");
 			}
@@ -254,7 +254,7 @@ namespace CumulusMX
 						break;
 					default:
 						Trace.Write("Unrecognised packet:");
-						for (int i = 0; i < buff.Count; i++)
+						for (var i = 0; i < buff.Count; i++)
 						{
 							Trace.Write(" " + buff[i].ToString("X2"));
 						}
@@ -268,7 +268,7 @@ namespace CumulusMX
 			else
 			{
 				cumulus.LogMessage("Invalid packet:");
-				for (int i = 0; i < buff.Count; i++)
+				for (var i = 0; i < buff.Count; i++)
 				{
 					Trace.Write(" " + buff[i].ToString("X2"));
 				}
@@ -286,11 +286,11 @@ namespace CumulusMX
 			// Temperature T1T2T3 (TS gives sign)
 			// Checksum C1C2
 
-			int channel = buff[3] & 0xF;
+			var channel = buff[3] & 0xF;
 			if (channel == 4)
 				channel = 3;
 
-			if ((channel > 3) || (channel < 1))
+			if (channel > 3 || channel < 1)
 			{
 				cumulus.LogErrorMessage("WMR928 channel error, ch=" + channel);
 				channel = 1;
@@ -300,7 +300,7 @@ namespace CumulusMX
 			WMR928ExtraTempValueOnly[channel] = true;
 			ExtraSensorsDetected = true;
 
-			double temp = ExtractTemp(buff[4], buff[5]);
+			var temp = ExtractTemp(buff[4], buff[5]);
 
 			WMR928ExtraTempValues[channel] = ConvertUnits.TempCToUser(temp);
 			DoExtraTemp(WMR928ExtraTempValues[channel], channel);
@@ -353,11 +353,11 @@ namespace CumulusMX
 			// Dewpoint D1D2
 			// Checksum C1C2
 
-			int channel = buff[3] & 0xF;
+			var channel = buff[3] & 0xF;
 			if (channel == 4)
 				channel = 3;
 
-			if ((channel > 3) || (channel < 1))
+			if (channel > 3 || channel < 1)
 			{
 				cumulus.LogErrorMessage("WMR928 channel error, ch=" + channel);
 				channel = 1;
@@ -366,11 +366,11 @@ namespace CumulusMX
 			WMR928ChannelPresent[channel] = true;
 			ExtraSensorsDetected = true;
 
-			int hum = BCDchartoint(buff[6]);
+			var hum = BCDchartoint(buff[6]);
 			WMR928ExtraHumValues[channel] = hum;
 			DoExtraHum(hum, channel);
 
-			double temp = ExtractTemp(buff[4], buff[5]);
+			var temp = ExtractTemp(buff[4], buff[5]);
 
 			WMR928ExtraTempValues[channel] = ConvertUnits.TempCToUser(temp);
 			DoExtraTemp(WMR928ExtraTempValues[channel], channel);
@@ -408,9 +408,9 @@ namespace CumulusMX
 
 			WindBattStatus = buff[3] / 16;
 
-			double current = (double) (BCDchartoint(buff[5]) / 10 + (BCDchartoint(buff[6]) * 10)) / 10;
-			double average = (double) (BCDchartoint(buff[7]) + ((BCDchartoint(buff[8]) % 10) * 100)) / 10;
-			int bearing = BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100);
+			var current = (double) (BCDchartoint(buff[5]) / 10 + BCDchartoint(buff[6]) * 10) / 10;
+			var average = (double) (BCDchartoint(buff[7]) + BCDchartoint(buff[8]) % 10 * 100) / 10;
+			var bearing = BCDchartoint(buff[4]) + BCDchartoint(buff[5]) % 10 * 100;
 
 			DoWind(ConvertUnits.WindMSToUser(current), bearing, ConvertUnits.WindMSToUser(average), DateTime.Now);
 
@@ -442,8 +442,8 @@ namespace CumulusMX
 			RainBattStatus = buff[3] / 16;
 			// MainForm.Rainbatt.Position := (15-rain_batt_status)*100 DIV 15;
 
-			double raincounter = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[6]) + (BCDchartoint(buff[7]) * 100));
-			double rainrate = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[4]) + ((BCDchartoint(buff[5]) % 10) * 100));
+			var raincounter = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[6]) + BCDchartoint(buff[7]) * 100);
+			var rainrate = ConvertUnits.RainMMToUser((double) BCDchartoint(buff[4]) + BCDchartoint(buff[5]) % 10 * 100);
 
 			DoRain(raincounter, rainrate, DateTime.Now);
 		}
@@ -467,11 +467,11 @@ namespace CumulusMX
 				var now = DateTime.Now;
 
 				// Extract humidity
-				int hum = BCDchartoint(buff[6]);
+				var hum = BCDchartoint(buff[6]);
 				DoOutdoorHumidity(hum, now);
 
 				// Extract temperature
-				double temp = ExtractTemp(buff[4], buff[5]);
+				var temp = ExtractTemp(buff[4], buff[5]);
 
 				DoOutdoorTemp(ConvertUnits.TempCToUser(temp), now);
 
@@ -503,7 +503,7 @@ namespace CumulusMX
 			IndoorBattStatus = buff[3] / 16;
 
 			// Extract temp (tenths of deg C) in BCD; bytes 4 (LSB) and 5 (MSB)
-			double temp = ExtractTemp(buff[4], buff[5]);
+			var temp = ExtractTemp(buff[4], buff[5]);
 
 			DoIndoorTemp(ConvertUnits.TempCToUser(temp));
 
@@ -513,30 +513,23 @@ namespace CumulusMX
 			// local pressure (not BCD); byte 8, with 856mb offset
 			double loc = buff[8] + 856;
 			DoStationPressure(ConvertUnits.PressMBToUser(loc));
-			double num = BCDchartoint((buff[10]) / 10) + BCDchartoint(buff[11]) * 10 + (BCDchartoint(buff[12]) * 1000);
-			double slcorr = num / 10.0 - 600;
+			double num = BCDchartoint(buff[10] / 10) + BCDchartoint(buff[11]) * 10 + BCDchartoint(buff[12]) * 1000;
+			var slcorr = num / 10.0 - 600;
 
 			DoPressure(ConvertUnits.PressMBToUser(loc + slcorr), DateTime.Now);
 
-			string forecast = String.Empty;
+			var forecast = string.Empty;
 
 			// forecast - top 4 bits of byte 9
-			int fcnum = buff[9] / 16;
-			switch (fcnum)
+			var fcnum = buff[9] / 16;
+			forecast = fcnum switch
 			{
-				case 2:
-					forecast = "Cloudy";
-					break;
-				case 3:
-					forecast = "Rain";
-					break;
-				case 6:
-					forecast = "Partly Cloudy";
-					break;
-				case 12:
-					forecast = "Clear";
-					break;
-			}
+				2 => "Cloudy",
+				3 => "Rain",
+				6 => "Partly Cloudy",
+				12 => "Clear",
+				_ => "Unknown"
+			};
 
 			DoForecast(forecast, false);
 		}
@@ -560,7 +553,7 @@ namespace CumulusMX
 			//MainForm.Indoorbatt.Position := (15-indoor_batt_status)*100 DIV 15;
 
 			// Extract temp (tenths of deg C) in BCD;
-			double temp = ExtractTemp(buff[4], buff[5]);
+			var temp = ExtractTemp(buff[4], buff[5]);
 
 			DoIndoorTemp(ConvertUnits.TempCToUser(temp));
 
@@ -571,13 +564,13 @@ namespace CumulusMX
 			double loc = buff[8] + 795;
 			DoStationPressure(ConvertUnits.PressMBToUser(loc));
 			// SL pressure correction; bytes 10 (LSB) and 11 (MSB)
-			double num = BCDchartoint(buff[10] / 10) + (BCDchartoint(buff[11]) * 10) + buff[8];
+			double num = BCDchartoint(buff[10] / 10) + BCDchartoint(buff[11]) * 10 + buff[8];
 			DoPressure(num, DateTime.Now);
 
 			// forecast - bottom 4 bits of byte 9
-			string forecast = String.Empty;
+			var forecast = string.Empty;
 
-			int fcnum = buff[9] & 16;
+			var fcnum = buff[9] & 16;
 			switch (fcnum)
 			{
 				case 2:
@@ -599,7 +592,7 @@ namespace CumulusMX
 
 		private static double ExtractTemp(int byteOne, int byteTwo)
 		{
-			double temp10 = BCDchartoint(byteOne) + ((BCDchartoint(byteTwo) % 10) * 100);
+			double temp10 = BCDchartoint(byteOne) + BCDchartoint(byteTwo) % 10 * 100;
 			if (byteTwo / 16 == 8) temp10 = -temp10;
 			return temp10 / 10;
 		}

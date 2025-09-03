@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal partial class EcowittExtraLogFile
 	{
@@ -72,7 +72,6 @@ namespace CumulusMX
 
 					int idx;
 
-	#pragma warning disable S125 // Sections of code should not be commented out
 
 					// Extra Temp/Hum sensors, fields 1 - 32
 					for (var i = 1; i <= 8; i++)
@@ -181,7 +180,6 @@ namespace CumulusMX
 							rec.AqiComboTemp = MeteoLib.CToF(rec.AqiComboTemp);
 						}
 					}
-	#pragma warning restore S125 // Sections of code should not be commented out
 
 					switch (cumulus.Units.Wind)
 					{

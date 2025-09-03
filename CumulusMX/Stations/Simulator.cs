@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal class Simulator : WeatherStation
 	{
@@ -198,7 +198,7 @@ namespace CumulusMX
 				// Pressure - vary the range over a two day period
 				var pressMean = new Func<DateTime, double>((x) => 1010 + 25 * Math.Cos((x.DayOfYear + x.TimeOfDay.TotalDays + 0.2) % 4 / 4.0 * 2 * Math.PI) - 6 * Math.Cos((x.TimeOfDay.TotalDays + 0.65) * 2 * Math.PI));
 				// Inside Temp - assume heating between 07:00 and 23:00
-				var inTempMean = new Func<DateTime, double>((x) => (x.Hour < 7 || x.Hour > 22) ? 16 : 21);
+				var inTempMean = new Func<DateTime, double>((x) => x.Hour < 7 || x.Hour > 22 ? 16 : 21);
 				// RainRate - lets try two blocks of rain per day, determined by day of the year, mean rate to be 3 mm/hr
 				var rainRateMean = new Func<DateTime, double>((x) => x.Hour == x.DayOfYear % 24 || x.Hour == (x.DayOfYear + 1) % 24 || x.Hour == (x.DayOfYear + 12) % 24 || x.Hour == (x.DayOfYear + 13) % 24 ? 3 : -100);
 
@@ -219,7 +219,7 @@ namespace CumulusMX
 				windSpeedVal = Math.Round(windSpeed.GetValue(readTime), 1);
 				if (windSpeedVal > 0)
 				{
-					windBearingVal = ((int) windDirection.GetValue(readTime) % 360) + 1;
+					windBearingVal = (int) windDirection.GetValue(readTime) % 360 + 1;
 				}
 				rainRateVal = rainRate.GetValue(readTime);
 				pressureVal = pressure.GetValue(readTime);

@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Threading;
 
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal sealed class GW1000Api : IDisposable
 	{
@@ -37,7 +37,7 @@ namespace CumulusMX
 				CloseTcpPort();
 			}
 
-			int attempt = 0;
+			var attempt = 0;
 
 			// Creating the new TCP socket effectively opens it - specify IP address or domain name and port
 			while (attempt < 5)
@@ -232,7 +232,7 @@ namespace CumulusMX
 				return false;
 			}
 
-			byte checksum = (byte) (data[2] + data[3]);
+			var checksum = (byte) (data[2] + data[3]);
 			for (var i = 4; i <= size; i++)
 			{
 				checksum += data[i];
@@ -447,7 +447,6 @@ namespace CumulusMX
 			Wh54Ch4         // 69 45
 		};
 
-#pragma warning disable S125
 		/*
 		[Flags]
 		internal enum SigSen : byte
@@ -593,7 +592,6 @@ namespace CumulusMX
 			public byte batt;			// 0-5
 		}
 		*/
-#pragma warning restore S125
 
 
 		private readonly struct CommandPayload
@@ -625,7 +623,7 @@ namespace CumulusMX
 				data.CopyTo(Data, 4);
 
 				var Checksum = (byte) (command + Data[3]);
-				for (int i = 0; i < data.Length; i++)
+				for (var i = 0; i < data.Length; i++)
 				{
 					Checksum += data[i];
 				}
@@ -633,28 +631,28 @@ namespace CumulusMX
 			}
 		}
 
-		internal static UInt16 ConvertBigEndianUInt16(byte[] array, int start)
+		internal static ushort ConvertBigEndianUInt16(byte[] array, int start)
 		{
-			return (UInt16) (array[start] << 8 | array[start + 1]);
+			return (ushort) (array[start] << 8 | array[start + 1]);
 		}
 
-		internal static Int16 ConvertBigEndianInt16(byte[] array, int start)
+		internal static short ConvertBigEndianInt16(byte[] array, int start)
 		{
-			return (Int16) ((array[start] << 8) + array[start + 1]);
+			return (short) ((array[start] << 8) + array[start + 1]);
 		}
 
-		internal static UInt32 ConvertBigEndianUInt32(byte[] array, int start)
+		internal static uint ConvertBigEndianUInt32(byte[] array, int start)
 		{
-			return (UInt32) (array[start++] << 24 | array[start++] << 16 | array[start++] << 8 | array[start]);
+			return (uint) (array[start++] << 24 | array[start++] << 16 | array[start++] << 8 | array[start]);
 		}
 
-		internal static byte[] ConvertUInt16ToLittleEndianByteArray(UInt16 ui16)
+		internal static byte[] ConvertUInt16ToLittleEndianByteArray(ushort ui16)
 		{
 			var arr = BitConverter.GetBytes(ui16);
 			Array.Reverse(arr);
 			return arr;
 		}
-		internal static byte[] ConvertUInt16ToBigEndianByteArray(UInt16 ui16)
+		internal static byte[] ConvertUInt16ToBigEndianByteArray(ushort ui16)
 		{
 			return BitConverter.GetBytes(ui16);
 		}

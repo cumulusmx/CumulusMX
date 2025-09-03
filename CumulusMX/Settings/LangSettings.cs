@@ -9,7 +9,7 @@ using ServiceStack;
 using ServiceStack.Text;
 
 
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	internal class LangSettings(Cumulus cumulus)
 	{

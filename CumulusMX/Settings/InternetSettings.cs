@@ -13,7 +13,7 @@ using ServiceStack;
 using static CumulusMX.Cumulus;
 
 
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	public class InternetSettings(Cumulus cumulus)
 	{
@@ -58,8 +58,8 @@ namespace CumulusMX
 					cumulus.FtpOptions.Enabled = settings.website.enabled;
 					if (cumulus.FtpOptions.Enabled)
 					{
-						if (cumulus.FtpOptions.FtpMode != Cumulus.FtpProtocols.PHP &&
-							(Cumulus.FtpProtocols) settings.website.sslftp == Cumulus.FtpProtocols.PHP &&
+						if (cumulus.FtpOptions.FtpMode != FtpProtocols.PHP &&
+							(FtpProtocols) settings.website.sslftp == FtpProtocols.PHP &&
 							cumulus.phpUploadHttpClient == null)
 						{
 							// switching to PHP, make sure the HTTPclients are initialised
@@ -67,10 +67,10 @@ namespace CumulusMX
 							Task.Run(() => cumulus.TestPhpUploadCompression());
 						}
 
-						cumulus.FtpOptions.FtpMode = (Cumulus.FtpProtocols) settings.website.sslftp;
+						cumulus.FtpOptions.FtpMode = (FtpProtocols) settings.website.sslftp;
 						cumulus.UTF8encode = settings.website.general.utf8encode;
 
-						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
+						if (cumulus.FtpOptions.FtpMode == FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == FtpProtocols.FTPS || cumulus.FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
 							cumulus.FtpOptions.Directory = settings.website.directory ?? string.Empty;
 							cumulus.FtpOptions.Port = settings.website.ftpport;
@@ -79,7 +79,7 @@ namespace CumulusMX
 							cumulus.FtpOptions.Username = settings.website.username ?? string.Empty;
 						}
 
-						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS)
+						if (cumulus.FtpOptions.FtpMode == FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == FtpProtocols.FTPS)
 						{
 							cumulus.DeleteBeforeUpload = settings.website.general.ftpdelete;
 							cumulus.FTPRename = settings.website.general.ftprename;
@@ -88,19 +88,19 @@ namespace CumulusMX
 							cumulus.FtpOptions.DisableEPSV = settings.website.advanced.disableftpsepsv;
 						}
 
-						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.SFTP)
+						if (cumulus.FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
 							cumulus.FtpOptions.SshAuthen = settings.website.sshAuth ?? string.Empty;
 							cumulus.FtpOptions.SshPskFile = settings.website.pskFile ?? string.Empty;
 						}
 
-						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS)
+						if (cumulus.FtpOptions.FtpMode == FtpProtocols.FTPS)
 						{
 							cumulus.FtpOptions.DisableExplicit = settings.website.advanced.disableftpsexplicit;
 							cumulus.FtpOptions.IgnoreCertErrors = settings.website.advanced.ignorecerts;
 						}
 
-						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.PHP)
+						if (cumulus.FtpOptions.FtpMode == FtpProtocols.PHP)
 						{
 							cumulus.FtpOptions.PhpUrl = settings.website.phpurl;
 							cumulus.FtpOptions.PhpSecret = settings.website.phpsecret;
@@ -115,7 +115,7 @@ namespace CumulusMX
 							}
 						}
 
-						if (cumulus.FtpOptions.FtpMode != Cumulus.FtpProtocols.PHP && settings.websettings.realtime.enabled && settings.websettings.realtime.enablerealtimeftp)
+						if (cumulus.FtpOptions.FtpMode != FtpProtocols.PHP && settings.websettings.realtime.enabled && settings.websettings.realtime.enablerealtimeftp)
 						{
 							try
 							{
@@ -567,26 +567,26 @@ namespace CumulusMX
 				"{\"name\":\"inclogfile\",\"label\":\"Incremental\",\"datatype\":\"boolean\",\"editable\":true}" +
 				"],\"data\":[");
 
-			for (int i = 0; i < Cumulus.numextrafiles; i++)
+			for (var i = 0; i < numextrafiles; i++)
 			{
 				var enable = cumulus.ExtraFiles[i].enable ? "true" : "false";
 				var local = cumulus.ExtraFiles[i].local.Replace("\\", "\\\\").Replace("/", "\\/");
 				var remote = cumulus.ExtraFiles[i].remote.Replace("\\", "\\\\").Replace("/", "\\/");
 
-				string process = cumulus.ExtraFiles[i].process ? "true" : "false";
-				string realtime = cumulus.ExtraFiles[i].realtime ? "true" : "false";
-				string ftp = cumulus.ExtraFiles[i].FTP ? "true" : "false";
-				string utf8 = cumulus.ExtraFiles[i].UTF8 ? "true" : "false";
-				string binary = cumulus.ExtraFiles[i].binary ? "true" : "false";
-				string endofday = cumulus.ExtraFiles[i].endofday ? "true" : "false";
+				var process = cumulus.ExtraFiles[i].process ? "true" : "false";
+				var realtime = cumulus.ExtraFiles[i].realtime ? "true" : "false";
+				var ftp = cumulus.ExtraFiles[i].FTP ? "true" : "false";
+				var utf8 = cumulus.ExtraFiles[i].UTF8 ? "true" : "false";
+				var binary = cumulus.ExtraFiles[i].binary ? "true" : "false";
+				var endofday = cumulus.ExtraFiles[i].endofday ? "true" : "false";
 				// binary and incremental are mutually exclusive
 				var bin = cumulus.ExtraFiles[i].binary ? "false" : "true";
-				string inclogfile = cumulus.ExtraFiles[i].incrementalLogfile ? bin : "false";
+				var inclogfile = cumulus.ExtraFiles[i].incrementalLogfile ? bin : "false";
 				json.Append('{');
-				json.Append($"\"id\":{(i + 1)},\"values\":[\"{enable}\",\"{local}\",\"{remote}\",\"{process}\",\"{realtime}\",\"{ftp}\",\"{utf8}\",\"{binary}\",\"{endofday}\",\"{inclogfile}\"]");
+				json.Append($"\"id\":{i + 1},\"values\":[\"{enable}\",\"{local}\",\"{remote}\",\"{process}\",\"{realtime}\",\"{ftp}\",\"{utf8}\",\"{binary}\",\"{endofday}\",\"{inclogfile}\"]");
 				json.Append('}');
 
-				if (i < Cumulus.numextrafiles - 1)
+				if (i < numextrafiles - 1)
 				{
 					json.Append(',');
 				}
@@ -608,10 +608,10 @@ namespace CumulusMX
 
 				var pars = WebUtility.UrlDecode(data);
 
-				NameValueCollection qscoll = HttpUtility.ParseQueryString(pars);
+				var qscoll = HttpUtility.ParseQueryString(pars);
 
 				var entry = Convert.ToInt32(qscoll["id"]) - 1;
-				int col = Convert.ToInt32(qscoll["column"]);
+				var col = Convert.ToInt32(qscoll["column"]);
 				var value = qscoll["value"];
 
 				switch (col)

@@ -7,7 +7,7 @@ using ServiceStack;
 
 
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal class PurpleAir
 	{

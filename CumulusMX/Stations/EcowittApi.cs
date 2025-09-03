@@ -10,7 +10,7 @@ using ServiceStack;
 using ServiceStack.Text;
 
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal class EcowittApi
 	{
@@ -71,7 +71,7 @@ namespace CumulusMX
 			// sensor mappings
 			PrimaryTHSensor = cumulus.Gw1000PrimaryTHSensor;
 			PrimaryIndoorTHSensor = cumulus.Gw1000PrimaryIndoorTHSensor;
-			for (int i = 0; i < cumulus.EcowittMapWN34.Length; i++)
+			for (var i = 0; i < cumulus.EcowittMapWN34.Length; i++)
 			{
 				MapWN34[i] = cumulus.EcowittMapWN34[i];
 			}
@@ -217,9 +217,9 @@ namespace CumulusMX
 			{
 				string responseBody;
 				int responseCode;
-				int retries = 3;
-				int retryTime = 10; // seconds
-				bool success = false;
+				var retries = 3;
+				var retryTime = 10; // seconds
+				var success = false;
 
 				do
 				{
@@ -1596,7 +1596,7 @@ namespace CumulusMX
 			var rolloverdone = luhour == rollHour;
 			var midnightraindone = luhour == 0;
 			var rollover9amdone = luhour == 9;
-			bool snowhourdone = luhour == cumulus.SnowDepthHour;
+			var snowhourdone = luhour == cumulus.SnowDepthHour;
 			var lastRecDate = DateTime.MinValue;
 
 			foreach (var rec in buffer)
@@ -1670,7 +1670,7 @@ namespace CumulusMX
 				{
 					snowhourdone = false;
 				}
-				else if ((h == cumulus.SnowDepthHour) && !snowhourdone)
+				else if (h == cumulus.SnowDepthHour && !snowhourdone)
 				{
 					// snowhour items
 					if (cumulus.SnowAutomated > 0)
@@ -1679,7 +1679,7 @@ namespace CumulusMX
 					}
 
 					// reset the accumulated snow depth(s)
-					for (int i = 0; i < station.Snow24h.Length; i++)
+					for (var i = 0; i < station.Snow24h.Length; i++)
 					{
 						station.Snow24h[i] = null;
 					}
@@ -1710,7 +1710,7 @@ namespace CumulusMX
 
 				// add in archive period minutes worth of temperature to the temp samples
 				station.tempsamplestoday += 5;
-				station.TempTotalToday += (station.OutdoorTemperature * 5);
+				station.TempTotalToday += station.OutdoorTemperature * 5;
 
 				// add in 'following interval' minutes worth of wind speed to windrun
 				cumulus.LogMessage("Windrun: " + station.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + rec.Value.Interval + " minutes = " +
@@ -2665,7 +2665,6 @@ namespace CumulusMX
 			// Doc: https://doc.ecowitt.net/web/#/apiv3en?page_id=19
 
 
-#pragma warning disable S125 // Sections of code should not be commented out
 			/*
 							{
 								"code": 0,
@@ -2680,7 +2679,6 @@ namespace CumulusMX
 								}
 							}
 						*/
-#pragma warning restore S125 // Sections of code should not be commented out
 			cumulus.LogMessage("API.GetLastCameraVideoUrl: Get Ecowitt Last Camera Video");
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
@@ -3149,7 +3147,7 @@ namespace CumulusMX
 					return null;
 				}
 
-				IniFile ini = new IniFile();
+				var ini = new IniFile();
 				ini.LoadString(responseBody.Split('\n'));
 
 				var ver = ini.GetValue(model, "VER", "");
@@ -3183,8 +3181,6 @@ namespace CumulusMX
 			return result.TrimEnd(':');
 		}
 
-#pragma warning disable S3459 // Unassigned members should be removed
-#pragma warning disable S1144 // Unused private types or members should be removed
 		private sealed class ErrorResp
 		{
 			public int code { get; set; }
@@ -3793,7 +3789,5 @@ namespace CumulusMX
 			public string attach2file { get; set; }
 			public int queryintval { get; set; }
 		}
-#pragma warning restore S1144 // Unused private types or members should be removed
-#pragma warning restore S3459 // Unassigned members should be removed
 	}
 }

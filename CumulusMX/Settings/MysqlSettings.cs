@@ -12,7 +12,7 @@ using MySqlConnector;
 
 using ServiceStack;
 
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	public class MysqlSettings(Cumulus cumulus)
 	{
@@ -239,7 +239,7 @@ namespace CumulusMX
 
 		public string UpdateConfig(IHttpContext context)
 		{
-			string json = string.Empty;
+			var json = string.Empty;
 			JsonSettings settings;
 			try
 			{
@@ -269,21 +269,21 @@ namespace CumulusMX
 				// first check if any of the connection settings have changed
 				// if they have then disconnect any existing connection so it can be reconnected if required
 				if (cumulus.MySqlConn != null &&
-					(String.IsNullOrWhiteSpace(settings.server.host) ||
+					(string.IsNullOrWhiteSpace(settings.server.host) ||
 					cumulus.MySqlConnSettings.Server != settings.server.host.Trim() ||
 					cumulus.MySqlConnSettings.Port != settings.server.port ||
-					String.IsNullOrWhiteSpace(settings.server.database) ||
+					string.IsNullOrWhiteSpace(settings.server.database) ||
 					cumulus.MySqlConnSettings.Database != settings.server.database.Trim() ||
-					String.IsNullOrWhiteSpace(settings.server.user) ||
+					string.IsNullOrWhiteSpace(settings.server.user) ||
 					cumulus.MySqlConnSettings.UserID != settings.server.user.Trim() ||
-					String.IsNullOrWhiteSpace(settings.server.pass) ||
+					string.IsNullOrWhiteSpace(settings.server.pass) ||
 					cumulus.MySqlConnSettings.Password != settings.server.pass.Trim() ||
 					cumulus.MySqlConnSettings.SslMode != (MySqlSslMode) settings.server.advanced.sslMode ||
-					cumulus.MySqlConnSettings.TlsVersion != (String.IsNullOrWhiteSpace(settings.server.advanced.tlsVers) ? "TLS 1.2,TLS 1.3" : settings.server.advanced.tlsVers.Trim()))
+					cumulus.MySqlConnSettings.TlsVersion != (string.IsNullOrWhiteSpace(settings.server.advanced.tlsVers) ? "TLS 1.2,TLS 1.3" : settings.server.advanced.tlsVers.Trim()))
 					)
 				{
 					// server
-					cumulus.MySqlConnSettings.Server = String.IsNullOrWhiteSpace(settings.server.host) ? null : settings.server.host.Trim();
+					cumulus.MySqlConnSettings.Server = string.IsNullOrWhiteSpace(settings.server.host) ? null : settings.server.host.Trim();
 					if (settings.server.port > 0 && settings.server.port < 65536)
 					{
 						cumulus.MySqlConnSettings.Port = settings.server.port;
@@ -292,11 +292,11 @@ namespace CumulusMX
 					{
 						cumulus.MySqlConnSettings.Port = 3306;
 					}
-					cumulus.MySqlConnSettings.Database = String.IsNullOrWhiteSpace(settings.server.database) ? null : settings.server.database.Trim();
-					cumulus.MySqlConnSettings.UserID = String.IsNullOrWhiteSpace(settings.server.user) ? null : settings.server.user.Trim();
-					cumulus.MySqlConnSettings.Password = String.IsNullOrWhiteSpace(settings.server.pass) ? null : settings.server.pass.Trim();
+					cumulus.MySqlConnSettings.Database = string.IsNullOrWhiteSpace(settings.server.database) ? null : settings.server.database.Trim();
+					cumulus.MySqlConnSettings.UserID = string.IsNullOrWhiteSpace(settings.server.user) ? null : settings.server.user.Trim();
+					cumulus.MySqlConnSettings.Password = string.IsNullOrWhiteSpace(settings.server.pass) ? null : settings.server.pass.Trim();
 					cumulus.MySqlConnSettings.SslMode = (MySqlSslMode) settings.server.advanced.sslMode;
-					cumulus.MySqlConnSettings.TlsVersion = String.IsNullOrWhiteSpace(settings.server.advanced.tlsVers) ? "TLS 1.2,TLS 1.3" : settings.server.advanced.tlsVers.Trim();
+					cumulus.MySqlConnSettings.TlsVersion = string.IsNullOrWhiteSpace(settings.server.advanced.tlsVers) ? "TLS 1.2,TLS 1.3" : settings.server.advanced.tlsVers.Trim();
 
 					try
 					{
@@ -336,7 +336,7 @@ namespace CumulusMX
 				cumulus.MySqlSettings.Monthly.Enabled = settings.monthly.enabled;
 				if (cumulus.MySqlSettings.Monthly.Enabled)
 				{
-					cumulus.MySqlSettings.Monthly.TableName = String.IsNullOrWhiteSpace(settings.monthly.table) ? "Monthly" : settings.monthly.table.Trim();
+					cumulus.MySqlSettings.Monthly.TableName = string.IsNullOrWhiteSpace(settings.monthly.table) ? "Monthly" : settings.monthly.table.Trim();
 					if (cumulus.MySqlSettings.Monthly.TableName != cumulus.MonthlyTable.Name)
 					{
 						cumulus.MonthlyTable.Name = cumulus.MySqlSettings.Monthly.TableName;
@@ -348,7 +348,7 @@ namespace CumulusMX
 				if (cumulus.MySqlSettings.Realtime.Enabled)
 				{
 					cumulus.MySqlSettings.RealtimeRetention = settings.realtime.retentionVal + " " + settings.realtime.retentionUnit.Trim();
-					cumulus.MySqlSettings.Realtime.TableName = String.IsNullOrWhiteSpace(settings.realtime.table) ? "Realtime" : settings.realtime.table.Trim();
+					cumulus.MySqlSettings.Realtime.TableName = string.IsNullOrWhiteSpace(settings.realtime.table) ? "Realtime" : settings.realtime.table.Trim();
 					cumulus.MySqlSettings.RealtimeLimit1Minute = settings.realtime.limit1min;
 					if (cumulus.MySqlSettings.Realtime.TableName != cumulus.RealtimeTable.Name)
 					{
@@ -360,7 +360,7 @@ namespace CumulusMX
 				cumulus.MySqlSettings.Dayfile.Enabled = settings.dayfile.enabled;
 				if (cumulus.MySqlSettings.Dayfile.Enabled)
 				{
-					cumulus.MySqlSettings.Dayfile.TableName = String.IsNullOrWhiteSpace(settings.dayfile.table) ? "Dayfile" : settings.dayfile.table.Trim();
+					cumulus.MySqlSettings.Dayfile.TableName = string.IsNullOrWhiteSpace(settings.dayfile.table) ? "Dayfile" : settings.dayfile.table.Trim();
 					if (cumulus.MySqlSettings.Dayfile.TableName != cumulus.DayfileTable.Name)
 					{
 						cumulus.DayfileTable.Name = cumulus.MySqlSettings.Dayfile.TableName;
@@ -374,7 +374,7 @@ namespace CumulusMX
 					for (var i = 0; i < 10; i++)
 					{
 						if (settings.customseconds.command != null && i < settings.customseconds.command.Length)
-							cumulus.MySqlSettings.CustomSecs.Commands[i] = String.IsNullOrWhiteSpace(settings.customseconds.command[i]) ? null : settings.customseconds.command[i].Trim();
+							cumulus.MySqlSettings.CustomSecs.Commands[i] = string.IsNullOrWhiteSpace(settings.customseconds.command[i]) ? null : settings.customseconds.command[i].Trim();
 						else
 							cumulus.MySqlSettings.CustomSecs.Commands[i] = null;
 					}
@@ -389,7 +389,7 @@ namespace CumulusMX
 					{
 						if (i < settings.customminutes.entries.Length)
 						{
-							cumulus.MySqlSettings.CustomMins.Commands[i] = String.IsNullOrWhiteSpace(settings.customminutes.entries[i].command) ? null : settings.customminutes.entries[i].command.Trim();
+							cumulus.MySqlSettings.CustomMins.Commands[i] = string.IsNullOrWhiteSpace(settings.customminutes.entries[i].command) ? null : settings.customminutes.entries[i].command.Trim();
 							cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] = settings.customminutes.entries[i].intervalidx;
 							cumulus.MySqlSettings.CustomMins.CatchUp[i] = settings.customminutes.entries[i].catchup;
 							if (cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] >= 0 && cumulus.MySqlSettings.CustomMins.IntervalIndexes[i] < Cumulus.FactorsOf60.Length)
@@ -418,7 +418,7 @@ namespace CumulusMX
 					for (var i = 0; i < 10; i++)
 					{
 						if (settings.customrollover.command != null && i < settings.customrollover.command.Length)
-							cumulus.MySqlSettings.CustomRollover.Commands[i] = String.IsNullOrWhiteSpace(settings.customrollover.command[i]) ? null : settings.customrollover.command[i].Trim();
+							cumulus.MySqlSettings.CustomRollover.Commands[i] = string.IsNullOrWhiteSpace(settings.customrollover.command[i]) ? null : settings.customrollover.command[i].Trim();
 						else
 							cumulus.MySqlSettings.CustomRollover.Commands[i] = null;
 					}
@@ -431,7 +431,7 @@ namespace CumulusMX
 					{
 						if (i < settings.customtimed.entries.Length)
 						{
-							cumulus.MySqlSettings.CustomTimed.Commands[i] = String.IsNullOrWhiteSpace(settings.customtimed.entries[i].command) ? null : settings.customtimed.entries[i].command.Trim();
+							cumulus.MySqlSettings.CustomTimed.Commands[i] = string.IsNullOrWhiteSpace(settings.customtimed.entries[i].command) ? null : settings.customtimed.entries[i].command.Trim();
 							cumulus.MySqlSettings.CustomTimed.StartTimes[i] = settings.customtimed.entries[i].starttime;
 							if (settings.customtimed.entries[i].repeat)
 							{
@@ -458,7 +458,7 @@ namespace CumulusMX
 					for (var i = 0; i < 10; i++)
 					{
 						if (i < settings.customstart.command.Length)
-							cumulus.MySqlSettings.CustomStartUp.Commands[i] = String.IsNullOrWhiteSpace(settings.customstart.command[i]) ? null : settings.customstart.command[i].Trim();
+							cumulus.MySqlSettings.CustomStartUp.Commands[i] = string.IsNullOrWhiteSpace(settings.customstart.command[i]) ? null : settings.customstart.command[i].Trim();
 						else
 							cumulus.MySqlSettings.CustomStartUp.Commands[i] = null;
 					}
@@ -482,13 +482,13 @@ namespace CumulusMX
 		private string CreateMySQLTable(string createSQL)
 		{
 			string res;
-			using (MySqlCommand cmd = new MySqlCommand(createSQL, cumulus.MySqlConn))
+			using (var cmd = new MySqlCommand(createSQL, cumulus.MySqlConn))
 			{
 				cumulus.LogMessage($"MySQL Create Table: {createSQL}");
 
 				try
 				{
-					int aff = cmd.ExecuteNonQuery();
+					var aff = cmd.ExecuteNonQuery();
 					cumulus.LogMessage($"MySQL Create Table: {aff} items were affected.");
 					res = "Database table created successfully";
 				}
@@ -505,14 +505,14 @@ namespace CumulusMX
 		private string UpdateMySQLTable(MySqlTable table)
 		{
 			string res;
-			int cnt = 0;
+			var cnt = 0;
 
 			try
 			{
 				// first get a list of the columns the table currenty has
 				var currCols = new List<string>();
-				using (MySqlCommand cmd = new MySqlCommand($"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", cumulus.MySqlConn))
-				using (MySqlDataReader reader = cmd.ExecuteReader())
+				using (var cmd = new MySqlCommand($"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", cumulus.MySqlConn))
+				using (var reader = cmd.ExecuteReader())
 				{
 					if (reader.HasRows)
 					{
@@ -539,7 +539,7 @@ namespace CumulusMX
 					// strip trailing comma
 					update.Length--;
 
-					using MySqlCommand cmd = new MySqlCommand(update.ToString(), cumulus.MySqlConn);
+					using var cmd = new MySqlCommand(update.ToString(), cumulus.MySqlConn);
 					_ = cmd.ExecuteNonQuery();
 					res = $"Added {cnt} columns to {table.Name} table";
 					cumulus.LogMessage($"MySQL Update Table: " + res);

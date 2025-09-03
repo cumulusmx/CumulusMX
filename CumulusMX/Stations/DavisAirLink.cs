@@ -14,11 +14,9 @@ using Swan;
 
 using Tmds.MDns;
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal class DavisAirLink
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		private readonly Cumulus cumulus;
 		private readonly WeatherStation station;
@@ -100,7 +98,7 @@ namespace CumulusMX
 				var hostname = indoor ? cumulus.AirLinkInHostName : cumulus.AirLinkOutHostName;
 				string msg;
 
-				int numOfAirLinks = 0;
+				var numOfAirLinks = 0;
 				if (cumulus.AirLinkInEnabled) numOfAirLinks++;
 				if (cumulus.AirLinkOutEnabled) numOfAirLinks++;
 
@@ -234,7 +232,7 @@ namespace CumulusMX
 				GetAvailableSensors();
 
 				// Now find our corresponding Health sensor LSID
-				healthLsid = GetWlHistoricHealthLsid((this.indoor ? cumulus.airLinkInLsid : cumulus.airLinkOutLsid), 506);
+				healthLsid = GetWlHistoricHealthLsid(this.indoor ? cumulus.airLinkInLsid : cumulus.airLinkOutLsid, 506);
 
 				// Fetch the current health data to pre-polulate web tags
 				GetWlHistoricHealth();
@@ -294,7 +292,7 @@ namespace CumulusMX
 		private async void GetAlCurrent(object source, ElapsedEventArgs e)
 		{
 			string ip;
-			int retry = 1;
+			var retry = 1;
 
 			if (updateInProgress)
 			{
@@ -309,7 +307,7 @@ namespace CumulusMX
 
 			lock (threadSafer)
 			{
-				ip = (indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr);
+				ip = indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr;
 			}
 
 			if (CheckIpValid(ip))
@@ -572,7 +570,6 @@ namespace CumulusMX
 
 
 
-#pragma warning disable S125 // Sections of code should not be commented out
 		/*
 				private void AlReadHistory(object sender, DoWorkEventArgs e)
 				{
@@ -835,7 +832,6 @@ namespace CumulusMX
 				*/
 
 		public void DecodeAlHistoric(int dataType, string json)
-#pragma warning restore S125 // Sections of code should not be commented out
 		{
 			try
 			{
@@ -1084,11 +1080,11 @@ namespace CumulusMX
 
 			var unixDateTime = DateTime.UtcNow.ToUnixTime();
 			var startTime = unixDateTime - WeatherLinkArchiveInterval;
-			long endTime = unixDateTime;
+			var endTime = unixDateTime;
 
 			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {Utils.FromUnixTime(startTime):s} to: {Utils.FromUnixTime(endTime):s}");
 
-			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + stationId);
+			var historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + stationId);
 			historicUrl.Append("?api-key=" + apiKey);
 			historicUrl.Append("&start-timestamp=" + startTime.ToString());
 			historicUrl.Append("&end-timestamp=" + endTime.ToString());
@@ -1687,7 +1683,6 @@ namespace CumulusMX
 
 		private sealed class AlCurrent
 		{
-#pragma warning disable S3459, S1144 // Unassigned members should be removed
 			public AlCurrentData data { get; set; }
 		}
 
@@ -1747,7 +1742,6 @@ namespace CumulusMX
 				Hostname = [];
 			}
 		}
-#pragma warning restore S3459, S1144 // Unassigned members should be removed
 	}
 
 

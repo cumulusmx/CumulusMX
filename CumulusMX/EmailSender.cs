@@ -68,9 +68,7 @@ namespace CumulusMX
 				{
 					if (cumulus.SmtpOptions.IgnoreCertErrors)
 					{
-#pragma warning disable S4830 // Server certificates should be verified during SSL/TLS connections
 						client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-#pragma warning restore S4830 // Server certificates should be verified during SSL/TLS connections
 					}
 
 					if (cumulus.SmtpOptions.Logging)
@@ -158,9 +156,7 @@ namespace CumulusMX
 				{
 					if (cumulus.SmtpOptions.IgnoreCertErrors)
 					{
-#pragma warning disable S4830 // Server certificates should be verified during SSL/TLS connections
 						client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-#pragma warning restore S4830 // Server certificates should be verified during SSL/TLS connections
 					}
 
 					if (cumulus.SmtpOptions.Logging)

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using ServiceStack;
 
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal sealed class EcowittLocalApi(Cumulus cumul) : IDisposable
 	{
@@ -20,7 +20,6 @@ namespace CumulusMX
 
 		public LiveData GetLiveData(CancellationToken token)
 		{
-#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_livedata_info
 			//
 			// Returns an almighty mess! They couldn't have made this any worse if they tried!
@@ -156,11 +155,10 @@ namespace CumulusMX
 			//
 			// Sample:
 			// {"common_list": [{"id": "0x02", "val": "23.5", "unit": "C"}, {"id": "0x07", "val": "57%"}, {"id": "3", "val": "23.5", "unit": "C"}, {"id": "0x03", "val": "14.5", "unit": "C"}, {"id": "0x0B", "val": "9.00 km/h"}, {"id": "0x0C", "val": "9.00 km/h"}, {"id": "0x19", "val": "26.64 km/h"}, {"id": "0x15", "val": "646.57 W/m2"}, {"id": "0x17", "val": "3"}, {"id": "0x0A", "val": "295"}], "rain": [{"id": "0x0D", "val": "0.0 mm"}, {"id": "0x0E", "val": "0.0 mm/Hr"}, {"id": "0x10", "val": "0.0 mm"}, {"id": "0x11", "val": "5.0 mm"}, {"id": "0x12", "val": "27.1 mm"}, {"id": "0x13", "val": "681.4 mm", "battery": "0"}], "piezoRain": [{"id": "0x0D", "val": "0.0 mm"}, {"id": "0x0E", "val": "0.0 mm/Hr"}, {"id": "0x10", "val": "0.0 mm"}, {"id": "0x11", "val": "10.7 mm"}, {"id": "0x12", "val": "32.3 mm"}, {"id": "0x13", "val": "678.3 mm", "battery": "5"}], "wh25": [{"intemp": "26.0", "unit": "C", "inhumi": "56%", "abs": "993.0 hPa", "rel": "1027.4 hPa", "battery": "0"}], "lightning": [{"distance": "12 km", "timestamp": "07/15/2024 20: 46: 42", "count": "0", "battery": "3"}], "co2": [{"temp": "24.4", "unit": "C", "humidity": "62%", "PM25": "0.9", "PM25_RealAQI": "4", "PM25_24HAQI": "7", "PM10": "0.9", "PM10_RealAQI": "1", "PM10_24HAQI": "2", "CO2": "323", "CO2_24H": "348", "battery": "6"}], "ch_pm25": [{"channel": "1", "PM25": "6.0", "PM25_RealAQI": "25", "PM25_24HAQI": "24", "battery": "5"}, {"channel": "2", "PM25": "8.0", "PM25_RealAQI": "33", "PM25_24HAQI": "32", "battery": "5"}], "ch_leak": [{"channel": "2", "name": "", "battery": "4", "status": "Normal"}], "ch_aisle": [{"channel": "1", "name": "", "battery": "0", "temp": "24.9", "unit": "C", "humidity": "61%"}, {"channel": "2", "name": "", "battery": "0", "temp": "25.7", "unit": "C", "humidity": "64%"}, {"channel": "3", "name": "", "battery": "0", "temp": "23.6", "unit": "C", "humidity": "63%"}, {"channel": "4", "name": "", "battery": "0", "temp": "34.9", "unit": "C", "humidity": "83%"}, {"channel": "5", "name": "", "battery": "0", "temp": "-14.4", "unit": "C", "humidity": "None"}, {"channel": "6", "name": "", "battery": "0", "temp": "31.5", "unit": "C", "humidity": "56%"}, {"channel": "7", "name": "", "battery": "0", "temp": "8.2", "unit": "C", "humidity": "50%"}], "ch_soil": [{"channel": "1", "name": "", "battery": "5", "humidity": "56%"}, {"channel": "2", "name": "", "battery": "4", "humidity": "47%"}, {"channel": "3", "name": "", "battery": "5", "humidity": "27%"}, {"channel": "4", "name": "", "battery": "5", "humidity": "50%"}, {"channel": "5", "name": "", "battery": "4", "humidity": "54%"}, {"channel": "6", "name": "", "battery": "4", "humidity": "47%"}], "ch_temp": [{"channel": "1", "name": "", "temp": "21.5", "unit": "C", "battery": "3"}, {"channel": "2", "name": "", "temp": "16.4", "unit": "C", "battery": "5"}], "ch_leaf": [{"channel": "1", "name": "CH1 Leaf Wetness", "humidity": "10%", "battery": "5"}]}
-#pragma warning restore S125 // Sections of code should not be commented out
 
 			string responseBody;
 			int responseCode;
-			int retries = 2;
+			var retries = 2;
 
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
@@ -201,11 +199,11 @@ namespace CumulusMX
 					else if (responseBody.StartsWith('{')) // sanity check
 					{
 						// Convert JSON string to an object
-						LiveData json = responseBody.FromJson<LiveData>();
+						var json = responseBody.FromJson<LiveData>();
 						return json;
 					}
 				}
-				catch (System.Net.Http.HttpRequestException ex)
+				catch (HttpRequestException ex)
 				{
 					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 					{
@@ -259,8 +257,8 @@ namespace CumulusMX
 				await Task.WhenAll(task1, task2);
 
 				// Retrieve the results
-				string result1 = await task1;
-				string result2 = await task2;
+				var result1 = await task1;
+				var result2 = await task2;
 
 				cumulus.LogDataMessage("GetSensorInfo: Page 1 = " + Utils.RemoveCrTabsFromString(result1));
 				cumulus.LogDataMessage("GetSensorInfo: Page 2 = " + Utils.RemoveCrTabsFromString(result2));
@@ -280,7 +278,7 @@ namespace CumulusMX
 
 				return retArr;
 			}
-			catch (System.Net.Http.HttpRequestException ex)
+			catch (HttpRequestException ex)
 			{
 				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
@@ -302,7 +300,6 @@ namespace CumulusMX
 
 		public async Task<string> GetVersion(CancellationToken token)
 		{
-#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_version
 
 			// response
@@ -311,7 +308,6 @@ namespace CumulusMX
 			//		"newVersion":	"0",
 			//		"platform":	"ecowitt"
 			//	}}
-#pragma warning restore S125 // Sections of code should not be commented out
 
 			string responseBody;
 			int responseCode;
@@ -351,7 +347,7 @@ namespace CumulusMX
 					return ver;
 				}
 			}
-			catch (System.Net.Http.HttpRequestException ex)
+			catch (HttpRequestException ex)
 			{
 				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
@@ -368,7 +364,6 @@ namespace CumulusMX
 
 		public static void GetDeviceInfo(CancellationToken token)
 		{
-#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_device_info
 
 			//{
@@ -389,7 +384,6 @@ namespace CumulusMX
 			//	"APpwd":	"",
 			//	"time":	"20"
 			//}
-#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void GetIotList(CancellationToken token)
@@ -465,11 +459,11 @@ namespace CumulusMX
 				else if (responseBody.StartsWith('{')) // sanity check
 				{
 					// Convert JSON string to an object
-					Calibration json = responseBody.FromJson<Calibration>();
+					var json = responseBody.FromJson<Calibration>();
 					return json;
 				}
 			}
-			catch (System.Net.Http.HttpRequestException ex)
+			catch (HttpRequestException ex)
 			{
 				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
@@ -496,7 +490,6 @@ namespace CumulusMX
 
 		public static void GetUnits(CancellationToken token)
 		{
-#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_units_info
 
 			// response
@@ -507,7 +500,6 @@ namespace CumulusMX
 			//	"rain": "0",             0=mm 1=in
 			//	"light": "1"             0=kLux=? 1=W/m2 2=kfc
 			//}
-#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void SetUnits(CancellationToken token)
@@ -522,7 +514,6 @@ namespace CumulusMX
 
 		public static void SetLogin(string password)
 		{
-#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/set_login_info
 
 			// POST
@@ -536,12 +527,10 @@ namespace CumulusMX
 			//	"online":	"0",
 			//	"msg":	"success"
 			//}
-#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void GetRainTotals(CancellationToken token)
 		{
-#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/get_rain_totals
 
 			// response
@@ -570,12 +559,10 @@ namespace CumulusMX
 			//}
 
 			// response = 200 - OK
-#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public static void SetRainTotals(CancellationToken token)
 		{
-#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/set_rain_totals
 
 			// POST
@@ -592,12 +579,10 @@ namespace CumulusMX
 			//}
 
 			// response = 200 - OK
-#pragma warning restore S125 // Sections of code should not be commented out
 		}
 
 		public async Task<bool> CheckForUpgrade(CancellationToken token)
 		{
-#pragma warning disable S125 // Sections of code should not be commented out
 			// http://ip-address/upgrade_process
 
 			// POST
@@ -608,7 +593,6 @@ namespace CumulusMX
 			//	"is_new": false,
 			//	"msg": "It's the latest version\r\nCurrent version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries."
 			//}
-#pragma warning restore S125 // Sections of code should not be commented out
 
 			string responseBody;
 			int responseCode;
@@ -660,7 +644,7 @@ namespace CumulusMX
 					return result.is_new;
 				}
 			}
-			catch (System.Net.Http.HttpRequestException ex)
+			catch (HttpRequestException ex)
 			{
 				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 				{
@@ -730,7 +714,7 @@ namespace CumulusMX
 
 			string responseBody;
 			int responseCode;
-			int retries = 1;
+			var retries = 1;
 
 			//responseBody = "{\"info\":{\"Name\":\"     \",\"Type\":\"SDHC/SDXC\",\"Speed\":\"20 MHz\",\"Size\":\"30223 MB\",\"Interval\":\"1\"},\"file_list\":[{\n\t\t\"name\":\t\"202502B.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"71 KB\"\n\t}, {\n\t\t\"name\":\t\"202502Allsensors_A.csv\",\n\t\t\"type\":\t\"file\",\n\t\t\"size\":\t\"202 KB\"\n\t}]}"
 			//return responseBody.FromJson<SdCard>()
@@ -768,7 +752,7 @@ namespace CumulusMX
 					}
 
 				}
-				catch (System.Net.Http.HttpRequestException ex)
+				catch (HttpRequestException ex)
 				{
 					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 					{
@@ -849,7 +833,7 @@ namespace CumulusMX
 						break;
 					}
 				}
-				catch (System.Net.Http.HttpRequestException ex)
+				catch (HttpRequestException ex)
 				{
 					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 					{
@@ -882,7 +866,7 @@ namespace CumulusMX
 				return null;
 			}
 
-			cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {(responseBody.Length / 1024)} KB");
+			cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {responseBody.Length / 1024} KB");
 
 			try {
 				var lines = new List<string>(responseBody
@@ -928,7 +912,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					if ((DateTime.TryParseExact(lastLine[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt < startTime))
+					if (DateTime.TryParseExact(lastLine[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt < startTime)
 					{
 						cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any matching lines");
 						return null;
@@ -1024,14 +1008,14 @@ namespace CumulusMX
 
 		private static string decodePassword(string base64EncodedData)
 		{
-			var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
-			return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+			var base64EncodedBytes = Convert.FromBase64String(base64EncodedData);
+			return Encoding.UTF8.GetString(base64EncodedBytes);
 		}
 
 		private static string encodePassword(string plainText)
 		{
-			var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-			return System.Convert.ToBase64String(plainTextBytes);
+			var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
+			return Convert.ToBase64String(plainTextBytes);
 		}
 
 
@@ -1059,7 +1043,7 @@ namespace CumulusMX
 				{
 					if (val.EndsWith('%'))
 						val = val[0..^1];
-					return int.TryParse(val, out int result) ? result : null;
+					return int.TryParse(val, out var result) ? result : null;
 				}
 			}
 
@@ -1073,7 +1057,7 @@ namespace CumulusMX
 						unit = temp[1];
 						val = temp[0];
 					}
-					return double.TryParse(val, invNum, out double result) ? result : null;
+					return double.TryParse(val, invNum, out var result) ? result : null;
 				}
 			}
 		}
@@ -1090,7 +1074,7 @@ namespace CumulusMX
 			{
 				get
 				{
-					return int.TryParse(humidity[0..^1], out int result) ? result : null;
+					return int.TryParse(humidity[0..^1], out var result) ? result : null;
 				}
 			}
 		}
@@ -1111,7 +1095,7 @@ namespace CumulusMX
 			{
 				get
 				{
-					return int.TryParse(inhumi[0..^1], out int result) ? result : null;
+					return int.TryParse(inhumi[0..^1], out var result) ? result : null;
 				}
 			}
 		}
@@ -1128,7 +1112,7 @@ namespace CumulusMX
 				get
 				{
 					var temp = distance.Split(' ');
-					return double.TryParse(temp[0], invNum, out double result) ? result : null;
+					return double.TryParse(temp[0], invNum, out var result) ? result : null;
 				}
 			}
 
@@ -1171,7 +1155,7 @@ namespace CumulusMX
 			{
 				get
 				{
-					return int.TryParse(humidity[0..^1], out int result) ? result : null;
+					return int.TryParse(humidity[0..^1], out var result) ? result : null;
 				}
 			}
 		}
@@ -1208,7 +1192,7 @@ namespace CumulusMX
 				get
 				{
 					var temp = air.Split(' ');
-					return decimal.TryParse(temp[0], invNum, out decimal result) ? result : null;
+					return decimal.TryParse(temp[0], invNum, out var result) ? result : null;
 				}
 			}
 
@@ -1217,7 +1201,7 @@ namespace CumulusMX
 				get
 				{
 					var temp = depth.Split(' ');
-					return decimal.TryParse(temp[0], invNum, out decimal result) ? result : null;
+					return decimal.TryParse(temp[0], invNum, out var result) ? result : null;
 				}
 			}
 		}
@@ -1334,10 +1318,10 @@ namespace CumulusMX
 				var data = line.Split(',');
 
 				Time = DateTime.ParseExact(data[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
-				IndoorTemperature = double.TryParse(data[1], invNum, out double resultDbl) ? resultDbl : null;
-				IndoorHumidity = int.TryParse(data[2], out int result) ? result : null;
+				IndoorTemperature = double.TryParse(data[1], invNum, out var resultDbl) ? resultDbl : null;
+				IndoorHumidity = int.TryParse(data[2], out var result) ? result : null;
 				Temperature = double.TryParse(data[3], invNum, out resultDbl) ? resultDbl : null;
-				Humidity = int.TryParse(data[4], out int resultInt) ? resultInt : null;
+				Humidity = int.TryParse(data[4], out var resultInt) ? resultInt : null;
 				DewPoint = double.TryParse(data[5], invNum, out resultDbl) ? resultDbl : null;
 				FeelsLike = double.TryParse(data[6], invNum, out resultDbl) ? resultDbl : null;
 				Wind = double.TryParse(data[7], invNum, out resultDbl) ? resultDbl : null;
@@ -1349,7 +1333,7 @@ namespace CumulusMX
 				UVIndex = double.TryParse(data[13], invNum, out resultDbl) ? resultDbl : null;
 				ConsoleBattery = double.TryParse(data[14], invNum, out resultDbl) ? resultDbl : null;
 				ExternalSupply = double.TryParse(data[15], invNum, out resultDbl) ? resultDbl : null;
-				Charge = bool.TryParse(data[16], out bool resultBool) ? resultBool : null;
+				Charge = bool.TryParse(data[16], out var resultBool) ? resultBool : null;
 				HourlyRain = double.TryParse(data[17], invNum, out resultDbl) ? resultDbl : null;
 				EventRain = double.TryParse(data[18], invNum, out resultDbl) ? resultDbl : null;
 				DailyRain = double.TryParse(data[19], invNum, out resultDbl) ? resultDbl : null;
@@ -1397,7 +1381,7 @@ namespace CumulusMX
 				double resultDbl;
 
 				Time = DateTime.ParseExact(data[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
-				for (int i = 0; i < 8; i++)
+				for (var i = 0; i < 8; i++)
 				{
 					TempHum[i] = new ExtraThSensor
 					{
@@ -1408,9 +1392,9 @@ namespace CumulusMX
 					};
 				}
 
-				for (int i = 0; i < 8; i++)
+				for (var i = 0; i < 8; i++)
 				{
-					Wh35Hum[i] = int.TryParse(data[33 + i], out int result) ? result : null;
+					Wh35Hum[i] = int.TryParse(data[33 + i], out var result) ? result : null;
 				}
 
 				LightningCount = int.TryParse(data[41], out resultInt) ? resultInt : null;
@@ -1427,22 +1411,22 @@ namespace CumulusMX
 					PM4 = double.TryParse(data[49], invNum, out resultDbl) ? resultDbl : null
 				};
 
-				for (int i = 0; i < 16; i++)
+				for (var i = 0; i < 16; i++)
 				{
 					SoilMoisture[i] = int.TryParse(data[50 + i], out resultInt) ? resultInt : null;
 				}
 
-				for (int i = 0; i < 4; i++)
+				for (var i = 0; i < 4; i++)
 				{
 					Water[i] = data[66 + i];
 				}
 
-				for (int i = 0; i < 4; i++)
+				for (var i = 0; i < 4; i++)
 				{
 					Pm25[i] = double.TryParse(data[70 + i], invNum, out resultDbl) ? resultDbl : null;
 				}
 
-				for (int i = 0; i < 8; i++)
+				for (var i = 0; i < 8; i++)
 				{
 					Wh34Temp[i] = double.TryParse(data[74 + i], invNum, out resultDbl) ? resultDbl : null;
 				}

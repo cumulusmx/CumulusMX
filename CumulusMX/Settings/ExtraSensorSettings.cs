@@ -7,9 +7,9 @@ using EmbedIO;
 
 using ServiceStack;
 
-using static CumulusMX.StationSettings;
+using static CumulusMX.Settings.StationSettings;
 
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	public class ExtraSensorSettings(Cumulus cumulus)
 	{
@@ -49,7 +49,7 @@ namespace CumulusMX
 				outdoor = outdoor
 			};
 
-			var ecowittwn34map = new StationSettings.JsonEcowittMappings
+			var ecowittwn34map = new JsonEcowittMappings
 			{
 				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
 				primaryIndoorTHsensor = cumulus.Gw1000PrimaryIndoorTHSensor,
@@ -97,11 +97,11 @@ namespace CumulusMX
 			{
 				if (!string.IsNullOrEmpty(cumulus.EcowittExtraForwarders[i]))
 				{
-					ecowitt.forwarders.forward.Add(new StationSettings.JsonEcowittForwardList() { url = cumulus.EcowittExtraForwarders[i] });
+					ecowitt.forwarders.forward.Add(new JsonEcowittForwardList() { url = cumulus.EcowittExtraForwarders[i] });
 				}
 			}
 
-			var ecowittapi = new StationSettings.JsonEcowittApi
+			var ecowittapi = new JsonEcowittApi
 			{
 				applicationkey = cumulus.EcowittApplicationKey,
 				userkey = cumulus.EcowittUserApiKey,
@@ -714,7 +714,7 @@ namespace CumulusMX
 			public int extraStation { get; set; }
 			public JsonEcowitt ecowitt { get; set; }
 			public JsonAmbient ambient { get; set; }
-			public StationSettings.JsonEcowittApi ecowittapi { get; set; }
+			public JsonEcowittApi ecowittapi { get; set; }
 			public JsonJson jsonstation { get; set; }
 		}
 
@@ -740,7 +740,7 @@ namespace CumulusMX
 			public string gwaddr { get; set; }
 			public string localaddr { get; set; }
 			public int interval { get; set; }
-			public StationSettings.JsonEcowittMappings mappings { get; set; }
+			public JsonEcowittMappings mappings { get; set; }
 			public JsonForwarders forwarders { get; set; }
 		}
 
@@ -760,7 +760,7 @@ namespace CumulusMX
 		private sealed class JsonForwarders
 		{
 			public bool usemain { get; set; }
-			public List<StationSettings.JsonEcowittForwardList> forward { get; set; }
+			public List<JsonEcowittForwardList> forward { get; set; }
 		}
 
 		private sealed class JsonBlakeLarsen

@@ -5,9 +5,7 @@ using Timer = System.Timers.Timer;
 
 namespace CumulusMX
 {
-#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 	internal abstract partial class WeatherStation
-#pragma warning restore CA1001 // Types that own disposable fields should be disposable
 	{
 		public class CommTimer : IDisposable
 		{

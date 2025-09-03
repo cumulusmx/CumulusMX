@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace CumulusMX
+namespace CumulusMX.Stations
 {
 	internal class EcowittCloudStation : WeatherStation
 	{
@@ -241,7 +241,7 @@ namespace CumulusMX
 		{
 			Cumulus.SyncInit.Wait();
 
-			int archiveRun = 0;
+			var archiveRun = 0;
 
 			try
 			{
@@ -263,7 +263,7 @@ namespace CumulusMX
 
 		public override string GetEcowittCameraUrl()
 		{
-			if ((cumulus.ExtraSensorUseCamera ^ mainStation))
+			if (cumulus.ExtraSensorUseCamera ^ mainStation)
 			{
 				if (string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 				{
@@ -288,7 +288,7 @@ namespace CumulusMX
 
 		public override string GetEcowittVideoUrl()
 		{
-			if ((cumulus.ExtraSensorUseCamera ^ mainStation))
+			if (cumulus.ExtraSensorUseCamera ^ mainStation)
 			{
 				if (string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
 				{
@@ -332,7 +332,7 @@ namespace CumulusMX
 
 		private void ProcessCurrentData(EcowittApi.CurrentDataData data, CancellationToken token)
 		{
-			bool batteryLow = false;
+			var batteryLow = false;
 			var thisStation = mainStation ? this : station;
 			token.ThrowIfCancellationRequested();
 
@@ -1223,24 +1223,24 @@ namespace CumulusMX
 			if (data.pm25_aqi_combo != null)
 			{
 				station.CO2_pm2p5 = data.pm25_aqi_combo.pm25.value;
-				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
+				station.CO2_pm2p5_aqi = station.GetAqi(AqMeasure.pm2p5, station.CO2_pm2p5);
 				if (data.pm25_aqi_combo.AqiAvg24h != null)
 				{
 					// kludge, convert US EPA to average PM2.5
 					station.CO2_pm2p5_24h = AirQualityIndices.US_EPApm2p5toPm(data.pm25_aqi_combo.AqiAvg24h.value);
-					station.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5_24h);
+					station.CO2_pm2p5_24h_aqi = station.GetAqi(AqMeasure.pm2p5, station.CO2_pm2p5_24h);
 				}
 			}
 
 			if (data.pm10_aqi_combo != null)
 			{
 				station.CO2_pm10 = data.pm10_aqi_combo.pm10.value;
-				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
+				station.CO2_pm10_aqi = station.GetAqi(AqMeasure.pm10, station.CO2_pm10);
 				if (data.pm10_aqi_combo.AqiAvg24h != null)
 				{
 					// kludge, convert US EPA to average PM10
 					station.CO2_pm10_24h = AirQualityIndices.US_EPApm10toPm(data.pm10_aqi_combo.AqiAvg24h.value);
-					station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10_24h);
+					station.CO2_pm10_24h_aqi = station.GetAqi(AqMeasure.pm10, station.CO2_pm10_24h);
 				}
 			}
 
@@ -1305,7 +1305,7 @@ namespace CumulusMX
 			{
 				if (data.ch_lds1.air_ch1 != null)
 				{
-					decimal? dist = data.ch_lds1.air_ch1.unit switch
+					var dist = data.ch_lds1.air_ch1.unit switch
 					{
 						"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value),
 						"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value / 10),
@@ -1317,7 +1317,7 @@ namespace CumulusMX
 				}
 				if (data.ch_lds1.depth_ch1 != null)
 				{
-					decimal? dist = data.ch_lds1.depth_ch1.unit switch
+					var dist = data.ch_lds1.depth_ch1.unit switch
 					{
 						"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value),
 						"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value),
@@ -1331,7 +1331,7 @@ namespace CumulusMX
 				{
 					if (data.ch_lds2.air_ch2 != null)
 					{
-						decimal? dist = data.ch_lds2.air_ch2.unit switch
+						var dist = data.ch_lds2.air_ch2.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds2.air_ch2.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.air_ch2.value.Value / 10),
@@ -1343,7 +1343,7 @@ namespace CumulusMX
 					}
 					if (data.ch_lds2.depth_ch2 != null)
 					{
-						decimal? dist = data.ch_lds2.depth_ch2.unit switch
+						var dist = data.ch_lds2.depth_ch2.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds2.depth_ch2.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.depth_ch2.value.Value / 10),
@@ -1359,7 +1359,7 @@ namespace CumulusMX
 				{
 					if (data.ch_lds3.air_ch3 != null)
 					{
-						decimal? dist = data.ch_lds3.air_ch3.unit switch
+						var dist = data.ch_lds3.air_ch3.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds3.air_ch3.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.air_ch3.value.Value / 10),
@@ -1371,7 +1371,7 @@ namespace CumulusMX
 					}
 					if (data.ch_lds3.depth_ch3 != null)
 					{
-						decimal? dist = data.ch_lds3.depth_ch3.unit switch
+						var dist = data.ch_lds3.depth_ch3.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds3.depth_ch3.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.depth_ch3.value.Value / 10),
@@ -1387,7 +1387,7 @@ namespace CumulusMX
 				{
 					if (data.ch_lds4.air_ch4 != null)
 					{
-						decimal? dist = data.ch_lds4.air_ch4.unit switch
+						var dist = data.ch_lds4.air_ch4.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds4.air_ch4.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.air_ch4.value.Value / 10),
@@ -1399,7 +1399,7 @@ namespace CumulusMX
 					}
 					if (data.ch_lds4.depth_ch4 != null)
 					{
-						decimal? dist = data.ch_lds4.depth_ch4.unit switch
+						var dist = data.ch_lds4.depth_ch4.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds4.depth_ch4.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.depth_ch4.value.Value / 10),
@@ -1439,12 +1439,12 @@ namespace CumulusMX
 				if (data.battery.ws6006_console != null && data.battery.ws6006_console.value < 15)               // %  val ???
 				{
 					lowBatt = true;
-					LowBatteryDevices.Add("WS6006=" + (data.battery.ws6006_console.value / 10) + "V");
+					LowBatteryDevices.Add("WS6006=" + data.battery.ws6006_console.value / 10 + "V");
 				}
 				if (data.battery.console != null && data.battery.console.value < 2.4)                            // volts  val ???
 				{
 					lowBatt = true;
-					LowBatteryDevices.Add("Console=" + (data.battery.console.value) + "V");
+					LowBatteryDevices.Add("Console=" + data.battery.console.value + "V");
 				}
 				if (data.battery.outdoor_t_rh_sensor != null && data.battery.outdoor_t_rh_sensor.value == 1)     // flag
 				{

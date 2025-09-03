@@ -6,6 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
+using CumulusMX.Settings;
+using CumulusMX.Stations;
+
 using EmbedIO;
 using EmbedIO.Routing;
 using EmbedIO.WebApi;
@@ -42,7 +45,6 @@ namespace CumulusMX
 		internal static JsonStation stationJson { get; set; }
 		internal static JsonStation stationJsonExtra { get; set; }
 		private static readonly char[] separator = [':'];
-		private static string localesPath = Path.Combine(System.AppContext.BaseDirectory, "locales", "dashboard");
 		private static string htmlRootPath = Path.Combine(System.AppContext.BaseDirectory, "interface");
 
 
