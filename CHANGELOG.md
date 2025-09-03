@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4118\]][23] - 2025-09-02
+## [4.6.0 \[b4118\]][23] - 2025-09-03
 
 ### New
 
@@ -27,8 +27,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		- There is one strings file per language
 	- The settings strings are in `/locales/dashboard/json/{language}`
 		- There is a folder per language, and a language strings files for each settings file
-	- Change the display language in Program Settings -> Culture Overrides -> Display Language. Only those languages with translation files will be selectable
-- New option to force the am/pm time designators to lower case. See Program Settings -> Culture Overrides
+	- Change the display language in *Program Settings > Culture Overrides > Display Language*. Only those languages with translation files will be selectable
+- New option to force the am/pm time designators to lower case. See *Program Settings > Culture Overrides > AM/PM Format*
 - The MySQL settings now has an advanced section where you can force the SSL mode and the TLS versions to use for connections
 - Month web tags `<#MonthTempAvg>`, `<#MonthRainfall>`, `<#MonthDryDays>`, `<#MonthWetDays>` will now accept a relative month parameter `r=-N` or `relmon=-N` as an alternative to a specific year and month
 	Where: 0 = current month, -1 = last month etc.
@@ -60,7 +60,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		```
 
 	- You must also use a version of Highcharts later than v11.2.0 - Cumulus MX now uses v12.3.0
-- There is a new option in Program Settings -> Culture Overrides to manually change the time zone used in the charts
+- There is a new option in *Station Settings > General Settings > Location* to manually change the time zone used in the charts
 - Added Davis Cloud API UUID option to the Configuration Wizard
 - Add a retry to downloading Ecowitt SD card files on error or if returned file is empty
 - The FTP log files have changed naming convention (to work better with the new version of NLog)
@@ -83,11 +83,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Improvements to the dashboard Select-a-Period graphing
 	- This now uses the meteorological day you have defined, and the pm2.5/ pm10 values are now pulled from the log files rather than the time restricted recent data
 - Adds a default User-Agent header to all HTTP requests of "CumulusMX/4.6.0.4107" - or whatever the current version/build is
-- The dashboard charts now honour the time format setting in Settings -> Program Settings -> Culture Over-rides
+- The dashboard charts now honour the time format setting in *Program Settings > Culture Over-rides*
 	- The new default for the charts is to display in the web browsers TZ settings format
 - The system uptime is now obtained differently; this allows the removal of the System.Diagnostics.PerformanceCounter package
 - The Dashboard screen now fully reflects your time presentation choices in Cumulus
 - The MySQL updates now use a single persistent connection rather than reconnecting for each upload
+- A minor change to an error message format in `upload.php`
 
 ### Fixed
 
@@ -219,7 +220,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Locale Strings value for web tag elapsed time, applies to `<#SystemUpTime>` and `<#ProgramUpTime>` web tags
 - Locale Strings value for web tag times, applies to 60+ web tags
 	- By default, they output the time as 24-hour HH:mm, you can now override this and use 12-hour format as the default
-- New Program *Options > General Options* setting to disable the use of WebSockets in the dashboard and use HTTP polling instead
+- New *Program Settings > General Options* setting to disable the use of WebSockets in the dashboard and use HTTP polling instead
 	- Previously this required manual editing of the Dashboard, Now, and Gauges page scripts
 - Ecowitt Cloud Station type now reports individual low battery sensors to the low battery array
 - Ecowitt Cloud Station now has an additional option to specify the expected data update rate
@@ -525,7 +526,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Adds Rain Week to the dashboard
 	- There is also a new web tag `<#rweek>`
-	- Configure the start-of-week day in `Station Settings > Rainfall`
+	- Configure the start-of-week day in *Station Settings > Rainfall*
 - Added displaying snowfall data on the dashboard and default web site
 	- Enable display of snow data on the dashboard, default web site, and graphs in `Display Options`
 	- New web tag `<#Option_showSnow>`
@@ -569,7 +570,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- A sample file is included in the web folder for you to edit `web/BlueskyAlarmSample.txt`
 	- You can include the same features as the regular template above
 	- In addition you can include the text `|IncludeAlarmMessage|` and this will include at the point the message that would be sent via email. These messages are editable
-		in the `Settings > Locale Strings` page
+		in the *Settings > Locale Strings* page
 	- **Note**: You must enable Bluesky and enter your Bluesky credentials in the Third Party Uploads settings, but you need not configure any Interval or Timed posts.
 - Adds support for the new Ecowitt Laser Distance Sensors to Ecowitt HTTP API and HTTP Station (Ecowitt) stations
 	- Adds new web tags `<#LaserDist1> - <#LaserDist4>` and `<#LaserDepth1> - <#LaserDepth4>`
@@ -645,7 +646,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The `Daily Data Query` page on the dashboard has also been extended to support "on this day" queries
 - Ecowitt TCP API station now supports the LowBatteryList web tag
 - Adds Brotli compression support to PHP uploads
-	- Enabled via `Internet Settings > Web/Upload Site > Advanced Settings`
+	- Enabled via *Internet Settings > Web/Upload Site > Advanced Settings*
 	- Using this option also requires PHP support for Brotli compression on your web server. Check this available before enabling this option
 	- Also requires the latest version of `upload.php` to be uploaded to your web server
 - Two new web tags for wind speeds. These allow you to extract the average and gust speeds for custom intervals. If for example you have 10 minutes defined as your average and gust speed intervals in Cumulus,
@@ -657,7 +658,7 @@ but you also want to see the two minute values then you can use these new tags
 ### Changed
 
 - The AQI web tag now returns a decimal value when using the Canada AQHI calculation<br>
-	To return to the previous behaviour of using integer values, set your Air Quality decimal places to zero in `Station Settings > General Settings > Units > Advanced Options`
+	To return to the previous behaviour of using integer values, set your Air Quality decimal places to zero in *Station Settings > General Settings > Units > Advanced Options*
 - The web tag `<#CO2_pm10_24_aqih>` has been corrected to `<#CO2_pm10_24h_aqi>`<br>
 	If you use this tag in any of your files please amend your files to match the corrected tag name
 - Clean-up of the AI2 pages for Interval and Daily Data viewers
@@ -690,9 +691,9 @@ but you also want to see the two minute values then you can use these new tags
 	- Ecowitt Local HTTP API is an alternative the local TCP API used by the gateways and some stations
 	- Currently it is slightly less capable than the TCP API, but does provide all the sensor values
 	- Allows direct support of Ecowitt stations that do not support the TCP API and currently have to use the Custom HTTP Server mode
-- Exposes the UseDataLogger setting in `Station Settings > Options > Advanced`
-- Implements a new data viewer where you can select and view historic data from the monthly logs for a given period, for a set of data values. See: `Data logs > Interval Data Viewer`
-- Implements a new data viewer where you can select and view historic daily data from the day file for a given period, for a set of data values. See: `Data logs > Daily Data Viewer`
+- Exposes the UseDataLogger setting in *Station Settings > Options > Advanced*
+- Implements a new data viewer where you can select and view historic data from the monthly logs for a given period, for a set of data values. See: *Data logs > Interval Data Viewer*
+- Implements a new data viewer where you can select and view historic daily data from the day file for a given period, for a set of data values. See: *Data logs > Daily Data Viewer*
 - New web tag `<#LowBatteryList>` which returns the list of sensors/transmitters that have low batteries
 	- The format is a comma separated list of sensor/transmitter IDs and battery states
 	- Eg. "wh80-&lt;state&gt;,wh41ch1-&lt;state&gt;,wh41ch2-&lt;state&gt;"
@@ -706,7 +707,7 @@ but you also want to see the two minute values then you can use these new tags
 	- NewRecordAlarm somewhat replicates the existing #newrecord web tag but is also controlled by the alarm being enable/disabled
 	- NewRecordAlarmMessage displays the last new record alarm text message
 - Old MD5 hash files are now deleted on startup
-- New data viewer where you can query daily data in all sorts of flexible ways. See `Records > Daily Data Query`
+- New data viewer where you can query daily data in all sorts of flexible ways. See *Records > Daily Data Query*
 - New web tag `<#DayFileQuery>` which allows flexible querying of the day file.
 	- Please read the separate documention (`/MXutils/QueryDayFile.md`) for more details
 - Added a script `/MXutils/linux/Fix_FineOffset_USB.sh` to fix Fine Offset USB stations

@@ -67,7 +67,6 @@ namespace CumulusMX
 			var culture = new JsonProgramSettingsCultureOptions()
 			{
 				displayLang = cumulus.ProgramOptions.DisplayLanguage,
-				timeZone = cumulus.ProgramOptions.TimeZoneId,
 				removespacefromdateseparator = cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator,
 				timeFormat = cumulus.ProgramOptions.TimeFormat,
 				amPmLowerCase = cumulus.ProgramOptions.TimeAmPmLowerCase
@@ -155,7 +154,6 @@ namespace CumulusMX
 
 				cumulus.ProgramOptions.DisplayLanguage = settings.culture.displayLang;
 
-				cumulus.ProgramOptions.TimeZoneId = settings.culture.timeZone;
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
 				if (settings.culture.amPmLowerCase != cumulus.ProgramOptions.TimeAmPmLowerCase)
 				{
@@ -260,7 +258,6 @@ namespace CumulusMX
 	public class JsonProgramSettingsCultureOptions
 	{
 		public string displayLang { get; set; }
-		public string timeZone { get; set; }
 		public bool removespacefromdateseparator { get; set; }
 		public string timeFormat { get; set; }
 		public bool amPmLowerCase { get; set; }

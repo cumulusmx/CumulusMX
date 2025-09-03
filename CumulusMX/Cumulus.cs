@@ -3892,12 +3892,6 @@ namespace CumulusMX
 			}
 			ProgramOptions.DisplayLanguage = ini.GetValue("Program", "DisplayLang", defaultLang);
 
-			if (!ini.ValueExists("Program", "TimeZone"))
-			{
-				ini.SetValue("Program", "TimeZone", Utils.GetTimeZoneId());
-				rewriteRequired = true;
-			}
-			ProgramOptions.TimeZoneId = ini.GetValue("Program", "TimeZone", Utils.GetTimeZoneId());
 			ProgramOptions.TimeFormat = ini.GetValue("Program", "TimeFormat", "t");
 			if (ProgramOptions.TimeFormat == "t")
 				ProgramOptions.TimeFormatLong = "T";
@@ -4022,6 +4016,13 @@ namespace CumulusMX
 
 			Altitude = ini.GetValue("Station", "Altitude", 0.0);
 			AltitudeInFeet = ini.GetValue("Station", "AltitudeInFeet", false);
+
+			if (!ini.ValueExists("Station", "TimeZone"))
+			{
+				ini.SetValue("Station", "TimeZone", Utils.GetTimeZoneId());
+				rewriteRequired = true;
+			}
+			StationOptions.TimeZoneId = ini.GetValue("Program", "TimeZone", Utils.GetTimeZoneId());
 
 			StationOptions.Humidity98Fix = ini.GetValue("Station", "Humidity98Fix", false);
 			StationOptions.CalcuateAverageWindSpeed = ini.GetValue("Station", "Wind10MinAverage", false);
@@ -6109,7 +6110,6 @@ namespace CumulusMX
 			ini.SetValue("Program", "DataStoppedMins", ProgramOptions.DataStoppedMins);
 			ini.SetValue("Program", "DisplayLang", ProgramOptions.DisplayLanguage);
 
-			ini.SetValue("Program", "TimeZone", ProgramOptions.TimeZoneId);
 			ini.SetValue("Program", "TimeFormat", ProgramOptions.TimeFormat);
 			ini.SetValue("Program", "TimeAmPmLowerCase", ProgramOptions.TimeAmPmLowerCase);
 			ini.SetValue("Culture", "RemoveSpaceFromDateSeparator", ProgramOptions.Culture.RemoveSpaceFromDateSeparator);
@@ -6135,6 +6135,7 @@ namespace CumulusMX
 			ini.SetValue("Station", "LonTxt", LonTxt);
 			ini.SetValue("Station", "Altitude", Altitude);
 			ini.SetValue("Station", "AltitudeInFeet", AltitudeInFeet);
+			ini.SetValue("Station", "TimeZone", StationOptions.TimeZoneId);
 			ini.SetValue("Station", "Humidity98Fix", StationOptions.Humidity98Fix);
 			ini.SetValue("Station", "Wind10MinAverage", StationOptions.CalcuateAverageWindSpeed);
 			ini.SetValue("Station", "UseSpeedForAvgCalc", StationOptions.UseSpeedForAvgCalc);
@@ -14967,7 +14968,6 @@ namespace CumulusMX
 		public string TimeFormat { get; set; }
 		public string TimeFormatLong { get; set; }
 		public bool TimeAmPmLowerCase { get; set; }
-		public string TimeZoneId { get; set; }
 		public bool EncryptedCreds { get; set; }
 		public bool SecureSettings { get; set; }
 		public string SettingsUsername { get; set; }
@@ -15046,6 +15046,7 @@ namespace CumulusMX
 		public int LeafWetnessIsRainingIdx { get; set; }
 		public double LeafWetnessIsRainingThrsh { get; set; }
 		public bool UseDataLogger { get; set; }
+		public string TimeZoneId { get; set; }
 	}
 
 	public class FtpOptionsClass

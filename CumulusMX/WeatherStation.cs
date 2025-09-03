@@ -13893,7 +13893,7 @@ namespace CumulusMX
 
 			var json = new StringBuilder(200);
 			json.Append('{');
-			json.Append($"\"tz\":\"{cumulus.ProgramOptions.TimeZoneId}\",");
+			json.Append($"\"tz\":\"{cumulus.StationOptions.TimeZoneId}\",");
 			json.Append($"\"timeformat\":\"{timeformat}\",");
 			json.Append($"\"temp\":{{\"units\":\"{cumulus.Units.TempText[1]}\",\"decimals\":{cumulus.TempDPlaces}}},");
 			json.Append($"\"wind\":{{\"units\":\"{cumulus.Units.WindText}\",\"avgdecimals\":{cumulus.WindAvgDPlaces},\"gustdecimals\":{cumulus.WindDPlaces},\"rununits\":\"{cumulus.Units.WindRunText}\"}},");

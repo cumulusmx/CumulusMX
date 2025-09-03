@@ -15,7 +15,7 @@ namespace CumulusMX
 
 		private const int fieldCount = 20;
 		private readonly List<string> Data;
-		private string[] Header;
+		//private string[] Header;
 		private readonly Cumulus cumulus;
 		private DateTime lastLogTime = DateTime.MinValue;
 		private readonly Dictionary<string, int> FieldIndex = [];

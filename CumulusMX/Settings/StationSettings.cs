@@ -263,7 +263,8 @@ namespace CumulusMX
 				description = cumulus.LocationDesc,
 				Latitude = latitude,
 				Longitude = longitude,
-				sitename = cumulus.LocationName
+				sitename = cumulus.LocationName,
+				timeZone = cumulus.StationOptions.TimeZoneId
 			};
 
 			var forecast = new JsonForecast()
@@ -707,6 +708,8 @@ namespace CumulusMX
 
 					cumulus.LonTxt = string.Format("{0}&nbsp;{1:D2}&deg;&nbsp;{2:D2}&#39;&nbsp;{3:D2}&quot;", eastWest, settings.general.Location.Longitude.degrees, settings.general.Location.Longitude.minutes,
 						settings.general.Location.Longitude.seconds);
+
+					cumulus.StationOptions.TimeZoneId = settings.general.Location.timeZone;
 				}
 				catch (Exception ex)
 				{
@@ -1955,6 +1958,7 @@ namespace CumulusMX
 			public string altitudeunit { get; set; }
 			public string sitename { get; set; }
 			public string description { get; set; }
+			public string timeZone { get; set; }
 		}
 
 		private sealed class JsonForecast
