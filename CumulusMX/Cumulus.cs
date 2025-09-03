@@ -3885,8 +3885,18 @@ namespace CumulusMX
 
 			// get the default display language
 			var defaultLang = DashboardLocalisationManager.ThisLocaleAvailable(CultureInfo.CurrentCulture.TwoLetterISOLanguageName) ? CultureInfo.CurrentCulture.TwoLetterISOLanguageName : "en";
+			if (!ini.ValueExists("Program", "DisplayLang"))
+			{
+				ini.SetValue("Program", "DisplayLang", defaultLang);
+				rewriteRequired = true;
+			}
 			ProgramOptions.DisplayLanguage = ini.GetValue("Program", "DisplayLang", defaultLang);
 
+			if (!ini.ValueExists("Program", "TimeZone"))
+			{
+				ini.SetValue("Program", "TimeZone", Utils.GetTimeZoneId());
+				rewriteRequired = true;
+			}
 			ProgramOptions.TimeZoneId = ini.GetValue("Program", "TimeZone", Utils.GetTimeZoneId());
 			ProgramOptions.TimeFormat = ini.GetValue("Program", "TimeFormat", "t");
 			if (ProgramOptions.TimeFormat == "t")
