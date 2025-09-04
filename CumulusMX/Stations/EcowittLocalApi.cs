@@ -908,7 +908,7 @@ namespace CumulusMX.Stations
 
 				if (useTimeStamp)
 				{
-					var ts = Utils.RoundDownUnixTimestamp(long.Parse(lastLine[1]), SdCardInterval);
+					var ts = Utils.RoundUnixTimestampToNearest(long.Parse(lastLine[1]), SdCardInterval);
 
 					if (Utils.FromUnixTime(ts) < startTime)
 					{
@@ -946,7 +946,7 @@ namespace CumulusMX.Stations
 					if (useTimeStamp)
 					{
 						// timestamp is in the second field
-						if (Utils.FromUnixTime(Utils.RoundDownUnixTimestamp(long.Parse(dataFields[1]), SdCardInterval)) >= startTime)
+						if (Utils.FromUnixTime(Utils.RoundUnixTimestampToNearest(long.Parse(dataFields[1]), SdCardInterval)) >= startTime)
 						{
 							result.Add(line);
 						}

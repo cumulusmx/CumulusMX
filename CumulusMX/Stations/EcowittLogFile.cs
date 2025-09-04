@@ -66,12 +66,19 @@ namespace CumulusMX.Stations
 
 					if (useTimestamp && long.TryParse(fields[1], invc, out long unix))
 					{
-						time = Utils.FromUnixTime(Utils.RoundDownUnixTimestamp(unix, interval));
+						time = Utils.FromUnixTime(Utils.RoundUnixTimestampToNearest(unix, interval));
 					}
-					else if (!DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
+					else
 					{
-						cumulus.LogErrorMessage("EcowittLogFile.DataParser: Failed to parse datetime - " + fields[0]);
-						continue;
+						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
+						{
+							time = Utils.RoundTimeToInterval(time, interval);
+						}
+						else
+						{
+							cumulus.LogErrorMessage("EcowittLogFile.DataParser: Failed to parse datetime - " + fields[0]);
+							continue;
+						}
 					}
 
 					if (retList.ContainsKey(time))
@@ -80,7 +87,7 @@ namespace CumulusMX.Stations
 						continue;
 					}
 
-					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]}");
+					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]} - {time:yyyy-MM-dd HH:mm}");
 
 					var rec = new EcowittApi.HistoricData();
 
@@ -261,7 +268,7 @@ namespace CumulusMX.Stations
 
 					if (!retList.TryAdd(time, rec))
 					{
-						cumulus.LogErrorMessage("EcowittLogFile.DataParser: Error adding record to list - " + fields[0]);
+						cumulus.LogErrorMessage($"EcowittLogFile.DataParser: Error adding record to list {index + 1} - {fields[0]}");
 					}
 					else
 					{

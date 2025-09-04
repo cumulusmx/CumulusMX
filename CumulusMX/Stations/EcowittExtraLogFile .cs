@@ -59,15 +59,22 @@ namespace CumulusMX.Stations
 
 					if (useTimestamp && long.TryParse(fields[1], invc, out long unix))
 					{
-						time = Utils.FromUnixTime(Utils.RoundDownUnixTimestamp(unix, interval));
+						time = Utils.FromUnixTime(Utils.RoundUnixTimestampToNearest(unix, interval));
 					}
-					else if (!DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
+					else
 					{
-						cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Failed to parse datetime - " + fields[0]);
-						continue;
+						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
+						{
+							time = Utils.RoundTimeToInterval(time, interval);
+						}
+						else
+						{
+							cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Failed to parse datetime - " + fields[0]);
+							continue;
+						}
 					}
 
-					cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Preprocessing record {fields[0]}");
+					cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Preprocessing record {fields[0]} - {time:yyyy-MM-dd HH:mm}");
 
 					decimal varDec;
 					int varInt;
@@ -250,9 +257,14 @@ namespace CumulusMX.Stations
 						}
 					}
 
-					retList.Add(time, rec);
-
-					cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Record {fields[0]} added to the list");
+					if (!retList.TryAdd(time, rec))
+					{
+						cumulus.LogErrorMessage($"EcowittExtraLogFile.DataParser: Error duplicate record {index + 1} - {fields[0]}");
+					}
+					else
+					{
+						cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Record {fields[0]} added to the list");
+					}
 				}
 				catch (Exception ex)
 				{

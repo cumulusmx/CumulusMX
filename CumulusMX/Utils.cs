@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ServiceStack;
-
+using ServiceStack.Text;
 
 
 // A rag tag of useful functions
@@ -50,6 +50,29 @@ namespace CumulusMX
 		{
 			long intervalSeconds = minuteInterval * 60;
 			return ((unixTimestamp + intervalSeconds - 1) / intervalSeconds) * intervalSeconds;
+		}
+
+		public static long RoundUnixTimestampToNearest(long unixTimestamp, int minuteInterval)
+		{
+			long intervalSeconds = minuteInterval * 60;
+			long remainder = unixTimestamp % intervalSeconds;
+
+			if (remainder < intervalSeconds / 2)
+			{
+				// Round down
+				return unixTimestamp - remainder;
+			}
+			else
+			{
+				// Round up
+				return unixTimestamp + (intervalSeconds - remainder);
+			}
+		}
+
+		public static bool CheckIfUnixTimeStampRoundsUpToFuture(long unixTimestamp, int intvl)
+		{
+			var tsNow = DateTime.Now.ToUnixTime();
+			return RoundUnixTimestampToNearest(unixTimestamp, intvl) > tsNow;
 		}
 
 		public static string ByteArrayToHexString(byte[] ba)

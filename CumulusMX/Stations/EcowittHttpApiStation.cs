@@ -637,6 +637,13 @@ namespace CumulusMX.Stations
 
 				//cumulus.LogMessage("Processing data for " + rec.Key);
 
+				if (rec.Key > DateTime.Now)
+				{
+					// do no process reocrds from the future!
+					cumulus.LogDebugMessage("GetHistoricDataSdCard: Warning - Skipping record with a future date: " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+					continue;
+				}
+
 				if (lastRecTime != DateTime.MinValue)
 				{
 					interval = (int) rec.Key.Subtract(lastRecTime).TotalMinutes;
