@@ -18,6 +18,8 @@ namespace CumulusMX.Stations
 		private static readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 		internal static readonly string[] lineEnds = ["\r\n", "\n"];
 
+		public int SdCardInterval { get; set; }
+
 		public LiveData GetLiveData(CancellationToken token)
 		{
 			// http://ip-address/get_livedata_info
@@ -748,7 +750,9 @@ namespace CumulusMX.Stations
 					else if (responseBody.StartsWith('{')) // sanity check
 					{
 						// Convert JSON string to an object
-						return responseBody.FromJson<SdCard>();
+						var resp = responseBody.FromJson<SdCard>();
+						SdCardInterval = resp.info.Interval;
+						return resp;
 					}
 
 				}
@@ -904,7 +908,9 @@ namespace CumulusMX.Stations
 
 				if (useTimeStamp)
 				{
-					if (Utils.FromUnixTime(long.Parse(lastLine[1])) < startTime)
+					var ts = Utils.RoundDownUnixTimestamp(long.Parse(lastLine[1]), SdCardInterval);
+
+					if (Utils.FromUnixTime(ts) < startTime)
 					{
 						cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any matching lines");
 						return null;
@@ -940,7 +946,7 @@ namespace CumulusMX.Stations
 					if (useTimeStamp)
 					{
 						// timestamp is in the second field
-						if (Utils.FromUnixTime(long.Parse(dataFields[1])) >= startTime)
+						if (Utils.FromUnixTime(Utils.RoundDownUnixTimestamp(long.Parse(dataFields[1]), SdCardInterval)) >= startTime)
 						{
 							result.Add(line);
 						}

@@ -545,7 +545,7 @@ namespace CumulusMX.Stations
 					continue;
 				}
 
-				var logfile = new EcowittLogFile(lines, cumulus);
+				var logfile = new EcowittLogFile(lines, cumulus, localApi.SdCardInterval);
 
 				var data = logfile.DataParser();
 
@@ -590,7 +590,7 @@ namespace CumulusMX.Stations
 					continue;
 				}
 
-				var logfile = new EcowittExtraLogFile(lines, cumulus);
+				var logfile = new EcowittExtraLogFile(lines, cumulus, localApi.SdCardInterval);
 
 				var data = logfile.DataParser();
 

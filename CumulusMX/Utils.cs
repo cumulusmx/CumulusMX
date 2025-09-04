@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 using ServiceStack;
 
-using Swan;
 
 
 // A rag tag of useful functions
@@ -39,6 +38,18 @@ namespace CumulusMX
 			int minutes = dateTime.Minute;
 			int roundedMinutes = (int)(Math.Round((decimal) minutes / intvl) * intvl);
 			return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, roundedMinutes, 0);
+		}
+
+		public static long RoundDownUnixTimestamp(long unixTimestamp, int minuteInterval)
+		{
+			long intervalSeconds = minuteInterval * 60;
+			return (unixTimestamp / intervalSeconds) * intervalSeconds;
+		}
+
+		public static long RoundUpUnixTimestamp(long unixTimestamp, int minuteInterval)
+		{
+			long intervalSeconds = minuteInterval * 60;
+			return ((unixTimestamp + intervalSeconds - 1) / intervalSeconds) * intervalSeconds;
 		}
 
 		public static string ByteArrayToHexString(byte[] ba)

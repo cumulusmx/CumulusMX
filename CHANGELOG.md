@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.0 \[b4118\]][23] - 2025-09-03
+## [4.6.0 \[b4119\]][23] - 2025-09-04
 
 ### New
 
@@ -89,6 +89,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The Dashboard screen now fully reflects your time presentation choices in Cumulus
 - The MySQL updates now use a single persistent connection rather than reconnecting for each upload
 - A minor change to an error message format in `upload.php`
+- Ecowitt SD card catch-up data now has the timestamp for each interval rounded to the SD card logging interval (Ecowitt do not create the log entries according to clock time)
 
 ### Fixed
 
@@ -996,4 +997,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [20]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4103
 [21]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4104
 [22]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4105
-[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4118
+[23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4119

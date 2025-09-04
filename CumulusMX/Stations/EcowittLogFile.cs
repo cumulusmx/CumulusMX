@@ -20,12 +20,13 @@ namespace CumulusMX.Stations
 		private readonly Cumulus cumulus;
 		private DateTime lastLogTime = DateTime.MinValue;
 		private readonly Dictionary<string, int> FieldIndex = [];
+		private readonly int interval;
 
-
-		public EcowittLogFile(List<string> data, Cumulus cumul)
+		public EcowittLogFile(List<string> data, Cumulus cumul, int interval)
 		{
 			cumulus = cumul;
 			Data = data;
+			this.interval = interval;
 
 			// parse the header
 			HeaderParser(data[0]);
@@ -65,7 +66,7 @@ namespace CumulusMX.Stations
 
 					if (useTimestamp && long.TryParse(fields[1], invc, out long unix))
 					{
-						time = Utils.FromUnixTime(unix);
+						time = Utils.FromUnixTime(Utils.RoundDownUnixTimestamp(unix, interval));
 					}
 					else if (!DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
 					{
