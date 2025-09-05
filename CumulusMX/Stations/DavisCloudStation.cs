@@ -108,7 +108,7 @@ namespace CumulusMX.Stations
 			}
 			else
 			{
-				cumulus.LogErrorMessage("Davis Cloud Station (WLL/WLC) selected");
+				cumulus.LogMessage("Davis Cloud Station (WLL/WLC) selected");
 
 				// The Davis leafwetness sensors send a decimal value via WLL (only integer available via VP2/Vue)
 				cumulus.LeafWetDPlaces = 1;
@@ -858,7 +858,7 @@ namespace CumulusMX.Stations
 
 			foreach (var sensor in sensors)
 			{
-				if (!Program.ExitSystemToken.IsCancellationRequested)
+				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
 					return;
 				}

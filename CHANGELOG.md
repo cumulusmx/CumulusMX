@@ -10,6 +10,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.6.1 \[b4121\]][24] - 2025-09-05
+
+### Fixed
+
+- Davis cloud station not decoding current data
+
+
+
 ## [4.6.0 \[b4120\]][23] - 2025-09-05
 
 ### New
@@ -998,3 +1006,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [21]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4104
 [22]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4105
 [23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4120
+[24]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4121
