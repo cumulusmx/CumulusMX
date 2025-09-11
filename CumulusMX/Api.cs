@@ -1892,6 +1892,9 @@ namespace CumulusMX
 						case "clearerrorlog.json":
 							await writer.WriteAsync(cumulus.ClearErrorLog());
 							break;
+						case "clearalarm.txt":
+							await writer.WriteAsync(cumulus.ClearAlarm(HttpContext));
+							break;
 						default:
 							Response.StatusCode = 404;
 							break;

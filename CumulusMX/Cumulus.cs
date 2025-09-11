@@ -12876,6 +12876,145 @@ namespace CumulusMX
 			return GetErrorLog();
 		}
 
+		public string ClearAlarm(IHttpContext context)
+		{
+			var ret = "Cleared";
+			var id = new StreamReader(context.Request.InputStream).ReadToEnd();
+
+			try
+			{
+				if (!string.IsNullOrEmpty(id))
+				{
+					// strip off the "Alarm" from the beginning of the text (used for the dashboard only)
+					var id2 = id[5..];
+
+					switch (id2)
+					{
+						//case "ChangeAlarm":
+						//	break;
+						case "DataStopped":
+							DataStoppedAlarm.Triggered = false;
+							break;
+						case "BatteryLow":
+							BatteryLowAlarm.Triggered = false;
+							break;
+						case "Sensor":
+							SensorAlarm.Triggered = false;
+							break;
+						case "Spike":
+							SpikeAlarm.Triggered = false;
+							break;
+						case "WindHigh":
+							HighWindAlarm.Triggered = false;
+							break;
+						case "WindGust":
+							HighGustAlarm.Triggered = false;
+							break;
+						case "RainRate":
+							HighRainRateAlarm.Triggered = false;
+							break;
+						case "Rainfall":
+							HighRainTodayAlarm.Triggered = false;
+							break;
+						case "PressUp":
+							PressChangeAlarm.UpTriggered = false;
+							break;
+						case "PressDown":
+							PressChangeAlarm.DownTriggered = false;
+							break;
+						case "PressHigh":
+							HighPressAlarm.Triggered = false;
+							break;
+						case "PressLow":
+							LowPressAlarm.Triggered = false;
+							break;
+						case "TempUp":
+							TempChangeAlarm.UpTriggered = false;
+							break;
+						case "TempDown":
+							TempChangeAlarm.DownTriggered = false;
+							break;
+						case "TempLow":
+							LowTempAlarm.Triggered = false;
+							break;
+						case "TempHigh":
+							HighTempAlarm.Triggered = false;
+							break;
+						case "Upgrade":
+							UpgradeAlarm.Triggered = false;
+							break;
+						case "Firmware":
+							FirmwareAlarm.Triggered = false;
+							break;
+						case "Thirdparty":
+							ThirdPartyAlarm.Triggered = false;
+							break;
+						case "MySQL":
+							MySqlUploadAlarm.Triggered = false;
+							break;
+						case "IsRaining":
+							IsRainingAlarm.Triggered = false;
+							break;
+						case "Record":
+							NewRecordAlarm.Triggered = false;
+							break;
+						case "FTP":
+							FtpAlarm.Triggered = false;
+							break;
+						case "Error":
+							ErrorAlarm.Triggered = false;
+							break;
+						case "User1":
+							UserAlarms[0].Triggered = false;
+							break;
+						case "User2":
+							UserAlarms[1].Triggered = false;
+							break;
+						case "User3":
+							UserAlarms[2].Triggered = false;
+							break;
+						case "User4":
+							UserAlarms[3].Triggered = false;
+							break;
+						case "User5":
+							UserAlarms[4].Triggered = false;
+							break;
+						case "User6":
+							UserAlarms[5].Triggered = false;
+							break;
+						case "User7":
+							UserAlarms[6].Triggered = false;
+							break;
+						case "User8":
+							UserAlarms[7].Triggered = false;
+							break;
+						case "User9":
+							UserAlarms[8].Triggered = false;
+							break;
+						case "User10":
+							UserAlarms[9].Triggered = false;
+							break;
+						default:
+							ret = "Alarm '" + id + "' is illegal";
+							break;
+					}
+				}
+				else
+				{
+					ret = "No alarm id sent!";
+				}
+			}
+			catch (Exception ex)
+			{
+				LogExceptionMessage(ex, "ClearAlarm error");
+				ret = "Error: " + ex.Message;
+			}
+
+			return ret;
+		}
+
+
+
 		private void CreateRealtimeFile(int cycle)
 		{
 			// Does the user want to create the realtime.txt file?

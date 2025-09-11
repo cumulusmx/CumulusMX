@@ -8,7 +8,6 @@ using System.IO.Ports;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Json;
 using System.Text;
