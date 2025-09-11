@@ -10,6 +10,25 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.6.2 \[b4122\]][25] - 2025-09-20
+
+### New
+
+- You can now clear alarms by clicking on them in the main dashboard screen
+
+### Fixed
+
+### Package Updates
+
+- Microsoft.Win32.SystemEvents
+- NLog
+- NLog.Extensions.Logging
+- System.CodeDom
+- System.IO.Ports
+- System.ServiceProcess.ServiceController
+
+
+
 ## [4.6.1 \[b4121\]][24] - 2025-09-05
 
 ### Fixed
@@ -1007,3 +1026,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [22]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4105
 [23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4120
 [24]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4121
+[25]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4122
