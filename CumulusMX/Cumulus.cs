@@ -12879,129 +12879,126 @@ namespace CumulusMX
 		public string ClearAlarm(IHttpContext context)
 		{
 			var ret = "Cleared";
-			var id = new StreamReader(context.Request.InputStream).ReadToEnd();
+			var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 
 			try
 			{
-				if (!string.IsNullOrEmpty(id))
+				if (Enum.TryParse(typeof(AlarmIds), data[5..], out var idObj) && idObj is AlarmIds id)
 				{
-					// strip off the "Alarm" from the beginning of the text (used for the dashboard only)
-					var id2 = id[5..];
-
-					switch (id2)
+					switch (id)
 					{
 						//case "ChangeAlarm":
 						//	break;
-						case "DataStopped":
+						case AlarmIds.DataStopped:
 							DataStoppedAlarm.Triggered = false;
 							break;
-						case "BatteryLow":
+						case AlarmIds.BatteryLow:
 							BatteryLowAlarm.Triggered = false;
 							break;
-						case "Sensor":
+						case AlarmIds.Sensor:
 							SensorAlarm.Triggered = false;
 							break;
-						case "Spike":
+						case AlarmIds.Spike:
 							SpikeAlarm.Triggered = false;
 							break;
-						case "WindHigh":
+						case AlarmIds.WindHigh:
 							HighWindAlarm.Triggered = false;
 							break;
-						case "WindGust":
+						case AlarmIds.WindGust:
 							HighGustAlarm.Triggered = false;
 							break;
-						case "RainRate":
+						case AlarmIds.RainRate:
 							HighRainRateAlarm.Triggered = false;
 							break;
-						case "Rainfall":
+						case AlarmIds.Rainfall:
 							HighRainTodayAlarm.Triggered = false;
 							break;
-						case "PressUp":
+						case AlarmIds.PressUp:
 							PressChangeAlarm.UpTriggered = false;
 							break;
-						case "PressDown":
+						case AlarmIds.PressDown:
 							PressChangeAlarm.DownTriggered = false;
 							break;
-						case "PressHigh":
+						case AlarmIds.PressHigh:
 							HighPressAlarm.Triggered = false;
 							break;
-						case "PressLow":
+						case AlarmIds.PressLow:
 							LowPressAlarm.Triggered = false;
 							break;
-						case "TempUp":
+						case AlarmIds.TempUp:
 							TempChangeAlarm.UpTriggered = false;
 							break;
-						case "TempDown":
+						case AlarmIds.TempDown:
 							TempChangeAlarm.DownTriggered = false;
 							break;
-						case "TempLow":
+						case AlarmIds.TempLow:
 							LowTempAlarm.Triggered = false;
 							break;
-						case "TempHigh":
+						case AlarmIds.TempHigh:
 							HighTempAlarm.Triggered = false;
 							break;
-						case "Upgrade":
+						case AlarmIds.Upgrade:
 							UpgradeAlarm.Triggered = false;
 							break;
-						case "Firmware":
+						case AlarmIds.Firmware:
 							FirmwareAlarm.Triggered = false;
 							break;
-						case "Thirdparty":
+						case AlarmIds.Thirdparty:
 							ThirdPartyAlarm.Triggered = false;
 							break;
-						case "MySQL":
+						case AlarmIds.MySQL:
 							MySqlUploadAlarm.Triggered = false;
 							break;
-						case "IsRaining":
+						case AlarmIds.IsRaining:
 							IsRainingAlarm.Triggered = false;
 							break;
-						case "Record":
+						case AlarmIds.Record:
 							NewRecordAlarm.Triggered = false;
 							break;
-						case "FTP":
+						case AlarmIds.FTP:
 							FtpAlarm.Triggered = false;
 							break;
-						case "Error":
+						case AlarmIds.Error:
 							ErrorAlarm.Triggered = false;
 							break;
-						case "User1":
+						case AlarmIds.User1:
 							UserAlarms[0].Triggered = false;
 							break;
-						case "User2":
+						case AlarmIds.User2:
 							UserAlarms[1].Triggered = false;
 							break;
-						case "User3":
+						case AlarmIds.User3:
 							UserAlarms[2].Triggered = false;
 							break;
-						case "User4":
+						case AlarmIds.User4:
 							UserAlarms[3].Triggered = false;
 							break;
-						case "User5":
+						case AlarmIds.User5:
 							UserAlarms[4].Triggered = false;
 							break;
-						case "User6":
+						case AlarmIds.User6:
 							UserAlarms[5].Triggered = false;
 							break;
-						case "User7":
+						case AlarmIds.User7:
 							UserAlarms[6].Triggered = false;
 							break;
-						case "User8":
+						case AlarmIds.User8:
 							UserAlarms[7].Triggered = false;
 							break;
-						case "User9":
+						case AlarmIds.User9:
 							UserAlarms[8].Triggered = false;
 							break;
-						case "User10":
+						case AlarmIds.User10:
 							UserAlarms[9].Triggered = false;
 							break;
 						default:
-							ret = "Alarm '" + id + "' is illegal";
+							ret = "Alarm id '" + id + "' is illegal";
 							break;
 					}
 				}
 				else
 				{
-					ret = "No alarm id sent!";
+					ret = "Invalid id: '" + data + "'";
 				}
 			}
 			catch (Exception ex)
@@ -13009,6 +13006,8 @@ namespace CumulusMX
 				LogExceptionMessage(ex, "ClearAlarm error");
 				ret = "Error: " + ex.Message;
 			}
+
+			LogMessage($"ClearAlarm: Clearing alarm '{data}' - {ret}");
 
 			return ret;
 		}
