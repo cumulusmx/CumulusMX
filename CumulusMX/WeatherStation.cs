@@ -8732,7 +8732,7 @@ namespace CumulusMX
 			strb.Append(sep + HiLoToday.HighRain24h.ToString(cumulus.RainFormat, inv));
 			strb.AppendLine(sep + HiLoToday.HighRain24hTime.ToString("HH:mm", inv));
 
-			cumulus.LogMessage("Dayfile.txt entry:");
+			cumulus.LogMessage("DoDayfile: Dayfile.txt entry:");
 			cumulus.LogMessage(strb.ToString());
 
 			var success = false;
@@ -8743,17 +8743,17 @@ namespace CumulusMX
 			{
 				try
 				{
-					cumulus.LogMessage("Dayfile.txt opened for writing");
+					cumulus.LogMessage("DoDayfile:Dayfile.txt opened for writing");
 
 					if (HiLoToday.HighTemp < -400 || HiLoToday.LowTemp > 900)
 					{
-						cumulus.LogErrorMessage("*** Error: Daily values are still at default at end of day");
-						cumulus.LogErrorMessage("Data not logged to dayfile.txt");
+						cumulus.LogErrorMessage("DoDayfile: *** Error: Daily values are still at default at end of day");
+						cumulus.LogErrorMessage("DoDayfile: Data not logged to dayfile.txt");
 						return;
 					}
 					else
 					{
-						cumulus.LogMessage("Writing entry to dayfile.txt");
+						cumulus.LogMessage("DoDayfile: Writing entry to dayfile.txt");
 
 						using var fs = new FileStream(cumulus.DayFileName, FileMode.Append, FileAccess.Write, FileShare.Read, charArr.Length, FileOptions.WriteThrough);
 						using var file = new StreamWriter(fs);
@@ -8763,12 +8763,12 @@ namespace CumulusMX
 
 						success = true;
 
-						cumulus.LogMessage($"Dayfile log entry for {datestring} written");
+						cumulus.LogMessage($"DoDayfile: Log entry for {datestring} written");
 					}
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogErrorMessage("Error writing to dayfile.txt: " + ex.Message);
+					cumulus.LogErrorMessage("DoDayfile: Error writing to dayfile.txt: " + ex.Message);
 					retries--;
 					await Task.Delay(250);
 				}
@@ -8904,8 +8904,17 @@ namespace CumulusMX
 
 				queryString.Append(')');
 
-				// run the query async so we do not block the main EOD processing
-				await cumulus.CheckMySQLFailedUploads("MySQL Dayfile", queryString.ToString());
+				if (cumulus.NormalRunning)
+				{
+					// run the query async so we do not block the main EOD processing
+					await cumulus.CheckMySQLFailedUploads("DoDayfile", queryString.ToString());
+				}
+				else
+				{
+					// save the string for later
+					cumulus.LogDebugMessage("DoDayfile:: Buffering MySQL insert for later processing");
+					cumulus.MySqlList.Enqueue(new SqlCache() { statement = queryString.ToString() });
+				}
 			}
 		}
 

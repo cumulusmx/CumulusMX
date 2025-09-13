@@ -266,7 +266,7 @@ namespace CumulusMX
 		internal bool SynchronisedWebUpdate;
 
 		// Use thread safe queues for the MySQL command lists
-		private readonly ConcurrentQueue<SqlCache> MySqlList = new();
+		public readonly ConcurrentQueue<SqlCache> MySqlList = new();
 		public readonly ConcurrentQueue<SqlCache> MySqlFailedList = new();
 
 		// Calibration settings
@@ -8558,6 +8558,7 @@ namespace CumulusMX
 					else
 					{
 						// save the string for later
+						LogDebugMessage("DoLogFile: Buffering MySQL insert for later processing");
 						MySqlList.Enqueue(new SqlCache() { statement = queryString });
 					}
 				}
@@ -13430,8 +13431,7 @@ namespace CumulusMX
 			else
 			{
 				// start the archive upload thread
-				LogMessage($"Starting MySQL catchup thread. Found {MySqlList.Count} commands to execute");
-				_ = CheckMySQLFailedUploads("Startup MySQL", string.Empty);
+				_ = ProcessMySqlStartupBuffer();
 			}
 
 			WebTimer.Elapsed += WebTimerTick;
@@ -13786,6 +13786,22 @@ namespace CumulusMX
 				}
 			}
 			LogMessage("Custom start-up MySQL commands end");
+		}
+
+		public async Task ProcessMySqlStartupBuffer()
+		{
+			LogMessage($"Starting MySQL catchup thread. Found {MySqlList.Count} commands to execute");
+
+			// first get the lock
+			LogDebugMessage("Startup MySQL: Wait for the MySQL lock");
+			await MySqlSemaphore.WaitAsync();
+			LogDebugMessage("Startup MySQL: Has the MySQL lock");
+
+			await ProcessMySqlBuffer(MySqlList, "Startup MySQL", false);
+
+			// release the lock
+			LogDebugMessage("Startup MySQL: Releasing the MySQL lock");
+			MySqlSemaphore.Release();
 		}
 
 		public async Task CheckMySQLFailedUploads(string callingFunction, string cmd)
