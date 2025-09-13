@@ -18,6 +18,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Fixed
 
+- Fix Startup MySQL catch-up not working in v4.6.0 and v4.6.1
+
 ### Package Updates
 
 - Microsoft.Win32.SystemEvents
