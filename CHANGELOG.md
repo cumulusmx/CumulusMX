@@ -10,6 +10,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.6.3 \[b4123\]][26] - 2025-09-15
+
+### Fixed
+
+- MQTT connection failures with "Invalid protocol"
+
+
+
+
 ## [4.6.2 \[b4122\]][25] - 2025-09-14
 
 ### New
@@ -1037,3 +1046,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4120
 [24]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4121
 [25]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4122
+[26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4123

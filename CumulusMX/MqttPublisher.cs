@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 
 using MQTTnet;
+using MQTTnet.Formatter;
 
 using ServiceStack;
 using ServiceStack.Text;
@@ -14,7 +16,7 @@ namespace CumulusMX
 	{
 		private static Cumulus cumulus;
 		private static IMqttClient mqttClient;
-		private static MQTTnet.MqttClientOptions options;
+		private static MqttClientOptions options;
 		public static bool configured { get; set; }
 		private static readonly Dictionary<String, String> publishedTopics = [];
 		private static MqttTemplate updateTemplate;
@@ -28,25 +30,25 @@ namespace CumulusMX
 
 			var mqttFactory = new MqttClientFactory();
 
-			var protocolType = cumulus.MQTT.IpVersion switch
+			var addressFamily = cumulus.MQTT.IpVersion switch
 			{
-				4 => System.Net.Sockets.ProtocolType.IPv4,
-				6 => System.Net.Sockets.ProtocolType.IPv6,
-				_ => System.Net.Sockets.ProtocolType.Unspecified,
+				4 => AddressFamily.InterNetwork,
+				6 => AddressFamily.InterNetworkV6,
+				_ => AddressFamily.Unspecified,
 			};
 
 			var protocolVersion = cumulus.MQTT.ProtocolVersion switch
 			{
-				3 => MQTTnet.Formatter.MqttProtocolVersion.V310,
-				4 => MQTTnet.Formatter.MqttProtocolVersion.V311,
-				5 => MQTTnet.Formatter.MqttProtocolVersion.V500,
-				_ => MQTTnet.Formatter.MqttProtocolVersion.V311,
+				3 => MqttProtocolVersion.V310,
+				4 => MqttProtocolVersion.V311,
+				5 => MqttProtocolVersion.V500,
+				_ => MqttProtocolVersion.V311,
 			};
 
 			options = new MqttClientOptionsBuilder()
 				.WithClientId(Guid.NewGuid().ToString())
 				.WithTcpServer(cumulus.MQTT.Server, cumulus.MQTT.Port)
-				.WithProtocolType(protocolType)
+				.WithAddressFamily(addressFamily)
 				.WithProtocolVersion(protocolVersion)
 				.WithCredentials(string.IsNullOrEmpty(cumulus.MQTT.Password) ? null : new MqttClientCredentials(cumulus.MQTT.Username, System.Text.Encoding.UTF8.GetBytes(cumulus.MQTT.Password)))
 				.WithTlsOptions(
