@@ -72,7 +72,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The charts will now render correctly at DST changes
 	- **IMPORTANT**: You must upload the latest versions of the default web site pages and scripts files to support this change
 	- **IMPORTANT**: If you have your own versions of Highcharts scripts, then the relevant change is from:
-		```json
+		```js
 		{
 			time: {
 				useUTC: true
@@ -80,7 +80,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		}
 		```
 		To (substituting your stations time zone):
-		```json
+		```js
 		{
 			time: {
 				timezone: 'Europe/London'
@@ -89,6 +89,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		```
 
 	- You must also use a version of Highcharts later than v11.2.0 - Cumulus MX now uses v12.3.0
+ 	- **IMPORTANT**: If you have your own versions of Highcharts scripts and you find the x-axis times show 12h times and you want 24h, then you need to add:
+    	```js
+     	{
+     		xAxis: {
+     			minute: '%H:%M',
+        		hour: '%H:%M'
+	    	}
+     	}
+     	```
 - There is a new option in *Station Settings > General Settings > Location* to manually change the time zone used in the charts
 - Added Davis Cloud API UUID option to the Configuration Wizard
 - Add a retry to downloading Ecowitt SD card files on error or if returned file is empty
