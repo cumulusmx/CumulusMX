@@ -13824,8 +13824,7 @@ namespace CumulusMX
 			{
 				if (MySqlConn is null)
 				{
-					MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
-					await MySqlConn.OpenAsync();
+					await MySqlConnect();
 
 					// get the database name to check 100% we have a connection
 					var db = MySqlConn.Database;
@@ -13833,7 +13832,7 @@ namespace CumulusMX
 				}
 				else if (MySqlConn.State == System.Data.ConnectionState.Closed)
 				{
-					await MySqlConn.OpenAsync();
+					await MySqlConnect();
 
 					// get the database name to check 100% we have a connection
 					var db = MySqlConn.Database;
@@ -14220,8 +14219,7 @@ namespace CumulusMX
 			{
 				if (MySqlConn is null)
 				{
-					MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
-					await MySqlConn.OpenAsync();
+					await MySqlConnect();
 
 					// get the database name to check 100% we have a connection
 					var db = MySqlConn.Database;
@@ -14229,7 +14227,7 @@ namespace CumulusMX
 				}
 				else if (MySqlConn.State == System.Data.ConnectionState.Closed)
 				{
-					await MySqlConn.OpenAsync();
+					await MySqlConnect();
 
 					// get the database name to check 100% we have a connection
 					var db = MySqlConn.Database;
@@ -14420,6 +14418,54 @@ namespace CumulusMX
 					}
 				}
 			}
+		}
+
+		internal async Task<bool> MySqlConnect()
+		{
+			try
+			{
+				if (MySqlConn is not null && (
+					MySqlConn.State != System.Data.ConnectionState.Closed ||
+					MySqlConn.State != System.Data.ConnectionState.Broken)
+					)
+				{
+					await MySqlConn.CloseAsync();
+				}
+			}
+			finally
+			{
+				MySqlConn = null;
+			}
+
+			if (!string.IsNullOrEmpty(MySqlConnSettings.Server) &&
+				!string.IsNullOrEmpty(MySqlConnSettings.UserID) &&
+				!string.IsNullOrEmpty(MySqlConnSettings.Password)
+				)
+			{
+				try
+				{
+					LogMessage($"MySqlConnect: Connecting to server {MySqlConnSettings.Server} port {MySqlConnSettings.Port}");
+					MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
+					await MySqlConn.OpenAsync();
+				}
+				catch (Exception ex)
+				{
+					LogExceptionMessage(ex, "MySQL: Error connecting to server");
+				}
+			}
+
+			if (MySqlConn is null || MySqlConn.State != System.Data.ConnectionState.Open) return false;
+
+			try
+			{
+				return await MySqlConn.PingAsync();
+			}
+			catch (Exception ex)
+			{
+				LogExceptionMessage(ex, "MySQL: Error connecting to server");
+			}
+
+			return false;
 		}
 
 		public async Task GetLatestVersion()

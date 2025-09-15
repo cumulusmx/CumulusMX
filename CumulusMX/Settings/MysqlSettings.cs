@@ -266,6 +266,8 @@ namespace CumulusMX.Settings
 			{
 				cumulus.LogMessage("Updating MySQL settings");
 
+				var connectRequired = false;
+
 				// first check if any of the connection settings have changed
 				// if they have then disconnect any existing connection so it can be reconnected if required
 				if (cumulus.MySqlConn != null &&
@@ -282,49 +284,32 @@ namespace CumulusMX.Settings
 					cumulus.MySqlConnSettings.TlsVersion != (string.IsNullOrWhiteSpace(settings.server.advanced.tlsVers) ? "TLS 1.2,TLS 1.3" : settings.server.advanced.tlsVers.Trim()))
 					)
 				{
-					// server
-					cumulus.MySqlConnSettings.Server = string.IsNullOrWhiteSpace(settings.server.host) ? null : settings.server.host.Trim();
-					if (settings.server.port > 0 && settings.server.port < 65536)
-					{
-						cumulus.MySqlConnSettings.Port = settings.server.port;
-					}
-					else
-					{
-						cumulus.MySqlConnSettings.Port = 3306;
-					}
-					cumulus.MySqlConnSettings.Database = string.IsNullOrWhiteSpace(settings.server.database) ? null : settings.server.database.Trim();
-					cumulus.MySqlConnSettings.UserID = string.IsNullOrWhiteSpace(settings.server.user) ? null : settings.server.user.Trim();
-					cumulus.MySqlConnSettings.Password = string.IsNullOrWhiteSpace(settings.server.pass) ? null : settings.server.pass.Trim();
-					cumulus.MySqlConnSettings.SslMode = (MySqlSslMode) settings.server.advanced.sslMode;
-					cumulus.MySqlConnSettings.TlsVersion = string.IsNullOrWhiteSpace(settings.server.advanced.tlsVers) ? "TLS 1.2,TLS 1.3" : settings.server.advanced.tlsVers.Trim();
+					connectRequired = true;
+				}
 
-					try
-					{
-						if (cumulus.MySqlConn.State != System.Data.ConnectionState.Closed ||
-							cumulus.MySqlConn.State != System.Data.ConnectionState.Broken)
-						{
-							cumulus.MySqlConn.Close();
-						}
-					}
-					finally
-					{
-						cumulus.MySqlConn = null;
-					}
+				// save the server settings
 
-					if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
-						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
-						!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password)
-						)
+				cumulus.MySqlConnSettings.Server = string.IsNullOrWhiteSpace(settings.server.host) ? null : settings.server.host.Trim();
+				if (settings.server.port > 0 && settings.server.port < 65536)
+				{
+					cumulus.MySqlConnSettings.Port = settings.server.port;
+				}
+				else
+				{
+					cumulus.MySqlConnSettings.Port = 3306;
+				}
+				cumulus.MySqlConnSettings.Database = string.IsNullOrWhiteSpace(settings.server.database) ? null : settings.server.database.Trim();
+				cumulus.MySqlConnSettings.UserID = string.IsNullOrWhiteSpace(settings.server.user) ? null : settings.server.user.Trim();
+				cumulus.MySqlConnSettings.Password = string.IsNullOrWhiteSpace(settings.server.pass) ? null : settings.server.pass.Trim();
+				cumulus.MySqlConnSettings.SslMode = (MySqlSslMode) settings.server.advanced.sslMode;
+				cumulus.MySqlConnSettings.TlsVersion = string.IsNullOrWhiteSpace(settings.server.advanced.tlsVers) ? "TLS 1.2,TLS 1.3" : settings.server.advanced.tlsVers.Trim();
+
+				if (connectRequired)
+				{
+
+					if (!cumulus.MySqlConnect().Result)
 					{
-						try
-						{
-							cumulus.MySqlConn = new MySqlConnection(cumulus.MySqlConnSettings.ToString());
-							cumulus.MySqlConn.Open();
-						}
-						catch (Exception ex)
-						{
-							cumulus.LogExceptionMessage(ex, "MySQL: Error connecting to server");
-						}
+						cumulus.LogMessage("MySqlSettings: Error connecting to server");
 					}
 				}
 
@@ -482,6 +467,16 @@ namespace CumulusMX.Settings
 		private string CreateMySQLTable(string createSQL)
 		{
 			string res;
+
+			if (cumulus.MySqlConn is null || cumulus.MySqlConn.State != System.Data.ConnectionState.Open)
+			{
+				if (!cumulus.MySqlConnect().Result)
+				{
+					cumulus.LogErrorMessage("MySQL Create Table: Error connecting to MySQL server.");
+					return "Error: Failed to connect to MySQL server";
+				}
+			}
+
 			using (var cmd = new MySqlCommand(createSQL, cumulus.MySqlConn))
 			{
 				cumulus.LogMessage($"MySQL Create Table: {createSQL}");
@@ -509,6 +504,15 @@ namespace CumulusMX.Settings
 
 			try
 			{
+				if (cumulus.MySqlConn is null || cumulus.MySqlConn.State != System.Data.ConnectionState.Open)
+				{
+					if (!cumulus.MySqlConnect().Result)
+					{
+						cumulus.LogErrorMessage("MySQL Update Table: Error connecting to MySQL server.");
+						return "Error: Failed to connect to MySQL server";
+					}
+				}
+
 				// first get a list of the columns the table currenty has
 				var currCols = new List<string>();
 				using (var cmd = new MySqlCommand($"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table.Name}' AND TABLE_SCHEMA='{cumulus.MySqlConnSettings.Database}'", cumulus.MySqlConn))
