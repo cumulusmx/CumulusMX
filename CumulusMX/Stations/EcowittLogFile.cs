@@ -66,7 +66,7 @@ namespace CumulusMX.Stations
 
 					if (useTimestamp && long.TryParse(fields[1], invc, out long unix))
 					{
-						time = Utils.FromUnixTime(Utils.RoundUnixTimestampToNearest(unix, interval));
+						time = Utils.FromUnixTime(Utils.RoundDownUnixTimestamp(unix, interval));
 					}
 					else
 					{
@@ -272,7 +272,7 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record {fields[0]} added to history list");
+						cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record {fields[0]} - {time:yyyy-MM-dd HH:mm} added to history list");
 					}
 				}
 				catch (Exception ex)

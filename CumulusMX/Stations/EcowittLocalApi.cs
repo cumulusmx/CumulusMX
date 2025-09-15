@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -784,6 +785,7 @@ namespace CumulusMX.Stations
 			return null;
 		}
 
+		/*
 		public async Task<List<string>> GetSdFileContents(string fileName, DateTime startTime, CancellationToken token)
 		{
 			// http://IP-address:81/filename (where filename is YYYYMM[A-Z].csv resp. YYYMMAllSensors_[A-Z].csv)
@@ -974,6 +976,136 @@ namespace CumulusMX.Stations
 
 				cumulus.LogExceptionMessage(ex, "GetSdFileContents: Error processing file contents");
 			}
+
+			return null;
+		}
+		*/
+
+		public async Task<List<string>> GetSdFileContents(string fileName, DateTime startTime, CancellationToken token)
+		{
+			// http://IP-address:81/filename (where filename is YYYYMM[A-Z].csv resp. YYYMMAllSensors_[A-Z].csv)
+			//
+			// YYYYMM[A - Z].csv
+			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
+			// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
+			//
+			// YYYMMAllSensors_[A-Z].csv
+			// Time,CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%),CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%),CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃),CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃),CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃),CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃),CH8 HeatIndex(℃),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),SoilMoisture CH2(%),SoilMoisture CH3(%),SoilMoisture CH4(%),SoilMoisture CH5(%),SoilMoisture CH6(%),SoilMoisture CH7(%),SoilMoisture CH8(%),SoilMoisture CH9(%),SoilMoisture CH10(%),SoilMoisture CH11(%),SoilMoisture CH12(%),SoilMoisture CH13(%),SoilMoisture CH14(%),SoilMoisture CH15(%),SoilMoisture CH16(%),Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),LDS_Air CH1(mm),LDS_Air CH2(mm),LDS_Air CH3(mm),LDS_Air CH4(mm),
+			// 2024-09-18 14:25,24.5,14.3,24.5,53,30.0,17.5,30.5,47,24.0,13.6,24.0,52,--.-,--.-,--.-,--,-15.5,--.-,--.-,--,38.1,23.8,45.6,44,6.6,-1.5,6.6,56,--.-,--.-,--.-,--,19,--,--,--,--,--,--,--,0,--.-,20.3,66,479,10.4,10.8,--.-,--.-,69,51,78,49,44,52,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,--.-,--.-,--.-,--.-,11.5,16.8,24.0,--.-,--.-,--.-,--.-,--.-
+			// 2025-01-10 12:34,1.8,0.8,1.8,93,3.3,1.5,3.3,88,1.5,-0.1,1.5,89,1.6,-0.3,1.6,87,-19.3,--,--,--,3.9,2.7,3.9,92,7.0,-3.0,7.0,49,--,--,--,--,77,--,--,--,--,--,--,--,0,--,15.3,60,775,6.4,6.7,--,--,60,45,56,72,50,74,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,12.0,9.0,--,--,2.5,2.5,2.0,--,--,--,--,--,--,--,--,--
+
+			cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Requesting file {fileName} from station");
+
+			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
+			{
+				cumulus.LogErrorMessage("LocalApi.GetSdFileContents: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				return null;
+			}
+
+			var retries = 1;
+
+			var url = $"http://{cumulus.Gw1000IpAddress}:81/" + fileName;
+
+			// Get the contents
+			do
+			{
+				try
+				{
+					using var fileStream = await cumulus.MyHttpClient.GetStreamAsync(url, token);
+					using var streamReader = new StreamReader(fileStream, Encoding.UTF8);
+
+					string line;
+					var count = 0;
+					bool useTimeStamp = true;
+					List<string> result = [];
+
+					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
+
+					while ((line = await streamReader.ReadLineAsync()) != null)
+					{
+						count++;
+
+						if (string.IsNullOrWhiteSpace(line) || string.IsNullOrWhiteSpace(line.Trim()))
+						{
+							// skip any blank lines
+							continue;
+						}
+
+						// quick check if there is any data in the file!
+						var fields = line.Split(',');
+						if (count == 1)
+						{
+							if (fields.Length < 10)
+							{
+								cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} header line is malformed");
+								cumulus.LogDataMessage("Header line = " + line);
+								return null;
+							}
+
+							useTimeStamp = fields[1].ToLower() == "timestamp";
+
+							// always add the header line
+							result.Add(line);
+
+							cumulus.LogDebugMessage("LocalApi.GetSdFileContents: Processed file header OK");
+
+							// skip to first data line
+							continue;
+						}
+
+						if (fields.Length < 10)
+						{
+							cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} is malformed");
+							cumulus.LogDataMessage($"line # {count} = " + line);
+							continue;
+						}
+
+						if (useTimeStamp)
+						{
+							// timestamp is in the second field
+							if (Utils.FromUnixTime(Utils.RoundDownUnixTimestamp(long.Parse(fields[1]), SdCardInterval)) >= startTime)
+							{
+								result.Add(line);
+							}
+						}
+						else
+						{
+							if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
+							{
+								result.Add(line);
+							}
+						}
+					}
+
+					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracted {result.Count} lines from {fileName}");
+
+					return result;
+				}
+				catch (HttpRequestException ex)
+				{
+					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+					{
+						cumulus.LogErrorMessage("GetSdFileContents: Error - This Station does not support the HTTP API!");
+						return null;
+					}
+					else
+					{
+						cumulus.LogExceptionMessage(ex, "GetSdFileContents: HTTP Error");
+					}
+				}
+				catch (Exception ex)
+				{
+					if (token.IsCancellationRequested)
+					{
+						cumulus.LogDebugMessage("GetSdFileContents: Operation cancelled due to shutting down");
+						return null;
+					}
+					cumulus.LogExceptionMessage(ex, "GetSdFileContents: Error");
+				}
+
+				retries--;
+				Thread.Sleep(250);
+			} while (retries >= 0);
 
 			return null;
 		}

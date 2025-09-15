@@ -510,12 +510,12 @@ namespace CumulusMX.Stations
 				// filename is YYYYMM[A-Z].csv  or  YYYMMAllSensors_[A-Z].csv
 				if (file.Contains("All"))
 				{
-					cumulus.LogMessage("GetHistoricDataSdCard: Adding base file " + file);
+					cumulus.LogMessage("GetHistoricDataSdCard: Adding extra file " + file);
 					extraFiles.Add(file);
 				}
 				else
 				{
-					cumulus.LogMessage("GetHistoricDataSdCard: Adding extra file " + file);
+					cumulus.LogMessage("GetHistoricDataSdCard: Adding base file " + file);
 					baseFiles.Add(file);
 				}
 			}
@@ -537,6 +537,7 @@ namespace CumulusMX.Stations
 				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
 				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
+				//var lines = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result;
 				var lines = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result;
 
 				if (lines == null || lines.Count == 1)
@@ -582,6 +583,7 @@ namespace CumulusMX.Stations
 				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
 				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
+				//var lines = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result;
 				var lines = localApi.GetSdFileContents(file, startTime, Program.ExitSystemToken).Result;
 
 				if (lines == null || lines.Count == 1)
@@ -626,7 +628,7 @@ namespace CumulusMX.Stations
 
 			var recNo = 1;
 			var lastRecTime = DateTime.MinValue;
-			var interval = 1;
+			var interval = localApi.SdCardInterval;
 
 			foreach (var rec in buffer)
 			{
