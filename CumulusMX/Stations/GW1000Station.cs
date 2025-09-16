@@ -8,8 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
-using ServiceStack.Text;
-
 namespace CumulusMX.Stations
 {
 	internal class GW1000Station : WeatherStation

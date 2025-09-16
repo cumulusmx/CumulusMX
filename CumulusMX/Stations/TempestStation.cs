@@ -5,10 +5,9 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-
-using ServiceStack.Text;
 
 using CumulusMX.Stations.Tempest;
 
@@ -531,7 +530,7 @@ namespace CumulusMX.Stations.Tempest
 				WeatherPacket wp = null;
 				try
 				{
-					wp = JsonSerializer.DeserializeFromString<WeatherPacket>(s);
+					wp = JsonSerializer.Deserialize<WeatherPacket>(s);
 					if (wp != null)
 					{
 						wp.FullString = s;
@@ -582,7 +581,7 @@ namespace CumulusMX.Stations.Tempest
 
 					using var response = httpClient.GetAsync($"{url}device/{deviceId}?token={token}&time_start={st}&time_end={end_time}");
 					var apiResponse = response.Result.Content.ReadAsStringAsync().Result;
-					var rp = JsonSerializer.DeserializeFromString<RestPacket>(apiResponse);
+					var rp = JsonSerializer.Deserialize<RestPacket>(apiResponse);
 					if (rp != null && (rp.status.status_message.Equals("SUCCESS") || rp.status.status_code==2) && rp.obs != null)
 					{
 						if (rp.status.status_code == 2)

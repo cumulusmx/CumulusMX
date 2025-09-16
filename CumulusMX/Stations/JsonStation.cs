@@ -1,13 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using EmbedIO;
 
 using MQTTnet;
-
-using ServiceStack;
-using ServiceStack.Text;
 
 
 namespace CumulusMX.Stations
@@ -45,12 +44,6 @@ namespace CumulusMX.Stations
 			{
 				cumulus.LogMessage("Creating Extra Sensors - JSON Station");
 			}
-
-			// Let's decode the Unix ts to DateTime
-			JsConfig.Init(new Config
-			{
-				DateHandler = DateHandler.UnixTime
-			});
 
 			// Do not set these if we are only using extra sensors
 			if (mainStation)
@@ -266,7 +259,7 @@ namespace CumulusMX.Stations
 
 			var retStr = new StringBuilder();
 
-			var data = dataString.FromJson<DataObject>();
+			var data = JsonSerializer.Deserialize<DataObject>(dataString);
 
 			if (data == null)
 			{
@@ -883,6 +876,8 @@ namespace CumulusMX.Stations
 		private sealed class DataObject
 		{
 			public UnitsObject units { get; set; }
+
+			[JsonConverter(typeof(UnixDateTimeConverter))]
 			public DateTime lastupdated { get; set; }
 			public Temperature temperature { get; set; }
 			public Humidity humidity { get; set; }
@@ -986,10 +981,10 @@ namespace CumulusMX.Stations
 
 		private sealed class Lightning
 		{
+			[JsonConverter(typeof(NullableUnixDateTimeConverter))]
 			public DateTime? time { get; set; }
 			public int? strikes { get; set; }
 			public double? distance { get; set; }
 		}
-
 	}
 }

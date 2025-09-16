@@ -1,10 +1,8 @@
 ﻿using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-
-using ServiceStack;
-
 
 
 namespace CumulusMX.Stations
@@ -301,7 +299,7 @@ namespace CumulusMX.Stations
 			try
 			{
 				// Convert JSON string to an object
-				var json = jsonText.FromJson<PaLive>();
+				var json = JsonSerializer.Deserialize<PaLive>(jsonText);
 
 				// The PA sends the timestamp in Unix ticks, and in UTC
 				// rather than rely on the PA clock being correct, we will use our local time
