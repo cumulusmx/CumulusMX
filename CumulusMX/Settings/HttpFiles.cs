@@ -5,15 +5,13 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using EmbedIO;
 
-using ServiceStack;
-using ServiceStack.Text;
 
-
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	internal class HttpFiles(Cumulus cumulus, WeatherStation station)
 	{
@@ -47,12 +45,12 @@ namespace CumulusMX
 				files = images
 			};
 
-			return settings.ToJson();
+			return JsonSerializer.Serialize(settings);
 		}
 
 		public string UpdateConfig(IHttpContext context)
 		{
-			string json = string.Empty;
+			var json = string.Empty;
 			HttpFileSettings settings;
 			try
 			{
@@ -62,7 +60,7 @@ namespace CumulusMX
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<HttpFileSettings>();
+				settings = JsonSerializer.Deserialize<HttpFileSettings>(json);
 			}
 			catch (Exception ex)
 			{

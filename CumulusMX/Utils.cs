@@ -11,9 +11,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ServiceStack;
-using ServiceStack.Text;
-
 
 // A rag tag of useful functions
 
@@ -115,7 +112,7 @@ namespace CumulusMX
 		{
 			byte[] hashValue;
 			// Initialize the keyed hash object.
-			using HMACSHA256 hmac = new HMACSHA256(key.ToAsciiBytes());
+			using HMACSHA256 hmac = new HMACSHA256(ASCIIEncoding.ASCII.GetBytes(key));
 			// convert string to stream
 			byte[] byteArray = Encoding.UTF8.GetBytes(data);
 			using (MemoryStream stream = new MemoryStream(byteArray))
@@ -418,16 +415,14 @@ namespace CumulusMX
 			const int DefaultBufferSize = 4096;
 			const FileOptions DefaultOptions = FileOptions.Asynchronous | FileOptions.SequentialScan;
 
-			Byte[] data;
-
 			// Open the FileStream with the same FileMode, FileAccess
 			// and FileShare as a call to File.OpenText would've done.
-			using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, DefaultOptions))
-			{
-				data = await stream.ReadFullyAsync();
-			}
+			using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, DefaultOptions);
+			using var memoryStream = new MemoryStream();
 
-			return data;
+			await stream.CopyToAsync(memoryStream);
+			// Convert the memory stream to a byte array
+			return memoryStream.ToArray();
 		}
 
 		public static bool FilesEqual(string path1, string path2)

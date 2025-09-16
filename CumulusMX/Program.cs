@@ -3,8 +3,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 using System.ServiceProcess;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +16,6 @@ using NLog.Config;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 
-using ServiceStack;
 
 //#error version
 
@@ -591,7 +591,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					return (File.ReadAllText("CumulusMX.runtimeconfig.json")).FromJson<ConfigFile>();
+					return JsonSerializer.Deserialize<ConfigFile>(File.ReadAllText("CumulusMX.runtimeconfig.json"));
 				}
 				catch
 				{
@@ -622,19 +622,18 @@ namespace CumulusMX
 			public ConfigFileProperties configProperties { get; set; }
 		}
 
-		[DataContract]
 		public sealed class ConfigFileProperties
 		{
-			[DataMember(Name = "User.PhpMaxConnections")]
+			[JsonPropertyName("User.PhpMaxConnections")]
 			public int PhpMaxConnections { get; set; }
 
-			[DataMember(Name = "User.RealtimeFtpWatchDogInterval")]
+			[JsonPropertyName("User.RealtimeFtpWatchDogInterval")]
 			public int RealtimeFtpWatchDogInterval { get; set; }
 
-			[DataMember(Name = "User.LogFileSize")]
+			[JsonPropertyName("User.LogFileSize")]
 			public int LogFileSize { get; set; }
 
-			[DataMember(Name = "User.LogfileCount")]
+			[JsonPropertyName("User.LogFileCount")]
 			public int LogFileCount { get; set; }
 		}
 
