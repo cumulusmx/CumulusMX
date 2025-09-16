@@ -62,7 +62,7 @@ namespace CumulusMX.Stations
 
 				if (long.TryParse(datetimeStr, out var date))
 				{
-					return Utils.FromUnixTime(date);
+					return date.FromUnixTime();
 				}
 
 				return DateTime.MinValue;
@@ -2447,19 +2447,19 @@ namespace CumulusMX.Stations
 					DateTime dataTime;
 					if (currObj.data.pressure != null)
 					{
-						dataTime = Utils.FromUnixTime(currObj.data.pressure.absolute.time);
+						dataTime = currObj.data.pressure.absolute.time.FromUnixTime();
 					}
 					else if (currObj.data.outdoor.temperature != null)
 					{
-						dataTime = Utils.FromUnixTime(currObj.data.outdoor.temperature.time);
+						dataTime = currObj.data.outdoor.temperature.time.FromUnixTime();
 					}
 					else if (currObj.data.indoor.temperature != null)
 					{
-						dataTime = Utils.FromUnixTime(currObj.data.indoor.temperature.time);
+						dataTime = currObj.data.indoor.temperature.time.FromUnixTime();
 					}
 					else
 					{
-						dataTime = Utils.FromUnixTime(currObj.time);
+						dataTime = currObj.time.FromUnixTime();
 					}
 
 
@@ -2619,7 +2619,7 @@ namespace CumulusMX.Stations
 								return defaultUrl;
 							}
 
-							LastCameraImageTime = Utils.FromUnixTime(currObj.data.camera.photo.time).ToUniversalTime();
+							LastCameraImageTime = currObj.data.camera.photo.time.FromUnixTime().ToUniversalTime();
 							cumulus.LogDebugMessage($"API.GetCurrentCameraImageUrl: Last image update {LastCameraImageTime.ToLocalTime():s}");
 							return currObj.data.camera.photo.url;
 						}

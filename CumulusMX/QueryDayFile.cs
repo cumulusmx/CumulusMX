@@ -4,10 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack.Text;
 
 using SQLite;
 
@@ -228,7 +227,7 @@ namespace CumulusMX
 					{
 						ret = db.Query<RetValTime>($"SELECT {propertyName} value, {timeProp} time FROM DayFileRec WHERE {propertyName} = (SELECT {function}({propertyName}) FROM DayFileRec WHERE Date BETWEEN ? AND ?) AND Date BETWEEN ? AND ? LIMIT 1", fromDate, toDate, fromDate, toDate);
 					}
-					
+
 					if (ret.Count == 1)
 					{
 						value = ret[0].value;
@@ -251,7 +250,7 @@ namespace CumulusMX
 					else if (yearly)
 					{
 						var ret = db.Query<RetValTime>($"SELECT {function}({propertyName}) value, {timeProp} time, strftime('%Y', Date) year FROM DayFileRec GROUP BY year ORDER BY value {sort} LIMIT 1");
-						
+
 						if (ret.Count == 1)
 						{
 							value = ret[0].value;
@@ -263,7 +262,7 @@ namespace CumulusMX
 						if (function == "sum" || function == "avg")
 						{
 							var ret = db.Query<RetValString>($"SELECT {function}({propertyName}) value, strftime('%Y-%m', Date) year_month FROM DayFileRec WHERE strftime('%m', Date) = '{byMonth}' GROUP BY year_month ORDER BY value {sort} LIMIT 1");
-							
+
 							if (ret.Count == 1)
 							{
 								value = ret[0].value;
@@ -307,7 +306,7 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data)[5..];
 
 				// de-serialize it
-				var req = JsonSerializer.DeserializeFromString<WebReq>(json);
+				var req = JsonSerializer.Deserialize<WebReq>(json);
 
 				// process the settings
 				try

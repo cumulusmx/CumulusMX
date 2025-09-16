@@ -18,13 +18,6 @@ namespace CumulusMX
 {
 	internal static partial class Utils
 	{
-		public static DateTime FromUnixTime(long unixTime)
-		{
-			// Cconvert Unix TS seconds to local time
-			var utcTime = DateTime.UnixEpoch.AddSeconds(unixTime);
-			return utcTime.ToLocalTime();
-		}
-
 		public static DateTime RoundTimeUpToInterval(DateTime dateTime, TimeSpan intvl)
 		{
 			return new DateTime((dateTime.Ticks + intvl.Ticks - 1) / intvl.Ticks * intvl.Ticks, dateTime.Kind);

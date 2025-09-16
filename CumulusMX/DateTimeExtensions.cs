@@ -16,4 +16,17 @@ public static class DateTimeExtensions
 		return dateTimeOffset.ToUnixTimeMilliseconds();
 	}
 
+	// Cconvert Unix TS seconds to local time
+	public static DateTime FromUnixTime(this long unixTime)
+	{
+		var utcTime = DateTime.UnixEpoch.AddSeconds(unixTime);
+		return utcTime.ToLocalTime();
+	}
+
+	public static DateTime FromUnixTime(this int unixTime)
+	{
+		var utcTime = DateTime.UnixEpoch.AddSeconds(unixTime);
+		return utcTime.ToLocalTime();
+	}
+
 }

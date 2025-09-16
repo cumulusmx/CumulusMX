@@ -1514,7 +1514,7 @@ namespace CumulusMX.Stations
 				// Ecowitt do not understand Unix time and add the local TZ offset and DST to it!
 				var offset = autoDST ? (int) TimeZoneInfo.Local.GetUtcOffset(now).TotalSeconds : (int) TimeZoneInfo.Local.BaseUtcOffset.TotalSeconds;
 
-				var date = Utils.FromUnixTime(unix - offset);
+				var date = (unix - offset).FromUnixTime();
 				var clockdiff = now.ToUnixTime() - (unix - offset);
 
 				string slowfast;

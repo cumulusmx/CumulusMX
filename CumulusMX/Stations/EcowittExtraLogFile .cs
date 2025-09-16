@@ -59,7 +59,7 @@ namespace CumulusMX.Stations
 
 					if (useTimestamp && long.TryParse(fields[1], invc, out long unix))
 					{
-						time = Utils.FromUnixTime(Utils.RoundDownUnixTimestamp(unix, interval));
+						time = Utils.RoundDownUnixTimestamp(unix, interval).FromUnixTime();
 					}
 					else
 					{
@@ -106,7 +106,7 @@ namespace CumulusMX.Stations
 					}
 
 					// Lightning
-					if (FieldIndex.TryGetValue("thunder time", out idx) && long.TryParse(fields[idx], invc, out long varLong)) rec.LightningTime = Utils.FromUnixTime(varLong);
+					if (FieldIndex.TryGetValue("thunder time", out idx) && long.TryParse(fields[idx], invc, out long varLong)) rec.LightningTime = varLong.FromUnixTime();
 					if (FieldIndex.TryGetValue("thunder count", out idx) && int.TryParse(fields[idx], out varInt)) rec.LightningCount = varInt;
 					if (FieldIndex.TryGetValue("thunder distance", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LightningDist = varDec;
 
