@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 using System.Threading;
 
 using EmbedIO;
-
-using ServiceStack;
-using ServiceStack.Text;
-
 
 namespace CumulusMX.Settings
 {
@@ -482,7 +479,7 @@ namespace CumulusMX.Settings
 				ChillHrs = chillhrs
 			};
 
-			return JsonSerializer.SerializeToString(data);
+			return JsonSerializer.Serialize(data);
 		}
 
 		private static void LongToDMS(decimal longitude, out int d, out int m, out int s, out string hem)
@@ -550,7 +547,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = JsonSerializer.DeserializeFromString<JsonData>(json);
+				settings = JsonSerializer.Deserialize<JsonData>(json);
 			}
 			catch (Exception ex)
 			{
@@ -1465,7 +1462,7 @@ namespace CumulusMX.Settings
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
 				var json = WebUtility.UrlDecode(data);
 
-				var options = json.FromJson<UploadNowData>();
+				var options = JsonSerializer.Deserialize<UploadNowData>(json);
 
 				if (!cumulus.FtpOptions.Enabled && !cumulus.FtpOptions.LocalCopyEnabled)
 					return "Upload/local copy is not enabled!";
@@ -1590,7 +1587,7 @@ namespace CumulusMX.Settings
 				var json = WebUtility.UrlDecode(data);
 
 				// de-serialize it to the settings structure
-				var settings = JsonSerializer.DeserializeFromString<JsonSelectaChartSettings>(json);
+				var settings = JsonSerializer.Deserialize<JsonSelectaChartSettings>(json);
 
 				// process the settings
 				try
@@ -1633,7 +1630,7 @@ namespace CumulusMX.Settings
 				var json = WebUtility.UrlDecode(data);
 
 				// de-serialize it to the settings structure
-				var settings = JsonSerializer.DeserializeFromString<JsonSelectaChartSettings>(json);
+				var settings = JsonSerializer.Deserialize<JsonSelectaChartSettings>(json);
 
 				// process the settings
 				try

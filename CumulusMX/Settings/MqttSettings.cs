@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack;
 
 
 namespace CumulusMX.Settings
@@ -29,7 +28,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<MqttConfig>();
+				settings = JsonSerializer.Deserialize<MqttConfig>(json);
 			}
 			catch (Exception ex)
 			{
@@ -140,7 +139,7 @@ namespace CumulusMX.Settings
 				interval = mqttInterval
 			};
 
-			return mqttsettings.ToJson();
+			return JsonSerializer.Serialize(mqttsettings);
 		}
 
 		private sealed class MqttConfig

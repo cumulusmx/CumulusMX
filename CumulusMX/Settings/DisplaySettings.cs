@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack.Text;
 
 
 namespace CumulusMX.Settings
@@ -359,7 +358,7 @@ namespace CumulusMX.Settings
 				DataVisibility = graphVis
 			};
 
-			return JsonSerializer.SerializeToString(data);
+			return JsonSerializer.Serialize(data);
 		}
 
 
@@ -381,7 +380,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = JsonSerializer.DeserializeFromString<JsonData>(json);
+				settings = JsonSerializer.Deserialize<JsonData>(json);
 			}
 			catch (Exception ex)
 			{

@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
 
-using ServiceStack.Text;
 
 namespace CumulusMX.Settings
 {
@@ -90,7 +89,7 @@ namespace CumulusMX.Settings
 				security = security
 			};
 
-			return JsonSerializer.SerializeToString(settings);
+			return JsonSerializer.Serialize(settings);
 		}
 
 		public string UpdateConfig(IHttpContext context)
@@ -112,7 +111,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = JsonSerializer.DeserializeFromString<JsonProgramSettings>(json);
+				settings = JsonSerializer.Deserialize<JsonProgramSettings>(json);
 			}
 			catch (Exception ex)
 			{

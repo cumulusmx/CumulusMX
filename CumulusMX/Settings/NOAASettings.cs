@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack;
 
 namespace CumulusMX.Settings
 {
@@ -109,7 +108,7 @@ namespace CumulusMX.Settings
 				normalrain = normalrain
 			};
 
-			return data.ToJson();
+			return JsonSerializer.Serialize(data);
 		}
 
 		//public string UpdateNoaaConfig(HttpListenerContext context)
@@ -126,7 +125,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonSettingsData>();
+				settings = JsonSerializer.Deserialize<JsonSettingsData>(json);
 			}
 			catch (Exception ex)
 			{

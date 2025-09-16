@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack;
 
 
 namespace CumulusMX.Settings
@@ -29,7 +28,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonSettings>();
+				settings = JsonSerializer.Deserialize<JsonSettings>(json);
 			}
 			catch (Exception ex)
 			{
@@ -675,7 +674,7 @@ namespace CumulusMX.Settings
 				customhttp = customhttp
 			};
 
-			return data.ToJson();
+			return JsonSerializer.Serialize(data);
 		}
 
 		private sealed class JsonSettings

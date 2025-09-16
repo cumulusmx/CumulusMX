@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.IO;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace CumulusMX
@@ -30,7 +30,7 @@ namespace CumulusMX
 		}
 		public string WebTag { get; set; }
 		public decimal Value { get; set; }
-		[IgnoreDataMember]
+		[JsonIgnore]
 		public bool Triggered
 		{
 			get => triggered;
@@ -43,7 +43,7 @@ namespace CumulusMX
 			}
 		}
 
-		[IgnoreDataMember]
+		[JsonIgnore]
 		public DateTime TriggeredTime { get => triggeredTime; }
 		public bool Email { get; set; }
 		public string Action { get; set; }

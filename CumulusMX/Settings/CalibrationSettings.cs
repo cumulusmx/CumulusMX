@@ -2,10 +2,9 @@
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack;
 
 namespace CumulusMX.Settings
 {
@@ -27,7 +26,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonSettingsData>();
+				settings = JsonSerializer.Deserialize<JsonSettingsData>(json);
 			}
 			catch (Exception ex)
 			{
@@ -261,7 +260,7 @@ namespace CumulusMX.Settings
 				snow = snow
 			};
 
-			return data.ToJson();
+			return JsonSerializer.Serialize(data);
 		}
 
 		private sealed class JsonSettingsData

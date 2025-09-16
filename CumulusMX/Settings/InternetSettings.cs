@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 
 using EmbedIO;
-
-using ServiceStack;
 
 using static CumulusMX.Cumulus;
 
@@ -35,7 +33,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonInternetSettingsData>();
+				settings = JsonSerializer.Deserialize<JsonInternetSettingsData>(json);
 			}
 			catch (Exception ex)
 			{
@@ -548,7 +546,7 @@ namespace CumulusMX.Settings
 				misc = misc
 			};
 
-			return data.ToJson();
+			return JsonSerializer.Serialize(data);
 		}
 
 		public string GetExtraWebFilesData()
