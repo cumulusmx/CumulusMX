@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,9 +44,6 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 
 using Renci.SshNet;
-
-using ServiceStack;
-using ServiceStack.Text;
 
 using SQLite;
 
@@ -2316,7 +2314,7 @@ namespace CumulusMX
 
 				if (responseBodyAsText.Length > 10)
 				{
-					var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapStation[]>(responseBodyAsText);
+					var respJson = JsonSerializer.Deserialize<OpenWeatherMapStation[]>(responseBodyAsText);
 					retVal = respJson;
 				}
 			}
@@ -2357,7 +2355,7 @@ namespace CumulusMX
 				if (response.StatusCode == HttpStatusCode.Created)
 				{
 					// It worked, save the result
-					var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapNewStation>(responseBodyAsText);
+					var respJson = JsonSerializer.Deserialize<OpenWeatherMapNewStation>(responseBodyAsText);
 
 					LogMessage($"OpenWeatherMap: Created new station, id = {respJson.ID}, name = {respJson.name}");
 					OpenWeatherMap.ID = respJson.ID;
@@ -9127,7 +9125,7 @@ namespace CumulusMX
 
 				using (var thisProcess = System.Diagnostics.Process.GetCurrentProcess())
 				{
-					var procId = thisProcess.Id.ToString().ToAsciiBytes();
+					var procId = Encoding.ASCII.GetBytes(thisProcess.Id.ToString());
 					_lockFile.Write(procId, 0, procId.Length);
 					_lockFile.Flush();
 				}
@@ -12847,7 +12845,7 @@ namespace CumulusMX
 					_ = ErrorList.Dequeue();
 				}
 
-				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.GetInnerMostException().Message));
+				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.GetBaseException().Message));
 
 				LatestError = message + " - " + ex.Message;
 				LatestErrorTS = DateTime.Now;
@@ -14483,7 +14481,7 @@ namespace CumulusMX
 				using var retval = await MyHttpClient.SendAsync(request);
 
 				var body = await retval.Content.ReadAsStringAsync();
-				var releases = body.FromJson<List<GithubRelease>>();
+				var releases = JsonSerializer.Deserialize<List<GithubRelease>>(body);
 
 				var latestBeta = releases.Find(x => !x.draft && x.prerelease);
 				var latestLive = releases.Find(x => !x.draft && !x.prerelease);

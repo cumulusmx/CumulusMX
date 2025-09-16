@@ -98,14 +98,14 @@ namespace CumulusMX
 
 		public static string GetMd5String(string str)
 		{
-			return GetMd5String(System.Text.Encoding.ASCII.GetBytes(str));
+			return GetMd5String(Encoding.ASCII.GetBytes(str));
 		}
 
 		public static string GetSHA256Hash(string key, string data)
 		{
 			byte[] hashValue;
 			// Initialize the keyed hash object.
-			using HMACSHA256 hmac = new HMACSHA256(ASCIIEncoding.ASCII.GetBytes(key));
+			using HMACSHA256 hmac = new HMACSHA256(Encoding.ASCII.GetBytes(key));
 			// convert string to stream
 			byte[] byteArray = Encoding.UTF8.GetBytes(data);
 			using (MemoryStream stream = new MemoryStream(byteArray))
