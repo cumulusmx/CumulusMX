@@ -11,14 +11,13 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Web;
 
 using EmbedIO.Utilities;
-
-using ServiceStack.Text;
 
 using SQLite;
 
@@ -14401,12 +14400,12 @@ namespace CumulusMX
 
 		public string GetSelectaChartOptions()
 		{
-			return JsonSerializer.SerializeToString(cumulus.SelectaChartOptions);
+			return JsonSerializer.Serialize(cumulus.SelectaChartOptions);
 		}
 
 		public string GetSelectaPeriodOptions()
 		{
-			return JsonSerializer.SerializeToString(cumulus.SelectaPeriodOptions);
+			return JsonSerializer.Serialize(cumulus.SelectaPeriodOptions);
 		}
 
 

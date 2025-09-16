@@ -3,9 +3,8 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-
-using ServiceStack.Text;
 
 namespace CumulusMX.ThirdParty
 {
@@ -210,7 +209,7 @@ namespace CumulusMX.ThirdParty
 
 				if (responseBodyAsText.Length > 10)
 				{
-					var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapStation[]>(responseBodyAsText);
+					var respJson = JsonSerializer.Deserialize<OpenWeatherMapStation[]>(responseBodyAsText);
 					retVal = respJson;
 				}
 			}
@@ -252,7 +251,7 @@ namespace CumulusMX.ThirdParty
 				if (response.StatusCode == HttpStatusCode.Created)
 				{
 					// It worked, save the result
-					var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapNewStation>(responseBodyAsText);
+					var respJson = JsonSerializer.Deserialize<OpenWeatherMapNewStation>(responseBodyAsText);
 
 					cumulus.LogMessage($"OpenWeatherMap: Created new station, id = {respJson.ID}, name = {respJson.name}");
 					ID = respJson.ID;

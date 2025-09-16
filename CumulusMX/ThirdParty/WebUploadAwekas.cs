@@ -2,10 +2,10 @@
 using System.Globalization;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Timers;
 
-using ServiceStack.Text;
 
 namespace CumulusMX.ThirdParty
 {
@@ -88,7 +88,7 @@ namespace CumulusMX.ThirdParty
 
 					try
 					{
-						respJson = JsonSerializer.DeserializeFromString<AwekasResponse>(responseBodyAsText);
+						respJson = JsonSerializer.Deserialize<AwekasResponse>(responseBodyAsText);
 					}
 					catch (Exception ex)
 					{

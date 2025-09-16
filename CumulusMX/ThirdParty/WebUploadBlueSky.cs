@@ -7,11 +7,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ServiceStack;
 using SixLabors.ImageSharp;
 
 
@@ -123,7 +123,7 @@ namespace CumulusMX.ThirdParty
 					{
 						cumulus.LogDebugMessage("BlueSky: Authentication Response: " + response.StatusCode);
 
-						var respObj = responseBodyAsText.FromJson<AuthResponse>();
+						var respObj = JsonSerializer.Deserialize<AuthResponse>(responseBodyAsText);
 
 						if (respObj.accessJwt != null && respObj.did != null)
 						{
@@ -141,7 +141,7 @@ namespace CumulusMX.ThirdParty
 					}
 					else if (response.StatusCode == HttpStatusCode.Unauthorized)
 					{
-						var err = responseBodyAsText.FromJson<ErrorResp>();
+						var err = JsonSerializer.Deserialize<ErrorResp>(responseBodyAsText);
 
 						cumulus.LogWarningMessage($"BlueSky: Error - Authentication failed. Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
 						cumulus.ThirdPartyAlarm.LastMessage = "BlueSky: Unauthorized, check credentials";
@@ -151,7 +151,7 @@ namespace CumulusMX.ThirdParty
 					}
 					else
 					{
-						var err = responseBodyAsText.FromJson<ErrorResp>();
+						var err = JsonSerializer.Deserialize<ErrorResp>(responseBodyAsText);
 
 						if (retryCount == 0)
 						{
@@ -258,7 +258,7 @@ namespace CumulusMX.ThirdParty
 					body.record.facets = facets.ToArray();
 				}
 
-				var bodyText = body.ToJson();
+				var bodyText = JsonSerializer.Serialize(body);
 
 				cumulus.LogDataMessage("BlueSky: Post JSON: " + bodyText);
 
@@ -277,7 +277,7 @@ namespace CumulusMX.ThirdParty
 				}
 				else
 				{
-					var err = responseBodyAsText.FromJson<ErrorResp>();
+					var err = JsonSerializer.Deserialize<ErrorResp>(responseBodyAsText);
 
 					cumulus.LogWarningMessage($"BlueSky: Error - Post failed. Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
 					cumulus.ThirdPartyAlarm.LastMessage = $"BlueSky: Post HTTP Response code = {response.StatusCode},  Error = {err.error}, Message = {err.message}";
@@ -479,7 +479,7 @@ namespace CumulusMX.ThirdParty
 				{
 					cumulus.LogDebugMessage("BlueSky: Resolve Handle response = OK");
 
-					var resp = responseBodyAsText.FromJson<ResolveHandleResp>();
+					var resp = JsonSerializer.Deserialize<ResolveHandleResp>(responseBodyAsText);
 
 					if (string.IsNullOrEmpty(resp.did) || !resp.did.StartsWith("did:"))
 					{
@@ -493,7 +493,7 @@ namespace CumulusMX.ThirdParty
 				}
 				else
 				{
-					var err = responseBodyAsText.FromJson<ErrorResp>();
+					var err = JsonSerializer.Deserialize<ErrorResp>(responseBodyAsText);
 
 					cumulus.LogWarningMessage($"BlueSky: Error - Resolve Handle failed. Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
 					cumulus.ThirdPartyAlarm.LastMessage = $"BlueSky: Resolve Handle HTTP Response code = {response.StatusCode},  Error = {err.error}, Message = {err.message}";
@@ -582,12 +582,12 @@ namespace CumulusMX.ThirdParty
 
 				cumulus.LogDataMessage("BlueSky: Upload image response = " + responseBodyAsText);
 
-				var root = responseBodyAsText.FromJson<BlobRoot>();
+				var root = JsonSerializer.Deserialize<BlobRoot>(responseBodyAsText);
 				return root.blob;
 			}
 			else
 			{
-				var err = responseBodyAsText.FromJson<ErrorResp>();
+				var err = JsonSerializer.Deserialize<ErrorResp>(responseBodyAsText);
 
 				cumulus.LogWarningMessage($"BlueSky: Error - Upload image failed. Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
 				cumulus.ThirdPartyAlarm.LastMessage = $"BlueSky: Upload image HTTP Response code = {response.StatusCode},  Error = {err.error}, Message = {err.message}";
