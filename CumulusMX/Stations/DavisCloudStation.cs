@@ -46,33 +46,6 @@ namespace CumulusMX.Stations
 
 			cumulus.LogMessage("Station type = Davis Cloud Station");
 
-			// Override the ServiceStack De-serialization function
-			// Check which format provided, attempt to parse as datetime or return minValue.
-			// Formats to use for the different date kinds
-			string utcTimeFormat = "yyyy-MM-dd'T'HH:mm:ss.fff'Z'";
-			string localTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
-
-			ServiceStack.Text.JsConfig<DateTime>.DeSerializeFn = datetimeStr =>
-			{
-				if (string.IsNullOrWhiteSpace(datetimeStr))
-				{
-					return DateTime.MinValue;
-				}
-
-				if (datetimeStr.EndsWith('Z') &&
-					DateTime.TryParseExact(datetimeStr, utcTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime resultUtc))
-				{
-					return resultUtc;
-				}
-				else if (!datetimeStr.EndsWith('Z') &&
-					DateTime.TryParseExact(datetimeStr, localTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime resultLocal))
-				{
-					return resultLocal;
-				}
-
-				return DateTime.MinValue;
-			};
-
 			tmrCurrent = new System.Timers.Timer();
 
 			if (cumulus.StationType == StationTypes.DavisCloudVP2)
