@@ -2141,7 +2141,7 @@ namespace CumulusMX.Stations
 			var snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			// work out the next logger interval after the last CMX update
-			var nextLoggerTime = Utils.RoundTimeUpToInterval(cumulus.LastUpdateTime.AddMinutes(-1), TimeSpan.FromMinutes(loggerInterval));
+			var nextLoggerTime = cumulus.LastUpdateTime.AddMinutes(-1).RoundTimeUpToInterval(TimeSpan.FromMinutes(loggerInterval));
 
 			// check if the calculated logger time is later than now!
 			if (nextLoggerTime > DateTime.Now)

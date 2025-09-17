@@ -72,7 +72,7 @@ namespace CumulusMX.Stations
 					{
 						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
 						{
-							time = Utils.RoundTimeToInterval(time, interval);
+							time = time.RoundTimeDownToInterval(TimeSpan.FromMinutes(interval));
 						}
 						else
 						{

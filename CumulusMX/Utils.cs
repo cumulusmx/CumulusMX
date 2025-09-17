@@ -18,18 +18,6 @@ namespace CumulusMX
 {
 	internal static partial class Utils
 	{
-		public static DateTime RoundTimeUpToInterval(DateTime dateTime, TimeSpan intvl)
-		{
-			return new DateTime((dateTime.Ticks + intvl.Ticks - 1) / intvl.Ticks * intvl.Ticks, dateTime.Kind);
-		}
-
-		public static DateTime RoundTimeToInterval(DateTime dateTime, int intvl)
-		{
-			int minutes = dateTime.Minute;
-			int roundedMinutes = (int)(Math.Round((decimal) minutes / intvl) * intvl);
-			return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, roundedMinutes, 0);
-		}
-
 		public static long RoundDownUnixTimestamp(long unixTimestamp, int minuteInterval)
 		{
 			long intervalSeconds = minuteInterval * 60;

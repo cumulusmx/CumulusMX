@@ -2161,17 +2161,17 @@ namespace CumulusMX.Stations
 							 */
 
 
-							// The WL API v2 does not provide any running totals for rainfall, only  :(
+							// The WL API v2 does not provide any running totals for rainfall, only the clicks for the interval :(
 							// So we will have to add the interval data to the running total and hope it all works out!
 
 							try
 							{
-								if (data11.rain_rate_hi_at != 0 && data11.rainfall_clicks != 0 && data11.rain_rate_hi_clicks != null)
+								if (data11.rain_rate_hi_at.HasValue && data11.rainfall_clicks.HasValue && data11.rain_rate_hi_clicks.HasValue)
 								{
 									cumulus.LogDebugMessage($"WL.com historic: using rain data from TxId {data11.tx_id}");
 
-									var rain = ConvertRainClicksToUser((double) data11.rainfall_clicks, data11.rain_size);
-									var rainrate = ConvertRainClicksToUser((double) data11.rain_rate_hi_clicks, data11.rain_size);
+									var rain = ConvertRainClicksToUser((double) data11.rainfall_clicks, data11.rain_size.Value);
+									var rainrate = ConvertRainClicksToUser((double) data11.rain_rate_hi_clicks, data11.rain_size.Value);
 									if (rain > 0)
 									{
 										cumulus.LogDebugMessage($"WL.com historic: Adding rain {rain.ToString(cumulus.RainFormat)}");

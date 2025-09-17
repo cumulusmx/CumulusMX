@@ -2950,12 +2950,12 @@ namespace CumulusMX.Stations
 
 								try
 								{
-									if (data.rain_rate_hi_at != 0 && data.rainfall_clicks != 0 && data.rain_rate_hi_clicks != null)
+									if (data.rain_rate_hi_at.HasValue && data.rainfall_clicks.HasValue && data.rain_rate_hi_clicks.HasValue)
 									{
 										cumulus.LogDebugMessage($"DecodeHistoric: using rain data from TxId {data.tx_id}");
 
-										var rain = ConvertRainClicksToUser((double) data.rainfall_clicks, data.rain_size);
-										var rainrate = ConvertRainClicksToUser((double) data.rain_rate_hi_clicks, data.rain_size);
+										var rain = ConvertRainClicksToUser((double) data.rainfall_clicks, data.rain_size.Value);
+										var rainrate = ConvertRainClicksToUser((double) data.rain_rate_hi_clicks, data.rain_size.Value);
 										if (rain > 0)
 										{
 											cumulus.LogDebugMessage($"DecodeHistoric: Adding rain {rain.ToString(cumulus.RainFormat)}");

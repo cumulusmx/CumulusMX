@@ -157,14 +157,14 @@ namespace CumulusMX.Stations
 		public long? thsw_index_hi_at { get; set; }
 		public double? thsw_index_lo { get; set; }
 		public long? thsw_index_lo_at { get; set; }
-		public int rain_size { get; set; }
-		public int rainfall_clicks { get; set; }
-		public double rainfall_in { get; set; }
-		public double rainfall_mm { get; set; }
+		public int? rain_size { get; set; }
+		public int? rainfall_clicks { get; set; }
+		public double? rainfall_in { get; set; }
+		public double? rainfall_mm { get; set; }
 		public int? rain_rate_hi_clicks { get; set; }
-		public double rain_rate_hi_in { get; set; }
-		public double rain_rate_hi_mm { get; set; }
-		public long rain_rate_hi_at { get; set; }
+		public double? rain_rate_hi_in { get; set; }
+		public double? rain_rate_hi_mm { get; set; }
+		public long? rain_rate_hi_at { get; set; }
 		public int? solar_rad_avg { get; set; }
 		public int? solar_rad_hi { get; set; }
 		public long? solar_rad_hi_at { get; set; }
@@ -174,16 +174,16 @@ namespace CumulusMX.Stations
 		public long? uv_index_hi_at { get; set; }
 		public double? solar_rad_volt_last { get; set; }
 		public double? uv_volt_last { get; set; }
-		public int reception { get; set; }
-		public int rssi { get; set; }
-		public int error_packets { get; set; }
-		public int resynchs { get; set; }
-		public int good_packets_streak { get; set; }
-		public uint trans_battery_flag { get; set; }
+		public int? reception { get; set; }
+		public int? rssi { get; set; }
+		public int? error_packets { get; set; }
+		public int? resynchs { get; set; }
+		public int? good_packets_streak { get; set; }
+		public uint? trans_battery_flag { get; set; }
 		public double? trans_battery { get; set; }
 		public double? solar_volt_last { get; set; }
 		public double? supercap_volt_last { get; set; }
-		public int afc { get; set; }
+		public int? afc { get; set; }
 		public double? wind_run { get; set; }
 		public double? solar_energy { get; set; }
 		public double? uv_dose { get; set; }
