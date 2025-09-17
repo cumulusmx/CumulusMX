@@ -23,9 +23,27 @@ public static class DateTimeExtensions
 		return utcTime.ToLocalTime();
 	}
 
+	public static DateTime FromUnixTime(this long? unixTime)
+	{
+		if (unixTime == null)
+			return DateTime.MinValue;
+
+		var utcTime = DateTime.UnixEpoch.AddSeconds(unixTime.Value);
+		return utcTime.ToLocalTime();
+	}
+
 	public static DateTime FromUnixTime(this int unixTime)
 	{
 		var utcTime = DateTime.UnixEpoch.AddSeconds(unixTime);
+		return utcTime.ToLocalTime();
+	}
+
+	public static DateTime FromUnixTime(this int? unixTime)
+	{
+		if (unixTime == null)
+			return DateTime.MinValue;
+
+		var utcTime = DateTime.UnixEpoch.AddSeconds(unixTime.Value);
 		return utcTime.ToLocalTime();
 	}
 

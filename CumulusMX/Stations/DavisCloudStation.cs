@@ -4,11 +4,10 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Timers;
-
-using ServiceStack;
-using ServiceStack.Text;
 
 namespace CumulusMX.Stations
 {
@@ -20,7 +19,7 @@ namespace CumulusMX.Stations
 		private readonly AutoResetEvent bwDoneEvent = new(false);
 		private List<WlSensorListSensor> sensorList;
 		private readonly Dictionary<int, int> lsidToTx = [];
-		private readonly Dictionary<int, long> lsidLastUpdate = [];
+		private readonly Dictionary<int, DateTime> lsidLastUpdate = [];
 
 		private bool startingUp = true;
 		private DateTime lastRecordTime = DateTime.MinValue;
@@ -310,13 +309,13 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var error = responseBody.FromJson<WlErrorResponse>();
+					var error = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
 					cumulus.LogErrorMessage($"GetCurrent: WeatherLink API Current Error: {error.code}, {error.message}");
 					Cumulus.LogConsoleMessage($" - Error {error.code}: {error.message}", ConsoleColor.Red);
 					return;
 				}
 
-				currObj = responseBody.FromJson<WlCurrent>();
+				currObj = JsonSerializer.Deserialize<WlCurrent>(responseBody);
 
 				if (responseBody == "{}")
 				{
@@ -543,7 +542,7 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var historyError = responseBody.FromJson<WlErrorResponse>();
+					var historyError = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
 					cumulus.LogErrorMessage($"GetHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
 					Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
 					//cumulus.LastUpdateTime = Utils.FromUnixTime(endTime)
@@ -561,7 +560,7 @@ namespace CumulusMX.Stations
 				}
 				else if (responseBody.StartsWith("{\"")) // basic sanity check
 				{
-					histObj = responseBody.FromJson<WlHistory>();
+					histObj = JsonSerializer.Deserialize<WlHistory>(responseBody);
 
 					// get the sensor data
 					int idxOfSensorWithMostRecs = 0;
@@ -629,8 +628,8 @@ namespace CumulusMX.Stations
 					// For the additional sensors, check if they have the same number of records as the WLL. If they do great, we just process the next record.
 					// If the sensor has more or less historic records than the WLL, then we find the record (if any) that matches the WLL record timestamp
 
-					var refData = sensorWithMostRecs.data[dataIndex].FromJsv<WlHistorySensorDataType13Baro>();
-					var timestamp = refData.ts.FromUnixTime();
+					var refData = sensorWithMostRecs.data[dataIndex].Deserialize<WlHistorySensorDataType13Baro>();
+					var timestamp = refData.ts;
 					DataDateTime = timestamp;
 
 					cumulus.LogMessage($"GetHistoricData: Processing record {timestamp:yyyy-MM-dd HH:mm}");
@@ -726,7 +725,7 @@ namespace CumulusMX.Stations
 									if (worker.CancellationPending)
 										return;
 
-									var rec = dataRec.FromJsv<WlHistorySensorDataType17>();
+									var rec = dataRec.Deserialize<WlHistorySensorDataType17>();
 									if (rec.ts == refData.ts)
 									{
 										// Pass AirLink historic record to the AirLink module to process
@@ -754,7 +753,7 @@ namespace CumulusMX.Stations
 									if (worker.CancellationPending)
 										return;
 
-									var rec = dataRec.FromJsv<WlHistorySensorDataType17>();
+									var rec = dataRec.Deserialize<WlHistorySensorDataType17>();
 
 									if (rec.ts == refData.ts)
 									{
@@ -871,7 +870,7 @@ namespace CumulusMX.Stations
 						// Leaf/soil sensor
 						case 56:
 							{
-								var data = sensor.data.FromJsv<WLCurrentSensorDataType12_25[]>();
+								var data = sensor.data.Deserialize<WLCurrentSensorDataType12_25[]>();
 								var txid = lsidToTx[sensor.lsid];
 								/*
 								 * Leaf Wetness
@@ -1027,7 +1026,7 @@ namespace CumulusMX.Stations
 								// log the current value
 								try
 								{
-									var data = sensor.data.FromJsv<WlCurrentSensorDataType12_19Baro[]>();
+									var data = sensor.data.Deserialize<WlCurrentSensorDataType12_19Baro[]>();
 
 									foreach (var rec in data)
 									{
@@ -1051,7 +1050,7 @@ namespace CumulusMX.Stations
 										}
 
 										lsidLastUpdate[sensor.lsid] = rec.ts;
-										var ts = rec.ts.FromUnixTime();
+										var ts = rec.ts;
 
 										if (!cumulus.StationOptions.CalculateSLP)
 										{
@@ -1095,7 +1094,7 @@ namespace CumulusMX.Stations
 							 * wbgt_in
 							 */
 							{
-								var data = sensor.data.FromJsv<WlCurrentSensorDataType12_21Temp[]>();
+								var data = sensor.data.Deserialize<WlCurrentSensorDataType12_21Temp[]>();
 
 								foreach (var rec in data)
 								{
@@ -1160,7 +1159,7 @@ namespace CumulusMX.Stations
 						// WLL Health
 						case 504:
 							{
-								var data = sensor.data.FromJsv<WlHealthDataType15[]>();
+								var data = sensor.data.Deserialize<WlHealthDataType15[]>();
 								foreach (var rec in data)
 								{
 									try
@@ -1192,7 +1191,7 @@ namespace CumulusMX.Stations
 						// WLC health
 						case 509:
 							{
-								var data = sensor.data.FromJsv<WlHealthDataType27[]>();
+								var data = sensor.data.Deserialize<WlHealthDataType27[]>();
 								foreach (var rec in data)
 								{
 									try
@@ -1240,9 +1239,9 @@ namespace CumulusMX.Stations
 								case 2:
 									{
 										// VP2 sensor data is sent as an array of one, so we will strip off the enclosing [ ]
-										// and uck, uck, uck, we need to re-quote the forecast description as ithe quotes get stripped by the .FromJson() into a string
-										var str = sensor.data[1..^2].Replace("forecast_desc:", "forecast_desc:\"").Replace(",dew_point", "\",dew_point");
-										var data = str.FromJsv<WLCurrentSensordDataType1_2>();
+										// and uck, uck, uck, we need to re-quote the forecast description as the quotes get stripped by the .FromJson() into a string
+										//var str = sensor.data[1..^2].Replace("forecast_desc:", "forecast_desc:\"").Replace(",dew_point", "\",dew_point");
+										var data = sensor.data.Deserialize<WLCurrentSensordDataType1_2>();
 
 										try
 										{
@@ -1265,7 +1264,7 @@ namespace CumulusMX.Stations
 
 										lsidLastUpdate[sensor.lsid] = data.ts;
 
-										lastRecordTime = data.ts.FromUnixTime();
+										lastRecordTime = data.ts;
 										// Temperature & Humidity
 										/*
 										 * Available fields
@@ -1701,7 +1700,7 @@ namespace CumulusMX.Stations
 								case 10:
 								case 23:
 									{
-										var data = sensor.data.FromJsv<WLCurrentSensorDataType10_23[]>();
+										var data = sensor.data.Deserialize<WLCurrentSensorDataType10_23[]>();
 
 										foreach (var rec in data)
 										{
@@ -1726,7 +1725,7 @@ namespace CumulusMX.Stations
 
 											lsidLastUpdate[sensor.lsid] = rec.ts;
 
-											lastRecordTime = rec.ts.FromUnixTime();
+											lastRecordTime = rec.ts;
 
 											// Temperature & Humidity
 											if (cumulus.WllPrimaryTempHum == rec.tx_id)
@@ -1866,7 +1865,7 @@ namespace CumulusMX.Stations
 
 													if (cumulus.StationOptions.AvgBearingMinutes < 10)
 													{
-														bearing = rec.wind_dir_scalar_avg_last_2_min;
+														bearing = rec.wind_dir_scalar_avg_last_2_min ?? 0;
 													}
 													else
 													{
@@ -1885,7 +1884,7 @@ namespace CumulusMX.Stations
 													DoWind(gust, bearing, speed, lastRecordTime);
 
 													gust = ConvertUnits.WindMPHToUser(rec.wind_speed_hi_last_10_min ?? 0);
-													gustDir = rec.wind_dir_at_hi_speed_last_10_min;
+													gustDir = rec.wind_dir_at_hi_speed_last_10_min ?? 0;
 
 													var gustCal = cumulus.Calib.WindGust.Calibrate(gust);
 													var gustDirCal = gustDir == 0 ? 0 : (int) cumulus.Calib.WindDir.Calibrate(gustDir);
@@ -2153,7 +2152,7 @@ namespace CumulusMX.Stations
 
 
 
-		private void DecodeHistoric(int dataType, int sensorType, string json, bool current = false)
+		private void DecodeHistoric(int dataType, int sensorType, JsonNode json, bool current = false)
 		{
 			// The WLL sends the timestamp in Unix ticks, and in UTC
 
@@ -2165,8 +2164,8 @@ namespace CumulusMX.Stations
 					case 4: // VP2 ISS archive revision B
 					case 7: // EnviroMonitor ISS Archive Record
 						{
-							var data = json.FromJsv<WlHistorySensorDataType3_4>();
-							lastRecordTime = data.ts.FromUnixTime();
+							var data = json.Deserialize<WlHistorySensorDataType3_4>();
+							lastRecordTime = data.ts;
 
 							CheckLoggingDataStopped(data.arch_int / 60);
 
@@ -2615,8 +2614,8 @@ namespace CumulusMX.Stations
 					case 11: // WLL ISS data
 					case 24: // WL console ISS data
 						{
-							var data = json.FromJsv<WlHistorySensorDataType24>();
-							lastRecordTime = data.ts.FromUnixTime();
+							var data = JsonSerializer.Deserialize<WlHistorySensorDataType24>(json);
+							lastRecordTime = data.ts;
 
 							CheckLoggingDataStopped(data.arch_int / 60);
 
@@ -2656,7 +2655,7 @@ namespace CumulusMX.Stations
 								try
 								{
 									// do high humidity
-									if (data.hum_hi_at != 0 && data.hum_hi != null)
+									if (data.hum_hi_at.HasValue && data.hum_hi.HasValue)
 									{
 										ts = data.hum_hi_at.FromUnixTime();
 										DoOutdoorHumidity(Convert.ToInt32(data.hum_hi), ts);
@@ -2733,8 +2732,11 @@ namespace CumulusMX.Stations
 											if (!current)
 											{
 												// set the values for daily average, arch_int is in seconds, but always whole minutes
-												tempsamplestoday += data.arch_int / 60;
-												TempTotalToday += ConvertUnits.TempFToUser(data.temp_avg) * data.arch_int / 60;
+												if (!data.temp_avg.HasValue)
+												{
+													tempsamplestoday += data.arch_int / 60;
+													TempTotalToday += ConvertUnits.TempFToUser(data.temp_avg.Value) * data.arch_int / 60;
+												}
 
 												// update chill hours
 												if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
@@ -2948,7 +2950,7 @@ namespace CumulusMX.Stations
 
 								try
 								{
-									if (data.rain_rate_hi_at != 0 && data.rainfall_clicks != null && data.rain_rate_hi_clicks != null)
+									if (data.rain_rate_hi_at != 0 && data.rainfall_clicks != 0 && data.rain_rate_hi_clicks != null)
 									{
 										cumulus.LogDebugMessage($"DecodeHistoric: using rain data from TxId {data.tx_id}");
 
@@ -3067,7 +3069,7 @@ namespace CumulusMX.Stations
 						switch (sensorType)
 						{
 							case 56: // Soil + Leaf
-								var data = json.FromJsv<WlHistorySensorDataType13>();
+								var data = JsonSerializer.Deserialize<WlHistorySensorDataType13>(json);
 
 								string idx = string.Empty;
 								/*
@@ -3249,7 +3251,7 @@ namespace CumulusMX.Stations
 								cumulus.LogDebugMessage("DecodeHistoric: found Baro data");
 								try
 								{
-									var data13baro = json.FromJsv<WlHistorySensorDataType13Baro>();
+									var data13baro = JsonSerializer.Deserialize<WlHistorySensorDataType13Baro>(json);
 									DateTime ts;
 
 									// Only check hi/lo if we are using the Davis SLP
@@ -3279,8 +3281,7 @@ namespace CumulusMX.Stations
 										if (data13baro.bar_sea_level != null)
 										{
 											// leave it at current value
-											ts = data13baro.ts.FromUnixTime();
-											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_sea_level), ts);
+											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_sea_level), data13baro.ts);
 										}
 										else
 										{
@@ -3324,7 +3325,7 @@ namespace CumulusMX.Stations
 								 */
 								cumulus.LogDebugMessage("DecodeHistoric: found inside temp/hum data");
 
-								var data13temp = json.FromJsv<WlHistorySensorDataType13Temp>();
+								var data13temp = JsonSerializer.Deserialize<WlHistorySensorDataType13Temp>(json);
 								try
 								{
 									if (data13temp.temp_in_last != null)
@@ -3369,7 +3370,7 @@ namespace CumulusMX.Stations
 
 					case 15: // WLL Health
 						{
-							var data = json.FromJsv<WlHealthDataType15>();
+							var data = JsonSerializer.Deserialize<WlHealthDataType15>(json);
 							DecodeWllHealth(data, false);
 						}
 						break;
@@ -3384,7 +3385,7 @@ namespace CumulusMX.Stations
 
 					case 27: // WLC Health
 						{
-							var data = json.FromJsv<WlHealthDataType27>();
+							var data = JsonSerializer.Deserialize<WlHealthDataType27>(json);
 							DecodeWlcHealth(data, false);
 						}
 						break;
@@ -3437,7 +3438,7 @@ namespace CumulusMX.Stations
 				var dat = data.firmware_version.FromUnixTime();
 				DavisFirmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
 
-				var battV = data.battery_voltage / 1000.0;
+				var battV = data.battery_voltage.Value / 1000.0;
 				ConBatText = battV.ToString("F2");
 				// Allow voltage to drop to 1.35V per cell before triggering the alarm. This should leave a good reserve without changing them too often
 				// 1.35 * 4 = 5.4
@@ -3449,7 +3450,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogDebugMessage($"WLL Battery Voltage = {battV:0.##}V");
 				}
-				var inpV = data.input_voltage / 1000.0;
+				var inpV = data.input_voltage.Value / 1000.0;
 				ConSupplyVoltageText = inpV.ToString("F2");
 				if (inpV < 4.0)
 				{
@@ -3459,7 +3460,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogDebugMessage($"WLL Input Voltage = {inpV:0.##}V");
 				}
-				var upt = TimeSpan.FromSeconds(data.uptime);
+				var upt = TimeSpan.FromSeconds(data.uptime.Value);
 				var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
 						(int) upt.TotalDays,
 						upt.Hours,
@@ -3670,12 +3671,12 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var errObj = responseBody.FromJson<WlErrorResponse>();
+					var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
 					cumulus.LogErrorMessage($"GetStations: WeatherLink API Error: {errObj.code} - {errObj.message}");
 					return;
 				}
 
-				var stationsObj = responseBody.FromJson<WlStationList>();
+				var stationsObj = JsonSerializer.Deserialize<WlStationList>(responseBody);
 
 				foreach (var station in stationsObj.stations)
 				{
@@ -3789,12 +3790,12 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var errObj = responseBody.FromJson<WlErrorResponse>();
+					var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
 					cumulus.LogErrorMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message}");
 					return;
 				}
 
-				sensorsObj = responseBody.FromJson<WlSensorList>();
+				sensorsObj = JsonSerializer.Deserialize<WlSensorList>(responseBody);
 			}
 			catch (Exception ex)
 			{
@@ -3818,7 +3819,7 @@ namespace CumulusMX.Stations
 							lsidToTx.Add(sensor.lsid, sensor.tx_id.Value);
 						}
 
-						lsidLastUpdate.Add(sensor.lsid, 0);
+						lsidLastUpdate.Add(sensor.lsid, DateTime.MinValue);
 					}
 
 					if (sensor.sensor_type == 323 && sensor.station_id == cumulus.AirLinkOutStationId)
@@ -3865,7 +3866,7 @@ namespace CumulusMX.Stations
 					return;
 				}
 
-				status = responseBody.FromJson<WlComSystemStatus>();
+				status = JsonSerializer.Deserialize<WlComSystemStatus>(responseBody);
 
 				if (responseBody == "{}")
 				{
