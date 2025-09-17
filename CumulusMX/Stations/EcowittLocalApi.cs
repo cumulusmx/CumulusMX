@@ -5,19 +5,42 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-
-using ServiceStack;
 
 
 namespace CumulusMX.Stations
 {
-	internal sealed class EcowittLocalApi(Cumulus cumul) : IDisposable
+	internal sealed class EcowittLocalApi : IDisposable
 	{
-		private readonly Cumulus cumulus = cumul;
+		private readonly Cumulus cumulus ;
 		private static readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
-		internal static readonly string[] lineEnds = ["\r\n", "\n"];
+		internal readonly string[] lineEnds = ["\r\n", "\n"];
+
+		private readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions();
+
+		public EcowittLocalApi(Cumulus cumul)
+		{
+			cumulus = cumul;
+
+			/*
+			 * NOTE: Nasty 'orrible JSON from Ecowitt, they send every value as a string!
+			 *
+			 * We must create a custom converter for System.Text.Json so parse the strings into the required data types
+			 *
+			 */
+			jsonOptions.Converters.Add(new JsonIntConverter());
+			jsonOptions.Converters.Add(new JsonLongConverter());
+			jsonOptions.Converters.Add(new JsonDoubleConverter());
+			jsonOptions.Converters.Add(new JsonDecimalConverter());
+			jsonOptions.Converters.Add(new JsonNullIntConverter());
+			jsonOptions.Converters.Add(new JsonNullLongConverter());
+			jsonOptions.Converters.Add(new JsonNullDoubleConverter());
+			jsonOptions.Converters.Add(new JsonNullDecimalConverter());
+			jsonOptions.Converters.Add(new JsonBoolConverter());
+
+		}
 
 		public int SdCardInterval { get; set; }
 
@@ -202,7 +225,7 @@ namespace CumulusMX.Stations
 					else if (responseBody.StartsWith('{')) // sanity check
 					{
 						// Convert JSON string to an object
-						var json = responseBody.FromJson<LiveData>();
+						var json = JsonSerializer.Deserialize<LiveData>(responseBody, jsonOptions);
 						return json;
 					}
 				}
@@ -268,11 +291,11 @@ namespace CumulusMX.Stations
 
 				if (!string.IsNullOrEmpty(result1))
 				{
-					sensors1 = result1.FromJson<SensorInfo[]>();
+					sensors1 = JsonSerializer.Deserialize<SensorInfo[]>(result1, jsonOptions);
 				}
 				if (!string.IsNullOrEmpty(result2))
 				{
-					sensors2 = result2.FromJson<SensorInfo[]>();
+					sensors2 = JsonSerializer.Deserialize<SensorInfo[]>(result2, jsonOptions);
 				}
 
 				var retArr = new SensorInfo[sensors1.Length + sensors2.Length];
@@ -345,7 +368,7 @@ namespace CumulusMX.Stations
 				else if (responseBody.StartsWith('{')) // sanity check
 				{
 					// Convert JSON string to an object
-					var ver = responseBody.FromJson<VersionInfo>().version.Split(':')[1].Trim().Split('_')[1];
+					var ver = JsonSerializer.Deserialize<VersionInfo>(responseBody, jsonOptions).version.Split(':')[1].Trim().Split('_')[1];
 					cumulus.LogMessage("Station firmware version is " + ver);
 					return ver;
 				}
@@ -462,7 +485,7 @@ namespace CumulusMX.Stations
 				else if (responseBody.StartsWith('{')) // sanity check
 				{
 					// Convert JSON string to an object
-					var json = responseBody.FromJson<Calibration>();
+					var json = JsonSerializer.Deserialize<Calibration>(responseBody, jsonOptions);
 					return json;
 				}
 			}
@@ -630,7 +653,7 @@ namespace CumulusMX.Stations
 				else if (responseBody.StartsWith('{')) // sanity check
 				{
 					// Convert JSON string to an object
-					var result = responseBody.FromJson<CheckUpgrade>();
+					var result = JsonSerializer.Deserialize<CheckUpgrade>(responseBody, jsonOptions);
 					if (result.is_new)
 					{
 						cumulus.LogWarningMessage("Station firmware is out of date");
@@ -751,7 +774,7 @@ namespace CumulusMX.Stations
 					else if (responseBody.StartsWith('{')) // sanity check
 					{
 						// Convert JSON string to an object
-						var resp = responseBody.FromJson<SdCard>();
+						var resp = JsonSerializer.Deserialize<SdCard>(responseBody, jsonOptions);
 						SdCardInterval = resp.info.Interval;
 						return resp;
 					}
@@ -1225,8 +1248,8 @@ namespace CumulusMX.Stations
 			public string inhumi { get; set; }
 			public string abs { get; set; }
 			public string rel { get; set; }
-			public string CO2 { get; set; }
-			public string CO2_24H { get; set; }
+			public int? CO2 { get; set; }
+			public int? CO2_24H { get; set; }
 			public int? battery { get; set; }
 
 			public int? inhumiInt
@@ -1368,7 +1391,7 @@ namespace CumulusMX.Stations
 			public string name { get; set; }
 			public string id { get; set; }
 			public int batt { get; set; }
-			public int signal { get; set; }
+			public int? signal { get; set; }
 
 			public int? rssi { get; set; }
 			public bool idst { get; set; }

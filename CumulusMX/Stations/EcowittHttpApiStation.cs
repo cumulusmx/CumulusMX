@@ -1251,14 +1251,14 @@ namespace CumulusMX.Stations
 				// CO2
 				try
 				{
-					if (sensor.CO2 != null && int.TryParse(sensor.CO2, out var co2))
+					if (sensor.CO2.HasValue)
 					{
-						CO2 = co2;
+						CO2 = sensor.CO2;
 					}
 
-					if (sensor.CO2_24H != null && int.TryParse(sensor.CO2_24H, out var co2_24h))
+					if (sensor.CO2_24H.HasValue)
 					{
-						CO2_24h = co2_24h;
+						CO2_24h = sensor.CO2_24H;
 					}
 				}
 				catch (Exception ex)

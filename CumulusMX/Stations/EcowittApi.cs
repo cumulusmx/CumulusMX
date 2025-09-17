@@ -26,7 +26,6 @@ namespace CumulusMX.Stations
 
 		private JsonSerializerOptions jsonOptions = new JsonSerializerOptions();
 
-
 		private static readonly int EcowittApiFudgeFactorMins = 5; // Number of minutes that Ecowitt API data is delayed
 		private static readonly int EcowittApiFudgeFactorSecs = EcowittApiFudgeFactorMins * 60; // Number of seconds that Ecowitt API data is delayed
 
@@ -250,6 +249,8 @@ namespace CumulusMX.Stations
 						var json = responseBody.Replace("\"-\"", "null");
 
 						// get the sensor data
+						// messy, messy, messy!
+						// If there is historic data, they return .data as an object containing all the sensors, but if there is no historic data then .data is an empty array! - data: []
 						var histObj = JsonSerializer.Deserialize<HistoricResp>(json, jsonOptions);
 
 						if (histObj != null)
@@ -259,16 +260,16 @@ namespace CumulusMX.Stations
 							{
 								try
 								{
-									if (histObj.data != null)
-									{
-										data = histObj.data;
-										success = true;
-									}
-									else
+									if (histObj.data.GetValueKind() == System.Text.Json.JsonValueKind.Array)
 									{
 										// There was no data returned.
 										cumulus.LastUpdateTime = endTime;
 										return false;
+									}
+									else
+									{
+										data = histObj.data.Deserialize<EcowittHistoricData>(jsonOptions);
+										success = true;
 									}
 								}
 								catch (Exception ex)
@@ -3029,14 +3030,20 @@ namespace CumulusMX.Stations
 				else if (responseBody.StartsWith("{\"code\":")) // sanity check
 				{
 					// get the sensor data
+					// messy, messy, messy!
+					// If there is version data, they return .data as an object containing the info, but if there is an error like "too frequent" then they return http code 200, but .data is an empty array! - data: []
 					retObj = JsonSerializer.Deserialize<FirmwareResponse>(responseBody, jsonOptions);
 
-					if (retObj == null || retObj.data == null)
+					if (retObj == null || retObj.data.GetValueKind() == JsonValueKind.Array)
 					{
 						return null;
 					}
-					else if (retObj.code == -1)
+
+					var verData = retObj.data.Deserialize<FirmwareData>(jsonOptions);
+
+					if (retObj.code == -1)
 					{
+
 						// -1 = no update required or error
 						switch (retObj.msg)
 						{
@@ -3055,25 +3062,25 @@ namespace CumulusMX.Stations
 								return null;
 						}
 					}
-					else if (retObj.data.name == null)
+					else if (verData.name == null)
 					{
 						cumulus.LogWarningMessage("API.GetLatestFirmwareVersion: Ecowitt API: No version was returned.");
 						return null;
 					}
 					else if (retObj.code == 0)
 					{
-						if (retObj.data.content.Contains("test"))  // "- This is a test firmware."
+						if (verData.content.Contains("test"))  // "- This is a test firmware."
 						{
-							cumulus.LogMessage($"(\"API.GetLatestFirmwareVersion: You are running on test firmware: {retObj.data.name}");
+							cumulus.LogMessage($"(\"API.GetLatestFirmwareVersion: You are running on test firmware: {verData.name}");
 							cumulus.FirmwareAlarm.Triggered = false;
 							return null;
 						}
 						else
 						{
-							cumulus.FirmwareAlarm.LastMessage = $"A new firmware version is available: {retObj.data.name}.\nChange log:\n{retObj.data.content}";
+							cumulus.FirmwareAlarm.LastMessage = $"A new firmware version is available: {verData.name}.\nChange log:\n{verData.content}";
 							cumulus.FirmwareAlarm.Triggered = true;
-							cumulus.LogWarningMessage($"API.GetLatestFirmwareVersion: Latest Version {retObj.data.name}, Change log:\n{retObj.data.content}");
-							return retObj.data.name;
+							cumulus.LogWarningMessage($"API.GetLatestFirmwareVersion: Latest Version {verData.name}, Change log:\n{verData.content}");
+							return verData.name;
 						}
 					}
 					else
@@ -3219,7 +3226,7 @@ namespace CumulusMX.Stations
 			public int code { get; set; }
 			public string msg { get; set; }
 			public long time { get; set; }
-			public EcowittHistoricData data { get; set; }
+			public JsonNode data { get; set; }
 		}
 
 		//TODO: OK this works, but ouch!
@@ -3771,7 +3778,7 @@ namespace CumulusMX.Stations
 			public int code { get; set; }
 			public string msg { get; set; }
 			public int time { get; set; }
-			public FirmwareData data { get; set; }
+			public JsonNode data { get; set; }
 		}
 
 		private sealed class FirmwareData
