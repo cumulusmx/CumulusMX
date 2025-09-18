@@ -27,7 +27,7 @@ namespace CumulusMX.Stations
 	// Data Structure type 3 & 4 - VP2 ISS archive record Type A & B
 	public class WlHistorySensorDataType3_4
 	{
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 		public int tx_id { get; set; }
 		public int arch_int { get; set; }
@@ -111,7 +111,7 @@ namespace CumulusMX.Stations
 	// Data Structure type 11 = WeatherLink Live ISS archive record
 	public class WlHistorySensorDataType11
 	{
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 		public int tx_id { get; set; }
 		public int arch_int { get; set; }
@@ -194,7 +194,7 @@ namespace CumulusMX.Stations
 	// Data structure type 13 = WeatherLink Live Non-IIS Archive record
 	public class WlHistorySensorDataType13
 	{
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 		public int tx_id { get; set; }
 		public int arch_int { get; set; }
@@ -265,7 +265,7 @@ namespace CumulusMX.Stations
 	// Data structure type 13 = WeatherLink Live Internal Barometer Archive record
 	public class WlHistorySensorDataType13Baro
 	{
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 		public int arch_int { get; set; }
 		public double? bar_sea_level { get; set; }
@@ -280,7 +280,7 @@ namespace CumulusMX.Stations
 	// Data structure type 13 = WeatherLink Live Internal Temperature Archive record
 	public class WlHistorySensorDataType13Temp
 	{
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 		public double? temp_in_last { get; set; }
 		public double? temp_in_hi { get; set; }
@@ -299,7 +299,7 @@ namespace CumulusMX.Stations
 	// Data structure type 17 = AirLink Archive record
 	public class WlHistorySensorDataType17
 	{
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 		public int arch_int { get; set; }
 		public double? temp_avg { get; set; }
@@ -382,7 +382,7 @@ namespace CumulusMX.Stations
 		public long? rx_packets { get; set; }
 		public int? total_free_mem { get; set; }
 		public int? total_used_mem { get; set; }
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 		public long? tx_packets { get; set; }
 		public double? uptime { get; set; }
@@ -454,7 +454,7 @@ namespace CumulusMX.Stations
 		public double? supercap_volt_last { get; set; }
 		public int? rssi { get; set; }
 		public int? trans_battery_flag { get; set; }
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 		public int tx_id { get; set; }
 	}
@@ -462,7 +462,7 @@ namespace CumulusMX.Stations
 	// Data Structure Type 15 = WeatherLink Live Health record
 	public class WlHealthDataType15
 	{
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 		public int? health_version { get; set; }
 		public long? firmware_version { get; set; }
@@ -528,7 +528,7 @@ namespace CumulusMX.Stations
 		public double? database_kilobytes { get; set; }
 		public double? battery_cycle_count { get; set; }
 		public string console_os_version { get; set; }
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 	}
 
@@ -561,7 +561,7 @@ namespace CumulusMX.Stations
 	// Data Structure 1 (rev B) = VP2 ISS current record (rev b just adds bar_trend which we do not use)
 	public class WLCurrentSensordDataType1_2
 	{
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 		public int? bar_trend { get; set; }
 		public double? bar { get; set; }
@@ -728,7 +728,7 @@ namespace CumulusMX.Stations
 		public double? rain_storm_last_mm { get; set; }
 		public int? rain_storm_last_start_at { get; set; }
 		public int? rain_storm_last_end_at { get; set; }
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 	}
 
@@ -762,7 +762,7 @@ namespace CumulusMX.Stations
 		public int? freq_index { get; set; } // Type 25 only
 		public long? last_packet_received_timestamp { get; set; } // Type 25 only
 		public int? trans_battery_flag { get; set; } // Type 25 only
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 
 		public object this[string name]
@@ -784,7 +784,7 @@ namespace CumulusMX.Stations
 		public double? bar_trend { get; set; }
 		public double? bar_absolute { get; set; }
 		public double? bar_offset { get; set; }
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 	}
 
@@ -798,7 +798,7 @@ namespace CumulusMX.Stations
 		public double? heat_index_in { get; set; }
 		public double? wet_bulb_in { get; set; } // Type 21 only
 		public double? wbgt_in { get; set; } // Type 21 only
-		[JsonConverter(typeof(UnixDateTimeConverter))]
+		[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 		public DateTime ts { get; set; }
 	}
 

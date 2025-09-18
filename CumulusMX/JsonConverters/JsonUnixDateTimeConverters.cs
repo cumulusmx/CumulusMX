@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CumulusMX
+namespace CumulusMX.JsonConverters
 {
 	internal class UnixDateTimeConverter : UnixDateTimeConverterBase<DateTime>
 	{

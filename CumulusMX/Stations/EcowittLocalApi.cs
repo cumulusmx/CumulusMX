@@ -30,15 +30,15 @@ namespace CumulusMX.Stations
 			 * We must create a custom converter for System.Text.Json so parse the strings into the required data types
 			 *
 			 */
-			jsonOptions.Converters.Add(new JsonIntConverter());
-			jsonOptions.Converters.Add(new JsonLongConverter());
-			jsonOptions.Converters.Add(new JsonDoubleConverter());
-			jsonOptions.Converters.Add(new JsonDecimalConverter());
-			jsonOptions.Converters.Add(new JsonNullIntConverter());
-			jsonOptions.Converters.Add(new JsonNullLongConverter());
-			jsonOptions.Converters.Add(new JsonNullDoubleConverter());
-			jsonOptions.Converters.Add(new JsonNullDecimalConverter());
-			jsonOptions.Converters.Add(new JsonBoolConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonIntConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonLongConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonDoubleConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonDecimalConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonNullIntConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonNullLongConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonNullDoubleConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonNullDecimalConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonBoolConverter());
 
 		}
 

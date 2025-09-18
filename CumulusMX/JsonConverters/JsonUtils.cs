@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.Json;
 
-namespace CumulusMX
+namespace CumulusMX.JsonConverters
 {
 	internal class JsonUtils
 	{

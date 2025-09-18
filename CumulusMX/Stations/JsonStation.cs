@@ -877,7 +877,7 @@ namespace CumulusMX.Stations
 		{
 			public UnitsObject units { get; set; }
 
-			[JsonConverter(typeof(UnixDateTimeConverter))]
+			[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 			public DateTime lastupdated { get; set; }
 			public Temperature temperature { get; set; }
 			public Humidity humidity { get; set; }
@@ -981,7 +981,7 @@ namespace CumulusMX.Stations
 
 		private sealed class Lightning
 		{
-			[JsonConverter(typeof(NullableUnixDateTimeConverter))]
+			[JsonConverter(typeof(JsonConverters.NullableUnixDateTimeConverter))]
 			public DateTime? time { get; set; }
 			public int? strikes { get; set; }
 			public double? distance { get; set; }
