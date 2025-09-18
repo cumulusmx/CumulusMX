@@ -66,13 +66,13 @@ namespace CumulusMX.Stations
 
 					if (useTimestamp && long.TryParse(fields[1], invc, out long unix))
 					{
-						time = Utils.FromUnixTime(Utils.RoundDownUnixTimestamp(unix, interval));
+						time = Utils.RoundDownUnixTimestamp(unix, interval).FromUnixTime();
 					}
 					else
 					{
 						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
 						{
-							time = Utils.RoundTimeToInterval(time, interval);
+							time = time.RoundTimeToInterval(interval);
 						}
 						else
 						{

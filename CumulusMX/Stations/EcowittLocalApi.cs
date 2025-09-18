@@ -1063,7 +1063,7 @@ namespace CumulusMX.Stations
 						if (useTimeStamp)
 						{
 							// timestamp is in the second field
-							if (Utils.FromUnixTime(Utils.RoundDownUnixTimestamp(long.Parse(fields[1]), SdCardInterval)) >= startTime)
+							if (Utils.RoundDownUnixTimestamp(long.Parse(fields[1]), SdCardInterval).FromUnixTime() >= startTime)
 							{
 								result.Add(line);
 							}

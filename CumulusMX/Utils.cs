@@ -11,9 +11,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ServiceStack;
-using ServiceStack.Text;
-
 
 // A rag tag of useful functions
 
@@ -21,25 +18,6 @@ namespace CumulusMX
 {
 	internal static partial class Utils
 	{
-		public static DateTime FromUnixTime(long unixTime)
-		{
-			// Cconvert Unix TS seconds to local time
-			var utcTime = DateTime.UnixEpoch.AddSeconds(unixTime);
-			return utcTime.ToLocalTime();
-		}
-
-		public static DateTime RoundTimeUpToInterval(DateTime dateTime, TimeSpan intvl)
-		{
-			return new DateTime((dateTime.Ticks + intvl.Ticks - 1) / intvl.Ticks * intvl.Ticks, dateTime.Kind);
-		}
-
-		public static DateTime RoundTimeToInterval(DateTime dateTime, int intvl)
-		{
-			int minutes = dateTime.Minute;
-			int roundedMinutes = (int)(Math.Round((decimal) minutes / intvl) * intvl);
-			return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, roundedMinutes, 0);
-		}
-
 		public static long RoundDownUnixTimestamp(long unixTimestamp, int minuteInterval)
 		{
 			long intervalSeconds = minuteInterval * 60;
@@ -108,14 +86,14 @@ namespace CumulusMX
 
 		public static string GetMd5String(string str)
 		{
-			return GetMd5String(System.Text.Encoding.ASCII.GetBytes(str));
+			return GetMd5String(Encoding.ASCII.GetBytes(str));
 		}
 
 		public static string GetSHA256Hash(string key, string data)
 		{
 			byte[] hashValue;
 			// Initialize the keyed hash object.
-			using HMACSHA256 hmac = new HMACSHA256(key.ToAsciiBytes());
+			using HMACSHA256 hmac = new HMACSHA256(Encoding.ASCII.GetBytes(key));
 			// convert string to stream
 			byte[] byteArray = Encoding.UTF8.GetBytes(data);
 			using (MemoryStream stream = new MemoryStream(byteArray))
@@ -418,16 +396,14 @@ namespace CumulusMX
 			const int DefaultBufferSize = 4096;
 			const FileOptions DefaultOptions = FileOptions.Asynchronous | FileOptions.SequentialScan;
 
-			Byte[] data;
-
 			// Open the FileStream with the same FileMode, FileAccess
 			// and FileShare as a call to File.OpenText would've done.
-			using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, DefaultOptions))
-			{
-				data = await stream.ReadFullyAsync();
-			}
+			using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, DefaultOptions);
+			using var memoryStream = new MemoryStream();
 
-			return data;
+			await stream.CopyToAsync(memoryStream);
+			// Convert the memory stream to a byte array
+			return memoryStream.ToArray();
 		}
 
 		public static bool FilesEqual(string path1, string path2)

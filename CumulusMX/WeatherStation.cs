@@ -13561,8 +13561,8 @@ namespace CumulusMX
 
 		public string GetIntervalData(string from, string to, string fields)
 		{
-			var fromDate = Utils.FromUnixTime(long.Parse(from));
-			var toDate = Utils.FromUnixTime(long.Parse(to));
+			var fromDate = long.Parse(from).FromUnixTime();
+			var toDate = long.Parse(to).FromUnixTime();
 			var flds = (fields ?? "").Split(',').Select(int.Parse).ToArray();
 
 			if (flds.Length == 0)
@@ -13717,8 +13717,8 @@ namespace CumulusMX
 
 		public string GetDailyData(string from, string to, string fields)
 		{
-			var fromDate = Utils.FromUnixTime(long.Parse(from));
-			var toDate = Utils.FromUnixTime(long.Parse(to));
+			var fromDate = long.Parse(from).FromUnixTime();
+			var toDate = long.Parse(to).FromUnixTime();
 			var flds = (fields ?? "").Split(',').Select(int.Parse).ToArray();
 
 			if (flds.Length == 0)

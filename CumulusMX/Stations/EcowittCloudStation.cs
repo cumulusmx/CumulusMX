@@ -352,7 +352,7 @@ namespace CumulusMX.Stations
 						{
 							try
 							{
-								var time = Utils.FromUnixTime(data.outdoor.temperature.time);
+								var time = data.outdoor.temperature.time.FromUnixTime();
 								DoOutdoorTemp(data.outdoor.temperature.value, time);
 								DoOutdoorHumidity(data.outdoor.humidity.value, time);
 								DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
@@ -380,7 +380,7 @@ namespace CumulusMX.Stations
 							// user has mapped the indoor sensor to the outdoor sensor
 							if (cumulus.Gw1000PrimaryTHSensor == 99)
 							{
-								var time = Utils.FromUnixTime(data.outdoor.temperature.time);
+								var time = data.outdoor.temperature.time.FromUnixTime();
 								DoOutdoorTemp(data.indoor.temperature.value, time);
 								DoOutdoorHumidity(data.indoor.humidity.value, time);
 								DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
@@ -417,7 +417,7 @@ namespace CumulusMX.Stations
 
 							if (!cumulus.StationOptions.CalculateSLP)
 							{
-								DoPressure(data.pressure.relative.value, Utils.FromUnixTime(data.pressure.relative.time));
+								DoPressure(data.pressure.relative.value, data.pressure.relative.time.FromUnixTime());
 							}
 						}
 						catch (Exception ex)
@@ -435,8 +435,8 @@ namespace CumulusMX.Stations
 					{
 						try
 						{
-							DoWind(data.wind.wind_gust.value, data.wind.wind_direction.value, data.wind.wind_speed.value, Utils.FromUnixTime(data.wind.wind_gust.time));
-							DoWindChill(-999, Utils.FromUnixTime(data.wind.wind_gust.time));
+							DoWind(data.wind.wind_gust.value, data.wind.wind_direction.value, data.wind.wind_speed.value, data.wind.wind_gust.time.FromUnixTime());
+							DoWindChill(-999, data.wind.wind_gust.time.FromUnixTime());
 						}
 						catch (Exception ex)
 						{
@@ -455,7 +455,7 @@ namespace CumulusMX.Stations
 						{
 							try
 							{
-								DoRain(data.rainfall.yearly.value, data.rainfall.rain_rate.value, Utils.FromUnixTime(data.rainfall.yearly.time));
+								DoRain(data.rainfall.yearly.value, data.rainfall.rain_rate.value, data.rainfall.yearly.time.FromUnixTime());
 								StormRain = data.rainfall.Event.value;
 							}
 							catch (Exception ex)
@@ -474,7 +474,7 @@ namespace CumulusMX.Stations
 						{
 							try
 							{
-								DoRain(data.rainfall_piezo.yearly.value, data.rainfall_piezo.rain_rate.value, Utils.FromUnixTime(data.rainfall_piezo.yearly.time));
+								DoRain(data.rainfall_piezo.yearly.value, data.rainfall_piezo.rain_rate.value, data.rainfall_piezo.yearly.time.FromUnixTime());
 								StormRain = data.rainfall_piezo.Event.value;
 							}
 							catch (Exception ex)
@@ -491,10 +491,10 @@ namespace CumulusMX.Stations
 					try
 					{
 						if (data.solar_and_uvi.solar != null)
-							DoSolarRad((int) data.solar_and_uvi.solar.value, Utils.FromUnixTime(data.solar_and_uvi.solar.time));
+							DoSolarRad((int) data.solar_and_uvi.solar.value, data.solar_and_uvi.solar.time.FromUnixTime());
 
 						if (data.solar_and_uvi.uvi != null)
-							DoUV(data.solar_and_uvi.uvi.value, Utils.FromUnixTime(data.solar_and_uvi.solar.time));
+							DoUV(data.solar_and_uvi.uvi.value, data.solar_and_uvi.solar.time.FromUnixTime());
 					}
 					catch (Exception ex)
 					{
@@ -632,7 +632,7 @@ namespace CumulusMX.Stations
 				if (cumulus.StationOptions.CalculateSLP)
 				{
 					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-					DoPressure(ConvertUnits.PressMBToUser(slp), Utils.FromUnixTime(data.pressure.absolute.time));
+					DoPressure(ConvertUnits.PressMBToUser(slp), data.pressure.absolute.time.FromUnixTime());
 				}
 
 				// === LDS ===
@@ -651,7 +651,7 @@ namespace CumulusMX.Stations
 				cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
 
-				var updateTime = Utils.FromUnixTime(data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time);
+				var updateTime = (data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time).FromUnixTime();
 				thisStation.UpdateStatusPanel(updateTime.ToUniversalTime());
 				thisStation.UpdateMQTT();
 			}
@@ -671,7 +671,7 @@ namespace CumulusMX.Stations
 			{
 				if (cumulus.Gw1000PrimaryTHSensor == 1)
 				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch1.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch1.temperature.time));
+					station.DoOutdoorTemp(data.temp_and_humidity_ch1.temperature.value, data.temp_and_humidity_ch1.temperature.time.FromUnixTime());
 				}
 
 				if (cumulus.Gw1000PrimaryIndoorTHSensor == 1)
@@ -686,7 +686,7 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.Gw1000PrimaryTHSensor == 1)
 					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch1.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch1.humidity.time));
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch1.humidity.value, data.temp_and_humidity_ch1.humidity.time.FromUnixTime());
 					}
 
 					if (cumulus.Gw1000PrimaryIndoorTHSensor == 1)
@@ -708,7 +708,7 @@ namespace CumulusMX.Stations
 			{
 				if (cumulus.Gw1000PrimaryTHSensor == 2)
 				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch2.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch2.temperature.time));
+					station.DoOutdoorTemp(data.temp_and_humidity_ch2.temperature.value, data.temp_and_humidity_ch2.temperature.time.FromUnixTime());
 				}
 
 				if (cumulus.Gw1000PrimaryIndoorTHSensor == 2)
@@ -723,7 +723,7 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.Gw1000PrimaryTHSensor == 2)
 					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch2.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch2.humidity.time));
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch2.humidity.value, data.temp_and_humidity_ch2.humidity.time.FromUnixTime());
 					}
 
 					if (cumulus.Gw1000PrimaryIndoorTHSensor == 2)
@@ -745,7 +745,7 @@ namespace CumulusMX.Stations
 			{
 				if (cumulus.Gw1000PrimaryTHSensor == 3)
 				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch3.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch3.temperature.time));
+					station.DoOutdoorTemp(data.temp_and_humidity_ch3.temperature.value, data.temp_and_humidity_ch3.temperature.time.FromUnixTime());
 				}
 
 				if (cumulus.Gw1000PrimaryIndoorTHSensor == 3)
@@ -760,7 +760,7 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.Gw1000PrimaryTHSensor == 3)
 					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch3.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch3.humidity.time));
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch3.humidity.value, data.temp_and_humidity_ch3.humidity.time.FromUnixTime());
 					}
 
 					if (cumulus.Gw1000PrimaryIndoorTHSensor == 3)
@@ -782,7 +782,7 @@ namespace CumulusMX.Stations
 			{
 				if (cumulus.Gw1000PrimaryTHSensor == 4)
 				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch4.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch4.temperature.time));
+					station.DoOutdoorTemp(data.temp_and_humidity_ch4.temperature.value, data.temp_and_humidity_ch4.temperature.time.FromUnixTime());
 				}
 
 				if (cumulus.Gw1000PrimaryIndoorTHSensor == 4)
@@ -797,7 +797,7 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.Gw1000PrimaryTHSensor == 4)
 					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch4.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch4.humidity.time));
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch4.humidity.value, data.temp_and_humidity_ch4.humidity.time.FromUnixTime());
 					}
 
 					if (cumulus.Gw1000PrimaryIndoorTHSensor == 4)
@@ -819,7 +819,7 @@ namespace CumulusMX.Stations
 			{
 				if (cumulus.Gw1000PrimaryTHSensor == 5)
 				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch5.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch5.temperature.time));
+					station.DoOutdoorTemp(data.temp_and_humidity_ch5.temperature.value, data.temp_and_humidity_ch5.temperature.time.FromUnixTime());
 				}
 
 				if (cumulus.Gw1000PrimaryIndoorTHSensor == 5)
@@ -834,7 +834,7 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.Gw1000PrimaryTHSensor == 5)
 					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch5.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch5.humidity.time));
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch5.humidity.value, data.temp_and_humidity_ch5.humidity.time.FromUnixTime());
 					}
 
 					if (cumulus.Gw1000PrimaryIndoorTHSensor == 5)
@@ -856,7 +856,7 @@ namespace CumulusMX.Stations
 			{
 				if (cumulus.Gw1000PrimaryTHSensor == 6)
 				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch6.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch6.temperature.time));
+					station.DoOutdoorTemp(data.temp_and_humidity_ch6.temperature.value, data.temp_and_humidity_ch6.temperature.time.FromUnixTime());
 				}
 
 				if (cumulus.Gw1000PrimaryIndoorTHSensor == 6)
@@ -871,7 +871,7 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.Gw1000PrimaryTHSensor == 6)
 					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch6.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch6.humidity.time));
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch6.humidity.value, data.temp_and_humidity_ch6.humidity.time.FromUnixTime());
 					}
 
 					if (cumulus.Gw1000PrimaryIndoorTHSensor == 6)
@@ -893,7 +893,7 @@ namespace CumulusMX.Stations
 			{
 				if (cumulus.Gw1000PrimaryTHSensor == 7)
 				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch7.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch7.temperature.time));
+					station.DoOutdoorTemp(data.temp_and_humidity_ch7.temperature.value, data.temp_and_humidity_ch7.temperature.time.FromUnixTime());
 				}
 
 				if (cumulus.Gw1000PrimaryIndoorTHSensor == 7)
@@ -908,7 +908,7 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.Gw1000PrimaryTHSensor == 7)
 					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch7.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch7.humidity.time));
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch7.humidity.value, data.temp_and_humidity_ch7.humidity.time.FromUnixTime());
 					}
 
 					if (cumulus.Gw1000PrimaryIndoorTHSensor == 7)
@@ -930,7 +930,7 @@ namespace CumulusMX.Stations
 			{
 				if (cumulus.Gw1000PrimaryTHSensor == 8)
 				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch8.temperature.value, Utils.FromUnixTime(data.temp_and_humidity_ch8.temperature.time));
+					station.DoOutdoorTemp(data.temp_and_humidity_ch8.temperature.value, data.temp_and_humidity_ch8.temperature.time.FromUnixTime());
 				}
 
 				if (cumulus.Gw1000PrimaryIndoorTHSensor == 8)
@@ -945,7 +945,7 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.Gw1000PrimaryTHSensor == 8)
 					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch8.humidity.value, Utils.FromUnixTime(data.temp_and_humidity_ch8.humidity.time));
+						station.DoOutdoorHumidity(data.temp_and_humidity_ch8.humidity.value, data.temp_and_humidity_ch8.humidity.time.FromUnixTime());
 					}
 
 					if (cumulus.Gw1000PrimaryIndoorTHSensor == 8)
@@ -1264,7 +1264,7 @@ namespace CumulusMX.Stations
 				station.LightningCounter = data.lightning.count.value;
 				station.LightningDistance = ConvertUnits.KmtoUserUnits(data.lightning.distance.value);
 
-				var tim = Utils.FromUnixTime(data.lightning.distance.time);
+				var tim = data.lightning.distance.time.FromUnixTime();
 
 				if (tim > LightningTime)
 				{

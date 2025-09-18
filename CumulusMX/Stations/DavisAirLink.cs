@@ -957,7 +957,7 @@ namespace CumulusMX.Stations
 								// then add the PM data into the graphdata list
 								if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor && standaloneHistory)
 								{
-									station.UpdateRecentDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
+									station.UpdateRecentDataAqEntry(data17.ts.FromUnixTime(), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
 								}
 							}
 							else
@@ -987,7 +987,7 @@ namespace CumulusMX.Stations
 								// then add the PM data into the graphdata list
 								if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor && standaloneHistory)
 								{
-									station.UpdateRecentDataAqEntry(Utils.FromUnixTime(data17.ts), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
+									station.UpdateRecentDataAqEntry(data17.ts.FromUnixTime(), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
 								}
 							}
 						}
@@ -1082,7 +1082,7 @@ namespace CumulusMX.Stations
 			var startTime = unixDateTime - WeatherLinkArchiveInterval;
 			var endTime = unixDateTime;
 
-			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {Utils.FromUnixTime(startTime):s} to: {Utils.FromUnixTime(endTime):s}");
+			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {startTime.FromUnixTime():s} to: {endTime.FromUnixTime():s}");
 
 			var historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + stationId);
 			historicUrl.Append("?api-key=" + apiKey);
@@ -1216,7 +1216,7 @@ namespace CumulusMX.Stations
 					try
 					{
 						// Davis are changing the API, from air_quality_firmware_version to firmware_version
-						var dat = Utils.FromUnixTime(data.air_quality_firmware_version ?? data.firmware_version.Value);
+						var dat = (data.air_quality_firmware_version ?? data.firmware_version.Value).FromUnixTime();
 						if (indoor)
 							cumulus.airLinkDataIn.firmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
 						else
