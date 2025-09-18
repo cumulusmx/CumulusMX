@@ -264,16 +264,16 @@ namespace CumulusMX.Stations
 							{
 								try
 								{
-									if (histObj.data != null)
-									{
-										data = histObj.data;
-										success = true;
-									}
-									else
+									if (histObj.data is null)
 									{
 										// There was no data returned.
 										cumulus.LastUpdateTime = endTime;
 										return false;
+									}
+									else
+									{
+										data = histObj.data;
+										success = true;
 									}
 								}
 								catch (Exception ex)
