@@ -808,7 +808,7 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					EcowittCameraUrl[mac] = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl[mac], mac, Program.ExitSystemToken);
+					EcowittCameraUrl[mac] = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl.GetValueOrDefault(mac), mac, Program.ExitSystemToken);
 					return EcowittCameraUrl[mac];
 				}
 				catch (Exception ex)
@@ -829,7 +829,7 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					EcowittVideoUrl[mac] = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl[mac], mac, Program.ExitSystemToken);
+					EcowittVideoUrl[mac] = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl.GetValueOrDefault(mac), mac, Program.ExitSystemToken);
 					return EcowittVideoUrl[mac];
 				}
 				catch (Exception ex)
