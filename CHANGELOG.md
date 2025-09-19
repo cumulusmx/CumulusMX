@@ -12,7 +12,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.6.3 \[b4123\]][26] - 2025-09-19
 
-## Changed
+### Changed
 
 - If you have more than one Ecowitt web camera, the web tags `<#EcowittCameraUrl>` and `<#EcowittVideoUrl>` now accept a parameter of `mac=1A:2B:3C:4D:5E:6F` (eg. `<#EcowittCameraUrl mac=3C:8A:1F:B3:2B:A2>`) to return the matching camera from your account.<br>
 	If omitted the parameter defaults to the first (or only camera) found on your account
