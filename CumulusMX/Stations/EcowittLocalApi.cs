@@ -1027,7 +1027,7 @@ namespace CumulusMX.Stations
 
 						if (count % 100 == 0 && !Program.service)
 						{
-							Console.Write($"  Preprocesssing line: {count}\r");
+							Console.Write($"  Preprocessing line: {count}\r");
 						}
 
 						if (string.IsNullOrWhiteSpace(line) || string.IsNullOrWhiteSpace(line.Trim()))
