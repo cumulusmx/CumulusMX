@@ -10,7 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.3 \[b4123\]][26] - 2025-09-18
+## [4.6.3 \[b4123\]][26] - 2025-09-19
+
+## Changed
+
+- If you have more than one Ecowitt web camera, the web tags `<#EcowittCameraUrl>` and `<#EcowittVideoUrl>` now accept a parameter of `cam=N` (eg. `<#EcowittCameraUrl cam=2>`) to return the zero relative camera from your account.<br>
+	If omitted the parameter defaults to 0 (zero) and returns the first (or only camera)
 
 ### Fixed
 

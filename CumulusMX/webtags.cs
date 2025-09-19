@@ -3649,36 +3649,46 @@ namespace CumulusMX
 
 		private string TagEcowittCameraUrl(Dictionary<string, string> tagParams)
 		{
+			if (!int.TryParse(tagParams.Get("cam"), out var camIndex))
+			{
+				camIndex = 0;
+			}
+
 			if (cumulus.ExtraSensorUseCamera)
 			{
 				if (cumulus.ecowittExtra != null)
 				{
-					return cumulus.ecowittExtra.GetEcowittCameraUrl();
+					return cumulus.ecowittExtra.GetEcowittCameraUrl(camIndex);
 				}
 				else if (cumulus.ecowittCloudExtra != null)
 				{
-					return cumulus.ecowittCloudExtra.GetEcowittCameraUrl();
+					return cumulus.ecowittCloudExtra.GetEcowittCameraUrl(camIndex);
 				}
 			}
 
-			return station.GetEcowittCameraUrl();
+			return station.GetEcowittCameraUrl(camIndex);
 		}
 
 		private string TagEcowittVideoUrl(Dictionary<string, string> tagParams)
 		{
+			if (!int.TryParse(tagParams.Get("cam"), out var camIndex))
+			{
+				camIndex = 0;
+			}
+
 			if (cumulus.ExtraSensorUseCamera)
 			{
 				if (cumulus.ecowittExtra != null)
 				{
-					return cumulus.ecowittExtra.GetEcowittVideoUrl();
+					return cumulus.ecowittExtra.GetEcowittVideoUrl(camIndex);
 				}
 				else if (cumulus.ecowittCloudExtra != null && cumulus.ExtraSensorUseCamera)
 				{
-					return cumulus.ecowittCloudExtra.GetEcowittVideoUrl();
+					return cumulus.ecowittCloudExtra.GetEcowittVideoUrl(camIndex);
 				}
 			}
 
-			return station.GetEcowittVideoUrl();
+			return station.GetEcowittVideoUrl(camIndex);
 		}
 
 

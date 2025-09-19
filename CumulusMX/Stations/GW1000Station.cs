@@ -336,14 +336,14 @@ namespace CumulusMX.Stations
 			ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
 		}
 
-		public override string GetEcowittCameraUrl()
+		public override string GetEcowittCameraUrl(int camIndex)
 		{
-			if (!string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if (!string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress[camIndex]))
 			{
 				try
 				{
-					EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, Program.ExitSystemToken);
-					return EcowittCameraUrl;
+					EcowittCameraUrl[camIndex] = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl[camIndex], camIndex, Program.ExitSystemToken);
+					return EcowittCameraUrl[camIndex];
 				}
 				catch (Exception ex)
 				{
@@ -358,14 +358,14 @@ namespace CumulusMX.Stations
 			return string.Empty;
 		}
 
-		public override string GetEcowittVideoUrl()
+		public override string GetEcowittVideoUrl(int camIndex)
 		{
-			if (!string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if (!string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress[camIndex]))
 			{
 				try
 				{
-					EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, Program.ExitSystemToken);
-					return EcowittVideoUrl;
+					EcowittVideoUrl[camIndex] = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl[camIndex], camIndex, Program.ExitSystemToken);
+					return EcowittVideoUrl[camIndex];
 				}
 				catch (Exception ex)
 				{
