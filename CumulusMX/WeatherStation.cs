@@ -322,13 +322,13 @@ namespace CumulusMX
 
 		public abstract void Start();
 
-		public virtual string GetEcowittCameraUrl(int camIndex)
+		public virtual string GetEcowittCameraUrl(string mac)
 		{
 			cumulus.LogMessage("GetEcowittCameraUrl: Not implemented for this station");
 			return string.Empty;
 		}
 
-		public virtual string GetEcowittVideoUrl(int camIndex)
+		public virtual string GetEcowittVideoUrl(string mac)
 		{
 			cumulus.LogMessage("GetEcowittVideoUrl: Not implemented for this station");
 			return string.Empty;
@@ -7616,8 +7616,8 @@ namespace CumulusMX
 		public int[] DavisTxRssi = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 		public string DavisFirmwareVersion = "???";
 		public string GW1000FirmwareVersion = "???";
-		public string[] EcowittCameraUrl = [8];
-		public string[] EcowittVideoUrl = [8];
+		public Dictionary<string, string> EcowittCameraUrl = [];
+		public Dictionary<string, string> EcowittVideoUrl = [];
 
 		private bool dayfileReloading;
 

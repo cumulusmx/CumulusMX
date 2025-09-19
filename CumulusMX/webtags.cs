@@ -3649,46 +3649,40 @@ namespace CumulusMX
 
 		private string TagEcowittCameraUrl(Dictionary<string, string> tagParams)
 		{
-			if (!int.TryParse(tagParams.Get("cam"), out var camIndex))
-			{
-				camIndex = 0;
-			}
+			var mac = tagParams.Get("mac") ?? cumulus.EcowittCameraMacAddress.FirstOrDefault();
 
 			if (cumulus.ExtraSensorUseCamera)
 			{
 				if (cumulus.ecowittExtra != null)
 				{
-					return cumulus.ecowittExtra.GetEcowittCameraUrl(camIndex);
+					return cumulus.ecowittExtra.GetEcowittCameraUrl(mac);
 				}
 				else if (cumulus.ecowittCloudExtra != null)
 				{
-					return cumulus.ecowittCloudExtra.GetEcowittCameraUrl(camIndex);
+					return cumulus.ecowittCloudExtra.GetEcowittCameraUrl(mac);
 				}
 			}
 
-			return station.GetEcowittCameraUrl(camIndex);
+			return station.GetEcowittCameraUrl(mac);
 		}
 
 		private string TagEcowittVideoUrl(Dictionary<string, string> tagParams)
 		{
-			if (!int.TryParse(tagParams.Get("cam"), out var camIndex))
-			{
-				camIndex = 0;
-			}
+			var mac = tagParams.Get("mac") ?? cumulus.EcowittCameraMacAddress.FirstOrDefault();
 
 			if (cumulus.ExtraSensorUseCamera)
 			{
 				if (cumulus.ecowittExtra != null)
 				{
-					return cumulus.ecowittExtra.GetEcowittVideoUrl(camIndex);
+					return cumulus.ecowittExtra.GetEcowittVideoUrl(mac);
 				}
 				else if (cumulus.ecowittCloudExtra != null && cumulus.ExtraSensorUseCamera)
 				{
-					return cumulus.ecowittCloudExtra.GetEcowittVideoUrl(camIndex);
+					return cumulus.ecowittCloudExtra.GetEcowittVideoUrl(mac);
 				}
 			}
 
-			return station.GetEcowittVideoUrl(camIndex);
+			return station.GetEcowittVideoUrl(mac);
 		}
 
 

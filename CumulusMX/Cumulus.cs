@@ -8048,7 +8048,7 @@ namespace CumulusMX
 		public string EcowittApplicationKey { get; set; }
 		public string EcowittUserApiKey { get; set; }
 		public string EcowittMacAddress { get; set; }
-		public List<string> EcowittCameraMacAddress { get; set; }
+		public List<string> EcowittCameraMacAddress { get; set; } = [];
 		public bool EcowittSetCustomServer { get; set; }
 		public string EcowittGatewayAddr { get; set; }
 		public string EcowittLocalAddr { get; set; }
