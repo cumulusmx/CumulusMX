@@ -10,7 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.3 \[b4123\]][26] - 2025-09-16
+## [4.6.3 \[b4123\]][26] - 2025-09-19
+
+### Changed
+
+- If you have more than one Ecowitt web camera, the web tags `<#EcowittCameraUrl>` and `<#EcowittVideoUrl>` now accept a parameter of `mac=1A:2B:3C:4D:5E:6F` (eg. `<#EcowittCameraUrl mac=3C:8A:1F:B3:2B:A2>`) to return the matching camera from your account.<br>
+	If omitted the parameter defaults to the first (or only camera) found on your account
 
 ### Fixed
 
@@ -18,6 +23,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix the "navigator" not working correctly on the wind direction charts in the dashboard and default web site
 - Ecowitt SD card catch-up re-coded to improve reliability on some systems
 - MySQL settings not allowing you to create/update the tables on initial setup
+- Tweaks to the Dashboard and default web site
 
 
 

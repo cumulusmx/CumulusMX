@@ -2521,13 +2521,13 @@ namespace CumulusMX.Stations
 		}
 
 
-		internal string GetCurrentCameraImageUrl(string defaultUrl, CancellationToken token)
+		internal string GetCurrentCameraImageUrl(string defaultUrl, string mac, CancellationToken token)
 		{
 			// Doc: https://doc.ecowitt.net/web/#/apiv3en?page_id=17
 
 			cumulus.LogMessage("API.GetCurrentCameraImageUrl: Get Ecowitt Current Camera Data");
 
-			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(mac))
 			{
 				cumulus.LogWarningMessage("API.GetCurrentCameraImageUrl: Missing Ecowitt API data in the configuration, aborting process");
 				return defaultUrl;
@@ -2553,7 +2553,7 @@ namespace CumulusMX.Stations
 
 			sb.Append($"application_key={cumulus.EcowittApplicationKey}");
 			sb.Append($"&api_key={cumulus.EcowittUserApiKey}");
-			sb.Append($"&mac={cumulus.EcowittCameraMacAddress}");
+			sb.Append($"&mac={mac}");
 			sb.Append("&call_back=camera");
 
 			var url = sb.ToString();
@@ -2656,7 +2656,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		internal string GetLastCameraVideoUrl(string defaultUrl, CancellationToken token)
+		internal string GetLastCameraVideoUrl(string defaultUrl, string mac, CancellationToken token)
 		{
 			// Doc: https://doc.ecowitt.net/web/#/apiv3en?page_id=19
 
@@ -2677,7 +2677,7 @@ namespace CumulusMX.Stations
 						*/
 			cumulus.LogMessage("API.GetLastCameraVideoUrl: Get Ecowitt Last Camera Video");
 
-			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(mac))
 			{
 				cumulus.LogWarningMessage("API.GetLastCameraVideoUrl: Missing Ecowitt API data in the configuration, aborting process");
 				return defaultUrl;
@@ -2705,7 +2705,7 @@ namespace CumulusMX.Stations
 
 			sb.Append($"application_key={cumulus.EcowittApplicationKey}");
 			sb.Append($"&api_key={cumulus.EcowittUserApiKey}");
-			sb.Append($"&mac={cumulus.EcowittCameraMacAddress}");
+			sb.Append($"&mac={mac}");
 			sb.Append($"&start_date={start:yyyy-MM-dd'%20'HH:mm:ss}");
 			sb.Append($"&end_date={end:yyyy-MM-dd'%20'HH:mm:ss}");
 			sb.Append("&call_back=camera.video");
@@ -2935,8 +2935,11 @@ namespace CumulusMX.Stations
 						if (stn.type == 2 && CheckCamera)
 						{
 							// we have a camera
-							cumulus.EcowittCameraMacAddress = stn.mac;
-							cumulus.LogDebugMessage($"API.GetStationList: Found Camera name={stn.name ?? "-"}, vers={stn.stationtype ?? "-"}, mac={cumulus.EcowittCameraMacAddress}");
+							if (!cumulus.EcowittCameraMacAddress.Contains(stn.mac))
+							{
+								cumulus.EcowittCameraMacAddress.Add(stn.mac);
+							}
+							cumulus.LogDebugMessage($"API.GetStationList: Found Camera name={stn.name ?? "-"}, vers={stn.stationtype ?? "-"}, mac={stn.mac}");
 						}
 						else if (stn.type == 1 && stn.mac.Equals(macAddress, StringComparison.CurrentCultureIgnoreCase))
 						{

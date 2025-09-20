@@ -3649,36 +3649,40 @@ namespace CumulusMX
 
 		private string TagEcowittCameraUrl(Dictionary<string, string> tagParams)
 		{
+			var mac = tagParams.Get("mac") ?? cumulus.EcowittCameraMacAddress.FirstOrDefault();
+
 			if (cumulus.ExtraSensorUseCamera)
 			{
 				if (cumulus.ecowittExtra != null)
 				{
-					return cumulus.ecowittExtra.GetEcowittCameraUrl();
+					return cumulus.ecowittExtra.GetEcowittCameraUrl(mac);
 				}
 				else if (cumulus.ecowittCloudExtra != null)
 				{
-					return cumulus.ecowittCloudExtra.GetEcowittCameraUrl();
+					return cumulus.ecowittCloudExtra.GetEcowittCameraUrl(mac);
 				}
 			}
 
-			return station.GetEcowittCameraUrl();
+			return station.GetEcowittCameraUrl(mac);
 		}
 
 		private string TagEcowittVideoUrl(Dictionary<string, string> tagParams)
 		{
+			var mac = tagParams.Get("mac") ?? cumulus.EcowittCameraMacAddress.FirstOrDefault();
+
 			if (cumulus.ExtraSensorUseCamera)
 			{
 				if (cumulus.ecowittExtra != null)
 				{
-					return cumulus.ecowittExtra.GetEcowittVideoUrl();
+					return cumulus.ecowittExtra.GetEcowittVideoUrl(mac);
 				}
 				else if (cumulus.ecowittCloudExtra != null && cumulus.ExtraSensorUseCamera)
 				{
-					return cumulus.ecowittCloudExtra.GetEcowittVideoUrl();
+					return cumulus.ecowittCloudExtra.GetEcowittVideoUrl(mac);
 				}
 			}
 
-			return station.GetEcowittVideoUrl();
+			return station.GetEcowittVideoUrl(mac);
 		}
 
 

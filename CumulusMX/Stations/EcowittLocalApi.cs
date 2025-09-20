@@ -51,7 +51,7 @@ namespace CumulusMX.Stations
 			// Returns an almighty mess! They couldn't have made this any worse if they tried!
 			// All values are returned as strings - including integers and decimals
 			// Some values include the units in the value string, others have a separate field for the unit
-			// The separate sensors return an arrays that only ever contain a single object
+			// The separate sensors return an array that only ever contain a single object
 			//
 
 			//	{
@@ -1047,6 +1047,11 @@ namespace CumulusMX.Stations
 					while ((line = await streamReader.ReadLineAsync()) != null)
 					{
 						count++;
+
+						if (count % 100 == 0 && !Program.service)
+						{
+							Console.Write($"  Preprocessing line: {count}\r");
+						}
 
 						if (string.IsNullOrWhiteSpace(line) || string.IsNullOrWhiteSpace(line.Trim()))
 						{

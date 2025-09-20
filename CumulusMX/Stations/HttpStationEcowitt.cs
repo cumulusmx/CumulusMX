@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
@@ -281,11 +282,11 @@ namespace CumulusMX.Stations
 
 		}
 
-		public override string GetEcowittCameraUrl()
+		public override string GetEcowittCameraUrl(string mac)
 		{
 			if (cumulus.ExtraSensorUseCamera ^ mainStation)
 			{
-				if (string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+				if (string.IsNullOrEmpty(mac))
 				{
 					cumulus.LogMessage("GetEcowittCameraUrl: Warning - URL requested, but no camera MAC address is configured");
 				}
@@ -293,8 +294,8 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						EcowittCameraUrl = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl, Program.ExitSystemToken);
-						return EcowittCameraUrl;
+						EcowittCameraUrl[mac] = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl.GetValueOrDefault(mac), mac, Program.ExitSystemToken);
+						return EcowittCameraUrl[mac];
 					}
 					catch (Exception ex)
 					{
@@ -306,11 +307,11 @@ namespace CumulusMX.Stations
 			return string.Empty;
 		}
 
-		public override string GetEcowittVideoUrl()
+		public override string GetEcowittVideoUrl(string mac)
 		{
 			if (cumulus.ExtraSensorUseCamera ^ mainStation)
 			{
-				if (string.IsNullOrEmpty(cumulus.EcowittCameraMacAddress))
+				if (string.IsNullOrEmpty(mac))
 				{
 					cumulus.LogMessage("GetEcowittVideoUrl: Warning - URL requested, but no camera MAC address is configured");
 				}
@@ -318,8 +319,8 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						EcowittVideoUrl = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl, Program.ExitSystemToken);
-						return EcowittVideoUrl;
+						EcowittVideoUrl[mac] = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl.GetValueOrDefault(mac), mac, Program.ExitSystemToken);
+						return EcowittVideoUrl[mac];
 					}
 					catch (Exception ex)
 					{

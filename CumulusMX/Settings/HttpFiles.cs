@@ -133,14 +133,14 @@ namespace CumulusMX.Settings
 
 			if (url == "<ecowittcameraurl>")
 			{
-				if (string.IsNullOrEmpty(station.EcowittCameraUrl))
+				if (string.IsNullOrEmpty(station.EcowittCameraUrl[cumulus.EcowittCameraMacAddress[0]]))
 				{
 					cumulus.LogWarningMessage("DownloadHttpFile: The Ecowitt Camera URL is not available");
 					return;
 				}
 				else
 				{
-					url = station.EcowittCameraUrl;
+					url = station.EcowittCameraUrl[cumulus.EcowittCameraMacAddress[0]];
 					// do not append timestamp, it is already unique
 					modUrl = url;
 				}
@@ -181,14 +181,14 @@ namespace CumulusMX.Settings
 
 			if (url == "<ecowittcameraurl>")
 			{
-				if (string.IsNullOrEmpty(station.EcowittCameraUrl))
+				if (string.IsNullOrEmpty(station.EcowittCameraUrl[cumulus.EcowittCameraMacAddress[0]]))
 				{
 					cumulus.LogWarningMessage("DownloadHttpFile: The Ecowitt Camera URL is not available");
 					return string.Empty;
 				}
 				else
 				{
-					url = station.EcowittCameraUrl;
+					url = station.EcowittCameraUrl[cumulus.EcowittCameraMacAddress[0]];
 					// do not append timestamp, it is already unique
 					modUrl = url;
 				}
@@ -235,14 +235,14 @@ namespace CumulusMX.Settings
 
 			if (url == "<ecowittcameraurl>")
 			{
-				if (string.IsNullOrEmpty(station.EcowittCameraUrl))
+				if (string.IsNullOrEmpty(station.EcowittCameraUrl[cumulus.EcowittCameraMacAddress[0]]))
 				{
 					cumulus.LogWarningMessage("DownloadHttpFile: The Ecowitt Camera URL is not available");
 					return Stream.Null;
 				}
 				else
 				{
-					url = station.EcowittCameraUrl;
+					url = station.EcowittCameraUrl[cumulus.EcowittCameraMacAddress[0]];
 					// do not append timestamp, it is already unique
 					modUrl = url;
 				}
