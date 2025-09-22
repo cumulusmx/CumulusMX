@@ -4025,7 +4025,7 @@ namespace CumulusMX
 				ini.SetValue("Station", "TimeZone", Utils.GetTimeZoneId());
 				rewriteRequired = true;
 			}
-			StationOptions.TimeZoneId = ini.GetValue("Program", "TimeZone", Utils.GetTimeZoneId());
+			StationOptions.TimeZoneId = ini.GetValue("Station", "TimeZone", Utils.GetTimeZoneId());
 
 			StationOptions.Humidity98Fix = ini.GetValue("Station", "Humidity98Fix", false);
 			StationOptions.CalcuateAverageWindSpeed = ini.GetValue("Station", "Wind10MinAverage", false);
