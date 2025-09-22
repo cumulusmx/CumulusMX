@@ -2499,6 +2499,8 @@ namespace CumulusMX
 			var sbRate = new StringBuilder("\"rrate\":[");
 
 			DateTime dateFrom;
+			var ambiguousDates = new List<DateTime>();
+
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.RAIN].LastDataTime;
@@ -2517,7 +2519,8 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
+				var jsTime = dat.ToUnixTimeMs();
 
 				sbRain.Append($"[{jsTime},{data[i].RainToday.ToString(cumulus.RainFormat, InvC)}],");
 
@@ -2544,6 +2547,8 @@ namespace CumulusMX
 			var sbIn = new StringBuilder("\"inhum\":[");
 
 			DateTime dateFrom;
+			var ambiguousDates = new List<DateTime>();
+
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.HUM].LastDataTime;
@@ -2562,7 +2567,8 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
+				var jsTime = dat.ToUnixTimeMs();
 
 				if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 				{
@@ -2607,6 +2613,8 @@ namespace CumulusMX
 			var sbAvg = new StringBuilder("\"avgbearing\":[");
 
 			DateTime dateFrom;
+			var ambiguousDates = new List<DateTime>();
+
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.WINDDIR].LastDataTime;
@@ -2625,7 +2633,8 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
+				var jsTime = dat.ToUnixTimeMs();
 
 				sb.Append($"[{jsTime},{data[i].WindDir}],");
 
@@ -2652,6 +2661,8 @@ namespace CumulusMX
 			var sbSpd = new StringBuilder("\"wspeed\":[");
 
 			DateTime dateFrom;
+			var ambiguousDates = new List<DateTime>();
+
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.WIND].LastDataTime;
@@ -2669,7 +2680,9 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
+				var jsTime = dat.ToUnixTimeMs();
+
 				sb.Append($"[{jsTime},{data[i].WindGust.ToString(cumulus.WindFormat, InvC)}],");
 
 				sbSpd.Append($"[{jsTime},{data[i].WindSpeed.ToString(cumulus.WindAvgFormat, InvC)}],");
@@ -2694,6 +2707,8 @@ namespace CumulusMX
 			var sb = new StringBuilder("{\"press\":[");
 
 			DateTime dateFrom;
+			var ambiguousDates = new List<DateTime>();
+
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.PRESS].LastDataTime;
@@ -2712,7 +2727,10 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				sb.Append($"[{data[i].Timestamp.ToUnixTimeMs()},{data[i].Pressure.ToString(cumulus.PressFormat, InvC)}],");
+				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
+				var jsTime = dat.ToUnixTimeMs();
+
+				sb.Append($"[{jsTime},{data[i].Pressure.ToString(cumulus.PressFormat, InvC)}],");
 			}
 
 			if (sb[^1] == ',')
@@ -2900,6 +2918,7 @@ namespace CumulusMX
 				&& cumulus.StationOptions.PrimaryAqSensor != (int) Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
 				DateTime dateFrom;
+				var ambiguousDates = new List<DateTime>();
 
 				if (incremental)
 				{
@@ -2922,7 +2941,8 @@ namespace CumulusMX
 
 				for (var i = 0; i < data.Count; i++)
 				{
-					var jsTime = data[i].Timestamp.ToUnixTimeMs();
+					var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
+					var jsTime = dat.ToUnixTimeMs();
 
 					if (data[i].Pm2p5.HasValue)
 					{
