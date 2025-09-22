@@ -13822,15 +13822,7 @@ namespace CumulusMX
 
 			try
 			{
-				if (MySqlConn is null)
-				{
-					await MySqlConnect();
-
-					// get the database name to check 100% we have a connection
-					var db = MySqlConn.Database;
-					LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
-				}
-				else if (MySqlConn.State == System.Data.ConnectionState.Closed)
+				if (MySqlConn is null || MySqlConn.State == System.Data.ConnectionState.Closed)
 				{
 					await MySqlConnect();
 
@@ -13888,6 +13880,10 @@ namespace CumulusMX
 				if (MySqlConn is not null && MySqlConn.State == System.Data.ConnectionState.Open && cmds.Count > 0)
 				{
 					await MySqlCommandAsync(cmds, callingFunction);
+				}
+				else if (cmds.Count == 0)
+				{
+					LogDebugMessage($"{callingFunction}: No SQL cmds found to process!");
 				}
 			}
 			catch (Exception ex)
