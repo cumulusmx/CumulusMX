@@ -314,8 +314,8 @@ namespace CumulusMX.Settings
 				// misc settings
 				try
 				{
-					cumulus.WebcamURL = settings.misc.webcamurl ?? string.Empty;
-					cumulus.ForumURL = settings.misc.forumurl ?? string.Empty;
+					cumulus.WebcamURL = settings.misc.webcamurl;
+					cumulus.ForumURL = settings.misc.forumurl;
 				}
 				catch (Exception ex)
 				{

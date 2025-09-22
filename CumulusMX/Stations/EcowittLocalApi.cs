@@ -1105,6 +1105,11 @@ namespace CumulusMX.Stations
 						}
 					}
 
+					if (!Program.service)
+					{
+						Cumulus.LogConsoleMessage("  Preprocessing complete           ");
+					}
+
 					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracted {result.Count} lines from {fileName}");
 
 					return result;
