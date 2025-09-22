@@ -2424,6 +2424,8 @@ namespace CumulusMX
 			var sbMax = new StringBuilder("\"CurrentSolarMax\":[");
 
 			DateTime dateFrom;
+			var ambiguousDates = new List<DateTime>();
+
 			if (incremental)
 			{
 				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.SOLAR].LastDataTime;
@@ -2441,7 +2443,8 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
+				var jsTime = dat.ToUnixTimeMs();
 
 				if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 				{
