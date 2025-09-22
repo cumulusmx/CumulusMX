@@ -774,8 +774,8 @@ namespace CumulusMX
 			// Add in year-to-date rain (if necessary)
 			if (cumulus.YTDrainyear == Convert.ToInt32(Today.Substring(6, 2)) + 2000)
 			{
-				cumulus.LogMessage($"GetRainFallTotals: Adding YTD rain: {cumulus.YTDrain}, new Rainthisyear: {RainThisYear}");
 				RainThisYear += cumulus.YTDrain;
+				cumulus.LogMessage($"GetRainFallTotals: Adding YTD rain: {cumulus.YTDrain}, new Rainthisyear: {RainThisYear}");
 			}
 			RainWeek = RainThisWeek;
 			RainMonth = RainThisMonth;
