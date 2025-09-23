@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.3 \[b4124\]][26] - 2025-09-22
+## [4.6.3 \[b4124\]][26] - 2025-09-23
 
 ### Changed
 
@@ -26,6 +26,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Tweaks to the Dashboard and default web site
 - Fix forum URL being reset to default on Cumulus restarts. The fix requires you to resave the config once after installing this update
 - The station TimeZone being reset to default on Cumulus restarts
+
 
 
 ## [4.6.2 \[b4122\]][25] - 2025-09-14
