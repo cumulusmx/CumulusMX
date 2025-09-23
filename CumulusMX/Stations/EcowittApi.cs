@@ -29,11 +29,11 @@ namespace CumulusMX.Stations
 		private static readonly int EcowittApiFudgeFactor = 5; // Number of minutes that Ecowitt API data is delayed
 
 		private DateTime LastCurrentDataTime = DateTime.MinValue; // Stored in UTC to avoid DST issues
-		private DateTime LastCameraImageTime = DateTime.MinValue; // Stored in UTC to avoid DST issues
-		private DateTime LastCameraCallTime = DateTime.MinValue; // Stored in UTC to avoid DST issues
+		private Dictionary<string, DateTime> LastCameraImageTime = []; // Stored in UTC to avoid DST issues
+		private Dictionary<string, DateTime> LastCameraCallTime = []; // Stored in UTC to avoid DST issues
 
-		private string LastCameraVideoTime = string.Empty;
-		private readonly DateTime LastCameraVideoCallTime = DateTime.MinValue;
+		private Dictionary<string, string> LastCameraVideoTime = [];
+		private readonly Dictionary<string, DateTime> LastCameraVideoCallTime = []; // Stored in UTC to avoid DST issues
 
 		private int delayTime = 10;
 
@@ -2529,6 +2529,8 @@ namespace CumulusMX.Stations
 		{
 			// Doc: https://doc.ecowitt.net/web/#/apiv3en?page_id=17
 
+			var now = DateTime.UtcNow;
+
 			cumulus.LogMessage("API.GetCurrentCameraImageUrl: Get Ecowitt Current Camera Data");
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(mac))
@@ -2539,15 +2541,15 @@ namespace CumulusMX.Stations
 
 
 			// rate limit to one call per minute
-			if (LastCameraCallTime.AddMinutes(1) > DateTime.UtcNow)
+			if (LastCameraCallTime.TryGetValue(mac, out var last) && last.AddMinutes(1) > now)
 			{
 				cumulus.LogMessage("API.GetCurrentCameraImageUrl: Last call was less than 1 minute ago, using last image URL");
 				return defaultUrl;
 			}
 
-			LastCameraCallTime = DateTime.UtcNow;
+			LastCameraCallTime[mac] = now;
 
-			if (LastCameraImageTime.AddMinutes(5) > DateTime.UtcNow)
+			if (LastCameraImageTime.TryGetValue(mac, out last) && last.AddMinutes(5) > now)
 			{
 				cumulus.LogMessage("API.GetCurrentCameraImageUrl: Last image was less than 5 minutes ago, using last image URL");
 				return defaultUrl;
@@ -2598,6 +2600,8 @@ namespace CumulusMX.Stations
 				}
 				else if (responseBody.StartsWith("{\"code\":")) // sanity check
 				{
+					LastCameraImageTime[mac] = now;
+
 					// get the sensor data
 					currObj = responseBody.FromJson<CurrentData>();
 
@@ -2619,8 +2623,8 @@ namespace CumulusMX.Stations
 								return defaultUrl;
 							}
 
-							LastCameraImageTime = currObj.data.camera.photo.time.FromUnixTime().ToUniversalTime();
-							cumulus.LogDebugMessage($"API.GetCurrentCameraImageUrl: Last image update {LastCameraImageTime.ToLocalTime():s}");
+							LastCameraImageTime[mac] = currObj.data.camera.photo.time.FromUnixTime().ToUniversalTime();
+							cumulus.LogDebugMessage($"API.GetCurrentCameraImageUrl: Last image update {LastCameraImageTime[mac].ToLocalTime():s}");
 							return currObj.data.camera.photo.url;
 						}
 						else if (currObj.code == -1 || currObj.code == 45001)
@@ -2687,19 +2691,23 @@ namespace CumulusMX.Stations
 				return defaultUrl;
 			}
 
+			var now = DateTime.UtcNow;
+
 			// do we already have the latest video
-			if (LastCameraVideoTime == DateTime.Now.Date.AddDays(-1).ToString("yyyyMMdd"))
+			if (LastCameraVideoTime.TryGetValue(mac, out var lastStr) && lastStr == DateTime.Now.Date.AddDays(-1).ToString("yyyyMMdd"))
 			{
 				cumulus.LogMessage("API.GetLastCameraVideoUrl: The video we have is still current");
 				return defaultUrl;
 			}
 
 			// rate limit to one call per minute
-			if (LastCameraVideoCallTime.AddMinutes(1) > DateTime.Now)
+			if (LastCameraVideoCallTime.TryGetValue(mac, out var last) && last.AddMinutes(1) > DateTime.Now)
 			{
 				cumulus.LogMessage("API.GetCurrentCameraImageUrl: Last call was less than 1 minute ago, using last video URL");
 				return defaultUrl;
 			}
+
+			LastCameraCallTime[mac] = now;
 
 
 			var sb = new StringBuilder(historyUrl);
@@ -2780,9 +2788,9 @@ namespace CumulusMX.Stations
 							{
 								var link = found.Groups[0].Value.Replace("\\", "");
 
-								LastCameraVideoTime = start.ToString("yyyyMMdd");
+								LastCameraVideoTime[mac] = start.ToString("yyyyMMdd");
 
-								cumulus.LogDebugMessage($"API.GetLastCameraVideoUrl: Last image update {LastCameraVideoTime:s}, link = {link}");
+								cumulus.LogDebugMessage($"API.GetLastCameraVideoUrl: Last image update {LastCameraVideoTime[mac]:s}, link = {link}");
 								return link;
 							}
 							else
