@@ -336,6 +336,9 @@ namespace CumulusMX
 		// WOW object
 		internal ThirdParty.WebUploadWow WOW;
 
+		// WOW-BE object
+		internal ThirdParty.WebUploadWowBe WOW_BE;
+
 		// APRS object
 		internal ThirdParty.WebUploadAprs APRS;
 
@@ -649,6 +652,7 @@ namespace CumulusMX
 			WindGuru = new ThirdParty.WebUploadWindGuru(this, "WindGuru");
 			PWS = new ThirdParty.WebUploadPws(this, "PWS");
 			WOW = new ThirdParty.WebUploadWow(this, "WOW");
+			WOW_BE = new ThirdParty.WebUploadWowBe(this, "WOW-BE");
 			APRS = new ThirdParty.WebUploadAprs(this, "APRS");
 			AWEKAS = new ThirdParty.WebUploadAwekas(this, "AWEKAS");
 			WCloud = new ThirdParty.WebUploadWCloud(this, "WCloud");
@@ -1637,6 +1641,7 @@ namespace CumulusMX
 				WindGuru.station = station;
 				PWS.station = station;
 				WOW.station = station;
+				WOW_BE.station = station;
 				APRS.station = station;
 				AWEKAS.station = station;
 				WCloud.station = station;
@@ -5030,6 +5035,18 @@ namespace CumulusMX
 			WOW.SoilMoistureSensor = ini.GetValue("WOW", "SoilMoistSensor", 1, 1, 16);
 			WOW.CatchUp = false;
 
+			WOW_BE.ID = ini.GetValue("WOW-BE", "ID", string.Empty);
+			WOW_BE.PW = ini.GetValue("WOW-BE", "Password", string.Empty);
+			WOW_BE.Enabled = ini.GetValue("WOW-BE", "Enabled", false);
+			WOW_BE.Interval = ini.GetValue("WOW-BE", "Interval", WOW_BE.DefaultInterval, 1);
+			WOW_BE.SendUV = ini.GetValue("WOW-BE", "SendUV", false);
+			WOW_BE.SendSolar = ini.GetValue("WOW-BE", "SendSR", false);
+			WOW_BE.SendSoilTemp = ini.GetValue("WOW-BE", "SendSoilTemp", false);
+			WOW_BE.SoilTempSensor = ini.GetValue("WOW-BE", "SoilTempSensor", 1, 1, 16);
+			WOW_BE.SendSoilMoisture = ini.GetValue("WOW-BE", "SendSoilMoist", false);
+			WOW_BE.SoilMoistureSensor = ini.GetValue("WOW-BE", "SoilMoistSensor", 1, 1, 16);
+			WOW_BE.CatchUp = false;
+
 			APRS.ID = ini.GetValue("APRS", "ID", string.Empty);
 			APRS.PW = ini.GetValue("APRS", "pass", "-1");
 			APRS.Server = ini.GetValue("APRS", "server", "cwop.aprs.net");
@@ -6024,6 +6041,7 @@ namespace CumulusMX
 				WCloud.PW = Crypto.DecryptString(WCloud.PW, Program.InstanceId, "WCloud.PW");
 				PWS.PW = Crypto.DecryptString(PWS.PW, Program.InstanceId, "PWS.PW");
 				WOW.PW = Crypto.DecryptString(WOW.PW, Program.InstanceId, "WOW.PW");
+				WOW_BE.PW = Crypto.DecryptString(WOW_BE.PW, Program.InstanceId, "WOW-BE.PW");
 				if (APRS.PW != "-1")
 				{
 					APRS.PW = Crypto.DecryptString(APRS.PW, Program.InstanceId, "APRS.PW");
@@ -6696,6 +6714,18 @@ namespace CumulusMX
 			ini.SetValue("WOW", "SendSoilMoist", WOW.SendSoilMoisture);
 			ini.SetValue("WOW", "SoilMoistSensor", WOW.SoilMoistureSensor);
 			ini.SetValue("WOW", "CatchUp", false);
+
+			ini.SetValue("WOW-BE", "ID", WOW_BE.ID);
+			ini.SetValue("WOW-BE", "Password", Crypto.EncryptString(WOW_BE.PW, Program.InstanceId, "WOW.PW"));
+			ini.SetValue("WOW-BE", "Enabled", WOW_BE.Enabled);
+			ini.SetValue("WOW-BE", "Interval", WOW_BE.Interval);
+			ini.SetValue("WOW-BE", "SendUV", WOW_BE.SendUV);
+			ini.SetValue("WOW-BE", "SendSR", WOW_BE.SendSolar);
+			ini.SetValue("WOW-BE", "SendSoilTemp", WOW_BE.SendSoilTemp);
+			ini.SetValue("WOW-BE", "SoilTempSensor", WOW_BE.SoilTempSensor);
+			ini.SetValue("WOW-BE", "SendSoilMoist", WOW_BE.SendSoilMoisture);
+			ini.SetValue("WOW-BE", "SoilMoistSensor", WOW_BE.SoilMoistureSensor);
+			ini.SetValue("WOW-BE", "CatchUp", false);
 
 			ini.SetValue("APRS", "ID", APRS.ID);
 			ini.SetValue("APRS", "pass", APRS.PW == "-1" ? APRS.PW : Crypto.EncryptString(APRS.PW, Program.InstanceId, "APRS.PW"));
@@ -14123,6 +14153,7 @@ namespace CumulusMX
 			}
 		}
 
+		/*
 		public async Task UpdateWOW(DateTime timestamp)
 		{
 			if (!WOW.Updating)
@@ -14167,6 +14198,7 @@ namespace CumulusMX
 				}
 			}
 		}
+		*/
 
 		/*
 		public async Task MySqlCommandAsync(string Cmd, string CallingFunction)

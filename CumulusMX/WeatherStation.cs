@@ -2013,6 +2013,11 @@ namespace CumulusMX
 						_ = cumulus.WOW.DoUpdate(now);
 					}
 
+					if (cumulus.WOW_BE.Enabled && now.Minute % cumulus.WOW_BE.Interval == 0 && !string.IsNullOrWhiteSpace(cumulus.WOW_BE.ID) && !string.IsNullOrWhiteSpace(cumulus.WOW_BE.PW))
+					{
+						_ = cumulus.WOW_BE.DoUpdate(now);
+					}
+
 					if (cumulus.APRS.Enabled && now.Minute % cumulus.APRS.Interval == 0 && !string.IsNullOrWhiteSpace(cumulus.APRS.ID))
 					{
 						_ = cumulus.APRS.DoUpdate(now);
@@ -11942,6 +11947,7 @@ namespace CumulusMX
 			return URL.ToString();
 		}
 
+		/*
 		public string GetWOWURL(out string pwstring, DateTime timestamp)
 		{
 			var dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH'%3A'mm'%3A'ss");
@@ -11994,6 +12000,7 @@ namespace CumulusMX
 
 			return URL.ToString();
 		}
+		*/
 
 		private static string alltimejsonformat(AllTimeRec item, string unit, string valueformat, string dateformat)
 		{
