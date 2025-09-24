@@ -7639,8 +7639,6 @@ namespace CumulusMX
 		public int[] DavisTxRssi = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 		public string DavisFirmwareVersion = "???";
 		public string GW1000FirmwareVersion = "???";
-		public Dictionary<string, string> EcowittCameraUrl = [];
-		public Dictionary<string, string> EcowittVideoUrl = [];
 
 		private bool dayfileReloading;
 
