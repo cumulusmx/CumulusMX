@@ -10,11 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.3 \[b4125\]][26] - 2025-09-24
+## [4.6.3 \[b4125\]][26] - 2025-09-25
 
 ### New
 
-- Adds support for WOW-BE (largely untested)
+- Adds support for Third Party WOW-BE uploads (largely untested)
 
 ### Changed
 
