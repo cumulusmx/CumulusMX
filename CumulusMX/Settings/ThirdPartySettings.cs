@@ -202,15 +202,13 @@ namespace CumulusMX.Settings
 						cumulus.WOW.SendUV = settings.wow.includeuv;
 						cumulus.WOW.SendSoilTemp = settings.wow.includesoiltemp;
 						cumulus.WOW.SoilTempSensor = settings.wow.soiltempsensor;
-						if (settings.wow.includesoilmoisture && cumulus.Units.SoilMoistureUnitText[settings.wow.soilmoistsensor] == "%")
+						cumulus.WOW.SendSoilMoisture = settings.wow.includesoilmoisture;
+						cumulus.WOW.SoilMoistureSensor = settings.wow.soilmoistsensor;
+
+						if (settings.wow.includesoilmoisture && cumulus.Units.SoilMoistureUnitText[settings.wow.soilmoistsensor] != "%")
 						{
-							cumulus.WOW.SendSoilMoisture = settings.wow.includesoilmoisture;
-							cumulus.WOW.SoilMoistureSensor = settings.wow.soilmoistsensor;
-						}
-						else
-						{
-							var msg = "WOW: Soil Moisture sensor is not providing % values - disabling soil moisture upload";
-							cumulus.LogWarningMessage(msg);
+							var msg = "WOW Settings: Soil Moisture sensor is not providing % values - disabling soil moisture upload";
+							cumulus.LogMessage(msg);
 							errorMsg += msg + "\n\n";
 
 							cumulus.WOW.SendSoilMoisture = false;
@@ -240,15 +238,13 @@ namespace CumulusMX.Settings
 						//cumulus.WOW_BE.SendUV = settings.wowbe.includeuv;
 						cumulus.WOW_BE.SendSoilTemp = settings.wowbe.includesoiltemp;
 						cumulus.WOW_BE.SoilTempSensor = settings.wowbe.soiltempsensor;
-						if (settings.wowbe.includesoilmoisture && cumulus.Units.SoilMoistureUnitText[settings.wowbe.soilmoistsensor] == "%")
+						cumulus.WOW_BE.SendSoilMoisture = settings.wowbe.includesoilmoisture;
+						cumulus.WOW_BE.SoilMoistureSensor = settings.wowbe.soilmoistsensor;
+
+						if (settings.wowbe.includesoilmoisture && cumulus.Units.SoilMoistureUnitText[settings.wowbe.soilmoistsensor] != "%")
 						{
-							cumulus.WOW_BE.SendSoilMoisture = settings.wowbe.includesoilmoisture;
-							cumulus.WOW_BE.SoilMoistureSensor = settings.wowbe.soilmoistsensor;
-						}
-						else
-						{
-							var msg = "WOW-BE: Soil Moisture sensor is not providing % values - disabling soil moisture upload";
-							cumulus.LogWarningMessage(msg);
+							var msg = "WOW-BE Settings: Soil Moisture sensor is not providing % values - disabling soil moisture upload";
+							cumulus.LogMessage(msg);
 							errorMsg += msg + "\n\n";
 
 							cumulus.WOW_BE.SendSoilMoisture = false;
