@@ -552,7 +552,7 @@ namespace CumulusMX
 
 		public void ReloadFailedMySQLCommands()
 		{
-			while (cumulus.MySqlFailedList.TryDequeue(out var _))
+			while (cumulus.MySqlFuncs.MySqlFailedList.TryDequeue(out var _))
 			{
 				// do nothing
 			}
@@ -562,7 +562,7 @@ namespace CumulusMX
 
 			foreach (var rec in data)
 			{
-				cumulus.MySqlFailedList.Enqueue(rec);
+				cumulus.MySqlFuncs.MySqlFailedList.Enqueue(rec);
 			}
 		}
 
@@ -1693,7 +1693,7 @@ namespace CumulusMX
 				MinutePlus10Changed();
 			}
 
-			if (cumulus.MySqlSettings.CustomSecs.Enabled && (int) timeNow.TimeOfDay.TotalSeconds % cumulus.MySqlSettings.CustomSecs.Interval == 0)
+			if (cumulus.MySqlFuncs.MySqlSettings.CustomSecs.Enabled && (int) timeNow.TimeOfDay.TotalSeconds % cumulus.MySqlFuncs.MySqlSettings.CustomSecs.Interval == 0)
 			{
 				cumulus.CustomMysqlSecondsChanged();
 			}
@@ -1921,13 +1921,13 @@ namespace CumulusMX
 					}
 
 					// Custom MySQL update - minutes interval
-					if (cumulus.MySqlSettings.CustomMins.Enabled)
+					if (cumulus.MySqlFuncs.MySqlSettings.CustomMins.Enabled)
 					{
 						_ = cumulus.CustomMysqlMinutesUpdate(now, true);
 					}
 
 					// Custom MySQL Timed interval
-					if (cumulus.MySqlSettings.CustomTimed.Enabled)
+					if (cumulus.MySqlFuncs.MySqlSettings.CustomTimed.Enabled)
 					{
 						_ = cumulus.CustomMySqlTimedUpdate(now);
 					}
@@ -7842,7 +7842,7 @@ namespace CumulusMX
 				// any last updates?
 				DoTrendValues(timestamp, true);
 
-				if (cumulus.MySqlSettings.CustomRollover.Enabled)
+				if (cumulus.MySqlFuncs.MySqlSettings.CustomRollover.Enabled)
 				{
 					_ = cumulus.CustomMysqlRollover();
 				}
@@ -8866,7 +8866,7 @@ namespace CumulusMX
 			// add to SQLite
 			RecentDataDb.Insert(newRec);
 
-			if (cumulus.MySqlSettings.Dayfile.Enabled)
+			if (cumulus.MySqlFuncs.MySqlSettings.Dayfile.Enabled)
 			{
 				var queryString = new StringBuilder(cumulus.DayfileTable.StartOfInsert, 1024);
 				queryString.Append(" Values(");
@@ -8933,13 +8933,13 @@ namespace CumulusMX
 				if (cumulus.NormalRunning)
 				{
 					// run the query async so we do not block the main EOD processing
-					await cumulus.CheckMySQLFailedUploads("DoDayfile", queryString.ToString());
+					await cumulus.MySqlFuncs.MySqlCommandAsync(queryString.ToString(), "DoDayfile");
 				}
 				else
 				{
 					// save the string for later
 					cumulus.LogDebugMessage("DoDayfile:: Buffering MySQL insert for later processing");
-					cumulus.MySqlList.Enqueue(new SqlCache() { statement = queryString.ToString() });
+					cumulus.MySqlFuncs.MySqlList.Enqueue(new SqlCache() { statement = queryString.ToString() });
 				}
 			}
 		}
@@ -13823,73 +13823,6 @@ namespace CumulusMX
 			}
 
 			return "[]";
-
-		}
-
-		public string GetCachedSqlCommands(string draw, int start, int length, string search)
-		{
-			try
-			{
-				var filtered = 0;
-				var thisDraw = 0;
-
-
-				var json = new StringBuilder(350 * cumulus.MySqlFailedList.Count);
-
-				json.Append("{\"data\":[");
-
-				foreach (var rec in cumulus.MySqlFailedList)
-				{
-					// if we have a search string and no match, skip to next line
-					if (!string.IsNullOrEmpty(search) && !rec.statement.Contains(search))
-					{
-						continue;
-					}
-
-					// this line either matches the search
-					filtered++;
-
-					// skip records until we get to the start entry
-					if (filtered <= start)
-					{
-						continue;
-					}
-
-					// only send the number requested
-					if (thisDraw < length)
-					{
-						// track the number of lines we have to return so far
-						thisDraw++;
-
-						json.Append($"[{rec.key},\"{rec.statement}\"],");
-					}
-					else if (string.IsNullOrEmpty(search))
-					{
-						// no search so we can bail out as we already know the total number of records
-						break;
-					}
-				}
-
-				// trim last ","
-				if (thisDraw > 0)
-					json.Length--;
-				json.Append("],\"recordsTotal\":");
-				json.Append(cumulus.MySqlFailedList.Count);
-				json.Append(",\"draw\":");
-				json.Append(draw);
-				json.Append(",\"recordsFiltered\":");
-				json.Append(string.IsNullOrEmpty(search) ? cumulus.MySqlFailedList.Count : filtered);
-				json.Append('}');
-
-				return json.ToString();
-
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogErrorMessage("GetCachedSqlCommands: Error - " + ex.ToString());
-			}
-
-			return "";
 
 		}
 

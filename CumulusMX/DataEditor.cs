@@ -3142,11 +3142,11 @@ namespace CumulusMX
 						}
 
 						// Update the MySQL record
-						if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
-							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
-							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
-							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
-							cumulus.MySqlSettings.UpdateOnEdit
+						if (!string.IsNullOrEmpty(cumulus.MySqlFuncs.MySqlConnSettings.Server) &&
+							!string.IsNullOrEmpty(cumulus.MySqlFuncs.MySqlConnSettings.UserID) &&
+							!string.IsNullOrEmpty(cumulus.MySqlFuncs.MySqlConnSettings.Password) &&
+							!string.IsNullOrEmpty(cumulus.MySqlFuncs.MySqlConnSettings.Database) &&
+							cumulus.MySqlFuncs.MySqlSettings.UpdateOnEdit
 							)
 						{
 							var updateStr = string.Empty;
@@ -3156,7 +3156,7 @@ namespace CumulusMX
 								var InvC = CultureInfo.InvariantCulture;
 								var updt = new StringBuilder(1024);
 
-								updt.Append($"UPDATE {cumulus.MySqlSettings.Dayfile.TableName} SET ");
+								updt.Append($"UPDATE {cumulus.MySqlFuncs.MySqlSettings.Dayfile.TableName} SET ");
 								updt.Append($"HighWindGust={station.DayFile[lineNum].HighGust.ToString(cumulus.WindFormat, InvC)},");
 								updt.Append($"HWindGBear={station.DayFile[lineNum].HighGustBearing},");
 								updt.Append($"THWindG={station.DayFile[lineNum].HighGustTime:\\'HH:mm\\'},");
@@ -3217,7 +3217,7 @@ namespace CumulusMX
 								updt.Append($"WHERE LogDate='{station.DayFile[lineNum].Date:yyyy-MM-dd}';");
 								updateStr = updt.ToString();
 
-								cumulus.CheckMySQLFailedUploads("EditDayFile", updateStr).Wait();
+								cumulus.MySqlFuncs.MySqlCommandAsync(updateStr, "EditDayFile").Wait();
 								cumulus.LogMessage($"EditDayFile: SQL Updated");
 							}
 							catch (Exception ex)
@@ -3451,11 +3451,11 @@ namespace CumulusMX
 						var LogRec = station.ParseLogFileRec(newLine, false);
 
 						// Update the MySQL record
-						if (!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Server) &&
-							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.UserID) &&
-							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Password) &&
-							!string.IsNullOrEmpty(cumulus.MySqlConnSettings.Database) &&
-							cumulus.MySqlSettings.UpdateOnEdit
+						if (!string.IsNullOrEmpty(cumulus.MySqlFuncs.MySqlConnSettings.Server) &&
+							!string.IsNullOrEmpty(cumulus.MySqlFuncs.MySqlConnSettings.UserID) &&
+							!string.IsNullOrEmpty(cumulus.MySqlFuncs.MySqlConnSettings.Password) &&
+							!string.IsNullOrEmpty(cumulus.MySqlFuncs.MySqlConnSettings.Database) &&
+							cumulus.MySqlFuncs.MySqlSettings.UpdateOnEdit
 							)
 						{
 							var updateStr = string.Empty;
@@ -3465,7 +3465,7 @@ namespace CumulusMX
 								var updt = new StringBuilder(1024);
 
 
-								updt.Append($"UPDATE {cumulus.MySqlSettings.Monthly.TableName} SET ");
+								updt.Append($"UPDATE {cumulus.MySqlFuncs.MySqlSettings.Monthly.TableName} SET ");
 								updt.Append($"Temp={LogRec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)},");
 								updt.Append($"Humidity={LogRec.OutdoorHumidity},");
 								updt.Append($"Dewpoint={LogRec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)},");
@@ -3499,7 +3499,7 @@ namespace CumulusMX
 								updt.Append($"WHERE LogDateTime='{LogRec.Date:yyyy-MM-dd HH:mm}';");
 								updateStr = updt.ToString();
 
-								cumulus.CheckMySQLFailedUploads("EditLogFile", updateStr).Wait();
+								cumulus.MySqlFuncs.MySqlCommandAsync(updateStr, "EditLogFile").Wait();
 								cumulus.LogMessage($"EditDataLog: SQL Updated");
 							}
 							catch (Exception ex)

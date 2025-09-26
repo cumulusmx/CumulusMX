@@ -431,7 +431,7 @@ namespace CumulusMX
 						case "mysqlcache.json":
 							if (await Authenticate(HttpContext))
 							{
-								await writer.WriteAsync(Station.GetCachedSqlCommands(draw, start, length, search));
+								await writer.WriteAsync(cumulus.MySqlFuncs.GetCachedSqlCommands(draw, start, length, search));
 							}
 							break;
 						case "errorlog.json":
@@ -1839,8 +1839,8 @@ namespace CumulusMX
 							await writer.WriteAsync(Station.LoadDayFile());
 							break;
 						case "purgemysql":
-							var cnt = cumulus.MySqlFailedList.Count;
-							cumulus.MySqlFailedList.Clear();
+							var cnt = cumulus.MySqlFuncs.MySqlFailedList.Count;
+							cumulus.MySqlFuncs.MySqlFailedList.Clear();
 							_ = Station.RecentDataDb.Execute("DELETE FROM SqlCache");
 							string msg;
 							if (cnt == 0)
