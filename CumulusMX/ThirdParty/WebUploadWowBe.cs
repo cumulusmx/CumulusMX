@@ -131,15 +131,17 @@ namespace CumulusMX.ThirdParty
 		internal string GetBody(DateTime timestamp)
 		{
 
-			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd' 'HH':'mm':'ss");
+			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss");
 
 			var bodyObj = new JsonObject();
 
 			bodyObj.Add("dateutc", dateUTC);
 			bodyObj.Add("siteAuthenticationKey", PW);
 			bodyObj.Add("siteid", ID);
-			bodyObj.Add("softwaretype", "Cumulus v" + cumulus.Version);
-			bodyObj.Add("model", cumulus.StationModel);
+			bodyObj.Add("softwaretype", "Cumulus MX v" + cumulus.Version);
+
+			if (!string.IsNullOrEmpty(cumulus.StationModel))
+				bodyObj.Add("model", cumulus.StationModel);
 
 			if (station.Pressure > 0)
 				bodyObj.Add("baromin", ConvertUnits.UserPressToIN(station.Pressure));
