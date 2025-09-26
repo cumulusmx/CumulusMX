@@ -304,7 +304,7 @@ namespace CumulusMX.Settings
 				if (connectRequired)
 				{
 
-					if (!cumulus.MySqlFuncs.MySqlConnect().Result)
+					if (!cumulus.MySqlFuncs.MySqlTestConnection().Result)
 					{
 						cumulus.LogMessage("MySqlSettings: Error connecting to server");
 					}

@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.3 \[b4125\]][26] - 2025-09-25
+## [4.6.3 \[b4126\]][26] - 2025-09-26
 
 ### New
 
@@ -31,6 +31,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Tweaks to the Dashboard and default web site
 - Fix forum URL being reset to default on Cumulus restarts. The fix requires you to resave the config once after installing this update
 - The station TimeZone being reset to default on Cumulus restarts
+- MySQL connection issues if you only upload the dayfile once a day and no other uploads
 
 
 
@@ -1061,4 +1062,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4120
 [24]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4121
 [25]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4122
-[26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4125
+[26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4126

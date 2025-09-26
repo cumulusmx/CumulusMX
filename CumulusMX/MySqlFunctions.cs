@@ -12,13 +12,8 @@ namespace CumulusMX
 	internal class MySqlFunctions
 	{
 		internal MySqlConnectionStringBuilder MySqlConnSettings = [];
-		private MySqlConnection MySqlConn;
 
 		internal MySqlGeneralSettings MySqlSettings = new();
-
-		private static readonly SemaphoreSlim MySqlSemaphore = new(1);
-
-
 
 		private static readonly Cumulus cumulus = Program.cumulus;
 		private static readonly WeatherStation station = cumulus.Station;
@@ -45,69 +40,61 @@ namespace CumulusMX
 
 		private async Task CheckMySQLFailedUploads(string callingFunction, List<string> cmds)
 		{
-			// first get the lock
-			cumulus.LogDebugMessage($"{callingFunction}: Wait for the MySQL lock");
-			await MySqlSemaphore.WaitAsync();
-			cumulus.LogDebugMessage($"{callingFunction}: Has the MySQL lock");
-
 			try
 			{
-				if (await CheckConnection())
+				if (!MySqlFailedList.IsEmpty)
 				{
-					if (!MySqlFailedList.IsEmpty)
+					// flag we are processing the queue so the next task doesn't try as well
+					cumulus.SqlCatchingUp = true;
+
+					cumulus.LogMessage($"{callingFunction}: Failed MySQL updates are present");
+
+					try
 					{
-						// flag we are processing the queue so the next task doesn't try as well
-						cumulus.SqlCatchingUp = true;
+						Thread.Sleep(500);
+						cumulus.LogMessage($"{callingFunction}: Connection to MySQL server is OK, trying to upload {MySqlFailedList.Count} failed commands");
 
-						cumulus.LogMessage($"{callingFunction}: Failed MySQL updates are present");
-
-						try
+						await ProcessMySqlBuffer(MySqlFailedList, callingFunction, true);
+						cumulus.LogMessage($"{callingFunction}: Upload of failed MySQL commands complete");
+					}
+					catch
+					{
+						if (MySqlSettings.BufferOnfailure)
 						{
-							Thread.Sleep(500);
-							cumulus.LogMessage($"{callingFunction}: Connection to MySQL server is OK, trying to upload {MySqlFailedList.Count} failed commands");
-
-							await ProcessMySqlBuffer(MySqlFailedList, callingFunction, true);
-							cumulus.LogMessage($"{callingFunction}: Upload of failed MySQL commands complete");
-						}
-						catch
-						{
-							if (MySqlSettings.BufferOnfailure)
+							cumulus.LogMessage($"{callingFunction}: Connection to MySQL server has failed, adding this update to the failed list");
+							if (callingFunction.StartsWith("Realtime["))
 							{
-								cumulus.LogMessage($"{callingFunction}: Connection to MySQL server has failed, adding this update to the failed list");
-								if (callingFunction.StartsWith("Realtime["))
+								var tmp = new SqlCache() { statement = cmds[0] };
+								_ = station.RecentDataDb.Insert(tmp);
+
+								// don't bother buffering the realtime deletes - if present
+								MySqlFailedList.Enqueue(tmp);
+							}
+							else
+							{
+								for (var i = 0; i < cmds.Count; i++)
 								{
-									var tmp = new SqlCache() { statement = cmds[0] };
+									var tmp = new SqlCache() { statement = cmds[i] };
+
 									_ = station.RecentDataDb.Insert(tmp);
 
-									// don't bother buffering the realtime deletes - if present
 									MySqlFailedList.Enqueue(tmp);
-								}
-								else
-								{
-									for (var i = 0; i < cmds.Count; i++)
-									{
-										var tmp = new SqlCache() { statement = cmds[i] };
-
-										_ = station.RecentDataDb.Insert(tmp);
-
-										MySqlFailedList.Enqueue(tmp);
-									}
 								}
 							}
 						}
-
-						cumulus.SqlCatchingUp = false;
 					}
 
-					// now do what we came here to do
-					if (cmds.Count > 0)
-					{
-						await ProcessMySqlBuffer(cmds, callingFunction, false);
-					}
-					else if (cmds.Count == 0)
-					{
-						cumulus.LogDebugMessage($"{callingFunction}: No SQL cmds found to process!");
-					}
+					cumulus.SqlCatchingUp = false;
+				}
+
+				// now do what we came here to do
+				if (cmds.Count > 0)
+				{
+					await ProcessMySqlBuffer(cmds, callingFunction, false);
+				}
+				else if (cmds.Count == 0)
+				{
+					cumulus.LogDebugMessage($"{callingFunction}: No SQL cmds found to process!");
 				}
 			}
 			catch (Exception ex)
@@ -115,39 +102,13 @@ namespace CumulusMX
 				cumulus.LogExceptionMessage(ex, $"{callingFunction}: Error during MySQL upload");
 				cumulus.SqlCatchingUp = false;
 			}
-
-			// release the lock
-			cumulus.LogDebugMessage($"{callingFunction}: Releasing the MySQL lock");
-			MySqlSemaphore.Release();
 		}
 
 		internal async Task ProcessMySqlStartupBuffer()
 		{
 			cumulus.LogMessage($"Starting MySQL catchup thread. Found {MySqlList.Count} commands to execute");
 
-			// first get the lock
-			cumulus.LogDebugMessage("Startup MySQL: Wait for the MySQL lock");
-			await MySqlSemaphore.WaitAsync();
-			cumulus.LogDebugMessage("Startup MySQL: Has the MySQL lock");
-
-			if (await CheckConnection())
-			{
-				await ProcessMySqlBuffer(MySqlList, "Startup MySQL", false);
-			}
-			else
-			{
-				// not connected, add the MySqlList to the failed list
-				foreach (var cmd in MySqlList.ToArray())
-				{
-					MySqlFailedList.Enqueue(cmd);
-				}
-
-				MySqlList.Clear();
-			}
-
-			// release the lock
-			cumulus.LogDebugMessage("Startup MySQL: Releasing the MySQL lock");
-			MySqlSemaphore.Release();
+			await ProcessMySqlBuffer(MySqlList, "Startup MySQL", false);
 		}
 
 		private async Task ProcessMySqlBuffer(List<string> Cmds, string CallingFunction, bool UsingFailedList)
@@ -165,6 +126,9 @@ namespace CumulusMX
 		{
 			try
 			{
+				await using var MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
+				await MySqlConn.OpenAsync();
+
 				using var transaction = myQueue.Count > 2 ? await MySqlConn.BeginTransactionAsync() : null;
 
 				SqlCache cachedCmd;
@@ -351,65 +315,38 @@ namespace CumulusMX
 			}
 		}
 
-		internal async Task<bool> MySqlConnect()
+		internal async Task<bool> MySqlTestConnection()
 		{
-			cumulus.LogMessage("MySqlConnect: Starting Connect or Reconnect");
+			cumulus.LogMessage("MySqlTestConnection: Starting Connection test");
 
 			try
 			{
-				if (MySqlConn is not null && (
-					MySqlConn.State != System.Data.ConnectionState.Closed ||
-					MySqlConn.State != System.Data.ConnectionState.Broken)
-					)
-				{
-					await MySqlConn.CloseAsync();
-				}
-			}
-			finally
-			{
-				MySqlConn = null;
-			}
+				cumulus.LogMessage($"MySqlTestConnection: Connecting to server {MySqlConnSettings.Server} port {MySqlConnSettings.Port}");
 
-			if (!string.IsNullOrEmpty(MySqlConnSettings.Server) &&
-				!string.IsNullOrEmpty(MySqlConnSettings.UserID) &&
-				!string.IsNullOrEmpty(MySqlConnSettings.Password)
-				)
-			{
-				try
-				{
-					cumulus.LogMessage($"MySqlConnect: Connecting to server {MySqlConnSettings.Server} port {MySqlConnSettings.Port}");
-					MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
-					await MySqlConn.OpenAsync();
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogExceptionMessage(ex, "MySqlConnect: Error connecting to server");
-				}
-			}
+				await using var MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
+				await MySqlConn.OpenAsync();
 
-			if (MySqlConn is null || MySqlConn.State != System.Data.ConnectionState.Open) return false;
+				cumulus.LogMessage("MySqlTestConnection: Connection opened OK");
 
-			try
-			{
 				if (await MySqlConn.PingAsync())
 				{
-					cumulus.LogMessage("MySqlConnect: Connected OK");
+					cumulus.LogMessage("MySqlTestConnection: Server Ping OK");
 					return true;
 				}
 				else
 				{
-					cumulus.LogMessage("MySqlConnect: Connection Ping failed");
+					cumulus.LogMessage("MySqlTestConnection: Server Ping failed");
 					return false;
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogExceptionMessage(ex, "MySqlConnect: Error pinging the server");
+				cumulus.LogExceptionMessage(ex, "MySqlTestConnection: Error creating the connection");
+				return false;
 			}
-
-			return false;
 		}
 
+		/*
 		internal async Task<bool> CheckConnection()
 		{
 			if (MySqlConn is null || MySqlConn.State == System.Data.ConnectionState.Closed)
@@ -430,7 +367,7 @@ namespace CumulusMX
 				return await MySqlConnect();
 			}
 		}
-
+*/
 		internal string GetCachedSqlCommands(string draw, int start, int length, string search)
 		{
 			try
@@ -501,16 +438,8 @@ namespace CumulusMX
 		{
 			string res;
 
-			// No locking - just do it
-
-			if (MySqlConn is null || MySqlConn.State != System.Data.ConnectionState.Open)
-			{
-				if (!MySqlConnect().Result)
-				{
-					cumulus.LogErrorMessage("CreateMySQLTable: Error connecting to MySQL server.");
-					return "Error: Failed to connect to MySQL server";
-				}
-			}
+			using var MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
+			MySqlConn.Open();
 
 			using (var cmd = new MySqlCommand(createSQL, MySqlConn))
 			{
@@ -542,14 +471,8 @@ namespace CumulusMX
 
 			try
 			{
-				if (MySqlConn is null || MySqlConn.State != System.Data.ConnectionState.Open)
-				{
-					if (!MySqlConnect().Result)
-					{
-						cumulus.LogErrorMessage("UpdateMySQLTable: Error connecting to MySQL server.");
-						return "Error: Failed to connect to MySQL server";
-					}
-				}
+				using var MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
+				MySqlConn.Open();
 
 				// first get a list of the columns the table currenty has
 				var currCols = new List<string>();
