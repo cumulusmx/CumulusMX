@@ -68,8 +68,6 @@ namespace CumulusMX
 
 		public static SemaphoreSlim SyncInit { get => semaphoreSlim; }
 
-		public static SemaphoreSlim MySqlSemaphore { get => semaphoreSlim; }
-
 		public enum FtpProtocols
 		{
 			FTP = 0,
@@ -239,7 +237,7 @@ namespace CumulusMX
 		internal double Altitude;
 
 		internal int wsPort;
-		private bool DebuggingEnabled;
+		internal bool DebuggingEnabled;
 
 		internal SerialPort cmprtRG11;
 		internal SerialPort cmprt2RG11;
@@ -263,9 +261,7 @@ namespace CumulusMX
 
 		internal bool SynchronisedWebUpdate;
 
-		// Use thread safe queues for the MySQL command lists
-		public readonly ConcurrentQueue<SqlCache> MySqlList = new();
-		public readonly ConcurrentQueue<SqlCache> MySqlFailedList = new();
+		internal MySqlFunctions MySqlFuncs = new();
 
 		// Calibration settings
 		/// <summary>
@@ -333,6 +329,9 @@ namespace CumulusMX
 
 		// WOW object
 		internal ThirdParty.WebUploadWow WOW;
+
+		// WOW-BE object
+		internal ThirdParty.WebUploadWowBe WOW_BE;
 
 		// APRS object
 		internal ThirdParty.WebUploadAprs APRS;
@@ -464,11 +463,6 @@ namespace CumulusMX
 		internal string xapsource;
 
 		internal string LatestBuild = "n/a";
-
-		internal MySqlConnectionStringBuilder MySqlConnSettings = [];
-		internal MySqlConnection MySqlConn;
-
-		internal MySqlGeneralSettings MySqlSettings = new();
 
 		internal DateTime MySqlLastRealtimeTime;
 		internal DateTime MySqlILastntervalTime;
@@ -647,6 +641,7 @@ namespace CumulusMX
 			WindGuru = new ThirdParty.WebUploadWindGuru(this, "WindGuru");
 			PWS = new ThirdParty.WebUploadPws(this, "PWS");
 			WOW = new ThirdParty.WebUploadWow(this, "WOW");
+			WOW_BE = new ThirdParty.WebUploadWowBe(this, "WOW-BE");
 			APRS = new ThirdParty.WebUploadAprs(this, "APRS");
 			AWEKAS = new ThirdParty.WebUploadAwekas(this, "AWEKAS");
 			WCloud = new ThirdParty.WebUploadWCloud(this, "WCloud");
@@ -1635,6 +1630,7 @@ namespace CumulusMX
 				WindGuru.station = station;
 				PWS.station = station;
 				WOW.station = station;
+				WOW_BE.station = station;
 				APRS.station = station;
 				AWEKAS.station = station;
 				WCloud.station = station;
@@ -1678,7 +1674,7 @@ namespace CumulusMX
 
 
 				// Do the start-up  MySQL commands before the station is started
-				if (MySqlSettings.CustomStartUp.Enabled)
+				if (MySqlFuncs.MySqlSettings.CustomStartUp.Enabled)
 				{
 					CustomMySqlStartUp();
 				}
@@ -1857,7 +1853,7 @@ namespace CumulusMX
 
 		internal void SetupRealtimeMySqlTable()
 		{
-			RealtimeTable = new MySqlTable(MySqlSettings.Realtime.TableName);
+			RealtimeTable = new MySqlTable(MySqlFuncs.MySqlSettings.Realtime.TableName);
 			RealtimeTable.AddColumn("LogDateTime", "DATETIME NOT NULL");
 			RealtimeTable.AddColumn("temp", "decimal(4," + TempDPlaces + ")");
 			RealtimeTable.AddColumn("hum", "decimal(4," + HumDPlaces + ")");
@@ -1923,7 +1919,7 @@ namespace CumulusMX
 
 		internal void SetupMonthlyMySqlTable()
 		{
-			MonthlyTable = new MySqlTable(MySqlSettings.Monthly.TableName);
+			MonthlyTable = new MySqlTable(MySqlFuncs.MySqlSettings.Monthly.TableName);
 			MonthlyTable.AddColumn("LogDateTime", "DATETIME NOT NULL");
 			MonthlyTable.AddColumn("Temp", "decimal(4," + TempDPlaces + ")");
 			MonthlyTable.AddColumn("Humidity", "decimal(4," + HumDPlaces + ")");
@@ -1960,7 +1956,7 @@ namespace CumulusMX
 
 		internal void SetupDayfileMySqlTable()
 		{
-			DayfileTable = new MySqlTable(MySqlSettings.Dayfile.TableName);
+			DayfileTable = new MySqlTable(MySqlFuncs.MySqlSettings.Dayfile.TableName);
 			DayfileTable.AddColumn("LogDate", "date NOT NULL");
 			DayfileTable.AddColumn("HighWindGust", "decimal(4," + WindDPlaces + ")");
 			DayfileTable.AddColumn("HWindGBear", "varchar(3)");
@@ -5028,6 +5024,18 @@ namespace CumulusMX
 			WOW.SoilMoistureSensor = ini.GetValue("WOW", "SoilMoistSensor", 1, 1, 16);
 			WOW.CatchUp = false;
 
+			WOW_BE.ID = ini.GetValue("WOW-BE", "ID", string.Empty);
+			WOW_BE.PW = ini.GetValue("WOW-BE", "Password", string.Empty);
+			WOW_BE.Enabled = ini.GetValue("WOW-BE", "Enabled", false);
+			WOW_BE.Interval = ini.GetValue("WOW-BE", "Interval", WOW_BE.DefaultInterval, 1);
+			WOW_BE.SendUV = ini.GetValue("WOW-BE", "SendUV", false);
+			WOW_BE.SendSolar = ini.GetValue("WOW-BE", "SendSR", false);
+			WOW_BE.SendSoilTemp = ini.GetValue("WOW-BE", "SendSoilTemp", false);
+			WOW_BE.SoilTempSensor = ini.GetValue("WOW-BE", "SoilTempSensor", 1, 1, 16);
+			WOW_BE.SendSoilMoisture = ini.GetValue("WOW-BE", "SendSoilMoist", false);
+			WOW_BE.SoilMoistureSensor = ini.GetValue("WOW-BE", "SoilMoistSensor", 1, 1, 16);
+			WOW_BE.CatchUp = false;
+
 			APRS.ID = ini.GetValue("APRS", "ID", string.Empty);
 			APRS.PW = ini.GetValue("APRS", "pass", "-1");
 			APRS.Server = ini.GetValue("APRS", "server", "cwop.aprs.net");
@@ -5743,97 +5751,98 @@ namespace CumulusMX
 			DisplayOptions.ShowSnow = ini.GetValue("Display", "DisplaySnowData", false);
 
 			// MySQL - common
-			MySqlConnSettings.Server = ini.GetValue("MySQL", "Host", "127.0.0.1");
-			MySqlConnSettings.Port = (uint) ini.GetValue("MySQL", "Port", 3306, 1, 65535);
-			MySqlConnSettings.UserID = ini.GetValue("MySQL", "User", string.Empty);
-			MySqlConnSettings.Password = ini.GetValue("MySQL", "Pass", string.Empty);
-			MySqlConnSettings.Database = ini.GetValue("MySQL", "Database", "");
-			MySqlConnSettings.SslMode = (MySqlSslMode) ini.GetValue("MySQL", "SSLmode", (int) MySqlSslMode.Preferred);
-			MySqlConnSettings.TlsVersion = ini.GetValue("MySQL", "TLSversions", "TLS 1.2,TLS 1.3");
+			MySqlFuncs.MySqlConnSettings.Server = ini.GetValue("MySQL", "Host", "127.0.0.1");
+			MySqlFuncs.MySqlConnSettings.Port = (uint) ini.GetValue("MySQL", "Port", 3306, 1, 65535);
+			MySqlFuncs.MySqlConnSettings.UserID = ini.GetValue("MySQL", "User", string.Empty);
+			MySqlFuncs.MySqlConnSettings.Password = ini.GetValue("MySQL", "Pass", string.Empty);
+			MySqlFuncs.MySqlConnSettings.Database = ini.GetValue("MySQL", "Database", "");
+			MySqlFuncs.MySqlConnSettings.SslMode = (MySqlSslMode) ini.GetValue("MySQL", "SSLmode", (int) MySqlSslMode.Preferred);
+			MySqlFuncs.MySqlConnSettings.TlsVersion = ini.GetValue("MySQL", "TLSversions", "TLS 1.2, TLS 1.3");
+			MySqlFuncs.MySqlConnSettings.Keepalive = (uint) ini.GetValue("MySQL", "KeepAlive", 60);
 
-			MySqlSettings.UpdateOnEdit = ini.GetValue("MySQL", "UpdateOnEdit", true);
-			MySqlSettings.BufferOnfailure = ini.GetValue("MySQL", "BufferOnFailure", false);
+			MySqlFuncs.MySqlSettings.UpdateOnEdit = ini.GetValue("MySQL", "UpdateOnEdit", true);
+			MySqlFuncs.MySqlSettings.BufferOnfailure = ini.GetValue("MySQL", "BufferOnFailure", false);
 
 			// MySQL - monthly log file
-			MySqlSettings.Monthly.Enabled = ini.GetValue("MySQL", "MonthlyMySqlEnabled", false);
-			MySqlSettings.Monthly.TableName = ini.GetValue("MySQL", "MonthlyTable", "Monthly");
+			MySqlFuncs.MySqlSettings.Monthly.Enabled = ini.GetValue("MySQL", "MonthlyMySqlEnabled", false);
+			MySqlFuncs.MySqlSettings.Monthly.TableName = ini.GetValue("MySQL", "MonthlyTable", "Monthly");
 			// MySQL - real-time
-			MySqlSettings.Realtime.Enabled = ini.GetValue("MySQL", "RealtimeMySqlEnabled", false);
-			MySqlSettings.Realtime.TableName = ini.GetValue("MySQL", "RealtimeTable", "Realtime");
-			MySqlSettings.RealtimeRetention = ini.GetValue("MySQL", "RealtimeRetention", string.Empty);
-			MySqlSettings.RealtimeLimit1Minute = ini.GetValue("MySQL", "RealtimeMySql1MinLimit", false) && RealtimeInterval < 60000; // do not enable if real time interval is greater than 1 minute
+			MySqlFuncs.MySqlSettings.Realtime.Enabled = ini.GetValue("MySQL", "RealtimeMySqlEnabled", false);
+			MySqlFuncs.MySqlSettings.Realtime.TableName = ini.GetValue("MySQL", "RealtimeTable", "Realtime");
+			MySqlFuncs.MySqlSettings.RealtimeRetention = ini.GetValue("MySQL", "RealtimeRetention", string.Empty);
+			MySqlFuncs.MySqlSettings.RealtimeLimit1Minute = ini.GetValue("MySQL", "RealtimeMySql1MinLimit", false) && RealtimeInterval < 60000; // do not enable if real time interval is greater than 1 minute
 																																	 // MySQL - dayfile
-			MySqlSettings.Dayfile.Enabled = ini.GetValue("MySQL", "DayfileMySqlEnabled", false);
-			MySqlSettings.Dayfile.TableName = ini.GetValue("MySQL", "DayfileTable", "Dayfile");
+			MySqlFuncs.MySqlSettings.Dayfile.Enabled = ini.GetValue("MySQL", "DayfileMySqlEnabled", false);
+			MySqlFuncs.MySqlSettings.Dayfile.TableName = ini.GetValue("MySQL", "DayfileTable", "Dayfile");
 
 			// MySQL - custom seconds
-			MySqlSettings.CustomSecs.Commands[0] = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString", string.Empty);
+			MySqlFuncs.MySqlSettings.CustomSecs.Commands[0] = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString", string.Empty);
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlSecondsCommandString" + i))
-					MySqlSettings.CustomSecs.Commands[i] = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString" + i, string.Empty);
+					MySqlFuncs.MySqlSettings.CustomSecs.Commands[i] = ini.GetValue("MySQL", "CustomMySqlSecondsCommandString" + i, string.Empty);
 			}
 
-			MySqlSettings.CustomSecs.Enabled = ini.GetValue("MySQL", "CustomMySqlSecondsEnabled", false);
-			MySqlSettings.CustomSecs.Interval = ini.GetValue("MySQL", "CustomMySqlSecondsInterval", 10);
-			if (MySqlSettings.CustomSecs.Interval < 1) { MySqlSettings.CustomSecs.Interval = 1; }
+			MySqlFuncs.MySqlSettings.CustomSecs.Enabled = ini.GetValue("MySQL", "CustomMySqlSecondsEnabled", false);
+			MySqlFuncs.MySqlSettings.CustomSecs.Interval = ini.GetValue("MySQL", "CustomMySqlSecondsInterval", 10);
+			if (MySqlFuncs.MySqlSettings.CustomSecs.Interval < 1) { MySqlFuncs.MySqlSettings.CustomSecs.Interval = 1; }
 
 			// MySQL - custom minutes
-			MySqlSettings.CustomMins.Enabled = ini.GetValue("MySQL", "CustomMySqlMinutesEnabled", false);
+			MySqlFuncs.MySqlSettings.CustomMins.Enabled = ini.GetValue("MySQL", "CustomMySqlMinutesEnabled", false);
 
-			MySqlSettings.CustomMins.Commands[0] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", string.Empty);
-			MySqlSettings.CustomMins.IntervalIndexes[0] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIndex", 6);
-			MySqlSettings.CustomMins.CatchUp[0] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp", false);
-			if (MySqlSettings.CustomMins.IntervalIndexes[0] < 0 && MySqlSettings.CustomMins.IntervalIndexes[0] >= FactorsOf60.Length)
+			MySqlFuncs.MySqlSettings.CustomMins.Commands[0] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString", string.Empty);
+			MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIndex", 6);
+			MySqlFuncs.MySqlSettings.CustomMins.CatchUp[0] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp", false);
+			if (MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0] < 0 && MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0] >= FactorsOf60.Length)
 			{
-				MySqlSettings.CustomMins.IntervalIndexes[0] = 6;
+				MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0] = 6;
 			}
-			MySqlSettings.CustomMins.Intervals[0] = FactorsOf60[MySqlSettings.CustomMins.IntervalIndexes[0]];
+			MySqlFuncs.MySqlSettings.CustomMins.Intervals[0] = FactorsOf60[MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0]];
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlMinutesCommandString" + i))
 				{
-					MySqlSettings.CustomMins.Commands[i] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString" + i, string.Empty);
-					MySqlSettings.CustomMins.IntervalIndexes[i] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlSettings.CustomMins.IntervalIndexes[0]);
-					MySqlSettings.CustomMins.CatchUp[i] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp" + i, false);
+					MySqlFuncs.MySqlSettings.CustomMins.Commands[i] = ini.GetValue("MySQL", "CustomMySqlMinutesCommandString" + i, string.Empty);
+					MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0]);
+					MySqlFuncs.MySqlSettings.CustomMins.CatchUp[i] = ini.GetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp" + i, false);
 
-					if (MySqlSettings.CustomMins.IntervalIndexes[i] < 0 && MySqlSettings.CustomMins.IntervalIndexes[i] > FactorsOf60.Length)
+					if (MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i] < 0 && MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i] > FactorsOf60.Length)
 					{
-						MySqlSettings.CustomMins.IntervalIndexes[i] = 6;
+						MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i] = 6;
 					}
-					MySqlSettings.CustomMins.Intervals[i] = FactorsOf60[MySqlSettings.CustomMins.IntervalIndexes[i]];
+					MySqlFuncs.MySqlSettings.CustomMins.Intervals[i] = FactorsOf60[MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i]];
 				}
 			}
 
 
 			// MySql - Timed
-			MySqlSettings.CustomTimed.Enabled = ini.GetValue("MySQL", "CustomMySqlTimedEnabled", false);
+			MySqlFuncs.MySqlSettings.CustomTimed.Enabled = ini.GetValue("MySQL", "CustomMySqlTimedEnabled", false);
 			for (var i = 0; i < 10; i++)
 			{
-				MySqlSettings.CustomTimed.Commands[i] = ini.GetValue("MySQL", "CustomMySqlTimedCommandString" + i, string.Empty);
-				MySqlSettings.CustomTimed.SetStartTime(i, ini.GetValue("MySQL", "CustomMySqlTimedStartTime" + i, "00:00"));
-				MySqlSettings.CustomTimed.Intervals[i] = ini.GetValue("MySQL", "CustomMySqlTimedInterval" + i, 1440, 1);
+				MySqlFuncs.MySqlSettings.CustomTimed.Commands[i] = ini.GetValue("MySQL", "CustomMySqlTimedCommandString" + i, string.Empty);
+				MySqlFuncs.MySqlSettings.CustomTimed.SetStartTime(i, ini.GetValue("MySQL", "CustomMySqlTimedStartTime" + i, "00:00"));
+				MySqlFuncs.MySqlSettings.CustomTimed.Intervals[i] = ini.GetValue("MySQL", "CustomMySqlTimedInterval" + i, 1440, 1);
 
-				if (!string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]) && MySqlSettings.CustomTimed.Intervals[i] < 1440)
-					MySqlSettings.CustomTimed.SetNextInterval(i, DateTime.Now);
+				if (!string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomTimed.Commands[i]) && MySqlFuncs.MySqlSettings.CustomTimed.Intervals[i] < 1440)
+					MySqlFuncs.MySqlSettings.CustomTimed.SetNextInterval(i, DateTime.Now);
 			}
 
 			// MySQL - custom roll-over
-			MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
-			MySqlSettings.CustomRollover.Commands[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", string.Empty);
+			MySqlFuncs.MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
+			MySqlFuncs.MySqlSettings.CustomRollover.Commands[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", string.Empty);
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlRolloverCommandString" + i))
-					MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString" + i, string.Empty);
+					MySqlFuncs.MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString" + i, string.Empty);
 			}
 
 			// MySQL - custom start-up
-			MySqlSettings.CustomStartUp.Enabled = ini.GetValue("MySQL", "CustomMySqlStartUpEnabled", false);
-			MySqlSettings.CustomStartUp.Commands[0] = ini.GetValue("MySQL", "CustomMySqlStartUpCommandString", string.Empty);
+			MySqlFuncs.MySqlSettings.CustomStartUp.Enabled = ini.GetValue("MySQL", "CustomMySqlStartUpEnabled", false);
+			MySqlFuncs.MySqlSettings.CustomStartUp.Commands[0] = ini.GetValue("MySQL", "CustomMySqlStartUpCommandString", string.Empty);
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlStartUpCommandString" + i))
-					MySqlSettings.CustomStartUp.Commands[i] = ini.GetValue("MySQL", "CustomMySqlStartUpCommandString" + i, string.Empty);
+					MySqlFuncs.MySqlSettings.CustomStartUp.Commands[i] = ini.GetValue("MySQL", "CustomMySqlStartUpCommandString" + i, string.Empty);
 			}
 
 
@@ -6022,6 +6031,7 @@ namespace CumulusMX
 				WCloud.PW = Crypto.DecryptString(WCloud.PW, Program.InstanceId, "WCloud.PW");
 				PWS.PW = Crypto.DecryptString(PWS.PW, Program.InstanceId, "PWS.PW");
 				WOW.PW = Crypto.DecryptString(WOW.PW, Program.InstanceId, "WOW.PW");
+				WOW_BE.PW = Crypto.DecryptString(WOW_BE.PW, Program.InstanceId, "WOW-BE.PW");
 				if (APRS.PW != "-1")
 				{
 					APRS.PW = Crypto.DecryptString(APRS.PW, Program.InstanceId, "APRS.PW");
@@ -6030,8 +6040,8 @@ namespace CumulusMX
 				Bluesky.PW = Crypto.DecryptString(Bluesky.PW, Program.InstanceId, "Bluesky.PW");
 				MQTT.Username = Crypto.DecryptString(MQTT.Username, Program.InstanceId, "MQTT.Username");
 				MQTT.Password = Crypto.DecryptString(MQTT.Password, Program.InstanceId, "MQTT.Password");
-				MySqlConnSettings.UserID = Crypto.DecryptString(MySqlConnSettings.UserID, Program.InstanceId, "MySql UserID");
-				MySqlConnSettings.Password = Crypto.DecryptString(MySqlConnSettings.Password, Program.InstanceId, "MySql Password");
+				MySqlFuncs.MySqlConnSettings.UserID = Crypto.DecryptString(MySqlFuncs.MySqlConnSettings.UserID, Program.InstanceId, "MySql UserID");
+				MySqlFuncs.MySqlConnSettings.Password = Crypto.DecryptString(MySqlFuncs.MySqlConnSettings.Password, Program.InstanceId, "MySql Password");
 				SmtpOptions.User = Crypto.DecryptString(SmtpOptions.User, Program.InstanceId, "SmtpOptions.User");
 				SmtpOptions.Password = Crypto.DecryptString(SmtpOptions.Password, Program.InstanceId, "SmtpOptions.Password");
 				HTTPProxyUser = Crypto.DecryptString(HTTPProxyUser, Program.InstanceId, "HTTPProxyUser");
@@ -6695,6 +6705,18 @@ namespace CumulusMX
 			ini.SetValue("WOW", "SoilMoistSensor", WOW.SoilMoistureSensor);
 			ini.SetValue("WOW", "CatchUp", false);
 
+			ini.SetValue("WOW-BE", "ID", WOW_BE.ID);
+			ini.SetValue("WOW-BE", "Password", Crypto.EncryptString(WOW_BE.PW, Program.InstanceId, "WOW.PW"));
+			ini.SetValue("WOW-BE", "Enabled", WOW_BE.Enabled);
+			ini.SetValue("WOW-BE", "Interval", WOW_BE.Interval);
+			ini.SetValue("WOW-BE", "SendUV", WOW_BE.SendUV);
+			ini.SetValue("WOW-BE", "SendSR", WOW_BE.SendSolar);
+			ini.SetValue("WOW-BE", "SendSoilTemp", WOW_BE.SendSoilTemp);
+			ini.SetValue("WOW-BE", "SoilTempSensor", WOW_BE.SoilTempSensor);
+			ini.SetValue("WOW-BE", "SendSoilMoist", WOW_BE.SendSoilMoisture);
+			ini.SetValue("WOW-BE", "SoilMoistSensor", WOW_BE.SoilMoistureSensor);
+			ini.SetValue("WOW-BE", "CatchUp", false);
+
 			ini.SetValue("APRS", "ID", APRS.ID);
 			ini.SetValue("APRS", "pass", APRS.PW == "-1" ? APRS.PW : Crypto.EncryptString(APRS.PW, Program.InstanceId, "APRS.PW"));
 			ini.SetValue("APRS", "server", APRS.Server);
@@ -7291,50 +7313,50 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "Snow24hColour", GraphOptions.Colour.Snow24h);
 
 
-			ini.SetValue("MySQL", "Host", MySqlConnSettings.Server);
-			ini.SetValue("MySQL", "Port", (int) MySqlConnSettings.Port);
-			ini.SetValue("MySQL", "User", Crypto.EncryptString(MySqlConnSettings.UserID, Program.InstanceId, "MySql UserID"));
-			ini.SetValue("MySQL", "Pass", Crypto.EncryptString(MySqlConnSettings.Password, Program.InstanceId, "MySql Password"));
-			ini.SetValue("MySQL", "Database", MySqlConnSettings.Database);
-			ini.SetValue("MySQL", "SSLmode", (int) MySqlConnSettings.SslMode);
-			ini.SetValue("MySQL", "TLSversions", MySqlConnSettings.TlsVersion);
+			ini.SetValue("MySQL", "Host", MySqlFuncs.MySqlConnSettings.Server);
+			ini.SetValue("MySQL", "Port", (int) MySqlFuncs.MySqlConnSettings.Port);
+			ini.SetValue("MySQL", "User", Crypto.EncryptString(MySqlFuncs.MySqlConnSettings.UserID, Program.InstanceId, "MySql UserID"));
+			ini.SetValue("MySQL", "Pass", Crypto.EncryptString(MySqlFuncs.MySqlConnSettings.Password, Program.InstanceId, "MySql Password"));
+			ini.SetValue("MySQL", "Database", MySqlFuncs.MySqlConnSettings.Database);
+			ini.SetValue("MySQL", "SSLmode", (int) MySqlFuncs.MySqlConnSettings.SslMode);
+			ini.SetValue("MySQL", "TLSversions", MySqlFuncs.MySqlConnSettings.TlsVersion);
 
-			ini.SetValue("MySQL", "MonthlyMySqlEnabled", MySqlSettings.Monthly.Enabled);
-			ini.SetValue("MySQL", "RealtimeMySqlEnabled", MySqlSettings.Realtime.Enabled);
-			ini.SetValue("MySQL", "RealtimeMySql1MinLimit", MySqlSettings.RealtimeLimit1Minute);
-			ini.SetValue("MySQL", "DayfileMySqlEnabled", MySqlSettings.Dayfile.Enabled);
-			ini.SetValue("MySQL", "UpdateOnEdit", MySqlSettings.UpdateOnEdit);
-			ini.SetValue("MySQL", "BufferOnFailure", MySqlSettings.BufferOnfailure);
+			ini.SetValue("MySQL", "MonthlyMySqlEnabled", MySqlFuncs.MySqlSettings.Monthly.Enabled);
+			ini.SetValue("MySQL", "RealtimeMySqlEnabled", MySqlFuncs.MySqlSettings.Realtime.Enabled);
+			ini.SetValue("MySQL", "RealtimeMySql1MinLimit", MySqlFuncs.MySqlSettings.RealtimeLimit1Minute);
+			ini.SetValue("MySQL", "DayfileMySqlEnabled", MySqlFuncs.MySqlSettings.Dayfile.Enabled);
+			ini.SetValue("MySQL", "UpdateOnEdit", MySqlFuncs.MySqlSettings.UpdateOnEdit);
+			ini.SetValue("MySQL", "BufferOnFailure", MySqlFuncs.MySqlSettings.BufferOnfailure);
 
 
-			ini.SetValue("MySQL", "MonthlyTable", MySqlSettings.Monthly.TableName);
-			ini.SetValue("MySQL", "DayfileTable", MySqlSettings.Dayfile.TableName);
-			ini.SetValue("MySQL", "RealtimeTable", MySqlSettings.Realtime.TableName);
-			ini.SetValue("MySQL", "RealtimeRetention", MySqlSettings.RealtimeRetention);
+			ini.SetValue("MySQL", "MonthlyTable", MySqlFuncs.MySqlSettings.Monthly.TableName);
+			ini.SetValue("MySQL", "DayfileTable", MySqlFuncs.MySqlSettings.Dayfile.TableName);
+			ini.SetValue("MySQL", "RealtimeTable", MySqlFuncs.MySqlSettings.Realtime.TableName);
+			ini.SetValue("MySQL", "RealtimeRetention", MySqlFuncs.MySqlSettings.RealtimeRetention);
 
-			ini.SetValue("MySQL", "CustomMySqlSecondsEnabled", MySqlSettings.CustomSecs.Enabled);
-			ini.SetValue("MySQL", "CustomMySqlMinutesEnabled", MySqlSettings.CustomMins.Enabled);
-			ini.SetValue("MySQL", "CustomMySqlRolloverEnabled", MySqlSettings.CustomRollover.Enabled);
-			ini.SetValue("MySQL", "CustomMySqlStartUpEnabled", MySqlSettings.CustomStartUp.Enabled);
+			ini.SetValue("MySQL", "CustomMySqlSecondsEnabled", MySqlFuncs.MySqlSettings.CustomSecs.Enabled);
+			ini.SetValue("MySQL", "CustomMySqlMinutesEnabled", MySqlFuncs.MySqlSettings.CustomMins.Enabled);
+			ini.SetValue("MySQL", "CustomMySqlRolloverEnabled", MySqlFuncs.MySqlSettings.CustomRollover.Enabled);
+			ini.SetValue("MySQL", "CustomMySqlStartUpEnabled", MySqlFuncs.MySqlSettings.CustomStartUp.Enabled);
 
-			ini.SetValue("MySQL", "CustomMySqlSecondsInterval", MySqlSettings.CustomSecs.Interval);
+			ini.SetValue("MySQL", "CustomMySqlSecondsInterval", MySqlFuncs.MySqlSettings.CustomSecs.Interval);
 
-			ini.SetValue("MySQL", "CustomMySqlSecondsCommandString", MySqlSettings.CustomSecs.Commands[0]);
-			ini.SetValue("MySQL", "CustomMySqlMinutesCommandString", MySqlSettings.CustomMins.Commands[0]);
-			ini.SetValue("MySQL", "CustomMySqlRolloverCommandString", MySqlSettings.CustomRollover.Commands[0]);
-			ini.SetValue("MySQL", "CustomMySqlStartUpCommandString", MySqlSettings.CustomStartUp.Commands[0]);
+			ini.SetValue("MySQL", "CustomMySqlSecondsCommandString", MySqlFuncs.MySqlSettings.CustomSecs.Commands[0]);
+			ini.SetValue("MySQL", "CustomMySqlMinutesCommandString", MySqlFuncs.MySqlSettings.CustomMins.Commands[0]);
+			ini.SetValue("MySQL", "CustomMySqlRolloverCommandString", MySqlFuncs.MySqlSettings.CustomRollover.Commands[0]);
+			ini.SetValue("MySQL", "CustomMySqlStartUpCommandString", MySqlFuncs.MySqlSettings.CustomStartUp.Commands[0]);
 
-			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIndex", MySqlSettings.CustomMins.IntervalIndexes[0]);
-			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp", MySqlSettings.CustomMins.CatchUp[0]);
+			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIndex", MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0]);
+			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp", MySqlFuncs.MySqlSettings.CustomMins.CatchUp[0]);
 
 			for (var i = 1; i < 10; i++)
 			{
-				if (string.IsNullOrEmpty(MySqlSettings.CustomSecs.Commands[i]))
+				if (string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomSecs.Commands[i]))
 					ini.DeleteValue("MySQL", "CustomMySqlSecondsCommandString" + i);
 				else
-					ini.SetValue("MySQL", "CustomMySqlSecondsCommandString" + i, MySqlSettings.CustomSecs.Commands[i]);
+					ini.SetValue("MySQL", "CustomMySqlSecondsCommandString" + i, MySqlFuncs.MySqlSettings.CustomSecs.Commands[i]);
 
-				if (string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]))
+				if (string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomMins.Commands[i]))
 				{
 					ini.DeleteValue("MySQL", "CustomMySqlMinutesCommandString" + i);
 					ini.DeleteValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i);
@@ -7342,28 +7364,28 @@ namespace CumulusMX
 				}
 				else
 				{
-					ini.SetValue("MySQL", "CustomMySqlMinutesCommandString" + i, MySqlSettings.CustomMins.Commands[i]);
-					ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlSettings.CustomMins.IntervalIndexes[i]);
-					ini.SetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp" + i, MySqlSettings.CustomMins.CatchUp[i]);
+					ini.SetValue("MySQL", "CustomMySqlMinutesCommandString" + i, MySqlFuncs.MySqlSettings.CustomMins.Commands[i]);
+					ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIdx" + i, MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[i]);
+					ini.SetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp" + i, MySqlFuncs.MySqlSettings.CustomMins.CatchUp[i]);
 				}
 
-				if (string.IsNullOrEmpty(MySqlSettings.CustomRollover.Commands[i]))
+				if (string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomRollover.Commands[i]))
 					ini.DeleteValue("MySQL", "CustomMySqlRolloverCommandString" + i);
 				else
-					ini.SetValue("MySQL", "CustomMySqlRolloverCommandString" + i, MySqlSettings.CustomRollover.Commands[i]);
+					ini.SetValue("MySQL", "CustomMySqlRolloverCommandString" + i, MySqlFuncs.MySqlSettings.CustomRollover.Commands[i]);
 
-				if (string.IsNullOrEmpty(MySqlSettings.CustomStartUp.Commands[i]))
+				if (string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomStartUp.Commands[i]))
 					ini.DeleteValue("MySQL", "CustomMySqlStartUpCommandString" + i);
 				else
-					ini.SetValue("MySQL", "CustomMySqlStartUpCommandString" + i, MySqlSettings.CustomStartUp.Commands[i]);
+					ini.SetValue("MySQL", "CustomMySqlStartUpCommandString" + i, MySqlFuncs.MySqlSettings.CustomStartUp.Commands[i]);
 			}
 
 			// MySql - Timed
-			ini.SetValue("MySQL", "CustomMySqlTimedEnabled", MySqlSettings.CustomTimed.Enabled);
+			ini.SetValue("MySQL", "CustomMySqlTimedEnabled", MySqlFuncs.MySqlSettings.CustomTimed.Enabled);
 
 			for (var i = 0; i < 10; i++)
 			{
-				if (string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]))
+				if (string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomTimed.Commands[i]))
 				{
 					ini.DeleteValue("MySQL", "CustomMySqlTimedCommandString" + i);
 					ini.DeleteValue("MySQL", "CustomMySqlTimedStartTime" + i);
@@ -7371,9 +7393,9 @@ namespace CumulusMX
 				}
 				else
 				{
-					ini.SetValue("MySQL", "CustomMySqlTimedCommandString" + i, MySqlSettings.CustomTimed.Commands[i]);
-					ini.SetValue("MySQL", "CustomMySqlTimedStartTime" + i, MySqlSettings.CustomTimed.GetStartTimeString(i));
-					ini.SetValue("MySQL", "CustomMySqlTimedInterval" + i, MySqlSettings.CustomTimed.Intervals[i]);
+					ini.SetValue("MySQL", "CustomMySqlTimedCommandString" + i, MySqlFuncs.MySqlSettings.CustomTimed.Commands[i]);
+					ini.SetValue("MySQL", "CustomMySqlTimedStartTime" + i, MySqlFuncs.MySqlSettings.CustomTimed.GetStartTimeString(i));
+					ini.SetValue("MySQL", "CustomMySqlTimedInterval" + i, MySqlFuncs.MySqlSettings.CustomTimed.Intervals[i]);
 				}
 			}
 
@@ -8497,7 +8519,7 @@ namespace CumulusMX
 
 			station.WriteTodayFile(timestamp, true);
 
-			if (MySqlSettings.Monthly.Enabled)
+			if (MySqlFuncs.MySqlSettings.Monthly.Enabled)
 			{
 				string queryString = string.Empty;
 				try
@@ -8551,13 +8573,13 @@ namespace CumulusMX
 					if (live)
 					{
 						// do the update
-						await CheckMySQLFailedUploads("DoLogFile", queryString);
+						await MySqlFuncs.MySqlCommandAsync(queryString, "DoLogFile");
 					}
 					else
 					{
 						// save the string for later
 						LogDebugMessage("DoLogFile: Buffering MySQL insert for later processing");
-						MySqlList.Enqueue(new SqlCache() { statement = queryString });
+						MySqlFuncs.MySqlList.Enqueue(new SqlCache() { statement = queryString });
 					}
 				}
 			}
@@ -13184,10 +13206,10 @@ namespace CumulusMX
 		{
 			DateTime timestamp = (DateTime) (live ? DateTime.Now : logdate);
 
-			if (!MySqlSettings.Realtime.Enabled)
+			if (!MySqlFuncs.MySqlSettings.Realtime.Enabled)
 				return;
 
-			if (MySqlSettings.RealtimeLimit1Minute && MySqlLastRealtimeTime.Minute == timestamp.Minute)
+			if (MySqlFuncs.MySqlSettings.RealtimeLimit1Minute && MySqlLastRealtimeTime.Minute == timestamp.Minute)
 				return;
 
 			MySqlLastRealtimeTime = timestamp;
@@ -13263,18 +13285,18 @@ namespace CumulusMX
 
 			if (live)
 			{
-				if (!string.IsNullOrEmpty(MySqlSettings.RealtimeRetention))
+				if (!string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.RealtimeRetention))
 				{
-					cmds.Add($"DELETE IGNORE FROM {MySqlSettings.Realtime.TableName} WHERE LogDateTime < DATE_SUB('{DateTime.Now:yyyy-MM-dd HH:mm}', INTERVAL {MySqlSettings.RealtimeRetention});");
+					cmds.Add($"DELETE IGNORE FROM {MySqlFuncs.MySqlSettings.Realtime.TableName} WHERE LogDateTime < DATE_SUB('{DateTime.Now:yyyy-MM-dd HH:mm}', INTERVAL {MySqlFuncs.MySqlSettings.RealtimeRetention});");
 				}
 
 				// do the update
-				_ = CheckMySQLFailedUploads($"Realtime[{cycle}]", cmds);
+				_ = MySqlFuncs.MySqlCommandAsync(cmds, $"Realtime[{cycle}]");
 			}
 			else
 			{
 				// not live, buffer the command for later
-				MySqlList.Enqueue(new SqlCache() { statement = cmds[0] });
+				MySqlFuncs.MySqlList.Enqueue(new SqlCache() { statement = cmds[0] });
 			}
 		}
 
@@ -13421,7 +13443,7 @@ namespace CumulusMX
 			AWEKAS.IntTimer.Interval = AWEKAS.Interval * 1000;
 			AWEKAS.IntTimer.Enabled = AWEKAS.Enabled && !AWEKAS.SynchronisedUpdate;
 
-			if (MySqlList.IsEmpty)
+			if (MySqlFuncs.MySqlList.IsEmpty)
 			{
 				// No archived entries to upload
 				LogDebugMessage("MySqlList is Empty");
@@ -13429,7 +13451,7 @@ namespace CumulusMX
 			else
 			{
 				// start the archive upload thread
-				_ = ProcessMySqlStartupBuffer();
+				_ = MySqlFuncs.ProcessMySqlStartupBuffer();
 			}
 
 			WebTimer.Elapsed += WebTimerTick;
@@ -13590,10 +13612,10 @@ namespace CumulusMX
 				{
 					try
 					{
-						if (!string.IsNullOrEmpty(MySqlSettings.CustomSecs.Commands[i]))
+						if (!string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomSecs.Commands[i]))
 						{
-							tokenParser.InputText = MySqlSettings.CustomSecs.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlSecs[{i}]", tokenParser.ToStringFromString());
+							tokenParser.InputText = MySqlFuncs.MySqlSettings.CustomSecs.Commands[i];
+							await MySqlFuncs.MySqlCommandAsync(tokenParser.ToStringFromString(), $"CustomSqlSecs[{i}]");
 						}
 					}
 					catch (Exception ex)
@@ -13631,26 +13653,26 @@ namespace CumulusMX
 				{
 					try
 					{
-						if (!live && !MySqlSettings.CustomMins.CatchUp[i])
+						if (!live && !MySqlFuncs.MySqlSettings.CustomMins.CatchUp[i])
 						{
 							// doing catch-up and catch-up is disabled for this entry
 							continue;
 						}
 
-						if (!string.IsNullOrEmpty(MySqlSettings.CustomMins.Commands[i]) && now.Minute % MySqlSettings.CustomMins.Intervals[i] == 0)
+						if (!string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomMins.Commands[i]) && now.Minute % MySqlFuncs.MySqlSettings.CustomMins.Intervals[i] == 0)
 						{
 
-							tokenParser.InputText = MySqlSettings.CustomMins.Commands[i];
+							tokenParser.InputText = MySqlFuncs.MySqlSettings.CustomMins.Commands[i];
 
 							if (live)
 							{
 								// do the update
-								await CheckMySQLFailedUploads($"CustomSqlMins[{i}]", tokenParser.ToStringFromString());
+								await MySqlFuncs.MySqlCommandAsync(tokenParser.ToStringFromString(), $"CustomSqlMins[{i}]");
 							}
 							else
 							{
 								// save the string for later
-								MySqlList.Enqueue(new SqlCache() { statement = tokenParser.ToStringFromString() });
+								MySqlFuncs.MySqlList.Enqueue(new SqlCache() { statement = tokenParser.ToStringFromString() });
 							}
 						}
 					}
@@ -13681,10 +13703,10 @@ namespace CumulusMX
 				{
 					try
 					{
-						if (!string.IsNullOrEmpty(MySqlSettings.CustomRollover.Commands[i]))
+						if (!string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomRollover.Commands[i]))
 						{
-							tokenParser.InputText = MySqlSettings.CustomRollover.Commands[i];
-							await CheckMySQLFailedUploads($"CustomSqlRollover[{i}]", tokenParser.ToStringFromString());
+							tokenParser.InputText = MySqlFuncs.MySqlSettings.CustomRollover.Commands[i];
+							await MySqlFuncs.MySqlCommandAsync(tokenParser.ToStringFromString(), $"CustomSqlRollover[{i}]");
 						}
 					}
 					catch (Exception ex)
@@ -13723,38 +13745,38 @@ namespace CumulusMX
 				{
 					try
 					{
-						if (string.IsNullOrEmpty(MySqlSettings.CustomTimed.Commands[i]))
+						if (string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomTimed.Commands[i]))
 						{
 							continue;
 						}
 
 						// is this a one-off, or a repeater
-						if (MySqlSettings.CustomTimed.Intervals[i] == 1440)
+						if (MySqlFuncs.MySqlSettings.CustomTimed.Intervals[i] == 1440)
 						{
-							if (MySqlSettings.CustomTimed.StartTimes[i] == roundedTime)
+							if (MySqlFuncs.MySqlSettings.CustomTimed.StartTimes[i] == roundedTime)
 							{
-								tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
+								tokenParser.InputText = MySqlFuncs.MySqlSettings.CustomTimed.Commands[i];
 								var cmd = tokenParser.ToStringFromString();
 								LogDebugMessage("MySQLTimed: Running - " + cmd);
-								await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", cmd);
+								await MySqlFuncs.MySqlCommandAsync(cmd, $"CustomSqlTimed[{i}]");
 								continue;
 							}
 						}
 						else // it's a repeater
 						{
-							if (MySqlSettings.CustomTimed.NextUpdate[i] <= now)
+							if (MySqlFuncs.MySqlSettings.CustomTimed.NextUpdate[i] <= now)
 							{
-								MySqlSettings.CustomTimed.SetNextInterval(i, now);
-								tokenParser.InputText = MySqlSettings.CustomTimed.Commands[i];
+								MySqlFuncs.MySqlSettings.CustomTimed.SetNextInterval(i, now);
+								tokenParser.InputText = MySqlFuncs.MySqlSettings.CustomTimed.Commands[i];
 								var cmd = tokenParser.ToStringFromString();
 								LogDebugMessage("MySQLTimed: Running repeating - " + cmd);
-								await CheckMySQLFailedUploads($"CustomSqlTimed[{i}]", cmd);
+								await MySqlFuncs.MySqlCommandAsync(cmd, $"CustomSqlTimed[{i}]");
 							}
 						}
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, $"CustomSqlTimed[{i}]: Error excuting: {MySqlSettings.CustomTimed.Commands[i]} ");
+						LogExceptionMessage(ex, $"CustomSqlTimed[{i}]: Error excuting: {MySqlFuncs.MySqlSettings.CustomTimed.Commands[i]} ");
 					}
 				}
 				customMySqlTimedUpdateInProgress = false;
@@ -13771,130 +13793,19 @@ namespace CumulusMX
 			{
 				try
 				{
-					if (!string.IsNullOrEmpty(MySqlSettings.CustomStartUp.Commands[i]))
+					if (!string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomStartUp.Commands[i]))
 					{
-						tokenParser.InputText = MySqlSettings.CustomStartUp.Commands[i];
+						tokenParser.InputText = MySqlFuncs.MySqlSettings.CustomStartUp.Commands[i];
 						// do not wait, just queue them up!
-						_ = CheckMySQLFailedUploads("CustomMySqlStartUp", tokenParser.ToStringFromString());
+						_ = MySqlFuncs.MySqlCommandAsync(tokenParser.ToStringFromString(), "CustomMySqlStartUp");
 					}
 				}
 				catch (Exception ex)
 				{
-					LogExceptionMessage(ex, $"CustomSqlStartUp[{i}]: Error excuting: {MySqlSettings.CustomStartUp.Commands[i]} ");
+					LogExceptionMessage(ex, $"CustomSqlStartUp[{i}]: Error excuting: {MySqlFuncs.MySqlSettings.CustomStartUp.Commands[i]} ");
 				}
 			}
 			LogMessage("Custom start-up MySQL commands end");
-		}
-
-		public async Task ProcessMySqlStartupBuffer()
-		{
-			LogMessage($"Starting MySQL catchup thread. Found {MySqlList.Count} commands to execute");
-
-			// first get the lock
-			LogDebugMessage("Startup MySQL: Wait for the MySQL lock");
-			await MySqlSemaphore.WaitAsync();
-			LogDebugMessage("Startup MySQL: Has the MySQL lock");
-
-			await ProcessMySqlBuffer(MySqlList, "Startup MySQL", false);
-
-			// release the lock
-			LogDebugMessage("Startup MySQL: Releasing the MySQL lock");
-			MySqlSemaphore.Release();
-		}
-
-		public async Task CheckMySQLFailedUploads(string callingFunction, string cmd)
-		{
-			await CheckMySQLFailedUploads(callingFunction, [cmd]);
-		}
-
-		public async Task CheckMySQLFailedUploads(string callingFunction, List<string> cmds)
-		{
-			// first get the lock
-#if DEBUG
-			LogDebugMessage($"{callingFunction}: Wait for the MySQL lock");
-#endif
-			await MySqlSemaphore.WaitAsync();
-#if DEBUG
-			LogDebugMessage($"{callingFunction}: Has the MySQL lock");
-#endif
-
-			try
-			{
-				if (MySqlConn is null || MySqlConn.State == System.Data.ConnectionState.Closed)
-				{
-					await MySqlConnect();
-
-					// get the database name to check 100% we have a connection
-					var db = MySqlConn.Database;
-					LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
-				}
-
-				if (!MySqlFailedList.IsEmpty)
-				{
-					// flag we are processing the queue so the next task doesn't try as well
-					SqlCatchingUp = true;
-
-					LogMessage($"{callingFunction}: Failed MySQL updates are present");
-
-					try
-					{
-						Thread.Sleep(500);
-						LogMessage($"{callingFunction}: Connection to MySQL server is OK, trying to upload {MySqlFailedList.Count} failed commands");
-
-						await ProcessMySqlBuffer(MySqlFailedList, callingFunction, true);
-						LogMessage($"{callingFunction}: Upload of failed MySQL commands complete");
-					}
-					catch
-					{
-						if (MySqlSettings.BufferOnfailure)
-						{
-							LogMessage($"{callingFunction}: Connection to MySQL server has failed, adding this update to the failed list");
-							if (callingFunction.StartsWith("Realtime["))
-							{
-								var tmp = new SqlCache() { statement = cmds[0] };
-								_ = station.RecentDataDb.Insert(tmp);
-
-								// don't bother buffering the realtime deletes - if present
-								MySqlFailedList.Enqueue(tmp);
-							}
-							else
-							{
-								for (var i = 0; i < cmds.Count; i++)
-								{
-									var tmp = new SqlCache() { statement = cmds[i] };
-
-									_ = station.RecentDataDb.Insert(tmp);
-
-									MySqlFailedList.Enqueue(tmp);
-								}
-							}
-						}
-					}
-
-					SqlCatchingUp = false;
-				}
-
-				// now do what we came here to do
-				if (MySqlConn is not null && MySqlConn.State == System.Data.ConnectionState.Open && cmds.Count > 0)
-				{
-					await MySqlCommandAsync(cmds, callingFunction);
-				}
-				else if (cmds.Count == 0)
-				{
-					LogDebugMessage($"{callingFunction}: No SQL cmds found to process!");
-				}
-			}
-			catch (Exception ex)
-			{
-				LogExceptionMessage(ex, $"{callingFunction}: Error during MySQL upload");
-				SqlCatchingUp = false;
-			}
-
-			// release the lock
-#if DEBUG
-			LogDebugMessage($"{callingFunction}: Releasing the MySQL lock");
-#endif
-			MySqlSemaphore.Release();
 		}
 
 		public void DoExtraEndOfDayFiles()
@@ -14121,6 +14032,7 @@ namespace CumulusMX
 			}
 		}
 
+		/*
 		public async Task UpdateWOW(DateTime timestamp)
 		{
 			if (!WOW.Updating)
@@ -14165,6 +14077,7 @@ namespace CumulusMX
 				}
 			}
 		}
+		*/
 
 		/*
 		public async Task MySqlCommandAsync(string Cmd, string CallingFunction)
@@ -14175,292 +14088,6 @@ namespace CumulusMX
 		}
 		*/
 
-		public async Task MySqlCommandAsync(List<string> Cmds, string CallingFunction)
-		{
-			var tempQ = new ConcurrentQueue<SqlCache>();
-			foreach (var cmd in Cmds)
-			{
-				tempQ.Enqueue(new SqlCache() { statement = cmd });
-			}
-			await MySqlCommandAsync(tempQ, CallingFunction, false);
-		}
-
-		public async Task MySqlCommandAsync(ConcurrentQueue<SqlCache> Cmds, string CallingFunction, bool UseFailedList)
-		{
-			var myQueue = UseFailedList ? ref MySqlFailedList : ref Cmds;
-			await ProcessMySqlBuffer(myQueue, CallingFunction, UseFailedList);
-		}
-
-		/*
-		public void MySqlCommandSync(string Cmd, string CallingFunction)
-		{
-			var Cmds = new ConcurrentQueue<SqlCache>();
-			Cmds.Enqueue(new SqlCache() { statement = Cmd });
-			MySqlCommandSync(Cmds, CallingFunction, false);
-		}
-		*/
-		/*
-		public void MySqlCommandSync(ConcurrentQueue<SqlCache> Cmds, string CallingFunction, bool UseFailedList)
-		{
-			var myQueue = UseFailedList ? ref MySqlFailedList : ref Cmds;
-			ProcessMySqlBuffer(myQueue, CallingFunction, UseFailedList).Wait();
-		}
-		*/
-
-		private async Task ProcessMySqlBuffer(ConcurrentQueue<SqlCache> myQueue, string CallingFunction, bool UsingFailedList)
-		{
-			try
-			{
-				if (MySqlConn is null)
-				{
-					await MySqlConnect();
-
-					// get the database name to check 100% we have a connection
-					var db = MySqlConn.Database;
-					LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
-				}
-				else if (MySqlConn.State == System.Data.ConnectionState.Closed)
-				{
-					await MySqlConnect();
-
-					// get the database name to check 100% we have a connection
-					var db = MySqlConn.Database;
-					LogMessage("MySqlCheckConnection: Connected to server ok, default database = " + db);
-				}
-
-				using var transaction = myQueue.Count > 2 ? await MySqlConn.BeginTransactionAsync() : null;
-
-				SqlCache cachedCmd;
-				// Do not remove the item from the stack until we know the command worked, or the command is bad
-				while (myQueue.TryPeek(out cachedCmd))
-				{
-					try
-					{
-						if (string.IsNullOrEmpty(cachedCmd.statement))
-						{
-							// remove empty cmd from the queue
-							myQueue.TryDequeue(out _);
-						}
-						else
-						{
-							using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, MySqlConn))
-							{
-								LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
-
-								if (transaction != null)
-								{
-									cmd.Transaction = transaction;
-								}
-
-								int aff = await cmd.ExecuteNonQueryAsync();
-								LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
-
-								// Success, if using the failed list, delete from the databasec
-								if (UsingFailedList)
-								{
-									station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
-								}
-								// and pop the value from the queue
-								myQueue.TryDequeue(out _);
-							}
-
-							MySqlUploadAlarm.Triggered = false;
-						}
-					}
-					catch (Exception ex)
-					{
-						LogErrorMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
-
-						// if debug logging is disable, then log the failing statement anyway
-						if (!DebuggingEnabled)
-						{
-							LogMessage($"{CallingFunction}: Failing SQL = {cachedCmd.statement}");
-						}
-
-						MySqlUploadAlarm.LastMessage = ex.Message;
-						MySqlUploadAlarm.Triggered = true;
-
-						var errorCode = (int) ex.Data["Server Error Code"];
-
-						// do we save this command/commands on failure to be resubmitted?
-						// if we have a syntax error, it is never going to work so do not save it for retry
-						if (MySqlSettings.BufferOnfailure && !UsingFailedList)
-						{
-							// do we save this command/commands on failure to be resubmitted?
-							// if we have a syntax error, it is never going to work so do not save it for retry
-							// A selection of the more common(?) errors to ignore...
-							MySqlCommandErrorHandler(CallingFunction, errorCode, myQueue);
-						}
-						else if (UsingFailedList)
-						{
-							// We are processing the buffered list
-							if (MySqlCheckError(errorCode))
-							{
-								// there is something wrong with the command, discard it
-								LogMessage($"{CallingFunction}: Discarding bad SQL = {cachedCmd.statement}. Error = \"{MySqlErrorToText(errorCode)}\"");
-								myQueue.TryDequeue(out _);
-								station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
-							}
-							else
-							{
-								// something else went wrong - abort
-								LogExceptionMessage(ex, $"{CallingFunction}: Something went wrong processing MySQL buffer");
-								break;
-							}
-						}
-					}
-				}
-
-				if (transaction != null)
-				{
-					LogDebugMessage($"{CallingFunction}: Committing updates to DB");
-					try
-					{
-						await transaction.CommitAsync();
-						LogDebugMessage($"{CallingFunction}: Commit complete");
-					}
-					catch (Exception ex)
-					{
-						LogExceptionMessage(ex, $"{CallingFunction}: Error committing transaction");
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				LogErrorMessage($"{CallingFunction}: General failure! Error = {ex.Message}");
-
-				// do we want to add the commands to the failed buffer?
-				if (!UsingFailedList)
-				{
-					foreach (var item in myQueue)
-					{
-						MySqlFailedList.Enqueue(item);
-					}
-				}
-
-				MySqlUploadAlarm.LastMessage = ex.Message;
-				MySqlUploadAlarm.Triggered = true;
-				return;
-			}
-
-			MySqlUploadAlarm.Triggered = false;
-		}
-
-		private static bool MySqlCheckError(int ErrorCode)
-		{
-			return ErrorCode == (int) MySqlErrorCode.ParseError ||
-				   ErrorCode == (int) MySqlErrorCode.EmptyQuery ||
-				   ErrorCode == (int) MySqlErrorCode.TooBigSelect ||
-				   ErrorCode == (int) MySqlErrorCode.InvalidUseOfNull ||
-				   ErrorCode == (int) MySqlErrorCode.MixOfGroupFunctionAndFields ||
-				   ErrorCode == (int) MySqlErrorCode.SyntaxError ||
-				   ErrorCode == (int) MySqlErrorCode.TooLongString ||
-				   ErrorCode == (int) MySqlErrorCode.WrongColumnName ||
-				   ErrorCode == (int) MySqlErrorCode.DuplicateUnique ||
-				   ErrorCode == (int) MySqlErrorCode.PrimaryCannotHaveNull ||
-				   ErrorCode == (int) MySqlErrorCode.DivisionByZero ||
-				   ErrorCode == (int) MySqlErrorCode.DuplicateKeyEntry;
-
-		}
-
-		private static string MySqlErrorToText(int ErrorCode)
-		{
-			return (MySqlErrorCode) ErrorCode switch
-			{
-				MySqlErrorCode.ParseError => "Parsing error",
-				MySqlErrorCode.EmptyQuery => "Empty query",
-				MySqlErrorCode.TooBigSelect => "Select statement too big",
-				MySqlErrorCode.InvalidUseOfNull => "Invalid use of null",
-				MySqlErrorCode.MixOfGroupFunctionAndFields => "Mixed group of functions and fields",
-				MySqlErrorCode.SyntaxError => "Syntax error",
-				MySqlErrorCode.TooLongString => "Too long string in query",
-				MySqlErrorCode.WrongColumnName => "Wrong column name used",
-				MySqlErrorCode.DuplicateUnique => "Attempt to create a duplicate unique entry",
-				MySqlErrorCode.PrimaryCannotHaveNull => "Primary column cannot be null",
-				MySqlErrorCode.DivisionByZero => "Division by zero",
-				MySqlErrorCode.DuplicateKeyEntry => "Duplicate key entry",
-			   _ => "Unknown error code " + ErrorCode,
-			};
-		}
-
-		internal void MySqlCommandErrorHandler(string CallingFunction, int ErrorCode, ConcurrentQueue<SqlCache> Cmds)
-		{
-			var ignore = MySqlCheckError(ErrorCode);
-
-			if (ignore)
-			{
-				LogDebugMessage($"{CallingFunction}: Not buffering this command due to a problem with the query. Error = " + MySqlErrorToText(ErrorCode));
-			}
-			else
-			{
-				while (!Cmds.IsEmpty)
-				{
-					try
-					{
-						Cmds.TryDequeue(out var cmd);
-						if (!cmd.statement.StartsWith("DELETE"))
-						{
-							LogDebugMessage($"{CallingFunction}: Buffering command to failed list");
-
-							_ = station.RecentDataDb.Insert(cmd);
-							MySqlFailedList.Enqueue(cmd);
-						}
-					}
-					catch (Exception ex)
-					{
-						LogErrorMessage($"{CallingFunction}: Error buffering command - " + ex.Message);
-					}
-				}
-			}
-		}
-
-		internal async Task<bool> MySqlConnect()
-		{
-			try
-			{
-				if (MySqlConn is not null && (
-					MySqlConn.State != System.Data.ConnectionState.Closed ||
-					MySqlConn.State != System.Data.ConnectionState.Broken)
-					)
-				{
-					await MySqlConn.CloseAsync();
-				}
-			}
-			finally
-			{
-				MySqlConn = null;
-			}
-
-			if (!string.IsNullOrEmpty(MySqlConnSettings.Server) &&
-				!string.IsNullOrEmpty(MySqlConnSettings.UserID) &&
-				!string.IsNullOrEmpty(MySqlConnSettings.Password)
-				)
-			{
-				try
-				{
-					LogMessage($"MySqlConnect: Connecting to server {MySqlConnSettings.Server} port {MySqlConnSettings.Port}");
-					MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
-					await MySqlConn.OpenAsync();
-				}
-				catch (Exception ex)
-				{
-					LogExceptionMessage(ex, "MySQL: Error connecting to server");
-				}
-			}
-
-			if (MySqlConn is null || MySqlConn.State != System.Data.ConnectionState.Open) return false;
-
-			try
-			{
-				return await MySqlConn.PingAsync();
-			}
-			catch (Exception ex)
-			{
-				LogExceptionMessage(ex, "MySQL: Error connecting to server");
-			}
-
-			return false;
-		}
 
 		public async Task GetLatestVersion()
 		{

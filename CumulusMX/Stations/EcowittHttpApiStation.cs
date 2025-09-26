@@ -624,7 +624,7 @@ namespace CumulusMX.Stations
 			var snowhourdone = luhour == cumulus.SnowDepthHour;
 
 			cumulus.LogMessage("GetHistoricDataSdCard: Adding historic data into Cumulus...");
-			Cumulus.LogConsoleMessage("Adding historic data...");
+			Cumulus.LogConsoleMessage("Adding historic data into Cumulus...");
 
 			var recNo = 1;
 			var lastRecTime = DateTime.MinValue;
@@ -779,7 +779,7 @@ namespace CumulusMX.Stations
 				}
 
 				// Custom MySQL update - minutes interval
-				if (cumulus.MySqlSettings.CustomMins.Enabled)
+				if (cumulus.MySqlFuncs.MySqlSettings.CustomMins.Enabled)
 				{
 					_ = cumulus.CustomMysqlMinutesUpdate(rec.Key, false);
 				}
@@ -793,7 +793,7 @@ namespace CumulusMX.Stations
 
 				if (!Program.service)
 				{
-					Console.Write("\r - processed " + ((double) recNo++ / buffer.Count).ToString("P0"));
+					Console.Write("\r processed " + ((double) recNo++ / buffer.Count).ToString("P0"));
 				}
 			}
 
@@ -808,8 +808,7 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					EcowittCameraUrl[mac] = ecowittApi.GetCurrentCameraImageUrl(EcowittCameraUrl.GetValueOrDefault(mac), mac, Program.ExitSystemToken);
-					return EcowittCameraUrl[mac];
+					return ecowittApi.GetCurrentCameraImageUrl(mac, Program.ExitSystemToken);
 				}
 				catch (Exception ex)
 				{
@@ -829,8 +828,7 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					EcowittVideoUrl[mac] = ecowittApi.GetLastCameraVideoUrl(EcowittVideoUrl.GetValueOrDefault(mac), mac, Program.ExitSystemToken);
-					return EcowittVideoUrl[mac];
+					return ecowittApi.GetLastCameraVideoUrl(mac, Program.ExitSystemToken);
 				}
 				catch (Exception ex)
 				{

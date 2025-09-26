@@ -417,7 +417,7 @@ namespace CumulusMX.Stations
 				cumulus.MySqlRealtimeFile(999, false, timestamp);
 
 				// Custom MySQL update - minutes interval
-				if (cumulus.MySqlSettings.CustomMins.Enabled)
+				if (cumulus.MySqlFuncs.MySqlSettings.CustomMins.Enabled)
 				{
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}

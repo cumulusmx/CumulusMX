@@ -10,12 +10,17 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.6.3 \[b4124\]][26] - 2025-09-23
+## [4.6.3 \[b4125\]][26] - 2025-09-25
+
+### New
+
+- Adds support for Third Party WOW-BE uploads (largely untested)
 
 ### Changed
 
 - If you have more than one Ecowitt web camera, the web tags `<#EcowittCameraUrl>` and `<#EcowittVideoUrl>` now accept a parameter of `mac=1A:2B:3C:4D:5E:6F` (eg. `<#EcowittCameraUrl mac=3C:8A:1F:B3:2B:A2>`) to return the matching camera from your account.<br>
 	If omitted the parameter defaults to the first (or only camera) found on your account
+- HTTP Files now accepts the URL values `<ecowittcameraurl1>` to `<ecowittcameraurl8>` in addition to the original `<ecowittcameraurl>` which downloads the first camera image. `<ecowittcameraurl>` and `<ecowittcameraurl1>` are equivalent
 
 ### Fixed
 
@@ -1056,4 +1061,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [23]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4120
 [24]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4121
 [25]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4122
-[26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4123
+[26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4125

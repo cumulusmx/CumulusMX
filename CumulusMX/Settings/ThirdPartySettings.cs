@@ -229,6 +229,44 @@ namespace CumulusMX.Settings
 					context.Response.StatusCode = 500;
 				}
 
+				// WOW-BE
+				try
+				{
+					cumulus.WOW_BE.Enabled = settings.wowbe.enabled;
+					if (cumulus.WOW_BE.Enabled)
+					{
+						cumulus.WOW_BE.SendSolar = settings.wowbe.includesolar;
+						//cumulus.WOW_BE.SendUV = settings.wowbe.includeuv;
+						cumulus.WOW_BE.SendSoilTemp = settings.wowbe.includesoiltemp;
+						cumulus.WOW_BE.SoilTempSensor = settings.wowbe.soiltempsensor;
+						if (settings.wowbe.includesoilmoisture && cumulus.Units.SoilMoistureUnitText[settings.wowbe.soilmoistsensor] == "%")
+						{
+							cumulus.WOW_BE.SendSoilMoisture = settings.wowbe.includesoilmoisture;
+							cumulus.WOW_BE.SoilMoistureSensor = settings.wowbe.soilmoistsensor;
+						}
+						else
+						{
+							var msg = "WOW-BE: Soil Moisture sensor is not providing % values - disabling soil moisture upload";
+							cumulus.LogWarningMessage(msg);
+							errorMsg += msg + "\n\n";
+
+							cumulus.WOW_BE.SendSoilMoisture = false;
+							cumulus.WOW_BE.SoilMoistureSensor = 0;
+						}
+						cumulus.WOW_BE.Interval = settings.wowbe.interval;
+						cumulus.WOW_BE.PW = string.IsNullOrWhiteSpace(settings.wowbe.password) ? string.Empty : settings.wowbe.password.Trim();
+						cumulus.WOW_BE.ID = string.IsNullOrWhiteSpace(settings.wowbe.stationid) ? string.Empty : settings.wowbe.stationid.Trim();
+						cumulus.WOW_BE.CatchUp = settings.wowbe.catchup;
+					}
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing WOW-BE settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// CWOP
 				try
 				{
@@ -507,6 +545,21 @@ namespace CumulusMX.Settings
 				stationid = cumulus.WOW.ID
 			};
 
+			var wowbesettings = new JsonWow()
+			{
+				catchup = cumulus.WOW_BE.CatchUp,
+				enabled = cumulus.WOW_BE.Enabled,
+				includesolar = cumulus.WOW_BE.SendSolar,
+				//includeuv = cumulus.WOW_BE.SendUV,
+				soiltempsensor = cumulus.WOW_BE.SoilTempSensor,
+				includesoiltemp = cumulus.WOW_BE.SendSoilTemp,
+				includesoilmoisture = cumulus.WOW_BE.SendSoilMoisture,
+				soilmoistsensor = cumulus.WOW_BE.SoilMoistureSensor,
+				interval = cumulus.WOW_BE.Interval,
+				password = cumulus.WOW_BE.PW,
+				stationid = cumulus.WOW_BE.ID
+			};
+
 			var cwopsettings = new JsonCwop()
 			{
 				enabled = cumulus.APRS.Enabled,
@@ -667,6 +720,7 @@ namespace CumulusMX.Settings
 				weathercloud = wcloudsettings,
 				pwsweather = pwssettings,
 				wow = wowsettings,
+				wowbe = wowbesettings,
 				cwop = cwopsettings,
 				openweathermap = openweathermapsettings,
 				windguru = windgurusettings,
@@ -684,6 +738,7 @@ namespace CumulusMX.Settings
 			public JsonWindy windy { get; set; }
 			public JsonPWSweather pwsweather { get; set; }
 			public JsonWow wow { get; set; }
+			public JsonWow wowbe { get; set; }
 			public JsonCwop cwop { get; set; }
 			public JsonAwekas awekas { get; set; }
 			public JsonWCloud weathercloud { get; set; }

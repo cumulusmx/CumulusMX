@@ -29,12 +29,16 @@ namespace CumulusMX.Stations
 		private static readonly int EcowittApiFudgeFactorMins = 5; // Number of minutes that Ecowitt API data is delayed
 		private static readonly int EcowittApiFudgeFactorSecs = EcowittApiFudgeFactorMins * 60; // Number of seconds that Ecowitt API data is delayed
 
-		private DateTime LastCurrentDataTime = DateTime.MinValue; // Stored in UTC to avoid DST issues
-		private Dictionary<string, DateTime> LastCameraImageTime = []; // Stored in UTC to avoid DST issues
-		private Dictionary<string, DateTime> LastCameraCallTime = []; // Stored in UTC to avoid DST issues
+		private static DateTime LastCurrentDataTime = DateTime.MinValue; // Stored in UTC to avoid DST issues
+		private static readonly Dictionary<string, DateTime> LastCameraImageTime = []; // Stored in UTC to avoid DST issues
+		private static readonly Dictionary<string, DateTime> LastCameraCallTime = []; // Stored in UTC to avoid DST issues
 
-		private Dictionary<string, string> LastCameraVideoTime = [];
-		private readonly Dictionary<string, DateTime> LastCameraVideoCallTime = []; // Stored in UTC to avoid DST issues
+		private static readonly Dictionary<string, string> LastCameraVideoTime = [];
+		private static readonly Dictionary<string, DateTime> LastCameraVideoCallTime = []; // Stored in UTC to avoid DST issues
+
+		private static readonly Dictionary<string, string> DefaultCameraUrl = [];
+		private static readonly Dictionary<string, string> DefaultVideoUrl = [];
+
 
 		private int delayTime = 10;
 
@@ -1740,7 +1744,7 @@ namespace CumulusMX.Stations
 				}
 
 				// Custom MySQL update - minutes interval
-				if (cumulus.MySqlSettings.CustomMins.Enabled)
+				if (cumulus.MySqlFuncs.MySqlSettings.CustomMins.Enabled)
 				{
 					_ = cumulus.CustomMysqlMinutesUpdate(rec.Key, false);
 				}
@@ -2521,11 +2525,12 @@ namespace CumulusMX.Stations
 		}
 
 
-		internal string GetCurrentCameraImageUrl(string defaultUrl, string mac, CancellationToken token)
+		internal string GetCurrentCameraImageUrl(string mac, CancellationToken token)
 		{
 			// Doc: https://doc.ecowitt.net/web/#/apiv3en?page_id=17
 
 			var now = DateTime.UtcNow;
+			var defaultUrl = DefaultCameraUrl.GetValueOrDefault(mac) ?? string.Empty;
 
 			cumulus.LogMessage("API.GetCurrentCameraImageUrl: Get Ecowitt Current Camera Data");
 
@@ -2621,6 +2626,7 @@ namespace CumulusMX.Stations
 
 							LastCameraImageTime[mac] = currObj.data.camera.photo.time.FromUnixTime().ToUniversalTime();
 							cumulus.LogDebugMessage($"API.GetCurrentCameraImageUrl: Last image update {LastCameraImageTime[mac].ToLocalTime():s}");
+							DefaultCameraUrl[mac] = currObj.data.camera.photo.url;
 							return currObj.data.camera.photo.url;
 						}
 						else if (currObj.code == -1 || currObj.code == 45001)
@@ -2660,7 +2666,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		internal string GetLastCameraVideoUrl(string defaultUrl, string mac, CancellationToken token)
+		internal string GetLastCameraVideoUrl(string mac, CancellationToken token)
 		{
 			// Doc: https://doc.ecowitt.net/web/#/apiv3en?page_id=19
 
@@ -2680,6 +2686,8 @@ namespace CumulusMX.Stations
 							}
 						*/
 			cumulus.LogMessage("API.GetLastCameraVideoUrl: Get Ecowitt Last Camera Video");
+
+			var defaultUrl = DefaultVideoUrl.GetValueOrDefault(mac) ?? string.Empty;
 
 			if (string.IsNullOrEmpty(cumulus.EcowittApplicationKey) || string.IsNullOrEmpty(cumulus.EcowittUserApiKey) || string.IsNullOrEmpty(mac))
 			{
@@ -2785,7 +2793,7 @@ namespace CumulusMX.Stations
 								var link = found.Groups[0].Value.Replace("\\", "");
 
 								LastCameraVideoTime[mac] = start.ToString("yyyyMMdd");
-
+								DefaultVideoUrl[mac] = link;
 								cumulus.LogDebugMessage($"API.GetLastCameraVideoUrl: Last image update {LastCameraVideoTime[mac]:s}, link = {link}");
 								return link;
 							}
