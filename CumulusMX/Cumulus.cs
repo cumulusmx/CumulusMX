@@ -1394,6 +1394,9 @@ namespace CumulusMX
 				.WithStaticFolder("/ai2/", Path.Combine(htmlRootPath, "ai2"), true, m => m
 					.WithoutContentCaching()
 				)
+				.WithStaticFolder("/js/images/", Path.Combine(htmlRootPath, "js", "images"), true, m => m
+					.WithoutContentCaching()
+				)
 				.WithWebApi("/", m => m
 					.WithController<Api.DashboardController>()
 					.WithController<Api.ScriptController>()
@@ -4566,7 +4569,7 @@ namespace CumulusMX
 			AirLinkInEnabled = ini.GetValue("AirLink", "In-Enabled", false);
 			AirLinkInIPAddr = ini.GetValue("AirLink", "In-IPAddress", "0.0.0.0");
 			AirLinkInStationId = ini.GetValue("AirLink", "In-WLStationId", -1, -1);
-			if (AirLinkInStationId == -1 && AirLinkIsNode)
+			if (AirLinkInStationId == -1 && AirLinkIsNode && WllStationId != -1)
 			{
 				AirLinkInStationId = WllStationId;
 				LogMessage("Cumulus.ini: No AirLinkInStationId supplied, but AirlinkIsNode, so using main station id");
@@ -4578,7 +4581,7 @@ namespace CumulusMX
 			AirLinkOutEnabled = ini.GetValue("AirLink", "Out-Enabled", false);
 			AirLinkOutIPAddr = ini.GetValue("AirLink", "Out-IPAddress", "0.0.0.0");
 			AirLinkOutStationId = ini.GetValue("AirLink", "Out-WLStationId", -1, -1);
-			if (AirLinkOutStationId == -1 && AirLinkIsNode)
+			if (AirLinkOutStationId == -1 && AirLinkIsNode && WllStationId != -1)
 			{
 				AirLinkOutStationId = WllStationId;
 				LogMessage("Cumulus.ini: No AirLinkOutStationId supplied, but AirlinkIsNode, so using main station id");
