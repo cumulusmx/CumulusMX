@@ -14,7 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-- Adds support for Third Party WOW-BE uploads (largely untested)
+- Adds support for Third Party WOW-BE reboot uploads
 
 ### Changed
 
@@ -33,6 +33,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The station TimeZone being reset to default on Cumulus restarts
 - MySQL connection issues if you only upload the dayfile once a day and no other uploads
 - Issue where Cumulus.ini says it needs to be rewritten at each start-up
+- Missing navigation images at the bottom on the Extra Web Files settings page
 
 
 
