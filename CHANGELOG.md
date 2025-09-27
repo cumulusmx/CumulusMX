@@ -6,7 +6,6 @@ Additional notes are available on the [forum release thread](https://cumulus.hos
 
 This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.
 Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/main/CHANGELOG.md)
-
 ---
 ---
 
@@ -35,7 +34,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Issue where Cumulus.ini says it needs to be rewritten at each start-up
 - Missing navigation images at the bottom on the Extra Web Files settings page
 
-
+---
 
 ## [4.6.2 \[b4122\]][25] - 2025-09-14
 
@@ -56,7 +55,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - System.IO.Ports
 - System.ServiceProcess.ServiceController
 
-
+---
 
 ## [4.6.1 \[b4121\]][24] - 2025-09-05
 
@@ -64,7 +63,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Davis cloud station not decoding current data
 
-
+---
 
 ## [4.6.0 \[b4120\]][23] - 2025-09-05
 
@@ -182,7 +181,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - System.IO.Ports
 - System.ServiceProcess.ServiceController
 
-
+---
 
 ## [4.5.2 \[b4105\]][22] - 2025-06-21
 
@@ -202,7 +201,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Error starting v4.5.1 on Windows systems below version 10 - "Unable to find an entry point named 'PowerRegisterSuspendResumeNotification' in DLL 'Powrprof.dll'!"
 - Fix Wunderground upload error - TimeSpan overflowed because the duration is too long
 
-
+---
 
 ## [4.5.1 \[b4104\]][21] - 2025-06-14
 
@@ -230,6 +229,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Davis WLL Soil Temp/Moist & Leaf Wetness channels not being read from Cumulus.ini correctly
 - Fix for incorrect values being returned for the `<#MonthAvgTotalChillHrs>` web tag
 
+---
 
 ## [4.5.0 \[b4103\]][20] - 2025-05-31
 
@@ -248,6 +248,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Fixes to the calculations for locations above the Arctic circles
 - Realtime SFTP not working in v4.5.0 b4102
 
+---
 
 ## [4.5.0 \[b4102\]][19] - 2025-05-26
 
@@ -367,7 +368,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - System.IO.Ports
 - System.ServiceProcess.ServiceController
 
-
+---
 
 ## [4.4.5 \[b4088\]][18] - 2025-04-10
 
@@ -386,6 +387,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt binary API CO₂ sensor causing decode unknown sensor detection and unpredictable decodes
 - Rounding error on laser depth increases to snowfall accumulation meant small increments were rounded to zero
 
+---
 
 ## [4.4.4 \[b4087\]][17] - 2025-04-01
 
@@ -402,6 +404,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Laser unit to snow unit conversion when the units are different
 - Fix stack overflow when converting units from Ecowitt SD Card log files
 
+---
 
 ## [4.4.3 \[b4086\]][16] - 2025-03-18
 
@@ -428,6 +431,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Ecowitt SD card log file decode of LDS Depth values
 - Davis WLL was saving the gust direction as the speed when a new daily high gust was detected that had been missed in the broadcast data
 
+---
 
 ## [4.4.2 \[b4085\]][15] - 2025-03-12
 
@@ -442,6 +446,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Ecowitt HTTP Local API not processing temps in Fahrenheit correctly
 - Fix the table background colours of the dashboard records editors pages
 
+---
 
 ## [4.4.1 \[b4084\]][14] - 2025-03-09
 
@@ -453,6 +458,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Updated `\webfiles\js\noaarpts.js` to default to plain text rather than HTML if the option is not visible
 		You will need to upload this file to your web site
 
+---
 
 ## [4.4.0 \[b4083\]][13] - 2025-03-09
 
@@ -525,6 +531,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Sixlabors.ImageSharp
 
+---
 
 ## [4.3.3 \[b4070\]][12] - 2025-01-01
 
@@ -534,6 +541,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Error rewriting Cumulus.ini on some Windows installations
 - Trend values on rollover (rates, rain in last hour etc) now include the last minute before rollover
 
+---
 
 ## [4.3.2 \[b4067\]][11] - 2024-12-18
 
@@ -564,6 +572,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Unknown sensor errors in Ecowitt TCP API sensor info
 - Ecowitt historic catch-up average wind speed was being mishandled by MX = a lower value than reality
 
+---
 
 ## [4.3.1 \[b4064\]][10] - 2024-12-09
 
@@ -584,6 +593,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix for LoadRecent failing if indoor sensors are absent
 - Fix for Tempest stations not reading historic data
 
+---
 
 ## [4.3.0 \[b4063\]][9] - 2024-12-04
 
