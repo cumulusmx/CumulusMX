@@ -14550,9 +14550,11 @@ namespace CumulusMX
 			var layout = "${longdate}|${level}|${logger:shortName=true}|${message}";
 
 			// Create targets for the log files
+			var fileName = Path.Combine(Program.configFile.runtimeOptions.configProperties.LogPath, "ftp-realtime_${shortdate}.log");
+
 			var logfileRT = new FileTarget("logfileRT")
 			{
-				FileName = "MXdiags" + Path.DirectorySeparatorChar + "ftp-realtime_${shortdate}.log",
+				FileName = fileName,
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
@@ -14569,9 +14571,12 @@ namespace CumulusMX
 				TimeToSleepBetweenBatches = 1
 			};
 
+
+			fileName = Path.Combine(Program.configFile.runtimeOptions.configProperties.LogPath, "ftp-interval_${shortdate}.log");
+
 			var logfileIN = new FileTarget("logfileIN")
 			{
-				FileName = "MXdiags" + Path.DirectorySeparatorChar + "ftp-interval_${shortdate}.log",
+				FileName = fileName,
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
@@ -14799,6 +14804,8 @@ namespace CumulusMX
 		public string SettingsUsername { get; set; }
 		public string SettingsPassword { get; set; }
 		public bool UseWebSockets { get; set; }
+		public string DataFolder { get; set; }
+		public string BackupFolder { get; set; }
 	}
 
 	public class CultureConfig

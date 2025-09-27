@@ -56,27 +56,29 @@ namespace CumulusMX
 			StartTime = DateTime.Now;
 			RunningOnWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
+			var logPath = configFile.runtimeOptions.configProperties.LogPath;
+
 			try
 			{
-				if (!Directory.Exists("MXdiags"))
+				if (!Directory.Exists(logPath))
 				{
-					Directory.CreateDirectory("MXdiags");
+					Directory.CreateDirectory(logPath);
 				}
 			}
 			catch (UnauthorizedAccessException)
 			{
-				Console.WriteLine("Error, no permission to read/create folder /MXdiags");
+				Console.WriteLine("Error, no permission to read/create folder " + logPath);
 				Environment.Exit(5);
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"Error while attempting to read/create folder /MXdiags, error message: {ex.Message}");
+				Console.WriteLine($"Error while attempting to read/create folder {logPath}, error message: {ex.Message}");
 			}
 
 			SetupLogging();
 
-			var logfile = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog.txt";
-			var logfileOld = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog-Old.txt";
+			var logfile = Path.Combine(logPath, "ServiceConsoleLog.txt");
+			var logfileOld = Path.Combine(logPath, "ServiceConsoleLog-Old.txt");
 			try
 			{
 				if (File.Exists(logfileOld))
@@ -534,10 +536,14 @@ namespace CumulusMX
 		private static void SetupLogging()
 		{
 			// Log file target
+			var fileName = configFile.runtimeOptions.configProperties.LogPath == "MXdiags"
+				? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MXdiags", "MxDiags.log")
+				: Path.Combine(configFile.runtimeOptions.configProperties.LogPath, "MxDiags.log");
+
 			var logfile = new FileTarget()
 			{
 				Name = "logfile",
-				FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MXdiags", "MxDiags.log"),
+				FileName = fileName,
 				ArchiveSuffixFormat = "{1:-yyMMdd-HHmmss}",
 				ArchiveAboveSize = configFile.runtimeOptions.configProperties.LogFileSize,
 				ArchiveOldFileOnStartup = true,
@@ -635,6 +641,9 @@ namespace CumulusMX
 
 			[JsonPropertyName("User.LogFileCount")]
 			public int LogFileCount { get; set; }
+
+			[JsonPropertyName("User.LogPath")]
+			public string LogPath { get; set; }
 		}
 
 

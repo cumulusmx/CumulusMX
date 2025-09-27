@@ -9,6 +9,21 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [4.7.0 \[b4127\]][27] - 2025-10-27
+
+### New
+
+- The path for the MXdiags files can now be specified in the CumulusMX.runtimeconfig.json file
+
+## Changed
+
+- Removes the dependency on ServiceStack.Text for JSON handling, now using the built-in System.Text.Json
+
+## Fixed
+
+
+---
+
 ## [4.6.3 \[b4127\]][26] - 2025-09-27
 
 ### New
