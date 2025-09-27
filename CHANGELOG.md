@@ -32,6 +32,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix forum URL being reset to default on Cumulus restarts. The fix requires you to resave the config once after installing this update
 - The station TimeZone being reset to default on Cumulus restarts
 - MySQL connection issues if you only upload the dayfile once a day and no other uploads
+- Issue where Cumulus.ini says it needs to be rewritten at each start-up
 
 
 
