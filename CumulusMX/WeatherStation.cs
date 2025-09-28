@@ -8591,7 +8591,7 @@ namespace CumulusMX
 		{
 			var year = ts.Year.ToString();
 			var month = ts.Month.ToString("D2");
-			var savedFile = cumulus.Datapath + "month" + year + month + ".ini";
+			var savedFile = Path.Combine(cumulus.ProgramOptions.DataPath, "month" + year + month + ".ini");
 			cumulus.LogMessage("Saving month.ini file as " + savedFile);
 			try
 			{
@@ -8606,7 +8606,7 @@ namespace CumulusMX
 		private void CopyYearIniFile(DateTime ts)
 		{
 			var year = ts.Year.ToString();
-			var savedFile = cumulus.Datapath + "year" + year + ".ini";
+			var savedFile = Path.Combine(cumulus.ProgramOptions.DataPath, "year" + year + ".ini");
 			cumulus.LogMessage("Saving year.ini file as " + savedFile);
 			try
 			{

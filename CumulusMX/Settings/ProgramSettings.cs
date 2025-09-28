@@ -16,14 +16,14 @@ namespace CumulusMX.Settings
 		{
 			// Build the settings data, convert to JSON, and return it
 
-			var startuptask = new JsonProgramSettingsTask()
+			var startuptask = new SettingsTask()
 			{
 				task = cumulus.ProgramOptions.StartupTask,
 				taskparams = cumulus.ProgramOptions.StartupTaskParams,
 				wait = cumulus.ProgramOptions.StartupTaskWait
 			};
 
-			var startup = new JsonProgramSettingsStartupOptions()
+			var startup = new SettingsStartupOptions()
 			{
 				startuphostping = cumulus.ProgramOptions.StartupPingHost,
 				startuppingescape = cumulus.ProgramOptions.StartupPingEscapeTime,
@@ -32,20 +32,20 @@ namespace CumulusMX.Settings
 				startuptask = startuptask
 			};
 
-			var shutdowntask = new JsonProgramSettingsTask()
+			var shutdowntask = new SettingsTask()
 			{
 				task = cumulus.ProgramOptions.ShutdownTask,
 				taskparams = cumulus.ProgramOptions.ShutdownTaskParams
 			};
 
-			var shutdown = new JsonProgramSettingsShutdownOptions()
+			var shutdown = new SettingsShutdownOptions()
 			{
 				datastoppedexit = cumulus.ProgramOptions.DataStoppedExit,
 				datastoppedmins = cumulus.ProgramOptions.DataStoppedMins,
 				shutdowntask = shutdowntask
 			};
 
-			var logging = new JsonProgramSettingsLoggingOptions()
+			var logging = new SettingsLoggingOptions()
 			{
 				debuglogging = cumulus.ProgramOptions.DebugLogging,
 				datalogging = cumulus.ProgramOptions.DataLogging,
@@ -56,14 +56,20 @@ namespace CumulusMX.Settings
 				errorlistlevel = (int) cumulus.ErrorListLoggingLevel
 			};
 
-			var options = new JsonProgramSettingsGeneralOptions()
+			var paths = new SettingsPathOptions()
+			{
+				datapath = cumulus.ProgramOptions.DataPath,
+				backuppath = cumulus.ProgramOptions.BackupPath
+			};
+
+			var options = new SettingsGeneralOptions()
 			{
 				stopsecondinstance = cumulus.ProgramOptions.WarnMultiple,
 				listwebtags = cumulus.ProgramOptions.ListWebTags,
 				usewebsockets = cumulus.ProgramOptions.UseWebSockets
 			};
 
-			var culture = new JsonProgramSettingsCultureOptions()
+			var culture = new SettingsCultureOptions()
 			{
 				displayLang = cumulus.ProgramOptions.DisplayLanguage,
 				removespacefromdateseparator = cumulus.ProgramOptions.Culture.RemoveSpaceFromDateSeparator,
@@ -71,19 +77,20 @@ namespace CumulusMX.Settings
 				amPmLowerCase = cumulus.ProgramOptions.TimeAmPmLowerCase
 			};
 
-			var security = new JsonProgramSettingsSecurity()
+			var security = new SettingsSecurityOptions()
 			{
 				securesettings = cumulus.ProgramOptions.SecureSettings,
 				username = cumulus.ProgramOptions.SettingsUsername,
 				password = cumulus.ProgramOptions.SettingsPassword,
 			};
 
-			var settings = new JsonProgramSettings()
+			var settings = new Settings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				startup = startup,
 				shutdown = shutdown,
 				logging = logging,
+				paths = paths,
 				options = options,
 				culture = culture,
 				security = security
@@ -97,7 +104,7 @@ namespace CumulusMX.Settings
 			var errorMsg = string.Empty;
 			var json = string.Empty;
 			var returnMessage = "success";
-			JsonProgramSettings settings;
+			Settings settings;
 			context.Response.StatusCode = 200;
 
 			// get the response
@@ -111,7 +118,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = JsonSerializer.Deserialize<JsonProgramSettings>(json);
+				settings = JsonSerializer.Deserialize<Settings>(json);
 			}
 			catch (Exception ex)
 			{
@@ -152,6 +159,9 @@ namespace CumulusMX.Settings
 				cumulus.ProgramOptions.UseWebSockets = settings.options.usewebsockets;
 
 				cumulus.ProgramOptions.DisplayLanguage = settings.culture.displayLang;
+
+				cumulus.ProgramOptions.DataPath = settings.paths.datapath;
+				cumulus.ProgramOptions.BackupPath = settings.paths.backuppath;
 
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
 				if (settings.culture.amPmLowerCase != cumulus.ProgramOptions.TimeAmPmLowerCase)
@@ -209,68 +219,76 @@ namespace CumulusMX.Settings
 
 			return context.Response.StatusCode == 200 ? returnMessage : errorMsg;
 		}
-	}
 
-	public class JsonProgramSettings
-	{
-		public bool accessible { get; set; }
-		public JsonProgramSettingsStartupOptions startup { get; set; }
-		public JsonProgramSettingsShutdownOptions shutdown { get; set; }
-		public JsonProgramSettingsLoggingOptions logging { get; set; }
-		public JsonProgramSettingsGeneralOptions options { get; set; }
-		public JsonProgramSettingsCultureOptions culture { get; set; }
-		public JsonProgramSettingsSecurity security { get; set; }
-	}
+		private class Settings
+		{
+			public bool accessible { get; set; }
+			public SettingsStartupOptions startup { get; set; }
+			public SettingsShutdownOptions shutdown { get; set; }
+			public SettingsLoggingOptions logging { get; set; }
+			public SettingsPathOptions paths { get; set; }
+			public SettingsGeneralOptions options { get; set; }
+			public SettingsCultureOptions culture { get; set; }
+			public SettingsSecurityOptions security { get; set; }
+		}
 
-	public class JsonProgramSettingsStartupOptions
-	{
-		public string startuphostping { get; set; }
-		public int startuppingescape { get; set; }
-		public int startupdelay { get; set; }
-		public int startupdelaymaxuptime { get; set; }
-		public JsonProgramSettingsTask startuptask { get; set; }
-	}
+		private class SettingsStartupOptions
+		{
+			public string startuphostping { get; set; }
+			public int startuppingescape { get; set; }
+			public int startupdelay { get; set; }
+			public int startupdelaymaxuptime { get; set; }
+			public SettingsTask startuptask { get; set; }
+		}
 
-	public class JsonProgramSettingsTask
-	{
-		public string task { get; set; }
-		public string taskparams { get; set; }
-		public bool wait { get; set; }
-	}
+		private class SettingsTask
+		{
+			public string task { get; set; }
+			public string taskparams { get; set; }
+			public bool wait { get; set; }
+		}
 
-	public class JsonProgramSettingsLoggingOptions
-	{
-		public bool debuglogging { get; set; }
-		public bool datalogging { get; set; }
-		public bool ftplogging { get; set; }
-		public int? ftplogginglevel { get; set; }
-		public bool emaillogging { get; set; }
-		public bool spikelogging { get; set; }
-		public int errorlistlevel { get; set; }
-	}
-	public class JsonProgramSettingsGeneralOptions
-	{
-		public bool stopsecondinstance { get; set; }
-		public bool listwebtags { get; set; }
-		public bool usewebsockets { get; set; }
-	}
-	public class JsonProgramSettingsCultureOptions
-	{
-		public string displayLang { get; set; }
-		public bool removespacefromdateseparator { get; set; }
-		public string timeFormat { get; set; }
-		public bool amPmLowerCase { get; set; }
-	}
-	public class JsonProgramSettingsShutdownOptions
-	{
-		public bool datastoppedexit { get; set; }
-		public int datastoppedmins { get; set; }
-		public JsonProgramSettingsTask shutdowntask { get; set; }
-	}
-	public class JsonProgramSettingsSecurity
-	{
-		public bool securesettings { get; set; }
-		public string username { get; set; }
-		public string password { get; set; }
+		private class SettingsLoggingOptions
+		{
+			public bool debuglogging { get; set; }
+			public bool datalogging { get; set; }
+			public bool ftplogging { get; set; }
+			public int? ftplogginglevel { get; set; }
+			public bool emaillogging { get; set; }
+			public bool spikelogging { get; set; }
+			public int errorlistlevel { get; set; }
+		}
+
+		private class SettingsPathOptions
+		{
+			public string datapath { get; set; }
+			public string backuppath { get; set; }
+		}
+
+		private class SettingsGeneralOptions
+		{
+			public bool stopsecondinstance { get; set; }
+			public bool listwebtags { get; set; }
+			public bool usewebsockets { get; set; }
+		}
+		private class SettingsCultureOptions
+		{
+			public string displayLang { get; set; }
+			public bool removespacefromdateseparator { get; set; }
+			public string timeFormat { get; set; }
+			public bool amPmLowerCase { get; set; }
+		}
+		private class SettingsShutdownOptions
+		{
+			public bool datastoppedexit { get; set; }
+			public int datastoppedmins { get; set; }
+			public SettingsTask shutdowntask { get; set; }
+		}
+		private class SettingsSecurityOptions
+		{
+			public bool securesettings { get; set; }
+			public string username { get; set; }
+			public string password { get; set; }
+		}
 	}
 }

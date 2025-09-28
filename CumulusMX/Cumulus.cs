@@ -224,8 +224,6 @@ namespace CumulusMX
 		internal string diaryfile;
 		internal SQLiteConnection DiaryDB;
 
-		internal string Datapath;
-
 		internal string ListSeparator;
 		internal char DirectorySeparator;
 
@@ -250,13 +248,11 @@ namespace CumulusMX
 		internal string Alltimelogfile;
 		internal string MonthlyAlltimeIniFile;
 		internal string MonthlyAlltimeLogFile;
-		private string logFilePath;
 		internal string DayFileName;
 		internal string YesterdayFile;
 		internal string TodayIniFile;
 		internal string MonthIniFile;
 		internal string YearIniFile;
-		private string backupPath;
 		internal string WebTagFile;
 
 		internal bool SynchronisedWebUpdate;
@@ -532,7 +528,7 @@ namespace CumulusMX
 		}
 
 		private SemaphoreSlim uploadCountLimitSemaphoreSlim;
-		private SemaphoreSlim realtimeFtpSemaphore = new(1);
+		private readonly SemaphoreSlim realtimeFtpSemaphore = new(1);
 
 		public Cumulus()
 		{
@@ -616,24 +612,8 @@ namespace CumulusMX
 			// Remove old MD5 hash files
 			CleanUpHashFiles();
 
-			Datapath = "data" + DirectorySeparator;
-			backupPath = "backup" + DirectorySeparator;
 			ReportPath = "Reports" + DirectorySeparator;
 			var WebPath = "web" + DirectorySeparator;
-
-			dbfile = Datapath + "cumulusmx.db";
-			diaryfile = Datapath + "diary.db";
-
-			AlltimeIniFile = Datapath + "alltime.ini";
-			Alltimelogfile = Datapath + "alltimelog.txt";
-			MonthlyAlltimeIniFile = Datapath + "monthlyalltime.ini";
-			MonthlyAlltimeLogFile = Datapath + "monthlyalltimelog.txt";
-			logFilePath = Datapath;
-			DayFileName = Datapath + "dayfile.txt";
-			YesterdayFile = Datapath + "yesterday.ini";
-			TodayIniFile = Datapath + "today.ini";
-			MonthIniFile = Datapath + "month.ini";
-			YearIniFile = Datapath + "year.ini";
 
 			// initialise the third party uploads
 			Wund = new ThirdParty.WebUploadWund(this, "WUnderground");
@@ -945,6 +925,19 @@ namespace CumulusMX
 				GraphDataEodFiles[i].LastDataTime = RecordsBeganDateTime;
 			}
 
+			dbfile = Path.Combine(ProgramOptions.DataPath, "cumulusmx.db");
+			diaryfile = Path.Combine(ProgramOptions.DataPath, "diary.db");
+
+			AlltimeIniFile = Path.Combine(ProgramOptions.DataPath, "alltime.ini");
+			Alltimelogfile = Path.Combine(ProgramOptions.DataPath, "alltimelog.txt");
+			MonthlyAlltimeIniFile = Path.Combine(ProgramOptions.DataPath, "monthlyalltime.ini");
+			MonthlyAlltimeLogFile = Path.Combine(ProgramOptions.DataPath, "monthlyalltimelog.txt");
+			DayFileName = Path.Combine(ProgramOptions.DataPath, "dayfile.txt");
+			YesterdayFile = Path.Combine(ProgramOptions.DataPath, "yesterday.ini");
+			TodayIniFile = Path.Combine(ProgramOptions.DataPath, "today.ini");
+			MonthIniFile = Path.Combine(ProgramOptions.DataPath, "month.ini");
+			YearIniFile = Path.Combine(ProgramOptions.DataPath, "year.ini");
+
 
 			// Do we prevent more than one copy of CumulusMX running?
 			CheckForSingleInstance(System.OperatingSystem.IsWindows());
@@ -1153,9 +1146,9 @@ namespace CumulusMX
 				SetupFtpLogging(true);
 			}
 
-			LogMessage("Data path = " + Datapath);
+			LogMessage("Data path = " + ProgramOptions.DataPath);
 
-			AppDomain.CurrentDomain.SetData("DataDirectory", Datapath);
+			AppDomain.CurrentDomain.SetData("DataDirectory", ProgramOptions.DataPath);
 
 			// Open database (create file if it doesn't exist)
 			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite ;
@@ -3914,6 +3907,9 @@ namespace CumulusMX
 			ProgramOptions.ListWebTags = ini.GetValue("Station", "ListWebTags", false);
 			ProgramOptions.UseWebSockets = ini.GetValue("Program", "UseWebSockets", true);
 
+			ProgramOptions.DataPath = ini.GetValue("Program", "DataPath", "data");
+			ProgramOptions.BackupPath = ini.GetValue("Program", "BackupPath", "backup");
+
 			SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
 			if (DebuggingEnabled)
 			{
@@ -6130,6 +6126,8 @@ namespace CumulusMX
 			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
 			ini.SetValue("Station", "ListWebTags", ProgramOptions.ListWebTags);
 			ini.SetValue("Program", "UseWebSockets", ProgramOptions.UseWebSockets);
+
+			ini.SetValue("Program", "DataPath", ProgramOptions.DataPath);
 
 			ini.SetValue("Program", "ErrorListLoggingLevel", (int) ErrorListLoggingLevel);
 
@@ -8362,7 +8360,7 @@ namespace CumulusMX
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
 
-			return Datapath + datestring + "log.txt";
+			return Path.Combine(ProgramOptions.DataPath, datestring + "log.txt");
 		}
 
 		public string GetExtraLogFileName(DateTime thedate)
@@ -8375,7 +8373,7 @@ namespace CumulusMX
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
 
-			return Datapath + "ExtraLog" + datestring + ".txt";
+			return Path.Combine(ProgramOptions.DataPath, "ExtraLog" + datestring + ".txt");
 		}
 
 		public string GetAirLinkLogFileName(DateTime thedate)
@@ -8388,7 +8386,7 @@ namespace CumulusMX
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
 
-			return Datapath + "AirLink" + datestring + "log.txt";
+			return Path.Combine(ProgramOptions.DataPath, "AirLink" + datestring + "log.txt");
 		}
 
 		public string GetCustomIntvlLogFileName(int idx, DateTime thedate)
@@ -8401,12 +8399,12 @@ namespace CumulusMX
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
 
-			return Datapath + CustomIntvlLogSettings[idx].FileName + "-" + datestring + ".txt";
+			return Path.Combine(ProgramOptions.DataPath, CustomIntvlLogSettings[idx].FileName + "-" + datestring + ".txt");
 		}
 
 		public string GetCustomDailyLogFileName(int idx)
 		{
-			return Datapath + CustomDailyLogSettings[idx].FileName + ".txt";
+			return Path.Combine(ProgramOptions.DataPath, CustomDailyLogSettings[idx].FileName + ".txt");
 		}
 
 		public const int NumLogFileFields = 29;
@@ -9241,7 +9239,7 @@ namespace CumulusMX
 		{
 			LogMessage($"Creating {(daily ? "daily" : "start-up")} backup...");
 
-			string dirpath = daily ? backupPath + "daily" + DirectorySeparator : backupPath;
+			string dirpath = daily ? Path.Combine(ProgramOptions.BackupPath, "daily") : ProgramOptions.BackupPath;
 
 			if (!Directory.Exists(dirpath))
 			{
@@ -9282,31 +9280,29 @@ namespace CumulusMX
 				}
 
 				string filename = (daily ? timestamp.ToString("yyyyMMdd") : timestamp.ToString("yyyyMMddHHmmss")) + ".zip";
-				string datafolder = "data" + DirectorySeparator;
 
 				LogMessage("BackupData: Creating backup " + filename);
 
 				var configbackup = "Cumulus.ini";
 				var uniquebackup = "UniqueId.txt";
 				var stringsbackup = "strings.ini";
-				var alltimebackup = datafolder + "alltime.ini";
-				var monthlyAlltimebackup = datafolder + "monthlyalltime.ini";
-				var daybackup = datafolder + "dayfile.txt";
-				var yesterdaybackup = datafolder + "yesterday.ini";
-				var todaybackup = datafolder + "today.ini";
-				var monthbackup = datafolder + "month.ini";
-				var yearbackup = datafolder + "year.ini";
-				var diarybackup = datafolder + "diary.db";
-				var dbBackup = datafolder + "cumulusmx.db";
+				var alltimebackup = Path.Combine(ProgramOptions.DataPath, "alltime.ini");
+				var monthlyAlltimebackup = Path.Combine(ProgramOptions.DataPath, "monthlyalltime.ini");
+				var daybackup = Path.Combine(ProgramOptions.DataPath, "dayfile.txt");
+				var yesterdaybackup = Path.Combine(ProgramOptions.DataPath, "yesterday.ini");
+				var todaybackup = Path.Combine(ProgramOptions.DataPath, "today.ini");
+				var monthbackup = Path.Combine(ProgramOptions.DataPath, "month.ini");
+				var yearbackup = Path.Combine(ProgramOptions.DataPath, "year.ini");
+				var diarybackup = Path.Combine(ProgramOptions.DataPath, "diary.db");
+				var dbBackup = Path.Combine(ProgramOptions.DataPath, "cumulusmx.db");
 
 				var LogFile = GetLogFileName(timestamp);
-				var logbackup = datafolder + LogFile.Replace(logFilePath, "");
-
+				var logbackup = Path.Combine("data", Path.GetFileName(LogFile));
 				var extraFile = GetExtraLogFileName(timestamp);
-				var extraBackup = datafolder + extraFile.Replace(logFilePath, "");
+				var extraBackup = Path.Combine("data", Path.GetFileName(extraFile));
 
 				var AirLinkFile = GetAirLinkLogFileName(timestamp);
-				var AirLinkBackup = datafolder + AirLinkFile.Replace(logFilePath, "");
+				var AirLinkBackup = Path.Combine("data", Path.GetFileName(AirLinkFile));
 
 
 				if (!File.Exists(dirpath + DirectorySeparator + filename))
@@ -9352,8 +9348,8 @@ namespace CumulusMX
 								// for daily backup the db is in use, so use an online backup
 								try
 								{
-									var backUpDest = dirpath + "cumulusmx.db";
-									var zipLocation = datafolder + "cumulusmx.db";
+									var backUpDest = Path.Combine(dirpath, "cumulusmx.db");
+									var zipLocation = Path.Combine("data", "cumulusmx.db");
 									LogDebugMessage("Making backup copy of the database");
 									station.RecentDataDb.Backup(backUpDest);
 									LogDebugMessage("Completed backup copy of the database");
@@ -9365,8 +9361,8 @@ namespace CumulusMX
 									LogDebugMessage("Deleting backup copy of the database");
 									File.Delete(backUpDest);
 
-									backUpDest = dirpath + "diary.db";
-									zipLocation = datafolder + "diary.db";
+									backUpDest = Path.Combine(dirpath, "diary.db");
+									zipLocation = Path.Combine("data", "diary.db");
 									LogDebugMessage("Making backup copy of the diary");
 									DiaryDB.Backup(backUpDest);
 									LogDebugMessage("Completed backup copy of the diary");
@@ -9412,9 +9408,9 @@ namespace CumulusMX
 							try
 							{
 								if (File.Exists(extraFile))
-									archive.CreateEntryFromFile(extraFile, extraBackup);
+									archive.CreateEntryFromFile(extraFile, Path.Combine("data", Path.GetFileName(extraBackup)));
 								if (File.Exists(AirLinkFile))
-									archive.CreateEntryFromFile(AirLinkFile, AirLinkBackup);
+									archive.CreateEntryFromFile(AirLinkFile, Path.Combine("data", Path.GetFileName(AirLinkFile)));
 
 								// custom logs
 								for (var i = 0; i < 10; i++)
@@ -9423,14 +9419,14 @@ namespace CumulusMX
 									{
 										var custfilename = GetCustomIntvlLogFileName(i, timestamp);
 										if (File.Exists(custfilename))
-											archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
+											archive.CreateEntryFromFile(custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
 									}
 
 									if (CustomDailyLogSettings[i].Enabled)
 									{
 										var custfilename = GetCustomDailyLogFileName(i);
 										if (File.Exists(custfilename))
-											archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
+											archive.CreateEntryFromFile(custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
 									}
 								}
 
@@ -9441,13 +9437,13 @@ namespace CumulusMX
 									var newTime = timestamp.AddDays(-1);
 									// on the first of month, we also need to backup last months files as well
 									var LogFile2 = GetLogFileName(newTime);
-									var logbackup2 = datafolder + Path.GetFileName(LogFile2);
+									var logbackup2 = Path.Combine("data", Path.GetFileName(LogFile2));
 
 									var extraFile2 = GetExtraLogFileName(newTime);
-									var extraBackup2 = datafolder + Path.GetFileName(extraFile2);
+									var extraBackup2 = Path.Combine("data", Path.GetFileName(extraFile2));
 
 									var AirLinkFile2 = GetAirLinkLogFileName(timestamp.AddDays(-1));
-									var AirLinkBackup2 = datafolder + Path.GetFileName(AirLinkFile2);
+									var AirLinkBackup2 = Path.Combine("data", Path.GetFileName(AirLinkFile2));
 
 									if (File.Exists(LogFile2))
 										archive.CreateEntryFromFile(LogFile2, logbackup2);
@@ -9462,7 +9458,7 @@ namespace CumulusMX
 										{
 											var custfilename = GetCustomIntvlLogFileName(i, newTime);
 											if (File.Exists(custfilename))
-												archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
+												archive.CreateEntryFromFile(custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
 										}
 									}
 								}
@@ -9477,13 +9473,13 @@ namespace CumulusMX
 					}
 					catch (UnauthorizedAccessException)
 					{
-						LogErrorMessage("BackupData: Error, no permission to create/write file: " + dirpath + DirectorySeparator + filename);
-						LogConsoleMessage("Error, no permission to create/write file: " + dirpath + DirectorySeparator + filename, ConsoleColor.Yellow);
+						LogErrorMessage("BackupData: Error, no permission to create/write file: " + Path.Combine(dirpath, filename));
+						LogConsoleMessage("Error, no permission to create/write file: " + Path.Combine(dirpath, filename), ConsoleColor.Yellow);
 					}
 					catch (Exception ex)
 					{
-						LogErrorMessage($"BackupData: Error while attempting to create/write file: {dirpath + DirectorySeparator + filename}, error message: {ex.Message}");
-						LogConsoleMessage($"Error while attempting to create/write file: {dirpath + DirectorySeparator + filename}, error message: {ex.Message}", ConsoleColor.Yellow);
+						LogErrorMessage($"BackupData: Error while attempting to create/write file: {Path.Combine(dirpath, filename)}, error message: {ex.Message}");
+						LogConsoleMessage($"Error while attempting to create/write file: {Path.Combine(dirpath, filename)}, error message: {ex.Message}", ConsoleColor.Yellow);
 					}
 				}
 				else
@@ -14804,8 +14800,8 @@ namespace CumulusMX
 		public string SettingsUsername { get; set; }
 		public string SettingsPassword { get; set; }
 		public bool UseWebSockets { get; set; }
-		public string DataFolder { get; set; }
-		public string BackupFolder { get; set; }
+		public string DataPath { get; set; }
+		public string BackupPath { get; set; }
 	}
 
 	public class CultureConfig
