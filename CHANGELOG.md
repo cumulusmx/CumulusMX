@@ -14,6 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### New
 
 - The path for the MXdiags files can now be specified in the CumulusMX.runtimeconfig.json file
+- The paths for the data, backup, and reports folders can now be defined in Program Settings
 
 ## Changed
 

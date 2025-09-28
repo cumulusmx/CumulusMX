@@ -606,13 +606,9 @@ namespace CumulusMX
 			// Set the default comport name depending on platform
 			DefaultComportName = System.OperatingSystem.IsWindows() ? "COM1" : "/dev/ttyUSB0";
 
-			// Check if all the folders required by CMX exist, if not create them
-			CreateRequiredFolders();
-
 			// Remove old MD5 hash files
 			CleanUpHashFiles();
 
-			ReportPath = "Reports" + DirectorySeparator;
 			var WebPath = "web" + DirectorySeparator;
 
 			// initialise the third party uploads
@@ -924,6 +920,9 @@ namespace CumulusMX
 			{
 				GraphDataEodFiles[i].LastDataTime = RecordsBeganDateTime;
 			}
+
+			// Check if all the folders required by CMX exist, if not create them
+			CreateRequiredFolders();
 
 			dbfile = Path.Combine(ProgramOptions.DataPath, "cumulusmx.db");
 			diaryfile = Path.Combine(ProgramOptions.DataPath, "diary.db");
@@ -3909,6 +3908,7 @@ namespace CumulusMX
 
 			ProgramOptions.DataPath = ini.GetValue("Program", "DataPath", "data");
 			ProgramOptions.BackupPath = ini.GetValue("Program", "BackupPath", "backup");
+			ProgramOptions.ReportsPath = ini.GetValue("Program", "ReportsPath", "Reports");
 
 			SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
 			if (DebuggingEnabled)
@@ -6128,6 +6128,8 @@ namespace CumulusMX
 			ini.SetValue("Program", "UseWebSockets", ProgramOptions.UseWebSockets);
 
 			ini.SetValue("Program", "DataPath", ProgramOptions.DataPath);
+			ini.SetValue("Program", "BackupPath", ProgramOptions.BackupPath);
+			ini.SetValue("Program", "ReportsPath", ProgramOptions.ReportsPath);
 
 			ini.SetValue("Program", "ErrorListLoggingLevel", (int) ErrorListLoggingLevel);
 
@@ -8320,7 +8322,6 @@ namespace CumulusMX
 			JSONSTATION = 11
 		}
 
-		internal string ReportPath;
 		public static string LatestError { get; set; }
 		public static DateTime LatestErrorTS { get; set; } = DateTime.MinValue;
 		internal WeatherStation Station { get => station; set => station = value; }
@@ -9895,13 +9896,13 @@ namespace CumulusMX
 				{
 					var dstPath = string.IsNullOrEmpty(NOAAconf.CopyFolder) ? remotePath : NOAAconf.CopyFolder;
 
-					srcfile = ReportPath + NOAAconf.LatestMonthReport;
-					dstfile = dstPath + DirectorySeparator + NOAAconf.LatestMonthReport;
+					srcfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
+					dstfile = Path.Combine(dstPath, DirectorySeparator + NOAAconf.LatestMonthReport);
 
 					File.Copy(srcfile, dstfile, true);
 
-					srcfile = ReportPath + NOAAconf.LatestYearReport;
-					dstfile = dstPath + DirectorySeparator + NOAAconf.LatestYearReport;
+					srcfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
+					dstfile = Path.Combine(dstPath, NOAAconf.LatestYearReport);
 
 					File.Copy(srcfile, dstfile, true);
 
@@ -10513,12 +10514,12 @@ namespace CumulusMX
 								// upload NOAA reports
 								LogDebugMessage("SFTP[Int]: Uploading NOAA reports");
 
-								var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
+								var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 								var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
 								UploadFile(conn, uploadfile, remotefile, -1);
 
-								uploadfile = ReportPath + NOAAconf.LatestYearReport;
+								uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 								remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
 								UploadFile(conn, uploadfile, remotefile, -1);
@@ -10846,12 +10847,12 @@ namespace CumulusMX
 								LogFtpMessage("", false);
 								LogFtpDebugMessage("FTP[Int]: Uploading NOAA reports", false);
 
-								var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
+								var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 								var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
 								UploadFile(conn, uploadfile, remotefile);
 
-								uploadfile = ReportPath + NOAAconf.LatestYearReport;
+								uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 								remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
 								UploadFile(conn, uploadfile, remotefile);
@@ -11127,7 +11128,7 @@ namespace CumulusMX
 
 							LogDebugMessage("PHP[Int]: Uploading NOAA Month report");
 
-							var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
+							var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
 							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
@@ -11180,7 +11181,7 @@ namespace CumulusMX
 
 							LogDebugMessage("PHP[Int]: Uploading NOAA Year report");
 
-							var uploadfile = ReportPath + NOAAconf.LatestYearReport;
+							var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
 							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
@@ -12469,7 +12470,7 @@ namespace CumulusMX
 
 		public async Task DoSingleNoaaUpload(string filename)
 		{
-			var uploadfile = ReportPath + filename;
+			var uploadfile = Path.Combine(ProgramOptions.ReportsPath, filename);
 			var remotefile = NOAAconf.FtpFolder + '/' + filename;
 
 			if (!FtpOptions.Enabled)
@@ -14490,9 +14491,12 @@ namespace CumulusMX
 		private void CreateRequiredFolders()
 		{
 			// The required folders are: /backup, backup/daily, /data, /Reports
-			var folders = new string[4] { "backup", "backup/daily", "data", "Reports" };
+			var folders = new string[4] { ProgramOptions.BackupPath, Path.Combine(ProgramOptions.BackupPath, "daily"), ProgramOptions.DataPath, ProgramOptions.ReportsPath };
 
 			LogMessage("Checking required folders");
+			LogMessage(" Data path   : " + ProgramOptions.DataPath);
+			LogMessage(" Backup path : " + ProgramOptions.BackupPath);
+			LogMessage(" Reports path: " + ProgramOptions.ReportsPath);
 
 			foreach (var folder in folders)
 			{
@@ -14500,7 +14504,7 @@ namespace CumulusMX
 				{
 					if (!Directory.Exists(folder))
 					{
-						LogMessage("Creating required folder: /" + folder);
+						LogMessage("Creating required folder: " + folder);
 						Directory.CreateDirectory(folder);
 					}
 				}
@@ -14802,6 +14806,7 @@ namespace CumulusMX
 		public bool UseWebSockets { get; set; }
 		public string DataPath { get; set; }
 		public string BackupPath { get; set; }
+		public string ReportsPath { get; set; }
 	}
 
 	public class CultureConfig

@@ -1427,7 +1427,7 @@ namespace CumulusMX.Stations
 		{
 			public string name { get; set; }
 			public string type { get; set; }
-			public int size { get; set; }
+			public string size { get; set; }
 		}
 
 		public class SdCard

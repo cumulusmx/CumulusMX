@@ -25,7 +25,7 @@ namespace CumulusMX
 				var utf8WithoutBom = new UTF8Encoding(false);
 				var encoding = cumulus.NOAAconf.UseUtf8 ? utf8WithoutBom : Encoding.GetEncoding("iso-8859-1");
 				var reportName = noaats.ToString(cumulus.NOAAconf.YearFile);
-				noaafile = cumulus.ReportPath + reportName;
+				noaafile = Path.Combine(cumulus.ProgramOptions.ReportsPath, reportName);
 				cumulus.LogMessage("Saving yearly NOAA report as " + noaafile);
 				File.WriteAllText(noaafile, report, encoding);
 			}
@@ -52,7 +52,7 @@ namespace CumulusMX
 				var utf8WithoutBom = new UTF8Encoding(false);
 				var encoding = cumulus.NOAAconf.UseUtf8 ? utf8WithoutBom : Encoding.GetEncoding("iso-8859-1");
 				reportName = noaats.ToString(cumulus.NOAAconf.MonthFile);
-				noaafile = cumulus.ReportPath + reportName;
+				noaafile = Path.Combine(cumulus.ProgramOptions.ReportsPath, reportName);
 				cumulus.LogMessage("Saving monthly NOAA report as " + noaafile);
 
 				File.WriteAllText(noaafile, report, encoding);
@@ -84,7 +84,7 @@ namespace CumulusMX
 				{
 					reportName = checkDate.ToString(cumulus.NOAAconf.YearFile);
 
-					if (!File.Exists(cumulus.ReportPath + reportName))
+					if (!File.Exists(Path.Combine(cumulus.ProgramOptions.ReportsPath, reportName)))
 					{
 						missingYears.Add(checkDate);
 					}
@@ -94,7 +94,7 @@ namespace CumulusMX
 				// then check the monthly report
 				reportName = checkDate.ToString(cumulus.NOAAconf.MonthFile);
 
-				if (!File.Exists(cumulus.ReportPath + reportName))
+				if (!File.Exists(Path.Combine(cumulus.ProgramOptions.ReportsPath, reportName)))
 				{
 					missingMonths.Add(checkDate);
 				}
@@ -169,7 +169,7 @@ namespace CumulusMX
 			try
 			{
 				reportName = noaats.ToString(cumulus.NOAAconf.YearFile);
-				noaafile = cumulus.ReportPath + reportName;
+				noaafile = Path.Combine(cumulus.ProgramOptions.ReportsPath, reportName);
 				var encoding = cumulus.NOAAconf.UseUtf8 ? Encoding.GetEncoding("utf-8") : Encoding.GetEncoding("iso-8859-1");
 				report = File.Exists(noaafile) ? File.ReadAllText(noaafile, encoding) : "That report does not exist";
 			}
@@ -191,7 +191,7 @@ namespace CumulusMX
 			try
 			{
 				reportName = noaats.ToString(cumulus.NOAAconf.MonthFile);
-				noaafile = cumulus.ReportPath + reportName;
+				noaafile = Path.Combine(cumulus.ProgramOptions.ReportsPath, reportName);
 				var encoding = cumulus.NOAAconf.UseUtf8 ? Encoding.GetEncoding("utf-8") : Encoding.GetEncoding("iso-8859-1");
 				report = File.Exists(noaafile) ? File.ReadAllText(noaafile, encoding) : "That report does not exist";
 			}
@@ -230,7 +230,7 @@ namespace CumulusMX
 			}
 
 			if (fullPath)
-				return cumulus.ReportPath + logfiledate.ToString(cumulus.NOAAconf.YearFile);
+				return Path.Combine(cumulus.ProgramOptions.ReportsPath, logfiledate.ToString(cumulus.NOAAconf.YearFile));
 			else
 				return logfiledate.ToString(cumulus.NOAAconf.YearFile);
 		}
@@ -261,7 +261,7 @@ namespace CumulusMX
 				}
 			}
 			if (fullPath)
-				return cumulus.ReportPath + logfiledate.AddHours(-1).ToString(cumulus.NOAAconf.MonthFile);
+				return Path.Combine(cumulus.ProgramOptions.ReportsPath, logfiledate.AddHours(-1).ToString(cumulus.NOAAconf.MonthFile));
 			else
 				return logfiledate.AddHours(-1).ToString(cumulus.NOAAconf.MonthFile);
 		}
