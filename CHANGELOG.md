@@ -19,9 +19,17 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## Changed
 
 - Removes the dependency on ServiceStack.Text for JSON handling, now using the built-in System.Text.Json
+- Swaps SQLitePCLRaw.bundle_green for newer SQLitePCLRaw.bundle_e_sqlite3
 
 ## Fixed
 
+
+### Package Updates
+
+- HidSharp
+- ServiceStack.Text [REMOVED]
+- SQLitePCLRaw.bundle_green [REMOVED]
+- SQLitePCLRaw.bundle_e_sqlite3 [ADDED]
 
 ---
 

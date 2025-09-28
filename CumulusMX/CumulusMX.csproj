@@ -94,11 +94,11 @@
     <PackageReference Include="NLog" Version="6.0.4" />
     <PackageReference Include="NLog.Extensions.Logging" Version="6.0.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
     <PackageReference Include="System.CodeDom" Version="9.0.9" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
     <PackageReference Include="FluentFTP" Version="53.0.1" />
-    <PackageReference Include="HidSharp" Version="2.1.0" />
+    <PackageReference Include="HidSharp" Version="2.6.3" />
     <PackageReference Include="MailKit" Version="4.13.0" />
     <PackageReference Include="MQTTnet" Version="5.0.1.1416" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
