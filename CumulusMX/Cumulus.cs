@@ -4304,7 +4304,7 @@ namespace CumulusMX
 
 			// GW1000 settings
 			Gw1000IpAddress = ini.GetValue("GW1000", "IPAddress", "0.0.0.0");
-			Gw1000MacAddress = ini.GetValue("GW1000", "MACAddress", string.Empty).ToUpper();
+			Gw1000MacAddress = (ini.GetValue("GW1000", "MACAddress", string.Empty) ?? string.Empty).ToUpper();
 			Gw1000AutoUpdateIpAddress = ini.GetValue("GW1000", "AutoUpdateIpAddress", true);
 			Gw1000PrimaryTHSensor = ini.GetValue("GW1000", "PrimaryTHSensor", 0, 0, 99);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
 			Gw1000PrimaryRainSensor = ini.GetValue("GW1000", "PrimaryRainSensor", 0, 0, 1); //0=main station (tipping bucket) 1=piezo
@@ -4329,7 +4329,7 @@ namespace CumulusMX
 			// api
 			EcowittApplicationKey = ini.GetValue("GW1000", "EcowittAppKey", string.Empty);
 			EcowittUserApiKey = ini.GetValue("GW1000", "EcowittUserKey", string.Empty);
-			EcowittMacAddress = ini.GetValue("GW1000", "EcowittMacAddress", string.Empty).ToUpper();
+			EcowittMacAddress = (ini.GetValue("GW1000", "EcowittMacAddress", string.Empty) ?? string.Empty).ToUpper();
 			// For GW1000 stations, the Ecowitt MAC must be the same as the device MAC
 			if (StationType == 12)
 			{
@@ -8062,7 +8062,7 @@ namespace CumulusMX
 		public bool EcowittCloudExtraEnabled { get; set; }
 		public string EcowittApplicationKey { get; set; }
 		public string EcowittUserApiKey { get; set; }
-		public string EcowittMacAddress { get; set; }
+		public string EcowittMacAddress { get; set; } = string.Empty;
 		public List<string> EcowittCameraMacAddress { get; set; } = [];
 		public bool EcowittSetCustomServer { get; set; }
 		public string EcowittGatewayAddr { get; set; }
@@ -8169,9 +8169,9 @@ namespace CumulusMX
 
 		public double YTDrain { get; set; }
 
-		public string LocationDesc { get; set; }
+		public string LocationDesc { get; set; } = string.Empty;
 
-		public string LocationName { get; set; }
+		public string LocationName { get; set; } = string.Empty;
 
 		public string HTTPProxyPassword { get; set; }
 

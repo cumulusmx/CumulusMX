@@ -36,6 +36,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ---
 
+## [4.6.4 \[b4128\]][27] - 2025-09-30
+
+### Fixed
+
+- Crash caused by EcowittMacAddress=null in Cumulus.ini
+
+
 ## [4.6.3 \[b4127\]][26] - 2025-09-27
 
 ### New
@@ -1102,3 +1109,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [24]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4121
 [25]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4122
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
+[27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
