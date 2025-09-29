@@ -375,7 +375,7 @@ namespace CumulusMX
 			// Open database (create file if it doesn't exist)
 			var flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
 
-			RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
+			RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, true));
 			CheckSqliteDatabase(false);
 			RecentDataDb.CreateTable<RecentData>();
 			RecentDataDb.CreateTable<SqlCache>();
@@ -431,7 +431,7 @@ namespace CumulusMX
 				if (errorCount == 1 && res.First() == "ok")
 				{
 					cumulus.LogMessage("SQLite integrity check OK");
-					return;
+					errorCount = 0;
 				}
 
 				foreach (var row in res)
@@ -455,9 +455,9 @@ namespace CumulusMX
 				File.Delete(cumulus.dbfile);
 				// Open database (create file if it doesn't exist)
 				var flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
-				RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
+				RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, true));
 			}
-			else if (errorCount > 0)
+			else if (errorCount > 1)
 			{
 				cumulus.LogErrorMessage("SQLite integrity check Failed, trying to compact database");
 				try
@@ -474,9 +474,13 @@ namespace CumulusMX
 					File.Delete(cumulus.dbfile);
 					// Open database (create file if it doesn't exist)
 					var flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
-					RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
+					RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, true));
 				}
 			}
+
+			// remove any old text datetime entries - look for the first "-" in "2025-03-18 19:23:00"
+			RecentDataDb.Execute("delete from RecentAqData where substr(Timestamp, 5, 1) == '-'");
+			RecentDataDb.Execute("delete from RecentData where substr(Timestamp, 5, 1) == '-'");
 		}
 
 		/// <summary>
@@ -2428,7 +2432,6 @@ namespace CumulusMX
 			var sbMax = new StringBuilder("\"CurrentSolarMax\":[");
 
 			DateTime dateFrom;
-			var ambiguousDates = new List<DateTime>();
 
 			if (incremental)
 			{
@@ -2447,8 +2450,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
-				var jsTime = dat.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp.ToUnixTimeMs();
 
 				if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 				{
@@ -2503,7 +2505,6 @@ namespace CumulusMX
 			var sbRate = new StringBuilder("\"rrate\":[");
 
 			DateTime dateFrom;
-			var ambiguousDates = new List<DateTime>();
 
 			if (incremental)
 			{
@@ -2523,8 +2524,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
-				var jsTime = dat.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp.ToUnixTimeMs();
 
 				sbRain.Append($"[{jsTime},{data[i].RainToday.ToString(cumulus.RainFormat, InvC)}],");
 
@@ -2551,7 +2551,6 @@ namespace CumulusMX
 			var sbIn = new StringBuilder("\"inhum\":[");
 
 			DateTime dateFrom;
-			var ambiguousDates = new List<DateTime>();
 
 			if (incremental)
 			{
@@ -2571,8 +2570,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
-				var jsTime = dat.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp.ToUnixTimeMs();
 
 				if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 				{
@@ -2617,7 +2615,6 @@ namespace CumulusMX
 			var sbAvg = new StringBuilder("\"avgbearing\":[");
 
 			DateTime dateFrom;
-			var ambiguousDates = new List<DateTime>();
 
 			if (incremental)
 			{
@@ -2637,8 +2634,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
-				var jsTime = dat.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp.ToUnixTimeMs();
 
 				sb.Append($"[{jsTime},{data[i].WindDir}],");
 
@@ -2665,7 +2661,6 @@ namespace CumulusMX
 			var sbSpd = new StringBuilder("\"wspeed\":[");
 
 			DateTime dateFrom;
-			var ambiguousDates = new List<DateTime>();
 
 			if (incremental)
 			{
@@ -2684,8 +2679,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
-				var jsTime = dat.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp.ToUnixTimeMs();
 
 				sb.Append($"[{jsTime},{data[i].WindGust.ToString(cumulus.WindFormat, InvC)}],");
 
@@ -2711,7 +2705,6 @@ namespace CumulusMX
 			var sb = new StringBuilder("{\"press\":[");
 
 			DateTime dateFrom;
-			var ambiguousDates = new List<DateTime>();
 
 			if (incremental)
 			{
@@ -2731,8 +2724,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
-				var jsTime = dat.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp.ToUnixTimeMs();
 
 				sb.Append($"[{jsTime},{data[i].Pressure.ToString(cumulus.PressFormat, InvC)}],");
 			}
@@ -2775,7 +2767,6 @@ namespace CumulusMX
 			var sbHumidex = new StringBuilder("\"humidex\":[");
 
 			DateTime dateFrom;
-			var ambiguousDates = new List<DateTime>();
 
 			if (incremental)
 			{
@@ -2794,8 +2785,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
-				var jsTime = dat.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp.ToUnixTimeMs();
 
 				if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
 				{
@@ -2922,7 +2912,6 @@ namespace CumulusMX
 				&& cumulus.StationOptions.PrimaryAqSensor != (int) Cumulus.PrimaryAqSensor.AirLinkIndoor)
 			{
 				DateTime dateFrom;
-				var ambiguousDates = new List<DateTime>();
 
 				if (incremental)
 				{
@@ -2945,8 +2934,7 @@ namespace CumulusMX
 
 				for (var i = 0; i < data.Count; i++)
 				{
-					var dat = Utils.AmbiguousDateToLocal(data[i].Timestamp, ref ambiguousDates);
-					var jsTime = dat.ToUnixTimeMs();
+					var jsTime = data[i].Timestamp.ToUnixTimeMs();
 
 					if (data[i].Pm2p5.HasValue)
 					{
