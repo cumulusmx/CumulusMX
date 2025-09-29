@@ -224,9 +224,6 @@ namespace CumulusMX
 		internal string diaryfile;
 		internal SQLiteConnection DiaryDB;
 
-		internal string ListSeparator;
-		internal char DirectorySeparator;
-
 		internal int RolloverHour;
 		internal bool Use10amInSummer;
 
@@ -532,7 +529,6 @@ namespace CumulusMX
 
 		public Cumulus()
 		{
-			DirectorySeparator = Path.DirectorySeparatorChar;
 		}
 
 		public void Initialise(int HTTPport, bool DebugEnabled, string startParms)
@@ -541,8 +537,7 @@ namespace CumulusMX
 			Version = $"{fullVer.Major}.{fullVer.Minor}.{fullVer.Build}";
 			Build = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
 
-			AppDir = Directory.GetCurrentDirectory() + DirectorySeparator;
-			WebTagFile = AppDir + "WebTags.txt";
+			WebTagFile = Path.Combine(Directory.GetCurrentDirectory(), "WebTags.txt");
 
 			//b3045>, use same port for WS...  WS port = HTTPS port
 			wsPort = HTTPport;
@@ -552,9 +547,9 @@ namespace CumulusMX
 			LogMessage(" ========================== Cumulus MX starting ==========================");
 
 			LogMessage("Cumulus MX v." + Version + " build " + Build);
-			LogMessage("Working Folder : " + AppDir);
+			LogMessage("Working Folder : " + Directory.GetCurrentDirectory());
 			LogConsoleMessage("Cumulus MX v." + Version + " build " + Build);
-			LogConsoleMessage("Working Dir: " + AppDir);
+			LogConsoleMessage("Working Dir: " + Directory.GetCurrentDirectory());
 
 			IsOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
@@ -609,7 +604,7 @@ namespace CumulusMX
 			// Remove old MD5 hash files
 			CleanUpHashFiles();
 
-			var WebPath = "web" + DirectorySeparator;
+			var WebPath = "web";
 
 			// initialise the third party uploads
 			Wund = new ThirdParty.WebUploadWund(this, "WUnderground");
@@ -626,11 +621,13 @@ namespace CumulusMX
 			{
 				DefaultInterval = 60
 			};
-			if (File.Exists(WebPath + "Bluesky.txt"))
+
+			var blueskyFile = Path.Combine(WebPath, "Bluesky.txt");
+			if (File.Exists(blueskyFile))
 			{
 				try
 				{
-					Bluesky.ContentTemplate = File.ReadAllText(WebPath + "Bluesky.txt", new System.Text.UTF8Encoding(false));
+					Bluesky.ContentTemplate = File.ReadAllText(blueskyFile, new System.Text.UTF8Encoding(false));
 				}
 				catch (Exception ex)
 				{
@@ -653,7 +650,7 @@ namespace CumulusMX
 			[
 				new()
 				{
-					TemplateFileName = WebPath + "websitedataT.json",
+					TemplateFileName = Path.Combine(WebPath, "websitedataT.json"),
 					LocalPath = WebPath,
 					LocalFileName = "websitedata.json",
 					RemoteFileName = "websitedata.json"
@@ -675,8 +672,8 @@ namespace CumulusMX
 				},
 				new()
 				{
-					TemplateFileName = WebPath + "realtimegaugesT.txt",
-					LocalPath = WebPath,
+					TemplateFileName = Path.Combine(WebPath, "realtimegaugesT.txt"),
+					LocalPath =WebPath,
 					LocalFileName = "realtimegauges.txt",
 					RemoteFileName = "realtimegauges.txt"
 				}
@@ -949,11 +946,7 @@ namespace CumulusMX
 			}
 			uploadCountLimitSemaphoreSlim = new SemaphoreSlim(FtpOptions.MaxConcurrentUploads);
 
-			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
-
-			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-
-			LogMessage($"Directory separator=[{DirectorySeparator}] Decimal separator=[{DecimalSeparator}] List separator=[{ListSeparator}]");
+			LogMessage($"Directory separator=[{Path.DirectorySeparatorChar}] Decimal separator=[{CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator}] List separator=[{CultureInfo.CurrentCulture.TextInfo.ListSeparator}]");
 			LogMessage($"Date separator=[{CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator}] Time separator=[{CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator}]");
 
 			LogMessage("Standard time zone name:   " + TimeZoneInfo.Local.StandardName);
@@ -3374,11 +3367,9 @@ namespace CumulusMX
 			return parts;
 		}
 
-		public string DecimalSeparator { get; set; }
-
 		private void CleanUpHashFiles()
 		{
-			foreach (var file in Directory.EnumerateFiles(AppDir, "hash_md5_*.txt"))
+			foreach (var file in Directory.EnumerateFiles(Directory.GetCurrentDirectory(), "hash_md5_*.txt"))
 			{
 				if (!file.EndsWith(Build + ".txt"))
 				{
@@ -5064,7 +5055,7 @@ namespace CumulusMX
 				if (ini.ValueExists("Bluesky", "TimedPost" + i) )
 				{
 					Bluesky.TimedPostsTime[i] = DateTime.ParseExact(ini.GetValue("Bluesky", "TimedPost" + i, "00:00"), "HH:mm", System.Globalization.CultureInfo.InvariantCulture).TimeOfDay;
-					Bluesky.TimedPostsFile[i] = ini.GetValue("Bluesky", "TimedPostFile" + i, "web" + DirectorySeparator + "Bluesky.txt");
+					Bluesky.TimedPostsFile[i] = ini.GetValue("Bluesky", "TimedPostFile" + i, Path.Combine("web", "Bluesky.txt"));
 				}
 				else
 				{
@@ -8231,7 +8222,6 @@ namespace CumulusMX
 		public bool DavisStation { get; set; }
 		public string TempTrendFormat { get; set; }
 		public string PressTrendFormat { get; set; }
-		public string AppDir { get; set; }
 
 		public StationManufacturer Manufacturer { get; set; }
 		public int ImetLoggerInterval { get; set; }
@@ -9306,12 +9296,12 @@ namespace CumulusMX
 				var AirLinkBackup = Path.Combine("data", Path.GetFileName(AirLinkFile));
 
 
-				if (!File.Exists(dirpath + DirectorySeparator + filename))
+				if (!File.Exists(Path.Combine(dirpath, filename)))
 				{
 					// create a zip archive file for the backup
 					try
 					{
-						using (FileStream zipFile = new FileStream(dirpath + DirectorySeparator + filename, FileMode.Create))
+						using (FileStream zipFile = new FileStream(Path.Combine(dirpath, filename), FileMode.Create))
 						{
 							using ZipArchive archive = new ZipArchive(zipFile, ZipArchiveMode.Create);
 							try
@@ -9864,14 +9854,12 @@ namespace CumulusMX
 
 			try
 			{
-				var folderSep2 = Path.AltDirectorySeparatorChar;
-
 				if (!FtpOptions.LocalCopyEnabled)
 					return;
 
 				if (FtpOptions.LocalCopyFolder.Length > 0)
 				{
-					remotePath = (FtpOptions.LocalCopyFolder.EndsWith(DirectorySeparator.ToString()) || FtpOptions.LocalCopyFolder.EndsWith(folderSep2.ToString())) ? FtpOptions.LocalCopyFolder : FtpOptions.LocalCopyFolder + DirectorySeparator;
+					remotePath = FtpOptions.LocalCopyFolder;
 				}
 				else
 				{
@@ -9897,7 +9885,7 @@ namespace CumulusMX
 					var dstPath = string.IsNullOrEmpty(NOAAconf.CopyFolder) ? remotePath : NOAAconf.CopyFolder;
 
 					srcfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
-					dstfile = Path.Combine(dstPath, DirectorySeparator + NOAAconf.LatestMonthReport);
+					dstfile = Path.Combine(dstPath, NOAAconf.LatestMonthReport);
 
 					File.Copy(srcfile, dstfile, true);
 
@@ -10083,7 +10071,7 @@ namespace CumulusMX
 				try
 				{
 					LogDebugMessage("LocalCopy: Copying Moon image file to " + MoonImage.CopyDest);
-					File.Copy("web" + DirectorySeparator + "moon.png", MoonImage.CopyDest, true);
+					File.Copy(Path.Combine("web", "moon.png"), MoonImage.CopyDest, true);
 					LogDebugMessage("LocalCopy: Done copying Moon image file");
 					// clear the image ready for copy flag, only upload once an hour
 					MoonImage.ReadyToCopy = false;
@@ -10728,7 +10716,7 @@ namespace CumulusMX
 							try
 							{
 								LogDebugMessage("SFTP[Int]: Uploading Moon image file");
-								UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImage.FtpDest, -1);
+								UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, -1);
 								LogDebugMessage("SFTP[Int]: Done uploading Moon image file");
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImage.ReadyToFtp = false;
@@ -11065,7 +11053,7 @@ namespace CumulusMX
 							{
 								LogFtpMessage("", false);
 								LogFtpDebugMessage("FTP[Int]: Uploading Moon image file", false);
-								UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImage.FtpDest);
+								UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest);
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImage.ReadyToFtp = false;
 							}
@@ -11586,7 +11574,7 @@ namespace CumulusMX
 						{
 							LogDebugMessage("PHP[Int]: Uploading Moon image file");
 
-							if (await UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true))
+							if (await UploadFile(phpUploadHttpClient, Path.Combine("web", "moon.png"), MoonImage.FtpDest, -1, true))
 							{
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImage.ReadyToFtp = false;
@@ -13042,7 +13030,7 @@ namespace CumulusMX
 				return;
 			}
 
-			var filename = AppDir + RealtimeFile;
+			var filename = Path.Combine(Directory.GetCurrentDirectory(), RealtimeFile);
 
 			try
 			{
@@ -13328,7 +13316,7 @@ namespace CumulusMX
 
 			if (useAppDir)
 			{
-				templatefile = AppDir + template;
+				templatefile = Path.Combine(Directory.GetCurrentDirectory(), template);
 			}
 
 			if (File.Exists(templatefile))
@@ -13353,7 +13341,7 @@ namespace CumulusMX
 
 			if (useAppDir)
 			{
-				templatefile = AppDir + template;
+				templatefile = Path.Combine(Directory.GetCurrentDirectory(), template);
 			}
 
 			if (File.Exists(templatefile))

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Timers;
 
@@ -241,7 +242,7 @@ namespace CumulusMX.Stations
 
 		private string ConvertPeriodToSystemDecimal(string aStr)
 		{
-			return aStr.Replace(".", cumulus.DecimalSeparator);
+			return aStr.Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
 		}
 
 		private double GetConvertedValue(string aStr)

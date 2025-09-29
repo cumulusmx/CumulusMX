@@ -2223,7 +2223,7 @@ namespace CumulusMX
 
 		private void ReadBlakeLarsenData()
 		{
-			var blFile = cumulus.AppDir + "SRsunshine.dat";
+			var blFile = Path.Combine(Directory.GetCurrentDirectory(), "SRsunshine.dat");
 
 			if (File.Exists(blFile))
 			{
@@ -5616,7 +5616,7 @@ namespace CumulusMX
 			// b10153 - barometric pressure in tenths of a millibar - 1015.3 millibars
 			// CommentString - free format information text
 
-			var filename = cumulus.AppDir + Cumulus.WxnowFile;
+			var filename = Path.Combine(Directory.GetCurrentDirectory(), Cumulus.WxnowFile);
 
 			var data = CreateWxnowFileString();
 			using var file = new StreamWriter(filename, false);

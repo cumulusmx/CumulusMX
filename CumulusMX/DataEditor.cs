@@ -3041,7 +3041,7 @@ namespace CumulusMX
 		internal string GetCurrentCond()
 		{
 			string res;
-			string fileName = cumulus.AppDir + "currentconditions.txt";
+			string fileName = Path.Combine(Directory.GetCurrentDirectory(), "currentconditions.txt");
 			if (File.Exists(fileName))
 			{
 				using StreamReader streamReader = new StreamReader(fileName);
@@ -3590,7 +3590,7 @@ namespace CumulusMX
 
 		private bool SetCurrCondText(string currCondText)
 		{
-			var fileName = cumulus.AppDir + "currentconditions.txt";
+			var fileName = Path.Combine(Directory.GetCurrentDirectory(), "currentconditions.txt");
 			try
 			{
 				cumulus.LogMessage("Writing current conditions to file...");

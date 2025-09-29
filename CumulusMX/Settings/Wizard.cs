@@ -337,7 +337,7 @@ namespace CumulusMX.Settings
 					cumulus.MoonImage.Ftp = cumulus.FtpOptions.Enabled;
 					cumulus.MoonImage.Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					if (cumulus.MoonImage.Enabled)
-						cumulus.MoonImage.CopyDest = cumulus.FtpOptions.LocalCopyFolder + "images" + cumulus.DirectorySeparator + "moon.png";
+						cumulus.MoonImage.CopyDest = Path.Combine(cumulus.FtpOptions.LocalCopyFolder, "images", "moon.png");
 
 					// and NOAA reports
 					cumulus.NOAAconf.Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
@@ -345,11 +345,11 @@ namespace CumulusMX.Settings
 					cumulus.NOAAconf.AutoCopy = cumulus.FtpOptions.LocalCopyEnabled;
 					if (cumulus.NOAAconf.AutoCopy)
 					{
-						cumulus.NOAAconf.CopyFolder = cumulus.FtpOptions.LocalCopyFolder + "Reports";
+						cumulus.NOAAconf.CopyFolder = Path.Combine(cumulus.FtpOptions.LocalCopyFolder, "Reports");
 					}
 					if (cumulus.NOAAconf.AutoFtp)
 					{
-						cumulus.NOAAconf.FtpFolder = cumulus.FtpOptions.Directory + (cumulus.FtpOptions.Directory.EndsWith('/') ? "" : "/") + "Reports";
+						cumulus.NOAAconf.FtpFolder = Path.Combine(cumulus.FtpOptions.Directory, "Reports");
 					}
 				}
 				catch (Exception ex)

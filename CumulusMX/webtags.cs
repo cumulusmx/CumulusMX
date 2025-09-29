@@ -351,7 +351,7 @@ namespace CumulusMX
 		public string GetCurrCondText()
 		{
 			string res;
-			string fileName = cumulus.AppDir + "currentconditions.txt";
+			string fileName = Path.Combine(Directory.GetCurrentDirectory(), "currentconditions.txt");
 			if (File.Exists(fileName))
 			{
 				res = ReadFileIntoString(fileName);
