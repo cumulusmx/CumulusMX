@@ -22,6 +22,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Swaps SQLitePCLRaw.bundle_green for newer SQLitePCLRaw.bundle_e_sqlite3
 - Debug and data logging are now fully independent
 - Internal change to the date/time storage in the recent data SQLite database (Cumulus.db)
+- Debug Beta builds no longer save the debug & data logging enabled state into the Cumulus.ini file
 
 ## Fixed
 

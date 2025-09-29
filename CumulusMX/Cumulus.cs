@@ -6156,9 +6156,11 @@ namespace CumulusMX
 			ini.SetValue("Station", "LeafWetnessIsRainingIdx", StationOptions.LeafWetnessIsRainingIdx);
 			ini.SetValue("Station", "LeafWetnessIsRainingVal", StationOptions.LeafWetnessIsRainingThrsh);
 
-
-			ini.SetValue("Station", "Logging", ProgramOptions.DebugLogging);
-			ini.SetValue("Station", "DataLogging", ProgramOptions.DataLogging);
+			if (!DebuggingEnabled)
+			{
+				ini.SetValue("Station", "Logging", ProgramOptions.DebugLogging);
+				ini.SetValue("Station", "DataLogging", ProgramOptions.DataLogging);
+			}
 
 			ini.SetValue("Station", "DavisReadReceptionStats", DavisOptions.ReadReceptionStats);
 			ini.SetValue("Station", "DavisSetLoggerInterval", DavisOptions.SetLoggerInterval);
