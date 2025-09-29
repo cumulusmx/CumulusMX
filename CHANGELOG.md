@@ -20,6 +20,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Removes the dependency on ServiceStack.Text for JSON handling, now using the built-in System.Text.Json
 - Swaps SQLitePCLRaw.bundle_green for newer SQLitePCLRaw.bundle_e_sqlite3
+- Debug and data logging are now fully independent
 
 ## Fixed
 

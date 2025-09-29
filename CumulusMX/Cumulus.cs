@@ -12777,7 +12777,7 @@ namespace CumulusMX
 
 		public void LogDebugMessage(string message)
 		{
-			if (ProgramOptions.DebugLogging || ProgramOptions.DataLogging)
+			if (ProgramOptions.DebugLogging)
 			{
 				Program.MxLogger.Debug(message);
 			}
