@@ -1410,6 +1410,7 @@ namespace CumulusMX.Stations
 						case "0x10": // Rain day
 						case "0x11": // Rain week
 						case "0x12": // Rain month
+						case "0x14": // Rain total?
 									 // do nothing
 							break;
 
