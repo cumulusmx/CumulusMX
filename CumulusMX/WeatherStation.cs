@@ -7831,7 +7831,7 @@ namespace CumulusMX
 
 				if (cumulus.MySqlFuncs.MySqlSettings.CustomRollover.Enabled)
 				{
-					_ = cumulus.CustomMysqlRollover();
+					_ = cumulus.CustomMysqlRollover(cumulus.NormalRunning);
 				}
 
 				if (cumulus.CustomHttpRolloverEnabled)

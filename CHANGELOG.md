@@ -9,12 +9,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.7.0 \[b4127\]][27] - 2025-10-27
+## [4.7.0 \[b41xx\]][27] - 2025-xx-xx
 
 ### New
 
+- First build using Visual Studio 2026
 - The path for the MXdiags files can now be specified in the CumulusMX.runtimeconfig.json file
 - The paths for the data, backup, and reports folders can now be defined in Program Settings
+- Custom Rollover MySQL commands now have the option to control being run during catch-up or not
 
 ## Changed
 

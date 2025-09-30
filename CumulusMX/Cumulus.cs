@@ -5819,10 +5819,14 @@ namespace CumulusMX
 			// MySQL - custom roll-over
 			MySqlFuncs.MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
 			MySqlFuncs.MySqlSettings.CustomRollover.Commands[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", string.Empty);
+			MySqlFuncs.MySqlSettings.CustomRollover.CatchUp[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCatchUp", true);
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlRolloverCommandString" + i))
+				{
 					MySqlFuncs.MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString" + i, string.Empty);
+					MySqlFuncs.MySqlSettings.CustomRollover.CatchUp[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCatchUp" + i, true);
+				}
 			}
 
 			// MySQL - custom start-up
@@ -7343,6 +7347,7 @@ namespace CumulusMX
 
 			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIndex", MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0]);
 			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp", MySqlFuncs.MySqlSettings.CustomMins.CatchUp[0]);
+			ini.SetValue("MySQL", "CustomMySqlRolloverCatchUp", MySqlFuncs.MySqlSettings.CustomRollover.CatchUp[0]);
 
 			for (var i = 1; i < 10; i++)
 			{
@@ -7365,9 +7370,15 @@ namespace CumulusMX
 				}
 
 				if (string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomRollover.Commands[i]))
+				{
 					ini.DeleteValue("MySQL", "CustomMySqlRolloverCommandString" + i);
+					ini.DeleteValue("MySQL", "CustomMySqlRolloverCatchUp" + i);
+				}
 				else
+				{
 					ini.SetValue("MySQL", "CustomMySqlRolloverCommandString" + i, MySqlFuncs.MySqlSettings.CustomRollover.Commands[i]);
+					ini.SetValue("MySQL", "CustomMySqlRolloverCatchUp" + i, MySqlFuncs.MySqlSettings.CustomRollover.CatchUp[i]);
+				}
 
 				if (string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomStartUp.Commands[i]))
 					ini.DeleteValue("MySQL", "CustomMySqlStartUpCommandString" + i);
@@ -13674,7 +13685,7 @@ namespace CumulusMX
 			}
 		}
 
-		internal async Task CustomMysqlRollover()
+		internal async Task CustomMysqlRollover(bool live)
 		{
 			if (station.DataStopped)
 			{
@@ -13692,6 +13703,12 @@ namespace CumulusMX
 				{
 					try
 					{
+						if (!live && !MySqlFuncs.MySqlSettings.CustomRollover.CatchUp[i])
+						{
+							// doing catch-up and catch-up is disabled for this entry
+							continue;
+						}
+
 						if (!string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomRollover.Commands[i]))
 						{
 							tokenParser.InputText = MySqlFuncs.MySqlSettings.CustomRollover.Commands[i];
@@ -15212,7 +15229,7 @@ namespace CumulusMX
 		public MySqlTableSettings Dayfile { get; set; }
 		public MySqlTableSettings CustomSecs { get; set; }
 		public MySqlTableIntervalSettings CustomMins { get; set; }
-		public MySqlTableSettings CustomRollover { get; set; }
+		public MySqlTableIntervalSettings CustomRollover { get; set; }
 		public MySqlTableTimedSettings CustomTimed { get; set; }
 		public MySqlTableSettings CustomStartUp { get; set; }
 
@@ -15224,7 +15241,7 @@ namespace CumulusMX
 			Dayfile = new MySqlTableSettings();
 			CustomSecs = new MySqlTableSettings();
 			CustomMins = new MySqlTableIntervalSettings();
-			CustomRollover = new MySqlTableSettings();
+			CustomRollover = new MySqlTableIntervalSettings();
 			CustomTimed = new MySqlTableTimedSettings();
 			CustomStartUp = new MySqlTableSettings();
 
@@ -15234,6 +15251,7 @@ namespace CumulusMX
 			CustomMins.Intervals = new int[10];
 			CustomMins.CatchUp = new bool[10];
 			CustomRollover.Commands = new string[10];
+			CustomRollover.CatchUp = new bool[10];
 			CustomTimed.Commands = new string[10];
 			CustomTimed.Intervals = new int[10];
 			CustomTimed.StartTimes = new TimeSpan[10];
