@@ -1044,7 +1044,7 @@ namespace CumulusMX.Stations
 
 					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
 
-					while ((line = await streamReader.ReadLineAsync()) != null)
+					while ((line = await streamReader.ReadLineAsync(token)) != null)
 					{
 						count++;
 
@@ -1066,8 +1066,13 @@ namespace CumulusMX.Stations
 							if (fields.Length < 10)
 							{
 								cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} header line is malformed");
-								cumulus.LogDataMessage("Header line = " + line);
-								return null;
+								cumulus.LogMessage("Header line = " + line);
+								// try again?
+								if (retries >= 0)
+								{
+									cumulus.LogMessage("LocalApi.GetSdFileContents: Try and fetch the file again");
+								}
+								break;
 							}
 
 							useTimeStamp = fields[1].ToLower() == "timestamp";
@@ -1112,7 +1117,10 @@ namespace CumulusMX.Stations
 
 					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracted {result.Count} lines from {fileName}");
 
-					return result;
+					if (result.Count > 0)
+					{
+						return result;
+					}
 				}
 				catch (HttpRequestException ex)
 				{

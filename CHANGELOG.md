@@ -41,7 +41,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Crash caused by EcowittMacAddress=null in Cumulus.ini
+- Add additional error handling for dates date/times with the min val 0001-01-01
+- Enable Ecowitt SD card file content reading retries when zero length files are returned
 
+---
 
 ## [4.6.3 \[b4127\]][26] - 2025-09-27
 
