@@ -433,14 +433,15 @@ namespace CumulusMX
 					cumulus.LogMessage("SQLite integrity check OK");
 					errorCount = 0;
 				}
-
-				foreach (var row in res)
+				else
 				{
-					cumulus.LogErrorMessage("SQLite integrity check result: " + row.Replace("\n", "\n    "));
-					if (row == "database disk image is malformed")
-						rebuild = true;
+					foreach (var row in res)
+					{
+						cumulus.LogErrorMessage("SQLite integrity check result: " + row.Replace("\n", "\n    "));
+						if (row == "database disk image is malformed")
+							rebuild = true;
+					}
 				}
-
 			}
 			catch (Exception ex)
 			{
