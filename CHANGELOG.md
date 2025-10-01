@@ -9,7 +9,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.7.0 \[b41xx\]][27] - 2025-xx-xx
+## [4.7.0 \[b41xx\]][29] - 2025-xx-xx
 
 ### New
 
@@ -35,6 +35,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - ServiceStack.Text [REMOVED]
 - SQLitePCLRaw.bundle_green [REMOVED]
 - SQLitePCLRaw.bundle_e_sqlite3 [ADDED]
+
+---
+
+## [4.6.5 \[b4129\]][28] - 2025-10-30
+
+### Fixed
+
+- Improved malformed Ecowitt cloud API response handling for LDS values
 
 ---
 
@@ -1115,3 +1123,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [25]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4122
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
+[28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
