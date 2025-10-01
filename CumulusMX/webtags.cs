@@ -3620,7 +3620,7 @@ namespace CumulusMX
 
 		private string Tagforum(Dictionary<string, string> tagParams)
 		{
-			if (string.IsNullOrEmpty(cumulus.ForumURL))
+			if (string.IsNullOrEmpty(cumulus.ForumURL) || cumulus.ForumURL == "null")
 			{
 				return string.Empty;
 			}
@@ -3630,7 +3630,7 @@ namespace CumulusMX
 
 		private string Tagforumurl(Dictionary<string, string> tagParams)
 		{
-			return cumulus.ForumURL ?? string.Empty;
+			return string.IsNullOrEmpty(cumulus.ForumURL) || cumulus.ForumURL == "null" ? string.Empty : cumulus.ForumURL;
 		}
 
 		private string Tagwebcam(Dictionary<string, string> tagParams)
