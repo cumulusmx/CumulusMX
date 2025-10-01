@@ -1306,33 +1306,46 @@ namespace CumulusMX.Stations
 			{
 				if (data.ch_lds1.air_ch1 != null)
 				{
-					var dist = data.ch_lds1.air_ch1.unit switch
+					decimal? dist = null;
+					if (data.ch_lds1.air_ch1.value.HasValue)
 					{
-						"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value),
-						"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value / 10),
-						"in" => ConvertUnits.LaserInchesToUser(data.ch_lds1.air_ch1.value.Value),
-						"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.air_ch1.value.Value / 12),
-						_ => data.ch_lds1.air_ch1.value
-					};
+						dist = data.ch_lds1.air_ch1.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value / 10),
+							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds1.air_ch1.value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.air_ch1.value.Value / 12),
+							_ => data.ch_lds1.air_ch1.value
+						};
+					}
 					station.DoLaserDistance(dist, 1);
 				}
+
 				if (data.ch_lds1.depth_ch1 != null)
 				{
-					var dist = data.ch_lds1.depth_ch1.unit switch
+					decimal? dist = null;
+					if (data.ch_lds1.depth_ch1.value.HasValue)
 					{
-						"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value),
-						"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value),
-						"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.depth_ch1.value.Value / 12),
-						_ => data.ch_lds1.depth_ch1.value
-					};
+						dist = data.ch_lds1.depth_ch1.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.depth_ch1.value.Value / 12),
+							_ => data.ch_lds1.depth_ch1.value
+						};
+					}
 					station.DoLaserDepth(dist, 1);
 				}
+			}
 
-				if (data.ch_lds2 != null)
+			if (data.ch_lds2 != null)
+			{
+				if (data.ch_lds2.air_ch2 != null)
 				{
-					if (data.ch_lds2.air_ch2 != null)
+					decimal? dist = null;
+					if (data.ch_lds2.air_ch2.value.HasValue)
 					{
-						var dist = data.ch_lds2.air_ch2.unit switch
+						dist = data.ch_lds2.air_ch2.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds2.air_ch2.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.air_ch2.value.Value / 10),
@@ -1340,11 +1353,16 @@ namespace CumulusMX.Stations
 							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds2.air_ch2.value.Value / 12),
 							_ => data.ch_lds2.air_ch2.value
 						};
-						station.DoLaserDistance(dist, 2);
 					}
-					if (data.ch_lds2.depth_ch2 != null)
+					station.DoLaserDistance(dist, 2);
+				}
+
+				if (data.ch_lds2.depth_ch2 != null)
+				{
+					decimal? dist = null;
+					if (data.ch_lds2.depth_ch2.value.HasValue)
 					{
-						var dist = data.ch_lds2.depth_ch2.unit switch
+						dist = data.ch_lds2.depth_ch2.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds2.depth_ch2.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.depth_ch2.value.Value / 10),
@@ -1352,15 +1370,19 @@ namespace CumulusMX.Stations
 							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds2.depth_ch2.value.Value / 12),
 							_ => data.ch_lds2.depth_ch2.value
 						};
-						station.DoLaserDepth(dist, 1);
 					}
+					station.DoLaserDepth(dist, 2);
 				}
+			}
 
-				if (data.ch_lds3 != null)
+			if (data.ch_lds3 != null)
+			{
+				if (data.ch_lds3.air_ch3 != null)
 				{
-					if (data.ch_lds3.air_ch3 != null)
+					decimal? dist = null;
+					if (data.ch_lds3.air_ch3.value.HasValue)
 					{
-						var dist = data.ch_lds3.air_ch3.unit switch
+						dist = data.ch_lds3.air_ch3.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds3.air_ch3.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.air_ch3.value.Value / 10),
@@ -1368,11 +1390,16 @@ namespace CumulusMX.Stations
 							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds3.air_ch3.value.Value / 12),
 							_ => data.ch_lds3.air_ch3.value
 						};
-						station.DoLaserDistance(dist, 2);
 					}
-					if (data.ch_lds3.depth_ch3 != null)
+					station.DoLaserDistance(dist, 3);
+				}
+
+				if (data.ch_lds3.depth_ch3 != null)
+				{
+					decimal? dist = null;
+					if (data.ch_lds3.depth_ch3.value.HasValue)
 					{
-						var dist = data.ch_lds3.depth_ch3.unit switch
+						dist = data.ch_lds3.depth_ch3.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds3.depth_ch3.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.depth_ch3.value.Value / 10),
@@ -1380,15 +1407,19 @@ namespace CumulusMX.Stations
 							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds3.depth_ch3.value.Value / 12),
 							_ => data.ch_lds3.depth_ch3.value
 						};
-						station.DoLaserDepth(dist, 1);
 					}
+					station.DoLaserDepth(dist, 3);
 				}
+			}
 
-				if (data.ch_lds4 != null)
+			if (data.ch_lds4 != null)
+			{
+				if (data.ch_lds4.air_ch4 != null)
 				{
-					if (data.ch_lds4.air_ch4 != null)
+					decimal? dist = null;
+					if (data.ch_lds4.air_ch4.value.HasValue)
 					{
-						var dist = data.ch_lds4.air_ch4.unit switch
+						dist = data.ch_lds4.air_ch4.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds4.air_ch4.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.air_ch4.value.Value / 10),
@@ -1396,11 +1427,16 @@ namespace CumulusMX.Stations
 							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds4.air_ch4.value.Value / 12),
 							_ => data.ch_lds4.air_ch4.value
 						};
-						station.DoLaserDistance(dist, 2);
 					}
-					if (data.ch_lds4.depth_ch4 != null)
+					station.DoLaserDistance(dist, 4);
+				}
+
+				if (data.ch_lds4.depth_ch4 != null)
+				{
+					decimal? dist = null;
+					if (data.ch_lds4.depth_ch4.value.HasValue)
 					{
-						var dist = data.ch_lds4.depth_ch4.unit switch
+						dist = data.ch_lds4.depth_ch4.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds4.depth_ch4.value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.depth_ch4.value.Value / 10),
@@ -1408,8 +1444,8 @@ namespace CumulusMX.Stations
 							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds4.depth_ch4.value.Value / 12),
 							_ => data.ch_lds4.depth_ch4.value
 						};
-						station.DoLaserDepth(dist, 1);
 					}
+					station.DoLaserDepth(dist, 4);
 				}
 			}
 		}

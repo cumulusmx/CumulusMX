@@ -10723,7 +10723,7 @@ namespace CumulusMX
 				// calculate depth?
 				if (cumulus.LaserDepthBaseline[index] > -1)
 				{
-					DoLaserDepth(cumulus.LaserDepthBaseline[index] - value, index);
+					DoLaserDepth(value.HasValue ? cumulus.LaserDepthBaseline[index] - value : value, index);
 				}
 			}
 		}
