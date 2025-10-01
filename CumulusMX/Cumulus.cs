@@ -421,8 +421,6 @@ namespace CumulusMX
 
 		private const string ForumDefault = "https://cumulus.hosiene.co.uk/";
 
-		private const string WebcamDefault = "";
-
 		private const string DefaultSoundFile = "alarm.mp3";
 		private const string DefaultSoundFileOld = "alert.wav";
 
@@ -4802,7 +4800,7 @@ namespace CumulusMX
 			DailyParams = ini.GetValue("FTP site", "DailyParams", string.Empty);
 
 			ForumURL = ini.GetValue("Web Site", "ForumURL", ForumDefault);
-			WebcamURL = ini.GetValue("Web Site", "WebcamURL", WebcamDefault);
+			WebcamURL = ini.GetValue("Web Site", "WebcamURL", string.Empty);
 
 			CloudBaseInFeet = ini.GetValue("Station", "CloudBaseInFeet", true);
 

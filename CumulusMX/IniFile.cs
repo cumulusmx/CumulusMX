@@ -475,9 +475,6 @@ namespace CumulusMX
 				// *** Check if the value is blank ***
 				if (Value == string.Empty) return DefaultValue;
 
-				// *** Check for value is null ***
-				if (Value == "null") return null;
-
 				// *** Return the found value ***
 				return Value;
 			}
@@ -633,7 +630,6 @@ namespace CumulusMX
 				}
 
 				// *** Modify the value ***
-				if (Value is null) Value = "null";
 				Section.Remove(Key);
 				Section.Add(Key, Value);
 			}

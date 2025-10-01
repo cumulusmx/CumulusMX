@@ -317,7 +317,7 @@ namespace CumulusMX.Settings
 				try
 				{
 					cumulus.WebcamURL = settings.misc.webcamurl;
-					cumulus.ForumURL = settings.misc.forumurl;
+					cumulus.ForumURL = string.IsNullOrEmpty(settings.misc.forumurl) ? "null" : settings.misc.forumurl;
 				}
 				catch (Exception ex)
 				{
@@ -532,7 +532,7 @@ namespace CumulusMX.Settings
 
 			var misc = new JsonInternetSettingsMisc()
 			{
-				forumurl = cumulus.ForumURL,
+				forumurl = string.IsNullOrEmpty(cumulus.ForumURL) ? "null" : cumulus.ForumURL,
 				webcamurl = cumulus.WebcamURL
 			};
 
