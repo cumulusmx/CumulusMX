@@ -530,8 +530,8 @@ namespace CumulusMX.Settings
 
 			var misc = new JsonInternetSettingsMisc()
 			{
-				forumurl = string.IsNullOrEmpty(cumulus.ForumURL) ? "null" : cumulus.ForumURL,
-				webcamurl = cumulus.WebcamURL
+				forumurl = string.IsNullOrEmpty(cumulus.ForumURL) || cumulus.ForumURL == "null" ? null : cumulus.ForumURL,
+				webcamurl = string.IsNullOrEmpty(cumulus.WebcamURL) || cumulus.WebcamURL == "null" ? null : cumulus.WebcamURL
 			};
 
 			var data = new JsonInternetSettingsData()
