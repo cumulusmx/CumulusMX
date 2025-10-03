@@ -906,6 +906,15 @@ namespace CumulusMX
 			ReadIniFile();
 			ReadConfigFile();
 
+			if (ProgramOptions.ProcessLogFilesLevel == 0)
+			{
+				LogConsoleMessage("Converting log files to new format...");
+				LogFileConverter.AddUnixTimestamp.ProcessLogFiles(ProgramOptions.DataPath);
+				ProgramOptions.ProcessLogFilesLevel = 1;
+				WriteIniFile();
+				LogConsoleMessage("Log file conversion complete");
+			}
+
 			for (var i = 2; i < GraphDataFiles.Length; i++)
 			{
 				GraphDataFiles[i].LastDataTime = RecordsBeganDateTime;
@@ -3839,6 +3848,8 @@ namespace CumulusMX
 				ini.Refresh();
 			}
 
+			ProgramOptions.ProcessLogFilesLevel = ini.GetValue("Program", "ProcessLogFiles", 0);
+
 			ProgramOptions.EnableAccessibility = ini.GetValue("Program", "EnableAccessibility", false);
 
 			ProgramOptions.StartupPingHost = ini.GetValue("Program", "StartupPingHost", string.Empty);
@@ -6092,6 +6103,8 @@ namespace CumulusMX
 			LogMessage("Writing Cumulus.ini file");
 
 			IniFile ini = new IniFile("Cumulus.ini");
+
+			ini.SetValue("Program", "ProcessLogFiles", ProgramOptions.ProcessLogFilesLevel);
 
 			ini.SetValue("Program", "EnableAccessibility", ProgramOptions.EnableAccessibility);
 
@@ -8449,43 +8462,14 @@ namespace CumulusMX
 			LogDebugMessage("DoLogFile: max gust: " + station.RecentMaxGust.ToString(WindFormat));
 			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, (double) Longitude, (double) Latitude, ConvertUnits.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
 			var filename = GetLogFileName(timestamp);
+
+			var line = LogFileRec.CurrentToCsv(timestamp, this, station);
 			var inv = CultureInfo.InvariantCulture;
 			var sep = ",";
-
-			var sb = new StringBuilder(256);
-			sb.Append(timestamp.ToString("dd/MM/yy", inv));
-			sb.Append(sep + timestamp.ToString("HH:mm", inv));
-			sb.Append(sep + station.OutdoorTemperature.ToString(TempFormat, inv));
-			sb.Append(sep + station.OutdoorHumidity);
-			sb.Append(sep + station.OutdoorDewpoint.ToString(TempFormat, inv));
-			sb.Append(sep + station.WindAverage.ToString(WindAvgFormat, inv));
-			sb.Append(sep + station.RecentMaxGust.ToString(WindFormat, inv));
-			sb.Append(sep + station.AvgBearing);
-			sb.Append(sep + station.RainRate.ToString(RainFormat, inv));
-			sb.Append(sep + station.RainToday.ToString(RainFormat, inv));
-			sb.Append(sep + station.Pressure.ToString(PressFormat, inv));
-			sb.Append(sep + station.RainCounter.ToString(RainFormat, inv));
-			sb.Append(sep + (station.IndoorTemperature.HasValue ? station.IndoorTemperature.Value.ToString(TempFormat, inv) : string.Empty));
-			sb.Append(sep + (station.IndoorHumidity.HasValue ? station.IndoorHumidity : string.Empty));
-			sb.Append(sep + station.WindLatest.ToString(WindFormat, inv));
-			sb.Append(sep + station.WindChill.ToString(TempFormat, inv));
-			sb.Append(sep + station.HeatIndex.ToString(TempFormat, inv));
-			sb.Append(sep + (station.UV.HasValue ? station.UV.Value.ToString(UVFormat, inv) : string.Empty));
-			sb.Append(sep + (station.SolarRad.HasValue ? station.SolarRad : string.Empty));
-			sb.Append(sep + station.ET.ToString(ETFormat, inv));
-			sb.Append(sep + station.AnnualETTotal.ToString(ETFormat, inv));
-			sb.Append(sep + station.ApparentTemperature.ToString(TempFormat, inv));
-			sb.Append(sep + station.CurrentSolarMax);
-			sb.Append(sep + station.SunshineHours.ToString(SunFormat, inv));
-			sb.Append(sep + station.Bearing);
-			sb.Append(sep + station.RG11RainToday.ToString(RainFormat, inv));
-			sb.Append(sep + station.RainSinceMidnight.ToString(RainFormat, inv));
-			sb.Append(sep + station.FeelsLike.ToString(TempFormat, inv));
-			sb.AppendLine(sep + station.Humidex.ToString(TempFormat, inv));
-
 			var success = false;
 			var retries = LogFileRetries;
-			var charArr = sb.ToString().ToCharArray();
+			//var charArr = sb.ToString().ToCharArray();
+			var charArr = line.ToCharArray();
 
 			do
 			{
@@ -14812,6 +14796,7 @@ namespace CumulusMX
 		public string DataPath { get; set; }
 		public string BackupPath { get; set; }
 		public string ReportsPath { get; set; }
+		public int ProcessLogFilesLevel { get; set; }
 	}
 
 	public class CultureConfig

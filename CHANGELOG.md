@@ -13,17 +13,24 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-- First build using Visual Studio 2026
+- First build using Visual Studio 2026, and sees some preparation for transitionaing to .NET 10
 - The path for the MXdiags files can now be specified in the CumulusMX.runtimeconfig.json file
 - The paths for the data, backup, and reports folders can now be defined in Program Settings
 - Custom Rollover MySQL commands now have the option to control being run during catch-up or not
 
 ## Changed
 
+- Monthly log files have changed format, the first two values of each record are different to resolve DST transition ambiguities
+	- Old format records start: Date,Time,
+	- New format records start: Date_Time,Unix_Timestamp,
+	- All the data fields retain the same offsets as before
+	- The log files will automatically be converted on the first run of v4.7.0
+	- The Date_Time field is now purely for human readability, Cumulus MX now uses the Unix Timestamp internally
 - Removes the dependency on ServiceStack.Text for JSON handling, now using the built-in System.Text.Json
 - Swaps SQLitePCLRaw.bundle_green for newer SQLitePCLRaw.bundle_e_sqlite3
 - Debug and data logging are now fully independent
 - Internal change to the date/time storage in the recent data SQLite database (Cumulus.db)
+	- DateTimes are now stored as .NET "ticks" to resolve DST transition ambiguities
 - Debug Beta builds no longer save the debug & data logging enabled state into the Cumulus.ini file
 
 ## Fixed

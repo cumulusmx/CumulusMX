@@ -71,37 +71,6 @@ namespace CumulusMX
 			}
 		}
 
-		public struct LogFileRec
-		{
-			public DateTime Date;
-			public double OutdoorTemperature;
-			public int OutdoorHumidity;
-			public double OutdoorDewpoint;
-			public double WindAverage;
-			public double RecentMaxGust;
-			public int AvgBearing;
-			public double RainRate;
-			public double RainToday;
-			public double Pressure;
-			public double Raincounter;
-			public double? IndoorTemperature;
-			public int? IndoorHumidity;
-			public double WindLatest;
-			public double WindChill;
-			public double HeatIndex;
-			public double? UV;
-			public double? SolarRad;
-			public double ET;
-			public double AnnualETTotal;
-			public double ApparentTemperature;
-			public double CurrentSolarMax;
-			public double SunshineHours;
-			public int Bearing;
-			public double RG11RainToday;
-			public double RainSinceMidnight;
-			public double FeelsLike;
-			public double Humidex;
-		}
 
 		public List<DayFileRec> DayFile = [];
 
@@ -621,7 +590,7 @@ namespace CumulusMX
 							raincounterfound = true;
 
 							// get date of this entry
-							logdate = st[0];
+							logdate = st[0][..8];
 
 							if (logdate != prevlogdate && todaydatestring == logdate && initialiseMidnightRain && !midnightrainfound || cumulus.RolloverHour == 0 && initialiseRainDayStart && !raindaystartfound)
 							{
@@ -644,7 +613,7 @@ namespace CumulusMX
 
 							if (initialiseRainDayStart && !raindaystartfound && cumulus.RolloverHour != 0)
 							{
-								var logDateTime = Utils.ddmmyyhhmmStrToDate(st[0], st[1]);
+								var logDateTime = long.Parse(st[1]).FromUnixTime();
 								if (logDateTime >= meteoDate)
 								{
 									raindaystartfound = true;
@@ -4758,8 +4727,6 @@ namespace CumulusMX
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
 
-			var ambiguousDates = new List<DateTime>();
-
 			var finished = false;
 
 			while (!finished)
@@ -4785,19 +4752,20 @@ namespace CumulusMX
 								if (string.IsNullOrWhiteSpace(line))
 									continue;
 
-								var rec = ParseLogFileRec2(line, true, ref ambiguousDates);
+								var rec = new LogFileRec(line);
+								var recDate = rec.DateTime;
 
-								if (rec.Date < dateFrom)
+								if (recDate < dateFrom)
 									continue;
 
-								if (rec.Date > dateTo)
+								if (recDate > dateTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervalTempGraphData: Finished processing the log files");
 									break;
 								}
 
-								var jsTime = rec.Date.ToUnixTimeMs();
+								var jsTime = rec.UnixTimestamp * 1000;
 
 								if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
 									sbIn.Append($"[{jsTime},{(rec.IndoorTemperature.HasValue ? rec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
@@ -4806,22 +4774,22 @@ namespace CumulusMX
 									sbDew.Append($"[{jsTime},{rec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)}],");
 
 								if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
-									sbApp.Append($"[{jsTime},{rec.ApparentTemperature.ToString(cumulus.TempFormat, InvC)}],");
+									sbApp.Append($"[{jsTime},{(rec.ApparentTemperature.HasValue ? rec.ApparentTemperature.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
 
 								if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
-									sbFeel.Append($"[{jsTime},{rec.FeelsLike.ToString(cumulus.TempFormat, InvC)}],");
+									sbFeel.Append($"[{jsTime},{(rec.FeelsLike.HasValue ? rec.FeelsLike.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
 
 								if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
-									sbChill.Append($"[{jsTime},{rec.WindChill.ToString(cumulus.TempFormat, InvC)}],");
+									sbChill.Append($"[{jsTime},{(rec.WindChill.HasValue ? rec.WindChill.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
 
 								if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
-									sbHeat.Append($"[{jsTime},{rec.HeatIndex.ToString(cumulus.TempFormat, InvC)}],");
+									sbHeat.Append($"[{jsTime},{(rec.HeatIndex.HasValue ? rec.HeatIndex.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
 
 								if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
 									sbTemp.Append($"[{jsTime},{rec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)}],");
 
 								if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
-									sbHumidex.Append($"[{jsTime},{rec.Humidex.ToString(cumulus.TempFormat, InvC)}],");
+									sbHumidex.Append($"[{jsTime},{(rec.Humidex.HasValue ? rec.Humidex.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
 							}
 							catch (Exception e)
 							{
@@ -4961,8 +4929,6 @@ namespace CumulusMX
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
 
-			var ambiguousDates = new List<DateTime>();
-
 			var finished = false;
 
 			while (!finished)
@@ -4988,19 +4954,20 @@ namespace CumulusMX
 								if (string.IsNullOrWhiteSpace(line))
 									continue;
 
-								var rec = ParseLogFileRec2(line, true, ref ambiguousDates);
+								var rec = new LogFileRec(line);
+								var recDate = rec.DateTime;
 
-								if (rec.Date < dateFrom)
+								if (recDate < dateFrom)
 									continue;
 
-								if (rec.Date > dateTo)
+								if (recDate > dateTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervalHumGraphData: Finished processing the log files");
 									break;
 								}
 
-								var jsTime = rec.Date.ToUnixTimeMs();
+								var jsTime = rec.UnixTimestamp * 1000;
 
 								if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 								{
@@ -5123,19 +5090,20 @@ namespace CumulusMX
 								// skip empty lines
 								if (string.IsNullOrWhiteSpace(line)) continue;
 
-								var rec = ParseLogFileRec2(line, true, ref ambiguousDates);
+								var rec = new LogFileRec(line);
+								var recDate = rec.DateTime;
 
-								if (rec.Date < dateFrom)
+								if (recDate < dateFrom)
 									continue;
 
-								if (rec.Date > dateTo)
+								if (recDate > dateTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervalSolarGraphData: Finished processing the log files");
 									break;
 								}
 
-								var jsTime = rec.Date.ToUnixTimeMs();
+								var jsTime = rec.UnixTimestamp * 1000;
 
 								if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 								{
@@ -5235,8 +5203,6 @@ namespace CumulusMX
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
 
-			var ambiguousDates = new List<DateTime>();
-
 			var finished = false;
 
 			while (!finished)
@@ -5262,19 +5228,20 @@ namespace CumulusMX
 								if (string.IsNullOrWhiteSpace(line))
 									continue;
 
-								var rec = ParseLogFileRec2(line, true, ref ambiguousDates);
+								var rec = new LogFileRec(line);
+								var recDate = rec.DateTime;
 
-								if (rec.Date < dateFrom)
+								if (recDate < dateFrom)
 									continue;
 
-								if (rec.Date > dateTo)
+								if (recDate > dateTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervaPressGraphData: Finished processing the log files");
 									break;
 								}
 
-								sb.Append($"[{rec.Date.ToUnixTimeMs()},{rec.Pressure.ToString(cumulus.PressFormat, InvC)}],");
+								sb.Append($"[{rec.UnixTimestamp * 1000},{rec.Pressure.ToString(cumulus.PressFormat, InvC)}],");
 							}
 							catch (Exception e)
 							{
@@ -5342,8 +5309,6 @@ namespace CumulusMX
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
 
-			var ambiguousDates = new List<DateTime>();
-
 			var finished = false;
 
 			while (!finished)
@@ -5369,19 +5334,20 @@ namespace CumulusMX
 								if (string.IsNullOrWhiteSpace(line))
 									continue;
 
-								var rec = ParseLogFileRec2(line, true, ref ambiguousDates);
+								var rec = new LogFileRec(line);
+								var recDate = rec.DateTime;
 
-								if (rec.Date < dateFrom)
+								if (recDate < dateFrom)
 									continue;
 
-								if (rec.Date > dateTo)
+								if (recDate > dateTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervalWindGraphData: Finished processing the log files");
 									break;
 								}
 
-								var jsTime = rec.Date.ToUnixTimeMs();
+								var jsTime = rec.UnixTimestamp * 1000;
 
 								sb.Append($"[{jsTime},{rec.RecentMaxGust.ToString(cumulus.WindFormat, InvC)}],");
 
@@ -5466,8 +5432,6 @@ namespace CumulusMX
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
 
-			var ambiguousDates = new List<DateTime>();
-
 			var finished = false;
 
 			while (!finished)
@@ -5489,19 +5453,20 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 
-								var rec = ParseLogFileRec2(line, true, ref ambiguousDates);
+								var rec = new LogFileRec(line);
+								var recDate = rec.DateTime;
 
-								if (rec.Date < dateFrom)
+								if (recDate < dateFrom)
 									continue;
 
-								if (rec.Date > dateTo)
+								if (recDate > dateTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervaRainGraphData: Finished processing the log files");
 									break;
 								}
 
-								var jsTime = rec.Date.ToUnixTimeMs();
+								var jsTime = rec.UnixTimestamp * 1000;
 
 								sbRain.Append($"[{jsTime},{rec.RainToday.ToString(cumulus.RainFormat, InvC)}],");
 
@@ -9534,15 +9499,16 @@ namespace CumulusMX
 								if (string.IsNullOrWhiteSpace(line))
 									continue;
 
-								var rec = ParseLogFileRec2(line, false, ref ambiguousDates);
+								var rec = new LogFileRec(line);
+								var recDate = rec.DateTime;
 
-								if (rec.Date >= datefrom && entrydate <= dateto)
+								if (recDate >= datefrom && entrydate <= dateto)
 								{
 									rowsToAdd.Add(new RecentData()
 									{
-										Timestamp = rec.Date,
+										Timestamp = recDate,
 										DewPoint = rec.OutdoorDewpoint,
-										HeatIndex = rec.HeatIndex,
+										HeatIndex = rec.HeatIndex ?? 0,
 										Humidity = rec.OutdoorHumidity,
 										OutsideTemp = rec.OutdoorTemperature,
 										Pressure = rec.Pressure,
@@ -9552,13 +9518,13 @@ namespace CumulusMX
 										WindAvgDir = rec.AvgBearing,
 										WindGust = rec.RecentMaxGust,
 										WindLatest = rec.WindLatest,
-										WindChill = rec.WindChill,
-										WindDir = rec.Bearing,
+										WindChill = rec.WindChill ?? 0,
+										WindDir = rec.Bearing ?? 0,
 										WindSpeed = rec.WindAverage,
-										raincounter = rec.Raincounter,
-										FeelsLike = rec.FeelsLike,
-										Humidex = rec.Humidex,
-										AppTemp = rec.ApparentTemperature,
+										raincounter = rec.RainCounter,
+										FeelsLike = rec.FeelsLike ?? 0,
+										Humidex = rec.Humidex ?? 0,
+										AppTemp = rec.ApparentTemperature ?? 0,
 										IndoorTemp = rec.IndoorTemperature,
 										IndoorHumidity = rec.IndoorHumidity,
 										SolarMax = (int) rec.CurrentSolarMax,
@@ -10155,284 +10121,6 @@ namespace CumulusMX
 				cumulus.LogExceptionMessage(ex, "LoadDayFile: Error");
 				dayfileReloading = false;
 				return "Error processing dayfile: " + ex.Message;
-			}
-		}
-
-		// errors are caught by the caller
-		public LogFileRec ParseLogFileRec(string data, bool minMax)
-		{
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
-			// 2  Current temperature
-			// 3  Current humidity
-			// 4  Current dewpoint
-			// 5  Current wind speed
-			// 6  Recent (10-minute) high gust
-			// 7  Average wind bearing
-			// 8  Current rainfall rate
-			// 9  Total rainfall today so far
-			// 10  Current sea level pressure
-			// 11  Total rainfall counter as held by the station
-			// 12  Inside temperature
-			// 13  Inside humidity
-			// 14  Current gust (i.e. 'Latest')
-			// 15  Wind chill
-			// 16  Heat Index
-			// 17  UV Index
-			// 18  Solar Radiation
-			// 19  Evapotranspiration
-			// 20  Annual Evapotranspiration
-			// 21  Apparent temperature
-			// 22  Current theoretical max solar radiation
-			// 23  Hours of sunshine so far today
-			// 24  Current wind bearing
-			// 25  RG-11 rain total
-			// 26  Rain since midnight
-			// 27  Feels like
-			// 28  Humidex
-
-			try
-			{
-				var inv = CultureInfo.InvariantCulture;
-				var st = new List<string>(data.Split(','));
-				double resultDbl;
-				int resultInt;
-				// We allow int values to have a decimal point because log files sometimes get mangled by Excel etc!
-				var rec = new LogFileRec()
-				{
-					Date = Utils.ddmmyyhhmmStrToDate(st[0], st[1]),
-					OutdoorTemperature = Convert.ToDouble(st[2], inv),
-					OutdoorHumidity = Convert.ToInt32(Convert.ToDouble(st[3], inv)),
-					OutdoorDewpoint = Convert.ToDouble(st[4], inv),
-					WindAverage = Convert.ToDouble(st[5], inv),
-					RecentMaxGust = Convert.ToDouble(st[6], inv),
-					AvgBearing = Convert.ToInt32(Convert.ToDouble(st[7], inv)),
-					RainRate = Convert.ToDouble(st[8], inv),
-					RainToday = Convert.ToDouble(st[9], inv),
-					Pressure = Convert.ToDouble(st[10], inv),
-					Raincounter = Convert.ToDouble(st[11], inv),
-					IndoorTemperature = double.TryParse(st[12], inv, out resultDbl) ? resultDbl : null,
-					IndoorHumidity = int.TryParse(st[13], out resultInt) ? resultInt : null,
-					WindLatest = Convert.ToDouble(st[14], inv)
-				};
-
-
-				if (st.Count > 15 && double.TryParse(st[15], inv, out resultDbl))
-					rec.WindChill = resultDbl;
-				else
-					rec.WindChill = minMax ? Cumulus.DefaultLoVal : 0.0;
-
-				if (st.Count > 16 && double.TryParse(st[16], inv, out resultDbl))
-					rec.HeatIndex = resultDbl;
-				else
-					rec.HeatIndex = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 17 && double.TryParse(st[17], inv, out resultDbl))
-					rec.UV = resultDbl;
-				else
-					rec.UV = null;
-
-				if (st.Count > 18 && double.TryParse(st[18], inv, out resultDbl))
-					rec.SolarRad = resultDbl;
-				else
-					rec.SolarRad = null;
-
-				if (st.Count > 19 && double.TryParse(st[19], inv, out resultDbl))
-					rec.ET = resultDbl;
-				else
-					rec.ET = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 20 && double.TryParse(st[20], inv, out resultDbl))
-					rec.AnnualETTotal = resultDbl;
-				else
-					rec.AnnualETTotal = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 21 && double.TryParse(st[21], inv, out resultDbl))
-					rec.ApparentTemperature = resultDbl;
-				else
-					rec.ApparentTemperature = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 22 && double.TryParse(st[22], inv, out resultDbl))
-					rec.CurrentSolarMax = resultDbl;
-				else
-					rec.CurrentSolarMax = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 23 && double.TryParse(st[23], inv, out resultDbl))
-					rec.SunshineHours = resultDbl;
-				else
-					rec.SunshineHours = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 24 && int.TryParse(st[24], out resultInt))
-					rec.Bearing = resultInt;
-				else
-					rec.Bearing = 0;
-
-				if (st.Count > 25 && double.TryParse(st[25], inv, out resultDbl))
-					rec.RG11RainToday = resultDbl;
-				else
-					rec.RG11RainToday = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 26 && double.TryParse(st[26], inv, out resultDbl))
-					rec.RainSinceMidnight = resultDbl;
-				else
-					rec.RainSinceMidnight = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 27 && double.TryParse(st[27], inv, out resultDbl))
-					rec.FeelsLike = resultDbl;
-				else
-					rec.FeelsLike = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 28 && double.TryParse(st[28], inv, out resultDbl))
-					rec.Humidex = resultDbl;
-				else
-					rec.Humidex = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				return rec;
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogErrorMessage("Error parsing log file record: " + ex.Message);
-				cumulus.LogDataMessage("Log record: " + data);
-				throw;
-			}
-		}
-
-		public LogFileRec ParseLogFileRec2(string data, bool minMax, ref List<DateTime> dates)
-		{
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
-			// 2  Current temperature
-			// 3  Current humidity
-			// 4  Current dewpoint
-			// 5  Current wind speed
-			// 6  Recent (10-minute) high gust
-			// 7  Average wind bearing
-			// 8  Current rainfall rate
-			// 9  Total rainfall today so far
-			// 10  Current sea level pressure
-			// 11  Total rainfall counter as held by the station
-			// 12  Inside temperature
-			// 13  Inside humidity
-			// 14  Current gust (i.e. 'Latest')
-			// 15  Wind chill
-			// 16  Heat Index
-			// 17  UV Index
-			// 18  Solar Radiation
-			// 19  Evapotranspiration
-			// 20  Annual Evapotranspiration
-			// 21  Apparent temperature
-			// 22  Current theoretical max solar radiation
-			// 23  Hours of sunshine so far today
-			// 24  Current wind bearing
-			// 25  RG-11 rain total
-			// 26  Rain since midnight
-			// 27  Feels like
-			// 28  Humidex
-
-			try
-			{
-				var inv = CultureInfo.InvariantCulture;
-				var st = new List<string>(data.Split(','));
-				double resultDbl;
-				int resultInt;
-
-				// We allow int values to have a decimal point because log files sometimes get mangled by Excel etc!
-				var rec = new LogFileRec()
-				{
-					Date = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref dates),
-					OutdoorTemperature = Convert.ToDouble(st[2], inv),
-					OutdoorHumidity = Convert.ToInt32(Convert.ToDouble(st[3], inv)),
-					OutdoorDewpoint = Convert.ToDouble(st[4], inv),
-					WindAverage = Convert.ToDouble(st[5], inv),
-					RecentMaxGust = Convert.ToDouble(st[6], inv),
-					AvgBearing = Convert.ToInt32(Convert.ToDouble(st[7], inv)),
-					RainRate = Convert.ToDouble(st[8], inv),
-					RainToday = Convert.ToDouble(st[9], inv),
-					Pressure = Convert.ToDouble(st[10], inv),
-					Raincounter = Convert.ToDouble(st[11], inv),
-					IndoorTemperature = double.TryParse(st[12], inv, out resultDbl) ? resultDbl : null,
-					IndoorHumidity = int.TryParse(st[13], out resultInt) ? resultInt : null,
-					WindLatest = Convert.ToDouble(st[14], inv)
-				};
-
-
-				if (st.Count > 15 && double.TryParse(st[15], inv, out resultDbl))
-					rec.WindChill = resultDbl;
-				else
-					rec.WindChill = minMax ? Cumulus.DefaultLoVal : 0.0;
-
-				if (st.Count > 16 && double.TryParse(st[16], inv, out resultDbl))
-					rec.HeatIndex = resultDbl;
-				else
-					rec.HeatIndex = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 17 && double.TryParse(st[17], inv, out resultDbl))
-					rec.UV = resultDbl;
-				else
-					rec.UV = null;
-
-				if (st.Count > 18 && double.TryParse(st[18], inv, out resultDbl))
-					rec.SolarRad = resultDbl;
-				else
-					rec.SolarRad = null;
-
-				if (st.Count > 19 && double.TryParse(st[19], inv, out resultDbl))
-					rec.ET = resultDbl;
-				else
-					rec.ET = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 20 && double.TryParse(st[20], inv, out resultDbl))
-					rec.AnnualETTotal = resultDbl;
-				else
-					rec.AnnualETTotal = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 21 && double.TryParse(st[21], inv, out resultDbl))
-					rec.ApparentTemperature = resultDbl;
-				else
-					rec.ApparentTemperature = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 22 && double.TryParse(st[22], inv, out resultDbl))
-					rec.CurrentSolarMax = resultDbl;
-				else
-					rec.CurrentSolarMax = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 23 && double.TryParse(st[23], inv, out resultDbl))
-					rec.SunshineHours = resultDbl;
-				else
-					rec.SunshineHours = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 24 && int.TryParse(st[24], out resultInt))
-					rec.Bearing = resultInt;
-				else
-					rec.Bearing = 0;
-
-				if (st.Count > 25 && double.TryParse(st[25], inv, out resultDbl))
-					rec.RG11RainToday = resultDbl;
-				else
-					rec.RG11RainToday = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 26 && double.TryParse(st[26], inv, out resultDbl))
-					rec.RainSinceMidnight = resultDbl;
-				else
-					rec.RainSinceMidnight = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 27 && double.TryParse(st[27], inv, out resultDbl))
-					rec.FeelsLike = resultDbl;
-				else
-					rec.FeelsLike = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				if (st.Count > 28 && double.TryParse(st[28], inv, out resultDbl))
-					rec.Humidex = resultDbl;
-				else
-					rec.Humidex = minMax ? Cumulus.DefaultHiVal : 0.0;
-
-				return rec;
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogErrorMessage("Error parsing log file record: " + ex.Message);
-				cumulus.LogDataMessage("Log record: " + data);
-				throw;
 			}
 		}
 
@@ -13428,6 +13116,9 @@ namespace CumulusMX
 				ts = ts.AddHours(-cumulus.GetHourInc(ts));
 				te = te.AddHours(-cumulus.GetHourInc(te));
 
+				var startTs = ts.ToUnixTime();
+				var endTs = te.ToUnixTime();
+
 				var fileDate = ts;
 
 				var logfile = extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts);
@@ -13464,11 +13155,11 @@ namespace CumulusMX
 
 							var fields = line.Split(',');
 
-							var entryDate = Utils.ddmmyyhhmmStrToDate(fields[0], fields[1]);
+							var entryDate = long.Parse(fields[1]);
 
-							if (entryDate >= ts)
+							if (entryDate >= startTs)
 							{
-								if (entryDate >= te)
+								if (entryDate >= endTs)
 								{
 									// we are beyond the selected date range, bail out
 									finished = true;
@@ -13645,8 +13336,8 @@ namespace CumulusMX
 						foreach (var line in lines)
 						{
 							var vars = line.Split(',');
-							var date = Utils.ddmmyyhhmmStrToDate(vars[0], vars[1]);
-							var dateStr = vars[0] + " " + vars[1];
+							var date = long.Parse(vars[1]).FromUnixTime();
+							var dateStr = vars[0];
 
 							if (date >= fromDate && date <= toDate)
 							{
