@@ -909,7 +909,7 @@ namespace CumulusMX
 			if (ProgramOptions.ProcessLogFilesLevel == 0)
 			{
 				LogConsoleMessage("Converting log files to new format...");
-				LogFileConverter.AddUnixTimestamp.ProcessLogFiles(ProgramOptions.DataPath);
+				LogFileConverter.AddUnixTimestamp.ProcessLogFiles(ProgramOptions.DataPath, RecordsBeganDateTime);
 				ProgramOptions.ProcessLogFilesLevel = 1;
 				WriteIniFile();
 				LogConsoleMessage("Log file conversion complete");
@@ -8609,114 +8609,14 @@ namespace CumulusMX
 
 			var filename = GetExtraLogFileName(timestamp);
 			var inv = CultureInfo.InvariantCulture;
-			var sep = ",";
 
 			LogDebugMessage($"DoExtraLogFile: Writing log entry for {timestamp}");
 
-			var sb = new StringBuilder(512);
-			sb.Append(timestamp.ToString("dd/MM/yy", inv));                     //0
-			sb.Append(timestamp.ToString(sep + "HH:mm", inv));                        //1
-
-			for (int i = 1; i <= 10; i++)
-			{
-				sb.Append(sep + (station.ExtraTemp[i].HasValue ? station.ExtraTemp[i].Value.ToString(TempFormat, inv) : string.Empty));       //2-11
-			}
-			for (int i = 1; i <= 10; i++)
-			{
-				sb.Append(sep + (station.ExtraHum[i].HasValue ? station.ExtraHum[i].Value.ToString(HumFormat, inv) : string.Empty));        //12-21
-			}
-			for (int i = 1; i <= 10; i++)
-			{
-				sb.Append(sep + (station.ExtraDewPoint[i].HasValue ? station.ExtraDewPoint[i].Value.ToString(TempFormat, inv) : string.Empty));  //22-31
-			}
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.SoilTemp[i].HasValue ? station.SoilTemp[i].Value.ToString(TempFormat, inv) : string.Empty));     //32-35
-			}
-
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.SoilMoisture[i].HasValue ? station.SoilMoisture[i].ToString() : string.Empty));                      //36-39
-			}
-
-			sb.Append(sep + sep);     //40-41 - was leaf temp 1/2
-
-			sb.Append(sep + (station.LeafWetness[1].HasValue ? station.LeafWetness[1].Value.ToString(LeafWetFormat, inv) : string.Empty));    //42
-			sb.Append(sep + (station.LeafWetness[2].HasValue ? station.LeafWetness[2].Value.ToString(LeafWetFormat, inv) : string.Empty));    //43
-
-			for (int i = 5; i <= 16; i++)
-			{
-				sb.Append(sep + (station.SoilTemp[i].HasValue ? station.SoilTemp[i].Value.ToString(TempFormat, inv) : string.Empty));     //44-55
-			}
-
-			for (int i = 5; i <= 16; i++)
-			{
-				sb.Append(sep + station.SoilMoisture[i]);      //56-67
-			}
-
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.AirQuality[i].HasValue ? station.AirQuality[i].Value.ToString("F1", inv) : string.Empty));     //68-71
-			}
-
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.AirQualityAvg[i].HasValue ? station.AirQualityAvg[i].Value.ToString("F1", inv) : string.Empty)); //72-75
-			}
-
-			for (int i = 1; i < 9; i++)
-			{
-				sb.Append(sep + (station.UserTemp[i].HasValue ? station.UserTemp[i].Value.ToString(TempFormat, inv) : string.Empty));   //76-83
-			}
-
-			sb.Append(sep + (station.CO2.HasValue ? station.CO2.ToString() : string.Empty));                                                //84
-			sb.Append(sep + (station.CO2_24h.HasValue ? station.CO2_24h.ToString() : string.Empty));                                        //85
-			sb.Append(sep + (station.CO2_pm2p5.HasValue ? station.CO2_pm2p5.Value.ToString("F1", inv) : string.Empty));                     //86
-			sb.Append(sep + (station.CO2_pm2p5_24h.HasValue ? station.CO2_pm2p5_24h.Value.ToString("F1", inv) : string.Empty));             //87
-			sb.Append(sep + (station.CO2_pm10.HasValue ? station.CO2_pm10.Value.ToString("F1", inv) : string.Empty));                       //88
-			sb.Append(sep + (station.CO2_pm10_24h.HasValue ? station.CO2_pm10_24h.Value.ToString("F1", inv) : string.Empty));               //89
-			sb.Append(sep + (station.CO2_temperature.HasValue ? station.CO2_temperature.Value.ToString(TempFormat, inv) : string.Empty));   //90
-			sb.Append(sep + (station.CO2_humidity.HasValue ? station.CO2_humidity.Value.ToString("F0") : string.Empty));                    //91
-
-			for (int i = 1; i < station.LaserDist.Length; i++)
-			{
-				sb.Append(sep + (station.LaserDist[i].HasValue ? station.LaserDist[i].Value.ToString(LaserFormat, inv) : string.Empty)); //92-95
-			}
-			for (int i = 1; i < station.LaserDepth.Length; i++)
-			{
-				sb.Append(sep + (station.LaserDepth[i].HasValue ? station.LaserDepth[i].Value.ToString(LaserFormat, inv) : string.Empty)); //96-99
-			}
-
-			sb.Append(sep + (station.Snow24h[SnowAutomated].HasValue ? station.Snow24h[SnowAutomated].Value.ToString(SnowFormat, inv) : string.Empty)); //100
-
-			for (int i = 11; i <= 16; i++)
-			{
-				sb.Append(sep + (station.ExtraTemp[i].HasValue ? station.ExtraTemp[i].Value.ToString(TempFormat, inv) : string.Empty));       //101-106
-			}
-			for (int i = 11; i <= 16; i++)
-			{
-				sb.Append(sep + (station.ExtraHum[i].HasValue ? station.ExtraHum[i].Value.ToString(HumFormat, inv) : string.Empty));        //107-112
-			}
-			for (int i = 11; i <= 16; i++)
-			{
-				sb.Append(sep + (station.ExtraDewPoint[i].HasValue ? station.ExtraDewPoint[i].Value.ToString(TempFormat, inv) : string.Empty));  //113-118
-			}
-
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.AirQuality10[i].HasValue ? station.AirQuality10[i].Value.ToString("F1", inv) : string.Empty));     //119-122
-			}
-
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.AirQuality10Avg[i].HasValue ? station.AirQuality10Avg[i].Value.ToString("F1", inv) : string.Empty)); //123-126
-			}
-
-			sb.Append(Environment.NewLine);
+			var line = ExtraLogFileRec.CurrentToCsv(timestamp, this, station);
 
 			var success = false;
 			var retries = LogFileRetries;
-			var charArr = sb.ToString().ToCharArray();
+			var charArr = line.ToCharArray();
 
 			do
 			{

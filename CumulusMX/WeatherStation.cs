@@ -3008,8 +3008,6 @@ namespace CumulusMX
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(fileDate);
 
-			var ambiguousDates = new List<DateTime>();
-
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
 			// 2-11  Temperature 1-10
@@ -3059,7 +3057,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+								entrydate = long.Parse(st[1]).FromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -3191,8 +3189,6 @@ namespace CumulusMX
 
 			var fileDate = dateFrom;
 
-			var ambiguousDates = new List<DateTime>();
-
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(fileDate);
 
@@ -3245,7 +3241,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+								entrydate = long.Parse(st[1]).FromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -3380,8 +3376,6 @@ namespace CumulusMX
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			var ambiguousDates = new List<DateTime>();
-
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
 			// 2-11  Temperature 1-10
@@ -3431,7 +3425,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+								entrydate = long.Parse(st[1]).FromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -3566,8 +3560,6 @@ namespace CumulusMX
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			var ambiguousDates = new List<DateTime>();
-
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
 			// 2-11  Temperature 1-10
@@ -3617,7 +3609,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+								entrydate = long.Parse(st[1]).FromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -3751,8 +3743,6 @@ namespace CumulusMX
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			var ambiguousDates = new List<DateTime>();
-
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
 			// 2-11  Temperature 1-10
@@ -3802,7 +3792,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+								entrydate = long.Parse(st[1]).FromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -3937,8 +3927,6 @@ namespace CumulusMX
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			var ambiguousDates = new List<DateTime>();
-
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
 			// 2-11  Temperature 1-10
@@ -3988,7 +3976,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+								entrydate = long.Parse(st[1]).FromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -4123,8 +4111,6 @@ namespace CumulusMX
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			var ambiguousDates = new List<DateTime>();
-
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
 			// 2-11  Temperature 1-10
@@ -4174,7 +4160,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+								entrydate = long.Parse(st[1]).FromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -4310,8 +4296,6 @@ namespace CumulusMX
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			var ambiguousDates = new List<DateTime>();
-
 			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
 			// 1  Current time - hh:mm
 			// 2-11  Temperature 1-10
@@ -4341,8 +4325,6 @@ namespace CumulusMX
 				{
 					var linenum = 0;
 					var errorCount = 0;
-					double temp;
-					int tempInt;
 
 					try
 					{
@@ -4354,8 +4336,9 @@ namespace CumulusMX
 							{
 								// process each record in the file
 								linenum++;
-								var st = new List<string>(line.Split(','));
-								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+
+								var rec = new ExtraLogFileRec(line);
+								entrydate = rec.DateTime;
 
 								if (entrydate > dateFrom)
 								{
@@ -4367,31 +4350,31 @@ namespace CumulusMX
 
 									// entry is from required period
 									dataAdded = true;
-									var jsTime = entrydate.ToUnixTimeMs();
+									var jsTime = rec.UnixTimestamp * 1000;
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local) && double.TryParse(st[84], InvC, out temp))
-										sbCo2.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local) && rec.CO2.HasValue)
+										sbCo2.Append($"[{jsTime},{rec.CO2.Value.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local) && double.TryParse(st[85], InvC, out temp))
-										sbCo2Avg.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local) && rec.CO2_24h.HasValue)
+										sbCo2Avg.Append($"[{jsTime},{rec.CO2_24h.Value.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local) && double.TryParse(st[86], InvC, out temp))
-										sbPm25.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local) && rec.CO2_pm2p5.HasValue)
+										sbPm25.Append($"[{jsTime},{rec.CO2_pm2p5.Value.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local) && double.TryParse(st[87], InvC, out temp))
-										sbPm25Avg.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local) && rec.CO2_pm2p5_24h.HasValue)
+										sbPm25Avg.Append($"[{jsTime},{rec.CO2_pm2p5_24h.Value.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local) && double.TryParse(st[88], InvC, out temp))
-										sbPm10.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local) && rec.CO2_pm10.HasValue)
+										sbPm10.Append($"[{jsTime},{rec.CO2_pm10.Value.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local) && double.TryParse(st[89], InvC, out temp))
-										sbPm10Avg.Append($"[{jsTime},{temp.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local) && rec.CO2_pm10_24h.HasValue)
+										sbPm10Avg.Append($"[{jsTime},{rec.CO2_pm10_24h.Value.ToString("F1", InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local) && double.TryParse(st[90], InvC, out temp))
-										sbTemp.Append($"[{jsTime},{temp.ToString(cumulus.TempFormat, InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local) && rec.CO2_temperature.HasValue)
+										sbTemp.Append($"[{jsTime},{rec.CO2_temperature.Value.ToString(cumulus.TempFormat, InvC)}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local) && int.TryParse(st[91], InvC, out tempInt))
-										sbHum.Append($"[{jsTime},{tempInt}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local) && rec.CO2_humidity.HasValue)
+										sbHum.Append($"[{jsTime},{rec.CO2_humidity}],");
 								}
 							}
 							catch (Exception ex)
@@ -4598,8 +4581,6 @@ namespace CumulusMX
 			var fileDate = dateFrom;
 			var logFile = useExtraSensorLogFile ? cumulus.GetExtraLogFileName(fileDate) : cumulus.GetAirLinkLogFileName(fileDate);
 
-			var ambiguousDates = new List<DateTime>();
-
 			var entrydate = new DateTime(0, DateTimeKind.Local);
 
 			var finished = false;
@@ -4623,7 +4604,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+								entrydate = long.Parse(st[1]).FromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -9590,7 +9571,6 @@ namespace CumulusMX
 			var finished = false;
 			var updatedCount = 0;
 			var inv = CultureInfo.InvariantCulture;
-			var ambiguousDates = new List<DateTime>();
 
 			if (cumulus.StationOptions.PrimaryAqSensor < 0) return;
 
@@ -9646,7 +9626,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+								entrydate = long.Parse(st[1]).FromUnixTime();
 
 								if (entrydate >= datefrom && entrydate <= dateto)
 								{
@@ -9732,23 +9712,23 @@ namespace CumulusMX
 
 		private void LoadRecentAqFromDataLogsNew(DateTime ts)
 		{
-			var datefrom = ts.AddDays(-cumulus.RecentDataDays);
-			var dateto = ts;
+			var datefrom = ts.AddDays(-cumulus.RecentDataDays).ToUnixTime();
+			var dateto = ts.ToUnixTime();
 			var entrydate = datefrom;
-			var filedate = datefrom;
+			var filedate = ts.AddDays(-cumulus.RecentDataDays);
+			var filedateto = filedate.AddMonths(1);
 			string logFile;
 			var finished = false;
 			var updatedCount = 0;
 			var inv = CultureInfo.InvariantCulture;
-			var ambiguousDates = new List<DateTime>();
 
 			if (cumulus.StationOptions.PrimaryAqSensor < 0) return;
 
 			// try and find the first entry in the database that has a "blank" AQ entry (PM2.5 or PM10 = -1)
 			try
 			{
-				var start = RecentDataDb.ExecuteScalar<DateTime>("select max(Timestamp) from RecentAqData");
-				if (start >= cumulus.LastUpdateTime)
+				var start = RecentDataDb.ExecuteScalar<DateTime>("select max(Timestamp) from RecentAqData").ToUnixTime();
+				if (start >= cumulus.LastUpdateTime.ToUnixTime())
 					return;
 
 				if (datefrom < start)
@@ -9783,7 +9763,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = Utils.ddmmyyhhmmStrToLocalDate(st[0], st[1], ref ambiguousDates);
+								entrydate = long.Parse(st[1]);
 
 								if (st.Count >= 123 && entrydate >= datefrom && entrydate <= dateto)
 								{
@@ -9794,7 +9774,7 @@ namespace CumulusMX
 
 									var rec = new RecentAqData
 									{
-										Timestamp = entrydate,
+										Timestamp = entrydate.FromUnixTime(),
 										Pm2p5_1 = string.IsNullOrEmpty(st[68]) ? null : double.Parse(st[68], NumberStyles.Number, inv),
 										Pm2p5_2 = string.IsNullOrEmpty(st[69]) ? null : double.Parse(st[69], NumberStyles.Number, inv),
 										Pm2p5_3 = string.IsNullOrEmpty(st[70]) ? null : double.Parse(st[70], NumberStyles.Number, inv),
@@ -9834,7 +9814,7 @@ namespace CumulusMX
 					}
 				}
 
-				if (entrydate >= dateto || filedate > dateto.AddMonths(1))
+				if (entrydate >= dateto || filedate > filedateto)
 				{
 					finished = true;
 				}
@@ -13369,8 +13349,8 @@ namespace CumulusMX
 						{
 							var fieldList = new List<string>();
 							var vars = line.Split(',');
-							var date = Utils.ddmmyyhhmmStrToDate(vars[0], vars[1]);
-							var dateStr = vars[0] + " " + vars[1];
+							var date = long.Parse(vars[1]).FromUnixTime();
+							var dateStr = vars[0];
 
 							if (date >= fromDate && date <= toDate)
 							{

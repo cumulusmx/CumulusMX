@@ -25,6 +25,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- New format records start: Date_Time,Unix_Timestamp,
 	- All the data fields retain the same offsets as before
 	- The log files will automatically be converted on the first run of v4.7.0
+	- The original files will be backed up to /backup/ConvertBackup
 	- The Date_Time field is now purely for human readability, Cumulus MX now uses the Unix Timestamp internally
 - Removes the dependency on ServiceStack.Text for JSON handling, now using the built-in System.Text.Json
 - Swaps SQLitePCLRaw.bundle_green for newer SQLitePCLRaw.bundle_e_sqlite3
@@ -38,7 +39,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Package Updates
 
+- FluentFTP
 - HidSharp
+- MailKit
 - ServiceStack.Text [REMOVED]
 - SQLitePCLRaw.bundle_green [REMOVED]
 - SQLitePCLRaw.bundle_e_sqlite3 [ADDED]

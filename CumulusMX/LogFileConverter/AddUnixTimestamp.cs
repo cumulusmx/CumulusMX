@@ -9,20 +9,34 @@ namespace CumulusMX.LogFileConverter
 	{
 		static List<DateTime> AmbiguousDates;
 
-		public static void ProcessLogFiles(string dataDirectory)
+		public static void ProcessLogFiles(string dataDirectory, DateTime start)
 		{
 			try
 			{
-				var now = int.Parse(DateTime.Now.ToString("yyyyMM"));
+				DateTime now = DateTime.Now;
 
-				// Find all matching log files
-				var logFiles = Directory.GetFiles(dataDirectory, "*log.txt")
-					.Where(f => Path.GetFileName(f).Length == 13 && 
-							   Path.GetFileName(f).EndsWith("log.txt") &&
-							   int.TryParse(Path.GetFileName(f).Substring(0, 6), out int dat) &&
-							   dat > 200001 && dat <= now);
+				// Generate all yyyymm strings from start to now
+				var validPatterns = Enumerable.Range(0, (now.Year - start.Year) * 12 + now.Month - start.Month + 1)
+					.Select(offset => start.AddMonths(offset).ToString("yyyyMM"))
+					.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-				foreach (var file in logFiles)
+				var matchingFiles = Directory.EnumerateFiles(dataDirectory)
+					.Where(file =>
+					{
+						string name = Path.GetFileName(file);
+						foreach (var yyyymm in validPatterns)
+						{
+							if (name.Equals($"{yyyymm}log.txt", StringComparison.OrdinalIgnoreCase) ||
+								name.Equals($"ExtraLog{yyyymm}.txt", StringComparison.OrdinalIgnoreCase) ||
+								name.Equals($"AirLink{yyyymm}log.txt", StringComparison.OrdinalIgnoreCase))
+							{
+								return true;
+							}
+						}
+						return false;
+					});
+
+				foreach (var file in matchingFiles)
 				{
 					ProcessSingleFile(file);
 				}
@@ -94,7 +108,7 @@ namespace CumulusMX.LogFileConverter
 					// Convert to Unix timestamp
 					var unixTimestamp = dateTime.ToUnixTime();
 					
-					// Merge date and time, remove original time field
+					// Merge date and time, add unix ts, add original fileds after original time field
 					var newParts = new[] { $"{parts[0]} {parts[1]}" }
 						.Concat(new[] { unixTimestamp.ToString() })
 						.Concat(parts.Skip(2));
