@@ -202,7 +202,7 @@ namespace CumulusMX.Settings
 				alarms = alarmSettings,
 				webtags = webtags,
 				snow = snow,
-				laser = cumulus.Trans.Laser
+				laser = cumulus.Trans.LaserCaptions
 			};
 
 			return JsonSerializer.Serialize(settings);
@@ -505,7 +505,7 @@ namespace CumulusMX.Settings
 				// laser
 				try
 				{
-					cumulus.Trans.Laser = settings.laser;
+					cumulus.Trans.LaserCaptions = settings.laser;
 				}
 				catch (Exception ex)
 				{

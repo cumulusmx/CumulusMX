@@ -804,6 +804,12 @@ namespace CumulusMX
 					LocalPath = WebPath,
 					LocalFileName = "leafwetdata.json",
 					RemoteFileName = "leafwetdata.json"
+				},
+				new()     // 21
+				{
+					LocalPath = WebPath,
+					LocalFileName = "laserdepthdata.json",
+					RemoteFileName = "laserdepthdata.json"
 				}
 			];
 
@@ -4900,6 +4906,7 @@ namespace CumulusMX
 			GraphOptions.Colour.Pm10 = ini.GetValue("GraphColours", "Pm10Colour", "#008000");
 			var colours16 = new List<string>(16) { "#ff0000", "#008000", "#0000ff", "#ffa500", "#dada00", "#ffc0cb", "#00ffff", "#800080", "#808080", "#a52a2a", "#c7b72a", "#7fffd4", "#adff2f", "#ff7f50", "#ff00ff", "#00b2ff" };
 			var colours8 = colours16.Take(8).ToArray();
+			var colours4 = colours16.Take(4).ToArray();
 			var colours2 = colours16.Take(2).ToArray();
 			GraphOptions.Colour.ExtraTemp = ini.GetValue("GraphColours", "ExtraTempColour", colours16.ToArray());
 			GraphOptions.Colour.ExtraHum = ini.GetValue("GraphColours", "ExtraHumColour", colours16.ToArray());
@@ -4908,6 +4915,7 @@ namespace CumulusMX
 			GraphOptions.Colour.SoilMoist = ini.GetValue("GraphColours", "SoilMoistColour", colours16.ToArray());
 			GraphOptions.Colour.LeafWetness = ini.GetValue("GraphColours", "LeafWetness", colours2);
 			GraphOptions.Colour.UserTemp = ini.GetValue("GraphColours", "UserTempColour", colours8);
+			GraphOptions.Colour.LaserDepth = ini.GetValue("GraphColours", "LaserDepthColour", colours4);
 			GraphOptions.Colour.CO2Sensor.CO2 = ini.GetValue("GraphColours", "CO2-CO2Colour", "#dc143c");
 			GraphOptions.Colour.CO2Sensor.CO2Avg = ini.GetValue("GraphColours", "CO2-CO2AvgColour", "#8b0000");
 			GraphOptions.Colour.CO2Sensor.Pm25 = ini.GetValue("GraphColours", "CO2-Pm25Colour", "#00bfff");
@@ -7309,8 +7317,9 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "SoilTempColour", GraphOptions.Colour.SoilTemp);
 			ini.SetValue("GraphColours", "SoilMoistColour", GraphOptions.Colour.SoilMoist);
 			ini.SetValue("GraphColours", "LeafWetness", GraphOptions.Colour.LeafWetness);
-
 			ini.SetValue("GraphColours", "UserTempColour", GraphOptions.Colour.UserTemp);
+			ini.SetValue("GraphColours", "LaserDepthColour", GraphOptions.Colour.LaserDepth);
+
 			ini.SetValue("GraphColours", "CO2-CO2Colour", GraphOptions.Colour.CO2Sensor.CO2);
 			ini.SetValue("GraphColours", "CO2-CO2AvgColour", GraphOptions.Colour.CO2Sensor.CO2Avg);
 			ini.SetValue("GraphColours", "CO2-Pm25Colour", GraphOptions.Colour.CO2Sensor.Pm25);
@@ -7630,7 +7639,7 @@ namespace CumulusMX
 				Trans.AirQuality10Captions[i] = ini.GetValue("AirQualityCaptions", "Sensor10-" + (i + 1), "pm10 Sensor " + (i + 1));
 				Trans.AirQuality10AvgCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor10Avg" + (i + 1), $"pm10 Sensor Avg " + (i + 1));
 
-				Trans.Laser[i] = ini.GetValue("LaserCaptions", "Sensor" + (i + 1), "Sensor " + (i + 1));
+				Trans.LaserCaptions[i] = ini.GetValue("LaserCaptions", "Sensor" + (i + 1), "Sensor " + (i + 1));
 			}
 
 			for (var i = 0; i < 8; i++)
@@ -7884,7 +7893,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < 4; i++)
 			{
-				ini.SetValue("LaserCaptions", "Sensor" + (i + 1), Trans.Laser[i]);
+				ini.SetValue("LaserCaptions", "Sensor" + (i + 1), Trans.LaserCaptions[i]);
 			}
 
 
@@ -15275,7 +15284,8 @@ namespace CumulusMX
 		SOILMOIST,      // 17
 		USERTEMP,       // 18
 		CO2,            // 19
-		LEAFWET,       // 20
+		LEAFWET,        // 20
+		LASERDEPTH      // 21
 	}
 
 }

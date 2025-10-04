@@ -625,6 +625,9 @@ namespace CumulusMX
 						case "co2sensor.json":
 							await writer.WriteAsync(Station.GetCo2SensorGraphData(incremental, true, start));
 							break;
+						case "laserdepth.json":
+							await writer.WriteAsync(Station.GetLaserDepthGraphData(incremental, true, start));
+							break;
 
 						// daily data
 						case "dailyrain.json":
@@ -685,6 +688,9 @@ namespace CumulusMX
 							break;
 						case "intvco2sensor.json":
 							await writer.WriteAsync(Station.GetCo2SensorGraphData(false, true, start, end));
+							break;
+						case "intvlaserdepth.json":
+							await writer.WriteAsync(Station.GetLaserDepthGraphData(false, true, start, end));
 							break;
 
 						// config data

@@ -2314,6 +2314,7 @@ namespace CumulusMX
 				"leafwetdata.json" => GetLeafWetnessGraphData(incremental, false),
 				"usertempdata.json" => GetUserTempGraphData(incremental, false),
 				"co2sensordata.json" => GetCo2SensorGraphData(incremental, false),
+				"laserdepthdata.json" => GetLaserDepthGraphData(incremental, false),
 				_ => "{}",
 			};
 		}
@@ -3861,6 +3862,190 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
+				{
+					if (sbExt[i][^1] == ',')
+						sbExt[i].Length--;
+
+					sbExt[i].Append(']');
+					sb.Append((append ? "," : "") + sbExt[i]);
+					append = true;
+				}
+			}
+
+			sb.Append('}');
+			return sb.ToString();
+		}
+
+		public string GetLaserDepthGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
+		{
+			var append = false;
+			var InvC = CultureInfo.InvariantCulture;
+			var sb = new StringBuilder("{", 10240);
+
+			/* returns data in the form of an object with properties for each data series
+				"sensor 1": [[time,val],[time,val],...],
+				"sensor 4": [[time,val],[time,val],...],
+			*/
+
+			var sbExt = new StringBuilder[cumulus.GraphOptions.Visible.LaserDepth.Vals.Length];
+
+			for (var i = 0; i < cumulus.GraphOptions.Visible.LaserDepth.Vals.Length; i++)
+			{
+				if (cumulus.GraphOptions.Visible.LaserDepth.ValVisible(i, local))
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.LaserCaptions[i]}\":[");
+			}
+
+			var finished = false;
+			var dataAdded = false;
+			var entrydate = new DateTime(0, DateTimeKind.Local);
+			DateTime dateFrom;
+			DateTime dateTo;
+
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.LASERDEPTH].LastDataTime;
+				dateTo = DateTime.Now;
+			}
+			else if (start.HasValue && end.HasValue)
+			{
+				// selected period in whole days
+				dateFrom = start.Value;
+				dateTo = end.Value.AddDays(1);
+
+				// convert start/end to meteo date/times if required
+				dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+				dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
+			}
+			else
+			{
+				// all data in the range
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+				dateTo = DateTime.Now;
+			}
+
+			var fileDate = dateFrom;
+
+			// get the log file name to start
+			var logFile = cumulus.GetExtraLogFileName(dateFrom);
+
+			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
+			// 1  Current time - hh:mm
+			// 2-11  Temperature 1-10
+			// 12-21 Humidity 1-10
+			// 22-31 Dew point 1-10
+			// 32-35 Soil temp 1-4
+			// 36-39 Soil moisture 1-4
+			// 40-41 Leaf temp 1-2
+			// 42-43 Leaf wetness 1-2
+			// 44-55 Soil temp 5-16
+			// 56-67 Soil moisture 5-16
+			// 68-71 Air quality 1-4
+			// 72-75 Air quality avg 1-4
+			// 76-83 User temperature 1-8
+			// 84  CO2
+			// 85  CO2 avg
+			// 86  CO2 pm2.5
+			// 87  CO2 pm2.5 avg
+			// 88  CO2 pm10
+			// 89  CO2 pm10 avg
+			// 90  CO2 temp
+			// 91  CO2 hum
+			// 92-95 Laser Distance 1-4
+			// 96-99 Laser Depth 1-4
+			// 100 Snowfall Accumulation 24h
+			// 101-106 Temperature 11-16
+			// 107-112 Humidity 11-16
+			// 113-118 Dew point 11-16
+
+			int[] fields = [96, 97, 98, 99];
+
+			while (!finished)
+			{
+				if (File.Exists(logFile))
+				{
+					var linenum = 0;
+					var errorCount = 0;
+
+					try
+					{
+						var lines = File.ReadAllLines(logFile);
+
+						foreach (var line in lines)
+						{
+							try
+							{
+								// process each record in the file
+								linenum++;
+								var st = new List<string>(line.Split(','));
+								entrydate = long.Parse(st[1]).FromUnixTime();
+
+								if (entrydate > dateFrom)
+								{
+									if (entrydate > dateTo)
+									{
+										finished = true;
+										break;
+									}
+
+									// entry is from required period
+									dataAdded = true;
+									var temp = 0.0;
+									var jsTime = entrydate.ToUnixTimeMs();
+
+									for (var i = 0; i < cumulus.GraphOptions.Visible.LaserDepth.Vals.Length; i++)
+									{
+										if (cumulus.GraphOptions.Visible.LaserDepth.ValVisible(i, local))
+										{
+											var val = "null";
+											if (fields[i] < st.Count)
+											{
+												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+											}
+											sbExt[i].Append($"[{jsTime},{val}],");
+										}
+									}
+								}
+							}
+							catch (Exception ex)
+							{
+								errorCount++;
+								cumulus.LogErrorMessage($"GetLaserDepthGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetLaserDepthGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"GetLaserDepthGraphData: Error reading {logFile}. Error - {ex.Message}");
+					}
+				}
+
+				if (!finished)
+				{
+					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					{
+						finished = true;
+					}
+					else
+					{
+						fileDate = fileDate.AddMonths(1);
+						logFile = cumulus.GetExtraLogFileName(fileDate);
+					}
+				}
+			}
+
+			// no incremental data, send null to supress the upload
+			if (incremental && !dataAdded)
+				return null;
+
+			for (var i = 0; i < cumulus.GraphOptions.Visible.LaserDepth.Vals.Length; i++)
+			{
+				if (cumulus.GraphOptions.Visible.LaserDepth.ValVisible(i, local))
 				{
 					if (sbExt[i][^1] == ',')
 						sbExt[i].Length--;
@@ -12166,7 +12351,7 @@ namespace CumulusMX
 				if (cumulus.GraphOptions.Visible.LaserDepth.ValVisible(sensor - 1, true))
 				{
 					json.Append("[\"");
-					json.Append(cumulus.Trans.Laser[sensor - 1]);
+					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
 					json.Append(LaserDepth[sensor].HasValue ? LaserDepth[sensor].Value.ToString(cumulus.LaserFormat) : "-");
 					json.Append("\",\"");
@@ -12191,7 +12376,7 @@ namespace CumulusMX
 				if (cumulus.GraphOptions.Visible.LaserDist.ValVisible(sensor - 1, true))
 				{
 					json.Append("[\"");
-					json.Append(cumulus.Trans.Laser[sensor - 1]);
+					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
 					json.Append(LaserDist[sensor].HasValue ? LaserDist[sensor].Value.ToString(cumulus.LaserFormat) : "-");
 					json.Append("\",\"");
@@ -12216,7 +12401,7 @@ namespace CumulusMX
 				if (cumulus.GraphOptions.Visible.CurrSnow24h.ValVisible(sensor - 1, true))
 				{
 					json.Append("[\"");
-					json.Append(cumulus.Trans.Laser[sensor - 1]);
+					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
 					json.Append($"{(Snow24h[sensor].HasValue ? Snow24h[sensor].Value.ToString(cumulus.SnowFormat) : "-")}");
 					json.Append("\",\"");
@@ -12241,7 +12426,7 @@ namespace CumulusMX
 				if (cumulus.GraphOptions.Visible.CurrSnow24h.ValVisible(sensor - 1, true))
 				{
 					json.Append("[\"");
-					json.Append(cumulus.Trans.Laser[sensor - 1]);
+					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
 					json.Append($"{(SnowSeason[sensor].HasValue ? SnowSeason[sensor].Value.ToString(cumulus.SnowFormat) : "-")}");
 					json.Append("\",\"");
@@ -13677,6 +13862,9 @@ namespace CumulusMX
 			// leaf wetness
 			if (cumulus.GraphOptions.Visible.LeafWetness.IsVisible(local))
 				json.Append($"\"leafwet\":{{\"name\":[\"{string.Join("\",\"", cumulus.Trans.LeafWetnessCaptions)}\"],\"colour\":[\"{string.Join("\",\"", cumulus.GraphOptions.Colour.LeafWetness)}\"]}},");
+			// laser depth
+			if (cumulus.GraphOptions.Visible.LaserDepth.IsVisible(local))
+				json.Append($"\"leafwet\":{{\"name\":[\"{string.Join("\",\"", cumulus.Trans.LaserCaptions)}\"],\"colour\":[\"{string.Join("\",\"", cumulus.GraphOptions.Colour.LeafWetness)}\"]}},");
 
 			// CO2
 			json.Append("\"co2\":{");
@@ -14008,6 +14196,21 @@ namespace CumulusMX
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
 					json.Append($"\"{cumulus.Trans.CO2_HumidityCaption}\"");
 
+				if (json[^1] == ',')
+					json.Length--;
+
+				json.Append(']');
+			}
+
+			// LASER depth
+			if (cumulus.GraphOptions.Visible.LaserDepth.IsVisible(local))
+			{
+				json.Append(",\"LaserDepth\":[");
+				for (var i = 0; i < cumulus.GraphOptions.Visible.LaserDepth.Vals.Length; i++)
+				{
+					if (cumulus.GraphOptions.Visible.LaserDepth.ValVisible(i, local))
+						json.Append($"\"{cumulus.Trans.LaserCaptions[i]}\",");
+				}
 				if (json[^1] == ',')
 					json.Length--;
 

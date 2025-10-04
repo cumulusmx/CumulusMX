@@ -301,6 +301,12 @@ namespace CumulusMX.Settings
 				sensors = cumulus.GraphOptions.Colour.UserTemp
 			};
 
+			var graphColLaserDepth = new JsonGraphColExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.Colour.LaserDepth
+			};
+
+
 			var graphColCo2 = new JsonGraphColCo2()
 			{
 				co2 = cumulus.GraphOptions.Colour.CO2Sensor.CO2,
@@ -339,6 +345,7 @@ namespace CumulusMX.Settings
 				soilmoist = graphColSoilMoist,
 				leafwet = graphColLeafWet,
 				usertemp = graphColUserTemp,
+				laserdepth = graphColLaserDepth,
 				co2 = graphColCo2,
 				snow = graphColSnow
 			};
@@ -510,6 +517,7 @@ namespace CumulusMX.Settings
 					cumulus.GraphOptions.Colour.SoilMoist = settings.Graphs.colour.soilmoist.sensors;
 					cumulus.GraphOptions.Colour.LeafWetness = settings.Graphs.colour.leafwet.sensors;
 					cumulus.GraphOptions.Colour.UserTemp = settings.Graphs.colour.usertemp.sensors;
+					cumulus.GraphOptions.Colour.LaserDepth = settings.Graphs.colour.laserdepth.sensors;
 
 					cumulus.GraphOptions.Colour.CO2Sensor.CO2 = settings.Graphs.colour.co2.co2;
 					cumulus.GraphOptions.Colour.CO2Sensor.CO2Avg = settings.Graphs.colour.co2.co2avg;
@@ -747,6 +755,7 @@ namespace CumulusMX.Settings
 			public JsonGraphColExtraSensors soilmoist { get; set; }
 			public JsonGraphColExtraSensors leafwet { get; set; }
 			public JsonGraphColExtraSensors usertemp { get; set; }
+			public JsonGraphColExtraSensors laserdepth { get; set; }
 			public JsonGraphColCo2 co2 { get; set; }
 			public JsonGraphColSnow snow { get; set; }
 		}

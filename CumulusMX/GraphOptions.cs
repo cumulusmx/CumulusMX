@@ -170,6 +170,7 @@ namespace CumulusMX
 			public string[] SoilMoist { get; set; } = new string[16];
 			public string[] LeafWetness { get; set; } = new string[2];
 			public string[] UserTemp { get; set; } = new string[8];
+			public string[] LaserDepth { get; set; } = new string[4];
 			// daily values
 			public string MaxTemp { get; set; }
 			public string MinTemp { get; set; }

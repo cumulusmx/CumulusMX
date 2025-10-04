@@ -17,6 +17,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The path for the MXdiags files can now be specified in the CumulusMX.runtimeconfig.json file
 - The paths for the data, backup, and reports folders can now be defined in Program Settings
 - Custom Rollover MySQL commands now have the option to control being run during catch-up or not
+- Adds LASER depth to the Dashboard Recent Charts, Recent Select-a-Chart, and Select-a-Period
 
 ## Changed
 
