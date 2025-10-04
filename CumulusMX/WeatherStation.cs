@@ -13864,7 +13864,7 @@ namespace CumulusMX
 				json.Append($"\"leafwet\":{{\"name\":[\"{string.Join("\",\"", cumulus.Trans.LeafWetnessCaptions)}\"],\"colour\":[\"{string.Join("\",\"", cumulus.GraphOptions.Colour.LeafWetness)}\"]}},");
 			// laser depth
 			if (cumulus.GraphOptions.Visible.LaserDepth.IsVisible(local))
-				json.Append($"\"leafwet\":{{\"name\":[\"{string.Join("\",\"", cumulus.Trans.LaserCaptions)}\"],\"colour\":[\"{string.Join("\",\"", cumulus.GraphOptions.Colour.LeafWetness)}\"]}},");
+				json.Append($"\"laserdepth\":{{\"name\":[\"{string.Join("\",\"", cumulus.Trans.LaserCaptions)}\"],\"colour\":[\"{string.Join("\",\"", cumulus.GraphOptions.Colour.LaserDepth)}\"]}},");
 
 			// CO2
 			json.Append("\"co2\":{");

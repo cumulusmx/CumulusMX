@@ -18,6 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The paths for the data, backup, and reports folders can now be defined in Program Settings
 - Custom Rollover MySQL commands now have the option to control being run during catch-up or not
 - Adds LASER depth to the Dashboard Recent Charts, Recent Select-a-Chart, and Select-a-Period
+- Adds LASER depth to the default web site Trends and Select-a-graph charts
 
 ## Changed
 
