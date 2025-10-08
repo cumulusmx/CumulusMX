@@ -4,16 +4,18 @@ All notable changes to this project will be documented in this file.
 
 Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=17887)
 
-This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.
+This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.<br>
 Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/main/CHANGELOG.md)
+
 ---
 ---
 
 ## [4.7.0 \[b41xx\]][29] - 2025-xx-xx
 
+First build using Visual Studio 2026, and sees some preparation for transitioning to .NET 10
+
 ### New
 
-- First build using Visual Studio 2026, and sees some preparation for transitionaing to .NET 10
 - The path for the MXdiags files can now be specified in the CumulusMX.runtimeconfig.json file
 - The paths for the data, backup, and reports folders can now be defined in Program Settings
 - Custom Rollover MySQL commands now have the option to control being run during catch-up or not
@@ -29,6 +31,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The log files will automatically be converted on the first run of v4.7.0
 	- The original files will be backed up to /backup/ConvertBackup
 	- The Date_Time field is now purely for human readability, Cumulus MX now uses the Unix Timestamp internally
+- The main monthly log files now log the final values for Rainfall Today and ET Today in the first record of the following day
 - Removes the dependency on ServiceStack.Text for JSON handling, now using the built-in System.Text.Json
 - Swaps SQLitePCLRaw.bundle_green for newer SQLitePCLRaw.bundle_e_sqlite3
 - Debug and data logging are now fully independent

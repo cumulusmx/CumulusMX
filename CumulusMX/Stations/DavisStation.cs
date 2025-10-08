@@ -2563,6 +2563,12 @@ namespace CumulusMX.Stations
 									DoRain(lastRain, lastRainrate, preDayTS);
 								}
 
+								// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
+								// Windrun
+								// Dominant wind bearing
+								// ET - if MX calculated
+								// Degree days
+								// Rainfall
 
 								// In roll-over hour and roll-over not yet done
 								if (h == rollHour && !rolloverdone)
@@ -2859,7 +2865,11 @@ namespace CumulusMX.Stations
 
 								LastDataReadTime = timestamp;
 
-								_ = cumulus.DoLogFile(timestamp, false);
+								if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+								{
+									// Only log data if not in the roll-over hour and not on the hour
+									_ = cumulus.DoLogFile(timestamp, false);
+								}
 								cumulus.LogMessage("GetArchiveData: Log file entry written");
 
 								try

@@ -673,7 +673,11 @@ namespace CumulusMX.Stations
 								DoSunHours(Convert.ToDouble(sl[SUNPOS], provider));
 							}
 
-							_ = cumulus.DoLogFile(timestamp, false);
+							if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+							{
+								// Only log data if not in the roll-over hour and not on the hour
+								_ = cumulus.DoLogFile(timestamp, false);
+							}
 							cumulus.MySqlRealtimeFile(999, false, timestamp);
 							cumulus.DoCustomIntervalLogs(timestamp);
 

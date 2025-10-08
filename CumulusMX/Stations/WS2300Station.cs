@@ -407,7 +407,11 @@ namespace CumulusMX.Stations
 
 				bw.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
-				_ = cumulus.DoLogFile(timestamp, false);
+				if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+				{
+					// Only log data if not in the roll-over hour and not on the hour
+					_ = cumulus.DoLogFile(timestamp, false);
+				}
 				cumulus.DoCustomIntervalLogs(timestamp);
 
 				if (cumulus.StationOptions.LogExtraSensors)

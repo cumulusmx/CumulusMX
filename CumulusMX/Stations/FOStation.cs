@@ -381,35 +381,6 @@ namespace CumulusMX.Stations
 
 				rollHour = Math.Abs(cumulus.GetHourInc(timestamp));
 
-				//  if outside roll-over hour, roll-over yet to be done
-				if (h != rollHour)
-				{
-					rolloverdone = false;
-				}
-				else if (!rolloverdone)
-				{
-					// In roll-over hour and roll-over not yet done
-					// do roll-over
-					cumulus.LogMessage("Day roll-over " + timestamp.ToShortTimeString());
-					DayReset(timestamp);
-
-					rolloverdone = true;
-				}
-
-				// Not in midnight hour, midnight rain yet to be done
-				if (h != 0)
-				{
-					midnightraindone = false;
-				}
-				else if (!midnightraindone)
-				{
-					// In midnight hour and midnight rain (and sun) not yet done
-					ResetMidnightRain(timestamp);
-					ResetSunshineHours(timestamp);
-					ResetMidnightTemperatures(timestamp);
-					midnightraindone = true;
-				}
-
 				// 9am rollover items
 				if (h != 9)
 				{
@@ -612,7 +583,47 @@ namespace CumulusMX.Stations
 
 				bw.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
-				_ = cumulus.DoLogFile(timestamp, false);
+				// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
+				// Windrun
+				// Dominant wind bearing
+				// ET - if MX calculated
+				// Degree days
+				// Rainfall
+
+				//  if outside roll-over hour, roll-over yet to be done
+				if (h != rollHour)
+				{
+					rolloverdone = false;
+				}
+				else if (!rolloverdone)
+				{
+					// In roll-over hour and roll-over not yet done
+					// do roll-over
+					cumulus.LogMessage("Day roll-over " + timestamp.ToShortTimeString());
+					DayReset(timestamp);
+
+					rolloverdone = true;
+				}
+
+				// Not in midnight hour, midnight rain yet to be done
+				if (h != 0)
+				{
+					midnightraindone = false;
+				}
+				else if (!midnightraindone)
+				{
+					// In midnight hour and midnight rain (and sun) not yet done
+					ResetMidnightRain(timestamp);
+					ResetSunshineHours(timestamp);
+					ResetMidnightTemperatures(timestamp);
+					midnightraindone = true;
+				}
+
+				if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+				{
+					// Only log data if not in the roll-over hour and not on the hour
+					_ = cumulus.DoLogFile(timestamp, false);
+				}
 				cumulus.DoCustomIntervalLogs(timestamp);
 
 				if (cumulus.StationOptions.LogExtraSensors)

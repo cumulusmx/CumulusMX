@@ -661,37 +661,6 @@ namespace CumulusMX.Stations
 
 				rollHour = Math.Abs(cumulus.GetHourInc(rec.Key));
 
-				//  if outside rollover hour, rollover yet to be done
-				if (h != rollHour)
-				{
-					rolloverdone = false;
-				}
-				else if (!rolloverdone)
-				{
-					// In rollover hour and rollover not yet done
-					// do rollover
-					cumulus.LogMessage("Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
-					Cumulus.LogConsoleMessage("\n  Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
-
-					DayReset(rec.Key);
-
-					rolloverdone = true;
-				}
-
-				// Not in midnight hour, midnight rain yet to be done
-				if (h != 0)
-				{
-					midnightraindone = false;
-				}
-				else if (!midnightraindone)
-				{
-					// In midnight hour and midnight rain (and sun) not yet done
-					ResetMidnightRain(rec.Key);
-					ResetSunshineHours(rec.Key);
-					ResetMidnightTemperatures(rec.Key);
-					midnightraindone = true;
-				}
-
 				// 9am rollover items
 				if (h != 9)
 				{
@@ -768,7 +737,49 @@ namespace CumulusMX.Stations
 					CalculateEvapotranspiration(rec.Key);
 				}
 
-				_ = cumulus.DoLogFile(rec.Key, false);
+				// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
+				// Windrun
+				// Dominant wind bearing
+				// ET - if MX calculated
+				// Degree days
+				// Rainfall
+
+				//  if outside rollover hour, rollover yet to be done
+				if (h != rollHour)
+				{
+					rolloverdone = false;
+				}
+				else if (!rolloverdone)
+				{
+					// In rollover hour and rollover not yet done
+					// do rollover
+					cumulus.LogMessage("Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+					Cumulus.LogConsoleMessage("\n  Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+
+					DayReset(rec.Key);
+
+					rolloverdone = true;
+				}
+
+				// Not in midnight hour, midnight rain yet to be done
+				if (h != 0)
+				{
+					midnightraindone = false;
+				}
+				else if (!midnightraindone)
+				{
+					// In midnight hour and midnight rain (and sun) not yet done
+					ResetMidnightRain(rec.Key);
+					ResetSunshineHours(rec.Key);
+					ResetMidnightTemperatures(rec.Key);
+					midnightraindone = true;
+				}
+
+				if (rec.Key.Hour != cumulus.RolloverHour || rec.Key.Minute != 0)
+				{
+					// Only log data if not in the roll-over hour and not on the hour
+					_ = cumulus.DoLogFile(rec.Key, false);
+				}
 				cumulus.DoCustomIntervalLogs(rec.Key);
 
 				cumulus.MySqlRealtimeFile(999, false, rec.Key);

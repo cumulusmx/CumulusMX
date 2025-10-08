@@ -1880,7 +1880,11 @@ namespace CumulusMX
 
 					if (now.Minute % Cumulus.logints[cumulus.DataLogInterval] == 0)
 					{
-						_ = cumulus.DoLogFile(now, true);
+						// skip the log at rollover, it will be done by DayReset
+						if (now.Hour != cumulus.RolloverHour || now.Minute != 0)
+						{
+							_ = cumulus.DoLogFile(now, true);
+						}
 
 						if (cumulus.StationOptions.LogExtraSensors)
 						{
@@ -7975,6 +7979,9 @@ namespace CumulusMX
 
 				// First save today's extremes, do not wait for this
 				_ = DoDayfile(timestamp);
+
+				// and the log file - do wait for this
+				cumulus.DoLogFile(timestamp, cumulus.NormalRunning).Wait();
 
 				cumulus.LogMessage("Raincounter = " + RainCounter + " Raindaystart = " + RainCounterDayStart);
 
