@@ -46,7 +46,7 @@ namespace CumulusMX.JsonConverters
 	{
 		protected static DateTime FromUnixTime(long seconds)
 		{
-			return DateTime.UnixEpoch.AddSeconds(seconds);
+			return DateTime.UnixEpoch.AddSeconds(seconds).ToLocalTime();
 		}
 
 		protected static long ToUnixTime(DateTime dateTime)

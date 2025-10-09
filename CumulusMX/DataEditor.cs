@@ -1047,12 +1047,13 @@ namespace CumulusMX
 								// after that build the total was reset to zero in the entry
 								// messy!
 								// no final rainfall entry after this date (approx). The best we can do is add in the increase in rain counter during this preiod
+								// v4.7.0 changed back to putting the rain and ET total in the 00:00 record
 								var rollovertime = new TimeSpan(-cumulus.GetHourInc(recDate), 0, 0);
 								if (rec.RainToday > 0 && recDate.TimeOfDay == rollovertime)
 								{
 									dayRain = rec.RainToday;
 								}
-								else if ((rec.RainCounter - lastentrycounter > 0) && (rec.RainCounter - lastentrycounter < counterJumpTooBig))
+								else if (recDate.TimeOfDay == rollovertime && (rec.RainCounter - lastentrycounter > 0) && (rec.RainCounter - lastentrycounter < counterJumpTooBig))
 								{
 									dayRain += (rec.RainCounter - lastentrycounter) * cumulus.Calib.Rain.Mult;
 								}
@@ -1115,7 +1116,6 @@ namespace CumulusMX
 										currentWetPeriod = 0;
 									}
 								}
-
 							}
 							else
 							{
@@ -3549,6 +3549,20 @@ namespace CumulusMX
 							context.Response.StatusCode = 500;
 							return "{\"errors\": { \"Logfile\": [\"<br>Failed to delete record. Error: " + ex.Message + "\"]}}";
 						}
+
+						// finally re-write the log file
+						try
+						{
+							// write logfile back again
+							File.WriteAllLines(logfile, lines);
+
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogErrorMessage($"EditDataLog: Error writing to the logfile {logfile}. Error = - {ex.Message}");
+							context.Response.StatusCode = 500;
+							return "{\"errors\":{\"Logfile\":[\"<br>Error writing to the logfile " + logfile + ". Error: " + ex.Message + "\"]}}";
+						}
 					}
 					else
 					{
@@ -3557,21 +3571,6 @@ namespace CumulusMX
 						return "{\"errors\":{\"Logfile\":[\"Failed, line to delete does not match the file contents\"]}}";
 					}
 				}
-
-				// finally re-write the dayfile
-				try
-				{
-					// write logfile back again
-					File.WriteAllLines(logfile, lines);
-
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"EditDataLog: Error writing to the logfile {logfile}. Error = - {ex.Message}");
-					context.Response.StatusCode = 500;
-					return "{\"errors\":{\"Logfile\":[\"<br>Error writing to the logfile " + logfile + ". Error: " + ex.Message + "\"]}}";
-				}
-
 			}
 
 			return "{\"errors\":null}";
