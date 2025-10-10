@@ -44,6 +44,144 @@ namespace CumulusMX.Stations
 
 		public int SdCardInterval { get; set; }
 
+
+		#region Get Methods
+		public static void GetAvailbleSsids(CancellationToken token)
+		{
+			// http://ip-address/usr_scan_ssid_list
+			// response
+			//{
+			//	"list": [
+			//		{
+			//			"ssid": "SSID_NAME",
+			//			"rssi": "-45",
+			//			"auth": "4"
+			//		},
+			//		{etc}
+			//	]
+			//}
+		}
+
+		public async Task<Calibration> GetCalibrationData(CancellationToken token)
+		{
+			// http://ip-address/get_calibration_data
+
+			// response
+			//{
+			//	"SolarRadWave": "126.7",	???
+			//	"solarRadGain": "1.00",		Irradiance gain
+			//	"uvGain": "1.00",
+			//	"windGain": "1.00",
+			//	"inTempOffset": "0.0",
+			//	"inHumOffset": "0.0",
+			//	"absOffset": "0.3",
+			//	"altitude": "72",
+			//	"outTempOffset": "0.0",
+			//	"outHumOffset": "0.0",
+			//	"windDirsOffset": "0",
+			//	"th_cli": true,				Show Multi CH T/H calibration
+			//	"pm25_cli": true			Show PM2.5 calibration
+			//	"soil_cli": true,			Show Soil sensor calibration
+			//	"co2_cli": true				Show CO2 calibration
+			//}
+
+			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
+			{
+				cumulus.LogErrorMessage("GetCalibrationData: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				return null;
+			}
+
+			string responseBody;
+			int responseCode;
+
+			try
+			{
+				var url = $"http://{cumulus.Gw1000IpAddress}/get_calibration_data";
+
+				// we want to do this synchronously, so .Result
+				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
+				{
+					responseBody = await response.Content.ReadAsStringAsync(token);
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"LocalApi.GetCalibrationData: Ecowitt Local API Response code: {responseCode}");
+					cumulus.LogDataMessage($"LocalApi.GetCalibrationData: Ecowitt Local API Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					cumulus.LogWarningMessage($"LocalApi.GetCalibrationData: Ecowitt Local API Error: {responseCode}");
+					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					return null;
+				}
+
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("LocalApi.GetLiveData: Ecowitt Local API: No data was returned.");
+					Cumulus.LogConsoleMessage(" - No Calibration data available");
+					return null;
+				}
+				else if (responseBody.StartsWith('{')) // sanity check
+				{
+					// Convert JSON string to an object
+					var json = JsonSerializer.Deserialize<Calibration>(responseBody, jsonOptions);
+					return json;
+				}
+			}
+			catch (HttpRequestException ex)
+			{
+				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage("GetCalibrationData: Error - This Station does not support the HTTP API!");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "GetCalibrationData: HTTP Error");
+				}
+			}
+			catch (Exception ex)
+			{
+				if (token.IsCancellationRequested)
+				{
+					cumulus.LogDebugMessage("GetCalibrationData: Operation cancelled due to shutting down");
+					return null;
+				}
+
+				cumulus.LogExceptionMessage(ex, "GetCalibrationData: Error");
+			}
+
+			return null;
+		}
+
+		public static void GetDeviceInfo(CancellationToken token)
+		{
+			// http://ip-address/get_device_info
+
+			//{
+			//	"sensorType":	"1",
+			//	"rf_freq":	"1",
+			//	"AFC":	"0",
+			//	"tz_auto":	"1",
+			//	"tz_name":	"",
+			//	"tz_index":	"39",
+			//	"dst_stat":	"1",
+			//	"radcompensation":	"0",
+			//	"date":	"2024-09-06T16:36",
+			//	"upgrade":	"0",
+			//	"apAuto":	"1",
+			//	"newVersion":	"0",
+			//	"curr_msg":	"Current version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries.",
+			//	"apName":	"GW1100A-WIFID4D3",
+			//	"APpwd":	"base64-string",
+			//	"time":	"20"
+			//}
+		}
+
+		public static void GetIotList(CancellationToken token)
+		{
+			// http://ip-address/get_iot_device_list
+		}
+		
 		public LiveData GetLiveData(CancellationToken token)
 		{
 			// http://ip-address/get_livedata_info
@@ -255,303 +393,21 @@ namespace CumulusMX.Stations
 			return null;
 		}
 
-
-		public async Task<SensorInfo[]> GetSensorInfo(CancellationToken token)
+		public static void GetNetworkInfo(CancellationToken token)
 		{
-			// http://ip-address/get_sensors_info?page=1
-			// http://ip-address/get_sensors_info?page=2
-
-			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
-			{
-				cumulus.LogErrorMessage("GetSensorInfo: Invalid station IP address: " + cumulus.Gw1000IpAddress);
-				return null;
-			}
-
-			SensorInfo[] sensors1 = [];
-			SensorInfo[] sensors2 = [];
-
-			try
-			{
-				var url1 = $"http://{cumulus.Gw1000IpAddress}/get_sensors_info?page=1";
-				var url2 = $"http://{cumulus.Gw1000IpAddress}/get_sensors_info?page=2";
-
-
-				var task1 = cumulus.MyHttpClient.GetStringAsync(url1, token);
-				var task2 = cumulus.MyHttpClient.GetStringAsync(url2, token);
-
-				// Wait for both tasks to complete
-				await Task.WhenAll(task1, task2);
-
-				// Retrieve the results
-				var result1 = await task1;
-				var result2 = await task2;
-
-				cumulus.LogDataMessage("GetSensorInfo: Page 1 = " + Utils.RemoveCrTabsFromString(result1));
-				cumulus.LogDataMessage("GetSensorInfo: Page 2 = " + Utils.RemoveCrTabsFromString(result2));
-
-				if (!string.IsNullOrEmpty(result1))
-				{
-					sensors1 = JsonSerializer.Deserialize<SensorInfo[]>(result1, jsonOptions);
-				}
-				if (!string.IsNullOrEmpty(result2))
-				{
-					sensors2 = JsonSerializer.Deserialize<SensorInfo[]>(result2, jsonOptions);
-				}
-
-				var retArr = new SensorInfo[sensors1.Length + sensors2.Length];
-				sensors1.CopyTo(retArr, 0);
-				sensors2.CopyTo(retArr, sensors1.Length);
-
-				return retArr;
-			}
-			catch (HttpRequestException ex)
-			{
-				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				{
-					cumulus.LogErrorMessage("GetSensorInfo: Error - This Station does not support the HTTP API!");
-				}
-				else
-				{
-					cumulus.LogExceptionMessage(ex, "GetSensorInfo: HTTP Error");
-				}
-			}
-			catch (Exception ex)
-			{
-				cumulus.LogExceptionMessage(ex, "GetSensorInfo: Error");
-			}
-
-			return null;
-		}
-
-
-		public async Task<string> GetVersion(CancellationToken token)
-		{
-			// http://ip-address/get_version
-
-			// response
-			//	{
-			//		"version":	"Version: GW1100A_V2.3.4",
-			//		"newVersion":	"0",
-			//		"platform":	"ecowitt"
-			//	}}
-
-			string responseBody;
-			int responseCode;
-			var unknown = "unknown";
-
-			try
-			{
-				var url = $"http://{cumulus.Gw1000IpAddress}/get_version";
-
-				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
-				{
-					responseBody = response.Content.ReadAsStringAsync(token).Result;
-					responseCode = (int) response.StatusCode;
-					cumulus.LogDebugMessage($"LocalApi.GetVersion: Ecowitt Local API GetVersion Response code: {responseCode}");
-					cumulus.LogDataMessage($"LocalApi.GetVersion: Ecowitt Local API GetVersion Response: {responseBody}");
-				}
-
-				if (responseCode != 200)
-				{
-					cumulus.LogWarningMessage($"LocalApi.GetVersion: Ecowitt Local API GetVersion Error: {responseCode}");
-					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
-					return unknown;
-				}
-
-
-				if (responseBody == "{}")
-				{
-					cumulus.LogMessage("LocalApi.GetVersion: Ecowitt Local API GetVersion: No data was returned.");
-					Cumulus.LogConsoleMessage(" - No Live data available");
-					return unknown;
-				}
-				else if (responseBody.StartsWith('{')) // sanity check
-				{
-					// Convert JSON string to an object
-					var ver = JsonSerializer.Deserialize<VersionInfo>(responseBody, jsonOptions).version.Split(':')[1].Trim().Split('_')[1];
-					cumulus.LogMessage("Station firmware version is " + ver);
-					return ver;
-				}
-			}
-			catch (HttpRequestException ex)
-			{
-				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				{
-					cumulus.LogErrorMessage("GetVersion: Error - This Station does not support the HTTP API!");
-				}
-				else
-				{
-					cumulus.LogExceptionMessage(ex, "GetVersion: HTTP Error");
-				}
-			}
-
-			return unknown;
-		}
-
-		public static void GetDeviceInfo(CancellationToken token)
-		{
-			// http://ip-address/get_device_info
-
+			// http://ip-address/get_network_info
+			//response
 			//{
-			//	"sensorType":	"1",
-			//	"rf_freq":	"1",
-			//	"AFC":	"0",
-			//	"tz_auto":	"1",
-			//	"tz_name":	"",
-			//	"tz_index":	"39",
-			//	"dst_stat":	"1",
-			//	"radcompensation":	"0",
-			//	"date":	"2024-09-06T16:36",
-			//	"upgrade":	"0",
-			//	"apAuto":	"1",
-			//	"newVersion":	"0",
-			//	"curr_msg":	"Current version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries.",
-			//	"apName":	"GW1100A-WIFID4D3",
-			//	"APpwd":	"",
-			//	"time":	"20"
-			//}
-		}
-
-		public static void GetIotList(CancellationToken token)
-		{
-			// http://ip-address/get_iot_device_list
-		}
-
-		public static void SetDeviceInfo(CancellationToken token)
-		{
-			// http://ip-address/set_device_info
-
-			// POST
-
-		}
-
-		public async Task<Calibration> GetCalibrationData(CancellationToken token)
-		{
-			// http://ip-address/get_calibration_data
-
-			// response
-			//{
-			//	"SolarRadWave": "126.7",	???
-			//	"solarRadGain": "1.00",		Irradiance gain
-			//	"uvGain": "1.00",
-			//	"windGain": "1.00",
-			//	"inTempOffset": "0.0",
-			//	"inHumOffset": "0.0",
-			//	"absOffset": "0.3",
-			//	"altitude": "72",
-			//	"outTempOffset": "0.0",
-			//	"outHumOffset": "0.0",
-			//	"windDirsOffset": "0",
-			//	"th_cli": true,				Show Multi CH T/H calibration
-			//	"pm25_cli": true			Show PM2.5 calibration
-			//}
-
-			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
-			{
-				cumulus.LogErrorMessage("GetCalibrationData: Invalid station IP address: " + cumulus.Gw1000IpAddress);
-				return null;
-			}
-
-			string responseBody;
-			int responseCode;
-
-			try
-			{
-				var url = $"http://{cumulus.Gw1000IpAddress}/get_calibration_data";
-
-				// we want to do this synchronously, so .Result
-				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
-				{
-					responseBody = await response.Content.ReadAsStringAsync(token);
-					responseCode = (int) response.StatusCode;
-					cumulus.LogDebugMessage($"LocalApi.GetCalibrationData: Ecowitt Local API Response code: {responseCode}");
-					cumulus.LogDataMessage($"LocalApi.GetCalibrationData: Ecowitt Local API Response: {responseBody}");
-				}
-
-				if (responseCode != 200)
-				{
-					cumulus.LogWarningMessage($"LocalApi.GetCalibrationData: Ecowitt Local API Error: {responseCode}");
-					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
-					return null;
-				}
-
-
-				if (responseBody == "{}")
-				{
-					cumulus.LogMessage("LocalApi.GetLiveData: Ecowitt Local API: No data was returned.");
-					Cumulus.LogConsoleMessage(" - No Calibration data available");
-					return null;
-				}
-				else if (responseBody.StartsWith('{')) // sanity check
-				{
-					// Convert JSON string to an object
-					var json = JsonSerializer.Deserialize<Calibration>(responseBody, jsonOptions);
-					return json;
-				}
-			}
-			catch (HttpRequestException ex)
-			{
-				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				{
-					cumulus.LogErrorMessage("GetCalibrationData: Error - This Station does not support the HTTP API!");
-				}
-				else
-				{
-					cumulus.LogExceptionMessage(ex, "GetCalibrationData: HTTP Error");
-				}
-			}
-			catch (Exception ex)
-			{
-				if (token.IsCancellationRequested)
-				{
-					cumulus.LogDebugMessage("GetCalibrationData: Operation cancelled due to shutting down");
-					return null;
-				}
-
-				cumulus.LogExceptionMessage(ex, "GetCalibrationData: Error");
-			}
-
-			return null;
-		}
-
-		public static void GetUnits(CancellationToken token)
-		{
-			// http://ip-address/get_units_info
-
-			// response
-			//{
-			//	"temperature": "0",      0=C 1=F
-			//	"pressure": "0",         0=hPa 1=inHg 2=mmHg
-			//	"wind": "2",             0=ms 1=km/h 2=mph 3=knots
-			//	"rain": "0",             0=mm 1=in
-			//	"light": "1"             0=kLux=? 1=W/m2 2=kfc
-			//}
-		}
-
-		public static void SetUnits(CancellationToken token)
-		{
-			// http://ip-address/set_units_info
-
-			// POST
-			//{temperature: "1", pressure: "0", wind: "2", rain: "0", light: "1"}
-
-			// response = 200 - OK
-		}
-
-		public static void SetLogin(string password)
-		{
-			// http://ip-address/set_login_info
-
-			// POST
-			//{
-			//	"pwd":""
-			//}
-
-			// Response
-			//{
-			//	"status":	"1",
-			//	"online":	"0",
-			//	"msg":	"success"
+			//	"mac": "E8:DB:84:0F:15:43",
+			//	"ehtIpType": "1",				0=WiFi, 1=Ethernet
+			//	"ethIP": "10.10.10.106",
+			//	"ethMask": "255.255.255.0",
+			//	"ethGateway": "10.10.10.100",
+			//	"ssid": "GW1100A-WIFI38B4",
+			//	"wifi_pwd": "base64-string",
+			//	"wifi_ip": "192.168.4.10",
+			//	"wifi_mask": "192.168.4.10",
+			//	"wifi_gateway":	"192.168.4.1"
 			//}
 		}
 
@@ -585,145 +441,6 @@ namespace CumulusMX.Stations
 			//}
 
 			// response = 200 - OK
-		}
-
-		public static void SetRainTotals(CancellationToken token)
-		{
-			// http://ip-address/set_rain_totals
-
-			// POST
-			//{
-			//	"rainDay": "0.0",
-			//	"rainWeek": "5.3",
-			//	"rainMonth": "6.8",
-			//	"rainYear": "572.5",
-			//	"rainGain": "1.01",
-			//	"rainFallPriority": "1",
-			//	"rstRainDay": "0",
-			//	"rstRainWeek": "1",
-			//	"rstRainYear": "0"
-			//}
-
-			// response = 200 - OK
-		}
-
-		public async Task<bool> CheckForUpgrade(CancellationToken token)
-		{
-			// http://ip-address/upgrade_process
-
-			// POST
-			// {"upgrade": "check"}
-
-			// response
-			//{
-			//	"is_new": false,
-			//	"msg": "It's the latest version\r\nCurrent version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries."
-			//}
-
-			string responseBody;
-			int responseCode;
-
-			try
-			{
-				var url = $"http://{cumulus.Gw1000IpAddress}/upgrade_process";
-
-				var data = new StringContent("{\"upgrade\": \"check\"}", Encoding.UTF8, "application/json");
-				using (var response = await cumulus.MyHttpClient.PostAsync(url, data, token))
-				{
-					responseBody = response.Content.ReadAsStringAsync(token).Result;
-					responseCode = (int) response.StatusCode;
-					cumulus.LogDebugMessage($"LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion Response code: {responseCode}");
-					cumulus.LogDataMessage($"LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion Response: {responseBody}");
-				}
-
-				if (responseCode != 200)
-				{
-					cumulus.LogWarningMessage($"LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion Error: {responseCode}");
-					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
-					return false;
-				}
-
-
-				if (responseBody == "{}")
-				{
-					cumulus.LogMessage("LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion: No data was returned.");
-					Cumulus.LogConsoleMessage(" - No Live data available");
-					return false;
-				}
-				else if (responseBody.StartsWith('{')) // sanity check
-				{
-					// Convert JSON string to an object
-					var result = JsonSerializer.Deserialize<CheckUpgrade>(responseBody, jsonOptions);
-					if (result.is_new)
-					{
-						cumulus.LogWarningMessage("Station firmware is out of date");
-						cumulus.LogMessage("New firmware: " + result.msg);
-						cumulus.FirmwareAlarm.LastMessage = "New firmware version = " + result.msg;
-						cumulus.FirmwareAlarm.Triggered = true;
-					}
-					else
-					{
-						cumulus.LogMessage("Station firmware is up to date");
-						cumulus.FirmwareAlarm.Triggered = false;
-					}
-
-					return result.is_new;
-				}
-			}
-			catch (HttpRequestException ex)
-			{
-				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				{
-					cumulus.LogErrorMessage("CheckForUpgrade: Error - This Station does not support the HTTP API!");
-				}
-				else
-				{
-					cumulus.LogExceptionMessage(ex, "CheckForUpgrade: HTTP Error");
-				}
-			}
-			catch (Exception ex)
-			{
-				if (token.IsCancellationRequested)
-				{
-					cumulus.LogDebugMessage("CheckForUpgrade: Operation cancelled due to shutting down");
-					return false;
-				}
-				cumulus.LogExceptionMessage(ex, "CheckForUpgrade: Error");
-			}
-
-			return false;
-
-		}
-
-		public static void StartUpgrade(CancellationToken token)
-		{
-			// http://ip-address/upgrade_process
-
-			// POST
-			// {"upgrade": "start"}
-
-			// response
-			// object
-			// status: N   1=running
-			// 'over'
-
-		}
-
-		public static void Login(string password, CancellationToken token)
-		{
-			// http://ip-address/set_login_info
-
-			// POST
-			//{pwd: "base64_string"}
-		}
-
-		public static void Reboot(CancellationToken token)
-		{
-			// http://ip-address/set_device_info
-
-			// POST
-			// { sysreboot: 1 }
-
 		}
 
 		public async Task<SdCard> GetSdCardInfo(CancellationToken token)
@@ -807,202 +524,6 @@ namespace CumulusMX.Stations
 
 			return null;
 		}
-
-		/*
-		public async Task<List<string>> GetSdFileContents(string fileName, DateTime startTime, CancellationToken token)
-		{
-			// http://IP-address:81/filename (where filename is YYYYMM[A-Z].csv resp. YYYMMAllSensors_[A-Z].csv)
-			//
-			// YYYYMM[A - Z].csv
-			// Time,Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃),Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),Wind(m/s),Gust(m/s),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
-			// 2024-09-18 14:25,22.8,55,23.2,54,13.4,23.2,1.1,1.6,259,989.6,1013.1,519.34,4,5.47,4.84,1,0.0,0.0,0.0,0.0,0.0,0.0
-			//
-			// YYYMMAllSensors_[A-Z].csv
-			// Time,CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%),CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%),CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃),CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃),CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃),CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃),CH8 HeatIndex(℃),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),SoilMoisture CH2(%),SoilMoisture CH3(%),SoilMoisture CH4(%),SoilMoisture CH5(%),SoilMoisture CH6(%),SoilMoisture CH7(%),SoilMoisture CH8(%),SoilMoisture CH9(%),SoilMoisture CH10(%),SoilMoisture CH11(%),SoilMoisture CH12(%),SoilMoisture CH13(%),SoilMoisture CH14(%),SoilMoisture CH15(%),SoilMoisture CH16(%),Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),LDS_Air CH1(mm),LDS_Air CH2(mm),LDS_Air CH3(mm),LDS_Air CH4(mm),
-			// 2024-09-18 14:25,24.5,14.3,24.5,53,30.0,17.5,30.5,47,24.0,13.6,24.0,52,--.-,--.-,--.-,--,-15.5,--.-,--.-,--,38.1,23.8,45.6,44,6.6,-1.5,6.6,56,--.-,--.-,--.-,--,19,--,--,--,--,--,--,--,0,--.-,20.3,66,479,10.4,10.8,--.-,--.-,69,51,78,49,44,52,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,--.-,--.-,--.-,--.-,11.5,16.8,24.0,--.-,--.-,--.-,--.-,--.-
-			// 2025-01-10 12:34,1.8,0.8,1.8,93,3.3,1.5,3.3,88,1.5,-0.1,1.5,89,1.6,-0.3,1.6,87,-19.3,--,--,--,3.9,2.7,3.9,92,7.0,-3.0,7.0,49,--,--,--,--,77,--,--,--,--,--,--,--,0,--,15.3,60,775,6.4,6.7,--,--,60,45,56,72,50,74,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,12.0,9.0,--,--,2.5,2.5,2.0,--,--,--,--,--,--,--,--,--
-
-			cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Requesting file {fileName} from station");
-
-			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
-			{
-				cumulus.LogErrorMessage("LocalApi.GetSdFileContents: Invalid station IP address: " + cumulus.Gw1000IpAddress);
-				return null;
-			}
-
-			var responseBody = string.Empty;
-			var responseCode = 0;
-			var retries = 1;
-
-			var url = $"http://{cumulus.Gw1000IpAddress}:81/" + fileName;
-
-			// Get the contents
-			do
-			{
-				try
-				{
-					using var response = await cumulus.MyHttpClient.GetAsync(url, token);
-
-					responseBody = await response.Content.ReadAsStringAsync(token);
-					responseCode = (int) response.StatusCode;
-					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Response code: {responseCode}");
-
-					if (responseCode != 200)
-					{
-						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: Ecowitt Local API Error: {responseCode}");
-						Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
-					}
-					else if (responseBody.Length < 400)
-					{
-						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} is too short = {responseBody.Length} bytes");
-						cumulus.LogDataMessage("File contents = " + responseBody);
-					}
-					else
-					{
-						break;
-					}
-				}
-				catch (HttpRequestException ex)
-				{
-					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-					{
-						cumulus.LogErrorMessage("GetSdFileContents: Error - This Station does not support the HTTP API!");
-						return null;
-					}
-					else
-					{
-						cumulus.LogExceptionMessage(ex, "GetSdFileContents: HTTP Error");
-					}
-				}
-				catch (Exception ex)
-				{
-					if (token.IsCancellationRequested)
-					{
-						cumulus.LogDebugMessage("GetSdFileContents: Operation cancelled due to shutting down");
-						return null;
-					}
-					cumulus.LogExceptionMessage(ex, "GetSdFileContents: Error");
-				}
-
-				retries--;
-				Thread.Sleep(250);
-			} while (retries >= 0);
-
-			// check what we got back
-			if (responseCode != 200 || responseBody.Length < 400)
-			{
-				cumulus.LogMessage($"LocalApi.GetSdFileContents: Failed to fetch File {fileName}, giving up!");
-				return null;
-			}
-
-			cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {responseBody.Length / 1024} KB");
-
-			try {
-				var lines = new List<string>(responseBody
-					.Split(lineEnds, StringSplitOptions.None)
-					.Where(line => !string.IsNullOrWhiteSpace(line)));
-
-				if (lines.Count == 0)
-				{
-					// header plus one data line
-					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any lines");
-					return null;
-				}
-				else if (lines.Count == 1)
-				{
-					// header plus one data line
-					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} only contains one line");
-					cumulus.LogDataMessage("File contents (1 KB limit) = " + responseBody.Substring(0, 1024));
-					return null;
-				}
-
-				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} contains {lines.Count} lines");
-				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
-
-				// quick check if there is any data in the file!
-				var fields = lines[0].Split(',');
-				if (fields.Length < 10)
-				{
-					cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} header line is malformed");
-					cumulus.LogDataMessage("Header line = " + lines[0]);
-					return null;
-				}
-
-				var useTimeStamp = lines[0].Split(',')[1].ToLower() == "timestamp";
-				var lastLine = lines[^1].Split(',');
-
-				if (useTimeStamp)
-				{
-					var ts = Utils.RoundUnixTimestampToNearest(long.Parse(lastLine[1]), SdCardInterval);
-
-					if (Utils.FromUnixTime(ts) < startTime)
-					{
-						cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any matching lines");
-						return null;
-					}
-				}
-				else
-				{
-					if (DateTime.TryParseExact(lastLine[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt < startTime)
-					{
-						cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: File {fileName} does not contain any matching lines");
-						return null;
-					}
-				}
-
-				List<string> result =
-				[
-					// always add the header line
-					lines[0]
-				];
-
-				for (var i = 1; i < lines.Count; i++)
-				{
-					var line = lines[i];
-					var dataFields = line.Split(',');
-
-					if (dataFields.Length < 10)
-					{
-						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {i + 1 } is malformed");
-						cumulus.LogDataMessage($"line # {i+1} = " + line);
-						continue;
-					}
-
-					if (useTimeStamp)
-					{
-						// timestamp is in the second field
-						if (Utils.FromUnixTime(Utils.RoundUnixTimestampToNearest(long.Parse(dataFields[1]), SdCardInterval)) >= startTime)
-						{
-							result.Add(line);
-						}
-					}
-					else
-					{
-						if (DateTime.TryParseExact(dataFields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
-						{
-							result.Add(line);
-						}
-					}
-				}
-
-				cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Returning {result.Count} lines from {fileName}");
-
-				return result;
-			}
-			catch (Exception ex)
-			{
-				if (token.IsCancellationRequested)
-				{
-					cumulus.LogDebugMessage("GetSdFileContents: Operation cancelled due to shutting down");
-					return null;
-				}
-
-				cumulus.LogExceptionMessage(ex, "GetSdFileContents: Error processing file contents");
-			}
-
-			return null;
-		}
-		*/
 
 		public async Task<List<string>> GetSdFileContents(string fileName, DateTime startTime, CancellationToken token)
 		{
@@ -1184,6 +705,450 @@ namespace CumulusMX.Stations
 			return files;
 		}
 
+		public async Task<SensorInfo[]> GetSensorInfo(CancellationToken token)
+		{
+			// http://ip-address/get_sensors_info?page=1
+			// http://ip-address/get_sensors_info?page=2
+
+			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
+			{
+				cumulus.LogErrorMessage("GetSensorInfo: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				return null;
+			}
+
+			SensorInfo[] sensors1 = [];
+			SensorInfo[] sensors2 = [];
+
+			try
+			{
+				var url1 = $"http://{cumulus.Gw1000IpAddress}/get_sensors_info?page=1";
+				var url2 = $"http://{cumulus.Gw1000IpAddress}/get_sensors_info?page=2";
+
+
+				var task1 = cumulus.MyHttpClient.GetStringAsync(url1, token);
+				var task2 = cumulus.MyHttpClient.GetStringAsync(url2, token);
+
+				// Wait for both tasks to complete
+				await Task.WhenAll(task1, task2);
+
+				// Retrieve the results
+				var result1 = await task1;
+				var result2 = await task2;
+
+				cumulus.LogDataMessage("GetSensorInfo: Page 1 = " + Utils.RemoveCrTabsFromString(result1));
+				cumulus.LogDataMessage("GetSensorInfo: Page 2 = " + Utils.RemoveCrTabsFromString(result2));
+
+				if (!string.IsNullOrEmpty(result1))
+				{
+					sensors1 = JsonSerializer.Deserialize<SensorInfo[]>(result1, jsonOptions);
+				}
+				if (!string.IsNullOrEmpty(result2))
+				{
+					sensors2 = JsonSerializer.Deserialize<SensorInfo[]>(result2, jsonOptions);
+				}
+
+				var retArr = new SensorInfo[sensors1.Length + sensors2.Length];
+				sensors1.CopyTo(retArr, 0);
+				sensors2.CopyTo(retArr, sensors1.Length);
+
+				return retArr;
+			}
+			catch (HttpRequestException ex)
+			{
+				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage("GetSensorInfo: Error - This Station does not support the HTTP API!");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "GetSensorInfo: HTTP Error");
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "GetSensorInfo: Error");
+			}
+
+			return null;
+		}
+
+		public static void GetUnits(CancellationToken token)
+		{
+			// http://ip-address/get_units_info
+
+			// response
+			//{
+			//	"temperature": "0",      0=C 1=F
+			//	"pressure": "0",         0=hPa 1=inHg 2=mmHg
+			//	"wind": "2",             0=ms 1=km/h 2=mph 3=knots
+			//	"rain": "0",             0=mm 1=in
+			//	"light": "1"             0=kLux=? 1=W/m2 2=kfc
+			//}
+		}
+
+		public async Task<string> GetVersion(CancellationToken token)
+		{
+			// http://ip-address/get_version
+
+			// response
+			//	{
+			//		"version":	"Version: GW1100A_V2.3.4",
+			//		"newVersion":	"0",
+			//		"platform":	"ecowitt"
+			//	}}
+
+			string responseBody;
+			int responseCode;
+			var unknown = "unknown";
+
+			try
+			{
+				var url = $"http://{cumulus.Gw1000IpAddress}/get_version";
+
+				using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
+				{
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"LocalApi.GetVersion: Ecowitt Local API GetVersion Response code: {responseCode}");
+					cumulus.LogDataMessage($"LocalApi.GetVersion: Ecowitt Local API GetVersion Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					cumulus.LogWarningMessage($"LocalApi.GetVersion: Ecowitt Local API GetVersion Error: {responseCode}");
+					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					return unknown;
+				}
+
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("LocalApi.GetVersion: Ecowitt Local API GetVersion: No data was returned.");
+					Cumulus.LogConsoleMessage(" - No Live data available");
+					return unknown;
+				}
+				else if (responseBody.StartsWith('{')) // sanity check
+				{
+					// Convert JSON string to an object
+					var ver = JsonSerializer.Deserialize<VersionInfo>(responseBody, jsonOptions).version.Split(':')[1].Trim().Split('_')[1];
+					cumulus.LogMessage("Station firmware version is " + ver);
+					return ver;
+				}
+			}
+			catch (HttpRequestException ex)
+			{
+				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage("GetVersion: Error - This Station does not support the HTTP API!");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "GetVersion: HTTP Error");
+				}
+			}
+
+			return unknown;
+		}
+
+		public static void GetWeatherServiceSettings(CancellationToken token)
+		{
+			// http://ip-address/get_ws_settings
+			// response
+			//{
+			//  "platform": "ecowitt",
+			//  "ost_interval": "1",
+			//  "sta_mac": "E8:DB:84:0F:15:43",
+			//  "wu_interval": "16",
+			//  "wu_id": "",
+			//  "wu_key": "",
+			//  "wcl_interval": "10",
+			//  "wcl_id": "",
+			//  "wcl_key": "",
+			//  "wow_interval": "5",
+			//  "wow_id": "",
+			//  "wow_key": "",
+			//  "Customized": "disable",
+			//  "Protocol": "ecowitt",
+			//  "ecowitt_ip": "",
+			//  "ecowitt_path": "/data/report/",
+			//  "ecowitt_port": "80",
+			//  "ecowitt_upload": "60",
+			//  "usr_wu_path": "/weatherstation/updateweatherstation.php?",
+			//  "usr_wu_id": "",
+			//  "usr_wu_key": "",
+			//  "usr_wu_port": "80",
+			//  "usr_wu_upload": "60",
+			//  "mqtt_name": "",
+			//  "mqtt_host": "",
+			//  "mqtt_transport": "0",
+			//  "mqtt_port": "0",
+			//  "mqtt_topic": "ecowitt/3C8A1FB32BAF",
+			//  "mqtt_clientid": "",
+			//  "mqtt_username": "",
+			//  "mqtt_password": "",
+			//  "mqtt_keepalive": "0",
+			//  "mqtt_interval": "0"
+			//}
+		}
+
+		#endregion
+
+		#region Set Methods
+
+		public static void SetCalibarationData(CancellationToken token)
+		{
+			// http://ip-address/set_calibration_data
+			// POST
+			//{
+			//	"solarRadGain": "1.00",		Irradiance gain
+			//	"uvGain": "1.00",
+			//	"windGain": "1.00",
+			//	"inTempOffset": "0.0",
+			//	"inHumOffset": "0.0",
+			//	"absOffset": "0.3",
+			//	"altitude": "72",
+			//	"outTempOffset": "0.0",
+			//	"outHumOffset": "0.0",
+			//	"windDirsOffset": "0"
+			//}
+		}
+
+		public static void SetDeviceInfo(CancellationToken token)
+		{
+			// http://ip-address/set_device_info
+
+			// POST
+
+		}
+
+		public static void SetLogin(string password)
+		{
+			// http://ip-address/set_login_info
+
+			// POST
+			//{
+			//	"pwd":""
+			//}
+
+			// Response
+			//{
+			//	"status":	"1",
+			//	"online":	"0",
+			//	"msg":	"success"
+			//}
+		}
+
+		public static void SetNetworkInfo(CancellationToken token)
+		{
+			// http://ip-address/set_network_info
+			// POST
+			//{
+			//	ehtIpType: "0",
+			//	ethGateway: "10.10.10.100",
+			//	ethIP: "10.10.10.106"
+			//	ethMask: "255.255.255.0"
+			//}
+			//or
+			//{
+			//	ssid: "AX88U",
+			//	wifi_pwd: "string"
+			//}
+		}
+
+		public static void SetRainTotals(CancellationToken token)
+		{
+			// http://ip-address/set_rain_totals
+
+			// POST
+			//{
+			//	"rainDay": "0.0",
+			//	"rainWeek": "5.3",
+			//	"rainMonth": "6.8",
+			//	"rainYear": "572.5",
+			//	"rainGain": "1.01",
+			//	"rainFallPriority": "1",
+			//	"rstRainDay": "0",
+			//	"rstRainWeek": "1",
+			//	"rstRainYear": "0"
+			//}
+
+			// response = 200 - OK
+		}
+
+		public static void SetUnits(CancellationToken token)
+		{
+			// http://ip-address/set_units_info
+
+			// POST
+			//{temperature: "1", pressure: "0", wind: "2", rain: "0", light: "1"}
+
+			// response = 200 - OK
+		}
+
+		public static void SetWeatherServiceSettings(CancellationToken token)
+		{
+			// http://ip-address/set_ws_settings
+			// POST
+			// {
+			//  "platform": "ecowitt",
+			//  "ost_interval": "1",
+			//  "sta_mac": "E8:DB:84:0F:15:43",
+			//  "wu_interval": "16",
+			//  "wu_id": "",
+			//  "wu_key": "",
+			//  "wcl_interval": "10",
+			//  "wcl_id": "",
+			//  "wcl_key": "",
+			//  "wow_interval": "5",
+			//  "wow_id": "",
+			//  "wow_key": "",
+			//  "Customized": "disable",
+			//  "Protocol": "ecowitt",
+			//  "ecowitt_ip": "",
+			//  "ecowitt_path": "/data/report/",
+			//  "ecowitt_port": "80",
+			//  "ecowitt_upload": "60",
+			//  "usr_wu_path": "/weatherstation/updateweatherstation.php?",
+			//  "usr_wu_id": "",
+			//  "usr_wu_key": "",
+			//  "usr_wu_port": "80",
+			//  "usr_wu_upload": "60",
+			//  "mqtt_name": "",
+			//  "mqtt_host": "",
+			//  "mqtt_transport": "0",
+			//  "mqtt_port": "0",
+			//  "mqtt_topic": "ecowitt/3C8A1FB32BAF",
+			//  "mqtt_clientid": "",
+			//  "mqtt_username": "",
+			//  "mqtt_password": "",
+			//  "mqtt_keepalive": "0",
+			//  "mqtt_interval": "0"
+			//}
+		}
+
+		#endregion
+
+		#region Other Methods
+		public async Task<bool> CheckForUpgrade(CancellationToken token)
+		{
+			// http://ip-address/upgrade_process
+
+			// POST
+			// {"upgrade": "check"}
+
+			// response
+			//{
+			//	"is_new": false,
+			//	"msg": "It's the latest version\r\nCurrent version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries."
+			//}
+
+			string responseBody;
+			int responseCode;
+
+			try
+			{
+				var url = $"http://{cumulus.Gw1000IpAddress}/upgrade_process";
+
+				var data = new StringContent("{\"upgrade\": \"check\"}", Encoding.UTF8, "application/json");
+				using (var response = await cumulus.MyHttpClient.PostAsync(url, data, token))
+				{
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion Response code: {responseCode}");
+					cumulus.LogDataMessage($"LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					cumulus.LogWarningMessage($"LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion Error: {responseCode}");
+					Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+					return false;
+				}
+
+
+				if (responseBody == "{}")
+				{
+					cumulus.LogMessage("LocalApi.CheckForUpgrade: Ecowitt Local API GetVersion: No data was returned.");
+					Cumulus.LogConsoleMessage(" - No Live data available");
+					return false;
+				}
+				else if (responseBody.StartsWith('{')) // sanity check
+				{
+					// Convert JSON string to an object
+					var result = JsonSerializer.Deserialize<CheckUpgrade>(responseBody, jsonOptions);
+					if (result.is_new)
+					{
+						cumulus.LogWarningMessage("Station firmware is out of date");
+						cumulus.LogMessage("New firmware: " + result.msg);
+						cumulus.FirmwareAlarm.LastMessage = "New firmware version = " + result.msg;
+						cumulus.FirmwareAlarm.Triggered = true;
+					}
+					else
+					{
+						cumulus.LogMessage("Station firmware is up to date");
+						cumulus.FirmwareAlarm.Triggered = false;
+					}
+
+					return result.is_new;
+				}
+			}
+			catch (HttpRequestException ex)
+			{
+				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage("CheckForUpgrade: Error - This Station does not support the HTTP API!");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "CheckForUpgrade: HTTP Error");
+				}
+			}
+			catch (Exception ex)
+			{
+				if (token.IsCancellationRequested)
+				{
+					cumulus.LogDebugMessage("CheckForUpgrade: Operation cancelled due to shutting down");
+					return false;
+				}
+				cumulus.LogExceptionMessage(ex, "CheckForUpgrade: Error");
+			}
+
+			return false;
+
+		}
+
+		public static void StartUpgrade(CancellationToken token)
+		{
+			// http://ip-address/upgrade_process
+
+			// POST
+			// {"upgrade": "start"}
+
+			// response
+			// object
+			// status: N   1=running
+			// 'over'
+
+		}
+
+		public static void Login(string password, CancellationToken token)
+		{
+			// http://ip-address/set_login_info
+
+			// POST
+			//{pwd: "base64_string"}
+		}
+
+		public static void Reboot(CancellationToken token)
+		{
+			// http://ip-address/set_device_info
+
+			// POST
+			// { sysreboot: 1 }
+
+		}
+
+		#endregion
 
 		private static string decodePassword(string base64EncodedData)
 		{
@@ -1257,7 +1222,6 @@ namespace CumulusMX.Stations
 				}
 			}
 		}
-
 
 		public class Wh25Sensor
 		{

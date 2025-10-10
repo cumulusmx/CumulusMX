@@ -44,11 +44,13 @@ namespace CumulusMX.JsonConverters
 
 	internal abstract class UnixDateTimeConverterBase<T> : JsonConverter<T>
 	{
+		// Convert a Unix Timestamp to the local DateTime
 		protected static DateTime FromUnixTime(long seconds)
 		{
 			return DateTime.UnixEpoch.AddSeconds(seconds).ToLocalTime();
 		}
 
+		// Convert local DateTime to Unix Timestamp
 		protected static long ToUnixTime(DateTime dateTime)
 		{
 			return (long) (dateTime.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds;
