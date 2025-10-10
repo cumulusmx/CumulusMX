@@ -1263,8 +1263,7 @@ namespace CumulusMX.Stations
 			{
 				get
 				{
-					var temp = distance.Split(' ');
-					return temp[1];
+					return distance.Split(' ')[1];
 				}
 			}
 		}
@@ -1420,6 +1419,7 @@ namespace CumulusMX.Stations
 			public string msg { get; set; }
 		}
 
+		/*
 		public class LogFileRecord
 		{
 			// YYYYMM[A - Z].csv
@@ -1594,5 +1594,6 @@ namespace CumulusMX.Stations
 			public double? PM1 { get; set; }
 			public double? PM4 { get; set; }
 		}
+		*/
 	}
 }
