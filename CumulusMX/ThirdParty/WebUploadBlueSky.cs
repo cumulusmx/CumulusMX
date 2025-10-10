@@ -301,7 +301,7 @@ namespace CumulusMX.ThirdParty
 			var regex = RegexLink();
 
 			Match match;
-			while (true)
+			do
 			{
 				match = regex.Match(content);
 				if (!match.Success) break;
@@ -325,7 +325,7 @@ namespace CumulusMX.ThirdParty
 				facets.Add(facet);
 
 				if (start + label.Length >= content.Length) break;
-			}
+			} while (true);
 
 			modifiedContent = content;
 
@@ -407,7 +407,7 @@ namespace CumulusMX.ThirdParty
 			var embed = new Embed();
 
 			Match match;
-			while (true)
+			do
 			{
 				match = regex.Match(content);
 				if (!match.Success) break;
@@ -443,7 +443,7 @@ namespace CumulusMX.ThirdParty
 				images.Add(image);
 
 				if (start >= content.Length) break;
-			}
+			} while (true);
 
 			modifiedContent = content;
 

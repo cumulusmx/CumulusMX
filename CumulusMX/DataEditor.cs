@@ -848,7 +848,7 @@ namespace CumulusMX
 
 			double _day24h = 0;
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -1196,7 +1196,7 @@ namespace CumulusMX
 					filedate = filedate.AddMonths(1);
 					logFile = cumulus.GetLogFileName(filedate);
 				}
-			}
+			} while (!finished);
 
 			rain1hLog.Clear();
 			rain24hLog.Clear();
@@ -2171,7 +2171,7 @@ namespace CumulusMX
 
 			var watch = System.Diagnostics.Stopwatch.StartNew();
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -2516,7 +2516,7 @@ namespace CumulusMX
 					filedate = filedate.AddMonths(1);
 					logFile = cumulus.GetLogFileName(filedate);
 				}
-			}
+			} while (!finished);
 
 			hourRainLog.Clear();
 			rain24hLog.Clear();

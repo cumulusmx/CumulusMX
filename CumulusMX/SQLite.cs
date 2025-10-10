@@ -3170,8 +3170,7 @@ namespace SQLite
 					memberNames.Add(m.Name);
 
 				type = ti.BaseType;
-			}
-			while (type != typeof(object));
+			} while (type != typeof(object));
 
 			return members;
 		}

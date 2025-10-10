@@ -294,23 +294,26 @@ namespace CumulusMX
 			}
 			else
 			{
-				while (!Cmds.IsEmpty)
+				if (!Cmds.IsEmpty)
 				{
-					try
+					do
 					{
-						Cmds.TryDequeue(out var cmd);
-						if (!cmd.statement.StartsWith("DELETE"))
+						try
 						{
-							cumulus.LogDebugMessage($"{CallingFunction}: Buffering command to failed list");
+							Cmds.TryDequeue(out var cmd);
+							if (!cmd.statement.StartsWith("DELETE"))
+							{
+								cumulus.LogDebugMessage($"{CallingFunction}: Buffering command to failed list");
 
-							_ = station.RecentDataDb.Insert(cmd);
-							MySqlFailedList.Enqueue(cmd);
+								_ = station.RecentDataDb.Insert(cmd);
+								MySqlFailedList.Enqueue(cmd);
+							}
 						}
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"{CallingFunction}: Error buffering command - " + ex.Message);
-					}
+						catch (Exception ex)
+						{
+							cumulus.LogErrorMessage($"{CallingFunction}: Error buffering command - " + ex.Message);
+						}
+					} while (!Cmds.IsEmpty);
 				}
 			}
 		}

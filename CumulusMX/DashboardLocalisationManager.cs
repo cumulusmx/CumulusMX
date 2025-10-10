@@ -80,7 +80,7 @@ namespace CumulusMX
 			char[] buffer = new char[4096];
 			StringBuilder carryOver = new();
 
-			while (true)
+			do
 			{
 				int readCount = await reader.ReadAsync(buffer, 0, buffer.Length);
 				if (readCount == 0) break;
@@ -101,7 +101,7 @@ namespace CumulusMX
 
 				await response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes(replaced));
 				await response.OutputStream.FlushAsync(); // Push to the client progressively
-			}
+			} while (true);
 
 			if (carryOver.Length > 0)
 			{

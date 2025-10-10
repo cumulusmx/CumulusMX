@@ -3044,7 +3044,7 @@ namespace CumulusMX
 
 			int[] fields = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 101, 102, 103, 104, 105, 106];
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -3122,7 +3122,7 @@ namespace CumulusMX
 						logFile = cumulus.GetExtraLogFileName(fileDate);
 					}
 				}
-			}
+			} while (!finished);
 
 			// no incremental data, send null to supress the upload
 			if (incremental && !dataAdded)
@@ -3228,7 +3228,7 @@ namespace CumulusMX
 
 			int[] fields = [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 113, 114, 115, 116, 117, 118];
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -3306,7 +3306,7 @@ namespace CumulusMX
 						logFile = cumulus.GetExtraLogFileName(fileDate);
 					}
 				}
-			}
+			} while (!finished);
 
 			// no incremental data, send null to supress the upload
 			if (incremental && !dataAdded)
@@ -3412,7 +3412,7 @@ namespace CumulusMX
 
 			int[] fields = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 107, 108, 109, 110, 111, 112];
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -3490,7 +3490,7 @@ namespace CumulusMX
 						logFile = cumulus.GetExtraLogFileName(fileDate);
 					}
 				}
-			}
+			} while (!finished);
 
 			// no incremental data, send null to supress the upload
 			if (incremental && !dataAdded)
@@ -3596,7 +3596,7 @@ namespace CumulusMX
 
 			int[] fields = [32, 33, 34, 35, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55];
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -3674,7 +3674,7 @@ namespace CumulusMX
 						logFile = cumulus.GetExtraLogFileName(fileDate);
 					}
 				}
-			}
+			} while (!finished);
 
 			// no incremental data, send null to supress the upload
 			if (incremental && !dataAdded)
@@ -3779,7 +3779,7 @@ namespace CumulusMX
 
 			int[] fields = [36, 37, 38, 39, 56, 57,58, 59, 60, 61, 62, 63, 64, 65, 66, 67];
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -3857,7 +3857,7 @@ namespace CumulusMX
 						logFile = cumulus.GetExtraLogFileName(fileDate);
 					}
 				}
-			}
+			} while (!finished);
 
 			// no incremental data, send null to supress the upload
 			if (incremental && !dataAdded)
@@ -3963,7 +3963,7 @@ namespace CumulusMX
 
 			int[] fields = [96, 97, 98, 99];
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -4041,7 +4041,7 @@ namespace CumulusMX
 						logFile = cumulus.GetExtraLogFileName(fileDate);
 					}
 				}
-			}
+			} while (!finished);
 
 			// no incremental data, send null to supress the upload
 			if (incremental && !dataAdded)
@@ -4147,7 +4147,7 @@ namespace CumulusMX
 
 			int[] fields = [42, 43];
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -4225,7 +4225,7 @@ namespace CumulusMX
 						logFile = cumulus.GetExtraLogFileName(fileDate);
 					}
 				}
-			}
+			} while (!finished);
 
 			// no incremental data, send null to supress the upload
 			if (incremental && !dataAdded)
@@ -4331,7 +4331,7 @@ namespace CumulusMX
 
 			int[] fields = [76, 77, 78, 79, 80, 81, 82, 83];
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -4409,7 +4409,7 @@ namespace CumulusMX
 						logFile = cumulus.GetExtraLogFileName(fileDate);
 					}
 				}
-			}
+			} while (!finished);
 
 			// no incremental data, send null to supress the upload
 			if (incremental && !dataAdded)
@@ -4508,7 +4508,7 @@ namespace CumulusMX
 			// 90  CO2 temp
 			// 91  CO2 hum
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -4597,7 +4597,7 @@ namespace CumulusMX
 						logFile = cumulus.GetExtraLogFileName(fileDate);
 					}
 				}
-			}
+			} while (!finished);
 
 			// no incremental data, send null to supress the upload
 			if (incremental && !dataAdded)
@@ -4774,7 +4774,7 @@ namespace CumulusMX
 
 			var finished = false;
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -4853,7 +4853,7 @@ namespace CumulusMX
 					fileDate = fileDate.AddMonths(1);
 					logFile = useExtraSensorLogFile ? cumulus.GetExtraLogFileName(fileDate) : cumulus.GetAirLinkLogFileName(fileDate);
 				}
-			}
+			} while (!finished);
 
 			if (sb2p5[^1] == ',')
 				sb2p5.Length--;
@@ -4899,7 +4899,7 @@ namespace CumulusMX
 
 			var finished = false;
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -4997,7 +4997,7 @@ namespace CumulusMX
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
-			}
+			} while (!finished);
 
 			if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
 			{
@@ -5101,7 +5101,7 @@ namespace CumulusMX
 
 			var finished = false;
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -5184,7 +5184,7 @@ namespace CumulusMX
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
-			}
+			} while (!finished);
 
 
 			if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
@@ -5238,7 +5238,7 @@ namespace CumulusMX
 
 			var finished = false;
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -5323,7 +5323,7 @@ namespace CumulusMX
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
-			}
+			} while (!finished);
 
 			if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 			{
@@ -5375,7 +5375,7 @@ namespace CumulusMX
 
 			var finished = false;
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -5449,7 +5449,7 @@ namespace CumulusMX
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
-			}
+			} while (!finished);
 
 			if (sb[^1] == ',')
 				sb.Length--;
@@ -5481,7 +5481,7 @@ namespace CumulusMX
 
 			var finished = false;
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -5563,7 +5563,7 @@ namespace CumulusMX
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
-			}
+			} while (!finished);
 
 			if (sb[^1] == ',')
 			{
@@ -5604,7 +5604,7 @@ namespace CumulusMX
 
 			var finished = false;
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -5678,7 +5678,7 @@ namespace CumulusMX
 
 					logFile = cumulus.GetLogFileName(fileDate);
 				}
-			}
+			} while (!finished);
 
 			if (sbRain[^1] == ',')
 			{
@@ -9649,7 +9649,7 @@ namespace CumulusMX
 			}
 
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -9749,7 +9749,8 @@ namespace CumulusMX
 					filedate = filedate.AddMonths(1);
 					logFile = cumulus.GetLogFileName(filedate);
 				}
-			}
+			} while (!finished); ;
+
 			cumulus.LogMessage($"LoadRecent: Loaded {numadded} of {numtoadd} new entries to recent database");
 		}
 
@@ -9799,7 +9800,7 @@ namespace CumulusMX
 				return;
 			}
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -9898,7 +9899,8 @@ namespace CumulusMX
 						logFile = cumulus.GetExtraLogFileName(filedate);
 					}
 				}
-			}
+			} while (!finished);
+
 			cumulus.LogMessage($"LoadRecentAqFromDataLogs: Loaded {updatedCount} new entries to recent database");
 		}
 
@@ -9936,7 +9938,7 @@ namespace CumulusMX
 
 			logFile = cumulus.GetExtraLogFileName(filedate);
 
-			while (!finished)
+			do
 			{
 				if (File.Exists(logFile))
 				{
@@ -10015,7 +10017,8 @@ namespace CumulusMX
 					filedate = filedate.AddMonths(1);
 					logFile = cumulus.GetExtraLogFileName(filedate);
 				}
-			}
+			} while (!finished);
+
 			cumulus.LogMessage($"LoadRecentAqFromDataLogsNew: Loaded {updatedCount} new entries to recent database");
 		}
 
@@ -13312,7 +13315,7 @@ namespace CumulusMX
 				var json = new StringBuilder(220 * length);
 				json.Append("{\"data\":[");
 
-				while (!finished)
+				do
 				{
 					if (File.Exists(logfile))
 					{
@@ -13410,7 +13413,8 @@ namespace CumulusMX
 						logfile = extra ? cumulus.GetExtraLogFileName(fileDate) : cumulus.GetLogFileName(fileDate);
 					}
 
-				}
+				} while (!finished);
+
 				// trim trailing ","
 				if (thisDraw > 0)
 					json.Length--;
@@ -13488,7 +13492,7 @@ namespace CumulusMX
 
 			try
 			{
-				while (!finished)
+				do
 				{
 					if (useLogFile)
 					{
@@ -13572,8 +13576,7 @@ namespace CumulusMX
 						finished = true;
 						cumulus.LogDebugMessage("GetIntervalData: Finished processing log files");
 					}
-				}
-
+				} while (!finished);
 
 				foreach (var rec in data)
 				{

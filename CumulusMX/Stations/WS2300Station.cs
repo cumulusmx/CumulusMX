@@ -446,11 +446,11 @@ namespace CumulusMX.Stations
 		{
 			try
 			{
-				while (!stop)
+				do
 				{
 					GetAndProcessData();
 					Thread.Sleep(5000);
-				}
+				} while (!stop);
 			}
 			// Catch the ThreadAbortException
 			catch (ThreadAbortException)

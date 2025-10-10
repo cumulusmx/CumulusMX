@@ -64,7 +64,7 @@ namespace CumulusMX
 			// Start the task to check the connection state
 			_ = Task.Run(async () =>
 			{
-				while (!Program.ExitSystemToken.IsCancellationRequested)
+				do
 				{
 					try
 					{
@@ -112,7 +112,7 @@ namespace CumulusMX
 						// Check the connection state every 20 seconds and perform a reconnect if required.
 						await Task.Delay(TimeSpan.FromSeconds(20), Program.ExitSystemToken);
 					}
-				}
+				} while (!Program.ExitSystemToken.IsCancellationRequested);
 			});
 
 			ReadTemplateFiles();

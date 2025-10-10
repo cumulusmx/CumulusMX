@@ -647,7 +647,7 @@ namespace CumulusMX.Stations
 			var attempt = 0;
 
 			// Creating the new TCP socket effectively opens it - specify IP address or domain name and port
-			while (attempt < 5 && !stop)
+			do
 			{
 				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
@@ -690,7 +690,7 @@ namespace CumulusMX.Stations
 					stop = true;
 					return null;
 				}
-			}
+			} while (attempt < 5 && !stop);
 
 			// Set the timeout of the underlying stream
 			if (client != null && client.Connected)
@@ -1093,7 +1093,7 @@ namespace CumulusMX.Stations
 			const int loop2count = 1;
 			var reconnecting = false;
 
-			while (!stop)
+			do
 			{
 				try
 				{
@@ -1233,7 +1233,7 @@ namespace CumulusMX.Stations
 					// any others, log them and carry on
 					cumulus.LogExceptionMessage(ex, "Davis Start: Exception");
 				}
-			}
+			} while (!stop);
 
 			cumulus.LogMessage("Ending normal reading loop");
 

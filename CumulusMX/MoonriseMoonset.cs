@@ -1220,30 +1220,33 @@ namespace CumulusMX
 				double hfirst = 0;
 				double hlast = 24;
 				// Try a binary chop on the hours to speed the search
-				while (Math.Ceiling((hlast - hfirst) / 2.0) > 1)
+				if (Math.Ceiling((hlast - hfirst) / 2.0) > 1)
 				{
-					int hmid = (int) (hfirst + Math.Round((hlast - hfirst) / 2.0));
-					if (!elhdone[hmid])
+					do
 					{
-						hours = hmid;
-						rad = MoonPos(year, month, day, hours - TZ);
-						altaz = RaDecToAltAz(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
-						elh[hmid] = altaz[0];
-						elhdone[hmid] = true;
-					}
-					if (((rise == 0) && (elh[(int) hfirst] <= 0.0) && (elh[hmid] >= 0.0)) || ((rise == 1) && (elh[(int) hfirst] >= 0.0) && (elh[hmid] <= 0.0)))
-					{
-						hlast = hmid;
-						found = true;
-						continue;
-					}
-					if (((rise == 0) && (elh[hmid] <= 0.0) && (elh[(int) hlast] >= 0.0)) || ((rise == 1) && (elh[hmid] >= 0.0) && (elh[(int) hlast] <= 0.0)))
-					{
-						hfirst = hmid;
-						found = true;
-						continue;
-					}
-					break;
+						int hmid = (int) (hfirst + Math.Round((hlast - hfirst) / 2.0));
+						if (!elhdone[hmid])
+						{
+							hours = hmid;
+							rad = MoonPos(year, month, day, hours - TZ);
+							altaz = RaDecToAltAz(rad[0], rad[1], year, month, day, hours - TZ, latitude, longitude);
+							elh[hmid] = altaz[0];
+							elhdone[hmid] = true;
+						}
+						if (((rise == 0) && (elh[(int) hfirst] <= 0.0) && (elh[hmid] >= 0.0)) || ((rise == 1) && (elh[(int) hfirst] >= 0.0) && (elh[hmid] <= 0.0)))
+						{
+							hlast = hmid;
+							found = true;
+							continue;
+						}
+						if (((rise == 0) && (elh[hmid] <= 0.0) && (elh[(int) hlast] >= 0.0)) || ((rise == 1) && (elh[hmid] >= 0.0) && (elh[(int) hlast] <= 0.0)))
+						{
+							hfirst = hmid;
+							found = true;
+							continue;
+						}
+						break;
+					} while (Math.Ceiling((hlast - hfirst) / 2.0) > 1);
 				}
 				// If the binary chop did not find a 1 hour interval
 				if ((hlast - hfirst) > 1)

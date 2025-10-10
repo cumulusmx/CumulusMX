@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -3082,15 +3081,18 @@ namespace CumulusMX
 				}
 
 				// wait for all the tasks to start
-				while (runningTaskCount < taskCount)
+				if (runningTaskCount < taskCount)
 				{
-					if (Program.ExitSystemToken.IsCancellationRequested)
-						return;
+					do
+					{
+						if (Program.ExitSystemToken.IsCancellationRequested)
+							return;
 
-					await Task.Delay(10);
+						await Task.Delay(10);
+					} while (runningTaskCount < taskCount);
 				}
 
-				// wait for all the tasks to complete
+						// wait for all the tasks to complete
 				if (tasklist.Count > 0)
 				{
 					try
@@ -9476,9 +9478,12 @@ namespace CumulusMX
 		{
 			if (level >= ErrorListLoggingLevel)
 			{
-				while (ErrorList.Count >= 50)
+				if (ErrorList.Count >= 50)
 				{
-					_ = ErrorList.Dequeue();
+					do
+					{
+						_ = ErrorList.Dequeue();
+					} while (ErrorList.Count >= 50);
 				}
 
 				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + WebUtility.HtmlEncode(message)));
@@ -10304,14 +10309,17 @@ namespace CumulusMX
 				LogDebugMessage("ProcessHttpFiles: Done uploading http files");
 
 				// wait for all the files to start
-				while (runningTaskCount < taskCount)
+				if (runningTaskCount < taskCount)
 				{
-					if (Program.ExitSystemToken.IsCancellationRequested)
+					do
 					{
-						LogDebugMessage("ProcessHttpFiles: Upload process aborted");
-						return;
-					}
-					Thread.Sleep(10);
+						if (Program.ExitSystemToken.IsCancellationRequested)
+						{
+							LogDebugMessage("ProcessHttpFiles: Upload process aborted");
+							return;
+						}
+						Thread.Sleep(10);
+					} while (runningTaskCount < taskCount);
 				}
 
 				// wait for all the files to complete
@@ -11506,14 +11514,17 @@ namespace CumulusMX
 				}
 
 				// wait for all the EOD files to start
-				while (runningTaskCount < taskCount)
+				if (runningTaskCount < taskCount)
 				{
-					if (Program.ExitSystemToken.IsCancellationRequested)
+					do
 					{
-						LogDebugMessage($"PHP[Int]: Upload process aborted");
-						return;
-					}
-					await Task.Delay(10);
+						if (Program.ExitSystemToken.IsCancellationRequested)
+						{
+							LogDebugMessage($"PHP[Int]: Upload process aborted");
+							return;
+						}
+						await Task.Delay(10);
+					} while (runningTaskCount < taskCount);
 				}
 				// wait for all the EOD files to complete
 				if (tasklist.Count > 0)
@@ -12618,14 +12629,17 @@ namespace CumulusMX
 				Interlocked.Increment(ref runningTaskCount);
 
 				// wait for all the files to start
-				while (runningTaskCount < taskCount)
+				if (runningTaskCount < taskCount)
 				{
-					if (Program.ExitSystemToken.IsCancellationRequested)
+					do
 					{
-						LogDebugMessage($"PHP[NOAA]: Upload process aborted");
-						return;
-					}
-					await Task.Delay(10);
+						if (Program.ExitSystemToken.IsCancellationRequested)
+						{
+							LogDebugMessage($"PHP[NOAA]: Upload process aborted");
+							return;
+						}
+						await Task.Delay(10);
+					} while (runningTaskCount < taskCount);
 				}
 				// wait for all the EOD files to complete
 				try
@@ -12753,9 +12767,12 @@ namespace CumulusMX
 
 			if (logError)
 			{
-				while (ErrorList.Count >= 50)
+				if (ErrorList.Count >= 50)
 				{
-					_ = ErrorList.Dequeue();
+					do
+					{
+						_ = ErrorList.Dequeue();
+					} while (ErrorList.Count >= 50);
 				}
 
 				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.GetBaseException().Message));
@@ -15199,9 +15216,12 @@ namespace CumulusMX
 			NextUpdate[idx] = now.Date + StartTimes[idx];
 
 			// Timed and we have now set the start, add on intervals until we reach the future
-			while (NextUpdate[idx] <= now)
+			if (NextUpdate[idx] <= now)
 			{
-				NextUpdate[idx] = NextUpdate[idx].AddMinutes(Intervals[idx]);
+				do
+				{
+					NextUpdate[idx] = NextUpdate[idx].AddMinutes(Intervals[idx]);
+				} while (NextUpdate[idx] <= now);
 			}
 
 			// have we rolled over a day and the next interval would be prior to the start time?

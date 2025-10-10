@@ -24,40 +24,43 @@ namespace CumulusMX
 			StringBuilder startParams = new();
 			int i = 0;
 
-			while (i < args.Length)
+			if (i < args.Length)
 			{
-				startParams.Append(args[i] + " ");
-				try
+				do
 				{
-					if (args[i] == "-lang" && args.Length >= i)
+					startParams.Append(args[i] + " ");
+					try
 					{
-						var lang = args[++i];
-						startParams.Append(args[i] + " ");
+						if (args[i] == "-lang" && args.Length >= i)
+						{
+							var lang = args[++i];
+							startParams.Append(args[i] + " ");
 
-						CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
+							CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
+						}
+						else if (args[i] == "-port" && args.Length >= i)
+						{
+							httpport = Convert.ToInt32(args[++i]);
+							startParams.Append(args[i] + " ");
+						}
+						else if (args[i] == "-debug")
+						{
+							// Switch on debug and and data logging from the start
+							debug = true;
+						}
+						else if (args[i] == "-wsport" && args.Length >= i)
+						{
+							i++;
+							startParams.Append(args[i] + " ");
+						}
 					}
-					else if (args[i] == "-port" && args.Length >= i)
+					catch
 					{
-						httpport = Convert.ToInt32(args[++i]);
-						startParams.Append(args[i] + " ");
+						// Ignore any errors
 					}
-					else if (args[i] == "-debug")
-					{
-						// Switch on debug and and data logging from the start
-						debug = true;
-					}
-					else if (args[i] == "-wsport" && args.Length >= i)
-					{
-						i++;
-						startParams.Append(args[i] + " ");
-					}
-				}
-				catch
-				{
-					// Ignore any errors
-				}
 
-				i++;
+					i++;
+				} while (i < args.Length);
 			}
 
 			Program.cumulus = new Cumulus();

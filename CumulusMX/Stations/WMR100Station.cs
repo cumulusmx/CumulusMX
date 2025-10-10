@@ -86,7 +86,7 @@ namespace CumulusMX.Stations
 
 			try
 			{
-				while (!stop)
+				do
 				{
 					cumulus.LogDebugMessage("Calling Read, current packet length = " + currentPacketLength);
 
@@ -162,7 +162,8 @@ namespace CumulusMX.Stations
 						// Might just be a timeout, which is normal, so debug log only
 						cumulus.LogDebugMessage("Data read loop: " + ex.Message);
 					}
-				}
+				} while (!stop);
+
 				CheckBatteryStatus();
 			}
 

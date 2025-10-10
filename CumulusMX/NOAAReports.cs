@@ -77,7 +77,7 @@ namespace CumulusMX
 
 			// iterate all years and months since records began date
 			var doMore = true;
-			while (doMore)
+			do
 			{
 				// first check the yearly report
 				if (lastYear != checkDate.Year)
@@ -107,7 +107,7 @@ namespace CumulusMX
 				// increment the month
 				// note this may reset the day
 				checkDate = checkDate.AddMonths(1);
-			}
+			} while (doMore);
 
 
 			if (missingMonths.Count > 0 || missingYears.Count > 0)

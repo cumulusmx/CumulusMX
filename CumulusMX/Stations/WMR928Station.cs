@@ -73,7 +73,7 @@ namespace CumulusMX.Stations
 
 			try
 			{
-				while (!stop)
+				do
 				{
 					Thread.Sleep(1000);
 					if (comport.BytesToRead > 0)
@@ -165,7 +165,7 @@ namespace CumulusMX.Stations
 
 						CheckBatteryStatus();
 					}
-				}
+				} while (!stop);
 			}
 			// Catch the ThreadAbortException
 			catch (ThreadAbortException)
