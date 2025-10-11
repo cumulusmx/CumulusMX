@@ -92,8 +92,8 @@
     <PackageReference Include="DnsClient" Version="1.8.0" />
     <PackageReference Include="FluentFTP.Logging" Version="1.0.0" />
     <PackageReference Include="Microsoft.Win32.SystemEvents" Version="9.0.9" />
-    <PackageReference Include="NLog" Version="6.0.4" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="6.0.4" />
+    <PackageReference Include="NLog" Version="6.0.5" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="6.0.5" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
     <PackageReference Include="System.CodeDom" Version="9.0.9" />

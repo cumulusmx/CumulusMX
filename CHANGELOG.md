@@ -38,7 +38,7 @@ First build using Visual Studio 2026, and sees some preparation for transitionin
 - Internal change to the date/time storage in the recent data SQLite database (Cumulus.db)
 	- DateTimes are now stored as .NET "ticks" to resolve DST transition ambiguities
 - Debug Beta builds no longer save the debug & data logging enabled state into the Cumulus.ini file
-- SFTP connection management changed to avoid Operating System DNS caching in .NET 10
+- FTP/FTPS/SFTP connection management changed to avoid Operating System DNS caching in .NET 10
 
 ## Fixed
 
