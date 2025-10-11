@@ -292,6 +292,7 @@ namespace CumulusMX.Settings
 						{
 							cumulus.FtpOptions.SshAuthen = string.IsNullOrWhiteSpace(settings.internet.ftp.sshAuth) ? string.Empty : settings.internet.ftp.sshAuth.Trim();
 							cumulus.FtpOptions.SshPskFile = string.IsNullOrWhiteSpace(settings.internet.ftp.pskFile) ? string.Empty : settings.internet.ftp.pskFile.Trim();
+							cumulus.CreateUpdateSftpClientFactory();
 						}
 
 						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.PHP)

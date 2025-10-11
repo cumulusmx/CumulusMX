@@ -524,6 +524,8 @@ namespace CumulusMX
 		private SemaphoreSlim uploadCountLimitSemaphoreSlim;
 		private readonly SemaphoreSlim realtimeFtpSemaphore = new(1);
 
+		private SftpClientFactory sftpClientFactory;
+
 		public Cumulus()
 		{
 		}
@@ -1148,6 +1150,11 @@ namespace CumulusMX
 			if (FtpOptions.Logging && (FtpOptions.RealtimeEnabled || FtpOptions.IntervalEnabled) && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
 			{
 				SetupFtpLogging(true);
+			}
+
+			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+			{
+				CreateUpdateSftpClientFactory();
 			}
 
 			LogMessage("Data path = " + ProgramOptions.DataPath);
@@ -10037,51 +10044,17 @@ namespace CumulusMX
 
 			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 			{
-				ConnectionInfo connectionInfo;
-				if (FtpOptions.SshAuthen == "password")
-				{
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
-					LogFtpDebugMessage("ProcessHttpFiles: Connecting using password authentication", false);
-				}
-				else if (FtpOptions.SshAuthen == "psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogFtpDebugMessage("ProcessHttpFiles: Connecting using PSK authentication", false);
-				}
-				else if (FtpOptions.SshAuthen == "password_psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogFtpDebugMessage("ProcessHttpFiles: Connecting using password or PSK authentication", false);
-				}
-				else
-				{
-					LogFtpMessage($"ProcessHttpFiles: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]", false);
-					return;
-				}
-
 				try
 				{
-					using SftpClient conn = new SftpClient(connectionInfo);
+					using SftpClient conn = sftpClientFactory.CreateClient().Result;
 					try
 					{
 						LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}", false);
 						conn.Connect();
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
 					}
 					catch (Exception ex)
 					{
 						LogFtpMessage($"ProcessHttpFiles: Error connecting SFTP - {ex.Message}", false);
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
 						return;
 					}
 
@@ -10351,42 +10324,13 @@ namespace CumulusMX
 			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 			{
 				LogDebugMessage("SFTP[Int]: Process starting");
-				// BUILD 3092 - added alternate SFTP authentication options
-				ConnectionInfo connectionInfo;
-				if (FtpOptions.SshAuthen == "password")
-				{
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
-					LogDebugMessage("SFTP[Int]: Connecting using password authentication");
-				}
-				else if (FtpOptions.SshAuthen == "psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogDebugMessage("SFTP[Int]: Connecting using PSK authentication");
-				}
-				else if (FtpOptions.SshAuthen == "password_psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogDebugMessage("SFTP[Int]: Connecting using password or PSK authentication");
-				}
-				else
-				{
-					LogErrorMessage($"SFTP[Int]: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]");
-					return;
-				}
-
 				try
 				{
-					using SftpClient conn = new SftpClient(connectionInfo);
+					using SftpClient conn = await sftpClientFactory.CreateClient();
 					try
 					{
 						LogDebugMessage($"SFTP[Int]: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
 						conn.Connect();
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
 					}
 					catch (Exception ex)
 					{
@@ -10394,12 +10338,6 @@ namespace CumulusMX
 
 						FtpAlarm.LastMessage = "Error connecting SFTP - " + ex.Message;
 						FtpAlarm.Triggered = true;
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
 						return;
 					}
 
@@ -12381,41 +12319,13 @@ namespace CumulusMX
 
 			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 			{
-				ConnectionInfo connectionInfo;
-				if (FtpOptions.SshAuthen == "password")
-				{
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
-					LogFtpDebugMessage("SFTP[NOAA]: Connecting using password authentication", false);
-				}
-				else if (FtpOptions.SshAuthen == "psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogFtpDebugMessage("SFTP[NOAA]: Connecting using PSK authentication", false);
-				}
-				else if (FtpOptions.SshAuthen == "password_psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogFtpDebugMessage("SFTP[NOAA]: Connecting using password or PSK authentication", false);
-				}
-				else
-				{
-					LogFtpMessage($"SFTP[NOAA]: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]", false);
-					return;
-				}
-
 				try
 				{
-					using SftpClient conn = new SftpClient(connectionInfo);
+					using SftpClient conn = await sftpClientFactory.CreateClient();
 					try
 					{
 						LogFtpDebugMessage($"SFTP[NOAA]: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}", false);
 						conn.Connect();
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
 					}
 					catch (Exception ex)
 					{
@@ -12423,12 +12333,6 @@ namespace CumulusMX
 
 						FtpAlarm.LastMessage = "Error connecting SFTP - " + ex.Message;
 						FtpAlarm.Triggered = true;
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
 						return;
 					}
 
@@ -13899,40 +13803,16 @@ namespace CumulusMX
 						RealtimeSSH.Dispose();
 					}
 				}
-				finally
+				catch
 				{
+					// do nothing
 				}
 
 				LogMessage($"RealtimeSSHLogin: Attempting realtime SFTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
 				try
 				{
-					// BUILD 3092 - added alternate SFTP authentication options
-					ConnectionInfo connectionInfo;
-					PrivateKeyFile pskFile;
-					if (FtpOptions.SshAuthen == "password")
-					{
-						connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
-						LogDebugMessage("RealtimeSSHLogin: Connecting using password authentication");
-					}
-					else if (FtpOptions.SshAuthen == "psk")
-					{
-						pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-						connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-						LogDebugMessage("RealtimeSSHLogin: Connecting using PSK authentication");
-					}
-					else if (FtpOptions.SshAuthen == "password_psk")
-					{
-						pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-						connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-						LogDebugMessage("RealtimeSSHLogin: Connecting using password or PSK authentication");
-					}
-					else
-					{
-						LogWarningMessage($"RealtimeSSHLogin: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]");
-						return;
-					}
 
-					RealtimeSSH = new SftpClient(connectionInfo);
+					RealtimeSSH = sftpClientFactory.CreateClient().Result;
 
 					RealtimeSSH.Connect();
 					RealtimeSSH.ConnectionInfo.Timeout = TimeSpan.FromSeconds(15);  // 15 seconds to match FTP default timeout
@@ -14002,6 +13882,30 @@ namespace CumulusMX
 		}
 		*/
 
+		public void CreateUpdateSftpClientFactory()
+		{
+			if (sftpClientFactory != null)
+			{
+				sftpClientFactory.Host = FtpOptions.Hostname;
+				sftpClientFactory.Port = FtpOptions.Port;
+				sftpClientFactory.AuthMethod = FtpOptions.SshAuthen;
+				sftpClientFactory.Username = FtpOptions.Username;
+				sftpClientFactory.Password = FtpOptions.Password;
+				sftpClientFactory.PskFile = FtpOptions.SshPskFile;
+			}
+			else
+			{
+				sftpClientFactory = new SftpClientFactory(
+					host: FtpOptions.Hostname,
+					port: FtpOptions.Port,
+					authMethod: FtpOptions.SshAuthen,
+					username: FtpOptions.Username,
+					password: FtpOptions.Password,
+					pskFile: FtpOptions.SshPskFile,
+					dnsTtl: TimeSpan.FromMinutes(2)
+				);
+			}
+		}
 
 		public async Task GetLatestVersion()
 		{

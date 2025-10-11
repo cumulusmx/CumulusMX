@@ -90,6 +90,7 @@ namespace CumulusMX.Settings
 						{
 							cumulus.FtpOptions.SshAuthen = settings.website.sshAuth ?? string.Empty;
 							cumulus.FtpOptions.SshPskFile = settings.website.pskFile ?? string.Empty;
+							cumulus.CreateUpdateSftpClientFactory();
 						}
 
 						if (cumulus.FtpOptions.FtpMode == FtpProtocols.FTPS)
