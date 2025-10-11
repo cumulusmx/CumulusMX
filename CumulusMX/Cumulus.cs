@@ -525,6 +525,7 @@ namespace CumulusMX
 		private readonly SemaphoreSlim realtimeFtpSemaphore = new(1);
 
 		private SftpClientFactory sftpClientFactory;
+		private FtpClientFactory ftpClientFactory;
 
 		public Cumulus()
 		{
@@ -1156,8 +1157,13 @@ namespace CumulusMX
 			{
 				CreateUpdateSftpClientFactory();
 			}
+			else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
+			{
+				CreateUpdateFtpClientFactory();
+			}
 
-			LogMessage("Data path = " + ProgramOptions.DataPath);
+
+				LogMessage("Data path = " + ProgramOptions.DataPath);
 
 			AppDomain.CurrentDomain.SetData("DataDirectory", ProgramOptions.DataPath);
 
@@ -10105,116 +10111,76 @@ namespace CumulusMX
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
 			{
-				using (FtpClient conn = new FtpClient())
+				using FtpClient conn = ftpClientFactory.CreateClient().Result;
+
+				if (FtpOptions.Logging)
 				{
-					if (FtpOptions.Logging)
+					conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+				}
+
+				LogFtpMessage("", false); // insert a blank line
+				LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to " + FtpOptions.Hostname, false);
+
+				try
+				{
+					if (FtpOptions.AutoDetect)
 					{
-						conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+						conn.AutoConnect();
+					}
+					else
+					{
+						conn.Connect();
+					}
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage("ProcessHttpFiles: Error connecting ftp - " + ex.Message, false);
+
+					if (ex.InnerException != null)
+					{
+						ex = Utils.GetOriginalException(ex);
+						LogFtpMessage($"ProcessHttpFiles: Base exception - {ex.Message}", false);
 					}
 
-					LogFtpMessage("", false); // insert a blank line
-					LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to " + FtpOptions.Hostname, false);
-					conn.Host = FtpOptions.Hostname;
-					conn.Port = FtpOptions.Port;
-					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
-					conn.Config.LogPassword = false;
+					return;
+				}
 
-					if (!FtpOptions.AutoDetect)
-					{
+				LogDebugMessage("ProcessHttpFiles: Uploading http files");
 
-						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-						{
-							// Explicit = Current protocol - connects using FTP and switches to TLS
-							// Implicit = Old depreciated protocol - connects using TLS
-							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-							conn.Config.DataConnectionEncryption = true;
-						}
-
-						if (FtpOptions.ActiveMode)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
-						}
-						else if (FtpOptions.DisableEPSV)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
-						}
-					}
-
-					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-					{
-						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
-					}
+				foreach (var item in uploads)
+				{
+					Stream strm = null;
 
 					try
 					{
-						if (FtpOptions.AutoDetect)
-						{
-							conn.AutoConnect();
-						}
-						else
-						{
-							conn.Connect();
-						}
 
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
+						if (Program.ExitSystemToken.IsCancellationRequested)
+							return;
+
+						strm = httpFiles.DownloadHttpFileStream(item.Url).Result;
+						UploadStream(conn, item.Remote, strm, -1);
+
+						item.SetNextInterval(now);
 					}
-					catch (Exception ex)
+					catch (Exception ex) when (ex is not TaskCanceledException)
 					{
-						LogFtpMessage("ProcessHttpFiles: Error connecting ftp - " + ex.Message, false);
-
-						if (ex.InnerException != null)
-						{
-							ex = Utils.GetOriginalException(ex);
-							LogFtpMessage($"ProcessHttpFiles: Base exception - {ex.Message}", false);
-						}
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
-						return;
+						LogExceptionMessage(ex, $"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}");
 					}
-
-					LogDebugMessage("ProcessHttpFiles: Uploading http files");
-
-					foreach (var item in uploads)
+					finally
 					{
-						Stream strm = null;
-
-						try
-						{
-
-							if (Program.ExitSystemToken.IsCancellationRequested)
-								return;
-
-							strm = httpFiles.DownloadHttpFileStream(item.Url).Result;
-							UploadStream(conn, item.Remote, strm, -1);
-
-							item.SetNextInterval(now);
-						}
-						catch (Exception ex) when (ex is not TaskCanceledException)
-						{
-							LogExceptionMessage(ex, $"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}");
-						}
-						finally
-						{
-							if (null != strm)
-								strm.Dispose();
-						}
-					}
-
-					LogDebugMessage("ProcessHttpFiles: Done uploading http files");
-
-					if (conn.IsConnected)
-					{
-						conn.Disconnect();
-						LogFtpDebugMessage("ProcessHttpFiles: Disconnected from " + FtpOptions.Hostname, false);
+						if (null != strm)
+							strm.Dispose();
 					}
 				}
+
+				LogDebugMessage("ProcessHttpFiles: Done uploading http files");
+
+				if (conn.IsConnected)
+				{
+					conn.Disconnect();
+					LogFtpDebugMessage("ProcessHttpFiles: Disconnected from " + FtpOptions.Hostname, false);
+				}
+
 				LogFtpMessage("ProcessHttpFiles: Process complete", false);
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.PHP)
@@ -10598,328 +10564,287 @@ namespace CumulusMX
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.FTP || (FtpOptions.FtpMode == FtpProtocols.FTPS))
 			{
-				using (FtpClient conn = new FtpClient())
+				using FtpClient conn = await ftpClientFactory.CreateClient();
+
+				if (FtpOptions.Logging)
 				{
-					if (FtpOptions.Logging)
+					conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+				}
+
+				LogFtpMessage("", false); // insert a blank line
+				LogFtpDebugMessage($"FTP[Int]: CumulusMX Connecting to " + FtpOptions.Hostname, false);
+
+				try
+				{
+					if (FtpOptions.AutoDetect)
 					{
-						conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+						conn.AutoConnect();
+					}
+					else
+					{
+						conn.Connect();
+					}
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage("FTP[Int]: Error connecting ftp - " + ex.Message, false);
+
+					FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
+					FtpAlarm.Triggered = true;
+
+					if (ex.InnerException != null)
+					{
+						ex = Utils.GetOriginalException(ex);
+						LogFtpMessage($"FTP[Int]: Base exception - {ex.Message}", false);
 					}
 
-					LogFtpMessage("", false); // insert a blank line
-					LogFtpDebugMessage($"FTP[Int]: CumulusMX Connecting to " + FtpOptions.Hostname, false);
-					conn.Host = FtpOptions.Hostname;
-					conn.Port = FtpOptions.Port;
-					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
-					conn.Config.LogPassword = false;
+					return;
+				}
 
-					if (!FtpOptions.AutoDetect)
+				if (conn.IsConnected)
+				{
+					if (NOAAconf.NeedFtp)
 					{
-
-						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+						try
 						{
-							// Explicit = Current protocol - connects using FTP and switches to TLS
-							// Implicit = Old depreciated protocol - connects using TLS
-							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-							conn.Config.DataConnectionEncryption = true;
-						}
-
-						if (FtpOptions.ActiveMode)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
-						}
-						else if (FtpOptions.DisableEPSV)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
-						}
-					}
-
-					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-					{
-						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
-					}
-
-					try
-					{
-						if (FtpOptions.AutoDetect)
-						{
-							conn.AutoConnect();
-						}
-						else
-						{
-							conn.Connect();
-						}
-
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
-					}
-					catch (Exception ex)
-					{
-						LogFtpMessage("FTP[Int]: Error connecting ftp - " + ex.Message, false);
-
-						FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
-						FtpAlarm.Triggered = true;
-
-						if (ex.InnerException != null)
-						{
-							ex = Utils.GetOriginalException(ex);
-							LogFtpMessage($"FTP[Int]: Base exception - {ex.Message}", false);
-						}
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
-						return;
-					}
-
-					if (conn.IsConnected)
-					{
-						if (NOAAconf.NeedFtp)
-						{
-							try
-							{
-								// upload NOAA reports
-								LogFtpMessage("", false);
-								LogFtpDebugMessage("FTP[Int]: Uploading NOAA reports", false);
-
-								var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
-								var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
-
-								UploadFile(conn, uploadfile, remotefile);
-
-								uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
-								remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
-
-								UploadFile(conn, uploadfile, remotefile);
-								LogFtpDebugMessage("FTP[Int]: Upload of NOAA reports complete", false);
-							}
-							catch (Exception e)
-							{
-								LogFtpMessage($"FTP[Int]: Error uploading NOAA files: {e.Message}", false);
-								FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
-								FtpAlarm.Triggered = true;
-							}
-							NOAAconf.NeedFtp = false;
-						}
-
-						// Extra files
-						for (var i = 0; i < ActiveExtraFiles.Count; i++)
-						{
-							var item = ActiveExtraFiles[i];
-
-							if (!item.FTP || item.realtime || (item.endofday && !EODfilesNeedFTP))
-							{
-								continue;
-							}
-
-							// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
-							var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
-							var uploadfile = GetUploadFilename(item.local, logDay);
-
-							if (!File.Exists(uploadfile))
-							{
-								LogFtpMessage($"FTP[Int]: Extra web file [{uploadfile}] not found!", false);
-								FtpAlarm.LastMessage = $"Error Extra web file [{uploadfile} not found";
-								FtpAlarm.Triggered = true;
-								continue;
-							}
-
-							var remotefile = GetRemoteFileName(item.remote, logDay);
-
+							// upload NOAA reports
 							LogFtpMessage("", false);
-							LogFtpDebugMessage("FTP[Int]: Uploading Extra web file: " + uploadfile, false);
+							LogFtpDebugMessage("FTP[Int]: Uploading NOAA reports", false);
 
-							// all checks OK, file needs to be uploaded
+							var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
+							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-							try
+							UploadFile(conn, uploadfile, remotefile);
+
+							uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
+							remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
+
+							UploadFile(conn, uploadfile, remotefile);
+							LogFtpDebugMessage("FTP[Int]: Upload of NOAA reports complete", false);
+						}
+						catch (Exception e)
+						{
+							LogFtpMessage($"FTP[Int]: Error uploading NOAA files: {e.Message}", false);
+							FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
+							FtpAlarm.Triggered = true;
+						}
+						NOAAconf.NeedFtp = false;
+					}
+
+					// Extra files
+					for (var i = 0; i < ActiveExtraFiles.Count; i++)
+					{
+						var item = ActiveExtraFiles[i];
+
+						if (!item.FTP || item.realtime || (item.endofday && !EODfilesNeedFTP))
+						{
+							continue;
+						}
+
+						// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
+						var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
+						var uploadfile = GetUploadFilename(item.local, logDay);
+
+						if (!File.Exists(uploadfile))
+						{
+							LogFtpMessage($"FTP[Int]: Extra web file [{uploadfile}] not found!", false);
+							FtpAlarm.LastMessage = $"Error Extra web file [{uploadfile} not found";
+							FtpAlarm.Triggered = true;
+							continue;
+						}
+
+						var remotefile = GetRemoteFileName(item.remote, logDay);
+
+						LogFtpMessage("", false);
+						LogFtpDebugMessage("FTP[Int]: Uploading Extra web file: " + uploadfile, false);
+
+						// all checks OK, file needs to be uploaded
+
+						try
+						{
+							// Is this an incremental log file upload?
+							if (item.incrementalLogfile && !item.binary)
 							{
-								// Is this an incremental log file upload?
-								if (item.incrementalLogfile && !item.binary)
+								// has the log file rolled over?
+								if (item.logFileLastFileName != uploadfile)
 								{
-									// has the log file rolled over?
-									if (item.logFileLastFileName != uploadfile)
-									{
-										ActiveExtraFiles[i].logFileLastFileName = uploadfile;
-										ActiveExtraFiles[i].logFileLastLineNumber = 0;
-									}
+									ActiveExtraFiles[i].logFileLastFileName = uploadfile;
+									ActiveExtraFiles[i].logFileLastLineNumber = 0;
+								}
 
-									var linesAdded = 0;
-									var data = WeatherStation.GetIncrementalLogFileData(uploadfile, item.logFileLastLineNumber, out linesAdded);
+								var linesAdded = 0;
+								var data = WeatherStation.GetIncrementalLogFileData(uploadfile, item.logFileLastLineNumber, out linesAdded);
 
-									if (linesAdded == 0)
-									{
-										LogDebugMessage($"FTP[Int]: Extra web file: {uploadfile} - No incremental data found, skipping this upload");
-										continue;
-									}
+								if (linesAdded == 0)
+								{
+									LogDebugMessage($"FTP[Int]: Extra web file: {uploadfile} - No incremental data found, skipping this upload");
+									continue;
+								}
 
-									// have we already uploaded the base file?
-									if (item.logFileLastLineNumber > 0)
+								// have we already uploaded the base file?
+								if (item.logFileLastLineNumber > 0)
+								{
+									if (AppendText(conn, remotefile, data, -1, linesAdded))
 									{
-										if (AppendText(conn, remotefile, data, -1, linesAdded))
-										{
-											ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
-										}
-									}
-									else // no, just upload the base file
-									{
-										if (UploadFile(conn, uploadfile, remotefile, -1))
-										{
-											ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
-										}
+										ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
 									}
 								}
-								else if (item.process)
+								else // no, just upload the base file
 								{
-									LogFtpDebugMessage("FTP[Int]: Processing Extra web file: " + uploadfile, false);
-									var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
-									using var strm = GenerateStreamFromString(data);
-									UploadStream(conn, remotefile, strm, -1);
+									if (UploadFile(conn, uploadfile, remotefile, -1))
+									{
+										ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
+									}
+								}
+							}
+							else if (item.process)
+							{
+								LogFtpDebugMessage("FTP[Int]: Processing Extra web file: " + uploadfile, false);
+								var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
+								using var strm = GenerateStreamFromString(data);
+								UploadStream(conn, remotefile, strm, -1);
+							}
+							else
+							{
+								UploadFile(conn, uploadfile, remotefile, -1);
+							}
+						}
+						catch (Exception e)
+						{
+							LogFtpMessage($"FTP[Int]: Error uploading file {uploadfile}: {e.Message}", false);
+							FtpAlarm.LastMessage = $"Error uploading extra file {uploadfile} - {e.Message}";
+							FtpAlarm.Triggered = true;
+						}
+					}
+
+					if (EODfilesNeedFTP)
+					{
+						EODfilesNeedFTP = false;
+					}
+
+					// standard files
+					for (int i = 0; i < StdWebFiles.Length; i++)
+					{
+						if (StdWebFiles[i].FTP)
+						{
+							try
+							{
+								var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+								LogFtpDebugMessage("FTP[Int]: Uploading standard Data file: " + localfile, false);
+
+								string data;
+
+								if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+								{
+									data = station.CreateWxnowFileString();
 								}
 								else
 								{
-									UploadFile(conn, uploadfile, remotefile, -1);
+									data = await ProcessTemplateFile2StringAsync(StdWebFiles[i].TemplateFileName, true, true);
 								}
+
+								using (var dataStream = GenerateStreamFromString(data))
+								{
+									UploadStream(conn, remotePath + StdWebFiles[i].RemoteFileName, dataStream, -1);
+								}
+
+								// Uploaded OK, reset the upload required flag
+								StdWebFiles[i].FtpRequired = false;
 							}
 							catch (Exception e)
 							{
-								LogFtpMessage($"FTP[Int]: Error uploading file {uploadfile}: {e.Message}", false);
-								FtpAlarm.LastMessage = $"Error uploading extra file {uploadfile} - {e.Message}";
-								FtpAlarm.Triggered = true;
-							}
-						}
-
-						if (EODfilesNeedFTP)
-						{
-							EODfilesNeedFTP = false;
-						}
-
-						// standard files
-						for (int i = 0; i < StdWebFiles.Length; i++)
-						{
-							if (StdWebFiles[i].FTP)
-							{
-								try
-								{
-									var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
-									LogFtpDebugMessage("FTP[Int]: Uploading standard Data file: " + localfile, false);
-
-									string data;
-
-									if (StdWebFiles[i].LocalFileName == "wxnow.txt")
-									{
-										data = station.CreateWxnowFileString();
-									}
-									else
-									{
-										data = await ProcessTemplateFile2StringAsync(StdWebFiles[i].TemplateFileName, true, true);
-									}
-
-									using (var dataStream = GenerateStreamFromString(data))
-									{
-										UploadStream(conn, remotePath + StdWebFiles[i].RemoteFileName, dataStream, -1);
-									}
-
-									// Uploaded OK, reset the upload required flag
-									StdWebFiles[i].FtpRequired = false;
-								}
-								catch (Exception e)
-								{
-									LogFtpMessage($"FTP[Int]: Error uploading file {StdWebFiles[i].RemoteFileName}: {e}", false);
-									FtpAlarm.LastMessage = $"Error uploading file {StdWebFiles[i].RemoteFileName} - {e.Message}";
-									FtpAlarm.Triggered = true;
-								}
-							}
-						}
-
-						for (int i = 0; i < GraphDataFiles.Length; i++)
-						{
-							if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
-							{
-								try
-								{
-									var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
-									var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
-									LogFtpDebugMessage("FTP[Int]: Uploading graph data file: " + localfile, false);
-
-									var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
-
-									using (var dataStream = GenerateStreamFromString(json))
-									{
-										UploadStream(conn, remotefile, dataStream);
-									}
-
-									// Uploaded OK, reset the upload required flag for files that only need a daily upload
-									if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
-									{
-										GraphDataFiles[i].FtpRequired = false;
-									}
-								}
-								catch (Exception e)
-								{
-									LogFtpMessage($"FTP[Int]: Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]", false);
-									LogFtpMessage($"FTP[Int]: Error = {e}", false);
-									FtpAlarm.LastMessage = $"Error uploading file {GraphDataFiles[i].RemoteFileName} - {e.Message}";
-									FtpAlarm.Triggered = true;
-								}
-							}
-						}
-
-						for (int i = 0; i < GraphDataEodFiles.Length; i++)
-						{
-							if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
-							{
-								var localfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
-								var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
-								try
-								{
-									LogFtpMessage("FTP[Int]: Uploading daily graph data file: " + localfile, false);
-
-									var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
-
-									using (var dataStream = GenerateStreamFromString(json))
-									{
-										UploadStream(conn, remotefile, dataStream);
-									}
-
-									// Uploaded OK, reset the upload required flag
-									GraphDataEodFiles[i].FtpRequired = false;
-								}
-								catch (Exception e)
-								{
-									LogFtpMessage($"FTP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]", false);
-									LogFtpMessage($"FTP[Int]: Error = {e}", false);
-									FtpAlarm.LastMessage = $"Error uploading file {GraphDataEodFiles[i].RemoteFileName} - {e.Message}";
-									FtpAlarm.Triggered = true;
-								}
-							}
-						}
-
-						if (MoonImage.Ftp && MoonImage.ReadyToFtp)
-						{
-							try
-							{
-								LogFtpMessage("", false);
-								LogFtpDebugMessage("FTP[Int]: Uploading Moon image file", false);
-								UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest);
-								// clear the image ready for FTP flag, only upload once an hour
-								MoonImage.ReadyToFtp = false;
-							}
-							catch (Exception e)
-							{
-								LogErrorMessage($"FTP[Int]: Error uploading moon image - {e.Message}");
-								FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
+								LogFtpMessage($"FTP[Int]: Error uploading file {StdWebFiles[i].RemoteFileName}: {e}", false);
+								FtpAlarm.LastMessage = $"Error uploading file {StdWebFiles[i].RemoteFileName} - {e.Message}";
 								FtpAlarm.Triggered = true;
 							}
 						}
 					}
 
-					// b3045 - dispose of connection
-					conn.Disconnect();
-					LogFtpDebugMessage("FTP[Int]: Disconnected from " + FtpOptions.Hostname, false);
+					for (int i = 0; i < GraphDataFiles.Length; i++)
+					{
+						if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
+						{
+							try
+							{
+								var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
+								var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
+								LogFtpDebugMessage("FTP[Int]: Uploading graph data file: " + localfile, false);
+
+								var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+
+								using (var dataStream = GenerateStreamFromString(json))
+								{
+									UploadStream(conn, remotefile, dataStream);
+								}
+
+								// Uploaded OK, reset the upload required flag for files that only need a daily upload
+								if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
+								{
+									GraphDataFiles[i].FtpRequired = false;
+								}
+							}
+							catch (Exception e)
+							{
+								LogFtpMessage($"FTP[Int]: Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]", false);
+								LogFtpMessage($"FTP[Int]: Error = {e}", false);
+								FtpAlarm.LastMessage = $"Error uploading file {GraphDataFiles[i].RemoteFileName} - {e.Message}";
+								FtpAlarm.Triggered = true;
+							}
+						}
+					}
+
+					for (int i = 0; i < GraphDataEodFiles.Length; i++)
+					{
+						if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
+						{
+							var localfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
+							var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+							try
+							{
+								LogFtpMessage("FTP[Int]: Uploading daily graph data file: " + localfile, false);
+
+								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+
+								using (var dataStream = GenerateStreamFromString(json))
+								{
+									UploadStream(conn, remotefile, dataStream);
+								}
+
+								// Uploaded OK, reset the upload required flag
+								GraphDataEodFiles[i].FtpRequired = false;
+							}
+							catch (Exception e)
+							{
+								LogFtpMessage($"FTP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]", false);
+								LogFtpMessage($"FTP[Int]: Error = {e}", false);
+								FtpAlarm.LastMessage = $"Error uploading file {GraphDataEodFiles[i].RemoteFileName} - {e.Message}";
+								FtpAlarm.Triggered = true;
+							}
+						}
+					}
+
+					if (MoonImage.Ftp && MoonImage.ReadyToFtp)
+					{
+						try
+						{
+							LogFtpMessage("", false);
+							LogFtpDebugMessage("FTP[Int]: Uploading Moon image file", false);
+							UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest);
+							// clear the image ready for FTP flag, only upload once an hour
+							MoonImage.ReadyToFtp = false;
+						}
+						catch (Exception e)
+						{
+							LogErrorMessage($"FTP[Int]: Error uploading moon image - {e.Message}");
+							FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
+							FtpAlarm.Triggered = true;
+						}
+					}
 				}
+
+				// b3045 - dispose of connection
+				conn.Disconnect();
+				LogFtpDebugMessage("FTP[Int]: Disconnected from " + FtpOptions.Hostname, false);
 				LogFtpMessage("FTP[Int]: Process complete", false);
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.PHP)
@@ -12364,107 +12289,65 @@ namespace CumulusMX
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.FTP || (FtpOptions.FtpMode == FtpProtocols.FTPS))
 			{
-				using (FtpClient conn = new FtpClient())
+				using FtpClient conn = await ftpClientFactory.CreateClient();
+
+				if (FtpOptions.Logging)
 				{
-					if (FtpOptions.Logging)
+					conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+				}
+
+				LogFtpMessage("", false); // insert a blank line
+				LogFtpDebugMessage($"FTP[NOAA]: CumulusMX Connecting to " + FtpOptions.Hostname, false);
+				try
+				{
+					if (FtpOptions.AutoDetect)
 					{
-						conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+						conn.AutoConnect();
+					}
+					else
+					{
+						conn.Connect();
+					}
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage("FTP[NOAA]: Error connecting ftp - " + ex.Message, false);
+
+					FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
+					FtpAlarm.Triggered = true;
+
+					if (ex.InnerException != null)
+					{
+						ex = Utils.GetOriginalException(ex);
+						LogFtpMessage($"FTP[NOAA]: Base exception - {ex.Message}", false);
 					}
 
-					LogFtpMessage("", false); // insert a blank line
-					LogFtpDebugMessage($"FTP[NOAA]: CumulusMX Connecting to " + FtpOptions.Hostname, false);
-					conn.Host = FtpOptions.Hostname;
-					conn.Port = FtpOptions.Port;
-					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
-					conn.Config.LogPassword = false;
+					return;
+				}
 
-					if (!FtpOptions.AutoDetect)
-					{
-
-						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-						{
-							// Explicit = Current protocol - connects using FTP and switches to TLS
-							// Implicit = Old depreciated protocol - connects using TLS
-							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-							conn.Config.DataConnectionEncryption = true;
-						}
-
-						if (FtpOptions.ActiveMode)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
-						}
-						else if (FtpOptions.DisableEPSV)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
-						}
-					}
-
-					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-					{
-						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
-					}
-
+				if (conn.IsConnected)
+				{
 					try
 					{
-						if (FtpOptions.AutoDetect)
-						{
-							conn.AutoConnect();
-						}
-						else
-						{
-							conn.Connect();
-						}
+						// upload NOAA reports
+						LogFtpMessage("", false);
+						LogFtpDebugMessage("FTP[NOAA]: Uploading NOAA report" + filename, false);
 
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
+						UploadFile(conn, uploadfile, remotefile, 9999);
+
+						LogFtpDebugMessage($"FTP[NOAA]: Upload of NOAA report {filename} complete", false);
 					}
-					catch (Exception ex)
+					catch (Exception e)
 					{
-						LogFtpMessage("FTP[NOAA]: Error connecting ftp - " + ex.Message, false);
-
-						FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
+						LogFtpMessage($"FTP[NOAA]: Error uploading NOAA file: {e.Message}", false);
+						FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
 						FtpAlarm.Triggered = true;
-
-						if (ex.InnerException != null)
-						{
-							ex = Utils.GetOriginalException(ex);
-							LogFtpMessage($"FTP[NOAA]: Base exception - {ex.Message}", false);
-						}
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
-						return;
 					}
-
-					if (conn.IsConnected)
-					{
-						try
-						{
-							// upload NOAA reports
-							LogFtpMessage("", false);
-							LogFtpDebugMessage("FTP[NOAA]: Uploading NOAA report" + filename, false);
-
-							UploadFile(conn, uploadfile, remotefile, 9999);
-
-							LogFtpDebugMessage($"FTP[NOAA]: Upload of NOAA report {filename} complete", false);
-						}
-						catch (Exception e)
-						{
-							LogFtpMessage($"FTP[NOAA]: Error uploading NOAA file: {e.Message}", false);
-							FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
-							FtpAlarm.Triggered = true;
-						}
-					}
-
-					// b3045 - dispose of connection
-					conn.Disconnect();
-					LogFtpDebugMessage("FTP[NOAA]: Disconnected from " + FtpOptions.Hostname, false);
 				}
+
+				// b3045 - dispose of connection
+				conn.Disconnect();
+				LogFtpDebugMessage("FTP[NOAA]: Disconnected from " + FtpOptions.Hostname, false);
 				LogFtpMessage("FTP[NOAA]: Process complete", false);
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.PHP)
@@ -13720,15 +13603,7 @@ namespace CumulusMX
 				// do nothing
 			}
 
-			RealtimeFTP = new FtpClient
-			{
-				//Enabled = false,
-				Host = FtpOptions.Hostname,
-				Port = FtpOptions.Port,
-				Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password),
-			};
-
-			RealtimeFTP.Config.LogPassword = false;
+			RealtimeFTP = ftpClientFactory.CreateClient().Result;
 
 			SetRealTimeFtpLogging(FtpOptions.Logging);
 
@@ -13906,6 +13781,40 @@ namespace CumulusMX
 				);
 			}
 		}
+
+		public void CreateUpdateFtpClientFactory()
+		{
+			if (ftpClientFactory != null)
+			{
+				ftpClientFactory.Host = FtpOptions.Hostname;
+				ftpClientFactory.Port = FtpOptions.Port;
+				ftpClientFactory.Username = FtpOptions.Username;
+				ftpClientFactory.Password = FtpOptions.Password;
+				ftpClientFactory.Protocol = FtpOptions.FtpMode;
+				ftpClientFactory.Autodetect = FtpOptions.AutoDetect;
+				ftpClientFactory.DisableExplicit = FtpOptions.DisableExplicit;
+				ftpClientFactory.ActiveMode = FtpOptions.ActiveMode;
+				ftpClientFactory.DisableEpsv= FtpOptions.DisableEPSV;
+				ftpClientFactory.IgnoreCertErrors = FtpOptions.IgnoreCertErrors;
+			}
+			else
+			{
+				ftpClientFactory = new FtpClientFactory(
+					host: FtpOptions.Hostname,
+					port: FtpOptions.Port,
+					username: FtpOptions.Username,
+					password: FtpOptions.Password,
+					protocol: FtpOptions.FtpMode,
+					autodetect: FtpOptions.AutoDetect,
+					disableExplicit: FtpOptions.DisableExplicit,
+					disableEpsv: FtpOptions.DisableEPSV,
+					activeMode: FtpOptions.ActiveMode,
+					ignoreCerts: FtpOptions.IgnoreCertErrors,
+					dnsTtl: TimeSpan.FromMinutes(2)
+				);
+			}
+		}
+
 
 		public async Task GetLatestVersion()
 		{

@@ -68,7 +68,7 @@ namespace CumulusMX.Settings
 						cumulus.FtpOptions.FtpMode = (FtpProtocols) settings.website.sslftp;
 						cumulus.UTF8encode = settings.website.general.utf8encode;
 
-						if (cumulus.FtpOptions.FtpMode == FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == FtpProtocols.FTPS || cumulus.FtpOptions.FtpMode == FtpProtocols.SFTP)
+						if (cumulus.FtpOptions.FtpMode is FtpProtocols.FTP or FtpProtocols.FTPS or FtpProtocols.SFTP)
 						{
 							cumulus.FtpOptions.Directory = settings.website.directory ?? string.Empty;
 							cumulus.FtpOptions.Port = settings.website.ftpport;
@@ -77,7 +77,7 @@ namespace CumulusMX.Settings
 							cumulus.FtpOptions.Username = settings.website.username ?? string.Empty;
 						}
 
-						if (cumulus.FtpOptions.FtpMode == FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == FtpProtocols.FTPS)
+						if (cumulus.FtpOptions.FtpMode is FtpProtocols.FTP or FtpProtocols.FTPS)
 						{
 							cumulus.DeleteBeforeUpload = settings.website.general.ftpdelete;
 							cumulus.FTPRename = settings.website.general.ftprename;
@@ -97,6 +97,11 @@ namespace CumulusMX.Settings
 						{
 							cumulus.FtpOptions.DisableExplicit = settings.website.advanced.disableftpsexplicit;
 							cumulus.FtpOptions.IgnoreCertErrors = settings.website.advanced.ignorecerts;
+						}
+
+						if (cumulus.FtpOptions.FtpMode is FtpProtocols.FTP or FtpProtocols.FTPS)
+						{
+							cumulus.CreateUpdateFtpClientFactory();
 						}
 
 						if (cumulus.FtpOptions.FtpMode == FtpProtocols.PHP)

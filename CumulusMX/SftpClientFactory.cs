@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net;
+using System.Threading.Tasks;
 
 using Renci.SshNet;
-using System.Threading.Tasks;
 
 namespace CumulusMX
 {
@@ -15,6 +15,7 @@ namespace CumulusMX
 		private string _password;
 		private string _pskFile = string.Empty;
 		private readonly TimeSpan _dnsTtl;
+		private readonly DnsResolver _dnsResolver;
 
 		public SftpClientFactory(string host, int port, string authMethod, string username, string password, string pskFile, TimeSpan dnsTtl)
 		{
@@ -25,6 +26,7 @@ namespace CumulusMX
 			_password = password;
 			_pskFile = pskFile;
 			_dnsTtl = dnsTtl;
+			_dnsResolver = new DnsResolver(_dnsTtl);
 		}
 
 		private async Task<string> ResolveIp()
@@ -35,8 +37,7 @@ namespace CumulusMX
 				return _host;
 			}
 
-			var resolver = new DnsResolver(_dnsTtl);
-			var ip = await resolver.ResolveAsync(_host);
+			var ip = await _dnsResolver.ResolveAsync(_host);
 			return ip.ToString();
 		}
 

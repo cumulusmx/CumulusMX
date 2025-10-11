@@ -294,8 +294,11 @@ namespace CumulusMX.Settings
 							cumulus.FtpOptions.SshPskFile = string.IsNullOrWhiteSpace(settings.internet.ftp.pskFile) ? string.Empty : settings.internet.ftp.pskFile.Trim();
 							cumulus.CreateUpdateSftpClientFactory();
 						}
-
-						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.PHP)
+						else if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS)
+						{
+							cumulus.CreateUpdateFtpClientFactory();
+						}
+						else if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.PHP)
 						{
 							cumulus.FtpOptions.PhpUrl = settings.internet.ftp.phpurl;
 							cumulus.FtpOptions.PhpSecret = settings.internet.ftp.phpsecret;
