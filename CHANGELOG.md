@@ -70,7 +70,7 @@ First build using Visual Studio 2026, and sees some preparation for transitionin
 ### Fixed
 
 - Crash caused by EcowittMacAddress=null in Cumulus.ini
-- Add additional error handling for dates date/times with the min val 0001-01-01
+- Add additional error handling for dates and date/times with the min val 0001-01-01
 - Enable Ecowitt SD card file content reading retries when zero length files are returned
 
 ---

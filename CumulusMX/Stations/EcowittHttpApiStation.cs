@@ -724,7 +724,7 @@ namespace CumulusMX.Stations
 				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
 
 				// update heating/cooling degree days
-				UpdateDegreeDays(5);
+				UpdateDegreeDays(interval);
 
 				// update dominant wind bearing
 				CalculateDominantWindBearing(Bearing, WindAverage, interval);
@@ -1484,7 +1484,6 @@ namespace CumulusMX.Stations
 					else
 					{
 						// oh my god, it sends the time as "MM/dd/yyyy HH: mm: ss" for some locales
-						// TODO: what is default time if not strikes detected yet?
 						var arr = sensor.timestamp.Replace(": ", ":").Split(' ');
 						var date = arr[0].Split('/');
 						var time = arr[1].Split(':');

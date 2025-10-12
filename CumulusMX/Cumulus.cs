@@ -216,8 +216,6 @@ namespace CumulusMX
 		internal string ComportName;
 		internal string DefaultComportName;
 
-		internal string Platform;
-
 		internal string dbfile;
 
 		internal string diaryfile;
@@ -553,6 +551,7 @@ namespace CumulusMX
 
 			IsOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
+			string Platform;
 			if (IsOSX)
 				Platform = "Mac OS X";
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
