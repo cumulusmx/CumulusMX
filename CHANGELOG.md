@@ -42,6 +42,7 @@ First build using Visual Studio 2026, and sees some preparation for transitionin
 
 ## Fixed
 
+- Ecowitt HTTP API station using a fixed 5 minute interval for Degree Days during catch-up rather than the log file interval
 
 ### Package Updates
 
