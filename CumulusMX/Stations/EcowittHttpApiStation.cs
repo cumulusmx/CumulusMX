@@ -164,7 +164,7 @@ namespace CumulusMX.Stations
 				var calib = localApi.GetCalibrationData(Program.ExitSystemToken).Result;
 				if (calib.uvGain == 1)
 				{
-					cumulus.LogWarningMessage("Your stations UV gain is set to the default 1.0, it should have a value of around 0.7");
+					cumulus.LogMessage("Your stations UV gain is set to the default 1.0, it should probably have a value of around 0.7");
 				}
 			}
 			catch (Exception ex)
@@ -813,6 +813,7 @@ namespace CumulusMX.Stations
 			return cumulus.LastUpdateTime.AddMinutes(interval + 1) < DateTime.Now;
 
 		}
+
 		public override string GetEcowittCameraUrl(string mac)
 		{
 			if (!string.IsNullOrEmpty(mac))
@@ -833,6 +834,7 @@ namespace CumulusMX.Stations
 
 			return string.Empty;
 		}
+
 		public override string GetEcowittVideoUrl(string mac)
 		{
 			if (!string.IsNullOrEmpty(mac))
@@ -899,7 +901,7 @@ namespace CumulusMX.Stations
 								case 2: // wh80
 									name = "wh80";
 									// if a WS80 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
-									if (updateRate > 4000 && updateRate != 4000)
+									if (updateRate > 4000)
 									{
 										cumulus.LogMessage($"GetSensorIds: WS80 sensor detected, changing the update rate from {updateRate / 1000:D} seconds to 4 seconds");
 										updateRate = 4000;
@@ -945,7 +947,7 @@ namespace CumulusMX.Stations
 								case 48: // wh90
 									name = "wh90";
 									// if a WS90 is connected, it has a 8.8 second update rate, so reduce the MX update rate from the default 10 seconds
-									if (updateRate > 8000 && updateRate != 8000)
+									if (updateRate > 8000)
 									{
 										cumulus.LogMessage($"GetSensorIds: WS90 sensor detected, changing the update rate from {updateRate / 1000:D} seconds to 8 seconds");
 										updateRate = 8000;
@@ -954,7 +956,7 @@ namespace CumulusMX.Stations
 								case 49: // wh85
 									name = "wh85";
 									// if a WH85 is connected, it has a 8.5 second update rate, so reduce the MX update rate from the default 10 seconds
-									if (updateRate > 8000 && updateRate != 8000)
+									if (updateRate > 8000)
 									{
 										cumulus.LogMessage($"GetSensorIds: WH85 sensor detected, changing the update rate from {updateRate / 1000:D} seconds to 8 seconds");
 										updateRate = 8000;

@@ -12,7 +12,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## [4.7.0 \[b41xx\]][29] - 2025-xx-xx
 
-First build using Visual Studio 2026, and sees some preparation for transitioning to .NET 10
+First build using Visual Studio 2026, and transitioning to .NET 10
 
 ### New
 
@@ -21,6 +21,8 @@ First build using Visual Studio 2026, and sees some preparation for transitionin
 - Custom Rollover MySQL commands now have the option to control being run during catch-up or not
 - Adds LASER depth to the Dashboard Recent Charts, Recent Select-a-Chart, and Select-a-Period
 - Adds LASER depth to the default web site Trends and Select-a-graph charts
+
+- New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
 
 ## Changed
 
@@ -43,6 +45,7 @@ First build using Visual Studio 2026, and sees some preparation for transitionin
 ## Fixed
 
 - Ecowitt HTTP API station using a fixed 5 minute interval for Degree Days during catch-up rather than the log file interval
+- Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1 minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
 
 ### Package Updates
 

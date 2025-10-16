@@ -171,12 +171,7 @@ namespace CumulusMX
 					catch (Exception ex)
 					{
 						cumulus.LogErrorMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
-
-						// if debug logging is disable, then log the failing statement anyway
-						if (!cumulus.DebuggingEnabled)
-						{
-							cumulus.LogMessage($"{CallingFunction}: Failing SQL = {cachedCmd.statement}");
-						}
+						cumulus.LogMessage($"{CallingFunction}: Failing SQL = {cachedCmd.statement}");
 
 						cumulus.MySqlUploadAlarm.LastMessage = ex.Message;
 						cumulus.MySqlUploadAlarm.Triggered = true;

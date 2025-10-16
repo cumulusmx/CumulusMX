@@ -521,6 +521,7 @@ namespace CumulusMX
 
 		private SemaphoreSlim uploadCountLimitSemaphoreSlim;
 		private readonly SemaphoreSlim realtimeFtpSemaphore = new(1);
+		private readonly SemaphoreSlim intervaltimeFtpSemaphore = new(1);
 
 		private SftpClientFactory sftpClientFactory;
 		private FtpClientFactory ftpClientFactory;
@@ -529,7 +530,7 @@ namespace CumulusMX
 		{
 		}
 
-		public void Initialise(int HTTPport, bool DebugEnabled, string startParms)
+		public void Initialise(int HTTPport, bool DebugEnabled)
 		{
 			var fullVer = Assembly.GetExecutingAssembly().GetName().Version;
 			Version = $"{fullVer.Major}.{fullVer.Minor}.{fullVer.Build}";
@@ -2462,13 +2463,13 @@ namespace CumulusMX
 					if (!realtimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
 					{
 						// we cannot get the lock - abort
-						LogDebugMessage($"Realtime[{cycle}]: Warning, could not get the FTP lock, aborting FTP for this cycle");
+						LogDebugMessage($"Realtime[{cycle}]: Warning, could not get the upload lock, aborting upload for this cycle");
 					}
 					else
 					{
 						if (RealtimeFtpLocked)
 						{
-							LogWarningMessage($"Realtime[{cycle}]: Warning, FTP is busy. Skipping FTP for this interval");
+							LogWarningMessage($"Realtime[{cycle}]: Warning, upload is busy. Skipping upload for this interval");
 						}
 						else
 						{
@@ -2881,7 +2882,7 @@ namespace CumulusMX
 				remotePath = (FtpOptions.Directory.EndsWith('/') ? FtpOptions.Directory : FtpOptions.Directory + '/');
 			}
 
-			LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload files starting", true);
+			LogFtpDebugMessage($"Realtime[{cycle}]: Real time upload of files starting", true);
 
 			for (var i = 0; i < RealtimeFiles.Length; i++)
 			{
@@ -2921,9 +2922,9 @@ namespace CumulusMX
 						try
 						{
 #if DEBUG
-							LogDebugMessage($"RealtimePHP[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-							LogDebugMessage($"RealtimePHP[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
@@ -2939,7 +2940,7 @@ namespace CumulusMX
 						tasklist.Add(Task.Run(async () =>
 						{
 #if DEBUG
-							LogDebugMessage($"RealtimePHP[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].LocalFileName} to {RealtimeFiles[idx].RemoteFileName}");
+							LogDebugMessage($"Realtime[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].LocalFileName} to {RealtimeFiles[idx].RemoteFileName}");
 #endif
 							// realtime file
 							if (RealtimeFiles[idx].LocalFileName == "realtime.txt")
@@ -2961,7 +2962,7 @@ namespace CumulusMX
 							{
 								uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-								LogDebugMessage($"RealtimePHP[{cycle}]: Real time file [{idx}] {RealtimeFiles[idx].RemoteFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+								LogDebugMessage($"Realtime[{cycle}]: Real time file [{idx}] {RealtimeFiles[idx].RemoteFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 							}
 							return true;
@@ -2979,7 +2980,7 @@ namespace CumulusMX
 
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
-				LogDebugMessage($"RealtimePHP[{cycle}]: Extra Files starting");
+				LogDebugMessage($"Realtime[{cycle}]: Extra Files starting");
 
 				for (var i = 0; i < ActiveExtraFiles.Count; i++)
 				{
@@ -2994,7 +2995,7 @@ namespace CumulusMX
 
 					if (!File.Exists(uploadfile))
 					{
-						LogWarningMessage($"RealtimePHP[{cycle}]: Warning, extra web file not found! - {uploadfile}");
+						LogWarningMessage($"Realtime[{cycle}]: Warning, extra web file not found! - {uploadfile}");
 						return;
 					}
 
@@ -3018,7 +3019,7 @@ namespace CumulusMX
 
 						if (linesAdded == 0)
 						{
-							LogDebugMessage($"RealtimePHP[{cycle}]: Extra file: {uploadfile} - No incremental data found, skipping this upload");
+							LogDebugMessage($"Realtime[{cycle}]: Extra file: {uploadfile} - No incremental data found, skipping this upload");
 							continue;
 						}
 					}
@@ -3026,9 +3027,9 @@ namespace CumulusMX
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"RealtimePHP[{cycle}]: Extra File {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"Realtime[{cycle}]: Extra File {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-						LogDebugMessage($"RealtimePHP[{cycle}]: Extra File {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"Realtime[{cycle}]: Extra File {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -3054,7 +3055,7 @@ namespace CumulusMX
 							// Is this an incremental log file upload?
 							if (item.incrementalLogfile && !item.binary)
 							{
-								LogDebugMessage($"RealtimePHP[{cycle}]: Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incrementally - {linesAdded} lines" : "Fully")})");
+								LogDebugMessage($"Realtime[{cycle}]: Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incrementally - {linesAdded} lines" : "Fully")})");
 								if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, cycle, item.binary, item.UTF8, true, item.logFileLastLineNumber))
 								{
 									ActiveExtraFiles[idx].logFileLastLineNumber += linesAdded;
@@ -3062,11 +3063,11 @@ namespace CumulusMX
 							}
 							else
 							{
-								LogDebugMessage($"RealtimePHP[{cycle}]: Uploading extra web file {uploadfile} to {remotefile}");
+								LogDebugMessage($"Realtime[{cycle}]: Uploading extra web file {uploadfile} to {remotefile}");
 
 								if (item.process)
 								{
-									LogDebugMessage($"RealtimePHP[{cycle}]: Processing extra web file {uploadfile}");
+									LogDebugMessage($"Realtime[{cycle}]: Processing extra web file {uploadfile}");
 									var str = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 
 									_ = await UploadString(phpUploadHttpClient, false, string.Empty, str, remotefile, cycle, item.binary, item.UTF8);
@@ -3081,7 +3082,7 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"RealtimePHP[{cycle}]: Extra Web File {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"Realtime[{cycle}]: Extra Web File {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -3112,20 +3113,20 @@ namespace CumulusMX
 						// wait on the task to complete, but timeout after 20 seconds
 						if (Task.WaitAll([.. tasklist], TimeSpan.FromSeconds(20)))
 						{
-							LogDebugMessage($"RealtimePHP[{cycle}]: Real time files complete, {tasklist.Count} files uploaded");
+							LogDebugMessage($"Realtime[{cycle}]: Real time files complete, {tasklist.Count} files uploaded");
 						}
 						else
 						{
-							LogDebugMessage($"RealtimePHP[{cycle}]: Real time files timed out waiting for the uploads to complete");
+							LogDebugMessage($"Realtime[{cycle}]: Real time files timed out waiting for the uploads to complete");
 						}
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, $"RealtimePHP[{cycle}]: Error waiting on upload tasks");
+						LogExceptionMessage(ex, $"Realtime[{cycle}]: Error waiting on upload tasks");
 					}
 				}
 
-				LogDebugMessage($"RealtimePHP[{cycle}]: Real time files process end");
+				LogDebugMessage($"Realtime[{cycle}]: Real time files process end");
 				tasklist.Clear();
 
 				RealtimeFtpLocked = false;
@@ -3312,11 +3313,11 @@ namespace CumulusMX
 			}
 		}
 
-		private readonly object tokenParserLockObj = new();
+		private readonly Lock tokenParserLock = new();
 
 		public void TokenParserOnToken(string strToken, ref string strReplacement)
 		{
-			lock (tokenParserLockObj)
+			lock (tokenParserLock)
 			{
 				var tagParams = new Dictionary<string, string>();
 				var paramList = ParseParams(strToken);
@@ -8374,6 +8375,7 @@ namespace CumulusMX
 		private volatile bool RealtimeCopyInProgress;
 		private int realtimeFtpWdInterval;
 		private byte RealtimeCycleCounter;
+		private byte IntervalCycleCounter;
 
 		internal FileGenerationOptions[] StdWebFiles;
 		internal FileGenerationOptions[] RealtimeFiles;
@@ -8631,7 +8633,6 @@ namespace CumulusMX
 			// 123-126 AQ PM10 Avg
 
 			var filename = GetExtraLogFileName(timestamp);
-			var inv = CultureInfo.InvariantCulture;
 
 			LogDebugMessage($"DoExtraLogFile: Writing log entry for {timestamp}");
 
@@ -9650,15 +9651,19 @@ namespace CumulusMX
 
 		public async Task DoHTMLFiles()
 		{
+			var cycle = IntervalCycleCounter++;
+
 			try
 			{
+				LogDebugMessage($"Interval[{cycle}]: Process starting");
+
 				if (!RealtimeIntervalEnabled)
 				{
 					CreateRealtimeFile(999);
 					MySqlRealtimeFile(999, true);
 				}
 
-				LogDebugMessage("Interval: Creating standard web files");
+				LogDebugMessage($"Interval[{cycle}]: Creating standard web files");
 				for (var i = 0; i < StdWebFiles.Length; i++)
 				{
 					if (StdWebFiles[i].Create && !string.IsNullOrWhiteSpace(StdWebFiles[i].TemplateFileName))
@@ -9674,13 +9679,13 @@ namespace CumulusMX
 						}
 					}
 				}
-				LogDebugMessage("Interval: Done creating standard Data file");
+				LogDebugMessage($"Interval[{cycle}]: Done creating standard Data file");
 
-				LogDebugMessage("Interval: Creating graph data files");
+				LogDebugMessage($"Interval[{cycle}]: Creating graph data files");
 				station.CreateGraphDataFiles();
-				LogDebugMessage("Interval: Done creating graph data files");
+				LogDebugMessage($"Interval[{cycle}]: Done creating graph data files");
 
-				LogDebugMessage("Interval: Creating extra files");
+				LogDebugMessage($"Interval[{cycle}]: Creating extra files");
 
 				// handle any extra files
 				foreach (var item in ActiveExtraFiles)
@@ -9722,7 +9727,7 @@ namespace CumulusMX
 					}
 				}
 
-				LogDebugMessage("Interval: Done creating extra files");
+				LogDebugMessage($"Interval[{cycle}]: Done creating extra files");
 
 				if (!string.IsNullOrEmpty(ExternalProgram))
 				{
@@ -9761,11 +9766,27 @@ namespace CumulusMX
 
 				DoLocalCopy();
 
-				await DoIntervalUpload();
+				if (!intervaltimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
+				{
+					// we cannot get the lock - abort
+					LogDebugMessage($"Interval[{cycle}]: Warning, could not get the upload lock, aborting upload for this cycle");
+				}
+				else
+				{ 					
+					try
+					{
+						await DoIntervalUpload(cycle);
+					}
+					finally
+					{
+						intervaltimeFtpSemaphore.Release();
+					}
+				}
 			}
 			finally
 			{
 				WebUpdating = 0;
+				LogDebugMessage($"Interval[{cycle}]: Process complete");
 			}
 		}
 
@@ -10274,7 +10295,7 @@ namespace CumulusMX
 			}
 		}
 
-		public async Task DoIntervalUpload()
+		public async Task DoIntervalUpload(byte cycle)
 		{
 			var remotePath = string.Empty;
 
@@ -10286,20 +10307,24 @@ namespace CumulusMX
 				remotePath = FtpOptions.Directory.EndsWith('/') ? FtpOptions.Directory : FtpOptions.Directory + '/';
 			}
 
+			var cycle1k = 1000 + cycle;
+
 			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 			{
-				LogDebugMessage("SFTP[Int]: Process starting");
+				var msgPrefix = $"SFTP[Int-{cycle}]:";
+
+				LogDebugMessage(msgPrefix + " Process starting");
 				try
 				{
 					using SftpClient conn = await sftpClientFactory.CreateClient();
 					try
 					{
-						LogDebugMessage($"SFTP[Int]: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
+						LogDebugMessage($"{msgPrefix} CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
 						conn.Connect();
 					}
 					catch (Exception ex)
 					{
-						LogErrorMessage($"SFTP[Int]: Error connecting SFTP - {ex.Message}");
+						LogErrorMessage($"{msgPrefix} Error connecting SFTP - {ex.Message}");
 
 						FtpAlarm.LastMessage = "Error connecting SFTP - " + ex.Message;
 						FtpAlarm.Triggered = true;
@@ -10308,30 +10333,30 @@ namespace CumulusMX
 
 					if (conn.IsConnected)
 					{
-						LogDebugMessage($"SFTP[Int]: CumulusMX Connected to {FtpOptions.Hostname} OK");
+						LogDebugMessage($"{msgPrefix} CumulusMX Connected to {FtpOptions.Hostname} OK");
 
 						if (NOAAconf.NeedFtp)
 						{
 							try
 							{
 								// upload NOAA reports
-								LogDebugMessage("SFTP[Int]: Uploading NOAA reports");
+								LogDebugMessage($"{msgPrefix} Uploading NOAA reports");
 
 								var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 								var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-								UploadFile(conn, uploadfile, remotefile, -1);
+								UploadFile(conn, uploadfile, remotefile, cycle1k);
 
 								uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 								remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-								UploadFile(conn, uploadfile, remotefile, -1);
+								UploadFile(conn, uploadfile, remotefile, cycle1k);
 
-								LogDebugMessage("SFTP[Int]: Done uploading NOAA reports");
+								LogDebugMessage($"{msgPrefix} Done uploading NOAA reports");
 							}
 							catch (Exception e)
 							{
-								LogErrorMessage($"SFTP[Int]: Error uploading file - {e.Message}");
+								LogErrorMessage($"{msgPrefix} Error uploading file - {e.Message}");
 								FtpAlarm.LastMessage = "Error uploading NOAA report file - " + e.Message;
 								FtpAlarm.Triggered = true;
 							}
@@ -10354,7 +10379,7 @@ namespace CumulusMX
 
 							if (!File.Exists(uploadfile))
 							{
-								LogWarningMessage($"SFTP[Int]: Extra web file [{uploadfile}] not found!");
+								LogWarningMessage($"{msgPrefix}: Extra web file [{uploadfile}] not found!");
 								FtpAlarm.LastMessage = $"Error Extra web file [{uploadfile} not found";
 								FtpAlarm.Triggered = true;
 								continue;
@@ -10362,7 +10387,7 @@ namespace CumulusMX
 
 							var remotefile = GetRemoteFileName(item.remote, logDay);
 
-							LogDebugMessage("SFTP[Int]: Uploading Extra web file: " + uploadfile);
+							LogDebugMessage($"{msgPrefix} Uploading Extra web file: {uploadfile}");
 
 							// all checks OK, file needs to be uploaded
 							try
@@ -10382,7 +10407,7 @@ namespace CumulusMX
 
 									if (linesAdded == 0)
 									{
-										LogDebugMessage($"SFTP[Int]: Extra web file: {uploadfile} - No incremental data found, skipping this upload");
+										LogDebugMessage($"{msgPrefix} Extra web file: {uploadfile} - No incremental data found, skipping this upload");
 										continue;
 									}
 
@@ -10404,20 +10429,20 @@ namespace CumulusMX
 								}
 								else if (item.process)
 								{
-									LogDebugMessage("SFTP[Int]: Processing Extra web file: " + uploadfile);
+									LogDebugMessage($"{msgPrefix} Processing Extra web file: {uploadfile}");
 									var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 									using var strm = GenerateStreamFromString(data);
-									UploadStream(conn, remotefile, strm, -1);
+									UploadStream(conn, remotefile, strm, cycle1k);
 								}
 								else
 								{
-									UploadFile(conn, uploadfile, remotefile, -1);
+									UploadFile(conn, uploadfile, remotefile, cycle1k);
 								}
 							}
 							catch (Exception e)
 							{
-								LogErrorMessage($"SFTP[Int]: Error uploading Extra web file [{uploadfile}]");
-								LogMessage($"SFTP[Int]: Error = {e.Message}");
+								LogErrorMessage($"{msgPrefix} Error uploading Extra web file [{uploadfile}]");
+								LogMessage($"{msgPrefix} Error = {e.Message}");
 								FtpAlarm.LastMessage = $"Error uploading Extra web file [{uploadfile}";
 								FtpAlarm.Triggered = true;
 							}
@@ -10437,7 +10462,7 @@ namespace CumulusMX
 								{
 									var localFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
 									var remotefile = remotePath + StdWebFiles[i].RemoteFileName;
-									LogDebugMessage("SFTP[Int]: Uploading standard Data file: " + localFile);
+									LogDebugMessage($"{msgPrefix} Uploading standard Data file: {localFile}");
 
 									string data;
 
@@ -10451,12 +10476,12 @@ namespace CumulusMX
 									}
 
 									using var dataStream = GenerateStreamFromString(data);
-									UploadStream(conn, remotefile, dataStream);
+									UploadStream(conn, remotefile, dataStream, cycle1k);
 								}
 								catch (Exception e)
 								{
-									LogErrorMessage($"SFTP[Int]: Error uploading standard data file [{StdWebFiles[i].RemoteFileName}]");
-									LogMessage($"SFTP[Int]: Error = {e}");
+									LogErrorMessage($"{msgPrefix} Error uploading standard data file [{StdWebFiles[i].RemoteFileName}]");
+									LogMessage($"{msgPrefix} Error = {e}");
 									FtpAlarm.LastMessage = $"Error uploading standard web file {StdWebFiles[i].RemoteFileName} - {e.Message}";
 									FtpAlarm.Triggered = true;
 								}
@@ -10472,13 +10497,13 @@ namespace CumulusMX
 
 								try
 								{
-									LogDebugMessage("SFTP[Int]: Uploading graph data file: " + uploadfile);
+									LogDebugMessage($"{msgPrefix} Uploading graph data file: {uploadfile}");
 
 									var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
 
 									using (var dataStream = GenerateStreamFromString(json))
 									{
-										UploadStream(conn, remotefile, dataStream);
+										UploadStream(conn, remotefile, dataStream, cycle1k);
 									}
 
 									// Uploaded OK, reset the upload required flag for the static and daily files
@@ -10489,8 +10514,8 @@ namespace CumulusMX
 								}
 								catch (Exception e)
 								{
-									LogErrorMessage($"SFTP[Int]: Error uploading graph data file [{uploadfile}]");
-									LogMessage($"SFTP[Int]: Error = {e}");
+									LogErrorMessage($"{msgPrefix} Error uploading graph data file [{uploadfile}]");
+									LogMessage($"{msgPrefix} Error = {e}");
 									FtpAlarm.LastMessage = $"Error uploading graph data file [{uploadfile}] - {e.Message}";
 									FtpAlarm.Triggered = true;
 								}
@@ -10505,21 +10530,21 @@ namespace CumulusMX
 								var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 								try
 								{
-									LogDebugMessage("SFTP[Int]: Uploading daily graph data file: " + uploadfile);
+									LogDebugMessage($"{msgPrefix} Uploading daily graph data file: {uploadfile}");
 
 									var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
 
 									using (var dataStream = GenerateStreamFromString(json))
 									{
-										UploadStream(conn, remotefile, dataStream, -1);
+										UploadStream(conn, remotefile, dataStream, cycle1k);
 									}
 									// Uploaded OK, reset the upload required flag
 									GraphDataEodFiles[i].FtpRequired = false;
 								}
 								catch (Exception e)
 								{
-									LogErrorMessage($"SFTP[Int]: Error uploading daily graph data file [{uploadfile}]");
-									LogMessage($"SFTP[Int]: Error = {e}");
+									LogErrorMessage($"{msgPrefix} Error uploading daily graph data file [{uploadfile}]");
+									LogMessage($"{msgPrefix} Error = {e}");
 									FtpAlarm.LastMessage = $"Error uploading daily graph data file [{uploadfile}] - {e.Message}";
 									FtpAlarm.Triggered = true;
 								}
@@ -10530,7 +10555,7 @@ namespace CumulusMX
 						{
 							try
 							{
-								LogDebugMessage("SFTP[Int]: Uploading Moon image file");
+								LogDebugMessage($"{msgPrefix} Uploading Moon image file");
 								UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, -1);
 								LogDebugMessage("SFTP[Int]: Done uploading Moon image file");
 								// clear the image ready for FTP flag, only upload once an hour
@@ -10538,7 +10563,7 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								LogErrorMessage($"SFTP[Int]: Error uploading moon image - {e.Message}");
+								LogErrorMessage($"{msgPrefix} Error uploading moon image - {e.Message}");
 								FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
 								FtpAlarm.Triggered = true;
 							}
@@ -10557,12 +10582,14 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage($"SFTP[Int]: Error using SFTP connection - {ex.Message}");
+					LogErrorMessage($"{msgPrefix} Error using SFTP connection - {ex.Message}");
 				}
-				LogDebugMessage("SFTP[Int]: Process complete");
+				LogDebugMessage($"{msgPrefix} Process complete");
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.FTP || (FtpOptions.FtpMode == FtpProtocols.FTPS))
 			{
+				var msgPrefix = $"FTP[Int-{cycle}]:";
+
 				using FtpClient conn = await ftpClientFactory.CreateClient();
 
 				if (FtpOptions.Logging)
@@ -10571,7 +10598,7 @@ namespace CumulusMX
 				}
 
 				LogFtpMessage("", false); // insert a blank line
-				LogFtpDebugMessage($"FTP[Int]: CumulusMX Connecting to " + FtpOptions.Hostname, false);
+				LogFtpDebugMessage($"{msgPrefix} CumulusMX Connecting to " + FtpOptions.Hostname, false);
 
 				try
 				{
@@ -10586,7 +10613,7 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogFtpMessage("FTP[Int]: Error connecting ftp - " + ex.Message, false);
+					LogFtpMessage($"{msgPrefix} Error connecting ftp - {ex.Message}", false);
 
 					FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
 					FtpAlarm.Triggered = true;
@@ -10594,7 +10621,7 @@ namespace CumulusMX
 					if (ex.InnerException != null)
 					{
 						ex = Utils.GetOriginalException(ex);
-						LogFtpMessage($"FTP[Int]: Base exception - {ex.Message}", false);
+						LogFtpMessage($"{msgPrefix} Base exception - {ex.Message}", false);
 					}
 
 					return;
@@ -10608,22 +10635,22 @@ namespace CumulusMX
 						{
 							// upload NOAA reports
 							LogFtpMessage("", false);
-							LogFtpDebugMessage("FTP[Int]: Uploading NOAA reports", false);
+							LogFtpDebugMessage($"{msgPrefix} Uploading NOAA reports", false);
 
 							var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-							UploadFile(conn, uploadfile, remotefile);
+							UploadFile(conn, uploadfile, remotefile, cycle);
 
 							uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 							remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-							UploadFile(conn, uploadfile, remotefile);
-							LogFtpDebugMessage("FTP[Int]: Upload of NOAA reports complete", false);
+							UploadFile(conn, uploadfile, remotefile, cycle);
+							LogFtpDebugMessage($"{msgPrefix} Upload of NOAA reports complete", false);
 						}
 						catch (Exception e)
 						{
-							LogFtpMessage($"FTP[Int]: Error uploading NOAA files: {e.Message}", false);
+							LogFtpMessage($"{msgPrefix} Error uploading NOAA files: {e.Message}", false);
 							FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
 							FtpAlarm.Triggered = true;
 						}
@@ -10646,7 +10673,7 @@ namespace CumulusMX
 
 						if (!File.Exists(uploadfile))
 						{
-							LogFtpMessage($"FTP[Int]: Extra web file [{uploadfile}] not found!", false);
+							LogFtpMessage($"{msgPrefix} Extra web file [{uploadfile}] not found!", false);
 							FtpAlarm.LastMessage = $"Error Extra web file [{uploadfile} not found";
 							FtpAlarm.Triggered = true;
 							continue;
@@ -10655,7 +10682,7 @@ namespace CumulusMX
 						var remotefile = GetRemoteFileName(item.remote, logDay);
 
 						LogFtpMessage("", false);
-						LogFtpDebugMessage("FTP[Int]: Uploading Extra web file: " + uploadfile, false);
+						LogFtpDebugMessage($"{msgPrefix} Uploading Extra web file: {uploadfile}", false);
 
 						// all checks OK, file needs to be uploaded
 
@@ -10676,7 +10703,7 @@ namespace CumulusMX
 
 								if (linesAdded == 0)
 								{
-									LogDebugMessage($"FTP[Int]: Extra web file: {uploadfile} - No incremental data found, skipping this upload");
+									LogDebugMessage($"{msgPrefix} Extra web file: {uploadfile} - No incremental data found, skipping this upload");
 									continue;
 								}
 
@@ -10698,19 +10725,19 @@ namespace CumulusMX
 							}
 							else if (item.process)
 							{
-								LogFtpDebugMessage("FTP[Int]: Processing Extra web file: " + uploadfile, false);
+								LogFtpDebugMessage($"{msgPrefix} Processing Extra web file: " + uploadfile, false);
 								var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 								using var strm = GenerateStreamFromString(data);
-								UploadStream(conn, remotefile, strm, -1);
+								UploadStream(conn, remotefile, strm, cycle1k);
 							}
 							else
 							{
-								UploadFile(conn, uploadfile, remotefile, -1);
+								UploadFile(conn, uploadfile, remotefile, cycle1k);
 							}
 						}
 						catch (Exception e)
 						{
-							LogFtpMessage($"FTP[Int]: Error uploading file {uploadfile}: {e.Message}", false);
+							LogFtpMessage($"{msgPrefix} Error uploading file {uploadfile}: {e.Message}", false);
 							FtpAlarm.LastMessage = $"Error uploading extra file {uploadfile} - {e.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -10729,7 +10756,7 @@ namespace CumulusMX
 							try
 							{
 								var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
-								LogFtpDebugMessage("FTP[Int]: Uploading standard Data file: " + localfile, false);
+								LogFtpDebugMessage($"{msgPrefix} Uploading standard Data file: {localfile}", false);
 
 								string data;
 
@@ -10744,7 +10771,7 @@ namespace CumulusMX
 
 								using (var dataStream = GenerateStreamFromString(data))
 								{
-									UploadStream(conn, remotePath + StdWebFiles[i].RemoteFileName, dataStream, -1);
+									UploadStream(conn, remotePath + StdWebFiles[i].RemoteFileName, dataStream, cycle1k);
 								}
 
 								// Uploaded OK, reset the upload required flag
@@ -10752,7 +10779,7 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								LogFtpMessage($"FTP[Int]: Error uploading file {StdWebFiles[i].RemoteFileName}: {e}", false);
+								LogFtpMessage($"{msgPrefix} Error uploading file {StdWebFiles[i].RemoteFileName}: {e}", false);
 								FtpAlarm.LastMessage = $"Error uploading file {StdWebFiles[i].RemoteFileName} - {e.Message}";
 								FtpAlarm.Triggered = true;
 							}
@@ -10767,13 +10794,13 @@ namespace CumulusMX
 							{
 								var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
 								var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
-								LogFtpDebugMessage("FTP[Int]: Uploading graph data file: " + localfile, false);
+								LogFtpDebugMessage($"{msgPrefix} Uploading graph data file: {localfile}", false);
 
 								var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
 
 								using (var dataStream = GenerateStreamFromString(json))
 								{
-									UploadStream(conn, remotefile, dataStream);
+									UploadStream(conn, remotefile, dataStream, cycle1k);
 								}
 
 								// Uploaded OK, reset the upload required flag for files that only need a daily upload
@@ -10784,8 +10811,8 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								LogFtpMessage($"FTP[Int]: Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]", false);
-								LogFtpMessage($"FTP[Int]: Error = {e}", false);
+								LogFtpMessage($"{msgPrefix} Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]", false);
+								LogFtpMessage($"{msgPrefix} Error = {e}", false);
 								FtpAlarm.LastMessage = $"Error uploading file {GraphDataFiles[i].RemoteFileName} - {e.Message}";
 								FtpAlarm.Triggered = true;
 							}
@@ -10800,13 +10827,13 @@ namespace CumulusMX
 							var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 							try
 							{
-								LogFtpMessage("FTP[Int]: Uploading daily graph data file: " + localfile, false);
+								LogFtpMessage($"{msgPrefix} Uploading daily graph data file: {localfile}", false);
 
 								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
 
 								using (var dataStream = GenerateStreamFromString(json))
 								{
-									UploadStream(conn, remotefile, dataStream);
+									UploadStream(conn, remotefile, dataStream, cycle1k);
 								}
 
 								// Uploaded OK, reset the upload required flag
@@ -10814,8 +10841,8 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								LogFtpMessage($"FTP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]", false);
-								LogFtpMessage($"FTP[Int]: Error = {e}", false);
+								LogFtpMessage($"{msgPrefix} Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]", false);
+								LogFtpMessage($"{msgPrefix} Error = {e}", false);
 								FtpAlarm.LastMessage = $"Error uploading file {GraphDataEodFiles[i].RemoteFileName} - {e.Message}";
 								FtpAlarm.Triggered = true;
 							}
@@ -10827,14 +10854,14 @@ namespace CumulusMX
 						try
 						{
 							LogFtpMessage("", false);
-							LogFtpDebugMessage("FTP[Int]: Uploading Moon image file", false);
-							UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest);
+							LogFtpDebugMessage($"{msgPrefix} Uploading Moon image file", false);
+							UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, cycle1k);
 							// clear the image ready for FTP flag, only upload once an hour
 							MoonImage.ReadyToFtp = false;
 						}
 						catch (Exception e)
 						{
-							LogErrorMessage($"FTP[Int]: Error uploading moon image - {e.Message}");
+							LogErrorMessage($"{msgPrefix} Error uploading moon image - {e.Message}");
 							FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -10843,12 +10870,14 @@ namespace CumulusMX
 
 				// b3045 - dispose of connection
 				conn.Disconnect();
-				LogFtpDebugMessage("FTP[Int]: Disconnected from " + FtpOptions.Hostname, false);
-				LogFtpMessage("FTP[Int]: Process complete", false);
+				LogFtpDebugMessage($"{msgPrefix} Disconnected from " + FtpOptions.Hostname, false);
+				LogFtpMessage($"{msgPrefix} Process complete", false);
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
-				LogDebugMessage("PHP[Int]: Upload process starting");
+				var msgPrefix = $"PHP[Int-{cycle}]:";
+
+				LogDebugMessage($"{msgPrefix} Upload process starting");
 
 				var tasklist = new List<Task>();
 				var taskCount = 0;
@@ -10866,9 +10895,9 @@ namespace CumulusMX
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: NOAA Month report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} NOAA Month report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: NOAA Month report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} NOAA Month report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
@@ -10888,17 +10917,17 @@ namespace CumulusMX
 						try
 						{
 
-							LogDebugMessage("PHP[Int]: Uploading NOAA Month report");
+							LogDebugMessage($"{msgPrefix} Uploading NOAA Month report");
 
 							var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
+							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle1k, false, NOAAconf.UseUtf8);
 
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading NOAA files");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading NOAA files");
 							FtpAlarm.LastMessage = $"Error uploading NOAA files - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -10906,7 +10935,7 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: NOAA Year report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} NOAA Year report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -10922,9 +10951,9 @@ namespace CumulusMX
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: NOAA Year report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} NOAA Year report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: NOAA Year report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} NOAA Year report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
@@ -10941,14 +10970,14 @@ namespace CumulusMX
 							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
-							LogDebugMessage("PHP[Int]: Uploading NOAA Year report");
+							LogDebugMessage($"{msgPrefix} Uploading NOAA Year report");
 
 							var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
+							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle1k, false, NOAAconf.UseUtf8);
 
-							LogDebugMessage("PHP[Int]: Upload of NOAA reports complete");
+							LogDebugMessage($"{msgPrefix} Upload of NOAA reports complete");
 							NOAAconf.NeedFtp = false;
 						}
 						catch (OperationCanceledException)
@@ -10957,7 +10986,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading NOAA Year file");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading NOAA Year file");
 							FtpAlarm.LastMessage = $"Error uploading NOAA files - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -10965,7 +10994,7 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: NOAA Year report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} NOAA Year report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -10977,7 +11006,7 @@ namespace CumulusMX
 				}
 
 				// Extra files
-				LogDebugMessage("PHP[Int]: Extra Files upload starting");
+				LogDebugMessage($"{msgPrefix} Extra Files upload starting");
 
 				for (var i = 0; i < ActiveExtraFiles.Count; i++)
 				{
@@ -11003,7 +11032,7 @@ namespace CumulusMX
 
 					if (!File.Exists(uploadfile))
 					{
-						LogWarningMessage($"PHP[Int]: Extra web file - {uploadfile} - not found!");
+						LogWarningMessage($"{msgPrefix} Extra web file - {uploadfile} - not found!");
 						return;
 					}
 
@@ -11024,7 +11053,7 @@ namespace CumulusMX
 
 						if (linesAdded == 0)
 						{
-							LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} - No incremental data found, skipping this upload");
+							LogDebugMessage($"{msgPrefix} Extra file: {uploadfile} - No incremental data found, skipping this upload");
 							continue;
 						}
 					}
@@ -11032,9 +11061,9 @@ namespace CumulusMX
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Extra file: {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Extra file: {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -11055,8 +11084,8 @@ namespace CumulusMX
 							// Is this an incremental log file upload?
 							if (item.incrementalLogfile && !item.binary)
 							{
-								LogDebugMessage($"PHP[Int]: Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incrementally - {linesAdded} lines" : "Fully")})");
-								if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, -1, item.binary, item.UTF8, true, item.logFileLastLineNumber))
+								LogDebugMessage($"{msgPrefix} Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incrementally - {linesAdded} lines" : "Fully")})");
+								if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, cycle1k, item.binary, item.UTF8, true, item.logFileLastLineNumber))
 								{
 									ActiveExtraFiles[idx].logFileLastLineNumber += linesAdded;
 								}
@@ -11065,22 +11094,22 @@ namespace CumulusMX
 							{
 								if (item.process)
 								{
-									LogDebugMessage($"PHP[Int]: Uploading Extra file: {uploadfile} to: {remotefile} (Processed)");
+									LogDebugMessage($"{msgPrefix} Uploading Extra file: {uploadfile} to: {remotefile} (Processed)");
 
 									var str = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
-									_ = await UploadString(phpUploadHttpClient, false, string.Empty, str, remotefile, -1, false, item.UTF8);
+									_ = await UploadString(phpUploadHttpClient, false, string.Empty, str, remotefile, cycle1k, false, item.UTF8);
 								}
 								else
 								{
-									LogDebugMessage($"PHP[Int]: Uploading Extra file: {uploadfile} to: {remotefile}");
+									LogDebugMessage($"{msgPrefix} Uploading Extra file: {uploadfile} to: {remotefile}");
 
-									_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, item.UTF8);
+									_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle1k, false, item.UTF8);
 								}
 							}
 						}
 						catch (Exception ex) when (ex is not TaskCanceledException)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {uploadfile} to: {remotefile}");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading file {uploadfile} to: {remotefile}");
 							FtpAlarm.LastMessage = $"Error uploading file {uploadfile} to: {remotefile} - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11088,7 +11117,7 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Extra file: {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -11106,7 +11135,7 @@ namespace CumulusMX
 
 
 				// standard files
-				LogDebugMessage("PHP[Int]: Standard files upload starting");
+				LogDebugMessage($"{msgPrefix} Standard files upload starting");
 
 				StdWebFiles
 				.Where(x => x.FTP)
@@ -11117,9 +11146,9 @@ namespace CumulusMX
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -11137,7 +11166,7 @@ namespace CumulusMX
 								return false;
 
 							string data;
-							LogDebugMessage("PHP[Int]: Uploading standard Data file: " + item.RemoteFileName);
+							LogDebugMessage("{msgPrefix} Uploading standard Data file: " + item.RemoteFileName);
 
 							if (item.LocalFileName == "wxnow.txt")
 							{
@@ -11148,7 +11177,7 @@ namespace CumulusMX
 								data = await ProcessTemplateFile2StringAsync(item.TemplateFileName, true, true);
 							}
 
-							if (await UploadString(phpUploadHttpClient, false, string.Empty, data, item.RemoteFileName, -1, false, true))
+							if (await UploadString(phpUploadHttpClient, false, string.Empty, data, item.RemoteFileName, cycle1k, false, true))
 							{
 								// No standard files are "one offs" at present
 								//StdWebFiles[i].FtpRequired = false
@@ -11156,7 +11185,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {item.RemoteFileName}");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading file {item.RemoteFileName}");
 							FtpAlarm.LastMessage = $"Error uploading file {item.RemoteFileName} - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11164,7 +11193,7 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -11176,7 +11205,7 @@ namespace CumulusMX
 				});
 
 				// Graph Data Files
-				LogDebugMessage("PHP[Int]: Graph files upload starting");
+				LogDebugMessage($"{msgPrefix} Graph files upload starting");
 
 				var oldest = DateTime.Now.AddHours(-GraphHours);
 				var oldestTs = oldest.ToUnixTimeMs().ToString();
@@ -11191,9 +11220,9 @@ namespace CumulusMX
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -11214,15 +11243,15 @@ namespace CumulusMX
 							// we want incremental data for PHP
 							var json = station.CreateGraphDataJson(item.LocalFileName, item.Incremental);
 							var remotefile = item.RemoteFileName;
-							LogDebugMessage($"PHP[Int]: Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full")}): {item.LocalFileName}");
+							LogDebugMessage($"{msgPrefix} Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full")}): {item.LocalFileName}");
 
 							if (string.IsNullOrEmpty(json))
 							{
-								LogMessage($"PHP[Int]: Uploading to {item.LocalFileName}. No {(item.Incremental ? "incremental" : "")} data found, skipping this upload");
+								LogMessage($"{msgPrefix} Uploading to {item.LocalFileName}. No {(item.Incremental ? "incremental" : "")} data found, skipping this upload");
 							}
 							else
 							{
-								if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, -1, false, true))
+								if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, cycle1k, false, true))
 								{
 									// The config files only need uploading once per change
 									// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
@@ -11240,7 +11269,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading graph data file [{item.RemoteFileName}]");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading graph data file [{item.RemoteFileName}]");
 							FtpAlarm.LastMessage = $"Error uploading graph data file [{item.RemoteFileName}] - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11248,7 +11277,7 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -11260,7 +11289,7 @@ namespace CumulusMX
 				});
 
 				// EOD Graph Data Files
-				LogDebugMessage("PHP[Int]: EOD Graph files upload starting");
+				LogDebugMessage($"{msgPrefix} EOD Graph files upload starting");
 
 				GraphDataEodFiles
 				.Where(x => x.FTP && x.FtpRequired)
@@ -11272,9 +11301,9 @@ namespace CumulusMX
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -11292,10 +11321,10 @@ namespace CumulusMX
 								return false;
 
 							var remotefile = item.RemoteFileName;
-							LogMessage("PHP[Int]: Uploading daily graph data file: " + item.LocalFileName);
+							LogMessage($"{msgPrefix} Uploading daily graph data file: " + item.LocalFileName);
 							var json = station.CreateEodGraphDataJson(item.LocalFileName);
 
-							if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
+							if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, cycle1k, false, true))
 							{
 								// Uploaded OK, reset the upload required flag
 								item.FtpRequired = false;
@@ -11303,7 +11332,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading daily graph data file [{item.RemoteFileName}]");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading daily graph data file [{item.RemoteFileName}]");
 							FtpAlarm.LastMessage = $"Error uploading daily graph data file [{item.RemoteFileName}] - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11311,7 +11340,7 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -11330,9 +11359,9 @@ namespace CumulusMX
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Moon image waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Moon image waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: Moon image has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Moon image has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
@@ -11346,9 +11375,9 @@ namespace CumulusMX
 					{
 						try
 						{
-							LogDebugMessage("PHP[Int]: Uploading Moon image file");
+							LogDebugMessage($"{msgPrefix} Uploading Moon image file");
 
-							if (await UploadFile(phpUploadHttpClient, Path.Combine("web", "moon.png"), MoonImage.FtpDest, -1, true))
+							if (await UploadFile(phpUploadHttpClient, Path.Combine("web", "moon.png"), MoonImage.FtpDest, cycle1k, true))
 							{
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImage.ReadyToFtp = false;
@@ -11356,7 +11385,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, "PHP[Int]: Error uploading moon image");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading moon image");
 							FtpAlarm.LastMessage = $"Error uploading moon image - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11364,7 +11393,7 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: Moon image released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Moon image released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -11382,7 +11411,7 @@ namespace CumulusMX
 					{
 						if (Program.ExitSystemToken.IsCancellationRequested)
 						{
-							LogDebugMessage($"PHP[Int]: Upload process aborted");
+							LogDebugMessage($"{msgPrefix} Upload process aborted");
 							return;
 						}
 						await Task.Delay(10);
@@ -11396,16 +11425,16 @@ namespace CumulusMX
 						// wait for all the tasks to complete, or timeout
 						if (Task.WaitAll([.. tasklist], TimeSpan.FromSeconds(30)))
 						{
-							LogDebugMessage($"PHP[Int]: Upload process complete, {tasklist.Count} files processed");
+							LogDebugMessage($"{msgPrefix} Upload process complete, {tasklist.Count} files processed");
 						}
 						else
 						{
-							LogErrorMessage("PHP[Int]: Upload process complete timed out waiting for tasks to complete");
+							LogErrorMessage($"{msgPrefix} Upload process complete timed out waiting for tasks to complete");
 						}
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, "PHP[Int]: Error waiting on upload tasks");
+						LogExceptionMessage(ex, $"{msgPrefix} Error waiting on upload tasks");
 						FtpAlarm.LastMessage = "Error waiting on upload tasks";
 						FtpAlarm.Triggered = true;
 					}
@@ -11413,20 +11442,21 @@ namespace CumulusMX
 
 				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
-					LogDebugMessage($"PHP[Int]: Upload process aborted");
+					LogDebugMessage($"{msgPrefix} Upload process aborted");
 					return;
 				}
 
-				LogDebugMessage($"PHP[Int]: Upload process complete");
+				LogDebugMessage($"{msgPrefix} Upload process complete");
 				tasklist.Clear();
 
 				return;
 			}
+			
 		}
 
 		// Return True if the connection still exists
 		// Return False if the connection is disposed, null, or not connected
-		private bool UploadFile(FtpClient conn, string localfile, string remotefile, int cycle = -1)
+		private bool UploadFile(FtpClient conn, string localfile, string remotefile, int cycle)
 		{
 			string cycleStr;
 			bool realtime;
@@ -11435,9 +11465,9 @@ namespace CumulusMX
 				cycleStr = "NOAA";
 				realtime = false;
 			}
-			else if (cycle == -1)
+			else if (cycle >= 1000)
 			{
-				cycleStr = "Int";
+				cycleStr = "Int-" + (cycle - 1000);
 				realtime = false;
 			}
 			else
@@ -11486,7 +11516,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cycleStr = cycle == -1 ? "Int" : (cycle.ToString());
+				cycleStr = cycle >= 1000 ? "Int-" + (cycle - 1000) : (cycle.ToString());
 			}
 
 			if (!File.Exists(localfile))
@@ -11538,16 +11568,20 @@ namespace CumulusMX
 			return true;
 		}
 
-		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle = -1, bool binary = false, bool utf8 = true)
+		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle, bool binary = false, bool utf8 = true)
 		{
 			string prefix;
-			if (cycle == -1)
+			if (cycle == 9999)
 			{
-				prefix = "PHP[Int]";
+				prefix = "PHP[NOAA]";
+			}
+			else if (cycle >= 1000)
+			{
+				prefix = $"PHP[Int-{cycle - 1000}]";
 			}
 			else
 			{
-				prefix = cycle == 9999 ? "PHP[NOAA]" : $"RealtimePHP[{cycle}]";
+				prefix = $"PHP[{cycle}]";
 			}
 
 			if (!File.Exists(localfile))
@@ -11603,7 +11637,7 @@ namespace CumulusMX
 			return false;
 		}
 
-		private bool UploadStream(FtpClient conn, string remotefile, Stream dataStream, int cycle = -1)
+		private bool UploadStream(FtpClient conn, string remotefile, Stream dataStream, int cycle)
 		{
 			string remotefiletmp = FTPRename ? remotefile + "tmp" : remotefile;
 			string cycleStr;
@@ -11613,9 +11647,9 @@ namespace CumulusMX
 				cycleStr = "NOAA";
 				realtime = false;
 			}
-			else if (cycle == -1)
+			else if (cycle >= 1000)
 			{
-				cycleStr = "Int";
+				cycleStr = "Int-" + (cycle - 1000);
 				realtime = false;
 			}
 			else
@@ -11715,11 +11749,11 @@ namespace CumulusMX
 
 		// Return True if the connection still exists
 		// Return False if the connection is disposed, null, or not connected
-		private bool UploadStream(SftpClient conn, string remotefile, Stream dataStream, int cycle = -1)
+		private bool UploadStream(SftpClient conn, string remotefile, Stream dataStream, int cycle)
 		{
 			string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
-			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
-			bool realtime = cycle >= 0;
+			string cycleStr = cycle >= 1000 ? "Int-" + (cycle - 1000) : cycle.ToString();
+			bool realtime = cycle < 1000;
 
 			if (dataStream.Length == 0)
 			{
@@ -12016,9 +12050,9 @@ namespace CumulusMX
 
 		// Return True if the upload worked
 		// Return False if the upload failed
-		private async Task<bool> UploadString(HttpClient httpclient, bool incremental, string oldest, string data, string remotefile, int cycle = -1, bool binary = false, bool utf8 = true, bool logfile = false, int linecount = 0)
+		private async Task<bool> UploadString(HttpClient httpclient, bool incremental, string oldest, string data, string remotefile, int cycle, bool binary = false, bool utf8 = true, bool logfile = false, int linecount = 0)
 		{
-			var prefix = cycle >= 0 ? $"RealtimePHP[{cycle}]" : "PHP[Int]";
+			var prefix = cycle >= 1000 ? $"PHP[Int-{cycle-1000}]" : $"PHP[{cycle}]";
 
 			if (string.IsNullOrEmpty(data))
 			{

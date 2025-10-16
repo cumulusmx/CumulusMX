@@ -413,7 +413,7 @@ namespace CumulusMX
 		{
 			cumulus = new Cumulus();
 
-			cumulus.Initialise(port, debug, "");
+			cumulus.Initialise(port, debug);
 
 			Console.WriteLine(DateTime.Now.ToString("G"));
 			Console.WriteLine("Type Ctrl-C to terminate\n");

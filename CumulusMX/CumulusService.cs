@@ -64,7 +64,7 @@ namespace CumulusMX
 			}
 
 			Program.cumulus = new Cumulus();
-			Program.cumulus.Initialise(httpport, debug, startParams.ToString());
+			Program.cumulus.Initialise(httpport, debug);
 		}
 
 		protected override void OnStop()

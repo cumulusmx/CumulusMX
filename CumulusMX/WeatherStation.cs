@@ -43,11 +43,11 @@ namespace CumulusMX
 		}
 
 		public int DataTimeoutMins = 1;
-		private readonly object monthIniThreadLock = new();
-		public readonly object yearIniThreadLock = new();
-		public readonly object alltimeIniThreadLock = new();
-		public readonly object monthlyalltimeIniThreadLock = new();
-		public readonly object recentwindLock = new();
+		private readonly Lock monthIniThreadLock = new();
+		public readonly Lock yearIniThreadLock = new();
+		public readonly Lock alltimeIniThreadLock = new();
+		public readonly Lock monthlyalltimeIniThreadLock = new();
+		public readonly Lock recentwindLock = new();
 
 		private static readonly SemaphoreSlim webSocketSemaphore = new(1, 1);
 
@@ -5234,8 +5234,6 @@ namespace CumulusMX
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
 
-			var ambiguousDates = new List<DateTime>();
-
 			var finished = false;
 
 			do
@@ -7269,7 +7267,7 @@ namespace CumulusMX
 				// Find recent max gust
 				var fromTime = timestamp - cumulus.PeakGustTime;
 				var maxgust = GetWindGustFromArray(fromTime);
-				// wind gust is stored uncaligrated, so we need to calibrate now
+				// wind gust is stored uncalibrated, so we need to calibrate now
 				RecentMaxGust = cumulus.Calib.WindGust.Calibrate(maxgust);
 			}
 			else
@@ -7277,7 +7275,7 @@ namespace CumulusMX
 				RecentMaxGust = calibratedgust;
 			}
 
-			cumulus.LogDebugMessage($"DoWind: New: gust={RecentMaxGust:F1}, speed={WindAverage:F1}, latest:{WindLatest:F1}");
+			cumulus.LogDebugMessage($"DoWind: New: gust={RecentMaxGust:F1}, speed={WindAverage:F1}, latest={WindLatest:F1}");
 
 			CheckHighAvgSpeed(timestamp);
 
@@ -7392,7 +7390,6 @@ namespace CumulusMX
 #if DEBUGWIND
 //						cumulus.LogDebugMessage($"Wind Time:{WindRecent[i].Timestamp.ToLongTimeString()} Gust:{WindRecent[i].Gust:F1} Speed:{WindRecent[i].Speed:F1}");
 #endif
-
 						numvalues++;
 						totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? WindRecent[i].Speed : WindRecent[i].Gust;
 					}
@@ -9632,7 +9629,6 @@ namespace CumulusMX
 			var numadded = 0;
 
 			var rowsToAdd = new List<RecentData>();
-			var ambiguousDates = new List<DateTime>();
 
 			cumulus.LogMessage($"LoadRecent: Attempting to load {cumulus.RecentDataDays} days of entries to recent data list");
 
@@ -13708,7 +13704,7 @@ namespace CumulusMX
 		{
 			var timeformat = cumulus.ProgramOptions.TimeFormat switch
 			{
-				"t" => CultureInfo.CurrentCulture.DateTimeFormat.ShortTimePattern.Contains("H") ? "%H:%M" : "%l:%M %p",
+				"t" => CultureInfo.CurrentCulture.DateTimeFormat.ShortTimePattern.Contains('H') ? "%H:%M" : "%l:%M %p",
 				"h:mm tt" => "%l:%M %p",
 				"HH:MM" => "%H:%M",
 				_ => "%H:%M"
