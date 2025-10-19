@@ -14,6 +14,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 First build using Visual Studio 2026, and transitioning to .NET 10
 
+Aplha build #2 changes:
+- New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
+- There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows forewall rules
+- Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1 minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
+- Fixes to Dashboard screens
+- More package updates
+
 ### New
 
 - The path for the MXdiags files can now be specified in the CumulusMX.runtimeconfig.json file
@@ -21,8 +28,8 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - Custom Rollover MySQL commands now have the option to control being run during catch-up or not
 - Adds LASER depth to the Dashboard Recent Charts, Recent Select-a-Chart, and Select-a-Period
 - Adds LASER depth to the default web site Trends and Select-a-graph charts
-
 - New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
+- There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows forewall rules
 
 ## Changed
 
@@ -53,11 +60,15 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - FluentFTP
 - HidSharp
 - MailKit
+- Microsoft.Win32.SystemEvents
 - NLog
 - NLog.Extensions.Logging
 - ServiceStack.Text [REMOVED]
 - SQLitePCLRaw.bundle_green [REMOVED]
 - SQLitePCLRaw.bundle_e_sqlite3 [NEW]
+- System.CodeDom
+- System.IO.Ports
+- System.ServiceProcess.ServiceController
 
 ---
 
@@ -775,7 +786,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - SSH.NET
 - Sixlabors.ImageSharp
 - NReco.Logging.File
-- ServceStack.Text
+- ServiceStack.Text
 - Lots of System/Microsoft packages updated from v8.0 to v9.0
 
 ---
