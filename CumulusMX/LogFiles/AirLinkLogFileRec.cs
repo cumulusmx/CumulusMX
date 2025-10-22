@@ -165,7 +165,7 @@ namespace CumulusMX.LogFiles
 			}
 			catch (Exception ex)
 			{
-				Program.cumulus.LogExceptionMessage(ex, $"LogFileParseCsvRec: Error");
+				Program.cumulus.LogExceptionMessage(ex, $"AirLinkFileParseCsvRec: Error");
 				throw;
 			}
 		}

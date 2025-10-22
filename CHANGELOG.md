@@ -14,6 +14,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 First build using Visual Studio 2026, and transitioning to .NET 10
 
+Alpha build #3 changes:
+- Add an exponential backoff to failed Email sends (up to 5.6 hours)
+- Airlink log files are now written in the new format
+
 Alpha build #2 changes:
 - New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
 - There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows firewall rules
@@ -30,6 +34,7 @@ Alpha build #2 changes:
 - Adds LASER depth to the default web site Trends and Select-a-graph charts
 - New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
 - There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows firewall rules
+- Add an exponential backoff to failed Email sends (up to 5.6 hours)
 
 ## Changed
 
