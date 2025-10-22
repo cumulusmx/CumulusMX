@@ -21,6 +21,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
+using CumulusMX.LogFiles;
 using CumulusMX.Settings;
 using CumulusMX.Stations;
 
@@ -8678,8 +8679,8 @@ namespace CumulusMX
 		public async Task DoAirLinkLogFile(DateTime timestamp)
 		{
 			// Writes an entry to the n-minute airlinklogfile. Fields are comma-separated:
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date/Time in the form dd/mm/yy hh:mm
+			// 1  Unix Timestamp
 			// 2  Indoor Temperature
 			// 3  Indoor Humidity
 			// 4  Indoor PM 1
@@ -8695,8 +8696,8 @@ namespace CumulusMX
 			// 14 Indoor PM 10 nowcast
 			// 15 Indoor Percent received 1-hour
 			// 16 Indoor Percent received 3-hour
-			// 17 Indoor Percent received nowcast
-			// 18 Indoor Percent received 24-hour
+			// 17 Indoor Percent received 24-hour
+			// 18 Indoor Percent received nowcast
 			// 19 Indoor AQI PM2.5
 			// 20 Indoor AQI PM2.5 1-hour
 			// 21 Indoor AQI PM2.5 3-hour
@@ -8722,8 +8723,8 @@ namespace CumulusMX
 			// 41 Outdoor PM 10 nowcast
 			// 42 Outdoor Percent received 1-hour
 			// 43 Outdoor Percent received 3-hour
-			// 44 Outdoor Percent received nowcast
-			// 45 Outdoor Percent received 24-hour
+			// 44 Outdoor Percent received 24-hour
+			// 45 Outdoor Percent received nowcast
 			// 46 Outdoor AQI PM2.5
 			// 47 Outdoor AQI PM2.5 1-hour
 			// 48 Outdoor AQI PM2.5 3-hour
@@ -8739,121 +8740,11 @@ namespace CumulusMX
 
 			LogDebugMessage($"DoAirLinkLogFile: Writing log entry for {timestamp}");
 			var inv = CultureInfo.InvariantCulture;
-			var sep = ",";
-
-			var sb = new StringBuilder(256);
-
-			sb.Append(timestamp.ToString("dd/MM/yy", inv));
-			sb.Append(sep + timestamp.ToString("HH:mm", inv));
-
-			if (AirLinkInEnabled && airLinkDataIn != null && airLinkDataIn.dataValid)
-			{
-				sb.Append(sep + airLinkDataIn.temperature.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.humidity.ToString());
-				sb.Append(sep + airLinkDataIn.pm1.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm2p5.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm2p5_1hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm2p5_3hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm2p5_24hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm2p5_nowcast.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm10.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm10_1hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm10_3hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm10_24hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm10_nowcast.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pct_1hr.ToString());
-				sb.Append(sep + airLinkDataIn.pct_3hr.ToString());
-				sb.Append(sep + airLinkDataIn.pct_24hr.ToString());
-				sb.Append(sep + airLinkDataIn.pct_nowcast.ToString());
-				if (AirQualityDPlaces > 0)
-				{
-					sb.Append(sep + airLinkDataIn.aqiPm2p5.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm2p5_1hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm2p5_3hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm2p5_24hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm2p5_nowcast.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm10.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm10_1hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm10_3hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm10_24hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm10_nowcast.ToString(AirQualityFormat, inv));
-				}
-				else // Zero decimals - truncate value rather than round
-				{
-					sb.Append(sep + (int) airLinkDataIn.aqiPm2p5);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm2p5_1hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm2p5_3hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm2p5_24hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm2p5_nowcast);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm10);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm10_1hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm10_3hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm10_24hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm10_nowcast);
-				}
-			}
-			else
-			{
-				// write zero values
-				sb.Append(new String(sep[0], 27));
-			}
-
-			if (AirLinkOutEnabled && airLinkDataOut != null && airLinkDataOut.dataValid)
-			{
-				sb.Append(sep + airLinkDataOut.temperature.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.humidity.ToString());
-				sb.Append(sep + airLinkDataOut.pm1.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm2p5.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm2p5_1hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm2p5_3hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm2p5_24hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm2p5_nowcast.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm10.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm10_1hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm10_3hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm10_24hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm10_nowcast.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pct_1hr.ToString());
-				sb.Append(sep + airLinkDataOut.pct_3hr.ToString());
-				sb.Append(sep + airLinkDataOut.pct_24hr.ToString());
-				sb.Append(sep + airLinkDataOut.pct_nowcast.ToString());
-				if (AirQualityDPlaces > 0)
-				{
-					sb.Append(sep + airLinkDataOut.aqiPm2p5.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm2p5_1hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm2p5_3hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm2p5_24hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm2p5_nowcast.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm10.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm10_1hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm10_3hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm10_24hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm10_nowcast.ToString(AirQualityFormat, inv));
-				}
-				else // Zero decimals - truncate value rather than round
-				{
-					sb.Append(sep + (int) airLinkDataOut.aqiPm2p5);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm2p5_1hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm2p5_3hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm2p5_24hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm2p5_nowcast);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm10);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm10_1hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm10_3hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm10_24hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm10_nowcast);
-				}
-			}
-			else
-			{
-				// write null values
-				sb.Append(new String(sep[0], 27));
-			}
-			sb.Append(Environment.NewLine);
+			var csv = AirLinkLogFileRec.CurrentToCsv(timestamp, this);
 
 			var success = false;
 			var retries = LogFileRetries;
-			var charArr = sb.ToString().ToCharArray();
+			var charArr = csv.ToCharArray();
 
 			do
 			{

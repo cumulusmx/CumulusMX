@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace CumulusMX
+namespace CumulusMX.LogFiles
 {
 	internal class ExtraLogFileRec
 	{

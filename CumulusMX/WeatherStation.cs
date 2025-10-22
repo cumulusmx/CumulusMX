@@ -17,6 +17,8 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Web;
 
+using CumulusMX.LogFiles;
+
 using EmbedIO.Utilities;
 
 using SQLite;

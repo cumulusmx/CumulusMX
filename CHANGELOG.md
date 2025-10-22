@@ -14,10 +14,10 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 First build using Visual Studio 2026, and transitioning to .NET 10
 
-Aplha build #2 changes:
+Alpha build #2 changes:
 - New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
-- There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows forewall rules
-- Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1 minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
+- There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows firewall rules
+- Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1-minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
 - Fixes to Dashboard screens
 - More package updates
 
@@ -29,7 +29,7 @@ Aplha build #2 changes:
 - Adds LASER depth to the Dashboard Recent Charts, Recent Select-a-Chart, and Select-a-Period
 - Adds LASER depth to the default web site Trends and Select-a-graph charts
 - New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
-- There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows forewall rules
+- There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows firewall rules
 
 ## Changed
 
@@ -52,7 +52,7 @@ Aplha build #2 changes:
 ## Fixed
 
 - Ecowitt HTTP API station using a fixed 5 minute interval for Degree Days during catch-up rather than the log file interval
-- Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1 minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
+- Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1-minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
 
 ### Package Updates
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace CumulusMX
+namespace CumulusMX.LogFiles
 {
 	internal class LogFileRec
 	{

@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
 
+using CumulusMX.LogFiles;
+
 using Swan;
 
 namespace CumulusMX
