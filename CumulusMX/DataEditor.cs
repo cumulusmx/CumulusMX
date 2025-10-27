@@ -769,7 +769,7 @@ namespace CumulusMX
 			var logFile = cumulus.GetLogFileName(filedate);
 			var started = false;
 			var finished = false;
-			var lastentrydate = datefrom.FromUnixTime();
+			var lastentrydate = datefrom.LocalFromUnixTime();
 			var lastentryrain = 0.0;
 			var lastentrycounter = 0.0;
 
@@ -828,7 +828,7 @@ namespace CumulusMX
 			var dryPeriod = new LocalRec(true);
 			var wetPeriod = new LocalRec(true);
 
-			var currentDay = datefrom.FromUnixTime();
+			var currentDay = datefrom.LocalFromUnixTime();
 			var dayHighTemp = new LocalRec(true);
 			var dayLowTemp = new LocalRec(false);
 			double dayWindRun = 0;
@@ -3395,7 +3395,7 @@ namespace CumulusMX
 			if (newData.action == "Edit")
 			{
 				// Get the log file date
-				var ts = long.Parse(newData.data[0][1]).FromUnixTime();
+				var ts = long.Parse(newData.data[0][1]).LocalFromUnixTime();
 
 				logfile = (newData.extra ? cumulus.GetExtraLogFileName(ts) : cumulus.GetLogFileName(ts));
 
@@ -3519,7 +3519,7 @@ namespace CumulusMX
 					// first get the correct log file - if we don't have it already
 					// date will format "dd-mm-yy" or "dd/mm/yy"
 					// Get a timestamp
-					var ts = long.Parse(newData.data[i][1]).FromUnixTime();
+					var ts = long.Parse(newData.data[i][1]).LocalFromUnixTime();
 
 					if (ts.Month != lastMonth)
 					{

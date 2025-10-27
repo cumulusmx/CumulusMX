@@ -468,8 +468,8 @@ namespace CumulusMX.Stations
 				maxArchiveRuns++;
 			}
 
-			Cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {endTime.FromUnixTime():s}");
-			cumulus.LogMessage($"GetHistoricData: Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {endTime.FromUnixTime():s}");
+			Cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {endTime.LocalFromUnixTime():s}");
+			cumulus.LogMessage($"GetHistoricData: Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {endTime.LocalFromUnixTime():s}");
 
 			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/");
 			historicUrl.Append(cumulus.WllStationId > 10 ? cumulus.WllStationId.ToString() : cumulus.WllStationUuid);
@@ -527,7 +527,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogWarningMessage("GetHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
 					Cumulus.LogConsoleMessage(" - No historic data available");
-					lastHistoricData = endTime.FromUnixTime();
+					lastHistoricData = endTime.LocalFromUnixTime();
 					maxArchiveRuns = -1;
 					return;
 				}
@@ -556,7 +556,7 @@ namespace CumulusMX.Stations
 					{
 						cumulus.LogMessage("GetHistoricData: No historic data available");
 						Cumulus.LogConsoleMessage(" - No historic data available");
-						lastHistoricData = endTime.FromUnixTime();
+						lastHistoricData = endTime.LocalFromUnixTime();
 						return;
 					}
 					else
@@ -568,7 +568,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogErrorMessage("GetHistoricData: Invalid historic message received");
 					cumulus.LogMessage("GetHistoricData: Received: " + responseBody);
-					lastHistoricData = endTime.FromUnixTime();
+					lastHistoricData = endTime.LocalFromUnixTime();
 					maxArchiveRuns = -1;
 					return;
 				}
@@ -584,7 +584,7 @@ namespace CumulusMX.Stations
 						cumulus.LogMessage($"GetHistoricData: Base exception - {ex.Message}");
 					}
 
-					lastHistoricData = endTime.FromUnixTime();
+					lastHistoricData = endTime.LocalFromUnixTime();
 				}
 				maxArchiveRuns = -1;
 				return;
@@ -823,7 +823,7 @@ namespace CumulusMX.Stations
 			if (!Program.service)
 				Console.WriteLine(""); // flush the progress line
 
-			lastHistoricData = endTime.FromUnixTime();
+			lastHistoricData = endTime.LocalFromUnixTime();
 		}
 
 
@@ -1958,7 +1958,7 @@ namespace CumulusMX.Stations
 														try
 														{
 															StormRain = ConvertRainClicksToUser(rec.rain_storm_clicks.Value, rec.rain_size.Value) * cumulus.Calib.Rain.Mult;
-															StartOfStorm = rec.rain_storm_start_at.Value.FromUnixTime();
+															StartOfStorm = rec.rain_storm_start_at.Value.LocalFromUnixTime();
 														}
 														catch (Exception ex)
 														{
@@ -2634,7 +2634,7 @@ namespace CumulusMX.Stations
 									// do high humidity
 									if (data.hum_hi_at.HasValue && data.hum_hi.HasValue)
 									{
-										ts = data.hum_hi_at.FromUnixTime();
+										ts = data.hum_hi_at.LocalFromUnixTime();
 										DoOutdoorHumidity(Convert.ToInt32(data.hum_hi), ts);
 									}
 									else
@@ -2645,7 +2645,7 @@ namespace CumulusMX.Stations
 									// do low humidity
 									if (data.hum_lo_at != 0 && data.hum_lo != null)
 									{
-										ts = data.hum_lo_at.FromUnixTime();
+										ts = data.hum_lo_at.LocalFromUnixTime();
 										DoOutdoorHumidity(Convert.ToInt32(data.hum_lo), ts);
 									}
 									else
@@ -2682,7 +2682,7 @@ namespace CumulusMX.Stations
 										// do high temp
 										if (data.temp_hi_at != 0 && data.temp_hi != null)
 										{
-											ts = data.temp_hi_at.FromUnixTime();
+											ts = data.temp_hi_at.LocalFromUnixTime();
 											DoOutdoorTemp(ConvertUnits.TempFToUser((double) data.temp_hi), ts);
 										}
 										else
@@ -2693,7 +2693,7 @@ namespace CumulusMX.Stations
 										// do low temp
 										if (data.temp_lo_at != 0 && data.temp_lo != null)
 										{
-											ts = data.temp_lo_at.FromUnixTime();
+											ts = data.temp_lo_at.LocalFromUnixTime();
 											DoOutdoorTemp(ConvertUnits.TempFToUser((double) data.temp_lo), ts);
 										}
 										else
@@ -2743,7 +2743,7 @@ namespace CumulusMX.Stations
 									// do high DP
 									if (data.dew_point_hi_at != 0 && data.dew_point_hi != null)
 									{
-										ts = data.dew_point_hi_at.FromUnixTime();
+										ts = data.dew_point_hi_at.LocalFromUnixTime();
 										DoOutdoorDewpoint(ConvertUnits.TempFToUser((double) data.dew_point_hi), ts);
 									}
 									else
@@ -2754,7 +2754,7 @@ namespace CumulusMX.Stations
 									// do low DP
 									if (data.dew_point_lo_at != 0 && data.dew_point_lo != null)
 									{
-										ts = data.dew_point_lo_at.FromUnixTime();
+										ts = data.dew_point_lo_at.LocalFromUnixTime();
 										DoOutdoorDewpoint(ConvertUnits.TempFToUser((double) data.dew_point_lo), ts);
 									}
 									else
@@ -2785,7 +2785,7 @@ namespace CumulusMX.Stations
 										// do low WC
 										if (data.wind_chill_lo_at != 0 && data.wind_chill_lo != null)
 										{
-											ts = data.wind_chill_lo_at.FromUnixTime();
+											ts = data.wind_chill_lo_at.LocalFromUnixTime();
 											DoWindChill(ConvertUnits.TempFToUser((double) data.wind_chill_lo), ts);
 										}
 										else
@@ -3237,7 +3237,7 @@ namespace CumulusMX.Stations
 										// check the high
 										if (data13baro.bar_hi_at != 0 && data13baro.bar_hi != null)
 										{
-											ts = data13baro.bar_hi_at.FromUnixTime();
+											ts = data13baro.bar_hi_at.LocalFromUnixTime();
 											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_hi), ts);
 										}
 										else
@@ -3247,7 +3247,7 @@ namespace CumulusMX.Stations
 										// check the low
 										if (data13baro.bar_lo_at != 0 && data13baro.bar_lo != null)
 										{
-											ts = data13baro.bar_lo_at.FromUnixTime();
+											ts = data13baro.bar_lo_at.LocalFromUnixTime();
 											DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_lo), ts);
 										}
 										else
@@ -3412,7 +3412,7 @@ namespace CumulusMX.Stations
 
 			try
 			{
-				var dat = data.firmware_version.FromUnixTime();
+				var dat = data.firmware_version.LocalFromUnixTime();
 				DavisFirmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
 
 				var battV = data.battery_voltage.Value / 1000.0;

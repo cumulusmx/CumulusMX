@@ -1081,7 +1081,7 @@ namespace CumulusMX.Stations
 			var startTime = unixDateTime - WeatherLinkArchiveInterval;
 			var endTime = unixDateTime;
 
-			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {startTime.FromUnixTime():s} to: {endTime.FromUnixTime():s}");
+			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {startTime.LocalFromUnixTime():s} to: {endTime.LocalFromUnixTime():s}");
 
 			var historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + stationId);
 			historicUrl.Append("?api-key=" + apiKey);
@@ -1215,7 +1215,7 @@ namespace CumulusMX.Stations
 					try
 					{
 						// Davis are changing the API, from air_quality_firmware_version to firmware_version
-						var dat = (data.air_quality_firmware_version ?? data.firmware_version.Value).FromUnixTime();
+						var dat = (data.air_quality_firmware_version ?? data.firmware_version.Value).LocalFromUnixTime();
 						if (indoor)
 							cumulus.airLinkDataIn.firmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
 						else

@@ -13,7 +13,7 @@ namespace CumulusMX.LogFiles
 		{
 			get
 			{
-				return UnixTimestamp.FromUnixTime();
+				return UnixTimestamp.LocalFromUnixTime();
 			}
 			set
 			{

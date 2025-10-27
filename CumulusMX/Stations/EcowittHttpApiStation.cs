@@ -525,7 +525,7 @@ namespace CumulusMX.Stations
 			baseFiles.Sort();
 			extraFiles.Sort();
 
-			var buffer = new SortedList<DateTime, HistoricData>();
+			var buffer = new SortedList<long, HistoricData>();
 
 			// process the base files first
 
@@ -608,7 +608,7 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						cumulus.LogMessage($"GetHistoricDataSdCard: Warning - Extra sensor record {rec.Key} not added because no matching primary record found");
+						cumulus.LogMessage($"GetHistoricDataSdCard: Warning - Extra sensor record {rec.Key} - {rec.Key.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm")} not added because no matching primary record found");
 					}
 				}
 			}
@@ -627,7 +627,7 @@ namespace CumulusMX.Stations
 			Cumulus.LogConsoleMessage("Adding historic data into Cumulus...");
 
 			var recNo = 1;
-			var lastRecTime = DateTime.MinValue;
+			var lastRecTime = 0L;
 			var interval = localApi.SdCardInterval;
 
 			foreach (var rec in buffer)
@@ -639,16 +639,16 @@ namespace CumulusMX.Stations
 
 				//cumulus.LogMessage("Processing data for " + rec.Key);
 
-				if (rec.Key > DateTime.Now)
+				if (rec.Key > DateTime.Now.ToUnixTime())
 				{
 					// do no process reocrds from the future!
-					cumulus.LogDebugMessage("GetHistoricDataSdCard: Warning - Skipping record with a future date: " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+					cumulus.LogDebugMessage("GetHistoricDataSdCard: Warning - Skipping record with a future date: " + rec.Key.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
 					continue;
 				}
 
-				if (lastRecTime != DateTime.MinValue)
+				if (lastRecTime != 0)
 				{
-					interval = (int) rec.Key.Subtract(lastRecTime).TotalMinutes;
+					interval = (int) (rec.Key - lastRecTime) / 60;
 					lastRecTime = rec.Key;
 				}
 				else
@@ -656,10 +656,10 @@ namespace CumulusMX.Stations
 					lastRecTime = rec.Key;
 				}
 
-				var h = rec.Key.Hour;
-				DataDateTime = rec.Key;
+				DataDateTime = rec.Key.LocalFromUnixTime();
+				var h = DataDateTime.Hour;
 
-				rollHour = Math.Abs(cumulus.GetHourInc(rec.Key));
+				rollHour = Math.Abs(cumulus.GetHourInc(DataDateTime));
 
 				// 9am rollover items
 				if (h != 9)
@@ -668,7 +668,7 @@ namespace CumulusMX.Stations
 				}
 				else if (!rollover9amdone)
 				{
-					Reset9amTemperatures(rec.Key);
+					Reset9amTemperatures(DataDateTime);
 					rollover9amdone = true;
 				}
 
@@ -682,7 +682,7 @@ namespace CumulusMX.Stations
 					// snowhour items
 					if (cumulus.SnowAutomated > 0)
 					{
-						CreateNewSnowRecord(rec.Key);
+						CreateNewSnowRecord(DataDateTime);
 					}
 
 					// reset the accumulated snow depth(s)
@@ -701,7 +701,7 @@ namespace CumulusMX.Stations
 				if (cumulus.StationOptions.CalculateSLP)
 				{
 					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-					DoPressure(ConvertUnits.PressMBToUser(slp), rec.Key);
+					DoPressure(ConvertUnits.PressMBToUser(slp), DataDateTime);
 				}
 
 				// add in archive period worth of sunshine, if sunny
@@ -728,13 +728,13 @@ namespace CumulusMX.Stations
 
 				// update dominant wind bearing
 				CalculateDominantWindBearing(Bearing, WindAverage, interval);
-				CheckForWindrunHighLow(rec.Key);
-				DoTrendValues(rec.Key);
+				CheckForWindrunHighLow(DataDateTime);
+				DoTrendValues(DataDateTime);
 
-				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
+				if (cumulus.StationOptions.CalculatedET && DataDateTime.Minute == 0)
 				{
 					// Start of a new hour, and we want to calculate ET in Cumulus
-					CalculateEvapotranspiration(rec.Key);
+					CalculateEvapotranspiration(DataDateTime);
 				}
 
 				// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
@@ -756,7 +756,7 @@ namespace CumulusMX.Stations
 					cumulus.LogMessage("Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
 					Cumulus.LogConsoleMessage("\n  Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
 
-					DayReset(rec.Key);
+					DayReset(DataDateTime);
 
 					rolloverdone = true;
 				}
@@ -769,38 +769,38 @@ namespace CumulusMX.Stations
 				else if (!midnightraindone)
 				{
 					// In midnight hour and midnight rain (and sun) not yet done
-					ResetMidnightRain(rec.Key);
-					ResetSunshineHours(rec.Key);
-					ResetMidnightTemperatures(rec.Key);
+					ResetMidnightRain(DataDateTime);
+					ResetSunshineHours(DataDateTime);
+					ResetMidnightTemperatures(DataDateTime);
 					midnightraindone = true;
 				}
 
-				if (rec.Key.Hour != cumulus.RolloverHour || rec.Key.Minute != 0)
+				if (DataDateTime.Hour != cumulus.RolloverHour || DataDateTime.Minute != 0)
 				{
 					// Only log data if not in the roll-over hour and not on the hour
-					_ = cumulus.DoLogFile(rec.Key, false);
+					_ = cumulus.DoLogFile(DataDateTime, false);
 				}
-				cumulus.DoCustomIntervalLogs(rec.Key);
+				cumulus.DoCustomIntervalLogs(DataDateTime);
 
-				cumulus.MySqlRealtimeFile(999, false, rec.Key);
+				cumulus.MySqlRealtimeFile(999, false, DataDateTime);
 
 				if (cumulus.StationOptions.LogExtraSensors)
 				{
-					_ = cumulus.DoExtraLogFile(rec.Key);
+					_ = cumulus.DoExtraLogFile(DataDateTime);
 				}
 
 				// Custom MySQL update - minutes interval
 				if (cumulus.MySqlFuncs.MySqlSettings.CustomMins.Enabled)
 				{
-					_ = cumulus.CustomMysqlMinutesUpdate(rec.Key, false);
+					_ = cumulus.CustomMysqlMinutesUpdate(DataDateTime, false);
 				}
 
-				AddRecentDataWithAq(rec.Key, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+				AddRecentDataWithAq(DataDateTime, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
 					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
 
-				UpdateStatusPanel(rec.Key.ToUniversalTime());
-				cumulus.AddToWebServiceLists(rec.Key);
-				LastDataReadTime = rec.Key;
+				UpdateStatusPanel(rec.Key.UtcFromUnixTime());
+				cumulus.AddToWebServiceLists(DataDateTime);
+				LastDataReadTime = DataDateTime;
 
 				if (!Program.service)
 				{

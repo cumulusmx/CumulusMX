@@ -1229,8 +1229,8 @@ namespace SQLite
 			[Column("name")]
 			public string Name { get; set; }
 
-			//			[Column ("type")]
-			//			public string ColumnType { get; set; }
+			[Column ("type")]
+			public string ColumnType { get; set; }
 
 			public int notnull { get; set; }
 

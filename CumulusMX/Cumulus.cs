@@ -918,10 +918,12 @@ namespace CumulusMX
 			if (ProgramOptions.ProcessLogFilesLevel == 0)
 			{
 				LogConsoleMessage("Converting log files to new format...");
+				LogMessage("Converting log files to new format...");
 				LogFileConverter.AddUnixTimestamp.ProcessLogFiles(ProgramOptions.DataPath, RecordsBeganDateTime);
 				ProgramOptions.ProcessLogFilesLevel = 1;
 				WriteIniFile();
 				LogConsoleMessage("Log file conversion complete");
+				LogMessage("Log file conversion complete");
 			}
 
 			for (var i = 2; i < GraphDataFiles.Length; i++)

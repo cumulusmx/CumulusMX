@@ -194,9 +194,7 @@ namespace CumulusMX.Stations
 			};
 
 			sb.Append("&call_back=");
-			foreach (var cb in callbacks)
-				sb.Append(cb + ",");
-			sb.Length--;
+			sb.Append(string.Join(',', callbacks));
 
 			//TODO: match time to logging interval
 			// available times 5min, 30min, 4hour, 1day
@@ -255,7 +253,25 @@ namespace CumulusMX.Stations
 						// get the sensor data
 						// messy, messy, messy!
 						// If there is historic data, they return .data as an object containing all the sensors, but if there is no historic data then .data is an empty array! - data: []
-						var histObj = JsonSerializer.Deserialize<HistoricResp>(json, jsonOptions);
+
+						HistoricResp histObj = null;
+						try
+						{
+							histObj = JsonSerializer.Deserialize<HistoricResp>(json, jsonOptions);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogErrorMessage("API.GetHistoricData: Error deserializing the JSON - " + ex.Message);
+							if (--retries <= 0)
+							{
+								cumulus.LastUpdateTime = endTime;
+								return false;
+							}
+
+							Task.Delay(1000, token).Wait(token);
+
+							continue;
+						}
 
 						if (histObj != null)
 						{
@@ -350,7 +366,9 @@ namespace CumulusMX.Stations
 		private void ProcessHistoryData(EcowittHistoricData data, CancellationToken token)
 		{
 			// allocate a dictionary of data objects, keyed on the timestamp
-			var buffer = new SortedDictionary<DateTime, HistoricData>();
+			var buffer = new SortedDictionary<long, HistoricData>();
+
+			var lastUpdateTS = cumulus.LastUpdateTime.ToUnixTime();
 
 			// process each sensor type, and store them for adding to the system later
 			// Indoor Data
@@ -363,10 +381,10 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.indoor.temperature.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
 							// not present value = 140
-							if (!item.Value.HasValue || item.Value == 140 || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || item.Value == 140 || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -386,9 +404,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.indoor.humidity.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -419,10 +437,10 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.outdoor.temperature.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
 							// not present value = 140
-							if (!item.Value.HasValue || item.Value == 140 || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || item.Value == 140 || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -443,9 +461,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.outdoor.humidity.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -466,9 +484,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.outdoor.dew_point.list)
 						{
-							var itemDate =(item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate =item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -489,9 +507,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.outdoor.feels_like.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -512,9 +530,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.outdoor.app_temp.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -546,9 +564,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.wind.wind_speed.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -569,9 +587,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.wind.wind_gust.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -592,9 +610,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.wind.wind_direction.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -625,9 +643,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.pressure.relative.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -652,9 +670,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.pressure.absolute.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -690,9 +708,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.rainfall.rain_rate.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate < lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -713,9 +731,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.rainfall.yearly.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate < lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -746,9 +764,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.rainfall_piezo.rain_rate.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate < lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -769,9 +787,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.rainfall_piezo.yearly.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate < lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -802,9 +820,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.solar_and_uvi.solar.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -825,9 +843,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.solar_and_uvi.uvi.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -917,9 +935,9 @@ namespace CumulusMX.Stations
 						{
 							foreach (var item in srcTH.temperature.list)
 							{
-								var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+								var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-								if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 									continue;
 
 								if (buffer.TryGetValue(itemDate, out var value))
@@ -940,9 +958,9 @@ namespace CumulusMX.Stations
 						{
 							foreach (var item in srcTH.humidity.list)
 							{
-								var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+								var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-								if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+								if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 									continue;
 
 								if (buffer.TryGetValue(itemDate, out var value))
@@ -972,9 +990,9 @@ namespace CumulusMX.Stations
 						// moisture
 						foreach (var item in srcSoil.soilmoisture.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1002,9 +1020,9 @@ namespace CumulusMX.Stations
 						// temperature
 						foreach (var item in srcTemp.temperature.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1032,9 +1050,9 @@ namespace CumulusMX.Stations
 						// wetness
 						foreach (var item in srcLeaf.leaf_wetness.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1065,9 +1083,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.indoor_co2.co2.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1088,9 +1106,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.indoor_co2.average24h.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1121,9 +1139,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.co2_aqi_combo.co2.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1144,9 +1162,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.co2_aqi_combo.average24h.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1176,9 +1194,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.pm25_aqi_combo.pm25.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1208,9 +1226,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.pm10_aqi_combo.pm10.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1240,9 +1258,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.t_rh_aqi_combo.temperature.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1262,9 +1280,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in data.t_rh_aqi_combo.humidity.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1313,9 +1331,9 @@ namespace CumulusMX.Stations
 					{
 						foreach (var item in sensor.pm25.list)
 						{
-							var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-							if (!item.Value.HasValue || itemDate <= cumulus.LastUpdateTime)
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 								continue;
 
 							if (buffer.TryGetValue(itemDate, out var value))
@@ -1345,9 +1363,9 @@ namespace CumulusMX.Stations
 				{
 					foreach (var item in data.ch_lds1.air_ch1.list)
 					{
-						var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+						var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
 						decimal? dist = data.ch_lds1.air_ch1.unit switch
@@ -1375,9 +1393,9 @@ namespace CumulusMX.Stations
 				{
 					foreach (var item in data.ch_lds2.air_ch2.list)
 					{
-						var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+						var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+						if (!item.Value.HasValue || itemDate < lastUpdateTS)
 							continue;
 
 						decimal? dist = data.ch_lds2.air_ch2.unit switch
@@ -1405,9 +1423,9 @@ namespace CumulusMX.Stations
 				{
 					foreach (var item in data.ch_lds3.air_ch3.list)
 					{
-						var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+						var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
 						decimal? dist = data.ch_lds3.air_ch3.unit switch
@@ -1435,9 +1453,9 @@ namespace CumulusMX.Stations
 				{
 					foreach (var item in data.ch_lds4.air_ch4.list)
 					{
-						var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+						var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
 						decimal? dist = data.ch_lds4.air_ch4.unit switch
@@ -1466,9 +1484,9 @@ namespace CumulusMX.Stations
 				{
 					foreach (var item in data.ch_lds1.depth_ch1.list)
 					{
-						var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+						var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
 						decimal? dist = data.ch_lds1.depth_ch1.unit switch
@@ -1496,9 +1514,9 @@ namespace CumulusMX.Stations
 				{
 					foreach (var item in data.ch_lds2.depth_ch2.list)
 					{
-						var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+						var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
 						decimal? dist = data.ch_lds2.depth_ch2.unit switch
@@ -1526,9 +1544,9 @@ namespace CumulusMX.Stations
 				{
 					foreach (var item in data.ch_lds3.depth_ch3.list)
 					{
-						var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+						var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
 						decimal? dist = data.ch_lds3.depth_ch3.unit switch
@@ -1556,9 +1574,9 @@ namespace CumulusMX.Stations
 				{
 					foreach (var item in data.ch_lds4.depth_ch4.list)
 					{
-						var itemDate = (item.Key + EcowittApiFudgeFactorSecs).FromUnixTime();
+						var itemDate = item.Key + EcowittApiFudgeFactorSecs;
 
-						if (!item.Value.HasValue || itemDate < cumulus.LastUpdateTime)
+						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
 						decimal? dist = data.ch_lds4.depth_ch4.unit switch
@@ -1597,7 +1615,7 @@ namespace CumulusMX.Stations
 			var midnightraindone = luhour == 0;
 			var rollover9amdone = luhour == 9;
 			var snowhourdone = luhour == cumulus.SnowDepthHour;
-			var lastRecDate = DateTime.MinValue;
+			var lastRecDate = 0L;
 
 			foreach (var rec in buffer)
 			{
@@ -1606,24 +1624,26 @@ namespace CumulusMX.Stations
 					return;
 				}
 
-				cumulus.LogMessage("Processing data for " + rec.Key);
+				var recDateTime = rec.Key.LocalFromUnixTime();
 
-				if (lastRecDate == DateTime.MinValue)
+				cumulus.LogMessage("Processing data for " + recDateTime.ToString("yyyy-MM-dd HH:mm"));
+
+				if (lastRecDate == 0)
 				{
 					rec.Value.Interval = 5;
 					lastRecDate = rec.Key;
 				}
 				else
 				{
-					rec.Value.Interval = (rec.Key - lastRecDate).Minutes;
+					rec.Value.Interval = (int)(rec.Key - lastRecDate) / 60;
 					lastRecDate = rec.Key;
 				}
 
-				var h = rec.Key.Hour;
+				var h = recDateTime.Hour;
 
-				rollHour = Math.Abs(cumulus.GetHourInc(rec.Key));
+				rollHour = Math.Abs(cumulus.GetHourInc(recDateTime));
 
-				station.DataDateTime = rec.Key;
+				station.DataDateTime = recDateTime;
 
 				// 9am rollover items
 				if (h != 9)
@@ -1632,7 +1652,7 @@ namespace CumulusMX.Stations
 				}
 				else if (!rollover9amdone)
 				{
-					station.Reset9amTemperatures(rec.Key);
+					station.Reset9amTemperatures(recDateTime);
 					rollover9amdone = true;
 				}
 
@@ -1646,7 +1666,7 @@ namespace CumulusMX.Stations
 					// snowhour items
 					if (cumulus.SnowAutomated > 0)
 					{
-						station.CreateNewSnowRecord(rec.Key);
+						station.CreateNewSnowRecord(recDateTime);
 					}
 
 					// reset the accumulated snow depth(s)
@@ -1666,7 +1686,7 @@ namespace CumulusMX.Stations
 				{
 					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(station.StationPressure), ConvertUnits.UserTempToC(station.OutdoorTemperature), cumulus.Latitude);
 
-					station.DoPressure(ConvertUnits.PressMBToUser(slp), rec.Key);
+					station.DoPressure(ConvertUnits.PressMBToUser(slp), recDateTime);
 				}
 
 				// add in archive period worth of sunshine, if sunny
@@ -1694,12 +1714,12 @@ namespace CumulusMX.Stations
 
 				// update dominant wind bearing
 				station.CalculateDominantWindBearing(station.Bearing, station.WindAverage, rec.Value.Interval);
-				station.DoTrendValues(rec.Key);
+				station.DoTrendValues(recDateTime);
 
-				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
+				if (cumulus.StationOptions.CalculatedET && recDateTime.Minute == 0)
 				{
 					// Start of a new hour, and we want to calculate ET in Cumulus
-					station.CalculateEvapotranspiration(rec.Key);
+					station.CalculateEvapotranspiration(recDateTime);
 				}
 
 				// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
@@ -1718,8 +1738,8 @@ namespace CumulusMX.Stations
 				{
 					// In rollover hour and rollover not yet done
 					// do rollover
-					cumulus.LogMessage("Day rollover " + rec.Key.ToShortTimeString());
-					station.DayReset(rec.Key);
+					cumulus.LogMessage("Day rollover " + recDateTime.ToShortTimeString());
+					station.DayReset(recDateTime);
 
 					rolloverdone = true;
 				}
@@ -1732,46 +1752,48 @@ namespace CumulusMX.Stations
 				else if (!midnightraindone)
 				{
 					// In midnight hour and midnight rain (and sun) not yet done
-					station.ResetMidnightRain(rec.Key);
-					station.ResetSunshineHours(rec.Key);
-					station.ResetMidnightTemperatures(rec.Key);
+					station.ResetMidnightRain(recDateTime);
+					station.ResetSunshineHours(recDateTime);
+					station.ResetMidnightTemperatures(recDateTime);
 					midnightraindone = true;
 				}
 
-				station.CheckForWindrunHighLow(rec.Key);
+				station.CheckForWindrunHighLow(recDateTime);
 
 
-				if (rec.Key.Hour != cumulus.RolloverHour || rec.Key.Minute != 0)
+				if (recDateTime.Hour != cumulus.RolloverHour || recDateTime.Minute != 0)
 				{
 					// Only log data if not in the roll-over hour and not on the hour
-					_ = cumulus.DoLogFile(rec.Key, false);
+					_ = cumulus.DoLogFile(recDateTime, false);
 				}
-				cumulus.DoCustomIntervalLogs(rec.Key);
+				cumulus.DoCustomIntervalLogs(recDateTime);
 
-				cumulus.MySqlRealtimeFile(999, false, rec.Key);
+				cumulus.MySqlRealtimeFile(999, false, recDateTime);
 
 				if (cumulus.StationOptions.LogExtraSensors)
 				{
-					_ = cumulus.DoExtraLogFile(rec.Key);
+					_ = cumulus.DoExtraLogFile(recDateTime);
 				}
 
 				// Custom MySQL update - minutes interval
 				if (cumulus.MySqlFuncs.MySqlSettings.CustomMins.Enabled)
 				{
-					_ = cumulus.CustomMysqlMinutesUpdate(rec.Key, false);
+					_ = cumulus.CustomMysqlMinutesUpdate(recDateTime, false);
 				}
 
-				station.AddRecentDataWithAq(rec.Key, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, station.OutdoorTemperature, station.WindChill, station.OutdoorDewpoint, station.HeatIndex,
+				station.AddRecentDataWithAq(recDateTime, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, station.OutdoorTemperature, station.WindChill, station.OutdoorDewpoint, station.HeatIndex,
 					station.OutdoorHumidity, station.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, station.IndoorTemperature, station.IndoorHumidity, station.CurrentSolarMax, station.RainRate);
 
-				station.UpdateStatusPanel(rec.Key.ToUniversalTime());
-				cumulus.AddToWebServiceLists(rec.Key);
-				station.LastDataReadTime = rec.Key;
+				station.UpdateStatusPanel(recDateTime.ToUniversalTime());
+				cumulus.AddToWebServiceLists(recDateTime);
+				station.LastDataReadTime = recDateTime;
 			}
 		}
 
-		public void ApplyHistoricData(KeyValuePair<DateTime, HistoricData> rec)
+		public void ApplyHistoricData(KeyValuePair<long, HistoricData> rec)
 		{
+			var recDateTime = rec.Key.LocalFromUnixTime();
+
 			// === Wind ==
 			// WindGust = max for period
 			// WindSpd = avg for period
@@ -1784,7 +1806,7 @@ namespace CumulusMX.Stations
 					var spdVal = (double) rec.Value.WindSpd;
 					var dirVal = rec.Value.WindDir.Value;
 
-					station.DoWind(gustVal, dirVal, spdVal, rec.Key);
+					station.DoWind(gustVal, dirVal, spdVal, recDateTime);
 				}
 				else
 				{
@@ -1805,7 +1827,7 @@ namespace CumulusMX.Stations
 					// user has mapped indoor humidity to outdoor
 					if (PrimaryTHSensor == 99)
 					{
-						station.DoOutdoorHumidity(rec.Value.IndoorHum.Value, rec.Key);
+						station.DoOutdoorHumidity(rec.Value.IndoorHum.Value, recDateTime);
 					}
 
 					if (PrimaryIndoorTHSensor == 0)
@@ -1822,7 +1844,7 @@ namespace CumulusMX.Stations
 				{
 					if (rec.Value.Humidity.HasValue)
 					{
-						station.DoOutdoorHumidity(rec.Value.Humidity.Value, rec.Key);
+						station.DoOutdoorHumidity(rec.Value.Humidity.Value, recDateTime);
 					}
 					else
 					{
@@ -1845,7 +1867,7 @@ namespace CumulusMX.Stations
 					if (!cumulus.StationOptions.CalculateSLP)
 					{
 						var pressVal = (double) rec.Value.Pressure;
-						station.DoPressure(pressVal, rec.Key);
+						station.DoPressure(pressVal, recDateTime);
 					}
 				}
 				else
@@ -1878,7 +1900,7 @@ namespace CumulusMX.Stations
 					// user has mapped indoor temperature to outdoor
 					if (PrimaryTHSensor == 99)
 					{
-						station.DoOutdoorTemp(tempVal, rec.Key);
+						station.DoOutdoorTemp(tempVal, recDateTime);
 					}
 
 					if (PrimaryIndoorTHSensor == 0)
@@ -1905,7 +1927,7 @@ namespace CumulusMX.Stations
 					if (rec.Value.Temp.HasValue)
 					{
 						var tempVal = (double) rec.Value.Temp;
-						station.DoOutdoorTemp(tempVal, rec.Key);
+						station.DoOutdoorTemp(tempVal, recDateTime);
 					}
 					else
 					{
@@ -1938,7 +1960,7 @@ namespace CumulusMX.Stations
 				{
 					var rainVal = (double) rec.Value.RainYear;
 					var rateVal = rRate;
-					station.DoRain(rainVal, rateVal, rec.Key);
+					station.DoRain(rainVal, rateVal, recDateTime);
 				}
 				else
 				{
@@ -1956,7 +1978,7 @@ namespace CumulusMX.Stations
 			{
 				if (rec.Value.Solar.HasValue)
 				{
-					station.DoSolarRad((int)rec.Value.Solar.Value, rec.Key);
+					station.DoSolarRad((int)rec.Value.Solar.Value, recDateTime);
 				}
 			}
 			catch (Exception ex)
@@ -1970,7 +1992,7 @@ namespace CumulusMX.Stations
 			{
 				if (rec.Value.UVI.HasValue)
 				{
-					station.DoUV((double) rec.Value.UVI, rec.Key);
+					station.DoUV((double) rec.Value.UVI, recDateTime);
 				}
 			}
 			catch (Exception ex)
@@ -1991,7 +2013,7 @@ namespace CumulusMX.Stations
 
 						if (i == PrimaryTHSensor)
 						{
-							station.DoOutdoorTemp(tempVal, rec.Key);
+							station.DoOutdoorTemp(tempVal, recDateTime);
 						}
 
 						if (i == PrimaryIndoorTHSensor)
@@ -2021,7 +2043,7 @@ namespace CumulusMX.Stations
 
 						if (i == PrimaryTHSensor)
 						{
-							station.DoOutdoorHumidity(rec.Value.ExtraHumidity[i].Value, rec.Key);
+							station.DoOutdoorHumidity(rec.Value.ExtraHumidity[i].Value, recDateTime);
 						}
 
 						if (i == PrimaryIndoorTHSensor)
@@ -2258,11 +2280,11 @@ namespace CumulusMX.Stations
 				if (rec.Value.DewPoint.HasValue)
 				{
 					var val = (double) rec.Value.DewPoint;
-					station.DoOutdoorDewpoint(val, rec.Key);
+					station.DoOutdoorDewpoint(val, recDateTime);
 				}
 				else if (rec.Value.Temp.HasValue && rec.Value.Humidity.HasValue)
 				{
-					station.DoOutdoorDewpoint(-999, rec.Key);
+					station.DoOutdoorDewpoint(-999, recDateTime);
 				}
 			}
 			catch (Exception ex)
@@ -2276,7 +2298,7 @@ namespace CumulusMX.Stations
 				if (rec.Value.Temp.HasValue && rec.Value.WindSpd.HasValue)
 				{
 					// historic API does not provide Wind Chill so force calculation
-					station.DoWindChill(-999, rec.Key);
+					station.DoWindChill(-999, recDateTime);
 				}
 			}
 			catch (Exception ex)
@@ -2289,14 +2311,14 @@ namespace CumulusMX.Stations
 			{
 				if (rec.Value.Temp.HasValue && rec.Value.Humidity.HasValue)
 				{
-					station.DoHumidex(rec.Key);
-					station.DoCloudBaseHeatIndex(rec.Key);
+					station.DoHumidex(recDateTime);
+					station.DoCloudBaseHeatIndex(recDateTime);
 
 					// === Apparent & Feels Like === - requires temp, hum, and windspeed
 					if (rec.Value.WindSpd.HasValue)
 					{
-						station.DoApparentTemp(rec.Key);
-						station.DoFeelsLike(rec.Key);
+						station.DoApparentTemp(recDateTime);
+						station.DoFeelsLike(recDateTime);
 					}
 					else
 					{
@@ -2405,8 +2427,17 @@ namespace CumulusMX.Stations
 					// Ecowitt send null values as the string "-", so we have to change all those to null before we parse...
 					var json = responseBody.Replace("\"-\"", "null");
 
-					// get the sensor data
-					currObj = JsonSerializer.Deserialize<CurrentData>(json, jsonOptions);
+					try
+					{
+						// get the sensor data
+						currObj = JsonSerializer.Deserialize<CurrentData>(json, jsonOptions);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage("API.GetCurrentData: Error deserializing current data response: " + ex.Message);
+						delay = 10;
+						return null;
+					}
 
 					if (currObj != null)
 					{
@@ -2459,19 +2490,19 @@ namespace CumulusMX.Stations
 					DateTime dataTime;
 					if (currObj.data.pressure != null)
 					{
-						dataTime = currObj.data.pressure.absolute.time.FromUnixTime();
+						dataTime = currObj.data.pressure.absolute.time.LocalFromUnixTime();
 					}
 					else if (currObj.data.outdoor.temperature != null)
 					{
-						dataTime = currObj.data.outdoor.temperature.time.FromUnixTime();
+						dataTime = currObj.data.outdoor.temperature.time.LocalFromUnixTime();
 					}
 					else if (currObj.data.indoor.temperature != null)
 					{
-						dataTime = currObj.data.indoor.temperature.time.FromUnixTime();
+						dataTime = currObj.data.indoor.temperature.time.LocalFromUnixTime();
 					}
 					else
 					{
-						dataTime = currObj.time.FromUnixTime();
+						dataTime = currObj.time.LocalFromUnixTime();
 					}
 
 
@@ -2636,7 +2667,7 @@ namespace CumulusMX.Stations
 								return defaultUrl;
 							}
 
-							LastCameraImageTime[mac] = currObj.data.camera.photo.time.FromUnixTime().ToUniversalTime();
+							LastCameraImageTime[mac] = currObj.data.camera.photo.time.LocalFromUnixTime().ToUniversalTime();
 							cumulus.LogDebugMessage($"API.GetCurrentCameraImageUrl: Last image update {LastCameraImageTime[mac].ToLocalTime():s}");
 							DefaultCameraUrl[mac] = currObj.data.camera.photo.url;
 							return currObj.data.camera.photo.url;

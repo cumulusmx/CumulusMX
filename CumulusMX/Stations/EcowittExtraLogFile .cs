@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace CumulusMX.Stations
 {
@@ -26,10 +27,10 @@ namespace CumulusMX.Stations
 			HeaderParser(data[0]);
 		}
 
-		public SortedList<DateTime, EcowittApi.HistoricData> DataParser()
+		public SortedList<long, EcowittApi.HistoricData> DataParser()
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
-			var retList = new SortedList<DateTime, EcowittApi.HistoricData>();
+			var retList = new SortedList<long, EcowittApi.HistoricData>();
 
 			var useTimestamp = FieldIndex.ContainsKey("timestamp");
 
@@ -55,17 +56,17 @@ namespace CumulusMX.Stations
 
 					var rec = new EcowittApi.HistoricData();
 
-					DateTime time;
+					long time;
 
 					if (useTimestamp && long.TryParse(fields[1], invc, out long unix))
 					{
-						time = Utils.RoundDownUnixTimestamp(unix, interval).FromUnixTime();
+						time = Utils.RoundDownUnixTimestamp(unix, interval);
 					}
 					else
 					{
-						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
+						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out var tim))
 						{
-							time = time.RoundTimeDownToInterval(TimeSpan.FromMinutes(interval));
+							time = tim.RoundTimeDownToInterval(TimeSpan.FromMinutes(interval)).ToUnixTime();
 						}
 						else
 						{
@@ -74,7 +75,13 @@ namespace CumulusMX.Stations
 						}
 					}
 
-					cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Preprocessing record {fields[0]} - {time:yyyy-MM-dd HH:mm}");
+					if (retList.ContainsKey(time))
+					{
+						cumulus.LogErrorMessage($"EcowittExtraLogFile.DataParser: Duplicate timestamp found, ignoring second instance - {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)}");
+						continue;
+					}
+
+					cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Preprocessing record {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)}");
 
 					decimal varDec;
 					int varInt;
@@ -106,7 +113,7 @@ namespace CumulusMX.Stations
 					}
 
 					// Lightning
-					if (FieldIndex.TryGetValue("thunder time", out idx) && long.TryParse(fields[idx], invc, out long varLong)) rec.LightningTime = varLong.FromUnixTime();
+					if (FieldIndex.TryGetValue("thunder time", out idx) && long.TryParse(fields[idx], invc, out long varLong)) rec.LightningTime = varLong.LocalFromUnixTime();
 					if (FieldIndex.TryGetValue("thunder count", out idx) && int.TryParse(fields[idx], out varInt)) rec.LightningCount = varInt;
 					if (FieldIndex.TryGetValue("thunder distance", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LightningDist = varDec;
 

@@ -18,7 +18,7 @@ namespace CumulusMX.Stations
 		private readonly List<string> Data;
 		//private string[] Header;
 		private readonly Cumulus cumulus;
-		private DateTime lastLogTime = DateTime.MinValue;
+		private long lastLogTime = 0;
 		private readonly Dictionary<string, int> FieldIndex = [];
 		private readonly int interval;
 
@@ -32,10 +32,10 @@ namespace CumulusMX.Stations
 			HeaderParser(data[0]);
 		}
 
-		public SortedList<DateTime, EcowittApi.HistoricData> DataParser()
+		public SortedList<long, EcowittApi.HistoricData> DataParser()
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
-			var retList = new SortedList<DateTime, EcowittApi.HistoricData>();
+			var retList = new SortedList<long, EcowittApi.HistoricData>();
 
 			var useTimestamp = FieldIndex.ContainsKey("timestamp");
 
@@ -62,17 +62,17 @@ namespace CumulusMX.Stations
 					// 2025-06-12 13:34,1749731693,20.1,60,22.4,57,13.5,22.4,1.16,2.01,5.14,224,1000.2,1008.5,214.05,2,0.0,0.0,0.0,0.0,5.7,38.8,261.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0
 					// 2025-07-29 14:23,1753795382,21.0,64,19.8,79,16.1,19.8,0.48,0.00,2.46,179,298,1009.4,1017.8,245.86,2,0.0,0.0,0.0,0.0,2.5,2.5,54.0,341.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
 
-					DateTime time;
+					long time;
 
 					if (useTimestamp && long.TryParse(fields[1], invc, out long unix))
 					{
-						time = Utils.RoundDownUnixTimestamp(unix, interval).FromUnixTime();
+						time = Utils.RoundDownUnixTimestamp(unix, interval);
 					}
 					else
 					{
-						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
+						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out var tim))
 						{
-							time = time.RoundTimeDownToInterval(TimeSpan.FromMinutes(interval));
+							time = tim.RoundTimeDownToInterval(TimeSpan.FromMinutes(interval)).ToUnixTime();
 						}
 						else
 						{
@@ -83,22 +83,22 @@ namespace CumulusMX.Stations
 
 					if (retList.ContainsKey(time))
 					{
-						cumulus.LogErrorMessage("EcowittLogFile.DataParser: Duplicate timestamp found, ignoring second instance - " + fields[0]);
+						cumulus.LogErrorMessage($"EcowittLogFile.DataParser: Duplicate timestamp found, ignoring second instance - {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)}");
 						continue;
 					}
 
-					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]} - {time:yyyy-MM-dd HH:mm}");
+					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)}");
 
 					var rec = new EcowittApi.HistoricData();
 
-					if (lastLogTime == DateTime.MinValue)
+					if (lastLogTime == 0)
 					{
 						rec.Interval = 1;
 						lastLogTime = time;
 					}
 					else
 					{
-						rec.Interval = (time - lastLogTime).Minutes;
+						rec.Interval = (int) (time - lastLogTime) / 60;
 						lastLogTime = time;
 					}
 

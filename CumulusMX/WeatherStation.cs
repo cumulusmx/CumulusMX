@@ -346,7 +346,7 @@ namespace CumulusMX
 			// Open database (create file if it doesn't exist)
 			var flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
 
-			RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, true));
+			RecentDataDb = new SQLiteConnection(new SQLiteConnectionString(cumulus.dbfile, flags, false, null, null, null, null, "yyyy-MM-dd HH:mm:ss"));
 			CheckSqliteDatabase(false);
 			RecentDataDb.CreateTable<RecentData>();
 			RecentDataDb.CreateTable<SqlCache>();
@@ -450,9 +450,27 @@ namespace CumulusMX
 				}
 			}
 
-			// remove any old text datetime entries - look for the first "-" in "2025-03-18 19:23:00"
-			RecentDataDb.Execute("delete from RecentAqData where substr(Timestamp, 5, 1) == '-'");
-			RecentDataDb.Execute("delete from RecentData where substr(Timestamp, 5, 1) == '-'");
+			// drop old format tables if they exist
+			var tableInfo = RecentDataDb.GetTableInfo("RecentData");
+			var timestampColumn = tableInfo.FirstOrDefault(col => col.Name == "Timestamp");
+			if (timestampColumn != null && timestampColumn.ColumnType != "INTEGER")
+			{
+				RecentDataDb.DropTable<RecentData>();
+			}
+
+			tableInfo = RecentDataDb.GetTableInfo("RecentAqData");
+			timestampColumn = tableInfo.FirstOrDefault(col => col.Name == "Timestamp");
+			if (timestampColumn != null && timestampColumn.ColumnType != "INTEGER")
+			{
+				RecentDataDb.DropTable<RecentAqData>();
+			}
+
+			tableInfo = RecentDataDb.GetTableInfo("CWindRecent");
+			timestampColumn = tableInfo.FirstOrDefault(col => col.Name == "Timestamp");
+			if (timestampColumn != null && timestampColumn.ColumnType != "INTEGER")
+			{
+				RecentDataDb.DropTable<CWindRecent>();
+			}
 		}
 
 		/// <summary>
@@ -615,7 +633,7 @@ namespace CumulusMX
 
 							if (initialiseRainDayStart && !raindaystartfound && cumulus.RolloverHour != 0)
 							{
-								var logDateTime = long.Parse(st[1]).FromUnixTime();
+								var logDateTime = long.Parse(st[1]).LocalFromUnixTime();
 								if (logDateTime >= meteoDate)
 								{
 									raindaystartfound = true;
@@ -795,11 +813,11 @@ namespace CumulusMX
 			var ini = new IniFile(cumulus.TodayIniFile);
 
 			var todayfiledate = ini.GetValue("General", "Date", "00/00/00");
-			var timestampstr = ini.GetValue("General", "Timestamp", DateTime.Now.ToString("s"));
+			var timestampstr = ini.GetValue("General", "Timestamp", DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssK", CultureInfo.InvariantCulture));
 
 			Cumulus.LogConsoleMessage("Last update: " + timestampstr);
 
-			cumulus.LastUpdateTime = DateTime.Parse(timestampstr, CultureInfo.CurrentCulture);
+			cumulus.LastUpdateTime = DateTime.Parse(timestampstr, CultureInfo.InvariantCulture);
 			var todayDate = cumulus.LastUpdateTime.Date;
 
 			cumulus.LogMessage("ReadTodayFile: Last update time from today.ini: " + cumulus.LastUpdateTime);
@@ -1027,7 +1045,7 @@ namespace CumulusMX
 				// Date
 				ini.SetValue("General", "Date", cumulus.MeteoDate(timestamp).ToShortDateString());
 				// Timestamp
-				ini.SetValue("General", "Timestamp", cumulus.LastUpdateTime);
+				ini.SetValue("General", "Timestamp", cumulus.LastUpdateTime.ToString("yyyy-MM-ddTHH:mm:ssK", CultureInfo.InvariantCulture));
 				ini.SetValue("General", "CurrentYear", CurrentYear);
 				ini.SetValue("General", "CurrentMonth", CurrentMonth);
 				ini.SetValue("General", "CurrentDay", CurrentDay);
@@ -1762,8 +1780,8 @@ namespace CumulusMX
 			var deleteTime = ts.AddDays(-7);
 			try
 			{
-				RecentDataDb.Execute("delete from RecentData where Timestamp < ?", deleteTime);
-				RecentDataDb.Execute("delete from RecentAqData where Timestamp = ?", deleteTime);
+				RecentDataDb.Execute("delete from RecentData where Timestamp < ?", deleteTime.ToUnixTime());
+				RecentDataDb.Execute("delete from RecentAqData where Timestamp = ?", deleteTime.ToUnixTime());
 			}
 			catch (Exception ex)
 			{
@@ -2229,7 +2247,7 @@ namespace CumulusMX
 			var dateFrom = date.AddHours(-1);
 
 			// get the min and max temps, humidity, pressure, and mean solar rad and wind speed for the last hour
-			var result = RecentDataDb.Query<EtData>("select avg(OutsideTemp) avgTemp, avg(Humidity) avgHum, avg(Pressure) avgPress, avg(SolarRad) avgSol, avg(SolarMax) avgSolMax, avg(WindSpeed) avgWind from RecentData where Timestamp >= ? order by Timestamp", dateFrom);
+			var result = RecentDataDb.Query<EtData>("select avg(OutsideTemp) avgTemp, avg(Humidity) avgHum, avg(Pressure) avgPress, avg(SolarRad) avgSol, avg(SolarMax) avgSolMax, avg(WindSpeed) avgWind from RecentData where Timestamp >= ? order by Timestamp", dateFrom.ToUnixTime());
 
 			// finally calculate the ETo
 			var newET = MeteoLib.Evapotranspiration(
@@ -2419,7 +2437,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom.ToUnixTime());
 
 			// no incremental data, send null to supress the upload
 			if (incremental && data.Count == 0)
@@ -2427,7 +2445,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp * 1000;
 
 				if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 				{
@@ -2493,7 +2511,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom.ToUnixTime());
 
 			// no incremental data, send null to supress the upload
 			if (incremental && data.Count == 0)
@@ -2501,7 +2519,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp * 1000;
 
 				sbRain.Append($"[{jsTime},{data[i].RainToday.ToString(cumulus.RainFormat, InvC)}],");
 
@@ -2539,7 +2557,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom.ToUnixTime());
 
 			// no incremental data, send null to supress the upload
 			if (incremental && data.Count == 0)
@@ -2547,7 +2565,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp * 1000;
 
 				if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 				{
@@ -2603,7 +2621,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom.ToUnixTime());
 
 			// no incremental data, send null to supress the upload
 			if (incremental && data.Count == 0)
@@ -2611,7 +2629,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp * 1000;
 
 				sb.Append($"[{jsTime},{data[i].WindDir}],");
 
@@ -2648,7 +2666,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom.ToUnixTime());
 
 			// no incremental data, send null to supress the upload
 			if (incremental && data.Count == 0)
@@ -2656,7 +2674,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp * 1000;
 
 				sb.Append($"[{jsTime},{data[i].WindGust.ToString(cumulus.WindFormat, InvC)}],");
 
@@ -2693,7 +2711,7 @@ namespace CumulusMX
 			}
 
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom.ToUnixTime());
 
 			// no incremental data, send null to supress the upload
 			if (incremental && data.Count == 0)
@@ -2701,7 +2719,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp * 1000;
 
 				sb.Append($"[{jsTime},{data[i].Pressure.ToString(cumulus.PressFormat, InvC)}],");
 			}
@@ -2754,7 +2772,7 @@ namespace CumulusMX
 				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 			}
 
-			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+			var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom.ToUnixTime());
 
 			// no incremental data, send null to supress the upload
 			if (incremental && data.Count == 0)
@@ -2762,7 +2780,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < data.Count; i++)
 			{
-				var jsTime = data[i].Timestamp.ToUnixTimeMs();
+				var jsTime = data[i].Timestamp * 1000;
 
 				if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
 				{
@@ -2903,7 +2921,7 @@ namespace CumulusMX
 					dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
 				}
 
-				var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom);
+				var data = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp > ? order by Timestamp", dateFrom.ToUnixTime());
 
 				// no incremental data, send null to supress the upload
 				if (incremental && data.Count == 0)
@@ -2911,7 +2929,7 @@ namespace CumulusMX
 
 				for (var i = 0; i < data.Count; i++)
 				{
-					var jsTime = data[i].Timestamp.ToUnixTimeMs();
+					var jsTime = data[i].Timestamp * 1000;
 
 					if (data[i].Pm2p5.HasValue)
 					{
@@ -3064,7 +3082,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).FromUnixTime();
+								entrydate = long.Parse(st[1]).LocalFromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -3248,7 +3266,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).FromUnixTime();
+								entrydate = long.Parse(st[1]).LocalFromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -3432,7 +3450,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).FromUnixTime();
+								entrydate = long.Parse(st[1]).LocalFromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -3616,7 +3634,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).FromUnixTime();
+								entrydate = long.Parse(st[1]).LocalFromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -3799,7 +3817,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).FromUnixTime();
+								entrydate = long.Parse(st[1]).LocalFromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -3983,7 +4001,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).FromUnixTime();
+								entrydate = long.Parse(st[1]).LocalFromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -4167,7 +4185,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).FromUnixTime();
+								entrydate = long.Parse(st[1]).LocalFromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -4351,7 +4369,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).FromUnixTime();
+								entrydate = long.Parse(st[1]).LocalFromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -4795,7 +4813,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).FromUnixTime();
+								entrydate = long.Parse(st[1]).LocalFromUnixTime();
 
 								if (entrydate > dateFrom)
 								{
@@ -5702,7 +5720,7 @@ namespace CumulusMX
 			{
 				RecentDataDb.InsertOrReplace(new RecentData()
 				{
-					Timestamp = timestamp,
+					DateTime = timestamp,
 					DewPoint = dewpoint,
 					HeatIndex = heatIndex,
 					Humidity = humidity,
@@ -9208,7 +9226,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				RecentDataDb.Execute("update RecentData set Pm2p5=?, Pm10=? where Timestamp=?", pm2p5 < 0 ? "NULL" : pm2p5, pm10 < 0 ? "NULL" : pm10, ts);
+				RecentDataDb.Execute("update RecentData set Pm2p5=?, Pm10=? where Timestamp=?", pm2p5 < 0 ? "NULL" : pm2p5, pm10 < 0 ? "NULL" : pm10, ts.ToUnixTime());
 			}
 			catch (Exception e)
 			{
@@ -9275,7 +9293,7 @@ namespace CumulusMX
 			// Do 3 hour trends
 			try
 			{
-				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, Pressure from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddHours(-3));
+				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, Pressure from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddHours(-3).ToUnixTime());
 
 				if (retVals.Count != 1)
 				{
@@ -9308,7 +9326,7 @@ namespace CumulusMX
 			try
 			{
 				// Do 1 hour trends
-				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddHours(-1));
+				retVals = RecentDataDb.Query<RecentData>("select OutsideTemp, raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddHours(-1).ToUnixTime());
 
 				if (retVals.Count != 1)
 				{
@@ -9393,7 +9411,7 @@ namespace CumulusMX
 
 				try
 				{
-					retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddMinutes(-5.5));
+					retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddMinutes(-5.5).ToUnixTime());
 
 					if (retVals.Count != 1 || RainCounter < retVals[0].raincounter)
 					{
@@ -9469,7 +9487,7 @@ namespace CumulusMX
 			// calculate and display rainfall in last 24 hour
 			try
 			{
-				retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddDays(-1));
+				retVals = RecentDataDb.Query<RecentData>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recTs.AddDays(-1).ToUnixTime());
 
 				if (retVals.Count != 1 || RainCounter < retVals[0].raincounter)
 				{
@@ -9637,7 +9655,7 @@ namespace CumulusMX
 			// try and find the first entry in the database
 			try
 			{
-				var start = RecentDataDb.ExecuteScalar<DateTime>("select MAX(Timestamp) from RecentData");
+				var start = RecentDataDb.ExecuteScalar<long>("select MAX(Timestamp) from RecentData").LocalFromUnixTime();
 				if (datefrom < start)
 					datefrom = start;
 			}
@@ -9677,7 +9695,7 @@ namespace CumulusMX
 								{
 									rowsToAdd.Add(new RecentData()
 									{
-										Timestamp = recDate,
+										DateTime = recDate,
 										DewPoint = rec.OutdoorDewpoint,
 										HeatIndex = rec.HeatIndex ?? 0,
 										Humidity = rec.OutdoorHumidity,
@@ -9768,7 +9786,7 @@ namespace CumulusMX
 			// try and find the first entry in the database that has a "blank" AQ entry (PM2.5 or PM10 = -1)
 			try
 			{
-				var start = RecentDataDb.ExecuteScalar<DateTime>("select Timestamp from RecentData where Pm2p5=-1 or Pm10=-1 order by Timestamp limit 1");
+				var start = RecentDataDb.ExecuteScalar<long>("select Timestamp from RecentData where Pm2p5=-1 or Pm10=-1 order by Timestamp limit 1").LocalFromUnixTime();
 				if (start == DateTime.MinValue)
 					return;
 
@@ -9817,7 +9835,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).FromUnixTime();
+								entrydate = long.Parse(st[1]).LocalFromUnixTime();
 
 								if (entrydate >= datefrom && entrydate <= dateto)
 								{
@@ -9919,7 +9937,7 @@ namespace CumulusMX
 			// try and find the first entry in the database that has a "blank" AQ entry (PM2.5 or PM10 = -1)
 			try
 			{
-				var start = RecentDataDb.ExecuteScalar<DateTime>("select max(Timestamp) from RecentAqData").ToUnixTime();
+				var start = RecentDataDb.ExecuteScalar<long>("select max(Timestamp) from RecentAqData");
 				if (start >= cumulus.LastUpdateTime.ToUnixTime())
 					return;
 
@@ -9966,7 +9984,7 @@ namespace CumulusMX
 
 									var rec = new RecentAqData
 									{
-										Timestamp = entrydate.FromUnixTime(),
+										DateTime = entrydate.LocalFromUnixTime(),
 										Pm2p5_1 = string.IsNullOrEmpty(st[68]) ? null : double.Parse(st[68], NumberStyles.Number, inv),
 										Pm2p5_2 = string.IsNullOrEmpty(st[69]) ? null : double.Parse(st[69], NumberStyles.Number, inv),
 										Pm2p5_3 = string.IsNullOrEmpty(st[70]) ? null : double.Parse(st[70], NumberStyles.Number, inv),
@@ -10026,7 +10044,7 @@ namespace CumulusMX
 			// We can now just query the recent data database as it has been populated from the logs
 			var datefrom = DateTime.Now.AddHours(-24);
 
-			var result = RecentDataDb.Query<RecentData>("select WindGust, WindDir from RecentData where Timestamp >= ? order by Timestamp", datefrom);
+			var result = RecentDataDb.Query<RecentData>("select WindGust, WindDir from RecentData where Timestamp >= ? order by Timestamp", datefrom.ToUnixTime());
 
 			foreach (var rec in result)
 			{
@@ -10047,7 +10065,7 @@ namespace CumulusMX
 
 			cumulus.LogMessage($"LoadLast3Hour: Attempting to load 3 hour data list");
 
-			var result = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? and Timestamp <= ? order by Timestamp", datefrom, dateto);
+			var result = RecentDataDb.Query<RecentData>("select * from RecentData where Timestamp >= ? and Timestamp <= ? order by Timestamp", datefrom.ToUnixTime(), dateto.ToUnixTime());
 
 			if (result.Count != 0)
 			{
@@ -10063,17 +10081,17 @@ namespace CumulusMX
 					{
 						try
 						{
-							if (rec.Timestamp < minWindTs || rec.Timestamp > maxWindTs)
+							if (rec.DateTime < minWindTs || rec.DateTime > maxWindTs)
 							{
 								WindRecent[nextwind].Gust = rec.WindGust;
 								WindRecent[nextwind].Speed = rec.WindSpeed;
-								WindRecent[nextwind].Timestamp = rec.Timestamp;
+								WindRecent[nextwind].Timestamp = rec.DateTime;
 								nextwind = (nextwind + 1) % MaxWindRecent;
 							}
 
 							WindVec[nextwindvec].X = rec.WindGust * Math.Sin(DegToRad(rec.WindDir));
 							WindVec[nextwindvec].Y = rec.WindGust * Math.Cos(DegToRad(rec.WindDir));
-							WindVec[nextwindvec].Timestamp = rec.Timestamp;
+							WindVec[nextwindvec].Timestamp = rec.DateTime;
 							WindVec[nextwindvec].Bearing = Bearing; // savedBearing
 							nextwindvec = (nextwindvec + 1) % MaxWindRecent;
 						}
@@ -10099,7 +10117,7 @@ namespace CumulusMX
 				{
 					WindRecent[i].Gust = result[i].Gust;
 					WindRecent[i].Speed = result[i].Speed;
-					WindRecent[i].Timestamp = result[i].Timestamp;
+					WindRecent[i].Timestamp = result[i].DateTime;
 				}
 			}
 			catch (Exception e)
@@ -10137,7 +10155,7 @@ namespace CumulusMX
 					for (var i = 0; i < WindRecent.Length; i++)
 					{
 						if (WindRecent[i].Timestamp > DateTime.MinValue)
-							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", WindRecent[i].Timestamp, WindRecent[i].Gust, WindRecent[i].Speed);
+							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", WindRecent[i].Timestamp.ToUnixTime(), WindRecent[i].Gust, WindRecent[i].Speed);
 					}
 
 					// and save the pointer
@@ -10380,7 +10398,7 @@ namespace CumulusMX
 
 			var rec = new RecentAqData
 			{
-				Timestamp = DateTime.Now,
+				DateTime = DateTime.Now,
 				Pm2p5_1 = AirQuality[1],
 				Pm2p5_2 = AirQuality[2],
 				Pm2p5_3 = AirQuality[3],
@@ -10423,13 +10441,13 @@ namespace CumulusMX
 
 			try
 			{
-				var ret = RecentDataDb.ExecuteScalar<double?>($"SELECT AVG(Pm2p5_{idx}) FROM RecentAqData WHERE Timestamp > DATETIME('NOW', '-24 HOURS')");
+				var ret = RecentDataDb.ExecuteScalar<double?>($"SELECT AVG(Pm2p5_{idx}) FROM RecentAqData WHERE Timestamp > unixepoch(DATETIME('NOW', '-24 HOURS'))");
 				if (ret != null)
 				{
 					DoAirQualityAvg(ret, idx);
 				}
 
-				ret = RecentDataDb.ExecuteScalar<double?>($"SELECT AVG(Pm10_{idx}) FROM RecentAqData WHERE Timestamp > DATETIME('NOW', '-24 HOURS')");
+				ret = RecentDataDb.ExecuteScalar<double?>($"SELECT AVG(Pm10_{idx}) FROM RecentAqData WHERE Timestamp > unixepoch(DATETIME('NOW', '-24 HOURS'))");
 				if (ret != null)
 				{
 					DoAirQuality10Avg(ret, idx);
@@ -10856,7 +10874,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				return RecentDataDb.ExecuteScalar<double>("select avg(OutsideTemp) from RecentData where Timestamp >= datetime('now', '-24 hour')");
+				return RecentDataDb.ExecuteScalar<double>("select avg(OutsideTemp) from RecentData where Timestamp >= unixepoch(datetime('now', '-24 hour'))");
 			}
 			catch (Exception ex)
 			{
@@ -13442,8 +13460,8 @@ namespace CumulusMX
 
 		public string GetIntervalData(string from, string to, string fields)
 		{
-			var fromDate = long.Parse(from).FromUnixTime();
-			var toDate = long.Parse(to).FromUnixTime();
+			var fromDate = long.Parse(from).LocalFromUnixTime();
+			var toDate = long.Parse(to).LocalFromUnixTime();
 			var flds = (fields ?? "").Split(',').Select(int.Parse).ToArray();
 
 			if (flds.Length == 0)
@@ -13510,7 +13528,7 @@ namespace CumulusMX
 						foreach (var line in lines)
 						{
 							var vars = line.Split(',');
-							var date = long.Parse(vars[1]).FromUnixTime();
+							var date = long.Parse(vars[1]).LocalFromUnixTime();
 							var dateStr = vars[0];
 
 							if (date >= fromDate && date <= toDate)
@@ -13543,7 +13561,7 @@ namespace CumulusMX
 						{
 							var fieldList = new List<string>();
 							var vars = line.Split(',');
-							var date = long.Parse(vars[1]).FromUnixTime();
+							var date = long.Parse(vars[1]).LocalFromUnixTime();
 							var dateStr = vars[0];
 
 							if (date >= fromDate && date <= toDate)
@@ -13597,8 +13615,8 @@ namespace CumulusMX
 
 		public string GetDailyData(string from, string to, string fields)
 		{
-			var fromDate = long.Parse(from).FromUnixTime();
-			var toDate = long.Parse(to).FromUnixTime();
+			var fromDate = long.Parse(from).LocalFromUnixTime();
+			var toDate = long.Parse(to).LocalFromUnixTime();
 			var flds = (fields ?? "").Split(',').Select(int.Parse).ToArray();
 
 			if (flds.Length == 0)
@@ -15783,7 +15801,14 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 	public class CWindRecent
 	{
 		[PrimaryKey]
-		public DateTime Timestamp { get; set; }
+		public long Timestamp { get; set; }
+
+		[Ignore]
+		public DateTime DateTime
+		{
+			get => Timestamp.LocalFromUnixTime();
+			set => Timestamp = value.ToUnixTime();
+		}
 		public double Gust { get; set; }  // calibrated "gust" as read from station
 		public double Speed { get; set; } // calibrated "speed" as read from station
 	}
@@ -15800,7 +15825,13 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 	public class RecentData
 	{
 		[PrimaryKey]
-		public DateTime Timestamp { get; set; }
+		public long Timestamp { get; set; }
+
+		[Ignore]
+		public DateTime DateTime { 
+			get => Timestamp.LocalFromUnixTime(); 
+			set => Timestamp = value.ToUnixTime();
+		}
 
 		public double WindSpeed { get; set; }
 		public double WindGust { get; set; }
@@ -15832,7 +15863,14 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 	public class RecentAqData
 	{
 		[PrimaryKey]
-		public DateTime Timestamp { get; set; }
+		public long Timestamp { get; set; }
+
+		[Ignore]
+		public DateTime DateTime
+		{
+			get => Timestamp.LocalFromUnixTime();
+			set => Timestamp = value.ToUnixTime();
+		}
 		public double? Pm2p5_1 { get; set; }
 		public double? Pm10_1 { get; set; }
 		public double? Pm2p5_2 { get; set; }

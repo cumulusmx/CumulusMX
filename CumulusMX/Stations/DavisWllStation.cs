@@ -972,7 +972,7 @@ namespace CumulusMX.Stations
 									try
 									{
 										StormRain = ConvertRainClicksToUser(data1.rain_storm.Value, data1.rain_size.Value) * cumulus.Calib.Rain.Mult;
-										StartOfStorm = data1.rain_storm_start_at.Value.FromUnixTime();
+										StartOfStorm = data1.rain_storm_start_at.Value.LocalFromUnixTime();
 									}
 									catch (Exception ex)
 									{
@@ -1462,8 +1462,8 @@ namespace CumulusMX.Stations
 				maxArchiveRuns++;
 			}
 
-			Cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {endTime.FromUnixTime():s}");
-			cumulus.LogMessage($"GetWlHistoricData: Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {endTime.FromUnixTime():s}");
+			Cumulus.LogConsoleMessage($"Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {endTime.LocalFromUnixTime():s}");
+			cumulus.LogMessage($"GetWlHistoricData: Downloading Historic Data from WL.com from: {lastHistoricData:s} to: {endTime.LocalFromUnixTime():s}");
 
 			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId);
 			historicUrl.Append("?api-key=" + cumulus.WllApiKey);
@@ -1511,7 +1511,7 @@ namespace CumulusMX.Stations
 					var historyError = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
 					cumulus.LogWarningMessage($"GetWlHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
 					Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
-					lastHistoricData = endTime.FromUnixTime();
+					lastHistoricData = endTime.LocalFromUnixTime();
 					return;
 				}
 
@@ -1519,7 +1519,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogWarningMessage("GetWlHistoricData: WeatherLink API Historic: No data was returned. Check your Device Id.");
 					Cumulus.LogConsoleMessage(" - No historic data available");
-					lastHistoricData = endTime.FromUnixTime();
+					lastHistoricData = endTime.LocalFromUnixTime();
 					return;
 				}
 				else if (responseBody.StartsWith("{\"")) // basic sanity check
@@ -1547,7 +1547,7 @@ namespace CumulusMX.Stations
 					{
 						cumulus.LogMessage("GetWlHistoricData: No historic data available");
 						Cumulus.LogConsoleMessage(" - No historic data available");
-						lastHistoricData = endTime.FromUnixTime();
+						lastHistoricData = endTime.LocalFromUnixTime();
 						return;
 					}
 					else
@@ -1559,7 +1559,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogErrorMessage("GetWlHistoricData: Invalid historic message received");
 					cumulus.LogMessage("GetWlHistoricData: Received: " + responseBody);
-					lastHistoricData = endTime.FromUnixTime();
+					lastHistoricData = endTime.LocalFromUnixTime();
 					return;
 				}
 			}
@@ -1572,7 +1572,7 @@ namespace CumulusMX.Stations
 					cumulus.LogMessage($"GetWlHistoricData: Base exception - {ex.Message}");
 				}
 
-				lastHistoricData = endTime.FromUnixTime();
+				lastHistoricData = endTime.LocalFromUnixTime();
 				return;
 			}
 
@@ -1806,7 +1806,7 @@ namespace CumulusMX.Stations
 			if (!Program.service)
 				Console.WriteLine(""); // flush the progress line
 
-			lastHistoricData = endTime.FromUnixTime();
+			lastHistoricData = endTime.LocalFromUnixTime();
 		}
 
 		private void DecodeHistoric(int dataType, int sensorType, JsonNode json)
@@ -1859,7 +1859,7 @@ namespace CumulusMX.Stations
 								// do high humidity
 								if (data11.hum_hi_at != 0 && data11.hum_hi != null)
 								{
-									ts = data11.hum_hi_at.FromUnixTime();
+									ts = data11.hum_hi_at.LocalFromUnixTime();
 									DoOutdoorHumidity(Convert.ToInt32(data11.hum_hi), ts);
 								}
 								else
@@ -1870,7 +1870,7 @@ namespace CumulusMX.Stations
 								// do low humidity
 								if (data11.hum_lo_at != 0 && data11.hum_lo != null)
 								{
-									ts = data11.hum_lo_at.FromUnixTime();
+									ts = data11.hum_lo_at.LocalFromUnixTime();
 									DoOutdoorHumidity(Convert.ToInt32(data11.hum_lo), ts);
 								}
 								else
@@ -1907,7 +1907,7 @@ namespace CumulusMX.Stations
 									// do high temp
 									if (data11.temp_hi_at != 0 && data11.temp_hi != null)
 									{
-										ts = data11.temp_hi_at.FromUnixTime();
+										ts = data11.temp_hi_at.LocalFromUnixTime();
 										DoOutdoorTemp(ConvertUnits.TempFToUser((double) data11.temp_hi), ts);
 									}
 									else
@@ -1918,7 +1918,7 @@ namespace CumulusMX.Stations
 									// do low temp
 									if (data11.temp_lo_at != 0 && data11.temp_lo != null)
 									{
-										ts = data11.temp_lo_at.FromUnixTime();
+										ts = data11.temp_lo_at.LocalFromUnixTime();
 										DoOutdoorTemp(ConvertUnits.TempFToUser((double) data11.temp_lo), ts);
 									}
 									else
@@ -1965,7 +1965,7 @@ namespace CumulusMX.Stations
 								// do high DP
 								if (data11.dew_point_hi_at != 0 && data11.dew_point_hi != null)
 								{
-									ts = data11.dew_point_hi_at.FromUnixTime();
+									ts = data11.dew_point_hi_at.LocalFromUnixTime();
 									DoOutdoorDewpoint(ConvertUnits.TempFToUser((double) data11.dew_point_hi), ts);
 								}
 								else
@@ -1976,7 +1976,7 @@ namespace CumulusMX.Stations
 								// do low DP
 								if (data11.dew_point_lo_at != 0 && data11.dew_point_lo != null)
 								{
-									ts = data11.dew_point_lo_at.FromUnixTime();
+									ts = data11.dew_point_lo_at.LocalFromUnixTime();
 									DoOutdoorDewpoint(ConvertUnits.TempFToUser((double) data11.dew_point_lo), ts);
 								}
 								else
@@ -2007,7 +2007,7 @@ namespace CumulusMX.Stations
 									// do low WC
 									if (data11.wind_chill_lo_at != 0 && data11.wind_chill_lo != null)
 									{
-										ts = data11.wind_chill_lo_at.FromUnixTime();
+										ts = data11.wind_chill_lo_at.LocalFromUnixTime();
 										DoWindChill(ConvertUnits.TempFToUser((double) data11.wind_chill_lo), ts);
 									}
 									else
@@ -2445,7 +2445,7 @@ namespace CumulusMX.Stations
 									// check the high
 									if (data13baro.bar_hi_at != 0 && data13baro.bar_hi != null)
 									{
-										ts = data13baro.bar_hi_at.FromUnixTime();
+										ts = data13baro.bar_hi_at.LocalFromUnixTime();
 										DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_hi), ts);
 									}
 									else
@@ -2455,7 +2455,7 @@ namespace CumulusMX.Stations
 									// check the low
 									if (data13baro.bar_lo_at != 0 && data13baro.bar_lo != null)
 									{
-										ts = data13baro.bar_lo_at.FromUnixTime();
+										ts = data13baro.bar_lo_at.LocalFromUnixTime();
 										DoPressure(ConvertUnits.PressINHGToUser((double) data13baro.bar_lo), ts);
 									}
 									else
@@ -2613,7 +2613,7 @@ namespace CumulusMX.Stations
 				{
 					var data15 = JsonSerializer.Deserialize<WlHealthDataType15>(sensor.data[^1]);
 
-					var dat = data15.firmware_version.FromUnixTime();
+					var dat = data15.firmware_version.LocalFromUnixTime();
 					DavisFirmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
 
 					StationRuntime = data15.uptime.Value;
@@ -2792,7 +2792,7 @@ namespace CumulusMX.Stations
 			var startTime = unixDateTime - weatherLinkArchiveInterval;
 			long endTime = unixDateTime;
 
-			cumulus.LogDebugMessage($"WLL Health: Downloading the historic record from WL.com from: {startTime.FromUnixTime():s} to: {endTime.FromUnixTime():s}");
+			cumulus.LogDebugMessage($"WLL Health: Downloading the historic record from WL.com from: {startTime.LocalFromUnixTime():s} to: {endTime.LocalFromUnixTime():s}");
 
 			StringBuilder historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + cumulus.WllStationId);
 			historicUrl.Append("?api-key=" + cumulus.WllApiKey);
@@ -2830,7 +2830,7 @@ namespace CumulusMX.Stations
 				if (responseBody == "{}")
 				{
 					cumulus.LogWarningMessage("WLL Health: WeatherLink API: No data was returned. Check your Device Id.");
-					cumulus.LastUpdateTime = endTime.FromUnixTime();
+					cumulus.LastUpdateTime = endTime.LocalFromUnixTime();
 					// Get wl.com status
 					GetSystemStatus();
 					return;

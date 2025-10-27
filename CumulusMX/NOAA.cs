@@ -464,7 +464,7 @@ namespace CumulusMX
 
 						idx = 1;
 
-						var entrydate = long.Parse(st[1]).FromUnixTime();
+						var entrydate = long.Parse(st[1]).LocalFromUnixTime();
 
 						entrydate = cumulus.MeteoDate(entrydate);
 

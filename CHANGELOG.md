@@ -14,6 +14,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 First build using Visual Studio 2026, and transitioning to .NET 10
 
+Alpha build #5 changes:
+- Fix DST changeover issues in Ecowitt Cloud API catch-up
+
+Alpha build #4 changes:
+- Build is now: 4.7.0.47004
+- SQLite changed to use unix timestamps to store date-times
+	- You MUST delete the cumulusmx.db file before the first run of Alpha #4
+- Today.ini Timestamp value now written with the TZ offset appended
+- Changed the handling of Ecowitt SD card log files during catch-up to avoid duplicates over the DST period being dropped (now uses Unix timestamps internally rather than converting to .Net DateTimes)
+
 Alpha build #3 changes:
 - Add an exponential backoff to failed Email sends (up to 5.6 hours)
 - Airlink log files are now written in the new format
@@ -49,8 +59,8 @@ Alpha build #2 changes:
 - Removes the dependency on ServiceStack.Text for JSON handling, now using the built-in System.Text.Json
 - Swaps SQLitePCLRaw.bundle_green for newer SQLitePCLRaw.bundle_e_sqlite3
 - Debug and data logging are now fully independent
-- Internal change to the date/time storage in the recent data SQLite database (Cumulus.db)
-	- DateTimes are now stored as .NET "ticks" to resolve DST transition ambiguities
+- Internal change to the date/time storage in the recent data SQLite database (cumulusmx.db)
+	- DateTimes are now stored as Unix timestamps to resolve DST transition ambiguities
 - Debug Beta builds no longer save the debug & data logging enabled state into the Cumulus.ini file
 - FTP/FTPS/SFTP connection management changed to avoid Operating System DNS caching in .NET 10
 
@@ -58,6 +68,7 @@ Alpha build #2 changes:
 
 - Ecowitt HTTP API station using a fixed 5 minute interval for Degree Days during catch-up rather than the log file interval
 - Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1-minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
+- Changed the handling of Ecowitt SD card log files during catch-up to avoid duplicates over the DST period being dropped
 
 ### Package Updates
 

@@ -6456,7 +6456,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select OutsideTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select OutsideTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.OutdoorTemperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6465,7 +6465,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindSpeed from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindSpeed from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.WindAverage, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
@@ -6474,7 +6474,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindGust from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindGust from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.RecentMaxGust, tagParams), tagParams, cumulus.WindDPlaces);
 		}
@@ -6483,7 +6483,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindLatest from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindLatest from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.WindLatest, tagParams), tagParams, cumulus.WindDPlaces);
 		}
@@ -6492,7 +6492,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return result.HasValue ? result.ToString() : station.Bearing.ToString();
 		}
@@ -6501,7 +6501,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindAvgDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindAvgDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return result.HasValue ? result.ToString() : station.AvgBearing.ToString();
 		}
@@ -6510,7 +6510,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindChill from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindChill from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.WindChill, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6519,7 +6519,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select DewPoint from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select DewPoint from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.OutdoorDewpoint, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6528,7 +6528,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select HeatIndex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select HeatIndex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.HeatIndex, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6537,7 +6537,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select FeelsLike from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select FeelsLike from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.FeelsLike, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6546,7 +6546,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select AppTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select AppTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.ApparentTemperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6555,7 +6555,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(result.HasValue ? result.Value : station.Humidex, tagParams, cumulus.TempDPlaces);
 		}
@@ -6564,7 +6564,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidity from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidity from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return result.HasValue ? result.Value.ToString() : station.OutdoorHumidity.ToString();
 		}
@@ -6585,7 +6585,7 @@ namespace CumulusMX
 			double? result = null;
 			// pesky raincounter can reset, so first we have to test if it has.
 			// get the max value
-			var max = station.RecentDataDb.Query<RecentData>("select Timestamp, max(raincounter) as raincounter from RecentData where Timestamp >= ?", recentTs);
+			var max = station.RecentDataDb.Query<RecentData>("select Timestamp, max(raincounter) as raincounter from RecentData where Timestamp >= ?", recentTs.ToUnixTime());
 			// get the last value
 			var last = station.RecentDataDb.ExecuteScalar<double?>("select raincounter from RecentData order by Timestamp Desc limit 1");
 
@@ -6595,18 +6595,18 @@ namespace CumulusMX
 				{
 					// Counter has reset - we assume only one reset in the period. If there is more than one then this will fail
 					// First part = max_value - start_value
-					var start = station.RecentDataDb.ExecuteScalar<double?>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+					var start = station.RecentDataDb.ExecuteScalar<double?>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 					result = max[0].raincounter - start;
 
 					// Now add on any increment since the reset
-					var resetval = station.RecentDataDb.ExecuteScalar<double?>("select raincounter from RecentData where Timestamp > ? order by Timestamp limit 1", max[0].Timestamp);
+					var resetval = station.RecentDataDb.ExecuteScalar<double?>("select raincounter from RecentData where Timestamp > ? order by Timestamp limit 1", max[0].DateTime.ToUnixTime());
 
 					result += last - resetval;
 				}
 				else
 				{
 					// No counter reset
-					result = station.RecentDataDb.ExecuteScalar<double?>("select (select raincounter from RecentData order by Timestamp Desc limit 1) - raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+					result = station.RecentDataDb.ExecuteScalar<double?>("select (select raincounter from RecentData order by Timestamp Desc limit 1) - raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 				}
 			}
 
@@ -6617,7 +6617,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select RainToday from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select RainToday from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckRainUnit(result.HasValue ? result.Value : station.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
@@ -6626,7 +6626,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<int?>("select SolarRad from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select SolarRad from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			string solValue;
 			if (result.HasValue)
@@ -6644,7 +6644,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select UV from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select UV from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			string uvValue;
 			if (result.HasValue)
@@ -6662,7 +6662,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select IndoorTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select IndoorTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			string indoorTempValue;
 			if (result.HasValue)
@@ -6680,7 +6680,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<int?>("select IndoorHumidity from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select IndoorHumidity from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			string indoorHumidityValue;
 			if (result.HasValue)
@@ -6699,9 +6699,9 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<DateTime?>("select Timestamp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<long?>("select Timestamp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return GetFormattedDateTime(result.HasValue ? result.Value : DateTime.Now , tagParams);
+			return GetFormattedDateTime(result.HasValue ? result.Value.LocalFromUnixTime() : DateTime.Now , tagParams);
 		}
 
 		// Recent history with commas replaced
