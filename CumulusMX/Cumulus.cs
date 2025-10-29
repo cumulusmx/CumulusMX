@@ -2553,6 +2553,12 @@ namespace CumulusMX
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 				return;
 
+			if (RealtimeFtpWatchDogTask != null && !RealtimeFtpWatchDogTask.IsCompleted)
+			{
+				// already running
+				return;
+			}
+
 			// reset the wd cancellation token if required
 			if (RealTimeWdTokenSource.IsCancellationRequested)
 			{
@@ -2562,7 +2568,7 @@ namespace CumulusMX
 
 			RealtimeFtpWatchDogToken = RealTimeWdTokenSource.Token;
 
-			Task.Run(() =>
+			RealtimeFtpWatchDogTask = Task.Run(() =>
 			{
 				bool connected = false;
 				bool reinit = true;
@@ -8368,6 +8374,7 @@ namespace CumulusMX
 		internal WeatherStation Station { get => station; set => station = value; }
 		public CancellationTokenSource RealTimeWdTokenSource { get; set; } = new();
 		public CancellationToken RealtimeFtpWatchDogToken { get; set; }
+		private Task RealtimeFtpWatchDogTask;
 
 		internal DateTime defaultRecordTS = DateTime.MinValue;
 		internal const string WxnowFile = "wxnow.txt";
