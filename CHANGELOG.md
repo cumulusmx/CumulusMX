@@ -16,6 +16,9 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 
 Alpha build #6 changes:
 - Prevent multiple copies of the FTP watchdog being started by Internet Settings
+- Fix double entry of AirLink Outdoor in Extra Sensor settings
+- The CO₂ Graph data file will now contain null values for missing entries like the other files
+- Fix parsing of Extra Log files for values beyond Leaf Wetness
 
 Alpha build #5 changes:
 - Fix DST changeover issues in Ecowitt Cloud API catch-up
@@ -66,6 +69,7 @@ Alpha build #2 changes:
 	- DateTimes are now stored as Unix timestamps to resolve DST transition ambiguities
 - Debug Beta builds no longer save the debug & data logging enabled state into the Cumulus.ini file
 - FTP/FTPS/SFTP connection management changed to avoid Operating System DNS caching in .NET 10
+- The CO₂ Graph data file will now contain null values for missing entries like the other files
 
 ## Fixed
 
@@ -73,6 +77,7 @@ Alpha build #2 changes:
 - Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1-minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
 - Changed the handling of Ecowitt SD card log files during catch-up to avoid duplicates over the DST period being dropped
 - Prevent multiple copies of the FTP watchdog being started by Internet Settings
+- Fix double entry of AirLink Outdoor in Extra Sensor settings
 
 ### Package Updates
 

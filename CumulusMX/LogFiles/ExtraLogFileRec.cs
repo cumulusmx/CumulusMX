@@ -86,7 +86,7 @@ namespace CumulusMX.LogFiles
 			// 101-106 Temperature 11-16
 			// 107-112 Humidity 11-16
 			// 113-118 Dew point 11-16
-			// 119-122 AQ PM10
+			// 119-122 AQ PM10 1-4
 			// 123-126 AQ PM10 Avg
 
 
@@ -102,39 +102,39 @@ namespace CumulusMX.LogFiles
 
 				if (st.Count >= 32)
 				{
-					for (int i = 1; i <= 10; i++)
+					for (int i = 0; i < 10; i++)
 					{
 						//2-11
-						if (double.TryParse(st[1 + i], inv, out resultDbl))
-							ExtraTemp[i] = resultDbl;
+						if (double.TryParse(st[2 + i], inv, out resultDbl))
+							ExtraTemp[i + 1] = resultDbl;
 
 						//12-21
-						if (int.TryParse(st[11 + i], out resultInt))
-							ExtraHum[i] = resultInt;
+						if (int.TryParse(st[12 + i], out resultInt))
+							ExtraHum[i + 1] = resultInt;
 
 						//22-31
 						if (double.TryParse(st[22 + i], inv, out resultDbl))
-							ExtraDewpoint[i] = resultDbl;
+							ExtraDewpoint[i + 1] = resultDbl;
 					}
 				}
 
 				if (st.Count >= 36)
 				{
-					for (int i = 1; i <= 4; i++)
+					for (int i = 0; i < 4; i++)
 					{
 						//32-35
 						if (double.TryParse(st[32 + i], inv, out resultDbl))
-							SoilTemp[i] = resultDbl;
+							SoilTemp[i + 1] = resultDbl;
 					}
 				}
 
 				if (st.Count >= 40)
 				{
-					for (int i = 1; i <= 4; i++)
+					for (int i = 0; i < 4; i++)
 					{
 						//36-39
 						if (int.TryParse(st[36 + i], out resultInt))
-							SoilMoist[i] = resultInt;
+							SoilMoist[i + 1] = resultInt;
 					}
 				}
 
@@ -150,11 +150,118 @@ namespace CumulusMX.LogFiles
 
 				if (st.Count > 56)
 				{
-					//44-55
-					for (int i = 5; i <= 16; i++)
+					//44-55 (Soil temp 5-16)
+					for (int i = 4; i < 16; i++)
 					{
 						if (double.TryParse(st[44 + i - 4], inv, out resultDbl))
-							SoilTemp[i] = resultDbl;
+							SoilTemp[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 68)
+				{
+					//56-67 (Soil moisture 5-16)
+					for (int i = 4; i < 16; i++)
+					{
+						if (int.TryParse(st[56 + i - 4], out resultInt))
+							SoilMoist[i + 1] = resultInt;
+					}
+				}
+			
+				if (st.Count > 72)
+				{
+					//68-71
+					for (int i = 0; i < 4; i++)
+					{
+						if (double.TryParse(st[68 + i], inv, out resultDbl))
+							AirQuality[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 76)
+				{
+					//72-75
+					for (int i = 0; i < 4; i++)
+					{
+						if (double.TryParse(st[72 + i], inv, out resultDbl))
+							AirQualityAvg[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 84)
+				{
+					//76-83
+					for (int i = 0; i < 8; i++)
+					{
+						if (double.TryParse(st[76 + i], inv, out resultDbl))
+							UserTemp[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 92)
+				{
+					if (double.TryParse(st[84], inv, out resultDbl))
+						CO2 = resultDbl;
+					if (double.TryParse(st[85], inv, out resultDbl))
+						CO2_24h = resultDbl;
+					if (double.TryParse(st[86], inv, out resultDbl))
+						CO2_pm2p5 = resultDbl;
+					if (double.TryParse(st[87], inv, out resultDbl))
+						CO2_pm2p5_24h = resultDbl;
+					if (double.TryParse(st[88], inv, out resultDbl))
+						CO2_pm10 = resultDbl;
+					if (double.TryParse(st[89], inv, out resultDbl))
+						CO2_pm10_24h = resultDbl;
+					if (double.TryParse(st[90], inv, out resultDbl))
+						CO2_temperature = resultDbl;
+					if (int.TryParse(st[91], out resultInt))
+						CO2_humidity = resultInt;
+				}
+
+				if (st.Count > 99)
+				{
+					//92-95 & 96-99
+					for (int i = 0; i < 4; i++)
+					{
+						if (double.TryParse(st[92 + i], inv, out resultDbl))
+							LaserDist[i + 1] = resultDbl;
+						if (double.TryParse(st[96 + i], inv, out resultDbl))
+							LaserDepth[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 100)
+				{
+					//100
+					if (double.TryParse(st[100], inv, out resultDbl))
+						Snow24h = resultDbl;
+				}
+
+				if (st.Count > 118)
+				{
+					//101-106 Extra Temp 11-16
+					//107-112 Extra Hum 11-16
+					//113-118 Extra Dewpoint 11-16
+					for (int i = 10; i < 16; i++)
+					{
+						if (double.TryParse(st[101 + i - 10], inv, out resultDbl))
+							ExtraTemp[i + 1] = resultDbl;
+						if (int.TryParse(st[107 + i - 10], out resultInt))
+							ExtraHum[i + 1] = resultInt;
+						if (double.TryParse(st[113 + i - 10], inv, out resultDbl))
+							ExtraDewpoint[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 126)
+				{
+					//119-122 && 123-126
+					for (int i = 0; i < 4; i++)
+					{
+						if (double.TryParse(st[119 + i], inv, out resultDbl))
+							AirQuality10[i + 1] = resultDbl;
+						if (double.TryParse(st[123 + i], inv, out resultDbl))
+							AirQuality10Avg[i + 1] = resultDbl;
 					}
 				}
 			}

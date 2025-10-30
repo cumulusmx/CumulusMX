@@ -334,7 +334,7 @@ namespace CumulusMX.Stations
 
 						try
 						{
-							DecodeAlCurrent(responseBody);
+							DecodeAlCurrent(responseBody, indoor);
 							if (startupDayResetIfRequired)
 							{
 								station.DoDayResetIfNeeded();
@@ -373,12 +373,17 @@ namespace CumulusMX.Stations
 			updateInProgress = false;
 		}
 
-		private void DecodeAlCurrent(string currentJson)
+		private void DecodeAlCurrent(string currentJson, bool indoor)
 		{
 			try
 			{
 				// Convert JSON string to an object
 				var json = JsonSerializer.Deserialize<AlCurrent>(currentJson);
+
+				if (json.error != null)
+				{
+					cumulus.LogErrorMessage($"DecodeAlCurrent: AirLink returned error code {json.error.code} - \"{json.error.message}\"");
+				}
 
 				// The WLL sends the timestamp in Unix ticks, and in UTC
 				// rather than rely on the WLL clock being correct, we will use our local time
@@ -390,8 +395,14 @@ namespace CumulusMX.Stations
 				if (rec.pct_pm_data_last_1_hour == 0 && rec.pm2p5_last == 0 && rec.pm_10_last == 0)
 				{
 					cumulus.LogMessage("Ignoring AirLink data with zero values and percent in last hour is also 0 - possibly restarted");
-					cumulus.airLinkDataIn.dataValid = false;
-					cumulus.airLinkDataOut.dataValid = false;
+					if (indoor)
+					{
+						cumulus.airLinkDataIn.dataValid = false;
+					}
+					else
+					{
+						cumulus.airLinkDataOut.dataValid = false;
+					}
 					return;
 				}
 
@@ -1688,7 +1699,13 @@ namespace CumulusMX.Stations
 		private sealed class AlCurrent
 		{
 			public AlCurrentData data { get; set; }
-			public string error { get; set; }
+			public AlError error { get; set; }
+		}
+
+		private sealed class AlError
+		{
+			public int code { get; set; }
+			public string message { get; set; }
 		}
 
 		private sealed class AlCurrentData
