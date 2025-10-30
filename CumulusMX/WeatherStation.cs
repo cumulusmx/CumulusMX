@@ -3002,7 +3002,7 @@ namespace CumulusMX
 
 			var finished = false;
 			var dataAdded = false;
-			var entrydate = new DateTime(0, DateTimeKind.Local);
+			var entryTs = 0L;
 			DateTime dateFrom;
 			DateTime dateTo;
 
@@ -3030,11 +3030,14 @@ namespace CumulusMX
 
 			var fileDate = dateFrom;
 
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
+
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(fileDate);
 
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix Timestamp
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -3082,11 +3085,11 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).LocalFromUnixTime();
+								entryTs = long.Parse(st[1]);
 
-								if (entrydate > dateFrom)
+								if (entryTs > tsFrom)
 								{
-									if (entrydate > dateTo)
+									if (entryTs > tsTo)
 									{
 										finished = true;
 										break;
@@ -3095,7 +3098,7 @@ namespace CumulusMX
 									// entry is from required period
 									dataAdded = true;
 									var temp = 0.0;
-									var jsTime = entrydate.ToUnixTimeMs();
+									var jsTime = entryTs * 1000;
 
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraTemp.Vals.Length; i++)
 									{
@@ -3132,7 +3135,7 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					if (entryTs >= tsTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
 					{
 						finished = true;
 					}
@@ -3186,7 +3189,7 @@ namespace CumulusMX
 
 			var finished = false;
 			var dataAdded = false;
-			var entrydate = new DateTime(0, DateTimeKind.Local);
+			var entryTs = 0L;
 			DateTime dateFrom;
 			DateTime dateTo;
 
@@ -3213,12 +3216,14 @@ namespace CumulusMX
 			}
 
 			var fileDate = dateFrom;
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(fileDate);
 
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix timestamp
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -3266,11 +3271,11 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).LocalFromUnixTime();
+								entryTs = long.Parse(st[1]);
 
-								if (entrydate > dateFrom)
+								if (entryTs > tsFrom)
 								{
-									if (entrydate > dateTo)
+									if (entryTs > tsTo)
 									{
 										finished = true;
 										break;
@@ -3279,7 +3284,7 @@ namespace CumulusMX
 									// entry is from required period
 									dataAdded = true;
 									var temp = 0.0;
-									var jsTime = entrydate.ToUnixTimeMs();
+									var jsTime = entryTs * 1000;
 
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraDewPoint.Vals.Length; i++)
 									{
@@ -3316,7 +3321,7 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					if (entryTs >= tsTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
 					{
 						finished = true;
 					}
@@ -3370,7 +3375,7 @@ namespace CumulusMX
 
 			var finished = false;
 			var dataAdded = false;
-			var entrydate = new DateTime(0, DateTimeKind.Local);
+			var entryTs = 0L;
 			DateTime dateFrom;
 			DateTime dateTo;
 
@@ -3397,12 +3402,14 @@ namespace CumulusMX
 			}
 
 			var fileDate = dateFrom;
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix timestamp
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -3450,11 +3457,11 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).LocalFromUnixTime();
+								entryTs = long.Parse(st[1]);
 
-								if (entrydate > dateFrom)
+								if (entryTs > tsFrom)
 								{
-									if (entrydate > dateTo)
+									if (entryTs > tsTo)
 									{
 										finished = true;
 										break;
@@ -3463,7 +3470,7 @@ namespace CumulusMX
 									// entry is from required period
 									dataAdded = true;
 									var temp = 0;
-									var jsTime = entrydate.ToUnixTimeMs();
+									var jsTime = entryTs * 1000;
 
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Vals.Length; i++)
 									{
@@ -3500,7 +3507,7 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					if (entryTs >= tsTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
 					{
 						finished = true;
 					}
@@ -3554,7 +3561,7 @@ namespace CumulusMX
 
 			var finished = false;
 			var dataAdded = false;
-			var entrydate = new DateTime(0, DateTimeKind.Local);
+			var entryTs = 0L;
 			DateTime dateFrom;
 			DateTime dateTo;
 
@@ -3581,12 +3588,14 @@ namespace CumulusMX
 			}
 
 			var fileDate = dateFrom;
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix timestamp
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -3634,11 +3643,11 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).LocalFromUnixTime();
+								entryTs = long.Parse(st[1]);
 
-								if (entrydate > dateFrom)
+								if (entryTs > tsFrom)
 								{
-									if (entrydate > dateTo)
+									if (entryTs > tsTo)
 									{
 										finished = true;
 										break;
@@ -3647,7 +3656,7 @@ namespace CumulusMX
 									// entry is from required period
 									dataAdded = true;
 									var temp = 0.0;
-									var jsTime = entrydate.ToUnixTimeMs();
+									var jsTime = entryTs * 1000;
 
 									for (var i = 0; i < cumulus.GraphOptions.Visible.SoilTemp.Vals.Length; i++)
 									{
@@ -3684,7 +3693,7 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					if (entryTs >= tsTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
 					{
 						finished = true;
 					}
@@ -3737,7 +3746,7 @@ namespace CumulusMX
 
 			var finished = false;
 			var dataAdded = false;
-			var entrydate = new DateTime(0, DateTimeKind.Local);
+			var entryTs = 0L;
 			DateTime dateFrom;
 			DateTime dateTo;
 
@@ -3764,12 +3773,14 @@ namespace CumulusMX
 			}
 
 			var fileDate = dateFrom;
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix timestamp
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -3817,11 +3828,11 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).LocalFromUnixTime();
+								entryTs = long.Parse(st[1]);
 
-								if (entrydate > dateFrom)
+								if (entryTs > tsFrom)
 								{
-									if (entrydate > dateTo)
+									if (entryTs > tsTo)
 									{
 										finished = true;
 										break;
@@ -3830,7 +3841,7 @@ namespace CumulusMX
 									// entry is from required period
 									dataAdded = true;
 									var temp = 0;
-									var jsTime = entrydate.ToUnixTimeMs();
+									var jsTime = entryTs * 1000;
 
 									for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Vals.Length; i++)
 									{
@@ -3867,7 +3878,7 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					if (entryTs >= tsTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
 					{
 						finished = true;
 					}
@@ -3921,7 +3932,7 @@ namespace CumulusMX
 
 			var finished = false;
 			var dataAdded = false;
-			var entrydate = new DateTime(0, DateTimeKind.Local);
+			var entryTs = 0L;
 			DateTime dateFrom;
 			DateTime dateTo;
 
@@ -3948,12 +3959,14 @@ namespace CumulusMX
 			}
 
 			var fileDate = dateFrom;
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix timestamp
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -4001,11 +4014,11 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).LocalFromUnixTime();
+								entryTs = long.Parse(st[1]);
 
-								if (entrydate > dateFrom)
+								if (entryTs > tsFrom)
 								{
-									if (entrydate > dateTo)
+									if (entryTs > tsTo)
 									{
 										finished = true;
 										break;
@@ -4014,7 +4027,7 @@ namespace CumulusMX
 									// entry is from required period
 									dataAdded = true;
 									var temp = 0.0;
-									var jsTime = entrydate.ToUnixTimeMs();
+									var jsTime = entryTs * 1000;
 
 									for (var i = 0; i < cumulus.GraphOptions.Visible.LaserDepth.Vals.Length; i++)
 									{
@@ -4051,7 +4064,7 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					if (entryTs >= tsTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
 					{
 						finished = true;
 					}
@@ -4105,7 +4118,7 @@ namespace CumulusMX
 
 			var finished = false;
 			var dataAdded = false;
-			var entrydate = new DateTime(0, DateTimeKind.Local);
+			var entryTs = 0L;
 			DateTime dateFrom;
 			DateTime dateTo;
 
@@ -4132,12 +4145,14 @@ namespace CumulusMX
 			}
 
 			var fileDate = dateFrom;
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix timestamp
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -4185,11 +4200,11 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).LocalFromUnixTime();
+								entryTs = long.Parse(st[1]);
 
-								if (entrydate > dateFrom)
+								if (entryTs > tsFrom)
 								{
-									if (entrydate > dateTo)
+									if (entryTs > tsTo)
 									{
 										finished = true;
 										break;
@@ -4198,7 +4213,7 @@ namespace CumulusMX
 									// entry is from required period
 									dataAdded = true;
 									var temp = 0.0;
-									var jsTime = entrydate.ToUnixTimeMs();
+									var jsTime = entryTs * 1000;
 
 									for (var i = 0; i < 2; i++)
 									{
@@ -4235,7 +4250,7 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					if (entryTs >= tsTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
 					{
 						finished = true;
 					}
@@ -4289,7 +4304,7 @@ namespace CumulusMX
 
 			var finished = false;
 			var dataAdded = false;
-			var entrydate = new DateTime(0, DateTimeKind.Local);
+			var entryTs = 0L;
 			DateTime dateFrom;
 			DateTime dateTo;
 
@@ -4316,12 +4331,14 @@ namespace CumulusMX
 			}
 
 			var fileDate = dateFrom;
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix Timestamp
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -4369,11 +4386,11 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).LocalFromUnixTime();
+								entryTs = long.Parse(st[1]);
 
-								if (entrydate > dateFrom)
+								if (entryTs > tsFrom)
 								{
-									if (entrydate > dateTo)
+									if (entryTs > tsTo)
 									{
 										finished = true;
 										break;
@@ -4382,7 +4399,7 @@ namespace CumulusMX
 									// entry is from required period
 									dataAdded = true;
 									var temp = 0.0;
-									var jsTime = entrydate.ToUnixTimeMs();
+									var jsTime = entryTs * 1000;
 
 									for (var i = 0; i < cumulus.GraphOptions.Visible.UserTemp.Vals.Length; i++)
 									{
@@ -4419,7 +4436,7 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					if (entryTs >= tsTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
 					{
 						finished = true;
 					}
@@ -4474,7 +4491,7 @@ namespace CumulusMX
 
 			var finished = false;
 			var dataAdded = false;
-			var entrydate = new DateTime(0, DateTimeKind.Local);
+			var entryTs = 0L;
 			DateTime dateFrom;
 			DateTime dateTo;
 
@@ -4501,12 +4518,14 @@ namespace CumulusMX
 			}
 
 			var fileDate = dateFrom;
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			// get the log file name to start
 			var logFile = cumulus.GetExtraLogFileName(dateFrom);
 
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix Timestamp
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -4547,11 +4566,11 @@ namespace CumulusMX
 								linenum++;
 
 								var rec = new ExtraLogFileRec(line);
-								entrydate = rec.DateTime;
+								entryTs = rec.UnixTimestamp;
 
-								if (entrydate > dateFrom)
+								if (entryTs > tsFrom)
 								{
-									if (entrydate > dateTo)
+									if (entryTs > tsTo)
 									{
 										finished = true;
 										break;
@@ -4559,31 +4578,31 @@ namespace CumulusMX
 
 									// entry is from required period
 									dataAdded = true;
-									var jsTime = rec.UnixTimestamp * 1000;
+									var jsTime = entryTs * 1000;
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local) && rec.CO2.HasValue)
-										sbCo2.Append($"[{jsTime},{rec.CO2.Value.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
+										sbCo2.Append($"[{jsTime},{(rec.CO2.HasValue ? rec.CO2.Value.ToString("F1", InvC) : "null")}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local) && rec.CO2_24h.HasValue)
-										sbCo2Avg.Append($"[{jsTime},{rec.CO2_24h.Value.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local))
+										sbCo2Avg.Append($"[{jsTime},{(rec.CO2_24h.HasValue ? rec.CO2_24h.Value.ToString("F1", InvC) : "null")}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local) && rec.CO2_pm2p5.HasValue)
-										sbPm25.Append($"[{jsTime},{rec.CO2_pm2p5.Value.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
+										sbPm25.Append($"[{jsTime},{(rec.CO2_pm2p5.HasValue ? rec.CO2_pm2p5.Value.ToString("F1", InvC) : "null")}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local) && rec.CO2_pm2p5_24h.HasValue)
-										sbPm25Avg.Append($"[{jsTime},{rec.CO2_pm2p5_24h.Value.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local))
+										sbPm25Avg.Append($"[{jsTime},{(rec.CO2_pm2p5_24h.HasValue ? rec.CO2_pm2p5_24h.Value.ToString("F1", InvC) : "null")}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local) && rec.CO2_pm10.HasValue)
-										sbPm10.Append($"[{jsTime},{rec.CO2_pm10.Value.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
+										sbPm10.Append($"[{jsTime},{(rec.CO2_pm10.HasValue ? rec.CO2_pm10.Value.ToString("F1", InvC) : "null")}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local) && rec.CO2_pm10_24h.HasValue)
-										sbPm10Avg.Append($"[{jsTime},{rec.CO2_pm10_24h.Value.ToString("F1", InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
+										sbPm10Avg.Append($"[{jsTime},{(rec.CO2_pm10_24h.HasValue ? rec.CO2_pm10_24h.Value.ToString("F1", InvC) : "null")}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local) && rec.CO2_temperature.HasValue)
-										sbTemp.Append($"[{jsTime},{rec.CO2_temperature.Value.ToString(cumulus.TempFormat, InvC)}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
+										sbTemp.Append($"[{jsTime},{(rec.CO2_temperature.HasValue ? rec.CO2_temperature.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
 
-									if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local) && rec.CO2_humidity.HasValue)
-										sbHum.Append($"[{jsTime},{rec.CO2_humidity}],");
+									if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
+										sbHum.Append($"[{jsTime},{(rec.CO2_humidity.HasValue ? rec.CO2_humidity : "null")}],");
 								}
 							}
 							catch (Exception ex)
@@ -4607,7 +4626,7 @@ namespace CumulusMX
 
 				if (!finished)
 				{
-					if (entrydate >= dateTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					if (entryTs >= tsTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
 					{
 						finished = true;
 					}
@@ -4790,7 +4809,10 @@ namespace CumulusMX
 			var fileDate = dateFrom;
 			var logFile = useExtraSensorLogFile ? cumulus.GetExtraLogFileName(fileDate) : cumulus.GetAirLinkLogFileName(fileDate);
 
-			var entrydate = new DateTime(0, DateTimeKind.Local);
+			var entryTs = 0L;
+
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			var finished = false;
 
@@ -4813,11 +4835,11 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entrydate = long.Parse(st[1]).LocalFromUnixTime();
+								entryTs = long.Parse(st[1]);
 
-								if (entrydate > dateFrom)
+								if (entryTs > tsFrom)
 								{
-									if (entrydate > dateTo)
+									if (entryTs > tsTo)
 									{
 										finished = true;
 										break;
@@ -4825,7 +4847,7 @@ namespace CumulusMX
 
 									// entry is from required period
 									var temp = 0.0;
-									var jsTime = entrydate.ToUnixTimeMs();
+									var jsTime = entryTs * 1000;
 
 									if (st.Count > pm25idx && double.TryParse(st[pm25idx], InvC, out temp))
 									{
@@ -4913,6 +4935,8 @@ namespace CumulusMX
 			// convert start/end to meteo date/times if required
 			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
 			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
@@ -4943,19 +4967,19 @@ namespace CumulusMX
 									continue;
 
 								var rec = new LogFileRec(line);
-								var recDate = rec.DateTime;
+								var recTs = rec.UnixTimestamp;
 
-								if (recDate < dateFrom)
+								if (recTs < tsFrom)
 									continue;
 
-								if (recDate > dateTo)
+								if (recTs > tsTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervalTempGraphData: Finished processing the log files");
 									break;
 								}
 
-								var jsTime = rec.UnixTimestamp * 1000;
+								var jsTime = recTs * 1000;
 
 								if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
 									sbIn.Append($"[{jsTime},{(rec.IndoorTemperature.HasValue ? rec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
@@ -5115,6 +5139,8 @@ namespace CumulusMX
 			// convert start/end to meteo date/times if required
 			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
 			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
@@ -5145,19 +5171,19 @@ namespace CumulusMX
 									continue;
 
 								var rec = new LogFileRec(line);
-								var recDate = rec.DateTime;
+								var recTs = rec.UnixTimestamp;
 
-								if (recDate < dateFrom)
+								if (recTs < tsFrom)
 									continue;
 
-								if (recDate > dateTo)
+								if (recTs > tsTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervalHumGraphData: Finished processing the log files");
 									break;
 								}
 
-								var jsTime = rec.UnixTimestamp * 1000;
+								var jsTime = recTs * 1000;
 
 								if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 								{
@@ -5250,6 +5276,8 @@ namespace CumulusMX
 			// convert start/end to meteo date/times if required
 			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
 			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
@@ -5279,19 +5307,19 @@ namespace CumulusMX
 								if (string.IsNullOrWhiteSpace(line)) continue;
 
 								var rec = new LogFileRec(line);
-								var recDate = rec.DateTime;
+								var recTs = rec.UnixTimestamp;
 
-								if (recDate < dateFrom)
+								if (recTs < tsFrom)
 									continue;
 
-								if (recDate > dateTo)
+								if (recTs > tsTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervalSolarGraphData: Finished processing the log files");
 									break;
 								}
 
-								var jsTime = rec.UnixTimestamp * 1000;
+								var jsTime = recTs * 1000;
 
 								if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 								{
@@ -5387,6 +5415,8 @@ namespace CumulusMX
 			// convert start/end to meteo date/times if required
 			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
 			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
@@ -5417,12 +5447,12 @@ namespace CumulusMX
 									continue;
 
 								var rec = new LogFileRec(line);
-								var recDate = rec.DateTime;
+								var recTs = rec.UnixTimestamp;
 
-								if (recDate < dateFrom)
+								if (recTs < tsFrom)
 									continue;
 
-								if (recDate > dateTo)
+								if (recTs >tsTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervaPressGraphData: Finished processing the log files");
@@ -5493,6 +5523,8 @@ namespace CumulusMX
 			// convert start/end to meteo date/times if required
 			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
 			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
@@ -5523,12 +5555,12 @@ namespace CumulusMX
 									continue;
 
 								var rec = new LogFileRec(line);
-								var recDate = rec.DateTime;
+								var recTs = rec.UnixTimestamp;
 
-								if (recDate < dateFrom)
+								if (recTs < tsFrom)
 									continue;
 
-								if (recDate > dateTo)
+								if (recTs > tsTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervalWindGraphData: Finished processing the log files");
@@ -5616,6 +5648,8 @@ namespace CumulusMX
 			// convert start/end to meteo date/times if required
 			dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
 			dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
 
 			var fileDate = dateFrom;
 			var logFile = cumulus.GetLogFileName(fileDate);
@@ -5642,12 +5676,12 @@ namespace CumulusMX
 								linenum++;
 
 								var rec = new LogFileRec(line);
-								var recDate = rec.DateTime;
+								var recTs = rec.UnixTimestamp;
 
-								if (recDate < dateFrom)
+								if (recTs < tsFrom)
 									continue;
 
-								if (recDate > dateTo)
+								if (recTs > tsTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervaRainGraphData: Finished processing the log files");

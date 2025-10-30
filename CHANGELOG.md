@@ -14,6 +14,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 First build using Visual Studio 2026, and transitioning to .NET 10
 
+Alpha build #6 changes:
+- Prevent multiple copies of the FTP watchdog being started by Internet Settings
+
 Alpha build #5 changes:
 - Fix DST changeover issues in Ecowitt Cloud API catch-up
 
@@ -69,6 +72,7 @@ Alpha build #2 changes:
 - Ecowitt HTTP API station using a fixed 5 minute interval for Degree Days during catch-up rather than the log file interval
 - Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1-minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
 - Changed the handling of Ecowitt SD card log files during catch-up to avoid duplicates over the DST period being dropped
+- Prevent multiple copies of the FTP watchdog being started by Internet Settings
 
 ### Package Updates
 
