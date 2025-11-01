@@ -1967,6 +1967,7 @@ namespace CumulusMX
 				}
 			}
 		}
+		
 		private static async Task<bool> Authenticate(IHttpContext context)
 		{
 			string authorization = context.Request.Headers["Authorization"];
@@ -2013,6 +2014,100 @@ namespace CumulusMX
 
 			return true;
 		}
+
+
+		// AI2 dashboard translations
+		public class Ai2DashboardController : WebApiController
+		{
+			[Route(HttpVerbs.Get, "/ai2")]
+			public async Task GetDashboardIndex()
+			{
+				await GetDashboardData("index.html");
+			}
+
+			[Route(HttpVerbs.Get, "/ai2/{req}")]
+			public async Task GetDashboardData(string req)
+			{
+				try
+				{
+					var file = Path.Combine(htmlRootPath, "ai2", req);
+
+					if (File.Exists(file))
+					{
+						// exception for the icon file
+						if (req == "favicon.ico")
+						{
+							Response.ContentType = "image/x-icon";
+							using var reader = File.OpenRead(file);
+							await reader.CopyToAsync(HttpContext.Response.OutputStream);
+						}
+						else
+						{
+							Response.ContentType = "text/html";
+
+							var manager = new DashboardLocalisationManager();
+							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
+
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+						}
+					}
+					else
+					{
+						Response.StatusCode = 404;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"api/ai2dashboard: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+		}
+
+		public class Ai2ScriptController : WebApiController
+		{
+			static string[] bypassList = [
+			];
+
+			[Route(HttpVerbs.Get, "/ai2/js/{req}")]
+			public async Task GetJavaScriptData(string req)
+			{
+				Response.ContentType = "application/javascript";
+
+				try
+				{
+					var file = Path.Combine(htmlRootPath, "ai2", "js", req);
+
+					if (File.Exists(file))
+					{
+
+						// bypass list for scripts that do not need processing
+						if (bypassList.Contains(req))
+						{
+							using var reader = File.OpenRead(file);
+							await reader.CopyToAsync(HttpContext.Response.OutputStream);
+						}
+						else
+						{
+							var manager = new DashboardLocalisationManager();
+							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
+
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+						}
+					}
+					else
+					{
+						Response.StatusCode = 404;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"api/ai2dashboard: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+		}
+
 
 		/*
 		private static string DetectPreferredLanguage(IHttpRequest request)

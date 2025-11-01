@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -236,7 +237,7 @@ namespace CumulusMX.Stations
 				{
 					// In rollover hour and rollover not yet done
 					// do rollover
-					cumulus.LogMessage("Day rollover " + timestamp.ToShortTimeString());
+					cumulus.LogMessage("Day rollover " + timestamp.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
 					DayReset(timestamp);
 
 					rolloverdone = true;

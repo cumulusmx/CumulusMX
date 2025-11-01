@@ -14,27 +14,30 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 First build using Visual Studio 2026, and transitioning to .NET 10
 
-Alpha build #6 changes:
+#### Alpha build #7
+- Ai2 Dashboard now runs through the CMX translation process
+
+#### Alpha build #6 changes:
 - Prevent multiple copies of the FTP watchdog being started by Internet Settings
 - Fix double entry of AirLink Outdoor in Extra Sensor settings
 - The CO₂ Graph data file will now contain null values for missing entries like the other files
 - Fix parsing of Extra Log files for values beyond Leaf Wetness
 
-Alpha build #5 changes:
+#### Alpha build #5 changes:
 - Fix DST changeover issues in Ecowitt Cloud API catch-up
 
-Alpha build #4 changes:
+#### Alpha build #4 changes:
 - Build is now: 4.7.0.47004
 - SQLite changed to use unix timestamps to store date-times
 	- You MUST delete the cumulusmx.db file before the first run of Alpha #4
 - Today.ini Timestamp value now written with the TZ offset appended
 - Changed the handling of Ecowitt SD card log files during catch-up to avoid duplicates over the DST period being dropped (now uses Unix timestamps internally rather than converting to .Net DateTimes)
 
-Alpha build #3 changes:
+#### Alpha build #3 changes:
 - Add an exponential backoff to failed Email sends (up to 5.6 hours)
 - Airlink log files are now written in the new format
 
-Alpha build #2 changes:
+#### Alpha build #2 changes:
 - New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
 - There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows firewall rules
 - Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1-minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
@@ -52,7 +55,7 @@ Alpha build #2 changes:
 - There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows firewall rules
 - Add an exponential backoff to failed Email sends (up to 5.6 hours)
 
-## Changed
+### Changed
 
 - Monthly log files have changed format, the first two values of each record are different to resolve DST transition ambiguities
 	- Old format records start: Date,Time,
@@ -70,8 +73,9 @@ Alpha build #2 changes:
 - Debug Beta builds no longer save the debug & data logging enabled state into the Cumulus.ini file
 - FTP/FTPS/SFTP connection management changed to avoid Operating System DNS caching in .NET 10
 - The CO₂ Graph data file will now contain null values for missing entries like the other files
+- The realtime FTP watchdog file has been renamed from "_cumulusmx_watchdog.txt" to "cumulusmx_watchdog.txt"
 
-## Fixed
+### Fixed
 
 - Ecowitt HTTP API station using a fixed 5 minute interval for Degree Days during catch-up rather than the log file interval
 - Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1-minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
@@ -89,6 +93,8 @@ Alpha build #2 changes:
 - NLog
 - NLog.Extensions.Logging
 - ServiceStack.Text [REMOVED]
+- SixLabors.ImageSharp
+- SSH.NET
 - SQLitePCLRaw.bundle_green [REMOVED]
 - SQLitePCLRaw.bundle_e_sqlite3 [NEW]
 - System.CodeDom

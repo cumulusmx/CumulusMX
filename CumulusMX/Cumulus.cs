@@ -1404,17 +1404,27 @@ namespace CumulusMX
 				.WithStaticFolder("/sounds/", Path.Combine(htmlRootPath, "sounds"), true, m => m
 					.WithoutContentCaching()
 				)
-				.WithStaticFolder("/ai2/", Path.Combine(htmlRootPath, "ai2"), true, m => m
+				.WithStaticFolder("/js/images/", Path.Combine(htmlRootPath, "js", "images"), true, m => m
 					.WithoutContentCaching()
 				)
-				.WithStaticFolder("/js/images/", Path.Combine(htmlRootPath, "js", "images"), true, m => m
+				.WithStaticFolder("/ai2/css/", Path.Combine(htmlRootPath, "ai2", "css"), true, m => m
+					.WithoutContentCaching()
+				)
+				.WithStaticFolder("/ai2/img/", Path.Combine(htmlRootPath, "ai2", "img"), true, m => m
+					.WithoutContentCaching()
+				)
+				.WithStaticFolder("/ai2/lib/", Path.Combine(htmlRootPath, "ai2", "lib"), true, m => m
 					.WithoutContentCaching()
 				)
 				.WithWebApi("/", m => m
 					.WithController<Api.DashboardController>()
 					.WithController<Api.ScriptController>()
 					.WithController<Api.JsonController>()
+					.WithController<Api.Ai2DashboardController>()
+					.WithController<Api.Ai2ScriptController>()
 				);
+
+			Swan.Logging.DebugLogger _Logger = Swan.Logging.DebugLogger.Instance;
 
 			//httpServer.Listener.AddPrefix($"https://*:{HTTPport + 1000}/")
 
@@ -1439,7 +1449,7 @@ namespace CumulusMX
 			Api.langSettings = new LangSettings(this);
 			Api.displaySettings = new DisplaySettings(this);
 
-			_ = httpServer.RunAsync();
+			_ = httpServer.RunAsync(Program.ExitSystemToken);
 
 			Console.WriteLine();
 			Console.Write("Cumulus running at: ");
