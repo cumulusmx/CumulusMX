@@ -3597,7 +3597,7 @@ namespace CumulusMX
 		internal void DoSunriseAndSunset()
 		{
 			LogMessage("Calculating sunrise and sunset times");
-			DateTime today = DateTime.Now.Date;
+			DateTime today = DateTime.Now.Date.AddHours(12);  // Use around midday to avoid DST change issues
 			DateTime tomorrow = today.AddDays(1);
 			try
 			{

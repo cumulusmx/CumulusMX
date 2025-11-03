@@ -16,6 +16,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 
 #### Alpha build #7
 - Ai2 Dashboard now runs through the CMX translation process
+- Sun rise/set dawn/dusk calculations for DST changeover days - note locations near the arctic circle may still show the times in the wrong DST state
 
 #### Alpha build #6 changes:
 - Prevent multiple copies of the FTP watchdog being started by Internet Settings
@@ -82,6 +83,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - Changed the handling of Ecowitt SD card log files during catch-up to avoid duplicates over the DST period being dropped
 - Prevent multiple copies of the FTP watchdog being started by Internet Settings
 - Fix double entry of AirLink Outdoor in Extra Sensor settings
+- Sun rise/set dawn/dusk calculations for DST changeover days - note locations near the arctic circle may still show the times in the wrong DST state
 
 ### Package Updates
 
