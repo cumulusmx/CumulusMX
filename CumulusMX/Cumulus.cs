@@ -1416,6 +1416,9 @@ namespace CumulusMX
 				.WithStaticFolder("/ai2/lib/", Path.Combine(htmlRootPath, "ai2", "lib"), true, m => m
 					.WithoutContentCaching()
 				)
+				.WithStaticFolder("/custom/", Path.Combine(htmlRootPath, "custom"), true, m => m
+					.WithoutContentCaching()
+				)
 				.WithWebApi("/", m => m
 					.WithController<Api.DashboardController>()
 					.WithController<Api.ScriptController>()
