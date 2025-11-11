@@ -14,9 +14,20 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 First build using Visual Studio 2026, and transitioning to .NET 10
 
+#### Alpha build #8
+- The EOD graph data files uploads were being flagged as complete whether or not they were successful for FTP(S) and SFTP uploads (PHP was OK)
+
 #### Alpha build #7
 - Ai2 Dashboard now runs through the CMX translation process
 - Sun rise/set dawn/dusk calculations for DST changeover days - note locations near the arctic circle may still show the times in the wrong DST state
+- Package updates
+	- NLog
+	- SixLabors.ImageSharp
+	- SSH.NET
+- New web tag `<#snowunit>`
+- Fix the diary editor not accepting decimal values with no leading zero before the decimal point
+- Fix to `websitedataT.json` correcting the 'snowDepth' and 'snow24h' entries to 'snowdepth' and 'snow24hr' and adding 'snowunit'
+- The default web site now fully converted to ChartJS, removing the dependency on obtaining a Highcharts licence
 
 #### Alpha build #6 changes:
 - Prevent multiple copies of the FTP watchdog being started by Internet Settings
@@ -55,6 +66,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
 - There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows firewall rules
 - Add an exponential backoff to failed Email sends (up to 5.6 hours)
+- New web tag `<#snowunit>`
 
 ### Changed
 
@@ -66,6 +78,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 	- The original files will be backed up to /backup/ConvertBackup
 	- The Date_Time field is now purely for human readability, Cumulus MX now uses the Unix Timestamp internally
 - The main monthly log files now log the final values for Rainfall Today and ET Today in the first record of the following day
+- The default web site has been fully converted to ChartJS, removing the dependency on obtaining a Highcharts licence
 - Removes the dependency on ServiceStack.Text for JSON handling, now using the built-in System.Text.Json
 - Swaps SQLitePCLRaw.bundle_green for newer SQLitePCLRaw.bundle_e_sqlite3
 - Debug and data logging are now fully independent
@@ -84,6 +97,8 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - Prevent multiple copies of the FTP watchdog being started by Internet Settings
 - Fix double entry of AirLink Outdoor in Extra Sensor settings
 - Sun rise/set dawn/dusk calculations for DST changeover days - note locations near the arctic circle may still show the times in the wrong DST state
+- Fix to `websitedataT.json` correcting the 'snowDepth' and 'snow24h' entries to 'snowdepth' and 'snow24hr' and adding 'snowunit'
+- The EOD graph data files uploads were being flagged as complete whether or not they were successful for FTP(S) and SFTP uploads (PHP was OK)
 
 ### Package Updates
 

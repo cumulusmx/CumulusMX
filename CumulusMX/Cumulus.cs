@@ -10247,6 +10247,7 @@ namespace CumulusMX
 
 						if (NOAAconf.NeedFtp)
 						{
+							var success = false;
 							try
 							{
 								// upload NOAA reports
@@ -10255,12 +10256,12 @@ namespace CumulusMX
 								var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 								var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-								UploadFile(conn, uploadfile, remotefile, cycle1k);
+								success = UploadFile(conn, uploadfile, remotefile, cycle1k);
 
 								uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 								remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-								UploadFile(conn, uploadfile, remotefile, cycle1k);
+								success = success && UploadFile(conn, uploadfile, remotefile, cycle1k);
 
 								LogDebugMessage($"{msgPrefix} Done uploading NOAA reports");
 							}
@@ -10270,10 +10271,11 @@ namespace CumulusMX
 								FtpAlarm.LastMessage = "Error uploading NOAA report file - " + e.Message;
 								FtpAlarm.Triggered = true;
 							}
-							NOAAconf.NeedFtp = false;
+							NOAAconf.NeedFtp = !success;
 						}
 
 						// Extra files
+						var eodSuccess = true;
 						for (var i = 0; i < ActiveExtraFiles.Count; i++)
 						{
 							var item = ActiveExtraFiles[i];
@@ -10342,11 +10344,11 @@ namespace CumulusMX
 									LogDebugMessage($"{msgPrefix} Processing Extra web file: {uploadfile}");
 									var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 									using var strm = GenerateStreamFromString(data);
-									UploadStream(conn, remotefile, strm, cycle1k);
+									eodSuccess = eodSuccess && UploadStream(conn, remotefile, strm, cycle1k);
 								}
 								else
 								{
-									UploadFile(conn, uploadfile, remotefile, cycle1k);
+									eodSuccess = eodSuccess && UploadFile(conn, uploadfile, remotefile, cycle1k);
 								}
 							}
 							catch (Exception e)
@@ -10360,7 +10362,7 @@ namespace CumulusMX
 
 						if (EODfilesNeedFTP)
 						{
-							EODfilesNeedFTP = false;
+							EODfilesNeedFTP = !eodSuccess;
 						}
 
 						// standard files
@@ -10413,13 +10415,14 @@ namespace CumulusMX
 
 									using (var dataStream = GenerateStreamFromString(json))
 									{
-										UploadStream(conn, remotefile, dataStream, cycle1k);
-									}
-
-									// Uploaded OK, reset the upload required flag for the static and daily files
-									if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
-									{
-										GraphDataFiles[i].FtpRequired = false;
+										if (UploadStream(conn, remotefile, dataStream, cycle1k))
+										{
+											// Uploaded OK, reset the upload required flag for the static and daily files
+											if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
+											{
+												GraphDataFiles[i].FtpRequired = false;
+											}
+										}
 									}
 								}
 								catch (Exception e)
@@ -10446,10 +10449,12 @@ namespace CumulusMX
 
 									using (var dataStream = GenerateStreamFromString(json))
 									{
-										UploadStream(conn, remotefile, dataStream, cycle1k);
+										if (UploadStream(conn, remotefile, dataStream, cycle1k))
+										{
+											// Uploaded OK, reset the upload required flag
+											GraphDataEodFiles[i].FtpRequired = false;
+										}
 									}
-									// Uploaded OK, reset the upload required flag
-									GraphDataEodFiles[i].FtpRequired = false;
 								}
 								catch (Exception e)
 								{
@@ -10466,10 +10471,12 @@ namespace CumulusMX
 							try
 							{
 								LogDebugMessage($"{msgPrefix} Uploading Moon image file");
-								UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, -1);
+								if (UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, -1))
+								{
+									// clear the image ready for FTP flag, only upload once an hour
+									MoonImage.ReadyToFtp = false;
+								}
 								LogDebugMessage("SFTP[Int]: Done uploading Moon image file");
-								// clear the image ready for FTP flag, only upload once an hour
-								MoonImage.ReadyToFtp = false;
 							}
 							catch (Exception e)
 							{
@@ -10541,6 +10548,7 @@ namespace CumulusMX
 				{
 					if (NOAAconf.NeedFtp)
 					{
+						var success = false;
 						try
 						{
 							// upload NOAA reports
@@ -10550,12 +10558,12 @@ namespace CumulusMX
 							var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-							UploadFile(conn, uploadfile, remotefile, cycle);
+							success = UploadFile(conn, uploadfile, remotefile, cycle);
 
 							uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 							remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-							UploadFile(conn, uploadfile, remotefile, cycle);
+							success = success && UploadFile(conn, uploadfile, remotefile, cycle);
 							LogFtpDebugMessage($"{msgPrefix} Upload of NOAA reports complete", false);
 						}
 						catch (Exception e)
@@ -10564,10 +10572,11 @@ namespace CumulusMX
 							FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
 							FtpAlarm.Triggered = true;
 						}
-						NOAAconf.NeedFtp = false;
+						NOAAconf.NeedFtp = !success;
 					}
 
 					// Extra files
+					var eodSuccess = true;
 					for (var i = 0; i < ActiveExtraFiles.Count; i++)
 					{
 						var item = ActiveExtraFiles[i];
@@ -10638,11 +10647,11 @@ namespace CumulusMX
 								LogFtpDebugMessage($"{msgPrefix} Processing Extra web file: " + uploadfile, false);
 								var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 								using var strm = GenerateStreamFromString(data);
-								UploadStream(conn, remotefile, strm, cycle1k);
+								eodSuccess = eodSuccess && UploadStream(conn, remotefile, strm, cycle1k);
 							}
 							else
 							{
-								UploadFile(conn, uploadfile, remotefile, cycle1k);
+								eodSuccess = eodSuccess && UploadFile(conn, uploadfile, remotefile, cycle1k);
 							}
 						}
 						catch (Exception e)
@@ -10655,7 +10664,7 @@ namespace CumulusMX
 
 					if (EODfilesNeedFTP)
 					{
-						EODfilesNeedFTP = false;
+						EODfilesNeedFTP = !eodSuccess;
 					}
 
 					// standard files
@@ -10765,9 +10774,11 @@ namespace CumulusMX
 						{
 							LogFtpMessage("", false);
 							LogFtpDebugMessage($"{msgPrefix} Uploading Moon image file", false);
-							UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, cycle1k);
-							// clear the image ready for FTP flag, only upload once an hour
-							MoonImage.ReadyToFtp = false;
+							if (UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, cycle1k))
+							{
+								// clear the image ready for FTP flag, only upload once an hour
+								MoonImage.ReadyToFtp = false;
+							}
 						}
 						catch (Exception e)
 						{
@@ -10885,10 +10896,12 @@ namespace CumulusMX
 							var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle1k, false, NOAAconf.UseUtf8);
+							if (await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle1k, false, NOAAconf.UseUtf8))
+							{							
+								NOAAconf.NeedFtp = false;
+							}
 
 							LogDebugMessage($"{msgPrefix} Upload of NOAA reports complete");
-							NOAAconf.NeedFtp = false;
 						}
 						catch (OperationCanceledException)
 						{

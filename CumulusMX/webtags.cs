@@ -1602,6 +1602,11 @@ namespace CumulusMX
 			return string.Empty;
 		}
 
+		private string Tagsnowunit(Dictionary<string, string> tagParams)
+		{
+			return cumulus.Units.SnowText;
+		}
+
 		private static string TagDiaryThunder(Dictionary<string, string> tagParams)
 		{
 			return GetDiaryBoolean("Thunder", tagParams);
@@ -6971,6 +6976,7 @@ namespace CumulusMX
 				{ "snowfalling", Tagsnowfalling },
 				{ "snow24hr", Tagsnow24hr },
 				{ "snowcomment", Tagsnowcomment },
+				{ "sanowunit", Tagsnowunit },
 				{ "DiaryThunder", TagDiaryThunder },
 				{ "DiaryHail", TagDiaryHail },
 				{ "DiaryFog", TagDiaryFog },
