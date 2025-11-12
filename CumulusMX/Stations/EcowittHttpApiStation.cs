@@ -753,8 +753,8 @@ namespace CumulusMX.Stations
 				{
 					// In rollover hour and rollover not yet done
 					// do rollover
-					cumulus.LogMessage("Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
-					Cumulus.LogConsoleMessage("\n  Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+					cumulus.LogMessage("Day rollover " + rec.Key.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+					Cumulus.LogConsoleMessage("\n  Day rollover " + rec.Key.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
 
 					DayReset(DataDateTime);
 
