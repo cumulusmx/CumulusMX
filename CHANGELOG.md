@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -14,8 +14,18 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 First build using Visual Studio 2026, and transitioning to .NET 10
 
+#### Alpha build #9
+- Package updates for .Net 10 release
+	- MySqlConnector
+	- NLog.Extensions.Logging
+	- System.CodeDom
+	- System.IO.Ports
+	- System.ServiceProcess.ServiceController
+
 #### Alpha build #8
 - The EOD graph data files uploads were being flagged as complete whether or not they were successful for FTP(S) and SFTP uploads (PHP was OK)
+- The dashboard now allows user defined pages to be hosted under the `/interface/custom` folder
+- The dashboard has been converted from using Highcharts to ChartJS
 
 #### Alpha build #7
 - Ai2 Dashboard now runs through the CMX translation process
@@ -78,7 +88,8 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 	- The original files will be backed up to /backup/ConvertBackup
 	- The Date_Time field is now purely for human readability, Cumulus MX now uses the Unix Timestamp internally
 - The main monthly log files now log the final values for Rainfall Today and ET Today in the first record of the following day
-- The default web site has been fully converted to ChartJS, removing the dependency on obtaining a Highcharts licence
+- The dashboard has been converted from using Highcharts to ChartJS, and will now work fully offline
+- The default web site has been fully converted from Highcharts to ChartJS, removing the dependency on obtaining a Highcharts licence
 - Removes the dependency on ServiceStack.Text for JSON handling, now using the built-in System.Text.Json
 - Swaps SQLitePCLRaw.bundle_green for newer SQLitePCLRaw.bundle_e_sqlite3
 - Debug and data logging are now fully independent
@@ -88,6 +99,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - FTP/FTPS/SFTP connection management changed to avoid Operating System DNS caching in .NET 10
 - The CO₂ Graph data file will now contain null values for missing entries like the other files
 - The realtime FTP watchdog file has been renamed from "_cumulusmx_watchdog.txt" to "cumulusmx_watchdog.txt"
+- The dashboard now allows user defined pages to be hosted under the `/interface/custom` folder
 
 ### Fixed
 
@@ -98,7 +110,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - Fix double entry of AirLink Outdoor in Extra Sensor settings
 - Sun rise/set dawn/dusk calculations for DST changeover days - note locations near the arctic circle may still show the times in the wrong DST state
 - Fix to `websitedataT.json` correcting the 'snowDepth' and 'snow24h' entries to 'snowdepth' and 'snow24hr' and adding 'snowunit'
-- The EOD graph data files uploads were being flagged as complete whether or not they were successful for FTP(S) and SFTP uploads (PHP was OK)
+- The EOD graph data files FTP(S) and SFTP uploads were being flagged as complete whether or not they were successful (PHP was OK)
 
 ### Package Updates
 
@@ -107,6 +119,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - HidSharp
 - MailKit
 - Microsoft.Win32.SystemEvents
+- MySqlConnector
 - NLog
 - NLog.Extensions.Logging
 - ServiceStack.Text [REMOVED]
