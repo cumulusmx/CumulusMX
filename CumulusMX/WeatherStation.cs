@@ -3469,7 +3469,6 @@ namespace CumulusMX
 
 									// entry is from required period
 									dataAdded = true;
-									var temp = 0;
 									var jsTime = entryTs * 1000;
 
 									for (var i = 0; i < cumulus.GraphOptions.Visible.ExtraHum.Vals.Length; i++)
@@ -3479,7 +3478,7 @@ namespace CumulusMX
 											var val = "null";
 											if (fields[i] < st.Count)
 											{
-												val = int.TryParse(st[fields[i]], out temp) ? temp.ToString() : "null";
+												val = int.TryParse(st[fields[i]], out int temp) ? temp.ToString() : "null";
 											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
@@ -3840,7 +3839,6 @@ namespace CumulusMX
 
 									// entry is from required period
 									dataAdded = true;
-									var temp = 0;
 									var jsTime = entryTs * 1000;
 
 									for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Vals.Length; i++)
@@ -3850,7 +3848,7 @@ namespace CumulusMX
 											var val = "null";
 											if (fields[i] < st.Count)
 											{
-												val = int.TryParse(st[fields[i]], out temp) ? temp.ToString() : "null";
+												val = int.TryParse(st[fields[i]], out int temp) ? temp.ToString() : "null";
 											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}

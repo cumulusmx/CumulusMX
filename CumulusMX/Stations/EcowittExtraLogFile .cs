@@ -270,7 +270,7 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Record {fields[0]} - {time:yyyy-MM-dd HH:mm} added to the list");
+						cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Record {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)} added to the list");
 					}
 				}
 				catch (Exception ex)
