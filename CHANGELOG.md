@@ -10,61 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [4.7.0 \[b41xx\]][29] - 2025-xx-xx
+## BETA [4.7.0 \[b4130\]][29] - 2025-11-21
 
 First build using Visual Studio 2026, and transitioning to .NET 10
 
-#### Alpha build #9
-- Package updates for .Net 10 release
-	- MySqlConnector
-	- NLog.Extensions.Logging
-	- System.CodeDom
-	- System.IO.Ports
-	- System.ServiceProcess.ServiceController
-
-#### Alpha build #8
-- The EOD graph data files uploads were being flagged as complete whether or not they were successful for FTP(S) and SFTP uploads (PHP was OK)
-- The dashboard now allows user defined pages to be hosted under the `/interface/custom` folder
-- The dashboard has been converted from using Highcharts to ChartJS
-
-#### Alpha build #7
-- Ai2 Dashboard now runs through the CMX translation process
-- Sun rise/set dawn/dusk calculations for DST changeover days - note locations near the arctic circle may still show the times in the wrong DST state
-- Package updates
-	- NLog
-	- SixLabors.ImageSharp
-	- SSH.NET
-- New web tag `<#snowunit>`
-- Fix the diary editor not accepting decimal values with no leading zero before the decimal point
-- Fix to `websitedataT.json` correcting the 'snowDepth' and 'snow24h' entries to 'snowdepth' and 'snow24hr' and adding 'snowunit'
-- The default web site now fully converted to ChartJS, removing the dependency on obtaining a Highcharts licence
-
-#### Alpha build #6 changes:
-- Prevent multiple copies of the FTP watchdog being started by Internet Settings
-- Fix double entry of AirLink Outdoor in Extra Sensor settings
-- The CO₂ Graph data file will now contain null values for missing entries like the other files
-- Fix parsing of Extra Log files for values beyond Leaf Wetness
-
-#### Alpha build #5 changes:
-- Fix DST changeover issues in Ecowitt Cloud API catch-up
-
-#### Alpha build #4 changes:
-- Build is now: 4.7.0.47004
-- SQLite changed to use unix timestamps to store date-times
-	- You MUST delete the cumulusmx.db file before the first run of Alpha #4
-- Today.ini Timestamp value now written with the TZ offset appended
-- Changed the handling of Ecowitt SD card log files during catch-up to avoid duplicates over the DST period being dropped (now uses Unix timestamps internally rather than converting to .Net DateTimes)
-
-#### Alpha build #3 changes:
-- Add an exponential backoff to failed Email sends (up to 5.6 hours)
-- Airlink log files are now written in the new format
-
-#### Alpha build #2 changes:
-- New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
-- There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows firewall rules
-- Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1-minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
-- Fixes to Dashboard screens
-- More package updates
+***IMPORTANT: This release requires .NET 10 to run, and WILL alter your log file structures***
 
 ### New
 
@@ -80,7 +30,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 
 ### Changed
 
-- Monthly log files have changed format, the first two values of each record are different to resolve DST transition ambiguities
+- **Monthly log files have changed format**, the first two values of each record are different to resolve DST transition ambiguities
 	- Old format records start: Date,Time,
 	- New format records start: Date_Time,Unix_Timestamp,
 	- All the data fields retain the same offsets as before
@@ -1219,4 +1169,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4130
