@@ -31,8 +31,8 @@ namespace CumulusMX
 	{
 		public struct TWindRecent
 		{
-			public double Gust; // uncalibrated "gust" as read from station
-			public double Speed; // uncalibrated "speed" as read from station
+			public double GustUncal; // uncalibrated "gust" as read from station
+			public double SpeedUncal; // uncalibrated "speed" as read from station
 			public DateTime Timestamp;
 		}
 
@@ -7265,8 +7265,8 @@ namespace CumulusMX
 
 			lock (recentwindLock)
 			{
-				WindRecent[nextwind].Gust = gustpar; // We store uncalibrated gust values, so if we need to calculate the average from them we do not need to uncalibrate
-				WindRecent[nextwind].Speed = uncalibratedspeed;
+				WindRecent[nextwind].GustUncal = gustpar; // We store uncalibrated gust values, so if we need to calculate the average from them we do not need to uncalibrate
+				WindRecent[nextwind].SpeedUncal = uncalibratedspeed;
 				WindRecent[nextwind].Timestamp = timestamp;
 				nextwind = (nextwind + 1) % MaxWindRecent;
 			}
@@ -7443,7 +7443,7 @@ namespace CumulusMX
 //						cumulus.LogDebugMessage($"Wind Time:{WindRecent[i].Timestamp.ToLongTimeString()} Gust:{WindRecent[i].Gust:F1} Speed:{WindRecent[i].Speed:F1}");
 #endif
 						numvalues++;
-						totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? WindRecent[i].Speed : WindRecent[i].Gust;
+						totalwind += cumulus.StationOptions.UseSpeedForAvgCalc ? WindRecent[i].SpeedUncal : WindRecent[i].GustUncal;
 					}
 				}
 			}
@@ -7468,9 +7468,9 @@ namespace CumulusMX
 			{
 				for (var i = 0; i <= MaxWindRecent - 1; i++)
 				{
-					if (WindRecent[i].Timestamp >= fromTime && WindRecent[i].Gust > maxgust)
+					if (WindRecent[i].Timestamp >= fromTime && WindRecent[i].GustUncal > maxgust)
 					{
-						maxgust = WindRecent[i].Gust;
+						maxgust = WindRecent[i].GustUncal;
 					}
 				}
 			}
@@ -7492,7 +7492,7 @@ namespace CumulusMX
 					if (WindRecent[i].Timestamp >= fromTime)
 					{
 						numvalues++;
-						totalwind += WindRecent[i].Speed;
+						totalwind += WindRecent[i].SpeedUncal;
 					}
 				}
 			}
@@ -7507,9 +7507,9 @@ namespace CumulusMX
 			{
 				for (var i = 0; i < MaxWindRecent; i++)
 				{
-					if (WindRecent[i].Timestamp >= fromTime && WindRecent[i].Gust > RecentMaxGust)
+					if (WindRecent[i].Timestamp >= fromTime && WindRecent[i].GustUncal > RecentMaxGust)
 					{
-						RecentMaxGust = WindRecent[i].Gust;
+						RecentMaxGust = WindRecent[i].GustUncal;
 					}
 				}
 			}
@@ -7546,8 +7546,8 @@ namespace CumulusMX
 			{
 				for (var ts = start; ts <= end; ts = ts.AddSeconds(3))
 				{
-					WindRecent[nextwind].Gust = gust;
-					WindRecent[nextwind].Speed = speed;
+					WindRecent[nextwind].GustUncal = gust;
+					WindRecent[nextwind].SpeedUncal = speed;
 					WindRecent[nextwind].Timestamp = ts;
 					nextwind = (nextwind + 1) % MaxWindRecent;
 
@@ -10115,8 +10115,9 @@ namespace CumulusMX
 						{
 							if (rec.DateTime < minWindTs || rec.DateTime > maxWindTs)
 							{
-								WindRecent[nextwind].Gust = rec.WindGust;
-								WindRecent[nextwind].Speed = rec.WindSpeed;
+								// TODO: Really these should be uncalibrated values
+								WindRecent[nextwind].GustUncal = cumulus.Calib.WindGust.UnCalibatrate(rec.WindGust);
+								WindRecent[nextwind].SpeedUncal = cumulus.Calib.WindSpeed.UnCalibatrate(rec.WindSpeed);
 								WindRecent[nextwind].Timestamp = rec.DateTime;
 								nextwind = (nextwind + 1) % MaxWindRecent;
 							}
@@ -10147,8 +10148,8 @@ namespace CumulusMX
 			{
 				for (var i = 0; i < result.Count; i++)
 				{
-					WindRecent[i].Gust = result[i].Gust;
-					WindRecent[i].Speed = result[i].Speed;
+					WindRecent[i].GustUncal = result[i].Gust;
+					WindRecent[i].SpeedUncal = result[i].Speed;
 					WindRecent[i].Timestamp = result[i].DateTime;
 				}
 			}
@@ -10187,7 +10188,7 @@ namespace CumulusMX
 					for (var i = 0; i < WindRecent.Length; i++)
 					{
 						if (WindRecent[i].Timestamp > DateTime.MinValue)
-							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", WindRecent[i].Timestamp.ToUnixTime(), WindRecent[i].Gust, WindRecent[i].Speed);
+							RecentDataDb.Execute("insert or replace into CWindRecent (Timestamp,Gust,Speed) values (?,?,?)", WindRecent[i].Timestamp.ToUnixTime(), WindRecent[i].GustUncal, WindRecent[i].SpeedUncal);
 					}
 
 					// and save the pointer

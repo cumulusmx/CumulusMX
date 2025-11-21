@@ -61,6 +61,8 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - Sun rise/set dawn/dusk calculations for DST changeover days - note locations near the arctic circle may still show the times in the wrong DST state
 - Fix to `websitedataT.json` correcting the 'snowDepth' and 'snow24h' entries to 'snowdepth' and 'snow24hr' and adding 'snowunit'
 - The EOD graph data files FTP(S) and SFTP uploads were being flagged as complete whether or not they were successful (PHP was OK)
+- Correct wind speed array loading from recent data on start-up to use uncalibrated values
+- Correct Windguru to use calibrated wind speeds
 
 ### Package Updates
 

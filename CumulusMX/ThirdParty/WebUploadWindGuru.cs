@@ -135,22 +135,24 @@ namespace CumulusMX.ThirdParty
 					if (station.WindRecent[i].Timestamp >= DateTime.Now.AddMinutes(-cumulus.WindGuru.Interval))
 					{
 						numvalues++;
-						totalwind += station.WindRecent[i].Gust;
+						totalwind += station.WindRecent[i].GustUncal;
 
-						if (station.WindRecent[i].Gust > maxwind)
+						if (station.WindRecent[i].GustUncal > maxwind)
 						{
-							maxwind = station.WindRecent[i].Gust;
+							maxwind = station.WindRecent[i].GustUncal;
 						}
 
-						if (station.WindRecent[i].Gust < minwind)
+						if (station.WindRecent[i].GustUncal < minwind)
 						{
-							minwind = station.WindRecent[i].Gust;
+							minwind = station.WindRecent[i].GustUncal;
 						}
 					}
 				}
 			}
 			// average the values
-			double avgwind = totalwind / numvalues;
+			double avgwind = cumulus.Calib.WindSpeed.Calibrate(totalwind / numvalues);
+			maxwind = cumulus.Calib.WindGust.Calibrate(maxwind);
+			minwind = cumulus.Calib.WindSpeed.Calibrate(minwind);
 
 			StringBuilder URL = new StringBuilder("http://www.windguru.cz/upload/api.php?", 1024);
 

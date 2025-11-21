@@ -850,8 +850,8 @@ namespace CumulusMX.Stations
 												// add the uncalibrated values to the recent wind data
 												lock (recentwindLock)
 												{
-													WindRecent[nextwind].Gust = gust2minUncalibrated;
-													WindRecent[nextwind].Speed = WindAverageUncalibrated;
+													WindRecent[nextwind].GustUncal = gust2minUncalibrated;
+													WindRecent[nextwind].SpeedUncal = WindAverageUncalibrated;
 													WindRecent[nextwind].Timestamp = time2min;
 													nextwind = (nextwind + 1) % MaxWindRecent;
 												}

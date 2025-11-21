@@ -42,6 +42,25 @@
 		{
 			return value * value * Mult2 + value * Mult + Offset;
 		}
+
+		public double UnCalibatrate(double value)
+		{
+			if (Mult2 == 0)
+			{
+				return (value - Offset) / Mult;
+			}
+			else
+			{
+				// oh dear Mult2 = quadratic with two possible results
+				var sqrt = System.Math.Sqrt(Mult * Mult - 4 * Mult2 * (Offset - value));
+				var res1 = (-Mult + sqrt) / 2 * Mult2;
+				var res2 = (-Mult - sqrt) / 2 * Mult2;
+				// Guess and return the value closest the input
+				var ret1 = System.Math.Abs(value - res1);
+				var ret2 = System.Math.Abs(value - res2);
+				return ret1 < ret2 ? res1 : res2;
+			}
+		}
 	}
 
 	public class Limits
