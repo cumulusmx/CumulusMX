@@ -6976,7 +6976,7 @@ namespace CumulusMX
 				{ "snowfalling", Tagsnowfalling },
 				{ "snow24hr", Tagsnow24hr },
 				{ "snowcomment", Tagsnowcomment },
-				{ "sanowunit", Tagsnowunit },
+				{ "snowunit", Tagsnowunit },
 				{ "DiaryThunder", TagDiaryThunder },
 				{ "DiaryHail", TagDiaryHail },
 				{ "DiaryFog", TagDiaryFog },
