@@ -10115,7 +10115,6 @@ namespace CumulusMX
 						{
 							if (rec.DateTime < minWindTs || rec.DateTime > maxWindTs)
 							{
-								// TODO: Really these should be uncalibrated values
 								WindRecent[nextwind].GustUncal = cumulus.Calib.WindGust.UnCalibatrate(rec.WindGust);
 								WindRecent[nextwind].SpeedUncal = cumulus.Calib.WindSpeed.UnCalibatrate(rec.WindSpeed);
 								WindRecent[nextwind].Timestamp = rec.DateTime;
