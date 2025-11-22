@@ -240,7 +240,7 @@ namespace CumulusMX
 
 					if (byDay != string.Empty)
 					{
-						var ret = db.Query<RetValTime>($"SELECT {timeProp} AS time, {propertyName} AS value FROM DayFileRec WHERE {(string.IsNullOrEmpty(where) ? string.Empty : $"{propertyName} {where} AND")} strftime(\"%m-%d\", Date) = \"{byDay}\" ORDER BY value {sort} LIMIT 1");
+						var ret = db.Query<RetValTime>($"SELECT {timeProp} AS time, {propertyName} AS value FROM DayFileRec WHERE {(string.IsNullOrEmpty(where) ? string.Empty : $"{propertyName} {where} AND")} strftime('%m-%d', Date) = '{byDay}' ORDER BY value {sort} LIMIT 1");
 						if (ret.Count == 1)
 						{
 							value = ret[0].value;
@@ -313,8 +313,9 @@ namespace CumulusMX
 				{
 					var from = req.startsel == "User" ? req.start : req.startsel;
 					var format = "g";
+					var compare = req.where == null ? "" : req.where + req.value;
 
-					var (value, time) = DayFile(req.dataname, req.function, req.where, from, req.end, req.countfunction);
+					var (value, time) = DayFile(req.dataname, req.function, compare, from, req.end, req.countfunction);
 
 					Program.cumulus.LogMessage("API Querying day file complete");
 
@@ -370,6 +371,7 @@ namespace CumulusMX
 			public string dataname { get; set; }
 			public string function { get; set; }
 			public string where { get; set; }
+			public double value { get; set; }
 			public string startsel { get; set; }
 			public string start { get; set; }
 			public string end { get; set; }

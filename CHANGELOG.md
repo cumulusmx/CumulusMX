@@ -63,6 +63,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - The EOD graph data files FTP(S) and SFTP uploads were being flagged as complete whether or not they were successful (PHP was OK)
 - Correct wind speed array loading from recent data on start-up to use uncalibrated values
 - Correct Windguru to use calibrated wind speeds
+- Some fixes and updates to the Query Day File page
 
 ### Package Updates
 
