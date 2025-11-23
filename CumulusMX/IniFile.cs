@@ -497,8 +497,8 @@ namespace CumulusMX
 			int Value;
 			if (int.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value))
 			{
-				if (Value < MinValue) return MinValue;
-				if (Value > MaxValue) return MaxValue;
+				if (Value < MinValue) return DefaultValue;
+				if (Value > MaxValue) return DefaultValue;
 				return Value;
 			}
 			return DefaultValue;
@@ -510,8 +510,8 @@ namespace CumulusMX
 			double Value;
 			if (double.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value))
 			{
-				if (Value < MinValue) return MinValue;
-				if (Value > MaxValue) return MaxValue;
+				if (Value < MinValue) return DefaultValue;
+				if (Value > MaxValue) return DefaultValue;
 				return Value;
 			}
 			return DefaultValue;
@@ -523,8 +523,8 @@ namespace CumulusMX
 			decimal Value;
 			if (decimal.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value))
 			{
-				if (Value < MinValue) return MinValue;
-				if (Value > MaxValue) return MaxValue;
+				if (Value < MinValue) return DefaultValue;
+				if (Value > MaxValue) return DefaultValue;
 				return Value;
 			}
 			return DefaultValue;
@@ -540,8 +540,8 @@ namespace CumulusMX
 
 			if (decimal.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal Value))
 			{
-				if (Value < MinValue) return MinValue;
-				if (Value > MaxValue) return MaxValue;
+				if (Value < MinValue) return DefaultValue;
+				if (Value > MaxValue) return DefaultValue;
 				return Value;
 			}
 			return DefaultValue;
