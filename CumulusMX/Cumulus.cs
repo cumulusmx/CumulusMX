@@ -9139,27 +9139,27 @@ namespace CumulusMX
 							try
 							{
 								if (File.Exists(AlltimeIniFile))
-									archive.CreateEntryFromFile(AlltimeIniFile, alltimebackup);
+									archiveFile(archive, AlltimeIniFile, alltimebackup);
 								if (File.Exists(MonthlyAlltimeIniFile))
-									archive.CreateEntryFromFile(MonthlyAlltimeIniFile, monthlyAlltimebackup);
+									archiveFile(archive, MonthlyAlltimeIniFile, monthlyAlltimebackup);
 								if (File.Exists(DayFileName))
-									archive.CreateEntryFromFile(DayFileName, daybackup);
+									archiveFile(archive, DayFileName, daybackup);
 								if (File.Exists(TodayIniFile))
-									archive.CreateEntryFromFile(TodayIniFile, todaybackup);
+									archiveFile(archive, TodayIniFile, todaybackup);
 								if (File.Exists(YesterdayFile))
-									archive.CreateEntryFromFile(YesterdayFile, yesterdaybackup);
+									archiveFile(archive, YesterdayFile, yesterdaybackup);
 								if (File.Exists(LogFile))
-									archive.CreateEntryFromFile(LogFile, logbackup);
+									archiveFile(archive, LogFile, logbackup);
 								if (File.Exists(MonthIniFile))
-									archive.CreateEntryFromFile(MonthIniFile, monthbackup);
+									archiveFile(archive, MonthIniFile, monthbackup);
 								if (File.Exists(YearIniFile))
-									archive.CreateEntryFromFile(YearIniFile, yearbackup);
+									archiveFile(archive, YearIniFile, yearbackup);
 								if (File.Exists("Cumulus.ini"))
-									archive.CreateEntryFromFile("Cumulus.ini", configbackup);
+									archiveFile(archive, "Cumulus.ini", configbackup);
 								if (File.Exists("UniqueId.txt"))
-									archive.CreateEntryFromFile("UniqueId.txt", uniquebackup);
+									archiveFile(archive, "UniqueId.txt", uniquebackup);
 								if (File.Exists("strings.ini"))
-									archive.CreateEntryFromFile("strings.ini", stringsbackup);
+									archiveFile(archive, "strings.ini", stringsbackup);
 							}
 							catch (Exception ex)
 							{
@@ -9209,16 +9209,16 @@ namespace CumulusMX
 								{
 									LogDebugMessage("Archiving the database");
 									if (File.Exists(dbfile))
-										archive.CreateEntryFromFile(dbfile, dbBackup);
+										archiveFile(archive, dbfile, dbBackup);
 
 									if (File.Exists(dbfile + "-journal"))
-										archive.CreateEntryFromFile(dbfile + "-journal", dbBackup + "-journal");
+										archiveFile(archive, dbfile + "-journal", dbBackup + "-journal");
 
 									if (File.Exists(diaryfile))
-										archive.CreateEntryFromFile(diaryfile, diarybackup);
+										archiveFile(archive, diaryfile, diarybackup);
 
 									if (File.Exists(diaryfile + "-journal"))
-										archive.CreateEntryFromFile(diaryfile + "-journal", diarybackup + "-journal");
+										archiveFile(archive, diaryfile + "-journal", diarybackup + "-journal");
 
 									LogDebugMessage("Completed archive of the database");
 								}
@@ -9231,9 +9231,9 @@ namespace CumulusMX
 							try
 							{
 								if (File.Exists(extraFile))
-									archive.CreateEntryFromFile(extraFile, Path.Combine("data", Path.GetFileName(extraBackup)));
+									archiveFile(archive, extraFile, Path.Combine("data", Path.GetFileName(extraBackup)));
 								if (File.Exists(AirLinkFile))
-									archive.CreateEntryFromFile(AirLinkFile, Path.Combine("data", Path.GetFileName(AirLinkFile)));
+									archiveFile(archive, AirLinkFile, Path.Combine("data", Path.GetFileName(AirLinkFile)));
 
 								// custom logs
 								for (var i = 0; i < 10; i++)
@@ -9242,14 +9242,14 @@ namespace CumulusMX
 									{
 										var custfilename = GetCustomIntvlLogFileName(i, timestamp);
 										if (File.Exists(custfilename))
-											archive.CreateEntryFromFile(custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
+											archiveFile(archive, custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
 									}
 
 									if (CustomDailyLogSettings[i].Enabled)
 									{
 										var custfilename = GetCustomDailyLogFileName(i);
 										if (File.Exists(custfilename))
-											archive.CreateEntryFromFile(custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
+											archiveFile(archive, custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
 									}
 								}
 
@@ -9269,11 +9269,11 @@ namespace CumulusMX
 									var AirLinkBackup2 = Path.Combine("data", Path.GetFileName(AirLinkFile2));
 
 									if (File.Exists(LogFile2))
-										archive.CreateEntryFromFile(LogFile2, logbackup2);
+										archiveFile(archive, LogFile2, logbackup2);
 									if (File.Exists(extraFile2))
-										archive.CreateEntryFromFile(extraFile2, extraBackup2);
+										archiveFile(archive, extraFile2, extraBackup2);
 									if (File.Exists(AirLinkFile2))
-										archive.CreateEntryFromFile(AirLinkFile2, AirLinkBackup2);
+										archiveFile(archive, AirLinkFile2, AirLinkBackup2);
 
 									for (var i = 0; i < 10; i++)
 									{
@@ -9281,7 +9281,7 @@ namespace CumulusMX
 										{
 											var custfilename = GetCustomIntvlLogFileName(i, newTime);
 											if (File.Exists(custfilename))
-												archive.CreateEntryFromFile(custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
+												archiveFile(archive, custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
 										}
 									}
 								}
@@ -9316,6 +9316,36 @@ namespace CumulusMX
 			}
 		}
 
+		private void archiveFile(ZipArchive archive, string filename, string path)
+		{
+			// add the file to the archive, with a back-off and retry for file in use
+			var maxAttempts = 2;
+			var attempt = 0;
+			while (true)
+			{
+				try
+				{
+					archive.CreateEntryFromFile(filename, path);
+					break;
+				}
+				catch (IOException)
+				{
+					attempt++;
+					if (attempt >= maxAttempts)
+					{
+						// retry failed, give up
+						throw;
+					}
+					// try again in a bit
+					Thread.Sleep(100 * attempt);
+				}
+				catch
+				{
+					// just throw any other errors
+					throw;
+				}
+			}
+		}
 
 		public int GetHourInc(DateTime timestamp)
 		{

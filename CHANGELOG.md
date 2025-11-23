@@ -64,6 +64,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - Correct wind speed array loading from recent data on start-up to use uncalibrated values
 - Correct Windguru to use calibrated wind speeds
 - Some fixes and updates to the Query Day File page
+- Add retry to daily file backups when a file is in use
 
 ### Package Updates
 
