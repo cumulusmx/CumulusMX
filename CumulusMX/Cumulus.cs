@@ -9331,11 +9331,12 @@ namespace CumulusMX
 				catch (IOException)
 				{
 					attempt++;
-					if (attempt >= maxAttempts)
+					if (attempt > maxAttempts)
 					{
 						// retry failed, give up
 						throw;
 					}
+
 					// try again in a bit
 					Thread.Sleep(100 * attempt);
 				}
