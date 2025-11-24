@@ -917,8 +917,8 @@ namespace CumulusMX
 
 			if (ProgramOptions.ProcessLogFilesLevel == 0)
 			{
-				LogConsoleMessage("Converting log files to new format...");
-				LogMessage("Converting log files to new format...");
+				LogConsoleMessage("Converting log files to new format (this could take some time)...");
+				LogMessage("Converting log files to new format (this could take some time)...");
 				LogFileConverter.AddUnixTimestamp.ProcessLogFiles(ProgramOptions.DataPath, RecordsBeganDateTime);
 				ProgramOptions.ProcessLogFilesLevel = 1;
 				WriteIniFile();

@@ -53,7 +53,10 @@ namespace CumulusMX.LogFileConverter
 
 			try
 			{
-				Program.cumulus.LogMessage($"Conversion Processing file: {filePath}");
+				var name = Path.GetFileName(filePath);
+				Program.cumulus.LogMessage($"Conversion Processing file: {name}");
+				Cumulus.LogConsoleMessage($"  Processing file: {name}");
+
 				var lines = File.ReadAllLines(filePath).ToList();
 				var modifiedLines = new List<string>();
 
