@@ -12,6 +12,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## BETA [4.7.0 \[b4131\]][29] - 2025-11-21
 
+### Beta 4131 Fixes
+
+- Davis WLL broadcast decode error when wind speed is null
+
+
+
 First build using Visual Studio 2026, and transitioning to .NET 10
 
 ***IMPORTANT: This release requires .NET 10 to run, and WILL alter your log file structures***

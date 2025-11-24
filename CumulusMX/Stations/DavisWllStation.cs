@@ -555,12 +555,20 @@ namespace CumulusMX.Stations
 						{
 							try
 							{
-								// WLL BUG/FEATURE: The WLL sends a null wind direction for calm when the avg speed falls to zero, we use zero
-								var windDir = rec.wind_dir_last ?? 0;
-								var spd = ConvertUnits.WindMPHToUser(rec.wind_speed_last);
+								if (rec.wind_speed_last.HasValue)
+								{
 
-								// No average in the broadcast data, so use current average.
-								DoWind(spd, windDir, -1, dateTime);
+									// WLL BUG/FEATURE: The WLL sends a null wind direction for calm when the avg speed falls to zero, we use zero
+									var windDir = rec.wind_dir_last ?? 0;
+									var spd = ConvertUnits.WindMPHToUser(rec.wind_speed_last.Value);
+
+									// No average in the broadcast data, so use current average.
+									DoWind(spd, windDir, -1, dateTime);
+								}
+								else
+								{
+									cumulus.LogErrorMessage($"WLL broadcast: Error, primary wind sensor defined as {rec.txid}, but no wind data present on this transmitter id");
+								}
 							}
 							catch (Exception ex)
 							{
@@ -3252,7 +3260,7 @@ namespace CumulusMX.Stations
 		{
 			public int lsid { get; set; }
 			public int txid { get; set; }
-			public double wind_speed_last { get; set; }
+			public double? wind_speed_last { get; set; }
 			public int? wind_dir_last { get; set; }
 			public int rain_size { get; set; }
 			public double rain_rate_last { get; set; }
@@ -3264,8 +3272,8 @@ namespace CumulusMX.Stations
 			public int rainfall_daily { get; set; }
 			public int rainfall_monthly { get; set; }
 			public int rainfall_year { get; set; }
-			public double wind_speed_hi_last_10_min { get; set; }
-			public int wind_dir_at_hi_speed_last_10_min { get; set; }
+			public double? wind_speed_hi_last_10_min { get; set; }
+			public int? wind_dir_at_hi_speed_last_10_min { get; set; }
 		}
 
 		// Response from WLL when asked to start multi-casting
