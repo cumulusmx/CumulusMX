@@ -1312,9 +1312,9 @@ namespace CumulusMX.Stations
 						dist = data.ch_lds1.air_ch1.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value / 10),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value * 10),
 							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds1.air_ch1.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.air_ch1.value.Value / 12),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.air_ch1.value.Value * 12),
 							_ => data.ch_lds1.air_ch1.value
 						};
 					}
@@ -1329,8 +1329,9 @@ namespace CumulusMX.Stations
 						dist = data.ch_lds1.depth_ch1.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.depth_ch1.value.Value / 12),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value * 10),
+							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds1.depth_ch1.value.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.depth_ch1.value.Value * 12),
 							_ => data.ch_lds1.depth_ch1.value
 						};
 					}
@@ -1348,9 +1349,9 @@ namespace CumulusMX.Stations
 						dist = data.ch_lds2.air_ch2.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds2.air_ch2.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.air_ch2.value.Value / 10),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.air_ch2.value.Value * 10),
 							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds2.air_ch2.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds2.air_ch2.value.Value / 12),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds2.air_ch2.value.Value * 12),
 							_ => data.ch_lds2.air_ch2.value
 						};
 					}
@@ -1365,9 +1366,9 @@ namespace CumulusMX.Stations
 						dist = data.ch_lds2.depth_ch2.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds2.depth_ch2.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.depth_ch2.value.Value / 10),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.depth_ch2.value.Value * 10),
 							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds2.depth_ch2.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds2.depth_ch2.value.Value / 12),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds2.depth_ch2.value.Value * 12),
 							_ => data.ch_lds2.depth_ch2.value
 						};
 					}
@@ -1385,9 +1386,9 @@ namespace CumulusMX.Stations
 						dist = data.ch_lds3.air_ch3.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds3.air_ch3.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.air_ch3.value.Value / 10),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.air_ch3.value.Value * 10),
 							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds3.air_ch3.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds3.air_ch3.value.Value / 12),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds3.air_ch3.value.Value * 12),
 							_ => data.ch_lds3.air_ch3.value
 						};
 					}
@@ -1402,9 +1403,9 @@ namespace CumulusMX.Stations
 						dist = data.ch_lds3.depth_ch3.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds3.depth_ch3.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.depth_ch3.value.Value / 10),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.depth_ch3.value.Value * 10),
 							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds3.depth_ch3.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds3.depth_ch3.value.Value / 12),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds3.depth_ch3.value.Value * 12),
 							_ => data.ch_lds3.depth_ch3.value
 						};
 					}
@@ -1422,9 +1423,9 @@ namespace CumulusMX.Stations
 						dist = data.ch_lds4.air_ch4.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds4.air_ch4.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.air_ch4.value.Value / 10),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.air_ch4.value.Value * 10),
 							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds4.air_ch4.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds4.air_ch4.value.Value / 12),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds4.air_ch4.value.Value * 12),
 							_ => data.ch_lds4.air_ch4.value
 						};
 					}
@@ -1439,9 +1440,9 @@ namespace CumulusMX.Stations
 						dist = data.ch_lds4.depth_ch4.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds4.depth_ch4.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.depth_ch4.value.Value / 10),
+							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.depth_ch4.value.Value * 10),
 							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds4.depth_ch4.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds4.depth_ch4.value.Value / 12),
+							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds4.depth_ch4.value.Value * 12),
 							_ => data.ch_lds4.depth_ch4.value
 						};
 					}

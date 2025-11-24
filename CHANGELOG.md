@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4130\]][29] - 2025-11-21
+## BETA [4.7.0 \[b4131\]][29] - 2025-11-21
 
 First build using Visual Studio 2026, and transitioning to .NET 10
 
@@ -65,6 +65,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - Correct Windguru to use calibrated wind speeds
 - Some fixes and updates to the Query Day File page
 - Add retry to daily file backups when a file is in use
+- Fix Ecowitt Cloud API Laser conversions of measurements in cm and feet to user units
 
 ### Package Updates
 
@@ -1173,4 +1174,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4130
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4131
