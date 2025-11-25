@@ -1447,6 +1447,7 @@ namespace CumulusMX.Stations
 			{
 				cumulus.LogMessage("GetWlHistoricData: Missing WeatherLink API data in the configuration, aborting!");
 				lastHistoricData = DateTime.Now;
+				cumulus.LastUpdateTime = DateTime.Now;
 				return;
 			}
 

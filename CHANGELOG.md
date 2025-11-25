@@ -15,7 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Beta 4131 Fixes
 
 - Davis WLL broadcast decode error when wind speed is null
-
+- Fix Davis WLL station getting in a day reset loop when no historic API details and last run was prior to last rollover
 
 
 First build using Visual Studio 2026, and transitioning to .NET 10
@@ -72,6 +72,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - Some fixes and updates to the Query Day File page
 - Add retry to daily file backups when a file is in use
 - Fix Ecowitt Cloud API Laser conversions of measurements in cm and feet to user units
+- Fix Davis WLL station getting in a day reset loop when no historic API details and last run was prior to last rollover
 
 ### Package Updates
 
