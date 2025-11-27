@@ -39,31 +39,31 @@ namespace CumulusMX
 			_dnsResolver = new DnsResolver(_dnsTtl);
 		}
 
-		private async Task<string> ResolveIp()
+		private async Task ResolveIp()
 		{
 			// is the host already supplied as an IP address?
 			if (IPAddress.TryParse(_host, out _))
 			{
-				return _host;
+				return;
 			}
 
 			var ip = await _dnsResolver.ResolveAsync(_host);
-			return ip.ToString();
+			return;
 		}
 
 		public async Task<FtpClient> CreateClient()
 		{
-			var ip = await ResolveIp();
+			await ResolveIp();
 
 			var client = new FtpClient
 			{
-				//Enabled = false,
-				Host = ip,
+				Host = _host,
 				Port = _port,
 				Credentials = new NetworkCredential(_username, _password),
 			};
 
 			client.Config.LogPassword = false;
+
 			if (!_autodetect)
 			{
 				if (_protocol == FtpProtocols.FTPS)

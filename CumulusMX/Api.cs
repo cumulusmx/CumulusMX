@@ -358,6 +358,9 @@ namespace CumulusMX
 						case "datalogs":
 							await writer.WriteAsync(dataEditor.EditDatalog(HttpContext));
 							break;
+						case "recentdata":
+							await writer.WriteAsync(dataEditor.EditRecentData(HttpContext));
+							break;
 						case "mysqlcache":
 							await writer.WriteAsync(dataEditor.EditMySqlCache(HttpContext));
 							break;
@@ -414,6 +417,9 @@ namespace CumulusMX
 							break;
 						case "extralogfile":
 							await writer.WriteAsync(Station.GetLogfile(from, to, draw, start, length, search, true));
+							break;
+						case "recentdata":
+							await writer.WriteAsync(Station.ReadRecentData(draw, start, length, search));
 							break;
 						case "currentdata":
 							await writer.WriteAsync(Station.GetCurrentData());

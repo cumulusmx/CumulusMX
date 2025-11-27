@@ -10,17 +10,21 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4131\]][29] - 2025-11-21
+## BETA [4.7.0 \[b4131\]][29] - 2025-11-26
 
 ### Beta 4131 Fixes
 
-- Davis WLL broadcast decode error when wind speed is null
+- Davis WLL broadcast decode error when wind speed is null on a transmitter
 - Fix Davis WLL station getting in a day reset loop when no historic API details and last run was prior to last rollover
+- Fix FTPS certificate validation failures
+- Adds a new Data Logs editor for the Recent Data from the SQLite database
 
+### Notes
 
-First build using Visual Studio 2026, and transitioning to .NET 10
+- First build using Visual Studio 2026, and transitioning to .NET 10.0
+- The initial log conversion may take some time depending on the host computer. It is recommended to perform the initial run in a console so you can see the progress and any errors
 
-***IMPORTANT: This release requires .NET 10 to run, and WILL alter your log file structures***
+***IMPORTANT: This release requires .NET 10.0 to run, and WILL alter your log file structures***
 
 ### New
 
@@ -33,6 +37,7 @@ First build using Visual Studio 2026, and transitioning to .NET 10
 - There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows firewall rules
 - Add an exponential backoff to failed Email sends (up to 5.6 hours)
 - New web tag `<#snowunit>`
+- Adds a new Data Logs editor for the Recent Data from the SQLite database
 
 ### Changed
 

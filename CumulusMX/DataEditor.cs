@@ -3300,6 +3300,70 @@ namespace CumulusMX
 			}
 		}
 
+		internal string EditRecentData(IHttpContext context)
+		{
+			var request = context.Request;
+			string text;
+			using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
+			{
+				text = reader.ReadToEnd();
+			}
+
+			var newData = JsonSerializer.Deserialize<RecentDataEditor>(text);
+
+			if (newData.action == "Edit")
+			{
+				try
+				{
+					var newRec = new RecentData();
+					newRec.FromCsvArray(newData.data[0]);
+
+					station.RecentDataDb.Update(newRec);
+
+					return "{\"errors\":null}";
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"EditRecentData: Failed, to update SQLite. Error = {ex.Message}");
+					context.Response.StatusCode = 500;
+
+					return "{\"errors\":{\"RecentData\":[\"Failed to update SQLite\"]}, \"data\":[\"" + string.Join(',', newData.data[0]) + "\"]";
+				}
+			}
+			else if (newData.action == "Delete")
+			{
+				string[] savedrow = [];
+
+				try
+				{
+					foreach (var row in newData.data)
+					{
+						savedrow = row;
+						var newRec = new RecentData();
+						newRec.FromCsvArray(row);
+
+						station.RecentDataDb.Delete(newRec);
+					}
+
+					return "{\"errors\":null}";
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"EditRecentData: Failed, to delete SQLite record. Error = {ex.Message}");
+					context.Response.StatusCode = 500;
+
+					return "{\"errors\":{\"RecentData\":[\"Failed to delete SQLite\"]}, \"data\":[\"" + string.Join(',', savedrow) + "\"]";
+				}
+			}
+			else
+			{
+				cumulus.LogErrorMessage($"EditRecentData: Unrecognised action = " + newData.action);
+				context.Response.StatusCode = 500;
+				return "{\"errors\":{\"RecentData\":[\"<br>Failed, unrecognised action = " + newData.action + "\"]}}";
+			}
+		}
+
+
 		internal string EditMySqlCache(IHttpContext context)
 		{
 			var request = context.Request;
@@ -3583,6 +3647,12 @@ namespace CumulusMX
 			public string action { get; set; }
 			public int[] lines { get; set; }
 			public bool extra { get; set; }
+			public string[][] data { get; set; }
+		}
+
+		private sealed class RecentDataEditor
+		{
+			public string action { get; set; }
 			public string[][] data { get; set; }
 		}
 

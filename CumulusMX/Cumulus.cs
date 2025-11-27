@@ -1166,7 +1166,7 @@ namespace CumulusMX
 			}
 
 
-				LogMessage("Data path = " + ProgramOptions.DataPath);
+			LogMessage("Data path = " + ProgramOptions.DataPath);
 
 			AppDomain.CurrentDomain.SetData("DataDirectory", ProgramOptions.DataPath);
 
@@ -2586,6 +2586,7 @@ namespace CumulusMX
 				bool connected = false;
 				bool reinit = true;
 				const string filename = "_cumulusmx_watchdog.txt";
+				int connectCount = 0;
 
 				do
 				{
@@ -2790,9 +2791,44 @@ namespace CumulusMX
 
 						if (!connected)
 						{
-							// add a 30 second delay between retries
-							LogMessage("RealtimeFtpWatchDog: Connection failed - waiting 30 seconds before trying again");
-							Thread.Sleep(30000);
+							if (connectCount < 10) connectCount++;
+
+							// fully disconnect the existing connection before waiting
+							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+							{
+								try
+								{
+									if (RealtimeSSH != null)
+									{
+										RealtimeSSH.Disconnect();
+										RealtimeSSH.Dispose();
+									}
+								}
+								catch
+								{
+									// do nothing
+								}
+
+							}
+							else
+							{
+								// dispose of the previous FTP client
+								try
+								{
+									if (RealtimeFTP != null && !RealtimeFTP.IsDisposed)
+									{
+										RealtimeFTP.Dispose();
+									}
+								}
+								catch
+								{
+									// do nothing
+								}
+							}
+
+							// add a 30 second x connection attempt count delay between retries, up to 5 minutes
+							LogMessage($"RealtimeFtpWatchDog: Connection failed - waiting {30 * connectCount} seconds before trying again");
+							Thread.Sleep(30000 * connectCount);
 							reinit = true;
 						}
 					} while (!connected && !Program.ExitSystemToken.IsCancellationRequested);
@@ -13597,34 +13633,13 @@ namespace CumulusMX
 
 			SetRealTimeFtpLogging(FtpOptions.Logging);
 
-			if (!FtpOptions.AutoDetect)
-			{
-				if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-				{
-					RealtimeFTP.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-					RealtimeFTP.Config.DataConnectionEncryption = true;
-					LogDebugMessage($"RealtimeFTPLogin: Using FTPS protocol");
-				}
-
-				if (FtpOptions.ActiveMode)
-				{
-					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.PORT;
-					LogDebugMessage("RealtimeFTPLogin: Using Active FTP mode");
-				}
-				else if (FtpOptions.DisableEPSV)
-				{
-					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.PASV;
-					LogDebugMessage("RealtimeFTPLogin: Disabling EPSV mode");
-				}
-				else
-				{
-					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.EPSV;
-				}
-			}
-
 			if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 			{
-				RealtimeFTP.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
+				LogDebugMessage($"RealtimeFTPLogin: Using FTPS protocol");
+			}
+			else
+			{
+				LogDebugMessage($"RealtimeFTPLogin: Using FTP protocol");
 			}
 
 			if (FtpOptions.Enabled && FtpOptions.FtpMode != FtpProtocols.SFTP)

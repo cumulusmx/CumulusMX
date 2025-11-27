@@ -13219,6 +13219,86 @@ namespace CumulusMX
 			return "";
 		}
 
+
+		/// <summary>
+		/// Return rows from recent data database in json format
+		/// </summary>
+		/// <param name="draw"></param>
+		/// <param name="start"></param>
+		/// <param name="length"></param>
+		/// <returns>JSON encoded section of the recent data</returns>
+		public string ReadRecentData(string draw, int start, int length, string search)
+		{
+			try
+			{
+				var data = RecentDataDb.Query<RecentData>("select * from RecentData order by Timestamp");
+
+				var total = data.Count;
+				var filtered = 0;
+				var thisDraw = 0;
+
+				var json = new StringBuilder(350 * total);
+
+				json.Append("{\"data\":[");
+
+
+				foreach (var row in data)
+				{
+					var csv = row.ToCsv();
+
+					// if we have a search string and no match, skip to next line
+					if (!string.IsNullOrEmpty(search) && !csv.Contains(search))
+					{
+						continue;
+					}
+
+					// this line either matches the search or these is no search
+					filtered++;
+
+					// skip records until we get to the start entry
+					if (filtered <= start)
+					{
+						continue;
+					}
+
+					// only send the number requested
+					if (thisDraw < length)
+					{
+						// track the number of lines we have to return so far
+						thisDraw++;
+
+						json.Append(csv);
+						json.Append(',');
+					}
+					else if (string.IsNullOrEmpty(search))
+					{
+						// no search so we can bail out as we already know the total number of records
+						break;
+					}
+
+				}
+
+				// trim last ","
+				if (thisDraw > 0)
+					json.Length--;
+				json.Append("],\"recordsTotal\":");
+				json.Append(total);
+				json.Append(",\"draw\":");
+				json.Append(draw);
+				json.Append(",\"recordsFiltered\":");
+				json.Append(string.IsNullOrEmpty(search) ? total : filtered);
+				json.Append('}');
+
+				return json.ToString();
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogExceptionMessage(ex, "ReadRecentData: Error");
+			}
+
+			return "";
+		}
+
 		internal string GetDiaryData(string date)
 		{
 			var json = new StringBuilder("{\"Time\":\"", 1024);
@@ -15890,6 +15970,88 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 		public double? Pm2p5 { get; set; }
 		public double? Pm10 { get; set; }
 		public double RainRate { get; set; }
+
+		public string ToCsv()
+		{
+			// NOTE data order changed to be more human friendly
+			var inv = CultureInfo.InvariantCulture;
+			var sb = new StringBuilder("[");
+
+			sb.Append($"\"{this.DateTime.ToString("dd/MM/yy HH:mm")}\",");
+			sb.Append($"{Timestamp},");
+			sb.Append($"{WindSpeed.ToString(Program.cumulus.WindAvgFormat, inv)},");
+			sb.Append($"{WindGust.ToString(Program.cumulus.WindFormat, inv)},");
+			sb.Append($"{WindLatest.ToString(Program.cumulus.WindFormat, inv)},");
+			sb.Append($"{WindDir},");
+			sb.Append($"{WindAvgDir},");
+			sb.Append($"{OutsideTemp.ToString(Program.cumulus.TempFormat, inv)},");
+			sb.Append($"{WindChill.ToString(Program.cumulus.TempFormat, inv)},");
+			sb.Append($"{DewPoint.ToString(Program.cumulus.TempFormat, inv)},");
+			sb.Append($"{HeatIndex.ToString(Program.cumulus.TempFormat, inv)},");
+			sb.Append($"{FeelsLike.ToString(Program.cumulus.TempFormat, inv)},");
+			sb.Append($"{Humidex.ToString(Program.cumulus.TempFormat, inv)},");
+			sb.Append($"{AppTemp.ToString(Program.cumulus.TempFormat, inv)},");
+			sb.Append($"{Humidity.ToString(Program.cumulus.HumFormat, inv)},");
+			sb.Append($"{Pressure.ToString(Program.cumulus.PressFormat, inv)},");
+			sb.Append($"{RainToday.ToString(Program.cumulus.RainFormat, inv)},");
+			sb.Append($"{RainRate.ToString(Program.cumulus.RainFormat, inv)},");
+			sb.Append($"{raincounter.ToString(inv)},");
+			sb.Append($"{(SolarRad.HasValue ? SolarRad.Value : "null")},");
+			sb.Append($"{SolarMax},");
+			sb.Append($"{(UV.HasValue ? UV.Value.ToString(Program.cumulus.UVFormat, inv) : "null")},");
+			sb.Append($"{(IndoorTemp.HasValue ? IndoorTemp.Value.ToString(Program.cumulus.TempFormat, inv) : "null")},");
+			sb.Append($"{(IndoorHumidity.HasValue ? IndoorHumidity.Value : "null")},");
+			sb.Append($"{(Pm2p5.HasValue ? Pm2p5.Value.ToString("F1", inv) : "null")},");
+			sb.Append($"{(Pm10.HasValue ? Pm10.Value.ToString("F1", inv) : "null")}]");
+
+			return sb.ToString();
+		}
+
+		public void FromCsvArray(string[] csv)
+		{
+			// NOTE data order changed to be more human friendly
+			try
+			{
+				var inv = CultureInfo.InvariantCulture;
+
+				if (csv.Length < 25)
+				{
+					Program.cumulus.LogErrorMessage("RecentData.FromCsv: CSV input too short = {fields.Length} fields");
+					return;
+				}
+
+				Timestamp = long.Parse(csv[0]);
+				WindSpeed = double.Parse(csv[1], inv);
+				WindGust = double.Parse(csv[2], inv);
+				WindLatest = double.Parse(csv[3], inv);
+				WindDir = int.Parse(csv[4]);
+				WindAvgDir = int.Parse(csv[5]);
+				OutsideTemp = double.Parse(csv[6], inv);
+				WindChill = double.Parse(csv[7], inv);
+				DewPoint = double.Parse(csv[8], inv);
+				HeatIndex = double.Parse(csv[9], inv);
+				FeelsLike = double.Parse(csv[10], inv);
+				Humidex = double.Parse(csv[11], inv);
+				AppTemp = double.Parse(csv[12], inv);
+				Humidity = int.Parse(csv[13]);
+				Pressure = double.Parse(csv[14], inv);
+				RainToday = double.Parse(csv[15], inv);
+				RainRate = double.Parse(csv[16], inv);
+				raincounter = double.Parse(csv[17], inv);
+				SolarRad = int.TryParse(csv[18], out int rad) ? rad : null;
+				SolarMax = int.Parse(csv[19]);
+				UV = double.TryParse(csv[20], out double uv) ? uv : null;
+				IndoorTemp = double.TryParse(csv[21], out double intemp) ? intemp : null;
+				IndoorHumidity = int.TryParse(csv[22], out int inhum) ? inhum : null;
+				Pm2p5 = double.TryParse(csv[23], out double pm2) ? pm2 : null;
+				Pm10 = double.TryParse(csv[24], out double pm10) ? pm10 : null;
+			}
+			catch (Exception ex)
+			{
+				Program.cumulus.LogExceptionMessage(ex, "RecentData.FromCsv: Error");
+				throw;
+			}
+		}
 	}
 
 	public class RecentAqData
