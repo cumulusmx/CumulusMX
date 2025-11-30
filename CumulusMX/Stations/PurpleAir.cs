@@ -457,7 +457,6 @@ namespace CumulusMX.Stations
 			public PaSensor sensor { get; set; }
 		}
 
-		[DataContract]
 		private sealed class PaSensor
 		{
 			// only added fields we may need
@@ -467,19 +466,19 @@ namespace CumulusMX.Stations
 			public double temperature { get; set; }
 			public int humidity { get; set; }
 
-			[DataMember(Name = "pm1.0")]
+			[JsonPropertyName("pm1.0")]
 			public double pm1 { get; set; }
 
-			[DataMember(Name = "pm2.5")]
+			[JsonPropertyName("pm2.5")]
 			public double pm_2p5 { get; set; }
 
-			[DataMember(Name = "pm2.5_60minute")]
+			[JsonPropertyName("pm2.5_60minute")]
 			public double pm_2p5_1_hour { get; set; }
 
-			[DataMember(Name = "pm2.5_24hour")]
+			[JsonPropertyName("pm2.5_24hour")]
 			public double pm_2p5_24_hours { get; set; }
 
-			[DataMember(Name = "pm10.0")]
+			[JsonPropertyName("pm10.0")]
 			public double pm_10 { get; set; }
 		}
 #pragma warning restore S3459, S1144 // Unassigned members should be removed

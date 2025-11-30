@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -1631,7 +1630,16 @@ namespace CumulusMX.Stations
 
 				if (lastRecDate == 0)
 				{
-					rec.Value.Interval = 5;
+					// if we have more than one record, take the initial records interval as the difference to the next record. Otherwise use the configured interval
+					if (buffer.Count > 0)
+					{
+						var keyList = buffer.Keys.ToList();
+						rec.Value.Interval = (int) (keyList[1] - keyList[0]) / 60;
+					}
+					else
+					{ 
+						rec.Value.Interval = 5;
+					}
 					lastRecDate = rec.Key;
 				}
 				else
@@ -1711,7 +1719,7 @@ namespace CumulusMX.Stations
 				station.WindRunToday += station.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0;
 
 				// update heating/cooling degree days
-				station.UpdateDegreeDays(5);
+				station.UpdateDegreeDays(rec.Value.Interval);
 
 				// update dominant wind bearing
 				station.CalculateDominantWindBearing(station.Bearing, station.WindAverage, rec.Value.Interval);
@@ -2428,10 +2436,12 @@ namespace CumulusMX.Stations
 					// Ecowitt send null values as the string "-", so we have to change all those to null before we parse...
 					var json = responseBody.Replace("\"-\"", "null");
 
+					CurrentDataCheck respCheck;
+
 					try
 					{
-						// get the sensor data
-						currObj = JsonSerializer.Deserialize<CurrentData>(json, jsonOptions);
+						// check the response - note Ecowitt change the data type between a succesful call and an error (object on success, empty array on failure)
+						respCheck = JsonSerializer.Deserialize<CurrentDataCheck>(responseBody, jsonOptions);
 					}
 					catch (Exception ex)
 					{
@@ -2440,11 +2450,15 @@ namespace CumulusMX.Stations
 						return null;
 					}
 
-					if (currObj != null)
+					if (respCheck != null)
 					{
 						// success
-						if (currObj.code == 0)
+						if (respCheck.code == 0)
 						{
+
+							// get the sensor data
+							currObj = JsonSerializer.Deserialize<CurrentData>(json, jsonOptions);
+
 							if (currObj.data == null)
 							{
 								// There was no data returned.
@@ -2453,7 +2467,7 @@ namespace CumulusMX.Stations
 								return null;
 							}
 						}
-						else if (currObj.code == -1 || currObj.code == 45001)
+						else if (respCheck.code == -1 || respCheck.code == 45001)
 						{
 							// -1 = system busy, 45001 = rate limited
 
@@ -2647,14 +2661,17 @@ namespace CumulusMX.Stations
 				{
 					LastCameraImageTime[mac] = now;
 
-					// get the sensor data
-					currObj = JsonSerializer.Deserialize<CurrentData>(responseBody, jsonOptions);
+					// check the response - note Ecowitt change the data type between a succesful call and an error (object on success, empty array on failure)
+					var respCheck = JsonSerializer.Deserialize<CurrentDataCheck>(responseBody, jsonOptions);
 
-					if (currObj != null)
+					if (respCheck != null)
 					{
 						// success
-						if (currObj.code == 0)
+						if (respCheck.code == 0)
 						{
+							// get the sensor data
+							currObj = JsonSerializer.Deserialize<CurrentData>(responseBody, jsonOptions);
+
 							if (currObj.data == null)
 							{
 								// There was no data returned.
@@ -2673,7 +2690,7 @@ namespace CumulusMX.Stations
 							DefaultCameraUrl[mac] = currObj.data.camera.photo.url;
 							return currObj.data.camera.photo.url;
 						}
-						else if (currObj.code == -1 || currObj.code == 45001)
+						else if (respCheck.code == -1 || respCheck.code == 45001)
 						{
 							// -1 = system busy, 45001 = rate limited
 
@@ -2809,6 +2826,7 @@ namespace CumulusMX.Stations
 				}
 				else if (responseBody.StartsWith("{\"code\":")) // sanity check
 				{
+
 					// get the sensor data
 					vidObj = JsonSerializer.Deserialize<JsonNode>(responseBody, jsonOptions);
 
@@ -3512,13 +3530,18 @@ namespace CumulusMX.Stations
 			public decimal?[] LdsDepth { get; set; } = new decimal?[5];
 		}
 
+		private sealed class CurrentDataCheck
+		{
+			public int code { get; set; }
+			public string msg { get; set; }
+			public long time { get; set; }
+		}
 
 		private sealed class CurrentData
 		{
 			public int code { get; set; }
 			public string msg { get; set; }
 			public long time { get; set; }
-
 			public CurrentDataData data { get; set; }
 		}
 

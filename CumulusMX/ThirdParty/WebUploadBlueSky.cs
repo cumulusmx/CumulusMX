@@ -5,9 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -618,7 +618,7 @@ namespace CumulusMX.ThirdParty
 
 		private sealed class FacetFeature
 		{
-			[DataMember(Name = "$type")]
+			[JsonPropertyName("$type")]
 			public string type { get; set; }
 
 			public string uri { get; set; }
@@ -655,7 +655,7 @@ namespace CumulusMX.ThirdParty
 
 		private sealed class Embed
 		{
-			[DataMember(Name = "$type")]
+			[JsonPropertyName("$type")]
 			public string type { get; set; } = "app.bsky.embed.images";
 
 			public Images[] images { get; set; }
@@ -663,16 +663,16 @@ namespace CumulusMX.ThirdParty
 
 		private sealed class BlobRef
 		{
-			[DataMember(Name = "$link")]
+			[JsonPropertyName("$link")]
 			public string link { get; set; }
 		}
 
 		private sealed class Blob
 		{
-			[DataMember(Name = "$type")]
+			[JsonPropertyName("$type")]
 			public string type { get; set; } = "blob";
 
-			[DataMember(Name = "ref")]
+			[JsonPropertyName("ref")]
 			public BlobRef reference { get; set; }
 
 			public string mimeType { get; set; }
@@ -699,7 +699,7 @@ namespace CumulusMX.ThirdParty
 		{
 			public string repo { get; set; }
 
-			[DataMember(Name = "$type")]
+			[JsonPropertyName("$type")]
 			public string type { get; set; } = "app.bsky.feed.post";
 
 			public string collection { get; } = "app.bsky.feed.post";

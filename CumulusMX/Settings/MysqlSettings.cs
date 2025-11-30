@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Runtime.Serialization;
-using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using EmbedIO;
 
@@ -615,10 +613,10 @@ namespace CumulusMX.Settings
 		{
 			public string command { get; set; }
 			public int interval { get; set; }
-			[IgnoreDataMember]
+			[JsonIgnore]
 			public TimeSpan starttime { get; set; }
 
-			[DataMember(Name = "starttimestr")]
+			[JsonPropertyName("starttimestr")]
 			public string starttimestring
 			{
 				get => starttime.ToString("hh\\:mm", CultureInfo.InvariantCulture);

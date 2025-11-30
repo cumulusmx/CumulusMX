@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace CumulusMX
@@ -579,7 +578,7 @@ namespace CumulusMX
 		Change,
 		Trigger
 	}
-
+	
 	public enum AlarmIds
 	{
 		ChangeAlarm,
@@ -619,12 +618,9 @@ namespace CumulusMX
 		User10 = 110
 	}
 
-	[DataContract]
 	public class DashboardAlarms(AlarmIds Id, bool Triggered)
 	{
-		[DataMember]
 		public string id { get; set; } = "Alarm" + Id.ToString();
-		[DataMember]
 		public bool triggered { get; set; } = Triggered;
 	}
 }

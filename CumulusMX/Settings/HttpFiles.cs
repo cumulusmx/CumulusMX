@@ -4,8 +4,8 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.Serialization;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using EmbedIO;
@@ -314,10 +314,10 @@ namespace CumulusMX.Settings
 		public bool Upload { get; set; }
 		public bool Timed { get; set; }
 
-		[IgnoreDataMember]
+		[JsonIgnore]
 		public TimeSpan StartTime { get; set; }
 
-		[DataMember(Name = "StartTimeStr")]
+		[JsonPropertyName("StartTimeStr")]
 		public string StartTimeString
 		{
 			get => StartTime.ToString("hh\\:mm", CultureInfo.InvariantCulture);

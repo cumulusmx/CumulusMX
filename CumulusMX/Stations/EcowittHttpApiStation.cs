@@ -628,7 +628,17 @@ namespace CumulusMX.Stations
 
 			var recNo = 1;
 			var lastRecTime = 0L;
-			var interval = localApi.SdCardInterval;
+			int intervalMins;
+
+			// if we have more than one record, take the initial records interval as the difference to the next record. Otherwise use the configured interval
+			if (buffer.Count > 1)
+			{
+				intervalMins = (int) (buffer.Keys[1] - buffer.Keys[0]) / 60;
+			}
+			else
+			{
+				intervalMins = localApi.SdCardInterval;
+			}
 
 			foreach (var rec in buffer)
 			{
@@ -648,13 +658,10 @@ namespace CumulusMX.Stations
 
 				if (lastRecTime != 0)
 				{
-					interval = (int) (rec.Key - lastRecTime) / 60;
-					lastRecTime = rec.Key;
+					intervalMins = (int) (rec.Key - lastRecTime) / 60;
 				}
-				else
-				{
-					lastRecTime = rec.Key;
-				}
+
+				lastRecTime = rec.Key;
 
 				DataDateTime = rec.Key.LocalFromUnixTime();
 				var h = DataDateTime.Hour;
@@ -710,24 +717,24 @@ namespace CumulusMX.Stations
 					SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
-					SunshineHours += interval / 60.0;
-					cumulus.LogDebugMessage($"Adding {interval} minutes to Sunshine Hours");
+					SunshineHours += intervalMins / 60.0;
+					cumulus.LogDebugMessage($"Adding {intervalMins} minutes to Sunshine Hours");
 				}
 
 				// add in archive period minutes worth of temperature to the temp samples
-				tempsamplestoday += interval;
-				TempTotalToday += OutdoorTemperature * interval;
+				tempsamplestoday += intervalMins;
+				TempTotalToday += OutdoorTemperature * intervalMins;
 
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + interval + " minutes = " +
-				(WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
-				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
+				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + intervalMins + " minutes = " +
+				(WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0;
 
 				// update heating/cooling degree days
-				UpdateDegreeDays(interval);
+				UpdateDegreeDays(intervalMins);
 
 				// update dominant wind bearing
-				CalculateDominantWindBearing(Bearing, WindAverage, interval);
+				CalculateDominantWindBearing(Bearing, WindAverage, intervalMins);
 				CheckForWindrunHighLow(DataDateTime);
 				DoTrendValues(DataDateTime);
 
@@ -810,7 +817,7 @@ namespace CumulusMX.Stations
 
 			Cumulus.LogConsoleMessage("\rHistoric data processing complete");
 
-			return cumulus.LastUpdateTime.AddMinutes(interval + 1) < DateTime.Now;
+			return cumulus.LastUpdateTime.AddMinutes(intervalMins + 1) < DateTime.Now;
 
 		}
 

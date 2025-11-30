@@ -93,14 +93,23 @@ namespace CumulusMX.Stations
 
 					if (lastLogTime == 0)
 					{
-						rec.Interval = 1;
-						lastLogTime = time;
+						if (Data.Count > index)
+						{
+							var nextTs = long.Parse(Data[index + 1].Split(',')[1], invc);
+							var ts= long.Parse(fields[1], invc);
+							rec.Interval = (int) (nextTs - ts) / 60;
+						}
+						else
+						{
+							rec.Interval = 5;
+						}
 					}
 					else
 					{
 						rec.Interval = (int) (time - lastLogTime) / 60;
-						lastLogTime = time;
 					}
+
+					lastLogTime = time;
 
 					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record interval = {rec.Interval} minutes");
 

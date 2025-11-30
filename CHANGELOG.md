@@ -10,7 +10,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4131\]][29] - 2025-11-26
+## BETA [4.7.0 \[b4132\]][29] - 2025-12-01
+
+### Beta 4132 Fixes
+
+- Fix for JSON serialisation affecting:
+	- HTTP Files
+	- MySQL Settings
+	- Purple Air
+	- BlueSky
+- Fix exception when Ecowitt camera URL fetch hits the rate limit
 
 ### Beta 4131 Fixes
 
@@ -78,6 +87,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add retry to daily file backups when a file is in use
 - Fix Ecowitt Cloud API Laser conversions of measurements in cm and feet to user units
 - Fix Davis WLL station getting in a day reset loop when no historic API details and last run was prior to last rollover
+- Fix exception when Ecowitt camera URL fetch hits the rate limit
 
 ### Package Updates
 
@@ -1186,4 +1196,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4131
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4132

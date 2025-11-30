@@ -9,7 +9,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -15577,12 +15576,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 
 			try
 			{
-				using var stream = new MemoryStream();
-				var ds = new DataContractJsonSerializer(typeof(DataStruct));
-				ds.WriteObject(stream, data);
-				var jsonString = Encoding.UTF8.GetString(stream.ToArray());
-				stream.Close();
-				return jsonString;
+				return JsonSerializer.Serialize(data);
 			}
 			catch (Exception ex)
 			{
