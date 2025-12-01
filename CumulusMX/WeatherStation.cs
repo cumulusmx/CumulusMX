@@ -1858,25 +1858,6 @@ namespace CumulusMX
 					// update heating/cooling degree days
 					UpdateDegreeDays(1);
 
-					// Not sure what Steve intended to do with this, it isn't used anywhere
-					/*
-					weatherDataCollection.Add(new WeatherData
-					{
-						//station = this,
-						DT = System.DateTime.Now,
-						WindSpeed = WindLatest,
-						WindAverage = WindAverage,
-						OutdoorTemp = OutdoorTemperature,
-						Pressure = Pressure,
-						Raintotal = RainToday
-					});
-
-					while (weatherDataCollection[0].DT < now.AddHours(-1))
-					{
-						weatherDataCollection.RemoveAt(0);
-					}
-					*/
-
 					if (!first_temp)
 					{
 						// update temperature average items
