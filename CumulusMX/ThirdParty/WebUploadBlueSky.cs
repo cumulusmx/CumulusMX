@@ -658,7 +658,7 @@ namespace CumulusMX.ThirdParty
 			[JsonPropertyName("$type")]
 			public string type { get; set; } = "app.bsky.embed.images";
 
-			public Images[] images { get; set; }
+			public Images[] images { get; set; } = [];
 		}
 
 		private sealed class BlobRef
@@ -690,8 +690,10 @@ namespace CumulusMX.ThirdParty
 			public string createdAt { get; } = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
 			public string[] langs { get; set; }
 
+			[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 			public Facet[] facets { get; set; }
 
+			[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 			public Embed embed { get; set; }
 		}
 

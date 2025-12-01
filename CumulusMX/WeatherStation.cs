@@ -10680,70 +10680,27 @@ namespace CumulusMX
 			if (z_north)
 			{
 				// North hemisphere
-				if (z_wind == cumulus.Trans.compassp[0]) // N
+				z_hpa += (z_wind) switch
 				{
-					z_hpa += 6F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[1]) // NNE
-				{
-					z_hpa += 5F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[2]) // NE
-				{
-					z_hpa += 5F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[3]) // ENE
-				{
-					z_hpa += 2F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[4]) // E
-				{
-					z_hpa -= 0.5F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[5]) // ESE
-				{
-					z_hpa -= 2F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[6]) // SE
-				{
-					z_hpa -= 5F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[7]) // SSE
-				{
-					z_hpa -= 8.5F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[8]) // S
-				{
-					z_hpa -= 12F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[9]) // SSW
-				{
-					z_hpa -= 10F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[10]) // SW
-				{
-					z_hpa -= 6F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[11]) // WSW
-				{
-					z_hpa -= 4.5F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[12]) // W
-				{
-					z_hpa -= 3F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[13]) // WNW
-				{
-					z_hpa -= 0.5F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[14]) // NW
-				{
-					z_hpa += 1.5F / 100 * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[15]) // NNW
-				{
-					z_hpa += 3F / 100F * z_range;
-				}
+					var s when s == cumulus.Trans.compassp[0] => 6F / 100F * z_range,    // N
+					var s when s == cumulus.Trans.compassp[1] => 5F / 100F * z_range,    // NNE
+					var s when s == cumulus.Trans.compassp[2] => 5F / 100F * z_range,    // NE
+					var s when s == cumulus.Trans.compassp[3] => 2F / 100F * z_range,    // ENE
+					var s when s == cumulus.Trans.compassp[4] => -0.5F / 100F * z_range, // E
+					var s when s == cumulus.Trans.compassp[5] => -2F / 100F * z_range,   // ESE
+					var s when s == cumulus.Trans.compassp[6] => -5F / 100F * z_range,   // SE
+					var s when s == cumulus.Trans.compassp[7] => -8.5F / 100F * z_range, // SSE
+					var s when s == cumulus.Trans.compassp[8] => -12F / 100F * z_range,  // S
+					var s when s == cumulus.Trans.compassp[9] => -10F / 100F * z_range,  // SSW
+					var s when s == cumulus.Trans.compassp[10] => -6F / 100F * z_range,  // SW
+					var s when s == cumulus.Trans.compassp[11] => -4.5F / 100F * z_range,// WSW
+					var s when s == cumulus.Trans.compassp[12] => -3F / 100F * z_range,  // W
+					var s when s == cumulus.Trans.compassp[13] => -0.5F / 100F * z_range,// WNW
+					var s when s == cumulus.Trans.compassp[14] => 1.5F / 100F * z_range, // NW
+					var s when s == cumulus.Trans.compassp[15] => 3F / 100F * z_range,   // NNW
+					_ => 0F
+				};
+
 				if (z_summer)
 				{
 					// if Summer
@@ -10762,70 +10719,26 @@ namespace CumulusMX
 			else
 			{
 				// must be South hemisphere
-				if (z_wind == cumulus.Trans.compassp[8]) // S
+				z_hpa += (z_wind) switch
 				{
-					z_hpa += 6F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[9]) // SSW
-				{
-					z_hpa += 5F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[10]) // SW
-				{
-					z_hpa += 5F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[11]) // WSW
-				{
-					z_hpa += 2F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[12]) // W
-				{
-					z_hpa -= 0.5F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[13]) // WNW
-				{
-					z_hpa -= 2F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[14]) // NW
-				{
-					z_hpa -= 5F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[15]) // NNW
-				{
-					z_hpa -= 8.5F / 100 * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[0]) // N
-				{
-					z_hpa -= 12F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[1]) // NNE
-				{
-					z_hpa -= 10F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[2]) // NE
-				{
-					z_hpa -= 6F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[3]) // ENE
-				{
-					z_hpa -= 4.5F / 100 * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[4]) // E
-				{
-					z_hpa -= 3F / 100F * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[5]) // ESE
-				{
-					z_hpa -= 0.5F / 100 * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[6]) // SE
-				{
-					z_hpa += 1.5F / 100 * z_range;
-				}
-				else if (z_wind == cumulus.Trans.compassp[7]) // SSE
-				{
-					z_hpa += 3F / 100F * z_range;
-				}
+					var s when s == cumulus.Trans.compassp[0] => -12F / 100F * z_range,  // N
+					var s when s == cumulus.Trans.compassp[1] => -10F / 100F * z_range,  // NNE
+					var s when s == cumulus.Trans.compassp[2] => -6F / 100F * z_range,   // NE
+					var s when s == cumulus.Trans.compassp[3] => -4.5F / 100F * z_range, // ENE
+					var s when s == cumulus.Trans.compassp[4] => -3F / 100F * z_range,   // E
+					var s when s == cumulus.Trans.compassp[5] => -0.5F / 100F * z_range, // ESE
+					var s when s == cumulus.Trans.compassp[6] => 1.5F / 100F * z_range,  // SE
+					var s when s == cumulus.Trans.compassp[7] => 3F / 100F * z_range,    // SSE
+					var s when s == cumulus.Trans.compassp[8] => 6F / 100F * z_range,    // S
+					var s when s == cumulus.Trans.compassp[9] => 5F / 100F * z_range,    // SSW
+					var s when s == cumulus.Trans.compassp[10] => 5F / 100F * z_range,   // SW
+					var s when s == cumulus.Trans.compassp[11] => 2F / 100F * z_range,   // WSW
+					var s when s == cumulus.Trans.compassp[12] => 0.5F / 100F * z_range, // W
+					var s when s == cumulus.Trans.compassp[13] => -2F / 100F * z_range,  // WNW
+					var s when s == cumulus.Trans.compassp[14] => -5F / 100F * z_range,  // NW
+					var s when s == cumulus.Trans.compassp[15] => -8.5F / 100F * z_range,// NW
+					_ => 0F
+				};
 				if (!z_summer)
 				{
 					// if Winter
