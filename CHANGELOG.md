@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Beta 4133 Fixes
 
 - Fix Ecowitt laser data on the HTTP Local API when configured to use feet on the station
+- Final fix for Tempest station opening the UDP port in shared mode
 
 ### Beta 4132 Fixes
 
@@ -92,6 +93,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Ecowitt Cloud API Laser conversions of measurements in cm and feet to user units
 - Fix Davis WLL station getting in a day reset loop when no historic API details and last run was prior to last rollover
 - Fix exception when Ecowitt camera URL fetch hits the rate limit
+- Final fix for Tempest station opening the UDP port in shared mode
+
 
 ### Package Updates
 
