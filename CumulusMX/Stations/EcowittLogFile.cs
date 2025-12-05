@@ -36,12 +36,22 @@ namespace CumulusMX.Stations
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
 			var retList = new SortedList<long, EcowittApi.HistoricData>();
+			var count = 0;
+
+			Cumulus.LogConsoleMessage("  Preprocessing the data");
 
 			var useTimestamp = FieldIndex.ContainsKey("timestamp");
 
 			for (var index = 0; index < Data.Count; index++)
 			{
 				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocess record # {index + 1} of {Data.Count}");
+
+				count++;
+
+				if (count % 10 == 0 && !Program.service)
+				{
+					Console.Write($"  Preprocessing record: {count}\r");
+				}
 
 				try
 				{
@@ -289,6 +299,11 @@ namespace CumulusMX.Stations
 					cumulus.LogErrorMessage("EcowittLogFile.DataParser: Error processing record " + (index + 1) + " - " + ex.Message);
 					cumulus.LogDebugMessage("EcowittLogFile.DataParser: Record = " + Data[index]);
 				}
+			}
+
+			if (!Program.service)
+			{
+				Cumulus.LogConsoleMessage("  Preprocessing complete           ");
 			}
 
 			return retList;

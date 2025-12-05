@@ -550,6 +550,8 @@ namespace CumulusMX.Stations
 
 			var url = $"http://{cumulus.Gw1000IpAddress}:81/" + fileName;
 
+			Cumulus.LogConsoleMessage("  Extracting data");
+
 			// Get the contents
 			do
 			{
@@ -569,9 +571,9 @@ namespace CumulusMX.Stations
 					{
 						count++;
 
-						if (count % 100 == 0 && !Program.service)
+						if (count % 50 == 0 && !Program.service)
 						{
-							Console.Write($"  Preprocessing line: {count}\r");
+							Console.Write($"  Extracting line: {count}\r");
 						}
 
 						if (string.IsNullOrWhiteSpace(line) || string.IsNullOrWhiteSpace(line.Trim()))
@@ -633,7 +635,7 @@ namespace CumulusMX.Stations
 
 					if (!Program.service)
 					{
-						Cumulus.LogConsoleMessage("  Preprocessing complete           ");
+						Cumulus.LogConsoleMessage("  Data extraction complete           ");
 					}
 
 					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracted {result.Count} lines from {fileName}");

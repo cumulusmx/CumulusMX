@@ -413,7 +413,8 @@ namespace CumulusMX.Stations.Tempest
 		{
 			tokenSource = new CancellationTokenSource();
 			_listenTask = new Task(() => _ = ListenForPackets(tokenSource.Token));
-			// force shared port as Mono defaults to exclusive
+			// force shared port
+			Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 			ExclusiveAddressUse = false;
 			Client.Bind(new IPEndPoint(IPAddress.Any, port));
 		}

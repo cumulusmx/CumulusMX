@@ -706,7 +706,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - AWEKAS uploads fix to avoid frequent rate limiting messages
-- Ability to edit sunshine hours to two decimal palces in the log and day file editors
+- Ability to edit sunshine hours to two decimal places in the log and day file editors
 - Fix recent Solar graph data bad format if solar or UV sensor data is null
 - Add check for CustomHttpXXX URLs to begin with http
 - Davis WLL change to avoid potential extension of 10 minute gust values when broadcasts are working
