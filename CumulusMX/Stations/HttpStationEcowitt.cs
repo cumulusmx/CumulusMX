@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
@@ -666,7 +665,7 @@ namespace CumulusMX.Stations
 						// eventrainin
 
 						// same for piezo data
-						// ​rrain_piezo
+						// rrain_piezo
 						// erain_piezo - event rain
 						// hrain_piezo
 						// drain_piezo

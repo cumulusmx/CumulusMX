@@ -249,8 +249,8 @@ namespace CumulusMX.Stations
 							case LaserUnits.ft:
 								for (var i = 0; i < 4; i++)
 								{
-									rec.LdsAir[i] = ConvertUnits.LaserInchesToUser(rec.LdsAir[i] / 12);
-									rec.LdsDepth[i] = ConvertUnits.LaserInchesToUser(rec.LdsDepth[i] / 12);
+									rec.LdsAir[i] = ConvertUnits.LaserInchesToUser(rec.LdsAir[i] * 12);
+									rec.LdsDepth[i] = ConvertUnits.LaserInchesToUser(rec.LdsDepth[i] * 12);
 								}
 								break;
 

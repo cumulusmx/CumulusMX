@@ -10,7 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4132\]][29] - 2025-12-01
+## BETA [4.7.0 \[b4133\]][29] - 2025-12-10
+
+### Beta 4133 Fixes
+
+- Fix Ecowitt laser data on the HTTP Local API when configured to use feet on the station
 
 ### Beta 4132 Fixes
 
@@ -1196,4 +1200,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4132
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4133

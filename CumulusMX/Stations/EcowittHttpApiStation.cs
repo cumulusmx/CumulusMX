@@ -1864,7 +1864,15 @@ namespace CumulusMX.Stations
 
 				try
 				{
-					var val = sensor.unit.Equals("mm", StringComparison.CurrentCultureIgnoreCase) ? ConvertUnits.LaserMmToUser(sensor.airVal.Value) : ConvertUnits.LaserInchesToUser(sensor.airVal.Value);
+					var val = sensor.unit switch
+					{
+						"mm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value),
+						"cm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value * 10),
+						"in" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value),
+						"ft" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value * 12),
+						_ => sensor.airVal.Value
+					};
+
 					DoLaserDistance(val, sensor.channel);
 				}
 				catch (Exception ex)
@@ -1882,7 +1890,14 @@ namespace CumulusMX.Stations
 
 						if (sensor.depthVal.HasValue)
 						{
-							val = sensor.unit.Equals("mm", StringComparison.CurrentCultureIgnoreCase) ? ConvertUnits.LaserMmToUser(sensor.depthVal.Value) : ConvertUnits.LaserInchesToUser(sensor.depthVal.Value);
+							val = sensor.unit switch
+							{
+								"mm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value),
+								"cm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value * 10),
+								"in" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value),
+								"ft" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value * 12),
+								_ => sensor.airVal.Value
+							};
 						}
 						DoLaserDepth(val, sensor.channel);
 					}
