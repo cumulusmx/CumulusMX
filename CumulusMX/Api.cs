@@ -564,7 +564,7 @@ namespace CumulusMX
 
 				if (Request.QueryString.AllKeys.Contains("start"))
 				{
-					start = DateTime.ParseExact(Request.QueryString.Get("start"), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal);
+					start = DateTime.ParseExact(Request.QueryString.Get("start"), ["yyyy-MM-dd", "yyyy-MM-dd HH:mm"], CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal);
 					if (!Request.QueryString.AllKeys.Contains("end"))
 						incremental = true;
 				}
@@ -572,7 +572,7 @@ namespace CumulusMX
 				//if (Request.QueryString.AllKeys.Contains("end") && long.TryParse(Request.QueryString.Get("end"), out ts))
 				if (Request.QueryString.AllKeys.Contains("end"))
 				{
-					end = DateTime.ParseExact(Request.QueryString.Get("end"), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal);
+					end = DateTime.ParseExact(Request.QueryString.Get("end"), ["yyyy-MM-dd", "yyyy-MM-dd HH:mm"], CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal);
 					if (end > DateTime.Now)
 						end = DateTime.Now;
 				}
