@@ -17,7 +17,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Ecowitt laser data on the HTTP Local API when configured to use feet on the station
 - Final fix for Tempest station opening the UDP port in shared mode
 - Added selection handles to ChartJS navigator charts
-- API change for recent graph data requests to accept date/times
+- API change for recent graph data requests to accept dates or date/times
 
 ### Beta 4132 Fixes
 

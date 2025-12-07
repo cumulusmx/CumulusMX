@@ -1266,9 +1266,10 @@ namespace CumulusMX
 			LogMessage("Email logging :" + (SmtpOptions.Logging ? "enabled" : "disabled"));
 			LogMessage("Spike logging :" + (ErrorLogSpikeRemoval ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval] + " mins");
-			LogMessage("Real time interval:" + (RealtimeIntervalEnabled ? "enabled" : "disabled") + ", uploads:" + (FtpOptions.RealtimeEnabled ? "enabled" : "disabled") + ", (" + RealtimeInterval / 1000 + " secs)");
-			LogMessage("Interval          :" + (WebIntervalEnabled ? "enabled" : "disabled") + ", uploads:" + (FtpOptions.IntervalEnabled ? "enabled" : "disabled") + ", (" + UpdateInterval + " mins)");
-			LogMessage("NoSensorCheck = " + (StationOptions.NoSensorCheck ? "1" : "0"));
+			LogMessage("Real time interval: " + (RealtimeIntervalEnabled ? "enabled" : "disabled") + ", uploads: " + (FtpOptions.RealtimeEnabled ? "enabled" : "disabled") + ", (" + RealtimeInterval / 1000 + " secs)");
+			LogMessage("Interval          : " + (WebIntervalEnabled ? "enabled" : "disabled") + ", uploads: " + (FtpOptions.IntervalEnabled ? "enabled" : "disabled") + ", (" + UpdateInterval + " mins)");
+			LogMessage("Extra sensor logging: " + (StationOptions.LogExtraSensors ? "enabled" : "disabled"));
+			LogMessage("NoSensorCheck = " + (StationOptions.NoSensorCheck ? "enabled" : "disabled"));
 
 			TempFormat = "F" + TempDPlaces;
 			WindFormat = "F" + WindDPlaces;
