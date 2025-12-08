@@ -9474,10 +9474,11 @@ namespace CumulusMX
 			{
 				if (ErrorList.Count >= 50)
 				{
-					do
+					int toRemove = ErrorList.Count - 49;
+					for (int i = 0; i < toRemove; i++)
 					{
 						_ = ErrorList.Dequeue();
-					} while (ErrorList.Count >= 50);
+					}
 				}
 
 				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + WebUtility.HtmlEncode(message)));
@@ -12581,15 +12582,7 @@ namespace CumulusMX
 
 			if (logError)
 			{
-				if (ErrorList.Count >= 50)
-				{
-					do
-					{
-						_ = ErrorList.Dequeue();
-					} while (ErrorList.Count >= 50);
-				}
-
-				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.GetBaseException().Message));
+				LatestErrorLog(message + " - " + ex.GetBaseException().Message, MxLogLevel.Error);
 
 				LatestError = message + " - " + ex.Message;
 				LatestErrorTS = DateTime.Now;
@@ -12606,8 +12599,14 @@ namespace CumulusMX
 			{
 				return "[\"No errors recorded so far\"]";
 			}
-
-			return arr.Reverse().ToJson();
+			else if (arr.Length > 2)
+			{
+				return arr.Reverse().ToJson();
+			}
+			else
+			{
+				return arr.ToJson();
+			}
 		}
 
 		public string ClearErrorLog()
