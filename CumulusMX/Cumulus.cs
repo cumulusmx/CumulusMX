@@ -10824,11 +10824,12 @@ namespace CumulusMX
 
 								using (var dataStream = GenerateStreamFromString(json))
 								{
-									UploadStream(conn, remotefile, dataStream, cycle1k);
+									if (UploadStream(conn, remotefile, dataStream, cycle1k))
+									{
+										// Uploaded OK, reset the upload required flag
+										GraphDataEodFiles[i].FtpRequired = false;
+									}
 								}
-
-								// Uploaded OK, reset the upload required flag
-								GraphDataEodFiles[i].FtpRequired = false;
 							}
 							catch (Exception e)
 							{
@@ -11694,6 +11695,7 @@ namespace CumulusMX
 				if (status.IsFailure())
 				{
 					LogErrorMessage($"FTP[{cycleStr}]: Upload of {remotefile} failed");
+					return false;
 				}
 				else if (FTPRename)
 				{
@@ -11720,7 +11722,7 @@ namespace CumulusMX
 
 						RealTimeWdTokenSource.Cancel();
 
-						return conn.IsConnected;
+						return false;
 					}
 				}
 			}
@@ -11737,9 +11739,10 @@ namespace CumulusMX
 				}
 
 				RealTimeWdTokenSource.Cancel();
+				return false;
 			}
 
-			return conn.IsConnected;
+			return true;
 		}
 
 		// Return True if the connection still exists
@@ -11856,7 +11859,7 @@ namespace CumulusMX
 						}
 
 						RealTimeWdTokenSource.Cancel();
-						return true;
+						return false;
 					}
 				}
 				LogDebugMessage($"SFTP[{cycleStr}]: Completed uploading {remotefile}");
@@ -11882,6 +11885,7 @@ namespace CumulusMX
 				}
 
 				RealTimeWdTokenSource.Cancel();
+				return false;
 			}
 			return true;
 		}
