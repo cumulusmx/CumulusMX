@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4133\]][29] - 2025-12-10
+## BETA [4.7.0 \[b4133\]][29] - 2025-12-09
 
 ### Beta 4133 Fixes
 
@@ -18,6 +18,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Final fix for Tempest station opening the UDP port in shared mode
 - Added selection handles to ChartJS navigator charts
 - API change for recent graph data requests to accept dates or date/times
+- Fix fix for EOD files being flagged as complete when they errored during FTP
+- New version of MigrateData3to4 (v2.0) to support MX v4.7
 
 ### Beta 4132 Fixes
 
