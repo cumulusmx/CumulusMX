@@ -54,7 +54,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
 - There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows firewall rules
 - Add an exponential backoff to failed Email sends (up to 5.6 hours)
-- New web tag `<#snowunit>`
+- New web tags `<#snowunit>`, `<#CapacitorV>`
 - Adds a new Data Logs editor for the Recent Data from the SQLite database
 
 ### Changed

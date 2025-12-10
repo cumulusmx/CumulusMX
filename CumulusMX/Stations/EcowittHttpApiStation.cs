@@ -1289,7 +1289,7 @@ namespace CumulusMX.Stations
 
 		private void ProcessRain(EcowittLocalApi.CommonSensor[] sensors, bool isRainingOnly)
 		{
-			//"rain"/"piezoRain": [
+			//"rain": [
 			//	{
 			//		"id": "0x0D",
 			//		"val": "0.0 mm"
@@ -1320,6 +1320,45 @@ namespace CumulusMX.Stations
 			//		"battery": "5"
 			//	}
 			//],
+			//"piezoRain" : [
+			//	{
+			//		"id": "srain_piezo",
+			//		"val": "0"
+			//	},
+			//	{
+			//		"id": "0x0D",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x0E",
+			//		"val": "0.0 mm/Hr"
+			//	},
+			//	{
+			//		"id": "0x7C",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x10",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x11",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x12",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x13",
+			//		"val": "0.0 mm",
+			//		"battery": "5",
+			//		"voltage": "3.24",
+			//		"ws90cap_volt": "3.3",
+			//		"ws90_ver": "159"
+			//	}
+			//]
+
 
 			for (var i = 0; i < sensors.Length; i++)
 			{
@@ -1393,11 +1432,16 @@ namespace CumulusMX.Stations
 
 						case "0x13":
 							//Rain Year (val unit)
-							if (isRainingOnly)
-								break;
 							try
 							{
 								var arr = sensor.val.Split(' ');
+
+								if (sensor.ws90cap_volt.HasValue)
+									CapacitorVolt = sensor.ws90cap_volt.Value;
+
+								if (isRainingOnly)
+									break;
+
 								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 								{
 									var yr = arr[1].ToLower() switch

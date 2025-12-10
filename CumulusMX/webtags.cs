@@ -1172,6 +1172,11 @@ namespace CumulusMX
 			return CheckRc(station.ConSupplyVoltageText ?? tagParams.Get("nv") ?? "--", tagParams);
 		}
 
+		private string TagCapacitorV(Dictionary<string, string> tagParams)
+		{
+			return CheckRc(station.CapacitorVolt.ToString() ?? tagParams.Get("nv") ?? "--", tagParams);
+		}
+
 		private string Tagtxbattery(Dictionary<string, string> tagParams)
 		{
 			var json = tagParams.Get("format") == "json";
@@ -6967,6 +6972,7 @@ namespace CumulusMX
 				{ "battery", Tagbattery },
 				{ "txbattery", Tagtxbattery },
 				{ "ConsoleSupplyV", TagConsoleSupplyV },
+				{ "CapacitorV", TagCapacitorV },
 				{ "LowBatteryList", TagLowBatteryList },
 				{ "MulticastBadCnt", TagMulticastBadCnt },
 				{ "MulticastGoodCnt", TagMulticastGoodCnt },

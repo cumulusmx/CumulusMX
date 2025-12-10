@@ -1182,6 +1182,8 @@ namespace CumulusMX.Stations
 			public string val { get; set; }
 			public string? unit { get; set; }
 			public double? battery { get; set; }
+			public double? voltage { get; set; }
+			public decimal? ws90cap_volt { get; set; }
 
 			public int? valInt
 			{

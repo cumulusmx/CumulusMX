@@ -9621,6 +9621,7 @@ namespace CumulusMX
 		public double RainLast24Hour { get; set; }
 		public string ConBatText { get; set; }
 		public string ConSupplyVoltageText { get; set; }
+		public decimal CapacitorVolt { get; set; }
 		public string TxBatText { get; set; }
 
 		public double YestChillHours { get; set; }
