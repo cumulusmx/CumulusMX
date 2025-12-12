@@ -115,7 +115,9 @@ namespace CumulusMX
 				Console.CancelKeyPress += static (s, ev) =>
 				{
 					MxLogger.Warn("**** Ctrl-C pressed ****");
-					Console.WriteLine("**** Ctrl-C pressed ****", ConsoleColor.Red);
+					Console.ForegroundColor = ConsoleColor.Red;
+					Console.WriteLine("**** Ctrl-C pressed ****");
+					Console.ResetColor();
 
 					ev.Cancel = true;
 
@@ -460,7 +462,9 @@ namespace CumulusMX
 
 			if (cumulus != null && Environment.ExitCode != 999)
 			{
-				Console.WriteLine("Cumulus terminating", ConsoleColor.Red);
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("Cumulus terminating");
+				Console.ResetColor();
 				cumulus.Stop();
 				MxLogger.Info("Cumulus has shutdown");
 				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
@@ -668,25 +672,33 @@ namespace CumulusMX
 			{
 				// Handle Ctrl-C
 				MxLogger.Warn("**** Ctrl-C pressed ****");
-				Console.WriteLine("**** Ctrl-C pressed ****", ConsoleColor.Red);
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("**** Ctrl-C pressed ****");
+				Console.ResetColor();
 			}
 			if (ctrlType == CtrlTypes.CTRL_BREAK_EVENT)
 			{
 				// Handle Ctrl-C or Ctrl-Break
 				MxLogger.Warn("**** Ctrl-Break pressed ****");
-				Console.WriteLine("**** Ctrl-Break pressed ****", ConsoleColor.Red);
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("**** Ctrl-Break pressed ****");
+				Console.ResetColor();
 			}
 			else if (ctrlType == CtrlTypes.CTRL_CLOSE_EVENT)
 			{
 				// Handle console close event
 				MxLogger.Warn("**** Console close event received ****");
-				Console.WriteLine("**** Console close event received ****", ConsoleColor.Red);
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("**** Console close event received ****");
+				Console.ResetColor();
 			}
 			else if (ctrlType == CtrlTypes.CTRL_SHUTDOWN_EVENT)
 			{
 				// Handle shutdown or logoff
 				MxLogger.Warn("**** System Shutdown event received ****");
-				Console.WriteLine("**** System Shutdown event received ****", ConsoleColor.Red);
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("**** System Shutdown event received ****");
+				Console.ResetColor();
 			}
 
 			// Ignore log-off (it may be another user)
@@ -788,7 +800,7 @@ namespace CumulusMX
 			posixSigTermRegistrationHandle = PosixSignalRegistration.Create(PosixSignal.SIGTERM, context =>
 			{
 				MxLogger.Warn("**** SIGTERM received ****");
-				Console.WriteLine("**** SIGTERM received ****", ConsoleColor.Red);
+				Console.WriteLine("**** SIGTERM received ****");
 				svcTextListener.WriteLine("**** SIGTERM received ****");
 				Environment.ExitCode = 0;
 				ExitSystemTokenSource.Cancel();

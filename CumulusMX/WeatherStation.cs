@@ -4719,10 +4719,8 @@ namespace CumulusMX
 			var useExtraSensorLogFile = true; // use the extra log file or the AirLink log file
 
 			var pm25idx = 0; // index of the PM2.5 sensor in the log file
-			var pm25Caption = "PM2.5";
 
 			var pm10idx = 0; // index of the PM10 sensor in the log file
-			var pm10Caption = "PM10";
 
 			// first determine which if the sensors - if any - to use
 			switch (cumulus.StationOptions.PrimaryAqSensor)
@@ -4732,36 +4730,26 @@ namespace CumulusMX
 				case (int) Cumulus.PrimaryAqSensor.Sensor1:
 					pm25idx = 68;
 					pm10idx = 119;
-					pm25Caption = cumulus.Trans.AirQualityCaptions[0];
-					pm10Caption = cumulus.Trans.AirQuality10Captions[0];
 					useExtraSensorLogFile = true;
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Sensor2:
 					pm25idx = 69;
 					pm10idx = 120;
-					pm25Caption = cumulus.Trans.AirQualityCaptions[1];
-					pm10Caption = cumulus.Trans.AirQuality10Captions[1];
 					useExtraSensorLogFile = true;
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Sensor3:
 					pm25idx = 70;
 					pm10idx = 121;
-					pm25Caption = cumulus.Trans.AirQualityCaptions[2];
-					pm10Caption = cumulus.Trans.AirQuality10Captions[2];
 					useExtraSensorLogFile = true;
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Sensor4:
 					pm25idx = 71;
 					pm10idx = 122;
-					pm25Caption = cumulus.Trans.AirQualityCaptions[3];
-					pm10Caption = cumulus.Trans.AirQuality10Captions[3];
 					useExtraSensorLogFile = true;
 					break;
 				case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
 					pm25idx = 86;
 					pm10idx = 88;
-					pm25Caption = cumulus.Trans.CO2_pm2p5Caption;
-					pm10Caption = cumulus.Trans.CO2_pm10Caption;
 					useExtraSensorLogFile = true;
 					break;
 				case (int) Cumulus.PrimaryAqSensor.AirLinkIndoor:
@@ -4787,8 +4775,6 @@ namespace CumulusMX
 			var fileDate = dateFrom;
 			var logFile = useExtraSensorLogFile ? cumulus.GetExtraLogFileName(fileDate) : cumulus.GetAirLinkLogFileName(fileDate);
 
-			var entryTs = 0L;
-
 			var tsFrom = dateFrom.ToUnixTime();
 			var tsTo = dateTo.ToUnixTime();
 
@@ -4813,7 +4799,7 @@ namespace CumulusMX
 								// process each record in the file
 								linenum++;
 								var st = new List<string>(line.Split(','));
-								entryTs = long.Parse(st[1]);
+								var entryTs = long.Parse(st[1]);
 
 								if (entryTs > tsFrom)
 								{
@@ -15866,7 +15852,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			var inv = CultureInfo.InvariantCulture;
 			var sb = new StringBuilder("[");
 
-			sb.Append($"\"{this.DateTime.ToString("dd/MM/yy HH:mm")}\",");
+			sb.Append($"\"{DateTime.ToString("dd/MM/yy HH:mm")}\",");
 			sb.Append($"{Timestamp},");
 			sb.Append($"{WindSpeed.ToString(Program.cumulus.WindAvgFormat, inv)},");
 			sb.Append($"{WindGust.ToString(Program.cumulus.WindFormat, inv)},");

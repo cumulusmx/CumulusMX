@@ -28,7 +28,7 @@ namespace CumulusMX.Stations
 		private readonly System.Timers.Timer tmrCurrent;
 		private readonly System.Timers.Timer tmrBroadcastWatchdog;
 		private readonly System.Timers.Timer tmrHealth;
-		private readonly object threadSafer = new();
+		private readonly Lock threadSafer = new();
 		private static readonly SemaphoreSlim WebReq = new(1, 1);
 		private bool startupDayResetIfRequired = true;
 		private bool savedCalculatePeakGust;
