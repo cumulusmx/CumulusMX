@@ -1106,33 +1106,33 @@ namespace CumulusMX.Stations
 						if (consoleclock > DateTime.MinValue)
 						{
 							cumulus.LogMessage("Console clock: " + consoleclock);
+
+							if (Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 30)
+							{
+								SetTime();
+
+								cumulus.LogMessage("Console clock: Pausing to allow console to process the new date/time");
+								Thread.Sleep(1000 * 5);
+
+								consoleclock = GetTime();
+
+								if (consoleclock > DateTime.MinValue)
+								{
+									cumulus.LogMessage("Console clock: " + consoleclock);
+								}
+								else
+								{
+									cumulus.LogWarningMessage("Console clock: Failed to read console time");
+								}
+							}
+							else
+							{
+								cumulus.LogMessage($"Console clock: Accurate to +/- 30 seconds, no need to set it (diff={(int) nowTime.Subtract(consoleclock).TotalSeconds}s)");
+							}
 						}
 						else
 						{
 							cumulus.LogWarningMessage("Console clock: Failed to read console time");
-						}
-
-						if (Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 30)
-						{
-							SetTime();
-
-							cumulus.LogMessage("Console clock: Pausing to allow console to process the new date/time");
-							Thread.Sleep(1000 * 5);
-
-							consoleclock = GetTime();
-
-							if (consoleclock > DateTime.MinValue)
-							{
-								cumulus.LogMessage("Console clock: " + consoleclock);
-							}
-							else
-							{
-								cumulus.LogWarningMessage("Console clock: Failed to read console time");
-							}
-						}
-						else
-						{
-							cumulus.LogMessage($"Console clock: Accurate to +/- 30 seconds, no need to set it (diff={(int) nowTime.Subtract(consoleclock).TotalSeconds}s)");
 						}
 
 						clockSetNeeded = false;
@@ -1271,6 +1271,7 @@ namespace CumulusMX.Stations
 
 				if (WakeVP(comport))
 				{
+					var oldTimeout = comport.ReadTimeout;
 					try
 					{
 						comport.WriteLine(commandString);
@@ -1278,6 +1279,8 @@ namespace CumulusMX.Stations
 						if (WaitForOK(comport))
 						{
 							// Read the response
+							// This can take some time, so extend the timeout to 2.5 seconds
+							comport.ReadTimeout = 2500;
 							do
 							{
 								// Read the current character
@@ -1299,6 +1302,10 @@ namespace CumulusMX.Stations
 						cumulus.LogDebugMessage("SendBarRead: Attempting to reconnect to logger");
 						InitSerial();
 						cumulus.LogDebugMessage("SendBarRead: Reconnected to logger");
+					}
+					finally
+					{
+						comport.ReadTimeout = oldTimeout;
 					}
 				}
 			}
@@ -1350,10 +1357,9 @@ namespace CumulusMX.Stations
 			}
 
 			cumulus.LogDataMessage("BARREAD Received - " + BitConverter.ToString(readBuffer.Take(bytesRead).ToArray()));
-			if (response.Length > 2)
+			if (response.Length == 7)
 			{
-				response.Length--;
-				cumulus.LogDebugMessage("BARREAD Received - " + response.ToString());
+				cumulus.LogDebugMessage("BARREAD Received - " + response.ToString(0, 2) + '.' + response.ToString(2, 3));
 			}
 		}
 
