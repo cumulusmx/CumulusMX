@@ -8798,7 +8798,6 @@ namespace CumulusMX
 			var filename = GetAirLinkLogFileName(timestamp);
 
 			LogDebugMessage($"DoAirLinkLogFile: Writing log entry for {timestamp}");
-			var inv = CultureInfo.InvariantCulture;
 			var csv = AirLinkLogFileRec.CurrentToCsv(timestamp, this);
 
 			var success = false;

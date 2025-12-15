@@ -24,7 +24,7 @@ namespace CumulusMX.Stations
 		private const string simpleFirmwareUrl = "http://download.ecowitt.net/down/filewave?v=FirwaveReadme.txt";
 		public static readonly string[] SimpleSupportedModels = ["GW1000", "WH2650", "WS1900", "HP10", "WH2680", "WH6006", "WL6006"];
 
-		private JsonSerializerOptions jsonOptions = new JsonSerializerOptions();
+		private readonly JsonSerializerOptions jsonOptions = new();
 
 		private static readonly int EcowittApiFudgeFactorMins = 5; // Number of minutes that Ecowitt API data is delayed
 		private static readonly int EcowittApiFudgeFactorSecs = EcowittApiFudgeFactorMins * 60; // Number of seconds that Ecowitt API data is delayed
@@ -42,9 +42,9 @@ namespace CumulusMX.Stations
 
 		private int delayTime = 10;
 
-		private int PrimaryTHSensor;
-		private int PrimaryIndoorTHSensor;
-		private int[] MapWN34 = new int[9];
+		private readonly int PrimaryTHSensor;
+		private readonly int PrimaryIndoorTHSensor;
+		private readonly int[] MapWN34 = new int[9];
 
 		public EcowittApi(Cumulus cuml, WeatherStation stn, bool mainStation)
 		{
@@ -3267,8 +3267,8 @@ namespace CumulusMX.Stations
 		{
 			public int code { get; set; }
 			public string msg { get; set; }
-			public long time { get; set; }
-			public object data { get; set; }
+			//public long time { get; set; }
+			//public object data { get; set; }
 
 			public string GetErrorMessage()
 			{
