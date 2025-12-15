@@ -2731,21 +2731,20 @@ namespace CumulusMX.Stations
 		{
 			// Doc: https://doc.ecowitt.net/web/#/apiv3en?page_id=19
 
-
 			/*
-							{
-								"code": 0,
-								"msg": "success",
-								"time": "1701950253",
-								"data": {
-									"camera": {
-										"20231206": {
-											"video": "https://osswww.ecowitt.net/videos/webvideo/v0/2023_12_06/158185/29f0493644eb87ef7a0ffea30221605c.mp4"
-										}
-									}
-								}
+				{
+					"code": 0,
+					"msg": "success",
+					"time": "1701950253",
+					"data": {
+						"camera": {
+							"20231206": {
+								"video": "https://osswww.ecowitt.net/videos/webvideo/v0/2023_12_06/158185/29f0493644eb87ef7a0ffea30221605c.mp4"
 							}
-						*/
+						}
+					}
+				}
+			*/
 			cumulus.LogMessage("API.GetLastCameraVideoUrl: Get Ecowitt Last Camera Video");
 
 			var defaultUrl = DefaultVideoUrl.GetValueOrDefault(mac) ?? string.Empty;
@@ -2828,12 +2827,12 @@ namespace CumulusMX.Stations
 				{
 
 					// get the sensor data
-					vidObj = JsonSerializer.Deserialize<JsonNode>(responseBody, jsonOptions);
+					vidObj = JsonSerializer.Deserialize<VideoUrlResp>(responseBody, jsonOptions);
 
 					if (vidObj != null)
 					{
 						// success
-						if (vidObj.code == "0")
+						if (vidObj.code == 0)
 						{
 							if (vidObj.data == null)
 							{
@@ -2848,11 +2847,11 @@ namespace CumulusMX.Stations
 								return defaultUrl;
 							}
 
-							var found = System.Text.RegularExpressions.Regex.Match(vidObj.data.camera.ToString(), "https.*mp4");
+							var found = System.Text.RegularExpressions.Regex.Match(responseBody, "https.*mp4");
 
 							if (found.Success)
 							{
-								var link = found.Groups[0].Value.Replace("\\", "");
+								var link = found.Groups[0].Value;
 
 								LastCameraVideoTime[mac] = start.ToString("yyyyMMdd");
 								DefaultVideoUrl[mac] = link;
@@ -2865,7 +2864,7 @@ namespace CumulusMX.Stations
 								return defaultUrl;
 							}
 						}
-						else if (vidObj.code == "-1" || vidObj.code == "45001")
+						else if (vidObj.code == -1 || vidObj.code == 45001)
 						{
 							// -1 = system busy, 45001 = rate limited
 
@@ -3300,6 +3299,19 @@ namespace CumulusMX.Stations
 					_ => "Unknown error code",
 				};
 			}
+		}
+
+		internal class VideoUrlResp
+		{
+			public int code { get; set; }
+			public string msg { get; set; }
+			public long time { get; set; }
+			public VideoData data { get; set; }
+		}
+
+		internal class VideoData
+		{
+			public JsonNode camera { get; set; }
 		}
 
 		internal class HistoricResp

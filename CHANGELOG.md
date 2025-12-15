@@ -10,7 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4133\]][29] - 2025-12-09
+## BETA [4.7.0 \[b4134\]][29] - 2025-12-16
+
+### Beta 4134 Fixes
+
+- Ecowitt Camera Video URL retrieval JSON decode error
 
 ### Beta 4133 Fixes
 
@@ -1207,4 +1211,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4133
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4134
