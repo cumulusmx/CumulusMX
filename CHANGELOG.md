@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Beta 4134 Fixes
 
 - Ecowitt Camera Video URL retrieval JSON decode error
+- Fixes for Davis VP1/2 serial BARREAD and SETTIME commands
 
 ### Beta 4133 Fixes
 
@@ -102,6 +103,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Davis WLL station getting in a day reset loop when no historic API details and last run was prior to last rollover
 - Fix exception when Ecowitt camera URL fetch hits the rate limit
 - Final fix for Tempest station opening the UDP port in shared mode
+- Fixes for Davis VP1/2 serial BARREAD and SETTIME commands
 
 
 ### Package Updates
