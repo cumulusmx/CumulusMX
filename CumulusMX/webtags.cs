@@ -350,7 +350,7 @@ namespace CumulusMX
 			return month;
 		}
 
-		public string GetCurrCondText()
+		public static string GetCurrCondText()
 		{
 			string res;
 			string fileName = Path.Combine(Directory.GetCurrentDirectory(), "currentconditions.txt");

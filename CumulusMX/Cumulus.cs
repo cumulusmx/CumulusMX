@@ -9162,7 +9162,7 @@ namespace CumulusMX
 				var extraBackup = Path.Combine("data", Path.GetFileName(extraFile));
 
 				var AirLinkFile = GetAirLinkLogFileName(timestamp);
-				var AirLinkBackup = Path.Combine("data", Path.GetFileName(AirLinkFile));
+				//var AirLinkBackup = Path.Combine("data", Path.GetFileName(AirLinkFile));
 
 
 				if (!File.Exists(Path.Combine(dirpath, filename)))
@@ -9353,7 +9353,7 @@ namespace CumulusMX
 			}
 		}
 
-		private void archiveFile(ZipArchive archive, string filename, string path)
+		private static void archiveFile(ZipArchive archive, string filename, string path)
 		{
 			// add the file to the archive, with a back-off and retry for file in use
 			var maxAttempts = 2;
@@ -10485,15 +10485,13 @@ namespace CumulusMX
 
 									var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
 
-									using (var dataStream = GenerateStreamFromString(json))
+									using var dataStream = GenerateStreamFromString(json);
+									if (UploadStream(conn, remotefile, dataStream, cycle1k))
 									{
-										if (UploadStream(conn, remotefile, dataStream, cycle1k))
+										// Uploaded OK, reset the upload required flag for the static and daily files
+										if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
 										{
-											// Uploaded OK, reset the upload required flag for the static and daily files
-											if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
-											{
-												GraphDataFiles[i].FtpRequired = false;
-											}
+											GraphDataFiles[i].FtpRequired = false;
 										}
 									}
 								}
@@ -10519,13 +10517,11 @@ namespace CumulusMX
 
 									var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
 
-									using (var dataStream = GenerateStreamFromString(json))
+									using var dataStream = GenerateStreamFromString(json);
+									if (UploadStream(conn, remotefile, dataStream, cycle1k))
 									{
-										if (UploadStream(conn, remotefile, dataStream, cycle1k))
-										{
-											// Uploaded OK, reset the upload required flag
-											GraphDataEodFiles[i].FtpRequired = false;
-										}
+										// Uploaded OK, reset the upload required flag
+										GraphDataEodFiles[i].FtpRequired = false;
 									}
 								}
 								catch (Exception e)
@@ -10822,13 +10818,11 @@ namespace CumulusMX
 
 								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
 
-								using (var dataStream = GenerateStreamFromString(json))
+								using var dataStream = GenerateStreamFromString(json);
+								if (UploadStream(conn, remotefile, dataStream, cycle1k))
 								{
-									if (UploadStream(conn, remotefile, dataStream, cycle1k))
-									{
-										// Uploaded OK, reset the upload required flag
-										GraphDataEodFiles[i].FtpRequired = false;
-									}
+									// Uploaded OK, reset the upload required flag
+									GraphDataEodFiles[i].FtpRequired = false;
 								}
 							}
 							catch (Exception e)

@@ -193,11 +193,16 @@ namespace CumulusMX.LogFiles
 				IndoorPercent3hr.HasValue ? IndoorPercent3hr.Value : "",
 				IndoorPercent24hr.HasValue ? IndoorPercent24hr.Value : "",
 				IndoorPercentNowcast.HasValue ? IndoorPercent1hr.Value : "",
-				IndoorPm2p5Aqi.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm2p5Aqi.Value.ToString(cumulus.AirQualityFormat, inv) : Math.Truncate(IndoorPm2p5Aqi.Value)) : "",
-				IndoorPm2p5Aqi_1hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm2p5Aqi_1hr.Value.ToString(cumulus.AirQualityFormat, inv) : Math.Truncate(IndoorPm2p5Aqi_1hr.Value)) : "",
-				IndoorPm2p5Aqi_3hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm2p5Aqi_3hr.Value.ToString(cumulus.AirQualityFormat, inv) : Math.Truncate(IndoorPm2p5Aqi_1hr.Value)) : "",
-				IndoorPm2p5Aqi_24hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm2p5Aqi_24hr.Value.ToString(cumulus.AirQualityFormat, inv) : Math.Truncate(IndoorPm2p5Aqi_1hr.Value)) : "",
-				IndoorPm2p5Aqi_Nowcast.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm2p5Aqi_Nowcast.Value.ToString(cumulus.AirQualityFormat, inv) : Math.Truncate(IndoorPm2p5Aqi_Nowcast.Value)) : "",
+				IndoorPm2p5Aqi.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm2p5Aqi.Value.ToString(cumulus.AirQualityFormat, inv) : (int) IndoorPm2p5Aqi.Value) : "",
+				IndoorPm2p5Aqi_1hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm2p5Aqi_1hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) IndoorPm2p5Aqi_1hr.Value) : "",
+				IndoorPm2p5Aqi_3hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm2p5Aqi_3hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) IndoorPm2p5Aqi_1hr.Value) : "",
+				IndoorPm2p5Aqi_24hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm2p5Aqi_24hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) IndoorPm2p5Aqi_1hr.Value) : "",
+				IndoorPm2p5Aqi_Nowcast.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm2p5Aqi_Nowcast.Value.ToString(cumulus.AirQualityFormat, inv) : (int) IndoorPm2p5Aqi_Nowcast.Value) : "",
+				IndoorPm10Aqi.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm10Aqi.Value.ToString(cumulus.AirQualityFormat, inv) : (int) IndoorPm10Aqi.Value) : "",
+				IndoorPm10Aqi_1hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm10Aqi_1hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) IndoorPm10Aqi_1hr.Value) : "",
+				IndoorPm10Aqi_3hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm10Aqi_3hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) IndoorPm10Aqi_1hr.Value) : "",
+				IndoorPm10Aqi_24hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm10Aqi_24hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) IndoorPm10Aqi_1hr.Value) : "",
+				IndoorPm10Aqi_Nowcast.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm10Aqi_Nowcast.Value.ToString(cumulus.AirQualityFormat, inv) : (int) IndoorPm10Aqi_Nowcast.Value) : "",
 				OutdoorTemperature.HasValue ? OutdoorTemperature.Value.ToString("F1", inv) : "",
 				OutdoorHumidity.HasValue ? OutdoorHumidity.Value : "",
 				OutdoorPm1.HasValue ? OutdoorPm1.Value.ToString("F1", inv) : "",
@@ -215,11 +220,16 @@ namespace CumulusMX.LogFiles
 				OutdoorPercent3hr.HasValue ? OutdoorPercent3hr.Value : "",
 				OutdoorPercent24hr.HasValue ? OutdoorPercent24hr.Value : "",
 				OutdoorPercentNowcast.HasValue ? OutdoorPercent1hr.Value : "",
-				OutdoorPm2p5Aqi.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm2p5Aqi.Value.ToString(cumulus.AirQualityFormat, inv) : Math.Truncate(OutdoorPm2p5Aqi.Value)) : "",
-				OutdoorPm2p5Aqi_1hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm2p5Aqi_1hr.Value.ToString(cumulus.AirQualityFormat, inv) : Math.Truncate(OutdoorPm2p5Aqi_1hr.Value)) : "",
-				OutdoorPm2p5Aqi_3hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm2p5Aqi_3hr.Value.ToString(cumulus.AirQualityFormat, inv) : Math.Truncate(OutdoorPm2p5Aqi_1hr.Value)) : "",
-				OutdoorPm2p5Aqi_24hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm2p5Aqi_24hr.Value.ToString(cumulus.AirQualityFormat, inv) : Math.Truncate(OutdoorPm2p5Aqi_1hr.Value)) : "",
-				OutdoorPm2p5Aqi_Nowcast.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm2p5Aqi_Nowcast.Value.ToString(cumulus.AirQualityFormat, inv) : Math.Truncate(OutdoorPm2p5Aqi_Nowcast.Value)) : ""
+				OutdoorPm2p5Aqi.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm2p5Aqi.Value.ToString(cumulus.AirQualityFormat, inv) : (int) OutdoorPm2p5Aqi.Value) : "",
+				OutdoorPm2p5Aqi_1hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm2p5Aqi_1hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) OutdoorPm2p5Aqi_1hr.Value) : "",
+				OutdoorPm2p5Aqi_3hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm2p5Aqi_3hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) OutdoorPm2p5Aqi_1hr.Value) : "",
+				OutdoorPm2p5Aqi_24hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm2p5Aqi_24hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) OutdoorPm2p5Aqi_1hr.Value) : "",
+				OutdoorPm2p5Aqi_Nowcast.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm2p5Aqi_Nowcast.Value.ToString(cumulus.AirQualityFormat, inv) : (int) OutdoorPm2p5Aqi_Nowcast.Value) : "",
+				OutdoorPm10Aqi.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm10Aqi.Value.ToString(cumulus.AirQualityFormat, inv) : (int) OutdoorPm10Aqi.Value) : "",
+				OutdoorPm10Aqi_1hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm10Aqi_1hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) OutdoorPm10Aqi_1hr.Value) : "",
+				OutdoorPm10Aqi_3hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm10Aqi_3hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) OutdoorPm10Aqi_1hr.Value) : "",
+				OutdoorPm10Aqi_24hr.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm10Aqi_24hr.Value.ToString(cumulus.AirQualityFormat, inv) : (int) OutdoorPm10Aqi_1hr.Value) : "",
+				OutdoorPm10Aqi_Nowcast.HasValue ? (cumulus.AirQualityDPlaces > 0 ? OutdoorPm10Aqi_Nowcast.Value.ToString(cumulus.AirQualityFormat, inv) : (int) OutdoorPm10Aqi_Nowcast.Value) : ""
 			);
 		}
 
@@ -264,7 +274,7 @@ namespace CumulusMX.LogFiles
 					sb.Append(sep + cumulus.airLinkDataIn.aqiPm10_3hr.ToString(cumulus.AirQualityFormat, inv));
 					sb.Append(sep + cumulus.airLinkDataIn.aqiPm10_24hr.ToString(cumulus.AirQualityFormat, inv));
 					sb.Append(sep + cumulus.airLinkDataIn.aqiPm10_nowcast.ToString(cumulus.AirQualityFormat, inv));
-				}
+			}
 				else // Zero decimals - truncate value rather than round
 				{
 					sb.Append(sep + (int) cumulus.airLinkDataIn.aqiPm2p5);
