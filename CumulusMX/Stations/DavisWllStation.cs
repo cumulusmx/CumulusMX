@@ -2667,7 +2667,7 @@ namespace CumulusMX.Stations
 						cumulus.LogDebugMessage("WLL WiFi RSSI = " + DavisTxRssi[0] + "dB");
 					}
 
-					upt = TimeSpan.FromSeconds(data15.link_uptime);
+					upt = TimeSpan.FromSeconds(data15.link_uptime ?? 0);
 					uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
 							(int) upt.TotalDays,
 							upt.Hours,

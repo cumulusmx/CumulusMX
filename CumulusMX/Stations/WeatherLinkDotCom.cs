@@ -207,7 +207,7 @@ namespace CumulusMX.Stations
 		public double? temp_hi_2 { get; set; }
 		public long? temp_hi_at_2 { get; set; }
 		public double? temp_lo_2 { get; set; }
-		public long temp_lo_at_2 { get; set; }
+		public long? temp_lo_at_2 { get; set; }
 		public double? temp_last_3 { get; set; }
 		public double? temp_hi_3 { get; set; }
 		public long? temp_hi_at_3 { get; set; }
@@ -243,7 +243,7 @@ namespace CumulusMX.Stations
 		public long? wet_leaf_hi_at_1 { get; set; }
 		public double? wet_leaf_lo_1 { get; set; }
 		public long? wet_leaf_lo_at_1 { get; set; }
-		public double wet_leaf_min_1 { get; set; }
+		public double? wet_leaf_min_1 { get; set; }
 		public double? wet_leaf_last_2 { get; set; }
 		public double? wet_leaf_hi_2 { get; set; }
 		public long? wet_leaf_hi_at_2 { get; set; }
@@ -349,7 +349,7 @@ namespace CumulusMX.Stations
 		public string aqi_type { get; set; }
 		public double? aqi_avg_val { get; set; }
 		public string aqi_avg_desc { get; set; }
-		public double aqi_hi_val { get; set; }
+		public double? aqi_hi_val { get; set; }
 		public string aqi_hi_desc { get; set; }
 	}
 
@@ -484,7 +484,7 @@ namespace CumulusMX.Stations
 		public long? local_api_queries { get; set; }
 		public long? rapid_records_sent { get; set; }
 		public int? wifi_rssi { get; set; }
-		public double link_uptime { get; set; }
+		public double? link_uptime { get; set; }
 		public int? network_error { get; set; }
 		public int? touchpad_wakeups { get; set; }
 		public long? bootloader_version { get; set; }
@@ -583,10 +583,6 @@ namespace CumulusMX.Stations
 		public int? temp_soil_2 { get; set; }
 		public int? temp_soil_3 { get; set; }
 		public int? temp_soil_4 { get; set; }
-		//public int temp_leaf_1 { get; set; }
-		//public int temp_leaf_2 { get; set; }
-		//public int temp_leaf_3 { get; set; }
-		//public int temp_leaf_4 { get; set; }
 		public int? hum_out { get; set; }
 		public int? hum_extra_1 { get; set; }
 		public int? hum_extra_2 { get; set; }
@@ -642,7 +638,7 @@ namespace CumulusMX.Stations
 		public double? temp { get; set; }
 		public double? hum { get; set; }
 		public double? dew_point { get; set; }
-		public double wet_bulb { get; set; }
+		public double? wet_bulb { get; set; }
 		public double? heat_index { get; set; }
 		public double? wind_chill { get; set; }
 		public double? thw_index { get; set; }

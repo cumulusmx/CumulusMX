@@ -100,6 +100,8 @@ namespace CumulusMX
 					text = reader.ReadToEnd();
 				}
 
+				cumulus.LogDebugMessage("Edit Diary: New data = " + text);
+
 				var newData = JsonSerializer.Deserialize<DiaryData>(text);
 
 				// write new/updated entry to the database

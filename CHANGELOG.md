@@ -10,7 +10,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4134\]][29] - 2025-12-16
+## BETA [4.7.0 \[b4135\]][29] - 2025-12-20
+
+### Beta 4135 Fixes
+
+- Fix a number of issues with using the Ecowitt Cloud Station for extra sensors
+- Fix issues with Davis weatherlink.com JSON parsing
+
 
 ### Beta 4134 Fixes
 
@@ -109,6 +115,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fixes for Davis VP1/2 serial BARREAD and SETTIME commands
 - On laser depth baseline changes, realign last snowfall depth to the new value
 - Fix snow24h being reset to null at the snow hour if there is a valid laser depth, now set to zero
+- Fix a number of issues with using the Ecowitt Cloud Station for extra sensors
 
 ### Package Updates
 
@@ -1217,4 +1224,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4134
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4135

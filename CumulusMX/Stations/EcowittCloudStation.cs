@@ -152,13 +152,21 @@ namespace CumulusMX.Stations
 
 		public override void Start()
 		{
-			// just incase we did not catch-up any history
-			DoDayResetIfNeeded();
-			DoTrendValues(DateTime.Now);
+			if (mainStation)
+			{
+				// just incase we did not catch-up any history
+				DoDayResetIfNeeded();
+				DoTrendValues(DateTime.Now);
 
-			cumulus.LogMessage("Starting Ecowitt Cloud station");
+				cumulus.LogMessage("Starting Ecowitt Cloud station");
+			}
+			else
+			{
+				cumulus.LogMessage("Starting Ecowitt Cloud Extra Sensors station");
+			}
 
-			if (station == null)
+
+			if (mainStation)
 			{
 				cumulus.StartTimersAndSensors();
 			}
@@ -229,12 +237,13 @@ namespace CumulusMX.Stations
 
 		public override void Stop()
 		{
-			if (station == null)
+			if (mainStation)
 			{
 				StopMinuteTimer();
 				liveTask.Wait();
-				cumulus.LogMessage("Ecowitt Cloud station Stopped");
 			}
+
+			cumulus.LogMessage($"Ecowitt Cloud {(mainStation ? "Extra Sensors" : "")} station Stopped");
 		}
 
 
@@ -630,31 +639,35 @@ namespace CumulusMX.Stations
 				}
 				*/
 
-				if (cumulus.StationOptions.CalculateSLP)
-				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-					DoPressure(ConvertUnits.PressMBToUser(slp), data.pressure.absolute.time.LocalFromUnixTime());
-				}
-
 				// === LDS ===
-				try
+				if (mainStation || cumulus.ExtraSensorUseLaserDist)
 				{
-					ProcessLDS(data, thisStation);
+					try
+					{
+						ProcessLDS(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in LDS data - {ex.Message}");
+					}
 				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ProcessCurrentData: Error in LDS data - {ex.Message}");
-				}
-
-
-				thisStation.DoForecast("", false);
 
 				cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
+				if (mainStation)
+				{
+					if (cumulus.StationOptions.CalculateSLP)
+					{
+						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+						DoPressure(ConvertUnits.PressMBToUser(slp), data.pressure.absolute.time.LocalFromUnixTime());
+					}
 
-				var updateTime = (data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time).LocalFromUnixTime();
-				thisStation.UpdateStatusPanel(updateTime.ToUniversalTime());
-				thisStation.UpdateMQTT();
+					thisStation.DoForecast("", false);
+
+					var updateTime = (data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time).LocalFromUnixTime();
+					thisStation.UpdateStatusPanel(updateTime.ToUniversalTime());
+					thisStation.UpdateMQTT();
+				}
 			}
 			catch (OperationCanceledException)
 			{
