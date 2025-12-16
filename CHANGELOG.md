@@ -16,6 +16,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Ecowitt Camera Video URL retrieval JSON decode error
 - Fixes for Davis VP1/2 serial BARREAD and SETTIME commands
+- Checks and extra help text added to the snowfall calibration settings
+- On laser depth baseline changes, realign last snowfall depth to the new value
+- Fix snow24h being reset to null at the snow hour if there is a valid laser depth, now set to zero
 
 ### Beta 4133 Fixes
 
@@ -104,7 +107,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix exception when Ecowitt camera URL fetch hits the rate limit
 - Final fix for Tempest station opening the UDP port in shared mode
 - Fixes for Davis VP1/2 serial BARREAD and SETTIME commands
-
+- On laser depth baseline changes, realign last snowfall depth to the new value
+- Fix snow24h being reset to null at the snow hour if there is a valid laser depth, now set to zero
 
 ### Package Updates
 

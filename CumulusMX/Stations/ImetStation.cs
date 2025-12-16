@@ -749,7 +749,7 @@ namespace CumulusMX.Stations
 								// reset the accumulated snow depth(s)
 								for (var j = 0; j < Snow24h.Length; j++)
 								{
-									Snow24h[j] = null;
+									Snow24h[j] = LaserDepth[i].HasValue ? 0 : null;
 								}
 
 								snowhourdone = true;

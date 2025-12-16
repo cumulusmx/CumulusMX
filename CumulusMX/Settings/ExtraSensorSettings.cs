@@ -591,10 +591,27 @@ namespace CumulusMX.Settings
 				// Laser settings
 				try
 				{
-					cumulus.LaserDepthBaseline[1] = settings.laser.sensor1.depth;
-					cumulus.LaserDepthBaseline[2] = settings.laser.sensor2.depth;
-					cumulus.LaserDepthBaseline[3] = settings.laser.sensor3.depth;
-					cumulus.LaserDepthBaseline[4] = settings.laser.sensor4.depth;
+					// Nullify the last laser depth so DoSnowfall will realign to any new depth value
+					if (settings.laser.sensor1.depth != cumulus.LaserDepthBaseline[1])
+					{
+						station.LaserDepth[1] = null;
+						cumulus.LaserDepthBaseline[1] = settings.laser.sensor1.depth;
+					}
+					if (settings.laser.sensor2.depth != cumulus.LaserDepthBaseline[2])
+					{
+						station.LaserDepth[2] = null;
+						cumulus.LaserDepthBaseline[2] = settings.laser.sensor2.depth;
+					}
+					if (settings.laser.sensor3.depth != cumulus.LaserDepthBaseline[3])
+					{
+						station.LaserDepth[3] = null;
+						cumulus.LaserDepthBaseline[3] = settings.laser.sensor3.depth;
+					}
+					if (settings.laser.sensor4.depth != cumulus.LaserDepthBaseline[4])
+					{
+						station.LaserDepth[4] = null;
+						cumulus.LaserDepthBaseline[4] = settings.laser.sensor4.depth;
+					}
 				}
 				catch (Exception ex)
 				{
