@@ -18,7 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix issues with Davis weatherlink.com JSON parsing
 - Fixes for the chart range selectors with bar charts. Both dashboard and default web site
 - Fix error handling null data from PurpleAir sensors
-
+- Catch Ecowitt HTTP API sending empty data blocks
 
 ### Beta 4134 Fixes
 

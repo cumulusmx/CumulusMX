@@ -360,6 +360,12 @@ namespace CumulusMX.Stations
 						Cumulus.LogConsoleMessage(" - No Live data available");
 						return null;
 					}
+					else if (responseBody.Contains("\"data\":[]"))
+					{
+						cumulus.LogMessage("LocalApi.GetLiveData: Ecowitt Local API GetLiveData: No data block was returned.");
+						Cumulus.LogConsoleMessage(" - No Live data available");
+						return null;
+					}
 					else if (responseBody.StartsWith('{')) // sanity check
 					{
 						// Convert JSON string to an object
