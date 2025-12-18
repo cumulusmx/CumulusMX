@@ -17,6 +17,7 @@ namespace CumulusMX.Stations
 		private int taskCancelledCount = 0;
 		private bool updateInProgress;
 
+		private readonly JsonSerializerOptions jsonOptions = new();
 
 		public PurpleAir(Cumulus cumulus, WeatherStation station)
 		{
@@ -26,6 +27,11 @@ namespace CumulusMX.Stations
 			cumulus.LogMessage($"Extra Sensor = PurpleAir");
 
 			tmrCurrent = new System.Timers.Timer();
+
+			jsonOptions.Converters.Add(new JsonConverters.JsonIntConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonDoubleConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonNullIntConverter());
+			jsonOptions.Converters.Add(new JsonConverters.JsonNullDoubleConverter());
 		}
 
 		public void Start()
@@ -299,32 +305,47 @@ namespace CumulusMX.Stations
 			try
 			{
 				// Convert JSON string to an object
-				var json = JsonSerializer.Deserialize<PaLive>(jsonText);
+				var json = JsonSerializer.Deserialize<PaLive>(jsonText, jsonOptions);
 
 				// The PA sends the timestamp in Unix ticks, and in UTC
 				// rather than rely on the PA clock being correct, we will use our local time
 
-				if (algo == 0)
+				// For some reason the sensors sometimes send the pm values as "nan"
+				// do a quick check for nulls, and skipp processing if found
+
+				if (json.pm2_5_cf_1.HasValue && json.pm2_5_atm.HasValue)
 				{
-					// Algorithm 0 = indoor - use the averaged PM2.5 CF1 value
-					cumulus.LogDebugMessage($"DecodePaLive: Sensor #{indx}, using CF_1 values, a={json.pm2_5_cf_1}, b={json.pm2_5_cf_1_b}");
-					station.DoAirQuality(Math.Round((json.pm2_5_cf_1 + json.pm2_5_cf_1_b) / 2.0, 1), indx);
-					station.DoAirQuality10(Math.Round((json.pm10_0_cf_1 + json.pm10_0_cf_1_b) / 2.0, 1), indx);
+
+					if (algo == 0)
+					{
+						// Algorithm 0 = indoor - use the averaged PM2.5 CF1 value
+						cumulus.LogDebugMessage($"DecodePaLive: Sensor #{indx}, using CF_1 values, a={json.pm2_5_cf_1}, b={json.pm2_5_cf_1_b}");
+						station.DoAirQuality(Math.Round((json.pm2_5_cf_1.Value + json.pm2_5_cf_1_b.Value) / 2.0, 1), indx);
+						station.DoAirQuality10(Math.Round((json.pm10_0_cf_1.Value + json.pm10_0_cf_1_b.Value) / 2.0, 1), indx);
+					}
+					else
+					{
+						// Algorithm 1 = outdoor - use the averaged PM2.5 ATM value
+						cumulus.LogDebugMessage($"DecodePaLive: Sensor #{indx}, using CF_1 values, a={json.pm2_5_atm}, b={json.pm2_5_atm_b}");
+						station.DoAirQuality(Math.Round((json.pm2_5_atm.Value + json.pm2_5_atm_b.Value) / 2.0, 1), indx);
+						station.DoAirQuality10(Math.Round((json.pm10_0_atm.Value + json.pm10_0_atm_b.Value) / 2.0, 1), indx);
+					}
 				}
 				else
 				{
-					// Algorithm 1 = outdoor - use the averaged PM2.5 ATM value
-					cumulus.LogDebugMessage($"DecodePaLive: Sensor #{indx}, using CF_1 values, a={json.pm2_5_atm}, b={json.pm2_5_atm_b}");
-					station.DoAirQuality(Math.Round((json.pm2_5_atm + json.pm2_5_atm_b) / 2.0, 1), indx);
-					station.DoAirQuality10(Math.Round((json.pm10_0_atm + json.pm10_0_atm_b) / 2.0, 1), indx);
+					cumulus.LogMessage($"DecodePaLive: Sensor #{indx}, skipping PM values this interval, the data values are 'nan'");
 				}
 
-				if (sensor > 0)
+				if (sensor > 0 && json.current_temp_f.HasValue && json.current_humidity.HasValue)
 				{
 					cumulus.LogDebugMessage($"DecodePaLive: Extra T/H  #{sensor}, using values, T={json.current_temp_f}, H={json.current_humidity}, DP={json.current_dewpoint_f}");
-					station.DoExtraTemp(ConvertUnits.TempFToUser(json.current_temp_f), sensor);
-					station.DoExtraHum(json.current_humidity, sensor);
-					station.DoExtraDP(ConvertUnits.TempFToUser(json.current_dewpoint_f), sensor);
+					station.DoExtraTemp(ConvertUnits.TempFToUser(json.current_temp_f.Value), sensor);
+					station.DoExtraHum(json.current_humidity.Value, sensor);
+					station.DoExtraDP(ConvertUnits.TempFToUser(json.current_dewpoint_f.Value), sensor);
+				}
+				else
+				{
+					cumulus.LogMessage($"DecodePaLive: Sensor #{indx}, skipping Temp/Hum values this interval, the data values are 'nan'");
 				}
 			}
 			catch (Exception ex)
@@ -489,23 +510,23 @@ namespace CumulusMX.Stations
 			public string SensorId { get; set; }
 			public string DateTime { get; set; }
 			public int Id { get; set; }
-			public int uptime { get; set; }
-			public int rssi { get; set; }
-			public int current_temp_f { get; set; }
-			public int current_humidity { get; set; }
-			public int current_dewpoint_f { get; set; }
-			public double pm1_0_cf_1 { get; set; }
-			public double pm2_5_cf_1 { get; set; }
-			public double pm10_0_cf_1 { get; set; }
-			public double pm1_0_atm { get; set; }
-			public double pm2_5_atm { get; set; }
-			public double pm10_0_atm { get; set; }
-			public double pm1_0_cf_1_b { get; set; }
-			public double pm2_5_cf_1_b { get; set; }
-			public double pm10_0_cf_1_b { get; set; }
-			public double pm1_0_atm_b { get; set; }
-			public double pm2_5_atm_b { get; set; }
-			public double pm10_0_atm_b { get; set; }
+			public int? uptime { get; set; }
+			public int? rssi { get; set; }
+			public int? current_temp_f { get; set; }
+			public int? current_humidity { get; set; }
+			public int? current_dewpoint_f { get; set; }
+			public double? pm1_0_cf_1 { get; set; }
+			public double? pm2_5_cf_1 { get; set; }
+			public double? pm10_0_cf_1 { get; set; }
+			public double? pm1_0_atm { get; set; }
+			public double? pm2_5_atm { get; set; }
+			public double? pm10_0_atm { get; set; }
+			public double? pm1_0_cf_1_b { get; set; }
+			public double? pm2_5_cf_1_b { get; set; }
+			public double? pm10_0_cf_1_b { get; set; }
+			public double? pm1_0_atm_b { get; set; }
+			public double? pm2_5_atm_b { get; set; }
+			public double? pm10_0_atm_b { get; set; }
 		}
 	}
 }

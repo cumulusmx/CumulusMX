@@ -16,6 +16,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Fix a number of issues with using the Ecowitt Cloud Station for extra sensors
 - Fix issues with Davis weatherlink.com JSON parsing
+- Fixes for the chart range selectors with bar charts. Both dashboard and default web site
+- Fix error handling null data from PurpleAir sensors
 
 
 ### Beta 4134 Fixes
@@ -116,6 +118,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - On laser depth baseline changes, realign last snowfall depth to the new value
 - Fix snow24h being reset to null at the snow hour if there is a valid laser depth, now set to zero
 - Fix a number of issues with using the Ecowitt Cloud Station for extra sensors
+- Errors handling null data from PurpleAir sensors
 
 ### Package Updates
 
