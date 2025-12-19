@@ -20,6 +20,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix error handling null data from PurpleAir sensors
 - Catch Ecowitt HTTP API sending empty data blocks
 - Fix processing Ecowitt SD card log file when only one record is in scope
+- Remove retries from WOW uploads
 
 ### Beta 4134 Fixes
 
@@ -96,6 +97,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The CO₂ Graph data file will now contain null values for missing entries like the other files
 - The realtime FTP watchdog file has been renamed from "_cumulusmx_watchdog.txt" to "cumulusmx_watchdog.txt"
 - The dashboard now allows user defined pages to be hosted under the `/interface/custom` folder
+- Remove retries from WOW uploads
 
 ### Fixed
 
