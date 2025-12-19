@@ -19,6 +19,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fixes for the chart range selectors with bar charts. Both dashboard and default web site
 - Fix error handling null data from PurpleAir sensors
 - Catch Ecowitt HTTP API sending empty data blocks
+- Fix processing Ecowitt SD card log file when only one record is in scope
 
 ### Beta 4134 Fixes
 
@@ -119,6 +120,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix snow24h being reset to null at the snow hour if there is a valid laser depth, now set to zero
 - Fix a number of issues with using the Ecowitt Cloud Station for extra sensors
 - Errors handling null data from PurpleAir sensors
+- Fix processing Ecowitt SD card log file when only one record is in scope
 
 ### Package Updates
 

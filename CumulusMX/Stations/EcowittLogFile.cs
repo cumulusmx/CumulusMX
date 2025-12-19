@@ -103,7 +103,7 @@ namespace CumulusMX.Stations
 
 					if (lastLogTime == 0)
 					{
-						if (Data.Count > index)
+						if (Data.Count > index + 1)
 						{
 							var nextTs = long.Parse(Data[index + 1].Split(',')[1], invc);
 							var ts= long.Parse(fields[1], invc);
@@ -111,7 +111,7 @@ namespace CumulusMX.Stations
 						}
 						else
 						{
-							rec.Interval = 5;
+							rec.Interval = interval;
 						}
 					}
 					else
