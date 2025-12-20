@@ -1908,16 +1908,21 @@ namespace CumulusMX.Stations
 
 				try
 				{
-					var val = sensor.unit switch
-					{
-						"mm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value),
-						"cm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value * 10),
-						"in" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value),
-						"ft" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value * 12),
-						_ => sensor.airVal.Value
-					};
+					decimal? air = null;
 
-					DoLaserDistance(val, sensor.channel);
+					if (sensor.airVal.HasValue)
+					{
+						air = sensor.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value),
+							"cm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value * 10),
+							"in" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value * 12),
+							_ => sensor.airVal.Value
+						};
+					}
+
+					DoLaserDistance(air, sensor.channel);
 				}
 				catch (Exception ex)
 				{
@@ -1928,23 +1933,25 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.LaserDepthBaseline[sensor.channel] == -1)
 					{
-						// MX is not calculating depth
-
-						decimal? val = null;
+						// MX is NOT calculating depth
+						decimal? depth = null;
 
 						if (sensor.depthVal.HasValue)
 						{
-							val = sensor.unit switch
+							depth = sensor.unit switch
 							{
-								"mm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value),
-								"cm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value * 10),
-								"in" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value),
-								"ft" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value * 12),
+								"mm" => ConvertUnits.LaserMmToUser(sensor.depthVal.Value),
+								"cm" => ConvertUnits.LaserMmToUser(sensor.depthVal.Value * 10),
+								"in" => ConvertUnits.LaserInchesToUser(sensor.depthVal.Value),
+								"ft" => ConvertUnits.LaserInchesToUser(sensor.depthVal.Value * 12),
 								_ => sensor.airVal.Value
 							};
 						}
-						DoLaserDepth(val, sensor.channel);
+
+						DoLaserDepth(depth, sensor.channel);
 					}
+					// else DoLaserDistance() calcs the depth
+
 				}
 				catch (Exception ex)
 				{

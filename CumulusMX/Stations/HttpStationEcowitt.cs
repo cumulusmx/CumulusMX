@@ -1468,6 +1468,7 @@ namespace CumulusMX.Stations
 						station.DoLaserDepth(null, i);
 					}
 				}
+				// else DoLaserDistance() calcs the depth
 			}
 		}
 

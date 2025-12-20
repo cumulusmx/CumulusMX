@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4135\]][29] - 2025-12-20
+## BETA [4.7.0 \[b4135\]][29] - 2025-12-21
 
 ### Beta 4135 Fixes
 
@@ -21,6 +21,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Catch Ecowitt HTTP API sending empty data blocks
 - Fix processing Ecowitt SD card log file when only one record is in scope
 - Remove retries from WOW uploads
+- Lots more loving for laser depth calculations!
 
 ### Beta 4134 Fixes
 

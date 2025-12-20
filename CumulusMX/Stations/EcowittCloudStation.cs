@@ -644,7 +644,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						ProcessLDS(data, thisStation);
+						ProcessLDS(data);
 					}
 					catch (Exception ex)
 					{
@@ -1313,155 +1313,65 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private static void ProcessLDS(EcowittApi.CurrentDataData data, WeatherStation station)
+		private void ProcessLDS(EcowittApi.CurrentDataData data)
 		{
 			if (data.ch_lds1 != null)
 			{
-				if (data.ch_lds1.air_ch1 != null)
-				{
-					decimal? dist = null;
-					if (data.ch_lds1.air_ch1.value.HasValue)
-					{
-						dist = data.ch_lds1.air_ch1.unit switch
-						{
-							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.air_ch1.value.Value * 10),
-							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds1.air_ch1.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.air_ch1.value.Value * 12),
-							_ => data.ch_lds1.air_ch1.value
-						};
-					}
-					station.DoLaserDistance(dist, 1);
-				}
-
-				if (data.ch_lds1.depth_ch1 != null)
-				{
-					decimal? dist = null;
-					if (data.ch_lds1.depth_ch1.value.HasValue)
-					{
-						dist = data.ch_lds1.depth_ch1.unit switch
-						{
-							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds1.depth_ch1.value.Value * 10),
-							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds1.depth_ch1.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds1.depth_ch1.value.Value * 12),
-							_ => data.ch_lds1.depth_ch1.value
-						};
-					}
-					station.DoLaserDepth(dist, 1);
-				}
+				ApplyLDS(data.ch_lds1.air_ch1.value, data.ch_lds1.depth_ch1.value, data.ch_lds1.air_ch1.unit, 1);
 			}
 
 			if (data.ch_lds2 != null)
 			{
-				if (data.ch_lds2.air_ch2 != null)
-				{
-					decimal? dist = null;
-					if (data.ch_lds2.air_ch2.value.HasValue)
-					{
-						dist = data.ch_lds2.air_ch2.unit switch
-						{
-							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds2.air_ch2.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.air_ch2.value.Value * 10),
-							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds2.air_ch2.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds2.air_ch2.value.Value * 12),
-							_ => data.ch_lds2.air_ch2.value
-						};
-					}
-					station.DoLaserDistance(dist, 2);
-				}
-
-				if (data.ch_lds2.depth_ch2 != null)
-				{
-					decimal? dist = null;
-					if (data.ch_lds2.depth_ch2.value.HasValue)
-					{
-						dist = data.ch_lds2.depth_ch2.unit switch
-						{
-							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds2.depth_ch2.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds2.depth_ch2.value.Value * 10),
-							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds2.depth_ch2.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds2.depth_ch2.value.Value * 12),
-							_ => data.ch_lds2.depth_ch2.value
-						};
-					}
-					station.DoLaserDepth(dist, 2);
-				}
+				ApplyLDS(data.ch_lds2.air_ch2.value, data.ch_lds2.depth_ch2.value, data.ch_lds2.air_ch2.unit, 2);
 			}
 
 			if (data.ch_lds3 != null)
 			{
-				if (data.ch_lds3.air_ch3 != null)
-				{
-					decimal? dist = null;
-					if (data.ch_lds3.air_ch3.value.HasValue)
-					{
-						dist = data.ch_lds3.air_ch3.unit switch
-						{
-							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds3.air_ch3.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.air_ch3.value.Value * 10),
-							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds3.air_ch3.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds3.air_ch3.value.Value * 12),
-							_ => data.ch_lds3.air_ch3.value
-						};
-					}
-					station.DoLaserDistance(dist, 3);
-				}
-
-				if (data.ch_lds3.depth_ch3 != null)
-				{
-					decimal? dist = null;
-					if (data.ch_lds3.depth_ch3.value.HasValue)
-					{
-						dist = data.ch_lds3.depth_ch3.unit switch
-						{
-							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds3.depth_ch3.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds3.depth_ch3.value.Value * 10),
-							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds3.depth_ch3.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds3.depth_ch3.value.Value * 12),
-							_ => data.ch_lds3.depth_ch3.value
-						};
-					}
-					station.DoLaserDepth(dist, 3);
-				}
+				ApplyLDS(data.ch_lds3.air_ch3.value, data.ch_lds3.depth_ch3.value, data.ch_lds3.air_ch3.unit, 3);
 			}
 
 			if (data.ch_lds4 != null)
 			{
-				if (data.ch_lds4.air_ch4 != null)
+				ApplyLDS(data.ch_lds4.air_ch4.value, data.ch_lds4.depth_ch4.value, data.ch_lds4.air_ch4.unit, 4);
+			}
+		}
+
+		private void ApplyLDS(decimal? dist, decimal? depth, string unit, int chan)
+		{
+			if (dist.HasValue)
+			{
+				dist = unit switch
 				{
-					decimal? dist = null;
-					if (data.ch_lds4.air_ch4.value.HasValue)
+					"mm" => ConvertUnits.LaserMmToUser(dist),
+					"cm" => ConvertUnits.LaserMmToUser(dist * 10),
+					"in" => ConvertUnits.LaserInchesToUser(dist),
+					"ft" => ConvertUnits.LaserInchesToUser(dist * 12),
+					_ => dist
+				};
+			}
+
+			station.DoLaserDistance(dist, chan);
+
+			if (cumulus.LaserDepthBaseline[chan] == -1)
+			{
+				// MX is NOT calculating depth
+
+				if (depth.HasValue)
+				{
+					depth = unit switch
 					{
-						dist = data.ch_lds4.air_ch4.unit switch
-						{
-							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds4.air_ch4.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.air_ch4.value.Value * 10),
-							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds4.air_ch4.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds4.air_ch4.value.Value * 12),
-							_ => data.ch_lds4.air_ch4.value
-						};
-					}
-					station.DoLaserDistance(dist, 4);
+						"mm" => ConvertUnits.LaserMmToUser(depth),
+						"cm" => ConvertUnits.LaserMmToUser(depth * 10),
+						"in" => ConvertUnits.LaserInchesToUser(depth),
+						"ft" => ConvertUnits.LaserInchesToUser(depth * 12),
+						_ => depth
+					};
 				}
 
-				if (data.ch_lds4.depth_ch4 != null)
-				{
-					decimal? dist = null;
-					if (data.ch_lds4.depth_ch4.value.HasValue)
-					{
-						dist = data.ch_lds4.depth_ch4.unit switch
-						{
-							"mm" => ConvertUnits.LaserMmToUser(data.ch_lds4.depth_ch4.value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(data.ch_lds4.depth_ch4.value.Value * 10),
-							"in" => ConvertUnits.LaserInchesToUser(data.ch_lds4.depth_ch4.value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(data.ch_lds4.depth_ch4.value.Value * 12),
-							_ => data.ch_lds4.depth_ch4.value
-						};
-					}
-					station.DoLaserDepth(dist, 4);
-				}
+				station.DoLaserDepth(depth, chan);
 			}
+			// else DoLaserDistance() calcs the depth
+
 		}
 
 		private void ProcessBatteries(EcowittApi.CurrentDataData data)

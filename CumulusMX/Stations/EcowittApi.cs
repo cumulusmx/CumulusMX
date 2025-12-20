@@ -1492,9 +1492,9 @@ namespace CumulusMX.Stations
 						decimal? dist = data.ch_lds1.depth_ch1.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
+							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value * 10),
 							"in" => ConvertUnits.LaserInchesToUser(item.Value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value / 12),
+							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value * 12),
 							_ => item.Value.Value
 						};
 
@@ -1522,9 +1522,9 @@ namespace CumulusMX.Stations
 						decimal? dist = data.ch_lds2.depth_ch2.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
-							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
+							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value * 10),
 							"in" => ConvertUnits.LaserInchesToUser(item.Value.Value),
-							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value / 12),
+							"ft" => ConvertUnits.LaserInchesToUser(item.Value.Value * 12),
 							_ => item.Value.Value
 						};
 
@@ -2256,6 +2256,7 @@ namespace CumulusMX.Stations
 			}
 
 			// === Laser Distance ====
+			// Already in the required units
 			for (var i = 1; i <= 4; i++)
 			{
 				try
@@ -2273,7 +2274,12 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					station.DoLaserDepth(rec.Value.LdsDepth[i], i);
+					if (cumulus.LaserDepthBaseline[i] == -1)
+					{
+						// MX is NOT calculating the depth
+						station.DoLaserDepth(rec.Value.LdsDepth[i], i);
+					}
+					// else DoLaserDistance() calcs the depth
 				}
 				catch (Exception ex)
 				{

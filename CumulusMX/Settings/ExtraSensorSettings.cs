@@ -592,22 +592,22 @@ namespace CumulusMX.Settings
 				try
 				{
 					// Nullify the last laser depth so DoSnowfall will realign to any new depth value
-					if (settings.laser.sensor1.depth != cumulus.LaserDepthBaseline[1])
+					if (settings.laser.sensor1.depth != cumulus.LaserDepthBaseline[1] || settings.laser.sensor1.reset)
 					{
 						station.LaserDepth[1] = null;
 						cumulus.LaserDepthBaseline[1] = settings.laser.sensor1.depth;
 					}
-					if (settings.laser.sensor2.depth != cumulus.LaserDepthBaseline[2])
+					if (settings.laser.sensor2.depth != cumulus.LaserDepthBaseline[2] || settings.laser.sensor2.reset)
 					{
 						station.LaserDepth[2] = null;
 						cumulus.LaserDepthBaseline[2] = settings.laser.sensor2.depth;
 					}
-					if (settings.laser.sensor3.depth != cumulus.LaserDepthBaseline[3])
+					if (settings.laser.sensor3.depth != cumulus.LaserDepthBaseline[3] || settings.laser.sensor3.reset)
 					{
 						station.LaserDepth[3] = null;
 						cumulus.LaserDepthBaseline[3] = settings.laser.sensor3.depth;
 					}
-					if (settings.laser.sensor4.depth != cumulus.LaserDepthBaseline[4])
+					if (settings.laser.sensor4.depth != cumulus.LaserDepthBaseline[4] || settings.laser.sensor4.reset)
 					{
 						station.LaserDepth[4] = null;
 						cumulus.LaserDepthBaseline[4] = settings.laser.sensor4.depth;
@@ -796,6 +796,7 @@ namespace CumulusMX.Settings
 		private sealed class JsonLaserDevice
 		{
 			public decimal depth { get; set; }
+			public bool reset { get; set; }
 		}
 
 		private sealed class JsonRG11
