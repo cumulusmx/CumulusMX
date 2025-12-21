@@ -22,6 +22,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix processing Ecowitt SD card log file when only one record is in scope
 - Remove retries from WOW uploads
 - Lots more loving for laser depth calculations!
+- There is a new option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value
+- Added ImportCumulusFile PHP script to /MXutils folder
 
 ### Beta 4134 Fixes
 
@@ -75,6 +77,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add an exponential backoff to failed Email sends (up to 5.6 hours)
 - New web tags `<#snowunit>`, `<#CapacitorV>`
 - Adds a new Data Logs editor for the Recent Data from the SQLite database
+- There is a new option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value. This is used when there has been a large spurious change in the laser depth measurement for any reason. This does not affect the current snow depth measurement
+- Added ImportCumulusFile PHP script to /MXutils folder
 
 ### Changed
 
