@@ -1030,7 +1030,7 @@ namespace CumulusMX
 			for (var i = 1; i < Snow24h.Length; i++)
 			{
 				Snow24h[i] = ini.GetValue("Snow", "Snow24h" + i, (decimal?) null);
-				LastLaserDepth[i] = ini.GetValue("Snow", "LastLaserDepth" + i, (decimal?) null);
+				LastLaserSnowDepth[i] = ini.GetValue("Snow", "LastLaserDepth" + i, (decimal?) null);
 				SnowSeason[i] = ini.GetValue("Snow", "SnowSeason" + i, (decimal?) null);
 			}
 		}
@@ -1169,7 +1169,7 @@ namespace CumulusMX
 					if (cumulus.SnowAutomated == i)
 					{
 						ini.SetValue("Snow", "Snow24h" + i, Snow24h[i]);
-						ini.SetValue("Snow", "LastLaserDepth" + i, LastLaserDepth[i]);
+						ini.SetValue("Snow", "LastLaserDepth" + i, LastLaserSnowDepth[i]);
 						ini.SetValue("Snow", "SnowSeason" + i, SnowSeason[i]);
 					}
 				}
@@ -1531,7 +1531,7 @@ namespace CumulusMX
 		/// </summary>
 		public decimal?[] LaserDist { get; set; } = new decimal?[5];
 		public decimal?[] LaserDepth { get; set; } = new decimal?[5];
-		private decimal?[] LastLaserDepth = new decimal?[5];
+		public decimal?[] LastLaserSnowDepth { get; set; } = new decimal?[5];
 		public decimal?[] Snow24h { get; set; } = new decimal?[5];
 		public decimal?[] SnowSeason { get; set; } = new decimal?[5];
 
@@ -10610,13 +10610,13 @@ namespace CumulusMX
 						SnowSeason[index] = 0;
 					}
 
-					if (!LastLaserDepth[index].HasValue)
+					if (!LastLaserSnowDepth[index].HasValue)
 					{
-						LastLaserDepth[index] = value;
+						LastLaserSnowDepth[index] = value;
 					}
 
 					// calculate the snowfall since the last increment
-					var snowInc = value.Value - LastLaserDepth[index].Value;
+					var snowInc = value.Value - LastLaserSnowDepth[index].Value;
 
 					if (snowInc == 0)
 					{
@@ -10633,7 +10633,7 @@ namespace CumulusMX
 							var inc = ConvertUnits.LaserToSnow(snowInc);
 							Snow24h[index] = (Snow24h[index] ?? 0) + inc;
 							SnowSeason[index] = (SnowSeason[index] ?? 0) + inc;
-							LastLaserDepth[index] = value;
+							LastLaserSnowDepth[index] = value;
 
 							cumulus.LogDebugMessage($"Laser #{index} depth increase added to snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}, new value: {value.Value.ToString(cumulus.LaserFormat)}");
 						}
@@ -10645,7 +10645,7 @@ namespace CumulusMX
 					else
 					{ 
 						cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {value.Value.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
-						LastLaserDepth[index] = value;
+						LastLaserSnowDepth[index] = value;
 					}
 				}
 

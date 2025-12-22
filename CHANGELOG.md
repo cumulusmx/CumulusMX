@@ -10,7 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4135\]][29] - 2025-12-21
+## BETA [4.7.0 \[b4136\]][29] - 2025-12-31
+
+### Beta 4136 Fixes
+
+- Fix: New option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value
 
 ### Beta 4135 Fixes
 
@@ -1236,4 +1240,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4135
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4136
