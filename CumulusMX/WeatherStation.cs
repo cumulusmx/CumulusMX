@@ -5922,11 +5922,17 @@ namespace CumulusMX
 		{
 			try
 			{
+				decimal? depth = LaserDepth[cumulus.SnowAutomated].HasValue ? ConvertUnits.LaserToSnow(LaserDepth[cumulus.SnowAutomated].Value) : null;
+				if (depth.HasValue && depth < 0)
+				{
+					depth = 0;
+				}
+
 				var record = new DiaryData
 				{
 					Date = now.Date,
 					Time = now.TimeOfDay,
-					SnowDepth = LaserDepth[cumulus.SnowAutomated].HasValue ? ConvertUnits.LaserToSnow(LaserDepth[cumulus.SnowAutomated].Value) : null,
+					SnowDepth = depth,
 					Snow24h = Snow24h[cumulus.SnowAutomated],
 					Entry = "Automated entry"
 				};
