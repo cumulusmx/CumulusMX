@@ -19,10 +19,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Snow depth baseline is now continuously decreased using a 15-minute average value rather than step reduced using the minimum increment value
 	- Snowfall accumulation is now increased using a combination of the 15-minute average and the minimum increment value
 	- The averaging for increases can be turned off, or the averaging time reduced via the cumulus.ini file
-```ini
-[Station]
-EWsnowAvgIncMins[n]=[0-15]
-```
+		```ini
+		[Station]
+		EWsnowAvgIncMins[n]=[0-15]
+		```
+- Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements, and not removed from the queue unless the commit is successful
+
 
 ### Beta 4135 Fixes
 
@@ -115,6 +117,8 @@ EWsnowAvgIncMins[n]=[0-15]
 - The realtime FTP watchdog file has been renamed from "_cumulusmx_watchdog.txt" to "cumulusmx_watchdog.txt"
 - The dashboard now allows user defined pages to be hosted under the `/interface/custom` folder
 - Remove retries from WOW uploads
+- Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements, and not removed from the queue unless the commit is successful
+
 
 ### Fixed
 

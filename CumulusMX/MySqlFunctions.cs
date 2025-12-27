@@ -129,62 +129,142 @@ namespace CumulusMX
 				await using var MySqlConn = new MySqlConnection(MySqlConnSettings.ToString());
 				await MySqlConn.OpenAsync();
 
-				using var transaction = myQueue.Count > 2 ? await MySqlConn.BeginTransactionAsync() : null;
+				// Track commands that have executed but not yet removed from queue
+				var processedList = new List<SqlCache>(50);
+				MySqlTransaction transaction = null;
 
 				SqlCache cachedCmd;
-				// Do not remove the item from the stack until we know the command worked, or the command is bad
-				while (myQueue.TryPeek(out cachedCmd))
+				var processedCnt = 0;
+				var totalCnt = myQueue.Count;
+
+				// Loop until queue empty - dequeue items as we progress so we don't repeatedly peek the same head
+				while (myQueue.TryDequeue(out cachedCmd))
 				{
 					try
 					{
+						processedCnt++;
+
+						// Remove empty statements immediately
 						if (string.IsNullOrEmpty(cachedCmd.statement))
 						{
-							// remove empty cmd from the queue
-							myQueue.TryDequeue(out _);
+							continue;
 						}
-						else
+
+						// Start a transaction if we don't have one and it makes sense.
+						// Use remaining queue count plus already-processed in this batch to decide.
+						if (transaction == null && (myQueue.Count + processedList.Count) > 10)
 						{
-							using (MySqlCommand cmd = new MySqlCommand(cachedCmd.statement, MySqlConn))
+							transaction = await MySqlConn.BeginTransactionAsync();
+						}
+
+						// Execute current command (we have already dequeued it)
+						using (var cmd = new MySqlCommand(cachedCmd.statement, MySqlConn))
+						{
+							cumulus.LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
+
+							if (transaction != null)
 							{
-								cumulus.LogDebugMessage($"{CallingFunction}: MySQL executing - {cachedCmd.statement}");
-
-								if (transaction != null)
-								{
-									cmd.Transaction = transaction;
-								}
-
-								int aff = await cmd.ExecuteNonQueryAsync();
-								cumulus.LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
-
-								// Success, if using the failed list, delete from the databasec
-								if (UsingFailedList)
-								{
-									station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
-								}
-								// and pop the value from the queue
-								myQueue.TryDequeue(out _);
+								cmd.Transaction = transaction;
 							}
 
-							cumulus.MySqlUploadAlarm.Triggered = false;
+							var aff = await cmd.ExecuteNonQueryAsync();
+							cumulus.LogDebugMessage($"{CallingFunction}: MySQL {aff} rows were affected.");
+
+							// Mark as executed - item already removed from queue
+							processedList.Add(cachedCmd);
+						}
+
+						cumulus.MySqlUploadAlarm.Triggered = false;
+
+						// If we've executed 50 statements, commit them as a batch
+						if (processedList.Count >= 50)
+						{
+							// If there's a transaction, commit it; otherwise commands were autocommitted
+							if (transaction != null)
+							{
+								cumulus.LogDebugMessage($"{CallingFunction}: Committing batch of {processedList.Count} updates to DB");
+								try
+								{
+									await transaction.CommitAsync();
+									cumulus.LogDebugMessage($"{CallingFunction}: Commit complete");
+									Cumulus.LogConsoleMessage($"MySQL buffer: Processed {processedCnt} of {totalCnt}");
+								}
+								catch
+								{
+									// Attempt rollback and rethrow so outer catch will handle buffering
+									try
+									{
+										await transaction.RollbackAsync();
+									}
+									catch (Exception rbEx)
+									{
+										cumulus.LogExceptionMessage(rbEx, $"{CallingFunction}: Error rolling back transaction after commit failure");
+									}
+
+									throw;
+								}
+							}
+
+							// Commit (or autocommit) succeeded - remove processed items from persistent cache if needed
+							if (UsingFailedList)
+							{
+								foreach (var processed in processedList)
+								{
+									try
+									{
+										station.RecentDataDb.Delete<SqlCache>(processed.key);
+									}
+									catch (Exception exDb)
+									{
+										cumulus.LogErrorMessage($"{CallingFunction}: Error deleting processed cached SQL from DB - " + exDb.Message);
+									}
+								}
+							}
+
+							// Reset processed list and transaction for the next batch
+							processedList.Clear();
+							transaction = null;
 						}
 					}
 					catch (Exception ex)
 					{
 						cumulus.LogErrorMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
-						cumulus.LogMessage($"{CallingFunction}: Failing SQL = {cachedCmd.statement}");
+						cumulus.LogMessage($"{CallingFunction}: Failing SQL = {cachedCmd?.statement}");
 
 						cumulus.MySqlUploadAlarm.LastMessage = ex.Message;
 						cumulus.MySqlUploadAlarm.Triggered = true;
 
-						var errorCode = (int) ex.Data["Server Error Code"];
+						var errorCode = 0;
+						if (ex.Data.Contains("Server Error Code"))
+						{
+							try
+							{
+								errorCode = (int) ex.Data["Server Error Code"];
+							}
+							catch
+							{
+								errorCode = 0;
+							}
+						}
 
-						// do we save this command/commands on failure to be resubmitted?
-						// if we have a syntax error, it is never going to work so do not save it for retry
+						// If buffering on failure and we're not already processing the failed list, delegate to the error handler
 						if (MySqlSettings.BufferOnfailure && !UsingFailedList)
 						{
-							// do we save this command/commands on failure to be resubmitted?
-							// if we have a syntax error, it is never going to work so do not save it for retry
-							// A selection of the more common(?) errors to ignore...
+							// We have already dequeued some items (processedList) and the current failing one (cachedCmd).
+							// Re-enqueue those so the error handler sees the full remaining set in the live queue.
+							// Re-add in original order: first the processedList, then the failing command.
+							// These will be appended to the tail of the queue; the error handler will drain the live queue.
+							for (var i = 0; i < processedList.Count; i++)
+							{
+								myQueue.Enqueue(processedList[i]);
+							}
+
+							if (!processedList.Contains(cachedCmd))
+							{
+								myQueue.Enqueue(cachedCmd);
+							}
+
+							// MySqlCommandErrorHandler will dequeue/handle remaining commands in the provided queue
 							MySqlCommandErrorHandler(CallingFunction, errorCode, myQueue);
 						}
 						else if (UsingFailedList)
@@ -192,40 +272,93 @@ namespace CumulusMX
 							// We are processing the buffered list
 							if (MySqlCheckError(errorCode))
 							{
-								// there is something wrong with the command, discard it
+								// discard the bad SQL: delete its recent-data db entry (we already dequeued it)
 								cumulus.LogMessage($"{CallingFunction}: Discarding bad SQL = {cachedCmd.statement}. Error = \"{MySqlErrorToText(errorCode)}\"");
-								myQueue.TryDequeue(out _);
-								station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
+								try
+								{
+									station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
+								}
+								catch (Exception exDb)
+								{
+									cumulus.LogErrorMessage($"{CallingFunction}: Error deleting bad SQL from DB - " + exDb.Message);
+								}
 							}
 							else
 							{
-								// something else went wrong - abort
+								// something else went wrong - log and abort processing the buffer
 								cumulus.LogExceptionMessage(ex, $"{CallingFunction}: Something went wrong processing MySQL buffer");
 								break;
 							}
 						}
+
+						// If an error occurred we should stop processing further commands in this run
+						// Reset the transaction and processedList to ensure we don't attempt to remove partially processed items
+						processedList.Clear();
+						transaction = null;
+
+						// Break out of the main while - outer catch will handle adding to failed list if needed
+						break;
 					}
 				}
 
-				if (transaction != null)
+				// After processing loop, commit any remaining processed commands
+				if (processedList.Count > 0)
 				{
-					cumulus.LogDebugMessage($"{CallingFunction}: Committing updates to DB");
-					try
+					if (transaction != null)
 					{
-						await transaction.CommitAsync();
-						cumulus.LogDebugMessage($"{CallingFunction}: Commit complete");
+						cumulus.LogDebugMessage($"{CallingFunction}: Committing final batch of {processedList.Count} updates to DB");
+						try
+						{
+							await transaction.CommitAsync();
+							cumulus.LogDebugMessage($"{CallingFunction}: Commit complete");
+						}
+						catch (Exception ex)
+						{
+							// Attempt rollback, then treat as failure (outer catch will mark failed and requeue)
+							try
+							{
+								await transaction.RollbackAsync();
+							}
+							catch (Exception rbEx)
+							{
+								cumulus.LogExceptionMessage(rbEx, $"{CallingFunction}: Error rolling back transaction after final commit failure");
+							}
+
+							throw;
+						}
 					}
-					catch (Exception ex)
+
+					// Processed items have already been removed from the live queue; remove persistent cache entries if needed
+					if (UsingFailedList)
 					{
-						cumulus.LogExceptionMessage(ex, $"{CallingFunction}: Error committing transaction");
+						foreach (var processed in processedList)
+						{
+							try
+							{
+								station.RecentDataDb.Delete<SqlCache>(processed.key);
+							}
+							catch (Exception exDb)
+							{
+								cumulus.LogErrorMessage($"{CallingFunction}: Error deleting processed cached SQL from DB - " + exDb.Message);
+							}
+						}
 					}
+
+					processedList.Clear();
+					transaction = null;
+				}
+
+				if (totalCnt > 10)
+				{
+					Cumulus.LogConsoleMessage("MySQL buffer: Completed processing buffer queue");
 				}
 			}
 			catch (Exception ex)
 			{
-				cumulus.LogErrorMessage($"{CallingFunction}: General failure! Error = {ex.Message}");
+				cumulus.LogExceptionMessage(ex, $"{CallingFunction}: General failure!");
 
 				// do we want to add the commands to the failed buffer?
+				// Only add if we weren't already processing the failed list
 				if (!UsingFailedList)
 				{
 					foreach (var item in myQueue)
