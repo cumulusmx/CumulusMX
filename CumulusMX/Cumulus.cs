@@ -4229,6 +4229,10 @@ namespace CumulusMX
 				_ => 0
 			});
 			SnowMinInc = ini.GetValue("Station", "EWsnowMinInc", minSnowInc, 0);
+			for (var i = 1; i <= 4; i++)
+			{
+				SnowDepthIncAvgMins[i] = ini.GetValue("Station", "EWsnowAvgIncMins" + i, 15, 0, 15);
+			}
 			if (Spike.TempDiff < 999)
 			{
 				Spike.TempDiff = ConvertUnits.TempCToUser(Spike.TempDiff);
@@ -8252,6 +8256,7 @@ namespace CumulusMX
 		public int SnowDepthHour { get; set; }
 		public int SnowAutomated { get; set; }
 		public decimal SnowMinInc { get; set; }
+		public int[] SnowDepthIncAvgMins { get; set; } = new int[5];
 		public int SnowSeasonStart { get; set; }
 
 

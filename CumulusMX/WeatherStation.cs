@@ -88,6 +88,7 @@ namespace CumulusMX
 		private int lastMinute;
 		private int lastHour;
 		private long lastSecond;
+		private int lastSnowMinute;
 
 		public bool[] WMR928ChannelPresent = [false, false, false, false];
 		public bool[] WMR928ExtraTempValueOnly = [false, false, false, false];
@@ -329,6 +330,11 @@ namespace CumulusMX
 				MonthlyRecs[i] = new AllTimeRecords();
 			}
 
+			for (var i = 1; i <= 4; i++)
+			{
+				snowDepthAverage[i] = new Utilities.RollingAverage(TimeSpan.FromMinutes(15));
+			}
+
 			CumulusForecast = cumulus.Trans.ForecastNotAvailable;
 			wsforecast = cumulus.Trans.ForecastNotAvailable;
 
@@ -378,6 +384,7 @@ namespace CumulusMX
 
 			GetRainCounter();
 			GetRainFallTotals();
+			LoadSnowDepthAverage(cumulus.LastUpdateTime);
 
 			versionCheckTime = new DateTime(1, 1, 1, Program.RandGenerator.Next(0, 23), Program.RandGenerator.Next(0, 59), 0, DateTimeKind.Local);
 
@@ -772,6 +779,89 @@ namespace CumulusMX
 			RainWeek = RainThisWeek;
 			RainMonth = RainThisMonth;
 			RainYear = RainThisYear;
+		}
+
+		private void LoadSnowDepthAverage(DateTime ts)
+		{
+			if (cumulus.SnowAutomated == 0) return;
+
+			var datefrom = ts.AddMinutes(-15);
+			var dateto = ts;
+			var entrydate = datefrom;
+			var filedate = datefrom;
+			var logFile = cumulus.GetExtraLogFileName(filedate);
+			var finished = false;
+
+			cumulus.LogMessage("LoadSnowDepthAverage: Attempting to load last 15 minutes laser depth values");
+
+			do
+			{
+				if (File.Exists(logFile))
+				{
+					var linenum = 0;
+					var errorCount = 0;
+
+					try
+					{
+						var lines = File.ReadAllLines(logFile);
+
+						foreach (var line in lines)
+						{
+							try
+							{
+								// process each record in the file
+								linenum++;
+
+								// skip empty lines
+								if (string.IsNullOrWhiteSpace(line))
+									continue;
+
+								var rec = new ExtraLogFileRec(line);
+								entrydate = rec.DateTime;
+
+								if (entrydate >= datefrom && entrydate <= dateto)
+								{
+									for (var i = 1; i <= 4; i++)
+									{
+										if (rec.LaserDepth[i].HasValue)
+										{
+											snowDepthAverage[i].AddSample(rec.LaserDepth[i].Value);
+										}
+									}
+								}
+							}
+							catch (Exception e)
+							{
+								cumulus.LogWarningMessage($"LoadSnowDepthAverage: Error at line {linenum} of {logFile} : {e.Message}");
+								cumulus.LogDebugMessage($"LoadSnowDepthAverage: Error at line {linenum}, content: {lines[linenum]}");
+								cumulus.LogMessage("Please edit the file to correct the error");
+								errorCount++;
+								if (errorCount >= 10)
+								{
+									cumulus.LogErrorMessage($"LoadSnowDepthAverage: Too many errors reading {logFile} - aborting load of data");
+									break;
+								}
+							}
+						}
+					}
+					catch (Exception e)
+					{
+						cumulus.LogErrorMessage($"LoadSnowDepthAverage: Error reading the logfile {logFile} : {e.Message}");
+						cumulus.LogMessage("Please edit the file to correct the error");
+					}
+
+
+					if (entrydate >= dateto || filedate > dateto.AddMonths(1))
+					{
+						finished = true;
+					}
+					else
+					{
+						filedate = filedate.AddMonths(1);
+						logFile = cumulus.GetExtraLogFileName(filedate);
+					}
+				}
+			} while (!finished);
 		}
 
 		public void UpdateYearMonthRainfall()
@@ -1534,6 +1624,8 @@ namespace CumulusMX
 		public decimal?[] LastLaserSnowDepth { get; set; } = new decimal?[5];
 		public decimal?[] Snow24h { get; set; } = new decimal?[5];
 		public decimal?[] SnowSeason { get; set; } = new decimal?[5];
+
+		private Utilities.RollingAverage[] snowDepthAverage = new Utilities.RollingAverage[5];
 
 		public double RainYesterday { get; set; }
 
@@ -9694,13 +9786,13 @@ namespace CumulusMX
 									continue;
 
 								var rec = new LogFileRec(line);
-								var recDate = rec.DateTime;
+								entrydate = rec.DateTime;
 
-								if (recDate >= datefrom && entrydate <= dateto)
+								if (entrydate >= datefrom && entrydate <= dateto)
 								{
 									rowsToAdd.Add(new RecentData()
 									{
-										DateTime = recDate,
+										DateTime = entrydate,
 										DewPoint = rec.OutdoorDewpoint,
 										HeatIndex = rec.HeatIndex ?? 0,
 										Humidity = rec.OutdoorHumidity,
@@ -10604,6 +10696,8 @@ namespace CumulusMX
 		{
 			if (index > 0 && index < LaserDepth.Length)
 			{
+				LaserDepth[index] = value;
+
 				if (value.HasValue && cumulus.SnowAutomated == index)
 				{
 					if (!Snow24h[index].HasValue)
@@ -10616,46 +10710,88 @@ namespace CumulusMX
 						SnowSeason[index] = 0;
 					}
 
-					if (!LastLaserSnowDepth[index].HasValue)
-					{
-						LastLaserSnowDepth[index] = value;
-					}
+					// calculate a 15 minute rolling average of the depth - used for decrementing the baseline
+					snowDepthAverage[index].AddSample((double) value.Value);
+					var depthAverage = (decimal) Math.Round(snowDepthAverage[index].GetAverage(), cumulus.LaserDPlaces);
 
-					// calculate the snowfall since the last increment
-					var snowInc = value.Value - LastLaserSnowDepth[index].Value;
+					decimal newValue;
 
-					if (snowInc == 0)
+					if (cumulus.SnowDepthIncAvgMins[index] > 0)
 					{
-						// no change in depth
-					}
-					else if (Math.Abs(snowInc) < cumulus.SnowMinInc)
-					{
-						cumulus.LogDebugMessage($"Laser #{index} depth change is less than required for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, min = {cumulus.SnowMinInc} {cumulus.Units.LaserDistanceText}");
-					}
-					else if (snowInc > 0)
-					{
-						if (snowInc < cumulus.Spike.SnowDiff)
-						{
-							var inc = ConvertUnits.LaserToSnow(snowInc);
-							Snow24h[index] = (Snow24h[index] ?? 0) + inc;
-							SnowSeason[index] = (SnowSeason[index] ?? 0) + inc;
-							LastLaserSnowDepth[index] = value;
-
-							cumulus.LogDebugMessage($"Laser #{index} depth increase added to snow accumulation: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}, new value: {value.Value.ToString(cumulus.LaserFormat)}");
-						}
-						else
-						{
-							cumulus.LogSpikeRemoval($"Laser #{index} depth increase is greater than allowed for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, max = {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
-						}
+						// we are going to use average value for the last 'N' minutes rather than the raw value
+						newValue = (decimal) Math.Round(snowDepthAverage[index].GetAverage(TimeSpan.FromMinutes(cumulus.SnowDepthIncAvgMins[index])), cumulus.LaserDPlaces);
 					}
 					else
-					{ 
-						cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {value.Value.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
-						LastLaserSnowDepth[index] = value;
+					{
+						newValue = value.Value;
+					}
+
+#if DEBUG
+					// debug logging of the values
+					if (lastSnowMinute != DateTime.Now.Minute)
+					{
+						lastSnowMinute = DateTime.Now.Minute;
+						try
+						{
+							File.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm,") +
+								LaserDist[index].Value.ToString(cumulus.LaserFormat) + ',' +
+								value.Value.ToString(cumulus.LaserFormat) + ',' +
+								LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat) + ',' +
+								newValue.ToString(cumulus.LaserFormat) + Environment.NewLine
+							);
+						}
+						catch (Exception ex)
+						{
+							cumulus.LogExceptionMessage(ex, "Error creating snow depth debug log");
+						}
+					}
+#endif
+
+					if (depthAverage < LastLaserSnowDepth[index].Value)
+					{
+						LastLaserSnowDepth[index] = depthAverage;
+						cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+					}
+					else
+					{
+						// calculate the snowfall since the last increment
+						var snowInc = newValue - LastLaserSnowDepth[index].Value;
+
+						if (snowInc == 0)
+						{
+							// no change in depth
+#if DEBUG
+							cumulus.LogDebugMessage($"Laser #{index} No change in depth");
+#endif
+						}
+						else if (snowInc < 0)
+						{
+#if DEBUG
+							cumulus.LogDebugMessage($"Laser #{index} depth change is negative: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+#endif
+						}
+						else if (snowInc < cumulus.SnowMinInc)
+						{
+							cumulus.LogDebugMessage($"Laser #{index} depth change is less than required for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, min = {cumulus.SnowMinInc} {cumulus.Units.LaserDistanceText}");
+						}
+						else if (snowInc > 0)
+						{
+							if (snowInc < cumulus.Spike.SnowDiff)
+							{
+								var inc = ConvertUnits.LaserToSnow(snowInc);
+								Snow24h[index] = (Snow24h[index] ?? 0) + inc;
+								SnowSeason[index] = (SnowSeason[index] ?? 0) + inc;
+								LastLaserSnowDepth[index] = newValue;
+
+								cumulus.LogDebugMessage($"Laser #{index} depth increase added to snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, new value: {newValue.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+							}
+							else
+							{
+								cumulus.LogSpikeRemoval($"Laser #{index} depth increase is greater than allowed for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, max: {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
+							}
+						}
 					}
 				}
-
-				LaserDepth[index] = value;
 			}
 		}
 

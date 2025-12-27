@@ -15,6 +15,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Beta 4136 Fixes
 
 - Fix: New option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value
+- Change snow depth calculations
+	- Snow depth baseline is now continuously decreased using a 15-minute average value rather than step reduced using the minimum increment value
+	- Snowfall accumulation is now increased using a combination of the 15-minute average and the minimum increment value
+	- The averaging for increases can be turned off, or the averaging time reduced via the cumulus.ini file
+```ini
+[Station]
+EWsnowAvgIncMins[n]=[0-15]
+```
 
 ### Beta 4135 Fixes
 
