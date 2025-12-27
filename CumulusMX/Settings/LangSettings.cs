@@ -320,6 +320,19 @@ namespace CumulusMX.Settings
 					context.Response.StatusCode = 500;
 				}
 
+				// compass points
+				try
+				{
+					cumulus.Trans.compassp = settings.compass;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Compass Point settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 				// air quality
 				try
 				{

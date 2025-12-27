@@ -24,6 +24,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		EWsnowAvgIncMins[n]=[0-15]
 		```
 - Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements, and not removed from the queue unless the commit is successful
+- Compass points not being saved in Locale Strings
 
 
 ### Beta 4135 Fixes
@@ -144,6 +145,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix a number of issues with using the Ecowitt Cloud Station for extra sensors
 - Errors handling null data from PurpleAir sensors
 - Fix processing Ecowitt SD card log file when only one record is in scope
+- Compass points not being saved in Locale Strings
 
 ### Package Updates
 
