@@ -10698,7 +10698,7 @@ namespace CumulusMX
 			{
 				LaserDepth[index] = value;
 
-				if (value.HasValue && cumulus.SnowAutomated == index)
+				if (value.HasValue && cumulus.LaserIsSnowSensor[index])
 				{
 					if (!Snow24h[index].HasValue)
 					{

@@ -10,11 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4136\]][29] - 2025-12-31
+## BETA [4.7.0 \[b4136\]][29] - 2025-12-29
 
 ### Beta 4136 Fixes
 
 - Fix: New option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value
+- New Option in Extra Sensor Settings under Laser Sensor Options to specify if a laser is being used as a snow sensor
 - Change snow depth calculations
 	- Snow depth baseline is now continuously decreased using a 15-minute average value rather than step reduced using the minimum increment value
 	- Snowfall accumulation is now increased using a combination of the 15-minute average and the minimum increment value
@@ -38,7 +39,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Remove retries from WOW uploads
 - Lots more loving for laser depth calculations!
 - There is a new option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value
-- Added ImportCumulusFile PHP script to /MXutils folder
+- Added ImportCumulusFile PHP script to `/MXutils` folder
 
 ### Beta 4134 Fixes
 
@@ -88,12 +89,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Adds LASER depth to the Dashboard Recent Charts, Recent Select-a-Chart, and Select-a-Period
 - Adds LASER depth to the default web site Trends and Select-a-graph charts
 - New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
-- There is a new script /MXutils/windows/CreateFirewallRules.ps1 for creating the required Windows firewall rules
+- New script `/MXutils/windows/CreateFirewallRules.ps1` for creating the required Windows firewall rules
 - Add an exponential backoff to failed Email sends (up to 5.6 hours)
 - New web tags `<#snowunit>`, `<#CapacitorV>`
 - Adds a new Data Logs editor for the Recent Data from the SQLite database
-- There is a new option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value. This is used when there has been a large spurious change in the laser depth measurement for any reason. This does not affect the current snow depth measurement
-- Added ImportCumulusFile PHP script to /MXutils folder
+- New option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value. This is used when there has been a large spurious change in the laser depth measurement for any reason. This does not affect the current snow depth measurement
+- New Option in Extra Sensor Settings under Laser Sensor Options to specify if a laser is being used as a snow sensor
+- Added ImportCumulusFile PHP script to `/MXutils` folder
 
 ### Changed
 
@@ -102,7 +104,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- New format records start: Date_Time,Unix_Timestamp,
 	- All the data fields retain the same offsets as before
 	- The log files will automatically be converted on the first run of v4.7.0
-	- The original files will be backed up to /backup/ConvertBackup
+	- The original files will be backed up to `/backup/ConvertBackup`
 	- The Date_Time field is now purely for human readability, Cumulus MX now uses the Unix Timestamp internally
 - The main monthly log files now log the final values for Rainfall Today and ET Today in the first record of the following day
 - The dashboard has been converted from using Highcharts to ChartJS, and will now work fully offline

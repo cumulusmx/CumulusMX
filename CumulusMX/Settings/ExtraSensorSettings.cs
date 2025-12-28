@@ -195,19 +195,23 @@ namespace CumulusMX.Settings
 			{
 				sensor1 = new JsonLaserDevice
 				{
-					depth = cumulus.LaserDepthBaseline[1]
+					depth = cumulus.LaserDepthBaseline[1],
+					snow = cumulus.LaserIsSnowSensor[1]
 				},
 				sensor2 = new JsonLaserDevice
 				{
-					depth = cumulus.LaserDepthBaseline[2]
+					depth = cumulus.LaserDepthBaseline[2],
+					snow = cumulus.LaserIsSnowSensor[2]
 				},
 				sensor3 = new JsonLaserDevice
 				{
-					depth = cumulus.LaserDepthBaseline[3]
+					depth = cumulus.LaserDepthBaseline[3],
+					snow = cumulus.LaserIsSnowSensor[3]
 				},
 				sensor4 = new JsonLaserDevice
 				{
-					depth = cumulus.LaserDepthBaseline[4]
+					depth = cumulus.LaserDepthBaseline[4],
+					snow = cumulus.LaserIsSnowSensor[4]
 				}
 			};
 
@@ -796,6 +800,7 @@ namespace CumulusMX.Settings
 		private sealed class JsonLaserDevice
 		{
 			public decimal depth { get; set; }
+			public bool snow { get; set; }
 			public bool reset { get; set; }
 		}
 

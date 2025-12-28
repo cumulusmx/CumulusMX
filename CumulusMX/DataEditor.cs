@@ -168,7 +168,18 @@ namespace CumulusMX
 				}
 
 				cumulus.SnowAutomated = int.Parse(text);
-				return "Success: Set automated to " + cumulus.SnowAutomated;
+				if (cumulus.SnowAutomated == 0)
+				{
+					return "Success: Automated readings disabled";
+				}
+				if (cumulus.LaserIsSnowSensor[cumulus.SnowAutomated])
+				{
+					return "Success: Set automated to Sensor #" + cumulus.SnowAutomated;
+				}
+				else
+				{
+					return $"Set automated to Sensor #{cumulus.SnowAutomated}. WARNING: Laser Sensor #{cumulus.SnowAutomated} is not configured as a snow sensor";
+				}
 			}
 			catch (Exception ex)
 			{
