@@ -137,6 +137,11 @@ namespace CumulusMX
 				var processedCnt = 0;
 				var totalCnt = myQueue.Count;
 
+				if (totalCnt > 10)
+				{
+					Cumulus.LogConsoleMessage("MySQL buffer: Processing buffer queue");
+				}
+
 				// Loop until queue empty - dequeue items as we progress so we don't repeatedly peek the same head
 				while (myQueue.TryDequeue(out cachedCmd))
 				{
