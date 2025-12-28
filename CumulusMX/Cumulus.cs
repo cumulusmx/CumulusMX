@@ -6083,6 +6083,7 @@ namespace CumulusMX
 			}
 
 			// laser sensors
+			LaserPrimarySnowSensor = ini.GetValue("Laser", "PrimarySnowSensor", SnowAutomated);
 			for (var i = 1; i < LaserDepthBaseline.Length; i++)
 			{
 				LaserDepthBaseline[i] = ini.GetValue("Laser", "LaserDepthOffset" + i, (decimal) -1);
@@ -7635,6 +7636,7 @@ namespace CumulusMX
 			}
 
 			// laser sensors
+			ini.SetValue("Laser", "PrimarySnowSensor", LaserPrimarySnowSensor);
 			for (var i = 1; i < LaserDepthBaseline.Length; i++)
 			{
 				ini.SetValue("Laser", "LaserDepthOffset" + i, LaserDepthBaseline[i]);
@@ -8213,6 +8215,7 @@ namespace CumulusMX
 
 		public decimal[] LaserDepthBaseline { get; set; } = new decimal[5];
 		public bool[] LaserIsSnowSensor { get; set; } = new bool[5];
+		public int LaserPrimarySnowSensor { get; set; }
 
 		public bool RG11DTRmode2 { get; set; }
 

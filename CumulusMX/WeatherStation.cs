@@ -783,7 +783,7 @@ namespace CumulusMX
 
 		private void LoadSnowDepthAverage(DateTime ts)
 		{
-			if (cumulus.SnowAutomated == 0) return;
+			if (cumulus.LaserPrimarySnowSensor == 0) return;
 
 			var datefrom = ts.AddMinutes(-15);
 			var dateto = ts;
@@ -1256,7 +1256,7 @@ namespace CumulusMX
 				// Snow accumulation
 				for (var i = 1; i < Snow24h.Length; i++)
 				{
-					if (cumulus.SnowAutomated == i)
+					if (cumulus.LaserIsSnowSensor[i])
 					{
 						ini.SetValue("Snow", "Snow24h" + i, Snow24h[i]);
 						ini.SetValue("Snow", "LastLaserDepth" + i, LastLaserSnowDepth[i]);

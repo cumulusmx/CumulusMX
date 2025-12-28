@@ -193,6 +193,8 @@ namespace CumulusMX.Settings
 
 			var laser = new JsonLaser
 			{
+				primary = cumulus.LaserPrimarySnowSensor,
+
 				sensor1 = new JsonLaserDevice
 				{
 					depth = cumulus.LaserDepthBaseline[1],
@@ -616,6 +618,11 @@ namespace CumulusMX.Settings
 						station.LastLaserSnowDepth[4] = station.LaserDepth[4];
 						cumulus.LaserDepthBaseline[4] = settings.laser.sensor4.depth;
 					}
+					cumulus.LaserIsSnowSensor[1] = settings.laser.sensor1.snow;
+					cumulus.LaserIsSnowSensor[2] = settings.laser.sensor2.snow;
+					cumulus.LaserIsSnowSensor[3] = settings.laser.sensor3.snow;
+					cumulus.LaserIsSnowSensor[4] = settings.laser.sensor4.snow;
+					cumulus.LaserPrimarySnowSensor = settings.laser.primary;
 				}
 				catch (Exception ex)
 				{
@@ -790,6 +797,7 @@ namespace CumulusMX.Settings
 
 		private sealed class JsonLaser
 		{
+			public int primary { get; set; }
 			public JsonLaserDevice sensor1 { get; set; }
 			public JsonLaserDevice sensor2 { get; set; }
 			public JsonLaserDevice sensor3 { get; set; }

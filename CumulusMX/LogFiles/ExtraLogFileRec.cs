@@ -361,7 +361,7 @@ namespace CumulusMX.LogFiles
 				sb.Append(sep + (station.LaserDepth[i].HasValue ? station.LaserDepth[i].Value.ToString(cumulus.LaserFormat, inv) : string.Empty)); //96-99
 			}
 
-			sb.Append(sep + (station.Snow24h[cumulus.SnowAutomated].HasValue ? station.Snow24h[cumulus.SnowAutomated].Value.ToString(cumulus.SnowFormat, inv) : string.Empty)); //100
+			sb.Append(sep + (station.Snow24h[cumulus.LaserPrimarySnowSensor].HasValue ? station.Snow24h[cumulus.LaserPrimarySnowSensor].Value.ToString(cumulus.SnowFormat, inv) : string.Empty)); //100
 
 			for (int i = 11; i <= 16; i++)
 			{
