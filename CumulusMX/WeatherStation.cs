@@ -10733,11 +10733,22 @@ namespace CumulusMX
 						lastSnowMinute = DateTime.Now.Minute;
 						try
 						{
-							File.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm,") +
-								LaserDist[index].Value.ToString(cumulus.LaserFormat) + ',' +
-								value.Value.ToString(cumulus.LaserFormat) + ',' +
-								LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat) + ',' +
-								newValue.ToString(cumulus.LaserFormat) + Environment.NewLine
+							var filePath = Path.Combine(cumulus.ProgramOptions.DataPath, $"debug_snow_log{index}.txt");
+							var needHeader = !File.Exists(filePath) || new FileInfo(filePath).Length == 0;
+							using var file = File.AppendText(filePath);
+							if (needHeader)
+							{
+								file.WriteLine("time,dist,depth,last_snowdepth,avg_snowdepth,avg_time,increment");
+							}
+
+							file.WriteLine(
+								DateTime.Now.ToString("yyyy-MM-dd HH:mm,") +
+								LaserDist[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
+								value.Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
+								LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
+								newValue.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
+								cumulus.SnowDepthIncAvgMins[index] + ',' +
+								cumulus.SnowMinInc.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture)
 							);
 						}
 						catch (Exception ex)

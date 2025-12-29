@@ -14,8 +14,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Beta 4136 Fixes
 
-- Fix: New option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value
+- Fix the option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value
 - New Option in Extra Sensor Settings under Laser Sensor Options to specify if a laser is being used as a snow sensor
+- New Option in Extra Sensor Settings to designate the Primary Snow sensor. This is used to determine the sensor logged in the Extra Sensors log file and charted
 - Change snow depth calculations
 	- Snow depth baseline is now continuously decreased using a 15-minute average value rather than step reduced using the minimum increment value
 	- Snowfall accumulation is now increased using a combination of the 15-minute average and the minimum increment value
@@ -24,7 +25,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		[Station]
 		EWsnowAvgIncMins[n]=[0-15]
 		```
-- Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements, and not removed from the queue unless the commit is successful
+- Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements and are not removed from the queue unless the commit is successful
 - Compass points not being saved in Locale Strings
 
 
@@ -120,8 +121,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The realtime FTP watchdog file has been renamed from "_cumulusmx_watchdog.txt" to "cumulusmx_watchdog.txt"
 - The dashboard now allows user defined pages to be hosted under the `/interface/custom` folder
 - Remove retries from WOW uploads
-- Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements, and not removed from the queue unless the commit is successful
-
+- Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements and are not removed from the queue unless the commit is successful
 
 ### Fixed
 
