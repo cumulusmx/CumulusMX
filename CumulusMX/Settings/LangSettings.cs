@@ -27,7 +27,7 @@ namespace CumulusMX.Settings
 			var moonPhase = new MoonPhaseStrings()
 			{
 				Newmoon = cumulus.Trans.NewMoon,
-				WaxingCrescent = cumulus.Trans.WaningCrescent,
+				WaxingCrescent = cumulus.Trans.WaxingCrescent,
 				FirstQuarter = cumulus.Trans.FirstQuarter,
 				WaxingGibbous = cumulus.Trans.WaxingGibbous,
 				Fullmoon = cumulus.Trans.FullMoon,
@@ -258,7 +258,7 @@ namespace CumulusMX.Settings
 				try
 				{
 					cumulus.Trans.NewMoon = settings.moonPhase.Newmoon.Trim();
-					cumulus.Trans.WaningCrescent = settings.moonPhase.WaxingCrescent.Trim();
+					cumulus.Trans.WaxingCrescent = settings.moonPhase.WaxingCrescent.Trim();
 					cumulus.Trans.FirstQuarter = settings.moonPhase.FirstQuarter.Trim();
 					cumulus.Trans.WaxingGibbous = settings.moonPhase.WaxingGibbous.Trim();
 					cumulus.Trans.FullMoon = settings.moonPhase.Fullmoon.Trim();

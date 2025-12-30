@@ -10,7 +10,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4136\]][29] - 2025-12-29
+## BETA [4.7.0 \[b4137\]][29] - 2025-12-29
+
+### Beta 4137 Fixes
+
+- Fix Settings > Locale Strings errors for waxing/waning crescent moon
 
 ### Beta 4136 Fixes
 
@@ -148,6 +152,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Errors handling null data from PurpleAir sensors
 - Fix processing Ecowitt SD card log file when only one record is in scope
 - Compass points not being saved in Locale Strings
+- Errors saving/loading waxing/waning crescent moon in Locale Strings
 
 ### Package Updates
 
@@ -1256,4 +1261,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4136
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4137

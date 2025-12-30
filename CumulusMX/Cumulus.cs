@@ -544,7 +544,7 @@ namespace CumulusMX
 
 			DebuggingEnabled = DebugEnabled;
 
-			LogMessage(" ========================== Cumulus MX starting ==========================");
+			LogMessage("========================== Cumulus MX starting ==========================");
 
 			LogMessage("Cumulus MX v." + Version + " build " + Build);
 			LogMessage("Working Folder : " + Directory.GetCurrentDirectory());

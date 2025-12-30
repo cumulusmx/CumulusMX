@@ -1897,8 +1897,11 @@ namespace CumulusMX.Stations
 			//		"name": "Laser Dist Tank",
 			//		"unit": "mm",
 			//		"battery": "5",
+			//		"voltage": "3.26",
 			//		"air": "13 mm",
 			//		"depth": "3987 mm"
+			//		"total_height": "4000"
+			//		"total_heat": "30"
 			//	}
 			//]
 

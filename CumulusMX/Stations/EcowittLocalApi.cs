@@ -1334,10 +1334,13 @@ namespace CumulusMX.Stations
 		{
 			public int channel { get; set; }
 			public string name { get; set; }
+			public string unit { get; set; }
 			public int battery { get; set; }
+			//public decimal? voltage { get; set; }
 			public string air { get; set; }
 			public string depth { get; set; }
-			public string unit { get; set; }
+			//public decimal? total_height { get; set; }
+			//public int total_heat { get; set; }
 
 			public decimal? airVal
 			{
