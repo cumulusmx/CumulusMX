@@ -377,11 +377,11 @@ namespace CumulusMX
 			{
 				try
 				{
-					if (dtformat == "Unix")
+					if (dtformat.Equals("unix", StringComparison.InvariantCultureIgnoreCase))
 					{
 						s = dt.ToUnixEpochDate().ToString();
 					}
-					else if (dtformat == "JS")
+					else if (dtformat.Equals("js", StringComparison.InvariantCultureIgnoreCase))
 					{
 						s = (dt.ToUnixEpochDate() * 1000).ToString();
 
@@ -409,14 +409,13 @@ namespace CumulusMX
 			else
 			{
 				string dtformat = tagParams.Get("format") ?? defaultFormat;
-				if (dtformat == "Unix")
+				if (dtformat.Equals("unix", StringComparison.InvariantCultureIgnoreCase))
 				{
 					s = dt.ToUnixEpochDate().ToString();
 				}
-				else if (dtformat == "JS")
+				else if (dtformat.Equals("js", StringComparison.InvariantCultureIgnoreCase))
 				{
 					s = (dt.ToUnixEpochDate() * 1000).ToString();
-
 				}
 				else
 				{

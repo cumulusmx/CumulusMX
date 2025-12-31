@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Beta 4137 Fixes
 
 - Fix Settings > Locale Strings errors for waxing/waning crescent moon
+- New Python script to upload monthly log files and the day file to MySQL - `/MXutils/ImportCumulusFile.py`
 
 ### Beta 4136 Fixes
 
@@ -101,6 +102,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value. This is used when there has been a large spurious change in the laser depth measurement for any reason. This does not affect the current snow depth measurement
 - New Option in Extra Sensor Settings under Laser Sensor Options to specify if a laser is being used as a snow sensor
 - Added ImportCumulusFile PHP script to `/MXutils` folder
+- New Python script to upload monthly log files and the day file to MySQL - `/MXutils/ImportCumulusFile.py`
 
 ### Changed
 

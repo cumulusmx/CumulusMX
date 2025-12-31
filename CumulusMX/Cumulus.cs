@@ -1583,6 +1583,9 @@ namespace CumulusMX
 
 			if (station != null)
 			{
+				WebTags = new WebTags(this, station);
+				WebTags.InitialiseWebtags();
+
 				Api.Station = station;
 				Api.stationSettings.SetStation(station);
 				Api.extraSensorSettings.SetStation(station);
@@ -1667,9 +1670,6 @@ namespace CumulusMX
 				OpenWeatherMap.station = station;
 				Bluesky.station = station;
 				Bluesky.CancelToken = Program.ExitSystemToken;
-
-				WebTags = new WebTags(this, station);
-				WebTags.InitialiseWebtags();
 
 				httpFiles = new HttpFiles(this, station);
 
