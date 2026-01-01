@@ -2622,7 +2622,7 @@ namespace CumulusMX.Stations
 								}
 
 								// Not in snow hour, snow yet to be done
-								if (h != 0)
+								if (h != cumulus.SnowDepthHour)
 								{
 									snowhourdone = false;
 								}
