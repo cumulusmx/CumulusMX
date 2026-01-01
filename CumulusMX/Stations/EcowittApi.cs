@@ -1631,7 +1631,7 @@ namespace CumulusMX.Stations
 				if (lastRecDate == 0)
 				{
 					// if we have more than one record, take the initial records interval as the difference to the next record. Otherwise use the configured interval
-					if (buffer.Count > 0)
+					if (buffer.Count > 1)
 					{
 						var keyList = buffer.Keys.ToList();
 						rec.Value.Interval = (int) (keyList[1] - keyList[0]) / 60;

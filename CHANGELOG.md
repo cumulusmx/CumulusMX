@@ -18,6 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New Python script to upload monthly log files and the day file to MySQL - `/MXutils/ImportCumulusFile.py`
 - Fix Automated Weather Diary entries not being created for some stations during catch-up - Davis VP2, Davis WLL, Ecowitt Stations
 - Fix web tags using year and month parameters to take account of meteo dates and first day of the year/month and add consistent handling
+- Fix error processing historic data from ecowitt.net when only a single record is returned
 
 ### Beta 4136 Fixes
 
