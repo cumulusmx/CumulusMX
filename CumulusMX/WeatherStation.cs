@@ -1588,6 +1588,16 @@ namespace CumulusMX
 		{
 			var startDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Local);
 			var enddate = startDate.AddMonths(1);
+
+			var now = cumulus.MeteoDate();
+
+			if (now.Day == 1 && now.Date == startDate.Date)
+			{
+				// This month, and first day so no day file entries
+				// return windrun so far today
+				return WindRunToday;
+			}
+
 			return DayFile.Where(r => r.Date >= startDate && r.Date < enddate).Sum(r => r.WindRun);
 		}
 

@@ -17,6 +17,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Settings > Locale Strings errors for waxing/waning crescent moon
 - New Python script to upload monthly log files and the day file to MySQL - `/MXutils/ImportCumulusFile.py`
 - Fix Automated Weather Diary entries not being created for some stations during catch-up - Davis VP2, Davis WLL, Ecowitt Stations
+- Fix web tags using year and month parameters to take account of meteo dates and first day of the year/month and add consistent handling
 
 ### Beta 4136 Fixes
 
@@ -157,6 +158,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Compass points not being saved in Locale Strings
 - Errors saving/loading waxing/waning crescent moon in Locale Strings
 - Fix Automated Weather Diary entries not being created for some stations during catch-up - Davis VP2, Davis WLL, Ecowitt Stations
+- Fix web tags using year and month parameters to take account of meteo dates and first day of the year/month and add consistent handling
 
 ### Package Updates
 

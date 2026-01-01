@@ -438,7 +438,7 @@ namespace CumulusMX
 			return String.Format(dtformat, ts);
 		}
 
-		private static (DateTime, DateTime) GetMonthStartEndDates(Dictionary<string, string> tagParams)
+		private (DateTime, DateTime) GetMonthStartEndDates(Dictionary<string, string> tagParams)
 		{
 			var year = tagParams.Get("y") ?? tagParams.Get("year");
 			var month = tagParams.Get("m") ?? tagParams.Get("month");
@@ -460,6 +460,11 @@ namespace CumulusMX
 						return (DateTime.MinValue, DateTime.MinValue);
 					}
 				}
+				else if (year == null && month != null || year != null && month == null)
+				{
+					// month but no year or vice versa - invalid
+					return (DateTime.MinValue, DateTime.MinValue);
+				}
 				else if (relMonth != null && int.TryParse(relMonth, out int mons))
 				{
 					if (mons > 0)
@@ -467,13 +472,15 @@ namespace CumulusMX
 						mons = 0;
 					}
 
-					DateTime now = DateTime.Now;
+					// allow for meteo dates
+					var now = cumulus.MeteoDate().Date;
 					start = new DateTime(now.Year, now.Month, 1).AddMonths(mons);
 					end = start.AddMonths(1);
 				}
 				else
 				{
-					end = DateTime.Now.Date;
+					// allow for meteo dates
+					end = cumulus.MeteoDate().Date;
 					start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
 				}
 
@@ -485,7 +492,7 @@ namespace CumulusMX
 			}
 		}
 
-		private static (DateTime, DateTime) GetYearStartEndDates(Dictionary<string, string> tagParams)
+		private (DateTime, DateTime) GetYearStartEndDates(Dictionary<string, string> tagParams)
 		{
 			var year = tagParams.Get("y") ?? tagParams.Get("year");
 			var relYear = tagParams.Get("r") ?? tagParams.Get("relyear");
@@ -506,14 +513,18 @@ namespace CumulusMX
 						relyr = 0;
 					}
 
-					var now = DateTime.Now;
+					// allow for meteo dates
+					var now = cumulus.MeteoDate().Date;
 					start = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local).AddYears(relyr);
 					end = start.AddYears(1);
 				}
 				else
 				{
-					end = DateTime.Now.Date;
-					start = new DateTime(end.Year, 1, 1, 0, 0, 0, DateTimeKind.Local);
+					// allow for meteo dates
+					var now = cumulus.MeteoDate().Date;
+
+					end = new DateTime(now.Year + 1, 1, 1, 0, 0, 0, DateTimeKind.Local);
+					start = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local);
 				}
 
 				return (start, end);
@@ -548,6 +559,12 @@ namespace CumulusMX
 		private string Tagwindrunmonth(Dictionary<string, string> tagParams)
 		{
 			var dats = GetMonthStartEndDates(tagParams);
+
+			if (dats.Item1 == DateTime.MinValue)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+
 			var year = dats.Item1.Year;
 			var month = dats.Item1.Month;
 
@@ -3997,6 +4014,15 @@ namespace CumulusMX
 				return tagParams.Get("nv") ?? "-";
 			}
 
+			var now = cumulus.MeteoDate();
+
+			if (now.Day == 1 && start.Date == now.Date)
+			{
+				// first day of the current month, there are no dayfile entries
+				// so return sunshine so far today
+				return TagSunshineHours(tagParams);
+			}
+
 			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours < 0 ? 0 : rec.SunShineHours), tagParams, 1);
 		}
 
@@ -4006,6 +4032,15 @@ namespace CumulusMX
 
 			var start = dats.Item1;
 			var end = dats.Item2;
+
+			var now = cumulus.MeteoDate();
+
+			if (now.DayOfYear == 1 && start.Date == now.Date)
+			{
+				// first day of the year month, there are no dayfile entries
+				// so return sunshine so far today
+				return TagSunshineHours(tagParams);
+			}
 
 			if (start == DateTime.MinValue)
 			{
@@ -4031,7 +4066,9 @@ namespace CumulusMX
 					return tagParams.Get("nv") ?? "-";
 				}
 
-				if (start.Date == DateTime.Now.AddHours(cumulus.GetHourInc()).Date)
+				var now = cumulus.MeteoDate();
+
+				if (now.Day == 1 && end.Date == now.Date)
 				{
 					// first day of the current month, there are no dayfile entries
 					// so return the average temp so far today
@@ -4062,6 +4099,15 @@ namespace CumulusMX
 				return tagParams.Get("nv") ?? "-";
 			}
 
+			var now = cumulus.MeteoDate();
+
+			if (now.DayOfYear == 1 && start.Date == now.Date)
+			{
+				// first day of the year month, there are no dayfile entries
+				// so return average temp so far today
+				return Tagavgtemp(tagParams);
+			}
+
 			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
 			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -4082,7 +4128,9 @@ namespace CumulusMX
 					return tagParams.Get("nv") ?? "-";
 				}
 
-				if (start.Date == DateTime.Now.AddHours(cumulus.GetHourInc()).Date)
+				var now = cumulus.MeteoDate();
+
+				if (now.Day == 1 && start.Date == now.Date)
 				{
 					// first day of the current month, there are no dayfile entries
 					total = station.RainMonth;
