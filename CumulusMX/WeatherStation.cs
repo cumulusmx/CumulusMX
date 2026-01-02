@@ -862,6 +862,8 @@ namespace CumulusMX
 					}
 				}
 			} while (!finished);
+
+			cumulus.LogMessage("LoadSnowDepthAverage: values loaded");
 		}
 
 		public void UpdateYearMonthRainfall()
