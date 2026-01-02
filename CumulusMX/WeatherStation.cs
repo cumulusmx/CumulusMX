@@ -1600,7 +1600,15 @@ namespace CumulusMX
 				return WindRunToday;
 			}
 
-			return DayFile.Where(r => r.Date >= startDate && r.Date < enddate).Sum(r => r.WindRun);
+			var dayfile = DayFile.Where(r => r.Date >= startDate && r.Date < enddate).Sum(r => r.WindRun);
+
+			// if the current month add todays windrun
+			if (year == now.Year && month == now.Month)
+			{
+				dayfile += WindRunToday;
+			}
+
+			return dayfile;
 		}
 
 		/// <summary>
