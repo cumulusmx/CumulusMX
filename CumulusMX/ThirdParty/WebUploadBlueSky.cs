@@ -153,6 +153,14 @@ namespace CumulusMX.ThirdParty
 					{
 						var err = JsonSerializer.Deserialize<ErrorResp>(responseBodyAsText);
 
+						if (err.error == "RateLimitExceeded")
+						{
+							cumulus.LogWarningMessage("BlueSky: Rate limited. Abort this upload without retry");
+							cumulus.ThirdPartyAlarm.LastMessage = "BlueSky: Uploads have been rate limited.";
+							cumulus.ThirdPartyAlarm.Triggered = true;
+							return false;
+						}
+
 						if (retryCount == 0)
 						{
 							cumulus.ThirdPartyAlarm.LastMessage = $"BlueSky: Authentication HTTP Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}";

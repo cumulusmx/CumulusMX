@@ -19,6 +19,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Automated Weather Diary entries not being created for some stations during catch-up - Davis VP2, Davis WLL, Ecowitt Stations
 - Fix web tags using year and month parameters to take account of meteo dates and first day of the year/month and add consistent handling
 - Fix error processing historic data from ecowitt.net when only a single record is returned
+- If Bluesky uploads are rate limited, do not attempt to retry the upload
+
 
 ### Beta 4136 Fixes
 
@@ -35,7 +37,6 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		```
 - Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements and are not removed from the queue unless the commit is successful
 - Compass points not being saved in Locale Strings
-
 
 ### Beta 4135 Fixes
 
@@ -160,6 +161,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Errors saving/loading waxing/waning crescent moon in Locale Strings
 - Fix Automated Weather Diary entries not being created for some stations during catch-up - Davis VP2, Davis WLL, Ecowitt Stations
 - Fix web tags using year and month parameters to take account of meteo dates and first day of the year/month and add consistent handling
+- If Bluesky uploads are rate limited, do not attempt to retry the upload
 
 ### Package Updates
 
