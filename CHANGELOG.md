@@ -22,6 +22,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - If Bluesky uploads are rate limited, do not attempt to retry the upload
 - PHP uploads failing after first upload in certain configurations
 - Fix endless loop in LoadSnowDepthAverage for new installs
+- Fix bug in exception logging if some exception data is null
 
 ### Beta 4136 Fixes
 
@@ -164,6 +165,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix web tags using year and month parameters to take account of meteo dates and first day of the year/month and add consistent handling
 - If Bluesky uploads are rate limited, do not attempt to retry the upload
 - PHP uploads failing after first upload in certain configurations
+- Fix bug in exception logging if some exception data is null
 
 ### Package Updates
 
