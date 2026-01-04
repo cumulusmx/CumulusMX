@@ -849,17 +849,16 @@ namespace CumulusMX
 						cumulus.LogErrorMessage($"LoadSnowDepthAverage: Error reading the logfile {logFile} : {e.Message}");
 						cumulus.LogMessage("Please edit the file to correct the error");
 					}
+				}
 
-
-					if (entrydate >= dateto || filedate > dateto.AddMonths(1))
-					{
-						finished = true;
-					}
-					else
-					{
-						filedate = filedate.AddMonths(1);
-						logFile = cumulus.GetExtraLogFileName(filedate);
-					}
+				if (entrydate >= dateto || filedate > dateto.AddMonths(1))
+				{
+					finished = true;
+				}
+				else
+				{
+					filedate = filedate.AddMonths(1);
+					logFile = cumulus.GetExtraLogFileName(filedate);
 				}
 			} while (!finished);
 
@@ -10765,7 +10764,7 @@ namespace CumulusMX
 								DateTime.Now.ToString("yyyy-MM-dd HH:mm,") +
 								LaserDist[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
 								value.Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
-								LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
+								(LastLaserSnowDepth[index].HasValue ? LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) : "null") + ',' +
 								newValue.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
 								cumulus.SnowDepthIncAvgMins[index] + ',' +
 								cumulus.SnowMinInc.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture)
@@ -10778,7 +10777,11 @@ namespace CumulusMX
 					}
 #endif
 
-					if (depthAverage < LastLaserSnowDepth[index].Value)
+					if (!LastLaserSnowDepth[index].HasValue)
+					{
+						LastLaserSnowDepth[index] = depthAverage;
+					}
+					else if (depthAverage < LastLaserSnowDepth[index].Value)
 					{
 						LastLaserSnowDepth[index] = depthAverage;
 						cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
@@ -15984,8 +15987,8 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 		public long Timestamp { get; set; }
 
 		[Ignore]
-		public DateTime DateTime { 
-			get => Timestamp.LocalFromUnixTime(); 
+		public DateTime DateTime {
+			get => Timestamp.LocalFromUnixTime();
 			set => Timestamp = value.ToUnixTime();
 		}
 

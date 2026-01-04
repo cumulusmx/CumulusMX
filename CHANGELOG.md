@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4137\]][29] - 2025-12-29
+## BETA [4.7.0 \[b4137\]][29] - 2026-01-04
 
 ### Beta 4137 Fixes
 
@@ -21,6 +21,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix error processing historic data from ecowitt.net when only a single record is returned
 - If Bluesky uploads are rate limited, do not attempt to retry the upload
 - PHP uploads failing after first upload in certain configurations
+- Fix endless loop in LoadSnowDepthAverage for new installs
 
 ### Beta 4136 Fixes
 
