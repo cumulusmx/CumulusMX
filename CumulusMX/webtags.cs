@@ -4063,7 +4063,7 @@ namespace CumulusMX
 				total += station.SunshineHours;
 			}
 
-			return CheckRcDp(, tagParams, 1);
+			return CheckRcDp(total, tagParams, 1);
 		}
 
 		private string TagMonthTempAvg(Dictionary<string, string> tagParams)

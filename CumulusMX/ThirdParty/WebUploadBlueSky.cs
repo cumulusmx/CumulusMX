@@ -46,7 +46,7 @@ namespace CumulusMX.ThirdParty
 			}
 		}
 
-		private readonly SemaphoreSlim _updateSemaphore = new SemaphoreSlim(1, 1);
+		private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
 
 		public WebUploadBlueSky(Cumulus cumulus, string name) : base(cumulus, name)
 		{

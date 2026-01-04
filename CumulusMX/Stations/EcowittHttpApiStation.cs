@@ -162,7 +162,7 @@ namespace CumulusMX.Stations
 			try
 			{
 				var calib = localApi.GetCalibrationData(Program.ExitSystemToken).Result;
-				if (calib.uvGain == 1)
+				if (calib is not null && calib.uvGain == 1)
 				{
 					cumulus.LogMessage("Your stations UV gain is set to the default 1.0, it should probably have a value of around 0.7");
 				}

@@ -20,7 +20,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix web tags using year and month parameters to take account of meteo dates and first day of the year/month and add consistent handling
 - Fix error processing historic data from ecowitt.net when only a single record is returned
 - If Bluesky uploads are rate limited, do not attempt to retry the upload
-
+- PHP uploads failing after first upload in certain configurations
 
 ### Beta 4136 Fixes
 
@@ -162,6 +162,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Automated Weather Diary entries not being created for some stations during catch-up - Davis VP2, Davis WLL, Ecowitt Stations
 - Fix web tags using year and month parameters to take account of meteo dates and first day of the year/month and add consistent handling
 - If Bluesky uploads are rate limited, do not attempt to retry the upload
+- PHP uploads failing after first upload in certain configurations
 
 ### Package Updates
 

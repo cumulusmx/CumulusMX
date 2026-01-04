@@ -319,6 +319,9 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
+							cumulus.LogExceptionMessage(ex, $"{CallingFunction}: Error on final commit failure");
+							cumulus.LogDebugMessage($"{CallingFunction}: Attempting rollback");
+
 							// Attempt rollback, then treat as failure (outer catch will mark failed and requeue)
 							try
 							{
