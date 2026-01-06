@@ -6991,7 +6991,7 @@ namespace CumulusMX
 				// scale rainfall rate
 				RainRate = rate * cumulus.Calib.Rain.Mult;
 
-				if (cumulus.StationOptions.UseRainForIsRaining == 1)
+				if (cumulus.StationOptions.UseRainForIsRaining == 1 && !cumulus.EcowittIsRainingUsePiezo)
 				{
 					IsRaining = RainRate > 0;
 					cumulus.IsRainingAlarm.Triggered = IsRaining;
@@ -7034,13 +7034,13 @@ namespace CumulusMX
 					// rain has occurred
 					LastRainTip = timestamp.ToString("yyyy-MM-dd HH:mm");
 
-					if (cumulus.StationOptions.UseRainForIsRaining == 1)
+					if (cumulus.StationOptions.UseRainForIsRaining == 1 && !cumulus.EcowittIsRainingUsePiezo)
 					{
 						IsRaining = true;
 						cumulus.IsRainingAlarm.Triggered = true;
 					}
 				}
-				else if (cumulus.StationOptions.UseRainForIsRaining == 1 && RainRate <= 0)
+				else if (cumulus.StationOptions.UseRainForIsRaining == 1 && !cumulus.EcowittIsRainingUsePiezo && RainRate <= 0)
 				{
 					IsRaining = false;
 					cumulus.IsRainingAlarm.Triggered = false;

@@ -1468,7 +1468,8 @@ namespace CumulusMX.Stations
 							if (cumulus.EcowittIsRainingUsePiezo)
 							{
 								IsRaining = sensor.val == "1";
-								cumulus.IsRainingAlarm.Triggered = IsRaining;							}
+								cumulus.IsRainingAlarm.Triggered = IsRaining;
+							}
 							break;
 
 						case "0x7C": // rain 24h

@@ -16,6 +16,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - More adjustments to real-time FTP error detection and reconnection
 - Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
+- Fix IsRaining alarm being immediately cleared after each trigger when using the Ecowitt "Use Piezo IsRaining" setting
 
 ### Beta 4137 Fixes
 
@@ -173,6 +174,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix bug in exception logging if some exception data is null
 - More adjustments to real-time FTP error detection and reconnection
 - Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
+- Fix IsRaining alarm being immediately cleared after each trigger when using the Ecowitt "Use Piezo IsRaining" setting
 
 ### Package Updates
 
