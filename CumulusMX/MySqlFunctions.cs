@@ -181,8 +181,8 @@ namespace CumulusMX
 
 						cumulus.MySqlUploadAlarm.Triggered = false;
 
-						// If we've executed 50 statements, commit them as a batch
-						if (processedList.Count >= 50)
+						// If we've executed 100 statements, commit them as a batch
+						if (processedList.Count >= 100)
 						{
 							// If there's a transaction, commit it; otherwise commands were autocommitted
 							if (transaction != null)

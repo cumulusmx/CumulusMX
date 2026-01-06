@@ -1644,7 +1644,7 @@ namespace CumulusMX
 		public decimal?[] Snow24h { get; set; } = new decimal?[5];
 		public decimal?[] SnowSeason { get; set; } = new decimal?[5];
 
-		private Utilities.RollingAverage[] snowDepthAverage = new Utilities.RollingAverage[5];
+		private readonly Utilities.RollingAverage[] snowDepthAverage = new Utilities.RollingAverage[5];
 
 		public double RainYesterday { get; set; }
 

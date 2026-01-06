@@ -1637,7 +1637,7 @@ namespace CumulusMX.Stations
 						rec.Value.Interval = (int) (keyList[1] - keyList[0]) / 60;
 					}
 					else
-					{ 
+					{
 						rec.Value.Interval = 5;
 					}
 					lastRecDate = rec.Key;
@@ -2012,6 +2012,37 @@ namespace CumulusMX.Stations
 			// === Extra Sensors ===
 			for (var i = 1; i <= 8; i++)
 			{
+				// === Extra Humidity first in case it is mapped to Outdoor and needed for dewpoint calculation ===
+				try
+				{
+					if (rec.Value.ExtraHumidity[i].HasValue)
+					{
+						station.DoExtraHum(rec.Value.ExtraHumidity[i].Value, i);
+
+						if (i == PrimaryTHSensor)
+						{
+							station.DoOutdoorHumidity(rec.Value.ExtraHumidity[i].Value, recDateTime);
+						}
+
+						if (i == PrimaryIndoorTHSensor)
+						{
+							station.DoIndoorHumidity(rec.Value.ExtraHumidity[i].Value);
+						}
+					}
+					else if (i == PrimaryTHSensor)
+					{
+						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to outdoor humidity data");
+					}
+					else if (i == PrimaryIndoorTHSensor)
+					{
+						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to indoor humidity data");
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra humidity data - {ex.Message}");
+				}
+
 				// === Extra Temperature ===
 				try
 				{
@@ -2043,36 +2074,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra temperature data - {ex.Message}");
 				}
-				// === Extra Humidity ===
-				try
-				{
-					if (rec.Value.ExtraHumidity[i].HasValue)
-					{
-						station.DoExtraHum(rec.Value.ExtraHumidity[i].Value, i);
 
-						if (i == PrimaryTHSensor)
-						{
-							station.DoOutdoorHumidity(rec.Value.ExtraHumidity[i].Value, recDateTime);
-						}
-
-						if (i == PrimaryIndoorTHSensor)
-						{
-							station.DoIndoorHumidity(rec.Value.ExtraHumidity[i].Value);
-						}
-					}
-					else if (i == PrimaryTHSensor)
-					{
-						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to outdoor humidity data");
-					}
-					else if (i == PrimaryIndoorTHSensor)
-					{
-						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to indoor humidity data");
-					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra humidity data - {ex.Message}");
-				}
 				// === Extra Dewpoint ===
 				if (rec.Value.ExtraTemp[i].HasValue && rec.Value.ExtraHumidity[i].HasValue)
 				{

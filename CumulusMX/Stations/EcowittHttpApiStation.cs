@@ -189,6 +189,7 @@ namespace CumulusMX.Stations
 							if (rawData is not null)
 							{
 								dataLastRead = DateTime.Now;
+								var outdoortemp = -999;
 
 								// process the common_list sensors
 								if (rawData.common_list != null)
@@ -263,7 +264,7 @@ namespace CumulusMX.Stations
 								// Now do the stuff that requires more than one input parameter
 
 
-								// Process outdoor temperature here, as GW1000 currently does not supply Dew Point so we have to calculate it in DoOutdoorTemp()
+								// Process outdoor temperature here so we have humidity available
 								if (outdoortemp > -999)
 								{
 									DoOutdoorTemp(outdoortemp, dataLastRead);
@@ -1027,7 +1028,7 @@ namespace CumulusMX.Stations
 						case "0x02": //Outdoor Temperature
 							if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
 							{
-								// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
+								// do not process temperature here, we have not yet read the humidity value. Have to do it at the end.
 								var temp = sensor.valDbl.Value;
 								outdoortemp = sensor.unit == "C" ? ConvertUnits.TempCToUser(temp) : ConvertUnits.TempFToUser(temp);
 							}
@@ -1184,8 +1185,8 @@ namespace CumulusMX.Stations
 					// user has mapped indoor temp to outdoor temp
 					if (cumulus.Gw1000PrimaryTHSensor == 99)
 					{
-						// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
-						DoOutdoorTemp(temp, dateTime);
+						// do not process temperature here, we have not yet read the humidity value. Have to do it at the end.
+						outdoortemp = temp;
 					}
 
 					if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
@@ -1754,7 +1755,8 @@ namespace CumulusMX.Stations
 
 						if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
 						{
-							DoOutdoorTemp(temp, dateTime);
+							// do not process temperature here, we have not yet read the humidity value. Have to do it at the end.
+							outdoortemp = temp;
 						}
 
 						if (cumulus.Gw1000PrimaryIndoorTHSensor == sensor.channel)

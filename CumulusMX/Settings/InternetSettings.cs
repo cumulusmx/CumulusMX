@@ -130,10 +130,14 @@ namespace CumulusMX.Settings
 								// do nothing
 							}
 						}
-						else if (!cumulus.RealTimeWdTokenSource.IsCancellationRequested)
+						else if (Cumulus.RealtimeFtpWatchDogTaskTokenSource is not null && !Cumulus.RealtimeFtpWatchDogTaskTokenSource.IsCancellationRequested)
 						{
-							cumulus.RealTimeWdTokenSource.Cancel();
+							Cumulus.RealtimeFtpWatchDogTaskTokenSource.Cancel();
 						}
+					}
+					else if (Cumulus.RealtimeFtpWatchDogTaskTokenSource is not null && !Cumulus.RealtimeFtpWatchDogTaskTokenSource.IsCancellationRequested)
+					{
+						Cumulus.RealtimeFtpWatchDogTaskTokenSource.Cancel();
 					}
 
 					cumulus.FtpOptions.LocalCopyEnabled = settings.website.localcopy;

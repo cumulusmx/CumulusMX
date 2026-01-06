@@ -521,8 +521,9 @@ namespace CumulusMX
 		}
 
 		private SemaphoreSlim uploadCountLimitSemaphoreSlim;
-		private readonly SemaphoreSlim realtimeFtpSemaphore = new(1);
-		private readonly SemaphoreSlim intervaltimeFtpSemaphore = new(1);
+		private readonly SemaphoreSlim realtimeFtpSemaphore = new(1, 1);
+		private readonly SemaphoreSlim realtimeCopySemaphore = new(1, 1);
+		private readonly SemaphoreSlim intervaltimeFtpSemaphore = new(1, 1);
 
 		private SftpClientFactory sftpClientFactory;
 		private FtpClientFactory ftpClientFactory;
@@ -2457,14 +2458,13 @@ namespace CumulusMX
 			try
 			{
 				// Process any files
-				if (RealtimeCopyInProgress)
+				if (!realtimeCopySemaphore.Wait(1000, Program.ExitSystemToken))
 				{
 					LogWarningMessage($"Realtime[{cycle}]: Warning, a previous cycle is still processing local files. Skipping this interval.");
 					return;
 				}
 				else
 				{
-					RealtimeCopyInProgress = true;
 					CreateRealtimeFile(cycle);
 					CreateRealtimeHTMLfiles(cycle);
 
@@ -2472,91 +2472,85 @@ namespace CumulusMX
 					{
 						RealtimeLocalCopy(cycle);
 					}
-					RealtimeCopyInProgress = false;
 				}
+			}
+			catch (Exception ex)
+			{
+				LogExceptionMessage(ex, "Realtime[{cycle}]: Error during file copies");
+			}
+			finally
+			{
+				realtimeCopySemaphore.Release();
+			}
 
-				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
+			if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
+			{
+				if (!realtimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
 				{
-					if (!realtimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
+					// we cannot get the lock - abort
+					LogDebugMessage($"Realtime[{cycle}]: Warning, could not get the upload lock, aborting upload for this cycle");
+				}
+				else
+				{
+					// We can do some FTP!
+					try
 					{
-						// we cannot get the lock - abort
-						LogDebugMessage($"Realtime[{cycle}]: Warning, could not get the upload lock, aborting upload for this cycle");
+						RealtimeUpload(cycle).Wait();
 					}
-					else
+					catch (Exception ex)
 					{
-						if (RealtimeFtpLocked)
-						{
-							LogWarningMessage($"Realtime[{cycle}]: Warning, upload is busy. Skipping upload for this interval");
-						}
-						else
-						{
-							RealtimeFtpLocked = true;
-
-							// Finally we can do some FTP!
-							try
-							{
-								RealtimeUpload(cycle).Wait();
-								// Leave the lock set on error so nothing else runs until we are connected
-								RealtimeFtpLocked = false;
-							}
-							catch (Exception ex)
-							{
-								LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during realtime upload.");
-								// signal the wd to attmpt to reconnect
-								RealTimeWdTokenSource.Cancel();
-							}
-						}
-
+						LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during realtime upload.");
+						// signal the wd to attmpt to reconnect
+						RealtimeFtpWatchDogTokenSource.Cancel();
+					}
+					finally
+					{
 						realtimeFtpSemaphore.Release();
 					}
 				}
+			}
 
-				if (!string.IsNullOrEmpty(RealtimeProgram))
+			if (!string.IsNullOrEmpty(RealtimeProgram))
+			{
+				if (!File.Exists(RealtimeProgram))
 				{
-					if (!File.Exists(RealtimeProgram))
+					LogWarningMessage($"Warning: Realtime program '{RealtimeProgram}' does not exist");
+				}
+				else
+				{
+					try
 					{
-						LogWarningMessage($"Warning: Realtime program '{RealtimeProgram}' does not exist");
-					}
-					else
-					{
-						try
-						{
-							var args = string.Empty;
+						var args = string.Empty;
 
-							if (!string.IsNullOrEmpty(RealtimeParams))
+						if (!string.IsNullOrEmpty(RealtimeParams))
+						{
+							var parser = new TokenParser(TokenParserOnToken)
 							{
-								var parser = new TokenParser(TokenParserOnToken)
-								{
-									InputText = RealtimeParams
-								};
-								args = parser.ToStringFromString();
-							}
-							LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
-							_ = Utils.RunExternalTask(RealtimeProgram, args, false);
+								InputText = RealtimeParams
+							};
+							args = parser.ToStringFromString();
 						}
-						catch (FileNotFoundException)
-						{
-							LogErrorMessage($"Realtime[{cycle}]: Error: Realtime program '{RealtimeProgram}' does not exist");
-						}
-						catch (Exception ex)
-						{
-							LogErrorMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
-						}
+						LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
+						_ = Utils.RunExternalTask(RealtimeProgram, args, false);
+					}
+					catch (FileNotFoundException)
+					{
+						LogErrorMessage($"Realtime[{cycle}]: Error: Realtime program '{RealtimeProgram}' does not exist");
+					}
+					catch (Exception ex)
+					{
+						LogErrorMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
 					}
 				}
+			}
 
+			try
+			{
 				MySqlRealtimeFile(cycle, true);
 			}
 			catch (Exception ex)
 			{
-				LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during update");
-
-				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
-				{
-					realtimeFtpSemaphore.Release();
-				}
-				RealtimeCopyInProgress = false;
-				RealtimeFtpLocked = false;
+				LogExceptionMessage(ex, "Realtime[{cycle}]: Error in MySqlRealtimeFile()");
 			}
 
 			LogDebugMessage($"Realtime[{cycle}]: End cycle");
@@ -2573,43 +2567,52 @@ namespace CumulusMX
 				return;
 			}
 
-			// reset the wd cancellation token if required
-			if (RealTimeWdTokenSource.IsCancellationRequested)
-			{
-				RealTimeWdTokenSource.Dispose();
-				RealTimeWdTokenSource = new();
-			}
-
-			RealtimeFtpWatchDogToken = RealTimeWdTokenSource.Token;
-
 			RealtimeFtpWatchDogTask = Task.Run(() =>
 			{
 				bool connected = false;
 				bool reinit = true;
 				const string filename = "_cumulusmx_watchdog.txt";
 				int connectCount = 0;
+				bool weHaveSemaphore = false;
+
+				RealtimeFtpWatchDogTaskTokenSource = new();
 
 				do
 				{
-					RealtimeFtpLocked = true;
-
-					if (realtimeFtpSemaphore.Wait(5000, Program.ExitSystemToken))
+					if (!weHaveSemaphore)
 					{
-#if DEBUG
-						LogDebugMessage("RealtimeFtpWatchDog: Got the semaphore");
-#endif
-					}
-					else
-					{
-						LogDebugMessage("RealtimeFtpWatchDog: Timed out waiting for the semaphore");
-					}
+						LogDebugMessage("RealtimeFtpWatchDog: Attempting to get the semaphore (wait 20 seconds)");
 
-					RealtimeFtpLocked = true;
+						if (realtimeFtpSemaphore.Wait(20000, Program.ExitSystemToken))
+						{
+							LogDebugMessage("RealtimeFtpWatchDog: Got the semaphore");
+							weHaveSemaphore = true;
+						}
+						else
+						{
+							LogDebugMessage("RealtimeFtpWatchDog: Timed out waiting for the semaphore, continue and try again later");
+						}
+					}
 
 					do
 					{
 						if (reinit)
 						{
+							if (!weHaveSemaphore)
+							{
+								LogDebugMessage("RealtimeFtpWatchDog: Attempting to get the semaphore (wait 5 seconds)");
+
+								if (realtimeFtpSemaphore.Wait(5000, Program.ExitSystemToken))
+								{
+									LogDebugMessage("RealtimeFtpWatchDog: Got the semaphore");
+									weHaveSemaphore = true;
+								}
+								else
+								{
+									LogDebugMessage("RealtimeFtpWatchDog: Timed out waiting for the semaphore");
+								}
+							}
+
 							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 							{
 								try
@@ -2689,14 +2692,8 @@ namespace CumulusMX
 								tempFile = filename;
 							}
 
-							if (realtimeFtpSemaphore.CurrentCount > 0)
-							{
-								realtimeFtpSemaphore.Wait(100, Program.ExitSystemToken);
-							}
-
 							try
 							{
-
 								if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 								{
 									LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp testing the connection");
@@ -2836,11 +2833,13 @@ namespace CumulusMX
 
 					// OK we are reconnected, let the FTP recommence
 					LogFtpMessage("RealtimeFtpWatchDog: Realtime FTP OK, operations can be resumed", true);
-
-					RealtimeFtpLocked = false;
-					RealtimeCopyInProgress = false;
+					// reset the wd token
+					RealtimeFtpWatchDogTokenSource.Dispose();
+					RealtimeFtpWatchDogTokenSource = new();
 					try
 					{
+						// release the semaphore
+						weHaveSemaphore = false;
 						realtimeFtpSemaphore.Release();
 					}
 					catch
@@ -2852,7 +2851,7 @@ namespace CumulusMX
 
 					LogDebugMessage($"RealtimeFtpWatchDog: Sleeping for {realtimeFtpWdInterval} seconds before testing the connection again...");
 
-					var signal = WaitHandle.WaitAny([Program.ExitSystemToken.WaitHandle, RealtimeFtpWatchDogToken.WaitHandle], realtimeFtpWdInterval * 1000);
+					var signal = WaitHandle.WaitAny([Program.ExitSystemToken.WaitHandle, RealtimeFtpWatchDogTokenSource.Token.WaitHandle, RealtimeFtpWatchDogTaskTokenSource.Token.WaitHandle], realtimeFtpWdInterval * 1000);
 					if (signal == WaitHandle.WaitTimeout)
 					{
 						// normal timeout, go round again and test
@@ -2864,13 +2863,32 @@ namespace CumulusMX
 					}
 					else if (signal == 1)
 					{
-						LogMessage("RealtimeFtpWatchDog: FTP error detected, waiting 10 seconds before attempting to reconnect");
-						Program.ExitSystemToken.WaitHandle.WaitOne(10 * 1000);
-						RealTimeWdTokenSource.Dispose();
-						RealTimeWdTokenSource = new();
-						RealtimeFtpWatchDogToken = RealTimeWdTokenSource.Token;
+						LogMessage("RealtimeFtpWatchDog: FTP error detected!");
+						// attempt to grab the semaphore
+						LogDebugMessage("RealtimeFtpWatchDog: attempting to get the semaphore");
+						if (realtimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
+						{
+							// we have the semaphore
+							weHaveSemaphore = true;
+							LogDebugMessage("RealtimeFtpWatchDog: we have the semaphore");
+						}
+						else
+						{
+							LogDebugMessage("RealtimeFtpWatchDog: failed to get the semaphore at this attempt");
+						}
+						LogMessage("RealtimeFtpWatchDog: Waiting 5 seconds before attempting to reconnect");
+						Program.ExitSystemToken.WaitHandle.WaitOne(5 * 1000);
 					}
-				} while (!Program.ExitSystemToken.IsCancellationRequested);
+					else if (signal == 2)
+					{
+						LogMessage("RealtimeFtpWatchDog: Watch dog termination requested");
+					}
+
+				} while (!Program.ExitSystemToken.IsCancellationRequested && !RealtimeFtpWatchDogTaskTokenSource.Token.IsCancellationRequested);
+
+				RealtimeFTPDisconnect();
+
+				LogMessage("RealtimeFtpWatchDog: Exiting Task");
 			});
 		}
 
@@ -2934,8 +2952,6 @@ namespace CumulusMX
 			var taskCount = 0;
 			var runningTaskCount = 0;
 
-			RealtimeFtpLocked = true;
-
 			if (FtpOptions.Directory.Length > 0)
 			{
 				remotePath = (FtpOptions.Directory.EndsWith('/') ? FtpOptions.Directory : FtpOptions.Directory + '/');
@@ -2967,12 +2983,22 @@ namespace CumulusMX
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
 							LogDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}");
-							_ = UploadStream(RealtimeSSH, remoteFile, dataStream, cycle);
+							if (!UploadStream(RealtimeSSH, remoteFile, dataStream, cycle))
+							{
+								// trigger the WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 						else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
 						{
 							LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}", true);
-							_ = UploadStream(RealtimeFTP, remoteFile, dataStream, cycle);
+							if (!UploadStream(RealtimeFTP, remoteFile, dataStream, cycle))
+							{
+								// trigger the WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 					}
 					else // PHP
@@ -3058,7 +3084,7 @@ namespace CumulusMX
 					if (!File.Exists(uploadfile))
 					{
 						LogWarningMessage($"Realtime[{cycle}]: Warning, extra web file not found! - {uploadfile}");
-						return;
+						continue;
 					}
 
 					bool incremental = false;
@@ -3193,8 +3219,6 @@ namespace CumulusMX
 
 				LogDebugMessage($"Realtime[{cycle}]: Real time files process end");
 				tasklist.Clear();
-
-				RealtimeFtpLocked = false;
 			}
 			else // It's old fashioned FTP/FTPS/SFTP
 			{
@@ -3294,22 +3318,42 @@ namespace CumulusMX
 						using var strm = GenerateStreamFromString(data);
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
-							UploadStream(RealtimeSSH, remotefile, strm, cycle);
+							if (!UploadStream(RealtimeSSH, remotefile, strm, cycle))
+							{
+								// trigger WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 						else
 						{
-							UploadStream(RealtimeFTP, remotefile, strm, cycle);
+							if (!UploadStream(RealtimeFTP, remotefile, strm, cycle))
+							{
+								// trigger WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 					}
 					else // its just a plain old file - upload it
 					{
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
-							UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
+							if (!UploadFile(RealtimeSSH, uploadfile, remotefile, cycle))
+							{
+								// trigger WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 						else
 						{
-							UploadFile(RealtimeFTP, uploadfile, remotefile, cycle);
+							if (!UploadFile(RealtimeFTP, uploadfile, remotefile, cycle))
+							{
+								// trigger WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 					}
 				}
@@ -3317,7 +3361,6 @@ namespace CumulusMX
 				LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload extra files complete", true);
 
 				// all done
-				RealtimeFtpLocked = false;
 			}
 		}
 
@@ -8439,17 +8482,15 @@ namespace CumulusMX
 		public static string LatestError { get; set; }
 		public static DateTime LatestErrorTS { get; set; } = DateTime.MinValue;
 		internal WeatherStation Station { get => station; set => station = value; }
-		public CancellationTokenSource RealTimeWdTokenSource { get; set; } = new();
-		public CancellationToken RealtimeFtpWatchDogToken { get; set; }
+		public static CancellationTokenSource RealtimeFtpWatchDogTokenSource { get; set; } = new();
 		private Task RealtimeFtpWatchDogTask;
+		public static CancellationTokenSource RealtimeFtpWatchDogTaskTokenSource { get; set; }
 
 		internal DateTime defaultRecordTS = DateTime.MinValue;
 		internal const string WxnowFile = "wxnow.txt";
 		private readonly string RealtimeFile = "realtime.txt";
 		private FtpClient RealtimeFTP;
 		private SftpClient RealtimeSSH;
-		private volatile bool RealtimeFtpLocked;
-		private volatile bool RealtimeCopyInProgress;
 		private int realtimeFtpWdInterval;
 		private byte RealtimeCycleCounter;
 		private byte IntervalCycleCounter;
@@ -11763,8 +11804,6 @@ namespace CumulusMX
 							LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}", realtime);
 						}
 
-						RealTimeWdTokenSource.Cancel();
-
 						return false;
 					}
 				}
@@ -11781,7 +11820,6 @@ namespace CumulusMX
 					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}", realtime);
 				}
 
-				RealTimeWdTokenSource.Cancel();
 				return false;
 			}
 
@@ -11801,7 +11839,7 @@ namespace CumulusMX
 				LogWarningMessage($"SFTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
 				FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
 				FtpAlarm.Triggered = true;
-				return false;
+				return true;
 			}
 
 			if (!conn.IsConnected)
@@ -11868,7 +11906,6 @@ namespace CumulusMX
 					}
 
 					// Lets start again anyway! Too hard to tell if the error is recoverable
-					RealTimeWdTokenSource.Cancel();
 					return false;
 				}
 
@@ -11901,7 +11938,6 @@ namespace CumulusMX
 							LogFtpMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}", realtime);
 						}
 
-						RealTimeWdTokenSource.Cancel();
 						return false;
 					}
 				}
@@ -11927,7 +11963,6 @@ namespace CumulusMX
 					LogDebugMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}");
 				}
 
-				RealTimeWdTokenSource.Cancel();
 				return false;
 			}
 			return true;
@@ -13652,13 +13687,23 @@ namespace CumulusMX
 				else if (RealtimeFTP != null)
 				{
 					RealtimeFTP.Disconnect();
-					RealtimeFTP.Dispose();
 				}
 				LogDebugMessage("Disconnected Realtime FTP session");
 			}
 			catch (Exception ex)
 			{
 				LogDebugMessage("RealtimeFTPDisconnect: Error disconnecting connection (can be ignored?) - " + ex.Message);
+			}
+			finally
+			{
+				if (FtpOptions.FtpMode == FtpProtocols.SFTP && RealtimeSSH != null)
+				{
+					RealtimeSSH.Dispose();
+				}
+				else if (RealtimeFTP != null)
+				{
+					RealtimeFTP.Dispose();
+				}
 			}
 		}
 

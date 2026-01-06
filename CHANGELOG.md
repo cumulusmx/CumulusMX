@@ -10,7 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4137\]][29] - 2026-01-04
+## BETA [4.7.0 \[b4138\]][29] - 2026-01-10
+
+### Beta 4138 Fixes
+
+- More adjustments to real-time FTP error detection and reconnection
+- Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
 
 ### Beta 4137 Fixes
 
@@ -166,6 +171,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - If Bluesky uploads are rate limited, do not attempt to retry the upload
 - PHP uploads failing after first upload in certain configurations
 - Fix bug in exception logging if some exception data is null
+- More adjustments to real-time FTP error detection and reconnection
+- Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
 
 ### Package Updates
 
@@ -1274,4 +1281,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4137
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4138

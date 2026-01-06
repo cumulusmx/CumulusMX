@@ -361,8 +361,8 @@ namespace CumulusMX.Stations
 							try
 							{
 								var time = data.outdoor.temperature.time.LocalFromUnixTime();
-								DoOutdoorTemp(data.outdoor.temperature.value, time);
 								DoOutdoorHumidity(data.outdoor.humidity.value, time);
+								DoOutdoorTemp(data.outdoor.temperature.value, time);
 								DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
 								DoFeelsLike(time);
 								DoApparentTemp(time);
@@ -389,8 +389,8 @@ namespace CumulusMX.Stations
 							if (cumulus.Gw1000PrimaryTHSensor == 99)
 							{
 								var time = data.outdoor.temperature.time.LocalFromUnixTime();
-								DoOutdoorTemp(data.indoor.temperature.value, time);
 								DoOutdoorHumidity(data.indoor.humidity.value, time);
+								DoOutdoorTemp(data.indoor.temperature.value, time);
 								DoOutdoorDewpoint(data.outdoor.dew_point.value, time);
 								DoFeelsLike(time);
 								DoApparentTemp(time);
@@ -683,298 +683,79 @@ namespace CumulusMX.Stations
 		{
 			if (data.temp_and_humidity_ch1 != null)
 			{
-				if (cumulus.Gw1000PrimaryTHSensor == 1)
-				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch1.temperature.value, data.temp_and_humidity_ch1.temperature.time.LocalFromUnixTime());
-				}
-
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == 1)
-				{
-					station.DoIndoorTemp(data.temp_and_humidity_ch1.temperature.value);
-				}
-
-				station.DoExtraTemp(data.temp_and_humidity_ch1.temperature.value, 1);
-
-				// Not all sensor types have humidity
-				if (data.temp_and_humidity_ch1.humidity != null)
-				{
-					if (cumulus.Gw1000PrimaryTHSensor == 1)
-					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch1.humidity.value, data.temp_and_humidity_ch1.humidity.time.LocalFromUnixTime());
-					}
-
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 1)
-					{
-						station.DoIndoorHumidity(data.temp_and_humidity_ch1.humidity.value);
-					}
-
-					station.DoExtraHum(data.temp_and_humidity_ch1.humidity.value, 1);
-
-					if (station.ExtraTemp[1].HasValue)
-					{
-						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[1].Value), station.ExtraHum[1].Value);
-						station.ExtraDewPoint[1] = ConvertUnits.TempCToUser(dp);
-					}
-				}
+				ApplyExtraTempHum(1, data.temp_and_humidity_ch1.temperature.value, data.temp_and_humidity_ch1.humidity.value, data.temp_and_humidity_ch1.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch2 != null)
 			{
-				if (cumulus.Gw1000PrimaryTHSensor == 2)
-				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch2.temperature.value, data.temp_and_humidity_ch2.temperature.time.LocalFromUnixTime());
-				}
-
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == 2)
-				{
-					station.DoIndoorTemp(data.temp_and_humidity_ch2.temperature.value);
-				}
-
-				station.DoExtraTemp(data.temp_and_humidity_ch2.temperature.value, 2);
-
-				// Not all sensor types have humidity
-				if (data.temp_and_humidity_ch2.humidity != null)
-				{
-					if (cumulus.Gw1000PrimaryTHSensor == 2)
-					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch2.humidity.value, data.temp_and_humidity_ch2.humidity.time.LocalFromUnixTime());
-					}
-
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 2)
-					{
-						station.DoIndoorHumidity(data.temp_and_humidity_ch2.humidity.value);
-					}
-
-					station.DoExtraHum(data.temp_and_humidity_ch2.humidity.value, 2);
-
-					if (station.ExtraTemp[2].HasValue)
-					{
-						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[2].Value), station.ExtraHum[2].Value);
-						station.ExtraDewPoint[2] = ConvertUnits.TempCToUser(dp);
-					}
-				}
+				ApplyExtraTempHum(2, data.temp_and_humidity_ch2.temperature.value, data.temp_and_humidity_ch2.humidity.value, data.temp_and_humidity_ch2.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch3 != null)
 			{
-				if (cumulus.Gw1000PrimaryTHSensor == 3)
-				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch3.temperature.value, data.temp_and_humidity_ch3.temperature.time.LocalFromUnixTime());
-				}
-
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == 3)
-				{
-					station.DoIndoorTemp(data.temp_and_humidity_ch3.temperature.value);
-				}
-
-				station.DoExtraTemp(data.temp_and_humidity_ch3.temperature.value, 3);
-
-				// Not all sensor types have humidity
-				if (data.temp_and_humidity_ch3.humidity != null)
-				{
-					if (cumulus.Gw1000PrimaryTHSensor == 3)
-					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch3.humidity.value, data.temp_and_humidity_ch3.humidity.time.LocalFromUnixTime());
-					}
-
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 3)
-					{
-						station.DoIndoorHumidity(data.temp_and_humidity_ch3.humidity.value);
-					}
-
-					station.DoExtraHum(data.temp_and_humidity_ch3.humidity.value, 3);
-
-					if (station.ExtraTemp[3].HasValue)
-					{
-						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[3].Value), station.ExtraHum[3].Value);
-						station.ExtraDewPoint[3] = ConvertUnits.TempCToUser(dp);
-					}
-				}
+				ApplyExtraTempHum(3, data.temp_and_humidity_ch3.temperature.value, data.temp_and_humidity_ch3.humidity.value, data.temp_and_humidity_ch3.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch4 != null)
 			{
-				if (cumulus.Gw1000PrimaryTHSensor == 4)
-				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch4.temperature.value, data.temp_and_humidity_ch4.temperature.time.LocalFromUnixTime());
-				}
-
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == 4)
-				{
-					station.DoIndoorTemp(data.temp_and_humidity_ch4.temperature.value);
-				}
-
-				station.DoExtraTemp(data.temp_and_humidity_ch4.temperature.value, 4);
-
-				// Not all sensor types have humidity
-				if (data.temp_and_humidity_ch4.humidity != null)
-				{
-					if (cumulus.Gw1000PrimaryTHSensor == 4)
-					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch4.humidity.value, data.temp_and_humidity_ch4.humidity.time.LocalFromUnixTime());
-					}
-
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 4)
-					{
-						station.DoIndoorHumidity(data.temp_and_humidity_ch4.humidity.value);
-					}
-
-					station.DoExtraHum(data.temp_and_humidity_ch4.humidity.value, 4);
-
-					if (station.ExtraTemp[4].HasValue)
-					{
-						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[4].Value), station.ExtraHum[4].Value);
-						station.ExtraDewPoint[4] = ConvertUnits.TempCToUser(dp);
-					}
-				}
+				ApplyExtraTempHum(4, data.temp_and_humidity_ch4.temperature.value, data.temp_and_humidity_ch4.humidity.value, data.temp_and_humidity_ch4.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch5 != null)
 			{
-				if (cumulus.Gw1000PrimaryTHSensor == 5)
-				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch5.temperature.value, data.temp_and_humidity_ch5.temperature.time.LocalFromUnixTime());
-				}
-
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == 5)
-				{
-					station.DoIndoorTemp(data.temp_and_humidity_ch5.temperature.value);
-				}
-
-				station.DoExtraTemp(data.temp_and_humidity_ch5.temperature.value, 5);
-
-				// Not all sensor types have humidity
-				if (data.temp_and_humidity_ch5.humidity != null)
-				{
-					if (cumulus.Gw1000PrimaryTHSensor == 5)
-					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch5.humidity.value, data.temp_and_humidity_ch5.humidity.time.LocalFromUnixTime());
-					}
-
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 5)
-					{
-						station.DoIndoorHumidity(data.temp_and_humidity_ch5.humidity.value);
-					}
-
-					station.DoExtraHum(data.temp_and_humidity_ch5.humidity.value, 5);
-
-					if (station.ExtraTemp[5].HasValue)
-					{
-						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[5].Value), station.ExtraHum[5].Value);
-						station.ExtraDewPoint[5] = ConvertUnits.TempCToUser(dp);
-					}
-				}
+				ApplyExtraTempHum(5, data.temp_and_humidity_ch5.temperature.value, data.temp_and_humidity_ch5.humidity.value, data.temp_and_humidity_ch5.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch6 != null)
 			{
-				if (cumulus.Gw1000PrimaryTHSensor == 6)
-				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch6.temperature.value, data.temp_and_humidity_ch6.temperature.time.LocalFromUnixTime());
-				}
-
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == 6)
-				{
-					station.DoIndoorTemp(data.temp_and_humidity_ch6.temperature.value);
-				}
-
-				station.DoExtraTemp(data.temp_and_humidity_ch6.temperature.value, 6);
-
-				// Not all sensor types have humidity
-				if (data.temp_and_humidity_ch6.humidity != null)
-				{
-					if (cumulus.Gw1000PrimaryTHSensor == 6)
-					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch6.humidity.value, data.temp_and_humidity_ch6.humidity.time.LocalFromUnixTime());
-					}
-
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 6)
-					{
-						station.DoIndoorHumidity(data.temp_and_humidity_ch6.humidity.value);
-					}
-
-					station.DoExtraHum(data.temp_and_humidity_ch6.humidity.value, 6);
-
-					if (station.ExtraTemp[6].HasValue)
-					{
-						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[6].Value), station.ExtraHum[6].Value);
-						station.ExtraDewPoint[6] = ConvertUnits.TempCToUser(dp);
-					}
-				}
+				ApplyExtraTempHum(6, data.temp_and_humidity_ch6.temperature.value, data.temp_and_humidity_ch6.humidity.value, data.temp_and_humidity_ch6.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch7 != null)
 			{
-				if (cumulus.Gw1000PrimaryTHSensor == 7)
-				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch7.temperature.value, data.temp_and_humidity_ch7.temperature.time.LocalFromUnixTime());
-				}
-
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == 7)
-				{
-					station.DoIndoorTemp(data.temp_and_humidity_ch7.temperature.value);
-				}
-
-				station.DoExtraTemp(data.temp_and_humidity_ch7.temperature.value, 7);
-
-				// Not all sensor types have humidity
-				if (data.temp_and_humidity_ch7.humidity != null)
-				{
-					if (cumulus.Gw1000PrimaryTHSensor == 7)
-					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch7.humidity.value, data.temp_and_humidity_ch7.humidity.time.LocalFromUnixTime());
-					}
-
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 7)
-					{
-						station.DoIndoorHumidity(data.temp_and_humidity_ch7.humidity.value);
-					}
-
-					station.DoExtraHum(data.temp_and_humidity_ch7.humidity.value, 7);
-
-					if (station.ExtraTemp[7].HasValue)
-					{
-						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[7].Value), station.ExtraHum[7].Value);
-						station.ExtraDewPoint[7] = ConvertUnits.TempCToUser(dp);
-					}
-				}
+				ApplyExtraTempHum(7, data.temp_and_humidity_ch7.temperature.value, data.temp_and_humidity_ch7.humidity.value, data.temp_and_humidity_ch7.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch8 != null)
 			{
-				if (cumulus.Gw1000PrimaryTHSensor == 8)
+				ApplyExtraTempHum(8, data.temp_and_humidity_ch8.temperature.value, data.temp_and_humidity_ch8.humidity.value, data.temp_and_humidity_ch8.temperature.time);
+			}
+		}
+
+		private void ApplyExtraTempHum(int chan, double? temp, int? hum, long ts)
+		{
+			station.DoExtraTemp(temp, chan);
+
+			// Not all sensor types have humidity
+			if (hum.HasValue)
+			{
+				station.DoExtraHum(hum.Value, chan);
+
+				if (cumulus.Gw1000PrimaryTHSensor == chan)
 				{
-					station.DoOutdoorTemp(data.temp_and_humidity_ch8.temperature.value, data.temp_and_humidity_ch8.temperature.time.LocalFromUnixTime());
+					station.DoOutdoorHumidity(hum.Value, ts.LocalFromUnixTime());
 				}
 
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == 8)
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == chan)
 				{
-					station.DoIndoorTemp(data.temp_and_humidity_ch8.temperature.value);
+					station.DoIndoorHumidity(hum.Value);
 				}
 
-				station.DoExtraTemp(data.temp_and_humidity_ch8.temperature.value, 8);
-
-				// Not all sensor types have humidity
-				if (data.temp_and_humidity_ch8.humidity != null)
+				if (temp.HasValue)
 				{
-					if (cumulus.Gw1000PrimaryTHSensor == 8)
-					{
-						station.DoOutdoorHumidity(data.temp_and_humidity_ch8.humidity.value, data.temp_and_humidity_ch8.humidity.time.LocalFromUnixTime());
-					}
-
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 8)
-					{
-						station.DoIndoorHumidity(data.temp_and_humidity_ch8.humidity.value);
-					}
-
-					station.DoExtraHum(data.temp_and_humidity_ch8.humidity.value, 8);
-
-					if (station.ExtraTemp[8].HasValue)
-					{
-						var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[8].Value), station.ExtraHum[8].Value);
-						station.ExtraDewPoint[8] = ConvertUnits.TempCToUser(dp);
-					}
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(temp.Value), hum.Value);
+					station.ExtraDewPoint[chan] = ConvertUnits.TempCToUser(dp);
 				}
+			}
+
+			if (cumulus.Gw1000PrimaryTHSensor == chan && temp.HasValue)
+			{
+				station.DoOutdoorTemp(temp.Value, ts.LocalFromUnixTime());
+			}
+
+			if (cumulus.Gw1000PrimaryIndoorTHSensor == chan && temp.HasValue)
+			{
+				station.DoIndoorTemp(temp.Value);
 			}
 		}
 
@@ -982,98 +763,54 @@ namespace CumulusMX.Stations
 		{
 			if (data.temp_ch1 != null)
 			{
-				if (cumulus.EcowittMapWN34[1] == 0)
-				{
-					station.DoUserTemp(data.temp_ch1.temperature.value, 1);
-				}
-				else
-				{
-					station.DoSoilTemp(data.temp_ch1.temperature.value, cumulus.EcowittMapWN34[1]);
-				}
+				ApplyUserTemp(1, data.temp_ch1.temperature.value);
 			}
 
 			if (data.temp_ch2 != null)
 			{
-				if (cumulus.EcowittMapWN34[2] == 0)
-				{
-					station.DoUserTemp(data.temp_ch2.temperature.value, 2);
-				}
-				else
-				{
-					station.DoSoilTemp(data.temp_ch2.temperature.value, cumulus.EcowittMapWN34[2]);
-				}
+				ApplyUserTemp(2, data.temp_ch2.temperature.value);
 			}
 
 			if (data.temp_ch3 != null)
 			{
-				if (cumulus.EcowittMapWN34[3] == 0)
-				{
-					station.DoUserTemp(data.temp_ch3.temperature.value, 3);
-				}
-				else
-				{
-					station.DoSoilTemp(data.temp_ch3.temperature.value, cumulus.EcowittMapWN34[3]);
-				}
+				ApplyUserTemp(3, data.temp_ch3.temperature.value);
 			}
 
 			if (data.temp_ch4 != null)
 			{
-				if (cumulus.EcowittMapWN34[4] == 0)
-				{
-					station.DoUserTemp(data.temp_ch4.temperature.value, 4);
-				}
-				else
-				{
-					station.DoSoilTemp(data.temp_ch4.temperature.value, cumulus.EcowittMapWN34[4]);
-				}
+				ApplyUserTemp(4, data.temp_ch4.temperature.value);
 			}
 
 			if (data.temp_ch5 != null)
 			{
-				if (cumulus.EcowittMapWN34[5] == 0)
-				{
-					station.DoUserTemp(data.temp_ch5.temperature.value, 5);
-				}
-				else
-				{
-					station.DoSoilTemp(data.temp_ch5.temperature.value, cumulus.EcowittMapWN34[5]);
-				}
+				ApplyUserTemp(5, data.temp_ch5.temperature.value);
 			}
 
 			if (data.temp_ch6 != null)
 			{
-				if (cumulus.EcowittMapWN34[6] == 0)
-				{
-					station.DoUserTemp(data.temp_ch6.temperature.value, 6);
-				}
-				else
-				{
-					station.DoSoilTemp(data.temp_ch6.temperature.value, cumulus.EcowittMapWN34[6]);
-				}
+				ApplyUserTemp(6, data.temp_ch6.temperature.value);
 			}
 
 			if (data.temp_ch7 != null)
 			{
-				if (cumulus.EcowittMapWN34[7] == 0)
-				{
-					station.DoUserTemp(data.temp_ch7.temperature.value, 7);
-				}
-				else
-				{
-					station.DoSoilTemp(data.temp_ch7.temperature.value, cumulus.EcowittMapWN34[7]);
-				}
+				ApplyUserTemp(7, data.temp_ch7.temperature.value);
 			}
 
 			if (data.temp_ch8 != null)
 			{
-				if (cumulus.EcowittMapWN34[8] == 0)
-				{
-					station.DoUserTemp(data.temp_ch8.temperature.value, 8);
-				}
-				else
-				{
-					station.DoSoilTemp(data.temp_ch8.temperature.value, cumulus.EcowittMapWN34[8]);
-				}
+				ApplyUserTemp(8, data.temp_ch8.temperature.value);
+			}
+		}
+
+		private void ApplyUserTemp(int chan, double temp)
+		{
+			if (cumulus.EcowittMapWN34[chan] == 0)
+			{
+				station.DoUserTemp(temp, chan);
+			}
+			else
+			{
+				station.DoSoilTemp(temp, cumulus.EcowittMapWN34[chan]);
 			}
 		}
 
