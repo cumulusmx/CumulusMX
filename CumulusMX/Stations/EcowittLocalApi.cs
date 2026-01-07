@@ -153,7 +153,7 @@ namespace CumulusMX.Stations
 			return null;
 		}
 
-		public static void GetDeviceInfo(CancellationToken token)
+		public async Task<DeviceInfo> GetDeviceInfo(CancellationToken token)
 		{
 			// http://ip-address/get_device_info
 
@@ -175,6 +175,79 @@ namespace CumulusMX.Stations
 			//	"APpwd":	"base64-string",
 			//	"time":	"20"
 			//}
+
+			string responseBody;
+			int responseCode;
+			var retries = 2;
+
+			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
+			{
+				cumulus.LogErrorMessage("LocalApi.GetDeviceInfo: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				return null;
+			}
+
+
+			do
+			{
+				try
+				{
+					var url = $"http://{cumulus.Gw1000IpAddress}/get_device_info";
+
+					// we want to do this synchronously, so .Result
+					using (var response = cumulus.MyHttpClient.GetAsync(url, token).Result)
+					{
+						responseBody = response.Content.ReadAsStringAsync(token).Result;
+						responseCode = (int) response.StatusCode;
+						cumulus.LogDebugMessage($"LocalApi.GetDeviceInfo: Ecowitt Local API GetDeviceInfo Response code: {responseCode}");
+						cumulus.LogDataMessage($"LocalApi.GetDeviceInfo: Ecowitt Local API GetDeviceInfo Response: {Utils.RemoveCrTabsFromString(responseBody)}");
+					}
+
+					if (responseCode != 200)
+					{
+						cumulus.LogWarningMessage($"LocalApi.GetDeviceInfo: Ecowitt Local API GetDeviceInfo Error: {responseCode}");
+						Cumulus.LogConsoleMessage($" - Error {responseCode}", ConsoleColor.Red);
+						return null;
+					}
+
+
+					if (responseBody == "{}")
+					{
+						cumulus.LogMessage("LocalApi.GetDeviceInfo: Ecowitt Local API GetDeviceInfo: No data was returned.");
+						Cumulus.LogConsoleMessage(" - No Live data available");
+						return null;
+					}
+					else if (responseBody.StartsWith('{')) // sanity check
+					{
+						// Convert JSON string to an object
+						var json = JsonSerializer.Deserialize<DeviceInfo>(responseBody, jsonOptions);
+						return json;
+					}
+				}
+				catch (HttpRequestException ex)
+				{
+					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+					{
+						cumulus.LogErrorMessage("LocalApi.GetDeviceInfo: Error - This Station does not support the HTTP API!");
+					}
+					else
+					{
+						cumulus.LogExceptionMessage(ex, "LocalApi.GetDeviceInfo: HTTP Error");
+					}
+				}
+				catch (Exception ex)
+				{
+					if (token.IsCancellationRequested)
+					{
+						cumulus.LogDebugMessage("LocalApi.GetDeviceInfo: Operation cancelled due to shutting down");
+						return null;
+					}
+
+					cumulus.LogExceptionMessage(ex, "LocalApi.GetDeviceInfo: Error");
+				}
+			} while (retries-- > 0);
+
+			return null;
+
 		}
 
 		public static void GetIotList(CancellationToken token)
@@ -326,7 +399,7 @@ namespace CumulusMX.Stations
 
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
-				cumulus.LogErrorMessage("GetLiveData: Invalid station IP address: " + cumulus.Gw1000IpAddress);
+				cumulus.LogErrorMessage("LocalApi.GetLiveData: Invalid station IP address: " + cumulus.Gw1000IpAddress);
 				return null;
 			}
 
@@ -377,22 +450,22 @@ namespace CumulusMX.Stations
 				{
 					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 					{
-						cumulus.LogErrorMessage("GetLiveData: Error - This Station does not support the HTTP API!");
+						cumulus.LogErrorMessage("LocalApi.GetLiveData: Error - This Station does not support the HTTP API!");
 					}
 					else
 					{
-						cumulus.LogExceptionMessage(ex, "GetLiveData: HTTP Error");
+						cumulus.LogExceptionMessage(ex, "LocalApi.GetLiveData: HTTP Error");
 					}
 				}
 				catch (Exception ex)
 				{
 					if (token.IsCancellationRequested)
 					{
-						cumulus.LogDebugMessage("GetLiveData: Operation cancelled due to shutting down");
+						cumulus.LogDebugMessage("LocalApi.GetLiveData: Operation cancelled due to shutting down");
 						return null;
 					}
 
-					cumulus.LogExceptionMessage(ex, "GetLiveData: Error");
+					cumulus.LogExceptionMessage(ex, "LocalApi.GetLiveData: Error");
 				}
 			} while (retries-- > 0);
 
@@ -739,22 +812,18 @@ namespace CumulusMX.Stations
 				var task2 = cumulus.MyHttpClient.GetStringAsync(url2, token);
 
 				// Wait for both tasks to complete
-				await Task.WhenAll(task1, task2).WaitAsync(token);
+				var results = await Task.WhenAll(task1, task2).WaitAsync(token);
 
-				// Retrieve the results
-				var result1 = await task1;
-				var result2 = await task2;
+				cumulus.LogDataMessage("GetSensorInfo: Page 1 = " + Utils.RemoveCrTabsFromString(results[0]));
+				cumulus.LogDataMessage("GetSensorInfo: Page 2 = " + Utils.RemoveCrTabsFromString(results[1]));
 
-				cumulus.LogDataMessage("GetSensorInfo: Page 1 = " + Utils.RemoveCrTabsFromString(result1));
-				cumulus.LogDataMessage("GetSensorInfo: Page 2 = " + Utils.RemoveCrTabsFromString(result2));
-
-				if (!string.IsNullOrEmpty(result1))
+				if (!string.IsNullOrEmpty(results[0]))
 				{
-					sensors1 = JsonSerializer.Deserialize<SensorInfo[]>(result1, jsonOptions);
+					sensors1 = JsonSerializer.Deserialize<SensorInfo[]>(results[0], jsonOptions);
 				}
-				if (!string.IsNullOrEmpty(result2))
+				if (!string.IsNullOrEmpty(results[1]))
 				{
-					sensors2 = JsonSerializer.Deserialize<SensorInfo[]>(result2, jsonOptions);
+					sensors2 = JsonSerializer.Deserialize<SensorInfo[]>(results[1], jsonOptions);
 				}
 
 				var retArr = new SensorInfo[sensors1.Length + sensors2.Length];
@@ -1432,6 +1501,45 @@ namespace CumulusMX.Stations
 		{
 			public bool is_new { get; set; }
 			public string msg { get; set; }
+		}
+
+		public class DeviceInfo
+		{
+			//	"sensorType":	"1",
+			//	"rf_freq":	"1",
+			//	"ntp_server": "pool.ntp.org",
+			//	"AFC":	"0",
+			//	"tz_auto":	"1",
+			//	"tz_name":	"",
+			//	"tz_index":	"39",
+			//	"dst_stat":	"1",
+			//	"radcompensation":	"0",
+			//	"date":	"2024-09-06T16:36",
+			//	"upgrade":	"0",
+			//	"apAuto":	"1",
+			//	"newVersion":	"0",
+			//	"curr_msg":	"Current version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries.",
+			//	"apName":	"GW1100A-WIFID4D3",
+			//	"APpwd":	"base64-string",
+			//	"time":	"20"
+			public int sensorType { get; set; }  // 0=WH24, 1=anything else
+			public int rf_freq { get; set; }    // 0=, 1=868, 2=
+			public bool AFC { get; set; }
+			public string ntp_server { get; set; }
+			public bool tz_auto { get; set; }
+			public string tz_name { get; set; }
+			// public int tz_index { get; set; }
+			public bool dst_stat { get; set; }
+			public bool radcompensation { get; set; }
+			public string date { get; set; }
+			public bool upgrade { get; set; }
+			public bool apAuto { get; set; }
+			public bool ap_auto { get; set; }
+			public string newVersion { get; set; }
+			public string curr_msg { get; set; }
+			public string apName { get; set; }
+			public string APpwd { get; set; }
+			public int time { get; set; }
 		}
 	}
 }

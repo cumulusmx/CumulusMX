@@ -146,10 +146,14 @@ namespace CumulusMX.Stations
 			// Get the sensor list
 			GetSensorIds(false).Wait();
 
+			// Check station clock
+			GetSystemInfo(false,  false).Wait();
+
 			// Check firmware
 			try
 			{
 				_ = localApi.CheckForUpgrade(Program.ExitSystemToken).Result;
+				Thread.Sleep(1000);
 				GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
 			}
 			catch (Exception ex)
@@ -189,7 +193,7 @@ namespace CumulusMX.Stations
 							if (rawData is not null)
 							{
 								dataLastRead = DateTime.Now;
-								var outdoortemp = -999;
+								outdoortemp = -999;
 
 								// process the common_list sensors
 								if (rawData.common_list != null)
@@ -329,7 +333,7 @@ namespace CumulusMX.Stations
 									// every day dump the clock drift at midday each day
 									if (minute == 0 && DateTime.Now.Hour == 12)
 									{
-										GetSystemInfo(true);
+										_ = GetSystemInfo(false, true);
 									}
 
 									var hour = DateTime.Now.Hour;
@@ -340,6 +344,7 @@ namespace CumulusMX.Stations
 										if (hour == 13)
 										{
 											_ = localApi.CheckForUpgrade(Program.ExitSystemToken);
+											Task.Delay(1000, Program.ExitSystemToken);
 											GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
 										}
 									}
@@ -1966,9 +1971,29 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void GetSystemInfo(bool driftOnly)
+		private async Task GetSystemInfo(bool driftOnly, bool delay)
 		{
-			cumulus.LogMessage("NOT Reading Ecowitt system info");
+			// pause for two seconds to get out of sync with the live data requests
+			if (delay)
+			{
+				await Task.Delay(3000, Program.ExitSystemToken);
+				if (Program.ExitSystemToken.IsCancellationRequested)
+				{
+					return;
+				}
+			}
+
+			cumulus.LogMessage("Reading station info");
+			var info = await localApi.GetDeviceInfo(Program.ExitSystemToken);
+			if (Program.ExitSystemToken.IsCancellationRequested)
+			{
+				return;
+			}
+			var now = DateTime.Now;
+			// 2024-09-06T16:36
+			var stationDate = DateTime.ParseExact(info.date + ":00", "s", CultureInfo.InvariantCulture);
+			cumulus.LogMessage("Station clock difference = " + (now - stationDate).Minutes + " mins");
+
 		}
 
 		private static bool TestBattery3(int value)
