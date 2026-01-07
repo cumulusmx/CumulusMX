@@ -735,11 +735,11 @@ namespace CumulusMX.Stations
 
 				var task1 = cumulus.MyHttpClient.GetStringAsync(url1, token);
 				// add a slight delay to the second call
-				await Task.Delay(400);
+				await Task.Delay(400, token);
 				var task2 = cumulus.MyHttpClient.GetStringAsync(url2, token);
 
 				// Wait for both tasks to complete
-				await Task.WhenAll(task1, task2);
+				await Task.WhenAll(task1, task2).WaitAsync(token);
 
 				// Retrieve the results
 				var result1 = await task1;
