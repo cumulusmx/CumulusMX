@@ -181,7 +181,7 @@ namespace CumulusMX.Stations
 		{
 			// http://ip-address/get_iot_device_list
 		}
-		
+
 		public LiveData GetLiveData(CancellationToken token)
 		{
 			// http://ip-address/get_livedata_info
@@ -734,6 +734,8 @@ namespace CumulusMX.Stations
 
 
 				var task1 = cumulus.MyHttpClient.GetStringAsync(url1, token);
+				// add a slight delay to the second call
+				await Task.Delay(400);
 				var task2 = cumulus.MyHttpClient.GetStringAsync(url2, token);
 
 				// Wait for both tasks to complete
