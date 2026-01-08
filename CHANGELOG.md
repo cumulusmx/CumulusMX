@@ -12,11 +12,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ## RELEASE CANDIDATE [4.7.0 \[b4138\]][29] - 2026-01-09
 
-### RC 4138 Fixes
+### RC 4138 Changes
 
 - More adjustments to real-time FTP error detection and reconnection
 - Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
 - Fix IsRaining alarm being immediately cleared after each trigger when using the Ecowitt "Use Piezo IsRaining" setting
+- Debug snow logging now controlled via the Program Settings > Logging Options
 
 ### Beta 4137 Fixes
 
@@ -115,6 +116,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New Option in Extra Sensor Settings under Laser Sensor Options to specify if a laser is being used as a snow sensor
 - Added ImportCumulusFile PHP script to `/MXutils` folder
 - New Python script to upload monthly log files and the day file to MySQL - `/MXutils/ImportCumulusFile.py`
+- Adds logging of debug snow data via the Program Settings > Logging Options - Logs to `/data/debug_snowLog[sensornumber].txt`
 
 ### Changed
 

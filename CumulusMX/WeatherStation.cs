@@ -20,6 +20,13 @@ using CumulusMX.LogFiles;
 
 using EmbedIO.Utilities;
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+using NLog;
+using NLog.Extensions.Logging;
+using NLog.Targets;
+
 using SQLite;
 
 using Timer = System.Timers.Timer;
@@ -312,6 +319,7 @@ namespace CumulusMX
 
 		public QueryDayFile DayFileQuery;
 
+		private Logger SnowLog;
 
 		protected WeatherStation(Cumulus cumulus, bool extraStation = false)
 		{
@@ -10745,22 +10753,54 @@ namespace CumulusMX
 						newValue = value.Value;
 					}
 
-#if DEBUG
+					if (cumulus.SnowLogging)
+					{
+						if (SnowLog == null)
+						{
+							// create the logger
+							var logfile = new NLog.Targets.FileTarget("snowlogFile")
+								{
+									FileName = Path.Combine(cumulus.ProgramOptions.DataPath, $"debug_snow_log{index}.txt"),
+									ArchiveAboveSize = 2097152,
+									ArchiveOldFileOnStartup = true,
+									//MaxArchiveFiles = 5,
+									Layout = "${message}",
+									Header = "time,dist,depth,last_snowdepth,avg_snowdepth,avg_time,increment,accumulation"
+								};
+
+							var asyncLogFile = new NLog.Targets.Wrappers.AsyncTargetWrapper(logfile)
+							{
+								Name = "AsyncSnowLogfile",
+								OverflowAction = NLog.Targets.Wrappers.AsyncTargetWrapperOverflowAction.Discard,
+								QueueLimit = 10000,
+								BatchSize = 200,
+								TimeToSleepBetweenBatches = 1
+							};
+
+							NLog.LogManager.Configuration.AddTarget(asyncLogFile);
+
+							LogManager.Configuration.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, asyncLogFile, "snowlog");
+
+							var serviceProvider = new ServiceCollection()
+								.AddLogging(loggingBuilder =>
+								 {
+									 loggingBuilder.ClearProviders();
+									 loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+									 loggingBuilder.AddNLog();
+								 })
+								 .BuildServiceProvider();
+
+							NLog.LogManager.ReconfigExistingLoggers();
+							SnowLog = LogManager.GetLogger("snowlog");
+						}
+
 						// debug logging of the values
 						if (lastSnowMinute != DateTime.Now.Minute)
 						{
 							lastSnowMinute = DateTime.Now.Minute;
 							try
 							{
-							var filePath = Path.Combine(cumulus.ProgramOptions.DataPath, $"debug_snow_log{index}.txt");
-							var needHeader = !File.Exists(filePath) || new FileInfo(filePath).Length == 0;
-							using var file = File.AppendText(filePath);
-							if (needHeader)
-							{
-								file.WriteLine("time,dist,depth,last_snowdepth,avg_snowdepth,avg_time,increment,accumulation");
-							}
-
-							file.WriteLine(
+								SnowLog.Info(
 									DateTime.Now.ToString("yyyy-MM-dd HH:mm,") +
 									LaserDist[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
 									value.Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
@@ -10776,7 +10816,7 @@ namespace CumulusMX
 								cumulus.LogExceptionMessage(ex, "Error creating snow depth debug log");
 							}
 						}
-#endif
+					}
 
 					if (!LastLaserSnowDepth[index].HasValue)
 					{
