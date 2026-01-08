@@ -53,6 +53,7 @@ namespace CumulusMX.Settings
 				ftplogginglevel = cumulus.FtpOptions.LoggingLevel,
 				emaillogging = cumulus.SmtpOptions.Logging,
 				spikelogging = cumulus.ErrorLogSpikeRemoval,
+				snowlogging = cumulus.SnowLogging,
 				errorlistlevel = (int) cumulus.ErrorListLoggingLevel
 			};
 
@@ -153,6 +154,7 @@ namespace CumulusMX.Settings
 				cumulus.ProgramOptions.DataLogging = settings.logging.datalogging;
 				cumulus.SmtpOptions.Logging = settings.logging.emaillogging;
 				cumulus.ErrorLogSpikeRemoval = settings.logging.spikelogging;
+				cumulus.SnowLogging = settings.logging.snowlogging;
 				cumulus.ErrorListLoggingLevel = (Cumulus.MxLogLevel) settings.logging.errorlistlevel;
 
 				cumulus.ProgramOptions.WarnMultiple = settings.options.stopsecondinstance;
@@ -258,6 +260,7 @@ namespace CumulusMX.Settings
 			public int? ftplogginglevel { get; set; }
 			public bool emaillogging { get; set; }
 			public bool spikelogging { get; set; }
+			public bool snowlogging { get; set; }
 			public int errorlistlevel { get; set; }
 		}
 

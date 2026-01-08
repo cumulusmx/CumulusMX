@@ -4052,6 +4052,8 @@ namespace CumulusMX
 			}
 			ErrorListLoggingLevel = (MxLogLevel) ini.GetValue("Program", "ErrorListLoggingLevel", (int) MxLogLevel.Warning);
 
+			SnowLogging = ini.GetValue("Program", "SnowLogging", false);
+
 			ProgramOptions.SecureSettings = ini.GetValue("Program", "SecureSettings", false);
 			ProgramOptions.SettingsUsername = ini.GetValue("Program", "SettingsUsername", string.Empty);
 			ProgramOptions.SettingsPassword = ini.GetValue("Program", "SettingsPassword", string.Empty);
@@ -6273,6 +6275,7 @@ namespace CumulusMX
 			ini.SetValue("Program", "DataPath", ProgramOptions.DataPath);
 			ini.SetValue("Program", "BackupPath", ProgramOptions.BackupPath);
 			ini.SetValue("Program", "ReportsPath", ProgramOptions.ReportsPath);
+			ini.SetValue("Program", "SnowLogging", SnowLogging);
 
 			ini.SetValue("Program", "ErrorListLoggingLevel", (int) ErrorListLoggingLevel);
 
@@ -8313,6 +8316,7 @@ namespace CumulusMX
 		public decimal SnowMinInc { get; set; }
 		public int[] SnowDepthIncAvgMins { get; set; } = new int[5];
 		public int SnowSeasonStart { get; set; }
+		public bool SnowLogging { get; set; }
 
 
 		public bool HourlyForecast { get; set; }

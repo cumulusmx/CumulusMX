@@ -10,9 +10,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## BETA [4.7.0 \[b4138\]][29] - 2026-01-10
+## RELEASE CANDIDATE [4.7.0 \[b4138\]][29] - 2026-01-09
 
-### Beta 4138 Fixes
+### RC 4138 Fixes
 
 - More adjustments to real-time FTP error detection and reconnection
 - Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary

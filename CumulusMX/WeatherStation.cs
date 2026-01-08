@@ -10746,35 +10746,36 @@ namespace CumulusMX
 					}
 
 #if DEBUG
-					// debug logging of the values
-					if (lastSnowMinute != DateTime.Now.Minute)
-					{
-						lastSnowMinute = DateTime.Now.Minute;
-						try
+						// debug logging of the values
+						if (lastSnowMinute != DateTime.Now.Minute)
 						{
+							lastSnowMinute = DateTime.Now.Minute;
+							try
+							{
 							var filePath = Path.Combine(cumulus.ProgramOptions.DataPath, $"debug_snow_log{index}.txt");
 							var needHeader = !File.Exists(filePath) || new FileInfo(filePath).Length == 0;
 							using var file = File.AppendText(filePath);
 							if (needHeader)
 							{
-								file.WriteLine("time,dist,depth,last_snowdepth,avg_snowdepth,avg_time,increment");
+								file.WriteLine("time,dist,depth,last_snowdepth,avg_snowdepth,avg_time,increment,accumulation");
 							}
 
 							file.WriteLine(
-								DateTime.Now.ToString("yyyy-MM-dd HH:mm,") +
-								LaserDist[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
-								value.Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
-								(LastLaserSnowDepth[index].HasValue ? LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) : "null") + ',' +
-								newValue.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
-								cumulus.SnowDepthIncAvgMins[index] + ',' +
-								cumulus.SnowMinInc.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture)
-							);
+									DateTime.Now.ToString("yyyy-MM-dd HH:mm,") +
+									LaserDist[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
+									value.Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
+									(LastLaserSnowDepth[index].HasValue ? LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) : "null") + ',' +
+									newValue.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
+									cumulus.SnowDepthIncAvgMins[index] + ',' +
+									cumulus.SnowMinInc.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
+									SnowSeason[index]
+								);
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogExceptionMessage(ex, "Error creating snow depth debug log");
+							}
 						}
-						catch (Exception ex)
-						{
-							cumulus.LogExceptionMessage(ex, "Error creating snow depth debug log");
-						}
-					}
 #endif
 
 					if (!LastLaserSnowDepth[index].HasValue)
