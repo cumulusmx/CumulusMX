@@ -108,21 +108,32 @@ namespace CumulusMX.Stations
 				if (cumulus.EcowittSetCustomServer)
 				{
 					cumulus.LogMessage("Checking Ecowitt Gateway Custom Server configuration...");
-					var api = new GW1000Api(cumulus);
-					api.OpenTcpPort(cumulus.EcowittGatewayAddr, 45000);
-					SetCustomServer(api, mainStation);
-					api.CloseTcpPort();
-					cumulus.LogMessage("Ecowitt Gateway Custom Server configuration complete");
+					var httpApi = new EcowittLocalApi(cumulus);
+					if (!SetCustomServerHTTP(httpApi, mainStation))
+					{
+						var api = new GW1000Api(cumulus);
+						if (api.OpenTcpPort(cumulus.EcowittGatewayAddr, 45000))
+						{
+							// try the TCP API first
+							SetCustomServerTCP(api, mainStation);
+							api.CloseTcpPort();
+						}
+					}
 				}
 			}
 			else if (cumulus.EcowittSetCustomServer)
 			{
 				cumulus.LogMessage("Checking Ecowitt Extra Gateway Custom Server configuration...");
-				var api = new GW1000Api(cumulus);
-				api.OpenTcpPort(cumulus.EcowittExtraGatewayAddr, 45000);
-				SetCustomServer(api, mainStation);
-				api.CloseTcpPort();
-				cumulus.LogMessage("Ecowitt Extra Gateway Custom Server configuration complete");
+				var httpApi = new EcowittLocalApi(cumulus);
+				if (!SetCustomServerHTTP(httpApi, mainStation))
+				{
+					var api = new GW1000Api(cumulus);
+					if (api.OpenTcpPort(cumulus.EcowittExtraGatewayAddr, 45000))
+					{
+						SetCustomServerTCP(api, mainStation);
+						api.CloseTcpPort();
+					}
+				}
 			}
 
 			if (mainStation || cumulus.ExtraSensorUseAQI)
@@ -1518,7 +1529,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void SetCustomServer(GW1000Api api, bool main)
+		private void SetCustomServerTCP(GW1000Api api, bool main)
 		{
 			cumulus.LogMessage("Reading Ecowitt Gateway Custom Server config");
 
@@ -1680,6 +1691,65 @@ namespace CumulusMX.Stations
 				cumulus.LogErrorMessage("Error reading Ecowitt Gateway Custom Server config, cannot configure it");
 			}
 		}
+
+		private bool SetCustomServerHTTP(EcowittLocalApi api, bool main)
+		{
+			cumulus.LogMessage("Reading Ecowitt Gateway Custom Server config");
+
+			var customPath = main ? "/station/ecowitt" : "/station/ecowittextra";
+			var customServer = main ? cumulus.EcowittLocalAddr : cumulus.EcowittExtraLocalAddr;
+			var customPort = cumulus.wsPort;
+			var customIntv = (main ? cumulus.EcowittCustomInterval : cumulus.EcowittExtraCustomInterval) - 1;
+
+			var conf = api.GetWeatherServiceSettings(main, Program.ExitSystemToken).Result;
+
+			if (conf != null)
+			{
+				try
+				{
+					cumulus.LogMessage($"Ecowitt Gateway Custom Server config: Server={conf.ecowitt_ip}, Port={conf.ecowitt_port}, Path={conf.ecowitt_path}, Interval={conf.ecowitt_upload}, Protocol={conf.Protocol}, Enabled={conf.Customized}");
+
+					// Some devices send 0/1, others disabled/enabled!
+					var enable = conf.Customized == "0" || conf.Customized == "1" ? "1" : "enable";
+
+					if (conf.ecowitt_ip != customServer || conf.ecowitt_port != customPort.ToString() || conf.ecowitt_path != customPath || conf.ecowitt_upload != customIntv.ToString() || conf.Protocol != "ecowitt" || conf.Customized != enable)
+					{
+						cumulus.LogMessage("Ecowitt Gateway Custom Server config does not match the required config, reconfiguring it...");
+
+						conf.ecowitt_ip = customServer;
+						conf.ecowitt_port = customPort.ToString();
+						conf.ecowitt_path = customPath;
+						conf.ecowitt_upload = customIntv.ToString();
+						conf.Protocol = "ecowitt";
+						conf.Customized = enable;
+
+						// do the config
+						if (api.SetWeatherServiceSettings(conf, main, Program.ExitSystemToken).Result)
+						{
+							cumulus.LogMessage($"Set Ecowitt Gateway Custom Server config to: Server={customServer}, Port={customPort}, Interval={customIntv}, Protocol={0}, Enabled={1}");
+							cumulus.LogMessage("Ecowitt Gateway Custom Server. Note, the set interval should be 1 less than the value set in the CMX configuration");
+						}
+						else
+						{
+							cumulus.LogErrorMessage("Error - failed to set the Ecowitt Gateway config");
+							return false;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage("Error setting Ecowitt Gateway Custom Server config: " + ex.Message);
+					return false;
+				}
+			}
+			else
+			{
+				cumulus.LogErrorMessage("Error reading Ecowitt Gateway Custom Server config, cannot configure it");
+				return false;
+			}
+			return true;
+		}
+
 
 		private void ForwardData(string data, bool main)
 		{

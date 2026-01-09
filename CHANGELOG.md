@@ -18,6 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
 - Fix IsRaining alarm being immediately cleared after each trigger when using the Ecowitt "Use Piezo IsRaining" setting
 - Debug snow logging now controlled via the Program Settings > Logging Options
+- Ecowitt HTTP Custom Server auto-configuration for main and extra stations now tries the HTTP Local API to access the station in addition to the TCP API
 
 ### Beta 4137 Fixes
 
@@ -117,6 +118,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Added ImportCumulusFile PHP script to `/MXutils` folder
 - New Python script to upload monthly log files and the day file to MySQL - `/MXutils/ImportCumulusFile.py`
 - Adds logging of debug snow data via the Program Settings > Logging Options - Logs to `/data/debug_snowLog[sensornumber].txt`
+- Ecowitt HTTP Custom Server auto-configuration for main and extra stations now tries the HTTP Local API to access the station in addition to the TCP API
 
 ### Changed
 

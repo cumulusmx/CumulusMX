@@ -247,7 +247,6 @@ namespace CumulusMX.Stations
 			} while (retries-- > 0);
 
 			return null;
-
 		}
 
 		public static void GetIotList(CancellationToken token)
@@ -929,7 +928,7 @@ namespace CumulusMX.Stations
 			return unknown;
 		}
 
-		public static void GetWeatherServiceSettings(CancellationToken token)
+		public async Task<WeatherServices> GetWeatherServiceSettings(bool mainStation, CancellationToken token)
 		{
 			// http://ip-address/get_ws_settings
 			// response
@@ -968,6 +967,76 @@ namespace CumulusMX.Stations
 			//  "mqtt_keepalive": "0",
 			//  "mqtt_interval": "0"
 			//}
+
+			string responseBody;
+			int responseCode;
+			var retries = 2;
+			var ip = mainStation ? cumulus.Gw1000IpAddress : cumulus.EcowittExtraGatewayAddr;
+
+			if (!Utils.ValidateIPv4(ip))
+			{
+				cumulus.LogErrorMessage("LocalApi.GetWeatherServiceSettings: Invalid station IP address: " + ip);
+				return null;
+			}
+
+
+			do
+			{
+				try
+				{
+					var url = $"http://{ip}/get_ws_settings";
+
+					using (var response = await cumulus.MyHttpClient.GetAsync(url, token))
+					{
+						responseBody = await response.Content.ReadAsStringAsync(token);
+						responseCode = (int) response.StatusCode;
+						cumulus.LogDebugMessage($"LocalApi.GetWeatherServiceSettings: Ecowitt Local API Response code: {responseCode}");
+						cumulus.LogDataMessage($"LocalApi.GetWeatherServiceSettings: Ecowitt Local API Response: {Utils.RemoveCrTabsFromString(responseBody)}");
+					}
+
+					if (responseCode != 200)
+					{
+						cumulus.LogWarningMessage($"LocalApi.GetWeatherServiceSettings: Ecowitt Local API Error: {responseCode}");
+						return null;
+					}
+
+
+					if (responseBody == "{}")
+					{
+						cumulus.LogMessage("LocalApi.GetWeatherServiceSettings: Ecowitt Local API: No data was returned.");
+						return null;
+					}
+					else if (responseBody.StartsWith('{')) // sanity check
+					{
+						// Convert JSON string to an object
+						var json = JsonSerializer.Deserialize<WeatherServices>(responseBody, jsonOptions);
+						return json;
+					}
+				}
+				catch (HttpRequestException ex)
+				{
+					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+					{
+						cumulus.LogErrorMessage("LocalApi.GetWeatherServiceSettings: Error - This Station does not support the HTTP API!");
+					}
+					else
+					{
+						cumulus.LogExceptionMessage(ex, "LocalApi.GetWeatherServiceSettings: HTTP Error");
+					}
+				}
+				catch (Exception ex)
+				{
+					if (token.IsCancellationRequested)
+					{
+						cumulus.LogDebugMessage("LocalApi.GetWeatherServiceSettings: Operation cancelled due to shutting down");
+						return null;
+					}
+
+					cumulus.LogExceptionMessage(ex, "LocalApi.GetWeatherServiceSettings: Error");
+				}
+			} while (retries-- > 0);
+
+			return null;
 		}
 
 		#endregion
@@ -1064,7 +1133,7 @@ namespace CumulusMX.Stations
 			// response = 200 - OK
 		}
 
-		public static void SetWeatherServiceSettings(CancellationToken token)
+		public async Task<bool> SetWeatherServiceSettings(WeatherServices config, bool mainStation, CancellationToken token)
 		{
 			// http://ip-address/set_ws_settings
 			// POST
@@ -1103,6 +1172,54 @@ namespace CumulusMX.Stations
 			//  "mqtt_keepalive": "0",
 			//  "mqtt_interval": "0"
 			//}
+
+			string responseBody;
+			int responseCode;
+			var ip = mainStation ? cumulus.Gw1000IpAddress : cumulus.EcowittExtraGatewayAddr;
+
+			try
+			{
+				var url = $"http://{ip}/set_ws_settings";
+
+				var data = new StringContent(JsonSerializer.Serialize(config), Encoding.UTF8, "application/json");
+				using (var response = await cumulus.MyHttpClient.PostAsync(url, data, token))
+				{
+					responseBody = response.Content.ReadAsStringAsync(token).Result;
+					responseCode = (int) response.StatusCode;
+					cumulus.LogDebugMessage($"LocalApi.SetWeatherServiceSettings: Ecowitt Local API Response code: {responseCode}");
+					cumulus.LogDataMessage($"LocalApi.SetWeatherServiceSettings: Ecowitt Local API Response: {responseBody}");
+				}
+
+				if (responseCode != 200)
+				{
+					cumulus.LogWarningMessage($"LocalApi.SetWeatherServiceSettings: Ecowitt Local API Error: {responseCode}");
+					return false;
+				}
+
+				return true;
+			}
+			catch (HttpRequestException ex)
+			{
+				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					cumulus.LogErrorMessage("SetWeatherServiceSettings: Error - This Station does not support the HTTP API!");
+				}
+				else
+				{
+					cumulus.LogExceptionMessage(ex, "SetWeatherServiceSettings: HTTP Error");
+				}
+			}
+			catch (Exception ex)
+			{
+				if (token.IsCancellationRequested)
+				{
+					cumulus.LogDebugMessage("SetWeatherServiceSettings: Operation cancelled due to shutting down");
+					return false;
+				}
+				cumulus.LogExceptionMessage(ex, "SetWeatherServiceSettings: Error");
+			}
+
+			return false;
 		}
 
 		#endregion
@@ -1193,7 +1310,6 @@ namespace CumulusMX.Stations
 			}
 
 			return false;
-
 		}
 
 		public static void StartUpgrade(CancellationToken token)
@@ -1540,6 +1656,79 @@ namespace CumulusMX.Stations
 			public string apName { get; set; }
 			public string APpwd { get; set; }
 			public int time { get; set; }
+		}
+
+		public class WeatherServices
+		{
+			//{
+			//  "platform": "ecowitt",
+			//  "ost_interval": "1",
+			//  "sta_mac": "E8:DB:84:0F:15:43",
+			//  "wu_interval": "16",
+			//  "wu_id": "",
+			//  "wu_key": "",
+			//  "wcl_interval": "10",
+			//  "wcl_id": "",
+			//  "wcl_key": "",
+			//  "wow_interval": "5",
+			//  "wow_id": "",
+			//  "wow_key": "",
+			//  "Customized": "disable",
+			//  "Protocol": "ecowitt",
+			//  "ecowitt_ip": "",
+			//  "ecowitt_path": "/data/report/",
+			//  "ecowitt_port": "80",
+			//  "ecowitt_upload": "60",
+			//  "usr_wu_path": "/weatherstation/updateweatherstation.php?",
+			//  "usr_wu_id": "",
+			//  "usr_wu_key": "",
+			//  "usr_wu_port": "80",
+			//  "usr_wu_upload": "60",
+			//  "mqtt_name": "",
+			//  "mqtt_host": "",
+			//  "mqtt_transport": "0",
+			//  "mqtt_port": "0",
+			//  "mqtt_topic": "ecowitt/3C8A1FB32BAF",
+			//  "mqtt_clientid": "",
+			//  "mqtt_username": "",
+			//  "mqtt_password": "",
+			//  "mqtt_keepalive": "0",
+			//  "mqtt_interval": "0"
+
+			public string platform { get; set; }
+			public string ost_interval { get; set; }
+			public string sta_mac { get; set; }
+			public string wu_interval { get; set; }
+			public string wu_id { get; set; }
+			public string wu_key { get; set; }
+			public string wcl_interval { get; set; }
+			public string wcl_id { get; set; }
+			public string wcl_key { get; set; }
+			public string wow_interval { get; set; }
+			public string wow_id { get; set; }
+			public string wow_key { get; set; }
+
+			public string Customized { get; set; }
+			public string Protocol { get; set; }
+			public string ecowitt_ip { get; set; }
+			public string ecowitt_path { get; set; }
+			public string ecowitt_port { get; set; }
+			public string ecowitt_upload { get; set; }
+			public string usr_wu_path { get; set; }
+			public string usr_wu_id { get; set; }
+			public string usr_wu_key { get; set; }
+			public string usr_wu_port { get; set; }
+			public string usr_wu_upload { get; set; }
+			public string mqtt_name { get; set; }
+			public string mqtt_host { get; set; }
+			public string mqtt_transport { get; set; }
+			public string mqtt_port { get; set; }
+			public string mqtt_topic { get; set; }
+			public string mqtt_clientid { get; set; }
+			public string mqtt_username { get; set; }
+			public string mqtt_password { get; set; }
+			public string mqtt_keepalive { get; set; }
+			public string mqtt_interval { get; set; }
 		}
 	}
 }
