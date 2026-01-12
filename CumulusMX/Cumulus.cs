@@ -13935,6 +13935,21 @@ namespace CumulusMX
 				using var retval = await MyHttpClient.SendAsync(request);
 
 				var body = await retval.Content.ReadAsStringAsync();
+
+				if (retval.StatusCode != HttpStatusCode.OK)
+				{
+					LogWarningMessage("Error: Failed to get release information from GitHub, HTTP error: " + retval.StatusCode);
+					LogDataMessage("Received: " + body);
+					return;
+				}
+
+				if (body[0] != '[')
+				{
+					LogWarningMessage("Error: Failed to get release information from GitHub");
+					LogDataMessage("Received: " + body);
+					return;
+				}
+
 				var releases = JsonSerializer.Deserialize<List<GithubRelease>>(body);
 
 				var latestBeta = releases.Find(x => !x.draft && x.prerelease);

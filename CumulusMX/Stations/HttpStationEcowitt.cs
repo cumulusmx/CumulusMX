@@ -1726,7 +1726,7 @@ namespace CumulusMX.Stations
 						// do the config
 						if (api.SetWeatherServiceSettings(conf, main, Program.ExitSystemToken).Result)
 						{
-							cumulus.LogMessage($"Set Ecowitt Gateway Custom Server config to: Server={customServer}, Port={customPort}, Interval={customIntv}, Protocol={0}, Enabled={1}");
+							cumulus.LogMessage($"Set Ecowitt Gateway Custom Server config to: Server={customServer}, Port={customPort}, Interval={customIntv}, Protocol=ecowitt, Enabled=true");
 							cumulus.LogMessage("Ecowitt Gateway Custom Server. Note, the set interval should be 1 less than the value set in the CMX configuration");
 						}
 						else
