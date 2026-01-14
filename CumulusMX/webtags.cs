@@ -43,7 +43,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				return tagParams.Get("rc") == "y" ? val.Replace(',', '.') : val;
+				return tagParams.Get("rc").Equals("y", StringComparison.InvariantCultureIgnoreCase) ? val.Replace(',', '.') : val;
 			}
 			catch
 			{
@@ -56,9 +56,9 @@ namespace CumulusMX
 			string ret;
 			try
 			{
-				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var numFormat = tagParams.Get("rc").Equals("y", StringComparison.InvariantCultureIgnoreCase) ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
 
-				if (tagParams.Get("tc") == "y")
+				if (tagParams.Get("tc").Equals("y", StringComparison.InvariantCultureIgnoreCase))
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
@@ -86,9 +86,9 @@ namespace CumulusMX
 			string ret;
 			try
 			{
-				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var numFormat = tagParams.Get("rc").Equals("y", StringComparison.InvariantCultureIgnoreCase) ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
 
-				if (tagParams.Get("tc") == "y")
+				if (tagParams.Get("tc").Equals("y", StringComparison.InvariantCultureIgnoreCase))
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
@@ -1195,7 +1195,7 @@ namespace CumulusMX
 
 		private string Tagtxbattery(Dictionary<string, string> tagParams)
 		{
-			var json = tagParams.Get("format") == "json";
+			var json = tagParams.Get("format").Equals("json", StringComparison.InvariantCultureIgnoreCase);
 
 			if (string.IsNullOrEmpty(station.TxBatText))
 			{
@@ -6469,7 +6469,7 @@ namespace CumulusMX
 
 		private static string TagGw1000Reception(Dictionary<string, string> tagParams)
 		{
-			var json = tagParams.Get("format") == "json";
+			var json = tagParams.Get("format").Equals("json", StringComparison.InvariantCultureIgnoreCase);
 
 			var retVal = new StringBuilder(json ? "{" : string.Empty);
 
@@ -6882,12 +6882,12 @@ namespace CumulusMX
 		private string TagQueryDayFile(Dictionary<string, string> tagParams)
 		{
 			var value = tagParams.Get("value");
-			var function = tagParams.Get("function");
+			var function = tagParams.Get("function").ToLower();
 			var where = tagParams.Get("where");
 			var from = tagParams.Get("from");
 			var to = tagParams.Get("to");
-			var showDate = tagParams.Get("showDate") == "y";
-			var dateOnly = tagParams.Get("dateOnly") == "y";
+			var showDate = tagParams.Get("showDate").Equals("y", StringComparison.InvariantCultureIgnoreCase);
+			var dateOnly = tagParams.Get("dateOnly").Equals("y", StringComparison.InvariantCultureIgnoreCase);
 			var resfunc = tagParams.Get("resFunc");
 
 			tagParams.Add("tc", function == "count" ? "y" : "n");
@@ -6927,7 +6927,7 @@ namespace CumulusMX
 		public void InitialiseWebtags()
 		{
 			// create the web tag dictionary
-			webTagDictionary = new Dictionary<string, WebTagFunction>
+			webTagDictionary = new Dictionary<string, WebTagFunction>(StringComparer.OrdinalIgnoreCase)
 			{
 				{ "time", TagTime },
 				{ "DaysSince30Dec1899", TagDaysSince30Dec1899 },
@@ -7981,13 +7981,14 @@ namespace CumulusMX
 
 			cumulus.LogMessage(webTagDictionary.Count + " web tags initialised");
 
-			if (!cumulus.ProgramOptions.ListWebTags) return;
-
-			using StreamWriter file = new StreamWriter(cumulus.WebTagFile);
-
-			foreach (var pair in webTagDictionary)
+			if (cumulus.ProgramOptions.ListWebTags)
 			{
-				file.WriteLine(pair.Key);
+				using StreamWriter file = new StreamWriter(cumulus.WebTagFile);
+
+				foreach (var pair in webTagDictionary)
+				{
+					file.WriteLine(pair.Key);
+				}
 			}
 		}
 

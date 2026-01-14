@@ -3434,8 +3434,8 @@ namespace CumulusMX
 				tagParams.Add("webtag", webTag);
 				for (int i = 1; i < paramList.Count; i += 2)
 				{
-					// odd numbered entries are keys with "=" on the end - remove that
-					string key = paramList[i][..^1];
+					// odd numbered entries are keys
+					string key = paramList[i];
 					// even numbered entries are values
 					string value = paramList[i + 1];
 					tagParams.Add(key, value);
@@ -3447,57 +3447,130 @@ namespace CumulusMX
 
 		private static List<string> ParseParams(string line)
 		{
-			var insideQuotes = false;
-			var start = -1;
+			if (string.IsNullOrWhiteSpace(line))
+				return new List<string>();
 
 			var parts = new List<string>();
 
-			for (var i = 0; i < line.Length; i++)
-			{
-				if (char.IsWhiteSpace(line[i]))
-				{
-					if (!insideQuotes && start != -1)
-					{
-						parts.Add(line[start..i]);
-						start = -1;
-					}
-					else if (insideQuotes && start == -1)
-					{
-						// allow leading spaces inside quotes
-						start = i;
-					}
-				}
-				else if (line[i] == '"')
-				{
-					if (start != -1)
-					{
-						parts.Add(line[start..i]);
-						start = -1;
-					}
-					else if (insideQuotes)
-					{
-						// not started and found closing quote = empty string
-						parts.Add(string.Empty);
-					}
-					insideQuotes = !insideQuotes;
-				}
-				else if (line[i] == '=')
-				{
-					if (!insideQuotes && start != -1)
-					{
-						parts.Add(line.Substring(start, (i - start) + 1));
-						start = -1;
-					}
-				}
-				else if (start == -1)
-				{
-					start = i;
-				}
-			}
+			int len = line.Length;
+			int idx = 0;
 
-			if (start != -1)
+			// skip any leading whitespace
+			while (idx < len && char.IsWhiteSpace(line[idx]))
+				idx++;
+
+			// read initial token (everything up to first whitespace)
+			int start = idx;
+			while (idx < len && !char.IsWhiteSpace(line[idx]))
+				idx++;
+			var initial = line[start..idx].ToLowerInvariant();
+			parts.Add(initial); // preserve initial token exactly as input
+
+			// skip whitespace after initial token
+			while (idx < len && char.IsWhiteSpace(line[idx]))
+				idx++;
+
+			// parse remaining key/value or standalone tokens
+			while (idx < len)
 			{
-				parts.Add(line[start..]);
+				// read key (up to '=' or whitespace)
+				start = idx;
+				while (idx < len && !char.IsWhiteSpace(line[idx]) && line[idx] != '=')
+					idx++;
+
+				if (idx >= len)
+				{
+					// trailing standalone token (no '=')
+					var standalone = line[start..idx].ToLowerInvariant();
+					parts.Add(standalone);
+					break;
+				}
+
+				// If we hit whitespace, there might still be an '=' after some spaces (e.g. "key = value")
+				int scan = idx;
+				while (scan < len && char.IsWhiteSpace(line[scan]))
+					scan++;
+
+				if (scan < len && line[scan] == '=')
+				{
+					// key found
+					var key = line[start..idx].Trim().ToLowerInvariant();
+					parts.Add(key);
+
+					// move idx to character after '='
+					idx = scan + 1;
+
+					// skip spaces before value
+					while (idx < len && char.IsWhiteSpace(line[idx]))
+						idx++;
+
+					// parse value
+					if (idx < len && line[idx] == '"')
+					{
+						// quoted value - capture inner text (allow empty "")
+						idx++; // skip opening quote
+						start = idx;
+						while (idx < len && line[idx] != '"')
+							idx++;
+						var value = line[start..idx]; // excludes quotes
+						parts.Add(value);
+						// skip closing quote if present
+						if (idx < len && line[idx] == '"')
+							idx++;
+					}
+					else
+					{
+						// unquoted value - up to next whitespace
+						start = idx;
+						while (idx < len && !char.IsWhiteSpace(line[idx]))
+							idx++;
+						var value = line[start..idx];
+						parts.Add(value);
+					}
+				}
+				else if (line[idx] == '=')
+				{
+					// direct '=' encountered (no spaces): key is from start..idx
+					var key = line[start..idx].Trim().ToLowerInvariant();
+					parts.Add(key);
+					// move past '='
+					idx++;
+
+					// skip spaces before value
+					while (idx < len && char.IsWhiteSpace(line[idx]))
+						idx++;
+
+					// parse value (quoted or unquoted)
+					if (idx < len && line[idx] == '"')
+					{
+						idx++;
+						start = idx;
+						while (idx < len && line[idx] != '"')
+							idx++;
+						var value = line[start..idx];
+						parts.Add(value);
+						if (idx < len && line[idx] == '"')
+							idx++;
+					}
+					else
+					{
+						start = idx;
+						while (idx < len && !char.IsWhiteSpace(line[idx]))
+							idx++;
+						var value = line[start..idx];
+						parts.Add(value);
+					}
+				}
+				else
+				{
+					// standalone token (no '=' found)
+					var standalone = line[start..idx].ToLowerInvariant();
+					parts.Add(standalone);
+				}
+
+				// skip whitespace before next pair
+				while (idx < len && char.IsWhiteSpace(line[idx]))
+					idx++;
 			}
 
 			return parts;

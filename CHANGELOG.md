@@ -20,6 +20,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Debug snow logging now controlled via the Program Settings > Logging Options
 - Ecowitt HTTP Custom Server auto-configuration for main and extra stations now tries the HTTP Local API to access the station in addition to the TCP API
 - Fix a major logic error when applying extra sensor data to the main station - affects most stations
+- Web tags are now case insensitive, as are tag parameter keys. Simple parameter values are also case insensitive. Parameter values for date formats etc are obviously still case sensitive.
 
 ### Notes
 
@@ -71,6 +72,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The dashboard now allows user defined pages to be hosted under the `/interface/custom` folder
 - Remove retries from WOW uploads
 - Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements and are not removed from the queue unless the commit is successful
+- Web tags are now case insensitive, as are tag parameter keys. Simple parameter values are also case insensitive. Parameter values for date formats etc are obviously still case sensitive.
 
 ### Fixed
 
