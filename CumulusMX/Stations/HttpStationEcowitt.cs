@@ -136,7 +136,7 @@ namespace CumulusMX.Stations
 				}
 			}
 
-			if (mainStation || cumulus.ExtraSensorUseAQI)
+			if (mainStation ^ cumulus.ExtraSensorUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
@@ -144,7 +144,7 @@ namespace CumulusMX.Stations
 			{
 				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
-			if (mainStation || cumulus.ExtraSensorUseLeafWet)
+			if (mainStation ^ cumulus.ExtraSensorUseLeafWet)
 			{
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
@@ -744,7 +744,7 @@ namespace CumulusMX.Stations
 
 
 				// === Extra Humidity ===
-				if (main || cumulus.ExtraSensorUseTempHum)
+				if (main ^ cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -759,7 +759,7 @@ namespace CumulusMX.Stations
 
 
 				// === Extra Temperature ===
-				if (main || cumulus.ExtraSensorUseTempHum)
+				if (main ^ cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -773,7 +773,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Solar ===
-				if (main || cumulus.ExtraSensorUseSolar)
+				if (main ^ cumulus.ExtraSensorUseSolar)
 				{
 					try
 					{
@@ -788,7 +788,7 @@ namespace CumulusMX.Stations
 
 
 				// === UV ===
-				if (main || cumulus.ExtraSensorUseUv)
+				if (main ^ cumulus.ExtraSensorUseUv)
 				{
 					try
 					{
@@ -803,7 +803,7 @@ namespace CumulusMX.Stations
 
 
 				// === Soil Temp ===
-				if (main || cumulus.ExtraSensorUseSoilTemp)
+				if (main ^ cumulus.ExtraSensorUseSoilTemp)
 				{
 					try
 					{
@@ -819,7 +819,7 @@ namespace CumulusMX.Stations
 
 
 				// === Soil Moisture ===
-				if (main || cumulus.ExtraSensorUseSoilMoist)
+				if (main ^ cumulus.ExtraSensorUseSoilMoist)
 				{
 					try
 					{
@@ -833,7 +833,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Soil Moisture Raw ===
-				if (main || cumulus.ExtraSensorUseSoilMoist)
+				if (main ^ cumulus.ExtraSensorUseSoilMoist)
 				{
 					try
 					{
@@ -848,7 +848,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Leaf Wetness ===
-				if (main || cumulus.ExtraSensorUseLeafWet)
+				if (main ^ cumulus.ExtraSensorUseLeafWet)
 				{
 					try
 					{
@@ -864,7 +864,7 @@ namespace CumulusMX.Stations
 
 
 				// === User Temp (Soil or Water) ===
-				if (main || cumulus.ExtraSensorUseUserTemp)
+				if (main ^ cumulus.ExtraSensorUseUserTemp)
 				{
 					try
 					{
@@ -879,7 +879,7 @@ namespace CumulusMX.Stations
 
 
 				// === Air Quality ===
-				if (main || cumulus.ExtraSensorUseAQI)
+				if (main ^ cumulus.ExtraSensorUseAQI)
 				{
 					try
 					{
@@ -895,7 +895,7 @@ namespace CumulusMX.Stations
 
 
 				// === CO₂ ===
-				if (main || cumulus.ExtraSensorUseCo2)
+				if (main ^ cumulus.ExtraSensorUseCo2)
 				{
 					try
 					{
@@ -917,7 +917,7 @@ namespace CumulusMX.Stations
 
 
 				// === Lightning ===
-				if (main || cumulus.ExtraSensorUseLightning)
+				if (main ^ cumulus.ExtraSensorUseLightning)
 				{
 					try
 					{
@@ -934,7 +934,7 @@ namespace CumulusMX.Stations
 
 
 				// === Leak ===
-				if (main || cumulus.ExtraSensorUseLeak)
+				if (main ^ cumulus.ExtraSensorUseLeak)
 				{
 					try
 					{
@@ -949,7 +949,7 @@ namespace CumulusMX.Stations
 
 
 				// === Laser Distance ===
-				if (main || cumulus.ExtraSensorUseLaserDist)
+				if (main ^ cumulus.ExtraSensorUseLaserDist)
 				{
 					try
 					{
@@ -992,7 +992,7 @@ namespace CumulusMX.Stations
 
 
 				// === Extra Dew point ===
-				if (main || cumulus.ExtraSensorUseTempHum)
+				if (main ^ cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -1171,7 +1171,7 @@ namespace CumulusMX.Stations
 					{
 						try
 						{
-							var retVal = ecowittApi.GetStationList(main || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
+							var retVal = ecowittApi.GetStationList(main ^ cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 							if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 							{
 								deviceFirmware = new Version(retVal[0]);

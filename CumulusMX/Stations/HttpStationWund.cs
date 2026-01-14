@@ -352,11 +352,13 @@ namespace CumulusMX.Stations
 				try
 				{
 					// solarradiation - [W/m^2]
-
-					var str = data["solarradiation"];
-					if (str != null && str != "-9999")
+					if (!cumulus.ExtraSensorUseSolar)
 					{
-						DoSolarRad((int) Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
+						var str = data["solarradiation"];
+						if (str != null && str != "-9999")
+						{
+							DoSolarRad((int) Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
+						}
 					}
 				}
 				catch (Exception ex)
@@ -369,11 +371,13 @@ namespace CumulusMX.Stations
 				try
 				{
 					// UV - [index]
-
-					var str = data["UV"];
-					if (str != null && str != "-9999")
+					if (!cumulus.ExtraSensorUseUv)
 					{
-						DoUV(Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
+						var str = data["UV"];
+						if (str != null && str != "-9999")
+						{
+							DoUV(Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
+						}
 					}
 				}
 				catch (Exception ex)
@@ -387,19 +391,21 @@ namespace CumulusMX.Stations
 				{
 					// soiltempf - [F soil temperature]
 					// soiltemp[2-4]f
-
-					var str1 = data["soiltempf"];
-					if (str1 != null && str1 != "-9999")
+					if (!cumulus.AmbientExtraUseSoilTemp)
 					{
-						DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(str1, CultureInfo.InvariantCulture)), 1);
-					}
-
-					for (var i = 2; i <= 4; i++)
-					{
-						var str = data["soiltemp" + i + "f"];
-						if (str != null && str != "-9999")
+						var str1 = data["soiltempf"];
+						if (str1 != null && str1 != "-9999")
 						{
-							DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture)), i);
+							DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(str1, CultureInfo.InvariantCulture)), 1);
+						}
+
+						for (var i = 2; i <= 4; i++)
+						{
+							var str = data["soiltemp" + i + "f"];
+							if (str != null && str != "-9999")
+							{
+								DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(str, CultureInfo.InvariantCulture)), i);
+							}
 						}
 					}
 				}
@@ -414,19 +420,21 @@ namespace CumulusMX.Stations
 				{
 					// soilmoisture - [%]
 					// soilmoisture[2-4]
-
-					var str1 = data["soilmoisture"];
-					if (str1 != null && str1 != "-9999")
+					if (!cumulus.ExtraSensorUseSoilMoist)
 					{
-						DoSoilMoisture(Convert.ToDouble(str1, CultureInfo.InvariantCulture), 1);
-					}
-
-					for (var i = 2; i <= 4; i++)
-					{
-						var str = data["soilmoisture" + i];
-						if (str != null && str != "-9999")
+						var str1 = data["soilmoisture"];
+						if (str1 != null && str1 != "-9999")
 						{
-							DoSoilMoisture(Convert.ToDouble(str, CultureInfo.InvariantCulture), i);
+							DoSoilMoisture(Convert.ToDouble(str1, CultureInfo.InvariantCulture), 1);
+						}
+
+						for (var i = 2; i <= 4; i++)
+						{
+							var str = data["soilmoisture" + i];
+							if (str != null && str != "-9999")
+							{
+								DoSoilMoisture(Convert.ToDouble(str, CultureInfo.InvariantCulture), i);
+							}
 						}
 					}
 				}
@@ -441,16 +449,18 @@ namespace CumulusMX.Stations
 				{
 					// leafwetness - [%]
 					// leafwetness2
-
-					var str1 = data["leafwetness"];
-					if (str1 != null && str1 != "-9999")
+					if (!cumulus.ExtraSensorUseLeafWet)
 					{
-						DoLeafWetness(Convert.ToDouble(str1, CultureInfo.InvariantCulture), 1);
-					}
-					var str2 = data["leafwetness2"];
-					if (str2 != null && str2 != "-9999")
-					{
-						DoLeafWetness(Convert.ToDouble(str2, CultureInfo.InvariantCulture), 2);
+						var str1 = data["leafwetness"];
+						if (str1 != null && str1 != "-9999")
+						{
+							DoLeafWetness(Convert.ToDouble(str1, CultureInfo.InvariantCulture), 1);
+						}
+						var str2 = data["leafwetness2"];
+						if (str2 != null && str2 != "-9999")
+						{
+							DoLeafWetness(Convert.ToDouble(str2, CultureInfo.InvariantCulture), 2);
+						}
 					}
 				}
 				catch (Exception ex)
@@ -464,18 +474,20 @@ namespace CumulusMX.Stations
 				{
 					// AqPM2.5 - PM2.5 mass - UG / M3
 					// AqPM10 - PM10 mass - PM10 mass
-
-					var str2 = data["AqPM2.5"];
-					if (str2 != null && str2 != "-9999")
+					if (!cumulus.ExtraSensorUseAQI)
 					{
-						CO2_pm2p5 = Convert.ToDouble(str2, CultureInfo.InvariantCulture);
-						CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5);
-					}
-					var str10 = data["AqPM10"];
-					if (str10 != null && str10 != "-9999")
-					{
-						CO2_pm10 = Convert.ToDouble(str10, CultureInfo.InvariantCulture);
-						CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
+						var str2 = data["AqPM2.5"];
+						if (str2 != null && str2 != "-9999")
+						{
+							CO2_pm2p5 = Convert.ToDouble(str2, CultureInfo.InvariantCulture);
+							CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5);
+						}
+						var str10 = data["AqPM10"];
+						if (str10 != null && str10 != "-9999")
+						{
+							CO2_pm10 = Convert.ToDouble(str10, CultureInfo.InvariantCulture);
+							CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
+						}
 					}
 				}
 				catch (Exception ex)

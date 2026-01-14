@@ -161,7 +161,7 @@ namespace CumulusMX.Stations
 
 					DoForecast(string.Empty, false);
 
-					if (cumulus.StationOptions.LogExtraSensors)
+					if (!cumulus.ExtraSensorUseSolar)
 					{
 						var lightReading = GetConvertedValue(st[EW_LIGHT]);
 
@@ -171,6 +171,15 @@ namespace CumulusMX.Stations
 							LightValue = lightReading;
 						}
 
+						if (cumulus.StationOptions.CalculatedET && now.Minute == 0)
+						{
+							// Start of a new hour, and we want to calculate ET in Cumulus
+							CalculateEvapotranspiration(now);
+						}
+					}
+
+					if (!cumulus.ExtraSensorUseUv)
+					{
 						var uVreading = GetConvertedValue(st[EW_UV]);
 
 						if ((int) uVreading == 255)
@@ -189,12 +198,6 @@ namespace CumulusMX.Stations
 						{
 							DoUV(uVreading, now);
 						}
-					}
-
-					if (cumulus.StationOptions.CalculatedET && now.Minute == 0)
-					{
-						// Start of a new hour, and we want to calculate ET in Cumulus
-						CalculateEvapotranspiration(now);
 					}
 
 					UpdateStatusPanel(now.ToUniversalTime());

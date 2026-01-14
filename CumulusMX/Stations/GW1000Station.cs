@@ -1075,16 +1075,22 @@ namespace CumulusMX.Stations
 								break;
 							case 0x15: //Light (lux)
 									   // Save the Lux value
-								LightValue = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
-								// convert Lux to W/m² - approximately!
-								DoSolarRad((int) (LightValue * cumulus.SolarOptions.LuxToWM2), dateTime);
+								if (!cumulus.ExtraSensorUseSolar)
+								{
+									LightValue = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
+									// convert Lux to W/m² - approximately!
+									DoSolarRad((int) (LightValue * cumulus.SolarOptions.LuxToWM2), dateTime);
+								}
 								idx += 4;
 								break;
 							case 0x16: //UV (µW/cm²) - what use is this!
 								idx += 2;
 								break;
 							case 0x17: //UVI (0-15 index)
-								DoUV(data[idx], dateTime);
+								if (!cumulus.ExtraSensorUseUv)
+								{
+									DoUV(data[idx], dateTime);
+								}
 								idx += 1;
 								break;
 							case 0x18: //Date and time

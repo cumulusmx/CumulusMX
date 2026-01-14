@@ -537,26 +537,34 @@ namespace CumulusMX.Stations
 
 					if (hasSolar)
 					{
-						if (historydata.uvVal < 0 || historydata.uvVal > 16)
+						if (!cumulus.ExtraSensorUseUv)
 						{
-							cumulus.LogWarningMessage("Invalid UV-I value ignored: " + historydata.uvVal);
+							if (historydata.uvVal < 0 || historydata.uvVal > 16)
+							{
+								cumulus.LogWarningMessage("Invalid UV-I value ignored: " + historydata.uvVal);
+							}
+							else
+							{
+								DoUV(historydata.uvVal, timestamp);
+							}
 						}
-						else
-							DoUV(historydata.uvVal, timestamp);
 
-						if (historydata.solarVal >= 0 && historydata.solarVal <= 300000)
+						if (!cumulus.ExtraSensorUseSolar)
 						{
-							DoSolarRad((int) Math.Floor(historydata.solarVal * cumulus.SolarOptions.LuxToWM2), timestamp);
+							if (historydata.solarVal >= 0 && historydata.solarVal <= 300000)
+							{
+								DoSolarRad((int) Math.Floor(historydata.solarVal * cumulus.SolarOptions.LuxToWM2), timestamp);
 
-							// add in archive period worth of sunshine, if sunny
-							if (IsSunny)
-								SunshineHours += historydata.interval / 60.0;
+								// add in archive period worth of sunshine, if sunny
+								if (IsSunny)
+									SunshineHours += historydata.interval / 60.0;
 
-							LightValue = historydata.solarVal;
-						}
-						else
-						{
-							cumulus.LogWarningMessage("Invalid solar value ignored: " + historydata.solarVal);
+								LightValue = historydata.solarVal;
+							}
+							else
+							{
+								cumulus.LogWarningMessage("Invalid solar value ignored: " + historydata.solarVal);
+							}
 						}
 					}
 				}
@@ -1367,22 +1375,28 @@ namespace CumulusMX.Stations
 					// Solar/UV
 					if (hasSolar)
 					{
-						LightValue = (data[16] + data[17] * 256 + data[18] * 65536) / 10.0;
-
-						if (LightValue < 300000)
+						if (!cumulus.ExtraSensorUseSolar)
 						{
-							DoSolarRad((int) (LightValue * cumulus.SolarOptions.LuxToWM2), now);
+							LightValue = (data[16] + data[17] * 256 + data[18] * 65536) / 10.0;
+
+							if (LightValue < 300000)
+							{
+								DoSolarRad((int) (LightValue * cumulus.SolarOptions.LuxToWM2), now);
+							}
 						}
 
-						int UVreading = data[19];
+						if (!cumulus.ExtraSensorUseUv)
+						{
+							int UVreading = data[19];
 
-						if (UVreading < 0 || UVreading > 16)
-						{
-							cumulus.LogWarningMessage("Ignoring UV-I reading " + UVreading);
-						}
-						else
-						{
-							DoUV(UVreading, now);
+							if (UVreading < 0 || UVreading > 16)
+							{
+								cumulus.LogWarningMessage("Ignoring UV-I reading " + UVreading);
+							}
+							else
+							{
+								DoUV(UVreading, now);
+							}
 						}
 					}
 

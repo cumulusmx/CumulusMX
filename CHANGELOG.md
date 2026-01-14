@@ -10,89 +10,16 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## RELEASE CANDIDATE [4.7.0 \[b4138\]][29] - 2026-01-09
+## RELEASE CANDIDATE [4.7.0 \[b4138\]][29] - 2026-01-14
 
-### RC 4138 Changes
+### RC 4138 Changes from Beta 4137
 
 - More adjustments to real-time FTP error detection and reconnection
 - Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
 - Fix IsRaining alarm being immediately cleared after each trigger when using the Ecowitt "Use Piezo IsRaining" setting
 - Debug snow logging now controlled via the Program Settings > Logging Options
 - Ecowitt HTTP Custom Server auto-configuration for main and extra stations now tries the HTTP Local API to access the station in addition to the TCP API
-
-### Beta 4137 Fixes
-
-- Fix Settings > Locale Strings errors for waxing/waning crescent moon
-- New Python script to upload monthly log files and the day file to MySQL - `/MXutils/ImportCumulusFile.py`
-- Fix Automated Weather Diary entries not being created for some stations during catch-up - Davis VP2, Davis WLL, Ecowitt Stations
-- Fix web tags using year and month parameters to take account of meteo dates and first day of the year/month and add consistent handling
-- Fix error processing historic data from ecowitt.net when only a single record is returned
-- If Bluesky uploads are rate limited, do not attempt to retry the upload
-- PHP uploads failing after first upload in certain configurations
-- Fix endless loop in LoadSnowDepthAverage for new installs
-- Fix bug in exception logging if some exception data is null
-
-### Beta 4136 Fixes
-
-- Fix the option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value
-- New Option in Extra Sensor Settings under Laser Sensor Options to specify if a laser is being used as a snow sensor
-- New Option in Extra Sensor Settings to designate the Primary Snow sensor. This is used to determine the sensor logged in the Extra Sensors log file and charted
-- Change snow depth calculations
-	- Snow depth baseline is now continuously decreased using a 15-minute average value rather than step reduced using the minimum increment value
-	- Snowfall accumulation is now increased using a combination of the 15-minute average and the minimum increment value
-	- The averaging for increases can be turned off, or the averaging time reduced via the cumulus.ini file
-		```ini
-		[Station]
-		EWsnowAvgIncMins[n]=[0-15]
-		```
-- Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements and are not removed from the queue unless the commit is successful
-- Compass points not being saved in Locale Strings
-
-### Beta 4135 Fixes
-
-- Fix a number of issues with using the Ecowitt Cloud Station for extra sensors
-- Fix issues with Davis weatherlink.com JSON parsing
-- Fixes for the chart range selectors with bar charts. Both dashboard and default web site
-- Fix error handling null data from PurpleAir sensors
-- Catch Ecowitt HTTP API sending empty data blocks
-- Fix processing Ecowitt SD card log file when only one record is in scope
-- Remove retries from WOW uploads
-- Lots more loving for laser depth calculations!
-- There is a new option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value
-- Added ImportCumulusFile PHP script to `/MXutils` folder
-
-### Beta 4134 Fixes
-
-- Ecowitt Camera Video URL retrieval JSON decode error
-- Fixes for Davis VP1/2 serial BARREAD and SETTIME commands
-- Checks and extra help text added to the snowfall calibration settings
-- On laser depth baseline changes, realign last snowfall depth to the new value
-- Fix snow24h being reset to null at the snow hour if there is a valid laser depth, now set to zero
-
-### Beta 4133 Fixes
-
-- Fix Ecowitt laser data on the HTTP Local API when configured to use feet on the station
-- Final fix for Tempest station opening the UDP port in shared mode
-- Added selection handles to ChartJS navigator charts
-- API change for recent graph data requests to accept dates or date/times
-- Fix fix for EOD files being flagged as complete when they errored during FTP
-- New version of MigrateData3to4 (v2.0) to support MX v4.7
-
-### Beta 4132 Fixes
-
-- Fix for JSON serialisation affecting:
-	- HTTP Files
-	- MySQL Settings
-	- Purple Air
-	- BlueSky
-- Fix exception when Ecowitt camera URL fetch hits the rate limit
-
-### Beta 4131 Fixes
-
-- Davis WLL broadcast decode error when wind speed is null on a transmitter
-- Fix Davis WLL station getting in a day reset loop when no historic API details and last run was prior to last rollover
-- Fix FTPS certificate validation failures
-- Adds a new Data Logs editor for the Recent Data from the SQLite database
+- Fix a major logic error when applying extra sensor data to the main station - affects most stations
 
 ### Notes
 
@@ -179,6 +106,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - More adjustments to real-time FTP error detection and reconnection
 - Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
 - Fix IsRaining alarm being immediately cleared after each trigger when using the Ecowitt "Use Piezo IsRaining" setting
+- Fix a major logic error when applying extra sensor data to the main station - affects most stations
 
 ### Package Updates
 

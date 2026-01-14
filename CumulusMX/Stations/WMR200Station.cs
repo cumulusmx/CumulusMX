@@ -1011,22 +1011,25 @@ namespace CumulusMX.Stations
 			//Byte 11: (cL) Check-sum low  byte
 			//Byte 12: (cH) Check-sum high byte
 
-			var num = packetBuffer[7] & 0xF;
+			if (!cumulus.ExtraSensorUseUv)
+			{
+				var num = packetBuffer[7] & 0xF;
 
-			if (num < 0)
-				num = 0;
+				if (num < 0)
+					num = 0;
 
-			if (num > 16)
-				num = 16;
+				if (num > 16)
+					num = 16;
 
-			DoUV(num, DateTime.Now);
+				DoUV(num, DateTime.Now);
 
-			// UV value is stored as channel 1 of the extra sensors
-			WMR200ExtraHumValues[1] = num;
+				// UV value is stored as channel 1 of the extra sensors
+				WMR200ExtraHumValues[1] = num;
 
-			ExtraSensorsDetected = true;
+				ExtraSensorsDetected = true;
 
-			WMR200ChannelPresent[1] = true;
+				WMR200ChannelPresent[1] = true;
+			}
 		}
 
 		private void ProcessHistoryDataPacket()
@@ -1605,15 +1608,20 @@ namespace CumulusMX.Stations
 			DoRain(ConvertUnits.RainINToUser(counter), ConvertUnits.RainINToUser(rate), timestamp);
 
 			// UV
-			if (packetBuffer[27] != 0xFF)
+			if (!cumulus.ExtraSensorUseUv)
 			{
-				DoUV(packetBuffer[27] & 0xFF, timestamp);
+				if (packetBuffer[27] != 0xFF)
+				{
+					DoUV(packetBuffer[27] & 0xFF, timestamp);
+				}
 			}
 
 			// do solar rad, even though there's no sensor,
 			// just to calculate theoretical max for consistency
-			DoSolarRad(0, timestamp);
-
+			if (!cumulus.ExtraSensorUseSolar)
+			{
+				DoSolarRad(0, timestamp);
+			}
 			DoApparentTemp(timestamp);
 			DoFeelsLike(timestamp);
 			DoHumidex(timestamp);

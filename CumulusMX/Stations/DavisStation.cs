@@ -1811,13 +1811,19 @@ namespace CumulusMX.Stations
 				StormRain = ConvertRainClicksToUser(loopData.StormRain);
 				StartOfStorm = loopData.StormRainStart;
 
-				DoUV(loopData.UVIndex >= 0 && loopData.UVIndex < 17 ? loopData.UVIndex : null, now);
-
-				DoSolarRad(loopData.SolarRad >= 0 && loopData.SolarRad < 1801 ? loopData.SolarRad : null, now);
-
-				if (loopData.AnnualET >= 0 && loopData.AnnualET < 32000)
+				if (!cumulus.ExtraSensorUseUv)
 				{
-					DoET(ConvertUnits.RainINToUser(loopData.AnnualET), now);
+					DoUV(loopData.UVIndex >= 0 && loopData.UVIndex < 17 ? loopData.UVIndex : null, now);
+				}
+
+				if (!cumulus.ExtraSensorUseSolar)
+				{
+					DoSolarRad(loopData.SolarRad >= 0 && loopData.SolarRad < 1801 ? loopData.SolarRad : null, now);
+
+					if (loopData.AnnualET >= 0 && loopData.AnnualET < 32000)
+					{
+						DoET(ConvertUnits.RainINToUser(loopData.AnnualET), now);
+					}
 				}
 
 				DoWindChill(OutdoorTemperature, now);
@@ -2747,24 +2753,27 @@ namespace CumulusMX.Stations
 								StationPressure = 0;
 								AltimeterPressure = Pressure;
 
-								if (archiveData.HiUVIndex >= 0 && archiveData.HiUVIndex < 25)
+								if (!cumulus.ExtraSensorUseUv && archiveData.HiUVIndex >= 0 && archiveData.HiUVIndex < 25)
 								{
 									DoUV(archiveData.HiUVIndex, timestamp);
 								}
 
-								if (archiveData.SolarRad >= 0 && archiveData.SolarRad < 5000)
+								if (!cumulus.ExtraSensorUseSolar)
 								{
-									DoSolarRad(archiveData.SolarRad, timestamp);
+									if (archiveData.SolarRad >= 0 && archiveData.SolarRad < 5000)
+									{
+										DoSolarRad(archiveData.SolarRad, timestamp);
 
-									// add in archive period worth of sunshine, if sunny
-									if (IsSunny)
-										SunshineHours += interval / 60.0;
-								}
+										// add in archive period worth of sunshine, if sunny
+										if (IsSunny)
+											SunshineHours += interval / 60.0;
+									}
 
-								// we don't want to do the this for the first instant of the day
-								if (notFirstRec && !cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
-								{
-									DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
+									// we don't want to do the this for the first instant of the day
+									if (notFirstRec && !cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
+									{
+										DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
+									}
 								}
 
 								if (cumulus.StationOptions.LogExtraSensors)

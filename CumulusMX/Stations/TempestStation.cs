@@ -184,14 +184,20 @@ namespace CumulusMX.Stations
 				DoHumidex(timestamp);
 				DoCloudBaseHeatIndex(timestamp);
 
-				DoUV((double) historydata.UV, timestamp);
-
-				DoSolarRad(historydata.SolarRadiation, timestamp);
-
-				// add in archive period worth of sunshine, if sunny
-				if (IsSunny)
+				if (!cumulus.ExtraSensorUseUv)
 				{
-					SunshineHours += historydata.ReportInterval / 60.0;
+					DoUV((double) historydata.UV, timestamp);
+				}
+
+				if (!cumulus.ExtraSensorUseSolar)
+				{
+					DoSolarRad(historydata.SolarRadiation, timestamp);
+
+					// add in archive period worth of sunshine, if sunny
+					if (IsSunny)
+					{
+						SunshineHours += historydata.ReportInterval / 60.0;
+					}
 				}
 
 				LightValue = historydata.Illuminance;
@@ -345,9 +351,14 @@ namespace CumulusMX.Stations
 						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure, (double) wp.Observation.Temperature, cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(seaLevel), ts);
 						cumulus.LogDebugMessage($"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
-
-						DoSolarRad(wp.Observation.SolarRadiation, ts);
-						DoUV((double) wp.Observation.UV, ts);
+						if (!cumulus.ExtraSensorUseSolar)
+						{
+							DoSolarRad(wp.Observation.SolarRadiation, ts);
+						}
+						if (!cumulus.ExtraSensorUseUv)
+						{
+							DoUV((double) wp.Observation.UV, ts);
+						}
 						var rainrate = ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation) * (60d / wp.Observation.ReportInterval);
 
 						var newRain = RainCounter + ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation);

@@ -1985,7 +1985,7 @@ namespace CumulusMX.Stations
 			// = max for period
 			try
 			{
-				if (rec.Value.Solar.HasValue)
+				if (rec.Value.Solar.HasValue && !cumulus.ExtraSensorUseSolar)
 				{
 					station.DoSolarRad((int)rec.Value.Solar.Value, recDateTime);
 				}
@@ -1999,7 +1999,7 @@ namespace CumulusMX.Stations
 			// = max for period
 			try
 			{
-				if (rec.Value.UVI.HasValue)
+				if (rec.Value.UVI.HasValue && !cumulus.ExtraSensorUseUv)
 				{
 					station.DoUV((double) rec.Value.UVI, recDateTime);
 				}

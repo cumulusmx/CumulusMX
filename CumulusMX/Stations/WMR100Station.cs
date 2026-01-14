@@ -312,25 +312,28 @@ namespace CumulusMX.Stations
 
 		private void ProcessUVPacket()
 		{
-			cumulus.LogDebugMessage("UV packet");
-			var num = packetBuffer[3] & 0xF;
+			if (!cumulus.ExtraSensorUseUv)
+			{
+				cumulus.LogDebugMessage("UV packet");
+				var num = packetBuffer[3] & 0xF;
 
-			UVBattStatus = packetBuffer[0] & 0x4;
+				UVBattStatus = packetBuffer[0] & 0x4;
 
-			if (num < 0)
-				num = 0;
+				if (num < 0)
+					num = 0;
 
-			if (num > 16)
-				num = 16;
+				if (num > 16)
+					num = 16;
 
-			DoUV(num, DateTime.Now);
+				DoUV(num, DateTime.Now);
 
-			// UV value is stored as channel 1 of the extra sensors
-			WMR200ExtraHumValues[1] = num;
+				// UV value is stored as channel 1 of the extra sensors
+				WMR200ExtraHumValues[1] = num;
 
-			ExtraSensorsDetected = true;
+				ExtraSensorsDetected = true;
 
-			WMR200ChannelPresent[1] = true;
+				WMR200ChannelPresent[1] = true;
+			}
 		}
 
 		private void ProcessRainPacket()

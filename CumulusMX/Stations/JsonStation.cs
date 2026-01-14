@@ -543,7 +543,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Solar
-			if (data.solar != null && (mainStation || cumulus.ExtraSensorUseSolar))
+			if (data.solar != null && (mainStation ^ cumulus.ExtraSensorUseSolar))
 			{
 				try
 				{
@@ -560,7 +560,7 @@ namespace CumulusMX.Stations
 			}
 
 			// UV
-			if (data.solar != null && (mainStation || cumulus.ExtraSensorUseUv))
+			if (data.solar != null && (mainStation ^ cumulus.ExtraSensorUseUv))
 			{
 				try
 				{
@@ -579,7 +579,7 @@ namespace CumulusMX.Stations
 
 
 			// Extra Temp
-			if (data.extratemp != null && data.units != null && (mainStation || cumulus.ExtraSensorUseTempHum))
+			if (data.extratemp != null && data.units != null && (mainStation ^ cumulus.ExtraSensorUseTempHum))
 			{
 				if (data.units.temperature == null)
 				{
@@ -608,7 +608,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Extra Humidity
-			if (data.extratemp != null && data.units != null && (mainStation || cumulus.ExtraSensorUseTempHum))
+			if (data.extratemp != null && data.units != null && (mainStation ^ cumulus.ExtraSensorUseTempHum))
 			{
 				foreach (var rec in data.extratemp)
 				{
@@ -628,7 +628,7 @@ namespace CumulusMX.Stations
 			}
 
 			// User Temps
-			if (data.usertemp != null && data.units != null && (mainStation || cumulus.ExtraSensorUseUserTemp))
+			if (data.usertemp != null && data.units != null && (mainStation ^ cumulus.ExtraSensorUseUserTemp))
 			{
 				if (data.units.temperature == null)
 				{
@@ -657,7 +657,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Soil Temps
-			if (data.soiltemp != null && data.units != null && (mainStation || cumulus.ExtraSensorUseSoilTemp))
+			if (data.soiltemp != null && data.units != null && (mainStation ^ cumulus.ExtraSensorUseSoilTemp))
 			{
 				if (data.units.temperature == null)
 				{
@@ -686,7 +686,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Soil Moistures
-			if (data.soilmoisture != null && (mainStation || cumulus.ExtraSensorUseSoilMoist))
+			if (data.soilmoisture != null && (mainStation ^ cumulus.ExtraSensorUseSoilMoist))
 			{
 				foreach (var rec in data.soilmoisture)
 				{
@@ -706,7 +706,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Leaf Wetness
-			if (data.leafwetness != null && (mainStation || cumulus.ExtraSensorUseLeafWet))
+			if (data.leafwetness != null && (mainStation ^ cumulus.ExtraSensorUseLeafWet))
 			{
 				foreach (var rec in data.leafwetness)
 				{
@@ -726,7 +726,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Air Quality
-			if (data.airquality != null && (mainStation || cumulus.ExtraSensorUseAQI))
+			if (data.airquality != null && (mainStation ^ cumulus.ExtraSensorUseAQI))
 			{
 				foreach (var rec in data.airquality)
 				{
@@ -751,7 +751,7 @@ namespace CumulusMX.Stations
 			}
 
 			// CO2
-			if (data.co2 != null && (mainStation || cumulus.ExtraSensorUseCo2))
+			if (data.co2 != null && (mainStation ^ cumulus.ExtraSensorUseCo2))
 			{
 				try
 				{
@@ -774,7 +774,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Laser distance
-			if (data.laserdist != null && data.units != null && (mainStation || cumulus.ExtraSensorUseLaserDist))
+			if (data.laserdist != null && data.units != null && (mainStation ^ cumulus.ExtraSensorUseLaserDist))
 			{
 				if (data.units.laserdist == null)
 				{

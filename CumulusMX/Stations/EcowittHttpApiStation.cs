@@ -1117,29 +1117,32 @@ namespace CumulusMX.Stations
 							}
 							break;
 						case "0x15": //Light (value unit)
-							arr = sensor.val.Split(' ');
-							if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
+							if (!cumulus.ExtraSensorUseSolar)
 							{
-								var light = arr[1].ToLower() switch
+								arr = sensor.val.Split(' ');
+								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
 								{
-									"fc" => valDbl * 0.015759751708199,
-									"Kfc" => valDbl * 1000 * 0.015759751708199,
-									"lux" => valDbl * cumulus.SolarOptions.LuxToWM2, // convert Lux to W/m² - approximately!
-									"Klux" => valDbl * 1000 * cumulus.SolarOptions.LuxToWM2, // convert KLux to W/m² - approximately!
-									"w/m2" => valDbl,
-									"W/m2" => valDbl,
-									_ => -valDbl
-								};
+									var light = arr[1].ToLower() switch
+									{
+										"fc" => valDbl * 0.015759751708199,
+										"Kfc" => valDbl * 1000 * 0.015759751708199,
+										"lux" => valDbl * cumulus.SolarOptions.LuxToWM2, // convert Lux to W/m² - approximately!
+										"Klux" => valDbl * 1000 * cumulus.SolarOptions.LuxToWM2, // convert KLux to W/m² - approximately!
+										"w/m2" => valDbl,
+										"W/m2" => valDbl,
+										_ => -valDbl
+									};
 
-								LightValue = valDbl;
-								if (light >= 0)
-								{
-									DoSolarRad((int) light, dateTime);
+									LightValue = valDbl;
+									if (light >= 0)
+									{
+										DoSolarRad((int) light, dateTime);
+									}
 								}
 							}
 							break;
 						case "0x17": //UVI (0-15 index)
-							if (sensor.valDbl.HasValue)
+							if (sensor.valDbl.HasValue && !cumulus.ExtraSensorUseUv)
 							{
 								DoUV(sensor.valDbl.Value, dateTime);
 							}

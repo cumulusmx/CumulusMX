@@ -1480,7 +1480,7 @@ namespace CumulusMX.Stations
 											*/
 										try
 										{
-											if (data.uv.HasValue)
+											if (data.uv.HasValue && !cumulus.ExtraSensorUseUv)
 											{
 												cumulus.LogDebugMessage("DecodeCurrent: using UV data");
 
@@ -1502,7 +1502,7 @@ namespace CumulusMX.Stations
 											*/
 										try
 										{
-											if (data.solar_rad.HasValue)
+											if (data.solar_rad.HasValue && !cumulus.ExtraSensorUseSolar)
 											{
 												cumulus.LogDebugMessage("DecodeCurrent: using solar data");
 												DoSolarRad(data.solar_rad.Value, lastRecordTime);
@@ -1975,7 +1975,7 @@ namespace CumulusMX.Stations
 											}
 
 											// UV
-											if (cumulus.WllPrimaryUV == rec.tx_id)
+											if (cumulus.WllPrimaryUV == rec.tx_id && !cumulus.ExtraSensorUseUv)
 											{
 												/*
 												 * Available fields
@@ -2003,7 +2003,7 @@ namespace CumulusMX.Stations
 											}
 
 											// Solar
-											if (cumulus.WllPrimarySolar == rec.tx_id)
+											if (cumulus.WllPrimarySolar == rec.tx_id && !cumulus.ExtraSensorUseSolar)
 											{
 												/*
 												 * Available fields
@@ -2433,15 +2433,18 @@ namespace CumulusMX.Stations
 								*/
 							try
 							{
-								if (data.uv_index_avg.HasValue)
+								if (!cumulus.ExtraSensorUseUv)
 								{
-									cumulus.LogDebugMessage($"DecodeHistoric: using UV data from TxId {data.tx_id}");
+									if (data.uv_index_avg.HasValue)
+									{
+										cumulus.LogDebugMessage($"DecodeHistoric: using UV data from TxId {data.tx_id}");
 
-									DoUV(data.uv_index_avg.Value, lastRecordTime);
-								}
-								else
-								{
-									cumulus.LogWarningMessage($"DecodeHistoric: Warning, no valid UV data on TxId {data.tx_id}");
+										DoUV(data.uv_index_avg.Value, lastRecordTime);
+									}
+									else
+									{
+										cumulus.LogWarningMessage($"DecodeHistoric: Warning, no valid UV data on TxId {data.tx_id}");
+									}
 								}
 							}
 							catch (Exception ex)
@@ -2459,31 +2462,34 @@ namespace CumulusMX.Stations
 								*/
 							try
 							{
-								if (data.solar_rad_avg.HasValue)
+								if (!cumulus.ExtraSensorUseSolar)
 								{
-									cumulus.LogDebugMessage($"DecodeHistoric: using solar data from TxId {data.tx_id}");
-									DoSolarRad(data.solar_rad_avg.Value, lastRecordTime);
-
-									if (!current && IsSunny)
+									if (data.solar_rad_avg.HasValue)
 									{
-										// add in archive period worth of sunshine, if sunny - arch_int in seconds
-										SunshineHours += (data.arch_int / 3600.0);
-									}
-								}
-								else
-								{
-									cumulus.LogWarningMessage($"DecodeHistoric: Warning, no valid Solar data on TxId {data.tx_id}");
-								}
+										cumulus.LogDebugMessage($"DecodeHistoric: using solar data from TxId {data.tx_id}");
+										DoSolarRad(data.solar_rad_avg.Value, lastRecordTime);
 
-								if (data.et.HasValue && !cumulus.StationOptions.CalculatedET)
-								{
-									// wl.com ET is only available in record the start of each hour.
-									// The number is the total for the one hour period.
-									// This is unlike the existing VP2 when the ET is an annual running total
-									// So we try and mimic the VP behaviour
-									var newET = AnnualETTotal + ConvertUnits.RainINToUser(data.et.Value);
-									cumulus.LogDebugMessage($"DecodeHistoric: Adding {ConvertUnits.RainINToUser(data.et.Value):F3} to ET");
-									DoET(newET, lastRecordTime);
+										if (!current && IsSunny)
+										{
+											// add in archive period worth of sunshine, if sunny - arch_int in seconds
+											SunshineHours += (data.arch_int / 3600.0);
+										}
+									}
+									else
+									{
+										cumulus.LogWarningMessage($"DecodeHistoric: Warning, no valid Solar data on TxId {data.tx_id}");
+									}
+
+									if (data.et.HasValue && !cumulus.StationOptions.CalculatedET)
+									{
+										// wl.com ET is only available in record the start of each hour.
+										// The number is the total for the one hour period.
+										// This is unlike the existing VP2 when the ET is an annual running total
+										// So we try and mimic the VP behaviour
+										var newET = AnnualETTotal + ConvertUnits.RainINToUser(data.et.Value);
+										cumulus.LogDebugMessage($"DecodeHistoric: Adding {ConvertUnits.RainINToUser(data.et.Value):F3} to ET");
+										DoET(newET, lastRecordTime);
+									}
 								}
 							}
 							catch (Exception ex)
@@ -2959,7 +2965,7 @@ namespace CumulusMX.Stations
 							}
 
 							// UV
-							if (cumulus.WllPrimaryUV == data.tx_id)
+							if (cumulus.WllPrimaryUV == data.tx_id && !cumulus.ExtraSensorUseUv)
 							{
 								/*
 								 * Available fields
@@ -2990,7 +2996,7 @@ namespace CumulusMX.Stations
 							}
 
 							// Solar
-							if (cumulus.WllPrimarySolar == data.tx_id)
+							if (cumulus.WllPrimarySolar == data.tx_id && !cumulus.ExtraSensorUseSolar)
 							{
 								/*
 								 * Available fields
