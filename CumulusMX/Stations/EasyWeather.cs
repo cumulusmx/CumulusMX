@@ -170,12 +170,6 @@ namespace CumulusMX.Stations
 							DoSolarRad((int) (lightReading * cumulus.SolarOptions.LuxToWM2), now);
 							LightValue = lightReading;
 						}
-
-						if (cumulus.StationOptions.CalculatedET && now.Minute == 0)
-						{
-							// Start of a new hour, and we want to calculate ET in Cumulus
-							CalculateEvapotranspiration(now);
-						}
 					}
 
 					if (!cumulus.ExtraSensorUseUv)
