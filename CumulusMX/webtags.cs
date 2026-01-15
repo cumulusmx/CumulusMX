@@ -43,7 +43,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				return tagParams.Get("rc").Equals("y", StringComparison.InvariantCultureIgnoreCase) ? val.Replace(',', '.') : val;
+				return string.Equals(tagParams.Get("rc"), "y", StringComparison.InvariantCultureIgnoreCase) ? val.Replace(',', '.') : val;
 			}
 			catch
 			{
@@ -56,9 +56,9 @@ namespace CumulusMX
 			string ret;
 			try
 			{
-				var numFormat = tagParams.Get("rc").Equals("y", StringComparison.InvariantCultureIgnoreCase) ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var numFormat = string.Equals(tagParams.Get("rc"), "y", StringComparison.InvariantCultureIgnoreCase) ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
 
-				if (tagParams.Get("tc").Equals("y", StringComparison.InvariantCultureIgnoreCase))
+				if (string.Equals(tagParams.Get("tc"), "y", StringComparison.InvariantCultureIgnoreCase))
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
@@ -86,9 +86,9 @@ namespace CumulusMX
 			string ret;
 			try
 			{
-				var numFormat = tagParams.Get("rc").Equals("y", StringComparison.InvariantCultureIgnoreCase) ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var numFormat = string.Equals(tagParams.Get("rc"), "y", StringComparison.InvariantCultureIgnoreCase) ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
 
-				if (tagParams.Get("tc").Equals("y", StringComparison.InvariantCultureIgnoreCase))
+				if (string.Equals(tagParams.Get("tc"), "y", StringComparison.InvariantCultureIgnoreCase))
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
@@ -1195,7 +1195,7 @@ namespace CumulusMX
 
 		private string Tagtxbattery(Dictionary<string, string> tagParams)
 		{
-			var json = tagParams.Get("format").Equals("json", StringComparison.InvariantCultureIgnoreCase);
+			var json = string.Equals(tagParams.Get("format"), "json", StringComparison.InvariantCultureIgnoreCase);
 
 			if (string.IsNullOrEmpty(station.TxBatText))
 			{
@@ -6469,7 +6469,7 @@ namespace CumulusMX
 
 		private static string TagGw1000Reception(Dictionary<string, string> tagParams)
 		{
-			var json = tagParams.Get("format").Equals("json", StringComparison.InvariantCultureIgnoreCase);
+			var json = string.Equals(tagParams.Get("format"), "json", StringComparison.InvariantCultureIgnoreCase);
 
 			var retVal = new StringBuilder(json ? "{" : string.Empty);
 
@@ -6882,17 +6882,17 @@ namespace CumulusMX
 		private string TagQueryDayFile(Dictionary<string, string> tagParams)
 		{
 			var value = tagParams.Get("value");
-			var function = tagParams.Get("function").ToLower();
+			var function = tagParams.Get("function");
 			var where = tagParams.Get("where");
 			var from = tagParams.Get("from");
 			var to = tagParams.Get("to");
-			var showDate = tagParams.Get("showDate").Equals("y", StringComparison.InvariantCultureIgnoreCase);
-			var dateOnly = tagParams.Get("dateOnly").Equals("y", StringComparison.InvariantCultureIgnoreCase);
+			var showDate = string.Equals(tagParams.Get("showDate"), "y", StringComparison.InvariantCultureIgnoreCase);
+			var dateOnly = string.Equals(tagParams.Get("dateOnly"), "y", StringComparison.InvariantCultureIgnoreCase);
 			var resfunc = tagParams.Get("resFunc");
 
-			tagParams.Add("tc", function == "count" ? "y" : "n");
+			tagParams.Add("tc", string.Equals(function, "count", StringComparison.InvariantCultureIgnoreCase) ? "y" : "n");
 
-			var defaultFormat = function == "count" ? "MM/yyyy" : "g";
+			var defaultFormat = string.Equals(function, "count", StringComparison.InvariantCultureIgnoreCase) ? "MM/yyyy" : "g";
 
 			var ret = station.DayFileQuery.DayFile(value, function, where, from, to, resfunc);
 

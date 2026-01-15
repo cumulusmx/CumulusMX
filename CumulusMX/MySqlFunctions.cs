@@ -231,26 +231,13 @@ namespace CumulusMX
 							transaction = null;
 						}
 					}
-					catch (Exception ex)
+					catch (MySqlException ex)
 					{
 						cumulus.LogErrorMessage($"{CallingFunction}: Error encountered during MySQL operation = {ex.Message}");
 						cumulus.LogMessage($"{CallingFunction}: Failing SQL = {cachedCmd?.statement}");
 
 						cumulus.MySqlUploadAlarm.LastMessage = ex.Message;
 						cumulus.MySqlUploadAlarm.Triggered = true;
-
-						var errorCode = 0;
-						if (ex.Data.Contains("Server Error Code"))
-						{
-							try
-							{
-								errorCode = (int) ex.Data["Server Error Code"];
-							}
-							catch
-							{
-								errorCode = 0;
-							}
-						}
 
 						// If buffering on failure and we're not already processing the failed list, delegate to the error handler
 						if (MySqlSettings.BufferOnfailure && !UsingFailedList)
@@ -270,15 +257,15 @@ namespace CumulusMX
 							}
 
 							// MySqlCommandErrorHandler will dequeue/handle remaining commands in the provided queue
-							MySqlCommandErrorHandler(CallingFunction, errorCode, myQueue);
+							MySqlCommandErrorHandler(CallingFunction, ex.ErrorCode, myQueue);
 						}
 						else if (UsingFailedList)
 						{
 							// We are processing the buffered list
-							if (MySqlCheckError(errorCode))
+							if (MySqlCheckError(ex.ErrorCode))
 							{
 								// discard the bad SQL: delete its recent-data db entry (we already dequeued it)
-								cumulus.LogMessage($"{CallingFunction}: Discarding bad SQL = {cachedCmd.statement}. Error = \"{MySqlErrorToText(errorCode)}\"");
+								cumulus.LogMessage($"{CallingFunction}: Discarding bad SQL = {cachedCmd.statement}. Error = \"{MySqlErrorToText(ex.ErrorCode)}\"");
 								try
 								{
 									station.RecentDataDb.Delete<SqlCache>(cachedCmd.key);
@@ -303,6 +290,10 @@ namespace CumulusMX
 
 						// Break out of the main while - outer catch will handle adding to failed list if needed
 						break;
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"{CallingFunction}: Non-SQL Error");
 					}
 				}
 
@@ -383,24 +374,24 @@ namespace CumulusMX
 			cumulus.MySqlUploadAlarm.Triggered = false;
 		}
 
-		private static bool MySqlCheckError(int ErrorCode)
+		private static bool MySqlCheckError(MySqlErrorCode ErrorCode)
 		{
-			return ErrorCode == (int) MySqlErrorCode.ParseError ||
-				   ErrorCode == (int) MySqlErrorCode.EmptyQuery ||
-				   ErrorCode == (int) MySqlErrorCode.TooBigSelect ||
-				   ErrorCode == (int) MySqlErrorCode.InvalidUseOfNull ||
-				   ErrorCode == (int) MySqlErrorCode.MixOfGroupFunctionAndFields ||
-				   ErrorCode == (int) MySqlErrorCode.SyntaxError ||
-				   ErrorCode == (int) MySqlErrorCode.TooLongString ||
-				   ErrorCode == (int) MySqlErrorCode.WrongColumnName ||
-				   ErrorCode == (int) MySqlErrorCode.DuplicateUnique ||
-				   ErrorCode == (int) MySqlErrorCode.PrimaryCannotHaveNull ||
-				   ErrorCode == (int) MySqlErrorCode.DivisionByZero ||
-				   ErrorCode == (int) MySqlErrorCode.DuplicateKeyEntry;
+			return ErrorCode == MySqlErrorCode.ParseError ||
+				   ErrorCode == MySqlErrorCode.EmptyQuery ||
+				   ErrorCode == MySqlErrorCode.TooBigSelect ||
+				   ErrorCode == MySqlErrorCode.InvalidUseOfNull ||
+				   ErrorCode == MySqlErrorCode.MixOfGroupFunctionAndFields ||
+				   ErrorCode == MySqlErrorCode.SyntaxError ||
+				   ErrorCode == MySqlErrorCode.TooLongString ||
+				   ErrorCode == MySqlErrorCode.WrongColumnName ||
+				   ErrorCode == MySqlErrorCode.DuplicateUnique ||
+				   ErrorCode == MySqlErrorCode.PrimaryCannotHaveNull ||
+				   ErrorCode == MySqlErrorCode.DivisionByZero ||
+				   ErrorCode == MySqlErrorCode.DuplicateKeyEntry;
 
 		}
 
-		private static string MySqlErrorToText(int ErrorCode)
+		private static string MySqlErrorToText(MySqlErrorCode ErrorCode)
 		{
 			return (MySqlErrorCode) ErrorCode switch
 			{
@@ -420,7 +411,7 @@ namespace CumulusMX
 			};
 		}
 
-		private void MySqlCommandErrorHandler(string CallingFunction, int ErrorCode, ConcurrentQueue<SqlCache> Cmds)
+		private void MySqlCommandErrorHandler(string CallingFunction, MySqlErrorCode ErrorCode, ConcurrentQueue<SqlCache> Cmds)
 		{
 			var ignore = MySqlCheckError(ErrorCode);
 
