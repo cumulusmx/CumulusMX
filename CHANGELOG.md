@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## RELEASE CANDIDATE [4.7.0 \[b4138\]][29] - 2026-01-14
+## RELEASE CANDIDATE [4.7.0 \[b4138\]][29] - 2026-01-16
 
 ### RC 4138 Changes from Beta 4137
 
@@ -20,7 +20,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Debug snow logging now controlled via the Program Settings > Logging Options
 - Ecowitt HTTP Custom Server auto-configuration for main and extra stations now tries the HTTP Local API to access the station in addition to the TCP API
 - Fix a major logic error when applying extra sensor data to the main station - affects most stations
-- Web tags are now case insensitive, as are tag parameter keys. Simple parameter values are also case insensitive. Parameter values for date formats etc are obviously still case sensitive.
+- Web tags are now case insensitive, as are tag parameter keys. Simple parameter values are also case insensitive. Parameter values for date formats etc are obviously still case sensitive
+- Fix MySQL error handling to prevent buffering of statements with syntax errors
 
 ### Notes
 
@@ -109,6 +110,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
 - Fix IsRaining alarm being immediately cleared after each trigger when using the Ecowitt "Use Piezo IsRaining" setting
 - Fix a major logic error when applying extra sensor data to the main station - affects most stations
+- Fix MySQL error handling to prevent buffering of statements with syntax errors
 
 ### Package Updates
 
