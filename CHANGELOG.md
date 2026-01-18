@@ -10,9 +10,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## RELEASE CANDIDATE [4.7.0 \[b4138\]][29] - 2026-01-16
+## RELEASE CANDIDATE [4.7.0 \[b4139\]][29] - 2026-01-19
 
-### RC 4138 Changes from Beta 4137
+### RC 4139 Changes from Beta 4137
 
 - More adjustments to real-time FTP error detection and reconnection
 - Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
@@ -1226,4 +1226,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4138
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4139

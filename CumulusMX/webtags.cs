@@ -6895,9 +6895,9 @@ namespace CumulusMX
 			var where = tagParams.Get("where");
 			var from = tagParams.Get("from");
 			var to = tagParams.Get("to");
-			var showDate = string.Equals(tagParams.Get("showDate"), "y", StringComparison.InvariantCultureIgnoreCase);
-			var dateOnly = string.Equals(tagParams.Get("dateOnly"), "y", StringComparison.InvariantCultureIgnoreCase);
-			var resfunc = tagParams.Get("resFunc");
+			var showDate = string.Equals(tagParams.Get("showdate"), "y", StringComparison.InvariantCultureIgnoreCase);
+			var dateOnly = string.Equals(tagParams.Get("dateonly"), "y", StringComparison.InvariantCultureIgnoreCase);
+			var resfunc = tagParams.Get("resfunc");
 
 			tagParams.Add("tc", string.Equals(function, "count", StringComparison.InvariantCultureIgnoreCase) ? "y" : "n");
 
