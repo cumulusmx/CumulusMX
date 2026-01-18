@@ -1981,6 +1981,8 @@ namespace CumulusMX
 			MonthlyTable.AddColumn("CurrWindBearingSym", "varchar(3)");
 			MonthlyTable.AddColumn("FeelsLike", "decimal(4," + TempDPlaces + ")");
 			MonthlyTable.AddColumn("Humidex", "decimal(4," + TempDPlaces + ")");
+			MonthlyTable.AddColumn("BlackGlobeTemp", "decimal(4," + TempDPlaces + ")");
+			MonthlyTable.AddColumn("WetBulbGlobeTemp", "decimal(4," + TempDPlaces + ")");
 			MonthlyTable.PrimaryKey = "LogDateTime";
 			MonthlyTable.Comment = "\"Monthly logs from Cumulus\"";
 		}
@@ -4751,6 +4753,7 @@ namespace CumulusMX
 				ExtraSensorUseCamera = ini.GetValue("ExtraSensors", "ExtraSensorUseCamera", true);
 			}
 			ExtraSensorUseLaserDist = ini.GetValue("ExtraSensors", "ExtraSensorUseLaserDist", true);
+			ExtraSensorUseBGT = ini.GetValue("ExtraSensors", "ExtraSensorUseBGT", true);
 
 			// AirLink settings
 			// We have to convert previous per AL IsNode config to global
@@ -6707,6 +6710,7 @@ namespace CumulusMX
 			ini.SetValue("ExtraSensors", "ExtraSensorUseLeak", ExtraSensorUseLeak);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseCamera", ExtraSensorUseCamera);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseLaserDist", ExtraSensorUseLaserDist);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseBGT", ExtraSensorUseBGT);
 
 			// AirLink settings
 			ini.SetValue("AirLink", "IsWllNode", AirLinkIsNode);
@@ -8294,7 +8298,7 @@ namespace CumulusMX
 		public bool ExtraSensorUseLeak { get; set; }
 		public bool ExtraSensorUseCamera { get; set; }
 		public bool ExtraSensorUseLaserDist { get; set; }
-
+		public bool ExtraSensorUseBGT { get; set; }
 
 		public bool EcowittExtraEnabled { get; set; }
 		public bool EcowittCloudExtraEnabled { get; set; }
@@ -8642,7 +8646,7 @@ namespace CumulusMX
 			return Path.Combine(ProgramOptions.DataPath, CustomDailyLogSettings[idx].FileName + ".txt");
 		}
 
-		public const int NumLogFileFields = 29;
+		public const int NumLogFileFields = 31;
 
 		public async Task DoLogFile(DateTime timestamp, bool live)
 		{
@@ -8676,6 +8680,9 @@ namespace CumulusMX
 			// 26  Rain since midnight
 			// 27  Feels like
 			// 28  Humidex
+			// 29 BGT
+			// 30 WBGT
+
 
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("DoLogFile: Writing log entry for " + timestamp);
@@ -8764,6 +8771,9 @@ namespace CumulusMX
 					values.Append(sep + "'" + station.CompassPoint(station.Bearing) + "'");
 					values.Append(sep + station.FeelsLike.ToString(TempFormat, inv));
 					values.Append(sep + station.Humidex.ToString(TempFormat, inv));
+					values.Append(sep + (station.BlackGlobeTemp.HasValue ? station.BlackGlobeTemp.Value.ToString(TempFormat, inv) : "NULL"));
+					values.Append(sep + (station.WetBulbGlobeTemp.HasValue? station.WetBulbGlobeTemp.Value.ToString(TempFormat, inv) : "NULL"));
+
 					values.Append(')');
 
 					queryString = values.ToString();

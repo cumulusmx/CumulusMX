@@ -295,6 +295,10 @@ namespace CumulusMX.Stations
 							{
 								DoOutdoorDewpoint(ConvertUnits.TempCToUser(data.temperature.dewpoint.Value), data.lastupdated);
 							}
+							if (data.temperature.blackglobe.HasValue)
+							{
+								BlackGlobeTemp = ConvertUnits.TempCToUser(data.temperature.blackglobe.Value);
+							}
 						}
 						else if (data.units.temperature == "F")
 						{
@@ -306,6 +310,14 @@ namespace CumulusMX.Stations
 							if (data.temperature.indoor.HasValue)
 							{
 								DoIndoorTemp(ConvertUnits.TempFToUser(data.temperature.indoor.Value));
+							}
+							if (!cumulus.StationOptions.CalculatedDP && data.temperature.dewpoint.HasValue)
+							{
+								DoOutdoorDewpoint(ConvertUnits.TempFToUser(data.temperature.dewpoint.Value), data.lastupdated);
+							}
+							if (data.temperature.blackglobe.HasValue)
+							{
+								BlackGlobeTemp = ConvertUnits.TempFToUser(data.temperature.blackglobe.Value);
 							}
 						}
 						else
@@ -912,6 +924,7 @@ namespace CumulusMX.Stations
 			public double? outdoor { get; set; }
 			public double? indoor { get; set; }
 			public double? dewpoint { get; set; }
+			public double? blackglobe { get; set; }
 		}
 		private sealed class Humidity
 		{

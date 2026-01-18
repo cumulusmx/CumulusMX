@@ -548,11 +548,17 @@ namespace CumulusMX.Stations
 
 				if (lines == null || lines.Count == 1)
 				{
-					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file");
+					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file, skipping it");
 					continue;
 				}
 
 				var logfile = new EcowittLogFile(lines, cumulus, localApi.SdCardInterval);
+
+				if (!logfile.HeaderValid)
+				{
+					cumulus.LogMessage($"GetHistoricDataSdCard: Invalid header in this file, skipping it");
+					continue;
+				}
 
 				var data = logfile.DataParser();
 
@@ -594,11 +600,17 @@ namespace CumulusMX.Stations
 
 				if (lines == null || lines.Count == 1)
 				{
-					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file");
+					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file, skipping it");
 					continue;
 				}
 
 				var logfile = new EcowittExtraLogFile(lines, cumulus, localApi.SdCardInterval);
+
+				if (!logfile.HeaderValid)
+				{
+					cumulus.LogMessage($"GetHistoricDataSdCard: Invalid header in this file, skipping it");
+					continue;
+				}
 
 				var data = logfile.DataParser();
 
@@ -1145,6 +1157,32 @@ namespace CumulusMX.Stations
 							if (sensor.valDbl.HasValue && !cumulus.ExtraSensorUseUv)
 							{
 								DoUV(sensor.valDbl.Value, dateTime);
+							}
+							break;
+
+						case "0xA1": // WBGT
+							if (!cumulus.ExtraSensorUseBGT)
+							{
+								if (sensor.valDbl.HasValue)
+								{
+									var wbgt = sensor.valDbl.Value;
+									wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
+
+									WetBulbGlobeTemp = wbgt;
+								}
+							}
+							break;
+
+						case "0xA2": // BGT
+							if (!cumulus.ExtraSensorUseBGT)
+							{
+								if (sensor.valDbl.HasValue)
+								{
+									var bgt = sensor.valDbl.Value;
+									bgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(bgt) : ConvertUnits.TempFToUser(bgt);
+
+									BlackGlobeTemp = bgt;
+								}
 							}
 							break;
 

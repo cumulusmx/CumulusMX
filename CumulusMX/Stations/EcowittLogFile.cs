@@ -22,6 +22,8 @@ namespace CumulusMX.Stations
 		private readonly Dictionary<string, int> FieldIndex = [];
 		private readonly int interval;
 
+		public bool HeaderValid { get; }
+
 		public EcowittLogFile(List<string> data, Cumulus cumul, int interval)
 		{
 			cumulus = cumul;
@@ -29,7 +31,7 @@ namespace CumulusMX.Stations
 			this.interval = interval;
 
 			// parse the header
-			HeaderParser(data[0]);
+			HeaderValid = HeaderParser(data[0]);
 		}
 
 		public SortedList<long, EcowittApi.HistoricData> DataParser()
@@ -133,6 +135,8 @@ namespace CumulusMX.Stations
 					if (FieldIndex.TryGetValue("outdoor humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.Humidity = varInt;
 					if (FieldIndex.TryGetValue("dew point", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DewPoint = varDec;
 					if (FieldIndex.TryGetValue("feels like", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.FeelsLike = varDec;
+					if (FieldIndex.TryGetValue("bgt", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.BGT = varDec;
+					if (FieldIndex.TryGetValue("wbgt", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WBGT = varDec;
 					if (FieldIndex.TryGetValue("wind", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WindSpd = varDec;
 					if (FieldIndex.TryGetValue("gust", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WindGust = varDec;
 					//if (FieldIndex.TryGetValue("windDir_10min_avg", out idx) && int.TryParse(fields[idx], out varInt)) rec.WindDirAvg = varInt;
@@ -310,7 +314,7 @@ namespace CumulusMX.Stations
 		}
 
 
-		private void HeaderParser (string header)
+		private bool HeaderParser (string header)
 		{
 			// Time,          Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃), Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),                          Wind(mph),Gust(mph),                       Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,                                                                                     Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
 			// Time,          Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃), Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),                          Wind(m/s),Gust(m/s),                       Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,                              Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
@@ -333,7 +337,7 @@ namespace CumulusMX.Stations
 			{
 				// invalid header
 				cumulus.LogErrorMessage("EcowittLogFile.HeaderParser: Invalid header in file = " + header);
-				return;
+				return false;
 			}
 
 			// create a fields index
@@ -431,6 +435,8 @@ namespace CumulusMX.Stations
 				cumulus.LogErrorMessage("EcowittLogFile.HeaderParser: Unable to determine solar units, defaulting to Cumulus units");
 				SolarUnit = SolarUnits.wm2;
 			}
+
+			return true;
 		}
 
 

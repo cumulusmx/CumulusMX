@@ -5309,6 +5309,15 @@ namespace CumulusMX
 			return vpd.HasValue ? CheckRcDp(CheckPressUnit(vpd.Value, tagParams), tagParams, cumulus.PressDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
+		private string TagBlackGlobeTemp(Dictionary<string, string> tagParams)
+		{
+			return station.BlackGlobeTemp.HasValue ? CheckRcDp(station.BlackGlobeTemp.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+		}
+
+		private string TagWetBulbGlobeTemp(Dictionary<string, string> tagParams)
+		{
+			return station.WetBulbGlobeTemp.HasValue ? CheckRcDp(station.WetBulbGlobeTemp.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+		}
 
 		// Alarms
 		private string TagLowTempAlarm(Dictionary<string, string> tagParams)
@@ -7530,6 +7539,8 @@ namespace CumulusMX
 				{ "LeafWetness8", TagLeafWetness8 },
 
 				{ "VapourPressDeficit", TagVapourPressDeficit },
+				{ "BlackGlobeTemp", TagBlackGlobeTemp },
+				{ "WetBulbGlobeTemp", TagWetBulbGlobeTemp },
 
 				{ "LowTempAlarm", TagLowTempAlarm },
 				{ "HighTempAlarm", TagHighTempAlarm },

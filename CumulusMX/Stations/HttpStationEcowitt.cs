@@ -962,6 +962,20 @@ namespace CumulusMX.Stations
 					}
 				}
 
+				// === BGT & WBGT ===
+				if (main ^ cumulus.ExtraSensorUseBGT)
+				{
+					try
+					{
+						ProcessBGT(data, thisStation);
+						ProcessWBGT(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in BGT data - {ex.Message}");
+					}
+				}
+
 				// === Batteries ===
 				try
 				{
@@ -1268,6 +1282,22 @@ namespace CumulusMX.Stations
 			if (data["uv"] != null)
 			{
 				station.DoUV(Convert.ToDouble(data["uv"], invNum), recDate);
+			}
+		}
+
+		private void ProcessBGT(NameValueCollection data, WeatherStation station)
+		{
+			if (data["bgt"] != null)
+			{
+				station.BlackGlobeTemp = ConvertUnits.TempFToUser(Convert.ToDouble(data["bgt"], invNum));
+			}
+		}
+
+		private void ProcessWBGT(NameValueCollection data, WeatherStation station)
+		{
+			if (data["wbgt"] != null)
+			{
+				station.BlackGlobeTemp = ConvertUnits.TempFToUser(Convert.ToDouble(data["wbgt"], invNum));
 			}
 		}
 

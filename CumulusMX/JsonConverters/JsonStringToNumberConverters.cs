@@ -13,7 +13,8 @@ namespace CumulusMX.JsonConverters
 			if (reader.TokenType == JsonTokenType.String)
 			{
 				string stringValue = reader.GetString();
-				if (int.TryParse(stringValue, out int value))
+				// int only allows nn.0 decimal strings
+				if (int.TryParse(stringValue, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out int value))
 				{
 					return value;
 				}
@@ -43,7 +44,8 @@ namespace CumulusMX.JsonConverters
 				{
 					return null;
 				}
-				else if (int.TryParse(stringValue, out int value))
+				// int only allows nn.0 decimal strings
+				else if (int.TryParse(stringValue, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out int value))
 				{
 					return value;
 				}

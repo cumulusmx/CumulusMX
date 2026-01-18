@@ -1546,6 +1546,9 @@ namespace CumulusMX
 
 		public double ET { get; set; }
 
+		public double? BlackGlobeTemp { get; set; }
+		public double? WetBulbGlobeTemp { get; set; }
+
 		public double LightValue { get; set; }
 
 		public double HeatingDegreeDays { get; set; }

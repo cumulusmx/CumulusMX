@@ -190,7 +190,8 @@ namespace CumulusMX.Stations
 				"ch_lds1",
 				"ch_lds2",
 				"ch_lds3",
-				"ch_lds4"
+				"ch_lds4",
+				"black_globe_termperature"
 			};
 
 			sb.Append("&call_back=");
@@ -547,7 +548,6 @@ namespace CumulusMX.Stations
 							}
 						}
 					}
-
 				}
 				catch (Exception ex)
 				{
@@ -866,6 +866,7 @@ namespace CumulusMX.Stations
 					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing solar data. Exception: " + ex.Message);
 				}
 			}
+
 			// Extra 8 channel sensors
 			for (var i = 1; i <= 8; i++)
 			{
@@ -1606,6 +1607,61 @@ namespace CumulusMX.Stations
 				cumulus.LogErrorMessage($"API.ProcessHistoryData: Error in pre-processing LDS-01 data. Exception: {ex.Message}");
 			}
 
+			// BGT & WBGT
+			if (data.black_globe_temperature != null)
+			{
+				try
+				{
+					// BGT
+					if (data.black_globe_temperature.bgt != null)
+					{
+						foreach (var item in data.black_globe_temperature.bgt.list)
+						{
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
+
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
+							{
+								value.BGT = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ BGT = item.Value };
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+					// WBGT
+					if (data.black_globe_temperature.wbgt != null)
+					{
+						foreach (var item in data.black_globe_temperature.wbgt.list)
+						{
+							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
+
+							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
+								continue;
+
+							if (buffer.TryGetValue(itemDate, out var value))
+							{
+								value.WBGT = item.Value;
+							}
+							else
+							{
+								var newItem = new HistoricData()
+								{ WBGT = item.Value };
+								buffer.Add(itemDate, newItem);
+							}
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage("API.ProcessHistoryData: Error in pre-processing BGT data. Exception: " + ex.Message);
+				}
+			}
 
 
 			// now we have all the data for this period, for each record create the string expected by ProcessData and get it processed
@@ -2007,6 +2063,23 @@ namespace CumulusMX.Stations
 			catch (Exception ex)
 			{
 				cumulus.LogErrorMessage("ApplyHistoricData: Error in Solar data - " + ex.Message);
+			}
+
+			// === Black Globe Temperature ===
+			try
+			{
+				if (rec.Value.BGT.HasValue && !cumulus.ExtraSensorUseBGT)
+				{
+					station.BlackGlobeTemp = (double) rec.Value.BGT.Value;
+				}
+				if (rec.Value.WBGT.HasValue && !cumulus.ExtraSensorUseBGT)
+				{
+					station.WetBulbGlobeTemp = (double) rec.Value.WBGT.Value;
+				}
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("ApplyHistoricData: Error in BGT data - " + ex.Message);
 			}
 
 			// === Extra Sensors ===
@@ -3387,6 +3460,7 @@ namespace CumulusMX.Stations
 			public HistoricDataLdsCh2 ch_lds2 { get; set; }
 			public HistoricDataLdsCh3 ch_lds3 { get; set; }
 			public HistoricDataLdsCh4 ch_lds4 { get; set; }
+			public HistoricDataBGT black_globe_temperature { get; set; }
 		}
 
 		internal class HistoricDataTypeInt
@@ -3470,12 +3544,12 @@ namespace CumulusMX.Stations
 
 		internal class HistoricDataPm25Aqi
 		{
-			public HistoricDataTypeInt pm25 { get; set; }
+			public HistoricDataTypeDbl pm25 { get; set; }
 		}
 
 		internal class HistoricDataPm10Aqi
 		{
-			public HistoricDataTypeInt pm10 { get; set; }
+			public HistoricDataTypeDbl pm10 { get; set; }
 		}
 
 		internal class HistoricDataLdsCh1
@@ -3506,6 +3580,11 @@ namespace CumulusMX.Stations
 			public HistoricDataTypeInt ldsheat_ch4 { get; set; }
 		}
 
+		internal class HistoricDataBGT
+		{
+			public HistoricDataTypeDbl bgt { get; set; }
+			public HistoricDataTypeDbl wbgt { get; set; }
+		}
 
 		internal class HistoricData
 		{
@@ -3515,6 +3594,8 @@ namespace CumulusMX.Stations
 			public decimal? Temp { get; set; }
 			public decimal? DewPoint { get; set; }
 			public decimal? FeelsLike { get; set; }
+			public decimal? BGT { get; set; }
+			public decimal? WBGT { get; set; }
 			public decimal? Apparent { get; set; }
 			public int? Humidity { get; set; }
 			public decimal? RainRate { get; set; }
@@ -3623,6 +3704,7 @@ namespace CumulusMX.Stations
 			public CurrentDataLdsCh2 ch_lds2 { get; set; }
 			public CurrentDataLdsCh3 ch_lds3 { get; set; }
 			public CurrentDataLdsCh4 ch_lds4 { get; set; }
+			public CurrentDataBGT black_globe_temperature { get; set; }
 		}
 
 		internal class CurrentOutdoor
@@ -3692,20 +3774,20 @@ namespace CumulusMX.Stations
 
 		internal class CurrentPm25
 		{
-			public CurrentSensorValInt real_time_aqi { get; set; }
-			public CurrentSensorValInt pm25 { get; set; }
+			public CurrentSensorValDbl real_time_aqi { get; set; }
+			public CurrentSensorValDbl pm25 { get; set; }
 
 			[JsonPropertyName("24_hours_aqi")]
-			public CurrentSensorValInt AqiAvg24h { get; set; }
+			public CurrentSensorValDbl AqiAvg24h { get; set; }
 		}
 
 		internal class CurrentPm10
 		{
-			public CurrentSensorValInt real_time_aqi { get; set; }
-			public CurrentSensorValInt pm10 { get; set; }
+			public CurrentSensorValDbl real_time_aqi { get; set; }
+			public CurrentSensorValDbl pm10 { get; set; }
 
 			[JsonPropertyName("24_hours_aqi")]
-			public CurrentSensorValInt AqiAvg24h { get; set; }
+			public CurrentSensorValDbl AqiAvg24h { get; set; }
 		}
 
 		internal class CurrentLeak
@@ -3786,6 +3868,7 @@ namespace CumulusMX.Stations
 			public CurrentSensorValDbl ldsbatt_2 { get; set; }
 			public CurrentSensorValDbl ldsbatt_3 { get; set; }
 			public CurrentSensorValDbl ldsbatt_4 { get; set; }
+			public CurrentSensorValDbl bgt_sensor { get; set; }
 		}
 
 		internal class CurrentCamera
@@ -3846,6 +3929,12 @@ namespace CumulusMX.Stations
 			public int time { get; set; }
 			public string unit { get; set; }
 			public decimal? value { get; set; }
+		}
+
+		internal class CurrentDataBGT
+		{
+			public CurrentSensorValDbl bgt { get; set; }
+			public CurrentSensorValDbl wbgt { get; set; }
 		}
 
 		internal class StationList

@@ -78,6 +78,7 @@ namespace CumulusMX.Settings
 				useLeak = cumulus.ExtraSensorUseLeak,
 				useCamera = cumulus.ExtraSensorUseCamera,
 				useLaserDist = cumulus.ExtraSensorUseLaserDist,
+				useBGT = cumulus.ExtraSensorUseBGT,
 
 				setcustom = cumulus.EcowittExtraSetCustomServer,
 				gwaddr = cumulus.EcowittExtraGatewayAddr,
@@ -147,7 +148,8 @@ namespace CumulusMX.Settings
 				useUserTemp = cumulus.ExtraSensorUseUserTemp,
 				useAQI = cumulus.ExtraSensorUseAQI,
 				useCo2 = cumulus.ExtraSensorUseCo2,
-				useLaserDist = cumulus.ExtraSensorUseLaserDist
+				useLaserDist = cumulus.ExtraSensorUseLaserDist,
+				useBGT = cumulus.ExtraSensorUseBGT
 			};
 
 			var httpStation = new JsonHttp
@@ -356,6 +358,7 @@ namespace CumulusMX.Settings
 						cumulus.ExtraSensorUseLeak = settings.httpSensors.ecowitt.useLeak;
 						cumulus.ExtraSensorUseLaserDist = settings.httpSensors.ecowitt.useLaserDist;
 						cumulus.ExtraSensorUseCamera = settings.httpSensors.ecowitt.useCamera;
+						cumulus.ExtraSensorUseBGT = settings.httpSensors.ecowitt.useBGT;
 
 						cumulus.EcowittExtraSetCustomServer = settings.httpSensors.ecowitt.setcustom;
 						if (cumulus.EcowittExtraSetCustomServer)
@@ -565,6 +568,7 @@ namespace CumulusMX.Settings
 						cumulus.ExtraSensorUseAQI = settings.httpSensors.jsonstation.useAQI;
 						cumulus.ExtraSensorUseCo2 = settings.httpSensors.jsonstation.useCo2;
 						cumulus.ExtraSensorUseLaserDist = settings.httpSensors.jsonstation.useLaserDist;
+						cumulus.ExtraSensorUseBGT = settings.httpSensors.ecowitt.useBGT;
 
 						// Also enable extra logging if applicable
 						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseLeafWet || cumulus.ExtraSensorUseUserTemp || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2 || cumulus.ExtraSensorUseLaserDist)
@@ -759,6 +763,8 @@ namespace CumulusMX.Settings
 			public bool useLeak { get; set; }
 			public bool useCamera { get; set; }
 			public bool useLaserDist { get; set; }
+			public bool useBGT { get; set; }
+			public bool useWBGT { get; set; }
 		}
 
 		private sealed class JsonEcowitt : JsonAmbient

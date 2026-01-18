@@ -48,6 +48,8 @@ namespace CumulusMX.LogFiles
 		public double? RainSinceMidnight { get; set; }
 		public double? FeelsLike { get; set; }
 		public double? Humidex { get; set; }
+		public double? BlackGlobeTemp { get; set; }
+		public double? WetBulbGlobeTemp { get; set; }
 
 		public LogFileRec()
 		{
@@ -91,6 +93,8 @@ namespace CumulusMX.LogFiles
 			// 26  Rain since midnight
 			// 27  Feels like
 			// 28  Humidex
+			// 29  Black Globe Temp
+			// 30  Wet bulb Globe Temp
 
 
 			var inv = CultureInfo.InvariantCulture;
@@ -157,6 +161,12 @@ namespace CumulusMX.LogFiles
 
 				if (st.Count > 28 && double.TryParse(st[28], inv, out resultDbl))
 					Humidex = resultDbl;
+
+				if (st.Count > 29 && double.TryParse(st[29], inv, out resultDbl))
+					BlackGlobeTemp = resultDbl;
+
+				if (st.Count > 30 && double.TryParse(st[30], inv, out resultDbl))
+					WetBulbGlobeTemp = resultDbl;
 			}
 			catch (Exception ex)
 			{
@@ -181,28 +191,30 @@ namespace CumulusMX.LogFiles
 				RainToday.ToString("F2", inv),
 				Pressure.ToString("F1", inv),
 				RainCounter.ToString("F2", inv),
-				IndoorTemperature.HasValue ? IndoorTemperature.Value.ToString("F1", inv) : "",
-				IndoorHumidity.HasValue ? IndoorHumidity.Value.ToString("F0", inv) : "",
+				IndoorTemperature.HasValue ? IndoorTemperature.Value.ToString("F1", inv) : string.Empty,
+				IndoorHumidity.HasValue ? IndoorHumidity.Value.ToString("F0", inv) : string.Empty,
 				WindLatest.ToString("F1", inv),
-				WindChill.HasValue ? WindChill.Value.ToString("F1", inv) : "",
-				HeatIndex.HasValue ? HeatIndex.Value.ToString("F1", inv) : "",
-				UV.HasValue ? UV.Value.ToString("F1", inv) : "",
-				SolarRad.HasValue ? SolarRad.Value.ToString("F0", inv) : "",
-				ET.HasValue ? ET.Value.ToString("F2", inv) : "",
-				AnnualETTotal.HasValue ? AnnualETTotal.Value.ToString("F1", inv) : "",
-				ApparentTemperature.HasValue ? ApparentTemperature.Value.ToString("F1", inv) : "",
-				CurrentSolarMax.HasValue ? CurrentSolarMax.Value.ToString("F0", inv) : "",
-				SunshineHours.HasValue ? SunshineHours.Value.ToString("F2", inv) : "",
-				Bearing.HasValue ? Bearing.Value.ToString("F0", inv) : "",
-				RG11RainToday.HasValue ? RG11RainToday.Value.ToString("F2", inv) : "",
-				RainSinceMidnight.HasValue ? RainSinceMidnight.Value.ToString("F2", inv) : "",
-				FeelsLike.HasValue ? FeelsLike.Value.ToString("F1", inv) : "",
-				Humidex.HasValue ? Humidex.Value.ToString("F1", inv) : ""
-				);
+				WindChill.HasValue ? WindChill.Value.ToString("F1", inv) : string.Empty,
+				HeatIndex.HasValue ? HeatIndex.Value.ToString("F1", inv) : string.Empty,
+				UV.HasValue ? UV.Value.ToString("F1", inv) : string.Empty,
+				SolarRad.HasValue ? SolarRad.Value.ToString("F0", inv) : string.Empty,
+				ET.HasValue ? ET.Value.ToString("F2", inv) : string.Empty,
+				AnnualETTotal.HasValue ? AnnualETTotal.Value.ToString("F1", inv) : string.Empty,
+				ApparentTemperature.HasValue ? ApparentTemperature.Value.ToString("F1", inv) : string.Empty,
+				CurrentSolarMax.HasValue ? CurrentSolarMax.Value.ToString("F0", inv) : string.Empty,
+				SunshineHours.HasValue ? SunshineHours.Value.ToString("F2", inv) : string.Empty,
+				Bearing.HasValue ? Bearing.Value.ToString("F0", inv) : string.Empty,
+				RG11RainToday.HasValue ? RG11RainToday.Value.ToString("F2", inv) : string.Empty,
+				RainSinceMidnight.HasValue ? RainSinceMidnight.Value.ToString("F2", inv) : string.Empty,
+				FeelsLike.HasValue ? FeelsLike.Value.ToString("F1", inv) : string.Empty,
+				Humidex.HasValue ? Humidex.Value.ToString("F1", inv) : string.Empty,
+				BlackGlobeTemp.HasValue ? BlackGlobeTemp.Value.ToString("F1", inv) : string.Empty,
+				WetBulbGlobeTemp.HasValue ? WetBulbGlobeTemp.Value.ToString("F1", inv) : string.Empty
+			);
 		}
 
 		public static string CurrentToCsv(DateTime timestamp, Cumulus cumulus, WeatherStation station)
-		{ 
+		{
 			var inv = CultureInfo.InvariantCulture;
 			return string.Join(",",
 				timestamp.ToString("dd/MM/yy HH:mm", inv),
@@ -217,13 +229,13 @@ namespace CumulusMX.LogFiles
 				station.RainToday.ToString(cumulus.RainFormat, inv),
 				station.Pressure.ToString(cumulus.PressFormat, inv),
 				station.RainCounter.ToString(cumulus.RainFormat, inv),
-				station.IndoorTemperature.HasValue ? station.IndoorTemperature.Value.ToString(cumulus.TempFormat, inv) : "",
-				station.IndoorHumidity.HasValue ? station.IndoorHumidity.Value : "",
+				station.IndoorTemperature.HasValue ? station.IndoorTemperature.Value.ToString(cumulus.TempFormat, inv) : string.Empty,
+				station.IndoorHumidity.HasValue ? station.IndoorHumidity.Value : string.Empty,
 				station.WindLatest.ToString(cumulus.WindFormat, inv),
 				station.WindChill.ToString(cumulus.TempFormat, inv),
 				station.HeatIndex.ToString(cumulus.TempFormat, inv),
-				station.UV.HasValue ? station.UV.Value.ToString(cumulus.UVFormat, inv) : "",
-				station.SolarRad.HasValue ? station.SolarRad.Value : "",
+				station.UV.HasValue ? station.UV.Value.ToString(cumulus.UVFormat, inv) : string.Empty,
+				station.SolarRad.HasValue ? station.SolarRad.Value : string.Empty,
 				station.ET.ToString(cumulus.ETFormat, inv),
 				station.AnnualETTotal.ToString(cumulus.ETFormat, inv),
 				station.ApparentTemperature.ToString(cumulus.TempFormat, inv),
@@ -233,7 +245,9 @@ namespace CumulusMX.LogFiles
 				station.RG11RainToday.ToString(cumulus.RainFormat, inv),
 				station.RainSinceMidnight.ToString(cumulus.RainFormat, inv),
 				station.FeelsLike.ToString(cumulus.TempFormat, inv),
-				station.Humidex.ToString(cumulus.TempFormat, inv)
+				station.Humidex.ToString(cumulus.TempFormat, inv),
+				station.BlackGlobeTemp.HasValue ? station.BlackGlobeTemp.Value.ToString(cumulus.TempFormat, inv) : string.Empty,
+				station.WetBulbGlobeTemp.HasValue ? station.WetBulbGlobeTemp.Value.ToString(cumulus.TempFormat, inv) : string.Empty
 			) + Environment.NewLine;
 		}
 	}

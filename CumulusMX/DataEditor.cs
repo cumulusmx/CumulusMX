@@ -3562,6 +3562,8 @@ namespace CumulusMX
 								updt.Append($"CurrWindBearingSym='{(LogRec.Bearing.HasValue ? station.CompassPoint(LogRec.Bearing.Value) : "NULL")}',");
 								updt.Append($"FeelsLike={(LogRec.FeelsLike.HasValue ? LogRec.FeelsLike.Value.ToString(cumulus.TempFormat, InvC) : "NULL")},");
 								updt.Append($"Humidex={(LogRec.Humidex.HasValue ? LogRec.Humidex.Value.ToString(cumulus.TempFormat, InvC) : "NULL")} ");
+								updt.Append($"BlackGlobeTemp={(LogRec.BlackGlobeTemp.HasValue ? LogRec.BlackGlobeTemp.Value.ToString(cumulus.TempFormat, InvC) : "NULL")} ");
+								updt.Append($"WetBulbGlobeTemp={(LogRec.WetBulbGlobeTemp.HasValue ? LogRec.WetBulbGlobeTemp.Value.ToString(cumulus.TempFormat, InvC) : "NULL")} ");
 
 								updt.Append($"WHERE LogDateTime='{LogRec.DateTime:yyyy-MM-dd HH:mm}';");
 								updateStr = updt.ToString();

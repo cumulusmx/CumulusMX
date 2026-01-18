@@ -652,6 +652,23 @@ namespace CumulusMX.Stations
 					}
 				}
 
+				// === BGT ===
+				if (data.black_globe_temperature != null)
+				{
+					try
+					{
+						if (mainStation ^ cumulus.ExtraSensorUseBGT)
+						{
+							station.BlackGlobeTemp = data.black_globe_temperature.bgt.value;
+							station.WetBulbGlobeTemp = data.black_globe_temperature.wbgt.value;
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in BGT data - {ex.Message}");
+					}
+				}
+
 				cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
 				if (mainStation)
@@ -1405,6 +1422,11 @@ namespace CumulusMX.Stations
 					lowBatt = true;
 					LowBatteryDevices.Add("LDS#4=" + data.battery.ldsbatt_4.value + "V");
 				}
+				if (data.battery.bgt_sensor != null && data.battery.bgt_sensor.value < 1.2)      // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("BGT=" + data.battery.bgt_sensor.value + "V");
+				}
 
 				cumulus.BatteryLowAlarm.Triggered = lowBatt;
 			}
@@ -1412,6 +1434,9 @@ namespace CumulusMX.Stations
 
 		private async Task CheckAvailableFirmware()
 		{
+			if (deviceModel == null)
+				return;
+
 			if (EcowittApi.SimpleSupportedModels.Contains(deviceModel[..6]))
 			{
 				var retVal = ecowittApi.GetSimpleLatestFirmwareVersion(deviceModel, Program.ExitSystemToken).Result;
