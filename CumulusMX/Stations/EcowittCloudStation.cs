@@ -101,7 +101,7 @@ namespace CumulusMX.Stations
 				DataTimeoutMins = cumulus.EcowittCloudDataUpdateInterval + 2;
 			}
 
-			if (mainStation ^ cumulus.ExtraSensorUseAQI)
+			if (mainStation || cumulus.ExtraSensorUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
@@ -109,7 +109,7 @@ namespace CumulusMX.Stations
 			{
 				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
-			if (mainStation ^ cumulus.ExtraSensorUseLeafWet)
+			if (mainStation || cumulus.ExtraSensorUseLeafWet)
 			{
 				cumulus.Units.LeafWetnessUnitText = "%";
 			}
@@ -206,7 +206,7 @@ namespace CumulusMX.Stations
 								{
 									try
 									{
-										var retVal = ecowittApi.GetStationList(mainStation ^ cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
+										var retVal = ecowittApi.GetStationList(mainStation || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 										if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 										{
 											// EasyWeather seems to contain the WiFi version
@@ -273,7 +273,7 @@ namespace CumulusMX.Stations
 
 		public override string GetEcowittCameraUrl(string mac)
 		{
-			if (cumulus.ExtraSensorUseCamera ^ mainStation)
+			if (mainStation || cumulus.ExtraSensorUseCamera)
 			{
 				if (string.IsNullOrEmpty(mac))
 				{
@@ -297,7 +297,7 @@ namespace CumulusMX.Stations
 
 		public override string GetEcowittVideoUrl(string mac)
 		{
-			if (cumulus.ExtraSensorUseCamera ^ mainStation)
+			if (mainStation || cumulus.ExtraSensorUseCamera)
 			{
 				if (string.IsNullOrEmpty(mac))
 				{
@@ -498,10 +498,10 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						if (data.solar_and_uvi.solar != null && (mainStation ^ cumulus.ExtraSensorUseSolar))
+						if (data.solar_and_uvi.solar != null && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseSolar))
 							DoSolarRad((int) data.solar_and_uvi.solar.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
 
-						if (data.solar_and_uvi.uvi != null && (mainStation ^ cumulus.ExtraSensorUseUv))
+						if (data.solar_and_uvi.uvi != null && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseUv))
 							DoUV(data.solar_and_uvi.uvi.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
 					}
 					catch (Exception ex)
@@ -511,7 +511,7 @@ namespace CumulusMX.Stations
 				}
 
 				// Extra Temperature
-				if (mainStation ^ cumulus.ExtraSensorUseTempHum)
+				if (mainStation || cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -524,7 +524,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Soil/Water Temp ===
-				if (mainStation ^ cumulus.ExtraSensorUseUserTemp)
+				if (mainStation || cumulus.ExtraSensorUseUserTemp)
 				{
 					try
 					{
@@ -537,7 +537,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Soil Moisture ===
-				if (mainStation ^ cumulus.ExtraSensorUseSoilMoist)
+				if (mainStation || cumulus.ExtraSensorUseSoilMoist)
 				{
 					try
 					{
@@ -550,7 +550,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Leaf Wetness ===
-				if (mainStation ^ cumulus.ExtraSensorUseLeafWet)
+				if (mainStation || cumulus.ExtraSensorUseLeafWet)
 				{
 					try
 					{
@@ -563,7 +563,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Air Quality ===
-				if (mainStation ^ cumulus.ExtraSensorUseAQI)
+				if (mainStation || cumulus.ExtraSensorUseAQI)
 				{
 					try
 					{
@@ -576,7 +576,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === CO₂ ===
-				if (mainStation ^ cumulus.ExtraSensorUseCo2)
+				if (mainStation || cumulus.ExtraSensorUseCo2)
 				{
 					try
 					{
@@ -589,7 +589,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Lightning ===
-				if (mainStation ^ cumulus.ExtraSensorUseLightning)
+				if (mainStation || cumulus.ExtraSensorUseLightning)
 				{
 					try
 					{
@@ -602,7 +602,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Leak ===
-				if (mainStation ^ cumulus.ExtraSensorUseLeak)
+				if (mainStation || cumulus.ExtraSensorUseLeak)
 				{
 					try
 					{
@@ -640,7 +640,7 @@ namespace CumulusMX.Stations
 				*/
 
 				// === LDS ===
-				if (mainStation ^ cumulus.ExtraSensorUseLaserDist)
+				if (mainStation || cumulus.ExtraSensorUseLaserDist)
 				{
 					try
 					{
@@ -657,7 +657,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						if (mainStation ^ cumulus.ExtraSensorUseBGT)
+						if (mainStation || cumulus.ExtraSensorUseBGT)
 						{
 							station.BlackGlobeTemp = data.black_globe_temperature.bgt.value;
 							station.WetBulbGlobeTemp = data.black_globe_temperature.wbgt.value;

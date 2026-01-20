@@ -1129,7 +1129,7 @@ namespace CumulusMX.Stations
 							}
 							break;
 						case "0x15": //Light (value unit)
-							if (!cumulus.ExtraSensorUseSolar)
+							if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 							{
 								arr = sensor.val.Split(' ');
 								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
@@ -1154,35 +1154,29 @@ namespace CumulusMX.Stations
 							}
 							break;
 						case "0x17": //UVI (0-15 index)
-							if (sensor.valDbl.HasValue && !cumulus.ExtraSensorUseUv)
+							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
 							{
 								DoUV(sensor.valDbl.Value, dateTime);
 							}
 							break;
 
 						case "0xA1": // WBGT
-							if (!cumulus.ExtraSensorUseBGT)
+							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
 							{
-								if (sensor.valDbl.HasValue)
-								{
-									var wbgt = sensor.valDbl.Value;
-									wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
+								var wbgt = sensor.valDbl.Value;
+								wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
 
-									WetBulbGlobeTemp = wbgt;
-								}
+								WetBulbGlobeTemp = wbgt;
 							}
 							break;
 
 						case "0xA2": // BGT
-							if (!cumulus.ExtraSensorUseBGT)
+							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
 							{
-								if (sensor.valDbl.HasValue)
-								{
-									var bgt = sensor.valDbl.Value;
-									bgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(bgt) : ConvertUnits.TempFToUser(bgt);
+								var bgt = sensor.valDbl.Value;
+								bgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(bgt) : ConvertUnits.TempFToUser(bgt);
 
-									BlackGlobeTemp = bgt;
-								}
+								BlackGlobeTemp = bgt;
 							}
 							break;
 

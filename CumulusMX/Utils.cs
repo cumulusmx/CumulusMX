@@ -522,5 +522,15 @@ namespace CumulusMX
 
 			return tz;
 		}
+
+		public static bool UseSensor(bool mainStation, bool hasExtraStation, bool useSensor)
+		{
+			if (mainStation && hasExtraStation && useSensor)
+				return false;
+			else if (!mainStation  && hasExtraStation && !useSensor)
+				return false;
+			else
+				return true;
+		}
 	}
 }

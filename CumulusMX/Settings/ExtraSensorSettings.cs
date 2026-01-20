@@ -68,7 +68,7 @@ namespace CumulusMX.Settings
 				useSolar = cumulus.ExtraSensorUseSolar,
 				useUv = cumulus.ExtraSensorUseUv,
 				useTempHum = cumulus.ExtraSensorUseTempHum,
-				//useSoilTemp = cumulus.EcowittExtraUseSoilTemp,
+				useSoilTemp = cumulus.ExtraSensorUseSoilTemp,
 				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
 				useLeafWet = cumulus.ExtraSensorUseLeafWet,
 				useUserTemp = cumulus.ExtraSensorUseUserTemp,
@@ -110,16 +110,16 @@ namespace CumulusMX.Settings
 
 			var ambient = new JsonAmbient
 			{
-				useSolar = cumulus.AmbientExtraUseSolar,
-				useUv = cumulus.AmbientExtraUseUv,
-				useTempHum = cumulus.AmbientExtraUseTempHum,
-				//useSoilTemp = cumulus.AmbientExtraUseSoilTemp,
-				useSoilMoist = cumulus.AmbientExtraUseSoilMoist,
-				//useLeafWet = cumulus.AmbientExtraUseLeafWet,
-				useAQI = cumulus.AmbientExtraUseAQI,
-				useCo2 = cumulus.AmbientExtraUseCo2,
-				useLightning = cumulus.AmbientExtraUseLightning,
-				useLeak = cumulus.AmbientExtraUseLeak
+				useSolar = cumulus.ExtraSensorUseSolar,
+				useUv = cumulus.ExtraSensorUseUv,
+				useTempHum = cumulus.ExtraSensorUseTempHum,
+				useSoilTemp = cumulus.ExtraSensorUseSoilTemp,
+				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
+				useLeafWet = cumulus.ExtraSensorUseLeafWet,
+				useAQI = cumulus.ExtraSensorUseAQI,
+				useCo2 = cumulus.ExtraSensorUseCo2,
+				useLightning = cumulus.ExtraSensorUseLightning,
+				useLeak = cumulus.ExtraSensorUseLeak
 			};
 
 			var jsonstnadv = new JsonJsonStationAdvanced()
@@ -144,10 +144,12 @@ namespace CumulusMX.Settings
 				useUv = cumulus.ExtraSensorUseUv,
 				useTempHum = cumulus.ExtraSensorUseTempHum,
 				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
+				useSoilTemp = cumulus.ExtraSensorUseSoilTemp,
 				useLeafWet = cumulus.ExtraSensorUseLeafWet,
 				useUserTemp = cumulus.ExtraSensorUseUserTemp,
 				useAQI = cumulus.ExtraSensorUseAQI,
 				useCo2 = cumulus.ExtraSensorUseCo2,
+				useLightning = cumulus.ExtraSensorUseLightning,
 				useLaserDist = cumulus.ExtraSensorUseLaserDist,
 				useBGT = cumulus.ExtraSensorUseBGT
 			};
@@ -348,7 +350,7 @@ namespace CumulusMX.Settings
 						cumulus.ExtraSensorUseSolar = settings.httpSensors.ecowitt.useSolar;
 						cumulus.ExtraSensorUseUv = settings.httpSensors.ecowitt.useUv;
 						cumulus.ExtraSensorUseTempHum = settings.httpSensors.ecowitt.useTempHum;
-						//cumulus.EcowittExtraUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp
+						cumulus.ExtraSensorUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp;
 						cumulus.ExtraSensorUseSoilMoist = settings.httpSensors.ecowitt.useSoilMoist;
 						cumulus.ExtraSensorUseLeafWet = settings.httpSensors.ecowitt.useLeafWet;
 						cumulus.ExtraSensorUseUserTemp = settings.httpSensors.ecowitt.useUserTemp;
@@ -508,19 +510,21 @@ namespace CumulusMX.Settings
 					cumulus.AmbientExtraEnabled = settings.httpSensors.extraStation == 1;
 					if (cumulus.AmbientExtraEnabled)
 					{
-						cumulus.AmbientExtraUseSolar = settings.httpSensors.ambient.useSolar;
-						cumulus.AmbientExtraUseUv = settings.httpSensors.ambient.useUv;
-						cumulus.AmbientExtraUseTempHum = settings.httpSensors.ambient.useTempHum;
-						//cumulus.AmbientExtraUseSoilTemp = settings.httpSensors.ambient.useSoilTemp
-						cumulus.AmbientExtraUseSoilMoist = settings.httpSensors.ambient.useSoilMoist;
-						//cumulus.AmbientExtraUseLeafWet = settings.httpSensors.ambient.useLeafWet
-						cumulus.AmbientExtraUseAQI = settings.httpSensors.ambient.useAQI;
-						cumulus.AmbientExtraUseCo2 = settings.httpSensors.ambient.useCo2;
-						cumulus.AmbientExtraUseLightning = settings.httpSensors.ambient.useLightning;
-						cumulus.AmbientExtraUseLeak = settings.httpSensors.ambient.useLeak;
+						cumulus.ExtraSensorUseSolar = settings.httpSensors.ambient.useSolar;
+						cumulus.ExtraSensorUseUv = settings.httpSensors.ambient.useUv;
+						cumulus.ExtraSensorUseTempHum = settings.httpSensors.ambient.useTempHum;
+						cumulus.ExtraSensorUseSoilTemp = settings.httpSensors.ambient.useSoilTemp;
+						cumulus.ExtraSensorUseSoilMoist = settings.httpSensors.ambient.useSoilMoist;
+						cumulus.ExtraSensorUseLeafWet = settings.httpSensors.ambient.useLeafWet;
+						cumulus.ExtraSensorUseAQI = settings.httpSensors.ambient.useAQI;
+						cumulus.ExtraSensorUseCo2 = settings.httpSensors.ambient.useCo2;
+						cumulus.ExtraSensorUseLightning = settings.httpSensors.ambient.useLightning;
+						cumulus.ExtraSensorUseLeak = settings.httpSensors.ambient.useLeak;
+						cumulus.ExtraSensorUseCamera = false;
+						cumulus.ExtraSensorUseBGT = false;
 
 						// Also enable extra logging if applicable
-						if (cumulus.AmbientExtraUseTempHum || cumulus.AmbientExtraUseSoilTemp || cumulus.AmbientExtraUseSoilMoist || cumulus.AmbientExtraUseAQI || cumulus.AmbientExtraUseCo2)
+						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2)
 						{
 							cumulus.StationOptions.LogExtraSensors = true;
 						}
@@ -567,8 +571,10 @@ namespace CumulusMX.Settings
 						cumulus.ExtraSensorUseUserTemp = settings.httpSensors.jsonstation.useUserTemp;
 						cumulus.ExtraSensorUseAQI = settings.httpSensors.jsonstation.useAQI;
 						cumulus.ExtraSensorUseCo2 = settings.httpSensors.jsonstation.useCo2;
+						cumulus.ExtraSensorUseLightning = settings.httpSensors.jsonstation.useLightning;
 						cumulus.ExtraSensorUseLaserDist = settings.httpSensors.jsonstation.useLaserDist;
-						cumulus.ExtraSensorUseBGT = settings.httpSensors.ecowitt.useBGT;
+						cumulus.ExtraSensorUseBGT = settings.httpSensors.jsonstation.useBGT;
+						cumulus.ExtraSensorUseCamera = false;
 
 						// Also enable extra logging if applicable
 						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseLeafWet || cumulus.ExtraSensorUseUserTemp || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2 || cumulus.ExtraSensorUseLaserDist)
@@ -755,6 +761,7 @@ namespace CumulusMX.Settings
 			public bool useUv { get; set; }
 			public bool useTempHum { get; set; }
 			public bool useSoilMoist { get; set; }
+			public bool useSoilTemp { get; set; }
 			public bool useLeafWet { get; set; }
 			public bool useUserTemp { get; set; }
 			public bool useAQI { get; set; }

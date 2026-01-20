@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=17887)
 
 This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.<br>
-Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/main/CHANGELOG.md)
+Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/b4139/CHANGELOG.md)
 
 ---
 ---
@@ -13,6 +13,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ## RELEASE CANDIDATE [4.7.0 \[b4139\]][29] - 2026-01-19
 
 ### RC 4139 Changes from Beta 4137
+
+**Required changes to Ambient Extra Sensor Stations**
+If you use an Ambient station as an Extra Sensors station, then after upgrading to this release you MUST check which sensors are enabled in the extra station configuration
 
 - More adjustments to real-time FTP error detection and reconnection
 - Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
@@ -30,6 +33,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - First build using Visual Studio 2026, and transitioning to .NET 10.0
 - The initial log conversion may take some time depending on the host computer. It is recommended to perform the initial run in a console so you can see the progress and any errors
+- **Required changes to Ambient Extra Sensor Stations:** If you use an Ambient station as an Extra Sensors station, then after upgrading to this release you MUST check which sensors are enabled in the extra station configuration
+- **Required updated for MySQL users:** If you use the standard MySQL uploads, then there are two additional columns in the Monthly table. Please run the table updater in the MySQL settings when you first run this release
+
 
 ***IMPORTANT: This release requires .NET 10.0 to run, and WILL alter your log file structures***
 

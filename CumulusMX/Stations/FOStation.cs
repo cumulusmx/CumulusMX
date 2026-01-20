@@ -537,7 +537,7 @@ namespace CumulusMX.Stations
 
 					if (hasSolar)
 					{
-						if (!cumulus.ExtraSensorUseUv)
+						if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
 						{
 							if (historydata.uvVal < 0 || historydata.uvVal > 16)
 							{
@@ -549,7 +549,7 @@ namespace CumulusMX.Stations
 							}
 						}
 
-						if (!cumulus.ExtraSensorUseSolar)
+						if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 						{
 							if (historydata.solarVal >= 0 && historydata.solarVal <= 300000)
 							{
@@ -1375,7 +1375,7 @@ namespace CumulusMX.Stations
 					// Solar/UV
 					if (hasSolar)
 					{
-						if (!cumulus.ExtraSensorUseSolar)
+						if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 						{
 							LightValue = (data[16] + data[17] * 256 + data[18] * 65536) / 10.0;
 
@@ -1385,7 +1385,7 @@ namespace CumulusMX.Stations
 							}
 						}
 
-						if (!cumulus.ExtraSensorUseUv)
+						if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
 						{
 							int UVreading = data[19];
 

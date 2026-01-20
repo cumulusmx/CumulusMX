@@ -127,6 +127,7 @@ namespace CumulusMX
 		public const int LogFileRetries = 3;
 
 		private WeatherStation station;
+		public bool HasExtraStation { get; set; } = false;
 
 		internal DavisAirLink airLinkIn;
 		public int airLinkInLsid { get; set; }
@@ -1629,6 +1630,7 @@ namespace CumulusMX
 					LogConsoleMessage($"Opening Ecowitt extra sensors");
 					ecowittExtra = new HttpStationEcowitt(this, station);
 					Api.stationEcowittExtra = ecowittExtra;
+					HasExtraStation = true;
 				}
 				if (AmbientExtraEnabled)
 				{
@@ -1636,12 +1638,14 @@ namespace CumulusMX
 					LogConsoleMessage($"Opening Ambient extra sensors");
 					ambientExtra = new HttpStationAmbient(this, station);
 					Api.stationAmbientExtra = ambientExtra;
+					HasExtraStation = true;
 				}
 				if (EcowittCloudExtraEnabled)
 				{
 					LogMessage("Creating Ecowitt cloud extra sensors station");
 					LogConsoleMessage($"Opening Ecowitt cloud extra sensors");
 					ecowittCloudExtra = new EcowittCloudStation(this, station);
+					HasExtraStation = true;
 				}
 				if (JsonExtraStationOptions.ExtraSensorsEnabled)
 				{
@@ -1649,6 +1653,7 @@ namespace CumulusMX
 					LogConsoleMessage($"Opening JSON extra sensors");
 					stationJsonExtra = new JsonStation(this, station);
 					Api.stationJsonExtra = stationJsonExtra;
+					HasExtraStation = true;
 				}
 				if (PurpleAirEnabled)
 				{
@@ -4585,15 +4590,6 @@ namespace CumulusMX
 
 			// Ambient settings
 			AmbientExtraEnabled = ini.GetValue("Ambient", "ExtraSensorDataEnabled", false);
-			AmbientExtraUseSolar = ini.GetValue("Ambient", "ExtraSensorUseSolar", true);
-			AmbientExtraUseUv = ini.GetValue("Ambient", "ExtraSensorUseUv", true);
-			AmbientExtraUseTempHum = ini.GetValue("Ambient", "ExtraSensorUseTempHum", true);
-			AmbientExtraUseSoilTemp = ini.GetValue("Ambient", "ExtraSensorUseSoilTemp", true);
-			AmbientExtraUseSoilMoist = ini.GetValue("Ambient", "ExtraSensorUseSoilMoist", true);
-			AmbientExtraUseAQI = ini.GetValue("Ambient", "ExtraSensorUseAQI", true);
-			AmbientExtraUseCo2 = ini.GetValue("Ambient", "ExtraSensorUseCo2", true);
-			AmbientExtraUseLightning = ini.GetValue("Ambient", "ExtraSensorUseLightning", true);
-			AmbientExtraUseLeak = ini.GetValue("Ambient", "ExtraSensorUseLeak", true);
 
 			// JSON station options
 			JsonStationOptions.Connectiontype = ini.GetValue("JsonStation", "ConnectionType", 1, 0, 2);
@@ -4622,91 +4618,91 @@ namespace CumulusMX
 			// Extra Sensor Options
 			if (ini.ValueExists("GW1000", "ExtraSensorUseSolar"))
 			{
-				ExtraSensorUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
+				ExtraSensorUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseSolar");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseSolar", ExtraSensorUseSolar);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseSolar = ini.GetValue("ExtraSensors", "ExtraSensorUseSolar", true);
+				ExtraSensorUseSolar = ini.GetValue("ExtraSensors", "ExtraSensorUseSolar", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseUv"))
 			{
-				ExtraSensorUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", true);
+				ExtraSensorUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseUv");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseUv", ExtraSensorUseUv);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseUv = ini.GetValue("ExtraSensors", "ExtraSensorUseUv", true);
+				ExtraSensorUseUv = ini.GetValue("ExtraSensors", "ExtraSensorUseUv", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseTempHum"))
 			{
-				ExtraSensorUseTempHum = ini.GetValue("GW1000", "ExtraSensorUseTempHum", true);
+				ExtraSensorUseTempHum = ini.GetValue("GW1000", "ExtraSensorUseTempHum", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseTempHum");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseTempHum", ExtraSensorUseTempHum);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseTempHum = ini.GetValue("ExtraSensors", "ExtraSensorUseTempHum", true);
+				ExtraSensorUseTempHum = ini.GetValue("ExtraSensors", "ExtraSensorUseTempHum", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilTemp"))
 			{
-				ExtraSensorUseSoilTemp = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", true);
+				ExtraSensorUseSoilTemp = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseSoilTemp");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseSoilTemp", ExtraSensorUseSoilTemp);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseSoilTemp = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilTemp", true);
+				ExtraSensorUseSoilTemp = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilTemp", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilMoist"))
 			{
-				ExtraSensorUseSoilMoist = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", true);
+				ExtraSensorUseSoilMoist = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseSoilMoist");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseSoilMoist", ExtraSensorUseSoilMoist);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseSoilMoist = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilMoist", true);
+				ExtraSensorUseSoilMoist = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilMoist", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseLeafWet"))
 			{
-				ExtraSensorUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", true);
+				ExtraSensorUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseLeafWet");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseLeafWet", ExtraSensorUseLeafWet);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseLeafWet = ini.GetValue("ExtraSensors", "ExtraSensorUseLeafWet", true);
+				ExtraSensorUseLeafWet = ini.GetValue("ExtraSensors", "ExtraSensorUseLeafWet", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseUserTemp"))
 			{
-				ExtraSensorUseUserTemp = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", true);
+				ExtraSensorUseUserTemp = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseUserTemp");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseUserTemp", ExtraSensorUseUserTemp);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseUserTemp = ini.GetValue("ExtraSensors", "ExtraSensorUseUserTemp", true);
+				ExtraSensorUseUserTemp = ini.GetValue("ExtraSensors", "ExtraSensorUseUserTemp", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseAQI"))
 			{
-				ExtraSensorUseAQI = ini.GetValue("GW1000", "ExtraSensorUseAQI", true);
+				ExtraSensorUseAQI = ini.GetValue("GW1000", "ExtraSensorUseAQI", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseAQI");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseAQI", ExtraSensorUseAQI);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseAQI = ini.GetValue("ExtraSensors", "ExtraSensorUseAQI", true);
+				ExtraSensorUseAQI = ini.GetValue("ExtraSensors", "ExtraSensorUseAQI", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseCo2"))
 			{
@@ -4717,43 +4713,52 @@ namespace CumulusMX
 			}
 			else
 			{
-				ExtraSensorUseCo2 = ini.GetValue("ExtraSensors", "ExtraSensorUseCo2", true);
+				ExtraSensorUseCo2 = ini.GetValue("ExtraSensors", "ExtraSensorUseCo2", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseLightning"))
 			{
-				ExtraSensorUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
+				ExtraSensorUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseLightning");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseLightning", ExtraSensorUseLightning);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseLightning = ini.GetValue("ExtraSensors", "ExtraSensorUseLightning", true);
+				ExtraSensorUseLightning = ini.GetValue("ExtraSensors", "ExtraSensorUseLightning", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseLeak"))
 			{
-				ExtraSensorUseLeak = ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
+				ExtraSensorUseLeak = ini.GetValue("GW1000", "ExtraSensorUseLeak", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseLeak");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseLeak", ExtraSensorUseLeak);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseLeak = ini.GetValue("ExtraSensors", "ExtraSensorUseLeak", true);
+				ExtraSensorUseLeak = ini.GetValue("ExtraSensors", "ExtraSensorUseLeak", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseCamera"))
 			{
-				ExtraSensorUseCamera = ini.GetValue("GW1000", "ExtraSensorUseCamera", true);
+				ExtraSensorUseCamera = ini.GetValue("GW1000", "ExtraSensorUseCamera", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseCamera");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseCamera", ExtraSensorUseCamera);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseCamera = ini.GetValue("ExtraSensors", "ExtraSensorUseCamera", true);
+				ExtraSensorUseCamera = ini.GetValue("ExtraSensors", "ExtraSensorUseCamera", false);
 			}
-			ExtraSensorUseLaserDist = ini.GetValue("ExtraSensors", "ExtraSensorUseLaserDist", true);
-			ExtraSensorUseBGT = ini.GetValue("ExtraSensors", "ExtraSensorUseBGT", true);
+			ExtraSensorUseLaserDist = ini.GetValue("ExtraSensors", "ExtraSensorUseLaserDist", false);
+			ExtraSensorUseBGT = ini.GetValue("ExtraSensors", "ExtraSensorUseBGT", false);
+
+			// Disable all the extra sensors if no extra station enabled (because the previous default was to enable all)
+			if (!AmbientExtraEnabled && !JsonExtraStationOptions.ExtraSensorsEnabled && !EcowittExtraEnabled && !EcowittCloudExtraEnabled)
+			{
+				ExtraSensorUseSolar = ExtraSensorUseUv = ExtraSensorUseTempHum = ExtraSensorUseSoilTemp = ExtraSensorUseSoilMoist =
+				ExtraSensorUseLeafWet = ExtraSensorUseUserTemp = ExtraSensorUseAQI = ExtraSensorUseCo2 = ExtraSensorUseLightning =
+				ExtraSensorUseLeak = ExtraSensorUseCamera = ExtraSensorUseLaserDist = ExtraSensorUseBGT = false;
+			}
+
 
 			// AirLink settings
 			// We have to convert previous per AL IsNode config to global
@@ -6662,15 +6667,6 @@ namespace CumulusMX
 
 			// Ambient settings
 			ini.SetValue("Ambient", "ExtraSensorDataEnabled", AmbientExtraEnabled);
-			ini.SetValue("Ambient", "ExtraSensorUseSolar", AmbientExtraUseSolar);
-			ini.SetValue("Ambient", "ExtraSensorUseUv", AmbientExtraUseUv);
-			ini.SetValue("Ambient", "ExtraSensorUseTempHum", AmbientExtraUseTempHum);
-			ini.SetValue("Ambient", "ExtraSensorUseSoilTemp", AmbientExtraUseSoilTemp);
-			ini.SetValue("Ambient", "ExtraSensorUseSoilMoist", AmbientExtraUseSoilMoist);
-			ini.SetValue("Ambient", "ExtraSensorUseAQI", AmbientExtraUseAQI);
-			ini.SetValue("Ambient", "ExtraSensorUseCo2", AmbientExtraUseCo2);
-			ini.SetValue("Ambient", "ExtraSensorUseLightning", AmbientExtraUseLightning);
-			ini.SetValue("Ambient", "ExtraSensorUseLeak", AmbientExtraUseLeak);
 
 			// JSON station options
 			ini.SetValue("JsonStation", "ConnectionType", JsonStationOptions.Connectiontype);
@@ -8324,15 +8320,6 @@ namespace CumulusMX
 		public bool EcowittIsRainingUsePiezo {  get; set; }
 
 		public bool AmbientExtraEnabled { get; set; }
-		public bool AmbientExtraUseSolar { get; set; }
-		public bool AmbientExtraUseUv { get; set; }
-		public bool AmbientExtraUseTempHum { get; set; }
-		public bool AmbientExtraUseSoilTemp { get; set; }
-		public bool AmbientExtraUseSoilMoist { get; set; }
-		public bool AmbientExtraUseAQI { get; set; }
-		public bool AmbientExtraUseCo2 { get; set; }
-		public bool AmbientExtraUseLightning { get; set; }
-		public bool AmbientExtraUseLeak { get; set; }
 
 		public bool PurpleAirEnabled { get; set; }
 		public string[] PurpleAirIpAddress { get; set; } = new string[4];

@@ -1480,7 +1480,7 @@ namespace CumulusMX.Stations
 											*/
 										try
 										{
-											if (data.uv.HasValue && !cumulus.ExtraSensorUseUv)
+											if (data.uv.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
 											{
 												cumulus.LogDebugMessage("DecodeCurrent: using UV data");
 
@@ -1502,7 +1502,7 @@ namespace CumulusMX.Stations
 											*/
 										try
 										{
-											if (data.solar_rad.HasValue && !cumulus.ExtraSensorUseSolar)
+											if (data.solar_rad.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 											{
 												cumulus.LogDebugMessage("DecodeCurrent: using solar data");
 												DoSolarRad(data.solar_rad.Value, lastRecordTime);
@@ -2433,7 +2433,7 @@ namespace CumulusMX.Stations
 								*/
 							try
 							{
-								if (!cumulus.ExtraSensorUseUv)
+								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
 								{
 									if (data.uv_index_avg.HasValue)
 									{
@@ -2462,7 +2462,7 @@ namespace CumulusMX.Stations
 								*/
 							try
 							{
-								if (!cumulus.ExtraSensorUseSolar)
+								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 								{
 									if (data.solar_rad_avg.HasValue)
 									{

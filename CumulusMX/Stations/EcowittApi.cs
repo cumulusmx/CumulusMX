@@ -45,11 +45,13 @@ namespace CumulusMX.Stations
 		private readonly int PrimaryTHSensor;
 		private readonly int PrimaryIndoorTHSensor;
 		private readonly int[] MapWN34 = new int[9];
+		private readonly bool mainStation;
 
 		public EcowittApi(Cumulus cuml, WeatherStation stn, bool mainStation)
 		{
 			cumulus = cuml;
 			station = stn;
+			this.mainStation = mainStation;
 
 			// sensor mappings
 			PrimaryTHSensor = cumulus.Gw1000PrimaryTHSensor;
@@ -2041,7 +2043,7 @@ namespace CumulusMX.Stations
 			// = max for period
 			try
 			{
-				if (rec.Value.Solar.HasValue && !cumulus.ExtraSensorUseSolar)
+				if (rec.Value.Solar.HasValue && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseSolar))
 				{
 					station.DoSolarRad((int)rec.Value.Solar.Value, recDateTime);
 				}
@@ -2055,7 +2057,7 @@ namespace CumulusMX.Stations
 			// = max for period
 			try
 			{
-				if (rec.Value.UVI.HasValue && !cumulus.ExtraSensorUseUv)
+				if (rec.Value.UVI.HasValue && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseUv))
 				{
 					station.DoUV((double) rec.Value.UVI, recDateTime);
 				}
@@ -2068,11 +2070,11 @@ namespace CumulusMX.Stations
 			// === Black Globe Temperature ===
 			try
 			{
-				if (rec.Value.BGT.HasValue && !cumulus.ExtraSensorUseBGT)
+				if (rec.Value.BGT.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
 				{
 					station.BlackGlobeTemp = (double) rec.Value.BGT.Value;
 				}
-				if (rec.Value.WBGT.HasValue && !cumulus.ExtraSensorUseBGT)
+				if (rec.Value.WBGT.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
 				{
 					station.WetBulbGlobeTemp = (double) rec.Value.WBGT.Value;
 				}
