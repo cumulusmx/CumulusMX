@@ -4544,7 +4544,7 @@ namespace CumulusMX
 			EcowittUseSdCard = ini.GetValue("GW1000", "EcowittUseSdcard", false);
 			EcowittCloudDataUpdateInterval = ini.GetValue("GW1000", "CloudDataUpdateInterval", 1, 1, 10);
 
-			EcowittHttpPassword = ini.GetValue("GW1000", "HttpPassword", "");
+			EcowittHttpPassword = ini.GetValue("GW1000", "HttpPassword", string.Empty);
 
 			EcowittExtraSetCustomServer = ini.GetValue("GW1000", "ExtraSetCustomServer", false);
 			EcowittExtraGatewayAddr = ini.GetValue("GW1000", "EcowittExtraGwAddr", "0.0.0.0");

@@ -5,12 +5,17 @@ All notable changes to this project will be documented in this file.
 Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=17887)
 
 This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.<br>
-Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/b4139/CHANGELOG.md)
+Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/b4140/CHANGELOG.md)
 
 ---
 ---
 
-## RELEASE CANDIDATE [4.7.0 \[b4139\]][29] - 2026-01-19
+## RELEASE CANDIDATE [4.7.0 \[b4140\]][29] - 2026-01-19
+
+### RC 4140 Changes from RC 4139
+
+- Fix some issues in the Ecowitt Cloud Station decoding extra temp/hum sensors that only send temperature
+
 
 ### RC 4139 Changes from Beta 4137
 

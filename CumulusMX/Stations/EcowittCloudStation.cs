@@ -20,7 +20,7 @@ namespace CumulusMX.Stations
 
 		public EcowittCloudStation(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
-			this.station = station;
+			this.station = station ?? this;
 
 			mainStation = station == null;
 
@@ -341,7 +341,6 @@ namespace CumulusMX.Stations
 		private void ProcessCurrentData(EcowittApi.CurrentDataData data, CancellationToken token)
 		{
 			var batteryLow = false;
-			var thisStation = mainStation ? this : station;
 			token.ThrowIfCancellationRequested();
 
 			try
@@ -515,7 +514,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						ProcessExtraTempHum(data, thisStation);
+						ProcessExtraTempHum(data);
 					}
 					catch (Exception ex)
 					{
@@ -528,7 +527,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						ProcessUserTemps(data, thisStation);
+						ProcessUserTemps(data);
 					}
 					catch (Exception ex)
 					{
@@ -541,7 +540,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						ProcessSoilMoist(data, thisStation);
+						ProcessSoilMoist(data);
 					}
 					catch (Exception ex)
 					{
@@ -554,7 +553,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						ProcessLeafWetness(data, thisStation);
+						ProcessLeafWetness(data);
 					}
 					catch (Exception ex)
 					{
@@ -567,7 +566,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						ProcessAirQuality(data, thisStation);
+						ProcessAirQuality(data);
 					}
 					catch (Exception ex)
 					{
@@ -580,7 +579,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						ProcessCo2(data, thisStation);
+						ProcessCo2(data);
 					}
 					catch (Exception ex)
 					{
@@ -593,7 +592,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						ProcessLightning(data, thisStation);
+						ProcessLightning(data);
 					}
 					catch (Exception ex)
 					{
@@ -606,7 +605,7 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						ProcessLeak(data, thisStation);
+						ProcessLeak(data);
 					}
 					catch (Exception ex)
 					{
@@ -679,11 +678,11 @@ namespace CumulusMX.Stations
 						DoPressure(ConvertUnits.PressMBToUser(slp), data.pressure.absolute.time.LocalFromUnixTime());
 					}
 
-					thisStation.DoForecast("", false);
+					station.DoForecast("", false);
 
 					var updateTime = (data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time).LocalFromUnixTime();
-					thisStation.UpdateStatusPanel(updateTime.ToUniversalTime());
-					thisStation.UpdateMQTT();
+					station.UpdateStatusPanel(updateTime.ToUniversalTime());
+					station.UpdateMQTT();
 				}
 			}
 			catch (OperationCanceledException)
@@ -696,87 +695,87 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void ProcessExtraTempHum(EcowittApi.CurrentDataData data, WeatherStation station)
+		private void ProcessExtraTempHum(EcowittApi.CurrentDataData data)
 		{
 			if (data.temp_and_humidity_ch1 != null)
 			{
-				ApplyExtraTempHum(1, data.temp_and_humidity_ch1.temperature.value, data.temp_and_humidity_ch1.humidity.value, data.temp_and_humidity_ch1.temperature.time);
+				ApplyExtraTempHum(1, data.temp_and_humidity_ch1.temperature.value, data.temp_and_humidity_ch1.humidity, data.temp_and_humidity_ch1.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch2 != null)
 			{
-				ApplyExtraTempHum(2, data.temp_and_humidity_ch2.temperature.value, data.temp_and_humidity_ch2.humidity.value, data.temp_and_humidity_ch2.temperature.time);
+				ApplyExtraTempHum(2, data.temp_and_humidity_ch2.temperature.value, data.temp_and_humidity_ch2.humidity, data.temp_and_humidity_ch2.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch3 != null)
 			{
-				ApplyExtraTempHum(3, data.temp_and_humidity_ch3.temperature.value, data.temp_and_humidity_ch3.humidity.value, data.temp_and_humidity_ch3.temperature.time);
+				ApplyExtraTempHum(3, data.temp_and_humidity_ch3.temperature.value, data.temp_and_humidity_ch3.humidity, data.temp_and_humidity_ch3.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch4 != null)
 			{
-				ApplyExtraTempHum(4, data.temp_and_humidity_ch4.temperature.value, data.temp_and_humidity_ch4.humidity.value, data.temp_and_humidity_ch4.temperature.time);
+				ApplyExtraTempHum(4, data.temp_and_humidity_ch4.temperature.value, data.temp_and_humidity_ch4.humidity, data.temp_and_humidity_ch4.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch5 != null)
 			{
-				ApplyExtraTempHum(5, data.temp_and_humidity_ch5.temperature.value, data.temp_and_humidity_ch5.humidity.value, data.temp_and_humidity_ch5.temperature.time);
+				ApplyExtraTempHum(5, data.temp_and_humidity_ch5.temperature.value, data.temp_and_humidity_ch5.humidity, data.temp_and_humidity_ch5.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch6 != null)
 			{
-				ApplyExtraTempHum(6, data.temp_and_humidity_ch6.temperature.value, data.temp_and_humidity_ch6.humidity.value, data.temp_and_humidity_ch6.temperature.time);
+				ApplyExtraTempHum(6, data.temp_and_humidity_ch6.temperature.value, data.temp_and_humidity_ch6.humidity, data.temp_and_humidity_ch6.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch7 != null)
 			{
-				ApplyExtraTempHum(7, data.temp_and_humidity_ch7.temperature.value, data.temp_and_humidity_ch7.humidity.value, data.temp_and_humidity_ch7.temperature.time);
+				ApplyExtraTempHum(7, data.temp_and_humidity_ch7.temperature.value, data.temp_and_humidity_ch7.humidity, data.temp_and_humidity_ch7.temperature.time);
 			}
 
 			if (data.temp_and_humidity_ch8 != null)
 			{
-				ApplyExtraTempHum(8, data.temp_and_humidity_ch8.temperature.value, data.temp_and_humidity_ch8.humidity.value, data.temp_and_humidity_ch8.temperature.time);
+				ApplyExtraTempHum(8, data.temp_and_humidity_ch8.temperature.value, data.temp_and_humidity_ch8.humidity, data.temp_and_humidity_ch8.temperature.time);
 			}
 		}
 
-		private void ApplyExtraTempHum(int chan, double? temp, int? hum, long ts)
+		private void ApplyExtraTempHum(int chan, double? temp, EcowittApi.CurrentSensorValInt hum, long ts)
 		{
-			station.DoExtraTemp(temp, chan);
-
-			// Not all sensor types have humidity
-			if (hum.HasValue)
+			if (temp.HasValue)
 			{
-				station.DoExtraHum(hum.Value, chan);
+				station.DoExtraTemp(temp, chan);
 
-				if (cumulus.Gw1000PrimaryTHSensor == chan)
+				// Not all sensor types have humidity
+				if (hum != null)
 				{
-					station.DoOutdoorHumidity(hum.Value, ts.LocalFromUnixTime());
-				}
+					station.DoExtraHum(hum.value, chan);
 
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == chan)
-				{
-					station.DoIndoorHumidity(hum.Value);
-				}
+					if (cumulus.Gw1000PrimaryTHSensor == chan)
+					{
+						station.DoOutdoorHumidity(hum.value, ts.LocalFromUnixTime());
+					}
 
-				if (temp.HasValue)
-				{
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(temp.Value), hum.Value);
+					if (cumulus.Gw1000PrimaryIndoorTHSensor == chan)
+					{
+						station.DoIndoorHumidity(hum.value);
+					}
+
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(temp.Value), hum.value);
 					station.ExtraDewPoint[chan] = ConvertUnits.TempCToUser(dp);
 				}
-			}
 
-			if (cumulus.Gw1000PrimaryTHSensor == chan && temp.HasValue)
-			{
-				station.DoOutdoorTemp(temp.Value, ts.LocalFromUnixTime());
-			}
+				if (cumulus.Gw1000PrimaryTHSensor == chan && temp.HasValue)
+				{
+					station.DoOutdoorTemp(temp.Value, ts.LocalFromUnixTime());
+				}
 
-			if (cumulus.Gw1000PrimaryIndoorTHSensor == chan && temp.HasValue)
-			{
-				station.DoIndoorTemp(temp.Value);
+				if (cumulus.Gw1000PrimaryIndoorTHSensor == chan && temp.HasValue)
+				{
+					station.DoIndoorTemp(temp.Value);
+				}
 			}
 		}
 
-		private void ProcessUserTemps(EcowittApi.CurrentDataData data, WeatherStation station)
+		private void ProcessUserTemps(EcowittApi.CurrentDataData data)
 		{
 			if (data.temp_ch1 != null)
 			{
@@ -831,7 +830,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void ProcessSoilMoist(EcowittApi.CurrentDataData data, WeatherStation station)
+		private void ProcessSoilMoist(EcowittApi.CurrentDataData data)
 		{
 			if (data.soil_ch1 != null)
 			{
@@ -906,7 +905,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private static void ProcessLeafWetness(EcowittApi.CurrentDataData data, WeatherStation station)
+		private void ProcessLeafWetness(EcowittApi.CurrentDataData data)
 		{
 			if (data.leaf_ch1 != null)
 			{
@@ -949,7 +948,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private static void ProcessAirQuality(EcowittApi.CurrentDataData data, WeatherStation station)
+		private void ProcessAirQuality(EcowittApi.CurrentDataData data)
 		{
 			if (data.pm25_ch1 != null)
 			{
@@ -974,7 +973,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private static void ProcessCo2(EcowittApi.CurrentDataData data, WeatherStation station)
+		private void ProcessCo2(EcowittApi.CurrentDataData data)
 		{
 			// indoor overrides the combo
 			if (data.indoor_co2 != null)
@@ -1019,7 +1018,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void ProcessLightning(EcowittApi.CurrentDataData data, WeatherStation station)
+		private void ProcessLightning(EcowittApi.CurrentDataData data)
 		{
 			if (data.lightning != null && data.lightning.distance != null && data.lightning.distance.value != 255)
 			{
@@ -1041,7 +1040,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private static void ProcessLeak(EcowittApi.CurrentDataData data, WeatherStation station)
+		private void ProcessLeak(EcowittApi.CurrentDataData data)
 		{
 			if (data.water_leak != null)
 			{

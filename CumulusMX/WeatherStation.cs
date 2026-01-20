@@ -7884,7 +7884,7 @@ namespace CumulusMX
 
 		public TWindVec[] WindVec { get; set; }
 
-
+		private DateTime snowSpikeTime;
 		private int rainResetCount = 0;
 		private bool SecondChanceRainReset = false;
 		private bool initialiseRainDayStart = true;
@@ -10841,12 +10841,15 @@ namespace CumulusMX
 #if DEBUG
 							cumulus.LogDebugMessage($"Laser #{index} No change in depth");
 #endif
+							snowSpikeTime = DateTime.UtcNow;
 						}
 						else if (snowInc < 0)
 						{
 #if DEBUG
 							cumulus.LogDebugMessage($"Laser #{index} depth change is negative: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
 #endif
+							snowSpikeTime = DateTime.UtcNow;
+
 						}
 						else if (snowInc < cumulus.SnowMinInc)
 						{
@@ -10862,10 +10865,20 @@ namespace CumulusMX
 								LastLaserSnowDepth[index] = newValue;
 
 								cumulus.LogDebugMessage($"Laser #{index} depth increase added to snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, new value: {newValue.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+								snowSpikeTime = DateTime.UtcNow;
 							}
 							else
 							{
 								cumulus.LogSpikeRemoval($"Laser #{index} depth increase is greater than allowed for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, max: {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
+
+								// If we get a spike value for more 5 readings (400 seconds), then rebaseline on the new value
+
+								if ((DateTime.UtcNow - snowSpikeTime).TotalSeconds > 400)
+								{
+									cumulus.LogWarningMessage($"Laser #{index} has had an increase above the spike level for six or more consecutive readings. Rebaselining on the new value: {newValue.ToString(cumulus.LaserFormat)} was: {(LastLaserSnowDepth[index] ?? 0).ToString(cumulus.LaserFormat)}");
+									snowSpikeTime = DateTime.UtcNow;
+									LastLaserSnowDepth[index] = newValue;
+								}
 							}
 						}
 					}
