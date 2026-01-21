@@ -37,12 +37,12 @@ namespace CumulusMX.Stations
 
 			if (mainStation)
 			{
-				cumulus.LogMessage("Creating JSON Station");
+				cumulus.LogMessage("JSON Station: Creating JSON Station");
 				this.station = this;
 			}
 			else
 			{
-				cumulus.LogMessage("Creating Extra Sensors - JSON Station");
+				cumulus.LogMessage("JSON Extra Station: Creating Extra Sensors");
 			}
 
 			// Do not set these if we are only using extra sensors
@@ -74,7 +74,8 @@ namespace CumulusMX.Stations
 					// Nothing to do, the API will send us the data
 					break;
 				case 2:
-					if (!string.IsNullOrEmpty(cumulus.JsonStationOptions.MqttServer) && !string.IsNullOrEmpty(cumulus.JsonStationOptions.MqttTopic))
+					if (!string.IsNullOrEmpty(mainStation ? cumulus.JsonStationOptions.MqttServer : cumulus.JsonExtraStationOptions.MqttServer) &&
+						!string.IsNullOrEmpty(mainStation ? cumulus.JsonStationOptions.MqttTopic : cumulus.JsonExtraStationOptions.MqttTopic))
 					{
 						SetupMqttClient();
 					}
@@ -229,7 +230,7 @@ namespace CumulusMX.Stations
 
 		private void SetupMqttClient()
 		{
-			JsonStationMqtt.Setup(cumulus, this);
+			JsonStationMqtt.Setup(cumulus, this, mainStation);
 		}
 
 		public void ReceiveDataFromMqtt(MqttApplicationMessage appMessage)

@@ -15,6 +15,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### RC 4140 Changes from RC 4139
 
 - Fix some issues in the Ecowitt Cloud Station decoding extra temp/hum sensors that only send temperature
+- Suppress exception message getting WeatherServices from Ecowitt stations that do not support the HTTP API
+- Fix extra sensor data input via the JSON Station MQTT topic (was using main station config values)
 
 
 ### RC 4139 Changes from Beta 4137
@@ -129,6 +131,7 @@ If you use an Ambient station as an Extra Sensors station, then after upgrading 
 - Fix IsRaining alarm being immediately cleared after each trigger when using the Ecowitt "Use Piezo IsRaining" setting
 - Fix a major logic error when applying extra sensor data to the main station - affects most stations
 - Fix MySQL error handling to prevent buffering of statements with syntax errors
+- Fix extra sensor data input via the JSON Station MQTT topic (was using main station config values)
 
 ### Package Updates
 

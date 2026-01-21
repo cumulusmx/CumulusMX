@@ -1013,11 +1013,16 @@ namespace CumulusMX.Stations
 						return json;
 					}
 				}
+				catch (HttpRequestException ex) when (ex.InnerException is System.Net.Sockets.SocketException se && se.SocketErrorCode == System.Net.Sockets.SocketError.ConnectionRefused)
+				{
+					// Handle "connection refused"
+					cumulus.LogMessage("LocalApi.GetWeatherServiceSettings: This Station does not support the HTTP API!");
+				}
 				catch (HttpRequestException ex)
 				{
 					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 					{
-						cumulus.LogErrorMessage("LocalApi.GetWeatherServiceSettings: Error - This Station does not support the HTTP API!");
+						cumulus.LogMessage("LocalApi.GetWeatherServiceSettings: This Station does not support the HTTP API!");
 					}
 					else
 					{
