@@ -540,6 +540,9 @@ namespace CumulusMX.Stations
 
 			foreach (var file in baseFiles)
 			{
+				// add a short delay for the station to sort itself out before we request the next file
+				Thread.Sleep(250);
+
 				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
 				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
@@ -592,6 +595,9 @@ namespace CumulusMX.Stations
 
 			foreach (var file in extraFiles)
 			{
+				// add a short delay for the station to sort itself out before we request the next file
+				Thread.Sleep(250);
+
 				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
 				Cumulus.LogConsoleMessage($"  Processing file {file}");
 

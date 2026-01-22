@@ -17,6 +17,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix some issues in the Ecowitt Cloud Station decoding extra temp/hum sensors that only send temperature
 - Suppress exception message getting WeatherServices from Ecowitt stations that do not support the HTTP API
 - Fix extra sensor data input via the JSON Station MQTT topic (was using main station config values)
+- Add a short delay between fetching Ecowitt SD card files to try and mitigate the zero length/oddly formated files being sent
 
 
 ### RC 4139 Changes from Beta 4137
@@ -132,6 +133,7 @@ If you use an Ambient station as an Extra Sensors station, then after upgrading 
 - Fix a major logic error when applying extra sensor data to the main station - affects most stations
 - Fix MySQL error handling to prevent buffering of statements with syntax errors
 - Fix extra sensor data input via the JSON Station MQTT topic (was using main station config values)
+- Add a short delay between fetching Ecowitt SD card files to try and mitigate the zero length/oddly formated files being sent
 
 ### Package Updates
 
