@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Globalization;
 using System.Net;
+using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace CumulusMX.ThirdParty
 {
 	internal class WebUploadWindy(Cumulus cumulus, string name) : WebUploadServiceBase(cumulus, name)
 	{
-		public string ApiKey;
-		public int StationIdx;
+		public string ApiKey { get; set; }
+		public string StationId { get; set; }
 
 		internal override async Task DoUpdate(DateTime timestamp)
 		{
@@ -28,9 +30,6 @@ namespace CumulusMX.ThirdParty
 
 			string apistring;
 			string url = GetURL(out apistring, timestamp);
-			string logUrl = url.Replace(apistring, "<<API_KEY>>");
-
-			cumulus.LogDebugMessage("Windy: URL = " + logUrl);
 
 			// we will try this twice in case the first attempt fails
 			var maxRetryAttempts = 2;
@@ -40,7 +39,25 @@ namespace CumulusMX.ThirdParty
 			{
 				try
 				{
-					using var response = await cumulus.MyHttpClient.GetAsync(url);
+					cumulus.LogDebugMessage("Windy: URL = " + url);
+
+					using var request = new HttpRequestMessage(HttpMethod.Get, url);
+					if (!string.IsNullOrEmpty(PW))
+					{
+						request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", PW);
+					}
+					else if (!string.IsNullOrEmpty(ApiKey))
+					{
+						request.Headers.Add("windy-api-key", ApiKey);
+					}
+					else
+					{
+						cumulus.LogErrorMessage("Windy: Missing Password or API key in configuration");
+						Updating = false;
+						return;
+					}
+
+					using var response = await cumulus.MyHttpClient.SendAsync(request);
 					var responseBodyAsText = await response.Content.ReadAsStringAsync();
 					cumulus.LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
 					if (response.StatusCode == HttpStatusCode.OK)
@@ -49,12 +66,51 @@ namespace CumulusMX.ThirdParty
 						Updating = false;
 						return;
 					}
-					else if (response.StatusCode == HttpStatusCode.Unauthorized)
+					else if (response.StatusCode == HttpStatusCode.BadRequest)
 					{
-						cumulus.ThirdPartyAlarm.LastMessage = "Windy: Unauthorized, check credentials";
+						cumulus.LogWarningMessage("Windy: Station password is invalid, does not match the station, or payload failed validation");
+						cumulus.ThirdPartyAlarm.LastMessage = "Windy: Station password is invalid, does not match the station, or payload failed validation";
 						cumulus.ThirdPartyAlarm.Triggered = true;
 						Updating = false;
 						return;
+					}
+					else if (response.StatusCode == HttpStatusCode.Unauthorized)
+					{
+						cumulus.LogWarningMessage("Windy: Missing station password in query or Authorization header");
+						cumulus.ThirdPartyAlarm.LastMessage = "Windy: Missing station password in query or Authorization header";
+						cumulus.ThirdPartyAlarm.Triggered = true;
+						Updating = false;
+						return;
+					}
+					else if (response.StatusCode == HttpStatusCode.Conflict)
+					{
+						cumulus.LogWarningMessage("Windy: Duplicate request detected (the same payload was sent multiple times)");
+						cumulus.ThirdPartyAlarm.LastMessage = "Windy: Duplicate request detected (the same payload was sent multiple times)";
+						cumulus.ThirdPartyAlarm.Triggered = true;
+						Updating = false;
+						return;
+					}
+					else if (response.StatusCode == HttpStatusCode.TooManyRequests)
+					{
+						cumulus.ThirdPartyAlarm.LastMessage = "Windy: Rate limit exceeded";
+						cumulus.ThirdPartyAlarm.Triggered = true;
+
+						var json = JsonSerializer.Deserialize<RateLimited>(responseBodyAsText);
+						if (json != null)
+						{
+							var wait = json.retry_after - DateTime.UtcNow;
+							var waitSecs = Convert.ToInt32(wait.TotalSeconds) + 10;
+							cumulus.LogWarningMessage($"Windy: Rate limit exceeded, retrying in {waitSecs} seconds");
+
+							await Task.Delay(waitSecs * 1000, Program.ExitSystemToken);
+						}
+						else
+						{
+							cumulus.LogWarningMessage("Windy: Rate limit exceeded and no 'try after' time sent by Windy");
+
+							Updating = false;
+							return;
+						}
 					}
 					else
 					{
@@ -69,7 +125,7 @@ namespace CumulusMX.ThirdParty
 							cumulus.LogDebugMessage($"Windy Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
 							cumulus.LogMessage($"Windy: Retrying in {delay / retryCount} seconds");
 
-							await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+							await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 						}
 					}
 				}
@@ -116,43 +172,55 @@ namespace CumulusMX.ThirdParty
 
 
 		// Documentation on the API can be found here...
-		// https://community.windy.com/topic/8168/report-your-weather-station-data-to-windy
+		// https://stations.windy.com/api-reference
 		//
 		internal override string GetURL(out string pwstring, DateTime timestamp)
 		{
-			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH':'mm':'ss");
-			StringBuilder URL = new StringBuilder("https://stations.windy.com/pws/update/", 1024);
+			pwstring = null;
 
-			pwstring = ApiKey;
+			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fffK");
+			StringBuilder URL = new StringBuilder("https://stations.windy.com/api/v2/observation/update/", 1024);
 
-			URL.Append(ApiKey);
-			URL.Append("?station=" + StationIdx);
-			URL.Append("&dateutc=" + dateUTC);
+			URL.Append("?id=" + StationId);
+			URL.Append("&time=" + dateUTC);
 
-			StringBuilder Data = new StringBuilder(1024);
-			Data.Append("&winddir=" + station.AvgBearing);
 			if (station.WindAverage >= 0)
-				Data.Append("&wind=" + station.WindMSStr(station.WindAverage));
+				URL.Append("&wind=" + station.WindMSStr(station.WindAverage));
+
 			if (station.RecentMaxGust >= 0)
-				Data.Append("&gust=" + station.WindMSStr(station.RecentMaxGust));
-			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
-				Data.Append("&temp=" + WeatherStation.TempCstr(station.OutdoorTemperature));
-			Data.Append("&precip=" + WeatherStation.RainMMstr(station.RainLastHour));
-			if (station.Pressure > 0)
-				Data.Append("&pressure=" + WeatherStation.PressPAstr(station.Pressure));
-			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
-				Data.Append("&dewpoint=" + WeatherStation.TempCstr(station.OutdoorDewpoint));
+				URL.Append("&gust=" + station.WindMSStr(station.RecentMaxGust));
+
+			URL.Append("&winddir=" + station.AvgBearing);
+
 			if (station.OutdoorHumidity >= 0)
-				Data.Append("&humidity=" + station.OutdoorHumidity);
+				URL.Append("&rh=" + station.OutdoorHumidity);
+
+			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
+				URL.Append("&dewpoint=" + WeatherStation.TempCstr(station.OutdoorDewpoint));
+
+			if (station.Pressure > 0)
+				URL.Append("&pressure=" + WeatherStation.PressPAstr(station.Pressure));
 
 			if (SendUV && station.UV.HasValue)
-				Data.Append("&uv=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
-			if (SendSolar && station.SolarRad.HasValue)
-				Data.Append("&solarradiation=" + station.SolarRad);
+				URL.Append("&uv=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
 
-			URL.Append(Data);
+			if (SendSolar && station.SolarRad.HasValue)
+				URL.Append("&solarradiation=" + station.SolarRad);
+
+			URL.Append("&precip=" + WeatherStation.RainMMstr(station.RainLastHour));
+
+			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
+				URL.Append("&temp=" + WeatherStation.TempCstr(station.OutdoorTemperature));
+
+			URL.Append("&softwaretype=CumulusMX+v" + cumulus.Version);
+			URL.Append("&stationtype=" + System.Web.HttpUtility.UrlEncode(cumulus.StationModel));
 
 			return URL.ToString();
+		}
+
+		private class RateLimited
+		{
+			public DateTime retry_after {  get; set; }
 		}
 	}
 }

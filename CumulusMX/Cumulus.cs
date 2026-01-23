@@ -5165,8 +5165,9 @@ namespace CumulusMX
 
 			Wund.SynchronisedUpdate = !Wund.RapidFireEnabled;
 
+			Windy.PW = ini.GetValue("Windy", "Password", string.Empty);
 			Windy.ApiKey = ini.GetValue("Windy", "APIkey", string.Empty);
-			Windy.StationIdx = ini.GetValue("Windy", "StationIdx", 0, 0);
+			Windy.StationId = ini.GetValue("Windy", "StationId", string.Empty);
 			Windy.Enabled = ini.GetValue("Windy", "Enabled", false);
 			Windy.Interval = ini.GetValue("Windy", "Interval", Windy.DefaultInterval);
 			if (Windy.Interval < 5)
@@ -5178,7 +5179,7 @@ namespace CumulusMX
 			}
 			Windy.SendUV = ini.GetValue("Windy", "SendUV", false);
 			Windy.SendSolar = ini.GetValue("Windy", "SendSolar", false);
-			Windy.CatchUp = ini.GetValue("Windy", "CatchUp", false);
+			Windy.CatchUp = false;
 
 			AWEKAS.ID = ini.GetValue("Awekas", "User", string.Empty);
 			AWEKAS.PW = ini.GetValue("Awekas", "Password", string.Empty);
@@ -6247,6 +6248,7 @@ namespace CumulusMX
 				FtpOptions.Password = Crypto.DecryptString(FtpOptions.Password, Program.InstanceId, "FtpOptions.Password");
 				FtpOptions.PhpSecret = Crypto.DecryptString(FtpOptions.PhpSecret, Program.InstanceId, "FtpOptions.PhpSecret");
 				Wund.PW = Crypto.DecryptString(Wund.PW, Program.InstanceId, "Wund.PW");
+				Windy.PW = Crypto.DecryptString(Windy.PW, Program.InstanceId, "Windy.PW");
 				Windy.ApiKey = Crypto.DecryptString(Windy.ApiKey, Program.InstanceId, "Windy.ApiKey");
 				AWEKAS.PW = Crypto.DecryptString(AWEKAS.PW, Program.InstanceId, "AWEKAS.PW");
 				WindGuru.PW = Crypto.DecryptString(WindGuru.PW, Program.InstanceId, "WindGuru.PW");
@@ -6876,12 +6878,13 @@ namespace CumulusMX
 			ini.SetValue("Wunderground", "SendExtraTemp3", Wund.SendExtraTemp3);
 			ini.SetValue("Wunderground", "SendExtraTemp4", Wund.SendExtraTemp4);
 
+			ini.SetValue("Windy", "Password", Crypto.EncryptString(Windy.PW, Program.InstanceId, "Windy.PW"));
 			ini.SetValue("Windy", "APIkey", Crypto.EncryptString(Windy.ApiKey, Program.InstanceId, "Windy.ApiKey"));
-			ini.SetValue("Windy", "StationIdx", Windy.StationIdx);
+			ini.SetValue("Windy", "StationId", Windy.StationId);
 			ini.SetValue("Windy", "Enabled", Windy.Enabled);
 			ini.SetValue("Windy", "Interval", Windy.Interval);
 			ini.SetValue("Windy", "SendUV", Windy.SendUV);
-			ini.SetValue("Windy", "CatchUp", Windy.CatchUp);
+			ini.SetValue("Windy", "SendSolar", Windy.SendSolar);
 
 			ini.SetValue("Awekas", "User", AWEKAS.ID);
 			ini.SetValue("Awekas", "Password", Crypto.EncryptString(AWEKAS.PW, Program.InstanceId, "AWEKAS.PW"));
@@ -13303,8 +13306,6 @@ namespace CumulusMX
 			CustomHttpSecondsTimer.Enabled = CustomHttpSecondsEnabled;
 
 			Wund.CatchUpIfRequired();
-
-			Windy.CatchUpIfRequired();
 
 			PWS.CatchUpIfRequired();
 

@@ -18,6 +18,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Suppress exception message getting WeatherServices from Ecowitt stations that do not support the HTTP API
 - Fix extra sensor data input via the JSON Station MQTT topic (was using main station config values)
 - Add a short delay between fetching Ecowitt SD card files to try and mitigate the zero length/oddly formated files being sent
+- Switches Windy.com uploads to their new v2 API, this now allows upload of solar radiation values
+	- You can now use the station password instead of an API key to authenticate
+	- **Existing users must add their Station ID to the settings, this is a requirement of the new API**
 
 
 ### RC 4139 Changes from Beta 4137
@@ -95,6 +98,10 @@ If you use an Ambient station as an Extra Sensors station, then after upgrading 
 - Remove retries from WOW uploads
 - Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements and are not removed from the queue unless the commit is successful
 - Web tags are now case insensitive, as are tag parameter keys. Simple parameter values are also case insensitive. Parameter values for date formats etc are obviously still case sensitive.
+- Switches Windy.com uploads to their new v2 API, this now allows upload of solar radiation values
+	- You can now use the station password instead of an API key to authenticate
+	- **Existing users must add their Station ID to the settings, this is a requirement of the new API**
+
 
 ### Fixed
 

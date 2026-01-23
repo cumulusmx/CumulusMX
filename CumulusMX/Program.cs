@@ -235,9 +235,9 @@ namespace CumulusMX
 						Console.ForegroundColor = ConsoleColor.Yellow;
 						Console.WriteLine("\nYou must supply a user name when installing the service\n");
 						Console.ResetColor();
+						Usage();
 						MxLogger.Warn("You must supply a user name when installing the service");
 						Environment.Exit(0);
-
 					}
 
 					if (SelfInstaller.InstallLinux(user, group, lang, Httpport, servicename))
