@@ -24,7 +24,7 @@ namespace CumulusMX.ThirdParty
 			Updating = true;
 
 			// Random jitter
-			await Task.Delay(Program.RandGenerator.Next(5000, 10000));
+			await Task.Delay(Program.RandGenerator.Next(5000, 10000), Program.ExitSystemToken);
 
 			string apistring;
 			string url = GetURL(out apistring, timestamp);
@@ -40,8 +40,8 @@ namespace CumulusMX.ThirdParty
 			{
 				try
 				{
-					using var response = await cumulus.MyHttpClient.GetAsync(url);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					using var response = await cumulus.MyHttpClient.GetAsync(url, Program.ExitSystemToken);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync(Program.ExitSystemToken);
 					cumulus.LogDebugMessage("WindGuru: " + response.StatusCode + ": " + responseBodyAsText);
 					if (response.StatusCode == HttpStatusCode.OK)
 					{
@@ -70,7 +70,7 @@ namespace CumulusMX.ThirdParty
 							cumulus.LogDebugMessage($"WindGuru Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
 							cumulus.LogMessage($"WindGuru: Retrying in {delay / retryCount} seconds");
 
-							await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+							await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 						}
 					}
 				}
@@ -107,7 +107,7 @@ namespace CumulusMX.ThirdParty
 
 						cumulus.LogMessage($"WindGuru: Retrying in {delay / retryCount} seconds");
 
-						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 					}
 				}
 			}

@@ -26,7 +26,7 @@ namespace CumulusMX.ThirdParty
 			Updating = true;
 
 			// Random jitter
-			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+			await Task.Delay(Program.RandGenerator.Next(5000, 20000), Program.ExitSystemToken);
 
 			string apistring;
 			string url = GetURL(out apistring, timestamp);
@@ -57,8 +57,8 @@ namespace CumulusMX.ThirdParty
 						return;
 					}
 
-					using var response = await cumulus.MyHttpClient.SendAsync(request);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					using var response = await cumulus.MyHttpClient.SendAsync(request, Program.ExitSystemToken);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync(Program.ExitSystemToken);
 					cumulus.LogDebugMessage("Windy: Response = " + response.StatusCode + ": " + responseBodyAsText);
 					if (response.StatusCode == HttpStatusCode.OK)
 					{
@@ -168,7 +168,7 @@ namespace CumulusMX.ThirdParty
 
 						cumulus.LogMessage($"Windy: Retrying in {delay / retryCount} seconds");
 
-						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 					}
 				}
 			}

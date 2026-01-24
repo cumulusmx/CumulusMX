@@ -43,7 +43,7 @@ namespace CumulusMX.ThirdParty
 			Updating = true;
 
 			// 40 seconds after the minute
-			await Task.Delay(40000);
+			await Task.Delay(40000, Program.ExitSystemToken);
 
 			string pwstring;
 			string url = GetURL(out pwstring, timestamp);
@@ -63,8 +63,8 @@ namespace CumulusMX.ThirdParty
 				try
 				{
 					cumulus.LogDebugMessage("AWEKAS upload sent" + (retryCount == 2 ? " (first attempt)" : " retry #" + (2 - retryCount)));
-					using var response = await cumulus.MyHttpClient.GetAsync(url);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					using var response = await cumulus.MyHttpClient.GetAsync(url, Program.ExitSystemToken);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync(Program.ExitSystemToken);
 					cumulus.LogDebugMessage("AWEKAS Response code = " + response.StatusCode);
 					cumulus.LogDataMessage("AWEKAS: Response text = " + responseBodyAsText);
 
@@ -226,7 +226,7 @@ namespace CumulusMX.ThirdParty
 
 						cumulus.LogMessage($"AWEKAS: Retrying in {delay / retryCount} seconds");
 
-						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 					}
 				}
 			}

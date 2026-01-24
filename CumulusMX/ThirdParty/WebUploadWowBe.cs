@@ -30,7 +30,7 @@ namespace CumulusMX.ThirdParty
 			Updating = true;
 
 			// Random jitter
-			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+			await Task.Delay(Program.RandGenerator.Next(5000, 20000), Program.ExitSystemToken);
 
 			// we will try this twice in case the first attempt fails
 			var maxRetryAttempts = 2;
@@ -45,8 +45,8 @@ namespace CumulusMX.ThirdParty
 
 					cumulus.LogDataMessage("WOW-BE: Posting data - " + body.Replace(PW, "******"));
 
-					using var response = await cumulus.MyHttpClient.PostAsync(url, data);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					using var response = await cumulus.MyHttpClient.PostAsync(url, data, Program.ExitSystemToken);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync(Program.ExitSystemToken);
 					if (response.StatusCode == HttpStatusCode.OK)
 					{
 						cumulus.LogDebugMessage("WOW-BE: Response code: " + response.StatusCode);
@@ -84,7 +84,7 @@ namespace CumulusMX.ThirdParty
 						cumulus.LogDataMessage($"WOW-BE: ERROR - Response body = {responseBodyAsText}");
 						cumulus.LogMessage($"WOW-BE: Retrying in {delay / retryCount} seconds");
 
-						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 					}
 				}
 				catch (Exception ex)
@@ -120,7 +120,7 @@ namespace CumulusMX.ThirdParty
 
 						cumulus.LogMessage($"WOW-BE: Retrying in {delay / retryCount} seconds");
 
-						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 					}
 				}
 			}

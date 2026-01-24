@@ -83,7 +83,7 @@ namespace CumulusMX.ThirdParty
 			Updating = true;
 
 			// Random jitter
-			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+			await Task.Delay(Program.RandGenerator.Next(5000, 20000), Program.ExitSystemToken);
 
 			string url = "https://api.openweathermap.org/data/3.0/measurements?appid=" + PW;
 			string logUrl = url.Replace(PW, "<key>");
@@ -102,8 +102,8 @@ namespace CumulusMX.ThirdParty
 				try
 				{
 					var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
-					HttpResponseMessage response = await cumulus.MyHttpClient.PostAsync(url, data);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					HttpResponseMessage response = await cumulus.MyHttpClient.PostAsync(url, data, Program.ExitSystemToken);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync(Program.ExitSystemToken);
 					var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
 					cumulus.LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
 					if (response.StatusCode == HttpStatusCode.NoContent)
@@ -143,7 +143,7 @@ namespace CumulusMX.ThirdParty
 
 						cumulus.LogMessage($"OpenWeatherMap: Retrying in {delay / retryCount} seconds");
 
-						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 					}
 					else
 					{

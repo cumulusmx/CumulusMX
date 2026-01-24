@@ -49,7 +49,7 @@ namespace CumulusMX.ThirdParty
 			// Random jitter
 			if (!RapidFireEnabled)
 			{
-				await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+				await Task.Delay(Program.RandGenerator.Next(5000, 20000), Program.ExitSystemToken);
 			}
 
 			string pwstring;
@@ -76,8 +76,8 @@ namespace CumulusMX.ThirdParty
 			{
 				try
 				{
-					using var response = await cumulus.MyHttpClient.GetAsync(URL);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					using var response = await cumulus.MyHttpClient.GetAsync(URL, Program.ExitSystemToken);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync(Program.ExitSystemToken);
 					if (response.StatusCode == HttpStatusCode.OK)
 					{
 						cumulus.LogDebugMessage("Wunderground: Successful upload");
@@ -117,7 +117,7 @@ namespace CumulusMX.ThirdParty
 							cumulus.LogDebugMessage($"Wunderground Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
 							cumulus.LogMessage($"Wunderground: Retrying in {delay / retryCount} seconds");
 
-							await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+							await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 						}
 					}
 				}
@@ -154,7 +154,7 @@ namespace CumulusMX.ThirdParty
 
 						cumulus.LogMessage($"Wunderground: Retrying in {delay / retryCount} seconds");
 
-						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 					}
 				}
 			}

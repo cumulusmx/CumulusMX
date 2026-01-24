@@ -27,7 +27,7 @@ namespace CumulusMX.ThirdParty
 			Updating = true;
 
 			// Random jitter
-			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+			await Task.Delay(Program.RandGenerator.Next(5000, 20000), Program.ExitSystemToken);
 
 			string pwstring;
 			string URL = GetURL(out pwstring, timestamp);
@@ -82,7 +82,7 @@ namespace CumulusMX.ThirdParty
 				cumulus.ThirdPartyAlarm.LastMessage = msg;
 				cumulus.ThirdPartyAlarm.Triggered = true;
 			}
-				
+
 			Updating = false;
 		}
 
