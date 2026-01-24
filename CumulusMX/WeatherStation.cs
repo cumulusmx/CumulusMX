@@ -2077,7 +2077,7 @@ namespace CumulusMX
 						_ = cumulus.Wund.DoUpdate(now);
 					}
 
-					if (cumulus.Windy.Enabled && now.Minute % cumulus.Windy.Interval == 0 && !(string.IsNullOrWhiteSpace(cumulus.Windy.PW) || string.IsNullOrWhiteSpace(cumulus.Windy.ApiKey)))
+					if (cumulus.Windy.Enabled && now.Minute % cumulus.Windy.Interval == 0 && (!string.IsNullOrWhiteSpace(cumulus.Windy.PW) || !string.IsNullOrWhiteSpace(cumulus.Windy.ApiKey)))
 					{
 						_ = cumulus.Windy.DoUpdate(now);
 					}
