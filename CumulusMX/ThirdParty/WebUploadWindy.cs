@@ -68,7 +68,13 @@ namespace CumulusMX.ThirdParty
 					}
 					else if (response.StatusCode == HttpStatusCode.BadRequest)
 					{
-						cumulus.LogWarningMessage("Windy: Station password is invalid, does not match the station, or payload failed validation");
+						var resp = JsonSerializer.Deserialize<ErrorResponse>(responseBodyAsText);
+						string msg = string.Empty;
+						if (resp != null)
+						{
+							msg = resp.message[0];
+						}
+						cumulus.LogWarningMessage($"Windy: Station password is invalid, does not match the station, or payload failed validation - '{msg}'");
 						cumulus.ThirdPartyAlarm.LastMessage = "Windy: Station password is invalid, does not match the station, or payload failed validation";
 						cumulus.ThirdPartyAlarm.Triggered = true;
 						Updating = false;
@@ -221,6 +227,13 @@ namespace CumulusMX.ThirdParty
 		private class RateLimited
 		{
 			public DateTime retry_after {  get; set; }
+		}
+
+		private class ErrorResponse
+		{
+			public string[] message { get; set; }
+			public string error { get; set; }
+			public int statusCode { get; set; }
 		}
 	}
 }

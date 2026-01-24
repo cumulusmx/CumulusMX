@@ -22,7 +22,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- You can now use the station password instead of an API key to authenticate
 	- **Existing users must add their Station ID to the settings, this is a requirement of the new API**
 
-
+1
 ### RC 4139 Changes from Beta 4137
 
 **Required changes to Ambient Extra Sensor Stations**
