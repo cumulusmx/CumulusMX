@@ -21,8 +21,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Switches Windy.com uploads to their new v2 API, this now allows upload of solar radiation values
 	- You can now use the station password instead of an API key to authenticate
 	- **Existing users must add their Station ID to the settings, this is a requirement of the new API**
+- Fix JSON Extra Sensor Station CO₂ and Lightning values only being applied when run as the main station
 
-1
+
 ### RC 4139 Changes from Beta 4137
 
 **Required changes to Ambient Extra Sensor Stations**
@@ -40,12 +41,13 @@ If you use an Ambient station as an Extra Sensors station, then after upgrading 
 	- New web tags `<#BlackGlobeTemp>` and `<#WetBulbGlobeTemp>`
 	- Two new fields added to the monthly log files and the monthly MySQL table to support these new measurements
 
-### Notes
+### Important Notes
 
 - First build using Visual Studio 2026, and transitioning to .NET 10.0
 - The initial log conversion may take some time depending on the host computer. It is recommended to perform the initial run in a console so you can see the progress and any errors
 - **Required changes to Ambient Extra Sensor Stations:** If you use an Ambient station as an Extra Sensors station, then after upgrading to this release you MUST check which sensors are enabled in the extra station configuration
 - **Required updated for MySQL users:** If you use the standard MySQL uploads, then there are two additional columns in the Monthly table. Please run the table updater in the MySQL settings when you first run this release
+- **Required update for existing Windy.com upload users:** This version of MX switches to using the new Windy v2 API, this API requires you to enter the full Station ID in the Windy Settings
 
 
 ***IMPORTANT: This release requires .NET 10.0 to run, and WILL alter your log file structures***
@@ -141,6 +143,7 @@ If you use an Ambient station as an Extra Sensors station, then after upgrading 
 - Fix MySQL error handling to prevent buffering of statements with syntax errors
 - Fix extra sensor data input via the JSON Station MQTT topic (was using main station config values)
 - Add a short delay between fetching Ecowitt SD card files to try and mitigate the zero length/oddly formated files being sent
+- Fix JSON Extra Sensor Station CO₂ and Lightning values only being applied when run as the main station
 
 ### Package Updates
 

@@ -768,16 +768,16 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					CO2 = data.co2.co2;
-					CO2_24h = data.co2.co2_24h;
-					CO2_pm2p5 = data.co2.pm2p5;
-					CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5);
-					CO2_pm2p5_24h = data.co2.pm2p5avg24h;
-					CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5h24, CO2_pm2p5_24h);
-					CO2_pm10 = data.co2.pm10;
-					CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
-					CO2_pm10_24h = data.co2.pm10avg24h;
-					CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10h24, CO2_pm10_24h);
+					station.CO2 = data.co2.co2;
+					station.CO2_24h = data.co2.co2_24h;
+					station.CO2_pm2p5 = data.co2.pm2p5;
+					station.CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, station.CO2_pm2p5);
+					station.CO2_pm2p5_24h = data.co2.pm2p5avg24h;
+					station.CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5h24, station.CO2_pm2p5_24h);
+					station.CO2_pm10 = data.co2.pm10;
+					station.CO2_pm10_aqi = GetAqi(AqMeasure.pm10, station.CO2_pm10);
+					station.CO2_pm10_24h = data.co2.pm10avg24h;
+					station.CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10h24, station.CO2_pm10_24h);
 				}
 				catch (Exception ex)
 				{
@@ -831,13 +831,13 @@ namespace CumulusMX.Stations
 			// Lightning
 			if (data.lightning != null)
 			{
-				LightningTime = data.lightning.time ?? DateTime.MinValue;
-				LightningStrikesToday += data.lightning.strikes ?? 0 - LightningCounter;
-				LightningCounter = data.lightning.strikes ?? 0;
-				LightningDistance = (data.units.lightning ?? "??") switch
+				station.LightningTime = data.lightning.time ?? DateTime.MinValue;
+				station.LightningStrikesToday += data.lightning.strikes ?? 0 - station.LightningCounter;
+				station.LightningCounter = data.lightning.strikes ?? 0;
+				station.LightningDistance = (data.units.lightning ?? "??") switch
 				{
 					"km" => ConvertUnits.KmtoUserUnits(data.lightning.distance ?? 0),
-					"mi" => data.lightning.distance ?? 0,
+					"mi" => ConvertUnits.MilestoUserUnits(data.lightning.distance ?? 0),
 					_ => data.lightning.distance ?? 0
 				};
 			}
