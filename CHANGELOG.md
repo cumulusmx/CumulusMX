@@ -22,7 +22,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- You can now use the station password instead of an API key to authenticate
 	- **Existing users must add their Station ID to the settings, this is a requirement of the new API**
 - Fix JSON Extra Sensor Station CO₂ and Lightning values only being applied when run as the main station
-
+- Fix for ecowitt.net historic data catch-up broken in b4139
+- Fix endless loop fetching ecowitt.net historic data on certain errors
 
 ### RC 4139 Changes from Beta 4137
 

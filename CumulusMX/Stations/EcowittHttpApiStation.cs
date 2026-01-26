@@ -462,10 +462,16 @@ namespace CumulusMX.Stations
 			{
 				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
 				endTime = startTime.AddHours(24);
-				maxArchiveRuns++;
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
+			if (ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken))
+			{
+				startTime = cumulus.LastUpdateTime.AddMinutes(1);
+				if ((DateTime.Now - startTime).TotalHours > 24.0)
+				{
+					maxArchiveRuns++;
+				}
+			}
 		}
 
 		/// <summary>

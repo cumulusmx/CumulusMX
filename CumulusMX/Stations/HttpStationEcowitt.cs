@@ -288,8 +288,14 @@ namespace CumulusMX.Stations
 				maxArchiveRuns++;
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
-
+			if (ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken))
+			{
+				startTime = cumulus.LastUpdateTime.AddMinutes(1);
+				if ((DateTime.Now - startTime).TotalHours > 24.0)
+				{
+					maxArchiveRuns++;
+				}
+			}
 		}
 
 		public override string GetEcowittCameraUrl(string mac)

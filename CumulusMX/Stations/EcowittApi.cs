@@ -320,6 +320,7 @@ namespace CumulusMX.Stations
 							}
 							else
 							{
+								cumulus.LogErrorMessage($"API.GetHistoricData: Error: {histObj.code} - {histObj.msg}");
 								return false;
 							}
 						}
@@ -2561,6 +2562,7 @@ namespace CumulusMX.Stations
 						}
 						else
 						{
+							cumulus.LogMessage($"API.GetCurrentData: Error: {respCheck.code} - {respCheck.msg}");
 							delay = delayTime;
 							delayTime *= 2; // double the delay time
 							return null;
@@ -2782,6 +2784,7 @@ namespace CumulusMX.Stations
 						}
 						else
 						{
+							cumulus.LogMessage($"API.GetCurrentCameraImageUrl: Error: {respCheck.code} - {respCheck.msg}");
 							return defaultUrl;
 						}
 					}
@@ -2956,7 +2959,7 @@ namespace CumulusMX.Stations
 						}
 						else
 						{
-							cumulus.LogMessage($"API.GetLastCameraVideoUrl: Unknown error: {vidObj.code} - {vidObj.msg}");
+							cumulus.LogMessage($"API.GetLastCameraVideoUrl: Error: {vidObj.code} - {vidObj.msg}");
 							return defaultUrl;
 						}
 					}
@@ -3062,6 +3065,7 @@ namespace CumulusMX.Stations
 						}
 						else
 						{
+							cumulus.LogMessage($"API.GetStationList: Error: {stnObj.code} - {stnObj.msg}");
 							return [];
 						}
 					}
