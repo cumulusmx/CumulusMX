@@ -193,7 +193,7 @@ namespace CumulusMX.Stations
 				"ch_lds2",
 				"ch_lds3",
 				"ch_lds4",
-				"black_globe_termperature"
+				"black_globe_temperature"
 			};
 
 			sb.Append("&call_back=");
