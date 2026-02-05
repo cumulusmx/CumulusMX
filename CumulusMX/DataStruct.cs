@@ -39,7 +39,7 @@ namespace CumulusMX
 
 		public string HighHeatIndexToday
 		{
-			get => _highHeatIndexToday.ToString(cumulus.TempFormat);
+			get => _highHeatIndexToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		public string HighHeatIndexTodayTime { get; } = highHeatIndexTodayTime;
@@ -58,7 +58,7 @@ namespace CumulusMX
 
 		public string UVindex
 		{
-			get => _uVindex.HasValue ? _uVindex.Value.ToString(cumulus.UVFormat) : "-";
+			get => _uVindex.ToFixedLocal(cumulus.UVFormat, "-");
 		}
 
 		double _highUVindexToday = highUVindexToday;
@@ -78,35 +78,35 @@ namespace CumulusMX
 
 		public string SolarRad
 		{
-			get => _SolarRad.HasValue ? _SolarRad.ToString() : "-";
+			get => _SolarRad.ToText("-");
 		}
 
 		double? _indoorTemp = indoorTemp;
 
 		public string IndoorTemp
 		{
-			get => _indoorTemp.HasValue ? _indoorTemp.Value.ToString(cumulus.TempFormat) : "-";
+			get => _indoorTemp.ToFixedLocal(cumulus.TempFormat, "-");
 		}
 
 		double _outdoorDewpoint = outdoorDewpoint;
 
 		public string OutdoorDewpoint
 		{
-			get => _outdoorDewpoint.ToString(cumulus.TempFormat);
+			get => _outdoorDewpoint.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		double _lowDewpointToday = lowDewpointToday;
 
 		public string LowDewpointToday
 		{
-			get => _lowDewpointToday.ToString(cumulus.TempFormat);
+			get => _lowDewpointToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		double _highDewpointToday = highDewpointToday;
 
 		public string HighDewpointToday
 		{
-			get => _highDewpointToday.ToString(cumulus.TempFormat);
+			get => _highDewpointToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		public string LowDewpointTodayTime { get; } = lowDewpointTodayTime;
@@ -117,14 +117,14 @@ namespace CumulusMX
 
 		public string WindChill
 		{
-			get => _windChill.ToString(cumulus.TempFormat);
+			get => _windChill.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		double _lowWindChillToday = lowWindChillToday;
 
 		public string LowWindChillToday
 		{
-			get => _lowWindChillToday.ToString(cumulus.TempFormat);
+			get => _lowWindChillToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		public string LowWindChillTodayTime { get; } = lowWindChillTodayTime;
@@ -195,14 +195,14 @@ namespace CumulusMX
 
 		public string LowTempToday
 		{
-			get => _lowTempToday.ToString(cumulus.TempFormat);
+			get => _lowTempToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		double _highTempToday = highTempToday;
 
 		public string HighTempToday
 		{
-			get => _highTempToday.ToString(cumulus.TempFormat);
+			get => _highTempToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		public string WindRoseData { get; } = windRoseData;
@@ -233,7 +233,7 @@ namespace CumulusMX
 
 		public string OutdoorTemp
 		{
-			get => _outdoorTemp.ToString(cumulus.TempFormat);
+			get => _outdoorTemp.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		public int OutdoorHum { get; } = outdoorHum;
@@ -242,14 +242,14 @@ namespace CumulusMX
 
 		public string AvgTempToday
 		{
-			get => _avgTempToday.ToString(cumulus.TempFormat);
+			get => _avgTempToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		int? _indoorHum = indoorHum;
 
 		public string IndoorHum
 		{
-			get => _indoorHum.HasValue ? _indoorHum.ToString() : "-";
+			get => _indoorHum.ToText("-");
 		}
 
 		double _pressure = pressure;
@@ -365,14 +365,14 @@ namespace CumulusMX
 
 		public string HeatIndex
 		{
-			get => _heatIndex.ToString(cumulus.TempFormat);
+			get => _heatIndex.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		double _humidex = humidex;
 
 		public string Humidex
 		{
-			get => _humidex.ToString(cumulus.TempFormat);
+			get => _humidex.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		public string HighHumidexTodayTime { get; } = highHumidexTodayTime;
@@ -381,14 +381,14 @@ namespace CumulusMX
 
 		public string HighHumidexToday
 		{
-			get => _highHumidexToday.ToString(cumulus.TempFormat);
+			get => _highHumidexToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		double _appTemp = appTemp;
 
 		public string AppTemp
 		{
-			get => _appTemp.ToString(cumulus.TempFormat);
+			get => _appTemp.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		public string LowAppTempTodayTime { get; } = lowAppTempTodayTime;
@@ -399,21 +399,21 @@ namespace CumulusMX
 
 		public string LowAppTempToday
 		{
-			get => _lowAppTempToday.ToString(cumulus.TempFormat);
+			get => _lowAppTempToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		double _highAppTempToday = highAppTempToday;
 
 		public string HighAppTempToday
 		{
-			get => _highAppTempToday.ToString(cumulus.TempFormat);
+			get => _highAppTempToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		double _feelsLike = feelsLike;
 
 		public string FeelsLike
 		{
-			get => _feelsLike.ToString(cumulus.TempFormat);
+			get => _feelsLike.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		public string LowFeelsLikeTodayTime { get; } = lowFeelsLikeTodayTime;
@@ -424,28 +424,28 @@ namespace CumulusMX
 
 		public string LowFeelsLikeToday
 		{
-			get => _lowFeelsLikeToday.ToString(cumulus.TempFormat);
+			get => _lowFeelsLikeToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		double _highFeelsLikeToday = highFeelsLikeToday;
 
 		public string HighFeelsLikeToday
 		{
-			get => _highFeelsLikeToday.ToString(cumulus.TempFormat);
+			get => _highFeelsLikeToday.ToFixedLocal(cumulus.TempFormat);
 		}
 
 		double _tempTrend = tempTrend;
 
 		public string TempTrend
 		{
-			get => _tempTrend.ToString(cumulus.TempTrendFormat);
+			get => _tempTrend.ToFixedLocal(cumulus.TempTrendFormat);
 		}
 
 		double _pressTrend = pressTrend;
 
 		public string PressTrend
 		{
-			get => _pressTrend.ToString(cumulus.PressTrendFormat);
+			get => _pressTrend.ToFixedLocal(cumulus.PressTrendFormat);
 		}
 
 		double _sunshineHours = sunshineHours;

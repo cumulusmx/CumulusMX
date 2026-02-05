@@ -1076,26 +1076,26 @@ namespace CumulusMX.Stations
 		{
 			if (data.ch_lds1 != null)
 			{
-				ApplyLDS(data.ch_lds1.air_ch1.value, data.ch_lds1.depth_ch1.value, data.ch_lds1.air_ch1.unit, 1);
+				ApplyLDS(data.ch_lds1.air_ch1.value, data.ch_lds1.depth_ch1.value, data.ch_lds1.air_ch1.unit, 1, data.ch_lds1.air_ch1.time.LocalFromUnixTime());
 			}
 
 			if (data.ch_lds2 != null)
 			{
-				ApplyLDS(data.ch_lds2.air_ch2.value, data.ch_lds2.depth_ch2.value, data.ch_lds2.air_ch2.unit, 2);
+				ApplyLDS(data.ch_lds2.air_ch2.value, data.ch_lds2.depth_ch2.value, data.ch_lds2.air_ch2.unit, 2, data.ch_lds2.air_ch2.time.LocalFromUnixTime());
 			}
 
 			if (data.ch_lds3 != null)
 			{
-				ApplyLDS(data.ch_lds3.air_ch3.value, data.ch_lds3.depth_ch3.value, data.ch_lds3.air_ch3.unit, 3);
+				ApplyLDS(data.ch_lds3.air_ch3.value, data.ch_lds3.depth_ch3.value, data.ch_lds3.air_ch3.unit, 3, data.ch_lds3.air_ch3.time.LocalFromUnixTime());
 			}
 
 			if (data.ch_lds4 != null)
 			{
-				ApplyLDS(data.ch_lds4.air_ch4.value, data.ch_lds4.depth_ch4.value, data.ch_lds4.air_ch4.unit, 4);
+				ApplyLDS(data.ch_lds4.air_ch4.value, data.ch_lds4.depth_ch4.value, data.ch_lds4.air_ch4.unit, 4, data.ch_lds3.air_ch3.time.LocalFromUnixTime());
 			}
 		}
 
-		private void ApplyLDS(decimal? dist, decimal? depth, string unit, int chan)
+		private void ApplyLDS(decimal? dist, decimal? depth, string unit, int chan, DateTime dataTime)
 		{
 			if (dist.HasValue)
 			{
@@ -1109,7 +1109,7 @@ namespace CumulusMX.Stations
 				};
 			}
 
-			station.DoLaserDistance(dist, chan);
+			station.DoLaserDistance(dist, chan, dataTime);
 
 			if (cumulus.LaserDepthBaseline[chan] == -1)
 			{
@@ -1127,7 +1127,7 @@ namespace CumulusMX.Stations
 					};
 				}
 
-				station.DoLaserDepth(depth, chan);
+				station.DoLaserDepth(depth, chan, dataTime);
 			}
 			// else DoLaserDistance() calcs the depth
 

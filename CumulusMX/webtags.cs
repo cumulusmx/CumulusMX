@@ -56,7 +56,7 @@ namespace CumulusMX
 			string ret;
 			try
 			{
-				var numFormat = string.Equals(tagParams.Get("rc"), "y", StringComparison.InvariantCultureIgnoreCase) ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var invariant = string.Equals(tagParams.Get("rc"), "y", StringComparison.InvariantCultureIgnoreCase);
 
 				if (string.Equals(tagParams.Get("tc"), "y", StringComparison.InvariantCultureIgnoreCase))
 				{
@@ -66,12 +66,12 @@ namespace CumulusMX
 
 				if (null != format)
 				{
-					ret = val.ToString(format, numFormat);
+					ret = invariant ? val.ToFixed(format) : val.ToFixedLocal(format);
 				}
 				else
 				{
 					int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : decimals;
-					ret = val.ToString("F" + dp, numFormat);
+					ret = invariant ? val.ToFixed("F" + dp) : val.ToFixedLocal("F" + dp);
 				}
 				return ret;
 			}
@@ -86,7 +86,7 @@ namespace CumulusMX
 			string ret;
 			try
 			{
-				var numFormat = string.Equals(tagParams.Get("rc"), "y", StringComparison.InvariantCultureIgnoreCase) ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var invariant = string.Equals(tagParams.Get("rc"), "y", StringComparison.InvariantCultureIgnoreCase);
 
 				if (string.Equals(tagParams.Get("tc"), "y", StringComparison.InvariantCultureIgnoreCase))
 				{
@@ -96,7 +96,7 @@ namespace CumulusMX
 
 				int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : decimals;
 
-				ret = val.ToString("F" + dp, numFormat);
+				ret = invariant ? val.ToFixed("F" + dp) : val.ToFixedLocal("F" + dp);
 
 				return ret;
 			}
@@ -5138,12 +5138,12 @@ namespace CumulusMX
 
 		private string TagCo2(Dictionary<string, string> tagParams)
 		{
-			return station.CO2.HasValue ? station.CO2.ToString() : tagParams.Get("nv") ?? "-";
+			return station.CO2.ToText(tagParams.Get("nv") ?? "-");
 		}
 
 		private string TagCO2_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_24h.HasValue ? station.CO2_24h.ToString() : tagParams.Get("nv") ?? "-";
+			return station.CO2_24h.ToText(tagParams.Get("nv") ?? "-");
 		}
 
 		private string TagCO2_pm2p5(Dictionary<string, string> tagParams)
@@ -6723,7 +6723,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				solValue = station.SolarRad.HasValue ? station.SolarRad.ToString() : tagParams.Get("nv") ?? "-";
+				solValue = station.SolarRad.ToText(tagParams.Get("nv") ?? "-");
 			}
 			return solValue;
 		}

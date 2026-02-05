@@ -5,10 +5,35 @@ All notable changes to this project will be documented in this file.
 Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=17887)
 
 This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.<br>
-Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/b4140/CHANGELOG.md)
+Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/b4141/CHANGELOG.md)
 
 ---
 ---
+
+## RELEASE CANDIDATE [4.7.0 \[b4141\]][29] - 2026-02-01
+
+### RC 4141 Changes from RC 4140
+
+- The snow 24 hour accumulation is now reset to zero *after* the daily rollover processing is complete and the extra log file written.
+	This means that the true final daily total will be available in the first record of the following day (00:00 for midnight rollover) the same as the daily rainfall total in the monthly log file
+- Change in laser/snow depth logging to add extra details and to log on values changing as well as once a minute
+- New snow depth filtering mechanism implemented. This is a three-stage filter...
+	- **Stage 1** applies a median filter to the raw values - you can specify the length of time in minutes for the median values. This is good for filtering out sudden spikes.
+	- **Stage 2** applies a clip to the output of the median filter. The clip limits the step size of the increase/decrease of the output of stage 1 to the value you specify
+	- **Stage 3** applies an Exponential Moving Average filter to the output of stage 2. This is essentially time based smoothing
+	- The default values are:
+
+		| Laser Units        | mm    | cm    | inch  |
+		|--------------------|:-----:|:-----:|:-----:|
+		| median (mins)      | 5     | 5     | 5     |
+		| clip (laser units) | 2.0   | 0.2   | 0.08  |
+		| EMA time (mins)    | 10.0  | 10.0  | 10.0  |
+
+	- Note you can effectively disable any stage by setting: median=1, or clip=100, or exponential=1
+	- Increasing the filtering also delays the value being updated. The approximate delay is median/1.5 + EMA time/1.5. The defaults will give a 5-10 minute lag
+	- You can edit the new smoothing filter values in the Calibration Settings screen
+
+- Fix for data gaps at the end of catch-up for stations using ecowitt.net as the catch-up data source
 
 ## RELEASE CANDIDATE [4.7.0 \[b4140\]][29] - 2026-01-19
 
@@ -25,23 +50,6 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix for ecowitt.net historic data catch-up broken in b4139
 - Fix endless loop fetching ecowitt.net historic data on certain errors
 
-### RC 4139 Changes from Beta 4137
-
-**Required changes to Ambient Extra Sensor Stations**
-If you use an Ambient station as an Extra Sensors station, then after upgrading to this release you MUST check which sensors are enabled in the extra station configuration
-
-- More adjustments to real-time FTP error detection and reconnection
-- Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
-- Fix IsRaining alarm being immediately cleared after each trigger when using the Ecowitt "Use Piezo IsRaining" setting
-- Debug snow logging now controlled via the Program Settings > Logging Options
-- Ecowitt HTTP Custom Server auto-configuration for main and extra stations now tries the HTTP Local API to access the station in addition to the TCP API
-- Fix a major logic error when applying extra sensor data to the main station - affects most stations
-- Web tags are now case insensitive, as are tag parameter keys. Simple parameter values are also case insensitive. Parameter values for date formats etc are obviously still case sensitive
-- Fix MySQL error handling to prevent buffering of statements with syntax errors
-- Add support for BGT and WBGT to Ecowitt HTTP Local API, HTTP (Ecowitt), and the JSON stations
-	- New web tags `<#BlackGlobeTemp>` and `<#WetBulbGlobeTemp>`
-	- Two new fields added to the monthly log files and the monthly MySQL table to support these new measurements
-
 ### Important Notes
 
 - First build using Visual Studio 2026, and transitioning to .NET 10.0
@@ -49,6 +57,8 @@ If you use an Ambient station as an Extra Sensors station, then after upgrading 
 - **Required changes to Ambient Extra Sensor Stations:** If you use an Ambient station as an Extra Sensors station, then after upgrading to this release you MUST check which sensors are enabled in the extra station configuration
 - **Required updated for MySQL users:** If you use the standard MySQL uploads, then there are two additional columns in the Monthly table. Please run the table updater in the MySQL settings when you first run this release
 - **Required update for existing Windy.com upload users:** This version of MX switches to using the new Windy v2 API, this API requires you to enter the full Station ID in the Windy Settings
+- **Check required for Extra Sensor Users:** Check if Solar and UV are enabled in the Extra Sensor settings. A bug in previous versions of Cumulus MX meant the main station values were always used even if these options were enabled.
+	The bug has been fixed, and if you do not want to use Solar/UV from the extra station, you MUST now disable these options
 
 
 ***IMPORTANT: This release requires .NET 10.0 to run, and WILL alter your log file structures***
@@ -1253,4 +1263,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4139
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4141

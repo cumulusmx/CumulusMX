@@ -2339,7 +2339,7 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					station.DoLaserDistance(rec.Value.LdsAir[i], i);
+					station.DoLaserDistance(rec.Value.LdsAir[i], i, recDateTime);
 				}
 				catch (Exception ex)
 				{
@@ -2355,7 +2355,7 @@ namespace CumulusMX.Stations
 					if (cumulus.LaserDepthBaseline[i] == -1)
 					{
 						// MX is NOT calculating the depth
-						station.DoLaserDepth(rec.Value.LdsDepth[i], i);
+						station.DoLaserDepth(rec.Value.LdsDepth[i], i, recDateTime);
 					}
 					// else DoLaserDistance() calcs the depth
 				}

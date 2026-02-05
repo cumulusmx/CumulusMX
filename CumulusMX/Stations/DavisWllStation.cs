@@ -3249,14 +3249,14 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private sealed class WllBroadcast
+		public class WllBroadcast
 		{
 			public string did { get; set; }
 			public long ts { get; set; }
 			public List<WllBroadcastRec> conditions { get; set; }
 		}
 
-		private sealed class WllBroadcastRec
+		public class WllBroadcastRec
 		{
 			public int lsid { get; set; }
 			public int txid { get; set; }

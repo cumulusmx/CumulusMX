@@ -176,19 +176,19 @@ namespace CumulusMX.LogFiles
 			return string.Join(',',
 				DateTimeStr,
 				UnixTimestamp.ToString(inv),
-				IndoorTemperature.HasValue ? IndoorTemperature.Value.ToString("F1", inv) : null,
+				IndoorTemperature.ToFixed("F1"),
 				IndoorHumidity.HasValue ? IndoorHumidity.Value : "",
-				IndoorPm1.HasValue ? IndoorPm1.Value.ToString("F1", inv) : "",
-				IndoorPm2p5.HasValue ? IndoorPm2p5.Value.ToString("F1", inv) : "",
-				IndoorPm2p5_1hr.HasValue ? IndoorPm2p5_1hr.Value.ToString("F1", inv) : "",
-				IndoorPm2p5_3hr.HasValue ? IndoorPm2p5_3hr.Value.ToString("F1", inv) : "",
-				IndoorPm2p5_24hr.HasValue ? IndoorPm2p5_24hr.Value.ToString("F1", inv) : "",
-				IndoorPm2p5_Nowcast.HasValue ? IndoorPm2p5_Nowcast.Value.ToString("F1", inv) : "",
-				IndoorPm2p5.HasValue ? IndoorPm2p5.Value.ToString("F1", inv) : "",
-				IndoorPm10_1hr.HasValue ? IndoorPm2p5_1hr.Value.ToString("F1", inv) : "",
-				IndoorPm10_3hr.HasValue ? IndoorPm2p5_3hr.Value.ToString("F1", inv) : "",
-				IndoorPm10_24hr.HasValue ? IndoorPm2p5_24hr.Value.ToString("F1", inv) : "",
-				IndoorPm10_Nowcast.HasValue ? IndoorPm2p5_Nowcast.Value.ToString("F1", inv) : "",
+				IndoorPm1.ToFixed("F1"),
+				IndoorPm2p5.ToFixed("F1"),
+				IndoorPm2p5_1hr.ToFixed("F1"),
+				IndoorPm2p5_3hr.ToFixed("F1"),
+				IndoorPm2p5_24hr.ToFixed("F1"),
+				IndoorPm2p5_Nowcast.ToFixed("F1"),
+				IndoorPm2p5.ToFixed("F1"),
+				IndoorPm10_1hr.ToFixed("F1"),
+				IndoorPm10_3hr.ToFixed("F1"),
+				IndoorPm10_24hr.ToFixed("F1"),
+				IndoorPm10_Nowcast.ToFixed("F1"),
 				IndoorPercent1hr.HasValue ? IndoorPercent1hr.Value : "",
 				IndoorPercent3hr.HasValue ? IndoorPercent3hr.Value : "",
 				IndoorPercent24hr.HasValue ? IndoorPercent24hr.Value : "",
@@ -205,17 +205,17 @@ namespace CumulusMX.LogFiles
 				IndoorPm10Aqi_Nowcast.HasValue ? (cumulus.AirQualityDPlaces > 0 ? IndoorPm10Aqi_Nowcast.Value.ToString(cumulus.AirQualityFormat, inv) : (int) IndoorPm10Aqi_Nowcast.Value) : "",
 				OutdoorTemperature.HasValue ? OutdoorTemperature.Value.ToString("F1", inv) : "",
 				OutdoorHumidity.HasValue ? OutdoorHumidity.Value : "",
-				OutdoorPm1.HasValue ? OutdoorPm1.Value.ToString("F1", inv) : "",
-				OutdoorPm2p5.HasValue ? OutdoorPm2p5.Value.ToString("F1", inv) : "",
-				OutdoorPm2p5_1hr.HasValue ? OutdoorPm2p5_1hr.Value.ToString("F1", inv) : "",
-				OutdoorPm2p5_3hr.HasValue ? OutdoorPm2p5_3hr.Value.ToString("F1", inv) : "",
-				OutdoorPm2p5_24hr.HasValue ? OutdoorPm2p5_24hr.Value.ToString("F1", inv) : "",
-				OutdoorPm2p5_Nowcast.HasValue ? OutdoorPm2p5_Nowcast.Value.ToString("F1", inv) : "",
-				OutdoorPm2p5.HasValue ? OutdoorPm2p5.Value.ToString("F1", inv) : "",
-				OutdoorPm10_1hr.HasValue ? OutdoorPm2p5_1hr.Value.ToString("F1", inv) : "",
-				OutdoorPm10_3hr.HasValue ? OutdoorPm2p5_3hr.Value.ToString("F1", inv) : "",
-				OutdoorPm10_24hr.HasValue ? OutdoorPm2p5_24hr.Value.ToString("F1", inv) : "",
-				OutdoorPm10_Nowcast.HasValue ? OutdoorPm2p5_Nowcast.Value.ToString("F1", inv) : "",
+				OutdoorPm1.ToFixed("F1"),
+				OutdoorPm2p5.ToFixed("F1"),
+				OutdoorPm2p5_1hr.ToFixed("F1"),
+				OutdoorPm2p5_3hr.ToFixed("F1"),
+				OutdoorPm2p5_24hr.ToFixed("F1"),
+				OutdoorPm2p5_Nowcast.ToFixed("F1"),
+				OutdoorPm2p5.ToFixed("F1"),
+				OutdoorPm10_1hr.ToFixed("F1"),
+				OutdoorPm10_3hr.ToFixed("F1"),
+				OutdoorPm10_24hr.ToFixed("F1"),
+				OutdoorPm10_Nowcast.ToFixed("F1"),
 				OutdoorPercent1hr.HasValue ? OutdoorPercent1hr.Value : "",
 				OutdoorPercent3hr.HasValue ? OutdoorPercent3hr.Value : "",
 				OutdoorPercent24hr.HasValue ? OutdoorPercent24hr.Value : "",
@@ -234,7 +234,7 @@ namespace CumulusMX.LogFiles
 		}
 
 		public static string CurrentToCsv(DateTime timestamp, Cumulus cumulus)
-		{ 
+		{
 			var inv = CultureInfo.InvariantCulture;
 			var sep = ",";
 
@@ -245,7 +245,7 @@ namespace CumulusMX.LogFiles
 
 			if (cumulus.AirLinkInEnabled && cumulus.airLinkDataIn != null && cumulus.airLinkDataIn.dataValid)
 			{
-				sb.Append(sep + cumulus.airLinkDataIn.temperature.ToString("F1", inv));
+				sb.Append(sep + cumulus.airLinkDataIn.temperature.ToFixed("F1"));
 				sb.Append(sep + cumulus.airLinkDataIn.humidity.ToString());
 				sb.Append(sep + cumulus.airLinkDataIn.pm1.ToString("F1", inv));
 				sb.Append(sep + cumulus.airLinkDataIn.pm2p5.ToString("F1", inv));
@@ -297,7 +297,7 @@ namespace CumulusMX.LogFiles
 
 			if (cumulus.AirLinkOutEnabled && cumulus.airLinkDataOut != null && cumulus.airLinkDataOut.dataValid)
 			{
-				sb.Append(sep + cumulus.airLinkDataOut.temperature.ToString("F1", inv));
+				sb.Append(sep + cumulus.airLinkDataOut.temperature.ToFixed("F1"));
 				sb.Append(sep + cumulus.airLinkDataOut.humidity.ToString());
 				sb.Append(sep + cumulus.airLinkDataOut.pm1.ToString("F1", inv));
 				sb.Append(sep + cumulus.airLinkDataOut.pm2p5.ToString("F1", inv));

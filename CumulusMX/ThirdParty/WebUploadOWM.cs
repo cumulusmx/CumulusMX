@@ -178,17 +178,17 @@ namespace CumulusMX.ThirdParty
 
 			sb.Append($"\"dt\":{timestamp.ToUnixTime()},");
 			if (station.OutdoorTemperature >= Cumulus.DefaultHiVal)
-				sb.Append($"\"temperature\":{Math.Round(ConvertUnits.UserTempToC(station.OutdoorTemperature), 1).ToString(invC)},");
+				sb.Append($"\"temperature\":{ConvertUnits.UserTempToC(station.OutdoorTemperature).ToFixed("F1")},");
 			sb.Append($"\"wind_deg\":{station.AvgBearing},");
-			sb.Append($"\"wind_speed\":{Math.Round(ConvertUnits.UserWindToMS(station.WindAverage), 1).ToString(invC)},");
+			sb.Append($"\"wind_speed\":{ConvertUnits.UserWindToMS(station.WindAverage).ToString("F1", invC)},");
 			if (station.RecentMaxGust >= 0)
-				sb.Append($"\"wind_gust\":{Math.Round(ConvertUnits.UserWindToMS(station.RecentMaxGust), 1).ToString(invC)},");
+				sb.Append($"\"wind_gust\":{ConvertUnits.UserWindToMS(station.RecentMaxGust).ToString("F1", invC)},");
 			if (station.Pressure > 0)
-				sb.Append($"\"pressure\":{Math.Round(ConvertUnits.UserPressToHpa(station.Pressure), 1).ToString(invC)},");
+				sb.Append($"\"pressure\":{ConvertUnits.UserPressToHpa(station.Pressure).ToString("F1", invC)},");
 			if (station.OutdoorHumidity >= 0)
 				sb.Append($"\"humidity\":{station.OutdoorHumidity},");
-			sb.Append($"\"rain_1h\":{Math.Round(ConvertUnits.UserRainToMM(station.RainLastHour), 1).ToString(invC)},");
-			sb.Append($"\"rain_24h\":{Math.Round(ConvertUnits.UserRainToMM(station.RainLast24Hour), 1).ToString(invC)}");
+			sb.Append($"\"rain_1h\":{ConvertUnits.UserRainToMM(station.RainLastHour).ToString("F1", invC)},");
+			sb.Append($"\"rain_24h\":{ConvertUnits.UserRainToMM(station.RainLast24Hour).ToString("F1", invC)}");
 			sb.Append("}]");
 
 			return sb.ToString();

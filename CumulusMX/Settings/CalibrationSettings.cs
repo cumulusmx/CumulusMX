@@ -104,7 +104,10 @@ namespace CumulusMX.Settings
 				cumulus.Limit.StationPressLow = MeteoLib.SeaLevelToStation(cumulus.Limit.PressLow, ConvertUnits.AltitudeM(cumulus.Altitude));
 
 				// snow
-				cumulus.SnowMinInc = settings.snow.mininc;
+				cumulus.SnowDepthMinInc = settings.snow.mininc;
+				cumulus.SnowDepthMedianMins = settings.snow.filter.median;
+				cumulus.SnowDepthClipDelta = settings.snow.filter.clip;
+				cumulus.SnowDepthEmaTimeMins = settings.snow.filter.ema;
 
 				// Save the settings
 				cumulus.WriteIniFile();
@@ -237,7 +240,13 @@ namespace CumulusMX.Settings
 			var snow = new SnowSettings()
 			{
 				spike = Math.Round(cumulus.Spike.SnowDiff, cumulus.LaserDPlaces),
-				mininc = Math.Round(cumulus.SnowMinInc, cumulus.LaserDPlaces)
+				mininc = Math.Round(cumulus.SnowDepthMinInc, cumulus.LaserDPlaces),
+				filter = new SnowFilter()
+				{
+					median = cumulus.SnowDepthMedianMins,
+					clip = cumulus.SnowDepthClipDelta,
+					ema = cumulus.SnowDepthEmaTimeMins
+				}
 			};
 
 			var data = new JsonSettingsData()
@@ -299,6 +308,14 @@ namespace CumulusMX.Settings
 		{
 			public decimal spike { get; set; }
 			public decimal mininc { get; set; }
+			public SnowFilter filter { get; set; }
+		}
+
+		private sealed class SnowFilter
+		{
+			public int median { get; set; }
+			public double clip {  get; set; }
+			public double ema {  get; set; }
 		}
 	}
 }

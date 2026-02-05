@@ -4189,6 +4189,7 @@ namespace CumulusMX
 			}
 			DavisOptions.TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222, 1, 65535);
 			DavisOptions.IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
+			DavisOptions.CloudBroadcasts = ini.GetValue("Station", "DavisCloudBroadcast", false);
 
 			WeatherFlowOptions.WFDeviceId = ini.GetValue("Station", "WeatherFlowDeviceId", 0);
 			WeatherFlowOptions.WFTcpPort = ini.GetValue("Station", "WeatherFlowTcpPort", 50222, 1, 65535);
@@ -4359,11 +4360,18 @@ namespace CumulusMX
 				2 => 10,
 				_ => 0
 			});
-			SnowMinInc = ini.GetValue("Station", "EWsnowMinInc", minSnowInc, 0);
-			for (var i = 1; i <= 4; i++)
+			SnowDepthMinInc = ini.GetValue("Station", "EWsnowMinInc", minSnowInc, 0);
+			SnowDepthMedianMins = ini.GetValue("Station", "SnowMedianMins", 5, 1, 30);
+			SnowDepthEmaTimeMins = ini.GetValue("Station", "SnowEmaTimeMins", 10.0, 0.01, 30.0);
+			var defSnowClip = Units.LaserDistance switch
 			{
-				SnowDepthIncAvgMins[i] = ini.GetValue("Station", "EWsnowAvgIncMins" + i, 15, 0, 15);
-			}
+				0 => 0.2,  // cm
+				1 => 0.08, // in
+				2 => 2.0,  // mm
+				_ => 2.0
+			};
+			SnowDepthClipDelta = ini.GetValue("Station", "SnowClipDelta", defSnowClip, 0.0);
+
 			if (Spike.TempDiff < 999)
 			{
 				Spike.TempDiff = ConvertUnits.TempCToUser(Spike.TempDiff);
@@ -6412,6 +6420,8 @@ namespace CumulusMX
 			ini.SetValue("Station", "VP2IPAddr", DavisOptions.IPAddr);
 			ini.SetValue("Station", "VP2PeriodicDisconnectInterval", DavisOptions.PeriodicDisconnectInterval);
 			ini.SetValue("Station", "ForceVPBarUpdate", DavisOptions.ForceVPBarUpdate);
+			ini.SetValue("Station", "DavisCloudBroadcast", DavisOptions.CloudBroadcasts);
+
 
 			ini.SetValue("Station", "NoSensorCheck", StationOptions.NoSensorCheck);
 			ini.SetValue("Station", "CalculatedDP", StationOptions.CalculatedDP);
@@ -6490,8 +6500,10 @@ namespace CumulusMX
 			ini.SetValue("Station", "EWinTempdiff", Spike.InTempDiff < 999 ? ConvertUnits.UserTempToC(Spike.InTempDiff) : 999.0);
 			ini.SetValue("Station", "EWinHumiditydiff", Spike.InHumDiff);
 			ini.SetValue("Station", "EWsnowdiff", Spike.SnowDiff);
-			ini.SetValue("Station", "EWsnowMinInc", SnowMinInc);
-
+			ini.SetValue("Station", "EWsnowMinInc", SnowDepthMinInc);
+			ini.SetValue("Station", "SnowMedianMins", SnowDepthMedianMins);
+			ini.SetValue("Station", "SnowClipDelta", SnowDepthClipDelta);
+			ini.SetValue("Station", "SnowEmaTimeMins", SnowDepthEmaTimeMins);
 
 			ini.SetValue("Station", "RainSeasonStart", RainSeasonStart);
 			ini.SetValue("Station", "RainWeekStart", RainWeekStart);
@@ -8380,8 +8392,12 @@ namespace CumulusMX
 
 		public int SnowDepthHour { get; set; }
 		public int SnowAutomated { get; set; }
-		public decimal SnowMinInc { get; set; }
-		public int[] SnowDepthIncAvgMins { get; set; } = new int[5];
+		public decimal SnowDepthMinInc { get; set; }
+		public int SnowDepthMedianMins { get; set; }
+		public double SnowDepthEmaTimeMins { get; set; }
+		public double SnowDepthClipDelta { get; set; }
+
+
 		public int SnowSeasonStart { get; set; }
 		public bool SnowLogging { get; set; }
 
@@ -8731,38 +8747,38 @@ namespace CumulusMX
 
 					StringBuilder values = new StringBuilder(MonthlyTable.StartOfInsert, 600);
 					values.Append(" Values('");
-					values.Append(timestamp.ToString("yyyy-MM-dd HH:mm") + "'");
-					values.Append(sep + station.OutdoorTemperature.ToString(TempFormat, inv));
-					values.Append(sep + station.OutdoorHumidity);
-					values.Append(sep + station.OutdoorDewpoint.ToString(TempFormat, inv));
+					values.Append(timestamp.ToString("yyyy-MM-dd HH:mm", inv) + "'");
+					values.Append(sep + station.OutdoorTemperature.ToFixed(TempFormat));
+					values.Append(sep + station.OutdoorHumidity.ToString());
+					values.Append(sep + station.OutdoorDewpoint.ToFixed(TempFormat));
 					values.Append(sep + station.WindAverage.ToString(WindAvgFormat, inv));
 					values.Append(sep + station.RecentMaxGust.ToString(WindFormat, inv));
-					values.Append(sep + station.AvgBearing);
+					values.Append(sep + station.AvgBearing.ToString());
 					values.Append(sep + station.RainRate.ToString(RainFormat, inv));
 					values.Append(sep + station.RainToday.ToString(RainFormat, inv));
 					values.Append(sep + station.Pressure.ToString(PressFormat, inv));
 					values.Append(sep + station.RainCounter.ToString(RainFormat, inv));
-					values.Append(sep + (station.IndoorTemperature.HasValue ? station.IndoorTemperature.Value.ToString(TempFormat, inv) : "NULL"));
-					values.Append(sep + (station.IndoorHumidity.HasValue ? station.IndoorHumidity : "NULL"));
+					values.Append(sep + station.IndoorTemperature.ToFixed(TempFormat, "NULL"));
+					values.Append(sep + station.IndoorHumidity.ToText("NULL"));
 					values.Append(sep + station.WindLatest.ToString(WindFormat, inv));
-					values.Append(sep + station.WindChill.ToString(TempFormat, inv));
-					values.Append(sep + station.HeatIndex.ToString(TempFormat, inv));
-					values.Append(sep + (station.UV.HasValue ? station.UV.Value.ToString(UVFormat, inv) : "NULL"));
-					values.Append(sep + (station.SolarRad.HasValue ? station.SolarRad : "NULL"));
-					values.Append(sep + station.ET.ToString(ETFormat, inv));
+					values.Append(sep + station.WindChill.ToFixed(TempFormat));
+					values.Append(sep + station.HeatIndex.ToFixed(TempFormat));
+					values.Append(sep + station.UV.ToFixed(UVFormat, "NULL"));
+					values.Append(sep + station.SolarRad.ToText("NULL"));
+					values.Append(sep + station.ET.ToFixed(ETFormat));
 					values.Append(sep + station.AnnualETTotal.ToString(ETFormat, inv));
-					values.Append(sep + station.ApparentTemperature.ToString(TempFormat, inv));
-					values.Append(sep + station.CurrentSolarMax);
+					values.Append(sep + station.ApparentTemperature.ToFixed(TempFormat));
+					values.Append(sep + station.CurrentSolarMax.ToString());
 					values.Append(sep + station.SunshineHours.ToString(SunFormat, inv));
-					values.Append(sep + station.Bearing);
+					values.Append(sep + station.Bearing.ToString());
 					values.Append(sep + station.RG11RainToday.ToString(RainFormat, inv));
-					values.Append(sep + station.RainSinceMidnight.ToString(RainFormat, inv));
+					values.Append(sep + station.RainSinceMidnight.ToFixed(RainFormat));
 					values.Append(sep + "'" + station.CompassPoint(station.AvgBearing) + "'");
 					values.Append(sep + "'" + station.CompassPoint(station.Bearing) + "'");
-					values.Append(sep + station.FeelsLike.ToString(TempFormat, inv));
-					values.Append(sep + station.Humidex.ToString(TempFormat, inv));
-					values.Append(sep + (station.BlackGlobeTemp.HasValue ? station.BlackGlobeTemp.Value.ToString(TempFormat, inv) : "NULL"));
-					values.Append(sep + (station.WetBulbGlobeTemp.HasValue? station.WetBulbGlobeTemp.Value.ToString(TempFormat, inv) : "NULL"));
+					values.Append(sep + station.FeelsLike.ToFixed(TempFormat));
+					values.Append(sep + station.Humidex.ToFixed(TempFormat));
+					values.Append(sep + station.BlackGlobeTemp.ToFixed(TempFormat, "NULL"));
+					values.Append(sep + station.WetBulbGlobeTemp.ToFixed(TempFormat, "NULL"));
 
 					values.Append(')');
 
@@ -13016,9 +13032,9 @@ namespace CumulusMX
 				var sb = new StringBuilder();
 
 				sb.Append(timestamp.ToString("dd/MM/yy HH:mm:ss "));                          // 1, 2
-				sb.Append(station.OutdoorTemperature.ToString(TempFormat, InvC) + ' ');       // 3
+				sb.Append(station.OutdoorTemperature.ToFixed(TempFormat) + ' ');              // 3
 				sb.Append(station.OutdoorHumidity.ToString() + ' ');                          // 4
-				sb.Append(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ' ');          // 5
+				sb.Append(station.OutdoorDewpoint.ToFixed(TempFormat) + ' ');                 // 5
 				sb.Append(station.WindAverage.ToString(WindAvgFormat, InvC) + ' ');           // 6
 				sb.Append(station.WindLatest.ToString(WindFormat, InvC) + ' ');               // 7
 				sb.Append(station.Bearing.ToString() + ' ');                                  // 8
@@ -13032,17 +13048,17 @@ namespace CumulusMX
 				sb.Append(Units.PressText + ' ');                                             // 16
 				sb.Append(Units.RainText + ' ');                                              // 17
 				sb.Append(station.WindRunToday.ToString(WindRunFormat, InvC) + ' ');          // 18
-				sb.Append(station.presstrendval.ToString(PressTrendFormat, InvC) + ' ');      // 19
+				sb.Append(station.presstrendval.ToFixed(PressTrendFormat) + ' ');             // 19
 				sb.Append(station.RainMonth.ToString(RainFormat, InvC) + ' ');                // 20
 				sb.Append(station.RainYear.ToString(RainFormat, InvC) + ' ');                 // 21
 				sb.Append(station.RainYesterday.ToString(RainFormat, InvC) + ' ');            // 22
-				sb.Append((station.IndoorTemperature ?? 0).ToString(TempFormat, InvC) + ' '); // 23
+				sb.Append((station.IndoorTemperature ?? 0).ToFixed(TempFormat) + ' ');        // 23
 				sb.Append((station.IndoorHumidity ?? 0).ToString() + ' ');                    // 24
-				sb.Append(station.WindChill.ToString(TempFormat, InvC) + ' ');                // 25
-				sb.Append(station.temptrendval.ToString(TempTrendFormat, InvC) + ' ');        // 26
-				sb.Append(station.HiLoToday.HighTemp.ToString(TempFormat, InvC) + ' ');       // 27
+				sb.Append(station.WindChill.ToFixed(TempFormat) + ' ');                       // 25
+				sb.Append(station.temptrendval.ToFixed(TempTrendFormat) + ' ');               // 26
+				sb.Append(station.HiLoToday.HighTemp.ToFixed(TempFormat) + ' ');              // 27
 				sb.Append(station.HiLoToday.HighTempTime.ToString("HH:mm "));                 // 28
-				sb.Append(station.HiLoToday.LowTemp.ToString(TempFormat, InvC) + ' ');        // 29
+				sb.Append(station.HiLoToday.LowTemp.ToFixed(TempFormat) + ' ');               // 29
 				sb.Append(station.HiLoToday.LowTempTime.ToString("HH:mm "));                  // 30
 				sb.Append(station.HiLoToday.HighWind.ToString(WindAvgFormat, InvC) + ' ');    // 31
 				sb.Append(station.HiLoToday.HighWindTime.ToString("HH:mm "));                 // 32
@@ -13055,8 +13071,8 @@ namespace CumulusMX
 				sb.Append(Version + ' ');                                                     // 39
 				sb.Append(Build + ' ');                                                       // 40
 				sb.Append(station.RecentMaxGust.ToString(WindFormat, InvC) + ' ');            // 41
-				sb.Append(station.HeatIndex.ToString(TempFormat, InvC) + ' ');                // 42
-				sb.Append(station.Humidex.ToString(TempFormat, InvC) + ' ');                  // 43
+				sb.Append(station.HeatIndex.ToFixed(TempFormat) + ' ');                       // 42
+				sb.Append(station.Humidex.ToFixed(TempFormat) + ' ');                         // 43
 				sb.Append((station.UV ?? 0).ToString(UVFormat, InvC) + ' ');                  // 44
 				sb.Append(station.ET.ToString(ETFormat, InvC) + ' ');                         // 45
 				sb.Append((station.SolarRad ?? 0).ToString() + ' ');                          // 46
@@ -13068,11 +13084,11 @@ namespace CumulusMX
 				sb.Append(station.CompassPoint(station.AvgBearing) + ' ');                    // 52
 				sb.Append(station.CloudBase.ToString() + ' ');                                // 53
 				sb.Append(CloudBaseInFeet ? "ft " : "m ");                                    // 54
-				sb.Append(station.ApparentTemperature.ToString(TempFormat, InvC) + ' ');      // 55
+				sb.Append(station.ApparentTemperature.ToFixed(TempFormat) + ' ');             // 55
 				sb.Append(station.SunshineHours.ToString(SunFormat, InvC) + ' ');             // 56
 				sb.Append(Convert.ToInt32(station.CurrentSolarMax).ToString() + ' ');         // 57
 				sb.Append(station.IsSunny ? "1 " : "0 ");                                     // 58
-				sb.Append(station.FeelsLike.ToString(TempFormat, InvC) + ' ');                // 59
+				sb.Append(station.FeelsLike.ToFixed(TempFormat) + ' ');                       // 59
 				sb.AppendLine(station.RainWeek.ToString(RainFormat, InvC));                   // 60
 				return sb.ToString();
 			}
@@ -13103,9 +13119,9 @@ namespace CumulusMX
 			StringBuilder values = new StringBuilder(RealtimeTable.StartOfInsert, 1024);
 			values.Append(" Values(");
 			values.Append(timestamp.ToString("\\'yyyy-MM-dd HH:mm:ss\\'", InvC));
-			values.Append(sep + station.OutdoorTemperature.ToString(TempFormat, InvC));
+			values.Append(sep + station.OutdoorTemperature.ToFixed(TempFormat));
 			values.Append(sep + station.OutdoorHumidity.ToString());
-			values.Append(sep + station.OutdoorDewpoint.ToString(TempFormat, InvC));
+			values.Append(sep + station.OutdoorDewpoint.ToFixed(TempFormat));
 			values.Append(sep + station.WindAverage.ToString(WindAvgFormat, InvC));
 			values.Append(sep + station.WindLatest.ToString(WindFormat, InvC));
 			values.Append(sep + station.Bearing.ToString());
@@ -13119,17 +13135,17 @@ namespace CumulusMX
 			values.Append(sep + "'" + Units.PressText + "'");
 			values.Append(sep + "'" + Units.RainText + "'");
 			values.Append(sep + station.WindRunToday.ToString(WindRunFormat, InvC) );
-			values.Append(sep + "'" + (station.presstrendval > 0 ? '+' + station.presstrendval.ToString(PressFormat, InvC) : station.presstrendval.ToString(PressFormat, InvC)) + "'");
+			values.Append(sep + "'" + (station.presstrendval > 0 ? '+' + station.presstrendval.ToFixed(PressFormat) : station.presstrendval.ToFixed(PressFormat)) + "'");
 			values.Append(sep + station.RainMonth.ToString(RainFormat, InvC));
 			values.Append(sep + station.RainYear.ToString(RainFormat, InvC));
 			values.Append(sep + station.RainYesterday.ToString(RainFormat, InvC));
-			values.Append(sep + (station.IndoorTemperature.HasValue ? station.IndoorTemperature.Value.ToString(TempFormat, InvC) : "NULL"));
-			values.Append(sep + (station.IndoorHumidity.HasValue ? station.IndoorHumidity.ToString() : "NULL"));
-			values.Append(sep + station.WindChill.ToString(TempFormat, InvC));
-			values.Append(sep + "'" + station.temptrendval.ToString(TempTrendFormat, InvC) + "'");
-			values.Append(sep + station.HiLoToday.HighTemp.ToString(TempFormat, InvC));
+			values.Append(sep + station.IndoorTemperature.ToFixed(TempFormat, "NULL"));
+			values.Append(sep + station.IndoorHumidity.ToText("NULL"));
+			values.Append(sep + station.WindChill.ToFixed(TempFormat));
+			values.Append(sep + "'" + station.temptrendval.ToFixed(TempTrendFormat) + "'");
+			values.Append(sep + station.HiLoToday.HighTemp.ToFixed(TempFormat));
 			values.Append(sep + station.HiLoToday.HighTempTime.ToString("\\'HH:mm\\'"));
-			values.Append(sep + station.HiLoToday.LowTemp.ToString(TempFormat, InvC));
+			values.Append(sep + station.HiLoToday.LowTemp.ToFixed(TempFormat));
 			values.Append(sep + station.HiLoToday.LowTempTime.ToString("\\'HH:mm\\'"));
 			values.Append(sep + station.HiLoToday.HighWind.ToString(WindAvgFormat, InvC));
 			values.Append(sep + station.HiLoToday.HighWindTime.ToString("\\'HH:mm\\'"));
@@ -13142,11 +13158,11 @@ namespace CumulusMX
 			values.Append(sep + "'" + Version +"'");
 			values.Append(sep + "'" + Build + "'");
 			values.Append(sep + station.RecentMaxGust.ToString(WindFormat, InvC));
-			values.Append(sep + station.HeatIndex.ToString(TempFormat, InvC));
-			values.Append(sep + station.Humidex.ToString(TempFormat, InvC));
-			values.Append(sep + (station.UV.HasValue ? station.UV.Value.ToString(UVFormat, InvC) : "NULL"));
+			values.Append(sep + station.HeatIndex.ToFixed(TempFormat));
+			values.Append(sep + station.Humidex.ToFixed(TempFormat));
+			values.Append(sep + station.UV.ToFixed(UVFormat, "NULL"));
 			values.Append(sep + station.ET.ToString(ETFormat, InvC));
-			values.Append(sep + (station.SolarRad.HasValue ? station.SolarRad.ToString() : "NULL"));
+			values.Append(sep + station.SolarRad.ToText("NULL"));
 			values.Append(sep + station.AvgBearing.ToString());
 			values.Append(sep + station.RainLastHour.ToString(RainFormat, InvC));
 			values.Append(sep + station.Forecastnumber.ToString());
@@ -13155,11 +13171,11 @@ namespace CumulusMX
 			values.Append(sep + "'" + station.CompassPoint(station.AvgBearing) + "'");
 			values.Append(sep + (station.CloudBase).ToString() );
 			values.Append(sep + (CloudBaseInFeet ? "'ft'" : "'m'") );
-			values.Append(sep + station.ApparentTemperature.ToString(TempFormat, InvC));
+			values.Append(sep + station.ApparentTemperature.ToFixed(TempFormat));
 			values.Append(sep + station.SunshineHours.ToString(SunFormat, InvC));
 			values.Append(sep + station.CurrentSolarMax);
 			values.Append(sep + (station.IsSunny ? "'1'" : "'0'"));
-			values.Append(sep + station.FeelsLike.ToString(TempFormat, InvC));
+			values.Append(sep + station.FeelsLike.ToFixed(TempFormat));
 			values.Append(sep + station.RainWeek.ToString(RainFormat, InvC));
 			values.Append(')');
 
@@ -14377,7 +14393,7 @@ namespace CumulusMX
 			LogMessage("Spike removal:");
 			LogMessage($"TD={Spike.TempDiff:F3} GD={Spike.GustDiff:F3} WD={Spike.WindDiff:F3} HD={Spike.HumidityDiff:F3} PD={Spike.PressDiff:F3} MR={Spike.MaxRainRate:F3} MH={Spike.MaxHourlyRain:F3} ITD={Spike.InTempDiff:F3} IHD={Spike.InHumDiff:F3} Snow={Spike.SnowDiff:F2}");
 			LogMessage("Limits:");
-			LogMessage($"TH={Limit.TempHigh.ToString(TempFormat)} TL={Limit.TempLow.ToString(TempFormat)} DH={Limit.DewHigh.ToString(TempFormat)} GH={Limit.WindHigh:F3} SnowMinInc={SnowMinInc:F2}");
+			LogMessage($"TH={Limit.TempHigh.ToString(TempFormat)} TL={Limit.TempLow.ToString(TempFormat)} DH={Limit.DewHigh.ToString(TempFormat)} GH={Limit.WindHigh:F3} SnowMinInc={SnowDepthMinInc:F2}");
 			LogMessage($"PH={Limit.PressHigh.ToString(PressFormat)} PL={Limit.PressLow.ToString(PressFormat)} SPH={Limit.StationPressHigh.ToString(PressFormat)} SPL={Limit.StationPressLow.ToString(PressFormat)}");
 		}
 
@@ -14640,9 +14656,9 @@ namespace CumulusMX
 			txt.Append(',');
 			txt.Append(Time.ToString(@"hh\:mm"));
 			txt.Append(',');
-			txt.Append(SnowDepth.HasValue ? SnowDepth.Value.ToString("F1", CultureInfo.InvariantCulture) : string.Empty);
+			txt.Append(SnowDepth.ToFixed("F1"));
 			txt.Append(',');
-			txt.Append(Snow24h.HasValue ? Snow24h.Value.ToString("F1", CultureInfo.InvariantCulture) : string.Empty);
+			txt.Append(Snow24h.ToFixed("F1"));
 			txt.Append(',');
 			txt.Append(string.IsNullOrEmpty(Entry) ? string.Empty : $"\"{Entry}\"");
 			txt.Append(',');
@@ -14880,6 +14896,7 @@ namespace CumulusMX
 		public int TCPPort { get; set; }
 		public string IPAddr { get; set; }
 		public int PeriodicDisconnectInterval { get; set; }
+		public bool CloudBroadcasts { get; set; }
 	}
 
 

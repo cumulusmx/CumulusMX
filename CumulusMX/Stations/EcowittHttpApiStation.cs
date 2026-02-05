@@ -466,8 +466,7 @@ namespace CumulusMX.Stations
 
 			if (ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken))
 			{
-				startTime = cumulus.LastUpdateTime.AddMinutes(1);
-				if ((DateTime.Now - startTime).TotalHours > 24.0)
+				if ((DateTime.Now - cumulus.LastUpdateTime.AddMinutes(1)).TotalMinutes > Cumulus.logints[cumulus.DataLogInterval] + 1)
 				{
 					maxArchiveRuns++;
 				}
@@ -1980,7 +1979,7 @@ namespace CumulusMX.Stations
 						};
 					}
 
-					DoLaserDistance(air, sensor.channel);
+					DoLaserDistance(air, sensor.channel, DateTime.Now);
 				}
 				catch (Exception ex)
 				{
@@ -2006,7 +2005,7 @@ namespace CumulusMX.Stations
 							};
 						}
 
-						DoLaserDepth(depth, sensor.channel);
+						DoLaserDepth(depth, sensor.channel, DateTime.Now);
 					}
 					// else DoLaserDistance() calcs the depth
 

@@ -286,7 +286,7 @@ namespace CumulusMX.ThirdParty
 			if (SendIndoor)
 			{
 				if (station.IndoorTemperature.HasValue)
-					sb.Append("indoortemp=" + ConvertUnits.UserTempToC(station.IndoorTemperature.Value).ToString("F1", InvC));
+					sb.Append("indoortemp=" + ConvertUnits.UserTempToC(station.IndoorTemperature.Value).ToFixed("F1"));
 
 				if (station.IndoorHumidity.HasValue)
 					sb.Append("&indoorhumidity=" + station.IndoorHumidity);
@@ -300,7 +300,7 @@ namespace CumulusMX.ThirdParty
 					if (station.SoilTemp[i].HasValue)
 					{
 						if (started) sb.Append('&'); else started = true;
-						sb.Append($"soiltemp{i}={ConvertUnits.UserTempToC(station.SoilTemp[i].Value).ToString("F1", InvC)}");
+						sb.Append($"soiltemp{i}={ConvertUnits.UserTempToC(station.SoilTemp[i].Value).ToFixed("F1")}");
 					}
 				}
 			}
@@ -384,7 +384,7 @@ namespace CumulusMX.ThirdParty
 			sb.Append(pwstring + sep);                                                                        // 2
 			sb.Append(timestamp.ToString("dd'.'MM'.'yyyy';'HH':'mm") + sep);                                  // 3 + 4
 			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
-				sb.Append(ConvertUnits.UserTempToC(station.OutdoorTemperature).ToString("F1", InvC) + sep);   // 5
+				sb.Append(ConvertUnits.UserTempToC(station.OutdoorTemperature).ToFixed("F1") + sep);   // 5
 			else
 				sb.Append(sep);
 			if (station.OutdoorHumidity >= 0)
@@ -433,7 +433,7 @@ namespace CumulusMX.ThirdParty
 			}
 
 			if (SendSoilTemp && station.SoilTemp[1].HasValue)
-				sb.Append(ConvertUnits.UserTempToC(station.SoilTemp[1].Value).ToString("F1", InvC) + sep);    // 21
+				sb.Append(ConvertUnits.UserTempToC(station.SoilTemp[1].Value).ToFixed("F1") + sep);    // 21
 			else
 				sb.Append(sep);
 
@@ -444,20 +444,20 @@ namespace CumulusMX.ThirdParty
 			sb.Append("Cum_" + cumulus.Version + sep);                                                          // 23
 			sb.Append(sep + sep);                                                                               // 24/25 location for mobile
 			if (station.HiLoToday.LowTemp < Cumulus.DefaultLoVal)
-				sb.Append(ConvertUnits.UserTempToC(station.HiLoToday.LowTemp).ToString("F1", InvC));  // 26
+				sb.Append(ConvertUnits.UserTempToC(station.HiLoToday.LowTemp).ToFixed("F1"));  // 26
 			sb.Append(sep);
 
-			sb.Append(ConvertUnits.UserTempToC(AvgTemp).ToString("F1", InvC) + sep);                    // 27
+			sb.Append(ConvertUnits.UserTempToC(AvgTemp).ToFixed("F1") + sep);                    // 27
 			if (station.HiLoToday.HighTemp > Cumulus.DefaultHiVal)
-				sb.Append(ConvertUnits.UserTempToC(station.HiLoToday.HighTemp).ToString("F1", InvC)); // 28
+				sb.Append(ConvertUnits.UserTempToC(station.HiLoToday.HighTemp).ToFixed("F1")); // 28
 			sb.Append(sep);
 
-			sb.Append(ConvertUnits.UserTempToC(station.ThisMonth.LowTemp.Val).ToString("F1", InvC) + sep);  // 29
+			sb.Append(ConvertUnits.UserTempToC(station.ThisMonth.LowTemp.Val).ToFixed("F1") + sep);  // 29
 			sb.Append(sep);                                                                                         // 30 avg temp this month
-			sb.Append(ConvertUnits.UserTempToC(station.ThisMonth.HighTemp.Val).ToString("F1", InvC) + sep); // 31
-			sb.Append(ConvertUnits.UserTempToC(station.ThisYear.LowTemp.Val).ToString("F1", InvC) + sep);   // 32
+			sb.Append(ConvertUnits.UserTempToC(station.ThisMonth.HighTemp.Val).ToFixed("F1") + sep); // 31
+			sb.Append(ConvertUnits.UserTempToC(station.ThisYear.LowTemp.Val).ToFixed("F1") + sep);   // 32
 			sb.Append(sep);                                                                                         // 33 avg temp this year
-			sb.Append(ConvertUnits.UserTempToC(station.ThisYear.HighTemp.Val).ToString("F1", InvC) + sep);  // 34
+			sb.Append(ConvertUnits.UserTempToC(station.ThisYear.HighTemp.Val).ToFixed("F1") + sep);  // 34
 			if (station.HiLoToday.LowHumidity < Cumulus.DefaultLoVal)
 				sb.Append(station.HiLoToday.LowHumidity);                                                       // 35
 			sb.Append(sep);

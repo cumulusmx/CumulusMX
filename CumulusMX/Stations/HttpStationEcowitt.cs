@@ -290,8 +290,7 @@ namespace CumulusMX.Stations
 
 			if (ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken))
 			{
-				startTime = cumulus.LastUpdateTime.AddMinutes(1);
-				if ((DateTime.Now - startTime).TotalHours > 24.0)
+				if ((DateTime.Now - cumulus.LastUpdateTime.AddMinutes(1)).TotalMinutes > Cumulus.logints[cumulus.DataLogInterval] + 1)
 				{
 					maxArchiveRuns++;
 				}
@@ -960,7 +959,7 @@ namespace CumulusMX.Stations
 					try
 					{
 						// laser_distance
-						ProcessLds(data, thisStation);
+						ProcessLds(data, thisStation, recDate);
 					}
 					catch (Exception ex)
 					{
@@ -1486,7 +1485,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void ProcessLds(NameValueCollection data, WeatherStation station)
+		private void ProcessLds(NameValueCollection data, WeatherStation station, DateTime dataTime)
 		{
 			// air_ch[1-4] - air gap mm
 			// thi_ch[1-4] - total height mm
@@ -1496,11 +1495,11 @@ namespace CumulusMX.Stations
 			{
 				if (data["air_ch" + i] != null)
 				{
-					station.DoLaserDistance(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["air_ch" + i], invNum)), i);
+					station.DoLaserDistance(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["air_ch" + i], invNum)), i, dataTime);
 				}
 				else
 				{
-					station.DoLaserDistance(null, i);
+					station.DoLaserDistance(null, i, dataTime);
 				}
 
 				if (cumulus.LaserDepthBaseline[i] == -1)
@@ -1508,11 +1507,11 @@ namespace CumulusMX.Stations
 					// MX is not calculating depth
 					if (data["depth_ch" + i] != null)
 					{
-						station.DoLaserDepth(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i);
+						station.DoLaserDepth(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i, dataTime);
 					}
 					else
 					{
-						station.DoLaserDepth(null, i);
+						station.DoLaserDepth(null, i, dataTime);
 					}
 				}
 				// else DoLaserDistance() calcs the depth

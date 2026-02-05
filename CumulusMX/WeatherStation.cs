@@ -338,11 +338,6 @@ namespace CumulusMX
 				MonthlyRecs[i] = new AllTimeRecords();
 			}
 
-			for (var i = 1; i <= 4; i++)
-			{
-				snowDepthAverage[i] = new Utilities.RollingAverage(TimeSpan.FromMinutes(15));
-			}
-
 			CumulusForecast = cumulus.Trans.ForecastNotAvailable;
 			wsforecast = cumulus.Trans.ForecastNotAvailable;
 
@@ -392,6 +387,16 @@ namespace CumulusMX
 
 			GetRainCounter();
 			GetRainFallTotals();
+
+			// Snow stuff
+			for (var i = 1; i <= 4; i++)
+			{
+				snowDepthAverage[i] = new SmoothingFilter(
+					medianMins: TimeSpan.FromMinutes(cumulus.SnowDepthMedianMins),
+					timeConstantMinutes: cumulus.SnowDepthEmaTimeMins,
+					clipDelta: cumulus.SnowDepthClipDelta
+				);
+			}
 			LoadSnowDepthAverage(cumulus.LastUpdateTime);
 
 			versionCheckTime = new DateTime(1, 1, 1, Program.RandGenerator.Next(0, 23), Program.RandGenerator.Next(0, 59), 0, DateTimeKind.Local);
@@ -793,14 +798,14 @@ namespace CumulusMX
 		{
 			if (cumulus.LaserPrimarySnowSensor == 0) return;
 
-			var datefrom = ts.AddMinutes(-15);
+			var datefrom = ts.AddMinutes(-30);
 			var dateto = ts;
 			var entrydate = datefrom;
 			var filedate = datefrom;
 			var logFile = cumulus.GetExtraLogFileName(filedate);
 			var finished = false;
 
-			cumulus.LogMessage("LoadSnowDepthAverage: Attempting to load last 15 minutes laser depth values");
+			cumulus.LogMessage("LoadSnowDepthAverage: Attempting to load last 30 minutes laser depth values");
 
 			do
 			{
@@ -833,7 +838,7 @@ namespace CumulusMX
 									{
 										if (rec.LaserDepth[i].HasValue)
 										{
-											snowDepthAverage[i].AddSample(rec.LaserDepth[i].Value);
+											_ = snowDepthAverage[i].Update(entrydate, rec.LaserDepth[i].Value);
 										}
 									}
 								}
@@ -1655,7 +1660,7 @@ namespace CumulusMX
 		public decimal?[] Snow24h { get; set; } = new decimal?[5];
 		public decimal?[] SnowSeason { get; set; } = new decimal?[5];
 
-		private readonly Utilities.RollingAverage[] snowDepthAverage = new Utilities.RollingAverage[5];
+		private readonly SmoothingFilter[] snowDepthAverage = new SmoothingFilter[5];
 
 		public double RainYesterday { get; set; }
 
@@ -2010,7 +2015,17 @@ namespace CumulusMX
 
 						if (cumulus.StationOptions.LogExtraSensors)
 						{
+							// Log the maximum 24hr snow accumulation before resetting it
 							_ = cumulus.DoExtraLogFile(now);
+
+							if (now.Hour == cumulus.SnowDepthHour && now.Minute == 0)
+							{
+								// reset the accumulated snow depth(s)
+								for (var i = 0; i < Snow24h.Length; i++)
+								{
+									Snow24h[i] = LaserDepth[i].HasValue ? 0 : null;
+								}
+							}
 						}
 
 						if (cumulus.AirLinkInEnabled || cumulus.AirLinkOutEnabled)
@@ -2272,11 +2287,7 @@ namespace CumulusMX
 					CreateNewSnowRecord(now);
 				}
 
-				// reset the accumulated snow depth(s)
-				for (var i = 0; i < Snow24h.Length; i++)
-				{
-					Snow24h[i] = LaserDepth[i].HasValue ? 0 : null;
-				}
+				// Reset the 24 hr snow value in MinuteChanged() so we capture the max value for the day
 			}
 
 			RemoveOldRecentData(now);
@@ -2886,30 +2897,30 @@ namespace CumulusMX
 
 				if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
 				{
-					var val = data[i].IndoorTemp.HasValue ? data[i].IndoorTemp.Value.ToString(cumulus.TempFormat, InvC) : "null";
+					var val = data[i].IndoorTemp.ToFixed(cumulus.TempFormat, "null");
 					sbIn.Append($"[{jsTime},{val}],");
 				}
 
 				if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
-					sbDew.Append($"[{jsTime},{data[i].DewPoint.ToString(cumulus.TempFormat, InvC)}],");
+					sbDew.Append($"[{jsTime},{data[i].DewPoint.ToFixed(cumulus.TempFormat)}],");
 
 				if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
-					sbApp.Append($"[{jsTime},{data[i].AppTemp.ToString(cumulus.TempFormat, InvC)}],");
+					sbApp.Append($"[{jsTime},{data[i].AppTemp.ToFixed(cumulus.TempFormat)}],");
 
 				if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
-					sbFeel.Append($"[{jsTime},{data[i].FeelsLike.ToString(cumulus.TempFormat, InvC)}],");
+					sbFeel.Append($"[{jsTime},{data[i].FeelsLike.ToFixed(cumulus.TempFormat)}],");
 
 				if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
-					sbChill.Append($"[{jsTime},{data[i].WindChill.ToString(cumulus.TempFormat, InvC)}],");
+					sbChill.Append($"[{jsTime},{data[i].WindChill.ToFixed(cumulus.TempFormat)}],");
 
 				if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
-					sbHeat.Append($"[{jsTime},{data[i].HeatIndex.ToString(cumulus.TempFormat, InvC)}],");
+					sbHeat.Append($"[{jsTime},{data[i].HeatIndex.ToFixed(cumulus.TempFormat)}],");
 
 				if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
-					sbTemp.Append($"[{jsTime},{data[i].OutsideTemp.ToString(cumulus.TempFormat, InvC)}],");
+					sbTemp.Append($"[{jsTime},{data[i].OutsideTemp.ToFixed(cumulus.TempFormat)}],");
 
 				if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
-					sbHumidex.Append($"[{jsTime},{data[i].Humidex.ToString(cumulus.TempFormat, InvC)}],");
+					sbHumidex.Append($"[{jsTime},{data[i].Humidex.ToFixed(cumulus.TempFormat)}],");
 			}
 
 			if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
@@ -3209,7 +3220,7 @@ namespace CumulusMX
 											var val = "null";
 											if (fields[i] < st.Count)
 											{
-												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToFixed(cumulus.TempFormat) : "null";
 											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
@@ -3395,7 +3406,7 @@ namespace CumulusMX
 											var val = "null";
 											if (fields[i] < st.Count)
 											{
-												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToFixed(cumulus.TempFormat) : "null";
 											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
@@ -3766,7 +3777,7 @@ namespace CumulusMX
 											var val = "null";
 											if (fields[i] < st.Count)
 											{
-												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToFixed(cumulus.TempFormat) : "null";
 											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
@@ -4136,7 +4147,7 @@ namespace CumulusMX
 											var val = "null";
 											if (fields[i] < st.Count)
 											{
-												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToString(cumulus.LaserFormat, InvC) : "null";
 											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
@@ -4508,7 +4519,7 @@ namespace CumulusMX
 											var val = "null";
 											if (fields[i] < st.Count)
 											{
-												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToString(cumulus.TempFormat, InvC) : "null";
+												val = double.TryParse(st[fields[i]], InvC, out temp) ? temp.ToFixed(cumulus.TempFormat) : "null";
 											}
 											sbExt[i].Append($"[{jsTime},{val}],");
 										}
@@ -4681,28 +4692,28 @@ namespace CumulusMX
 									var jsTime = entryTs * 1000;
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
-										sbCo2.Append($"[{jsTime},{(rec.CO2.HasValue ? rec.CO2.Value.ToString("F1", InvC) : "null")}],");
+										sbCo2.Append($"[{jsTime},{rec.CO2.ToFixed("F1", "null")}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local))
-										sbCo2Avg.Append($"[{jsTime},{(rec.CO2_24h.HasValue ? rec.CO2_24h.Value.ToString("F1", InvC) : "null")}],");
+										sbCo2Avg.Append($"[{jsTime},{rec.CO2_24h.ToFixed("F1", "null")}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
-										sbPm25.Append($"[{jsTime},{(rec.CO2_pm2p5.HasValue ? rec.CO2_pm2p5.Value.ToString("F1", InvC) : "null")}],");
+										sbPm25.Append($"[{jsTime},{rec.CO2_pm2p5.ToFixed("F1", "null")}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local))
-										sbPm25Avg.Append($"[{jsTime},{(rec.CO2_pm2p5_24h.HasValue ? rec.CO2_pm2p5_24h.Value.ToString("F1", InvC) : "null")}],");
+										sbPm25Avg.Append($"[{jsTime},{rec.CO2_pm2p5_24h.ToFixed("F1", "null")}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
-										sbPm10.Append($"[{jsTime},{(rec.CO2_pm10.HasValue ? rec.CO2_pm10.Value.ToString("F1", InvC) : "null")}],");
+										sbPm10.Append($"[{jsTime},{rec.CO2_pm10.ToFixed("F1", "null")}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
-										sbPm10Avg.Append($"[{jsTime},{(rec.CO2_pm10_24h.HasValue ? rec.CO2_pm10_24h.Value.ToString("F1", InvC) : "null")}],");
+										sbPm10Avg.Append($"[{jsTime},{rec.CO2_pm10_24h.ToFixed("F1", "null")}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
-										sbTemp.Append($"[{jsTime},{(rec.CO2_temperature.HasValue ? rec.CO2_temperature.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
+										sbTemp.Append($"[{jsTime},{rec.CO2_temperature.ToFixed(cumulus.TempFormat, "null")}],");
 
 									if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
-										sbHum.Append($"[{jsTime},{(rec.CO2_humidity.HasValue ? rec.CO2_humidity : "null")}],");
+										sbHum.Append($"[{jsTime},{rec.CO2_humidity.ToText("null")}],");
 								}
 							}
 							catch (Exception ex)
@@ -5068,28 +5079,28 @@ namespace CumulusMX
 								var jsTime = recTs * 1000;
 
 								if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
-									sbIn.Append($"[{jsTime},{(rec.IndoorTemperature.HasValue ? rec.IndoorTemperature.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
+									sbIn.Append($"[{jsTime},{rec.IndoorTemperature.ToFixed(cumulus.TempFormat, "null")}],");
 
 								if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
-									sbDew.Append($"[{jsTime},{rec.OutdoorDewpoint.ToString(cumulus.TempFormat, InvC)}],");
+									sbDew.Append($"[{jsTime},{rec.OutdoorDewpoint.ToFixed(cumulus.TempFormat)}],");
 
 								if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
-									sbApp.Append($"[{jsTime},{(rec.ApparentTemperature.HasValue ? rec.ApparentTemperature.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
+									sbApp.Append($"[{jsTime},{rec.ApparentTemperature.ToFixed(cumulus.TempFormat, "null")}],");
 
 								if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
-									sbFeel.Append($"[{jsTime},{(rec.FeelsLike.HasValue ? rec.FeelsLike.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
+									sbFeel.Append($"[{jsTime},{rec.FeelsLike.ToFixed(cumulus.TempFormat, "null")}],");
 
 								if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
-									sbChill.Append($"[{jsTime},{(rec.WindChill.HasValue ? rec.WindChill.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
+									sbChill.Append($"[{jsTime},{rec.WindChill.ToFixed(cumulus.TempFormat, "null")}],");
 
 								if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
-									sbHeat.Append($"[{jsTime},{(rec.HeatIndex.HasValue ? rec.HeatIndex.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
+									sbHeat.Append($"[{jsTime},{rec.HeatIndex.ToFixed(cumulus.TempFormat, "null")}],");
 
 								if (cumulus.GraphOptions.Visible.Temp.IsVisible(local))
-									sbTemp.Append($"[{jsTime},{rec.OutdoorTemperature.ToString(cumulus.TempFormat, InvC)}],");
+									sbTemp.Append($"[{jsTime},{rec.OutdoorTemperature.ToFixed(cumulus.TempFormat)}],");
 
 								if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
-									sbHumidex.Append($"[{jsTime},{(rec.Humidex.HasValue ? rec.Humidex.Value.ToString(cumulus.TempFormat, InvC) : "null")}],");
+									sbHumidex.Append($"[{jsTime},{rec.Humidex.ToFixed(cumulus.TempFormat, "null")}],");
 							}
 							catch (Exception e)
 							{
@@ -5409,7 +5420,7 @@ namespace CumulusMX
 
 								if (cumulus.GraphOptions.Visible.UV.IsVisible(local))
 								{
-									sbUv.Append($"[{jsTime},{(rec.UV.HasValue ? rec.UV.Value.ToString(cumulus.UVFormat, InvC) : "null")}],");
+									sbUv.Append($"[{jsTime},{rec.UV.ToFixed(cumulus.UVFormat, "null")}],");
 								}
 
 								if (cumulus.GraphOptions.Visible.Solar.IsVisible(local))
@@ -8966,9 +8977,9 @@ namespace CumulusMX
 			strb.Append(sep + HiLoToday.HighGust.ToString(cumulus.WindFormat, inv));
 			strb.Append(sep + HiLoToday.HighGustBearing);
 			strb.Append(sep + HiLoToday.HighGustTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowTemp.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + HiLoToday.LowTemp.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + HiLoToday.LowTempTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighTemp.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + HiLoToday.HighTemp.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + HiLoToday.HighTempTime.ToString("HH:mm", inv));
 			strb.Append(sep + HiLoToday.LowPress.ToString(cumulus.PressFormat, inv));
 			strb.Append(sep + HiLoToday.LowPressTime.ToString("HH:mm", inv));
@@ -8977,7 +8988,7 @@ namespace CumulusMX
 			strb.Append(sep + HiLoToday.HighRainRate.ToString(cumulus.RainFormat, inv));
 			strb.Append(sep + HiLoToday.HighRainRateTime.ToString("HH:mm", inv));
 			strb.Append(sep + RainToday.ToString(cumulus.RainFormat, inv));
-			strb.Append(sep + AvgTemp.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + AvgTemp.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + WindRunToday.ToString("F1", inv));
 			strb.Append(sep + HiLoToday.HighWind.ToString(cumulus.WindAvgFormat, inv));
 			strb.Append(sep + HiLoToday.HighWindTime.ToString("HH:mm", inv));
@@ -8985,7 +8996,7 @@ namespace CumulusMX
 			strb.Append(sep + HiLoToday.LowHumidityTime.ToString("HH:mm", inv));
 			strb.Append(sep + HiLoToday.HighHumidity);
 			strb.Append(sep + HiLoToday.HighHumidityTime.ToString("HH:mm", inv));
-			strb.Append(sep + ET.ToString(cumulus.ETFormat, inv));
+			strb.Append(sep + ET.ToFixed(cumulus.ETFormat));
 			if (cumulus.RolloverHour == 0)
 			{
 				// use existing current sunshine hour count
@@ -8996,32 +9007,32 @@ namespace CumulusMX
 				// for non-midnight roll-over, use new item
 				strb.Append(sep + SunshineToMidnight.ToString(cumulus.SunFormat, inv));
 			}
-			strb.Append(sep + HiLoToday.HighHeatIndex.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + HiLoToday.HighHeatIndex.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + HiLoToday.HighHeatIndexTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighAppTemp.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + HiLoToday.HighAppTemp.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + HiLoToday.HighAppTempTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowAppTemp.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + HiLoToday.LowAppTemp.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + HiLoToday.LowAppTempTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighHourlyRain.ToString(cumulus.RainFormat, inv));
+			strb.Append(sep + HiLoToday.HighHourlyRain.ToFixed(cumulus.RainFormat));
 			strb.Append(sep + HiLoToday.HighHourlyRainTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowWindChill.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + HiLoToday.LowWindChill.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + HiLoToday.LowWindChillTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighDewPoint.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + HiLoToday.HighDewPoint.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + HiLoToday.HighDewPointTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowDewPoint.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + HiLoToday.LowDewPoint.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + HiLoToday.LowDewPointTime.ToString("HH:mm", inv));
-			strb.Append(sep + DominantWindBearing);
+			strb.Append(sep + DominantWindBearing.ToString());
 			strb.Append(sep + HeatingDegreeDays.ToString("F1", inv));
 			strb.Append(sep + CoolingDegreeDays.ToString("F1", inv));
-			strb.Append(sep + HiLoToday.HighSolar);
+			strb.Append(sep + HiLoToday.HighSolar.ToString());
 			strb.Append(sep + HiLoToday.HighSolarTime.ToString("HH:mm", inv));
 			strb.Append(sep + HiLoToday.HighUv.ToString(cumulus.UVFormat, inv));
 			strb.Append(sep + HiLoToday.HighUvTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighFeelsLike.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + HiLoToday.HighFeelsLike.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + HiLoToday.HighFeelsLikeTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowFeelsLike.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + HiLoToday.LowFeelsLike.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + HiLoToday.LowFeelsLikeTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighHumidex.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + HiLoToday.HighHumidex.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + HiLoToday.HighHumidexTime.ToString("HH:mm", inv));
 			strb.Append(sep + ChillHours.ToString(cumulus.TempFormat, inv));
 			strb.Append(sep + HiLoToday.HighRain24h.ToString(cumulus.RainFormat, inv));
@@ -9143,9 +9154,9 @@ namespace CumulusMX
 				queryString.Append(sep + HiLoToday.HighGust.ToString(cumulus.WindFormat, inv));
 				queryString.Append(sep + HiLoToday.HighGustBearing);
 				queryString.Append(sep + HiLoToday.HighGustTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowTemp.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + HiLoToday.LowTemp.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.LowTempTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighTemp.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + HiLoToday.HighTemp.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.HighTempTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + HiLoToday.LowPress.ToString(cumulus.PressFormat, inv));
 				queryString.Append(sep + HiLoToday.LowPressTime.ToString("\\'HH:mm\\'", inv));
@@ -9154,7 +9165,7 @@ namespace CumulusMX
 				queryString.Append(sep + HiLoToday.HighRainRate.ToString(cumulus.RainFormat, inv));
 				queryString.Append(sep + HiLoToday.HighRainRateTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + RainToday.ToString(cumulus.RainFormat, inv));
-				queryString.Append(sep + AvgTemp.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + AvgTemp.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + WindRunToday.ToString("F1", inv));
 				queryString.Append(sep + HiLoToday.HighWind.ToString(cumulus.WindAvgFormat, inv));
 				queryString.Append(sep + HiLoToday.HighWindTime.ToString("\\'HH:mm\\'", inv));
@@ -9164,36 +9175,36 @@ namespace CumulusMX
 				queryString.Append(sep + HiLoToday.HighHumidityTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + ET.ToString(cumulus.ETFormat, inv));
 				queryString.Append(sep + (cumulus.RolloverHour == 0 ? SunshineHours.ToString(cumulus.SunFormat, inv) : SunshineToMidnight.ToString(cumulus.SunFormat, inv)));
-				queryString.Append(sep + HiLoToday.HighHeatIndex.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + HiLoToday.HighHeatIndex.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.HighHeatIndexTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighAppTemp.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + HiLoToday.HighAppTemp.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.HighAppTempTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowAppTemp.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + HiLoToday.LowAppTemp.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.LowAppTempTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + HiLoToday.HighHourlyRain.ToString(cumulus.RainFormat, inv));
 				queryString.Append(sep + HiLoToday.HighHourlyRainTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowWindChill.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + HiLoToday.LowWindChill.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.LowWindChillTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighDewPoint.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + HiLoToday.HighDewPoint.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.HighDewPointTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowDewPoint.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + HiLoToday.LowDewPoint.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.LowDewPointTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + DominantWindBearing);
+				queryString.Append(sep + DominantWindBearing.ToString());
 				queryString.Append(sep + HeatingDegreeDays.ToString("F1", inv));
 				queryString.Append(sep + CoolingDegreeDays.ToString("F1", inv));
-				queryString.Append(sep + HiLoToday.HighSolar);
+				queryString.Append(sep + HiLoToday.HighSolar.ToString());
 				queryString.Append(sep + HiLoToday.HighSolarTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + HiLoToday.HighUv.ToString(cumulus.UVFormat, inv));
 				queryString.Append(sep + HiLoToday.HighUvTime.ToString("\\'HH:mm\\'", inv) );
 				queryString.Append(sep + "'" + CompassPoint(HiLoToday.HighGustBearing) + "'");
 				queryString.Append(sep + "'" + CompassPoint(DominantWindBearing) + "'");
-				queryString.Append(sep + HiLoToday.HighFeelsLike.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + HiLoToday.HighFeelsLike.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.HighFeelsLikeTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowFeelsLike.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + HiLoToday.LowFeelsLike.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.LowFeelsLikeTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighHumidex.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + HiLoToday.HighHumidex.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.HighHumidexTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + ChillHours.ToString(cumulus.TempFormat, inv));
+				queryString.Append(sep + ChillHours.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + HiLoToday.HighRain24h.ToString(cumulus.RainFormat, inv));
 				queryString.Append(sep + HiLoToday.HighRain24hTime.ToString("\\'HH:mm\\'", inv));
 
@@ -10708,7 +10719,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoLaserDistance(decimal? value, int index)
+		public void DoLaserDistance(decimal? value, int index, DateTime dataTime)
 		{
 			if (index > 0 && index < LaserDist.Length)
 			{
@@ -10717,15 +10728,17 @@ namespace CumulusMX
 				// calculate depth?
 				if (cumulus.LaserDepthBaseline[index] > -1)
 				{
-					DoLaserDepth(value.HasValue ? cumulus.LaserDepthBaseline[index] - value : value, index);
+					DoLaserDepth(value.HasValue ? cumulus.LaserDepthBaseline[index] - value : value, index, dataTime);
 				}
 			}
 		}
 
-		public void DoLaserDepth(decimal? value, int index)
+		public void DoLaserDepth(decimal? value, int index, DateTime dataTime)
 		{
 			if (index > 0 && index < LaserDepth.Length)
 			{
+				var logEntry = false;
+
 				LaserDepth[index] = value;
 
 				if (value.HasValue && cumulus.LaserIsSnowSensor[index])
@@ -10740,20 +10753,82 @@ namespace CumulusMX
 						SnowSeason[index] = 0;
 					}
 
-					// calculate a 15 minute rolling average of the depth - used for decrementing the baseline
-					snowDepthAverage[index].AddSample((double) value.Value);
-					var depthAverage = (decimal) Math.Round(snowDepthAverage[index].GetAverage(), cumulus.LaserDPlaces);
+					// calculate a smoothed value of the depth
+					var newValue = (decimal) snowDepthAverage[index].Update(dataTime, (double) value.Value);
 
-					decimal newValue;
+					var lastdepth = LastLaserSnowDepth[index];
+					var snowInc = (decimal) 0.0;
 
-					if (cumulus.SnowDepthIncAvgMins[index] > 0)
+					if (!LastLaserSnowDepth[index].HasValue)
 					{
-						// we are going to use average value for the last 'N' minutes rather than the raw value
-						newValue = (decimal) Math.Round(snowDepthAverage[index].GetAverage(TimeSpan.FromMinutes(cumulus.SnowDepthIncAvgMins[index])), cumulus.LaserDPlaces);
+						LastLaserSnowDepth[index] = newValue;
+						logEntry = true;
+					}
+					else if (newValue < LastLaserSnowDepth[index].Value)
+					{
+						LastLaserSnowDepth[index] = newValue;
+						cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+						logEntry = true;
 					}
 					else
 					{
-						newValue = value.Value;
+						var multiplier = cumulus.Units.LaserDistance switch
+						{
+							0 => 10,  // cm
+							1 => 100, // in
+							2 => 1,  // mm
+							_ => 1
+						};
+
+						// calculate the snowfall since the last increment - round towards zero in steps of the laser distance units
+						var laserInc = Math.Truncate((newValue - LastLaserSnowDepth[index].Value) * multiplier) / multiplier;
+
+						if (Math.Round(laserInc, cumulus.LaserDPlaces) == 0)
+						{
+							// no change in depth
+#if DEBUG
+							cumulus.LogDebugMessage($"Laser #{index} No change in depth");
+#endif
+							snowSpikeTime = DateTime.UtcNow;
+						}
+						else if (laserInc < 0)
+						{
+#if DEBUG
+							cumulus.LogDebugMessage($"Laser #{index} depth change is negative: {laserInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+#endif
+							snowSpikeTime = DateTime.UtcNow;
+						}
+						else if (laserInc < cumulus.SnowDepthMinInc)
+						{
+							cumulus.LogDebugMessage($"Laser #{index} depth change is less than required for snow accumulation: {laserInc.ToString(cumulus.LaserFormat)}, min = {cumulus.SnowDepthMinInc} {cumulus.Units.LaserDistanceText}");
+						}
+						else if (laserInc > 0)
+						{
+							if (laserInc < cumulus.Spike.SnowDiff)
+							{
+								snowInc = ConvertUnits.LaserToSnow(laserInc);
+								Snow24h[index] = (Snow24h[index] ?? 0) + snowInc;
+								SnowSeason[index] = (SnowSeason[index] ?? 0) + snowInc;
+								LastLaserSnowDepth[index] = newValue;
+
+								cumulus.LogDebugMessage($"Laser #{index} depth increase added to snow accumulation: {laserInc.ToString(cumulus.LaserFormat)}, new value: {newValue.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+								snowSpikeTime = DateTime.UtcNow;
+								logEntry = true;
+							}
+							else
+							{
+								cumulus.LogSpikeRemoval($"Laser #{index} depth increase is greater than allowed for snow accumulation: {laserInc.ToString(cumulus.LaserFormat)}, max: {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
+
+								// If we get a spike value for more 5 readings (400 seconds), then rebaseline on the new value
+								if ((DateTime.UtcNow - snowSpikeTime).TotalSeconds > 400)
+								{
+									cumulus.LogWarningMessage($"Laser #{index} has had an increase above the spike level for six or more consecutive readings. Rebaselining on the new value: {newValue.ToString(cumulus.LaserFormat)} was: {(LastLaserSnowDepth[index] ?? 0).ToString(cumulus.LaserFormat)}");
+									snowSpikeTime = DateTime.UtcNow;
+									LastLaserSnowDepth[index] = newValue;
+									logEntry = true;
+								}
+							}
+						}
 					}
 
 					if (cumulus.SnowLogging)
@@ -10762,14 +10837,14 @@ namespace CumulusMX
 						{
 							// create the logger
 							var logfile = new NLog.Targets.FileTarget("snowlogFile")
-								{
-									FileName = Path.Combine(cumulus.ProgramOptions.DataPath, $"debug_snow_log{index}.txt"),
-									ArchiveAboveSize = 2097152,
-									ArchiveOldFileOnStartup = true,
-									//MaxArchiveFiles = 5,
-									Layout = "${message}",
-									Header = "time,dist,depth,last_snowdepth,avg_snowdepth,avg_time,increment,accumulation"
-								};
+							{
+								FileName = Path.Combine(cumulus.ProgramOptions.DataPath, $"debug_snow_log{index}.txt"),
+								ArchiveAboveSize = 2097152,
+								ArchiveOldFileOnStartup = true,
+								//MaxArchiveFiles = 5,
+								Layout = "${message}",
+								Header = "time,dist,depth,avg_snowdepth,last_snowdepth,new_snowdepth,depth_added,accum_24,accum_yr,min_increment,median_mins,time_const,clip_delta"
+							};
 
 							var asyncLogFile = new NLog.Targets.Wrappers.AsyncTargetWrapper(logfile)
 							{
@@ -10786,11 +10861,11 @@ namespace CumulusMX
 
 							var serviceProvider = new ServiceCollection()
 								.AddLogging(loggingBuilder =>
-								 {
-									 loggingBuilder.ClearProviders();
-									 loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
-									 loggingBuilder.AddNLog();
-								 })
+								{
+									loggingBuilder.ClearProviders();
+									loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+									loggingBuilder.AddNLog();
+								})
 								 .BuildServiceProvider();
 
 							NLog.LogManager.ReconfigExistingLoggers();
@@ -10798,87 +10873,33 @@ namespace CumulusMX
 						}
 
 						// debug logging of the values
-						if (lastSnowMinute != DateTime.Now.Minute)
+						if (DateTime.Now.Minute != lastSnowMinute || logEntry)
 						{
 							lastSnowMinute = DateTime.Now.Minute;
 							try
 							{
+								var laserFmtPlus1dp = "F" + (cumulus.LaserDPlaces + 1);
 								SnowLog.Info(
-									DateTime.Now.ToString("yyyy-MM-dd HH:mm,") +
-									LaserDist[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
-									value.Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
-									(LastLaserSnowDepth[index].HasValue ? LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) : "null") + ',' +
-									newValue.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
-									cumulus.SnowDepthIncAvgMins[index] + ',' +
-									cumulus.SnowMinInc.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) + ',' +
-									SnowSeason[index]
+									string.Join(',', [
+										DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+										LaserDist[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture),
+										value.Value.ToString(laserFmtPlus1dp, CultureInfo.InvariantCulture),
+										newValue.ToString(laserFmtPlus1dp, CultureInfo.InvariantCulture),
+										(lastdepth.HasValue ? lastdepth.Value.ToString(laserFmtPlus1dp , CultureInfo.InvariantCulture) : ""),
+										(LastLaserSnowDepth[index].HasValue ? LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) : ""),
+										snowInc.ToString(cumulus.SnowFormat),
+										(Snow24h[index] ?? 0).ToString(cumulus.SnowFormat),
+										(SnowSeason[index] ?? 0).ToString(cumulus.SnowFormat),
+										cumulus.SnowDepthMinInc.ToString(laserFmtPlus1dp, CultureInfo.InvariantCulture),
+										cumulus.SnowDepthMedianMins,
+										cumulus.SnowDepthEmaTimeMins,
+										cumulus.SnowDepthClipDelta
+									])
 								);
 							}
 							catch (Exception ex)
 							{
 								cumulus.LogExceptionMessage(ex, "Error creating snow depth debug log");
-							}
-						}
-					}
-
-					if (!LastLaserSnowDepth[index].HasValue)
-					{
-						LastLaserSnowDepth[index] = depthAverage;
-					}
-					else if (depthAverage < LastLaserSnowDepth[index].Value)
-					{
-						LastLaserSnowDepth[index] = depthAverage;
-						cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
-					}
-					else
-					{
-						// calculate the snowfall since the last increment
-						var snowInc = newValue - LastLaserSnowDepth[index].Value;
-
-						if (snowInc == 0)
-						{
-							// no change in depth
-#if DEBUG
-							cumulus.LogDebugMessage($"Laser #{index} No change in depth");
-#endif
-							snowSpikeTime = DateTime.UtcNow;
-						}
-						else if (snowInc < 0)
-						{
-#if DEBUG
-							cumulus.LogDebugMessage($"Laser #{index} depth change is negative: {snowInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
-#endif
-							snowSpikeTime = DateTime.UtcNow;
-
-						}
-						else if (snowInc < cumulus.SnowMinInc)
-						{
-							cumulus.LogDebugMessage($"Laser #{index} depth change is less than required for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, min = {cumulus.SnowMinInc} {cumulus.Units.LaserDistanceText}");
-						}
-						else if (snowInc > 0)
-						{
-							if (snowInc < cumulus.Spike.SnowDiff)
-							{
-								var inc = ConvertUnits.LaserToSnow(snowInc);
-								Snow24h[index] = (Snow24h[index] ?? 0) + inc;
-								SnowSeason[index] = (SnowSeason[index] ?? 0) + inc;
-								LastLaserSnowDepth[index] = newValue;
-
-								cumulus.LogDebugMessage($"Laser #{index} depth increase added to snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, new value: {newValue.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
-								snowSpikeTime = DateTime.UtcNow;
-							}
-							else
-							{
-								cumulus.LogSpikeRemoval($"Laser #{index} depth increase is greater than allowed for snow accumulation: {snowInc.ToString(cumulus.LaserFormat)}, max: {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
-
-								// If we get a spike value for more 5 readings (400 seconds), then rebaseline on the new value
-
-								if ((DateTime.UtcNow - snowSpikeTime).TotalSeconds > 400)
-								{
-									cumulus.LogWarningMessage($"Laser #{index} has had an increase above the spike level for six or more consecutive readings. Rebaselining on the new value: {newValue.ToString(cumulus.LaserFormat)} was: {(LastLaserSnowDepth[index] ?? 0).ToString(cumulus.LaserFormat)}");
-									snowSpikeTime = DateTime.UtcNow;
-									LastLaserSnowDepth[index] = newValue;
-								}
 							}
 						}
 					}
@@ -11893,7 +11914,7 @@ namespace CumulusMX
 		/// <returns></returns>
 		public static string TempFstr(double temp)
 		{
-			return ConvertUnits.UserTempToF(temp).ToString("F1", CultureInfo.InvariantCulture);
+			return ConvertUnits.UserTempToF(temp).ToFixed("F1");
 		}
 
 		/// <summary>
@@ -11903,7 +11924,7 @@ namespace CumulusMX
 		/// <returns></returns>
 		public static string TempCstr(double temp)
 		{
-			return ConvertUnits.UserTempToC(temp).ToString("F1", CultureInfo.InvariantCulture);
+			return ConvertUnits.UserTempToC(temp).ToFixed("F1");
 		}
 
 		public string GetPWSURL(out string pwstring, DateTime timestamp)
@@ -12423,7 +12444,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.ExtraTempCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(ExtraTemp[sensor].HasValue ? ExtraTemp[sensor].Value.ToString(cumulus.TempFormat) : "-");
+					json.Append(ExtraTemp[sensor].ToFixed(cumulus.TempFormat, "-"));
 					json.Append("\",\"&deg;");
 					json.Append(cumulus.Units.TempText[1]);
 					json.Append("\"],");
@@ -12448,7 +12469,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.UserTempCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(UserTemp[sensor].HasValue ? UserTemp[sensor].Value.ToString(cumulus.TempFormat) : "-");
+					json.Append(UserTemp[sensor].ToFixed(cumulus.TempFormat, "-"));
 					json.Append("\",\"&deg;");
 					json.Append(cumulus.Units.TempText[1]);
 					json.Append("\"],");
@@ -12473,7 +12494,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.ExtraHumCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(ExtraHum[sensor].HasValue ? ExtraHum[sensor].Value.ToString(cumulus.HumFormat) : "-");
+					json.Append(ExtraHum[sensor].ToFixed(cumulus.HumFormat, "-"));
 					json.Append("\",\"%\"],");
 				}
 			}
@@ -12495,7 +12516,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.ExtraDPCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(ExtraDewPoint[sensor].HasValue ? ExtraDewPoint[sensor].Value.ToString(cumulus.TempFormat) : "-");
+					json.Append(ExtraDewPoint[sensor].ToFixed(cumulus.TempFormat, "-"));
 					json.Append("\",\"&deg;");
 					json.Append(cumulus.Units.TempText[1]);
 					json.Append("\"],");
@@ -12520,7 +12541,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(LaserDepth[sensor].HasValue ? LaserDepth[sensor].Value.ToString(cumulus.LaserFormat) : "-");
+					json.Append(LaserDepth[sensor].ToFixed(cumulus.LaserFormat, "-"));
 					json.Append("\",\"");
 					json.Append(cumulus.Units.LaserDistanceText);
 					json.Append("\"],");
@@ -12545,7 +12566,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(LaserDist[sensor].HasValue ? LaserDist[sensor].Value.ToString(cumulus.LaserFormat) : "-");
+					json.Append(LaserDist[sensor].ToFixed(cumulus.LaserFormat, "-"));
 					json.Append("\",\"");
 					json.Append(cumulus.Units.LaserDistanceText);
 					json.Append("\"],");
@@ -12570,7 +12591,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append($"{(Snow24h[sensor].HasValue ? Snow24h[sensor].Value.ToString(cumulus.SnowFormat) : "-")}");
+					json.Append($"{Snow24h[sensor].ToFixed(cumulus.SnowFormat, "-")}");
 					json.Append("\",\"");
 					json.Append(cumulus.Units.SnowText);
 					json.Append("\"],");
@@ -12595,7 +12616,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append($"{(SnowSeason[sensor].HasValue ? SnowSeason[sensor].Value.ToString(cumulus.SnowFormat) : "-")}");
+					json.Append(SnowSeason[sensor].ToFixed(cumulus.SnowFormat, "-"));
 					json.Append("\",\"");
 					json.Append(cumulus.Units.SnowText);
 					json.Append("\"],");
@@ -12617,7 +12638,7 @@ namespace CumulusMX
 			{
 				if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i - 1, true))
 				{
-					json.Append($"[\"{cumulus.Trans.SoilTempCaptions[i - 1]}\",\"{(SoilTemp[i].HasValue ? SoilTemp[i].Value.ToString(cumulus.TempFormat) : "-")}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+					json.Append($"[\"{cumulus.Trans.SoilTempCaptions[i - 1]}\",\"{SoilTemp[i].ToFixed(cumulus.TempFormat, "-")}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
 				}
 			}
 
@@ -12635,7 +12656,7 @@ namespace CumulusMX
 			for (var i = 1; i < SoilMoisture.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i - 1, true))
-					json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[i - 1]}\",\"{(SoilMoisture[i].HasValue ? SoilMoisture[i].Value.ToString("F0") : "-")}\",\"{cumulus.Units.SoilMoistureUnitText[i - 1]}\"],");
+					json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[i - 1]}\",\"{SoilMoisture[i].ToText("-")}\",\"{cumulus.Units.SoilMoistureUnitText[i - 1]}\"],");
 			}
 
 			if (json[^1] == ',')
@@ -12654,28 +12675,28 @@ namespace CumulusMX
 				{
 					if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.AirQualityCaptions[i - 1]}\",\"{(AirQuality[i].HasValue ? AirQuality[i].Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+						json.Append($"[\"{cumulus.Trans.AirQualityCaptions[i - 1]}\",\"{AirQuality[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 					}
 				}
 				for (var i = 1; i < AirQualityAvg.Length; i++)
 				{
 					if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[i - 1]}\",\"{(AirQualityAvg[i].HasValue ? AirQualityAvg[i].Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+						json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[i - 1]}\",\"{AirQualityAvg[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 					}
 				}
 				for (var i = 1; i < AirQuality10.Length; i++)
 				{
 					if (cumulus.GraphOptions.Visible.AqSensor.Pm10.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.AirQuality10Captions[i - 1]}\",\"{(AirQuality10[i].HasValue ? AirQuality10[i].Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+						json.Append($"[\"{cumulus.Trans.AirQuality10Captions[i - 1]}\",\"{AirQuality10[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 					}
 				}
 				for (var i = 1; i < AirQuality10Avg.Length; i++)
 				{
 					if (cumulus.GraphOptions.Visible.AqSensor.Pm10Avg.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.AirQuality10AvgCaptions[i - 1]}\",\"{(AirQuality10Avg[i].HasValue ? AirQuality10Avg[i].Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+						json.Append($"[\"{cumulus.Trans.AirQuality10AvgCaptions[i - 1]}\",\"{AirQuality10Avg[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 					}
 				}
 			}
@@ -12694,21 +12715,21 @@ namespace CumulusMX
 			if (cumulus.GraphOptions.Visible.CO2Sensor.IsVisible(local))
 			{
 				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_CurrentCaption}\",\"{(CO2.HasValue ? CO2 : "-")}\",\"{cumulus.Units.CO2UnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_CurrentCaption}\",\"{CO2.ToText("-")}\",\"{cumulus.Units.CO2UnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_24HourCaption}\",\"{(CO2_24h.HasValue ? CO2_24h : "-")}\",\"{cumulus.Units.CO2UnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_24HourCaption}\",\"{CO2_24h.ToText("-")}\",\"{cumulus.Units.CO2UnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm2p5Caption}\",\"{(CO2_pm2p5.HasValue ? CO2_pm2p5.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm2p5Caption}\",\"{CO2_pm2p5.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm2p5_24hrCaption}\",\"{(CO2_pm2p5_24h.HasValue ? CO2_pm2p5_24h.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm2p5_24hrCaption}\",\"{CO2_pm2p5_24h.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm10Caption}\",\"{(CO2_pm10.HasValue ? CO2_pm10.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm10Caption}\",\"{CO2_pm10.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{(CO2_pm10_24h.HasValue ? CO2_pm10_24h.Value.ToString("F1") : "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_TemperatureCaption}\",\"{(CO2_temperature.HasValue ? CO2_temperature.Value.ToString(cumulus.TempFormat) : "-")}\",\"{cumulus.Units.TempText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_TemperatureCaption}\",\"{CO2_temperature.ToFixed(cumulus.TempFormat, "-")}\",\"{cumulus.Units.TempText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_HumidityCaption}\",\"{(CO2_humidity.HasValue ? CO2_humidity.Value.ToString("F0") : "-")}\",\"%\"]");
+					json.Append($"[\"{cumulus.Trans.CO2_HumidityCaption}\",\"{CO2_humidity.ToFixed("F0", "-")}\",\"%\"]");
 			}
 
 			if (json[^1] == ',')
@@ -12738,7 +12759,7 @@ namespace CumulusMX
 				{
 					if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[i - 1]}\",\"{(LeafWetness[i].HasValue ? LeafWetness[i].Value.ToString(cumulus.LeafWetFormat) : "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+						json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[i - 1]}\",\"{LeafWetness[i].ToFixed(cumulus.LeafWetFormat, "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
 					}
 				}
 			}
@@ -12865,127 +12886,127 @@ namespace CumulusMX
 			var tempUnitStr = "&nbsp;&deg;" + cumulus.Units.TempText[1].ToString() + sepStr;
 
 			json.Append("[\"High Temperature\",\"");
-			json.Append(HiLoToday.HighTemp.ToString(cumulus.TempFormat));
+			json.Append(HiLoToday.HighTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighTemp.ToString(cumulus.TempFormat));
+			json.Append(HiLoYest.HighTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoYest.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Temperature\",\"");
-			json.Append(HiLoToday.LowTemp.ToString(cumulus.TempFormat));
+			json.Append(HiLoToday.LowTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowTemp.ToString(cumulus.TempFormat));
+			json.Append(HiLoYest.LowTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoYest.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Temperature Range\",\"");
-			json.Append((HiLoToday.HighTemp - HiLoToday.LowTemp).ToString(cumulus.TempFormat));
+			json.Append((HiLoToday.HighTemp - HiLoToday.LowTemp).ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\",\"");
-			json.Append((HiLoYest.HighTemp - HiLoYest.LowTemp).ToString(cumulus.TempFormat));
+			json.Append((HiLoYest.HighTemp - HiLoYest.LowTemp).ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\"],");
 
 			json.Append("[\"Average Temperature\",\"");
-			json.Append((TempTotalToday / tempsamplestoday).ToString(cumulus.TempFormat));
+			json.Append((TempTotalToday / tempsamplestoday).ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\",\"");
-			json.Append(YestAvgTemp.ToString(cumulus.TempFormat));
+			json.Append(YestAvgTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\"],");
 
 
 			json.Append("[\"High Apparent Temperature\",\"");
-			json.Append(HiLoToday.HighAppTemp.ToString(cumulus.TempFormat));
+			json.Append(HiLoToday.HighAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighAppTemp.ToString(cumulus.TempFormat));
+			json.Append(HiLoYest.HighAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoYest.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Apparent Temperature\",\"");
-			json.Append(HiLoToday.LowAppTemp.ToString(cumulus.TempFormat));
+			json.Append(HiLoToday.LowAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowAppTemp.ToString(cumulus.TempFormat));
+			json.Append(HiLoYest.LowAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoYest.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"High Feels Like\",\"");
-			json.Append(HiLoToday.HighFeelsLike.ToString(cumulus.TempFormat));
+			json.Append(HiLoToday.HighFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighFeelsLike.ToString(cumulus.TempFormat));
+			json.Append(HiLoYest.HighFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoYest.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Feels Like\",\"");
-			json.Append(HiLoToday.LowFeelsLike.ToString(cumulus.TempFormat));
+			json.Append(HiLoToday.LowFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowFeelsLike.ToString(cumulus.TempFormat));
+			json.Append(HiLoYest.LowFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoYest.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"High Humidex\",\"");
-			json.Append(HiLoToday.HighHumidex.ToString(cumulus.TempFormat));
+			json.Append(HiLoToday.HighHumidex.ToFixedLocal(cumulus.TempFormat));
 			json.Append("\",\"");
 			json.Append(HiLoToday.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighHumidex.ToString(cumulus.TempFormat));
+			json.Append(HiLoYest.HighHumidex.ToFixedLocal(cumulus.TempFormat));
 			json.Append("\",\"");
 			json.Append(HiLoYest.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 			json.Append("[\"High Dew Point\",\"");
-			json.Append(HiLoToday.HighDewPoint.ToString(cumulus.TempFormat));
+			json.Append(HiLoToday.HighDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighDewPoint.ToString(cumulus.TempFormat));
+			json.Append(HiLoYest.HighDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoYest.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Dew Point\",\"");
-			json.Append(HiLoToday.LowDewPoint.ToString(cumulus.TempFormat));
+			json.Append(HiLoToday.LowDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowDewPoint.ToString(cumulus.TempFormat));
+			json.Append(HiLoYest.LowDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoYest.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Wind Chill\",\"");
-			json.Append(HiLoToday.LowWindChill.ToString(cumulus.TempFormat));
+			json.Append(HiLoToday.LowWindChill.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowWindChill.ToString(cumulus.TempFormat));
+			json.Append(HiLoYest.LowWindChill.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoYest.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"High Heat Index\",\"");
-			json.Append(HiLoToday.HighHeatIndex.ToString(cumulus.TempFormat));
+			json.Append(HiLoToday.HighHeatIndex.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighHeatIndex.ToString(cumulus.TempFormat));
+			json.Append(HiLoYest.HighHeatIndex.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoYest.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"]");
@@ -14542,7 +14563,7 @@ namespace CumulusMX
 
 				for (var i = 0; i < data.Count; i++)
 				{
-					sb.Append($"[{data[i].Date.ToUnixTimeMs()},{data[i].LowTemp.ToString(cumulus.TempFormat, InvC)}],");
+					sb.Append($"[{data[i].Date.ToUnixTimeMs()},{data[i].LowTemp.ToFixed(cumulus.TempFormat)}],");
 				}
 
 				// remove trailing comma
@@ -14562,7 +14583,7 @@ namespace CumulusMX
 
 				for (var i = 0; i < data.Count; i++)
 				{
-					sb.Append($"[{data[i].Date.ToUnixTimeMs()},{data[i].HighTemp.ToString(cumulus.TempFormat, InvC)}],");
+					sb.Append($"[{data[i].Date.ToUnixTimeMs()},{data[i].HighTemp.ToFixed(cumulus.TempFormat)}],");
 				}
 
 				// remove trailing comma
@@ -14581,7 +14602,7 @@ namespace CumulusMX
 				sb.Append("\"avgtemp\":[");
 				for (var i = 0; i < data.Count; i++)
 				{
-					sb.Append($"[{data[i].Date.ToUnixTimeMs()},{data[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}],");
+					sb.Append($"[{data[i].Date.ToUnixTimeMs()},{data[i].AvgTemp.ToFixed(cumulus.TempFormat)}],");
 				}
 
 				// remove trailing comma
@@ -14626,19 +14647,19 @@ namespace CumulusMX
 					var recDate = DayFile[i].Date.ToUnixTimeMs();
 					// lo temp
 					if (cumulus.GraphOptions.Visible.MinTemp.IsVisible(local))
-						minTemp.Append($"[{recDate},{DayFile[i].LowTemp.ToString(cumulus.TempFormat, InvC)}],");
+						minTemp.Append($"[{recDate},{DayFile[i].LowTemp.ToFixed(cumulus.TempFormat)}],");
 					// hi temp
 					if (cumulus.GraphOptions.Visible.MaxTemp.IsVisible(local))
-						maxTemp.Append($"[{recDate},{DayFile[i].HighTemp.ToString(cumulus.TempFormat, InvC)}],");
+						maxTemp.Append($"[{recDate},{DayFile[i].HighTemp.ToFixed(cumulus.TempFormat)}],");
 					// avg temp
 					if (cumulus.GraphOptions.Visible.AvgTemp.IsVisible(local))
-						avgTemp.Append($"[{recDate},{DayFile[i].AvgTemp.ToString(cumulus.TempFormat, InvC)}],");
+						avgTemp.Append($"[{recDate},{DayFile[i].AvgTemp.ToFixed(cumulus.TempFormat)}],");
 
 					if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
 					{
 						// hi heat index
 						if (DayFile[i].HighHeatIndex > -999)
-							heatIdx.Append($"[{recDate},{DayFile[i].HighHeatIndex.ToString(cumulus.TempFormat, InvC)}],");
+							heatIdx.Append($"[{recDate},{DayFile[i].HighHeatIndex.ToFixed(cumulus.TempFormat)}],");
 						else
 							heatIdx.Append($"[{recDate},null],");
 					}
@@ -14646,13 +14667,13 @@ namespace CumulusMX
 					{
 						// hi app temp
 						if (DayFile[i].HighAppTemp > -999)
-							maxApp.Append($"[{recDate},{DayFile[i].HighAppTemp.ToString(cumulus.TempFormat, InvC)}],");
+							maxApp.Append($"[{recDate},{DayFile[i].HighAppTemp.ToFixed(cumulus.TempFormat)}],");
 						else
 							maxApp.Append($"[{recDate},null],");
 
 						// lo app temp
 						if (DayFile[i].LowAppTemp < 999)
-							minApp.Append($"[{recDate},{DayFile[i].LowAppTemp.ToString(cumulus.TempFormat, InvC)}],");
+							minApp.Append($"[{recDate},{DayFile[i].LowAppTemp.ToFixed(cumulus.TempFormat)}],");
 						else
 							minApp.Append($"[{recDate},null],");
 					}
@@ -14660,7 +14681,7 @@ namespace CumulusMX
 					if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
 					{
 						if (DayFile[i].LowWindChill < 999)
-							windChill.Append($"[{recDate},{DayFile[i].LowWindChill.ToString(cumulus.TempFormat, InvC)}],");
+							windChill.Append($"[{recDate},{DayFile[i].LowWindChill.ToFixed(cumulus.TempFormat)}],");
 						else
 							windChill.Append($"[{recDate},null],");
 					}
@@ -14669,13 +14690,13 @@ namespace CumulusMX
 					{
 						// hi dewpt
 						if (DayFile[i].HighDewPoint > -999)
-							maxDew.Append($"[{recDate},{DayFile[i].HighDewPoint.ToString(cumulus.TempFormat, InvC)}],");
+							maxDew.Append($"[{recDate},{DayFile[i].HighDewPoint.ToFixed(cumulus.TempFormat)}],");
 						else
 							maxDew.Append($"[{recDate},null],");
 
 						// lo dewpt
 						if (DayFile[i].LowDewPoint < 999)
-							minDew.Append($"[{recDate},{DayFile[i].LowDewPoint.ToString(cumulus.TempFormat, InvC)}],");
+							minDew.Append($"[{recDate},{DayFile[i].LowDewPoint.ToFixed(cumulus.TempFormat)}],");
 						else
 							minDew.Append($"[{recDate},null],");
 					}
@@ -14684,13 +14705,13 @@ namespace CumulusMX
 					{
 						// hi feels like
 						if (DayFile[i].HighFeelsLike > -999)
-							maxFeels.Append($"[{recDate},{DayFile[i].HighFeelsLike.ToString(cumulus.TempFormat, InvC)}],");
+							maxFeels.Append($"[{recDate},{DayFile[i].HighFeelsLike.ToFixed(cumulus.TempFormat)}],");
 						else
 							maxFeels.Append($"[{recDate},null],");
 
 						// lo feels like
 						if (DayFile[i].LowFeelsLike < 999)
-							minFeels.Append($"[{recDate},{DayFile[i].LowFeelsLike.ToString(cumulus.TempFormat, InvC)}],");
+							minFeels.Append($"[{recDate},{DayFile[i].LowFeelsLike.ToFixed(cumulus.TempFormat)}],");
 						else
 							minFeels.Append($"[{recDate},null],");
 					}
@@ -14699,7 +14720,7 @@ namespace CumulusMX
 					{
 						// hi humidex
 						if (DayFile[i].HighHumidex > -999)
-							humidex.Append($"[{recDate},{DayFile[i].HighHumidex.ToString(cumulus.TempFormat, InvC)}],");
+							humidex.Append($"[{recDate},{DayFile[i].HighHumidex.ToFixed(cumulus.TempFormat)}],");
 						else
 							humidex.Append($"[{recDate},null],");
 					}
@@ -16088,25 +16109,25 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			sb.Append($"{WindLatest.ToString(Program.cumulus.WindFormat, inv)},");
 			sb.Append($"{WindDir},");
 			sb.Append($"{WindAvgDir},");
-			sb.Append($"{OutsideTemp.ToString(Program.cumulus.TempFormat, inv)},");
-			sb.Append($"{WindChill.ToString(Program.cumulus.TempFormat, inv)},");
-			sb.Append($"{DewPoint.ToString(Program.cumulus.TempFormat, inv)},");
-			sb.Append($"{HeatIndex.ToString(Program.cumulus.TempFormat, inv)},");
-			sb.Append($"{FeelsLike.ToString(Program.cumulus.TempFormat, inv)},");
-			sb.Append($"{Humidex.ToString(Program.cumulus.TempFormat, inv)},");
-			sb.Append($"{AppTemp.ToString(Program.cumulus.TempFormat, inv)},");
+			sb.Append($"{OutsideTemp.ToFixed(Program.cumulus.TempFormat)},");
+			sb.Append($"{WindChill.ToFixed(Program.cumulus.TempFormat)},");
+			sb.Append($"{DewPoint.ToFixed(Program.cumulus.TempFormat)},");
+			sb.Append($"{HeatIndex.ToFixed(Program.cumulus.TempFormat)},");
+			sb.Append($"{FeelsLike.ToFixed(Program.cumulus.TempFormat)},");
+			sb.Append($"{Humidex.ToFixed(Program.cumulus.TempFormat)},");
+			sb.Append($"{AppTemp.ToFixed(Program.cumulus.TempFormat)},");
 			sb.Append($"{Humidity.ToString(Program.cumulus.HumFormat, inv)},");
 			sb.Append($"{Pressure.ToString(Program.cumulus.PressFormat, inv)},");
 			sb.Append($"{RainToday.ToString(Program.cumulus.RainFormat, inv)},");
 			sb.Append($"{RainRate.ToString(Program.cumulus.RainFormat, inv)},");
 			sb.Append($"{raincounter.ToString(inv)},");
-			sb.Append($"{(SolarRad.HasValue ? SolarRad.Value : "null")},");
+			sb.Append($"{SolarRad.ToText("null")},");
 			sb.Append($"{SolarMax},");
-			sb.Append($"{(UV.HasValue ? UV.Value.ToString(Program.cumulus.UVFormat, inv) : "null")},");
-			sb.Append($"{(IndoorTemp.HasValue ? IndoorTemp.Value.ToString(Program.cumulus.TempFormat, inv) : "null")},");
-			sb.Append($"{(IndoorHumidity.HasValue ? IndoorHumidity.Value : "null")},");
-			sb.Append($"{(Pm2p5.HasValue ? Pm2p5.Value.ToString("F1", inv) : "null")},");
-			sb.Append($"{(Pm10.HasValue ? Pm10.Value.ToString("F1", inv) : "null")}]");
+			sb.Append($"{UV.ToFixed(Program.cumulus.UVFormat, "null")},");
+			sb.Append($"{IndoorTemp.ToFixed(Program.cumulus.TempFormat, "null")},");
+			sb.Append($"{IndoorHumidity.ToText("null")},");
+			sb.Append($"{Pm2p5.ToFixed("F1", "null")},");
+			sb.Append($"{Pm10.ToFixed("F1", "null")}]");
 
 			return sb.ToString();
 		}

@@ -135,6 +135,7 @@ namespace CumulusMX.ThirdParty
 
 		internal override string GetURL(out string pwstring, DateTime timestamp)
 		{
+			var inv = System.Globalization.CultureInfo.InvariantCulture;
 			pwstring = PW;
 			StringBuilder sb = new StringBuilder($"https://api.weathercloud.net/v01/set?wid={ID}&key={PW}");
 
@@ -267,7 +268,7 @@ namespace CumulusMX.ThirdParty
 
 				if (wet.HasValue)
 				{
-					sb.Append($"&leafwet={wet.Value.ToString(cumulus.LeafWetFormat)}");
+					sb.Append($"&leafwet={wet.Value.ToString(cumulus.LeafWetFormat, inv)}");
 				}
 			}
 
