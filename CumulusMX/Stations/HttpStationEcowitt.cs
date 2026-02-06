@@ -288,12 +288,11 @@ namespace CumulusMX.Stations
 				maxArchiveRuns++;
 			}
 
-			if (ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken))
+			_ = ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
+
+			if ((DateTime.Now - cumulus.LastUpdateTime.AddMinutes(1)).TotalMinutes > Cumulus.logints[cumulus.DataLogInterval] + 1)
 			{
-				if ((DateTime.Now - cumulus.LastUpdateTime.AddMinutes(1)).TotalMinutes > Cumulus.logints[cumulus.DataLogInterval] + 1)
-				{
-					maxArchiveRuns++;
-				}
+				maxArchiveRuns++;
 			}
 		}
 

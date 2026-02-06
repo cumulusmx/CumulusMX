@@ -105,9 +105,30 @@ namespace CumulusMX.Settings
 
 				// snow
 				cumulus.SnowDepthMinInc = settings.snow.mininc;
-				cumulus.SnowDepthMedianMins = settings.snow.filter.median;
-				cumulus.SnowDepthClipDelta = settings.snow.filter.clip;
-				cumulus.SnowDepthEmaTimeMins = settings.snow.filter.ema;
+				if (cumulus.SnowDepthMedianMins != settings.snow.filter.median)
+				{
+					cumulus.SnowDepthMedianMins = settings.snow.filter.median;
+					for (int i = 1; i < Program.cumulus.Station.SnowDepthAverage.Length; i++)
+					{
+						Program.cumulus.Station.SnowDepthAverage[i].SetMedianWindow(TimeSpan.FromMinutes(cumulus.SnowDepthMedianMins));
+					}
+				}
+				if (cumulus.SnowDepthClipDelta != settings.snow.filter.clip)
+				{
+					cumulus.SnowDepthClipDelta = settings.snow.filter.clip;
+					for (int i = 1; i < Program.cumulus.Station.SnowDepthAverage.Length; i++)
+					{
+						Program.cumulus.Station.SnowDepthAverage[i].SetClipDelta(cumulus.SnowDepthClipDelta);
+					}
+				}
+				if (cumulus.SnowDepthEmaTimeMins != settings.snow.filter.ema)
+				{
+					cumulus.SnowDepthEmaTimeMins = settings.snow.filter.ema;
+					for (int i = 1; i < Program.cumulus.Station.SnowDepthAverage.Length; i++)
+					{
+						Program.cumulus.Station.SnowDepthAverage[i].SetTimeConst(cumulus.SnowDepthEmaTimeMins);
+					}
+				}
 
 				// Save the settings
 				cumulus.WriteIniFile();

@@ -6,9 +6,9 @@ namespace CumulusMX
 {
 	internal class SmoothingFilter
 	{
-		private readonly TimeSpan medianWindow;
-		private readonly double timeConstantMinutes;
-		private readonly double clipDelta;
+		private TimeSpan medianWindow;
+		private double timeConstantMinutes;
+		private double clipDelta;
 
 		private readonly LinkedList<(DateTime ts, double value)> buffer = new LinkedList<(DateTime, double)>();
 
@@ -80,6 +80,21 @@ namespace CumulusMX
 		}
 
 		public double CurrentValue {  get { return y; } }
+
+		public void SetMedianWindow(TimeSpan newWindow)
+		{
+			medianWindow = newWindow;
+		}
+
+		public void SetClipDelta(double delta)
+		{
+			clipDelta = delta;
+		}
+
+		public void SetTimeConst(double timeConst)
+		{
+			timeConstantMinutes = timeConst;
+		}
 
 		private static double ComputeMedian(LinkedList<(DateTime ts, double value)> buf)
 		{

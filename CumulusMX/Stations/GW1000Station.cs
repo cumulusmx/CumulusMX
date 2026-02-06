@@ -330,13 +330,11 @@ namespace CumulusMX.Stations
 				endTime = startTime.AddHours(24);
 			}
 
-			if (ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken))
+			_ = ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
+
+			if ((DateTime.Now - cumulus.LastUpdateTime.AddMinutes(1)).TotalMinutes > Cumulus.logints[cumulus.DataLogInterval] + 1)
 			{
-				startTime = cumulus.LastUpdateTime.AddMinutes(1);
-				if ((DateTime.Now - startTime).TotalHours > 24.0)
-				{
-					maxArchiveRuns++;
-				}
+				maxArchiveRuns++;
 			}
 		}
 

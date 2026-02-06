@@ -815,6 +815,12 @@ namespace CumulusMX
 					LocalPath = WebPath,
 					LocalFileName = "laserdepthdata.json",
 					RemoteFileName = "laserdepthdata.json"
+				},
+				new()     // 22
+				{
+					LocalPath = WebPath,
+					LocalFileName = "snow24data.json",
+					RemoteFileName = "snow24hdata.json"
 				}
 			];
 
@@ -15325,7 +15331,8 @@ namespace CumulusMX
 		USERTEMP,       // 18
 		CO2,            // 19
 		LEAFWET,        // 20
-		LASERDEPTH      // 21
+		LASERDEPTH,     // 21
+		SNOW24H         // 22
 	}
 
 }

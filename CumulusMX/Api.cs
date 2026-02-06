@@ -634,6 +634,9 @@ namespace CumulusMX
 						case "laserdepth.json":
 							await writer.WriteAsync(Station.GetLaserDepthGraphData(incremental, true, start));
 							break;
+						case "snow24h.json":
+							await writer.WriteAsync(Station.GetSnow24hGraphData(incremental, true, start));
+							break;
 
 						// daily data
 						case "dailyrain.json":
@@ -697,6 +700,9 @@ namespace CumulusMX
 							break;
 						case "intvlaserdepth.json":
 							await writer.WriteAsync(Station.GetLaserDepthGraphData(false, true, start, end));
+							break;
+						case "intvsnow24h.json":
+							await writer.WriteAsync(Station.GetSnow24hGraphData(false, true, start, end));
 							break;
 
 						// config data
@@ -1973,7 +1979,7 @@ namespace CumulusMX
 				}
 			}
 		}
-		
+
 		private static async Task<bool> Authenticate(IHttpContext context)
 		{
 			string authorization = context.Request.Headers["Authorization"];
