@@ -30,13 +30,18 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		| EMA time (mins)    ||        12.0         ||
 
 	- Note you can effectively disable any stage by setting: median=1, or clip=10, or EMA=1
-	- Increasing the filtering also delays the value being updated. The approximate delay is median/1.5 + EMA time/1.5. The defaults will give a 5-10 minute lag
+	- Increasing the filtering also delays the value being updated. The approximate delay is median/1.5 + EMA time/1.5. The defaults will give a 10-12 minute lag
 	- You can edit the new smoothing filter values in the Calibration Settings screen
 	- Suggested starting Minimum Increments for the new filter: 2-5 mm, 0.2-0.5 cm, 0.08-0.2 inches
 - Adds Snowfall 24h charts to the Dashboard and default web site
 - Fix for data gaps at the end of catch-up for stations using ecowitt.net as the catch-up data source
 - The charts navigator selection minimum width is now set in chart pixels rather than data range percent
 - The charts selection can now be moved a selection width at a time by clicking outside the selection area in the navigator
+- Updated packages
+	- MQTTnet
+	- NLog
+	- NLog.Extensions.logging
+
 
 ## RELEASE CANDIDATE [4.7.0 \[b4140\]][29] - 2026-01-19
 
@@ -185,6 +190,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - HidSharp
 - MailKit
 - Microsoft.Win32.SystemEvents
+- MQTTnet
 - MySqlConnector
 - NLog
 - NLog.Extensions.Logging
