@@ -4361,20 +4361,20 @@ namespace CumulusMX
 			Spike.SnowDiff = ini.GetValue("Station", "EWsnowdiff", maxSnowInc, 0, 999);
 			decimal minSnowInc = (decimal) (Units.LaserDistance switch
 			{
-				0 => 1.0,
-				1 => 0.5,
-				2 => 10,
+				0 => 0.2,
+				1 => 0.2,
+				2 => 2,
 				_ => 0
 			});
 			SnowDepthMinInc = ini.GetValue("Station", "EWsnowMinInc", minSnowInc, 0);
-			SnowDepthMedianMins = ini.GetValue("Station", "SnowMedianMins", 5, 1, 30);
-			SnowDepthEmaTimeMins = ini.GetValue("Station", "SnowEmaTimeMins", 10.0, 0.01, 30.0);
+			SnowDepthMedianMins = ini.GetValue("Station", "SnowMedianMins", 10, 1, 30);
+			SnowDepthEmaTimeMins = ini.GetValue("Station", "SnowEmaTimeMins", 12.0, 0.01, 30.0);
 			var defSnowClip = Units.LaserDistance switch
 			{
-				0 => 0.2,  // cm
-				1 => 0.08, // in
-				2 => 2.0,  // mm
-				_ => 2.0
+				0 => 0.1,  // cm
+				1 => 0.04, // in
+				2 => 1.0,  // mm
+				_ => 1.0
 			};
 			SnowDepthClipDelta = ini.GetValue("Station", "SnowClipDelta", defSnowClip, 0.0);
 

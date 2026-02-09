@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## RELEASE CANDIDATE [4.7.0 \[b4141\]][29] - 2026-02-01
+## RELEASE CANDIDATE [4.7.0 \[b4141\]][29] - 2026-02-09
 
 ### RC 4141 Changes from RC 4140
 
@@ -24,16 +24,19 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The default values are:
 
 		| Laser Units        | mm    | cm    | inch  |
-		|--------------------|:-----:|:-----:|:-----:|
-		| median (mins)      | 5     | 5     | 5     |
-		| clip (laser units) | 2.0   | 0.2   | 0.08  |
-		| EMA time (mins)    | 10.0  | 10.0  | 10.0  |
+		|:-------------------|:-----:|:-----:|:-----:|
+		| median (mins)      ||         10          ||
+		| clip (laser units) |  1.0  |  0.1  | 0.04  |
+		| EMA time (mins)    ||        12.0         ||
 
-	- Note you can effectively disable any stage by setting: median=1, or clip=100, or exponential=1
+	- Note you can effectively disable any stage by setting: median=1, or clip=10, or EMA=1
 	- Increasing the filtering also delays the value being updated. The approximate delay is median/1.5 + EMA time/1.5. The defaults will give a 5-10 minute lag
 	- You can edit the new smoothing filter values in the Calibration Settings screen
-
+	- Suggested starting Minimum Increments for the new filter: 2-5 mm, 0.2-0.5 cm, 0.08-0.2 inches
+- Adds Snowfall 24h charts to the Dashboard and default web site
 - Fix for data gaps at the end of catch-up for stations using ecowitt.net as the catch-up data source
+- The charts navigator selection minimum width is now set in chart pixels rather than data range percent
+- The charts selection can now be moved a selection width at a time by clicking outside the selection area in the navigator
 
 ## RELEASE CANDIDATE [4.7.0 \[b4140\]][29] - 2026-01-19
 
@@ -85,6 +88,23 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- New web tags `<#BlackGlobeTemp>` and `<#WetBulbGlobeTemp>`
 	- Two new fields added to the monthly log files and the monthly MySQL table to support these new measurements
 - Fix ecowitt.net historic data download of PM measurements
+- New snow depth filtering mechanism implemented. This is a three-stage filter...
+	- **Stage 1** applies a median filter to the raw values - you can specify the length of time in minutes for the median values. This is good for filtering out sudden spikes.
+	- **Stage 2** applies a clip to the output of the median filter. The clip limits the step size of the increase/decrease of the output of stage 1 to the value you specify
+	- **Stage 3** applies an Exponential Moving Average filter to the output of stage 2. This is essentially time based smoothing
+	- The default values are:
+
+		| Laser Units        | mm    | cm    | inch  |
+		|:-------------------|:-----:|:-----:|:-----:|
+		| median (mins)      ||         10          ||
+		| clip (laser units) |  1.0  |  0.1  | 0.04  |
+		| EMA time (mins)    ||        12.0         ||
+
+	- Note you can effectively disable any stage by setting: median=1, or clip=10, or EMA=1
+	- Increasing the filtering also delays the value being updated. The approximate delay is median/1.5 + EMA time/1.5. The defaults will give a 10-12 minute lag
+	- You can edit the new smoothing filter values in the Calibration Settings screen
+	- Suggested starting Minimum Increments for the new filter: 2-5 mm, 0.2-0.5 cm, 0.08-0.2 inches
+- Adds Snowfall 24h charts to the Dashboard and default web site
 
 ### Changed
 
@@ -114,6 +134,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Switches Windy.com uploads to their new v2 API, this now allows upload of solar radiation values
 	- You can now use the station password instead of an API key to authenticate
 	- **Existing users must add their Station ID to the settings, this is a requirement of the new API**
+- The snow 24 hour accumulation is now reset to zero *after* the daily rollover processing is complete and the extra log file written.
+	This means that the true final daily total will be available in the first record of the following day (00:00 for midnight rollover) the same as the daily rainfall total in the monthly log file
 
 
 ### Fixed

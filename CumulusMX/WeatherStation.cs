@@ -1272,8 +1272,8 @@ namespace CumulusMX
 				{
 					if (cumulus.LaserIsSnowSensor[i])
 					{
-						ini.SetValue("Snow", "Snow24h" + i, Snow24h[i]);
 						ini.SetValue("Snow", "LastLaserDepth" + i, LastLaserSnowDepth[i]);
+						ini.SetValue("Snow", "Snow24h" + i, Snow24h[i]);
 						ini.SetValue("Snow", "SnowSeason" + i, SnowSeason[i]);
 					}
 				}
@@ -2452,6 +2452,7 @@ namespace CumulusMX
 				"usertempdata.json" => GetUserTempGraphData(incremental, false),
 				"co2sensordata.json" => GetCo2SensorGraphData(incremental, false),
 				"laserdepthdata.json" => GetLaserDepthGraphData(incremental, false),
+				"snow24data.json" => GetSnow24hGraphData(incremental, false),
 				_ => "{}",
 			};
 		}
@@ -4211,7 +4212,6 @@ namespace CumulusMX
 
 		public string GetSnow24hGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
-			var append = false;
 			var InvC = CultureInfo.InvariantCulture;
 			var sb = new StringBuilder("{", 10240);
 
@@ -10927,20 +10927,16 @@ namespace CumulusMX
 
 					var lastdepth = LastLaserSnowDepth[index];
 					var snowInc = (decimal) 0.0;
+					var laserFmtPlus1dp = "F" + (cumulus.LaserDPlaces + 1);
 
 					if (!LastLaserSnowDepth[index].HasValue)
 					{
 						LastLaserSnowDepth[index] = newValue;
 						logEntry = true;
 					}
-					else if (newValue < LastLaserSnowDepth[index].Value)
-					{
-						LastLaserSnowDepth[index] = newValue;
-						cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
-						logEntry = true;
-					}
 					else
 					{
+
 						var multiplier = cumulus.Units.LaserDistance switch
 						{
 							0 => 10,  // cm
@@ -10960,18 +10956,17 @@ namespace CumulusMX
 #endif
 							snowSpikeTime = DateTime.UtcNow;
 						}
-						else if (laserInc < 0)
+						else if (laserInc < -cumulus.SnowDepthMinInc)
 						{
+							LastLaserSnowDepth[index] = newValue;
 #if DEBUG
-							cumulus.LogDebugMessage($"Laser #{index} depth change is negative: {laserInc.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+							cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {LastLaserSnowDepth[index].Value.ToString(laserFmtPlus1dp)} {cumulus.Units.LaserDistanceText}");
 #endif
+							logEntry = true;
+
 							snowSpikeTime = DateTime.UtcNow;
 						}
-						else if (laserInc < cumulus.SnowDepthMinInc)
-						{
-							cumulus.LogDebugMessage($"Laser #{index} depth change is less than required for snow accumulation: {laserInc.ToString(cumulus.LaserFormat)}, min = {cumulus.SnowDepthMinInc} {cumulus.Units.LaserDistanceText}");
-						}
-						else if (laserInc > 0)
+						else if (laserInc > cumulus.SnowDepthMinInc)
 						{
 							if (laserInc < cumulus.Spike.SnowDiff)
 							{
@@ -10979,8 +10974,9 @@ namespace CumulusMX
 								Snow24h[index] = (Snow24h[index] ?? 0) + snowInc;
 								SnowSeason[index] = (SnowSeason[index] ?? 0) + snowInc;
 								LastLaserSnowDepth[index] = newValue;
-
+#if DEBUG
 								cumulus.LogDebugMessage($"Laser #{index} depth increase added to snow accumulation: {laserInc.ToString(cumulus.LaserFormat)}, new value: {newValue.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+#endif
 								snowSpikeTime = DateTime.UtcNow;
 								logEntry = true;
 							}
@@ -10988,7 +10984,7 @@ namespace CumulusMX
 							{
 								cumulus.LogSpikeRemoval($"Laser #{index} depth increase is greater than allowed for snow accumulation: {laserInc.ToString(cumulus.LaserFormat)}, max: {cumulus.Spike.SnowDiff} {cumulus.Units.LaserDistanceText}");
 
-								// If we get a spike value for more 5 readings (400 seconds), then rebaseline on the new value
+								// If we get a spike value for more 400 seconds, then rebaseline on the new value
 								if ((DateTime.UtcNow - snowSpikeTime).TotalSeconds > 400)
 								{
 									cumulus.LogWarningMessage($"Laser #{index} has had an increase above the spike level for six or more consecutive readings. Rebaselining on the new value: {newValue.ToString(cumulus.LaserFormat)} was: {(LastLaserSnowDepth[index] ?? 0).ToString(cumulus.LaserFormat)}");
@@ -10997,6 +10993,12 @@ namespace CumulusMX
 									logEntry = true;
 								}
 							}
+						}
+						else
+						{
+#if DEBUG
+							cumulus.LogDebugMessage($"Laser #{index} depth change is less than required for snow accumulation: {laserInc.ToString(cumulus.LaserFormat)}, min = {cumulus.SnowDepthMinInc} {cumulus.Units.LaserDistanceText}");
+#endif
 						}
 					}
 
@@ -11047,7 +11049,6 @@ namespace CumulusMX
 							lastSnowMinute = DateTime.Now.Minute;
 							try
 							{
-								var laserFmtPlus1dp = "F" + (cumulus.LaserDPlaces + 1);
 								SnowLog.Info(
 									string.Join(',', [
 										DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
@@ -11055,7 +11056,7 @@ namespace CumulusMX
 										value.Value.ToString(laserFmtPlus1dp, CultureInfo.InvariantCulture),
 										newValue.ToString(laserFmtPlus1dp, CultureInfo.InvariantCulture),
 										(lastdepth.HasValue ? lastdepth.Value.ToString(laserFmtPlus1dp , CultureInfo.InvariantCulture) : ""),
-										(LastLaserSnowDepth[index].HasValue ? LastLaserSnowDepth[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture) : ""),
+										(LastLaserSnowDepth[index].HasValue ? LastLaserSnowDepth[index].Value.ToString(laserFmtPlus1dp, CultureInfo.InvariantCulture) : ""),
 										snowInc.ToString(cumulus.SnowFormat),
 										(Snow24h[index] ?? 0).ToString(cumulus.SnowFormat),
 										(SnowSeason[index] ?? 0).ToString(cumulus.SnowFormat),
