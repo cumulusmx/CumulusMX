@@ -14,8 +14,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### RC 4141 Changes from RC 4140
 
-- The snow 24 hour accumulation is now reset to zero *after* the daily rollover processing is complete and the extra log file written.
-	This means that the true final daily total will be available in the first record of the following day (00:00 for midnight rollover) the same as the daily rainfall total in the monthly log file
+- The snow 24 hour accumulation is now reset to zero *after* the "snow hour" processing is complete and the extra log file written.
+	This means that the true final daily total will be available in the first record of the following snow day the same as the daily rainfall total in the monthly log file
 - Change in laser/snow depth logging to add extra details and to log on values changing as well as once a minute
 - New snow depth filtering mechanism implemented. This is a three-stage filter...
 	- **Stage 1** applies a median filter to the raw values - you can specify the length of time in minutes for the median values. This is good for filtering out sudden spikes.
@@ -139,8 +139,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Switches Windy.com uploads to their new v2 API, this now allows upload of solar radiation values
 	- You can now use the station password instead of an API key to authenticate
 	- **Existing users must add their Station ID to the settings, this is a requirement of the new API**
-- The snow 24 hour accumulation is now reset to zero *after* the daily rollover processing is complete and the extra log file written.
-	This means that the true final daily total will be available in the first record of the following day (00:00 for midnight rollover) the same as the daily rainfall total in the monthly log file
+- The snow 24 hour accumulation is now reset to zero *after* the "snow hour" processing is complete and the extra log file written.
+	This means that the true final daily total will be available in the first record of the following snow day the same as the daily rainfall total in the monthly log file
 
 
 ### Fixed
