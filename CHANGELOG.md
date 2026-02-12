@@ -10,53 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## RELEASE CANDIDATE [4.7.0 \[b4141\]][29] - 2026-02-09
-
-### RC 4141 Changes from RC 4140
-
-- The snow 24 hour accumulation is now reset to zero *after* the "snow hour" processing is complete and the extra log file written.
-	This means that the true final daily total will be available in the first record of the following snow day the same as the daily rainfall total in the monthly log file
-- Change in laser/snow depth logging to add extra details and to log on values changing as well as once a minute
-- New snow depth filtering mechanism implemented. This is a three-stage filter...
-	- **Stage 1** applies a median filter to the raw values - you can specify the length of time in minutes for the median values. This is good for filtering out sudden spikes.
-	- **Stage 2** applies a clip to the output of the median filter. The clip limits the step size of the increase/decrease of the output of stage 1 to the value you specify
-	- **Stage 3** applies an Exponential Moving Average filter to the output of stage 2. This is essentially time based smoothing
-	- The default values are:
-
-		| Laser Units        | mm    | cm    | inch  |
-		|:-------------------|:-----:|:-----:|:-----:|
-		| median (mins)      ||         10          ||
-		| clip (laser units) |  1.0  |  0.1  | 0.04  |
-		| EMA time (mins)    ||        12.0         ||
-
-	- Note you can effectively disable any stage by setting: median=1, or clip=10, or EMA=1
-	- Increasing the filtering also delays the value being updated. The approximate delay is median/1.5 + EMA time/1.5. The defaults will give a 10-12 minute lag
-	- You can edit the new smoothing filter values in the Calibration Settings screen
-	- Suggested starting Minimum Increments for the new filter: 2-5 mm, 0.2-0.5 cm, 0.08-0.2 inches
-- Adds Snowfall 24h charts to the Dashboard and default web site
-- Fix for data gaps at the end of catch-up for stations using ecowitt.net as the catch-up data source
-- The charts navigator selection minimum width is now set in chart pixels rather than data range percent
-- The charts selection can now be moved a selection width at a time by clicking outside the selection area in the navigator
-- Updated packages
-	- MQTTnet
-	- NLog
-	- NLog.Extensions.logging
-
-
-## RELEASE CANDIDATE [4.7.0 \[b4140\]][29] - 2026-01-19
-
-### RC 4140 Changes from RC 4139
-
-- Fix some issues in the Ecowitt Cloud Station decoding extra temp/hum sensors that only send temperature
-- Suppress exception message getting WeatherServices from Ecowitt stations that do not support the HTTP API
-- Fix extra sensor data input via the JSON Station MQTT topic (was using main station config values)
-- Add a short delay between fetching Ecowitt SD card files to try and mitigate the zero length/oddly formated files being sent
-- Switches Windy.com uploads to their new v2 API, this now allows upload of solar radiation values
-	- You can now use the station password instead of an API key to authenticate
-	- **Existing users must add their Station ID to the settings, this is a requirement of the new API**
-- Fix JSON Extra Sensor Station CO₂ and Lightning values only being applied when run as the main station
-- Fix for ecowitt.net historic data catch-up broken in b4139
-- Fix endless loop fetching ecowitt.net historic data on certain errors
+## [5.0.0 \[b4142\]][29] - 2026-02-15
 
 ### Important Notes
 
@@ -110,6 +64,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- You can edit the new smoothing filter values in the Calibration Settings screen
 	- Suggested starting Minimum Increments for the new filter: 2-5 mm, 0.2-0.5 cm, 0.08-0.2 inches
 - Adds Snowfall 24h charts to the Dashboard and default web site
+- Adds the ability to connect a third-party sunshine recorder to Davis WLL Stations
+	- Supports connecting a sunshine recorder such as the Instromet to the Rain input of an ISS type transmitter
+	- The sunshine recorder must send a pulse for every 1/100th hour of sunshine recorded
 
 ### Changed
 

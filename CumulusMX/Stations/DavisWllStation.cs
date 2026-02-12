@@ -576,7 +576,7 @@ namespace CumulusMX.Stations
 							}
 						}
 
-						// Rain
+						// Rain or Sunshine!
 						/*
 						 * All fields are *tip counts*
 						 * Available fields:
@@ -591,24 +591,38 @@ namespace CumulusMX.Stations
 						 * rec["rainfall_monthly"]
 						 * rec["rainfall_year"])
 						 */
-						if (cumulus.WllPrimaryRain != rec.txid) continue;
-
-						try
+						if (cumulus.WllPrimaryRain == rec.txid)
 						{
-							var rain = ConvertRainClicksToUser(rec.rainfall_year, rec.rain_size);
-							var rainrate = ConvertRainClicksToUser(rec.rain_rate_last, rec.rain_size);
-
-							if (rainrate < 0)
+							try
 							{
-								rainrate = 0;
-							}
+								var rain = ConvertRainClicksToUser(rec.rainfall_year, rec.rain_size);
+								var rainrate = ConvertRainClicksToUser(rec.rain_rate_last, rec.rain_size);
 
-							DoRain(rain, rainrate, dateTime);
+								if (rainrate < 0)
+								{
+									rainrate = 0;
+								}
+
+								DoRain(rain, rainrate, dateTime);
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogWarningMessage($"WLL broadcast: no valid rainfall found on TxId {rec.txid}");
+								cumulus.LogDebugMessage($"WLL broadcast: Exception: {ex.Message}");
+							}
 						}
-						catch (Exception ex)
+						else if (cumulus.WllPrimarySunshine == rec.txid)
 						{
-							cumulus.LogWarningMessage($"WLL broadcast: no valid rainfall found on TxId {rec.txid}");
-							cumulus.LogDebugMessage($"WLL broadcast: Exception: {ex.Message}");
+							try
+							{
+								// All rainfall values supplied as *tip counts*, each count = 1/100th of an hour of sunshine
+								SunshineHours = (double) rec.rainfall_daily / 100;
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogWarningMessage($"WLL broadcast: no valid sunshine found on TxId {rec.txid}");
+								cumulus.LogDebugMessage($"WLL broadcast: Exception: {ex.Message}");
+							}
 						}
 					}
 
@@ -1030,6 +1044,48 @@ namespace CumulusMX.Stations
 									SolarRad = null;
 								}
 							}
+
+							// Sunshine - uses rain fields
+							if (cumulus.WllPrimarySunshine == data1.txid)
+							{
+								/*
+								* Available fields:
+								* rec["rain_size"] - 0: Reserved, 1: 0.01", 2: 0.2mm, 3: 0.1mm, 4: 0.001"
+								* rec["rain_rate_last"], rec["rain_rate_hi"]
+								* rec["rainfall_last_15_min"], rec["rain_rate_hi_last_15_min"]
+								* rec["rainfall_last_60_min"]
+								* rec["rainfall_last_24_hr"]
+								* rec["rainfall_daily"]
+								* rec["rainfall_monthly"]
+								* rec["rainfall_year"]
+								* rec["rain_storm"], rec["rain_storm_start_at"]
+								* rec["rain_storm_last"], rec["rain_storm_last_start_at"], rec["rain_storm_last_end_at"]
+								*/
+
+								cumulus.LogDebugMessage($"WLL current: using sunshine data from TxId {data1.txid}");
+
+								// Rain data can be a bit out of date compared to the broadcasts (1 minute update), so only use the data if we are not receiving broadcasts
+
+								// All rainfall values supplied as *tip counts*, each count = 1/100th of an hour of sunshine
+								if (!broadcastStopped)
+								{
+									cumulus.LogDebugMessage($"WLL current: Skipping sunshine from TxId {data1.txid} as broadcasts are being received ok");
+								}
+								else
+								{
+									cumulus.LogDebugMessage($"WLL current: No broadcast data so using sunshine data from TxId {data1.txid}");
+
+									if (!data1.rainfall_year.HasValue)
+									{
+										cumulus.LogDebugMessage("WLL current: No sunshine data present!");
+									}
+									else
+									{
+										SunshineHours = (double) data1.rainfall_daily.Value / 100;
+									}
+								}
+							}
+
 							break;
 
 						case 2: // Leaf/Soil/Temp Moisture
@@ -2235,7 +2291,7 @@ namespace CumulusMX.Stations
 									DoSolarRad((int) data11.solar_rad_avg, recordTs);
 
 									// add in archive period worth of sunshine, if sunny - arch_int in seconds
-									if (IsSunny)
+									if (cumulus.WllPrimarySunshine == 0 && IsSunny)
 									{
 										SunshineHours += (data11.arch_int / 3600.0);
 									}
@@ -2260,6 +2316,50 @@ namespace CumulusMX.Stations
 							catch (Exception ex)
 							{
 								cumulus.LogErrorMessage($"WL.com historic: Error processing Solar value on TxId {data11.tx_id}. Error: {ex.Message}");
+							}
+						}
+
+						// Sunshine
+						if (cumulus.WllPrimarySunshine == data11.tx_id)
+						{
+							/*
+							 * Available fields:
+							 * "rain_rate_hi_at"
+							 * "rain_rate_hi_clicks"
+							 * "rain_rate_hi_in"
+							 * "rain_rate_hi_mm"
+							 * "rain_size"
+							 * "rainfall_clicks"
+							 * "rainfall_in"
+							 * "rainfall_mm"
+							 */
+
+
+							// The WL API v2 does not provide any running totals for rainfall, only the clicks for the interval :(
+							// So we will have to add the interval data to the running total and hope it all works out!
+							// All rainfall values supplied as *tip counts*, each count = 1/100th of an hour of sunshine
+							try
+							{
+								if (data11.rainfall_clicks.HasValue)
+								{
+									cumulus.LogDebugMessage($"WL.com historic: using sunshine data from TxId {data11.tx_id}");
+
+									var sunshine = (double) data11.rainfall_clicks / 100;
+									if (sunshine > 0)
+									{
+										cumulus.LogDebugMessage($"WL.com historic: Adding sunshine hours {sunshine.ToString("F2")}");
+									}
+									sunshine += SunshineHours;
+
+								}
+								else
+								{
+									cumulus.LogWarningMessage($"WL.com historic: Warning, no valid sunshine data on TxId {data11.tx_id}");
+								}
+							}
+							catch (Exception ex)
+							{
+								cumulus.LogErrorMessage($"WL.com historic: Error processing sunshine data on TxId {data11.tx_id}. Error:{ex.Message}");
 							}
 						}
 

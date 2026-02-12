@@ -1977,6 +1977,10 @@ namespace CumulusMX
 					{
 						ReadBlakeLarsenData();
 					}
+					else if (cumulus.SolarOptions.UseSunshineSensor)
+					{
+						// do nothing, we have a separate sensor counting the sunshine hours
+					}
 					else if (SolarRad.HasValue && SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.0 && SolarRad >= cumulus.SolarOptions.SolarMinimum)
 					{
 						SunshineHours += 1.0 / 60.0;
@@ -7898,6 +7902,8 @@ namespace CumulusMX
 
 		protected void DoSunHours(double hrs)
 		{
+			if (SunHourCounter == hrs) return;
+
 			if (StartOfDaySunHourCounter < -9998)
 			{
 				cumulus.LogWarningMessage("No start of day sun counter. Start counting from now");

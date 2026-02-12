@@ -329,7 +329,8 @@ namespace CumulusMX.Settings
 			{
 				raingaugetype = cumulus.DavisOptions.RainGaugeType,
 				tcpport = cumulus.DavisOptions.TCPPort,
-				datastopped = cumulus.WllTriggerDataStoppedOnBroadcast
+				datastopped = cumulus.WllTriggerDataStoppedOnBroadcast,
+				sunshine = cumulus.WllPrimarySunshine
 			};
 
 			var wllApi = new JsonWllApi()
@@ -822,6 +823,7 @@ namespace CumulusMX.Settings
 
 							cumulus.DavisOptions.TCPPort = settings.daviswll.advanced.tcpport;
 							cumulus.WllTriggerDataStoppedOnBroadcast = settings.daviswll.advanced.datastopped;
+							cumulus.WllPrimarySunshine = settings.daviswll.advanced.sunshine;
 						}
 
 						cumulus.WllApiKey = string.IsNullOrWhiteSpace(settings.daviswll.api.apiKey) ? null : settings.daviswll.api.apiKey.Trim();
@@ -1988,6 +1990,7 @@ namespace CumulusMX.Settings
 			public int raingaugetype { get; set; }
 			public int tcpport { get; set; }
 			public bool datastopped { get; set; }
+			public int sunshine { get; set; }
 		}
 
 		public class JsonWllNetwork

@@ -4519,6 +4519,8 @@ namespace CumulusMX
 			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1, 1, 8);
 			WllPrimarySolar = ini.GetValue("WLL", "PrimarySolarTxId", 0, 0, 8);
 			WllPrimaryUV = ini.GetValue("WLL", "PrimaryUvTxId", 0, 0, 8);
+			WllPrimarySunshine = ini.GetValue("WLL", "PrimarySunshine", 0, 0, 8);
+			SolarOptions.UseSunshineSensor = WllPrimarySunshine > 0;
 			for (var i = 1; i <= 16; i++)
 			{
 				WllSoilTempTx[i] = ini.GetValue("WLL", "ExtraSoilTempTxId" + i, 0, 0, 8);
@@ -6561,6 +6563,8 @@ namespace CumulusMX
 			ini.SetValue("WLL", "PrimaryRainTxId", WllPrimaryRain);
 			ini.SetValue("WLL", "PrimarySolarTxId", WllPrimarySolar);
 			ini.SetValue("WLL", "PrimaryUvTxId", WllPrimaryUV);
+			ini.SetValue("WLL", "PrimarySunshine", WllPrimarySunshine);
+
 			for (var i = 1; i <= 16; i++)
 			{
 				if (WllSoilTempTx[i] == 0)
@@ -8508,6 +8512,7 @@ namespace CumulusMX
 		internal int WllPrimaryRain = 1;
 		internal int WllPrimarySolar;
 		internal int WllPrimaryUV;
+		internal int WllPrimarySunshine;
 
 		internal int[] WllSoilTempTx = new int[17];
 		internal int[] WllSoilTempIdx = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
@@ -14969,6 +14974,7 @@ namespace CumulusMX
 		public int SolarMinimum { get; set; }
 		public double LuxToWM2 { get; set; }
 		public bool UseBlakeLarsen { get; set; }
+		public bool UseSunshineSensor { get; set; }
 		public int SolarCalc { get; set; }
 		public double RStransfactorJun { get; set; }
 		public double RStransfactorDec { get; set; }
