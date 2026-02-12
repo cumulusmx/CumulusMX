@@ -11058,18 +11058,18 @@ namespace CumulusMX
 								SnowLog.Info(
 									string.Join(',', [
 										DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-										LaserDist[index].Value.ToString(cumulus.LaserFormat, CultureInfo.InvariantCulture),
-										value.Value.ToString(laserFmtPlus1dp, CultureInfo.InvariantCulture),
-										newValue.ToString(laserFmtPlus1dp, CultureInfo.InvariantCulture),
-										(lastdepth.HasValue ? lastdepth.Value.ToString(laserFmtPlus1dp , CultureInfo.InvariantCulture) : ""),
-										(LastLaserSnowDepth[index].HasValue ? LastLaserSnowDepth[index].Value.ToString(laserFmtPlus1dp, CultureInfo.InvariantCulture) : ""),
-										snowInc.ToString(cumulus.SnowFormat),
-										(Snow24h[index] ?? 0).ToString(cumulus.SnowFormat),
-										(SnowSeason[index] ?? 0).ToString(cumulus.SnowFormat),
-										cumulus.SnowDepthMinInc.ToString(laserFmtPlus1dp, CultureInfo.InvariantCulture),
+										LaserDist[index].ToFixed(cumulus.LaserFormat, "-"),
+										value.ToFixed(laserFmtPlus1dp),
+										newValue.ToFixed(laserFmtPlus1dp),
+										lastdepth.ToFixed(laserFmtPlus1dp , ""),
+										LastLaserSnowDepth[index].ToFixed(laserFmtPlus1dp, ""),
+										snowInc.ToFixed(cumulus.SnowFormat),
+										Snow24h[index].ToFixed(cumulus.SnowFormat, "-"),
+										SnowSeason[index].ToFixed(cumulus.SnowFormat, "-"),
+										cumulus.SnowDepthMinInc.ToFixed(laserFmtPlus1dp),
 										cumulus.SnowDepthMedianMins,
-										cumulus.SnowDepthEmaTimeMins,
-										cumulus.SnowDepthClipDelta
+										cumulus.SnowDepthEmaTimeMins.ToFixed("F1"),
+										cumulus.SnowDepthClipDelta.ToFixed("F1")
 									])
 								);
 							}
