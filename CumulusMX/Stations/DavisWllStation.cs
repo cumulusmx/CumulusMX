@@ -616,7 +616,7 @@ namespace CumulusMX.Stations
 							try
 							{
 								// All rainfall values supplied as *tip counts*, each count = 1/100th of an hour of sunshine
-								SunshineHours = (double) rec.rainfall_daily / 100;
+								DoSunHours(rec.rainfall_year / 100.0);
 							}
 							catch (Exception ex)
 							{
@@ -1081,7 +1081,7 @@ namespace CumulusMX.Stations
 									}
 									else
 									{
-										SunshineHours = (double) data1.rainfall_daily.Value / 100;
+										DoSunHours(data1.rainfall_year.Value / 100.0);
 									}
 								}
 							}
@@ -2293,7 +2293,7 @@ namespace CumulusMX.Stations
 									// add in archive period worth of sunshine, if sunny - arch_int in seconds
 									if (cumulus.WllPrimarySunshine == 0 && IsSunny)
 									{
-										SunshineHours += (data11.arch_int / 3600.0);
+										SunshineHours += data11.arch_int / 3600.0;
 									}
 								}
 								else
@@ -2344,13 +2344,12 @@ namespace CumulusMX.Stations
 								{
 									cumulus.LogDebugMessage($"WL.com historic: using sunshine data from TxId {data11.tx_id}");
 
-									var sunshine = (double) data11.rainfall_clicks / 100;
+									var sunshine = data11.rainfall_clicks.Value / 100.0;
 									if (sunshine > 0)
 									{
 										cumulus.LogDebugMessage($"WL.com historic: Adding sunshine hours {sunshine.ToString("F2")}");
 									}
-									sunshine += SunshineHours;
-
+									SunshineHours += sunshine;
 								}
 								else
 								{
