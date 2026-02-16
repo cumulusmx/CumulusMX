@@ -1565,7 +1565,7 @@ namespace CumulusMX.Stations
 
 		private void SetCustomServerTCP(GW1000Api api, bool main)
 		{
-			cumulus.LogMessage("Reading Ecowitt Gateway Custom Server config");
+			cumulus.LogMessage("Reading Ecowitt Gateway Custom Server config via TCP protocol");
 
 			var customPath = main ? "/station/ecowitt" : "/station/ecowittextra";
 			var customServer = main ? cumulus.EcowittLocalAddr : cumulus.EcowittExtraLocalAddr;
@@ -1722,13 +1722,13 @@ namespace CumulusMX.Stations
 			}
 			else
 			{
-				cumulus.LogErrorMessage("Error reading Ecowitt Gateway Custom Server config, cannot configure it");
+				cumulus.LogErrorMessage("Could not read Ecowitt Gateway Custom Server config via TCP protocol - NOT configured");
 			}
 		}
 
 		private bool SetCustomServerHTTP(EcowittLocalApi api, bool main)
 		{
-			cumulus.LogMessage("Reading Ecowitt Gateway Custom Server config");
+			cumulus.LogMessage("Reading Ecowitt Gateway Custom Server config via HTTP protocol");
 
 			var customPath = main ? "/station/ecowitt" : "/station/ecowittextra";
 			var customServer = main ? cumulus.EcowittLocalAddr : cumulus.EcowittExtraLocalAddr;
@@ -1778,7 +1778,7 @@ namespace CumulusMX.Stations
 			}
 			else
 			{
-				cumulus.LogErrorMessage("Error reading Ecowitt Gateway Custom Server config, cannot configure it");
+				cumulus.LogMessage("Could not read Ecowitt Gateway Custom Server config via HTTP protocol");
 				return false;
 			}
 			return true;

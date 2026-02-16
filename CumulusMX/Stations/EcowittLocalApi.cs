@@ -970,7 +970,7 @@ namespace CumulusMX.Stations
 
 			string responseBody;
 			int responseCode;
-			var retries = 2;
+			var retries = 1;
 			var ip = mainStation ? cumulus.Gw1000IpAddress : cumulus.EcowittExtraGatewayAddr;
 
 			if (!Utils.ValidateIPv4(ip))
@@ -1017,12 +1017,14 @@ namespace CumulusMX.Stations
 				{
 					// Handle "connection refused"
 					cumulus.LogMessage("LocalApi.GetWeatherServiceSettings: This Station does not support the HTTP API!");
+					return null;
 				}
 				catch (HttpRequestException ex)
 				{
 					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
 					{
 						cumulus.LogMessage("LocalApi.GetWeatherServiceSettings: This Station does not support the HTTP API!");
+						return null;
 					}
 					else
 					{
@@ -1039,6 +1041,12 @@ namespace CumulusMX.Stations
 
 					cumulus.LogExceptionMessage(ex, "LocalApi.GetWeatherServiceSettings: Error");
 				}
+
+				if (retries > 0)
+				{
+					Thread.Sleep(500);
+				}
+
 			} while (retries-- > 0);
 
 			return null;

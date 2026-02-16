@@ -59,7 +59,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 		| clip (laser units) |  1.0  |  0.1  | 0.04  |
 		| EMA time (mins)    ||        12.0         ||
 
-	- Note you can effectively disable any stage by setting: median=1, or clip=10, or EMA=1
+	- Note you can effectively disable any stage by setting: median=1, or clip=10, or EMA=0.1
 	- Increasing the filtering also delays the value being updated. The approximate delay is median/1.5 + EMA time/1.5. The defaults will give a 10-12 minute lag
 	- You can edit the new smoothing filter values in the Calibration Settings screen
 	- Suggested starting Minimum Increments for the new filter: 2-5 mm, 0.2-0.5 cm, 0.08-0.2 inches
