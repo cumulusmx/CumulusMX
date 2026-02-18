@@ -1911,7 +1911,7 @@ namespace CumulusMX
 							await writer.WriteAsync(cumulus.ClearErrorLog());
 							break;
 						case "clearalarm.txt":
-							await writer.WriteAsync(cumulus.ClearAlarm(HttpContext));
+							await writer.WriteAsync(cumulus.ResetAlarm(HttpContext));
 							break;
 						default:
 							Response.StatusCode = 404;

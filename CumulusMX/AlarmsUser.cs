@@ -112,9 +112,16 @@ namespace CumulusMX
 		public void ClearAlarm()
 		{
 			if (Latch && triggered && DateTime.UtcNow > triggeredTime.AddHours(LatchHours))
-			{
+		{
 				doTriggered(false);
 			}
+		}
+
+		public void ResetAlarm()
+		{
+			triggerCount = 0;
+			triggeredTime = DateTime.MinValue;
+			triggered = false;
 		}
 
 		private void doTriggered(bool value)

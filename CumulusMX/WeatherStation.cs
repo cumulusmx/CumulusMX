@@ -1938,6 +1938,11 @@ namespace CumulusMX
 			cumulus.TempChangeAlarm.ClearAlarm();
 			cumulus.PressChangeAlarm.ClearAlarm();
 			cumulus.FtpAlarm.ClearAlarm();
+
+			foreach (var alarm in cumulus.UserAlarms)
+			{
+				alarm.ClearAlarm();
+			}
 		}
 
 		private void CheckUserAlarms()
