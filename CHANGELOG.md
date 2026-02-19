@@ -67,6 +67,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Adds the ability to connect a third-party sunshine recorder to Davis WLL Stations
 	- Supports connecting a sunshine recorder such as the Instromet to the Rain input of an ISS type transmitter
 	- The sunshine recorder must send a pulse for every 1/100th hour of sunshine recorded
+- Adds support for Ecowitt WH52 Soil Moistire sensors to HTTP API and Ecowitt.Net stations
 
 ### Changed
 
@@ -139,6 +140,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix extra sensor data input via the JSON Station MQTT topic (was using main station config values)
 - Add a short delay between fetching Ecowitt SD card files to try and mitigate the zero length/oddly formated files being sent
 - Fix JSON Extra Sensor Station CO₂ and Lightning values only being applied when run as the main station
+- Fix AQ PM10 Average visibility settings being reset on CMX restart
 
 ### Package Updates
 

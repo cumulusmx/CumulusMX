@@ -5072,7 +5072,7 @@ namespace CumulusMX
 			GraphOptions.Visible.AqSensor.Pm.Vals = ini.GetValue("Graphs", "Aq-PmVisible", new int[4]);
 			GraphOptions.Visible.AqSensor.PmAvg.Vals = ini.GetValue("Graphs", "Aq-PmAvgVisible", new int[4]);
 			GraphOptions.Visible.AqSensor.Pm10.Vals = ini.GetValue("Graphs", "Aq-Pm10Visible", GraphOptions.Visible.AqSensor.Pm.Vals);
-			GraphOptions.Visible.AqSensor.Pm10Avg.Vals = ini.GetValue("Graphs", "Aq-Pm10AvgAvgVisible", GraphOptions.Visible.AqSensor.PmAvg.Vals);
+			GraphOptions.Visible.AqSensor.Pm10Avg.Vals = ini.GetValue("Graphs", "Aq-Pm10AvgVisible", GraphOptions.Visible.AqSensor.PmAvg.Vals);
 			GraphOptions.Visible.AqSensor.Temp.Vals = ini.GetValue("Graphs", "Aq-TempVisible", new int[4]);
 			GraphOptions.Visible.AqSensor.Hum.Vals = ini.GetValue("Graphs", "Aq-HumVisible", new int[4]);
 			GraphOptions.Visible.CO2Sensor.CO2.Val = ini.GetValue("Graphs", "CO2-CO2", 0, 0, 2);
