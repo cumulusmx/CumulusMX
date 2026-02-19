@@ -255,6 +255,11 @@ namespace CumulusMX.Stations
 									ProcessSoilMoisture(rawData.ch_soil);
 								}
 
+								if (rawData.ch_ec != null)
+								{
+									ProcessSoilMoistureEc(rawData.ch_ec);
+								}
+
 								if (rawData.ch_leaf != null)
 								{
 									ProcessLeafWet(rawData.ch_leaf);
@@ -1906,6 +1911,41 @@ namespace CumulusMX.Stations
 					catch (Exception ex)
 					{
 						cumulus.LogExceptionMessage(ex, $"ProcessSoilMoisture: Error on sensor {sensor.channel}");
+					}
+				}
+			}
+		}
+
+		private void ProcessSoilMoistureEc(EcowittLocalApi.SoilMoistEcSensor[] sensors)
+		{
+			//"ch_ec": [
+			//	{
+			//		"channel": "5",
+			//		"name": "Front hall",
+			//		"battery": "5",
+			//		"voltage": "1.52",
+			//		"humidity": "42%",
+			//		"temp": "24.2",
+			//		"unit": "C",
+			//		"ec": "1430 uS/cm"
+			//	}
+			//]
+
+			cumulus.LogDebugMessage($"ProcessSoilMoistureEc: Processing {sensors.Length} sensors");
+
+			for (var i = 0; i < sensors.Length; i++)
+			{
+				var sensor = sensors[i];
+
+				if (sensor.humidityVal.HasValue)
+				{
+					try
+					{
+						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessSoilMoistureEc: Error on sensor {sensor.channel}");
 					}
 				}
 			}

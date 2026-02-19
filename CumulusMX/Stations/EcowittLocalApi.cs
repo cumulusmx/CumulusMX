@@ -1433,6 +1433,19 @@ namespace CumulusMX.Stations
 			}
 		}
 
+		public class SoilMoistEcSensor : TempHumSensor
+		{
+			public string? ec { get; set; }
+
+			public int?ecVal
+			{
+				get
+				{
+					return int.TryParse(ec.Split(' ')[0], out var result) ? result : null;
+				}
+			}
+		}
+
 		public class Wh25Sensor
 		{
 			public double intemp { get; set; }
@@ -1576,6 +1589,7 @@ namespace CumulusMX.Stations
 			public TempHumSensor[]? ch_temp { get; set; }
 			public TempHumSensor[]? ch_leaf { get; set; }
 			public LdsSensor[]? ch_lds { get; set; }
+			public SoilMoistEcSensor[] ch_ec { get; set; }
 		}
 
 		public class SensorInfo

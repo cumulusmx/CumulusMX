@@ -553,6 +553,19 @@ namespace CumulusMX.Stations
 					}
 				}
 
+				// === Soil Moisture EC ===
+				if (mainStation || cumulus.ExtraSensorUseSoilMoist)
+				{
+					try
+					{
+						ProcessSoilMoistEc(data);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Soil moisture data - {ex.Message}");
+					}
+				}
+
 				// === Leaf Wetness ===
 				if (mainStation || cumulus.ExtraSensorUseLeafWet)
 				{
@@ -903,6 +916,81 @@ namespace CumulusMX.Stations
 			if (data.soil_ch8 != null)
 			{
 				station.DoSoilMoisture(data.soil_ch8.soilmoisture.value, 8);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[7] = "%";
+				}
+			}
+		}
+
+		private void ProcessSoilMoistEc(EcowittApi.CurrentDataData data)
+		{
+			if (data.ch_soil_ec_temp_hum1 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum1.soilmoisture.value, 1);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[0] = "%";
+				}
+			}
+
+			if (data.ch_soil_ec_temp_hum2 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum2.soilmoisture.value, 2);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[1] = "%";
+				}
+			}
+
+			if (data.ch_soil_ec_temp_hum3 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum3.soilmoisture.value, 3);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[2] = "%";
+				}
+			}
+
+			if (data.ch_soil_ec_temp_hum4 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum4.soilmoisture.value, 4);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[3] = "%";
+				}
+			}
+
+			if (data.ch_soil_ec_temp_hum5 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum5.soilmoisture.value, 5);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[4] = "%";
+				}
+			}
+
+			if (data.ch_soil_ec_temp_hum6 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum6.soilmoisture.value, 6);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[5] = "%";
+				}
+			}
+
+			if (data.ch_soil_ec_temp_hum7 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum7.soilmoisture.value, 7);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[6] = "%";
+				}
+			}
+
+			if (data.ch_soil_ec_temp_hum8 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum8.soilmoisture.value, 8);
 				if (!mainStation)
 				{
 					cumulus.Units.SoilMoistureUnitText[7] = "%";
@@ -1430,6 +1518,46 @@ namespace CumulusMX.Stations
 				{
 					lowBatt = true;
 					LowBatteryDevices.Add("BGT=" + data.battery.bgt_sensor.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch1 != null && data.battery.soilmoisture_ec_sensor_ch1.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#1=" + data.battery.soilmoisture_ec_sensor_ch1.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch2 != null && data.battery.soilmoisture_ec_sensor_ch2.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#2=" + data.battery.soilmoisture_ec_sensor_ch2.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch3 != null && data.battery.soilmoisture_ec_sensor_ch3.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#3=" + data.battery.soilmoisture_ec_sensor_ch3.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch4 != null && data.battery.soilmoisture_ec_sensor_ch4.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#4=" + data.battery.soilmoisture_ec_sensor_ch4.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch5 != null && data.battery.soilmoisture_ec_sensor_ch5.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#5=" + data.battery.soilmoisture_ec_sensor_ch5.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch6 != null && data.battery.soilmoisture_ec_sensor_ch6.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#6=" + data.battery.soilmoisture_ec_sensor_ch6.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch7 != null && data.battery.soilmoisture_ec_sensor_ch7.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#7=" + data.battery.soilmoisture_ec_sensor_ch7.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch8 != null && data.battery.soilmoisture_ec_sensor_ch8.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#8=" + data.battery.soilmoisture_ec_sensor_ch8.value + "V");
 				}
 
 				cumulus.BatteryLowAlarm.Triggered = lowBatt;
