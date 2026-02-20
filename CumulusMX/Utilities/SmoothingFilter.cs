@@ -8,12 +8,12 @@ namespace CumulusMX
 	{
 		private TimeSpan medianWindow;
 		private double timeConstantMinutes;
-		private double clipDelta;
+		private double clipDeltaPerMinute;
 
 		private readonly LinkedList<(DateTime ts, double value)> buffer = new LinkedList<(DateTime, double)>();
 
 		private DateTime lastTimestamp;
-		private double y;
+		private double lastAvg;
 		private bool initialised = false;
 
 		/// <summary>
@@ -32,7 +32,7 @@ namespace CumulusMX
 		public SmoothingFilter(TimeSpan medianMins, double timeConstantMinutes, double clipDelta)
 		{
 			this.medianWindow = medianMins;
-			this.clipDelta = clipDelta;
+			this.clipDeltaPerMinute = clipDelta;
 			this.timeConstantMinutes = timeConstantMinutes;
 		}
 
@@ -40,17 +40,17 @@ namespace CumulusMX
 		/// Update the smoother with a new raw reading and timestamp
 		/// Returns the smoothed value.
 		/// </summary>
-		public double Update(DateTime timestamp, double x)
+		public double Update(DateTime timestamp, double newVal)
 		{
 			if (!initialised)
 			{
-				y = x;
+				lastAvg = newVal;
 				lastTimestamp = timestamp;
 				initialised = true;
 			}
 
 			// --- 1. Median update ---
-			buffer.AddLast((timestamp, x));
+			buffer.AddLast((timestamp, newVal));
 
 			// Remove old entries
 			DateTime cutoff = timestamp - medianWindow;
@@ -58,28 +58,31 @@ namespace CumulusMX
 				buffer.RemoveFirst();
 
 			// Compute median of current window
-			double m = ComputeMedian(buffer);
+			double median = ComputeMedian(buffer);
 
 			// --- 2. Delta clipping ---
-			double d = m - y;
-			if (d > clipDelta)
-				d = clipDelta;
-			else if (d < -clipDelta)
-				d = -clipDelta;
-
-			// --- 3. Time‑correct EMA update ---
 			double dtMinutes = (timestamp - lastTimestamp).TotalMinutes;
 			if (dtMinutes < 0) dtMinutes = 0; // guard against clock issues
 
+			double maxDelta = clipDeltaPerMinute * dtMinutes;
+
+			double delta = median - lastAvg;
+
+			if (delta > maxDelta)
+				delta = maxDelta;
+			else if (delta < -maxDelta)
+				delta = -maxDelta;
+
+			// --- 3. Time‑correct EMA update ---
 			double alpha = 1.0 - Math.Exp(-dtMinutes / timeConstantMinutes);
 
-			y += alpha * d;
+			lastAvg += alpha * delta;
 
 			lastTimestamp = timestamp;
-			return y;
+			return lastAvg;
 		}
 
-		public double CurrentValue {  get { return y; } }
+		public double CurrentValue {  get { return lastAvg; } }
 
 		public void SetMedianWindow(TimeSpan newWindow)
 		{
@@ -88,7 +91,7 @@ namespace CumulusMX
 
 		public void SetClipDelta(double delta)
 		{
-			clipDelta = delta;
+			clipDeltaPerMinute = delta;
 		}
 
 		public void SetTimeConst(double timeConst)
