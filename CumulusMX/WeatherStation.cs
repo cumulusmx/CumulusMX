@@ -10990,7 +10990,7 @@ namespace CumulusMX
 
 							snowSpikeTime = DateTime.UtcNow;
 						}
-						else if (depthInc > cumulus.SnowDepthMinInc)
+						else if (depthInc >= cumulus.SnowDepthMinInc)
 						{
 							if (depthInc < cumulus.Spike.SnowDiff)
 							{
