@@ -194,14 +194,14 @@ namespace CumulusMX.Stations
 				"ch_lds3",
 				"ch_lds4",
 				"black_globe_temperature",
-				"ch_ec1",
-				"ch_ec2",
-				"ch_ec3",
-				"ch_ec4",
-				"ch_ec5",
-				"ch_ec6",
-				"ch_ec7",
-				"ch_ec8"
+				"ch_soil_ec_temp_hum1",
+				"ch_soil_ec_temp_hum2",
+				"ch_soil_ec_temp_hum3",
+				"ch_soil_ec_temp_hum4",
+				"ch_soil_ec_temp_hum5",
+				"ch_soil_ec_temp_hum6",
+				"ch_soil_ec_temp_hum7",
+				"ch_soil_ec_temp_hum8"
 			};
 
 			sb.Append("&call_back=");
@@ -329,7 +329,16 @@ namespace CumulusMX.Stations
 							else
 							{
 								cumulus.LogErrorMessage($"API.GetHistoricData: Error: {histObj.code} - {histObj.msg}");
-								return false;
+								// have we reached the retry limit?
+								if (--retries <= 0)
+								{
+									cumulus.LastUpdateTime = endTime;
+									return false;
+								}
+
+								cumulus.LogMessage($"API.GetHistoricData: System Busy or Rate Limited, waiting {retryTime} secs before retry...");
+								Task.Delay(retryTime * 1000, token).Wait(token);
+								retryTime *= 2; // double the retry time
 							}
 						}
 						else

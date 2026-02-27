@@ -178,14 +178,12 @@ namespace CumulusMX.Stations
 
 			liveTask = Task.Run(() =>
 			{
-				var excepMsg = "unknown error";
-
-				try
+				while (!Program.ExitSystemToken.IsCancellationRequested)
 				{
 					var dataLastRead = DateTime.Now;
 					double delay;
 
-					while (!Program.ExitSystemToken.IsCancellationRequested)
+					try
 					{
 						if (!DayResetInProgress)
 						{
@@ -356,37 +354,34 @@ namespace CumulusMX.Stations
 								}
 							}
 						}
-
-						delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
-
-						if (Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
-						{
-							break;
-						}
 					}
-				}
-				// Catch the ThreadAbortException
-				catch (ThreadAbortException ex)
-				{
-					//do nothing
-					excepMsg = ex.Message;
-				}
-				catch (Exception ex)
-				{
-					excepMsg = ex.Message;
-				}
-				finally
-				{
+					// Catch the ThreadAbortException
+					catch (ThreadAbortException)
+					{
+						//do nothing
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "Ecowitt Local HTTP API station background task error - continuing");
+					}
+
+					delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
+
+					Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay));
+
 					if (Program.ExitSystemToken.IsCancellationRequested)
 					{
 						cumulus.LogMessage("Ecowitt Local HTTP API station background task closed due to shutting down");
 					}
-					else
-					{
-						cumulus.LogCriticalMessage("Ecowitt Local HTTP API station background task ended unexpectedly: " + excepMsg);
-					}
 				}
-			}, Program.ExitSystemToken);
+			}, Program.ExitSystemToken)
+			.ContinueWith(t =>
+			{
+				if (!t.IsCanceled && t.IsFaulted)
+				{
+					cumulus.LogExceptionMessage(t.Exception, "Ecowitt Local HTTP API station background task error - exited");
+				}
+			});
 		}
 
 		public override void Stop()
