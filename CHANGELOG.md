@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## RELEASE CANDIDATE [5.0.0 \[b5000\]][29] - 2026-02-28
+## RELEASE CANDIDATE [5.0.0 \[b5000\]][29] - 2026-03-04
 
 ### Important Notes
 
@@ -32,7 +32,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Custom Rollover MySQL commands now have the option to control being run during catch-up or not
 - Adds LASER depth to the Dashboard Recent Charts, Recent Select-a-Chart, and Select-a-Period
 - Adds LASER depth to the default web site Trends and Select-a-graph charts
-- New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v4.7 log file formats
+- New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v5.0 log file formats
 - New script `/MXutils/windows/CreateFirewallRules.ps1` for creating the required Windows firewall rules
 - Add an exponential backoff to failed Email sends (up to 5.6 hours)
 - New web tags `<#snowunit>`, `<#CapacitorV>`
@@ -46,6 +46,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add support for BGT and WBGT to Ecowitt HTTP Local API, HTTP (Ecowitt), and the JSON stations
 	- New web tags `<#BlackGlobeTemp>` and `<#WetBulbGlobeTemp>`
 	- Two new fields added to the monthly log files and the monthly MySQL table to support these new measurements
+- Add support for Ecowitt WH52 EC Soil Moisture Sensors to the Ecowitt HTTP Local API and HTTP (Ecowitt) stations - soil moisture readings only for now
 - Fix ecowitt.net historic data download of PM measurements
 - New snow depth filtering mechanism implemented. This is a three-stage filter...
 	- **Stage 1** applies a median filter to the raw values - you can specify the length of time in minutes for the median values. This is good for filtering out sudden spikes.
@@ -75,10 +76,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Old format records start: Date,Time,
 	- New format records start: Date_Time,Unix_Timestamp,
 	- All the data fields retain the same offsets as before
-	- The log files will automatically be converted on the first run of v4.7.0
+	- The log files will automatically be converted on the first run of v5.0
 	- The original files will be backed up to `/backup/ConvertBackup`
 	- The Date_Time field is now purely for human readability, Cumulus MX now uses the Unix Timestamp internally
-- The main monthly log files now log the final values for Rainfall Today and ET Today in the first record of the following day
+- The main monthly log files now log the final values for Rainfall Today and ET Today in the first record of the following (rain/calendar) day
+- The extra monthly log files now log the final snowfall in 24h value in the first record of the following (snow) day
 - The dashboard has been converted from using Highcharts to ChartJS, and will now work fully offline
 - The default web site has been fully converted from Highcharts to ChartJS, removing the dependency on obtaining a Highcharts licence
 - Removes the dependency on ServiceStack.Text for JSON handling, now using the built-in System.Text.Json
@@ -99,7 +101,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- **Existing users must add their Station ID to the settings, this is a requirement of the new API**
 - The snow 24 hour accumulation is now reset to zero *after* the "snow hour" processing is complete and the extra log file written.
 	This means that the true final daily total will be available in the first record of the following snow day the same as the daily rainfall total in the monthly log file
-
+- Now sets the HTTP Referer to the upload site when using PHP Upload, and to https://cumulus.hosiene.co.uk/ for all other HTTP queries
 
 ### Fixed
 

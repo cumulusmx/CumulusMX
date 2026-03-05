@@ -117,6 +117,8 @@ namespace CumulusMX.Settings
 								cumulus.FtpOptions.PhpUseBrotli = settings.website.advanced.phpusebrotli;
 								Task.Run(() => cumulus.TestPhpUploadCompression());
 							}
+							var uri = new Uri(cumulus.FtpOptions.PhpUrl);
+							cumulus.phpUploadHttpClient.DefaultRequestHeaders.Referrer = new Uri(uri.Scheme + "://" + uri.Host);
 						}
 
 						if (cumulus.FtpOptions.FtpMode != FtpProtocols.PHP && settings.websettings.realtime.enabled && settings.websettings.realtime.enablerealtimeftp)

@@ -1788,8 +1788,10 @@ namespace CumulusMX
 
 			var header = new System.Net.Http.Headers.ProductHeaderValue("CumulusMX", $"{Version}.{Build}");
 			var userAgent = new System.Net.Http.Headers.ProductInfoHeaderValue(header);
-
 			phpUploadHttpClient.DefaultRequestHeaders.UserAgent.Add(userAgent);
+
+			var uri = new Uri(FtpOptions.PhpUrl);
+			phpUploadHttpClient.DefaultRequestHeaders.Referrer = new Uri(uri.Scheme + "://" + uri.Host);
 		}
 
 		internal void SetupMyHttpClient()
@@ -1808,6 +1810,7 @@ namespace CumulusMX
 			var userAgent = new System.Net.Http.Headers.ProductInfoHeaderValue(header);
 
 			MyHttpClient.DefaultRequestHeaders.UserAgent.Add(userAgent);
+			MyHttpClient.DefaultRequestHeaders.Referrer = new Uri("https://cumulus.hosiene.co.uk/");
 		}
 
 
