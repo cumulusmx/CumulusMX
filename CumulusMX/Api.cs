@@ -1303,6 +1303,11 @@ namespace CumulusMX
 						case "co2sensor.json":
 							await writer.WriteAsync(Station.GetCO2sensor(true));
 							break;
+
+						case "bgt.json":
+							await writer.WriteAsync(Station.GetBGTsensor(true));
+							break;
+
 						default:
 							Response.StatusCode = 404;
 							break;

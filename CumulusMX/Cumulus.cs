@@ -5059,6 +5059,7 @@ namespace CumulusMX
 			GraphOptions.Visible.AvgTemp.Val = ini.GetValue("Graphs", "DailyAvgTempVisible", 1, 0, 2);
 			GraphOptions.Visible.MaxTemp.Val = ini.GetValue("Graphs", "DailyMaxTempVisible", 1, 0, 2);
 			GraphOptions.Visible.MinTemp.Val = ini.GetValue("Graphs", "DailyMinTempVisible", 1, 0, 2);
+			GraphOptions.Visible.BGT.Val = ini.GetValue("Graphs", "BGTVisible", 1, 0, 2);
 			GraphOptions.Visible.GrowingDegreeDays1.Val = ini.GetValue("Graphs", "GrowingDegreeDaysVisible1", 1, 0, 2);
 			GraphOptions.Visible.GrowingDegreeDays2.Val = ini.GetValue("Graphs", "GrowingDegreeDaysVisible2", 1, 0, 2);
 			GraphOptions.Visible.TempSum0.Val = ini.GetValue("Graphs", "TempSumVisible0", 1, 0, 2);
@@ -5102,6 +5103,8 @@ namespace CumulusMX
 			GraphOptions.Colour.AppTemp = ini.GetValue("GraphColours", "AppTempColour", "#00fffe");
 			GraphOptions.Colour.FeelsLike = ini.GetValue("GraphColours", "FeelsLikeColour", "#00fffe");
 			GraphOptions.Colour.Humidex = ini.GetValue("GraphColours", "HumidexColour", "#008000");
+			GraphOptions.Colour.BGT = ini.GetValue("GraphColours", "BGTColour", "#6495ed");
+			GraphOptions.Colour.WBGT = ini.GetValue("GraphColours", "WBGTColour", "#3dd457");
 			GraphOptions.Colour.InHum = ini.GetValue("GraphColours", "InHumColour", "#008000");
 			GraphOptions.Colour.OutHum = ini.GetValue("GraphColours", "OutHumColour", "#ff0000");
 			GraphOptions.Colour.Press = ini.GetValue("GraphColours", "PressureColour", "#6495ed");
@@ -7473,6 +7476,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "DailyAvgTempVisible", GraphOptions.Visible.AvgTemp.Val);
 			ini.SetValue("Graphs", "DailyMaxTempVisible", GraphOptions.Visible.MaxTemp.Val);
 			ini.SetValue("Graphs", "DailyMinTempVisible", GraphOptions.Visible.MinTemp.Val);
+			ini.SetValue("Graphs", "BGTVisible", GraphOptions.Visible.BGT.Val);
 			ini.SetValue("Graphs", "GrowingDegreeDaysVisible1", GraphOptions.Visible.GrowingDegreeDays1.Val);
 			ini.SetValue("Graphs", "GrowingDegreeDaysVisible2", GraphOptions.Visible.GrowingDegreeDays2.Val);
 			ini.SetValue("Graphs", "TempSumVisible0", GraphOptions.Visible.TempSum0.Val);
@@ -7515,6 +7519,9 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "AppTempColour", GraphOptions.Colour.AppTemp);
 			ini.SetValue("GraphColours", "FeelsLikeColour", GraphOptions.Colour.FeelsLike);
 			ini.SetValue("GraphColours", "HumidexColour", GraphOptions.Colour.Humidex);
+			ini.SetValue("GraphColours", "BGTColour", GraphOptions.Colour.BGT);
+			ini.SetValue("GraphColours", "WBGTColour", GraphOptions.Colour.WBGT);
+
 			ini.SetValue("GraphColours", "InHumColour", GraphOptions.Colour.InHum);
 			ini.SetValue("GraphColours", "OutHumColour", GraphOptions.Colour.OutHum);
 			ini.SetValue("GraphColours", "PressureColour", GraphOptions.Colour.Press);

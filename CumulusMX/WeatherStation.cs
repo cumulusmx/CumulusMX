@@ -2003,7 +2003,7 @@ namespace CumulusMX
 
 					DoTrendValues(now);
 					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
-						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
+						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateAirQualityDb();
 
@@ -2883,6 +2883,8 @@ namespace CumulusMX
 			var sbHeat = new StringBuilder("\"heatindex\":[");
 			var sbTemp = new StringBuilder("\"temp\":[");
 			var sbHumidex = new StringBuilder("\"humidex\":[");
+			var sbBgt = new StringBuilder("\"bgt\":[");
+			var sbWbgt = new StringBuilder("\"wbgt\":[");
 
 			DateTime dateFrom;
 
@@ -2931,6 +2933,12 @@ namespace CumulusMX
 
 				if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
 					sbHumidex.Append($"[{jsTime},{data[i].Humidex.ToFixed(cumulus.TempFormat)}],");
+
+				if (cumulus.GraphOptions.Visible.BGT.IsVisible(local))
+				{
+					sbBgt.Append($"[{jsTime},{data[i].BGT.ToFixed(cumulus.TempFormat, "null")}],");
+					sbWbgt.Append($"[{jsTime},{data[i].WBGT.ToFixed(cumulus.TempFormat, "null")}],");
+				}
 			}
 
 			if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
@@ -3010,6 +3018,21 @@ namespace CumulusMX
 
 				sbHumidex.Append(']');
 				sb.Append((append ? "," : "") + sbHumidex);
+			}
+
+			if (cumulus.GraphOptions.Visible.BGT.IsVisible(local))
+			{
+				if (sbBgt[^1] == ',')
+					sbBgt.Length--;
+
+				sbBgt.Append(']');
+				sb.Append((append ? "," : "") + sbBgt);
+
+				if (sbWbgt[^1] == ',')
+					sbWbgt.Length--;
+
+				sbWbgt.Append(']');
+				sb.Append((append ? "," : "") + sbWbgt);
 			}
 
 			sb.Append('}');
@@ -5202,6 +5225,8 @@ namespace CumulusMX
 			var sbHeat = new StringBuilder("\"heatindex\":[");
 			var sbTemp = new StringBuilder("\"temp\":[");
 			var sbHumidex = new StringBuilder("\"humidex\":[");
+			var sbBgt = new StringBuilder("\"bgt\":[");
+			var sbWbgt = new StringBuilder("\"wbgt\":[");
 
 			var dateFrom = start ?? cumulus.RecordsBeganDateTime;
 			var dateTo = end ?? DateTime.Now.Date;
@@ -5279,6 +5304,12 @@ namespace CumulusMX
 
 								if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
 									sbHumidex.Append($"[{jsTime},{rec.Humidex.ToFixed(cumulus.TempFormat, "null")}],");
+
+								if (cumulus.GraphOptions.Visible.BGT.IsVisible(local))
+								{
+									sbBgt.Append($"[{jsTime},{rec.BlackGlobeTemp.ToFixed(cumulus.TempFormat, "null")}],");
+									sbWbgt.Append($"[{jsTime},{rec.WetBulbGlobeTemp.ToFixed(cumulus.TempFormat, "null")}],");
+								}
 							}
 							catch (Exception e)
 							{
@@ -5395,6 +5426,22 @@ namespace CumulusMX
 
 				sbHumidex.Append(']');
 				sb.Append((append ? "," : "") + sbHumidex);
+				append = true;
+			}
+
+			if (cumulus.GraphOptions.Visible.BGT.IsVisible(local))
+			{
+				if (sbBgt[^1] == ',')
+					sbBgt.Length--;
+
+				sbBgt.Append(']');
+				sb.Append((append ? "," : "") + sbBgt);
+
+				if (sbWbgt[^1] == ',')
+					sbWbgt.Length--;
+
+				sbWbgt.Append(']');
+				sb.Append((append ? "," : "") + sbWbgt);
 			}
 
 			sb.Append('}');
@@ -6023,7 +6070,7 @@ namespace CumulusMX
 
 		public void AddRecentDataEntry(DateTime timestamp, double windAverage, double recentMaxGust, double windLatest, int bearing, int avgBearing, double outsidetemp,
 			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, int? solarRad, double? uv, double rainCounter, double feelslike, double humidex,
-			double appTemp, double? insideTemp, int? insideHum, int solarMax, double rainrate, double? pm2p5, double? pm10)
+			double appTemp, double? insideTemp, int? insideHum, int solarMax, double rainrate, double? pm2p5, double? pm10, double? bgt, double? wbgt)
 		{
 			try
 			{
@@ -6053,7 +6100,9 @@ namespace CumulusMX
 					SolarMax = solarMax,
 					RainRate = rainrate,
 					Pm2p5 = pm2p5,
-					Pm10 = pm10
+					Pm10 = pm10,
+					BGT = bgt,
+					WBGT = wbgt
 				});
 			}
 			catch (Exception ex)
@@ -9489,7 +9538,7 @@ namespace CumulusMX
 
 		public void AddRecentDataWithAq(DateTime timestamp, double windAverage, double recentMaxGust, double windLatest, int bearing, int avgBearing, double outsidetemp,
 			double windChill, double dewpoint, double heatIndex, int humidity, double pressure, double rainToday, int? solarRad, double? uv, double rainCounter, double feelslike, double humidex,
-			double appTemp, double? insideTemp, int? insideHum, int solarMax, double rainrate)
+			double appTemp, double? insideTemp, int? insideHum, int solarMax, double rainrate, double? bgt, double? wbgt)
 		{
 			double? pm2p5 = -1;
 			double? pm10 = -1;
@@ -9535,7 +9584,7 @@ namespace CumulusMX
 					break;
 			}
 
-			AddRecentDataEntry(timestamp, windAverage, recentMaxGust, windLatest, bearing, avgBearing, outsidetemp, windChill, dewpoint, heatIndex, humidity, pressure, rainToday, solarRad, uv, rainCounter, feelslike, humidex, appTemp, insideTemp, insideHum, solarMax, rainrate, pm2p5, pm10);
+			AddRecentDataEntry(timestamp, windAverage, recentMaxGust, windLatest, bearing, avgBearing, outsidetemp, windChill, dewpoint, heatIndex, humidity, pressure, rainToday, solarRad, uv, rainCounter, feelslike, humidex, appTemp, insideTemp, insideHum, solarMax, rainrate, pm2p5, pm10, bgt, wbgt);
 		}
 
 
@@ -12824,6 +12873,29 @@ namespace CumulusMX
 			return json.ToString();
 		}
 
+		public string GetBGTsensor(bool local)
+		{
+			if (cumulus.GraphOptions.Visible.BGT.IsVisible(local))
+			{
+				var json = new StringBuilder("{\"data\":[", 1024);
+
+				json.Append("[\"BGT\",\"");
+				json.Append(BlackGlobeTemp.ToFixed(cumulus.TempFormat, "-"));
+				json.Append("\",\"");
+				json.Append(cumulus.Units.TempText);
+				json.Append("\"],[\"WBGT\",\"");
+				json.Append(WetBulbGlobeTemp.ToFixed(cumulus.TempFormat, "-"));
+				json.Append("\",\"");
+				json.Append(cumulus.Units.TempText);
+				json.Append("\"]]}");
+				return json.ToString();
+			}
+			else
+			{
+				return "{\"data\":[]}";
+			}
+		}
+
 		public string GetSoilTemp()
 		{
 			var json = new StringBuilder("{\"data\":[", 2048);
@@ -14207,6 +14279,11 @@ namespace CumulusMX
 				json.Append($"\"humidex\":{{\"name\":\"Humidex\",\"colour\":\"{cumulus.GraphOptions.Colour.Humidex}\"}},");
 			if (cumulus.GraphOptions.Visible.InTemp.IsVisible(local))
 				json.Append($"\"intemp\":{{\"name\":\"Indoor Temp\",\"colour\":\"{cumulus.GraphOptions.Colour.InTemp}\"}},");
+			if (cumulus.GraphOptions.Visible.BGT.IsVisible(local))
+			{
+				json.Append($"\"bgt\":{{\"name\":\"BGT\",\"colour\":\"{cumulus.GraphOptions.Colour.BGT}\"}},");
+				json.Append($"\"wbgt\":{{\"name\":\"WBGT\",\"colour\":\"{cumulus.GraphOptions.Colour.WBGT}\"}},");
+			}
 			// hum
 			if (cumulus.GraphOptions.Visible.OutHum.IsVisible(local))
 				json.Append($"\"hum\":{{\"name\":\"Humidity\",\"colour\":\"{cumulus.GraphOptions.Colour.OutHum}\"}},");
@@ -14393,6 +14470,9 @@ namespace CumulusMX
 
 			if (cumulus.GraphOptions.Visible.Humidex.IsVisible(local))
 				json.Append("\"Humidex\",");
+
+			if (cumulus.GraphOptions.Visible.BGT.IsVisible(local))
+				json.Append("\"BGT\",\"WBGT\",");
 
 			if (json[^1] == ',')
 				json.Length--;
@@ -16282,6 +16362,8 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 		public double FeelsLike { get; set; }
 		public double Humidex { get; set; }
 		public double AppTemp { get; set; }
+		public double? BGT { get; set; }
+		public double? WBGT { get; set; }
 
 		public double? IndoorTemp { get; set; }
 		public int? IndoorHumidity { get; set; }

@@ -48,6 +48,7 @@ namespace CumulusMX
 			public GraphDataValue MaxTemp { get; set; } = new GraphDataValue();
 			public GraphDataValue AvgTemp { get; set; } = new GraphDataValue();
 			public GraphDataValue MinTemp { get; set; } = new GraphDataValue();
+			public GraphDataValue BGT { get; set; } = new GraphDataValue();
 			public GraphOptionsCo2Sensor CO2Sensor { get; set; } = new GraphOptionsCo2Sensor();
 			public GraphOptionsAQSensor AqSensor { get; set; } = new GraphOptionsAQSensor();
 			public GraphDataValue SnowDepth { get; set; } = new GraphDataValue();
@@ -148,6 +149,8 @@ namespace CumulusMX
 			public string AppTemp { get; set; }
 			public string FeelsLike { get; set; }
 			public string Humidex { get; set; }
+			public string BGT { get; set; }
+			public string WBGT { get; set; }
 			public string InHum { get; set; }
 			public string OutHum { get; set; }
 			public string Press { get; set; }

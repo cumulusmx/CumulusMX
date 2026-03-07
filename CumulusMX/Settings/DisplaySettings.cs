@@ -42,7 +42,8 @@ namespace CumulusMX.Settings
 				Humidex = cumulus.GraphOptions.Visible.Humidex.Val,
 				AvgTemp = cumulus.GraphOptions.Visible.AvgTemp.Val,
 				MaxTemp = cumulus.GraphOptions.Visible.MaxTemp.Val,
-				MinTemp = cumulus.GraphOptions.Visible.MinTemp.Val
+				MinTemp = cumulus.GraphOptions.Visible.MinTemp.Val,
+				BGT = cumulus.GraphOptions.Visible.BGT.Val
 			};
 
 			var graphVisHum = new JsonGraphVisHumidity()
@@ -190,7 +191,9 @@ namespace CumulusMX.Settings
 				WindChill = cumulus.GraphOptions.Colour.WindChill,
 				AppTemp = cumulus.GraphOptions.Colour.AppTemp,
 				FeelsLike = cumulus.GraphOptions.Colour.FeelsLike,
-				Humidex = cumulus.GraphOptions.Colour.Humidex
+				Humidex = cumulus.GraphOptions.Colour.Humidex,
+				BGT = cumulus.GraphOptions.Colour.BGT,
+				WBGT = cumulus.GraphOptions.Colour.WBGT
 			};
 
 			var graphColDailyTemp = new JsonGraphColDailyTemp()
@@ -420,6 +423,8 @@ namespace CumulusMX.Settings
 					cumulus.GraphOptions.Visible.AvgTemp.Val = settings.DataVisibility.temperature.AvgTemp;
 					cumulus.GraphOptions.Visible.MaxTemp.Val = settings.DataVisibility.temperature.MaxTemp;
 					cumulus.GraphOptions.Visible.MinTemp.Val = settings.DataVisibility.temperature.MinTemp;
+					cumulus.GraphOptions.Visible.BGT.Val = settings.DataVisibility.temperature.BGT;
+
 					cumulus.GraphOptions.Visible.TempSum0.Val = settings.DataVisibility.tempsum.TempSum0;
 					cumulus.GraphOptions.Visible.TempSum1.Val = settings.DataVisibility.tempsum.TempSum1;
 					cumulus.GraphOptions.Visible.TempSum2.Val = settings.DataVisibility.tempsum.TempSum2;
@@ -469,6 +474,8 @@ namespace CumulusMX.Settings
 					cumulus.GraphOptions.Colour.AppTemp = settings.Graphs.colour.temperature.AppTemp;
 					cumulus.GraphOptions.Colour.FeelsLike = settings.Graphs.colour.temperature.FeelsLike;
 					cumulus.GraphOptions.Colour.Humidex = settings.Graphs.colour.temperature.Humidex;
+					cumulus.GraphOptions.Colour.BGT = settings.Graphs.colour.temperature.BGT;
+					cumulus.GraphOptions.Colour.WBGT = settings.Graphs.colour.temperature.WBGT;
 
 					cumulus.GraphOptions.Colour.OutHum = settings.Graphs.colour.humidity.Hum;
 					cumulus.GraphOptions.Colour.InHum = settings.Graphs.colour.humidity.InHum;
@@ -682,6 +689,7 @@ namespace CumulusMX.Settings
 			public int AvgTemp { get; set; }
 			public int MaxTemp { get; set; }
 			public int MinTemp { get; set; }
+			public int BGT { get; set; }
 		}
 
 		private sealed class JsonGraphVisHumidity
@@ -771,6 +779,8 @@ namespace CumulusMX.Settings
 			public string AppTemp { get; set; }
 			public string FeelsLike { get; set; }
 			public string Humidex { get; set; }
+			public string BGT { get; set; }
+			public string WBGT { get; set; }
 		}
 
 		private sealed class JsonGraphColDailyTemp

@@ -19,7 +19,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - **Required changes to Ambient Extra Sensor Stations:** If you use an Ambient station as an Extra Sensors station, then after upgrading to this release you MUST check which sensors are enabled in the extra station configuration
 - **Required updated for MySQL users:** If you use the standard MySQL uploads, then there are two additional columns in the Monthly table. Please run the table updater in the MySQL settings when you first run this release
 - **Required update for existing Windy.com upload users:** This version of MX switches to using the new Windy v2 API, this API requires you to enter the full Station ID in the Windy Settings
-- **Check required for Extra Sensor Users:** Check if Solar and UV are enabled in the Extra Sensor settings. A bug in previous versions of Cumulus MX meant the main station values were always used even if these options were enabled.
+- **Check required settings for Extra Sensor Users:** Check if Solar and UV are enabled in the Extra Sensor settings. A bug in previous versions of Cumulus MX meant the main station values were always used even if these options were enabled.
 	The bug has been fixed, and if you do not want to use Solar/UV from the extra station, you MUST now disable these options
 
 
