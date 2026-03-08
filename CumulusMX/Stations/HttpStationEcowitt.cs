@@ -362,6 +362,13 @@ namespace CumulusMX.Stations
 				ldsbatt[1-4]=2.91?&thi_ch[1-4]=4000&air_ch[1-4]=123&depth_ch[1-4]=3987&ldsheat_ch[1-4]=13
 				thi_ch[1-4] = user defined depth baseline
 
+			and EC soil sensors
+				soil_ec_hum[1-16]
+				soil_ec_hum_ad[1-16]
+				soil_ec_temp[1-16]
+				soil_ec_ec[1-16]
+				soil_ec_ad[1-16]
+				soil_ec_batt[1-16]
 			 */
 
 			var procName = main ? "ProcessData" : "ProcessExtraData";
@@ -980,6 +987,32 @@ namespace CumulusMX.Stations
 					}
 				}
 
+				// === Soil EC Moisture ===
+				if (main || cumulus.ExtraSensorUseSoilMoist)
+				{
+					try
+					{
+						ProcessSoilEcMoist(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in Soil EC Moisture data - {ex.Message}");
+					}
+				}
+
+				// === Soil EC Temperature ===
+				if (main || cumulus.ExtraSensorUseSoilTemp)
+				{
+					try
+					{
+						ProcessSoilEcTemp(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in Soil EC Temperature data - {ex.Message}");
+					}
+				}
+
 				// === Batteries ===
 				try
 				{
@@ -999,6 +1032,7 @@ namespace CumulusMX.Stations
 					leakbatt[1-4] (wh55)
 					co2_batt
 					ldsbatt1[1-4]
+					soil_ec_batt[1-16]
 					*/
 
 					ProcessBatteries(data);
@@ -1336,6 +1370,33 @@ namespace CumulusMX.Stations
 			}
 		}
 
+		private void ProcessSoilEcMoist(NameValueCollection data, WeatherStation station)
+		{
+			for (var i = 1; i <= 16; i++)
+			{
+				if (data["soil_ec_hum" + i] != null)
+				{
+					station.DoSoilMoisture(Convert.ToDouble(data["soil_ec_hum" + i], invNum), i);
+					if (!mainStation)
+					{
+						cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
+					}
+				}
+			}
+		}
+
+		private void ProcessSoilEcTemp(NameValueCollection data, WeatherStation station)
+		{
+			for (var i = 1; i <= 16; i++)
+			{
+				if (data["soil_ec_temp" + i] != null)
+				{
+					station.DoSoilTemp(Convert.ToDouble(data["soil_ec_temp" + i], invNum), i);
+				}
+			}
+		}
+
+
 		/*
 		private static void ProcessSoilMoistRaw(NameValueCollection data, WeatherStation station)
 		{
@@ -1539,6 +1600,7 @@ namespace CumulusMX.Stations
 				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["ldsbatt" + i] != null && Convert.ToDouble(data["ldsbatt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["soil_ec_batt" + i] != null && Convert.ToDouble(data["soil_ec_batt" + i], invNum) <= 1.2);
 			}
 			for (var i = 5; i < 9; i++)
 			{
@@ -1546,6 +1608,11 @@ namespace CumulusMX.Stations
 				lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["soil_ec_batt" + i] != null && Convert.ToDouble(data["soil_ec_batt" + i], invNum) <= 1.2);
+			}
+			for (var i = 9;  i < 17; i++)
+			{
+				lowBatt = lowBatt || (data["soil_ec_batt" + i] != null && Convert.ToDouble(data["soil_ec_batt" + i], invNum) <= 1.2);
 			}
 
 			cumulus.BatteryLowAlarm.Triggered = lowBatt;

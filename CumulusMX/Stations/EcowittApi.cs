@@ -201,7 +201,15 @@ namespace CumulusMX.Stations
 				"ch_soil_ec_temp_hum5",
 				"ch_soil_ec_temp_hum6",
 				"ch_soil_ec_temp_hum7",
-				"ch_soil_ec_temp_hum8"
+				"ch_soil_ec_temp_hum8",
+				"ch_soil_ec_temp_hum9",
+				"ch_soil_ec_temp_hum10",
+				"ch_soil_ec_temp_hum11",
+				"ch_soil_ec_temp_hum12",
+				"ch_soil_ec_temp_hum13",
+				"ch_soil_ec_temp_hum14",
+				"ch_soil_ec_temp_hum15",
+				"ch_soil_ec_temp_hum16",
 			};
 
 			sb.Append("&call_back=");
@@ -894,7 +902,6 @@ namespace CumulusMX.Stations
 				HistoricDataSoil srcSoil = null;
 				HistoricDataTemp srcTemp = null;
 				HistoricDataLeaf srcLeaf = null;
-				HistoricDataSoil srcSoilEc = null;
 				switch (i)
 				{
 					case 1:
@@ -902,56 +909,48 @@ namespace CumulusMX.Stations
 						srcSoil = data.soil_ch1;
 						srcTemp = data.temp_ch1;
 						srcLeaf = data.leaf_ch1;
-						srcSoilEc = data.ch_soil_ec_temp_hum1;
 						break;
 					case 2:
 						srcTH = data.temp_and_humidity_ch2;
 						srcSoil = data.soil_ch2;
 						srcTemp = data.temp_ch2;
 						srcLeaf = data.leaf_ch2;
-						srcSoilEc = data.ch_soil_ec_temp_hum2;
 						break;
 					case 3:
 						srcTH = data.temp_and_humidity_ch3;
 						srcSoil = data.soil_ch3;
 						srcTemp = data.temp_ch3;
 						srcLeaf = data.leaf_ch3;
-						srcSoilEc = data.ch_soil_ec_temp_hum3;
 						break;
 					case 4:
 						srcTH = data.temp_and_humidity_ch4;
 						srcSoil = data.soil_ch4;
 						srcTemp = data.temp_ch4;
 						srcLeaf = data.leaf_ch4;
-						srcSoilEc = data.ch_soil_ec_temp_hum4;
 						break;
 					case 5:
 						srcTH = data.temp_and_humidity_ch5;
 						srcSoil = data.soil_ch5;
 						srcTemp = data.temp_ch5;
 						srcLeaf = data.leaf_ch5;
-						srcSoilEc = data.ch_soil_ec_temp_hum5;
 						break;
 					case 6:
 						srcTH = data.temp_and_humidity_ch6;
 						srcSoil = data.soil_ch6;
 						srcTemp = data.temp_ch6;
 						srcLeaf = data.leaf_ch6;
-						srcSoilEc = data.ch_soil_ec_temp_hum6;
 						break;
 					case 7:
 						srcTH = data.temp_and_humidity_ch7;
 						srcSoil = data.soil_ch7;
 						srcTemp = data.temp_ch7;
 						srcLeaf = data.leaf_ch7;
-						srcSoilEc = data.ch_soil_ec_temp_hum7;
 						break;
 					case 8:
 						srcTH = data.temp_and_humidity_ch8;
 						srcSoil = data.soil_ch8;
 						srcTemp = data.temp_ch8;
 						srcLeaf = data.leaf_ch8;
-						srcSoilEc = data.ch_soil_ec_temp_hum8;
 						break;
 				}
 
@@ -1042,36 +1041,6 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogErrorMessage($"API.ProcessHistoryData: Error in pre-processing extra soil moisture data - chan[{i}]. Exception: {ex.Message}");
 				}
-				// Extra Soil Moisture EC Data
-				try
-				{
-					if (srcSoilEc != null && srcSoilEc.soilmoisture != null && srcSoilEc.soilmoisture.list != null)
-					{
-						// moisture
-						foreach (var item in srcSoilEc.soilmoisture.list)
-						{
-							var itemDate = item.Key + EcowittApiFudgeFactorSecs;
-
-							if (!item.Value.HasValue || itemDate <= lastUpdateTS)
-								continue;
-
-							if (buffer.TryGetValue(itemDate, out var value))
-							{
-								value.SoilMoist[i] = item.Value;
-							}
-							else
-							{
-								var newItem = new HistoricData();
-								newItem.SoilMoist[i] = item.Value;
-								buffer.Add(itemDate, newItem);
-							}
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"API.ProcessHistoryData: Error in pre-processing extra soil moisture EC data - chan[{i}]. Exception: {ex.Message}");
-				}
 				// User Temp Data
 				try
 				{
@@ -1133,6 +1102,88 @@ namespace CumulusMX.Stations
 					cumulus.LogErrorMessage($"API.ProcessHistoryData: Error in pre-processing extra leaf wetness data - chan[{i}]. Exception:{ex.Message}");
 				}
 			}
+
+			// Extra 16 channel sensors
+			for (var i = 1; i <= 16; i++)
+			{
+				HistoricDataSoilEc srcSoilEc = i switch
+				{
+					1 => data.ch_soil_ec_temp_hum1,
+					2 => data.ch_soil_ec_temp_hum2,
+					3 => data.ch_soil_ec_temp_hum3,
+					4 => data.ch_soil_ec_temp_hum4,
+					5 => data.ch_soil_ec_temp_hum5,
+					6 => data.ch_soil_ec_temp_hum6,
+					7 => data.ch_soil_ec_temp_hum7,
+					8 => data.ch_soil_ec_temp_hum8,
+					9 => data.ch_soil_ec_temp_hum9,
+					10 => data.ch_soil_ec_temp_hum10,
+					11 => data.ch_soil_ec_temp_hum11,
+					12 => data.ch_soil_ec_temp_hum12,
+					13 => data.ch_soil_ec_temp_hum13,
+					14 => data.ch_soil_ec_temp_hum14,
+					15 => data.ch_soil_ec_temp_hum15,
+					16 => data.ch_soil_ec_temp_hum16,
+					_ => null
+				};
+
+				// Extra Soil Moisture EC Data
+				try
+				{
+					if (srcSoilEc != null)
+					{
+						// moisture
+						if (srcSoilEc.soilmoisture != null && srcSoilEc.soilmoisture.list != null)
+						{
+							foreach (var item in srcSoilEc.soilmoisture.list)
+							{
+								var itemDate = item.Key + EcowittApiFudgeFactorSecs;
+
+								if (!item.Value.HasValue || itemDate <= lastUpdateTS)
+									continue;
+
+								if (buffer.TryGetValue(itemDate, out var value))
+								{
+									value.SoilMoist[i] = item.Value;
+								}
+								else
+								{
+									var newItem = new HistoricData();
+									newItem.SoilMoist[i] = item.Value;
+									buffer.Add(itemDate, newItem);
+								}
+							}
+						}
+						// temperature
+						if (srcSoilEc.temperature != null && srcSoilEc.temperature.list != null)
+						{
+							foreach (var item in srcSoilEc.temperature.list)
+							{
+								var itemDate = item.Key + EcowittApiFudgeFactorSecs;
+
+								if (!item.Value.HasValue || itemDate <= lastUpdateTS)
+									continue;
+
+								if (buffer.TryGetValue(itemDate, out var value))
+								{
+									value.SoilTemp[i] = item.Value;
+								}
+								else
+								{
+									var newItem = new HistoricData();
+									newItem.SoilTemp[i] = item.Value;
+									buffer.Add(itemDate, newItem);
+								}
+							}
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"API.ProcessHistoryData: Error in pre-processing extra soil moisture EC data - chan[{i}]. Exception: {ex.Message}");
+				}
+			}
+
 			// Indoor CO2
 			if (data.indoor_co2 != null)
 			{
@@ -2213,7 +2264,6 @@ namespace CumulusMX.Stations
 					station.DoExtraDP(ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC((double) rec.Value.ExtraTemp[i].Value), rec.Value.ExtraHumidity[i].Value)), i);
 				}
 
-
 				// === User Temperature ===
 				try
 				{
@@ -2234,20 +2284,6 @@ namespace CumulusMX.Stations
 					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra user temperature data - {ex.Message}");
 				}
 
-
-				// === Soil Moisture ===
-				try
-				{
-					if (rec.Value.SoilMoist[i].HasValue)
-					{
-						station.DoSoilMoisture((double) rec.Value.SoilMoist[i], i);
-					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ApplyHistoricData: Error in soil moisture data - {ex.Message}");
-				}
-
 				// === Leaf Wetness ===
 				try
 				{
@@ -2261,6 +2297,35 @@ namespace CumulusMX.Stations
 					cumulus.LogErrorMessage($"ApplyHistoricData: Error in leaf wetness data - {ex.Message}");
 				}
 
+			}
+
+			for (var i = 1; i <= 16; i++)
+			{
+				// === Soil Moisture ===
+				try
+				{
+					if (rec.Value.SoilMoist[i].HasValue)
+					{
+						station.DoSoilMoisture((double) rec.Value.SoilMoist[i], i);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in soil moisture data - {ex.Message}");
+				}
+
+				// === Soil Temperature ===
+				try
+				{
+					if (rec.Value.SoilTemp[i].HasValue)
+					{
+						station.DoSoilTemp((double) rec.Value.SoilTemp[i], i);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in soil moisture data - {ex.Message}");
+				}
 			}
 
 			// === Indoor CO2 ===
@@ -3523,14 +3588,22 @@ namespace CumulusMX.Stations
 			public HistoricDataLdsCh3 ch_lds3 { get; set; }
 			public HistoricDataLdsCh4 ch_lds4 { get; set; }
 			public HistoricDataBGT black_globe_temperature { get; set; }
-			public HistoricDataSoil ch_soil_ec_temp_hum1 { get; set; }
-			public HistoricDataSoil ch_soil_ec_temp_hum2 { get; set; }
-			public HistoricDataSoil ch_soil_ec_temp_hum3 { get; set; }
-			public HistoricDataSoil ch_soil_ec_temp_hum4 { get; set; }
-			public HistoricDataSoil ch_soil_ec_temp_hum5 { get; set; }
-			public HistoricDataSoil ch_soil_ec_temp_hum6 { get; set; }
-			public HistoricDataSoil ch_soil_ec_temp_hum7 { get; set; }
-			public HistoricDataSoil ch_soil_ec_temp_hum8 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum1 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum2 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum3 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum4 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum5 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum6 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum7 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum8 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum9 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum10 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum11 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum12 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum13 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum14 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum15 { get; set; }
+			public HistoricDataSoilEc ch_soil_ec_temp_hum16 { get; set; }
 		}
 
 		internal class HistoricDataTypeInt
@@ -3586,6 +3659,14 @@ namespace CumulusMX.Stations
 		internal class HistoricDataSoil
 		{
 			public HistoricDataTypeInt soilmoisture { get; set; }
+		}
+
+		internal class HistoricDataSoilEc : HistoricDataSoil
+		{
+			public HistoricDataTypeInt ad { get; set; }
+			public HistoricDataTypeDbl temperature { get; set; }
+			public HistoricDataTypeInt ec { get; set; }
+			public HistoricDataTypeInt ec_ad { get; set; }
 		}
 
 		internal class HistoricDataTemp
@@ -3684,6 +3765,7 @@ namespace CumulusMX.Stations
 			public decimal?[] ExtraTemp { get; set; } = new decimal?[9];
 			public int?[] ExtraHumidity { get; set; } = new int?[9];
 			public int?[] SoilMoist { get; set; } = new int?[9];
+			public decimal?[] SoilTemp { get; set; } = new decimal?[9];
 			public decimal?[] UserTemp { get; set; } = new decimal?[9];
 			public int?[] LeafWetness { get; set; } = new int?[9];
 			public decimal?[] pm25 { get; set; } = new decimal?[5];
@@ -3775,18 +3857,22 @@ namespace CumulusMX.Stations
 			public CurrentDataLdsCh3 ch_lds3 { get; set; }
 			public CurrentDataLdsCh4 ch_lds4 { get; set; }
 			public CurrentDataBGT black_globe_temperature { get; set; }
-			public CurrentSoil ch_soil_ec_temp_hum1 { get; set; }
-			public CurrentSoil ch_soil_ec_temp_hum2 { get; set; }
-			public CurrentSoil ch_soil_ec_temp_hum3 { get; set; }
-			public CurrentSoil ch_soil_ec_temp_hum4 { get; set; }
-
-			public CurrentSoil ch_soil_ec_temp_hum5 { get; set; }
-
-			public CurrentSoil ch_soil_ec_temp_hum6 { get; set; }
-
-			public CurrentSoil ch_soil_ec_temp_hum7 { get; set; }
-
-			public CurrentSoil ch_soil_ec_temp_hum8 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum1 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum2 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum3 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum4 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum5 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum6 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum7 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum8 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum9 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum10 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum11 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum12 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum13 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum14 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum15 { get; set; }
+			public CurrentSoilEc ch_soil_ec_temp_hum16 { get; set; }
 		}
 
 		internal class CurrentOutdoor
@@ -3883,6 +3969,14 @@ namespace CumulusMX.Stations
 		internal class CurrentSoil
 		{
 			public CurrentSensorValInt soilmoisture { get; set; }
+		}
+
+		internal class CurrentSoilEc : CurrentSoil
+		{
+			public CurrentSensorValInt ad { get; set; }
+			public CurrentSensorValDbl temperature { get; set; }
+			public CurrentSensorValInt ec { get; set; }
+			public CurrentSensorValInt ec_ad { get; set; }
 		}
 
 		internal class CurrentLeaf

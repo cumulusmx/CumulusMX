@@ -1937,6 +1937,7 @@ namespace CumulusMX.Stations
 					try
 					{
 						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel);
+						DoSoilTemp(sensor.temp.Value, sensor.channel);
 					}
 					catch (Exception ex)
 					{

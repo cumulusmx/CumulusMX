@@ -932,6 +932,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.Units.SoilMoistureUnitText[0] = "%";
 				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum1.temperature.value, 1);
 			}
 
 			if (data.ch_soil_ec_temp_hum2 != null)
@@ -941,6 +942,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.Units.SoilMoistureUnitText[1] = "%";
 				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum2.temperature.value, 2);
 			}
 
 			if (data.ch_soil_ec_temp_hum3 != null)
@@ -950,6 +952,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.Units.SoilMoistureUnitText[2] = "%";
 				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum3.temperature.value, 3);
 			}
 
 			if (data.ch_soil_ec_temp_hum4 != null)
@@ -959,6 +962,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.Units.SoilMoistureUnitText[3] = "%";
 				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum4.temperature.value, 4);
 			}
 
 			if (data.ch_soil_ec_temp_hum5 != null)
@@ -968,6 +972,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.Units.SoilMoistureUnitText[4] = "%";
 				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum5.temperature.value, 5);
 			}
 
 			if (data.ch_soil_ec_temp_hum6 != null)
@@ -977,6 +982,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.Units.SoilMoistureUnitText[5] = "%";
 				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum6.temperature.value, 6);
 			}
 
 			if (data.ch_soil_ec_temp_hum7 != null)
@@ -986,6 +992,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.Units.SoilMoistureUnitText[6] = "%";
 				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum7.temperature.value, 7);
 			}
 
 			if (data.ch_soil_ec_temp_hum8 != null)
@@ -995,6 +1002,87 @@ namespace CumulusMX.Stations
 				{
 					cumulus.Units.SoilMoistureUnitText[7] = "%";
 				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum8.temperature.value, 8);
+			}
+
+			if (data.ch_soil_ec_temp_hum9 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum9.soilmoisture.value, 9);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[8] = "%";
+				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum9.temperature.value, 9);
+			}
+
+			if (data.ch_soil_ec_temp_hum10 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum10.soilmoisture.value, 10);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[9] = "%";
+				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum10.temperature.value, 10);
+			}
+
+			if (data.ch_soil_ec_temp_hum11 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum11.soilmoisture.value, 11);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[10] = "%";
+				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum11.temperature.value, 11);
+			}
+
+			if (data.ch_soil_ec_temp_hum12 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum12.soilmoisture.value, 12);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[11] = "%";
+				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum12.temperature.value, 12);
+			}
+
+			if (data.ch_soil_ec_temp_hum13 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum13.soilmoisture.value, 13);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[12] = "%";
+				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum13.temperature.value, 13);
+			}
+
+			if (data.ch_soil_ec_temp_hum14 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum14.soilmoisture.value, 14);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[13] = "%";
+				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum14.temperature.value, 14);
+
+				if (data.ch_soil_ec_temp_hum15 != null)
+				{
+					station.DoSoilMoisture(data.ch_soil_ec_temp_hum15.soilmoisture.value, 15);
+					if (!mainStation)
+					{
+						cumulus.Units.SoilMoistureUnitText[14] = "%";
+					}
+					station.DoSoilTemp(data.ch_soil_ec_temp_hum15.temperature.value, 15);
+				}
+			}
+
+			if (data.ch_soil_ec_temp_hum16 != null)
+			{
+				station.DoSoilMoisture(data.ch_soil_ec_temp_hum16.soilmoisture.value, 16);
+				if (!mainStation)
+				{
+					cumulus.Units.SoilMoistureUnitText[15] = "%";
+				}
+				station.DoSoilTemp(data.ch_soil_ec_temp_hum16.temperature.value, 16);
 			}
 		}
 

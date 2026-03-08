@@ -46,7 +46,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add support for BGT and WBGT to Ecowitt HTTP Local API, HTTP (Ecowitt), and the JSON stations
 	- New web tags `<#BlackGlobeTemp>` and `<#WetBulbGlobeTemp>`
 	- Two new fields added to the monthly log files and the monthly MySQL table to support these new measurements
-- Add support for Ecowitt WH52 EC Soil Moisture Sensors to the Ecowitt HTTP Local API and HTTP (Ecowitt) stations - soil moisture readings only for now
+- Add support for Ecowitt WH52 EC Soil Moisture Sensors to the Ecowitt HTTP Local API and HTTP (Ecowitt) stations - soil moisture and temperature readings only for now
 - Fix ecowitt.net historic data download of PM measurements
 - New snow depth filtering mechanism implemented. This is a three-stage filter...
 	- **Stage 1** applies a median filter to the raw values - you can specify the length of time in minutes for the median values. This is good for filtering out sudden spikes.
