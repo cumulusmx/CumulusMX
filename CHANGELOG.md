@@ -102,6 +102,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The snow 24 hour accumulation is now reset to zero *after* the "snow hour" processing is complete and the extra log file written.
 	This means that the true final daily total will be available in the first record of the following snow day the same as the daily rainfall total in the monthly log file
 - Now sets the HTTP Referer to the upload site when using PHP Upload, and to https://cumulus.hosiene.co.uk/ for all other HTTP queries
+- The Extra Sensors dashboard page is more responsive to screen size
 
 ### Fixed
 

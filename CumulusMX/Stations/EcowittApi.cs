@@ -3764,8 +3764,8 @@ namespace CumulusMX.Stations
 			public int? LightningCount { get; set; }
 			public decimal?[] ExtraTemp { get; set; } = new decimal?[9];
 			public int?[] ExtraHumidity { get; set; } = new int?[9];
-			public int?[] SoilMoist { get; set; } = new int?[9];
-			public decimal?[] SoilTemp { get; set; } = new decimal?[9];
+			public int?[] SoilMoist { get; set; } = new int?[17];
+			public decimal?[] SoilTemp { get; set; } = new decimal?[17];
 			public decimal?[] UserTemp { get; set; } = new decimal?[9];
 			public int?[] LeafWetness { get; set; } = new int?[9];
 			public decimal?[] pm25 { get; set; } = new decimal?[5];
