@@ -1647,6 +1647,46 @@ namespace CumulusMX.Stations
 					lowBatt = true;
 					LowBatteryDevices.Add("SoilEC#8=" + data.battery.soilmoisture_ec_sensor_ch8.value + "V");
 				}
+				if (data.battery.soilmoisture_ec_sensor_ch9 != null && data.battery.soilmoisture_ec_sensor_ch9.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#9=" + data.battery.soilmoisture_ec_sensor_ch9.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch10 != null && data.battery.soilmoisture_ec_sensor_ch10.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#10=" + data.battery.soilmoisture_ec_sensor_ch10.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch11 != null && data.battery.soilmoisture_ec_sensor_ch11.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#11=" + data.battery.soilmoisture_ec_sensor_ch11.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch12 != null && data.battery.soilmoisture_ec_sensor_ch12.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#12=" + data.battery.soilmoisture_ec_sensor_ch12.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch13 != null && data.battery.soilmoisture_ec_sensor_ch13.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#13=" + data.battery.soilmoisture_ec_sensor_ch13.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch14 != null && data.battery.soilmoisture_ec_sensor_ch14.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#14=" + data.battery.soilmoisture_ec_sensor_ch14.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch15 != null && data.battery.soilmoisture_ec_sensor_ch15.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#15=" + data.battery.soilmoisture_ec_sensor_ch15.value + "V");
+				}
+				if (data.battery.soilmoisture_ec_sensor_ch16 != null && data.battery.soilmoisture_ec_sensor_ch16.value < 1.2) // volts
+				{
+					lowBatt = true;
+					LowBatteryDevices.Add("SoilEC#16=" + data.battery.soilmoisture_ec_sensor_ch16.value + "V");
+				}
 
 				cumulus.BatteryLowAlarm.Triggered = lowBatt;
 			}

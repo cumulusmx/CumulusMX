@@ -4053,6 +4053,14 @@ namespace CumulusMX.Stations
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch6 { get; set; }
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch7 { get; set; }
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch8 { get; set; }
+			public CurrentSensorValDbl soilmoisture_ec_sensor_ch9 { get; set; }
+			public CurrentSensorValDbl soilmoisture_ec_sensor_ch10 { get; set; }
+			public CurrentSensorValDbl soilmoisture_ec_sensor_ch11 { get; set; }
+			public CurrentSensorValDbl soilmoisture_ec_sensor_ch12 { get; set; }
+			public CurrentSensorValDbl soilmoisture_ec_sensor_ch13 { get; set; }
+			public CurrentSensorValDbl soilmoisture_ec_sensor_ch14 { get; set; }
+			public CurrentSensorValDbl soilmoisture_ec_sensor_ch15 { get; set; }
+			public CurrentSensorValDbl soilmoisture_ec_sensor_ch16 { get; set; }
 		}
 
 		internal class CurrentCamera

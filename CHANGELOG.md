@@ -5,12 +5,12 @@ All notable changes to this project will be documented in this file.
 Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=17887)
 
 This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.<br>
-Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/b4141/CHANGELOG.md)
+Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/b5001/CHANGELOG.md)
 
 ---
 ---
 
-## RELEASE CANDIDATE [5.0.0 \[b5000\]][29] - 2026-03-04
+## RELEASE CANDIDATE [5.0.0 \[b5001\]][29] - 2026-03-04
 
 ### Important Notes
 
@@ -102,7 +102,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The snow 24 hour accumulation is now reset to zero *after* the "snow hour" processing is complete and the extra log file written.
 	This means that the true final daily total will be available in the first record of the following snow day the same as the daily rainfall total in the monthly log file
 - Now sets the HTTP Referer to the upload site when using PHP Upload, and to https://cumulus.hosiene.co.uk/ for all other HTTP queries
-- The Extra Sensors dashboard page is more responsive to screen size
+- The Extra Sensors dashboard page is more responsive to screen size and now only shows tables for sensors that are enabled in Display Options
 
 ### Fixed
 

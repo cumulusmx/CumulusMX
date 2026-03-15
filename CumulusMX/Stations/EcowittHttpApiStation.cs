@@ -1003,8 +1003,17 @@ namespace CumulusMX.Stations
 								case int n when n > 65 && n < 70: // wh54 - laser depth (4 chan)
 									name = "wh54ch" + (sensor.type - 65);
 									goto case 1003;
-								case 70: //wn20 - rain miini
+								case 70: //wn20 - rain mini
+									name = "wn20";
 									goto case 1003;
+								case 71: // wn38 - BGT
+									name = "wn38";
+									goto case 1003;
+								case 72: // wqt01 - water quality
+									name = "wqt01";
+									// no battery power
+									break;
+
 
 								case 1001: // battery type 1 (0=OK, 1=LOW)
 									if (sensor.batt == 1)
@@ -1023,7 +1032,7 @@ namespace CumulusMX.Stations
 									break;
 
 								default:
-									cumulus.LogWarningMessage($"Unknown sensor type in SendorIds. Model={sensor.img}, type={sensor.type}");
+									cumulus.LogMessage($"Unknown sensor type in SensorIds. Model={sensor.img}, type={sensor.type}");
 									break;
 							}
 						}

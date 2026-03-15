@@ -392,7 +392,7 @@ namespace CumulusMX
 			for (var i = 1; i <= 4; i++)
 			{
 				SnowDepthAverage[i] = new SmoothingFilter(
-					medianMins: TimeSpan.FromMinutes(cumulus.SnowDepthMedianMins),
+					medianMins: cumulus.SnowDepthMedianMins,
 					timeConstantMinutes: cumulus.SnowDepthEmaTimeMins,
 					clipDelta: cumulus.SnowDepthClipDelta
 				);
@@ -11047,9 +11047,10 @@ namespace CumulusMX
 								Snow24h[index] = (Snow24h[index] ?? 0) + snowInc;
 								SnowSeason[index] = (SnowSeason[index] ?? 0) + snowInc;
 								LastLaserSnowDepth[index] = newDepth;
-#if DEBUG
-								cumulus.LogDebugMessage($"Laser #{index} depth increase added to snow accumulation: {depthInc.ToString(cumulus.LaserFormat)}, new value: {newDepth.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
-#endif
+								if (cumulus.SnowLogging)
+								{
+									cumulus.LogDebugMessage($"Laser #{index} depth increase added to snow accumulation: {depthInc.ToString(cumulus.LaserFormat)}, new value: {newDepth.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
+								}
 								snowSpikeTime = DateTime.UtcNow;
 								logEntry = true;
 							}
@@ -11069,9 +11070,10 @@ namespace CumulusMX
 						}
 						else
 						{
-#if DEBUG
-							cumulus.LogDebugMessage($"Laser #{index} depth change is less than required for snow accumulation: {depthInc.ToString(cumulus.LaserFormat)}, min = {cumulus.SnowDepthMinInc} {cumulus.Units.LaserDistanceText}");
-#endif
+							if (cumulus.SnowLogging)
+							{
+								cumulus.LogDebugMessage($"Laser #{index} depth change is less than required for snow accumulation: {depthInc.ToString(cumulus.LaserFormat)}, min = {cumulus.SnowDepthMinInc} {cumulus.Units.LaserDistanceText}");
+							}
 						}
 					}
 
@@ -11134,9 +11136,9 @@ namespace CumulusMX
 										Snow24h[index].ToFixed(cumulus.SnowFormat, "-"),
 										SnowSeason[index].ToFixed(cumulus.SnowFormat, "-"),
 										cumulus.SnowDepthMinInc.ToFixed(laserFmtPlus1dp),
-										cumulus.SnowDepthMedianMins,
-										cumulus.SnowDepthEmaTimeMins.ToFixed("F1"),
-										cumulus.SnowDepthClipDelta.ToFixed("F1")
+										SnowDepthAverage[index].MedianWindow.ToFixed("F1"),
+										SnowDepthAverage[index].TimeConst.ToFixed("F1"),
+										SnowDepthAverage[index].ClipDelta.ToFixed("F2")
 									])
 								);
 							}

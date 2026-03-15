@@ -16,6 +16,24 @@ namespace CumulusMX
 		private double lastAvg;
 		private bool initialised = false;
 
+		public double ClipDelta
+		{
+			get { return clipDeltaPerMinute; }
+			set { clipDeltaPerMinute = value; }
+		}
+
+		public double TimeConst
+		{
+			get { return timeConstantMinutes; }
+			set { timeConstantMinutes = value; }
+		}
+
+		public double MedianWindow
+		{
+			get { return medianWindow.TotalMinutes; }
+			set { medianWindow = TimeSpan.FromMinutes(value); }
+		}
+
 		/// <summary>
 		/// Initializes a new instance of the SmoothingFilter class with the specified parameters for median window size, time
 		/// constant, and clipping delta.
@@ -24,14 +42,14 @@ namespace CumulusMX
 		/// constant controls the responsiveness of the exponential moving average, with higher values resulting in slower
 		/// adaptation to changes. The clipping delta can be used to prevent abrupt changes in the filtered output.
 		/// </remarks>
-		/// <param name="medianMins">he time span (duration) of recent samples to include in the median filter window. Must be a positive TimeSpan representing the window length (for example, TimeSpan.FromMinutes(5)).</param>
+		/// <param name="medianMins">The duration of recent samples to include in the median filter window. Must be a positive number representing the window length in minutes.</param>
 		/// <param name="timeConstantMinutes">The time constant for the exponential moving average, expressed in minutes.
 		/// Controls how quickly the smoothed value adapts to changes: smaller values make the filter more responsive, larger values make it slower. Must be a positive, non-zero value.</param>
 		/// <param name="clipDelta">The maximum allowed change (in the same units as the input value) between the current smoothed value and the median-adjusted update in a single Update call.
 		/// Use a large value to effectively disable clipping; a small value limits abrupt jumps.</param>
-		public SmoothingFilter(TimeSpan medianMins, double timeConstantMinutes, double clipDelta)
+		public SmoothingFilter(double medianMins, double timeConstantMinutes, double clipDelta)
 		{
-			this.medianWindow = medianMins;
+			this.medianWindow = TimeSpan.FromMinutes(medianMins);
 			this.clipDeltaPerMinute = clipDelta;
 			this.timeConstantMinutes = timeConstantMinutes;
 		}
@@ -83,21 +101,6 @@ namespace CumulusMX
 		}
 
 		public double CurrentValue {  get { return lastAvg; } }
-
-		public void SetMedianWindow(TimeSpan newWindow)
-		{
-			medianWindow = newWindow;
-		}
-
-		public void SetClipDelta(double delta)
-		{
-			clipDeltaPerMinute = delta;
-		}
-
-		public void SetTimeConst(double timeConst)
-		{
-			timeConstantMinutes = timeConst;
-		}
 
 		private static double ComputeMedian(LinkedList<(DateTime ts, double value)> buf)
 		{
