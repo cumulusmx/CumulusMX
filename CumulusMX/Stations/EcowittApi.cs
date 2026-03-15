@@ -2324,7 +2324,7 @@ namespace CumulusMX.Stations
 				}
 				catch (Exception ex)
 				{
-					cumulus.LogErrorMessage($"ApplyHistoricData: Error in soil moisture data - {ex.Message}");
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in soil temperature data - {ex.Message}");
 				}
 			}
 

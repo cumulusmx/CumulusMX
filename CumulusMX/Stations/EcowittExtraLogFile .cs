@@ -170,12 +170,14 @@ namespace CumulusMX.Stations
 					}
 
 
-					// Soil Moisture
+					// Soil Moisture/Temperature
 					try
 					{
 						for (int i = 1; i <= 16; i++)
 						{
 							if (FieldIndex.TryGetValue("soilmoisture ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.SoilMoist[i] = varInt;
+
+							if (FieldIndex.TryGetValue("soiltemp ch" + i, out idx) && decimal.TryParse(fields[idx], out varDec)) rec.SoilTemp[i] = varDec;
 						}
 					}
 					catch (Exception ex)
@@ -374,6 +376,7 @@ namespace CumulusMX.Stations
 			baseRec.AqiComboPm25 = extraRec.AqiComboPm25;
 			baseRec.AqiComboPm10 = extraRec.AqiComboPm10;
 			baseRec.SoilMoist = extraRec.SoilMoist;
+			baseRec.SoilTemp = extraRec.SoilTemp;
 			baseRec.pm25 = extraRec.pm25;
 			baseRec.UserTemp = extraRec.UserTemp;
 			baseRec.LdsAir = extraRec.LdsAir;
