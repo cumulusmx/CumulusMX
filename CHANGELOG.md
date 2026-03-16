@@ -65,6 +65,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- You can edit the new smoothing filter values in the Calibration Settings screen
 	- Suggested starting Minimum Increments for the new filter: 2-5 mm, 0.2-0.5 cm, 0.08-0.2 inches
 - Adds Snowfall 24h charts to the Dashboard and default web site
+- New web tags which show the current laser derived snow depth in snow depth units
+    `<#LaserSnowLatest[1-4]>`
 - Adds the ability to connect a third-party sunshine recorder to Davis WLL Stations
 	- Supports connecting a sunshine recorder such as the Instromet to the Rain input of an ISS type transmitter
 	- The sunshine recorder must send a pulse for every 1/100th hour of sunshine recorded
