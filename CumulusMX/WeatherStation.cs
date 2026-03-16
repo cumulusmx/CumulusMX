@@ -11029,12 +11029,14 @@ namespace CumulusMX
 #endif
 							snowSpikeTime = DateTime.UtcNow;
 						}
-						else if (depthInc < -cumulus.SnowDepthMinInc)
+						else if (depthInc < -cumulus.SnowDepthMinInc || (newDepth <= 0 && LastLaserSnowDepth[index] != newDepth))
 						{
+							// decrease the last depth if less than -minIncrement or we have reached the baseline
 							LastLaserSnowDepth[index] = newDepth;
-#if DEBUG
-							cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {LastLaserSnowDepth[index].Value.ToString(laserFmtPlus1dp)} {cumulus.Units.LaserDistanceText}");
-#endif
+							if (cumulus.SnowLogging)
+							{
+								cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {LastLaserSnowDepth[index].Value.ToString(laserFmtPlus1dp)} {cumulus.Units.LaserDistanceText}");
+							}
 							logEntry = true;
 
 							snowSpikeTime = DateTime.UtcNow;

@@ -78,7 +78,7 @@ namespace CumulusMX
 			// Compute median of current window
 			double median = ComputeMedian(buffer);
 
-			// --- 2. Delta clipping ---
+			// --- 2. Delta clipping in rate per minute ---
 			double dtMinutes = (timestamp - lastTimestamp).TotalMinutes;
 			if (dtMinutes < 0) dtMinutes = 0; // guard against clock issues
 
