@@ -43,6 +43,8 @@ namespace CumulusMX
 
 		public static ConfigFile configFile { get; } = ReadConfigFile();
 
+		public static string MxDiagsPath;
+
 		private static nint powerNotificationRegistrationHandle = new();
 		private static PosixSignalRegistration posixSigTermRegistrationHandle;
 
@@ -540,9 +542,11 @@ namespace CumulusMX
 		private static void SetupLogging()
 		{
 			// Log file target
-			var fileName = configFile.runtimeOptions.configProperties.LogPath == "MXdiags"
-				? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MXdiags", "MxDiags.log")
-				: Path.Combine(configFile.runtimeOptions.configProperties.LogPath, "MxDiags.log");
+			MxDiagsPath = configFile.runtimeOptions.configProperties.LogPath == "MXdiags"
+				? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MXdiags")
+				: configFile.runtimeOptions.configProperties.LogPath;
+
+			var fileName = Path.Combine(MxDiagsPath, "MxDiags.log");
 
 			var logfile = new FileTarget()
 			{

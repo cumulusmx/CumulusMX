@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## RELEASE CANDIDATE [5.0.0 \[b5001\]][29] - 2026-03-04
+## RELEASE CANDIDATE [5.0.0 \[b5001\]][29] - 2026-03-16
 
 ### Important Notes
 
@@ -41,7 +41,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - New Option in Extra Sensor Settings under Laser Sensor Options to specify if a laser is being used as a snow sensor
 - Added ImportCumulusFile PHP script to `/MXutils` folder
 - New Python script to upload monthly log files and the day file to MySQL - `/MXutils/ImportCumulusFile.py`
-- Adds logging of debug snow data via the Program Settings > Logging Options - Logs to `/data/debug_snowLog[sensornumber].txt`
+- Adds logging of debug snow data via the Program Settings > Logging Options - Logs to `/MXdiags/debug_snowLog[sensornumber].txt`
 - Ecowitt HTTP Custom Server auto-configuration for main and extra stations now tries the HTTP Local API to access the station in addition to the TCP API
 - Add support for BGT and WBGT to Ecowitt HTTP Local API, HTTP (Ecowitt), and the JSON stations
 	- New web tags `<#BlackGlobeTemp>` and `<#WetBulbGlobeTemp>`

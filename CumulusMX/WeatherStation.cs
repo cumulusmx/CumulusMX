@@ -11086,7 +11086,7 @@ namespace CumulusMX
 							// create the logger
 							var logfile = new NLog.Targets.FileTarget("snowlogFile")
 							{
-								FileName = Path.Combine(cumulus.ProgramOptions.DataPath, $"debug_snow_log{index}.txt"),
+								FileName = Path.Combine(Program.MxDiagsPath, $"debug_snow_log{index}.txt"),
 								ArchiveAboveSize = 2097152,
 								ArchiveOldFileOnStartup = true,
 								//MaxArchiveFiles = 5,
