@@ -176,7 +176,7 @@ namespace CumulusMX.Stations
 						for (int i = 1; i <= 16; i++)
 						{
 							if (FieldIndex.TryGetValue("soilmoisture ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.SoilMoist[i] = varInt;
-							if (FieldIndex.TryGetValue("soiltemp ch" + i, out idx) && decimal.TryParse(fields[idx], out varDec)) rec.SoilTemp[i] = varDec;
+							if (FieldIndex.TryGetValue("soiltemp ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.SoilTemp[i] = varDec;
 						}
 					}
 					catch (Exception ex)
