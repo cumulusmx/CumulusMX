@@ -23,7 +23,7 @@ namespace CumulusMX.Stations
 		private readonly string ipaddr;
 		private readonly System.Timers.Timer tmrCurrent;
 		private System.Timers.Timer tmrHealth;
-		private readonly object threadSafer = new();
+		private readonly Lock threadLock = new();
 		private static readonly SemaphoreSlim WebReq = new(1);
 		private bool startupDayResetIfRequired = true;
 		//private int maxArchiveRuns = 1
@@ -304,7 +304,7 @@ namespace CumulusMX.Stations
 
 			updateInProgress = true;
 
-			lock (threadSafer)
+			lock (threadLock)
 			{
 				ip = indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr;
 			}
@@ -429,11 +429,11 @@ namespace CumulusMX.Stations
 
 							if (indoor)
 							{
-								cumulus.airLinkDataIn.temperature = ConvertUnits.TempFToUser(rec.temp);
+								cumulus.airLinkDataIn.temperature = ConvertUnits.TempFToUser(rec.temp ?? 0);
 							}
 							else
 							{
-								cumulus.airLinkDataOut.temperature = ConvertUnits.TempFToUser(rec.temp);
+								cumulus.airLinkDataOut.temperature = ConvertUnits.TempFToUser(rec.temp ?? 0);
 							}
 						}
 						catch (Exception ex)
@@ -494,27 +494,27 @@ namespace CumulusMX.Stations
 						{
 							if (indoor)
 							{
-								cumulus.airLinkDataIn.pm1 = rec.pm_1;
-								cumulus.airLinkDataIn.pm2p5 = rec.pm_2p5;
-								cumulus.airLinkDataIn.pm2p5_1hr = rec.pm_2p5_last_1_hour;
-								cumulus.airLinkDataIn.pm2p5_3hr = rec.pm_2p5_last_3_hours;
-								cumulus.airLinkDataIn.pm2p5_24hr = rec.pm_2p5_last_24_hours;
-								cumulus.airLinkDataIn.pm2p5_nowcast = rec.pm_2p5_nowcast;
+								cumulus.airLinkDataIn.pm1 = rec.pm_1 ?? 0;
+								cumulus.airLinkDataIn.pm2p5 = rec.pm_2p5 ?? 0;
+								cumulus.airLinkDataIn.pm2p5_1hr = rec.pm_2p5_last_1_hour ?? 0;
+								cumulus.airLinkDataIn.pm2p5_3hr = rec.pm_2p5_last_3_hours ?? 0;
+								cumulus.airLinkDataIn.pm2p5_24hr = rec.pm_2p5_last_24_hours ?? 0;
+								cumulus.airLinkDataIn.pm2p5_nowcast = rec.pm_2p5_nowcast ?? 0;
 								if (type == 5)
 								{
-									cumulus.airLinkDataIn.pm10 = rec.pm_10p0.Value;
-									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10p0_last_1_hour.Value;
-									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10p0_last_3_hours.Value;
-									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10p0_last_24_hours.Value;
-									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10p0_nowcast.Value;
+									cumulus.airLinkDataIn.pm10 = rec.pm_10p0 ?? 0;
+									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10p0_last_1_hour ?? 0;
+									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10p0_last_3_hours ?? 0;
+									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10p0_last_24_hours ?? 0;
+									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10p0_nowcast ?? 0;
 								}
 								else
 								{
-									cumulus.airLinkDataIn.pm10 = rec.pm_10.Value;
-									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10_last_1_hour.Value;
-									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10_last_3_hours.Value;
-									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10_last_24_hours.Value;
-									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10_nowcast.Value;
+									cumulus.airLinkDataIn.pm10 = rec.pm_10 ?? 0;
+									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10_last_1_hour ?? 0;
+									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10_last_3_hours ?? 0;
+									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10_last_24_hours ?? 0;
+									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10_nowcast ?? 0;
 								}
 								cumulus.airLinkDataIn.pct_1hr = rec.pct_pm_data_last_1_hour;
 								cumulus.airLinkDataIn.pct_3hr = rec.pct_pm_data_last_3_hours;
@@ -526,27 +526,27 @@ namespace CumulusMX.Stations
 							}
 							else
 							{
-								cumulus.airLinkDataOut.pm1 = rec.pm_1;
-								cumulus.airLinkDataOut.pm2p5 = rec.pm_2p5;
-								cumulus.airLinkDataOut.pm2p5_1hr = rec.pm_2p5_last_1_hour;
-								cumulus.airLinkDataOut.pm2p5_3hr = rec.pm_2p5_last_3_hours;
-								cumulus.airLinkDataOut.pm2p5_24hr = rec.pm_2p5_last_24_hours;
-								cumulus.airLinkDataOut.pm2p5_nowcast = rec.pm_2p5_nowcast;
+								cumulus.airLinkDataOut.pm1 = rec.pm_1 ?? 0;
+								cumulus.airLinkDataOut.pm2p5 = rec.pm_2p5 ?? 0;
+								cumulus.airLinkDataOut.pm2p5_1hr = rec.pm_2p5_last_1_hour ?? 0;
+								cumulus.airLinkDataOut.pm2p5_3hr = rec.pm_2p5_last_3_hours ?? 0;
+								cumulus.airLinkDataOut.pm2p5_24hr = rec.pm_2p5_last_24_hours ?? 0;
+								cumulus.airLinkDataOut.pm2p5_nowcast = rec.pm_2p5_nowcast ?? 0;
 								if (type == 5)
 								{
-									cumulus.airLinkDataOut.pm10 = rec.pm_10p0.Value;
-									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10p0_last_1_hour.Value;
-									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10p0_last_3_hours.Value;
-									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10p0_last_24_hours.Value;
-									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10p0_nowcast.Value;
+									cumulus.airLinkDataOut.pm10 = rec.pm_10p0 ?? 0;
+									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10p0_last_1_hour ?? 0;
+									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10p0_last_3_hours ?? 0;
+									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10p0_last_24_hours ?? 0;
+									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10p0_nowcast ?? 0;
 								}
 								else
 								{
-									cumulus.airLinkDataOut.pm10 = rec.pm_10.Value;
-									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10_last_1_hour.Value;
-									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10_last_3_hours.Value;
-									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10_last_24_hours.Value;
-									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10_nowcast.Value;
+									cumulus.airLinkDataOut.pm10 = rec.pm_10 ?? 0;
+									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10_last_1_hour ?? 0;
+									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10_last_3_hours ?? 0;
+									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10_last_24_hours ?? 0;
+									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10_nowcast ?? 0;
 								}
 								cumulus.airLinkDataOut.pct_1hr = rec.pct_pm_data_last_1_hour;
 								cumulus.airLinkDataOut.pct_3hr = rec.pct_pm_data_last_3_hours;
@@ -1529,7 +1529,7 @@ namespace CumulusMX.Stations
 			cumulus.LogDebugMessage($"ZeroConf Service: {startChar} '{service.Instance}' on {service.NetworkInterface.Name}");
 			cumulus.LogDebugMessage($"\tHost: {service.Hostname} ({string.Join(", ", service.Addresses)})");
 
-			lock (threadSafer)
+			lock (threadLock)
 			{
 				foreach (var ip in service.Addresses)
 				{
@@ -1721,18 +1721,18 @@ namespace CumulusMX.Stations
 			// only added fields we may need
 			public int lsid { get; set; }
 			public int data_structure_type { get; set; }
-			public double temp { get; set; }
-			public double hum { get; set; }
+			public double? temp { get; set; }
+			public double? hum { get; set; }
 
-			public double pm_1 { get; set; }
-			public double pm_1_last { get; set; }
+			public double? pm_1 { get; set; }
+			public double? pm_1_last { get; set; }
 
-			public double pm_2p5 { get; set; }
-			public double pm2p5_last { get; set; }
-			public double pm_2p5_last_1_hour { get; set; }
-			public double pm_2p5_last_3_hours { get; set; }
-			public double pm_2p5_last_24_hours { get; set; }
-			public double pm_2p5_nowcast { get; set; }
+			public double? pm_2p5 { get; set; }
+			public double? pm2p5_last { get; set; }
+			public double? pm_2p5_last_1_hour { get; set; }
+			public double? pm_2p5_last_3_hours { get; set; }
+			public double? pm_2p5_last_24_hours { get; set; }
+			public double? pm_2p5_nowcast { get; set; }
 
 
 			public double? pm_10 { get; set; }       // Type 6

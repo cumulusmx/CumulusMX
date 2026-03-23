@@ -149,6 +149,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add a short delay between fetching Ecowitt SD card files to try and mitigate the zero length/oddly formated files being sent
 - Fix JSON Extra Sensor Station CO₂ and Lightning values only being applied when run as the main station
 - Fix AQ PM10 Average visibility settings being reset on CMX restart
+- Now handles AirLink null data values - represented as 0 values for now
 
 ### Package Updates
 
