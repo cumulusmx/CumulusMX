@@ -132,7 +132,8 @@ namespace CumulusMX.Settings
 				deviceid = cumulus.WeatherFlowOptions.WFDeviceId,
 				tcpport = cumulus.WeatherFlowOptions.WFTcpPort,
 				token = cumulus.WeatherFlowOptions.WFToken,
-				dayshistory = cumulus.WeatherFlowOptions.WFDaysHist
+				dayshistory = cumulus.WeatherFlowOptions.WFDaysHist,
+				serialno = cumulus.WeatherFlowOptions.WFSerialNo
 			};
 
 			var ecowittmaps = new JsonEcowittMappings()
@@ -1081,6 +1082,7 @@ namespace CumulusMX.Settings
 					if (settings.weatherflow != null)
 					{
 						cumulus.WeatherFlowOptions.WFDeviceId = settings.weatherflow.deviceid;
+						cumulus.WeatherFlowOptions.WFSerialNo = string.IsNullOrWhiteSpace(settings.weatherflow.serialno) ? null : settings.weatherflow.serialno.Trim();
 						cumulus.WeatherFlowOptions.WFTcpPort = settings.weatherflow.tcpport;
 						cumulus.WeatherFlowOptions.WFToken = string.IsNullOrWhiteSpace(settings.weatherflow.token) ? null : settings.weatherflow.token.Trim();
 						cumulus.WeatherFlowOptions.WFDaysHist = settings.weatherflow.dayshistory;
@@ -1849,6 +1851,7 @@ namespace CumulusMX.Settings
 		{
 			public int tcpport { get; set; }
 			public int deviceid { get; set; }
+			public string serialno { get; set; }
 			public string token { get; set; }
 			public int dayshistory { get; set; }
 		}

@@ -550,21 +550,28 @@ namespace CumulusMX.Stations.Tempest
 			if (e.Packet.Length > 0)
 			{
 				var s = Encoding.ASCII.GetString(e.Packet);
-				Debug.WriteLine(s);
+				cumulus.LogDataMessage("WF UDP packet: " + s);
 				WeatherPacket wp = null;
 				try
 				{
 					wp = JsonSerializer.Deserialize<WeatherPacket>(s);
 					if (wp != null)
 					{
-						wp.FullString = s;
-						wp.SetMessageType();
-						if (wp.MsgType != WeatherPacket.MessageType.Unknown) WeatherPacketReceived?.Invoke(wp);
+						if (string.IsNullOrEmpty(cumulus.WeatherFlowOptions.WFSerialNo) || wp.serial_number == cumulus.WeatherFlowOptions.WFSerialNo)
+						{
+							wp.FullString = s;
+							wp.SetMessageType();
+							if (wp.MsgType != WeatherPacket.MessageType.Unknown) WeatherPacketReceived?.Invoke(wp);
+						}
+						else
+						{
+							cumulus.LogDebugMessage("WF UDP Listener: Dropping packet from serial no - " + wp.serial_number);
+						}
 					}
 				}
 				catch (Exception ex)
 				{
-					Debug.WriteLine(ex.Message);
+					cumulus.LogExceptionMessage(ex, "WF UDP Listener");
 				}
 
 				if ((wp?.timestamp ?? 0) != 0) Debug.WriteLine(wp?.PacketTime.ToString());

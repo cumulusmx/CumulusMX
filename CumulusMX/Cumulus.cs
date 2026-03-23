@@ -4201,6 +4201,7 @@ namespace CumulusMX
 			DavisOptions.CloudBroadcasts = ini.GetValue("Station", "DavisCloudBroadcast", false);
 
 			WeatherFlowOptions.WFDeviceId = ini.GetValue("Station", "WeatherFlowDeviceId", 0);
+			WeatherFlowOptions.WFSerialNo = ini.GetValue("Station", "WeatherFlowSerialNo", string.Empty);
 			WeatherFlowOptions.WFTcpPort = ini.GetValue("Station", "WeatherFlowTcpPort", 50222, 1, 65535);
 			WeatherFlowOptions.WFToken = ini.GetValue("Station", "WeatherFlowToken", "api token");
 			WeatherFlowOptions.WFDaysHist = ini.GetValue("Station", "WeatherFlowDaysHist", 0, 0);
@@ -6550,6 +6551,7 @@ namespace CumulusMX
 
 			// WeatherFlow Options
 			ini.SetValue("Station", "WeatherFlowDeviceId", WeatherFlowOptions.WFDeviceId);
+			ini.SetValue("Station", "WeatherFlowSerialNo", WeatherFlowOptions.WFSerialNo);
 			ini.SetValue("Station", "WeatherFlowTcpPort", WeatherFlowOptions.WFTcpPort);
 			ini.SetValue("Station", "WeatherFlowToken", WeatherFlowOptions.WFToken);
 			ini.SetValue("Station", "WeatherFlowDaysHist", WeatherFlowOptions.WFDaysHist);
@@ -14954,6 +14956,7 @@ namespace CumulusMX
 		public int WFTcpPort { get; set; }
 		public string WFToken { get; set; }
 		public int WFDaysHist { get; set; }
+		public string WFSerialNo { get; set; }
 
 	}
 

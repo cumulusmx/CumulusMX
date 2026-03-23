@@ -196,7 +196,7 @@ namespace CumulusMX.ThirdParty
 			if (station.RecentMaxGust >= 0)
 				URL.Append("&gust=" + station.WindMSStr(station.RecentMaxGust));
 
-			URL.Append("&winddir=" + station.AvgBearing);
+			URL.Append("&winddir=" + station.AvgBearing % 360); // Windy v2 API only accepts 0-359 :(
 
 			if (station.OutdoorHumidity >= 0)
 				URL.Append("&rh=" + station.OutdoorHumidity);

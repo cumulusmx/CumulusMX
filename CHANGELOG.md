@@ -71,6 +71,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Supports connecting a sunshine recorder such as the Instromet to the Rain input of an ISS type transmitter
 	- The sunshine recorder must send a pulse for every 1/100th hour of sunshine recorded
 - Adds support for Ecowitt WH52 Soil Moistire sensors to HTTP API and Ecowitt.Net stations
+- WeatherFlow Tempest stations can now filter live data based on device serial number. You can leave the serial number blank if you only have a single device
+- Add LaserDepth1 and LaserSnowLatest1 to `websitedataT.json` along with a last modified date for the file
+
 
 ### Changed
 

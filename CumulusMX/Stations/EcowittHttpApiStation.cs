@@ -1179,23 +1179,23 @@ namespace CumulusMX.Stations
 							}
 							break;
 
-						case "0xA1": // WBGT
-							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
-							{
-								var wbgt = sensor.valDbl.Value;
-								wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
-
-								WetBulbGlobeTemp = wbgt;
-							}
-							break;
-
-						case "0xA2": // BGT
+						case "0xA1": // BGT
 							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
 							{
 								var bgt = sensor.valDbl.Value;
 								bgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(bgt) : ConvertUnits.TempFToUser(bgt);
 
 								BlackGlobeTemp = bgt;
+							}
+							break;
+
+						case "0xA2": // WBGT
+							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
+							{
+								var wbgt = sensor.valDbl.Value;
+								wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
+
+								WetBulbGlobeTemp = wbgt;
 							}
 							break;
 
