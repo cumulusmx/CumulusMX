@@ -1335,7 +1335,7 @@ namespace CumulusMX.Stations
 		{
 			if (data["wbgt"] != null)
 			{
-				station.BlackGlobeTemp = ConvertUnits.TempFToUser(Convert.ToDouble(data["wbgt"], invNum));
+				station.WetBulbGlobeTemp = ConvertUnits.TempFToUser(Convert.ToDouble(data["wbgt"], invNum));
 			}
 		}
 
