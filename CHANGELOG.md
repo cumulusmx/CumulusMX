@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=17887)
+Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=24075)
 
 This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.<br>
 Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/b5001/CHANGELOG.md)
@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## RELEASE CANDIDATE [5.0.0 \[b5001\]][29] - 2026-03-16
+## [5.0.0 \[b5001\]][29] - 2026-03-24
 
 ### Important Notes
 
