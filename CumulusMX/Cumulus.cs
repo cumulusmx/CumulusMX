@@ -14298,7 +14298,7 @@ namespace CumulusMX
 		public void AddToWebServiceLists(DateTime timestamp)
 		{
 			Wund.AddToList(timestamp);
-			Windy.AddToList(timestamp);
+			//Windy.AddToList(timestamp);
 			PWS.AddToList(timestamp);
 			//WOW.AddToList(timestamp)
 			OpenWeatherMap.AddToList(timestamp);
