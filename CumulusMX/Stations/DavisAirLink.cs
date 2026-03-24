@@ -380,24 +380,13 @@ namespace CumulusMX.Stations
 				// Convert JSON string to an object
 				var json = JsonSerializer.Deserialize<AlCurrent>(currentJson);
 
-				// Old firmware used 0 rather than null for no error
 				if (json.error != null)
 				{
-					if (json.error.GetValueKind() == JsonValueKind.Number)
-					{
-						// old style error format
-						if (json.error.ToString() != "0")
-							cumulus.LogErrorMessage($"DecodeAlCurrent: AirLink returned error code {json.error}");
-					}
-					else
-					{
-						var err = JsonSerializer.Deserialize<AlError>(json.error);
-						cumulus.LogErrorMessage($"DecodeAlCurrent: AirLink returned error code {err.code} - \"{err.message}\"");
-					}
+					cumulus.LogErrorMessage($"DecodeAlCurrent: AirLink returned error code {json.error.code} - \"{json.error.message}\"");
 				}
 
-				// The WLL sends the timestamp in Unix ticks, and in UTC
-				// rather than rely on the WLL clock being correct, we will use our local time
+				// The AirLink sends the timestamp in Unix ticks, and in UTC
+				// rather than rely on the AirLink clock being correct, we will use our local time
 
 				// The current conditions is sent as an array, even though it only contains 1 record
 				var rec = json.data.conditions[0];
@@ -1710,7 +1699,7 @@ namespace CumulusMX.Stations
 		private sealed class AlCurrent
 		{
 			public AlCurrentData data { get; set; }
-			public JsonNode error { get; set; } // Different firmware version handle this differently!
+			public AlError error { get; set; }
 		}
 
 		private sealed class AlError
