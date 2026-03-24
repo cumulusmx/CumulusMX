@@ -3,9 +3,8 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-
-using ServiceStack.Text;
 
 namespace CumulusMX.ThirdParty
 {
@@ -84,7 +83,7 @@ namespace CumulusMX.ThirdParty
 			Updating = true;
 
 			// Random jitter
-			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+			await Task.Delay(Program.RandGenerator.Next(5000, 20000), Program.ExitSystemToken);
 
 			string url = "https://api.openweathermap.org/data/3.0/measurements?appid=" + PW;
 			string logUrl = url.Replace(PW, "<key>");
@@ -103,8 +102,8 @@ namespace CumulusMX.ThirdParty
 				try
 				{
 					var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
-					HttpResponseMessage response = await cumulus.MyHttpClient.PostAsync(url, data);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					HttpResponseMessage response = await cumulus.MyHttpClient.PostAsync(url, data, Program.ExitSystemToken);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync(Program.ExitSystemToken);
 					var status = response.StatusCode == HttpStatusCode.NoContent ? "OK" : "Error";  // Returns a 204 response for OK!
 					cumulus.LogDebugMessage($"OpenWeatherMap: Response code = {status} - {response.StatusCode}");
 					if (response.StatusCode == HttpStatusCode.NoContent)
@@ -144,7 +143,7 @@ namespace CumulusMX.ThirdParty
 
 						cumulus.LogMessage($"OpenWeatherMap: Retrying in {delay / retryCount} seconds");
 
-						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 					}
 					else
 					{
@@ -179,17 +178,17 @@ namespace CumulusMX.ThirdParty
 
 			sb.Append($"\"dt\":{timestamp.ToUnixTime()},");
 			if (station.OutdoorTemperature >= Cumulus.DefaultHiVal)
-				sb.Append($"\"temperature\":{Math.Round(ConvertUnits.UserTempToC(station.OutdoorTemperature), 1).ToString(invC)},");
+				sb.Append($"\"temperature\":{ConvertUnits.UserTempToC(station.OutdoorTemperature).ToFixed("F1")},");
 			sb.Append($"\"wind_deg\":{station.AvgBearing},");
-			sb.Append($"\"wind_speed\":{Math.Round(ConvertUnits.UserWindToMS(station.WindAverage), 1).ToString(invC)},");
+			sb.Append($"\"wind_speed\":{ConvertUnits.UserWindToMS(station.WindAverage).ToString("F1", invC)},");
 			if (station.RecentMaxGust >= 0)
-				sb.Append($"\"wind_gust\":{Math.Round(ConvertUnits.UserWindToMS(station.RecentMaxGust), 1).ToString(invC)},");
+				sb.Append($"\"wind_gust\":{ConvertUnits.UserWindToMS(station.RecentMaxGust).ToString("F1", invC)},");
 			if (station.Pressure > 0)
-				sb.Append($"\"pressure\":{Math.Round(ConvertUnits.UserPressToHpa(station.Pressure), 1).ToString(invC)},");
+				sb.Append($"\"pressure\":{ConvertUnits.UserPressToHpa(station.Pressure).ToString("F1", invC)},");
 			if (station.OutdoorHumidity >= 0)
 				sb.Append($"\"humidity\":{station.OutdoorHumidity},");
-			sb.Append($"\"rain_1h\":{Math.Round(ConvertUnits.UserRainToMM(station.RainLastHour), 1).ToString(invC)},");
-			sb.Append($"\"rain_24h\":{Math.Round(ConvertUnits.UserRainToMM(station.RainLast24Hour), 1).ToString(invC)}");
+			sb.Append($"\"rain_1h\":{ConvertUnits.UserRainToMM(station.RainLastHour).ToString("F1", invC)},");
+			sb.Append($"\"rain_24h\":{ConvertUnits.UserRainToMM(station.RainLast24Hour).ToString("F1", invC)}");
 			sb.Append("}]");
 
 			return sb.ToString();
@@ -210,7 +209,7 @@ namespace CumulusMX.ThirdParty
 
 				if (responseBodyAsText.Length > 10)
 				{
-					var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapStation[]>(responseBodyAsText);
+					var respJson = JsonSerializer.Deserialize<OpenWeatherMapStation[]>(responseBodyAsText);
 					retVal = respJson;
 				}
 			}
@@ -252,7 +251,7 @@ namespace CumulusMX.ThirdParty
 				if (response.StatusCode == HttpStatusCode.Created)
 				{
 					// It worked, save the result
-					var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapNewStation>(responseBodyAsText);
+					var respJson = JsonSerializer.Deserialize<OpenWeatherMapNewStation>(responseBodyAsText);
 
 					cumulus.LogMessage($"OpenWeatherMap: Created new station, id = {respJson.ID}, name = {respJson.name}");
 					ID = respJson.ID;

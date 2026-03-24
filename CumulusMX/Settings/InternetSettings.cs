@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 
 using EmbedIO;
-
-using ServiceStack;
 
 using static CumulusMX.Cumulus;
 
@@ -35,7 +33,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonInternetSettingsData>();
+				settings = JsonSerializer.Deserialize<JsonInternetSettingsData>(json);
 			}
 			catch (Exception ex)
 			{
@@ -70,7 +68,7 @@ namespace CumulusMX.Settings
 						cumulus.FtpOptions.FtpMode = (FtpProtocols) settings.website.sslftp;
 						cumulus.UTF8encode = settings.website.general.utf8encode;
 
-						if (cumulus.FtpOptions.FtpMode == FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == FtpProtocols.FTPS || cumulus.FtpOptions.FtpMode == FtpProtocols.SFTP)
+						if (cumulus.FtpOptions.FtpMode is FtpProtocols.FTP or FtpProtocols.FTPS or FtpProtocols.SFTP)
 						{
 							cumulus.FtpOptions.Directory = settings.website.directory ?? string.Empty;
 							cumulus.FtpOptions.Port = settings.website.ftpport;
@@ -79,7 +77,7 @@ namespace CumulusMX.Settings
 							cumulus.FtpOptions.Username = settings.website.username ?? string.Empty;
 						}
 
-						if (cumulus.FtpOptions.FtpMode == FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == FtpProtocols.FTPS)
+						if (cumulus.FtpOptions.FtpMode is FtpProtocols.FTP or FtpProtocols.FTPS)
 						{
 							cumulus.DeleteBeforeUpload = settings.website.general.ftpdelete;
 							cumulus.FTPRename = settings.website.general.ftprename;
@@ -92,12 +90,18 @@ namespace CumulusMX.Settings
 						{
 							cumulus.FtpOptions.SshAuthen = settings.website.sshAuth ?? string.Empty;
 							cumulus.FtpOptions.SshPskFile = settings.website.pskFile ?? string.Empty;
+							cumulus.CreateUpdateSftpClientFactory();
 						}
 
 						if (cumulus.FtpOptions.FtpMode == FtpProtocols.FTPS)
 						{
 							cumulus.FtpOptions.DisableExplicit = settings.website.advanced.disableftpsexplicit;
 							cumulus.FtpOptions.IgnoreCertErrors = settings.website.advanced.ignorecerts;
+						}
+
+						if (cumulus.FtpOptions.FtpMode is FtpProtocols.FTP or FtpProtocols.FTPS)
+						{
+							cumulus.CreateUpdateFtpClientFactory();
 						}
 
 						if (cumulus.FtpOptions.FtpMode == FtpProtocols.PHP)
@@ -113,6 +117,8 @@ namespace CumulusMX.Settings
 								cumulus.FtpOptions.PhpUseBrotli = settings.website.advanced.phpusebrotli;
 								Task.Run(() => cumulus.TestPhpUploadCompression());
 							}
+							var uri = new Uri(cumulus.FtpOptions.PhpUrl);
+							cumulus.phpUploadHttpClient.DefaultRequestHeaders.Referrer = new Uri(uri.Scheme + "://" + uri.Host);
 						}
 
 						if (cumulus.FtpOptions.FtpMode != FtpProtocols.PHP && settings.websettings.realtime.enabled && settings.websettings.realtime.enablerealtimeftp)
@@ -126,10 +132,14 @@ namespace CumulusMX.Settings
 								// do nothing
 							}
 						}
-						else if (!cumulus.RealTimeWdTokenSource.IsCancellationRequested)
+						else if (Cumulus.RealtimeFtpWatchDogTaskTokenSource is not null && !Cumulus.RealtimeFtpWatchDogTaskTokenSource.IsCancellationRequested)
 						{
-							cumulus.RealTimeWdTokenSource.Cancel();
+							Cumulus.RealtimeFtpWatchDogTaskTokenSource.Cancel();
 						}
+					}
+					else if (Cumulus.RealtimeFtpWatchDogTaskTokenSource is not null && !Cumulus.RealtimeFtpWatchDogTaskTokenSource.IsCancellationRequested)
+					{
+						Cumulus.RealtimeFtpWatchDogTaskTokenSource.Cancel();
 					}
 
 					cumulus.FtpOptions.LocalCopyEnabled = settings.website.localcopy;
@@ -548,7 +558,7 @@ namespace CumulusMX.Settings
 				misc = misc
 			};
 
-			return data.ToJson();
+			return JsonSerializer.Serialize(data);
 		}
 
 		public string GetExtraWebFilesData()

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace CumulusMX.Stations
 {
@@ -16,6 +17,8 @@ namespace CumulusMX.Stations
 		private readonly Dictionary<string, int> FieldIndex = [];
 		private readonly int interval;
 
+		public bool HeaderValid { get; }
+
 		public EcowittExtraLogFile(List<string> data, Cumulus cumul, int interval)
 		{
 			cumulus = cumul;
@@ -23,19 +26,30 @@ namespace CumulusMX.Stations
 			this.interval = interval;
 
 			// parse the header
-			HeaderParser(data[0]);
+			HeaderValid = HeaderParser(data[0]);
 		}
 
-		public SortedList<DateTime, EcowittApi.HistoricData> DataParser()
+		public SortedList<long, EcowittApi.HistoricData> DataParser()
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
-			var retList = new SortedList<DateTime, EcowittApi.HistoricData>();
+			var retList = new SortedList<long, EcowittApi.HistoricData>();
+			var count = 0;
+
+			Cumulus.LogConsoleMessage("  Preprocessing the data");
 
 			var useTimestamp = FieldIndex.ContainsKey("timestamp");
 
 			for (var index = 0; index < Data.Count; index++)
 			{
 				cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Preprocess record # {index + 1} of {Data.Count}");
+
+				count++;
+
+				if (count % 10 == 0 && !Program.service)
+				{
+					Console.Write($"  Preprocessing record: {count}\r");
+				}
+
 				try
 				{
 					// split on commas
@@ -51,21 +65,22 @@ namespace CumulusMX.Stations
 					// 2025-01-10 12:34,           1.8,0.8,1.8,93,  3.3,1.5,3.3,88, 1.5,-0.1, 1.5,89, 1.6,-0.3, 1.6,87,-19.3, --,  --,--, 3.9, 2.7, 3.9,92,7.0,-3.0,7.0,49,--,--,--,--,77,--,--,--,--,--,--,--, 0,--,15.3,60,775,6.4,6.7,--,--,60,45,56,72,50,74,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,12.0,9.0,--,--,2.5,2.5,2.0,--,--,--,--,--,--,--,--,--
 					// 2025-05-20 17:46,1747734370,1.8,0.8,1.8,93,  3.3,1.5,3.3,88, 1.5,-0.1, 1.5,89, 1.6,-0.3, 1.6,87,-19.3, --,  --,--, 3.9, 2.7, 3.9,92,7.0,-3.0,7.0,49,--,--,--,--,77,--,--,--,--,--,--,--, 0,--,15.3,60,775,6.4,6.7,--,--,60,45,56,72,50,74,--,--,--,--,--,--,--,--,--,--,--,Normal,--,--,12.0,9.0,--,--,2.5,2.5,2.0,--,--,--,--,--,--,--,--,--
 					// 2025-06-12 13:44,1749732293,3.8,--,  --,--,-17.2, --, --,--,21.6,13.5,21.6,60,22.8,12.8,22.8,53,21.9,13.0,21.9,57,25.1,13.0,25.1,47, --,  --, --,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,  --,--, --, --, --,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,    --,--,--,  --,0.0,--,--, --, --, --,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,
+					// 2026-01-07 10:53,1767783192,3.4,--,  --,--,-15.6, --, --,--,17.3, 7.1,17.3,51,  --,  --,  --,--,17.8, 6.7,17.8,48, 3.6, 1.8, 3.6,88, --,  --, --,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,  --,--, --, --, --,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,    --,--,--,  --, --,--,--, --, --, --,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,
 
 
 					var rec = new EcowittApi.HistoricData();
 
-					DateTime time;
+					long time;
 
 					if (useTimestamp && long.TryParse(fields[1], invc, out long unix))
 					{
-						time = Utils.RoundDownUnixTimestamp(unix, interval).FromUnixTime();
+						time = Utils.RoundDownUnixTimestamp(unix, interval);
 					}
 					else
 					{
-						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
+						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out var tim))
 						{
-							time = time.RoundTimeToInterval(interval);
+							time = tim.RoundTimeDownToInterval(TimeSpan.FromMinutes(interval)).ToUnixTime();
 						}
 						else
 						{
@@ -74,7 +89,13 @@ namespace CumulusMX.Stations
 						}
 					}
 
-					cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Preprocessing record {fields[0]} - {time:yyyy-MM-dd HH:mm}");
+					if (retList.ContainsKey(time))
+					{
+						cumulus.LogErrorMessage($"EcowittExtraLogFile.DataParser: Duplicate timestamp found, ignoring second instance - {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)}");
+						continue;
+					}
+
+					cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Preprocessing record {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)}");
 
 					decimal varDec;
 					int varInt;
@@ -83,46 +104,84 @@ namespace CumulusMX.Stations
 
 
 					// Extra Temp/Hum sensors, fields 1 - 32
-					for (var i = 1; i <= 8; i++)
+					try
 					{
-						if (FieldIndex.TryGetValue($"ch{i} temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+						for (var i = 1; i <= 8; i++)
 						{
-							rec.ExtraTemp[i] = varDec;
-						}
+							if (FieldIndex.TryGetValue($"ch{i} temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+							{
+								rec.ExtraTemp[i] = varDec;
+							}
 
-						if (FieldIndex.TryGetValue($"ch{i} humidity", out idx) && int.TryParse(fields[idx], out varInt))
-						{
-							rec.ExtraHumidity[i] = varInt;
+							if (FieldIndex.TryGetValue($"ch{i} humidity", out idx) && int.TryParse(fields[idx], out varInt))
+							{
+								rec.ExtraHumidity[i] = varInt;
+							}
 						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Error processing Extra T/H - " + ex.Message);
 					}
 
 					// Leaf Moisture Sensors
-					for (var i = 1; i <= 8; i++)
+					try
 					{
-						if (FieldIndex.TryGetValue($"wh35 ch{i}hum", out idx) && int.TryParse(fields[idx], out varInt))
+						for (var i = 1; i <= 8; i++)
 						{
-							rec.LeafWetness[i] = varInt;
+							if (FieldIndex.TryGetValue($"wh35 ch{i}hum", out idx) && int.TryParse(fields[idx], out varInt))
+							{
+								rec.LeafWetness[i] = varInt;
+							}
 						}
 					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Error processing Leaf Wetness - " + ex.Message);
+					}
+
 
 					// Lightning
-					if (FieldIndex.TryGetValue("thunder time", out idx) && long.TryParse(fields[idx], invc, out long varLong)) rec.LightningTime = varLong.FromUnixTime();
-					if (FieldIndex.TryGetValue("thunder count", out idx) && int.TryParse(fields[idx], out varInt)) rec.LightningCount = varInt;
-					if (FieldIndex.TryGetValue("thunder distance", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LightningDist = varDec;
+					try
+					{
+						if (FieldIndex.TryGetValue("thunder time", out idx) && long.TryParse(fields[idx], invc, out long varLong)) rec.LightningTime = varLong.LocalFromUnixTime();
+						if (FieldIndex.TryGetValue("thunder count", out idx) && int.TryParse(fields[idx], out varInt)) rec.LightningCount = varInt;
+						if (FieldIndex.TryGetValue("thunder distance", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LightningDist = varDec;
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Error processing Lightning - " + ex.Message);
+					}
 
 					// AQ Indoor
-					if (FieldIndex.TryGetValue("aqin temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboTemp = varDec;
-					if (FieldIndex.TryGetValue("aqin humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.AqiComboHum = varInt;
-					if (FieldIndex.TryGetValue("aqin co2", out idx) && int.TryParse(fields[idx], out varInt)) rec.AqiComboCO2 = varInt;
-					if (FieldIndex.TryGetValue("aqin pm2.5", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm25 = varDec;
-					if (FieldIndex.TryGetValue("aqin pm10", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm10 = varDec;
-					//if (FieldIndex.TryGetValue("aqin pm1.0", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm1 = varDec;
-					//if (FieldIndex.TryGetValue("aqin pm4.0", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm4 = varDec;
-
-					// Soil Moisture
-					for (int i = 1; i <= 16; i++)
+					try
 					{
-						if (FieldIndex.TryGetValue("soilmoisture ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.SoilMoist[i] = varInt;
+						if (FieldIndex.TryGetValue("aqin temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboTemp = varDec;
+						if (FieldIndex.TryGetValue("aqin humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.AqiComboHum = varInt;
+						if (FieldIndex.TryGetValue("aqin co2", out idx) && int.TryParse(fields[idx], out varInt)) rec.AqiComboCO2 = varInt;
+						if (FieldIndex.TryGetValue("aqin pm2.5", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm25 = varDec;
+						if (FieldIndex.TryGetValue("aqin pm10", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm10 = varDec;
+						//if (FieldIndex.TryGetValue("aqin pm1.0", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm1 = varDec;
+						//if (FieldIndex.TryGetValue("aqin pm4.0", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm4 = varDec;
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Error processing AQ Indoor - " + ex.Message);
+					}
+
+
+					// Soil Moisture/Temperature
+					try
+					{
+						for (int i = 1; i <= 16; i++)
+						{
+							if (FieldIndex.TryGetValue("soilmoisture ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.SoilMoist[i] = varInt;
+							if (FieldIndex.TryGetValue("soiltemp ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.SoilTemp[i] = varDec;
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Error processing Soil Moisture/Temperature - " + ex.Message);
 					}
 
 					// Water - unused
@@ -134,25 +193,46 @@ namespace CumulusMX.Stations
 					*/
 
 					// AQI
-					for (int i = 1; i <= 4; i++)
+					try
 					{
-						if (FieldIndex.TryGetValue("pm2.5 ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.pm25[i] = varDec;
+						for (int i = 1; i <= 4; i++)
+						{
+							if (FieldIndex.TryGetValue("pm2.5 ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.pm25[i] = varDec;
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Error processing AQI - " + ex.Message);
 					}
 
 					// User Temps
-					for (var i = 1; i <= 8 ; i++)
+					try
 					{
-						if (FieldIndex.TryGetValue("wn34 ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.UserTemp[i] = varDec;
+						for (var i = 1; i <= 8; i++)
+						{
+							if (FieldIndex.TryGetValue("wn34 ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.UserTemp[i] = varDec;
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Error processing User Temps - " + ex.Message);
 					}
 
 					// LDS Air
 					// LDS Depth
 					// LDS Heat
-					for (int i = 1; i <= 4; i++)
+					try
 					{
-						if (FieldIndex.TryGetValue("lds_air ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsAir[i] = varDec;
-						if (FieldIndex.TryGetValue("lds_depth ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsDepth[i] = varDec;
-						//if (FieldIndex.TryGetValue("lds_heat ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.LdsHeat[i] = varInt;
+						for (int i = 1; i <= 4; i++)
+						{
+							if (FieldIndex.TryGetValue("lds_air ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsAir[i] = varDec;
+							if (FieldIndex.TryGetValue("lds_depth ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsDepth[i] = varDec;
+							//if (FieldIndex.TryGetValue("lds_heat ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.LdsHeat[i] = varInt;
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage("EcowittExtraLogFile.DataParser: Error processing LDS - " + ex.Message);
 					}
 
 					// end of records
@@ -242,8 +322,8 @@ namespace CumulusMX.Stations
 							case LaserUnits.ft:
 								for (var i = 0; i < 4; i++)
 								{
-									rec.LdsAir[i] = ConvertUnits.LaserInchesToUser(rec.LdsAir[i] / 12);
-									rec.LdsDepth[i] = ConvertUnits.LaserInchesToUser(rec.LdsDepth[i] / 12);
+									rec.LdsAir[i] = ConvertUnits.LaserInchesToUser(rec.LdsAir[i] * 12);
+									rec.LdsDepth[i] = ConvertUnits.LaserInchesToUser(rec.LdsDepth[i] * 12);
 								}
 								break;
 
@@ -263,7 +343,7 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Record {fields[0]} - {time:yyyy-MM-dd HH:mm} added to the list");
+						cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Record {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)} added to the list");
 					}
 				}
 				catch (Exception ex)
@@ -272,6 +352,11 @@ namespace CumulusMX.Stations
 					cumulus.LogDebugMessage("EcowittExtraLogFile.DataParser: Record = " + Data[index]);
 				}
 
+			}
+
+			if (!Program.service)
+			{
+				Cumulus.LogConsoleMessage("  Preprocessing complete           ");
 			}
 
 			return retList;
@@ -290,6 +375,7 @@ namespace CumulusMX.Stations
 			baseRec.AqiComboPm25 = extraRec.AqiComboPm25;
 			baseRec.AqiComboPm10 = extraRec.AqiComboPm10;
 			baseRec.SoilMoist = extraRec.SoilMoist;
+			baseRec.SoilTemp = extraRec.SoilTemp;
 			baseRec.pm25 = extraRec.pm25;
 			baseRec.UserTemp = extraRec.UserTemp;
 			baseRec.LdsAir = extraRec.LdsAir;
@@ -298,13 +384,16 @@ namespace CumulusMX.Stations
 			return baseRec;
 		}
 
-		private void HeaderParser (string header)
+		private bool HeaderParser (string header)
 		{
-			// Time,          CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%), CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%), CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃), CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃), CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃), CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃), CH8 HeatIndex(℃),CH8 Humidity(%), WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),             Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),                   SoilMoisture CH2(%),                   SoilMoisture CH3(%),                   SoilMoisture CH4(%),                   SoilMoisture CH5(%),                   SoilMoisture CH6(%),                   SoilMoisture CH7(%),                   SoilMoisture CH8(%),                   SoilMoisture CH9(%),                   SoilMoisture CH10(%),                    SoilMoisture CH11(%),                    SoilMoisture CH12(%),                    SoilMoisture CH13(%),                    SoilMoisture CH14(%),                    SoilMoisture CH15(%),                    SoilMoisture CH16(%),                    Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),   LDS_Air CH1(mm),LDS_Air CH2(mm),LDS_Air CH3(mm),LDS_Air CH4(mm),
-			// Time,          CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%), CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%), CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃), CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃), CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃), CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃), CH8 HeatIndex(℃),CH8 Humidity(%), WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),             Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),                   SoilMoisture CH2(%),                   SoilMoisture CH3(%),                   SoilMoisture CH4(%),                   SoilMoisture CH5(%),                   SoilMoisture CH6(%),                   SoilMoisture CH7(%),                   SoilMoisture CH8(%),                   SoilMoisture CH9(%),                   SoilMoisture CH10(%),                    SoilMoisture CH11(%),                    SoilMoisture CH12(%),                    SoilMoisture CH13(%),                    SoilMoisture CH14(%),                    SoilMoisture CH15(%),                    SoilMoisture CH16(%),                    Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),   LDS_Air CH1(mm),LDS_Depth CH1(mm),LDS_Heat CH1,LDS_Air CH2(mm),LDS_Depth CH2(mm),LDS_Heat CH2,LDS_Air CH3(mm),LDS_Depth CH3(mm),LDS_Heat CH3,LDS_Air CH4(mm),LDS_Depth CH4(mm),LDS_Heat CH4,
-			// Time,Timestamp,CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%), CH2 Temperature(℃), CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%),CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃), CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃), CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃), CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃), CH8 Dew point(℃),CH8 HeatIndex(℃),CH8 Humidity(%), WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),             Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),                   SoilMoisture CH2(%),                   SoilMoisture CH3(%),                   SoilMoisture CH4(%),                   SoilMoisture CH5(%),                   SoilMoisture CH6(%),                   SoilMoisture CH7(%),                   SoilMoisture CH8(%),                   SoilMoisture CH9(%),                   SoilMoisture CH10(%),                    SoilMoisture CH11(%),                    SoilMoisture CH12(%),                    SoilMoisture CH13(%),                    SoilMoisture CH14(%),                    SoilMoisture CH15(%),                    SoilMoisture CH16(%),                    Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃), WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),  LDS_Air CH1(mm),LDS_Depth CH1(mm),LDS_Heat CH1,LDS_Air CH2(mm),LDS_Depth CH2(mm),LDS_Heat CH2,LDS_Air CH3(mm),LDS_Depth CH3(mm),LDS_Heat CH3,LDS_Air CH4(mm),LDS_Depth CH4(mm),LDS_Heat CH4,
-			// Time,Timestamp,CH1 Temperature(°C),CH1 Dew point(°C),CH1 HeatIndex(°C),CH1 Humidity(%),CH2 Temperature(°C),CH2 Dew point(°C),CH2 HeatIndex(°C),CH2 Humidity(%),CH3 Temperature(°C),CH3 Dew point(°C),CH3 HeatIndex(°C),CH3 Humidity(%),CH4 Temperature(°C),CH4 Dew point(°C),CH4 HeatIndex(°C),CH4 Humidity(%),CH5 Temperature(°C),CH5 Dew point(°C),CH5 HeatIndex(°C),CH5 Humidity(%),CH6 Temperature(°C),CH6 Dew point(°C),CH6 HeatIndex(°C),CH6 Humidity(%),CH7 Temperature(°C),CH7 Dew point(°C),CH7 HeatIndex(°C),CH7 Humidity(%),CH8 Temperature(°C),CH8 Dew point(°C),CH8 HeatIndex(°C),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder time,Thunder count,Thunder distance(mi),AQIN Temperature(°C),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),                   SoilMoisture CH2(%),                   SoilMoisture CH3(%),                   SoilMoisture CH4(%),                   SoilMoisture CH5(%),                   SoilMoisture CH6(%),                   SoilMoisture CH7(%),                   SoilMoisture CH8(%),                   SoilMoisture CH9(%),                   SoilMoisture CH10(%),                    SoilMoisture CH11(%),                    SoilMoisture CH12(%),                    SoilMoisture CH13(%),                    SoilMoisture CH14(%),                    SoilMoisture CH15(%),                    SoilMoisture CH16(%),                    Water CH1,Water CH2,Water CH3,Water CH4,PM2.5 CH1(ug/m3),PM2.5 CH2(ug/m3),PM2.5 CH3(ug/m3),PM2.5 CH4(ug/m3),WN34 CH1(°C),WN34 CH2(°C),WN34 CH3(°C),WN34 CH4(°C),WN34 CH5(°C),WN34 CH6(°C),WN34 CH7(°C),WN34 CH8(°C),LDS_Air CH1(mm),LDS_Depth CH1(mm),LDS_Heat CH1,LDS_Air CH2(mm),LDS_Depth CH2(mm),LDS_Heat CH2,LDS_Air CH3(mm),LDS_Depth CH3(mm),LDS_Heat CH3,LDS_Air CH4(mm),LDS_Depth CH4(mm),LDS_Heat CH4,
-			// Time,Timestamp,CH1 Temperature(°C),CH1 Dew point(°C),CH1 HeatIndex(°C),CH1 Humidity(%),CH2 Temperature(°C),CH2 Dew point(°C),CH2 HeatIndex(°C),CH2 Humidity(%),CH3 Temperature(°C),CH3 Dew point(°C),CH3 HeatIndex(°C),CH3 Humidity(%),CH4 Temperature(°C),CH4 Dew point(°C),CH4 HeatIndex(°C),CH4 Humidity(%),CH5 Temperature(°C),CH5 Dew point(°C),CH5 HeatIndex(°C),CH5 Humidity(%),CH6 Temperature(°C),CH6 Dew point(°C),CH6 HeatIndex(°C),CH6 Humidity(%),CH7 Temperature(°C),CH7 Dew point(°C),CH7 HeatIndex(°C),CH7 Humidity(%),CH8 Temperature(°C),CH8 Dew point(°C),CH8 HeatIndex(°C),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder time,Thunder count,Thunder distance(km),AQIN Temperature(°C),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),SoilMoistureAD CH1,SoilMoisture CH2(%),SoilMoistureAD CH2,SoilMoisture CH3(%),SoilMoistureAD CH3,SoilMoisture CH4(%),SoilMoistureAD CH4,SoilMoisture CH5(%),SoilMoistureAD CH5,SoilMoisture CH6(%),SoilMoistureAD CH6,SoilMoisture CH7(%),SoilMoistureAD CH7,SoilMoisture CH8(%),SoilMoistureAD CH8,SoilMoisture CH9(%),SoilMoistureAD CH9,SoilMoisture CH10(%),SoilMoistureAD CH10,SoilMoisture CH11(%),SoilMoistureAD CH11,SoilMoisture CH12(%),SoilMoistureAD CH12,SoilMoisture CH13(%),SoilMoistureAD CH13,SoilMoisture CH14(%),SoilMoistureAD CH14,SoilMoisture CH15(%),SoilMoistureAD CH15,SoilMoisture CH16(%),SoilMoistureAD CH16,Water CH1,Water CH2,Water CH3,Water CH4,PM2.5 CH1(ug/m3),PM2.5 CH2(ug/m3),PM2.5 CH3(ug/m3),PM2.5 CH4(ug/m3),WN34 CH1(°C),WN34 CH2(°C),WN34 CH3(°C),WN34 CH4(°C),WN34 CH5(°C),WN34 CH6(°C),WN34 CH7(°C),WN34 CH8(°C),LDS_Air CH1(mm),LDS_Depth CH1(mm),LDS_Heat CH1,LDS_Air CH2(mm),LDS_Depth CH2(mm),LDS_Heat CH2,LDS_Air CH3(mm),LDS_Depth CH3(mm),LDS_Heat CH3,LDS_Air CH4(mm),LDS_Depth CH4(mm),LDS_Heat CH4,
+			// Time,          CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%), CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%), CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃), CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃), CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃), CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃),  CH8 HeatIndex(℃),CH8 Humidity(%), WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),            Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),                                                      SoilMoisture CH2(%),                                                      SoilMoisture CH3(%),                                                      SoilMoisture CH4(%),                                                      SoilMoisture CH5(%),                                                      SoilMoisture CH6(%),                                                      SoilMoisture CH7(%),                                                      SoilMoisture CH8(%),                                                      SoilMoisture CH9(%),                                                      SoilMoisture CH10(%),                                                         SoilMoisture CH11(%),                                                         SoilMoisture CH12(%),                                                         SoilMoisture CH13(%),                                                         SoilMoisture CH14(%),                                                         SoilMoisture CH15(%),                                                         SoilMoisture CH16(%),                                                         Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),   LDS_Air CH1(mm),                               LDS_Air CH2(mm),                               LDS_Air CH3(mm),                               LDS_Air CH4(mm),
+			// Time,          CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%), CH2 Temperature(℃),CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%), CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃), CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃), CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃), CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃),CH8 Dew point(℃),  CH8 HeatIndex(℃),CH8 Humidity(%), WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),            Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),                                                      SoilMoisture CH2(%),                                                      SoilMoisture CH3(%),                                                      SoilMoisture CH4(%),                                                      SoilMoisture CH5(%),                                                      SoilMoisture CH6(%),                                                      SoilMoisture CH7(%),                                                      SoilMoisture CH8(%),                                                      SoilMoisture CH9(%),                                                      SoilMoisture CH10(%),                                                         SoilMoisture CH11(%),                                                         SoilMoisture CH12(%),                                                         SoilMoisture CH13(%),                                                         SoilMoisture CH14(%),                                                         SoilMoisture CH15(%),                                                         SoilMoisture CH16(%),                                                         Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃),WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),   LDS_Air CH1(mm),LDS_Depth CH1(mm),LDS_Heat CH1,LDS_Air CH2(mm),LDS_Depth CH2(mm),LDS_Heat CH2,LDS_Air CH3(mm),LDS_Depth CH3(mm),LDS_Heat CH3,LDS_Air CH4(mm),LDS_Depth CH4(mm),LDS_Heat CH4,
+			// Time,Timestamp,CH1 Temperature(℃),CH1 Dew point(℃),CH1 HeatIndex(℃),CH1 Humidity(%), CH2 Temperature(℃), CH2 Dew point(℃),CH2 HeatIndex(℃),CH2 Humidity(%),CH3 Temperature(℃),CH3 Dew point(℃),CH3 HeatIndex(℃),CH3 Humidity(%),CH4 Temperature(℃), CH4 Dew point(℃),CH4 HeatIndex(℃),CH4 Humidity(%),CH5 Temperature(℃), CH5 Dew point(℃),CH5 HeatIndex(℃),CH5 Humidity(%),CH6 Temperature(℃), CH6 Dew point(℃),CH6 HeatIndex(℃),CH6 Humidity(%),CH7 Temperature(℃),CH7 Dew point(℃),CH7 HeatIndex(℃),CH7 Humidity(%),CH8 Temperature(℃), CH8 Dew point(℃), CH8 HeatIndex(℃),CH8 Humidity(%), WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),            Thunder count,Thunder distance(km),AQIN Temperature(℃),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),                                                      SoilMoisture CH2(%),                                                      SoilMoisture CH3(%),                                                      SoilMoisture CH4(%),                                                      SoilMoisture CH5(%),                                                      SoilMoisture CH6(%),                                                      SoilMoisture CH7(%),                                                      SoilMoisture CH8(%),                                                      SoilMoisture CH9(%),                                                      SoilMoisture CH10(%),                                                         SoilMoisture CH11(%),                                                         SoilMoisture CH12(%),                                                         SoilMoisture CH13(%),                                                         SoilMoisture CH14(%),                                                         SoilMoisture CH15(%),                                                         SoilMoisture CH16(%),                                                         Water CH1,Water CH2,Water CH3,Water CH4,Pm2.5 CH1(ug/m3),Pm2.5 CH2(ug/m3),Pm2.5 CH3(ug/m3),Pm2.5 CH4(ug/m3),WN34 CH1(℃),WN34 CH2(℃),WN34 CH3(℃),WN34 CH4(℃), WN34 CH5(℃),WN34 CH6(℃),WN34 CH7(℃),WN34 CH8(℃),  LDS_Air CH1(mm),LDS_Depth CH1(mm),LDS_Heat CH1,LDS_Air CH2(mm),LDS_Depth CH2(mm),LDS_Heat CH2,LDS_Air CH3(mm),LDS_Depth CH3(mm),LDS_Heat CH3,LDS_Air CH4(mm),LDS_Depth CH4(mm),LDS_Heat CH4,
+			// Time,Timestamp,CH1 Temperature(°C),CH1 Dew point(°C),CH1 HeatIndex(°C),CH1 Humidity(%),CH2 Temperature(°C),CH2 Dew point(°C),CH2 HeatIndex(°C),CH2 Humidity(%),CH3 Temperature(°C),CH3 Dew point(°C),CH3 HeatIndex(°C),CH3 Humidity(%),CH4 Temperature(°C),CH4 Dew point(°C),CH4 HeatIndex(°C),CH4 Humidity(%),CH5 Temperature(°C),CH5 Dew point(°C),CH5 HeatIndex(°C),CH5 Humidity(%),CH6 Temperature(°C),CH6 Dew point(°C),CH6 HeatIndex(°C),CH6 Humidity(%),CH7 Temperature(°C),CH7 Dew point(°C),CH7 HeatIndex(°C),CH7 Humidity(%),CH8 Temperature(°C),CH8 Dew point(°C),CH8 HeatIndex(°C),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder time,Thunder count,Thunder distance(mi),AQIN Temperature(°C),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),                                                      SoilMoisture CH2(%),                                                      SoilMoisture CH3(%),                                                      SoilMoisture CH4(%),                                                      SoilMoisture CH5(%),                                                      SoilMoisture CH6(%),                                                      SoilMoisture CH7(%),                                                      SoilMoisture CH8(%),                                                      SoilMoisture CH9(%),                                                      SoilMoisture CH10(%),                                                         SoilMoisture CH11(%),                                                         SoilMoisture CH12(%),                                                         SoilMoisture CH13(%),                                                         SoilMoisture CH14(%),                                                         SoilMoisture CH15(%),                                                         SoilMoisture CH16(%),                                                         Water CH1,Water CH2,Water CH3,Water CH4,PM2.5 CH1(ug/m3),PM2.5 CH2(ug/m3),PM2.5 CH3(ug/m3),PM2.5 CH4(ug/m3),WN34 CH1(°C),WN34 CH2(°C),WN34 CH3(°C),WN34 CH4(°C),WN34 CH5(°C),WN34 CH6(°C),WN34 CH7(°C),WN34 CH8(°C),LDS_Air CH1(mm),LDS_Depth CH1(mm),LDS_Heat CH1,LDS_Air CH2(mm),LDS_Depth CH2(mm),LDS_Heat CH2,LDS_Air CH3(mm),LDS_Depth CH3(mm),LDS_Heat CH3,LDS_Air CH4(mm),LDS_Depth CH4(mm),LDS_Heat CH4,
+			// Time,Timestamp,CH1 Temperature(°C),CH1 Dew point(°C),CH1 HeatIndex(°C),CH1 Humidity(%),CH2 Temperature(°C),CH2 Dew point(°C),CH2 HeatIndex(°C),CH2 Humidity(%),CH3 Temperature(°C),CH3 Dew point(°C),CH3 HeatIndex(°C),CH3 Humidity(%),CH4 Temperature(°C),CH4 Dew point(°C),CH4 HeatIndex(°C),CH4 Humidity(%),CH5 Temperature(°C),CH5 Dew point(°C),CH5 HeatIndex(°C),CH5 Humidity(%),CH6 Temperature(°C),CH6 Dew point(°C),CH6 HeatIndex(°C),CH6 Humidity(%),CH7 Temperature(°C),CH7 Dew point(°C),CH7 HeatIndex(°C),CH7 Humidity(%),CH8 Temperature(°C),CH8 Dew point(°C),CH8 HeatIndex(°C),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder time,Thunder count,Thunder distance(km),AQIN Temperature(°C),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),SoilMoistureAD CH1,                                   SoilMoisture CH2(%),SoilMoistureAD CH2,                                   SoilMoisture CH3(%),SoilMoistureAD CH3,                                   SoilMoisture CH4(%),SoilMoistureAD CH4,                                   SoilMoisture CH5(%),SoilMoistureAD CH5,                                   SoilMoisture CH6(%),SoilMoistureAD CH6,                                   SoilMoisture CH7(%),SoilMoistureAD CH7,                                   SoilMoisture CH8(%),SoilMoistureAD CH8,                                   SoilMoisture CH9(%),SoilMoistureAD CH9,                                   SoilMoisture CH10(%),SoilMoistureAD CH10,                                     SoilMoisture CH11(%),SoilMoistureAD CH11,                                     SoilMoisture CH12(%),SoilMoistureAD CH12,                                     SoilMoisture CH13(%),SoilMoistureAD CH13,                                     SoilMoisture CH14(%),SoilMoistureAD CH14,                                     SoilMoisture CH15(%),SoilMoistureAD CH15,                                     SoilMoisture CH16(%),SoilMoistureAD CH16,                                     Water CH1,Water CH2,Water CH3,Water CH4,PM2.5 CH1(ug/m3),PM2.5 CH2(ug/m3),PM2.5 CH3(ug/m3),PM2.5 CH4(ug/m3),WN34 CH1(°C),WN34 CH2(°C),WN34 CH3(°C),WN34 CH4(°C),WN34 CH5(°C),WN34 CH6(°C),WN34 CH7(°C),WN34 CH8(°C),LDS_Air CH1(mm),LDS_Depth CH1(mm),LDS_Heat CH1,LDS_Air CH2(mm),LDS_Depth CH2(mm),LDS_Heat CH2,LDS_Air CH3(mm),LDS_Depth CH3(mm),LDS_Heat CH3,LDS_Air CH4(mm),LDS_Depth CH4(mm),LDS_Heat CH4,
+			// Time,Timestamp,CH1 Temperature(°C),CH1 Dew point(°C),CH1 HeatIndex(°C),CH1 Humidity(%),CH2 Temperature(°C),CH2 Dew point(°C),CH2 HeatIndex(°C),CH2 Humidity(%),CH3 Temperature(°C),CH3 Dew point(°C),CH3 HeatIndex(°C),CH3 Humidity(%),CH4 Temperature(°C),CH4 Dew point(°C),CH4 HeatIndex(°C),CH4 Humidity(%),CH5 Temperature(°C),CH5 Dew point(°C),CH5 HeatIndex(°C),CH5 Humidity(%),CH6 Temperature(°C),CH6 Dew point(°C),CH6 HeatIndex(°C),CH6 Humidity(%),CH7 Temperature(°C),CH7 Dew point(°C),CH7 HeatIndex(°C),CH7 Humidity(%),CH8 Temperature(°C),CH8 Dew point(°C),CH8 HeatIndex(°C),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder time,Thunder count,Thunder distance(mi),AQIN Temperature(°C),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),SoilMoistureAD CH1,SoilEC CH1(us/cm),SoilTemp CH1(°C),SoilMoisture CH2(%),SoilMoistureAD CH2,SoilEC CH2(us/cm),SoilTemp CH2(°C),SoilMoisture CH3(%),SoilMoistureAD CH3,SoilEC CH3(us/cm),SoilTemp CH3(°C),SoilMoisture CH4(%),SoilMoistureAD CH4,SoilEC CH4(us/cm),SoilTemp CH4(°C),SoilMoisture CH5(%),SoilMoistureAD CH5,SoilEC CH5(us/cm),SoilTemp CH5(°C),SoilMoisture CH6(%),SoilMoistureAD CH6,SoilEC CH6(us/cm),SoilTemp CH6(°C),SoilMoisture CH7(%),SoilMoistureAD CH7,SoilEC CH7(us/cm),SoilTemp CH7(°C),SoilMoisture CH8(%),SoilMoistureAD CH8,SoilEC CH8(us/cm),SoilTemp CH8(°C),SoilMoisture CH9(%),SoilMoistureAD CH9,SoilEC CH9(us/cm),SoilTemp CH9(°C),SoilMoisture CH10(%),SoilMoistureAD CH10,SoilEC CH10(us/cm),SoilTemp CH10(°C),SoilMoisture CH11(%),SoilMoistureAD CH11,SoilEC CH11(us/cm),SoilTemp CH11(°C),SoilMoisture CH12(%),SoilMoistureAD CH12,SoilEC CH12(us/cm),SoilTemp CH12(°C),SoilMoisture CH13(%),SoilMoistureAD CH13,SoilEC CH13(us/cm),SoilTemp CH13(°C),SoilMoisture CH14(%),SoilMoistureAD CH14,SoilEC CH14(us/cm),SoilTemp CH14(°C),SoilMoisture CH15(%),SoilMoistureAD CH15,SoilEC CH15(us/cm),SoilTemp CH15(°C),SoilMoisture CH16(%),SoilMoistureAD CH16,SoilEC CH16(us/cm),SoilTemp CH16(°C),Water CH1,Water CH2,Water CH3,Water CH4,PM2.5 CH1(ug/m3),PM2.5 CH2(ug/m3),PM2.5 CH3(ug/m3),PM2.5 CH4(ug/m3),WN34 CH1(°C),WN34 CH2(°C),WN34 CH3(°C),WN34 CH4(°C),WN34 CH5(°C),WN34 CH6(°C),WN34 CH7(°C),WN34 CH8(°C),LDS_Air CH1(mm),LDS_Depth CH1(mm),LDS_Heat CH1,LDS_Air CH2(mm),LDS_Depth CH2(mm),LDS_Heat CH2,LDS_Air CH3(mm),LDS_Depth CH3(mm),LDS_Heat CH3,LDS_Air CH4(mm),LDS_Depth CH4(mm),LDS_Heat CH4,
+			// Time,Timestamp,CH1 Temperature(°C),CH1 Dew point(°C),CH1 HeatIndex(°C),CH1 Humidity(%),CH2 Temperature(°C),CH2 Dew point(°C),CH2 HeatIndex(°C),CH2 Humidity(%),CH3 Temperature(°C),CH3 Dew point(°C),CH3 HeatIndex(°C),CH3 Humidity(%),CH4 Temperature(°C),CH4 Dew point(°C),CH4 HeatIndex(°C),CH4 Humidity(%),CH5 Temperature(°C),CH5 Dew point(°C),CH5 HeatIndex(°C),CH5 Humidity(%),CH6 Temperature(°C),CH6 Dew point(°C),CH6 HeatIndex(°C),CH6 Humidity(%),CH7 Temperature(°C),CH7 Dew point(°C),CH7 HeatIndex(°C),CH7 Humidity(%),CH8 Temperature(°C),CH8 Dew point(°C),CH8 HeatIndex(°C),CH8 Humidity(%),WH35 CH1hum(%),WH35 CH2hum(%),WH35 CH3hum(%),WH35 CH4hum(%),WH35 CH5hum(%),WH35 CH6hum(%),WH35 CH7hum(%),WH35 CH8hum(%),Thunder time,Thunder count,Thunder distance(km),AQIN Temperature(°C),AQIN Humidity(%),AQIN CO2(ppm),AQIN PM2.5(ug/m3),AQIN PM10(ug/m3),AQIN PM1.0(ug/m3),AQIN PM4.0(ug/m3),SoilMoisture CH1(%),SoilMoistureAD CH1,SoilEC CH1(uS/cm),SoilTemp CH1(°C),SoilMoisture CH2(%),SoilMoistureAD CH2,SoilEC CH2(uS/cm),SoilTemp CH2(°C),SoilMoisture CH3(%),SoilMoistureAD CH3,SoilEC CH3(uS/cm),SoilTemp CH3(°C),SoilMoisture CH4(%),SoilMoistureAD CH4,SoilEC CH4(uS/cm),SoilTemp CH4(°C),SoilMoisture CH5(%),SoilMoistureAD CH5,SoilEC CH5(uS/cm),SoilTemp CH5(°C),SoilMoisture CH6(%),SoilMoistureAD CH6,SoilEC CH6(uS/cm),SoilTemp CH6(°C),SoilMoisture CH7(%),SoilMoistureAD CH7,SoilEC CH7(uS/cm),SoilTemp CH7(°C),SoilMoisture CH8(%),SoilMoistureAD CH8,SoilEC CH8(uS/cm),SoilTemp CH8(°C),SoilMoisture CH9(%),SoilMoistureAD CH9,SoilEC CH9(uS/cm),SoilTemp CH9(°C),SoilMoisture CH10(%),SoilMoistureAD CH10,SoilEC CH10(uS/cm),SoilTemp CH10(°C),SoilMoisture CH11(%),SoilMoistureAD CH11,SoilEC CH11(uS/cm),SoilTemp CH11(°C),SoilMoisture CH12(%),SoilMoistureAD CH12,SoilEC CH12(uS/cm),SoilTemp CH12(°C),SoilMoisture CH13(%),SoilMoistureAD CH13,SoilEC CH13(uS/cm),SoilTemp CH13(°C),SoilMoisture CH14(%),SoilMoistureAD CH14,SoilEC CH14(uS/cm),SoilTemp CH14(°C),SoilMoisture CH15(%),SoilMoistureAD CH15,SoilEC CH15(uS/cm),SoilTemp CH15(°C),SoilMoisture CH16(%),SoilMoistureAD CH16,SoilEC CH16(uS/cm),SoilTemp CH16(°C),Water CH1,Water CH2,Water CH3,Water CH4,PM2.5 CH1(ug/m3),PM2.5 CH2(ug/m3),PM2.5 CH3(ug/m3),PM2.5 CH4(ug/m3),WN34 CH1(°C),WN34 CH2(°C),WN34 CH3(°C),WN34 CH4(°C),WN34 CH5(°C),WN34 CH6(°C),WN34 CH7(°C),WN34 CH8(°C),LDS_Air CH1(mm),LDS_Depth CH1(mm),LDS_Heat CH1,LDS_Air CH2(mm),LDS_Depth CH2(mm),LDS_Heat CH2,LDS_Air CH3(mm),LDS_Depth CH3(mm),LDS_Heat CH3,LDS_Air CH4(mm),LDS_Depth CH4(mm),LDS_Heat CH4,WQT_EC(uS/cm),WQT_TOC(mg/L),WQT_TURB(NTU),WQT_COD(mg/L),WQT_TDS(mg/L),WQT_CO2(ppm),
+
 			cumulus.LogDataMessage($"EcowittExtraLogFile.HeaderParser: File header: {header}");
 
 			// split on commas
@@ -320,7 +409,7 @@ namespace CumulusMX.Stations
 			{
 				// invalid header
 				cumulus.LogErrorMessage("EcowittExtraLogFile.HeaderParser: Invalid header in file = " + header);
-				return;
+				return false;
 			}
 
 			// create a fields index
@@ -386,8 +475,9 @@ namespace CumulusMX.Stations
 					_ => LightningDist.km
 				};
 			}
-		}
 
+			return true;
+		}
 
 		private enum TempUnits
 		{

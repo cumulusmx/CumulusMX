@@ -6,7 +6,7 @@ using SQLite;
 
 using static CumulusMX.WeatherStation;
 
-namespace CumulusMX
+namespace CumulusMX.LogFiles
 {
 	internal class DayFileRec
 	{

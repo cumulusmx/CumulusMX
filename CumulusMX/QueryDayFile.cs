@@ -4,10 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack.Text;
 
 using SQLite;
 
@@ -228,7 +227,7 @@ namespace CumulusMX
 					{
 						ret = db.Query<RetValTime>($"SELECT {propertyName} value, {timeProp} time FROM DayFileRec WHERE {propertyName} = (SELECT {function}({propertyName}) FROM DayFileRec WHERE Date BETWEEN ? AND ?) AND Date BETWEEN ? AND ? LIMIT 1", fromDate, toDate, fromDate, toDate);
 					}
-					
+
 					if (ret.Count == 1)
 					{
 						value = ret[0].value;
@@ -241,7 +240,7 @@ namespace CumulusMX
 
 					if (byDay != string.Empty)
 					{
-						var ret = db.Query<RetValTime>($"SELECT {timeProp} AS time, {propertyName} AS value FROM DayFileRec WHERE {(string.IsNullOrEmpty(where) ? string.Empty : $"{propertyName} {where} AND")} strftime(\"%m-%d\", Date) = \"{byDay}\" ORDER BY value {sort} LIMIT 1");
+						var ret = db.Query<RetValTime>($"SELECT {timeProp} AS time, {propertyName} AS value FROM DayFileRec WHERE {(string.IsNullOrEmpty(where) ? string.Empty : $"{propertyName} {where} AND")} strftime('%m-%d', Date) = '{byDay}' ORDER BY value {sort} LIMIT 1");
 						if (ret.Count == 1)
 						{
 							value = ret[0].value;
@@ -251,7 +250,7 @@ namespace CumulusMX
 					else if (yearly)
 					{
 						var ret = db.Query<RetValTime>($"SELECT {function}({propertyName}) value, {timeProp} time, strftime('%Y', Date) year FROM DayFileRec GROUP BY year ORDER BY value {sort} LIMIT 1");
-						
+
 						if (ret.Count == 1)
 						{
 							value = ret[0].value;
@@ -263,7 +262,7 @@ namespace CumulusMX
 						if (function == "sum" || function == "avg")
 						{
 							var ret = db.Query<RetValString>($"SELECT {function}({propertyName}) value, strftime('%Y-%m', Date) year_month FROM DayFileRec WHERE strftime('%m', Date) = '{byMonth}' GROUP BY year_month ORDER BY value {sort} LIMIT 1");
-							
+
 							if (ret.Count == 1)
 							{
 								value = ret[0].value;
@@ -307,15 +306,16 @@ namespace CumulusMX
 				var json = WebUtility.UrlDecode(data)[5..];
 
 				// de-serialize it
-				var req = JsonSerializer.DeserializeFromString<WebReq>(json);
+				var req = JsonSerializer.Deserialize<WebReq>(json);
 
 				// process the settings
 				try
 				{
 					var from = req.startsel == "User" ? req.start : req.startsel;
 					var format = "g";
+					var compare = req.where == null ? "" : req.where + req.value;
 
-					var (value, time) = DayFile(req.dataname, req.function, req.where, from, req.end, req.countfunction);
+					var (value, time) = DayFile(req.dataname, req.function, compare, from, req.end, req.countfunction);
 
 					Program.cumulus.LogMessage("API Querying day file complete");
 
@@ -371,6 +371,7 @@ namespace CumulusMX
 			public string dataname { get; set; }
 			public string function { get; set; }
 			public string where { get; set; }
+			public double value { get; set; }
 			public string startsel { get; set; }
 			public string start { get; set; }
 			public string end { get; set; }

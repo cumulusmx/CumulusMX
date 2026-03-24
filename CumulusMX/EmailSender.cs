@@ -37,8 +37,7 @@ namespace CumulusMX
 				var logMessage = ToLiteral(message);
 				var sendSubject = subject + " - " + cumulus.LocationName;
 
-				var logMsg = $"SendEmail: Sending email, to [{string.Join("; ", to)}], subject [{sendSubject}], body [{logMessage}]";
-				cumulus.LogMessage(logMsg);
+				cumulus.LogMessage($"SendEmail: Request to send email, to [{string.Join("; ", to)}], subject [{sendSubject}], body [{logMessage}]");
 
 				var m = new MimeMessage();
 				m.From.Add(new MailboxAddress("", from));
@@ -64,41 +63,66 @@ namespace CumulusMX
 
 				m.Body = bodyBuilder.ToMessageBody();
 
-				using (SmtpClient client = cumulus.SmtpOptions.Logging ? new SmtpClient(new ProtocolLogger("MXdiags/smtp.log")) : new SmtpClient())
+				var attempt = 0;
+				do
 				{
-					if (cumulus.SmtpOptions.IgnoreCertErrors)
+					try
 					{
-						client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-					}
 
-					if (cumulus.SmtpOptions.Logging)
-					{
-						logMsg = DateTime.Now.ToString("\n\nyyyy-MM-dd HH:mm:ss.fff ") + logMsg;
-						var byteArr = System.Text.Encoding.UTF8.GetBytes(logMsg);
-						client.ProtocolLogger.LogClient(byteArr, 0, byteArr.Length);
-					}
+						var logMsg = $"SendEmail: Sending email, to [{string.Join("; ", to)}], subject [{sendSubject}], body [{logMessage}]";
+						cumulus.LogMessage(logMsg);
 
-					await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (SecureSocketOptions) cumulus.SmtpOptions.SslOption);
-
-					// 0 = None
-					// 1 = Username/Passwword
-					if (cumulus.SmtpOptions.AuthenticationMethod <= 1)
-					{
-						// Note: since we don't have an OAuth2 token, disable
-						// the XOAUTH2 authentication mechanism.
-						client.AuthenticationMechanisms.Remove("XOAUTH2");
-
-						if (cumulus.SmtpOptions.AuthenticationMethod == 1)
+						using (SmtpClient client = cumulus.SmtpOptions.Logging ? new SmtpClient(new ProtocolLogger("MXdiags/smtp.log")) : new SmtpClient())
 						{
-							await client.AuthenticateAsync(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
-						}
-					}
+							if (cumulus.SmtpOptions.IgnoreCertErrors)
+							{
+								client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+							}
 
-					var response = await client.SendAsync(m);
-					cumulus.LogDebugMessage("SendEmail response: " + response);
-					await client.DisconnectAsync(true);
+							if (cumulus.SmtpOptions.Logging)
+							{
+								logMsg = DateTime.Now.ToString("\n\nyyyy-MM-dd HH:mm:ss.fff ") + logMsg;
+								var byteArr = System.Text.Encoding.UTF8.GetBytes(logMsg);
+								client.ProtocolLogger.LogClient(byteArr, 0, byteArr.Length);
+							}
+
+							await client.ConnectAsync(cumulus.SmtpOptions.Server, cumulus.SmtpOptions.Port, (SecureSocketOptions) cumulus.SmtpOptions.SslOption);
+
+							// 0 = None
+							// 1 = Username/Passwword
+							if (cumulus.SmtpOptions.AuthenticationMethod <= 1)
+							{
+								// Note: since we don't have an OAuth2 token, disable
+								// the XOAUTH2 authentication mechanism.
+								client.AuthenticationMechanisms.Remove("XOAUTH2");
+
+								if (cumulus.SmtpOptions.AuthenticationMethod == 1)
+								{
+									await client.AuthenticateAsync(cumulus.SmtpOptions.User, cumulus.SmtpOptions.Password);
+								}
+							}
+
+							var response = await client.SendAsync(m);
+							cumulus.LogDebugMessage("SendEmail: response: " + response);
+							await client.DisconnectAsync(true);
+						}
+						retVal = true;
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "SendEmail: Error");
+						// exponential backoff starting at 20 seconds (20000 ms)
+						var backoff = (int)(20 * Math.Pow(2, attempt));
+						cumulus.LogMessage($"SendEmail: Waiting {TimeSpan.FromSeconds(backoff)} before trying again");
+						Thread.Sleep(backoff * 1000);
+					}
+				// retry up to 10 times ~ 5.6 hours
+				} while (!retVal && ++attempt < 11);
+
+				if (!retVal)
+				{
+					cumulus.LogMessage($"SendEmail: Giving up trying to send message with subject [{sendSubject}]");
 				}
-				retVal = true;
 			}
 			catch (Exception ex)
 			{

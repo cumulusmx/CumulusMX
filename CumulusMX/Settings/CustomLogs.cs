@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
 
-using ServiceStack;
-
-namespace CumulusMX
+namespace CumulusMX.Settings
 {
 	public class CustomLogs(Cumulus cumulus)
 	{
@@ -39,7 +38,7 @@ namespace CumulusMX
 				interval = interval
 			};
 
-			return settings.ToJson();
+			return JsonSerializer.Serialize(settings);
 		}
 
 		public string GetAlpacaFormDataDaily()
@@ -65,12 +64,12 @@ namespace CumulusMX
 				daily = daily
 			};
 
-			return settings.ToJson();
+			return JsonSerializer.Serialize(settings);
 		}
 
 		public string UpdateConfigIntvl(IHttpContext context)
 		{
-			string json = string.Empty;
+			var json = string.Empty;
 			CustomLogsSettings settings;
 			try
 			{
@@ -80,7 +79,7 @@ namespace CumulusMX
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<CustomLogsSettings>();
+				settings = JsonSerializer.Deserialize<CustomLogsSettings>(json);
 			}
 			catch (Exception ex)
 			{
@@ -137,7 +136,7 @@ namespace CumulusMX
 
 		public string UpdateConfigDaily(IHttpContext context)
 		{
-			string json = string.Empty;
+			var json = string.Empty;
 			CustomLogsSettings settings;
 			try
 			{
@@ -147,7 +146,7 @@ namespace CumulusMX
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<CustomLogsSettings>();
+				settings = JsonSerializer.Deserialize<CustomLogsSettings>(json);
 			}
 			catch (Exception ex)
 			{

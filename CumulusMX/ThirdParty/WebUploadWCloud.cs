@@ -22,7 +22,7 @@ namespace CumulusMX.ThirdParty
 			Updating = true;
 
 			// Random jitter
-			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+			await Task.Delay(Program.RandGenerator.Next(5000, 20000), Program.ExitSystemToken);
 
 			string pwstring;
 			string url = GetURL(out pwstring, timestamp);
@@ -41,8 +41,8 @@ namespace CumulusMX.ThirdParty
 			{
 				try
 				{
-					using var response = await cumulus.MyHttpClient.GetAsync(url);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
+					using var response = await cumulus.MyHttpClient.GetAsync(url, Program.ExitSystemToken);
+					var responseBodyAsText = await response.Content.ReadAsStringAsync(Program.ExitSystemToken);
 					var msg = string.Empty;
 					switch ((int) response.StatusCode)
 					{
@@ -125,7 +125,7 @@ namespace CumulusMX.ThirdParty
 
 						cumulus.LogMessage($"WeatherCloud: Retrying in {delay / retryCount} seconds");
 
-						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
+						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount), Program.ExitSystemToken);
 					}
 				}
 			}
@@ -135,6 +135,7 @@ namespace CumulusMX.ThirdParty
 
 		internal override string GetURL(out string pwstring, DateTime timestamp)
 		{
+			var inv = System.Globalization.CultureInfo.InvariantCulture;
 			pwstring = PW;
 			StringBuilder sb = new StringBuilder($"https://api.weathercloud.net/v01/set?wid={ID}&key={PW}");
 
@@ -267,7 +268,7 @@ namespace CumulusMX.ThirdParty
 
 				if (wet.HasValue)
 				{
-					sb.Append($"&leafwet={wet.Value.ToString(cumulus.LeafWetFormat)}");
+					sb.Append($"&leafwet={wet.Value.ToString(cumulus.LeafWetFormat, inv)}");
 				}
 			}
 

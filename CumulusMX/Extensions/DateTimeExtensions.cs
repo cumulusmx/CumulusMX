@@ -35,7 +35,7 @@ namespace CumulusMX
 		}
 
 		// Cconvert Unix TS seconds to local time
-		public static DateTime FromUnixTime(this long unixTime)
+		public static DateTime LocalFromUnixTime(this long unixTime)
 		{
 			try
 			{
@@ -49,12 +49,12 @@ namespace CumulusMX
 			}
 		}
 
-		public static DateTime FromUnixTime(this long? unixTime)
+		public static DateTime LocalFromUnixTime(this long? unixTime)
 		{
-			return unixTime == null ? DateTime.MinValue : FromUnixTime(unixTime.Value);
+			return unixTime == null ? DateTime.MinValue : LocalFromUnixTime(unixTime.Value);
 		}
 
-		public static DateTime FromUnixTime(this int unixTime)
+		public static DateTime LocalFromUnixTime(this int unixTime)
 		{
 			try
 			{
@@ -68,10 +68,31 @@ namespace CumulusMX
 			}
 		}
 
-		public static DateTime FromUnixTime(this int? unixTime)
+		// Convert Unix TS to UTC DateTime
+		public static DateTime UtcFromUnixTime(this long unixTime)
 		{
-			return unixTime == null ? DateTime.MinValue : FromUnixTime(unixTime.Value);
+			try
+			{
+				var utcTime = DateTime.UnixEpoch.AddSeconds(unixTime);
+				return utcTime;
+			}
+			catch (Exception ex)
+			{
+				Program.cumulus.LogExceptionMessage(ex, "FromUnixTime: Exception");
+				return DateTime.MinValue;
+			}
 		}
+
+		public static DateTime UtcFromUnixTime(this long? unixTime)
+		{
+			return unixTime == null ? DateTime.MinValue : UtcFromUnixTime(unixTime.Value);
+		}
+
+		public static DateTime UtcFromUnixTime(this int? unixTime)
+		{
+			return unixTime == null ? DateTime.MinValue : UtcFromUnixTime((long)unixTime.Value);
+		}
+
 
 		public static DateTime RoundTimeUpToInterval(this DateTime dateTime, TimeSpan intvl)
 		{
@@ -88,6 +109,7 @@ namespace CumulusMX
 				return dateTime;
 			}
 		}
+
 
 		public static DateTime RoundTimeDownToInterval(this DateTime dateTime, TimeSpan intvl)
 		{

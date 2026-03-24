@@ -352,11 +352,13 @@ namespace CumulusMX.Stations
 				try
 				{
 					// solarradiation - [W/m^2]
-
-					var str = data["solarradiation"];
-					if (str != null && str != "-9999")
+					if (!cumulus.ExtraSensorUseSolar)
 					{
-						DoSolarRad((int) Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
+						var str = data["solarradiation"];
+						if (str != null && str != "-9999")
+						{
+							DoSolarRad((int) Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
+						}
 					}
 				}
 				catch (Exception ex)
@@ -369,11 +371,13 @@ namespace CumulusMX.Stations
 				try
 				{
 					// UV - [index]
-
-					var str = data["UV"];
-					if (str != null && str != "-9999")
+					if (!cumulus.ExtraSensorUseUv)
 					{
-						DoUV(Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
+						var str = data["UV"];
+						if (str != null && str != "-9999")
+						{
+							DoUV(Convert.ToDouble(str, CultureInfo.InvariantCulture), recDate);
+						}
 					}
 				}
 				catch (Exception ex)
@@ -387,7 +391,6 @@ namespace CumulusMX.Stations
 				{
 					// soiltempf - [F soil temperature]
 					// soiltemp[2-4]f
-
 					var str1 = data["soiltempf"];
 					if (str1 != null && str1 != "-9999")
 					{
@@ -414,7 +417,6 @@ namespace CumulusMX.Stations
 				{
 					// soilmoisture - [%]
 					// soilmoisture[2-4]
-
 					var str1 = data["soilmoisture"];
 					if (str1 != null && str1 != "-9999")
 					{
@@ -441,7 +443,6 @@ namespace CumulusMX.Stations
 				{
 					// leafwetness - [%]
 					// leafwetness2
-
 					var str1 = data["leafwetness"];
 					if (str1 != null && str1 != "-9999")
 					{
@@ -464,7 +465,6 @@ namespace CumulusMX.Stations
 				{
 					// AqPM2.5 - PM2.5 mass - UG / M3
 					// AqPM10 - PM10 mass - PM10 mass
-
 					var str2 = data["AqPM2.5"];
 					if (str2 != null && str2 != "-9999")
 					{

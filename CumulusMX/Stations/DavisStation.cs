@@ -647,7 +647,7 @@ namespace CumulusMX.Stations
 			var attempt = 0;
 
 			// Creating the new TCP socket effectively opens it - specify IP address or domain name and port
-			while (attempt < 5 && !stop)
+			do
 			{
 				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
@@ -690,7 +690,7 @@ namespace CumulusMX.Stations
 					stop = true;
 					return null;
 				}
-			}
+			} while (attempt < 5 && !stop);
 
 			// Set the timeout of the underlying stream
 			if (client != null && client.Connected)
@@ -1093,7 +1093,7 @@ namespace CumulusMX.Stations
 			const int loop2count = 1;
 			var reconnecting = false;
 
-			while (!stop)
+			do
 			{
 				try
 				{
@@ -1106,33 +1106,33 @@ namespace CumulusMX.Stations
 						if (consoleclock > DateTime.MinValue)
 						{
 							cumulus.LogMessage("Console clock: " + consoleclock);
+
+							if (Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 30)
+							{
+								SetTime();
+
+								cumulus.LogMessage("Console clock: Pausing to allow console to process the new date/time");
+								Thread.Sleep(1000 * 5);
+
+								consoleclock = GetTime();
+
+								if (consoleclock > DateTime.MinValue)
+								{
+									cumulus.LogMessage("Console clock: " + consoleclock);
+								}
+								else
+								{
+									cumulus.LogWarningMessage("Console clock: Failed to read console time");
+								}
+							}
+							else
+							{
+								cumulus.LogMessage($"Console clock: Accurate to +/- 30 seconds, no need to set it (diff={(int) nowTime.Subtract(consoleclock).TotalSeconds}s)");
+							}
 						}
 						else
 						{
 							cumulus.LogWarningMessage("Console clock: Failed to read console time");
-						}
-
-						if (Math.Abs(nowTime.Subtract(consoleclock).TotalSeconds) >= 30)
-						{
-							SetTime();
-
-							cumulus.LogMessage("Console clock: Pausing to allow console to process the new date/time");
-							Thread.Sleep(1000 * 5);
-
-							consoleclock = GetTime();
-
-							if (consoleclock > DateTime.MinValue)
-							{
-								cumulus.LogMessage("Console clock: " + consoleclock);
-							}
-							else
-							{
-								cumulus.LogWarningMessage("Console clock: Failed to read console time");
-							}
-						}
-						else
-						{
-							cumulus.LogMessage($"Console clock: Accurate to +/- 30 seconds, no need to set it (diff={(int) nowTime.Subtract(consoleclock).TotalSeconds}s)");
 						}
 
 						clockSetNeeded = false;
@@ -1233,7 +1233,7 @@ namespace CumulusMX.Stations
 					// any others, log them and carry on
 					cumulus.LogExceptionMessage(ex, "Davis Start: Exception");
 				}
-			}
+			} while (!stop);
 
 			cumulus.LogMessage("Ending normal reading loop");
 
@@ -1271,6 +1271,7 @@ namespace CumulusMX.Stations
 
 				if (WakeVP(comport))
 				{
+					var oldTimeout = comport.ReadTimeout;
 					try
 					{
 						comport.WriteLine(commandString);
@@ -1278,6 +1279,8 @@ namespace CumulusMX.Stations
 						if (WaitForOK(comport))
 						{
 							// Read the response
+							// This can take some time, so extend the timeout to 2.5 seconds
+							comport.ReadTimeout = 2500;
 							do
 							{
 								// Read the current character
@@ -1299,6 +1302,10 @@ namespace CumulusMX.Stations
 						cumulus.LogDebugMessage("SendBarRead: Attempting to reconnect to logger");
 						InitSerial();
 						cumulus.LogDebugMessage("SendBarRead: Reconnected to logger");
+					}
+					finally
+					{
+						comport.ReadTimeout = oldTimeout;
 					}
 				}
 			}
@@ -1350,10 +1357,9 @@ namespace CumulusMX.Stations
 			}
 
 			cumulus.LogDataMessage("BARREAD Received - " + BitConverter.ToString(readBuffer.Take(bytesRead).ToArray()));
-			if (response.Length > 2)
+			if (response.Length == 7)
 			{
-				response.Length--;
-				cumulus.LogDebugMessage("BARREAD Received - " + response.ToString());
+				cumulus.LogDebugMessage("BARREAD Received - " + response.ToString(0, 2) + '.' + response.ToString(2, 3));
 			}
 		}
 
@@ -1805,13 +1811,19 @@ namespace CumulusMX.Stations
 				StormRain = ConvertRainClicksToUser(loopData.StormRain);
 				StartOfStorm = loopData.StormRainStart;
 
-				DoUV(loopData.UVIndex >= 0 && loopData.UVIndex < 17 ? loopData.UVIndex : null, now);
-
-				DoSolarRad(loopData.SolarRad >= 0 && loopData.SolarRad < 1801 ? loopData.SolarRad : null, now);
-
-				if (loopData.AnnualET >= 0 && loopData.AnnualET < 32000)
+				if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
 				{
-					DoET(ConvertUnits.RainINToUser(loopData.AnnualET), now);
+					DoUV(loopData.UVIndex >= 0 && loopData.UVIndex < 17 ? loopData.UVIndex : null, now);
+				}
+
+				if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
+				{
+					DoSolarRad(loopData.SolarRad >= 0 && loopData.SolarRad < 1801 ? loopData.SolarRad : null, now);
+
+					if (loopData.AnnualET >= 0 && loopData.AnnualET < 32000)
+					{
+						DoET(ConvertUnits.RainINToUser(loopData.AnnualET), now);
+					}
 				}
 
 				DoWindChill(OutdoorTemperature, now);
@@ -2094,8 +2106,8 @@ namespace CumulusMX.Stations
 						// add to recent values so normal calculation includes this value
 						lock (recentwindLock)
 						{
-							WindRecent[nextwind].Gust = rawGust10min;
-							WindRecent[nextwind].Speed = -1;
+							WindRecent[nextwind].GustUncal = rawGust10min;
+							WindRecent[nextwind].SpeedUncal = -1;
 							WindRecent[nextwind].Timestamp = now;
 							nextwind = (nextwind + 1) % MaxWindRecent;
 						}
@@ -2563,6 +2575,12 @@ namespace CumulusMX.Stations
 									DoRain(lastRain, lastRainrate, preDayTS);
 								}
 
+								// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
+								// Windrun
+								// Dominant wind bearing
+								// ET - if MX calculated
+								// Degree days
+								// Rainfall
 
 								// In roll-over hour and roll-over not yet done
 								if (h == rollHour && !rolloverdone)
@@ -2610,7 +2628,7 @@ namespace CumulusMX.Stations
 								}
 
 								// Not in snow hour, snow yet to be done
-								if (h != 0)
+								if (h != cumulus.SnowDepthHour)
 								{
 									snowhourdone = false;
 								}
@@ -2625,7 +2643,7 @@ namespace CumulusMX.Stations
 									// reset the accumulated snow depth(s)
 									for (var i = 0; i < Snow24h.Length; i++)
 									{
-										Snow24h[i] = null;
+										Snow24h[i] = LaserDepth[i].HasValue ? 0 : null;
 									}
 
 									snowhourdone = true;
@@ -2735,24 +2753,30 @@ namespace CumulusMX.Stations
 								StationPressure = 0;
 								AltimeterPressure = Pressure;
 
-								if (archiveData.HiUVIndex >= 0 && archiveData.HiUVIndex < 25)
+								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
 								{
-									DoUV(archiveData.HiUVIndex, timestamp);
+									if (archiveData.HiUVIndex >= 0 && archiveData.HiUVIndex < 25)
+									{
+										DoUV(archiveData.HiUVIndex, timestamp);
+									}
 								}
 
-								if (archiveData.SolarRad >= 0 && archiveData.SolarRad < 5000)
+								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 								{
-									DoSolarRad(archiveData.SolarRad, timestamp);
+									if (archiveData.SolarRad >= 0 && archiveData.SolarRad < 5000)
+									{
+										DoSolarRad(archiveData.SolarRad, timestamp);
 
-									// add in archive period worth of sunshine, if sunny
-									if (IsSunny)
-										SunshineHours += interval / 60.0;
-								}
+										// add in archive period worth of sunshine, if sunny
+										if (IsSunny)
+											SunshineHours += interval / 60.0;
+									}
 
-								// we don't want to do the this for the first instant of the day
-								if (notFirstRec && !cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
-								{
-									DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
+									// we don't want to do the this for the first instant of the day
+									if (notFirstRec && !cumulus.StationOptions.CalculatedET && archiveData.ET >= 0 && archiveData.ET < 32000)
+									{
+										DoET(ConvertUnits.RainINToUser(archiveData.ET) + AnnualETTotal, timestamp);
+									}
 								}
 
 								if (cumulus.StationOptions.LogExtraSensors)
@@ -2859,7 +2883,11 @@ namespace CumulusMX.Stations
 
 								LastDataReadTime = timestamp;
 
-								_ = cumulus.DoLogFile(timestamp, false);
+								if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+								{
+									// Only log data if not in the roll-over hour and not on the hour
+									_ = cumulus.DoLogFile(timestamp, false);
+								}
 								cumulus.LogMessage("GetArchiveData: Log file entry written");
 
 								try
@@ -2885,7 +2913,7 @@ namespace CumulusMX.Stations
 								}
 
 								AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-									OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
+									OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 
 
 								UpdateStatusPanel(timestamp.ToUniversalTime());

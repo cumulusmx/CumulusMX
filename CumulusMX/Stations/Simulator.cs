@@ -41,7 +41,7 @@ namespace CumulusMX.Stations
 
 		public override void Start()
 		{
-			while (!stop)
+			do
 			{
 				try
 				{
@@ -72,7 +72,7 @@ namespace CumulusMX.Stations
 					// any others, log them and carry on
 					cumulus.LogErrorMessage("Simulator Start: Exception = " + ex.Message);
 				}
-			}
+			} while (!stop);
 
 			cumulus.LogMessage("Ending normal reading loop");
 		}

@@ -425,14 +425,14 @@ namespace CumulusMX.Stations
 			WS90,           // 48 30
 			Ws85,           // 49 31
 			// missing 8 channel device?
-			UNKNOWN1,        // 50 32
-			UNKNOWN2,        // 51 33
-			UNKNOWN3,        // 52 34
-			UNKNOWN4,        // 53 35
-			UNKNOWN5,        // 54 36
-			UNKNOWN6,        // 55 37
-			UNKNOWN7,        // 56 38
-			UNKNOWN8,        // 57 39
+			UNKNOWN1,       // 50 32
+			UNKNOWN2,       // 51 33
+			UNKNOWN3,       // 52 34
+			UNKNOWN4,       // 53 35
+			UNKNOWN5,       // 54 36
+			UNKNOWN6,       // 55 37
+			UNKNOWN7,       // 56 38
+			UNKNOWN8,       // 57 39
 			Wh51Ch9,        // 58 3A
 			Wh51Ch10,       // 59 3B
 			Wh51Ch11,       // 60 3C
@@ -444,7 +444,8 @@ namespace CumulusMX.Stations
 			Wh54Ch1,        // 66 42
 			Wh54Ch2,        // 67 43
 			Wh54Ch3,        // 68 44
-			Wh54Ch4         // 69 45
+			Wh54Ch4        // 69 45
+			// ??? 70 & 71
 		};
 
 		/*
@@ -652,6 +653,7 @@ namespace CumulusMX.Stations
 			Array.Reverse(arr);
 			return arr;
 		}
+
 		internal static byte[] ConvertUInt16ToBigEndianByteArray(ushort ui16)
 		{
 			return BitConverter.GetBytes(ui16);

@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack;
 
 using static CumulusMX.Settings.StationSettings;
 
@@ -69,7 +68,7 @@ namespace CumulusMX.Settings
 				useSolar = cumulus.ExtraSensorUseSolar,
 				useUv = cumulus.ExtraSensorUseUv,
 				useTempHum = cumulus.ExtraSensorUseTempHum,
-				//useSoilTemp = cumulus.EcowittExtraUseSoilTemp,
+				useSoilTemp = cumulus.ExtraSensorUseSoilTemp,
 				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
 				useLeafWet = cumulus.ExtraSensorUseLeafWet,
 				useUserTemp = cumulus.ExtraSensorUseUserTemp,
@@ -79,6 +78,7 @@ namespace CumulusMX.Settings
 				useLeak = cumulus.ExtraSensorUseLeak,
 				useCamera = cumulus.ExtraSensorUseCamera,
 				useLaserDist = cumulus.ExtraSensorUseLaserDist,
+				useBGT = cumulus.ExtraSensorUseBGT,
 
 				setcustom = cumulus.EcowittExtraSetCustomServer,
 				gwaddr = cumulus.EcowittExtraGatewayAddr,
@@ -110,16 +110,16 @@ namespace CumulusMX.Settings
 
 			var ambient = new JsonAmbient
 			{
-				useSolar = cumulus.AmbientExtraUseSolar,
-				useUv = cumulus.AmbientExtraUseUv,
-				useTempHum = cumulus.AmbientExtraUseTempHum,
-				//useSoilTemp = cumulus.AmbientExtraUseSoilTemp,
-				useSoilMoist = cumulus.AmbientExtraUseSoilMoist,
-				//useLeafWet = cumulus.AmbientExtraUseLeafWet,
-				useAQI = cumulus.AmbientExtraUseAQI,
-				useCo2 = cumulus.AmbientExtraUseCo2,
-				useLightning = cumulus.AmbientExtraUseLightning,
-				useLeak = cumulus.AmbientExtraUseLeak
+				useSolar = cumulus.ExtraSensorUseSolar,
+				useUv = cumulus.ExtraSensorUseUv,
+				useTempHum = cumulus.ExtraSensorUseTempHum,
+				useSoilTemp = cumulus.ExtraSensorUseSoilTemp,
+				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
+				useLeafWet = cumulus.ExtraSensorUseLeafWet,
+				useAQI = cumulus.ExtraSensorUseAQI,
+				useCo2 = cumulus.ExtraSensorUseCo2,
+				useLightning = cumulus.ExtraSensorUseLightning,
+				useLeak = cumulus.ExtraSensorUseLeak
 			};
 
 			var jsonstnadv = new JsonJsonStationAdvanced()
@@ -144,11 +144,14 @@ namespace CumulusMX.Settings
 				useUv = cumulus.ExtraSensorUseUv,
 				useTempHum = cumulus.ExtraSensorUseTempHum,
 				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
+				useSoilTemp = cumulus.ExtraSensorUseSoilTemp,
 				useLeafWet = cumulus.ExtraSensorUseLeafWet,
 				useUserTemp = cumulus.ExtraSensorUseUserTemp,
 				useAQI = cumulus.ExtraSensorUseAQI,
 				useCo2 = cumulus.ExtraSensorUseCo2,
-				useLaserDist = cumulus.ExtraSensorUseLaserDist
+				useLightning = cumulus.ExtraSensorUseLightning,
+				useLaserDist = cumulus.ExtraSensorUseLaserDist,
+				useBGT = cumulus.ExtraSensorUseBGT
 			};
 
 			var httpStation = new JsonHttp
@@ -194,21 +197,27 @@ namespace CumulusMX.Settings
 
 			var laser = new JsonLaser
 			{
+				primary = cumulus.LaserPrimarySnowSensor,
+
 				sensor1 = new JsonLaserDevice
 				{
-					depth = cumulus.LaserDepthBaseline[1]
+					depth = cumulus.LaserDepthBaseline[1],
+					snow = cumulus.LaserIsSnowSensor[1]
 				},
 				sensor2 = new JsonLaserDevice
 				{
-					depth = cumulus.LaserDepthBaseline[2]
+					depth = cumulus.LaserDepthBaseline[2],
+					snow = cumulus.LaserIsSnowSensor[2]
 				},
 				sensor3 = new JsonLaserDevice
 				{
-					depth = cumulus.LaserDepthBaseline[3]
+					depth = cumulus.LaserDepthBaseline[3],
+					snow = cumulus.LaserIsSnowSensor[3]
 				},
 				sensor4 = new JsonLaserDevice
 				{
-					depth = cumulus.LaserDepthBaseline[4]
+					depth = cumulus.LaserDepthBaseline[4],
+					snow = cumulus.LaserIsSnowSensor[4]
 				}
 			};
 
@@ -243,7 +252,7 @@ namespace CumulusMX.Settings
 				purpleAir = pa
 			};
 
-			return data.ToJson();
+			return JsonSerializer.Serialize(data);
 		}
 
 		public string UpdateConfig(IHttpContext context)
@@ -261,7 +270,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonSettings>();
+				settings = JsonSerializer.Deserialize<JsonSettings>(json);
 			}
 			catch (Exception ex)
 			{
@@ -341,7 +350,7 @@ namespace CumulusMX.Settings
 						cumulus.ExtraSensorUseSolar = settings.httpSensors.ecowitt.useSolar;
 						cumulus.ExtraSensorUseUv = settings.httpSensors.ecowitt.useUv;
 						cumulus.ExtraSensorUseTempHum = settings.httpSensors.ecowitt.useTempHum;
-						//cumulus.EcowittExtraUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp
+						cumulus.ExtraSensorUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp;
 						cumulus.ExtraSensorUseSoilMoist = settings.httpSensors.ecowitt.useSoilMoist;
 						cumulus.ExtraSensorUseLeafWet = settings.httpSensors.ecowitt.useLeafWet;
 						cumulus.ExtraSensorUseUserTemp = settings.httpSensors.ecowitt.useUserTemp;
@@ -351,6 +360,7 @@ namespace CumulusMX.Settings
 						cumulus.ExtraSensorUseLeak = settings.httpSensors.ecowitt.useLeak;
 						cumulus.ExtraSensorUseLaserDist = settings.httpSensors.ecowitt.useLaserDist;
 						cumulus.ExtraSensorUseCamera = settings.httpSensors.ecowitt.useCamera;
+						cumulus.ExtraSensorUseBGT = settings.httpSensors.ecowitt.useBGT;
 
 						cumulus.EcowittExtraSetCustomServer = settings.httpSensors.ecowitt.setcustom;
 						if (cumulus.EcowittExtraSetCustomServer)
@@ -500,19 +510,21 @@ namespace CumulusMX.Settings
 					cumulus.AmbientExtraEnabled = settings.httpSensors.extraStation == 1;
 					if (cumulus.AmbientExtraEnabled)
 					{
-						cumulus.AmbientExtraUseSolar = settings.httpSensors.ambient.useSolar;
-						cumulus.AmbientExtraUseUv = settings.httpSensors.ambient.useUv;
-						cumulus.AmbientExtraUseTempHum = settings.httpSensors.ambient.useTempHum;
-						//cumulus.AmbientExtraUseSoilTemp = settings.httpSensors.ambient.useSoilTemp
-						cumulus.AmbientExtraUseSoilMoist = settings.httpSensors.ambient.useSoilMoist;
-						//cumulus.AmbientExtraUseLeafWet = settings.httpSensors.ambient.useLeafWet
-						cumulus.AmbientExtraUseAQI = settings.httpSensors.ambient.useAQI;
-						cumulus.AmbientExtraUseCo2 = settings.httpSensors.ambient.useCo2;
-						cumulus.AmbientExtraUseLightning = settings.httpSensors.ambient.useLightning;
-						cumulus.AmbientExtraUseLeak = settings.httpSensors.ambient.useLeak;
+						cumulus.ExtraSensorUseSolar = settings.httpSensors.ambient.useSolar;
+						cumulus.ExtraSensorUseUv = settings.httpSensors.ambient.useUv;
+						cumulus.ExtraSensorUseTempHum = settings.httpSensors.ambient.useTempHum;
+						cumulus.ExtraSensorUseSoilTemp = settings.httpSensors.ambient.useSoilTemp;
+						cumulus.ExtraSensorUseSoilMoist = settings.httpSensors.ambient.useSoilMoist;
+						cumulus.ExtraSensorUseLeafWet = settings.httpSensors.ambient.useLeafWet;
+						cumulus.ExtraSensorUseAQI = settings.httpSensors.ambient.useAQI;
+						cumulus.ExtraSensorUseCo2 = settings.httpSensors.ambient.useCo2;
+						cumulus.ExtraSensorUseLightning = settings.httpSensors.ambient.useLightning;
+						cumulus.ExtraSensorUseLeak = settings.httpSensors.ambient.useLeak;
+						cumulus.ExtraSensorUseCamera = false;
+						cumulus.ExtraSensorUseBGT = false;
 
 						// Also enable extra logging if applicable
-						if (cumulus.AmbientExtraUseTempHum || cumulus.AmbientExtraUseSoilTemp || cumulus.AmbientExtraUseSoilMoist || cumulus.AmbientExtraUseAQI || cumulus.AmbientExtraUseCo2)
+						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2)
 						{
 							cumulus.StationOptions.LogExtraSensors = true;
 						}
@@ -559,7 +571,10 @@ namespace CumulusMX.Settings
 						cumulus.ExtraSensorUseUserTemp = settings.httpSensors.jsonstation.useUserTemp;
 						cumulus.ExtraSensorUseAQI = settings.httpSensors.jsonstation.useAQI;
 						cumulus.ExtraSensorUseCo2 = settings.httpSensors.jsonstation.useCo2;
+						cumulus.ExtraSensorUseLightning = settings.httpSensors.jsonstation.useLightning;
 						cumulus.ExtraSensorUseLaserDist = settings.httpSensors.jsonstation.useLaserDist;
+						cumulus.ExtraSensorUseBGT = settings.httpSensors.jsonstation.useBGT;
+						cumulus.ExtraSensorUseCamera = false;
 
 						// Also enable extra logging if applicable
 						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseLeafWet || cumulus.ExtraSensorUseUserTemp || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2 || cumulus.ExtraSensorUseLaserDist)
@@ -592,10 +607,32 @@ namespace CumulusMX.Settings
 				// Laser settings
 				try
 				{
-					cumulus.LaserDepthBaseline[1] = settings.laser.sensor1.depth;
-					cumulus.LaserDepthBaseline[2] = settings.laser.sensor2.depth;
-					cumulus.LaserDepthBaseline[3] = settings.laser.sensor3.depth;
-					cumulus.LaserDepthBaseline[4] = settings.laser.sensor4.depth;
+					// Nullify the last laser depth so DoSnowfall will realign to any new depth value
+					if (settings.laser.sensor1.depth != cumulus.LaserDepthBaseline[1] || settings.laser.sensor1.reset)
+					{
+						station.LastLaserSnowDepth[1] = station.LaserDepth[1];
+						cumulus.LaserDepthBaseline[1] = settings.laser.sensor1.depth;
+					}
+					if (settings.laser.sensor2.depth != cumulus.LaserDepthBaseline[2] || settings.laser.sensor2.reset)
+					{
+						station.LastLaserSnowDepth[2] = station.LaserDepth[2];
+						cumulus.LaserDepthBaseline[2] = settings.laser.sensor2.depth;
+					}
+					if (settings.laser.sensor3.depth != cumulus.LaserDepthBaseline[3] || settings.laser.sensor3.reset)
+					{
+						station.LastLaserSnowDepth[3] = station.LaserDepth[3];
+						cumulus.LaserDepthBaseline[3] = settings.laser.sensor3.depth;
+					}
+					if (settings.laser.sensor4.depth != cumulus.LaserDepthBaseline[4] || settings.laser.sensor4.reset)
+					{
+						station.LastLaserSnowDepth[4] = station.LaserDepth[4];
+						cumulus.LaserDepthBaseline[4] = settings.laser.sensor4.depth;
+					}
+					cumulus.LaserIsSnowSensor[1] = settings.laser.sensor1.snow;
+					cumulus.LaserIsSnowSensor[2] = settings.laser.sensor2.snow;
+					cumulus.LaserIsSnowSensor[3] = settings.laser.sensor3.snow;
+					cumulus.LaserIsSnowSensor[4] = settings.laser.sensor4.snow;
+					cumulus.LaserPrimarySnowSensor = settings.laser.primary;
 				}
 				catch (Exception ex)
 				{
@@ -724,6 +761,7 @@ namespace CumulusMX.Settings
 			public bool useUv { get; set; }
 			public bool useTempHum { get; set; }
 			public bool useSoilMoist { get; set; }
+			public bool useSoilTemp { get; set; }
 			public bool useLeafWet { get; set; }
 			public bool useUserTemp { get; set; }
 			public bool useAQI { get; set; }
@@ -732,6 +770,8 @@ namespace CumulusMX.Settings
 			public bool useLeak { get; set; }
 			public bool useCamera { get; set; }
 			public bool useLaserDist { get; set; }
+			public bool useBGT { get; set; }
+			public bool useWBGT { get; set; }
 		}
 
 		private sealed class JsonEcowitt : JsonAmbient
@@ -770,6 +810,7 @@ namespace CumulusMX.Settings
 
 		private sealed class JsonLaser
 		{
+			public int primary { get; set; }
 			public JsonLaserDevice sensor1 { get; set; }
 			public JsonLaserDevice sensor2 { get; set; }
 			public JsonLaserDevice sensor3 { get; set; }
@@ -780,6 +821,8 @@ namespace CumulusMX.Settings
 		private sealed class JsonLaserDevice
 		{
 			public decimal depth { get; set; }
+			public bool snow { get; set; }
+			public bool reset { get; set; }
 		}
 
 		private sealed class JsonRG11

@@ -12,6 +12,7 @@ namespace CumulusMX.Stations
 		private readonly WeatherStation station;
 		private bool starting = true;
 		private bool stopping = false;
+		private readonly bool mainStation = true;
 
 		public HttpStationAmbient(Cumulus cumulus, WeatherStation station = null) : base(cumulus, station != null)
 		{
@@ -23,6 +24,7 @@ namespace CumulusMX.Stations
 			}
 			else
 			{
+				mainStation = false;
 				cumulus.LogMessage("Creating Extra Sensors - HTTP Station (Ambient)");
 			}
 
@@ -34,17 +36,17 @@ namespace CumulusMX.Stations
 			// Ambient does not send DP, so force MX to calculate it
 			//cumulus.StationOptions.CalculatedDP = true
 
-			if (station == null || cumulus.AmbientExtraUseAQI)
+			if (mainStation || cumulus.ExtraSensorUseAQI)
 			{
 				cumulus.Units.AirQualityUnitText = "µg/m³";
 			}
-			if (station == null)
+			if (mainStation)
 			{
 				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
 			}
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
-			if (station == null)
+			if (mainStation)
 			{
 				Start();
 			}
@@ -52,7 +54,7 @@ namespace CumulusMX.Stations
 
 		public override void Start()
 		{
-			if (station == null)
+			if (mainStation)
 			{
 				cumulus.LogMessage("Starting HTTP Station (Ambient)");
 				DoDayResetIfNeeded();
@@ -223,7 +225,6 @@ namespace CumulusMX.Stations
 					try
 					{
 						// tempf
-
 						var temp = data["tempf"];
 
 						if (temp == null)
@@ -407,7 +408,7 @@ namespace CumulusMX.Stations
 
 
 				// === Extra Temperature ===
-				if (main || cumulus.AmbientExtraUseTempHum)
+				if (mainStation || cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -422,7 +423,7 @@ namespace CumulusMX.Stations
 
 
 				// === Extra Humidity ===
-				if (main || cumulus.AmbientExtraUseTempHum)
+				if (mainStation || cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{
@@ -437,7 +438,7 @@ namespace CumulusMX.Stations
 
 
 				// === Solar ===
-				if (main || cumulus.AmbientExtraUseSolar)
+				if (Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseSolar))
 				{
 					try
 					{
@@ -452,7 +453,7 @@ namespace CumulusMX.Stations
 
 
 				// === UV ===
-				if (main || cumulus.AmbientExtraUseUv)
+				if (Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseUv))
 				{
 					try
 					{
@@ -467,7 +468,7 @@ namespace CumulusMX.Stations
 
 
 				// === Soil Temp ===
-				if (main || cumulus.AmbientExtraUseSoilTemp)
+				if (mainStation || cumulus.ExtraSensorUseSoilTemp)
 				{
 					try
 					{
@@ -482,7 +483,7 @@ namespace CumulusMX.Stations
 
 
 				// === Soil Moisture ===
-				if (main || cumulus.AmbientExtraUseSoilMoist)
+				if (mainStation || cumulus.ExtraSensorUseSoilMoist)
 				{
 					try
 					{
@@ -497,7 +498,7 @@ namespace CumulusMX.Stations
 
 
 				// === Air Quality ===
-				if (main || cumulus.AmbientExtraUseAQI)
+				if (mainStation || cumulus.ExtraSensorUseAQI)
 				{
 					try
 					{
@@ -525,7 +526,7 @@ namespace CumulusMX.Stations
 
 
 				// === CO₂ ===
-				if (main || cumulus.AmbientExtraUseCo2)
+				if (mainStation || cumulus.ExtraSensorUseCo2)
 				{
 					try
 					{
@@ -544,7 +545,7 @@ namespace CumulusMX.Stations
 
 
 				// === Lightning ===
-				if (main || cumulus.AmbientExtraUseLightning)
+				if (mainStation || cumulus.ExtraSensorUseLightning)
 				{
 					try
 					{
@@ -561,7 +562,7 @@ namespace CumulusMX.Stations
 
 
 				// === Leak ===
-				if (main || cumulus.AmbientExtraUseLeak)
+				if (mainStation || cumulus.ExtraSensorUseLeak)
 				{
 					try
 					{
@@ -601,7 +602,7 @@ namespace CumulusMX.Stations
 
 
 				// === Extra Dew point ===
-				if (main || cumulus.AmbientExtraUseTempHum)
+				if (mainStation || cumulus.ExtraSensorUseTempHum)
 				{
 					try
 					{

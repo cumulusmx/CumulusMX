@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack.Text;
 
 
 namespace CumulusMX.Settings
@@ -43,7 +42,8 @@ namespace CumulusMX.Settings
 				Humidex = cumulus.GraphOptions.Visible.Humidex.Val,
 				AvgTemp = cumulus.GraphOptions.Visible.AvgTemp.Val,
 				MaxTemp = cumulus.GraphOptions.Visible.MaxTemp.Val,
-				MinTemp = cumulus.GraphOptions.Visible.MinTemp.Val
+				MinTemp = cumulus.GraphOptions.Visible.MinTemp.Val,
+				BGT = cumulus.GraphOptions.Visible.BGT.Val
 			};
 
 			var graphVisHum = new JsonGraphVisHumidity()
@@ -191,7 +191,9 @@ namespace CumulusMX.Settings
 				WindChill = cumulus.GraphOptions.Colour.WindChill,
 				AppTemp = cumulus.GraphOptions.Colour.AppTemp,
 				FeelsLike = cumulus.GraphOptions.Colour.FeelsLike,
-				Humidex = cumulus.GraphOptions.Colour.Humidex
+				Humidex = cumulus.GraphOptions.Colour.Humidex,
+				BGT = cumulus.GraphOptions.Colour.BGT,
+				WBGT = cumulus.GraphOptions.Colour.WBGT
 			};
 
 			var graphColDailyTemp = new JsonGraphColDailyTemp()
@@ -302,6 +304,12 @@ namespace CumulusMX.Settings
 				sensors = cumulus.GraphOptions.Colour.UserTemp
 			};
 
+			var graphColLaserDepth = new JsonGraphColExtraSensors()
+			{
+				sensors = cumulus.GraphOptions.Colour.LaserDepth
+			};
+
+
 			var graphColCo2 = new JsonGraphColCo2()
 			{
 				co2 = cumulus.GraphOptions.Colour.CO2Sensor.CO2,
@@ -340,6 +348,7 @@ namespace CumulusMX.Settings
 				soilmoist = graphColSoilMoist,
 				leafwet = graphColLeafWet,
 				usertemp = graphColUserTemp,
+				laserdepth = graphColLaserDepth,
 				co2 = graphColCo2,
 				snow = graphColSnow
 			};
@@ -359,7 +368,7 @@ namespace CumulusMX.Settings
 				DataVisibility = graphVis
 			};
 
-			return JsonSerializer.SerializeToString(data);
+			return JsonSerializer.Serialize(data);
 		}
 
 
@@ -381,7 +390,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = JsonSerializer.DeserializeFromString<JsonData>(json);
+				settings = JsonSerializer.Deserialize<JsonData>(json);
 			}
 			catch (Exception ex)
 			{
@@ -414,6 +423,8 @@ namespace CumulusMX.Settings
 					cumulus.GraphOptions.Visible.AvgTemp.Val = settings.DataVisibility.temperature.AvgTemp;
 					cumulus.GraphOptions.Visible.MaxTemp.Val = settings.DataVisibility.temperature.MaxTemp;
 					cumulus.GraphOptions.Visible.MinTemp.Val = settings.DataVisibility.temperature.MinTemp;
+					cumulus.GraphOptions.Visible.BGT.Val = settings.DataVisibility.temperature.BGT;
+
 					cumulus.GraphOptions.Visible.TempSum0.Val = settings.DataVisibility.tempsum.TempSum0;
 					cumulus.GraphOptions.Visible.TempSum1.Val = settings.DataVisibility.tempsum.TempSum1;
 					cumulus.GraphOptions.Visible.TempSum2.Val = settings.DataVisibility.tempsum.TempSum2;
@@ -463,6 +474,8 @@ namespace CumulusMX.Settings
 					cumulus.GraphOptions.Colour.AppTemp = settings.Graphs.colour.temperature.AppTemp;
 					cumulus.GraphOptions.Colour.FeelsLike = settings.Graphs.colour.temperature.FeelsLike;
 					cumulus.GraphOptions.Colour.Humidex = settings.Graphs.colour.temperature.Humidex;
+					cumulus.GraphOptions.Colour.BGT = settings.Graphs.colour.temperature.BGT;
+					cumulus.GraphOptions.Colour.WBGT = settings.Graphs.colour.temperature.WBGT;
 
 					cumulus.GraphOptions.Colour.OutHum = settings.Graphs.colour.humidity.Hum;
 					cumulus.GraphOptions.Colour.InHum = settings.Graphs.colour.humidity.InHum;
@@ -511,6 +524,7 @@ namespace CumulusMX.Settings
 					cumulus.GraphOptions.Colour.SoilMoist = settings.Graphs.colour.soilmoist.sensors;
 					cumulus.GraphOptions.Colour.LeafWetness = settings.Graphs.colour.leafwet.sensors;
 					cumulus.GraphOptions.Colour.UserTemp = settings.Graphs.colour.usertemp.sensors;
+					cumulus.GraphOptions.Colour.LaserDepth = settings.Graphs.colour.laserdepth.sensors;
 
 					cumulus.GraphOptions.Colour.CO2Sensor.CO2 = settings.Graphs.colour.co2.co2;
 					cumulus.GraphOptions.Colour.CO2Sensor.CO2Avg = settings.Graphs.colour.co2.co2avg;
@@ -675,6 +689,7 @@ namespace CumulusMX.Settings
 			public int AvgTemp { get; set; }
 			public int MaxTemp { get; set; }
 			public int MinTemp { get; set; }
+			public int BGT { get; set; }
 		}
 
 		private sealed class JsonGraphVisHumidity
@@ -748,6 +763,7 @@ namespace CumulusMX.Settings
 			public JsonGraphColExtraSensors soilmoist { get; set; }
 			public JsonGraphColExtraSensors leafwet { get; set; }
 			public JsonGraphColExtraSensors usertemp { get; set; }
+			public JsonGraphColExtraSensors laserdepth { get; set; }
 			public JsonGraphColCo2 co2 { get; set; }
 			public JsonGraphColSnow snow { get; set; }
 		}
@@ -763,6 +779,8 @@ namespace CumulusMX.Settings
 			public string AppTemp { get; set; }
 			public string FeelsLike { get; set; }
 			public string Humidex { get; set; }
+			public string BGT { get; set; }
+			public string WBGT { get; set; }
 		}
 
 		private sealed class JsonGraphColDailyTemp

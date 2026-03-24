@@ -8,8 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
-using ServiceStack.Text;
-
 namespace CumulusMX.Stations
 {
 	internal class GW1000Station : WeatherStation
@@ -330,10 +328,14 @@ namespace CumulusMX.Stations
 			{
 				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
 				endTime = startTime.AddHours(24);
-				maxArchiveRuns++;
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
+			_ = ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
+
+			if ((DateTime.Now - cumulus.LastUpdateTime.AddMinutes(1)).TotalMinutes > Cumulus.logints[cumulus.DataLogInterval] + 1)
+			{
+				maxArchiveRuns++;
+			}
 		}
 
 		public override string GetEcowittCameraUrl(string mac)
@@ -1077,16 +1079,22 @@ namespace CumulusMX.Stations
 								break;
 							case 0x15: //Light (lux)
 									   // Save the Lux value
-								LightValue = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
-								// convert Lux to W/m² - approximately!
-								DoSolarRad((int) (LightValue * cumulus.SolarOptions.LuxToWM2), dateTime);
+								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
+								{
+									LightValue = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
+									// convert Lux to W/m² - approximately!
+									DoSolarRad((int) (LightValue * cumulus.SolarOptions.LuxToWM2), dateTime);
+								}
 								idx += 4;
 								break;
 							case 0x16: //UV (µW/cm²) - what use is this!
 								idx += 2;
 								break;
 							case 0x17: //UVI (0-15 index)
-								DoUV(data[idx], dateTime);
+								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
+								{
+									DoUV(data[idx], dateTime);
+								}
 								idx += 1;
 								break;
 							case 0x18: //Date and time
@@ -1512,7 +1520,7 @@ namespace CumulusMX.Stations
 				// Ecowitt do not understand Unix time and add the local TZ offset and DST to it!
 				var offset = autoDST ? (int) TimeZoneInfo.Local.GetUtcOffset(now).TotalSeconds : (int) TimeZoneInfo.Local.BaseUtcOffset.TotalSeconds;
 
-				var date = (unix - offset).FromUnixTime();
+				var date = (unix - offset).LocalFromUnixTime();
 				var clockdiff = now.ToUnixTime() - (unix - offset);
 
 				string slowfast;

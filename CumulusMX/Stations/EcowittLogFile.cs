@@ -18,9 +18,11 @@ namespace CumulusMX.Stations
 		private readonly List<string> Data;
 		//private string[] Header;
 		private readonly Cumulus cumulus;
-		private DateTime lastLogTime = DateTime.MinValue;
+		private long lastLogTime = 0;
 		private readonly Dictionary<string, int> FieldIndex = [];
 		private readonly int interval;
+
+		public bool HeaderValid { get; }
 
 		public EcowittLogFile(List<string> data, Cumulus cumul, int interval)
 		{
@@ -29,19 +31,29 @@ namespace CumulusMX.Stations
 			this.interval = interval;
 
 			// parse the header
-			HeaderParser(data[0]);
+			HeaderValid = HeaderParser(data[0]);
 		}
 
-		public SortedList<DateTime, EcowittApi.HistoricData> DataParser()
+		public SortedList<long, EcowittApi.HistoricData> DataParser()
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
-			var retList = new SortedList<DateTime, EcowittApi.HistoricData>();
+			var retList = new SortedList<long, EcowittApi.HistoricData>();
+			var count = 0;
+
+			Cumulus.LogConsoleMessage("  Preprocessing the data");
 
 			var useTimestamp = FieldIndex.ContainsKey("timestamp");
 
 			for (var index = 0; index < Data.Count; index++)
 			{
 				cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocess record # {index + 1} of {Data.Count}");
+
+				count++;
+
+				if (count % 10 == 0 && !Program.service)
+				{
+					Console.Write($"  Preprocessing record: {count}\r");
+				}
 
 				try
 				{
@@ -62,17 +74,17 @@ namespace CumulusMX.Stations
 					// 2025-06-12 13:34,1749731693,20.1,60,22.4,57,13.5,22.4,1.16,2.01,5.14,224,1000.2,1008.5,214.05,2,0.0,0.0,0.0,0.0,5.7,38.8,261.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0
 					// 2025-07-29 14:23,1753795382,21.0,64,19.8,79,16.1,19.8,0.48,0.00,2.46,179,298,1009.4,1017.8,245.86,2,0.0,0.0,0.0,0.0,2.5,2.5,54.0,341.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
 
-					DateTime time;
+					long time;
 
 					if (useTimestamp && long.TryParse(fields[1], invc, out long unix))
 					{
-						time = Utils.RoundDownUnixTimestamp(unix, interval).FromUnixTime();
+						time = Utils.RoundDownUnixTimestamp(unix, interval);
 					}
 					else
 					{
-						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out time))
+						if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", invc, System.Globalization.DateTimeStyles.AssumeLocal, out var tim))
 						{
-							time = time.RoundTimeToInterval(interval);
+							time = tim.RoundTimeDownToInterval(TimeSpan.FromMinutes(interval)).ToUnixTime();
 						}
 						else
 						{
@@ -83,24 +95,33 @@ namespace CumulusMX.Stations
 
 					if (retList.ContainsKey(time))
 					{
-						cumulus.LogErrorMessage("EcowittLogFile.DataParser: Duplicate timestamp found, ignoring second instance - " + fields[0]);
+						cumulus.LogErrorMessage($"EcowittLogFile.DataParser: Duplicate timestamp found, ignoring second instance - {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)}");
 						continue;
 					}
 
-					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]} - {time:yyyy-MM-dd HH:mm}");
+					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)}");
 
 					var rec = new EcowittApi.HistoricData();
 
-					if (lastLogTime == DateTime.MinValue)
+					if (lastLogTime == 0)
 					{
-						rec.Interval = 1;
-						lastLogTime = time;
+						if (Data.Count > index + 1)
+						{
+							var nextTs = long.Parse(Data[index + 1].Split(',')[1], invc);
+							var ts= long.Parse(fields[1], invc);
+							rec.Interval = (int) (nextTs - ts) / 60;
+						}
+						else
+						{
+							rec.Interval = interval;
+						}
 					}
 					else
 					{
-						rec.Interval = (time - lastLogTime).Minutes;
-						lastLogTime = time;
+						rec.Interval = (int) (time - lastLogTime) / 60;
 					}
+
+					lastLogTime = time;
 
 					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record interval = {rec.Interval} minutes");
 
@@ -114,6 +135,8 @@ namespace CumulusMX.Stations
 					if (FieldIndex.TryGetValue("outdoor humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.Humidity = varInt;
 					if (FieldIndex.TryGetValue("dew point", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DewPoint = varDec;
 					if (FieldIndex.TryGetValue("feels like", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.FeelsLike = varDec;
+					if (FieldIndex.TryGetValue("bgt", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.BGT = varDec;
+					if (FieldIndex.TryGetValue("wbgt", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WBGT = varDec;
 					if (FieldIndex.TryGetValue("wind", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WindSpd = varDec;
 					if (FieldIndex.TryGetValue("gust", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WindGust = varDec;
 					//if (FieldIndex.TryGetValue("windDir_10min_avg", out idx) && int.TryParse(fields[idx], out varInt)) rec.WindDirAvg = varInt;
@@ -272,7 +295,7 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record {fields[0]} - {time:yyyy-MM-dd HH:mm} added to history list");
+						cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)} added to history list");
 					}
 				}
 				catch (Exception ex)
@@ -282,11 +305,16 @@ namespace CumulusMX.Stations
 				}
 			}
 
+			if (!Program.service)
+			{
+				Cumulus.LogConsoleMessage("  Preprocessing complete           ");
+			}
+
 			return retList;
 		}
 
 
-		private void HeaderParser (string header)
+		private bool HeaderParser (string header)
 		{
 			// Time,          Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃), Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),                          Wind(mph),Gust(mph),                       Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,                                                                                     Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
 			// Time,          Indoor Temperature(℃),Indoor Humidity(%),Outdoor Temperature(℃), Outdoor Humidity(%),Dew Point(℃),Feels Like(℃),                          Wind(m/s),Gust(m/s),                       Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,                              Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm)
@@ -295,7 +323,7 @@ namespace CumulusMX.Stations
 			// Time,          Indoor Temperature(°C),Indoor Humidity(%),Outdoor Temperature(°C),Outdoor Humidity(%),Dew Point(°C),Feels Like(°C),                 VPD(kPa),Wind(m/s),Gust(m/s),                       Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(w/m2),UV-Index,                                                       Rain Rate(mm/Hr),             Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm),Piezo Rate(mm/Hr),                   Piezo Hourly Rain(mm),Piezo Event Rain(mm),Piezo Daily Rain(mm),Piezo Weekly Rain(mm),Piezo Monthly Rain(mm),Piezo Yearly Rain(mm)
 			// Time,          Indoor Temperature(°C),Indoor Humidity(%),Outdoor Temperature(°C),Outdoor Humidity(%),Dew Point(°C),Feels Like(°C),                 VPD(kPa),Wind(mph),Gust(mph),                       Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(W/m2),UV-Index,                                                       Rain Rate(mm/Hr),             Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm),Piezo Rate(mm/Hr),                   Piezo Hourly Rain(mm),Piezo Event Rain(mm),Piezo Daily Rain(mm),Piezo Weekly Rain(mm),Piezo Monthly Rain(mm),Piezo Yearly Rain(mm)
 			// Time,Timestamp,Indoor Temperature(°C),Indoor Humidity(%),Outdoor Temperature(°C),Outdoor Humidity(%),Dew Point(°C),Feels Like(°C),                 VPD(kPa),Wind(mph),Gust(mph),                       Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(W/m2),UV-Index,                                                       Rain Rate(mm/Hr),             Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm),Piezo Rate(mm/Hr),                   Piezo Hourly Rain(mm),Piezo Event Rain(mm),Piezo Daily Rain(mm),Piezo Weekly Rain(mm),Piezo Monthly Rain(mm),Piezo Yearly Rain(mm)
-			// Time,Timestamp,Indoor Temperature(°C),Indoor Humidity(%),Outdoor Temperature(°C),Outdoor Humidity(%),Dew Point(°C),Feels Like(°C),BGT(°C),WBGT(°C),VPD(kPa),Wind(m/s),Gust(m/s),windDir_10min_avg(deg),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(W/m2),UV-Index,                                                       Rain Rate(mm/Hr),24h Rain(mm),Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm),Piezo Rate(mm/Hr),Piezo 24h Rain(mm),Piezo Hourly Rain(mm),Piezo Event Rain(mm),Piezo Daily Rain(mm),Piezo Weekly Rain(mm),Piezo Monthly Rain(mm),Piezo Yearly Rain(mm)
+			// Time,Timestamp,Indoor Temperature(°C),Indoor Humidity(%),Outdoor Temperature(°C),Outdoor Humidity(%),Dew Point(°C),Feels Like(°C),BGT(°C),WBGT(°C),VPD(kPa),Wind(m/s),Gust(m/s),windDir_10min_avg(deg),Wind Direction(deg),ABS Pressure(hPa),REL Pressure(hPa),Solar Rad(W/m2),UV-Index,Console Battery (V),External Supply Battery (V),Charge,Rain Rate(mm/Hr),24h Rain(mm),Hourly Rain(mm),Event Rain(mm),Daily Rain(mm),Weekly Rain(mm),Monthly Rain(mm),Yearly Rain(mm),Piezo Rate(mm/Hr),Piezo 24h Rain(mm),Piezo Hourly Rain(mm),Piezo Event Rain(mm),Piezo Daily Rain(mm),Piezo Weekly Rain(mm),Piezo Monthly Rain(mm),Piezo Yearly Rain(mm)
 
 			cumulus.LogDataMessage($"EcowittLogFile.HeaderParser: File header: {header}");
 
@@ -309,7 +337,7 @@ namespace CumulusMX.Stations
 			{
 				// invalid header
 				cumulus.LogErrorMessage("EcowittLogFile.HeaderParser: Invalid header in file = " + header);
-				return;
+				return false;
 			}
 
 			// create a fields index
@@ -407,6 +435,8 @@ namespace CumulusMX.Stations
 				cumulus.LogErrorMessage("EcowittLogFile.HeaderParser: Unable to determine solar units, defaulting to Cumulus units");
 				SolarUnit = SolarUnits.wm2;
 			}
+
+			return true;
 		}
 
 

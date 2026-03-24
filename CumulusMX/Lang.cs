@@ -41,8 +41,7 @@
 			AirQuality10Captions = new string[4];
 			AirQuality10AvgCaptions = new string[4];
 
-			Laser = new string[4]; ;
-
+			LaserCaptions = new string[4];
 			LeafWetnessCaptions = new string[8];
 			UserTempCaptions = new string[8];
 			ExtraTempCaptions = new string[16];
@@ -207,6 +206,6 @@
 		public string SnowDepth { get; set; }
 		public string Snow24h { get; set; }
 		// Laser
-		public string[] Laser { get; set; }
+		public string[] LaserCaptions { get; set; }
 	}
 }

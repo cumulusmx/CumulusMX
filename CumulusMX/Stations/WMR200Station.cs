@@ -173,7 +173,7 @@ namespace CumulusMX.Stations
 
 			try
 			{
-				while (!stop)
+				do
 				{
 					cumulus.LogDataMessage("Calling Read");
 
@@ -283,7 +283,8 @@ namespace CumulusMX.Stations
 						// Might just be a timeout, which is normal, so debug log only
 						cumulus.LogDebugMessage("Data read loop: " + ex.Message);
 					}
-				}
+				} while (!stop);
+
 				//Thread.Sleep(100);
 			}
 
@@ -1010,22 +1011,25 @@ namespace CumulusMX.Stations
 			//Byte 11: (cL) Check-sum low  byte
 			//Byte 12: (cH) Check-sum high byte
 
-			var num = packetBuffer[7] & 0xF;
+			if (!cumulus.ExtraSensorUseUv)
+			{
+				var num = packetBuffer[7] & 0xF;
 
-			if (num < 0)
-				num = 0;
+				if (num < 0)
+					num = 0;
 
-			if (num > 16)
-				num = 16;
+				if (num > 16)
+					num = 16;
 
-			DoUV(num, DateTime.Now);
+				DoUV(num, DateTime.Now);
 
-			// UV value is stored as channel 1 of the extra sensors
-			WMR200ExtraHumValues[1] = num;
+				// UV value is stored as channel 1 of the extra sensors
+				WMR200ExtraHumValues[1] = num;
 
-			ExtraSensorsDetected = true;
+				ExtraSensorsDetected = true;
 
-			WMR200ChannelPresent[1] = true;
+				WMR200ChannelPresent[1] = true;
+			}
 		}
 
 		private void ProcessHistoryDataPacket()
@@ -1432,7 +1436,7 @@ namespace CumulusMX.Stations
 				// reset the accumulated snow depth(s)
 				for (var j = 0; j < Snow24h.Length; j++)
 				{
-					Snow24h[j] = null;
+					Snow24h[j] = LaserDepth[j].HasValue ? 0 : null;
 				}
 
 				snowhourdone = true;
@@ -1604,22 +1608,31 @@ namespace CumulusMX.Stations
 			DoRain(ConvertUnits.RainINToUser(counter), ConvertUnits.RainINToUser(rate), timestamp);
 
 			// UV
-			if (packetBuffer[27] != 0xFF)
+			if (!cumulus.ExtraSensorUseUv)
 			{
-				DoUV(packetBuffer[27] & 0xFF, timestamp);
+				if (packetBuffer[27] != 0xFF)
+				{
+					DoUV(packetBuffer[27] & 0xFF, timestamp);
+				}
 			}
 
 			// do solar rad, even though there's no sensor,
 			// just to calculate theoretical max for consistency
-			DoSolarRad(0, timestamp);
-
+			if (!cumulus.ExtraSensorUseSolar)
+			{
+				DoSolarRad(0, timestamp);
+			}
 			DoApparentTemp(timestamp);
 			DoFeelsLike(timestamp);
 			DoHumidex(timestamp);
 			DoCloudBaseHeatIndex(timestamp);
 			DoTrendValues(timestamp);
 
-			_ = cumulus.DoLogFile(timestamp, false);
+			if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+			{
+				// Only log data if not in the roll-over hour and not on the hour
+				_ = cumulus.DoLogFile(timestamp, false);
+			}
 			cumulus.MySqlRealtimeFile(999, false, timestamp);
 			cumulus.DoCustomIntervalLogs(timestamp);
 
@@ -1635,7 +1648,7 @@ namespace CumulusMX.Stations
 			}
 
 			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
-							Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
+							Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 			UpdateStatusPanel(timestamp.ToUniversalTime());
 			// Add current data to the lists of web service updates to be done
 			cumulus.AddToWebServiceLists(timestamp);

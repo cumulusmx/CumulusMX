@@ -192,42 +192,6 @@ namespace CumulusMX
 		}
 
 
-		public static DateTime AmbiguousDateToLocal(DateTime d, ref List<DateTime> dates)
-		{
-			// if ambiguous attempt to map to correct DST offset
-			if (TimeZoneInfo.Local.IsAmbiguousTime(d))
-			{
-				// This localDt maps to two possible UTC instants (fall-back overlap).
-				// You can choose:
-				//  - the earlier offset (daylight) or
-				//  - the later offset (standard)
-				var offsets = TimeZoneInfo.Local.GetAmbiguousTimeOffsets(d);
-				TimeSpan chosenOffset;
-				if (dates.Count > 0 && dates[^1] >= d)
-				{
-					chosenOffset = offsets[0];
-				}
-				else
-				{
-					chosenOffset = offsets[1];
-					dates.Add(d);
-				}
-
-				var dto = new DateTimeOffset(d, chosenOffset);
-				return dto.LocalDateTime;
-			}
-			else
-			{
-				// A “normal” unambiguous time
-				dates.Clear();
-				var offset = TimeZoneInfo.Local.GetUtcOffset(d);
-				var dto = new DateTimeOffset(d, offset);
-				return dto.LocalDateTime;
-			}
-		}
-
-
-
 		public static IPAddress GetIpWithDefaultGateway()
 		{
 			try
@@ -296,30 +260,38 @@ namespace CumulusMX
 		public static string ExceptionToString(Exception ex, out string message)
 		{
 			var sb = new StringBuilder();
+			message = string.Empty;
 
-			message = ex.Message;
-			sb.AppendLine("");
-			sb.AppendLine("Exception Type: " + ex.GetType().FullName);
-			sb.AppendLine("Message: " + ex.Message);
-			sb.AppendLine("Source: " + ex.Source);
-			foreach (var key in ex.Data.Keys)
+			try
 			{
-				sb.AppendLine(key.ToString() + ": " + ex.Data[key].ToString());
-			}
+				sb.AppendLine("");
+				message = ex.Message;
+				sb.AppendLine("Exception Type: " + ex.GetType().FullName);
+				sb.AppendLine("Message: " + ex.Message);
+				sb.AppendLine("Source: " + ex.Source);
+				foreach (var key in ex.Data.Keys)
+				{
+					sb.AppendLine(key.ToString() + ": " + (ex.Data[key] ?? "null").ToString());
+				}
 
-			if (String.IsNullOrEmpty(ex.StackTrace))
-			{
-				sb.AppendLine("Environment Stack Trace: " + ex.StackTrace);
-			}
-			else
-			{
-				sb.AppendLine("Stack Trace: " + ex.StackTrace);
-			}
+				if (String.IsNullOrEmpty(ex.StackTrace))
+				{
+					sb.AppendLine("Environment Stack Trace: " + ex.StackTrace);
+				}
+				else
+				{
+					sb.AppendLine("Stack Trace: " + ex.StackTrace);
+				}
 
-			if (ex.InnerException != null)
+				if (ex.InnerException != null)
+				{
+					sb.AppendLine("Inner Exception... ");
+					sb.AppendLine(ExceptionToString(ex.InnerException, out message));
+				}
+			}
+			catch (Exception myEx)
 			{
-				sb.AppendLine("Inner Exception... ");
-				sb.AppendLine(ExceptionToString(ex.InnerException, out message));
+				sb.AppendLine($"ExceptionToString: !!!!!!!!!!! Error converting exception '{ex.Message}' to string !!!!!!!! Message = {myEx.Message}");
 			}
 
 			return sb.ToString();
@@ -549,6 +521,16 @@ namespace CumulusMX
 			}
 
 			return tz;
+		}
+
+		public static bool UseSensor(bool mainStation, bool hasExtraStation, bool useSensor)
+		{
+			if (mainStation && hasExtraStation && useSensor)
+				return false;
+			else if (!mainStation  && hasExtraStation && !useSensor)
+				return false;
+			else
+				return true;
 		}
 	}
 }

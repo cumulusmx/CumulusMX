@@ -146,10 +146,14 @@ namespace CumulusMX.Stations
 			// Get the sensor list
 			GetSensorIds(false).Wait();
 
+			// Check station clock
+			GetSystemInfo(false,  false).Wait();
+
 			// Check firmware
 			try
 			{
 				_ = localApi.CheckForUpgrade(Program.ExitSystemToken).Result;
+				Thread.Sleep(1000);
 				GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
 			}
 			catch (Exception ex)
@@ -162,9 +166,9 @@ namespace CumulusMX.Stations
 			try
 			{
 				var calib = localApi.GetCalibrationData(Program.ExitSystemToken).Result;
-				if (calib.uvGain == 1)
+				if (calib is not null && calib.uvGain == 1)
 				{
-					cumulus.LogWarningMessage("Your stations UV gain is set to the default 1.0, it should have a value of around 0.7");
+					cumulus.LogMessage("Your stations UV gain is set to the default 1.0, it should probably have a value of around 0.7");
 				}
 			}
 			catch (Exception ex)
@@ -174,14 +178,12 @@ namespace CumulusMX.Stations
 
 			liveTask = Task.Run(() =>
 			{
-				var excepMsg = "unknown error";
-
-				try
+				while (!Program.ExitSystemToken.IsCancellationRequested)
 				{
 					var dataLastRead = DateTime.Now;
 					double delay;
 
-					while (!Program.ExitSystemToken.IsCancellationRequested)
+					try
 					{
 						if (!DayResetInProgress)
 						{
@@ -189,6 +191,7 @@ namespace CumulusMX.Stations
 							if (rawData is not null)
 							{
 								dataLastRead = DateTime.Now;
+								outdoortemp = -999;
 
 								// process the common_list sensors
 								if (rawData.common_list != null)
@@ -250,6 +253,11 @@ namespace CumulusMX.Stations
 									ProcessSoilMoisture(rawData.ch_soil);
 								}
 
+								if (rawData.ch_ec != null)
+								{
+									ProcessSoilMoistureEc(rawData.ch_ec);
+								}
+
 								if (rawData.ch_leaf != null)
 								{
 									ProcessLeafWet(rawData.ch_leaf);
@@ -263,7 +271,7 @@ namespace CumulusMX.Stations
 								// Now do the stuff that requires more than one input parameter
 
 
-								// Process outdoor temperature here, as GW1000 currently does not supply Dew Point so we have to calculate it in DoOutdoorTemp()
+								// Process outdoor temperature here so we have humidity available
 								if (outdoortemp > -999)
 								{
 									DoOutdoorTemp(outdoortemp, dataLastRead);
@@ -328,7 +336,7 @@ namespace CumulusMX.Stations
 									// every day dump the clock drift at midday each day
 									if (minute == 0 && DateTime.Now.Hour == 12)
 									{
-										GetSystemInfo(true);
+										_ = GetSystemInfo(false, true);
 									}
 
 									var hour = DateTime.Now.Hour;
@@ -339,43 +347,41 @@ namespace CumulusMX.Stations
 										if (hour == 13)
 										{
 											_ = localApi.CheckForUpgrade(Program.ExitSystemToken);
+											Task.Delay(1000, Program.ExitSystemToken);
 											GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
 										}
 									}
 								}
 							}
 						}
-
-						delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
-
-						if (Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
-						{
-							break;
-						}
 					}
-				}
-				// Catch the ThreadAbortException
-				catch (ThreadAbortException ex)
-				{
-					//do nothing
-					excepMsg = ex.Message;
-				}
-				catch (Exception ex)
-				{
-					excepMsg = ex.Message;
-				}
-				finally
-				{
+					// Catch the ThreadAbortException
+					catch (ThreadAbortException)
+					{
+						//do nothing
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "Ecowitt Local HTTP API station background task error - continuing");
+					}
+
+					delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
+
+					Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay));
+
 					if (Program.ExitSystemToken.IsCancellationRequested)
 					{
 						cumulus.LogMessage("Ecowitt Local HTTP API station background task closed due to shutting down");
 					}
-					else
-					{
-						cumulus.LogCriticalMessage("Ecowitt Local HTTP API station background task ended unexpectedly: " + excepMsg);
-					}
 				}
-			}, Program.ExitSystemToken);
+			}, Program.ExitSystemToken)
+			.ContinueWith(t =>
+			{
+				if (!t.IsCanceled && t.IsFaulted)
+				{
+					cumulus.LogExceptionMessage(t.Exception, "Ecowitt Local HTTP API station background task error - exited");
+				}
+			});
 		}
 
 		public override void Stop()
@@ -456,10 +462,14 @@ namespace CumulusMX.Stations
 			{
 				// only fetch 24 hours worth of data, and schedule another run to fetch the rest
 				endTime = startTime.AddHours(24);
-				maxArchiveRuns++;
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
+			_ = ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
+
+			if ((DateTime.Now - cumulus.LastUpdateTime.AddMinutes(1)).TotalMinutes > Cumulus.logints[cumulus.DataLogInterval] + 1)
+			{
+				maxArchiveRuns++;
+			}
 		}
 
 		/// <summary>
@@ -525,7 +535,7 @@ namespace CumulusMX.Stations
 			baseFiles.Sort();
 			extraFiles.Sort();
 
-			var buffer = new SortedList<DateTime, HistoricData>();
+			var buffer = new SortedList<long, HistoricData>();
 
 			// process the base files first
 
@@ -534,6 +544,9 @@ namespace CumulusMX.Stations
 
 			foreach (var file in baseFiles)
 			{
+				// add a short delay for the station to sort itself out before we request the next file
+				Thread.Sleep(250);
+
 				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
 				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
@@ -542,11 +555,17 @@ namespace CumulusMX.Stations
 
 				if (lines == null || lines.Count == 1)
 				{
-					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file");
+					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file, skipping it");
 					continue;
 				}
 
 				var logfile = new EcowittLogFile(lines, cumulus, localApi.SdCardInterval);
+
+				if (!logfile.HeaderValid)
+				{
+					cumulus.LogMessage($"GetHistoricDataSdCard: Invalid header in this file, skipping it");
+					continue;
+				}
 
 				var data = logfile.DataParser();
 
@@ -580,6 +599,9 @@ namespace CumulusMX.Stations
 
 			foreach (var file in extraFiles)
 			{
+				// add a short delay for the station to sort itself out before we request the next file
+				Thread.Sleep(250);
+
 				cumulus.LogMessage($"GetHistoricDataSdCard: Processing file {file}");
 				Cumulus.LogConsoleMessage($"  Processing file {file}");
 
@@ -588,11 +610,17 @@ namespace CumulusMX.Stations
 
 				if (lines == null || lines.Count == 1)
 				{
-					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file");
+					cumulus.LogMessage($"GetHistoricDataSdCard: No data to process in this file, skipping it");
 					continue;
 				}
 
 				var logfile = new EcowittExtraLogFile(lines, cumulus, localApi.SdCardInterval);
+
+				if (!logfile.HeaderValid)
+				{
+					cumulus.LogMessage($"GetHistoricDataSdCard: Invalid header in this file, skipping it");
+					continue;
+				}
 
 				var data = logfile.DataParser();
 
@@ -608,7 +636,7 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						cumulus.LogMessage($"GetHistoricDataSdCard: Warning - Extra sensor record {rec.Key} not added because no matching primary record found");
+						cumulus.LogMessage($"GetHistoricDataSdCard: Warning - Extra sensor record {rec.Key} - {rec.Key.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm")} not added because no matching primary record found");
 					}
 				}
 			}
@@ -627,8 +655,18 @@ namespace CumulusMX.Stations
 			Cumulus.LogConsoleMessage("Adding historic data into Cumulus...");
 
 			var recNo = 1;
-			var lastRecTime = DateTime.MinValue;
-			var interval = localApi.SdCardInterval;
+			var lastRecTime = 0L;
+			int intervalMins;
+
+			// if we have more than one record, take the initial records interval as the difference to the next record. Otherwise use the configured interval
+			if (buffer.Count > 1)
+			{
+				intervalMins = (int) (buffer.Keys[1] - buffer.Keys[0]) / 60;
+			}
+			else
+			{
+				intervalMins = localApi.SdCardInterval;
+			}
 
 			foreach (var rec in buffer)
 			{
@@ -639,58 +677,24 @@ namespace CumulusMX.Stations
 
 				//cumulus.LogMessage("Processing data for " + rec.Key);
 
-				if (rec.Key > DateTime.Now)
+				if (rec.Key > DateTime.Now.ToUnixTime())
 				{
 					// do no process reocrds from the future!
-					cumulus.LogDebugMessage("GetHistoricDataSdCard: Warning - Skipping record with a future date: " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+					cumulus.LogDebugMessage("GetHistoricDataSdCard: Warning - Skipping record with a future date: " + rec.Key.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
 					continue;
 				}
 
-				if (lastRecTime != DateTime.MinValue)
+				if (lastRecTime != 0)
 				{
-					interval = (int) rec.Key.Subtract(lastRecTime).TotalMinutes;
-					lastRecTime = rec.Key;
-				}
-				else
-				{
-					lastRecTime = rec.Key;
+					intervalMins = (int) (rec.Key - lastRecTime) / 60;
 				}
 
-				var h = rec.Key.Hour;
-				DataDateTime = rec.Key;
+				lastRecTime = rec.Key;
 
-				rollHour = Math.Abs(cumulus.GetHourInc(rec.Key));
+				DataDateTime = rec.Key.LocalFromUnixTime();
+				var h = DataDateTime.Hour;
 
-				//  if outside rollover hour, rollover yet to be done
-				if (h != rollHour)
-				{
-					rolloverdone = false;
-				}
-				else if (!rolloverdone)
-				{
-					// In rollover hour and rollover not yet done
-					// do rollover
-					cumulus.LogMessage("Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
-					Cumulus.LogConsoleMessage("\n  Day rollover " + rec.Key.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
-
-					DayReset(rec.Key);
-
-					rolloverdone = true;
-				}
-
-				// Not in midnight hour, midnight rain yet to be done
-				if (h != 0)
-				{
-					midnightraindone = false;
-				}
-				else if (!midnightraindone)
-				{
-					// In midnight hour and midnight rain (and sun) not yet done
-					ResetMidnightRain(rec.Key);
-					ResetSunshineHours(rec.Key);
-					ResetMidnightTemperatures(rec.Key);
-					midnightraindone = true;
-				}
+				rollHour = Math.Abs(cumulus.GetHourInc(DataDateTime));
 
 				// 9am rollover items
 				if (h != 9)
@@ -699,27 +703,27 @@ namespace CumulusMX.Stations
 				}
 				else if (!rollover9amdone)
 				{
-					Reset9amTemperatures(rec.Key);
+					Reset9amTemperatures(DataDateTime);
 					rollover9amdone = true;
 				}
 
 				// Not in snow hour, snow yet to be done
-				if (h != 0)
+				if (h != cumulus.SnowDepthHour)
 				{
 					snowhourdone = false;
 				}
-				else if (h == cumulus.SnowDepthHour && !snowhourdone)
+				else if (!snowhourdone)
 				{
 					// snowhour items
 					if (cumulus.SnowAutomated > 0)
 					{
-						CreateNewSnowRecord(rec.Key);
+						CreateNewSnowRecord(DataDateTime);
 					}
 
 					// reset the accumulated snow depth(s)
 					for (var i = 0; i < Snow24h.Length; i++)
 					{
-						Snow24h[i] = null;
+						Snow24h[i] = LaserDepth[i].HasValue ? 0 : null;
 					}
 
 					snowhourdone = true;
@@ -732,7 +736,7 @@ namespace CumulusMX.Stations
 				if (cumulus.StationOptions.CalculateSLP)
 				{
 					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-					DoPressure(ConvertUnits.PressMBToUser(slp), rec.Key);
+					DoPressure(ConvertUnits.PressMBToUser(slp), DataDateTime);
 				}
 
 				// add in archive period worth of sunshine, if sunny
@@ -741,55 +745,97 @@ namespace CumulusMX.Stations
 					SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
-					SunshineHours += interval / 60.0;
-					cumulus.LogDebugMessage($"Adding {interval} minutes to Sunshine Hours");
+					SunshineHours += intervalMins / 60.0;
+					cumulus.LogDebugMessage($"Adding {intervalMins} minutes to Sunshine Hours");
 				}
 
 				// add in archive period minutes worth of temperature to the temp samples
-				tempsamplestoday += interval;
-				TempTotalToday += OutdoorTemperature * interval;
+				tempsamplestoday += intervalMins;
+				TempTotalToday += OutdoorTemperature * intervalMins;
 
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + interval + " minutes = " +
-				(WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
-				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
+				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + intervalMins + " minutes = " +
+				(WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0;
 
 				// update heating/cooling degree days
-				UpdateDegreeDays(5);
+				UpdateDegreeDays(intervalMins);
 
 				// update dominant wind bearing
-				CalculateDominantWindBearing(Bearing, WindAverage, interval);
-				CheckForWindrunHighLow(rec.Key);
-				DoTrendValues(rec.Key);
+				CalculateDominantWindBearing(Bearing, WindAverage, intervalMins);
+				CheckForWindrunHighLow(DataDateTime);
+				DoTrendValues(DataDateTime);
 
-				if (cumulus.StationOptions.CalculatedET && rec.Key.Minute == 0)
+				if (cumulus.StationOptions.CalculatedET && DataDateTime.Minute == 0)
 				{
 					// Start of a new hour, and we want to calculate ET in Cumulus
-					CalculateEvapotranspiration(rec.Key);
+					CalculateEvapotranspiration(DataDateTime);
 				}
 
-				_ = cumulus.DoLogFile(rec.Key, false);
-				cumulus.DoCustomIntervalLogs(rec.Key);
+				// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
+				// Windrun
+				// Dominant wind bearing
+				// ET - if MX calculated
+				// Degree days
+				// Rainfall
 
-				cumulus.MySqlRealtimeFile(999, false, rec.Key);
+				//  if outside rollover hour, rollover yet to be done
+				if (h != rollHour)
+				{
+					rolloverdone = false;
+				}
+				else if (!rolloverdone)
+				{
+					// In rollover hour and rollover not yet done
+					// do rollover
+					cumulus.LogMessage("Day rollover " + rec.Key.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+					Cumulus.LogConsoleMessage("\n  Day rollover " + rec.Key.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+
+					DayReset(DataDateTime);
+
+					rolloverdone = true;
+				}
+
+				// Not in midnight hour, midnight rain yet to be done
+				if (h != 0)
+				{
+					midnightraindone = false;
+				}
+				else if (!midnightraindone)
+				{
+					// In midnight hour and midnight rain (and sun) not yet done
+					ResetMidnightRain(DataDateTime);
+					ResetSunshineHours(DataDateTime);
+					ResetMidnightTemperatures(DataDateTime);
+					midnightraindone = true;
+				}
+
+				if (DataDateTime.Hour != cumulus.RolloverHour || DataDateTime.Minute != 0)
+				{
+					// Only log data if not in the roll-over hour and not on the hour
+					_ = cumulus.DoLogFile(DataDateTime, false);
+				}
+				cumulus.DoCustomIntervalLogs(DataDateTime);
+
+				cumulus.MySqlRealtimeFile(999, false, DataDateTime);
 
 				if (cumulus.StationOptions.LogExtraSensors)
 				{
-					_ = cumulus.DoExtraLogFile(rec.Key);
+					_ = cumulus.DoExtraLogFile(DataDateTime);
 				}
 
 				// Custom MySQL update - minutes interval
 				if (cumulus.MySqlFuncs.MySqlSettings.CustomMins.Enabled)
 				{
-					_ = cumulus.CustomMysqlMinutesUpdate(rec.Key, false);
+					_ = cumulus.CustomMysqlMinutesUpdate(DataDateTime, false);
 				}
 
-				AddRecentDataWithAq(rec.Key, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
+				AddRecentDataWithAq(DataDateTime, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
-				UpdateStatusPanel(rec.Key.ToUniversalTime());
-				cumulus.AddToWebServiceLists(rec.Key);
-				LastDataReadTime = rec.Key;
+				UpdateStatusPanel(rec.Key.UtcFromUnixTime());
+				cumulus.AddToWebServiceLists(DataDateTime);
+				LastDataReadTime = DataDateTime;
 
 				if (!Program.service)
 				{
@@ -799,9 +845,10 @@ namespace CumulusMX.Stations
 
 			Cumulus.LogConsoleMessage("\rHistoric data processing complete");
 
-			return cumulus.LastUpdateTime.AddMinutes(interval + 1) < DateTime.Now;
+			return cumulus.LastUpdateTime.AddMinutes(intervalMins + 1) < DateTime.Now;
 
 		}
+
 		public override string GetEcowittCameraUrl(string mac)
 		{
 			if (!string.IsNullOrEmpty(mac))
@@ -822,6 +869,7 @@ namespace CumulusMX.Stations
 
 			return string.Empty;
 		}
+
 		public override string GetEcowittVideoUrl(string mac)
 		{
 			if (!string.IsNullOrEmpty(mac))
@@ -888,7 +936,7 @@ namespace CumulusMX.Stations
 								case 2: // wh80
 									name = "wh80";
 									// if a WS80 is connected, it has a 4.75 second update rate, so reduce the MX update rate from the default 10 seconds
-									if (updateRate > 4000 && updateRate != 4000)
+									if (updateRate > 4000)
 									{
 										cumulus.LogMessage($"GetSensorIds: WS80 sensor detected, changing the update rate from {updateRate / 1000:D} seconds to 4 seconds");
 										updateRate = 4000;
@@ -934,7 +982,7 @@ namespace CumulusMX.Stations
 								case 48: // wh90
 									name = "wh90";
 									// if a WS90 is connected, it has a 8.8 second update rate, so reduce the MX update rate from the default 10 seconds
-									if (updateRate > 8000 && updateRate != 8000)
+									if (updateRate > 8000)
 									{
 										cumulus.LogMessage($"GetSensorIds: WS90 sensor detected, changing the update rate from {updateRate / 1000:D} seconds to 8 seconds");
 										updateRate = 8000;
@@ -943,7 +991,7 @@ namespace CumulusMX.Stations
 								case 49: // wh85
 									name = "wh85";
 									// if a WH85 is connected, it has a 8.5 second update rate, so reduce the MX update rate from the default 10 seconds
-									if (updateRate > 8000 && updateRate != 8000)
+									if (updateRate > 8000)
 									{
 										cumulus.LogMessage($"GetSensorIds: WH85 sensor detected, changing the update rate from {updateRate / 1000:D} seconds to 8 seconds");
 										updateRate = 8000;
@@ -955,8 +1003,17 @@ namespace CumulusMX.Stations
 								case int n when n > 65 && n < 70: // wh54 - laser depth (4 chan)
 									name = "wh54ch" + (sensor.type - 65);
 									goto case 1003;
-								case 70: //wn20 - rain miini
+								case 70: //wn20 - rain mini
+									name = "wn20";
 									goto case 1003;
+								case 71: // wn38 - BGT
+									name = "wn38";
+									goto case 1003;
+								case 72: // wqt01 - water quality
+									name = "wqt01";
+									// no battery power
+									break;
+
 
 								case 1001: // battery type 1 (0=OK, 1=LOW)
 									if (sensor.batt == 1)
@@ -975,7 +1032,7 @@ namespace CumulusMX.Stations
 									break;
 
 								default:
-									cumulus.LogWarningMessage($"Unknown sensor type in SendorIds. Model={sensor.img}, type={sensor.type}");
+									cumulus.LogMessage($"Unknown sensor type in SensorIds. Model={sensor.img}, type={sensor.type}");
 									break;
 							}
 						}
@@ -1007,7 +1064,7 @@ namespace CumulusMX.Stations
 						case "0x02": //Outdoor Temperature
 							if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
 							{
-								// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
+								// do not process temperature here, we have not yet read the humidity value. Have to do it at the end.
 								var temp = sensor.valDbl.Value;
 								outdoortemp = sensor.unit == "C" ? ConvertUnits.TempCToUser(temp) : ConvertUnits.TempFToUser(temp);
 							}
@@ -1091,31 +1148,54 @@ namespace CumulusMX.Stations
 							}
 							break;
 						case "0x15": //Light (value unit)
-							arr = sensor.val.Split(' ');
-							if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
+							if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 							{
-								var light = arr[1].ToLower() switch
+								arr = sensor.val.Split(' ');
+								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
 								{
-									"fc" => valDbl * 0.015759751708199,
-									"Kfc" => valDbl * 1000 * 0.015759751708199,
-									"lux" => valDbl * cumulus.SolarOptions.LuxToWM2, // convert Lux to W/m² - approximately!
-									"Klux" => valDbl * 1000 * cumulus.SolarOptions.LuxToWM2, // convert KLux to W/m² - approximately!
-									"w/m2" => valDbl,
-									"W/m2" => valDbl,
-									_ => -valDbl
-								};
+									var light = arr[1].ToLower() switch
+									{
+										"fc" => valDbl * 0.015759751708199,
+										"Kfc" => valDbl * 1000 * 0.015759751708199,
+										"lux" => valDbl * cumulus.SolarOptions.LuxToWM2, // convert Lux to W/m² - approximately!
+										"Klux" => valDbl * 1000 * cumulus.SolarOptions.LuxToWM2, // convert KLux to W/m² - approximately!
+										"w/m2" => valDbl,
+										"W/m2" => valDbl,
+										_ => -valDbl
+									};
 
-								LightValue = valDbl;
-								if (light >= 0)
-								{
-									DoSolarRad((int) light, dateTime);
+									LightValue = valDbl;
+									if (light >= 0)
+									{
+										DoSolarRad((int) light, dateTime);
+									}
 								}
 							}
 							break;
 						case "0x17": //UVI (0-15 index)
-							if (sensor.valDbl.HasValue)
+							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
 							{
 								DoUV(sensor.valDbl.Value, dateTime);
+							}
+							break;
+
+						case "0xA1": // BGT
+							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
+							{
+								var bgt = sensor.valDbl.Value;
+								bgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(bgt) : ConvertUnits.TempFToUser(bgt);
+
+								BlackGlobeTemp = bgt;
+							}
+							break;
+
+						case "0xA2": // WBGT
+							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
+							{
+								var wbgt = sensor.valDbl.Value;
+								wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
+
+								WetBulbGlobeTemp = wbgt;
 							}
 							break;
 
@@ -1164,8 +1244,8 @@ namespace CumulusMX.Stations
 					// user has mapped indoor temp to outdoor temp
 					if (cumulus.Gw1000PrimaryTHSensor == 99)
 					{
-						// do not process temperature here as if "MX calculates DP" is enabled, we have not yet read the humidity value. Have to do it at the end.
-						DoOutdoorTemp(temp, dateTime);
+						// do not process temperature here, we have not yet read the humidity value. Have to do it at the end.
+						outdoortemp = temp;
 					}
 
 					if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
@@ -1249,14 +1329,14 @@ namespace CumulusMX.Stations
 				// CO2
 				try
 				{
-					if (sensor.CO2 != null && int.TryParse(sensor.CO2, out var co2))
+					if (sensor.CO2.HasValue)
 					{
-						CO2 = co2;
+						CO2 = sensor.CO2;
 					}
 
-					if (sensor.CO2_24H != null && int.TryParse(sensor.CO2_24H, out var co2_24h))
+					if (sensor.CO2_24H.HasValue)
 					{
-						CO2_24h = co2_24h;
+						CO2_24h = sensor.CO2_24H;
 					}
 				}
 				catch (Exception ex)
@@ -1269,7 +1349,7 @@ namespace CumulusMX.Stations
 
 		private void ProcessRain(EcowittLocalApi.CommonSensor[] sensors, bool isRainingOnly)
 		{
-			//"rain"/"piezoRain": [
+			//"rain": [
 			//	{
 			//		"id": "0x0D",
 			//		"val": "0.0 mm"
@@ -1300,6 +1380,45 @@ namespace CumulusMX.Stations
 			//		"battery": "5"
 			//	}
 			//],
+			//"piezoRain" : [
+			//	{
+			//		"id": "srain_piezo",
+			//		"val": "0"
+			//	},
+			//	{
+			//		"id": "0x0D",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x0E",
+			//		"val": "0.0 mm/Hr"
+			//	},
+			//	{
+			//		"id": "0x7C",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x10",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x11",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x12",
+			//		"val": "0.0 mm"
+			//	},
+			//	{
+			//		"id": "0x13",
+			//		"val": "0.0 mm",
+			//		"battery": "5",
+			//		"voltage": "3.24",
+			//		"ws90cap_volt": "3.3",
+			//		"ws90_ver": "159"
+			//	}
+			//]
+
 
 			for (var i = 0; i < sensors.Length; i++)
 			{
@@ -1373,11 +1492,16 @@ namespace CumulusMX.Stations
 
 						case "0x13":
 							//Rain Year (val unit)
-							if (isRainingOnly)
-								break;
 							try
 							{
 								var arr = sensor.val.Split(' ');
+
+								if (sensor.ws90cap_volt.HasValue)
+									CapacitorVolt = sensor.ws90cap_volt.Value;
+
+								if (isRainingOnly)
+									break;
+
 								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out var val))
 								{
 									var yr = arr[1].ToLower() switch
@@ -1403,13 +1527,15 @@ namespace CumulusMX.Stations
 							if (cumulus.EcowittIsRainingUsePiezo)
 							{
 								IsRaining = sensor.val == "1";
-								cumulus.IsRainingAlarm.Triggered = IsRaining;							}
+								cumulus.IsRainingAlarm.Triggered = IsRaining;
+							}
 							break;
 
 						case "0x7C": // rain 24h
 						case "0x10": // Rain day
 						case "0x11": // Rain week
 						case "0x12": // Rain month
+						case "0x14": // Rain total?
 									 // do nothing
 							break;
 
@@ -1472,7 +1598,6 @@ namespace CumulusMX.Stations
 					else
 					{
 						// oh my god, it sends the time as "MM/dd/yyyy HH: mm: ss" for some locales
-						// TODO: what is default time if not strikes detected yet?
 						var arr = sensor.timestamp.Replace(": ", ":").Split(' ');
 						var date = arr[0].Split('/');
 						var time = arr[1].Split(':');
@@ -1690,7 +1815,8 @@ namespace CumulusMX.Stations
 
 						if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
 						{
-							DoOutdoorTemp(temp, dateTime);
+							// do not process temperature here, we have not yet read the humidity value. Have to do it at the end.
+							outdoortemp = temp;
 						}
 
 						if (cumulus.Gw1000PrimaryIndoorTHSensor == sensor.channel)
@@ -1794,6 +1920,42 @@ namespace CumulusMX.Stations
 			}
 		}
 
+		private void ProcessSoilMoistureEc(EcowittLocalApi.SoilMoistEcSensor[] sensors)
+		{
+			//"ch_ec": [
+			//	{
+			//		"channel": "5",
+			//		"name": "Front hall",
+			//		"battery": "5",
+			//		"voltage": "1.52",
+			//		"humidity": "42%",
+			//		"temp": "24.2",
+			//		"unit": "C",
+			//		"ec": "1430 uS/cm"
+			//	}
+			//]
+
+			cumulus.LogDebugMessage($"ProcessSoilMoistureEc: Processing {sensors.Length} sensors");
+
+			for (var i = 0; i < sensors.Length; i++)
+			{
+				var sensor = sensors[i];
+
+				if (sensor.humidityVal.HasValue)
+				{
+					try
+					{
+						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel);
+						DoSoilTemp(sensor.temp.Value, sensor.channel);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessSoilMoistureEc: Error on sensor {sensor.channel}");
+					}
+				}
+			}
+		}
+
 		private void ProcessLeafWet(EcowittLocalApi.TempHumSensor[] sensors)
 		{
 			//"ch_leaf": [
@@ -1833,8 +1995,11 @@ namespace CumulusMX.Stations
 			//		"name": "Laser Dist Tank",
 			//		"unit": "mm",
 			//		"battery": "5",
+			//		"voltage": "3.26",
 			//		"air": "13 mm",
 			//		"depth": "3987 mm"
+			//		"total_height": "4000"
+			//		"total_heat": "30"
 			//	}
 			//]
 
@@ -1844,8 +2009,21 @@ namespace CumulusMX.Stations
 
 				try
 				{
-					var val = sensor.unit.Equals("mm", StringComparison.CurrentCultureIgnoreCase) ? ConvertUnits.LaserMmToUser(sensor.airVal.Value) : ConvertUnits.LaserInchesToUser(sensor.airVal.Value);
-					DoLaserDistance(val, sensor.channel);
+					decimal? air = null;
+
+					if (sensor.airVal.HasValue)
+					{
+						air = sensor.unit switch
+						{
+							"mm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value),
+							"cm" => ConvertUnits.LaserMmToUser(sensor.airVal.Value * 10),
+							"in" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value),
+							"ft" => ConvertUnits.LaserInchesToUser(sensor.airVal.Value * 12),
+							_ => sensor.airVal.Value
+						};
+					}
+
+					DoLaserDistance(air, sensor.channel, DateTime.Now);
 				}
 				catch (Exception ex)
 				{
@@ -1856,16 +2034,25 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.LaserDepthBaseline[sensor.channel] == -1)
 					{
-						// MX is not calculating depth
-
-						decimal? val = null;
+						// MX is NOT calculating depth
+						decimal? depth = null;
 
 						if (sensor.depthVal.HasValue)
 						{
-							val = sensor.unit.Equals("mm", StringComparison.CurrentCultureIgnoreCase) ? ConvertUnits.LaserMmToUser(sensor.depthVal.Value) : ConvertUnits.LaserInchesToUser(sensor.depthVal.Value);
+							depth = sensor.unit switch
+							{
+								"mm" => ConvertUnits.LaserMmToUser(sensor.depthVal.Value),
+								"cm" => ConvertUnits.LaserMmToUser(sensor.depthVal.Value * 10),
+								"in" => ConvertUnits.LaserInchesToUser(sensor.depthVal.Value),
+								"ft" => ConvertUnits.LaserInchesToUser(sensor.depthVal.Value * 12),
+								_ => sensor.airVal.Value
+							};
 						}
-						DoLaserDepth(val, sensor.channel);
+
+						DoLaserDepth(depth, sensor.channel, DateTime.Now);
 					}
+					// else DoLaserDistance() calcs the depth
+
 				}
 				catch (Exception ex)
 				{
@@ -1874,9 +2061,29 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void GetSystemInfo(bool driftOnly)
+		private async Task GetSystemInfo(bool driftOnly, bool delay)
 		{
-			cumulus.LogMessage("NOT Reading Ecowitt system info");
+			// pause for two seconds to get out of sync with the live data requests
+			if (delay)
+			{
+				await Task.Delay(3000, Program.ExitSystemToken);
+				if (Program.ExitSystemToken.IsCancellationRequested)
+				{
+					return;
+				}
+			}
+
+			cumulus.LogMessage("Reading station info");
+			var info = await localApi.GetDeviceInfo(Program.ExitSystemToken);
+			if (Program.ExitSystemToken.IsCancellationRequested)
+			{
+				return;
+			}
+			var now = DateTime.Now;
+			// 2024-09-06T16:36
+			var stationDate = DateTime.ParseExact(info.date + ":00", "s", CultureInfo.InvariantCulture);
+			cumulus.LogMessage("Station clock difference = " + (now - stationDate).Minutes + " mins");
+
 		}
 
 		private static bool TestBattery3(int value)

@@ -673,7 +673,11 @@ namespace CumulusMX.Stations
 								DoSunHours(Convert.ToDouble(sl[SUNPOS], provider));
 							}
 
-							_ = cumulus.DoLogFile(timestamp, false);
+							if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+							{
+								// Only log data if not in the roll-over hour and not on the hour
+								_ = cumulus.DoLogFile(timestamp, false);
+							}
 							cumulus.MySqlRealtimeFile(999, false, timestamp);
 							cumulus.DoCustomIntervalLogs(timestamp);
 
@@ -684,7 +688,7 @@ namespace CumulusMX.Stations
 							}
 
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1);
+								OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 							UpdateStatusPanel(timestamp.ToUniversalTime());
 
 							// Add current data to the lists of web service updates to be done
@@ -745,7 +749,7 @@ namespace CumulusMX.Stations
 								// reset the accumulated snow depth(s)
 								for (var j = 0; j < Snow24h.Length; j++)
 								{
-									Snow24h[j] = null;
+									Snow24h[j] = LaserDepth[i].HasValue ? 0 : null;
 								}
 
 								snowhourdone = true;

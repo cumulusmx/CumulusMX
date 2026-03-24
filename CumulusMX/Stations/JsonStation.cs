@@ -1,13 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using EmbedIO;
 
 using MQTTnet;
-
-using ServiceStack;
-using ServiceStack.Text;
 
 
 namespace CumulusMX.Stations
@@ -38,19 +37,13 @@ namespace CumulusMX.Stations
 
 			if (mainStation)
 			{
-				cumulus.LogMessage("Creating JSON Station");
+				cumulus.LogMessage("JSON Station: Creating JSON Station");
 				this.station = this;
 			}
 			else
 			{
-				cumulus.LogMessage("Creating Extra Sensors - JSON Station");
+				cumulus.LogMessage("JSON Extra Station: Creating Extra Sensors");
 			}
-
-			// Let's decode the Unix ts to DateTime
-			JsConfig.Init(new Config
-			{
-				DateHandler = DateHandler.UnixTime
-			});
 
 			// Do not set these if we are only using extra sensors
 			if (mainStation)
@@ -81,7 +74,8 @@ namespace CumulusMX.Stations
 					// Nothing to do, the API will send us the data
 					break;
 				case 2:
-					if (!string.IsNullOrEmpty(cumulus.JsonStationOptions.MqttServer) && !string.IsNullOrEmpty(cumulus.JsonStationOptions.MqttTopic))
+					if (!string.IsNullOrEmpty(mainStation ? cumulus.JsonStationOptions.MqttServer : cumulus.JsonExtraStationOptions.MqttServer) &&
+						!string.IsNullOrEmpty(mainStation ? cumulus.JsonStationOptions.MqttTopic : cumulus.JsonExtraStationOptions.MqttTopic))
 					{
 						SetupMqttClient();
 					}
@@ -236,7 +230,7 @@ namespace CumulusMX.Stations
 
 		private void SetupMqttClient()
 		{
-			JsonStationMqtt.Setup(cumulus, this);
+			JsonStationMqtt.Setup(cumulus, this, mainStation);
 		}
 
 		public void ReceiveDataFromMqtt(MqttApplicationMessage appMessage)
@@ -266,7 +260,7 @@ namespace CumulusMX.Stations
 
 			var retStr = new StringBuilder();
 
-			var data = dataString.FromJson<DataObject>();
+			var data = JsonSerializer.Deserialize<DataObject>(dataString);
 
 			if (data == null)
 			{
@@ -302,6 +296,10 @@ namespace CumulusMX.Stations
 							{
 								DoOutdoorDewpoint(ConvertUnits.TempCToUser(data.temperature.dewpoint.Value), data.lastupdated);
 							}
+							if (data.temperature.blackglobe.HasValue)
+							{
+								BlackGlobeTemp = ConvertUnits.TempCToUser(data.temperature.blackglobe.Value);
+							}
 						}
 						else if (data.units.temperature == "F")
 						{
@@ -313,6 +311,14 @@ namespace CumulusMX.Stations
 							if (data.temperature.indoor.HasValue)
 							{
 								DoIndoorTemp(ConvertUnits.TempFToUser(data.temperature.indoor.Value));
+							}
+							if (!cumulus.StationOptions.CalculatedDP && data.temperature.dewpoint.HasValue)
+							{
+								DoOutdoorDewpoint(ConvertUnits.TempFToUser(data.temperature.dewpoint.Value), data.lastupdated);
+							}
+							if (data.temperature.blackglobe.HasValue)
+							{
+								BlackGlobeTemp = ConvertUnits.TempFToUser(data.temperature.blackglobe.Value);
 							}
 						}
 						else
@@ -762,16 +768,16 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					CO2 = data.co2.co2;
-					CO2_24h = data.co2.co2_24h;
-					CO2_pm2p5 = data.co2.pm2p5;
-					CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5);
-					CO2_pm2p5_24h = data.co2.pm2p5avg24h;
-					CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5h24, CO2_pm2p5_24h);
-					CO2_pm10 = data.co2.pm10;
-					CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
-					CO2_pm10_24h = data.co2.pm10avg24h;
-					CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10h24, CO2_pm10_24h);
+					station.CO2 = data.co2.co2;
+					station.CO2_24h = data.co2.co2_24h;
+					station.CO2_pm2p5 = data.co2.pm2p5;
+					station.CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, station.CO2_pm2p5);
+					station.CO2_pm2p5_24h = data.co2.pm2p5avg24h;
+					station.CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5h24, station.CO2_pm2p5_24h);
+					station.CO2_pm10 = data.co2.pm10;
+					station.CO2_pm10_aqi = GetAqi(AqMeasure.pm10, station.CO2_pm10);
+					station.CO2_pm10_24h = data.co2.pm10avg24h;
+					station.CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10h24, station.CO2_pm10_24h);
 				}
 				catch (Exception ex)
 				{
@@ -803,15 +809,15 @@ namespace CumulusMX.Stations
 						try
 						{
 							decimal? range = rec.range.HasValue ? ConvertUnits.LaserMmToUser(rec.range.Value * multiplier) : null;
-							station.DoLaserDistance(range, rec.index);
+							station.DoLaserDistance(range, rec.index, data.lastupdated);
 
 							if (cumulus.LaserDepthBaseline[rec.index] == -1)
 							{
 								// MX is not calculating depth
-
 								decimal? depth = rec.depth.HasValue ? ConvertUnits.LaserMmToUser(rec.depth.Value * multiplier) : null;
-								station.DoLaserDepth(depth, rec.index);
+								station.DoLaserDepth(depth, rec.index, data.lastupdated);
 							}
+							// else DoLaserDistance() calcs the depth
 						}
 						catch (Exception ex)
 						{
@@ -825,13 +831,13 @@ namespace CumulusMX.Stations
 			// Lightning
 			if (data.lightning != null)
 			{
-				LightningTime = data.lightning.time ?? DateTime.MinValue;
-				LightningStrikesToday += data.lightning.strikes ?? 0 - LightningCounter;
-				LightningCounter = data.lightning.strikes ?? 0;
-				LightningDistance = (data.units.lightning ?? "??") switch
+				station.LightningTime = data.lightning.time ?? DateTime.MinValue;
+				station.LightningStrikesToday += data.lightning.strikes ?? 0 - station.LightningCounter;
+				station.LightningCounter = data.lightning.strikes ?? 0;
+				station.LightningDistance = (data.units.lightning ?? "??") switch
 				{
 					"km" => ConvertUnits.KmtoUserUnits(data.lightning.distance ?? 0),
-					"mi" => data.lightning.distance ?? 0,
+					"mi" => ConvertUnits.MilestoUserUnits(data.lightning.distance ?? 0),
 					_ => data.lightning.distance ?? 0
 				};
 			}
@@ -883,6 +889,8 @@ namespace CumulusMX.Stations
 		private sealed class DataObject
 		{
 			public UnitsObject units { get; set; }
+
+			[JsonConverter(typeof(JsonConverters.UnixDateTimeConverter))]
 			public DateTime lastupdated { get; set; }
 			public Temperature temperature { get; set; }
 			public Humidity humidity { get; set; }
@@ -917,6 +925,7 @@ namespace CumulusMX.Stations
 			public double? outdoor { get; set; }
 			public double? indoor { get; set; }
 			public double? dewpoint { get; set; }
+			public double? blackglobe { get; set; }
 		}
 		private sealed class Humidity
 		{
@@ -986,10 +995,10 @@ namespace CumulusMX.Stations
 
 		private sealed class Lightning
 		{
+			[JsonConverter(typeof(JsonConverters.NullableUnixDateTimeConverter))]
 			public DateTime? time { get; set; }
 			public int? strikes { get; set; }
 			public double? distance { get; set; }
 		}
-
 	}
 }

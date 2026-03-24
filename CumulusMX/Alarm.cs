@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace CumulusMX
@@ -75,6 +74,13 @@ namespace CumulusMX
 		{
 			if (Latch && triggered && DateTime.UtcNow > triggeredTime.AddHours(LatchHours))
 				DoTriggered(false);
+		}
+
+		public void ResetAlarm()
+		{
+			triggerCount = 0;
+			triggeredTime = DateTime.MinValue;
+			triggered = false;
 		}
 
 		private void DoTriggered(bool value)
@@ -311,6 +317,18 @@ namespace CumulusMX
 
 			if (Latch && downTriggered && DateTime.UtcNow > DownTriggeredTime.AddHours(LatchHours))
 				DoDownTriggered(false);
+		}
+
+		public void ResetUpAlarm()
+		{
+			UpTriggeredTime = DateTime.MinValue;
+			upTriggered = false;
+		}
+
+		public void ResetDownAlarm()
+		{
+			DownTriggeredTime = DateTime.MinValue;
+			downTriggered = false;
 		}
 
 		private void DoUpTriggered(bool value)
@@ -619,12 +637,9 @@ namespace CumulusMX
 		User10 = 110
 	}
 
-	[DataContract]
 	public class DashboardAlarms(AlarmIds Id, bool Triggered)
 	{
-		[DataMember]
 		public string id { get; set; } = "Alarm" + Id.ToString();
-		[DataMember]
 		public bool triggered { get; set; } = Triggered;
 	}
 }

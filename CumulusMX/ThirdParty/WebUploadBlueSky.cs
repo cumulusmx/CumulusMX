@@ -5,13 +5,13 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.Serialization;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-using ServiceStack;
 using SixLabors.ImageSharp;
 
 
@@ -46,7 +46,7 @@ namespace CumulusMX.ThirdParty
 			}
 		}
 
-		private readonly SemaphoreSlim _updateSemaphore = new SemaphoreSlim(1, 1);
+		private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
 
 		public WebUploadBlueSky(Cumulus cumulus, string name) : base(cumulus, name)
 		{
@@ -123,7 +123,7 @@ namespace CumulusMX.ThirdParty
 					{
 						cumulus.LogDebugMessage("BlueSky: Authentication Response: " + response.StatusCode);
 
-						var respObj = responseBodyAsText.FromJson<AuthResponse>();
+						var respObj = JsonSerializer.Deserialize<AuthResponse>(responseBodyAsText);
 
 						if (respObj.accessJwt != null && respObj.did != null)
 						{
@@ -141,7 +141,7 @@ namespace CumulusMX.ThirdParty
 					}
 					else if (response.StatusCode == HttpStatusCode.Unauthorized)
 					{
-						var err = responseBodyAsText.FromJson<ErrorResp>();
+						var err = JsonSerializer.Deserialize<ErrorResp>(responseBodyAsText);
 
 						cumulus.LogWarningMessage($"BlueSky: Error - Authentication failed. Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
 						cumulus.ThirdPartyAlarm.LastMessage = "BlueSky: Unauthorized, check credentials";
@@ -151,7 +151,15 @@ namespace CumulusMX.ThirdParty
 					}
 					else
 					{
-						var err = responseBodyAsText.FromJson<ErrorResp>();
+						var err = JsonSerializer.Deserialize<ErrorResp>(responseBodyAsText);
+
+						if (err.error == "RateLimitExceeded")
+						{
+							cumulus.LogWarningMessage("BlueSky: Rate limited. Abort this upload without retry");
+							cumulus.ThirdPartyAlarm.LastMessage = "BlueSky: Uploads have been rate limited.";
+							cumulus.ThirdPartyAlarm.Triggered = true;
+							return false;
+						}
 
 						if (retryCount == 0)
 						{
@@ -258,7 +266,7 @@ namespace CumulusMX.ThirdParty
 					body.record.facets = facets.ToArray();
 				}
 
-				var bodyText = body.ToJson();
+				var bodyText = JsonSerializer.Serialize(body);
 
 				cumulus.LogDataMessage("BlueSky: Post JSON: " + bodyText);
 
@@ -277,7 +285,7 @@ namespace CumulusMX.ThirdParty
 				}
 				else
 				{
-					var err = responseBodyAsText.FromJson<ErrorResp>();
+					var err = JsonSerializer.Deserialize<ErrorResp>(responseBodyAsText);
 
 					cumulus.LogWarningMessage($"BlueSky: Error - Post failed. Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
 					cumulus.ThirdPartyAlarm.LastMessage = $"BlueSky: Post HTTP Response code = {response.StatusCode},  Error = {err.error}, Message = {err.message}";
@@ -301,7 +309,7 @@ namespace CumulusMX.ThirdParty
 			var regex = RegexLink();
 
 			Match match;
-			while (true)
+			do
 			{
 				match = regex.Match(content);
 				if (!match.Success) break;
@@ -325,7 +333,7 @@ namespace CumulusMX.ThirdParty
 				facets.Add(facet);
 
 				if (start + label.Length >= content.Length) break;
-			}
+			} while (true);
 
 			modifiedContent = content;
 
@@ -407,7 +415,7 @@ namespace CumulusMX.ThirdParty
 			var embed = new Embed();
 
 			Match match;
-			while (true)
+			do
 			{
 				match = regex.Match(content);
 				if (!match.Success) break;
@@ -443,7 +451,7 @@ namespace CumulusMX.ThirdParty
 				images.Add(image);
 
 				if (start >= content.Length) break;
-			}
+			} while (true);
 
 			modifiedContent = content;
 
@@ -479,7 +487,7 @@ namespace CumulusMX.ThirdParty
 				{
 					cumulus.LogDebugMessage("BlueSky: Resolve Handle response = OK");
 
-					var resp = responseBodyAsText.FromJson<ResolveHandleResp>();
+					var resp = JsonSerializer.Deserialize<ResolveHandleResp>(responseBodyAsText);
 
 					if (string.IsNullOrEmpty(resp.did) || !resp.did.StartsWith("did:"))
 					{
@@ -493,7 +501,7 @@ namespace CumulusMX.ThirdParty
 				}
 				else
 				{
-					var err = responseBodyAsText.FromJson<ErrorResp>();
+					var err = JsonSerializer.Deserialize<ErrorResp>(responseBodyAsText);
 
 					cumulus.LogWarningMessage($"BlueSky: Error - Resolve Handle failed. Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
 					cumulus.ThirdPartyAlarm.LastMessage = $"BlueSky: Resolve Handle HTTP Response code = {response.StatusCode},  Error = {err.error}, Message = {err.message}";
@@ -582,12 +590,12 @@ namespace CumulusMX.ThirdParty
 
 				cumulus.LogDataMessage("BlueSky: Upload image response = " + responseBodyAsText);
 
-				var root = responseBodyAsText.FromJson<BlobRoot>();
+				var root = JsonSerializer.Deserialize<BlobRoot>(responseBodyAsText);
 				return root.blob;
 			}
 			else
 			{
-				var err = responseBodyAsText.FromJson<ErrorResp>();
+				var err = JsonSerializer.Deserialize<ErrorResp>(responseBodyAsText);
 
 				cumulus.LogWarningMessage($"BlueSky: Error - Upload image failed. Response code = {response.StatusCode}, Error = {err.error}, Message = {err.message}");
 				cumulus.ThirdPartyAlarm.LastMessage = $"BlueSky: Upload image HTTP Response code = {response.StatusCode},  Error = {err.error}, Message = {err.message}";
@@ -618,7 +626,7 @@ namespace CumulusMX.ThirdParty
 
 		private sealed class FacetFeature
 		{
-			[DataMember(Name = "$type")]
+			[JsonPropertyName("$type")]
 			public string type { get; set; }
 
 			public string uri { get; set; }
@@ -655,24 +663,24 @@ namespace CumulusMX.ThirdParty
 
 		private sealed class Embed
 		{
-			[DataMember(Name = "$type")]
+			[JsonPropertyName("$type")]
 			public string type { get; set; } = "app.bsky.embed.images";
 
-			public Images[] images { get; set; }
+			public Images[] images { get; set; } = [];
 		}
 
 		private sealed class BlobRef
 		{
-			[DataMember(Name = "$link")]
+			[JsonPropertyName("$link")]
 			public string link { get; set; }
 		}
 
 		private sealed class Blob
 		{
-			[DataMember(Name = "$type")]
+			[JsonPropertyName("$type")]
 			public string type { get; set; } = "blob";
 
-			[DataMember(Name = "ref")]
+			[JsonPropertyName("ref")]
 			public BlobRef reference { get; set; }
 
 			public string mimeType { get; set; }
@@ -690,8 +698,10 @@ namespace CumulusMX.ThirdParty
 			public string createdAt { get; } = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
 			public string[] langs { get; set; }
 
+			[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 			public Facet[] facets { get; set; }
 
+			[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 			public Embed embed { get; set; }
 		}
 
@@ -699,7 +709,7 @@ namespace CumulusMX.ThirdParty
 		{
 			public string repo { get; set; }
 
-			[DataMember(Name = "$type")]
+			[JsonPropertyName("$type")]
 			public string type { get; set; } = "app.bsky.feed.post";
 
 			public string collection { get; } = "app.bsky.feed.post";

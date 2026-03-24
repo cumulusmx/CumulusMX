@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -16,11 +15,13 @@ using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
+using CumulusMX.LogFiles;
 using CumulusMX.Settings;
 using CumulusMX.Stations;
 
@@ -43,9 +44,6 @@ using NLog.Extensions.Logging;
 using NLog.Targets;
 
 using Renci.SshNet;
-
-using ServiceStack;
-using ServiceStack.Text;
 
 using SQLite;
 
@@ -129,6 +127,7 @@ namespace CumulusMX
 		public const int LogFileRetries = 3;
 
 		private WeatherStation station;
+		public bool HasExtraStation { get; set; } = false;
 
 		internal DavisAirLink airLinkIn;
 		public int airLinkInLsid { get; set; }
@@ -219,17 +218,10 @@ namespace CumulusMX
 		internal string ComportName;
 		internal string DefaultComportName;
 
-		internal string Platform;
-
 		internal string dbfile;
 
 		internal string diaryfile;
 		internal SQLiteConnection DiaryDB;
-
-		internal string Datapath;
-
-		internal string ListSeparator;
-		internal char DirectorySeparator;
 
 		internal int RolloverHour;
 		internal bool Use10amInSummer;
@@ -252,13 +244,11 @@ namespace CumulusMX
 		internal string Alltimelogfile;
 		internal string MonthlyAlltimeIniFile;
 		internal string MonthlyAlltimeLogFile;
-		private string logFilePath;
 		internal string DayFileName;
 		internal string YesterdayFile;
 		internal string TodayIniFile;
 		internal string MonthIniFile;
 		internal string YearIniFile;
-		private string backupPath;
 		internal string WebTagFile;
 
 		internal bool SynchronisedWebUpdate;
@@ -514,8 +504,8 @@ namespace CumulusMX
 		internal string[] APRSstationtype = ["DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecowitt", "Unknown", "Ecowitt", "Ambient", "Tempest", "Simulated", "Ecowitt", "DsVP", "DsVP", "Json", "Ecowitt"];
 
 		internal string[] DayfileFieldNames = ["Date", "HighWindGust", "HighGustBearing", "HighGustTime", "MinTemperature", "MinTempTime", "MaxTemperature", "MaxTempTime", "MinPressure", "MinPressureTime", "MaxPressure", "MaxPressureTime", "MaxRainfallRate", "MaxRainRateTime", "TotalRainfallToday", "AvgTemperatureToday", "TotalWindRun", "HighAverageWindSpeed", "HighAvgWindSpeedTime", "LowHumidity", "LowHumidityTime", "HighHumidity", "HighHumidityTime", "TotalEvapotranspiration", "TotalHoursOfSunshine", "HighHeatIndex", "HighHeatIndexTime", "HighApparentTemperature", "HighAppTempTime", "LowApparentTemperature", "LowAppTempTime", "High1hRain", "High1hRainTime", "LowWindChill", "LowWindChillTime", "HighDewPoint", "HighDewPointTime", "LowDewPoint", "LowDewPointTime", "DominantWindBearing", "HeatingDegreeDays", "CoolingDegreeDays", "HighSolarRad", "HighSolarRadTime", "HighUv-I", "HighUv-ITime", "HighFeelsLike", "HighFeelsLikeTime", "LowFeelsLike", "LowFeelsLikeTime", "HighHumidex", "HighHumidexTime", "ChillHours", "High24hRain", "High24hRainTime"];
-		internal string[] LogFileFieldNames = ["Date", "Time", "Temperature", "Humidity", "DewPoint", "WindSpeed", "RecentHighGust", "AverageWindBearing", "RainfallRate", "RainfallSoFar", "SeaLevelPressure", "RainfallCounter", "InsideTemperature", "InsideHumidity", "CurrentGust", "WindChill", "HeatIndex", "UvIndex", "SolarRadiation", "Evapotranspiration", "AnnualEvapotranspiration", "ApparentTemperature", "MaxSolarRadiation", "HoursOfSunshine", "WindBearing", "Rg-11Rain", "RainSinceMidnight", "FeelsLike", "Humidex"];
-		internal string[] ExtraFileFieldNames = ["Date", "Time",
+		internal string[] LogFileFieldNames = ["DateTime", "TS", "Temperature", "Humidity", "DewPoint", "WindSpeed", "RecentHighGust", "AverageWindBearing", "RainfallRate", "RainfallSoFar", "SeaLevelPressure", "RainfallCounter", "InsideTemperature", "InsideHumidity", "CurrentGust", "WindChill", "HeatIndex", "UvIndex", "SolarRadiation", "Evapotranspiration", "AnnualEvapotranspiration", "ApparentTemperature", "MaxSolarRadiation", "HoursOfSunshine", "WindBearing", "Rg-11Rain", "RainSinceMidnight", "FeelsLike", "Humidex"];
+		internal string[] ExtraFileFieldNames = ["DateTime", "TS",
 			"Temp1", "Temp2", "Temp3", "Temp4", "Temp5", "Temp6", "Temp7", "Temp8", "Temp9", "Temp10", "Hum1", "Hum2", "Hum3", "Hum4", "Hum5", "Hum6", "Hum7", "Hum8", "Hum9", "Hum10",
 			"Dewpoint1", "Dewpoint2", "Dewpoint3", "Dewpoint4", "Dewpoint5", "Dewpoint6", "Dewpoint7", "Dewpoint8", "Dewpoint9", "Dewpoint10",
 			"SoilTemp1", "SoilTemp2", "SoilTemp3", "SoilTemp4", "SoilMoist1", "SoilMoist2", "SoilMoist3", "SoilMoist4", "na1", "na2", "LeafWet1", "LeafWet2",
@@ -532,36 +522,40 @@ namespace CumulusMX
 		}
 
 		private SemaphoreSlim uploadCountLimitSemaphoreSlim;
-		private SemaphoreSlim realtimeFtpSemaphore = new(1);
+		private readonly SemaphoreSlim realtimeFtpSemaphore = new(1, 1);
+		private readonly SemaphoreSlim realtimeCopySemaphore = new(1, 1);
+		private readonly SemaphoreSlim intervaltimeFtpSemaphore = new(1, 1);
+
+		private SftpClientFactory sftpClientFactory;
+		private FtpClientFactory ftpClientFactory;
 
 		public Cumulus()
 		{
-			DirectorySeparator = Path.DirectorySeparatorChar;
 		}
 
-		public void Initialise(int HTTPport, bool DebugEnabled, string startParms)
+		public void Initialise(int HTTPport, bool DebugEnabled)
 		{
 			var fullVer = Assembly.GetExecutingAssembly().GetName().Version;
 			Version = $"{fullVer.Major}.{fullVer.Minor}.{fullVer.Build}";
 			Build = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
 
-			AppDir = Directory.GetCurrentDirectory() + DirectorySeparator;
-			WebTagFile = AppDir + "WebTags.txt";
+			WebTagFile = Path.Combine(Directory.GetCurrentDirectory(), "WebTags.txt");
 
 			//b3045>, use same port for WS...  WS port = HTTPS port
 			wsPort = HTTPport;
 
 			DebuggingEnabled = DebugEnabled;
 
-			LogMessage(" ========================== Cumulus MX starting ==========================");
+			LogMessage("========================== Cumulus MX starting ==========================");
 
 			LogMessage("Cumulus MX v." + Version + " build " + Build);
-			LogMessage("Working Folder : " + AppDir);
+			LogMessage("Working Folder : " + Directory.GetCurrentDirectory());
 			LogConsoleMessage("Cumulus MX v." + Version + " build " + Build);
-			LogConsoleMessage("Working Dir: " + AppDir);
+			LogConsoleMessage("Working Dir: " + Directory.GetCurrentDirectory());
 
 			IsOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
+			string Platform;
 			if (IsOSX)
 				Platform = "Mac OS X";
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -610,30 +604,10 @@ namespace CumulusMX
 			// Set the default comport name depending on platform
 			DefaultComportName = System.OperatingSystem.IsWindows() ? "COM1" : "/dev/ttyUSB0";
 
-			// Check if all the folders required by CMX exist, if not create them
-			CreateRequiredFolders();
-
 			// Remove old MD5 hash files
 			CleanUpHashFiles();
 
-			Datapath = "data" + DirectorySeparator;
-			backupPath = "backup" + DirectorySeparator;
-			ReportPath = "Reports" + DirectorySeparator;
-			var WebPath = "web" + DirectorySeparator;
-
-			dbfile = Datapath + "cumulusmx.db";
-			diaryfile = Datapath + "diary.db";
-
-			AlltimeIniFile = Datapath + "alltime.ini";
-			Alltimelogfile = Datapath + "alltimelog.txt";
-			MonthlyAlltimeIniFile = Datapath + "monthlyalltime.ini";
-			MonthlyAlltimeLogFile = Datapath + "monthlyalltimelog.txt";
-			logFilePath = Datapath;
-			DayFileName = Datapath + "dayfile.txt";
-			YesterdayFile = Datapath + "yesterday.ini";
-			TodayIniFile = Datapath + "today.ini";
-			MonthIniFile = Datapath + "month.ini";
-			YearIniFile = Datapath + "year.ini";
+			var WebPath = "web";
 
 			// initialise the third party uploads
 			Wund = new ThirdParty.WebUploadWund(this, "WUnderground");
@@ -650,11 +624,13 @@ namespace CumulusMX
 			{
 				DefaultInterval = 60
 			};
-			if (File.Exists(WebPath + "Bluesky.txt"))
+
+			var blueskyFile = Path.Combine(WebPath, "Bluesky.txt");
+			if (File.Exists(blueskyFile))
 			{
 				try
 				{
-					Bluesky.ContentTemplate = File.ReadAllText(WebPath + "Bluesky.txt", new System.Text.UTF8Encoding(false));
+					Bluesky.ContentTemplate = File.ReadAllText(blueskyFile, new System.Text.UTF8Encoding(false));
 				}
 				catch (Exception ex)
 				{
@@ -677,7 +653,7 @@ namespace CumulusMX
 			[
 				new()
 				{
-					TemplateFileName = WebPath + "websitedataT.json",
+					TemplateFileName = Path.Combine(WebPath, "websitedataT.json"),
 					LocalPath = WebPath,
 					LocalFileName = "websitedata.json",
 					RemoteFileName = "websitedata.json"
@@ -699,8 +675,8 @@ namespace CumulusMX
 				},
 				new()
 				{
-					TemplateFileName = WebPath + "realtimegaugesT.txt",
-					LocalPath = WebPath,
+					TemplateFileName = Path.Combine(WebPath, "realtimegaugesT.txt"),
+					LocalPath =WebPath,
 					LocalFileName = "realtimegauges.txt",
 					RemoteFileName = "realtimegauges.txt"
 				}
@@ -833,6 +809,18 @@ namespace CumulusMX
 					LocalPath = WebPath,
 					LocalFileName = "leafwetdata.json",
 					RemoteFileName = "leafwetdata.json"
+				},
+				new()     // 21
+				{
+					LocalPath = WebPath,
+					LocalFileName = "laserdepthdata.json",
+					RemoteFileName = "laserdepthdata.json"
+				},
+				new()     // 22
+				{
+					LocalPath = WebPath,
+					LocalFileName = "snow24data.json",
+					RemoteFileName = "snow24hdata.json"
 				}
 			];
 
@@ -935,6 +923,17 @@ namespace CumulusMX
 			ReadIniFile();
 			ReadConfigFile();
 
+			if (ProgramOptions.ProcessLogFilesLevel == 0)
+			{
+				LogConsoleMessage("Converting log files to new format (this could take some time)...");
+				LogMessage("Converting log files to new format (this could take some time)...");
+				LogFileConverter.AddUnixTimestamp.ProcessLogFiles(ProgramOptions.DataPath, RecordsBeganDateTime);
+				ProgramOptions.ProcessLogFilesLevel = 1;
+				WriteIniFile();
+				LogConsoleMessage("Log file conversion complete");
+				LogMessage("Log file conversion complete");
+			}
+
 			for (var i = 2; i < GraphDataFiles.Length; i++)
 			{
 				GraphDataFiles[i].LastDataTime = RecordsBeganDateTime;
@@ -944,6 +943,22 @@ namespace CumulusMX
 			{
 				GraphDataEodFiles[i].LastDataTime = RecordsBeganDateTime;
 			}
+
+			// Check if all the folders required by CMX exist, if not create them
+			CreateRequiredFolders();
+
+			dbfile = Path.Combine(ProgramOptions.DataPath, "cumulusmx.db");
+			diaryfile = Path.Combine(ProgramOptions.DataPath, "diary.db");
+
+			AlltimeIniFile = Path.Combine(ProgramOptions.DataPath, "alltime.ini");
+			Alltimelogfile = Path.Combine(ProgramOptions.DataPath, "alltimelog.txt");
+			MonthlyAlltimeIniFile = Path.Combine(ProgramOptions.DataPath, "monthlyalltime.ini");
+			MonthlyAlltimeLogFile = Path.Combine(ProgramOptions.DataPath, "monthlyalltimelog.txt");
+			DayFileName = Path.Combine(ProgramOptions.DataPath, "dayfile.txt");
+			YesterdayFile = Path.Combine(ProgramOptions.DataPath, "yesterday.ini");
+			TodayIniFile = Path.Combine(ProgramOptions.DataPath, "today.ini");
+			MonthIniFile = Path.Combine(ProgramOptions.DataPath, "month.ini");
+			YearIniFile = Path.Combine(ProgramOptions.DataPath, "year.ini");
 
 
 			// Do we prevent more than one copy of CumulusMX running?
@@ -955,13 +970,9 @@ namespace CumulusMX
 				LogMessage("PHP using GET = " + FtpOptions.PhpUseGet);
 				LogMessage("PHP using Brotli = " + FtpOptions.PhpUseBrotli);
 			}
-			uploadCountLimitSemaphoreSlim = new SemaphoreSlim(FtpOptions.MaxConcurrentUploads);
+			uploadCountLimitSemaphoreSlim = new SemaphoreSlim(FtpOptions.MaxConcurrentUploads, FtpOptions.MaxConcurrentUploads);
 
-			ListSeparator = CultureInfo.CurrentCulture.TextInfo.ListSeparator;
-
-			DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-
-			LogMessage($"Directory separator=[{DirectorySeparator}] Decimal separator=[{DecimalSeparator}] List separator=[{ListSeparator}]");
+			LogMessage($"Directory separator=[{Path.DirectorySeparatorChar}] Decimal separator=[{CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator}] List separator=[{CultureInfo.CurrentCulture.TextInfo.ListSeparator}]");
 			LogMessage($"Date separator=[{CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator}] Time separator=[{CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator}]");
 
 			LogMessage("Standard time zone name:   " + TimeZoneInfo.Local.StandardName);
@@ -1153,9 +1164,19 @@ namespace CumulusMX
 				SetupFtpLogging(true);
 			}
 
-			LogMessage("Data path = " + Datapath);
+			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+			{
+				CreateUpdateSftpClientFactory();
+			}
+			else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
+			{
+				CreateUpdateFtpClientFactory();
+			}
 
-			AppDomain.CurrentDomain.SetData("DataDirectory", Datapath);
+
+			LogMessage("Data path = " + ProgramOptions.DataPath);
+
+			AppDomain.CurrentDomain.SetData("DataDirectory", ProgramOptions.DataPath);
 
 			// Open database (create file if it doesn't exist)
 			SQLiteOpenFlags flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite ;
@@ -1253,9 +1274,10 @@ namespace CumulusMX
 			LogMessage("Email logging :" + (SmtpOptions.Logging ? "enabled" : "disabled"));
 			LogMessage("Spike logging :" + (ErrorLogSpikeRemoval ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval] + " mins");
-			LogMessage("Real time interval:" + (RealtimeIntervalEnabled ? "enabled" : "disabled") + ", uploads:" + (FtpOptions.RealtimeEnabled ? "enabled" : "disabled") + ", (" + RealtimeInterval / 1000 + " secs)");
-			LogMessage("Interval          :" + (WebIntervalEnabled ? "enabled" : "disabled") + ", uploads:" + (FtpOptions.IntervalEnabled ? "enabled" : "disabled") + ", (" + UpdateInterval + " mins)");
-			LogMessage("NoSensorCheck = " + (StationOptions.NoSensorCheck ? "1" : "0"));
+			LogMessage("Real time interval: " + (RealtimeIntervalEnabled ? "enabled" : "disabled") + ", uploads: " + (FtpOptions.RealtimeEnabled ? "enabled" : "disabled") + ", (" + RealtimeInterval / 1000 + " secs)");
+			LogMessage("Interval          : " + (WebIntervalEnabled ? "enabled" : "disabled") + ", uploads: " + (FtpOptions.IntervalEnabled ? "enabled" : "disabled") + ", (" + UpdateInterval + " mins)");
+			LogMessage("Extra sensor logging: " + (StationOptions.LogExtraSensors ? "enabled" : "disabled"));
+			LogMessage("NoSensorCheck = " + (StationOptions.NoSensorCheck ? "enabled" : "disabled"));
 
 			TempFormat = "F" + TempDPlaces;
 			WindFormat = "F" + WindDPlaces;
@@ -1391,17 +1413,30 @@ namespace CumulusMX
 				.WithStaticFolder("/sounds/", Path.Combine(htmlRootPath, "sounds"), true, m => m
 					.WithoutContentCaching()
 				)
-				.WithStaticFolder("/ai2/", Path.Combine(htmlRootPath, "ai2"), true, m => m
+				.WithStaticFolder("/js/images/", Path.Combine(htmlRootPath, "js", "images"), true, m => m
 					.WithoutContentCaching()
 				)
-				.WithStaticFolder("/js/images/", Path.Combine(htmlRootPath, "js", "images"), true, m => m
+				.WithStaticFolder("/ai2/css/", Path.Combine(htmlRootPath, "ai2", "css"), true, m => m
+					.WithoutContentCaching()
+				)
+				.WithStaticFolder("/ai2/img/", Path.Combine(htmlRootPath, "ai2", "img"), true, m => m
+					.WithoutContentCaching()
+				)
+				.WithStaticFolder("/ai2/lib/", Path.Combine(htmlRootPath, "ai2", "lib"), true, m => m
+					.WithoutContentCaching()
+				)
+				.WithStaticFolder("/custom/", Path.Combine(htmlRootPath, "custom"), true, m => m
 					.WithoutContentCaching()
 				)
 				.WithWebApi("/", m => m
 					.WithController<Api.DashboardController>()
 					.WithController<Api.ScriptController>()
 					.WithController<Api.JsonController>()
+					.WithController<Api.Ai2DashboardController>()
+					.WithController<Api.Ai2ScriptController>()
 				);
+
+			Swan.Logging.DebugLogger _Logger = Swan.Logging.DebugLogger.Instance;
 
 			//httpServer.Listener.AddPrefix($"https://*:{HTTPport + 1000}/")
 
@@ -1426,7 +1461,7 @@ namespace CumulusMX
 			Api.langSettings = new LangSettings(this);
 			Api.displaySettings = new DisplaySettings(this);
 
-			_ = httpServer.RunAsync();
+			_ = httpServer.RunAsync(Program.ExitSystemToken);
 
 			Console.WriteLine();
 			Console.Write("Cumulus running at: ");
@@ -1556,6 +1591,9 @@ namespace CumulusMX
 
 			if (station != null)
 			{
+				WebTags = new WebTags(this, station);
+				WebTags.InitialiseWebtags();
+
 				Api.Station = station;
 				Api.stationSettings.SetStation(station);
 				Api.extraSensorSettings.SetStation(station);
@@ -1598,6 +1636,7 @@ namespace CumulusMX
 					LogConsoleMessage($"Opening Ecowitt extra sensors");
 					ecowittExtra = new HttpStationEcowitt(this, station);
 					Api.stationEcowittExtra = ecowittExtra;
+					HasExtraStation = true;
 				}
 				if (AmbientExtraEnabled)
 				{
@@ -1605,12 +1644,14 @@ namespace CumulusMX
 					LogConsoleMessage($"Opening Ambient extra sensors");
 					ambientExtra = new HttpStationAmbient(this, station);
 					Api.stationAmbientExtra = ambientExtra;
+					HasExtraStation = true;
 				}
 				if (EcowittCloudExtraEnabled)
 				{
 					LogMessage("Creating Ecowitt cloud extra sensors station");
 					LogConsoleMessage($"Opening Ecowitt cloud extra sensors");
 					ecowittCloudExtra = new EcowittCloudStation(this, station);
+					HasExtraStation = true;
 				}
 				if (JsonExtraStationOptions.ExtraSensorsEnabled)
 				{
@@ -1618,6 +1659,7 @@ namespace CumulusMX
 					LogConsoleMessage($"Opening JSON extra sensors");
 					stationJsonExtra = new JsonStation(this, station);
 					Api.stationJsonExtra = stationJsonExtra;
+					HasExtraStation = true;
 				}
 				if (PurpleAirEnabled)
 				{
@@ -1640,9 +1682,6 @@ namespace CumulusMX
 				OpenWeatherMap.station = station;
 				Bluesky.station = station;
 				Bluesky.CancelToken = Program.ExitSystemToken;
-
-				WebTags = new WebTags(this, station);
-				WebTags.InitialiseWebtags();
 
 				httpFiles = new HttpFiles(this, station);
 
@@ -1749,8 +1788,10 @@ namespace CumulusMX
 
 			var header = new System.Net.Http.Headers.ProductHeaderValue("CumulusMX", $"{Version}.{Build}");
 			var userAgent = new System.Net.Http.Headers.ProductInfoHeaderValue(header);
-
 			phpUploadHttpClient.DefaultRequestHeaders.UserAgent.Add(userAgent);
+
+			var uri = new Uri(FtpOptions.PhpUrl);
+			phpUploadHttpClient.DefaultRequestHeaders.Referrer = new Uri(uri.Scheme + "://" + uri.Host);
 		}
 
 		internal void SetupMyHttpClient()
@@ -1769,6 +1810,7 @@ namespace CumulusMX
 			var userAgent = new System.Net.Http.Headers.ProductInfoHeaderValue(header);
 
 			MyHttpClient.DefaultRequestHeaders.UserAgent.Add(userAgent);
+			MyHttpClient.DefaultRequestHeaders.Referrer = new Uri("https://cumulus.hosiene.co.uk/");
 		}
 
 
@@ -1953,6 +1995,8 @@ namespace CumulusMX
 			MonthlyTable.AddColumn("CurrWindBearingSym", "varchar(3)");
 			MonthlyTable.AddColumn("FeelsLike", "decimal(4," + TempDPlaces + ")");
 			MonthlyTable.AddColumn("Humidex", "decimal(4," + TempDPlaces + ")");
+			MonthlyTable.AddColumn("BlackGlobeTemp", "decimal(4," + TempDPlaces + ")");
+			MonthlyTable.AddColumn("WetBulbGlobeTemp", "decimal(4," + TempDPlaces + ")");
 			MonthlyTable.PrimaryKey = "LogDateTime";
 			MonthlyTable.Comment = "\"Monthly logs from Cumulus\"";
 		}
@@ -2313,7 +2357,7 @@ namespace CumulusMX
 
 				if (responseBodyAsText.Length > 10)
 				{
-					var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapStation[]>(responseBodyAsText);
+					var respJson = JsonSerializer.Deserialize<OpenWeatherMapStation[]>(responseBodyAsText);
 					retVal = respJson;
 				}
 			}
@@ -2354,7 +2398,7 @@ namespace CumulusMX
 				if (response.StatusCode == HttpStatusCode.Created)
 				{
 					// It worked, save the result
-					var respJson = JsonSerializer.DeserializeFromString<OpenWeatherMapNewStation>(responseBodyAsText);
+					var respJson = JsonSerializer.Deserialize<OpenWeatherMapNewStation>(responseBodyAsText);
 
 					LogMessage($"OpenWeatherMap: Created new station, id = {respJson.ID}, name = {respJson.name}");
 					OpenWeatherMap.ID = respJson.ID;
@@ -2430,14 +2474,13 @@ namespace CumulusMX
 			try
 			{
 				// Process any files
-				if (RealtimeCopyInProgress)
+				if (!realtimeCopySemaphore.Wait(1000, Program.ExitSystemToken))
 				{
 					LogWarningMessage($"Realtime[{cycle}]: Warning, a previous cycle is still processing local files. Skipping this interval.");
 					return;
 				}
 				else
 				{
-					RealtimeCopyInProgress = true;
 					CreateRealtimeFile(cycle);
 					CreateRealtimeHTMLfiles(cycle);
 
@@ -2445,91 +2488,85 @@ namespace CumulusMX
 					{
 						RealtimeLocalCopy(cycle);
 					}
-					RealtimeCopyInProgress = false;
 				}
+			}
+			catch (Exception ex)
+			{
+				LogExceptionMessage(ex, "Realtime[{cycle}]: Error during file copies");
+			}
+			finally
+			{
+				realtimeCopySemaphore.Release();
+			}
 
-				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
+			if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
+			{
+				if (!realtimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
 				{
-					if (!realtimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
+					// we cannot get the lock - abort
+					LogDebugMessage($"Realtime[{cycle}]: Warning, could not get the upload lock, aborting upload for this cycle");
+				}
+				else
+				{
+					// We can do some FTP!
+					try
 					{
-						// we cannot get the lock - abort
-						LogDebugMessage($"Realtime[{cycle}]: Warning, could not get the FTP lock, aborting FTP for this cycle");
+						RealtimeUpload(cycle).Wait();
 					}
-					else
+					catch (Exception ex)
 					{
-						if (RealtimeFtpLocked)
-						{
-							LogWarningMessage($"Realtime[{cycle}]: Warning, FTP is busy. Skipping FTP for this interval");
-						}
-						else
-						{
-							RealtimeFtpLocked = true;
-
-							// Finally we can do some FTP!
-							try
-							{
-								RealtimeUpload(cycle).Wait();
-								// Leave the lock set on error so nothing else runs until we are connected
-								RealtimeFtpLocked = false;
-							}
-							catch (Exception ex)
-							{
-								LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during realtime upload.");
-								// signal the wd to attmpt to reconnect
-								RealTimeWdTokenSource.Cancel();
-							}
-						}
-
+						LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during realtime upload.");
+						// signal the wd to attmpt to reconnect
+						RealtimeFtpWatchDogTokenSource.Cancel();
+					}
+					finally
+					{
 						realtimeFtpSemaphore.Release();
 					}
 				}
+			}
 
-				if (!string.IsNullOrEmpty(RealtimeProgram))
+			if (!string.IsNullOrEmpty(RealtimeProgram))
+			{
+				if (!File.Exists(RealtimeProgram))
 				{
-					if (!File.Exists(RealtimeProgram))
+					LogWarningMessage($"Warning: Realtime program '{RealtimeProgram}' does not exist");
+				}
+				else
+				{
+					try
 					{
-						LogWarningMessage($"Warning: Realtime program '{RealtimeProgram}' does not exist");
-					}
-					else
-					{
-						try
-						{
-							var args = string.Empty;
+						var args = string.Empty;
 
-							if (!string.IsNullOrEmpty(RealtimeParams))
+						if (!string.IsNullOrEmpty(RealtimeParams))
+						{
+							var parser = new TokenParser(TokenParserOnToken)
 							{
-								var parser = new TokenParser(TokenParserOnToken)
-								{
-									InputText = RealtimeParams
-								};
-								args = parser.ToStringFromString();
-							}
-							LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
-							_ = Utils.RunExternalTask(RealtimeProgram, args, false);
+								InputText = RealtimeParams
+							};
+							args = parser.ToStringFromString();
 						}
-						catch (FileNotFoundException)
-						{
-							LogErrorMessage($"Realtime[{cycle}]: Error: Realtime program '{RealtimeProgram}' does not exist");
-						}
-						catch (Exception ex)
-						{
-							LogErrorMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
-						}
+						LogDebugMessage($"Realtime[{cycle}]: Execute realtime program - {RealtimeProgram}, with parameters - {args}");
+						_ = Utils.RunExternalTask(RealtimeProgram, args, false);
+					}
+					catch (FileNotFoundException)
+					{
+						LogErrorMessage($"Realtime[{cycle}]: Error: Realtime program '{RealtimeProgram}' does not exist");
+					}
+					catch (Exception ex)
+					{
+						LogErrorMessage($"Realtime[{cycle}]: Error in realtime program - {RealtimeProgram}. Error: {ex.Message}");
 					}
 				}
+			}
 
+			try
+			{
 				MySqlRealtimeFile(cycle, true);
 			}
 			catch (Exception ex)
 			{
-				LogExceptionMessage(ex, $"Realtime[{cycle}]: Error during update");
-
-				if (FtpOptions.RealtimeEnabled && FtpOptions.Enabled)
-				{
-					realtimeFtpSemaphore.Release();
-				}
-				RealtimeCopyInProgress = false;
-				RealtimeFtpLocked = false;
+				LogExceptionMessage(ex, "Realtime[{cycle}]: Error in MySqlRealtimeFile()");
 			}
 
 			LogDebugMessage($"Realtime[{cycle}]: End cycle");
@@ -2540,42 +2577,58 @@ namespace CumulusMX
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 				return;
 
-			// reset the wd cancellation token if required
-			if (RealTimeWdTokenSource.IsCancellationRequested)
+			if (RealtimeFtpWatchDogTask != null && !RealtimeFtpWatchDogTask.IsCompleted)
 			{
-				RealTimeWdTokenSource.Dispose();
-				RealTimeWdTokenSource = new();
+				// already running
+				return;
 			}
 
-			RealtimeFtpWatchDogToken = RealTimeWdTokenSource.Token;
-
-			Task.Run(() =>
+			RealtimeFtpWatchDogTask = Task.Run(() =>
 			{
 				bool connected = false;
 				bool reinit = true;
 				const string filename = "_cumulusmx_watchdog.txt";
+				int connectCount = 0;
+				bool weHaveSemaphore = false;
+
+				RealtimeFtpWatchDogTaskTokenSource = new();
 
 				do
 				{
-					RealtimeFtpLocked = true;
-
-					if (realtimeFtpSemaphore.Wait(5000, Program.ExitSystemToken))
+					if (!weHaveSemaphore)
 					{
-#if DEBUG
-						LogDebugMessage("RealtimeFtpWatchDog: Got the semaphore");
-#endif
-					}
-					else
-					{
-						LogDebugMessage("RealtimeFtpWatchDog: Timed out waiting for the semaphore");
-					}
+						LogDebugMessage("RealtimeFtpWatchDog: Attempting to get the semaphore (wait 20 seconds)");
 
-					RealtimeFtpLocked = true;
+						if (realtimeFtpSemaphore.Wait(20000, Program.ExitSystemToken))
+						{
+							LogDebugMessage("RealtimeFtpWatchDog: Got the semaphore");
+							weHaveSemaphore = true;
+						}
+						else
+						{
+							LogDebugMessage("RealtimeFtpWatchDog: Timed out waiting for the semaphore, continue and try again later");
+						}
+					}
 
 					do
 					{
 						if (reinit)
 						{
+							if (!weHaveSemaphore)
+							{
+								LogDebugMessage("RealtimeFtpWatchDog: Attempting to get the semaphore (wait 5 seconds)");
+
+								if (realtimeFtpSemaphore.Wait(5000, Program.ExitSystemToken))
+								{
+									LogDebugMessage("RealtimeFtpWatchDog: Got the semaphore");
+									weHaveSemaphore = true;
+								}
+								else
+								{
+									LogDebugMessage("RealtimeFtpWatchDog: Timed out waiting for the semaphore");
+								}
+							}
+
 							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 							{
 								try
@@ -2655,14 +2708,8 @@ namespace CumulusMX
 								tempFile = filename;
 							}
 
-							if (realtimeFtpSemaphore.CurrentCount > 0)
-							{
-								realtimeFtpSemaphore.Wait(100, Program.ExitSystemToken);
-							}
-
 							try
 							{
-
 								if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 								{
 									LogDebugMessage("RealtimeFtpWatchDog: Realtime ftp testing the connection");
@@ -2758,20 +2805,57 @@ namespace CumulusMX
 
 						if (!connected)
 						{
-							// add a 30 second delay between retries
-							LogMessage("RealtimeFtpWatchDog: Connection failed - waiting 30 seconds before trying again");
-							Thread.Sleep(30000);
+							if (connectCount < 10) connectCount++;
+
+							// fully disconnect the existing connection before waiting
+							if (FtpOptions.FtpMode == FtpProtocols.SFTP)
+							{
+								try
+								{
+									if (RealtimeSSH != null)
+									{
+										RealtimeSSH.Disconnect();
+										RealtimeSSH.Dispose();
+									}
+								}
+								catch
+								{
+									// do nothing
+								}
+
+							}
+							else
+							{
+								// dispose of the previous FTP client
+								try
+								{
+									if (RealtimeFTP != null && !RealtimeFTP.IsDisposed)
+									{
+										RealtimeFTP.Dispose();
+									}
+								}
+								catch
+								{
+									// do nothing
+								}
+							}
+
+							// add a 30 second x connection attempt count delay between retries, up to 5 minutes
+							LogMessage($"RealtimeFtpWatchDog: Connection failed - waiting {30 * connectCount} seconds before trying again");
+							Thread.Sleep(30000 * connectCount);
 							reinit = true;
 						}
 					} while (!connected && !Program.ExitSystemToken.IsCancellationRequested);
 
 					// OK we are reconnected, let the FTP recommence
 					LogFtpMessage("RealtimeFtpWatchDog: Realtime FTP OK, operations can be resumed", true);
-
-					RealtimeFtpLocked = false;
-					RealtimeCopyInProgress = false;
+					// reset the wd token
+					RealtimeFtpWatchDogTokenSource.Dispose();
+					RealtimeFtpWatchDogTokenSource = new();
 					try
 					{
+						// release the semaphore
+						weHaveSemaphore = false;
 						realtimeFtpSemaphore.Release();
 					}
 					catch
@@ -2783,7 +2867,7 @@ namespace CumulusMX
 
 					LogDebugMessage($"RealtimeFtpWatchDog: Sleeping for {realtimeFtpWdInterval} seconds before testing the connection again...");
 
-					var signal = WaitHandle.WaitAny([Program.ExitSystemToken.WaitHandle, RealtimeFtpWatchDogToken.WaitHandle], realtimeFtpWdInterval * 1000);
+					var signal = WaitHandle.WaitAny([Program.ExitSystemToken.WaitHandle, RealtimeFtpWatchDogTokenSource.Token.WaitHandle, RealtimeFtpWatchDogTaskTokenSource.Token.WaitHandle], realtimeFtpWdInterval * 1000);
 					if (signal == WaitHandle.WaitTimeout)
 					{
 						// normal timeout, go round again and test
@@ -2795,13 +2879,32 @@ namespace CumulusMX
 					}
 					else if (signal == 1)
 					{
-						LogMessage("RealtimeFtpWatchDog: FTP error detected, waiting 10 seconds before attempting to reconnect");
-						Program.ExitSystemToken.WaitHandle.WaitOne(10 * 1000);
-						RealTimeWdTokenSource.Dispose();
-						RealTimeWdTokenSource = new();
-						RealtimeFtpWatchDogToken = RealTimeWdTokenSource.Token;
+						LogMessage("RealtimeFtpWatchDog: FTP error detected!");
+						// attempt to grab the semaphore
+						LogDebugMessage("RealtimeFtpWatchDog: attempting to get the semaphore");
+						if (realtimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
+						{
+							// we have the semaphore
+							weHaveSemaphore = true;
+							LogDebugMessage("RealtimeFtpWatchDog: we have the semaphore");
+						}
+						else
+						{
+							LogDebugMessage("RealtimeFtpWatchDog: failed to get the semaphore at this attempt");
+						}
+						LogMessage("RealtimeFtpWatchDog: Waiting 5 seconds before attempting to reconnect");
+						Program.ExitSystemToken.WaitHandle.WaitOne(5 * 1000);
 					}
-				} while (!Program.ExitSystemToken.IsCancellationRequested);
+					else if (signal == 2)
+					{
+						LogMessage("RealtimeFtpWatchDog: Watch dog termination requested");
+					}
+
+				} while (!Program.ExitSystemToken.IsCancellationRequested && !RealtimeFtpWatchDogTaskTokenSource.Token.IsCancellationRequested);
+
+				RealtimeFTPDisconnect();
+
+				LogMessage("RealtimeFtpWatchDog: Exiting Task");
 			});
 		}
 
@@ -2865,14 +2968,12 @@ namespace CumulusMX
 			var taskCount = 0;
 			var runningTaskCount = 0;
 
-			RealtimeFtpLocked = true;
-
 			if (FtpOptions.Directory.Length > 0)
 			{
 				remotePath = (FtpOptions.Directory.EndsWith('/') ? FtpOptions.Directory : FtpOptions.Directory + '/');
 			}
 
-			LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload files starting", true);
+			LogFtpDebugMessage($"Realtime[{cycle}]: Real time upload of files starting", true);
 
 			for (var i = 0; i < RealtimeFiles.Length; i++)
 			{
@@ -2898,12 +2999,22 @@ namespace CumulusMX
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
 							LogDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}");
-							_ = UploadStream(RealtimeSSH, remoteFile, dataStream, cycle);
+							if (!UploadStream(RealtimeSSH, remoteFile, dataStream, cycle))
+							{
+								// trigger the WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 						else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
 						{
 							LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}", true);
-							_ = UploadStream(RealtimeFTP, remoteFile, dataStream, cycle);
+							if (!UploadStream(RealtimeFTP, remoteFile, dataStream, cycle))
+							{
+								// trigger the WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 					}
 					else // PHP
@@ -2912,9 +3023,12 @@ namespace CumulusMX
 						try
 						{
 #if DEBUG
-							LogDebugMessage($"RealtimePHP[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
+							{
+								LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							}
 							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-							LogDebugMessage($"RealtimePHP[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
@@ -2929,8 +3043,10 @@ namespace CumulusMX
 						var idx = i;
 						tasklist.Add(Task.Run(async () =>
 						{
+							Interlocked.Increment(ref runningTaskCount);
+
 #if DEBUG
-							LogDebugMessage($"RealtimePHP[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].LocalFileName} to {RealtimeFiles[idx].RemoteFileName}");
+							LogDebugMessage($"Realtime[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].LocalFileName} to {RealtimeFiles[idx].RemoteFileName}");
 #endif
 							// realtime file
 							if (RealtimeFiles[idx].LocalFileName == "realtime.txt")
@@ -2952,13 +3068,11 @@ namespace CumulusMX
 							{
 								uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-								LogDebugMessage($"RealtimePHP[{cycle}]: Real time file [{idx}] {RealtimeFiles[idx].RemoteFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+								LogDebugMessage($"Realtime[{cycle}]: Real time file [{idx}] {RealtimeFiles[idx].RemoteFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 							}
 							return true;
 						}, Program.ExitSystemToken));
-
-						Interlocked.Increment(ref runningTaskCount);
 					}
 				}
 			}
@@ -2970,7 +3084,7 @@ namespace CumulusMX
 
 			if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
-				LogDebugMessage($"RealtimePHP[{cycle}]: Extra Files starting");
+				LogDebugMessage($"Realtime[{cycle}]: Extra Files starting");
 
 				for (var i = 0; i < ActiveExtraFiles.Count; i++)
 				{
@@ -2985,8 +3099,8 @@ namespace CumulusMX
 
 					if (!File.Exists(uploadfile))
 					{
-						LogWarningMessage($"RealtimePHP[{cycle}]: Warning, extra web file not found! - {uploadfile}");
-						return;
+						LogWarningMessage($"Realtime[{cycle}]: Warning, extra web file not found! - {uploadfile}");
+						continue;
 					}
 
 					bool incremental = false;
@@ -3009,7 +3123,7 @@ namespace CumulusMX
 
 						if (linesAdded == 0)
 						{
-							LogDebugMessage($"RealtimePHP[{cycle}]: Extra file: {uploadfile} - No incremental data found, skipping this upload");
+							LogDebugMessage($"Realtime[{cycle}]: Extra file: {uploadfile} - No incremental data found, skipping this upload");
 							continue;
 						}
 					}
@@ -3017,9 +3131,12 @@ namespace CumulusMX
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"RealtimePHP[{cycle}]: Extra File {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
+						{
+							LogDebugMessage($"Realtime[{cycle}]: Extra File {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						}
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-						LogDebugMessage($"RealtimePHP[{cycle}]: Extra File {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"Realtime[{cycle}]: Extra File {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -3038,6 +3155,8 @@ namespace CumulusMX
 					{
 						try
 						{
+							Interlocked.Increment(ref runningTaskCount);
+
 							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
@@ -3045,7 +3164,7 @@ namespace CumulusMX
 							// Is this an incremental log file upload?
 							if (item.incrementalLogfile && !item.binary)
 							{
-								LogDebugMessage($"RealtimePHP[{cycle}]: Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incrementally - {linesAdded} lines" : "Fully")})");
+								LogDebugMessage($"Realtime[{cycle}]: Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incremental - {linesAdded} lines" : "Full file")})");
 								if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, cycle, item.binary, item.UTF8, true, item.logFileLastLineNumber))
 								{
 									ActiveExtraFiles[idx].logFileLastLineNumber += linesAdded;
@@ -3053,11 +3172,11 @@ namespace CumulusMX
 							}
 							else
 							{
-								LogDebugMessage($"RealtimePHP[{cycle}]: Uploading extra web file {uploadfile} to {remotefile}");
+								LogDebugMessage($"Realtime[{cycle}]: Uploading extra web file {uploadfile} to {remotefile}");
 
 								if (item.process)
 								{
-									LogDebugMessage($"RealtimePHP[{cycle}]: Processing extra web file {uploadfile}");
+									LogDebugMessage($"Realtime[{cycle}]: Processing extra web file {uploadfile}");
 									var str = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 
 									_ = await UploadString(phpUploadHttpClient, false, string.Empty, str, remotefile, cycle, item.binary, item.UTF8);
@@ -3072,24 +3191,25 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"RealtimePHP[{cycle}]: Extra Web File {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"Realtime[{cycle}]: Extra Web File {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
 						// no void return which cannot be tracked
 						return true;
 					}, Program.ExitSystemToken));
-
-					Interlocked.Increment(ref runningTaskCount);
 				}
 
 				// wait for all the tasks to start
-				while (runningTaskCount < taskCount)
+				if (runningTaskCount < taskCount)
 				{
-					if (Program.ExitSystemToken.IsCancellationRequested)
-						return;
+					do
+					{
+						if (Program.ExitSystemToken.IsCancellationRequested)
+							return;
 
-					await Task.Delay(10);
+						await Task.Delay(10);
+					} while (runningTaskCount < taskCount);
 				}
 
 				// wait for all the tasks to complete
@@ -3100,23 +3220,21 @@ namespace CumulusMX
 						// wait on the task to complete, but timeout after 20 seconds
 						if (Task.WaitAll([.. tasklist], TimeSpan.FromSeconds(20)))
 						{
-							LogDebugMessage($"RealtimePHP[{cycle}]: Real time files complete, {tasklist.Count} files uploaded");
+							LogDebugMessage($"Realtime[{cycle}]: Real time files complete, {tasklist.Count} files uploaded");
 						}
 						else
 						{
-							LogDebugMessage($"RealtimePHP[{cycle}]: Real time files timed out waiting for the uploads to complete");
+							LogDebugMessage($"Realtime[{cycle}]: Real time files timed out waiting for the uploads to complete");
 						}
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, $"RealtimePHP[{cycle}]: Error waiting on upload tasks");
+						LogExceptionMessage(ex, $"Realtime[{cycle}]: Error waiting on upload tasks");
 					}
 				}
 
-				LogDebugMessage($"RealtimePHP[{cycle}]: Real time files process end");
+				LogDebugMessage($"Realtime[{cycle}]: Real time files process end");
 				tasklist.Clear();
-
-				RealtimeFtpLocked = false;
 			}
 			else // It's old fashioned FTP/FTPS/SFTP
 			{
@@ -3216,22 +3334,42 @@ namespace CumulusMX
 						using var strm = GenerateStreamFromString(data);
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
-							UploadStream(RealtimeSSH, remotefile, strm, cycle);
+							if (!UploadStream(RealtimeSSH, remotefile, strm, cycle))
+							{
+								// trigger WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 						else
 						{
-							UploadStream(RealtimeFTP, remotefile, strm, cycle);
+							if (!UploadStream(RealtimeFTP, remotefile, strm, cycle))
+							{
+								// trigger WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 					}
 					else // its just a plain old file - upload it
 					{
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
-							UploadFile(RealtimeSSH, uploadfile, remotefile, cycle);
+							if (!UploadFile(RealtimeSSH, uploadfile, remotefile, cycle))
+							{
+								// trigger WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 						else
 						{
-							UploadFile(RealtimeFTP, uploadfile, remotefile, cycle);
+							if (!UploadFile(RealtimeFTP, uploadfile, remotefile, cycle))
+							{
+								// trigger WD
+								RealtimeFtpWatchDogTokenSource.Cancel();
+								return;
+							}
 						}
 					}
 				}
@@ -3239,7 +3377,6 @@ namespace CumulusMX
 				LogFtpDebugMessage($"Realtime[{cycle}]: Real time FTP upload extra files complete", true);
 
 				// all done
-				RealtimeFtpLocked = false;
 			}
 		}
 
@@ -3300,11 +3437,11 @@ namespace CumulusMX
 			}
 		}
 
-		private readonly object tokenParserLockObj = new();
+		private readonly Lock tokenParserLock = new();
 
 		public void TokenParserOnToken(string strToken, ref string strReplacement)
 		{
-			lock (tokenParserLockObj)
+			lock (tokenParserLock)
 			{
 				var tagParams = new Dictionary<string, string>();
 				var paramList = ParseParams(strToken);
@@ -3313,8 +3450,8 @@ namespace CumulusMX
 				tagParams.Add("webtag", webTag);
 				for (int i = 1; i < paramList.Count; i += 2)
 				{
-					// odd numbered entries are keys with "=" on the end - remove that
-					string key = paramList[i][..^1];
+					// odd numbered entries are keys
+					string key = paramList[i];
 					// even numbered entries are values
 					string value = paramList[i + 1];
 					tagParams.Add(key, value);
@@ -3326,67 +3463,138 @@ namespace CumulusMX
 
 		private static List<string> ParseParams(string line)
 		{
-			var insideQuotes = false;
-			var start = -1;
+			if (string.IsNullOrWhiteSpace(line))
+				return new List<string>();
 
 			var parts = new List<string>();
 
-			for (var i = 0; i < line.Length; i++)
-			{
-				if (char.IsWhiteSpace(line[i]))
-				{
-					if (!insideQuotes && start != -1)
-					{
-						parts.Add(line[start..i]);
-						start = -1;
-					}
-					else if (insideQuotes && start == -1)
-					{
-						// allow leading spaces inside quotes
-						start = i;
-					}
-				}
-				else if (line[i] == '"')
-				{
-					if (start != -1)
-					{
-						parts.Add(line[start..i]);
-						start = -1;
-					}
-					else if (insideQuotes)
-					{
-						// not started and found closing quote = empty string
-						parts.Add(string.Empty);
-					}
-					insideQuotes = !insideQuotes;
-				}
-				else if (line[i] == '=')
-				{
-					if (!insideQuotes && start != -1)
-					{
-						parts.Add(line.Substring(start, (i - start) + 1));
-						start = -1;
-					}
-				}
-				else if (start == -1)
-				{
-					start = i;
-				}
-			}
+			int len = line.Length;
+			int idx = 0;
 
-			if (start != -1)
+			// skip any leading whitespace
+			while (idx < len && char.IsWhiteSpace(line[idx]))
+				idx++;
+
+			// read initial token (everything up to first whitespace)
+			int start = idx;
+			while (idx < len && !char.IsWhiteSpace(line[idx]))
+				idx++;
+			var initial = line[start..idx].ToLowerInvariant();
+			parts.Add(initial); // preserve initial token exactly as input
+
+			// skip whitespace after initial token
+			while (idx < len && char.IsWhiteSpace(line[idx]))
+				idx++;
+
+			// parse remaining key/value or standalone tokens
+			while (idx < len)
 			{
-				parts.Add(line[start..]);
+				// read key (up to '=' or whitespace)
+				start = idx;
+				while (idx < len && !char.IsWhiteSpace(line[idx]) && line[idx] != '=')
+					idx++;
+
+				if (idx >= len)
+				{
+					// trailing standalone token (no '=')
+					var standalone = line[start..idx].ToLowerInvariant();
+					parts.Add(standalone);
+					break;
+				}
+
+				// If we hit whitespace, there might still be an '=' after some spaces (e.g. "key = value")
+				int scan = idx;
+				while (scan < len && char.IsWhiteSpace(line[scan]))
+					scan++;
+
+				if (scan < len && line[scan] == '=')
+				{
+					// key found
+					var key = line[start..idx].Trim().ToLowerInvariant();
+					parts.Add(key);
+
+					// move idx to character after '='
+					idx = scan + 1;
+
+					// skip spaces before value
+					while (idx < len && char.IsWhiteSpace(line[idx]))
+						idx++;
+
+					// parse value
+					if (idx < len && line[idx] == '"')
+					{
+						// quoted value - capture inner text (allow empty "")
+						idx++; // skip opening quote
+						start = idx;
+						while (idx < len && line[idx] != '"')
+							idx++;
+						var value = line[start..idx]; // excludes quotes
+						parts.Add(value);
+						// skip closing quote if present
+						if (idx < len && line[idx] == '"')
+							idx++;
+					}
+					else
+					{
+						// unquoted value - up to next whitespace
+						start = idx;
+						while (idx < len && !char.IsWhiteSpace(line[idx]))
+							idx++;
+						var value = line[start..idx];
+						parts.Add(value);
+					}
+				}
+				else if (line[idx] == '=')
+				{
+					// direct '=' encountered (no spaces): key is from start..idx
+					var key = line[start..idx].Trim().ToLowerInvariant();
+					parts.Add(key);
+					// move past '='
+					idx++;
+
+					// skip spaces before value
+					while (idx < len && char.IsWhiteSpace(line[idx]))
+						idx++;
+
+					// parse value (quoted or unquoted)
+					if (idx < len && line[idx] == '"')
+					{
+						idx++;
+						start = idx;
+						while (idx < len && line[idx] != '"')
+							idx++;
+						var value = line[start..idx];
+						parts.Add(value);
+						if (idx < len && line[idx] == '"')
+							idx++;
+					}
+					else
+					{
+						start = idx;
+						while (idx < len && !char.IsWhiteSpace(line[idx]))
+							idx++;
+						var value = line[start..idx];
+						parts.Add(value);
+					}
+				}
+				else
+				{
+					// standalone token (no '=' found)
+					var standalone = line[start..idx].ToLowerInvariant();
+					parts.Add(standalone);
+				}
+
+				// skip whitespace before next pair
+				while (idx < len && char.IsWhiteSpace(line[idx]))
+					idx++;
 			}
 
 			return parts;
 		}
 
-		public string DecimalSeparator { get; set; }
-
 		private void CleanUpHashFiles()
 		{
-			foreach (var file in Directory.EnumerateFiles(AppDir, "hash_md5_*.txt"))
+			foreach (var file in Directory.EnumerateFiles(Directory.GetCurrentDirectory(), "hash_md5_*.txt"))
 			{
 				if (!file.EndsWith(Build + ".txt"))
 				{
@@ -3567,7 +3775,7 @@ namespace CumulusMX
 		internal void DoSunriseAndSunset()
 		{
 			LogMessage("Calculating sunrise and sunset times");
-			DateTime today = DateTime.Now.Date;
+			DateTime today = DateTime.Now.Date.AddHours(12);  // Use around midday to avoid DST change issues
 			DateTime tomorrow = today.AddDays(1);
 			try
 			{
@@ -3858,6 +4066,8 @@ namespace CumulusMX
 				ini.Refresh();
 			}
 
+			ProgramOptions.ProcessLogFilesLevel = ini.GetValue("Program", "ProcessLogFiles", 0);
+
 			ProgramOptions.EnableAccessibility = ini.GetValue("Program", "EnableAccessibility", false);
 
 			ProgramOptions.StartupPingHost = ini.GetValue("Program", "StartupPingHost", string.Empty);
@@ -3914,6 +4124,10 @@ namespace CumulusMX
 			ProgramOptions.ListWebTags = ini.GetValue("Station", "ListWebTags", false);
 			ProgramOptions.UseWebSockets = ini.GetValue("Program", "UseWebSockets", true);
 
+			ProgramOptions.DataPath = ini.GetValue("Program", "DataPath", "data");
+			ProgramOptions.BackupPath = ini.GetValue("Program", "BackupPath", "backup");
+			ProgramOptions.ReportsPath = ini.GetValue("Program", "ReportsPath", "Reports");
+
 			SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
 			if (DebuggingEnabled)
 			{
@@ -3926,6 +4140,8 @@ namespace CumulusMX
 				ProgramOptions.DataLogging = ini.GetValue("Station", "DataLogging", false);
 			}
 			ErrorListLoggingLevel = (MxLogLevel) ini.GetValue("Program", "ErrorListLoggingLevel", (int) MxLogLevel.Warning);
+
+			SnowLogging = ini.GetValue("Program", "SnowLogging", false);
 
 			ProgramOptions.SecureSettings = ini.GetValue("Program", "SecureSettings", false);
 			ProgramOptions.SettingsUsername = ini.GetValue("Program", "SettingsUsername", string.Empty);
@@ -3982,8 +4198,10 @@ namespace CumulusMX
 			}
 			DavisOptions.TCPPort = ini.GetValue("Station", "VP2TCPPort", 22222, 1, 65535);
 			DavisOptions.IPAddr = ini.GetValue("Station", "VP2IPAddr", "0.0.0.0");
+			DavisOptions.CloudBroadcasts = ini.GetValue("Station", "DavisCloudBroadcast", false);
 
 			WeatherFlowOptions.WFDeviceId = ini.GetValue("Station", "WeatherFlowDeviceId", 0);
+			WeatherFlowOptions.WFSerialNo = ini.GetValue("Station", "WeatherFlowSerialNo", string.Empty);
 			WeatherFlowOptions.WFTcpPort = ini.GetValue("Station", "WeatherFlowTcpPort", 50222, 1, 65535);
 			WeatherFlowOptions.WFToken = ini.GetValue("Station", "WeatherFlowToken", "api token");
 			WeatherFlowOptions.WFDaysHist = ini.GetValue("Station", "WeatherFlowDaysHist", 0, 0);
@@ -4142,17 +4360,28 @@ namespace CumulusMX
 				0 => 5,
 				1 => 2,
 				2 => 50,
-				_ => (decimal) 999.0
+				_ => 999
 			};
 			Spike.SnowDiff = ini.GetValue("Station", "EWsnowdiff", maxSnowInc, 0, 999);
 			decimal minSnowInc = (decimal) (Units.LaserDistance switch
 			{
-				0 => 1.0,
-				1 => 0.5,
-				2 => 10,
+				0 => 0.2,
+				1 => 0.2,
+				2 => 2,
 				_ => 0
 			});
-			SnowMinInc = ini.GetValue("Station", "EWsnowMinInc", minSnowInc, 0);
+			SnowDepthMinInc = ini.GetValue("Station", "EWsnowMinInc", minSnowInc, 0);
+			SnowDepthMedianMins = ini.GetValue("Station", "SnowMedianMins", 10, 1, 30);
+			SnowDepthEmaTimeMins = ini.GetValue("Station", "SnowEmaTimeMins", 12.0, 0.01, 30.0);
+			var defSnowClip = Units.LaserDistance switch
+			{
+				0 => 0.1,  // cm
+				1 => 0.04, // in
+				2 => 1.0,  // mm
+				_ => 1.0
+			};
+			SnowDepthClipDelta = ini.GetValue("Station", "SnowClipDelta", defSnowClip, 0.0);
+
 			if (Spike.TempDiff < 999)
 			{
 				Spike.TempDiff = ConvertUnits.TempCToUser(Spike.TempDiff);
@@ -4294,6 +4523,8 @@ namespace CumulusMX
 			WllPrimaryRain = ini.GetValue("WLL", "PrimaryRainTxId", 1, 1, 8);
 			WllPrimarySolar = ini.GetValue("WLL", "PrimarySolarTxId", 0, 0, 8);
 			WllPrimaryUV = ini.GetValue("WLL", "PrimaryUvTxId", 0, 0, 8);
+			WllPrimarySunshine = ini.GetValue("WLL", "PrimarySunshine", 0, 0, 8);
+			SolarOptions.UseSunshineSensor = WllPrimarySunshine > 0;
 			for (var i = 1; i <= 16; i++)
 			{
 				WllSoilTempTx[i] = ini.GetValue("WLL", "ExtraSoilTempTxId" + i, 0, 0, 8);
@@ -4333,7 +4564,7 @@ namespace CumulusMX
 			EcowittUseSdCard = ini.GetValue("GW1000", "EcowittUseSdcard", false);
 			EcowittCloudDataUpdateInterval = ini.GetValue("GW1000", "CloudDataUpdateInterval", 1, 1, 10);
 
-			EcowittHttpPassword = ini.GetValue("GW1000", "HttpPassword", "");
+			EcowittHttpPassword = ini.GetValue("GW1000", "HttpPassword", string.Empty);
 
 			EcowittExtraSetCustomServer = ini.GetValue("GW1000", "ExtraSetCustomServer", false);
 			EcowittExtraGatewayAddr = ini.GetValue("GW1000", "EcowittExtraGwAddr", "0.0.0.0");
@@ -4379,15 +4610,6 @@ namespace CumulusMX
 
 			// Ambient settings
 			AmbientExtraEnabled = ini.GetValue("Ambient", "ExtraSensorDataEnabled", false);
-			AmbientExtraUseSolar = ini.GetValue("Ambient", "ExtraSensorUseSolar", true);
-			AmbientExtraUseUv = ini.GetValue("Ambient", "ExtraSensorUseUv", true);
-			AmbientExtraUseTempHum = ini.GetValue("Ambient", "ExtraSensorUseTempHum", true);
-			AmbientExtraUseSoilTemp = ini.GetValue("Ambient", "ExtraSensorUseSoilTemp", true);
-			AmbientExtraUseSoilMoist = ini.GetValue("Ambient", "ExtraSensorUseSoilMoist", true);
-			AmbientExtraUseAQI = ini.GetValue("Ambient", "ExtraSensorUseAQI", true);
-			AmbientExtraUseCo2 = ini.GetValue("Ambient", "ExtraSensorUseCo2", true);
-			AmbientExtraUseLightning = ini.GetValue("Ambient", "ExtraSensorUseLightning", true);
-			AmbientExtraUseLeak = ini.GetValue("Ambient", "ExtraSensorUseLeak", true);
 
 			// JSON station options
 			JsonStationOptions.Connectiontype = ini.GetValue("JsonStation", "ConnectionType", 1, 0, 2);
@@ -4416,91 +4638,91 @@ namespace CumulusMX
 			// Extra Sensor Options
 			if (ini.ValueExists("GW1000", "ExtraSensorUseSolar"))
 			{
-				ExtraSensorUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", true);
+				ExtraSensorUseSolar = ini.GetValue("GW1000", "ExtraSensorUseSolar", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseSolar");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseSolar", ExtraSensorUseSolar);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseSolar = ini.GetValue("ExtraSensors", "ExtraSensorUseSolar", true);
+				ExtraSensorUseSolar = ini.GetValue("ExtraSensors", "ExtraSensorUseSolar", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseUv"))
 			{
-				ExtraSensorUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", true);
+				ExtraSensorUseUv = ini.GetValue("GW1000", "ExtraSensorUseUv", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseUv");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseUv", ExtraSensorUseUv);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseUv = ini.GetValue("ExtraSensors", "ExtraSensorUseUv", true);
+				ExtraSensorUseUv = ini.GetValue("ExtraSensors", "ExtraSensorUseUv", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseTempHum"))
 			{
-				ExtraSensorUseTempHum = ini.GetValue("GW1000", "ExtraSensorUseTempHum", true);
+				ExtraSensorUseTempHum = ini.GetValue("GW1000", "ExtraSensorUseTempHum", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseTempHum");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseTempHum", ExtraSensorUseTempHum);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseTempHum = ini.GetValue("ExtraSensors", "ExtraSensorUseTempHum", true);
+				ExtraSensorUseTempHum = ini.GetValue("ExtraSensors", "ExtraSensorUseTempHum", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilTemp"))
 			{
-				ExtraSensorUseSoilTemp = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", true);
+				ExtraSensorUseSoilTemp = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseSoilTemp");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseSoilTemp", ExtraSensorUseSoilTemp);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseSoilTemp = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilTemp", true);
+				ExtraSensorUseSoilTemp = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilTemp", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilMoist"))
 			{
-				ExtraSensorUseSoilMoist = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", true);
+				ExtraSensorUseSoilMoist = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseSoilMoist");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseSoilMoist", ExtraSensorUseSoilMoist);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseSoilMoist = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilMoist", true);
+				ExtraSensorUseSoilMoist = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilMoist", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseLeafWet"))
 			{
-				ExtraSensorUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", true);
+				ExtraSensorUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseLeafWet");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseLeafWet", ExtraSensorUseLeafWet);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseLeafWet = ini.GetValue("ExtraSensors", "ExtraSensorUseLeafWet", true);
+				ExtraSensorUseLeafWet = ini.GetValue("ExtraSensors", "ExtraSensorUseLeafWet", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseUserTemp"))
 			{
-				ExtraSensorUseUserTemp = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", true);
+				ExtraSensorUseUserTemp = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseUserTemp");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseUserTemp", ExtraSensorUseUserTemp);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseUserTemp = ini.GetValue("ExtraSensors", "ExtraSensorUseUserTemp", true);
+				ExtraSensorUseUserTemp = ini.GetValue("ExtraSensors", "ExtraSensorUseUserTemp", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseAQI"))
 			{
-				ExtraSensorUseAQI = ini.GetValue("GW1000", "ExtraSensorUseAQI", true);
+				ExtraSensorUseAQI = ini.GetValue("GW1000", "ExtraSensorUseAQI", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseAQI");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseAQI", ExtraSensorUseAQI);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseAQI = ini.GetValue("ExtraSensors", "ExtraSensorUseAQI", true);
+				ExtraSensorUseAQI = ini.GetValue("ExtraSensors", "ExtraSensorUseAQI", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseCo2"))
 			{
@@ -4511,42 +4733,52 @@ namespace CumulusMX
 			}
 			else
 			{
-				ExtraSensorUseCo2 = ini.GetValue("ExtraSensors", "ExtraSensorUseCo2", true);
+				ExtraSensorUseCo2 = ini.GetValue("ExtraSensors", "ExtraSensorUseCo2", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseLightning"))
 			{
-				ExtraSensorUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", true);
+				ExtraSensorUseLightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseLightning");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseLightning", ExtraSensorUseLightning);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseLightning = ini.GetValue("ExtraSensors", "ExtraSensorUseLightning", true);
+				ExtraSensorUseLightning = ini.GetValue("ExtraSensors", "ExtraSensorUseLightning", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseLeak"))
 			{
-				ExtraSensorUseLeak = ini.GetValue("GW1000", "ExtraSensorUseLeak", true);
+				ExtraSensorUseLeak = ini.GetValue("GW1000", "ExtraSensorUseLeak", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseLeak");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseLeak", ExtraSensorUseLeak);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseLeak = ini.GetValue("ExtraSensors", "ExtraSensorUseLeak", true);
+				ExtraSensorUseLeak = ini.GetValue("ExtraSensors", "ExtraSensorUseLeak", false);
 			}
 			if (ini.ValueExists("GW1000", "ExtraSensorUseCamera"))
 			{
-				ExtraSensorUseCamera = ini.GetValue("GW1000", "ExtraSensorUseCamera", true);
+				ExtraSensorUseCamera = ini.GetValue("GW1000", "ExtraSensorUseCamera", false);
 				ini.DeleteValue("GW1000", "ExtraSensorUseCamera");
 				ini.SetValue("ExtraSensors", "ExtraSensorUseCamera", ExtraSensorUseCamera);
 				rewriteRequired = true;
 			}
 			else
 			{
-				ExtraSensorUseCamera = ini.GetValue("ExtraSensors", "ExtraSensorUseCamera", true);
+				ExtraSensorUseCamera = ini.GetValue("ExtraSensors", "ExtraSensorUseCamera", false);
 			}
-			ExtraSensorUseLaserDist = ini.GetValue("ExtraSensors", "ExtraSensorUseLaserDist", true);
+			ExtraSensorUseLaserDist = ini.GetValue("ExtraSensors", "ExtraSensorUseLaserDist", false);
+			ExtraSensorUseBGT = ini.GetValue("ExtraSensors", "ExtraSensorUseBGT", false);
+
+			// Disable all the extra sensors if no extra station enabled (because the previous default was to enable all)
+			if (!AmbientExtraEnabled && !JsonExtraStationOptions.ExtraSensorsEnabled && !EcowittExtraEnabled && !EcowittCloudExtraEnabled)
+			{
+				ExtraSensorUseSolar = ExtraSensorUseUv = ExtraSensorUseTempHum = ExtraSensorUseSoilTemp = ExtraSensorUseSoilMoist =
+				ExtraSensorUseLeafWet = ExtraSensorUseUserTemp = ExtraSensorUseAQI = ExtraSensorUseCo2 = ExtraSensorUseLightning =
+				ExtraSensorUseLeak = ExtraSensorUseCamera = ExtraSensorUseLaserDist = ExtraSensorUseBGT = false;
+			}
+
 
 			// AirLink settings
 			// We have to convert previous per AL IsNode config to global
@@ -4828,6 +5060,7 @@ namespace CumulusMX
 			GraphOptions.Visible.AvgTemp.Val = ini.GetValue("Graphs", "DailyAvgTempVisible", 1, 0, 2);
 			GraphOptions.Visible.MaxTemp.Val = ini.GetValue("Graphs", "DailyMaxTempVisible", 1, 0, 2);
 			GraphOptions.Visible.MinTemp.Val = ini.GetValue("Graphs", "DailyMinTempVisible", 1, 0, 2);
+			GraphOptions.Visible.BGT.Val = ini.GetValue("Graphs", "BGTVisible", 1, 0, 2);
 			GraphOptions.Visible.GrowingDegreeDays1.Val = ini.GetValue("Graphs", "GrowingDegreeDaysVisible1", 1, 0, 2);
 			GraphOptions.Visible.GrowingDegreeDays2.Val = ini.GetValue("Graphs", "GrowingDegreeDaysVisible2", 1, 0, 2);
 			GraphOptions.Visible.TempSum0.Val = ini.GetValue("Graphs", "TempSumVisible0", 1, 0, 2);
@@ -4844,7 +5077,7 @@ namespace CumulusMX
 			GraphOptions.Visible.AqSensor.Pm.Vals = ini.GetValue("Graphs", "Aq-PmVisible", new int[4]);
 			GraphOptions.Visible.AqSensor.PmAvg.Vals = ini.GetValue("Graphs", "Aq-PmAvgVisible", new int[4]);
 			GraphOptions.Visible.AqSensor.Pm10.Vals = ini.GetValue("Graphs", "Aq-Pm10Visible", GraphOptions.Visible.AqSensor.Pm.Vals);
-			GraphOptions.Visible.AqSensor.Pm10Avg.Vals = ini.GetValue("Graphs", "Aq-Pm10AvgAvgVisible", GraphOptions.Visible.AqSensor.PmAvg.Vals);
+			GraphOptions.Visible.AqSensor.Pm10Avg.Vals = ini.GetValue("Graphs", "Aq-Pm10AvgVisible", GraphOptions.Visible.AqSensor.PmAvg.Vals);
 			GraphOptions.Visible.AqSensor.Temp.Vals = ini.GetValue("Graphs", "Aq-TempVisible", new int[4]);
 			GraphOptions.Visible.AqSensor.Hum.Vals = ini.GetValue("Graphs", "Aq-HumVisible", new int[4]);
 			GraphOptions.Visible.CO2Sensor.CO2.Val = ini.GetValue("Graphs", "CO2-CO2", 0, 0, 2);
@@ -4871,6 +5104,8 @@ namespace CumulusMX
 			GraphOptions.Colour.AppTemp = ini.GetValue("GraphColours", "AppTempColour", "#00fffe");
 			GraphOptions.Colour.FeelsLike = ini.GetValue("GraphColours", "FeelsLikeColour", "#00fffe");
 			GraphOptions.Colour.Humidex = ini.GetValue("GraphColours", "HumidexColour", "#008000");
+			GraphOptions.Colour.BGT = ini.GetValue("GraphColours", "BGTColour", "#6495ed");
+			GraphOptions.Colour.WBGT = ini.GetValue("GraphColours", "WBGTColour", "#3dd457");
 			GraphOptions.Colour.InHum = ini.GetValue("GraphColours", "InHumColour", "#008000");
 			GraphOptions.Colour.OutHum = ini.GetValue("GraphColours", "OutHumColour", "#ff0000");
 			GraphOptions.Colour.Press = ini.GetValue("GraphColours", "PressureColour", "#6495ed");
@@ -4904,6 +5139,7 @@ namespace CumulusMX
 			GraphOptions.Colour.Pm10 = ini.GetValue("GraphColours", "Pm10Colour", "#008000");
 			var colours16 = new List<string>(16) { "#ff0000", "#008000", "#0000ff", "#ffa500", "#dada00", "#ffc0cb", "#00ffff", "#800080", "#808080", "#a52a2a", "#c7b72a", "#7fffd4", "#adff2f", "#ff7f50", "#ff00ff", "#00b2ff" };
 			var colours8 = colours16.Take(8).ToArray();
+			var colours4 = colours16.Take(4).ToArray();
 			var colours2 = colours16.Take(2).ToArray();
 			GraphOptions.Colour.ExtraTemp = ini.GetValue("GraphColours", "ExtraTempColour", colours16.ToArray());
 			GraphOptions.Colour.ExtraHum = ini.GetValue("GraphColours", "ExtraHumColour", colours16.ToArray());
@@ -4912,6 +5148,7 @@ namespace CumulusMX
 			GraphOptions.Colour.SoilMoist = ini.GetValue("GraphColours", "SoilMoistColour", colours16.ToArray());
 			GraphOptions.Colour.LeafWetness = ini.GetValue("GraphColours", "LeafWetness", colours2);
 			GraphOptions.Colour.UserTemp = ini.GetValue("GraphColours", "UserTempColour", colours8);
+			GraphOptions.Colour.LaserDepth = ini.GetValue("GraphColours", "LaserDepthColour", colours4);
 			GraphOptions.Colour.CO2Sensor.CO2 = ini.GetValue("GraphColours", "CO2-CO2Colour", "#dc143c");
 			GraphOptions.Colour.CO2Sensor.CO2Avg = ini.GetValue("GraphColours", "CO2-CO2AvgColour", "#8b0000");
 			GraphOptions.Colour.CO2Sensor.Pm25 = ini.GetValue("GraphColours", "CO2-Pm25Colour", "#00bfff");
@@ -4951,8 +5188,9 @@ namespace CumulusMX
 
 			Wund.SynchronisedUpdate = !Wund.RapidFireEnabled;
 
+			Windy.PW = ini.GetValue("Windy", "Password", string.Empty);
 			Windy.ApiKey = ini.GetValue("Windy", "APIkey", string.Empty);
-			Windy.StationIdx = ini.GetValue("Windy", "StationIdx", 0, 0);
+			Windy.StationId = ini.GetValue("Windy", "StationId", string.Empty);
 			Windy.Enabled = ini.GetValue("Windy", "Enabled", false);
 			Windy.Interval = ini.GetValue("Windy", "Interval", Windy.DefaultInterval);
 			if (Windy.Interval < 5)
@@ -4964,7 +5202,7 @@ namespace CumulusMX
 			}
 			Windy.SendUV = ini.GetValue("Windy", "SendUV", false);
 			Windy.SendSolar = ini.GetValue("Windy", "SendSolar", false);
-			Windy.CatchUp = ini.GetValue("Windy", "CatchUp", false);
+			Windy.CatchUp = false;
 
 			AWEKAS.ID = ini.GetValue("Awekas", "User", string.Empty);
 			AWEKAS.PW = ini.GetValue("Awekas", "Password", string.Empty);
@@ -5068,7 +5306,7 @@ namespace CumulusMX
 				if (ini.ValueExists("Bluesky", "TimedPost" + i) )
 				{
 					Bluesky.TimedPostsTime[i] = DateTime.ParseExact(ini.GetValue("Bluesky", "TimedPost" + i, "00:00"), "HH:mm", System.Globalization.CultureInfo.InvariantCulture).TimeOfDay;
-					Bluesky.TimedPostsFile[i] = ini.GetValue("Bluesky", "TimedPostFile" + i, "web" + DirectorySeparator + "Bluesky.txt");
+					Bluesky.TimedPostsFile[i] = ini.GetValue("Bluesky", "TimedPostFile" + i, Path.Combine("web", "Bluesky.txt"));
 				}
 				else
 				{
@@ -5832,10 +6070,14 @@ namespace CumulusMX
 			// MySQL - custom roll-over
 			MySqlFuncs.MySqlSettings.CustomRollover.Enabled = ini.GetValue("MySQL", "CustomMySqlRolloverEnabled", false);
 			MySqlFuncs.MySqlSettings.CustomRollover.Commands[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString", string.Empty);
+			MySqlFuncs.MySqlSettings.CustomRollover.CatchUp[0] = ini.GetValue("MySQL", "CustomMySqlRolloverCatchUp", true);
 			for (var i = 1; i < 10; i++)
 			{
 				if (ini.ValueExists("MySQL", "CustomMySqlRolloverCommandString" + i))
+				{
 					MySqlFuncs.MySqlSettings.CustomRollover.Commands[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCommandString" + i, string.Empty);
+					MySqlFuncs.MySqlSettings.CustomRollover.CatchUp[i] = ini.GetValue("MySQL", "CustomMySqlRolloverCatchUp" + i, true);
+				}
 			}
 
 			// MySQL - custom start-up
@@ -5997,9 +6239,11 @@ namespace CumulusMX
 			}
 
 			// laser sensors
+			LaserPrimarySnowSensor = ini.GetValue("Laser", "PrimarySnowSensor", SnowAutomated);
 			for (var i = 1; i < LaserDepthBaseline.Length; i++)
 			{
 				LaserDepthBaseline[i] = ini.GetValue("Laser", "LaserDepthOffset" + i, (decimal) -1);
+				LaserIsSnowSensor[i] = ini.GetValue("Laser", "IsSnowSensor" + i, SnowAutomated == i);
 			}
 
 			// do we need to decrypt creds?
@@ -6027,6 +6271,7 @@ namespace CumulusMX
 				FtpOptions.Password = Crypto.DecryptString(FtpOptions.Password, Program.InstanceId, "FtpOptions.Password");
 				FtpOptions.PhpSecret = Crypto.DecryptString(FtpOptions.PhpSecret, Program.InstanceId, "FtpOptions.PhpSecret");
 				Wund.PW = Crypto.DecryptString(Wund.PW, Program.InstanceId, "Wund.PW");
+				Windy.PW = Crypto.DecryptString(Windy.PW, Program.InstanceId, "Windy.PW");
 				Windy.ApiKey = Crypto.DecryptString(Windy.ApiKey, Program.InstanceId, "Windy.ApiKey");
 				AWEKAS.PW = Crypto.DecryptString(AWEKAS.PW, Program.InstanceId, "AWEKAS.PW");
 				WindGuru.PW = Crypto.DecryptString(WindGuru.PW, Program.InstanceId, "WindGuru.PW");
@@ -6104,6 +6349,8 @@ namespace CumulusMX
 
 			IniFile ini = new IniFile("Cumulus.ini");
 
+			ini.SetValue("Program", "ProcessLogFiles", ProgramOptions.ProcessLogFilesLevel);
+
 			ini.SetValue("Program", "EnableAccessibility", ProgramOptions.EnableAccessibility);
 
 			ini.SetValue("Program", "StartupPingHost", ProgramOptions.StartupPingHost);
@@ -6130,6 +6377,11 @@ namespace CumulusMX
 			ini.SetValue("Station", "WarnMultiple", ProgramOptions.WarnMultiple);
 			ini.SetValue("Station", "ListWebTags", ProgramOptions.ListWebTags);
 			ini.SetValue("Program", "UseWebSockets", ProgramOptions.UseWebSockets);
+
+			ini.SetValue("Program", "DataPath", ProgramOptions.DataPath);
+			ini.SetValue("Program", "BackupPath", ProgramOptions.BackupPath);
+			ini.SetValue("Program", "ReportsPath", ProgramOptions.ReportsPath);
+			ini.SetValue("Program", "SnowLogging", SnowLogging);
 
 			ini.SetValue("Program", "ErrorListLoggingLevel", (int) ErrorListLoggingLevel);
 
@@ -6165,9 +6417,11 @@ namespace CumulusMX
 			ini.SetValue("Station", "LeafWetnessIsRainingIdx", StationOptions.LeafWetnessIsRainingIdx);
 			ini.SetValue("Station", "LeafWetnessIsRainingVal", StationOptions.LeafWetnessIsRainingThrsh);
 
-
-			ini.SetValue("Station", "Logging", ProgramOptions.DebugLogging);
-			ini.SetValue("Station", "DataLogging", ProgramOptions.DataLogging);
+			if (!DebuggingEnabled)
+			{
+				ini.SetValue("Station", "Logging", ProgramOptions.DebugLogging);
+				ini.SetValue("Station", "DataLogging", ProgramOptions.DataLogging);
+			}
 
 			ini.SetValue("Station", "DavisReadReceptionStats", DavisOptions.ReadReceptionStats);
 			ini.SetValue("Station", "DavisSetLoggerInterval", DavisOptions.SetLoggerInterval);
@@ -6181,6 +6435,8 @@ namespace CumulusMX
 			ini.SetValue("Station", "VP2IPAddr", DavisOptions.IPAddr);
 			ini.SetValue("Station", "VP2PeriodicDisconnectInterval", DavisOptions.PeriodicDisconnectInterval);
 			ini.SetValue("Station", "ForceVPBarUpdate", DavisOptions.ForceVPBarUpdate);
+			ini.SetValue("Station", "DavisCloudBroadcast", DavisOptions.CloudBroadcasts);
+
 
 			ini.SetValue("Station", "NoSensorCheck", StationOptions.NoSensorCheck);
 			ini.SetValue("Station", "CalculatedDP", StationOptions.CalculatedDP);
@@ -6259,8 +6515,10 @@ namespace CumulusMX
 			ini.SetValue("Station", "EWinTempdiff", Spike.InTempDiff < 999 ? ConvertUnits.UserTempToC(Spike.InTempDiff) : 999.0);
 			ini.SetValue("Station", "EWinHumiditydiff", Spike.InHumDiff);
 			ini.SetValue("Station", "EWsnowdiff", Spike.SnowDiff);
-			ini.SetValue("Station", "EWsnowMinInc", SnowMinInc);
-
+			ini.SetValue("Station", "EWsnowMinInc", SnowDepthMinInc);
+			ini.SetValue("Station", "SnowMedianMins", SnowDepthMedianMins);
+			ini.SetValue("Station", "SnowClipDelta", SnowDepthClipDelta);
+			ini.SetValue("Station", "SnowEmaTimeMins", SnowDepthEmaTimeMins);
 
 			ini.SetValue("Station", "RainSeasonStart", RainSeasonStart);
 			ini.SetValue("Station", "RainWeekStart", RainWeekStart);
@@ -6293,6 +6551,7 @@ namespace CumulusMX
 
 			// WeatherFlow Options
 			ini.SetValue("Station", "WeatherFlowDeviceId", WeatherFlowOptions.WFDeviceId);
+			ini.SetValue("Station", "WeatherFlowSerialNo", WeatherFlowOptions.WFSerialNo);
 			ini.SetValue("Station", "WeatherFlowTcpPort", WeatherFlowOptions.WFTcpPort);
 			ini.SetValue("Station", "WeatherFlowToken", WeatherFlowOptions.WFToken);
 			ini.SetValue("Station", "WeatherFlowDaysHist", WeatherFlowOptions.WFDaysHist);
@@ -6312,6 +6571,8 @@ namespace CumulusMX
 			ini.SetValue("WLL", "PrimaryRainTxId", WllPrimaryRain);
 			ini.SetValue("WLL", "PrimarySolarTxId", WllPrimarySolar);
 			ini.SetValue("WLL", "PrimaryUvTxId", WllPrimaryUV);
+			ini.SetValue("WLL", "PrimarySunshine", WllPrimarySunshine);
+
 			for (var i = 1; i <= 16; i++)
 			{
 				if (WllSoilTempTx[i] == 0)
@@ -6438,15 +6699,6 @@ namespace CumulusMX
 
 			// Ambient settings
 			ini.SetValue("Ambient", "ExtraSensorDataEnabled", AmbientExtraEnabled);
-			ini.SetValue("Ambient", "ExtraSensorUseSolar", AmbientExtraUseSolar);
-			ini.SetValue("Ambient", "ExtraSensorUseUv", AmbientExtraUseUv);
-			ini.SetValue("Ambient", "ExtraSensorUseTempHum", AmbientExtraUseTempHum);
-			ini.SetValue("Ambient", "ExtraSensorUseSoilTemp", AmbientExtraUseSoilTemp);
-			ini.SetValue("Ambient", "ExtraSensorUseSoilMoist", AmbientExtraUseSoilMoist);
-			ini.SetValue("Ambient", "ExtraSensorUseAQI", AmbientExtraUseAQI);
-			ini.SetValue("Ambient", "ExtraSensorUseCo2", AmbientExtraUseCo2);
-			ini.SetValue("Ambient", "ExtraSensorUseLightning", AmbientExtraUseLightning);
-			ini.SetValue("Ambient", "ExtraSensorUseLeak", AmbientExtraUseLeak);
 
 			// JSON station options
 			ini.SetValue("JsonStation", "ConnectionType", JsonStationOptions.Connectiontype);
@@ -6486,6 +6738,7 @@ namespace CumulusMX
 			ini.SetValue("ExtraSensors", "ExtraSensorUseLeak", ExtraSensorUseLeak);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseCamera", ExtraSensorUseCamera);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseLaserDist", ExtraSensorUseLaserDist);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseBGT", ExtraSensorUseBGT);
 
 			// AirLink settings
 			ini.SetValue("AirLink", "IsWllNode", AirLinkIsNode);
@@ -6655,12 +6908,13 @@ namespace CumulusMX
 			ini.SetValue("Wunderground", "SendExtraTemp3", Wund.SendExtraTemp3);
 			ini.SetValue("Wunderground", "SendExtraTemp4", Wund.SendExtraTemp4);
 
+			ini.SetValue("Windy", "Password", Crypto.EncryptString(Windy.PW, Program.InstanceId, "Windy.PW"));
 			ini.SetValue("Windy", "APIkey", Crypto.EncryptString(Windy.ApiKey, Program.InstanceId, "Windy.ApiKey"));
-			ini.SetValue("Windy", "StationIdx", Windy.StationIdx);
+			ini.SetValue("Windy", "StationId", Windy.StationId);
 			ini.SetValue("Windy", "Enabled", Windy.Enabled);
 			ini.SetValue("Windy", "Interval", Windy.Interval);
 			ini.SetValue("Windy", "SendUV", Windy.SendUV);
-			ini.SetValue("Windy", "CatchUp", Windy.CatchUp);
+			ini.SetValue("Windy", "SendSolar", Windy.SendSolar);
 
 			ini.SetValue("Awekas", "User", AWEKAS.ID);
 			ini.SetValue("Awekas", "Password", Crypto.EncryptString(AWEKAS.PW, Program.InstanceId, "AWEKAS.PW"));
@@ -7224,6 +7478,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "DailyAvgTempVisible", GraphOptions.Visible.AvgTemp.Val);
 			ini.SetValue("Graphs", "DailyMaxTempVisible", GraphOptions.Visible.MaxTemp.Val);
 			ini.SetValue("Graphs", "DailyMinTempVisible", GraphOptions.Visible.MinTemp.Val);
+			ini.SetValue("Graphs", "BGTVisible", GraphOptions.Visible.BGT.Val);
 			ini.SetValue("Graphs", "GrowingDegreeDaysVisible1", GraphOptions.Visible.GrowingDegreeDays1.Val);
 			ini.SetValue("Graphs", "GrowingDegreeDaysVisible2", GraphOptions.Visible.GrowingDegreeDays2.Val);
 			ini.SetValue("Graphs", "TempSumVisible0", GraphOptions.Visible.TempSum0.Val);
@@ -7266,6 +7521,9 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "AppTempColour", GraphOptions.Colour.AppTemp);
 			ini.SetValue("GraphColours", "FeelsLikeColour", GraphOptions.Colour.FeelsLike);
 			ini.SetValue("GraphColours", "HumidexColour", GraphOptions.Colour.Humidex);
+			ini.SetValue("GraphColours", "BGTColour", GraphOptions.Colour.BGT);
+			ini.SetValue("GraphColours", "WBGTColour", GraphOptions.Colour.WBGT);
+
 			ini.SetValue("GraphColours", "InHumColour", GraphOptions.Colour.InHum);
 			ini.SetValue("GraphColours", "OutHumColour", GraphOptions.Colour.OutHum);
 			ini.SetValue("GraphColours", "PressureColour", GraphOptions.Colour.Press);
@@ -7301,8 +7559,9 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "SoilTempColour", GraphOptions.Colour.SoilTemp);
 			ini.SetValue("GraphColours", "SoilMoistColour", GraphOptions.Colour.SoilMoist);
 			ini.SetValue("GraphColours", "LeafWetness", GraphOptions.Colour.LeafWetness);
-
 			ini.SetValue("GraphColours", "UserTempColour", GraphOptions.Colour.UserTemp);
+			ini.SetValue("GraphColours", "LaserDepthColour", GraphOptions.Colour.LaserDepth);
+
 			ini.SetValue("GraphColours", "CO2-CO2Colour", GraphOptions.Colour.CO2Sensor.CO2);
 			ini.SetValue("GraphColours", "CO2-CO2AvgColour", GraphOptions.Colour.CO2Sensor.CO2Avg);
 			ini.SetValue("GraphColours", "CO2-Pm25Colour", GraphOptions.Colour.CO2Sensor.Pm25);
@@ -7350,6 +7609,7 @@ namespace CumulusMX
 
 			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalIndex", MySqlFuncs.MySqlSettings.CustomMins.IntervalIndexes[0]);
 			ini.SetValue("MySQL", "CustomMySqlMinutesIntervalCatchUp", MySqlFuncs.MySqlSettings.CustomMins.CatchUp[0]);
+			ini.SetValue("MySQL", "CustomMySqlRolloverCatchUp", MySqlFuncs.MySqlSettings.CustomRollover.CatchUp[0]);
 
 			for (var i = 1; i < 10; i++)
 			{
@@ -7372,9 +7632,15 @@ namespace CumulusMX
 				}
 
 				if (string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomRollover.Commands[i]))
+				{
 					ini.DeleteValue("MySQL", "CustomMySqlRolloverCommandString" + i);
+					ini.DeleteValue("MySQL", "CustomMySqlRolloverCatchUp" + i);
+				}
 				else
+				{
 					ini.SetValue("MySQL", "CustomMySqlRolloverCommandString" + i, MySqlFuncs.MySqlSettings.CustomRollover.Commands[i]);
+					ini.SetValue("MySQL", "CustomMySqlRolloverCatchUp" + i, MySqlFuncs.MySqlSettings.CustomRollover.CatchUp[i]);
+				}
 
 				if (string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomStartUp.Commands[i]))
 					ini.DeleteValue("MySQL", "CustomMySqlStartUpCommandString" + i);
@@ -7532,9 +7798,11 @@ namespace CumulusMX
 			}
 
 			// laser sensors
+			ini.SetValue("Laser", "PrimarySnowSensor", LaserPrimarySnowSensor);
 			for (var i = 1; i < LaserDepthBaseline.Length; i++)
 			{
-				 ini.SetValue("Laser", "LaserDepthOffset" + i, LaserDepthBaseline[i]);
+				ini.SetValue("Laser", "LaserDepthOffset" + i, LaserDepthBaseline[i]);
+				ini.SetValue("Laser", "IsSnowSensor" + i, LaserIsSnowSensor[i]);
 			}
 
 
@@ -7615,7 +7883,7 @@ namespace CumulusMX
 				Trans.AirQuality10Captions[i] = ini.GetValue("AirQualityCaptions", "Sensor10-" + (i + 1), "pm10 Sensor " + (i + 1));
 				Trans.AirQuality10AvgCaptions[i] = ini.GetValue("AirQualityCaptions", "Sensor10Avg" + (i + 1), $"pm10 Sensor Avg " + (i + 1));
 
-				Trans.Laser[i] = ini.GetValue("LaserCaptions", "Sensor" + (i + 1), "Sensor " + (i + 1));
+				Trans.LaserCaptions[i] = ini.GetValue("LaserCaptions", "Sensor" + (i + 1), "Sensor " + (i + 1));
 			}
 
 			for (var i = 0; i < 8; i++)
@@ -7869,7 +8137,7 @@ namespace CumulusMX
 
 			for (var i = 0; i < 4; i++)
 			{
-				ini.SetValue("LaserCaptions", "Sensor" + (i + 1), Trans.Laser[i]);
+				ini.SetValue("LaserCaptions", "Sensor" + (i + 1), Trans.LaserCaptions[i]);
 			}
 
 
@@ -8063,7 +8331,7 @@ namespace CumulusMX
 		public bool ExtraSensorUseLeak { get; set; }
 		public bool ExtraSensorUseCamera { get; set; }
 		public bool ExtraSensorUseLaserDist { get; set; }
-
+		public bool ExtraSensorUseBGT { get; set; }
 
 		public bool EcowittExtraEnabled { get; set; }
 		public bool EcowittCloudExtraEnabled { get; set; }
@@ -8089,15 +8357,6 @@ namespace CumulusMX
 		public bool EcowittIsRainingUsePiezo {  get; set; }
 
 		public bool AmbientExtraEnabled { get; set; }
-		public bool AmbientExtraUseSolar { get; set; }
-		public bool AmbientExtraUseUv { get; set; }
-		public bool AmbientExtraUseTempHum { get; set; }
-		public bool AmbientExtraUseSoilTemp { get; set; }
-		public bool AmbientExtraUseSoilMoist { get; set; }
-		public bool AmbientExtraUseAQI { get; set; }
-		public bool AmbientExtraUseCo2 { get; set; }
-		public bool AmbientExtraUseLightning { get; set; }
-		public bool AmbientExtraUseLeak { get; set; }
 
 		public bool PurpleAirEnabled { get; set; }
 		public string[] PurpleAirIpAddress { get; set; } = new string[4];
@@ -8108,6 +8367,8 @@ namespace CumulusMX
 		//public string PurpleAirReadKey { get; set; }
 
 		public decimal[] LaserDepthBaseline { get; set; } = new decimal[5];
+		public bool[] LaserIsSnowSensor { get; set; } = new bool[5];
+		public int LaserPrimarySnowSensor { get; set; }
 
 		public bool RG11DTRmode2 { get; set; }
 
@@ -8153,8 +8414,14 @@ namespace CumulusMX
 
 		public int SnowDepthHour { get; set; }
 		public int SnowAutomated { get; set; }
-		public decimal SnowMinInc { get; set; }
+		public decimal SnowDepthMinInc { get; set; }
+		public int SnowDepthMedianMins { get; set; }
+		public double SnowDepthEmaTimeMins { get; set; }
+		public double SnowDepthClipDelta { get; set; }
+
+
 		public int SnowSeasonStart { get; set; }
+		public bool SnowLogging { get; set; }
 
 
 		public bool HourlyForecast { get; set; }
@@ -8231,7 +8498,6 @@ namespace CumulusMX
 		public bool DavisStation { get; set; }
 		public string TempTrendFormat { get; set; }
 		public string PressTrendFormat { get; set; }
-		public string AppDir { get; set; }
 
 		public StationManufacturer Manufacturer { get; set; }
 		public int ImetLoggerInterval { get; set; }
@@ -8258,6 +8524,7 @@ namespace CumulusMX
 		internal int WllPrimaryRain = 1;
 		internal int WllPrimarySolar;
 		internal int WllPrimaryUV;
+		internal int WllPrimarySunshine;
 
 		internal int[] WllSoilTempTx = new int[17];
 		internal int[] WllSoilTempIdx = [0, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4];
@@ -8322,22 +8589,21 @@ namespace CumulusMX
 			JSONSTATION = 11
 		}
 
-		internal string ReportPath;
 		public static string LatestError { get; set; }
 		public static DateTime LatestErrorTS { get; set; } = DateTime.MinValue;
 		internal WeatherStation Station { get => station; set => station = value; }
-		public CancellationTokenSource RealTimeWdTokenSource { get; set; } = new();
-		public CancellationToken RealtimeFtpWatchDogToken { get; set; }
+		public static CancellationTokenSource RealtimeFtpWatchDogTokenSource { get; set; } = new();
+		private Task RealtimeFtpWatchDogTask;
+		public static CancellationTokenSource RealtimeFtpWatchDogTaskTokenSource { get; set; }
 
 		internal DateTime defaultRecordTS = DateTime.MinValue;
 		internal const string WxnowFile = "wxnow.txt";
 		private readonly string RealtimeFile = "realtime.txt";
 		private FtpClient RealtimeFTP;
 		private SftpClient RealtimeSSH;
-		private volatile bool RealtimeFtpLocked;
-		private volatile bool RealtimeCopyInProgress;
 		private int realtimeFtpWdInterval;
 		private byte RealtimeCycleCounter;
+		private byte IntervalCycleCounter;
 
 		internal FileGenerationOptions[] StdWebFiles;
 		internal FileGenerationOptions[] RealtimeFiles;
@@ -8362,7 +8628,7 @@ namespace CumulusMX
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
 
-			return Datapath + datestring + "log.txt";
+			return Path.Combine(ProgramOptions.DataPath, datestring + "log.txt");
 		}
 
 		public string GetExtraLogFileName(DateTime thedate)
@@ -8375,7 +8641,7 @@ namespace CumulusMX
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
 
-			return Datapath + "ExtraLog" + datestring + ".txt";
+			return Path.Combine(ProgramOptions.DataPath, "ExtraLog" + datestring + ".txt");
 		}
 
 		public string GetAirLinkLogFileName(DateTime thedate)
@@ -8388,7 +8654,7 @@ namespace CumulusMX
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
 
-			return Datapath + "AirLink" + datestring + "log.txt";
+			return Path.Combine(ProgramOptions.DataPath, "AirLink" + datestring + "log.txt");
 		}
 
 		public string GetCustomIntvlLogFileName(int idx, DateTime thedate)
@@ -8401,15 +8667,15 @@ namespace CumulusMX
 			var datestring = logfiledate.ToString("yyyyMM");
 			datestring = datestring.Replace(".", "");
 
-			return Datapath + CustomIntvlLogSettings[idx].FileName + "-" + datestring + ".txt";
+			return Path.Combine(ProgramOptions.DataPath, CustomIntvlLogSettings[idx].FileName + "-" + datestring + ".txt");
 		}
 
 		public string GetCustomDailyLogFileName(int idx)
 		{
-			return Datapath + CustomDailyLogSettings[idx].FileName + ".txt";
+			return Path.Combine(ProgramOptions.DataPath, CustomDailyLogSettings[idx].FileName + ".txt");
 		}
 
-		public const int NumLogFileFields = 29;
+		public const int NumLogFileFields = 31;
 
 		public async Task DoLogFile(DateTime timestamp, bool live)
 		{
@@ -8443,49 +8709,23 @@ namespace CumulusMX
 			// 26  Rain since midnight
 			// 27  Feels like
 			// 28  Humidex
+			// 29 BGT
+			// 30 WBGT
+
 
 			// make sure solar max is calculated for those stations without a solar sensor
 			LogMessage("DoLogFile: Writing log entry for " + timestamp);
 			LogDebugMessage("DoLogFile: max gust: " + station.RecentMaxGust.ToString(WindFormat));
 			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, (double) Longitude, (double) Latitude, ConvertUnits.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
 			var filename = GetLogFileName(timestamp);
+
+			var line = LogFileRec.CurrentToCsv(timestamp, this, station);
 			var inv = CultureInfo.InvariantCulture;
 			var sep = ",";
-
-			var sb = new StringBuilder(256);
-			sb.Append(timestamp.ToString("dd/MM/yy", inv));
-			sb.Append(sep + timestamp.ToString("HH:mm", inv));
-			sb.Append(sep + station.OutdoorTemperature.ToString(TempFormat, inv));
-			sb.Append(sep + station.OutdoorHumidity);
-			sb.Append(sep + station.OutdoorDewpoint.ToString(TempFormat, inv));
-			sb.Append(sep + station.WindAverage.ToString(WindAvgFormat, inv));
-			sb.Append(sep + station.RecentMaxGust.ToString(WindFormat, inv));
-			sb.Append(sep + station.AvgBearing);
-			sb.Append(sep + station.RainRate.ToString(RainFormat, inv));
-			sb.Append(sep + station.RainToday.ToString(RainFormat, inv));
-			sb.Append(sep + station.Pressure.ToString(PressFormat, inv));
-			sb.Append(sep + station.RainCounter.ToString(RainFormat, inv));
-			sb.Append(sep + (station.IndoorTemperature.HasValue ? station.IndoorTemperature.Value.ToString(TempFormat, inv) : string.Empty));
-			sb.Append(sep + (station.IndoorHumidity.HasValue ? station.IndoorHumidity : string.Empty));
-			sb.Append(sep + station.WindLatest.ToString(WindFormat, inv));
-			sb.Append(sep + station.WindChill.ToString(TempFormat, inv));
-			sb.Append(sep + station.HeatIndex.ToString(TempFormat, inv));
-			sb.Append(sep + (station.UV.HasValue ? station.UV.Value.ToString(UVFormat, inv) : string.Empty));
-			sb.Append(sep + (station.SolarRad.HasValue ? station.SolarRad : string.Empty));
-			sb.Append(sep + station.ET.ToString(ETFormat, inv));
-			sb.Append(sep + station.AnnualETTotal.ToString(ETFormat, inv));
-			sb.Append(sep + station.ApparentTemperature.ToString(TempFormat, inv));
-			sb.Append(sep + station.CurrentSolarMax);
-			sb.Append(sep + station.SunshineHours.ToString(SunFormat, inv));
-			sb.Append(sep + station.Bearing);
-			sb.Append(sep + station.RG11RainToday.ToString(RainFormat, inv));
-			sb.Append(sep + station.RainSinceMidnight.ToString(RainFormat, inv));
-			sb.Append(sep + station.FeelsLike.ToString(TempFormat, inv));
-			sb.AppendLine(sep + station.Humidex.ToString(TempFormat, inv));
-
 			var success = false;
 			var retries = LogFileRetries;
-			var charArr = sb.ToString().ToCharArray();
+			//var charArr = sb.ToString().ToCharArray();
+			var charArr = line.ToCharArray();
 
 			do
 			{
@@ -8530,36 +8770,39 @@ namespace CumulusMX
 
 					StringBuilder values = new StringBuilder(MonthlyTable.StartOfInsert, 600);
 					values.Append(" Values('");
-					values.Append(timestamp.ToString("yyyy-MM-dd HH:mm") + "'");
-					values.Append(sep + station.OutdoorTemperature.ToString(TempFormat, inv));
-					values.Append(sep + station.OutdoorHumidity);
-					values.Append(sep + station.OutdoorDewpoint.ToString(TempFormat, inv));
+					values.Append(timestamp.ToString("yyyy-MM-dd HH:mm", inv) + "'");
+					values.Append(sep + station.OutdoorTemperature.ToFixed(TempFormat));
+					values.Append(sep + station.OutdoorHumidity.ToString());
+					values.Append(sep + station.OutdoorDewpoint.ToFixed(TempFormat));
 					values.Append(sep + station.WindAverage.ToString(WindAvgFormat, inv));
 					values.Append(sep + station.RecentMaxGust.ToString(WindFormat, inv));
-					values.Append(sep + station.AvgBearing);
+					values.Append(sep + station.AvgBearing.ToString());
 					values.Append(sep + station.RainRate.ToString(RainFormat, inv));
 					values.Append(sep + station.RainToday.ToString(RainFormat, inv));
 					values.Append(sep + station.Pressure.ToString(PressFormat, inv));
 					values.Append(sep + station.RainCounter.ToString(RainFormat, inv));
-					values.Append(sep + (station.IndoorTemperature.HasValue ? station.IndoorTemperature.Value.ToString(TempFormat, inv) : "NULL"));
-					values.Append(sep + (station.IndoorHumidity.HasValue ? station.IndoorHumidity : "NULL"));
+					values.Append(sep + station.IndoorTemperature.ToFixed(TempFormat, "NULL"));
+					values.Append(sep + station.IndoorHumidity.ToText("NULL"));
 					values.Append(sep + station.WindLatest.ToString(WindFormat, inv));
-					values.Append(sep + station.WindChill.ToString(TempFormat, inv));
-					values.Append(sep + station.HeatIndex.ToString(TempFormat, inv));
-					values.Append(sep + (station.UV.HasValue ? station.UV.Value.ToString(UVFormat, inv) : "NULL"));
-					values.Append(sep + (station.SolarRad.HasValue ? station.SolarRad : "NULL"));
-					values.Append(sep + station.ET.ToString(ETFormat, inv));
+					values.Append(sep + station.WindChill.ToFixed(TempFormat));
+					values.Append(sep + station.HeatIndex.ToFixed(TempFormat));
+					values.Append(sep + station.UV.ToFixed(UVFormat, "NULL"));
+					values.Append(sep + station.SolarRad.ToText("NULL"));
+					values.Append(sep + station.ET.ToFixed(ETFormat));
 					values.Append(sep + station.AnnualETTotal.ToString(ETFormat, inv));
-					values.Append(sep + station.ApparentTemperature.ToString(TempFormat, inv));
-					values.Append(sep + station.CurrentSolarMax);
+					values.Append(sep + station.ApparentTemperature.ToFixed(TempFormat));
+					values.Append(sep + station.CurrentSolarMax.ToString());
 					values.Append(sep + station.SunshineHours.ToString(SunFormat, inv));
-					values.Append(sep + station.Bearing);
+					values.Append(sep + station.Bearing.ToString());
 					values.Append(sep + station.RG11RainToday.ToString(RainFormat, inv));
-					values.Append(sep + station.RainSinceMidnight.ToString(RainFormat, inv));
+					values.Append(sep + station.RainSinceMidnight.ToFixed(RainFormat));
 					values.Append(sep + "'" + station.CompassPoint(station.AvgBearing) + "'");
 					values.Append(sep + "'" + station.CompassPoint(station.Bearing) + "'");
-					values.Append(sep + station.FeelsLike.ToString(TempFormat, inv));
-					values.Append(sep + station.Humidex.ToString(TempFormat, inv));
+					values.Append(sep + station.FeelsLike.ToFixed(TempFormat));
+					values.Append(sep + station.Humidex.ToFixed(TempFormat));
+					values.Append(sep + station.BlackGlobeTemp.ToFixed(TempFormat, "NULL"));
+					values.Append(sep + station.WetBulbGlobeTemp.ToFixed(TempFormat, "NULL"));
+
 					values.Append(')');
 
 					queryString = values.ToString();
@@ -8624,115 +8867,14 @@ namespace CumulusMX
 			// 123-126 AQ PM10 Avg
 
 			var filename = GetExtraLogFileName(timestamp);
-			var inv = CultureInfo.InvariantCulture;
-			var sep = ",";
 
 			LogDebugMessage($"DoExtraLogFile: Writing log entry for {timestamp}");
 
-			var sb = new StringBuilder(512);
-			sb.Append(timestamp.ToString("dd/MM/yy", inv));                     //0
-			sb.Append(timestamp.ToString(sep + "HH:mm", inv));                        //1
-
-			for (int i = 1; i <= 10; i++)
-			{
-				sb.Append(sep + (station.ExtraTemp[i].HasValue ? station.ExtraTemp[i].Value.ToString(TempFormat, inv) : string.Empty));       //2-11
-			}
-			for (int i = 1; i <= 10; i++)
-			{
-				sb.Append(sep + (station.ExtraHum[i].HasValue ? station.ExtraHum[i].Value.ToString(HumFormat, inv) : string.Empty));        //12-21
-			}
-			for (int i = 1; i <= 10; i++)
-			{
-				sb.Append(sep + (station.ExtraDewPoint[i].HasValue ? station.ExtraDewPoint[i].Value.ToString(TempFormat, inv) : string.Empty));  //22-31
-			}
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.SoilTemp[i].HasValue ? station.SoilTemp[i].Value.ToString(TempFormat, inv) : string.Empty));     //32-35
-			}
-
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.SoilMoisture[i].HasValue ? station.SoilMoisture[i].ToString() : string.Empty));                      //36-39
-			}
-
-			sb.Append(sep + sep);     //40-41 - was leaf temp 1/2
-
-			sb.Append(sep + (station.LeafWetness[1].HasValue ? station.LeafWetness[1].Value.ToString(LeafWetFormat, inv) : string.Empty));    //42
-			sb.Append(sep + (station.LeafWetness[2].HasValue ? station.LeafWetness[2].Value.ToString(LeafWetFormat, inv) : string.Empty));    //43
-
-			for (int i = 5; i <= 16; i++)
-			{
-				sb.Append(sep + (station.SoilTemp[i].HasValue ? station.SoilTemp[i].Value.ToString(TempFormat, inv) : string.Empty));     //44-55
-			}
-
-			for (int i = 5; i <= 16; i++)
-			{
-				sb.Append(sep + station.SoilMoisture[i]);      //56-67
-			}
-
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.AirQuality[i].HasValue ? station.AirQuality[i].Value.ToString("F1", inv) : string.Empty));     //68-71
-			}
-
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.AirQualityAvg[i].HasValue ? station.AirQualityAvg[i].Value.ToString("F1", inv) : string.Empty)); //72-75
-			}
-
-			for (int i = 1; i < 9; i++)
-			{
-				sb.Append(sep + (station.UserTemp[i].HasValue ? station.UserTemp[i].Value.ToString(TempFormat, inv) : string.Empty));   //76-83
-			}
-
-			sb.Append(sep + (station.CO2.HasValue ? station.CO2.ToString() : string.Empty));                                                //84
-			sb.Append(sep + (station.CO2_24h.HasValue ? station.CO2_24h.ToString() : string.Empty));                                        //85
-			sb.Append(sep + (station.CO2_pm2p5.HasValue ? station.CO2_pm2p5.Value.ToString("F1", inv) : string.Empty));                     //86
-			sb.Append(sep + (station.CO2_pm2p5_24h.HasValue ? station.CO2_pm2p5_24h.Value.ToString("F1", inv) : string.Empty));             //87
-			sb.Append(sep + (station.CO2_pm10.HasValue ? station.CO2_pm10.Value.ToString("F1", inv) : string.Empty));                       //88
-			sb.Append(sep + (station.CO2_pm10_24h.HasValue ? station.CO2_pm10_24h.Value.ToString("F1", inv) : string.Empty));               //89
-			sb.Append(sep + (station.CO2_temperature.HasValue ? station.CO2_temperature.Value.ToString(TempFormat, inv) : string.Empty));   //90
-			sb.Append(sep + (station.CO2_humidity.HasValue ? station.CO2_humidity.Value.ToString("F0") : string.Empty));                    //91
-
-			for (int i = 1; i < station.LaserDist.Length; i++)
-			{
-				sb.Append(sep + (station.LaserDist[i].HasValue ? station.LaserDist[i].Value.ToString(LaserFormat, inv) : string.Empty)); //92-95
-			}
-			for (int i = 1; i < station.LaserDepth.Length; i++)
-			{
-				sb.Append(sep + (station.LaserDepth[i].HasValue ? station.LaserDepth[i].Value.ToString(LaserFormat, inv) : string.Empty)); //96-99
-			}
-
-			sb.Append(sep + (station.Snow24h[SnowAutomated].HasValue ? station.Snow24h[SnowAutomated].Value.ToString(SnowFormat, inv) : string.Empty)); //100
-
-			for (int i = 11; i <= 16; i++)
-			{
-				sb.Append(sep + (station.ExtraTemp[i].HasValue ? station.ExtraTemp[i].Value.ToString(TempFormat, inv) : string.Empty));       //101-106
-			}
-			for (int i = 11; i <= 16; i++)
-			{
-				sb.Append(sep + (station.ExtraHum[i].HasValue ? station.ExtraHum[i].Value.ToString(HumFormat, inv) : string.Empty));        //107-112
-			}
-			for (int i = 11; i <= 16; i++)
-			{
-				sb.Append(sep + (station.ExtraDewPoint[i].HasValue ? station.ExtraDewPoint[i].Value.ToString(TempFormat, inv) : string.Empty));  //113-118
-			}
-
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.AirQuality10[i].HasValue ? station.AirQuality10[i].Value.ToString("F1", inv) : string.Empty));     //119-122
-			}
-
-			for (int i = 1; i <= 4; i++)
-			{
-				sb.Append(sep + (station.AirQuality10Avg[i].HasValue ? station.AirQuality10Avg[i].Value.ToString("F1", inv) : string.Empty)); //123-126
-			}
-
-			sb.Append(Environment.NewLine);
+			var line = ExtraLogFileRec.CurrentToCsv(timestamp, this, station);
 
 			var success = false;
 			var retries = LogFileRetries;
-			var charArr = sb.ToString().ToCharArray();
+			var charArr = line.ToCharArray();
 
 			do
 			{
@@ -8770,8 +8912,8 @@ namespace CumulusMX
 		public async Task DoAirLinkLogFile(DateTime timestamp)
 		{
 			// Writes an entry to the n-minute airlinklogfile. Fields are comma-separated:
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date/Time in the form dd/mm/yy hh:mm
+			// 1  Unix Timestamp
 			// 2  Indoor Temperature
 			// 3  Indoor Humidity
 			// 4  Indoor PM 1
@@ -8787,8 +8929,8 @@ namespace CumulusMX
 			// 14 Indoor PM 10 nowcast
 			// 15 Indoor Percent received 1-hour
 			// 16 Indoor Percent received 3-hour
-			// 17 Indoor Percent received nowcast
-			// 18 Indoor Percent received 24-hour
+			// 17 Indoor Percent received 24-hour
+			// 18 Indoor Percent received nowcast
 			// 19 Indoor AQI PM2.5
 			// 20 Indoor AQI PM2.5 1-hour
 			// 21 Indoor AQI PM2.5 3-hour
@@ -8814,8 +8956,8 @@ namespace CumulusMX
 			// 41 Outdoor PM 10 nowcast
 			// 42 Outdoor Percent received 1-hour
 			// 43 Outdoor Percent received 3-hour
-			// 44 Outdoor Percent received nowcast
-			// 45 Outdoor Percent received 24-hour
+			// 44 Outdoor Percent received 24-hour
+			// 45 Outdoor Percent received nowcast
 			// 46 Outdoor AQI PM2.5
 			// 47 Outdoor AQI PM2.5 1-hour
 			// 48 Outdoor AQI PM2.5 3-hour
@@ -8830,122 +8972,11 @@ namespace CumulusMX
 			var filename = GetAirLinkLogFileName(timestamp);
 
 			LogDebugMessage($"DoAirLinkLogFile: Writing log entry for {timestamp}");
-			var inv = CultureInfo.InvariantCulture;
-			var sep = ",";
-
-			var sb = new StringBuilder(256);
-
-			sb.Append(timestamp.ToString("dd/MM/yy", inv));
-			sb.Append(sep + timestamp.ToString("HH:mm", inv));
-
-			if (AirLinkInEnabled && airLinkDataIn != null && airLinkDataIn.dataValid)
-			{
-				sb.Append(sep + airLinkDataIn.temperature.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.humidity.ToString());
-				sb.Append(sep + airLinkDataIn.pm1.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm2p5.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm2p5_1hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm2p5_3hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm2p5_24hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm2p5_nowcast.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm10.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm10_1hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm10_3hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm10_24hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pm10_nowcast.ToString("F1", inv));
-				sb.Append(sep + airLinkDataIn.pct_1hr.ToString());
-				sb.Append(sep + airLinkDataIn.pct_3hr.ToString());
-				sb.Append(sep + airLinkDataIn.pct_24hr.ToString());
-				sb.Append(sep + airLinkDataIn.pct_nowcast.ToString());
-				if (AirQualityDPlaces > 0)
-				{
-					sb.Append(sep + airLinkDataIn.aqiPm2p5.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm2p5_1hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm2p5_3hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm2p5_24hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm2p5_nowcast.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm10.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm10_1hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm10_3hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm10_24hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataIn.aqiPm10_nowcast.ToString(AirQualityFormat, inv));
-				}
-				else // Zero decimals - truncate value rather than round
-				{
-					sb.Append(sep + (int) airLinkDataIn.aqiPm2p5);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm2p5_1hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm2p5_3hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm2p5_24hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm2p5_nowcast);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm10);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm10_1hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm10_3hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm10_24hr);
-					sb.Append(sep + (int) airLinkDataIn.aqiPm10_nowcast);
-				}
-			}
-			else
-			{
-				// write zero values
-				sb.Append(new String(sep[0], 27));
-			}
-
-			if (AirLinkOutEnabled && airLinkDataOut != null && airLinkDataOut.dataValid)
-			{
-				sb.Append(sep + airLinkDataOut.temperature.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.humidity.ToString());
-				sb.Append(sep + airLinkDataOut.pm1.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm2p5.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm2p5_1hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm2p5_3hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm2p5_24hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm2p5_nowcast.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm10.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm10_1hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm10_3hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm10_24hr.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pm10_nowcast.ToString("F1", inv));
-				sb.Append(sep + airLinkDataOut.pct_1hr.ToString());
-				sb.Append(sep + airLinkDataOut.pct_3hr.ToString());
-				sb.Append(sep + airLinkDataOut.pct_24hr.ToString());
-				sb.Append(sep + airLinkDataOut.pct_nowcast.ToString());
-				if (AirQualityDPlaces > 0)
-				{
-					sb.Append(sep + airLinkDataOut.aqiPm2p5.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm2p5_1hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm2p5_3hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm2p5_24hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm2p5_nowcast.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm10.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm10_1hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm10_3hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm10_24hr.ToString(AirQualityFormat, inv));
-					sb.Append(sep + airLinkDataOut.aqiPm10_nowcast.ToString(AirQualityFormat, inv));
-				}
-				else // Zero decimals - truncate value rather than round
-				{
-					sb.Append(sep + (int) airLinkDataOut.aqiPm2p5);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm2p5_1hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm2p5_3hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm2p5_24hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm2p5_nowcast);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm10);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm10_1hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm10_3hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm10_24hr);
-					sb.Append(sep + (int) airLinkDataOut.aqiPm10_nowcast);
-				}
-			}
-			else
-			{
-				// write null values
-				sb.Append(new String(sep[0], 27));
-			}
-			sb.Append(Environment.NewLine);
+			var csv = AirLinkLogFileRec.CurrentToCsv(timestamp, this);
 
 			var success = false;
 			var retries = LogFileRetries;
-			var charArr = sb.ToString().ToCharArray();
+			var charArr = csv.ToCharArray();
 
 			do
 			{
@@ -9149,7 +9180,7 @@ namespace CumulusMX
 
 				using (var thisProcess = System.Diagnostics.Process.GetCurrentProcess())
 				{
-					var procId = thisProcess.Id.ToString().ToAsciiBytes();
+					var procId = Encoding.ASCII.GetBytes(thisProcess.Id.ToString());
 					_lockFile.Write(procId, 0, procId.Length);
 					_lockFile.Flush();
 				}
@@ -9241,7 +9272,7 @@ namespace CumulusMX
 		{
 			LogMessage($"Creating {(daily ? "daily" : "start-up")} backup...");
 
-			string dirpath = daily ? backupPath + "daily" + DirectorySeparator : backupPath;
+			string dirpath = daily ? Path.Combine(ProgramOptions.BackupPath, "daily") : ProgramOptions.BackupPath;
 
 			if (!Directory.Exists(dirpath))
 			{
@@ -9282,65 +9313,63 @@ namespace CumulusMX
 				}
 
 				string filename = (daily ? timestamp.ToString("yyyyMMdd") : timestamp.ToString("yyyyMMddHHmmss")) + ".zip";
-				string datafolder = "data" + DirectorySeparator;
 
 				LogMessage("BackupData: Creating backup " + filename);
 
 				var configbackup = "Cumulus.ini";
 				var uniquebackup = "UniqueId.txt";
 				var stringsbackup = "strings.ini";
-				var alltimebackup = datafolder + "alltime.ini";
-				var monthlyAlltimebackup = datafolder + "monthlyalltime.ini";
-				var daybackup = datafolder + "dayfile.txt";
-				var yesterdaybackup = datafolder + "yesterday.ini";
-				var todaybackup = datafolder + "today.ini";
-				var monthbackup = datafolder + "month.ini";
-				var yearbackup = datafolder + "year.ini";
-				var diarybackup = datafolder + "diary.db";
-				var dbBackup = datafolder + "cumulusmx.db";
+				var alltimebackup = Path.Combine(ProgramOptions.DataPath, "alltime.ini");
+				var monthlyAlltimebackup = Path.Combine(ProgramOptions.DataPath, "monthlyalltime.ini");
+				var daybackup = Path.Combine(ProgramOptions.DataPath, "dayfile.txt");
+				var yesterdaybackup = Path.Combine(ProgramOptions.DataPath, "yesterday.ini");
+				var todaybackup = Path.Combine(ProgramOptions.DataPath, "today.ini");
+				var monthbackup = Path.Combine(ProgramOptions.DataPath, "month.ini");
+				var yearbackup = Path.Combine(ProgramOptions.DataPath, "year.ini");
+				var diarybackup = Path.Combine(ProgramOptions.DataPath, "diary.db");
+				var dbBackup = Path.Combine(ProgramOptions.DataPath, "cumulusmx.db");
 
 				var LogFile = GetLogFileName(timestamp);
-				var logbackup = datafolder + LogFile.Replace(logFilePath, "");
-
+				var logbackup = Path.Combine("data", Path.GetFileName(LogFile));
 				var extraFile = GetExtraLogFileName(timestamp);
-				var extraBackup = datafolder + extraFile.Replace(logFilePath, "");
+				var extraBackup = Path.Combine("data", Path.GetFileName(extraFile));
 
 				var AirLinkFile = GetAirLinkLogFileName(timestamp);
-				var AirLinkBackup = datafolder + AirLinkFile.Replace(logFilePath, "");
+				//var AirLinkBackup = Path.Combine("data", Path.GetFileName(AirLinkFile));
 
 
-				if (!File.Exists(dirpath + DirectorySeparator + filename))
+				if (!File.Exists(Path.Combine(dirpath, filename)))
 				{
 					// create a zip archive file for the backup
 					try
 					{
-						using (FileStream zipFile = new FileStream(dirpath + DirectorySeparator + filename, FileMode.Create))
+						using (FileStream zipFile = new FileStream(Path.Combine(dirpath, filename), FileMode.Create))
 						{
 							using ZipArchive archive = new ZipArchive(zipFile, ZipArchiveMode.Create);
 							try
 							{
 								if (File.Exists(AlltimeIniFile))
-									archive.CreateEntryFromFile(AlltimeIniFile, alltimebackup);
+									archiveFile(archive, AlltimeIniFile, alltimebackup);
 								if (File.Exists(MonthlyAlltimeIniFile))
-									archive.CreateEntryFromFile(MonthlyAlltimeIniFile, monthlyAlltimebackup);
+									archiveFile(archive, MonthlyAlltimeIniFile, monthlyAlltimebackup);
 								if (File.Exists(DayFileName))
-									archive.CreateEntryFromFile(DayFileName, daybackup);
+									archiveFile(archive, DayFileName, daybackup);
 								if (File.Exists(TodayIniFile))
-									archive.CreateEntryFromFile(TodayIniFile, todaybackup);
+									archiveFile(archive, TodayIniFile, todaybackup);
 								if (File.Exists(YesterdayFile))
-									archive.CreateEntryFromFile(YesterdayFile, yesterdaybackup);
+									archiveFile(archive, YesterdayFile, yesterdaybackup);
 								if (File.Exists(LogFile))
-									archive.CreateEntryFromFile(LogFile, logbackup);
+									archiveFile(archive, LogFile, logbackup);
 								if (File.Exists(MonthIniFile))
-									archive.CreateEntryFromFile(MonthIniFile, monthbackup);
+									archiveFile(archive, MonthIniFile, monthbackup);
 								if (File.Exists(YearIniFile))
-									archive.CreateEntryFromFile(YearIniFile, yearbackup);
+									archiveFile(archive, YearIniFile, yearbackup);
 								if (File.Exists("Cumulus.ini"))
-									archive.CreateEntryFromFile("Cumulus.ini", configbackup);
+									archiveFile(archive, "Cumulus.ini", configbackup);
 								if (File.Exists("UniqueId.txt"))
-									archive.CreateEntryFromFile("UniqueId.txt", uniquebackup);
+									archiveFile(archive, "UniqueId.txt", uniquebackup);
 								if (File.Exists("strings.ini"))
-									archive.CreateEntryFromFile("strings.ini", stringsbackup);
+									archiveFile(archive, "strings.ini", stringsbackup);
 							}
 							catch (Exception ex)
 							{
@@ -9352,8 +9381,8 @@ namespace CumulusMX
 								// for daily backup the db is in use, so use an online backup
 								try
 								{
-									var backUpDest = dirpath + "cumulusmx.db";
-									var zipLocation = datafolder + "cumulusmx.db";
+									var backUpDest = Path.Combine(dirpath, "cumulusmx.db");
+									var zipLocation = Path.Combine("data", "cumulusmx.db");
 									LogDebugMessage("Making backup copy of the database");
 									station.RecentDataDb.Backup(backUpDest);
 									LogDebugMessage("Completed backup copy of the database");
@@ -9365,8 +9394,8 @@ namespace CumulusMX
 									LogDebugMessage("Deleting backup copy of the database");
 									File.Delete(backUpDest);
 
-									backUpDest = dirpath + "diary.db";
-									zipLocation = datafolder + "diary.db";
+									backUpDest = Path.Combine(dirpath, "diary.db");
+									zipLocation = Path.Combine("data", "diary.db");
 									LogDebugMessage("Making backup copy of the diary");
 									DiaryDB.Backup(backUpDest);
 									LogDebugMessage("Completed backup copy of the diary");
@@ -9390,16 +9419,16 @@ namespace CumulusMX
 								{
 									LogDebugMessage("Archiving the database");
 									if (File.Exists(dbfile))
-										archive.CreateEntryFromFile(dbfile, dbBackup);
+										archiveFile(archive, dbfile, dbBackup);
 
 									if (File.Exists(dbfile + "-journal"))
-										archive.CreateEntryFromFile(dbfile + "-journal", dbBackup + "-journal");
+										archiveFile(archive, dbfile + "-journal", dbBackup + "-journal");
 
 									if (File.Exists(diaryfile))
-										archive.CreateEntryFromFile(diaryfile, diarybackup);
+										archiveFile(archive, diaryfile, diarybackup);
 
 									if (File.Exists(diaryfile + "-journal"))
-										archive.CreateEntryFromFile(diaryfile + "-journal", diarybackup + "-journal");
+										archiveFile(archive, diaryfile + "-journal", diarybackup + "-journal");
 
 									LogDebugMessage("Completed archive of the database");
 								}
@@ -9412,9 +9441,9 @@ namespace CumulusMX
 							try
 							{
 								if (File.Exists(extraFile))
-									archive.CreateEntryFromFile(extraFile, extraBackup);
+									archiveFile(archive, extraFile, Path.Combine("data", Path.GetFileName(extraBackup)));
 								if (File.Exists(AirLinkFile))
-									archive.CreateEntryFromFile(AirLinkFile, AirLinkBackup);
+									archiveFile(archive, AirLinkFile, Path.Combine("data", Path.GetFileName(AirLinkFile)));
 
 								// custom logs
 								for (var i = 0; i < 10; i++)
@@ -9423,14 +9452,14 @@ namespace CumulusMX
 									{
 										var custfilename = GetCustomIntvlLogFileName(i, timestamp);
 										if (File.Exists(custfilename))
-											archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
+											archiveFile(archive, custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
 									}
 
 									if (CustomDailyLogSettings[i].Enabled)
 									{
 										var custfilename = GetCustomDailyLogFileName(i);
 										if (File.Exists(custfilename))
-											archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
+											archiveFile(archive, custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
 									}
 								}
 
@@ -9441,20 +9470,20 @@ namespace CumulusMX
 									var newTime = timestamp.AddDays(-1);
 									// on the first of month, we also need to backup last months files as well
 									var LogFile2 = GetLogFileName(newTime);
-									var logbackup2 = datafolder + Path.GetFileName(LogFile2);
+									var logbackup2 = Path.Combine("data", Path.GetFileName(LogFile2));
 
 									var extraFile2 = GetExtraLogFileName(newTime);
-									var extraBackup2 = datafolder + Path.GetFileName(extraFile2);
+									var extraBackup2 = Path.Combine("data", Path.GetFileName(extraFile2));
 
 									var AirLinkFile2 = GetAirLinkLogFileName(timestamp.AddDays(-1));
-									var AirLinkBackup2 = datafolder + Path.GetFileName(AirLinkFile2);
+									var AirLinkBackup2 = Path.Combine("data", Path.GetFileName(AirLinkFile2));
 
 									if (File.Exists(LogFile2))
-										archive.CreateEntryFromFile(LogFile2, logbackup2);
+										archiveFile(archive, LogFile2, logbackup2);
 									if (File.Exists(extraFile2))
-										archive.CreateEntryFromFile(extraFile2, extraBackup2);
+										archiveFile(archive, extraFile2, extraBackup2);
 									if (File.Exists(AirLinkFile2))
-										archive.CreateEntryFromFile(AirLinkFile2, AirLinkBackup2);
+										archiveFile(archive, AirLinkFile2, AirLinkBackup2);
 
 									for (var i = 0; i < 10; i++)
 									{
@@ -9462,7 +9491,7 @@ namespace CumulusMX
 										{
 											var custfilename = GetCustomIntvlLogFileName(i, newTime);
 											if (File.Exists(custfilename))
-												archive.CreateEntryFromFile(custfilename, datafolder + Path.GetFileName(custfilename));
+												archiveFile(archive, custfilename, Path.Combine("data", Path.GetFileName(custfilename)));
 										}
 									}
 								}
@@ -9477,13 +9506,13 @@ namespace CumulusMX
 					}
 					catch (UnauthorizedAccessException)
 					{
-						LogErrorMessage("BackupData: Error, no permission to create/write file: " + dirpath + DirectorySeparator + filename);
-						LogConsoleMessage("Error, no permission to create/write file: " + dirpath + DirectorySeparator + filename, ConsoleColor.Yellow);
+						LogErrorMessage("BackupData: Error, no permission to create/write file: " + Path.Combine(dirpath, filename));
+						LogConsoleMessage("Error, no permission to create/write file: " + Path.Combine(dirpath, filename), ConsoleColor.Yellow);
 					}
 					catch (Exception ex)
 					{
-						LogErrorMessage($"BackupData: Error while attempting to create/write file: {dirpath + DirectorySeparator + filename}, error message: {ex.Message}");
-						LogConsoleMessage($"Error while attempting to create/write file: {dirpath + DirectorySeparator + filename}, error message: {ex.Message}", ConsoleColor.Yellow);
+						LogErrorMessage($"BackupData: Error while attempting to create/write file: {Path.Combine(dirpath, filename)}, error message: {ex.Message}");
+						LogConsoleMessage($"Error while attempting to create/write file: {Path.Combine(dirpath, filename)}, error message: {ex.Message}", ConsoleColor.Yellow);
 					}
 				}
 				else
@@ -9497,6 +9526,37 @@ namespace CumulusMX
 			}
 		}
 
+		private static void archiveFile(ZipArchive archive, string filename, string path)
+		{
+			// add the file to the archive, with a back-off and retry for file in use
+			var maxAttempts = 2;
+			var attempt = 0;
+			while (true)
+			{
+				try
+				{
+					archive.CreateEntryFromFile(filename, path);
+					break;
+				}
+				catch (IOException)
+				{
+					attempt++;
+					if (attempt > maxAttempts)
+					{
+						// retry failed, give up
+						throw;
+					}
+
+					// try again in a bit
+					Thread.Sleep(100 * attempt);
+				}
+				catch
+				{
+					// just throw any other errors
+					throw;
+				}
+			}
+		}
 
 		public int GetHourInc(DateTime timestamp)
 		{
@@ -9585,9 +9645,13 @@ namespace CumulusMX
 		{
 			if (level >= ErrorListLoggingLevel)
 			{
-				while (ErrorList.Count >= 50)
+				if (ErrorList.Count >= 50)
 				{
-					_ = ErrorList.Dequeue();
+					int toRemove = ErrorList.Count - 49;
+					for (int i = 0; i < toRemove; i++)
+					{
+						_ = ErrorList.Dequeue();
+					}
 				}
 
 				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + WebUtility.HtmlEncode(message)));
@@ -9742,15 +9806,19 @@ namespace CumulusMX
 
 		public async Task DoHTMLFiles()
 		{
+			var cycle = IntervalCycleCounter++;
+
 			try
 			{
+				LogDebugMessage($"Interval[{cycle}]: Process starting");
+
 				if (!RealtimeIntervalEnabled)
 				{
 					CreateRealtimeFile(999);
 					MySqlRealtimeFile(999, true);
 				}
 
-				LogDebugMessage("Interval: Creating standard web files");
+				LogDebugMessage($"Interval[{cycle}]: Creating standard web files");
 				for (var i = 0; i < StdWebFiles.Length; i++)
 				{
 					if (StdWebFiles[i].Create && !string.IsNullOrWhiteSpace(StdWebFiles[i].TemplateFileName))
@@ -9766,13 +9834,13 @@ namespace CumulusMX
 						}
 					}
 				}
-				LogDebugMessage("Interval: Done creating standard Data file");
+				LogDebugMessage($"Interval[{cycle}]: Done creating standard Data file");
 
-				LogDebugMessage("Interval: Creating graph data files");
+				LogDebugMessage($"Interval[{cycle}]: Creating graph data files");
 				station.CreateGraphDataFiles();
-				LogDebugMessage("Interval: Done creating graph data files");
+				LogDebugMessage($"Interval[{cycle}]: Done creating graph data files");
 
-				LogDebugMessage("Interval: Creating extra files");
+				LogDebugMessage($"Interval[{cycle}]: Creating extra files");
 
 				// handle any extra files
 				foreach (var item in ActiveExtraFiles)
@@ -9788,12 +9856,12 @@ namespace CumulusMX
 					{
 						var remotefile = GetRemoteFileName(item.remote, DateTime.Now);
 
-						LogDebugMessage($"Interval: Copying extra file {uploadfile} to {remotefile}");
+						LogDebugMessage($"Interval[{cycle}]: Copying extra file {uploadfile} to {remotefile}");
 						try
 						{
 							if (item.process)
 							{
-								LogDebugMessage($"Interval: Processing extra file {uploadfile}");
+								LogDebugMessage($"Interval[{cycle}]: Processing extra file {uploadfile}");
 								var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 								await File.WriteAllTextAsync(remotefile, data);
 							}
@@ -9805,22 +9873,22 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogDebugMessage($"Interval: Error copying extra file: " + ex.Message);
+							LogDebugMessage($"Interval[{cycle}]: Error copying extra file: " + ex.Message);
 						}
 					}
 					else
 					{
-						LogWarningMessage($"Interval: Warning, extra web file not found - {uploadfile}");
+						LogWarningMessage($"Interval[{cycle}]: Warning, extra web file not found - {uploadfile}");
 					}
 				}
 
-				LogDebugMessage("Interval: Done creating extra files");
+				LogDebugMessage($"Interval[{cycle}]: Done creating extra files");
 
 				if (!string.IsNullOrEmpty(ExternalProgram))
 				{
 					if (!File.Exists(ExternalProgram))
 					{
-						LogWarningMessage($"Warning: Interval: External program '{ExternalProgram}' does not exist");
+						LogWarningMessage($"Interval[{cycle}]: Warning - External program '{ExternalProgram}' does not exist");
 					}
 					else
 					{
@@ -9836,28 +9904,47 @@ namespace CumulusMX
 								};
 								args = parser.ToStringFromString();
 							}
-							LogDebugMessage("Interval: Executing external program " + ExternalProgram + " " + args);
+							LogDebugMessage($"Interval[{cycle}]: Executing external program " + ExternalProgram + " " + args);
 							_ = Utils.RunExternalTask(ExternalProgram, args, false);
-							LogDebugMessage("Interval: External program started");
+							LogDebugMessage($"Interval[{cycle}]: External program started");
 						}
 						catch (FileNotFoundException)
 						{
-							LogWarningMessage("Interval: Error starting external program: file not found - " + ExternalProgram);
+							LogWarningMessage($"Interval[{cycle}]: Error starting external program: file not found - " + ExternalProgram);
 						}
 						catch (Exception ex)
 						{
-							LogWarningMessage("Interval: Error starting external program: " + ex.Message);
+							LogWarningMessage($"Interval[{cycle}]: Error starting external program: " + ex.Message);
 						}
 					}
 				}
 
 				DoLocalCopy();
 
-				await DoIntervalUpload();
+				if (!intervaltimeFtpSemaphore.Wait(1000, Program.ExitSystemToken))
+				{
+					// we cannot get the lock - abort
+					LogDebugMessage($"Interval[{cycle}]: Warning, could not get the upload lock, aborting upload for this cycle");
+				}
+				else
+				{
+					try
+					{
+						await DoIntervalUpload(cycle);
+					}
+					finally
+					{
+#if DEBUG
+						LogDebugMessage($"Interval[{cycle}]: Releasing the upload lock");
+#endif
+						intervaltimeFtpSemaphore.Release();
+					}
+				}
 			}
 			finally
 			{
 				WebUpdating = 0;
+				LogDebugMessage($"Interval[{cycle}]: Process complete");
 			}
 		}
 
@@ -9867,14 +9954,12 @@ namespace CumulusMX
 
 			try
 			{
-				var folderSep2 = Path.AltDirectorySeparatorChar;
-
 				if (!FtpOptions.LocalCopyEnabled)
 					return;
 
 				if (FtpOptions.LocalCopyFolder.Length > 0)
 				{
-					remotePath = (FtpOptions.LocalCopyFolder.EndsWith(DirectorySeparator.ToString()) || FtpOptions.LocalCopyFolder.EndsWith(folderSep2.ToString())) ? FtpOptions.LocalCopyFolder : FtpOptions.LocalCopyFolder + DirectorySeparator;
+					remotePath = FtpOptions.LocalCopyFolder;
 				}
 				else
 				{
@@ -9899,13 +9984,13 @@ namespace CumulusMX
 				{
 					var dstPath = string.IsNullOrEmpty(NOAAconf.CopyFolder) ? remotePath : NOAAconf.CopyFolder;
 
-					srcfile = ReportPath + NOAAconf.LatestMonthReport;
-					dstfile = dstPath + DirectorySeparator + NOAAconf.LatestMonthReport;
+					srcfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
+					dstfile = Path.Combine(dstPath, NOAAconf.LatestMonthReport);
 
 					File.Copy(srcfile, dstfile, true);
 
-					srcfile = ReportPath + NOAAconf.LatestYearReport;
-					dstfile = dstPath + DirectorySeparator + NOAAconf.LatestYearReport;
+					srcfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
+					dstfile = Path.Combine(dstPath, NOAAconf.LatestYearReport);
 
 					File.Copy(srcfile, dstfile, true);
 
@@ -10086,7 +10171,7 @@ namespace CumulusMX
 				try
 				{
 					LogDebugMessage("LocalCopy: Copying Moon image file to " + MoonImage.CopyDest);
-					File.Copy("web" + DirectorySeparator + "moon.png", MoonImage.CopyDest, true);
+					File.Copy(Path.Combine("web", "moon.png"), MoonImage.CopyDest, true);
 					LogDebugMessage("LocalCopy: Done copying Moon image file");
 					// clear the image ready for copy flag, only upload once an hour
 					MoonImage.ReadyToCopy = false;
@@ -10143,51 +10228,17 @@ namespace CumulusMX
 
 			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 			{
-				ConnectionInfo connectionInfo;
-				if (FtpOptions.SshAuthen == "password")
-				{
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
-					LogFtpDebugMessage("ProcessHttpFiles: Connecting using password authentication", false);
-				}
-				else if (FtpOptions.SshAuthen == "psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogFtpDebugMessage("ProcessHttpFiles: Connecting using PSK authentication", false);
-				}
-				else if (FtpOptions.SshAuthen == "password_psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogFtpDebugMessage("ProcessHttpFiles: Connecting using password or PSK authentication", false);
-				}
-				else
-				{
-					LogFtpMessage($"ProcessHttpFiles: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]", false);
-					return;
-				}
-
 				try
 				{
-					using SftpClient conn = new SftpClient(connectionInfo);
+					using SftpClient conn = sftpClientFactory.CreateClient().Result;
 					try
 					{
 						LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}", false);
 						conn.Connect();
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
 					}
 					catch (Exception ex)
 					{
 						LogFtpMessage($"ProcessHttpFiles: Error connecting SFTP - {ex.Message}", false);
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
 						return;
 					}
 
@@ -10238,116 +10289,76 @@ namespace CumulusMX
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
 			{
-				using (FtpClient conn = new FtpClient())
+				using FtpClient conn = ftpClientFactory.CreateClient().Result;
+
+				if (FtpOptions.Logging)
 				{
-					if (FtpOptions.Logging)
+					conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+				}
+
+				LogFtpMessage("", false); // insert a blank line
+				LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to " + FtpOptions.Hostname, false);
+
+				try
+				{
+					if (FtpOptions.AutoDetect)
 					{
-						conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+						conn.AutoConnect();
+					}
+					else
+					{
+						conn.Connect();
+					}
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage("ProcessHttpFiles: Error connecting ftp - " + ex.Message, false);
+
+					if (ex.InnerException != null)
+					{
+						ex = Utils.GetOriginalException(ex);
+						LogFtpMessage($"ProcessHttpFiles: Base exception - {ex.Message}", false);
 					}
 
-					LogFtpMessage("", false); // insert a blank line
-					LogFtpDebugMessage($"ProcessHttpFiles: CumulusMX Connecting to " + FtpOptions.Hostname, false);
-					conn.Host = FtpOptions.Hostname;
-					conn.Port = FtpOptions.Port;
-					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
-					conn.Config.LogPassword = false;
+					return;
+				}
 
-					if (!FtpOptions.AutoDetect)
-					{
+				LogDebugMessage("ProcessHttpFiles: Uploading http files");
 
-						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-						{
-							// Explicit = Current protocol - connects using FTP and switches to TLS
-							// Implicit = Old depreciated protocol - connects using TLS
-							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-							conn.Config.DataConnectionEncryption = true;
-						}
-
-						if (FtpOptions.ActiveMode)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
-						}
-						else if (FtpOptions.DisableEPSV)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
-						}
-					}
-
-					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-					{
-						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
-					}
+				foreach (var item in uploads)
+				{
+					Stream strm = null;
 
 					try
 					{
-						if (FtpOptions.AutoDetect)
-						{
-							conn.AutoConnect();
-						}
-						else
-						{
-							conn.Connect();
-						}
 
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
+						if (Program.ExitSystemToken.IsCancellationRequested)
+							return;
+
+						strm = httpFiles.DownloadHttpFileStream(item.Url).Result;
+						UploadStream(conn, item.Remote, strm, -1);
+
+						item.SetNextInterval(now);
 					}
-					catch (Exception ex)
+					catch (Exception ex) when (ex is not TaskCanceledException)
 					{
-						LogFtpMessage("ProcessHttpFiles: Error connecting ftp - " + ex.Message, false);
-
-						if (ex.InnerException != null)
-						{
-							ex = Utils.GetOriginalException(ex);
-							LogFtpMessage($"ProcessHttpFiles: Base exception - {ex.Message}", false);
-						}
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
-						return;
+						LogExceptionMessage(ex, $"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}");
 					}
-
-					LogDebugMessage("ProcessHttpFiles: Uploading http files");
-
-					foreach (var item in uploads)
+					finally
 					{
-						Stream strm = null;
-
-						try
-						{
-
-							if (Program.ExitSystemToken.IsCancellationRequested)
-								return;
-
-							strm = httpFiles.DownloadHttpFileStream(item.Url).Result;
-							UploadStream(conn, item.Remote, strm, -1);
-
-							item.SetNextInterval(now);
-						}
-						catch (Exception ex) when (ex is not TaskCanceledException)
-						{
-							LogExceptionMessage(ex, $"ProcessHttpFiles: Error uploading http file {item.Url} to: {item.Remote}");
-						}
-						finally
-						{
-							if (null != strm)
-								strm.Dispose();
-						}
-					}
-
-					LogDebugMessage("ProcessHttpFiles: Done uploading http files");
-
-					if (conn.IsConnected)
-					{
-						conn.Disconnect();
-						LogFtpDebugMessage("ProcessHttpFiles: Disconnected from " + FtpOptions.Hostname, false);
+						if (null != strm)
+							strm.Dispose();
 					}
 				}
+
+				LogDebugMessage("ProcessHttpFiles: Done uploading http files");
+
+				if (conn.IsConnected)
+				{
+					conn.Disconnect();
+					LogFtpDebugMessage("ProcessHttpFiles: Disconnected from " + FtpOptions.Hostname, false);
+				}
+
 				LogFtpMessage("ProcessHttpFiles: Process complete", false);
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.PHP)
@@ -10375,7 +10386,10 @@ namespace CumulusMX
 					var remotefile = item.Remote;
 
 #if DEBUG
-					LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
+					{
+						LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					}
 					uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 					LogDebugMessage($"ProcessHttpFiles: Http file: {downloadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
@@ -10415,14 +10429,17 @@ namespace CumulusMX
 				LogDebugMessage("ProcessHttpFiles: Done uploading http files");
 
 				// wait for all the files to start
-				while (runningTaskCount < taskCount)
+				if (runningTaskCount < taskCount)
 				{
-					if (Program.ExitSystemToken.IsCancellationRequested)
+					do
 					{
-						LogDebugMessage("ProcessHttpFiles: Upload process aborted");
-						return;
-					}
-					Thread.Sleep(10);
+						if (Program.ExitSystemToken.IsCancellationRequested)
+						{
+							LogDebugMessage("ProcessHttpFiles: Upload process aborted");
+							return;
+						}
+						Thread.Sleep(10);
+					} while (runningTaskCount < taskCount);
 				}
 
 				// wait for all the files to complete
@@ -10439,7 +10456,7 @@ namespace CumulusMX
 			}
 		}
 
-		public async Task DoIntervalUpload()
+		public async Task DoIntervalUpload(byte cycle)
 		{
 			var remotePath = string.Empty;
 
@@ -10451,94 +10468,65 @@ namespace CumulusMX
 				remotePath = FtpOptions.Directory.EndsWith('/') ? FtpOptions.Directory : FtpOptions.Directory + '/';
 			}
 
+			var cycle1k = 1000 + cycle;
+
 			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 			{
-				LogDebugMessage("SFTP[Int]: Process starting");
-				// BUILD 3092 - added alternate SFTP authentication options
-				ConnectionInfo connectionInfo;
-				if (FtpOptions.SshAuthen == "password")
-				{
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
-					LogDebugMessage("SFTP[Int]: Connecting using password authentication");
-				}
-				else if (FtpOptions.SshAuthen == "psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogDebugMessage("SFTP[Int]: Connecting using PSK authentication");
-				}
-				else if (FtpOptions.SshAuthen == "password_psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogDebugMessage("SFTP[Int]: Connecting using password or PSK authentication");
-				}
-				else
-				{
-					LogErrorMessage($"SFTP[Int]: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]");
-					return;
-				}
+				var msgPrefix = $"Interval[{cycle}] SFTP:";
 
+				LogDebugMessage(msgPrefix + " Process starting");
 				try
 				{
-					using SftpClient conn = new SftpClient(connectionInfo);
+					using SftpClient conn = await sftpClientFactory.CreateClient();
 					try
 					{
-						LogDebugMessage($"SFTP[Int]: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
+						LogDebugMessage($"{msgPrefix} CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}");
 						conn.Connect();
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
 					}
 					catch (Exception ex)
 					{
-						LogErrorMessage($"SFTP[Int]: Error connecting SFTP - {ex.Message}");
+						LogErrorMessage($"{msgPrefix} Error connecting SFTP - {ex.Message}");
 
 						FtpAlarm.LastMessage = "Error connecting SFTP - " + ex.Message;
 						FtpAlarm.Triggered = true;
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
 						return;
 					}
 
 					if (conn.IsConnected)
 					{
-						LogDebugMessage($"SFTP[Int]: CumulusMX Connected to {FtpOptions.Hostname} OK");
+						LogDebugMessage($"{msgPrefix} CumulusMX Connected to {FtpOptions.Hostname} OK");
 
 						if (NOAAconf.NeedFtp)
 						{
+							var success = false;
 							try
 							{
 								// upload NOAA reports
-								LogDebugMessage("SFTP[Int]: Uploading NOAA reports");
+								LogDebugMessage($"{msgPrefix} Uploading NOAA reports");
 
-								var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
+								var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 								var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-								UploadFile(conn, uploadfile, remotefile, -1);
+								success = UploadFile(conn, uploadfile, remotefile, cycle1k);
 
-								uploadfile = ReportPath + NOAAconf.LatestYearReport;
+								uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 								remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-								UploadFile(conn, uploadfile, remotefile, -1);
+								success = success && UploadFile(conn, uploadfile, remotefile, cycle1k);
 
-								LogDebugMessage("SFTP[Int]: Done uploading NOAA reports");
+								LogDebugMessage($"{msgPrefix} Done uploading NOAA reports");
 							}
 							catch (Exception e)
 							{
-								LogErrorMessage($"SFTP[Int]: Error uploading file - {e.Message}");
+								LogErrorMessage($"{msgPrefix} Error uploading file - {e.Message}");
 								FtpAlarm.LastMessage = "Error uploading NOAA report file - " + e.Message;
 								FtpAlarm.Triggered = true;
 							}
-							NOAAconf.NeedFtp = false;
+							NOAAconf.NeedFtp = !success;
 						}
 
 						// Extra files
+						var eodSuccess = true;
 						for (var i = 0; i < ActiveExtraFiles.Count; i++)
 						{
 							var item = ActiveExtraFiles[i];
@@ -10554,7 +10542,7 @@ namespace CumulusMX
 
 							if (!File.Exists(uploadfile))
 							{
-								LogWarningMessage($"SFTP[Int]: Extra web file [{uploadfile}] not found!");
+								LogWarningMessage($"{msgPrefix}: Extra web file [{uploadfile}] not found!");
 								FtpAlarm.LastMessage = $"Error Extra web file [{uploadfile} not found";
 								FtpAlarm.Triggered = true;
 								continue;
@@ -10562,7 +10550,7 @@ namespace CumulusMX
 
 							var remotefile = GetRemoteFileName(item.remote, logDay);
 
-							LogDebugMessage("SFTP[Int]: Uploading Extra web file: " + uploadfile);
+							LogDebugMessage($"{msgPrefix} Uploading Extra web file: {uploadfile}");
 
 							// all checks OK, file needs to be uploaded
 							try
@@ -10582,7 +10570,7 @@ namespace CumulusMX
 
 									if (linesAdded == 0)
 									{
-										LogDebugMessage($"SFTP[Int]: Extra web file: {uploadfile} - No incremental data found, skipping this upload");
+										LogDebugMessage($"{msgPrefix} Extra web file: {uploadfile} - No incremental data found, skipping this upload");
 										continue;
 									}
 
@@ -10604,20 +10592,20 @@ namespace CumulusMX
 								}
 								else if (item.process)
 								{
-									LogDebugMessage("SFTP[Int]: Processing Extra web file: " + uploadfile);
+									LogDebugMessage($"{msgPrefix} Processing Extra web file: {uploadfile}");
 									var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
 									using var strm = GenerateStreamFromString(data);
-									UploadStream(conn, remotefile, strm, -1);
+									eodSuccess = eodSuccess && UploadStream(conn, remotefile, strm, cycle1k);
 								}
 								else
 								{
-									UploadFile(conn, uploadfile, remotefile, -1);
+									eodSuccess = eodSuccess && UploadFile(conn, uploadfile, remotefile, cycle1k);
 								}
 							}
 							catch (Exception e)
 							{
-								LogErrorMessage($"SFTP[Int]: Error uploading Extra web file [{uploadfile}]");
-								LogMessage($"SFTP[Int]: Error = {e.Message}");
+								LogErrorMessage($"{msgPrefix} Error uploading Extra web file [{uploadfile}]");
+								LogMessage($"{msgPrefix} Error = {e.Message}");
 								FtpAlarm.LastMessage = $"Error uploading Extra web file [{uploadfile}";
 								FtpAlarm.Triggered = true;
 							}
@@ -10625,7 +10613,7 @@ namespace CumulusMX
 
 						if (EODfilesNeedFTP)
 						{
-							EODfilesNeedFTP = false;
+							EODfilesNeedFTP = !eodSuccess;
 						}
 
 						// standard files
@@ -10637,7 +10625,7 @@ namespace CumulusMX
 								{
 									var localFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
 									var remotefile = remotePath + StdWebFiles[i].RemoteFileName;
-									LogDebugMessage("SFTP[Int]: Uploading standard Data file: " + localFile);
+									LogDebugMessage($"{msgPrefix} Uploading standard Data file: {localFile}");
 
 									string data;
 
@@ -10651,12 +10639,12 @@ namespace CumulusMX
 									}
 
 									using var dataStream = GenerateStreamFromString(data);
-									UploadStream(conn, remotefile, dataStream);
+									UploadStream(conn, remotefile, dataStream, cycle1k);
 								}
 								catch (Exception e)
 								{
-									LogErrorMessage($"SFTP[Int]: Error uploading standard data file [{StdWebFiles[i].RemoteFileName}]");
-									LogMessage($"SFTP[Int]: Error = {e}");
+									LogErrorMessage($"{msgPrefix} Error uploading standard data file [{StdWebFiles[i].RemoteFileName}]");
+									LogMessage($"{msgPrefix} Error = {e}");
 									FtpAlarm.LastMessage = $"Error uploading standard web file {StdWebFiles[i].RemoteFileName} - {e.Message}";
 									FtpAlarm.Triggered = true;
 								}
@@ -10672,25 +10660,24 @@ namespace CumulusMX
 
 								try
 								{
-									LogDebugMessage("SFTP[Int]: Uploading graph data file: " + uploadfile);
+									LogDebugMessage($"{msgPrefix} Uploading graph data file: {uploadfile}");
 
 									var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
 
-									using (var dataStream = GenerateStreamFromString(json))
+									using var dataStream = GenerateStreamFromString(json);
+									if (UploadStream(conn, remotefile, dataStream, cycle1k))
 									{
-										UploadStream(conn, remotefile, dataStream);
-									}
-
-									// Uploaded OK, reset the upload required flag for the static and daily files
-									if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
-									{
-										GraphDataFiles[i].FtpRequired = false;
+										// Uploaded OK, reset the upload required flag for the static and daily files
+										if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
+										{
+											GraphDataFiles[i].FtpRequired = false;
+										}
 									}
 								}
 								catch (Exception e)
 								{
-									LogErrorMessage($"SFTP[Int]: Error uploading graph data file [{uploadfile}]");
-									LogMessage($"SFTP[Int]: Error = {e}");
+									LogErrorMessage($"{msgPrefix} Error uploading graph data file [{uploadfile}]");
+									LogMessage($"{msgPrefix} Error = {e}");
 									FtpAlarm.LastMessage = $"Error uploading graph data file [{uploadfile}] - {e.Message}";
 									FtpAlarm.Triggered = true;
 								}
@@ -10705,21 +10692,21 @@ namespace CumulusMX
 								var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
 								try
 								{
-									LogDebugMessage("SFTP[Int]: Uploading daily graph data file: " + uploadfile);
+									LogDebugMessage($"{msgPrefix} Uploading daily graph data file: {uploadfile}");
 
 									var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
 
-									using (var dataStream = GenerateStreamFromString(json))
+									using var dataStream = GenerateStreamFromString(json);
+									if (UploadStream(conn, remotefile, dataStream, cycle1k))
 									{
-										UploadStream(conn, remotefile, dataStream, -1);
+										// Uploaded OK, reset the upload required flag
+										GraphDataEodFiles[i].FtpRequired = false;
 									}
-									// Uploaded OK, reset the upload required flag
-									GraphDataEodFiles[i].FtpRequired = false;
 								}
 								catch (Exception e)
 								{
-									LogErrorMessage($"SFTP[Int]: Error uploading daily graph data file [{uploadfile}]");
-									LogMessage($"SFTP[Int]: Error = {e}");
+									LogErrorMessage($"{msgPrefix} Error uploading daily graph data file [{uploadfile}]");
+									LogMessage($"{msgPrefix} Error = {e}");
 									FtpAlarm.LastMessage = $"Error uploading daily graph data file [{uploadfile}] - {e.Message}";
 									FtpAlarm.Triggered = true;
 								}
@@ -10730,15 +10717,17 @@ namespace CumulusMX
 						{
 							try
 							{
-								LogDebugMessage("SFTP[Int]: Uploading Moon image file");
-								UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImage.FtpDest, -1);
+								LogDebugMessage($"{msgPrefix} Uploading Moon image file");
+								if (UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, -1))
+								{
+									// clear the image ready for FTP flag, only upload once an hour
+									MoonImage.ReadyToFtp = false;
+								}
 								LogDebugMessage("SFTP[Int]: Done uploading Moon image file");
-								// clear the image ready for FTP flag, only upload once an hour
-								MoonImage.ReadyToFtp = false;
 							}
 							catch (Exception e)
 							{
-								LogErrorMessage($"SFTP[Int]: Error uploading moon image - {e.Message}");
+								LogErrorMessage($"{msgPrefix} Error uploading moon image - {e.Message}");
 								FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
 								FtpAlarm.Triggered = true;
 							}
@@ -10757,339 +10746,305 @@ namespace CumulusMX
 				}
 				catch (Exception ex)
 				{
-					LogErrorMessage($"SFTP[Int]: Error using SFTP connection - {ex.Message}");
+					LogErrorMessage($"{msgPrefix} Error using SFTP connection - {ex.Message}");
 				}
-				LogDebugMessage("SFTP[Int]: Process complete");
+				LogDebugMessage($"{msgPrefix} Process complete");
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.FTP || (FtpOptions.FtpMode == FtpProtocols.FTPS))
 			{
-				using (FtpClient conn = new FtpClient())
+				var msgPrefix = $"Interval[{cycle}] FTP:";
+
+				using FtpClient conn = await ftpClientFactory.CreateClient();
+
+				if (FtpOptions.Logging)
 				{
-					if (FtpOptions.Logging)
+					conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+				}
+
+				LogFtpMessage("", false); // insert a blank line
+				LogFtpDebugMessage($"{msgPrefix} CumulusMX Connecting to " + FtpOptions.Hostname, false);
+
+				try
+				{
+					if (FtpOptions.AutoDetect)
 					{
-						conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+						conn.AutoConnect();
+					}
+					else
+					{
+						conn.Connect();
+					}
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage($"{msgPrefix} Error connecting ftp - {ex.Message}", false);
+
+					FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
+					FtpAlarm.Triggered = true;
+
+					if (ex.InnerException != null)
+					{
+						ex = Utils.GetOriginalException(ex);
+						LogFtpMessage($"{msgPrefix} Base exception - {ex.Message}", false);
 					}
 
-					LogFtpMessage("", false); // insert a blank line
-					LogFtpDebugMessage($"FTP[Int]: CumulusMX Connecting to " + FtpOptions.Hostname, false);
-					conn.Host = FtpOptions.Hostname;
-					conn.Port = FtpOptions.Port;
-					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
-					conn.Config.LogPassword = false;
+					return;
+				}
 
-					if (!FtpOptions.AutoDetect)
+				if (conn.IsConnected)
+				{
+					if (NOAAconf.NeedFtp)
 					{
-
-						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
+						var success = false;
+						try
 						{
-							// Explicit = Current protocol - connects using FTP and switches to TLS
-							// Implicit = Old depreciated protocol - connects using TLS
-							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-							conn.Config.DataConnectionEncryption = true;
-						}
-
-						if (FtpOptions.ActiveMode)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
-						}
-						else if (FtpOptions.DisableEPSV)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
-						}
-					}
-
-					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-					{
-						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
-					}
-
-					try
-					{
-						if (FtpOptions.AutoDetect)
-						{
-							conn.AutoConnect();
-						}
-						else
-						{
-							conn.Connect();
-						}
-
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
-					}
-					catch (Exception ex)
-					{
-						LogFtpMessage("FTP[Int]: Error connecting ftp - " + ex.Message, false);
-
-						FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
-						FtpAlarm.Triggered = true;
-
-						if (ex.InnerException != null)
-						{
-							ex = Utils.GetOriginalException(ex);
-							LogFtpMessage($"FTP[Int]: Base exception - {ex.Message}", false);
-						}
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
-						return;
-					}
-
-					if (conn.IsConnected)
-					{
-						if (NOAAconf.NeedFtp)
-						{
-							try
-							{
-								// upload NOAA reports
-								LogFtpMessage("", false);
-								LogFtpDebugMessage("FTP[Int]: Uploading NOAA reports", false);
-
-								var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
-								var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
-
-								UploadFile(conn, uploadfile, remotefile);
-
-								uploadfile = ReportPath + NOAAconf.LatestYearReport;
-								remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
-
-								UploadFile(conn, uploadfile, remotefile);
-								LogFtpDebugMessage("FTP[Int]: Upload of NOAA reports complete", false);
-							}
-							catch (Exception e)
-							{
-								LogFtpMessage($"FTP[Int]: Error uploading NOAA files: {e.Message}", false);
-								FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
-								FtpAlarm.Triggered = true;
-							}
-							NOAAconf.NeedFtp = false;
-						}
-
-						// Extra files
-						for (var i = 0; i < ActiveExtraFiles.Count; i++)
-						{
-							var item = ActiveExtraFiles[i];
-
-							if (!item.FTP || item.realtime || (item.endofday && !EODfilesNeedFTP))
-							{
-								continue;
-							}
-
-							// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
-							var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
-							var uploadfile = GetUploadFilename(item.local, logDay);
-
-							if (!File.Exists(uploadfile))
-							{
-								LogFtpMessage($"FTP[Int]: Extra web file [{uploadfile}] not found!", false);
-								FtpAlarm.LastMessage = $"Error Extra web file [{uploadfile} not found";
-								FtpAlarm.Triggered = true;
-								continue;
-							}
-
-							var remotefile = GetRemoteFileName(item.remote, logDay);
-
+							// upload NOAA reports
 							LogFtpMessage("", false);
-							LogFtpDebugMessage("FTP[Int]: Uploading Extra web file: " + uploadfile, false);
+							LogFtpDebugMessage($"{msgPrefix} Uploading NOAA reports", false);
 
-							// all checks OK, file needs to be uploaded
+							var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
+							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-							try
+							success = UploadFile(conn, uploadfile, remotefile, cycle);
+
+							uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
+							remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
+
+							success = success && UploadFile(conn, uploadfile, remotefile, cycle);
+							LogFtpDebugMessage($"{msgPrefix} Upload of NOAA reports complete", false);
+						}
+						catch (Exception e)
+						{
+							LogFtpMessage($"{msgPrefix} Error uploading NOAA files: {e.Message}", false);
+							FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
+							FtpAlarm.Triggered = true;
+						}
+						NOAAconf.NeedFtp = !success;
+					}
+
+					// Extra files
+					var eodSuccess = true;
+					for (var i = 0; i < ActiveExtraFiles.Count; i++)
+					{
+						var item = ActiveExtraFiles[i];
+
+						if (!item.FTP || item.realtime || (item.endofday && !EODfilesNeedFTP))
+						{
+							continue;
+						}
+
+						// For EOD files, we want the previous days log files since it is now just past the day roll-over time. Makes a difference on month roll-over
+						var logDay = item.endofday ? DateTime.Now.AddDays(-1) : DateTime.Now;
+						var uploadfile = GetUploadFilename(item.local, logDay);
+
+						if (!File.Exists(uploadfile))
+						{
+							LogFtpMessage($"{msgPrefix} Extra web file [{uploadfile}] not found!", false);
+							FtpAlarm.LastMessage = $"Error Extra web file [{uploadfile} not found";
+							FtpAlarm.Triggered = true;
+							continue;
+						}
+
+						var remotefile = GetRemoteFileName(item.remote, logDay);
+
+						LogFtpMessage("", false);
+						LogFtpDebugMessage($"{msgPrefix} Uploading Extra web file: {uploadfile}", false);
+
+						// all checks OK, file needs to be uploaded
+
+						try
+						{
+							// Is this an incremental log file upload?
+							if (item.incrementalLogfile && !item.binary)
 							{
-								// Is this an incremental log file upload?
-								if (item.incrementalLogfile && !item.binary)
+								// has the log file rolled over?
+								if (item.logFileLastFileName != uploadfile)
 								{
-									// has the log file rolled over?
-									if (item.logFileLastFileName != uploadfile)
-									{
-										ActiveExtraFiles[i].logFileLastFileName = uploadfile;
-										ActiveExtraFiles[i].logFileLastLineNumber = 0;
-									}
+									ActiveExtraFiles[i].logFileLastFileName = uploadfile;
+									ActiveExtraFiles[i].logFileLastLineNumber = 0;
+								}
 
-									var linesAdded = 0;
-									var data = WeatherStation.GetIncrementalLogFileData(uploadfile, item.logFileLastLineNumber, out linesAdded);
+								var linesAdded = 0;
+								var data = WeatherStation.GetIncrementalLogFileData(uploadfile, item.logFileLastLineNumber, out linesAdded);
 
-									if (linesAdded == 0)
-									{
-										LogDebugMessage($"FTP[Int]: Extra web file: {uploadfile} - No incremental data found, skipping this upload");
-										continue;
-									}
+								if (linesAdded == 0)
+								{
+									LogDebugMessage($"{msgPrefix} Extra web file: {uploadfile} - No incremental data found, skipping this upload");
+									continue;
+								}
 
-									// have we already uploaded the base file?
-									if (item.logFileLastLineNumber > 0)
+								// have we already uploaded the base file?
+								if (item.logFileLastLineNumber > 0)
+								{
+									if (AppendText(conn, remotefile, data, -1, linesAdded))
 									{
-										if (AppendText(conn, remotefile, data, -1, linesAdded))
-										{
-											ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
-										}
-									}
-									else // no, just upload the base file
-									{
-										if (UploadFile(conn, uploadfile, remotefile, -1))
-										{
-											ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
-										}
+										ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
 									}
 								}
-								else if (item.process)
+								else // no, just upload the base file
 								{
-									LogFtpDebugMessage("FTP[Int]: Processing Extra web file: " + uploadfile, false);
-									var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
-									using var strm = GenerateStreamFromString(data);
-									UploadStream(conn, remotefile, strm, -1);
+									if (UploadFile(conn, uploadfile, remotefile, -1))
+									{
+										ActiveExtraFiles[i].logFileLastLineNumber += linesAdded;
+									}
+								}
+							}
+							else if (item.process)
+							{
+								LogFtpDebugMessage($"{msgPrefix} Processing Extra web file: " + uploadfile, false);
+								var data = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
+								using var strm = GenerateStreamFromString(data);
+								eodSuccess = eodSuccess && UploadStream(conn, remotefile, strm, cycle1k);
+							}
+							else
+							{
+								eodSuccess = eodSuccess && UploadFile(conn, uploadfile, remotefile, cycle1k);
+							}
+						}
+						catch (Exception e)
+						{
+							LogFtpMessage($"{msgPrefix} Error uploading file {uploadfile}: {e.Message}", false);
+							FtpAlarm.LastMessage = $"Error uploading extra file {uploadfile} - {e.Message}";
+							FtpAlarm.Triggered = true;
+						}
+					}
+
+					if (EODfilesNeedFTP)
+					{
+						EODfilesNeedFTP = !eodSuccess;
+					}
+
+					// standard files
+					for (int i = 0; i < StdWebFiles.Length; i++)
+					{
+						if (StdWebFiles[i].FTP)
+						{
+							try
+							{
+								var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+								LogFtpDebugMessage($"{msgPrefix} Uploading standard Data file: {localfile}", false);
+
+								string data;
+
+								if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+								{
+									data = station.CreateWxnowFileString();
 								}
 								else
 								{
-									UploadFile(conn, uploadfile, remotefile, -1);
+									data = await ProcessTemplateFile2StringAsync(StdWebFiles[i].TemplateFileName, true, true);
 								}
+
+								using (var dataStream = GenerateStreamFromString(data))
+								{
+									UploadStream(conn, remotePath + StdWebFiles[i].RemoteFileName, dataStream, cycle1k);
+								}
+
+								// Uploaded OK, reset the upload required flag
+								StdWebFiles[i].FtpRequired = false;
 							}
 							catch (Exception e)
 							{
-								LogFtpMessage($"FTP[Int]: Error uploading file {uploadfile}: {e.Message}", false);
-								FtpAlarm.LastMessage = $"Error uploading extra file {uploadfile} - {e.Message}";
-								FtpAlarm.Triggered = true;
-							}
-						}
-
-						if (EODfilesNeedFTP)
-						{
-							EODfilesNeedFTP = false;
-						}
-
-						// standard files
-						for (int i = 0; i < StdWebFiles.Length; i++)
-						{
-							if (StdWebFiles[i].FTP)
-							{
-								try
-								{
-									var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
-									LogFtpDebugMessage("FTP[Int]: Uploading standard Data file: " + localfile, false);
-
-									string data;
-
-									if (StdWebFiles[i].LocalFileName == "wxnow.txt")
-									{
-										data = station.CreateWxnowFileString();
-									}
-									else
-									{
-										data = await ProcessTemplateFile2StringAsync(StdWebFiles[i].TemplateFileName, true, true);
-									}
-
-									using (var dataStream = GenerateStreamFromString(data))
-									{
-										UploadStream(conn, remotePath + StdWebFiles[i].RemoteFileName, dataStream, -1);
-									}
-
-									// Uploaded OK, reset the upload required flag
-									StdWebFiles[i].FtpRequired = false;
-								}
-								catch (Exception e)
-								{
-									LogFtpMessage($"FTP[Int]: Error uploading file {StdWebFiles[i].RemoteFileName}: {e}", false);
-									FtpAlarm.LastMessage = $"Error uploading file {StdWebFiles[i].RemoteFileName} - {e.Message}";
-									FtpAlarm.Triggered = true;
-								}
-							}
-						}
-
-						for (int i = 0; i < GraphDataFiles.Length; i++)
-						{
-							if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
-							{
-								try
-								{
-									var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
-									var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
-									LogFtpDebugMessage("FTP[Int]: Uploading graph data file: " + localfile, false);
-
-									var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
-
-									using (var dataStream = GenerateStreamFromString(json))
-									{
-										UploadStream(conn, remotefile, dataStream);
-									}
-
-									// Uploaded OK, reset the upload required flag for files that only need a daily upload
-									if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
-									{
-										GraphDataFiles[i].FtpRequired = false;
-									}
-								}
-								catch (Exception e)
-								{
-									LogFtpMessage($"FTP[Int]: Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]", false);
-									LogFtpMessage($"FTP[Int]: Error = {e}", false);
-									FtpAlarm.LastMessage = $"Error uploading file {GraphDataFiles[i].RemoteFileName} - {e.Message}";
-									FtpAlarm.Triggered = true;
-								}
-							}
-						}
-
-						for (int i = 0; i < GraphDataEodFiles.Length; i++)
-						{
-							if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
-							{
-								var localfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
-								var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
-								try
-								{
-									LogFtpMessage("FTP[Int]: Uploading daily graph data file: " + localfile, false);
-
-									var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
-
-									using (var dataStream = GenerateStreamFromString(json))
-									{
-										UploadStream(conn, remotefile, dataStream);
-									}
-
-									// Uploaded OK, reset the upload required flag
-									GraphDataEodFiles[i].FtpRequired = false;
-								}
-								catch (Exception e)
-								{
-									LogFtpMessage($"FTP[Int]: Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]", false);
-									LogFtpMessage($"FTP[Int]: Error = {e}", false);
-									FtpAlarm.LastMessage = $"Error uploading file {GraphDataEodFiles[i].RemoteFileName} - {e.Message}";
-									FtpAlarm.Triggered = true;
-								}
-							}
-						}
-
-						if (MoonImage.Ftp && MoonImage.ReadyToFtp)
-						{
-							try
-							{
-								LogFtpMessage("", false);
-								LogFtpDebugMessage("FTP[Int]: Uploading Moon image file", false);
-								UploadFile(conn, "web" + DirectorySeparator + "moon.png", remotePath + MoonImage.FtpDest);
-								// clear the image ready for FTP flag, only upload once an hour
-								MoonImage.ReadyToFtp = false;
-							}
-							catch (Exception e)
-							{
-								LogErrorMessage($"FTP[Int]: Error uploading moon image - {e.Message}");
-								FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
+								LogFtpMessage($"{msgPrefix} Error uploading file {StdWebFiles[i].RemoteFileName}: {e}", false);
+								FtpAlarm.LastMessage = $"Error uploading file {StdWebFiles[i].RemoteFileName} - {e.Message}";
 								FtpAlarm.Triggered = true;
 							}
 						}
 					}
 
-					// b3045 - dispose of connection
-					conn.Disconnect();
-					LogFtpDebugMessage("FTP[Int]: Disconnected from " + FtpOptions.Hostname, false);
+					for (int i = 0; i < GraphDataFiles.Length; i++)
+					{
+						if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
+						{
+							try
+							{
+								var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
+								var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
+								LogFtpDebugMessage($"{msgPrefix} Uploading graph data file: {localfile}", false);
+
+								var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+
+								using (var dataStream = GenerateStreamFromString(json))
+								{
+									UploadStream(conn, remotefile, dataStream, cycle1k);
+								}
+
+								// Uploaded OK, reset the upload required flag for files that only need a daily upload
+								if (i == (int) GraphFileIdx.CONFIG || i == (int) GraphFileIdx.AVAILABLE || i == (int) GraphFileIdx.DAILYRAIN || i == (int) GraphFileIdx.DAILYTEMP || i == (int) GraphFileIdx.SUNHOURS)
+								{
+									GraphDataFiles[i].FtpRequired = false;
+								}
+							}
+							catch (Exception e)
+							{
+								LogFtpMessage($"{msgPrefix} Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]", false);
+								LogFtpMessage($"{msgPrefix} Error = {e}", false);
+								FtpAlarm.LastMessage = $"Error uploading file {GraphDataFiles[i].RemoteFileName} - {e.Message}";
+								FtpAlarm.Triggered = true;
+							}
+						}
+					}
+
+					for (int i = 0; i < GraphDataEodFiles.Length; i++)
+					{
+						if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
+						{
+							var localfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
+							var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+							try
+							{
+								LogFtpMessage($"{msgPrefix} Uploading daily graph data file: {localfile}", false);
+
+								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+
+								using var dataStream = GenerateStreamFromString(json);
+								if (UploadStream(conn, remotefile, dataStream, cycle1k))
+								{
+									// Uploaded OK, reset the upload required flag
+									GraphDataEodFiles[i].FtpRequired = false;
+								}
+							}
+							catch (Exception e)
+							{
+								LogFtpMessage($"{msgPrefix} Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]", false);
+								LogFtpMessage($"{msgPrefix} Error = {e}", false);
+								FtpAlarm.LastMessage = $"Error uploading file {GraphDataEodFiles[i].RemoteFileName} - {e.Message}";
+								FtpAlarm.Triggered = true;
+							}
+						}
+					}
+
+					if (MoonImage.Ftp && MoonImage.ReadyToFtp)
+					{
+						try
+						{
+							LogFtpMessage("", false);
+							LogFtpDebugMessage($"{msgPrefix} Uploading Moon image file", false);
+							if (UploadFile(conn, Path.Combine("web", "moon.png"), remotePath + MoonImage.FtpDest, cycle1k))
+							{
+								// clear the image ready for FTP flag, only upload once an hour
+								MoonImage.ReadyToFtp = false;
+							}
+						}
+						catch (Exception e)
+						{
+							LogErrorMessage($"{msgPrefix} Error uploading moon image - {e.Message}");
+							FtpAlarm.LastMessage = $"Error uploading moon image - {e.Message}";
+							FtpAlarm.Triggered = true;
+						}
+					}
 				}
-				LogFtpMessage("FTP[Int]: Process complete", false);
+
+				// b3045 - dispose of connection
+				conn.Disconnect();
+				LogFtpDebugMessage($"{msgPrefix} Disconnected from " + FtpOptions.Hostname, false);
+				LogFtpMessage($"{msgPrefix} Process complete", false);
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.PHP)
 			{
-				LogDebugMessage("PHP[Int]: Upload process starting");
+				var msgPrefix = $"Interval[{cycle}] PHP:";
+
+				LogDebugMessage($"{msgPrefix} Upload process starting");
 
 				var tasklist = new List<Task>();
 				var taskCount = 0;
@@ -11107,9 +11062,12 @@ namespace CumulusMX
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: NOAA Month report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
+						{
+							LogDebugMessage($"{msgPrefix} NOAA Month report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						}
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: NOAA Month report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} NOAA Month report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
@@ -11123,23 +11081,25 @@ namespace CumulusMX
 
 					tasklist.Add(Task.Run(async () =>
 					{
+						Interlocked.Increment(ref runningTaskCount);
+
 						if (Program.ExitSystemToken.IsCancellationRequested)
 							return false;
 
 						try
 						{
 
-							LogDebugMessage("PHP[Int]: Uploading NOAA Month report");
+							LogDebugMessage($"{msgPrefix} Uploading NOAA Month report");
 
-							var uploadfile = ReportPath + NOAAconf.LatestMonthReport;
+							var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestMonthReport;
 
-							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
+							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle1k, false, NOAAconf.UseUtf8);
 
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading NOAA files");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading NOAA files");
 							FtpAlarm.LastMessage = $"Error uploading NOAA files - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11147,7 +11107,7 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: NOAA Year report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} NOAA Year report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -11155,17 +11115,16 @@ namespace CumulusMX
 						return true;
 					}, Program.ExitSystemToken));
 
-					Interlocked.Increment(ref runningTaskCount);
-
 					// upload NOAA Annual report
-					Interlocked.Increment(ref taskCount);
-
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: NOAA Year report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
+						{
+							LogDebugMessage($"{msgPrefix} NOAA Year report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						}
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: NOAA Year report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} NOAA Year report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
@@ -11175,22 +11134,28 @@ namespace CumulusMX
 						return;
 					}
 
+					Interlocked.Increment(ref taskCount);
+
 					tasklist.Add(Task.Run(async () =>
 					{
 						try
 						{
+							Interlocked.Increment(ref runningTaskCount);
+
 							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
-							LogDebugMessage("PHP[Int]: Uploading NOAA Year report");
+							LogDebugMessage($"{msgPrefix} Uploading NOAA Year report");
 
-							var uploadfile = ReportPath + NOAAconf.LatestYearReport;
+							var uploadfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 							var remotefile = NOAAconf.FtpFolder + '/' + NOAAconf.LatestYearReport;
 
-							_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, NOAAconf.UseUtf8);
+							if (await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle1k, false, NOAAconf.UseUtf8))
+							{
+								NOAAconf.NeedFtp = false;
+							}
 
-							LogDebugMessage("PHP[Int]: Upload of NOAA reports complete");
-							NOAAconf.NeedFtp = false;
+							LogDebugMessage($"{msgPrefix} Upload of NOAA reports complete");
 						}
 						catch (OperationCanceledException)
 						{
@@ -11198,7 +11163,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading NOAA Year file");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading NOAA Year file");
 							FtpAlarm.LastMessage = $"Error uploading NOAA files - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11206,19 +11171,17 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: NOAA Year report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} NOAA Year report released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
 						// no void return which cannot be tracked
 						return true;
 					}, Program.ExitSystemToken));
-
-					Interlocked.Increment(ref runningTaskCount);
 				}
 
 				// Extra files
-				LogDebugMessage("PHP[Int]: Extra Files upload starting");
+				LogDebugMessage($"{msgPrefix} Extra Files upload starting");
 
 				for (var i = 0; i < ActiveExtraFiles.Count; i++)
 				{
@@ -11228,8 +11191,6 @@ namespace CumulusMX
 					{
 						continue;
 					}
-
-					Interlocked.Increment(ref taskCount);
 
 					var data = string.Empty;
 					bool incremental = false;
@@ -11244,7 +11205,7 @@ namespace CumulusMX
 
 					if (!File.Exists(uploadfile))
 					{
-						LogWarningMessage($"PHP[Int]: Extra web file - {uploadfile} - not found!");
+						LogWarningMessage($"{msgPrefix} Extra web file - {uploadfile} - not found!");
 						return;
 					}
 
@@ -11265,7 +11226,7 @@ namespace CumulusMX
 
 						if (linesAdded == 0)
 						{
-							LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} - No incremental data found, skipping this upload");
+							LogDebugMessage($"{msgPrefix} Extra file: {uploadfile} - No incremental data found, skipping this upload");
 							continue;
 						}
 					}
@@ -11273,9 +11234,12 @@ namespace CumulusMX
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
+						{
+							LogDebugMessage($"{msgPrefix} Extra file: {uploadfile} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						}
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Extra file: {uploadfile} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -11285,10 +11249,14 @@ namespace CumulusMX
 						return;
 					}
 
+					Interlocked.Increment(ref taskCount);
+
 					tasklist.Add(Task.Run(async () =>
 					{
 						try
 						{
+							Interlocked.Increment(ref runningTaskCount);
+
 							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
@@ -11296,8 +11264,8 @@ namespace CumulusMX
 							// Is this an incremental log file upload?
 							if (item.incrementalLogfile && !item.binary)
 							{
-								LogDebugMessage($"PHP[Int]: Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incrementally - {linesAdded} lines" : "Fully")})");
-								if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, -1, item.binary, item.UTF8, true, item.logFileLastLineNumber))
+								LogDebugMessage($"{msgPrefix} Uploading extra web incremental file {uploadfile} to {remotefile} ({(incremental ? $"Incremental - {linesAdded} lines" : "Full file")})");
+								if (await UploadString(phpUploadHttpClient, incremental, string.Empty, data, remotefile, cycle1k, item.binary, item.UTF8, true, item.logFileLastLineNumber))
 								{
 									ActiveExtraFiles[idx].logFileLastLineNumber += linesAdded;
 								}
@@ -11306,22 +11274,22 @@ namespace CumulusMX
 							{
 								if (item.process)
 								{
-									LogDebugMessage($"PHP[Int]: Uploading Extra file: {uploadfile} to: {remotefile} (Processed)");
+									LogDebugMessage($"{msgPrefix} Uploading Extra file: {uploadfile} to: {remotefile} (Processed)");
 
 									var str = await ProcessTemplateFile2StringAsync(uploadfile, false, item.UTF8);
-									_ = await UploadString(phpUploadHttpClient, false, string.Empty, str, remotefile, -1, false, item.UTF8);
+									_ = await UploadString(phpUploadHttpClient, false, string.Empty, str, remotefile, cycle1k, false, item.UTF8);
 								}
 								else
 								{
-									LogDebugMessage($"PHP[Int]: Uploading Extra file: {uploadfile} to: {remotefile}");
+									LogDebugMessage($"{msgPrefix} Uploading Extra file: {uploadfile} to: {remotefile}");
 
-									_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, -1, false, item.UTF8);
+									_ = await UploadFile(phpUploadHttpClient, uploadfile, remotefile, cycle1k, false, item.UTF8);
 								}
 							}
 						}
 						catch (Exception ex) when (ex is not TaskCanceledException)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {uploadfile} to: {remotefile}");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading file {uploadfile} to: {remotefile}");
 							FtpAlarm.LastMessage = $"Error uploading file {uploadfile} to: {remotefile} - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11329,15 +11297,13 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: Extra file: {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Extra file: {uploadfile} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
 						// no void return which cannot be tracked
 						return true;
 					}, Program.ExitSystemToken));
-
-					Interlocked.Increment(ref runningTaskCount);
 				}
 
 				if (EODfilesNeedFTP)
@@ -11347,20 +11313,22 @@ namespace CumulusMX
 
 
 				// standard files
-				LogDebugMessage("PHP[Int]: Standard files upload starting");
+				LogDebugMessage($"{msgPrefix} Standard files upload starting");
 
 				StdWebFiles
 				.Where(x => x.FTP)
 				.ToList()
 				.ForEach(item =>
 				{
-					Interlocked.Increment(ref taskCount);
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
+						{
+							LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						}
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -11370,15 +11338,19 @@ namespace CumulusMX
 						return;
 					}
 
+					Interlocked.Increment(ref taskCount);
+
 					tasklist.Add(Task.Run(async () =>
 					{
 						try
 						{
+							Interlocked.Increment(ref runningTaskCount);
+
 							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
 							string data;
-							LogDebugMessage("PHP[Int]: Uploading standard Data file: " + item.RemoteFileName);
+							LogDebugMessage($"{msgPrefix} Uploading standard Data file: " + item.RemoteFileName);
 
 							if (item.LocalFileName == "wxnow.txt")
 							{
@@ -11389,7 +11361,7 @@ namespace CumulusMX
 								data = await ProcessTemplateFile2StringAsync(item.TemplateFileName, true, true);
 							}
 
-							if (await UploadString(phpUploadHttpClient, false, string.Empty, data, item.RemoteFileName, -1, false, true))
+							if (await UploadString(phpUploadHttpClient, false, string.Empty, data, item.RemoteFileName, cycle1k, false, true))
 							{
 								// No standard files are "one offs" at present
 								//StdWebFiles[i].FtpRequired = false
@@ -11397,7 +11369,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading file {item.RemoteFileName}");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading file {item.RemoteFileName}");
 							FtpAlarm.LastMessage = $"Error uploading file {item.RemoteFileName} - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11405,19 +11377,17 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: Standard Data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
 						// no void return which cannot be tracked
 						return true;
 					}, Program.ExitSystemToken));
-
-					Interlocked.Increment(ref runningTaskCount);
 				});
 
 				// Graph Data Files
-				LogDebugMessage("PHP[Int]: Graph files upload starting");
+				LogDebugMessage($"{msgPrefix} Graph files upload starting");
 
 				var oldest = DateTime.Now.AddHours(-GraphHours);
 				var oldestTs = oldest.ToUnixTimeMs().ToString();
@@ -11428,13 +11398,15 @@ namespace CumulusMX
 				.ToList()
 				.ForEach(item =>
 				{
-					Interlocked.Increment(ref taskCount);
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
+						{
+							LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						}
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -11444,26 +11416,29 @@ namespace CumulusMX
 						return;
 					}
 
+					Interlocked.Increment(ref taskCount);
 
 					tasklist.Add(Task.Run(async () =>
 					{
 						try
 						{
+							Interlocked.Increment(ref runningTaskCount);
+
 							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
 							// we want incremental data for PHP
 							var json = station.CreateGraphDataJson(item.LocalFileName, item.Incremental);
 							var remotefile = item.RemoteFileName;
-							LogDebugMessage($"PHP[Int]: Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full")}): {item.LocalFileName}");
+							LogDebugMessage($"{msgPrefix} Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full file")}): {item.LocalFileName}");
 
 							if (string.IsNullOrEmpty(json))
 							{
-								LogMessage($"PHP[Int]: Uploading to {item.LocalFileName}. No {(item.Incremental ? "incremental" : "")} data found, skipping this upload");
+								LogMessage($"{msgPrefix} Uploading to {item.LocalFileName}. No {(item.Incremental ? "incremental" : "")} data found, skipping this upload");
 							}
 							else
 							{
-								if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, -1, false, true))
+								if (await UploadString(phpUploadHttpClient, item.Incremental, oldestTs, json, remotefile, cycle1k, false, true))
 								{
 									// The config files only need uploading once per change
 									// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
@@ -11481,7 +11456,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading graph data file [{item.RemoteFileName}]");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading graph data file [{item.RemoteFileName}]");
 							FtpAlarm.LastMessage = $"Error uploading graph data file [{item.RemoteFileName}] - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11489,33 +11464,32 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: Graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
 						// no void return which cannot be tracked
 						return true;
 					}, Program.ExitSystemToken));
-
-					Interlocked.Increment(ref runningTaskCount);
 				});
 
 				// EOD Graph Data Files
-				LogDebugMessage("PHP[Int]: EOD Graph files upload starting");
+				LogDebugMessage($"{msgPrefix} EOD Graph files upload starting");
 
 				GraphDataEodFiles
 				.Where(x => x.FTP && x.FtpRequired)
 				.ToList()
 				.ForEach(item =>
 				{
-					Interlocked.Increment(ref taskCount);
-
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
+						{
+							LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						}
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -11525,18 +11499,22 @@ namespace CumulusMX
 						return;
 					}
 
+					Interlocked.Increment(ref taskCount);
+
 					tasklist.Add(Task.Run(async () =>
 					{
 						try
 						{
+							Interlocked.Increment(ref runningTaskCount);
+
 							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
 							var remotefile = item.RemoteFileName;
-							LogMessage("PHP[Int]: Uploading daily graph data file: " + item.LocalFileName);
+							LogMessage($"{msgPrefix} Uploading daily graph data file: " + item.LocalFileName);
 							var json = station.CreateEodGraphDataJson(item.LocalFileName);
 
-							if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, -1, false, true))
+							if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, cycle1k, false, true))
 							{
 								// Uploaded OK, reset the upload required flag
 								item.FtpRequired = false;
@@ -11544,7 +11522,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"PHP[Int]: Error uploading daily graph data file [{item.RemoteFileName}]");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading daily graph data file [{item.RemoteFileName}]");
 							FtpAlarm.LastMessage = $"Error uploading daily graph data file [{item.RemoteFileName}] - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11552,28 +11530,29 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: Daily graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
 						// no void return which cannot be tracked
 						return true;
 					}, Program.ExitSystemToken));
-
-					Interlocked.Increment(ref runningTaskCount);
 				});
 
 				// Moon image
+				LogDebugMessage($"{msgPrefix} Moon image upload starting");
+
 				if (MoonImage.Ftp && MoonImage.ReadyToFtp)
 				{
-					Interlocked.Increment(ref taskCount);
-
 					try
 					{
 #if DEBUG
-						LogDebugMessage($"PHP[Int]: Moon image waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
+						{
+							LogDebugMessage($"{msgPrefix} Moon image waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						}
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-						LogDebugMessage($"PHP[Int]: Moon image has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Moon image has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
@@ -11583,13 +11562,17 @@ namespace CumulusMX
 						return;
 					}
 
+					Interlocked.Increment(ref taskCount);
+
 					tasklist.Add(Task.Run(async () =>
 					{
 						try
 						{
-							LogDebugMessage("PHP[Int]: Uploading Moon image file");
+							Interlocked.Increment(ref runningTaskCount);
 
-							if (await UploadFile(phpUploadHttpClient, "web" + DirectorySeparator + "moon.png", MoonImage.FtpDest, -1, true))
+							LogDebugMessage($"{msgPrefix} Uploading Moon image file");
+
+							if (await UploadFile(phpUploadHttpClient, Path.Combine("web", "moon.png"), MoonImage.FtpDest, cycle1k, true))
 							{
 								// clear the image ready for FTP flag, only upload once an hour
 								MoonImage.ReadyToFtp = false;
@@ -11597,7 +11580,7 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, "PHP[Int]: Error uploading moon image");
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading moon image");
 							FtpAlarm.LastMessage = $"Error uploading moon image - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
@@ -11605,28 +11588,31 @@ namespace CumulusMX
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"PHP[Int]: Moon image released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Moon image released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
 						// no void return which cannot be tracked
 						return true;
 					}, Program.ExitSystemToken));
-
-					Interlocked.Increment(ref runningTaskCount);
 				}
 
 				// wait for all the EOD files to start
-				while (runningTaskCount < taskCount)
+				LogDebugMessage($"{msgPrefix} Waiting for all tasks to start");
+				if (runningTaskCount < taskCount)
 				{
-					if (Program.ExitSystemToken.IsCancellationRequested)
+					do
 					{
-						LogDebugMessage($"PHP[Int]: Upload process aborted");
-						return;
-					}
-					await Task.Delay(10);
+						if (Program.ExitSystemToken.IsCancellationRequested)
+						{
+							LogDebugMessage($"{msgPrefix} Upload process aborted due to program termination");
+							return;
+						}
+						await Task.Delay(10);
+					} while (runningTaskCount < taskCount);
 				}
 				// wait for all the EOD files to complete
+				LogDebugMessage($"{msgPrefix} Waiting for all tasks to complete");
 				if (tasklist.Count > 0)
 				{
 					try
@@ -11634,37 +11620,39 @@ namespace CumulusMX
 						// wait for all the tasks to complete, or timeout
 						if (Task.WaitAll([.. tasklist], TimeSpan.FromSeconds(30)))
 						{
-							LogDebugMessage($"PHP[Int]: Upload process complete, {tasklist.Count} files processed");
+							LogDebugMessage($"{msgPrefix} Upload process complete, {tasklist.Count} files processed");
 						}
 						else
 						{
-							LogErrorMessage("PHP[Int]: Upload process complete timed out waiting for tasks to complete");
+							LogErrorMessage($"{msgPrefix} Upload process complete timed out waiting for tasks to complete");
 						}
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, "PHP[Int]: Error waiting on upload tasks");
+						LogExceptionMessage(ex, $"{msgPrefix} Error waiting on upload tasks");
 						FtpAlarm.LastMessage = "Error waiting on upload tasks";
 						FtpAlarm.Triggered = true;
 					}
 				}
+				LogDebugMessage($"{msgPrefix} All tasks completed");
 
 				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
-					LogDebugMessage($"PHP[Int]: Upload process aborted");
+					LogDebugMessage($"{msgPrefix} Upload process aborted due to program termination");
 					return;
 				}
 
-				LogDebugMessage($"PHP[Int]: Upload process complete");
 				tasklist.Clear();
+				LogDebugMessage($"{msgPrefix} Upload process complete");
 
 				return;
 			}
+
 		}
 
 		// Return True if the connection still exists
 		// Return False if the connection is disposed, null, or not connected
-		private bool UploadFile(FtpClient conn, string localfile, string remotefile, int cycle = -1)
+		private bool UploadFile(FtpClient conn, string localfile, string remotefile, int cycle)
 		{
 			string cycleStr;
 			bool realtime;
@@ -11673,9 +11661,9 @@ namespace CumulusMX
 				cycleStr = "NOAA";
 				realtime = false;
 			}
-			else if (cycle == -1)
+			else if (cycle >= 1000)
 			{
-				cycleStr = "Int";
+				cycleStr = "Int-" + (cycle - 1000);
 				realtime = false;
 			}
 			else
@@ -11724,7 +11712,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				cycleStr = cycle == -1 ? "Int" : (cycle.ToString());
+				cycleStr = cycle >= 1000 ? "Int-" + (cycle - 1000) : (cycle.ToString());
 			}
 
 			if (!File.Exists(localfile))
@@ -11776,16 +11764,20 @@ namespace CumulusMX
 			return true;
 		}
 
-		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle = -1, bool binary = false, bool utf8 = true)
+		private async Task<bool> UploadFile(HttpClient httpclient, string localfile, string remotefile, int cycle, bool binary = false, bool utf8 = true)
 		{
 			string prefix;
-			if (cycle == -1)
+			if (cycle == 9999)
 			{
-				prefix = "PHP[Int]";
+				prefix = "PHP[NOAA]";
+			}
+			else if (cycle >= 1000)
+			{
+				prefix = $"PHP[Int-{cycle - 1000}]";
 			}
 			else
 			{
-				prefix = cycle == 9999 ? "PHP[NOAA]" : $"RealtimePHP[{cycle}]";
+				prefix = $"PHP[{cycle}]";
 			}
 
 			if (!File.Exists(localfile))
@@ -11841,7 +11833,7 @@ namespace CumulusMX
 			return false;
 		}
 
-		private bool UploadStream(FtpClient conn, string remotefile, Stream dataStream, int cycle = -1)
+		private bool UploadStream(FtpClient conn, string remotefile, Stream dataStream, int cycle)
 		{
 			string remotefiletmp = FTPRename ? remotefile + "tmp" : remotefile;
 			string cycleStr;
@@ -11851,9 +11843,9 @@ namespace CumulusMX
 				cycleStr = "NOAA";
 				realtime = false;
 			}
-			else if (cycle == -1)
+			else if (cycle >= 1000)
 			{
-				cycleStr = "Int";
+				cycleStr = "Int-" + (cycle - 1000);
 				realtime = false;
 			}
 			else
@@ -11903,6 +11895,7 @@ namespace CumulusMX
 				if (status.IsFailure())
 				{
 					LogErrorMessage($"FTP[{cycleStr}]: Upload of {remotefile} failed");
+					return false;
 				}
 				else if (FTPRename)
 				{
@@ -11927,9 +11920,7 @@ namespace CumulusMX
 							LogFtpMessage($"FTP[{cycleStr}]: Base exception - {ex.Message}", realtime);
 						}
 
-						RealTimeWdTokenSource.Cancel();
-
-						return conn.IsConnected;
+						return false;
 					}
 				}
 			}
@@ -11945,26 +11936,26 @@ namespace CumulusMX
 					LogFtpMessage($"FTP[{cycleStr}]: Inner Exception: {ex.GetBaseException().Message}", realtime);
 				}
 
-				RealTimeWdTokenSource.Cancel();
+				return false;
 			}
 
-			return conn.IsConnected;
+			return true;
 		}
 
 		// Return True if the connection still exists
 		// Return False if the connection is disposed, null, or not connected
-		private bool UploadStream(SftpClient conn, string remotefile, Stream dataStream, int cycle = -1)
+		private bool UploadStream(SftpClient conn, string remotefile, Stream dataStream, int cycle)
 		{
 			string remotefilename = FTPRename ? remotefile + "tmp" : remotefile;
-			string cycleStr = cycle >= 0 ? cycle.ToString() : "Int";
-			bool realtime = cycle >= 0;
+			string cycleStr = cycle >= 1000 ? "Int-" + (cycle - 1000) : cycle.ToString();
+			bool realtime = cycle < 1000;
 
 			if (dataStream.Length == 0)
 			{
 				LogWarningMessage($"SFTP[{cycleStr}]: The data is empty - skipping upload of {remotefile}");
 				FtpAlarm.LastMessage = $"The data is empty - skipping upload of {remotefile}";
 				FtpAlarm.Triggered = true;
-				return false;
+				return true;
 			}
 
 			if (!conn.IsConnected)
@@ -12031,7 +12022,6 @@ namespace CumulusMX
 					}
 
 					// Lets start again anyway! Too hard to tell if the error is recoverable
-					RealTimeWdTokenSource.Cancel();
 					return false;
 				}
 
@@ -12064,8 +12054,7 @@ namespace CumulusMX
 							LogFtpMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}", realtime);
 						}
 
-						RealTimeWdTokenSource.Cancel();
-						return true;
+						return false;
 					}
 				}
 				LogDebugMessage($"SFTP[{cycleStr}]: Completed uploading {remotefile}");
@@ -12090,7 +12079,7 @@ namespace CumulusMX
 					LogDebugMessage($"SFTP[{cycleStr}]: Base exception - {ex.Message}");
 				}
 
-				RealTimeWdTokenSource.Cancel();
+				return false;
 			}
 			return true;
 		}
@@ -12254,9 +12243,9 @@ namespace CumulusMX
 
 		// Return True if the upload worked
 		// Return False if the upload failed
-		private async Task<bool> UploadString(HttpClient httpclient, bool incremental, string oldest, string data, string remotefile, int cycle = -1, bool binary = false, bool utf8 = true, bool logfile = false, int linecount = 0)
+		private async Task<bool> UploadString(HttpClient httpclient, bool incremental, string oldest, string data, string remotefile, int cycle, bool binary = false, bool utf8 = true, bool logfile = false, int linecount = 0)
 		{
-			var prefix = cycle >= 0 ? $"RealtimePHP[{cycle}]" : "PHP[Int]";
+			var prefix = cycle >= 1000 ? $"PHP[Int-{cycle-1000}]" : $"PHP[{cycle}]";
 
 			if (string.IsNullOrEmpty(data))
 			{
@@ -12473,7 +12462,7 @@ namespace CumulusMX
 
 		public async Task DoSingleNoaaUpload(string filename)
 		{
-			var uploadfile = ReportPath + filename;
+			var uploadfile = Path.Combine(ProgramOptions.ReportsPath, filename);
 			var remotefile = NOAAconf.FtpFolder + '/' + filename;
 
 			if (!FtpOptions.Enabled)
@@ -12481,41 +12470,13 @@ namespace CumulusMX
 
 			if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 			{
-				ConnectionInfo connectionInfo;
-				if (FtpOptions.SshAuthen == "password")
-				{
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
-					LogFtpDebugMessage("SFTP[NOAA]: Connecting using password authentication", false);
-				}
-				else if (FtpOptions.SshAuthen == "psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogFtpDebugMessage("SFTP[NOAA]: Connecting using PSK authentication", false);
-				}
-				else if (FtpOptions.SshAuthen == "password_psk")
-				{
-					PrivateKeyFile pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-					connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-					LogFtpDebugMessage("SFTP[NOAA]: Connecting using password or PSK authentication", false);
-				}
-				else
-				{
-					LogFtpMessage($"SFTP[NOAA]: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]", false);
-					return;
-				}
-
 				try
 				{
-					using SftpClient conn = new SftpClient(connectionInfo);
+					using SftpClient conn = await sftpClientFactory.CreateClient();
 					try
 					{
 						LogFtpDebugMessage($"SFTP[NOAA]: CumulusMX Connecting to {FtpOptions.Hostname} on port {FtpOptions.Port}", false);
 						conn.Connect();
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
 					}
 					catch (Exception ex)
 					{
@@ -12523,12 +12484,6 @@ namespace CumulusMX
 
 						FtpAlarm.LastMessage = "Error connecting SFTP - " + ex.Message;
 						FtpAlarm.Triggered = true;
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
 						return;
 					}
 
@@ -12560,107 +12515,65 @@ namespace CumulusMX
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.FTP || (FtpOptions.FtpMode == FtpProtocols.FTPS))
 			{
-				using (FtpClient conn = new FtpClient())
+				using FtpClient conn = await ftpClientFactory.CreateClient();
+
+				if (FtpOptions.Logging)
 				{
-					if (FtpOptions.Logging)
+					conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+				}
+
+				LogFtpMessage("", false); // insert a blank line
+				LogFtpDebugMessage($"FTP[NOAA]: CumulusMX Connecting to " + FtpOptions.Hostname, false);
+				try
+				{
+					if (FtpOptions.AutoDetect)
 					{
-						conn.Logger = new FtpLogAdapter(FtpLoggerIN);
+						conn.AutoConnect();
+					}
+					else
+					{
+						conn.Connect();
+					}
+				}
+				catch (Exception ex)
+				{
+					LogFtpMessage("FTP[NOAA]: Error connecting ftp - " + ex.Message, false);
+
+					FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
+					FtpAlarm.Triggered = true;
+
+					if (ex.InnerException != null)
+					{
+						ex = Utils.GetOriginalException(ex);
+						LogFtpMessage($"FTP[NOAA]: Base exception - {ex.Message}", false);
 					}
 
-					LogFtpMessage("", false); // insert a blank line
-					LogFtpDebugMessage($"FTP[NOAA]: CumulusMX Connecting to " + FtpOptions.Hostname, false);
-					conn.Host = FtpOptions.Hostname;
-					conn.Port = FtpOptions.Port;
-					conn.Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password);
-					conn.Config.LogPassword = false;
+					return;
+				}
 
-					if (!FtpOptions.AutoDetect)
-					{
-
-						if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-						{
-							// Explicit = Current protocol - connects using FTP and switches to TLS
-							// Implicit = Old depreciated protocol - connects using TLS
-							conn.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-							conn.Config.DataConnectionEncryption = true;
-						}
-
-						if (FtpOptions.ActiveMode)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PORT;
-						}
-						else if (FtpOptions.DisableEPSV)
-						{
-							conn.Config.DataConnectionType = FtpDataConnectionType.PASV;
-						}
-					}
-
-					if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-					{
-						conn.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
-					}
-
+				if (conn.IsConnected)
+				{
 					try
 					{
-						if (FtpOptions.AutoDetect)
-						{
-							conn.AutoConnect();
-						}
-						else
-						{
-							conn.Connect();
-						}
+						// upload NOAA reports
+						LogFtpMessage("", false);
+						LogFtpDebugMessage("FTP[NOAA]: Uploading NOAA report" + filename, false);
 
-						if (ServicePointManager.DnsRefreshTimeout == 0)
-						{
-							ServicePointManager.DnsRefreshTimeout = 120000; // two minutes default
-						}
+						UploadFile(conn, uploadfile, remotefile, 9999);
+
+						LogFtpDebugMessage($"FTP[NOAA]: Upload of NOAA report {filename} complete", false);
 					}
-					catch (Exception ex)
+					catch (Exception e)
 					{
-						LogFtpMessage("FTP[NOAA]: Error connecting ftp - " + ex.Message, false);
-
-						FtpAlarm.LastMessage = "Error connecting ftp - " + ex.Message;
+						LogFtpMessage($"FTP[NOAA]: Error uploading NOAA file: {e.Message}", false);
+						FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
 						FtpAlarm.Triggered = true;
-
-						if (ex.InnerException != null)
-						{
-							ex = Utils.GetOriginalException(ex);
-							LogFtpMessage($"FTP[NOAA]: Base exception - {ex.Message}", false);
-						}
-
-						if ((uint) ex.HResult == 0x80004005) // Could not resolve host
-						{
-							// Disable the DNS cache for the next query
-							ServicePointManager.DnsRefreshTimeout = 0;
-						}
-						return;
 					}
-
-					if (conn.IsConnected)
-					{
-						try
-						{
-							// upload NOAA reports
-							LogFtpMessage("", false);
-							LogFtpDebugMessage("FTP[NOAA]: Uploading NOAA report" + filename, false);
-
-							UploadFile(conn, uploadfile, remotefile, 9999);
-
-							LogFtpDebugMessage($"FTP[NOAA]: Upload of NOAA report {filename} complete", false);
-						}
-						catch (Exception e)
-						{
-							LogFtpMessage($"FTP[NOAA]: Error uploading NOAA file: {e.Message}", false);
-							FtpAlarm.LastMessage = "Error connecting ftp - " + e.Message;
-							FtpAlarm.Triggered = true;
-						}
-					}
-
-					// b3045 - dispose of connection
-					conn.Disconnect();
-					LogFtpDebugMessage("FTP[NOAA]: Disconnected from " + FtpOptions.Hostname, false);
 				}
+
+				// b3045 - dispose of connection
+				conn.Disconnect();
+				LogFtpDebugMessage("FTP[NOAA]: Disconnected from " + FtpOptions.Hostname, false);
 				LogFtpMessage("FTP[NOAA]: Process complete", false);
 			}
 			else if (FtpOptions.FtpMode == FtpProtocols.PHP)
@@ -12681,7 +12594,10 @@ namespace CumulusMX
 				try
 				{
 #if DEBUG
-					LogDebugMessage($"PHP[NOAA]: NOAA report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
+					{
+						LogDebugMessage($"PHP[NOAA]: NOAA report waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					}
 					await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 					LogDebugMessage($"PHP[NOAA]: NOAA report has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
@@ -12697,6 +12613,8 @@ namespace CumulusMX
 
 				tasklist.Add(Task.Run(async () =>
 				{
+					Interlocked.Increment(ref runningTaskCount);
+
 					if (Program.ExitSystemToken.IsCancellationRequested)
 						return false;
 
@@ -12726,17 +12644,18 @@ namespace CumulusMX
 					return true;
 				}, Program.ExitSystemToken));
 
-				Interlocked.Increment(ref runningTaskCount);
-
 				// wait for all the files to start
-				while (runningTaskCount < taskCount)
+				if (runningTaskCount < taskCount)
 				{
-					if (Program.ExitSystemToken.IsCancellationRequested)
+					do
 					{
-						LogDebugMessage($"PHP[NOAA]: Upload process aborted");
-						return;
-					}
-					await Task.Delay(10);
+						if (Program.ExitSystemToken.IsCancellationRequested)
+						{
+							LogDebugMessage($"PHP[NOAA]: Upload process aborted");
+							return;
+						}
+						await Task.Delay(10);
+					} while (runningTaskCount < taskCount);
 				}
 				// wait for all the EOD files to complete
 				try
@@ -12780,7 +12699,7 @@ namespace CumulusMX
 
 		public void LogDebugMessage(string message)
 		{
-			if (ProgramOptions.DebugLogging || ProgramOptions.DataLogging)
+			if (ProgramOptions.DebugLogging)
 			{
 				Program.MxLogger.Debug(message);
 			}
@@ -12864,12 +12783,7 @@ namespace CumulusMX
 
 			if (logError)
 			{
-				while (ErrorList.Count >= 50)
-				{
-					_ = ErrorList.Dequeue();
-				}
-
-				ErrorList.Enqueue((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss - ") + message + " - " + ex.GetInnerMostException().Message));
+				LatestErrorLog(message + " - " + ex.GetBaseException().Message, MxLogLevel.Error);
 
 				LatestError = message + " - " + ex.Message;
 				LatestErrorTS = DateTime.Now;
@@ -12886,8 +12800,14 @@ namespace CumulusMX
 			{
 				return "[\"No errors recorded so far\"]";
 			}
-
-			return arr.Reverse().ToJson();
+			else if (arr.Length > 2)
+			{
+				return arr.Reverse().ToJson();
+			}
+			else
+			{
+				return arr.ToJson();
+			}
 		}
 
 		public string ClearErrorLog()
@@ -12899,10 +12819,11 @@ namespace CumulusMX
 			return GetErrorLog();
 		}
 
-		public string ClearAlarm(IHttpContext context)
+		public string ResetAlarm(IHttpContext context)
 		{
-			var ret = "Cleared";
+			var ret = "Reset";
 			var data = new StreamReader(context.Request.InputStream).ReadToEnd();
+			var name = data;
 
 			try
 			{
@@ -12913,106 +12834,116 @@ namespace CumulusMX
 						//case "ChangeAlarm":
 						//	break;
 						case AlarmIds.DataStopped:
-							DataStoppedAlarm.Triggered = false;
+							DataStoppedAlarm.ResetAlarm();
 							break;
 						case AlarmIds.BatteryLow:
-							BatteryLowAlarm.Triggered = false;
+							BatteryLowAlarm.ResetAlarm();
 							break;
 						case AlarmIds.Sensor:
-							SensorAlarm.Triggered = false;
+							SensorAlarm.ResetAlarm();
 							break;
 						case AlarmIds.Spike:
-							SpikeAlarm.Triggered = false;
+							SpikeAlarm.ResetAlarm();
 							break;
 						case AlarmIds.WindHigh:
-							HighWindAlarm.Triggered = false;
+							HighWindAlarm.ResetAlarm();
 							break;
 						case AlarmIds.WindGust:
-							HighGustAlarm.Triggered = false;
+							HighGustAlarm.ResetAlarm();
 							break;
 						case AlarmIds.RainRate:
-							HighRainRateAlarm.Triggered = false;
+							HighRainRateAlarm.ResetAlarm();
 							break;
 						case AlarmIds.Rainfall:
-							HighRainTodayAlarm.Triggered = false;
+							HighRainTodayAlarm.ResetAlarm();
 							break;
 						case AlarmIds.PressUp:
-							PressChangeAlarm.UpTriggered = false;
+							PressChangeAlarm.ResetUpAlarm();
 							break;
 						case AlarmIds.PressDown:
-							PressChangeAlarm.DownTriggered = false;
+							PressChangeAlarm.ResetDownAlarm();
 							break;
 						case AlarmIds.PressHigh:
-							HighPressAlarm.Triggered = false;
+							HighPressAlarm.ResetAlarm();
 							break;
 						case AlarmIds.PressLow:
-							LowPressAlarm.Triggered = false;
+							LowPressAlarm.ResetAlarm();
 							break;
 						case AlarmIds.TempUp:
-							TempChangeAlarm.UpTriggered = false;
+							TempChangeAlarm.ResetUpAlarm();
 							break;
 						case AlarmIds.TempDown:
-							TempChangeAlarm.DownTriggered = false;
+							TempChangeAlarm.ResetDownAlarm();
 							break;
 						case AlarmIds.TempLow:
-							LowTempAlarm.Triggered = false;
+							LowTempAlarm.ResetAlarm();
 							break;
 						case AlarmIds.TempHigh:
-							HighTempAlarm.Triggered = false;
+							HighTempAlarm.ResetAlarm();
 							break;
 						case AlarmIds.Upgrade:
-							UpgradeAlarm.Triggered = false;
+							UpgradeAlarm.ResetAlarm();
 							break;
 						case AlarmIds.Firmware:
-							FirmwareAlarm.Triggered = false;
+							FirmwareAlarm.ResetAlarm();
 							break;
 						case AlarmIds.Thirdparty:
-							ThirdPartyAlarm.Triggered = false;
+							ThirdPartyAlarm.ResetAlarm();
 							break;
 						case AlarmIds.MySQL:
-							MySqlUploadAlarm.Triggered = false;
+							MySqlUploadAlarm.ResetAlarm();
 							break;
 						case AlarmIds.IsRaining:
-							IsRainingAlarm.Triggered = false;
+							IsRainingAlarm.ResetAlarm();
 							break;
 						case AlarmIds.Record:
-							NewRecordAlarm.Triggered = false;
+							NewRecordAlarm.ResetAlarm();
 							break;
 						case AlarmIds.FTP:
-							FtpAlarm.Triggered = false;
+							FtpAlarm.ResetAlarm();
 							break;
 						case AlarmIds.Error:
-							ErrorAlarm.Triggered = false;
+							ErrorAlarm.ResetAlarm();
 							break;
 						case AlarmIds.User1:
-							UserAlarms[0].Triggered = false;
+							UserAlarms[0].ResetAlarm();
+							name += " - " + UserAlarms[0].Name;
 							break;
 						case AlarmIds.User2:
-							UserAlarms[1].Triggered = false;
+							UserAlarms[1].ResetAlarm();
+							name += " - " + UserAlarms[0].Name;
 							break;
 						case AlarmIds.User3:
-							UserAlarms[2].Triggered = false;
+							UserAlarms[2].ResetAlarm();
+							name += " - " + UserAlarms[0].Name;
 							break;
 						case AlarmIds.User4:
-							UserAlarms[3].Triggered = false;
+							UserAlarms[3].ResetAlarm();
+							name += " - " + UserAlarms[0].Name;
 							break;
 						case AlarmIds.User5:
-							UserAlarms[4].Triggered = false;
+							UserAlarms[4].ResetAlarm();
+							name += " - " + UserAlarms[0].Name;
 							break;
 						case AlarmIds.User6:
-							UserAlarms[5].Triggered = false;
+							UserAlarms[5].ResetAlarm();
+							name += " - " + UserAlarms[0].Name;
 							break;
 						case AlarmIds.User7:
-							UserAlarms[6].Triggered = false;
+							UserAlarms[6].ResetAlarm();
+							name += " - " + UserAlarms[0].Name;
 							break;
 						case AlarmIds.User8:
-							UserAlarms[7].Triggered = false;
+							UserAlarms[7].ResetAlarm();
+							name += " - " + UserAlarms[0].Name;
 							break;
 						case AlarmIds.User9:
-							UserAlarms[8].Triggered = false;
+							UserAlarms[8].ResetAlarm();
+							name += " - " + UserAlarms[0].Name;
 							break;
 						case AlarmIds.User10:
-							UserAlarms[9].Triggered = false;
+							UserAlarms[9].ResetAlarm();
+							name += " - " + UserAlarms[0].Name;
 							break;
 						default:
 							ret = "Alarm id '" + id + "' is illegal";
@@ -13026,11 +12957,11 @@ namespace CumulusMX
 			}
 			catch (Exception ex)
 			{
-				LogExceptionMessage(ex, "ClearAlarm error");
+				LogExceptionMessage(ex, "ResetAlarm error");
 				ret = "Error: " + ex.Message;
 			}
 
-			LogMessage($"ClearAlarm: Clearing alarm '{data}' - {ret}");
+			LogMessage($"ResetAlarm: Resetting alarm '{name}' - {ret}");
 
 			return ret;
 		}
@@ -13045,7 +12976,7 @@ namespace CumulusMX
 				return;
 			}
 
-			var filename = AppDir + RealtimeFile;
+			var filename = Path.Combine(Directory.GetCurrentDirectory(), RealtimeFile);
 
 			try
 			{
@@ -13135,9 +13066,9 @@ namespace CumulusMX
 				var sb = new StringBuilder();
 
 				sb.Append(timestamp.ToString("dd/MM/yy HH:mm:ss "));                          // 1, 2
-				sb.Append(station.OutdoorTemperature.ToString(TempFormat, InvC) + ' ');       // 3
+				sb.Append(station.OutdoorTemperature.ToFixed(TempFormat) + ' ');              // 3
 				sb.Append(station.OutdoorHumidity.ToString() + ' ');                          // 4
-				sb.Append(station.OutdoorDewpoint.ToString(TempFormat, InvC) + ' ');          // 5
+				sb.Append(station.OutdoorDewpoint.ToFixed(TempFormat) + ' ');                 // 5
 				sb.Append(station.WindAverage.ToString(WindAvgFormat, InvC) + ' ');           // 6
 				sb.Append(station.WindLatest.ToString(WindFormat, InvC) + ' ');               // 7
 				sb.Append(station.Bearing.ToString() + ' ');                                  // 8
@@ -13151,17 +13082,17 @@ namespace CumulusMX
 				sb.Append(Units.PressText + ' ');                                             // 16
 				sb.Append(Units.RainText + ' ');                                              // 17
 				sb.Append(station.WindRunToday.ToString(WindRunFormat, InvC) + ' ');          // 18
-				sb.Append(station.presstrendval.ToString(PressTrendFormat, InvC) + ' ');      // 19
+				sb.Append(station.presstrendval.ToFixed(PressTrendFormat) + ' ');             // 19
 				sb.Append(station.RainMonth.ToString(RainFormat, InvC) + ' ');                // 20
 				sb.Append(station.RainYear.ToString(RainFormat, InvC) + ' ');                 // 21
 				sb.Append(station.RainYesterday.ToString(RainFormat, InvC) + ' ');            // 22
-				sb.Append((station.IndoorTemperature ?? 0).ToString(TempFormat, InvC) + ' '); // 23
+				sb.Append((station.IndoorTemperature ?? 0).ToFixed(TempFormat) + ' ');        // 23
 				sb.Append((station.IndoorHumidity ?? 0).ToString() + ' ');                    // 24
-				sb.Append(station.WindChill.ToString(TempFormat, InvC) + ' ');                // 25
-				sb.Append(station.temptrendval.ToString(TempTrendFormat, InvC) + ' ');        // 26
-				sb.Append(station.HiLoToday.HighTemp.ToString(TempFormat, InvC) + ' ');       // 27
+				sb.Append(station.WindChill.ToFixed(TempFormat) + ' ');                       // 25
+				sb.Append(station.temptrendval.ToFixed(TempTrendFormat) + ' ');               // 26
+				sb.Append(station.HiLoToday.HighTemp.ToFixed(TempFormat) + ' ');              // 27
 				sb.Append(station.HiLoToday.HighTempTime.ToString("HH:mm "));                 // 28
-				sb.Append(station.HiLoToday.LowTemp.ToString(TempFormat, InvC) + ' ');        // 29
+				sb.Append(station.HiLoToday.LowTemp.ToFixed(TempFormat) + ' ');               // 29
 				sb.Append(station.HiLoToday.LowTempTime.ToString("HH:mm "));                  // 30
 				sb.Append(station.HiLoToday.HighWind.ToString(WindAvgFormat, InvC) + ' ');    // 31
 				sb.Append(station.HiLoToday.HighWindTime.ToString("HH:mm "));                 // 32
@@ -13174,8 +13105,8 @@ namespace CumulusMX
 				sb.Append(Version + ' ');                                                     // 39
 				sb.Append(Build + ' ');                                                       // 40
 				sb.Append(station.RecentMaxGust.ToString(WindFormat, InvC) + ' ');            // 41
-				sb.Append(station.HeatIndex.ToString(TempFormat, InvC) + ' ');                // 42
-				sb.Append(station.Humidex.ToString(TempFormat, InvC) + ' ');                  // 43
+				sb.Append(station.HeatIndex.ToFixed(TempFormat) + ' ');                       // 42
+				sb.Append(station.Humidex.ToFixed(TempFormat) + ' ');                         // 43
 				sb.Append((station.UV ?? 0).ToString(UVFormat, InvC) + ' ');                  // 44
 				sb.Append(station.ET.ToString(ETFormat, InvC) + ' ');                         // 45
 				sb.Append((station.SolarRad ?? 0).ToString() + ' ');                          // 46
@@ -13187,11 +13118,11 @@ namespace CumulusMX
 				sb.Append(station.CompassPoint(station.AvgBearing) + ' ');                    // 52
 				sb.Append(station.CloudBase.ToString() + ' ');                                // 53
 				sb.Append(CloudBaseInFeet ? "ft " : "m ");                                    // 54
-				sb.Append(station.ApparentTemperature.ToString(TempFormat, InvC) + ' ');      // 55
+				sb.Append(station.ApparentTemperature.ToFixed(TempFormat) + ' ');             // 55
 				sb.Append(station.SunshineHours.ToString(SunFormat, InvC) + ' ');             // 56
 				sb.Append(Convert.ToInt32(station.CurrentSolarMax).ToString() + ' ');         // 57
 				sb.Append(station.IsSunny ? "1 " : "0 ");                                     // 58
-				sb.Append(station.FeelsLike.ToString(TempFormat, InvC) + ' ');                // 59
+				sb.Append(station.FeelsLike.ToFixed(TempFormat) + ' ');                       // 59
 				sb.AppendLine(station.RainWeek.ToString(RainFormat, InvC));                   // 60
 				return sb.ToString();
 			}
@@ -13222,9 +13153,9 @@ namespace CumulusMX
 			StringBuilder values = new StringBuilder(RealtimeTable.StartOfInsert, 1024);
 			values.Append(" Values(");
 			values.Append(timestamp.ToString("\\'yyyy-MM-dd HH:mm:ss\\'", InvC));
-			values.Append(sep + station.OutdoorTemperature.ToString(TempFormat, InvC));
+			values.Append(sep + station.OutdoorTemperature.ToFixed(TempFormat));
 			values.Append(sep + station.OutdoorHumidity.ToString());
-			values.Append(sep + station.OutdoorDewpoint.ToString(TempFormat, InvC));
+			values.Append(sep + station.OutdoorDewpoint.ToFixed(TempFormat));
 			values.Append(sep + station.WindAverage.ToString(WindAvgFormat, InvC));
 			values.Append(sep + station.WindLatest.ToString(WindFormat, InvC));
 			values.Append(sep + station.Bearing.ToString());
@@ -13238,17 +13169,17 @@ namespace CumulusMX
 			values.Append(sep + "'" + Units.PressText + "'");
 			values.Append(sep + "'" + Units.RainText + "'");
 			values.Append(sep + station.WindRunToday.ToString(WindRunFormat, InvC) );
-			values.Append(sep + "'" + (station.presstrendval > 0 ? '+' + station.presstrendval.ToString(PressFormat, InvC) : station.presstrendval.ToString(PressFormat, InvC)) + "'");
+			values.Append(sep + "'" + (station.presstrendval > 0 ? '+' + station.presstrendval.ToFixed(PressFormat) : station.presstrendval.ToFixed(PressFormat)) + "'");
 			values.Append(sep + station.RainMonth.ToString(RainFormat, InvC));
 			values.Append(sep + station.RainYear.ToString(RainFormat, InvC));
 			values.Append(sep + station.RainYesterday.ToString(RainFormat, InvC));
-			values.Append(sep + (station.IndoorTemperature.HasValue ? station.IndoorTemperature.Value.ToString(TempFormat, InvC) : "NULL"));
-			values.Append(sep + (station.IndoorHumidity.HasValue ? station.IndoorHumidity.ToString() : "NULL"));
-			values.Append(sep + station.WindChill.ToString(TempFormat, InvC));
-			values.Append(sep + "'" + station.temptrendval.ToString(TempTrendFormat, InvC) + "'");
-			values.Append(sep + station.HiLoToday.HighTemp.ToString(TempFormat, InvC));
+			values.Append(sep + station.IndoorTemperature.ToFixed(TempFormat, "NULL"));
+			values.Append(sep + station.IndoorHumidity.ToText("NULL"));
+			values.Append(sep + station.WindChill.ToFixed(TempFormat));
+			values.Append(sep + "'" + station.temptrendval.ToFixed(TempTrendFormat) + "'");
+			values.Append(sep + station.HiLoToday.HighTemp.ToFixed(TempFormat));
 			values.Append(sep + station.HiLoToday.HighTempTime.ToString("\\'HH:mm\\'"));
-			values.Append(sep + station.HiLoToday.LowTemp.ToString(TempFormat, InvC));
+			values.Append(sep + station.HiLoToday.LowTemp.ToFixed(TempFormat));
 			values.Append(sep + station.HiLoToday.LowTempTime.ToString("\\'HH:mm\\'"));
 			values.Append(sep + station.HiLoToday.HighWind.ToString(WindAvgFormat, InvC));
 			values.Append(sep + station.HiLoToday.HighWindTime.ToString("\\'HH:mm\\'"));
@@ -13261,11 +13192,11 @@ namespace CumulusMX
 			values.Append(sep + "'" + Version +"'");
 			values.Append(sep + "'" + Build + "'");
 			values.Append(sep + station.RecentMaxGust.ToString(WindFormat, InvC));
-			values.Append(sep + station.HeatIndex.ToString(TempFormat, InvC));
-			values.Append(sep + station.Humidex.ToString(TempFormat, InvC));
-			values.Append(sep + (station.UV.HasValue ? station.UV.Value.ToString(UVFormat, InvC) : "NULL"));
+			values.Append(sep + station.HeatIndex.ToFixed(TempFormat));
+			values.Append(sep + station.Humidex.ToFixed(TempFormat));
+			values.Append(sep + station.UV.ToFixed(UVFormat, "NULL"));
 			values.Append(sep + station.ET.ToString(ETFormat, InvC));
-			values.Append(sep + (station.SolarRad.HasValue ? station.SolarRad.ToString() : "NULL"));
+			values.Append(sep + station.SolarRad.ToText("NULL"));
 			values.Append(sep + station.AvgBearing.ToString());
 			values.Append(sep + station.RainLastHour.ToString(RainFormat, InvC));
 			values.Append(sep + station.Forecastnumber.ToString());
@@ -13274,11 +13205,11 @@ namespace CumulusMX
 			values.Append(sep + "'" + station.CompassPoint(station.AvgBearing) + "'");
 			values.Append(sep + (station.CloudBase).ToString() );
 			values.Append(sep + (CloudBaseInFeet ? "'ft'" : "'m'") );
-			values.Append(sep + station.ApparentTemperature.ToString(TempFormat, InvC));
+			values.Append(sep + station.ApparentTemperature.ToFixed(TempFormat));
 			values.Append(sep + station.SunshineHours.ToString(SunFormat, InvC));
 			values.Append(sep + station.CurrentSolarMax);
 			values.Append(sep + (station.IsSunny ? "'1'" : "'0'"));
-			values.Append(sep + station.FeelsLike.ToString(TempFormat, InvC));
+			values.Append(sep + station.FeelsLike.ToFixed(TempFormat));
 			values.Append(sep + station.RainWeek.ToString(RainFormat, InvC));
 			values.Append(')');
 
@@ -13331,7 +13262,7 @@ namespace CumulusMX
 
 			if (useAppDir)
 			{
-				templatefile = AppDir + template;
+				templatefile = Path.Combine(Directory.GetCurrentDirectory(), template);
 			}
 
 			if (File.Exists(templatefile))
@@ -13356,7 +13287,7 @@ namespace CumulusMX
 
 			if (useAppDir)
 			{
-				templatefile = AppDir + template;
+				templatefile = Path.Combine(Directory.GetCurrentDirectory(), template);
 			}
 
 			if (File.Exists(templatefile))
@@ -13425,8 +13356,6 @@ namespace CumulusMX
 			CustomHttpSecondsTimer.Enabled = CustomHttpSecondsEnabled;
 
 			Wund.CatchUpIfRequired();
-
-			Windy.CatchUpIfRequired();
 
 			PWS.CatchUpIfRequired();
 
@@ -13687,7 +13616,7 @@ namespace CumulusMX
 			}
 		}
 
-		internal async Task CustomMysqlRollover()
+		internal async Task CustomMysqlRollover(bool live)
 		{
 			if (station.DataStopped)
 			{
@@ -13705,6 +13634,12 @@ namespace CumulusMX
 				{
 					try
 					{
+						if (!live && !MySqlFuncs.MySqlSettings.CustomRollover.CatchUp[i])
+						{
+							// doing catch-up and catch-up is disabled for this entry
+							continue;
+						}
+
 						if (!string.IsNullOrEmpty(MySqlFuncs.MySqlSettings.CustomRollover.Commands[i]))
 						{
 							tokenParser.InputText = MySqlFuncs.MySqlSettings.CustomRollover.Commands[i];
@@ -13877,13 +13812,23 @@ namespace CumulusMX
 				else if (RealtimeFTP != null)
 				{
 					RealtimeFTP.Disconnect();
-					RealtimeFTP.Dispose();
 				}
 				LogDebugMessage("Disconnected Realtime FTP session");
 			}
 			catch (Exception ex)
 			{
 				LogDebugMessage("RealtimeFTPDisconnect: Error disconnecting connection (can be ignored?) - " + ex.Message);
+			}
+			finally
+			{
+				if (FtpOptions.FtpMode == FtpProtocols.SFTP && RealtimeSSH != null)
+				{
+					RealtimeSSH.Dispose();
+				}
+				else if (RealtimeFTP != null)
+				{
+					RealtimeFTP.Dispose();
+				}
 			}
 		}
 
@@ -13904,46 +13849,17 @@ namespace CumulusMX
 				// do nothing
 			}
 
-			RealtimeFTP = new FtpClient
-			{
-				//Enabled = false,
-				Host = FtpOptions.Hostname,
-				Port = FtpOptions.Port,
-				Credentials = new NetworkCredential(FtpOptions.Username, FtpOptions.Password),
-			};
-
-			RealtimeFTP.Config.LogPassword = false;
+			RealtimeFTP = ftpClientFactory.CreateClient().Result;
 
 			SetRealTimeFtpLogging(FtpOptions.Logging);
 
-			if (!FtpOptions.AutoDetect)
-			{
-				if (FtpOptions.FtpMode == FtpProtocols.FTPS)
-				{
-					RealtimeFTP.Config.EncryptionMode = FtpOptions.DisableExplicit ? FtpEncryptionMode.Implicit : FtpEncryptionMode.Explicit;
-					RealtimeFTP.Config.DataConnectionEncryption = true;
-					LogDebugMessage($"RealtimeFTPLogin: Using FTPS protocol");
-				}
-
-				if (FtpOptions.ActiveMode)
-				{
-					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.PORT;
-					LogDebugMessage("RealtimeFTPLogin: Using Active FTP mode");
-				}
-				else if (FtpOptions.DisableEPSV)
-				{
-					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.PASV;
-					LogDebugMessage("RealtimeFTPLogin: Disabling EPSV mode");
-				}
-				else
-				{
-					RealtimeFTP.Config.DataConnectionType = FtpDataConnectionType.EPSV;
-				}
-			}
-
 			if (FtpOptions.FtpMode == FtpProtocols.FTPS)
 			{
-				RealtimeFTP.Config.ValidateAnyCertificate = FtpOptions.IgnoreCertErrors;
+				LogDebugMessage($"RealtimeFTPLogin: Using FTPS protocol");
+			}
+			else
+			{
+				LogDebugMessage($"RealtimeFTPLogin: Using FTP protocol");
 			}
 
 			if (FtpOptions.Enabled && FtpOptions.FtpMode != FtpProtocols.SFTP)
@@ -13987,40 +13903,16 @@ namespace CumulusMX
 						RealtimeSSH.Dispose();
 					}
 				}
-				finally
+				catch
 				{
+					// do nothing
 				}
 
 				LogMessage($"RealtimeSSHLogin: Attempting realtime SFTP connect to host {FtpOptions.Hostname} on port {FtpOptions.Port}");
 				try
 				{
-					// BUILD 3092 - added alternate SFTP authentication options
-					ConnectionInfo connectionInfo;
-					PrivateKeyFile pskFile;
-					if (FtpOptions.SshAuthen == "password")
-					{
-						connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password));
-						LogDebugMessage("RealtimeSSHLogin: Connecting using password authentication");
-					}
-					else if (FtpOptions.SshAuthen == "psk")
-					{
-						pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-						connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-						LogDebugMessage("RealtimeSSHLogin: Connecting using PSK authentication");
-					}
-					else if (FtpOptions.SshAuthen == "password_psk")
-					{
-						pskFile = new PrivateKeyFile(FtpOptions.SshPskFile);
-						connectionInfo = new ConnectionInfo(FtpOptions.Hostname, FtpOptions.Port, FtpOptions.Username, new PasswordAuthenticationMethod(FtpOptions.Username, FtpOptions.Password), new PrivateKeyAuthenticationMethod(FtpOptions.Username, pskFile));
-						LogDebugMessage("RealtimeSSHLogin: Connecting using password or PSK authentication");
-					}
-					else
-					{
-						LogWarningMessage($"RealtimeSSHLogin: Invalid SshftpAuthentication specified [{FtpOptions.SshAuthen}]");
-						return;
-					}
 
-					RealtimeSSH = new SftpClient(connectionInfo);
+					RealtimeSSH = sftpClientFactory.CreateClient().Result;
 
 					RealtimeSSH.Connect();
 					RealtimeSSH.ConnectionInfo.Timeout = TimeSpan.FromSeconds(15);  // 15 seconds to match FTP default timeout
@@ -14090,6 +13982,64 @@ namespace CumulusMX
 		}
 		*/
 
+		public void CreateUpdateSftpClientFactory()
+		{
+			if (sftpClientFactory != null)
+			{
+				sftpClientFactory.Host = FtpOptions.Hostname;
+				sftpClientFactory.Port = FtpOptions.Port;
+				sftpClientFactory.AuthMethod = FtpOptions.SshAuthen;
+				sftpClientFactory.Username = FtpOptions.Username;
+				sftpClientFactory.Password = FtpOptions.Password;
+				sftpClientFactory.PskFile = FtpOptions.SshPskFile;
+			}
+			else
+			{
+				sftpClientFactory = new SftpClientFactory(
+					host: FtpOptions.Hostname,
+					port: FtpOptions.Port,
+					authMethod: FtpOptions.SshAuthen,
+					username: FtpOptions.Username,
+					password: FtpOptions.Password,
+					pskFile: FtpOptions.SshPskFile,
+					dnsTtl: TimeSpan.FromMinutes(2)
+				);
+			}
+		}
+
+		public void CreateUpdateFtpClientFactory()
+		{
+			if (ftpClientFactory != null)
+			{
+				ftpClientFactory.Host = FtpOptions.Hostname;
+				ftpClientFactory.Port = FtpOptions.Port;
+				ftpClientFactory.Username = FtpOptions.Username;
+				ftpClientFactory.Password = FtpOptions.Password;
+				ftpClientFactory.Protocol = FtpOptions.FtpMode;
+				ftpClientFactory.Autodetect = FtpOptions.AutoDetect;
+				ftpClientFactory.DisableExplicit = FtpOptions.DisableExplicit;
+				ftpClientFactory.ActiveMode = FtpOptions.ActiveMode;
+				ftpClientFactory.DisableEpsv= FtpOptions.DisableEPSV;
+				ftpClientFactory.IgnoreCertErrors = FtpOptions.IgnoreCertErrors;
+			}
+			else
+			{
+				ftpClientFactory = new FtpClientFactory(
+					host: FtpOptions.Hostname,
+					port: FtpOptions.Port,
+					username: FtpOptions.Username,
+					password: FtpOptions.Password,
+					protocol: FtpOptions.FtpMode,
+					autodetect: FtpOptions.AutoDetect,
+					disableExplicit: FtpOptions.DisableExplicit,
+					disableEpsv: FtpOptions.DisableEPSV,
+					activeMode: FtpOptions.ActiveMode,
+					ignoreCerts: FtpOptions.IgnoreCertErrors,
+					dnsTtl: TimeSpan.FromMinutes(2)
+				);
+			}
+		}
+
 
 		public async Task GetLatestVersion()
 		{
@@ -14106,7 +14056,22 @@ namespace CumulusMX
 				using var retval = await MyHttpClient.SendAsync(request);
 
 				var body = await retval.Content.ReadAsStringAsync();
-				var releases = body.FromJson<List<GithubRelease>>();
+
+				if (retval.StatusCode != HttpStatusCode.OK)
+				{
+					LogWarningMessage("Error: Failed to get release information from GitHub, HTTP error: " + retval.StatusCode);
+					LogDataMessage("Received: " + body);
+					return;
+				}
+
+				if (body[0] != '[')
+				{
+					LogWarningMessage("Error: Failed to get release information from GitHub");
+					LogDataMessage("Received: " + body);
+					return;
+				}
+
+				var releases = JsonSerializer.Deserialize<List<GithubRelease>>(body);
 
 				var latestBeta = releases.Find(x => !x.draft && x.prerelease);
 				var latestLive = releases.Find(x => !x.draft && !x.prerelease);
@@ -14333,7 +14298,7 @@ namespace CumulusMX
 		public void AddToWebServiceLists(DateTime timestamp)
 		{
 			Wund.AddToList(timestamp);
-			Windy.AddToList(timestamp);
+			//Windy.AddToList(timestamp);
 			PWS.AddToList(timestamp);
 			//WOW.AddToList(timestamp)
 			OpenWeatherMap.AddToList(timestamp);
@@ -14462,7 +14427,7 @@ namespace CumulusMX
 			LogMessage("Spike removal:");
 			LogMessage($"TD={Spike.TempDiff:F3} GD={Spike.GustDiff:F3} WD={Spike.WindDiff:F3} HD={Spike.HumidityDiff:F3} PD={Spike.PressDiff:F3} MR={Spike.MaxRainRate:F3} MH={Spike.MaxHourlyRain:F3} ITD={Spike.InTempDiff:F3} IHD={Spike.InHumDiff:F3} Snow={Spike.SnowDiff:F2}");
 			LogMessage("Limits:");
-			LogMessage($"TH={Limit.TempHigh.ToString(TempFormat)} TL={Limit.TempLow.ToString(TempFormat)} DH={Limit.DewHigh.ToString(TempFormat)} GH={Limit.WindHigh:F3} SnowMinInc={SnowMinInc:F2}");
+			LogMessage($"TH={Limit.TempHigh.ToString(TempFormat)} TL={Limit.TempLow.ToString(TempFormat)} DH={Limit.DewHigh.ToString(TempFormat)} GH={Limit.WindHigh:F3} SnowMinInc={SnowDepthMinInc:F2}");
 			LogMessage($"PH={Limit.PressHigh.ToString(PressFormat)} PL={Limit.PressLow.ToString(PressFormat)} SPH={Limit.StationPressHigh.ToString(PressFormat)} SPL={Limit.StationPressLow.ToString(PressFormat)}");
 		}
 
@@ -14494,9 +14459,12 @@ namespace CumulusMX
 		private void CreateRequiredFolders()
 		{
 			// The required folders are: /backup, backup/daily, /data, /Reports
-			var folders = new string[4] { "backup", "backup/daily", "data", "Reports" };
+			var folders = new string[4] { ProgramOptions.BackupPath, Path.Combine(ProgramOptions.BackupPath, "daily"), ProgramOptions.DataPath, ProgramOptions.ReportsPath };
 
 			LogMessage("Checking required folders");
+			LogMessage(" Data path   : " + ProgramOptions.DataPath);
+			LogMessage(" Backup path : " + ProgramOptions.BackupPath);
+			LogMessage(" Reports path: " + ProgramOptions.ReportsPath);
 
 			foreach (var folder in folders)
 			{
@@ -14504,7 +14472,7 @@ namespace CumulusMX
 				{
 					if (!Directory.Exists(folder))
 					{
-						LogMessage("Creating required folder: /" + folder);
+						LogMessage("Creating required folder: " + folder);
 						Directory.CreateDirectory(folder);
 					}
 				}
@@ -14550,9 +14518,11 @@ namespace CumulusMX
 			var layout = "${longdate}|${level}|${logger:shortName=true}|${message}";
 
 			// Create targets for the log files
+			var fileName = Path.Combine(Program.configFile.runtimeOptions.configProperties.LogPath, "ftp-realtime_${shortdate}.log");
+
 			var logfileRT = new FileTarget("logfileRT")
 			{
-				FileName = "MXdiags" + Path.DirectorySeparatorChar + "ftp-realtime_${shortdate}.log",
+				FileName = fileName,
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
@@ -14569,9 +14539,12 @@ namespace CumulusMX
 				TimeToSleepBetweenBatches = 1
 			};
 
+
+			fileName = Path.Combine(Program.configFile.runtimeOptions.configProperties.LogPath, "ftp-interval_${shortdate}.log");
+
 			var logfileIN = new FileTarget("logfileIN")
 			{
-				FileName = "MXdiags" + Path.DirectorySeparatorChar + "ftp-interval_${shortdate}.log",
+				FileName = fileName,
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
@@ -14717,9 +14690,9 @@ namespace CumulusMX
 			txt.Append(',');
 			txt.Append(Time.ToString(@"hh\:mm"));
 			txt.Append(',');
-			txt.Append(SnowDepth.HasValue ? SnowDepth.Value.ToString("F1", CultureInfo.InvariantCulture) : string.Empty);
+			txt.Append(SnowDepth.ToFixed("F1"));
 			txt.Append(',');
-			txt.Append(Snow24h.HasValue ? Snow24h.Value.ToString("F1", CultureInfo.InvariantCulture) : string.Empty);
+			txt.Append(Snow24h.ToFixed("F1"));
 			txt.Append(',');
 			txt.Append(string.IsNullOrEmpty(Entry) ? string.Empty : $"\"{Entry}\"");
 			txt.Append(',');
@@ -14799,6 +14772,10 @@ namespace CumulusMX
 		public string SettingsUsername { get; set; }
 		public string SettingsPassword { get; set; }
 		public bool UseWebSockets { get; set; }
+		public string DataPath { get; set; }
+		public string BackupPath { get; set; }
+		public string ReportsPath { get; set; }
+		public int ProcessLogFilesLevel { get; set; }
 	}
 
 	public class CultureConfig
@@ -14953,6 +14930,7 @@ namespace CumulusMX
 		public int TCPPort { get; set; }
 		public string IPAddr { get; set; }
 		public int PeriodicDisconnectInterval { get; set; }
+		public bool CloudBroadcasts { get; set; }
 	}
 
 
@@ -14978,6 +14956,7 @@ namespace CumulusMX
 		public int WFTcpPort { get; set; }
 		public string WFToken { get; set; }
 		public int WFDaysHist { get; set; }
+		public string WFSerialNo { get; set; }
 
 	}
 
@@ -15019,6 +14998,7 @@ namespace CumulusMX
 		public int SolarMinimum { get; set; }
 		public double LuxToWM2 { get; set; }
 		public bool UseBlakeLarsen { get; set; }
+		public bool UseSunshineSensor { get; set; }
 		public int SolarCalc { get; set; }
 		public double RStransfactorJun { get; set; }
 		public double RStransfactorDec { get; set; }
@@ -15214,7 +15194,7 @@ namespace CumulusMX
 		public MySqlTableSettings Dayfile { get; set; }
 		public MySqlTableSettings CustomSecs { get; set; }
 		public MySqlTableIntervalSettings CustomMins { get; set; }
-		public MySqlTableSettings CustomRollover { get; set; }
+		public MySqlTableIntervalSettings CustomRollover { get; set; }
 		public MySqlTableTimedSettings CustomTimed { get; set; }
 		public MySqlTableSettings CustomStartUp { get; set; }
 
@@ -15226,7 +15206,7 @@ namespace CumulusMX
 			Dayfile = new MySqlTableSettings();
 			CustomSecs = new MySqlTableSettings();
 			CustomMins = new MySqlTableIntervalSettings();
-			CustomRollover = new MySqlTableSettings();
+			CustomRollover = new MySqlTableIntervalSettings();
 			CustomTimed = new MySqlTableTimedSettings();
 			CustomStartUp = new MySqlTableSettings();
 
@@ -15236,6 +15216,7 @@ namespace CumulusMX
 			CustomMins.Intervals = new int[10];
 			CustomMins.CatchUp = new bool[10];
 			CustomRollover.Commands = new string[10];
+			CustomRollover.CatchUp = new bool[10];
 			CustomTimed.Commands = new string[10];
 			CustomTimed.Intervals = new int[10];
 			CustomTimed.StartTimes = new TimeSpan[10];
@@ -15291,9 +15272,12 @@ namespace CumulusMX
 			NextUpdate[idx] = now.Date + StartTimes[idx];
 
 			// Timed and we have now set the start, add on intervals until we reach the future
-			while (NextUpdate[idx] <= now)
+			if (NextUpdate[idx] <= now)
 			{
-				NextUpdate[idx] = NextUpdate[idx].AddMinutes(Intervals[idx]);
+				do
+				{
+					NextUpdate[idx] = NextUpdate[idx].AddMinutes(Intervals[idx]);
+				} while (NextUpdate[idx] <= now);
 			}
 
 			// have we rolled over a day and the next interval would be prior to the start time?
@@ -15376,7 +15360,9 @@ namespace CumulusMX
 		SOILMOIST,      // 17
 		USERTEMP,       // 18
 		CO2,            // 19
-		LEAFWET,       // 20
+		LEAFWET,        // 20
+		LASERDEPTH,     // 21
+		SNOW24H         // 22
 	}
 
 }

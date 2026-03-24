@@ -3,8 +3,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 using System.ServiceProcess;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +16,6 @@ using NLog.Config;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 
-using ServiceStack;
 
 //#error version
 
@@ -43,6 +43,8 @@ namespace CumulusMX
 
 		public static ConfigFile configFile { get; } = ReadConfigFile();
 
+		public static string MxDiagsPath;
+
 		private static nint powerNotificationRegistrationHandle = new();
 		private static PosixSignalRegistration posixSigTermRegistrationHandle;
 
@@ -56,27 +58,29 @@ namespace CumulusMX
 			StartTime = DateTime.Now;
 			RunningOnWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
+			var logPath = configFile.runtimeOptions.configProperties.LogPath;
+
 			try
 			{
-				if (!Directory.Exists("MXdiags"))
+				if (!Directory.Exists(logPath))
 				{
-					Directory.CreateDirectory("MXdiags");
+					Directory.CreateDirectory(logPath);
 				}
 			}
 			catch (UnauthorizedAccessException)
 			{
-				Console.WriteLine("Error, no permission to read/create folder /MXdiags");
+				Console.WriteLine("Error, no permission to read/create folder " + logPath);
 				Environment.Exit(5);
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"Error while attempting to read/create folder /MXdiags, error message: {ex.Message}");
+				Console.WriteLine($"Error while attempting to read/create folder {logPath}, error message: {ex.Message}");
 			}
 
 			SetupLogging();
 
-			var logfile = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog.txt";
-			var logfileOld = "MXdiags" + Path.DirectorySeparatorChar + "ServiceConsoleLog-Old.txt";
+			var logfile = Path.Combine(logPath, "ServiceConsoleLog.txt");
+			var logfileOld = Path.Combine(logPath, "ServiceConsoleLog-Old.txt");
 			try
 			{
 				if (File.Exists(logfileOld))
@@ -113,7 +117,9 @@ namespace CumulusMX
 				Console.CancelKeyPress += static (s, ev) =>
 				{
 					MxLogger.Warn("**** Ctrl-C pressed ****");
-					Console.WriteLine("**** Ctrl-C pressed ****", ConsoleColor.Red);
+					Console.ForegroundColor = ConsoleColor.Red;
+					Console.WriteLine("**** Ctrl-C pressed ****");
+					Console.ResetColor();
 
 					ev.Cancel = true;
 
@@ -231,9 +237,9 @@ namespace CumulusMX
 						Console.ForegroundColor = ConsoleColor.Yellow;
 						Console.WriteLine("\nYou must supply a user name when installing the service\n");
 						Console.ResetColor();
+						Usage();
 						MxLogger.Warn("You must supply a user name when installing the service");
 						Environment.Exit(0);
-
 					}
 
 					if (SelfInstaller.InstallLinux(user, group, lang, Httpport, servicename))
@@ -411,7 +417,7 @@ namespace CumulusMX
 		{
 			cumulus = new Cumulus();
 
-			cumulus.Initialise(port, debug, "");
+			cumulus.Initialise(port, debug);
 
 			Console.WriteLine(DateTime.Now.ToString("G"));
 			Console.WriteLine("Type Ctrl-C to terminate\n");
@@ -458,7 +464,9 @@ namespace CumulusMX
 
 			if (cumulus != null && Environment.ExitCode != 999)
 			{
-				Console.WriteLine("Cumulus terminating", ConsoleColor.Red);
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("Cumulus terminating");
+				Console.ResetColor();
 				cumulus.Stop();
 				MxLogger.Info("Cumulus has shutdown");
 				svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + "Cumulus has shutdown");
@@ -534,10 +542,16 @@ namespace CumulusMX
 		private static void SetupLogging()
 		{
 			// Log file target
+			MxDiagsPath = configFile.runtimeOptions.configProperties.LogPath == "MXdiags"
+				? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MXdiags")
+				: configFile.runtimeOptions.configProperties.LogPath;
+
+			var fileName = Path.Combine(MxDiagsPath, "MxDiags.log");
+
 			var logfile = new FileTarget()
 			{
 				Name = "logfile",
-				FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MXdiags", "MxDiags.log"),
+				FileName = fileName,
 				ArchiveSuffixFormat = "{1:-yyMMdd-HHmmss}",
 				ArchiveAboveSize = configFile.runtimeOptions.configProperties.LogFileSize,
 				ArchiveOldFileOnStartup = true,
@@ -591,7 +605,7 @@ namespace CumulusMX
 			{
 				try
 				{
-					return (File.ReadAllText("CumulusMX.runtimeconfig.json")).FromJson<ConfigFile>();
+					return JsonSerializer.Deserialize<ConfigFile>(File.ReadAllText("CumulusMX.runtimeconfig.json"));
 				}
 				catch
 				{
@@ -622,20 +636,22 @@ namespace CumulusMX
 			public ConfigFileProperties configProperties { get; set; }
 		}
 
-		[DataContract]
 		public sealed class ConfigFileProperties
 		{
-			[DataMember(Name = "User.PhpMaxConnections")]
+			[JsonPropertyName("User.PhpMaxConnections")]
 			public int PhpMaxConnections { get; set; }
 
-			[DataMember(Name = "User.RealtimeFtpWatchDogInterval")]
+			[JsonPropertyName("User.RealtimeFtpWatchDogInterval")]
 			public int RealtimeFtpWatchDogInterval { get; set; }
 
-			[DataMember(Name = "User.LogFileSize")]
+			[JsonPropertyName("User.LogFileSize")]
 			public int LogFileSize { get; set; }
 
-			[DataMember(Name = "User.LogfileCount")]
+			[JsonPropertyName("User.LogFileCount")]
 			public int LogFileCount { get; set; }
+
+			[JsonPropertyName("User.LogPath")]
+			public string LogPath { get; set; }
 		}
 
 
@@ -660,25 +676,33 @@ namespace CumulusMX
 			{
 				// Handle Ctrl-C
 				MxLogger.Warn("**** Ctrl-C pressed ****");
-				Console.WriteLine("**** Ctrl-C pressed ****", ConsoleColor.Red);
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("**** Ctrl-C pressed ****");
+				Console.ResetColor();
 			}
 			if (ctrlType == CtrlTypes.CTRL_BREAK_EVENT)
 			{
 				// Handle Ctrl-C or Ctrl-Break
 				MxLogger.Warn("**** Ctrl-Break pressed ****");
-				Console.WriteLine("**** Ctrl-Break pressed ****", ConsoleColor.Red);
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("**** Ctrl-Break pressed ****");
+				Console.ResetColor();
 			}
 			else if (ctrlType == CtrlTypes.CTRL_CLOSE_EVENT)
 			{
 				// Handle console close event
 				MxLogger.Warn("**** Console close event received ****");
-				Console.WriteLine("**** Console close event received ****", ConsoleColor.Red);
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("**** Console close event received ****");
+				Console.ResetColor();
 			}
 			else if (ctrlType == CtrlTypes.CTRL_SHUTDOWN_EVENT)
 			{
 				// Handle shutdown or logoff
 				MxLogger.Warn("**** System Shutdown event received ****");
-				Console.WriteLine("**** System Shutdown event received ****", ConsoleColor.Red);
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine("**** System Shutdown event received ****");
+				Console.ResetColor();
 			}
 
 			// Ignore log-off (it may be another user)
@@ -780,7 +804,7 @@ namespace CumulusMX
 			posixSigTermRegistrationHandle = PosixSignalRegistration.Create(PosixSignal.SIGTERM, context =>
 			{
 				MxLogger.Warn("**** SIGTERM received ****");
-				Console.WriteLine("**** SIGTERM received ****", ConsoleColor.Red);
+				Console.WriteLine("**** SIGTERM received ****");
 				svcTextListener.WriteLine("**** SIGTERM received ****");
 				Environment.ExitCode = 0;
 				ExitSystemTokenSource.Cancel();

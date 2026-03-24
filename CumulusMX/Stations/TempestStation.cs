@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-
-using ServiceStack.Text;
 
 using CumulusMX.Stations.Tempest;
 
@@ -110,35 +110,6 @@ namespace CumulusMX.Stations
 
 				var h = timestamp.Hour;
 
-				//  if outside rollover hour, rollover yet to be done
-				if (h != rollHour)
-				{
-					rolloverdone = false;
-				}
-				else if (!rolloverdone)
-				{
-					// In rollover hour and rollover not yet done
-					// do rollover
-					cumulus.LogMessage("Day rollover " + timestamp.ToShortTimeString());
-					DayReset(timestamp);
-
-					rolloverdone = true;
-				}
-
-				// Not in midnight hour, midnight rain yet to be done
-				if (h != 0)
-				{
-					midnightraindone = false;
-				}
-				else if (!midnightraindone)
-				{
-					// In midnight hour and midnight rain (and sun) not yet done
-					ResetMidnightRain(timestamp);
-					ResetSunshineHours(timestamp);
-					ResetMidnightTemperatures(timestamp);
-					midnightraindone = true;
-				}
-
 				// 9am rollover items
 				if (h != 9)
 				{
@@ -166,7 +137,7 @@ namespace CumulusMX.Stations
 					// reset the accumulated snow depth(s)
 					for (var i = 0; i < Snow24h.Length; i++)
 					{
-						Snow24h[i] = null;
+						Snow24h[i] = LaserDepth[i].HasValue ? 0 : null;
 					}
 
 					snowhourdone = true;
@@ -213,14 +184,20 @@ namespace CumulusMX.Stations
 				DoHumidex(timestamp);
 				DoCloudBaseHeatIndex(timestamp);
 
-				DoUV((double) historydata.UV, timestamp);
-
-				DoSolarRad(historydata.SolarRadiation, timestamp);
-
-				// add in archive period worth of sunshine, if sunny
-				if (IsSunny)
+				if (!cumulus.ExtraSensorUseUv)
 				{
-					SunshineHours += historydata.ReportInterval / 60.0;
+					DoUV((double) historydata.UV, timestamp);
+				}
+
+				if (!cumulus.ExtraSensorUseSolar)
+				{
+					DoSolarRad(historydata.SolarRadiation, timestamp);
+
+					// add in archive period worth of sunshine, if sunny
+					if (IsSunny)
+					{
+						SunshineHours += historydata.ReportInterval / 60.0;
+					}
 				}
 
 				LightValue = historydata.Illuminance;
@@ -250,7 +227,47 @@ namespace CumulusMX.Stations
 
 				bw?.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
-				_ = cumulus.DoLogFile(timestamp, false);
+				// Things that really "should" to be done before we reset the day because the roll-over data contains data for the previous day for these values
+				// Windrun
+				// Dominant wind bearing
+				// ET - if MX calculated
+				// Degree days
+				// Rainfall
+
+				//  if outside rollover hour, rollover yet to be done
+				if (h != rollHour)
+				{
+					rolloverdone = false;
+				}
+				else if (!rolloverdone)
+				{
+					// In rollover hour and rollover not yet done
+					// do rollover
+					cumulus.LogMessage("Day rollover " + timestamp.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture));
+					DayReset(timestamp);
+
+					rolloverdone = true;
+				}
+
+				// Not in midnight hour, midnight rain yet to be done
+				if (h != 0)
+				{
+					midnightraindone = false;
+				}
+				else if (!midnightraindone)
+				{
+					// In midnight hour and midnight rain (and sun) not yet done
+					ResetMidnightRain(timestamp);
+					ResetSunshineHours(timestamp);
+					ResetMidnightTemperatures(timestamp);
+					midnightraindone = true;
+				}
+
+				if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+				{
+					// Only log data if not in the roll-over hour and not on the hour
+					_ = cumulus.DoLogFile(timestamp, false);
+				}
 				cumulus.DoCustomIntervalLogs(timestamp);
 
 				if (cumulus.StationOptions.LogExtraSensors)
@@ -265,7 +282,7 @@ namespace CumulusMX.Stations
 				}
 
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate);
+					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
@@ -334,9 +351,14 @@ namespace CumulusMX.Stations
 						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure, (double) wp.Observation.Temperature, cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(seaLevel), ts);
 						cumulus.LogDebugMessage($"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
-
-						DoSolarRad(wp.Observation.SolarRadiation, ts);
-						DoUV((double) wp.Observation.UV, ts);
+						if (!cumulus.ExtraSensorUseSolar)
+						{
+							DoSolarRad(wp.Observation.SolarRadiation, ts);
+						}
+						if (!cumulus.ExtraSensorUseUv)
+						{
+							DoUV((double) wp.Observation.UV, ts);
+						}
 						var rainrate = ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation) * (60d / wp.Observation.ReportInterval);
 
 						var newRain = RainCounter + ConvertUnits.RainMMToUser((double) wp.Observation.Precipitation);
@@ -402,7 +424,8 @@ namespace CumulusMX.Stations.Tempest
 		{
 			tokenSource = new CancellationTokenSource();
 			_listenTask = new Task(() => _ = ListenForPackets(tokenSource.Token));
-			// force shared port as Mono defaults to exclusive
+			// force shared port
+			Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 			ExclusiveAddressUse = false;
 			Client.Bind(new IPEndPoint(IPAddress.Any, port));
 		}
@@ -527,21 +550,28 @@ namespace CumulusMX.Stations.Tempest
 			if (e.Packet.Length > 0)
 			{
 				var s = Encoding.ASCII.GetString(e.Packet);
-				Debug.WriteLine(s);
+				cumulus.LogDataMessage("WF UDP packet: " + s);
 				WeatherPacket wp = null;
 				try
 				{
-					wp = JsonSerializer.DeserializeFromString<WeatherPacket>(s);
+					wp = JsonSerializer.Deserialize<WeatherPacket>(s);
 					if (wp != null)
 					{
-						wp.FullString = s;
-						wp.SetMessageType();
-						if (wp.MsgType != WeatherPacket.MessageType.Unknown) WeatherPacketReceived?.Invoke(wp);
+						if (string.IsNullOrEmpty(cumulus.WeatherFlowOptions.WFSerialNo) || wp.serial_number == cumulus.WeatherFlowOptions.WFSerialNo)
+						{
+							wp.FullString = s;
+							wp.SetMessageType();
+							if (wp.MsgType != WeatherPacket.MessageType.Unknown) WeatherPacketReceived?.Invoke(wp);
+						}
+						else
+						{
+							cumulus.LogDebugMessage("WF UDP Listener: Dropping packet from serial no - " + wp.serial_number);
+						}
 					}
 				}
 				catch (Exception ex)
 				{
-					Debug.WriteLine(ex.Message);
+					cumulus.LogExceptionMessage(ex, "WF UDP Listener");
 				}
 
 				if ((wp?.timestamp ?? 0) != 0) Debug.WriteLine(wp?.PacketTime.ToString());
@@ -582,7 +612,7 @@ namespace CumulusMX.Stations.Tempest
 
 					using var response = httpClient.GetAsync($"{url}device/{deviceId}?token={token}&time_start={st}&time_end={end_time}");
 					var apiResponse = response.Result.Content.ReadAsStringAsync().Result;
-					var rp = JsonSerializer.DeserializeFromString<RestPacket>(apiResponse);
+					var rp = JsonSerializer.Deserialize<RestPacket>(apiResponse);
 					if (rp != null && (rp.status.status_message.Equals("SUCCESS") || rp.status.status_code==2) && rp.obs != null)
 					{
 						if (rp.status.status_code == 2)

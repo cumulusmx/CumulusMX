@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack;
 
 
 namespace CumulusMX.Settings
@@ -29,7 +28,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonSettings>();
+				settings = JsonSerializer.Deserialize<JsonSettings>(json);
 			}
 			catch (Exception ex)
 			{
@@ -94,12 +93,12 @@ namespace CumulusMX.Settings
 					cumulus.Windy.Enabled = settings.windy.enabled;
 					if (cumulus.Windy.Enabled)
 					{
-						//cumulus.WindySendSolar = settings.windy.includesolar
+						cumulus.Windy.SendSolar = settings.windy.includesolar;
 						cumulus.Windy.SendUV = settings.windy.includeuv;
 						cumulus.Windy.Interval = settings.windy.interval;
+						cumulus.Windy.PW = string.IsNullOrWhiteSpace(settings.windy.password) ? string.Empty : settings.windy.password.Trim();
 						cumulus.Windy.ApiKey = string.IsNullOrWhiteSpace(settings.windy.apikey) ? string.Empty : settings.windy.apikey.Trim();
-						cumulus.Windy.StationIdx = settings.windy.stationidx;
-						cumulus.Windy.CatchUp = settings.windy.catchup;
+						cumulus.Windy.StationId = string.IsNullOrWhiteSpace(settings.windy.stationid) ? string.Empty : settings.windy.stationid.Trim();
 					}
 				}
 				catch (Exception ex)
@@ -477,12 +476,13 @@ namespace CumulusMX.Settings
 
 			var windysettings = new JsonWindy()
 			{
-				catchup = cumulus.Windy.CatchUp,
 				enabled = cumulus.Windy.Enabled,
+				includesolar = cumulus.Windy.SendSolar,
 				includeuv = cumulus.Windy.SendUV,
 				interval = cumulus.Windy.Interval,
+				password = cumulus.Windy.PW,
 				apikey = cumulus.Windy.ApiKey,
-				stationidx = cumulus.Windy.StationIdx
+				stationid = cumulus.Windy.StationId
 			};
 
 			var awekassettings = new JsonAwekas()
@@ -725,7 +725,7 @@ namespace CumulusMX.Settings
 				customhttp = customhttp
 			};
 
-			return data.ToJson();
+			return JsonSerializer.Serialize(data);
 		}
 
 		private sealed class JsonSettings
@@ -767,11 +767,12 @@ namespace CumulusMX.Settings
 		private sealed class JsonWindy
 		{
 			public bool enabled { get; set; }
+			public bool includesolar { get; set; }
 			public bool includeuv { get; set; }
-			public bool catchup { get; set; }
 			public int interval { get; set; }
+			public string password { get; set; }
 			public string apikey { get; set; }
-			public int stationidx { get; set; }
+			public string stationid { get; set; }
 		}
 
 		private sealed class JsonAwekas

@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack;
 
 
 namespace CumulusMX.Settings
@@ -17,19 +16,19 @@ namespace CumulusMX.Settings
 		public string GetAlpacaFormData()
 		{
 
-			var settings = new Settings()
+			var settings = new WriteSettings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
 				alarms = cumulus.UserAlarms
 			};
 
-			return settings.ToJson();
+			return JsonSerializer.Serialize(settings);
 		}
 
 		public string UpdateConfig(IHttpContext context)
 		{
 			var json = string.Empty;
-			Settings settings;
+			ReadSettings settings;
 			try
 			{
 				var data = new StreamReader(context.Request.InputStream).ReadToEnd();
@@ -38,7 +37,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<Settings>();
+				settings = JsonSerializer.Deserialize<ReadSettings>(json);
 			}
 			catch (Exception ex)
 			{
@@ -70,8 +69,8 @@ namespace CumulusMX.Settings
 						ActionParams = settings.alarms[i].ActionParams,
 						Latch = settings.alarms[i].Latch,
 						LatchHours = settings.alarms[i].LatchHours,
-						Units = settings.alarms[i].Units,
-						TriggerThreshold = settings.alarms[i].TriggerThreshold
+						//Units = settings.alarms[i].Units,
+						//TriggerThreshold = settings.alarms[i].TriggerThreshold
 					});
 				}
 
@@ -90,10 +89,32 @@ namespace CumulusMX.Settings
 			return "success";
 		}
 
-		private sealed class Settings
+		private sealed class ReadSettings
+		{
+			public bool accessible { get; set; }
+			public List<AlarmSettings> alarms { get; set; }
+		}
+
+		private sealed class WriteSettings
 		{
 			public bool accessible { get; set; }
 			public List<AlarmUser> alarms { get; set; }
+		}
+
+		private sealed class AlarmSettings
+		{
+			public string Name { get; set; }
+			public bool Enabled { get; set; }
+			public string WebTag { get; set; }
+			public string Type { get; set; }
+			public decimal Value { get; set; }
+			public bool Email { get; set; }
+			public string EmailMsg { get; set; }
+			public string BskyFile { get; set; }
+			public bool Latch { get; set; }
+			public double LatchHours { get; set; }
+			public string Action { get; set; }
+			public string ActionParams { get; set; }
 		}
 	}
 }

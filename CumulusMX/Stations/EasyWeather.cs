@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Timers;
 
@@ -160,7 +161,7 @@ namespace CumulusMX.Stations
 
 					DoForecast(string.Empty, false);
 
-					if (cumulus.StationOptions.LogExtraSensors)
+					if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
 					{
 						var lightReading = GetConvertedValue(st[EW_LIGHT]);
 
@@ -169,7 +170,10 @@ namespace CumulusMX.Stations
 							DoSolarRad((int) (lightReading * cumulus.SolarOptions.LuxToWM2), now);
 							LightValue = lightReading;
 						}
+					}
 
+					if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
+					{
 						var uVreading = GetConvertedValue(st[EW_UV]);
 
 						if ((int) uVreading == 255)
@@ -188,12 +192,6 @@ namespace CumulusMX.Stations
 						{
 							DoUV(uVreading, now);
 						}
-					}
-
-					if (cumulus.StationOptions.CalculatedET && now.Minute == 0)
-					{
-						// Start of a new hour, and we want to calculate ET in Cumulus
-						CalculateEvapotranspiration(now);
 					}
 
 					UpdateStatusPanel(now.ToUniversalTime());
@@ -241,7 +239,7 @@ namespace CumulusMX.Stations
 
 		private string ConvertPeriodToSystemDecimal(string aStr)
 		{
-			return aStr.Replace(".", cumulus.DecimalSeparator);
+			return aStr.Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
 		}
 
 		private double GetConvertedValue(string aStr)

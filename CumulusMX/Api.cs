@@ -358,6 +358,9 @@ namespace CumulusMX
 						case "datalogs":
 							await writer.WriteAsync(dataEditor.EditDatalog(HttpContext));
 							break;
+						case "recentdata":
+							await writer.WriteAsync(dataEditor.EditRecentData(HttpContext));
+							break;
 						case "mysqlcache":
 							await writer.WriteAsync(dataEditor.EditMySqlCache(HttpContext));
 							break;
@@ -414,6 +417,9 @@ namespace CumulusMX
 							break;
 						case "extralogfile":
 							await writer.WriteAsync(Station.GetLogfile(from, to, draw, start, length, search, true));
+							break;
+						case "recentdata":
+							await writer.WriteAsync(Station.ReadRecentData(draw, start, length, search));
 							break;
 						case "currentdata":
 							await writer.WriteAsync(Station.GetCurrentData());
@@ -558,7 +564,7 @@ namespace CumulusMX
 
 				if (Request.QueryString.AllKeys.Contains("start"))
 				{
-					start = DateTime.ParseExact(Request.QueryString.Get("start"), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal);
+					start = DateTime.ParseExact(Request.QueryString.Get("start"), ["yyyy-MM-dd", "yyyy-MM-dd HH:mm"], CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal);
 					if (!Request.QueryString.AllKeys.Contains("end"))
 						incremental = true;
 				}
@@ -566,7 +572,7 @@ namespace CumulusMX
 				//if (Request.QueryString.AllKeys.Contains("end") && long.TryParse(Request.QueryString.Get("end"), out ts))
 				if (Request.QueryString.AllKeys.Contains("end"))
 				{
-					end = DateTime.ParseExact(Request.QueryString.Get("end"), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal);
+					end = DateTime.ParseExact(Request.QueryString.Get("end"), ["yyyy-MM-dd", "yyyy-MM-dd HH:mm"], CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal);
 					if (end > DateTime.Now)
 						end = DateTime.Now;
 				}
@@ -624,6 +630,12 @@ namespace CumulusMX
 							break;
 						case "co2sensor.json":
 							await writer.WriteAsync(Station.GetCo2SensorGraphData(incremental, true, start));
+							break;
+						case "laserdepth.json":
+							await writer.WriteAsync(Station.GetLaserDepthGraphData(incremental, true, start));
+							break;
+						case "snow24h.json":
+							await writer.WriteAsync(Station.GetSnow24hGraphData(incremental, true, start));
 							break;
 
 						// daily data
@@ -685,6 +697,12 @@ namespace CumulusMX
 							break;
 						case "intvco2sensor.json":
 							await writer.WriteAsync(Station.GetCo2SensorGraphData(false, true, start, end));
+							break;
+						case "intvlaserdepth.json":
+							await writer.WriteAsync(Station.GetLaserDepthGraphData(false, true, start, end));
+							break;
+						case "intvsnow24h.json":
+							await writer.WriteAsync(Station.GetSnow24hGraphData(false, true, start, end));
 							break;
 
 						// config data
@@ -1285,6 +1303,11 @@ namespace CumulusMX
 						case "co2sensor.json":
 							await writer.WriteAsync(Station.GetCO2sensor(true));
 							break;
+
+						case "bgt.json":
+							await writer.WriteAsync(Station.GetBGTsensor(true));
+							break;
+
 						default:
 							Response.StatusCode = 404;
 							break;
@@ -1893,7 +1916,7 @@ namespace CumulusMX
 							await writer.WriteAsync(cumulus.ClearErrorLog());
 							break;
 						case "clearalarm.txt":
-							await writer.WriteAsync(cumulus.ClearAlarm(HttpContext));
+							await writer.WriteAsync(cumulus.ResetAlarm(HttpContext));
 							break;
 						default:
 							Response.StatusCode = 404;
@@ -1961,6 +1984,7 @@ namespace CumulusMX
 				}
 			}
 		}
+
 		private static async Task<bool> Authenticate(IHttpContext context)
 		{
 			string authorization = context.Request.Headers["Authorization"];
@@ -2007,6 +2031,100 @@ namespace CumulusMX
 
 			return true;
 		}
+
+
+		// AI2 dashboard translations
+		public class Ai2DashboardController : WebApiController
+		{
+			[Route(HttpVerbs.Get, "/ai2")]
+			public async Task GetDashboardIndex()
+			{
+				await GetDashboardData("index.html");
+			}
+
+			[Route(HttpVerbs.Get, "/ai2/{req}")]
+			public async Task GetDashboardData(string req)
+			{
+				try
+				{
+					var file = Path.Combine(htmlRootPath, "ai2", req);
+
+					if (File.Exists(file))
+					{
+						// exception for the icon file
+						if (req == "favicon.ico")
+						{
+							Response.ContentType = "image/x-icon";
+							using var reader = File.OpenRead(file);
+							await reader.CopyToAsync(HttpContext.Response.OutputStream);
+						}
+						else
+						{
+							Response.ContentType = "text/html";
+
+							var manager = new DashboardLocalisationManager();
+							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
+
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+						}
+					}
+					else
+					{
+						Response.StatusCode = 404;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"api/ai2dashboard: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+		}
+
+		public class Ai2ScriptController : WebApiController
+		{
+			static string[] bypassList = [
+			];
+
+			[Route(HttpVerbs.Get, "/ai2/js/{req}")]
+			public async Task GetJavaScriptData(string req)
+			{
+				Response.ContentType = "application/javascript";
+
+				try
+				{
+					var file = Path.Combine(htmlRootPath, "ai2", "js", req);
+
+					if (File.Exists(file))
+					{
+
+						// bypass list for scripts that do not need processing
+						if (bypassList.Contains(req))
+						{
+							using var reader = File.OpenRead(file);
+							await reader.CopyToAsync(HttpContext.Response.OutputStream);
+						}
+						else
+						{
+							var manager = new DashboardLocalisationManager();
+							await manager.LoadLocalization(cumulus.ProgramOptions.DisplayLanguage);
+
+							await manager.ReplaceTokensToHttpResponseAsyncTokenStreaming(file, HttpContext.Response);
+						}
+					}
+					else
+					{
+						Response.StatusCode = 404;
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"api/ai2dashboard: Unexpected Error, Description: \"{ex.Message}\"");
+					Response.StatusCode = 500;
+				}
+			}
+		}
+
 
 		/*
 		private static string DetectPreferredLanguage(IHttpRequest request)

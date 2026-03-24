@@ -2,11 +2,9 @@
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack;
-using ServiceStack.Text;
 
 
 namespace CumulusMX.Settings
@@ -29,7 +27,7 @@ namespace CumulusMX.Settings
 			var moonPhase = new MoonPhaseStrings()
 			{
 				Newmoon = cumulus.Trans.NewMoon,
-				WaxingCrescent = cumulus.Trans.WaningCrescent,
+				WaxingCrescent = cumulus.Trans.WaxingCrescent,
 				FirstQuarter = cumulus.Trans.FirstQuarter,
 				WaxingGibbous = cumulus.Trans.WaxingGibbous,
 				Fullmoon = cumulus.Trans.FullMoon,
@@ -204,10 +202,10 @@ namespace CumulusMX.Settings
 				alarms = alarmSettings,
 				webtags = webtags,
 				snow = snow,
-				laser = cumulus.Trans.Laser
+				laser = cumulus.Trans.LaserCaptions
 			};
 
-			return JsonSerializer.SerializeToString(settings);
+			return JsonSerializer.Serialize(settings);
 		}
 
 		public string UpdateConfig(IHttpContext context)
@@ -225,7 +223,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<Settings>();
+				settings = JsonSerializer.Deserialize<Settings>(json);
 			}
 			catch (Exception ex)
 			{
@@ -260,7 +258,7 @@ namespace CumulusMX.Settings
 				try
 				{
 					cumulus.Trans.NewMoon = settings.moonPhase.Newmoon.Trim();
-					cumulus.Trans.WaningCrescent = settings.moonPhase.WaxingCrescent.Trim();
+					cumulus.Trans.WaxingCrescent = settings.moonPhase.WaxingCrescent.Trim();
 					cumulus.Trans.FirstQuarter = settings.moonPhase.FirstQuarter.Trim();
 					cumulus.Trans.WaxingGibbous = settings.moonPhase.WaxingGibbous.Trim();
 					cumulus.Trans.FullMoon = settings.moonPhase.Fullmoon.Trim();
@@ -317,6 +315,19 @@ namespace CumulusMX.Settings
 				catch (Exception ex)
 				{
 					var msg = "Error processing Trend settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
+				// compass points
+				try
+				{
+					cumulus.Trans.compassp = settings.compass;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing Compass Point settings: " + ex.Message;
 					cumulus.LogErrorMessage(msg);
 					errorMsg += msg + "\n\n";
 					context.Response.StatusCode = 500;
@@ -507,7 +518,7 @@ namespace CumulusMX.Settings
 				// laser
 				try
 				{
-					cumulus.Trans.Laser = settings.laser;
+					cumulus.Trans.LaserCaptions = settings.laser;
 				}
 				catch (Exception ex)
 				{

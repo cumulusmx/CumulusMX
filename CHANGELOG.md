@@ -1,12 +1,184 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 
-Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=17887)
+Additional notes are available on the [forum release thread](https://cumulus.hosiene.co.uk/viewtopic.php?t=24075)
 
-This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.
-Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/main/CHANGELOG.md)
+This file is formatted as [markdown](https://www.markdownguide.org/), any decent editor should display it correctly formatted.<br>
+Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/blob/b5001/CHANGELOG.md)
+
 ---
+---
+
+## [5.0.0 \[b5001\]][29] - 2026-03-24
+
+### Important Notes
+
+- First build using Visual Studio 2026, and transitioning to .NET 10.0
+- The initial log conversion may take some time depending on the host computer. It is recommended to perform the initial run in a console so you can see the progress and any errors
+- **Required changes to Ambient Extra Sensor Stations:** If you use an Ambient station as an Extra Sensors station, then after upgrading to this release you MUST check which sensors are enabled in the extra station configuration
+- **Required updated for MySQL users:** If you use the standard MySQL uploads, then there are two additional columns in the Monthly table. Please run the table updater in the MySQL settings when you first run this release
+- **Required update for existing Windy.com upload users:** This version of MX switches to using the new Windy v2 API, this API requires you to enter the full Station ID in the Windy Settings
+- **Check required settings for Extra Sensor Users:** Check if Solar and UV are enabled in the Extra Sensor settings. A bug in previous versions of Cumulus MX meant the main station values were always used even if these options were enabled.
+	The bug has been fixed, and if you do not want to use Solar/UV from the extra station, you MUST now disable these options
+
+
+***IMPORTANT: This release requires .NET 10.0 to run, and WILL alter your log file structures***
+
+### New
+
+- The path for the MXdiags files can now be specified in the CumulusMX.runtimeconfig.json file
+- The paths for the data, backup, and reports folders can now be defined in Program Settings
+- Custom Rollover MySQL commands now have the option to control being run during catch-up or not
+- Adds LASER depth to the Dashboard Recent Charts, Recent Select-a-Chart, and Select-a-Period
+- Adds LASER depth to the default web site Trends and Select-a-graph charts
+- New .NET 10 versions of ExportToMySQL and CreateMissing (v3) compatible with MX v5.0 log file formats
+- New script `/MXutils/windows/CreateFirewallRules.ps1` for creating the required Windows firewall rules
+- Add an exponential backoff to failed Email sends (up to 5.6 hours)
+- New web tags `<#snowunit>`, `<#CapacitorV>`
+- Adds a new Data Logs editor for the Recent Data from the SQLite database
+- New option in Extra Sensor Settings under Laser Sensor Options to reset the current snow depth value being used for snowfall accumulation to the current laser depth value. This is used when there has been a large spurious change in the laser depth measurement for any reason. This does not affect the current snow depth measurement
+- New Option in Extra Sensor Settings under Laser Sensor Options to specify if a laser is being used as a snow sensor
+- Added ImportCumulusFile PHP script to `/MXutils` folder
+- New Python script to upload monthly log files and the day file to MySQL - `/MXutils/ImportCumulusFile.py`
+- Adds logging of debug snow data via the Program Settings > Logging Options - Logs to `/MXdiags/debug_snowLog[sensornumber].txt`
+- Ecowitt HTTP Custom Server auto-configuration for main and extra stations now tries the HTTP Local API to access the station in addition to the TCP API
+- Add support for BGT and WBGT to Ecowitt HTTP Local API, HTTP (Ecowitt), and the JSON stations
+	- New web tags `<#BlackGlobeTemp>` and `<#WetBulbGlobeTemp>`
+	- Two new fields added to the monthly log files and the monthly MySQL table to support these new measurements
+- Add support for Ecowitt WH52 EC Soil Moisture Sensors to the Ecowitt HTTP Local API and HTTP (Ecowitt) stations - soil moisture and temperature readings only for now
+- Fix ecowitt.net historic data download of PM measurements
+- New snow depth filtering mechanism implemented. This is a three-stage filter...
+	- **Stage 1** applies a median filter to the raw values - you can specify the length of time in minutes for the median values. This is good for filtering out sudden spikes.
+	- **Stage 2** applies a clip to the output of the median filter. The clip limits the step size of the increase/decrease of the output of stage 1 to the value you specify
+	- **Stage 3** applies an Exponential Moving Average filter to the output of stage 2. This is essentially time based smoothing
+	- The default values are:
+
+		| Laser Units        | mm    | cm    | inch  |
+		|:-------------------|:-----:|:-----:|:-----:|
+		| median (mins)      ||         10          ||
+		| clip (laser units) |  1.0  |  0.1  | 0.04  |
+		| EMA time (mins)    ||        12.0         ||
+
+	- Note you can effectively disable any stage by setting: median=1, or clip=10, or EMA=0.1
+	- Increasing the filtering also delays the value being updated. The approximate delay is median/1.5 + EMA time/1.5. The defaults will give a 10-12 minute lag
+	- You can edit the new smoothing filter values in the Calibration Settings screen
+	- Suggested starting Minimum Increments for the new filter: 2-5 mm, 0.2-0.5 cm, 0.08-0.2 inches
+- Adds Snowfall 24h charts to the Dashboard and default web site
+- New web tags which show the current laser derived snow depth in snow depth units
+    `<#LaserSnowLatest[1-4]>`
+- Adds the ability to connect a third-party sunshine recorder to Davis WLL Stations
+	- Supports connecting a sunshine recorder such as the Instromet to the Rain input of an ISS type transmitter
+	- The sunshine recorder must send a pulse for every 1/100th hour of sunshine recorded
+- Adds support for Ecowitt WH52 Soil Moistire sensors to HTTP API and Ecowitt.Net stations
+- WeatherFlow Tempest stations can now filter live data based on device serial number. You can leave the serial number blank if you only have a single device
+- Add LaserDepth1 and LaserSnowLatest1 to `websitedataT.json` along with a last modified date for the file
+
+
+### Changed
+
+- **Monthly log files have changed format**, the first two values of each record are different to resolve DST transition ambiguities
+	- Old format records start: Date,Time,
+	- New format records start: Date_Time,Unix_Timestamp,
+	- All the data fields retain the same offsets as before
+	- The log files will automatically be converted on the first run of v5.0
+	- The original files will be backed up to `/backup/ConvertBackup`
+	- The Date_Time field is now purely for human readability, Cumulus MX now uses the Unix Timestamp internally
+- The main monthly log files now log the final values for Rainfall Today and ET Today in the first record of the following (rain/calendar) day
+- The extra monthly log files now log the final snowfall in 24h value in the first record of the following (snow) day
+- The dashboard has been converted from using Highcharts to ChartJS, and will now work fully offline
+- The default web site has been fully converted from Highcharts to ChartJS, removing the dependency on obtaining a Highcharts licence
+- Removes the dependency on ServiceStack.Text for JSON handling, now using the built-in System.Text.Json
+- Swaps SQLitePCLRaw.bundle_green for newer SQLitePCLRaw.bundle_e_sqlite3
+- Debug and data logging are now fully independent
+- Internal change to the date/time storage in the recent data SQLite database (cumulusmx.db)
+	- DateTimes are now stored as Unix timestamps to resolve DST transition ambiguities
+- Debug Beta builds no longer save the debug & data logging enabled state into the Cumulus.ini file
+- FTP/FTPS/SFTP connection management changed to avoid Operating System DNS caching in .NET 10
+- The CO₂ Graph data file will now contain null values for missing entries like the other files
+- The realtime FTP watchdog file has been renamed from "_cumulusmx_watchdog.txt" to "cumulusmx_watchdog.txt"
+- The dashboard now allows user defined pages to be hosted under the `/interface/custom` folder
+- Remove retries from WOW uploads
+- Changes to MySQL buffer processing (after catch-up or server/network outage). The updates are now committed every 50 statements and are not removed from the queue unless the commit is successful
+- Web tags are now case insensitive, as are tag parameter keys. Simple parameter values are also case insensitive. Parameter values for date formats etc are obviously still case sensitive.
+- Switches Windy.com uploads to their new v2 API, this now allows upload of solar radiation values
+	- You can now use the station password instead of an API key to authenticate
+	- **Existing users must add their Station ID to the settings, this is a requirement of the new API**
+- The snow 24 hour accumulation is now reset to zero *after* the "snow hour" processing is complete and the extra log file written.
+	This means that the true final daily total will be available in the first record of the following snow day the same as the daily rainfall total in the monthly log file
+- Now sets the HTTP Referer to the upload site when using PHP Upload, and to https://cumulus.hosiene.co.uk/ for all other HTTP queries
+- The Extra Sensors dashboard page is more responsive to screen size and now only shows tables for sensors that are enabled in Display Options
+
+### Fixed
+
+- Ecowitt HTTP API station using a fixed 5 minute interval for Degree Days during catch-up rather than the log file interval
+- Interval uploads now have a locking mechanism like realtime uploads. This should prevent 1-minute intervals accumulating a backlog of failing uploads if the destination server is unavailable
+- Changed the handling of Ecowitt SD card log files during catch-up to avoid duplicates over the DST period being dropped
+- Prevent multiple copies of the FTP watchdog being started by Internet Settings
+- Fix double entry of AirLink Outdoor in Extra Sensor settings
+- Sun rise/set dawn/dusk calculations for DST changeover days - note locations near the arctic circle may still show the times in the wrong DST state
+- Fix to `websitedataT.json` correcting the 'snowDepth' and 'snow24h' entries to 'snowdepth' and 'snow24hr' and adding 'snowunit'
+- The EOD graph data files FTP(S) and SFTP uploads were being flagged as complete whether or not they were successful (PHP was OK)
+- Correct wind speed array loading from recent data on start-up to use uncalibrated values
+- Correct Windguru to use calibrated wind speeds
+- Some fixes and updates to the Query Day File page
+- Add retry to daily file backups when a file is in use
+- Fix Ecowitt Cloud API Laser conversions of measurements in cm and feet to user units
+- Fix Davis WLL station getting in a day reset loop when no historic API details and last run was prior to last rollover
+- Fix exception when Ecowitt camera URL fetch hits the rate limit
+- Final fix for Tempest station opening the UDP port in shared mode
+- Fixes for Davis VP1/2 serial BARREAD and SETTIME commands
+- On laser depth baseline changes, realign last snowfall depth to the new value
+- Fix snow24h being reset to null at the snow hour if there is a valid laser depth, now set to zero
+- Fix a number of issues with using the Ecowitt Cloud Station for extra sensors
+- Errors handling null data from PurpleAir sensors
+- Fix processing Ecowitt SD card log file when only one record is in scope
+- Compass points not being saved in Locale Strings
+- Errors saving/loading waxing/waning crescent moon in Locale Strings
+- Fix Automated Weather Diary entries not being created for some stations during catch-up - Davis VP2, Davis WLL, Ecowitt Stations
+- Fix web tags using year and month parameters to take account of meteo dates and first day of the year/month and add consistent handling
+- If Bluesky uploads are rate limited, do not attempt to retry the upload
+- PHP uploads failing after first upload in certain configurations
+- Fix bug in exception logging if some exception data is null
+- More adjustments to real-time FTP error detection and reconnection
+- Fix Ecowitt HTTP API and Cloud station types not calculating derived temperature values when an extra T/H sensor is mapped to be primary
+- Fix IsRaining alarm being immediately cleared after each trigger when using the Ecowitt "Use Piezo IsRaining" setting
+- Fix a major logic error when applying extra sensor data to the main station - affects most stations
+- Fix MySQL error handling to prevent buffering of statements with syntax errors
+- Fix extra sensor data input via the JSON Station MQTT topic (was using main station config values)
+- Add a short delay between fetching Ecowitt SD card files to try and mitigate the zero length/oddly formated files being sent
+- Fix JSON Extra Sensor Station CO₂ and Lightning values only being applied when run as the main station
+- Fix AQ PM10 Average visibility settings being reset on CMX restart
+- Now handles AirLink null data values - represented as 0 values for now
+
+### Package Updates
+
+- DnsClient [NEW]
+- FluentFTP
+- HidSharp
+- MailKit
+- Microsoft.Win32.SystemEvents
+- MQTTnet
+- MySqlConnector
+- NLog
+- NLog.Extensions.Logging
+- ServiceStack.Text [REMOVED]
+- SixLabors.ImageSharp
+- SSH.NET
+- SQLitePCLRaw.bundle_green [REMOVED]
+- SQLitePCLRaw.bundle_e_sqlite3 [NEW]
+- System.CodeDom
+- System.IO.Ports
+- System.ServiceProcess.ServiceController
+
+---
+
+## [4.6.5 \[b4129\]][28] - 2025-10-30
+
+### Fixed
+
+- Improved malformed Ecowitt cloud API response handling for LDS values
+
 ---
 
 ## [4.6.4 \[b4128\]][27] - 2025-09-30
@@ -14,7 +186,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Crash caused by EcowittMacAddress=null in Cumulus.ini
-- Add additional error handling for dates date/times with the min val 0001-01-01
+- Add additional error handling for dates and date/times with the min val 0001-01-01
 - Enable Ecowitt SD card file content reading retries when zero length files are returned
 
 ---
@@ -593,7 +765,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - AWEKAS uploads fix to avoid frequent rate limiting messages
-- Ability to edit sunshine hours to two decimal palces in the log and day file editors
+- Ability to edit sunshine hours to two decimal places in the log and day file editors
 - Fix recent Solar graph data bad format if solar or UV sensor data is null
 - Add check for CustomHttpXXX URLs to begin with http
 - Davis WLL change to avoid potential extension of 10 minute gust values when broadcasts are working
@@ -715,7 +887,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - SSH.NET
 - Sixlabors.ImageSharp
 - NReco.Logging.File
-- ServceStack.Text
+- ServiceStack.Text
 - Lots of System/Microsoft packages updated from v8.0 to v9.0
 
 ---
@@ -1086,3 +1258,5 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [25]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4122
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
+[28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5000

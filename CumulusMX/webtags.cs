@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Web;
 
+using CumulusMX.LogFiles;
+
 using Swan;
 
 namespace CumulusMX
@@ -41,7 +43,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				return tagParams.Get("rc") == "y" ? val.Replace(',', '.') : val;
+				return string.Equals(tagParams.Get("rc"), "y", StringComparison.InvariantCultureIgnoreCase) ? val.Replace(',', '.') : val;
 			}
 			catch
 			{
@@ -54,9 +56,9 @@ namespace CumulusMX
 			string ret;
 			try
 			{
-				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var invariant = string.Equals(tagParams.Get("rc"), "y", StringComparison.InvariantCultureIgnoreCase);
 
-				if (tagParams.Get("tc") == "y")
+				if (string.Equals(tagParams.Get("tc"), "y", StringComparison.InvariantCultureIgnoreCase))
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
@@ -64,12 +66,12 @@ namespace CumulusMX
 
 				if (null != format)
 				{
-					ret = val.ToString(format, numFormat);
+					ret = invariant ? val.ToFixed(format) : val.ToFixedLocal(format);
 				}
 				else
 				{
 					int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : decimals;
-					ret = val.ToString("F" + dp, numFormat);
+					ret = invariant ? val.ToFixed("F" + dp) : val.ToFixedLocal("F" + dp);
 				}
 				return ret;
 			}
@@ -84,9 +86,9 @@ namespace CumulusMX
 			string ret;
 			try
 			{
-				var numFormat = tagParams.Get("rc") == "y" ? CultureInfo.InvariantCulture.NumberFormat : CultureInfo.CurrentCulture.NumberFormat;
+				var invariant = string.Equals(tagParams.Get("rc"), "y", StringComparison.InvariantCultureIgnoreCase);
 
-				if (tagParams.Get("tc") == "y")
+				if (string.Equals(tagParams.Get("tc"), "y", StringComparison.InvariantCultureIgnoreCase))
 				{
 					val = Math.Truncate(val);
 					tagParams["dp"] = "0";
@@ -94,7 +96,7 @@ namespace CumulusMX
 
 				int dp = int.TryParse(tagParams.Get("dp"), out dp) ? dp : decimals;
 
-				ret = val.ToString("F" + dp, numFormat);
+				ret = invariant ? val.ToFixed("F" + dp) : val.ToFixedLocal("F" + dp);
 
 				return ret;
 			}
@@ -348,10 +350,10 @@ namespace CumulusMX
 			return month;
 		}
 
-		public string GetCurrCondText()
+		public static string GetCurrCondText()
 		{
 			string res;
-			string fileName = cumulus.AppDir + "currentconditions.txt";
+			string fileName = Path.Combine(Directory.GetCurrentDirectory(), "currentconditions.txt");
 			if (File.Exists(fileName))
 			{
 				res = ReadFileIntoString(fileName);
@@ -375,11 +377,11 @@ namespace CumulusMX
 			{
 				try
 				{
-					if (dtformat == "Unix")
+					if (dtformat.Equals("unix", StringComparison.InvariantCultureIgnoreCase))
 					{
 						s = dt.ToUnixEpochDate().ToString();
 					}
-					else if (dtformat == "JS")
+					else if (dtformat.Equals("js", StringComparison.InvariantCultureIgnoreCase))
 					{
 						s = (dt.ToUnixEpochDate() * 1000).ToString();
 
@@ -407,14 +409,13 @@ namespace CumulusMX
 			else
 			{
 				string dtformat = tagParams.Get("format") ?? defaultFormat;
-				if (dtformat == "Unix")
+				if (dtformat.Equals("unix", StringComparison.InvariantCultureIgnoreCase))
 				{
 					s = dt.ToUnixEpochDate().ToString();
 				}
-				else if (dtformat == "JS")
+				else if (dtformat.Equals("js", StringComparison.InvariantCultureIgnoreCase))
 				{
 					s = (dt.ToUnixEpochDate() * 1000).ToString();
-
 				}
 				else
 				{
@@ -437,7 +438,7 @@ namespace CumulusMX
 			return String.Format(dtformat, ts);
 		}
 
-		private static (DateTime, DateTime) GetMonthStartEndDates(Dictionary<string, string> tagParams)
+		private (DateTime, DateTime) GetMonthStartEndDates(Dictionary<string, string> tagParams)
 		{
 			var year = tagParams.Get("y") ?? tagParams.Get("year");
 			var month = tagParams.Get("m") ?? tagParams.Get("month");
@@ -459,6 +460,11 @@ namespace CumulusMX
 						return (DateTime.MinValue, DateTime.MinValue);
 					}
 				}
+				else if (year == null && month != null || year != null && month == null)
+				{
+					// month but no year or vice versa - invalid
+					return (DateTime.MinValue, DateTime.MinValue);
+				}
 				else if (relMonth != null && int.TryParse(relMonth, out int mons))
 				{
 					if (mons > 0)
@@ -466,13 +472,15 @@ namespace CumulusMX
 						mons = 0;
 					}
 
-					DateTime now = DateTime.Now;
+					// allow for meteo dates
+					var now = cumulus.MeteoDate().Date;
 					start = new DateTime(now.Year, now.Month, 1).AddMonths(mons);
 					end = start.AddMonths(1);
 				}
 				else
 				{
-					end = DateTime.Now.Date;
+					// allow for meteo dates
+					end = cumulus.MeteoDate().Date;
 					start = new DateTime(end.Year, end.Month, 1, 0, 0, 0, DateTimeKind.Local);
 				}
 
@@ -484,7 +492,7 @@ namespace CumulusMX
 			}
 		}
 
-		private static (DateTime, DateTime) GetYearStartEndDates(Dictionary<string, string> tagParams)
+		private (DateTime, DateTime) GetYearStartEndDates(Dictionary<string, string> tagParams)
 		{
 			var year = tagParams.Get("y") ?? tagParams.Get("year");
 			var relYear = tagParams.Get("r") ?? tagParams.Get("relyear");
@@ -505,14 +513,18 @@ namespace CumulusMX
 						relyr = 0;
 					}
 
-					var now = DateTime.Now;
+					// allow for meteo dates
+					var now = cumulus.MeteoDate().Date;
 					start = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local).AddYears(relyr);
 					end = start.AddYears(1);
 				}
 				else
 				{
-					end = DateTime.Now.Date;
-					start = new DateTime(end.Year, 1, 1, 0, 0, 0, DateTimeKind.Local);
+					// allow for meteo dates
+					var now = cumulus.MeteoDate().Date;
+
+					end = new DateTime(now.Year + 1, 1, 1, 0, 0, 0, DateTimeKind.Local);
+					start = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local);
 				}
 
 				return (start, end);
@@ -547,6 +559,12 @@ namespace CumulusMX
 		private string Tagwindrunmonth(Dictionary<string, string> tagParams)
 		{
 			var dats = GetMonthStartEndDates(tagParams);
+
+			if (dats.Item1 == DateTime.MinValue)
+			{
+				return tagParams.Get("nv") ?? "-";
+			}
+
 			var year = dats.Item1.Year;
 			var month = dats.Item1.Month;
 
@@ -1170,9 +1188,14 @@ namespace CumulusMX
 			return CheckRc(station.ConSupplyVoltageText ?? tagParams.Get("nv") ?? "--", tagParams);
 		}
 
+		private string TagCapacitorV(Dictionary<string, string> tagParams)
+		{
+			return CheckRc(station.CapacitorVolt.ToString() ?? tagParams.Get("nv") ?? "--", tagParams);
+		}
+
 		private string Tagtxbattery(Dictionary<string, string> tagParams)
 		{
-			var json = tagParams.Get("format") == "json";
+			var json = string.Equals(tagParams.Get("format"), "json", StringComparison.InvariantCultureIgnoreCase);
 
 			if (string.IsNullOrEmpty(station.TxBatText))
 			{
@@ -1598,6 +1621,11 @@ namespace CumulusMX
 		private static string Tagsnowfalling(Dictionary<string, string> tagParams)
 		{
 			return string.Empty;
+		}
+
+		private string Tagsnowunit(Dictionary<string, string> tagParams)
+		{
+			return cumulus.Units.SnowText;
 		}
 
 		private static string TagDiaryThunder(Dictionary<string, string> tagParams)
@@ -3986,7 +4014,24 @@ namespace CumulusMX
 				return tagParams.Get("nv") ?? "-";
 			}
 
-			return CheckRcDp(station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours < 0 ? 0 : rec.SunShineHours), tagParams, 1);
+			var now = cumulus.MeteoDate();
+
+			if (now.Day == 1 && start.Date == now.Date)
+			{
+				// first day of the current month, there are no dayfile entries
+				// so return sunshine so far today
+				return TagSunshineHours(tagParams);
+			}
+
+			var dayfile = station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours < 0 ? 0 : rec.SunShineHours);
+
+			// if current month add todays sunshine to total
+			if (start.Year == now.Year && start.Month == now.Month)
+			{
+				dayfile += station.SunshineHours;
+			}
+
+			return CheckRcDp(dayfile, tagParams, 1);
 		}
 
 		private string TagSunshineHoursYear(Dictionary<string, string> tagParams)
@@ -3996,12 +4041,29 @@ namespace CumulusMX
 			var start = dats.Item1;
 			var end = dats.Item2;
 
+			var now = cumulus.MeteoDate();
+
+			if (now.DayOfYear == 1 && start.Date == now.Date)
+			{
+				// first day of the year month, there are no dayfile entries
+				// so return sunshine so far today
+				return TagSunshineHours(tagParams);
+			}
+
 			if (start == DateTime.MinValue)
 			{
 				return tagParams.Get("nv") ?? "-";
 			}
 
-			return CheckRcDp(station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours < 0 ? 0 : x.SunShineHours), tagParams, 1);
+			var total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours < 0 ? 0 : x.SunShineHours);
+
+			// if current year, add todays sunshine
+			if (start.Year == now.Year)
+			{
+				total += station.SunshineHours;
+			}
+
+			return CheckRcDp(total, tagParams, 1);
 		}
 
 		private string TagMonthTempAvg(Dictionary<string, string> tagParams)
@@ -4020,7 +4082,9 @@ namespace CumulusMX
 					return tagParams.Get("nv") ?? "-";
 				}
 
-				if (start.Date == DateTime.Now.AddHours(cumulus.GetHourInc()).Date)
+				var now = cumulus.MeteoDate();
+
+				if (now.Day == 1 && end.Date == now.Date)
 				{
 					// first day of the current month, there are no dayfile entries
 					// so return the average temp so far today
@@ -4051,6 +4115,15 @@ namespace CumulusMX
 				return tagParams.Get("nv") ?? "-";
 			}
 
+			var now = cumulus.MeteoDate();
+
+			if (now.DayOfYear == 1 && start.Date == now.Date)
+			{
+				// first day of the year month, there are no dayfile entries
+				// so return average temp so far today
+				return Tagavgtemp(tagParams);
+			}
+
 			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
 			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -4071,14 +4144,22 @@ namespace CumulusMX
 					return tagParams.Get("nv") ?? "-";
 				}
 
-				if (start.Date == DateTime.Now.AddHours(cumulus.GetHourInc()).Date)
+				var now = cumulus.MeteoDate();
+
+				if (now.Day == 1 && start.Date == now.Date)
 				{
 					// first day of the current month, there are no dayfile entries
-					total = station.RainMonth;
+					total = station.RainToday;
 				}
 				else
 				{
 					total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(rec => rec.TotalRain);
+
+					// if current month add todays rainfall
+					if (start.Year == now.Year && start.Month == now.Month)
+					{
+						total += station.RainToday;
+					}
 				}
 			}
 			catch
@@ -4854,6 +4935,31 @@ namespace CumulusMX
 			return station.SnowSeason[index].HasValue ? CheckRcDp(station.SnowSeason[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
+		private string TagLaserSnowLatest1(Dictionary<string, string> tagParams)
+		{
+			return GetLaserSnowLatest(1, tagParams);
+		}
+
+		private string TagLaserSnowLatest2(Dictionary<string, string> tagParams)
+		{
+			return GetLaserSnowLatest(2, tagParams);
+		}
+
+		private string TagLaserSnowLatest3(Dictionary<string, string> tagParams)
+		{
+			return GetLaserSnowLatest(3, tagParams);
+		}
+
+		private string TagLaserSnowLatest4(Dictionary<string, string> tagParams)
+		{
+			return GetLaserSnowLatest(4, tagParams);
+		}
+
+		private string GetLaserSnowLatest(int index, Dictionary<string, string> tagParams)
+		{
+			return station.LastLaserSnowDepth[index].HasValue ? CheckRcDp(ConvertUnits.LaserToSnow(station.LastLaserSnowDepth[index].Value), tagParams, 1) : tagParams.Get("nv") ?? "-";
+		}
+
 
 		private string TagAirQuality1(Dictionary<string, string> tagParams)
 		{
@@ -5057,12 +5163,12 @@ namespace CumulusMX
 
 		private string TagCo2(Dictionary<string, string> tagParams)
 		{
-			return station.CO2.HasValue ? station.CO2.ToString() : tagParams.Get("nv") ?? "-";
+			return station.CO2.ToText(tagParams.Get("nv") ?? "-");
 		}
 
 		private string TagCO2_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_24h.HasValue ? station.CO2_24h.ToString() : tagParams.Get("nv") ?? "-";
+			return station.CO2_24h.ToText(tagParams.Get("nv") ?? "-");
 		}
 
 		private string TagCO2_pm2p5(Dictionary<string, string> tagParams)
@@ -5228,6 +5334,15 @@ namespace CumulusMX
 			return vpd.HasValue ? CheckRcDp(CheckPressUnit(vpd.Value, tagParams), tagParams, cumulus.PressDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
+		private string TagBlackGlobeTemp(Dictionary<string, string> tagParams)
+		{
+			return station.BlackGlobeTemp.HasValue ? CheckRcDp(station.BlackGlobeTemp.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+		}
+
+		private string TagWetBulbGlobeTemp(Dictionary<string, string> tagParams)
+		{
+			return station.WetBulbGlobeTemp.HasValue ? CheckRcDp(station.WetBulbGlobeTemp.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+		}
 
 		// Alarms
 		private string TagLowTempAlarm(Dictionary<string, string> tagParams)
@@ -6388,7 +6503,7 @@ namespace CumulusMX
 
 		private static string TagGw1000Reception(Dictionary<string, string> tagParams)
 		{
-			var json = tagParams.Get("format") == "json";
+			var json = string.Equals(tagParams.Get("format"), "json", StringComparison.InvariantCultureIgnoreCase);
 
 			var retVal = new StringBuilder(json ? "{" : string.Empty);
 
@@ -6454,7 +6569,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select OutsideTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select OutsideTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.OutdoorTemperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6463,7 +6578,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindSpeed from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindSpeed from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.WindAverage, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
@@ -6472,7 +6587,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindGust from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindGust from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.RecentMaxGust, tagParams), tagParams, cumulus.WindDPlaces);
 		}
@@ -6481,7 +6596,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindLatest from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindLatest from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.WindLatest, tagParams), tagParams, cumulus.WindDPlaces);
 		}
@@ -6490,7 +6605,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return result.HasValue ? result.ToString() : station.Bearing.ToString();
 		}
@@ -6499,7 +6614,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindAvgDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindAvgDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return result.HasValue ? result.ToString() : station.AvgBearing.ToString();
 		}
@@ -6508,7 +6623,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindChill from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindChill from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.WindChill, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6517,7 +6632,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select DewPoint from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select DewPoint from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.OutdoorDewpoint, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6526,7 +6641,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select HeatIndex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select HeatIndex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.HeatIndex, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6535,7 +6650,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select FeelsLike from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select FeelsLike from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.FeelsLike, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6544,7 +6659,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select AppTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select AppTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.ApparentTemperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
@@ -6553,7 +6668,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(result.HasValue ? result.Value : station.Humidex, tagParams, cumulus.TempDPlaces);
 		}
@@ -6562,7 +6677,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidity from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidity from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return result.HasValue ? result.Value.ToString() : station.OutdoorHumidity.ToString();
 		}
@@ -6583,7 +6698,7 @@ namespace CumulusMX
 			double? result = null;
 			// pesky raincounter can reset, so first we have to test if it has.
 			// get the max value
-			var max = station.RecentDataDb.Query<RecentData>("select Timestamp, max(raincounter) as raincounter from RecentData where Timestamp >= ?", recentTs);
+			var max = station.RecentDataDb.Query<RecentData>("select Timestamp, max(raincounter) as raincounter from RecentData where Timestamp >= ?", recentTs.ToUnixTime());
 			// get the last value
 			var last = station.RecentDataDb.ExecuteScalar<double?>("select raincounter from RecentData order by Timestamp Desc limit 1");
 
@@ -6593,18 +6708,18 @@ namespace CumulusMX
 				{
 					// Counter has reset - we assume only one reset in the period. If there is more than one then this will fail
 					// First part = max_value - start_value
-					var start = station.RecentDataDb.ExecuteScalar<double?>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+					var start = station.RecentDataDb.ExecuteScalar<double?>("select raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 					result = max[0].raincounter - start;
 
 					// Now add on any increment since the reset
-					var resetval = station.RecentDataDb.ExecuteScalar<double?>("select raincounter from RecentData where Timestamp > ? order by Timestamp limit 1", max[0].Timestamp);
+					var resetval = station.RecentDataDb.ExecuteScalar<double?>("select raincounter from RecentData where Timestamp > ? order by Timestamp limit 1", max[0].DateTime.ToUnixTime());
 
 					result += last - resetval;
 				}
 				else
 				{
 					// No counter reset
-					result = station.RecentDataDb.ExecuteScalar<double?>("select (select raincounter from RecentData order by Timestamp Desc limit 1) - raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+					result = station.RecentDataDb.ExecuteScalar<double?>("select (select raincounter from RecentData order by Timestamp Desc limit 1) - raincounter from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 				}
 			}
 
@@ -6615,7 +6730,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select RainToday from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select RainToday from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckRainUnit(result.HasValue ? result.Value : station.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
@@ -6624,7 +6739,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<int?>("select SolarRad from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select SolarRad from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			string solValue;
 			if (result.HasValue)
@@ -6633,7 +6748,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				solValue = station.SolarRad.HasValue ? station.SolarRad.ToString() : tagParams.Get("nv") ?? "-";
+				solValue = station.SolarRad.ToText(tagParams.Get("nv") ?? "-");
 			}
 			return solValue;
 		}
@@ -6642,7 +6757,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select UV from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select UV from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			string uvValue;
 			if (result.HasValue)
@@ -6660,7 +6775,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select IndoorTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select IndoorTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			string indoorTempValue;
 			if (result.HasValue)
@@ -6678,7 +6793,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<int?>("select IndoorHumidity from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<int?>("select IndoorHumidity from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			string indoorHumidityValue;
 			if (result.HasValue)
@@ -6697,9 +6812,9 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<DateTime?>("select Timestamp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<long?>("select Timestamp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return GetFormattedDateTime(result.HasValue ? result.Value : DateTime.Now , tagParams);
+			return GetFormattedDateTime(result.HasValue ? result.Value.LocalFromUnixTime() : DateTime.Now , tagParams);
 		}
 
 		// Recent history with commas replaced
@@ -6805,13 +6920,13 @@ namespace CumulusMX
 			var where = tagParams.Get("where");
 			var from = tagParams.Get("from");
 			var to = tagParams.Get("to");
-			var showDate = tagParams.Get("showDate") == "y";
-			var dateOnly = tagParams.Get("dateOnly") == "y";
-			var resfunc = tagParams.Get("resFunc");
+			var showDate = string.Equals(tagParams.Get("showdate"), "y", StringComparison.InvariantCultureIgnoreCase);
+			var dateOnly = string.Equals(tagParams.Get("dateonly"), "y", StringComparison.InvariantCultureIgnoreCase);
+			var resfunc = tagParams.Get("resfunc");
 
-			tagParams.Add("tc", function == "count" ? "y" : "n");
+			tagParams.Add("tc", string.Equals(function, "count", StringComparison.InvariantCultureIgnoreCase) ? "y" : "n");
 
-			var defaultFormat = function == "count" ? "MM/yyyy" : "g";
+			var defaultFormat = string.Equals(function, "count", StringComparison.InvariantCultureIgnoreCase) ? "MM/yyyy" : "g";
 
 			var ret = station.DayFileQuery.DayFile(value, function, where, from, to, resfunc);
 
@@ -6846,7 +6961,7 @@ namespace CumulusMX
 		public void InitialiseWebtags()
 		{
 			// create the web tag dictionary
-			webTagDictionary = new Dictionary<string, WebTagFunction>
+			webTagDictionary = new Dictionary<string, WebTagFunction>(StringComparer.OrdinalIgnoreCase)
 			{
 				{ "time", TagTime },
 				{ "DaysSince30Dec1899", TagDaysSince30Dec1899 },
@@ -6960,6 +7075,7 @@ namespace CumulusMX
 				{ "battery", Tagbattery },
 				{ "txbattery", Tagtxbattery },
 				{ "ConsoleSupplyV", TagConsoleSupplyV },
+				{ "CapacitorV", TagCapacitorV },
 				{ "LowBatteryList", TagLowBatteryList },
 				{ "MulticastBadCnt", TagMulticastBadCnt },
 				{ "MulticastGoodCnt", TagMulticastGoodCnt },
@@ -6969,6 +7085,7 @@ namespace CumulusMX
 				{ "snowfalling", Tagsnowfalling },
 				{ "snow24hr", Tagsnow24hr },
 				{ "snowcomment", Tagsnowcomment },
+				{ "snowunit", Tagsnowunit },
 				{ "DiaryThunder", TagDiaryThunder },
 				{ "DiaryHail", TagDiaryHail },
 				{ "DiaryFog", TagDiaryFog },
@@ -7447,6 +7564,8 @@ namespace CumulusMX
 				{ "LeafWetness8", TagLeafWetness8 },
 
 				{ "VapourPressDeficit", TagVapourPressDeficit },
+				{ "BlackGlobeTemp", TagBlackGlobeTemp },
+				{ "WetBulbGlobeTemp", TagWetBulbGlobeTemp },
 
 				{ "LowTempAlarm", TagLowTempAlarm },
 				{ "HighTempAlarm", TagHighTempAlarm },
@@ -7560,6 +7679,11 @@ namespace CumulusMX
 				{ "SnowAccumSeason2", TagSnowAccSeason2 },
 				{ "SnowAccumSeason3", TagSnowAccSeason3 },
 				{ "SnowAccumSeason4", TagSnowAccSeason4 },
+
+				{ "LaserSnowLatest1", TagLaserSnowLatest1 },
+				{ "LaserSnowLatest2", TagLaserSnowLatest2 },
+				{ "LaserSnowLatest3", TagLaserSnowLatest3 },
+				{ "LaserSnowLatest4", TagLaserSnowLatest4 },
 
 				// This month's highs and lows - values
 				{ "MonthTempH", TagMonthTempH },
@@ -7898,13 +8022,14 @@ namespace CumulusMX
 
 			cumulus.LogMessage(webTagDictionary.Count + " web tags initialised");
 
-			if (!cumulus.ProgramOptions.ListWebTags) return;
-
-			using StreamWriter file = new StreamWriter(cumulus.WebTagFile);
-
-			foreach (var pair in webTagDictionary)
+			if (cumulus.ProgramOptions.ListWebTags)
 			{
-				file.WriteLine(pair.Key);
+				using StreamWriter file = new StreamWriter(cumulus.WebTagFile);
+
+				foreach (var pair in webTagDictionary)
+				{
+					file.WriteLine(pair.Key);
+				}
 			}
 		}
 

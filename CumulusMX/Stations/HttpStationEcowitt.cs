@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
@@ -109,21 +108,32 @@ namespace CumulusMX.Stations
 				if (cumulus.EcowittSetCustomServer)
 				{
 					cumulus.LogMessage("Checking Ecowitt Gateway Custom Server configuration...");
-					var api = new GW1000Api(cumulus);
-					api.OpenTcpPort(cumulus.EcowittGatewayAddr, 45000);
-					SetCustomServer(api, mainStation);
-					api.CloseTcpPort();
-					cumulus.LogMessage("Ecowitt Gateway Custom Server configuration complete");
+					var httpApi = new EcowittLocalApi(cumulus);
+					if (!SetCustomServerHTTP(httpApi, mainStation))
+					{
+						var api = new GW1000Api(cumulus);
+						if (api.OpenTcpPort(cumulus.EcowittGatewayAddr, 45000))
+						{
+							// try the TCP API first
+							SetCustomServerTCP(api, mainStation);
+							api.CloseTcpPort();
+						}
+					}
 				}
 			}
-			else if (cumulus.EcowittSetCustomServer)
+			else if (cumulus.EcowittExtraSetCustomServer)
 			{
 				cumulus.LogMessage("Checking Ecowitt Extra Gateway Custom Server configuration...");
-				var api = new GW1000Api(cumulus);
-				api.OpenTcpPort(cumulus.EcowittExtraGatewayAddr, 45000);
-				SetCustomServer(api, mainStation);
-				api.CloseTcpPort();
-				cumulus.LogMessage("Ecowitt Extra Gateway Custom Server configuration complete");
+				var httpApi = new EcowittLocalApi(cumulus);
+				if (!SetCustomServerHTTP(httpApi, mainStation))
+				{
+					var api = new GW1000Api(cumulus);
+					if (api.OpenTcpPort(cumulus.EcowittExtraGatewayAddr, 45000))
+					{
+						SetCustomServerTCP(api, mainStation);
+						api.CloseTcpPort();
+					}
+				}
 			}
 
 			if (mainStation || cumulus.ExtraSensorUseAQI)
@@ -278,13 +288,17 @@ namespace CumulusMX.Stations
 				maxArchiveRuns++;
 			}
 
-			ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
+			_ = ecowittApi.GetHistoricData(startTime, endTime, Program.ExitSystemToken);
 
+			if ((DateTime.Now - cumulus.LastUpdateTime.AddMinutes(1)).TotalMinutes > Cumulus.logints[cumulus.DataLogInterval] + 1)
+			{
+				maxArchiveRuns++;
+			}
 		}
 
 		public override string GetEcowittCameraUrl(string mac)
 		{
-			if (cumulus.ExtraSensorUseCamera ^ mainStation)
+			if (mainStation || cumulus.ExtraSensorUseCamera)
 			{
 				if (string.IsNullOrEmpty(mac))
 				{
@@ -308,7 +322,7 @@ namespace CumulusMX.Stations
 
 		public override string GetEcowittVideoUrl(string mac)
 		{
-			if (cumulus.ExtraSensorUseCamera ^ mainStation)
+			if (mainStation || cumulus.ExtraSensorUseCamera)
 			{
 				if (string.IsNullOrEmpty(mac))
 				{
@@ -348,6 +362,13 @@ namespace CumulusMX.Stations
 				ldsbatt[1-4]=2.91?&thi_ch[1-4]=4000&air_ch[1-4]=123&depth_ch[1-4]=3987&ldsheat_ch[1-4]=13
 				thi_ch[1-4] = user defined depth baseline
 
+			and EC soil sensors
+				soil_ec_hum[1-16]
+				soil_ec_hum_ad[1-16]
+				soil_ec_temp[1-16]
+				soil_ec_ec[1-16]
+				soil_ec_ad[1-16]
+				soil_ec_batt[1-16]
 			 */
 
 			var procName = main ? "ProcessData" : "ProcessExtraData";
@@ -666,7 +687,7 @@ namespace CumulusMX.Stations
 						// eventrainin
 
 						// same for piezo data
-						// ​rrain_piezo
+						// rrain_piezo
 						// erain_piezo - event rain
 						// hrain_piezo
 						// drain_piezo
@@ -763,7 +784,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Solar ===
-				if (main || cumulus.ExtraSensorUseSolar)
+				if (Utils.UseSensor(main, cumulus.HasExtraStation, cumulus.ExtraSensorUseSolar))
 				{
 					try
 					{
@@ -778,7 +799,7 @@ namespace CumulusMX.Stations
 
 
 				// === UV ===
-				if (main || cumulus.ExtraSensorUseUv)
+				if (Utils.UseSensor(main, cumulus.HasExtraStation, cumulus.ExtraSensorUseUv))
 				{
 					try
 					{
@@ -944,11 +965,51 @@ namespace CumulusMX.Stations
 					try
 					{
 						// laser_distance
-						ProcessLds(data, thisStation);
+						ProcessLds(data, thisStation, recDate);
 					}
 					catch (Exception ex)
 					{
 						cumulus.LogErrorMessage($"{procName}: Error in Laser Distance data - {ex.Message}");
+					}
+				}
+
+				// === BGT & WBGT ===
+				if (main || cumulus.ExtraSensorUseBGT)
+				{
+					try
+					{
+						ProcessBGT(data, thisStation);
+						ProcessWBGT(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in BGT data - {ex.Message}");
+					}
+				}
+
+				// === Soil EC Moisture ===
+				if (main || cumulus.ExtraSensorUseSoilMoist)
+				{
+					try
+					{
+						ProcessSoilEcMoist(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in Soil EC Moisture data - {ex.Message}");
+					}
+				}
+
+				// === Soil EC Temperature ===
+				if (main || cumulus.ExtraSensorUseSoilTemp)
+				{
+					try
+					{
+						ProcessSoilEcTemp(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in Soil EC Temperature data - {ex.Message}");
 					}
 				}
 
@@ -971,6 +1032,7 @@ namespace CumulusMX.Stations
 					leakbatt[1-4] (wh55)
 					co2_batt
 					ldsbatt1[1-4]
+					soil_ec_batt[1-16]
 					*/
 
 					ProcessBatteries(data);
@@ -1261,6 +1323,22 @@ namespace CumulusMX.Stations
 			}
 		}
 
+		private void ProcessBGT(NameValueCollection data, WeatherStation station)
+		{
+			if (data["bgt"] != null)
+			{
+				station.BlackGlobeTemp = ConvertUnits.TempFToUser(Convert.ToDouble(data["bgt"], invNum));
+			}
+		}
+
+		private void ProcessWBGT(NameValueCollection data, WeatherStation station)
+		{
+			if (data["wbgt"] != null)
+			{
+				station.WetBulbGlobeTemp = ConvertUnits.TempFToUser(Convert.ToDouble(data["wbgt"], invNum));
+			}
+		}
+
 		private void ProcessSoilTemps(NameValueCollection data, WeatherStation station)
 		{
 			if (data["soiltempf"] != null)
@@ -1291,6 +1369,33 @@ namespace CumulusMX.Stations
 				}
 			}
 		}
+
+		private void ProcessSoilEcMoist(NameValueCollection data, WeatherStation station)
+		{
+			for (var i = 1; i <= 16; i++)
+			{
+				if (data["soil_ec_hum" + i] != null)
+				{
+					station.DoSoilMoisture(Convert.ToDouble(data["soil_ec_hum" + i], invNum), i);
+					if (!mainStation)
+					{
+						cumulus.Units.SoilMoistureUnitText[i - 1] = "%";
+					}
+				}
+			}
+		}
+
+		private void ProcessSoilEcTemp(NameValueCollection data, WeatherStation station)
+		{
+			for (var i = 1; i <= 16; i++)
+			{
+				if (data["soil_ec_temp" + i] != null)
+				{
+					station.DoSoilTemp(Convert.ToDouble(data["soil_ec_temp" + i], invNum), i);
+				}
+			}
+		}
+
 
 		/*
 		private static void ProcessSoilMoistRaw(NameValueCollection data, WeatherStation station)
@@ -1440,7 +1545,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void ProcessLds(NameValueCollection data, WeatherStation station)
+		private void ProcessLds(NameValueCollection data, WeatherStation station, DateTime dataTime)
 		{
 			// air_ch[1-4] - air gap mm
 			// thi_ch[1-4] - total height mm
@@ -1450,11 +1555,11 @@ namespace CumulusMX.Stations
 			{
 				if (data["air_ch" + i] != null)
 				{
-					station.DoLaserDistance(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["air_ch" + i], invNum)), i);
+					station.DoLaserDistance(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["air_ch" + i], invNum)), i, dataTime);
 				}
 				else
 				{
-					station.DoLaserDistance(null, i);
+					station.DoLaserDistance(null, i, dataTime);
 				}
 
 				if (cumulus.LaserDepthBaseline[i] == -1)
@@ -1462,13 +1567,14 @@ namespace CumulusMX.Stations
 					// MX is not calculating depth
 					if (data["depth_ch" + i] != null)
 					{
-						station.DoLaserDepth(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i);
+						station.DoLaserDepth(ConvertUnits.LaserMmToUser(Convert.ToInt32(data["depth_ch" + i], invNum)), i, dataTime);
 					}
 					else
 					{
-						station.DoLaserDepth(null, i);
+						station.DoLaserDepth(null, i, dataTime);
 					}
 				}
+				// else DoLaserDistance() calcs the depth
 			}
 		}
 
@@ -1494,6 +1600,7 @@ namespace CumulusMX.Stations
 				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["ldsbatt" + i] != null && Convert.ToDouble(data["ldsbatt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["soil_ec_batt" + i] != null && Convert.ToDouble(data["soil_ec_batt" + i], invNum) <= 1.2);
 			}
 			for (var i = 5; i < 9; i++)
 			{
@@ -1501,6 +1608,11 @@ namespace CumulusMX.Stations
 				lowBatt = lowBatt || (data["soilbatt" + i] != null && Convert.ToDouble(data["soilbatt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["tf_batt" + i]  != null && Convert.ToDouble(data["tf_batt" + i], invNum) <= 1.2);
 				lowBatt = lowBatt || (data["leaf_batt" + i] != null && Convert.ToDouble(data["leaf_batt" + i], invNum) <= 1.2);
+				lowBatt = lowBatt || (data["soil_ec_batt" + i] != null && Convert.ToDouble(data["soil_ec_batt" + i], invNum) <= 1.2);
+			}
+			for (var i = 9;  i < 17; i++)
+			{
+				lowBatt = lowBatt || (data["soil_ec_batt" + i] != null && Convert.ToDouble(data["soil_ec_batt" + i], invNum) <= 1.2);
 			}
 
 			cumulus.BatteryLowAlarm.Triggered = lowBatt;
@@ -1518,9 +1630,9 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void SetCustomServer(GW1000Api api, bool main)
+		private void SetCustomServerTCP(GW1000Api api, bool main)
 		{
-			cumulus.LogMessage("Reading Ecowitt Gateway Custom Server config");
+			cumulus.LogMessage("Reading Ecowitt Gateway Custom Server config via TCP protocol");
 
 			var customPath = main ? "/station/ecowitt" : "/station/ecowittextra";
 			var customServer = main ? cumulus.EcowittLocalAddr : cumulus.EcowittExtraLocalAddr;
@@ -1677,9 +1789,68 @@ namespace CumulusMX.Stations
 			}
 			else
 			{
-				cumulus.LogErrorMessage("Error reading Ecowitt Gateway Custom Server config, cannot configure it");
+				cumulus.LogErrorMessage("Could not read Ecowitt Gateway Custom Server config via TCP protocol - NOT configured");
 			}
 		}
+
+		private bool SetCustomServerHTTP(EcowittLocalApi api, bool main)
+		{
+			cumulus.LogMessage("Reading Ecowitt Gateway Custom Server config via HTTP protocol");
+
+			var customPath = main ? "/station/ecowitt" : "/station/ecowittextra";
+			var customServer = main ? cumulus.EcowittLocalAddr : cumulus.EcowittExtraLocalAddr;
+			var customPort = cumulus.wsPort;
+			var customIntv = (main ? cumulus.EcowittCustomInterval : cumulus.EcowittExtraCustomInterval) - 1;
+
+			var conf = api.GetWeatherServiceSettings(main, Program.ExitSystemToken).Result;
+
+			if (conf != null)
+			{
+				try
+				{
+					cumulus.LogMessage($"Ecowitt Gateway Custom Server config: Server={conf.ecowitt_ip}, Port={conf.ecowitt_port}, Path={conf.ecowitt_path}, Interval={conf.ecowitt_upload}, Protocol={conf.Protocol}, Enabled={conf.Customized}");
+
+					// Some devices send 0/1, others disabled/enabled!
+					var enable = conf.Customized == "0" || conf.Customized == "1" ? "1" : "enable";
+
+					if (conf.ecowitt_ip != customServer || conf.ecowitt_port != customPort.ToString() || conf.ecowitt_path != customPath || conf.ecowitt_upload != customIntv.ToString() || conf.Protocol != "ecowitt" || conf.Customized != enable)
+					{
+						cumulus.LogMessage("Ecowitt Gateway Custom Server config does not match the required config, reconfiguring it...");
+
+						conf.ecowitt_ip = customServer;
+						conf.ecowitt_port = customPort.ToString();
+						conf.ecowitt_path = customPath;
+						conf.ecowitt_upload = customIntv.ToString();
+						conf.Protocol = "ecowitt";
+						conf.Customized = enable;
+
+						// do the config
+						if (api.SetWeatherServiceSettings(conf, main, Program.ExitSystemToken).Result)
+						{
+							cumulus.LogMessage($"Set Ecowitt Gateway Custom Server config to: Server={customServer}, Port={customPort}, Interval={customIntv}, Protocol=ecowitt, Enabled=true");
+							cumulus.LogMessage("Ecowitt Gateway Custom Server. Note, the set interval should be 1 less than the value set in the CMX configuration");
+						}
+						else
+						{
+							cumulus.LogErrorMessage("Error - failed to set the Ecowitt Gateway config");
+							return false;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage("Error setting Ecowitt Gateway Custom Server config: " + ex.Message);
+					return false;
+				}
+			}
+			else
+			{
+				cumulus.LogMessage("Could not read Ecowitt Gateway Custom Server config via HTTP protocol");
+				return false;
+			}
+			return true;
+		}
+
 
 		private void ForwardData(string data, bool main)
 		{

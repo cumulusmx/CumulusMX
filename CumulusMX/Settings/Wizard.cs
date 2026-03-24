@@ -2,11 +2,9 @@
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack;
-using ServiceStack.Text;
 
 namespace CumulusMX.Settings
 {
@@ -237,7 +235,7 @@ namespace CumulusMX.Settings
 				website = website
 			};
 
-			return JsonSerializer.SerializeToString(settings);
+			return JsonSerializer.Serialize(settings);
 		}
 
 		public string UpdateConfig(IHttpContext context)
@@ -258,7 +256,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonWizard>();
+				settings = JsonSerializer.Deserialize<JsonWizard>(json);
 			}
 			catch (Exception ex)
 			{
@@ -294,9 +292,13 @@ namespace CumulusMX.Settings
 						{
 							cumulus.FtpOptions.SshAuthen = string.IsNullOrWhiteSpace(settings.internet.ftp.sshAuth) ? string.Empty : settings.internet.ftp.sshAuth.Trim();
 							cumulus.FtpOptions.SshPskFile = string.IsNullOrWhiteSpace(settings.internet.ftp.pskFile) ? string.Empty : settings.internet.ftp.pskFile.Trim();
+							cumulus.CreateUpdateSftpClientFactory();
 						}
-
-						if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.PHP)
+						else if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTP || cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.FTPS)
+						{
+							cumulus.CreateUpdateFtpClientFactory();
+						}
+						else if (cumulus.FtpOptions.FtpMode == Cumulus.FtpProtocols.PHP)
 						{
 							cumulus.FtpOptions.PhpUrl = settings.internet.ftp.phpurl;
 							cumulus.FtpOptions.PhpSecret = settings.internet.ftp.phpsecret;
@@ -339,7 +341,7 @@ namespace CumulusMX.Settings
 					cumulus.MoonImage.Ftp = cumulus.FtpOptions.Enabled;
 					cumulus.MoonImage.Copy = cumulus.FtpOptions.LocalCopyEnabled;
 					if (cumulus.MoonImage.Enabled)
-						cumulus.MoonImage.CopyDest = cumulus.FtpOptions.LocalCopyFolder + "images" + cumulus.DirectorySeparator + "moon.png";
+						cumulus.MoonImage.CopyDest = Path.Combine(cumulus.FtpOptions.LocalCopyFolder, "images", "moon.png");
 
 					// and NOAA reports
 					cumulus.NOAAconf.Create = cumulus.FtpOptions.Enabled || cumulus.FtpOptions.LocalCopyEnabled;
@@ -347,11 +349,11 @@ namespace CumulusMX.Settings
 					cumulus.NOAAconf.AutoCopy = cumulus.FtpOptions.LocalCopyEnabled;
 					if (cumulus.NOAAconf.AutoCopy)
 					{
-						cumulus.NOAAconf.CopyFolder = cumulus.FtpOptions.LocalCopyFolder + "Reports";
+						cumulus.NOAAconf.CopyFolder = Path.Combine(cumulus.FtpOptions.LocalCopyFolder, "Reports");
 					}
 					if (cumulus.NOAAconf.AutoFtp)
 					{
-						cumulus.NOAAconf.FtpFolder = cumulus.FtpOptions.Directory + (cumulus.FtpOptions.Directory.EndsWith('/') ? "" : "/") + "Reports";
+						cumulus.NOAAconf.FtpFolder = Path.Combine(cumulus.FtpOptions.Directory, "Reports");
 					}
 				}
 				catch (Exception ex)

@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-
-using ServiceStack;
-using ServiceStack.Text;
 
 using Swan;
 
@@ -24,7 +23,7 @@ namespace CumulusMX.Stations
 		private readonly string ipaddr;
 		private readonly System.Timers.Timer tmrCurrent;
 		private System.Timers.Timer tmrHealth;
-		private readonly object threadSafer = new();
+		private readonly Lock threadLock = new();
 		private static readonly SemaphoreSlim WebReq = new(1);
 		private bool startupDayResetIfRequired = true;
 		//private int maxArchiveRuns = 1
@@ -305,7 +304,7 @@ namespace CumulusMX.Stations
 
 			updateInProgress = true;
 
-			lock (threadSafer)
+			lock (threadLock)
 			{
 				ip = indoor ? cumulus.AirLinkInIPAddr : cumulus.AirLinkOutIPAddr;
 			}
@@ -335,7 +334,7 @@ namespace CumulusMX.Stations
 
 						try
 						{
-							DecodeAlCurrent(responseBody);
+							DecodeAlCurrent(responseBody, indoor);
 							if (startupDayResetIfRequired)
 							{
 								station.DoDayResetIfNeeded();
@@ -374,12 +373,28 @@ namespace CumulusMX.Stations
 			updateInProgress = false;
 		}
 
-		private void DecodeAlCurrent(string currentJson)
+		private void DecodeAlCurrent(string currentJson, bool indoor)
 		{
 			try
 			{
 				// Convert JSON string to an object
-				var json = currentJson.FromJson<AlCurrent>();
+				var json = JsonSerializer.Deserialize<AlCurrent>(currentJson);
+
+				// Old firmware used 0 rather than null for no error
+				if (json.error != null)
+				{
+					if (json.error.GetValueKind() == JsonValueKind.Number)
+					{
+						// old style error format
+						if (json.error.ToString() != "0")
+							cumulus.LogErrorMessage($"DecodeAlCurrent: AirLink returned error code {json.error}");
+					}
+					else
+					{
+						var err = JsonSerializer.Deserialize<AlError>(json.error);
+						cumulus.LogErrorMessage($"DecodeAlCurrent: AirLink returned error code {err.code} - \"{err.message}\"");
+					}
+				}
 
 				// The WLL sends the timestamp in Unix ticks, and in UTC
 				// rather than rely on the WLL clock being correct, we will use our local time
@@ -391,8 +406,14 @@ namespace CumulusMX.Stations
 				if (rec.pct_pm_data_last_1_hour == 0 && rec.pm2p5_last == 0 && rec.pm_10_last == 0)
 				{
 					cumulus.LogMessage("Ignoring AirLink data with zero values and percent in last hour is also 0 - possibly restarted");
-					cumulus.airLinkDataIn.dataValid = false;
-					cumulus.airLinkDataOut.dataValid = false;
+					if (indoor)
+					{
+						cumulus.airLinkDataIn.dataValid = false;
+					}
+					else
+					{
+						cumulus.airLinkDataOut.dataValid = false;
+					}
 					return;
 				}
 
@@ -419,11 +440,11 @@ namespace CumulusMX.Stations
 
 							if (indoor)
 							{
-								cumulus.airLinkDataIn.temperature = ConvertUnits.TempFToUser(rec.temp);
+								cumulus.airLinkDataIn.temperature = ConvertUnits.TempFToUser(rec.temp ?? 0);
 							}
 							else
 							{
-								cumulus.airLinkDataOut.temperature = ConvertUnits.TempFToUser(rec.temp);
+								cumulus.airLinkDataOut.temperature = ConvertUnits.TempFToUser(rec.temp ?? 0);
 							}
 						}
 						catch (Exception ex)
@@ -484,27 +505,27 @@ namespace CumulusMX.Stations
 						{
 							if (indoor)
 							{
-								cumulus.airLinkDataIn.pm1 = rec.pm_1;
-								cumulus.airLinkDataIn.pm2p5 = rec.pm_2p5;
-								cumulus.airLinkDataIn.pm2p5_1hr = rec.pm_2p5_last_1_hour;
-								cumulus.airLinkDataIn.pm2p5_3hr = rec.pm_2p5_last_3_hours;
-								cumulus.airLinkDataIn.pm2p5_24hr = rec.pm_2p5_last_24_hours;
-								cumulus.airLinkDataIn.pm2p5_nowcast = rec.pm_2p5_nowcast;
+								cumulus.airLinkDataIn.pm1 = rec.pm_1 ?? 0;
+								cumulus.airLinkDataIn.pm2p5 = rec.pm_2p5 ?? 0;
+								cumulus.airLinkDataIn.pm2p5_1hr = rec.pm_2p5_last_1_hour ?? 0;
+								cumulus.airLinkDataIn.pm2p5_3hr = rec.pm_2p5_last_3_hours ?? 0;
+								cumulus.airLinkDataIn.pm2p5_24hr = rec.pm_2p5_last_24_hours ?? 0;
+								cumulus.airLinkDataIn.pm2p5_nowcast = rec.pm_2p5_nowcast ?? 0;
 								if (type == 5)
 								{
-									cumulus.airLinkDataIn.pm10 = rec.pm_10p0;
-									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10p0_last_1_hour;
-									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10p0_last_3_hours;
-									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10p0_last_24_hours;
-									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10p0_nowcast;
+									cumulus.airLinkDataIn.pm10 = rec.pm_10p0 ?? 0;
+									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10p0_last_1_hour ?? 0;
+									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10p0_last_3_hours ?? 0;
+									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10p0_last_24_hours ?? 0;
+									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10p0_nowcast ?? 0;
 								}
 								else
 								{
-									cumulus.airLinkDataIn.pm10 = rec.pm_10;
-									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10_last_1_hour;
-									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10_last_3_hours;
-									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10_last_24_hours;
-									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10_nowcast;
+									cumulus.airLinkDataIn.pm10 = rec.pm_10 ?? 0;
+									cumulus.airLinkDataIn.pm10_1hr = rec.pm_10_last_1_hour ?? 0;
+									cumulus.airLinkDataIn.pm10_3hr = rec.pm_10_last_3_hours ?? 0;
+									cumulus.airLinkDataIn.pm10_24hr = rec.pm_10_last_24_hours ?? 0;
+									cumulus.airLinkDataIn.pm10_nowcast = rec.pm_10_nowcast ?? 0;
 								}
 								cumulus.airLinkDataIn.pct_1hr = rec.pct_pm_data_last_1_hour;
 								cumulus.airLinkDataIn.pct_3hr = rec.pct_pm_data_last_3_hours;
@@ -516,27 +537,27 @@ namespace CumulusMX.Stations
 							}
 							else
 							{
-								cumulus.airLinkDataOut.pm1 = rec.pm_1;
-								cumulus.airLinkDataOut.pm2p5 = rec.pm_2p5;
-								cumulus.airLinkDataOut.pm2p5_1hr = rec.pm_2p5_last_1_hour;
-								cumulus.airLinkDataOut.pm2p5_3hr = rec.pm_2p5_last_3_hours;
-								cumulus.airLinkDataOut.pm2p5_24hr = rec.pm_2p5_last_24_hours;
-								cumulus.airLinkDataOut.pm2p5_nowcast = rec.pm_2p5_nowcast;
+								cumulus.airLinkDataOut.pm1 = rec.pm_1 ?? 0;
+								cumulus.airLinkDataOut.pm2p5 = rec.pm_2p5 ?? 0;
+								cumulus.airLinkDataOut.pm2p5_1hr = rec.pm_2p5_last_1_hour ?? 0;
+								cumulus.airLinkDataOut.pm2p5_3hr = rec.pm_2p5_last_3_hours ?? 0;
+								cumulus.airLinkDataOut.pm2p5_24hr = rec.pm_2p5_last_24_hours ?? 0;
+								cumulus.airLinkDataOut.pm2p5_nowcast = rec.pm_2p5_nowcast ?? 0;
 								if (type == 5)
 								{
-									cumulus.airLinkDataOut.pm10 = rec.pm_10p0;
-									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10p0_last_1_hour;
-									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10p0_last_3_hours;
-									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10p0_last_24_hours;
-									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10p0_nowcast;
+									cumulus.airLinkDataOut.pm10 = rec.pm_10p0 ?? 0;
+									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10p0_last_1_hour ?? 0;
+									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10p0_last_3_hours ?? 0;
+									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10p0_last_24_hours ?? 0;
+									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10p0_nowcast ?? 0;
 								}
 								else
 								{
-									cumulus.airLinkDataOut.pm10 = rec.pm_10;
-									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10_last_1_hour;
-									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10_last_3_hours;
-									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10_last_24_hours;
-									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10_nowcast;
+									cumulus.airLinkDataOut.pm10 = rec.pm_10 ?? 0;
+									cumulus.airLinkDataOut.pm10_1hr = rec.pm_10_last_1_hour ?? 0;
+									cumulus.airLinkDataOut.pm10_3hr = rec.pm_10_last_3_hours ?? 0;
+									cumulus.airLinkDataOut.pm10_24hr = rec.pm_10_last_24_hours ?? 0;
+									cumulus.airLinkDataOut.pm10_nowcast = rec.pm_10_nowcast ?? 0;
 								}
 								cumulus.airLinkDataOut.pct_1hr = rec.pct_pm_data_last_1_hour;
 								cumulus.airLinkDataOut.pct_3hr = rec.pct_pm_data_last_3_hours;
@@ -831,7 +852,7 @@ namespace CumulusMX.Stations
 				}
 				*/
 
-		public void DecodeAlHistoric(int dataType, string json)
+		public void DecodeAlHistoric(int dataType, JsonNode json)
 		{
 			try
 			{
@@ -881,13 +902,13 @@ namespace CumulusMX.Stations
 							cumulus.airLinkDataOut.dataValid = true;
 						}
 
-						var data17 = json.FromJsv<WlHistorySensorDataType17>();
+						var data17 = json.Deserialize<WlHistorySensorDataType17>();
 
 						try
 						{
 							cumulus.LogDebugMessage($"DecodeAlHistoric: {locationStr} - Using temp/hum data");
 
-							if (data17.temp_avg < -98)
+							if (!data17.temp_avg.HasValue || data17.temp_avg < -98)
 							{
 								cumulus.LogWarningMessage($"DecodeAlHistoric: No valid temperature value found");
 							}
@@ -895,11 +916,11 @@ namespace CumulusMX.Stations
 							{
 								if (indoor)
 								{
-									cumulus.airLinkDataIn.temperature = ConvertUnits.TempFToUser(data17.temp_avg);
+									cumulus.airLinkDataIn.temperature = ConvertUnits.TempFToUser(data17.temp_avg.Value);
 								}
 								else
 								{
-									cumulus.airLinkDataOut.temperature = ConvertUnits.TempFToUser(data17.temp_avg);
+									cumulus.airLinkDataOut.temperature = ConvertUnits.TempFToUser(data17.temp_avg.Value);
 								}
 							}
 						}
@@ -932,14 +953,14 @@ namespace CumulusMX.Stations
 							cumulus.LogDebugMessage($"DecodeAlHistoric: {locationStr} - Using PM data");
 							if (indoor)
 							{
-								cumulus.airLinkDataIn.pm1 = data17.pm_1_avg;
-								cumulus.airLinkDataIn.pm2p5 = data17.pm_2p5_avg;
+								cumulus.airLinkDataIn.pm1 = data17.pm_1_avg ?? 0;
+								cumulus.airLinkDataIn.pm2p5 = data17.pm_2p5_avg ?? 0;
 								//cumulus.airLinkDataIn.pm2p5_1hr = data.Value<double>("pm_2p5_last_1_hour")
 								//cumulus.airLinkDataIn.pm2p5_3hr = rec.Value<double>("pm_2p5_last_3_hours")
 								//cumulus.airLinkDataIn.pm2p5_24hr = rec.Value<double>("pm_2p5_last_24_hours")
 								//cumulus.airLinkDataIn.pm2p5_nowcast = rec.Value<double>("pm_2p5_nowcast")
 
-								cumulus.airLinkDataIn.pm10 = data17.pm_10_avg;
+								cumulus.airLinkDataIn.pm10 = data17.pm_10_avg ?? 0;
 								//cumulus.airLinkDataIn.pm10_1hr = rec.Value<double>("pm_10_last_1_hour")
 								//cumulus.airLinkDataIn.pm10_3hr = rec.Value<double>("pm_10_last_3_hours")
 								//cumulus.airLinkDataIn.pm10_24hr = rec.Value<double>("pm_10_last_24_hours")
@@ -957,19 +978,19 @@ namespace CumulusMX.Stations
 								// then add the PM data into the graphdata list
 								if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkIndoor && standaloneHistory)
 								{
-									station.UpdateRecentDataAqEntry(data17.ts.FromUnixTime(), cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
+									station.UpdateRecentDataAqEntry(data17.ts, cumulus.airLinkDataIn.pm2p5, cumulus.airLinkDataIn.pm10);
 								}
 							}
 							else
 							{
-								cumulus.airLinkDataOut.pm1 = data17.pm_1_avg;
-								cumulus.airLinkDataOut.pm2p5 = data17.pm_2p5_avg;
+								cumulus.airLinkDataOut.pm1 = data17.pm_1_avg ?? 0;
+								cumulus.airLinkDataOut.pm2p5 = data17.pm_2p5_avg ?? 0;
 								//cumulus.airLinkDataOut.pm2p5_1hr = rec.Value<double>("pm_2p5_last_1_hour")
 								//cumulus.airLinkDataOut.pm2p5_3hr = rec.Value<double>("pm_2p5_last_3_hours")
 								//cumulus.airLinkDataOut.pm2p5_24hr = rec.Value<double>("pm_2p5_last_24_hours")
 								//cumulus.airLinkDataOut.pm2p5_nowcast = rec.Value<double>("pm_2p5_nowcast")
 
-								cumulus.airLinkDataOut.pm10 = data17.pm_10_avg;
+								cumulus.airLinkDataOut.pm10 = data17.pm_10_avg ?? 0;
 								//cumulus.airLinkDataOut.pm10_1hr = rec.Value<double>("pm_10_last_1_hour")
 								//cumulus.airLinkDataOut.pm10_3hr = rec.Value<double>("pm_10_last_3_hours")
 								//cumulus.airLinkDataOut.pm10_24hr = rec.Value<double>("pm_10_last_24_hours")
@@ -987,7 +1008,7 @@ namespace CumulusMX.Stations
 								// then add the PM data into the graphdata list
 								if (cumulus.StationOptions.PrimaryAqSensor == (int) Cumulus.PrimaryAqSensor.AirLinkOutdoor && standaloneHistory)
 								{
-									station.UpdateRecentDataAqEntry(data17.ts.FromUnixTime(), cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
+									station.UpdateRecentDataAqEntry(data17.ts, cumulus.airLinkDataOut.pm2p5, cumulus.airLinkDataOut.pm10);
 								}
 							}
 						}
@@ -1082,7 +1103,7 @@ namespace CumulusMX.Stations
 			var startTime = unixDateTime - WeatherLinkArchiveInterval;
 			var endTime = unixDateTime;
 
-			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {startTime.FromUnixTime():s} to: {endTime.FromUnixTime():s}");
+			cumulus.LogDebugMessage($"AirLinkHealth: Downloading the historic record from WL.com from: {startTime.LocalFromUnixTime():s} to: {endTime.LocalFromUnixTime():s}");
 
 			var historicUrl = new StringBuilder("https://api.weatherlink.com/v2/historic/" + stationId);
 			historicUrl.Append("?api-key=" + apiKey);
@@ -1109,7 +1130,7 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var errObj = responseBody.FromJson<WlErrorResponse>();
+					var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
 					cumulus.LogErrorMessage($"AirLinkHealth: WeatherLink API Error: {errObj.code}, {errObj.message}");
 					return;
 				}
@@ -1129,7 +1150,7 @@ namespace CumulusMX.Stations
 					return;
 				}
 
-				histObj = responseBody.FromJson<WlHistory>();
+				histObj = JsonSerializer.Deserialize<WlHistory>(responseBody);
 
 				if (histObj.sensors.Count == 0)
 				{
@@ -1211,12 +1232,12 @@ namespace CumulusMX.Stations
 				cumulus.LogDebugMessage($"AirLinkHealth: {locationStr} - Found health data for AirLink device");
 				try
 				{
-					var data = sensor.data[^1].FromJsv<WlHistorySensorDataType18>();
+					var data = sensor.data[^1].Deserialize<WlHistorySensorDataType18>();
 
 					try
 					{
 						// Davis are changing the API, from air_quality_firmware_version to firmware_version
-						var dat = (data.air_quality_firmware_version ?? data.firmware_version.Value).FromUnixTime();
+						var dat = (data.air_quality_firmware_version ?? data.firmware_version.Value).LocalFromUnixTime();
 						if (indoor)
 							cumulus.airLinkDataIn.firmwareVersion = dat.ToUniversalTime().ToString("yyyy-MM-dd");
 						else
@@ -1248,21 +1269,24 @@ namespace CumulusMX.Stations
 
 					try
 					{
-						var upt = TimeSpan.FromSeconds(data.uptime);
-						var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
-								(int) upt.TotalDays,
-								upt.Hours,
-								upt.Minutes,
-								upt.Seconds);
-						cumulus.LogDebugMessage($"AirLinkHealth: {locationStr} - Uptime = " + uptStr);
+						if (data.uptime.HasValue)
+						{
+							var upt = TimeSpan.FromSeconds(data.uptime.Value);
+							var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
+									(int) upt.TotalDays,
+									upt.Hours,
+									upt.Minutes,
+									upt.Seconds);
+							cumulus.LogDebugMessage($"AirLinkHealth: {locationStr} - Uptime = " + uptStr);
 
-						if (indoor)
-						{
-							cumulus.airLinkDataIn.uptime = upt;
-						}
-						else
-						{
-							cumulus.airLinkDataOut.uptime = upt;
+							if (indoor)
+							{
+								cumulus.airLinkDataIn.uptime = upt;
+							}
+							else
+							{
+								cumulus.airLinkDataOut.uptime = upt;
+							}
 						}
 					}
 					catch (Exception ex)
@@ -1272,21 +1296,24 @@ namespace CumulusMX.Stations
 
 					try
 					{
-						var upt = TimeSpan.FromSeconds(data.link_uptime);
-						var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
-								(int) upt.TotalDays,
-								upt.Hours,
-								upt.Minutes,
-								upt.Seconds);
-						cumulus.LogDebugMessage($"AirLinkHealth: {locationStr} - Link Uptime = " + uptStr);
+						if (data.link_uptime.HasValue)
+						{
+							var upt = TimeSpan.FromSeconds(data.link_uptime.Value);
+							var uptStr = string.Format("{0}d:{1:D2}h:{2:D2}m:{3:D2}s",
+									(int) upt.TotalDays,
+									upt.Hours,
+									upt.Minutes,
+									upt.Seconds);
+							cumulus.LogDebugMessage($"AirLinkHealth: {locationStr} - Link Uptime = " + uptStr);
 
-						if (indoor)
-						{
-							cumulus.airLinkDataIn.linkUptime = upt;
-						}
-						else
-						{
-							cumulus.airLinkDataOut.linkUptime = upt;
+							if (indoor)
+							{
+								cumulus.airLinkDataIn.linkUptime = upt;
+							}
+							else
+							{
+								cumulus.airLinkDataOut.linkUptime = upt;
+							}
 						}
 					}
 					catch (Exception ex)
@@ -1363,12 +1390,11 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var errObj = responseBody.FromJson<WlErrorResponse>();
-					cumulus.LogWarningMessage($"WeatherLink API Error: {errObj.code} - {errObj.message}");
+					var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
 					return;
 				}
 
-				stationsObj = responseBody.FromJson<WlStationList>();
+				stationsObj = JsonSerializer.Deserialize<WlStationList>(responseBody);
 
 				foreach (var stn in stationsObj.stations)
 				{
@@ -1446,12 +1472,12 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var errObj = responseBody.FromJson<WlErrorResponse>();
+					var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
 					cumulus.LogErrorMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message}");
 					return;
 				}
 
-				sensorsObj = responseBody.FromJson<WlSensorList>();
+				sensorsObj = JsonSerializer.Deserialize<WlSensorList>(responseBody);
 
 				WlSensor wl_sensor;
 
@@ -1514,7 +1540,7 @@ namespace CumulusMX.Stations
 			cumulus.LogDebugMessage($"ZeroConf Service: {startChar} '{service.Instance}' on {service.NetworkInterface.Name}");
 			cumulus.LogDebugMessage($"\tHost: {service.Hostname} ({string.Join(", ", service.Addresses)})");
 
-			lock (threadSafer)
+			lock (threadLock)
 			{
 				foreach (var ip in service.Addresses)
 				{
@@ -1684,46 +1710,53 @@ namespace CumulusMX.Stations
 		private sealed class AlCurrent
 		{
 			public AlCurrentData data { get; set; }
+			public JsonNode error { get; set; } // Different firmware version handle this differently!
+		}
+
+		private sealed class AlError
+		{
+			public int code { get; set; }
+			public string message { get; set; }
 		}
 
 		private sealed class AlCurrentData
 		{
 			public string did { get; set; }
 			public string name { get; set; }
-			public int ts { get; set; }
+			public long ts { get; set; }
 			public List<AlCurrentRec> conditions { get; set; }
 		}
 
 		private sealed class AlCurrentRec
 		{
 			// only added fields we may need
-			public string lsid { get; set; }
+			public int lsid { get; set; }
 			public int data_structure_type { get; set; }
-			public double temp { get; set; }
-			public double hum { get; set; }
+			public double? temp { get; set; }
+			public double? hum { get; set; }
 
-			public double pm_1 { get; set; }
-			public double pm_1_last { get; set; }
+			public double? pm_1 { get; set; }
+			public double? pm_1_last { get; set; }
 
-			public double pm_2p5 { get; set; }
-			public double pm2p5_last { get; set; }
-			public double pm_2p5_last_1_hour { get; set; }
-			public double pm_2p5_last_3_hours { get; set; }
-			public double pm_2p5_last_24_hours { get; set; }
-			public double pm_2p5_nowcast { get; set; }
+			public double? pm_2p5 { get; set; }
+			public double? pm2p5_last { get; set; }
+			public double? pm_2p5_last_1_hour { get; set; }
+			public double? pm_2p5_last_3_hours { get; set; }
+			public double? pm_2p5_last_24_hours { get; set; }
+			public double? pm_2p5_nowcast { get; set; }
 
 
-			public double pm_10 { get; set; }       // Type 6
-			public double pm_10p0 { get; set; } // Type 5
-			public double pm_10_last { get; set; }
-			public double pm_10_last_1_hour { get; set; }       // Type 6
-			public double pm_10p0_last_1_hour { get; set; } // Type 5
-			public double pm_10_last_3_hours { get; set; }      // Type 6
-			public double pm_10p0_last_3_hours { get; set; }   // Type 5
-			public double pm_10_last_24_hours { get; set; } // Type 6
-			public double pm_10p0_last_24_hours { get; set; }  // Type 5
-			public double pm_10_nowcast { get; set; }       // Type 6
-			public double pm_10p0_nowcast { get; set; } // Type 5
+			public double? pm_10 { get; set; }       // Type 6
+			public double? pm_10p0 { get; set; } // Type 5
+			public double? pm_10_last { get; set; }
+			public double? pm_10_last_1_hour { get; set; }       // Type 6
+			public double? pm_10p0_last_1_hour { get; set; } // Type 5
+			public double? pm_10_last_3_hours { get; set; }      // Type 6
+			public double? pm_10p0_last_3_hours { get; set; }   // Type 5
+			public double? pm_10_last_24_hours { get; set; } // Type 6
+			public double? pm_10p0_last_24_hours { get; set; }  // Type 5
+			public double? pm_10_nowcast { get; set; }       // Type 6
+			public double? pm_10p0_nowcast { get; set; } // Type 5
 
 			public int pct_pm_data_last_1_hour { get; set; }
 			public int pct_pm_data_last_3_hours { get; set; }

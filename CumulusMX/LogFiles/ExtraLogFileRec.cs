@@ -1,0 +1,394 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
+
+namespace CumulusMX.LogFiles
+{
+	internal class ExtraLogFileRec
+	{
+		public string DateTimeStr { get; set; }
+
+		public long UnixTimestamp;
+		public DateTime DateTime
+		{
+			get
+			{
+				return UnixTimestamp.LocalFromUnixTime();
+			}
+			set
+			{
+				UnixTimestamp = value.ToUnixTime();
+				DateTimeStr = value.ToString("dd/MM/yy HH:mm", CultureInfo.InvariantCulture);
+			}
+		}
+		public double?[] ExtraTemp { get; set; } = new double?[17];
+		public int?[] ExtraHum { get; set; } = new int?[17];
+		public double?[] ExtraDewpoint { get; set; } = new double?[17];
+		public double?[] SoilTemp { get; set; } = new double?[17];
+		public int?[] SoilMoist { get; set; } = new int?[17];
+		public double?[] LeafWetness { get; set; } = new double?[9];
+		public double?[] AirQuality { get; set; } = new double?[5];
+		public double?[] AirQualityAvg { get; set; } = new double?[5];
+		public double?[] AirQuality10 { get; set; } = new double?[5];
+		public double?[] AirQuality10Avg { get; set; } = new double?[5];
+		public double?[] UserTemp { get; set; } = new double?[9];
+		public double? CO2 { get; set; }
+		public double? CO2_24h { get; set; }
+		public double? CO2_pm2p5 { get; set; }
+		public double? CO2_pm2p5_24h { get; set; }
+		public double? CO2_pm10 { get; set; }
+		public double? CO2_pm10_24h { get; set; }
+		public double? CO2_temperature { get; set; }
+		public int? CO2_humidity { get; set; }
+		public double?[] LaserDist { get; set; } = new double?[5];
+		public double?[] LaserDepth { get; set; } = new double?[5];
+		public double? Snow24h { get; set; }
+
+		public ExtraLogFileRec()
+		{
+		}
+
+		public ExtraLogFileRec(string csv)
+		{
+			ParseCsvRec(csv);
+		}
+
+
+		// errors are caught by the caller
+		public void ParseCsvRec(string data)
+		{
+			// 0  Date/Time in the form dd/mm/yy hh:mm
+			// 1  Current Unix timestamp
+			// 2-11  Temperature 1-10
+			// 12-21 Humidity 1-10
+			// 22-31 Dew point 1-10
+			// 32-35 Soil temp 1-4
+			// 36-39 Soil moisture 1-4
+			// 40-41 Leaf temp 1-2
+			// 42-43 Leaf wetness 1-2
+			// 44-55 Soil temp 5-16
+			// 56-67 Soil moisture 5-16
+			// 68-71 Air quality 1-4
+			// 72-75 Air quality avg 1-4
+			// 76-83 User temperature 1-8
+			// 84  CO2
+			// 85  CO2 avg
+			// 86  CO2 pm2.5
+			// 87  CO2 pm2.5 avg
+			// 88  CO2 pm10
+			// 89  CO2 pm10 avg
+			// 90  CO2 temp
+			// 91  CO2 hum
+			// 92-95 Laser Distance 1-4
+			// 96-99 Laser Depth 1-4
+			// 100 Snowfall Accumulation 24h
+			// 101-106 Temperature 11-16
+			// 107-112 Humidity 11-16
+			// 113-118 Dew point 11-16
+			// 119-122 AQ PM10 1-4
+			// 123-126 AQ PM10 Avg
+
+
+			var inv = CultureInfo.InvariantCulture;
+			var st = new List<string>(data.Split(','));
+			double resultDbl;
+			int resultInt;
+
+			try
+			{
+				DateTimeStr = st[0];
+				UnixTimestamp = Convert.ToInt64(st[1]);
+
+				if (st.Count >= 32)
+				{
+					for (int i = 0; i < 10; i++)
+					{
+						//2-11
+						if (double.TryParse(st[2 + i], inv, out resultDbl))
+							ExtraTemp[i + 1] = resultDbl;
+
+						//12-21
+						if (int.TryParse(st[12 + i], out resultInt))
+							ExtraHum[i + 1] = resultInt;
+
+						//22-31
+						if (double.TryParse(st[22 + i], inv, out resultDbl))
+							ExtraDewpoint[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count >= 36)
+				{
+					for (int i = 0; i < 4; i++)
+					{
+						//32-35
+						if (double.TryParse(st[32 + i], inv, out resultDbl))
+							SoilTemp[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count >= 40)
+				{
+					for (int i = 0; i < 4; i++)
+					{
+						//36-39
+						if (int.TryParse(st[36 + i], out resultInt))
+							SoilMoist[i + 1] = resultInt;
+					}
+				}
+
+				if (st.Count > 44)
+				{
+					//42-43
+					if (double.TryParse(st[42], inv, out resultDbl))
+						LeafWetness[1] = resultDbl;
+
+					if (double.TryParse(st[43], inv, out resultDbl))
+						LeafWetness[2] = resultDbl;
+				}
+
+				if (st.Count > 56)
+				{
+					//44-55 (Soil temp 5-16)
+					for (int i = 4; i < 16; i++)
+					{
+						if (double.TryParse(st[44 + i - 4], inv, out resultDbl))
+							SoilTemp[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 68)
+				{
+					//56-67 (Soil moisture 5-16)
+					for (int i = 4; i < 16; i++)
+					{
+						if (int.TryParse(st[56 + i - 4], out resultInt))
+							SoilMoist[i + 1] = resultInt;
+					}
+				}
+
+				if (st.Count > 72)
+				{
+					//68-71
+					for (int i = 0; i < 4; i++)
+					{
+						if (double.TryParse(st[68 + i], inv, out resultDbl))
+							AirQuality[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 76)
+				{
+					//72-75
+					for (int i = 0; i < 4; i++)
+					{
+						if (double.TryParse(st[72 + i], inv, out resultDbl))
+							AirQualityAvg[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 84)
+				{
+					//76-83
+					for (int i = 0; i < 8; i++)
+					{
+						if (double.TryParse(st[76 + i], inv, out resultDbl))
+							UserTemp[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 92)
+				{
+					if (double.TryParse(st[84], inv, out resultDbl))
+						CO2 = resultDbl;
+					if (double.TryParse(st[85], inv, out resultDbl))
+						CO2_24h = resultDbl;
+					if (double.TryParse(st[86], inv, out resultDbl))
+						CO2_pm2p5 = resultDbl;
+					if (double.TryParse(st[87], inv, out resultDbl))
+						CO2_pm2p5_24h = resultDbl;
+					if (double.TryParse(st[88], inv, out resultDbl))
+						CO2_pm10 = resultDbl;
+					if (double.TryParse(st[89], inv, out resultDbl))
+						CO2_pm10_24h = resultDbl;
+					if (double.TryParse(st[90], inv, out resultDbl))
+						CO2_temperature = resultDbl;
+					if (int.TryParse(st[91], out resultInt))
+						CO2_humidity = resultInt;
+				}
+
+				if (st.Count > 99)
+				{
+					//92-95 & 96-99
+					for (int i = 0; i < 4; i++)
+					{
+						if (double.TryParse(st[92 + i], inv, out resultDbl))
+							LaserDist[i + 1] = resultDbl;
+						if (double.TryParse(st[96 + i], inv, out resultDbl))
+							LaserDepth[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 100)
+				{
+					//100
+					if (double.TryParse(st[100], inv, out resultDbl))
+						Snow24h = resultDbl;
+				}
+
+				if (st.Count > 118)
+				{
+					//101-106 Extra Temp 11-16
+					//107-112 Extra Hum 11-16
+					//113-118 Extra Dewpoint 11-16
+					for (int i = 10; i < 16; i++)
+					{
+						if (double.TryParse(st[101 + i - 10], inv, out resultDbl))
+							ExtraTemp[i + 1] = resultDbl;
+						if (int.TryParse(st[107 + i - 10], out resultInt))
+							ExtraHum[i + 1] = resultInt;
+						if (double.TryParse(st[113 + i - 10], inv, out resultDbl))
+							ExtraDewpoint[i + 1] = resultDbl;
+					}
+				}
+
+				if (st.Count > 126)
+				{
+					//119-122 && 123-126
+					for (int i = 0; i < 4; i++)
+					{
+						if (double.TryParse(st[119 + i], inv, out resultDbl))
+							AirQuality10[i + 1] = resultDbl;
+						if (double.TryParse(st[123 + i], inv, out resultDbl))
+							AirQuality10Avg[i + 1] = resultDbl;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Program.cumulus.LogExceptionMessage(ex, $"LogFileParseCsvRec: Error");
+				throw;
+			}
+		}
+
+		public string ToCsv()
+		{
+			var inv = CultureInfo.InvariantCulture;
+			return string.Join(",",
+				DateTimeStr,
+				UnixTimestamp.ToString(inv)
+				);
+		}
+
+		public static string CurrentToCsv(DateTime timestamp, Cumulus cumulus, WeatherStation station)
+		{
+			var inv = CultureInfo.InvariantCulture;
+			var line = string.Join(",",
+				timestamp.ToString("dd/MM/yy HH:mm", inv),
+				timestamp.ToUnixTime());
+
+			var sb = new StringBuilder(line, 512);
+			var sep = ",";
+
+			for (int i = 1; i <= 10; i++)
+			{
+				sb.Append(sep + station.ExtraTemp[i].ToFixed(cumulus.TempFormat));       //2-11
+			}
+			for (int i = 1; i <= 10; i++)
+			{
+				sb.Append(sep + station.ExtraHum[i].ToFixed(cumulus.HumFormat));        //12-21
+			}
+			for (int i = 1; i <= 10; i++)
+			{
+				sb.Append(sep + station.ExtraDewPoint[i].ToFixed(cumulus.TempFormat));  //22-31
+			}
+			for (int i = 1; i <= 4; i++)
+			{
+				sb.Append(sep + station.SoilTemp[i].ToFixed(cumulus.TempFormat));     //32-35
+			}
+
+			for (int i = 1; i <= 4; i++)
+			{
+				sb.Append(sep + station.SoilMoisture[i].ToText());                      //36-39
+			}
+
+			sb.Append(sep + sep);     //40-41 - was leaf temp 1/2
+
+			sb.Append(sep + station.LeafWetness[1].ToFixed(cumulus.LeafWetFormat));    //42
+			sb.Append(sep + station.LeafWetness[2].ToFixed(cumulus.LeafWetFormat));    //43
+
+			for (int i = 5; i <= 16; i++)
+			{
+				sb.Append(sep + station.SoilTemp[i].ToFixed(cumulus.TempFormat));     //44-55
+			}
+
+			for (int i = 5; i <= 16; i++)
+			{
+				sb.Append(sep + station.SoilMoisture[i].ToText());      //56-67
+			}
+
+			for (int i = 1; i <= 4; i++)
+			{
+				sb.Append(sep + station.AirQuality[i].ToFixed("F1"));     //68-71
+			}
+
+			for (int i = 1; i <= 4; i++)
+			{
+				sb.Append(sep + station.AirQualityAvg[i].ToFixed("F1")); //72-75
+			}
+
+			for (int i = 1; i < 9; i++)
+			{
+				sb.Append(sep + station.UserTemp[i].ToFixed(cumulus.TempFormat));   //76-83
+			}
+
+			sb.Append(sep + station.CO2.ToText());                                 //84
+			sb.Append(sep + station.CO2_24h.ToText());                             //85
+			sb.Append(sep + station.CO2_pm2p5.ToFixed("F1"));                      //86
+			sb.Append(sep + station.CO2_pm2p5_24h.ToFixed("F1"));                  //87
+			sb.Append(sep + station.CO2_pm10.ToFixed("F1"));                       //88
+			sb.Append(sep + station.CO2_pm10_24h.ToFixed("F1"));                   //89
+			sb.Append(sep + station.CO2_temperature.ToFixed(cumulus.TempFormat));  //90
+			sb.Append(sep + station.CO2_humidity.ToFixed("F0"));                   //91
+
+			for (int i = 1; i < station.LaserDist.Length; i++)
+			{
+				sb.Append(sep + station.LaserDist[i].ToFixed(cumulus.LaserFormat)); //92-95
+			}
+			for (int i = 1; i < station.LaserDepth.Length; i++)
+			{
+				sb.Append(sep + station.LaserDepth[i].ToFixed(cumulus.LaserFormat)); //96-99
+			}
+
+			sb.Append(sep + station.Snow24h[cumulus.LaserPrimarySnowSensor].ToFixed(cumulus.SnowFormat)); //100
+
+			for (int i = 11; i <= 16; i++)
+			{
+				sb.Append(sep + station.ExtraTemp[i].ToFixed(cumulus.TempFormat));      //101-106
+			}
+			for (int i = 11; i <= 16; i++)
+			{
+				sb.Append(sep + station.ExtraHum[i].ToFixed(cumulus.HumFormat));        //107-112
+			}
+			for (int i = 11; i <= 16; i++)
+			{
+				sb.Append(sep + station.ExtraDewPoint[i].ToFixed(cumulus.TempFormat));  //113-118
+			}
+
+			for (int i = 1; i <= 4; i++)
+			{
+				sb.Append(sep + station.AirQuality10[i].ToFixed("F1"));     //119-122
+			}
+
+			for (int i = 1; i <= 4; i++)
+			{
+				sb.Append(sep + station.AirQuality10Avg[i].ToFixed("F1")); //123-126
+			}
+
+			sb.Append(Environment.NewLine);
+
+			return sb.ToString();
+		}
+	}
+}

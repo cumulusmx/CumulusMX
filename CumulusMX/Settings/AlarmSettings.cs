@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack;
 
 namespace CumulusMX.Settings
 {
@@ -346,7 +345,7 @@ namespace CumulusMX.Settings
 				email = email
 			};
 
-			return retObject.ToJson();
+			return JsonSerializer.Serialize(retObject);
 		}
 
 		public string GetAlarmInfo()
@@ -587,7 +586,7 @@ namespace CumulusMX.Settings
 				}
 			}
 
-			return alarms.ToJson();
+			return JsonSerializer.Serialize(alarms);
 		}
 
 
@@ -604,7 +603,7 @@ namespace CumulusMX.Settings
 				// Start at char 5 to skip the "json:" prefix
 				json = WebUtility.UrlDecode(data);
 
-				result = json.FromJson<JsonAlarmSettings>();
+				result = JsonSerializer.Deserialize<JsonAlarmSettings>(json);
 				settings = result.data;
 			}
 			catch (Exception ex)
@@ -958,7 +957,7 @@ namespace CumulusMX.Settings
 				// Start at char 5 to skip the "json:" prefix
 				var json = WebUtility.UrlDecode(data);
 
-				var result = json.FromJson<JsonAlarmEmail>();
+				var result = JsonSerializer.Deserialize<JsonAlarmEmail>(json);
 				// process the settings
 				cumulus.LogMessage("Sending test email...");
 

@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using MQTTnet;
 using MQTTnet.Formatter;
-
-using ServiceStack;
-using ServiceStack.Text;
 
 namespace CumulusMX
 {
@@ -66,7 +64,7 @@ namespace CumulusMX
 			// Start the task to check the connection state
 			_ = Task.Run(async () =>
 			{
-				while (!Program.ExitSystemToken.IsCancellationRequested)
+				do
 				{
 					try
 					{
@@ -97,7 +95,7 @@ namespace CumulusMX
 							else
 							{
 								cumulus.LogMessage("MQTT: Failed to connect to server - " + cumulus.MQTT.Server);
-								cumulus.LogMessage(response.Dump());
+								cumulus.LogMessage(JsonSerializer.Serialize(response));
 							}
 						}
 						else
@@ -114,7 +112,7 @@ namespace CumulusMX
 						// Check the connection state every 20 seconds and perform a reconnect if required.
 						await Task.Delay(TimeSpan.FromSeconds(20), Program.ExitSystemToken);
 					}
-				}
+				} while (!Program.ExitSystemToken.IsCancellationRequested);
 			});
 
 			ReadTemplateFiles();
@@ -141,7 +139,7 @@ namespace CumulusMX
 
 						// read the file
 						var templateText = File.ReadAllText(template);
-						updateTemplate = templateText.FromJson<MqttTemplate>();
+						updateTemplate = JsonSerializer.Deserialize<MqttTemplate>(templateText);
 					}
 				}
 			}
@@ -166,7 +164,7 @@ namespace CumulusMX
 
 						// read the file
 						var templateText = File.ReadAllText(template);
-						intervalTemplate = templateText.FromJson<MqttTemplate>();
+						intervalTemplate = JsonSerializer.Deserialize<MqttTemplate>(templateText);
 					}
 				}
 			}

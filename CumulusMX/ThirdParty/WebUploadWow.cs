@@ -27,7 +27,7 @@ namespace CumulusMX.ThirdParty
 			Updating = true;
 
 			// Random jitter
-			await Task.Delay(Program.RandGenerator.Next(5000, 20000));
+			await Task.Delay(Program.RandGenerator.Next(5000, 20000), Program.ExitSystemToken);
 
 			string pwstring;
 			string URL = GetURL(out pwstring, timestamp);
@@ -37,90 +37,50 @@ namespace CumulusMX.ThirdParty
 			string LogURL = URL.Replace(pwstring, starredpwstring);
 			cumulus.LogDebugMessage("WOW URL = " + LogURL);
 
-			// we will try this twice in case the first attempt fails
-			var maxRetryAttempts = 2;
-			var delay = maxRetryAttempts * 5.0;
-
-			for (int retryCount = maxRetryAttempts; retryCount >= 0; retryCount--)
+			try
 			{
-				try
+				using var response = await cumulus.MyHttpClient.GetAsync(URL);
+				var responseBodyAsText = await response.Content.ReadAsStringAsync();
+				if (response.StatusCode == HttpStatusCode.OK)
 				{
-					using var response = await cumulus.MyHttpClient.GetAsync(URL);
-					var responseBodyAsText = await response.Content.ReadAsStringAsync();
-					if (response.StatusCode == HttpStatusCode.OK)
-					{
-						cumulus.LogDebugMessage("WOW Response: " + response.StatusCode + ": " + responseBodyAsText);
-						cumulus.ThirdPartyAlarm.Triggered = false;
-						Updating = false;
-						return;
-					}
-					else if (response.StatusCode == HttpStatusCode.Unauthorized)
-					{
-						cumulus.ThirdPartyAlarm.LastMessage = "WOW: Unauthorized, check credentials";
-						cumulus.ThirdPartyAlarm.Triggered = true;
-						Updating = false;
-						return;
-					}
-					else
-					{
-						// we get a too many requests response on the first retry if the inital atttempt worked but we did not see a response
-						if (retryCount == 1 && response.StatusCode == HttpStatusCode.TooManyRequests)
-						{
-							Updating = false;
-							return;
-						}
-
-						if (retryCount == 0 || response.StatusCode == HttpStatusCode.TooManyRequests)
-						{
-							cumulus.LogWarningMessage($"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
-							cumulus.ThirdPartyAlarm.LastMessage = $"WOW: HTTP response - Response code = {response.StatusCode}, body = {responseBodyAsText}";
-							cumulus.ThirdPartyAlarm.Triggered = true;
-							Updating = false;
-							return;
-						}
-
-						cumulus.LogDebugMessage($"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
-						cumulus.LogMessage($"WOW: Retrying in {delay / retryCount} seconds");
-
-						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
-					}
+					cumulus.LogDebugMessage("WOW Response: " + response.StatusCode + ": " + responseBodyAsText);
+					cumulus.ThirdPartyAlarm.Triggered = false;
 				}
-				catch (Exception ex)
+				else if (response.StatusCode == HttpStatusCode.Unauthorized)
 				{
-					string msg;
-
-					if (retryCount == 0)
-					{
-						if (ex.InnerException is TimeoutException)
-						{
-							msg = $"WOW: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
-							cumulus.LogWarningMessage(msg);
-						}
-						else
-						{
-							msg = "WOW: Error - " + ex.Message;
-							cumulus.LogExceptionMessage(ex, "WOW: Error");
-						}
-
-						cumulus.ThirdPartyAlarm.LastMessage = msg;
-						cumulus.ThirdPartyAlarm.Triggered = true;
-					}
-					else
-					{
-						if (ex.InnerException is TimeoutException)
-						{
-							cumulus.LogDebugMessage($"WOW: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds");
-						}
-						else
-						{
-							cumulus.LogDebugMessage("WOW: Error - " + ex.Message);
-						}
-
-						cumulus.LogMessage($"WOW: Retrying in {delay / retryCount} seconds");
-
-						await Task.Delay(TimeSpan.FromSeconds(delay / retryCount));
-					}
+					cumulus.ThirdPartyAlarm.LastMessage = "WOW: Unauthorized, check credentials";
+					cumulus.ThirdPartyAlarm.Triggered = true;
 				}
+				else if (response.StatusCode == HttpStatusCode.TooManyRequests)
+				{
+					cumulus.LogWarningMessage("WOW Response: Too many requests!");
+					cumulus.ThirdPartyAlarm.LastMessage = "WOW: Too many requests!";
+					cumulus.ThirdPartyAlarm.Triggered = true;
+				}
+				else
+				{
+					cumulus.LogWarningMessage($"WOW Response: ERROR - Response code = {response.StatusCode}, body = {responseBodyAsText}");
+					cumulus.ThirdPartyAlarm.LastMessage = $"WOW: HTTP response - Response code = {response.StatusCode}, body = {responseBodyAsText}";
+					cumulus.ThirdPartyAlarm.Triggered = true;
+				}
+			}
+			catch (Exception ex)
+			{
+				string msg;
+
+				if (ex.InnerException is TimeoutException)
+				{
+					msg = $"WOW: Request exceeded the response timeout of {cumulus.MyHttpClient.Timeout.TotalSeconds} seconds";
+					cumulus.LogWarningMessage(msg);
+				}
+				else
+				{
+					msg = "WOW: Error - " + ex.Message;
+					cumulus.LogExceptionMessage(ex, "WOW: Error");
+				}
+
+				cumulus.ThirdPartyAlarm.LastMessage = msg;
+				cumulus.ThirdPartyAlarm.Triggered = true;
 			}
 
 			Updating = false;

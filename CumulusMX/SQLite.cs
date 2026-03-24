@@ -1229,8 +1229,8 @@ namespace SQLite
 			[Column("name")]
 			public string Name { get; set; }
 
-			//			[Column ("type")]
-			//			public string ColumnType { get; set; }
+			[Column ("type")]
+			public string ColumnType { get; set; }
 
 			public int notnull { get; set; }
 
@@ -3170,8 +3170,7 @@ namespace SQLite
 					memberNames.Add(m.Name);
 
 				type = ti.BaseType;
-			}
-			while (type != typeof(object));
+			} while (type != typeof(object));
 
 			return members;
 		}

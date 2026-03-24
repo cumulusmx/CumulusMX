@@ -152,52 +152,55 @@ namespace CumulusMX
 						Dictionary<string, string> CurrentSection = null;
 						string s;
 
-						while ((s = sr.ReadLine()) != null)
+						if ((s = sr.ReadLine()) != null)
 						{
-							s = s.Trim();
-
-							// *** Check for section names ***
-							if (s.StartsWith('[') && s.EndsWith(']'))
+							do
 							{
-								if (s.Length > 2)
-								{
-									string SectionName = s[1..^1];
+								s = s.Trim();
 
-									// *** Only first occurrence of a section is loaded ***
-									if (m_Sections.ContainsKey(SectionName))
+								// *** Check for section names ***
+								if (s.StartsWith('[') && s.EndsWith(']'))
+								{
+									if (s.Length > 2)
 									{
-										CurrentSection = null;
-									}
-									else
-									{
-										CurrentSection = [];
-										m_Sections.Add(SectionName, CurrentSection);
+										string SectionName = s[1..^1];
+
+										// *** Only first occurrence of a section is loaded ***
+										if (m_Sections.ContainsKey(SectionName))
+										{
+											CurrentSection = null;
+										}
+										else
+										{
+											CurrentSection = [];
+											m_Sections.Add(SectionName, CurrentSection);
+										}
 									}
 								}
-							}
-							else if (CurrentSection != null)
-							{
-								// *** Check for key+value pair ***
-								int i;
-								if (s.StartsWith('#'))
+								else if (CurrentSection != null)
 								{
-									// It's a comment
-									// *** Only first occurrence of a key is loaded ***
-									CurrentSection.TryAdd(s, "");
-								}
-								else if ((i = s.IndexOf('=')) > 0)
-								{
-									// It's a value
-									int j = s.Length - i - 1;
-									string Key = s[..i].Trim();
-									if (Key.Length > 0 && !CurrentSection.ContainsKey(Key))
+									// *** Check for key+value pair ***
+									int i;
+									if (s.StartsWith('#'))
 									{
+										// It's a comment
 										// *** Only first occurrence of a key is loaded ***
-										string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : ("");
-										CurrentSection.Add(Key, Value);
+										CurrentSection.TryAdd(s, "");
+									}
+									else if ((i = s.IndexOf('=')) > 0)
+									{
+										// It's a value
+										int j = s.Length - i - 1;
+										string Key = s[..i].Trim();
+										if (Key.Length > 0 && !CurrentSection.ContainsKey(Key))
+										{
+											// *** Only first occurrence of a key is loaded ***
+											string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : ("");
+											CurrentSection.Add(Key, Value);
+										}
 									}
 								}
-							}
+							} while ((s = sr.ReadLine()) != null);
 						}
 					}
 				}
@@ -494,8 +497,8 @@ namespace CumulusMX
 			int Value;
 			if (int.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value))
 			{
-				if (Value < MinValue) return MinValue;
-				if (Value > MaxValue) return MaxValue;
+				if (Value < MinValue) return DefaultValue;
+				if (Value > MaxValue) return DefaultValue;
 				return Value;
 			}
 			return DefaultValue;
@@ -507,8 +510,8 @@ namespace CumulusMX
 			double Value;
 			if (double.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value))
 			{
-				if (Value < MinValue) return MinValue;
-				if (Value > MaxValue) return MaxValue;
+				if (Value < MinValue) return DefaultValue;
+				if (Value > MaxValue) return DefaultValue;
 				return Value;
 			}
 			return DefaultValue;
@@ -520,8 +523,8 @@ namespace CumulusMX
 			decimal Value;
 			if (decimal.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out Value))
 			{
-				if (Value < MinValue) return MinValue;
-				if (Value > MaxValue) return MaxValue;
+				if (Value < MinValue) return DefaultValue;
+				if (Value > MaxValue) return DefaultValue;
 				return Value;
 			}
 			return DefaultValue;
@@ -537,8 +540,8 @@ namespace CumulusMX
 
 			if (decimal.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal Value))
 			{
-				if (Value < MinValue) return MinValue;
-				if (Value > MaxValue) return MaxValue;
+				if (Value < MinValue) return DefaultValue;
+				if (Value > MaxValue) return DefaultValue;
 				return Value;
 			}
 			return DefaultValue;

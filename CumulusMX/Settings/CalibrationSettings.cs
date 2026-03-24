@@ -2,10 +2,9 @@
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Text.Json;
 
 using EmbedIO;
-
-using ServiceStack;
 
 namespace CumulusMX.Settings
 {
@@ -27,7 +26,7 @@ namespace CumulusMX.Settings
 				json = WebUtility.UrlDecode(data[5..]);
 
 				// de-serialize it to the settings structure
-				settings = json.FromJson<JsonSettingsData>();
+				settings = JsonSerializer.Deserialize<JsonSettingsData>(json);
 			}
 			catch (Exception ex)
 			{
@@ -44,68 +43,92 @@ namespace CumulusMX.Settings
 				cumulus.LogMessage("Updating calibration settings");
 
 				// offsets
-				cumulus.Calib.Press.Offset = Convert.ToDouble(settings.pressure.offset, invC);
-				cumulus.Calib.PressStn.Offset = Convert.ToDouble(settings.pressureStn.offset, invC);
-				cumulus.Calib.Temp.Offset = Convert.ToDouble(settings.temp.offset, invC);
-				cumulus.Calib.InTemp.Offset = Convert.ToDouble(settings.tempin.offset, invC);
+				cumulus.Calib.Press.Offset = settings.pressure.offset;
+				cumulus.Calib.PressStn.Offset = settings.pressureStn.offset;
+				cumulus.Calib.Temp.Offset = settings.temp.offset;
+				cumulus.Calib.InTemp.Offset = settings.tempin.offset;
 				cumulus.Calib.Hum.Offset = settings.hum.offset;
-				cumulus.Calib.InHum.Offset = Convert.ToDouble(settings.humin.offset, invC);
+				cumulus.Calib.InHum.Offset = settings.humin.offset;
 				cumulus.Calib.WindDir.Offset = settings.winddir.offset;
 				cumulus.Calib.Solar.Offset = Convert.ToDouble(settings.solar.offset);
-				cumulus.Calib.UV.Offset = Convert.ToDouble(settings.uv.offset, invC);
-				cumulus.Calib.WetBulb.Offset = Convert.ToDouble(settings.wetbulb.offset, invC);
+				cumulus.Calib.UV.Offset = settings.uv.offset;
+				cumulus.Calib.WetBulb.Offset = settings.wetbulb.offset;
 
 				// multipliers
-				cumulus.Calib.Press.Mult = Convert.ToDouble(settings.pressure.multiplier, invC);
-				cumulus.Calib.PressStn.Mult = Convert.ToDouble(settings.pressureStn.multiplier, invC);
-				cumulus.Calib.WindSpeed.Mult = Convert.ToDouble(settings.windspd.multiplier, invC);
-				cumulus.Calib.WindGust.Mult = Convert.ToDouble(settings.gust.multiplier, invC);
-				cumulus.Calib.Temp.Mult = Convert.ToDouble(settings.temp.multiplier, invC);
-				cumulus.Calib.InTemp.Mult = Convert.ToDouble(settings.tempin.multiplier, invC);
-				cumulus.Calib.Hum.Mult = Convert.ToDouble(settings.hum.multiplier, invC);
-				cumulus.Calib.InHum.Mult = Convert.ToDouble(settings.humin.multiplier, invC);
-				cumulus.Calib.Rain.Mult = Convert.ToDouble(settings.rain.multiplier, invC);
-				cumulus.Calib.Solar.Mult = Convert.ToDouble(settings.solar.multiplier, invC);
-				cumulus.Calib.UV.Mult = Convert.ToDouble(settings.uv.multiplier, invC);
-				cumulus.Calib.WetBulb.Mult = Convert.ToDouble(settings.wetbulb.multiplier, invC);
+				cumulus.Calib.Press.Mult = settings.pressure.multiplier;
+				cumulus.Calib.PressStn.Mult = settings.pressureStn.multiplier;
+				cumulus.Calib.WindSpeed.Mult = settings.windspd.multiplier;
+				cumulus.Calib.WindGust.Mult = settings.gust.multiplier;
+				cumulus.Calib.Temp.Mult = settings.temp.multiplier;
+				cumulus.Calib.InTemp.Mult = settings.tempin.multiplier;
+				cumulus.Calib.Hum.Mult = settings.hum.multiplier;
+				cumulus.Calib.InHum.Mult = settings.humin.multiplier;
+				cumulus.Calib.Rain.Mult = settings.rain.multiplier;
+				cumulus.Calib.Solar.Mult = settings.solar.multiplier;
+				cumulus.Calib.UV.Mult = settings.uv.multiplier;
+				cumulus.Calib.WetBulb.Mult = settings.wetbulb.multiplier;
 
 				//multipliers2
-				cumulus.Calib.Press.Mult2 = Convert.ToDouble(settings.pressure.multiplier2, invC);
-				cumulus.Calib.PressStn.Mult2 = Convert.ToDouble(settings.pressureStn.multiplier2, invC);
-				cumulus.Calib.WindSpeed.Mult2 = Convert.ToDouble(settings.windspd.multiplier2, invC);
-				cumulus.Calib.WindGust.Mult2 = Convert.ToDouble(settings.gust.multiplier2, invC);
-				cumulus.Calib.Temp.Mult2 = Convert.ToDouble(settings.temp.multiplier2, invC);
-				cumulus.Calib.InTemp.Mult2 = Convert.ToDouble(settings.tempin.multiplier2, invC);
-				cumulus.Calib.Hum.Mult2 = Convert.ToDouble(settings.hum.multiplier2, invC);
-				cumulus.Calib.InHum.Mult2 = Convert.ToDouble(settings.humin.multiplier2, invC);
-				cumulus.Calib.Solar.Mult2 = Convert.ToDouble(settings.solar.multiplier2, invC);
-				cumulus.Calib.UV.Mult2 = Convert.ToDouble(settings.uv.multiplier2, invC);
-				cumulus.Calib.WetBulb.Mult2 = Convert.ToDouble(settings.wetbulb.multiplier2, invC);
+				cumulus.Calib.Press.Mult2 = settings.pressure.multiplier2;
+				cumulus.Calib.PressStn.Mult2 = settings.pressureStn.multiplier2;
+				cumulus.Calib.WindSpeed.Mult2 = settings.windspd.multiplier2;
+				cumulus.Calib.WindGust.Mult2 = settings.gust.multiplier2;
+				cumulus.Calib.Temp.Mult2 = settings.temp.multiplier2;
+				cumulus.Calib.InTemp.Mult2 = settings.tempin.multiplier2;
+				cumulus.Calib.Hum.Mult2 = settings.hum.multiplier2;
+				cumulus.Calib.InHum.Mult2 = settings.humin.multiplier2;
+				cumulus.Calib.Solar.Mult2 = settings.solar.multiplier2;
+				cumulus.Calib.UV.Mult2 = settings.uv.multiplier2;
+				cumulus.Calib.WetBulb.Mult2 = settings.wetbulb.multiplier2;
 
 				// spike removal
-				cumulus.Spike.TempDiff = Convert.ToDouble(settings.temp.spike, invC);
-				cumulus.Spike.HumidityDiff = Convert.ToDouble(settings.hum.spike, invC);
-				cumulus.Spike.WindDiff = Convert.ToDouble(settings.windspd.spike, invC);
-				cumulus.Spike.GustDiff = Convert.ToDouble(settings.gust.spike, invC);
-				cumulus.Spike.MaxHourlyRain = Convert.ToDouble(settings.rain.spikehour, invC);
-				cumulus.Spike.MaxRainRate = Convert.ToDouble(settings.rain.spikerate, invC);
-				cumulus.Spike.PressDiff = Convert.ToDouble(settings.pressure.spike, invC);
-				cumulus.Spike.InTempDiff = Convert.ToDouble(settings.tempin.spike, invC);
-				cumulus.Spike.InHumDiff = Convert.ToDouble(settings.humin.spike, invC);
-				cumulus.Spike.SnowDiff = Convert.ToDecimal(settings.snow.spike, invC);
+				cumulus.Spike.TempDiff = settings.temp.spike;
+				cumulus.Spike.HumidityDiff = settings.hum.spike;
+				cumulus.Spike.WindDiff = settings.windspd.spike;
+				cumulus.Spike.GustDiff = settings.gust.spike;
+				cumulus.Spike.MaxHourlyRain = settings.rain.spikehour;
+				cumulus.Spike.MaxRainRate = settings.rain.spikerate;
+				cumulus.Spike.PressDiff = settings.pressure.spike;
+				cumulus.Spike.InTempDiff = settings.tempin.spike;
+				cumulus.Spike.InHumDiff = settings.humin.spike;
+				cumulus.Spike.SnowDiff = settings.snow.spike;
 
 				// limits
-				cumulus.Limit.TempHigh = Convert.ToDouble(settings.temp.limitmax, invC);
-				cumulus.Limit.TempLow = Convert.ToDouble(settings.temp.limitmin, invC);
-				cumulus.Limit.DewHigh = Convert.ToDouble(settings.dewpt.limitmax, invC);
-				cumulus.Limit.PressHigh = Convert.ToDouble(settings.pressure.limitmax, invC);
-				cumulus.Limit.PressLow = Convert.ToDouble(settings.pressure.limitmin, invC);
-				cumulus.Limit.WindHigh = Convert.ToDouble(settings.gust.limitmax, invC);
+				cumulus.Limit.TempHigh = settings.temp.limitmax;
+				cumulus.Limit.TempLow = settings.temp.limitmin;
+				cumulus.Limit.DewHigh = settings.dewpt.limitmax;
+				cumulus.Limit.PressHigh = settings.pressure.limitmax;
+				cumulus.Limit.PressLow = settings.pressure.limitmin;
+				cumulus.Limit.WindHigh = settings.gust.limitmax;
 				cumulus.Limit.StationPressHigh = MeteoLib.SeaLevelToStation(cumulus.Limit.PressHigh, ConvertUnits.AltitudeM(cumulus.Altitude));
 				cumulus.Limit.StationPressLow = MeteoLib.SeaLevelToStation(cumulus.Limit.PressLow, ConvertUnits.AltitudeM(cumulus.Altitude));
 
 				// snow
-				cumulus.SnowMinInc = Convert.ToDecimal(settings.snow.mininc, invC);
+				cumulus.SnowDepthMinInc = settings.snow.mininc;
+				if (cumulus.SnowDepthMedianMins != settings.snow.filter.median)
+				{
+					cumulus.SnowDepthMedianMins = settings.snow.filter.median;
+					for (int i = 1; i < Program.cumulus.Station.SnowDepthAverage.Length; i++)
+					{
+						Program.cumulus.Station.SnowDepthAverage[i].MedianWindow = cumulus.SnowDepthMedianMins;
+					}
+				}
+				if (cumulus.SnowDepthClipDelta != settings.snow.filter.clip)
+				{
+					cumulus.SnowDepthClipDelta = settings.snow.filter.clip;
+					for (int i = 1; i < Program.cumulus.Station.SnowDepthAverage.Length; i++)
+					{
+						Program.cumulus.Station.SnowDepthAverage[i].ClipDelta = cumulus.SnowDepthClipDelta;
+					}
+				}
+				if (cumulus.SnowDepthEmaTimeMins != settings.snow.filter.ema)
+				{
+					cumulus.SnowDepthEmaTimeMins = settings.snow.filter.ema;
+					for (int i = 1; i < Program.cumulus.Station.SnowDepthAverage.Length; i++)
+					{
+						Program.cumulus.Station.SnowDepthAverage[i].TimeConst = cumulus.SnowDepthEmaTimeMins;
+					}
+				}
 
 				// Save the settings
 				cumulus.WriteIniFile();
@@ -238,7 +261,13 @@ namespace CumulusMX.Settings
 			var snow = new SnowSettings()
 			{
 				spike = Math.Round(cumulus.Spike.SnowDiff, cumulus.LaserDPlaces),
-				mininc = Math.Round(cumulus.SnowMinInc, cumulus.LaserDPlaces)
+				mininc = Math.Round(cumulus.SnowDepthMinInc, cumulus.LaserDPlaces),
+				filter = new SnowFilter()
+				{
+					median = cumulus.SnowDepthMedianMins,
+					clip = cumulus.SnowDepthClipDelta,
+					ema = cumulus.SnowDepthEmaTimeMins
+				}
 			};
 
 			var data = new JsonSettingsData()
@@ -261,7 +290,7 @@ namespace CumulusMX.Settings
 				snow = snow
 			};
 
-			return data.ToJson();
+			return JsonSerializer.Serialize(data);
 		}
 
 		private sealed class JsonSettingsData
@@ -300,6 +329,14 @@ namespace CumulusMX.Settings
 		{
 			public decimal spike { get; set; }
 			public decimal mininc { get; set; }
+			public SnowFilter filter { get; set; }
+		}
+
+		private sealed class SnowFilter
+		{
+			public int median { get; set; }
+			public double clip {  get; set; }
+			public double ema {  get; set; }
 		}
 	}
 }
