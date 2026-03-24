@@ -676,7 +676,7 @@ namespace CumulusMX.Stations
 								break;
 							}
 
-							useTimeStamp = fields[1].ToLower() == "timestamp";
+							useTimeStamp = fields[1].Equals("timestamp", StringComparison.CurrentCultureIgnoreCase);
 
 							// always add the header line
 							result.Add(line);
@@ -709,6 +709,14 @@ namespace CumulusMX.Stations
 								result.Add(line);
 							}
 						}
+
+						//if (fields.Length < 10)
+						//{
+						//	cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} is malformed");
+						//	cumulus.LogDataMessage($"line # {count} = " + line);
+						//	continue;
+						//}
+
 					}
 
 					if (!Program.service)
@@ -787,8 +795,8 @@ namespace CumulusMX.Stations
 
 		public async Task<SensorInfo[]> GetSensorInfo(CancellationToken token)
 		{
-			// http://ip-address/get_sensors_info?page=1
-			// http://ip-address/get_sensors_info?page=2
+			// http://ip-address/get_sensors_info?page=1..4
+			// pages 3 and 4 are optional and may return 404
 
 			if (!Utils.ValidateIPv4(cumulus.Gw1000IpAddress))
 			{
@@ -796,58 +804,67 @@ namespace CumulusMX.Stations
 				return null;
 			}
 
-			SensorInfo[] sensors1 = [];
-			SensorInfo[] sensors2 = [];
+			var sensors = new List<SensorInfo>();
+			var lastData = string.Empty;
 
-			try
+			for (var page = 1; page <= 4; page++)
 			{
-				var url1 = $"http://{cumulus.Gw1000IpAddress}/get_sensors_info?page=1";
-				var url2 = $"http://{cumulus.Gw1000IpAddress}/get_sensors_info?page=2";
-
-
-				var task1 = cumulus.MyHttpClient.GetStringAsync(url1, token);
-				// add a slight delay to the second call
-				await Task.Delay(400, token);
-				var task2 = cumulus.MyHttpClient.GetStringAsync(url2, token);
-
-				// Wait for both tasks to complete
-				var results = await Task.WhenAll(task1, task2).WaitAsync(token);
-
-				cumulus.LogDataMessage("GetSensorInfo: Page 1 = " + Utils.RemoveCrTabsFromString(results[0]));
-				cumulus.LogDataMessage("GetSensorInfo: Page 2 = " + Utils.RemoveCrTabsFromString(results[1]));
-
-				if (!string.IsNullOrEmpty(results[0]))
+				try
 				{
-					sensors1 = JsonSerializer.Deserialize<SensorInfo[]>(results[0], jsonOptions);
+					var url = $"http://{cumulus.Gw1000IpAddress}/get_sensors_info?page={page}";
+					var result = await cumulus.MyHttpClient.GetStringAsync(url, token);
+					cumulus.LogDataMessage($"GetSensorInfo: Page {page} = " + Utils.RemoveCrTabsFromString(result));
+
+					if (!string.IsNullOrEmpty(result))
+					{
+						if (result == lastData)
+						{
+							cumulus.LogDebugMessage($"GetSensorInfo: Page {page} the same as previous. Aborting downloads.");
+							break;
+						}
+
+						lastData = result;
+
+						var pageSensors = JsonSerializer.Deserialize<SensorInfo[]>(result, jsonOptions);
+						if (pageSensors != null && pageSensors.Length > 0)
+						{
+							sensors.AddRange(pageSensors);
+						}
+					}
 				}
-				if (!string.IsNullOrEmpty(results[1]))
+				catch (HttpRequestException ex)
 				{
-					sensors2 = JsonSerializer.Deserialize<SensorInfo[]>(results[1], jsonOptions);
-				}
+					// Pages 3 and 4 may return 404 - ignore those and continue.
+					if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+					{
+						cumulus.LogDebugMessage($"GetSensorInfo: Page {page} not found (404). Skipping.");
+						// If page 1 is missing, treat as station not supporting API
+						if (page == 1)
+						{
+							cumulus.LogErrorMessage("GetSensorInfo: Error - This Station does not support the HTTP API!");
+							return null;
+						}
+						break;
+					}
 
-				var retArr = new SensorInfo[sensors1.Length + sensors2.Length];
-				sensors1.CopyTo(retArr, 0);
-				sensors2.CopyTo(retArr, sensors1.Length);
-
-				return retArr;
-			}
-			catch (HttpRequestException ex)
-			{
-				if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				{
-					cumulus.LogErrorMessage("GetSensorInfo: Error - This Station does not support the HTTP API!");
-				}
-				else
-				{
+					// Other HTTP errors are logged and abort
 					cumulus.LogExceptionMessage(ex, "GetSensorInfo: HTTP Error");
+					return null;
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "GetSensorInfo: Error");
+					return null;
 				}
 			}
-			catch (Exception ex)
+
+			if (sensors.Count == 0)
 			{
-				cumulus.LogExceptionMessage(ex, "GetSensorInfo: Error");
+				cumulus.LogMessage("GetSensorInfo: No sensors returned");
+				return null;
 			}
 
-			return null;
+			return sensors.ToArray();
 		}
 
 		public static void GetUnits(CancellationToken token)
