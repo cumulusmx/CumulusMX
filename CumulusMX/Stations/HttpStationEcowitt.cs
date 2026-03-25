@@ -218,7 +218,9 @@ namespace CumulusMX.Stations
 			if (station == null)
 			{
 				cumulus.LogMessage("Starting HTTP Station (Ecowitt)");
+				LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 				DoDayResetIfNeeded();
+				DoTrendValues(DateTime.Now);
 				cumulus.StartTimersAndSensors();
 			}
 			else

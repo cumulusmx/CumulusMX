@@ -29,7 +29,9 @@ namespace CumulusMX.Stations
 
 		public override void Start()
 		{
+			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 			DoDayResetIfNeeded();
+			DoTrendValues(DateTime.Now);
 			timerStartNeeded = true;
 			starting = false;
 		}

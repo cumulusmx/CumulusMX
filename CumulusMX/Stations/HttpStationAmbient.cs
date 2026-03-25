@@ -57,7 +57,9 @@ namespace CumulusMX.Stations
 			if (mainStation)
 			{
 				cumulus.LogMessage("Starting HTTP Station (Ambient)");
+				LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
 				DoDayResetIfNeeded();
+				DoTrendValues(DateTime.Now);
 				timerStartNeeded = true;
 			}
 			else
