@@ -536,7 +536,7 @@ namespace CumulusMX.Stations
 				// sanity check
 				if (broadcastJson.StartsWith("{\"did\":"))
 				{
-					cumulus.LogDataMessage("WLL Broadcast: " + broadcastJson);
+					cumulus.LogDataMessage("Broadcast: " + broadcastJson);
 					var json = JsonSerializer.Deserialize<WllBroadcast>(broadcastJson);
 					// The WLL sends the timestamp in Unix ticks, and in UTC
 					// rather than rely on the WLL clock being correct, we will use our local time
@@ -566,13 +566,13 @@ namespace CumulusMX.Stations
 								}
 								else
 								{
-									cumulus.LogErrorMessage($"WLL broadcast: Error, primary wind sensor defined as {rec.txid}, but no wind data present on this transmitter id");
+									cumulus.LogErrorMessage($"Broadcast: Error, primary wind sensor defined as {rec.txid}, but no wind data present on this transmitter id");
 								}
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogErrorMessage($"WLL broadcast: Error in wind speed found on TxId {rec.txid}");
-								cumulus.LogDebugMessage($"WLL broadcast: Exception: {ex.Message}");
+								cumulus.LogErrorMessage($"Broadcast: Error in wind speed found on TxId {rec.txid}");
+								cumulus.LogDebugMessage($"Broadcast: Exception: {ex.Message}");
 							}
 						}
 
@@ -607,8 +607,8 @@ namespace CumulusMX.Stations
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogWarningMessage($"WLL broadcast: no valid rainfall found on TxId {rec.txid}");
-								cumulus.LogDebugMessage($"WLL broadcast: Exception: {ex.Message}");
+								cumulus.LogWarningMessage($"Broadcast: no valid rainfall found on TxId {rec.txid}");
+								cumulus.LogDebugMessage($"Broadcast: Exception: {ex.Message}");
 							}
 						}
 						else if (cumulus.WllPrimarySunshine == rec.txid)
@@ -620,8 +620,8 @@ namespace CumulusMX.Stations
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogWarningMessage($"WLL broadcast: no valid sunshine found on TxId {rec.txid}");
-								cumulus.LogDebugMessage($"WLL broadcast: Exception: {ex.Message}");
+								cumulus.LogWarningMessage($"Broadcast: no valid sunshine found on TxId {rec.txid}");
+								cumulus.LogDebugMessage($"Broadcast: Exception: {ex.Message}");
 							}
 						}
 					}
@@ -640,25 +640,24 @@ namespace CumulusMX.Stations
 				else if (broadcastJson.StartsWith("STR_BCAST"))
 				{
 					var msg = broadcastJson.Replace(((char) 0x00), '.').Replace(((char) 0x1c), '.');
-					cumulus.LogDebugMessage($"WLL broadcast: Received spurious message from printer utility(?) at IP address {from.Address} starting with \"STR_BCAST\"");
-					cumulus.LogDataMessage("WLL broadcast: Message = " + msg);
+					cumulus.LogDebugMessage($"Broadcast: Received spurious message from printer utility(?) at IP address {from.Address} starting with \"STR_BCAST\"");
+					cumulus.LogDataMessage("Broadcast: Message = " + msg);
 				}
 				else
 				{
 					multicastsBad++;
-					var msg = string.Format("WLL broadcast: Invalid payload in message from {3}. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float) (multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood, from.Address.ToString());
+					var msg = string.Format("Broadcast: Invalid payload in message from {3}. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float) (multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood, from.Address.ToString());
 					cumulus.LogMessage(msg);
-					cumulus.LogMessage("WLL broadcast: Received: " + broadcastJson);
+					cumulus.LogMessage("Broadcast: Received: " + broadcastJson);
 				}
 			}
 			catch (Exception exp)
 			{
-				cumulus.LogDebugMessage("DecodeBroadcast(): Exception Caught!");
-				cumulus.LogDebugMessage("Message :" + exp.Message);
+				cumulus.LogExceptionMessage(exp, "Broadcast: Exception Caught!");
 				multicastsBad++;
-				var msg = string.Format("WLL broadcast: Error processing broadcast. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float) (multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
+				var msg = string.Format("Broadcast: Error processing broadcast. Percentage good packets {0:F2}% - ({1},{2})", (multicastsGood / (float) (multicastsBad + multicastsGood) * 100), multicastsBad, multicastsGood);
 				cumulus.LogErrorMessage(msg);
-				cumulus.LogMessage($"WLL broadcast: Received from {from.Address}: " + broadcastJson);
+				cumulus.LogMessage($"Broadcast: Received from {from.Address}: " + broadcastJson);
 			}
 		}
 
@@ -686,7 +685,7 @@ namespace CumulusMX.Stations
 						case 1: // ISS
 							var data1 = rec.Deserialize<WllCurrentType1>();
 
-							cumulus.LogDebugMessage($"WLL current: found ISS data on TxId {data1.txid}");
+							cumulus.LogDebugMessage($"Current: found ISS data on TxId {data1.txid}");
 
 							// Battery
 							if (data1.trans_battery_flag.HasValue)
@@ -697,7 +696,7 @@ namespace CumulusMX.Stations
 								localSensorContactLost = true;
 								if (!sensorContactLost[data1.txid])
 								{
-									cumulus.LogWarningMessage($"Warning: Sensor contact lost TxId {data1.txid}; ignoring data from this ISS");
+									cumulus.LogWarningMessage($"Current: Warning: Sensor contact lost TxId {data1.txid}; ignoring data from this ISS");
 									sensorContactLost[data1.txid] = true;
 								}
 								continue;
@@ -705,7 +704,7 @@ namespace CumulusMX.Stations
 
 							if (sensorContactLost[data1.txid])
 							{
-								cumulus.LogWarningMessage($"Warning: Sensor contact restored TxId {data1.txid}");
+								cumulus.LogWarningMessage($"Current: Warning: Sensor contact restored TxId {data1.txid}");
 								sensorContactLost[data1.txid] = false;
 							}
 
@@ -726,7 +725,7 @@ namespace CumulusMX.Stations
 
 								try
 								{
-									cumulus.LogDebugMessage($"WLL current: using temp/hum data from TxId {data1.txid}");
+									cumulus.LogDebugMessage($"Current: using temp/hum data from TxId {data1.txid}");
 									if (data1.hum.HasValue)
 										DoOutdoorHumidity(Convert.ToInt32(data1.hum.Value), dateTime);
 
@@ -752,8 +751,8 @@ namespace CumulusMX.Stations
 								}
 								catch (Exception ex)
 								{
-									cumulus.LogErrorMessage($"WLL current: Error processing temperature values on TxId {data1.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									cumulus.LogErrorMessage($"Current: Error processing temperature values on TxId {data1.txid}");
+									cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 								}
 							}
 							else
@@ -766,11 +765,11 @@ namespace CumulusMX.Stations
 									{
 										if (!data1.temp.HasValue || data1.temp.Value < -98)
 										{
-											cumulus.LogDebugMessage($"WLL current: no valid Extra temperature value found [{data1.temp}] on TxId {data1.txid}");
+											cumulus.LogDebugMessage($"Current: no valid Extra temperature value found [{data1.temp}] on TxId {data1.txid}");
 										}
 										else
 										{
-											cumulus.LogDebugMessage($"WLL current: using extra temp data from TxId {data1.txid}");
+											cumulus.LogDebugMessage($"Current: using extra temp data from TxId {data1.txid}");
 
 											DoExtraTemp(ConvertUnits.TempFToUser(data1.temp.Value), tempTxId);
 										}
@@ -782,8 +781,8 @@ namespace CumulusMX.Stations
 									}
 									catch (Exception ex)
 									{
-										cumulus.LogErrorMessage($"WLL current: Error processing Extra temperature/humidity values on TxId {data1.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+										cumulus.LogErrorMessage($"Current: Error processing Extra temperature/humidity values on TxId {data1.txid}");
+										cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 									}
 								}
 							}
@@ -828,7 +827,7 @@ namespace CumulusMX.Stations
 									// Only use wind data from current if we are not receiving broadcasts
 									if (broadcastStopped)
 									{
-										cumulus.LogDebugMessage($"WLL current: no broadcast data so using wind data from TxId {data1.txid}");
+										cumulus.LogDebugMessage($"Current: no broadcast data so using wind data from TxId {data1.txid}");
 
 										// pesky null values from WLL when it is calm
 										double currentAvgWindSpd;
@@ -852,7 +851,7 @@ namespace CumulusMX.Stations
 										// See if the current speed is higher than the current max
 										// We can then update the figure before the next data packet is read
 
-										cumulus.LogDebugMessage($"WLL current: Checking recent gust using wind data from TxId {data1.txid}");
+										cumulus.LogDebugMessage($"Current: Checking recent gust using wind data from TxId {data1.txid}");
 
 										// Check for spikes, and set highs - Only if we are past the rollover time plus the gust time, otherwise we can get peaks from yesterday attributed to today
 										if (dateTime.AddHours(cumulus.GetHourInc(dateTime)).TimeOfDay > new TimeSpan(0, 2, 10))
@@ -860,12 +859,13 @@ namespace CumulusMX.Stations
 											var gust2minUncalibrated = ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
 											var gust2min = cumulus.Calib.WindGust.Calibrate(gust2minUncalibrated);
 
-											if (gust2min > HiLoToday.HighGust)
+											if (gust2min > RecentMaxGust)
 											{
 												var dir2min = (int) cumulus.Calib.WindDir.Calibrate(data1.wind_dir_at_hi_speed_last_2_min ?? 0);
 												var time2min = dateTime.AddMinutes(-1);
 
-												cumulus.LogMessage("DecodeCurrent: Setting today's max gust from current value: " + gust2min.ToString(cumulus.WindFormat) + " was: " + HiLoToday.HighGust.ToString(cumulus.WindFormat));
+												cumulus.LogMessage("Current: Setting recent max gust to new value: " + gust2min.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
+												RecentMaxGust = gust2min;
 												_ = CheckHighGust(gust2min, dir2min, time2min);
 
 												// add the uncalibrated values to the recent wind data
@@ -882,8 +882,8 @@ namespace CumulusMX.Stations
 								}
 								catch (Exception ex)
 								{
-									cumulus.LogErrorMessage($"WLL current: Error processing wind speeds on TxId {data1.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									cumulus.LogErrorMessage($"Current: Error processing wind speeds on TxId {data1.txid}");
+									cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 								}
 							}
 
@@ -906,7 +906,7 @@ namespace CumulusMX.Stations
 								*/
 
 
-								cumulus.LogDebugMessage($"WLL current: using storm rain data from TxId {data1.txid}");
+								cumulus.LogDebugMessage($"Current: using storm rain data from TxId {data1.txid}");
 
 								if (data1.rain_size.HasValue)
 								{
@@ -915,7 +915,7 @@ namespace CumulusMX.Stations
 										case 1:
 											if (cumulus.DavisOptions.RainGaugeType != 1)
 											{
-												cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 1 = 0.01 in");
+												cumulus.LogMessage($"Current: Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 1 = 0.01 in");
 												cumulus.DavisOptions.RainGaugeType = 1;
 												cumulus.WriteIniFile();
 											}
@@ -923,7 +923,7 @@ namespace CumulusMX.Stations
 										case 2:
 											if (cumulus.DavisOptions.RainGaugeType != 0)
 											{
-												cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.2 mm");
+												cumulus.LogMessage($"Current: Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 0 = 0.2 mm");
 												cumulus.DavisOptions.RainGaugeType = 0;
 												cumulus.WriteIniFile();
 											}
@@ -931,7 +931,7 @@ namespace CumulusMX.Stations
 										case 3:
 											if (cumulus.DavisOptions.RainGaugeType != 2)
 											{
-												cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 2 = 0.1 mm");
+												cumulus.LogMessage($"Current: Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 2 = 0.1 mm");
 												cumulus.DavisOptions.RainGaugeType = 2;
 												cumulus.WriteIniFile();
 											}
@@ -939,14 +939,14 @@ namespace CumulusMX.Stations
 										case 4:
 											if (cumulus.DavisOptions.RainGaugeType != 3)
 											{
-												cumulus.LogMessage($"Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 1 = 0.001 in");
+												cumulus.LogMessage($"Current: Setting Davis rain tipper size - was {cumulus.DavisOptions.RainGaugeType}, now 1 = 0.001 in");
 												cumulus.DavisOptions.RainGaugeType = 1;
 												cumulus.WriteIniFile();
 											}
 											break;
 
 										default:
-											cumulus.LogErrorMessage($"Error: Unknown Davis rain tipper size defined in data = {data1.rain_size.Value}");
+											cumulus.LogErrorMessage($"Current: Error: Unknown Davis rain tipper size defined in data = {data1.rain_size.Value}");
 											break;
 
 									}
@@ -957,15 +957,15 @@ namespace CumulusMX.Stations
 								// All rainfall values supplied as *tip counts*
 								if (!broadcastStopped)
 								{
-									cumulus.LogDebugMessage($"WLL current: Skipping rain data from TxId {data1.txid} as broadcasts are being received ok");
+									cumulus.LogDebugMessage($"Current: Skipping rain data from TxId {data1.txid} as broadcasts are being received ok");
 								}
 								else
 								{
-									cumulus.LogDebugMessage($"WLL current: No broadcast data so using rain data from TxId {data1.txid}");
+									cumulus.LogDebugMessage($"Current: No broadcast data so using rain data from TxId {data1.txid}");
 
 									if (!data1.rainfall_year.HasValue || !data1.rain_rate_last.HasValue || !data1.rain_size.HasValue)
 									{
-										cumulus.LogDebugMessage("WLL current: No rain values present!");
+										cumulus.LogDebugMessage("Current: No rain values present!");
 									}
 									else
 									{
@@ -975,7 +975,7 @@ namespace CumulusMX.Stations
 
 										if (rain > 0 && rain < RainCounter)
 										{
-											cumulus.LogDebugMessage("WLL current: The current yearly rainfall value is less than the value we had previously, ignoring it to avoid double counting");
+											cumulus.LogDebugMessage("Current: The current yearly rainfall value is less than the value we had previously, ignoring it to avoid double counting");
 										}
 										else
 										{
@@ -986,7 +986,7 @@ namespace CumulusMX.Stations
 
 								if (!data1.rain_storm.HasValue || !data1.rain_storm_start_at.HasValue || !data1.rain_size.HasValue)
 								{
-									cumulus.LogDebugMessage("WLL current: No rain storm values present");
+									cumulus.LogDebugMessage("Current: No rain storm values present");
 								}
 								else
 								{
@@ -997,8 +997,8 @@ namespace CumulusMX.Stations
 									}
 									catch (Exception ex)
 									{
-										cumulus.LogErrorMessage($"WLL current: Error processing rain storm values on TxId {data1.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+										cumulus.LogErrorMessage($"Current: Error processing rain storm values on TxId {data1.txid}");
+										cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 									}
 								}
 							}
@@ -1009,13 +1009,13 @@ namespace CumulusMX.Stations
 								{
 									try
 									{
-										cumulus.LogDebugMessage($"WLL current: using UV data from TxId {data1.txid}");
+										cumulus.LogDebugMessage($"Current: using UV data from TxId {data1.txid}");
 										DoUV(data1.uv_index.Value, dateTime);
 									}
 									catch (Exception ex)
 									{
-										cumulus.LogErrorMessage($"WLL current: Error processing UV value on TxId {data1.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+										cumulus.LogErrorMessage($"Current: Error processing UV value on TxId {data1.txid}");
+										cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 									}
 								}
 								else
@@ -1030,13 +1030,13 @@ namespace CumulusMX.Stations
 								{
 									try
 									{
-										cumulus.LogDebugMessage($"WLL current: using solar data from TxId {data1.txid}");
+										cumulus.LogDebugMessage($"Current: using solar data from TxId {data1.txid}");
 										DoSolarRad(data1.solar_rad.Value, dateTime);
 									}
 									catch (Exception ex)
 									{
-										cumulus.LogErrorMessage($"WLL current: Error processing Solar value on TxId {data1.txid}");
-										cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+										cumulus.LogErrorMessage($"Current: Error processing Solar value on TxId {data1.txid}");
+										cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 									}
 								}
 								else
@@ -1062,22 +1062,22 @@ namespace CumulusMX.Stations
 								* rec["rain_storm_last"], rec["rain_storm_last_start_at"], rec["rain_storm_last_end_at"]
 								*/
 
-								cumulus.LogDebugMessage($"WLL current: using sunshine data from TxId {data1.txid}");
+								cumulus.LogDebugMessage($"Current: using sunshine data from TxId {data1.txid}");
 
 								// Rain data can be a bit out of date compared to the broadcasts (1 minute update), so only use the data if we are not receiving broadcasts
 
 								// All rainfall values supplied as *tip counts*, each count = 1/100th of an hour of sunshine
 								if (!broadcastStopped)
 								{
-									cumulus.LogDebugMessage($"WLL current: Skipping sunshine from TxId {data1.txid} as broadcasts are being received ok");
+									cumulus.LogDebugMessage($"Current: Skipping sunshine from TxId {data1.txid} as broadcasts are being received ok");
 								}
 								else
 								{
-									cumulus.LogDebugMessage($"WLL current: No broadcast data so using sunshine data from TxId {data1.txid}");
+									cumulus.LogDebugMessage($"Current: No broadcast data so using sunshine data from TxId {data1.txid}");
 
 									if (!data1.rainfall_year.HasValue)
 									{
-										cumulus.LogDebugMessage("WLL current: No sunshine data present!");
+										cumulus.LogDebugMessage("Current: No sunshine data present!");
 									}
 									else
 									{
@@ -1107,7 +1107,7 @@ namespace CumulusMX.Stations
 
 							var data2 = JsonSerializer.Deserialize<WllCurrentType2>(rec);
 
-							cumulus.LogDebugMessage($"WLL current: found Leaf/Soil data on TxId {data2.txid}");
+							cumulus.LogDebugMessage($"Current: found Leaf/Soil data on TxId {data2.txid}");
 
 							// Battery
 							if (data2.trans_battery_flag.HasValue)
@@ -1118,7 +1118,7 @@ namespace CumulusMX.Stations
 								localSensorContactLost = true;
 								if (!sensorContactLost[data2.txid])
 								{
-									cumulus.LogWarningMessage($"Warning: Sensor contact lost TxId {data2.txid}; ignoring data from this Leaf/Soil transmitter");
+									cumulus.LogWarningMessage($"Current: Warning: Sensor contact lost TxId {data2.txid}; ignoring data from this Leaf/Soil transmitter");
 									sensorContactLost[data2.txid] = true;
 								}
 								continue;
@@ -1126,7 +1126,7 @@ namespace CumulusMX.Stations
 
 							if (sensorContactLost[data2.txid])
 							{
-								cumulus.LogWarningMessage($"Warning: Sensor contact restored TxId {data2.txid}");
+								cumulus.LogWarningMessage($"Current: Warning: Sensor contact restored TxId {data2.txid}");
 								sensorContactLost[data2.txid] = false;
 							}
 
@@ -1149,8 +1149,8 @@ namespace CumulusMX.Stations
 								}
 								catch (Exception e)
 								{
-									cumulus.LogErrorMessage($"WLL current: Error processing LeafWetness txid={data2.txid}, idx={idx}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {e.Message}");
+									cumulus.LogErrorMessage($"Current: Error processing LeafWetness txid={data2.txid}, idx={idx}");
+									cumulus.LogDebugMessage($"Current: Exception: {e.Message}");
 								}
 							}
 
@@ -1169,8 +1169,8 @@ namespace CumulusMX.Stations
 								}
 								catch (Exception ex)
 								{
-									cumulus.LogErrorMessage($"WLL current: Error processing soil moisture #{cumulus.WllSoilMoistureIdx[i]} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									cumulus.LogErrorMessage($"Current: Error processing soil moisture #{cumulus.WllSoilMoistureIdx[i]} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 								}
 							}
 
@@ -1203,8 +1203,8 @@ namespace CumulusMX.Stations
 								}
 								catch (Exception ex)
 								{
-									cumulus.LogErrorMessage($"WLL current: Error processing extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {data2.txid}");
-									cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+									cumulus.LogErrorMessage($"Current: Error processing extra soil temp #{cumulus.WllSoilTempIdx[i]} on TxId {data2.txid}");
+									cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 								}
 							}
 
@@ -1218,7 +1218,7 @@ namespace CumulusMX.Stations
 							 * rec["bar_trend"]
 							 */
 
-							cumulus.LogDebugMessage("WLL current: found Baro data");
+							cumulus.LogDebugMessage("Current: found Baro data");
 
 							try
 							{
@@ -1233,8 +1233,8 @@ namespace CumulusMX.Stations
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogErrorMessage("WLL current: Error processing baro data");
-								cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								cumulus.LogErrorMessage("Current: Error processing baro data");
+								cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 							}
 
 							break;
@@ -1248,7 +1248,7 @@ namespace CumulusMX.Stations
 							 * rec["heat_index_in"]
 							 */
 
-							cumulus.LogDebugMessage("WLL current: found Indoor temp/hum data");
+							cumulus.LogDebugMessage("Current: found Indoor temp/hum data");
 
 							var data4 = JsonSerializer.Deserialize<WllCurrentType4>(rec);
 
@@ -1259,8 +1259,8 @@ namespace CumulusMX.Stations
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogErrorMessage("WLL current: Error processing indoor temp data");
-								cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								cumulus.LogErrorMessage("Current: Error processing indoor temp data");
+								cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 							}
 
 							try
@@ -1270,14 +1270,14 @@ namespace CumulusMX.Stations
 							}
 							catch (Exception ex)
 							{
-								cumulus.LogErrorMessage("WLL current: Error processing indoor humidity data");
-								cumulus.LogDebugMessage($"WLL current: Exception: {ex.Message}");
+								cumulus.LogErrorMessage("Current: Error processing indoor humidity data");
+								cumulus.LogDebugMessage($"Current: Exception: {ex.Message}");
 							}
 
 							break;
 
 						default:
-							cumulus.LogDebugMessage($"WLL current: found an unknown transmitter type [{type}]!");
+							cumulus.LogDebugMessage($"Current: found an unknown transmitter type [{type}]!");
 							break;
 					}
 				}
@@ -1322,8 +1322,7 @@ namespace CumulusMX.Stations
 			}
 			catch (Exception exp)
 			{
-				cumulus.LogDebugMessage("DecodeCurrent: Exception Caught!");
-				cumulus.LogDebugMessage("Message :" + exp.Message);
+				cumulus.LogExceptionMessage(exp, "Current: Exception Caught!");
 			}
 		}
 

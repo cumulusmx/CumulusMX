@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.0.0 \[b5001\]][29] - 2026-03-24
+## [5.0.0 \[b5001\]][29] - 2026-03-25
 
 ### Important Notes
 
@@ -108,6 +108,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	This means that the true final daily total will be available in the first record of the following snow day the same as the daily rainfall total in the monthly log file
 - Now sets the HTTP Referer to the upload site when using PHP Upload, and to https://cumulus.hosiene.co.uk/ for all other HTTP queries
 - The Extra Sensors dashboard page is more responsive to screen size and now only shows tables for sensors that are enabled in Display Options
+- Davis WLL now catches missed recent gusts in the broadcast data
 
 ### Fixed
 
@@ -150,6 +151,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix JSON Extra Sensor Station CO₂ and Lightning values only being applied when run as the main station
 - Fix AQ PM10 Average visibility settings being reset on CMX restart
 - Now handles AirLink null data values - represented as 0 values for now
+- The HTTP Station (Ecowitt, Ambient, Wund) not repopulating the recent data database on startup
 
 ### Package Updates
 
