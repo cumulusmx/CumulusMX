@@ -10,6 +10,22 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [5.0.1 \[b5002\]][30] - 2026-04-25
+
+### New
+
+Nothing
+
+### Changed
+
+Nothing
+
+### Fixed
+
+- Davis WLL Soil/Leaf transmitter exception when receive status = null
+
+---
+
 ## [5.0.0 \[b5001\]][29] - 2026-03-25
 
 ### Important Notes
@@ -1261,4 +1277,5 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [26]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4127
 [27]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4128
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
-[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5000
+[29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5001
+[30]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5002

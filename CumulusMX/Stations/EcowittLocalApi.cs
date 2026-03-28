@@ -643,7 +643,7 @@ namespace CumulusMX.Stations
 					bool useTimeStamp = true;
 					List<string> result = [];
 
-					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}");
+					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}, log interval = {SdCardInterval} mins");
 
 					while ((line = await streamReader.ReadLineAsync(token)) != null)
 					{

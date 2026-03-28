@@ -1113,7 +1113,7 @@ namespace CumulusMX.Stations
 							if (data2.trans_battery_flag.HasValue)
 								SetTxBatteryStatus(data2.txid, data2.trans_battery_flag.Value);
 
-							if (data2.rx_state == 2)
+							if ((data2.rx_state ?? 0) == 2)
 							{
 								localSensorContactLost = true;
 								if (!sensorContactLost[data2.txid])
@@ -3460,7 +3460,7 @@ namespace CumulusMX.Stations
 			public double? moist_soil_4 { get; set; }
 			public double? wet_leaf_1 { get; set; }
 			public double? wet_leaf_2 { get; set; }
-			public int rx_state { get; set; }
+			public int? rx_state { get; set; }
 			public int? trans_battery_flag { get; set; }
 			public object this[string name]
 			{
