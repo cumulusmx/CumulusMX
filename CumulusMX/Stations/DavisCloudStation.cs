@@ -1846,7 +1846,7 @@ namespace CumulusMX.Stations
 													}
 													else
 													{
-														bearing = rec.wind_dir_scalar_avg_last_10_min;
+														bearing = rec.wind_dir_scalar_avg_last_10_min ?? 0;
 													}
 
 													if (cumulus.StationOptions.PeakGustMinutes < 10)
