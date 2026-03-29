@@ -653,7 +653,7 @@ namespace CumulusMX.Stations
 		public double? wind_speed_hi_last_2_min { get; set; }
 		public int? wind_dir_at_hi_speed_last_2_min { get; set; }
 		public double? wind_speed_avg_last_10_min { get; set; }
-		public int wind_dir_scalar_avg_last_10_min { get; set; }
+		public int? wind_dir_scalar_avg_last_10_min { get; set; }
 		public double? wind_speed_hi_last_10_min { get; set; }
 		public int? wind_dir_at_hi_speed_last_10_min { get; set; }
 		public double? wind_run_day { get; set; }  // Type 23 only
