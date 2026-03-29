@@ -219,7 +219,7 @@ namespace CumulusMX.ThirdParty
 				URL.Append("&temp=" + WeatherStation.TempCstr(station.OutdoorTemperature));
 
 			URL.Append("&softwaretype=CumulusMX+v" + cumulus.Version);
-			URL.Append("&stationtype=" + System.Web.HttpUtility.UrlEncode(cumulus.StationModel));
+			URL.Append("&stationtype=" + System.Web.HttpUtility.UrlEncode(cumulus.StationModel.Length > 100 ? cumulus.StationModel[..100] : cumulus.StationModel));
 
 			return URL.ToString();
 		}
