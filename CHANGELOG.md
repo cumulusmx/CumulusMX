@@ -14,7 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-Nothing
+- Adds support for supply external forecast text via a file `forecast.txt` in the root folder
 
 ### Changed
 

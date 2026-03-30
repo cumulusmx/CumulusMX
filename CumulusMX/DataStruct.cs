@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Web;
 
 namespace CumulusMX
 {
@@ -52,7 +53,7 @@ namespace CumulusMX
 
 		public string Moonset { get; } = moonset;
 
-		public string Forecast { get; } = forecast;
+		public string Forecast { get; } = HttpUtility.HtmlEncode(forecast).Replace("\n", "<br>");
 
 		double? _uVindex { get; } = uvindex;
 

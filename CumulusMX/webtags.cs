@@ -859,7 +859,7 @@ namespace CumulusMX
 
 		private string Tagforecastenc(Dictionary<string, string> tagParams)
 		{
-			return EncodeForWeb(station.forecaststr);
+			return EncodeForWeb(station.forecaststr).Replace("\n", "<br>");
 		}
 
 		private string TagforecastJsEnc(Dictionary<string, string> tagParams)

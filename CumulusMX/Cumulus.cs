@@ -4452,7 +4452,7 @@ namespace CumulusMX
 			}
 
 			StationOptions.UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
-			UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
+			ForecastSource = ini.GetValue("Station", "UseCumulusForecast", 0);
 			HourlyForecast = ini.GetValue("Station", "HourlyForecast", false);
 			StationOptions.UseCumulusPresstrendstr = ini.GetValue("Station", "UseCumulusPresstrendstr", false);
 			//UseWindChillCutoff = ini.GetValue("Station", "UseWindChillCutoff", false)
@@ -6488,7 +6488,8 @@ namespace CumulusMX
 			ini.SetValue("Station", "YTDrain", YTDrain);
 			ini.SetValue("Station", "YTDrainyear", YTDrainyear);
 			ini.SetValue("Station", "UseDataLogger", StationOptions.UseDataLogger);
-			ini.SetValue("Station", "UseCumulusForecast", UseCumulusForecast);
+			ini.SetValue("Station", "UseCumulusForecast", ForecastSource);
+
 			ini.SetValue("Station", "HourlyForecast", HourlyForecast);
 			ini.SetValue("Station", "UseCumulusPresstrendstr", StationOptions.UseCumulusPresstrendstr);
 			ini.SetValue("Station", "FCpressinMB", FCpressinMB);
@@ -8426,7 +8427,11 @@ namespace CumulusMX
 
 		public bool HourlyForecast { get; set; }
 
-		public bool UseCumulusForecast { get; set; }
+		/// <summary>
+		///  0 = station, 1 = Cumulus, 2 = forecast.txt
+		/// </summary>
+		public int ForecastSource { get; set; }
+		public DateTime LastForecastDotTxtReadTime { get; set; } = DateTime.MinValue;
 
 		public bool DavisConsoleHighGust { get; set; }
 
@@ -14415,6 +14420,39 @@ namespace CumulusMX
 
 			return input;
 		}
+
+		public void GetForecastText()
+		{
+
+			string res = string.Empty;
+			string fileName = Path.Combine(Directory.GetCurrentDirectory(), "forecast.txt");
+
+			try
+			{
+				LogDebugMessage("GetForecastText: Reading - " + fileName);
+				if (File.Exists(fileName))
+				{
+					using StreamReader streamReader = new StreamReader(fileName);
+					res = streamReader.ReadToEnd();
+
+					if (string.IsNullOrEmpty(res))
+					{
+						LogWarningMessage($"GetForecastText: MX configured to read \"{fileName}\" but the file is empty!");
+					}
+				}
+				else
+				{
+					LogWarningMessage($"GetForecastText: MX configured to read \"{fileName}\" but the file does not exist");
+				}
+			}
+			catch (Exception ex)
+			{
+				LogExceptionMessage(ex, "GetForecastText: Error processing file " + fileName);
+			}
+
+			station.forecaststr = res;
+		}
+
 
 		public void LogOffsetsMultipliers()
 		{

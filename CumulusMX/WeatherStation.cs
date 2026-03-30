@@ -7430,51 +7430,58 @@ namespace CumulusMX
 				wsforecast = forecast;
 			}
 
-			if (!cumulus.UseCumulusForecast)
+			if (cumulus.ForecastSource == 2)
+			{
+				if ((DateTime.UtcNow - cumulus.LastForecastDotTxtReadTime).TotalMinutes > 1)
+				{
+					cumulus.GetForecastText();
+					cumulus.LastForecastDotTxtReadTime = DateTime.UtcNow;
+				}
+			}
+			else if (cumulus.ForecastSource == 0)
 			{
 				// user wants to display station forecast
 				forecaststr = wsforecast;
 			}
-
-			// determine whether we need to update the Cumulus forecast; user may have chosen to only update once an hour, but
-			// we still need to do that once to get an initial forecast
-			if (!FirstForecastDone || !cumulus.HourlyForecast || hourly && cumulus.HourlyForecast)
+			else // 1 = cumulus forecast
 			{
-				int bartrend;
-				if (presstrendval >= -cumulus.FCPressureThreshold && presstrendval <= cumulus.FCPressureThreshold)
-					bartrend = 0;
-				else if (presstrendval < 0)
-					bartrend = 2;
-				else
-					bartrend = 1;
+				// determine whether we need to update the Cumulus forecast; user may have chosen to only update once an hour, but
+				// we still need to do that once to get an initial forecast
+				if (!FirstForecastDone || !cumulus.HourlyForecast || hourly && cumulus.HourlyForecast)
+				{
+					int bartrend;
+					if (presstrendval >= -cumulus.FCPressureThreshold && presstrendval <= cumulus.FCPressureThreshold)
+						bartrend = 0;
+					else if (presstrendval < 0)
+						bartrend = 2;
+					else
+						bartrend = 1;
 
-				string windDir;
-				if (WindAverage < 0.1)
-				{
-					windDir = "calm";
-				}
-				else
-				{
-					windDir = AvgBearingText;
-				}
+					string windDir;
+					if (WindAverage < 0.1)
+					{
+						windDir = "calm";
+					}
+					else
+					{
+						windDir = AvgBearingText;
+					}
 
-				double lp;
-				double hp;
-				if (cumulus.FCpressinMB)
-				{
-					lp = cumulus.FClowpress;
-					hp = cumulus.FChighpress;
-				}
-				else
-				{
-					lp = cumulus.FClowpress / 0.0295333727;
-					hp = cumulus.FChighpress / 0.0295333727;
-				}
+					double lp;
+					double hp;
+					if (cumulus.FCpressinMB)
+					{
+						lp = cumulus.FClowpress;
+						hp = cumulus.FChighpress;
+					}
+					else
+					{
+						lp = cumulus.FClowpress / 0.0295333727;
+						hp = cumulus.FChighpress / 0.0295333727;
+					}
 
-				CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
+					CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
 
-				if (cumulus.UseCumulusForecast)
-				{
 					// user wants to display Cumulus forecast
 					forecaststr = CumulusForecast;
 				}

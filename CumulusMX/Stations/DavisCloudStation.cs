@@ -36,7 +36,10 @@ namespace CumulusMX.Stations
 		{
 			calculaterainrate = false;
 			// WLL does not provide a forecast string, so use the Cumulus forecast
-			cumulus.UseCumulusForecast = true;
+			if (cumulus.ForecastSource != 2)
+			{
+				cumulus.ForecastSource = 1;
+			}
 			// WLL does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 

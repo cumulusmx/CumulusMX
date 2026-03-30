@@ -271,7 +271,7 @@ namespace CumulusMX.Settings
 				lowpressureextreme = cumulus.FClowpress,
 				pressureunit = "mb/hPa",
 				updatehourly = cumulus.HourlyForecast,
-				usecumulusforecast = cumulus.UseCumulusForecast
+				usecumulusforecast = cumulus.ForecastSource
 			};
 
 			if (!cumulus.FCpressinMB)
@@ -661,8 +661,8 @@ namespace CumulusMX.Settings
 				// Forecast
 				try
 				{
-					cumulus.UseCumulusForecast = settings.Forecast.usecumulusforecast;
-					if (cumulus.UseCumulusForecast)
+					cumulus.ForecastSource = settings.Forecast.usecumulusforecast;
+					if (cumulus.ForecastSource == 0)
 					{
 						cumulus.FChighpress = settings.Forecast.highpressureextreme;
 						cumulus.FClowpress = settings.Forecast.lowpressureextreme;
@@ -1960,7 +1960,7 @@ namespace CumulusMX.Settings
 
 		private sealed class JsonForecast
 		{
-			public bool usecumulusforecast { get; set; }
+			public int usecumulusforecast { get; set; }
 			public bool updatehourly { get; set; }
 			public double lowpressureextreme { get; set; }
 			public double highpressureextreme { get; set; }
