@@ -184,7 +184,7 @@ namespace CumulusMX.ThirdParty
 		{
 			pwstring = null;
 
-			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fffK");
+			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture);
 			StringBuilder URL = new StringBuilder("https://stations.windy.com/api/v2/observation/update/", 1024);
 
 			URL.Append("?id=" + StationId);
