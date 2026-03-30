@@ -127,23 +127,8 @@ namespace CumulusMX.Stations
 			cumulus.LogMessage("Last Update = " + cumulus.LastUpdateTime);
 
 			// set up controls for end of day rollover
-			if (cumulus.RolloverHour == 0)
-			{
-				rollHour = 0;
-				hourInc = 0;
-			}
-			else if (cumulus.Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now))
-			{
-				// Locale is currently on Daylight time
-				rollHour = cumulus.RolloverHour + 1;
-				hourInc = -10;
-			}
-			else
-			{
-				// Locale is currently on Standard time or unknown
-				rollHour = cumulus.RolloverHour;
-				hourInc = -9;
-			}
+			rollHour = cumulus.GetRolloverHour(cumulus.LastUpdateTime);
+			hourInc = cumulus.GetHourInc(cumulus.LastUpdateTime);
 
 			var luhour = cumulus.LastUpdateTime.Hour;
 

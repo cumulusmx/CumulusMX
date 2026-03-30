@@ -1936,7 +1936,7 @@ namespace CumulusMX.Stations
 				station.CheckForWindrunHighLow(recDateTime);
 
 
-				if (recDateTime.Hour != cumulus.RolloverHour || recDateTime.Minute != 0)
+				if (recDateTime.Hour != cumulus.GetRolloverHour(recDateTime) || recDateTime.Minute != 0)
 				{
 					// Only log data if not in the roll-over hour and not on the hour
 					_ = cumulus.DoLogFile(recDateTime, false);

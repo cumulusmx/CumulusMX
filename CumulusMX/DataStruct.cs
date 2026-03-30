@@ -53,7 +53,7 @@ namespace CumulusMX
 
 		public string Moonset { get; } = moonset;
 
-		public string Forecast { get; } = HttpUtility.HtmlEncode(forecast).Replace("\n", "<br>");
+		public string Forecast { get; } = forecast;
 
 		double? _uVindex { get; } = uvindex;
 

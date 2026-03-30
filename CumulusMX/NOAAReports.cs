@@ -217,16 +217,8 @@ namespace CumulusMX
 			}
 			else
 			{
-				if (cumulus.Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(dat))
-				{
-					// Locale is currently on Daylight (summer) time
-					logfiledate = dat.AddHours(-10);
-				}
-				else
-				{
-					// Locale is currently on Standard time or unknown
-					logfiledate = dat.AddHours(-9);
-				}
+				// Locale could be in Daylight (summer) time or not
+				logfiledate = dat.AddHours(cumulus.GetHourInc(dat));
 			}
 
 			if (fullPath)
@@ -249,17 +241,10 @@ namespace CumulusMX
 			}
 			else
 			{
-				if (cumulus.Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(dat))
-				{
-					// Locale is currently on Daylight (summer) time
-					logfiledate = dat.AddHours(-10);
-				}
-				else
-				{
-					// Locale is currently on Standard time or unknown
-					logfiledate = dat.AddHours(-9);
-				}
+				// Locale could be in Daylight (summer) time or not
+				logfiledate = dat.AddHours(cumulus.GetHourInc(dat));
 			}
+
 			if (fullPath)
 				return Path.Combine(cumulus.ProgramOptions.ReportsPath, logfiledate.AddHours(-1).ToString(cumulus.NOAAconf.MonthFile));
 			else
@@ -298,16 +283,8 @@ namespace CumulusMX
 			}
 			else
 			{
-				if (cumulus.Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(now))
-				{
-					// Locale is currently on Daylight (summer) time
-					reportDate = now.AddHours(-10);
-				}
-				else
-				{
-					// Locale is currently on Standard time or unknown
-					reportDate = now.AddHours(-9);
-				}
+				// Locale could be in Daylight (summer) time or not
+				reportDate = now.AddHours(cumulus.GetHourInc(now));
 			}
 
 			return reportDate.Date;

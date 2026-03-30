@@ -25,6 +25,7 @@ Nothing
 - Davis WLL Soil/Leaf transmitter exception when receive status = null
 - Davis weatherlink.com API fix null 10 wind direction in current data
 - Limit Windy station type field to 100 characters for v2 API
+- Fix numerous issues with the 9am daily rollover when using the use 10am in DST option
 
 ---
 

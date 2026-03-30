@@ -627,7 +627,7 @@ namespace CumulusMX.Stations
 					midnightraindone = true;
 				}
 
-				if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+				if (timestamp.Hour != cumulus.GetRolloverHour(timestamp) || timestamp.Minute != 0)
 				{
 					// Only log data if not in the roll-over hour and not on the hour
 					_ = cumulus.DoLogFile(timestamp, false);

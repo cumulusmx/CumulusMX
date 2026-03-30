@@ -1352,7 +1352,8 @@ namespace CumulusMX
 			LogMessage($"Roll over hour={RolloverHour:D2}");
 			if (RolloverHour != 0)
 			{
-				LogMessage("Use 10am in summer =" + Use10amInSummer);
+				LogMessage("Use 10am in summer=" + Use10amInSummer);
+				LogMessage($"Current Roll over hour={GetRolloverHour(DateTime.Now):D2}");
 			}
 
 			LogOffsetsMultipliers();
@@ -9470,7 +9471,13 @@ namespace CumulusMX
 
 								// Do not do this extra backup between 00:00 & Roll-over hour on the first of the month
 								// as the month has not yet rolled over - only applies for start-up backups
-								if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
+								var rollover = RolloverHour;
+								if (RolloverHour == 9 && Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(timestamp))
+								{
+									rollover = 10;
+								}
+
+								if (timestamp.Day == 1 && timestamp.Hour >= rollover)
 								{
 									var newTime = timestamp.AddDays(-1);
 									// on the first of month, we also need to backup last months files as well
@@ -9603,6 +9610,11 @@ namespace CumulusMX
 		public int GetHourInc()
 		{
 			return GetHourInc(DateTime.Now);
+		}
+
+		public int GetRolloverHour(DateTime timestamp)
+		{
+			return -GetHourInc(timestamp);
 		}
 
 		public DateTime MeteoDate()
