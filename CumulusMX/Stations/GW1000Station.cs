@@ -1449,7 +1449,7 @@ namespace CumulusMX.Stations
 						}
 					}
 
-					DoForecast("", false);
+					DoForecast(string.Empty, false);
 
 					cumulus.BatteryLowAlarm.Triggered = batteryLow;
 

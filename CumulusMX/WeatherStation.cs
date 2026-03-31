@@ -2253,7 +2253,7 @@ namespace CumulusMX
 
 			if (cumulus.HourlyForecast)
 			{
-				DoForecast("", true);
+				DoForecast(string.Empty, true);
 			}
 
 			var rollHour = Math.Abs(cumulus.GetHourInc());
@@ -7411,14 +7411,14 @@ namespace CumulusMX
 		{
 			// store weather station forecast if available
 
-			if (forecast != "")
-			{
-				wsforecast = forecast;
-			}
 
-			if (cumulus.ForecastSource == 2)
+			if (cumulus.ForecastSource == 3)
 			{
-				if ((DateTime.UtcNow - cumulus.LastForecastDotTxtReadTime).TotalMinutes > 10)
+				forecaststr = string.Empty;
+			}
+			else if (cumulus.ForecastSource == 2)
+				{
+					if ((DateTime.UtcNow - cumulus.LastForecastDotTxtReadTime).TotalMinutes > 10)
 				{
 					cumulus.GetForecastText();
 					cumulus.LastForecastDotTxtReadTime = DateTime.UtcNow;
@@ -7427,6 +7427,7 @@ namespace CumulusMX
 			else if (cumulus.ForecastSource == 0)
 			{
 				// user wants to display station forecast
+				wsforecast = forecast;
 				forecaststr = wsforecast;
 			}
 			else // 1 = cumulus forecast

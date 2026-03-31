@@ -4453,7 +4453,7 @@ namespace CumulusMX
 			}
 
 			StationOptions.UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
-			ForecastSource = ini.GetValue("Station", "UseCumulusForecast", 0);
+			ForecastSource = ini.GetValue("Station", "UseCumulusForecast", 0, 0, 3);
 			HourlyForecast = ini.GetValue("Station", "HourlyForecast", false);
 			StationOptions.UseCumulusPresstrendstr = ini.GetValue("Station", "UseCumulusPresstrendstr", false);
 			//UseWindChillCutoff = ini.GetValue("Station", "UseWindChillCutoff", false)
@@ -8429,7 +8429,7 @@ namespace CumulusMX
 		public bool HourlyForecast { get; set; }
 
 		/// <summary>
-		///  0 = station, 1 = Cumulus, 2 = forecast.txt
+		///  0 = station, 1 = Cumulus, 2 = forecast.txt, 3 = None
 		/// </summary>
 		public int ForecastSource { get; set; }
 		public DateTime LastForecastDotTxtReadTime { get; set; } = DateTime.MinValue;

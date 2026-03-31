@@ -36,7 +36,7 @@ namespace CumulusMX.Stations
 		{
 			calculaterainrate = false;
 			// WLL does not provide a forecast string, so use the Cumulus forecast
-			if (cumulus.ForecastSource != 2)
+			if (cumulus.ForecastSource == 0)
 			{
 				cumulus.ForecastSource = 1;
 			}
