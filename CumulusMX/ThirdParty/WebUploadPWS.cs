@@ -121,7 +121,7 @@ namespace CumulusMX.ThirdParty
 		internal override string GetURL(out string pwstring, DateTime timestamp)
 		{
 			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH'%3A'mm'%3A'ss");
-			StringBuilder URL = new StringBuilder("http://www.pwsweather.com/pwsupdate/pwsupdate.php?ID=", 1024);
+			StringBuilder URL = new StringBuilder("https://www.pwsweather.com/pwsupdate/pwsupdate.php?ID=", 1024);
 
 			pwstring = PW;
 			URL.Append(ID + "&PASSWORD=" + HttpUtility.UrlEncode(PW));

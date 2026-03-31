@@ -18,7 +18,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Changed
 
-Nothing
+- Some third party uploads switched from HTTP to HTTPS - AWEKAS, PWS, WindGuru
 
 ### Fixed
 

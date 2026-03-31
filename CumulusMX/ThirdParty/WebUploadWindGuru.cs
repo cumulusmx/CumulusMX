@@ -154,7 +154,7 @@ namespace CumulusMX.ThirdParty
 			maxwind = cumulus.Calib.WindGust.Calibrate(maxwind);
 			minwind = cumulus.Calib.WindSpeed.Calibrate(minwind);
 
-			StringBuilder URL = new StringBuilder("http://www.windguru.cz/upload/api.php?", 1024);
+			StringBuilder URL = new StringBuilder("https://www.windguru.cz/upload/api.php?", 1024);
 
 			URL.Append("uid=" + HttpUtility.UrlEncode(cumulus.WindGuru.ID));
 			URL.Append("&salt=" + salt);
