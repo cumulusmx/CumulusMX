@@ -28,7 +28,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Limit Windy station type field to 100 characters for v2 API
 - Fix numerous issues with the 9am daily rollover when using the use 10am in DST option
 - Fix Windy uploads for locales that do not use colon time separators
-- Fix RecentPressure web tag - not using UnixTime
+- Fix #RecentPressure web tag - not using UnixTime
+- Fix various web tags (eg #YearTempAvg) erroring when no dayfile entries exist to the period requested
 
 ---
 
