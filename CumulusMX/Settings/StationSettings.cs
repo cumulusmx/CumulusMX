@@ -667,13 +667,14 @@ namespace CumulusMX.Settings
 						station.DoForecast(string.Empty, true);
 
 						cumulus.ForecastSource = settings.Forecast.usecumulusforecast;
-						if (cumulus.ForecastSource == 0)
-						{
-							cumulus.FChighpress = settings.Forecast.highpressureextreme;
-							cumulus.FClowpress = settings.Forecast.lowpressureextreme;
-							cumulus.HourlyForecast = settings.Forecast.updatehourly;
-							cumulus.FCpressinMB = settings.Forecast.pressureunit == "mb/hPa";
-						}
+					}
+
+					if (cumulus.ForecastSource == 1)
+					{
+						cumulus.FChighpress = settings.Forecast.highpressureextreme;
+						cumulus.FClowpress = settings.Forecast.lowpressureextreme;
+						cumulus.HourlyForecast = settings.Forecast.updatehourly;
+						cumulus.FCpressinMB = settings.Forecast.pressureunit == "mb/hPa";
 					}
 				}
 				catch (Exception ex)

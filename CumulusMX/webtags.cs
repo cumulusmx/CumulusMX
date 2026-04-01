@@ -776,6 +776,11 @@ namespace CumulusMX
 			return DateTime.UtcNow.ToUnixTime().ToString();
 		}
 
+		private static string TagIsDST(Dictionary<string, string> tagParams)
+		{
+			return DateTime.Now.IsDaylightSavingTime() ? "1" : "0";
+		}
+
 		private string TagDate(Dictionary<string, string> tagParams)
 		{
 			return GetFormattedDateTime(DateTime.Now, "d", tagParams);
@@ -6686,7 +6691,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select Pressure from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select Pressure from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckPressUnit(result.HasValue ? result.Value : station.Pressure, tagParams), tagParams, cumulus.PressDPlaces);
 		}
@@ -6969,6 +6974,7 @@ namespace CumulusMX
 				{ "timehhmmss", TagTimehhmmss },
 				{ "timeJavaScript", TagTimeJavascript },
 				{ "timeUnix", TagTimeUnix },
+				{ "isDST", TagIsDST },
 				{ "date", TagDate },
 				{ "yesterday", TagYesterday },
 				{ "metdate", TagMetDate },

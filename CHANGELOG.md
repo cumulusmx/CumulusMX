@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### New
 
 - Adds support for supply external forecast text via a file `forecast.txt` in the root folder
+- Adds a new web tag `<#IsDST>` which indicates if the current date/time is in daylight saving time (=1) or not (=0)
 
 ### Changed
 
@@ -27,6 +28,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Limit Windy station type field to 100 characters for v2 API
 - Fix numerous issues with the 9am daily rollover when using the use 10am in DST option
 - Fix Windy uploads for locales that do not use colon time separators
+- Fix RecentPressure web tag - not using UnixTime
 
 ---
 
