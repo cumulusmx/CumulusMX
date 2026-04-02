@@ -161,15 +161,26 @@ namespace CumulusMX
 								// some people enter the code as eg en_GB, it should use dash en-GB
 								lang = lang.Replace('_', '-');
 
-								CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
-								CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
-								Thread.CurrentThread.CurrentCulture = new CultureInfo(lang);
-								CultureInfo.CurrentCulture = new CultureInfo(lang);
-								CultureInfo.CurrentUICulture = new CultureInfo(lang);
+								try
+								{
+									CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(lang);
+									CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(lang);
+									Thread.CurrentThread.CurrentCulture = new CultureInfo(lang);
+									CultureInfo.CurrentCulture = new CultureInfo(lang);
+									CultureInfo.CurrentUICulture = new CultureInfo(lang);
+								}
+								catch (Exception ex)
+								{
+									var ci = CultureInfo.InstalledUICulture;
+									var msg = $"Invalid language argument \"{args[i]}\", defaulting to system {ci.DisplayName} - Error: \"{ex.Message}\"";
+									Console.WriteLine(msg);
+									svcTextListener.WriteLine(msg);
+									MxLogger.Error($"Invalid language argument \"{args[i]}\", defaulting to system {ci.DisplayName} - Error: \"{ex.Message}\"");
+								}
 								break;
 							}
 						case "-port" when args.Length >= i:
-							Httpport = Convert.ToInt32(args[++i]);
+							Httpport = Convert.ToInt32(args[++i], CultureInfo.InvariantCulture);
 							break;
 						case "-debug":
 							// Switch on debug and data logging from the start
