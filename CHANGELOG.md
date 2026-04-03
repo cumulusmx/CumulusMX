@@ -30,6 +30,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Windy uploads for locales that do not use colon time separators
 - Fix #RecentPressure web tag - not using UnixTime
 - Fix various web tags (eg #YearTempAvg) erroring when no dayfile entries exist to the period requested
+- Chart.js charts not plotting if the Cumulus is running under the Invarant Culture locale
+- Local copies of chart data and realtimegauges.txt files not saving in correct location - going into application root folder with a prefix of "web" to the filename
 
 ---
 
