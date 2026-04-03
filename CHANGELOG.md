@@ -33,6 +33,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix various web tags (eg `<#YearTempAvg>`) erroring when no dayfile entries exist to the period requested
 - Chart.js charts not plotting if the Cumulus is running under the Invariant Culture locale - now defaults to en-US for the charts
 - Local copies of chart data and realtimegauges.txt files not saving in correct location - going into application root folder with a prefix of "web" to the filename
+- Fix web tag `<#ByMonthWindH>` which was using the gust decimals setting
 
 ---
 

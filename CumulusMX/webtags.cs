@@ -3059,7 +3059,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighWind;
-			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckWindUnit(rec.Val, tagParams), tagParams, cumulus.WindDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckWindUnit(rec.Val, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string TagByMonthWindHt(Dictionary<string, string> tagParams)
