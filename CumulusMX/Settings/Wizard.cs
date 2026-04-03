@@ -512,6 +512,8 @@ namespace CumulusMX.Settings
 					cumulus.RolloverHour = settings.logs.logrollover.time == "9am" ? 9 : 0;
 					if (cumulus.RolloverHour == 9)
 						cumulus.Use10amInSummer = settings.logs.logrollover.summer10am;
+					else
+						cumulus.Use10amInSummer = false;
 
 				}
 				catch (Exception ex)

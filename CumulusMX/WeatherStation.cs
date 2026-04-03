@@ -1372,18 +1372,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					DateTime adjustedTS;
-
-					if (cumulus.Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(timestamp))
-					{
-						// Locale is currently on Daylight (summer) time
-						adjustedTS = timestamp.AddHours(-10);
-					}
-					else
-					{
-						// Locale is currently on Standard time or unknown
-						adjustedTS = timestamp.AddHours(-9);
-					}
+					DateTime adjustedTS = timestamp.AddHours(cumulus.GetHourInc());
 
 					month = adjustedTS.Month;
 					day = adjustedTS.Day;
@@ -2017,7 +2006,7 @@ namespace CumulusMX
 					if (now.Minute % Cumulus.logints[cumulus.DataLogInterval] == 0)
 					{
 						// skip the log at rollover, it will be done by DayReset
-						if (now.Hour != cumulus.RolloverHour || now.Minute != 0)
+						if (now.Hour != cumulus.GetRolloverHour(now) || now.Minute != 0)
 						{
 							_ = cumulus.DoLogFile(now, true);
 						}
@@ -2264,7 +2253,7 @@ namespace CumulusMX
 
 			if (cumulus.HourlyForecast)
 			{
-				DoForecast("", true);
+				DoForecast(string.Empty, true);
 			}
 
 			var rollHour = Math.Abs(cumulus.GetHourInc());
@@ -2408,7 +2397,7 @@ namespace CumulusMX
 						json = CreateGraphDataJson(cumulus.GraphDataFiles[i].LocalFileName, false);
 
 						cumulus.LogDebugMessage("CreateGraphDataFiles: Writing " + cumulus.GraphDataFiles[i].LocalFileName);
-						var dest = cumulus.GraphDataFiles[i].LocalPath + cumulus.GraphDataFiles[i].LocalFileName;
+						var dest = Path.Combine(cumulus.GraphDataFiles[i].LocalPath, cumulus.GraphDataFiles[i].LocalFileName);
 						using (var file = new StreamWriter(dest, false))
 						{
 							file.WriteLine(json);
@@ -2477,7 +2466,7 @@ namespace CumulusMX
 
 					try
 					{
-						var dest = cumulus.GraphDataEodFiles[i].LocalPath + cumulus.GraphDataEodFiles[i].LocalFileName;
+						var dest = Path.Combine(cumulus.GraphDataEodFiles[i].LocalPath, cumulus.GraphDataEodFiles[i].LocalFileName);
 						File.WriteAllTextAsync(dest, json);
 					}
 					catch (Exception ex)
@@ -2508,7 +2497,7 @@ namespace CumulusMX
 
 					try
 					{
-						var dest = cumulus.GraphDataFiles[i].LocalPath + cumulus.GraphDataFiles[i].LocalFileName;
+						var dest = Path.Combine(cumulus.GraphDataFiles[i].LocalPath, cumulus.GraphDataFiles[i].LocalFileName);
 						File.WriteAllTextAsync(dest, json);
 					}
 					catch (Exception ex)
@@ -6161,12 +6150,9 @@ namespace CumulusMX
 			var in100rainlasthour = Convert.ToInt32(ConvertUnits.UserRainToIN(RainLastHour) * 100);
 			var in100rainlast24hours = Convert.ToInt32(ConvertUnits.UserRainToIN(RainLast24Hour) * 100);
 			int in100raintoday;
-			if (cumulus.RolloverHour == 0)
-				// use today's rain for safety
-				in100raintoday = Convert.ToInt32(ConvertUnits.UserRainToIN(RainToday) * 100);
-			else
-				// 0900 day, use midnight calculation
-				in100raintoday = Convert.ToInt32(ConvertUnits.UserRainToIN(RainSinceMidnight) * 100);
+			// use today's rain for safety
+			// 0900 day, use midnight calculation
+			in100raintoday = Convert.ToInt32(ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? RainToday : RainSinceMidnight) * 100);
 			var mb10press = Convert.ToInt32(ConvertUnits.UserPressToMB(AltimeterPressure) * 10);
 			// For 100% humidity, send zero. For zero humidity, send 1
 			int hum;
@@ -7425,56 +7411,64 @@ namespace CumulusMX
 		{
 			// store weather station forecast if available
 
-			if (forecast != "")
-			{
-				wsforecast = forecast;
-			}
 
-			if (!cumulus.UseCumulusForecast)
+			if (cumulus.ForecastSource == 3)
+			{
+				forecaststr = string.Empty;
+			}
+			else if (cumulus.ForecastSource == 2)
+				{
+					if ((DateTime.UtcNow - cumulus.LastForecastDotTxtReadTime).TotalMinutes > 10)
+				{
+					cumulus.GetForecastText();
+					cumulus.LastForecastDotTxtReadTime = DateTime.UtcNow;
+				}
+			}
+			else if (cumulus.ForecastSource == 0)
 			{
 				// user wants to display station forecast
+				wsforecast = forecast;
 				forecaststr = wsforecast;
 			}
-
-			// determine whether we need to update the Cumulus forecast; user may have chosen to only update once an hour, but
-			// we still need to do that once to get an initial forecast
-			if (!FirstForecastDone || !cumulus.HourlyForecast || hourly && cumulus.HourlyForecast)
+			else // 1 = cumulus forecast
 			{
-				int bartrend;
-				if (presstrendval >= -cumulus.FCPressureThreshold && presstrendval <= cumulus.FCPressureThreshold)
-					bartrend = 0;
-				else if (presstrendval < 0)
-					bartrend = 2;
-				else
-					bartrend = 1;
+				// determine whether we need to update the Cumulus forecast; user may have chosen to only update once an hour, but
+				// we still need to do that once to get an initial forecast
+				if (!FirstForecastDone || !cumulus.HourlyForecast || hourly && cumulus.HourlyForecast)
+				{
+					int bartrend;
+					if (presstrendval >= -cumulus.FCPressureThreshold && presstrendval <= cumulus.FCPressureThreshold)
+						bartrend = 0;
+					else if (presstrendval < 0)
+						bartrend = 2;
+					else
+						bartrend = 1;
 
-				string windDir;
-				if (WindAverage < 0.1)
-				{
-					windDir = "calm";
-				}
-				else
-				{
-					windDir = AvgBearingText;
-				}
+					string windDir;
+					if (WindAverage < 0.1)
+					{
+						windDir = "calm";
+					}
+					else
+					{
+						windDir = AvgBearingText;
+					}
 
-				double lp;
-				double hp;
-				if (cumulus.FCpressinMB)
-				{
-					lp = cumulus.FClowpress;
-					hp = cumulus.FChighpress;
-				}
-				else
-				{
-					lp = cumulus.FClowpress / 0.0295333727;
-					hp = cumulus.FChighpress / 0.0295333727;
-				}
+					double lp;
+					double hp;
+					if (cumulus.FCpressinMB)
+					{
+						lp = cumulus.FClowpress;
+						hp = cumulus.FChighpress;
+					}
+					else
+					{
+						lp = cumulus.FClowpress / 0.0295333727;
+						hp = cumulus.FChighpress / 0.0295333727;
+					}
 
-				CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
+					CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
 
-				if (cumulus.UseCumulusForecast)
-				{
 					// user wants to display Cumulus forecast
 					forecaststr = CumulusForecast;
 				}
@@ -8467,7 +8461,7 @@ namespace CumulusMX
 					mn = HiLoToday.HighTempTime.Minute;
 					ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
-					if (hr >= cumulus.RolloverHour)
+					if (hr >= cumulus.GetRolloverHour(ts))
 						// time is between roll-over hour && midnight
 						// so subtract a day
 						ts = ts.AddDays(-1);
@@ -8493,7 +8487,7 @@ namespace CumulusMX
 						mn = HiLoToday.HighTempTime.Minute;
 						ThisMonth.LowMaxTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
-						if (hr >= cumulus.RolloverHour)
+						if (hr >= cumulus.GetRolloverHour(timestamp))
 							// time is between roll-over hour && midnight
 							// so subtract a day
 							ThisMonth.LowMaxTemp.Ts = ThisMonth.LowMaxTemp.Ts.AddDays(-1);
@@ -8515,7 +8509,7 @@ namespace CumulusMX
 						mn = HiLoToday.HighTempTime.Minute;
 						ThisYear.LowMaxTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
-						if (hr >= cumulus.RolloverHour)
+						if (hr >= cumulus.GetRolloverHour(timestamp))
 							// time is between roll-over hour && midnight
 							// so subtract a day
 							ThisYear.LowMaxTemp.Ts = ThisYear.LowMaxTemp.Ts.AddDays(-1);
@@ -8535,7 +8529,7 @@ namespace CumulusMX
 					mn = HiLoToday.LowTempTime.Minute;
 					ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
-					if (hr >= cumulus.RolloverHour)
+					if (hr >= cumulus.GetRolloverHour(timestamp))
 						// time is between roll-over hour && midnight
 						// so subtract a day
 						ts = ts.AddDays(-1);
@@ -8561,7 +8555,7 @@ namespace CumulusMX
 						mn = HiLoToday.LowTempTime.Minute;
 						ThisMonth.HighMinTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
-						if (hr >= cumulus.RolloverHour)
+						if (hr >= cumulus.GetRolloverHour(timestamp))
 							// time is between roll-over hour && midnight
 							// so subtract a day
 							ThisMonth.HighMinTemp.Ts = ThisMonth.HighMinTemp.Ts.AddDays(-1);
@@ -8582,7 +8576,7 @@ namespace CumulusMX
 						mn = HiLoToday.LowTempTime.Minute;
 						ThisYear.HighMinTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
-						if (hr >= cumulus.RolloverHour)
+						if (hr >= cumulus.GetRolloverHour(timestamp))
 							// time is between roll-over hour && midnight
 							// so subtract a day
 							ThisYear.HighMinTemp.Ts = ThisYear.HighMinTemp.Ts.AddDays(-1);
@@ -9233,7 +9227,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				// for non-midnight roll-over, use new item
+				// for non-midnight roll-over, use midnight
 				strb.Append(sep + SunshineToMidnight.ToString(cumulus.SunFormat, inv));
 			}
 			strb.Append(sep + HiLoToday.HighHeatIndex.ToFixed(cumulus.TempFormat));
@@ -12193,15 +12187,8 @@ namespace CumulusMX
 			Data.Append("&tempf=" + TempFstr(OutdoorTemperature));
 			Data.Append("&rainin=" + RainINstr(RainLastHour));
 			Data.Append("&dailyrainin=");
-			if (cumulus.RolloverHour == 0)
-			{
-				// use today"s rain
-				Data.Append(RainINstr(RainToday));
-			}
-			else
-			{
-				Data.Append(RainINstr(RainSinceMidnight));
-			}
+			// use today"s rain or midnight
+			Data.Append(RainINstr(cumulus.RolloverHour == 0 ? RainToday : RainSinceMidnight));
 			Data.Append("&baromin=" + PressINstr(Pressure));
 			Data.Append("&dewptf=" + TempFstr(OutdoorDewpoint));
 			if (cumulus.PWS.SendUV && UV.HasValue)
@@ -14245,7 +14232,7 @@ namespace CumulusMX
 			var json = new StringBuilder(200);
 			json.Append('{');
 			json.Append($"\"tz\":\"{cumulus.StationOptions.TimeZoneId}\",");
-			json.Append($"\"locale\":\"{CultureInfo.CurrentCulture.Name}\",");
+			json.Append($"\"locale\":\"{(string.IsNullOrWhiteSpace(CultureInfo.CurrentCulture.Name) ? "en-US" : CultureInfo.CurrentCulture.Name)}\","); // Handle Invariant Culture as the running language
 			json.Append($"\"timeformat\":\"{timeformat}\",");
 			json.Append($"\"temp\":{{\"units\":\"{cumulus.Units.TempText[1]}\",\"decimals\":{cumulus.TempDPlaces}}},");
 			json.Append($"\"wind\":{{\"units\":\"{cumulus.Units.WindText}\",\"avgdecimals\":{cumulus.WindAvgDPlaces},\"gustdecimals\":{cumulus.WindDPlaces},\"rununits\":\"{cumulus.Units.WindRunText}\"}},");

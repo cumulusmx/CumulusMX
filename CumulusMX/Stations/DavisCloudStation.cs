@@ -36,7 +36,10 @@ namespace CumulusMX.Stations
 		{
 			calculaterainrate = false;
 			// WLL does not provide a forecast string, so use the Cumulus forecast
-			cumulus.UseCumulusForecast = true;
+			if (cumulus.ForecastSource == 0)
+			{
+				cumulus.ForecastSource = 1;
+			}
 			// WLL does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 
@@ -779,7 +782,7 @@ namespace CumulusMX.Stations
 					}
 
 					// Log all the data
-					if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+					if (timestamp.Hour != cumulus.GetRolloverHour(timestamp) || timestamp.Minute != 0)
 					{
 						// Only log data if not in the roll-over hour and not on the hour
 						_ = cumulus.DoLogFile(timestamp, true);

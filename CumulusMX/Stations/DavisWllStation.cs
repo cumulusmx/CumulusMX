@@ -49,7 +49,10 @@ namespace CumulusMX.Stations
 		{
 			calculaterainrate = false;
 			// WLL does not provide a forecast string, so use the Cumulus forecast
-			cumulus.UseCumulusForecast = true;
+			if (cumulus.ForecastSource == 0)
+			{
+				cumulus.ForecastSource = 1;
+			}
 			// WLL does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 
@@ -1113,7 +1116,7 @@ namespace CumulusMX.Stations
 							if (data2.trans_battery_flag.HasValue)
 								SetTxBatteryStatus(data2.txid, data2.trans_battery_flag.Value);
 
-							if (data2.rx_state == 2)
+							if ((data2.rx_state ?? 0) == 2)
 							{
 								localSensorContactLost = true;
 								if (!sensorContactLost[data2.txid])
@@ -1824,7 +1827,7 @@ namespace CumulusMX.Stations
 					}
 
 					// Log all the data
-					if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+					if (timestamp.Hour != cumulus.GetRolloverHour(timestamp) || timestamp.Minute != 0)
 					{
 						// Only log data if not in the roll-over hour and not on the hour
 						_ = cumulus.DoLogFile(timestamp, false);
@@ -3460,7 +3463,7 @@ namespace CumulusMX.Stations
 			public double? moist_soil_4 { get; set; }
 			public double? wet_leaf_1 { get; set; }
 			public double? wet_leaf_2 { get; set; }
-			public int rx_state { get; set; }
+			public int? rx_state { get; set; }
 			public int? trans_battery_flag { get; set; }
 			public object this[string name]
 			{

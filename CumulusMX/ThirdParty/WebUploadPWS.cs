@@ -121,7 +121,7 @@ namespace CumulusMX.ThirdParty
 		internal override string GetURL(out string pwstring, DateTime timestamp)
 		{
 			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'+'HH'%3A'mm'%3A'ss");
-			StringBuilder URL = new StringBuilder("http://www.pwsweather.com/pwsupdate/pwsupdate.php?ID=", 1024);
+			StringBuilder URL = new StringBuilder("https://www.pwsweather.com/pwsupdate/pwsupdate.php?ID=", 1024);
 
 			pwstring = PW;
 			URL.Append(ID + "&PASSWORD=" + HttpUtility.UrlEncode(PW));
@@ -141,15 +141,8 @@ namespace CumulusMX.ThirdParty
 				Data.Append("&tempf=" + WeatherStation.TempFstr(station.OutdoorTemperature));
 			Data.Append("&rainin=" + WeatherStation.RainINstr(station.RainLastHour));
 			Data.Append("&dailyrainin=");
-			if (cumulus.RolloverHour == 0)
-			{
-				// use today"s rain
-				Data.Append(WeatherStation.RainINstr(station.RainToday));
-			}
-			else
-			{
-				Data.Append(WeatherStation.RainINstr(station.RainSinceMidnight));
-			}
+			// use today"s rain or midnight
+			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? station.RainToday : station.RainSinceMidnight));
 			if (station.Pressure > 0)
 				Data.Append("&baromin=" + WeatherStation.PressINstr(station.Pressure));
 			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)

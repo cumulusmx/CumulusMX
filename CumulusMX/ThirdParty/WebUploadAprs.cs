@@ -63,16 +63,9 @@ namespace CumulusMX.ThirdParty
 					// rain last 24 hours 0.01 inches pnnn
 					message.Append($"p{APRSrain(station.RainLast24Hour)}");
 					message.Append('P');
-					if (cumulus.RolloverHour == 0)
-					{
-						// use today"s rain for safety
-						message.Append(APRSrain(station.RainToday));
-					}
-					else
-					{
-						// 0900 day, use midnight calculation
-						message.Append(APRSrain(station.RainSinceMidnight));
-					}
+					// use today"s rain for safety
+					// 0900 day, use midnight calculation
+					message.Append(APRSrain(cumulus.RolloverHour == 0 ? station.RainToday : station.RainSinceMidnight));
 					if ((!cumulus.APRS.HumidityCutoff) || (ConvertUnits.UserTempToC(station.OutdoorTemperature) >= -10) && station.OutdoorHumidity >= 0)
 					{
 						// humidity Hnn

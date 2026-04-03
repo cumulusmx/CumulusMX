@@ -73,7 +73,7 @@ namespace CumulusMX.LogFiles
 		}
 
 		public DayFileRec(string csv)
-		{ 
+		{
 			ParseCsvRec(csv);
 		}
 
@@ -145,19 +145,20 @@ namespace CumulusMX.LogFiles
 			try
 			{
 				Date = Utils.ddmmyyStrToDate(st[idx++]);
+				var rollover = Program.cumulus.GetRolloverHour(Date);
 				HighGust = Convert.ToDouble(st[idx++], inv);
 				HighGustBearing = Convert.ToInt32(st[idx++]);
-				HighGustTime = GetDateTime(Date, st[idx++], Program.cumulus.RolloverHour);
+				HighGustTime = GetDateTime(Date, st[idx++], rollover);
 				LowTemp = Convert.ToDouble(st[idx++], inv);
-				LowTempTime = GetDateTime(Date, st[idx++], Program.cumulus.RolloverHour);
+				LowTempTime = GetDateTime(Date, st[idx++], rollover);
 				HighTemp = Convert.ToDouble(st[idx++], inv);
-				HighTempTime = GetDateTime(Date, st[idx++], Program.cumulus.RolloverHour);
+				HighTempTime = GetDateTime(Date, st[idx++], rollover);
 				LowPress = Convert.ToDouble(st[idx++], inv);
-				LowPressTime = GetDateTime(Date, st[idx++], Program.cumulus.RolloverHour);
+				LowPressTime = GetDateTime(Date, st[idx++], rollover);
 				HighPress = Convert.ToDouble(st[idx++], inv);
-				HighPressTime = GetDateTime(Date, st[idx++], Program.cumulus.RolloverHour);
+				HighPressTime = GetDateTime(Date, st[idx++], rollover);
 				HighRainRate = Convert.ToDouble(st[idx++], inv);
-				HighRainRateTime = GetDateTime(Date, st[idx++], Program.cumulus.RolloverHour);
+				HighRainRateTime = GetDateTime(Date, st[idx++], rollover);
 				TotalRain = Convert.ToDouble(st[idx++], inv);
 				AvgTemp = Convert.ToDouble(st[idx++], inv);
 
@@ -168,7 +169,7 @@ namespace CumulusMX.LogFiles
 					HighAvgWind = varDbl;
 
 				if (st.Count > idx++ && st[18].Length == 5)
-					HighAvgWindTime = GetDateTime(Date, st[18], Program.cumulus.RolloverHour);
+					HighAvgWindTime = GetDateTime(Date, st[18], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[19], inv, out varDbl))
 					LowHumidity = Convert.ToInt32(varDbl);
@@ -176,7 +177,7 @@ namespace CumulusMX.LogFiles
 					LowHumidity = (int) Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[20].Length == 5)
-					LowHumidityTime = GetDateTime(Date, st[20], Program.cumulus.RolloverHour);
+					LowHumidityTime = GetDateTime(Date, st[20], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[21], inv, out varDbl))
 					HighHumidity = Convert.ToInt32(varDbl);
@@ -184,7 +185,7 @@ namespace CumulusMX.LogFiles
 					HighHumidity = (int) Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[22].Length == 5)
-					HighHumidityTime = GetDateTime(Date, st[22], Program.cumulus.RolloverHour);
+					HighHumidityTime = GetDateTime(Date, st[22], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[23], inv, out varDbl))
 					ET = varDbl;
@@ -200,7 +201,7 @@ namespace CumulusMX.LogFiles
 					HighHeatIndex = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[26].Length == 5)
-					HighHeatIndexTime = GetDateTime(Date, st[26], Program.cumulus.RolloverHour);
+					HighHeatIndexTime = GetDateTime(Date, st[26], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[27], inv, out varDbl))
 					HighAppTemp = varDbl;
@@ -208,7 +209,7 @@ namespace CumulusMX.LogFiles
 					HighAppTemp = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[28].Length == 5)
-					HighAppTempTime = GetDateTime(Date, st[28], Program.cumulus.RolloverHour);
+					HighAppTempTime = GetDateTime(Date, st[28], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[29], inv, out varDbl))
 					LowAppTemp = varDbl;
@@ -216,7 +217,7 @@ namespace CumulusMX.LogFiles
 					LowAppTemp = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[30].Length == 5)
-					LowAppTempTime = GetDateTime(Date, st[30], Program.cumulus.RolloverHour);
+					LowAppTempTime = GetDateTime(Date, st[30], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[31], inv, out varDbl))
 					HighHourlyRain = varDbl;
@@ -224,7 +225,7 @@ namespace CumulusMX.LogFiles
 					HighHourlyRain = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[32].Length == 5)
-					HighHourlyRainTime = GetDateTime(Date, st[32], Program.cumulus.RolloverHour);
+					HighHourlyRainTime = GetDateTime(Date, st[32], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[33], inv, out varDbl))
 					LowWindChill = varDbl;
@@ -232,7 +233,7 @@ namespace CumulusMX.LogFiles
 					LowWindChill = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[34].Length == 5)
-					LowWindChillTime = GetDateTime(Date, st[34], Program.cumulus.RolloverHour);
+					LowWindChillTime = GetDateTime(Date, st[34], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[35], inv, out varDbl))
 					HighDewPoint = varDbl;
@@ -240,7 +241,7 @@ namespace CumulusMX.LogFiles
 					HighDewPoint = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[36].Length == 5)
-					HighDewPointTime = GetDateTime(Date, st[36], Program.cumulus.RolloverHour);
+					HighDewPointTime = GetDateTime(Date, st[36], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[37], inv, out varDbl))
 					LowDewPoint = varDbl;
@@ -248,7 +249,7 @@ namespace CumulusMX.LogFiles
 					LowDewPoint = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[38].Length == 5)
-					LowDewPointTime = GetDateTime(Date, st[38], Program.cumulus.RolloverHour);
+					LowDewPointTime = GetDateTime(Date, st[38], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[39], inv, out varDbl))
 					DominantWindBearing = Convert.ToInt32(varDbl);
@@ -271,7 +272,7 @@ namespace CumulusMX.LogFiles
 					HighSolar = (int) Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[43].Length == 5)
-					HighSolarTime = GetDateTime(Date, st[43], Program.cumulus.RolloverHour);
+					HighSolarTime = GetDateTime(Date, st[43], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[44], inv, out varDbl))
 					HighUv = varDbl;
@@ -279,7 +280,7 @@ namespace CumulusMX.LogFiles
 					HighUv = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[45].Length == 5)
-					HighUvTime = GetDateTime(Date, st[45], Program.cumulus.RolloverHour);
+					HighUvTime = GetDateTime(Date, st[45], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[46], inv, out varDbl))
 					HighFeelsLike = varDbl;
@@ -287,7 +288,7 @@ namespace CumulusMX.LogFiles
 					HighFeelsLike = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[47].Length == 5)
-					HighFeelsLikeTime = GetDateTime(Date, st[47], Program.cumulus.RolloverHour);
+					HighFeelsLikeTime = GetDateTime(Date, st[47], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[48], inv, out varDbl))
 					LowFeelsLike = varDbl;
@@ -295,7 +296,7 @@ namespace CumulusMX.LogFiles
 					LowFeelsLike = Cumulus.DefaultLoVal;
 
 				if (st.Count > idx++ && st[49].Length == 5)
-					LowFeelsLikeTime = GetDateTime(Date, st[49], Program.cumulus.RolloverHour);
+					LowFeelsLikeTime = GetDateTime(Date, st[49], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[50], inv, out varDbl))
 					HighHumidex = varDbl;
@@ -303,7 +304,7 @@ namespace CumulusMX.LogFiles
 					HighHumidex = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[51].Length == 5)
-					HighHumidexTime = GetDateTime(Date, st[51], Program.cumulus.RolloverHour);
+					HighHumidexTime = GetDateTime(Date, st[51], rollover);
 
 				if (st.Count > idx++ && double.TryParse(st[52], inv, out varDbl))
 					ChillHours = varDbl;
@@ -316,7 +317,7 @@ namespace CumulusMX.LogFiles
 					HighRain24h = Cumulus.DefaultHiVal;
 
 				if (st.Count > idx++ && st[54].Length == 5)
-					HighRain24hTime = GetDateTime(Date, st[54], Program.cumulus.RolloverHour);
+					HighRain24hTime = GetDateTime(Date, st[54], rollover);
 			}
 			catch (Exception ex)
 			{

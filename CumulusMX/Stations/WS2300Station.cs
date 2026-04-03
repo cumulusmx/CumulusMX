@@ -407,7 +407,7 @@ namespace CumulusMX.Stations
 
 				bw.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
-				if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+				if (timestamp.Hour != cumulus.GetRolloverHour(timestamp) || timestamp.Minute != 0)
 				{
 					// Only log data if not in the roll-over hour and not on the hour
 					_ = cumulus.DoLogFile(timestamp, false);

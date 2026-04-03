@@ -271,7 +271,7 @@ namespace CumulusMX.Settings
 				lowpressureextreme = cumulus.FClowpress,
 				pressureunit = "mb/hPa",
 				updatehourly = cumulus.HourlyForecast,
-				usecumulusforecast = cumulus.UseCumulusForecast
+				usecumulusforecast = cumulus.ForecastSource
 			};
 
 			if (!cumulus.FCpressinMB)
@@ -661,8 +661,15 @@ namespace CumulusMX.Settings
 				// Forecast
 				try
 				{
-					cumulus.UseCumulusForecast = settings.Forecast.usecumulusforecast;
-					if (cumulus.UseCumulusForecast)
+					if (cumulus.ForecastSource != settings.Forecast.usecumulusforecast)
+					{
+						station.FirstForecastDone = false;
+						station.DoForecast(string.Empty, true);
+
+						cumulus.ForecastSource = settings.Forecast.usecumulusforecast;
+					}
+
+					if (cumulus.ForecastSource == 1)
 					{
 						cumulus.FChighpress = settings.Forecast.highpressureextreme;
 						cumulus.FClowpress = settings.Forecast.lowpressureextreme;
@@ -762,6 +769,8 @@ namespace CumulusMX.Settings
 					cumulus.RolloverHour = settings.general.logrollover.time == "9am" ? 9 : 0;
 					if (cumulus.RolloverHour == 9)
 						cumulus.Use10amInSummer = settings.general.logrollover.summer10am;
+					else
+						cumulus.Use10amInSummer = false;
 				}
 				catch (Exception ex)
 				{
@@ -1960,7 +1969,7 @@ namespace CumulusMX.Settings
 
 		private sealed class JsonForecast
 		{
-			public bool usecumulusforecast { get; set; }
+			public int usecumulusforecast { get; set; }
 			public bool updatehourly { get; set; }
 			public double lowpressureextreme { get; set; }
 			public double highpressureextreme { get; set; }

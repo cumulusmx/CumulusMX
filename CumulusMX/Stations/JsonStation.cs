@@ -49,7 +49,10 @@ namespace CumulusMX.Stations
 			if (mainStation)
 			{
 				// does not provide a forecast, force MX to provide it
-				cumulus.UseCumulusForecast = true;
+				if (cumulus.ForecastSource == 0)
+				{
+					cumulus.ForecastSource = 1;
+				}
 				Start();
 			}
 		}

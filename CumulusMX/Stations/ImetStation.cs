@@ -500,21 +500,7 @@ namespace CumulusMX.Stations
 					// and see if (they are on the same day
 
 					// set up controls for end of day roll-over
-					int rollHour;
-					if (cumulus.RolloverHour == 0)
-					{
-						rollHour = 0;
-					}
-					else if (cumulus.Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now))
-					{
-						// Locale is currently on Daylight time
-						rollHour = cumulus.RolloverHour + 1;
-					}
-					else
-					{
-						// Locale is currently on Standard time or unknown
-						rollHour = cumulus.RolloverHour;
-					}
+					int rollHour = cumulus.GetRolloverHour(DateTime.Now);
 
 					// Check to see if (today"s roll-over has been done
 					// (we might be starting up in the roll-over hour)
@@ -673,7 +659,7 @@ namespace CumulusMX.Stations
 								DoSunHours(Convert.ToDouble(sl[SUNPOS], provider));
 							}
 
-							if (timestamp.Hour != cumulus.RolloverHour || timestamp.Minute != 0)
+							if (timestamp.Hour != cumulus.GetRolloverHour(timestamp) || timestamp.Minute != 0)
 							{
 								// Only log data if not in the roll-over hour and not on the hour
 								_ = cumulus.DoLogFile(timestamp, false);
@@ -956,7 +942,7 @@ namespace CumulusMX.Stations
 					}
 				}
 
-				DoForecast("", false);
+				DoForecast(string.Empty, false);
 
 				UpdateStatusPanel(now.ToUniversalTime());
 				UpdateMQTT();

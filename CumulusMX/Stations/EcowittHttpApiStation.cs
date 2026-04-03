@@ -68,7 +68,10 @@ namespace CumulusMX.Stations
 			cumulus.StationOptions.CalculatedDP = true;
 
 			// does not provide a forecast, force MX to provide it
-			cumulus.UseCumulusForecast = true;
+			if (cumulus.ForecastSource == 0)
+			{
+				cumulus.ForecastSource = 1;
+			}
 
 			// GW1000 does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
@@ -312,7 +315,7 @@ namespace CumulusMX.Stations
 									}
 								}
 
-								DoForecast("", false);
+								DoForecast(string.Empty, false);
 
 								cumulus.BatteryLowAlarm.Triggered = batteryLow;
 
@@ -810,7 +813,7 @@ namespace CumulusMX.Stations
 					midnightraindone = true;
 				}
 
-				if (DataDateTime.Hour != cumulus.RolloverHour || DataDateTime.Minute != 0)
+				if (DataDateTime.Hour != cumulus.GetRolloverHour(DataDateTime) || DataDateTime.Minute != 0)
 				{
 					// Only log data if not in the roll-over hour and not on the hour
 					_ = cumulus.DoLogFile(DataDateTime, false);

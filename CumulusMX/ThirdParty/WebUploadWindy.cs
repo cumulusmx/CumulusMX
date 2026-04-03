@@ -184,7 +184,7 @@ namespace CumulusMX.ThirdParty
 		{
 			pwstring = null;
 
-			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fffK");
+			string dateUTC = timestamp.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture);
 			StringBuilder URL = new StringBuilder("https://stations.windy.com/api/v2/observation/update/", 1024);
 
 			URL.Append("?id=" + StationId);
@@ -219,7 +219,7 @@ namespace CumulusMX.ThirdParty
 				URL.Append("&temp=" + WeatherStation.TempCstr(station.OutdoorTemperature));
 
 			URL.Append("&softwaretype=CumulusMX+v" + cumulus.Version);
-			URL.Append("&stationtype=" + System.Web.HttpUtility.UrlEncode(cumulus.StationModel));
+			URL.Append("&stationtype=" + System.Web.HttpUtility.UrlEncode(cumulus.StationModel.Length > 95 ? cumulus.StationModel[..95] : cumulus.StationModel));
 
 			return URL.ToString();
 		}

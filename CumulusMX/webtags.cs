@@ -776,6 +776,11 @@ namespace CumulusMX
 			return DateTime.UtcNow.ToUnixTime().ToString();
 		}
 
+		private static string TagIsDST(Dictionary<string, string> tagParams)
+		{
+			return DateTime.Now.IsDaylightSavingTime() ? "1" : "0";
+		}
+
 		private string TagDate(Dictionary<string, string> tagParams)
 		{
 			return GetFormattedDateTime(DateTime.Now, "d", tagParams);
@@ -859,7 +864,7 @@ namespace CumulusMX
 
 		private string Tagforecastenc(Dictionary<string, string> tagParams)
 		{
-			return EncodeForWeb(station.forecaststr);
+			return EncodeForWeb(station.forecaststr).Replace("\n", "<br>");
 		}
 
 		private string TagforecastJsEnc(Dictionary<string, string> tagParams)
@@ -2918,17 +2923,20 @@ namespace CumulusMX
 		private string TagByMonthTempAvg(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			double avg;
 			try
 			{
-				avg = station.DayFile.Where(rec => rec.Date.Month == month).Average(rec => rec.AvgTemp);
+				var avg = station.DayFile.Where(rec => rec.Date.Month == month).Average(rec => (double?) rec.AvgTemp);
+
+				if (avg.HasValue)
+					return CheckRcDp(CheckTempUnit(avg.Value, tagParams), tagParams, cumulus.TempDPlaces);
+				else
+					return tagParams.Get("nv") ?? "-";
 			}
-			catch
+			catch (Exception ex)
 			{
-				// no data found
+				cumulus.LogErrorMessage("TagByMonthTempAvg: Error - " + ex.Message);
 				return tagParams.Get("nv") ?? "-";
 			}
-			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthAppTempH(Dictionary<string, string> tagParams)
@@ -3051,7 +3059,7 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			var rec = station.MonthlyRecs[month].HighWind;
-			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckWindUnit(rec.Val, tagParams), tagParams, cumulus.WindDPlaces);
+			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckWindUnit(rec.Val, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string TagByMonthWindHt(Dictionary<string, string> tagParams)
@@ -4004,78 +4012,99 @@ namespace CumulusMX
 
 		private string TagSunshineHoursMonth(Dictionary<string, string> tagParams)
 		{
-			var dats = GetMonthStartEndDates(tagParams);
-
-			var start = dats.Item1;
-			var end = dats.Item2;
-
-			if (start == DateTime.MinValue)
-			{
-				return tagParams.Get("nv") ?? "-";
-			}
-
-			var now = cumulus.MeteoDate();
-
-			if (now.Day == 1 && start.Date == now.Date)
-			{
-				// first day of the current month, there are no dayfile entries
-				// so return sunshine so far today
-				return TagSunshineHours(tagParams);
-			}
-
-			var dayfile = station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => rec.SunShineHours < 0 ? 0 : rec.SunShineHours);
-
-			// if current month add todays sunshine to total
-			if (start.Year == now.Year && start.Month == now.Month)
-			{
-				dayfile += station.SunshineHours;
-			}
-
-			return CheckRcDp(dayfile, tagParams, 1);
-		}
-
-		private string TagSunshineHoursYear(Dictionary<string, string> tagParams)
-		{
-			var dats = GetYearStartEndDates(tagParams);
-
-			var start = dats.Item1;
-			var end = dats.Item2;
-
-			var now = cumulus.MeteoDate();
-
-			if (now.DayOfYear == 1 && start.Date == now.Date)
-			{
-				// first day of the year month, there are no dayfile entries
-				// so return sunshine so far today
-				return TagSunshineHours(tagParams);
-			}
-
-			if (start == DateTime.MinValue)
-			{
-				return tagParams.Get("nv") ?? "-";
-			}
-
-			var total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.SunShineHours < 0 ? 0 : x.SunShineHours);
-
-			// if current year, add todays sunshine
-			if (start.Year == now.Year)
-			{
-				total += station.SunshineHours;
-			}
-
-			return CheckRcDp(total, tagParams, 1);
-		}
-
-		private string TagMonthTempAvg(Dictionary<string, string> tagParams)
-		{
-			double avg;
-
 			try
 			{
 				var dats = GetMonthStartEndDates(tagParams);
 
 				var start = dats.Item1;
 				var end = dats.Item2;
+
+				if (start == DateTime.MinValue)
+				{
+					return tagParams.Get("nv") ?? "-";
+				}
+
+				var now = cumulus.MeteoDate();
+
+				if (now.Day == 1 && start.Date == now.Date)
+				{
+					// first day of the current month, there are no dayfile entries
+					// so return sunshine so far today
+					return TagSunshineHours(tagParams);
+				}
+
+				var total = station.DayFile.Where(rec => rec.Date >= start && rec.Date < end).Sum(rec => (double?) rec.SunShineHours < 0 ? 0 : (double?) rec.SunShineHours);
+
+				// if current month add todays sunshine to total
+				if (start.Year == now.Year && start.Month == now.Month)
+				{
+					total += station.SunshineHours;
+				}
+
+				if (total.HasValue)
+					return CheckRcDp(total.Value, tagParams, 1);
+				else
+					return tagParams.Get("nv") ?? "-";
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagSunshineHoursMonth: Error - " + ex.Message);
+				return tagParams.Get("nv") ?? "-";
+			}
+		}
+
+		private string TagSunshineHoursYear(Dictionary<string, string> tagParams)
+		{
+			try
+			{
+				var dats = GetYearStartEndDates(tagParams);
+
+				var start = dats.Item1;
+				var end = dats.Item2;
+
+				var now = cumulus.MeteoDate();
+
+				if (now.DayOfYear == 1 && start.Date == now.Date)
+				{
+					// first day of the year month, there are no dayfile entries
+					// so return sunshine so far today
+					return TagSunshineHours(tagParams);
+				}
+
+				if (start == DateTime.MinValue)
+				{
+					return tagParams.Get("nv") ?? "-";
+				}
+
+				var total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => (double?) x.SunShineHours < 0 ? 0 : (double?) x.SunShineHours);
+
+				// if current year, add todays sunshine
+				if (start.Year == now.Year)
+				{
+					total += station.SunshineHours;
+				}
+
+				if (total.HasValue)
+					return CheckRcDp(total.Value, tagParams, 1);
+				else
+					return tagParams.Get("nv") ?? "-";
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagSunshineHoursYear: Error - " + ex.Message);
+				return tagParams.Get("nv") ?? "-";
+			}
+		}
+
+		private string TagMonthTempAvg(Dictionary<string, string> tagParams)
+		{
+			try
+			{
+				var dats = GetMonthStartEndDates(tagParams);
+
+				var start = dats.Item1;
+				var end = dats.Item2;
+				double? avg;
 
 				if (start == DateTime.MinValue)
 				{
@@ -4092,45 +4121,60 @@ namespace CumulusMX
 				}
 				else
 				{
-					avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
+					avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => (double?) rec.AvgTemp);
 				}
+
+				if (avg.HasValue)
+					return CheckRcDp(CheckTempUnit(avg.Value, tagParams), tagParams, cumulus.TempDPlaces);
+				else
+					return tagParams.Get("nv") ?? "-";
 			}
-			catch
+			catch (Exception ex)
 			{
-				// no data found
+				cumulus.LogErrorMessage("TagMonthTempAvg: Error - " + ex.Message);
 				return tagParams.Get("nv") ?? "-";
 			}
-
-			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearTempAvg(Dictionary<string, string> tagParams)
 		{
-			var dats = GetYearStartEndDates(tagParams);
-			var start = dats.Item1;
-			var end = dats.Item2;
-
-			if (start == DateTime.MinValue)
+			try
 			{
+				var dats = GetYearStartEndDates(tagParams);
+				var start = dats.Item1;
+				var end = dats.Item2;
+
+				if (start == DateTime.MinValue)
+				{
+					return tagParams.Get("nv") ?? "-";
+				}
+
+				var now = cumulus.MeteoDate();
+
+				if (now.DayOfYear == 1 && start.Date == now.Date)
+				{
+					// first day of the year month, there are no dayfile entries
+					// so return average temp so far today
+					return Tagavgtemp(tagParams);
+				}
+
+				var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => (double?) rec.AvgTemp);
+
+				if (avg.HasValue)
+					return CheckRcDp(CheckTempUnit(avg.Value, tagParams), tagParams, cumulus.TempDPlaces);
+				else
+					return tagParams.Get("nv") ?? "-";
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagYearTempAvg: Error - " + ex.Message);
 				return tagParams.Get("nv") ?? "-";
 			}
-
-			var now = cumulus.MeteoDate();
-
-			if (now.DayOfYear == 1 && start.Date == now.Date)
-			{
-				// first day of the year month, there are no dayfile entries
-				// so return average temp so far today
-				return Tagavgtemp(tagParams);
-			}
-
-			var avg = station.DayFile.Where(x => x.Date >= start && x.Date < end).Average(rec => rec.AvgTemp);
-			return CheckRcDp(CheckTempUnit(avg, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthRainfall(Dictionary<string, string> tagParams)
 		{
-			double total;
+			double? total;
 
 			try
 			{
@@ -4153,7 +4197,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(rec => rec.TotalRain);
+					total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(rec => (double?) rec.TotalRain);
 
 					// if current month add todays rainfall
 					if (start.Year == now.Year && start.Month == now.Month)
@@ -4161,14 +4205,17 @@ namespace CumulusMX
 						total += station.RainToday;
 					}
 				}
+
+				if (total.HasValue)
+					return CheckRcDp(CheckTempUnit(total.Value, tagParams), tagParams, cumulus.RainDPlaces);
+				else
+					return tagParams.Get("nv") ?? "-";
 			}
-			catch
+			catch (Exception ex)
 			{
-				// error or no data found
+				cumulus.LogErrorMessage("TagMonthRainfall: Error - " + ex.Message);
 				return tagParams.Get("nv") ?? "-";
 			}
-
-			return CheckRcDp(CheckTempUnit(total, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagMonthDryDays(Dictionary<string, string> tagParams)
@@ -4197,27 +4244,38 @@ namespace CumulusMX
 
 		private string TagAnnualRainfall(Dictionary<string, string> tagParams)
 		{
-			double total;
+			double? total;
 
-			var dats = GetYearStartEndDates(tagParams);
-			var start = dats.Item1;
-			var end = dats.Item2;
-
-			if (start == DateTime.MinValue)
+			try
 			{
+				var dats = GetYearStartEndDates(tagParams);
+				var start = dats.Item1;
+				var end = dats.Item2;
+
+				if (start == DateTime.MinValue)
+				{
+					return tagParams.Get("nv") ?? "-";
+				}
+
+				if (start.Year == DateTime.Now.Year)
+				{
+					total = station.RainYear;
+				}
+				else
+				{
+					total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => (double?) x.TotalRain);
+				}
+
+				if (total.HasValue)
+					return CheckRcDp(CheckRainUnit(total.Value, tagParams), tagParams, cumulus.RainDPlaces);
+				else
+					return tagParams.Get("nv") ?? "-";
+			}
+			catch (Exception ex)
+			{
+				cumulus.LogErrorMessage("TagAnnualRainfall: Error - " + ex.Message);
 				return tagParams.Get("nv") ?? "-";
 			}
-
-			if (start.Year == DateTime.Now.Year)
-			{
-				total = station.RainYear;
-			}
-			else
-			{
-				total = station.DayFile.Where(x => x.Date >= start && x.Date < end).Sum(x => x.TotalRain);
-			}
-
-			return CheckRcDp(CheckRainUnit(total, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagThwIndex(Dictionary<string, string> tagParams)
@@ -6686,7 +6744,7 @@ namespace CumulusMX
 		{
 			var recentTs = GetRecentTs(tagParams);
 
-			var result = station.RecentDataDb.ExecuteScalar<double?>("select Pressure from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs);
+			var result = station.RecentDataDb.ExecuteScalar<double?>("select Pressure from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
 			return CheckRcDp(CheckPressUnit(result.HasValue ? result.Value : station.Pressure, tagParams), tagParams, cumulus.PressDPlaces);
 		}
@@ -6969,6 +7027,7 @@ namespace CumulusMX
 				{ "timehhmmss", TagTimehhmmss },
 				{ "timeJavaScript", TagTimeJavascript },
 				{ "timeUnix", TagTimeUnix },
+				{ "isDST", TagIsDST },
 				{ "date", TagDate },
 				{ "yesterday", TagYesterday },
 				{ "metdate", TagMetDate },

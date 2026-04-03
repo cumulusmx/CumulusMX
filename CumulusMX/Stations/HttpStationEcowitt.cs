@@ -62,7 +62,10 @@ namespace CumulusMX.Stations
 				// Same for Wind Chill
 				cumulus.StationOptions.CalculatedWC = true;
 				// does not provide a forecast, force MX to provide it
-				cumulus.UseCumulusForecast = true;
+				if (cumulus.ForecastSource == 0)
+				{
+					cumulus.ForecastSource = 1;
+				}
 				// does not provide pressure trend strings
 				cumulus.StationOptions.UseCumulusPresstrendstr = true;
 

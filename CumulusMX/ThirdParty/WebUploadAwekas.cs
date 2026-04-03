@@ -278,7 +278,7 @@ namespace CumulusMX.ThirdParty
 			else
 				AvgTemp = 0;
 
-			StringBuilder sb = new StringBuilder("http://data.awekas.at/eingabe_pruefung.php?");
+			StringBuilder sb = new StringBuilder("https://data.awekas.at/eingabe_pruefung.php?");
 
 			var started = false;
 

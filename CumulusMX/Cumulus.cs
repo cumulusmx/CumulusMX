@@ -1274,10 +1274,22 @@ namespace CumulusMX
 			LogMessage("Email logging :" + (SmtpOptions.Logging ? "enabled" : "disabled"));
 			LogMessage("Spike logging :" + (ErrorLogSpikeRemoval ? "enabled" : "disabled"));
 			LogMessage("Logging interval = " + logints[DataLogInterval] + " mins");
-			LogMessage("Real time interval: " + (RealtimeIntervalEnabled ? "enabled" : "disabled") + ", uploads: " + (FtpOptions.RealtimeEnabled ? "enabled" : "disabled") + ", (" + RealtimeInterval / 1000 + " secs)");
-			LogMessage("Interval          : " + (WebIntervalEnabled ? "enabled" : "disabled") + ", uploads: " + (FtpOptions.IntervalEnabled ? "enabled" : "disabled") + ", (" + UpdateInterval + " mins)");
 			LogMessage("Extra sensor logging: " + (StationOptions.LogExtraSensors ? "enabled" : "disabled"));
 			LogMessage("NoSensorCheck = " + (StationOptions.NoSensorCheck ? "enabled" : "disabled"));
+
+			LogMessage($"Uploads = {(FtpOptions.Enabled ? "enabled" : "disabled")} via '{(
+				FtpOptions.FtpMode switch
+				{
+					FtpProtocols.FTP => "FTP",
+					FtpProtocols.FTPS => "FTPS",
+					FtpProtocols.SFTP => "SFTP",
+					FtpProtocols.PHP => "PHP",
+					_ => FtpOptions.FtpMode.ToString()
+				})}', to folder '{FtpOptions.Directory}'");
+			LogMessage($"Upload Copy = {(FtpOptions.LocalCopyEnabled ? "enabled" : "disabled")} to folder '{FtpOptions.LocalCopyFolder}'");
+
+			LogMessage("Real time interval: " + (RealtimeIntervalEnabled ? "enabled" : "disabled") + ", uploads: " + (FtpOptions.RealtimeEnabled ? "enabled" : "disabled") + ", (" + RealtimeInterval / 1000 + " secs)");
+			LogMessage("Interval          : " + (WebIntervalEnabled ? "enabled" : "disabled") + ", uploads: " + (FtpOptions.IntervalEnabled ? "enabled" : "disabled") + ", (" + UpdateInterval + " mins)");
 
 			TempFormat = "F" + TempDPlaces;
 			WindFormat = "F" + WindDPlaces;
@@ -1352,7 +1364,8 @@ namespace CumulusMX
 			LogMessage($"Roll over hour={RolloverHour:D2}");
 			if (RolloverHour != 0)
 			{
-				LogMessage("Use 10am in summer =" + Use10amInSummer);
+				LogMessage("Use 10am in summer=" + Use10amInSummer);
+				LogMessage($"Current Roll over hour={GetRolloverHour(DateTime.Now):D2}");
 			}
 
 			LogOffsetsMultipliers();
@@ -2917,15 +2930,15 @@ namespace CumulusMX
 
 			if (FtpOptions.LocalCopyFolder.Length > 0)
 			{
-				dstPath = (FtpOptions.Directory.EndsWith(folderSep1) || FtpOptions.Directory.EndsWith(folderSep2) ? FtpOptions.LocalCopyFolder : FtpOptions.LocalCopyFolder + folderSep1);
+				dstPath = (FtpOptions.LocalCopyFolder.EndsWith(folderSep1) || FtpOptions.LocalCopyFolder.EndsWith(folderSep2) ? FtpOptions.LocalCopyFolder[..^1] : FtpOptions.LocalCopyFolder);
 			}
 
 			for (var i = 0; i < RealtimeFiles.Length; i++)
 			{
 				if (RealtimeFiles[i].Copy)
 				{
-					var dstFile = dstPath + RealtimeFiles[i].RemoteFileName;
-					var srcFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
+					var dstFile = Path.Combine(dstPath, RealtimeFiles[i].RemoteFileName);
+					var srcFile = Path.Combine(RealtimeFiles[i].LocalPath ?? ".", RealtimeFiles[i].LocalFileName);
 
 					try
 					{
@@ -3387,7 +3400,7 @@ namespace CumulusMX
 			{
 				if (RealtimeFiles[i].Create && !string.IsNullOrWhiteSpace(RealtimeFiles[i].TemplateFileName))
 				{
-					var destFile = RealtimeFiles[i].LocalPath + RealtimeFiles[i].LocalFileName;
+					var destFile = Path.Combine(RealtimeFiles[i].LocalPath, RealtimeFiles[i].LocalFileName);
 					LogDebugMessage($"Realtime[{cycle}]: Creating realtime file - {RealtimeFiles[i].LocalFileName}");
 					try
 					{
@@ -4452,7 +4465,7 @@ namespace CumulusMX
 			}
 
 			StationOptions.UseDataLogger = ini.GetValue("Station", "UseDataLogger", true);
-			UseCumulusForecast = ini.GetValue("Station", "UseCumulusForecast", false);
+			ForecastSource = ini.GetValue("Station", "UseCumulusForecast", 0, 0, 3);
 			HourlyForecast = ini.GetValue("Station", "HourlyForecast", false);
 			StationOptions.UseCumulusPresstrendstr = ini.GetValue("Station", "UseCumulusPresstrendstr", false);
 			//UseWindChillCutoff = ini.GetValue("Station", "UseWindChillCutoff", false)
@@ -6488,7 +6501,8 @@ namespace CumulusMX
 			ini.SetValue("Station", "YTDrain", YTDrain);
 			ini.SetValue("Station", "YTDrainyear", YTDrainyear);
 			ini.SetValue("Station", "UseDataLogger", StationOptions.UseDataLogger);
-			ini.SetValue("Station", "UseCumulusForecast", UseCumulusForecast);
+			ini.SetValue("Station", "UseCumulusForecast", ForecastSource);
+
 			ini.SetValue("Station", "HourlyForecast", HourlyForecast);
 			ini.SetValue("Station", "UseCumulusPresstrendstr", StationOptions.UseCumulusPresstrendstr);
 			ini.SetValue("Station", "FCpressinMB", FCpressinMB);
@@ -8426,7 +8440,11 @@ namespace CumulusMX
 
 		public bool HourlyForecast { get; set; }
 
-		public bool UseCumulusForecast { get; set; }
+		/// <summary>
+		///  0 = station, 1 = Cumulus, 2 = forecast.txt, 3 = None
+		/// </summary>
+		public int ForecastSource { get; set; }
+		public DateTime LastForecastDotTxtReadTime { get; set; } = DateTime.MinValue;
 
 		public bool DavisConsoleHighGust { get; set; }
 
@@ -9465,7 +9483,13 @@ namespace CumulusMX
 
 								// Do not do this extra backup between 00:00 & Roll-over hour on the first of the month
 								// as the month has not yet rolled over - only applies for start-up backups
-								if (timestamp.Day == 1 && timestamp.Hour >= RolloverHour)
+								var rollover = RolloverHour;
+								if (RolloverHour == 9 && Use10amInSummer && TimeZoneInfo.Local.IsDaylightSavingTime(timestamp))
+								{
+									rollover = 10;
+								}
+
+								if (timestamp.Day == 1 && timestamp.Hour >= rollover)
 								{
 									var newTime = timestamp.AddDays(-1);
 									// on the first of month, we also need to backup last months files as well
@@ -9598,6 +9622,11 @@ namespace CumulusMX
 		public int GetHourInc()
 		{
 			return GetHourInc(DateTime.Now);
+		}
+
+		public int GetRolloverHour(DateTime timestamp)
+		{
+			return -GetHourInc(timestamp);
 		}
 
 		public DateTime MeteoDate()
@@ -10019,7 +10048,7 @@ namespace CumulusMX
 						try
 						{
 
-							srcfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+							srcfile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].LocalFileName);
 							File.Copy(srcfile, dstfile, true);
 							success++;
 						}
@@ -10073,7 +10102,7 @@ namespace CumulusMX
 						try
 						{
 
-							srcfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
+							srcfile = Path.Combine(GraphDataFiles[i].LocalPath, GraphDataFiles[i].LocalFileName);
 							File.Copy(srcfile, dstfile, true);
 							success++;
 
@@ -10132,7 +10161,7 @@ namespace CumulusMX
 						try
 						{
 
-							srcfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
+							srcfile = Path.Combine(GraphDataEodFiles[i].LocalPath, GraphDataEodFiles[i].LocalFileName);
 							File.Copy(srcfile, dstfile, true);
 							// Uploaded OK, reset the upload required flag
 							GraphDataEodFiles[i].CopyRequired = false;
@@ -14416,6 +14445,39 @@ namespace CumulusMX
 			return input;
 		}
 
+		public void GetForecastText()
+		{
+
+			string res = string.Empty;
+			string fileName = Path.Combine(Directory.GetCurrentDirectory(), "forecast.txt");
+
+			try
+			{
+				LogDebugMessage("GetForecastText: Reading - " + fileName);
+				if (File.Exists(fileName))
+				{
+					using StreamReader streamReader = new StreamReader(fileName);
+					res = streamReader.ReadToEnd();
+
+					if (string.IsNullOrEmpty(res))
+					{
+						LogWarningMessage($"GetForecastText: MX configured to read \"{fileName}\" but the file is empty!");
+					}
+				}
+				else
+				{
+					LogWarningMessage($"GetForecastText: MX configured to read \"{fileName}\" but the file does not exist");
+				}
+			}
+			catch (Exception ex)
+			{
+				LogExceptionMessage(ex, "GetForecastText: Error processing file " + fileName);
+			}
+
+			station.forecaststr = res;
+		}
+
+
 		public void LogOffsetsMultipliers()
 		{
 			LogMessage("Offsets:");
@@ -14862,6 +14924,12 @@ namespace CumulusMX
 		public string Directory { get; set; }
 		public bool IntervalEnabled { get; set; }
 		public bool RealtimeEnabled { get; set; }
+		/// <summary>
+		/// FTP=0
+		/// FTPS=1
+		/// SFTP=2
+		/// PHP=3
+		/// </summary>
 		public Cumulus.FtpProtocols FtpMode { get; set; }
 		public bool AutoDetect { get; set; }
 		public string SshAuthen { get; set; }
