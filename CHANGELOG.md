@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.0.1 \[b5002\]][30] - 2026-04-25
+## [5.0.1 \[b5002\]][30] - 2026-04-03
 
 ### New
 
@@ -20,17 +20,18 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changed
 
 - Some third party uploads switched from HTTP to HTTPS - AWEKAS, PWS, WindGuru
+- The charts in the dashboard and default web site now display tooltip numbers in the station locale format
 
 ### Fixed
 
 - Davis WLL Soil/Leaf transmitter exception when receive status = null
-- Davis weatherlink.com API fix null 10 wind direction in current data
+- Davis weatherlink.com API fix null wind direction in current data
+- Fix numerous issues with the 9am daily rollover when using the 'use 10am in DST' option
 - Limit Windy station type field to 100 characters for v2 API
-- Fix numerous issues with the 9am daily rollover when using the use 10am in DST option
 - Fix Windy uploads for locales that do not use colon time separators
-- Fix #RecentPressure web tag - not using UnixTime
-- Fix various web tags (eg #YearTempAvg) erroring when no dayfile entries exist to the period requested
-- Chart.js charts not plotting if the Cumulus is running under the Invarant Culture locale
+- Fix `<#RecentPressure>` web tag - not using UnixTime
+- Fix various web tags (eg `<#YearTempAvg>`) erroring when no dayfile entries exist to the period requested
+- Chart.js charts not plotting if the Cumulus is running under the Invariant Culture locale - now defaults to en-US for the charts
 - Local copies of chart data and realtimegauges.txt files not saving in correct location - going into application root folder with a prefix of "web" to the filename
 
 ---
