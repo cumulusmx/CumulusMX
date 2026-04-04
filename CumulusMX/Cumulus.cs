@@ -9852,7 +9852,7 @@ namespace CumulusMX
 				{
 					if (StdWebFiles[i].Create && !string.IsNullOrWhiteSpace(StdWebFiles[i].TemplateFileName))
 					{
-						var destFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+						var destFile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].LocalFileName);
 						if (StdWebFiles[i].LocalFileName == "wxnow.txt")
 						{
 							station.CreateWxnowFile();

@@ -10,6 +10,22 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [5.0.2 \[b5003\]][31] - 2026-04-30
+
+### New
+
+Nothing
+
+### Changed
+
+Nothing
+
+### Fixed
+
+- Fix the standard web file websitedata.json being created in the root folder with a filename prefix of "web". Missed in v5.0.1
+
+---
+
 ## [5.0.1 \[b5002\]][30] - 2026-04-03
 
 ### New
