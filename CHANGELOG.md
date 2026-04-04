@@ -18,7 +18,7 @@ Nothing
 
 ### Changed
 
-Nothing
+- The path setting for the MXdiags folder has been moved to *Program Setting > Path Options*, and stored in the Cumulus.ini file so it will persist across upgrades
 
 ### Fixed
 
@@ -1306,3 +1306,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
 [29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5001
 [30]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5002
+[31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5003

@@ -61,7 +61,8 @@ namespace CumulusMX.Settings
 			{
 				datapath = cumulus.ProgramOptions.DataPath,
 				backuppath = cumulus.ProgramOptions.BackupPath,
-				reportspath = cumulus.ProgramOptions.ReportsPath
+				reportspath = cumulus.ProgramOptions.ReportsPath,
+				diagspath = cumulus.ProgramOptions.DiagsPath
 			};
 
 			var options = new SettingsGeneralOptions()
@@ -166,6 +167,7 @@ namespace CumulusMX.Settings
 				cumulus.ProgramOptions.DataPath = settings.paths.datapath;
 				cumulus.ProgramOptions.BackupPath = settings.paths.backuppath;
 				cumulus.ProgramOptions.ReportsPath = settings.paths.reportspath;
+				cumulus.ProgramOptions.DiagsPath = settings.paths.diagspath;
 
 				cumulus.ProgramOptions.TimeFormat = settings.culture.timeFormat;
 				if (settings.culture.amPmLowerCase != cumulus.ProgramOptions.TimeAmPmLowerCase)
@@ -269,6 +271,7 @@ namespace CumulusMX.Settings
 			public string datapath { get; set; }
 			public string backuppath { get; set; }
 			public string reportspath { get; set; }
+			public string diagspath { get; set; }
 		}
 
 		private class SettingsGeneralOptions

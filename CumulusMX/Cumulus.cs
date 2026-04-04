@@ -4140,6 +4140,8 @@ namespace CumulusMX
 			ProgramOptions.DataPath = ini.GetValue("Program", "DataPath", "data");
 			ProgramOptions.BackupPath = ini.GetValue("Program", "BackupPath", "backup");
 			ProgramOptions.ReportsPath = ini.GetValue("Program", "ReportsPath", "Reports");
+			ProgramOptions.DiagsPath = ini.GetValue("Program", "DiagsPath", "MXdiags");
+
 
 			SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
 			if (DebuggingEnabled)
@@ -6394,6 +6396,7 @@ namespace CumulusMX
 			ini.SetValue("Program", "DataPath", ProgramOptions.DataPath);
 			ini.SetValue("Program", "BackupPath", ProgramOptions.BackupPath);
 			ini.SetValue("Program", "ReportsPath", ProgramOptions.ReportsPath);
+			ini.SetValue("Program", "DiagsPath", ProgramOptions.DiagsPath);
 			ini.SetValue("Program", "SnowLogging", SnowLogging);
 
 			ini.SetValue("Program", "ErrorListLoggingLevel", (int) ErrorListLoggingLevel);
@@ -14527,6 +14530,7 @@ namespace CumulusMX
 			LogMessage(" Data path   : " + ProgramOptions.DataPath);
 			LogMessage(" Backup path : " + ProgramOptions.BackupPath);
 			LogMessage(" Reports path: " + ProgramOptions.ReportsPath);
+			LogMessage(" Diags path  : " + ProgramOptions.DiagsPath);
 
 			foreach (var folder in folders)
 			{
@@ -14837,6 +14841,7 @@ namespace CumulusMX
 		public string DataPath { get; set; }
 		public string BackupPath { get; set; }
 		public string ReportsPath { get; set; }
+		public string DiagsPath { get; set; }
 		public int ProcessLogFilesLevel { get; set; }
 	}
 
