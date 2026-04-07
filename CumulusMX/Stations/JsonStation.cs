@@ -299,10 +299,6 @@ namespace CumulusMX.Stations
 							{
 								DoOutdoorDewpoint(ConvertUnits.TempCToUser(data.temperature.dewpoint.Value), data.lastupdated);
 							}
-							if (data.temperature.blackglobe.HasValue)
-							{
-								BlackGlobeTemp = ConvertUnits.TempCToUser(data.temperature.blackglobe.Value);
-							}
 						}
 						else if (data.units.temperature == "F")
 						{
@@ -318,10 +314,6 @@ namespace CumulusMX.Stations
 							if (!cumulus.StationOptions.CalculatedDP && data.temperature.dewpoint.HasValue)
 							{
 								DoOutdoorDewpoint(ConvertUnits.TempFToUser(data.temperature.dewpoint.Value), data.lastupdated);
-							}
-							if (data.temperature.blackglobe.HasValue)
-							{
-								BlackGlobeTemp = ConvertUnits.TempFToUser(data.temperature.blackglobe.Value);
 							}
 						}
 						else
@@ -832,7 +824,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Lightning
-			if (data.lightning != null)
+			if (data.lightning != null && (mainStation || cumulus.ExtraSensorUseLightning))
 			{
 				station.LightningTime = data.lightning.time ?? DateTime.MinValue;
 				station.LightningStrikesToday += data.lightning.strikes ?? 0 - station.LightningCounter;
@@ -844,6 +836,14 @@ namespace CumulusMX.Stations
 					_ => data.lightning.distance ?? 0
 				};
 			}
+
+			// BGT
+			if (data.temperature.blackglobe.HasValue && (mainStation || cumulus.ExtraSensorUseBGT))
+			{
+				var temp = data.units.temperature == "C" ? ConvertUnits.TempCToUser(data.temperature.blackglobe.Value) : ConvertUnits.TempFToUser(data.temperature.blackglobe.Value);
+				station.DoBGT(temp, data.lastupdated);
+			}
+
 
 			// Do derived values after the primary values
 

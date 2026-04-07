@@ -284,6 +284,8 @@ namespace CumulusMX
 				lowMaxTempVal = station.AllTime.LowMaxTemp.GetValString(cumulus.TempFormat),
 				highDailyTempRangeVal = station.AllTime.HighDailyTempRange.GetValString(cumulus.TempFormat),
 				lowDailyTempRangeVal = station.AllTime.LowDailyTempRange.GetValString(cumulus.TempFormat),
+				highBgtVal = station.AllTime.HighBgt.GetValString(cumulus.TempFormat),
+				highWbgtVal = station.AllTime.HighWbgt.GetValString(cumulus.TempFormat),
 				// Records - Temperature timestamps
 				highTempTime = station.AllTime.HighTemp.GetTsString(timeStampFormat),
 				lowTempTime = station.AllTime.LowTemp.GetTsString(timeStampFormat),
@@ -300,6 +302,8 @@ namespace CumulusMX
 				lowMaxTempTime = station.AllTime.LowMaxTemp.GetTsString(timeStampFormat),
 				highDailyTempRangeTime = station.AllTime.HighDailyTempRange.GetTsString(dateStampFormat),
 				lowDailyTempRangeTime = station.AllTime.LowDailyTempRange.GetTsString(dateStampFormat),
+				highBgtTime = station.AllTime.HighBgt.GetTsString(timeStampFormat),
+				highWbgtTime = station.AllTime.HighWbgt.GetTsString(timeStampFormat),
 				// Records - Humidity values
 				highHumidityVal = station.AllTime.HighHumidity.GetValString(cumulus.HumFormat),
 				lowHumidityVal = station.AllTime.LowHumidity.GetValString(cumulus.HumFormat),
@@ -376,6 +380,8 @@ namespace CumulusMX
 			var highRain24h = new LocalRec(true);
 			var dryPeriod = new LocalRec(true);
 			var wetPeriod = new LocalRec(true);
+			var highBgt = new LocalRec(true);
+			var highWbgt = new LocalRec(true);
 
 			var thisDate = DateTime.MinValue;
 			DateTime startDate;
@@ -654,6 +660,18 @@ namespace CumulusMX
 						highHumidex.Value = rec.HighHumidex;
 						highHumidex.Ts = rec.HighHumidexTime;
 					}
+					// hi BGT
+					if (rec.HighBgt > highBgt.Value)
+					{
+						highBgt.Value = rec.HighBgt.Value;
+						highBgt.Ts = rec.HighBgtTime.Value;
+					}
+					// hi WBGT
+					if (rec.HighWbgt > highWbgt.Value)
+					{
+						highWbgt.Value = rec.HighWbgt.Value;
+						highWbgt.Ts = rec.HighWbgtTime.Value;
+					}
 				}
 
 				// We need to check if the run or wet/dry days at the end of logs exceeds any records
@@ -739,7 +757,11 @@ namespace CumulusMX
 				longestDryPeriodValDayfile = dryPeriod.GetValString(),
 				longestDryPeriodTimeDayfile = dryPeriod.GetTsString(dateStampFormat),
 				longestWetPeriodValDayfile = wetPeriod.GetValString(),
-				longestWetPeriodTimeDayfile = wetPeriod.GetTsString(dateStampFormat)
+				longestWetPeriodTimeDayfile = wetPeriod.GetTsString(dateStampFormat),
+				highBgtValDayFile = highBgt.GetValString(cumulus.TempFormat),
+				highBgtTimeDayfile = highBgt.GetTsString(timeStampFormat),
+				highWbgtValDayFile = highWbgt.GetValString(cumulus.TempFormat),
+				highWbgtTimeDayfile = highWbgt.GetTsString(timeStampFormat)
 			};
 
 			return JsonSerializer.Serialize(response);
@@ -840,6 +862,8 @@ namespace CumulusMX
 			var highRainMonth = new LocalRec(true);
 			var dryPeriod = new LocalRec(true);
 			var wetPeriod = new LocalRec(true);
+			var highBgt = new LocalRec(true);
+			var highWbgt = new LocalRec(true);
 
 			var currentDay = datefrom.LocalFromUnixTime();
 			var dayHighTemp = new LocalRec(true);
@@ -981,6 +1005,18 @@ namespace CumulusMX
 							{
 								lowDewPt.Value = rec.OutdoorDewpoint;
 								lowDewPt.Ts = recDate;
+							}
+							// hi BGT
+							if (rec.BlackGlobeTemp > highBgt.Value)
+							{
+								highBgt.Value = rec.BlackGlobeTemp.Value;
+								highBgt.Ts = recDate;
+							}
+							// hi WBGT
+							if (rec.WetBulbGlobeTemp > highWbgt.Value)
+							{
+								highWbgt.Value = rec.WetBulbGlobeTemp.Value;
+								highWbgt.Ts = recDate;
 							}
 							// hi hum
 							if (rec.OutdoorHumidity > highHum.Value)
@@ -1256,6 +1292,10 @@ namespace CumulusMX
 				lowWindChillTimeLogfile = lowWindChill.GetTsString(timeStampFormat),
 				highHeatIndexValLogfile = highHeatInd.GetValString(cumulus.TempFormat),
 				highHeatIndexTimeLogfile = highHeatInd.GetTsString(timeStampFormat),
+				highBgtValLogfile = highBgt.GetValString(cumulus.TempFormat),
+				highBgtTimeLogfile = highBgt.GetTsString(timeStampFormat),
+				highWbgtValLogfile = highWbgt.GetValString(cumulus.TempFormat),
+				highWbgtTimeLogfile = highWbgt.GetTsString(timeStampFormat),
 				highMinTempValLogfile = highMinTemp.GetValString(cumulus.TempFormat),
 				highMinTempTimeLogfile = highMinTemp.GetTsString(timeStampFormat),
 				lowMaxTempValLogfile = lowMaxTemp.GetValString(cumulus.TempFormat),
@@ -1408,6 +1448,12 @@ namespace CumulusMX
 					case "longestWetPeriod":
 						station.SetAlltime(station.AllTime.LongestWetPeriod, int.Parse(txtValue), time);
 						break;
+					case "highBgt":
+						station.SetAlltime(station.AllTime.HighBgt, value, time);
+						break;
+					case "highWbgt":
+						station.SetAlltime(station.AllTime.HighWbgt, value, time);
+						break;
 					default:
 						return "Data index not recognised";
 				}
@@ -1534,6 +1580,12 @@ namespace CumulusMX
 						case "longestWetPeriod":
 							station.SetMonthlyAlltime(station.MonthlyRecs[month].LongestWetPeriod, int.Parse(txtValue), time);
 							break;
+						case "highBgt":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighBgt, value, time);
+							break;
+						case "highWbgt":
+							station.SetMonthlyAlltime(station.MonthlyRecs[month].HighWbgt, value, time);
+							break;
 						default:
 							return "Data index not recognised";
 					}
@@ -1571,6 +1623,9 @@ namespace CumulusMX
 				data.Add($"{m}-lowMaxTempVal", station.MonthlyRecs[m].LowMaxTemp.GetValString(cumulus.TempFormat));
 				data.Add($"{m}-highDailyTempRangeVal", station.MonthlyRecs[m].HighDailyTempRange.GetValString(cumulus.TempFormat));
 				data.Add($"{m}-lowDailyTempRangeVal", station.MonthlyRecs[m].LowDailyTempRange.GetValString(cumulus.TempFormat));
+				data.Add($"{m}-highBgtVal", station.MonthlyRecs[m].HighBgt.GetValString(cumulus.TempFormat));
+				data.Add($"{m}-highWbgtVal", station.MonthlyRecs[m].HighWbgt.GetValString(cumulus.TempFormat));
+
 				// Records - Temperature timestamps
 				data.Add($"{m}-highTempTime", station.MonthlyRecs[m].HighTemp.GetTsString(timeStampFormat));
 				data.Add($"{m}-lowTempTime", station.MonthlyRecs[m].LowTemp.GetTsString(timeStampFormat));
@@ -1587,6 +1642,8 @@ namespace CumulusMX
 				data.Add($"{m}-lowMaxTempTime", station.MonthlyRecs[m].LowMaxTemp.GetTsString(timeStampFormat));
 				data.Add($"{m}-highDailyTempRangeTime", station.MonthlyRecs[m].HighDailyTempRange.GetTsString(dateStampFormat));
 				data.Add($"{m}-lowDailyTempRangeTime", station.MonthlyRecs[m].LowDailyTempRange.GetTsString(dateStampFormat));
+				data.Add($"{m}-highBgtTime", station.MonthlyRecs[m].HighBgt.GetTsString(timeStampFormat));
+				data.Add($"{m}-highWbgtTime", station.MonthlyRecs[m].HighWbgt.GetTsString(timeStampFormat));
 				// Records - Humidity values
 				data.Add($"{m}-highHumidityVal", station.MonthlyRecs[m].HighHumidity.GetValString(cumulus.HumFormat));
 				data.Add($"{m}-lowHumidityVal", station.MonthlyRecs[m].LowHumidity.GetValString(cumulus.HumFormat));
@@ -1663,6 +1720,8 @@ namespace CumulusMX
 			var highRainMonth = new LocalRec[12];
 			var dryPeriod = new LocalRec[12];
 			var wetPeriod = new LocalRec[12];
+			var highBgt = new LocalRec[12];
+			var highWbgt = new LocalRec[12];
 
 			for (var i = 0; i < 12; i++)
 			{
@@ -1695,6 +1754,8 @@ namespace CumulusMX
 				highRainMonth[i] = new LocalRec(true);
 				dryPeriod[i] = new LocalRec(true);
 				wetPeriod[i] = new LocalRec(true);
+				highBgt[i] = new LocalRec(true);
+				highWbgt[i] = new LocalRec(true);
 			}
 
 			var thisDate = DateTime.MinValue;
@@ -1973,6 +2034,20 @@ namespace CumulusMX
 						highHumidex[monthOffset].Value = station.DayFile[i].HighHumidex;
 						highHumidex[monthOffset].Ts = station.DayFile[i].HighHumidexTime;
 					}
+
+					// hi BGT
+					if (station.DayFile[i].HighBgt > highBgt[monthOffset].Value)
+					{
+						highBgt[monthOffset].Value = station.DayFile[i].HighBgt.Value;
+						highBgt[monthOffset].Ts = station.DayFile[i].HighBgtTime.Value;
+					}
+
+					// hi WBGT
+					if (station.DayFile[i].HighWbgt > highWbgt[monthOffset].Value)
+					{
+						highWbgt[monthOffset].Value = station.DayFile[i].HighWbgt.Value;
+						highWbgt[monthOffset].Ts = station.DayFile[i].HighWbgtTime.Value;
+					}
 				}
 
 				// We need to check if the run or wet/dry days at the end of log exceeds any records
@@ -2020,6 +2095,10 @@ namespace CumulusMX
 				data.Add($"{m}-lowWindChillTimeDayfile", lowWindChill[i].GetTsString(timeStampFormat));
 				data.Add($"{m}-highHeatIndexValDayfile", highHeatInd[i].GetValString(cumulus.TempFormat));
 				data.Add($"{m}-highHeatIndexTimeDayfile", highHeatInd[i].GetTsString(timeStampFormat));
+				data.Add($"{m}-highBgtValDayfile", highBgt[i].GetValString(cumulus.TempFormat));
+				data.Add($"{m}-highBgtTimeDayfile", highBgt[i].GetTsString(timeStampFormat));
+				data.Add($"{m}-highWbgtValDayfile", highWbgt[i].GetValString(cumulus.TempFormat));
+				data.Add($"{m}-highWbgtTimeDayfile", highWbgt[i].GetTsString(timeStampFormat));
 				data.Add($"{m}-highMinTempValDayfile", highMinTemp[i].GetValString(cumulus.TempFormat));
 				data.Add($"{m}-highMinTempTimeDayfile", highMinTemp[i].GetTsString(timeStampFormat));
 				data.Add($"{m}-lowMaxTempValDayfile", lowMaxTemp[i].GetValString(cumulus.TempFormat));
@@ -2134,6 +2213,8 @@ namespace CumulusMX
 			var highRainMonth = new LocalRec[12];
 			var dryPeriod = new LocalRec[12];
 			var wetPeriod = new LocalRec[12];
+			var highBgt = new LocalRec[12];
+			var highWbgt = new LocalRec[12];
 
 			for (var i = 0; i < 12; i++)
 			{
@@ -2166,6 +2247,8 @@ namespace CumulusMX
 				highRainMonth[i] = new LocalRec(true);
 				dryPeriod[i] = new LocalRec(true);
 				wetPeriod[i] = new LocalRec(true);
+				highBgt[i] = new LocalRec(true);
+				highWbgt[i] = new LocalRec(true);
 			}
 
 			var thisDateDry = DateTime.MinValue;
@@ -2348,6 +2431,19 @@ namespace CumulusMX
 								highRainRate[monthOffset].Value = rec.RainRate;
 								highRainRate[monthOffset].Ts = recDate;
 							}
+							// hi BGT
+							if (rec.BlackGlobeTemp > highBgt[monthOffset].Value)
+							{
+								highBgt[monthOffset].Value = rec.BlackGlobeTemp.Value;
+								highBgt[monthOffset].Ts = recDate;
+							}
+							// hi WBGT
+							if (rec.WetBulbGlobeTemp > highWbgt[monthOffset].Value)
+							{
+								highWbgt[monthOffset].Value = rec.WetBulbGlobeTemp.Value;
+								highWbgt[monthOffset].Ts = recDate;
+							}
+
 
 							dayWindRun += recDate.Subtract(lastentrydate).TotalHours * rec.WindAverage;
 
@@ -2563,6 +2659,10 @@ namespace CumulusMX
 				data.Add($"{m}-lowWindChillTimeLogfile", lowWindChill[i].GetTsString(timeStampFormat));
 				data.Add($"{m}-highHeatIndexValLogfile", highHeatInd[i].GetValString(cumulus.TempFormat));
 				data.Add($"{m}-highHeatIndexTimeLogfile", highHeatInd[i].GetTsString(timeStampFormat));
+				data.Add($"{m}-highBgtValLogfile", highBgt[i].GetValString(cumulus.TempFormat));
+				data.Add($"{m}-highBgtTimeLogfile", highBgt[i].GetTsString(timeStampFormat));
+				data.Add($"{m}-highWbgtValLogfile", highWbgt[i].GetValString(cumulus.TempFormat));
+				data.Add($"{m}-highWbgtTimeLogfile", highWbgt[i].GetTsString(timeStampFormat));
 				data.Add($"{m}-highMinTempValLogfile", highMinTemp[i].GetValString(cumulus.TempFormat));
 				data.Add($"{m}-highMinTempTimeLogfile", highMinTemp[i].GetTsString(timeStampFormat));
 				data.Add($"{m}-lowMaxTempValLogfile", lowMaxTemp[i].GetValString(cumulus.TempFormat));
@@ -2646,6 +2746,10 @@ namespace CumulusMX
 				highDailyTempRangeTime = station.ThisMonth.HighDailyTempRange.GetTsString(dateStampFormat),
 				lowDailyTempRangeVal = station.ThisMonth.LowDailyTempRange.GetValString(cumulus.TempFormat),
 				lowDailyTempRangeTime = station.ThisMonth.LowDailyTempRange.GetTsString(dateStampFormat),
+				highBgtVal = station.ThisMonth.HighBgt.GetValString(cumulus.TempFormat),
+				highBgtTime = station.ThisMonth.HighBgt.GetTsString(timeStampFormat),
+				highWbgtVal = station.ThisMonth.HighWbgt.GetValString(cumulus.TempFormat),
+				highWbgtTime = station.ThisMonth.HighWbgt.GetTsString(timeStampFormat),
 				// Records - Humidity
 				highHumidityVal = station.ThisMonth.HighHumidity.GetValString(cumulus.HumFormat),
 				highHumidityTime = station.ThisMonth.HighHumidity.GetTsString(timeStampFormat),
@@ -2819,6 +2923,15 @@ namespace CumulusMX
 						station.ThisMonth.LongestWetPeriod.Val = int.Parse(txtValue);
 						station.ThisMonth.LongestWetPeriod.Ts = time;
 						break;
+					case "highBgt":
+						station.ThisMonth.HighBgt.Val = value;
+						station.ThisMonth.HighBgt.Ts = time;
+						break;
+					case "highWbgt":
+						station.ThisMonth.HighWbgt.Val = value;
+						station.ThisMonth.HighWbgt.Ts = time;
+						break;
+
 					default:
 						return "Data index not recognised";
 				}
@@ -2869,6 +2982,10 @@ namespace CumulusMX
 				highDailyTempRangeTime = station.ThisYear.HighDailyTempRange.GetTsString(dateStampFormat),
 				lowDailyTempRangeVal = station.ThisYear.LowDailyTempRange.GetValString(cumulus.TempFormat),
 				lowDailyTempRangeTime = station.ThisYear.LowDailyTempRange.GetTsString(dateStampFormat),
+				highBgtVal = station.ThisYear.HighBgt.GetValString(cumulus.TempFormat),
+				highBgtTime = station.ThisYear.HighBgt.GetTsString(timeStampFormat),
+				highWbgtVal = station.ThisYear.HighWbgt.GetValString(cumulus.TempFormat),
+				highWbgtTime = station.ThisYear.HighWbgt.GetTsString(timeStampFormat),
 				// Records - Humidity
 				highHumidityVal = station.ThisYear.HighHumidity.GetValString(cumulus.HumFormat),
 				highHumidityTime = station.ThisYear.HighHumidity.GetTsString(timeStampFormat),
@@ -3045,6 +3162,15 @@ namespace CumulusMX
 						station.ThisYear.LongestWetPeriod.Val = int.Parse(txtValue);
 						station.ThisYear.LongestWetPeriod.Ts = time;
 						break;
+					case "highBgt":
+						station.ThisYear.HighBgt.Val = value;
+						station.ThisYear.HighBgt.Ts = time;
+						break;
+					case "highWbgt":
+						station.ThisYear.HighWbgt.Val = value;
+						station.ThisYear.HighWbgt.Ts = time;
+						break;
+
 					default:
 						return "Data index not recognised";
 				}

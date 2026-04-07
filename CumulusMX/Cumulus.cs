@@ -122,7 +122,7 @@ namespace CumulusMX
 		public const double DefaultHiVal = -9999;
 		public const double DefaultLoVal = 9999;
 
-		public const int DayfileFields = 55;
+		public const int DayfileFields = 59;
 
 		public const int LogFileRetries = 3;
 
@@ -2074,6 +2074,11 @@ namespace CumulusMX
 			DayfileTable.AddColumn("ChillHours", "decimal(7," + TempDPlaces + ")");
 			DayfileTable.AddColumn("HighRain24h", "decimal(6," + RainDPlaces + ")");
 			DayfileTable.AddColumn("THighRain24h", "varchar(5)");
+			DayfileTable.AddColumn("HighBgt", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("THighBgt", "varchar(5)");
+			DayfileTable.AddColumn("HighWbgt", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("THighWbgt", "varchar(5)");
+
 			DayfileTable.PrimaryKey = "LogDate";
 			DayfileTable.Comment = "\"Dayfile from Cumulus\"";
 		}
@@ -14448,7 +14453,7 @@ namespace CumulusMX
 			return input;
 		}
 
-		public void GetForecastText()
+		public void GetForecastTextFromFile()
 		{
 
 			string res = string.Empty;

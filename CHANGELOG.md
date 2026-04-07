@@ -14,7 +14,15 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-Nothing
+- High records added for BGT and WBGT values
+	- Updated dashboard records displays
+	- Updated records editors
+	- Data file editors amended
+	- Day file now has two extra fields to store these values
+	- MySQL update dayfile table for new columns for BGT and WBGT high values
+	- File header files updated
+	- Dashboard and default web site Historic charts updated
+
 
 ### Changed
 
@@ -23,6 +31,7 @@ Nothing
 ### Fixed
 
 - Fix the standard web file websitedata.json being created in the root folder with a filename prefix of "web". Missed in v5.0.1
+- Davis station no longer storing the station forecast when primary source is Cumulus or forecast.txt
 
 ---
 

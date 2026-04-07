@@ -679,8 +679,8 @@ namespace CumulusMX.Stations
 					{
 						if (mainStation || cumulus.ExtraSensorUseBGT)
 						{
-							station.BlackGlobeTemp = data.black_globe_temperature.bgt.value;
-							station.WetBulbGlobeTemp = data.black_globe_temperature.wbgt.value;
+							station.DoBGT(data.black_globe_temperature.bgt.value, data.black_globe_temperature.bgt.time.LocalFromUnixTime());
+							station.DoWBGT(data.black_globe_temperature.wbgt.value, data.black_globe_temperature.wbgt.time.LocalFromUnixTime());
 						}
 					}
 					catch (Exception ex)
@@ -699,7 +699,7 @@ namespace CumulusMX.Stations
 						DoPressure(ConvertUnits.PressMBToUser(slp), data.pressure.absolute.time.LocalFromUnixTime());
 					}
 
-					station.DoForecast("", false);
+					station.DoForecast(string.Empty, false);
 
 					var updateTime = (data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time).LocalFromUnixTime();
 					station.UpdateStatusPanel(updateTime.ToUniversalTime());

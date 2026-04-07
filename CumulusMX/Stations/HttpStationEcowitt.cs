@@ -983,8 +983,8 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						ProcessBGT(data, thisStation);
-						ProcessWBGT(data, thisStation);
+						ProcessBGT(data, thisStation, recDate);
+						ProcessWBGT(data, thisStation, recDate);
 					}
 					catch (Exception ex)
 					{
@@ -1328,19 +1328,19 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void ProcessBGT(NameValueCollection data, WeatherStation station)
+		private void ProcessBGT(NameValueCollection data, WeatherStation station, DateTime recDate)
 		{
 			if (data["bgt"] != null)
 			{
-				station.BlackGlobeTemp = ConvertUnits.TempFToUser(Convert.ToDouble(data["bgt"], invNum));
+				station.DoBGT(ConvertUnits.TempFToUser(Convert.ToDouble(data["bgt"], invNum)), recDate);
 			}
 		}
 
-		private void ProcessWBGT(NameValueCollection data, WeatherStation station)
+		private void ProcessWBGT(NameValueCollection data, WeatherStation station, DateTime recDate)
 		{
 			if (data["wbgt"] != null)
 			{
-				station.WetBulbGlobeTemp = ConvertUnits.TempFToUser(Convert.ToDouble(data["wbgt"], invNum));
+				station.DoWBGT(ConvertUnits.TempFToUser(Convert.ToDouble(data["wbgt"], invNum)), recDate);
 			}
 		}
 

@@ -1188,7 +1188,7 @@ namespace CumulusMX.Stations
 								var bgt = sensor.valDbl.Value;
 								bgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(bgt) : ConvertUnits.TempFToUser(bgt);
 
-								BlackGlobeTemp = bgt;
+								DoBGT(bgt, dateTime);
 							}
 							break;
 
@@ -1198,7 +1198,7 @@ namespace CumulusMX.Stations
 								var wbgt = sensor.valDbl.Value;
 								wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
 
-								WetBulbGlobeTemp = wbgt;
+								DoWBGT(wbgt, dateTime);
 							}
 							break;
 

@@ -2180,11 +2180,11 @@ namespace CumulusMX.Stations
 			{
 				if (rec.Value.BGT.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
 				{
-					station.BlackGlobeTemp = (double) rec.Value.BGT.Value;
+					station.DoBGT((double) rec.Value.BGT, recDateTime);
 				}
 				if (rec.Value.WBGT.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
 				{
-					station.WetBulbGlobeTemp = (double) rec.Value.WBGT.Value;
+					station.DoWBGT((double) rec.Value.WBGT.Value, recDateTime);
 				}
 			}
 			catch (Exception ex)
