@@ -30,6 +30,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#MonthBgtH> <#MonthBgtHT> <#MonthBgtHD>`
 	`<#YearBgtH> <#YearBgtHT>`
 	`<#ByMonthBgtH> <#ByMonthBgtHT>`
+
 	`<#WbgtTH> <#TWbgtTH>`
 	`<#WbgtYH> <#TWbgtYH>`
 	`<#WbgtH> <#TWbgtH>`
@@ -37,10 +38,13 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#YearWbgtH> <#YearWbgtHT>`
 	`<#ByMonthWbgtH> <#ByMonthWbgtHT>`
 - Adds support for Soil Electrical Conductivity to Ecowitt Local HTTP API station
-	- New web tags `<#SoilEC[1-16]>`
+	- Sixteen new web tags
+	`<#SoilEC[1-16]>`
 	- Values 1-16 appended to the extra log file
 	- Extra log file header updated
 	- Add to Locale Strings and Display Options
+	- New graph data file - `soilecdata.json`
+	- Added to Dashboard and default web site recent charts
 
 
 ### Changed

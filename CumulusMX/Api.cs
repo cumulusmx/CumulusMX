@@ -622,6 +622,9 @@ namespace CumulusMX
 						case "soilmoist.json":
 							await writer.WriteAsync(Station.GetSoilMoistGraphData(incremental, true, start));
 							break;
+						case "soilec.json":
+							await writer.WriteAsync(Station.GetSoilEcGraphData(incremental, true, start));
+							break;
 						case "leafwetness.json":
 							await writer.WriteAsync(Station.GetLeafWetnessGraphData(incremental, true, start));
 							break;
@@ -688,6 +691,9 @@ namespace CumulusMX
 							break;
 						case "intvsoilmoist.json":
 							await writer.WriteAsync(Station.GetSoilMoistGraphData(false, true, start, end));
+							break;
+						case "intvsoilec.json":
+							await writer.WriteAsync(Station.GetSoilEcGraphData(false, true, start, end));
 							break;
 						case "intvleafwetness.json":
 							await writer.WriteAsync(Station.GetLeafWetnessGraphData(false, true, start, end));

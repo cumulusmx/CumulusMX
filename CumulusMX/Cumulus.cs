@@ -821,7 +821,13 @@ namespace CumulusMX
 					LocalPath = WebPath,
 					LocalFileName = "snow24data.json",
 					RemoteFileName = "snow24hdata.json"
-				}
+				},
+				new()     // 23
+				{
+					LocalPath = WebPath,
+					LocalFileName = "soilecdata.json",
+					RemoteFileName = "soilecdata.json"
+				},
 			];
 
 			GraphDataEodFiles =
@@ -15451,7 +15457,8 @@ namespace CumulusMX
 		CO2,            // 19
 		LEAFWET,        // 20
 		LASERDEPTH,     // 21
-		SNOW24H         // 22
+		SNOW24H,        // 22
+		SOILEC          //23
 	}
 
 }

@@ -2474,6 +2474,7 @@ namespace CumulusMX
 				"extradewdata.json" => GetExtraDewPointGraphData(incremental, false),
 				"soiltempdata.json" => GetSoilTempGraphData(incremental, false),
 				"soilmoistdata.json" => GetSoilMoistGraphData(incremental, false),
+				"soilecdata.json" => GetSoilEcGraphData(incremental, false),
 				"leafwetdata.json" => GetLeafWetnessGraphData(incremental, false),
 				"usertempdata.json" => GetUserTempGraphData(incremental, false),
 				"co2sensordata.json" => GetCo2SensorGraphData(incremental, false),
@@ -4058,6 +4059,191 @@ namespace CumulusMX
 			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilMoist.Vals.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
+				{
+					if (sbExt[i][^1] == ',')
+						sbExt[i].Length--;
+
+					sbExt[i].Append(']');
+					sb.Append((append ? "," : "") + sbExt[i]);
+					append = true;
+				}
+			}
+
+			sb.Append('}');
+			return sb.ToString();
+		}
+
+		public string GetSoilEcGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
+		{
+			var append = false;
+			var sb = new StringBuilder("{", 10240);
+
+			/* returns data in the form of an object with properties for each data series
+				"sensor 1": [[time,val],[time,val],...],
+				"sensor 4": [[time,val],[time,val],...],
+			*/
+
+			var sbExt = new StringBuilder[cumulus.GraphOptions.Visible.SoilEc.Vals.Length];
+
+			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilEc.Vals.Length; i++)
+			{
+				if (cumulus.GraphOptions.Visible.SoilEc.ValVisible(i, local))
+					sbExt[i] = new StringBuilder($"\"{cumulus.Trans.SoilEcCaptions[i]}\":[");
+			}
+
+			var finished = false;
+			var dataAdded = false;
+			var entryTs = 0L;
+			DateTime dateFrom;
+			DateTime dateTo;
+
+			if (incremental)
+			{
+				dateFrom = start ?? cumulus.GraphDataFiles[(int) GraphFileIdx.SOILEC].LastDataTime;
+				dateTo = DateTime.Now;
+			}
+			else if (start.HasValue && end.HasValue)
+			{
+				// selected period in whole days
+				dateFrom = start.Value;
+				dateTo = end.Value.AddDays(1);
+
+				// convert start/end to meteo date/times if required
+				dateFrom = dateFrom.AddHours(-cumulus.GetHourInc(dateFrom));
+				dateTo = dateTo.AddHours(-cumulus.GetHourInc(dateTo));
+			}
+			else
+			{
+				// all data in the range
+				dateFrom = DateTime.Now.AddHours(-cumulus.GraphHours);
+				dateTo = DateTime.Now;
+			}
+
+			var fileDate = dateFrom;
+			var tsFrom = dateFrom.ToUnixTime();
+			var tsTo = dateTo.ToUnixTime();
+
+			// get the log file name to start
+			var logFile = cumulus.GetExtraLogFileName(dateFrom);
+
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix timestamp
+			// 2-11  Temperature 1-10
+			// 12-21 Humidity 1-10
+			// 22-31 Dew point 1-10
+			// 32-35 Soil temp 1-4
+			// 36-39 Soil moisture 1-4
+			// 40-41 Leaf temp 1-2
+			// 42-43 Leaf wetness 1-2
+			// 44-55 Soil temp 5-16
+			// 56-67 Soil moisture 5-16
+			// 68-71 Air quality 1-4
+			// 72-75 Air quality avg 1-4
+			// 76-83 User temperature 1-8
+			// 84  CO2
+			// 85  CO2 avg
+			// 86  CO2 pm2.5
+			// 87  CO2 pm2.5 avg
+			// 88  CO2 pm10
+			// 89  CO2 pm10 avg
+			// 90  CO2 temp
+			// 91  CO2 hum
+			// 92-95 Laser Distance 1-4
+			// 96-99 Laser Depth 1-4
+			// 100 Snowfall Accumulation 24h
+			// 101-106 Temperature 11-16
+			// 107-112 Humidity 11-16
+			// 113-118 Dew point 11-16
+			// 119-122 AQ PM10
+			// 123-126 AQ PM10 Avg
+			// 127-143 Soil EC 1-16
+
+			do
+			{
+				if (File.Exists(logFile))
+				{
+					var linenum = 0;
+					var errorCount = 0;
+
+					try
+					{
+						var lines = File.ReadAllLines(logFile);
+
+						foreach (var line in lines)
+						{
+							try
+							{
+								// process each record in the file
+								linenum++;
+								var st = new List<string>(line.Split(','));
+								entryTs = long.Parse(st[1]);
+
+								if (entryTs > tsFrom)
+								{
+									if (entryTs > tsTo)
+									{
+										finished = true;
+										break;
+									}
+
+									// entry is from required period
+									dataAdded = true;
+									var jsTime = entryTs * 1000;
+
+									for (var i = 0; i < cumulus.GraphOptions.Visible.SoilEc.Vals.Length; i++)
+									{
+										if (cumulus.GraphOptions.Visible.SoilEc.ValVisible(i, local))
+										{
+											var val = "null";
+											if (st.Count > 127 + i)
+											{
+												val = int.TryParse(st[127 + i], out int temp) ? temp.ToString() : "null";
+											}
+											sbExt[i].Append($"[{jsTime},{val}],");
+										}
+									}
+								}
+							}
+							catch (Exception ex)
+							{
+								errorCount++;
+								cumulus.LogErrorMessage($"GetSoilEcGraphData: Error at line {linenum} of {logFile}. Error - {ex.Message}");
+								if (errorCount > 10)
+								{
+									cumulus.LogMessage($"GetSoilEcGraphData: More than 10 errors in the file {logFile}, aborting processing");
+									finished = true;
+									break;
+								}
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"GetSoilEcGraphData: Error reading {logFile}. Error - {ex.Message}");
+					}
+				}
+
+				if (!finished)
+				{
+					if (entryTs >= tsTo || cumulus.MeteoDate(fileDate) > cumulus.MeteoDate(dateTo))
+					{
+						finished = true;
+					}
+					else
+					{
+						fileDate = fileDate.AddMonths(1);
+						logFile = cumulus.GetExtraLogFileName(fileDate);
+					}
+				}
+			} while (!finished);
+
+			// no incremental data, send null to supress the upload
+			if (incremental && !dataAdded)
+				return null;
+
+			for (var i = 0; i < cumulus.GraphOptions.Visible.SoilEc.Vals.Length; i++)
+			{
+				if (cumulus.GraphOptions.Visible.SoilEc.ValVisible(i, local))
 				{
 					if (sbExt[i][^1] == ',')
 						sbExt[i].Length--;
