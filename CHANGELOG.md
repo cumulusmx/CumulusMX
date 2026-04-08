@@ -22,6 +22,20 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- MySQL update dayfile table for new columns for BGT and WBGT high values
 	- File header files updated
 	- Dashboard and default web site Historic charts updated
+	- New web tags
+	`<#BgtTH> <#TBgtTH>`
+	`<#BgtYH> <#TBgtYH>`
+	`<#BgtH> <#TBgtH>`
+	`<#MonthBgtH> <#MonthBgtHT> <#MonthBgtHD>`
+	`<#YearBgtH> <#YearBgtHT>`
+	`<#ByMonthBgtH> <#ByMonthBgtHT>`
+	`<#WbgtTH> <#TWbgtTH>`
+	`<#WbgtYH> <#TWbgtYH>`
+	`<#WbgtH> <#TWbgtH>`
+	`<#MonthWbgtH> <#MonthWbgtHT> <#MonthWbgtHD>`
+	`<#YearWbgtH> <#YearWbgtHT>`
+	`<#ByMonthWbgtH> <#ByMonthWbgtHT>`
+
 
 
 ### Changed
@@ -32,6 +46,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Fix the standard web file websitedata.json being created in the root folder with a filename prefix of "web". Missed in v5.0.1
 - Davis station no longer storing the station forecast when primary source is Cumulus or forecast.txt
+- Snow hour not saving in Station Settings
 
 ---
 

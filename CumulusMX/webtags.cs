@@ -2149,6 +2149,46 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.HiLoYest.HighHeatIndexTime, cumulus.Trans.WebTagGenTime, tagParams);
 		}
 
+		private string TagBgtTh(Dictionary<string, string> tagParams)
+		{
+			return station.HiLoToday.HighBgt == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.HiLoToday.HighBgt, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagTBgtTh(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.HiLoToday.HighBgtTime, cumulus.Trans.WebTagGenTime, tagParams);
+		}
+
+		private string TagBgtYh(Dictionary<string, string> tagParams)
+		{
+			return station.HiLoYest.HighBgt == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.HiLoYest.HighBgt, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagTBgtYh(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.HiLoToday.HighBgtTime, cumulus.Trans.WebTagGenTime, tagParams);
+		}
+
+		private string TagWbgtTh(Dictionary<string, string> tagParams)
+		{
+			return station.HiLoToday.HighWbgt == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.HiLoToday.HighWbgt, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagTWbgtTh(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.HiLoToday.HighWbgtTime, cumulus.Trans.WebTagGenTime, tagParams);
+		}
+
+		private string TagWbgtYh(Dictionary<string, string> tagParams)
+		{
+			return station.HiLoYest.HighWbgt == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.HiLoYest.HighWbgt, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagTWbgtYh(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.HiLoYest.HighWbgtTime, cumulus.Trans.WebTagGenTime, tagParams);
+		}
+
 		private string TagpressTh(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(CheckPressUnit(station.HiLoToday.HighPress, tagParams), tagParams, cumulus.PressDPlaces);
@@ -2692,6 +2732,27 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.AllTime.HighHeatIndex.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
+		private string TagBgtH(Dictionary<string, string> tagParams)
+		{
+			return station.AllTime.HighBgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.AllTime.HighBgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagTBgtH(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.AllTime.HighBgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+		}
+
+		private string TagWbgtH(Dictionary<string, string> tagParams)
+		{
+			return station.AllTime.HighWbgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.AllTime.HighWbgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagTWbgtH(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.AllTime.HighWbgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+		}
+
+
 		private string TaggustM(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(CheckWindUnit(station.AllTime.HighGust.Val, tagParams), tagParams, cumulus.WindDPlaces);
@@ -3040,6 +3101,32 @@ namespace CumulusMX
 		{
 			var month = GetMonthParam(tagParams);
 			return GetFormattedDateTime(station.MonthlyRecs[month].HighHeatIndex.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+		}
+
+		private string TagByMonthBgtH(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var rec = station.MonthlyRecs[month].HighBgt;
+			return rec.Val <= Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagByMonthBgtHt(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			return GetFormattedDateTime(station.MonthlyRecs[month].HighBgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+		}
+
+		private string TagByMonthWbgtH(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			var rec = station.MonthlyRecs[month].HighWbgt;
+			return rec.Val <= Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagByMonthWbgtHt(Dictionary<string, string> tagParams)
+		{
+			var month = GetMonthParam(tagParams);
+			return GetFormattedDateTime(station.MonthlyRecs[month].HighWbgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthGustH(Dictionary<string, string> tagParams)
@@ -5625,6 +5712,16 @@ namespace CumulusMX
 			return CheckRcDp(CheckTempUnit(station.ThisMonth.HighHeatIndex.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
+		private string TagMonthBgtH(Dictionary<string, string> tagParams)
+		{
+			return station.ThisMonth.HighBgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.ThisMonth.HighBgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagMonthWbgtH(Dictionary<string, string> tagParams)
+		{
+			return station.ThisMonth.HighWbgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.ThisMonth.HighWbgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
 		private string TagMonthWChillL(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(CheckTempUnit(station.ThisMonth.LowChill.Val, tagParams), tagParams, cumulus.TempDPlaces);
@@ -5766,6 +5863,16 @@ namespace CumulusMX
 			return GetFormattedDateTime(station.ThisMonth.HighHeatIndex.Ts, "t", tagParams);
 		}
 
+		private string TagMonthBgtHt(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.ThisMonth.HighBgt.Ts, "t", tagParams);
+		}
+
+		private string TagMonthWbgtHt(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.ThisMonth.HighWbgt.Ts, "t", tagParams);
+		}
+
 		private string TagMonthWChillLt(Dictionary<string, string> tagParams)
 		{
 			return GetFormattedDateTime(station.ThisMonth.LowChill.Ts, "t", tagParams);
@@ -5865,6 +5972,16 @@ namespace CumulusMX
 		private string TagMonthHeatIndexHd(Dictionary<string, string> tagParams)
 		{
 			return GetFormattedDateTime(station.ThisMonth.HighHeatIndex.Ts, "dd MMMM", tagParams);
+		}
+
+		private string TagMonthBgtHd(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.ThisMonth.HighBgt.Ts, "dd MMMM", tagParams);
+		}
+
+		private string TagMonthWbgtHd(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.ThisMonth.HighWbgt.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthWChillLd(Dictionary<string, string> tagParams)
@@ -6006,6 +6123,16 @@ namespace CumulusMX
 		private string TagYearHeatIndexH(Dictionary<string, string> tagParams)
 		{
 			return CheckRcDp(CheckTempUnit(station.ThisYear.HighHeatIndex.Val, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagYearBgtH(Dictionary<string, string> tagParams)
+		{
+			return station.ThisYear.HighBgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.ThisYear.HighBgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
+		}
+
+		private string TagYearWbgtH(Dictionary<string, string> tagParams)
+		{
+			return station.ThisYear.HighWbgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.ThisYear.HighWbgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearWChillL(Dictionary<string, string> tagParams)
@@ -6152,6 +6279,16 @@ namespace CumulusMX
 		private string TagYearHeatIndexHt(Dictionary<string, string> tagParams)
 		{
 			return GetFormattedDateTime(station.ThisYear.HighHeatIndex.Ts, "t", tagParams);
+		}
+
+		private string TagYearBgtHt(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.ThisYear.HighBgt.Ts, "t", tagParams);
+		}
+
+		private string TagYearWbgtHt(Dictionary<string, string> tagParams)
+		{
+			return GetFormattedDateTime(station.ThisYear.HighWbgt.Ts, "t", tagParams);
 		}
 
 		private string TagYearWChillLt(Dictionary<string, string> tagParams)
@@ -7623,8 +7760,36 @@ namespace CumulusMX
 				{ "LeafWetness8", TagLeafWetness8 },
 
 				{ "VapourPressDeficit", TagVapourPressDeficit },
+
 				{ "BlackGlobeTemp", TagBlackGlobeTemp },
+				{ "BgtTH", TagBgtTh },
+				{ "TBgtTH", TagTBgtTh },
+				{ "BgtYH", TagBgtYh },
+				{ "TBgtYH", TagTBgtYh },
+				{ "BgtH", TagBgtH },
+				{ "TBgtH", TagTBgtH },
+				{ "MonthBgtH", TagMonthBgtH },
+				{ "MonthBgtHT", TagMonthBgtHt },
+				{ "MonthBgtHD", TagMonthBgtHd },
+				{ "YearBgtH", TagYearBgtH },
+				{ "YearBgtHT", TagYearBgtHt },
+				{ "ByMonthBgtH", TagByMonthBgtH },
+				{ "ByMonthBgtHT", TagByMonthBgtHt },
+
 				{ "WetBulbGlobeTemp", TagWetBulbGlobeTemp },
+				{ "WbgtTH", TagWbgtTh },
+				{ "TWbgtTH", TagTWbgtTh },
+				{ "WbgtYH", TagWbgtTh },
+				{ "TWbgtYH", TagTWbgtTh },
+				{ "WbgtH", TagWbgtH },
+				{ "TWbgtH", TagTWbgtH },
+				{ "MonthWbgtH", TagMonthWbgtH },
+				{ "MonthWbgtHT", TagMonthWbgtHt },
+				{ "MonthWbgtHD", TagMonthWbgtHd },
+				{ "YearWbgtH", TagYearWbgtH },
+				{ "YearWbgtHT", TagYearWbgtHt },
+				{ "ByMonthWbgtH", TagByMonthWbgtH },
+				{ "ByMonthWbgtHT", TagByMonthWbgtHt },
 
 				{ "LowTempAlarm", TagLowTempAlarm },
 				{ "HighTempAlarm", TagHighTempAlarm },
