@@ -4890,6 +4890,91 @@ namespace CumulusMX
 			return station.SoilMoisture[index].HasValue ? station.SoilMoisture[index].ToString() : tagParams.Get("nv") ?? "-";
 		}
 
+		private string TagSoilEc1(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(1, tagParams);
+		}
+
+		private string TagSoilEc2(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(2, tagParams);
+		}
+
+		private string TagSoilEc3(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(3, tagParams);
+		}
+
+		private string TagSoilEc4(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(4, tagParams);
+		}
+
+		private string TagSoilEc5(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(5, tagParams);
+		}
+
+		private string TagSoilEc6(Dictionary<string, string> tagParams)
+		{
+			return GetSoilMoisture(6, tagParams);
+		}
+
+		private string TagSoilEc7(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(7, tagParams);
+		}
+
+		private string TagSoilEc8(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(8, tagParams);
+		}
+
+		private string TagSoilEc9(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(9, tagParams);
+		}
+
+		private string TagSoilEc10(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(10, tagParams);
+		}
+
+		private string TagSoilEc11(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(11, tagParams);
+		}
+
+		private string TagSoilEc12(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(12, tagParams);
+		}
+
+		private string TagSoilEc13(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(13, tagParams);
+		}
+
+		private string TagSoilEc14(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(14, tagParams);
+		}
+
+		private string TagSoilEc15(Dictionary<string, string> tagParams)
+		{
+			return GetSoilMoisture(15, tagParams);
+		}
+
+		private string TagSoilEc16(Dictionary<string, string> tagParams)
+		{
+			return GetSoilEc(16, tagParams);
+		}
+
+		private string GetSoilEc(int index, Dictionary<string, string> tagParams)
+		{
+			return station.SoilEc[index].HasValue ? station.SoilEc[index].ToString() : tagParams.Get("nv") ?? "-";
+		}
+
 		private string TagUserTemp1(Dictionary<string, string> tagParams)
 		{
 			return GetUserTemp(1, tagParams);
@@ -7687,6 +7772,22 @@ namespace CumulusMX
 				{ "SoilMoisture14", TagSoilMoisture14 },
 				{ "SoilMoisture15", TagSoilMoisture15 },
 				{ "SoilMoisture16", TagSoilMoisture16 },
+				{ "SoilEC1", TagSoilEc1 },
+				{ "SoilEC2", TagSoilEc2 },
+				{ "SoilEC3", TagSoilEc3 },
+				{ "SoilEC4", TagSoilEc4 },
+				{ "SoilEC5", TagSoilEc5 },
+				{ "SoilEC6", TagSoilEc6 },
+				{ "SoilEC7", TagSoilEc7 },
+				{ "SoilEC8", TagSoilEc8 },
+				{ "SoilEC9", TagSoilEc9 },
+				{ "SoilEC10", TagSoilEc10 },
+				{ "SoilEC11", TagSoilEc11 },
+				{ "SoilEC12", TagSoilEc12 },
+				{ "SoilEC13", TagSoilEc13 },
+				{ "SoilEC14", TagSoilEc14 },
+				{ "SoilEC15", TagSoilEc15 },
+				{ "SoilEC16", TagSoilEc16 },
 				{ "UserTemp1", TagUserTemp1 },
 				{ "UserTemp2", TagUserTemp2 },
 				{ "UserTemp3", TagUserTemp3 },

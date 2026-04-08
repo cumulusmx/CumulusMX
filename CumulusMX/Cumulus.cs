@@ -5092,6 +5092,7 @@ namespace CumulusMX
 			GraphOptions.Visible.ExtraDewPoint.Vals = ini.GetValue("Graphs", "ExtraDewPointVisible", new int[16]);
 			GraphOptions.Visible.SoilTemp.Vals = ini.GetValue("Graphs", "SoilTempVisible", new int[16]);
 			GraphOptions.Visible.SoilMoist.Vals = ini.GetValue("Graphs", "SoilMoistVisible", new int[16]);
+			GraphOptions.Visible.SoilEc.Vals = ini.GetValue("Graphs", "SoilEcVisible", new int[16]);
 			GraphOptions.Visible.UserTemp.Vals = ini.GetValue("Graphs", "UserTempVisible", new int[8]);
 			GraphOptions.Visible.LeafWetness.Vals = ini.GetValue("Graphs", "LeafWetnessVisible", new int[8]);
 			GraphOptions.Visible.AqSensor.Pm.Vals = ini.GetValue("Graphs", "Aq-PmVisible", new int[4]);
@@ -5166,6 +5167,7 @@ namespace CumulusMX
 			GraphOptions.Colour.ExtraDewPoint = ini.GetValue("GraphColours", "ExtraDewPointColour", colours16.ToArray());
 			GraphOptions.Colour.SoilTemp = ini.GetValue("GraphColours", "SoilTempColour", colours16.ToArray());
 			GraphOptions.Colour.SoilMoist = ini.GetValue("GraphColours", "SoilMoistColour", colours16.ToArray());
+			GraphOptions.Colour.SoilEc = ini.GetValue("GraphColours", "SoilEcColour", colours16.ToArray());
 			GraphOptions.Colour.LeafWetness = ini.GetValue("GraphColours", "LeafWetness", colours2);
 			GraphOptions.Colour.UserTemp = ini.GetValue("GraphColours", "UserTempColour", colours8);
 			GraphOptions.Colour.LaserDepth = ini.GetValue("GraphColours", "LaserDepthColour", colours4);
@@ -7512,6 +7514,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "ExtraDewPointVisible", GraphOptions.Visible.ExtraDewPoint.Vals);
 			ini.SetValue("Graphs", "SoilTempVisible", GraphOptions.Visible.SoilTemp.Vals);
 			ini.SetValue("Graphs", "SoilMoistVisible", GraphOptions.Visible.SoilMoist.Vals);
+			ini.SetValue("Graphs", "SoilEcVisible", GraphOptions.Visible.SoilEc.Vals);
 			ini.SetValue("Graphs", "UserTempVisible", GraphOptions.Visible.UserTemp.Vals);
 			ini.SetValue("Graphs", "LeafWetnessVisible", GraphOptions.Visible.LeafWetness.Vals);
 			ini.SetValue("Graphs", "Aq-PmVisible", GraphOptions.Visible.AqSensor.Pm.Vals);
@@ -7580,6 +7583,7 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "ExtraDewPointColour", GraphOptions.Colour.ExtraDewPoint);
 			ini.SetValue("GraphColours", "SoilTempColour", GraphOptions.Colour.SoilTemp);
 			ini.SetValue("GraphColours", "SoilMoistColour", GraphOptions.Colour.SoilMoist);
+			ini.SetValue("GraphColours", "SoilEcColour", GraphOptions.Colour.SoilEc);
 			ini.SetValue("GraphColours", "LeafWetness", GraphOptions.Colour.LeafWetness);
 			ini.SetValue("GraphColours", "UserTempColour", GraphOptions.Colour.UserTemp);
 			ini.SetValue("GraphColours", "LaserDepthColour", GraphOptions.Colour.LaserDepth);
@@ -7939,6 +7943,9 @@ namespace CumulusMX
 
 				// soil moisture captions (for Extra Sensor Data screen)
 				Trans.SoilMoistureCaptions[i] = ini.GetValue("SoilMoistureCaptions", name, caption);
+
+				// soil EC captions (for Extra Sensor Data screen)
+				Trans.SoilEcCaptions[i] = ini.GetValue("SoilEcCaptions", name, caption);
 			}
 
 			// CO2 captions - Ecowitt WH45 sensor
@@ -8155,6 +8162,9 @@ namespace CumulusMX
 
 				// soil moisture captions (for Extra Sensor Data screen)
 				ini.SetValue("SoilMoistureCaptions", name, Trans.SoilMoistureCaptions[i]);
+
+				// soil EC captions (for Extra Sensor Data screen)
+				ini.SetValue("SoilEcCaptions", name, Trans.SoilEcCaptions[i]);
 			}
 
 			for (var i = 0; i < 4; i++)
@@ -8856,7 +8866,7 @@ namespace CumulusMX
 			}
 		}
 
-		public const int NumExtraLogFileFields = 127;
+		public const int NumExtraLogFileFields = 144;
 
 		public async Task DoExtraLogFile(DateTime timestamp)
 		{
@@ -8891,6 +8901,7 @@ namespace CumulusMX
 			// 113-118 Dew point 11-16
 			// 119-122 AQ PM10
 			// 123-126 AQ PM10 Avg
+			// 127-143 Soil EC 1-16
 
 			var filename = GetExtraLogFileName(timestamp);
 

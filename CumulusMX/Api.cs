@@ -1256,6 +1256,9 @@ namespace CumulusMX
 						case "soilmoisture.json":
 							await writer.WriteAsync(Station.GetSoilMoisture());
 							break;
+						case "soilec.json":
+							await writer.WriteAsync(Station.GetSoilEc());
+							break;
 						case "leaf8.json":
 							await writer.WriteAsync(Station.GetLeaf8(true));
 							break;

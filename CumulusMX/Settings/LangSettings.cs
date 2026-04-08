@@ -194,6 +194,7 @@ namespace CumulusMX.Settings
 				userTemp = cumulus.Trans.UserTempCaptions,
 				soilTemp = cumulus.Trans.SoilTempCaptions,
 				soilMoist = cumulus.Trans.SoilMoistureCaptions,
+				soilEc = cumulus.Trans.SoilEcCaptions,
 				leafWet = cumulus.Trans.LeafWetnessCaptions,
 				airQuality = airQuality,
 				solar = solar,
@@ -390,6 +391,7 @@ namespace CumulusMX.Settings
 					cumulus.Trans.UserTempCaptions = settings.userTemp;
 					cumulus.Trans.SoilTempCaptions = settings.soilTemp;
 					cumulus.Trans.SoilMoistureCaptions = settings.soilMoist;
+					cumulus.Trans.SoilEcCaptions = settings.soilEc;
 					cumulus.Trans.LeafWetnessCaptions = settings.leafWet;
 				}
 				catch (Exception ex)
@@ -694,6 +696,7 @@ namespace CumulusMX.Settings
 			public string[] userTemp { get; set; }
 			public string[] soilTemp { get; set; }
 			public string[] soilMoist { get; set; }
+			public string[] soilEc { get; set; }
 			public string[] leafWet { get; set; }
 			public AirQuality airQuality { get; set; }
 			public Solar solar { get; set; }

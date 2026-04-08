@@ -49,6 +49,7 @@
 			ExtraDPCaptions = new string[16];
 			SoilTempCaptions = new string[16];
 			SoilMoistureCaptions = new string[16];
+			SoilEcCaptions = new string[16];
 
 			DavisForecast1 =
 			[
@@ -175,6 +176,8 @@
 		public string[] SoilTempCaptions { get; set; }
 		// soil moisture captions
 		public string[] SoilMoistureCaptions { get; set; }
+		// soil EC captions
+		public string[] SoilEcCaptions { get; set; }
 		// WH45 CO2 sensor captions
 		public string CO2_CurrentCaption { get; set; }
 		public string CO2_24HourCaption { get; set; }

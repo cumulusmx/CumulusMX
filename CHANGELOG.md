@@ -17,6 +17,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - High records added for BGT and WBGT values
 	- Updated dashboard records displays
 	- Updated records editors
+	- Add to Locale Strings and Display Options
 	- Data file editors amended
 	- Day file now has two extra fields to store these values
 	- MySQL update dayfile table for new columns for BGT and WBGT high values
@@ -35,7 +36,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#MonthWbgtH> <#MonthWbgtHT> <#MonthWbgtHD>`
 	`<#YearWbgtH> <#YearWbgtHT>`
 	`<#ByMonthWbgtH> <#ByMonthWbgtHT>`
-
+- Adds support for Soil Electrical Conductivity to Ecowitt Local HTTP API station
+	- New web tags `<#SoilEC[1-16]>`
+	- Values 1-16 appended to the extra log file
+	- Extra log file header updated
+	- Add to Locale Strings and Display Options
 
 
 ### Changed

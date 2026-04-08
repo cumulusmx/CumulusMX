@@ -44,6 +44,7 @@ namespace CumulusMX.LogFiles
 		public double?[] LaserDist { get; set; } = new double?[5];
 		public double?[] LaserDepth { get; set; } = new double?[5];
 		public double? Snow24h { get; set; }
+		public int?[] SoilEc = new int?[17];
 
 		public ExtraLogFileRec()
 		{
@@ -88,6 +89,7 @@ namespace CumulusMX.LogFiles
 			// 113-118 Dew point 11-16
 			// 119-122 AQ PM10 1-4
 			// 123-126 AQ PM10 Avg
+			// 127-143 Soil EC 1-16
 
 
 			var inv = CultureInfo.InvariantCulture;
@@ -264,6 +266,16 @@ namespace CumulusMX.LogFiles
 							AirQuality10Avg[i + 1] = resultDbl;
 					}
 				}
+
+				if (st.Count > 143)
+				{
+					// 127-143
+					for (int i = 0;i < 16; i++)
+					{
+						if (int.TryParse(st[127 + i], inv, out resultInt))
+							SoilEc[i = 1] = resultInt;
+					}
+				}
 			}
 			catch (Exception ex)
 			{
@@ -285,8 +297,8 @@ namespace CumulusMX.LogFiles
 		{
 			var inv = CultureInfo.InvariantCulture;
 			var line = string.Join(",",
-				timestamp.ToString("dd/MM/yy HH:mm", inv),
-				timestamp.ToUnixTime());
+				timestamp.ToString("dd/MM/yy HH:mm", inv),                            // 0
+				timestamp.ToUnixTime());                                              // 1
 
 			var sb = new StringBuilder(line, 512);
 			var sep = ",";
@@ -384,6 +396,11 @@ namespace CumulusMX.LogFiles
 			for (int i = 1; i <= 4; i++)
 			{
 				sb.Append(sep + station.AirQuality10Avg[i].ToFixed("F1")); //123-126
+			}
+
+			for (int i = 1;i <= 16; i++)
+			{
+				sb.Append(sep + station.SoilEc[i].ToText()); //127-143
 			}
 
 			sb.Append(Environment.NewLine);

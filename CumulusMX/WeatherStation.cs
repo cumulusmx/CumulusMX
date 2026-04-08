@@ -354,6 +354,7 @@ namespace CumulusMX
 			ExtraDewPoint = new double?[17];
 			UserTemp = new double?[9];
 			SoilTemp = new double?[17];
+			SoilEc = new int?[17];
 
 			windcounts = new double[16];
 			WindRecent = new TWindRecent[MaxWindRecent];
@@ -1661,6 +1662,11 @@ namespace CumulusMX
 		/// Soil Temp 1-16 in C
 		/// </summary>
 		public double?[] SoilTemp { get; set; }
+
+		/// <summary>
+		/// Soil Electrical Conductivity 1-16 in uS/cm
+		/// </summary>
+		public int?[] SoilEc { get; set; }
 
 		/// <summary>
 		/// Laser distance
@@ -10853,6 +10859,12 @@ namespace CumulusMX
 				SoilTemp[index] = value;
 		}
 
+		public void DoSoilEc(int? value, int index)
+		{
+			if (index > 0 && index < SoilEc.Length)
+				SoilEc[index] = value;
+		}
+
 		public void DoAirQuality(double value, int index)
 		{
 			AirQuality[index] = value;
@@ -13109,6 +13121,23 @@ namespace CumulusMX
 			return json.ToString();
 		}
 
+		public string GetSoilEc()
+		{
+			var json = new StringBuilder("{\"data\":[", 1024);
+
+			for (var i = 1; i < SoilEc.Length; i++)
+			{
+				if (cumulus.GraphOptions.Visible.SoilEc.ValVisible(i - 1, true))
+					json.Append($"[\"{cumulus.Trans.SoilEcCaptions[i - 1]}\",\"{SoilEc[i].ToText("-")}\",\"μS/cm\"],");
+			}
+
+			if (json[^1] == ',')
+				json.Length--;
+
+			json.Append("]}");
+			return json.ToString();
+		}
+
 		public string GetAirQuality(bool local)
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
@@ -14575,6 +14604,9 @@ namespace CumulusMX
 			// soil temps
 			if (cumulus.GraphOptions.Visible.SoilMoist.IsVisible(local))
 				json.Append($"\"soilmoist\":{{\"name\":[\"{string.Join("\",\"", cumulus.Trans.SoilMoistureCaptions)}\"],\"colour\":[\"{string.Join("\",\"", cumulus.GraphOptions.Colour.SoilMoist)}\"]}},");
+			// soil EC
+			if (cumulus.GraphOptions.Visible.SoilEc.IsVisible(local))
+				json.Append($"\"soilec\":{{\"name\":[\"{string.Join("\",\"", cumulus.Trans.SoilEcCaptions)}\"],\"colour\":[\"{string.Join("\",\"", cumulus.GraphOptions.Colour.SoilEc)}\"]}},");
 			// leaf wetness
 			if (cumulus.GraphOptions.Visible.LeafWetness.IsVisible(local))
 				json.Append($"\"leafwet\":{{\"name\":[\"{string.Join("\",\"", cumulus.Trans.LeafWetnessCaptions)}\"],\"colour\":[\"{string.Join("\",\"", cumulus.GraphOptions.Colour.LeafWetness)}\"]}},");
@@ -14843,6 +14875,21 @@ namespace CumulusMX
 				{
 					if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i, local))
 						json.Append($"\"{cumulus.Trans.SoilMoistureCaptions[i]}\",");
+				}
+				if (json[^1] == ',')
+					json.Length--;
+
+				json.Append(']');
+			}
+
+			// Soil EC
+			if (cumulus.GraphOptions.Visible.SoilEc.IsVisible(local))
+			{
+				json.Append(",\"SoilEc\":[");
+				for (var i = 0; i < cumulus.GraphOptions.Visible.SoilEc.Vals.Length; i++)
+				{
+					if (cumulus.GraphOptions.Visible.SoilEc.ValVisible(i, local))
+						json.Append($"\"{cumulus.Trans.SoilEcCaptions[i]}\",");
 				}
 				if (json[^1] == ',')
 					json.Length--;
