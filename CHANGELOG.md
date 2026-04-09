@@ -21,16 +21,22 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Data file editors amended
 	- Day file now has two extra fields to store these values
 	- MySQL update dayfile table for new columns for BGT and WBGT high values
+	```
+	HighBgt decimal(5,1)
+	THighBgt varchar(5)
+	HighWbgt decimal (5,1)
+	THighWbgt varchar(5)
+	```
 	- File header files updated
 	- Dashboard and default web site Historic charts updated
-	- New web tags
+	- New web tags<br>
 	`<#BgtTH> <#TBgtTH>`
 	`<#BgtYH> <#TBgtYH>`
 	`<#BgtH> <#TBgtH>`
 	`<#MonthBgtH> <#MonthBgtHT> <#MonthBgtHD>`
 	`<#YearBgtH> <#YearBgtHT>`
 	`<#ByMonthBgtH> <#ByMonthBgtHT>`
-
+	<br>
 	`<#WbgtTH> <#TWbgtTH>`
 	`<#WbgtYH> <#TWbgtYH>`
 	`<#WbgtH> <#TWbgtH>`
@@ -51,6 +57,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Changed
 
 - The path setting for the MXdiags folder has been moved to *Program Setting > Path Options*, and stored in the Cumulus.ini file so it will persist across upgrades
+- New version of CreateMissing (v3.1.0) to add BGT/WBGT support
+- Updated versions of `ImportCumulusFile.php` and `ImportCumulusFile.py`
 
 ### Fixed
 
@@ -128,6 +136,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add support for BGT and WBGT to Ecowitt HTTP Local API, HTTP (Ecowitt), and the JSON stations
 	- New web tags `<#BlackGlobeTemp>` and `<#WetBulbGlobeTemp>`
 	- Two new fields added to the monthly log files and the monthly MySQL table to support these new measurements
+	- MySQL fields
+	```
+	BlackGlobeTemp decimal(4,1)
+	WetBulbGlobeTemp decimal(4,1)
+	```
 - Add support for Ecowitt WH52 EC Soil Moisture Sensors to the Ecowitt HTTP Local API and HTTP (Ecowitt) stations - soil moisture and temperature readings only for now
 - Fix ecowitt.net historic data download of PM measurements
 - New snow depth filtering mechanism implemented. This is a three-stage filter...

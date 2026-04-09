@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace CumulusMX
 {
@@ -23,7 +24,7 @@ namespace CumulusMX
 		#region "Declarations"
 
 		// *** Lock for thread-safe access to file and local cache ***
-		private readonly object m_Lock = new();
+		private readonly Lock m_Lock = new();
 
 		// *** File name ***
 		private string m_FileName = null;
@@ -185,7 +186,7 @@ namespace CumulusMX
 									{
 										// It's a comment
 										// *** Only first occurrence of a key is loaded ***
-										CurrentSection.TryAdd(s, "");
+										CurrentSection.TryAdd(s, string.Empty);
 									}
 									else if ((i = s.IndexOf('=')) > 0)
 									{
@@ -195,7 +196,7 @@ namespace CumulusMX
 										if (Key.Length > 0 && !CurrentSection.ContainsKey(Key))
 										{
 											// *** Only first occurrence of a key is loaded ***
-											string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : ("");
+											string Value = (j > 0) ? (s.Substring(i + 1, j).Trim()) : (string.Empty);
 											CurrentSection.Add(Key, Value);
 										}
 									}
@@ -295,11 +296,7 @@ namespace CumulusMX
 				if (!m_Sections.TryGetValue(SectionName, out Section)) return false;
 
 				// *** Check if the key exists ***
-				string Value;
-				if (Section.TryGetValue(Key, out Value))
-					return true;
-				else
-					return false;
+				return Section.TryGetValue(Key, out _);
 			}
 		}
 
@@ -319,11 +316,9 @@ namespace CumulusMX
 				if (!m_Sections.TryGetValue(SectionName, out Section)) return;
 
 				// *** Check if the key exists ***
-				string Value;
-				if (Section.TryGetValue(Key, out Value))
+				if (Section.Remove(Key))
 				{
 					m_CacheModified = true;
-					Section.Remove(Key);
 				}
 			}
 

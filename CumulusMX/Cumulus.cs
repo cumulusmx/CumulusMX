@@ -8751,8 +8751,8 @@ namespace CumulusMX
 			// 26  Rain since midnight
 			// 27  Feels like
 			// 28  Humidex
-			// 29 BGT
-			// 30 WBGT
+			// 29  BGT
+			// 30  WBGT
 
 
 			// make sure solar max is calculated for those stations without a solar sensor
