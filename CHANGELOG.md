@@ -44,7 +44,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Extra log file header updated
 	- Add to Locale Strings and Display Options
 	- New graph data file - `soilecdata.json`
-	- Added to Dashboard and default web site recent charts
+	- Added to Dashboard Recent, Select-a-Period and Recent Select-a-Chart charts
+	- Added to default web site recent charts
 
 
 ### Changed
@@ -56,6 +57,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix the standard web file websitedata.json being created in the root folder with a filename prefix of "web". Missed in v5.0.1
 - Davis station no longer storing the station forecast when primary source is Cumulus or forecast.txt
 - Snow hour not saving in Station Settings
+
+### Package Updates
+
+- FluentFTP
+- NLog
 
 ---
 
