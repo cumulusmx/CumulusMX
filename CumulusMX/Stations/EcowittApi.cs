@@ -1176,6 +1176,28 @@ namespace CumulusMX.Stations
 								}
 							}
 						}
+						// EC
+						if (srcSoilEc.ec != null && srcSoilEc.ec.list != null)
+						{
+							foreach (var item in srcSoilEc.ec.list)
+							{
+								var itemDate = item.Key + EcowittApiFudgeFactorSecs;
+
+								if (!item.Value.HasValue || itemDate <= lastUpdateTS)
+									continue;
+
+								if (buffer.TryGetValue(itemDate, out var value))
+								{
+									value.SoilEc[i] = item.Value;
+								}
+								else
+								{
+									var newItem = new HistoricData();
+									newItem.SoilEc[i] = item.Value;
+									buffer.Add(itemDate, newItem);
+								}
+							}
+						}
 					}
 				}
 				catch (Exception ex)
@@ -2326,6 +2348,20 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogErrorMessage($"ApplyHistoricData: Error in soil temperature data - {ex.Message}");
 				}
+
+				// === Soil EC ===
+				try
+				{
+					if (rec.Value.SoilEc[i].HasValue)
+					{
+						station.DoSoilEc(rec.Value.SoilEc[i], i);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in soil EC data - {ex.Message}");
+				}
+
 			}
 
 			// === Indoor CO2 ===
@@ -3766,6 +3802,7 @@ namespace CumulusMX.Stations
 			public int?[] ExtraHumidity { get; set; } = new int?[9];
 			public int?[] SoilMoist { get; set; } = new int?[17];
 			public decimal?[] SoilTemp { get; set; } = new decimal?[17];
+			public int?[] SoilEc { get; set; } = new int?[17];
 			public decimal?[] UserTemp { get; set; } = new decimal?[9];
 			public int?[] LeafWetness { get; set; } = new int?[9];
 			public decimal?[] pm25 { get; set; } = new decimal?[5];
