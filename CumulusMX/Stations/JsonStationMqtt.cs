@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -60,31 +61,30 @@ namespace CumulusMX.Stations
 
 				mqttClient = (MqttClient) mqttFactory.CreateMqttClient();
 
-				Connect(options).Wait();
-
-				SubscribeTopic(topic).Wait();
-
 				mqttClient.DisconnectedAsync += async e =>
 				{
-					var delay = 10.0;
-					do
+					if (e.ClientWasConnected && !Program.ExitSystemToken.IsCancellationRequested)
 					{
-						cumulus.LogWarningMessage($"{prefix}: MQTT disconnected from the server - {server}");
-						await Task.Delay(TimeSpan.FromSeconds(delay));
+						var delay = 10.0;
 
-						cumulus.LogDebugMessage($"{prefix}: MQTT attempting to reconnect with server - {server}");
-						try
-						{
-							Connect(options).Wait();
-							cumulus.LogDebugMessage($"{prefix}: MQTT reconnected OK");
-						}
-						catch
-						{
-							cumulus.LogErrorMessage($"{prefix}: MQTT reconnection to server failed");
-						}
+						cumulus.LogErrorMessage($"{prefix}: MQTT disconnected from the server - {server}, retry in {delay} secs");
 
-						delay = Math.Round(delay * 1.5);
-					} while (!mqttClient.IsConnected);
+						do
+						{
+							await Task.Delay(TimeSpan.FromSeconds(delay), Program.ExitSystemToken);
+
+							cumulus.LogMessage($"{prefix}: MQTT attempting to reconnect with server - {server}");
+
+							if (await Connect(options))
+							{
+								cumulus.LogMessage($"{prefix}: MQTT reconnected OK");
+								return;
+							}
+
+							delay = Math.Round(delay * 1.5);
+							cumulus.LogErrorMessage($"{prefix}: MQTT reconnection to server failed, retry in {delay} secs");
+						} while (!mqttClient.IsConnected);
+					}
 				};
 
 				mqttClient.ApplicationMessageReceivedAsync += e =>
@@ -93,6 +93,26 @@ namespace CumulusMX.Stations
 
 					return Task.CompletedTask;
 				};
+
+				// Synchronously attempt to connect until successful or cancelled
+				while (!Connect(options).GetAwaiter().GetResult() && !Program.ExitSystemToken.IsCancellationRequested)
+				{
+					// brief delay to avoid tight loop
+					try
+					{
+						Task.Delay(TimeSpan.FromSeconds(10), Program.ExitSystemToken).Wait();
+					}
+					catch(OperationCanceledException)
+					{
+						// cancelled, do nothing
+					}
+				}
+
+				if (mqttClient.IsConnected)
+				{
+					SubscribeTopic(topic).Wait();
+				}
+
 			}
 			catch (Exception ex)
 			{
@@ -106,21 +126,38 @@ namespace CumulusMX.Stations
 		private static async Task SubscribeTopic(string topic)
 		{
 			cumulus.LogMessage($"{prefix}: Waiting to receive data from MQTT topic = " + topic);
-			await mqttClient.SubscribeAsync(topic);
+			await mqttClient.SubscribeAsync(topic, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtMostOnce, Program.ExitSystemToken);
 		}
 
 
-		private static async Task Connect(MqttClientOptions options)
+		private static async Task<bool> Connect(MqttClientOptions options)
 		{
 			try
 			{
 				cumulus.LogMessage($"{prefix}: Connecting to MQTT server = " + (mainStation ? cumulus.JsonStationOptions.MqttServer : cumulus.JsonExtraStationOptions.MqttServer));
-				await mqttClient.ConnectAsync(options, CancellationToken.None);
+				var response = await mqttClient.ConnectAsync(options, Program.ExitSystemToken);
+				var debugStr = "NULL";
+				if (response != null)
+				{
+					//debugStr = JsonSerializer.Serialize(response, SerializerOptions);
+					debugStr = JsonSerializer.Serialize(response);
+				}
+				cumulus.LogDebugMessage($"{prefix}: Connection result = {debugStr}");
+			}
+			catch (MQTTnet.Exceptions.MqttCommunicationTimedOutException)
+			{
+				cumulus.LogMessage($"{prefix}: MQTT reconnect to the host timed out");
+			}
+			catch (OperationCanceledException)
+			{
+				cumulus.LogMessage($"{prefix}: MQTT reconnect Cancelled");
 			}
 			catch (Exception e)
 			{
 				cumulus.LogExceptionMessage(e, $"{prefix}: MQTT failed to connect to the host");
 			}
+
+			return mqttClient.IsConnected;
 		}
 
 		public static void Disconnect()
@@ -128,5 +165,10 @@ namespace CumulusMX.Stations
 			mqttClient.DisconnectAsync().Wait();
 			mqttClient.Dispose();
 		}
+
+		static readonly JsonSerializerOptions SerializerOptions = new()
+		{
+			WriteIndented = true
+		};
 	}
 }

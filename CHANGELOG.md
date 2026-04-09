@@ -65,6 +65,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix the standard web file websitedata.json being created in the root folder with a filename prefix of "web". Missed in v5.0.1
 - Davis station no longer storing the station forecast when primary source is Cumulus or forecast.txt
 - Snow hour not saving in Station Settings
+- JSON Station MQTT connection reconfigured
+	- The on start-up the station now attempts to make the server connection indefinitely
+	- Refactored the reconnection on connection loss for better execution and logging
 
 ### Package Updates
 
