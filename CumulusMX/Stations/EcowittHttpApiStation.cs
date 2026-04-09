@@ -1950,6 +1950,7 @@ namespace CumulusMX.Stations
 					{
 						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel);
 						DoSoilTemp(sensor.temp.Value, sensor.channel);
+						DoSoilEc(sensor.ecVal.Value, sensor.channel);
 					}
 					catch (Exception ex)
 					{

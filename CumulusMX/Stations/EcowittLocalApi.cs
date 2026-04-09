@@ -1454,7 +1454,7 @@ namespace CumulusMX.Stations
 		{
 			public string? ec { get; set; }
 
-			public int?ecVal
+			public int? ecVal
 			{
 				get
 				{
