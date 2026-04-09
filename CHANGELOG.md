@@ -43,7 +43,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#MonthWbgtH> <#MonthWbgtHT> <#MonthWbgtHD>`
 	`<#YearWbgtH> <#YearWbgtHT>`
 	`<#ByMonthWbgtH> <#ByMonthWbgtHT>`
-- Adds support for Soil Electrical Conductivity to Ecowitt Local HTTP API station and Ecowitt.net cloud station
+- Adds support for Soil Electrical Conductivity to Ecowitt Local HTTP API station, Ecowitt.net cloud station Ecowitt HTTP Station
 	- Sixteen new web tags
 	`<#SoilEC[1-16]>`
 	- Values 1-16 appended to the extra log file

@@ -1018,6 +1018,19 @@ namespace CumulusMX.Stations
 					}
 				}
 
+				// === Soil EC ===
+				if (main || cumulus.ExtraSensorUseSoilTemp)
+				{
+					try
+					{
+						ProcessSoilEc(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in Soil EC data - {ex.Message}");
+					}
+				}
+
 				// === Batteries ===
 				try
 				{
@@ -1397,6 +1410,17 @@ namespace CumulusMX.Stations
 				if (data["soil_ec_temp" + i] != null)
 				{
 					station.DoSoilTemp(Convert.ToDouble(data["soil_ec_temp" + i], invNum), i);
+				}
+			}
+		}
+
+		private void ProcessSoilEc(NameValueCollection data, WeatherStation station)
+		{
+			for (var i = 1; i <= 16; i++)
+			{
+				if (data["soil_ec_ec" + i] != null)
+				{
+					station.DoSoilEc(Convert.ToInt16(data["soil_ec_ec" + i], invNum), i);
 				}
 			}
 		}
