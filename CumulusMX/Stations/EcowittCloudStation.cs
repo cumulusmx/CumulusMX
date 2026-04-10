@@ -557,7 +557,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Soil Moisture EC ===
-				if (mainStation || cumulus.ExtraSensorUseSoilMoist)
+				if (mainStation || cumulus.ExtraSensorUseSoilEc)
 				{
 					try
 					{

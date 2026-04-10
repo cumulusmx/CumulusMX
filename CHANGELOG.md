@@ -44,6 +44,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#YearWbgtH> <#YearWbgtHT>`
 	`<#ByMonthWbgtH> <#ByMonthWbgtHT>`
 - Adds support for Soil Electrical Conductivity to Ecowitt Local HTTP API station, Ecowitt.net cloud station Ecowitt HTTP Station
+	- Also supported on the following Extra Sensor stations: Ecowitt Cloud, Ecowitt HTTP Station
 	- Sixteen new web tags
 	`<#SoilEC[1-16]>`
 	- Values 1-16 appended to the extra log file
@@ -68,6 +69,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - JSON Station MQTT connection reconfigured
 	- The on start-up the station now attempts to make the server connection indefinitely
 	- Refactored the reconnection on connection loss for better execution and logging
+- Fix default web site Humidity Trends charts error
 
 ### Package Updates
 
@@ -87,6 +89,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Some third party uploads switched from HTTP to HTTPS - AWEKAS, PWS, WindGuru
 - The charts in the dashboard and default web site now display tooltip numbers in the station locale format
+- Improvements to Chart accessibility on the Dashboard
 
 ### Fixed
 

@@ -1019,7 +1019,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Soil EC ===
-				if (main || cumulus.ExtraSensorUseSoilTemp)
+				if (main || cumulus.ExtraSensorUseSoilEc)
 				{
 					try
 					{

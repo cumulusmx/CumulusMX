@@ -4717,6 +4717,9 @@ namespace CumulusMX
 			{
 				ExtraSensorUseSoilMoist = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilMoist", false);
 			}
+
+			ExtraSensorUseSoilEc = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilEc", false);
+
 			if (ini.ValueExists("GW1000", "ExtraSensorUseLeafWet"))
 			{
 				ExtraSensorUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", false);
@@ -4802,7 +4805,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseSolar = ExtraSensorUseUv = ExtraSensorUseTempHum = ExtraSensorUseSoilTemp = ExtraSensorUseSoilMoist =
 				ExtraSensorUseLeafWet = ExtraSensorUseUserTemp = ExtraSensorUseAQI = ExtraSensorUseCo2 = ExtraSensorUseLightning =
-				ExtraSensorUseLeak = ExtraSensorUseCamera = ExtraSensorUseLaserDist = ExtraSensorUseBGT = false;
+				ExtraSensorUseLeak = ExtraSensorUseCamera = ExtraSensorUseLaserDist = ExtraSensorUseBGT = ExtraSensorUseSoilEc = false;
 			}
 
 
@@ -5086,7 +5089,7 @@ namespace CumulusMX
 			GraphOptions.Visible.AvgTemp.Val = ini.GetValue("Graphs", "DailyAvgTempVisible", 1, 0, 2);
 			GraphOptions.Visible.MaxTemp.Val = ini.GetValue("Graphs", "DailyMaxTempVisible", 1, 0, 2);
 			GraphOptions.Visible.MinTemp.Val = ini.GetValue("Graphs", "DailyMinTempVisible", 1, 0, 2);
-			GraphOptions.Visible.BGT.Val = ini.GetValue("Graphs", "BGTVisible", 1, 0, 2);
+			GraphOptions.Visible.BGT.Val = ini.GetValue("Graphs", "BGTVisible", 0, 0, 2);
 			GraphOptions.Visible.GrowingDegreeDays1.Val = ini.GetValue("Graphs", "GrowingDegreeDaysVisible1", 1, 0, 2);
 			GraphOptions.Visible.GrowingDegreeDays2.Val = ini.GetValue("Graphs", "GrowingDegreeDaysVisible2", 1, 0, 2);
 			GraphOptions.Visible.TempSum0.Val = ini.GetValue("Graphs", "TempSumVisible0", 1, 0, 2);
@@ -6760,6 +6763,7 @@ namespace CumulusMX
 			ini.SetValue("ExtraSensors", "ExtraSensorUseTempHum", ExtraSensorUseTempHum);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseSoilTemp", ExtraSensorUseSoilTemp);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseSoilMoist", ExtraSensorUseSoilMoist);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseSoilEc", ExtraSensorUseSoilEc);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseLeafWet", ExtraSensorUseLeafWet);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseUserTemp", ExtraSensorUseUserTemp);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseAQI", ExtraSensorUseAQI);
@@ -8361,6 +8365,7 @@ namespace CumulusMX
 		public bool ExtraSensorUseTempHum { get; set; }
 		public bool ExtraSensorUseSoilTemp { get; set; }
 		public bool ExtraSensorUseSoilMoist { get; set; }
+		public bool ExtraSensorUseSoilEc { get; set; }
 		public bool ExtraSensorUseLeafWet { get; set; }
 		public bool ExtraSensorUseAQI { get; set; }
 		public bool ExtraSensorUseUserTemp { get; set; }
