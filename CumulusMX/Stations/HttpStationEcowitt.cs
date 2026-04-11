@@ -1515,8 +1515,31 @@ namespace CumulusMX.Stations
 			station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
 			station.CO2_pm10_24h = data["pm10_24h_co2"] != null ? Convert.ToDouble(data["pm10_24h_co2"], invNum) : null;
 			station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10h24, station.CO2_pm10_24h);
-			station.CO2 = data["co2"] != null ? Convert.ToInt32(data["co2"], invNum) : null;
-			station.CO2_24h = data["co2_24h"] != null ? Convert.ToInt32(data["co2_24h"], invNum) : null;
+			if (data["co2"] != null) // CO2 sensor
+			{
+				station.CO2 = Convert.ToInt32(data["co2"], invNum);
+			}
+			else if (data["co2in"] != null) // WS3900 console
+			{
+				station.CO2 = Convert.ToInt32(data["co2"], invNum);
+			}
+			else
+			{
+				station.CO2 = null;
+			}
+
+			if (data["co2_24h"] != null) // CO2 sensor
+			{
+				station.CO2_24h = Convert.ToInt32(data["co2_24h"], invNum);
+			}
+			else if (data["co2in_24h"] != null) // WS3900 console
+			{
+				station.CO2_24h = Convert.ToInt32(data["co2in_24h"], invNum);
+			}
+			else
+			{
+				station.CO2_24h = null;
+			}
 		}
 
 		private void ProcessLightning(NameValueCollection data, WeatherStation station)

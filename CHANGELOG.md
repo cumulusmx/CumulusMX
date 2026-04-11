@@ -53,6 +53,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- New graph data file - `soilecdata.json`
 	- Added to Dashboard Recent, Select-a-Period and Recent Select-a-Chart charts
 	- Added to default web site recent charts
+- Adds support for the WS3900/WN1800 console built-in CO₂ readings to the Ecowitt HTTP Station
 
 
 ### Changed
