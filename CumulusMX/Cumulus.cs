@@ -8910,8 +8910,8 @@ namespace CumulusMX
 			// 101-106 Temperature 11-16
 			// 107-112 Humidity 11-16
 			// 113-118 Dew point 11-16
-			// 119-122 AQ PM10
-			// 123-126 AQ PM10 Avg
+			// 119-122 AQ PM10 1-4
+			// 123-126 AQ PM10 Avg 1-4
 			// 127-143 Soil EC 1-16
 
 			var filename = GetExtraLogFileName(timestamp);
