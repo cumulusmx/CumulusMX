@@ -58,7 +58,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>5.0.2.5003</Version>
+    <Version>5.1.0.5003</Version>
     <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
     <PackageId>$(AssemblyName)</PackageId>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
@@ -99,7 +99,7 @@
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
     <PackageReference Include="System.CodeDom" Version="10.0.5" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
-    <PackageReference Include="FluentFTP" Version="54.1.0" />
+    <PackageReference Include="FluentFTP" Version="54.1.1" />
     <PackageReference Include="HidSharp" Version="2.6.4" />
     <PackageReference Include="MailKit" Version="4.15.1" />
     <PackageReference Include="MQTTnet" Version="5.1.0.1559" />
