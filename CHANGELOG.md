@@ -71,6 +71,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The on start-up the station now attempts to make the server connection indefinitely
 	- Refactored the reconnection on connection loss for better execution and logging
 - Fix default web site Humidity Trends charts error
+- Fix Simulator crash during write of monthly log file in initial day reset on catch-up
 
 ### Package Updates
 

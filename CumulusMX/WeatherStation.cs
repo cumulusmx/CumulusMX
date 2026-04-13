@@ -8640,8 +8640,11 @@ namespace CumulusMX
 				// First save today's extremes, do not wait for this
 				_ = DoDayfile(timestamp);
 
-				// and the log file - do wait for this
-				cumulus.DoLogFile(timestamp, cumulus.NormalRunning).Wait();
+				// and the log file, but only if the station is initialised - do wait for this
+				if (cumulus.Station != null)
+				{
+					cumulus.DoLogFile(timestamp, cumulus.NormalRunning).Wait();
+				}
 
 				cumulus.LogMessage("Raincounter = " + RainCounter + " Raindaystart = " + RainCounterDayStart);
 
