@@ -395,7 +395,7 @@ namespace CumulusMX.Stations
 		private void ProcessHistoryData(EcowittHistoricData data, CancellationToken token)
 		{
 			// allocate a dictionary of data objects, keyed on the timestamp
-			var buffer = new SortedDictionary<long, HistoricData>();
+			var buffer = new Dictionary<long, HistoricData>();
 
 			var lastUpdateTS = cumulus.LastUpdateTime.ToUnixTime();
 
