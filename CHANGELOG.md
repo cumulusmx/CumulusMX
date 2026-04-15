@@ -71,7 +71,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- The on start-up the station now attempts to make the server connection indefinitely
 	- Refactored the reconnection on connection loss for better execution and logging
 - JSON Station add missing handling of "airquality" PM 10 values
-- JSOn Station fix error in BGT temperature if no "temperature" object in message
+- JSON Station fix error in BGT temperature if no "temperature" object in message
 - Fix default web site Humidity Trends charts error
 - Fix Simulator crash during write of monthly log file in initial day reset on catch-up
 - Missing Air Quality block from the dashboard Extra Sensors page
@@ -79,7 +79,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Package Updates
 
 - FluentFTP
+- MailKit
+- Microsoft.Win32.SystemEvents
 - NLog
+- System.CodeDom
+- System.IO.Ports
+- System.Serviceprocess.ServiceController
 
 ---
 
