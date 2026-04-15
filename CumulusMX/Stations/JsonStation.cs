@@ -749,6 +749,16 @@ namespace CumulusMX.Stations
 						{
 							station.DoAirQualityAvg(rec.pm2p5avg24h.Value, rec.index);
 						}
+
+						if (rec.pm10.HasValue)
+						{
+							station.DoAirQuality10(rec.pm10.Value, rec.index);
+						}
+
+						if (rec.pm10avg24h.HasValue)
+						{
+							station.DoAirQuality10Avg(rec.pm10avg24h.Value, rec.index);
+						}
 					}
 					catch (Exception ex)
 					{
@@ -838,7 +848,7 @@ namespace CumulusMX.Stations
 			}
 
 			// BGT
-			if (data.temperature.blackglobe.HasValue && (mainStation || cumulus.ExtraSensorUseBGT))
+			if (data.temperature != null && data.temperature.blackglobe.HasValue && (mainStation || cumulus.ExtraSensorUseBGT))
 			{
 				var temp = data.units.temperature == "C" ? ConvertUnits.TempCToUser(data.temperature.blackglobe.Value) : ConvertUnits.TempFToUser(data.temperature.blackglobe.Value);
 				station.DoBGT(temp, data.lastupdated);
@@ -976,7 +986,7 @@ namespace CumulusMX.Stations
 			public int index { get; set; }
 			public double? value { get; set; }
 		}
-		private class PmData
+		private sealed class PmData
 		{
 			public int index { get; set; }
 			public double? pm2p5 { get; set; }
@@ -984,10 +994,14 @@ namespace CumulusMX.Stations
 			public double? pm10 { get; set; }
 			public double? pm10avg24h { get; set; }
 		}
-		private sealed class Co2Data : PmData
+		private sealed class Co2Data
 		{
 			public int? co2 { get; set; }
 			public int? co2_24h { get; set; }
+			public double? pm2p5 { get; set; }
+			public double? pm2p5avg24h { get; set; }
+			public double? pm10 { get; set; }
+			public double? pm10avg24h { get; set; }
 		}
 		private sealed class Lds
 		{

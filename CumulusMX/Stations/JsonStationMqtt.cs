@@ -77,7 +77,8 @@ namespace CumulusMX.Stations
 
 							if (await Connect(options))
 							{
-								cumulus.LogMessage($"{prefix}: MQTT reconnected OK");
+								cumulus.LogMessage($"{prefix}: MQTT reconnected OK, resubscribing");
+								await SubscribeTopic(topic);
 								return;
 							}
 
@@ -125,8 +126,8 @@ namespace CumulusMX.Stations
 
 		private static async Task SubscribeTopic(string topic)
 		{
-			cumulus.LogMessage($"{prefix}: Waiting to receive data from MQTT topic = " + topic);
 			await mqttClient.SubscribeAsync(topic, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtMostOnce, Program.ExitSystemToken);
+			cumulus.LogMessage($"{prefix}: Waiting to receive data from MQTT topic = " + topic);
 		}
 
 

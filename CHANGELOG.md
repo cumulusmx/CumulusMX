@@ -70,8 +70,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - JSON Station MQTT connection reconfigured
 	- The on start-up the station now attempts to make the server connection indefinitely
 	- Refactored the reconnection on connection loss for better execution and logging
+- JSON Station add missing handling of "airquality" PM 10 values
+- JSOn Station fix error in BGT temperature if no "temperature" object in message
 - Fix default web site Humidity Trends charts error
 - Fix Simulator crash during write of monthly log file in initial day reset on catch-up
+- Missing Air Quality block from the dashboard Extra Sensors page
 
 ### Package Updates
 
