@@ -65,18 +65,28 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### Fixed
 
 - Fix the standard web file websitedata.json being created in the root folder with a filename prefix of "web". Missed in v5.0.1
-- Davis station no longer storing the station forecast when primary source is Cumulus or forecast.txt
+- Forecast issues introduced in v5.0.1:
+	- Davis station no longer storing the station forecast when primary source is Cumulus or forecast.txt
+	- Cumulus forecast and forecast number not being stored if the forecast source was other than Cumulus
 - Snow hour not saving in Station Settings
 - JSON Station MQTT connection reconfigured
 	- The on start-up the station now attempts to make the server connection indefinitely
 	- Refactored the reconnection on connection loss for better execution and logging
+- JSON Station add missing handling of "airquality" PM 10 values
+- JSON Station fix error in BGT temperature if no "temperature" object in message
 - Fix default web site Humidity Trends charts error
 - Fix Simulator crash during write of monthly log file in initial day reset on catch-up
+- Missing Air Quality block from the dashboard Extra Sensors page
 
 ### Package Updates
 
 - FluentFTP
+- MailKit
+- Microsoft.Win32.SystemEvents
 - NLog
+- System.CodeDom
+- System.IO.Ports
+- System.Serviceprocess.ServiceController
 
 ---
 

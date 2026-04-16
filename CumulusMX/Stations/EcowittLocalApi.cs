@@ -649,9 +649,12 @@ namespace CumulusMX.Stations
 					{
 						count++;
 
-						if (count % 50 == 0 && !Program.service)
+						if (count % 100 == 1)
 						{
-							Console.Write($"  Extracting line: {count}\r");
+							cumulus.LogDebugMessage($"  Checking line {count}");
+
+							if (!Program.service)
+								Console.Write($"  Checking line: {count}\r");
 						}
 
 						if (string.IsNullOrWhiteSpace(line) || string.IsNullOrWhiteSpace(line.Trim()))
