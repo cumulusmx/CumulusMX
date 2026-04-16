@@ -506,10 +506,10 @@ namespace CumulusMX.Stations
 					try
 					{
 						if (data.solar_and_uvi.solar != null && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseSolar))
-							DoSolarRad((int) data.solar_and_uvi.solar.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
+							station.DoSolarRad((int) data.solar_and_uvi.solar.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
 
 						if (data.solar_and_uvi.uvi != null && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseUv))
-							DoUV(data.solar_and_uvi.uvi.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
+							station.DoUV(data.solar_and_uvi.uvi.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
 					}
 					catch (Exception ex)
 					{

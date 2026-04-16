@@ -7761,11 +7761,11 @@ namespace CumulusMX
 			HaveReadData = true;
 		}
 
-		public string forecaststr { get; set; }
+		public string forecaststr { get; set; } = string.Empty;
 
-		public string CumulusForecast { get; set; }
+		public string CumulusForecast { get; set; } = string.Empty;
 
-		public string wsforecast { get; set; }
+		public string wsforecast { get; set; } = string.Empty;
 
 		public bool FirstForecastDone = false;
 
