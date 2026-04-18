@@ -505,10 +505,10 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						if (data.solar_and_uvi.solar != null && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseSolar))
+						if (data.solar_and_uvi.solar != null && (mainStation ? 0 : 1) == cumulus.SensorMaps.Solar)
 							station.DoSolarRad((int) data.solar_and_uvi.solar.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
 
-						if (data.solar_and_uvi.uvi != null && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseUv))
+						if (data.solar_and_uvi.uvi != null && (mainStation ? 0 : 1) == cumulus.SensorMaps.UV)
 							station.DoUV(data.solar_and_uvi.uvi.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
 					}
 					catch (Exception ex)
@@ -518,16 +518,13 @@ namespace CumulusMX.Stations
 				}
 
 				// Extra Temperature
-				if (mainStation || cumulus.ExtraSensorUseTempHum)
+				try
 				{
-					try
-					{
-						ProcessExtraTempHum(data);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in extra temperature data - {ex.Message}");
-					}
+					ProcessExtraTempHum(data);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in extra temperature data - {ex.Message}");
 				}
 
 				// === Soil/Water Temp ===
@@ -718,7 +715,7 @@ namespace CumulusMX.Stations
 
 		private void ProcessExtraTempHum(EcowittApi.CurrentDataData data)
 		{
-			if (data.temp_and_humidity_ch1 != null)
+			if (data.temp_and_humidity_ch1 != null && (mainStation ? 0 : 1) == cumulus.SensorMaps.ExtraTempHum[0])
 			{
 				ApplyExtraTempHum(1, data.temp_and_humidity_ch1.temperature.value, data.temp_and_humidity_ch1.humidity, data.temp_and_humidity_ch1.temperature.time);
 			}

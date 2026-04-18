@@ -1155,7 +1155,7 @@ namespace CumulusMX.Stations
 							}
 							break;
 						case "0x15": //Light (value unit)
-							if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
+							if (cumulus.SensorMaps.Solar == 0)
 							{
 								arr = sensor.val.Split(' ');
 								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
@@ -1180,7 +1180,7 @@ namespace CumulusMX.Stations
 							}
 							break;
 						case "0x17": //UVI (0-15 index)
-							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
+							if (cumulus.SensorMaps.UV == 0)
 							{
 								DoUV(sensor.valDbl.Value, dateTime);
 							}
