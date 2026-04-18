@@ -68,6 +68,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Forecast issues introduced in v5.0.1:
 	- Davis station no longer storing the station forecast when primary source is Cumulus or forecast.txt
 	- Cumulus forecast and forecast number not being stored if the forecast source was other than Cumulus
+	- Forecast string could be uninitialised if the associated web tags were call at start-up and before MX had processed the first forecast event
 - Snow hour not saving in Station Settings
 - JSON Station MQTT connection reconfigured
 	- The on start-up the station now attempts to make the server connection indefinitely
@@ -77,6 +78,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix default web site Humidity Trends charts error
 - Fix Simulator crash during write of monthly log file in initial day reset on catch-up
 - Missing Air Quality block from the dashboard Extra Sensors page
+- Extra Sensors using Ecowitt Cloud Station was not updating Solar & UV-I values
 
 ### Package Updates
 

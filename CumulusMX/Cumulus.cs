@@ -3488,7 +3488,7 @@ namespace CumulusMX
 		private static List<string> ParseParams(string line)
 		{
 			if (string.IsNullOrWhiteSpace(line))
-				return new List<string>();
+				return [];
 
 			var parts = new List<string>();
 
