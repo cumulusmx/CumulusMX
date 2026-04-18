@@ -18,7 +18,7 @@ namespace CumulusMX.Stations
 		private static readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 		internal readonly string[] lineEnds = ["\r\n", "\n"];
 
-		private readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions();
+		private readonly JsonSerializerOptions jsonOptions = new();
 
 		public EcowittLocalApi(Cumulus cumul)
 		{
@@ -639,11 +639,35 @@ namespace CumulusMX.Stations
 					using var streamReader = new StreamReader(fileStream, Encoding.UTF8);
 
 					string line;
-					var count = 0;
+					var count = 1;
 					bool useTimeStamp = true;
 					List<string> result = [];
 
 					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}, log interval = {SdCardInterval} mins");
+
+					// Check the header line first
+					line = await streamReader.ReadLineAsync(token);
+					var fields = line.Split(',');
+
+					if (fields.Length < 10)
+					{
+						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} header line is malformed");
+						cumulus.LogMessage("Header line = " + line);
+						// try again?
+						if (retries >= 0)
+						{
+							cumulus.LogMessage("LocalApi.GetSdFileContents: Try and fetch the file again");
+						}
+						continue;
+					}
+
+					useTimeStamp = fields[1].Equals("timestamp", StringComparison.CurrentCultureIgnoreCase);
+
+					// always add the header line
+					result.Add(line);
+
+					cumulus.LogDebugMessage("LocalApi.GetSdFileContents: Processed file header OK");
+
 
 					while ((line = await streamReader.ReadLineAsync(token)) != null)
 					{
@@ -664,31 +688,7 @@ namespace CumulusMX.Stations
 						}
 
 						// quick check if there is any data in the file!
-						var fields = line.Split(',');
-						if (count == 1)
-						{
-							if (fields.Length < 10)
-							{
-								cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} header line is malformed");
-								cumulus.LogMessage("Header line = " + line);
-								// try again?
-								if (retries >= 0)
-								{
-									cumulus.LogMessage("LocalApi.GetSdFileContents: Try and fetch the file again");
-								}
-								break;
-							}
-
-							useTimeStamp = fields[1].Equals("timestamp", StringComparison.CurrentCultureIgnoreCase);
-
-							// always add the header line
-							result.Add(line);
-
-							cumulus.LogDebugMessage("LocalApi.GetSdFileContents: Processed file header OK");
-
-							// skip to first data line
-							continue;
-						}
+						fields = line.Split(',');
 
 						if (fields.Length < 10)
 						{
@@ -712,14 +712,6 @@ namespace CumulusMX.Stations
 								result.Add(line);
 							}
 						}
-
-						//if (fields.Length < 10)
-						//{
-						//	cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} is malformed");
-						//	cumulus.LogDataMessage($"line # {count} = " + line);
-						//	continue;
-						//}
-
 					}
 
 					if (!Program.service)

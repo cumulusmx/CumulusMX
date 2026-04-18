@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -538,7 +539,7 @@ namespace CumulusMX.Stations
 			baseFiles.Sort();
 			extraFiles.Sort();
 
-			var buffer = new SortedList<long, HistoricData>();
+			var buffer = new Dictionary<long, HistoricData>();
 
 			// process the base files first
 
@@ -639,10 +640,13 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						cumulus.LogMessage($"GetHistoricDataSdCard: Warning - Extra sensor record {rec.Key} - {rec.Key.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm")} not added because no matching primary record found");
+						cumulus.LogMessage($"GetHistoricDataSdCard: Warning - Extra sensor record {rec.Key} - {rec.Key.LocalFromUnixTime():yyyy-MM-dd HH:mm} not added because no matching primary record found");
 					}
 				}
 			}
+
+			// best do a sort of the data - just in case!
+			var sortedData = buffer.OrderBy(x => x.Key).ToList();
 
 			// finally we can process the data
 
@@ -664,14 +668,14 @@ namespace CumulusMX.Stations
 			// if we have more than one record, take the initial records interval as the difference to the next record. Otherwise use the configured interval
 			if (buffer.Count > 1)
 			{
-				intervalMins = (int) (buffer.Keys[1] - buffer.Keys[0]) / 60;
+				intervalMins = (int) (sortedData[1].Key - sortedData[0].Key) / 60;
 			}
 			else
 			{
 				intervalMins = localApi.SdCardInterval;
 			}
 
-			foreach (var rec in buffer)
+			foreach (var rec in sortedData)
 			{
 				if (Program.ExitSystemToken.IsCancellationRequested)
 				{

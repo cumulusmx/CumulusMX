@@ -2891,7 +2891,6 @@ namespace CumulusMX
 		public string GetTempGraphData(bool incremental, bool local, DateTime? start = null)
 		{
 			var append = false;
-			var InvC = CultureInfo.InvariantCulture;
 			var sb = new StringBuilder("{", 10240);
 			var sbIn = new StringBuilder("\"intemp\":[");
 			var sbDew = new StringBuilder("\"dew\":[");
@@ -4987,7 +4986,6 @@ namespace CumulusMX
 		public string GetCo2SensorGraphData(bool incremental, bool local, DateTime? start = null, DateTime? end = null)
 		{
 			var append = false;
-			var InvC = CultureInfo.InvariantCulture;
 			var sb = new StringBuilder("{", 10240);
 
 			/* returns data in the form of an object with properties for each data series
@@ -5418,7 +5416,6 @@ namespace CumulusMX
 		public string GetIntervalTempGraphData(bool local, DateTime? start = null, DateTime? end = null)
 		{
 			var append = false;
-			var InvC = CultureInfo.InvariantCulture;
 			var sb = new StringBuilder("{", 10240);
 			var sbIn = new StringBuilder("\"intemp\":[");
 			var sbDew = new StringBuilder("\"dew\":[");
@@ -5788,7 +5785,6 @@ namespace CumulusMX
 
 		public string GetIntervalSolarGraphData(bool local, DateTime? start = null, DateTime? end = null)
 		{
-			var InvC = CultureInfo.InvariantCulture;
 			var sb = new StringBuilder("{");
 			var sbUv = new StringBuilder("\"UV\":[");
 			var sbSol = new StringBuilder("\"SolarRad\":[");
@@ -7761,11 +7757,11 @@ namespace CumulusMX
 			HaveReadData = true;
 		}
 
-		public string forecaststr { get; set; }
+		public string forecaststr { get; set; } = string.Empty;
 
-		public string CumulusForecast { get; set; }
+		public string CumulusForecast { get; set; } = string.Empty;
 
-		public string wsforecast { get; set; }
+		public string wsforecast { get; set; } = string.Empty;
 
 		public bool FirstForecastDone = false;
 
@@ -15306,7 +15302,6 @@ namespace CumulusMX
 
 		public string GetAllDailyTempGraphData(bool local)
 		{
-			var InvC = CultureInfo.InvariantCulture;
 			/* returns:
 			 *		highgust:[[date1,val1],[date2,val2]...],
 			 *		mintemp:[[date1,val1],[date2,val2]...],

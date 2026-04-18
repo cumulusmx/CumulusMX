@@ -29,10 +29,10 @@ namespace CumulusMX.Stations
 			HeaderValid = HeaderParser(data[0]);
 		}
 
-		public SortedList<long, EcowittApi.HistoricData> DataParser()
+		public Dictionary<long, EcowittApi.HistoricData> DataParser()
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
-			var retList = new SortedList<long, EcowittApi.HistoricData>();
+			var retList = new Dictionary<long, EcowittApi.HistoricData>();
 			var count = 0;
 
 			Cumulus.LogConsoleMessage("  Preprocessing the data");
