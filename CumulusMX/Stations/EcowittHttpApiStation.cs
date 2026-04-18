@@ -539,7 +539,7 @@ namespace CumulusMX.Stations
 			baseFiles.Sort();
 			extraFiles.Sort();
 
-			var buffer = new Dictionary<long, HistoricData>();
+			var buffer = new Dictionary<long, HistoricDataRecord>();
 
 			// process the base files first
 

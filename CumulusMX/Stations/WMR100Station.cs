@@ -312,7 +312,7 @@ namespace CumulusMX.Stations
 
 		private void ProcessUVPacket()
 		{
-			if (!cumulus.ExtraSensorUseUv)
+			if (cumulus.SensorMaps.UV == 0)
 			{
 				cumulus.LogDebugMessage("UV packet");
 				var num = packetBuffer[3] & 0xF;

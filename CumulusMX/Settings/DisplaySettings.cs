@@ -405,9 +405,9 @@ namespace CumulusMX.Settings
 			}
 			catch (Exception ex)
 			{
-				var msg = "Error de-serializing Station Settings JSON: " + ex.Message;
+				var msg = "Error de-serializing Display Settings JSON: " + ex.Message;
 				cumulus.LogErrorMessage(msg);
-				cumulus.LogDebugMessage("Station Data: " + json);
+				cumulus.LogDebugMessage("Display Data: " + json);
 				context.Response.StatusCode = 500;
 				return msg;
 			}

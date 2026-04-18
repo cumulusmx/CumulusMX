@@ -1006,7 +1006,7 @@ namespace CumulusMX.Stations
 								}
 							}
 
-							if (cumulus.WllPrimaryUV == data1.txid && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
+							if (cumulus.WllPrimaryUV == data1.txid && cumulus.SensorMaps.UV == 0)
 							{
 								if (data1.uv_index.HasValue)
 								{
@@ -1027,7 +1027,7 @@ namespace CumulusMX.Stations
 								}
 							}
 
-							if (cumulus.WllPrimarySolar == data1.txid && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
+							if (cumulus.WllPrimarySolar == data1.txid && cumulus.SensorMaps.Solar == 0)
 							{
 								if (data1.solar_rad.HasValue)
 								{
@@ -2241,7 +2241,7 @@ namespace CumulusMX.Stations
 						}
 
 						// UV
-						if (cumulus.WllPrimaryUV == data11.tx_id && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
+						if (cumulus.WllPrimaryUV == data11.tx_id && cumulus.SensorMaps.UV == 0)
 						{
 							/*
 							 * Available fields
@@ -2273,7 +2273,7 @@ namespace CumulusMX.Stations
 						}
 
 						// Solar
-						if (cumulus.WllPrimarySolar == data11.tx_id && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
+						if (cumulus.WllPrimarySolar == data11.tx_id && cumulus.SensorMaps.Solar == 0)
 						{
 							/*
 							 * Available fields

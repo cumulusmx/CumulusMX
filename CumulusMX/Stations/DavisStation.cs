@@ -1811,12 +1811,12 @@ namespace CumulusMX.Stations
 				StormRain = ConvertRainClicksToUser(loopData.StormRain);
 				StartOfStorm = loopData.StormRainStart;
 
-				if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
+				if (cumulus.SensorMaps.UV == 0)
 				{
 					DoUV(loopData.UVIndex >= 0 && loopData.UVIndex < 17 ? loopData.UVIndex : null, now);
 				}
 
-				if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
+				if (cumulus.SensorMaps.Solar == 0)
 				{
 					DoSolarRad(loopData.SolarRad >= 0 && loopData.SolarRad < 1801 ? loopData.SolarRad : null, now);
 
@@ -2753,7 +2753,7 @@ namespace CumulusMX.Stations
 								StationPressure = 0;
 								AltimeterPressure = Pressure;
 
-								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
+								if (cumulus.SensorMaps.UV == 0)
 								{
 									if (archiveData.HiUVIndex >= 0 && archiveData.HiUVIndex < 25)
 									{
@@ -2761,7 +2761,7 @@ namespace CumulusMX.Stations
 									}
 								}
 
-								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
+								if (cumulus.SensorMaps.Solar == 0)
 								{
 									if (archiveData.SolarRad >= 0 && archiveData.SolarRad < 5000)
 									{

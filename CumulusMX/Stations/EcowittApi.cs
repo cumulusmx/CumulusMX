@@ -2173,7 +2173,7 @@ namespace CumulusMX.Stations
 			// = max for period
 			try
 			{
-				if (rec.Value.Solar.HasValue && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseSolar))
+				if (rec.Value.Solar.HasValue && (mainStation ? 0 : 1) == cumulus.SensorMaps.Solar)
 				{
 					station.DoSolarRad((int)rec.Value.Solar.Value, recDateTime);
 				}
@@ -2187,7 +2187,7 @@ namespace CumulusMX.Stations
 			// = max for period
 			try
 			{
-				if (rec.Value.UVI.HasValue && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseUv))
+				if (rec.Value.UVI.HasValue &&(mainStation ? 0 : 1) == cumulus.SensorMaps.UV)
 				{
 					station.DoUV((double) rec.Value.UVI, recDateTime);
 				}

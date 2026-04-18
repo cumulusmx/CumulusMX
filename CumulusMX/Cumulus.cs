@@ -1480,6 +1480,7 @@ namespace CumulusMX
 			Api.wizard = new Wizard(this);
 			Api.langSettings = new LangSettings(this);
 			Api.displaySettings = new DisplaySettings(this);
+			Api.sensorMaps = new SensorMappings(this);
 
 			_ = httpServer.RunAsync(Program.ExitSystemToken);
 
@@ -4582,7 +4583,6 @@ namespace CumulusMX
 
 		public bool AirLinkOutEnabled { get; set; }
 
-		public bool ExtraSensorUseSoilTemp { get; set; }
 		public bool ExtraSensorUseSoilMoist { get; set; }
 		public bool ExtraSensorUseSoilEc { get; set; }
 		public bool ExtraSensorUseLeafWet { get; set; }

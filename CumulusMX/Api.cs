@@ -33,6 +33,7 @@ namespace CumulusMX
 		public static Wizard wizard { get; set; }
 		internal static LangSettings langSettings { get; set; }
 		internal static DisplaySettings displaySettings { get; set; }
+		internal static SensorMappings sensorMaps { get; set; }
 		internal static AlarmSettings alarmSettings { get; set; }
 		internal static AlarmUserSettings alarmUserSettings { get; set; }
 		internal static DataEditor dataEditor { get; set; }
@@ -1402,6 +1403,9 @@ namespace CumulusMX
 						case "mqttdata.json":
 							await writer.WriteAsync(mqttSettings.GetAlpacaFormData());
 							break;
+						case "sensormaps.json":
+							await writer.WriteAsync(sensorMaps.GetAlpacaFormData());
+							break;
 						default:
 							Response.StatusCode = 404;
 							break;
@@ -1503,6 +1507,9 @@ namespace CumulusMX
 							break;
 						case "updatemqttconfig.json":
 							await writer.WriteAsync(mqttSettings.UpdateConfig(HttpContext));
+							break;
+						case "updatesensormaps.json":
+							await writer.WriteAsync(sensorMaps.UpdateConfig(HttpContext));
 							break;
 						default:
 							Response.StatusCode = 404;

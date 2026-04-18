@@ -354,7 +354,7 @@ namespace CumulusMX.Stations
 				try
 				{
 					// solarradiation - [W/m^2]
-					if (!cumulus.ExtraSensorUseSolar)
+					if (cumulus.SensorMaps.Solar == 1)
 					{
 						var str = data["solarradiation"];
 						if (str != null && str != "-9999")
@@ -373,7 +373,7 @@ namespace CumulusMX.Stations
 				try
 				{
 					// UV - [index]
-					if (!cumulus.ExtraSensorUseUv)
+					if (cumulus.SensorMaps.UV == 1)
 					{
 						var str = data["UV"];
 						if (str != null && str != "-9999")

@@ -410,37 +410,31 @@ namespace CumulusMX.Stations
 
 
 				// === Extra Temperature ===
-				if (mainStation || cumulus.ExtraSensorUseTempHum)
+				try
 				{
-					try
-					{
-						// temp[1-10]f
-						ProcessExtraTemps(data, thisStation);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"{procName}: Error in extra temperature data - " + ex.Message);
-					}
+					// temp[1-10]f
+					ProcessExtraTemps(data, thisStation);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"{procName}: Error in extra temperature data - " + ex.Message);
 				}
 
 
 				// === Extra Humidity ===
-				if (mainStation || cumulus.ExtraSensorUseTempHum)
+				try
 				{
-					try
-					{
-						// humidity[1-10]
-						ProcessExtraHumidity(data, thisStation);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"{procName}: Error in extra humidity data - " + ex.Message);
-					}
+					// humidity[1-10]
+					ProcessExtraHumidity(data, thisStation);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"{procName}: Error in extra humidity data - " + ex.Message);
 				}
 
 
 				// === Solar ===
-				if (Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseSolar))
+				if ((mainStation ? 0 : 1) == cumulus.SensorMaps.Solar)
 				{
 					try
 					{
@@ -455,7 +449,7 @@ namespace CumulusMX.Stations
 
 
 				// === UV ===
-				if (Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseUv))
+				if ((mainStation ? 0 : 1) == cumulus.SensorMaps.UV)
 				{
 					try
 					{
@@ -470,17 +464,14 @@ namespace CumulusMX.Stations
 
 
 				// === Soil Temp ===
-				if (mainStation || cumulus.ExtraSensorUseSoilTemp)
+				try
 				{
-					try
-					{
-						// soiltemp[1-10]
-						ProcessSoilTemps(data, thisStation);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"{procName}: Error in Soil temp data - " + ex.Message);
-					}
+					// soiltemp[1-10]
+					ProcessSoilTemps(data, thisStation);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"{procName}: Error in Soil temp data - " + ex.Message);
 				}
 
 
@@ -604,16 +595,13 @@ namespace CumulusMX.Stations
 
 
 				// === Extra Dew point ===
-				if (mainStation || cumulus.ExtraSensorUseTempHum)
+				try
 				{
-					try
-					{
-						ProcessExtraDewPoint(data, thisStation);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"{procName}: Error calculating extra sensor dew points - " + ex.Message);
-					}
+					ProcessExtraDewPoint(data, thisStation);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"{procName}: Error calculating extra sensor dew points - " + ex.Message);
 				}
 
 
@@ -637,22 +625,22 @@ namespace CumulusMX.Stations
 		}
 
 
-		private static void ProcessExtraTemps(NameValueCollection data, WeatherStation station)
+		private void ProcessExtraTemps(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
-				if (data["temp" + i + "f"] != null)
+				if (data["temp" + i + "f"] != null && (mainStation ? 0 : 1) == cumulus.SensorMaps.ExtraTempHum[i -1])
 				{
 					station.DoExtraTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["temp" + i + "f"], CultureInfo.InvariantCulture)), i);
 				}
 			}
 		}
 
-		private static void ProcessExtraHumidity(NameValueCollection data, WeatherStation station)
+		private void ProcessExtraHumidity(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
-				if (data["humidity" + i] != null)
+				if (data["humidity" + i] != null && (mainStation ? 0 : 1) == cumulus.SensorMaps.ExtraTempHum[i - 1])
 				{
 					station.DoExtraHum(Convert.ToDouble(data["humidity" + i], CultureInfo.InvariantCulture), i);
 				}
@@ -675,11 +663,11 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private static void ProcessSoilTemps(NameValueCollection data, WeatherStation station)
+		private void ProcessSoilTemps(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
-				if (data["soiltemp" + i] != null)
+				if (data["soiltemp" + i] != null && (mainStation ? 0 : 1) == cumulus.SensorMaps.SoilTemp[i - 1])
 				{
 					station.DoSoilTemp(ConvertUnits.TempFToUser(Convert.ToDouble(data["soiltemp" + i], CultureInfo.InvariantCulture)), i - 1);
 				}
@@ -872,11 +860,11 @@ namespace CumulusMX.Stations
 			cumulus.BatteryLowAlarm.Triggered = lowBatt;
 		}
 
-		private static void ProcessExtraDewPoint(NameValueCollection data, WeatherStation station)
+		private void ProcessExtraDewPoint(NameValueCollection data, WeatherStation station)
 		{
 			for (var i = 1; i <= 10; i++)
 			{
-				if (data["temp" + i + "f"] != null && data["humidity" + i] != null)
+				if (data["temp" + i + "f"] != null && data["humidity" + i] != null && (mainStation ? 0 : 1) == cumulus.SensorMaps.ExtraTempHum[i-1])
 				{
 					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[i].Value), station.ExtraHum[i].Value);
 					station.ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);

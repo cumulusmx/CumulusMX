@@ -1082,7 +1082,7 @@ namespace CumulusMX.Stations
 								break;
 							case 0x15: //Light (lux)
 									   // Save the Lux value
-								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
+								if (cumulus.SensorMaps.Solar == 0)
 								{
 									LightValue = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
 									// convert Lux to W/m² - approximately!
@@ -1094,7 +1094,7 @@ namespace CumulusMX.Stations
 								idx += 2;
 								break;
 							case 0x17: //UVI (0-15 index)
-								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
+								if (cumulus.SensorMaps.UV == 0)
 								{
 									DoUV(data[idx], dateTime);
 								}

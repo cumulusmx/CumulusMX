@@ -996,7 +996,7 @@ namespace CumulusMX.Stations
 			//Byte 11: (cL) Check-sum low  byte
 			//Byte 12: (cH) Check-sum high byte
 
-			if (!cumulus.ExtraSensorUseUv)
+			if (cumulus.SensorMaps.UV == 0)
 			{
 				var num = packetBuffer[7] & 0xF;
 
@@ -1593,7 +1593,7 @@ namespace CumulusMX.Stations
 			DoRain(ConvertUnits.RainINToUser(counter), ConvertUnits.RainINToUser(rate), timestamp);
 
 			// UV
-			if (!cumulus.ExtraSensorUseUv)
+			if (cumulus.SensorMaps.UV == 0)
 			{
 				if (packetBuffer[27] != 0xFF)
 				{
@@ -1603,7 +1603,7 @@ namespace CumulusMX.Stations
 
 			// do solar rad, even though there's no sensor,
 			// just to calculate theoretical max for consistency
-			if (!cumulus.ExtraSensorUseSolar)
+			if (cumulus.SensorMaps.Solar == 0)
 			{
 				DoSolarRad(0, timestamp);
 			}

@@ -65,22 +65,6 @@ namespace CumulusMX.Settings
 
 			var ecowitt = new JsonEcowitt
 			{
-				useSolar = cumulus.ExtraSensorUseSolar,
-				useUv = cumulus.ExtraSensorUseUv,
-				useTempHum = cumulus.ExtraSensorUseTempHum,
-				useSoilTemp = cumulus.ExtraSensorUseSoilTemp,
-				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
-				useSoilEc = cumulus.ExtraSensorUseSoilEc,
-				useLeafWet = cumulus.ExtraSensorUseLeafWet,
-				useUserTemp = cumulus.ExtraSensorUseUserTemp,
-				useAQI = cumulus.ExtraSensorUseAQI,
-				useCo2 = cumulus.ExtraSensorUseCo2,
-				useLightning = cumulus.ExtraSensorUseLightning,
-				useLeak = cumulus.ExtraSensorUseLeak,
-				useCamera = cumulus.ExtraSensorUseCamera,
-				useLaserDist = cumulus.ExtraSensorUseLaserDist,
-				useBGT = cumulus.ExtraSensorUseBGT,
-
 				setcustom = cumulus.EcowittExtraSetCustomServer,
 				gwaddr = cumulus.EcowittExtraGatewayAddr,
 				localaddr = cumulus.EcowittExtraLocalAddr,
@@ -111,16 +95,6 @@ namespace CumulusMX.Settings
 
 			var ambient = new JsonAmbient
 			{
-				useSolar = cumulus.ExtraSensorUseSolar,
-				useUv = cumulus.ExtraSensorUseUv,
-				useTempHum = cumulus.ExtraSensorUseTempHum,
-				useSoilTemp = cumulus.ExtraSensorUseSoilTemp,
-				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
-				useLeafWet = cumulus.ExtraSensorUseLeafWet,
-				useAQI = cumulus.ExtraSensorUseAQI,
-				useCo2 = cumulus.ExtraSensorUseCo2,
-				useLightning = cumulus.ExtraSensorUseLightning,
-				useLeak = cumulus.ExtraSensorUseLeak
 			};
 
 			var jsonstnadv = new JsonJsonStationAdvanced()
@@ -140,19 +114,6 @@ namespace CumulusMX.Settings
 				mqttpass = cumulus.JsonExtraStationOptions.MqttPassword,
 				mqtttopic = cumulus.JsonExtraStationOptions.MqttTopic,
 				advanced = jsonstnadv,
-
-				useSolar = cumulus.ExtraSensorUseSolar,
-				useUv = cumulus.ExtraSensorUseUv,
-				useTempHum = cumulus.ExtraSensorUseTempHum,
-				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
-				useSoilTemp = cumulus.ExtraSensorUseSoilTemp,
-				useLeafWet = cumulus.ExtraSensorUseLeafWet,
-				useUserTemp = cumulus.ExtraSensorUseUserTemp,
-				useAQI = cumulus.ExtraSensorUseAQI,
-				useCo2 = cumulus.ExtraSensorUseCo2,
-				useLightning = cumulus.ExtraSensorUseLightning,
-				useLaserDist = cumulus.ExtraSensorUseLaserDist,
-				useBGT = cumulus.ExtraSensorUseBGT
 			};
 
 			var httpStation = new JsonHttp
@@ -348,23 +309,6 @@ namespace CumulusMX.Settings
 
 					if (cumulus.EcowittExtraEnabled || cumulus.EcowittCloudExtraEnabled)
 					{
-						cumulus.ExtraSensorUseSolar = settings.httpSensors.ecowitt.useSolar;
-						cumulus.ExtraSensorUseUv = settings.httpSensors.ecowitt.useUv;
-						cumulus.ExtraSensorUseTempHum = settings.httpSensors.ecowitt.useTempHum;
-						cumulus.ExtraSensorUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp;
-						cumulus.ExtraSensorUseSoilMoist = settings.httpSensors.ecowitt.useSoilMoist;
-						cumulus.ExtraSensorUseSoilEc = settings.httpSensors.ecowitt.useSoilEc;
-
-						cumulus.ExtraSensorUseLeafWet = settings.httpSensors.ecowitt.useLeafWet;
-						cumulus.ExtraSensorUseUserTemp = settings.httpSensors.ecowitt.useUserTemp;
-						cumulus.ExtraSensorUseAQI = settings.httpSensors.ecowitt.useAQI;
-						cumulus.ExtraSensorUseCo2 = settings.httpSensors.ecowitt.useCo2;
-						cumulus.ExtraSensorUseLightning = settings.httpSensors.ecowitt.useLightning;
-						cumulus.ExtraSensorUseLeak = settings.httpSensors.ecowitt.useLeak;
-						cumulus.ExtraSensorUseLaserDist = settings.httpSensors.ecowitt.useLaserDist;
-						cumulus.ExtraSensorUseCamera = settings.httpSensors.ecowitt.useCamera;
-						cumulus.ExtraSensorUseBGT = settings.httpSensors.ecowitt.useBGT;
-
 						cumulus.EcowittExtraSetCustomServer = settings.httpSensors.ecowitt.setcustom;
 						if (cumulus.EcowittExtraSetCustomServer)
 						{
@@ -472,12 +416,6 @@ namespace CumulusMX.Settings
 								}
 							}
 						}
-
-						// Also enable extra logging if applicable
-						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseSoilEc || cumulus.ExtraSensorUseLeafWet || cumulus.ExtraSensorUseUserTemp || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2)
-						{
-							cumulus.StationOptions.LogExtraSensors = true;
-						}
 					}
 				}
 				catch (Exception ex)
@@ -513,24 +451,6 @@ namespace CumulusMX.Settings
 					cumulus.AmbientExtraEnabled = settings.httpSensors.extraStation == 1;
 					if (cumulus.AmbientExtraEnabled)
 					{
-						cumulus.ExtraSensorUseSolar = settings.httpSensors.ambient.useSolar;
-						cumulus.ExtraSensorUseUv = settings.httpSensors.ambient.useUv;
-						cumulus.ExtraSensorUseTempHum = settings.httpSensors.ambient.useTempHum;
-						cumulus.ExtraSensorUseSoilTemp = settings.httpSensors.ambient.useSoilTemp;
-						cumulus.ExtraSensorUseSoilMoist = settings.httpSensors.ambient.useSoilMoist;
-						cumulus.ExtraSensorUseLeafWet = settings.httpSensors.ambient.useLeafWet;
-						cumulus.ExtraSensorUseAQI = settings.httpSensors.ambient.useAQI;
-						cumulus.ExtraSensorUseCo2 = settings.httpSensors.ambient.useCo2;
-						cumulus.ExtraSensorUseLightning = settings.httpSensors.ambient.useLightning;
-						cumulus.ExtraSensorUseLeak = settings.httpSensors.ambient.useLeak;
-						cumulus.ExtraSensorUseCamera = false;
-						cumulus.ExtraSensorUseBGT = false;
-
-						// Also enable extra logging if applicable
-						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2)
-						{
-							cumulus.StationOptions.LogExtraSensors = true;
-						}
 					}
 				}
 				catch (Exception ex)
@@ -564,25 +484,6 @@ namespace CumulusMX.Settings
 							cumulus.JsonExtraStationOptions.MqttTopic = string.IsNullOrWhiteSpace(settings.httpSensors.jsonstation.mqtttopic) ? null : settings.httpSensors.jsonstation.mqtttopic.Trim();
 
 							cumulus.JsonExtraStationOptions.MqttUseTls = settings.httpSensors.jsonstation.advanced.mqtttls;
-						}
-
-						cumulus.ExtraSensorUseSolar = settings.httpSensors.jsonstation.useSolar;
-						cumulus.ExtraSensorUseUv = settings.httpSensors.jsonstation.useUv;
-						cumulus.ExtraSensorUseTempHum = settings.httpSensors.jsonstation.useTempHum;
-						cumulus.ExtraSensorUseSoilMoist = settings.httpSensors.jsonstation.useSoilMoist;
-						cumulus.ExtraSensorUseLeafWet = settings.httpSensors.jsonstation.useLeafWet;
-						cumulus.ExtraSensorUseUserTemp = settings.httpSensors.jsonstation.useUserTemp;
-						cumulus.ExtraSensorUseAQI = settings.httpSensors.jsonstation.useAQI;
-						cumulus.ExtraSensorUseCo2 = settings.httpSensors.jsonstation.useCo2;
-						cumulus.ExtraSensorUseLightning = settings.httpSensors.jsonstation.useLightning;
-						cumulus.ExtraSensorUseLaserDist = settings.httpSensors.jsonstation.useLaserDist;
-						cumulus.ExtraSensorUseBGT = settings.httpSensors.jsonstation.useBGT;
-						cumulus.ExtraSensorUseCamera = false;
-
-						// Also enable extra logging if applicable
-						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseLeafWet || cumulus.ExtraSensorUseUserTemp || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2 || cumulus.ExtraSensorUseLaserDist)
-						{
-							cumulus.StationOptions.LogExtraSensors = true;
 						}
 					}
 				}

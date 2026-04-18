@@ -184,12 +184,12 @@ namespace CumulusMX.Stations
 				DoHumidex(timestamp);
 				DoCloudBaseHeatIndex(timestamp);
 
-				if (!cumulus.ExtraSensorUseUv)
+				if (cumulus.SensorMaps.UV == 0)
 				{
 					DoUV((double) historydata.UV, timestamp);
 				}
 
-				if (!cumulus.ExtraSensorUseSolar)
+				if (cumulus.SensorMaps.Solar == 0)
 				{
 					DoSolarRad(historydata.SolarRadiation, timestamp);
 
@@ -351,11 +351,11 @@ namespace CumulusMX.Stations
 						var seaLevel = MeteoLib.GetSeaLevelPressure(alt, (double) wp.Observation.StationPressure, (double) wp.Observation.Temperature, cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(seaLevel), ts);
 						cumulus.LogDebugMessage($"TempestPressure: Station:{wp.Observation.StationPressure} mb, Sea Level:{seaLevel} mb, Altitude:{alt}");
-						if (!cumulus.ExtraSensorUseSolar)
+						if (cumulus.SensorMaps.Solar == 0)
 						{
 							DoSolarRad(wp.Observation.SolarRadiation, ts);
 						}
-						if (!cumulus.ExtraSensorUseUv)
+						if (cumulus.SensorMaps.UV == 0)
 						{
 							DoUV((double) wp.Observation.UV, ts);
 						}

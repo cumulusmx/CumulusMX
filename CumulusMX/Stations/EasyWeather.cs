@@ -161,7 +161,7 @@ namespace CumulusMX.Stations
 
 					DoForecast(string.Empty, false);
 
-					if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
+					if (cumulus.SensorMaps.Solar == 0)
 					{
 						var lightReading = GetConvertedValue(st[EW_LIGHT]);
 
@@ -172,7 +172,7 @@ namespace CumulusMX.Stations
 						}
 					}
 
-					if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
+					if (cumulus.SensorMaps.UV == 0)
 					{
 						var uVreading = GetConvertedValue(st[EW_UV]);
 

@@ -1483,7 +1483,7 @@ namespace CumulusMX.Stations
 											*/
 										try
 										{
-											if (data.uv.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
+											if (data.uv.HasValue && cumulus.SensorMaps.UV == 0)
 											{
 												cumulus.LogDebugMessage("DecodeCurrent: using UV data");
 
@@ -1505,7 +1505,7 @@ namespace CumulusMX.Stations
 											*/
 										try
 										{
-											if (data.solar_rad.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
+											if (data.solar_rad.HasValue && cumulus.SensorMaps.Solar == 0)
 											{
 												cumulus.LogDebugMessage("DecodeCurrent: using solar data");
 												DoSolarRad(data.solar_rad.Value, lastRecordTime);
@@ -1978,7 +1978,7 @@ namespace CumulusMX.Stations
 											}
 
 											// UV
-											if (cumulus.WllPrimaryUV == rec.tx_id && !cumulus.ExtraSensorUseUv)
+											if (cumulus.WllPrimaryUV == rec.tx_id && cumulus.SensorMaps.UV == 0)
 											{
 												/*
 												 * Available fields
@@ -2006,7 +2006,7 @@ namespace CumulusMX.Stations
 											}
 
 											// Solar
-											if (cumulus.WllPrimarySolar == rec.tx_id && !cumulus.ExtraSensorUseSolar)
+											if (cumulus.WllPrimarySolar == rec.tx_id && cumulus.SensorMaps.Solar == 0)
 											{
 												/*
 												 * Available fields
@@ -2436,7 +2436,7 @@ namespace CumulusMX.Stations
 								*/
 							try
 							{
-								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseUv))
+								if (cumulus.SensorMaps.UV == 0)
 								{
 									if (data.uv_index_avg.HasValue)
 									{
@@ -2465,7 +2465,7 @@ namespace CumulusMX.Stations
 								*/
 							try
 							{
-								if (!(cumulus.HasExtraStation && cumulus.ExtraSensorUseSolar))
+								if (cumulus.SensorMaps.Solar == 0)
 								{
 									if (data.solar_rad_avg.HasValue)
 									{
@@ -2968,7 +2968,7 @@ namespace CumulusMX.Stations
 							}
 
 							// UV
-							if (cumulus.WllPrimaryUV == data.tx_id && !cumulus.ExtraSensorUseUv)
+							if (cumulus.WllPrimaryUV == data.tx_id && cumulus.SensorMaps.UV == 0)
 							{
 								/*
 								 * Available fields
@@ -2999,7 +2999,7 @@ namespace CumulusMX.Stations
 							}
 
 							// Solar
-							if (cumulus.WllPrimarySolar == data.tx_id && !cumulus.ExtraSensorUseSolar)
+							if (cumulus.WllPrimarySolar == data.tx_id && cumulus.SensorMaps.Solar == 0)
 							{
 								/*
 								 * Available fields

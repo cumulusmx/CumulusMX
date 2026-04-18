@@ -2950,7 +2950,7 @@ namespace CumulusMX
 			ini.SetValue("SensorMaps", "Solar", SensorMaps.Solar);
 			ini.SetValue("SensorMaps", "UV", SensorMaps.UV);
 			ini.SetValue("SensorMaps", "ExtraTempHum", SensorMaps.ExtraTempHum);
-			ini.SetValue("ExtraSensors", "ExtraSensorUseSoilTemp", ExtraSensorUseSoilTemp);
+			ini.SetValue("SensorMaps", "SoilTemp", SensorMaps.SoilTemp);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseSoilMoist", ExtraSensorUseSoilMoist);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseSoilEc", ExtraSensorUseSoilEc);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseLeafWet", ExtraSensorUseLeafWet);

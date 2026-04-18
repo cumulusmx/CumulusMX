@@ -15,6 +15,7 @@ namespace CumulusMX.Stations
 	{
 		private readonly WeatherStation station;
 		private readonly bool mainStation;
+		private readonly int stationIndex;
 
 		private bool haveTemp = false;
 		private bool haveHum = false;
@@ -34,6 +35,7 @@ namespace CumulusMX.Stations
 			this.station = station;
 
 			mainStation = station == null;
+			stationIndex = mainStation ? 0 : 1;
 
 			if (mainStation)
 			{
@@ -551,7 +553,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Solar
-			if (data.solar != null && (mainStation || cumulus.ExtraSensorUseSolar))
+			if (data.solar != null && stationIndex == cumulus.SensorMaps.Solar)
 			{
 				try
 				{
@@ -568,7 +570,7 @@ namespace CumulusMX.Stations
 			}
 
 			// UV
-			if (data.solar != null && (mainStation || cumulus.ExtraSensorUseUv))
+			if (data.solar != null && stationIndex == cumulus.SensorMaps.UV)
 			{
 				try
 				{
@@ -587,7 +589,7 @@ namespace CumulusMX.Stations
 
 
 			// Extra Temp
-			if (data.extratemp != null && data.units != null && (mainStation || cumulus.ExtraSensorUseTempHum))
+			if (data.extratemp != null && data.units != null)
 			{
 				if (data.units.temperature == null)
 				{
@@ -600,7 +602,7 @@ namespace CumulusMX.Stations
 					{
 						try
 						{
-							if (rec.temperature.HasValue)
+							if (rec.temperature.HasValue && stationIndex == cumulus.SensorMaps.ExtraTempHum[rec.index - 1])
 							{
 								var temp = data.units.temperature == "C" ? ConvertUnits.TempCToUser(rec.temperature.Value) : ConvertUnits.TempFToUser(rec.temperature.Value);
 								station.DoExtraTemp(temp, rec.index);
@@ -616,13 +618,13 @@ namespace CumulusMX.Stations
 			}
 
 			// Extra Humidity
-			if (data.extratemp != null && data.units != null && (mainStation || cumulus.ExtraSensorUseTempHum))
+			if (data.extratemp != null && data.units != null)
 			{
 				foreach (var rec in data.extratemp)
 				{
 					try
 					{
-						if (rec.humidity.HasValue)
+						if (rec.humidity.HasValue && stationIndex == cumulus.SensorMaps.ExtraTempHum[rec.index - 1])
 						{
 							station.DoExtraHum(rec.humidity.Value, rec.index);
 						}
@@ -665,7 +667,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Soil Temps
-			if (data.soiltemp != null && data.units != null && (mainStation || cumulus.ExtraSensorUseSoilTemp))
+			if (data.soiltemp != null && data.units != null)
 			{
 				if (data.units.temperature == null)
 				{
@@ -678,7 +680,7 @@ namespace CumulusMX.Stations
 					{
 						try
 						{
-							if (rec.temperature.HasValue)
+							if (rec.temperature.HasValue && stationIndex == cumulus.SensorMaps.SoilTemp[rec.index - 1])
 							{
 								var temp = data.units.temperature == "C" ? ConvertUnits.TempCToUser(rec.temperature.Value) : ConvertUnits.TempFToUser(rec.temperature.Value);
 								station.DoSoilTemp(temp, rec.index);

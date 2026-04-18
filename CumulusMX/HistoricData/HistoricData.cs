@@ -1,8 +1,42 @@
 ﻿using System;
+using System.Collections.Generic;
 
-namespace CumulusMX.HistoricData
+namespace CumulusMX
 {
-	internal class DataRecord
+	public partial class Cumulus
+	{
+		internal void ProcessData(List<HistoricDataRecord> history, WeatherStation station)
+		{
+			int rollHour = Math.Abs(GetHourInc(station.LastDataReadTime));
+			station.LastDataReadTime = LastUpdateTime;
+			var luhour = station.LastDataReadTime.Hour;
+			var rolloverdone = luhour == rollHour;
+
+
+			foreach (var rec in history)
+			{
+				if (rec.Timestamp < station.LastDataReadTime)
+				{
+					LogMessage("ProcessData: Ignoring old archive data");
+					continue;
+				}
+
+				LogMessage("ProcessData: Processing archive record for " + rec.Timestamp);
+
+				station.DataDateTime = rec.Timestamp;
+
+				rollHour = Math.Abs(GetHourInc(rec.Timestamp));
+
+				if (rec.Timestamp.Hour != rollHour)
+				{
+					rolloverdone = false;
+				}
+
+			}
+		}
+	}
+
+	internal class HistoricDataRecord
 	{
 		public DateTime Timestamp;
 		// main station data
