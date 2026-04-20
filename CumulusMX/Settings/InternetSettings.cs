@@ -326,8 +326,12 @@ namespace CumulusMX.Settings
 				// misc settings
 				try
 				{
-					cumulus.WebcamURL = settings.misc.webcamurl;
 					cumulus.ForumURL = string.IsNullOrEmpty(settings.misc.forumurl) ? "null" : settings.misc.forumurl;
+					cumulus.WebcamURL[0] = settings.misc.webcamurl ?? string.Empty;
+					cumulus.WebcamURL[1] = settings.misc.webcamurl1 ?? string.Empty;
+					cumulus.WebcamURL[2] = settings.misc.webcamurl2 ?? string.Empty;
+					cumulus.WebcamURL[3] = settings.misc.webcamurl3 ?? string.Empty;
+
 				}
 				catch (Exception ex)
 				{
@@ -543,7 +547,10 @@ namespace CumulusMX.Settings
 			var misc = new JsonInternetSettingsMisc()
 			{
 				forumurl = string.IsNullOrEmpty(cumulus.ForumURL) || cumulus.ForumURL == "null" ? null : cumulus.ForumURL,
-				webcamurl = string.IsNullOrEmpty(cumulus.WebcamURL) || cumulus.WebcamURL == "null" ? null : cumulus.WebcamURL
+				webcamurl = string.IsNullOrEmpty(cumulus.WebcamURL[0]) || cumulus.WebcamURL[0] == "null" ? null : cumulus.WebcamURL[0],
+				webcamurl1 = string.IsNullOrEmpty(cumulus.WebcamURL[1]) || cumulus.WebcamURL[1] == "null" ? null : cumulus.WebcamURL[1],
+				webcamurl2 = string.IsNullOrEmpty(cumulus.WebcamURL[2]) || cumulus.WebcamURL[2] == "null" ? null : cumulus.WebcamURL[2],
+				webcamurl3 = string.IsNullOrEmpty(cumulus.WebcamURL[3]) || cumulus.WebcamURL[3] == "null" ? null : cumulus.WebcamURL[3]
 			};
 
 			var data = new JsonInternetSettingsData()
@@ -859,5 +866,8 @@ namespace CumulusMX.Settings
 	{
 		public string forumurl { get; set; }
 		public string webcamurl { get; set; }
+		public string webcamurl1 { get; set; }
+		public string webcamurl2 { get; set; }
+		public string webcamurl3 { get; set; }
 	}
 }

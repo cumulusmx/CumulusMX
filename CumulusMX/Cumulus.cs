@@ -5061,7 +5061,10 @@ namespace CumulusMX
 			DailyParams = ini.GetValue("FTP site", "DailyParams", string.Empty);
 
 			ForumURL = ini.GetValue("Web Site", "ForumURL", ForumDefault);
-			WebcamURL = ini.GetValue("Web Site", "WebcamURL", string.Empty);
+			WebcamURL[0] = ini.GetValue("Web Site", "WebcamURL", string.Empty);
+			WebcamURL[1] = ini.GetValue("Web Site", "WebcamURL1", string.Empty);
+			WebcamURL[2] = ini.GetValue("Web Site", "WebcamURL2", string.Empty);
+			WebcamURL[3] = ini.GetValue("Web Site", "WebcamURL3", string.Empty);
 
 			CloudBaseInFeet = ini.GetValue("Station", "CloudBaseInFeet", true);
 
@@ -6791,7 +6794,10 @@ namespace CumulusMX
 			ini.SetValue("AirLink", "AQIformula", airQualityIndex);
 
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
-			ini.SetValue("Web Site", "WebcamURL", WebcamURL);
+			ini.SetValue("Web Site", "WebcamURL", WebcamURL[0]);
+			if (!string.IsNullOrWhiteSpace(WebcamURL[1])) ini.SetValue("Web Site", "WebcamURL1", WebcamURL[1]);
+			if (!string.IsNullOrWhiteSpace(WebcamURL[1])) ini.SetValue("Web Site", "WebcamURL2", WebcamURL[2]);
+			if (!string.IsNullOrWhiteSpace(WebcamURL[1])) ini.SetValue("Web Site", "WebcamURL3", WebcamURL[3]);
 
 			ini.SetValue("FTP site", "Enabled", FtpOptions.Enabled);
 			ini.SetValue("FTP site", "Host", FtpOptions.Hostname);
@@ -8313,7 +8319,7 @@ namespace CumulusMX
 
 		public bool CloudBaseInFeet { get; set; }
 
-		public string WebcamURL { get; set; }
+		public string[] WebcamURL { get; set; } = new string[4];
 
 		public string ForumURL { get; set; }
 

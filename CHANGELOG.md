@@ -79,6 +79,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fix Simulator crash during write of monthly log file in initial day reset on catch-up
 - Missing Air Quality block from the dashboard Extra Sensors page
 - Extra Sensors using Ecowitt Cloud Station was not updating Solar & UV-I values
+- Fixes multiple web cam URL support
+	- Adds the `camera` parameter to the `<#webcam>` and `<#webcamurl>` web tags, if omitted it defaults to "1" the fist defined camera
+	- Eg `<#webcamurl camera=2>`
 
 ### Package Updates
 
