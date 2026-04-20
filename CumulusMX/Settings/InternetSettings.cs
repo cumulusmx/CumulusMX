@@ -331,7 +331,6 @@ namespace CumulusMX.Settings
 					cumulus.WebcamURL[1] = settings.misc.webcamurl1 ?? string.Empty;
 					cumulus.WebcamURL[2] = settings.misc.webcamurl2 ?? string.Empty;
 					cumulus.WebcamURL[3] = settings.misc.webcamurl3 ?? string.Empty;
-
 				}
 				catch (Exception ex)
 				{

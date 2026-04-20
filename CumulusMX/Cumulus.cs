@@ -4536,7 +4536,7 @@ namespace CumulusMX
 
 		public bool CloudBaseInFeet { get; set; }
 
-		public string WebcamURL { get; set; }
+		public string[] WebcamURL { get; set; } = new string[4];
 
 		public string ForumURL { get; set; }
 
