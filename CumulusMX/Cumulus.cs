@@ -6796,8 +6796,8 @@ namespace CumulusMX
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
 			ini.SetValue("Web Site", "WebcamURL", WebcamURL[0]);
 			if (!string.IsNullOrWhiteSpace(WebcamURL[1])) ini.SetValue("Web Site", "WebcamURL1", WebcamURL[1]);
-			if (!string.IsNullOrWhiteSpace(WebcamURL[1])) ini.SetValue("Web Site", "WebcamURL2", WebcamURL[2]);
-			if (!string.IsNullOrWhiteSpace(WebcamURL[1])) ini.SetValue("Web Site", "WebcamURL3", WebcamURL[3]);
+			if (!string.IsNullOrWhiteSpace(WebcamURL[2])) ini.SetValue("Web Site", "WebcamURL2", WebcamURL[2]);
+			if (!string.IsNullOrWhiteSpace(WebcamURL[3])) ini.SetValue("Web Site", "WebcamURL3", WebcamURL[3]);
 
 			ini.SetValue("FTP site", "Enabled", FtpOptions.Enabled);
 			ini.SetValue("FTP site", "Host", FtpOptions.Hostname);
