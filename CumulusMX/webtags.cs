@@ -3758,16 +3758,18 @@ namespace CumulusMX
 
 		private string Tagwebcam(Dictionary<string, string> tagParams)
 		{
-			if (string.IsNullOrEmpty(cumulus.WebcamURL))
+			int indx = int.TryParse(tagParams.Get("camera"), out indx) ? indx - 1 : 0;
+			if (string.IsNullOrEmpty(cumulus.WebcamURL[indx]))
 			{
 				return string.Empty;
 			}
 
-			return @":<a href=\""" + cumulus.WebcamURL + @"\"">webcam</a>:";
+			return @":<a href=\""" + cumulus.WebcamURL[indx] + @"\"">webcam</a>:";
 		}
 		private string Tagwebcamurl(Dictionary<string, string> tagParams)
 		{
-			return cumulus.WebcamURL ?? string.Empty;
+			int indx = int.TryParse(tagParams.Get("camera"), out indx) ? indx - 1 : 0;
+			return cumulus.WebcamURL[indx] ?? string.Empty;
 		}
 
 		private string TagEcowittCameraUrl(Dictionary<string, string> tagParams)
