@@ -621,7 +621,7 @@ namespace CumulusMX.Stations
 		public int? wet_leaf_3 { get; set; }
 		public int? wet_leaf_4 { get; set; }
 		public int? forecast_rule { get; set; }
-		public string forecast_desc { get; set; }
+		public string? forecast_desc { get; set; }
 		public double? dew_point { get; set; }
 		public double? heat_index { get; set; }
 		public double? wind_chill { get; set; }

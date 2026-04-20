@@ -291,8 +291,6 @@ namespace CumulusMX.Stations
 					return;
 				}
 
-				currObj = JsonSerializer.Deserialize<WlCurrent>(responseBody);
-
 				if (responseBody == "{}")
 				{
 					cumulus.LogWarningMessage("GetCurrent: WeatherLink API Current: No data was returned. Check your Device Id.");
@@ -300,6 +298,9 @@ namespace CumulusMX.Stations
 				}
 				else if (responseBody.StartsWith("{\"")) // basic sanity check
 				{
+
+					currObj = JsonSerializer.Deserialize<WlCurrent>(responseBody);
+
 					if (currObj.sensors.Count == 0)
 					{
 						cumulus.LogMessage("GetCurrent: No current data available");
@@ -1218,10 +1219,8 @@ namespace CumulusMX.Stations
 								case 1:
 								case 2:
 									{
-										// VP2 sensor data is sent as an array of one, so we will strip off the enclosing [ ]
-										// and uck, uck, uck, we need to re-quote the forecast description as the quotes get stripped by the .FromJson() into a string
-										//var str = sensor.data[1..^2].Replace("forecast_desc:", "forecast_desc:\"").Replace(",dew_point", "\",dew_point");
-										var data = sensor.data.Deserialize<WLCurrentSensordDataType1_2>();
+										// VP2 sensor data is sent as an array of one, just process the first (and only) element
+										var data = sensor.data.Deserialize<WLCurrentSensordDataType1_2[]>()[0];
 
 										try
 										{
