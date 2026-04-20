@@ -465,7 +465,7 @@ namespace CumulusMX.Stations
 				// outdoor hum
 				WMR200ExtraHumValues[sensor] = packetBuffer[5];
 
-				DoExtraHum(WMR200ExtraHumValues[sensor], sensor);
+				DoExtraHum((int) WMR200ExtraHumValues[sensor], sensor);
 
 				// outdoor temp
 				if ((packetBuffer[4] & 0x80) == 0x80)

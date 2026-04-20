@@ -14,6 +14,7 @@ namespace CumulusMX.Stations
 		private int maxArchiveRuns = 1;
 		private Task liveTask;
 		private readonly bool mainStation;
+		private readonly int stationIndex;
 		private string deviceModel;
 		private Version deviceFirmware;
 		private int lastHour = -1;
@@ -23,6 +24,7 @@ namespace CumulusMX.Stations
 			this.station = station ?? this;
 
 			mainStation = station == null;
+			stationIndex = mainStation ? 0 : 1;
 
 			if (mainStation)
 			{
@@ -64,12 +66,12 @@ namespace CumulusMX.Stations
 				// does not provide pressure trend strings
 				cumulus.StationOptions.UseCumulusPresstrendstr = true;
 
-				if (cumulus.Gw1000PrimaryTHSensor == 0)
+				if (cumulus.SensorMaps.PrimaryTempHum == 0)
 				{
 					// We are using the primary T/H sensor
 					cumulus.LogMessage("Using the default outdoor temp/hum sensor data");
 				}
-				else if (cumulus.Gw1000PrimaryTHSensor == 99)
+				else if (cumulus.SensorMaps.PrimaryTempHum == 99)
 				{
 					cumulus.LogMessage("Overriding the default outdoor temp/hum data with the internal sensor");
 					cumulus.StationOptions.CalculatedDP = true;
@@ -77,7 +79,7 @@ namespace CumulusMX.Stations
 				else
 				{
 					// We are not using the primary T/H sensor
-					cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
+					cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.SensorMaps.PrimaryTempHum);
 				}
 
 				if (cumulus.Gw1000PrimaryRainSensor == 0)
@@ -90,7 +92,7 @@ namespace CumulusMX.Stations
 					cumulus.LogMessage("Using the piezo rain sensor data");
 				}
 
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+				if (cumulus.SensorMaps.PrimaryIndoorTempHum == 0)
 				{
 					// We are using the primary indoor T/H sensor
 					cumulus.LogMessage("Using the default indoor temp/hum sensor data");
@@ -98,24 +100,15 @@ namespace CumulusMX.Stations
 				else
 				{
 					// We are not using the primary indoor T/H sensor
-					cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryIndoorTHSensor);
+					cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.SensorMaps.PrimaryIndoorTempHum);
 				}
 
 				DataTimeoutMins = cumulus.EcowittCloudDataUpdateInterval + 2;
 			}
 
-			if (mainStation || cumulus.ExtraSensorUseAQI)
-			{
-				cumulus.Units.AirQualityUnitText = "µg/m³";
-			}
-			if (mainStation)
-			{
-				Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
-			}
-			if (mainStation || cumulus.ExtraSensorUseLeafWet)
-			{
-				cumulus.Units.LeafWetnessUnitText = "%";
-			}
+			SetSoilMoistUnits();
+			SetAirQualityUnits();
+			SetLeafWetnessUnits();
 
 			ecowittApi = new EcowittApi(cumulus, this, mainStation);
 
@@ -136,7 +129,7 @@ namespace CumulusMX.Stations
 				else
 				{
 					// see if we have a camera attached
-					var retVal = ecowittApi.GetStationList(cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
+					var retVal = ecowittApi.GetStationList(cumulus.SensorMaps.Camera == stationIndex, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 					if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 					{
 						// EasyWeather seems to contain the WiFi version
@@ -209,7 +202,7 @@ namespace CumulusMX.Stations
 								{
 									try
 									{
-										var retVal = ecowittApi.GetStationList(mainStation || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
+										var retVal = ecowittApi.GetStationList(stationIndex == cumulus.SensorMaps.Camera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
 										if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 										{
 											// EasyWeather seems to contain the WiFi version
@@ -276,7 +269,7 @@ namespace CumulusMX.Stations
 
 		public override string GetEcowittCameraUrl(string mac)
 		{
-			if (mainStation || cumulus.ExtraSensorUseCamera)
+			if (stationIndex == cumulus.SensorMaps.Camera)
 			{
 				if (string.IsNullOrEmpty(mac))
 				{
@@ -300,7 +293,7 @@ namespace CumulusMX.Stations
 
 		public override string GetEcowittVideoUrl(string mac)
 		{
-			if (mainStation || cumulus.ExtraSensorUseCamera)
+			if (stationIndex == cumulus.SensorMaps.Camera)
 			{
 				if (string.IsNullOrEmpty(mac))
 				{
@@ -357,7 +350,7 @@ namespace CumulusMX.Stations
 				if (mainStation)
 				{
 					// Outdoor temp/hum
-					if (cumulus.Gw1000PrimaryTHSensor == 0)
+					if (cumulus.SensorMaps.PrimaryTempHum == 0)
 					{
 						if (data.outdoor == null)
 						{
@@ -393,7 +386,7 @@ namespace CumulusMX.Stations
 						try
 						{
 							// user has mapped the indoor sensor to the outdoor sensor
-							if (cumulus.Gw1000PrimaryTHSensor == 99)
+							if (cumulus.SensorMaps.PrimaryTempHum == 99)
 							{
 								var time = data.outdoor.temperature.time.LocalFromUnixTime();
 								DoOutdoorHumidity(data.indoor.humidity.value, time);
@@ -405,7 +398,7 @@ namespace CumulusMX.Stations
 								DoCloudBaseHeatIndex(time);
 							}
 
-							if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+							if (cumulus.SensorMaps.PrimaryIndoorTempHum == 0)
 							{
 								DoIndoorTemp(data.indoor.temperature.value);
 								DoIndoorHumidity(data.indoor.humidity.value);
@@ -528,107 +521,83 @@ namespace CumulusMX.Stations
 				}
 
 				// === Soil/Water Temp ===
-				if (mainStation || cumulus.ExtraSensorUseUserTemp)
+				try
 				{
-					try
-					{
-						ProcessUserTemps(data);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in user temperature data - {ex.Message}");
-					}
+					ProcessUserTemps(data);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in user temperature data - {ex.Message}");
 				}
 
 				// === Soil Moisture ===
-				if (mainStation || cumulus.ExtraSensorUseSoilMoist)
+				try
 				{
-					try
-					{
-						ProcessSoilMoist(data);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Soil moisture data - {ex.Message}");
-					}
+					ProcessSoilMoist(data);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Soil moisture data - {ex.Message}");
 				}
 
 				// === Soil Moisture EC ===
-				if (mainStation || cumulus.ExtraSensorUseSoilEc)
+				try
 				{
-					try
-					{
-						ProcessSoilMoistEc(data);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Soil moisture data - {ex.Message}");
-					}
+					ProcessSoilMoistEc(data);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Soil moisture data - {ex.Message}");
 				}
 
 				// === Leaf Wetness ===
-				if (mainStation || cumulus.ExtraSensorUseLeafWet)
+				try
 				{
-					try
-					{
-						ProcessLeafWetness(data);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Leaf wetness data - {ex.Message}");
-					}
+					ProcessLeafWetness(data);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Leaf wetness data - {ex.Message}");
 				}
 
 				// === Air Quality ===
-				if (mainStation || cumulus.ExtraSensorUseAQI)
+				try
 				{
-					try
-					{
-						ProcessAirQuality(data);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Air Quality data - {ex.Message}");
-					}
+					ProcessAirQuality(data);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Air Quality data - {ex.Message}");
 				}
 
 				// === CO₂ ===
-				if (mainStation || cumulus.ExtraSensorUseCo2)
+				try
 				{
-					try
-					{
-						ProcessCo2(data);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in CO₂ data - {ex.Message}");
-					}
+					ProcessCo2(data);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in CO₂ data - {ex.Message}");
 				}
 
 				// === Lightning ===
-				if (mainStation || cumulus.ExtraSensorUseLightning)
+				try
 				{
-					try
-					{
-						ProcessLightning(data);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Lightning data - {ex.Message}");
-					}
+					ProcessLightning(data);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Lightning data - {ex.Message}");
 				}
 
 				// === Leak ===
-				if (mainStation || cumulus.ExtraSensorUseLeak)
+				try
 				{
-					try
-					{
-						ProcessLeak(data);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in Leak data - {ex.Message}");
-					}
+					ProcessLeak(data);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in Leak data - {ex.Message}");
 				}
 
 				// === Batteries ===
@@ -657,33 +626,35 @@ namespace CumulusMX.Stations
 				*/
 
 				// === LDS ===
-				if (mainStation || cumulus.ExtraSensorUseLaserDist)
+				try
 				{
-					try
-					{
-						ProcessLDS(data);
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in LDS data - {ex.Message}");
-					}
+					ProcessLDS(data);
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in LDS data - {ex.Message}");
 				}
 
 				// === BGT ===
-				if (data.black_globe_temperature != null)
+				try
 				{
-					try
+					if (stationIndex == cumulus.SensorMaps.BlackGlobe)
 					{
-						if (mainStation || cumulus.ExtraSensorUseBGT)
+						if (data.black_globe_temperature != null)
 						{
 							station.DoBGT(data.black_globe_temperature.bgt.value, data.black_globe_temperature.bgt.time.LocalFromUnixTime());
 							station.DoWBGT(data.black_globe_temperature.wbgt.value, data.black_globe_temperature.wbgt.time.LocalFromUnixTime());
 						}
+						else
+						{
+							station.DoBGT(null, DateTime.Now);
+							station.DoWBGT(null, DateTime.Now);
+						}
 					}
-					catch (Exception ex)
-					{
-						cumulus.LogErrorMessage($"ProcessCurrentData: Error in BGT data - {ex.Message}");
-					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ProcessCurrentData: Error in BGT data - {ex.Message}");
 				}
 
 				cumulus.BatteryLowAlarm.Triggered = batteryLow;
@@ -767,12 +738,12 @@ namespace CumulusMX.Stations
 				{
 					station.DoExtraHum(hum.value, chan);
 
-					if (cumulus.Gw1000PrimaryTHSensor == chan)
+					if (cumulus.SensorMaps.PrimaryTempHum == chan)
 					{
 						station.DoOutdoorHumidity(hum.value, ts.LocalFromUnixTime());
 					}
 
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == chan)
+					if (cumulus.SensorMaps.PrimaryIndoorTempHum == chan)
 					{
 						station.DoIndoorHumidity(hum.value);
 					}
@@ -781,12 +752,12 @@ namespace CumulusMX.Stations
 					station.ExtraDewPoint[chan] = ConvertUnits.TempCToUser(dp);
 				}
 
-				if (cumulus.Gw1000PrimaryTHSensor == chan && temp.HasValue)
+				if (cumulus.SensorMaps.PrimaryTempHum == chan && temp.HasValue)
 				{
 					station.DoOutdoorTemp(temp.Value, ts.LocalFromUnixTime());
 				}
 
-				if (cumulus.Gw1000PrimaryIndoorTHSensor == chan && temp.HasValue)
+				if (cumulus.SensorMaps.PrimaryIndoorTempHum == chan && temp.HasValue)
 				{
 					station.DoIndoorTemp(temp.Value);
 				}
@@ -795,48 +766,48 @@ namespace CumulusMX.Stations
 
 		private void ProcessUserTemps(EcowittApi.CurrentDataData data)
 		{
-			if (data.temp_ch1 != null)
+			if (stationIndex == cumulus.SensorMaps.UserTemp[0])
 			{
-				ApplyUserTemp(1, data.temp_ch1.temperature.value);
+				ApplyUserTemp(1, data.temp_ch1 == null ? null : data.temp_ch1.temperature.value);
 			}
 
-			if (data.temp_ch2 != null)
+			if (stationIndex == cumulus.SensorMaps.UserTemp[1])
 			{
-				ApplyUserTemp(2, data.temp_ch2.temperature.value);
+				ApplyUserTemp(2, data.temp_ch2 == null ? null : data.temp_ch2.temperature.value);
 			}
 
-			if (data.temp_ch3 != null)
+			if (stationIndex == cumulus.SensorMaps.UserTemp[2])
 			{
-				ApplyUserTemp(3, data.temp_ch3.temperature.value);
+				ApplyUserTemp(3, data.temp_ch3 == null ? null : data.temp_ch3.temperature.value);
 			}
 
-			if (data.temp_ch4 != null)
+			if (stationIndex == cumulus.SensorMaps.UserTemp[3])
 			{
-				ApplyUserTemp(4, data.temp_ch4.temperature.value);
+				ApplyUserTemp(4, data.temp_ch4 == null ? null : data.temp_ch4.temperature.value);
 			}
 
-			if (data.temp_ch5 != null)
+			if (stationIndex == cumulus.SensorMaps.UserTemp[4])
 			{
-				ApplyUserTemp(5, data.temp_ch5.temperature.value);
+				ApplyUserTemp(5, data.temp_ch5 == null ? null : data.temp_ch5.temperature.value);
 			}
 
-			if (data.temp_ch6 != null)
+			if (stationIndex == cumulus.SensorMaps.UserTemp[5])
 			{
-				ApplyUserTemp(6, data.temp_ch6.temperature.value);
+				ApplyUserTemp(6, data.temp_ch6 == null ? null : data.temp_ch6.temperature.value);
 			}
 
-			if (data.temp_ch7 != null)
+			if (stationIndex == cumulus.SensorMaps.UserTemp[6])
 			{
-				ApplyUserTemp(7, data.temp_ch7.temperature.value);
+				ApplyUserTemp(7, data.temp_ch7 == null ? null : data.temp_ch7.temperature.value);
 			}
 
-			if (data.temp_ch8 != null)
+			if (stationIndex == cumulus.SensorMaps.UserTemp[7])
 			{
-				ApplyUserTemp(8, data.temp_ch8.temperature.value);
+				ApplyUserTemp(8, data.temp_ch8 == null ? null : data.temp_ch8.temperature.value);
 			}
 		}
 
-		private void ApplyUserTemp(int chan, double temp)
+		private void ApplyUserTemp(int chan, double? temp)
 		{
 			if (cumulus.EcowittMapWN34[chan] == 0)
 			{
@@ -848,390 +819,384 @@ namespace CumulusMX.Stations
 			}
 		}
 
+		private void SetSoilMoistUnits()
+		{
+			for (var i = 0; i < cumulus.SensorMaps.SoilMoist.Length; i++)
+			{
+				if (cumulus.SensorMaps.SoilMoist[i] == stationIndex)
+					cumulus.Units.SoilMoistureUnitText[i] = "%";
+			}
+		}
+
+		private void SetAirQualityUnits()
+		{
+			for (var i = 0; i < cumulus.SensorMaps.AirQual.Length; i++)
+			{
+				if (stationIndex == cumulus.SensorMaps.AirQual[i])
+				{
+					cumulus.Units.AirQualityUnitText[i] = "µg/m³";
+				}
+			}
+		}
+
+		private void SetLeafWetnessUnits()
+		{
+			for (var i = 0; i < cumulus.SensorMaps.LeafWet.Length; i++)
+			{
+				if (stationIndex == cumulus.SensorMaps.LeafWet[i])
+				{
+					cumulus.Units.LeafWetnessUnitText = "%";
+				}
+			}
+		}
+
 		private void ProcessSoilMoist(EcowittApi.CurrentDataData data)
 		{
-			if (data.soil_ch1 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilMoist[0])
 			{
-				station.DoSoilMoisture(data.soil_ch1.soilmoisture.value, 1);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[0] = "%";
-				}
+				int? val = data.soil_ch1 == null ? null : data.soil_ch1.soilmoisture.value;
+				station.DoSoilMoisture(val, 1);
 			}
 
-			if (data.soil_ch2 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilMoist[1])
 			{
-				station.DoSoilMoisture(data.soil_ch2.soilmoisture.value, 2);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[1] = "%";
-				}
+				int? val = data.soil_ch2 == null ? null : data.soil_ch2.soilmoisture.value;
+				station.DoSoilMoisture(val, 2);
 			}
 
-			if (data.soil_ch3 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilMoist[2])
 			{
-				station.DoSoilMoisture(data.soil_ch3.soilmoisture.value, 3);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[2] = "%";
-				}
+				int? val = data.soil_ch3 == null ? null : data.soil_ch3.soilmoisture.value;
+				station.DoSoilMoisture(val, 3);
 			}
 
-			if (data.soil_ch4 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilMoist[3])
 			{
-				station.DoSoilMoisture(data.soil_ch4.soilmoisture.value, 4);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[3] = "%";
-				}
+				int? val = data.soil_ch4 == null ? null : data.soil_ch4.soilmoisture.value;
+				station.DoSoilMoisture(val, 4);
 			}
 
-			if (data.soil_ch5 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilMoist[4])
 			{
-				station.DoSoilMoisture(data.soil_ch5.soilmoisture.value, 5);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[4] = "%";
-				}
+				int? val = data.soil_ch5 == null ? null : data.soil_ch5.soilmoisture.value;
+				station.DoSoilMoisture(val, 5);
 			}
 
-			if (data.soil_ch6 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilMoist[5])
 			{
-				station.DoSoilMoisture(data.soil_ch6.soilmoisture.value, 6);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[5] = "%";
-				}
+				int? val = data.soil_ch6 == null ? null : data.soil_ch6.soilmoisture.value;
+				station.DoSoilMoisture(val, 6);
 			}
 
-			if (data.soil_ch7 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilMoist[6])
 			{
-				station.DoSoilMoisture(data.soil_ch7.soilmoisture.value, 7);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[6] = "%";
-				}
+				int? val = data.soil_ch7 == null ? null : data.soil_ch7.soilmoisture.value;
+				station.DoSoilMoisture(val, 7);
 			}
 
-			if (data.soil_ch8 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilMoist[7])
 			{
-				station.DoSoilMoisture(data.soil_ch8.soilmoisture.value, 8);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[7] = "%";
-				}
+				int? val = data.soil_ch8 == null ? null : data.soil_ch8.soilmoisture.value;
+				station.DoSoilMoisture(val, 8);
 			}
 		}
 
 		private void ProcessSoilMoistEc(EcowittApi.CurrentDataData data)
 		{
-			if (data.ch_soil_ec_temp_hum1 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[0])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum1.soilmoisture.value, 1);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[0] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum1.temperature.value, 1);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum1.ec.value, 1);
+				var nul = data.ch_soil_ec_temp_hum1 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum1.soilmoisture.value, 1);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum1.temperature.value, 1);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum1.ec.value, 1);
 			}
 
-			if (data.ch_soil_ec_temp_hum2 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[1])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum2.soilmoisture.value, 2);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[1] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum2.temperature.value, 2);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum2.ec.value, 2);
+				var nul = data.ch_soil_ec_temp_hum2 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum2.soilmoisture.value, 2);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum2.temperature.value, 2);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum2.ec.value, 2);
 			}
 
-			if (data.ch_soil_ec_temp_hum3 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[2])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum3.soilmoisture.value, 3);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[2] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum3.temperature.value, 3);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum3.ec.value, 3);
+				var nul = data.ch_soil_ec_temp_hum3 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum3.soilmoisture.value, 3);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum3.temperature.value, 3);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum3.ec.value, 3);
 			}
 
-			if (data.ch_soil_ec_temp_hum4 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[3])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum4.soilmoisture.value, 4);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[3] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum4.temperature.value, 4);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum4.ec.value, 4);
+				var nul = data.ch_soil_ec_temp_hum4 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum4.soilmoisture.value, 4);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum4.temperature.value, 4);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum4.ec.value, 4);
 			}
 
-			if (data.ch_soil_ec_temp_hum5 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[4])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum5.soilmoisture.value, 5);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[4] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum5.temperature.value, 5);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum5.ec.value, 5);
+				var nul = data.ch_soil_ec_temp_hum5 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum5.soilmoisture.value, 5);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum5.temperature.value, 5);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum5.ec.value, 5);
 			}
 
-			if (data.ch_soil_ec_temp_hum6 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[5])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum6.soilmoisture.value, 6);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[5] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum6.temperature.value, 6);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum6.ec.value, 6);
+				var nul = data.ch_soil_ec_temp_hum6 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum6.soilmoisture.value, 6);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum6.temperature.value, 6);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum6.ec.value, 6);
 			}
 
-			if (data.ch_soil_ec_temp_hum7 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[6])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum7.soilmoisture.value, 7);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[6] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum7.temperature.value, 7);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum7.ec.value, 7);
+				var nul = data.ch_soil_ec_temp_hum7 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum7.soilmoisture.value, 7);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum7.temperature.value, 7);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum7.ec.value, 7);
 			}
 
-			if (data.ch_soil_ec_temp_hum8 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[7])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum8.soilmoisture.value, 8);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[7] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum8.temperature.value, 8);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum8.ec.value, 8);
+				var nul = data.ch_soil_ec_temp_hum8 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum8.soilmoisture.value, 8);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum8.temperature.value, 8);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum8.ec.value, 8);
 			}
 
-			if (data.ch_soil_ec_temp_hum9 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[8])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum9.soilmoisture.value, 9);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[8] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum9.temperature.value, 9);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum9.ec.value, 9);
+				var nul = data.ch_soil_ec_temp_hum9 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum9.soilmoisture.value, 9);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum9.temperature.value, 9);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum9.ec.value, 9);
 			}
 
-			if (data.ch_soil_ec_temp_hum10 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[9])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum10.soilmoisture.value, 10);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[9] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum10.temperature.value, 10);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum10.ec.value, 10);
+				var nul = data.ch_soil_ec_temp_hum10 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum10.soilmoisture.value, 10);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum10.temperature.value, 10);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum10.ec.value, 10);
 			}
 
-			if (data.ch_soil_ec_temp_hum11 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[10])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum11.soilmoisture.value, 11);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[10] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum11.temperature.value, 11);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum11.ec.value, 11);
+				var nul = data.ch_soil_ec_temp_hum11 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum11.soilmoisture.value, 11);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum11.temperature.value, 11);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum11.ec.value, 11);
 			}
 
-			if (data.ch_soil_ec_temp_hum12 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[11])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum12.soilmoisture.value, 12);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[11] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum12.temperature.value, 12);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum12.ec.value, 12);
+				var nul = data.ch_soil_ec_temp_hum12 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum12.soilmoisture.value, 12);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum12.temperature.value, 12);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum12.ec.value, 12);
 			}
 
-			if (data.ch_soil_ec_temp_hum13 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[12])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum13.soilmoisture.value, 13);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[12] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum13.temperature.value, 13);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum13.ec.value, 13);
+				var nul = data.ch_soil_ec_temp_hum13 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum13.soilmoisture.value, 13);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum13.temperature.value, 13);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum13.ec.value, 13);
 			}
 
-			if (data.ch_soil_ec_temp_hum14 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[13])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum14.soilmoisture.value, 14);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[13] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum14.temperature.value, 14);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum14.ec.value, 14);
-			}
-			if (data.ch_soil_ec_temp_hum15 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum15.soilmoisture.value, 15);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[14] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum15.temperature.value, 15);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum15.ec.value, 15);
+				var nul = data.ch_soil_ec_temp_hum14 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum14.soilmoisture.value, 14);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum14.temperature.value, 14);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum14.ec.value, 14);
 			}
 
-			if (data.ch_soil_ec_temp_hum16 != null)
+			if (stationIndex == cumulus.SensorMaps.SoilEc[14])
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum16.soilmoisture.value, 16);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[15] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum16.temperature.value, 16);
-				station.DoSoilEc(data.ch_soil_ec_temp_hum16.ec.value, 16);
+				var nul = data.ch_soil_ec_temp_hum15 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum15.soilmoisture.value, 15);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum15.temperature.value, 15);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum15.ec.value, 15);
+			}
+
+			if (stationIndex == cumulus.SensorMaps.SoilEc[15])
+			{
+				var nul = data.ch_soil_ec_temp_hum16 == null;
+				station.DoSoilMoisture(nul ? null : data.ch_soil_ec_temp_hum16.soilmoisture.value, 16);
+				station.DoSoilTemp(nul ? null : data.ch_soil_ec_temp_hum16.temperature.value, 16);
+				station.DoSoilEc(nul ? null : data.ch_soil_ec_temp_hum16.ec.value, 16);
 			}
 		}
 
 		private void ProcessLeafWetness(EcowittApi.CurrentDataData data)
 		{
-			if (data.leaf_ch1 != null)
+			if (stationIndex == cumulus.SensorMaps.LeafWet[0])
 			{
-				station.DoLeafWetness(data.leaf_ch1.leaf_wetness.value, 1);
+				station.DoLeafWetness(data.leaf_ch1 == null ? null : data.leaf_ch1.leaf_wetness.value, 1);
 			}
 
-			if (data.leaf_ch2 != null)
+			if (stationIndex == cumulus.SensorMaps.LeafWet[1])
 			{
-				station.DoLeafWetness(data.leaf_ch2.leaf_wetness.value, 2);
+				station.DoLeafWetness(data.leaf_ch2 == null ? null : data.leaf_ch2.leaf_wetness.value, 2);
 			}
 
-			if (data.leaf_ch3 != null)
+			if (stationIndex == cumulus.SensorMaps.LeafWet[2])
 			{
-				station.DoLeafWetness(data.leaf_ch3.leaf_wetness.value, 3);
+				station.DoLeafWetness(data.leaf_ch3 == null ? null : data.leaf_ch3.leaf_wetness.value, 3);
 			}
 
-			if (data.leaf_ch4 != null)
+			if (stationIndex == cumulus.SensorMaps.LeafWet[3])
 			{
-				station.DoLeafWetness(data.leaf_ch4.leaf_wetness.value, 4);
+				station.DoLeafWetness(data.leaf_ch4 == null ? null : data.leaf_ch4.leaf_wetness.value, 4);
 			}
 
-			if (data.leaf_ch5 != null)
+			if (stationIndex == cumulus.SensorMaps.LeafWet[4])
 			{
-				station.DoLeafWetness(data.leaf_ch5.leaf_wetness.value, 5);
+				station.DoLeafWetness(data.leaf_ch5 == null ? null : data.leaf_ch5.leaf_wetness.value, 5);
 			}
 
-			if (data.leaf_ch6 != null)
+			if (stationIndex == cumulus.SensorMaps.LeafWet[5])
 			{
-				station.DoLeafWetness(data.leaf_ch6.leaf_wetness.value, 6);
+				station.DoLeafWetness(data.leaf_ch6 == null ? null : data.leaf_ch6.leaf_wetness.value, 6);
 			}
 
-			if (data.leaf_ch7 != null)
+			if (stationIndex == cumulus.SensorMaps.LeafWet[6])
 			{
-				station.DoLeafWetness(data.leaf_ch7.leaf_wetness.value, 7);
+				station.DoLeafWetness(data.leaf_ch7 == null ? null : data.leaf_ch7.leaf_wetness.value, 7);
 			}
 
-			if (data.leaf_ch8 != null)
+			if (stationIndex == cumulus.SensorMaps.LeafWet[7])
 			{
-				station.DoLeafWetness(data.leaf_ch8.leaf_wetness.value, 8);
+				station.DoLeafWetness(data.leaf_ch8 == null ? null : data.leaf_ch8.leaf_wetness.value, 8);
 			}
 		}
 
 		private void ProcessAirQuality(EcowittApi.CurrentDataData data)
 		{
-			if (data.pm25_ch1 != null)
+			if (stationIndex == cumulus.SensorMaps.AirQual[0])
 			{
-				station.DoAirQuality(data.pm25_ch1.pm25.value, 1);
-				//station.DoAirQualityAvg(data.pm25_ch1.AqiAvg24h.value, 1)
+				station.DoAirQuality(data.pm25_ch1 == null ? null : data.pm25_ch1.pm25.value, 1);
+				//station.DoAirQualityAvg(data.pm25_ch1 == null ? null : data.pm25_ch1.AqiAvg24h.value, 1)
 			}
 
-			if (data.pm25_ch2 != null)
+			if (stationIndex == cumulus.SensorMaps.AirQual[1])
 			{
-				station.DoAirQuality(data.pm25_ch2.pm25.value, 2);
-				//station.DoAirQualityAvg(data.pm25_ch2.AqiAvg24h.value, 2)
+				station.DoAirQuality(data.pm25_ch2 == null ? null : data.pm25_ch2.pm25.value, 2);
+				//station.DoAirQualityAvg(data.pm25_ch2 == null ? null : data.pm25_ch2.AqiAvg24h.value, 2)
 			}
-			if (data.pm25_ch3 != null)
+			if (stationIndex == cumulus.SensorMaps.AirQual[2])
 			{
-				station.DoAirQuality(data.pm25_ch3.pm25.value, 3);
-				//station.DoAirQualityAvg(data.pm25_ch3.AqiAvg24h.value, 3)
+				station.DoAirQuality(data.pm25_ch3 == null ? null : data.pm25_ch3.pm25.value, 3);
+				//station.DoAirQualityAvg(data.pm25_ch3 == null ? null : data.pm25_ch3.AqiAvg24h.value, 3)
 			}
-			if (data.pm25_ch4 != null)
+			if (stationIndex == cumulus.SensorMaps.AirQual[3])
 			{
-				station.DoAirQuality(data.pm25_ch4.pm25.value, 4);
-				//station.DoAirQualityAvg(data.pm25_ch1.AqiAvg24h.value, 4)
+				station.DoAirQuality(data.pm25_ch4 == null ? null : data.pm25_ch4.pm25.value, 4);
+				//station.DoAirQualityAvg(data.pm25_ch4 == null ? null : data.pm25_ch1.AqiAvg24h.value, 4)
 			}
 		}
 
 		private void ProcessCo2(EcowittApi.CurrentDataData data)
 		{
 			// indoor overrides the combo
-			if (data.indoor_co2 != null)
+			if (stationIndex == cumulus.SensorMaps.CO2)
 			{
-				station.CO2 = data.indoor_co2.co2.value;
-				station.CO2_24h = data.indoor_co2.Avg24h.value;
-			}
-			else if (data.co2_aqi_combo != null)
-			{
-				station.CO2 = data.co2_aqi_combo.co2.value;
-				station.CO2_24h = data.co2_aqi_combo.Avg24h.value;
-			}
-
-			if (data.pm25_aqi_combo != null)
-			{
-				station.CO2_pm2p5 = data.pm25_aqi_combo.pm25.value;
-				station.CO2_pm2p5_aqi = station.GetAqi(AqMeasure.pm2p5, station.CO2_pm2p5);
-				if (data.pm25_aqi_combo.AqiAvg24h != null)
+				if (data.indoor_co2 != null)
 				{
-					// kludge, convert US EPA to average PM2.5
-					station.CO2_pm2p5_24h = AirQualityIndices.US_EPApm2p5toPm(data.pm25_aqi_combo.AqiAvg24h.value);
-					station.CO2_pm2p5_24h_aqi = station.GetAqi(AqMeasure.pm2p5, station.CO2_pm2p5_24h);
+					station.CO2 = data.indoor_co2.co2.value;
+					station.CO2_24h = data.indoor_co2.Avg24h.value;
 				}
-			}
-
-			if (data.pm10_aqi_combo != null)
-			{
-				station.CO2_pm10 = data.pm10_aqi_combo.pm10.value;
-				station.CO2_pm10_aqi = station.GetAqi(AqMeasure.pm10, station.CO2_pm10);
-				if (data.pm10_aqi_combo.AqiAvg24h != null)
+				else if (data.co2_aqi_combo != null)
 				{
-					// kludge, convert US EPA to average PM10
-					station.CO2_pm10_24h = AirQualityIndices.US_EPApm10toPm(data.pm10_aqi_combo.AqiAvg24h.value);
-					station.CO2_pm10_24h_aqi = station.GetAqi(AqMeasure.pm10, station.CO2_pm10_24h);
+					station.CO2 = data.co2_aqi_combo.co2.value;
+					station.CO2_24h = data.co2_aqi_combo.Avg24h.value;
 				}
-			}
+				else
+				{
+					station.CO2 = null;
+				}
 
-			if (data.t_rh_aqi_combo != null)
-			{
-				station.CO2_temperature = data.t_rh_aqi_combo.temperature.value;
-				station.CO2_humidity = data.t_rh_aqi_combo.humidity.value;
+				if (data.pm25_aqi_combo != null)
+				{
+					station.CO2_pm2p5 = data.pm25_aqi_combo.pm25.value;
+					station.CO2_pm2p5_aqi = station.GetAqi(AqMeasure.pm2p5, station.CO2_pm2p5);
+					if (data.pm25_aqi_combo.AqiAvg24h != null)
+					{
+						// kludge, convert US EPA to average PM2.5
+						station.CO2_pm2p5_24h = AirQualityIndices.US_EPApm2p5toPm(data.pm25_aqi_combo.AqiAvg24h.value);
+						station.CO2_pm2p5_24h_aqi = station.GetAqi(AqMeasure.pm2p5, station.CO2_pm2p5_24h);
+					}
+					else
+					{
+						station.CO2_pm2p5_24h = null;
+					}
+				}
+				else
+				{
+					station.CO2_pm2p5 = null;
+					station.CO2_pm2p5_24h = null;
+				}
+
+
+				if (data.pm10_aqi_combo != null)
+				{
+					station.CO2_pm10 = data.pm10_aqi_combo.pm10.value;
+					station.CO2_pm10_aqi = station.GetAqi(AqMeasure.pm10, station.CO2_pm10);
+					if (data.pm10_aqi_combo.AqiAvg24h != null)
+					{
+						// kludge, convert US EPA to average PM10
+						station.CO2_pm10_24h = AirQualityIndices.US_EPApm10toPm(data.pm10_aqi_combo.AqiAvg24h.value);
+						station.CO2_pm10_24h_aqi = station.GetAqi(AqMeasure.pm10, station.CO2_pm10_24h);
+					}
+					else
+					{
+						station.CO2_pm10_24h = null;
+					}
+				}
+				else
+				{
+					station.CO2_pm10 = null;
+					station.CO2_pm10_24h = null;
+				}
+
+				if (data.t_rh_aqi_combo != null)
+				{
+					station.CO2_temperature = data.t_rh_aqi_combo.temperature.value;
+					station.CO2_humidity = data.t_rh_aqi_combo.humidity.value;
+				}
+				else
+				{
+					station.CO2_temperature = null;
+					station.CO2_humidity = null;
+				}
 			}
 		}
 
 		private void ProcessLightning(EcowittApi.CurrentDataData data)
 		{
-			if (data.lightning != null && data.lightning.distance != null && data.lightning.distance.value != 255)
+			if (stationIndex == cumulus.SensorMaps.Lightning)
 			{
-				// add the incremental strikes to the total, allow for the counter being reset
-				if (data.lightning.count.value > station.LightningCounter)
+				if (data.lightning != null && data.lightning.distance != null && data.lightning.distance.value != 255)
 				{
-					station.LightningStrikesToday += data.lightning.count.value - station.LightningCounter;
-					cumulus.LogDebugMessage($"Lightning: Adding {data.lightning.count.value - station.LightningCounter} strikes, total = {station.LightningStrikesToday} strikes today");
-				}
-				station.LightningCounter = data.lightning.count.value;
-				station.LightningDistance = ConvertUnits.KmtoUserUnits(data.lightning.distance.value);
+					// add the incremental strikes to the total, allow for the counter being reset
+					if (data.lightning.count.value > station.LightningCounter)
+					{
+						station.LightningStrikesToday += data.lightning.count.value - station.LightningCounter;
+						cumulus.LogDebugMessage($"Lightning: Adding {data.lightning.count.value - station.LightningCounter} strikes, total = {station.LightningStrikesToday} strikes today");
+					}
+					station.LightningCounter = data.lightning.count.value;
+					station.LightningDistance = ConvertUnits.KmtoUserUnits(data.lightning.distance.value);
 
-				var tim = data.lightning.distance.time.LocalFromUnixTime();
+					var tim = data.lightning.distance.time.LocalFromUnixTime();
 
-				if (tim > LightningTime)
-				{
-					station.LightningTime = tim;
+					if (tim > LightningTime)
+					{
+						station.LightningTime = tim;
+					}
 				}
 			}
 		}
@@ -1240,52 +1205,89 @@ namespace CumulusMX.Stations
 		{
 			if (data.water_leak != null)
 			{
-				if (data.water_leak.leak_ch1 != null)
+				if (stationIndex == cumulus.SensorMaps.Leak[0])
 				{
-					station.DoLeakSensor(data.water_leak.leak_ch1.value, 1);
+					station.DoLeakSensor(data.water_leak.leak_ch1 == null ? null : data.water_leak.leak_ch1.value, 1);
 				}
 
-				if (data.water_leak.leak_ch2 != null)
+				if (stationIndex == cumulus.SensorMaps.Leak[1])
 				{
-					station.DoLeakSensor(data.water_leak.leak_ch2.value, 2);
+					station.DoLeakSensor(data.water_leak.leak_ch2 == null ? null : data.water_leak.leak_ch2.value, 2);
 				}
 
-				if (data.water_leak.leak_ch3 != null)
+				if (stationIndex == cumulus.SensorMaps.Leak[2])
 				{
-					station.DoLeakSensor(data.water_leak.leak_ch3.value, 3);
+					station.DoLeakSensor(data.water_leak.leak_ch3 == null ? null : data.water_leak.leak_ch3.value, 3);
 				}
 
-				if (data.water_leak.leak_ch4 != null)
+				if (stationIndex == cumulus.SensorMaps.Leak[3])
 				{
-					station.DoLeakSensor(data.water_leak.leak_ch4.value, 4);
+					station.DoLeakSensor(data.water_leak.leak_ch4 == null ? null : data.water_leak.leak_ch4.value, 4);
+				}
+			}
+			else
+			{
+				for (var i = 0; i < 4; i++)
+				{
+					if (stationIndex == cumulus.SensorMaps.Leak[i])
+						station.DoLeakSensor(null, i + 1);
 				}
 			}
 		}
 
 		private void ProcessLDS(EcowittApi.CurrentDataData data)
 		{
-			if (data.ch_lds1 != null)
+			if (stationIndex == cumulus.SensorMaps.LaserDist[0])
 			{
-				ApplyLDS(data.ch_lds1.air_ch1.value, data.ch_lds1.depth_ch1.value, data.ch_lds1.air_ch1.unit, 1, data.ch_lds1.air_ch1.time.LocalFromUnixTime());
+				if (data.ch_lds1 != null)
+				{
+					ApplyLDS(data.ch_lds1.air_ch1.value, data.ch_lds1.depth_ch1.value, data.ch_lds1.air_ch1.unit, 1, data.ch_lds1.air_ch1.time.LocalFromUnixTime());
+				}
+				else
+				{
+					ApplyLDS(null, null, string.Empty, 1, DateTime.Now);
+				}
 			}
 
-			if (data.ch_lds2 != null)
+			if (stationIndex == cumulus.SensorMaps.LaserDist[1])
 			{
-				ApplyLDS(data.ch_lds2.air_ch2.value, data.ch_lds2.depth_ch2.value, data.ch_lds2.air_ch2.unit, 2, data.ch_lds2.air_ch2.time.LocalFromUnixTime());
+				if (data.ch_lds2 != null)
+				{
+					ApplyLDS(data.ch_lds2.air_ch2.value, data.ch_lds2.depth_ch2.value, data.ch_lds2.air_ch2.unit, 2, data.ch_lds2.air_ch2.time.LocalFromUnixTime());
+				}
+				else
+				{
+					ApplyLDS(null, null, string.Empty, 2, DateTime.Now);
+				}
 			}
 
-			if (data.ch_lds3 != null)
+			if (stationIndex == cumulus.SensorMaps.LaserDist[2])
 			{
-				ApplyLDS(data.ch_lds3.air_ch3.value, data.ch_lds3.depth_ch3.value, data.ch_lds3.air_ch3.unit, 3, data.ch_lds3.air_ch3.time.LocalFromUnixTime());
+				if (data.ch_lds3 != null)
+				{
+					ApplyLDS(data.ch_lds3.air_ch3.value, data.ch_lds3.depth_ch3.value, data.ch_lds3.air_ch3.unit, 3, data.ch_lds3.air_ch3.time.LocalFromUnixTime());
+				}
+				else
+				{
+					ApplyLDS(null, null, string.Empty, 3, DateTime.Now);
+				}
 			}
 
-			if (data.ch_lds4 != null)
+			if (stationIndex == cumulus.SensorMaps.LaserDist[3])
 			{
-				ApplyLDS(data.ch_lds4.air_ch4.value, data.ch_lds4.depth_ch4.value, data.ch_lds4.air_ch4.unit, 4, data.ch_lds3.air_ch3.time.LocalFromUnixTime());
+				if (data.ch_lds4 != null)
+				{
+					ApplyLDS(data.ch_lds4.air_ch4.value, data.ch_lds4.depth_ch4.value, data.ch_lds4.air_ch4.unit, 4, data.ch_lds3.air_ch3.time.LocalFromUnixTime());
+				}
+				else
+				{
+					ApplyLDS(null, null, string.Empty, 2, DateTime.Now);
+				}
+
 			}
 		}
 
-		private void ApplyLDS(decimal? dist, decimal? depth, string unit, int chan, DateTime dataTime)
+		private void ApplyLDS(double? dist, double? depth, string unit, int chan, DateTime dataTime)
 		{
 			if (dist.HasValue)
 			{

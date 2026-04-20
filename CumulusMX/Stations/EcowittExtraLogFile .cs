@@ -29,10 +29,10 @@ namespace CumulusMX.Stations
 			HeaderValid = HeaderParser(data[0]);
 		}
 
-		public Dictionary<long, EcowittApi.HistoricData> DataParser()
+		public Dictionary<long, HistoricDataRecord> DataParser(int stationIndex)
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
-			var retList = new Dictionary<long, EcowittApi.HistoricData>();
+			var retList = new Dictionary<long, HistoricDataRecord>();
 			var count = 0;
 
 			Cumulus.LogConsoleMessage("  Preprocessing the data");
@@ -68,7 +68,8 @@ namespace CumulusMX.Stations
 					// 2026-01-07 10:53,1767783192,3.4,--,  --,--,-15.6, --, --,--,17.3, 7.1,17.3,51,  --,  --,  --,--,17.8, 6.7,17.8,48, 3.6, 1.8, 3.6,88, --,  --, --,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,  --,--, --, --, --,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,    --,--,--,  --, --,--,--, --, --, --,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,--,
 
 
-					var rec = new EcowittApi.HistoricData();
+					var rec = new HistoricDataRecord();
+					rec.StationIndex = stationIndex;
 
 					long time;
 
@@ -97,7 +98,7 @@ namespace CumulusMX.Stations
 
 					cumulus.LogDebugMessage($"EcowittExtraLogFile.DataParser: Preprocessing record {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)}");
 
-					decimal varDec;
+					double varDbl;
 					int varInt;
 
 					int idx;
@@ -108,14 +109,14 @@ namespace CumulusMX.Stations
 					{
 						for (var i = 1; i <= 8; i++)
 						{
-							if (FieldIndex.TryGetValue($"ch{i} temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+							if (FieldIndex.TryGetValue($"ch{i} temperature", out idx) && double.TryParse(fields[idx], invc, out varDbl))
 							{
-								rec.ExtraTemp[i] = varDec;
+								rec.ExtraTemp[i] = varDbl;
 							}
 
 							if (FieldIndex.TryGetValue($"ch{i} humidity", out idx) && int.TryParse(fields[idx], out varInt))
 							{
-								rec.ExtraHumidity[i] = varInt;
+								rec.ExtraHum[i] = varInt;
 							}
 						}
 					}
@@ -131,7 +132,7 @@ namespace CumulusMX.Stations
 						{
 							if (FieldIndex.TryGetValue($"wh35 ch{i}hum", out idx) && int.TryParse(fields[idx], out varInt))
 							{
-								rec.LeafWetness[i] = varInt;
+								rec.LeafWet[i] = varInt;
 							}
 						}
 					}
@@ -146,7 +147,7 @@ namespace CumulusMX.Stations
 					{
 						if (FieldIndex.TryGetValue("thunder time", out idx) && long.TryParse(fields[idx], invc, out long varLong)) rec.LightningTime = varLong.LocalFromUnixTime();
 						if (FieldIndex.TryGetValue("thunder count", out idx) && int.TryParse(fields[idx], out varInt)) rec.LightningCount = varInt;
-						if (FieldIndex.TryGetValue("thunder distance", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LightningDist = varDec;
+						if (FieldIndex.TryGetValue("thunder distance", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.LightningDist = varDbl;
 					}
 					catch (Exception ex)
 					{
@@ -156,13 +157,13 @@ namespace CumulusMX.Stations
 					// AQ Indoor
 					try
 					{
-						if (FieldIndex.TryGetValue("aqin temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboTemp = varDec;
-						if (FieldIndex.TryGetValue("aqin humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.AqiComboHum = varInt;
-						if (FieldIndex.TryGetValue("aqin co2", out idx) && int.TryParse(fields[idx], out varInt)) rec.AqiComboCO2 = varInt;
-						if (FieldIndex.TryGetValue("aqin pm2.5", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm25 = varDec;
-						if (FieldIndex.TryGetValue("aqin pm10", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm10 = varDec;
-						//if (FieldIndex.TryGetValue("aqin pm1.0", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm1 = varDec;
-						//if (FieldIndex.TryGetValue("aqin pm4.0", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm4 = varDec;
+						if (FieldIndex.TryGetValue("aqin temperature", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.CO2Temp = varDbl;
+						if (FieldIndex.TryGetValue("aqin humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.CO2Hum = varInt;
+						if (FieldIndex.TryGetValue("aqin co2", out idx) && int.TryParse(fields[idx], out varInt)) rec.CO2 = varInt;
+						if (FieldIndex.TryGetValue("aqin pm2.5", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.CO2Pm2p5 = varDbl;
+						if (FieldIndex.TryGetValue("aqin pm10", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.CO2Pm10 = varDbl;
+						//if (FieldIndex.TryGetValue("aqin pm1.0", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm1 = varDec;
+						//if (FieldIndex.TryGetValue("aqin pm4.0", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.AqiComboPm4 = varDec;
 					}
 					catch (Exception ex)
 					{
@@ -176,7 +177,7 @@ namespace CumulusMX.Stations
 						for (int i = 1; i <= 16; i++)
 						{
 							if (FieldIndex.TryGetValue("soilmoisture ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.SoilMoist[i] = varInt;
-							if (FieldIndex.TryGetValue("soiltemp ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.SoilTemp[i] = varDec;
+							if (FieldIndex.TryGetValue("soiltemp ch" + i, out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.SoilTemp[i] = varDbl;
 						}
 					}
 					catch (Exception ex)
@@ -197,7 +198,7 @@ namespace CumulusMX.Stations
 					{
 						for (int i = 1; i <= 4; i++)
 						{
-							if (FieldIndex.TryGetValue("pm2.5 ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.pm25[i] = varDec;
+							if (FieldIndex.TryGetValue("pm2.5 ch" + i, out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.Pm2p5[i] = varDbl;
 						}
 					}
 					catch (Exception ex)
@@ -210,7 +211,7 @@ namespace CumulusMX.Stations
 					{
 						for (var i = 1; i <= 8; i++)
 						{
-							if (FieldIndex.TryGetValue("wn34 ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.UserTemp[i] = varDec;
+							if (FieldIndex.TryGetValue("wn34 ch" + i, out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.UserTemp[i] = varDbl;
 						}
 					}
 					catch (Exception ex)
@@ -225,8 +226,8 @@ namespace CumulusMX.Stations
 					{
 						for (int i = 1; i <= 4; i++)
 						{
-							if (FieldIndex.TryGetValue("lds_air ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsAir[i] = varDec;
-							if (FieldIndex.TryGetValue("lds_depth ch" + i, out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.LdsDepth[i] = varDec;
+							if (FieldIndex.TryGetValue("lds_air ch" + i, out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.LaserDist[i] = varDbl;
+							if (FieldIndex.TryGetValue("lds_depth ch" + i, out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.LaserDepth[i] = varDbl;
 							//if (FieldIndex.TryGetValue("lds_heat ch" + i, out idx) && int.TryParse(fields[idx], out varInt)) rec.LdsHeat[i] = varInt;
 						}
 					}
@@ -253,7 +254,7 @@ namespace CumulusMX.Stations
 								rec.UserTemp[i] = MeteoLib.FtoC(rec.UserTemp[i]);
 							}
 
-							rec.AqiComboTemp = MeteoLib.FtoC(rec.AqiComboTemp);
+							rec.CO2Temp = MeteoLib.FtoC(rec.CO2Temp);
 						}
 						else
 						{
@@ -266,7 +267,7 @@ namespace CumulusMX.Stations
 								rec.UserTemp[i] = MeteoLib.CToF(rec.UserTemp[i]);
 							}
 
-							rec.AqiComboTemp = MeteoLib.CToF(rec.AqiComboTemp);
+							rec.CO2Temp = MeteoLib.CToF(rec.CO2Temp);
 						}
 					}
 
@@ -277,7 +278,7 @@ namespace CumulusMX.Stations
 								// Convert miles to km if needed
 							if (LightningUnit != LightningDist.km)
 							{
-								rec.LightningDist *= (decimal) 1.609344;
+								rec.LightningDist *= 1.609344;
 							}
 							break;
 						case 1: // mph
@@ -285,7 +286,7 @@ namespace CumulusMX.Stations
 								// Convert km to miles if needed
 							if (LightningUnit != LightningDist.miles)
 							{
-								rec.LightningDist *= (decimal) 0.6213712;
+								rec.LightningDist *= 0.6213712;
 							}
 							break;
 					}
@@ -298,40 +299,40 @@ namespace CumulusMX.Stations
 							case LaserUnits.mm:
 								for (var i = 0; i < 4; i++)
 								{
-									rec.LdsAir[i] = ConvertUnits.LaserMmToUser(rec.LdsAir[i]);
-									rec.LdsDepth[i] = ConvertUnits.LaserMmToUser(rec.LdsDepth[i]);
+									rec.LaserDist[i] = ConvertUnits.LaserMmToUser(rec.LaserDist[i]);
+									rec.LaserDepth[i] = ConvertUnits.LaserMmToUser(rec.LaserDepth[i]);
 								}
 								break;
 
 							case LaserUnits.cm:
 								for (var i = 0; i < 4; i++)
 								{
-									rec.LdsAir[i] = ConvertUnits.LaserMmToUser(rec.LdsAir[i] * 10);
-									rec.LdsDepth[i] = ConvertUnits.LaserMmToUser(rec.LdsDepth[i] * 10);
+									rec.LaserDist[i] = ConvertUnits.LaserMmToUser(rec.LaserDist[i] * 10);
+									rec.LaserDepth[i] = ConvertUnits.LaserMmToUser(rec.LaserDepth[i] * 10);
 								}
 								break;
 
 							case LaserUnits.inch:
 								for (var i = 0; i < 4; i++)
 								{
-									rec.LdsAir[i] = ConvertUnits.LaserInchesToUser(rec.LdsAir[i]);
-									rec.LdsDepth[i] = ConvertUnits.LaserInchesToUser(rec.LdsDepth[i]);
+									rec.LaserDist[i] = ConvertUnits.LaserInchesToUser(rec.LaserDist[i]);
+									rec.LaserDepth[i] = ConvertUnits.LaserInchesToUser(rec.LaserDepth[i]);
 								}
 								break;
 
 							case LaserUnits.ft:
 								for (var i = 0; i < 4; i++)
 								{
-									rec.LdsAir[i] = ConvertUnits.LaserInchesToUser(rec.LdsAir[i] * 12);
-									rec.LdsDepth[i] = ConvertUnits.LaserInchesToUser(rec.LdsDepth[i] * 12);
+									rec.LaserDist[i] = ConvertUnits.LaserInchesToUser(rec.LaserDist[i] * 12);
+									rec.LaserDepth[i] = ConvertUnits.LaserInchesToUser(rec.LaserDepth[i] * 12);
 								}
 								break;
 
 							case LaserUnits.m:
 								for (var i = 0; i < 4; i++)
 								{
-									rec.LdsAir[i] = ConvertUnits.LaserMmToUser(rec.LdsAir[i] * 1000);
-									rec.LdsDepth[i] = ConvertUnits.LaserMmToUser(rec.LdsDepth[i] * 1000);
+									rec.LaserDist[i] = ConvertUnits.LaserMmToUser(rec.LaserDist[i] * 1000);
+									rec.LaserDepth[i] = ConvertUnits.LaserMmToUser(rec.LaserDepth[i] * 1000);
 								}
 								break;
 						}
@@ -362,24 +363,24 @@ namespace CumulusMX.Stations
 			return retList;
 		}
 
-		public static EcowittApi.HistoricData Merge(EcowittApi.HistoricData baseRec, EcowittApi.HistoricData extraRec)
+		public static HistoricDataRecord Merge(HistoricDataRecord baseRec, HistoricDataRecord extraRec)
 		{
 			baseRec.ExtraTemp = extraRec.ExtraTemp;
-			baseRec.ExtraHumidity = extraRec.ExtraHumidity;
-			baseRec.LeafWetness = extraRec.LeafWetness;
+			baseRec.ExtraHum = extraRec.ExtraHum;
+			baseRec.LeafWet = extraRec.LeafWet;
 			baseRec.LightningCount = extraRec.LightningCount;
 			baseRec.LightningDist = extraRec.LightningDist;
-			baseRec.AqiComboTemp = extraRec.AqiComboTemp;
-			baseRec.AqiComboHum = extraRec.AqiComboHum;
-			baseRec.AqiComboCO2 = extraRec.AqiComboCO2;
-			baseRec.AqiComboPm25 = extraRec.AqiComboPm25;
-			baseRec.AqiComboPm10 = extraRec.AqiComboPm10;
+			baseRec.CO2Temp = extraRec.CO2Temp;
+			baseRec.CO2Hum = extraRec.CO2Hum;
+			baseRec.CO2 = extraRec.CO2;
+			baseRec.CO2Pm2p5 = extraRec.CO2Pm2p5;
+			baseRec.CO2Pm10 = extraRec.CO2Pm10;
 			baseRec.SoilMoist = extraRec.SoilMoist;
 			baseRec.SoilTemp = extraRec.SoilTemp;
-			baseRec.pm25 = extraRec.pm25;
+			baseRec.Pm2p5 = extraRec.Pm2p5;
 			baseRec.UserTemp = extraRec.UserTemp;
-			baseRec.LdsAir = extraRec.LdsAir;
-			baseRec.LdsDepth = extraRec.LdsDepth;
+			baseRec.LaserDist = extraRec.LaserDist;
+			baseRec.LaserDepth = extraRec.LaserDepth;
 
 			return baseRec;
 		}

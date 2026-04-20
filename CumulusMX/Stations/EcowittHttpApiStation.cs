@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 
-using static CumulusMX.Stations.EcowittApi;
 
 namespace CumulusMX.Stations
 {
@@ -20,6 +19,8 @@ namespace CumulusMX.Stations
 
 		private readonly EcowittApi ecowittApi;
 		private readonly EcowittLocalApi localApi;
+
+		private readonly int stationIndex = 0;
 
 		private int maxArchiveRuns = 1;
 
@@ -47,9 +48,9 @@ namespace CumulusMX.Stations
 
 		public EcowittHttpApiStation(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Units.AirQualityUnitText = "µg/m³";
-			Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
-			cumulus.Units.LeafWetnessUnitText = "%";
+			SetAirQualUnits(stationIndex);
+			SetSoilMoistUnits(stationIndex);
+			SetLeafWetUnits(stationIndex);
 
 			// GW1000 does not provide 10 min average wind speeds
 			cumulus.StationOptions.CalcuateAverageWindSpeed = true;
@@ -77,12 +78,12 @@ namespace CumulusMX.Stations
 			// GW1000 does not provide pressure trend strings
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 
-			if (cumulus.Gw1000PrimaryTHSensor == 0)
+			if (cumulus.SensorMaps.PrimaryTempHum == 0)
 			{
 				// We are using the primary T/H sensor
 				cumulus.LogMessage("Using the default outdoor temp/hum sensor data");
 			}
-			else if (cumulus.Gw1000PrimaryTHSensor == 99)
+			else if (cumulus.SensorMaps.PrimaryTempHum == 99)
 			{
 				// We are overriding the outdoor with the indoor T/H sensor
 				cumulus.LogMessage("Overriding the default outdoor temp/hum data with Indoor temp/hum sensor");
@@ -94,7 +95,7 @@ namespace CumulusMX.Stations
 				// We are not using the primary T/H sensor so MX must calculate the wind chill as well
 				cumulus.StationOptions.CalculatedDP = true;
 				cumulus.StationOptions.CalculatedWC = true;
-				cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryTHSensor);
+				cumulus.LogMessage("Overriding the default outdoor temp/hum data with Extra temp/hum sensor #" + cumulus.SensorMaps.PrimaryTempHum);
 			}
 
 			if (cumulus.Gw1000PrimaryRainSensor == 0)
@@ -107,7 +108,7 @@ namespace CumulusMX.Stations
 				cumulus.LogMessage("Using the piezo rain sensor data");
 			}
 
-			if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+			if (cumulus.SensorMaps.PrimaryIndoorTempHum == 0)
 			{
 				// We are using the primary indoor T/H sensor
 				cumulus.LogMessage("Using the default indoor temp/hum sensor data");
@@ -115,7 +116,7 @@ namespace CumulusMX.Stations
 			else
 			{
 				// We are not using the primary indoor T/H sensor
-				cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.Gw1000PrimaryIndoorTHSensor);
+				cumulus.LogMessage("Overriding the default indoor temp/hum data with Extra temp/hum sensor #" + cumulus.SensorMaps.PrimaryIndoorTempHum);
 			}
 
 			localApi = new EcowittLocalApi(cumulus);
@@ -626,7 +627,7 @@ namespace CumulusMX.Stations
 					continue;
 				}
 
-				var data = logfile.DataParser();
+				var data = logfile.DataParser(stationIndex);
 
 				cumulus.LogDebugMessage($"GetHistoricDataSdCard: EcowittExtraLogFile.DataParser returned {data.Count} records for file {file}");
 
@@ -737,7 +738,7 @@ namespace CumulusMX.Stations
 				}
 
 				// finally apply this data
-				ecowittApi.ApplyHistoricData(rec);
+				//ecowittApi.ApplyHistoricData(rec);
 
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
@@ -1069,7 +1070,7 @@ namespace CumulusMX.Stations
 					switch (sensor.id)
 					{
 						case "0x02": //Outdoor Temperature
-							if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
+							if (sensor.valDbl.HasValue && cumulus.SensorMaps.PrimaryTempHum == 0)
 							{
 								// do not process temperature here, we have not yet read the humidity value. Have to do it at the end.
 								var temp = sensor.valDbl.Value;
@@ -1077,7 +1078,7 @@ namespace CumulusMX.Stations
 							}
 							break;
 						case "0x03": //Dew point
-							if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0 && !cumulus.StationOptions.CalculatedDP)
+							if (sensor.valDbl.HasValue && cumulus.SensorMaps.PrimaryTempHum == 0 && !cumulus.StationOptions.CalculatedDP)
 							{
 								var temp = sensor.valDbl.Value;
 								temp = sensor.unit == "C" ? ConvertUnits.TempCToUser(temp) : ConvertUnits.TempFToUser(temp);
@@ -1089,7 +1090,7 @@ namespace CumulusMX.Stations
 								  // do nothing with this for now - MX calcuates feels like
 							break;
 						case "0x04": //Wind chill
-							if (sensor.valDbl.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
+							if (sensor.valDbl.HasValue && cumulus.SensorMaps.PrimaryTempHum == 0)
 							{
 								var temp = sensor.valDbl.Value;
 								windchill = sensor.unit == "C" ? ConvertUnits.TempCToUser(temp) : ConvertUnits.TempFToUser(temp);
@@ -1105,7 +1106,7 @@ namespace CumulusMX.Stations
 								  // do nothing with this for now - MX calcuates VPD
 							break;
 						case "0x07": //Outdoor Humidity (%)
-							if (sensor.valInt.HasValue && cumulus.Gw1000PrimaryTHSensor == 0)
+							if (sensor.valInt.HasValue && cumulus.SensorMaps.PrimaryTempHum == 0)
 							{
 								DoOutdoorHumidity(sensor.valInt.Value, dateTime);
 							}
@@ -1155,7 +1156,7 @@ namespace CumulusMX.Stations
 							}
 							break;
 						case "0x15": //Light (value unit)
-							if (cumulus.SensorMaps.Solar == 0)
+							if (cumulus.SensorMaps.Solar == stationIndex)
 							{
 								arr = sensor.val.Split(' ');
 								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
@@ -1180,29 +1181,43 @@ namespace CumulusMX.Stations
 							}
 							break;
 						case "0x17": //UVI (0-15 index)
-							if (cumulus.SensorMaps.UV == 0)
+							if (cumulus.SensorMaps.UV == stationIndex)
 							{
 								DoUV(sensor.valDbl.Value, dateTime);
 							}
 							break;
 
 						case "0xA1": // BGT
-							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
+							if (cumulus.SensorMaps.BlackGlobe == stationIndex)
 							{
-								var bgt = sensor.valDbl.Value;
-								bgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(bgt) : ConvertUnits.TempFToUser(bgt);
+								if (sensor.valDbl.HasValue)
+								{
+									var bgt = sensor.valDbl.Value;
+									bgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(bgt) : ConvertUnits.TempFToUser(bgt);
 
-								DoBGT(bgt, dateTime);
+									DoBGT(bgt, dateTime);
+								}
+								else
+								{
+									DoBGT(null, dateTime);
+								}
 							}
 							break;
 
 						case "0xA2": // WBGT
-							if (sensor.valDbl.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
+							if (cumulus.SensorMaps.BlackGlobe == stationIndex)
 							{
-								var wbgt = sensor.valDbl.Value;
-								wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
+								if (sensor.valDbl.HasValue)
+								{
+									var wbgt = sensor.valDbl.Value;
+									wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
 
-								DoWBGT(wbgt, dateTime);
+									DoWBGT(wbgt, dateTime);
+								}
+								else
+								{
+									DoWBGT(null, dateTime);
+								}
 							}
 							break;
 
@@ -1249,13 +1264,13 @@ namespace CumulusMX.Stations
 					temp = sensor.unit == "C" ? ConvertUnits.TempCToUser(temp) : ConvertUnits.TempFToUser(temp);
 
 					// user has mapped indoor temp to outdoor temp
-					if (cumulus.Gw1000PrimaryTHSensor == 99)
+					if (cumulus.SensorMaps.PrimaryTempHum == 99)
 					{
 						// do not process temperature here, we have not yet read the humidity value. Have to do it at the end.
 						outdoortemp = temp;
 					}
 
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+					if (cumulus.SensorMaps.PrimaryIndoorTempHum == 0)
 					{
 						DoIndoorTemp(temp);
 					}
@@ -1270,12 +1285,12 @@ namespace CumulusMX.Stations
 				{
 					var hum = sensor.inhumiInt ?? 0;
 					// user has mapped indoor hum to outdoor hum
-					if (cumulus.Gw1000PrimaryTHSensor == 99)
+					if (cumulus.SensorMaps.PrimaryTempHum == 99)
 					{
 						DoOutdoorHumidity(hum, dateTime);
 					}
 
-					if (cumulus.Gw1000PrimaryIndoorTHSensor == 0)
+					if (cumulus.SensorMaps.PrimaryIndoorTempHum == 0)
 					{
 						DoIndoorHumidity(hum);
 					}
@@ -1820,13 +1835,13 @@ namespace CumulusMX.Stations
 
 						DoExtraTemp(temp, sensor.channel);
 
-						if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
+						if (cumulus.SensorMaps.PrimaryTempHum == sensor.channel)
 						{
 							// do not process temperature here, we have not yet read the humidity value. Have to do it at the end.
 							outdoortemp = temp;
 						}
 
-						if (cumulus.Gw1000PrimaryIndoorTHSensor == sensor.channel)
+						if (cumulus.SensorMaps.PrimaryIndoorTempHum == sensor.channel)
 						{
 							DoIndoorTemp(temp);
 						}
@@ -1836,12 +1851,12 @@ namespace CumulusMX.Stations
 					{
 						DoExtraHum(sensor.humidityVal.Value, sensor.channel);
 
-						if (cumulus.Gw1000PrimaryTHSensor == sensor.channel)
+						if (cumulus.SensorMaps.PrimaryTempHum == sensor.channel)
 						{
 							DoOutdoorHumidity(sensor.humidityVal.Value, dateTime);
 						}
 
-						if (cumulus.Gw1000PrimaryIndoorTHSensor == sensor.channel)
+						if (cumulus.SensorMaps.PrimaryIndoorTempHum == sensor.channel)
 						{
 							DoIndoorHumidity(sensor.humidityVal.Value);
 						}
@@ -2017,7 +2032,7 @@ namespace CumulusMX.Stations
 
 				try
 				{
-					decimal? air = null;
+					double? air = null;
 
 					if (sensor.airVal.HasValue)
 					{
@@ -2043,7 +2058,7 @@ namespace CumulusMX.Stations
 					if (cumulus.LaserDepthBaseline[sensor.channel] == -1)
 					{
 						// MX is NOT calculating depth
-						decimal? depth = null;
+						double? depth = null;
 
 						if (sensor.depthVal.HasValue)
 						{

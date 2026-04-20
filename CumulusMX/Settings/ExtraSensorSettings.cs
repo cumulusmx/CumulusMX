@@ -50,9 +50,6 @@ namespace CumulusMX.Settings
 
 			var ecowittwn34map = new JsonEcowittMappings
 			{
-				primaryTHsensor = cumulus.Gw1000PrimaryTHSensor,
-				primaryIndoorTHsensor = cumulus.Gw1000PrimaryIndoorTHSensor,
-
 				wn34chan1 = cumulus.EcowittMapWN34[1],
 				wn34chan2 = cumulus.EcowittMapWN34[2],
 				wn34chan3 = cumulus.EcowittMapWN34[3],
@@ -316,9 +313,6 @@ namespace CumulusMX.Settings
 							cumulus.EcowittExtraLocalAddr = settings.httpSensors.ecowitt.localaddr;
 							cumulus.EcowittExtraCustomInterval = settings.httpSensors.ecowitt.interval;
 						}
-
-						cumulus.Gw1000PrimaryTHSensor = settings.httpSensors.ecowitt.mappings.primaryTHsensor;
-						cumulus.Gw1000PrimaryIndoorTHSensor = settings.httpSensors.ecowitt.mappings.primaryIndoorTHsensor;
 
 						if (cumulus.EcowittMapWN34[1] != settings.httpSensors.ecowitt.mappings.wn34chan1)
 						{
@@ -725,7 +719,7 @@ namespace CumulusMX.Settings
 
 		private sealed class JsonLaserDevice
 		{
-			public decimal depth { get; set; }
+			public double depth { get; set; }
 			public bool snow { get; set; }
 			public bool reset { get; set; }
 		}

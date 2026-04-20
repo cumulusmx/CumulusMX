@@ -54,8 +54,8 @@ namespace CumulusMX.Stations
 			this.mainStation = mainStation;
 
 			// sensor mappings
-			PrimaryTHSensor = cumulus.Gw1000PrimaryTHSensor;
-			PrimaryIndoorTHSensor = cumulus.Gw1000PrimaryIndoorTHSensor;
+			PrimaryTHSensor = cumulus.SensorMaps.PrimaryTempHum;
+			PrimaryIndoorTHSensor = cumulus.SensorMaps.PrimaryIndoorTempHum;
 			for (var i = 0; i < cumulus.EcowittMapWN34.Length; i++)
 			{
 				MapWN34[i] = cumulus.EcowittMapWN34[i];
@@ -1501,7 +1501,7 @@ namespace CumulusMX.Stations
 						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
-						decimal? dist = data.ch_lds1.air_ch1.unit switch
+						double? dist = data.ch_lds1.air_ch1.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
@@ -1531,7 +1531,7 @@ namespace CumulusMX.Stations
 						if (!item.Value.HasValue || itemDate < lastUpdateTS)
 							continue;
 
-						decimal? dist = data.ch_lds2.air_ch2.unit switch
+						double? dist = data.ch_lds2.air_ch2.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
@@ -1561,7 +1561,7 @@ namespace CumulusMX.Stations
 						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
-						decimal? dist = data.ch_lds3.air_ch3.unit switch
+						double? dist = data.ch_lds3.air_ch3.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
@@ -1591,7 +1591,7 @@ namespace CumulusMX.Stations
 						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
-						decimal? dist = data.ch_lds4.air_ch4.unit switch
+						double? dist = data.ch_lds4.air_ch4.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
@@ -1622,7 +1622,7 @@ namespace CumulusMX.Stations
 						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
-						decimal? dist = data.ch_lds1.depth_ch1.unit switch
+						double? dist = data.ch_lds1.depth_ch1.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value * 10),
@@ -1652,7 +1652,7 @@ namespace CumulusMX.Stations
 						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
-						decimal? dist = data.ch_lds2.depth_ch2.unit switch
+						double? dist = data.ch_lds2.depth_ch2.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value * 10),
@@ -1682,7 +1682,7 @@ namespace CumulusMX.Stations
 						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
-						decimal? dist = data.ch_lds3.depth_ch3.unit switch
+						double? dist = data.ch_lds3.depth_ch3.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
@@ -1712,7 +1712,7 @@ namespace CumulusMX.Stations
 						if (!item.Value.HasValue || itemDate <= lastUpdateTS)
 							continue;
 
-						decimal? dist = data.ch_lds4.depth_ch4.unit switch
+						double? dist = data.ch_lds4.depth_ch4.unit switch
 						{
 							"mm" => ConvertUnits.LaserMmToUser(item.Value.Value),
 							"cm" => ConvertUnits.LaserMmToUser(item.Value.Value / 10),
@@ -1876,7 +1876,7 @@ namespace CumulusMX.Stations
 				}
 
 				// finally apply this data
-				ApplyHistoricData(rec);
+				//ApplyHistoricData(rec);
 
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
@@ -1987,7 +1987,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		public void ApplyHistoricData(KeyValuePair<long, HistoricData> rec)
+		public void ApplyHistoricData(KeyValuePair<long, HistoricDataRecord> rec)
 		{
 			var recDateTime = rec.Key.LocalFromUnixTime();
 
@@ -1997,11 +1997,11 @@ namespace CumulusMX.Stations
 			// WindDir = avg for period
 			try
 			{
-				if (rec.Value.WindGust.HasValue && rec.Value.WindSpd.HasValue && rec.Value.WindDir.HasValue)
+				if (rec.Value.WindGust.HasValue && rec.Value.WindSpeed.HasValue && rec.Value.WindBearing.HasValue)
 				{
 					var gustVal = (double) rec.Value.WindGust;
-					var spdVal = (double) rec.Value.WindSpd;
-					var dirVal = rec.Value.WindDir.Value;
+					var spdVal = (double) rec.Value.WindSpeed;
+					var dirVal = rec.Value.WindBearing.Value;
 
 					station.DoWind(gustVal, dirVal, spdVal, recDateTime);
 				}
@@ -2121,9 +2121,9 @@ namespace CumulusMX.Stations
 			{
 				if (PrimaryTHSensor == 0)
 				{
-					if (rec.Value.Temp.HasValue)
+					if (rec.Value.Temperature.HasValue)
 					{
-						var tempVal = (double) rec.Value.Temp;
+						var tempVal = (double) rec.Value.Temperature;
 						station.DoOutdoorTemp(tempVal, recDateTime);
 					}
 					else
@@ -2153,9 +2153,9 @@ namespace CumulusMX.Stations
 					station.calculaterainrate = true;
 				}
 
-				if (rec.Value.RainYear.HasValue)
+				if (rec.Value.RainCounter.HasValue)
 				{
-					var rainVal = (double) rec.Value.RainYear;
+					var rainVal = (double) rec.Value.RainCounter;
 					var rateVal = rRate;
 					station.DoRain(rainVal, rateVal, recDateTime);
 				}
@@ -2187,9 +2187,9 @@ namespace CumulusMX.Stations
 			// = max for period
 			try
 			{
-				if (rec.Value.UVI.HasValue &&(mainStation ? 0 : 1) == cumulus.SensorMaps.UV)
+				if (rec.Value.UV.HasValue &&(mainStation ? 0 : 1) == cumulus.SensorMaps.UV)
 				{
-					station.DoUV((double) rec.Value.UVI, recDateTime);
+					station.DoUV((double) rec.Value.UV, recDateTime);
 				}
 			}
 			catch (Exception ex)
@@ -2200,13 +2200,13 @@ namespace CumulusMX.Stations
 			// === Black Globe Temperature ===
 			try
 			{
-				if (rec.Value.BGT.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
+				if (rec.Value.StationIndex == cumulus.SensorMaps.BlackGlobe)
 				{
-					station.DoBGT((double) rec.Value.BGT, recDateTime);
+					station.DoBGT(rec.Value.BGT, recDateTime);
 				}
-				if (rec.Value.WBGT.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
+				if (rec.Value.StationIndex == cumulus.SensorMaps.BlackGlobe)
 				{
-					station.DoWBGT((double) rec.Value.WBGT.Value, recDateTime);
+					station.DoWBGT(rec.Value.WBGT, recDateTime);
 				}
 			}
 			catch (Exception ex)
@@ -2218,78 +2218,86 @@ namespace CumulusMX.Stations
 			for (var i = 1; i <= 8; i++)
 			{
 				// === Extra Humidity first in case it is mapped to Outdoor and needed for dewpoint calculation ===
-				try
+				if (rec.Value.StationIndex == cumulus.SensorMaps.ExtraTempHum[i - 1])
 				{
-					if (rec.Value.ExtraHumidity[i].HasValue)
+					try
 					{
-						station.DoExtraHum(rec.Value.ExtraHumidity[i].Value, i);
+						station.DoExtraHum(rec.Value.ExtraHum[i].Value, i);
 
 						if (i == PrimaryTHSensor)
 						{
-							station.DoOutdoorHumidity(rec.Value.ExtraHumidity[i].Value, recDateTime);
+							station.DoOutdoorHumidity(rec.Value.ExtraHum[i].Value, recDateTime);
 						}
 
 						if (i == PrimaryIndoorTHSensor)
 						{
-							station.DoIndoorHumidity(rec.Value.ExtraHumidity[i].Value);
+							station.DoIndoorHumidity(rec.Value.ExtraHum[i].Value);
+						}
+
+						if (!rec.Value.ExtraHum[i].HasValue)
+						{
+							if (i == PrimaryTHSensor)
+							{
+								cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to outdoor humidity data");
+							}
+							else if (i == PrimaryIndoorTHSensor)
+							{
+								cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to indoor humidity data");
+							}
 						}
 					}
-					else if (i == PrimaryTHSensor)
+					catch (Exception ex)
 					{
-						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to outdoor humidity data");
+						cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra humidity data - {ex.Message}");
 					}
-					else if (i == PrimaryIndoorTHSensor)
-					{
-						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra humidity #{i} mapped to indoor humidity data");
-					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra humidity data - {ex.Message}");
-				}
 
-				// === Extra Temperature ===
-				try
-				{
-					if (rec.Value.ExtraTemp[i].HasValue)
+					// === Extra Temperature ===
+					try
 					{
-						var tempVal = (double) rec.Value.ExtraTemp[i];
+						var tempVal = rec.Value.ExtraTemp[i];
 						station.DoExtraTemp(tempVal, i);
 
-						if (i == PrimaryTHSensor)
+						if (tempVal.HasValue)
 						{
-							station.DoOutdoorTemp(tempVal, recDateTime);
-						}
+							if (i == PrimaryTHSensor)
+							{
+								station.DoOutdoorTemp(tempVal.Value, recDateTime);
+							}
 
-						if (i == PrimaryIndoorTHSensor)
+							if (i == PrimaryIndoorTHSensor)
+							{
+								station.DoIndoorTemp(tempVal.Value);
+							}
+						}
+						else if (i == PrimaryTHSensor)
 						{
-							station.DoIndoorTemp(tempVal);
+							cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra temperature #{i} mapped to outdoor temperature data");
+						}
+						else if (i == PrimaryIndoorTHSensor)
+						{
+							cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra temperature #{i} mapped to indoor temperature data");
 						}
 					}
-					else if (i == PrimaryTHSensor)
+					catch (Exception ex)
 					{
-						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra temperature #{i} mapped to outdoor temperature data");
+						cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra temperature data - {ex.Message}");
 					}
-					else if (i == PrimaryIndoorTHSensor)
-					{
-						cumulus.LogErrorMessage($"ApplyHistoricData: Missing Extra temperature #{i} mapped to indoor temperature data");
-					}
-				}
-				catch (Exception ex)
-				{
-					cumulus.LogErrorMessage($"ApplyHistoricData: Error in extra temperature data - {ex.Message}");
-				}
 
-				// === Extra Dewpoint ===
-				if (rec.Value.ExtraTemp[i].HasValue && rec.Value.ExtraHumidity[i].HasValue)
-				{
-					station.DoExtraDP(ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC((double) rec.Value.ExtraTemp[i].Value), rec.Value.ExtraHumidity[i].Value)), i);
+					// === Extra Dewpoint ===
+					if (rec.Value.ExtraTemp[i].HasValue && rec.Value.ExtraHum[i].HasValue)
+					{
+						station.DoExtraDP(ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC((double) rec.Value.ExtraTemp[i].Value), rec.Value.ExtraHum[i].Value)), i);
+					}
+					else
+					{
+						station.DoExtraDP(null, i);
+					}
 				}
 
 				// === User Temperature ===
 				try
 				{
-					if (rec.Value.UserTemp[i].HasValue)
+					if (rec.Value.StationIndex == cumulus.SensorMaps.UserTemp[i - 1])
 					{
 						if (MapWN34[i] == 0)
 						{
@@ -2309,9 +2317,9 @@ namespace CumulusMX.Stations
 				// === Leaf Wetness ===
 				try
 				{
-					if (rec.Value.LeafWetness[i].HasValue)
+					if (rec.Value.LeafWet[i].HasValue)
 					{
-						station.DoLeafWetness((double) rec.Value.LeafWetness[i], i);
+						station.DoLeafWetness((double) rec.Value.LeafWet[i], i);
 					}
 				}
 				catch (Exception ex)
@@ -2387,9 +2395,9 @@ namespace CumulusMX.Stations
 			// === Combo CO2 ===
 			try
 			{
-				if (rec.Value.AqiComboCO2.HasValue && !rec.Value.IndoorCo2.HasValue)
+				if (rec.Value.CO2.HasValue && !rec.Value.IndoorCo2.HasValue)
 				{
-					station.CO2 = rec.Value.AqiComboCO2;
+					station.CO2 = rec.Value.CO2;
 				}
 			}
 			catch (Exception ex)
@@ -2400,9 +2408,9 @@ namespace CumulusMX.Stations
 			// === Combo CO2 24hr avg ===
 			try
 			{
-				if (rec.Value.AqiComboCO2hr24.HasValue && !rec.Value.IndoorCo2hr24.HasValue)
+				if (rec.Value.CO2hr24.HasValue && !rec.Value.IndoorCo2hr24.HasValue)
 				{
-					station.CO2_24h = rec.Value.AqiComboCO2hr24;
+					station.CO2_24h = rec.Value.CO2hr24;
 				}
 			}
 			catch (Exception ex)
@@ -2413,7 +2421,7 @@ namespace CumulusMX.Stations
 			// === PM 2.5 Combo ===
 			try
 			{
-				station.CO2_pm2p5 = (double?) rec.Value.AqiComboPm25;
+				station.CO2_pm2p5 = (double?) rec.Value.CO2Pm2p5;
 				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
 			}
 			catch (Exception ex)
@@ -2424,7 +2432,7 @@ namespace CumulusMX.Stations
 			// === PM 2.5 Combo 24h ===
 			try
 			{
-				station.CO2_pm2p5_24h = (double?) rec.Value.AqiComboPm25hr24;
+				station.CO2_pm2p5_24h = (double?) rec.Value.CO2Pm2p5Avg;
 				station.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5_24h);
 			}
 			catch (Exception ex)
@@ -2435,7 +2443,7 @@ namespace CumulusMX.Stations
 			// === PM 10 Combo ===
 			try
 			{
-				station.CO2_pm10 = (double?) rec.Value.AqiComboPm10;
+				station.CO2_pm10 = (double?) rec.Value.CO2Pm10;
 				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
 			}
 			catch (Exception ex)
@@ -2446,7 +2454,7 @@ namespace CumulusMX.Stations
 			// === PM 10 Combo  24h ===
 			try
 			{
-				station.CO2_pm10_24h = (double?) rec.Value.AqiComboPm10hr24;
+				station.CO2_pm10_24h = rec.Value.CO2Pm10Avg;
 				station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10_24h);
 			}
 			catch (Exception ex)
@@ -2457,7 +2465,7 @@ namespace CumulusMX.Stations
 			// === temp Combo ===
 			try
 			{
-				station.CO2_temperature = (double?) rec.Value.AqiComboTemp;
+				station.CO2_temperature = rec.Value.CO2Temp;
 			}
 			catch (Exception ex)
 			{
@@ -2467,7 +2475,7 @@ namespace CumulusMX.Stations
 			// === humidity Combo ===
 			try
 			{
-				station.CO2_humidity = rec.Value.AqiComboHum;
+				station.CO2_humidity = rec.Value.CO2Hum;
 			}
 			catch (Exception ex)
 			{
@@ -2479,9 +2487,9 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					if (rec.Value.pm25[i].HasValue)
+					if (rec.Value.Pm2p5[i].HasValue)
 					{
-						station.DoAirQuality((double) rec.Value.pm25[i].Value, i);
+						station.DoAirQuality((double) rec.Value.Pm2p5[i].Value, i);
 					}
 				}
 				catch (Exception ex)
@@ -2496,7 +2504,7 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					station.DoLaserDistance(rec.Value.LdsAir[i], i, recDateTime);
+					station.DoLaserDistance(rec.Value.LaserDist[i], i, recDateTime);
 				}
 				catch (Exception ex)
 				{
@@ -2512,7 +2520,7 @@ namespace CumulusMX.Stations
 					if (cumulus.LaserDepthBaseline[i] == -1)
 					{
 						// MX is NOT calculating the depth
-						station.DoLaserDepth(rec.Value.LdsDepth[i], i, recDateTime);
+						station.DoLaserDepth(rec.Value.LaserDepth[i], i, recDateTime);
 					}
 					// else DoLaserDistance() calcs the depth
 				}
@@ -2532,7 +2540,7 @@ namespace CumulusMX.Stations
 					var val = (double) rec.Value.DewPoint;
 					station.DoOutdoorDewpoint(val, recDateTime);
 				}
-				else if (rec.Value.Temp.HasValue && rec.Value.Humidity.HasValue)
+				else if (rec.Value.Temperature.HasValue && rec.Value.Humidity.HasValue)
 				{
 					station.DoOutdoorDewpoint(-999, recDateTime);
 				}
@@ -2545,7 +2553,7 @@ namespace CumulusMX.Stations
 			// === Wind Chill ===
 			try
 			{
-				if (rec.Value.Temp.HasValue && rec.Value.WindSpd.HasValue)
+				if (rec.Value.Temperature.HasValue && rec.Value.WindSpeed.HasValue)
 				{
 					// historic API does not provide Wind Chill so force calculation
 					station.DoWindChill(-999, recDateTime);
@@ -2559,13 +2567,13 @@ namespace CumulusMX.Stations
 			// === Humidex etc ===
 			try
 			{
-				if (rec.Value.Temp.HasValue && rec.Value.Humidity.HasValue)
+				if (rec.Value.Temperature.HasValue && rec.Value.Humidity.HasValue)
 				{
 					station.DoHumidex(recDateTime);
 					station.DoCloudBaseHeatIndex(recDateTime);
 
 					// === Apparent & Feels Like === - requires temp, hum, and windspeed
-					if (rec.Value.WindSpd.HasValue)
+					if (rec.Value.WindSpeed.HasValue)
 					{
 						station.DoApparentTemp(recDateTime);
 						station.DoFeelsLike(recDateTime);
@@ -3651,7 +3659,7 @@ namespace CumulusMX.Stations
 		internal class HistoricDataTypeDbl
 		{
 			public string unit { get; set; }
-			public Dictionary<long, decimal?> list { get; set; }
+			public Dictionary<long, double?> list { get; set; }
 		}
 
 		internal class HistoricTempHum
@@ -3776,48 +3784,48 @@ namespace CumulusMX.Stations
 		internal class HistoricData
 		{
 			public int Interval { get; set; }
-			public decimal? IndoorTemp { get; set; }
+			public double? IndoorTemp { get; set; }
 			public int? IndoorHum { get; set; }
-			public decimal? Temp { get; set; }
-			public decimal? DewPoint { get; set; }
-			public decimal? FeelsLike { get; set; }
-			public decimal? BGT { get; set; }
-			public decimal? WBGT { get; set; }
-			public decimal? Apparent { get; set; }
+			public double? Temp { get; set; }
+			public double? DewPoint { get; set; }
+			public double? FeelsLike { get; set; }
+			public double? BGT { get; set; }
+			public double? WBGT { get; set; }
+			public double? Apparent { get; set; }
 			public int? Humidity { get; set; }
-			public decimal? RainRate { get; set; }
-			public decimal? RainYear { get; set; }
-			public decimal? WindSpd { get; set; }
-			public decimal? WindGust { get; set; }
+			public double? RainRate { get; set; }
+			public double? RainYear { get; set; }
+			public double? WindSpd { get; set; }
+			public double? WindGust { get; set; }
 			public int? WindDir { get; set; }
 			//public int? WindDirAvg { get; set; }
-			public decimal? Pressure { get; set; }
-			public decimal? StationPressure { get; set; }
+			public double? Pressure { get; set; }
+			public double? StationPressure { get; set; }
 			public double? Solar { get; set; }
 			public decimal? UVI { get; set; }
 			public DateTime LightningTime { get; set; }
-			public decimal? LightningDist { get; set; }
+			public double? LightningDist { get; set; }
 			public int? LightningCount { get; set; }
-			public decimal?[] ExtraTemp { get; set; } = new decimal?[9];
+			public double?[] ExtraTemp { get; set; } = new double?[9];
 			public int?[] ExtraHumidity { get; set; } = new int?[9];
 			public int?[] SoilMoist { get; set; } = new int?[17];
-			public decimal?[] SoilTemp { get; set; } = new decimal?[17];
+			public double?[] SoilTemp { get; set; } = new double?[17];
 			public int?[] SoilEc { get; set; } = new int?[17];
-			public decimal?[] UserTemp { get; set; } = new decimal?[9];
+			public double?[] UserTemp { get; set; } = new double?[9];
 			public int?[] LeafWetness { get; set; } = new int?[9];
-			public decimal?[] pm25 { get; set; } = new decimal?[5];
-			public decimal? AqiComboPm25 { get; set; }
-			public decimal? AqiComboPm25hr24 { get; set; }
-			public decimal? AqiComboPm10 { get; set; }
-			public decimal? AqiComboPm10hr24 { get; set; }
-			public decimal? AqiComboTemp { get; set; }
+			public double?[] pm25 { get; set; } = new double?[5];
+			public double? AqiComboPm25 { get; set; }
+			public double? AqiComboPm25hr24 { get; set; }
+			public double? AqiComboPm10 { get; set; }
+			public double? AqiComboPm10hr24 { get; set; }
+			public double? AqiComboTemp { get; set; }
 			public int? AqiComboHum { get; set; }
 			public int? AqiComboCO2 { get; set; }
 			public int? AqiComboCO2hr24 { get; set; }
 			public int? IndoorCo2 { get; set; }
 			public int? IndoorCo2hr24 { get; set; }
-			public decimal?[] LdsAir { get; set; } = new decimal?[5];
-			public decimal?[] LdsDepth { get; set; } = new decimal?[5];
+			public double?[] LdsAir { get; set; } = new double?[5];
+			public double?[] LdsDepth { get; set; } = new double?[5];
 		}
 
 		private sealed class CurrentDataCheck
@@ -4157,7 +4165,7 @@ namespace CumulusMX.Stations
 		{
 			public int time { get; set; }
 			public string unit { get; set; }
-			public decimal? value { get; set; }
+			public double? value { get; set; }
 		}
 
 		internal class CurrentDataBGT

@@ -321,6 +321,47 @@ namespace CumulusMX
 					m_CacheModified = true;
 				}
 			}
+		}
+
+		internal bool SectionExists(string SectionName)
+		{
+			// *** Lazy loading ***
+			if (m_Lazy)
+			{
+				m_Lazy = false;
+				Refresh();
+			}
+
+			lock (m_Lock)
+			{
+				// *** Check if the section exists ***
+				return m_Sections.TryGetValue(SectionName, out _);
+			}
+		}
+
+
+		internal void DeleteSection(string SectionName)
+		{
+			// *** Lazy loading ***
+			if (m_Lazy)
+			{
+				m_Lazy = false;
+				Refresh();
+			}
+
+			lock (m_Lock)
+			{
+				// *** Check if the section exists ***
+				Dictionary<string, string> Section;
+				if (!m_Sections.TryGetValue(SectionName, out Section)) return;
+
+				// *** Delete any keys ***
+				Section.Clear();
+
+				m_Sections.Remove(SectionName);
+
+				m_CacheModified = true;
+			}
 
 		}
 
@@ -512,6 +553,24 @@ namespace CumulusMX
 			return DefaultValue;
 		}
 
+		internal double? GetValue(string SectionName, string Key, double? DefaultValue, double MinValue = double.MinValue, double MaxValue = double.MaxValue)
+		{
+			string StringValue = GetValue(SectionName, Key, DefaultValue.HasValue ? DefaultValue.Value.ToString(CultureInfo.InvariantCulture) : string.Empty);
+			if (string.IsNullOrEmpty(StringValue))
+			{
+				return DefaultValue;
+			}
+
+			if (double.TryParse(StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out double Value))
+			{
+				if (Value < MinValue) return DefaultValue;
+				if (Value > MaxValue) return DefaultValue;
+				return Value;
+			}
+			return DefaultValue;
+		}
+
+
 		internal decimal GetValue(string SectionName, string Key, decimal DefaultValue, decimal MinValue = decimal.MinValue, decimal MaxValue = decimal.MaxValue)
 		{
 			string StringValue = GetValue(SectionName, Key, DefaultValue.ToString(CultureInfo.InvariantCulture));
@@ -646,6 +705,11 @@ namespace CumulusMX
 		internal void SetValue(string SectionName, string Key, double Value)
 		{
 			SetValue(SectionName, Key, Value.ToString("G17", CultureInfo.InvariantCulture));
+		}
+
+		internal void SetValue(string SectionName, string Key, double? Value)
+		{
+			SetValue(SectionName, Key, Value.HasValue ? Value.Value.ToString(CultureInfo.InvariantCulture) : string.Empty);
 		}
 
 		internal void SetValue(string SectionName, string Key, decimal Value)

@@ -23,8 +23,8 @@ namespace CumulusMX.Stations
 
 		//private static readonly decimal cm2in = 1 / (decimal) 2.54;
 		//private static readonly decimal in2cm = 2.54;
-		private static readonly decimal in2mm = (decimal) 25.4;
-		//private static readonly decimal mm2in = 1 / (decimal) 25.4;
+		private static readonly double in2mm = 25.4;
+		//private static readonly double mm2in = 1 / 25.4;
 
 		private FileSystemWatcher watcher;
 
@@ -638,7 +638,7 @@ namespace CumulusMX.Stations
 			}
 
 			// User Temps
-			if (data.usertemp != null && data.units != null && (mainStation || cumulus.ExtraSensorUseUserTemp))
+			if (data.usertemp != null && data.units != null)
 			{
 				if (data.units.temperature == null)
 				{
@@ -651,10 +651,14 @@ namespace CumulusMX.Stations
 					{
 						try
 						{
-							if (rec.temperature.HasValue)
+							if (rec.temperature.HasValue && stationIndex == cumulus.SensorMaps.UserTemp[rec.index - 1])
 							{
 								var temp = data.units.temperature == "C" ? ConvertUnits.TempCToUser(rec.temperature.Value) : ConvertUnits.TempFToUser(rec.temperature.Value);
 								station.DoUserTemp(temp, rec.index);
+							}
+							else
+							{
+								station.DoUserTemp(null, rec.index);
 							}
 						}
 						catch (Exception ex)
@@ -662,6 +666,16 @@ namespace CumulusMX.Stations
 							cumulus.LogExceptionMessage(ex, procName + ": Error processing User Temperature");
 							retStr.AppendLine("Error processing User Temperature");
 						}
+					}
+				}
+			}
+			else
+			{
+				for (var i = 0; i < cumulus.SensorMaps.UserTemp.Length; i++)
+				{
+					if (stationIndex == cumulus.SensorMaps.UserTemp[i])
+					{
+						station.DoUserTemp(null, i + 1);
 					}
 				}
 			}
@@ -685,6 +699,10 @@ namespace CumulusMX.Stations
 								var temp = data.units.temperature == "C" ? ConvertUnits.TempCToUser(rec.temperature.Value) : ConvertUnits.TempFToUser(rec.temperature.Value);
 								station.DoSoilTemp(temp, rec.index);
 							}
+							else
+							{
+								station.DoSoilTemp(null, rec.index);
+							}
 						}
 						catch (Exception ex)
 						{
@@ -694,17 +712,28 @@ namespace CumulusMX.Stations
 					}
 				}
 			}
+			else
+			{
+				for (var i = 0; i < cumulus.SensorMaps.SoilTemp.Length; i++)
+				{
+					if (stationIndex == cumulus.SensorMaps.SoilTemp[i])
+					{
+						station.DoSoilTemp(null, i + 1);
+					}
+				}
+			}
+
 
 			// Soil Moistures
-			if (data.soilmoisture != null && (mainStation || cumulus.ExtraSensorUseSoilMoist))
+			if (data.soilmoisture != null)
 			{
 				foreach (var rec in data.soilmoisture)
 				{
 					try
 					{
-						if (rec.value.HasValue)
+						if (stationIndex == cumulus.SensorMaps.SoilMoist[rec.index])
 						{
-							station.DoSoilMoisture(rec.value.Value, rec.index);
+							station.DoSoilMoisture(rec.value, rec.index);
 						}
 					}
 					catch (Exception ex)
@@ -714,17 +743,27 @@ namespace CumulusMX.Stations
 					}
 				}
 			}
+			else
+			{
+				for (var i = 0; i < cumulus.SensorMaps.SoilMoist.Length; i++)
+				{
+					if (stationIndex == cumulus.SensorMaps.SoilMoist[i])
+					{
+						station.DoSoilMoisture(null, i + 1);
+					}
+				}
+			}
 
 			// Leaf Wetness
-			if (data.leafwetness != null && (mainStation || cumulus.ExtraSensorUseLeafWet))
+			if (data.leafwetness != null)
 			{
 				foreach (var rec in data.leafwetness)
 				{
 					try
 					{
-						if (rec.value.HasValue)
+						if (stationIndex == cumulus.SensorMaps.SoilMoist[rec.index])
 						{
-							station.DoLeafWetness(rec.value.Value, rec.index);
+							station.DoLeafWetness(rec.value, rec.index);
 						}
 					}
 					catch (Exception ex)
@@ -734,9 +773,19 @@ namespace CumulusMX.Stations
 					}
 				}
 			}
+			else
+			{
+				for (var i = 0; i < cumulus.SensorMaps.LeafWet.Length; i++)
+				{
+					if (stationIndex == cumulus.SensorMaps.LeafWet[i])
+					{
+						station.DoLeafWetness(null, i + 1);
+					}
+				}
+			}
 
 			// Air Quality
-			if (data.airquality != null && (mainStation || cumulus.ExtraSensorUseAQI))
+			if (data.airquality != null)
 			{
 				foreach (var rec in data.airquality)
 				{
@@ -769,9 +818,24 @@ namespace CumulusMX.Stations
 					}
 				}
 			}
+			else
+			{
+				for (var i = 0; i < cumulus.SensorMaps.AirQual.Length; i++)
+				{
+					if (stationIndex == cumulus.SensorMaps.AirQual[i])
+					{
+						var chan = i + 1;
+						station.DoAirQuality(null, chan);
+						station.DoAirQualityAvg(null, chan);
+						station.DoAirQuality10(null, chan);
+						station.DoAirQuality10Avg(null, chan);
+					}
+				}
+			}
+
 
 			// CO2
-			if (data.co2 != null && (mainStation || cumulus.ExtraSensorUseCo2))
+			if (data.co2 != null && stationIndex == cumulus.SensorMaps.CO2)
 			{
 				try
 				{
@@ -792,51 +856,77 @@ namespace CumulusMX.Stations
 					retStr.AppendLine("Error processing CO2");
 				}
 			}
+			else if (stationIndex == cumulus.SensorMaps.CO2)
+			{
+				station.CO2 = null;
+				station.CO2_24h = null;
+				station.CO2_pm2p5 = null;
+				station.CO2_pm2p5_aqi = null;
+				station.CO2_pm2p5_24h = null;
+				station.CO2_pm2p5_24h_aqi = null;
+				station.CO2_pm10 = null;
+				station.CO2_pm10_aqi = null;
+				station.CO2_pm10_24h = null;
+				station.CO2_pm10_24h_aqi = null;
+			}
 
 			// Laser distance
-			if (data.laserdist != null && data.units != null && (mainStation || cumulus.ExtraSensorUseLaserDist))
-			{
-				if (data.units.laserdist == null)
-				{
-					cumulus.LogErrorMessage(procName + ": No laser distance units supplied!");
-					retStr.AppendLine("No laser distance units");
-				}
-				else
-				{
-					var multiplier = data.units.laserdist switch
-					{
-						"mm" => 1,
-						"in" => in2mm,
-						"cm" => 10,
-						_ => 1,
-					};
 
-					foreach (var rec in data.laserdist)
+			if (data.units.laserdist == null)
+			{
+				cumulus.LogErrorMessage(procName + ": No laser distance units supplied!");
+				retStr.AppendLine("No laser distance units");
+				for (var i = 0; i < cumulus.SensorMaps.LaserDist.Length; i++)
+				{
+					if (stationIndex == cumulus.SensorMaps.LaserDist[i])
 					{
-						try
+						station.DoLaserDistance(null, i + 1, data.lastupdated);
+
+						if (cumulus.LaserDepthBaseline[i + 1] == -1)
 						{
-							decimal? range = rec.range.HasValue ? ConvertUnits.LaserMmToUser(rec.range.Value * multiplier) : null;
+							station.DoLaserDepth(null, i + 1, data.lastupdated);
+						}
+					}
+				}
+			}
+			else
+			{
+				var multiplier = data.units.laserdist switch
+				{
+					"mm" => 1,
+					"in" => in2mm,
+					"cm" => 10,
+					_ => 1,
+				};
+
+				foreach (var rec in data.laserdist)
+				{
+					try
+					{
+						if (stationIndex == cumulus.SensorMaps.LaserDist[rec.index - 1])
+						{
+							double? range = rec.range.HasValue ? ConvertUnits.LaserMmToUser(rec.range.Value * multiplier) : null;
 							station.DoLaserDistance(range, rec.index, data.lastupdated);
 
 							if (cumulus.LaserDepthBaseline[rec.index] == -1)
 							{
 								// MX is not calculating depth
-								decimal? depth = rec.depth.HasValue ? ConvertUnits.LaserMmToUser(rec.depth.Value * multiplier) : null;
+								double? depth = rec.depth.HasValue ? ConvertUnits.LaserMmToUser(rec.depth.Value * multiplier) : null;
 								station.DoLaserDepth(depth, rec.index, data.lastupdated);
 							}
 							// else DoLaserDistance() calcs the depth
 						}
-						catch (Exception ex)
-						{
-							cumulus.LogExceptionMessage(ex, procName + ": Error processing Laser Distance");
-							retStr.AppendLine("Error processing Laser Distance");
-						}
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, procName + ": Error processing Laser Distance");
+						retStr.AppendLine("Error processing Laser Distance");
 					}
 				}
 			}
 
 			// Lightning
-			if (data.lightning != null && (mainStation || cumulus.ExtraSensorUseLightning))
+			if (stationIndex == cumulus.SensorMaps.Lightning)
 			{
 				station.LightningTime = data.lightning.time ?? DateTime.MinValue;
 				station.LightningStrikesToday += data.lightning.strikes ?? 0 - station.LightningCounter;
@@ -850,10 +940,17 @@ namespace CumulusMX.Stations
 			}
 
 			// BGT
-			if (data.temperature != null && data.temperature.blackglobe.HasValue && (mainStation || cumulus.ExtraSensorUseBGT))
+			if (stationIndex == cumulus.SensorMaps.BlackGlobe)
 			{
-				var temp = data.units.temperature == "C" ? ConvertUnits.TempCToUser(data.temperature.blackglobe.Value) : ConvertUnits.TempFToUser(data.temperature.blackglobe.Value);
-				station.DoBGT(temp, data.lastupdated);
+				if (data.temperature == null || data.temperature.blackglobe == null)
+				{
+					station.DoBGT(null, data.lastupdated);
+				}
+				else
+				{
+					var temp = data.units.temperature == "C" ? ConvertUnits.TempCToUser(data.temperature.blackglobe.Value) : ConvertUnits.TempFToUser(data.temperature.blackglobe.Value);
+					station.DoBGT(temp, data.lastupdated);
+				}
 			}
 
 
@@ -1008,8 +1105,8 @@ namespace CumulusMX.Stations
 		private sealed class Lds
 		{
 			public int index { get; set; }
-			public decimal? range { get; set; }
-			public decimal? depth { get; set; }
+			public double? range { get; set; }
+			public double? depth { get; set; }
 		}
 
 		private sealed class Lightning

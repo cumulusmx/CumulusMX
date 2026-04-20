@@ -20,6 +20,8 @@ namespace CumulusMX.Settings
 		{
 			var data = new JsonSensorMaps()
 			{
+				primaryTH = cumulus.SensorMaps.PrimaryTempHum,
+				primaryInTH = cumulus.SensorMaps.PrimaryIndoorTempHum,
 				indoorTemp = cumulus.SensorMaps.IndoorTemp,
 				indoorHum = cumulus.SensorMaps.IndoorHum,
 				temperature = cumulus.SensorMaps.Temperature,
@@ -33,15 +35,15 @@ namespace CumulusMX.Settings
 				lightning = cumulus.SensorMaps.Lightning,
 				camera = cumulus.SensorMaps.Camera,
 				co2 = cumulus.SensorMaps.CO2,
-				extraTempHum = cumulus.SensorMaps.ExtraTempHum,
-				userTemp = cumulus.SensorMaps.UserTemp,
-				soilTemp = cumulus.SensorMaps.SoilTemp,
-				soilMoist = cumulus.SensorMaps.SoilMoist,
-				soilEc = cumulus.SensorMaps.SoilEc,
-				leafWet = cumulus.SensorMaps.LeafWet,
-				leak = cumulus.SensorMaps.Leak,
-				airQual = cumulus.SensorMaps.AirQual,
-				laserDist = cumulus.SensorMaps.LaserDist
+				extraTempHum = new JsonSensors { sensors = cumulus.SensorMaps.ExtraTempHum },
+				userTemp = new JsonSensors { sensors = cumulus.SensorMaps.UserTemp },
+				soilTemp = new JsonSensors { sensors = cumulus.SensorMaps.SoilTemp },
+				soilMoist = new JsonSensors { sensors = cumulus.SensorMaps.SoilMoist },
+				soilEc = new JsonSensors { sensors = cumulus.SensorMaps.SoilEc },
+				leafWet = new JsonSensors { sensors = cumulus.SensorMaps.LeafWet },
+				leak = new JsonSensors { sensors = cumulus.SensorMaps.Leak },
+				airQual = new JsonSensors { sensors = cumulus.SensorMaps.AirQual },
+				laserDist = new JsonSensors { sensors = cumulus.SensorMaps.LaserDist }
 			};
 
 			return JsonSerializer.Serialize(data);
@@ -79,6 +81,8 @@ namespace CumulusMX.Settings
 			// process the settings
 			try
 			{
+				cumulus.SensorMaps.PrimaryTempHum = settings.primaryTH;
+				cumulus.SensorMaps.PrimaryIndoorTempHum = settings.primaryInTH;
 				cumulus.SensorMaps.IndoorTemp = settings.indoorTemp;
 				cumulus.SensorMaps.IndoorHum = settings.indoorHum;
 				cumulus.SensorMaps.Temperature = settings.temperature;
@@ -92,15 +96,15 @@ namespace CumulusMX.Settings
 				cumulus.SensorMaps.Lightning = settings.lightning;
 				cumulus.SensorMaps.Camera = settings.camera;
 				cumulus.SensorMaps.CO2 = settings.co2;
-				cumulus.SensorMaps.ExtraTempHum = settings.extraTempHum;
-				cumulus.SensorMaps.UserTemp = settings.userTemp;
-				cumulus.SensorMaps.SoilTemp = settings.soilTemp;
-				cumulus.SensorMaps.SoilMoist = settings.soilMoist;
-				cumulus.SensorMaps.SoilEc = settings.soilEc;
-				cumulus.SensorMaps.LeafWet = settings.leafWet;
-				cumulus.SensorMaps.Leak = settings.leak;
-				cumulus.SensorMaps.AirQual = settings.airQual;
-				cumulus.SensorMaps.LaserDist = settings.laserDist;
+				cumulus.SensorMaps.ExtraTempHum = settings.extraTempHum.sensors;
+				cumulus.SensorMaps.UserTemp = settings.userTemp.sensors;
+				cumulus.SensorMaps.SoilTemp = settings.soilTemp.sensors;
+				cumulus.SensorMaps.SoilMoist = settings.soilMoist.sensors;
+				cumulus.SensorMaps.SoilEc = settings.soilEc.sensors;
+				cumulus.SensorMaps.LeafWet = settings.leafWet.sensors;
+				cumulus.SensorMaps.Leak = settings.leak.sensors;
+				cumulus.SensorMaps.AirQual = settings.airQual.sensors;
+				cumulus.SensorMaps.LaserDist = settings.laserDist.sensors;
 			}
 			catch (Exception ex)
 			{
@@ -132,9 +136,16 @@ namespace CumulusMX.Settings
 			return context.Response.StatusCode == 200 ? "success" : errorMsg;
 		}
 
+		private sealed class JsonSensors
+		{
+			public int[] sensors { get; set; }
+		}
+
 
 		private sealed class JsonSensorMaps
 		{
+			public int primaryTH { get; set; }
+			public int primaryInTH { get; set; }
 			public int indoorTemp { get; set; }
 			public int indoorHum { get; set; }
 			public int temperature { get; set; }
@@ -148,15 +159,15 @@ namespace CumulusMX.Settings
 			public int lightning { get; set; }
 			public int camera { get; set; }
 			public int co2 { get; set; }
-			public int[] extraTempHum { get; set; }
-			public int[] userTemp { get; set; }
-			public int[] soilTemp { get; set; }
-			public int[] soilMoist { get; set; }
-			public int[] soilEc { get; set; }
-			public int[] leafWet { get; set; }
-			public int[] leak { get; set; }
-			public int[] airQual { get; set; }
-			public int[] laserDist { get; set; }
+			public JsonSensors extraTempHum { get; set; }
+			public JsonSensors userTemp { get; set; }
+			public JsonSensors soilTemp { get; set; }
+			public JsonSensors soilMoist { get; set; }
+			public JsonSensors soilEc { get; set; }
+			public JsonSensors leafWet { get; set; }
+			public JsonSensors leak { get; set; }
+			public JsonSensors airQual { get; set; }
+			public JsonSensors laserDist { get; set; }
 		}
 	}
 }

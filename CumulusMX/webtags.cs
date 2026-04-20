@@ -193,9 +193,9 @@ namespace CumulusMX
 		}
 
 
-		private decimal? GetSnowDepth(DateTime day)
+		private double? GetSnowDepth(DateTime day)
 		{
-			decimal? depth;
+			double? depth;
 			try
 			{
 				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Date = ?", day.Date);
@@ -210,9 +210,9 @@ namespace CumulusMX
 			return depth;
 		}
 
-		private decimal? GetSnow24h(DateTime day)
+		private double? GetSnow24h(DateTime day)
 		{
-			decimal? snow24h;
+			double? snow24h;
 			try
 			{
 				var result = cumulus.DiaryDB.Query<DiaryData>("SELECT * FROM DiaryData WHERE Date = ?", day.Date);
@@ -3774,7 +3774,7 @@ namespace CumulusMX
 		{
 			var mac = tagParams.Get("mac") ?? cumulus.EcowittCameraMacAddress.FirstOrDefault();
 
-			if (cumulus.ExtraSensorUseCamera)
+			if (cumulus.SensorMaps.Camera > 0)
 			{
 				if (cumulus.ecowittExtra != null)
 				{
@@ -3793,13 +3793,13 @@ namespace CumulusMX
 		{
 			var mac = tagParams.Get("mac") ?? cumulus.EcowittCameraMacAddress.FirstOrDefault();
 
-			if (cumulus.ExtraSensorUseCamera)
+			if (cumulus.SensorMaps.Camera > 0)
 			{
 				if (cumulus.ecowittExtra != null)
 				{
 					return cumulus.ecowittExtra.GetEcowittVideoUrl(mac);
 				}
-				else if (cumulus.ecowittCloudExtra != null && cumulus.ExtraSensorUseCamera)
+				else if (cumulus.ecowittCloudExtra != null && cumulus.SensorMaps.Camera > 0)
 				{
 					return cumulus.ecowittCloudExtra.GetEcowittVideoUrl(mac);
 				}

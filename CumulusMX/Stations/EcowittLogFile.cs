@@ -34,10 +34,10 @@ namespace CumulusMX.Stations
 			HeaderValid = HeaderParser(data[0]);
 		}
 
-		public Dictionary<long, EcowittApi.HistoricData> DataParser()
+		public Dictionary<long, HistoricDataRecord> DataParser()
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
-			var retList = new Dictionary<long, EcowittApi.HistoricData>();
+			var retList = new Dictionary<long, HistoricDataRecord>();
 			var count = 0;
 
 			Cumulus.LogConsoleMessage("  Preprocessing the data");
@@ -101,7 +101,7 @@ namespace CumulusMX.Stations
 
 					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Preprocessing record {fields[0]} - {time.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm", invc)}");
 
-					var rec = new EcowittApi.HistoricData();
+					var rec = new HistoricDataRecord();
 
 					if (lastLogTime == 0)
 					{
@@ -125,67 +125,67 @@ namespace CumulusMX.Stations
 
 					cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Record interval = {rec.Interval} minutes");
 
-					decimal varDec;
+					double varDbl;
 					int varInt;
 					int idx;
 
-					if (FieldIndex.TryGetValue("indoor temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.IndoorTemp = varDec;
+					if (FieldIndex.TryGetValue("indoor temperature", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.IndoorTemp = varDbl;
 					if (FieldIndex.TryGetValue("indoor humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.IndoorHum = varInt;
-					if (FieldIndex.TryGetValue("outdoor temperature", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Temp = varDec;
+					if (FieldIndex.TryGetValue("outdoor temperature", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.Temperature = varDbl;
 					if (FieldIndex.TryGetValue("outdoor humidity", out idx) && int.TryParse(fields[idx], out varInt)) rec.Humidity = varInt;
-					if (FieldIndex.TryGetValue("dew point", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DewPoint = varDec;
-					if (FieldIndex.TryGetValue("feels like", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.FeelsLike = varDec;
-					if (FieldIndex.TryGetValue("bgt", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.BGT = varDec;
-					if (FieldIndex.TryGetValue("wbgt", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WBGT = varDec;
-					if (FieldIndex.TryGetValue("wind", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WindSpd = varDec;
-					if (FieldIndex.TryGetValue("gust", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WindGust = varDec;
+					if (FieldIndex.TryGetValue("dew point", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.DewPoint = varDbl;
+					if (FieldIndex.TryGetValue("feels like", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.FeelsLike = varDbl;
+					if (FieldIndex.TryGetValue("bgt", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.BGT = varDbl;
+					if (FieldIndex.TryGetValue("wbgt", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.WBGT = varDbl;
+					if (FieldIndex.TryGetValue("wind", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.WindSpeed = varDbl;
+					if (FieldIndex.TryGetValue("gust", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.WindGust = varDbl;
 					//if (FieldIndex.TryGetValue("windDir_10min_avg", out idx) && int.TryParse(fields[idx], out varInt)) rec.WindDirAvg = varInt;
-					if (FieldIndex.TryGetValue("wind direction", out idx) && int.TryParse(fields[idx], out varInt)) rec.WindDir = varInt;
-					if (FieldIndex.TryGetValue("abs pressure", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.StationPressure = varDec;
-					if (FieldIndex.TryGetValue("rel pressure", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Pressure = varDec;
-					if (FieldIndex.TryGetValue("solar rad", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Solar = (double) varDec;
-					if (FieldIndex.TryGetValue("uv-index", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.UVI = varDec;
+					if (FieldIndex.TryGetValue("wind direction", out idx) && int.TryParse(fields[idx], out varInt)) rec.WindBearing = varInt;
+					if (FieldIndex.TryGetValue("abs pressure", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.StationPressure = varDbl;
+					if (FieldIndex.TryGetValue("rel pressure", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.Pressure = varDbl;
+					if (FieldIndex.TryGetValue("solar rad", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.Solar = (int) varDbl;
+					if (FieldIndex.TryGetValue("uv-index", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.UV = varDbl;
 
 					// These fields 14,15,16 do not appear in the GW3000 log files :(
-					//if (FieldIndex.TryGetValue("console battery", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.ConsoleBattery = varDec;
-					//if (FieldIndex.TryGetValue("external supply battery", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.ExternalSupplyBattery = varDec;
-					//if (FieldIndex.TryGetValue("charge", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Charge = varDec;
+					//if (FieldIndex.TryGetValue("console battery", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.ConsoleBattery = varDec;
+					//if (FieldIndex.TryGetValue("external supply battery", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.ExternalSupplyBattery = varDec;
+					//if (FieldIndex.TryGetValue("charge", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.Charge = varDec;
 
 					if (cumulus.Gw1000PrimaryRainSensor == 0)
 					{
 						// Tipping bucket
-						if (FieldIndex.TryGetValue("rain rate", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+						if (FieldIndex.TryGetValue("rain rate", out idx) && double.TryParse(fields[idx], invc, out varDbl))
 						{
-							rec.RainRate = varDec;
+							rec.RainRate = varDbl;
 						}
-						else if (FieldIndex.TryGetValue("hourly rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+						else if (FieldIndex.TryGetValue("hourly rain", out idx) && double.TryParse(fields[idx], invc, out varDbl))
 						{
-							rec.RainRate = varDec; // really this is hourly rain from the file
+							rec.RainRate = varDbl; // really this is hourly rain from the file
 						}
-						//if (FieldIndex.TryGetValue("24h rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Rain24h = varDec;
-						//if (FieldIndex.TryGetValue("event rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.EventRain = varDec;
-						//if (FieldIndex.TryGetValue("daily rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DailyRain = varDec;
-						//if (FieldIndex.TryGetValue("weekly rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WeeklyRain = varDec;
-						//if (FieldIndex.TryGetValue("monthly rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.MonthlyRain = varDec;
-						if (FieldIndex.TryGetValue("yearly rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.RainYear = varDec;
+						//if (FieldIndex.TryGetValue("24h rain", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.Rain24h = varDec;
+						//if (FieldIndex.TryGetValue("event rain", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.EventRain = varDec;
+						//if (FieldIndex.TryGetValue("daily rain", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.DailyRain = varDec;
+						//if (FieldIndex.TryGetValue("weekly rain", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.WeeklyRain = varDec;
+						//if (FieldIndex.TryGetValue("monthly rain", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.MonthlyRain = varDec;
+						if (FieldIndex.TryGetValue("yearly rain", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.RainCounter = varDbl;
 					}
 					else if (fields.Length >= 25)
 					{
 						// piezo rain
-						if (FieldIndex.TryGetValue("piezo rate", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+						if (FieldIndex.TryGetValue("piezo rate", out idx) && double.TryParse(fields[idx], invc, out varDbl))
 						{
-							rec.RainRate = varDec;
+							rec.RainRate = varDbl;
 						}
-						else if (FieldIndex.TryGetValue("piezo hourly rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec))
+						else if (FieldIndex.TryGetValue("piezo hourly rain", out idx) && double.TryParse(fields[idx], invc, out varDbl))
 						{
-							rec.RainRate = varDec; // really this is hourly rain from the file
+							rec.RainRate = varDbl; // really this is hourly rain from the file
 						}
-						//if (FieldIndex.TryGetValue("piezo 24h rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.Rain24h = varDec;
-						//if (FieldIndex.TryGetValue("piezo event rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.EventRain = varDec;
-						//if (FieldIndex.TryGetValue("piezo daily rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.DailyRain = varDec;
-						//if (FieldIndex.TryGetValue("piezo weekly rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.WeeklyRain = varDec;
-						//if ((FieldIndex.TryGetValue("piezo monthly rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.MonthlyRain = varDec;
-						if (FieldIndex.TryGetValue("piezo yearly rain", out idx) && decimal.TryParse(fields[idx], invc, out varDec)) rec.RainYear = varDec;
+						//if (FieldIndex.TryGetValue("piezo 24h rain", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.Rain24h = varDec;
+						//if (FieldIndex.TryGetValue("piezo event rain", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.EventRain = varDec;
+						//if (FieldIndex.TryGetValue("piezo daily rain", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.DailyRain = varDec;
+						//if (FieldIndex.TryGetValue("piezo weekly rain", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.WeeklyRain = varDec;
+						//if ((FieldIndex.TryGetValue("piezo monthly rain", out idx) && double.TryParse(fields[idx], invc, out varDec)) rec.MonthlyRain = varDec;
+						if (FieldIndex.TryGetValue("piezo yearly rain", out idx) && double.TryParse(fields[idx], invc, out varDbl)) rec.RainCounter = varDbl;
 					}
 
 					//cumulus.LogDebugMessage($"EcowittLogFile.DataParser: Converting record {fields[0]} to MX units");
@@ -197,7 +197,7 @@ namespace CumulusMX.Stations
 						{
 							// C
 							rec.IndoorTemp = MeteoLib.FtoC(rec.IndoorTemp);
-							rec.Temp = MeteoLib.FtoC(rec.Temp);
+							rec.Temperature = MeteoLib.FtoC(rec.Temperature);
 							rec.DewPoint = MeteoLib.FtoC(rec.DewPoint);
 							rec.FeelsLike = MeteoLib.FtoC(rec.FeelsLike);
 						}
@@ -205,7 +205,7 @@ namespace CumulusMX.Stations
 						{
 							// F
 							rec.IndoorTemp = MeteoLib.CToF(rec.IndoorTemp);
-							rec.Temp = MeteoLib.CToF(rec.Temp);
+							rec.Temperature = MeteoLib.CToF(rec.Temperature);
 							rec.DewPoint = MeteoLib.CToF(rec.DewPoint);
 							rec.FeelsLike = MeteoLib.CToF(rec.FeelsLike);
 						}
@@ -217,19 +217,19 @@ namespace CumulusMX.Stations
 						switch (WindUnit)
 						{
 							case WindUnits.ms:
-								rec.WindSpd = ConvertUnits.WindMSToUser(rec.WindSpd);
+								rec.WindSpeed = ConvertUnits.WindMSToUser(rec.WindSpeed);
 								rec.WindGust = ConvertUnits.WindMSToUser(rec.WindGust);
 								break;
 							case WindUnits.mph:
-								rec.WindSpd = ConvertUnits.WindMPHToUser(rec.WindSpd);
+								rec.WindSpeed = ConvertUnits.WindMPHToUser(rec.WindSpeed);
 								rec.WindGust = ConvertUnits.WindMPHToUser(rec.WindGust);
 								break;
 							case WindUnits.kph:
-								rec.WindSpd = ConvertUnits.WindKPHToUser(rec.WindSpd);
+								rec.WindSpeed = ConvertUnits.WindKPHToUser(rec.WindSpeed);
 								rec.WindGust = ConvertUnits.WindKPHToUser(rec.WindGust);
 								break;
 							case WindUnits.knots:
-								rec.WindSpd = ConvertUnits.WindKnotsToUser(rec.WindSpd);
+								rec.WindSpeed = ConvertUnits.WindKnotsToUser(rec.WindSpeed);
 								rec.WindGust = ConvertUnits.WindKnotsToUser(rec.WindGust);
 								break;
 						}
@@ -246,7 +246,7 @@ namespace CumulusMX.Stations
 							//rec.DailyRain = ConvertUnits.RainMMToUser(rec.DailyRain);
 							//rec.WeeklyRain = ConvertUnits.RainMMToUser(rec.WeeklyRain);
 							//rec.MonthlyRain = ConvertUnits.RainMMToUser(rec.MonthlyRain);
-							rec.RainYear = ConvertUnits.RainMMToUser(rec.RainYear);
+							rec.RainCounter = ConvertUnits.RainMMToUser(rec.RainCounter);
 						}
 						else
 						{
@@ -256,7 +256,7 @@ namespace CumulusMX.Stations
 							//rec.DailyRain = ConvertUnits.RainINToUser(rec.DailyRain);
 							//rec.WeeklyRain = ConvertUnits.RainINToUser(rec.WeeklyRain);
 							//rec.MonthlyRain = ConvertUnits.RainINToUser(rec.MonthlyRain);
-							rec.RainYear = ConvertUnits.RainINToUser(rec.RainYear);
+							rec.RainCounter = ConvertUnits.RainINToUser(rec.RainCounter);
 						}
 					}
 

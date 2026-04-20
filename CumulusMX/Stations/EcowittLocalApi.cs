@@ -1567,21 +1567,21 @@ namespace CumulusMX.Stations
 			//public decimal? total_height { get; set; }
 			//public int total_heat { get; set; }
 
-			public decimal? airVal
+			public double? airVal
 			{
 				get
 				{
 					var temp = air.Split(' ');
-					return decimal.TryParse(temp[0], invNum, out var result) ? result : null;
+					return double.TryParse(temp[0], invNum, out var result) ? result : null;
 				}
 			}
 
-			public decimal? depthVal
+			public double? depthVal
 			{
 				get
 				{
 					var temp = depth.Split(' ');
-					return decimal.TryParse(temp[0], invNum, out var result) ? result : null;
+					return double.TryParse(temp[0], invNum, out var result) ? result : null;
 				}
 			}
 		}

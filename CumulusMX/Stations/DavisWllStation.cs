@@ -779,7 +779,7 @@ namespace CumulusMX.Stations
 
 										if (data1.hum.HasValue)
 										{
-											DoExtraHum(data1.hum.Value, tempTxId);
+											DoExtraHum((int?) data1.hum, tempTxId);
 										}
 									}
 									catch (Exception ex)
@@ -2126,7 +2126,7 @@ namespace CumulusMX.Stations
 								{
 									if (data11.hum_last != null)
 									{
-										DoExtraHum((double) data11.hum_last, tempTxId);
+										DoExtraHum((int?) data11.hum_last, tempTxId);
 									}
 								}
 								catch (Exception ex)

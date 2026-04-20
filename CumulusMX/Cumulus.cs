@@ -4583,18 +4583,6 @@ namespace CumulusMX
 
 		public bool AirLinkOutEnabled { get; set; }
 
-		public bool ExtraSensorUseSoilMoist { get; set; }
-		public bool ExtraSensorUseSoilEc { get; set; }
-		public bool ExtraSensorUseLeafWet { get; set; }
-		public bool ExtraSensorUseAQI { get; set; }
-		public bool ExtraSensorUseUserTemp { get; set; }
-		public bool ExtraSensorUseLightning { get; set; }
-		public bool ExtraSensorUseCo2 { get; set; }
-		public bool ExtraSensorUseLeak { get; set; }
-		public bool ExtraSensorUseCamera { get; set; }
-		public bool ExtraSensorUseLaserDist { get; set; }
-		public bool ExtraSensorUseBGT { get; set; }
-
 		public bool EcowittExtraEnabled { get; set; }
 		public bool EcowittCloudExtraEnabled { get; set; }
 		public string EcowittApplicationKey { get; set; }
@@ -4628,7 +4616,7 @@ namespace CumulusMX
 		//public int PurpleAirSensorIndex { get; set; }
 		//public string PurpleAirReadKey { get; set; }
 
-		public decimal[] LaserDepthBaseline { get; set; } = new decimal[5];
+		public double[] LaserDepthBaseline { get; set; } = new double[5];
 		public bool[] LaserIsSnowSensor { get; set; } = new bool[5];
 		public int LaserPrimarySnowSensor { get; set; }
 
@@ -4676,7 +4664,7 @@ namespace CumulusMX
 
 		public int SnowDepthHour { get; set; }
 		public int SnowAutomated { get; set; }
-		public decimal SnowDepthMinInc { get; set; }
+		public double SnowDepthMinInc { get; set; }
 		public int SnowDepthMedianMins { get; set; }
 		public double SnowDepthEmaTimeMins { get; set; }
 		public double SnowDepthClipDelta { get; set; }
@@ -4819,22 +4807,10 @@ namespace CumulusMX
 		internal string Gw1000MacAddress;
 		internal bool Gw1000AutoUpdateIpAddress = true;
 		/// <summary>
-		/// 0 = default
-		/// 1-8 = extra t/h sensor number
-		/// 99 =use indoor sensor
-		/// </summary>
-		internal int Gw1000PrimaryTHSensor;
-		/// <summary>
 		/// 0 = Tipping bucket
 		/// 1 = Piezo
 		/// </summary>
 		internal int Gw1000PrimaryRainSensor;
-
-		/// <summary>
-		/// 0 = default
-		/// 1-8 = extra t/h sensor number
-		/// </summary>
-		internal int Gw1000PrimaryIndoorTHSensor;
 
 		internal Timer WebTimer = new();
 
@@ -10988,8 +10964,8 @@ namespace CumulusMX
 		[NotNullAttribute]
 		public TimeSpan Time { get; set; }
 		public string? Entry { get; set; }
-		public decimal? Snow24h { get; set; }
-		public decimal? SnowDepth { get; set; }
+		public double? Snow24h { get; set; }
+		public double? SnowDepth { get; set; }
 		public bool Thunder { get; set; }
 		public bool Hail { get; set; }
 		public bool Fog { get; set; }
@@ -11034,8 +11010,8 @@ namespace CumulusMX
 				{
 					Date = dat.Date;
 					Time = time.TimeOfDay;
-					SnowDepth = string.IsNullOrEmpty(parts[2]) ? null : decimal.Parse(parts[2], CultureInfo.InvariantCulture);
-					Snow24h = string.IsNullOrEmpty(parts[3]) ? null : decimal.Parse(parts[3], CultureInfo.InvariantCulture);
+					SnowDepth = string.IsNullOrEmpty(parts[2]) ? null : double.Parse(parts[2], CultureInfo.InvariantCulture);
+					Snow24h = string.IsNullOrEmpty(parts[3]) ? null : double.Parse(parts[3], CultureInfo.InvariantCulture);
 					Entry = parts[4];
 					Thunder = parts[5].Equals("1");
 					Hail = parts[6].Equals("1");
@@ -11122,14 +11098,14 @@ namespace CumulusMX
 		public string RainTrendText { get; set; }
 		public string PressTrendText { get; set; }
 		public string WindRunText { get; set; }
-		public string AirQualityUnitText { get; set; }
+		public string[] AirQualityUnitText { get; set; } = new string[4];
 		public string[] SoilMoistureUnitText { get; set; } = new string[16];
 		public string CO2UnitText { get; set; }
 		public string LeafWetnessUnitText { get; set; }
 
 		public StationUnits()
 		{
-			AirQualityUnitText = "µg/m³";
+			Array.Fill(AirQualityUnitText, "µg/m³");
 			Array.Fill(SoilMoistureUnitText, "cb");
 			CO2UnitText = "ppm";
 			LeafWetnessUnitText = string.Empty;  // Davis is unitless, Ecowitt uses %
@@ -11167,29 +11143,40 @@ namespace CumulusMX
 
 	public class SensorMaps
 	{
-		public int IndoorTemp { get; set; }
-		public int IndoorHum { get; set; }
-		public int Temperature { get; set; }
-		public int DewPoint { get; set; }
-		public int Humidity { get; set; }
-		public int Wind { get; set; }
-		public int Pressure { get; set; }
-		public int Rain { get; set; }
-		public int Solar { get; set; }
-		public int UV { get; set; }
-		public int[] ExtraTempHum { get; set; } = new int[16];
-		public int[] UserTemp { get; set; } = new int[16];
-		public int[] SoilTemp { get; set; } = new int[16];
-		public int[] SoilMoist { get; set; } = new int[16];
-		public int[] SoilEc { get; set; } = new int[16];
-		public int[] LeafWet { get; set; } = new int[8];
-		public int[] AirQual { get; set; } = new int[4];
-		public int Lightning { get; set; }
-		public int[] LaserDist { get; set; }
-		public int BlackGlobe { get; set; }
-		public int CO2 { get; set; }
-		public int Camera { get; set; }
-		public int[] Leak { get; set; } = new int[4];
+		/// <summary>
+		/// 0 - Default
+		/// 1-16 - Extra TH
+		/// 99 - Indoor
+		/// </summary>
+		public int PrimaryTempHum;
+		/// <summary>
+		/// 0 - Default
+		/// 1-16 Extra TH
+		/// </summary>
+		public int PrimaryIndoorTempHum;
+		public int IndoorTemp;
+		public int IndoorHum;
+		public int Temperature;
+		public int DewPoint;
+		public int Humidity;
+		public int Wind;
+		public int Pressure;
+		public int Rain;
+		public int Solar;
+		public int UV;
+		public int[] ExtraTempHum = new int[16];
+		public int[] UserTemp = new int[16];
+		public int[] SoilTemp = new int[16];
+		public int[] SoilMoist = new int[16];
+		public int[] SoilEc = new int[16];
+		public int[] LeafWet = new int[8];
+		public int[] AirQual = new int[4];
+		public int Lightning;
+		public int[] LaserDist = new int[4];
+		public int BlackGlobe;
+		public int CO2;
+		public int Camera;
+		public int[] Leak = new int[4];
 	}
 
 	public class FtpOptionsClass

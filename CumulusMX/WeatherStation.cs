@@ -1150,9 +1150,9 @@ namespace CumulusMX
 			// Snow accumulation
 			for (var i = 1; i < Snow24h.Length; i++)
 			{
-				Snow24h[i] = ini.GetValue("Snow", "Snow24h" + i, (decimal?) null);
-				LastLaserSnowDepth[i] = ini.GetValue("Snow", "LastLaserDepth" + i, (decimal?) null);
-				SnowSeason[i] = ini.GetValue("Snow", "SnowSeason" + i, (decimal?) null);
+				Snow24h[i] = ini.GetValue("Snow", "Snow24h" + i, (double?) null);
+				LastLaserSnowDepth[i] = ini.GetValue("Snow", "LastLaserDepth" + i, (double?) null);
+				SnowSeason[i] = ini.GetValue("Snow", "SnowSeason" + i, (double?) null);
 			}
 		}
 
@@ -1671,11 +1671,11 @@ namespace CumulusMX
 		/// <summary>
 		/// Laser distance
 		/// </summary>
-		public decimal?[] LaserDist { get; set; } = new decimal?[5];
-		public decimal?[] LaserDepth { get; set; } = new decimal?[5];
-		public decimal?[] LastLaserSnowDepth { get; set; } = new decimal?[5];
-		public decimal?[] Snow24h { get; set; } = new decimal?[5];
-		public decimal?[] SnowSeason { get; set; } = new decimal?[5];
+		public double?[] LaserDist { get; set; } = new double?[5];
+		public double?[] LaserDepth { get; set; } = new double?[5];
+		public double?[] LastLaserSnowDepth { get; set; } = new double?[5];
+		public double?[] Snow24h { get; set; } = new double?[5];
+		public double?[] SnowSeason { get; set; } = new double?[5];
 
 		public readonly SmoothingFilter[] SnowDepthAverage = new SmoothingFilter[5];
 
@@ -1711,10 +1711,10 @@ namespace CumulusMX
 		public double? CO2_pm10_aqi { get; set; }
 		public double? CO2_pm10_24h_aqi { get; set; }
 
-		public int LeakSensor1 { get; set; }
-		public int LeakSensor2 { get; set; }
-		public int LeakSensor3 { get; set; }
-		public int LeakSensor4 { get; set; }
+		public int? LeakSensor1 { get; set; }
+		public int? LeakSensor2 { get; set; }
+		public int? LeakSensor3 { get; set; }
+		public int? LeakSensor4 { get; set; }
 
 		public double LightningDistance { get; set; }
 		public DateTime LightningTime { get; set; } = DateTime.MinValue;
@@ -6478,7 +6478,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				decimal? depth = LaserDepth[cumulus.SnowAutomated].HasValue ? ConvertUnits.LaserToSnow(LaserDepth[cumulus.SnowAutomated].Value) : null;
+				double? depth = LaserDepth[cumulus.SnowAutomated].HasValue ? ConvertUnits.LaserToSnow(LaserDepth[cumulus.SnowAutomated].Value) : null;
 				if (depth.HasValue && depth < 0)
 				{
 					depth = 0;
@@ -7652,11 +7652,11 @@ namespace CumulusMX
 
 		public string LastRainTip { get; set; }
 
-		public void DoExtraHum(double hum, int channel)
+		public void DoExtraHum(int? hum, int channel)
 		{
-			if (channel > 0 && channel < ExtraHum.Length && hum > 0 && hum <= 100)
+			if (channel > 0 && channel < ExtraHum.Length)
 			{
-				ExtraHum[channel] = (int) hum;
+				ExtraHum[channel] = hum;
 			}
 		}
 
@@ -7668,7 +7668,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoUserTemp(double temp, int channel)
+		public void DoUserTemp(double? temp, int channel)
 		{
 			if (channel > 0 && channel < UserTemp.Length)
 			{
@@ -7676,7 +7676,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoExtraDP(double dp, int channel)
+		public void DoExtraDP(double? dp, int channel)
 		{
 			if (channel > 0 && channel < ExtraDewPoint.Length)
 			{
@@ -11051,7 +11051,7 @@ namespace CumulusMX
 				SoilEc[index] = value;
 		}
 
-		public void DoAirQuality(double value, int index)
+		public void DoAirQuality(double? value, int index)
 		{
 			AirQuality[index] = value;
 			AirQualityIdx[index] = GetAqi(AqMeasure.pm2p5, value);
@@ -11135,7 +11135,7 @@ namespace CumulusMX
 		}
 
 
-		public void DoAirQuality10(double value, int index)
+		public void DoAirQuality10(double? value, int index)
 		{
 			AirQuality10[index] = value;
 			AirQuality10Idx[index] = GetAqi(AqMeasure.pm10, value);
@@ -11225,7 +11225,7 @@ namespace CumulusMX
 
 		}
 
-		public void DoLeakSensor(int value, int index)
+		public void DoLeakSensor(int? value, int index)
 		{
 			switch (index)
 			{
@@ -11256,7 +11256,7 @@ namespace CumulusMX
 			}
 		}
 
-		public void DoLaserDistance(decimal? value, int index, DateTime dataTime)
+		public void DoLaserDistance(double? value, int index, DateTime dataTime)
 		{
 			if (index > 0 && index < LaserDist.Length)
 			{
@@ -11284,7 +11284,7 @@ namespace CumulusMX
 		/// <param name="value">Nullable laser distance reading (in the USER configured laser distance units).</param>
 		/// <param name="index">Sensor channel index (must be > 0 and < `LaserDepth.Length`).</param>
 		/// <param name="dataTime">Timestamp associated with the reading (passed into the smoothing filter).</param>
-		public void DoLaserDepth(decimal? value, int index, DateTime dataTime)
+		public void DoLaserDepth(double? value, int index, DateTime dataTime)
 		{
 			if (index > 0 && index < LaserDepth.Length)
 			{
@@ -11305,10 +11305,10 @@ namespace CumulusMX
 					}
 
 					// calculate a smoothed value of the depth
-					var newDepth = (decimal) SnowDepthAverage[index].Update(dataTime, (double) value.Value);
+					var newDepth =SnowDepthAverage[index].Update(dataTime, value.Value);
 
 					var lastDepth = LastLaserSnowDepth[index];
-					var snowInc = (decimal) 0.0;
+					var snowInc = 0.0;
 					var laserFmtPlus1dp = "F" + (cumulus.LaserDPlaces + 1);
 
 					if (!LastLaserSnowDepth[index].HasValue)
@@ -16740,6 +16740,39 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			// Fix: Explicitly convert the anonymous type to the tuple (DateTime, int)
 			return dryDays != null ? (dryDays.date, dryDays.TotalCount) : (default, 0);
 		}
+
+		internal void SetSoilMoistUnits(int index)
+		{
+			for (var i = 0; i < cumulus.SensorMaps.SoilMoist.Length; i++)
+			{
+				if (index == cumulus.SensorMaps.SoilMoist[i])
+					cumulus.Units.SoilMoistureUnitText[i] = "%";
+			}
+
+		}
+
+		internal void SetAirQualUnits(int index)
+		{
+			for (var i = 0; i < cumulus.SensorMaps.SoilMoist.Length; i++)
+			{
+				if (index == cumulus.SensorMaps.AirQual[i])
+				{
+					cumulus.Units.AirQualityUnitText[i] = "µg/m³";
+				}
+			}
+		}
+
+		internal void SetLeafWetUnits(int index)
+		{
+			for (var i = 0; i < cumulus.SensorMaps.LeafWet.Length; i++)
+			{
+				if (index == cumulus.SensorMaps.LeafWet[i])
+				{
+					cumulus.Units.LeafWetnessUnitText = "%";
+				}
+			}
+		}
+
 	}
 
 	public class CWindRecent

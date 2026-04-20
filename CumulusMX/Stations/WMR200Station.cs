@@ -606,7 +606,7 @@ namespace CumulusMX.Stations
 				WMR200ChannelPresent[sensor] = true;
 				// outdoor hum
 				WMR200ExtraHumValues[sensor] = packetBuffer[10];
-				DoExtraHum(WMR200ExtraHumValues[sensor], sensor);
+				DoExtraHum((int) WMR200ExtraHumValues[sensor], sensor);
 				// outdoor temp
 				if ((packetBuffer[9] & 0x80) == 0x80)
 				{

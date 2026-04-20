@@ -327,8 +327,8 @@ namespace CumulusMX.Settings
 
 		private sealed class SnowSettings
 		{
-			public decimal spike { get; set; }
-			public decimal mininc { get; set; }
+			public double spike { get; set; }
+			public double mininc { get; set; }
 			public SnowFilter filter { get; set; }
 		}
 

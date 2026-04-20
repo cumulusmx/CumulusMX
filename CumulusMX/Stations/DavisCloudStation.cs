@@ -2847,7 +2847,7 @@ namespace CumulusMX.Stations
 									{
 										if (data.hum_last != null)
 										{
-											DoExtraHum((double) data.hum_last, tempTxId);
+											DoExtraHum((int?) data.hum_last, tempTxId);
 										}
 									}
 									catch (Exception ex)
