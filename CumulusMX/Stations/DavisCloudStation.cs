@@ -1672,6 +1672,16 @@ namespace CumulusMX.Stations
 										{
 											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing ExtraHum");
 										}
+
+										// Forecast
+										try
+										{
+											DoForecast(data.forecast_desc ?? cumulus.Trans.ForecastNotAvailable, false);
+										}
+										catch (Exception ex)
+										{
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing Forecast");
+										}
 									}
 									break;
 
