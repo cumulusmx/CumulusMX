@@ -687,31 +687,42 @@ namespace CumulusMX.Stations
 							continue;
 						}
 
-						// quick check if there is any data in the file!
-						fields = line.Split(',');
+						if (useTimeStamp)
+						{
+							// timestamp is in the second field
+							if (long.TryParse(line.AsSpan(17, 10), out long ts))
+							{
+								if (Utils.RoundDownUnixTimestamp(ts, SdCardInterval).LocalFromUnixTime() < startTime)
+									continue;
+							}
+							else
+							{
+								cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} failed to parse timestamp field");
+							}
+						}
+						else
+						{
+							if (DateTime.TryParseExact(line.AsSpan(0, 16), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+							{
+								if (dt < startTime)
+									continue;
+							}
+							else
+							{
+								cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} failed to parse date/time field");
+							}
+						}
 
-						if (fields.Length < 10)
+						// quick check if there is any data in the line!
+						if (line.Split(',').Length < 10)
 						{
 							cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} is malformed");
 							cumulus.LogDataMessage($"line # {count} = " + line);
 							continue;
 						}
 
-						if (useTimeStamp)
-						{
-							// timestamp is in the second field
-							if (Utils.RoundDownUnixTimestamp(long.Parse(fields[1]), SdCardInterval).LocalFromUnixTime() >= startTime)
-							{
-								result.Add(line);
-							}
-						}
-						else
-						{
-							if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
-							{
-								result.Add(line);
-							}
-						}
+						// all checks passed - add the line to the results
+						result.Add(line);
 					}
 
 					if (!Program.service)
