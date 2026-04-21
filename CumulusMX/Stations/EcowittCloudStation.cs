@@ -239,7 +239,6 @@ namespace CumulusMX.Stations
 			if (mainStation)
 			{
 				StopMinuteTimer();
-				liveTask.Wait();
 			}
 
 			cumulus.LogMessage($"Ecowitt Cloud {(mainStation ? "Extra Sensors" : "")} station Stopped");

@@ -758,9 +758,9 @@ namespace CumulusMX
 				longestDryPeriodTimeDayfile = dryPeriod.GetTsString(dateStampFormat),
 				longestWetPeriodValDayfile = wetPeriod.GetValString(),
 				longestWetPeriodTimeDayfile = wetPeriod.GetTsString(dateStampFormat),
-				highBgtValDayFile = highBgt.GetValString(cumulus.TempFormat),
+				highBgtValDayfile = highBgt.GetValString(cumulus.TempFormat),
 				highBgtTimeDayfile = highBgt.GetTsString(timeStampFormat),
-				highWbgtValDayFile = highWbgt.GetValString(cumulus.TempFormat),
+				highWbgtValDayfile = highWbgt.GetValString(cumulus.TempFormat),
 				highWbgtTimeDayfile = highWbgt.GetTsString(timeStampFormat)
 			};
 
