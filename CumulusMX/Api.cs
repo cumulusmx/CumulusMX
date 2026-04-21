@@ -228,7 +228,7 @@ namespace CumulusMX
 							await writer.WriteAsync(dataEditor.EditRainToday(HttpContext));
 							break;
 						case "currentcond.json":
-							await writer.WriteAsync(dataEditor.GetCurrentCond());
+							await writer.WriteAsync(DataEditor.GetCurrentCond());
 							break;
 						case "alltimerecords.json":
 							await writer.WriteAsync(dataEditor.GetAllTimeRecData());

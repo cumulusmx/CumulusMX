@@ -92,7 +92,7 @@ namespace CumulusMX.Stations
 
 					try
 					{
-						stream.Read(usbbuffer, offset, responseLength);
+						stream.ReadExactly(usbbuffer, offset, responseLength);
 
 						if (stop) break;
 

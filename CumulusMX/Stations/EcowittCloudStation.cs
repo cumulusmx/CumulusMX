@@ -223,7 +223,7 @@ namespace CumulusMX.Stations
 						}
 					}
 
-				Thread.Sleep(1000);
+				Task.Delay(1000, Program.ExitSystemToken);
 			}
 		}
 

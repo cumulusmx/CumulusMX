@@ -464,7 +464,7 @@ namespace CumulusMX.Stations
 
 			if (FieldIndex.TryGetValue("thunder distance", out idx))
 			{
-				LightningUnit = fields[FieldIndex["thunder distance"]].ToLower().EndsWith("km)") ? LightningDist.km : LightningDist.miles;
+				LightningUnit = fields[idx].ToLower().EndsWith("km)") ? LightningDist.km : LightningDist.miles;
 			}
 			else
 			{

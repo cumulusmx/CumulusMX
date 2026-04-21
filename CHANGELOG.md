@@ -83,6 +83,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Adds the `camera` parameter to the `<#webcam>` and `<#webcamurl>` web tags, if omitted it defaults to "1" the fist defined camera
 	- Eg `<#webcamurl camera=2>`
 - Davis Cloud station error on decoding VP2/Vue originated current data, it also adds the Davis forecast decoding to this model
+- Incomplete BGT/WBGT values from the dayfile in the records editors
 
 ### Package Updates
 
