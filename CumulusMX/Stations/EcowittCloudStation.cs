@@ -12,7 +12,6 @@ namespace CumulusMX.Stations
 		private readonly WeatherStation station;
 		private readonly EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
-		private Task liveTask;
 		private readonly bool mainStation;
 		private string deviceModel;
 		private Version deviceFirmware;
@@ -175,67 +174,64 @@ namespace CumulusMX.Stations
 			}
 
 			// main data task
-			liveTask = Task.Run(() =>
+			var delay = 0;
+			var nextFetch = DateTime.MinValue;
+
+			while (!Program.ExitSystemToken.IsCancellationRequested)
 			{
-				var delay = 0;
-				var nextFetch = DateTime.MinValue;
-
-				while (!Program.ExitSystemToken.IsCancellationRequested)
+				if (DateTime.UtcNow >= nextFetch && !DayResetInProgress)
 				{
-					if (DateTime.UtcNow >= nextFetch && !DayResetInProgress)
+					try
 					{
-						try
+
+						var data = ecowittApi.GetCurrentData(ref delay, Program.ExitSystemToken);
+
+						if (data != null)
 						{
+							ProcessCurrentData(data, Program.ExitSystemToken);
+						}
+						else
+						{
+							cumulus.LogDebugMessage($"EcowittCloud: No new data to process");
+						}
+						cumulus.LogDebugMessage($"EcowittCloud: Waiting {delay} seconds before next update");
+						nextFetch = DateTime.UtcNow.AddSeconds(delay);
 
-							var data = ecowittApi.GetCurrentData(ref delay, Program.ExitSystemToken);
+						var hour = DateTime.Now.Hour;
+						if (lastHour != hour)
+						{
+							lastHour = hour;
 
-							if (data != null)
+							if (hour == 13)
 							{
-								ProcessCurrentData(data, Program.ExitSystemToken);
-							}
-							else
-							{
-								cumulus.LogDebugMessage($"EcowittCloud: No new data to process");
-							}
-							cumulus.LogDebugMessage($"EcowittCloud: Waiting {delay} seconds before next update");
-							nextFetch = DateTime.UtcNow.AddSeconds(delay);
-
-							var hour = DateTime.Now.Hour;
-							if (lastHour != hour)
-							{
-								lastHour = hour;
-
-								if (hour == 13)
+								try
 								{
-									try
+									var retVal = ecowittApi.GetStationList(mainStation || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
+									if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 									{
-										var retVal = ecowittApi.GetStationList(mainStation || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
-										if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
-										{
-											// EasyWeather seems to contain the WiFi version
-											deviceFirmware = new Version(retVal[0]);
-											deviceModel = retVal[1];
-											GW1000FirmwareVersion = retVal[0];
-										}
-										_ = CheckAvailableFirmware();
+										// EasyWeather seems to contain the WiFi version
+										deviceFirmware = new Version(retVal[0]);
+										deviceModel = retVal[1];
+										GW1000FirmwareVersion = retVal[0];
 									}
-									catch (Exception ex)
-									{
-										cumulus.LogExceptionMessage(ex, "Error decoding firmware version");
-									}
+									_ = CheckAvailableFirmware();
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogExceptionMessage(ex, "Error decoding firmware version");
 								}
 							}
 						}
-						catch (Exception ex)
-						{
-							cumulus.LogExceptionMessage(ex, "Error running Ecowitt Cloud station");
-							nextFetch = DateTime.UtcNow.AddMinutes(1);
-						}
 					}
-
-					Thread.Sleep(1000);
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "Error running Ecowitt Cloud station");
+						nextFetch = DateTime.UtcNow.AddMinutes(1);
+					}
 				}
-			}, Program.ExitSystemToken);
+
+				Thread.Sleep(1000);
+			}
 		}
 
 		public override void Stop()

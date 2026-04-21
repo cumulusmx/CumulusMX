@@ -28,7 +28,6 @@ namespace CumulusMX.Stations
 		private readonly System.Timers.Timer tmrDataWatchdog;
 
 		private readonly Task historyTask;
-		private Task liveTask;
 
 		internal static readonly char[] dotSeparator = ['.'];
 		internal static readonly string[] underscoreV = ["_V"];
@@ -180,9 +179,7 @@ namespace CumulusMX.Stations
 				cumulus.LogExceptionMessage(ex, "Error checking for default UV gain");
 			}
 
-			liveTask = Task.Run(() =>
-			{
-				while (!Program.ExitSystemToken.IsCancellationRequested)
+			while (!Program.ExitSystemToken.IsCancellationRequested)
 				{
 					var dataLastRead = DateTime.Now;
 					double delay;
@@ -378,14 +375,6 @@ namespace CumulusMX.Stations
 						cumulus.LogMessage("Ecowitt Local HTTP API station background task closed due to shutting down");
 					}
 				}
-			}, Program.ExitSystemToken)
-			.ContinueWith(t =>
-			{
-				if (!t.IsCanceled && t.IsFaulted)
-				{
-					cumulus.LogExceptionMessage(t.Exception, "Ecowitt Local HTTP API station background task error - exited");
-				}
-			});
 		}
 
 		public override void Stop()
@@ -395,7 +384,7 @@ namespace CumulusMX.Stations
 			{
 				tmrDataWatchdog.Stop();
 				StopMinuteTimer();
-				Task.WaitAll(historyTask, liveTask);
+				historyTask.Wait();
 			}
 			catch
 			{
