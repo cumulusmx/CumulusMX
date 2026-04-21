@@ -10250,6 +10250,8 @@ namespace CumulusMX
 				ResetMidnightTemperatures(DateTime.Now);
 				Reset9amTemperatures(DateTime.Now);
 			}
+
+			cumulus.LastUpdateTime = DateTime.Now;
 		}
 
 		public int DominantWindBearing { get; set; }

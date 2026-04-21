@@ -3183,7 +3183,7 @@ namespace CumulusMX
 			return "Success";
 		}
 
-		internal string GetCurrentCond()
+		internal static string GetCurrentCond()
 		{
 			string res;
 			string fileName = Path.Combine(Directory.GetCurrentDirectory(), "currentconditions.txt");

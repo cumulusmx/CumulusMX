@@ -45,7 +45,7 @@ namespace CumulusMX
 		internal static JsonStation stationJson { get; set; }
 		internal static JsonStation stationJsonExtra { get; set; }
 		private static readonly char[] separator = [':'];
-		private static string htmlRootPath = Path.Combine(System.AppContext.BaseDirectory, "interface");
+		private static readonly string htmlRootPath = Path.Combine(System.AppContext.BaseDirectory, "interface");
 
 
 		// Get/Post Edit data
@@ -99,7 +99,7 @@ namespace CumulusMX
 
 		public class ScriptController : WebApiController
 		{
-			static string[] bypassList = [
+			static readonly string[] bypassList = [
 				"airlink.js",
 				"extrawebfiles.js",
 				"gaugefeed.js",
@@ -152,7 +152,7 @@ namespace CumulusMX
 
 		public class JsonController : WebApiController
 		{
-			static string[] bypassList = [
+			static readonly string[] bypassList = [
 				"CustomLogsDailySchema.json",
 				"CustomLogsIntvlSchema.json",
 				"HttpFilesSchema.json",
@@ -227,7 +227,7 @@ namespace CumulusMX
 							await writer.WriteAsync(dataEditor.EditRainToday(HttpContext));
 							break;
 						case "currentcond.json":
-							await writer.WriteAsync(dataEditor.GetCurrentCond());
+							await writer.WriteAsync(DataEditor.GetCurrentCond());
 							break;
 						case "alltimerecords.json":
 							await writer.WriteAsync(dataEditor.GetAllTimeRecData());
@@ -2092,7 +2092,7 @@ namespace CumulusMX
 
 		public class Ai2ScriptController : WebApiController
 		{
-			static string[] bypassList = [
+			static readonly string[] bypassList = [
 			];
 
 			[Route(HttpVerbs.Get, "/ai2/js/{req}")]
