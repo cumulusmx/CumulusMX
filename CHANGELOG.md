@@ -82,7 +82,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Fixes multiple web cam URL support
 	- Adds the `camera` parameter to the `<#webcam>` and `<#webcamurl>` web tags, if omitted it defaults to "1" the fist defined camera
 	- Eg `<#webcamurl camera=2>`
-- Davis Cloud station error on decoding VP2 originated current data
+- Davis Cloud station error on decoding VP2/Vue originated current data, it also adds the Davis forecast decoding to this model
 
 ### Package Updates
 
