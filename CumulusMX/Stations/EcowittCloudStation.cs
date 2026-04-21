@@ -12,7 +12,6 @@ namespace CumulusMX.Stations
 		private readonly WeatherStation station;
 		private readonly EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
-		private Task liveTask;
 		private readonly bool mainStation;
 		private readonly int stationIndex;
 		private string deviceModel;
@@ -168,35 +167,33 @@ namespace CumulusMX.Stations
 			}
 
 			// main data task
-			liveTask = Task.Run(() =>
+			var delay = 0;
+			var nextFetch = DateTime.MinValue;
+
+			while (!Program.ExitSystemToken.IsCancellationRequested)
 			{
-				var delay = 0;
-				var nextFetch = DateTime.MinValue;
-
-				while (!Program.ExitSystemToken.IsCancellationRequested)
+				if (DateTime.UtcNow >= nextFetch && !DayResetInProgress)
 				{
-					if (DateTime.UtcNow >= nextFetch && !DayResetInProgress)
+					try
 					{
-						try
+
+						var data = ecowittApi.GetCurrentData(ref delay, Program.ExitSystemToken);
+
+						if (data != null)
 						{
+							ProcessCurrentData(data, Program.ExitSystemToken);
+						}
+						else
+						{
+							cumulus.LogDebugMessage($"EcowittCloud: No new data to process");
+						}
+						cumulus.LogDebugMessage($"EcowittCloud: Waiting {delay} seconds before next update");
+						nextFetch = DateTime.UtcNow.AddSeconds(delay);
 
-							var data = ecowittApi.GetCurrentData(ref delay, Program.ExitSystemToken);
-
-							if (data != null)
-							{
-								ProcessCurrentData(data, Program.ExitSystemToken);
-							}
-							else
-							{
-								cumulus.LogDebugMessage($"EcowittCloud: No new data to process");
-							}
-							cumulus.LogDebugMessage($"EcowittCloud: Waiting {delay} seconds before next update");
-							nextFetch = DateTime.UtcNow.AddSeconds(delay);
-
-							var hour = DateTime.Now.Hour;
-							if (lastHour != hour)
-							{
-								lastHour = hour;
+						var hour = DateTime.Now.Hour;
+						if (lastHour != hour)
+						{
+							lastHour = hour;
 
 								if (hour == 13)
 								{
@@ -226,9 +223,8 @@ namespace CumulusMX.Stations
 						}
 					}
 
-					Thread.Sleep(1000);
-				}
-			}, Program.ExitSystemToken);
+				Thread.Sleep(1000);
+			}
 		}
 
 		public override void Stop()
@@ -236,7 +232,6 @@ namespace CumulusMX.Stations
 			if (mainStation)
 			{
 				StopMinuteTimer();
-				liveTask.Wait();
 			}
 
 			cumulus.LogMessage($"Ecowitt Cloud {(mainStation ? "Extra Sensors" : "")} station Stopped");

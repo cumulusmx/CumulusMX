@@ -31,7 +31,6 @@ namespace CumulusMX.Stations
 		private readonly System.Timers.Timer tmrDataWatchdog;
 
 		private readonly Task historyTask;
-		private Task liveTask;
 
 		private Version fwVersion;
 		internal static readonly char[] dotSeparator = ['.'];
@@ -148,118 +147,115 @@ namespace CumulusMX.Stations
 
 			cumulus.StartTimersAndSensors();
 
-			liveTask = Task.Run(() =>
+			try
 			{
-				try
-				{
-					var piezoLastRead = DateTime.MinValue;
-					var dataLastRead = DateTime.MinValue;
-					double delay;
+				var piezoLastRead = DateTime.MinValue;
+				var dataLastRead = DateTime.MinValue;
+				double delay;
 
-					while (!Program.ExitSystemToken.IsCancellationRequested)
+				while (!Program.ExitSystemToken.IsCancellationRequested)
+				{
+					if (!DayResetInProgress)
 					{
-						if (!DayResetInProgress)
+						if (Api.Connected)
 						{
+							GetLiveData();
+							dataLastRead = DateTime.Now;
+
+							// every 30 seconds read the rain rate
+							if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.StationOptions.UseRainForIsRaining == 2) && (DateTime.UtcNow - piezoLastRead).TotalSeconds >= 30 && !Program.ExitSystemToken.IsCancellationRequested)
+							{
+								GetPiezoRainData();
+								piezoLastRead = DateTime.UtcNow;
+							}
+
+							var minute = DateTime.Now.Minute;
+							if (minute != lastMinute)
+							{
+								lastMinute = minute;
+
+								// at the start of every 20 minutes to trigger battery status check
+								if (minute % 20 == 0 && !Program.ExitSystemToken.IsCancellationRequested)
+								{
+									GetSensorIdsNew();
+								}
+
+								// every day dump the clock drift at midday each day
+								if (minute == 0 && DateTime.Now.Hour == 12)
+								{
+									GetSystemInfo(true);
+								}
+
+								var hour = DateTime.Now.Hour;
+								if (lastHour != hour)
+								{
+									lastHour = hour;
+
+									if (hour == 13)
+									{
+										var fw = GetFirmwareVersion();
+										if (fw != "???")
+										{
+											GW1000FirmwareVersion = fw;
+											deviceModel = GW1000FirmwareVersion.Split('_')[0];
+											deviceFirmware = GW1000FirmwareVersion.Split('_')[1];
+
+											var fwString = GW1000FirmwareVersion.Split(underscoreV, StringSplitOptions.None);
+											if (fwString.Length > 1)
+											{
+												fwVersion = new Version(fwString[1]);
+											}
+											else
+											{
+												// failed to get the version, lets assume it's fairly new
+												fwVersion = new Version("1.6.5");
+											}
+										}
+
+										_ = CheckAvailableFirmware();
+									}
+								}
+							}
+						}
+						else
+						{
+							cumulus.LogMessage("Attempting to reconnect to Ecowitt device...");
+							Api.OpenTcpPort(cumulus.Gw1000IpAddress, AtPort);
 							if (Api.Connected)
 							{
+								cumulus.LogMessage("Reconnected to Ecowitt device");
 								GetLiveData();
-								dataLastRead = DateTime.Now;
-
-								// every 30 seconds read the rain rate
-								if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.StationOptions.UseRainForIsRaining == 2) && (DateTime.UtcNow - piezoLastRead).TotalSeconds >= 30 && !Program.ExitSystemToken.IsCancellationRequested)
-								{
-									GetPiezoRainData();
-									piezoLastRead = DateTime.UtcNow;
-								}
-
-								var minute = DateTime.Now.Minute;
-								if (minute != lastMinute)
-								{
-									lastMinute = minute;
-
-									// at the start of every 20 minutes to trigger battery status check
-									if (minute % 20 == 0 && !Program.ExitSystemToken.IsCancellationRequested)
-									{
-										GetSensorIdsNew();
-									}
-
-									// every day dump the clock drift at midday each day
-									if (minute == 0 && DateTime.Now.Hour == 12)
-									{
-										GetSystemInfo(true);
-									}
-
-									var hour = DateTime.Now.Hour;
-									if (lastHour != hour)
-									{
-										lastHour = hour;
-
-										if (hour == 13)
-										{
-											var fw = GetFirmwareVersion();
-											if (fw != "???")
-											{
-												GW1000FirmwareVersion = fw;
-												deviceModel = GW1000FirmwareVersion.Split('_')[0];
-												deviceFirmware = GW1000FirmwareVersion.Split('_')[1];
-
-												var fwString = GW1000FirmwareVersion.Split(underscoreV, StringSplitOptions.None);
-												if (fwString.Length > 1)
-												{
-													fwVersion = new Version(fwString[1]);
-												}
-												else
-												{
-													// failed to get the version, lets assume it's fairly new
-													fwVersion = new Version("1.6.5");
-												}
-											}
-
-											_ = CheckAvailableFirmware();
-										}
-									}
-								}
 							}
 							else
 							{
-								cumulus.LogMessage("Attempting to reconnect to Ecowitt device...");
-								Api.OpenTcpPort(cumulus.Gw1000IpAddress, AtPort);
-								if (Api.Connected)
+								// add a small extra delay before trying again
+								cumulus.LogMessage("Delaying before attempting reconnect");
+								if (Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(20000)))
 								{
-									cumulus.LogMessage("Reconnected to Ecowitt device");
-									GetLiveData();
-								}
-								else
-								{
-									// add a small extra delay before trying again
-									cumulus.LogMessage("Delaying before attempting reconnect");
-									if (Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(20000)))
-									{
-										break;
-									}
+									break;
 								}
 							}
 						}
+					}
 
-						delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
+					delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
 
-						if (Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
-						{
-							break;
-						}
+					if (Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay)))
+					{
+						break;
 					}
 				}
-				// Catch the ThreadAbortException
-				catch (ThreadAbortException)
-				{
-					//do nothing
-				}
-				finally
-				{
-					Api.CloseTcpPort();
-					cumulus.LogMessage("Local API task ended");
-				}
-			}, Program.ExitSystemToken);
+			}
+			// Catch the ThreadAbortException
+			catch (ThreadAbortException)
+			{
+				//do nothing
+			}
+			finally
+			{
+				Api.CloseTcpPort();
+				cumulus.LogMessage("Local API task ended");
+			}
 		}
 
 		public override void Stop()
@@ -269,7 +265,7 @@ namespace CumulusMX.Stations
 			{
 				tmrDataWatchdog.Stop();
 				StopMinuteTimer();
-				Task.WaitAll(historyTask, liveTask);
+				historyTask.Wait();
 			}
 			catch
 			{
