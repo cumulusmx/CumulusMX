@@ -649,7 +649,7 @@ namespace CumulusMX.Stations
 					line = await streamReader.ReadLineAsync(token);
 					var fields = line.Split(',');
 
-					if (fields.Length < 10)
+					if (fields.Length < 20)
 					{
 						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} header line is malformed");
 						cumulus.LogMessage("Header line = " + line);
@@ -673,7 +673,7 @@ namespace CumulusMX.Stations
 					{
 						count++;
 
-						if (count % 100 == 1)
+						if (count % 500 == 1)
 						{
 							cumulus.LogDebugMessage($"  Checking line {count}");
 
@@ -714,7 +714,7 @@ namespace CumulusMX.Stations
 						}
 
 						// quick check if there is any data in the line!
-						if (line.Split(',').Length < 10)
+						if (line.Split(',').Length < 20)
 						{
 							cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} is malformed");
 							cumulus.LogDataMessage($"line # {count} = " + line);

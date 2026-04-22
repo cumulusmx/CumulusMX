@@ -84,6 +84,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Eg `<#webcamurl camera=2>`
 - Davis Cloud station error on decoding VP2/Vue originated current data, it also adds the Davis forecast decoding to this model
 - Incomplete BGT/WBGT values from the dayfile in the records editors
+- Enabling a Purple Air AQ sensor now automatically enables the extra sensor use AQ feature
 
 ### Package Updates
 
