@@ -105,9 +105,9 @@ namespace CumulusMX.Stations
 				DataTimeoutMins = cumulus.EcowittCloudDataUpdateInterval + 2;
 			}
 
-			SetSoilMoistUnits();
-			SetAirQualityUnits();
-			SetLeafWetnessUnits();
+			SetSoilMoistUnits(stationIndex, "%");
+			SetAirQualUnits(stationIndex, "µg/m³");
+			SetLeafWetUnits(stationIndex, "%");
 
 			ecowittApi = new EcowittApi(cumulus, this, mainStation);
 
@@ -814,36 +814,6 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void SetSoilMoistUnits()
-		{
-			for (var i = 0; i < cumulus.SensorMaps.SoilMoist.Length; i++)
-			{
-				if (cumulus.SensorMaps.SoilMoist[i] == stationIndex)
-					cumulus.Units.SoilMoistureUnitText[i] = "%";
-			}
-		}
-
-		private void SetAirQualityUnits()
-		{
-			for (var i = 0; i < cumulus.SensorMaps.AirQual.Length; i++)
-			{
-				if (stationIndex == cumulus.SensorMaps.AirQual[i])
-				{
-					cumulus.Units.AirQualityUnitText[i] = "µg/m³";
-				}
-			}
-		}
-
-		private void SetLeafWetnessUnits()
-		{
-			for (var i = 0; i < cumulus.SensorMaps.LeafWet.Length; i++)
-			{
-				if (stationIndex == cumulus.SensorMaps.LeafWet[i])
-				{
-					cumulus.Units.LeafWetnessUnitText = "%";
-				}
-			}
-		}
 
 		private void ProcessSoilMoist(EcowittApi.CurrentDataData data)
 		{

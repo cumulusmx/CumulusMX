@@ -9912,14 +9912,14 @@ namespace CumulusMX
 		public string[] AirQualityUnitText { get; set; } = new string[4];
 		public string[] SoilMoistureUnitText { get; set; } = new string[16];
 		public string CO2UnitText { get; set; }
-		public string LeafWetnessUnitText { get; set; }
+		public string[] LeafWetnessUnitText { get; set; } = new string[8];
 
 		public StationUnits()
 		{
 			Array.Fill(AirQualityUnitText, "µg/m³");
 			Array.Fill(SoilMoistureUnitText, "cb");
 			CO2UnitText = "ppm";
-			LeafWetnessUnitText = string.Empty;  // Davis is unitless, Ecowitt uses %
+			Array.Fill(LeafWetnessUnitText, string.Empty);  // Davis is unitless, Ecowitt uses %
 		}
 	}
 

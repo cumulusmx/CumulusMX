@@ -12111,7 +12111,7 @@ namespace CumulusMX
 				{
 					if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[i - 1]}\",\"{LeafWetness[i].ToFixed(cumulus.LeafWetFormat, "-")}\",\"{cumulus.Units.LeafWetnessUnitText}\"],");
+						json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[i - 1]}\",\"{LeafWetness[i].ToFixed(cumulus.LeafWetFormat, "-")}\",\"{cumulus.Units.LeafWetnessUnitText[i-1]}\"],");
 					}
 				}
 			}
@@ -13301,8 +13301,8 @@ namespace CumulusMX
 			json.Append($"\"press\":\"{cumulus.Units.PressText}\",");
 			json.Append($"\"soilmoisture\":[\"{string.Join("\",\"", cumulus.Units.SoilMoistureUnitText)}\"],");
 			json.Append($"\"co2\":\"{cumulus.Units.CO2UnitText}\",");
-			json.Append($"\"leafwet\":\"{cumulus.Units.LeafWetnessUnitText}\",");
-			json.Append($"\"aq\":\"{cumulus.Units.AirQualityUnitText}\",");
+			json.Append($"\"leafwet\":\"{string.Join("\",\"", cumulus.Units.LeafWetnessUnitText)}\",");
+			json.Append($"\"aq\":\"{string.Join("\",\"", cumulus.Units.AirQualityUnitText)}\",");
 			json.Append($"\"snow\":\"{cumulus.Units.SnowText}\",");
 			json.Append($"\"laser\":\"{cumulus.Units.LaserDistanceText}\"");
 			json.Append('}');
@@ -15435,34 +15435,34 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			return dryDays != null ? (dryDays.date, dryDays.TotalCount) : (default, 0);
 		}
 
-		internal void SetSoilMoistUnits(int index)
+		internal void SetSoilMoistUnits(int index, string val)
 		{
 			for (var i = 0; i < cumulus.SensorMaps.SoilMoist.Length; i++)
 			{
 				if (index == cumulus.SensorMaps.SoilMoist[i])
-					cumulus.Units.SoilMoistureUnitText[i] = "%";
+					cumulus.Units.SoilMoistureUnitText[i] = val;
 			}
 
 		}
 
-		internal void SetAirQualUnits(int index)
+		internal void SetAirQualUnits(int index, string val)
 		{
 			for (var i = 0; i < cumulus.SensorMaps.SoilMoist.Length; i++)
 			{
 				if (index == cumulus.SensorMaps.AirQual[i])
 				{
-					cumulus.Units.AirQualityUnitText[i] = "µg/m³";
+					cumulus.Units.AirQualityUnitText[i] = val;
 				}
 			}
 		}
 
-		internal void SetLeafWetUnits(int index)
+		internal void SetLeafWetUnits(int index, string val)
 		{
 			for (var i = 0; i < cumulus.SensorMaps.LeafWet.Length; i++)
 			{
 				if (index == cumulus.SensorMaps.LeafWet[i])
 				{
-					cumulus.Units.LeafWetnessUnitText = "%";
+					cumulus.Units.LeafWetnessUnitText[i] = val;
 				}
 			}
 		}

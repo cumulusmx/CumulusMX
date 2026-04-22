@@ -35,12 +35,13 @@ namespace CumulusMX.Stations
 		private Version fwVersion;
 		internal static readonly char[] dotSeparator = ['.'];
 		internal static readonly string[] underscoreV = ["_V"];
+		internal readonly int stationIndex = 0;
 
 		public GW1000Station(Cumulus cumulus) : base(cumulus)
 		{
-			cumulus.Units.AirQualityUnitText = "µg/m³";
-			Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
-			cumulus.Units.LeafWetnessUnitText = "%";
+			SetSoilMoistUnits(stationIndex, "%");
+			SetAirQualUnits(stationIndex, "µg/m³");
+			SetLeafWetUnits(stationIndex, "%");
 
 			// GW1000 does not provide 10 min average wind speeds
 			cumulus.StationOptions.CalcuateAverageWindSpeed = true;

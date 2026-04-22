@@ -47,9 +47,9 @@ namespace CumulusMX.Stations
 
 		public EcowittHttpApiStation(Cumulus cumulus) : base(cumulus)
 		{
-			SetAirQualUnits(stationIndex);
-			SetSoilMoistUnits(stationIndex);
-			SetLeafWetUnits(stationIndex);
+			SetAirQualUnits(stationIndex, "µg/m³");
+			SetSoilMoistUnits(stationIndex, "%");
+			SetLeafWetUnits(stationIndex, "%");
 
 			// GW1000 does not provide 10 min average wind speeds
 			cumulus.StationOptions.CalcuateAverageWindSpeed = true;

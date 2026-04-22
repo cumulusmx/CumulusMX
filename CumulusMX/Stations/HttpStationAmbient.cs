@@ -38,8 +38,8 @@ namespace CumulusMX.Stations
 			// Ambient does not send DP, so force MX to calculate it
 			//cumulus.StationOptions.CalculatedDP = true
 
-			SetSoilMoistUnits(stationIndex);
-			SetAirQualUnits(stationIndex);
+			SetSoilMoistUnits(stationIndex, "%");
+			SetAirQualUnits(stationIndex, "µg/m³");
 
 			// Only perform the Start-up if we are a proper station, not a Extra Sensor
 			if (mainStation)

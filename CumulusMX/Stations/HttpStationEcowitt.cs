@@ -141,10 +141,9 @@ namespace CumulusMX.Stations
 				}
 			}
 
-			SetSoilMoistUnits(stationIndex);
-			SetAirQualUnits(stationIndex);
-			SetLeafWetUnits(stationIndex);
-
+			SetSoilMoistUnits(stationIndex, "%");
+			SetAirQualUnits(stationIndex, "µg/m³");
+			SetLeafWetUnits(stationIndex, "%");
 
 			ecowittApi = new EcowittApi(cumulus, this, mainStation);
 

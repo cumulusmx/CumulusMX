@@ -11,15 +11,16 @@ namespace CumulusMX.Stations
 		private bool stopping = false;
 		private double previousRainCount = -1;
 		private double rainCount = 0;
+		private readonly int stationIndex = 0;
 
 		public HttpStationWund(Cumulus cumulus) : base(cumulus)
 		{
 			cumulus.LogMessage("Starting HTTP Station (Wunderground)");
 
 			cumulus.StationOptions.CalculatedWC = true;
-			cumulus.Units.AirQualityUnitText = "µg/m³";
-			Array.Fill(cumulus.Units.SoilMoistureUnitText, "%");
-			cumulus.Units.LeafWetnessUnitText = "%";
+			SetSoilMoistUnits(stationIndex, "%");
+			SetAirQualUnits(stationIndex, "µg/m³");
+			SetLeafWetUnits(stationIndex, "%");
 
 			// Wunderground does not send the rain rate, so we will calculate it
 			calculaterainrate = true;
