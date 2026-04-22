@@ -5918,32 +5918,6 @@ namespace CumulusMX
 			}
 		}
 
-		public void LogCriticalMessage(string message)
-		{
-			Program.MxLogger.Error(message);
-			LatestErrorLog(message, MxLogLevel.Critical);
-		}
-
-		public void LogErrorMessage(string message)
-		{
-			Program.MxLogger.Error(message);
-			LatestErrorLog(message, MxLogLevel.Error);
-		}
-
-		public void LogWarningMessage(string message)
-		{
-			Program.MxLogger.Warn(message);
-			LatestErrorLog(message, MxLogLevel.Warning);
-		}
-
-		public void LogSpikeRemoval(string message)
-		{
-			if (ErrorLogSpikeRemoval)
-			{
-				Program.MxLogger.Warn("Spike removal: " + message);
-			}
-		}
-
 		public void Stop()
 		{
 			LogMessage("Cumulus close requested");
@@ -8967,63 +8941,6 @@ namespace CumulusMX
 			}
 		}
 
-		public void LogFtpMessage(string message, bool realTime)
-		{
-			if (!string.IsNullOrEmpty(message))
-			{
-				LogMessage(message);
-			}
-			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
-			{
-				if (realTime && FtpLoggerMXRT != null)
-				{
-					FtpLoggerMXRT.LogInformation("{Msg}", message);
-				}
-				else if (FtpLoggerMXIN != null)
-				{
-					FtpLoggerMXIN.LogInformation("{Msg}", message);
-				}
-			}
-		}
-
-		public void LogFtpDebugMessage(string message, bool realTime)
-		{
-			if (!string.IsNullOrEmpty(message))
-			{
-				LogDebugMessage(message);
-			}
-
-			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
-			{
-				if (realTime && FtpLoggerMXRT != null)
-				{
-					FtpLoggerMXRT.LogDebug("{Msg}", message);
-				}
-				else if (FtpLoggerMXIN != null)
-				{
-					FtpLoggerMXIN.LogDebug("{Msg}", message);
-				}
-			}
-		}
-
-		public static void LogConsoleMessage(string message, ConsoleColor colour = ConsoleColor.White, bool LogDateTime = false)
-		{
-			if (!Program.service)
-			{
-				if (LogDateTime)
-				{
-					message = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + message;
-				}
-
-				Console.ForegroundColor = colour;
-				Console.WriteLine(message);
-				Console.ResetColor();
-			}
-
-			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
-			Program.svcTextListener.Flush();
-		}
-
 		public void LogExceptionMessage(Exception ex, string message, bool logError = true)
 		{
 			if (ProgramOptions.DebugLogging)
@@ -9044,6 +8961,94 @@ namespace CumulusMX
 				ErrorAlarm.LastMessage = message;
 				ErrorAlarm.Triggered = true;
 			}
+		}
+
+		public void LogCriticalMessage(string message)
+		{
+			Program.MxLogger.Error(message);
+			LatestErrorLog(message, MxLogLevel.Critical);
+		}
+
+		public void LogErrorMessage(string message)
+		{
+			Program.MxLogger.Error(message);
+			LatestErrorLog(message, MxLogLevel.Error);
+		}
+
+		public void LogWarningMessage(string message)
+		{
+			Program.MxLogger.Warn(message);
+			LatestErrorLog(message, MxLogLevel.Warning);
+		}
+
+		public void LogSpikeRemoval(string message)
+		{
+			if (ErrorLogSpikeRemoval)
+			{
+				Program.MxLogger.Warn("Spike removal: " + message);
+			}
+		}
+
+
+		public void LogFtpMessage(string message, bool realTime)
+		{
+			if (!string.IsNullOrEmpty(message))
+			{
+				LogMessage(message);
+			}
+			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
+			{
+#pragma warning disable CA2254 // Template should be a static expression
+				if (realTime && FtpLoggerMXRT != null)
+				{
+					FtpLoggerMXRT.LogInformation(message);
+				}
+				else if (FtpLoggerMXIN != null)
+				{
+					FtpLoggerMXIN.LogInformation(message);
+				}
+#pragma warning restore CA2254 // Template should be a static expression
+			}
+		}
+
+		public void LogFtpDebugMessage(string message, bool realTime)
+		{
+			if (!string.IsNullOrEmpty(message))
+			{
+				LogDebugMessage(message);
+			}
+
+			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
+			{
+#pragma warning disable CA2254 // Template should be a static expression
+				if (realTime && FtpLoggerMXRT != null)
+				{
+					FtpLoggerMXRT.LogDebug(message);
+				}
+				else if (FtpLoggerMXIN != null)
+				{
+					FtpLoggerMXIN.LogDebug(message);
+				}
+#pragma warning restore CA2254 // Template should be a static expression
+			}
+		}
+
+		public static void LogConsoleMessage(string message, ConsoleColor colour = ConsoleColor.White, bool LogDateTime = false)
+		{
+			if (!Program.service)
+			{
+				if (LogDateTime)
+				{
+					message = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + message;
+				}
+
+				Console.ForegroundColor = colour;
+				Console.WriteLine(message);
+				Console.ResetColor();
+			}
+
+			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+			Program.svcTextListener.Flush();
 		}
 
 		public static string GetErrorLog()
