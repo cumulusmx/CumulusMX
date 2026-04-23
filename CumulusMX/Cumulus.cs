@@ -9975,18 +9975,31 @@ namespace CumulusMX
 		public int Rain;
 		public int Solar;
 		public int UV;
+		public bool ExtraTempHumEnabled;
 		public int[] ExtraTempHum = new int[16];
+		public bool UserTempEnabled;
 		public int[] UserTemp = new int[16];
+		public bool SoilTempEnabled;
 		public int[] SoilTemp = new int[16];
+		public bool SoilMoistEnabled;
 		public int[] SoilMoist = new int[16];
+		public bool SoilEcEnabled;
 		public int[] SoilEc = new int[16];
+		public bool LeafWetEnabled;
 		public int[] LeafWet = new int[8];
+		public bool AirQualEnabled;
 		public int[] AirQual = new int[4];
+		public bool LightningEnabled;
 		public int Lightning;
+		public bool LaserDistEnabled;
 		public int[] LaserDist = new int[4];
+		public bool BlackGlobeEnabled;
 		public int BlackGlobe;
+		public bool CO2Enabled;
 		public int CO2;
+		public bool CameraEnabled;
 		public int Camera;
+		public bool LeakEnabled;
 		public int[] Leak = new int[4];
 	}
 

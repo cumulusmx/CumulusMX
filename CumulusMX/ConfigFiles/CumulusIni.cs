@@ -690,80 +690,92 @@ namespace CumulusMX
 			if (ini.ValueExists("GW1000", "ExtraSensorUseTempHum"))
 			{
 				var val = ini.GetValue("GW1000", "ExtraSensorUseTempHum", 0, 0, 1);
-				SensorMaps.ExtraTempHum = Enumerable.Repeat(val, SensorMaps.ExtraTempHum.Length).ToArray();
 				ini.DeleteValue("GW1000", "ExtraSensorUseTempHum");
+				ini.SetValue("SensorMaps", "ExtraTempHumEnabled", val == 1);
+				SensorMaps.ExtraTempHum = Enumerable.Repeat(val, SensorMaps.ExtraTempHum.Length).ToArray();
 				ini.SetValue("SensorMaps", "ExtraTempHum", SensorMaps.ExtraTempHum);
 				rewriteRequired = true;
 			}
 			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseTempHum"))
 			{
 				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseTempHum", 0, 0, 1);
+				ini.SetValue("SensorMaps", "ExtraTempHumEnabled", val == 1);
 				SensorMaps.ExtraTempHum = Enumerable.Repeat(val, SensorMaps.ExtraTempHum.Length).ToArray();
 				ini.SetValue("SensorMaps", "ExtraTempHum", SensorMaps.ExtraTempHum);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.ExtraTempHumEnabled = ini.GetValue("SensorMaps", "ExtraTempHumEnabled", false);
 				SensorMaps.ExtraTempHum = ini.GetValue("SensorMaps", "ExtraTempHum", Enumerable.Repeat(0, SensorMaps.ExtraTempHum.Length).ToArray());
 			}
 
 			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilTemp"))
 			{
 				var val = ini.GetValue("GW1000", "ExtraSensorUseSoilTemp", 0, 0, 1);
-				SensorMaps.SoilTemp = Enumerable.Repeat(val, SensorMaps.SoilTemp.Length).ToArray();
 				ini.DeleteValue("GW1000", "ExtraSensorUseSoilTemp");
+				ini.SetValue("SensorMaps", "SoilTempEnabled", val == 1);
+				SensorMaps.SoilTemp = Enumerable.Repeat(val, SensorMaps.SoilTemp.Length).ToArray();
 				ini.SetValue("SensorMaps", "SoilTemp", SensorMaps.SoilTemp);
 				rewriteRequired = true;
 			}
 			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSoilTemp"))
 			{
 				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilTemp", 0, 0, 1);
+				ini.SetValue("SensorMaps", "SoilTempEnabled", val == 1);
 				SensorMaps.SoilTemp = Enumerable.Repeat(val, SensorMaps.SoilTemp.Length).ToArray();
 				ini.SetValue("SensorMaps", "SoilTemp", SensorMaps.SoilTemp);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.SoilTempEnabled = ini.GetValue("SensorMaps", "SoilTempEnabled", false);
 				SensorMaps.SoilTemp = ini.GetValue("SensorMaps", "SoilTemp", Enumerable.Repeat(0, SensorMaps.SoilTemp.Length).ToArray());
 			}
 
 			if (ini.ValueExists("GW1000", "ExtraSensorUseSoilMoist"))
 			{
 				var val = ini.GetValue("GW1000", "ExtraSensorUseSoilMoist", 0, 0, 1);
-				SensorMaps.SoilMoist = Enumerable.Repeat(val, SensorMaps.SoilMoist.Length).ToArray();
 				ini.DeleteValue("GW1000", "ExtraSensorUseSoilMoist");
+				ini.SetValue("SensorMaps", "SoilMoistEnabled", val == 1);
+				SensorMaps.SoilMoist = Enumerable.Repeat(val, SensorMaps.SoilMoist.Length).ToArray();
 				ini.SetValue("SensorMaps", "SoilMoist", SensorMaps.SoilMoist);
 				rewriteRequired = true;
 			}
 			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSoilMoist"))
 			{
 				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilMoist", 0, 0, 1);
+				ini.SetValue("SensorMaps", "SoilMoistEnabled", val == 1);
 				SensorMaps.SoilMoist = Enumerable.Repeat(val, SensorMaps.SoilMoist.Length).ToArray();
 				ini.SetValue("SensorMaps", "SoilMoist", SensorMaps.SoilMoist);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.SoilMoistEnabled = ini.GetValue("SensorMaps", "SoilMoistEnabled", false);
 				SensorMaps.SoilMoist = ini.GetValue("SensorMaps", "SoilMoist", Enumerable.Repeat(0, SensorMaps.SoilMoist.Length).ToArray());
 			}
 
 			if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSoilEc"))
 			{
 				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilEc", 0, 0, 1);
+				ini.SetValue("SensorMaps", "SoilECEnabled", val == 1);
 				SensorMaps.SoilEc = Enumerable.Repeat(val, SensorMaps.SoilEc.Length).ToArray();
 				ini.SetValue("SensorMaps", "SoilEC", SensorMaps.SoilEc);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.SoilEcEnabled = ini.GetValue("SensorMaps", "SoilECEnabled", false);
 				SensorMaps.SoilEc = ini.GetValue("SensorMaps", "SoilEC", Enumerable.Repeat(0, SensorMaps.SoilEc.Length).ToArray());
 			}
 
 			if (ini.ValueExists("GW1000", "ExtraSensorUseLeafWet"))
 			{
 				var val = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", 0, 0, 1);
-				SensorMaps.LeafWet = Enumerable.Repeat(val, SensorMaps.LeafWet.Length).ToArray();
 				ini.DeleteValue("GW1000", "ExtraSensorUseLeafWet");
+				ini.SetValue("SensorMaps", "LeafWetEnabled", val == 1);
+				SensorMaps.LeafWet = Enumerable.Repeat(val, SensorMaps.LeafWet.Length).ToArray();
 				ini.SetValue("SensorMaps", "LeafWet", SensorMaps.LeafWet);
 				rewriteRequired = true;
 			}
@@ -776,143 +788,173 @@ namespace CumulusMX
 			}
 			else
 			{
+				SensorMaps.LeafWetEnabled = ini.GetValue("SensorMaps", "LeafWetEnabled", false);
 				SensorMaps.LeafWet = ini.GetValue("SensorMaps", "LeafWet", Enumerable.Repeat(0, SensorMaps.LeafWet.Length).ToArray());
 			}
 
 			if (ini.ValueExists("GW1000", "ExtraSensorUseUserTemp"))
 			{
 				var val = ini.GetValue("GW1000", "ExtraSensorUseUserTemp", 0, 0, 1);
-				SensorMaps.UserTemp = Enumerable.Repeat(val, SensorMaps.UserTemp.Length).ToArray();
 				ini.DeleteValue("GW1000", "ExtraSensorUseUserTemp");
+				ini.SetValue("SensorMaps", "UserTempEnabled", val == 1);
+				SensorMaps.UserTemp = Enumerable.Repeat(val, SensorMaps.UserTemp.Length).ToArray();
 				ini.SetValue("SensorMaps", "UserTemp", SensorMaps.UserTemp);
 				rewriteRequired = true;
 			}
 			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseUserTemp"))
 			{
 				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseUserTemp", 0, 0, 1);
+				ini.SetValue("SensorMaps", "UserTempEnabled", val == 1);
 				SensorMaps.UserTemp = Enumerable.Repeat(val, SensorMaps.UserTemp.Length).ToArray();
 				ini.SetValue("SensorMaps", "UserTemp", SensorMaps.UserTemp);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.UserTempEnabled = ini.GetValue("SensorMaps", "UserTempEnabled", false);
 				SensorMaps.UserTemp = ini.GetValue("SensorMaps", "UserTemp", Enumerable.Repeat(0, SensorMaps.UserTemp.Length).ToArray());
 			}
 
 			if (ini.ValueExists("GW1000", "ExtraSensorUseAQI"))
 			{
 				var val = ini.GetValue("GW1000", "ExtraSensorUseAQI", 0, 0, 1);
-				SensorMaps.AirQual = Enumerable.Repeat(val, SensorMaps.AirQual.Length).ToArray();
 				ini.DeleteValue("GW1000", "ExtraSensorUseAQI");
+				ini.SetValue("SensorMaps", "AirQualEnabled", val == 1);
+				SensorMaps.AirQual = Enumerable.Repeat(val, SensorMaps.AirQual.Length).ToArray();
 				ini.SetValue("SensorMaps", "AirQual", SensorMaps.AirQual);
 				rewriteRequired = true;
 			}
 			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseAQI"))
 			{
 				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseAQI", 0, 0, 1);
+				ini.SetValue("SensorMaps", "AirQualEnabled", val == 1);
 				SensorMaps.AirQual = Enumerable.Repeat(val, SensorMaps.AirQual.Length).ToArray();
 				ini.SetValue("SensorMaps", "AirQual", SensorMaps.AirQual);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.AirQualEnabled = ini.GetValue("SensorMaps", "AirQualEnabled", false);
 				SensorMaps.AirQual = ini.GetValue("SensorMaps", "AirQual", Enumerable.Repeat(0, SensorMaps.AirQual.Length).ToArray());
 			}
 
 			if (ini.ValueExists("GW1000", "ExtraSensorUseCo2"))
 			{
-				SensorMaps.CO2 = ini.GetValue("GW1000", "ExtraSensorUseCo2", 0, 0, 1);
+				var val = ini.GetValue("GW1000", "ExtraSensorUseCo2", 0, 0, 1);
 				ini.DeleteValue("GW1000", "ExtraSensorUseCo2");
+				ini.SetValue("SensorMaps", "CO2Enabled", val == 1);
+				SensorMaps.CO2 = val;
 				ini.SetValue("SensorMaps", "CO2", SensorMaps.CO2);
 				rewriteRequired = true;
 			}
 			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseCo2"))
 			{
-				SensorMaps.CO2 = ini.GetValue("ExtraSensors", "ExtraSensorUseCo2", 0, 0, 1);
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseCo2", 0, 0, 1);
+				ini.SetValue("SensorMaps", "CO2Enabled", val == 1);
+				SensorMaps.CO2 = val;
 				ini.SetValue("SensorMaps", "CO2", SensorMaps.CO2);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.CO2Enabled = ini.GetValue("SensorMaps", "CO2Enabled", false);
 				SensorMaps.CO2 = ini.GetValue("SensorMaps", "CO2", 0, 0, 1);
 			}
 
 			if (ini.ValueExists("GW1000", "ExtraSensorUseLightning"))
 			{
-				SensorMaps.Lightning = ini.GetValue("GW1000", "ExtraSensorUseLightning", 0, 0, 1);
+				var val = ini.GetValue("GW1000", "ExtraSensorUseLightning", 0, 0, 1);
 				ini.DeleteValue("GW1000", "ExtraSensorUseLightning");
+				ini.SetValue("SensorMaps", "LightningEnabled", val == 1);
+				SensorMaps.Lightning = val;
 				ini.SetValue("SensorMaps", "Lightning", SensorMaps.Lightning);
 				rewriteRequired = true;
 			}
 			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseLightning"))
 			{
-				SensorMaps.Lightning = ini.GetValue("ExtraSensors", "ExtraSensorUseLightning", 0, 0, 1);
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseLightning", 0, 0, 1);
+				ini.SetValue("SensorMaps", "LightningEnabled", val == 1);
+				SensorMaps.Lightning = val;
 				ini.SetValue("SensorMaps", "Lightning", SensorMaps.Lightning);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.LightningEnabled = ini.GetValue("SensorMaps", "LightningEnabled", false);
 				SensorMaps.Lightning = ini.GetValue("SensorMaps", "Lightning", 0, 0, 1);
 			}
 
 			if (ini.ValueExists("GW1000", "ExtraSensorUseLeak"))
 			{
 				var val = ini.GetValue("GW1000", "ExtraSensorUseLeak", 0, 0, 1);
-				SensorMaps.Leak = Enumerable.Repeat(val, SensorMaps.Leak.Length).ToArray();
 				ini.DeleteValue("GW1000", "ExtraSensorUseLeak");
+				ini.SetValue("SensorMaps", "LeakEnabled", val == 1);
+				SensorMaps.Leak = Enumerable.Repeat(val, SensorMaps.Leak.Length).ToArray();
 				ini.SetValue("SensorMaps", "Leak", SensorMaps.Leak);
 				rewriteRequired = true;
 			}
 			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseLeak"))
 			{
 				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseLeak", 0, 0, 1);
+				ini.SetValue("SensorMaps", "LeakEnabled", val == 1);
 				SensorMaps.Leak = Enumerable.Repeat(val, SensorMaps.Leak.Length).ToArray();
 				ini.SetValue("SensorMaps", "Leak", SensorMaps.Leak);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.LeakEnabled = ini.GetValue("SensorMaps", "LeakEnabled", false);
 				SensorMaps.Leak = ini.GetValue("SensorMaps", "Leak", Enumerable.Repeat(0, SensorMaps.Leak.Length).ToArray());
 			}
 
 			if (ini.ValueExists("GW1000", "ExtraSensorUseCamera"))
 			{
-				SensorMaps.Camera = ini.GetValue("GW1000", "ExtraSensorUseCamera", 0, 0, 1);
+				var val = ini.GetValue("GW1000", "ExtraSensorUseCamera", 0, 0, 1);
 				ini.DeleteValue("GW1000", "ExtraSensorUseCamera");
+				ini.SetValue("SensorMaps", "CameraEnabled", val == 1);
+				SensorMaps.Camera = val;
 				ini.SetValue("SensorMaps", "Camera", SensorMaps.Camera);
 				rewriteRequired = true;
 			}
 			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseCamera"))
 			{
-				SensorMaps.Camera = ini.GetValue("ExtraSensors", "ExtraSensorUseCamera", 0, 0, 1);
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseCamera", 0, 0, 1);
+				ini.SetValue("SensorMaps", "CameraEnabled", val == 1);
+				SensorMaps.Camera = val;
 				ini.SetValue("SensorMaps", "Camera", SensorMaps.Camera);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.CameraEnabled = ini.GetValue("SensorMaps", "CameraEnabled", false);
 				SensorMaps.Camera = ini.GetValue("SensorMaps", "Camera", 0, 0, 1);
 			}
 
 			if (ini.ValueExists("ExtraSensors", "ExtraSensorUseLaserDist"))
 			{
 				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseLaserDist", 0, 0, 1);
+				ini.SetValue("SensorMaps", "LaserDistEnabled", val == 1);
 				SensorMaps.LaserDist = Enumerable.Repeat(val, SensorMaps.LaserDist.Length).ToArray();
 				ini.SetValue("SensorMaps", "LaserDist", SensorMaps.LaserDist);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.LaserDistEnabled = ini.GetValue("SensorMaps", "LaserDistEnabled", false);
 				SensorMaps.LaserDist = ini.GetValue("SensorMaps", "LaserDist", Enumerable.Repeat(0, SensorMaps.LaserDist.Length).ToArray());
 			}
 
 			if (ini.ValueExists("ExtraSensors", "ExtraSensorUseBGT"))
 			{
-				SensorMaps.BlackGlobe = ini.GetValue("ExtraSensors", "ExtraSensorUseBGT", 0, 0, 1);
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseBGT", 0, 0, 1);
+				ini.SetValue("SensorMaps", "BlackGlobeEnabled", val == 1);
+				SensorMaps.BlackGlobe = val;
 				ini.SetValue("SensorMaps", "BlackGlobe", SensorMaps.BlackGlobe);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.BlackGlobeEnabled = ini.GetValue("SensorMaps", "BlackGlobeEnabled", false);
 				SensorMaps.BlackGlobe = ini.GetValue("SensorMaps", "BlackGlobe", 0, 0, 1);
 			}
 
@@ -2967,18 +3009,31 @@ namespace CumulusMX
 			ini.SetValue("SensorMaps", "PrimaryIndoorTHSensor", SensorMaps.PrimaryIndoorTempHum);  // 0=default, 1-8=extra t/h sensor number
 			ini.SetValue("SensorMaps", "Solar", SensorMaps.Solar);
 			ini.SetValue("SensorMaps", "UV", SensorMaps.UV);
+			ini.SetValue("SensorMaps", "ExtraTempHumEnabled", SensorMaps.ExtraTempHumEnabled);
 			ini.SetValue("SensorMaps", "ExtraTempHum", SensorMaps.ExtraTempHum);
+			ini.SetValue("SensorMaps", "SoilTempEnabled", SensorMaps.SoilTempEnabled);
 			ini.SetValue("SensorMaps", "SoilTemp", SensorMaps.SoilTemp);
+			ini.SetValue("SensorMaps", "SoilMoistEnabled", SensorMaps.SoilMoistEnabled);
 			ini.SetValue("SensorMaps", "SoilMoist", SensorMaps.SoilMoist);
+			ini.SetValue("SensorMaps", "SoilECEnabled", SensorMaps.SoilEcEnabled);
 			ini.SetValue("SensorMaps", "SoilEC", SensorMaps.SoilEc);
+			ini.SetValue("SensorMaps", "LeafWetEnabled", SensorMaps.LeafWetEnabled);
 			ini.SetValue("SensorMaps", "LeafWet", SensorMaps.LeafWet);
+			ini.SetValue("SensorMaps", "UserTempEnabled", SensorMaps.UserTempEnabled);
 			ini.SetValue("SensorMaps", "UserTemp", SensorMaps.UserTemp);
+			ini.SetValue("SensorMaps", "AirQualEnabled", SensorMaps.AirQualEnabled);
 			ini.SetValue("SensorMaps", "AirQual", SensorMaps.AirQual);
+			ini.SetValue("SensorMaps", "CO2Enabled", SensorMaps.CO2Enabled);
 			ini.SetValue("SensorMaps", "CO2", SensorMaps.CO2);
+			ini.SetValue("SensorMaps", "LightningEnabled", SensorMaps.LightningEnabled);
 			ini.SetValue("SensorMaps", "Lightning", SensorMaps.Lightning);
+			ini.SetValue("SensorMaps", "LeakEnabled", SensorMaps.LeakEnabled);
 			ini.SetValue("SensorMaps", "Leak", SensorMaps.Leak);
+			ini.SetValue("SensorMaps", "CameraEnabled", SensorMaps.CameraEnabled);
 			ini.SetValue("SensorMaps", "Camera", SensorMaps.Camera);
+			ini.SetValue("SensorMaps", "LaserDistEnabled", SensorMaps.LaserDistEnabled);
 			ini.SetValue("SensorMaps", "LaserDist", SensorMaps.LaserDist);
+			ini.SetValue("SensorMaps", "BlackGlobeEnabled", SensorMaps.BlackGlobeEnabled);
 			ini.SetValue("SensorMaps", "BlackGlobe", SensorMaps.BlackGlobe);
 			#endregion Sensor Maps
 

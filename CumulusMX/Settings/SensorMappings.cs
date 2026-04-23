@@ -31,18 +31,31 @@ namespace CumulusMX.Settings
 				rain = cumulus.SensorMaps.Rain,
 				solar = cumulus.SensorMaps.Solar,
 				uv = cumulus.SensorMaps.UV,
+				bgtEnabled = cumulus.SensorMaps.BlackGlobeEnabled,
 				bgt = cumulus.SensorMaps.BlackGlobe,
+				lightningEnabled = cumulus.SensorMaps.LightningEnabled,
 				lightning = cumulus.SensorMaps.Lightning,
+				cameraEnabled = cumulus.SensorMaps.CameraEnabled,
 				camera = cumulus.SensorMaps.Camera,
+				co2Enabled = cumulus.SensorMaps.CO2Enabled,
 				co2 = cumulus.SensorMaps.CO2,
+				extraTempHumEnabled = cumulus.SensorMaps.ExtraTempHumEnabled,
 				extraTempHum = new JsonSensors { sensors = cumulus.SensorMaps.ExtraTempHum },
+				userTempEnabled = cumulus.SensorMaps.UserTempEnabled,
 				userTemp = new JsonSensors { sensors = cumulus.SensorMaps.UserTemp },
+				soilTempEnabled = cumulus.SensorMaps.SoilTempEnabled,
 				soilTemp = new JsonSensors { sensors = cumulus.SensorMaps.SoilTemp },
+				soilMoistEnabled = cumulus.SensorMaps.SoilMoistEnabled,
 				soilMoist = new JsonSensors { sensors = cumulus.SensorMaps.SoilMoist },
+				soilEcEnabled = cumulus.SensorMaps.SoilEcEnabled,
 				soilEc = new JsonSensors { sensors = cumulus.SensorMaps.SoilEc },
+				leafWetEnabled = cumulus.SensorMaps.LeafWetEnabled,
 				leafWet = new JsonSensors { sensors = cumulus.SensorMaps.LeafWet },
+				leakEnabled = cumulus.SensorMaps.LeakEnabled,
 				leak = new JsonSensors { sensors = cumulus.SensorMaps.Leak },
+				airQualEnabled = cumulus.SensorMaps.AirQualEnabled,
 				airQual = new JsonSensors { sensors = cumulus.SensorMaps.AirQual },
+				laserDistEnabled = cumulus.SensorMaps.LaserDistEnabled,
 				laserDist = new JsonSensors { sensors = cumulus.SensorMaps.LaserDist }
 			};
 
@@ -92,18 +105,31 @@ namespace CumulusMX.Settings
 				cumulus.SensorMaps.Rain = settings.rain;
 				cumulus.SensorMaps.Solar = settings.solar;
 				cumulus.SensorMaps.UV = settings.uv;
+				cumulus.SensorMaps.BlackGlobeEnabled = settings.bgtEnabled;
 				cumulus.SensorMaps.BlackGlobe = settings.bgt;
+				cumulus.SensorMaps.LightningEnabled = settings.lightningEnabled;
 				cumulus.SensorMaps.Lightning = settings.lightning;
+				cumulus.SensorMaps.CameraEnabled = settings.cameraEnabled;
 				cumulus.SensorMaps.Camera = settings.camera;
+				cumulus.SensorMaps.CO2Enabled = settings.co2Enabled;
 				cumulus.SensorMaps.CO2 = settings.co2;
+				cumulus.SensorMaps.ExtraTempHumEnabled = settings.extraTempHumEnabled;
 				cumulus.SensorMaps.ExtraTempHum = settings.extraTempHum.sensors;
+				cumulus.SensorMaps.UserTempEnabled = settings.userTempEnabled;
 				cumulus.SensorMaps.UserTemp = settings.userTemp.sensors;
+				cumulus.SensorMaps.SoilTempEnabled = settings.soilTempEnabled;
 				cumulus.SensorMaps.SoilTemp = settings.soilTemp.sensors;
+				cumulus.SensorMaps.SoilMoistEnabled = settings.soilMoistEnabled;
 				cumulus.SensorMaps.SoilMoist = settings.soilMoist.sensors;
+				cumulus.SensorMaps.SoilEcEnabled = settings.soilEcEnabled;
 				cumulus.SensorMaps.SoilEc = settings.soilEc.sensors;
+				cumulus.SensorMaps.LeafWetEnabled = settings.leafWetEnabled;
 				cumulus.SensorMaps.LeafWet = settings.leafWet.sensors;
+				cumulus.SensorMaps.LeakEnabled = settings.leakEnabled;
 				cumulus.SensorMaps.Leak = settings.leak.sensors;
+				cumulus.SensorMaps.AirQualEnabled = settings.airQualEnabled;
 				cumulus.SensorMaps.AirQual = settings.airQual.sensors;
+				cumulus.SensorMaps.LaserDistEnabled = settings.laserDistEnabled;
 				cumulus.SensorMaps.LaserDist = settings.laserDist.sensors;
 			}
 			catch (Exception ex)
@@ -155,18 +181,31 @@ namespace CumulusMX.Settings
 			public int rain { get; set; }
 			public int solar { get; set; }
 			public int uv { get; set; }
+			public bool bgtEnabled { get; set; }
 			public int bgt { get; set; }
+			public bool lightningEnabled { get; set; }
 			public int lightning { get; set; }
+			public bool cameraEnabled { get; set; }
 			public int camera { get; set; }
+			public bool co2Enabled { get; set; }
 			public int co2 { get; set; }
+			public bool extraTempHumEnabled { get; set; }
 			public JsonSensors extraTempHum { get; set; }
+			public bool userTempEnabled { get; set; }
 			public JsonSensors userTemp { get; set; }
+			public bool soilTempEnabled { get; set; }
 			public JsonSensors soilTemp { get; set; }
+			public bool soilMoistEnabled { get; set; }
 			public JsonSensors soilMoist { get; set; }
+			public bool soilEcEnabled { get; set; }
 			public JsonSensors soilEc { get; set; }
+			public bool leafWetEnabled { get; set; }
 			public JsonSensors leafWet { get; set; }
+			public bool leakEnabled { get; set; }
 			public JsonSensors leak { get; set; }
+			public bool airQualEnabled { get; set; }
 			public JsonSensors airQual { get; set; }
+			public bool laserDistEnabled { get; set; }
 			public JsonSensors laserDist { get; set; }
 		}
 	}
