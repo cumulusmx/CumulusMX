@@ -9973,7 +9973,9 @@ namespace CumulusMX
 		public int Wind;
 		public int Pressure;
 		public int Rain;
+		public bool SolarEnabled;
 		public int Solar;
+		public bool UVEnabled;
 		public int UV;
 		public bool ExtraTempHumEnabled;
 		public int[] ExtraTempHum = new int[16];

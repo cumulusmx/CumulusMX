@@ -15447,7 +15447,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 
 		internal void SetAirQualUnits(int index, string val)
 		{
-			for (var i = 0; i < cumulus.SensorMaps.SoilMoist.Length; i++)
+			for (var i = 0; i < cumulus.SensorMaps.AirQual.Length; i++)
 			{
 				if (index == cumulus.SensorMaps.AirQual[i])
 				{

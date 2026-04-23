@@ -653,37 +653,47 @@ namespace CumulusMX
 			// 0 = Main Station, 1 = Secondary Station
 			if (ini.ValueExists("GW1000", "ExtraSensorUseSolar"))
 			{
-				SensorMaps.Solar = ini.GetValue("GW1000", "ExtraSensorUseSolar", 0, 0, 1);
+				var val = ini.GetValue("GW1000", "ExtraSensorUseSolar", 0, 0, 1);
 				ini.DeleteValue("GW1000", "ExtraSensorUseSolar");
+				ini.SetValue("SensorMaps", "SolarEnabled", val == 1);
+				SensorMaps.Solar = val;
 				ini.SetValue("SensorMaps", "Solar", SensorMaps.Solar);
 				rewriteRequired = true;
 			}
 			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseSolar"))
 			{
-				SensorMaps.Solar = ini.GetValue("ExtraSensors", "ExtraSensorUseSolar", 0, 0, 1);
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseSolar", 0, 0, 1);
+				ini.SetValue("SensorMaps", "SolarEnabled", val == 1);
+				SensorMaps.Solar = val;
 				ini.SetValue("SensorMaps", "Solar", SensorMaps.Solar);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.SolarEnabled = ini.GetValue("SensorsMaps", "SolarEnabled", true);
 				SensorMaps.Solar = ini.GetValue("SensorsMaps", "Solar", 0, 0, 1);
 			}
 
 			if (ini.ValueExists("GW1000", "ExtraSensorUseUv"))
 			{
-				SensorMaps.UV = ini.GetValue("GW1000", "ExtraSensorUseUv", 0, 0, 1);
+				var val = ini.GetValue("GW1000", "ExtraSensorUseUv", 0, 0, 1);
 				ini.DeleteValue("GW1000", "ExtraSensorUseUv");
+				ini.SetValue("SensorMaps", "UVEnabled", val == 1);
+				SensorMaps.UV = val;
 				ini.SetValue("SensorMaps", "UV", SensorMaps.UV);
 				rewriteRequired = true;
 			}
 			else if (ini.ValueExists("ExtraSensors", "ExtraSensorUseUv"))
 			{
-				SensorMaps.UV = ini.GetValue("ExtraSensors", "ExtraSensorUseUv", 0, 0, 1);
+				var val = ini.GetValue("ExtraSensors", "ExtraSensorUseUv", 0, 0, 1);
+				ini.SetValue("SensorMaps", "UVEnabled", val);
+				SensorMaps.UV = val;
 				ini.SetValue("SensorMaps", "UV", SensorMaps.UV);
 				rewriteRequired = true;
 			}
 			else
 			{
+				SensorMaps.UVEnabled = ini.GetValue("SensorsMaps", "UVEnabled", true);
 				SensorMaps.UV = ini.GetValue("SensorsMaps", "UV", 0, 0, 1);
 			}
 
@@ -3007,7 +3017,9 @@ namespace CumulusMX
 			// Sensor Mappings
 			ini.SetValue("SensorMaps", "PrimaryTHSensor", SensorMaps.PrimaryTempHum);  // 0=default, 1-8=extra t/h sensor number, 99=use indoor sensor
 			ini.SetValue("SensorMaps", "PrimaryIndoorTHSensor", SensorMaps.PrimaryIndoorTempHum);  // 0=default, 1-8=extra t/h sensor number
+			ini.SetValue("SensorMaps", "SolarEnabled", SensorMaps.SolarEnabled);
 			ini.SetValue("SensorMaps", "Solar", SensorMaps.Solar);
+			ini.SetValue("SensorMaps", "UVEnabled", SensorMaps.UVEnabled);
 			ini.SetValue("SensorMaps", "UV", SensorMaps.UV);
 			ini.SetValue("SensorMaps", "ExtraTempHumEnabled", SensorMaps.ExtraTempHumEnabled);
 			ini.SetValue("SensorMaps", "ExtraTempHum", SensorMaps.ExtraTempHum);

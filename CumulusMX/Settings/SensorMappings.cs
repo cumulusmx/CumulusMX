@@ -29,7 +29,9 @@ namespace CumulusMX.Settings
 				wind = cumulus.SensorMaps.Wind,
 				pressure = cumulus.SensorMaps.Pressure,
 				rain = cumulus.SensorMaps.Rain,
+				solarEnabled = cumulus.SensorMaps.SolarEnabled,
 				solar = cumulus.SensorMaps.Solar,
+				uvEnabled = cumulus.SensorMaps.UVEnabled,
 				uv = cumulus.SensorMaps.UV,
 				bgtEnabled = cumulus.SensorMaps.BlackGlobeEnabled,
 				bgt = cumulus.SensorMaps.BlackGlobe,
@@ -103,7 +105,9 @@ namespace CumulusMX.Settings
 				cumulus.SensorMaps.Wind = settings.wind;
 				cumulus.SensorMaps.Pressure = settings.pressure;
 				cumulus.SensorMaps.Rain = settings.rain;
+				cumulus.SensorMaps.SolarEnabled = settings.solarEnabled;
 				cumulus.SensorMaps.Solar = settings.solar;
+				cumulus.SensorMaps.UVEnabled = settings.uvEnabled;
 				cumulus.SensorMaps.UV = settings.uv;
 				cumulus.SensorMaps.BlackGlobeEnabled = settings.bgtEnabled;
 				cumulus.SensorMaps.BlackGlobe = settings.bgt;
@@ -179,7 +183,9 @@ namespace CumulusMX.Settings
 			public int wind { get; set; }
 			public int pressure { get; set; }
 			public int rain { get; set; }
+			public bool solarEnabled { get; set; }
 			public int solar { get; set; }
+			public bool uvEnabled { get; set; }
 			public int uv { get; set; }
 			public bool bgtEnabled { get; set; }
 			public int bgt { get; set; }
