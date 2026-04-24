@@ -181,201 +181,201 @@ namespace CumulusMX.Stations
 			}
 
 			while (!Program.ExitSystemToken.IsCancellationRequested)
+			{
+				var dataLastRead = DateTime.Now;
+				double delay;
+
+				try
 				{
-					var dataLastRead = DateTime.Now;
-					double delay;
-
-					try
+					if (!DayResetInProgress)
 					{
-						if (!DayResetInProgress)
+						var rawData = localApi.GetLiveData(Program.ExitSystemToken);
+						if (rawData is not null)
 						{
-							var rawData = localApi.GetLiveData(Program.ExitSystemToken);
-							if (rawData is not null)
+							dataLastRead = DateTime.Now;
+							outdoortemp = -999;
+
+							// process the common_list sensors
+							if (rawData.common_list != null)
 							{
-								dataLastRead = DateTime.Now;
-								outdoortemp = -999;
+								ProcessCommonList(rawData.common_list, dataLastRead);
+							}
 
-								// process the common_list sensors
-								if (rawData.common_list != null)
+							// process base station values
+							if (rawData.wh25 != null)
+							{
+								ProcessWh25(rawData.wh25, dataLastRead);
+							}
+
+							// process rain values
+							if (cumulus.Gw1000PrimaryRainSensor == 0 && rawData.rain != null)
+							{
+								ProcessRain(rawData.rain, false);
+							}
+
+							if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo) && rawData.piezoRain != null)
+							{
+								// if we are using piezo as the primary rain sensor
+								// or using the tipper at the primary, but want to use the piezo srain value for IsRaining
+								ProcessRain(rawData.piezoRain, cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo);
+							}
+
+							if (cumulus.SensorMaps.LightningEnabled && cumulus.SensorMaps.Lightning == stationIndex)
+							{
+								ProcessLightning(rawData.lightning, dataLastRead);
+							}
+
+							if (cumulus.SensorMaps.CO2Enabled && cumulus.SensorMaps.CO2 == stationIndex)
+							{
+								ProcessCo2(rawData.co2);
+							}
+
+							if (cumulus.SensorMaps.AirQualEnabled)
+							{
+								ProcessChPm25(rawData.ch_pm25);
+							}
+
+							if (cumulus.SensorMaps.LeakEnabled)
+							{
+								ProcessLeak(rawData.ch_leak);
+							}
+
+							if (cumulus.SensorMaps.ExtraTempHumEnabled)
+							{
+								ProcessExtraTempHum(rawData.ch_aisle, dataLastRead);
+							}
+
+							if (cumulus.SensorMaps.UserTempEnabled)
+							{
+								ProcessUserTemp(rawData.ch_temp);
+							}
+
+							if (cumulus.SensorMaps.SoilMoistEnabled)
+							{
+								ProcessSoilMoisture(rawData.ch_soil);
+							}
+
+							if (cumulus.SensorMaps.SoilEcEnabled)
+							{
+								ProcessSoilMoistureEc(rawData.ch_ec);
+							}
+
+							if (cumulus.SensorMaps.LeafWetEnabled)
+							{
+								ProcessLeafWet(rawData.ch_leaf);
+							}
+
+							if (cumulus.SensorMaps.LaserDistEnabled)
+							{
+								ProcessLds(rawData.ch_lds);
+							}
+
+							// Now do the stuff that requires more than one input parameter
+
+
+							// Process outdoor temperature here so we have humidity available
+							if (outdoortemp > -999)
+							{
+								DoOutdoorTemp(outdoortemp, dataLastRead);
+							}
+
+							// Same for extra T/H sensors
+							for (var i = 1; i <= 8; i++)
+							{
+								if (ExtraHum[i].HasValue && ExtraTemp[i].HasValue)
 								{
-									ProcessCommonList(rawData.common_list, dataLastRead);
+									var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i].Value), ExtraHum[i].Value);
+									ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
+								}
+							}
+
+							if (gustLast > -999 && windSpeedLast > -999 && windDirLast > -999)
+							{
+								DoWind(gustLast, windDirLast, windSpeedLast, dataLastRead);
+							}
+
+							if (rainLast > -999 && rainRateLast > -999)
+							{
+								DoRain(rainLast, rainRateLast, dataLastRead);
+							}
+
+							if (outdoortemp > -999)
+							{
+								DoWindChill(windchill, dataLastRead);
+								DoApparentTemp(dataLastRead);
+								DoFeelsLike(dataLastRead);
+								DoHumidex(dataLastRead);
+								DoCloudBaseHeatIndex(dataLastRead);
+
+								if (cumulus.StationOptions.CalculateSLP)
+								{
+									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+									DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
+								}
+							}
+
+							DoForecast(string.Empty, false);
+
+							cumulus.BatteryLowAlarm.Triggered = batteryLow;
+
+							UpdateStatusPanel(dataLastRead.ToUniversalTime());
+							UpdateMQTT();
+
+							dataReceived = true;
+							LastDataReadTime = dataLastRead;
+
+							var minute = DateTime.Now.Minute;
+							if (minute != lastMinute)
+							{
+								lastMinute = minute;
+
+								// at the start of every 20 minutes to trigger battery status check
+								if (minute % 20 == 0 && !Program.ExitSystemToken.IsCancellationRequested)
+								{
+									_ = GetSensorIds(true);
 								}
 
-								// process base station values
-								if (rawData.wh25 != null)
+								// every day dump the clock drift at midday each day
+								if (minute == 0 && DateTime.Now.Hour == 12)
 								{
-									ProcessWh25(rawData.wh25, dataLastRead);
+									_ = GetSystemInfo(false, true);
 								}
 
-								// process rain values
-								if (cumulus.Gw1000PrimaryRainSensor == 0 && rawData.rain != null)
+								var hour = DateTime.Now.Hour;
+								if (lastHour != hour)
 								{
-									ProcessRain(rawData.rain, false);
-								}
+									lastHour = hour;
 
-								if ((cumulus.Gw1000PrimaryRainSensor == 1 || cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo) && rawData.piezoRain != null)
-								{
-									// if we are using piezo as the primary rain sensor
-									// or using the tipper at the primary, but want to use the piezo srain value for IsRaining
-									ProcessRain(rawData.piezoRain, cumulus.Gw1000PrimaryRainSensor == 0 && cumulus.EcowittIsRainingUsePiezo);
-								}
-
-								if (rawData.lightning != null)
-								{
-									ProcessLightning(rawData.lightning, dataLastRead);
-								}
-
-								if (rawData.co2 != null)
-								{
-									ProcessCo2(rawData.co2);
-								}
-
-								if (rawData.ch_pm25 != null)
-								{
-									ProcessChPm25(rawData.ch_pm25);
-								}
-
-								if (rawData.ch_leak != null)
-								{
-									ProcessLeak(rawData.ch_leak);
-								}
-
-								if (rawData.ch_aisle != null)
-								{
-									ProcessExtraTempHum(rawData.ch_aisle, dataLastRead);
-								}
-
-								if (rawData.ch_temp != null)
-								{
-									ProcessUserTemp(rawData.ch_temp);
-								}
-
-								if (rawData.ch_soil != null)
-								{
-									ProcessSoilMoisture(rawData.ch_soil);
-								}
-
-								if (rawData.ch_ec != null)
-								{
-									ProcessSoilMoistureEc(rawData.ch_ec);
-								}
-
-								if (rawData.ch_leaf != null)
-								{
-									ProcessLeafWet(rawData.ch_leaf);
-								}
-
-								if (rawData.ch_lds != null)
-								{
-									ProcessLds(rawData.ch_lds);
-								}
-
-								// Now do the stuff that requires more than one input parameter
-
-
-								// Process outdoor temperature here so we have humidity available
-								if (outdoortemp > -999)
-								{
-									DoOutdoorTemp(outdoortemp, dataLastRead);
-								}
-
-								// Same for extra T/H sensors
-								for (var i = 1; i <= 8; i++)
-								{
-									if (ExtraHum[i].HasValue && ExtraTemp[i].HasValue)
+									if (hour == 13)
 									{
-										var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i].Value), ExtraHum[i].Value);
-										ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
-									}
-								}
-
-								if (gustLast > -999 && windSpeedLast > -999 && windDirLast > -999)
-								{
-									DoWind(gustLast, windDirLast, windSpeedLast, dataLastRead);
-								}
-
-								if (rainLast > -999 && rainRateLast > -999)
-								{
-									DoRain(rainLast, rainRateLast, dataLastRead);
-								}
-
-								if (outdoortemp > -999)
-								{
-									DoWindChill(windchill, dataLastRead);
-									DoApparentTemp(dataLastRead);
-									DoFeelsLike(dataLastRead);
-									DoHumidex(dataLastRead);
-									DoCloudBaseHeatIndex(dataLastRead);
-
-									if (cumulus.StationOptions.CalculateSLP)
-									{
-										var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
-										DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
-									}
-								}
-
-								DoForecast(string.Empty, false);
-
-								cumulus.BatteryLowAlarm.Triggered = batteryLow;
-
-								UpdateStatusPanel(dataLastRead.ToUniversalTime());
-								UpdateMQTT();
-
-								dataReceived = true;
-								LastDataReadTime = dataLastRead;
-
-								var minute = DateTime.Now.Minute;
-								if (minute != lastMinute)
-								{
-									lastMinute = minute;
-
-									// at the start of every 20 minutes to trigger battery status check
-									if (minute % 20 == 0 && !Program.ExitSystemToken.IsCancellationRequested)
-									{
-										_ = GetSensorIds(true);
-									}
-
-									// every day dump the clock drift at midday each day
-									if (minute == 0 && DateTime.Now.Hour == 12)
-									{
-										_ = GetSystemInfo(false, true);
-									}
-
-									var hour = DateTime.Now.Hour;
-									if (lastHour != hour)
-									{
-										lastHour = hour;
-
-										if (hour == 13)
-										{
-											_ = localApi.CheckForUpgrade(Program.ExitSystemToken);
-											Task.Delay(1000, Program.ExitSystemToken);
-											GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
-										}
+										_ = localApi.CheckForUpgrade(Program.ExitSystemToken);
+										Task.Delay(1000, Program.ExitSystemToken);
+										GW1000FirmwareVersion = localApi.GetVersion(Program.ExitSystemToken).Result;
 									}
 								}
 							}
 						}
 					}
-					// Catch the ThreadAbortException
-					catch (ThreadAbortException)
-					{
-						//do nothing
-					}
-					catch (Exception ex)
-					{
-						cumulus.LogExceptionMessage(ex, "Ecowitt Local HTTP API station background task error - continuing");
-					}
-
-					delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
-
-					Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay));
-
-					if (Program.ExitSystemToken.IsCancellationRequested)
-					{
-						cumulus.LogMessage("Ecowitt Local HTTP API station background task closed due to shutting down");
-					}
 				}
+				// Catch the ThreadAbortException
+				catch (ThreadAbortException)
+				{
+					//do nothing
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogExceptionMessage(ex, "Ecowitt Local HTTP API station background task error - continuing");
+				}
+
+				delay = Math.Min(updateRate - (dataLastRead - DateTime.Now).TotalMilliseconds, updateRate);
+
+				Program.ExitSystemToken.WaitHandle.WaitOne(TimeSpan.FromMilliseconds(delay));
+
+				if (Program.ExitSystemToken.IsCancellationRequested)
+				{
+					cumulus.LogMessage("Ecowitt Local HTTP API station background task closed due to shutting down");
+				}
+			}
 		}
 
 		public override void Stop()
@@ -1145,7 +1145,7 @@ namespace CumulusMX.Stations
 							}
 							break;
 						case "0x15": //Light (value unit)
-							if (cumulus.SensorMaps.Solar == stationIndex)
+							if (cumulus.SensorMaps.SolarEnabled && cumulus.SensorMaps.Solar == stationIndex)
 							{
 								arr = sensor.val.Split(' ');
 								if (arr.Length == 2 && double.TryParse(arr[0], invNum, out valDbl))
@@ -1170,14 +1170,14 @@ namespace CumulusMX.Stations
 							}
 							break;
 						case "0x17": //UVI (0-15 index)
-							if (cumulus.SensorMaps.UV == stationIndex)
+							if (cumulus.SensorMaps.UVEnabled && cumulus.SensorMaps.UV == stationIndex)
 							{
 								DoUV(sensor.valDbl.Value, dateTime);
 							}
 							break;
 
 						case "0xA1": // BGT
-							if (cumulus.SensorMaps.BlackGlobe == stationIndex)
+							if (cumulus.SensorMaps.BlackGlobeEnabled && cumulus.SensorMaps.BlackGlobe == stationIndex)
 							{
 								if (sensor.valDbl.HasValue)
 								{
@@ -1194,7 +1194,7 @@ namespace CumulusMX.Stations
 							break;
 
 						case "0xA2": // WBGT
-							if (cumulus.SensorMaps.BlackGlobe == stationIndex)
+							if (cumulus.SensorMaps.BlackGlobeEnabled && cumulus.SensorMaps.BlackGlobe == stationIndex)
 							{
 								if (sensor.valDbl.HasValue)
 								{
@@ -1340,13 +1340,9 @@ namespace CumulusMX.Stations
 				// CO2
 				try
 				{
-					if (sensor.CO2.HasValue)
+					if (cumulus.SensorMaps.CO2Enabled && cumulus.SensorMaps.CO2 == stationIndex)
 					{
 						CO2 = sensor.CO2;
-					}
-
-					if (sensor.CO2_24H.HasValue)
-					{
 						CO2_24h = sensor.CO2_24H;
 					}
 				}
@@ -1739,27 +1735,25 @@ namespace CumulusMX.Stations
 
 				if (sensor.channel.HasValue)
 				{
-					if (sensor.PM25.HasValue)
+					if (cumulus.SensorMaps.AirQual[sensor.channel.Value - 1] != stationIndex)
+						continue;
+
+					try
 					{
-						try
-						{
-							DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
-						}
-						catch (Exception ex)
-						{
-							cumulus.LogExceptionMessage(ex, $"ProcessChPm25: Error on sensor {sensor.channel}");
-						}
+						DoAirQuality(sensor.PM25.Value, sensor.channel.Value);
 					}
-					if (sensor.PM25_24H.HasValue)
+					catch (Exception ex)
 					{
-						try
-						{
-							DoAirQualityAvg(sensor.PM25_24H.Value, sensor.channel.Value);
-						}
-						catch (Exception ex)
-						{
-							cumulus.LogExceptionMessage(ex, $"ProcessChPm25_24H: Error on sensor {sensor.channel}");
-						}
+						cumulus.LogExceptionMessage(ex, $"ProcessChPm25: Error on sensor {sensor.channel}");
+					}
+
+					try
+					{
+						DoAirQualityAvg(sensor.PM25_24H.Value, sensor.channel.Value);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, $"ProcessChPm25_24H: Error on sensor {sensor.channel}");
 					}
 				}
 			}
@@ -1784,6 +1778,9 @@ namespace CumulusMX.Stations
 
 				if (sensor.channel.HasValue && !string.IsNullOrEmpty(sensor.status))
 				{
+					if (cumulus.SensorMaps.Leak[sensor.channel.Value - 1] != stationIndex)
+						continue;
+
 					try
 					{
 						var val = sensor.status == "NORMAL" ? 0 : 1;
@@ -1816,6 +1813,10 @@ namespace CumulusMX.Stations
 			{
 				var sensor = sensors[i];
 
+				if (cumulus.SensorMaps.ExtraTempHum[sensor.channel - 1] != stationIndex)
+					continue;
+
+
 				try
 				{
 					if (sensor.temp.HasValue)
@@ -1835,6 +1836,10 @@ namespace CumulusMX.Stations
 							DoIndoorTemp(temp);
 						}
 					}
+					else
+					{
+						DoExtraTemp(null, sensor.channel);
+					}
 
 					if (sensor.humidityVal.HasValue)
 					{
@@ -1849,6 +1854,10 @@ namespace CumulusMX.Stations
 						{
 							DoIndoorHumidity(sensor.humidityVal.Value);
 						}
+					}
+					else
+					{
+						DoExtraHum(null, sensor.channel);
 					}
 				}
 				catch (Exception ex)
