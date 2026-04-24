@@ -577,6 +577,8 @@ namespace CumulusMX.Settings
 					cumulus.PurpleAirEnabled = settings.purpleAir.enabled;
 					if (cumulus.PurpleAirEnabled)
 					{
+						cumulus.ExtraSensorUseAQI = true;
+
 						for (var i = 0; i < 4; i++)
 						{
 							cumulus.PurpleAirIpAddress[i] = (settings.purpleAir.sensors[i].ipAddress ?? string.Empty).Trim();
