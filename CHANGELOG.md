@@ -61,6 +61,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The path setting for the MXdiags folder has been moved to *Program Setting > Path Options*, and stored in the Cumulus.ini file so it will persist across upgrades
 - New version of CreateMissing (v3.1.0) to add BGT/WBGT support
 - Updated versions of `ImportCumulusFile.php` and `ImportCumulusFile.py`
+- Additions to the Interval data Viewer
+	- Extra Temperature 11-16
+	- Extra Humidity 11-16
+	- Extra Dew Point 11-16
+	- Air Quality PM10 values
+	- Laser Distance 1-4
+	- Soil EC 1-16
+	- Current Snowfall in 24 hours value
 
 ### Fixed
 
@@ -85,6 +93,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Davis Cloud station error on decoding VP2/Vue originated current data, it also adds the Davis forecast decoding to this model
 - Incomplete BGT/WBGT values from the dayfile in the records editors
 - Enabling a Purple Air AQ sensor now automatically enables the extra sensor use AQ feature
+- Fix monthly log editor MySQL updates
 
 ### Package Updates
 
