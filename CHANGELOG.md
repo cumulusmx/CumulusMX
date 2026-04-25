@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.0 \[b5003\]][31] - 2026-04-30
+## [5.1.0 \[b5003\]][31] - 2026-04-27
 
 ### New
 
@@ -43,8 +43,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	`<#MonthWbgtH> <#MonthWbgtHT> <#MonthWbgtHD>`
 	`<#YearWbgtH> <#YearWbgtHT>`
 	`<#ByMonthWbgtH> <#ByMonthWbgtHT>`
-- Adds support for Soil Electrical Conductivity to Ecowitt Local HTTP API station, Ecowitt.net cloud station Ecowitt HTTP Station
-	- Also supported on the following Extra Sensor stations: Ecowitt Cloud, Ecowitt HTTP Station
+- Adds support for Soil Electrical Conductivity to Ecowitt Local HTTP API station, Ecowitt.net cloud station, and Ecowitt HTTP Station
+	- Also supported on the following Extra Sensor stations: Ecowitt Cloud and Ecowitt HTTP Station
 	- Sixteen new web tags
 	`<#SoilEC[1-16]>`
 	- Values 1-16 appended to the extra log file
@@ -61,7 +61,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - The path setting for the MXdiags folder has been moved to *Program Setting > Path Options*, and stored in the Cumulus.ini file so it will persist across upgrades
 - New version of CreateMissing (v3.1.0) to add BGT/WBGT support
 - Updated versions of `ImportCumulusFile.php` and `ImportCumulusFile.py`
-- Additions to the Interval data Viewer
+- Additions to the Interval Data Viewer
 	- Extra Temperature 11-16
 	- Extra Humidity 11-16
 	- Extra Dew Point 11-16
