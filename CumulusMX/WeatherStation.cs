@@ -8974,6 +8974,7 @@ namespace CumulusMX
 			strb.Append(sep + HiLoToday.HighRain24hTime.ToString("HH:mm", inv));
 			strb.Append(sep + (HiLoToday.HighBgt == Cumulus.DefaultHiVal ? string.Empty : HiLoToday.HighBgt.ToFixed(cumulus.TempFormat)));
 			strb.Append(sep + (HiLoToday.HighBgt == Cumulus.DefaultHiVal ? string.Empty : HiLoToday.HighBgtTime.ToString("HH:mm", inv)));
+			strb.Append(sep + (HiLoToday.HighWbgt == Cumulus.DefaultHiVal ? string.Empty : HiLoToday.HighWbgt.ToFixed(cumulus.TempFormat)));
 			strb.Append(sep + (HiLoToday.HighWbgt == Cumulus.DefaultHiVal ? string.Empty : HiLoToday.HighWbgtTime.ToString("HH:mm", inv)));
 
 			var entry = strb.ToString();
