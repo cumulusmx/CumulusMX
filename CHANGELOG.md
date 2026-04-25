@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.0 \[b5003\]][31] - 2026-04-27
+## [5.1.0 \[b5004\]][31] - 2026-04-27
 
 ### New
 
@@ -69,6 +69,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Laser Distance 1-4
 	- Soil EC 1-16
 	- Current Snowfall in 24 hours value
+- FTP logging. To match the main MXdiags log files, the latest Realtime and Interval logs are now always called `ftp-realtime.log` and `ftp-interval.log`. Rolled over logs will have a date/time appended
 
 ### Fixed
 
@@ -91,7 +92,6 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Adds the `camera` parameter to the `<#webcam>` and `<#webcamurl>` web tags, if omitted it defaults to "1" the fist defined camera
 	- Eg `<#webcamurl camera=2>`
 - Davis Cloud station error on decoding VP2/Vue originated current data, it also adds the Davis forecast decoding to this model
-- Incomplete BGT/WBGT values from the dayfile in the records editors
 - Enabling a Purple Air AQ sensor now automatically enables the extra sensor use AQ feature
 - Fix monthly log editor MySQL updates
 
@@ -1393,4 +1393,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
 [29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5001
 [30]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5002
-[31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5003
+[31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5004
