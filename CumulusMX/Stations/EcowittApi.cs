@@ -249,9 +249,9 @@ namespace CumulusMX.Stations
 
 					if (responseCode != 200)
 					{
-						var historyError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
-						cumulus.LogMessage($"API.GetHistoricData: Ecowitt API Historic Error: {historyError.code}, {historyError.msg}, Cumulus.LogLevel.Warning");
-						Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.msg}", ConsoleColor.Red);
+							var historyError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
+							cumulus.LogMessage($"API.GetHistoricData: Ecowitt API Historic Error: {historyError.code}, {historyError.msg}, Cumulus.LogLevel.Warning");
+							Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.msg}", ConsoleColor.Red);
 						cumulus.LastUpdateTime = endTime;
 						return false;
 					}
@@ -2657,9 +2657,9 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
-					cumulus.LogWarningMessage($"API.GetCurrentData: Ecowitt API Current Error: {currentError.code}, {currentError.msg}");
-					Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
+						var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
+						cumulus.LogWarningMessage($"API.GetCurrentData: Ecowitt API Current Error: {currentError.code}, {currentError.msg}");
+						Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
 					delay = 10;
 					return null;
 				}
@@ -2886,9 +2886,9 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
-					cumulus.LogWarningMessage($"API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Error: {currentError.code}, {currentError.msg}");
-					Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
+						var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
+						cumulus.LogWarningMessage($"API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Error: {currentError.code}, {currentError.msg}");
+						Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
 					return defaultUrl;
 				}
 
@@ -3341,8 +3341,8 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
-					cumulus.LogWarningMessage($"API.GetLatestFirmwareVersion: Ecowitt API Error: {currentError.code}, {currentError.msg}");
+						var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
+						cumulus.LogWarningMessage($"API.GetLatestFirmwareVersion: Ecowitt API Error: {currentError.code}, {currentError.msg}");
 					return null;
 				}
 
@@ -3910,6 +3910,15 @@ namespace CumulusMX.Stations
 			public CurrentSoilEc ch_soil_ec_temp_hum14 { get; set; }
 			public CurrentSoilEc ch_soil_ec_temp_hum15 { get; set; }
 			public CurrentSoilEc ch_soil_ec_temp_hum16 { get; set; }
+			public object this[string name]
+			{
+				get
+				{
+					var myType = typeof(CurrentDataData);
+					var myPropInfo = myType.GetProperty(name);
+					return myPropInfo == null ? null : myPropInfo.GetValue(this, null);
+				}
+			}
 		}
 
 		internal class CurrentOutdoor
@@ -4001,6 +4010,15 @@ namespace CumulusMX.Stations
 			public CurrentSensorValInt leak_ch2 { get; set; }
 			public CurrentSensorValInt leak_ch3 { get; set; }
 			public CurrentSensorValInt leak_ch4 { get; set; }
+			public object this[string name]
+			{
+				get
+				{
+					var myType = typeof(CurrentDataData);
+					var myPropInfo = myType.GetProperty(name);
+					return myPropInfo == null ? null : myPropInfo.GetValue(this, null);
+				}
+			}
 		}
 
 		internal class CurrentSoil
@@ -4098,6 +4116,15 @@ namespace CumulusMX.Stations
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch14 { get; set; }
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch15 { get; set; }
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch16 { get; set; }
+			public object this[string name]
+			{
+				get
+				{
+					var myType = typeof(CurrentDataData);
+					var myPropInfo = myType.GetProperty(name);
+					return myPropInfo == null ? null : myPropInfo.GetValue(this, null);
+				}
+			}
 		}
 
 		internal class CurrentCamera
