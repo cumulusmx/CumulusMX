@@ -10,7 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.0 \[b5004\]][31] - 2026-04-27
+## [5.1.0 \[b5004\]][31] - 2026-04-30
+
+### Important Notes
+
+- **MySQL users:** Because the dayfile has some extra fields, you must update your MySQL table for this release. Use the Update Table feature in Cumulus MySQL Settings
+
 
 ### New
 
@@ -19,8 +24,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Updated records editors
 	- Add to Locale Strings and Display Options
 	- Data file editors amended
-	- Day file now has two extra fields to store these values
-	- MySQL update dayfile table for new columns for BGT and WBGT high values
+	- Day file now has four extra fields to store these values and their times
+	- MySQL update dayfile table for the new BGT and WBGT high values and times columns
 	```
 	HighBgt decimal(5,1)
 	THighBgt varchar(5)
@@ -94,6 +99,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Davis Cloud station error on decoding VP2/Vue originated current data, it also adds the Davis forecast decoding to this model
 - Enabling a Purple Air AQ sensor now automatically enables the extra sensor use AQ feature
 - Fix monthly log editor MySQL updates
+- Fix exception handling Davis v2 API error responses
 
 ### Package Updates
 

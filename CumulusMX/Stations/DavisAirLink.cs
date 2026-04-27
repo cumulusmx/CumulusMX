@@ -1119,8 +1119,18 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
-					cumulus.LogErrorMessage($"AirLinkHealth: WeatherLink API Error: {errObj.code}, {errObj.message}");
+					JsonSerializerOptions jsonOptions = new();
+					jsonOptions.Converters.Add(new JsonConverters.JsonIntConverter());
+
+					try
+					{
+						var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
+						cumulus.LogErrorMessage($"AirLinkHealth: WeatherLink API Error: {errObj.code}, {errObj.message}");
+					}
+					catch
+					{
+						cumulus.LogErrorMessage($"AirLinkHealth: WeatherLink API HTTP Error: {responseCode}");
+					}
 					return;
 				}
 
@@ -1379,7 +1389,18 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
+					JsonSerializerOptions jsonOptions = new();
+					jsonOptions.Converters.Add(new JsonConverters.JsonIntConverter());
+
+					try
+					{
+						var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
+						cumulus.LogErrorMessage($"GetAvailableStationIds: WeatherLink API Error: {errObj.code} - {errObj.message}");
+					}
+					catch
+					{
+						cumulus.LogErrorMessage($"GetAvailableStationIds: WeatherLink API HTTP Error: {responseCode}");
+					}
 					return;
 				}
 
@@ -1461,8 +1482,18 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
-					cumulus.LogErrorMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message}");
+					JsonSerializerOptions jsonOptions = new();
+					jsonOptions.Converters.Add(new JsonConverters.JsonIntConverter());
+
+					try
+					{
+						var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
+						cumulus.LogErrorMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message}");
+					}
+					catch
+					{
+						cumulus.LogErrorMessage($"GetAvailableSensors: WeatherLink API HTTP Error: {responseCode}");
+					}
 					return;
 				}
 
