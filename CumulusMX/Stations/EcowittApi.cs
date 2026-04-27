@@ -3918,6 +3918,15 @@ namespace CumulusMX.Stations
 			public CurrentSoilEc ch_soil_ec_temp_hum14 { get; set; }
 			public CurrentSoilEc ch_soil_ec_temp_hum15 { get; set; }
 			public CurrentSoilEc ch_soil_ec_temp_hum16 { get; set; }
+			public object this[string name]
+			{
+				get
+				{
+					var myType = typeof(CurrentDataData);
+					var myPropInfo = myType.GetProperty(name);
+					return myPropInfo == null ? null : myPropInfo.GetValue(this, null);
+				}
+			}
 		}
 
 		internal class CurrentOutdoor
@@ -4009,6 +4018,15 @@ namespace CumulusMX.Stations
 			public CurrentSensorValInt leak_ch2 { get; set; }
 			public CurrentSensorValInt leak_ch3 { get; set; }
 			public CurrentSensorValInt leak_ch4 { get; set; }
+			public object this[string name]
+			{
+				get
+				{
+					var myType = typeof(CurrentDataData);
+					var myPropInfo = myType.GetProperty(name);
+					return myPropInfo == null ? null : myPropInfo.GetValue(this, null);
+				}
+			}
 		}
 
 		internal class CurrentSoil
@@ -4106,6 +4124,15 @@ namespace CumulusMX.Stations
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch14 { get; set; }
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch15 { get; set; }
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch16 { get; set; }
+			public object this[string name]
+			{
+				get
+				{
+					var myType = typeof(CurrentDataData);
+					var myPropInfo = myType.GetProperty(name);
+					return myPropInfo == null ? null : myPropInfo.GetValue(this, null);
+				}
+			}
 		}
 
 		internal class CurrentCamera
