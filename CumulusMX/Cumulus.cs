@@ -10028,11 +10028,13 @@ namespace CumulusMX
 					srcfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 					dstfile = Path.Combine(dstPath, NOAAconf.LatestMonthReport);
 
+					LogDebugMessage($"LocalCopy: NOAA report - {dstfile}");
 					File.Copy(srcfile, dstfile, true);
 
 					srcfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 					dstfile = Path.Combine(dstPath, NOAAconf.LatestYearReport);
 
+					LogDebugMessage($"LocalCopy: NOAA report - {dstfile}");
 					File.Copy(srcfile, dstfile, true);
 
 					NOAAconf.NeedCopy = false;
@@ -10061,6 +10063,7 @@ namespace CumulusMX
 						{
 
 							srcfile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].LocalFileName);
+							LogDebugMessage($"LocalCopy: Copying standard data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							success++;
 						}
@@ -10085,6 +10088,7 @@ namespace CumulusMX
 								text = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, true);
 							}
 
+							LogDebugMessage($"LocalCopy: Copying standard data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							success++;
 						}
@@ -10115,6 +10119,7 @@ namespace CumulusMX
 						{
 
 							srcfile = Path.Combine(GraphDataFiles[i].LocalPath, GraphDataFiles[i].LocalFileName);
+							LogDebugMessage($"LocalCopy: Copying graph data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							success++;
 
@@ -10137,6 +10142,7 @@ namespace CumulusMX
 						try
 						{
 							var text = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+							LogDebugMessage($"LocalCopy: Copying graph data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							success++;
 
@@ -10174,6 +10180,7 @@ namespace CumulusMX
 						{
 
 							srcfile = Path.Combine(GraphDataEodFiles[i].LocalPath, GraphDataEodFiles[i].LocalFileName);
+							LogDebugMessage($"LocalCopy: Copying daily graph data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							// Uploaded OK, reset the upload required flag
 							GraphDataEodFiles[i].CopyRequired = false;
@@ -10191,6 +10198,7 @@ namespace CumulusMX
 						try
 						{
 							var text = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+							LogDebugMessage($"LocalCopy: Copying daily graph data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							// Uploaded OK, reset the upload required flag
 							GraphDataEodFiles[i].CopyRequired = false;
@@ -10213,7 +10221,6 @@ namespace CumulusMX
 				{
 					LogDebugMessage("LocalCopy: Copying Moon image file to " + MoonImage.CopyDest);
 					File.Copy(Path.Combine("web", "moon.png"), MoonImage.CopyDest, true);
-					LogDebugMessage("LocalCopy: Done copying Moon image file");
 					// clear the image ready for copy flag, only upload once an hour
 					MoonImage.ReadyToCopy = false;
 				}
