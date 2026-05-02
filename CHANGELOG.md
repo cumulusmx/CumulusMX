@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.0 \[b5004\]][31] - 2026-04-30
+## [5.1.0 \[b5004\]][31] - 2026-05-03
 
 ### Important Notes
 
@@ -100,6 +100,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Enabling a Purple Air AQ sensor now automatically enables the extra sensor use AQ feature
 - Fix monthly log editor MySQL updates
 - Fix exception handling Davis v2 API error responses
+- Davis WLL stations now check the subscription level before fecthing health data
 
 ### Package Updates
 

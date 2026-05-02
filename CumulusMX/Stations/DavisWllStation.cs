@@ -43,7 +43,7 @@ namespace CumulusMX.Stations
 		private readonly bool useWeatherLinkDotCom = true;
 		private readonly bool[] sensorContactLost = new bool[9];
 		private DateTime lastHistoricData;
-		private string subscriptionType = string.Empty;
+		private string subscriptionLevel = string.Empty;
 
 		public DavisWllStation(Cumulus cumulus) : base(cumulus)
 		{
@@ -2908,6 +2908,12 @@ namespace CumulusMX.Stations
 				return;
 			}
 
+			if (string.IsNullOrEmpty(subscriptionLevel) || subscriptionLevel == "basic")
+			{
+				cumulus.LogMessage($"WLL Health: Not fetching health data due to subscription type = '{subscriptionLevel}'");
+				return;
+			}
+
 			var unixDateTime = DateTime.UtcNow.ToUnixTime();
 			var startTime = unixDateTime - weatherLinkArchiveInterval;
 			long endTime = unixDateTime;
@@ -3158,7 +3164,7 @@ namespace CumulusMX.Stations
 							cumulus.WllStationUuid = station.station_id_uuid;
 						}
 
-						subscriptionType = station.subscription_type.ToLower();
+						subscriptionLevel = station.subscription_type.ToLower();
 
 						cumulus.WriteIniFile();
 					}
@@ -3175,7 +3181,7 @@ namespace CumulusMX.Stations
 					cumulus.LogMessage($"WLLStations: Only found 1 WeatherLink station, using id = {usedId}");
 					cumulus.WllStationId = stationsObj.stations[0].station_id;
 					cumulus.WllStationUuid = stationsObj.stations[0].station_id_uuid;
-					subscriptionType = stationsObj.stations[0].subscription_type.ToLower();
+					subscriptionLevel = stationsObj.stations[0].subscription_type.ToLower();
 
 					// And save it to the config file
 					cumulus.WriteIniFile();
