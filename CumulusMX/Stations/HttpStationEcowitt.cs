@@ -983,8 +983,8 @@ namespace CumulusMX.Stations
 				{
 					try
 					{
-						ProcessBGT(data, thisStation);
-						ProcessWBGT(data, thisStation);
+						ProcessBGT(data, thisStation, recDate);
+						ProcessWBGT(data, thisStation, recDate);
 					}
 					catch (Exception ex)
 					{
@@ -1015,6 +1015,19 @@ namespace CumulusMX.Stations
 					catch (Exception ex)
 					{
 						cumulus.LogErrorMessage($"{procName}: Error in Soil EC Temperature data - {ex.Message}");
+					}
+				}
+
+				// === Soil EC ===
+				if (main || cumulus.ExtraSensorUseSoilEc)
+				{
+					try
+					{
+						ProcessSoilEc(data, thisStation);
+					}
+					catch (Exception ex)
+					{
+						cumulus.LogErrorMessage($"{procName}: Error in Soil EC data - {ex.Message}");
 					}
 				}
 
@@ -1328,19 +1341,19 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		private void ProcessBGT(NameValueCollection data, WeatherStation station)
+		private void ProcessBGT(NameValueCollection data, WeatherStation station, DateTime recDate)
 		{
 			if (data["bgt"] != null)
 			{
-				station.BlackGlobeTemp = ConvertUnits.TempFToUser(Convert.ToDouble(data["bgt"], invNum));
+				station.DoBGT(ConvertUnits.TempFToUser(Convert.ToDouble(data["bgt"], invNum)), recDate);
 			}
 		}
 
-		private void ProcessWBGT(NameValueCollection data, WeatherStation station)
+		private void ProcessWBGT(NameValueCollection data, WeatherStation station, DateTime recDate)
 		{
 			if (data["wbgt"] != null)
 			{
-				station.WetBulbGlobeTemp = ConvertUnits.TempFToUser(Convert.ToDouble(data["wbgt"], invNum));
+				station.DoWBGT(ConvertUnits.TempFToUser(Convert.ToDouble(data["wbgt"], invNum)), recDate);
 			}
 		}
 
@@ -1397,6 +1410,17 @@ namespace CumulusMX.Stations
 				if (data["soil_ec_temp" + i] != null)
 				{
 					station.DoSoilTemp(Convert.ToDouble(data["soil_ec_temp" + i], invNum), i);
+				}
+			}
+		}
+
+		private void ProcessSoilEc(NameValueCollection data, WeatherStation station)
+		{
+			for (var i = 1; i <= 16; i++)
+			{
+				if (data["soil_ec_ec" + i] != null)
+				{
+					station.DoSoilEc(Convert.ToInt16(data["soil_ec_ec" + i], invNum), i);
 				}
 			}
 		}
@@ -1491,8 +1515,31 @@ namespace CumulusMX.Stations
 			station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
 			station.CO2_pm10_24h = data["pm10_24h_co2"] != null ? Convert.ToDouble(data["pm10_24h_co2"], invNum) : null;
 			station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10h24, station.CO2_pm10_24h);
-			station.CO2 = data["co2"] != null ? Convert.ToInt32(data["co2"], invNum) : null;
-			station.CO2_24h = data["co2_24h"] != null ? Convert.ToInt32(data["co2_24h"], invNum) : null;
+			if (data["co2"] != null) // CO2 sensor
+			{
+				station.CO2 = Convert.ToInt32(data["co2"], invNum);
+			}
+			else if (data["co2in"] != null) // WS3900 console
+			{
+				station.CO2 = Convert.ToInt32(data["co2"], invNum);
+			}
+			else
+			{
+				station.CO2 = null;
+			}
+
+			if (data["co2_24h"] != null) // CO2 sensor
+			{
+				station.CO2_24h = Convert.ToInt32(data["co2_24h"], invNum);
+			}
+			else if (data["co2in_24h"] != null) // WS3900 console
+			{
+				station.CO2_24h = Convert.ToInt32(data["co2in_24h"], invNum);
+			}
+			else
+			{
+				station.CO2_24h = null;
+			}
 		}
 
 		private void ProcessLightning(NameValueCollection data, WeatherStation station)

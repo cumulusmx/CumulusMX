@@ -12,7 +12,6 @@ namespace CumulusMX.Stations
 		private readonly WeatherStation station;
 		private readonly EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
-		private Task liveTask;
 		private readonly bool mainStation;
 		private string deviceModel;
 		private Version deviceFirmware;
@@ -175,67 +174,64 @@ namespace CumulusMX.Stations
 			}
 
 			// main data task
-			liveTask = Task.Run(() =>
+			var delay = 0;
+			var nextFetch = DateTime.MinValue;
+
+			while (!Program.ExitSystemToken.IsCancellationRequested)
 			{
-				var delay = 0;
-				var nextFetch = DateTime.MinValue;
-
-				while (!Program.ExitSystemToken.IsCancellationRequested)
+				if (DateTime.UtcNow >= nextFetch && !DayResetInProgress)
 				{
-					if (DateTime.UtcNow >= nextFetch && !DayResetInProgress)
+					try
 					{
-						try
+
+						var data = ecowittApi.GetCurrentData(ref delay, Program.ExitSystemToken);
+
+						if (data != null)
 						{
+							ProcessCurrentData(data, Program.ExitSystemToken);
+						}
+						else
+						{
+							cumulus.LogDebugMessage($"EcowittCloud: No new data to process");
+						}
+						cumulus.LogDebugMessage($"EcowittCloud: Waiting {delay} seconds before next update");
+						nextFetch = DateTime.UtcNow.AddSeconds(delay);
 
-							var data = ecowittApi.GetCurrentData(ref delay, Program.ExitSystemToken);
+						var hour = DateTime.Now.Hour;
+						if (lastHour != hour)
+						{
+							lastHour = hour;
 
-							if (data != null)
+							if (hour == 13)
 							{
-								ProcessCurrentData(data, Program.ExitSystemToken);
-							}
-							else
-							{
-								cumulus.LogDebugMessage($"EcowittCloud: No new data to process");
-							}
-							cumulus.LogDebugMessage($"EcowittCloud: Waiting {delay} seconds before next update");
-							nextFetch = DateTime.UtcNow.AddSeconds(delay);
-
-							var hour = DateTime.Now.Hour;
-							if (lastHour != hour)
-							{
-								lastHour = hour;
-
-								if (hour == 13)
+								try
 								{
-									try
+									var retVal = ecowittApi.GetStationList(mainStation || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
+									if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
 									{
-										var retVal = ecowittApi.GetStationList(mainStation || cumulus.ExtraSensorUseCamera, cumulus.EcowittMacAddress, Program.ExitSystemToken);
-										if (retVal.Length == 2 && !retVal[1].StartsWith("EasyWeather"))
-										{
-											// EasyWeather seems to contain the WiFi version
-											deviceFirmware = new Version(retVal[0]);
-											deviceModel = retVal[1];
-											GW1000FirmwareVersion = retVal[0];
-										}
-										_ = CheckAvailableFirmware();
+										// EasyWeather seems to contain the WiFi version
+										deviceFirmware = new Version(retVal[0]);
+										deviceModel = retVal[1];
+										GW1000FirmwareVersion = retVal[0];
 									}
-									catch (Exception ex)
-									{
-										cumulus.LogExceptionMessage(ex, "Error decoding firmware version");
-									}
+									_ = CheckAvailableFirmware();
+								}
+								catch (Exception ex)
+								{
+									cumulus.LogExceptionMessage(ex, "Error decoding firmware version");
 								}
 							}
 						}
-						catch (Exception ex)
-						{
-							cumulus.LogExceptionMessage(ex, "Error running Ecowitt Cloud station");
-							nextFetch = DateTime.UtcNow.AddMinutes(1);
-						}
 					}
-
-					Thread.Sleep(1000);
+					catch (Exception ex)
+					{
+						cumulus.LogExceptionMessage(ex, "Error running Ecowitt Cloud station");
+						nextFetch = DateTime.UtcNow.AddMinutes(1);
+					}
 				}
-			}, Program.ExitSystemToken);
+
+				Task.Delay(1000, Program.ExitSystemToken);
+			}
 		}
 
 		public override void Stop()
@@ -243,7 +239,6 @@ namespace CumulusMX.Stations
 			if (mainStation)
 			{
 				StopMinuteTimer();
-				liveTask.Wait();
 			}
 
 			cumulus.LogMessage($"Ecowitt Cloud {(mainStation ? "Extra Sensors" : "")} station Stopped");
@@ -506,10 +501,10 @@ namespace CumulusMX.Stations
 					try
 					{
 						if (data.solar_and_uvi.solar != null && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseSolar))
-							DoSolarRad((int) data.solar_and_uvi.solar.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
+							station.DoSolarRad((int) data.solar_and_uvi.solar.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
 
 						if (data.solar_and_uvi.uvi != null && Utils.UseSensor(mainStation, cumulus.HasExtraStation, cumulus.ExtraSensorUseUv))
-							DoUV(data.solar_and_uvi.uvi.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
+							station.DoUV(data.solar_and_uvi.uvi.value, data.solar_and_uvi.solar.time.LocalFromUnixTime());
 					}
 					catch (Exception ex)
 					{
@@ -557,7 +552,7 @@ namespace CumulusMX.Stations
 				}
 
 				// === Soil Moisture EC ===
-				if (mainStation || cumulus.ExtraSensorUseSoilMoist)
+				if (mainStation || cumulus.ExtraSensorUseSoilEc)
 				{
 					try
 					{
@@ -679,8 +674,8 @@ namespace CumulusMX.Stations
 					{
 						if (mainStation || cumulus.ExtraSensorUseBGT)
 						{
-							station.BlackGlobeTemp = data.black_globe_temperature.bgt.value;
-							station.WetBulbGlobeTemp = data.black_globe_temperature.wbgt.value;
+							station.DoBGT(data.black_globe_temperature.bgt.value, data.black_globe_temperature.bgt.time.LocalFromUnixTime());
+							station.DoWBGT(data.black_globe_temperature.wbgt.value, data.black_globe_temperature.wbgt.time.LocalFromUnixTime());
 						}
 					}
 					catch (Exception ex)
@@ -699,7 +694,7 @@ namespace CumulusMX.Stations
 						DoPressure(ConvertUnits.PressMBToUser(slp), data.pressure.absolute.time.LocalFromUnixTime());
 					}
 
-					station.DoForecast("", false);
+					station.DoForecast(string.Empty, false);
 
 					var updateTime = (data.pressure == null ? data.outdoor.temperature.time : data.pressure.absolute.time).LocalFromUnixTime();
 					station.UpdateStatusPanel(updateTime.ToUniversalTime());
@@ -718,44 +713,14 @@ namespace CumulusMX.Stations
 
 		private void ProcessExtraTempHum(EcowittApi.CurrentDataData data)
 		{
-			if (data.temp_and_humidity_ch1 != null)
+			for (var i = 1;  i <= 8; i++)
 			{
-				ApplyExtraTempHum(1, data.temp_and_humidity_ch1.temperature.value, data.temp_and_humidity_ch1.humidity, data.temp_and_humidity_ch1.temperature.time);
-			}
+				if (data["temp_and_humidity_ch" + i] != null)
+				{
+					var sensor = (EcowittApi.CurrentTempHum) data["temp_and_humidity_ch" + i];
+					ApplyExtraTempHum(i, sensor.temperature.value, sensor.humidity, sensor.temperature.time);
 
-			if (data.temp_and_humidity_ch2 != null)
-			{
-				ApplyExtraTempHum(2, data.temp_and_humidity_ch2.temperature.value, data.temp_and_humidity_ch2.humidity, data.temp_and_humidity_ch2.temperature.time);
-			}
-
-			if (data.temp_and_humidity_ch3 != null)
-			{
-				ApplyExtraTempHum(3, data.temp_and_humidity_ch3.temperature.value, data.temp_and_humidity_ch3.humidity, data.temp_and_humidity_ch3.temperature.time);
-			}
-
-			if (data.temp_and_humidity_ch4 != null)
-			{
-				ApplyExtraTempHum(4, data.temp_and_humidity_ch4.temperature.value, data.temp_and_humidity_ch4.humidity, data.temp_and_humidity_ch4.temperature.time);
-			}
-
-			if (data.temp_and_humidity_ch5 != null)
-			{
-				ApplyExtraTempHum(5, data.temp_and_humidity_ch5.temperature.value, data.temp_and_humidity_ch5.humidity, data.temp_and_humidity_ch5.temperature.time);
-			}
-
-			if (data.temp_and_humidity_ch6 != null)
-			{
-				ApplyExtraTempHum(6, data.temp_and_humidity_ch6.temperature.value, data.temp_and_humidity_ch6.humidity, data.temp_and_humidity_ch6.temperature.time);
-			}
-
-			if (data.temp_and_humidity_ch7 != null)
-			{
-				ApplyExtraTempHum(7, data.temp_and_humidity_ch7.temperature.value, data.temp_and_humidity_ch7.humidity, data.temp_and_humidity_ch7.temperature.time);
-			}
-
-			if (data.temp_and_humidity_ch8 != null)
-			{
-				ApplyExtraTempHum(8, data.temp_and_humidity_ch8.temperature.value, data.temp_and_humidity_ch8.humidity, data.temp_and_humidity_ch8.temperature.time);
+				}
 			}
 		}
 
@@ -798,44 +763,13 @@ namespace CumulusMX.Stations
 
 		private void ProcessUserTemps(EcowittApi.CurrentDataData data)
 		{
-			if (data.temp_ch1 != null)
+			for (var i = 1; i <=8; i++)
 			{
-				ApplyUserTemp(1, data.temp_ch1.temperature.value);
-			}
-
-			if (data.temp_ch2 != null)
-			{
-				ApplyUserTemp(2, data.temp_ch2.temperature.value);
-			}
-
-			if (data.temp_ch3 != null)
-			{
-				ApplyUserTemp(3, data.temp_ch3.temperature.value);
-			}
-
-			if (data.temp_ch4 != null)
-			{
-				ApplyUserTemp(4, data.temp_ch4.temperature.value);
-			}
-
-			if (data.temp_ch5 != null)
-			{
-				ApplyUserTemp(5, data.temp_ch5.temperature.value);
-			}
-
-			if (data.temp_ch6 != null)
-			{
-				ApplyUserTemp(6, data.temp_ch6.temperature.value);
-			}
-
-			if (data.temp_ch7 != null)
-			{
-				ApplyUserTemp(7, data.temp_ch7.temperature.value);
-			}
-
-			if (data.temp_ch8 != null)
-			{
-				ApplyUserTemp(8, data.temp_ch8.temperature.value);
+				if (data["temp_ch" + i] != null)
+				{
+					var sensor = (EcowittApi.CurrentTemp) data["temp_ch" + i];
+					ApplyUserTemp(i, sensor.temperature.value);
+				}
 			}
 		}
 
@@ -853,307 +787,57 @@ namespace CumulusMX.Stations
 
 		private void ProcessSoilMoist(EcowittApi.CurrentDataData data)
 		{
-			if (data.soil_ch1 != null)
+			for (var i = 1; i <= 8; i++)
 			{
-				station.DoSoilMoisture(data.soil_ch1.soilmoisture.value, 1);
-				if (!mainStation)
+				if (data["soil_ch" + i] != null)
 				{
-					cumulus.Units.SoilMoistureUnitText[0] = "%";
-				}
-			}
-
-			if (data.soil_ch2 != null)
-			{
-				station.DoSoilMoisture(data.soil_ch2.soilmoisture.value, 2);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[1] = "%";
-				}
-			}
-
-			if (data.soil_ch3 != null)
-			{
-				station.DoSoilMoisture(data.soil_ch3.soilmoisture.value, 3);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[2] = "%";
-				}
-			}
-
-			if (data.soil_ch4 != null)
-			{
-				station.DoSoilMoisture(data.soil_ch4.soilmoisture.value, 4);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[3] = "%";
-				}
-			}
-
-			if (data.soil_ch5 != null)
-			{
-				station.DoSoilMoisture(data.soil_ch5.soilmoisture.value, 5);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[4] = "%";
-				}
-			}
-
-			if (data.soil_ch6 != null)
-			{
-				station.DoSoilMoisture(data.soil_ch6.soilmoisture.value, 6);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[5] = "%";
-				}
-			}
-
-			if (data.soil_ch7 != null)
-			{
-				station.DoSoilMoisture(data.soil_ch7.soilmoisture.value, 7);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[6] = "%";
-				}
-			}
-
-			if (data.soil_ch8 != null)
-			{
-				station.DoSoilMoisture(data.soil_ch8.soilmoisture.value, 8);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[7] = "%";
+					var sensor = (EcowittApi.CurrentSoil) data["soil_ch" + i];
+					station.DoSoilMoisture(sensor.soilmoisture.value, i);
 				}
 			}
 		}
 
 		private void ProcessSoilMoistEc(EcowittApi.CurrentDataData data)
 		{
-			if (data.ch_soil_ec_temp_hum1 != null)
+			for (var i = 1; i <= 16; i++)
 			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum1.soilmoisture.value, 1);
-				if (!mainStation)
+				if (data["ch_soil_ec_temp_hum" + i] != null)
 				{
-					cumulus.Units.SoilMoistureUnitText[0] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum1.temperature.value, 1);
-			}
+					var sensor = (EcowittApi.CurrentSoilEc) data["ch_soil_ec_temp_hum" + i];
 
-			if (data.ch_soil_ec_temp_hum2 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum2.soilmoisture.value, 2);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[1] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum2.temperature.value, 2);
-			}
-
-			if (data.ch_soil_ec_temp_hum3 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum3.soilmoisture.value, 3);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[2] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum3.temperature.value, 3);
-			}
-
-			if (data.ch_soil_ec_temp_hum4 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum4.soilmoisture.value, 4);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[3] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum4.temperature.value, 4);
-			}
-
-			if (data.ch_soil_ec_temp_hum5 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum5.soilmoisture.value, 5);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[4] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum5.temperature.value, 5);
-			}
-
-			if (data.ch_soil_ec_temp_hum6 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum6.soilmoisture.value, 6);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[5] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum6.temperature.value, 6);
-			}
-
-			if (data.ch_soil_ec_temp_hum7 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum7.soilmoisture.value, 7);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[6] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum7.temperature.value, 7);
-			}
-
-			if (data.ch_soil_ec_temp_hum8 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum8.soilmoisture.value, 8);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[7] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum8.temperature.value, 8);
-			}
-
-			if (data.ch_soil_ec_temp_hum9 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum9.soilmoisture.value, 9);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[8] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum9.temperature.value, 9);
-			}
-
-			if (data.ch_soil_ec_temp_hum10 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum10.soilmoisture.value, 10);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[9] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum10.temperature.value, 10);
-			}
-
-			if (data.ch_soil_ec_temp_hum11 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum11.soilmoisture.value, 11);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[10] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum11.temperature.value, 11);
-			}
-
-			if (data.ch_soil_ec_temp_hum12 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum12.soilmoisture.value, 12);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[11] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum12.temperature.value, 12);
-			}
-
-			if (data.ch_soil_ec_temp_hum13 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum13.soilmoisture.value, 13);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[12] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum13.temperature.value, 13);
-			}
-
-			if (data.ch_soil_ec_temp_hum14 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum14.soilmoisture.value, 14);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[13] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum14.temperature.value, 14);
-
-				if (data.ch_soil_ec_temp_hum15 != null)
-				{
-					station.DoSoilMoisture(data.ch_soil_ec_temp_hum15.soilmoisture.value, 15);
+					station.DoSoilMoisture(sensor.soilmoisture.value, i);
 					if (!mainStation)
 					{
-						cumulus.Units.SoilMoistureUnitText[14] = "%";
+						cumulus.Units.SoilMoistureUnitText[0] = "%";
 					}
-					station.DoSoilTemp(data.ch_soil_ec_temp_hum15.temperature.value, 15);
+					station.DoSoilTemp(sensor.temperature.value, i);
+					station.DoSoilEc(sensor.ec.value, i);
 				}
-			}
-
-			if (data.ch_soil_ec_temp_hum16 != null)
-			{
-				station.DoSoilMoisture(data.ch_soil_ec_temp_hum16.soilmoisture.value, 16);
-				if (!mainStation)
-				{
-					cumulus.Units.SoilMoistureUnitText[15] = "%";
-				}
-				station.DoSoilTemp(data.ch_soil_ec_temp_hum16.temperature.value, 16);
 			}
 		}
 
 		private void ProcessLeafWetness(EcowittApi.CurrentDataData data)
 		{
-			if (data.leaf_ch1 != null)
+			for (var i = 1; i <= 8; i++)
 			{
-				station.DoLeafWetness(data.leaf_ch1.leaf_wetness.value, 1);
-			}
-
-			if (data.leaf_ch2 != null)
-			{
-				station.DoLeafWetness(data.leaf_ch2.leaf_wetness.value, 2);
-			}
-
-			if (data.leaf_ch3 != null)
-			{
-				station.DoLeafWetness(data.leaf_ch3.leaf_wetness.value, 3);
-			}
-
-			if (data.leaf_ch4 != null)
-			{
-				station.DoLeafWetness(data.leaf_ch4.leaf_wetness.value, 4);
-			}
-
-			if (data.leaf_ch5 != null)
-			{
-				station.DoLeafWetness(data.leaf_ch5.leaf_wetness.value, 5);
-			}
-
-			if (data.leaf_ch6 != null)
-			{
-				station.DoLeafWetness(data.leaf_ch6.leaf_wetness.value, 6);
-			}
-
-			if (data.leaf_ch7 != null)
-			{
-				station.DoLeafWetness(data.leaf_ch7.leaf_wetness.value, 7);
-			}
-
-			if (data.leaf_ch8 != null)
-			{
-				station.DoLeafWetness(data.leaf_ch8.leaf_wetness.value, 8);
+				if (data["leaf_ch" + i] != null)
+				{
+					var sensor = (EcowittApi.CurrentLeaf) data["leaf_ch" + i];
+					station.DoLeafWetness(sensor.leaf_wetness.value, i);
+				}
 			}
 		}
 
 		private void ProcessAirQuality(EcowittApi.CurrentDataData data)
 		{
-			if (data.pm25_ch1 != null)
+			for (var i = 1; i <= 4; i++)
 			{
-				station.DoAirQuality(data.pm25_ch1.pm25.value, 1);
-				//station.DoAirQualityAvg(data.pm25_ch1.AqiAvg24h.value, 1)
-			}
-
-			if (data.pm25_ch2 != null)
-			{
-				station.DoAirQuality(data.pm25_ch2.pm25.value, 2);
-				//station.DoAirQualityAvg(data.pm25_ch2.AqiAvg24h.value, 2)
-			}
-			if (data.pm25_ch3 != null)
-			{
-				station.DoAirQuality(data.pm25_ch3.pm25.value, 3);
-				//station.DoAirQualityAvg(data.pm25_ch3.AqiAvg24h.value, 3)
-			}
-			if (data.pm25_ch4 != null)
-			{
-				station.DoAirQuality(data.pm25_ch4.pm25.value, 4);
-				//station.DoAirQualityAvg(data.pm25_ch1.AqiAvg24h.value, 4)
+				if (data["pm25_ch" + i] != null)
+				{
+					var sensor = (EcowittApi.CurrentPm25) data["pm25_ch" + i];
+					station.DoAirQuality(sensor.pm25.value, i);
+					//station.DoAirQualityAvg(sensor.AqiAvg24h.value, i)
+				}
 			}
 		}
 
@@ -1228,24 +912,13 @@ namespace CumulusMX.Stations
 		{
 			if (data.water_leak != null)
 			{
-				if (data.water_leak.leak_ch1 != null)
+				for (var i = 1; i <= 4; i++)
 				{
-					station.DoLeakSensor(data.water_leak.leak_ch1.value, 1);
-				}
-
-				if (data.water_leak.leak_ch2 != null)
-				{
-					station.DoLeakSensor(data.water_leak.leak_ch2.value, 2);
-				}
-
-				if (data.water_leak.leak_ch3 != null)
-				{
-					station.DoLeakSensor(data.water_leak.leak_ch3.value, 3);
-				}
-
-				if (data.water_leak.leak_ch4 != null)
-				{
-					station.DoLeakSensor(data.water_leak.leak_ch4.value, 4);
+					if (data.water_leak["water_leak.leak_ch" + i] != null)
+					{
+						var sensor = (EcowittApi.CurrentSensorValInt) data.water_leak["water_leak.leak_ch" + i];
+						station.DoLeakSensor(sensor.value, i);
+					}
 				}
 			}
 		}
@@ -1385,312 +1058,77 @@ namespace CumulusMX.Stations
 					lowBatt = true;
 					LowBatteryDevices.Add("AQIcombo=LOW");
 				}
-				if (data.battery.water_leak_sensor_ch1 != null && data.battery.water_leak_sensor_ch1.value == 1) // flag
+				for (var i = 1; i <= 4; i++)
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leak#1=LOW");
+					if (data.battery["water_leak_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValInt) data.battery["water_leak_sensor_ch" + i]).value == 1) // flag
+					{
+						lowBatt = true;
+						LowBatteryDevices.Add($"Leak#{i}=LOW");
+					}
 				}
-				if (data.battery.water_leak_sensor_ch2 != null && data.battery.water_leak_sensor_ch2.value == 1) // flag
+				for (var i = 1; i <= 4; i++)
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leak#2=LOW");
+					if (data.battery["pm25_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValInt) data.battery["pm25_sensor_ch" + i]).value == 1)             // flag
+					{
+						lowBatt = true;
+						LowBatteryDevices.Add($"pm2.5#{i}=LOW");
+					}
 				}
-				if (data.battery.water_leak_sensor_ch3 != null && data.battery.water_leak_sensor_ch3.value == 1) // flag
+				for (var i = 1; i <= 8; i++)
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leak#3=LOW");
+					if (data.battery["temp_humidity_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValInt) data.battery["temp_humidity_sensor_ch" + i]).value == 1)  // flag
+					{
+						lowBatt = true;
+						LowBatteryDevices.Add($"TH#{i}=LOW");
+					}
 				}
-				if (data.battery.water_leak_sensor_ch4 != null && data.battery.water_leak_sensor_ch4.value == 1) // flag
+				for (var i = 1; i <= 8; i++)
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leak#4=LOW");
+					if (data.battery["soilmoisture_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValDbl) data.battery["soilmoisture_sensor_ch" + i]).value < 1.2)    // volts
+					{
+						lowBatt = true;
+						LowBatteryDevices.Add($"SoilMoist#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["soilmoisture_sensor_ch" + i]).value + "V");
+					}
 				}
-				if (data.battery.pm25_sensor_ch1 != null && data.battery.pm25_sensor_ch1.value == 1)             // flag
+				for (var i = 1; i <= 8; i++)
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("pm2.5#1=LOW");
+					if (data.battery["temperature_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValDbl) data.battery["temperature_sensor_ch" + i]).value < 1.2)      // volts
+					{
+						lowBatt = true;
+						LowBatteryDevices.Add($"Temp#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["temperature_sensor_ch" + i]).value + "V");
+					}
 				}
-				if (data.battery.pm25_sensor_ch2 != null && data.battery.pm25_sensor_ch2.value == 1)             // flag
+				for (var i = 1; i <= 8; i++)
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("pm2.5#2=LOW");
+					if (data.battery["leaf_wetness_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValDbl) data.battery["leaf_wetness_sensor_ch" + i]).value < 1.2)      // volts
+					{
+						lowBatt = true;
+						LowBatteryDevices.Add($"Leaf#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["leaf_wetness_sensor_ch" + i]).value + "V");
+					}
 				}
-				if (data.battery.pm25_sensor_ch3 != null && data.battery.pm25_sensor_ch3.value == 1)             // flag
+				for (var i = 1; i <= 4; i++)
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("pm2.5#3=LOW");
-				}
-				if (data.battery.pm25_sensor_ch4 != null && data.battery.pm25_sensor_ch4.value == 1)             // flag
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("pm2.5#4=LOW");
-				}
-				if (data.battery.temp_humidity_sensor_ch1 != null && data.battery.temp_humidity_sensor_ch1.value == 1)  // flag
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("TH#1=LOW");
-				}
-				if (data.battery.temp_humidity_sensor_ch2 != null && data.battery.temp_humidity_sensor_ch2.value == 1)  // flag
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("TH#2=LOW");
-				}
-				if (data.battery.temp_humidity_sensor_ch3 != null && data.battery.temp_humidity_sensor_ch3.value == 1)  // flag
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("TH#3=LOW");
-				}
-				if (data.battery.temp_humidity_sensor_ch4 != null && data.battery.temp_humidity_sensor_ch4.value == 1)  // flag
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("TH#4=LOW");
-				}
-				if (data.battery.temp_humidity_sensor_ch5 != null && data.battery.temp_humidity_sensor_ch5.value == 1)  // flag
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("TH#5=LOW");
-				}
-				if (data.battery.temp_humidity_sensor_ch6 != null && data.battery.temp_humidity_sensor_ch6.value == 1)  // flag
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("TH#6=LOW");
-				}
-				if (data.battery.temp_humidity_sensor_ch7 != null && data.battery.temp_humidity_sensor_ch7.value == 1)  // flag
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("TH#7=LOW");
-				}
-				if (data.battery.temp_humidity_sensor_ch8 != null && data.battery.temp_humidity_sensor_ch8.value == 1)  // flag
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("TH#8=LOW");
-				}
-				if (data.battery.soilmoisture_sensor_ch1 != null && data.battery.soilmoisture_sensor_ch1.value < 1.2)    // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilMoist#1=" + data.battery.soilmoisture_sensor_ch1.value + "V");
-				}
-				if (data.battery.soilmoisture_sensor_ch2 != null && data.battery.soilmoisture_sensor_ch2.value < 1.2)    // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilMoist#2=" + data.battery.soilmoisture_sensor_ch2.value + "V");
-				}
-				if (data.battery.soilmoisture_sensor_ch3 != null && data.battery.soilmoisture_sensor_ch3.value < 1.2)    // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilMoist#3=" + data.battery.soilmoisture_sensor_ch3.value + "V");
-				}
-				if (data.battery.soilmoisture_sensor_ch4 != null && data.battery.soilmoisture_sensor_ch4.value < 1.2)    // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilMoist#4=" + data.battery.soilmoisture_sensor_ch4.value + "V");
-				}
-				if (data.battery.soilmoisture_sensor_ch5 != null && data.battery.soilmoisture_sensor_ch5.value < 1.2)    // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilMoist#5=" + data.battery.soilmoisture_sensor_ch5.value + "V");
-				}
-				if (data.battery.soilmoisture_sensor_ch6 != null && data.battery.soilmoisture_sensor_ch6.value < 1.2)    // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilMoist#6=" + data.battery.soilmoisture_sensor_ch6.value + "V");
-				}
-				if (data.battery.soilmoisture_sensor_ch7 != null && data.battery.soilmoisture_sensor_ch7.value < 1.2)    // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilMoist#7=" + data.battery.soilmoisture_sensor_ch7.value + "V");
-				}
-				if (data.battery.soilmoisture_sensor_ch8 != null && data.battery.soilmoisture_sensor_ch8.value < 1.2)    // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilMoist#8=" + data.battery.soilmoisture_sensor_ch8.value + "V");
-				}
-				if (data.battery.temperature_sensor_ch1 != null && data.battery.temperature_sensor_ch1.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Temp#1=" + data.battery.temperature_sensor_ch1.value + "V");
-				}
-				if (data.battery.temperature_sensor_ch2 != null && data.battery.temperature_sensor_ch2.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Temp#2=" + data.battery.temperature_sensor_ch2.value + "V");
-				}
-				if (data.battery.temperature_sensor_ch3 != null && data.battery.temperature_sensor_ch3.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Temp#3=" + data.battery.temperature_sensor_ch3.value + "V");
-				}
-				if (data.battery.temperature_sensor_ch4 != null && data.battery.temperature_sensor_ch4.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Temp#4=" + data.battery.temperature_sensor_ch4.value + "V");
-				}
-				if (data.battery.temperature_sensor_ch5 != null && data.battery.temperature_sensor_ch5.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Temp#5=" + data.battery.temperature_sensor_ch5.value + "V");
-				}
-				if (data.battery.temperature_sensor_ch6 != null && data.battery.temperature_sensor_ch6.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Temp#6=" + data.battery.temperature_sensor_ch6.value + "V");
-				}
-				if (data.battery.temperature_sensor_ch7 != null && data.battery.temperature_sensor_ch7.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Temp#7=" + data.battery.temperature_sensor_ch7.value + "V");
-				}
-				if (data.battery.temperature_sensor_ch8 != null && data.battery.temperature_sensor_ch8.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Temp#8=" + data.battery.temperature_sensor_ch8.value + "V");
-				}
-				if (data.battery.leaf_wetness_sensor_ch1 != null && data.battery.leaf_wetness_sensor_ch1.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leaf#1=" + data.battery.leaf_wetness_sensor_ch1.value + "V");
-				}
-				if (data.battery.leaf_wetness_sensor_ch2 != null && data.battery.leaf_wetness_sensor_ch2.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leaf#2=" + data.battery.leaf_wetness_sensor_ch2.value + "V");
-				}
-				if (data.battery.leaf_wetness_sensor_ch3 != null && data.battery.leaf_wetness_sensor_ch3.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leaf#3=" + data.battery.leaf_wetness_sensor_ch3.value + "V");
-				}
-				if (data.battery.leaf_wetness_sensor_ch4 != null && data.battery.leaf_wetness_sensor_ch4.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leaf#4=" + data.battery.leaf_wetness_sensor_ch4.value + "V");
-				}
-				if (data.battery.leaf_wetness_sensor_ch5 != null && data.battery.leaf_wetness_sensor_ch5.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leaf#5=" + data.battery.leaf_wetness_sensor_ch5.value + "V");
-				}
-				if (data.battery.leaf_wetness_sensor_ch6 != null && data.battery.leaf_wetness_sensor_ch6.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leaf#6=" + data.battery.leaf_wetness_sensor_ch6.value + "V");
-				}
-				if (data.battery.leaf_wetness_sensor_ch7 != null && data.battery.leaf_wetness_sensor_ch7.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leaf#7=" + data.battery.leaf_wetness_sensor_ch7.value + "V");
-				}
-				if (data.battery.leaf_wetness_sensor_ch8 != null && data.battery.leaf_wetness_sensor_ch8.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("Leaf#8=" + data.battery.leaf_wetness_sensor_ch8.value + "V");
-				}
-				if (data.battery.ldsbatt_1 != null && data.battery.ldsbatt_1.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("LDS#1=" + data.battery.ldsbatt_1.value + "V");
-				}
-				if (data.battery.ldsbatt_2 != null && data.battery.ldsbatt_2.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("LDS#2=" + data.battery.ldsbatt_2.value + "V");
-				}
-				if (data.battery.ldsbatt_3 != null && data.battery.ldsbatt_3.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("LDS#3=" + data.battery.ldsbatt_3.value + "V");
-				}
-				if (data.battery.ldsbatt_4 != null && data.battery.ldsbatt_4.value < 1.2)      // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("LDS#4=" + data.battery.ldsbatt_4.value + "V");
+					if (data.battery["ldsbatt_" + i] != null && ((EcowittApi.CurrentSensorValDbl) data.battery["ldsbatt_" + i]).value < 1.2)      // volts
+					{
+						lowBatt = true;
+						LowBatteryDevices.Add($"LDS#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["ldsbatt_" + i]).value + "V");
+					}
 				}
 				if (data.battery.bgt_sensor != null && data.battery.bgt_sensor.value < 1.2)      // volts
 				{
 					lowBatt = true;
 					LowBatteryDevices.Add("BGT=" + data.battery.bgt_sensor.value + "V");
 				}
-				if (data.battery.soilmoisture_ec_sensor_ch1 != null && data.battery.soilmoisture_ec_sensor_ch1.value < 1.2) // volts
+				for (var i = 1; i <= 16; i++)
 				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#1=" + data.battery.soilmoisture_ec_sensor_ch1.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch2 != null && data.battery.soilmoisture_ec_sensor_ch2.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#2=" + data.battery.soilmoisture_ec_sensor_ch2.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch3 != null && data.battery.soilmoisture_ec_sensor_ch3.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#3=" + data.battery.soilmoisture_ec_sensor_ch3.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch4 != null && data.battery.soilmoisture_ec_sensor_ch4.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#4=" + data.battery.soilmoisture_ec_sensor_ch4.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch5 != null && data.battery.soilmoisture_ec_sensor_ch5.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#5=" + data.battery.soilmoisture_ec_sensor_ch5.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch6 != null && data.battery.soilmoisture_ec_sensor_ch6.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#6=" + data.battery.soilmoisture_ec_sensor_ch6.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch7 != null && data.battery.soilmoisture_ec_sensor_ch7.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#7=" + data.battery.soilmoisture_ec_sensor_ch7.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch8 != null && data.battery.soilmoisture_ec_sensor_ch8.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#8=" + data.battery.soilmoisture_ec_sensor_ch8.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch9 != null && data.battery.soilmoisture_ec_sensor_ch9.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#9=" + data.battery.soilmoisture_ec_sensor_ch9.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch10 != null && data.battery.soilmoisture_ec_sensor_ch10.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#10=" + data.battery.soilmoisture_ec_sensor_ch10.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch11 != null && data.battery.soilmoisture_ec_sensor_ch11.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#11=" + data.battery.soilmoisture_ec_sensor_ch11.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch12 != null && data.battery.soilmoisture_ec_sensor_ch12.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#12=" + data.battery.soilmoisture_ec_sensor_ch12.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch13 != null && data.battery.soilmoisture_ec_sensor_ch13.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#13=" + data.battery.soilmoisture_ec_sensor_ch13.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch14 != null && data.battery.soilmoisture_ec_sensor_ch14.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#14=" + data.battery.soilmoisture_ec_sensor_ch14.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch15 != null && data.battery.soilmoisture_ec_sensor_ch15.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#15=" + data.battery.soilmoisture_ec_sensor_ch15.value + "V");
-				}
-				if (data.battery.soilmoisture_ec_sensor_ch16 != null && data.battery.soilmoisture_ec_sensor_ch16.value < 1.2) // volts
-				{
-					lowBatt = true;
-					LowBatteryDevices.Add("SoilEC#16=" + data.battery.soilmoisture_ec_sensor_ch16.value + "V");
+					if (data.battery["soilmoisture_ec_sensor_ch" + i] != null && ((EcowittApi.CurrentSensorValDbl) data.battery["soilmoisture_ec_sensor_ch" + i]).value < 1.2) // volts
+					{
+						lowBatt = true;
+						LowBatteryDevices.Add($"SoilEC#{i}=" + ((EcowittApi.CurrentSensorValDbl) data.battery["soilmoisture_ec_sensor_ch" + i]).value + "V");
+					}
 				}
 
+				cumulus.BatteryLowAlarm.LastMessage = string.Join(",", LowBatteryDevices);
 				cumulus.BatteryLowAlarm.Triggered = lowBatt;
 			}
 		}

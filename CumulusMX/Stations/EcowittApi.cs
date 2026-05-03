@@ -249,9 +249,9 @@ namespace CumulusMX.Stations
 
 					if (responseCode != 200)
 					{
-						var historyError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
-						cumulus.LogMessage($"API.GetHistoricData: Ecowitt API Historic Error: {historyError.code}, {historyError.msg}, Cumulus.LogLevel.Warning");
-						Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.msg}", ConsoleColor.Red);
+							var historyError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
+							cumulus.LogMessage($"API.GetHistoricData: Ecowitt API Historic Error: {historyError.code}, {historyError.msg}, Cumulus.LogLevel.Warning");
+							Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.msg}", ConsoleColor.Red);
 						cumulus.LastUpdateTime = endTime;
 						return false;
 					}
@@ -395,7 +395,7 @@ namespace CumulusMX.Stations
 		private void ProcessHistoryData(EcowittHistoricData data, CancellationToken token)
 		{
 			// allocate a dictionary of data objects, keyed on the timestamp
-			var buffer = new SortedDictionary<long, HistoricData>();
+			var buffer = new Dictionary<long, HistoricData>();
 
 			var lastUpdateTS = cumulus.LastUpdateTime.ToUnixTime();
 
@@ -1172,6 +1172,28 @@ namespace CumulusMX.Stations
 								{
 									var newItem = new HistoricData();
 									newItem.SoilTemp[i] = item.Value;
+									buffer.Add(itemDate, newItem);
+								}
+							}
+						}
+						// EC
+						if (srcSoilEc.ec != null && srcSoilEc.ec.list != null)
+						{
+							foreach (var item in srcSoilEc.ec.list)
+							{
+								var itemDate = item.Key + EcowittApiFudgeFactorSecs;
+
+								if (!item.Value.HasValue || itemDate <= lastUpdateTS)
+									continue;
+
+								if (buffer.TryGetValue(itemDate, out var value))
+								{
+									value.SoilEc[i] = item.Value;
+								}
+								else
+								{
+									var newItem = new HistoricData();
+									newItem.SoilEc[i] = item.Value;
 									buffer.Add(itemDate, newItem);
 								}
 							}
@@ -2180,11 +2202,11 @@ namespace CumulusMX.Stations
 			{
 				if (rec.Value.BGT.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
 				{
-					station.BlackGlobeTemp = (double) rec.Value.BGT.Value;
+					station.DoBGT((double) rec.Value.BGT, recDateTime);
 				}
 				if (rec.Value.WBGT.HasValue && !(cumulus.HasExtraStation && cumulus.ExtraSensorUseBGT))
 				{
-					station.WetBulbGlobeTemp = (double) rec.Value.WBGT.Value;
+					station.DoWBGT((double) rec.Value.WBGT.Value, recDateTime);
 				}
 			}
 			catch (Exception ex)
@@ -2326,6 +2348,20 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogErrorMessage($"ApplyHistoricData: Error in soil temperature data - {ex.Message}");
 				}
+
+				// === Soil EC ===
+				try
+				{
+					if (rec.Value.SoilEc[i].HasValue)
+					{
+						station.DoSoilEc(rec.Value.SoilEc[i], i);
+					}
+				}
+				catch (Exception ex)
+				{
+					cumulus.LogErrorMessage($"ApplyHistoricData: Error in soil EC data - {ex.Message}");
+				}
+
 			}
 
 			// === Indoor CO2 ===
@@ -2621,9 +2657,9 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
-					cumulus.LogWarningMessage($"API.GetCurrentData: Ecowitt API Current Error: {currentError.code}, {currentError.msg}");
-					Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
+						var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
+						cumulus.LogWarningMessage($"API.GetCurrentData: Ecowitt API Current Error: {currentError.code}, {currentError.msg}");
+						Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
 					delay = 10;
 					return null;
 				}
@@ -2850,9 +2886,9 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
-					cumulus.LogWarningMessage($"API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Error: {currentError.code}, {currentError.msg}");
-					Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
+						var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
+						cumulus.LogWarningMessage($"API.GetCurrentCameraImageUrl: Ecowitt API Current Camera Error: {currentError.code}, {currentError.msg}");
+						Cumulus.LogConsoleMessage($" - Error {currentError.code}: {currentError.msg}", ConsoleColor.Red);
 					return defaultUrl;
 				}
 
@@ -3305,8 +3341,8 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
-					cumulus.LogWarningMessage($"API.GetLatestFirmwareVersion: Ecowitt API Error: {currentError.code}, {currentError.msg}");
+						var currentError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
+						cumulus.LogWarningMessage($"API.GetLatestFirmwareVersion: Ecowitt API Error: {currentError.code}, {currentError.msg}");
 					return null;
 				}
 
@@ -3766,6 +3802,7 @@ namespace CumulusMX.Stations
 			public int?[] ExtraHumidity { get; set; } = new int?[9];
 			public int?[] SoilMoist { get; set; } = new int?[17];
 			public decimal?[] SoilTemp { get; set; } = new decimal?[17];
+			public int?[] SoilEc { get; set; } = new int?[17];
 			public decimal?[] UserTemp { get; set; } = new decimal?[9];
 			public int?[] LeafWetness { get; set; } = new int?[9];
 			public decimal?[] pm25 { get; set; } = new decimal?[5];
@@ -3873,6 +3910,15 @@ namespace CumulusMX.Stations
 			public CurrentSoilEc ch_soil_ec_temp_hum14 { get; set; }
 			public CurrentSoilEc ch_soil_ec_temp_hum15 { get; set; }
 			public CurrentSoilEc ch_soil_ec_temp_hum16 { get; set; }
+			public object this[string name]
+			{
+				get
+				{
+					var myType = typeof(CurrentDataData);
+					var myPropInfo = myType.GetProperty(name);
+					return myPropInfo == null ? null : myPropInfo.GetValue(this, null);
+				}
+			}
 		}
 
 		internal class CurrentOutdoor
@@ -3964,6 +4010,15 @@ namespace CumulusMX.Stations
 			public CurrentSensorValInt leak_ch2 { get; set; }
 			public CurrentSensorValInt leak_ch3 { get; set; }
 			public CurrentSensorValInt leak_ch4 { get; set; }
+			public object this[string name]
+			{
+				get
+				{
+					var myType = typeof(CurrentDataData);
+					var myPropInfo = myType.GetProperty(name);
+					return myPropInfo == null ? null : myPropInfo.GetValue(this, null);
+				}
+			}
 		}
 
 		internal class CurrentSoil
@@ -4061,6 +4116,15 @@ namespace CumulusMX.Stations
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch14 { get; set; }
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch15 { get; set; }
 			public CurrentSensorValDbl soilmoisture_ec_sensor_ch16 { get; set; }
+			public object this[string name]
+			{
+				get
+				{
+					var myType = typeof(CurrentDataData);
+					var myPropInfo = myType.GetProperty(name);
+					return myPropInfo == null ? null : myPropInfo.GetValue(this, null);
+				}
+			}
 		}
 
 		internal class CurrentCamera

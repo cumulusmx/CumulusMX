@@ -49,7 +49,9 @@ namespace CumulusMX
 			{"ET", "Date"},
 			{"HeatingDegreeDays", "Date"},
 			{"CoolingDegreeDays", "Date"},
-			{"ChillHours", "Date"}
+			{"ChillHours", "Date"},
+			{"HighBgt", "highBgtTime" },
+			{"HighWbgt", "HighWbgtTime" }
 		};
 		private static readonly int[] daysInMonth = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 

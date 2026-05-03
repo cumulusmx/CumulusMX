@@ -66,6 +66,10 @@ namespace CumulusMX.LogFiles
 		public double ChillHours { get; set; }
 		public double HighRain24h { get; set; }
 		public DateTime HighRain24hTime { get; set; }
+		public double? HighBgt { get; set; }
+		public DateTime? HighBgtTime { get; set; }
+		public double? HighWbgt { get; set; }
+		public DateTime? HighWbgtTime { get; set; }
 
 
 		public DayFileRec()
@@ -136,6 +140,10 @@ namespace CumulusMX.LogFiles
 			// 52  Chill hours
 			// 53  Max Rain 24 hours
 			// 54  Max Rain 24 hours Time
+			// 55  High BGT
+			// 56  High BGT time
+			// 57  High WBGT
+			// 58  High WBGT time
 
 			var inv = CultureInfo.InvariantCulture;
 			var st = new List<string>(data.Split(','));
@@ -318,6 +326,18 @@ namespace CumulusMX.LogFiles
 
 				if (st.Count > idx++ && st[54].Length == 5)
 					HighRain24hTime = GetDateTime(Date, st[54], rollover);
+
+				if (st.Count > idx++ && double.TryParse(st[55], inv, out varDbl))
+					HighBgt = varDbl;
+
+				if (st.Count > idx++ && st[56].Length == 5)
+					HighBgtTime = GetDateTime(Date, st[56], rollover);
+
+				if (st.Count > idx++ && double.TryParse(st[57], inv, out varDbl))
+					HighWbgt = varDbl;
+
+				if (st.Count > idx++ && st[58].Length == 5)
+					HighWbgtTime = GetDateTime(Date, st[58], rollover);
 			}
 			catch (Exception ex)
 			{

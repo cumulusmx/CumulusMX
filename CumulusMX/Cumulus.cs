@@ -122,7 +122,7 @@ namespace CumulusMX
 		public const double DefaultHiVal = -9999;
 		public const double DefaultLoVal = 9999;
 
-		public const int DayfileFields = 55;
+		public const int DayfileFields = 59;
 
 		public const int LogFileRetries = 3;
 
@@ -503,8 +503,8 @@ namespace CumulusMX
 
 		internal string[] APRSstationtype = ["DsVP", "DsVP", "WMR928", "WM918", "EW", "FO", "WS2300", "FOs", "WMR100", "WMR200", "IMET", "DsVP", "Ecowitt", "Unknown", "Ecowitt", "Ambient", "Tempest", "Simulated", "Ecowitt", "DsVP", "DsVP", "Json", "Ecowitt"];
 
-		internal string[] DayfileFieldNames = ["Date", "HighWindGust", "HighGustBearing", "HighGustTime", "MinTemperature", "MinTempTime", "MaxTemperature", "MaxTempTime", "MinPressure", "MinPressureTime", "MaxPressure", "MaxPressureTime", "MaxRainfallRate", "MaxRainRateTime", "TotalRainfallToday", "AvgTemperatureToday", "TotalWindRun", "HighAverageWindSpeed", "HighAvgWindSpeedTime", "LowHumidity", "LowHumidityTime", "HighHumidity", "HighHumidityTime", "TotalEvapotranspiration", "TotalHoursOfSunshine", "HighHeatIndex", "HighHeatIndexTime", "HighApparentTemperature", "HighAppTempTime", "LowApparentTemperature", "LowAppTempTime", "High1hRain", "High1hRainTime", "LowWindChill", "LowWindChillTime", "HighDewPoint", "HighDewPointTime", "LowDewPoint", "LowDewPointTime", "DominantWindBearing", "HeatingDegreeDays", "CoolingDegreeDays", "HighSolarRad", "HighSolarRadTime", "HighUv-I", "HighUv-ITime", "HighFeelsLike", "HighFeelsLikeTime", "LowFeelsLike", "LowFeelsLikeTime", "HighHumidex", "HighHumidexTime", "ChillHours", "High24hRain", "High24hRainTime"];
-		internal string[] LogFileFieldNames = ["DateTime", "TS", "Temperature", "Humidity", "DewPoint", "WindSpeed", "RecentHighGust", "AverageWindBearing", "RainfallRate", "RainfallSoFar", "SeaLevelPressure", "RainfallCounter", "InsideTemperature", "InsideHumidity", "CurrentGust", "WindChill", "HeatIndex", "UvIndex", "SolarRadiation", "Evapotranspiration", "AnnualEvapotranspiration", "ApparentTemperature", "MaxSolarRadiation", "HoursOfSunshine", "WindBearing", "Rg-11Rain", "RainSinceMidnight", "FeelsLike", "Humidex"];
+		internal string[] DayfileFieldNames = ["Date", "HighWindGust", "HighGustBearing", "HighGustTime", "MinTemperature", "MinTempTime", "MaxTemperature", "MaxTempTime", "MinPressure", "MinPressureTime", "MaxPressure", "MaxPressureTime", "MaxRainfallRate", "MaxRainRateTime", "TotalRainfallToday", "AvgTemperatureToday", "TotalWindRun", "HighAverageWindSpeed", "HighAvgWindSpeedTime", "LowHumidity", "LowHumidityTime", "HighHumidity", "HighHumidityTime", "TotalEvapotranspiration", "TotalHoursOfSunshine", "HighHeatIndex", "HighHeatIndexTime", "HighApparentTemperature", "HighAppTempTime", "LowApparentTemperature", "LowAppTempTime", "High1hRain", "High1hRainTime", "LowWindChill", "LowWindChillTime", "HighDewPoint", "HighDewPointTime", "LowDewPoint", "LowDewPointTime", "DominantWindBearing", "HeatingDegreeDays", "CoolingDegreeDays", "HighSolarRad", "HighSolarRadTime", "HighUv-I", "HighUv-ITime", "HighFeelsLike", "HighFeelsLikeTime", "LowFeelsLike", "LowFeelsLikeTime", "HighHumidex", "HighHumidexTime", "ChillHours", "High24hRain", "High24hRainTime", "HighBgt", "HighBgtTime", "HighWbgt", "HighWbgtTime"];
+		internal string[] LogFileFieldNames = ["DateTime", "TS", "Temperature", "Humidity", "DewPoint", "WindSpeed", "RecentHighGust", "AverageWindBearing", "RainfallRate", "RainfallSoFar", "SeaLevelPressure", "RainfallCounter", "InsideTemperature", "InsideHumidity", "CurrentGust", "WindChill", "HeatIndex", "UvIndex", "SolarRadiation", "Evapotranspiration", "AnnualEvapotranspiration", "ApparentTemperature", "MaxSolarRadiation", "HoursOfSunshine", "WindBearing", "Rg-11Rain", "RainSinceMidnight", "FeelsLike", "Humidex", "BGT", "WBGT"];
 		internal string[] ExtraFileFieldNames = ["DateTime", "TS",
 			"Temp1", "Temp2", "Temp3", "Temp4", "Temp5", "Temp6", "Temp7", "Temp8", "Temp9", "Temp10", "Hum1", "Hum2", "Hum3", "Hum4", "Hum5", "Hum6", "Hum7", "Hum8", "Hum9", "Hum10",
 			"Dewpoint1", "Dewpoint2", "Dewpoint3", "Dewpoint4", "Dewpoint5", "Dewpoint6", "Dewpoint7", "Dewpoint8", "Dewpoint9", "Dewpoint10",
@@ -512,7 +512,9 @@ namespace CumulusMX
 			"SoilTemp5", "SoilTemp6", "SoilTemp7", "SoilTemp8", "SoilTemp9", "SoilTemp10", "SoilTemp11", "SoilTemp12", "SoilTemp13", "SoilTemp14", "SoilTemp15", "SoilTemp16",
 			"SoilMoist5", "SoilMoist6", "SoilMoist7", "SoilMoist8", "SoilMoist9", "SoilMoist10", "SoilMoist11", "SoilMoist12", "SoilMoist13", "SoilMoist14", "SoilMoist15", "SoilMoist16",
 			"AQ1Pm", "AQ2Pm", "AQ3Pm", "AQ4Pm", "AQ1PmAvg", "AQ2PmAvg", "AQ3PmAvg", "AQ4PmAvg", "UserTemp1", "UserTemp2", "UserTemp3", "UserTemp4", "UserTemp5", "UserTemp6", "UserTemp7", "UserTemp8",
-			"CO2", "CO2Avg", "CO2Pm25", "CO2Pm25Avg", "CO2Pm10", "CO2Pm10Avg", "CO2Temp", "CO2Hum"
+			"CO2", "CO2Avg", "CO2Pm25", "CO2Pm25Avg", "CO2Pm10", "CO2Pm10Avg", "CO2Temp", "CO2Hum", "LaserDist1", "LaserDist2", "LaserDist3", "LaserDist4", "Snow24h", "Temp11", "Temp12", "Temp13", "Temp14", "Temp15", "Temp16",
+			"Hum11", "Hum12", "Hum13", "Hum14", "Hum15", "Hum16", "Dewpoint11", "Dewpoint12", "Dewpoint13", "Dewpoint14", "Dewpoint15", "Dewpoint16", "AQ1Pm10", "AQ2Pm10", "AQ3Pm10", "AQ4Pm10",
+			"SoilEC1", "SoilEC2", "SoilEC3", "SoilEC4", "SoilEC5", "SoilEC6", "SoilEC7", "SoilEC8", "SoilEC9", "SoilEC10", "SoilEC11", "SoilEC12", "SoilEC13", "SoilEC14", "SoilEC15", "SoilEC16"
 		];
 
 		private static readonly Queue<string> queue = new(50);
@@ -821,7 +823,13 @@ namespace CumulusMX
 					LocalPath = WebPath,
 					LocalFileName = "snow24data.json",
 					RemoteFileName = "snow24hdata.json"
-				}
+				},
+				new()     // 23
+				{
+					LocalPath = WebPath,
+					LocalFileName = "soilecdata.json",
+					RemoteFileName = "soilecdata.json"
+				},
 			];
 
 			GraphDataEodFiles =
@@ -2074,6 +2082,11 @@ namespace CumulusMX
 			DayfileTable.AddColumn("ChillHours", "decimal(7," + TempDPlaces + ")");
 			DayfileTable.AddColumn("HighRain24h", "decimal(6," + RainDPlaces + ")");
 			DayfileTable.AddColumn("THighRain24h", "varchar(5)");
+			DayfileTable.AddColumn("HighBgt", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("THighBgt", "varchar(5)");
+			DayfileTable.AddColumn("HighWbgt", "decimal(5," + TempDPlaces + ")");
+			DayfileTable.AddColumn("THighWbgt", "varchar(5)");
+
 			DayfileTable.PrimaryKey = "LogDate";
 			DayfileTable.Comment = "\"Dayfile from Cumulus\"";
 		}
@@ -3477,7 +3490,7 @@ namespace CumulusMX
 		private static List<string> ParseParams(string line)
 		{
 			if (string.IsNullOrWhiteSpace(line))
-				return new List<string>();
+				return [];
 
 			var parts = new List<string>();
 
@@ -4140,6 +4153,8 @@ namespace CumulusMX
 			ProgramOptions.DataPath = ini.GetValue("Program", "DataPath", "data");
 			ProgramOptions.BackupPath = ini.GetValue("Program", "BackupPath", "backup");
 			ProgramOptions.ReportsPath = ini.GetValue("Program", "ReportsPath", "Reports");
+			ProgramOptions.DiagsPath = ini.GetValue("Program", "DiagsPath", "MXdiags");
+
 
 			SmtpOptions.Logging = ini.GetValue("SMTP", "Logging", false);
 			if (DebuggingEnabled)
@@ -4704,6 +4719,9 @@ namespace CumulusMX
 			{
 				ExtraSensorUseSoilMoist = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilMoist", false);
 			}
+
+			ExtraSensorUseSoilEc = ini.GetValue("ExtraSensors", "ExtraSensorUseSoilEc", false);
+
 			if (ini.ValueExists("GW1000", "ExtraSensorUseLeafWet"))
 			{
 				ExtraSensorUseLeafWet = ini.GetValue("GW1000", "ExtraSensorUseLeafWet", false);
@@ -4789,7 +4807,7 @@ namespace CumulusMX
 			{
 				ExtraSensorUseSolar = ExtraSensorUseUv = ExtraSensorUseTempHum = ExtraSensorUseSoilTemp = ExtraSensorUseSoilMoist =
 				ExtraSensorUseLeafWet = ExtraSensorUseUserTemp = ExtraSensorUseAQI = ExtraSensorUseCo2 = ExtraSensorUseLightning =
-				ExtraSensorUseLeak = ExtraSensorUseCamera = ExtraSensorUseLaserDist = ExtraSensorUseBGT = false;
+				ExtraSensorUseLeak = ExtraSensorUseCamera = ExtraSensorUseLaserDist = ExtraSensorUseBGT = ExtraSensorUseSoilEc = false;
 			}
 
 
@@ -5045,7 +5063,10 @@ namespace CumulusMX
 			DailyParams = ini.GetValue("FTP site", "DailyParams", string.Empty);
 
 			ForumURL = ini.GetValue("Web Site", "ForumURL", ForumDefault);
-			WebcamURL = ini.GetValue("Web Site", "WebcamURL", string.Empty);
+			WebcamURL[0] = ini.GetValue("Web Site", "WebcamURL", string.Empty);
+			WebcamURL[1] = ini.GetValue("Web Site", "WebcamURL1", string.Empty);
+			WebcamURL[2] = ini.GetValue("Web Site", "WebcamURL2", string.Empty);
+			WebcamURL[3] = ini.GetValue("Web Site", "WebcamURL3", string.Empty);
 
 			CloudBaseInFeet = ini.GetValue("Station", "CloudBaseInFeet", true);
 
@@ -5073,7 +5094,7 @@ namespace CumulusMX
 			GraphOptions.Visible.AvgTemp.Val = ini.GetValue("Graphs", "DailyAvgTempVisible", 1, 0, 2);
 			GraphOptions.Visible.MaxTemp.Val = ini.GetValue("Graphs", "DailyMaxTempVisible", 1, 0, 2);
 			GraphOptions.Visible.MinTemp.Val = ini.GetValue("Graphs", "DailyMinTempVisible", 1, 0, 2);
-			GraphOptions.Visible.BGT.Val = ini.GetValue("Graphs", "BGTVisible", 1, 0, 2);
+			GraphOptions.Visible.BGT.Val = ini.GetValue("Graphs", "BGTVisible", 0, 0, 2);
 			GraphOptions.Visible.GrowingDegreeDays1.Val = ini.GetValue("Graphs", "GrowingDegreeDaysVisible1", 1, 0, 2);
 			GraphOptions.Visible.GrowingDegreeDays2.Val = ini.GetValue("Graphs", "GrowingDegreeDaysVisible2", 1, 0, 2);
 			GraphOptions.Visible.TempSum0.Val = ini.GetValue("Graphs", "TempSumVisible0", 1, 0, 2);
@@ -5085,6 +5106,7 @@ namespace CumulusMX
 			GraphOptions.Visible.ExtraDewPoint.Vals = ini.GetValue("Graphs", "ExtraDewPointVisible", new int[16]);
 			GraphOptions.Visible.SoilTemp.Vals = ini.GetValue("Graphs", "SoilTempVisible", new int[16]);
 			GraphOptions.Visible.SoilMoist.Vals = ini.GetValue("Graphs", "SoilMoistVisible", new int[16]);
+			GraphOptions.Visible.SoilEc.Vals = ini.GetValue("Graphs", "SoilEcVisible", new int[16]);
 			GraphOptions.Visible.UserTemp.Vals = ini.GetValue("Graphs", "UserTempVisible", new int[8]);
 			GraphOptions.Visible.LeafWetness.Vals = ini.GetValue("Graphs", "LeafWetnessVisible", new int[8]);
 			GraphOptions.Visible.AqSensor.Pm.Vals = ini.GetValue("Graphs", "Aq-PmVisible", new int[4]);
@@ -5159,6 +5181,7 @@ namespace CumulusMX
 			GraphOptions.Colour.ExtraDewPoint = ini.GetValue("GraphColours", "ExtraDewPointColour", colours16.ToArray());
 			GraphOptions.Colour.SoilTemp = ini.GetValue("GraphColours", "SoilTempColour", colours16.ToArray());
 			GraphOptions.Colour.SoilMoist = ini.GetValue("GraphColours", "SoilMoistColour", colours16.ToArray());
+			GraphOptions.Colour.SoilEc = ini.GetValue("GraphColours", "SoilEcColour", colours16.ToArray());
 			GraphOptions.Colour.LeafWetness = ini.GetValue("GraphColours", "LeafWetness", colours2);
 			GraphOptions.Colour.UserTemp = ini.GetValue("GraphColours", "UserTempColour", colours8);
 			GraphOptions.Colour.LaserDepth = ini.GetValue("GraphColours", "LaserDepthColour", colours4);
@@ -6394,6 +6417,7 @@ namespace CumulusMX
 			ini.SetValue("Program", "DataPath", ProgramOptions.DataPath);
 			ini.SetValue("Program", "BackupPath", ProgramOptions.BackupPath);
 			ini.SetValue("Program", "ReportsPath", ProgramOptions.ReportsPath);
+			ini.SetValue("Program", "DiagsPath", ProgramOptions.DiagsPath);
 			ini.SetValue("Program", "SnowLogging", SnowLogging);
 
 			ini.SetValue("Program", "ErrorListLoggingLevel", (int) ErrorListLoggingLevel);
@@ -6744,6 +6768,7 @@ namespace CumulusMX
 			ini.SetValue("ExtraSensors", "ExtraSensorUseTempHum", ExtraSensorUseTempHum);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseSoilTemp", ExtraSensorUseSoilTemp);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseSoilMoist", ExtraSensorUseSoilMoist);
+			ini.SetValue("ExtraSensors", "ExtraSensorUseSoilEc", ExtraSensorUseSoilEc);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseLeafWet", ExtraSensorUseLeafWet);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseUserTemp", ExtraSensorUseUserTemp);
 			ini.SetValue("ExtraSensors", "ExtraSensorUseAQI", ExtraSensorUseAQI);
@@ -6771,7 +6796,10 @@ namespace CumulusMX
 			ini.SetValue("AirLink", "AQIformula", airQualityIndex);
 
 			ini.SetValue("Web Site", "ForumURL", ForumURL);
-			ini.SetValue("Web Site", "WebcamURL", WebcamURL);
+			ini.SetValue("Web Site", "WebcamURL", WebcamURL[0]);
+			if (!string.IsNullOrWhiteSpace(WebcamURL[1])) ini.SetValue("Web Site", "WebcamURL1", WebcamURL[1]);
+			if (!string.IsNullOrWhiteSpace(WebcamURL[2])) ini.SetValue("Web Site", "WebcamURL2", WebcamURL[2]);
+			if (!string.IsNullOrWhiteSpace(WebcamURL[3])) ini.SetValue("Web Site", "WebcamURL3", WebcamURL[3]);
 
 			ini.SetValue("FTP site", "Enabled", FtpOptions.Enabled);
 			ini.SetValue("FTP site", "Host", FtpOptions.Hostname);
@@ -7504,6 +7532,7 @@ namespace CumulusMX
 			ini.SetValue("Graphs", "ExtraDewPointVisible", GraphOptions.Visible.ExtraDewPoint.Vals);
 			ini.SetValue("Graphs", "SoilTempVisible", GraphOptions.Visible.SoilTemp.Vals);
 			ini.SetValue("Graphs", "SoilMoistVisible", GraphOptions.Visible.SoilMoist.Vals);
+			ini.SetValue("Graphs", "SoilEcVisible", GraphOptions.Visible.SoilEc.Vals);
 			ini.SetValue("Graphs", "UserTempVisible", GraphOptions.Visible.UserTemp.Vals);
 			ini.SetValue("Graphs", "LeafWetnessVisible", GraphOptions.Visible.LeafWetness.Vals);
 			ini.SetValue("Graphs", "Aq-PmVisible", GraphOptions.Visible.AqSensor.Pm.Vals);
@@ -7572,6 +7601,7 @@ namespace CumulusMX
 			ini.SetValue("GraphColours", "ExtraDewPointColour", GraphOptions.Colour.ExtraDewPoint);
 			ini.SetValue("GraphColours", "SoilTempColour", GraphOptions.Colour.SoilTemp);
 			ini.SetValue("GraphColours", "SoilMoistColour", GraphOptions.Colour.SoilMoist);
+			ini.SetValue("GraphColours", "SoilEcColour", GraphOptions.Colour.SoilEc);
 			ini.SetValue("GraphColours", "LeafWetness", GraphOptions.Colour.LeafWetness);
 			ini.SetValue("GraphColours", "UserTempColour", GraphOptions.Colour.UserTemp);
 			ini.SetValue("GraphColours", "LaserDepthColour", GraphOptions.Colour.LaserDepth);
@@ -7931,6 +7961,9 @@ namespace CumulusMX
 
 				// soil moisture captions (for Extra Sensor Data screen)
 				Trans.SoilMoistureCaptions[i] = ini.GetValue("SoilMoistureCaptions", name, caption);
+
+				// soil EC captions (for Extra Sensor Data screen)
+				Trans.SoilEcCaptions[i] = ini.GetValue("SoilEcCaptions", name, caption);
 			}
 
 			// CO2 captions - Ecowitt WH45 sensor
@@ -8147,6 +8180,9 @@ namespace CumulusMX
 
 				// soil moisture captions (for Extra Sensor Data screen)
 				ini.SetValue("SoilMoistureCaptions", name, Trans.SoilMoistureCaptions[i]);
+
+				// soil EC captions (for Extra Sensor Data screen)
+				ini.SetValue("SoilEcCaptions", name, Trans.SoilEcCaptions[i]);
 			}
 
 			for (var i = 0; i < 4; i++)
@@ -8285,7 +8321,7 @@ namespace CumulusMX
 
 		public bool CloudBaseInFeet { get; set; }
 
-		public string WebcamURL { get; set; }
+		public string[] WebcamURL { get; set; } = new string[4];
 
 		public string ForumURL { get; set; }
 
@@ -8337,6 +8373,7 @@ namespace CumulusMX
 		public bool ExtraSensorUseTempHum { get; set; }
 		public bool ExtraSensorUseSoilTemp { get; set; }
 		public bool ExtraSensorUseSoilMoist { get; set; }
+		public bool ExtraSensorUseSoilEc { get; set; }
 		public bool ExtraSensorUseLeafWet { get; set; }
 		public bool ExtraSensorUseAQI { get; set; }
 		public bool ExtraSensorUseUserTemp { get; set; }
@@ -8727,8 +8764,8 @@ namespace CumulusMX
 			// 26  Rain since midnight
 			// 27  Feels like
 			// 28  Humidex
-			// 29 BGT
-			// 30 WBGT
+			// 29  BGT
+			// 30  WBGT
 
 
 			// make sure solar max is calculated for those stations without a solar sensor
@@ -8848,7 +8885,7 @@ namespace CumulusMX
 			}
 		}
 
-		public const int NumExtraLogFileFields = 127;
+		public const int NumExtraLogFileFields = 144;
 
 		public async Task DoExtraLogFile(DateTime timestamp)
 		{
@@ -8883,6 +8920,7 @@ namespace CumulusMX
 			// 113-118 Dew point 11-16
 			// 119-122 AQ PM10
 			// 123-126 AQ PM10 Avg
+			// 127-143 Soil EC 1-16
 
 			var filename = GetExtraLogFileName(timestamp);
 
@@ -9693,32 +9731,6 @@ namespace CumulusMX
 			}
 		}
 
-		public void LogCriticalMessage(string message)
-		{
-			Program.MxLogger.Error(message);
-			LatestErrorLog(message, MxLogLevel.Critical);
-		}
-
-		public void LogErrorMessage(string message)
-		{
-			Program.MxLogger.Error(message);
-			LatestErrorLog(message, MxLogLevel.Error);
-		}
-
-		public void LogWarningMessage(string message)
-		{
-			Program.MxLogger.Warn(message);
-			LatestErrorLog(message, MxLogLevel.Warning);
-		}
-
-		public void LogSpikeRemoval(string message)
-		{
-			if (ErrorLogSpikeRemoval)
-			{
-				Program.MxLogger.Warn("Spike removal: " + message);
-			}
-		}
-
 		public void Stop()
 		{
 			LogMessage("Cumulus close requested");
@@ -9852,7 +9864,7 @@ namespace CumulusMX
 				{
 					if (StdWebFiles[i].Create && !string.IsNullOrWhiteSpace(StdWebFiles[i].TemplateFileName))
 					{
-						var destFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+						var destFile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].LocalFileName);
 						if (StdWebFiles[i].LocalFileName == "wxnow.txt")
 						{
 							station.CreateWxnowFile();
@@ -10016,11 +10028,13 @@ namespace CumulusMX
 					srcfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 					dstfile = Path.Combine(dstPath, NOAAconf.LatestMonthReport);
 
+					LogDebugMessage($"LocalCopy: NOAA report - {dstfile}");
 					File.Copy(srcfile, dstfile, true);
 
 					srcfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 					dstfile = Path.Combine(dstPath, NOAAconf.LatestYearReport);
 
+					LogDebugMessage($"LocalCopy: NOAA report - {dstfile}");
 					File.Copy(srcfile, dstfile, true);
 
 					NOAAconf.NeedCopy = false;
@@ -10049,6 +10063,7 @@ namespace CumulusMX
 						{
 
 							srcfile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].LocalFileName);
+							LogDebugMessage($"LocalCopy: Copying standard data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							success++;
 						}
@@ -10073,6 +10088,7 @@ namespace CumulusMX
 								text = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, true);
 							}
 
+							LogDebugMessage($"LocalCopy: Copying standard data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							success++;
 						}
@@ -10103,6 +10119,7 @@ namespace CumulusMX
 						{
 
 							srcfile = Path.Combine(GraphDataFiles[i].LocalPath, GraphDataFiles[i].LocalFileName);
+							LogDebugMessage($"LocalCopy: Copying graph data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							success++;
 
@@ -10125,6 +10142,7 @@ namespace CumulusMX
 						try
 						{
 							var text = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+							LogDebugMessage($"LocalCopy: Copying graph data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							success++;
 
@@ -10162,6 +10180,7 @@ namespace CumulusMX
 						{
 
 							srcfile = Path.Combine(GraphDataEodFiles[i].LocalPath, GraphDataEodFiles[i].LocalFileName);
+							LogDebugMessage($"LocalCopy: Copying daily graph data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							// Uploaded OK, reset the upload required flag
 							GraphDataEodFiles[i].CopyRequired = false;
@@ -10179,6 +10198,7 @@ namespace CumulusMX
 						try
 						{
 							var text = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+							LogDebugMessage($"LocalCopy: Copying daily graph data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							// Uploaded OK, reset the upload required flag
 							GraphDataEodFiles[i].CopyRequired = false;
@@ -10201,7 +10221,6 @@ namespace CumulusMX
 				{
 					LogDebugMessage("LocalCopy: Copying Moon image file to " + MoonImage.CopyDest);
 					File.Copy(Path.Combine("web", "moon.png"), MoonImage.CopyDest, true);
-					LogDebugMessage("LocalCopy: Done copying Moon image file");
 					// clear the image ready for copy flag, only upload once an hour
 					MoonImage.ReadyToCopy = false;
 				}
@@ -12742,63 +12761,6 @@ namespace CumulusMX
 			}
 		}
 
-		public void LogFtpMessage(string message, bool realTime)
-		{
-			if (!string.IsNullOrEmpty(message))
-			{
-				LogMessage(message);
-			}
-			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
-			{
-				if (realTime && FtpLoggerMXRT != null)
-				{
-					FtpLoggerMXRT.LogInformation("{Msg}", message);
-				}
-				else if (FtpLoggerMXIN != null)
-				{
-					FtpLoggerMXIN.LogInformation("{Msg}", message);
-				}
-			}
-		}
-
-		public void LogFtpDebugMessage(string message, bool realTime)
-		{
-			if (!string.IsNullOrEmpty(message))
-			{
-				LogDebugMessage(message);
-			}
-
-			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
-			{
-				if (realTime && FtpLoggerMXRT != null)
-				{
-					FtpLoggerMXRT.LogDebug("{Msg}", message);
-				}
-				else if (FtpLoggerMXIN != null)
-				{
-					FtpLoggerMXIN.LogDebug("{Msg}", message);
-				}
-			}
-		}
-
-		public static void LogConsoleMessage(string message, ConsoleColor colour = ConsoleColor.White, bool LogDateTime = false)
-		{
-			if (!Program.service)
-			{
-				if (LogDateTime)
-				{
-					message = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + message;
-				}
-
-				Console.ForegroundColor = colour;
-				Console.WriteLine(message);
-				Console.ResetColor();
-			}
-
-			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
-			Program.svcTextListener.Flush();
-		}
-
 		public void LogExceptionMessage(Exception ex, string message, bool logError = true)
 		{
 			if (ProgramOptions.DebugLogging)
@@ -12819,6 +12781,94 @@ namespace CumulusMX
 				ErrorAlarm.LastMessage = message;
 				ErrorAlarm.Triggered = true;
 			}
+		}
+
+		public void LogCriticalMessage(string message)
+		{
+			Program.MxLogger.Error(message);
+			LatestErrorLog(message, MxLogLevel.Critical);
+		}
+
+		public void LogErrorMessage(string message)
+		{
+			Program.MxLogger.Error(message);
+			LatestErrorLog(message, MxLogLevel.Error);
+		}
+
+		public void LogWarningMessage(string message)
+		{
+			Program.MxLogger.Warn(message);
+			LatestErrorLog(message, MxLogLevel.Warning);
+		}
+
+		public void LogSpikeRemoval(string message)
+		{
+			if (ErrorLogSpikeRemoval)
+			{
+				Program.MxLogger.Warn("Spike removal: " + message);
+			}
+		}
+
+
+		public void LogFtpMessage(string message, bool realTime)
+		{
+			if (!string.IsNullOrEmpty(message))
+			{
+				LogMessage(message);
+			}
+			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
+			{
+#pragma warning disable CA2254 // Template should be a static expression
+				if (realTime && FtpLoggerMXRT != null)
+				{
+					FtpLoggerMXRT.LogInformation(message);
+				}
+				else if (FtpLoggerMXIN != null)
+				{
+					FtpLoggerMXIN.LogInformation(message);
+				}
+#pragma warning restore CA2254 // Template should be a static expression
+			}
+		}
+
+		public void LogFtpDebugMessage(string message, bool realTime)
+		{
+			if (!string.IsNullOrEmpty(message))
+			{
+				LogDebugMessage(message);
+			}
+
+			if (FtpOptions.Logging && (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS))
+			{
+#pragma warning disable CA2254 // Template should be a static expression
+				if (realTime && FtpLoggerMXRT != null)
+				{
+					FtpLoggerMXRT.LogDebug(message);
+				}
+				else if (FtpLoggerMXIN != null)
+				{
+					FtpLoggerMXIN.LogDebug(message);
+				}
+#pragma warning restore CA2254 // Template should be a static expression
+			}
+		}
+
+		public static void LogConsoleMessage(string message, ConsoleColor colour = ConsoleColor.White, bool LogDateTime = false)
+		{
+			if (!Program.service)
+			{
+				if (LogDateTime)
+				{
+					message = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + message;
+				}
+
+				Console.ForegroundColor = colour;
+				Console.WriteLine(message);
+				Console.ResetColor();
+			}
+
+			Program.svcTextListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+			Program.svcTextListener.Flush();
 		}
 
 		public static string GetErrorLog()
@@ -14445,7 +14495,7 @@ namespace CumulusMX
 			return input;
 		}
 
-		public void GetForecastText()
+		public void GetForecastTextFromFile()
 		{
 
 			string res = string.Empty;
@@ -14527,6 +14577,7 @@ namespace CumulusMX
 			LogMessage(" Data path   : " + ProgramOptions.DataPath);
 			LogMessage(" Backup path : " + ProgramOptions.BackupPath);
 			LogMessage(" Reports path: " + ProgramOptions.ReportsPath);
+			LogMessage(" Diags path  : " + ProgramOptions.DiagsPath);
 
 			foreach (var folder in folders)
 			{
@@ -14580,11 +14631,12 @@ namespace CumulusMX
 			var layout = "${longdate}|${level}|${logger:shortName=true}|${message}";
 
 			// Create targets for the log files
-			var fileName = Path.Combine(Program.configFile.runtimeOptions.configProperties.LogPath, "ftp-realtime_${shortdate}.log");
+			var fileName = Path.Combine(Program.MxDiagsPath, "ftp-realtime.log");
 
 			var logfileRT = new FileTarget("logfileRT")
 			{
 				FileName = fileName,
+				ArchiveSuffixFormat = "{1:-yyMMdd-HHmmss}",
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
@@ -14602,11 +14654,12 @@ namespace CumulusMX
 			};
 
 
-			fileName = Path.Combine(Program.configFile.runtimeOptions.configProperties.LogPath, "ftp-interval_${shortdate}.log");
+			fileName = Path.Combine(Program.MxDiagsPath, "ftp-interval.log");
 
 			var logfileIN = new FileTarget("logfileIN")
 			{
 				FileName = fileName,
+				ArchiveSuffixFormat = "{1:-yyMMdd-HHmmss}",
 				ArchiveAboveSize = 5242880,
 				ArchiveOldFileOnStartup = true,
 				MaxArchiveFiles = 3,
@@ -14837,6 +14890,7 @@ namespace CumulusMX
 		public string DataPath { get; set; }
 		public string BackupPath { get; set; }
 		public string ReportsPath { get; set; }
+		public string DiagsPath { get; set; }
 		public int ProcessLogFilesLevel { get; set; }
 	}
 
@@ -15430,7 +15484,8 @@ namespace CumulusMX
 		CO2,            // 19
 		LEAFWET,        // 20
 		LASERDEPTH,     // 21
-		SNOW24H         // 22
+		SNOW24H,        // 22
+		SOILEC          //23
 	}
 
 }

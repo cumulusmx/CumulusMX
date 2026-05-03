@@ -18,7 +18,7 @@ namespace CumulusMX.Stations
 		private static readonly NumberFormatInfo invNum = CultureInfo.InvariantCulture.NumberFormat;
 		internal readonly string[] lineEnds = ["\r\n", "\n"];
 
-		private readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions();
+		private readonly JsonSerializerOptions jsonOptions = new();
 
 		public EcowittLocalApi(Cumulus cumul)
 		{
@@ -639,19 +639,46 @@ namespace CumulusMX.Stations
 					using var streamReader = new StreamReader(fileStream, Encoding.UTF8);
 
 					string line;
-					var count = 0;
+					var count = 1;
 					bool useTimeStamp = true;
 					List<string> result = [];
 
 					cumulus.LogDebugMessage($"LocalApi.GetSdFileContents: Extracting all lines from starting time {startTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}, log interval = {SdCardInterval} mins");
 
+					// Check the header line first
+					line = await streamReader.ReadLineAsync(token);
+					var fields = line.Split(',');
+
+					if (fields.Length < 20)
+					{
+						cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} header line is malformed");
+						cumulus.LogMessage("Header line = " + line);
+						// try again?
+						if (retries >= 0)
+						{
+							cumulus.LogMessage("LocalApi.GetSdFileContents: Try and fetch the file again");
+						}
+						continue;
+					}
+
+					useTimeStamp = fields[1].Equals("timestamp", StringComparison.CurrentCultureIgnoreCase);
+
+					// always add the header line
+					result.Add(line);
+
+					cumulus.LogDebugMessage("LocalApi.GetSdFileContents: Processed file header OK");
+
+
 					while ((line = await streamReader.ReadLineAsync(token)) != null)
 					{
 						count++;
 
-						if (count % 50 == 0 && !Program.service)
+						if (count % 500 == 1)
 						{
-							Console.Write($"  Extracting line: {count}\r");
+							cumulus.LogDebugMessage($"  Checking line {count}");
+
+							if (!Program.service)
+								Console.Write($"  Checking line: {count}\r");
 						}
 
 						if (string.IsNullOrWhiteSpace(line) || string.IsNullOrWhiteSpace(line.Trim()))
@@ -660,63 +687,42 @@ namespace CumulusMX.Stations
 							continue;
 						}
 
-						// quick check if there is any data in the file!
-						var fields = line.Split(',');
-						if (count == 1)
+						if (useTimeStamp)
 						{
-							if (fields.Length < 10)
+							// timestamp is in the second field
+							if (long.TryParse(line.AsSpan(17, 10), out long ts))
 							{
-								cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} header line is malformed");
-								cumulus.LogMessage("Header line = " + line);
-								// try again?
-								if (retries >= 0)
-								{
-									cumulus.LogMessage("LocalApi.GetSdFileContents: Try and fetch the file again");
-								}
-								break;
+								if (Utils.RoundDownUnixTimestamp(ts, SdCardInterval).LocalFromUnixTime() < startTime)
+									continue;
 							}
-
-							useTimeStamp = fields[1].Equals("timestamp", StringComparison.CurrentCultureIgnoreCase);
-
-							// always add the header line
-							result.Add(line);
-
-							cumulus.LogDebugMessage("LocalApi.GetSdFileContents: Processed file header OK");
-
-							// skip to first data line
-							continue;
+							else
+							{
+								cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} failed to parse timestamp field");
+							}
+						}
+						else
+						{
+							if (DateTime.TryParseExact(line.AsSpan(0, 16), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+							{
+								if (dt < startTime)
+									continue;
+							}
+							else
+							{
+								cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} failed to parse date/time field");
+							}
 						}
 
-						if (fields.Length < 10)
+						// quick check if there is any data in the line!
+						if (line.Split(',').Length < 20)
 						{
 							cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} is malformed");
 							cumulus.LogDataMessage($"line # {count} = " + line);
 							continue;
 						}
 
-						if (useTimeStamp)
-						{
-							// timestamp is in the second field
-							if (Utils.RoundDownUnixTimestamp(long.Parse(fields[1]), SdCardInterval).LocalFromUnixTime() >= startTime)
-							{
-								result.Add(line);
-							}
-						}
-						else
-						{
-							if (DateTime.TryParseExact(fields[0], "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) && dt >= startTime)
-							{
-								result.Add(line);
-							}
-						}
-
-						//if (fields.Length < 10)
-						//{
-						//	cumulus.LogWarningMessage($"LocalApi.GetSdFileContents: File {fileName} line # {count} is malformed");
-						//	cumulus.LogDataMessage($"line # {count} = " + line);
-						//	continue;
-						//}
-
+						// all checks passed - add the line to the results
+						result.Add(line);
 					}
 
 					if (!Program.service)
@@ -1454,7 +1460,7 @@ namespace CumulusMX.Stations
 		{
 			public string? ec { get; set; }
 
-			public int?ecVal
+			public int? ecVal
 			{
 				get
 				{

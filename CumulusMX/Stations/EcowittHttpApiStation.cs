@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -27,7 +28,6 @@ namespace CumulusMX.Stations
 		private readonly System.Timers.Timer tmrDataWatchdog;
 
 		private readonly Task historyTask;
-		private Task liveTask;
 
 		internal static readonly char[] dotSeparator = ['.'];
 		internal static readonly string[] underscoreV = ["_V"];
@@ -179,9 +179,7 @@ namespace CumulusMX.Stations
 				cumulus.LogExceptionMessage(ex, "Error checking for default UV gain");
 			}
 
-			liveTask = Task.Run(() =>
-			{
-				while (!Program.ExitSystemToken.IsCancellationRequested)
+			while (!Program.ExitSystemToken.IsCancellationRequested)
 				{
 					var dataLastRead = DateTime.Now;
 					double delay;
@@ -377,14 +375,6 @@ namespace CumulusMX.Stations
 						cumulus.LogMessage("Ecowitt Local HTTP API station background task closed due to shutting down");
 					}
 				}
-			}, Program.ExitSystemToken)
-			.ContinueWith(t =>
-			{
-				if (!t.IsCanceled && t.IsFaulted)
-				{
-					cumulus.LogExceptionMessage(t.Exception, "Ecowitt Local HTTP API station background task error - exited");
-				}
-			});
 		}
 
 		public override void Stop()
@@ -394,7 +384,7 @@ namespace CumulusMX.Stations
 			{
 				tmrDataWatchdog.Stop();
 				StopMinuteTimer();
-				Task.WaitAll(historyTask, liveTask);
+				historyTask.Wait();
 			}
 			catch
 			{
@@ -538,7 +528,7 @@ namespace CumulusMX.Stations
 			baseFiles.Sort();
 			extraFiles.Sort();
 
-			var buffer = new SortedList<long, HistoricData>();
+			var buffer = new Dictionary<long, HistoricData>();
 
 			// process the base files first
 
@@ -639,10 +629,13 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						cumulus.LogMessage($"GetHistoricDataSdCard: Warning - Extra sensor record {rec.Key} - {rec.Key.LocalFromUnixTime().ToString("yyyy-MM-dd HH:mm")} not added because no matching primary record found");
+						cumulus.LogMessage($"GetHistoricDataSdCard: Warning - Extra sensor record {rec.Key} - {rec.Key.LocalFromUnixTime():yyyy-MM-dd HH:mm} not added because no matching primary record found");
 					}
 				}
 			}
+
+			// best do a sort of the data - just in case!
+			var sortedData = buffer.OrderBy(x => x.Key).ToList();
 
 			// finally we can process the data
 
@@ -664,14 +657,14 @@ namespace CumulusMX.Stations
 			// if we have more than one record, take the initial records interval as the difference to the next record. Otherwise use the configured interval
 			if (buffer.Count > 1)
 			{
-				intervalMins = (int) (buffer.Keys[1] - buffer.Keys[0]) / 60;
+				intervalMins = (int) (sortedData[1].Key - sortedData[0].Key) / 60;
 			}
 			else
 			{
 				intervalMins = localApi.SdCardInterval;
 			}
 
-			foreach (var rec in buffer)
+			foreach (var rec in sortedData)
 			{
 				if (Program.ExitSystemToken.IsCancellationRequested)
 				{
@@ -1188,7 +1181,7 @@ namespace CumulusMX.Stations
 								var bgt = sensor.valDbl.Value;
 								bgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(bgt) : ConvertUnits.TempFToUser(bgt);
 
-								BlackGlobeTemp = bgt;
+								DoBGT(bgt, dateTime);
 							}
 							break;
 
@@ -1198,7 +1191,7 @@ namespace CumulusMX.Stations
 								var wbgt = sensor.valDbl.Value;
 								wbgt = sensor.unit == "C" ? ConvertUnits.TempCToUser(wbgt) : ConvertUnits.TempFToUser(wbgt);
 
-								WetBulbGlobeTemp = wbgt;
+								DoWBGT(wbgt, dateTime);
 							}
 							break;
 
@@ -1950,6 +1943,7 @@ namespace CumulusMX.Stations
 					{
 						DoSoilMoisture(sensor.humidityVal.Value, sensor.channel);
 						DoSoilTemp(sensor.temp.Value, sensor.channel);
+						DoSoilEc(sensor.ecVal.Value, sensor.channel);
 					}
 					catch (Exception ex)
 					{

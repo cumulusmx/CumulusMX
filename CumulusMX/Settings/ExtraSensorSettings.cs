@@ -70,6 +70,7 @@ namespace CumulusMX.Settings
 				useTempHum = cumulus.ExtraSensorUseTempHum,
 				useSoilTemp = cumulus.ExtraSensorUseSoilTemp,
 				useSoilMoist = cumulus.ExtraSensorUseSoilMoist,
+				useSoilEc = cumulus.ExtraSensorUseSoilEc,
 				useLeafWet = cumulus.ExtraSensorUseLeafWet,
 				useUserTemp = cumulus.ExtraSensorUseUserTemp,
 				useAQI = cumulus.ExtraSensorUseAQI,
@@ -352,6 +353,8 @@ namespace CumulusMX.Settings
 						cumulus.ExtraSensorUseTempHum = settings.httpSensors.ecowitt.useTempHum;
 						cumulus.ExtraSensorUseSoilTemp = settings.httpSensors.ecowitt.useSoilTemp;
 						cumulus.ExtraSensorUseSoilMoist = settings.httpSensors.ecowitt.useSoilMoist;
+						cumulus.ExtraSensorUseSoilEc = settings.httpSensors.ecowitt.useSoilEc;
+
 						cumulus.ExtraSensorUseLeafWet = settings.httpSensors.ecowitt.useLeafWet;
 						cumulus.ExtraSensorUseUserTemp = settings.httpSensors.ecowitt.useUserTemp;
 						cumulus.ExtraSensorUseAQI = settings.httpSensors.ecowitt.useAQI;
@@ -471,7 +474,7 @@ namespace CumulusMX.Settings
 						}
 
 						// Also enable extra logging if applicable
-						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseLeafWet || cumulus.ExtraSensorUseUserTemp || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2)
+						if (cumulus.ExtraSensorUseTempHum || cumulus.ExtraSensorUseSoilTemp || cumulus.ExtraSensorUseSoilMoist || cumulus.ExtraSensorUseSoilEc || cumulus.ExtraSensorUseLeafWet || cumulus.ExtraSensorUseUserTemp || cumulus.ExtraSensorUseAQI || cumulus.ExtraSensorUseCo2)
 						{
 							cumulus.StationOptions.LogExtraSensors = true;
 						}
@@ -679,6 +682,8 @@ namespace CumulusMX.Settings
 					cumulus.PurpleAirEnabled = settings.purpleAir.enabled;
 					if (cumulus.PurpleAirEnabled)
 					{
+						cumulus.ExtraSensorUseAQI = true;
+
 						for (var i = 0; i < 4; i++)
 						{
 							cumulus.PurpleAirIpAddress[i] = (settings.purpleAir.sensors[i].ipAddress ?? string.Empty).Trim();
@@ -762,6 +767,7 @@ namespace CumulusMX.Settings
 			public bool useTempHum { get; set; }
 			public bool useSoilMoist { get; set; }
 			public bool useSoilTemp { get; set; }
+			public bool useSoilEc { get; set; }
 			public bool useLeafWet { get; set; }
 			public bool useUserTemp { get; set; }
 			public bool useAQI { get; set; }

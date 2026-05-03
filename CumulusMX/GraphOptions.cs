@@ -42,6 +42,7 @@ namespace CumulusMX
 			public GraphOptionsDataArray ExtraDewPoint { get; set; } = new GraphOptionsDataArray();
 			public GraphOptionsDataArray SoilTemp { get; set; } = new GraphOptionsDataArray();
 			public GraphOptionsDataArray SoilMoist { get; set; } = new GraphOptionsDataArray();
+			public GraphOptionsDataArray SoilEc { get; set; } = new GraphOptionsDataArray();
 			public GraphOptionsDataArray UserTemp { get; set; } = new GraphOptionsDataArray();
 			public GraphOptionsDataArray LeafWetness { get; set; } = new GraphOptionsDataArray();
 			// daily values
@@ -65,6 +66,7 @@ namespace CumulusMX
 				ExtraDewPoint.Vals = new int[16];
 				SoilTemp.Vals = new int[16];
 				SoilMoist.Vals = new int[16];
+				SoilEc.Vals = new int[16];
 				UserTemp.Vals = new int[8];
 				LeafWetness.Vals = new int[8];
 				LaserDepth.Vals = new int[4];
@@ -171,6 +173,7 @@ namespace CumulusMX
 			public string[] ExtraDewPoint { get; set; } = new string[10];
 			public string[] SoilTemp { get; set; } = new string[16];
 			public string[] SoilMoist { get; set; } = new string[16];
+			public string[] SoilEc { get; set; } = new string[16];
 			public string[] LeafWetness { get; set; } = new string[2];
 			public string[] UserTemp { get; set; } = new string[8];
 			public string[] LaserDepth { get; set; } = new string[4];

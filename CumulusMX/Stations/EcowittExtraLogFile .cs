@@ -29,10 +29,10 @@ namespace CumulusMX.Stations
 			HeaderValid = HeaderParser(data[0]);
 		}
 
-		public SortedList<long, EcowittApi.HistoricData> DataParser()
+		public Dictionary<long, EcowittApi.HistoricData> DataParser()
 		{
 			var invc = System.Globalization.CultureInfo.InvariantCulture;
-			var retList = new SortedList<long, EcowittApi.HistoricData>();
+			var retList = new Dictionary<long, EcowittApi.HistoricData>();
 			var count = 0;
 
 			Cumulus.LogConsoleMessage("  Preprocessing the data");
@@ -463,7 +463,7 @@ namespace CumulusMX.Stations
 
 			if (FieldIndex.TryGetValue("thunder distance", out idx))
 			{
-				LightningUnit = fields[FieldIndex["thunder distance"]].ToLower().EndsWith("km)") ? LightningDist.km : LightningDist.miles;
+				LightningUnit = fields[idx].ToLower().EndsWith("km)") ? LightningDist.km : LightningDist.miles;
 			}
 			else
 			{

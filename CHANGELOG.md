@@ -10,6 +10,110 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [5.1.0 \[b5004\]][31] - 2026-05-03
+
+### Important Notes
+
+- **MySQL users:** Because the dayfile has some extra fields, you must update your MySQL table for this release. Use the Update Table feature in Cumulus MySQL Settings
+
+
+### New
+
+- High records added for BGT and WBGT values
+	- Updated dashboard records displays
+	- Updated records editors
+	- Add to Locale Strings and Display Options
+	- Data file editors amended
+	- Day file now has four extra fields to store these values and their times
+	- MySQL update dayfile table for the new BGT and WBGT high values and times columns
+	```
+	HighBgt decimal(5,1)
+	THighBgt varchar(5)
+	HighWbgt decimal (5,1)
+	THighWbgt varchar(5)
+	```
+	- File header files updated
+	- Dashboard and default web site Historic charts updated
+	- New web tags<br>
+	`<#BgtTH> <#TBgtTH>`
+	`<#BgtYH> <#TBgtYH>`
+	`<#BgtH> <#TBgtH>`
+	`<#MonthBgtH> <#MonthBgtHT> <#MonthBgtHD>`
+	`<#YearBgtH> <#YearBgtHT>`
+	`<#ByMonthBgtH> <#ByMonthBgtHT>`
+	<br>
+	`<#WbgtTH> <#TWbgtTH>`
+	`<#WbgtYH> <#TWbgtYH>`
+	`<#WbgtH> <#TWbgtH>`
+	`<#MonthWbgtH> <#MonthWbgtHT> <#MonthWbgtHD>`
+	`<#YearWbgtH> <#YearWbgtHT>`
+	`<#ByMonthWbgtH> <#ByMonthWbgtHT>`
+- Adds support for Soil Electrical Conductivity to Ecowitt Local HTTP API station, Ecowitt.net cloud station, and Ecowitt HTTP Station
+	- Also supported on the following Extra Sensor stations: Ecowitt Cloud and Ecowitt HTTP Station
+	- Sixteen new web tags
+	`<#SoilEC[1-16]>`
+	- Values 1-16 appended to the extra log file
+	- Extra log file header updated
+	- Add to Locale Strings and Display Options
+	- New graph data file - `soilecdata.json`
+	- Added to Dashboard Recent, Select-a-Period and Recent Select-a-Chart charts
+	- Added to default web site recent charts
+- Adds support for the WS3900/WN1800 console built-in CO₂ readings to the Ecowitt HTTP Station
+
+
+### Changed
+
+- The path setting for the MXdiags folder has been moved to *Program Setting > Path Options*, and stored in the Cumulus.ini file so it will persist across upgrades
+- New version of CreateMissing (v3.1.0) to add BGT/WBGT support
+- Updated versions of `ImportCumulusFile.php` and `ImportCumulusFile.py`
+- Additions to the Interval Data Viewer
+	- Extra Temperature 11-16
+	- Extra Humidity 11-16
+	- Extra Dew Point 11-16
+	- Air Quality PM10 values
+	- Laser Distance 1-4
+	- Soil EC 1-16
+	- Current Snowfall in 24 hours value
+- FTP logging. To match the main MXdiags log files, the latest Realtime and Interval logs are now always called `ftp-realtime.log` and `ftp-interval.log`. Rolled over logs will have a date/time appended
+
+### Fixed
+
+- Fix the standard web file websitedata.json being created in the root folder with a filename prefix of "web". Missed in v5.0.1
+- Forecast issues introduced in v5.0.1:
+	- Davis station no longer storing the station forecast when primary source is Cumulus or forecast.txt
+	- Cumulus forecast and forecast number not being stored if the forecast source was other than Cumulus
+	- Forecast string could be uninitialised if the associated web tags were call at start-up and before MX had processed the first forecast event
+- Snow hour not saving in Station Settings
+- JSON Station MQTT connection reconfigured
+	- The on start-up the station now attempts to make the server connection indefinitely
+	- Refactored the reconnection on connection loss for better execution and logging
+- JSON Station add missing handling of "airquality" PM 10 values
+- JSON Station fix error in BGT temperature if no "temperature" object in message
+- Fix default web site Humidity Trends charts error
+- Fix Simulator crash during write of monthly log file in initial day reset on catch-up
+- Missing Air Quality block from the dashboard Extra Sensors page
+- Extra Sensors using Ecowitt Cloud Station was not updating Solar & UV-I values
+- Fixes multiple web cam URL support
+	- Adds the `camera` parameter to the `<#webcam>` and `<#webcamurl>` web tags, if omitted it defaults to "1" the fist defined camera
+	- Eg `<#webcamurl camera=2>`
+- Davis Cloud station error on decoding VP2/Vue originated current data, it also adds the Davis forecast decoding to this model
+- Enabling a Purple Air AQ sensor now automatically enables the extra sensor use AQ feature
+- Fix monthly log editor MySQL updates
+- Fix exception handling Davis v2 API error responses
+- Davis WLL stations now check the subscription level before fecthing health data
+
+### Package Updates
+
+- FluentFTP
+- MailKit
+- Microsoft.Win32.SystemEvents
+- NLog
+- System.CodeDom
+- System.IO.Ports
+- System.Serviceprocess.ServiceController
+
+---
+
 ## [5.0.1 \[b5002\]][30] - 2026-04-03
 
 ### New
@@ -21,6 +125,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Some third party uploads switched from HTTP to HTTPS - AWEKAS, PWS, WindGuru
 - The charts in the dashboard and default web site now display tooltip numbers in the station locale format
+- Improvements to Chart accessibility on the Dashboard
 
 ### Fixed
 
@@ -73,6 +178,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add support for BGT and WBGT to Ecowitt HTTP Local API, HTTP (Ecowitt), and the JSON stations
 	- New web tags `<#BlackGlobeTemp>` and `<#WetBulbGlobeTemp>`
 	- Two new fields added to the monthly log files and the monthly MySQL table to support these new measurements
+	- MySQL fields
+	```
+	BlackGlobeTemp decimal(4,1)
+	WetBulbGlobeTemp decimal(4,1)
+	```
 - Add support for Ecowitt WH52 EC Soil Moisture Sensors to the Ecowitt HTTP Local API and HTTP (Ecowitt) stations - soil moisture and temperature readings only for now
 - Fix ecowitt.net historic data download of PM measurements
 - New snow depth filtering mechanism implemented. This is a three-stage filter...
@@ -1290,3 +1400,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
 [29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5001
 [30]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5002
+[31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5004

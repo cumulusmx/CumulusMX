@@ -8,7 +8,6 @@
 		"User.PhpMaxConnections": 3,
 		"User.RealtimeFtpWatchDogInterval": 300,
 		"User.LogFileSize": 12582712,
-		"User.LogFileCount": 20,
-		"User.LogPath": "MXdiags"
+		"User.LogFileCount": 20
 	}
 }

@@ -285,13 +285,21 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var error = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
-					cumulus.LogErrorMessage($"GetCurrent: WeatherLink API Current Error: {error.code}, {error.message}");
-					Cumulus.LogConsoleMessage($" - Error {error.code}: {error.message}", ConsoleColor.Red);
+					JsonSerializerOptions jsonOptions = new();
+					jsonOptions.Converters.Add(new JsonConverters.JsonIntConverter());
+
+					try
+					{
+						var error = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
+						cumulus.LogErrorMessage($"GetCurrent: WeatherLink API Current Error: {error.code}, {error.message}");
+						Cumulus.LogConsoleMessage($" - Error {error.code}: {error.message}", ConsoleColor.Red);
+					}
+					catch
+					{
+						cumulus.LogErrorMessage($"GetCurrent: WeatherLink API Current HTTP Error: {responseCode}");
+					}
 					return;
 				}
-
-				currObj = JsonSerializer.Deserialize<WlCurrent>(responseBody);
 
 				if (responseBody == "{}")
 				{
@@ -300,6 +308,9 @@ namespace CumulusMX.Stations
 				}
 				else if (responseBody.StartsWith("{\"")) // basic sanity check
 				{
+
+					currObj = JsonSerializer.Deserialize<WlCurrent>(responseBody);
+
 					if (currObj.sensors.Count == 0)
 					{
 						cumulus.LogMessage("GetCurrent: No current data available");
@@ -518,9 +529,20 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var historyError = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
-					cumulus.LogErrorMessage($"GetHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
-					Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
+					JsonSerializerOptions jsonOptions = new();
+					jsonOptions.Converters.Add(new JsonConverters.JsonIntConverter());
+
+					try
+					{
+						var historyError = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
+						cumulus.LogErrorMessage($"GetHistoricData: WeatherLink API Historic Error: {historyError.code}, {historyError.message}");
+						Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.message}", ConsoleColor.Red);
+					}
+					catch
+					{
+						cumulus.LogErrorMessage($"GetHistoricData: WeatherLink API Historic HTTP Error: {responseCode}");
+					}
+
 					//cumulus.LastUpdateTime = Utils.FromUnixTime(endTime)
 					maxArchiveRuns = -1;
 					return;
@@ -1218,10 +1240,8 @@ namespace CumulusMX.Stations
 								case 1:
 								case 2:
 									{
-										// VP2 sensor data is sent as an array of one, so we will strip off the enclosing [ ]
-										// and uck, uck, uck, we need to re-quote the forecast description as the quotes get stripped by the .FromJson() into a string
-										//var str = sensor.data[1..^2].Replace("forecast_desc:", "forecast_desc:\"").Replace(",dew_point", "\",dew_point");
-										var data = sensor.data.Deserialize<WLCurrentSensordDataType1_2>();
+										// VP2 sensor data is sent as an array of one, just process the first (and only) element
+										var data = sensor.data.Deserialize<WLCurrentSensordDataType1_2[]>()[0];
 
 										try
 										{
@@ -1672,6 +1692,16 @@ namespace CumulusMX.Stations
 										catch (Exception ex)
 										{
 											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing ExtraHum");
+										}
+
+										// Forecast
+										try
+										{
+											DoForecast(data.forecast_desc ?? cumulus.Trans.ForecastNotAvailable, false);
+										}
+										catch (Exception ex)
+										{
+											cumulus.LogExceptionMessage(ex, "DecodeCurrent: Error processing Forecast");
 										}
 									}
 									break;
@@ -3657,8 +3687,18 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
-					cumulus.LogErrorMessage($"GetStations: WeatherLink API Error: {errObj.code} - {errObj.message}");
+					JsonSerializerOptions jsonOptions = new();
+					jsonOptions.Converters.Add(new JsonConverters.JsonIntConverter());
+
+					try
+					{
+						var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
+						cumulus.LogErrorMessage($"GetStations: WeatherLink API Error: {errObj.code} - {errObj.message}");
+					}
+					catch
+					{
+						cumulus.LogErrorMessage($"GetStations: WeatherLink API HTTP Error: {responseCode}");
+					}
 					return;
 				}
 
@@ -3776,8 +3816,18 @@ namespace CumulusMX.Stations
 
 				if (responseCode != 200)
 				{
-					var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
-					cumulus.LogErrorMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message}");
+					JsonSerializerOptions jsonOptions = new();
+					jsonOptions.Converters.Add(new JsonConverters.JsonIntConverter());
+
+					try
+					{
+						var errObj = JsonSerializer.Deserialize<WlErrorResponse>(responseBody);
+						cumulus.LogErrorMessage($"GetAvailableSensors: WeatherLink API Error: {errObj.code} - {errObj.message}");
+					}
+					catch
+					{
+						cumulus.LogErrorMessage($"GetAvailableSensors: WeatherLink API HTTP Error: {responseCode}");
+					}
 					return;
 				}
 

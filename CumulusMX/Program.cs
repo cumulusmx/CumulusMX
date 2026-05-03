@@ -58,29 +58,36 @@ namespace CumulusMX
 			StartTime = DateTime.Now;
 			RunningOnWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-			var logPath = configFile.runtimeOptions.configProperties.LogPath;
+			// Attempt to read the logging path from Cumulus.ini
+			IniFile ini = new IniFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Cumulus.ini"));
+			MxDiagsPath = ini.GetValue("Program", "DiagsPath", "MXdiags");
+
+			if (MxDiagsPath == "MXdiags")
+			{
+				MxDiagsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, MxDiagsPath);
+			}
 
 			try
 			{
-				if (!Directory.Exists(logPath))
+				if (!Directory.Exists(MxDiagsPath))
 				{
-					Directory.CreateDirectory(logPath);
+					Directory.CreateDirectory(MxDiagsPath);
 				}
 			}
 			catch (UnauthorizedAccessException)
 			{
-				Console.WriteLine("Error, no permission to read/create folder " + logPath);
+				Console.WriteLine("Error, no permission to read/create MXdiags folder " + MxDiagsPath);
 				Environment.Exit(5);
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"Error while attempting to read/create folder {logPath}, error message: {ex.Message}");
+				Console.WriteLine($"Error while attempting to read/create MXdiags folder {MxDiagsPath}, error message: {ex.Message}");
 			}
 
 			SetupLogging();
 
-			var logfile = Path.Combine(logPath, "ServiceConsoleLog.txt");
-			var logfileOld = Path.Combine(logPath, "ServiceConsoleLog-Old.txt");
+			var logfile = Path.Combine(MxDiagsPath, "ServiceConsoleLog.txt");
+			var logfileOld = Path.Combine(MxDiagsPath, "ServiceConsoleLog-Old.txt");
 			try
 			{
 				if (File.Exists(logfileOld))
@@ -553,10 +560,6 @@ namespace CumulusMX
 		private static void SetupLogging()
 		{
 			// Log file target
-			MxDiagsPath = configFile.runtimeOptions.configProperties.LogPath == "MXdiags"
-				? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MXdiags")
-				: configFile.runtimeOptions.configProperties.LogPath;
-
 			var fileName = Path.Combine(MxDiagsPath, "MxDiags.log");
 
 			var logfile = new FileTarget()

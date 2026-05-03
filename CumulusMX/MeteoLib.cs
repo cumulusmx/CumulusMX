@@ -202,6 +202,27 @@ namespace CumulusMX
 			return Tw1;
 		}
 
+		/// <summary>
+		///  Calculates the Wet Bulb Globe Temperature from Black globe temp
+		/// </summary>
+		/// <remarks>
+		/// See: https://en.wikipedia.org/wiki/Wet-bulb_globe_temperature
+		/// </remarks>
+		/// <param name="tempC">Temp in C</param>
+		/// <param name="dewPointC">Dew point in C</param>
+		/// <param name="pressureHpa">Station pressure in mb/hPa</param>
+		/// <param name="blackGlobeTempC">Black globe temp in C</param>
+		/// <returns>Wet bulb globe temperature in Celsius</returns>
+		public static double CalculateWetBulbeGlobeTemp(double tempC, double dewPointC, double pressureHpa, double blackGlobeTempC)
+		{
+			// WBGT = 0.7Tw + 0.2Tg + 0.1Td
+			// Tw = Wet bulb temp
+			// Tg = Black globe temp
+			// Td = Air temp
+			var Tw = CalculateWetBulbC(tempC, dewPointC, pressureHpa);
+
+			return 0.7 * Tw + 0.2 * blackGlobeTempC + 0.1 * tempC;
+		}
 
 		private static double Sqr(double num)
 		{
