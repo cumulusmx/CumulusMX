@@ -923,6 +923,9 @@ namespace CumulusMX.Stations
 						// pm10_24h_co2
 						// co2
 						// co2_24h
+						// -- built-in sensor
+						// co2in
+						// co2in_24h
 						ProcessCo2(data, thisStation);
 					}
 					catch (Exception ex)
@@ -1504,6 +1507,10 @@ namespace CumulusMX.Stations
 			// pm10_24h_co2
 			// co2
 			// co2_24h
+			// -- built-in sensor
+			// co2in
+			// co2in_24h
+
 
 			station.CO2_temperature = data["tf_co2"] != null ? ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_co2"], invNum)) : null;
 			station.CO2_humidity = data["humi_co2"] != null ? Convert.ToInt32(data["humi_co2"], invNum) : null;
@@ -1521,7 +1528,7 @@ namespace CumulusMX.Stations
 			}
 			else if (data["co2in"] != null) // WS3900 console
 			{
-				station.CO2 = Convert.ToInt32(data["co2"], invNum);
+				station.CO2 = Convert.ToInt32(data["co2in"], invNum);
 			}
 			else
 			{
