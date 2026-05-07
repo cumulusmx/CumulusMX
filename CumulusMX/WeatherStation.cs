@@ -2213,7 +2213,7 @@ namespace CumulusMX
 						sock.Close();
 					}
 
-					var wxfile = cumulus.StdWebFiles.SingleOrDefault(item => item.LocalFileName == "wxnow.txt");
+					var wxfile = cumulus.StdWebFiles.SingleOrDefault(item => item.FileName == "wxnow.txt");
 					if (wxfile.Create)
 					{
 						CreateWxnowFile();
@@ -2418,14 +2418,14 @@ namespace CumulusMX
 				if (cumulus.GraphDataFiles[i].Create && cumulus.GraphDataFiles[i].CreateRequired)
 				{
 #if DEBUG
-					cumulus.LogDebugMessage("CreateGraphDataFiles: Creating " + cumulus.GraphDataFiles[i].LocalFileName);
+					cumulus.LogDebugMessage("CreateGraphDataFiles: Creating " + cumulus.GraphDataFiles[i].FileName);
 #endif
 					try
 					{
-						json = CreateGraphDataJson(cumulus.GraphDataFiles[i].LocalFileName, false);
+						json = CreateGraphDataJson(cumulus.GraphDataFiles[i].FileName, false);
 
-						cumulus.LogDebugMessage("CreateGraphDataFiles: Writing " + cumulus.GraphDataFiles[i].LocalFileName);
-						var dest = Path.Combine(cumulus.GraphDataFiles[i].LocalPath, cumulus.GraphDataFiles[i].LocalFileName);
+						cumulus.LogDebugMessage("CreateGraphDataFiles: Writing " + cumulus.GraphDataFiles[i].FileName);
+						var dest = Path.Combine(cumulus.GraphDataFiles[i].LocalPath, cumulus.GraphDataFiles[i].FileName);
 						using (var file = new StreamWriter(dest, false))
 						{
 							file.WriteLine(json);
@@ -2441,10 +2441,10 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogErrorMessage($"Error creating/writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}");
+						cumulus.LogErrorMessage($"Error creating/writing {cumulus.GraphDataFiles[i].FileName}: {ex}");
 					}
 #if DEBUG
-					cumulus.LogDebugMessage("CreateGraphDataFiles: Completed " + cumulus.GraphDataFiles[i].LocalFileName);
+					cumulus.LogDebugMessage("CreateGraphDataFiles: Completed " + cumulus.GraphDataFiles[i].FileName);
 #endif
 				}
 			}
@@ -2491,16 +2491,16 @@ namespace CumulusMX
 			{
 				if (cumulus.GraphDataEodFiles[i].Create)
 				{
-					var json = CreateEodGraphDataJson(cumulus.GraphDataEodFiles[i].LocalFileName);
+					var json = CreateEodGraphDataJson(cumulus.GraphDataEodFiles[i].FileName);
 
 					try
 					{
-						var dest = Path.Combine(cumulus.GraphDataEodFiles[i].LocalPath, cumulus.GraphDataEodFiles[i].LocalFileName);
+						var dest = Path.Combine(cumulus.GraphDataEodFiles[i].LocalPath, cumulus.GraphDataEodFiles[i].FileName);
 						File.WriteAllTextAsync(dest, json);
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogErrorMessage($"Error writing {cumulus.GraphDataEodFiles[i].LocalFileName}: {ex}");
+						cumulus.LogErrorMessage($"Error writing {cumulus.GraphDataEodFiles[i].FileName}: {ex}");
 					}
 				}
 
@@ -2522,16 +2522,16 @@ namespace CumulusMX
 			{
 				if (cumulus.GraphDataFiles[i].Create)
 				{
-					var json = CreateGraphDataJson(cumulus.GraphDataFiles[i].LocalFileName, false);
+					var json = CreateGraphDataJson(cumulus.GraphDataFiles[i].FileName, false);
 
 					try
 					{
-						var dest = Path.Combine(cumulus.GraphDataFiles[i].LocalPath, cumulus.GraphDataFiles[i].LocalFileName);
+						var dest = Path.Combine(cumulus.GraphDataFiles[i].LocalPath, cumulus.GraphDataFiles[i].FileName);
 						File.WriteAllTextAsync(dest, json);
 					}
 					catch (Exception ex)
 					{
-						cumulus.LogErrorMessage($"Error writing {cumulus.GraphDataFiles[i].LocalFileName}: {ex}");
+						cumulus.LogErrorMessage($"Error writing {cumulus.GraphDataFiles[i].FileName}: {ex}");
 					}
 				}
 

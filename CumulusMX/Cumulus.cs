@@ -657,14 +657,12 @@ namespace CumulusMX
 				{
 					TemplateFileName = Path.Combine(WebPath, "websitedataT.json"),
 					LocalPath = WebPath,
-					LocalFileName = "websitedata.json",
-					RemoteFileName = "websitedata.json"
+					FileName = "websitedata.json"
 				},
 				new()
 				{
 					LocalPath = "",
-					LocalFileName = "wxnow.txt",
-					RemoteFileName = "wxnow.txt"
+					FileName = "wxnow.txt"
 				}
 			];
 
@@ -672,15 +670,13 @@ namespace CumulusMX
 			[
 				new()
 				{
-					LocalFileName = "realtime.txt",
-					RemoteFileName = "realtime.txt"
+					FileName = "realtime.txt"
 				},
 				new()
 				{
 					TemplateFileName = Path.Combine(WebPath, "realtimegaugesT.txt"),
 					LocalPath =WebPath,
-					LocalFileName = "realtimegauges.txt",
-					RemoteFileName = "realtimegauges.txt"
+					FileName = "realtimegauges.txt"
 				}
 			];
 
@@ -689,146 +685,122 @@ namespace CumulusMX
 				new()       // 0
 				{
 					LocalPath = WebPath,
-					LocalFileName = "graphconfig.json",
-					RemoteFileName = "graphconfig.json"
+					FileName = "graphconfig.json"
 				},
 				new()       // 1
 				{
 					LocalPath = WebPath,
-					LocalFileName = "availabledata.json",
-					RemoteFileName = "availabledata.json"
+					FileName = "availabledata.json"
 				},
 				new()       // 2
 				{
 					LocalPath = WebPath,
-					LocalFileName = "tempdata.json",
-					RemoteFileName = "tempdata.json"
+					FileName = "tempdata.json"
 				},
 				new()       // 3
 				{
 					LocalPath = WebPath,
-					LocalFileName = "pressdata.json",
-					RemoteFileName = "pressdata.json"
+					FileName = "pressdata.json"
 				},
 				new()       // 4
 				{
 					LocalPath = WebPath,
-					LocalFileName = "winddata.json",
-					RemoteFileName = "winddata.json"
+					FileName = "winddata.json"
 				},
 				new()       // 5
 				{
 					LocalPath = WebPath,
-					LocalFileName = "wdirdata.json",
-					RemoteFileName = "wdirdata.json"
+					FileName = "wdirdata.json"
 				},
 				new()       // 6
 				{
 					LocalPath = WebPath,
-					LocalFileName = "humdata.json",
-					RemoteFileName = "humdata.json"
+					FileName = "humdata.json"
 				},
 				new()       // 7
 				{
 					LocalPath = WebPath,
-					LocalFileName = "raindata.json",
-					RemoteFileName = "raindata.json"
+					FileName = "raindata.json"
 				},
 				new()       // 8
 				{
 					LocalPath = WebPath,
-					LocalFileName = "dailyrain.json",
-					RemoteFileName = "dailyrain.json"
+					FileName = "dailyrain.json"
 				},
 				new()       // 9
 				{
 					LocalPath = WebPath,
-					LocalFileName = "dailytemp.json",
-					RemoteFileName = "dailytemp.json"
+					FileName = "dailytemp.json"
 				},
 				new()       // 10
 				{
 					LocalPath = WebPath,
-					LocalFileName = "solardata.json",
-					RemoteFileName = "solardata.json"
+					FileName = "solardata.json"
 				},
 				new()       // 11
 				{
 					LocalPath = WebPath,
-					LocalFileName = "sunhours.json",
-					RemoteFileName = "sunhours.json"
+					FileName = "sunhours.json"
 				},
 				new()       // 12
 				{
 					LocalPath = WebPath,
-					LocalFileName = "airquality.json",
-					RemoteFileName = "airquality.json"
+					FileName = "airquality.json"
 				},
 				new()       // 13
 				{
 					LocalPath = WebPath,
-					LocalFileName = "extratempdata.json",
-					RemoteFileName = "extratempdata.json"
+					FileName = "extratempdata.json"
 				},
 				new()       // 14
 				{
 					LocalPath = WebPath,
-					LocalFileName = "extrahumdata.json",
-					RemoteFileName = "extrahumdata.json"
+					FileName = "extrahumdata.json"
 				},
 				new()       // 15
 				{
 					LocalPath = WebPath,
-					LocalFileName = "extradewdata.json",
-					RemoteFileName = "extradewdata.json"
+					FileName = "extradewdata.json"
 				},
 				new()       // 16
 				{
 					LocalPath = WebPath,
-					LocalFileName = "soiltempdata.json",
-					RemoteFileName = "soiltempdata.json"
+					FileName = "soiltempdata.json"
 				},
 				new()       // 17
 				{
 					LocalPath = WebPath,
-					LocalFileName = "soilmoistdata.json",
-					RemoteFileName = "soilmoistdata.json"
+					FileName = "soilmoistdata.json"
 				},
 				new()       // 18
 				{
 					LocalPath = WebPath,
-					LocalFileName = "usertempdata.json",
-					RemoteFileName = "usertempdata.json"
+					FileName = "usertempdata.json"
 				},
 				new()       // 19
 				{
 					LocalPath = WebPath,
-					LocalFileName = "co2sensordata.json",
-					RemoteFileName = "co2sensordata.json"
+					FileName = "co2sensordata.json"
 				},
 				new()     // 20
 				{
 					LocalPath = WebPath,
-					LocalFileName = "leafwetdata.json",
-					RemoteFileName = "leafwetdata.json"
+					FileName = "leafwetdata.json"
 				},
 				new()     // 21
 				{
 					LocalPath = WebPath,
-					LocalFileName = "laserdepthdata.json",
-					RemoteFileName = "laserdepthdata.json"
+					FileName = "laserdepthdata.json"
 				},
 				new()     // 22
 				{
 					LocalPath = WebPath,
-					LocalFileName = "snow24data.json",
-					RemoteFileName = "snow24hdata.json"
+					FileName = "snow24hdata.json"
 				},
 				new()     // 23
 				{
 					LocalPath = WebPath,
-					LocalFileName = "soilecdata.json",
-					RemoteFileName = "soilecdata.json"
+					FileName = "soilecdata.json"
 				},
 			];
 
@@ -837,62 +809,52 @@ namespace CumulusMX
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailytempdata.json",
-					RemoteFileName = "alldailytempdata.json"
+					FileName = "alldailytempdata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailypressdata.json",
-					RemoteFileName = "alldailypressdata.json"
+					FileName = "alldailypressdata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailywinddata.json",
-					RemoteFileName = "alldailywinddata.json"
+					FileName = "alldailywinddata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailyhumdata.json",
-					RemoteFileName = "alldailyhumdata.json"
+					FileName = "alldailyhumdata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailyraindata.json",
-					RemoteFileName = "alldailyraindata.json"
+					FileName = "alldailyraindata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailysolardata.json",
-					RemoteFileName = "alldailysolardata.json"
+					FileName = "alldailysolardata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailydegdaydata.json",
-					RemoteFileName = "alldailydegdaydata.json"
+					FileName = "alldailydegdaydata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alltempsumdata.json",
-					RemoteFileName = "alltempsumdata.json"
+					FileName = "alltempsumdata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "allchillhrsdata.json",
-					RemoteFileName = "allchillhrsdata.json"
+					FileName = "allchillhrsdata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailysnowdata.json",
-					RemoteFileName = "alldailysnowdata.json"
+					FileName = "alldailysnowdata.json"
 				}
 			];
 
@@ -2950,12 +2912,12 @@ namespace CumulusMX
 			{
 				if (RealtimeFiles[i].Copy)
 				{
-					var dstFile = Path.Combine(dstPath, RealtimeFiles[i].RemoteFileName);
-					var srcFile = Path.Combine(RealtimeFiles[i].LocalPath ?? ".", RealtimeFiles[i].LocalFileName);
+					var dstFile = Path.Combine(dstPath, RealtimeFiles[i].FileName);
+					var srcFile = Path.Combine(RealtimeFiles[i].LocalPath ?? ".", RealtimeFiles[i].FileName);
 
 					try
 					{
-						LogDebugMessage($"RealtimeLocalCopy[{cycle}]: Copying - {RealtimeFiles[i].LocalFileName}");
+						LogDebugMessage($"RealtimeLocalCopy[{cycle}]: Copying - {RealtimeFiles[i].FileName}");
 
 						if (RealtimeFiles[i].Create)
 						{
@@ -2965,11 +2927,11 @@ namespace CumulusMX
 						{
 							var text = String.Empty;
 
-							if (RealtimeFiles[i].LocalFileName == "realtime.txt")
+							if (i == (int) RealtimeFileIdx.REALTIME_TXT)
 							{
 								text = CreateRealtimeFileString(cycle);
 							}
-							else if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
+							else if (i == (int) RealtimeFileIdx.REALTIMEGAUGES_TXT)
 							{
 								text = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, false);
 							}
@@ -3005,18 +2967,18 @@ namespace CumulusMX
 			{
 				if (RealtimeFiles[i].FTP)
 				{
-					var remoteFile = remotePath + RealtimeFiles[i].RemoteFileName;
+					var remoteFile = remotePath + RealtimeFiles[i].FileName;
 
 					string data = string.Empty;
 
 					if (FtpOptions.FtpMode != FtpProtocols.PHP)
 					{
 						// realtime file
-						if (RealtimeFiles[i].LocalFileName == "realtime.txt")
+						if (i == (int) RealtimeFileIdx.REALTIME_TXT)
 						{
 							data = CreateRealtimeFileString(cycle);
 						}
-						else if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
+						else if (i == (int) RealtimeFileIdx.REALTIMEGAUGES_TXT)
 						{
 							data = await ProcessTemplateFile2StringAsync(RealtimeFiles[i].TemplateFileName, true, true);
 						}
@@ -3024,7 +2986,7 @@ namespace CumulusMX
 						using var dataStream = GenerateStreamFromString(data);
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
-							LogDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}");
+							LogDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].FileName}");
 							if (!UploadStream(RealtimeSSH, remoteFile, dataStream, cycle))
 							{
 								// trigger the WD
@@ -3034,7 +2996,7 @@ namespace CumulusMX
 						}
 						else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
 						{
-							LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}", true);
+							LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].FileName}", true);
 							if (!UploadStream(RealtimeFTP, remoteFile, dataStream, cycle))
 							{
 								// trigger the WD
@@ -3051,10 +3013,10 @@ namespace CumulusMX
 #if DEBUG
 							if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
 							{
-								LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+								LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].FileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 							}
 							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-							LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].FileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
@@ -3072,29 +3034,28 @@ namespace CumulusMX
 							Interlocked.Increment(ref runningTaskCount);
 
 #if DEBUG
-							LogDebugMessage($"Realtime[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].LocalFileName} to {RealtimeFiles[idx].RemoteFileName}");
+							LogDebugMessage($"Realtime[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].FileName} to {RealtimeFiles[(int) idx].FileName}");
 #endif
 							// realtime file
-							if (RealtimeFiles[idx].LocalFileName == "realtime.txt")
+							if (i == (int) RealtimeFileIdx.REALTIME_TXT)
 							{
 								data = CreateRealtimeFileString(cycle);
 							}
-
-							if (RealtimeFiles[idx].LocalFileName == "realtimegauges.txt")
+							else if (i == (int) RealtimeFileIdx.REALTIMEGAUGES_TXT)
 							{
 								data = await ProcessTemplateFile2StringAsync(RealtimeFiles[idx].TemplateFileName, true, true);
 							}
 
 							try
 							{
-								_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].RemoteFileName, cycle);
+								_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].FileName, cycle);
 								// no realtime files are incremental, so no need to update LastDataTime
 							}
 							finally
 							{
 								uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-								LogDebugMessage($"Realtime[{cycle}]: Real time file [{idx}] {RealtimeFiles[idx].RemoteFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+								LogDebugMessage($"Realtime[{cycle}]: Real time file [{idx}] {RealtimeFiles[idx].FileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 							}
 							return true;
@@ -3413,15 +3374,15 @@ namespace CumulusMX
 			{
 				if (RealtimeFiles[i].Create && !string.IsNullOrWhiteSpace(RealtimeFiles[i].TemplateFileName))
 				{
-					var destFile = Path.Combine(RealtimeFiles[i].LocalPath, RealtimeFiles[i].LocalFileName);
-					LogDebugMessage($"Realtime[{cycle}]: Creating realtime file - {RealtimeFiles[i].LocalFileName}");
+					var destFile = Path.Combine(RealtimeFiles[i].LocalPath, RealtimeFiles[i].FileName);
+					LogDebugMessage($"Realtime[{cycle}]: Creating realtime file - {RealtimeFiles[i].FileName}");
 					try
 					{
 						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, true, UTF8encode);
 					}
 					catch (Exception ex)
 					{
-						LogDebugMessage($"Realtime[{cycle}]: Error creating file [{RealtimeFiles[i].LocalFileName}] to [{destFile}]. Error = {ex.Message}");
+						LogDebugMessage($"Realtime[{cycle}]: Error creating file [{RealtimeFiles[i].FileName}] to [{destFile}]. Error = {ex.Message}");
 					}
 				}
 			}
@@ -4965,9 +4926,9 @@ namespace CumulusMX
 			}
 			for (var i = 0; i < StdWebFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + StdWebFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + StdWebFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + StdWebFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + StdWebFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + StdWebFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + StdWebFiles[i].FileName.Split('.')[0];
 				StdWebFiles[i].Create = ini.GetValue("FTP site", keyNameCreate, IncludeStandardFiles);
 				StdWebFiles[i].FTP = ini.GetValue("FTP site", keyNameFTP, IncludeStandardFiles);
 				StdWebFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeStandardFiles);
@@ -4980,18 +4941,18 @@ namespace CumulusMX
 			}
 			for (var i = 0; i < GraphDataFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + GraphDataFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + GraphDataFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataFiles[i].FileName.Split('.')[0];
 				GraphDataFiles[i].Create = ini.GetValue("FTP site", keyNameCreate, IncludeGraphDataFiles);
 				GraphDataFiles[i].FTP = ini.GetValue("FTP site", keyNameFTP, IncludeGraphDataFiles);
 				GraphDataFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeGraphDataFiles);
 			}
 			for (var i = 0; i < GraphDataEodFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + GraphDataEodFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + GraphDataEodFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataEodFiles[i].FileName.Split('.')[0];
 				GraphDataEodFiles[i].Create = ini.GetValue("FTP site", keyNameCreate, IncludeGraphDataFiles);
 				GraphDataEodFiles[i].FTP = ini.GetValue("FTP site", keyNameFTP, IncludeGraphDataFiles);
 				GraphDataEodFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeGraphDataFiles);
@@ -6837,9 +6798,9 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "UpdateInterval", UpdateInterval);
 			for (var i = 0; i < StdWebFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + StdWebFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + StdWebFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + StdWebFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + StdWebFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + StdWebFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + StdWebFiles[i].FileName.Split('.')[0];
 				ini.SetValue("FTP site", keyNameCreate, StdWebFiles[i].Create);
 				ini.SetValue("FTP site", keyNameFTP, StdWebFiles[i].FTP);
 				ini.SetValue("FTP site", keyNameCopy, StdWebFiles[i].Copy);
@@ -6847,9 +6808,9 @@ namespace CumulusMX
 
 			for (var i = 0; i < GraphDataFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + GraphDataFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + GraphDataFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataFiles[i].FileName.Split('.')[0];
 				ini.SetValue("FTP site", keyNameCreate, GraphDataFiles[i].Create);
 				ini.SetValue("FTP site", keyNameFTP, GraphDataFiles[i].FTP);
 				ini.SetValue("FTP site", keyNameCopy, GraphDataFiles[i].Copy);
@@ -6857,9 +6818,9 @@ namespace CumulusMX
 
 			for (var i = 0; i < GraphDataEodFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + GraphDataEodFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + GraphDataEodFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataEodFiles[i].FileName.Split('.')[0];
 				ini.SetValue("FTP site", keyNameCreate, GraphDataEodFiles[i].Create);
 				ini.SetValue("FTP site", keyNameFTP, GraphDataEodFiles[i].FTP);
 				ini.SetValue("FTP site", keyNameCopy, GraphDataEodFiles[i].Copy);
@@ -9864,8 +9825,8 @@ namespace CumulusMX
 				{
 					if (StdWebFiles[i].Create && !string.IsNullOrWhiteSpace(StdWebFiles[i].TemplateFileName))
 					{
-						var destFile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].LocalFileName);
-						if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+						var destFile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].FileName);
+						if (StdWebFiles[i].FileName == "wxnow.txt")
 						{
 							station.CreateWxnowFile();
 						}
@@ -10055,14 +10016,14 @@ namespace CumulusMX
 			{
 				if (StdWebFiles[i].Copy && StdWebFiles[i].CopyRequired)
 				{
-					dstfile = remotePath + StdWebFiles[i].RemoteFileName;
+					dstfile = remotePath + StdWebFiles[i].FileName;
 					// the files are no longer always created, so gen them on the fly if required
 					if (StdWebFiles[i].Create)
 					{
 						try
 						{
 
-							srcfile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].LocalFileName);
+							srcfile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].FileName);
 							LogDebugMessage($"LocalCopy: Copying standard data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							success++;
@@ -10079,7 +10040,7 @@ namespace CumulusMX
 						try
 						{
 							string text;
-							if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+							if (StdWebFiles[i].FileName == "wxnow.txt")
 							{
 								text = station.CreateWxnowFileString();
 							}
@@ -10110,7 +10071,7 @@ namespace CumulusMX
 			{
 				if (GraphDataFiles[i].Copy && GraphDataFiles[i].CopyRequired)
 				{
-					dstfile = remotePath + GraphDataFiles[i].RemoteFileName;
+					dstfile = remotePath + GraphDataFiles[i].FileName;
 
 					// the files are no longer created when using PHP upload, so gen them on the fly
 					if (GraphDataFiles[i].Create)
@@ -10118,7 +10079,7 @@ namespace CumulusMX
 						try
 						{
 
-							srcfile = Path.Combine(GraphDataFiles[i].LocalPath, GraphDataFiles[i].LocalFileName);
+							srcfile = Path.Combine(GraphDataFiles[i].LocalPath, GraphDataFiles[i].FileName);
 							LogDebugMessage($"LocalCopy: Copying graph data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							success++;
@@ -10141,7 +10102,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							var text = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+							var text = station.CreateGraphDataJson(GraphDataFiles[i].FileName, false);
 							LogDebugMessage($"LocalCopy: Copying graph data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							success++;
@@ -10171,7 +10132,7 @@ namespace CumulusMX
 			{
 				if (GraphDataEodFiles[i].Copy && GraphDataEodFiles[i].CopyRequired)
 				{
-					dstfile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+					dstfile = remotePath + GraphDataEodFiles[i].FileName;
 
 					// the files are no longer created when using PHP upload, so gen them on the fly
 					if (GraphDataEodFiles[i].Create)
@@ -10179,7 +10140,7 @@ namespace CumulusMX
 						try
 						{
 
-							srcfile = Path.Combine(GraphDataEodFiles[i].LocalPath, GraphDataEodFiles[i].LocalFileName);
+							srcfile = Path.Combine(GraphDataEodFiles[i].LocalPath, GraphDataEodFiles[i].FileName);
 							LogDebugMessage($"LocalCopy: Copying daily graph data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							// Uploaded OK, reset the upload required flag
@@ -10197,7 +10158,7 @@ namespace CumulusMX
 					{
 						try
 						{
-							var text = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+							var text = station.CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
 							LogDebugMessage($"LocalCopy: Copying daily graph data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							// Uploaded OK, reset the upload required flag
@@ -10671,13 +10632,13 @@ namespace CumulusMX
 							{
 								try
 								{
-									var localFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
-									var remotefile = remotePath + StdWebFiles[i].RemoteFileName;
+									var localFile = StdWebFiles[i].LocalPath + StdWebFiles[i].FileName;
+									var remotefile = remotePath + StdWebFiles[i].FileName;
 									LogDebugMessage($"{msgPrefix} Uploading standard Data file: {localFile}");
 
 									string data;
 
-									if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+									if (StdWebFiles[i].FileName == "wxnow.txt")
 									{
 										data = station.CreateWxnowFileString();
 									}
@@ -10691,9 +10652,9 @@ namespace CumulusMX
 								}
 								catch (Exception e)
 								{
-									LogErrorMessage($"{msgPrefix} Error uploading standard data file [{StdWebFiles[i].RemoteFileName}]");
+									LogErrorMessage($"{msgPrefix} Error uploading standard data file [{StdWebFiles[i].FileName}]");
 									LogMessage($"{msgPrefix} Error = {e}");
-									FtpAlarm.LastMessage = $"Error uploading standard web file {StdWebFiles[i].RemoteFileName} - {e.Message}";
+									FtpAlarm.LastMessage = $"Error uploading standard web file {StdWebFiles[i].FileName} - {e.Message}";
 									FtpAlarm.Triggered = true;
 								}
 							}
@@ -10703,14 +10664,14 @@ namespace CumulusMX
 						{
 							if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
 							{
-								var uploadfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
-								var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
+								var uploadfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].FileName;
+								var remotefile = remotePath + GraphDataFiles[i].FileName;
 
 								try
 								{
 									LogDebugMessage($"{msgPrefix} Uploading graph data file: {uploadfile}");
 
-									var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+									var json = station.CreateGraphDataJson(GraphDataFiles[i].FileName, false);
 
 									using var dataStream = GenerateStreamFromString(json);
 									if (UploadStream(conn, remotefile, dataStream, cycle1k))
@@ -10736,13 +10697,13 @@ namespace CumulusMX
 						{
 							if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
 							{
-								var uploadfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
-								var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+								var uploadfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].FileName;
+								var remotefile = remotePath + GraphDataEodFiles[i].FileName;
 								try
 								{
 									LogDebugMessage($"{msgPrefix} Uploading daily graph data file: {uploadfile}");
 
-									var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+									var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
 
 									using var dataStream = GenerateStreamFromString(json);
 									if (UploadStream(conn, remotefile, dataStream, cycle1k))
@@ -10969,12 +10930,12 @@ namespace CumulusMX
 						{
 							try
 							{
-								var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+								var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].FileName;
 								LogFtpDebugMessage($"{msgPrefix} Uploading standard Data file: {localfile}", false);
 
 								string data;
 
-								if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+								if (StdWebFiles[i].FileName == "wxnow.txt")
 								{
 									data = station.CreateWxnowFileString();
 								}
@@ -10985,7 +10946,7 @@ namespace CumulusMX
 
 								using (var dataStream = GenerateStreamFromString(data))
 								{
-									UploadStream(conn, remotePath + StdWebFiles[i].RemoteFileName, dataStream, cycle1k);
+									UploadStream(conn, remotePath + StdWebFiles[i].FileName, dataStream, cycle1k);
 								}
 
 								// Uploaded OK, reset the upload required flag
@@ -10993,8 +10954,8 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								LogFtpMessage($"{msgPrefix} Error uploading file {StdWebFiles[i].RemoteFileName}: {e}", false);
-								FtpAlarm.LastMessage = $"Error uploading file {StdWebFiles[i].RemoteFileName} - {e.Message}";
+								LogFtpMessage($"{msgPrefix} Error uploading file {StdWebFiles[i].FileName}: {e}", false);
+								FtpAlarm.LastMessage = $"Error uploading file {StdWebFiles[i].FileName} - {e.Message}";
 								FtpAlarm.Triggered = true;
 							}
 						}
@@ -11006,11 +10967,11 @@ namespace CumulusMX
 						{
 							try
 							{
-								var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
-								var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
+								var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].FileName;
+								var remotefile = remotePath + GraphDataFiles[i].FileName;
 								LogFtpDebugMessage($"{msgPrefix} Uploading graph data file: {localfile}", false);
 
-								var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+								var json = station.CreateGraphDataJson(GraphDataFiles[i].FileName, false);
 
 								using (var dataStream = GenerateStreamFromString(json))
 								{
@@ -11025,9 +10986,9 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								LogFtpMessage($"{msgPrefix} Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]", false);
+								LogFtpMessage($"{msgPrefix} Error uploading graph data file [{GraphDataFiles[i].FileName}]", false);
 								LogFtpMessage($"{msgPrefix} Error = {e}", false);
-								FtpAlarm.LastMessage = $"Error uploading file {GraphDataFiles[i].RemoteFileName} - {e.Message}";
+								FtpAlarm.LastMessage = $"Error uploading file {GraphDataFiles[i].FileName} - {e.Message}";
 								FtpAlarm.Triggered = true;
 							}
 						}
@@ -11037,13 +10998,13 @@ namespace CumulusMX
 					{
 						if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
 						{
-							var localfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
-							var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+							var localfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].FileName;
+							var remotefile = remotePath + GraphDataEodFiles[i].FileName;
 							try
 							{
 								LogFtpMessage($"{msgPrefix} Uploading daily graph data file: {localfile}", false);
 
-								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
 
 								using var dataStream = GenerateStreamFromString(json);
 								if (UploadStream(conn, remotefile, dataStream, cycle1k))
@@ -11054,9 +11015,9 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								LogFtpMessage($"{msgPrefix} Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]", false);
+								LogFtpMessage($"{msgPrefix} Error uploading daily graph data file [{GraphDataEodFiles[i].FileName}]", false);
 								LogFtpMessage($"{msgPrefix} Error = {e}", false);
-								FtpAlarm.LastMessage = $"Error uploading file {GraphDataEodFiles[i].RemoteFileName} - {e.Message}";
+								FtpAlarm.LastMessage = $"Error uploading file {GraphDataEodFiles[i].FileName} - {e.Message}";
 								FtpAlarm.Triggered = true;
 							}
 						}
@@ -11373,10 +11334,10 @@ namespace CumulusMX
 #if DEBUG
 						if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
 						{
-							LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Standard Data file: {item.FileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						}
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-						LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Standard Data file: {item.FileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -11398,9 +11359,9 @@ namespace CumulusMX
 								return false;
 
 							string data;
-							LogDebugMessage($"{msgPrefix} Uploading standard Data file: " + item.RemoteFileName);
+							LogDebugMessage($"{msgPrefix} Uploading standard Data file: " + item.FileName);
 
-							if (item.LocalFileName == "wxnow.txt")
+							if (item.FileName == "wxnow.txt")
 							{
 								data = station.CreateWxnowFileString();
 							}
@@ -11409,7 +11370,7 @@ namespace CumulusMX
 								data = await ProcessTemplateFile2StringAsync(item.TemplateFileName, true, true);
 							}
 
-							if (await UploadString(phpUploadHttpClient, false, string.Empty, data, item.RemoteFileName, cycle1k, false, true))
+							if (await UploadString(phpUploadHttpClient, false, string.Empty, data, item.FileName, cycle1k, false, true))
 							{
 								// No standard files are "one offs" at present
 								//StdWebFiles[i].FtpRequired = false
@@ -11417,15 +11378,15 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"{msgPrefix} Error uploading file {item.RemoteFileName}");
-							FtpAlarm.LastMessage = $"Error uploading file {item.RemoteFileName} - {ex.Message}";
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading file {item.FileName}");
+							FtpAlarm.LastMessage = $"Error uploading file {item.FileName} - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Standard Data file: {item.FileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -11451,10 +11412,10 @@ namespace CumulusMX
 #if DEBUG
 						if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
 						{
-							LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Graph data file: {item.FileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						}
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-						LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Graph data file: {item.FileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -11476,13 +11437,13 @@ namespace CumulusMX
 								return false;
 
 							// we want incremental data for PHP
-							var json = station.CreateGraphDataJson(item.LocalFileName, item.Incremental);
-							var remotefile = item.RemoteFileName;
-							LogDebugMessage($"{msgPrefix} Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full file")}): {item.LocalFileName}");
+							var json = station.CreateGraphDataJson(item.FileName, item.Incremental);
+							var remotefile = item.FileName;
+							LogDebugMessage($"{msgPrefix} Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full file")}): {item.FileName}");
 
 							if (string.IsNullOrEmpty(json))
 							{
-								LogMessage($"{msgPrefix} Uploading to {item.LocalFileName}. No {(item.Incremental ? "incremental" : "")} data found, skipping this upload");
+								LogMessage($"{msgPrefix} Uploading to {item.FileName}. No {(item.Incremental ? "incremental" : "")} data found, skipping this upload");
 							}
 							else
 							{
@@ -11490,7 +11451,7 @@ namespace CumulusMX
 								{
 									// The config files only need uploading once per change
 									// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-									if (Array.Exists(configFiles, item.LocalFileName.Contains))
+									if (Array.Exists(configFiles, item.FileName.Contains))
 									{
 										item.FtpRequired = false;
 									}
@@ -11504,15 +11465,15 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"{msgPrefix} Error uploading graph data file [{item.RemoteFileName}]");
-							FtpAlarm.LastMessage = $"Error uploading graph data file [{item.RemoteFileName}] - {ex.Message}";
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading graph data file [{item.FileName}]");
+							FtpAlarm.LastMessage = $"Error uploading graph data file [{item.FileName}] - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Graph data file: {item.FileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -11534,10 +11495,10 @@ namespace CumulusMX
 #if DEBUG
 						if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
 						{
-							LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Daily graph data file: {item.FileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 						}
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-						LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Daily graph data file: {item.FileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -11558,9 +11519,9 @@ namespace CumulusMX
 							if (Program.ExitSystemToken.IsCancellationRequested)
 								return false;
 
-							var remotefile = item.RemoteFileName;
-							LogMessage($"{msgPrefix} Uploading daily graph data file: " + item.LocalFileName);
-							var json = station.CreateEodGraphDataJson(item.LocalFileName);
+							var remotefile = item.FileName;
+							LogMessage($"{msgPrefix} Uploading daily graph data file: " + item.FileName);
+							var json = station.CreateEodGraphDataJson(item.FileName);
 
 							if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, cycle1k, false, true))
 							{
@@ -11570,15 +11531,15 @@ namespace CumulusMX
 						}
 						catch (Exception ex)
 						{
-							LogExceptionMessage(ex, $"{msgPrefix} Error uploading daily graph data file [{item.RemoteFileName}]");
-							FtpAlarm.LastMessage = $"Error uploading daily graph data file [{item.RemoteFileName}] - {ex.Message}";
+							LogExceptionMessage(ex, $"{msgPrefix} Error uploading daily graph data file [{item.FileName}]");
+							FtpAlarm.LastMessage = $"Error uploading daily graph data file [{item.FileName}] - {ex.Message}";
 							FtpAlarm.Triggered = true;
 						}
 						finally
 						{
 							uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-							LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"{msgPrefix} Daily graph data file: {item.FileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 						}
 
@@ -15010,9 +14971,8 @@ namespace CumulusMX
 	public class FileGenerationOptions
 	{
 		public string TemplateFileName { get; set; }
-		public string LocalFileName { get; set; }
+		public string FileName { get; set; }
 		public string LocalPath { get; set; }
-		public string RemoteFileName { get; set; }
 		public bool Create { get; set; }
 		public bool FTP { get; set; }
 		public bool Copy { get; set; }
@@ -15458,6 +15418,12 @@ namespace CumulusMX
 		public string name { get; set; }
 		public bool draft { get; set; }
 		public bool prerelease { get; set; }
+	}
+
+	public enum RealtimeFileIdx
+	{
+		REALTIME_TXT,        // 0
+		REALTIMEGAUGES_TXT  // 1
 	}
 
 	public enum GraphFileIdx

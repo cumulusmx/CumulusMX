@@ -10,11 +10,12 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.0 \[b5004\]][31] - 2026-05-03
+## [5.1.0 \[b5004\]][31] - 2026-05-07
 
 ### Important Notes
 
-- **MySQL users:** Because the dayfile has some extra fields, you must update your MySQL table for this release. Use the Update Table feature in Cumulus MySQL Settings
+- **MySQL Users:** Because the dayfile has some extra fields, you must update your MySQL table for this release. Use the Update Table feature in Cumulus MySQL Settings
+- **PHP Upload:** There is an important update to the `upload.php` script
 
 
 ### New
@@ -78,6 +79,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Fixed
 
+- Issue with `upload.php` that allowed incrementally appended JSON files to grow without trimming old data
 - Fix the standard web file websitedata.json being created in the root folder with a filename prefix of "web". Missed in v5.0.1
 - Forecast issues introduced in v5.0.1:
 	- Davis station no longer storing the station forecast when primary source is Cumulus or forecast.txt
@@ -100,7 +102,8 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Enabling a Purple Air AQ sensor now automatically enables the extra sensor use AQ feature
 - Fix monthly log editor MySQL updates
 - Fix exception handling Davis v2 API error responses
-- Davis WLL stations now check the subscription level before fecthing health data
+- Davis WLL stations now check the subscription level before fetching health data
+- Locally created `snow24hdata.json` files were missnamed snow24data.json
 
 ### Package Updates
 
