@@ -10,7 +10,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.0 \[b5004\]][31] - 2026-05-07
+## [5.1.0 \[b5006\]][31] - 2026-05-07
 
 ### Important Notes
 
@@ -96,14 +96,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Missing Air Quality block from the dashboard Extra Sensors page
 - Extra Sensors using Ecowitt Cloud Station was not updating Solar & UV-I values
 - Fixes multiple web cam URL support
-	- Adds the `camera` parameter to the `<#webcam>` and `<#webcamurl>` web tags, if omitted it defaults to "1" the fist defined camera
+	- Adds the `camera` parameter to the `<#webcam>` and `<#webcamurl>` web tags, if omitted it defaults to "1" the first defined camera
 	- Eg `<#webcamurl camera=2>`
 - Davis Cloud station error on decoding VP2/Vue originated current data, it also adds the Davis forecast decoding to this model
-- Enabling a Purple Air AQ sensor now automatically enables the extra sensor use AQ feature
+- Enabling a Purple Air AQ sensor now automatically enables the extra sensor to use AQ feature
 - Fix monthly log editor MySQL updates
 - Fix exception handling Davis v2 API error responses
 - Davis WLL stations now check the subscription level before fetching health data
-- Locally created `snow24hdata.json` files were missnamed snow24data.json
+- Locally created `snow24hdata.json` files were misnamed snow24data.json
 
 ### Package Updates
 
@@ -1403,4 +1403,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
 [29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5001
 [30]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5002
-[31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5004
+[31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5006

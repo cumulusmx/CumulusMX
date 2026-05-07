@@ -675,7 +675,7 @@ namespace CumulusMX
 				new()
 				{
 					TemplateFileName = Path.Combine(WebPath, "realtimegaugesT.txt"),
-					LocalPath =WebPath,
+					LocalPath = WebPath,
 					FileName = "realtimegauges.txt"
 				}
 			];
@@ -3034,14 +3034,14 @@ namespace CumulusMX
 							Interlocked.Increment(ref runningTaskCount);
 
 #if DEBUG
-							LogDebugMessage($"Realtime[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].FileName} to {RealtimeFiles[(int) idx].FileName}");
+							LogDebugMessage($"Realtime[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].FileName}");
 #endif
 							// realtime file
-							if (i == (int) RealtimeFileIdx.REALTIME_TXT)
+							if (idx == (int) RealtimeFileIdx.REALTIME_TXT)
 							{
 								data = CreateRealtimeFileString(cycle);
 							}
-							else if (i == (int) RealtimeFileIdx.REALTIMEGAUGES_TXT)
+							else if (idx == (int) RealtimeFileIdx.REALTIMEGAUGES_TXT)
 							{
 								data = await ProcessTemplateFile2StringAsync(RealtimeFiles[idx].TemplateFileName, true, true);
 							}
@@ -12388,7 +12388,7 @@ namespace CumulusMX
 					}
 					else if (incremental && response.StatusCode == HttpStatusCode.NotAcceptable)
 					{
-						// 406 is reserved for trying to append data to a file that already exists (retry after inital attemp actually worked?)
+						// 406 is reserved for trying to append data to a file that already exists (retry after inital attempt actually worked?)
 						// In this case flag success to the increment moved on
 						LogDebugMessage($"{prefix}: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode} - Skipping this increment");
 						LogDataMessage($"{prefix}: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
