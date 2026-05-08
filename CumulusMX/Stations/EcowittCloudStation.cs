@@ -683,7 +683,7 @@ namespace CumulusMX.Stations
 		{
 			for (var i = 1; i <= 8; i++)
 			{
-				if (data["temp_and_humidity_ch" + i] != null && (mainStation ? 0 : 1) == cumulus.SensorMaps.ExtraTempHum[i - 1]))
+				if (data["temp_and_humidity_ch" + i] != null && (mainStation ? 0 : 1) == cumulus.SensorMaps.ExtraTempHum[i - 1])
 				{
 					var sensor = (EcowittApi.CurrentTempHum) data["temp_and_humidity_ch" + i];
 					ApplyExtraTempHum(i, sensor.temperature.value, sensor.humidity, sensor.temperature.time);
@@ -759,7 +759,7 @@ namespace CumulusMX.Stations
 			{
 				if (stationIndex == cumulus.SensorMaps.SoilMoist[i - 1])
 				{
-					var sensor = data["soil_ch" + i];
+					var sensor = (EcowittApi.CurrentSoil) data["soil_ch" + i];
 					station.DoSoilMoisture(sensor == null ? null : sensor.soilmoisture.value, i);
 				}
 			}
@@ -912,8 +912,8 @@ namespace CumulusMX.Stations
 			{
 				for (var i = 1; i <= 4; i++)
 				{
-					var sensor = data.water_leak["water_leak.leak_ch" + i];
-					station.DoLeakSensor(sensor == null ? null : (EcowittApi.CurrentSensorValInt) sensor.value, i);
+					var sensor = (EcowittApi.CurrentSensorValInt) data.water_leak["water_leak.leak_ch" + i];
+					station.DoLeakSensor(sensor == null ? null : sensor.value, i);
 				}
 			}
 			else

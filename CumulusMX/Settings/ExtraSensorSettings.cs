@@ -577,7 +577,7 @@ namespace CumulusMX.Settings
 					cumulus.PurpleAirEnabled = settings.purpleAir.enabled;
 					if (cumulus.PurpleAirEnabled)
 					{
-						cumulus.ExtraSensorUseAQI = true;
+						cumulus.SensorMaps.AirQualEnabled = true;
 
 						for (var i = 0; i < 4; i++)
 						{
