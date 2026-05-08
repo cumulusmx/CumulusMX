@@ -146,6 +146,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Some third party uploads switched from HTTP to HTTPS - AWEKAS, PWS, WindGuru
 - The charts in the dashboard and default web site now display tooltip numbers in the station locale format
 - Improvements to Chart accessibility on the Dashboard
+- Improvements to Chart accessibility on the Dashboard
 
 ### Fixed
 
@@ -1420,3 +1421,5 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
 [29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5001
 [30]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5002
+[31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5006
+[32]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5007
