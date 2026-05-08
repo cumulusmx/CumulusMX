@@ -3685,8 +3685,8 @@ namespace CumulusMX
 								updt.Append(sep +$"CurrWindBearing={LogRec.Bearing.ToText("NULL")}");
 								updt.Append(sep +$"RG11rain={LogRec.RG11RainToday.ToFixed(cumulus.RainFormat, "NULL")}");
 								updt.Append(sep +$"RainSinceMidnight={LogRec.RainSinceMidnight.ToFixed(cumulus.RainFormat, "NULL")}");
-								updt.Append(sep +$"WindbearingSym='{(LogRec.Bearing.HasValue ? station.CompassPoint(LogRec.AvgBearing) : "NULL")}");
-								updt.Append(sep +$"CurrWindBearingSym='{(LogRec.Bearing.HasValue ? station.CompassPoint(LogRec.Bearing.Value) : "NULL")}'");
+								updt.Append(sep +$"WindbearingSym={(LogRec.Bearing.HasValue ? $"'{station.CompassPoint(LogRec.AvgBearing)}'" : "NULL")}");
+								updt.Append(sep +$"CurrWindBearingSym={(LogRec.Bearing.HasValue ? $"'{station.CompassPoint(LogRec.Bearing.Value)}'" : "NULL")}");
 								updt.Append(sep +$"FeelsLike={LogRec.FeelsLike.ToFixed(cumulus.TempFormat, "NULL")}");
 								updt.Append(sep +$"Humidex={LogRec.Humidex.ToFixed(cumulus.TempFormat, "NULL")}");
 								updt.Append(sep +$"BlackGlobeTemp={LogRec.BlackGlobeTemp.ToFixed(cumulus.TempFormat, "NULL")}");

@@ -58,7 +58,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>5.1.0.5006</Version>
+    <Version>5.1.0.5007</Version>
     <Copyright>Copyright ©  2015-$([System.DateTime]::Now.ToString('yyyy')) Cumulus MX</Copyright>
     <PackageId>$(AssemblyName)</PackageId>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>

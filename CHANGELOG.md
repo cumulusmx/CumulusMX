@@ -10,6 +10,22 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
+## [5.1.1 \[b5007\]][32] - 2026-06-07
+
+### New
+
+- Nothing
+
+### Changed
+
+- Nothing
+
+### Fixed
+
+- Spelling errors of "minimum" in three historic temperature data series
+- Editing
+
+
 ## [5.1.0 \[b5006\]][31] - 2026-05-07
 
 ### Important Notes
@@ -60,7 +76,6 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Added to Dashboard Recent, Select-a-Period and Recent Select-a-Chart charts
 	- Added to default web site recent charts
 - Adds support for the WS3900/WN1800 console built-in CO₂ readings to the Ecowitt HTTP Station
-
 
 ### Changed
 
@@ -1404,3 +1419,4 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5001
 [30]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5002
 [31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5006
+[32]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5007
