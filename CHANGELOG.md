@@ -25,6 +25,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Spurious "y_temp" after Humidex values in charts tooltips
 - Spelling errors of "minimum" in three historic temperature data series
 - Updating MySQL when editing monthly log file entries
+- Main station not starting correctly when using Ecowitt Cloud station for Extra Sensors
 
 
 ## [5.1.0 \[b5006\]][31] - 2026-05-07
