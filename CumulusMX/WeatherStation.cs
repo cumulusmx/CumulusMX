@@ -14745,19 +14745,19 @@ namespace CumulusMX
 
 			if (cumulus.GraphOptions.Visible.DewPoint.IsVisible(local))
 			{
-				json.Append($"\"mindew\":{{\"name\":\"Minumim Dew Point\",\"colour\":\"{cumulus.GraphOptions.Colour.MinDew}\"}},");
+				json.Append($"\"mindew\":{{\"name\":\"Minimum Dew Point\",\"colour\":\"{cumulus.GraphOptions.Colour.MinDew}\"}},");
 				json.Append($"\"maxdew\":{{\"name\":\"Maximum Dew Point\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxDew}\"}},");
 			}
 			if (cumulus.GraphOptions.Visible.WindChill.IsVisible(local))
 				json.Append($"\"minwindchill\":{{\"name\":\"Wind Chill\",\"colour\":\"{cumulus.GraphOptions.Colour.MinWindChill}\"}},");
 			if (cumulus.GraphOptions.Visible.AppTemp.IsVisible(local))
 			{
-				json.Append($"\"minapp\":{{\"name\":\"Minumim Apparent\",\"colour\":\"{cumulus.GraphOptions.Colour.MinApp}\"}},");
+				json.Append($"\"minapp\":{{\"name\":\"Minimum Apparent\",\"colour\":\"{cumulus.GraphOptions.Colour.MinApp}\"}},");
 				json.Append($"\"maxapp\":{{\"name\":\"Maximum Apparent\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxApp}\"}},");
 			}
 			if (cumulus.GraphOptions.Visible.FeelsLike.IsVisible(local))
 			{
-				json.Append($"\"minfeels\":{{\"name\":\"Minumim Feels Like\",\"colour\":\"{cumulus.GraphOptions.Colour.MinFeels}\"}},");
+				json.Append($"\"minfeels\":{{\"name\":\"Minimum Feels Like\",\"colour\":\"{cumulus.GraphOptions.Colour.MinFeels}\"}},");
 				json.Append($"\"maxfeels\":{{\"name\":\"Maximum Feels Like\",\"colour\":\"{cumulus.GraphOptions.Colour.MaxFeels}\"}},");
 			}
 			if (cumulus.GraphOptions.Visible.HeatIndex.IsVisible(local))
