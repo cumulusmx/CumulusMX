@@ -658,14 +658,12 @@ namespace CumulusMX
 				{
 					TemplateFileName = Path.Combine(WebPath, "websitedataT.json"),
 					LocalPath = WebPath,
-					LocalFileName = "websitedata.json",
-					RemoteFileName = "websitedata.json"
+					FileName = "websitedata.json"
 				},
 				new()
 				{
 					LocalPath = "",
-					LocalFileName = "wxnow.txt",
-					RemoteFileName = "wxnow.txt"
+					FileName = "wxnow.txt"
 				}
 			];
 
@@ -673,15 +671,13 @@ namespace CumulusMX
 			[
 				new()
 				{
-					LocalFileName = "realtime.txt",
-					RemoteFileName = "realtime.txt"
+					FileName = "realtime.txt"
 				},
 				new()
 				{
 					TemplateFileName = Path.Combine(WebPath, "realtimegaugesT.txt"),
-					LocalPath =WebPath,
-					LocalFileName = "realtimegauges.txt",
-					RemoteFileName = "realtimegauges.txt"
+					LocalPath = WebPath,
+					FileName = "realtimegauges.txt"
 				}
 			];
 
@@ -690,146 +686,122 @@ namespace CumulusMX
 				new()       // 0
 				{
 					LocalPath = WebPath,
-					LocalFileName = "graphconfig.json",
-					RemoteFileName = "graphconfig.json"
+					FileName = "graphconfig.json"
 				},
 				new()       // 1
 				{
 					LocalPath = WebPath,
-					LocalFileName = "availabledata.json",
-					RemoteFileName = "availabledata.json"
+					FileName = "availabledata.json"
 				},
 				new()       // 2
 				{
 					LocalPath = WebPath,
-					LocalFileName = "tempdata.json",
-					RemoteFileName = "tempdata.json"
+					FileName = "tempdata.json"
 				},
 				new()       // 3
 				{
 					LocalPath = WebPath,
-					LocalFileName = "pressdata.json",
-					RemoteFileName = "pressdata.json"
+					FileName = "pressdata.json"
 				},
 				new()       // 4
 				{
 					LocalPath = WebPath,
-					LocalFileName = "winddata.json",
-					RemoteFileName = "winddata.json"
+					FileName = "winddata.json"
 				},
 				new()       // 5
 				{
 					LocalPath = WebPath,
-					LocalFileName = "wdirdata.json",
-					RemoteFileName = "wdirdata.json"
+					FileName = "wdirdata.json"
 				},
 				new()       // 6
 				{
 					LocalPath = WebPath,
-					LocalFileName = "humdata.json",
-					RemoteFileName = "humdata.json"
+					FileName = "humdata.json"
 				},
 				new()       // 7
 				{
 					LocalPath = WebPath,
-					LocalFileName = "raindata.json",
-					RemoteFileName = "raindata.json"
+					FileName = "raindata.json"
 				},
 				new()       // 8
 				{
 					LocalPath = WebPath,
-					LocalFileName = "dailyrain.json",
-					RemoteFileName = "dailyrain.json"
+					FileName = "dailyrain.json"
 				},
 				new()       // 9
 				{
 					LocalPath = WebPath,
-					LocalFileName = "dailytemp.json",
-					RemoteFileName = "dailytemp.json"
+					FileName = "dailytemp.json"
 				},
 				new()       // 10
 				{
 					LocalPath = WebPath,
-					LocalFileName = "solardata.json",
-					RemoteFileName = "solardata.json"
+					FileName = "solardata.json"
 				},
 				new()       // 11
 				{
 					LocalPath = WebPath,
-					LocalFileName = "sunhours.json",
-					RemoteFileName = "sunhours.json"
+					FileName = "sunhours.json"
 				},
 				new()       // 12
 				{
 					LocalPath = WebPath,
-					LocalFileName = "airquality.json",
-					RemoteFileName = "airquality.json"
+					FileName = "airquality.json"
 				},
 				new()       // 13
 				{
 					LocalPath = WebPath,
-					LocalFileName = "extratempdata.json",
-					RemoteFileName = "extratempdata.json"
+					FileName = "extratempdata.json"
 				},
 				new()       // 14
 				{
 					LocalPath = WebPath,
-					LocalFileName = "extrahumdata.json",
-					RemoteFileName = "extrahumdata.json"
+					FileName = "extrahumdata.json"
 				},
 				new()       // 15
 				{
 					LocalPath = WebPath,
-					LocalFileName = "extradewdata.json",
-					RemoteFileName = "extradewdata.json"
+					FileName = "extradewdata.json"
 				},
 				new()       // 16
 				{
 					LocalPath = WebPath,
-					LocalFileName = "soiltempdata.json",
-					RemoteFileName = "soiltempdata.json"
+					FileName = "soiltempdata.json"
 				},
 				new()       // 17
 				{
 					LocalPath = WebPath,
-					LocalFileName = "soilmoistdata.json",
-					RemoteFileName = "soilmoistdata.json"
+					FileName = "soilmoistdata.json"
 				},
 				new()       // 18
 				{
 					LocalPath = WebPath,
-					LocalFileName = "usertempdata.json",
-					RemoteFileName = "usertempdata.json"
+					FileName = "usertempdata.json"
 				},
 				new()       // 19
 				{
 					LocalPath = WebPath,
-					LocalFileName = "co2sensordata.json",
-					RemoteFileName = "co2sensordata.json"
+					FileName = "co2sensordata.json"
 				},
 				new()     // 20
 				{
 					LocalPath = WebPath,
-					LocalFileName = "leafwetdata.json",
-					RemoteFileName = "leafwetdata.json"
+					FileName = "leafwetdata.json"
 				},
 				new()     // 21
 				{
 					LocalPath = WebPath,
-					LocalFileName = "laserdepthdata.json",
-					RemoteFileName = "laserdepthdata.json"
+					FileName = "laserdepthdata.json"
 				},
 				new()     // 22
 				{
 					LocalPath = WebPath,
-					LocalFileName = "snow24data.json",
-					RemoteFileName = "snow24hdata.json"
+					FileName = "snow24hdata.json"
 				},
 				new()     // 23
 				{
 					LocalPath = WebPath,
-					LocalFileName = "soilecdata.json",
-					RemoteFileName = "soilecdata.json"
+					FileName = "soilecdata.json"
 				},
 			];
 
@@ -838,62 +810,52 @@ namespace CumulusMX
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailytempdata.json",
-					RemoteFileName = "alldailytempdata.json"
+					FileName = "alldailytempdata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailypressdata.json",
-					RemoteFileName = "alldailypressdata.json"
+					FileName = "alldailypressdata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailywinddata.json",
-					RemoteFileName = "alldailywinddata.json"
+					FileName = "alldailywinddata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailyhumdata.json",
-					RemoteFileName = "alldailyhumdata.json"
+					FileName = "alldailyhumdata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailyraindata.json",
-					RemoteFileName = "alldailyraindata.json"
+					FileName = "alldailyraindata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailysolardata.json",
-					RemoteFileName = "alldailysolardata.json"
+					FileName = "alldailysolardata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailydegdaydata.json",
-					RemoteFileName = "alldailydegdaydata.json"
+					FileName = "alldailydegdaydata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alltempsumdata.json",
-					RemoteFileName = "alltempsumdata.json"
+					FileName = "alltempsumdata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "allchillhrsdata.json",
-					RemoteFileName = "allchillhrsdata.json"
+					FileName = "allchillhrsdata.json"
 				},
 				new()
 				{
 					LocalPath = WebPath,
-					LocalFileName = "alldailysnowdata.json",
-					RemoteFileName = "alldailysnowdata.json"
+					FileName = "alldailysnowdata.json"
 				}
 			];
 
@@ -2952,12 +2914,12 @@ namespace CumulusMX
 			{
 				if (RealtimeFiles[i].Copy)
 				{
-					var dstFile = Path.Combine(dstPath, RealtimeFiles[i].RemoteFileName);
-					var srcFile = Path.Combine(RealtimeFiles[i].LocalPath ?? ".", RealtimeFiles[i].LocalFileName);
+					var dstFile = Path.Combine(dstPath, RealtimeFiles[i].FileName);
+					var srcFile = Path.Combine(RealtimeFiles[i].LocalPath ?? ".", RealtimeFiles[i].FileName);
 
 					try
 					{
-						LogDebugMessage($"RealtimeLocalCopy[{cycle}]: Copying - {RealtimeFiles[i].LocalFileName}");
+						LogDebugMessage($"RealtimeLocalCopy[{cycle}]: Copying - {RealtimeFiles[i].FileName}");
 
 						if (RealtimeFiles[i].Create)
 						{
@@ -2967,11 +2929,11 @@ namespace CumulusMX
 						{
 							var text = String.Empty;
 
-							if (RealtimeFiles[i].LocalFileName == "realtime.txt")
+							if (i == (int) RealtimeFileIdx.REALTIME_TXT)
 							{
 								text = CreateRealtimeFileString(cycle);
 							}
-							else if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
+							else if (i == (int) RealtimeFileIdx.REALTIMEGAUGES_TXT)
 							{
 								text = ProcessTemplateFile2String(RealtimeFiles[i].TemplateFileName, false);
 							}
@@ -3007,18 +2969,18 @@ namespace CumulusMX
 			{
 				if (RealtimeFiles[i].FTP)
 				{
-					var remoteFile = remotePath + RealtimeFiles[i].RemoteFileName;
+					var remoteFile = remotePath + RealtimeFiles[i].FileName;
 
 					string data = string.Empty;
 
 					if (FtpOptions.FtpMode != FtpProtocols.PHP)
 					{
 						// realtime file
-						if (RealtimeFiles[i].LocalFileName == "realtime.txt")
+						if (i == (int) RealtimeFileIdx.REALTIME_TXT)
 						{
 							data = CreateRealtimeFileString(cycle);
 						}
-						else if (RealtimeFiles[i].LocalFileName == "realtimegauges.txt")
+						else if (i == (int) RealtimeFileIdx.REALTIMEGAUGES_TXT)
 						{
 							data = await ProcessTemplateFile2StringAsync(RealtimeFiles[i].TemplateFileName, true, true);
 						}
@@ -3026,7 +2988,7 @@ namespace CumulusMX
 						using var dataStream = GenerateStreamFromString(data);
 						if (FtpOptions.FtpMode == FtpProtocols.SFTP)
 						{
-							LogDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}");
+							LogDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].FileName}");
 							if (!UploadStream(RealtimeSSH, remoteFile, dataStream, cycle))
 							{
 								// trigger the WD
@@ -3036,7 +2998,7 @@ namespace CumulusMX
 						}
 						else if (FtpOptions.FtpMode == FtpProtocols.FTP || FtpOptions.FtpMode == FtpProtocols.FTPS)
 						{
-							LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].RemoteFileName}", true);
+							LogFtpDebugMessage($"Realtime[{cycle}]: Uploading - {RealtimeFiles[i].FileName}", true);
 							if (!UploadStream(RealtimeFTP, remoteFile, dataStream, cycle))
 							{
 								// trigger the WD
@@ -3053,10 +3015,10 @@ namespace CumulusMX
 #if DEBUG
 							if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
 							{
-								LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+								LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].FileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 							}
 							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
-							LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].RemoteFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+							LogDebugMessage($"Realtime[{cycle}]: Real time file {RealtimeFiles[i].FileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 							await uploadCountLimitSemaphoreSlim.WaitAsync(Program.ExitSystemToken);
 #endif
@@ -3074,29 +3036,28 @@ namespace CumulusMX
 							Interlocked.Increment(ref runningTaskCount);
 
 #if DEBUG
-							LogDebugMessage($"Realtime[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].LocalFileName} to {RealtimeFiles[idx].RemoteFileName}");
+							LogDebugMessage($"Realtime[{cycle}]: Processing Real time file [{idx}] - {RealtimeFiles[idx].FileName}");
 #endif
 							// realtime file
-							if (RealtimeFiles[idx].LocalFileName == "realtime.txt")
+							if (idx == (int) RealtimeFileIdx.REALTIME_TXT)
 							{
 								data = CreateRealtimeFileString(cycle);
 							}
-
-							if (RealtimeFiles[idx].LocalFileName == "realtimegauges.txt")
+							else if (idx == (int) RealtimeFileIdx.REALTIMEGAUGES_TXT)
 							{
 								data = await ProcessTemplateFile2StringAsync(RealtimeFiles[idx].TemplateFileName, true, true);
 							}
 
 							try
 							{
-								_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].RemoteFileName, cycle);
+								_ = await UploadString(phpUploadHttpClient, false, string.Empty, data, RealtimeFiles[idx].FileName, cycle);
 								// no realtime files are incremental, so no need to update LastDataTime
 							}
 							finally
 							{
 								uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-								LogDebugMessage($"Realtime[{cycle}]: Real time file [{idx}] {RealtimeFiles[idx].RemoteFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+								LogDebugMessage($"Realtime[{cycle}]: Real time file [{idx}] {RealtimeFiles[idx].FileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 							}
 							return true;
@@ -3415,15 +3376,15 @@ namespace CumulusMX
 			{
 				if (RealtimeFiles[i].Create && !string.IsNullOrWhiteSpace(RealtimeFiles[i].TemplateFileName))
 				{
-					var destFile = Path.Combine(RealtimeFiles[i].LocalPath, RealtimeFiles[i].LocalFileName);
-					LogDebugMessage($"Realtime[{cycle}]: Creating realtime file - {RealtimeFiles[i].LocalFileName}");
+					var destFile = Path.Combine(RealtimeFiles[i].LocalPath, RealtimeFiles[i].FileName);
+					LogDebugMessage($"Realtime[{cycle}]: Creating realtime file - {RealtimeFiles[i].FileName}");
 					try
 					{
 						ProcessTemplateFile(RealtimeFiles[i].TemplateFileName, destFile, true, UTF8encode);
 					}
 					catch (Exception ex)
 					{
-						LogDebugMessage($"Realtime[{cycle}]: Error creating file [{RealtimeFiles[i].LocalFileName}] to [{destFile}]. Error = {ex.Message}");
+						LogDebugMessage($"Realtime[{cycle}]: Error creating file [{RealtimeFiles[i].FileName}] to [{destFile}]. Error = {ex.Message}");
 					}
 				}
 			}
@@ -6053,8 +6014,8 @@ namespace CumulusMX
 				{
 					if (StdWebFiles[i].Create && !string.IsNullOrWhiteSpace(StdWebFiles[i].TemplateFileName))
 					{
-						var destFile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].LocalFileName);
-						if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+						var destFile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].FileName);
+						if (StdWebFiles[i].FileName == "wxnow.txt")
 						{
 							station.CreateWxnowFile();
 						}
@@ -6217,11 +6178,13 @@ namespace CumulusMX
 					srcfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestMonthReport);
 					dstfile = Path.Combine(dstPath, NOAAconf.LatestMonthReport);
 
+					LogDebugMessage($"LocalCopy: NOAA report - {dstfile}");
 					File.Copy(srcfile, dstfile, true);
 
 					srcfile = Path.Combine(ProgramOptions.ReportsPath, NOAAconf.LatestYearReport);
 					dstfile = Path.Combine(dstPath, NOAAconf.LatestYearReport);
 
+					LogDebugMessage($"LocalCopy: NOAA report - {dstfile}");
 					File.Copy(srcfile, dstfile, true);
 
 					NOAAconf.NeedCopy = false;
@@ -6242,14 +6205,15 @@ namespace CumulusMX
 			{
 				if (StdWebFiles[i].Copy && StdWebFiles[i].CopyRequired)
 				{
-					dstfile = remotePath + StdWebFiles[i].RemoteFileName;
+					dstfile = remotePath + StdWebFiles[i].FileName;
 					// the files are no longer always created, so gen them on the fly if required
 					if (StdWebFiles[i].Create)
 					{
 						try
 						{
 
-							srcfile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].LocalFileName);
+							srcfile = Path.Combine(StdWebFiles[i].LocalPath, StdWebFiles[i].FileName);
+							LogDebugMessage($"LocalCopy: Copying standard data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							success++;
 						}
@@ -6265,7 +6229,7 @@ namespace CumulusMX
 						try
 						{
 							string text;
-							if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+							if (StdWebFiles[i].FileName == "wxnow.txt")
 							{
 								text = station.CreateWxnowFileString();
 							}
@@ -6274,6 +6238,7 @@ namespace CumulusMX
 								text = ProcessTemplateFile2String(StdWebFiles[i].TemplateFileName, true);
 							}
 
+							LogDebugMessage($"LocalCopy: Copying standard data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							success++;
 						}
@@ -6295,7 +6260,7 @@ namespace CumulusMX
 			{
 				if (GraphDataFiles[i].Copy && GraphDataFiles[i].CopyRequired)
 				{
-					dstfile = remotePath + GraphDataFiles[i].RemoteFileName;
+					dstfile = remotePath + GraphDataFiles[i].FileName;
 
 					// the files are no longer created when using PHP upload, so gen them on the fly
 					if (GraphDataFiles[i].Create)
@@ -6303,7 +6268,8 @@ namespace CumulusMX
 						try
 						{
 
-							srcfile = Path.Combine(GraphDataFiles[i].LocalPath, GraphDataFiles[i].LocalFileName);
+							srcfile = Path.Combine(GraphDataFiles[i].LocalPath, GraphDataFiles[i].FileName);
+							LogDebugMessage($"LocalCopy: Copying graph data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							success++;
 
@@ -6325,7 +6291,8 @@ namespace CumulusMX
 					{
 						try
 						{
-							var text = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+							var text = station.CreateGraphDataJson(GraphDataFiles[i].FileName, false);
+							LogDebugMessage($"LocalCopy: Copying graph data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							success++;
 
@@ -6354,7 +6321,7 @@ namespace CumulusMX
 			{
 				if (GraphDataEodFiles[i].Copy && GraphDataEodFiles[i].CopyRequired)
 				{
-					dstfile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+					dstfile = remotePath + GraphDataEodFiles[i].FileName;
 
 					// the files are no longer created when using PHP upload, so gen them on the fly
 					if (GraphDataEodFiles[i].Create)
@@ -6362,7 +6329,8 @@ namespace CumulusMX
 						try
 						{
 
-							srcfile = Path.Combine(GraphDataEodFiles[i].LocalPath, GraphDataEodFiles[i].LocalFileName);
+							srcfile = Path.Combine(GraphDataEodFiles[i].LocalPath, GraphDataEodFiles[i].FileName);
+							LogDebugMessage($"LocalCopy: Copying daily graph data file - {dstfile}");
 							File.Copy(srcfile, dstfile, true);
 							// Uploaded OK, reset the upload required flag
 							GraphDataEodFiles[i].CopyRequired = false;
@@ -6379,7 +6347,8 @@ namespace CumulusMX
 					{
 						try
 						{
-							var text = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+							var text = station.CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
+							LogDebugMessage($"LocalCopy: Copying daily graph data file - {dstfile}");
 							File.WriteAllText(dstfile, text);
 							// Uploaded OK, reset the upload required flag
 							GraphDataEodFiles[i].CopyRequired = false;
@@ -6402,7 +6371,6 @@ namespace CumulusMX
 				{
 					LogDebugMessage("LocalCopy: Copying Moon image file to " + MoonImage.CopyDest);
 					File.Copy(Path.Combine("web", "moon.png"), MoonImage.CopyDest, true);
-					LogDebugMessage("LocalCopy: Done copying Moon image file");
 					// clear the image ready for copy flag, only upload once an hour
 					MoonImage.ReadyToCopy = false;
 				}
@@ -7415,7 +7383,7 @@ namespace CumulusMX
 					}
 					else if (incremental && response.StatusCode == HttpStatusCode.NotAcceptable)
 					{
-						// 406 is reserved for trying to append data to a file that already exists (retry after inital attemp actually worked?)
+						// 406 is reserved for trying to append data to a file that already exists (retry after inital attempt actually worked?)
 						// In this case flag success to the increment moved on
 						LogDebugMessage($"{prefix}: Upload to {remotefile}: Response code = {(int) response.StatusCode}: {response.StatusCode} - Skipping this increment");
 						LogDataMessage($"{prefix}: Upload to {remotefile}: Response text follows:\n{responseBodyAsText}");
@@ -10051,9 +10019,8 @@ namespace CumulusMX
 	public class FileGenerationOptions
 	{
 		public string TemplateFileName { get; set; }
-		public string LocalFileName { get; set; }
+		public string FileName { get; set; }
 		public string LocalPath { get; set; }
-		public string RemoteFileName { get; set; }
 		public bool Create { get; set; }
 		public bool FTP { get; set; }
 		public bool Copy { get; set; }
@@ -10499,6 +10466,12 @@ namespace CumulusMX
 		public string name { get; set; }
 		public bool draft { get; set; }
 		public bool prerelease { get; set; }
+	}
+
+	public enum RealtimeFileIdx
+	{
+		REALTIME_TXT,        // 0
+		REALTIMEGAUGES_TXT  // 1
 	}
 
 	public enum GraphFileIdx

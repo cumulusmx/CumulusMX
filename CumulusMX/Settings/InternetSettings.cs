@@ -445,7 +445,7 @@ namespace CumulusMX.Settings
 			{
 				websettingsinterval.stdfiles.files[i] = new JsonInternetSettingsFileSettings()
 				{
-					filename = cumulus.StdWebFiles[i].LocalFileName,
+					filename = cumulus.StdWebFiles[i].FileName,
 					create = cumulus.StdWebFiles[i].Create,
 					ftp = cumulus.StdWebFiles[i].FTP,
 					copy = cumulus.StdWebFiles[i].Copy
@@ -456,7 +456,7 @@ namespace CumulusMX.Settings
 			{
 				websettingsinterval.graphfiles.files[i] = new JsonInternetSettingsFileSettings()
 				{
-					filename = cumulus.GraphDataFiles[i].LocalFileName,
+					filename = cumulus.GraphDataFiles[i].FileName,
 					create = cumulus.GraphDataFiles[i].Create,
 					ftp = cumulus.GraphDataFiles[i].FTP,
 					copy = cumulus.GraphDataFiles[i].Copy
@@ -467,7 +467,7 @@ namespace CumulusMX.Settings
 			{
 				websettingsinterval.graphfileseod.files[i] = new JsonInternetSettingsFileSettings()
 				{
-					filename = cumulus.GraphDataEodFiles[i].LocalFileName,
+					filename = cumulus.GraphDataEodFiles[i].FileName,
 					create = cumulus.GraphDataEodFiles[i].Create,
 					ftp = cumulus.GraphDataEodFiles[i].FTP,
 					copy = cumulus.GraphDataEodFiles[i].Copy
@@ -486,7 +486,7 @@ namespace CumulusMX.Settings
 			{
 				websettingsrealtime.files[i] = new JsonInternetSettingsFileSettings()
 				{
-					filename = cumulus.RealtimeFiles[i].LocalFileName,
+					filename = cumulus.RealtimeFiles[i].FileName,
 					create = cumulus.RealtimeFiles[i].Create,
 					ftp = cumulus.RealtimeFiles[i].FTP,
 					copy = cumulus.RealtimeFiles[i].Copy

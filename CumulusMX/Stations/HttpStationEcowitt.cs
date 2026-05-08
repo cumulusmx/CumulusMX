@@ -985,6 +985,7 @@ namespace CumulusMX.Stations
 					cumulus.LogErrorMessage($"{procName}: Error in Soil EC data - {ex.Message}");
 				}
 
+
 				// === Batteries ===
 				try
 				{
@@ -1381,6 +1382,7 @@ namespace CumulusMX.Stations
 		}
 
 
+
 		/*
 		private static void ProcessSoilMoistRaw(NameValueCollection data, WeatherStation station)
 		{
@@ -1456,6 +1458,10 @@ namespace CumulusMX.Stations
 			// pm10_24h_co2
 			// co2
 			// co2_24h
+			// -- built-in sensor
+			// co2in
+			// co2in_24h
+
 			if (stationIndex != cumulus.SensorMaps.CO2) return;
 
 			station.CO2_temperature = data["tf_co2"] != null ? ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_co2"], invNum)) : null;
@@ -1474,7 +1480,7 @@ namespace CumulusMX.Stations
 			}
 			else if (data["co2in"] != null) // WS3900 console
 			{
-				station.CO2 = Convert.ToInt32(data["co2"], invNum);
+				station.CO2 = Convert.ToInt32(data["co2in"], invNum);
 			}
 			else
 			{

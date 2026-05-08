@@ -10,11 +10,30 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ---
 ---
 
-## [5.1.0 \[b5004\]][31] - 2026-04-30
+## [5.1.1 \[b5007\]][32] - 2026-06-07
+
+### New
+
+- Nothing
+
+### Changed
+
+- Nothing
+
+### Fixed
+
+- Spurious "y_temp" after Humidex values in charts tooltips
+- Spelling errors of "minimum" in three historic temperature data series
+- Updating MySQL when editing monthly log file entries
+- Main station not starting correctly when using Ecowitt Cloud station for Extra Sensors
+
+
+## [5.1.0 \[b5006\]][31] - 2026-05-07
 
 ### Important Notes
 
-- **MySQL users:** Because the dayfile has some extra fields, you must update your MySQL table for this release. Use the Update Table feature in Cumulus MySQL Settings
+- **MySQL Users:** Because the dayfile has some extra fields, you must update your MySQL table for this release. Use the Update Table feature in Cumulus MySQL Settings
+- **PHP Upload:** There is an important update to the `upload.php` script
 
 
 ### New
@@ -60,7 +79,6 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 	- Added to default web site recent charts
 - Adds support for the WS3900/WN1800 console built-in CO₂ readings to the Ecowitt HTTP Station
 
-
 ### Changed
 
 - The path setting for the MXdiags folder has been moved to *Program Setting > Path Options*, and stored in the Cumulus.ini file so it will persist across upgrades
@@ -78,6 +96,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Fixed
 
+- Issue with `upload.php` that allowed incrementally appended JSON files to grow without trimming old data
 - Fix the standard web file websitedata.json being created in the root folder with a filename prefix of "web". Missed in v5.0.1
 - Forecast issues introduced in v5.0.1:
 	- Davis station no longer storing the station forecast when primary source is Cumulus or forecast.txt
@@ -94,12 +113,14 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Missing Air Quality block from the dashboard Extra Sensors page
 - Extra Sensors using Ecowitt Cloud Station was not updating Solar & UV-I values
 - Fixes multiple web cam URL support
-	- Adds the `camera` parameter to the `<#webcam>` and `<#webcamurl>` web tags, if omitted it defaults to "1" the fist defined camera
+	- Adds the `camera` parameter to the `<#webcam>` and `<#webcamurl>` web tags, if omitted it defaults to "1" the first defined camera
 	- Eg `<#webcamurl camera=2>`
 - Davis Cloud station error on decoding VP2/Vue originated current data, it also adds the Davis forecast decoding to this model
-- Enabling a Purple Air AQ sensor now automatically enables the extra sensor use AQ feature
+- Enabling a Purple Air AQ sensor now automatically enables the extra sensor to use AQ feature
 - Fix monthly log editor MySQL updates
 - Fix exception handling Davis v2 API error responses
+- Davis WLL stations now check the subscription level before fetching health data
+- Locally created `snow24hdata.json` files were misnamed snow24data.json
 
 ### Package Updates
 
@@ -1399,4 +1420,3 @@ Initial release of Cumulus MX which now runs under Microsoft .NET 8.0 and remove
 [28]: https://github.com/cumulusmx/CumulusMX/releases/tag/b4129
 [29]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5001
 [30]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5002
-[31]: https://github.com/cumulusmx/CumulusMX/releases/tag/b5004

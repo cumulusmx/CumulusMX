@@ -167,33 +167,36 @@ namespace CumulusMX.Stations
 			}
 
 			// main data task
-			var delay = 0;
-			var nextFetch = DateTime.MinValue;
-
-			while (!Program.ExitSystemToken.IsCancellationRequested)
+			liveTask = Task.Run(() =>
 			{
-				if (DateTime.UtcNow >= nextFetch && !DayResetInProgress)
+
+				var delay = 0;
+				var nextFetch = DateTime.MinValue;
+
+				while (!Program.ExitSystemToken.IsCancellationRequested)
 				{
-					try
+					if (DateTime.UtcNow >= nextFetch && !DayResetInProgress)
 					{
-
-						var data = ecowittApi.GetCurrentData(ref delay, Program.ExitSystemToken);
-
-						if (data != null)
+						try
 						{
-							ProcessCurrentData(data, Program.ExitSystemToken);
-						}
-						else
-						{
-							cumulus.LogDebugMessage($"EcowittCloud: No new data to process");
-						}
-						cumulus.LogDebugMessage($"EcowittCloud: Waiting {delay} seconds before next update");
-						nextFetch = DateTime.UtcNow.AddSeconds(delay);
 
-						var hour = DateTime.Now.Hour;
-						if (lastHour != hour)
-						{
-							lastHour = hour;
+							var data = ecowittApi.GetCurrentData(ref delay, Program.ExitSystemToken);
+
+							if (data != null)
+							{
+								ProcessCurrentData(data, Program.ExitSystemToken);
+							}
+							else
+							{
+								cumulus.LogDebugMessage($"EcowittCloud: No new data to process");
+							}
+							cumulus.LogDebugMessage($"EcowittCloud: Waiting {delay} seconds before next update");
+							nextFetch = DateTime.UtcNow.AddSeconds(delay);
+
+							var hour = DateTime.Now.Hour;
+							if (lastHour != hour)
+							{
+								lastHour = hour;
 
 								if (hour == 13)
 								{
@@ -223,8 +226,9 @@ namespace CumulusMX.Stations
 						}
 					}
 
-				Task.Delay(1000, Program.ExitSystemToken);
-			}
+					Task.Delay(1000, Program.ExitSystemToken);
+				}
+			}, Program.ExitSystemToken);
 		}
 
 		public override void Stop()

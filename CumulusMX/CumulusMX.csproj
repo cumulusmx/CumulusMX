@@ -99,7 +99,7 @@
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
     <PackageReference Include="System.CodeDom" Version="10.0.7" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
-    <PackageReference Include="FluentFTP" Version="54.1.1" />
+    <PackageReference Include="FluentFTP" Version="54.1.2" />
     <PackageReference Include="HidSharp" Version="2.6.4" />
     <PackageReference Include="MailKit" Version="4.16.0" />
     <PackageReference Include="MQTTnet" Version="5.1.0.1559" />

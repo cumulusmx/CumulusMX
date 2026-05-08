@@ -286,6 +286,8 @@ namespace CumulusMX
 				lowDailyTempRangeVal = station.AllTime.LowDailyTempRange.GetValString(cumulus.TempFormat),
 				highBgtVal = station.AllTime.HighBgt.GetValString(cumulus.TempFormat),
 				highWbgtVal = station.AllTime.HighWbgt.GetValString(cumulus.TempFormat),
+				highBgtVal = station.AllTime.HighBgt.GetValString(cumulus.TempFormat),
+				highWbgtVal = station.AllTime.HighWbgt.GetValString(cumulus.TempFormat),
 				// Records - Temperature timestamps
 				highTempTime = station.AllTime.HighTemp.GetTsString(timeStampFormat),
 				lowTempTime = station.AllTime.LowTemp.GetTsString(timeStampFormat),
@@ -3657,6 +3659,7 @@ namespace CumulusMX
 
 								var updt = new StringBuilder(1024);
 								var sep = ',';
+								var sep = ',';
 
 
 								updt.Append($"UPDATE {cumulus.MySqlFuncs.MySqlSettings.Monthly.TableName} SET ");
@@ -3685,8 +3688,8 @@ namespace CumulusMX
 								updt.Append(sep +$"CurrWindBearing={LogRec.Bearing.ToText("NULL")}");
 								updt.Append(sep +$"RG11rain={LogRec.RG11RainToday.ToFixed(cumulus.RainFormat, "NULL")}");
 								updt.Append(sep +$"RainSinceMidnight={LogRec.RainSinceMidnight.ToFixed(cumulus.RainFormat, "NULL")}");
-								updt.Append(sep +$"WindbearingSym='{(LogRec.Bearing.HasValue ? station.CompassPoint(LogRec.AvgBearing) : "NULL")}");
-								updt.Append(sep +$"CurrWindBearingSym='{(LogRec.Bearing.HasValue ? station.CompassPoint(LogRec.Bearing.Value) : "NULL")}'");
+								updt.Append(sep +$"WindbearingSym={(LogRec.Bearing.HasValue ? $"'{station.CompassPoint(LogRec.AvgBearing)}'" : "NULL")}");
+								updt.Append(sep +$"CurrWindBearingSym={(LogRec.Bearing.HasValue ? $"'{station.CompassPoint(LogRec.Bearing.Value)}'" : "NULL")}");
 								updt.Append(sep +$"FeelsLike={LogRec.FeelsLike.ToFixed(cumulus.TempFormat, "NULL")}");
 								updt.Append(sep +$"Humidex={LogRec.Humidex.ToFixed(cumulus.TempFormat, "NULL")}");
 								updt.Append(sep +$"BlackGlobeTemp={LogRec.BlackGlobeTemp.ToFixed(cumulus.TempFormat, "NULL")}");

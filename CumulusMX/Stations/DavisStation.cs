@@ -203,9 +203,14 @@ namespace CumulusMX.Stations
 				DoTrendValues(DateTime.Now);
 
 				cumulus.LogMessage("Starting Davis ");
-				bw = new BackgroundWorker();
-				bw.DoWork += bw_DoStart;
-				bw.RunWorkerAsync();
+
+				Cumulus.SyncInit.Wait();
+
+				// Wait a short while for Cumulus initialisation to complete
+				Thread.Sleep(500);
+				StartLoop();
+
+				Cumulus.SyncInit.Release();
 			}
 			else
 			{
@@ -756,22 +761,10 @@ namespace CumulusMX.Stations
 				cumulus.LogErrorMessage("Archive reading thread apparently terminated with an error: " + e.Error.Message);
 			}
 
-			cumulus.NormalRunning = true;
-			StartLoop();
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
-			cumulus.StartTimersAndSensors();
-		}
-
-		private void bw_DoStart(object sender, DoWorkEventArgs e)
-		{
-			Cumulus.SyncInit.Wait();
-
-			// Wait a short while for Cumulus initialisation to complete
-			Thread.Sleep(500);
 			StartLoop();
-
-			Cumulus.SyncInit.Release();
+			cumulus.StartTimersAndSensors();
 		}
 
 		private void bw_DoArchiveData(object sender, DoWorkEventArgs e)
