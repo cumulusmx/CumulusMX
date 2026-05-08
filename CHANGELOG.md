@@ -22,8 +22,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### Fixed
 
+- Spurious "y_temp" after Humidex values in charts tooltips
 - Spelling errors of "minimum" in three historic temperature data series
-- Editing
+- Updating MySQL when editing monthly log file entries
 
 
 ## [5.1.0 \[b5006\]][31] - 2026-05-07

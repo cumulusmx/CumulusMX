@@ -1452,13 +1452,11 @@ namespace CumulusMX.Stations
 				cumulus.LogErrorMessage("WLL history: Archive reading thread apparently terminated with an error: " + e.Error.Message);
 			}
 
-			cumulus.NormalRunning = true;
-
 			CalcRecentMaxGust = savedCalculatePeakGust;
 
-			StartLoop();
 			DoDayResetIfNeeded();
 			DoTrendValues(DateTime.Now);
+			StartLoop();
 			cumulus.StartTimersAndSensors();
 		}
 
