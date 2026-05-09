@@ -1710,7 +1710,9 @@ namespace CumulusMX
 				station.AllTime.LowDewPoint.Ts >= threshold ||
 				station.AllTime.HighFeelsLike.Ts >= threshold ||
 				station.AllTime.LowFeelsLike.Ts >= threshold ||
-				station.AllTime.HighHumidex.Ts >= threshold
+				station.AllTime.HighHumidex.Ts >= threshold ||
+				station.AllTime.HighBgt.Ts >= threshold ||
+				station.AllTime.HighWbgt.Ts >= threshold
 			)
 				return "1";
 
@@ -1910,6 +1912,16 @@ namespace CumulusMX
 		private string TagLowTempRangeRecordSet(Dictionary<string, string> tagParams)
 		{
 			return station.AllTime.LowDailyTempRange.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+		}
+
+		private string TagHighBgtRecordSet(Dictionary<string, string> tagParams)
+		{
+			return station.AllTime.HighBgt.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+		}
+
+		private string TagHighWbgtRecordSet(Dictionary<string, string> tagParams)
+		{
+			return station.AllTime.HighWbgt.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private static string TagErrorLight(Dictionary<string, string> tagParams)
@@ -7408,6 +7420,8 @@ namespace CumulusMX
 				{ "LongestWetPeriodRecordSet", TagLongestWetPeriodRecordSet },
 				{ "LowTempRangeRecordSet", TagLowTempRangeRecordSet },
 				{ "HighTempRangeRecordSet", TagHighTempRangeRecordSet },
+				{ "HighBgtRecordSet", TagHighBgtRecordSet },
+				{ "HighWbgtRecordSet", TagHighWbgtRecordSet },
 				{ "tempTH", TagtempTh },
 				{ "TtempTH", TagTtempTh },
 				{ "tempTL", TagtempTl },

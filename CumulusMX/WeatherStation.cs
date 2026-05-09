@@ -8600,6 +8600,12 @@ namespace CumulusMX
 			// Humidex
 			HiLoYest.HighHumidex = ini.GetValue("Humidex", "High", 0.0);
 			HiLoYest.HighHumidexTime = ini.GetValue("Humidex", "HTime", DateTime.MinValue);
+			// BGT
+			HiLoYest.HighBgt = ini.GetValue("BGT", "High", 0.0);
+			HiLoYest.HighBgtTime = ini.GetValue("BGT", "HTime", DateTime.MinValue);
+			// WBGT
+			HiLoYest.HighWbgt = ini.GetValue("WBGT", "High", 0.0);
+			HiLoYest.HighWbgtTime = ini.GetValue("WBGT", "HTime", DateTime.MinValue);
 		}
 
 		public void DayReset(DateTime timestamp)
@@ -9276,6 +9282,18 @@ namespace CumulusMX
 
 				// Lightning
 				LightningStrikesToday = 0;
+
+				// BGT
+				HiLoYest.HighBgt = HiLoToday.HighBgt;
+				HiLoYest.HighBgtTime = HiLoToday.HighBgtTime;
+				HiLoToday.HighBgt = BlackGlobeTemp ?? Cumulus.DefaultHiVal;
+				HiLoToday.HighBgtTime = timestamp;
+
+				// WBGT
+				HiLoYest.HighWbgt = HiLoToday.HighWbgt;
+				HiLoYest.HighWbgtTime = HiLoToday.HighWbgtTime;
+				HiLoToday.HighWbgt = WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
+				HiLoToday.HighWbgtTime = timestamp;
 
 				// Save the current values in case of program restart
 				WriteTodayFile(timestamp, true);
@@ -11838,6 +11856,12 @@ namespace CumulusMX
 				MonthlyRecs[month].LowDailyTempRange.Val = ini.GetValue("Temperature" + monthstr, "lowtemprangevalue", Cumulus.DefaultLoVal);
 				MonthlyRecs[month].LowDailyTempRange.Ts = ini.GetValue("Temperature" + monthstr, "lowtemprangetime", cumulus.defaultRecordTS);
 
+				MonthlyRecs[month].HighBgt.Val = ini.GetValue("Temperature" + monthstr, "highbgtvalue", Cumulus.DefaultHiVal);
+				MonthlyRecs[month].HighBgt.Ts = ini.GetValue("Temperature" + monthstr, "highbgttime", cumulus.defaultRecordTS);
+
+				MonthlyRecs[month].HighWbgt.Val = ini.GetValue("Temperature" + monthstr, "highwbgtvalue", Cumulus.DefaultHiVal);
+				MonthlyRecs[month].HighWbgt.Ts = ini.GetValue("Temperature" + monthstr, "highwbgttime", cumulus.defaultRecordTS);
+
 				MonthlyRecs[month].HighWind.Val = ini.GetValue("Wind" + monthstr, "highwindvalue", Cumulus.DefaultHiVal);
 				MonthlyRecs[month].HighWind.Ts = ini.GetValue("Wind" + monthstr, "highwindtime", cumulus.defaultRecordTS);
 
@@ -11879,12 +11903,6 @@ namespace CumulusMX
 
 				MonthlyRecs[month].LowHumidity.Val = ini.GetValue("Humidity" + monthstr, "lowhumidityvalue", Cumulus.DefaultLoVal);
 				MonthlyRecs[month].LowHumidity.Ts = ini.GetValue("Humidity" + monthstr, "lowhumiditytime", cumulus.defaultRecordTS);
-
-				MonthlyRecs[month].HighBgt.Val = ini.GetValue("Bgt" + monthstr, "highbgtvalue", Cumulus.DefaultHiVal);
-				MonthlyRecs[month].HighBgt.Ts = ini.GetValue("Bgt" + monthstr, "highbgttime", cumulus.defaultRecordTS);
-
-				MonthlyRecs[month].HighWbgt.Val = ini.GetValue("Wbgt" + monthstr, "highwbgtvalue", Cumulus.DefaultHiVal);
-				MonthlyRecs[month].HighWbgt.Ts = ini.GetValue("Wbgt" + monthstr, "highwbgttime", cumulus.defaultRecordTS);
 			}
 
 			cumulus.LogMessage("MonthlyAlltime.ini file read");
