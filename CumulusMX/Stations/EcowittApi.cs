@@ -1901,16 +1901,16 @@ namespace CumulusMX.Stations
 				station.TempTotalToday += Current.Temperature * 5;
 
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + station.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + rec.Value.Interval + " minutes = " +
-								   (station.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				cumulus.LogMessage("Windrun: " + Current.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + rec.Value.Interval + " minutes = " +
+								   (Current.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				station.WindRunToday += station.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0;
+				station.WindRunToday += Current.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0;
 
 				// update heating/cooling degree days
 				station.UpdateDegreeDays(rec.Value.Interval);
 
 				// update dominant wind bearing
-				station.CalculateDominantWindBearing(station.Bearing, station.WindAverage, rec.Value.Interval);
+				station.CalculateDominantWindBearing(station.Bearing, Current.WindAverage, rec.Value.Interval);
 				station.DoTrendValues(recDateTime);
 
 				if (cumulus.StationOptions.CalculatedET && recDateTime.Minute == 0)
@@ -1978,7 +1978,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(recDateTime, false);
 				}
 
-				station.AddRecentDataWithAq(recDateTime, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
+				station.AddRecentDataWithAq(recDateTime, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, station.Bearing, station.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
 					Current.Humidity, Current.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, station.CurrentSolarMax, station.RainRate, station.BlackGlobeTemp, station.WetBulbGlobeTemp);
 
 				station.UpdateStatusPanel(recDateTime.ToUniversalTime());

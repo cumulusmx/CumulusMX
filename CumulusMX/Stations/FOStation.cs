@@ -569,16 +569,16 @@ namespace CumulusMX.Stations
 					}
 				}
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + historydata.followinginterval + " minutes = " +
-								(WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.followinginterval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				cumulus.LogMessage("Windrun: " + Current.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + historydata.followinginterval + " minutes = " +
+								(Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.followinginterval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.followinginterval / 60.0;
+				WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.followinginterval / 60.0;
 
 				// update heating/cooling degree days
 				UpdateDegreeDays(historydata.interval);
 
 				// update dominant wind bearing
-				CalculateDominantWindBearing(Bearing, WindAverage, historydata.interval);
+				CalculateDominantWindBearing(Bearing, Current.WindAverage, historydata.interval);
 
 				CheckForWindrunHighLow(timestamp);
 				DoTrendValues(timestamp);
@@ -647,7 +647,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
+				AddRecentDataWithAq(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
 					Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());

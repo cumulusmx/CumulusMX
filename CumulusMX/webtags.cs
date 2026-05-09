@@ -548,7 +548,7 @@ namespace CumulusMX
 
 		private string Tagwlatest(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindUnit(station.WindLatest, tagParams), tagParams, cumulus.WindDPlaces);
+			return CheckRcDp(CheckWindUnit(Current.WindLatest, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string Tagwindrun(Dictionary<string, string> tagParams)
@@ -573,7 +573,7 @@ namespace CumulusMX
 
 		private string Tagwspeed(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindUnit(station.WindAverage, tagParams), tagParams, cumulus.WindAvgDPlaces);
+			return CheckRcDp(CheckWindUnit(Current.WindAverage, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string Tagcurrentwdir(Dictionary<string, string> tagParams)
@@ -588,7 +588,7 @@ namespace CumulusMX
 
 		private string Tagwgust(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindUnit(station.RecentMaxGust, tagParams), tagParams, cumulus.WindDPlaces);
+			return CheckRcDp(CheckWindUnit(Current.RecentMaxGust, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string TagwindAvg(Dictionary<string, string> tagParams)
@@ -1074,17 +1074,17 @@ namespace CumulusMX
 
 		private string Tagbeaufort(Dictionary<string, string> tagParams)
 		{
-			return "F" + Cumulus.Beaufort(station.WindAverage);
+			return "F" + Cumulus.Beaufort(Current.WindAverage);
 		}
 
 		private string Tagbeaufortnumber(Dictionary<string, string> tagParams)
 		{
-			return Cumulus.Beaufort(station.WindAverage);
+			return Cumulus.Beaufort(Current.WindAverage);
 		}
 
 		private string Tagbeaudesc(Dictionary<string, string> tagParams)
 		{
-			return cumulus.BeaufortDesc(station.WindAverage);
+			return cumulus.BeaufortDesc(Current.WindAverage);
 		}
 
 		private string Tagwdirdata(Dictionary<string, string> tagParams)
@@ -6874,7 +6874,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindSpeed from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.WindAverage, tagParams), tagParams, cumulus.WindAvgDPlaces);
+			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : Current.WindAverage, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string TagRecentWindGust(Dictionary<string, string> tagParams)
@@ -6883,7 +6883,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindGust from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.RecentMaxGust, tagParams), tagParams, cumulus.WindDPlaces);
+			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : Current.RecentMaxGust, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string TagRecentWindLatest(Dictionary<string, string> tagParams)
@@ -6892,7 +6892,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindLatest from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : station.WindLatest, tagParams), tagParams, cumulus.WindDPlaces);
+			return CheckRcDp(CheckWindUnit(result.HasValue ? result.Value : Current.WindLatest, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string TagRecentWindDir(Dictionary<string, string> tagParams)

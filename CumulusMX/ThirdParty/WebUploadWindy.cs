@@ -190,11 +190,11 @@ namespace CumulusMX.ThirdParty
 			URL.Append("?id=" + StationId);
 			URL.Append("&time=" + dateUTC);
 
-			if (station.WindAverage >= 0)
-				URL.Append("&wind=" + station.WindMSStr(station.WindAverage));
+			if (Current.WindAverage >= 0)
+				URL.Append("&wind=" + station.WindMSStr(Current.WindAverage));
 
-			if (station.RecentMaxGust >= 0)
-				URL.Append("&gust=" + station.WindMSStr(station.RecentMaxGust));
+			if (Current.RecentMaxGust >= 0)
+				URL.Append("&gust=" + station.WindMSStr(Current.RecentMaxGust));
 
 			URL.Append("&winddir=" + station.AvgBearing);
 

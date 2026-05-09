@@ -180,9 +180,9 @@ namespace CumulusMX.ThirdParty
 			if (Current.Temperature >= Cumulus.DefaultHiVal)
 				sb.Append($"\"temperature\":{ConvertUnits.UserTempToC(Current.Temperature).ToFixed("F1")},");
 			sb.Append($"\"wind_deg\":{station.AvgBearing},");
-			sb.Append($"\"wind_speed\":{ConvertUnits.UserWindToMS(station.WindAverage).ToString("F1", invC)},");
-			if (station.RecentMaxGust >= 0)
-				sb.Append($"\"wind_gust\":{ConvertUnits.UserWindToMS(station.RecentMaxGust).ToString("F1", invC)},");
+			sb.Append($"\"wind_speed\":{ConvertUnits.UserWindToMS(Current.WindAverage).ToString("F1", invC)},");
+			if (Current.RecentMaxGust >= 0)
+				sb.Append($"\"wind_gust\":{ConvertUnits.UserWindToMS(Current.RecentMaxGust).ToString("F1", invC)},");
 			if (Current.Pressure > 0)
 				sb.Append($"\"pressure\":{ConvertUnits.UserPressToHpa(Current.Pressure).ToString("F1", invC)},");
 			if (Current.Humidity >= 0)

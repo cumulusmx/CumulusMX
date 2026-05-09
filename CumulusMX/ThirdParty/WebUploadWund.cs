@@ -185,22 +185,22 @@ namespace CumulusMX.ThirdParty
 			URL.Append($"&PASSWORD={PW}");
 			URL.Append($"&dateutc={dateUTC}");
 			StringBuilder Data = new StringBuilder(1024);
-			if (SendAverage && station.WindAverage >= 0)
+			if (SendAverage && Current.WindAverage >= 0)
 			{
 				// send average speed and bearing
-				Data.Append($"&winddir={station.AvgBearing}&windspeedmph={station.WindMPHStr(station.WindAverage)}");
+				Data.Append($"&winddir={station.AvgBearing}&windspeedmph={station.WindMPHStr(Current.WindAverage)}");
 			}
-			else if (station.WindLatest >= 0)
+			else if (Current.WindLatest >= 0)
 			{
 				// send "instantaneous" speed (i.e. latest) and bearing
-				Data.Append($"&winddir={station.Bearing}&windspeedmph={station.WindMPHStr(station.WindLatest)}");
+				Data.Append($"&winddir={station.Bearing}&windspeedmph={station.WindMPHStr(Current.WindLatest)}");
 			}
-			if (station.RecentMaxGust >= 0)
-				Data.Append($"&windgustmph={station.WindMPHStr(station.RecentMaxGust)}");
+			if (Current.RecentMaxGust >= 0)
+				Data.Append($"&windgustmph={station.WindMPHStr(Current.RecentMaxGust)}");
 			// may not strictly be a 2 min average!
-			if (station.WindAverage >= 0)
+			if (Current.WindAverage >= 0)
 			{
-				Data.Append($"&windspdmph_avg2m={station.WindMPHStr(station.WindAverage)}");
+				Data.Append($"&windspdmph_avg2m={station.WindMPHStr(Current.WindAverage)}");
 				Data.Append($"&winddir_avg2m={station.AvgBearing}");
 			}
 			if (Current.Humidity >= 0)

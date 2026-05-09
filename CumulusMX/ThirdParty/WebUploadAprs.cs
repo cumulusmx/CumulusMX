@@ -50,11 +50,11 @@ namespace CumulusMX.ThirdParty
 					if (station.AvgBearing >= 0)
 						message.Append($"_{station.AvgBearing:D3}");
 					// wind speed mph /nnn
-					if (station.WindAverage >= 0)
-						message.Append($"/{APRSwind(station.WindAverage)}");
+					if (Current.WindAverage >= 0)
+						message.Append($"/{APRSwind(Current.WindAverage)}");
 					// wind gust last 5 mins mph gnnn
-					if (station.RecentMaxGust >= 0)
-						message.Append($"g{APRSwind(station.RecentMaxGust)}");
+					if (Current.RecentMaxGust >= 0)
+						message.Append($"g{APRSwind(Current.RecentMaxGust)}");
 					// temp F tnnn
 					if (Current.Temperature > Cumulus.DefaultHiVal)
 						message.Append($"t{APRStemp(Current.Temperature)}");

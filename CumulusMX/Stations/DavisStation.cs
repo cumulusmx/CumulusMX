@@ -2093,8 +2093,8 @@ namespace CumulusMX.Stations
 
 					if (CheckHighGust(gust10min, gustdir, now))
 					{
-						cumulus.LogDebugMessage($"LOOP2: Setting max gust from loop2 10-min value: {gust10min.ToString(cumulus.WindFormat)} was: {RecentMaxGust.ToString(cumulus.WindFormat)}");
-						RecentMaxGust = gust10min;
+						cumulus.LogDebugMessage($"LOOP2: Setting max gust from loop2 10-min value: {gust10min.ToString(cumulus.WindFormat)} was: {Current.RecentMaxGust.ToString(cumulus.WindFormat)}");
+						Current.RecentMaxGust = gust10min;
 
 						// add to recent values so normal calculation includes this value
 						lock (recentwindLock)
@@ -2521,7 +2521,7 @@ namespace CumulusMX.Stations
 										bearing = bearing == 255 ? 0 : (int) (bearing * 22.5);
 
 										// update dominant wind bearing
-										CalculateDominantWindBearing(bearing, WindAverage, interval);
+										CalculateDominantWindBearing(bearing, Current.WindAverage, interval);
 									}
 
 									// add in 'archivePeriod' minutes worth of wind speed to windrun
@@ -2705,7 +2705,7 @@ namespace CumulusMX.Stations
 									DoWindChill(Current.Temperature, timestamp);
 
 									// update dominant wind bearing
-									CalculateDominantWindBearing(bearing, WindAverage, interval);
+									CalculateDominantWindBearing(bearing, Current.WindAverage, interval);
 								}
 
 								DoApparentTemp(timestamp);
@@ -2718,7 +2718,7 @@ namespace CumulusMX.Stations
 								var notFirstRec = timestamp.Minute != 0 || h != rollHour;
 								if (notFirstRec)
 								{
-									WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
+									WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
 									CheckForWindrunHighLow(timestamp);
 								}
 
@@ -2905,7 +2905,7 @@ namespace CumulusMX.Stations
 									cumulus.LogExceptionMessage(ex, "GetArchiveData: Error in extra logging etc");
 								}
 
-								AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
+								AddRecentDataEntry(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
 									Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 
 

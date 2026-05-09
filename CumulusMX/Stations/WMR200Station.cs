@@ -1453,9 +1453,9 @@ namespace CumulusMX.Stations
 			DoWind(ConvertUnits.WindMSToUser(gust), bearing, ConvertUnits.WindMSToUser(average), timestamp);
 
 			// add in 'interval' minutes worth of wind speed to windrun
-			WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval * 60 / 1000.0;
+			WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval * 60 / 1000.0;
 			// update dominant wind bearing
-			CalculateDominantWindBearing(Bearing, WindAverage, interval);
+			CalculateDominantWindBearing(Bearing, Current.WindAverage, interval);
 			int sensorcount = packetBuffer[32];
 			for (i = 0; i <= sensorcount; i++)
 			{
@@ -1632,7 +1632,7 @@ namespace CumulusMX.Stations
 				_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 			}
 
-			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex, Current.Humidity,
+			AddRecentDataEntry(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex, Current.Humidity,
 							Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 			UpdateStatusPanel(timestamp.ToUniversalTime());
 			// Add current data to the lists of web service updates to be done

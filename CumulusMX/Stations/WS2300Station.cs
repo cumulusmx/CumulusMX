@@ -379,10 +379,10 @@ namespace CumulusMX.Stations
 				}
 
 				// Wind run ======================================================================
-				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindAvgFormat) + cumulus.Units.WindText + " for " + historydata.interval + " minutes = " +
-								(WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				cumulus.LogMessage("Windrun: " + Current.WindAverage.ToString(cumulus.WindAvgFormat) + cumulus.Units.WindText + " for " + historydata.interval + " minutes = " +
+								(Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.interval / 60.0;
+				WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.interval / 60.0;
 
 				CheckForWindrunHighLow(timestamp);
 
@@ -403,7 +403,7 @@ namespace CumulusMX.Stations
 				DoCloudBaseHeatIndex(timestamp);
 				DoTrendValues(timestamp);
 
-				CalculateDominantWindBearing(Bearing, WindAverage, historydata.interval);
+				CalculateDominantWindBearing(Bearing, Current.WindAverage, historydata.interval);
 
 				bw.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
@@ -426,7 +426,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex, Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, rainrate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+				AddRecentDataEntry(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex, Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, rainrate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
 

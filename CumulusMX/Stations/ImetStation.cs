@@ -547,7 +547,7 @@ namespace CumulusMX.Stations
 								DoWind(windgust, windbearing, windspeed, timestamp);
 
 								// add in "archivePeriod" minutes worth of wind speed to windrun
-								WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
+								WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
 
 								DateTime windruncheckTS;
 								if (hour == rollHour && minute == 0)
@@ -564,7 +564,7 @@ namespace CumulusMX.Stations
 								CheckForWindrunHighLow(windruncheckTS);
 
 								// update dominant wind bearing
-								CalculateDominantWindBearing(Bearing, WindAverage, interval);
+								CalculateDominantWindBearing(Bearing, Current.WindAverage, interval);
 							}
 
 							if (sl[TEMP1AVGPOS].Length > 0)
@@ -624,7 +624,7 @@ namespace CumulusMX.Stations
 							{
 								// wind chill
 								var tempinC = ConvertUnits.UserTempToC(Current.Temperature);
-								var windinKPH = ConvertUnits.UserWindToKPH(WindAverage);
+								var windinKPH = ConvertUnits.UserWindToKPH(Current.WindAverage);
 								var value = MeteoLib.WindChill(tempinC, windinKPH);
 								// value is now in Celsius, convert to units in use
 								value = ConvertUnits.TempCToUser(value);
@@ -673,7 +673,7 @@ namespace CumulusMX.Stations
 								_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 							}
 
-							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
+							AddRecentDataEntry(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
 								Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 							UpdateStatusPanel(timestamp.ToUniversalTime());
 

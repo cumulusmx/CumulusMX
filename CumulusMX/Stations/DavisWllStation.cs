@@ -862,13 +862,13 @@ namespace CumulusMX.Stations
 											var gust2minUncalibrated = ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
 											var gust2min = cumulus.Calib.WindGust.Calibrate(gust2minUncalibrated);
 
-											if (gust2min > RecentMaxGust)
+											if (gust2min > Current.RecentMaxGust)
 											{
 												var dir2min = (int) cumulus.Calib.WindDir.Calibrate(data1.wind_dir_at_hi_speed_last_2_min ?? 0);
 												var time2min = dateTime.AddMinutes(-1);
 
-												cumulus.LogMessage("Current: Setting recent max gust to new value: " + gust2min.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-												RecentMaxGust = gust2min;
+												cumulus.LogMessage("Current: Setting recent max gust to new value: " + gust2min.ToString(cumulus.WindFormat) + " was: " + Current.RecentMaxGust.ToString(cumulus.WindFormat));
+												Current.RecentMaxGust = gust2min;
 												_ = CheckHighGust(gust2min, dir2min, time2min);
 
 												// add the uncalibrated values to the recent wind data
@@ -1861,7 +1861,7 @@ namespace CumulusMX.Stations
 						_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 					}
 
-					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
+					AddRecentDataWithAq(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
 						Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateStatusPanel(timestamp.ToUniversalTime());
@@ -2171,7 +2171,7 @@ namespace CumulusMX.Stations
 									DoWind(spd, dirCal, spd, recordTs);
 									// and handle the gust value manually
 									CheckHighGust(cumulus.Calib.WindGust.Calibrate(gust), dirCal, recordTs);
-									RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
+									Current.RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
 								}
 								else
 								{
@@ -2180,11 +2180,11 @@ namespace CumulusMX.Stations
 
 								if (data11.wind_speed_avg != null)
 								{
-									WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser((double) data11.wind_speed_avg));
+									Current.WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser((double) data11.wind_speed_avg));
 
 									// add in 'archivePeriod' minutes worth of wind speed to windrun
 									int interval = data11.arch_int / 60;
-									WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+									WindRunToday += ((Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
 								}
 								else
 								{

@@ -396,16 +396,16 @@ namespace CumulusMX.ThirdParty
 			else
 				sb.Append(sep);
 			sb.Append(ConvertUnits.UserRainToMM(station.RainSinceMidnight).ToString("F1", InvC) + sep);       // 8   - was RainToday in v2
-			if (station.WindAverage >= 0)
-				sb.Append(ConvertUnits.UserWindToKPH(station.WindAverage).ToString("F1", InvC) + sep);        // 9
+			if (Current.WindAverage >= 0)
+				sb.Append(ConvertUnits.UserWindToKPH(Current.WindAverage).ToString("F1", InvC) + sep);        // 9
 			else
 				sb.Append(sep);
 			sb.Append(station.AvgBearing + sep);                                                              // 10
 			sb.Append(sep + sep + sep);                                                                       // 11/12/13 - condition and warning, snow height
 			sb.Append(Lang + sep);                                                                            // 14
 			sb.Append(presstrend + sep);                                                                      // 15
-			if (station.RecentMaxGust >= 0)
-				sb.Append(ConvertUnits.UserWindToKPH(station.RecentMaxGust).ToString("F1", InvC) + sep);      // 16
+			if (Current.RecentMaxGust >= 0)
+				sb.Append(ConvertUnits.UserWindToKPH(Current.RecentMaxGust).ToString("F1", InvC) + sep);      // 16
 			else
 				sb.Append(sep);
 			if (SendSolar && station.SolarRad.HasValue)

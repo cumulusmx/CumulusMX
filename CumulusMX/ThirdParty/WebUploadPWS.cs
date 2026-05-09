@@ -131,10 +131,10 @@ namespace CumulusMX.ThirdParty
 
 			// send average speed and bearing
 			Data.Append("&winddir=" + station.AvgBearing);
-			if (station.WindAverage >= 0)
-				Data.Append("&windspeedmph=" + station.WindMPHStr(station.WindAverage));
-			if (station.RecentMaxGust >= 0)
-				Data.Append("&windgustmph=" + station.WindMPHStr(station.RecentMaxGust));
+			if (Current.WindAverage >= 0)
+				Data.Append("&windspeedmph=" + station.WindMPHStr(Current.WindAverage));
+			if (Current.RecentMaxGust >= 0)
+				Data.Append("&windgustmph=" + station.WindMPHStr(Current.RecentMaxGust));
 			if (Current.Humidity >= 0)
 				Data.Append("&humidity=" + Current.Humidity);
 			if (Current.Temperature > Cumulus.DefaultHiVal)

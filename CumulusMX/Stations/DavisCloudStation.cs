@@ -828,7 +828,7 @@ namespace CumulusMX.Stations
 						_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 					}
 
-					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
+					AddRecentDataWithAq(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
 						Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateStatusPanel(timestamp.ToUniversalTime());
@@ -1907,9 +1907,9 @@ namespace CumulusMX.Stations
 													// Check for spikes, and set highs
 													if (CheckHighGust(gustCal, gustDirCal, lastRecordTime))
 													{
-														cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + RecentMaxGust.ToString(cumulus.WindFormat));
-														AddValuesToRecentWind(gust, WindAverage, gustDir, lastRecordTime, lastRecordTime);
-														RecentMaxGust = gustCal;
+														cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + Current.RecentMaxGust.ToString(cumulus.WindFormat));
+														AddValuesToRecentWind(gust, Current.WindAverage, gustDir, lastRecordTime, lastRecordTime);
+														Current.RecentMaxGust = gustCal;
 													}
 												}
 												catch (Exception ex)
@@ -2343,7 +2343,7 @@ namespace CumulusMX.Stations
 									var dir = (int) ((data.wind_dir_of_hi ?? 0) * 22.5);
 									cumulus.LogDebugMessage($"DecodeHistoric: using wind data from TxId {data.tx_id}");
 									DoWind(gust, dir, spd, lastRecordTime);
-									RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
+									Current.RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
 								}
 								else
 								{
@@ -2352,13 +2352,13 @@ namespace CumulusMX.Stations
 
 								if (data.wind_speed_avg.HasValue)
 								{
-									WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser(data.wind_speed_avg.Value));
+									Current.WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser(data.wind_speed_avg.Value));
 
 									if (!current)
 									{
 										// add in 'archivePeriod' minutes worth of wind speed to windrun
 										int interval = data.arch_int / 60;
-										WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+										WindRunToday += ((Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
 									}
 								}
 								else
@@ -2369,7 +2369,7 @@ namespace CumulusMX.Stations
 								if (current)
 								{
 									// we do not have the latest value, so set a pseudo value between average and gust
-									WindLatest = Program.RandGenerator.Next((int) WindAverage, (int) RecentMaxGust);
+									Current.WindLatest = Program.RandGenerator.Next((int) Current.WindAverage, (int) Current.RecentMaxGust);
 								}
 							}
 							catch (Exception ex)
@@ -2918,13 +2918,13 @@ namespace CumulusMX.Stations
 
 									if (data.wind_speed_avg != null)
 									{
-										WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser((double) data.wind_speed_avg));
+										Current.WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser((double) data.wind_speed_avg));
 
 										if (!current)
 										{
 											// add in 'archivePeriod' minutes worth of wind speed to windrun
 											int interval = data.arch_int / 60;
-											WindRunToday += ((WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+											WindRunToday += ((Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
 										}
 									}
 									else
@@ -2935,7 +2935,7 @@ namespace CumulusMX.Stations
 									if (current)
 									{
 										// we do not have the latest value, so set a pseudo value between average and gust
-										WindLatest = Program.RandGenerator.Next((int) WindAverage, (int) RecentMaxGust);
+										Current.WindLatest = Program.RandGenerator.Next((int) Current.WindAverage, (int) Current.RecentMaxGust);
 									}
 
 								}

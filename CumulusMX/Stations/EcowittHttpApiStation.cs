@@ -751,15 +751,15 @@ namespace CumulusMX.Stations
 				TempTotalToday += Current.Temperature * intervalMins;
 
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + intervalMins + " minutes = " +
-				(WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
-				WindRunToday += WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0;
+				cumulus.LogMessage("Windrun: " + Current.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + intervalMins + " minutes = " +
+				(Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0;
 
 				// update heating/cooling degree days
 				UpdateDegreeDays(intervalMins);
 
 				// update dominant wind bearing
-				CalculateDominantWindBearing(Bearing, WindAverage, intervalMins);
+				CalculateDominantWindBearing(Bearing, Current.WindAverage, intervalMins);
 				CheckForWindrunHighLow(DataDateTime);
 				DoTrendValues(DataDateTime);
 
@@ -827,7 +827,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(DataDateTime, false);
 				}
 
-				AddRecentDataWithAq(DataDateTime, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
+				AddRecentDataWithAq(DataDateTime, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
 					Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(rec.Key.UtcFromUnixTime());
@@ -1226,7 +1226,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Some debugging info
-			cumulus.LogDebugMessage($"LiveData: Wind Decode >> Last={windSpeedLast:F1}, LastDir={windDirLast}, Gust={gustLast:F1}, (MXAvg={WindAverage:F1})");
+			cumulus.LogDebugMessage($"LiveData: Wind Decode >> Last={windSpeedLast:F1}, LastDir={windDirLast}, Gust={gustLast:F1}, (MXAvg={Current.WindAverage:F1})");
 
 		}
 

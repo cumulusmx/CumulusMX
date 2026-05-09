@@ -73,5 +73,20 @@ namespace CumulusMX
 		/// </summary>
 		public static double FeelsLike { get; set; } = 0;
 
+		/// <summary>
+		/// Latest wind speed/gust
+		/// </summary>
+		public static double WindLatest { get; set; } = 0;
+
+		/// <summary>
+		/// Average wind speed
+		/// </summary>
+		public static double WindAverage { get; set; } = 0;
+
+		/// <summary>
+		/// Peak wind gust in last 10 minutes
+		/// </summary>
+		public static double RecentMaxGust { get; set; } = 0;
+
 	}
 }

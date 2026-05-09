@@ -170,11 +170,11 @@ namespace CumulusMX.ThirdParty
 			// send average speed and bearing
 			bodyObj.Add("winddir", station.AvgBearing);
 
-			if (station.WindAverage >= 0)
-				bodyObj.Add("windspeedmph", ConvertUnits.UserWindToMPH(station.WindAverage));
+			if (Current.WindAverage >= 0)
+				bodyObj.Add("windspeedmph", ConvertUnits.UserWindToMPH(Current.WindAverage));
 
-			if (station.RecentMaxGust >= 0)
-				bodyObj.Add("windgustmph", ConvertUnits.UserWindToMPH(station.RecentMaxGust));
+			if (Current.RecentMaxGust >= 0)
+				bodyObj.Add("windgustmph", ConvertUnits.UserWindToMPH(Current.RecentMaxGust));
 
 			//if (SendUV && station.UV.HasValue)
 			//	Data.Append("&UV=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture.NumberFormat));

@@ -158,11 +158,11 @@ namespace CumulusMX.ThirdParty
 				sb.Append("&hum=" + Current.Humidity);
 
 			// Wind
-			if (station.WindLatest >= 0)
-				sb.Append("&wspd=" + (int) Math.Round(ConvertUnits.UserWindToMS(station.WindLatest) * 10));
-			if (station.RecentMaxGust >= 0)
-				sb.Append("&wspdhi=" + (int) Math.Round(ConvertUnits.UserWindToMS(station.RecentMaxGust) * 10));
-			sb.Append("&wspdavg=" + (int) Math.Round(ConvertUnits.UserWindToMS(station.WindAverage) * 10));
+			if (Current.WindLatest >= 0)
+				sb.Append("&wspd=" + (int) Math.Round(ConvertUnits.UserWindToMS(Current.WindLatest) * 10));
+			if (Current.RecentMaxGust >= 0)
+				sb.Append("&wspdhi=" + (int) Math.Round(ConvertUnits.UserWindToMS(Current.RecentMaxGust) * 10));
+			sb.Append("&wspdavg=" + (int) Math.Round(ConvertUnits.UserWindToMS(Current.WindAverage) * 10));
 
 			// Wind Direction
 			sb.Append("&wdir=" + station.Bearing);

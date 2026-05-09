@@ -29,7 +29,7 @@ namespace CumulusMX.Stations
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 			cumulus.StationOptions.UseSpeedForAvgCalc = false;
 
-			WindAverage = 0;
+			Current.WindAverage = 0;
 
 			timerStartNeeded = true;
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
