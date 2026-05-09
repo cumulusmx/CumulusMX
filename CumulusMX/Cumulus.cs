@@ -1105,7 +1105,7 @@ namespace CumulusMX
 			{
 				if (!File.Exists(ProgramOptions.StartupTask))
 				{
-					LogWarningMessage($"Waring: Start-up task: '{ProgramOptions.StartupTask}' does not exist");
+					LogWarningMessage($"Warning: Start-up task: '{ProgramOptions.StartupTask}' does not exist");
 				}
 				else
 				{
@@ -8730,7 +8730,7 @@ namespace CumulusMX
 
 
 			// make sure solar max is calculated for those stations without a solar sensor
-			LogMessage("DoLogFile: Writing log entry for " + timestamp);
+			LogMessage("DoLogFile: Writing log entry for " + timestamp.ToCmxLogFormat());
 			LogDebugMessage("DoLogFile: max gust: " + station.RecentMaxGust.ToString(WindFormat));
 			station.CurrentSolarMax = AstroLib.SolarMax(timestamp, (double) Longitude, (double) Latitude, ConvertUnits.AltitudeM(Altitude), out station.SolarElevation, SolarOptions);
 			var filename = GetLogFileName(timestamp);
@@ -8756,18 +8756,18 @@ namespace CumulusMX
 					success = true;
 
 					LastUpdateTime = timestamp;
-					LogMessage($"DoLogFile: log entry for {timestamp} written");
+					LogMessage($"DoLogFile: log entry for {timestamp.ToCmxLogFormat()} written");
 				}
 				catch (Exception ex)
 				{
 					retries--;
 					if (retries == 0)
 					{
-						LogExceptionMessage(ex, $"DoLogFile: Error writing entry for {timestamp}");
+						LogExceptionMessage(ex, $"DoLogFile: Error writing entry for {timestamp.ToCmxLogFormat()}");
 					}
 					else
 					{
-						LogMessage($"DoLogFile: Error writing entry for {timestamp}, error = \"{ex.Message}\", will retry...");
+						LogMessage($"DoLogFile: Error writing entry for {timestamp.ToCmxLogFormat()}, error = \"{ex.Message}\", will retry...");
 					}
 
 					await Task.Delay(250);

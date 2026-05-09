@@ -2763,7 +2763,7 @@ namespace CumulusMX.Stations
 					}
 
 
-					cumulus.LogDebugMessage($"EcowittCloud: Last data update {dataTime:s}");
+					cumulus.LogDebugMessage($"EcowittCloud: Last data update {dataTime.ToCmxLogFormat()}");
 
 					if (dataTime.ToUniversalTime() != LastCurrentDataTime)
 					{

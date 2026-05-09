@@ -932,7 +932,7 @@ namespace CumulusMX
 			cumulus.LastUpdateTime = DateTime.Parse(timestampstr, CultureInfo.InvariantCulture);
 			var todayDate = cumulus.LastUpdateTime.Date;
 
-			cumulus.LogMessage("ReadTodayFile: Last update time from today.ini: " + cumulus.LastUpdateTime);
+			cumulus.LogMessage("ReadTodayFile: Last update time from today.ini: " + cumulus.LastUpdateTime.ToCmxLogFormat());
 
 			var meteoTodayDate = cumulus.MeteoDate(cumulus.LastUpdateTime).Date;
 
@@ -945,7 +945,7 @@ namespace CumulusMX
 			CurrentDay = ini.GetValue("General", "CurrentDay", defaultday);
 			CurrentDate = new DateTime(CurrentYear, CurrentMonth, CurrentDay, 0, 0, 0, DateTimeKind.Local);
 
-			cumulus.LogMessage("ReadTodayFile: Date = " + todayfiledate + ", LastUpdateTime = " + cumulus.LastUpdateTime + ", Month = " + CurrentMonth);
+			cumulus.LogMessage($"ReadTodayFile: Date = {todayfiledate}, Month = {CurrentMonth}");
 
 			LastRainTip = ini.GetValue("Rain", "LastTip", "0000-00-00 00:00");
 
@@ -1303,7 +1303,7 @@ namespace CumulusMX
 
 				if (Log)
 				{
-					cumulus.LogMessage("Writing today.ini, LastUpdateTime = " + cumulus.LastUpdateTime + " raindaystart = " + RainCounterDayStart.ToString("F2") + " rain counter = " + RainCounter.ToString("F2"));
+					cumulus.LogMessage("Writing today.ini, LastUpdateTime = " + cumulus.LastUpdateTime.ToCmxLogFormat() + " raindaystart = " + RainCounterDayStart.ToString("F2") + " rain counter = " + RainCounter.ToString("F2"));
 
 					if (cumulus.FineOffsetStation)
 					{
@@ -10296,7 +10296,7 @@ namespace CumulusMX
 
 		public void LoadLastHoursFromDataLogs(DateTime ts)
 		{
-			cumulus.LogMessage("Loading last N hour data from data logs: " + ts);
+			cumulus.LogMessage("Loading last N hour data from data logs: " + ts.ToCmxLogFormat());
 			LoadRecentFromDataLogs(ts);
 			LoadRecentAqFromDataLogs(ts);
 			LoadRecentAqFromDataLogsNew(ts);

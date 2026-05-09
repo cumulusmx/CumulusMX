@@ -140,14 +140,14 @@ namespace CumulusMX.Stations
 				DecodeReceptionStats(recepStats);
 			}
 
-			cumulus.LogMessage("Last update time = " + cumulus.LastUpdateTime);
+			cumulus.LogMessage("Last update time = " + cumulus.LastUpdateTime.ToCmxLogFormat());
 
 			var consoleclock = GetTime();
 			var nowTime = DateTime.Now;
 
 			if (consoleclock > DateTime.MinValue)
 			{
-				cumulus.LogMessage("Console clock: " + consoleclock);
+				cumulus.LogMessage("Console clock: " + consoleclock.ToCmxLogFormat());
 
 				var timeDiff = nowTime.Subtract(consoleclock).TotalSeconds;
 
@@ -2160,7 +2160,7 @@ namespace CumulusMX.Stations
 			var vantageDateStamp = nextLoggerTime.Day + nextLoggerTime.Month * 32 + (nextLoggerTime.Year - 2000) * 512;
 			var vantageTimeStamp = 100 * nextLoggerTime.Hour + nextLoggerTime.Minute;
 
-			cumulus.LogMessage($"GetArchiveData: Last Archive Date: {nextLoggerTime}");
+			cumulus.LogMessage($"GetArchiveData: Last Archive Date: {nextLoggerTime.ToCmxLogFormat()}");
 			cumulus.LogDebugMessage("GetArchiveData: Date: " + vantageDateStamp);
 			cumulus.LogDebugMessage("GetArchiveData: Time: " + vantageTimeStamp);
 
