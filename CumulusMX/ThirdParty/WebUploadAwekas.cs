@@ -285,8 +285,8 @@ namespace CumulusMX.ThirdParty
 			// indoor temp/humidity
 			if (SendIndoor)
 			{
-				if (station.IndoorTemperature.HasValue)
-					sb.Append("indoortemp=" + ConvertUnits.UserTempToC(station.IndoorTemperature.Value).ToFixed("F1"));
+				if (Current.IndoorTemperature.HasValue)
+					sb.Append("indoortemp=" + ConvertUnits.UserTempToC(Current.IndoorTemperature.Value).ToFixed("F1"));
 
 				if (Current.HumidityIn.HasValue)
 					sb.Append("&indoorhumidity=" + Current.HumidityIn);

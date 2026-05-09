@@ -140,8 +140,8 @@ namespace CumulusMX.ThirdParty
 			StringBuilder sb = new StringBuilder($"https://api.weathercloud.net/v01/set?wid={ID}&key={PW}");
 
 			//Temperature
-			if (station.IndoorTemperature.HasValue)
-				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(station.IndoorTemperature.Value) * 10));
+			if (Current.IndoorTemperature.HasValue)
+				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.IndoorTemperature.Value) * 10));
 			if (Current.Temperature > Cumulus.DefaultHiVal)
 				sb.Append("&temp=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.Temperature) * 10));
 			if (station.WindChill > Cumulus.DefaultHiVal)

@@ -221,8 +221,8 @@ namespace CumulusMX.ThirdParty
 				Data.Append($"&solarradiation={station.SolarRad}");
 			if (SendIndoor)
 			{
-				if (station.IndoorTemperature.HasValue)
-					Data.Append($"&indoortempf={WeatherStation.TempFstr(station.IndoorTemperature.Value)}");
+				if (Current.IndoorTemperature.HasValue)
+					Data.Append($"&indoortempf={WeatherStation.TempFstr(Current.IndoorTemperature.Value)}");
 				if (Current.HumidityIn.HasValue)
 					Data.Append($"&indoorhumidity={Current.HumidityIn}");
 			}

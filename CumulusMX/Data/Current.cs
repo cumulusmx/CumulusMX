@@ -27,5 +27,10 @@ namespace CumulusMX
 		/// </summary>
 		public static double Temperature { get; set; } = 0;
 
+		/// <summary>
+		/// Indoor temperature in C
+		/// </summary>
+		public static double? IndoorTemperature { get; set; }
+
 	}
 }

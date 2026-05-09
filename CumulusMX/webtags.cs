@@ -1180,7 +1180,7 @@ namespace CumulusMX
 
 		private string Tagintemp(Dictionary<string, string> tagParams)
 		{
-			return station.IndoorTemperature.HasValue ? CheckRcDp(CheckTempUnit(station.IndoorTemperature.Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+			return Current.IndoorTemperature.HasValue ? CheckRcDp(CheckTempUnit(Current.IndoorTemperature.Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagbattery(Dictionary<string, string> tagParams)
@@ -7078,7 +7078,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				indoorTempValue = station.IndoorTemperature.HasValue ? CheckRcDp(station.IndoorTemperature.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+				indoorTempValue = Current.IndoorTemperature.HasValue ? CheckRcDp(Current.IndoorTemperature.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 			}
 			return indoorTempValue;
 		}
