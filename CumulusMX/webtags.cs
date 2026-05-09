@@ -630,7 +630,7 @@ namespace CumulusMX
 
 		private string Tagwchill(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.WindChill, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Current.WindChill, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagrrate(Dictionary<string, string> tagParams)
@@ -717,7 +717,7 @@ namespace CumulusMX
 
 		private string Tagdew(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.OutdoorDewpoint, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Current.Dewpoint, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagwetbulb(Dictionary<string, string> tagParams)
@@ -930,7 +930,7 @@ namespace CumulusMX
 
 		private string Tagapptemp(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ApparentTemperature, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Current.ApparentTemperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagfeelsliketemp(Dictionary<string, string> tagParams)
@@ -6919,7 +6919,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select WindChill from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.WindChill, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : Current.WindChill, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentDewPoint(Dictionary<string, string> tagParams)
@@ -6928,7 +6928,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select DewPoint from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.OutdoorDewpoint, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : Current.Dewpoint, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentHeatIndex(Dictionary<string, string> tagParams)
@@ -6955,7 +6955,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select AppTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.ApparentTemperature, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : Current.ApparentTemperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentHumidex(Dictionary<string, string> tagParams)

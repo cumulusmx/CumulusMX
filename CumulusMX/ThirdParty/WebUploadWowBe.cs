@@ -149,8 +149,8 @@ namespace CumulusMX.ThirdParty
 			bodyObj.Add("dailyrainin", ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? station.RainToday : station.RainSinceMidnight));
 			bodyObj.Add("rainin", ConvertUnits.UserRainToIN(station.RainLastHour));
 
-			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
-				bodyObj.Add("dewptf", ConvertUnits.UserTempToF(station.OutdoorDewpoint));
+			if (Current.Dewpoint > Cumulus.DefaultHiVal)
+				bodyObj.Add("dewptf", ConvertUnits.UserTempToF(Current.Dewpoint));
 
 			if (Current.Humidity >= 0)
 				bodyObj.Add("humidity", Current.Humidity);

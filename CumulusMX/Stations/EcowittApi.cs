@@ -1978,8 +1978,8 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(recDateTime, false);
 				}
 
-				station.AddRecentDataWithAq(recDateTime, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, Current.Temperature, station.WindChill, station.OutdoorDewpoint, station.HeatIndex,
-					Current.Humidity, Current.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, station.CurrentSolarMax, station.RainRate, station.BlackGlobeTemp, station.WetBulbGlobeTemp);
+				station.AddRecentDataWithAq(recDateTime, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, station.HeatIndex,
+					Current.Humidity, Current.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, station.CurrentSolarMax, station.RainRate, station.BlackGlobeTemp, station.WetBulbGlobeTemp);
 
 				station.UpdateStatusPanel(recDateTime.ToUniversalTime());
 				cumulus.AddToWebServiceLists(recDateTime);

@@ -43,5 +43,20 @@ namespace CumulusMX
 
 		public static double AltimeterPressure { get; set; }
 
+		/// <summary>
+		/// Outdoor dew point
+		/// </summary>
+		public static double Dewpoint { get; set; } = 0;
+
+		/// <summary>
+		/// Wind chill
+		/// </summary>
+		public static double WindChill { get; set; } = 0;
+
+		/// <summary>
+		/// Apparent temperature
+		/// </summary>
+		public static double ApparentTemperature { get; set; }
+
 	}
 }

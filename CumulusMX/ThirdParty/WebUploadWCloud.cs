@@ -144,10 +144,10 @@ namespace CumulusMX.ThirdParty
 				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.TemperatureIn.Value) * 10));
 			if (Current.Temperature > Cumulus.DefaultHiVal)
 				sb.Append("&temp=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.Temperature) * 10));
-			if (station.WindChill > Cumulus.DefaultHiVal)
-				sb.Append("&chill=" + (int) Math.Round(ConvertUnits.UserTempToC(station.WindChill) * 10));
-			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
-				sb.Append("&dew=" + (int) Math.Round(ConvertUnits.UserTempToC(station.OutdoorDewpoint) * 10));
+			if (Current.WindChill > Cumulus.DefaultHiVal)
+				sb.Append("&chill=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.WindChill) * 10));
+			if (Current.Dewpoint > Cumulus.DefaultHiVal)
+				sb.Append("&dew=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.Dewpoint) * 10));
 			if (station.HeatIndex > Cumulus.DefaultHiVal)
 				sb.Append("&heat=" + (int) Math.Round(ConvertUnits.UserTempToC(station.HeatIndex) * 10));
 

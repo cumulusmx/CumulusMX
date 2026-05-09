@@ -201,8 +201,8 @@ namespace CumulusMX.ThirdParty
 			if (Current.Humidity >= 0)
 				URL.Append("&rh=" + Current.Humidity);
 
-			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
-				URL.Append("&dewpoint=" + WeatherStation.TempCstr(station.OutdoorDewpoint));
+			if (Current.Dewpoint > Cumulus.DefaultHiVal)
+				URL.Append("&dewpoint=" + WeatherStation.TempCstr(Current.Dewpoint));
 
 			if (Current.Pressure > 0)
 				URL.Append("&pressure=" + WeatherStation.PressPAstr(Current.Pressure));
