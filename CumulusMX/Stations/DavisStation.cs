@@ -1755,7 +1755,7 @@ namespace CumulusMX.Stations
 				if (cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2 || cumulus.StationType == StationTypes.VantagePro)
 				{
 					// Loop2 data not available, just use sea level (for now, anyway)
-					AltimeterPressure = Pressure;
+					Current.AltimeterPressure = Current.Pressure;
 				}
 
 				var wind = ConvertUnits.WindMPHToUser(loopData.CurrentWindSpeed);
@@ -2059,8 +2059,8 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogDebugMessage("LOOP2: Ignoring absolute pressure value < 20 inHg");
 					// no absolute, so just make altimeter = sl pressure
-					AltimeterPressure = Pressure;
-					StationPressure = 0;
+					Current.AltimeterPressure = Current.Pressure;
+					Current.StationPressure = 0;
 				}
 				else
 				{
@@ -2743,8 +2743,8 @@ namespace CumulusMX.Stations
 								}
 
 								// No station pressure in archive data
-								StationPressure = 0;
-								AltimeterPressure = Pressure;
+								Current.StationPressure = 0;
+								Current.AltimeterPressure = Current.Pressure;
 
 								if (cumulus.SensorMaps.UV == 0)
 								{
@@ -2906,7 +2906,7 @@ namespace CumulusMX.Stations
 								}
 
 								AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex,
-									Current.Humidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+									Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 
 
 								UpdateStatusPanel(timestamp.ToUniversalTime());

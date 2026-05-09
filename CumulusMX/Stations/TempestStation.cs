@@ -145,7 +145,7 @@ namespace CumulusMX.Stations
 
 				// Pressure =============================================================
 				DoStationPressure(ConvertUnits.PressMBToUser((double) historydata.StationPressure));
-				DoPressure(ConvertUnits.PressMBToUser(MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), (double) historydata.Temperature, cumulus.Latitude)), timestamp);
+				DoPressure(ConvertUnits.PressMBToUser(MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(Current.StationPressure), (double) historydata.Temperature, cumulus.Latitude)), timestamp);
 
 				// Outdoor Humidity =====================================================
 				DoOutdoorHumidity((int) historydata.Humidity, timestamp);
@@ -282,7 +282,7 @@ namespace CumulusMX.Stations
 				}
 
 				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex,
-					Current.Humidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+					Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);

@@ -285,8 +285,8 @@ namespace CumulusMX.ThirdParty
 			// indoor temp/humidity
 			if (SendIndoor)
 			{
-				if (Current.IndoorTemperature.HasValue)
-					sb.Append("indoortemp=" + ConvertUnits.UserTempToC(Current.IndoorTemperature.Value).ToFixed("F1"));
+				if (Current.TemperatureIn.HasValue)
+					sb.Append("indoortemp=" + ConvertUnits.UserTempToC(Current.TemperatureIn.Value).ToFixed("F1"));
 
 				if (Current.HumidityIn.HasValue)
 					sb.Append("&indoorhumidity=" + Current.HumidityIn);
@@ -391,8 +391,8 @@ namespace CumulusMX.ThirdParty
 				sb.Append(Current.Humidity + sep);                                                     // 6
 			else
 				sb.Append(sep);
-			if (station.Pressure > 0)
-				sb.Append(ConvertUnits.UserPressToMB(station.Pressure).ToString("F1", InvC) + sep);           // 7
+			if (Current.Pressure > 0)
+				sb.Append(ConvertUnits.UserPressToMB(Current.Pressure).ToString("F1", InvC) + sep);           // 7
 			else
 				sb.Append(sep);
 			sb.Append(ConvertUnits.UserRainToMM(station.RainSinceMidnight).ToString("F1", InvC) + sep);       // 8   - was RainToday in v2

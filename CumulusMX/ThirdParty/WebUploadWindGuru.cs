@@ -168,8 +168,8 @@ namespace CumulusMX.ThirdParty
 				URL.Append("&temperature=" + ConvertUnits.UserTempToC(Current.Temperature).ToString("F1", InvC));
 			if (Current.Humidity >= 0)
 				URL.Append("&rh=" + Current.Humidity);
-			if (station.Pressure > 0)
-				URL.Append("&mslp=" + ConvertUnits.UserPressToHpa(station.Pressure).ToString("F1", InvC));
+			if (Current.Pressure > 0)
+				URL.Append("&mslp=" + ConvertUnits.UserPressToHpa(Current.Pressure).ToString("F1", InvC));
 			if (cumulus.WindGuru.SendRain)
 			{
 				URL.Append("&precip=" + ConvertUnits.UserRainToMM(station.RainLastHour).ToString("F1", InvC));

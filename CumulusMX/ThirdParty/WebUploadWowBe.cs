@@ -143,8 +143,8 @@ namespace CumulusMX.ThirdParty
 			if (!string.IsNullOrEmpty(cumulus.StationModel))
 				bodyObj.Add("model", cumulus.StationModel);
 
-			if (station.Pressure > 0)
-				bodyObj.Add("baromin", ConvertUnits.UserPressToIN(station.Pressure));
+			if (Current.Pressure > 0)
+				bodyObj.Add("baromin", ConvertUnits.UserPressToIN(Current.Pressure));
 
 			bodyObj.Add("dailyrainin", ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? station.RainToday : station.RainSinceMidnight));
 			bodyObj.Add("rainin", ConvertUnits.UserRainToIN(station.RainLastHour));

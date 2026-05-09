@@ -183,8 +183,8 @@ namespace CumulusMX.ThirdParty
 			sb.Append($"\"wind_speed\":{ConvertUnits.UserWindToMS(station.WindAverage).ToString("F1", invC)},");
 			if (station.RecentMaxGust >= 0)
 				sb.Append($"\"wind_gust\":{ConvertUnits.UserWindToMS(station.RecentMaxGust).ToString("F1", invC)},");
-			if (station.Pressure > 0)
-				sb.Append($"\"pressure\":{ConvertUnits.UserPressToHpa(station.Pressure).ToString("F1", invC)},");
+			if (Current.Pressure > 0)
+				sb.Append($"\"pressure\":{ConvertUnits.UserPressToHpa(Current.Pressure).ToString("F1", invC)},");
 			if (Current.Humidity >= 0)
 				sb.Append($"\"humidity\":{Current.Humidity},");
 			sb.Append($"\"rain_1h\":{ConvertUnits.UserRainToMM(station.RainLastHour).ToString("F1", invC)},");

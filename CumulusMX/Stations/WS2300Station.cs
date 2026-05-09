@@ -426,7 +426,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex, Current.Humidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.IndoorTemperature, Current.HumidityIn, CurrentSolarMax, rainrate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex, Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, rainrate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
 
@@ -698,7 +698,7 @@ namespace CumulusMX.Stations
 
 				pressure = Ws2300AbsolutePressure();
 
-				if (Pressure > 850 && Pressure < 1200)
+				if (Current.Pressure > 850 && Current.Pressure < 1200)
 				{
 					DoStationPressure(ConvertUnits.PressMBToUser(pressure));
 				}

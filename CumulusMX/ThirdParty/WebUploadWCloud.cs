@@ -140,8 +140,8 @@ namespace CumulusMX.ThirdParty
 			StringBuilder sb = new StringBuilder($"https://api.weathercloud.net/v01/set?wid={ID}&key={PW}");
 
 			//Temperature
-			if (Current.IndoorTemperature.HasValue)
-				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.IndoorTemperature.Value) * 10));
+			if (Current.TemperatureIn.HasValue)
+				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.TemperatureIn.Value) * 10));
 			if (Current.Temperature > Cumulus.DefaultHiVal)
 				sb.Append("&temp=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.Temperature) * 10));
 			if (station.WindChill > Cumulus.DefaultHiVal)
@@ -169,8 +169,8 @@ namespace CumulusMX.ThirdParty
 			sb.Append("&wdiravg=" + station.AvgBearing);
 
 			// Pressure
-			if (station.Pressure > 0)
-				sb.Append("&bar=" + (int) Math.Round(ConvertUnits.UserPressToMB(station.Pressure * 10)));
+			if (Current.Pressure > 0)
+				sb.Append("&bar=" + (int) Math.Round(ConvertUnits.UserPressToMB(Current.Pressure * 10)));
 
 			// rain
 			if (station.RainToday >= 0)

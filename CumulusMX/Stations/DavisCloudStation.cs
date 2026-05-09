@@ -762,9 +762,9 @@ namespace CumulusMX.Stations
 						CalculateEvapotranspiration(timestamp);
 					}
 
-					if (cumulus.StationOptions.CalculateSLP && StationPressure > 0)
+					if (cumulus.StationOptions.CalculateSLP && Current.StationPressure > 0)
 					{
-						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(slp), timestamp);
 					}
 
@@ -829,7 +829,7 @@ namespace CumulusMX.Stations
 					}
 
 					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex,
-						Current.Humidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+						Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateStatusPanel(timestamp.ToUniversalTime());
 					cumulus.AddToWebServiceLists(timestamp);
@@ -2122,9 +2122,9 @@ namespace CumulusMX.Stations
 
 			if (cumulus.StationOptions.CalculateSLP)
 			{
-				if (StationPressure > 0)
+				if (Current.StationPressure > 0)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
 					DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
 				}
 				else

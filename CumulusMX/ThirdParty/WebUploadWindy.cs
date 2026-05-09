@@ -204,8 +204,8 @@ namespace CumulusMX.ThirdParty
 			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
 				URL.Append("&dewpoint=" + WeatherStation.TempCstr(station.OutdoorDewpoint));
 
-			if (station.Pressure > 0)
-				URL.Append("&pressure=" + WeatherStation.PressPAstr(station.Pressure));
+			if (Current.Pressure > 0)
+				URL.Append("&pressure=" + WeatherStation.PressPAstr(Current.Pressure));
 
 			if (SendUV && station.UV.HasValue)
 				URL.Append("&uv=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));

@@ -1881,7 +1881,7 @@ namespace CumulusMX.Stations
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(station.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
 
 					station.DoPressure(ConvertUnits.PressMBToUser(slp), recDateTime);
 				}
@@ -1979,7 +1979,7 @@ namespace CumulusMX.Stations
 				}
 
 				station.AddRecentDataWithAq(recDateTime, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, Current.Temperature, station.WindChill, station.OutdoorDewpoint, station.HeatIndex,
-					Current.Humidity, station.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, Current.IndoorTemperature, Current.HumidityIn, station.CurrentSolarMax, station.RainRate, station.BlackGlobeTemp, station.WetBulbGlobeTemp);
+					Current.Humidity, Current.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, station.CurrentSolarMax, station.RainRate, station.BlackGlobeTemp, station.WetBulbGlobeTemp);
 
 				station.UpdateStatusPanel(recDateTime.ToUniversalTime());
 				cumulus.AddToWebServiceLists(recDateTime);

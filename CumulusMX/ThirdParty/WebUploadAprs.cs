@@ -72,9 +72,9 @@ namespace CumulusMX.ThirdParty
 						message.Append($"h{APRShum(Current.Humidity)}");
 					}
 					// bar 0.1mb Bnnnnn
-					if (station.AltimeterPressure >= 0)
+					if (Current.AltimeterPressure >= 0)
 					{
-						message.Append($"b{APRSpress(station.AltimeterPressure)}");
+						message.Append($"b{APRSpress(Current.AltimeterPressure)}");
 					}
 					if (cumulus.APRS.SendSolar && station.SolarRad.HasValue)
 					{

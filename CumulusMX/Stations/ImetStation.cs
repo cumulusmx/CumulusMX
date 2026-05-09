@@ -634,7 +634,7 @@ namespace CumulusMX.Stations
 							if (sl[PRESSAVGPOS].Length > 0)
 							{
 								DoPressure(ConvertUnits.PressMBToUser(Convert.ToDouble(sl[PRESSAVGPOS], provider)), timestamp);
-								AltimeterPressure = Pressure;
+								Current.AltimeterPressure = Current.Pressure;
 							}
 
 							// Cause wind chill calc
@@ -674,7 +674,7 @@ namespace CumulusMX.Stations
 							}
 
 							AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex,
-								Current.Humidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+								Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 							UpdateStatusPanel(timestamp.ToUniversalTime());
 
 							// Add current data to the lists of web service updates to be done
@@ -903,7 +903,7 @@ namespace CumulusMX.Stations
 				if (!string.IsNullOrEmpty(sl[PRESSPOS]) && double.TryParse(sl[PRESSPOS], NumberStyles.Float, provider, out varDbl))
 				{
 					DoPressure(ConvertUnits.PressMBToUser(varDbl), now);
-					AltimeterPressure = Pressure;
+					Current.AltimeterPressure = Current.Pressure;
 				}
 				else
 				{

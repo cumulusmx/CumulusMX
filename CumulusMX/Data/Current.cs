@@ -30,7 +30,18 @@ namespace CumulusMX
 		/// <summary>
 		/// Indoor temperature in C
 		/// </summary>
-		public static double? IndoorTemperature { get; set; }
+		public static double? TemperatureIn { get; set; }
+
+		/// <summary>
+		/// Sea-level pressure
+		/// </summary>
+		public static double Pressure { get; set; } = 0;
+
+		public static string PressTrendStr { get; set; }
+
+		public static double StationPressure { get; set; } = 0;
+
+		public static double AltimeterPressure { get; set; }
 
 	}
 }

@@ -4984,9 +4984,9 @@ namespace CumulusMX
 					values.Append(sep + station.AvgBearing.ToString());
 					values.Append(sep + station.RainRate.ToString(RainFormat, inv));
 					values.Append(sep + station.RainToday.ToString(RainFormat, inv));
-					values.Append(sep + station.Pressure.ToString(PressFormat, inv));
+					values.Append(sep + Current.Pressure.ToString(PressFormat, inv));
 					values.Append(sep + station.RainCounter.ToString(RainFormat, inv));
-					values.Append(sep + Current.IndoorTemperature.ToFixed(TempFormat, "NULL"));
+					values.Append(sep + Current.TemperatureIn.ToFixed(TempFormat, "NULL"));
 					values.Append(sep + Current.HumidityIn.ToText("NULL"));
 					values.Append(sep + station.WindLatest.ToString(WindFormat, inv));
 					values.Append(sep + station.WindChill.ToFixed(TempFormat));
@@ -8109,7 +8109,7 @@ namespace CumulusMX
 				sb.Append(station.Bearing.ToString() + ' ');                                  // 8
 				sb.Append(station.RainRate.ToString(RainFormat, InvC) + ' ');                 // 9
 				sb.Append(station.RainToday.ToString(RainFormat, InvC) + ' ');                // 10
-				sb.Append(station.Pressure.ToString(PressFormat, InvC) + ' ');                // 11
+				sb.Append(Current.Pressure.ToString(PressFormat, InvC) + ' ');                // 11
 				sb.Append(station.CompassPoint(station.Bearing) + ' ');                       // 12
 				sb.Append(Beaufort(station.WindAverage) + ' ');                               // 13
 				sb.Append(Units.WindText + ' ');                                              // 14
@@ -8121,7 +8121,7 @@ namespace CumulusMX
 				sb.Append(station.RainMonth.ToString(RainFormat, InvC) + ' ');                // 20
 				sb.Append(station.RainYear.ToString(RainFormat, InvC) + ' ');                 // 21
 				sb.Append(station.RainYesterday.ToString(RainFormat, InvC) + ' ');            // 22
-				sb.Append((Current.IndoorTemperature ?? 0).ToFixed(TempFormat) + ' ');        // 23
+				sb.Append((Current.TemperatureIn ?? 0).ToFixed(TempFormat) + ' ');        // 23
 				sb.Append((Current.HumidityIn ?? 0).ToString() + ' ');                    // 24
 				sb.Append(station.WindChill.ToFixed(TempFormat) + ' ');                       // 25
 				sb.Append(station.temptrendval.ToFixed(TempTrendFormat) + ' ');               // 26
@@ -8196,7 +8196,7 @@ namespace CumulusMX
 			values.Append(sep + station.Bearing.ToString());
 			values.Append(sep + station.RainRate.ToString(RainFormat, InvC));
 			values.Append(sep + station.RainToday.ToString(RainFormat, InvC));
-			values.Append(sep + station.Pressure.ToString(PressFormat, InvC) );
+			values.Append(sep + Current.Pressure.ToString(PressFormat, InvC) );
 			values.Append(sep + "'" + station.CompassPoint(station.Bearing) + "'");
 			values.Append(sep + Beaufort(station.WindAverage));
 			values.Append(sep + "'" + Units.WindText + "'");
@@ -8208,7 +8208,7 @@ namespace CumulusMX
 			values.Append(sep + station.RainMonth.ToString(RainFormat, InvC));
 			values.Append(sep + station.RainYear.ToString(RainFormat, InvC));
 			values.Append(sep + station.RainYesterday.ToString(RainFormat, InvC));
-			values.Append(sep + Current.IndoorTemperature.ToFixed(TempFormat, "NULL"));
+			values.Append(sep + Current.TemperatureIn.ToFixed(TempFormat, "NULL"));
 			values.Append(sep + Current.HumidityIn.ToText("NULL"));
 			values.Append(sep + station.WindChill.ToFixed(TempFormat));
 			values.Append(sep + "'" + station.temptrendval.ToFixed(TempTrendFormat) + "'");

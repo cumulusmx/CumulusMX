@@ -993,23 +993,23 @@ namespace CumulusMX
 
 		private string Tagpress(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.Pressure, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(Current.Pressure, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string Tagaltimeterpressure(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.AltimeterPressure, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(Current.AltimeterPressure, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string Tagstationpressure(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.StationPressure, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(Current.StationPressure, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 
 		private string Tagpresstrend(Dictionary<string, string> tagParams)
 		{
-			return station.Presstrendstr;
+			return Current.PressTrendStr;
 		}
 
 		private string Tagpresstrendenglish(Dictionary<string, string> tagParams)
@@ -1180,7 +1180,7 @@ namespace CumulusMX
 
 		private string Tagintemp(Dictionary<string, string> tagParams)
 		{
-			return Current.IndoorTemperature.HasValue ? CheckRcDp(CheckTempUnit(Current.IndoorTemperature.Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+			return Current.TemperatureIn.HasValue ? CheckRcDp(CheckTempUnit(Current.TemperatureIn.Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagbattery(Dictionary<string, string> tagParams)
@@ -6982,7 +6982,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select Pressure from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(CheckPressUnit(result.HasValue ? result.Value : station.Pressure, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(result.HasValue ? result.Value : Current.Pressure, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagRecentRain(Dictionary<string, string> tagParams)
@@ -7078,7 +7078,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				indoorTempValue = Current.IndoorTemperature.HasValue ? CheckRcDp(Current.IndoorTemperature.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+				indoorTempValue = Current.TemperatureIn.HasValue ? CheckRcDp(Current.TemperatureIn.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 			}
 			return indoorTempValue;
 		}

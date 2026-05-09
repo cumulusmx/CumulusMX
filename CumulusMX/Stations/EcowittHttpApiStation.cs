@@ -309,7 +309,7 @@ namespace CumulusMX.Stations
 
 								if (cumulus.StationOptions.CalculateSLP)
 								{
-									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
 									DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
 								}
 							}
@@ -732,7 +732,7 @@ namespace CumulusMX.Stations
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
 					DoPressure(ConvertUnits.PressMBToUser(slp), DataDateTime);
 				}
 
@@ -828,7 +828,7 @@ namespace CumulusMX.Stations
 				}
 
 				AddRecentDataWithAq(DataDateTime, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex,
-					Current.Humidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+					Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(rec.Key.UtcFromUnixTime());
 				cumulus.AddToWebServiceLists(DataDateTime);

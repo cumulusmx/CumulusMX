@@ -794,19 +794,17 @@ namespace CumulusMX
 					break;
 			}
 
-			if (threeHourlyPressureChangeMb > 6) Presstrendstr = cumulus.Trans.Risingveryrapidly;
-			else if (threeHourlyPressureChangeMb > 3.5) Presstrendstr = cumulus.Trans.Risingquickly;
-			else if (threeHourlyPressureChangeMb > 1.5) Presstrendstr = cumulus.Trans.Rising;
-			else if (threeHourlyPressureChangeMb > 0.1) Presstrendstr = cumulus.Trans.Risingslowly;
-			else if (threeHourlyPressureChangeMb > -0.1) Presstrendstr = cumulus.Trans.Steady;
-			else if (threeHourlyPressureChangeMb > -1.5) Presstrendstr = cumulus.Trans.Fallingslowly;
-			else if (threeHourlyPressureChangeMb > -3.5) Presstrendstr = cumulus.Trans.Falling;
-			else if (threeHourlyPressureChangeMb > -6) Presstrendstr = cumulus.Trans.Fallingquickly;
+			if (threeHourlyPressureChangeMb > 6) Current.PressTrendStr = cumulus.Trans.Risingveryrapidly;
+			else if (threeHourlyPressureChangeMb > 3.5) Current.PressTrendStr = cumulus.Trans.Risingquickly;
+			else if (threeHourlyPressureChangeMb > 1.5) Current.PressTrendStr = cumulus.Trans.Rising;
+			else if (threeHourlyPressureChangeMb > 0.1) Current.PressTrendStr = cumulus.Trans.Risingslowly;
+			else if (threeHourlyPressureChangeMb > -0.1) Current.PressTrendStr = cumulus.Trans.Steady;
+			else if (threeHourlyPressureChangeMb > -1.5) Current.PressTrendStr = cumulus.Trans.Fallingslowly;
+			else if (threeHourlyPressureChangeMb > -3.5) Current.PressTrendStr = cumulus.Trans.Falling;
+			else if (threeHourlyPressureChangeMb > -6) Current.PressTrendStr = cumulus.Trans.Fallingquickly;
 			else
-				Presstrendstr = cumulus.Trans.Fallingveryrapidly;
+				Current.PressTrendStr = cumulus.Trans.Fallingveryrapidly;
 		}
-
-		public string Presstrendstr { get; set; }
 
 		public void CheckMonthlyAlltime(string index, double value, bool higher, DateTime timestamp)
 		{
@@ -885,13 +883,6 @@ namespace CumulusMX
 
 		public DateTime CurrentDate { get; set; }
 
-
-		/// <summary>
-		/// Sea-level pressure
-		/// </summary>
-		public double Pressure { get; set; } = 0;
-
-		public double StationPressure { get; set; } = 0;
 
 		/// <summary>
 		/// Outdoor dew point
@@ -1402,7 +1393,7 @@ namespace CumulusMX
 
 			if (!DataStopped)
 			{
-				if (Pressure > 0 && TempReadyToPlot && WindReadyToPlot || cumulus.StationOptions.NoSensorCheck)
+				if (Current.Pressure > 0 && TempReadyToPlot && WindReadyToPlot || cumulus.StationOptions.NoSensorCheck)
 				{
 					// increment wind run by one minute's worth of average speed
 
@@ -1444,7 +1435,7 @@ namespace CumulusMX
 
 					DoTrendValues(now);
 					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex, Current.Humidity,
-						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+						Current.Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateAirQualityDb();
 
@@ -1626,7 +1617,7 @@ namespace CumulusMX
 						xapReport.Append($"TempF={ConvertUnits.UserTempToF(Current.Temperature):F1}\n");
 						xapReport.Append($"DewC={ConvertUnits.UserTempToC(OutdoorDewpoint):F1}\n");
 						xapReport.Append($"DewF={ConvertUnits.UserTempToF(OutdoorDewpoint):F1}\n");
-						xapReport.Append($"AirPressure={ConvertUnits.UserPressToMB(Pressure):F1}\n");
+						xapReport.Append($"AirPressure={ConvertUnits.UserPressToMB(Current.Pressure):F1}\n");
 						xapReport.Append($"Rain={ConvertUnits.UserRainToMM(RainToday):F1}\n");
 						xapReport.Append('}');
 
@@ -5787,7 +5778,7 @@ namespace CumulusMX
 			// use today's rain for safety
 			// 0900 day, use midnight calculation
 			in100raintoday = Convert.ToInt32(ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? RainToday : RainSinceMidnight) * 100);
-			var mb10press = Convert.ToInt32(ConvertUnits.UserPressToMB(AltimeterPressure) * 10);
+			var mb10press = Convert.ToInt32(ConvertUnits.UserPressToMB(Current.AltimeterPressure) * 10);
 			// For 100% humidity, send zero. For zero humidity, send 1
 			int hum;
 			if (Current.Humidity == 0)
@@ -5997,7 +5988,7 @@ namespace CumulusMX
 			}
 
 			previousInTemp = temp;
-			Current.IndoorTemperature = cumulus.Calib.InTemp.Calibrate(temp);
+			Current.TemperatureIn = cumulus.Calib.InTemp.Calibrate(temp);
 			HaveReadData = true;
 		}
 
@@ -6271,7 +6262,7 @@ namespace CumulusMX
 			// Find estimated wet bulb temp. First time this is called, required variables may not have been set up yet
 			try
 			{
-				WetBulb = ConvertUnits.TempCToUser(MeteoLib.CalculateWetBulbC(tempinC, ConvertUnits.UserTempToC(OutdoorDewpoint), ConvertUnits.UserPressToMB(Pressure)));
+				WetBulb = ConvertUnits.TempCToUser(MeteoLib.CalculateWetBulbC(tempinC, ConvertUnits.UserTempToC(OutdoorDewpoint), ConvertUnits.UserPressToMB(Current.Pressure)));
 			}
 			catch
 			{
@@ -6670,64 +6661,64 @@ namespace CumulusMX
 			previousPress = sl;
 
 			// If we calculate SLP, then the calibration is applied to the station pressure
-			Pressure = cumulus.StationOptions.CalculateSLP ? sl : cumulus.Calib.Press.Calibrate(sl);
+			Current.Pressure = cumulus.StationOptions.CalculateSLP ? sl : cumulus.Calib.Press.Calibrate(sl);
 
 			first_press = false;
 
-			if (Pressure > Records.AllTime.HighPress.Val)
+			if (Current.Pressure > Records.AllTime.HighPress.Val)
 			{
-				SetAlltime(Records.AllTime.HighPress, Pressure, timestamp);
+				SetAlltime(Records.AllTime.HighPress, Current.Pressure, timestamp);
 			}
 
-			cumulus.HighPressAlarm.CheckAlarm(Pressure);
+			cumulus.HighPressAlarm.CheckAlarm(Current.Pressure);
 
-			if (Pressure < Records.AllTime.LowPress.Val)
+			if (Current.Pressure < Records.AllTime.LowPress.Val)
 			{
-				SetAlltime(Records.AllTime.LowPress, Pressure, timestamp);
+				SetAlltime(Records.AllTime.LowPress, Current.Pressure, timestamp);
 			}
 
-			cumulus.LowPressAlarm.CheckAlarm(Pressure);
-			CheckMonthlyAlltime("LowPress", Pressure, false, timestamp);
-			CheckMonthlyAlltime("HighPress", Pressure, true, timestamp);
+			cumulus.LowPressAlarm.CheckAlarm(Current.Pressure);
+			CheckMonthlyAlltime("LowPress", Current.Pressure, false, timestamp);
+			CheckMonthlyAlltime("HighPress", Current.Pressure, true, timestamp);
 
-			if (Pressure > DailyHighLow.Today.HighPress)
+			if (Current.Pressure > DailyHighLow.Today.HighPress)
 			{
-				DailyHighLow.Today.HighPress = Pressure;
+				DailyHighLow.Today.HighPress = Current.Pressure;
 				DailyHighLow.Today.HighPressTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (Pressure < DailyHighLow.Today.LowPress)
+			if (Current.Pressure < DailyHighLow.Today.LowPress)
 			{
-				DailyHighLow.Today.LowPress = Pressure;
+				DailyHighLow.Today.LowPress = Current.Pressure;
 				DailyHighLow.Today.LowPressTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (Pressure > Records.ThisMonth.HighPress.Val)
+			if (Current.Pressure > Records.ThisMonth.HighPress.Val)
 			{
-				Records.ThisMonth.HighPress.Val = Pressure;
+				Records.ThisMonth.HighPress.Val = Current.Pressure;
 				Records.ThisMonth.HighPress.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (Pressure < Records.ThisMonth.LowPress.Val)
+			if (Current.Pressure < Records.ThisMonth.LowPress.Val)
 			{
-				Records.ThisMonth.LowPress.Val = Pressure;
+				Records.ThisMonth.LowPress.Val = Current.Pressure;
 				Records.ThisMonth.LowPress.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (Pressure > Records.ThisYear.HighPress.Val)
+			if (Current.Pressure > Records.ThisYear.HighPress.Val)
 			{
-				Records.ThisYear.HighPress.Val = Pressure;
+				Records.ThisYear.HighPress.Val = Current.Pressure;
 				Records.ThisYear.HighPress.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (Pressure < Records.ThisYear.LowPress.Val)
+			if (Current.Pressure < Records.ThisYear.LowPress.Val)
 			{
-				Records.ThisYear.LowPress.Val = Pressure;
+				Records.ThisYear.LowPress.Val = Current.Pressure;
 				Records.ThisYear.LowPress.Ts = timestamp;
 				WriteYearIniFile();
 			}
@@ -6746,7 +6737,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				Presstrendstr = trend;
+				Current.PressTrendStr = trend;
 			}
 		}
 
@@ -6781,8 +6772,8 @@ namespace CumulusMX
 			{
 				// all good!
 				previousPressStation = sp;
-				StationPressure = cumulus.Calib.PressStn.Calibrate(sp);
-				AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(StationPressure), ConvertUnits.AltitudeM(cumulus.Altitude)));
+				Current.StationPressure = cumulus.Calib.PressStn.Calibrate(sp);
+				Current.AltimeterPressure = ConvertUnits.PressMBToUser(MeteoLib.StationToAltimeter(ConvertUnits.UserPressToHpa(Current.StationPressure), ConvertUnits.AltitudeM(cumulus.Altitude)));
 			}
 		}
 
@@ -7168,7 +7159,7 @@ namespace CumulusMX
 					hp = cumulus.FChighpress / 0.0295333727;
 				}
 
-				CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
+				CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(Current.Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
 
 				// user wants to display Cumulus forecast
 				if (cumulus.ForecastSource == 1)
@@ -8179,8 +8170,8 @@ namespace CumulusMX
 					Records.ThisMonth.HighFeelsLike.Val = FeelsLike;
 					Records.ThisMonth.LowFeelsLike.Val = FeelsLike;
 					Records.ThisMonth.HighHumidex.Val = Humidex;
-					Records.ThisMonth.HighPress.Val = Pressure;
-					Records.ThisMonth.LowPress.Val = Pressure;
+					Records.ThisMonth.HighPress.Val = Current.Pressure;
+					Records.ThisMonth.LowPress.Val = Current.Pressure;
 					Records.ThisMonth.HighRainRate.Val = RainRate;
 					Records.ThisMonth.HourlyRain.Val = RainLastHour;
 					Records.ThisMonth.HighRain24Hours.Val = RainLast24Hour;
@@ -8252,8 +8243,8 @@ namespace CumulusMX
 					Records.ThisYear.HighFeelsLike.Val = FeelsLike;
 					Records.ThisYear.LowFeelsLike.Val = FeelsLike;
 					Records.ThisYear.HighHumidex.Val = Humidex;
-					Records.ThisYear.HighPress.Val = Pressure;
-					Records.ThisYear.LowPress.Val = Pressure;
+					Records.ThisYear.HighPress.Val = Current.Pressure;
+					Records.ThisYear.LowPress.Val = Current.Pressure;
 					Records.ThisYear.HighRainRate.Val = RainRate;
 					Records.ThisYear.HourlyRain.Val = RainLastHour;
 					Records.ThisYear.HighRain24Hours.Val = RainLast24Hour;
@@ -8403,14 +8394,14 @@ namespace CumulusMX
 				DailyHighLow.Yest.LowPress = DailyHighLow.Today.LowPress;
 				DailyHighLow.Yest.LowPressTime = DailyHighLow.Today.LowPressTime;
 				// Reset today"s low pressure settings
-				DailyHighLow.Today.LowPress = Pressure;
+				DailyHighLow.Today.LowPress = Current.Pressure;
 				DailyHighLow.Today.LowPressTime = timestamp;
 
 				// Copy today"s high pressure settings to yesterday
 				DailyHighLow.Yest.HighPress = DailyHighLow.Today.HighPress;
 				DailyHighLow.Yest.HighPressTime = DailyHighLow.Today.HighPressTime;
 				// Reset today"s high pressure settings
-				DailyHighLow.Today.HighPress = Pressure;
+				DailyHighLow.Today.HighPress = Current.Pressure;
 				DailyHighLow.Today.HighPressTime = timestamp;
 
 				// Copy today"s high rain rate settings to yesterday
@@ -9241,7 +9232,7 @@ namespace CumulusMX
 					if (PressReadyToPlot)
 					{
 						// calculate and display the pressure trend
-						presstrendval = (Pressure - retVals[0].Pressure) / 3.0;
+						presstrendval = (Current.Pressure - retVals[0].Pressure) / 3.0;
 						cumulus.PressChangeAlarm.CheckAlarm(presstrendval);
 					}
 				}
@@ -9535,7 +9526,6 @@ namespace CumulusMX
 		public DateTime FOStationClockTime { get; set; }
 		public DateTime FOSolarClockTime { get; set; }
 		public double YestAvgTemp { get; set; }
-		public double AltimeterPressure { get; set; }
 		public int YestDominantWindBearing { get; set; }
 		public double RainLast24Hour { get; set; }
 		public string ConBatText { get; set; }
@@ -11096,7 +11086,7 @@ namespace CumulusMX
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
 			Data.Append(RainINstr(cumulus.RolloverHour == 0 ? RainToday : RainSinceMidnight));
-			Data.Append("&baromin=" + PressINstr(Pressure));
+			Data.Append("&baromin=" + PressINstr(Current.Pressure));
 			Data.Append("&dewptf=" + TempFstr(OutdoorDewpoint));
 			if (cumulus.PWS.SendUV && UV.HasValue)
 			{
@@ -14933,8 +14923,8 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			}
 
 
-			var data = new DataStruct(cumulus, Current.Temperature, Current.Humidity, TempTotalToday / tempsamplestoday, Current.IndoorTemperature, OutdoorDewpoint, WindChill, Current.HumidityIn,
-				Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainWeek, RainMonth, RainYear, RainRate,
+			var data = new DataStruct(cumulus, Current.Temperature, Current.Humidity, TempTotalToday / tempsamplestoday, Current.TemperatureIn, OutdoorDewpoint, WindChill, Current.HumidityIn,
+				Current.Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainWeek, RainMonth, RainYear, RainRate,
 				RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, DailyHighLow.Today.HighGust, DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighWind,
 				DailyHighLow.Today.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), DailyHighLow.Today.HighTemp, DailyHighLow.Today.LowTemp,
 				DailyHighLow.Today.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighPress, DailyHighLow.Today.LowPress, DailyHighLow.Today.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat),

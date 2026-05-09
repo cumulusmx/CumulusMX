@@ -211,8 +211,8 @@ namespace CumulusMX.ThirdParty
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
 			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? station.RainToday : station.RainSinceMidnight));
-			if (station.Pressure >= Cumulus.DefaultHiVal)
-				Data.Append($"&baromin={WeatherStation.PressINstr(station.Pressure)}");
+			if (Current.Pressure >= Cumulus.DefaultHiVal)
+				Data.Append($"&baromin={WeatherStation.PressINstr(Current.Pressure)}");
 			if (station.OutdoorDewpoint >= Cumulus.DefaultHiVal)
 				Data.Append($"&dewptf={WeatherStation.TempFstr(station.OutdoorDewpoint)}");
 			if (SendUV && station.UV.HasValue)
@@ -221,8 +221,8 @@ namespace CumulusMX.ThirdParty
 				Data.Append($"&solarradiation={station.SolarRad}");
 			if (SendIndoor)
 			{
-				if (Current.IndoorTemperature.HasValue)
-					Data.Append($"&indoortempf={WeatherStation.TempFstr(Current.IndoorTemperature.Value)}");
+				if (Current.TemperatureIn.HasValue)
+					Data.Append($"&indoortempf={WeatherStation.TempFstr(Current.TemperatureIn.Value)}");
 				if (Current.HumidityIn.HasValue)
 					Data.Append($"&indoorhumidity={Current.HumidityIn}");
 			}

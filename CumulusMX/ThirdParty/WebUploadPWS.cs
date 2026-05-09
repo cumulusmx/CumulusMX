@@ -143,8 +143,8 @@ namespace CumulusMX.ThirdParty
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
 			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? station.RainToday : station.RainSinceMidnight));
-			if (station.Pressure > 0)
-				Data.Append("&baromin=" + WeatherStation.PressINstr(station.Pressure));
+			if (Current.Pressure > 0)
+				Data.Append("&baromin=" + WeatherStation.PressINstr(Current.Pressure));
 			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
 				Data.Append("&dewptf=" + WeatherStation.TempFstr(station.OutdoorDewpoint));
 			if (SendUV && station.UV.HasValue)
