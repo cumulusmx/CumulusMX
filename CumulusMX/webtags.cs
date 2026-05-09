@@ -1140,7 +1140,7 @@ namespace CumulusMX
 
 		private string Tagrfall(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Current.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string Tagrmidnight(Dictionary<string, string> tagParams)
@@ -4098,7 +4098,7 @@ namespace CumulusMX
 
 		private string TagSolarRad(Dictionary<string, string> tagParams)
 		{
-			return station.SolarRad.HasValue ? station.SolarRad.ToString() : tagParams.Get("nv") ?? "-";
+			return Current.SolarRad.HasValue ? Current.SolarRad.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCurrentSolarMax(Dictionary<string, string> tagParams)
@@ -4294,7 +4294,7 @@ namespace CumulusMX
 				if (now.Day == 1 && start.Date == now.Date)
 				{
 					// first day of the current month, there are no dayfile entries
-					total = station.RainToday;
+					total = Current.RainToday;
 				}
 				else
 				{
@@ -4303,7 +4303,7 @@ namespace CumulusMX
 					// if current month add todays rainfall
 					if (start.Year == now.Year && start.Month == now.Month)
 					{
-						total += station.RainToday;
+						total += Current.RainToday;
 					}
 				}
 
@@ -7017,7 +7017,7 @@ namespace CumulusMX
 				}
 			}
 
-			return CheckRcDp(CheckPressUnit(result.HasValue ? result.Value : station.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckPressUnit(result.HasValue ? result.Value : Current.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagRecentRainToday(Dictionary<string, string> tagParams)
@@ -7026,7 +7026,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select RainToday from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(CheckRainUnit(result.HasValue ? result.Value : station.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(result.HasValue ? result.Value : Current.RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagRecentSolarRad(Dictionary<string, string> tagParams)
@@ -7042,7 +7042,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				solValue = station.SolarRad.ToText(tagParams.Get("nv") ?? "-");
+				solValue = Current.SolarRad.ToText(tagParams.Get("nv") ?? "-");
 			}
 			return solValue;
 		}

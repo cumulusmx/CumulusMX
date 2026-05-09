@@ -743,9 +743,9 @@ namespace CumulusMX
 			var _week = RainWeek;
 			var _month = RainMonth;
 			var _year = RainYear;
-			RainWeek += RainToday;
-			RainMonth = RainThisMonth + RainToday;
-			RainYear = RainThisYear + RainToday;
+			RainWeek += Current.RainToday;
+			RainMonth = RainThisMonth + Current.RainToday;
+			RainYear = RainThisYear + Current.RainToday;
 			cumulus.LogMessage($"Rainthisweek Updated from: {_week.ToString(cumulus.RainFormat)} to: {RainWeek.ToString(cumulus.RainFormat)}");
 			cumulus.LogMessage($"Rainthismonth Updated from: {_month.ToString(cumulus.RainFormat)} to: {RainMonth.ToString(cumulus.RainFormat)}");
 			cumulus.LogMessage($"Rainthisyear Updated from: {_year.ToString(cumulus.RainFormat)} to: {RainYear.ToString(cumulus.RainFormat)}");
@@ -762,14 +762,9 @@ namespace CumulusMX
 			var offsetWeek = CurrentDate.AddDays(-1 * diff).Date;
 			// recalculate rain this week - we may have gone over a week boundary
 			RainThisWeek = DayFile.Where(day => day.Date >= offsetWeek).Sum(day => day.TotalRain);
-			RainWeek = RainThisWeek + RainToday;
+			RainWeek = RainThisWeek + Current.RainToday;
 			cumulus.LogMessage($"UpdateWeekRainfall: Updated RainWeek from {_rainWeek.ToString(cumulus.RainFormat)} to {RainWeek.ToString(cumulus.RainFormat)}");
 		}
-
-		/// <summary>
-		/// Solar Radiation in W/m2
-		/// </summary>
-		public int? SolarRad { get; set; }
 
 		/// <summary>
 		/// UV index
@@ -885,11 +880,6 @@ namespace CumulusMX
 
 
 		public double WindAverageUncalibrated { get; set; } = 0;
-
-		/// <summary>
-		/// Rainfall today
-		/// </summary>
-		public double RainToday { get; set; } = 0;
 
 		/// <summary>
 		/// Rain this month
@@ -1353,7 +1343,7 @@ namespace CumulusMX
 					{
 						// do nothing, we have a separate sensor counting the sunshine hours
 					}
-					else if (SolarRad.HasValue && SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.0 && SolarRad >= cumulus.SolarOptions.SolarMinimum)
+					else if (Current.SolarRad.HasValue && Current.SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.0 && Current.SolarRad >= cumulus.SolarOptions.SolarMinimum)
 					{
 						SunshineHours += 1.0 / 60.0;
 					}
@@ -1370,7 +1360,7 @@ namespace CumulusMX
 
 					DoTrendValues(now);
 					AddRecentDataWithAq(now, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex, Current.Humidity,
-						Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+						Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateAirQualityDb();
 
@@ -1553,7 +1543,7 @@ namespace CumulusMX
 						xapReport.Append($"DewC={ConvertUnits.UserTempToC(Current.Dewpoint):F1}\n");
 						xapReport.Append($"DewF={ConvertUnits.UserTempToF(Current.Dewpoint):F1}\n");
 						xapReport.Append($"AirPressure={ConvertUnits.UserPressToMB(Current.Pressure):F1}\n");
-						xapReport.Append($"Rain={ConvertUnits.UserRainToMM(RainToday):F1}\n");
+						xapReport.Append($"Rain={ConvertUnits.UserRainToMM(Current.RainToday):F1}\n");
 						xapReport.Append('}');
 
 						data = Encoding.ASCII.GetBytes(xapReport.ToString());
@@ -5712,7 +5702,7 @@ namespace CumulusMX
 			int in100raintoday;
 			// use today's rain for safety
 			// 0900 day, use midnight calculation
-			in100raintoday = Convert.ToInt32(ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? RainToday : RainSinceMidnight) * 100);
+			in100raintoday = Convert.ToInt32(ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? Current.RainToday : RainSinceMidnight) * 100);
 			var mb10press = Convert.ToInt32(ConvertUnits.UserPressToMB(Current.AltimeterPressure) * 10);
 			// For 100% humidity, send zero. For zero humidity, send 1
 			int hum;
@@ -5726,9 +5716,9 @@ namespace CumulusMX
 			var data = string.Format("{0}\n{1:000}/{2:000}g{3:000}t{4}r{5:000}p{6:000}P{7:000}h{8:00}b{9:00000}", timestamp, Current.AvgBearing, mphwind, mphgust, ftempstr, in100rainlasthour,
 				in100rainlast24hours, in100raintoday, hum, mb10press);
 
-			if (cumulus.APRS.SendSolar && SolarRad.HasValue)
+			if (cumulus.APRS.SendSolar && Current.SolarRad.HasValue)
 			{
-				data += APRSsolarradStr(SolarRad.Value);
+				data += APRSsolarradStr(Current.SolarRad.Value);
 			}
 
 			if (!string.IsNullOrWhiteSpace(cumulus.WxnowComment))
@@ -6909,9 +6899,9 @@ namespace CumulusMX
 				}
 
 				// Calculate today's rainfall
-				RainToday = (RainCounter - RainCounterDayStart) * cumulus.Calib.Rain.Mult;
+				Current.RainToday = (RainCounter - RainCounterDayStart) * cumulus.Calib.Rain.Mult;
 				// Allow for rounding errors
-				if (RainToday < 0) RainToday = 0;
+				if (Current.RainToday < 0) Current.RainToday = 0;
 
 				// Calculate rain since midnight for Wunderground etc
 				var trendval = RainCounter - MidnightRainCount;
@@ -6929,32 +6919,32 @@ namespace CumulusMX
 				}
 
 				// rain this week so far
-				RainWeek = RainThisWeek + RainToday;
+				RainWeek = RainThisWeek + Current.RainToday;
 
 				// rain this month so far
-				RainMonth = RainThisMonth + RainToday;
+				RainMonth = RainThisMonth + Current.RainToday;
 
 				// get correct date for rain records
 				var offsetdate = cumulus.MeteoDate(timestamp);
 
 				// rain this year so far
-				RainYear = RainThisYear + RainToday;
+				RainYear = RainThisYear + Current.RainToday;
 
-				if (RainToday > Records.AllTime.DailyRain.Val)
-					SetAlltime(Records.AllTime.DailyRain, RainToday, offsetdate);
+				if (Current.RainToday > Records.AllTime.DailyRain.Val)
+					SetAlltime(Records.AllTime.DailyRain, Current.RainToday, offsetdate);
 
-				CheckMonthlyAlltime("DailyRain", RainToday, true, timestamp);
+				CheckMonthlyAlltime("DailyRain", Current.RainToday, true, timestamp);
 
-				if (RainToday > Records.ThisMonth.DailyRain.Val)
+				if (Current.RainToday > Records.ThisMonth.DailyRain.Val)
 				{
-					Records.ThisMonth.DailyRain.Val = RainToday;
+					Records.ThisMonth.DailyRain.Val = Current.RainToday;
 					Records.ThisMonth.DailyRain.Ts = offsetdate;
 					WriteMonthIniFile();
 				}
 
-				if (RainToday > Records.ThisYear.DailyRain.Val)
+				if (Current.RainToday > Records.ThisYear.DailyRain.Val)
 				{
-					Records.ThisYear.DailyRain.Val = RainToday;
+					Records.ThisYear.DailyRain.Val = Current.RainToday;
 					Records.ThisYear.DailyRain.Ts = offsetdate;
 					WriteYearIniFile();
 				}
@@ -6971,7 +6961,7 @@ namespace CumulusMX
 
 				CheckMonthlyAlltime("MonthlyRain", RainMonth, true, timestamp);
 
-				cumulus.HighRainTodayAlarm.CheckAlarm(RainToday);
+				cumulus.HighRainTodayAlarm.CheckAlarm(Current.RainToday);
 			}
 			HaveReadData = true;
 		}
@@ -7540,37 +7530,37 @@ namespace CumulusMX
 		{
 			if (!solar.HasValue)
 			{
-				SolarRad = solar;
+				Current.SolarRad = solar;
 				return;
 			}
 
 
 			try
 			{
-				SolarRad = (int) Math.Round(cumulus.Calib.Solar.Calibrate(solar.Value));
+				Current.SolarRad = (int) Math.Round(cumulus.Calib.Solar.Calibrate(solar.Value));
 			}
 			catch
 			{
-				SolarRad = null;
+				Current.SolarRad = null;
 			}
 
-			if (SolarRad.HasValue)
+			if (Current.SolarRad.HasValue)
 			{
-				if (SolarRad < 0)
+				if (Current.SolarRad < 0)
 				{
-					SolarRad = 0;
+					Current.SolarRad = 0;
 				}
 				else
 				{
-					if (SolarRad > DailyHighLow.Today.HighSolar)
+					if (Current.SolarRad > DailyHighLow.Today.HighSolar)
 					{
-						DailyHighLow.Today.HighSolar = SolarRad.Value;
+						DailyHighLow.Today.HighSolar = Current.SolarRad.Value;
 						DailyHighLow.Today.HighSolarTime = timestamp;
 					}
 
 					if (!cumulus.SolarOptions.UseBlakeLarsen)
 					{
-						IsSunny = SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 && SolarRad >= cumulus.SolarOptions.SolarMinimum;
+						IsSunny = Current.SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 && Current.SolarRad >= cumulus.SolarOptions.SolarMinimum;
 					}
 				}
 			}
@@ -8288,7 +8278,7 @@ namespace CumulusMX
 				RainCounterDayStart = RainCounter;
 				cumulus.LogMessage("Raindaystart set to " + RainCounterDayStart);
 
-				RainToday = 0;
+				Current.RainToday = 0;
 
 				TempTotalToday = Current.Temperature;
 				tempsamplestoday = 1;
@@ -8425,7 +8415,7 @@ namespace CumulusMX
 				// solar
 				DailyHighLow.Yest.HighSolar = DailyHighLow.Today.HighSolar;
 				DailyHighLow.Yest.HighSolarTime = DailyHighLow.Today.HighSolarTime;
-				DailyHighLow.Today.HighSolar = SolarRad ?? 0;
+				DailyHighLow.Today.HighSolar = Current.SolarRad ?? 0;
 				DailyHighLow.Today.HighSolarTime = timestamp;
 
 				DailyHighLow.Yest.HighUv = DailyHighLow.Today.HighUv;
@@ -8692,7 +8682,7 @@ namespace CumulusMX
 			strb.Append(sep + DailyHighLow.Today.HighPressTime.ToString("HH:mm", inv));
 			strb.Append(sep + DailyHighLow.Today.HighRainRate.ToString(cumulus.RainFormat, inv));
 			strb.Append(sep + DailyHighLow.Today.HighRainRateTime.ToString("HH:mm", inv));
-			strb.Append(sep + RainToday.ToString(cumulus.RainFormat, inv));
+			strb.Append(sep + Current.RainToday.ToString(cumulus.RainFormat, inv));
 			strb.Append(sep + AvgTemp.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + WindRunToday.ToString("F1", inv));
 			strb.Append(sep + DailyHighLow.Today.HighWind.ToString(cumulus.WindAvgFormat, inv));
@@ -8809,7 +8799,7 @@ namespace CumulusMX
 				HighPressTime = DailyHighLow.Today.HighPressTime,
 				HighRainRate = DailyHighLow.Today.HighRainRate,
 				HighRainRateTime = DailyHighLow.Today.HighRainRateTime,
-				TotalRain = RainToday,
+				TotalRain = Current.RainToday,
 				AvgTemp = AvgTemp,
 				WindRun = WindRunToday,
 				HighAvgWind = DailyHighLow.Today.HighWind,
@@ -8879,7 +8869,7 @@ namespace CumulusMX
 				queryString.Append(sep + DailyHighLow.Today.HighPressTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + DailyHighLow.Today.HighRainRate.ToString(cumulus.RainFormat, inv));
 				queryString.Append(sep + DailyHighLow.Today.HighRainRateTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + RainToday.ToString(cumulus.RainFormat, inv));
+				queryString.Append(sep + Current.RainToday.ToString(cumulus.RainFormat, inv));
 				queryString.Append(sep + AvgTemp.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + WindRunToday.ToString("F1", inv));
 				queryString.Append(sep + DailyHighLow.Today.HighWind.ToString(cumulus.WindAvgFormat, inv));
@@ -9559,7 +9549,7 @@ namespace CumulusMX
 										OutsideTemp = rec.OutdoorTemperature,
 										Pressure = rec.Pressure,
 										RainToday = rec.RainToday,
-										SolarRad = (int?) rec.SolarRad,
+										SolarRad = rec.SolarRad,
 										UV = rec.UV,
 										WindAvgDir = rec.AvgBearing,
 										WindGust = rec.RecentMaxGust,
@@ -11020,7 +11010,7 @@ namespace CumulusMX
 			Data.Append("&rainin=" + RainINstr(RainLastHour));
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
-			Data.Append(RainINstr(cumulus.RolloverHour == 0 ? RainToday : RainSinceMidnight));
+			Data.Append(RainINstr(cumulus.RolloverHour == 0 ? Current.RainToday : RainSinceMidnight));
 			Data.Append("&baromin=" + PressINstr(Current.Pressure));
 			Data.Append("&dewptf=" + TempFstr(Current.Dewpoint));
 			if (cumulus.PWS.SendUV && UV.HasValue)
@@ -11028,9 +11018,9 @@ namespace CumulusMX
 				Data.Append("&UV=" + UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
 			}
 
-			if (cumulus.PWS.SendSolar && SolarRad.HasValue)
+			if (cumulus.PWS.SendSolar && Current.SolarRad.HasValue)
 			{
-				Data.Append("&solarradiation=" + SolarRad);
+				Data.Append("&solarradiation=" + Current.SolarRad);
 			}
 
 			Data.Append("&softwaretype=Cumulus%20v" + cumulus.Version);
@@ -11078,9 +11068,9 @@ namespace CumulusMX
 			{
 				Data.Append("&UV=" + UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
 			}
-			if (cumulus.WOW.SendSolar && SolarRad.HasValue)
+			if (cumulus.WOW.SendSolar && Current.SolarRad.HasValue)
 			{
-				Data.Append("&solarradiation=" + SolarRad);
+				Data.Append("&solarradiation=" + Current.SolarRad);
 			}
 			if (cumulus.WOW.SendSoilTemp && SoilTemp[cumulus.WOW.SoilTempSensor].HasValue)
 			{
@@ -12174,7 +12164,7 @@ namespace CumulusMX
 			var unitStr = "&nbsp;" + cumulus.Units.RainText;
 
 			json.Append("[\"Total Rain\",\"");
-			json.Append(RainToday.ToString(cumulus.RainFormat));
+			json.Append(Current.RainToday.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
 			json.Append("&nbsp;");
@@ -14859,14 +14849,14 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 
 
 			var data = new DataStruct(cumulus, Current.Temperature, Current.Humidity, TempTotalToday / tempsamplestoday, Current.TemperatureIn, Current.Dewpoint, Current.WindChill, Current.HumidityIn,
-				Current.Pressure, Current.WindLatest, Current.WindAverage, Current.RecentMaxGust, WindRunToday, Current.Bearing, Current.AvgBearing, RainToday, RainYesterday, RainWeek, RainMonth, RainYear, RainRate,
+				Current.Pressure, Current.WindLatest, Current.WindAverage, Current.RecentMaxGust, WindRunToday, Current.Bearing, Current.AvgBearing, Current.RainToday, RainYesterday, RainWeek, RainMonth, RainYear, RainRate,
 				RainLastHour, Current.HeatIndex, Current.Humidex, Current.ApparentTemperature, temptrendval, presstrendval, DailyHighLow.Today.HighGust, DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighWind,
 				DailyHighLow.Today.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), DailyHighLow.Today.HighTemp, DailyHighLow.Today.LowTemp,
 				DailyHighLow.Today.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighPress, DailyHighLow.Today.LowPress, DailyHighLow.Today.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat),
 				DailyHighLow.Today.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighRainRate, DailyHighLow.Today.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighHumidity, DailyHighLow.Today.LowHumidity,
 				DailyHighLow.Today.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), cumulus.Units.PressText, cumulus.Units.TempText, cumulus.Units.RainText,
 				DailyHighLow.Today.HighDewPoint, DailyHighLow.Today.LowDewPoint, DailyHighLow.Today.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowWindChill,
-				DailyHighLow.Today.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat), SolarRad, DailyHighLow.Today.HighSolar, DailyHighLow.Today.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat), UV, DailyHighLow.Today.HighUv,
+				DailyHighLow.Today.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat), Current.SolarRad, DailyHighLow.Today.HighSolar, DailyHighLow.Today.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat), UV, DailyHighLow.Today.HighUv,
 				DailyHighLow.Today.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat), forecaststr, getTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat),
 				getTimeString(cumulus.MoonRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.MoonSetTime, cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighHeatIndex, DailyHighLow.Today.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighAppTemp,
 				DailyHighLow.Today.LowAppTemp, DailyHighLow.Today.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), CurrentSolarMax,

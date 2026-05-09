@@ -109,5 +109,15 @@ namespace CumulusMX
 		/// </summary>
 		public static string AvgBearingText { get; set; } = "---";
 
+		/// <summary>
+		/// Rainfall today
+		/// </summary>
+		public static double RainToday { get; set; } = 0;
+
+		/// <summary>
+		/// Solar Radiation in W/m2
+		/// </summary>
+		public static int? SolarRad { get; set; }
+
 	}
 }

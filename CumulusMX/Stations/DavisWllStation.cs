@@ -1044,7 +1044,7 @@ namespace CumulusMX.Stations
 								}
 								else
 								{
-									SolarRad = null;
+									Current.SolarRad = null;
 								}
 							}
 
@@ -1862,7 +1862,7 @@ namespace CumulusMX.Stations
 					}
 
 					AddRecentDataWithAq(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
-						Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+						Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateStatusPanel(timestamp.ToUniversalTime());
 					cumulus.AddToWebServiceLists(timestamp);
@@ -2309,7 +2309,7 @@ namespace CumulusMX.Stations
 								}
 								else
 								{
-									SolarRad = null;
+									Current.SolarRad = null;
 									cumulus.LogWarningMessage($"WL.com historic: Warning, no valid Solar data on TxId {data11.tx_id}");
 								}
 

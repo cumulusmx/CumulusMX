@@ -146,7 +146,7 @@ namespace CumulusMX.ThirdParty
 			if (Current.Pressure > 0)
 				bodyObj.Add("baromin", ConvertUnits.UserPressToIN(Current.Pressure));
 
-			bodyObj.Add("dailyrainin", ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? station.RainToday : station.RainSinceMidnight));
+			bodyObj.Add("dailyrainin", ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? Current.RainToday : station.RainSinceMidnight));
 			bodyObj.Add("rainin", ConvertUnits.UserRainToIN(station.RainLastHour));
 
 			if (Current.Dewpoint > Cumulus.DefaultHiVal)
@@ -161,8 +161,8 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilTemp && station.SoilTemp[SoilTempSensor].HasValue)
 				bodyObj.Add("soiltempf", ConvertUnits.UserTempToF(station.SoilTemp[SoilTempSensor].Value));
 
-			if (SendSolar && station.SolarRad.HasValue)
-				bodyObj.Add("solarradiation", station.SolarRad);
+			if (SendSolar && Current.SolarRad.HasValue)
+				bodyObj.Add("solarradiation", Current.SolarRad);
 
 			if (Current.Temperature > Cumulus.DefaultHiVal)
 				bodyObj.Add("tempf", ConvertUnits.UserTempToF(Current.Temperature));

@@ -65,7 +65,7 @@ namespace CumulusMX.ThirdParty
 					message.Append('P');
 					// use today"s rain for safety
 					// 0900 day, use midnight calculation
-					message.Append(APRSrain(cumulus.RolloverHour == 0 ? station.RainToday : station.RainSinceMidnight));
+					message.Append(APRSrain(cumulus.RolloverHour == 0 ? Current.RainToday : station.RainSinceMidnight));
 					if ((!cumulus.APRS.HumidityCutoff) || (ConvertUnits.UserTempToC(Current.Temperature) >= -10) && Current.Humidity >= 0)
 					{
 						// humidity Hnn
@@ -76,9 +76,9 @@ namespace CumulusMX.ThirdParty
 					{
 						message.Append($"b{APRSpress(Current.AltimeterPressure)}");
 					}
-					if (cumulus.APRS.SendSolar && station.SolarRad.HasValue)
+					if (cumulus.APRS.SendSolar && Current.SolarRad.HasValue)
 					{
-						message.Append(APRSsolarradStr(Convert.ToInt32(station.SolarRad)));
+						message.Append(APRSsolarradStr(Convert.ToInt32(Current.SolarRad)));
 					}
 
 					// station type e<string>

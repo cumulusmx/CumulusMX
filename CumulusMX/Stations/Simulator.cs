@@ -124,7 +124,7 @@ namespace CumulusMX.Stations
 		private void doSolar(DateTime recDate)
 		{
 			// For the solar Program.RandGenerator walk we are chasing the theoretical solar max value
-			double solar = SolarRad ?? 0;
+			double solar = Current.SolarRad ?? 0;
 
 			// if we are starting up, set the intial solar rad value to 90% of theoretical
 			if (!solarIntialised)

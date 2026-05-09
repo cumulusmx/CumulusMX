@@ -173,8 +173,8 @@ namespace CumulusMX.ThirdParty
 				sb.Append("&bar=" + (int) Math.Round(ConvertUnits.UserPressToMB(Current.Pressure * 10)));
 
 			// rain
-			if (station.RainToday >= 0)
-				sb.Append("&rain=" + (int) Math.Round(ConvertUnits.UserRainToMM(station.RainToday) * 10));
+			if (Current.RainToday >= 0)
+				sb.Append("&rain=" + (int) Math.Round(ConvertUnits.UserRainToMM(Current.RainToday) * 10));
 			if (station.RainRate >= 0)
 				sb.Append("&rainrate=" + (int) Math.Round(ConvertUnits.UserRainToMM(station.RainRate) * 10));
 
@@ -185,9 +185,9 @@ namespace CumulusMX.ThirdParty
 			}
 
 			// solar
-			if (SendSolar && station.SolarRad.HasValue)
+			if (SendSolar && Current.SolarRad.HasValue)
 			{
-				sb.Append("&solarrad=" + station.SolarRad * 10);
+				sb.Append("&solarrad=" + Current.SolarRad * 10);
 			}
 
 			// uv

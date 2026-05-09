@@ -210,8 +210,8 @@ namespace CumulusMX.ThirdParty
 			if (SendUV && station.UV.HasValue)
 				URL.Append("&uv=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
 
-			if (SendSolar && station.SolarRad.HasValue)
-				URL.Append("&solarradiation=" + station.SolarRad);
+			if (SendSolar && Current.SolarRad.HasValue)
+				URL.Append("&solarradiation=" + Current.SolarRad);
 
 			URL.Append("&precip=" + WeatherStation.RainMMstr(station.RainLastHour));
 

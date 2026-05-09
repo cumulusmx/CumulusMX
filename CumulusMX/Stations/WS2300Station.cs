@@ -426,7 +426,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataEntry(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex, Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, rainrate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+				AddRecentDataEntry(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex, Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, rainrate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
 

@@ -113,15 +113,15 @@ namespace CumulusMX.ThirdParty
 			Data.Append("&rainin=" + WeatherStation.RainINstr(station.RainLastHour));
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
-			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? station.RainToday : station.RainSinceMidnight));
+			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? Current.RainToday : station.RainSinceMidnight));
 			if (Current.Pressure > 0)
 				Data.Append("&baromin=" + WeatherStation.PressINstr(Current.Pressure));
 			if (Current.Dewpoint > Cumulus.DefaultHiVal)
 				Data.Append("&dewptf=" + WeatherStation.TempFstr(Current.Dewpoint));
 			if (SendUV && station.UV.HasValue)
 				Data.Append("&UV=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture.NumberFormat));
-			if (SendSolar && station.SolarRad.HasValue)
-				Data.Append("&solarradiation=" + station.SolarRad);
+			if (SendSolar && Current.SolarRad.HasValue)
+				Data.Append("&solarradiation=" + Current.SolarRad);
 			if (SendSoilTemp && station.SoilTemp[SoilTempSensor].HasValue)
 				Data.Append("&soiltempf=" + WeatherStation.TempFstr(station.SoilTemp[SoilTempSensor].Value));
 			if (SendSoilMoisture && station.SoilMoisture[SoilMoistureSensor].HasValue && cumulus.Units.SoilMoistureUnitText[SoilMoistureSensor] == "%")

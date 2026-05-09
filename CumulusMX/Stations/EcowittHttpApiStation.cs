@@ -737,9 +737,9 @@ namespace CumulusMX.Stations
 				}
 
 				// add in archive period worth of sunshine, if sunny
-				if (CurrentSolarMax > 0 && SolarRad.HasValue &&
-				SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
-					SolarRad >= cumulus.SolarOptions.SolarMinimum &&
+				if (CurrentSolarMax > 0 && Current.SolarRad.HasValue &&
+				Current.SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
+					Current.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
 					SunshineHours += intervalMins / 60.0;
@@ -828,7 +828,7 @@ namespace CumulusMX.Stations
 				}
 
 				AddRecentDataWithAq(DataDateTime, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
-					Current.Humidity, Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+					Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(rec.Key.UtcFromUnixTime());
 				cumulus.AddToWebServiceLists(DataDateTime);
