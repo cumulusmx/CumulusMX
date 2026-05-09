@@ -252,9 +252,6 @@ namespace CumulusMX.Stations
 							var historyError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
 							cumulus.LogMessage($"API.GetHistoricData: Ecowitt API Historic Error: {historyError.code}, {historyError.msg}, Cumulus.LogLevel.Warning");
 							Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.msg}", ConsoleColor.Red);
-							var historyError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
-							cumulus.LogMessage($"API.GetHistoricData: Ecowitt API Historic Error: {historyError.code}, {historyError.msg}, Cumulus.LogLevel.Warning");
-							Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.msg}", ConsoleColor.Red);
 						cumulus.LastUpdateTime = endTime;
 						return false;
 					}

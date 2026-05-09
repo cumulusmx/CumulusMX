@@ -12,6 +12,7 @@ namespace CumulusMX.Stations
 		private readonly WeatherStation station;
 		private readonly EcowittApi ecowittApi;
 		private int maxArchiveRuns = 1;
+		private Task liveTask;
 		private readonly bool mainStation;
 		private readonly int stationIndex;
 		private string deviceModel;

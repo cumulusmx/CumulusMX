@@ -196,13 +196,13 @@ namespace CumulusMX
 						{
 							try
 							{
-								var localFile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
-								var remotefile = remotePath + StdWebFiles[i].RemoteFileName;
+								var localFile = StdWebFiles[i].LocalPath + StdWebFiles[i].FileName;
+								var remotefile = remotePath + StdWebFiles[i].FileName;
 								LogDebugMessage($"{msgPrefix} Uploading standard Data file: {localFile}");
 
 								string data;
 
-								if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+								if (StdWebFiles[i].FileName == "wxnow.txt")
 								{
 									data = station.CreateWxnowFileString();
 								}
@@ -216,9 +216,9 @@ namespace CumulusMX
 							}
 							catch (Exception e)
 							{
-								LogErrorMessage($"{msgPrefix} Error uploading standard data file [{StdWebFiles[i].RemoteFileName}]");
+								LogErrorMessage($"{msgPrefix} Error uploading standard data file [{StdWebFiles[i].FileName}]");
 								LogMessage($"{msgPrefix} Error = {e}");
-								FtpAlarm.LastMessage = $"Error uploading standard web file {StdWebFiles[i].RemoteFileName} - {e.Message}";
+								FtpAlarm.LastMessage = $"Error uploading standard web file {StdWebFiles[i].FileName} - {e.Message}";
 								FtpAlarm.Triggered = true;
 							}
 						}
@@ -228,14 +228,14 @@ namespace CumulusMX
 					{
 						if (GraphDataFiles[i].FTP && GraphDataFiles[i].FtpRequired)
 						{
-							var uploadfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
-							var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
+							var uploadfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].FileName;
+							var remotefile = remotePath + GraphDataFiles[i].FileName;
 
 							try
 							{
 								LogDebugMessage($"{msgPrefix} Uploading graph data file: {uploadfile}");
 
-								var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+								var json = station.CreateGraphDataJson(GraphDataFiles[i].FileName, false);
 
 								using var dataStream = GenerateStreamFromString(json);
 								if (UploadStream(conn, remotefile, dataStream, cycle1k))
@@ -261,13 +261,13 @@ namespace CumulusMX
 					{
 						if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
 						{
-							var uploadfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
-							var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+							var uploadfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].FileName;
+							var remotefile = remotePath + GraphDataEodFiles[i].FileName;
 							try
 							{
 								LogDebugMessage($"{msgPrefix} Uploading daily graph data file: {uploadfile}");
 
-								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+								var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
 
 								using var dataStream = GenerateStreamFromString(json);
 								if (UploadStream(conn, remotefile, dataStream, cycle1k))
@@ -496,12 +496,12 @@ namespace CumulusMX
 					{
 						try
 						{
-							var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].LocalFileName;
+							var localfile = StdWebFiles[i].LocalPath + StdWebFiles[i].FileName;
 							LogFtpDebugMessage($"{msgPrefix} Uploading standard Data file: {localfile}", false);
 
 							string data;
 
-							if (StdWebFiles[i].LocalFileName == "wxnow.txt")
+							if (StdWebFiles[i].FileName == "wxnow.txt")
 							{
 								data = station.CreateWxnowFileString();
 							}
@@ -512,7 +512,7 @@ namespace CumulusMX
 
 							using (var dataStream = GenerateStreamFromString(data))
 							{
-								UploadStream(conn, remotePath + StdWebFiles[i].RemoteFileName, dataStream, cycle1k);
+								UploadStream(conn, remotePath + StdWebFiles[i].FileName, dataStream, cycle1k);
 							}
 
 							// Uploaded OK, reset the upload required flag
@@ -520,8 +520,8 @@ namespace CumulusMX
 						}
 						catch (Exception e)
 						{
-							LogFtpMessage($"{msgPrefix} Error uploading file {StdWebFiles[i].RemoteFileName}: {e}", false);
-							FtpAlarm.LastMessage = $"Error uploading file {StdWebFiles[i].RemoteFileName} - {e.Message}";
+							LogFtpMessage($"{msgPrefix} Error uploading file {StdWebFiles[i].FileName}: {e}", false);
+							FtpAlarm.LastMessage = $"Error uploading file {StdWebFiles[i].FileName} - {e.Message}";
 							FtpAlarm.Triggered = true;
 						}
 					}
@@ -533,11 +533,11 @@ namespace CumulusMX
 					{
 						try
 						{
-							var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].LocalFileName;
-							var remotefile = remotePath + GraphDataFiles[i].RemoteFileName;
+							var localfile = GraphDataFiles[i].LocalPath + GraphDataFiles[i].FileName;
+							var remotefile = remotePath + GraphDataFiles[i].FileName;
 							LogFtpDebugMessage($"{msgPrefix} Uploading graph data file: {localfile}", false);
 
-							var json = station.CreateGraphDataJson(GraphDataFiles[i].LocalFileName, false);
+							var json = station.CreateGraphDataJson(GraphDataFiles[i].FileName, false);
 
 							using (var dataStream = GenerateStreamFromString(json))
 							{
@@ -552,9 +552,9 @@ namespace CumulusMX
 						}
 						catch (Exception e)
 						{
-							LogFtpMessage($"{msgPrefix} Error uploading graph data file [{GraphDataFiles[i].RemoteFileName}]", false);
+							LogFtpMessage($"{msgPrefix} Error uploading graph data file [{GraphDataFiles[i].FileName}]", false);
 							LogFtpMessage($"{msgPrefix} Error = {e}", false);
-							FtpAlarm.LastMessage = $"Error uploading file {GraphDataFiles[i].RemoteFileName} - {e.Message}";
+							FtpAlarm.LastMessage = $"Error uploading file {GraphDataFiles[i].FileName} - {e.Message}";
 							FtpAlarm.Triggered = true;
 						}
 					}
@@ -564,13 +564,13 @@ namespace CumulusMX
 				{
 					if (GraphDataEodFiles[i].FTP && GraphDataEodFiles[i].FtpRequired)
 					{
-						var localfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].LocalFileName;
-						var remotefile = remotePath + GraphDataEodFiles[i].RemoteFileName;
+						var localfile = GraphDataEodFiles[i].LocalPath + GraphDataEodFiles[i].FileName;
+						var remotefile = remotePath + GraphDataEodFiles[i].FileName;
 						try
 						{
 							LogFtpMessage($"{msgPrefix} Uploading daily graph data file: {localfile}", false);
 
-							var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].LocalFileName);
+							var json = station.CreateEodGraphDataJson(GraphDataEodFiles[i].FileName);
 
 							using var dataStream = GenerateStreamFromString(json);
 							if (UploadStream(conn, remotefile, dataStream, cycle1k))
@@ -581,9 +581,9 @@ namespace CumulusMX
 						}
 						catch (Exception e)
 						{
-							LogFtpMessage($"{msgPrefix} Error uploading daily graph data file [{GraphDataEodFiles[i].RemoteFileName}]", false);
+							LogFtpMessage($"{msgPrefix} Error uploading daily graph data file [{GraphDataEodFiles[i].FileName}]", false);
 							LogFtpMessage($"{msgPrefix} Error = {e}", false);
-							FtpAlarm.LastMessage = $"Error uploading file {GraphDataEodFiles[i].RemoteFileName} - {e.Message}";
+							FtpAlarm.LastMessage = $"Error uploading file {GraphDataEodFiles[i].FileName} - {e.Message}";
 							FtpAlarm.Triggered = true;
 						}
 					}
@@ -902,10 +902,10 @@ namespace CumulusMX
 #if DEBUG
 					if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
 					{
-						LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Standard Data file: {item.FileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 					}
 					uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-					LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					LogDebugMessage($"{msgPrefix} Standard Data file: {item.FileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -927,9 +927,9 @@ namespace CumulusMX
 							return false;
 
 						string data;
-						LogDebugMessage($"{msgPrefix} Uploading standard Data file: " + item.RemoteFileName);
+						LogDebugMessage($"{msgPrefix} Uploading standard Data file: " + item.FileName);
 
-						if (item.LocalFileName == "wxnow.txt")
+						if (item.FileName == "wxnow.txt")
 						{
 							data = station.CreateWxnowFileString();
 						}
@@ -938,7 +938,7 @@ namespace CumulusMX
 							data = await ProcessTemplateFile2StringAsync(item.TemplateFileName, true, true);
 						}
 
-						if (await UploadString(phpUploadHttpClient, false, string.Empty, data, item.RemoteFileName, cycle1k, false, true))
+						if (await UploadString(phpUploadHttpClient, false, string.Empty, data, item.FileName, cycle1k, false, true))
 						{
 							// No standard files are "one offs" at present
 							//StdWebFiles[i].FtpRequired = false
@@ -946,15 +946,15 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, $"{msgPrefix} Error uploading file {item.RemoteFileName}");
-						FtpAlarm.LastMessage = $"Error uploading file {item.RemoteFileName} - {ex.Message}";
+						LogExceptionMessage(ex, $"{msgPrefix} Error uploading file {item.FileName}");
+						FtpAlarm.LastMessage = $"Error uploading file {item.FileName} - {ex.Message}";
 						FtpAlarm.Triggered = true;
 					}
 					finally
 					{
 						uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-						LogDebugMessage($"{msgPrefix} Standard Data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Standard Data file: {item.FileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 					}
 
@@ -980,10 +980,10 @@ namespace CumulusMX
 #if DEBUG
 					if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
 					{
-						LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Graph data file: {item.FileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 					}
 					uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-					LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					LogDebugMessage($"{msgPrefix} Graph data file: {item.FileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -1005,13 +1005,13 @@ namespace CumulusMX
 							return false;
 
 						// we want incremental data for PHP
-						var json = station.CreateGraphDataJson(item.LocalFileName, item.Incremental);
-						var remotefile = item.RemoteFileName;
-						LogDebugMessage($"{msgPrefix} Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full file")}): {item.LocalFileName}");
+						var json = station.CreateGraphDataJson(item.FileName, item.Incremental);
+						var remotefile = item.FileName;
+						LogDebugMessage($"{msgPrefix} Uploading graph data file ({(item.Incremental ? $"incremental from {item.LastDataTime:s}" : "full file")}): {item.FileName}");
 
 						if (string.IsNullOrEmpty(json))
 						{
-							LogMessage($"{msgPrefix} Uploading to {item.LocalFileName}. No {(item.Incremental ? "incremental" : "")} data found, skipping this upload");
+							LogMessage($"{msgPrefix} Uploading to {item.FileName}. No {(item.Incremental ? "incremental" : "")} data found, skipping this upload");
 						}
 						else
 						{
@@ -1019,7 +1019,7 @@ namespace CumulusMX
 							{
 								// The config files only need uploading once per change
 								// 0=graphconfig, 1=availabledata, 8=dailyrain, 9=dailytemp, 11=sunhours
-								if (Array.Exists(configFiles, item.LocalFileName.Contains))
+								if (Array.Exists(configFiles, item.FileName.Contains))
 								{
 									item.FtpRequired = false;
 								}
@@ -1033,15 +1033,15 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, $"{msgPrefix} Error uploading graph data file [{item.RemoteFileName}]");
-						FtpAlarm.LastMessage = $"Error uploading graph data file [{item.RemoteFileName}] - {ex.Message}";
+						LogExceptionMessage(ex, $"{msgPrefix} Error uploading graph data file [{item.FileName}]");
+						FtpAlarm.LastMessage = $"Error uploading graph data file [{item.FileName}] - {ex.Message}";
 						FtpAlarm.Triggered = true;
 					}
 					finally
 					{
 						uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-						LogDebugMessage($"{msgPrefix} Graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Graph data file: {item.FileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 					}
 
@@ -1063,10 +1063,10 @@ namespace CumulusMX
 #if DEBUG
 					if (uploadCountLimitSemaphoreSlim.CurrentCount == 0)
 					{
-						LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Daily graph data file: {item.FileName} waiting for semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 					}
 					uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
-					LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+					LogDebugMessage($"{msgPrefix} Daily graph data file: {item.FileName} has a semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #else
 						uploadCountLimitSemaphoreSlim.Wait(Program.ExitSystemToken);
 #endif
@@ -1087,9 +1087,9 @@ namespace CumulusMX
 						if (Program.ExitSystemToken.IsCancellationRequested)
 							return false;
 
-						var remotefile = item.RemoteFileName;
-						LogMessage($"{msgPrefix} Uploading daily graph data file: " + item.LocalFileName);
-						var json = station.CreateEodGraphDataJson(item.LocalFileName);
+						var remotefile = item.FileName;
+						LogMessage($"{msgPrefix} Uploading daily graph data file: " + item.FileName);
+						var json = station.CreateEodGraphDataJson(item.FileName);
 
 						if (await UploadString(phpUploadHttpClient, false, "", json, remotefile, cycle1k, false, true))
 						{
@@ -1099,15 +1099,15 @@ namespace CumulusMX
 					}
 					catch (Exception ex)
 					{
-						LogExceptionMessage(ex, $"{msgPrefix} Error uploading daily graph data file [{item.RemoteFileName}]");
-						FtpAlarm.LastMessage = $"Error uploading daily graph data file [{item.RemoteFileName}] - {ex.Message}";
+						LogExceptionMessage(ex, $"{msgPrefix} Error uploading daily graph data file [{item.FileName}]");
+						FtpAlarm.LastMessage = $"Error uploading daily graph data file [{item.FileName}] - {ex.Message}";
 						FtpAlarm.Triggered = true;
 					}
 					finally
 					{
 						uploadCountLimitSemaphoreSlim.Release();
 #if DEBUG
-						LogDebugMessage($"{msgPrefix} Daily graph data file: {item.LocalFileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
+						LogDebugMessage($"{msgPrefix} Daily graph data file: {item.FileName} released semaphore [{uploadCountLimitSemaphoreSlim.CurrentCount}]");
 #endif
 					}
 

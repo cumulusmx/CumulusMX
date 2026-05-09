@@ -182,10 +182,6 @@ namespace CumulusMX
 			public DateTime HighBgtTime;
 			public double HighWbgt;
 			public DateTime HighWbgtTime;
-			public double HighBgt;
-			public DateTime HighBgtTime;
-			public double HighWbgt;
-			public DateTime HighWbgtTime;
 		};
 
 		// today highs and lows
@@ -15686,19 +15682,26 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 		{
 			get
 			{
-				// probably faster without reflection:
-				// like:  return Properties.Settings.Default.PropertyValues[propertyName]
-				// instead of the following
-				var myType = typeof(AllTimeRecords);
-				var myPropInfo = myType.GetProperty(propertyName);
-				return (AllTimeRec) myPropInfo.GetValue(this, null);
+				// probably faster without reflection
+				var info = PropertyInfoByName(propertyName);
+				return (AllTimeRec) info.GetValue(this, null);
 			}
 			set
 			{
-				var myType = typeof(AllTimeRecords);
-				var myPropInfo = myType.GetProperty(propertyName);
-				myPropInfo.SetValue(this, value, null);
+				var info = PropertyInfoByName(propertyName);
+				info.SetValue(this, value, null);
 			}
+		}
+
+		private PropertyInfo PropertyInfoByName(string name)
+		{
+			var type = this.GetType();
+			var info = type.GetProperty(name);
+			if (info == null)
+			{
+				throw new Exception(String.Format("A property called {0} can't be accessed for type {1}", name, type.FullName));
+			}
+			return info;
 		}
 
 		public AllTimeRec HighTemp { get; set; } = new AllTimeRec(0);

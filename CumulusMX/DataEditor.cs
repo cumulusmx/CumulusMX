@@ -286,8 +286,6 @@ namespace CumulusMX
 				lowDailyTempRangeVal = station.AllTime.LowDailyTempRange.GetValString(cumulus.TempFormat),
 				highBgtVal = station.AllTime.HighBgt.GetValString(cumulus.TempFormat),
 				highWbgtVal = station.AllTime.HighWbgt.GetValString(cumulus.TempFormat),
-				highBgtVal = station.AllTime.HighBgt.GetValString(cumulus.TempFormat),
-				highWbgtVal = station.AllTime.HighWbgt.GetValString(cumulus.TempFormat),
 				// Records - Temperature timestamps
 				highTempTime = station.AllTime.HighTemp.GetTsString(timeStampFormat),
 				lowTempTime = station.AllTime.LowTemp.GetTsString(timeStampFormat),
@@ -3658,7 +3656,6 @@ namespace CumulusMX
 								var LogRec = new LogFileRec(newLine);
 
 								var updt = new StringBuilder(1024);
-								var sep = ',';
 								var sep = ',';
 
 

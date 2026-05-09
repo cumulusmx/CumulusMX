@@ -1149,9 +1149,9 @@ namespace CumulusMX
 			}
 			for (var i = 0; i < StdWebFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + StdWebFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + StdWebFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + StdWebFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + StdWebFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + StdWebFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + StdWebFiles[i].FileName.Split('.')[0];
 				StdWebFiles[i].Create = ini.GetValue("FTP site", keyNameCreate, IncludeStandardFiles);
 				StdWebFiles[i].FTP = ini.GetValue("FTP site", keyNameFTP, IncludeStandardFiles);
 				StdWebFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeStandardFiles);
@@ -1164,18 +1164,18 @@ namespace CumulusMX
 			}
 			for (var i = 0; i < GraphDataFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + GraphDataFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + GraphDataFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataFiles[i].FileName.Split('.')[0];
 				GraphDataFiles[i].Create = ini.GetValue("FTP site", keyNameCreate, IncludeGraphDataFiles);
 				GraphDataFiles[i].FTP = ini.GetValue("FTP site", keyNameFTP, IncludeGraphDataFiles);
 				GraphDataFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeGraphDataFiles);
 			}
 			for (var i = 0; i < GraphDataEodFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + GraphDataEodFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + GraphDataEodFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataEodFiles[i].FileName.Split('.')[0];
 				GraphDataEodFiles[i].Create = ini.GetValue("FTP site", keyNameCreate, IncludeGraphDataFiles);
 				GraphDataEodFiles[i].FTP = ini.GetValue("FTP site", keyNameFTP, IncludeGraphDataFiles);
 				GraphDataEodFiles[i].Copy = ini.GetValue("FTP site", keyNameCopy, IncludeGraphDataFiles);
@@ -3108,9 +3108,9 @@ namespace CumulusMX
 			ini.SetValue("FTP site", "UpdateInterval", UpdateInterval);
 			for (var i = 0; i < StdWebFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + StdWebFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + StdWebFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + StdWebFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + StdWebFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + StdWebFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + StdWebFiles[i].FileName.Split('.')[0];
 				ini.SetValue("FTP site", keyNameCreate, StdWebFiles[i].Create);
 				ini.SetValue("FTP site", keyNameFTP, StdWebFiles[i].FTP);
 				ini.SetValue("FTP site", keyNameCopy, StdWebFiles[i].Copy);
@@ -3118,9 +3118,9 @@ namespace CumulusMX
 
 			for (var i = 0; i < GraphDataFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + GraphDataFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + GraphDataFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + GraphDataFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataFiles[i].FileName.Split('.')[0];
 				ini.SetValue("FTP site", keyNameCreate, GraphDataFiles[i].Create);
 				ini.SetValue("FTP site", keyNameFTP, GraphDataFiles[i].FTP);
 				ini.SetValue("FTP site", keyNameCopy, GraphDataFiles[i].Copy);
@@ -3128,9 +3128,9 @@ namespace CumulusMX
 
 			for (var i = 0; i < GraphDataEodFiles.Length; i++)
 			{
-				var keyNameCreate = "Create-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
-				var keyNameFTP = "Ftp-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
-				var keyNameCopy = "Copy-" + GraphDataEodFiles[i].LocalFileName.Split('.')[0];
+				var keyNameCreate = "Create-" + GraphDataEodFiles[i].FileName.Split('.')[0];
+				var keyNameFTP = "Ftp-" + GraphDataEodFiles[i].FileName.Split('.')[0];
+				var keyNameCopy = "Copy-" + GraphDataEodFiles[i].FileName.Split('.')[0];
 				ini.SetValue("FTP site", keyNameCreate, GraphDataEodFiles[i].Create);
 				ini.SetValue("FTP site", keyNameFTP, GraphDataEodFiles[i].FTP);
 				ini.SetValue("FTP site", keyNameCopy, GraphDataEodFiles[i].Copy);
