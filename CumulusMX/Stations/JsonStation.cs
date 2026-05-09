@@ -953,7 +953,6 @@ namespace CumulusMX.Stations
 				}
 			}
 
-
 			// Do derived values after the primary values
 
 			if (mainStation)

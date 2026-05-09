@@ -249,9 +249,9 @@ namespace CumulusMX.Stations
 
 					if (responseCode != 200)
 					{
-							var historyError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
-							cumulus.LogMessage($"API.GetHistoricData: Ecowitt API Historic Error: {historyError.code}, {historyError.msg}, Cumulus.LogLevel.Warning");
-							Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.msg}", ConsoleColor.Red);
+						var historyError = JsonSerializer.Deserialize<ErrorResp>(responseBody, jsonOptions);
+						cumulus.LogMessage($"API.GetHistoricData: Ecowitt API Historic Error: {historyError.code}, {historyError.msg}, Cumulus.LogLevel.Warning");
+						Cumulus.LogConsoleMessage($" - Error {historyError.code}: {historyError.msg}", ConsoleColor.Red);
 						cumulus.LastUpdateTime = endTime;
 						return false;
 					}
@@ -2771,7 +2771,7 @@ namespace CumulusMX.Stations
 					}
 
 
-					cumulus.LogDebugMessage($"EcowittCloud: Last data update {dataTime:s}");
+					cumulus.LogDebugMessage($"EcowittCloud: Last data update {dataTime.ToCmxLogFormat()}");
 
 					if (dataTime.ToUniversalTime() != LastCurrentDataTime)
 					{

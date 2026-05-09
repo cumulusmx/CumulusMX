@@ -26,6 +26,11 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Spelling errors of "minimum" in three historic temperature data series
 - Updating MySQL when editing monthly log file entries
 - Main station not starting correctly when using Ecowitt Cloud station for Extra Sensors
+- Add missing rollover processing for BGT/WBGT high values
+- Add BGT/WBGT to all time record detection
+- Add new web tags for BGT/WBGT all-time record set<br>
+`<#HighBgtRecordSet> <#HighWbgtRecordSet>`
+
 
 
 ## [5.1.0 \[b5006\]][31] - 2026-05-07
@@ -145,7 +150,6 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 - Some third party uploads switched from HTTP to HTTPS - AWEKAS, PWS, WindGuru
 - The charts in the dashboard and default web site now display tooltip numbers in the station locale format
-- Improvements to Chart accessibility on the Dashboard
 - Improvements to Chart accessibility on the Dashboard
 
 ### Fixed

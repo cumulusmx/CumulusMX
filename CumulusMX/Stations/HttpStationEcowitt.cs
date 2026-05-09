@@ -899,6 +899,9 @@ namespace CumulusMX.Stations
 					// pm10_24h_co2
 					// co2
 					// co2_24h
+					// -- built-in sensor
+					// co2in
+					// co2in_24h
 					ProcessCo2(data, thisStation);
 				}
 				catch (Exception ex)

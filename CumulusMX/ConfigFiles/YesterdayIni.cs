@@ -86,6 +86,12 @@ namespace CumulusMX
 			// Humidex
 			HiLoYest.HighHumidex = ini.GetValue("Humidex", "High", 0.0);
 			HiLoYest.HighHumidexTime = ini.GetValue("Humidex", "HTime", DateTime.MinValue);
+			// BGT
+			HiLoYest.HighBgt = ini.GetValue("BGT", "High", 0.0);
+			HiLoYest.HighBgtTime = ini.GetValue("BGT", "HTime", DateTime.MinValue);
+			// WBGT
+			HiLoYest.HighWbgt = ini.GetValue("WBGT", "High", 0.0);
+			HiLoYest.HighWbgtTime = ini.GetValue("WBGT", "HTime", DateTime.MinValue);
 		}
 
 		public void WriteYesterdayFile(DateTime logdate)

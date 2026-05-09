@@ -25,7 +25,6 @@ using Microsoft.Extensions.Logging;
 
 using NLog;
 using NLog.Extensions.Logging;
-using NLog.Targets;
 
 using SQLite;
 
@@ -8695,6 +8694,18 @@ namespace CumulusMX
 				// Lightning
 				LightningStrikesToday = 0;
 
+				// BGT
+				HiLoYest.HighBgt = HiLoToday.HighBgt;
+				HiLoYest.HighBgtTime = HiLoToday.HighBgtTime;
+				HiLoToday.HighBgt = BlackGlobeTemp ?? Cumulus.DefaultHiVal;
+				HiLoToday.HighBgtTime = timestamp;
+
+				// WBGT
+				HiLoYest.HighWbgt = HiLoToday.HighWbgt;
+				HiLoYest.HighWbgtTime = HiLoToday.HighWbgtTime;
+				HiLoToday.HighWbgt = WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
+				HiLoToday.HighWbgtTime = timestamp;
+
 				// Save the current values in case of program restart
 				WriteTodayFile(timestamp, true);
 				WriteYesterdayFile(timestamp);
@@ -9714,7 +9725,7 @@ namespace CumulusMX
 
 		public void LoadLastHoursFromDataLogs(DateTime ts)
 		{
-			cumulus.LogMessage("Loading last N hour data from data logs: " + ts);
+			cumulus.LogMessage("Loading last N hour data from data logs: " + ts.ToCmxLogFormat());
 			LoadRecentFromDataLogs(ts);
 			LoadRecentAqFromDataLogs(ts);
 			LoadRecentAqFromDataLogsNew(ts);
@@ -10471,7 +10482,6 @@ namespace CumulusMX
 			if (index > 0 && index < SoilEc.Length)
 				SoilEc[index] = value;
 		}
-
 
 		public void DoAirQuality(double? value, int index)
 		{
@@ -15693,7 +15703,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			}
 		}
 
-		private PropertyInfo PropertyInfoByName(string name)
+		private System.Reflection.PropertyInfo PropertyInfoByName(string name)
 		{
 			var type = this.GetType();
 			var info = type.GetProperty(name);

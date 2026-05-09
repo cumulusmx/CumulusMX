@@ -147,5 +147,10 @@ namespace CumulusMX
 				return dateTime;
 			}
 		}
+
+		public static string ToCmxLogFormat(this DateTime dateTime)
+		{
+			return dateTime.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+		}
 	}
 }
