@@ -9,89 +9,89 @@ namespace CumulusMX
 			var ini = new IniFile(cumulus.YesterdayFile);
 
 			// Wind
-			HiLoYest.HighWind = ini.GetValue("Wind", "Speed", 0.0);
-			HiLoYest.HighWindTime = ini.GetValue("Wind", "SpTime", DateTime.MinValue);
-			HiLoYest.HighGust = ini.GetValue("Wind", "Gust", 0.0);
-			HiLoYest.HighGustTime = ini.GetValue("Wind", "Time", DateTime.MinValue);
-			HiLoYest.HighGustBearing = ini.GetValue("Wind", "Bearing", 0);
+			DailyHighLow.Yest.HighWind = ini.GetValue("Wind", "Speed", 0.0);
+			DailyHighLow.Yest.HighWindTime = ini.GetValue("Wind", "SpTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighGust = ini.GetValue("Wind", "Gust", 0.0);
+			DailyHighLow.Yest.HighGustTime = ini.GetValue("Wind", "Time", DateTime.MinValue);
+			DailyHighLow.Yest.HighGustBearing = ini.GetValue("Wind", "Bearing", 0);
 
 			YesterdayWindRun = ini.GetValue("Wind", "Windrun", 0.0);
 			YestDominantWindBearing = ini.GetValue("Wind", "DominantWindBearing", 0);
 			// Temperature
-			HiLoYest.LowTemp = ini.GetValue("Temp", "Low", 0.0);
-			HiLoYest.LowTempTime = ini.GetValue("Temp", "LTime", DateTime.MinValue);
-			HiLoYest.HighTemp = ini.GetValue("Temp", "High", 0.0);
-			HiLoYest.HighTempTime = ini.GetValue("Temp", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest.LowTemp = ini.GetValue("Temp", "Low", 0.0);
+			DailyHighLow.Yest.LowTempTime = ini.GetValue("Temp", "LTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighTemp = ini.GetValue("Temp", "High", 0.0);
+			DailyHighLow.Yest.HighTempTime = ini.GetValue("Temp", "HTime", DateTime.MinValue);
 			YestChillHours = ini.GetValue("Temp", "ChillHours", -1.0);
 			YestHeatingDegreeDays = ini.GetValue("Temp", "HeatingDegreeDays", 0.0);
 			YestCoolingDegreeDays = ini.GetValue("Temp", "CoolingDegreeDays", 0.0);
 			YestAvgTemp = ini.GetValue("Temp", "AvgTemp", 0.0);
-			HiLoYest.TempRange = HiLoYest.HighTemp - HiLoYest.LowTemp;
+			DailyHighLow.Yest.TempRange = DailyHighLow.Yest.HighTemp - DailyHighLow.Yest.LowTemp;
 			// Temperature midnight
-			HiLoYestMidnight.LowTemp = ini.GetValue("TempMidnight", "Low", 0.0);
-			HiLoYestMidnight.LowTempTime = ini.GetValue("TempMidnight", "LTime", DateTime.MinValue);
-			HiLoYestMidnight.HighTemp = ini.GetValue("TempMidnight", "High", 0.0);
-			HiLoYestMidnight.HighTempTime = ini.GetValue("TempMidnight", "HTime", DateTime.MinValue);
+			DailyHighLow.YestMidnight.LowTemp = ini.GetValue("TempMidnight", "Low", 0.0);
+			DailyHighLow.YestMidnight.LowTempTime = ini.GetValue("TempMidnight", "LTime", DateTime.MinValue);
+			DailyHighLow.YestMidnight.HighTemp = ini.GetValue("TempMidnight", "High", 0.0);
+			DailyHighLow.YestMidnight.HighTempTime = ini.GetValue("TempMidnight", "HTime", DateTime.MinValue);
 			// Temperature 9am
-			HiLoYest9am.LowTemp = ini.GetValue("Temp9am", "Low", 0.0);
-			HiLoYest9am.LowTempTime = ini.GetValue("Temp9am", "LTime", DateTime.MinValue);
-			HiLoYest9am.HighTemp = ini.GetValue("Temp9am", "High", 0.0);
-			HiLoYest9am.HighTempTime = ini.GetValue("Temp9am", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest9am.LowTemp = ini.GetValue("Temp9am", "Low", 0.0);
+			DailyHighLow.Yest9am.LowTempTime = ini.GetValue("Temp9am", "LTime", DateTime.MinValue);
+			DailyHighLow.Yest9am.HighTemp = ini.GetValue("Temp9am", "High", 0.0);
+			DailyHighLow.Yest9am.HighTempTime = ini.GetValue("Temp9am", "HTime", DateTime.MinValue);
 			// Pressure
-			HiLoYest.LowPress = ini.GetValue("Pressure", "Low", 0.0);
-			HiLoYest.LowPressTime = ini.GetValue("Pressure", "LTime", DateTime.MinValue);
-			HiLoYest.HighPress = ini.GetValue("Pressure", "High", 0.0);
-			HiLoYest.HighPressTime = ini.GetValue("Pressure", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest.LowPress = ini.GetValue("Pressure", "Low", 0.0);
+			DailyHighLow.Yest.LowPressTime = ini.GetValue("Pressure", "LTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighPress = ini.GetValue("Pressure", "High", 0.0);
+			DailyHighLow.Yest.HighPressTime = ini.GetValue("Pressure", "HTime", DateTime.MinValue);
 			// rain
-			HiLoYest.HighRainRate = ini.GetValue("Rain", "High", 0.0);
-			HiLoYest.HighRainRateTime = ini.GetValue("Rain", "HTime", DateTime.MinValue);
-			HiLoYest.HighHourlyRain = ini.GetValue("Rain", "HourlyHigh", 0.0);
-			HiLoYest.HighHourlyRainTime = ini.GetValue("Rain", "HHourlyTime", DateTime.MinValue);
-			HiLoYest.HighRain24h = ini.GetValue("Rain", "High24h", 0.0);
-			HiLoYest.HighRain24hTime = ini.GetValue("Rain", "High24hTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighRainRate = ini.GetValue("Rain", "High", 0.0);
+			DailyHighLow.Yest.HighRainRateTime = ini.GetValue("Rain", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighHourlyRain = ini.GetValue("Rain", "HourlyHigh", 0.0);
+			DailyHighLow.Yest.HighHourlyRainTime = ini.GetValue("Rain", "HHourlyTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighRain24h = ini.GetValue("Rain", "High24h", 0.0);
+			DailyHighLow.Yest.HighRain24hTime = ini.GetValue("Rain", "High24hTime", DateTime.MinValue);
 			RG11RainYesterday = ini.GetValue("Rain", "RG11Yesterday", 0.0);
 			// humidity
-			HiLoYest.LowHumidity = ini.GetValue("Humidity", "Low", 0);
-			HiLoYest.HighHumidity = ini.GetValue("Humidity", "High", 0);
-			HiLoYest.LowHumidityTime = ini.GetValue("Humidity", "LTime", DateTime.MinValue);
-			HiLoYest.HighHumidityTime = ini.GetValue("Humidity", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest.LowHumidity = ini.GetValue("Humidity", "Low", 0);
+			DailyHighLow.Yest.HighHumidity = ini.GetValue("Humidity", "High", 0);
+			DailyHighLow.Yest.LowHumidityTime = ini.GetValue("Humidity", "LTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighHumidityTime = ini.GetValue("Humidity", "HTime", DateTime.MinValue);
 			// Solar
 			YestSunshineHours = ini.GetValue("Solar", "SunshineHours", 0.0);
 			// heat index
-			HiLoYest.HighHeatIndex = ini.GetValue("HeatIndex", "High", 0.0);
-			HiLoYest.HighHeatIndexTime = ini.GetValue("HeatIndex", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighHeatIndex = ini.GetValue("HeatIndex", "High", 0.0);
+			DailyHighLow.Yest.HighHeatIndexTime = ini.GetValue("HeatIndex", "HTime", DateTime.MinValue);
 			// App temp
-			HiLoYest.LowAppTemp = ini.GetValue("AppTemp", "Low", 0.0);
-			HiLoYest.LowAppTempTime = ini.GetValue("AppTemp", "LTime", DateTime.MinValue);
-			HiLoYest.HighAppTemp = ini.GetValue("AppTemp", "High", 0.0);
-			HiLoYest.HighAppTempTime = ini.GetValue("AppTemp", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest.LowAppTemp = ini.GetValue("AppTemp", "Low", 0.0);
+			DailyHighLow.Yest.LowAppTempTime = ini.GetValue("AppTemp", "LTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighAppTemp = ini.GetValue("AppTemp", "High", 0.0);
+			DailyHighLow.Yest.HighAppTempTime = ini.GetValue("AppTemp", "HTime", DateTime.MinValue);
 			// wind chill
-			HiLoYest.LowWindChill = ini.GetValue("WindChill", "Low", 0.0);
-			HiLoYest.LowWindChillTime = ini.GetValue("WindChill", "LTime", DateTime.MinValue);
+			DailyHighLow.Yest.LowWindChill = ini.GetValue("WindChill", "Low", 0.0);
+			DailyHighLow.Yest.LowWindChillTime = ini.GetValue("WindChill", "LTime", DateTime.MinValue);
 			// Dewpoint
-			HiLoYest.LowDewPoint = ini.GetValue("Dewpoint", "Low", 0.0);
-			HiLoYest.LowDewPointTime = ini.GetValue("Dewpoint", "LTime", DateTime.MinValue);
-			HiLoYest.HighDewPoint = ini.GetValue("Dewpoint", "High", 0.0);
-			HiLoYest.HighDewPointTime = ini.GetValue("Dewpoint", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest.LowDewPoint = ini.GetValue("Dewpoint", "Low", 0.0);
+			DailyHighLow.Yest.LowDewPointTime = ini.GetValue("Dewpoint", "LTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighDewPoint = ini.GetValue("Dewpoint", "High", 0.0);
+			DailyHighLow.Yest.HighDewPointTime = ini.GetValue("Dewpoint", "HTime", DateTime.MinValue);
 			// Solar
-			HiLoYest.HighSolar = ini.GetValue("Solar", "HighSolarRad", 0);
-			HiLoYest.HighSolarTime = ini.GetValue("Solar", "HighSolarRadTime", DateTime.MinValue);
-			HiLoYest.HighUv = ini.GetValue("Solar", "HighUV", 0.0);
-			HiLoYest.HighUvTime = ini.GetValue("Solar", "HighUVTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighSolar = ini.GetValue("Solar", "HighSolarRad", 0);
+			DailyHighLow.Yest.HighSolarTime = ini.GetValue("Solar", "HighSolarRadTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighUv = ini.GetValue("Solar", "HighUV", 0.0);
+			DailyHighLow.Yest.HighUvTime = ini.GetValue("Solar", "HighUVTime", DateTime.MinValue);
 			// Feels like
-			HiLoYest.LowFeelsLike = ini.GetValue("FeelsLike", "Low", 0.0);
-			HiLoYest.LowFeelsLikeTime = ini.GetValue("FeelsLike", "LTime", DateTime.MinValue);
-			HiLoYest.HighFeelsLike = ini.GetValue("FeelsLike", "High", 0.0);
-			HiLoYest.HighFeelsLikeTime = ini.GetValue("FeelsLike", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest.LowFeelsLike = ini.GetValue("FeelsLike", "Low", 0.0);
+			DailyHighLow.Yest.LowFeelsLikeTime = ini.GetValue("FeelsLike", "LTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighFeelsLike = ini.GetValue("FeelsLike", "High", 0.0);
+			DailyHighLow.Yest.HighFeelsLikeTime = ini.GetValue("FeelsLike", "HTime", DateTime.MinValue);
 			// Humidex
-			HiLoYest.HighHumidex = ini.GetValue("Humidex", "High", 0.0);
-			HiLoYest.HighHumidexTime = ini.GetValue("Humidex", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighHumidex = ini.GetValue("Humidex", "High", 0.0);
+			DailyHighLow.Yest.HighHumidexTime = ini.GetValue("Humidex", "HTime", DateTime.MinValue);
 			// BGT
-			HiLoYest.HighBgt = ini.GetValue("BGT", "High", 0.0);
-			HiLoYest.HighBgtTime = ini.GetValue("BGT", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighBgt = ini.GetValue("BGT", "High", 0.0);
+			DailyHighLow.Yest.HighBgtTime = ini.GetValue("BGT", "HTime", DateTime.MinValue);
 			// WBGT
-			HiLoYest.HighWbgt = ini.GetValue("WBGT", "High", 0.0);
-			HiLoYest.HighWbgtTime = ini.GetValue("WBGT", "HTime", DateTime.MinValue);
+			DailyHighLow.Yest.HighWbgt = ini.GetValue("WBGT", "High", 0.0);
+			DailyHighLow.Yest.HighWbgtTime = ini.GetValue("WBGT", "HTime", DateTime.MinValue);
 		}
 
 		public void WriteYesterdayFile(DateTime logdate)
@@ -102,82 +102,82 @@ namespace CumulusMX
 
 			ini.SetValue("General", "Date", cumulus.MeteoDate(logdate));
 			// Wind
-			ini.SetValue("Wind", "Speed", HiLoYest.HighWind);
-			ini.SetValue("Wind", "SpTime", HiLoYest.HighWindTime);
-			ini.SetValue("Wind", "Gust", HiLoYest.HighGust);
-			ini.SetValue("Wind", "Time", HiLoYest.HighGustTime);
-			ini.SetValue("Wind", "Bearing", HiLoYest.HighGustBearing);
-			ini.SetValue("Wind", "Direction", CompassPoint(HiLoYest.HighGustBearing));
+			ini.SetValue("Wind", "Speed", DailyHighLow.Yest.HighWind);
+			ini.SetValue("Wind", "SpTime", DailyHighLow.Yest.HighWindTime);
+			ini.SetValue("Wind", "Gust", DailyHighLow.Yest.HighGust);
+			ini.SetValue("Wind", "Time", DailyHighLow.Yest.HighGustTime);
+			ini.SetValue("Wind", "Bearing", DailyHighLow.Yest.HighGustBearing);
+			ini.SetValue("Wind", "Direction", CompassPoint(DailyHighLow.Yest.HighGustBearing));
 			ini.SetValue("Wind", "Windrun", YesterdayWindRun);
 			ini.SetValue("Wind", "DominantWindBearing", YestDominantWindBearing);
 			// Temperature
-			ini.SetValue("Temp", "Low", HiLoYest.LowTemp);
-			ini.SetValue("Temp", "LTime", HiLoYest.LowTempTime);
-			ini.SetValue("Temp", "High", HiLoYest.HighTemp);
-			ini.SetValue("Temp", "HTime", HiLoYest.HighTempTime);
+			ini.SetValue("Temp", "Low", DailyHighLow.Yest.LowTemp);
+			ini.SetValue("Temp", "LTime", DailyHighLow.Yest.LowTempTime);
+			ini.SetValue("Temp", "High", DailyHighLow.Yest.HighTemp);
+			ini.SetValue("Temp", "HTime", DailyHighLow.Yest.HighTempTime);
 			ini.SetValue("Temp", "ChillHours", YestChillHours);
 			ini.SetValue("Temp", "HeatingDegreeDays", YestHeatingDegreeDays);
 			ini.SetValue("Temp", "CoolingDegreeDays", YestCoolingDegreeDays);
 			ini.SetValue("Temp", "AvgTemp", YestAvgTemp);
 			// Temperature midnight
-			ini.SetValue("TempMidnight", "Low", HiLoYestMidnight.LowTemp);
-			ini.SetValue("TempMidnight", "LTime", HiLoYestMidnight.LowTempTime);
-			ini.SetValue("TempMidnight", "High", HiLoYestMidnight.HighTemp);
-			ini.SetValue("TempMidnight", "HTime", HiLoYestMidnight.HighTempTime);
+			ini.SetValue("TempMidnight", "Low", DailyHighLow.YestMidnight.LowTemp);
+			ini.SetValue("TempMidnight", "LTime", DailyHighLow.YestMidnight.LowTempTime);
+			ini.SetValue("TempMidnight", "High", DailyHighLow.YestMidnight.HighTemp);
+			ini.SetValue("TempMidnight", "HTime", DailyHighLow.YestMidnight.HighTempTime);
 			// Temperature 9am
-			ini.SetValue("Temp9am", "Low", HiLoYest9am.LowTemp);
-			ini.SetValue("Temp9am", "LTime", HiLoYest9am.LowTempTime);
-			ini.SetValue("Temp9am", "High", HiLoYest9am.HighTemp);
-			ini.SetValue("Temp9am", "HTime", HiLoYest9am.HighTempTime);
+			ini.SetValue("Temp9am", "Low", DailyHighLow.Yest9am.LowTemp);
+			ini.SetValue("Temp9am", "LTime", DailyHighLow.Yest9am.LowTempTime);
+			ini.SetValue("Temp9am", "High", DailyHighLow.Yest9am.HighTemp);
+			ini.SetValue("Temp9am", "HTime", DailyHighLow.Yest9am.HighTempTime);
 			// Pressure
-			ini.SetValue("Pressure", "Low", HiLoYest.LowPress);
-			ini.SetValue("Pressure", "LTime", HiLoYest.LowPressTime);
-			ini.SetValue("Pressure", "High", HiLoYest.HighPress);
-			ini.SetValue("Pressure", "HTime", HiLoYest.HighPressTime);
+			ini.SetValue("Pressure", "Low", DailyHighLow.Yest.LowPress);
+			ini.SetValue("Pressure", "LTime", DailyHighLow.Yest.LowPressTime);
+			ini.SetValue("Pressure", "High", DailyHighLow.Yest.HighPress);
+			ini.SetValue("Pressure", "HTime", DailyHighLow.Yest.HighPressTime);
 			// rain
-			ini.SetValue("Rain", "High", HiLoYest.HighRainRate);
-			ini.SetValue("Rain", "HTime", HiLoYest.HighRainRateTime);
-			ini.SetValue("Rain", "HourlyHigh", HiLoYest.HighHourlyRain);
-			ini.SetValue("Rain", "HHourlyTime", HiLoYest.HighHourlyRainTime);
-			ini.SetValue("Rain", "High24h", HiLoYest.HighRain24h);
-			ini.SetValue("Rain", "High24hTime", HiLoYest.HighRain24hTime);
+			ini.SetValue("Rain", "High", DailyHighLow.Yest.HighRainRate);
+			ini.SetValue("Rain", "HTime", DailyHighLow.Yest.HighRainRateTime);
+			ini.SetValue("Rain", "HourlyHigh", DailyHighLow.Yest.HighHourlyRain);
+			ini.SetValue("Rain", "HHourlyTime", DailyHighLow.Yest.HighHourlyRainTime);
+			ini.SetValue("Rain", "High24h", DailyHighLow.Yest.HighRain24h);
+			ini.SetValue("Rain", "High24hTime", DailyHighLow.Yest.HighRain24hTime);
 			ini.SetValue("Rain", "RG11Yesterday", RG11RainYesterday);
 			// humidity
-			ini.SetValue("Humidity", "Low", HiLoYest.LowHumidity);
-			ini.SetValue("Humidity", "High", HiLoYest.HighHumidity);
-			ini.SetValue("Humidity", "LTime", HiLoYest.LowHumidityTime);
-			ini.SetValue("Humidity", "HTime", HiLoYest.HighHumidityTime);
+			ini.SetValue("Humidity", "Low", DailyHighLow.Yest.LowHumidity);
+			ini.SetValue("Humidity", "High", DailyHighLow.Yest.HighHumidity);
+			ini.SetValue("Humidity", "LTime", DailyHighLow.Yest.LowHumidityTime);
+			ini.SetValue("Humidity", "HTime", DailyHighLow.Yest.HighHumidityTime);
 			// Solar
 			ini.SetValue("Solar", "SunshineHours", YestSunshineHours);
 			// heat index
-			ini.SetValue("HeatIndex", "High", HiLoYest.HighHeatIndex);
-			ini.SetValue("HeatIndex", "HTime", HiLoYest.HighHeatIndexTime);
+			ini.SetValue("HeatIndex", "High", DailyHighLow.Yest.HighHeatIndex);
+			ini.SetValue("HeatIndex", "HTime", DailyHighLow.Yest.HighHeatIndexTime);
 			// App temp
-			ini.SetValue("AppTemp", "Low", HiLoYest.LowAppTemp);
-			ini.SetValue("AppTemp", "LTime", HiLoYest.LowAppTempTime);
-			ini.SetValue("AppTemp", "High", HiLoYest.HighAppTemp);
-			ini.SetValue("AppTemp", "HTime", HiLoYest.HighAppTempTime);
+			ini.SetValue("AppTemp", "Low", DailyHighLow.Yest.LowAppTemp);
+			ini.SetValue("AppTemp", "LTime", DailyHighLow.Yest.LowAppTempTime);
+			ini.SetValue("AppTemp", "High", DailyHighLow.Yest.HighAppTemp);
+			ini.SetValue("AppTemp", "HTime", DailyHighLow.Yest.HighAppTempTime);
 			// wind chill
-			ini.SetValue("WindChill", "Low", HiLoYest.LowWindChill);
-			ini.SetValue("WindChill", "LTime", HiLoYest.LowWindChillTime);
+			ini.SetValue("WindChill", "Low", DailyHighLow.Yest.LowWindChill);
+			ini.SetValue("WindChill", "LTime", DailyHighLow.Yest.LowWindChillTime);
 			// Dewpoint
-			ini.SetValue("Dewpoint", "Low", HiLoYest.LowDewPoint);
-			ini.SetValue("Dewpoint", "LTime", HiLoYest.LowDewPointTime);
-			ini.SetValue("Dewpoint", "High", HiLoYest.HighDewPoint);
-			ini.SetValue("Dewpoint", "HTime", HiLoYest.HighDewPointTime);
+			ini.SetValue("Dewpoint", "Low", DailyHighLow.Yest.LowDewPoint);
+			ini.SetValue("Dewpoint", "LTime", DailyHighLow.Yest.LowDewPointTime);
+			ini.SetValue("Dewpoint", "High", DailyHighLow.Yest.HighDewPoint);
+			ini.SetValue("Dewpoint", "HTime", DailyHighLow.Yest.HighDewPointTime);
 			// Solar
-			ini.SetValue("Solar", "HighSolarRad", HiLoYest.HighSolar);
-			ini.SetValue("Solar", "HighSolarRadTime", HiLoYest.HighSolarTime);
-			ini.SetValue("Solar", "HighUV", HiLoYest.HighUv);
-			ini.SetValue("Solar", "HighUVTime", HiLoYest.HighUvTime);
+			ini.SetValue("Solar", "HighSolarRad", DailyHighLow.Yest.HighSolar);
+			ini.SetValue("Solar", "HighSolarRadTime", DailyHighLow.Yest.HighSolarTime);
+			ini.SetValue("Solar", "HighUV", DailyHighLow.Yest.HighUv);
+			ini.SetValue("Solar", "HighUVTime", DailyHighLow.Yest.HighUvTime);
 			// Feels like
-			ini.SetValue("FeelsLike", "Low", HiLoYest.LowFeelsLike);
-			ini.SetValue("FeelsLike", "LTime", HiLoYest.LowFeelsLikeTime);
-			ini.SetValue("FeelsLike", "High", HiLoYest.HighFeelsLike);
-			ini.SetValue("FeelsLike", "HTime", HiLoYest.HighFeelsLikeTime);
+			ini.SetValue("FeelsLike", "Low", DailyHighLow.Yest.LowFeelsLike);
+			ini.SetValue("FeelsLike", "LTime", DailyHighLow.Yest.LowFeelsLikeTime);
+			ini.SetValue("FeelsLike", "High", DailyHighLow.Yest.HighFeelsLike);
+			ini.SetValue("FeelsLike", "HTime", DailyHighLow.Yest.HighFeelsLikeTime);
 			// Humidex
-			ini.SetValue("Humidex", "High", HiLoYest.HighHumidex);
-			ini.SetValue("Humidex", "HTime", HiLoYest.HighHumidexTime);
+			ini.SetValue("Humidex", "High", DailyHighLow.Yest.HighHumidex);
+			ini.SetValue("Humidex", "HTime", DailyHighLow.Yest.HighHumidexTime);
 
 			ini.Flush();
 

@@ -8125,18 +8125,18 @@ namespace CumulusMX
 				sb.Append((station.IndoorHumidity ?? 0).ToString() + ' ');                    // 24
 				sb.Append(station.WindChill.ToFixed(TempFormat) + ' ');                       // 25
 				sb.Append(station.temptrendval.ToFixed(TempTrendFormat) + ' ');               // 26
-				sb.Append(station.HiLoToday.HighTemp.ToFixed(TempFormat) + ' ');              // 27
-				sb.Append(station.HiLoToday.HighTempTime.ToString("HH:mm "));                 // 28
-				sb.Append(station.HiLoToday.LowTemp.ToFixed(TempFormat) + ' ');               // 29
-				sb.Append(station.HiLoToday.LowTempTime.ToString("HH:mm "));                  // 30
-				sb.Append(station.HiLoToday.HighWind.ToString(WindAvgFormat, InvC) + ' ');    // 31
-				sb.Append(station.HiLoToday.HighWindTime.ToString("HH:mm "));                 // 32
-				sb.Append(station.HiLoToday.HighGust.ToString(WindFormat, InvC) + ' ');       // 33
-				sb.Append(station.HiLoToday.HighGustTime.ToString("HH:mm "));                 // 34
-				sb.Append(station.HiLoToday.HighPress.ToString(PressFormat, InvC) + ' ');     // 35
-				sb.Append(station.HiLoToday.HighPressTime.ToString("HH:mm "));                // 36
-				sb.Append(station.HiLoToday.LowPress.ToString(PressFormat, InvC) + ' ');      // 37
-				sb.Append(station.HiLoToday.LowPressTime.ToString("HH:mm "));                 // 38
+				sb.Append(DailyHighLow.Today.HighTemp.ToFixed(TempFormat) + ' ');              // 27
+				sb.Append(DailyHighLow.Today.HighTempTime.ToString("HH:mm "));                 // 28
+				sb.Append(DailyHighLow.Today.LowTemp.ToFixed(TempFormat) + ' ');               // 29
+				sb.Append(DailyHighLow.Today.LowTempTime.ToString("HH:mm "));                  // 30
+				sb.Append(DailyHighLow.Today.HighWind.ToString(WindAvgFormat, InvC) + ' ');    // 31
+				sb.Append(DailyHighLow.Today.HighWindTime.ToString("HH:mm "));                 // 32
+				sb.Append(DailyHighLow.Today.HighGust.ToString(WindFormat, InvC) + ' ');       // 33
+				sb.Append(DailyHighLow.Today.HighGustTime.ToString("HH:mm "));                 // 34
+				sb.Append(DailyHighLow.Today.HighPress.ToString(PressFormat, InvC) + ' ');     // 35
+				sb.Append(DailyHighLow.Today.HighPressTime.ToString("HH:mm "));                // 36
+				sb.Append(DailyHighLow.Today.LowPress.ToString(PressFormat, InvC) + ' ');      // 37
+				sb.Append(DailyHighLow.Today.LowPressTime.ToString("HH:mm "));                 // 38
 				sb.Append(Version + ' ');                                                     // 39
 				sb.Append(Build + ' ');                                                       // 40
 				sb.Append(station.RecentMaxGust.ToString(WindFormat, InvC) + ' ');            // 41
@@ -8212,18 +8212,18 @@ namespace CumulusMX
 			values.Append(sep + station.IndoorHumidity.ToText("NULL"));
 			values.Append(sep + station.WindChill.ToFixed(TempFormat));
 			values.Append(sep + "'" + station.temptrendval.ToFixed(TempTrendFormat) + "'");
-			values.Append(sep + station.HiLoToday.HighTemp.ToFixed(TempFormat));
-			values.Append(sep + station.HiLoToday.HighTempTime.ToString("\\'HH:mm\\'"));
-			values.Append(sep + station.HiLoToday.LowTemp.ToFixed(TempFormat));
-			values.Append(sep + station.HiLoToday.LowTempTime.ToString("\\'HH:mm\\'"));
-			values.Append(sep + station.HiLoToday.HighWind.ToString(WindAvgFormat, InvC));
-			values.Append(sep + station.HiLoToday.HighWindTime.ToString("\\'HH:mm\\'"));
-			values.Append(sep + station.HiLoToday.HighGust.ToString(WindFormat, InvC) );
-			values.Append(sep + station.HiLoToday.HighGustTime.ToString("\\'HH:mm\\'"));
-			values.Append(sep + station.HiLoToday.HighPress.ToString(PressFormat, InvC));
-			values.Append(sep + station.HiLoToday.HighPressTime.ToString("\\'HH:mm\\'"));
-			values.Append(sep + station.HiLoToday.LowPress.ToString(PressFormat, InvC));
-			values.Append(sep + station.HiLoToday.LowPressTime.ToString("\\'HH:mm\\'"));
+			values.Append(sep + DailyHighLow.Today.HighTemp.ToFixed(TempFormat));
+			values.Append(sep + DailyHighLow.Today.HighTempTime.ToString("\\'HH:mm\\'"));
+			values.Append(sep + DailyHighLow.Today.LowTemp.ToFixed(TempFormat));
+			values.Append(sep + DailyHighLow.Today.LowTempTime.ToString("\\'HH:mm\\'"));
+			values.Append(sep + DailyHighLow.Today.HighWind.ToString(WindAvgFormat, InvC));
+			values.Append(sep + DailyHighLow.Today.HighWindTime.ToString("\\'HH:mm\\'"));
+			values.Append(sep + DailyHighLow.Today.HighGust.ToString(WindFormat, InvC) );
+			values.Append(sep + DailyHighLow.Today.HighGustTime.ToString("\\'HH:mm\\'"));
+			values.Append(sep + DailyHighLow.Today.HighPress.ToString(PressFormat, InvC));
+			values.Append(sep + DailyHighLow.Today.HighPressTime.ToString("\\'HH:mm\\'"));
+			values.Append(sep + DailyHighLow.Today.LowPress.ToString(PressFormat, InvC));
+			values.Append(sep + DailyHighLow.Today.LowPressTime.ToString("\\'HH:mm\\'"));
 			values.Append(sep + "'" + Version +"'");
 			values.Append(sep + "'" + Build + "'");
 			values.Append(sep + station.RecentMaxGust.ToString(WindFormat, InvC));

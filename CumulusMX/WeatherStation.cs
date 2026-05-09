@@ -110,130 +110,6 @@ namespace CumulusMX
 
 		protected bool DayResetInProgress = false;
 
-		public struct DailyHighLow
-		{
-			public double HighGust;
-			public int HighGustBearing;
-			public DateTime HighGustTime;
-			public double HighWind;
-			public DateTime HighWindTime;
-			public double HighTemp;
-			public DateTime HighTempTime;
-			public double LowTemp;
-			public DateTime LowTempTime;
-			public double TempRange;
-			public double HighAppTemp;
-			public DateTime HighAppTempTime;
-			public double LowAppTemp;
-			public DateTime LowAppTempTime;
-			public double HighFeelsLike;
-			public DateTime HighFeelsLikeTime;
-			public double LowFeelsLike;
-			public DateTime LowFeelsLikeTime;
-			public double HighHumidex;
-			public DateTime HighHumidexTime;
-			public double HighPress;
-			public DateTime HighPressTime;
-			public double LowPress;
-			public DateTime LowPressTime;
-			public double HighRainRate;
-			public DateTime HighRainRateTime;
-			public double HighHourlyRain;
-			public DateTime HighHourlyRainTime;
-			public int HighHumidity;
-			public DateTime HighHumidityTime;
-			public int LowHumidity;
-			public DateTime LowHumidityTime;
-			public double HighHeatIndex;
-			public DateTime HighHeatIndexTime;
-			public double HighRain24h;
-			public DateTime HighRain24hTime;
-			public double LowWindChill;
-			public DateTime LowWindChillTime;
-			public double HighDewPoint;
-			public DateTime HighDewPointTime;
-			public double LowDewPoint;
-			public DateTime LowDewPointTime;
-			public int HighSolar;
-			public DateTime HighSolarTime;
-			public double HighUv;
-			public DateTime HighUvTime;
-			public double HighBgt;
-			public DateTime HighBgtTime;
-			public double HighWbgt;
-			public DateTime HighWbgtTime;
-		};
-
-		// today highs and lows
-		public DailyHighLow HiLoToday = new()
-		{
-			HighTemp = -500,
-			HighAppTemp = -500,
-			HighFeelsLike = -500,
-			HighHumidex = -500,
-			HighHeatIndex = -500,
-			HighDewPoint = -500,
-			HighRain24h = -500,
-			LowTemp = 999,
-			LowAppTemp = 999,
-			LowFeelsLike = 999,
-			LowWindChill = 999,
-			LowDewPoint = 999,
-			LowPress = 9999,
-			LowHumidity = 100,
-			HighBgt = Cumulus.DefaultHiVal,
-			HighWbgt = Cumulus.DefaultHiVal
-		};
-
-		// yesterdays highs and lows
-		public DailyHighLow HiLoYest = new()
-		{
-			HighTemp = -500,
-			HighAppTemp = -500,
-			HighFeelsLike = -500,
-			HighHumidex = -500,
-			HighHeatIndex = -500,
-			HighDewPoint = -500,
-			HighRain24h = -500,
-			LowTemp = 999,
-			LowAppTemp = 999,
-			LowFeelsLike = 999,
-			LowWindChill = 999,
-			LowDewPoint = 999,
-			LowPress = 9999,
-			LowHumidity = 100,
-			HighBgt = Cumulus.DefaultHiVal,
-			HighWbgt = Cumulus.DefaultHiVal
-		};
-
-		// todays midnight highs and lows
-		public DailyHighLow HiLoTodayMidnight = new()
-		{
-			HighTemp = -500,
-			LowTemp = 999
-		};
-
-		// yesterdays midnight highs and lows
-		public DailyHighLow HiLoYestMidnight = new()
-		{
-			HighTemp = -500,
-			LowTemp = 999
-		};
-
-		// todays 9am highs and lows
-		public DailyHighLow HiLoToday9am = new()
-		{
-			HighTemp = -500,
-			LowTemp = 999
-		};
-
-		// yesterdays 9am highs and lows
-		public DailyHighLow HiLoYest9am = new()
-		{
-			HighTemp = -500,
-			LowTemp = 999
-		};
-
 		public int IndoorBattStatus;
 		public int WindBattStatus;
 		public int RainBattStatus;
@@ -6018,30 +5894,30 @@ namespace CumulusMX
 
 		public void ResetMidnightTemperatures(DateTime logdate) // called at midnight irrespective of roll-over time
 		{
-			HiLoYestMidnight.LowTemp = HiLoTodayMidnight.LowTemp;
-			HiLoYestMidnight.HighTemp = HiLoTodayMidnight.HighTemp;
-			HiLoYestMidnight.LowTempTime = HiLoTodayMidnight.LowTempTime;
-			HiLoYestMidnight.HighTempTime = HiLoTodayMidnight.HighTempTime;
+			DailyHighLow.YestMidnight.LowTemp = DailyHighLow.TodayMidnight.LowTemp;
+			DailyHighLow.YestMidnight.HighTemp = DailyHighLow.TodayMidnight.HighTemp;
+			DailyHighLow.YestMidnight.LowTempTime = DailyHighLow.TodayMidnight.LowTempTime;
+			DailyHighLow.YestMidnight.HighTempTime = DailyHighLow.TodayMidnight.HighTempTime;
 
-			HiLoTodayMidnight.LowTemp = OutdoorTemperature;
-			HiLoTodayMidnight.HighTemp = OutdoorTemperature;
-			HiLoTodayMidnight.LowTempTime = logdate;
-			HiLoTodayMidnight.HighTempTime = logdate;
+			DailyHighLow.TodayMidnight.LowTemp = OutdoorTemperature;
+			DailyHighLow.TodayMidnight.HighTemp = OutdoorTemperature;
+			DailyHighLow.TodayMidnight.LowTempTime = logdate;
+			DailyHighLow.TodayMidnight.HighTempTime = logdate;
 
 			WriteYesterdayFile(logdate);
 		}
 
 		public void Reset9amTemperatures(DateTime logdate) // called at 9am irrespective of roll-over time
 		{
-			HiLoYest9am.LowTemp = HiLoToday9am.LowTemp;
-			HiLoYest9am.HighTemp = HiLoToday9am.HighTemp;
-			HiLoYest9am.LowTempTime = HiLoToday9am.LowTempTime;
-			HiLoYest9am.HighTempTime = HiLoToday9am.HighTempTime;
+			DailyHighLow.Yest9am.LowTemp = DailyHighLow.Today9am.LowTemp;
+			DailyHighLow.Yest9am.HighTemp = DailyHighLow.Today9am.HighTemp;
+			DailyHighLow.Yest9am.LowTempTime = DailyHighLow.Today9am.LowTempTime;
+			DailyHighLow.Yest9am.HighTempTime = DailyHighLow.Today9am.HighTempTime;
 
-			HiLoToday9am.LowTemp = OutdoorTemperature;
-			HiLoToday9am.HighTemp = OutdoorTemperature;
-			HiLoToday9am.LowTempTime = logdate;
-			HiLoToday9am.HighTempTime = logdate;
+			DailyHighLow.Today9am.LowTemp = OutdoorTemperature;
+			DailyHighLow.Today9am.HighTemp = OutdoorTemperature;
+			DailyHighLow.Today9am.LowTempTime = logdate;
+			DailyHighLow.Today9am.HighTempTime = logdate;
 
 			WriteYesterdayFile(logdate);
 		}
@@ -6181,16 +6057,16 @@ namespace CumulusMX
 				OutdoorHumidity = 100;
 			}
 
-			if (OutdoorHumidity > HiLoToday.HighHumidity)
+			if (OutdoorHumidity > DailyHighLow.Today.HighHumidity)
 			{
-				HiLoToday.HighHumidity = OutdoorHumidity;
-				HiLoToday.HighHumidityTime = timestamp;
+				DailyHighLow.Today.HighHumidity = OutdoorHumidity;
+				DailyHighLow.Today.HighHumidityTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
-			if (OutdoorHumidity < HiLoToday.LowHumidity)
+			if (OutdoorHumidity < DailyHighLow.Today.LowHumidity)
 			{
-				HiLoToday.LowHumidity = OutdoorHumidity;
-				HiLoToday.LowHumidityTime = timestamp;
+				DailyHighLow.Today.LowHumidity = OutdoorHumidity;
+				DailyHighLow.Today.LowHumidityTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 			if (OutdoorHumidity > Records.ThisMonth.HighHumidity.Val)
@@ -6285,45 +6161,45 @@ namespace CumulusMX
 
 			var writeToday = false;
 
-			if (OutdoorTemperature > HiLoToday.HighTemp)
+			if (OutdoorTemperature > DailyHighLow.Today.HighTemp)
 			{
-				HiLoToday.HighTemp = OutdoorTemperature;
-				HiLoToday.HighTempTime = timestamp;
+				DailyHighLow.Today.HighTemp = OutdoorTemperature;
+				DailyHighLow.Today.HighTempTime = timestamp;
 				writeToday = true;
 			}
 
-			if (OutdoorTemperature < HiLoToday.LowTemp)
+			if (OutdoorTemperature < DailyHighLow.Today.LowTemp)
 			{
-				HiLoToday.LowTemp = OutdoorTemperature;
-				HiLoToday.LowTempTime = timestamp;
+				DailyHighLow.Today.LowTemp = OutdoorTemperature;
+				DailyHighLow.Today.LowTempTime = timestamp;
 				writeToday = true;
 			}
 
-			if (OutdoorTemperature > HiLoTodayMidnight.HighTemp)
+			if (OutdoorTemperature > DailyHighLow.TodayMidnight.HighTemp)
 			{
-				HiLoTodayMidnight.HighTemp = OutdoorTemperature;
-				HiLoTodayMidnight.HighTempTime = timestamp;
+				DailyHighLow.TodayMidnight.HighTemp = OutdoorTemperature;
+				DailyHighLow.TodayMidnight.HighTempTime = timestamp;
 				writeToday = true;
 			}
 
-			if (OutdoorTemperature < HiLoTodayMidnight.LowTemp)
+			if (OutdoorTemperature < DailyHighLow.TodayMidnight.LowTemp)
 			{
-				HiLoTodayMidnight.LowTemp = OutdoorTemperature;
-				HiLoTodayMidnight.LowTempTime = timestamp;
+				DailyHighLow.TodayMidnight.LowTemp = OutdoorTemperature;
+				DailyHighLow.TodayMidnight.LowTempTime = timestamp;
 				writeToday = true;
 			}
 
-			if (OutdoorTemperature > HiLoToday9am.HighTemp)
+			if (OutdoorTemperature > DailyHighLow.Today9am.HighTemp)
 			{
-				HiLoToday9am.HighTemp = OutdoorTemperature;
-				HiLoToday9am.HighTempTime = timestamp;
+				DailyHighLow.Today9am.HighTemp = OutdoorTemperature;
+				DailyHighLow.Today9am.HighTempTime = timestamp;
 				writeToday = true;
 			}
 
-			if (OutdoorTemperature < HiLoToday9am.LowTemp)
+			if (OutdoorTemperature < DailyHighLow.Today9am.LowTemp)
 			{
-				HiLoToday9am.LowTemp = OutdoorTemperature;
-				HiLoToday9am.LowTempTime = timestamp;
+				DailyHighLow.Today9am.LowTemp = OutdoorTemperature;
+				DailyHighLow.Today9am.LowTempTime = timestamp;
 				writeToday = true;
 			}
 
@@ -6361,7 +6237,7 @@ namespace CumulusMX
 			}
 
 			// Calculate temperature range
-			HiLoToday.TempRange = HiLoToday.HighTemp - HiLoToday.LowTemp;
+			DailyHighLow.Today.TempRange = DailyHighLow.Today.HighTemp - DailyHighLow.Today.LowTemp;
 
 			if ((cumulus.StationOptions.CalculatedDP || cumulus.DavisStation) && OutdoorHumidity != 0 && !cumulus.FineOffsetStation)
 			{
@@ -6389,10 +6265,10 @@ namespace CumulusMX
 
 			HeatIndex = ConvertUnits.TempCToUser(MeteoLib.HeatIndex(tempinC, OutdoorHumidity));
 
-			if (HeatIndex > HiLoToday.HighHeatIndex)
+			if (HeatIndex > DailyHighLow.Today.HighHeatIndex)
 			{
-				HiLoToday.HighHeatIndex = HeatIndex;
-				HiLoToday.HighHeatIndexTime = timestamp;
+				DailyHighLow.Today.HighHeatIndex = HeatIndex;
+				DailyHighLow.Today.HighHeatIndexTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
@@ -6438,17 +6314,17 @@ namespace CumulusMX
 			// we will tag on the THW Index here
 			THWIndex = ConvertUnits.TempCToUser(MeteoLib.THWIndex(ConvertUnits.UserTempToC(OutdoorTemperature), OutdoorHumidity, ConvertUnits.UserWindToKPH(WindAverage)));
 
-			if (ApparentTemperature > HiLoToday.HighAppTemp)
+			if (ApparentTemperature > DailyHighLow.Today.HighAppTemp)
 			{
-				HiLoToday.HighAppTemp = ApparentTemperature;
-				HiLoToday.HighAppTempTime = timestamp;
+				DailyHighLow.Today.HighAppTemp = ApparentTemperature;
+				DailyHighLow.Today.HighAppTempTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (ApparentTemperature < HiLoToday.LowAppTemp)
+			if (ApparentTemperature < DailyHighLow.Today.LowAppTemp)
 			{
-				HiLoToday.LowAppTemp = ApparentTemperature;
-				HiLoToday.LowAppTempTime = timestamp;
+				DailyHighLow.Today.LowAppTemp = ApparentTemperature;
+				DailyHighLow.Today.LowAppTempTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
@@ -6523,10 +6399,10 @@ namespace CumulusMX
 
 			if (chillvalid)
 			{
-				if (WindChill < HiLoToday.LowWindChill)
+				if (WindChill < DailyHighLow.Today.LowWindChill)
 				{
-					HiLoToday.LowWindChill = WindChill;
-					HiLoToday.LowWindChillTime = timestamp;
+					DailyHighLow.Today.LowWindChill = WindChill;
+					DailyHighLow.Today.LowWindChillTime = timestamp;
 					WriteTodayFile(timestamp, false);
 				}
 
@@ -6558,17 +6434,17 @@ namespace CumulusMX
 		{
 			FeelsLike = ConvertUnits.TempCToUser(MeteoLib.FeelsLike(ConvertUnits.UserTempToC(OutdoorTemperature), ConvertUnits.UserWindToKPH(WindAverage), OutdoorHumidity));
 
-			if (FeelsLike > HiLoToday.HighFeelsLike)
+			if (FeelsLike > DailyHighLow.Today.HighFeelsLike)
 			{
-				HiLoToday.HighFeelsLike = FeelsLike;
-				HiLoToday.HighFeelsLikeTime = timestamp;
+				DailyHighLow.Today.HighFeelsLike = FeelsLike;
+				DailyHighLow.Today.HighFeelsLikeTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (FeelsLike < HiLoToday.LowFeelsLike)
+			if (FeelsLike < DailyHighLow.Today.LowFeelsLike)
 			{
-				HiLoToday.LowFeelsLike = FeelsLike;
-				HiLoToday.LowFeelsLikeTime = timestamp;
+				DailyHighLow.Today.LowFeelsLike = FeelsLike;
+				DailyHighLow.Today.LowFeelsLikeTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
@@ -6614,10 +6490,10 @@ namespace CumulusMX
 		{
 			Humidex = MeteoLib.Humidex(ConvertUnits.UserTempToC(OutdoorTemperature), OutdoorHumidity);
 
-			if (Humidex > HiLoToday.HighHumidex)
+			if (Humidex > DailyHighLow.Today.HighHumidex)
 			{
-				HiLoToday.HighHumidex = Humidex;
-				HiLoToday.HighHumidexTime = timestamp;
+				DailyHighLow.Today.HighHumidex = Humidex;
+				DailyHighLow.Today.HighHumidexTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
@@ -6669,16 +6545,16 @@ namespace CumulusMX
 
 		public void CheckForDewpointHighLow(DateTime timestamp)
 		{
-			if (OutdoorDewpoint > HiLoToday.HighDewPoint)
+			if (OutdoorDewpoint > DailyHighLow.Today.HighDewPoint)
 			{
-				HiLoToday.HighDewPoint = OutdoorDewpoint;
-				HiLoToday.HighDewPointTime = timestamp;
+				DailyHighLow.Today.HighDewPoint = OutdoorDewpoint;
+				DailyHighLow.Today.HighDewPointTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
-			if (OutdoorDewpoint < HiLoToday.LowDewPoint)
+			if (OutdoorDewpoint < DailyHighLow.Today.LowDewPoint)
 			{
-				HiLoToday.LowDewPoint = OutdoorDewpoint;
-				HiLoToday.LowDewPointTime = timestamp;
+				DailyHighLow.Today.LowDewPoint = OutdoorDewpoint;
+				DailyHighLow.Today.LowDewPointTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 			if (OutdoorDewpoint > Records.ThisMonth.HighDewPoint.Val)
@@ -6723,10 +6599,10 @@ namespace CumulusMX
 
 			if (!BlackGlobeTemp.HasValue) return;
 
-			if (BlackGlobeTemp > HiLoToday.HighBgt)
+			if (BlackGlobeTemp > DailyHighLow.Today.HighBgt)
 			{
-				HiLoToday.HighBgt = BlackGlobeTemp.Value;
-				HiLoToday.HighBgtTime = timestamp;
+				DailyHighLow.Today.HighBgt = BlackGlobeTemp.Value;
+				DailyHighLow.Today.HighBgtTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
@@ -6756,10 +6632,10 @@ namespace CumulusMX
 
 			if (!WetBulbGlobeTemp.HasValue) return;
 
-			if (WetBulbGlobeTemp > HiLoToday.HighWbgt)
+			if (WetBulbGlobeTemp > DailyHighLow.Today.HighWbgt)
 			{
-				HiLoToday.HighWbgt = WetBulbGlobeTemp.Value;
-				HiLoToday.HighWbgtTime = timestamp;
+				DailyHighLow.Today.HighWbgt = WetBulbGlobeTemp.Value;
+				DailyHighLow.Today.HighWbgtTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
@@ -6838,17 +6714,17 @@ namespace CumulusMX
 			CheckMonthlyAlltime("LowPress", Pressure, false, timestamp);
 			CheckMonthlyAlltime("HighPress", Pressure, true, timestamp);
 
-			if (Pressure > HiLoToday.HighPress)
+			if (Pressure > DailyHighLow.Today.HighPress)
 			{
-				HiLoToday.HighPress = Pressure;
-				HiLoToday.HighPressTime = timestamp;
+				DailyHighLow.Today.HighPress = Pressure;
+				DailyHighLow.Today.HighPressTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (Pressure < HiLoToday.LowPress)
+			if (Pressure < DailyHighLow.Today.LowPress)
 			{
-				HiLoToday.LowPress = Pressure;
-				HiLoToday.LowPressTime = timestamp;
+				DailyHighLow.Today.LowPress = Pressure;
+				DailyHighLow.Today.LowPressTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
@@ -7088,10 +6964,10 @@ namespace CumulusMX
 
 				cumulus.HighRainRateAlarm.CheckAlarm(RainRate);
 
-				if (RainRate > HiLoToday.HighRainRate)
+				if (RainRate > DailyHighLow.Today.HighRainRate)
 				{
-					HiLoToday.HighRainRate = RainRate;
-					HiLoToday.HighRainRateTime = timestamp;
+					DailyHighLow.Today.HighRainRate = RainRate;
+					DailyHighLow.Today.HighRainRateTime = timestamp;
 					WriteTodayFile(timestamp, false);
 				}
 
@@ -7749,10 +7625,10 @@ namespace CumulusMX
 			if (UV > 16)
 				UV = 16;
 
-			if (UV > HiLoToday.HighUv)
+			if (UV > DailyHighLow.Today.HighUv)
 			{
-				HiLoToday.HighUv = UV.Value;
-				HiLoToday.HighUvTime = timestamp;
+				DailyHighLow.Today.HighUv = UV.Value;
+				DailyHighLow.Today.HighUvTime = timestamp;
 			}
 
 			HaveReadData = true;
@@ -7784,10 +7660,10 @@ namespace CumulusMX
 				}
 				else
 				{
-					if (SolarRad > HiLoToday.HighSolar)
+					if (SolarRad > DailyHighLow.Today.HighSolar)
 					{
-						HiLoToday.HighSolar = SolarRad.Value;
-						HiLoToday.HighSolarTime = timestamp;
+						DailyHighLow.Today.HighSolar = SolarRad.Value;
+						DailyHighLow.Today.HighSolarTime = timestamp;
 					}
 
 					if (!cumulus.SolarOptions.UseBlakeLarsen)
@@ -8137,8 +8013,8 @@ namespace CumulusMX
 				DateTime ts;
 				try
 				{
-					hr = HiLoToday.HighTempTime.Hour;
-					mn = HiLoToday.HighTempTime.Minute;
+					hr = DailyHighLow.Today.HighTempTime.Hour;
+					mn = DailyHighLow.Today.HighTempTime.Minute;
 					ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 					if (hr >= cumulus.GetRolloverHour(ts))
@@ -8151,20 +8027,20 @@ namespace CumulusMX
 					ts = timestamp.AddDays(-1);
 				}
 
-				if (HiLoToday.HighTemp < Records.AllTime.LowMaxTemp.Val)
+				if (DailyHighLow.Today.HighTemp < Records.AllTime.LowMaxTemp.Val)
 				{
-					SetAlltime(Records.AllTime.LowMaxTemp, HiLoToday.HighTemp, ts);
+					SetAlltime(Records.AllTime.LowMaxTemp, DailyHighLow.Today.HighTemp, ts);
 				}
 
-				CheckMonthlyAlltime("LowMaxTemp", HiLoToday.HighTemp, false, ts);
+				CheckMonthlyAlltime("LowMaxTemp", DailyHighLow.Today.HighTemp, false, ts);
 
-				if (HiLoToday.HighTemp < Records.ThisMonth.LowMaxTemp.Val)
+				if (DailyHighLow.Today.HighTemp < Records.ThisMonth.LowMaxTemp.Val)
 				{
-					Records.ThisMonth.LowMaxTemp.Val = HiLoToday.HighTemp;
+					Records.ThisMonth.LowMaxTemp.Val = DailyHighLow.Today.HighTemp;
 					try
 					{
-						hr = HiLoToday.HighTempTime.Hour;
-						mn = HiLoToday.HighTempTime.Minute;
+						hr = DailyHighLow.Today.HighTempTime.Hour;
+						mn = DailyHighLow.Today.HighTempTime.Minute;
 						Records.ThisMonth.LowMaxTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.GetRolloverHour(timestamp))
@@ -8180,13 +8056,13 @@ namespace CumulusMX
 					WriteMonthIniFile();
 				}
 
-				if (HiLoToday.HighTemp < Records.ThisYear.LowMaxTemp.Val)
+				if (DailyHighLow.Today.HighTemp < Records.ThisYear.LowMaxTemp.Val)
 				{
-					Records.ThisYear.LowMaxTemp.Val = HiLoToday.HighTemp;
+					Records.ThisYear.LowMaxTemp.Val = DailyHighLow.Today.HighTemp;
 					try
 					{
-						hr = HiLoToday.HighTempTime.Hour;
-						mn = HiLoToday.HighTempTime.Minute;
+						hr = DailyHighLow.Today.HighTempTime.Hour;
+						mn = DailyHighLow.Today.HighTempTime.Minute;
 						Records.ThisYear.LowMaxTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.GetRolloverHour(timestamp))
@@ -8205,8 +8081,8 @@ namespace CumulusMX
 				// offset low temp today timestamp to allow for 0900 roll-over
 				try
 				{
-					hr = HiLoToday.LowTempTime.Hour;
-					mn = HiLoToday.LowTempTime.Minute;
+					hr = DailyHighLow.Today.LowTempTime.Hour;
+					mn = DailyHighLow.Today.LowTempTime.Minute;
 					ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 					if (hr >= cumulus.GetRolloverHour(timestamp))
@@ -8219,20 +8095,20 @@ namespace CumulusMX
 					ts = timestamp.AddDays(-1);
 				}
 
-				if (HiLoToday.LowTemp > Records.AllTime.HighMinTemp.Val)
+				if (DailyHighLow.Today.LowTemp > Records.AllTime.HighMinTemp.Val)
 				{
-					SetAlltime(Records.AllTime.HighMinTemp, HiLoToday.LowTemp, ts);
+					SetAlltime(Records.AllTime.HighMinTemp, DailyHighLow.Today.LowTemp, ts);
 				}
 
-				CheckMonthlyAlltime("HighMinTemp", HiLoToday.LowTemp, true, ts);
+				CheckMonthlyAlltime("HighMinTemp", DailyHighLow.Today.LowTemp, true, ts);
 
-				if (HiLoToday.LowTemp > Records.ThisMonth.HighMinTemp.Val)
+				if (DailyHighLow.Today.LowTemp > Records.ThisMonth.HighMinTemp.Val)
 				{
-					Records.ThisMonth.HighMinTemp.Val = HiLoToday.LowTemp;
+					Records.ThisMonth.HighMinTemp.Val = DailyHighLow.Today.LowTemp;
 					try
 					{
-						hr = HiLoToday.LowTempTime.Hour;
-						mn = HiLoToday.LowTempTime.Minute;
+						hr = DailyHighLow.Today.LowTempTime.Hour;
+						mn = DailyHighLow.Today.LowTempTime.Minute;
 						Records.ThisMonth.HighMinTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.GetRolloverHour(timestamp))
@@ -8247,13 +8123,13 @@ namespace CumulusMX
 					WriteMonthIniFile();
 				}
 
-				if (HiLoToday.LowTemp > Records.ThisYear.HighMinTemp.Val)
+				if (DailyHighLow.Today.LowTemp > Records.ThisYear.HighMinTemp.Val)
 				{
-					Records.ThisYear.HighMinTemp.Val = HiLoToday.LowTemp;
+					Records.ThisYear.HighMinTemp.Val = DailyHighLow.Today.LowTemp;
 					try
 					{
-						hr = HiLoToday.LowTempTime.Hour;
-						mn = HiLoToday.LowTempTime.Minute;
+						hr = DailyHighLow.Today.LowTempTime.Hour;
+						mn = DailyHighLow.Today.LowTempTime.Minute;
 						Records.ThisYear.HighMinTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.GetRolloverHour(timestamp))
@@ -8269,39 +8145,39 @@ namespace CumulusMX
 				}
 
 				// check temp range for highs && lows
-				if (HiLoToday.TempRange > Records.AllTime.HighDailyTempRange.Val)
-					SetAlltime(Records.AllTime.HighDailyTempRange, HiLoToday.TempRange, yesterday);
+				if (DailyHighLow.Today.TempRange > Records.AllTime.HighDailyTempRange.Val)
+					SetAlltime(Records.AllTime.HighDailyTempRange, DailyHighLow.Today.TempRange, yesterday);
 
-				if (HiLoToday.TempRange < Records.AllTime.LowDailyTempRange.Val)
-					SetAlltime(Records.AllTime.LowDailyTempRange, HiLoToday.TempRange, yesterday);
+				if (DailyHighLow.Today.TempRange < Records.AllTime.LowDailyTempRange.Val)
+					SetAlltime(Records.AllTime.LowDailyTempRange, DailyHighLow.Today.TempRange, yesterday);
 
-				CheckMonthlyAlltime("HighDailyTempRange", HiLoToday.TempRange, true, yesterday);
-				CheckMonthlyAlltime("LowDailyTempRange", HiLoToday.TempRange, false, yesterday);
+				CheckMonthlyAlltime("HighDailyTempRange", DailyHighLow.Today.TempRange, true, yesterday);
+				CheckMonthlyAlltime("LowDailyTempRange", DailyHighLow.Today.TempRange, false, yesterday);
 
-				if (HiLoToday.TempRange > Records.ThisMonth.HighDailyTempRange.Val)
+				if (DailyHighLow.Today.TempRange > Records.ThisMonth.HighDailyTempRange.Val)
 				{
-					Records.ThisMonth.HighDailyTempRange.Val = HiLoToday.TempRange;
+					Records.ThisMonth.HighDailyTempRange.Val = DailyHighLow.Today.TempRange;
 					Records.ThisMonth.HighDailyTempRange.Ts = yesterday;
 					WriteMonthIniFile();
 				}
 
-				if (HiLoToday.TempRange < Records.ThisMonth.LowDailyTempRange.Val)
+				if (DailyHighLow.Today.TempRange < Records.ThisMonth.LowDailyTempRange.Val)
 				{
-					Records.ThisMonth.LowDailyTempRange.Val = HiLoToday.TempRange;
+					Records.ThisMonth.LowDailyTempRange.Val = DailyHighLow.Today.TempRange;
 					Records.ThisMonth.LowDailyTempRange.Ts = yesterday;
 					WriteMonthIniFile();
 				}
 
-				if (HiLoToday.TempRange > Records.ThisYear.HighDailyTempRange.Val)
+				if (DailyHighLow.Today.TempRange > Records.ThisYear.HighDailyTempRange.Val)
 				{
-					Records.ThisYear.HighDailyTempRange.Val = HiLoToday.TempRange;
+					Records.ThisYear.HighDailyTempRange.Val = DailyHighLow.Today.TempRange;
 					Records.ThisYear.HighDailyTempRange.Ts = yesterday;
 					WriteYearIniFile();
 				}
 
-				if (HiLoToday.TempRange < Records.ThisYear.LowDailyTempRange.Val)
+				if (DailyHighLow.Today.TempRange < Records.ThisYear.LowDailyTempRange.Val)
 				{
-					Records.ThisYear.LowDailyTempRange.Val = HiLoToday.TempRange;
+					Records.ThisYear.LowDailyTempRange.Val = DailyHighLow.Today.TempRange;
 					Records.ThisYear.LowDailyTempRange.Ts = yesterday;
 					WriteYearIniFile();
 				}
@@ -8490,8 +8366,8 @@ namespace CumulusMX
 					GrowingDegreeDaysThisYear2 = 0;
 				}
 
-				GrowingDegreeDaysThisYear1 += MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(HiLoToday.HighTemp), ConvertUnits.UserTempToC(HiLoToday.LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase1), cumulus.GrowingCap30C);
-				GrowingDegreeDaysThisYear2 += MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(HiLoToday.HighTemp), ConvertUnits.UserTempToC(HiLoToday.LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
+				GrowingDegreeDaysThisYear1 += MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(DailyHighLow.Today.HighTemp), ConvertUnits.UserTempToC(DailyHighLow.Today.LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase1), cumulus.GrowingCap30C);
+				GrowingDegreeDaysThisYear2 += MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(DailyHighLow.Today.HighTemp), ConvertUnits.UserTempToC(DailyHighLow.Today.LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
 
 
 				if (day == 1 && month == cumulus.SnowSeasonStart)
@@ -8516,67 +8392,67 @@ namespace CumulusMX
 				tempsamplestoday = 1;
 
 				// Copy today"s high wind settings to yesterday
-				HiLoYest.HighWind = HiLoToday.HighWind;
-				HiLoYest.HighWindTime = HiLoToday.HighWindTime;
-				HiLoYest.HighGust = HiLoToday.HighGust;
-				HiLoYest.HighGustTime = HiLoToday.HighGustTime;
-				HiLoYest.HighGustBearing = HiLoToday.HighGustBearing;
+				DailyHighLow.Yest.HighWind = DailyHighLow.Today.HighWind;
+				DailyHighLow.Yest.HighWindTime = DailyHighLow.Today.HighWindTime;
+				DailyHighLow.Yest.HighGust = DailyHighLow.Today.HighGust;
+				DailyHighLow.Yest.HighGustTime = DailyHighLow.Today.HighGustTime;
+				DailyHighLow.Yest.HighGustBearing = DailyHighLow.Today.HighGustBearing;
 
 				// Reset today"s high wind settings
-				HiLoToday.HighGust = calibratedgust;
-				HiLoToday.HighGustBearing = Bearing;
-				HiLoToday.HighWind = WindAverage;
+				DailyHighLow.Today.HighGust = calibratedgust;
+				DailyHighLow.Today.HighGustBearing = Bearing;
+				DailyHighLow.Today.HighWind = WindAverage;
 
-				HiLoToday.HighWindTime = timestamp;
-				HiLoToday.HighGustTime = timestamp;
+				DailyHighLow.Today.HighWindTime = timestamp;
+				DailyHighLow.Today.HighGustTime = timestamp;
 
 				// Copy today"s high temp settings to yesterday
-				HiLoYest.HighTemp = HiLoToday.HighTemp;
-				HiLoYest.HighTempTime = HiLoToday.HighTempTime;
+				DailyHighLow.Yest.HighTemp = DailyHighLow.Today.HighTemp;
+				DailyHighLow.Yest.HighTempTime = DailyHighLow.Today.HighTempTime;
 				// Reset today"s high temp settings
-				HiLoToday.HighTemp = OutdoorTemperature;
-				HiLoToday.HighTempTime = timestamp;
+				DailyHighLow.Today.HighTemp = OutdoorTemperature;
+				DailyHighLow.Today.HighTempTime = timestamp;
 
 				// Copy today"s low temp settings to yesterday
-				HiLoYest.LowTemp = HiLoToday.LowTemp;
-				HiLoYest.LowTempTime = HiLoToday.LowTempTime;
+				DailyHighLow.Yest.LowTemp = DailyHighLow.Today.LowTemp;
+				DailyHighLow.Yest.LowTempTime = DailyHighLow.Today.LowTempTime;
 				// Reset today"s low temp settings
-				HiLoToday.LowTemp = OutdoorTemperature;
-				HiLoToday.LowTempTime = timestamp;
+				DailyHighLow.Today.LowTemp = OutdoorTemperature;
+				DailyHighLow.Today.LowTempTime = timestamp;
 
-				HiLoYest.TempRange = HiLoToday.TempRange;
-				HiLoToday.TempRange = 0;
+				DailyHighLow.Yest.TempRange = DailyHighLow.Today.TempRange;
+				DailyHighLow.Today.TempRange = 0;
 
 				// Copy today"s low pressure settings to yesterday
-				HiLoYest.LowPress = HiLoToday.LowPress;
-				HiLoYest.LowPressTime = HiLoToday.LowPressTime;
+				DailyHighLow.Yest.LowPress = DailyHighLow.Today.LowPress;
+				DailyHighLow.Yest.LowPressTime = DailyHighLow.Today.LowPressTime;
 				// Reset today"s low pressure settings
-				HiLoToday.LowPress = Pressure;
-				HiLoToday.LowPressTime = timestamp;
+				DailyHighLow.Today.LowPress = Pressure;
+				DailyHighLow.Today.LowPressTime = timestamp;
 
 				// Copy today"s high pressure settings to yesterday
-				HiLoYest.HighPress = HiLoToday.HighPress;
-				HiLoYest.HighPressTime = HiLoToday.HighPressTime;
+				DailyHighLow.Yest.HighPress = DailyHighLow.Today.HighPress;
+				DailyHighLow.Yest.HighPressTime = DailyHighLow.Today.HighPressTime;
 				// Reset today"s high pressure settings
-				HiLoToday.HighPress = Pressure;
-				HiLoToday.HighPressTime = timestamp;
+				DailyHighLow.Today.HighPress = Pressure;
+				DailyHighLow.Today.HighPressTime = timestamp;
 
 				// Copy today"s high rain rate settings to yesterday
-				HiLoYest.HighRainRate = HiLoToday.HighRainRate;
-				HiLoYest.HighRainRateTime = HiLoToday.HighRainRateTime;
+				DailyHighLow.Yest.HighRainRate = DailyHighLow.Today.HighRainRate;
+				DailyHighLow.Yest.HighRainRateTime = DailyHighLow.Today.HighRainRateTime;
 				// Reset today"s high rain rate settings
-				HiLoToday.HighRainRate = RainRate;
-				HiLoToday.HighRainRateTime = timestamp;
+				DailyHighLow.Today.HighRainRate = RainRate;
+				DailyHighLow.Today.HighRainRateTime = timestamp;
 
-				HiLoYest.HighHourlyRain = HiLoToday.HighHourlyRain;
-				HiLoYest.HighHourlyRainTime = HiLoToday.HighHourlyRainTime;
-				HiLoToday.HighHourlyRain = RainLastHour;
-				HiLoToday.HighHourlyRainTime = timestamp;
+				DailyHighLow.Yest.HighHourlyRain = DailyHighLow.Today.HighHourlyRain;
+				DailyHighLow.Yest.HighHourlyRainTime = DailyHighLow.Today.HighHourlyRainTime;
+				DailyHighLow.Today.HighHourlyRain = RainLastHour;
+				DailyHighLow.Today.HighHourlyRainTime = timestamp;
 
-				HiLoYest.HighRain24h = HiLoToday.HighRain24h;
-				HiLoYest.HighRain24hTime = HiLoToday.HighRain24hTime;
-				HiLoToday.HighRain24h = RainLast24Hour;
-				HiLoToday.HighRain24hTime = timestamp;
+				DailyHighLow.Yest.HighRain24h = DailyHighLow.Today.HighRain24h;
+				DailyHighLow.Yest.HighRain24hTime = DailyHighLow.Today.HighRain24hTime;
+				DailyHighLow.Today.HighRain24h = RainLast24Hour;
+				DailyHighLow.Today.HighRain24hTime = timestamp;
 
 				YesterdayWindRun = WindRunToday;
 				WindRunToday = 0;
@@ -8600,92 +8476,92 @@ namespace CumulusMX
 				ET = 0;
 
 				// Humidity
-				HiLoYest.LowHumidity = HiLoToday.LowHumidity;
-				HiLoYest.LowHumidityTime = HiLoToday.LowHumidityTime;
-				HiLoToday.LowHumidity = OutdoorHumidity;
-				HiLoToday.LowHumidityTime = timestamp;
+				DailyHighLow.Yest.LowHumidity = DailyHighLow.Today.LowHumidity;
+				DailyHighLow.Yest.LowHumidityTime = DailyHighLow.Today.LowHumidityTime;
+				DailyHighLow.Today.LowHumidity = OutdoorHumidity;
+				DailyHighLow.Today.LowHumidityTime = timestamp;
 
-				HiLoYest.HighHumidity = HiLoToday.HighHumidity;
-				HiLoYest.HighHumidityTime = HiLoToday.HighHumidityTime;
-				HiLoToday.HighHumidity = OutdoorHumidity;
-				HiLoToday.HighHumidityTime = timestamp;
+				DailyHighLow.Yest.HighHumidity = DailyHighLow.Today.HighHumidity;
+				DailyHighLow.Yest.HighHumidityTime = DailyHighLow.Today.HighHumidityTime;
+				DailyHighLow.Today.HighHumidity = OutdoorHumidity;
+				DailyHighLow.Today.HighHumidityTime = timestamp;
 
 				// heat index
-				HiLoYest.HighHeatIndex = HiLoToday.HighHeatIndex;
-				HiLoYest.HighHeatIndexTime = HiLoToday.HighHeatIndexTime;
-				HiLoToday.HighHeatIndex = HeatIndex;
-				HiLoToday.HighHeatIndexTime = timestamp;
+				DailyHighLow.Yest.HighHeatIndex = DailyHighLow.Today.HighHeatIndex;
+				DailyHighLow.Yest.HighHeatIndexTime = DailyHighLow.Today.HighHeatIndexTime;
+				DailyHighLow.Today.HighHeatIndex = HeatIndex;
+				DailyHighLow.Today.HighHeatIndexTime = timestamp;
 
 				// App temp
-				HiLoYest.HighAppTemp = HiLoToday.HighAppTemp;
-				HiLoYest.HighAppTempTime = HiLoToday.HighAppTempTime;
-				HiLoToday.HighAppTemp = ApparentTemperature;
-				HiLoToday.HighAppTempTime = timestamp;
+				DailyHighLow.Yest.HighAppTemp = DailyHighLow.Today.HighAppTemp;
+				DailyHighLow.Yest.HighAppTempTime = DailyHighLow.Today.HighAppTempTime;
+				DailyHighLow.Today.HighAppTemp = ApparentTemperature;
+				DailyHighLow.Today.HighAppTempTime = timestamp;
 
-				HiLoYest.LowAppTemp = HiLoToday.LowAppTemp;
-				HiLoYest.LowAppTempTime = HiLoToday.LowAppTempTime;
-				HiLoToday.LowAppTemp = ApparentTemperature;
-				HiLoToday.LowAppTempTime = timestamp;
+				DailyHighLow.Yest.LowAppTemp = DailyHighLow.Today.LowAppTemp;
+				DailyHighLow.Yest.LowAppTempTime = DailyHighLow.Today.LowAppTempTime;
+				DailyHighLow.Today.LowAppTemp = ApparentTemperature;
+				DailyHighLow.Today.LowAppTempTime = timestamp;
 
 				// wind chill
-				HiLoYest.LowWindChill = HiLoToday.LowWindChill;
-				HiLoYest.LowWindChillTime = HiLoToday.LowWindChillTime;
-				HiLoToday.LowWindChill = WindChill;
-				HiLoToday.LowWindChillTime = timestamp;
+				DailyHighLow.Yest.LowWindChill = DailyHighLow.Today.LowWindChill;
+				DailyHighLow.Yest.LowWindChillTime = DailyHighLow.Today.LowWindChillTime;
+				DailyHighLow.Today.LowWindChill = WindChill;
+				DailyHighLow.Today.LowWindChillTime = timestamp;
 
 				// dew point
-				HiLoYest.HighDewPoint = HiLoToday.HighDewPoint;
-				HiLoYest.HighDewPointTime = HiLoToday.HighDewPointTime;
-				HiLoToday.HighDewPoint = OutdoorDewpoint;
-				HiLoToday.HighDewPointTime = timestamp;
+				DailyHighLow.Yest.HighDewPoint = DailyHighLow.Today.HighDewPoint;
+				DailyHighLow.Yest.HighDewPointTime = DailyHighLow.Today.HighDewPointTime;
+				DailyHighLow.Today.HighDewPoint = OutdoorDewpoint;
+				DailyHighLow.Today.HighDewPointTime = timestamp;
 
-				HiLoYest.LowDewPoint = HiLoToday.LowDewPoint;
-				HiLoYest.LowDewPointTime = HiLoToday.LowDewPointTime;
-				HiLoToday.LowDewPoint = OutdoorDewpoint;
-				HiLoToday.LowDewPointTime = timestamp;
+				DailyHighLow.Yest.LowDewPoint = DailyHighLow.Today.LowDewPoint;
+				DailyHighLow.Yest.LowDewPointTime = DailyHighLow.Today.LowDewPointTime;
+				DailyHighLow.Today.LowDewPoint = OutdoorDewpoint;
+				DailyHighLow.Today.LowDewPointTime = timestamp;
 
 				// solar
-				HiLoYest.HighSolar = HiLoToday.HighSolar;
-				HiLoYest.HighSolarTime = HiLoToday.HighSolarTime;
-				HiLoToday.HighSolar = SolarRad ?? 0;
-				HiLoToday.HighSolarTime = timestamp;
+				DailyHighLow.Yest.HighSolar = DailyHighLow.Today.HighSolar;
+				DailyHighLow.Yest.HighSolarTime = DailyHighLow.Today.HighSolarTime;
+				DailyHighLow.Today.HighSolar = SolarRad ?? 0;
+				DailyHighLow.Today.HighSolarTime = timestamp;
 
-				HiLoYest.HighUv = HiLoToday.HighUv;
-				HiLoYest.HighUvTime = HiLoToday.HighUvTime;
-				HiLoToday.HighUv = UV ?? 0;
-				HiLoToday.HighUvTime = timestamp;
+				DailyHighLow.Yest.HighUv = DailyHighLow.Today.HighUv;
+				DailyHighLow.Yest.HighUvTime = DailyHighLow.Today.HighUvTime;
+				DailyHighLow.Today.HighUv = UV ?? 0;
+				DailyHighLow.Today.HighUvTime = timestamp;
 
 				// Feels like
-				HiLoYest.HighFeelsLike = HiLoToday.HighFeelsLike;
-				HiLoYest.HighFeelsLikeTime = HiLoToday.HighFeelsLikeTime;
-				HiLoToday.HighFeelsLike = FeelsLike;
-				HiLoToday.HighFeelsLikeTime = timestamp;
+				DailyHighLow.Yest.HighFeelsLike = DailyHighLow.Today.HighFeelsLike;
+				DailyHighLow.Yest.HighFeelsLikeTime = DailyHighLow.Today.HighFeelsLikeTime;
+				DailyHighLow.Today.HighFeelsLike = FeelsLike;
+				DailyHighLow.Today.HighFeelsLikeTime = timestamp;
 
-				HiLoYest.LowFeelsLike = HiLoToday.LowFeelsLike;
-				HiLoYest.LowFeelsLikeTime = HiLoToday.LowFeelsLikeTime;
-				HiLoToday.LowFeelsLike = FeelsLike;
-				HiLoToday.LowFeelsLikeTime = timestamp;
+				DailyHighLow.Yest.LowFeelsLike = DailyHighLow.Today.LowFeelsLike;
+				DailyHighLow.Yest.LowFeelsLikeTime = DailyHighLow.Today.LowFeelsLikeTime;
+				DailyHighLow.Today.LowFeelsLike = FeelsLike;
+				DailyHighLow.Today.LowFeelsLikeTime = timestamp;
 
 				// Humidex
-				HiLoYest.HighHumidex = HiLoToday.HighHumidex;
-				HiLoYest.HighHumidexTime = HiLoToday.HighHumidexTime;
-				HiLoToday.HighHumidex = Humidex;
-				HiLoToday.HighHumidexTime = timestamp;
+				DailyHighLow.Yest.HighHumidex = DailyHighLow.Today.HighHumidex;
+				DailyHighLow.Yest.HighHumidexTime = DailyHighLow.Today.HighHumidexTime;
+				DailyHighLow.Today.HighHumidex = Humidex;
+				DailyHighLow.Today.HighHumidexTime = timestamp;
 
 				// Lightning
 				LightningStrikesToday = 0;
 
 				// BGT
-				HiLoYest.HighBgt = HiLoToday.HighBgt;
-				HiLoYest.HighBgtTime = HiLoToday.HighBgtTime;
-				HiLoToday.HighBgt = BlackGlobeTemp ?? Cumulus.DefaultHiVal;
-				HiLoToday.HighBgtTime = timestamp;
+				DailyHighLow.Yest.HighBgt = DailyHighLow.Today.HighBgt;
+				DailyHighLow.Yest.HighBgtTime = DailyHighLow.Today.HighBgtTime;
+				DailyHighLow.Today.HighBgt = BlackGlobeTemp ?? Cumulus.DefaultHiVal;
+				DailyHighLow.Today.HighBgtTime = timestamp;
 
 				// WBGT
-				HiLoYest.HighWbgt = HiLoToday.HighWbgt;
-				HiLoYest.HighWbgtTime = HiLoToday.HighWbgtTime;
-				HiLoToday.HighWbgt = WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
-				HiLoToday.HighWbgtTime = timestamp;
+				DailyHighLow.Yest.HighWbgt = DailyHighLow.Today.HighWbgt;
+				DailyHighLow.Yest.HighWbgtTime = DailyHighLow.Today.HighWbgtTime;
+				DailyHighLow.Today.HighWbgt = WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
+				DailyHighLow.Today.HighWbgtTime = timestamp;
 
 				// Save the current values in case of program restart
 				WriteTodayFile(timestamp, true);
@@ -8901,28 +8777,28 @@ namespace CumulusMX
 			// NB this string is just for logging, the dayfile update code is further down
 			var strb = new StringBuilder(300);
 			strb.Append(datestring);
-			strb.Append(sep + HiLoToday.HighGust.ToString(cumulus.WindFormat, inv));
-			strb.Append(sep + HiLoToday.HighGustBearing);
-			strb.Append(sep + HiLoToday.HighGustTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowTemp.ToFixed(cumulus.TempFormat));
-			strb.Append(sep + HiLoToday.LowTempTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighTemp.ToFixed(cumulus.TempFormat));
-			strb.Append(sep + HiLoToday.HighTempTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowPress.ToString(cumulus.PressFormat, inv));
-			strb.Append(sep + HiLoToday.LowPressTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighPress.ToString(cumulus.PressFormat, inv));
-			strb.Append(sep + HiLoToday.HighPressTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighRainRate.ToString(cumulus.RainFormat, inv));
-			strb.Append(sep + HiLoToday.HighRainRateTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighGust.ToString(cumulus.WindFormat, inv));
+			strb.Append(sep + DailyHighLow.Today.HighGustBearing);
+			strb.Append(sep + DailyHighLow.Today.HighGustTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.LowTemp.ToFixed(cumulus.TempFormat));
+			strb.Append(sep + DailyHighLow.Today.LowTempTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighTemp.ToFixed(cumulus.TempFormat));
+			strb.Append(sep + DailyHighLow.Today.HighTempTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.LowPress.ToString(cumulus.PressFormat, inv));
+			strb.Append(sep + DailyHighLow.Today.LowPressTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighPress.ToString(cumulus.PressFormat, inv));
+			strb.Append(sep + DailyHighLow.Today.HighPressTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighRainRate.ToString(cumulus.RainFormat, inv));
+			strb.Append(sep + DailyHighLow.Today.HighRainRateTime.ToString("HH:mm", inv));
 			strb.Append(sep + RainToday.ToString(cumulus.RainFormat, inv));
 			strb.Append(sep + AvgTemp.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + WindRunToday.ToString("F1", inv));
-			strb.Append(sep + HiLoToday.HighWind.ToString(cumulus.WindAvgFormat, inv));
-			strb.Append(sep + HiLoToday.HighWindTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowHumidity);
-			strb.Append(sep + HiLoToday.LowHumidityTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighHumidity);
-			strb.Append(sep + HiLoToday.HighHumidityTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighWind.ToString(cumulus.WindAvgFormat, inv));
+			strb.Append(sep + DailyHighLow.Today.HighWindTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.LowHumidity);
+			strb.Append(sep + DailyHighLow.Today.LowHumidityTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighHumidity);
+			strb.Append(sep + DailyHighLow.Today.HighHumidityTime.ToString("HH:mm", inv));
 			strb.Append(sep + ET.ToFixed(cumulus.ETFormat));
 			if (cumulus.RolloverHour == 0)
 			{
@@ -8934,40 +8810,40 @@ namespace CumulusMX
 				// for non-midnight roll-over, use midnight
 				strb.Append(sep + SunshineToMidnight.ToString(cumulus.SunFormat, inv));
 			}
-			strb.Append(sep + HiLoToday.HighHeatIndex.ToFixed(cumulus.TempFormat));
-			strb.Append(sep + HiLoToday.HighHeatIndexTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighAppTemp.ToFixed(cumulus.TempFormat));
-			strb.Append(sep + HiLoToday.HighAppTempTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowAppTemp.ToFixed(cumulus.TempFormat));
-			strb.Append(sep + HiLoToday.LowAppTempTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighHourlyRain.ToFixed(cumulus.RainFormat));
-			strb.Append(sep + HiLoToday.HighHourlyRainTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowWindChill.ToFixed(cumulus.TempFormat));
-			strb.Append(sep + HiLoToday.LowWindChillTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighDewPoint.ToFixed(cumulus.TempFormat));
-			strb.Append(sep + HiLoToday.HighDewPointTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowDewPoint.ToFixed(cumulus.TempFormat));
-			strb.Append(sep + HiLoToday.LowDewPointTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighHeatIndex.ToFixed(cumulus.TempFormat));
+			strb.Append(sep + DailyHighLow.Today.HighHeatIndexTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighAppTemp.ToFixed(cumulus.TempFormat));
+			strb.Append(sep + DailyHighLow.Today.HighAppTempTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.LowAppTemp.ToFixed(cumulus.TempFormat));
+			strb.Append(sep + DailyHighLow.Today.LowAppTempTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighHourlyRain.ToFixed(cumulus.RainFormat));
+			strb.Append(sep + DailyHighLow.Today.HighHourlyRainTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.LowWindChill.ToFixed(cumulus.TempFormat));
+			strb.Append(sep + DailyHighLow.Today.LowWindChillTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighDewPoint.ToFixed(cumulus.TempFormat));
+			strb.Append(sep + DailyHighLow.Today.HighDewPointTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.LowDewPoint.ToFixed(cumulus.TempFormat));
+			strb.Append(sep + DailyHighLow.Today.LowDewPointTime.ToString("HH:mm", inv));
 			strb.Append(sep + DominantWindBearing.ToString());
 			strb.Append(sep + HeatingDegreeDays.ToString("F1", inv));
 			strb.Append(sep + CoolingDegreeDays.ToString("F1", inv));
-			strb.Append(sep + HiLoToday.HighSolar.ToString());
-			strb.Append(sep + HiLoToday.HighSolarTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighUv.ToString(cumulus.UVFormat, inv));
-			strb.Append(sep + HiLoToday.HighUvTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighFeelsLike.ToFixed(cumulus.TempFormat));
-			strb.Append(sep + HiLoToday.HighFeelsLikeTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.LowFeelsLike.ToFixed(cumulus.TempFormat));
-			strb.Append(sep + HiLoToday.LowFeelsLikeTime.ToString("HH:mm", inv));
-			strb.Append(sep + HiLoToday.HighHumidex.ToFixed(cumulus.TempFormat));
-			strb.Append(sep + HiLoToday.HighHumidexTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighSolar.ToString());
+			strb.Append(sep + DailyHighLow.Today.HighSolarTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighUv.ToString(cumulus.UVFormat, inv));
+			strb.Append(sep + DailyHighLow.Today.HighUvTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighFeelsLike.ToFixed(cumulus.TempFormat));
+			strb.Append(sep + DailyHighLow.Today.HighFeelsLikeTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.LowFeelsLike.ToFixed(cumulus.TempFormat));
+			strb.Append(sep + DailyHighLow.Today.LowFeelsLikeTime.ToString("HH:mm", inv));
+			strb.Append(sep + DailyHighLow.Today.HighHumidex.ToFixed(cumulus.TempFormat));
+			strb.Append(sep + DailyHighLow.Today.HighHumidexTime.ToString("HH:mm", inv));
 			strb.Append(sep + ChillHours.ToString(cumulus.TempFormat, inv));
-			strb.Append(sep + HiLoToday.HighRain24h.ToString(cumulus.RainFormat, inv));
-			strb.Append(sep + HiLoToday.HighRain24hTime.ToString("HH:mm", inv));
-			strb.Append(sep + (HiLoToday.HighBgt == Cumulus.DefaultHiVal ? string.Empty : HiLoToday.HighBgt.ToFixed(cumulus.TempFormat)));
-			strb.Append(sep + (HiLoToday.HighBgt == Cumulus.DefaultHiVal ? string.Empty : HiLoToday.HighBgtTime.ToString("HH:mm", inv)));
-			strb.Append(sep + (HiLoToday.HighWbgt == Cumulus.DefaultHiVal ? string.Empty : HiLoToday.HighWbgt.ToFixed(cumulus.TempFormat)));
-			strb.Append(sep + (HiLoToday.HighWbgt == Cumulus.DefaultHiVal ? string.Empty : HiLoToday.HighWbgtTime.ToString("HH:mm", inv)));
+			strb.Append(sep + DailyHighLow.Today.HighRain24h.ToString(cumulus.RainFormat, inv));
+			strb.Append(sep + DailyHighLow.Today.HighRain24hTime.ToString("HH:mm", inv));
+			strb.Append(sep + (DailyHighLow.Today.HighBgt == Cumulus.DefaultHiVal ? string.Empty : DailyHighLow.Today.HighBgt.ToFixed(cumulus.TempFormat)));
+			strb.Append(sep + (DailyHighLow.Today.HighBgt == Cumulus.DefaultHiVal ? string.Empty : DailyHighLow.Today.HighBgtTime.ToString("HH:mm", inv)));
+			strb.Append(sep + (DailyHighLow.Today.HighWbgt == Cumulus.DefaultHiVal ? string.Empty : DailyHighLow.Today.HighWbgt.ToFixed(cumulus.TempFormat)));
+			strb.Append(sep + (DailyHighLow.Today.HighWbgt == Cumulus.DefaultHiVal ? string.Empty : DailyHighLow.Today.HighWbgtTime.ToString("HH:mm", inv)));
 
 			var entry = strb.ToString();
 
@@ -8984,7 +8860,7 @@ namespace CumulusMX
 				{
 					cumulus.LogMessage("DoDayfile:Dayfile.txt opened for writing");
 
-					if (HiLoToday.HighTemp < -400 || HiLoToday.LowTemp > 900)
+					if (DailyHighLow.Today.HighTemp < -400 || DailyHighLow.Today.LowTemp > 900)
 					{
 						cumulus.LogErrorMessage("DoDayfile: *** Error: Daily values are still at default at end of day");
 						cumulus.LogErrorMessage("DoDayfile: Data not logged to dayfile.txt");
@@ -9018,64 +8894,64 @@ namespace CumulusMX
 			var newRec = new DayFileRec()
 			{
 				Date = new DateTime(tim.Year, tim.Month, tim.Day, 0, 0, 0, DateTimeKind.Local),
-				HighGust = HiLoToday.HighGust,
-				HighGustBearing = HiLoToday.HighGustBearing,
-				HighGustTime = HiLoToday.HighGustTime,
-				LowTemp = HiLoToday.LowTemp,
-				LowTempTime = HiLoToday.LowTempTime,
-				HighTemp = HiLoToday.HighTemp,
-				HighTempTime = HiLoToday.HighTempTime,
-				LowPress = HiLoToday.LowPress,
-				LowPressTime = HiLoToday.LowPressTime,
-				HighPress = HiLoToday.HighPress,
-				HighPressTime = HiLoToday.HighPressTime,
-				HighRainRate = HiLoToday.HighRainRate,
-				HighRainRateTime = HiLoToday.HighRainRateTime,
+				HighGust = DailyHighLow.Today.HighGust,
+				HighGustBearing = DailyHighLow.Today.HighGustBearing,
+				HighGustTime = DailyHighLow.Today.HighGustTime,
+				LowTemp = DailyHighLow.Today.LowTemp,
+				LowTempTime = DailyHighLow.Today.LowTempTime,
+				HighTemp = DailyHighLow.Today.HighTemp,
+				HighTempTime = DailyHighLow.Today.HighTempTime,
+				LowPress = DailyHighLow.Today.LowPress,
+				LowPressTime = DailyHighLow.Today.LowPressTime,
+				HighPress = DailyHighLow.Today.HighPress,
+				HighPressTime = DailyHighLow.Today.HighPressTime,
+				HighRainRate = DailyHighLow.Today.HighRainRate,
+				HighRainRateTime = DailyHighLow.Today.HighRainRateTime,
 				TotalRain = RainToday,
 				AvgTemp = AvgTemp,
 				WindRun = WindRunToday,
-				HighAvgWind = HiLoToday.HighWind,
-				HighAvgWindTime = HiLoToday.HighWindTime,
-				LowHumidity = HiLoToday.LowHumidity,
-				LowHumidityTime = HiLoToday.LowHumidityTime,
-				HighHumidity = HiLoToday.HighHumidity,
-				HighHumidityTime = HiLoToday.HighHumidityTime,
+				HighAvgWind = DailyHighLow.Today.HighWind,
+				HighAvgWindTime = DailyHighLow.Today.HighWindTime,
+				LowHumidity = DailyHighLow.Today.LowHumidity,
+				LowHumidityTime = DailyHighLow.Today.LowHumidityTime,
+				HighHumidity = DailyHighLow.Today.HighHumidity,
+				HighHumidityTime = DailyHighLow.Today.HighHumidityTime,
 				ET = ET,
 				SunShineHours = cumulus.RolloverHour == 0 ? SunshineHours : SunshineToMidnight,
-				HighHeatIndex = HiLoToday.HighHeatIndex,
-				HighHeatIndexTime = HiLoToday.HighHeatIndexTime,
-				HighAppTemp = HiLoToday.HighAppTemp,
-				HighAppTempTime = HiLoToday.HighAppTempTime,
-				LowAppTemp = HiLoToday.LowAppTemp,
-				LowAppTempTime = HiLoToday.LowAppTempTime,
-				HighHourlyRain = HiLoToday.HighHourlyRain,
-				HighHourlyRainTime = HiLoToday.HighHourlyRainTime,
-				LowWindChill = HiLoToday.LowWindChill,
-				LowWindChillTime = HiLoToday.LowWindChillTime,
-				HighDewPoint = HiLoToday.HighDewPoint,
-				HighDewPointTime = HiLoToday.HighDewPointTime,
-				LowDewPoint = HiLoToday.LowDewPoint,
-				LowDewPointTime = HiLoToday.LowDewPointTime,
+				HighHeatIndex = DailyHighLow.Today.HighHeatIndex,
+				HighHeatIndexTime = DailyHighLow.Today.HighHeatIndexTime,
+				HighAppTemp = DailyHighLow.Today.HighAppTemp,
+				HighAppTempTime = DailyHighLow.Today.HighAppTempTime,
+				LowAppTemp = DailyHighLow.Today.LowAppTemp,
+				LowAppTempTime = DailyHighLow.Today.LowAppTempTime,
+				HighHourlyRain = DailyHighLow.Today.HighHourlyRain,
+				HighHourlyRainTime = DailyHighLow.Today.HighHourlyRainTime,
+				LowWindChill = DailyHighLow.Today.LowWindChill,
+				LowWindChillTime = DailyHighLow.Today.LowWindChillTime,
+				HighDewPoint = DailyHighLow.Today.HighDewPoint,
+				HighDewPointTime = DailyHighLow.Today.HighDewPointTime,
+				LowDewPoint = DailyHighLow.Today.LowDewPoint,
+				LowDewPointTime = DailyHighLow.Today.LowDewPointTime,
 				DominantWindBearing = DominantWindBearing,
 				HeatingDegreeDays = HeatingDegreeDays,
 				CoolingDegreeDays = CoolingDegreeDays,
-				HighSolar = HiLoToday.HighSolar,
-				HighSolarTime = HiLoToday.HighSolarTime,
-				HighUv = HiLoToday.HighUv,
-				HighUvTime = HiLoToday.HighUvTime,
-				HighFeelsLike = HiLoToday.HighFeelsLike,
-				HighFeelsLikeTime = HiLoToday.HighFeelsLikeTime,
-				LowFeelsLike = HiLoToday.LowFeelsLike,
-				LowFeelsLikeTime = HiLoToday.LowFeelsLikeTime,
-				HighHumidex = HiLoToday.HighHumidex,
-				HighHumidexTime = HiLoToday.HighHumidexTime,
+				HighSolar = DailyHighLow.Today.HighSolar,
+				HighSolarTime = DailyHighLow.Today.HighSolarTime,
+				HighUv = DailyHighLow.Today.HighUv,
+				HighUvTime = DailyHighLow.Today.HighUvTime,
+				HighFeelsLike = DailyHighLow.Today.HighFeelsLike,
+				HighFeelsLikeTime = DailyHighLow.Today.HighFeelsLikeTime,
+				LowFeelsLike = DailyHighLow.Today.LowFeelsLike,
+				LowFeelsLikeTime = DailyHighLow.Today.LowFeelsLikeTime,
+				HighHumidex = DailyHighLow.Today.HighHumidex,
+				HighHumidexTime = DailyHighLow.Today.HighHumidexTime,
 				ChillHours = ChillHours,
-				HighRain24h = HiLoToday.HighRain24h,
-				HighRain24hTime = HiLoToday.HighRain24hTime,
-				HighBgt = HiLoToday.HighBgt == Cumulus.DefaultHiVal ? null : HiLoToday.HighBgt,
-				HighBgtTime = HiLoToday.HighBgt == Cumulus.DefaultHiVal ? null : HiLoToday.HighBgtTime,
-				HighWbgt = HiLoToday.HighWbgt == Cumulus.DefaultHiVal ? null : HiLoToday.HighWbgt,
-				HighWbgtTime = HiLoToday.HighWbgt == Cumulus.DefaultHiVal ? null : HiLoToday.HighWbgtTime
+				HighRain24h = DailyHighLow.Today.HighRain24h,
+				HighRain24hTime = DailyHighLow.Today.HighRain24hTime,
+				HighBgt = DailyHighLow.Today.HighBgt == Cumulus.DefaultHiVal ? null : DailyHighLow.Today.HighBgt,
+				HighBgtTime = DailyHighLow.Today.HighBgt == Cumulus.DefaultHiVal ? null : DailyHighLow.Today.HighBgtTime,
+				HighWbgt = DailyHighLow.Today.HighWbgt == Cumulus.DefaultHiVal ? null : DailyHighLow.Today.HighWbgt,
+				HighWbgtTime = DailyHighLow.Today.HighWbgt == Cumulus.DefaultHiVal ? null : DailyHighLow.Today.HighWbgtTime
 			};
 
 			DayFile.Add(newRec);
@@ -9088,66 +8964,66 @@ namespace CumulusMX
 				var queryString = new StringBuilder(cumulus.DayfileTable.StartOfInsert, 1024);
 				queryString.Append(" Values(");
 				queryString.Append(timestamp.AddDays(-1).ToString("\\'yy-MM-dd\\'", inv));
-				queryString.Append(sep + HiLoToday.HighGust.ToString(cumulus.WindFormat, inv));
-				queryString.Append(sep + HiLoToday.HighGustBearing);
-				queryString.Append(sep + HiLoToday.HighGustTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowTemp.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.LowTempTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighTemp.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.HighTempTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowPress.ToString(cumulus.PressFormat, inv));
-				queryString.Append(sep + HiLoToday.LowPressTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighPress.ToString(cumulus.PressFormat, inv));
-				queryString.Append(sep + HiLoToday.HighPressTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighRainRate.ToString(cumulus.RainFormat, inv));
-				queryString.Append(sep + HiLoToday.HighRainRateTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighGust.ToString(cumulus.WindFormat, inv));
+				queryString.Append(sep + DailyHighLow.Today.HighGustBearing);
+				queryString.Append(sep + DailyHighLow.Today.HighGustTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.LowTemp.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + DailyHighLow.Today.LowTempTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighTemp.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + DailyHighLow.Today.HighTempTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.LowPress.ToString(cumulus.PressFormat, inv));
+				queryString.Append(sep + DailyHighLow.Today.LowPressTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighPress.ToString(cumulus.PressFormat, inv));
+				queryString.Append(sep + DailyHighLow.Today.HighPressTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighRainRate.ToString(cumulus.RainFormat, inv));
+				queryString.Append(sep + DailyHighLow.Today.HighRainRateTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + RainToday.ToString(cumulus.RainFormat, inv));
 				queryString.Append(sep + AvgTemp.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + WindRunToday.ToString("F1", inv));
-				queryString.Append(sep + HiLoToday.HighWind.ToString(cumulus.WindAvgFormat, inv));
-				queryString.Append(sep + HiLoToday.HighWindTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowHumidity);
-				queryString.Append(sep + HiLoToday.LowHumidityTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighHumidity);
-				queryString.Append(sep + HiLoToday.HighHumidityTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighWind.ToString(cumulus.WindAvgFormat, inv));
+				queryString.Append(sep + DailyHighLow.Today.HighWindTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.LowHumidity);
+				queryString.Append(sep + DailyHighLow.Today.LowHumidityTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighHumidity);
+				queryString.Append(sep + DailyHighLow.Today.HighHumidityTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + ET.ToString(cumulus.ETFormat, inv));
 				queryString.Append(sep + (cumulus.RolloverHour == 0 ? SunshineHours.ToString(cumulus.SunFormat, inv) : SunshineToMidnight.ToString(cumulus.SunFormat, inv)));
-				queryString.Append(sep + HiLoToday.HighHeatIndex.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.HighHeatIndexTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighAppTemp.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.HighAppTempTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowAppTemp.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.LowAppTempTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighHourlyRain.ToString(cumulus.RainFormat, inv));
-				queryString.Append(sep + HiLoToday.HighHourlyRainTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowWindChill.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.LowWindChillTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighDewPoint.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.HighDewPointTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowDewPoint.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.LowDewPointTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighHeatIndex.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + DailyHighLow.Today.HighHeatIndexTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighAppTemp.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + DailyHighLow.Today.HighAppTempTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.LowAppTemp.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + DailyHighLow.Today.LowAppTempTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighHourlyRain.ToString(cumulus.RainFormat, inv));
+				queryString.Append(sep + DailyHighLow.Today.HighHourlyRainTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.LowWindChill.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + DailyHighLow.Today.LowWindChillTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighDewPoint.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + DailyHighLow.Today.HighDewPointTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.LowDewPoint.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + DailyHighLow.Today.LowDewPointTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + DominantWindBearing.ToString());
 				queryString.Append(sep + HeatingDegreeDays.ToString("F1", inv));
 				queryString.Append(sep + CoolingDegreeDays.ToString("F1", inv));
-				queryString.Append(sep + HiLoToday.HighSolar.ToString());
-				queryString.Append(sep + HiLoToday.HighSolarTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighUv.ToString(cumulus.UVFormat, inv));
-				queryString.Append(sep + HiLoToday.HighUvTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + "'" + CompassPoint(HiLoToday.HighGustBearing) + "'");
+				queryString.Append(sep + DailyHighLow.Today.HighSolar.ToString());
+				queryString.Append(sep + DailyHighLow.Today.HighSolarTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighUv.ToString(cumulus.UVFormat, inv));
+				queryString.Append(sep + DailyHighLow.Today.HighUvTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + "'" + CompassPoint(DailyHighLow.Today.HighGustBearing) + "'");
 				queryString.Append(sep + "'" + CompassPoint(DominantWindBearing) + "'");
-				queryString.Append(sep + HiLoToday.HighFeelsLike.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.HighFeelsLikeTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.LowFeelsLike.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.LowFeelsLikeTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + HiLoToday.HighHumidex.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.HighHumidexTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighFeelsLike.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + DailyHighLow.Today.HighFeelsLikeTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.LowFeelsLike.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + DailyHighLow.Today.LowFeelsLikeTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + DailyHighLow.Today.HighHumidex.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + DailyHighLow.Today.HighHumidexTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + ChillHours.ToFixed(cumulus.TempFormat));
-				queryString.Append(sep + HiLoToday.HighRain24h.ToString(cumulus.RainFormat, inv));
-				queryString.Append(sep + HiLoToday.HighRain24hTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + (HiLoToday.HighBgt == Cumulus.DefaultHiVal ? "NULL" : HiLoToday.HighBgt.ToFixed(cumulus.TempFormat)));
-				queryString.Append(sep + (HiLoToday.HighBgt == Cumulus.DefaultHiVal ? "NULL" : HiLoToday.HighBgtTime.ToString("\\'HH:mm\\'", inv)));
-				queryString.Append(sep + (HiLoToday.HighWbgt == Cumulus.DefaultHiVal ? "NULL" : HiLoToday.HighWbgt.ToFixed(cumulus.TempFormat)));
-				queryString.Append(sep + (HiLoToday.HighWbgt == Cumulus.DefaultHiVal ? "NULL" : HiLoToday.HighWbgtTime.ToString("\\'HH:mm\\'", inv)));
+				queryString.Append(sep + DailyHighLow.Today.HighRain24h.ToString(cumulus.RainFormat, inv));
+				queryString.Append(sep + DailyHighLow.Today.HighRain24hTime.ToString("\\'HH:mm\\'", inv));
+				queryString.Append(sep + (DailyHighLow.Today.HighBgt == Cumulus.DefaultHiVal ? "NULL" : DailyHighLow.Today.HighBgt.ToFixed(cumulus.TempFormat)));
+				queryString.Append(sep + (DailyHighLow.Today.HighBgt == Cumulus.DefaultHiVal ? "NULL" : DailyHighLow.Today.HighBgtTime.ToString("\\'HH:mm\\'", inv)));
+				queryString.Append(sep + (DailyHighLow.Today.HighWbgt == Cumulus.DefaultHiVal ? "NULL" : DailyHighLow.Today.HighWbgt.ToFixed(cumulus.TempFormat)));
+				queryString.Append(sep + (DailyHighLow.Today.HighWbgt == Cumulus.DefaultHiVal ? "NULL" : DailyHighLow.Today.HighWbgtTime.ToString("\\'HH:mm\\'", inv)));
 				queryString.Append(')');
 
 				if (cumulus.NormalRunning)
@@ -9451,10 +9327,10 @@ namespace CumulusMX
 
 							CheckMonthlyAlltime("HourlyRain", RainLastHour, true, recDtTm);
 
-							if (RainLastHour > HiLoToday.HighHourlyRain)
+							if (RainLastHour > DailyHighLow.Today.HighHourlyRain)
 							{
-								HiLoToday.HighHourlyRain = RainLastHour;
-								HiLoToday.HighHourlyRainTime = recDtTm;
+								DailyHighLow.Today.HighHourlyRain = RainLastHour;
+								DailyHighLow.Today.HighHourlyRainTime = recDtTm;
 								WriteTodayFile(ts, false);
 							}
 
@@ -9531,10 +9407,10 @@ namespace CumulusMX
 
 							cumulus.HighRainRateAlarm.CheckAlarm(RainRate);
 
-							if (RainRate > HiLoToday.HighRainRate)
+							if (RainRate > DailyHighLow.Today.HighRainRate)
 							{
-								HiLoToday.HighRainRate = RainRate;
-								HiLoToday.HighRainRateTime = recDtTm;
+								DailyHighLow.Today.HighRainRate = RainRate;
+								DailyHighLow.Today.HighRainRateTime = recDtTm;
 								WriteTodayFile(ts, false);
 							}
 
@@ -9581,10 +9457,10 @@ namespace CumulusMX
 
 					RainLast24Hour = trendval * cumulus.Calib.Rain.Mult;
 
-					if (RainLast24Hour > HiLoToday.HighRain24h)
+					if (RainLast24Hour > DailyHighLow.Today.HighRain24h)
 					{
-						HiLoToday.HighRain24h = RainLast24Hour;
-						HiLoToday.HighRain24hTime = recTs;
+						DailyHighLow.Today.HighRain24h = RainLast24Hour;
+						DailyHighLow.Today.HighRain24hTime = recTs;
 						WriteTodayFile(recTs, false);
 					}
 
@@ -12231,30 +12107,30 @@ namespace CumulusMX
 			var tempUnitStr = "&nbsp;&deg;" + cumulus.Units.TempText[1].ToString() + sepStr;
 
 			json.Append("[\"High Temperature\",\"");
-			json.Append(HiLoToday.HighTemp.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Today.HighTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighTemp.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Yest.HighTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Temperature\",\"");
-			json.Append(HiLoToday.LowTemp.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Today.LowTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowTemp.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Yest.LowTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Temperature Range\",\"");
-			json.Append((HiLoToday.HighTemp - HiLoToday.LowTemp).ToFixedLocal(cumulus.TempFormat));
+			json.Append((DailyHighLow.Today.HighTemp - DailyHighLow.Today.LowTemp).ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\",\"");
-			json.Append((HiLoYest.HighTemp - HiLoYest.LowTemp).ToFixedLocal(cumulus.TempFormat));
+			json.Append((DailyHighLow.Yest.HighTemp - DailyHighLow.Yest.LowTemp).ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\"],");
 
@@ -12268,92 +12144,92 @@ namespace CumulusMX
 
 
 			json.Append("[\"High Apparent Temperature\",\"");
-			json.Append(HiLoToday.HighAppTemp.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Today.HighAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighAppTemp.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Yest.HighAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Apparent Temperature\",\"");
-			json.Append(HiLoToday.LowAppTemp.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Today.LowAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowAppTemp.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Yest.LowAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"High Feels Like\",\"");
-			json.Append(HiLoToday.HighFeelsLike.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Today.HighFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighFeelsLike.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Yest.HighFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Feels Like\",\"");
-			json.Append(HiLoToday.LowFeelsLike.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Today.LowFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowFeelsLike.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Yest.LowFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"High Humidex\",\"");
-			json.Append(HiLoToday.HighHumidex.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Today.HighHumidex.ToFixedLocal(cumulus.TempFormat));
 			json.Append("\",\"");
-			json.Append(HiLoToday.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighHumidex.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Yest.HighHumidex.ToFixedLocal(cumulus.TempFormat));
 			json.Append("\",\"");
-			json.Append(HiLoYest.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 			json.Append("[\"High Dew Point\",\"");
-			json.Append(HiLoToday.HighDewPoint.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Today.HighDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighDewPoint.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Yest.HighDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Dew Point\",\"");
-			json.Append(HiLoToday.LowDewPoint.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Today.LowDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowDewPoint.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Yest.LowDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"Low Wind Chill\",\"");
-			json.Append(HiLoToday.LowWindChill.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Today.LowWindChill.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowWindChill.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Yest.LowWindChill.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
 			json.Append("[\"High Heat Index\",\"");
-			json.Append(HiLoToday.HighHeatIndex.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Today.HighHeatIndex.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoToday.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighHeatIndex.ToFixedLocal(cumulus.TempFormat));
+			json.Append(DailyHighLow.Yest.HighHeatIndex.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
-			json.Append(HiLoYest.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"]");
 
 			json.Append("]}");
@@ -12367,23 +12243,23 @@ namespace CumulusMX
 			var unitStr = "&nbsp;%" + sepStr;
 
 			json.Append("[\"High Humidity\",\"");
-			json.Append(HiLoToday.HighHumidity.ToString(cumulus.HumFormat));
+			json.Append(DailyHighLow.Today.HighHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
-			json.Append(HiLoToday.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighHumidity.ToString(cumulus.HumFormat));
+			json.Append(DailyHighLow.Yest.HighHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
-			json.Append(HiLoYest.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"Low Humidity\",\"");
-			json.Append(HiLoToday.LowHumidity.ToString(cumulus.HumFormat));
+			json.Append(DailyHighLow.Today.LowHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
-			json.Append(HiLoToday.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowHumidity.ToString(cumulus.HumFormat));
+			json.Append(DailyHighLow.Yest.LowHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
-			json.Append(HiLoYest.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"]");
 
 			json.Append("]}");
@@ -12409,39 +12285,39 @@ namespace CumulusMX
 			json.Append("\"],");
 
 			json.Append("[\"High Rain Rate\",\"");
-			json.Append(HiLoToday.HighRainRate.ToString(cumulus.RainFormat));
+			json.Append(DailyHighLow.Today.HighRainRate.ToString(cumulus.RainFormat));
 			json.Append(unitStr + "/hr");
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighRainRate.ToString(cumulus.RainFormat));
+			json.Append(DailyHighLow.Yest.HighRainRate.ToString(cumulus.RainFormat));
 			json.Append(unitStr + "/hr");
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"High Hourly Rain\",\"");
-			json.Append(HiLoToday.HighHourlyRain.ToString(cumulus.RainFormat));
+			json.Append(DailyHighLow.Today.HighHourlyRain.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighHourlyRain.ToString(cumulus.RainFormat));
+			json.Append(DailyHighLow.Yest.HighHourlyRain.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"High 24 Hour Rain\",\"");
-			json.Append(HiLoToday.HighRain24h.ToString(cumulus.RainFormat));
+			json.Append(DailyHighLow.Today.HighRain24h.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighRain24hTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighRain24hTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighRain24h.ToString(cumulus.RainFormat));
+			json.Append(DailyHighLow.Yest.HighRain24h.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighRain24hTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighRain24hTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"]");
 
 
@@ -12455,27 +12331,27 @@ namespace CumulusMX
 			var sepStr = "\",\"";
 
 			json.Append("[\"Highest Gust\",\"");
-			json.Append(HiLoToday.HighGust.ToString(cumulus.WindFormat));
+			json.Append(DailyHighLow.Today.HighGust.ToString(cumulus.WindFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighGust.ToString(cumulus.WindFormat));
+			json.Append(DailyHighLow.Yest.HighGust.ToString(cumulus.WindFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"Highest Speed\",\"");
-			json.Append(HiLoToday.HighWind.ToString(cumulus.WindAvgFormat));
+			json.Append(DailyHighLow.Today.HighWind.ToString(cumulus.WindAvgFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighWindTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighWindTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighWind.ToString(cumulus.WindAvgFormat));
+			json.Append(DailyHighLow.Yest.HighWind.ToString(cumulus.WindAvgFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighWindTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighWindTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"Wind Run\",\"");
@@ -12513,27 +12389,27 @@ namespace CumulusMX
 			var unitStr = "&nbsp;" + cumulus.Units.PressText;
 
 			json.Append("[\"High Pressure\",\"");
-			json.Append(HiLoToday.HighPress.ToString(cumulus.PressFormat));
+			json.Append(DailyHighLow.Today.HighPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighPress.ToString(cumulus.PressFormat));
+			json.Append(DailyHighLow.Yest.HighPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"Low Pressure\",\"");
-			json.Append(HiLoToday.LowPress.ToString(cumulus.PressFormat));
+			json.Append(DailyHighLow.Today.LowPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoToday.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowPress.ToString(cumulus.PressFormat));
+			json.Append(DailyHighLow.Yest.LowPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
-			json.Append(HiLoYest.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"]");
 
 			json.Append("]}");
@@ -12546,15 +12422,15 @@ namespace CumulusMX
 			var sepStr = "\",\"";
 
 			json.Append("[\"High Solar Radiation\",\"");
-			json.Append(HiLoToday.HighSolar.ToString("F0"));
+			json.Append(DailyHighLow.Today.HighSolar.ToString("F0"));
 			json.Append("&nbsp;W/m<sup>2</sup>");
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighSolar.ToString("F0"));
+			json.Append(DailyHighLow.Yest.HighSolar.ToString("F0"));
 			json.Append("&nbsp;W/m<sup>2</sup>");
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
 			json.Append("[\"Hours of Sunshine\",\"");
@@ -12570,15 +12446,15 @@ namespace CumulusMX
 			json.Append("\"],");
 
 			json.Append("[\"High UV-Index\",\"");
-			json.Append(HiLoToday.HighUv.ToString("F1"));
+			json.Append(DailyHighLow.Today.HighUv.ToString("F1"));
 			json.Append("&nbsp;");
 			json.Append(sepStr);
-			json.Append(HiLoToday.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Today.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighUv.ToString("F1"));
+			json.Append(DailyHighLow.Yest.HighUv.ToString("F1"));
 			json.Append("&nbsp;");
 			json.Append(sepStr);
-			json.Append(HiLoYest.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat));
+			json.Append(DailyHighLow.Yest.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"]");
 
 			json.Append("]}");
@@ -15083,21 +14959,21 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 
 			var data = new DataStruct(cumulus, OutdoorTemperature, OutdoorHumidity, TempTotalToday / tempsamplestoday, IndoorTemperature, OutdoorDewpoint, WindChill, IndoorHumidity,
 				Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainWeek, RainMonth, RainYear, RainRate,
-				RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, HiLoToday.HighGust, HiLoToday.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighWind,
-				HiLoToday.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), HiLoToday.HighTemp, HiLoToday.LowTemp,
-				HiLoToday.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighPress, HiLoToday.LowPress, HiLoToday.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat),
-				HiLoToday.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighRainRate, HiLoToday.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighHumidity, HiLoToday.LowHumidity,
-				HiLoToday.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), cumulus.Units.PressText, cumulus.Units.TempText, cumulus.Units.RainText,
-				HiLoToday.HighDewPoint, HiLoToday.LowDewPoint, HiLoToday.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowWindChill,
-				HiLoToday.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat), SolarRad, HiLoToday.HighSolar, HiLoToday.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat), UV, HiLoToday.HighUv,
-				HiLoToday.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat), forecaststr, getTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat),
-				getTimeString(cumulus.MoonRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.MoonSetTime, cumulus.ProgramOptions.TimeFormat), HiLoToday.HighHeatIndex, HiLoToday.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighAppTemp,
-				HiLoToday.LowAppTemp, HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), CurrentSolarMax,
+				RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, DailyHighLow.Today.HighGust, DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighWind,
+				DailyHighLow.Today.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), DailyHighLow.Today.HighTemp, DailyHighLow.Today.LowTemp,
+				DailyHighLow.Today.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighPress, DailyHighLow.Today.LowPress, DailyHighLow.Today.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat),
+				DailyHighLow.Today.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighRainRate, DailyHighLow.Today.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighHumidity, DailyHighLow.Today.LowHumidity,
+				DailyHighLow.Today.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), cumulus.Units.PressText, cumulus.Units.TempText, cumulus.Units.RainText,
+				DailyHighLow.Today.HighDewPoint, DailyHighLow.Today.LowDewPoint, DailyHighLow.Today.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowWindChill,
+				DailyHighLow.Today.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat), SolarRad, DailyHighLow.Today.HighSolar, DailyHighLow.Today.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat), UV, DailyHighLow.Today.HighUv,
+				DailyHighLow.Today.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat), forecaststr, getTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat),
+				getTimeString(cumulus.MoonRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.MoonSetTime, cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighHeatIndex, DailyHighLow.Today.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighAppTemp,
+				DailyHighLow.Today.LowAppTemp, DailyHighLow.Today.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), CurrentSolarMax,
 				Records.AllTime.HighPress.Val, Records.AllTime.LowPress.Val, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
-				HiLoToday.HighHourlyRain, HiLoToday.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat), "F" + Cumulus.Beaufort(HiLoToday.HighWind), "F" + Cumulus.Beaufort(WindAverage),
+				DailyHighLow.Today.HighHourlyRain, DailyHighLow.Today.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat), "F" + Cumulus.Beaufort(DailyHighLow.Today.HighWind), "F" + Cumulus.Beaufort(WindAverage),
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp, DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
-				FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
-				HiLoToday.HighHumidex, HiLoToday.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat), alarms);
+				FeelsLike, DailyHighLow.Today.HighFeelsLike, DailyHighLow.Today.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowFeelsLike, DailyHighLow.Today.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
+				DailyHighLow.Today.HighHumidex, DailyHighLow.Today.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat), alarms);
 
 			try
 			{
@@ -15124,11 +15000,11 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				return false;
 			}
 
-			if (gust > HiLoToday.HighGust)
+			if (gust > DailyHighLow.Today.HighGust)
 			{
-				HiLoToday.HighGust = gust;
-				HiLoToday.HighGustTime = timestamp;
-				HiLoToday.HighGustBearing = gustdir;
+				DailyHighLow.Today.HighGust = gust;
+				DailyHighLow.Today.HighGustTime = timestamp;
+				DailyHighLow.Today.HighGustBearing = gustdir;
 				WriteTodayFile(timestamp, false);
 			}
 			if (gust > Records.ThisMonth.HighGust.Val)
@@ -15160,10 +15036,10 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 
 		public void CheckHighAvgSpeed(DateTime timestamp)
 		{
-			if (WindAverage > HiLoToday.HighWind)
+			if (WindAverage > DailyHighLow.Today.HighWind)
 			{
-				HiLoToday.HighWind = WindAverage;
-				HiLoToday.HighWindTime = timestamp;
+				DailyHighLow.Today.HighWind = WindAverage;
+				DailyHighLow.Today.HighWindTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 			if (WindAverage > Records.ThisMonth.HighWind.Val)
