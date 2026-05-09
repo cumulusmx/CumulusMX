@@ -63,29 +63,10 @@ namespace CumulusMX
 		private readonly int[] steadyOptions = [25, 25, 25, 25, 25, 25, 23, 23, 22, 18, 15, 13, 10, 4, 1, 1, 0, 0, 0, 0, 0, 0];
 		private readonly int[] fallOptions = [25, 25, 25, 25, 25, 25, 25, 25, 23, 23, 21, 20, 17, 14, 7, 3, 1, 1, 1, 0, 0, 0];
 
-		// holds all time highs and lows
-		public AllTimeRecords AllTime = new();
-
-		// holds monthly all time highs and lows
-		private AllTimeRecords[] monthlyRecs = new AllTimeRecords[13];
-		public AllTimeRecords[] MonthlyRecs
-		{
-			get
-			{
-				monthlyRecs ??= new AllTimeRecords[13];
-
-				return monthlyRecs;
-			}
-		}
 
 
 		public List<DayFileRec> DayFile = [];
 
-
-		// this month highs and lows
-		public AllTimeRecords ThisMonth = new();
-
-		public AllTimeRecords ThisYear = new();
 
 		public string LatestFOReading { get; set; }
 
@@ -342,7 +323,7 @@ namespace CumulusMX
 			// initialise the monthly array of records - element zero is not used
 			for (var i = 1; i <= 12; i++)
 			{
-				MonthlyRecs[i] = new AllTimeRecords();
+				Records.MonthlyRecs[i] = new Records();
 			}
 
 			CumulusForecast = cumulus.Trans.ForecastNotAvailable;
@@ -993,7 +974,7 @@ namespace CumulusMX
 					year = adjustedTS.Year;
 				}
 
-				var rec = MonthlyRecs[month][index];
+				var rec = Records.MonthlyRecs[month][index];
 
 				var oldvalue = rec.Val;
 
@@ -3561,7 +3542,7 @@ namespace CumulusMX
 			// 107-112 Humidity 11-16
 			// 113-118 Dew point 11-16
 
-			int[] fields = [36, 37, 38, 39, 56, 57,58, 59, 60, 61, 62, 63, 64, 65, 66, 67];
+			int[] fields = [36, 37, 38, 39, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67];
 
 			do
 			{
@@ -5564,7 +5545,7 @@ namespace CumulusMX
 								if (recTs < tsFrom)
 									continue;
 
-								if (recTs >tsTo)
+								if (recTs > tsTo)
 								{
 									finished = true;
 									cumulus.LogDebugMessage("GetIntervaPressGraphData: Finished processing the log files");
@@ -6212,38 +6193,38 @@ namespace CumulusMX
 				HiLoToday.LowHumidityTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
-			if (OutdoorHumidity > ThisMonth.HighHumidity.Val)
+			if (OutdoorHumidity > Records.ThisMonth.HighHumidity.Val)
 			{
-				ThisMonth.HighHumidity.Val = OutdoorHumidity;
-				ThisMonth.HighHumidity.Ts = timestamp;
+				Records.ThisMonth.HighHumidity.Val = OutdoorHumidity;
+				Records.ThisMonth.HighHumidity.Ts = timestamp;
 				WriteMonthIniFile();
 			}
-			if (OutdoorHumidity < ThisMonth.LowHumidity.Val)
+			if (OutdoorHumidity < Records.ThisMonth.LowHumidity.Val)
 			{
-				ThisMonth.LowHumidity.Val = OutdoorHumidity;
-				ThisMonth.LowHumidity.Ts = timestamp;
+				Records.ThisMonth.LowHumidity.Val = OutdoorHumidity;
+				Records.ThisMonth.LowHumidity.Ts = timestamp;
 				WriteMonthIniFile();
 			}
-			if (OutdoorHumidity > ThisYear.HighHumidity.Val)
+			if (OutdoorHumidity > Records.ThisYear.HighHumidity.Val)
 			{
-				ThisYear.HighHumidity.Val = OutdoorHumidity;
-				ThisYear.HighHumidity.Ts = timestamp;
+				Records.ThisYear.HighHumidity.Val = OutdoorHumidity;
+				Records.ThisYear.HighHumidity.Ts = timestamp;
 				WriteYearIniFile();
 			}
-			if (OutdoorHumidity < ThisYear.LowHumidity.Val)
+			if (OutdoorHumidity < Records.ThisYear.LowHumidity.Val)
 			{
-				ThisYear.LowHumidity.Val = OutdoorHumidity;
-				ThisYear.LowHumidity.Ts = timestamp;
+				Records.ThisYear.LowHumidity.Val = OutdoorHumidity;
+				Records.ThisYear.LowHumidity.Ts = timestamp;
 				WriteYearIniFile();
 			}
-			if (OutdoorHumidity > AllTime.HighHumidity.Val)
+			if (OutdoorHumidity > Records.AllTime.HighHumidity.Val)
 			{
-				SetAlltime(AllTime.HighHumidity, OutdoorHumidity, timestamp);
+				SetAlltime(Records.AllTime.HighHumidity, OutdoorHumidity, timestamp);
 			}
 			CheckMonthlyAlltime("HighHumidity", OutdoorHumidity, true, timestamp);
-			if (OutdoorHumidity < AllTime.LowHumidity.Val)
+			if (OutdoorHumidity < Records.AllTime.LowHumidity.Val)
 			{
-				SetAlltime(AllTime.LowHumidity, OutdoorHumidity, timestamp);
+				SetAlltime(Records.AllTime.LowHumidity, OutdoorHumidity, timestamp);
 			}
 			CheckMonthlyAlltime("LowHumidity", OutdoorHumidity, false, timestamp);
 			HaveReadData = true;
@@ -6289,13 +6270,13 @@ namespace CumulusMX
 			first_temp = false;
 
 			// Does this reading set any records or trigger any alarms?
-			if (OutdoorTemperature > AllTime.HighTemp.Val)
-				SetAlltime(AllTime.HighTemp, OutdoorTemperature, timestamp);
+			if (OutdoorTemperature > Records.AllTime.HighTemp.Val)
+				SetAlltime(Records.AllTime.HighTemp, OutdoorTemperature, timestamp);
 
 			cumulus.HighTempAlarm.CheckAlarm(OutdoorTemperature);
 
-			if (OutdoorTemperature < AllTime.LowTemp.Val)
-				SetAlltime(AllTime.LowTemp, OutdoorTemperature, timestamp);
+			if (OutdoorTemperature < Records.AllTime.LowTemp.Val)
+				SetAlltime(Records.AllTime.LowTemp, OutdoorTemperature, timestamp);
 
 			cumulus.LowTempAlarm.CheckAlarm(OutdoorTemperature);
 
@@ -6351,31 +6332,31 @@ namespace CumulusMX
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (OutdoorTemperature > ThisMonth.HighTemp.Val)
+			if (OutdoorTemperature >Records.ThisMonth.HighTemp.Val)
 			{
-				ThisMonth.HighTemp.Val = OutdoorTemperature;
-				ThisMonth.HighTemp.Ts = timestamp;
+				Records.ThisMonth.HighTemp.Val = OutdoorTemperature;
+				Records.ThisMonth.HighTemp.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (OutdoorTemperature < ThisMonth.LowTemp.Val)
+			if (OutdoorTemperature < Records.ThisMonth.LowTemp.Val)
 			{
-				ThisMonth.LowTemp.Val = OutdoorTemperature;
-				ThisMonth.LowTemp.Ts = timestamp;
+				Records.ThisMonth.LowTemp.Val = OutdoorTemperature;
+				Records.ThisMonth.LowTemp.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (OutdoorTemperature > ThisYear.HighTemp.Val)
+			if (OutdoorTemperature > Records.ThisYear.HighTemp.Val)
 			{
-				ThisYear.HighTemp.Val = OutdoorTemperature;
-				ThisYear.HighTemp.Ts = timestamp;
+				Records.ThisYear.HighTemp.Val = OutdoorTemperature;
+				Records.ThisYear.HighTemp.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (OutdoorTemperature < ThisYear.LowTemp.Val)
+			if (OutdoorTemperature < Records.ThisYear.LowTemp.Val)
 			{
-				ThisYear.LowTemp.Val = OutdoorTemperature;
-				ThisYear.LowTemp.Ts = timestamp;
+				Records.ThisYear.LowTemp.Val = OutdoorTemperature;
+				Records.ThisYear.LowTemp.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
@@ -6415,22 +6396,22 @@ namespace CumulusMX
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (HeatIndex > ThisMonth.HighHeatIndex.Val)
+			if (HeatIndex > Records.ThisMonth.HighHeatIndex.Val)
 			{
-				ThisMonth.HighHeatIndex.Val = HeatIndex;
-				ThisMonth.HighHeatIndex.Ts = timestamp;
+				Records.ThisMonth.HighHeatIndex.Val = HeatIndex;
+				Records.ThisMonth.HighHeatIndex.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (HeatIndex > ThisYear.HighHeatIndex.Val)
+			if (HeatIndex > Records.ThisYear.HighHeatIndex.Val)
 			{
-				ThisYear.HighHeatIndex.Val = HeatIndex;
-				ThisYear.HighHeatIndex.Ts = timestamp;
+				Records.ThisYear.HighHeatIndex.Val = HeatIndex;
+				Records.ThisYear.HighHeatIndex.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (HeatIndex > AllTime.HighHeatIndex.Val)
-				SetAlltime(AllTime.HighHeatIndex, HeatIndex, timestamp);
+			if (HeatIndex > Records.AllTime.HighHeatIndex.Val)
+				SetAlltime(Records.AllTime.HighHeatIndex, HeatIndex, timestamp);
 
 			CheckMonthlyAlltime("HighHeatIndex", HeatIndex, true, timestamp);
 
@@ -6471,39 +6452,39 @@ namespace CumulusMX
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (ApparentTemperature > ThisMonth.HighAppTemp.Val)
+			if (ApparentTemperature > Records.ThisMonth.HighAppTemp.Val)
 			{
-				ThisMonth.HighAppTemp.Val = ApparentTemperature;
-				ThisMonth.HighAppTemp.Ts = timestamp;
+				Records.ThisMonth.HighAppTemp.Val = ApparentTemperature;
+				Records.ThisMonth.HighAppTemp.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (ApparentTemperature < ThisMonth.LowAppTemp.Val)
+			if (ApparentTemperature < Records.ThisMonth.LowAppTemp.Val)
 			{
-				ThisMonth.LowAppTemp.Val = ApparentTemperature;
-				ThisMonth.LowAppTemp.Ts = timestamp;
+				Records.ThisMonth.LowAppTemp.Val = ApparentTemperature;
+				Records.ThisMonth.LowAppTemp.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (ApparentTemperature > ThisYear.HighAppTemp.Val)
+			if (ApparentTemperature > Records.ThisYear.HighAppTemp.Val)
 			{
-				ThisYear.HighAppTemp.Val = ApparentTemperature;
-				ThisYear.HighAppTemp.Ts = timestamp;
+				Records.ThisYear.HighAppTemp.Val = ApparentTemperature;
+				Records.ThisYear.HighAppTemp.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (ApparentTemperature < ThisYear.LowAppTemp.Val)
+			if (ApparentTemperature < Records.ThisYear.LowAppTemp.Val)
 			{
-				ThisYear.LowAppTemp.Val = ApparentTemperature;
-				ThisYear.LowAppTemp.Ts = timestamp;
+				Records.ThisYear.LowAppTemp.Val = ApparentTemperature;
+				Records.ThisYear.LowAppTemp.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (ApparentTemperature > AllTime.HighAppTemp.Val)
-				SetAlltime(AllTime.HighAppTemp, ApparentTemperature, timestamp);
+			if (ApparentTemperature > Records.AllTime.HighAppTemp.Val)
+				SetAlltime(Records.AllTime.HighAppTemp, ApparentTemperature, timestamp);
 
-			if (ApparentTemperature < AllTime.LowAppTemp.Val)
-				SetAlltime(AllTime.LowAppTemp, ApparentTemperature, timestamp);
+			if (ApparentTemperature < Records.AllTime.LowAppTemp.Val)
+				SetAlltime(Records.AllTime.LowAppTemp, ApparentTemperature, timestamp);
 
 			CheckMonthlyAlltime("HighAppTemp", ApparentTemperature, true, timestamp);
 			CheckMonthlyAlltime("LowAppTemp", ApparentTemperature, false, timestamp);
@@ -6549,24 +6530,24 @@ namespace CumulusMX
 					WriteTodayFile(timestamp, false);
 				}
 
-				if (WindChill < ThisMonth.LowChill.Val)
+				if (WindChill < Records.ThisMonth.LowChill.Val)
 				{
-					ThisMonth.LowChill.Val = WindChill;
-					ThisMonth.LowChill.Ts = timestamp;
+					Records.ThisMonth.LowChill.Val = WindChill;
+					Records.ThisMonth.LowChill.Ts = timestamp;
 					WriteMonthIniFile();
 				}
 
-				if (WindChill < ThisYear.LowChill.Val)
+				if (WindChill < Records.ThisYear.LowChill.Val)
 				{
-					ThisYear.LowChill.Val = WindChill;
-					ThisYear.LowChill.Ts = timestamp;
+					Records.ThisYear.LowChill.Val = WindChill;
+					Records.ThisYear.LowChill.Ts = timestamp;
 					WriteYearIniFile();
 				}
 
 				// All time wind chill
-				if (WindChill < AllTime.LowChill.Val)
+				if (WindChill < Records.AllTime.LowChill.Val)
 				{
-					SetAlltime(AllTime.LowChill, WindChill, timestamp);
+					SetAlltime(Records.AllTime.LowChill, WindChill, timestamp);
 				}
 
 				CheckMonthlyAlltime("LowChill", WindChill, false, timestamp);
@@ -6591,39 +6572,39 @@ namespace CumulusMX
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (FeelsLike > ThisMonth.HighFeelsLike.Val)
+			if (FeelsLike > Records.ThisMonth.HighFeelsLike.Val)
 			{
-				ThisMonth.HighFeelsLike.Val = FeelsLike;
-				ThisMonth.HighFeelsLike.Ts = timestamp;
+				Records.ThisMonth.HighFeelsLike.Val = FeelsLike;
+				Records.ThisMonth.HighFeelsLike.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (FeelsLike < ThisMonth.LowFeelsLike.Val)
+			if (FeelsLike < Records.ThisMonth.LowFeelsLike.Val)
 			{
-				ThisMonth.LowFeelsLike.Val = FeelsLike;
-				ThisMonth.LowFeelsLike.Ts = timestamp;
+				Records.ThisMonth.LowFeelsLike.Val = FeelsLike;
+				Records.ThisMonth.LowFeelsLike.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (FeelsLike > ThisYear.HighFeelsLike.Val)
+			if (FeelsLike > Records.ThisYear.HighFeelsLike.Val)
 			{
-				ThisYear.HighFeelsLike.Val = FeelsLike;
-				ThisYear.HighFeelsLike.Ts = timestamp;
+				Records.ThisYear.HighFeelsLike.Val = FeelsLike;
+				Records.ThisYear.HighFeelsLike.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (FeelsLike < ThisYear.LowFeelsLike.Val)
+			if (FeelsLike < Records.ThisYear.LowFeelsLike.Val)
 			{
-				ThisYear.LowFeelsLike.Val = FeelsLike;
-				ThisYear.LowFeelsLike.Ts = timestamp;
+				Records.ThisYear.LowFeelsLike.Val = FeelsLike;
+				Records.ThisYear.LowFeelsLike.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (FeelsLike > AllTime.HighFeelsLike.Val)
-				SetAlltime(AllTime.HighFeelsLike, FeelsLike, timestamp);
+			if (FeelsLike > Records.AllTime.HighFeelsLike.Val)
+				SetAlltime(Records.AllTime.HighFeelsLike, FeelsLike, timestamp);
 
-			if (FeelsLike < AllTime.LowFeelsLike.Val)
-				SetAlltime(AllTime.LowFeelsLike, FeelsLike, timestamp);
+			if (FeelsLike < Records.AllTime.LowFeelsLike.Val)
+				SetAlltime(Records.AllTime.LowFeelsLike, FeelsLike, timestamp);
 
 			CheckMonthlyAlltime("HighFeelsLike", FeelsLike, true, timestamp);
 			CheckMonthlyAlltime("LowFeelsLike", FeelsLike, false, timestamp);
@@ -6640,22 +6621,22 @@ namespace CumulusMX
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (Humidex > ThisMonth.HighHumidex.Val)
+			if (Humidex > Records.ThisMonth.HighHumidex.Val)
 			{
-				ThisMonth.HighHumidex.Val = Humidex;
-				ThisMonth.HighHumidex.Ts = timestamp;
+				Records.ThisMonth.HighHumidex.Val = Humidex;
+				Records.ThisMonth.HighHumidex.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (Humidex > ThisYear.HighHumidex.Val)
+			if (Humidex > Records.ThisYear.HighHumidex.Val)
 			{
-				ThisYear.HighHumidex.Val = Humidex;
-				ThisYear.HighHumidex.Ts = timestamp;
+				Records.ThisYear.HighHumidex.Val = Humidex;
+				Records.ThisYear.HighHumidex.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (Humidex > AllTime.HighHumidex.Val)
-				SetAlltime(AllTime.HighHumidex, Humidex, timestamp);
+			if (Humidex > Records.AllTime.HighHumidex.Val)
+				SetAlltime(Records.AllTime.HighHumidex, Humidex, timestamp);
 
 			CheckMonthlyAlltime("HighHumidex", Humidex, true, timestamp);
 		}
@@ -6664,23 +6645,23 @@ namespace CumulusMX
 		{
 			var adjustedtimestamp = cumulus.MeteoDate(timestamp);
 
-			if (WindRunToday > ThisMonth.HighWindRun.Val)
+			if (WindRunToday > Records.ThisMonth.HighWindRun.Val)
 			{
-				ThisMonth.HighWindRun.Val = WindRunToday;
-				ThisMonth.HighWindRun.Ts = adjustedtimestamp;
+				Records.ThisMonth.HighWindRun.Val = WindRunToday;
+				Records.ThisMonth.HighWindRun.Ts = adjustedtimestamp;
 				WriteMonthIniFile();
 			}
 
-			if (WindRunToday > ThisYear.HighWindRun.Val)
+			if (WindRunToday > Records.ThisYear.HighWindRun.Val)
 			{
-				ThisYear.HighWindRun.Val = WindRunToday;
-				ThisYear.HighWindRun.Ts = adjustedtimestamp;
+				Records.ThisYear.HighWindRun.Val = WindRunToday;
+				Records.ThisYear.HighWindRun.Ts = adjustedtimestamp;
 				WriteYearIniFile();
 			}
 
-			if (WindRunToday > AllTime.HighWindRun.Val)
+			if (WindRunToday > Records.AllTime.HighWindRun.Val)
 			{
-				SetAlltime(AllTime.HighWindRun, WindRunToday, adjustedtimestamp);
+				SetAlltime(Records.AllTime.HighWindRun, WindRunToday, adjustedtimestamp);
 			}
 
 			CheckMonthlyAlltime("HighWindRun", WindRunToday, true, adjustedtimestamp);
@@ -6700,37 +6681,37 @@ namespace CumulusMX
 				HiLoToday.LowDewPointTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
-			if (OutdoorDewpoint > ThisMonth.HighDewPoint.Val)
+			if (OutdoorDewpoint > Records.ThisMonth.HighDewPoint.Val)
 			{
-				ThisMonth.HighDewPoint.Val = OutdoorDewpoint;
-				ThisMonth.HighDewPoint.Ts = timestamp;
+				Records.ThisMonth.HighDewPoint.Val = OutdoorDewpoint;
+				Records.ThisMonth.HighDewPoint.Ts = timestamp;
 				WriteMonthIniFile();
 			}
-			if (OutdoorDewpoint < ThisMonth.LowDewPoint.Val)
+			if (OutdoorDewpoint < Records.ThisMonth.LowDewPoint.Val)
 			{
-				ThisMonth.LowDewPoint.Val = OutdoorDewpoint;
-				ThisMonth.LowDewPoint.Ts = timestamp;
+				Records.ThisMonth.LowDewPoint.Val = OutdoorDewpoint;
+				Records.ThisMonth.LowDewPoint.Ts = timestamp;
 				WriteMonthIniFile();
 			}
-			if (OutdoorDewpoint > ThisYear.HighDewPoint.Val)
+			if (OutdoorDewpoint > Records.ThisYear.HighDewPoint.Val)
 			{
-				ThisYear.HighDewPoint.Val = OutdoorDewpoint;
-				ThisYear.HighDewPoint.Ts = timestamp;
+				Records.ThisYear.HighDewPoint.Val = OutdoorDewpoint;
+				Records.ThisYear.HighDewPoint.Ts = timestamp;
 				WriteYearIniFile();
 			}
-			if (OutdoorDewpoint < ThisYear.LowDewPoint.Val)
+			if (OutdoorDewpoint < Records.ThisYear.LowDewPoint.Val)
 			{
-				ThisYear.LowDewPoint.Val = OutdoorDewpoint;
-				ThisYear.LowDewPoint.Ts = timestamp;
+				Records.ThisYear.LowDewPoint.Val = OutdoorDewpoint;
+				Records.ThisYear.LowDewPoint.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (OutdoorDewpoint > AllTime.HighDewPoint.Val)
+			if (OutdoorDewpoint > Records.AllTime.HighDewPoint.Val)
 			{
-				SetAlltime(AllTime.HighDewPoint, OutdoorDewpoint, timestamp);
+				SetAlltime(Records.AllTime.HighDewPoint, OutdoorDewpoint, timestamp);
 			}
-			if (OutdoorDewpoint < AllTime.LowDewPoint.Val)
-				SetAlltime(AllTime.LowDewPoint, OutdoorDewpoint, timestamp);
+			if (OutdoorDewpoint < Records.AllTime.LowDewPoint.Val)
+				SetAlltime(Records.AllTime.LowDewPoint, OutdoorDewpoint, timestamp);
 
 			CheckMonthlyAlltime("HighDewPoint", OutdoorDewpoint, true, timestamp);
 			CheckMonthlyAlltime("LowDewPoint", OutdoorDewpoint, false, timestamp);
@@ -6749,22 +6730,22 @@ namespace CumulusMX
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (BlackGlobeTemp > ThisMonth.HighBgt.Val)
+			if (BlackGlobeTemp > Records.ThisMonth.HighBgt.Val)
 			{
-				ThisMonth.HighBgt.Val = BlackGlobeTemp.Value;
-				ThisMonth.HighBgt.Ts = timestamp;
+				Records.ThisMonth.HighBgt.Val = BlackGlobeTemp.Value;
+				Records.ThisMonth.HighBgt.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (BlackGlobeTemp > ThisYear.HighBgt.Val)
+			if (BlackGlobeTemp > Records.ThisYear.HighBgt.Val)
 			{
-				ThisYear.HighBgt.Val = BlackGlobeTemp.Value;
-				ThisYear.HighBgt.Ts = timestamp;
+				Records.ThisYear.HighBgt.Val = BlackGlobeTemp.Value;
+				Records.ThisYear.HighBgt.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (BlackGlobeTemp > AllTime.HighBgt.Val)
-				SetAlltime(AllTime.HighBgt, BlackGlobeTemp.Value, timestamp);
+			if (BlackGlobeTemp > Records.AllTime.HighBgt.Val)
+				SetAlltime(Records.AllTime.HighBgt, BlackGlobeTemp.Value, timestamp);
 
 			CheckMonthlyAlltime("HighBgt", BlackGlobeTemp.Value, true, timestamp);
 		}
@@ -6782,22 +6763,22 @@ namespace CumulusMX
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (WetBulbGlobeTemp > ThisMonth.HighWbgt.Val)
+			if (WetBulbGlobeTemp > Records.ThisMonth.HighWbgt.Val)
 			{
-				ThisMonth.HighWbgt.Val = WetBulbGlobeTemp.Value;
-				ThisMonth.HighWbgt.Ts = timestamp;
+				Records.ThisMonth.HighWbgt.Val = WetBulbGlobeTemp.Value;
+				Records.ThisMonth.HighWbgt.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (WetBulbGlobeTemp > ThisYear.HighWbgt.Val)
+			if (WetBulbGlobeTemp > Records.ThisYear.HighWbgt.Val)
 			{
-				ThisYear.HighWbgt.Val = WetBulbGlobeTemp.Value;
-				ThisYear.HighWbgt.Ts = timestamp;
+				Records.ThisYear.HighWbgt.Val = WetBulbGlobeTemp.Value;
+				Records.ThisYear.HighWbgt.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (WetBulbGlobeTemp > AllTime.HighWbgt.Val)
-				SetAlltime(AllTime.HighWbgt, WetBulbGlobeTemp.Value, timestamp);
+			if (WetBulbGlobeTemp > Records.AllTime.HighWbgt.Val)
+				SetAlltime(Records.AllTime.HighWbgt, WetBulbGlobeTemp.Value, timestamp);
 
 			CheckMonthlyAlltime("HighWbgt", WetBulbGlobeTemp.Value, true, timestamp);
 		}
@@ -6841,16 +6822,16 @@ namespace CumulusMX
 
 			first_press = false;
 
-			if (Pressure > AllTime.HighPress.Val)
+			if (Pressure > Records.AllTime.HighPress.Val)
 			{
-				SetAlltime(AllTime.HighPress, Pressure, timestamp);
+				SetAlltime(Records.AllTime.HighPress, Pressure, timestamp);
 			}
 
 			cumulus.HighPressAlarm.CheckAlarm(Pressure);
 
-			if (Pressure < AllTime.LowPress.Val)
+			if (Pressure < Records.AllTime.LowPress.Val)
 			{
-				SetAlltime(AllTime.LowPress, Pressure, timestamp);
+				SetAlltime(Records.AllTime.LowPress, Pressure, timestamp);
 			}
 
 			cumulus.LowPressAlarm.CheckAlarm(Pressure);
@@ -6871,31 +6852,31 @@ namespace CumulusMX
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (Pressure > ThisMonth.HighPress.Val)
+			if (Pressure > Records.ThisMonth.HighPress.Val)
 			{
-				ThisMonth.HighPress.Val = Pressure;
-				ThisMonth.HighPress.Ts = timestamp;
+				Records.ThisMonth.HighPress.Val = Pressure;
+				Records.ThisMonth.HighPress.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (Pressure < ThisMonth.LowPress.Val)
+			if (Pressure < Records.ThisMonth.LowPress.Val)
 			{
-				ThisMonth.LowPress.Val = Pressure;
-				ThisMonth.LowPress.Ts = timestamp;
+				Records.ThisMonth.LowPress.Val = Pressure;
+				Records.ThisMonth.LowPress.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (Pressure > ThisYear.HighPress.Val)
+			if (Pressure > Records.ThisYear.HighPress.Val)
 			{
-				ThisYear.HighPress.Val = Pressure;
-				ThisYear.HighPress.Ts = timestamp;
+				Records.ThisYear.HighPress.Val = Pressure;
+				Records.ThisYear.HighPress.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (Pressure < ThisYear.LowPress.Val)
+			if (Pressure < Records.ThisYear.LowPress.Val)
 			{
-				ThisYear.LowPress.Val = Pressure;
-				ThisYear.LowPress.Ts = timestamp;
+				Records.ThisYear.LowPress.Val = Pressure;
+				Records.ThisYear.LowPress.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
@@ -7100,8 +7081,8 @@ namespace CumulusMX
 					cumulus.IsRainingAlarm.Triggered = IsRaining;
 				}
 
-				if (RainRate > AllTime.HighRainRate.Val)
-					SetAlltime(AllTime.HighRainRate, RainRate, timestamp);
+				if (RainRate > Records.AllTime.HighRainRate.Val)
+					SetAlltime(Records.AllTime.HighRainRate, RainRate, timestamp);
 
 				CheckMonthlyAlltime("HighRainRate", RainRate, true, timestamp);
 
@@ -7114,17 +7095,17 @@ namespace CumulusMX
 					WriteTodayFile(timestamp, false);
 				}
 
-				if (RainRate > ThisMonth.HighRainRate.Val)
+				if (RainRate > Records.ThisMonth.HighRainRate.Val)
 				{
-					ThisMonth.HighRainRate.Val = RainRate;
-					ThisMonth.HighRainRate.Ts = timestamp;
+					Records.ThisMonth.HighRainRate.Val = RainRate;
+					Records.ThisMonth.HighRainRate.Ts = timestamp;
 					WriteMonthIniFile();
 				}
 
-				if (RainRate > ThisYear.HighRainRate.Val)
+				if (RainRate > Records.ThisYear.HighRainRate.Val)
 				{
-					ThisYear.HighRainRate.Val = RainRate;
-					ThisYear.HighRainRate.Ts = timestamp;
+					Records.ThisYear.HighRainRate.Val = RainRate;
+					Records.ThisYear.HighRainRate.Ts = timestamp;
 					WriteYearIniFile();
 				}
 			}
@@ -7181,34 +7162,34 @@ namespace CumulusMX
 				// rain this year so far
 				RainYear = RainThisYear + RainToday;
 
-				if (RainToday > AllTime.DailyRain.Val)
-					SetAlltime(AllTime.DailyRain, RainToday, offsetdate);
+				if (RainToday > Records.AllTime.DailyRain.Val)
+					SetAlltime(Records.AllTime.DailyRain, RainToday, offsetdate);
 
 				CheckMonthlyAlltime("DailyRain", RainToday, true, timestamp);
 
-				if (RainToday > ThisMonth.DailyRain.Val)
+				if (RainToday > Records.ThisMonth.DailyRain.Val)
 				{
-					ThisMonth.DailyRain.Val = RainToday;
-					ThisMonth.DailyRain.Ts = offsetdate;
+					Records.ThisMonth.DailyRain.Val = RainToday;
+					Records.ThisMonth.DailyRain.Ts = offsetdate;
 					WriteMonthIniFile();
 				}
 
-				if (RainToday > ThisYear.DailyRain.Val)
+				if (RainToday > Records.ThisYear.DailyRain.Val)
 				{
-					ThisYear.DailyRain.Val = RainToday;
-					ThisYear.DailyRain.Ts = offsetdate;
+					Records.ThisYear.DailyRain.Val = RainToday;
+					Records.ThisYear.DailyRain.Ts = offsetdate;
 					WriteYearIniFile();
 				}
 
-				if (RainMonth > ThisYear.MonthlyRain.Val)
+				if (RainMonth > Records.ThisYear.MonthlyRain.Val)
 				{
-					ThisYear.MonthlyRain.Val = RainMonth;
-					ThisYear.MonthlyRain.Ts = offsetdate;
+					Records.ThisYear.MonthlyRain.Val = RainMonth;
+					Records.ThisYear.MonthlyRain.Ts = offsetdate;
 					WriteYearIniFile();
 				}
 
-				if (RainMonth > AllTime.MonthlyRain.Val)
-					SetAlltime(AllTime.MonthlyRain, RainMonth, offsetdate);
+				if (RainMonth > Records.AllTime.MonthlyRain.Val)
+					SetAlltime(Records.AllTime.MonthlyRain, RainMonth, offsetdate);
 
 				CheckMonthlyAlltime("MonthlyRain", RainMonth, true, timestamp);
 
@@ -7285,8 +7266,8 @@ namespace CumulusMX
 				forecaststr = string.Empty;
 			}
 			else if (cumulus.ForecastSource == 2)
-				{
-					if ((DateTime.UtcNow - cumulus.LastForecastDotTxtReadTime).TotalMinutes > 10)
+			{
+				if ((DateTime.UtcNow - cumulus.LastForecastDotTxtReadTime).TotalMinutes > 10)
 				{
 					cumulus.GetForecastTextFromFile();
 					cumulus.LastForecastDotTxtReadTime = DateTime.UtcNow;
@@ -7864,7 +7845,7 @@ namespace CumulusMX
 
 		public bool HaveReadData { get; set; } = false;
 
-		public void SetAlltime(AllTimeRec rec, double value, DateTime timestamp)
+		public void SetAlltime(Record rec, double value, DateTime timestamp)
 		{
 			lock (alltimeIniThreadLock)
 			{
@@ -7903,7 +7884,7 @@ namespace CumulusMX
 			cumulus.NewRecordAlarm.Triggered = true;
 		}
 
-		public void SetMonthlyAlltime(AllTimeRec rec, double value, DateTime timestamp)
+		public void SetMonthlyAlltime(Record rec, double value, DateTime timestamp)
 		{
 			var oldvalue = rec.Val;
 			var oldts = rec.Ts;
@@ -8098,23 +8079,23 @@ namespace CumulusMX
 					ConsecutiveDryDays = 0;
 					cumulus.LogMessage("Consecutive rain days = " + ConsecutiveRainDays);
 					// check for highs
-					if (ConsecutiveRainDays > ThisMonth.LongestWetPeriod.Val)
+					if (ConsecutiveRainDays > Records.ThisMonth.LongestWetPeriod.Val)
 					{
-						ThisMonth.LongestWetPeriod.Val = ConsecutiveRainDays;
-						ThisMonth.LongestWetPeriod.Ts = yesterday;
+						Records.ThisMonth.LongestWetPeriod.Val = ConsecutiveRainDays;
+						Records.ThisMonth.LongestWetPeriod.Ts = yesterday;
 						WriteMonthIniFile();
 					}
 
-					if (ConsecutiveRainDays > ThisYear.LongestWetPeriod.Val)
+					if (ConsecutiveRainDays > Records.ThisYear.LongestWetPeriod.Val)
 					{
-						ThisYear.LongestWetPeriod.Val = ConsecutiveRainDays;
-						ThisYear.LongestWetPeriod.Ts = yesterday;
+						Records.ThisYear.LongestWetPeriod.Val = ConsecutiveRainDays;
+						Records.ThisYear.LongestWetPeriod.Ts = yesterday;
 						WriteYearIniFile();
 					}
 
-					if (ConsecutiveRainDays > AllTime.LongestWetPeriod.Val)
+					if (ConsecutiveRainDays > Records.AllTime.LongestWetPeriod.Val)
 					{
-						SetAlltime(AllTime.LongestWetPeriod, ConsecutiveRainDays, yesterday);
+						SetAlltime(Records.AllTime.LongestWetPeriod, ConsecutiveRainDays, yesterday);
 					}
 
 					CheckMonthlyAlltime("LongestWetPeriod", ConsecutiveRainDays, true, yesterday);
@@ -8128,23 +8109,23 @@ namespace CumulusMX
 					cumulus.LogMessage("Consecutive dry days = " + ConsecutiveDryDays);
 
 					// check for highs
-					if (ConsecutiveDryDays > ThisMonth.LongestDryPeriod.Val)
+					if (ConsecutiveDryDays > Records.ThisMonth.LongestDryPeriod.Val)
 					{
-						ThisMonth.LongestDryPeriod.Val = ConsecutiveDryDays;
-						ThisMonth.LongestDryPeriod.Ts = yesterday;
+						Records.ThisMonth.LongestDryPeriod.Val = ConsecutiveDryDays;
+						Records.ThisMonth.LongestDryPeriod.Ts = yesterday;
 						WriteMonthIniFile();
 					}
 
-					if (ConsecutiveDryDays > ThisYear.LongestDryPeriod.Val)
+					if (ConsecutiveDryDays > Records.ThisYear.LongestDryPeriod.Val)
 					{
-						ThisYear.LongestDryPeriod.Val = ConsecutiveDryDays;
-						ThisYear.LongestDryPeriod.Ts = yesterday;
+						Records.ThisYear.LongestDryPeriod.Val = ConsecutiveDryDays;
+						Records.ThisYear.LongestDryPeriod.Ts = yesterday;
 						WriteYearIniFile();
 					}
 
-					if (ConsecutiveDryDays > AllTime.LongestDryPeriod.Val)
+					if (ConsecutiveDryDays > Records.AllTime.LongestDryPeriod.Val)
 					{
-						SetAlltime(AllTime.LongestDryPeriod, ConsecutiveDryDays, yesterday);
+						SetAlltime(Records.AllTime.LongestDryPeriod, ConsecutiveDryDays, yesterday);
 					}
 
 					CheckMonthlyAlltime("LongestDryPeriod", ConsecutiveDryDays, true, yesterday);
@@ -8170,52 +8151,52 @@ namespace CumulusMX
 					ts = timestamp.AddDays(-1);
 				}
 
-				if (HiLoToday.HighTemp < AllTime.LowMaxTemp.Val)
+				if (HiLoToday.HighTemp < Records.AllTime.LowMaxTemp.Val)
 				{
-					SetAlltime(AllTime.LowMaxTemp, HiLoToday.HighTemp, ts);
+					SetAlltime(Records.AllTime.LowMaxTemp, HiLoToday.HighTemp, ts);
 				}
 
 				CheckMonthlyAlltime("LowMaxTemp", HiLoToday.HighTemp, false, ts);
 
-				if (HiLoToday.HighTemp < ThisMonth.LowMaxTemp.Val)
+				if (HiLoToday.HighTemp < Records.ThisMonth.LowMaxTemp.Val)
 				{
-					ThisMonth.LowMaxTemp.Val = HiLoToday.HighTemp;
+					Records.ThisMonth.LowMaxTemp.Val = HiLoToday.HighTemp;
 					try
 					{
 						hr = HiLoToday.HighTempTime.Hour;
 						mn = HiLoToday.HighTempTime.Minute;
-						ThisMonth.LowMaxTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
+						Records.ThisMonth.LowMaxTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.GetRolloverHour(timestamp))
 							// time is between roll-over hour && midnight
 							// so subtract a day
-							ThisMonth.LowMaxTemp.Ts = ThisMonth.LowMaxTemp.Ts.AddDays(-1);
+							Records.ThisMonth.LowMaxTemp.Ts = Records.ThisMonth.LowMaxTemp.Ts.AddDays(-1);
 					}
 					catch
 					{
-						ThisMonth.LowMaxTemp.Ts = timestamp.AddDays(-1);
+						Records.ThisMonth.LowMaxTemp.Ts = timestamp.AddDays(-1);
 					}
 
 					WriteMonthIniFile();
 				}
 
-				if (HiLoToday.HighTemp < ThisYear.LowMaxTemp.Val)
+				if (HiLoToday.HighTemp < Records.ThisYear.LowMaxTemp.Val)
 				{
-					ThisYear.LowMaxTemp.Val = HiLoToday.HighTemp;
+					Records.ThisYear.LowMaxTemp.Val = HiLoToday.HighTemp;
 					try
 					{
 						hr = HiLoToday.HighTempTime.Hour;
 						mn = HiLoToday.HighTempTime.Minute;
-						ThisYear.LowMaxTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
+						Records.ThisYear.LowMaxTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.GetRolloverHour(timestamp))
 							// time is between roll-over hour && midnight
 							// so subtract a day
-							ThisYear.LowMaxTemp.Ts = ThisYear.LowMaxTemp.Ts.AddDays(-1);
+							Records.ThisYear.LowMaxTemp.Ts = Records.ThisYear.LowMaxTemp.Ts.AddDays(-1);
 					}
 					catch
 					{
-						ThisYear.LowMaxTemp.Ts = timestamp.AddDays(-1);
+						Records.ThisYear.LowMaxTemp.Ts = timestamp.AddDays(-1);
 					}
 
 					WriteYearIniFile();
@@ -8238,90 +8219,90 @@ namespace CumulusMX
 					ts = timestamp.AddDays(-1);
 				}
 
-				if (HiLoToday.LowTemp > AllTime.HighMinTemp.Val)
+				if (HiLoToday.LowTemp > Records.AllTime.HighMinTemp.Val)
 				{
-					SetAlltime(AllTime.HighMinTemp, HiLoToday.LowTemp, ts);
+					SetAlltime(Records.AllTime.HighMinTemp, HiLoToday.LowTemp, ts);
 				}
 
 				CheckMonthlyAlltime("HighMinTemp", HiLoToday.LowTemp, true, ts);
 
-				if (HiLoToday.LowTemp > ThisMonth.HighMinTemp.Val)
+				if (HiLoToday.LowTemp > Records.ThisMonth.HighMinTemp.Val)
 				{
-					ThisMonth.HighMinTemp.Val = HiLoToday.LowTemp;
+					Records.ThisMonth.HighMinTemp.Val = HiLoToday.LowTemp;
 					try
 					{
 						hr = HiLoToday.LowTempTime.Hour;
 						mn = HiLoToday.LowTempTime.Minute;
-						ThisMonth.HighMinTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
+						Records.ThisMonth.HighMinTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.GetRolloverHour(timestamp))
 							// time is between roll-over hour && midnight
 							// so subtract a day
-							ThisMonth.HighMinTemp.Ts = ThisMonth.HighMinTemp.Ts.AddDays(-1);
+							Records.ThisMonth.HighMinTemp.Ts = Records.ThisMonth.HighMinTemp.Ts.AddDays(-1);
 					}
 					catch
 					{
-						ThisMonth.HighMinTemp.Ts = timestamp.AddDays(-1);
+						Records.ThisMonth.HighMinTemp.Ts = timestamp.AddDays(-1);
 					}
 					WriteMonthIniFile();
 				}
 
-				if (HiLoToday.LowTemp > ThisYear.HighMinTemp.Val)
+				if (HiLoToday.LowTemp > Records.ThisYear.HighMinTemp.Val)
 				{
-					ThisYear.HighMinTemp.Val = HiLoToday.LowTemp;
+					Records.ThisYear.HighMinTemp.Val = HiLoToday.LowTemp;
 					try
 					{
 						hr = HiLoToday.LowTempTime.Hour;
 						mn = HiLoToday.LowTempTime.Minute;
-						ThisYear.HighMinTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
+						Records.ThisYear.HighMinTemp.Ts = timestamp.Date + new TimeSpan(hr, mn, 0);
 
 						if (hr >= cumulus.GetRolloverHour(timestamp))
 							// time is between roll-over hour && midnight
 							// so subtract a day
-							ThisYear.HighMinTemp.Ts = ThisYear.HighMinTemp.Ts.AddDays(-1);
+							Records.ThisYear.HighMinTemp.Ts = Records.ThisYear.HighMinTemp.Ts.AddDays(-1);
 					}
 					catch
 					{
-						ThisYear.HighMinTemp.Ts = timestamp.AddDays(-1);
+						Records.ThisYear.HighMinTemp.Ts = timestamp.AddDays(-1);
 					}
 					WriteYearIniFile();
 				}
 
 				// check temp range for highs && lows
-				if (HiLoToday.TempRange > AllTime.HighDailyTempRange.Val)
-					SetAlltime(AllTime.HighDailyTempRange, HiLoToday.TempRange, yesterday);
+				if (HiLoToday.TempRange > Records.AllTime.HighDailyTempRange.Val)
+					SetAlltime(Records.AllTime.HighDailyTempRange, HiLoToday.TempRange, yesterday);
 
-				if (HiLoToday.TempRange < AllTime.LowDailyTempRange.Val)
-					SetAlltime(AllTime.LowDailyTempRange, HiLoToday.TempRange, yesterday);
+				if (HiLoToday.TempRange < Records.AllTime.LowDailyTempRange.Val)
+					SetAlltime(Records.AllTime.LowDailyTempRange, HiLoToday.TempRange, yesterday);
 
 				CheckMonthlyAlltime("HighDailyTempRange", HiLoToday.TempRange, true, yesterday);
 				CheckMonthlyAlltime("LowDailyTempRange", HiLoToday.TempRange, false, yesterday);
 
-				if (HiLoToday.TempRange > ThisMonth.HighDailyTempRange.Val)
+				if (HiLoToday.TempRange > Records.ThisMonth.HighDailyTempRange.Val)
 				{
-					ThisMonth.HighDailyTempRange.Val = HiLoToday.TempRange;
-					ThisMonth.HighDailyTempRange.Ts = yesterday;
+					Records.ThisMonth.HighDailyTempRange.Val = HiLoToday.TempRange;
+					Records.ThisMonth.HighDailyTempRange.Ts = yesterday;
 					WriteMonthIniFile();
 				}
 
-				if (HiLoToday.TempRange < ThisMonth.LowDailyTempRange.Val)
+				if (HiLoToday.TempRange < Records.ThisMonth.LowDailyTempRange.Val)
 				{
-					ThisMonth.LowDailyTempRange.Val = HiLoToday.TempRange;
-					ThisMonth.LowDailyTempRange.Ts = yesterday;
+					Records.ThisMonth.LowDailyTempRange.Val = HiLoToday.TempRange;
+					Records.ThisMonth.LowDailyTempRange.Ts = yesterday;
 					WriteMonthIniFile();
 				}
 
-				if (HiLoToday.TempRange > ThisYear.HighDailyTempRange.Val)
+				if (HiLoToday.TempRange > Records.ThisYear.HighDailyTempRange.Val)
 				{
-					ThisYear.HighDailyTempRange.Val = HiLoToday.TempRange;
-					ThisYear.HighDailyTempRange.Ts = yesterday;
+					Records.ThisYear.HighDailyTempRange.Val = HiLoToday.TempRange;
+					Records.ThisYear.HighDailyTempRange.Ts = yesterday;
 					WriteYearIniFile();
 				}
 
-				if (HiLoToday.TempRange < ThisYear.LowDailyTempRange.Val)
+				if (HiLoToday.TempRange < Records.ThisYear.LowDailyTempRange.Val)
 				{
-					ThisYear.LowDailyTempRange.Val = HiLoToday.TempRange;
-					ThisYear.LowDailyTempRange.Ts = yesterday;
+					Records.ThisYear.LowDailyTempRange.Val = HiLoToday.TempRange;
+					Records.ThisYear.LowDailyTempRange.Ts = yesterday;
 					WriteYearIniFile();
 				}
 
@@ -8337,68 +8318,68 @@ namespace CumulusMX
 
 					RainThisMonth = 0;
 
-					ThisMonth.HighGust.Val = calibratedgust;
-					ThisMonth.HighWind.Val = WindAverage;
-					ThisMonth.HighTemp.Val = OutdoorTemperature;
-					ThisMonth.LowTemp.Val = OutdoorTemperature;
-					ThisMonth.HighAppTemp.Val = ApparentTemperature;
-					ThisMonth.LowAppTemp.Val = ApparentTemperature;
-					ThisMonth.HighFeelsLike.Val = FeelsLike;
-					ThisMonth.LowFeelsLike.Val = FeelsLike;
-					ThisMonth.HighHumidex.Val = Humidex;
-					ThisMonth.HighPress.Val = Pressure;
-					ThisMonth.LowPress.Val = Pressure;
-					ThisMonth.HighRainRate.Val = RainRate;
-					ThisMonth.HourlyRain.Val = RainLastHour;
-					ThisMonth.HighRain24Hours.Val = RainLast24Hour;
-					ThisMonth.DailyRain.Val = Cumulus.DefaultHiVal;
-					ThisMonth.HighHumidity.Val = OutdoorHumidity;
-					ThisMonth.LowHumidity.Val = OutdoorHumidity;
-					ThisMonth.HighHeatIndex.Val = HeatIndex;
-					ThisMonth.LowChill.Val = WindChill;
-					ThisMonth.HighMinTemp.Val = Cumulus.DefaultHiVal;
-					ThisMonth.LowMaxTemp.Val = Cumulus.DefaultLoVal;
-					ThisMonth.HighDewPoint.Val = OutdoorDewpoint;
-					ThisMonth.LowDewPoint.Val = OutdoorDewpoint;
-					ThisMonth.HighWindRun.Val = Cumulus.DefaultHiVal;
-					ThisMonth.LongestDryPeriod.Val = 0;
-					ThisMonth.LongestWetPeriod.Val = 0;
-					ThisMonth.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
-					ThisMonth.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
-					ThisMonth.HighBgt.Val = BlackGlobeTemp ?? Cumulus.DefaultHiVal;
-					ThisMonth.HighWbgt.Val = WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
+					Records.ThisMonth.HighGust.Val = calibratedgust;
+					Records.ThisMonth.HighWind.Val = WindAverage;
+					Records.ThisMonth.HighTemp.Val = OutdoorTemperature;
+					Records.ThisMonth.LowTemp.Val = OutdoorTemperature;
+					Records.ThisMonth.HighAppTemp.Val = ApparentTemperature;
+					Records.ThisMonth.LowAppTemp.Val = ApparentTemperature;
+					Records.ThisMonth.HighFeelsLike.Val = FeelsLike;
+					Records.ThisMonth.LowFeelsLike.Val = FeelsLike;
+					Records.ThisMonth.HighHumidex.Val = Humidex;
+					Records.ThisMonth.HighPress.Val = Pressure;
+					Records.ThisMonth.LowPress.Val = Pressure;
+					Records.ThisMonth.HighRainRate.Val = RainRate;
+					Records.ThisMonth.HourlyRain.Val = RainLastHour;
+					Records.ThisMonth.HighRain24Hours.Val = RainLast24Hour;
+					Records.ThisMonth.DailyRain.Val = Cumulus.DefaultHiVal;
+					Records.ThisMonth.HighHumidity.Val = OutdoorHumidity;
+					Records.ThisMonth.LowHumidity.Val = OutdoorHumidity;
+					Records.ThisMonth.HighHeatIndex.Val = HeatIndex;
+					Records.ThisMonth.LowChill.Val = WindChill;
+					Records.ThisMonth.HighMinTemp.Val = Cumulus.DefaultHiVal;
+					Records.ThisMonth.LowMaxTemp.Val = Cumulus.DefaultLoVal;
+					Records.ThisMonth.HighDewPoint.Val = OutdoorDewpoint;
+					Records.ThisMonth.LowDewPoint.Val = OutdoorDewpoint;
+					Records.ThisMonth.HighWindRun.Val = Cumulus.DefaultHiVal;
+					Records.ThisMonth.LongestDryPeriod.Val = 0;
+					Records.ThisMonth.LongestWetPeriod.Val = 0;
+					Records.ThisMonth.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
+					Records.ThisMonth.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
+					Records.ThisMonth.HighBgt.Val = BlackGlobeTemp ?? Cumulus.DefaultHiVal;
+					Records.ThisMonth.HighWbgt.Val = WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
 
 					// this month highs && lows - timestamps
-					ThisMonth.HighGust.Ts = timestamp;
-					ThisMonth.HighWind.Ts = timestamp;
-					ThisMonth.HighTemp.Ts = timestamp;
-					ThisMonth.LowTemp.Ts = timestamp;
-					ThisMonth.HighAppTemp.Ts = timestamp;
-					ThisMonth.LowAppTemp.Ts = timestamp;
-					ThisMonth.HighFeelsLike.Ts = timestamp;
-					ThisMonth.LowFeelsLike.Ts = timestamp;
-					ThisMonth.HighHumidex.Ts = timestamp;
-					ThisMonth.HighPress.Ts = timestamp;
-					ThisMonth.LowPress.Ts = timestamp;
-					ThisMonth.HighRainRate.Ts = timestamp;
-					ThisMonth.HourlyRain.Ts = timestamp;
-					ThisMonth.HighRain24Hours.Ts = timestamp;
-					ThisMonth.DailyRain.Ts = timestamp;
-					ThisMonth.HighHumidity.Ts = timestamp;
-					ThisMonth.LowHumidity.Ts = timestamp;
-					ThisMonth.HighHeatIndex.Ts = timestamp;
-					ThisMonth.LowChill.Ts = timestamp;
-					ThisMonth.HighMinTemp.Ts = timestamp;
-					ThisMonth.LowMaxTemp.Ts = timestamp;
-					ThisMonth.HighDewPoint.Ts = timestamp;
-					ThisMonth.LowDewPoint.Ts = timestamp;
-					ThisMonth.HighWindRun.Ts = timestamp;
-					ThisMonth.LongestDryPeriod.Ts = timestamp;
-					ThisMonth.LongestWetPeriod.Ts = timestamp;
-					ThisMonth.LowDailyTempRange.Ts = timestamp;
-					ThisMonth.HighDailyTempRange.Ts = timestamp;
-					ThisMonth.HighBgt.Ts = timestamp;
-					ThisMonth.HighWbgt.Ts = timestamp;
+					Records.ThisMonth.HighGust.Ts = timestamp;
+					Records.ThisMonth.HighWind.Ts = timestamp;
+					Records.ThisMonth.HighTemp.Ts = timestamp;
+					Records.ThisMonth.LowTemp.Ts = timestamp;
+					Records.ThisMonth.HighAppTemp.Ts = timestamp;
+					Records.ThisMonth.LowAppTemp.Ts = timestamp;
+					Records.ThisMonth.HighFeelsLike.Ts = timestamp;
+					Records.ThisMonth.LowFeelsLike.Ts = timestamp;
+					Records.ThisMonth.HighHumidex.Ts = timestamp;
+					Records.ThisMonth.HighPress.Ts = timestamp;
+					Records.ThisMonth.LowPress.Ts = timestamp;
+					Records.ThisMonth.HighRainRate.Ts = timestamp;
+					Records.ThisMonth.HourlyRain.Ts = timestamp;
+					Records.ThisMonth.HighRain24Hours.Ts = timestamp;
+					Records.ThisMonth.DailyRain.Ts = timestamp;
+					Records.ThisMonth.HighHumidity.Ts = timestamp;
+					Records.ThisMonth.LowHumidity.Ts = timestamp;
+					Records.ThisMonth.HighHeatIndex.Ts = timestamp;
+					Records.ThisMonth.LowChill.Ts = timestamp;
+					Records.ThisMonth.HighMinTemp.Ts = timestamp;
+					Records.ThisMonth.LowMaxTemp.Ts = timestamp;
+					Records.ThisMonth.HighDewPoint.Ts = timestamp;
+					Records.ThisMonth.LowDewPoint.Ts = timestamp;
+					Records.ThisMonth.HighWindRun.Ts = timestamp;
+					Records.ThisMonth.LongestDryPeriod.Ts = timestamp;
+					Records.ThisMonth.LongestWetPeriod.Ts = timestamp;
+					Records.ThisMonth.LowDailyTempRange.Ts = timestamp;
+					Records.ThisMonth.HighDailyTempRange.Ts = timestamp;
+					Records.ThisMonth.HighBgt.Ts = timestamp;
+					Records.ThisMonth.HighWbgt.Ts = timestamp;
 				}
 				else
 					RainThisMonth += RainYesterday;
@@ -8410,70 +8391,70 @@ namespace CumulusMX
 
 					CopyYearIniFile(timestamp.AddDays(-1));
 
-					ThisYear.HighGust.Val = calibratedgust;
-					ThisYear.HighWind.Val = WindAverage;
-					ThisYear.HighTemp.Val = OutdoorTemperature;
-					ThisYear.LowTemp.Val = OutdoorTemperature;
-					ThisYear.HighAppTemp.Val = ApparentTemperature;
-					ThisYear.LowAppTemp.Val = ApparentTemperature;
-					ThisYear.HighFeelsLike.Val = FeelsLike;
-					ThisYear.LowFeelsLike.Val = FeelsLike;
-					ThisYear.HighHumidex.Val = Humidex;
-					ThisYear.HighPress.Val = Pressure;
-					ThisYear.LowPress.Val = Pressure;
-					ThisYear.HighRainRate.Val = RainRate;
-					ThisYear.HourlyRain.Val = RainLastHour;
-					ThisYear.HighRain24Hours.Val = RainLast24Hour;
-					ThisYear.DailyRain.Val = Cumulus.DefaultHiVal;
-					ThisYear.MonthlyRain.Val = Cumulus.DefaultHiVal;
-					ThisYear.HighHumidity.Val = OutdoorHumidity;
-					ThisYear.LowHumidity.Val = OutdoorHumidity;
-					ThisYear.HighHeatIndex.Val = HeatIndex;
-					ThisYear.LowChill.Val = WindChill;
-					ThisYear.HighMinTemp.Val = Cumulus.DefaultHiVal;
-					ThisYear.LowMaxTemp.Val = Cumulus.DefaultLoVal;
-					ThisYear.HighDewPoint.Val = OutdoorDewpoint;
-					ThisYear.LowDewPoint.Val = OutdoorDewpoint;
-					ThisYear.HighWindRun.Val = Cumulus.DefaultHiVal;
-					ThisYear.LongestDryPeriod.Val = 0;
-					ThisYear.LongestWetPeriod.Val = 0;
-					ThisYear.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
-					ThisYear.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
-					ThisYear.HighBgt.Val = BlackGlobeTemp ?? Cumulus.DefaultHiVal;
-					ThisYear.HighWbgt.Val = WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
+					Records.ThisYear.HighGust.Val = calibratedgust;
+					Records.ThisYear.HighWind.Val = WindAverage;
+					Records.ThisYear.HighTemp.Val = OutdoorTemperature;
+					Records.ThisYear.LowTemp.Val = OutdoorTemperature;
+					Records.ThisYear.HighAppTemp.Val = ApparentTemperature;
+					Records.ThisYear.LowAppTemp.Val = ApparentTemperature;
+					Records.ThisYear.HighFeelsLike.Val = FeelsLike;
+					Records.ThisYear.LowFeelsLike.Val = FeelsLike;
+					Records.ThisYear.HighHumidex.Val = Humidex;
+					Records.ThisYear.HighPress.Val = Pressure;
+					Records.ThisYear.LowPress.Val = Pressure;
+					Records.ThisYear.HighRainRate.Val = RainRate;
+					Records.ThisYear.HourlyRain.Val = RainLastHour;
+					Records.ThisYear.HighRain24Hours.Val = RainLast24Hour;
+					Records.ThisYear.DailyRain.Val = Cumulus.DefaultHiVal;
+					Records.ThisYear.MonthlyRain.Val = Cumulus.DefaultHiVal;
+					Records.ThisYear.HighHumidity.Val = OutdoorHumidity;
+					Records.ThisYear.LowHumidity.Val = OutdoorHumidity;
+					Records.ThisYear.HighHeatIndex.Val = HeatIndex;
+					Records.ThisYear.LowChill.Val = WindChill;
+					Records.ThisYear.HighMinTemp.Val = Cumulus.DefaultHiVal;
+					Records.ThisYear.LowMaxTemp.Val = Cumulus.DefaultLoVal;
+					Records.ThisYear.HighDewPoint.Val = OutdoorDewpoint;
+					Records.ThisYear.LowDewPoint.Val = OutdoorDewpoint;
+					Records.ThisYear.HighWindRun.Val = Cumulus.DefaultHiVal;
+					Records.ThisYear.LongestDryPeriod.Val = 0;
+					Records.ThisYear.LongestWetPeriod.Val = 0;
+					Records.ThisYear.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
+					Records.ThisYear.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
+					Records.ThisYear.HighBgt.Val = BlackGlobeTemp ?? Cumulus.DefaultHiVal;
+					Records.ThisYear.HighWbgt.Val = WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
 
 					// this Year highs && lows - timestamps
-					ThisYear.HighGust.Ts = timestamp;
-					ThisYear.HighWind.Ts = timestamp;
-					ThisYear.HighTemp.Ts = timestamp;
-					ThisYear.LowTemp.Ts = timestamp;
-					ThisYear.HighAppTemp.Ts = timestamp;
-					ThisYear.LowAppTemp.Ts = timestamp;
-					ThisYear.HighFeelsLike.Ts = timestamp;
-					ThisYear.LowFeelsLike.Ts = timestamp;
-					ThisYear.HighHumidex.Ts = timestamp;
-					ThisYear.HighPress.Ts = timestamp;
-					ThisYear.LowPress.Ts = timestamp;
-					ThisYear.HighRainRate.Ts = timestamp;
-					ThisYear.HourlyRain.Ts = timestamp;
-					ThisYear.HighRain24Hours.Ts = timestamp;
-					ThisYear.DailyRain.Ts = timestamp;
-					ThisYear.MonthlyRain.Ts = timestamp;
-					ThisYear.HighHumidity.Ts = timestamp;
-					ThisYear.LowHumidity.Ts = timestamp;
-					ThisYear.HighHeatIndex.Ts = timestamp;
-					ThisYear.LowChill.Ts = timestamp;
-					ThisYear.HighMinTemp.Ts = timestamp;
-					ThisYear.LowMaxTemp.Ts = timestamp;
-					ThisYear.HighDewPoint.Ts = timestamp;
-					ThisYear.LowDewPoint.Ts = timestamp;
-					ThisYear.HighWindRun.Ts = timestamp;
-					ThisYear.LongestDryPeriod.Ts = timestamp;
-					ThisYear.LongestWetPeriod.Ts = timestamp;
-					ThisYear.HighDailyTempRange.Ts = timestamp;
-					ThisYear.LowDailyTempRange.Ts = timestamp;
-					ThisYear.HighBgt.Ts = timestamp;
-					ThisYear.HighWbgt.Ts = timestamp;
+					Records.ThisYear.HighGust.Ts = timestamp;
+					Records.ThisYear.HighWind.Ts = timestamp;
+					Records.ThisYear.HighTemp.Ts = timestamp;
+					Records.ThisYear.LowTemp.Ts = timestamp;
+					Records.ThisYear.HighAppTemp.Ts = timestamp;
+					Records.ThisYear.LowAppTemp.Ts = timestamp;
+					Records.ThisYear.HighFeelsLike.Ts = timestamp;
+					Records.ThisYear.LowFeelsLike.Ts = timestamp;
+					Records.ThisYear.HighHumidex.Ts = timestamp;
+					Records.ThisYear.HighPress.Ts = timestamp;
+					Records.ThisYear.LowPress.Ts = timestamp;
+					Records.ThisYear.HighRainRate.Ts = timestamp;
+					Records.ThisYear.HourlyRain.Ts = timestamp;
+					Records.ThisYear.HighRain24Hours.Ts = timestamp;
+					Records.ThisYear.DailyRain.Ts = timestamp;
+					Records.ThisYear.MonthlyRain.Ts = timestamp;
+					Records.ThisYear.HighHumidity.Ts = timestamp;
+					Records.ThisYear.LowHumidity.Ts = timestamp;
+					Records.ThisYear.HighHeatIndex.Ts = timestamp;
+					Records.ThisYear.LowChill.Ts = timestamp;
+					Records.ThisYear.HighMinTemp.Ts = timestamp;
+					Records.ThisYear.LowMaxTemp.Ts = timestamp;
+					Records.ThisYear.HighDewPoint.Ts = timestamp;
+					Records.ThisYear.LowDewPoint.Ts = timestamp;
+					Records.ThisYear.HighWindRun.Ts = timestamp;
+					Records.ThisYear.LongestDryPeriod.Ts = timestamp;
+					Records.ThisYear.LongestWetPeriod.Ts = timestamp;
+					Records.ThisYear.HighDailyTempRange.Ts = timestamp;
+					Records.ThisYear.LowDailyTempRange.Ts = timestamp;
+					Records.ThisYear.HighBgt.Ts = timestamp;
+					Records.ThisYear.HighWbgt.Ts = timestamp;
 
 					// reset the ET annual total for Davis WLL stations only
 					// because we mimic the annual total and it is not reset like VP2 stations
@@ -9151,7 +9132,7 @@ namespace CumulusMX
 				queryString.Append(sep + HiLoToday.HighSolar.ToString());
 				queryString.Append(sep + HiLoToday.HighSolarTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + HiLoToday.HighUv.ToString(cumulus.UVFormat, inv));
-				queryString.Append(sep + HiLoToday.HighUvTime.ToString("\\'HH:mm\\'", inv) );
+				queryString.Append(sep + HiLoToday.HighUvTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + "'" + CompassPoint(HiLoToday.HighGustBearing) + "'");
 				queryString.Append(sep + "'" + CompassPoint(DominantWindBearing) + "'");
 				queryString.Append(sep + HiLoToday.HighFeelsLike.ToFixed(cumulus.TempFormat));
@@ -9463,9 +9444,9 @@ namespace CumulusMX
 						{
 							RainLastHour = tempRainLastHour;
 
-							if (RainLastHour > AllTime.HourlyRain.Val)
+							if (RainLastHour > Records.AllTime.HourlyRain.Val)
 							{
-								SetAlltime(AllTime.HourlyRain, RainLastHour, recDtTm);
+								SetAlltime(Records.AllTime.HourlyRain, RainLastHour, recDtTm);
 							}
 
 							CheckMonthlyAlltime("HourlyRain", RainLastHour, true, recDtTm);
@@ -9477,17 +9458,17 @@ namespace CumulusMX
 								WriteTodayFile(ts, false);
 							}
 
-							if (RainLastHour > ThisMonth.HourlyRain.Val)
+							if (RainLastHour > Records.ThisMonth.HourlyRain.Val)
 							{
-								ThisMonth.HourlyRain.Val = RainLastHour;
-								ThisMonth.HourlyRain.Ts = recDtTm;
+								Records.ThisMonth.HourlyRain.Val = RainLastHour;
+								Records.ThisMonth.HourlyRain.Ts = recDtTm;
 								WriteMonthIniFile();
 							}
 
-							if (RainLastHour > ThisYear.HourlyRain.Val)
+							if (RainLastHour > Records.ThisYear.HourlyRain.Val)
 							{
-								ThisYear.HourlyRain.Val = RainLastHour;
-								ThisYear.HourlyRain.Ts = recDtTm;
+								Records.ThisYear.HourlyRain.Val = RainLastHour;
+								Records.ThisYear.HourlyRain.Ts = recDtTm;
 								WriteYearIniFile();
 							}
 						}
@@ -9541,9 +9522,9 @@ namespace CumulusMX
 						{
 							RainRate = tempRainRate;
 
-							if (RainRate > AllTime.HighRainRate.Val)
+							if (RainRate > Records.AllTime.HighRainRate.Val)
 							{
-								SetAlltime(AllTime.HighRainRate, RainRate, recDtTm);
+								SetAlltime(Records.AllTime.HighRainRate, RainRate, recDtTm);
 							}
 
 							CheckMonthlyAlltime("HighRainRate", RainRate, true, recDtTm);
@@ -9557,17 +9538,17 @@ namespace CumulusMX
 								WriteTodayFile(ts, false);
 							}
 
-							if (RainRate > ThisMonth.HighRainRate.Val)
+							if (RainRate > Records.ThisMonth.HighRainRate.Val)
 							{
-								ThisMonth.HighRainRate.Val = RainRate;
-								ThisMonth.HighRainRate.Ts = recDtTm;
+								Records.ThisMonth.HighRainRate.Val = RainRate;
+								Records.ThisMonth.HighRainRate.Ts = recDtTm;
 								WriteMonthIniFile();
 							}
 
-							if (RainRate > ThisYear.HighRainRate.Val)
+							if (RainRate > Records.ThisYear.HighRainRate.Val)
 							{
-								ThisYear.HighRainRate.Val = RainRate;
-								ThisYear.HighRainRate.Ts = recDtTm;
+								Records.ThisYear.HighRainRate.Val = RainRate;
+								Records.ThisYear.HighRainRate.Ts = recDtTm;
 								WriteYearIniFile();
 							}
 						}
@@ -9607,24 +9588,24 @@ namespace CumulusMX
 						WriteTodayFile(recTs, false);
 					}
 
-					if (RainLast24Hour > AllTime.HighRain24Hours.Val)
+					if (RainLast24Hour > Records.AllTime.HighRain24Hours.Val)
 					{
-						SetAlltime(AllTime.HighRain24Hours, RainLast24Hour, recDtTm);
+						SetAlltime(Records.AllTime.HighRain24Hours, RainLast24Hour, recDtTm);
 					}
 
 					CheckMonthlyAlltime("HighRain24Hours", RainLast24Hour, true, recDtTm);
 
-					if (RainLast24Hour > ThisMonth.HighRain24Hours.Val)
+					if (RainLast24Hour > Records.ThisMonth.HighRain24Hours.Val)
 					{
-						ThisMonth.HighRain24Hours.Val = RainLast24Hour;
-						ThisMonth.HighRain24Hours.Ts = recDtTm;
+						Records.ThisMonth.HighRain24Hours.Val = RainLast24Hour;
+						Records.ThisMonth.HighRain24Hours.Ts = recDtTm;
 						WriteMonthIniFile();
 					}
 
-					if (RainLast24Hour > ThisYear.HighRain24Hours.Val)
+					if (RainLast24Hour > Records.ThisYear.HighRain24Hours.Val)
 					{
-						ThisYear.HighRain24Hours.Val = RainLast24Hour;
-						ThisYear.HighRain24Hours.Ts = recDtTm;
+						Records.ThisYear.HighRain24Hours.Val = RainLast24Hour;
+						Records.ThisYear.HighRain24Hours.Ts = recDtTm;
 						WriteYearIniFile();
 					}
 				}
@@ -10737,7 +10718,7 @@ namespace CumulusMX
 					}
 
 					// calculate a smoothed value of the depth
-					var newDepth =SnowDepthAverage[index].Update(dataTime, value.Value);
+					var newDepth = SnowDepthAverage[index].Update(dataTime, value.Value);
 
 					var lastDepth = LastLaserSnowDepth[index];
 					var snowInc = 0.0;
@@ -11041,130 +11022,130 @@ namespace CumulusMX
 		public void SetDefaultMonthlyHighsAndLows()
 		{
 			// this Month highs and lows
-			ThisMonth.HighGust.Val = Cumulus.DefaultHiVal;
-			ThisMonth.HighWind.Val = Cumulus.DefaultHiVal;
-			ThisMonth.HighTemp.Val = Cumulus.DefaultHiVal;
-			ThisMonth.LowTemp.Val = Cumulus.DefaultLoVal;
-			ThisMonth.HighAppTemp.Val = Cumulus.DefaultHiVal;
-			ThisMonth.LowAppTemp.Val = Cumulus.DefaultLoVal;
-			ThisMonth.HighFeelsLike.Val = Cumulus.DefaultHiVal;
-			ThisMonth.LowFeelsLike.Val = Cumulus.DefaultLoVal;
-			ThisMonth.HighHumidex.Val = Cumulus.DefaultHiVal;
-			ThisMonth.HighDewPoint.Val = Cumulus.DefaultHiVal;
-			ThisMonth.LowDewPoint.Val = Cumulus.DefaultLoVal;
-			ThisMonth.HighPress.Val = Cumulus.DefaultHiVal;
-			ThisMonth.LowPress.Val = Cumulus.DefaultLoVal;
-			ThisMonth.HighRainRate.Val = Cumulus.DefaultHiVal;
-			ThisMonth.HourlyRain.Val = Cumulus.DefaultHiVal;
-			ThisMonth.HighRain24Hours.Val = Cumulus.DefaultHiVal;
-			ThisMonth.DailyRain.Val = Cumulus.DefaultHiVal;
-			ThisMonth.HighHumidity.Val = Cumulus.DefaultHiVal;
-			ThisMonth.LowHumidity.Val = Cumulus.DefaultLoVal;
-			ThisMonth.HighHeatIndex.Val = Cumulus.DefaultHiVal;
-			ThisMonth.LowChill.Val = Cumulus.DefaultLoVal;
-			ThisMonth.HighMinTemp.Val = Cumulus.DefaultHiVal;
-			ThisMonth.LowMaxTemp.Val = Cumulus.DefaultLoVal;
-			ThisMonth.HighWindRun.Val = Cumulus.DefaultHiVal;
-			ThisMonth.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
-			ThisMonth.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
-			ThisMonth.HighBgt.Val = Cumulus.DefaultHiVal;
-			ThisMonth.HighWbgt.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.HighGust.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.HighWind.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.HighTemp.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.LowTemp.Val = Cumulus.DefaultLoVal;
+			Records.ThisMonth.HighAppTemp.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.LowAppTemp.Val = Cumulus.DefaultLoVal;
+			Records.ThisMonth.HighFeelsLike.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.LowFeelsLike.Val = Cumulus.DefaultLoVal;
+			Records.ThisMonth.HighHumidex.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.HighDewPoint.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.LowDewPoint.Val = Cumulus.DefaultLoVal;
+			Records.ThisMonth.HighPress.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.LowPress.Val = Cumulus.DefaultLoVal;
+			Records.ThisMonth.HighRainRate.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.HourlyRain.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.HighRain24Hours.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.DailyRain.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.HighHumidity.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.LowHumidity.Val = Cumulus.DefaultLoVal;
+			Records.ThisMonth.HighHeatIndex.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.LowChill.Val = Cumulus.DefaultLoVal;
+			Records.ThisMonth.HighMinTemp.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.LowMaxTemp.Val = Cumulus.DefaultLoVal;
+			Records.ThisMonth.HighWindRun.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
+			Records.ThisMonth.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.HighBgt.Val = Cumulus.DefaultHiVal;
+			Records.ThisMonth.HighWbgt.Val = Cumulus.DefaultHiVal;
 
 
 			// this Month highs and lows - timestamps
-			ThisMonth.HighGust.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighWind.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighTemp.Ts = cumulus.defaultRecordTS;
-			ThisMonth.LowTemp.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighAppTemp.Ts = cumulus.defaultRecordTS;
-			ThisMonth.LowAppTemp.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighFeelsLike.Ts = cumulus.defaultRecordTS;
-			ThisMonth.LowFeelsLike.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighHumidex.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighDewPoint.Ts = cumulus.defaultRecordTS;
-			ThisMonth.LowDewPoint.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighPress.Ts = cumulus.defaultRecordTS;
-			ThisMonth.LowPress.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighRainRate.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HourlyRain.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighRain24Hours.Ts = cumulus.defaultRecordTS;
-			ThisMonth.DailyRain.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighHumidity.Ts = cumulus.defaultRecordTS;
-			ThisMonth.LowHumidity.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighHeatIndex.Ts = cumulus.defaultRecordTS;
-			ThisMonth.LowChill.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighMinTemp.Ts = cumulus.defaultRecordTS;
-			ThisMonth.LowMaxTemp.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighWindRun.Ts = cumulus.defaultRecordTS;
-			ThisMonth.LowDailyTempRange.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighDailyTempRange.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighBgt.Ts = cumulus.defaultRecordTS;
-			ThisMonth.HighWbgt.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighGust.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighWind.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.LowTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighAppTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.LowAppTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighFeelsLike.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.LowFeelsLike.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighHumidex.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighDewPoint.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.LowDewPoint.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighPress.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.LowPress.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighRainRate.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HourlyRain.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighRain24Hours.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.DailyRain.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighHumidity.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.LowHumidity.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighHeatIndex.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.LowChill.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighMinTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.LowMaxTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighWindRun.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.LowDailyTempRange.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighDailyTempRange.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighBgt.Ts = cumulus.defaultRecordTS;
+			Records.ThisMonth.HighWbgt.Ts = cumulus.defaultRecordTS;
 		}
 
 		public void SetDefaultYearlyHighsAndLows()
 		{
 			// this Year highs and lows
-			ThisYear.HighGust.Val = Cumulus.DefaultHiVal;
-			ThisYear.HighWind.Val = Cumulus.DefaultHiVal;
-			ThisYear.HighTemp.Val = Cumulus.DefaultHiVal;
-			ThisYear.LowTemp.Val = Cumulus.DefaultLoVal;
-			ThisYear.HighAppTemp.Val = Cumulus.DefaultHiVal;
-			ThisYear.LowAppTemp.Val = Cumulus.DefaultLoVal;
-			ThisYear.HighFeelsLike.Val = Cumulus.DefaultHiVal;
-			ThisYear.LowFeelsLike.Val = Cumulus.DefaultLoVal;
-			ThisYear.HighHumidex.Val = Cumulus.DefaultHiVal;
-			ThisYear.HighDewPoint.Val = Cumulus.DefaultHiVal;
-			ThisYear.LowDewPoint.Val = Cumulus.DefaultLoVal;
-			ThisYear.HighPress.Val = Cumulus.DefaultHiVal;
-			ThisYear.LowPress.Val = Cumulus.DefaultLoVal;
-			ThisYear.HighRainRate.Val = Cumulus.DefaultHiVal;
-			ThisYear.HourlyRain.Val = Cumulus.DefaultHiVal;
-			ThisYear.HighRain24Hours.Val = Cumulus.DefaultHiVal;
-			ThisYear.DailyRain.Val = Cumulus.DefaultHiVal;
-			ThisYear.MonthlyRain.Val = Cumulus.DefaultHiVal;
-			ThisYear.HighHumidity.Val = Cumulus.DefaultHiVal;
-			ThisYear.LowHumidity.Val = Cumulus.DefaultLoVal;
-			ThisYear.HighHeatIndex.Val = Cumulus.DefaultHiVal;
-			ThisYear.LowChill.Val = Cumulus.DefaultLoVal;
-			ThisYear.HighMinTemp.Val = Cumulus.DefaultHiVal;
-			ThisYear.LowMaxTemp.Val = Cumulus.DefaultLoVal;
-			ThisYear.HighWindRun.Val = Cumulus.DefaultHiVal;
-			ThisYear.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
-			ThisYear.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
-			ThisYear.HighBgt.Val = Cumulus.DefaultHiVal;
-			ThisYear.HighWbgt.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.HighGust.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.HighWind.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.HighTemp.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.LowTemp.Val = Cumulus.DefaultLoVal;
+			Records.ThisYear.HighAppTemp.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.LowAppTemp.Val = Cumulus.DefaultLoVal;
+			Records.ThisYear.HighFeelsLike.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.LowFeelsLike.Val = Cumulus.DefaultLoVal;
+			Records.ThisYear.HighHumidex.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.HighDewPoint.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.LowDewPoint.Val = Cumulus.DefaultLoVal;
+			Records.ThisYear.HighPress.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.LowPress.Val = Cumulus.DefaultLoVal;
+			Records.ThisYear.HighRainRate.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.HourlyRain.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.HighRain24Hours.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.DailyRain.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.MonthlyRain.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.HighHumidity.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.LowHumidity.Val = Cumulus.DefaultLoVal;
+			Records.ThisYear.HighHeatIndex.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.LowChill.Val = Cumulus.DefaultLoVal;
+			Records.ThisYear.HighMinTemp.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.LowMaxTemp.Val = Cumulus.DefaultLoVal;
+			Records.ThisYear.HighWindRun.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
+			Records.ThisYear.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.HighBgt.Val = Cumulus.DefaultHiVal;
+			Records.ThisYear.HighWbgt.Val = Cumulus.DefaultHiVal;
 
 			// this Year highs and lows - timestamps
-			ThisYear.HighGust.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighWind.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighTemp.Ts = cumulus.defaultRecordTS;
-			ThisYear.LowTemp.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighAppTemp.Ts = cumulus.defaultRecordTS;
-			ThisYear.LowAppTemp.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighFeelsLike.Ts = cumulus.defaultRecordTS;
-			ThisYear.LowFeelsLike.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighHumidex.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighDewPoint.Ts = cumulus.defaultRecordTS;
-			ThisYear.LowDewPoint.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighPress.Ts = cumulus.defaultRecordTS;
-			ThisYear.LowPress.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighRainRate.Ts = cumulus.defaultRecordTS;
-			ThisYear.HourlyRain.Ts = cumulus.defaultRecordTS;
-			ThisYear.DailyRain.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighRain24Hours.Ts = cumulus.defaultRecordTS;
-			ThisYear.MonthlyRain.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighHumidity.Ts = cumulus.defaultRecordTS;
-			ThisYear.LowHumidity.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighHeatIndex.Ts = cumulus.defaultRecordTS;
-			ThisYear.LowChill.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighMinTemp.Ts = cumulus.defaultRecordTS;
-			ThisYear.LowMaxTemp.Ts = cumulus.defaultRecordTS;
-			ThisYear.DailyRain.Ts = cumulus.defaultRecordTS;
-			ThisYear.LowDailyTempRange.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighDailyTempRange.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighBgt.Ts = cumulus.defaultRecordTS;
-			ThisYear.HighWbgt.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighGust.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighWind.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.LowTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighAppTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.LowAppTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighFeelsLike.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.LowFeelsLike.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighHumidex.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighDewPoint.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.LowDewPoint.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighPress.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.LowPress.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighRainRate.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HourlyRain.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.DailyRain.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighRain24Hours.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.MonthlyRain.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighHumidity.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.LowHumidity.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighHeatIndex.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.LowChill.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighMinTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.LowMaxTemp.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.DailyRain.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.LowDailyTempRange.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighDailyTempRange.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighBgt.Ts = cumulus.defaultRecordTS;
+			Records.ThisYear.HighWbgt.Ts = cumulus.defaultRecordTS;
 		}
 
 		public static string PressINstr(double pressure)
@@ -11339,7 +11320,7 @@ namespace CumulusMX
 		}
 		*/
 
-		private static string alltimejsonformat(AllTimeRec item, string unit, string valueformat, string dateformat)
+		private static string alltimejsonformat(Record item, string unit, string valueformat, string dateformat)
 		{
 			return $"[\"{item.Desc}\",\"{item.GetValString(valueformat)} {unit}\",\"{item.GetTsString(dateformat)}\"]";
 		}
@@ -11348,23 +11329,23 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 2048);
 
-			json.Append(alltimejsonformat(AllTime.HighTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighHumidex, "&nbsp;", cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowChill, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighHeatIndex, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighMinTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.LowMaxTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D") + ",");
-			json.Append(alltimejsonformat(AllTime.LowDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D") + ",");
-			json.Append(alltimejsonformat(AllTime.HighBgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
-			json.Append(alltimejsonformat(AllTime.HighWbgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(alltimejsonformat(Records.AllTime.HighTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.LowTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.HighDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.LowDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.HighAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.LowAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.HighFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.LowFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.HighHumidex, "&nbsp;", cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.LowChill, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.HighHeatIndex, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.HighMinTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.LowMaxTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.HighDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.LowDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.HighBgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f") + ",");
+			json.Append(alltimejsonformat(Records.AllTime.HighWbgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11373,9 +11354,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(alltimejsonformat(AllTime.HighHumidity, "%", cumulus.HumFormat, "f"));
+			json.Append(alltimejsonformat(Records.AllTime.HighHumidity, "%", cumulus.HumFormat, "f"));
 			json.Append(',');
-			json.Append(alltimejsonformat(AllTime.LowHumidity, "%", cumulus.HumFormat, "f"));
+			json.Append(alltimejsonformat(Records.AllTime.LowHumidity, "%", cumulus.HumFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11384,9 +11365,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(alltimejsonformat(AllTime.HighPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
+			json.Append(alltimejsonformat(Records.AllTime.HighPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append(',');
-			json.Append(alltimejsonformat(AllTime.LowPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
+			json.Append(alltimejsonformat(Records.AllTime.LowPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11395,11 +11376,11 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(alltimejsonformat(AllTime.HighGust, cumulus.Units.WindText, cumulus.WindFormat, "f"));
+			json.Append(alltimejsonformat(Records.AllTime.HighGust, cumulus.Units.WindText, cumulus.WindFormat, "f"));
 			json.Append(',');
-			json.Append(alltimejsonformat(AllTime.HighWind, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
+			json.Append(alltimejsonformat(Records.AllTime.HighWind, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
 			json.Append(',');
-			json.Append(alltimejsonformat(AllTime.HighWindRun, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
+			json.Append(alltimejsonformat(Records.AllTime.HighWindRun, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11408,24 +11389,24 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(alltimejsonformat(AllTime.HighRainRate, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
+			json.Append(alltimejsonformat(Records.AllTime.HighRainRate, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
 			json.Append(',');
-			json.Append(alltimejsonformat(AllTime.HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
+			json.Append(alltimejsonformat(Records.AllTime.HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(',');
-			json.Append(alltimejsonformat(AllTime.DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
+			json.Append(alltimejsonformat(Records.AllTime.DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(',');
-			json.Append(alltimejsonformat(AllTime.HighRain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "f"));
+			json.Append(alltimejsonformat(Records.AllTime.HighRain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(',');
-			json.Append(alltimejsonformat(AllTime.MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
+			json.Append(alltimejsonformat(Records.AllTime.MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			json.Append(',');
-			json.Append(alltimejsonformat(AllTime.LongestDryPeriod, "days", "f0", "D"));
+			json.Append(alltimejsonformat(Records.AllTime.LongestDryPeriod, "days", "f0", "D"));
 			json.Append(',');
-			json.Append(alltimejsonformat(AllTime.LongestWetPeriod, "days", "f0", "D"));
+			json.Append(alltimejsonformat(Records.AllTime.LongestWetPeriod, "days", "f0", "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
 
-		private static string monthlyjsonformat(AllTimeRec item, string unit, string valueformat, string dateformat)
+		private static string monthlyjsonformat(Record item, string unit, string valueformat, string dateformat)
 		{
 			return $"[\"{item.Desc}\",\"{item.GetValString(valueformat)} {unit}\",\"{item.GetTsString(dateformat)}\"]";
 		}
@@ -11434,39 +11415,39 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].LowTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].LowDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].LowAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].LowFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighHumidex, "&nbsp;", cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighHumidex, "&nbsp;", cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowChill, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].LowChill, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighHeatIndex, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighHeatIndex, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighMinTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighMinTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowMaxTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].LowMaxTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].LowDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighBgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighBgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighWbgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighWbgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11475,9 +11456,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighHumidity, "%", cumulus.HumFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighHumidity, "%", cumulus.HumFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowHumidity, "%", cumulus.HumFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].LowHumidity, "%", cumulus.HumFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11486,9 +11467,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LowPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].LowPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11497,11 +11478,11 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighGust, cumulus.Units.WindText, cumulus.WindFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighGust, cumulus.Units.WindText, cumulus.WindFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighWind, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighWind, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighWindRun, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighWindRun, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11510,15 +11491,15 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighRainRate, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighRainRate, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].HighRain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "f"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].HighRain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			json.Append(',');
 			var dry = GetByMonthDryDays(month);
 			string val, date;
@@ -11545,14 +11526,14 @@ namespace CumulusMX
 			}
 			json.Append($"[\"Most rain days\",\"{val} days\",\"{date}\"]");
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LongestDryPeriod, "days", "f0", "D"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].LongestDryPeriod, "days", "f0", "D"));
 			json.Append(',');
-			json.Append(monthlyjsonformat(MonthlyRecs[month].LongestWetPeriod, "days", "f0", "D"));
+			json.Append(monthlyjsonformat(Records.MonthlyRecs[month].LongestWetPeriod, "days", "f0", "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
 
-		private static string monthyearjsonformat(AllTimeRec value, string unit, string valueformat, string dateformat)
+		private static string monthyearjsonformat(Record value, string unit, string valueformat, string dateformat)
 		{
 			return $"[\"{value.Desc}\",\"{value.GetValString(valueformat)} {unit}\",\"{value.GetTsString(dateformat)}\"]";
 		}
@@ -11561,39 +11542,39 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append(monthyearjsonformat(ThisMonth.HighTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.LowTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.LowTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.LowDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.LowDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.LowAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.LowAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.LowFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.LowFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighHumidex, "&nbsp;", cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighHumidex, "&nbsp;", cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.LowChill, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.LowChill, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighHeatIndex, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighHeatIndex, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighMinTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighMinTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.LowMaxTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.LowMaxTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.LowDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.LowDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighBgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighBgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighWbgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighWbgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 
 			json.Append("]}");
 			return json.ToString();
@@ -11603,9 +11584,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthyearjsonformat(ThisMonth.HighHumidity, "%", cumulus.HumFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighHumidity, "%", cumulus.HumFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.LowHumidity, "%", cumulus.HumFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.LowHumidity, "%", cumulus.HumFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11614,9 +11595,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthyearjsonformat(ThisMonth.HighPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.LowPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.LowPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11625,11 +11606,11 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthyearjsonformat(ThisMonth.HighGust, cumulus.Units.WindText, cumulus.WindFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighGust, cumulus.Units.WindText, cumulus.WindFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighWind, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighWind, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighWindRun, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighWindRun, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11638,13 +11619,13 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(monthyearjsonformat(ThisMonth.HighRainRate, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighRainRate, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.HighRain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.HighRain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(',');
 			var dry = GetMonthDryRainDays(DateTime.Now, true);
 			json.Append($"[\"Dry days\",\"{dry} days\",\"\"]");
@@ -11652,9 +11633,9 @@ namespace CumulusMX
 			var wet = GetMonthDryRainDays(DateTime.Now, false);
 			json.Append($"[\"Rain days\",\"{wet} days\",\"\"]");
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.LongestDryPeriod, "days", "f0", "D"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.LongestDryPeriod, "days", "f0", "D"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisMonth.LongestWetPeriod, "days", "f0", "D"));
+			json.Append(monthyearjsonformat(Records.ThisMonth.LongestWetPeriod, "days", "f0", "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11663,39 +11644,39 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			json.Append(monthyearjsonformat(ThisYear.HighTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.LowTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.LowTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.LowDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.LowDewPoint, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.LowAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.LowAppTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.LowFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.LowFeelsLike, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighHumidex, "&nbsp;", cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighHumidex, "&nbsp;", cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.LowChill, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.LowChill, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighHeatIndex, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighHeatIndex, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighMinTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighMinTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.LowMaxTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.LowMaxTemp, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.LowDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
+			json.Append(monthyearjsonformat(Records.ThisYear.LowDailyTempRange, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "D"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighBgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighBgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighWbgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighWbgt, "&deg;" + cumulus.Units.TempText[1].ToString(), cumulus.TempFormat, "f"));
 
 			json.Append("]}");
 			return json.ToString();
@@ -11705,9 +11686,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthyearjsonformat(ThisYear.HighHumidity, "%", cumulus.HumFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighHumidity, "%", cumulus.HumFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.LowHumidity, "%", cumulus.HumFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.LowHumidity, "%", cumulus.HumFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11716,9 +11697,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthyearjsonformat(ThisYear.HighPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.LowPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.LowPress, cumulus.Units.PressText, cumulus.PressFormat, "f"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11727,11 +11708,11 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append(monthyearjsonformat(ThisYear.HighGust, cumulus.Units.WindText, cumulus.WindFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighGust, cumulus.Units.WindText, cumulus.WindFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighWind, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighWind, cumulus.Units.WindText, cumulus.WindAvgFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighWindRun, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighWindRun, cumulus.Units.WindRunText, cumulus.WindRunFormat, "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -11740,19 +11721,19 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 512);
 
-			json.Append(monthyearjsonformat(ThisYear.HighRainRate, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighRainRate, cumulus.Units.RainText + "/hr", cumulus.RainFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HourlyRain, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
+			json.Append(monthyearjsonformat(Records.ThisYear.DailyRain, cumulus.Units.RainText, cumulus.RainFormat, "D"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.HighRain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "f"));
+			json.Append(monthyearjsonformat(Records.ThisYear.HighRain24Hours, cumulus.Units.RainText, cumulus.RainFormat, "f"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
+			json.Append(monthyearjsonformat(Records.ThisYear.MonthlyRain, cumulus.Units.RainText, cumulus.RainFormat, "Y"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.LongestDryPeriod, "days", "f0", "D"));
+			json.Append(monthyearjsonformat(Records.ThisYear.LongestDryPeriod, "days", "f0", "D"));
 			json.Append(',');
-			json.Append(monthyearjsonformat(ThisYear.LongestWetPeriod, "days", "f0", "D"));
+			json.Append(monthyearjsonformat(Records.ThisYear.LongestWetPeriod, "days", "f0", "D"));
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -12123,7 +12104,7 @@ namespace CumulusMX
 				{
 					if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[i - 1]}\",\"{LeafWetness[i].ToFixed(cumulus.LeafWetFormat, "-")}\",\"{cumulus.Units.LeafWetnessUnitText[i-1]}\"],");
+						json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[i - 1]}\",\"{LeafWetness[i].ToFixed(cumulus.LeafWetFormat, "-")}\",\"{cumulus.Units.LeafWetnessUnitText[i - 1]}\"],");
 					}
 				}
 			}
@@ -15112,7 +15093,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				HiLoToday.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat), forecaststr, getTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat),
 				getTimeString(cumulus.MoonRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.MoonSetTime, cumulus.ProgramOptions.TimeFormat), HiLoToday.HighHeatIndex, HiLoToday.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.HighAppTemp,
 				HiLoToday.LowAppTemp, HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), CurrentSolarMax,
-				AllTime.HighPress.Val, AllTime.LowPress.Val, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
+				Records.AllTime.HighPress.Val, Records.AllTime.LowPress.Val, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
 				HiLoToday.HighHourlyRain, HiLoToday.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat), "F" + Cumulus.Beaufort(HiLoToday.HighWind), "F" + Cumulus.Beaufort(WindAverage),
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp, DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 				FeelsLike, HiLoToday.HighFeelsLike, HiLoToday.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), HiLoToday.LowFeelsLike, HiLoToday.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
@@ -15150,22 +15131,22 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				HiLoToday.HighGustBearing = gustdir;
 				WriteTodayFile(timestamp, false);
 			}
-			if (gust > ThisMonth.HighGust.Val)
+			if (gust > Records.ThisMonth.HighGust.Val)
 			{
-				ThisMonth.HighGust.Val = gust;
-				ThisMonth.HighGust.Ts = timestamp;
+				Records.ThisMonth.HighGust.Val = gust;
+				Records.ThisMonth.HighGust.Ts = timestamp;
 				WriteMonthIniFile();
 			}
-			if (gust > ThisYear.HighGust.Val)
+			if (gust > Records.ThisYear.HighGust.Val)
 			{
-				ThisYear.HighGust.Val = gust;
-				ThisYear.HighGust.Ts = timestamp;
+				Records.ThisYear.HighGust.Val = gust;
+				Records.ThisYear.HighGust.Ts = timestamp;
 				WriteYearIniFile();
 			}
 			// All time high gust?
-			if (gust > AllTime.HighGust.Val)
+			if (gust > Records.AllTime.HighGust.Val)
 			{
-				SetAlltime(AllTime.HighGust, gust, timestamp);
+				SetAlltime(Records.AllTime.HighGust, gust, timestamp);
 			}
 
 			// check for monthly all time records (and set)
@@ -15185,23 +15166,23 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				HiLoToday.HighWindTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
-			if (WindAverage > ThisMonth.HighWind.Val)
+			if (WindAverage > Records.ThisMonth.HighWind.Val)
 			{
-				ThisMonth.HighWind.Val = WindAverage;
-				ThisMonth.HighWind.Ts = timestamp;
+				Records.ThisMonth.HighWind.Val = WindAverage;
+				Records.ThisMonth.HighWind.Ts = timestamp;
 				WriteMonthIniFile();
 			}
-			if (WindAverage > ThisYear.HighWind.Val)
+			if (WindAverage > Records.ThisYear.HighWind.Val)
 			{
-				ThisYear.HighWind.Val = WindAverage;
-				ThisYear.HighWind.Ts = timestamp;
+				Records.ThisYear.HighWind.Val = WindAverage;
+				Records.ThisYear.HighWind.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
 			// All time high wind speed?
-			if (WindAverage > AllTime.HighWind.Val)
+			if (WindAverage > Records.AllTime.HighWind.Val)
 			{
-				SetAlltime(AllTime.HighWind, WindAverage, timestamp);
+				SetAlltime(Records.AllTime.HighWind, WindAverage, timestamp);
 			}
 
 			// check for monthly all time records (and set)
@@ -15311,7 +15292,8 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 					var monthlyDiffs = DayFile
 						.Where(d => d.Date >= firstFullMonth && d.Date <= lastFullMonth && d.Date.Month == mon)
 						.GroupBy(d => new { d.Date.Year, d.Date.Month })
-						.Select(g => {
+						.Select(g =>
+						{
 							var maxVal = g.Max(d => d.ChillHours);
 
 							// Find last day's value from the previous month
@@ -15511,7 +15493,8 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 		public long Timestamp { get; set; }
 
 		[Ignore]
-		public DateTime DateTime {
+		public DateTime DateTime
+		{
 			get => Timestamp.LocalFromUnixTime();
 			set => Timestamp = value.ToUnixTime();
 		}
@@ -15683,107 +15666,5 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 		[AutoIncrement, PrimaryKey]
 		public int key { get; set; }
 		public string statement { get; set; }
-	}
-
-	public class AllTimeRecords
-	{
-		// Add an indexer so we can reference properties with a string
-		public AllTimeRec this[string propertyName]
-		{
-			get
-			{
-				// probably faster without reflection
-				var info = PropertyInfoByName(propertyName);
-				return (AllTimeRec) info.GetValue(this, null);
-			}
-			set
-			{
-				var info = PropertyInfoByName(propertyName);
-				info.SetValue(this, value, null);
-			}
-		}
-
-		private System.Reflection.PropertyInfo PropertyInfoByName(string name)
-		{
-			var type = this.GetType();
-			var info = type.GetProperty(name);
-			if (info == null)
-			{
-				throw new Exception(String.Format("A property called {0} can't be accessed for type {1}", name, type.FullName));
-			}
-			return info;
-		}
-
-		public AllTimeRec HighTemp { get; set; } = new AllTimeRec(0);
-		public AllTimeRec LowTemp { get; set; } = new AllTimeRec(1);
-		public AllTimeRec HighGust { get; set; } = new AllTimeRec(2);
-		public AllTimeRec HighWind { get; set; } = new AllTimeRec(3);
-		public AllTimeRec LowChill { get; set; } = new AllTimeRec(4);
-		public AllTimeRec HighRainRate { get; set; } = new AllTimeRec(5);
-		public AllTimeRec DailyRain { get; set; } = new AllTimeRec(6);
-		public AllTimeRec HourlyRain { get; set; } = new AllTimeRec(7);
-		public AllTimeRec LowPress { get; set; } = new AllTimeRec(8);
-		public AllTimeRec HighPress { get; set; } = new AllTimeRec(9);
-		public AllTimeRec MonthlyRain { get; set; } = new AllTimeRec(10);
-		public AllTimeRec HighMinTemp { get; set; } = new AllTimeRec(11);
-		public AllTimeRec LowMaxTemp { get; set; } = new AllTimeRec(12);
-		public AllTimeRec HighHumidity { get; set; } = new AllTimeRec(13);
-		public AllTimeRec LowHumidity { get; set; } = new AllTimeRec(14);
-		public AllTimeRec HighAppTemp { get; set; } = new AllTimeRec(15);
-		public AllTimeRec LowAppTemp { get; set; } = new AllTimeRec(16);
-		public AllTimeRec HighHeatIndex { get; set; } = new AllTimeRec(17);
-		public AllTimeRec HighDewPoint { get; set; } = new AllTimeRec(18);
-		public AllTimeRec LowDewPoint { get; set; } = new AllTimeRec(19);
-		public AllTimeRec HighWindRun { get; set; } = new AllTimeRec(20);
-		public AllTimeRec LongestDryPeriod { get; set; } = new AllTimeRec(21);
-		public AllTimeRec LongestWetPeriod { get; set; } = new AllTimeRec(22);
-		public AllTimeRec HighDailyTempRange { get; set; } = new AllTimeRec(23);
-		public AllTimeRec LowDailyTempRange { get; set; } = new AllTimeRec(24);
-		public AllTimeRec HighFeelsLike { get; set; } = new AllTimeRec(25);
-		public AllTimeRec LowFeelsLike { get; set; } = new AllTimeRec(26);
-		public AllTimeRec HighHumidex { get; set; } = new AllTimeRec(27);
-		public AllTimeRec HighRain24Hours { get; set; } = new AllTimeRec(28);
-		public AllTimeRec HighBgt { get; set; } = new AllTimeRec(29);
-		public AllTimeRec HighWbgt { get; set; } = new AllTimeRec(30);
-	}
-
-	public class AllTimeRec(int index)
-	{
-		private static readonly string[] alltimedescs =
-		[
-			"High temperature", "Low temperature", "High gust", "High wind speed", "Low wind chill", "High rain rate", "High daily rain",
-			"High hourly rain", "Low pressure", "High pressure", "Highest monthly rainfall", "Highest minimum temp", "Lowest maximum temp",
-			"High humidity", "Low humidity", "High apparent temp", "Low apparent temp", "High heat index", "High dew point", "Low dew point",
-			"High daily windrun", "Longest dry period", "Longest wet period", "High daily temp range", "Low daily temp range",
-			"High feels like", "Low feels like", "High Humidex", "High 24 hour rain", "High BGT", "High WBGT"
-		];
-		private readonly int idx = index;
-
-		public double Val { get; set; }
-		public DateTime Ts { get; set; }
-		public string Desc
-		{
-			get
-			{
-				return alltimedescs[idx];
-			}
-		}
-
-		public string GetValString(string format = "")
-		{
-			if (Val < Cumulus.DefaultHiVal + 1 || Val > Cumulus.DefaultLoVal - 1)
-				return "-";
-			else
-				return Val.ToString(format);
-		}
-
-		public string GetTsString(string format = "")
-		{
-			if (Ts == DateTime.MinValue)
-				return "-";
-			else
-				return Ts.ToString(format);
-		}
-
 	}
 }

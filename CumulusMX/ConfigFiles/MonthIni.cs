@@ -13,78 +13,78 @@ namespace CumulusMX
 			{
 				var ini = new IniFile(cumulus.MonthIniFile);
 
-				ThisMonth.HighWind.Val = ini.GetValue("Wind", "Speed", Cumulus.DefaultHiVal);
-				ThisMonth.HighWind.Ts = ini.GetValue("Wind", "SpTime", cumulus.defaultRecordTS);
-				ThisMonth.HighGust.Val = ini.GetValue("Wind", "Gust", Cumulus.DefaultHiVal);
-				ThisMonth.HighGust.Ts = ini.GetValue("Wind", "Time", cumulus.defaultRecordTS);
-				ThisMonth.HighWindRun.Val = ini.GetValue("Wind", "Windrun", Cumulus.DefaultHiVal);
-				ThisMonth.HighWindRun.Ts = ini.GetValue("Wind", "WindrunTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighWind.Val = ini.GetValue("Wind", "Speed", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighWind.Ts = ini.GetValue("Wind", "SpTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighGust.Val = ini.GetValue("Wind", "Gust", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighGust.Ts = ini.GetValue("Wind", "Time", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighWindRun.Val = ini.GetValue("Wind", "Windrun", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighWindRun.Ts = ini.GetValue("Wind", "WindrunTime", cumulus.defaultRecordTS);
 				// Temperature
-				ThisMonth.LowTemp.Val = ini.GetValue("Temp", "Low", Cumulus.DefaultLoVal);
-				ThisMonth.LowTemp.Ts = ini.GetValue("Temp", "LTime", cumulus.defaultRecordTS);
-				ThisMonth.HighTemp.Val = ini.GetValue("Temp", "High", Cumulus.DefaultHiVal);
-				ThisMonth.HighTemp.Ts = ini.GetValue("Temp", "HTime", cumulus.defaultRecordTS);
-				ThisMonth.LowMaxTemp.Val = ini.GetValue("Temp", "LowMax", Cumulus.DefaultLoVal);
-				ThisMonth.LowMaxTemp.Ts = ini.GetValue("Temp", "LMTime", cumulus.defaultRecordTS);
-				ThisMonth.HighMinTemp.Val = ini.GetValue("Temp", "HighMin", Cumulus.DefaultHiVal);
-				ThisMonth.HighMinTemp.Ts = ini.GetValue("Temp", "HMTime", cumulus.defaultRecordTS);
-				ThisMonth.LowDailyTempRange.Val = ini.GetValue("Temp", "LowRange", Cumulus.DefaultLoVal);
-				ThisMonth.LowDailyTempRange.Ts = ini.GetValue("Temp", "LowRangeTime", cumulus.defaultRecordTS);
-				ThisMonth.HighDailyTempRange.Val = ini.GetValue("Temp", "HighRange", Cumulus.DefaultHiVal);
-				ThisMonth.HighDailyTempRange.Ts = ini.GetValue("Temp", "HighRangeTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.LowTemp.Val = ini.GetValue("Temp", "Low", Cumulus.DefaultLoVal);
+				Records.ThisMonth.LowTemp.Ts = ini.GetValue("Temp", "LTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighTemp.Val = ini.GetValue("Temp", "High", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighTemp.Ts = ini.GetValue("Temp", "HTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.LowMaxTemp.Val = ini.GetValue("Temp", "LowMax", Cumulus.DefaultLoVal);
+				Records.ThisMonth.LowMaxTemp.Ts = ini.GetValue("Temp", "LMTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighMinTemp.Val = ini.GetValue("Temp", "HighMin", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighMinTemp.Ts = ini.GetValue("Temp", "HMTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.LowDailyTempRange.Val = ini.GetValue("Temp", "LowRange", Cumulus.DefaultLoVal);
+				Records.ThisMonth.LowDailyTempRange.Ts = ini.GetValue("Temp", "LowRangeTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighDailyTempRange.Val = ini.GetValue("Temp", "HighRange", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighDailyTempRange.Ts = ini.GetValue("Temp", "HighRangeTime", cumulus.defaultRecordTS);
 				// Pressure
-				ThisMonth.LowPress.Val = ini.GetValue("Pressure", "Low", Cumulus.DefaultLoVal);
-				ThisMonth.LowPress.Ts = ini.GetValue("Pressure", "LTime", cumulus.defaultRecordTS);
-				ThisMonth.HighPress.Val = ini.GetValue("Pressure", "High", Cumulus.DefaultHiVal);
-				ThisMonth.HighPress.Ts = ini.GetValue("Pressure", "HTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.LowPress.Val = ini.GetValue("Pressure", "Low", Cumulus.DefaultLoVal);
+				Records.ThisMonth.LowPress.Ts = ini.GetValue("Pressure", "LTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighPress.Val = ini.GetValue("Pressure", "High", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighPress.Ts = ini.GetValue("Pressure", "HTime", cumulus.defaultRecordTS);
 				// rain rate
-				ThisMonth.HighRainRate.Val = ini.GetValue("Rain", "High", Cumulus.DefaultHiVal);
-				ThisMonth.HighRainRate.Ts = ini.GetValue("Rain", "HTime", cumulus.defaultRecordTS);
-				ThisMonth.HourlyRain.Val = ini.GetValue("Rain", "HourlyHigh", Cumulus.DefaultHiVal);
-				ThisMonth.HourlyRain.Ts = ini.GetValue("Rain", "HHourlyTime", cumulus.defaultRecordTS);
-				ThisMonth.DailyRain.Val = ini.GetValue("Rain", "DailyHigh", Cumulus.DefaultHiVal);
-				ThisMonth.DailyRain.Ts = ini.GetValue("Rain", "HDailyTime", cumulus.defaultRecordTS);
-				ThisMonth.HighRain24Hours.Val = ini.GetValue("Rain", "24Hour", Cumulus.DefaultHiVal);
-				ThisMonth.HighRain24Hours.Ts = ini.GetValue("Rain", "24HourTime", cumulus.defaultRecordTS);
-				ThisMonth.LongestDryPeriod.Val = ini.GetValue("Rain", "LongestDryPeriod", 0);
-				ThisMonth.LongestDryPeriod.Ts = ini.GetValue("Rain", "LongestDryPeriodTime", cumulus.defaultRecordTS);
-				ThisMonth.LongestWetPeriod.Val = ini.GetValue("Rain", "LongestWetPeriod", 0);
-				ThisMonth.LongestWetPeriod.Ts = ini.GetValue("Rain", "LongestWetPeriodTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighRainRate.Val = ini.GetValue("Rain", "High", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighRainRate.Ts = ini.GetValue("Rain", "HTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HourlyRain.Val = ini.GetValue("Rain", "HourlyHigh", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HourlyRain.Ts = ini.GetValue("Rain", "HHourlyTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.DailyRain.Val = ini.GetValue("Rain", "DailyHigh", Cumulus.DefaultHiVal);
+				Records.ThisMonth.DailyRain.Ts = ini.GetValue("Rain", "HDailyTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighRain24Hours.Val = ini.GetValue("Rain", "24Hour", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighRain24Hours.Ts = ini.GetValue("Rain", "24HourTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.LongestDryPeriod.Val = ini.GetValue("Rain", "LongestDryPeriod", 0);
+				Records.ThisMonth.LongestDryPeriod.Ts = ini.GetValue("Rain", "LongestDryPeriodTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.LongestWetPeriod.Val = ini.GetValue("Rain", "LongestWetPeriod", 0);
+				Records.ThisMonth.LongestWetPeriod.Ts = ini.GetValue("Rain", "LongestWetPeriodTime", cumulus.defaultRecordTS);
 				// humidity
-				ThisMonth.LowHumidity.Val = ini.GetValue("Humidity", "Low", Cumulus.DefaultLoVal);
-				ThisMonth.LowHumidity.Ts = ini.GetValue("Humidity", "LTime", cumulus.defaultRecordTS);
-				ThisMonth.HighHumidity.Val = ini.GetValue("Humidity", "High", Cumulus.DefaultHiVal);
-				ThisMonth.HighHumidity.Ts = ini.GetValue("Humidity", "HTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.LowHumidity.Val = ini.GetValue("Humidity", "Low", Cumulus.DefaultLoVal);
+				Records.ThisMonth.LowHumidity.Ts = ini.GetValue("Humidity", "LTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighHumidity.Val = ini.GetValue("Humidity", "High", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighHumidity.Ts = ini.GetValue("Humidity", "HTime", cumulus.defaultRecordTS);
 				// heat index
-				ThisMonth.HighHeatIndex.Val = ini.GetValue("HeatIndex", "High", Cumulus.DefaultHiVal);
-				ThisMonth.HighHeatIndex.Ts = ini.GetValue("HeatIndex", "HTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighHeatIndex.Val = ini.GetValue("HeatIndex", "High", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighHeatIndex.Ts = ini.GetValue("HeatIndex", "HTime", cumulus.defaultRecordTS);
 				// App temp
-				ThisMonth.LowAppTemp.Val = ini.GetValue("AppTemp", "Low", Cumulus.DefaultLoVal);
-				ThisMonth.LowAppTemp.Ts = ini.GetValue("AppTemp", "LTime", cumulus.defaultRecordTS);
-				ThisMonth.HighAppTemp.Val = ini.GetValue("AppTemp", "High", Cumulus.DefaultHiVal);
-				ThisMonth.HighAppTemp.Ts = ini.GetValue("AppTemp", "HTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.LowAppTemp.Val = ini.GetValue("AppTemp", "Low", Cumulus.DefaultLoVal);
+				Records.ThisMonth.LowAppTemp.Ts = ini.GetValue("AppTemp", "LTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighAppTemp.Val = ini.GetValue("AppTemp", "High", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighAppTemp.Ts = ini.GetValue("AppTemp", "HTime", cumulus.defaultRecordTS);
 				// Dewpoint
-				ThisMonth.LowDewPoint.Val = ini.GetValue("Dewpoint", "Low", 999.0);
-				ThisMonth.LowDewPoint.Ts = ini.GetValue("Dewpoint", "LTime", cumulus.defaultRecordTS);
-				ThisMonth.HighDewPoint.Val = ini.GetValue("Dewpoint", "High", Cumulus.DefaultHiVal);
-				ThisMonth.HighDewPoint.Ts = ini.GetValue("Dewpoint", "HTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.LowDewPoint.Val = ini.GetValue("Dewpoint", "Low", 999.0);
+				Records.ThisMonth.LowDewPoint.Ts = ini.GetValue("Dewpoint", "LTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighDewPoint.Val = ini.GetValue("Dewpoint", "High", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighDewPoint.Ts = ini.GetValue("Dewpoint", "HTime", cumulus.defaultRecordTS);
 				// wind chill
-				ThisMonth.LowChill.Val = ini.GetValue("WindChill", "Low", Cumulus.DefaultLoVal);
-				ThisMonth.LowChill.Ts = ini.GetValue("WindChill", "LTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.LowChill.Val = ini.GetValue("WindChill", "Low", Cumulus.DefaultLoVal);
+				Records.ThisMonth.LowChill.Ts = ini.GetValue("WindChill", "LTime", cumulus.defaultRecordTS);
 				// Feels like temp
-				ThisMonth.LowFeelsLike.Val = ini.GetValue("FeelsLike", "Low", Cumulus.DefaultLoVal);
-				ThisMonth.LowFeelsLike.Ts = ini.GetValue("FeelsLike", "LTime", cumulus.defaultRecordTS);
-				ThisMonth.HighFeelsLike.Val = ini.GetValue("FeelsLike", "High", Cumulus.DefaultHiVal);
-				ThisMonth.HighFeelsLike.Ts = ini.GetValue("FeelsLike", "HTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.LowFeelsLike.Val = ini.GetValue("FeelsLike", "Low", Cumulus.DefaultLoVal);
+				Records.ThisMonth.LowFeelsLike.Ts = ini.GetValue("FeelsLike", "LTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighFeelsLike.Val = ini.GetValue("FeelsLike", "High", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighFeelsLike.Ts = ini.GetValue("FeelsLike", "HTime", cumulus.defaultRecordTS);
 				// Humidex
-				ThisMonth.HighHumidex.Val = ini.GetValue("Humidex", "High", Cumulus.DefaultHiVal);
-				ThisMonth.HighHumidex.Ts = ini.GetValue("Humidex", "HTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighHumidex.Val = ini.GetValue("Humidex", "High", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighHumidex.Ts = ini.GetValue("Humidex", "HTime", cumulus.defaultRecordTS);
 				// BGT
-				ThisMonth.HighBgt.Val = ini.GetValue("BGT", "High", Cumulus.DefaultHiVal);
-				ThisMonth.HighBgt.Ts = ini.GetValue("BGT", "HTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighBgt.Val = ini.GetValue("BGT", "High", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighBgt.Ts = ini.GetValue("BGT", "HTime", cumulus.defaultRecordTS);
 				// WBGT
-				ThisMonth.HighWbgt.Val = ini.GetValue("WBGT", "High", Cumulus.DefaultHiVal);
-				ThisMonth.HighWbgt.Ts = ini.GetValue("WBGT", "HTime", cumulus.defaultRecordTS);
+				Records.ThisMonth.HighWbgt.Val = ini.GetValue("WBGT", "High", Cumulus.DefaultHiVal);
+				Records.ThisMonth.HighWbgt.Ts = ini.GetValue("WBGT", "HTime", cumulus.defaultRecordTS);
 
 				cumulus.LogMessage("Month.ini file read");
 			}
@@ -103,78 +103,78 @@ namespace CumulusMX
 					// Date
 					ini.SetValue("General", "Date", DateTime.Now.AddHours(hourInc));
 					// Wind
-					ini.SetValue("Wind", "Speed", ThisMonth.HighWind.Val);
-					ini.SetValue("Wind", "SpTime", ThisMonth.HighWind.Ts);
-					ini.SetValue("Wind", "Gust", ThisMonth.HighGust.Val);
-					ini.SetValue("Wind", "Time", ThisMonth.HighGust.Ts);
-					ini.SetValue("Wind", "Windrun", ThisMonth.HighWindRun.Val);
-					ini.SetValue("Wind", "WindrunTime", ThisMonth.HighWindRun.Ts);
+					ini.SetValue("Wind", "Speed", Records.ThisMonth.HighWind.Val);
+					ini.SetValue("Wind", "SpTime", Records.ThisMonth.HighWind.Ts);
+					ini.SetValue("Wind", "Gust", Records.ThisMonth.HighGust.Val);
+					ini.SetValue("Wind", "Time", Records.ThisMonth.HighGust.Ts);
+					ini.SetValue("Wind", "Windrun", Records.ThisMonth.HighWindRun.Val);
+					ini.SetValue("Wind", "WindrunTime", Records.ThisMonth.HighWindRun.Ts);
 					// Temperature
-					ini.SetValue("Temp", "Low", ThisMonth.LowTemp.Val);
-					ini.SetValue("Temp", "LTime", ThisMonth.LowTemp.Ts);
-					ini.SetValue("Temp", "High", ThisMonth.HighTemp.Val);
-					ini.SetValue("Temp", "HTime", ThisMonth.HighTemp.Ts);
-					ini.SetValue("Temp", "LowMax", ThisMonth.LowMaxTemp.Val);
-					ini.SetValue("Temp", "LMTime", ThisMonth.LowMaxTemp.Ts);
-					ini.SetValue("Temp", "HighMin", ThisMonth.HighMinTemp.Val);
-					ini.SetValue("Temp", "HMTime", ThisMonth.HighMinTemp.Ts);
-					ini.SetValue("Temp", "LowRange", ThisMonth.LowDailyTempRange.Val);
-					ini.SetValue("Temp", "LowRangeTime", ThisMonth.LowDailyTempRange.Ts);
-					ini.SetValue("Temp", "HighRange", ThisMonth.HighDailyTempRange.Val);
-					ini.SetValue("Temp", "HighRangeTime", ThisMonth.HighDailyTempRange.Ts);
+					ini.SetValue("Temp", "Low", Records.ThisMonth.LowTemp.Val);
+					ini.SetValue("Temp", "LTime", Records.ThisMonth.LowTemp.Ts);
+					ini.SetValue("Temp", "High", Records.ThisMonth.HighTemp.Val);
+					ini.SetValue("Temp", "HTime", Records.ThisMonth.HighTemp.Ts);
+					ini.SetValue("Temp", "LowMax", Records.ThisMonth.LowMaxTemp.Val);
+					ini.SetValue("Temp", "LMTime", Records.ThisMonth.LowMaxTemp.Ts);
+					ini.SetValue("Temp", "HighMin", Records.ThisMonth.HighMinTemp.Val);
+					ini.SetValue("Temp", "HMTime", Records.ThisMonth.HighMinTemp.Ts);
+					ini.SetValue("Temp", "LowRange", Records.ThisMonth.LowDailyTempRange.Val);
+					ini.SetValue("Temp", "LowRangeTime", Records.ThisMonth.LowDailyTempRange.Ts);
+					ini.SetValue("Temp", "HighRange", Records.ThisMonth.HighDailyTempRange.Val);
+					ini.SetValue("Temp", "HighRangeTime", Records.ThisMonth.HighDailyTempRange.Ts);
 					// Pressure
-					ini.SetValue("Pressure", "Low", ThisMonth.LowPress.Val);
-					ini.SetValue("Pressure", "LTime", ThisMonth.LowPress.Ts);
-					ini.SetValue("Pressure", "High", ThisMonth.HighPress.Val);
-					ini.SetValue("Pressure", "HTime", ThisMonth.HighPress.Ts);
+					ini.SetValue("Pressure", "Low", Records.ThisMonth.LowPress.Val);
+					ini.SetValue("Pressure", "LTime", Records.ThisMonth.LowPress.Ts);
+					ini.SetValue("Pressure", "High", Records.ThisMonth.HighPress.Val);
+					ini.SetValue("Pressure", "HTime", Records.ThisMonth.HighPress.Ts);
 					// rain
-					ini.SetValue("Rain", "High", ThisMonth.HighRainRate.Val);
-					ini.SetValue("Rain", "HTime", ThisMonth.HighRainRate.Ts);
-					ini.SetValue("Rain", "HourlyHigh", ThisMonth.HourlyRain.Val);
-					ini.SetValue("Rain", "HHourlyTime", ThisMonth.HourlyRain.Ts);
-					ini.SetValue("Rain", "DailyHigh", ThisMonth.DailyRain.Val);
-					ini.SetValue("Rain", "HDailyTime", ThisMonth.DailyRain.Ts);
-					ini.SetValue("Rain", "24Hour", ThisMonth.HighRain24Hours.Val);
-					ini.SetValue("Rain", "24HourTime", ThisMonth.HighRain24Hours.Ts);
-					ini.SetValue("Rain", "LongestDryPeriod", ThisMonth.LongestDryPeriod.Val);
-					ini.SetValue("Rain", "LongestDryPeriodTime", ThisMonth.LongestDryPeriod.Ts);
-					ini.SetValue("Rain", "LongestWetPeriod", ThisMonth.LongestWetPeriod.Val);
-					ini.SetValue("Rain", "LongestWetPeriodTime", ThisMonth.LongestWetPeriod.Ts);
+					ini.SetValue("Rain", "High", Records.ThisMonth.HighRainRate.Val);
+					ini.SetValue("Rain", "HTime", Records.ThisMonth.HighRainRate.Ts);
+					ini.SetValue("Rain", "HourlyHigh", Records.ThisMonth.HourlyRain.Val);
+					ini.SetValue("Rain", "HHourlyTime", Records.ThisMonth.HourlyRain.Ts);
+					ini.SetValue("Rain", "DailyHigh", Records.ThisMonth.DailyRain.Val);
+					ini.SetValue("Rain", "HDailyTime", Records.ThisMonth.DailyRain.Ts);
+					ini.SetValue("Rain", "24Hour", Records.ThisMonth.HighRain24Hours.Val);
+					ini.SetValue("Rain", "24HourTime", Records.ThisMonth.HighRain24Hours.Ts);
+					ini.SetValue("Rain", "LongestDryPeriod", Records.ThisMonth.LongestDryPeriod.Val);
+					ini.SetValue("Rain", "LongestDryPeriodTime", Records.ThisMonth.LongestDryPeriod.Ts);
+					ini.SetValue("Rain", "LongestWetPeriod", Records.ThisMonth.LongestWetPeriod.Val);
+					ini.SetValue("Rain", "LongestWetPeriodTime", Records.ThisMonth.LongestWetPeriod.Ts);
 					// humidity
-					ini.SetValue("Humidity", "Low", ThisMonth.LowHumidity.Val);
-					ini.SetValue("Humidity", "LTime", ThisMonth.LowHumidity.Ts);
-					ini.SetValue("Humidity", "High", ThisMonth.HighHumidity.Val);
-					ini.SetValue("Humidity", "HTime", ThisMonth.HighHumidity.Ts);
+					ini.SetValue("Humidity", "Low", Records.ThisMonth.LowHumidity.Val);
+					ini.SetValue("Humidity", "LTime", Records.ThisMonth.LowHumidity.Ts);
+					ini.SetValue("Humidity", "High", Records.ThisMonth.HighHumidity.Val);
+					ini.SetValue("Humidity", "HTime", Records.ThisMonth.HighHumidity.Ts);
 					// heat index
-					ini.SetValue("HeatIndex", "High", ThisMonth.HighHeatIndex.Val);
-					ini.SetValue("HeatIndex", "HTime", ThisMonth.HighHeatIndex.Ts);
+					ini.SetValue("HeatIndex", "High", Records.ThisMonth.HighHeatIndex.Val);
+					ini.SetValue("HeatIndex", "HTime", Records.ThisMonth.HighHeatIndex.Ts);
 					// App temp
-					ini.SetValue("AppTemp", "Low", ThisMonth.LowAppTemp.Val);
-					ini.SetValue("AppTemp", "LTime", ThisMonth.LowAppTemp.Ts);
-					ini.SetValue("AppTemp", "High", ThisMonth.HighAppTemp.Val);
-					ini.SetValue("AppTemp", "HTime", ThisMonth.HighAppTemp.Ts);
+					ini.SetValue("AppTemp", "Low", Records.ThisMonth.LowAppTemp.Val);
+					ini.SetValue("AppTemp", "LTime", Records.ThisMonth.LowAppTemp.Ts);
+					ini.SetValue("AppTemp", "High", Records.ThisMonth.HighAppTemp.Val);
+					ini.SetValue("AppTemp", "HTime", Records.ThisMonth.HighAppTemp.Ts);
 					// Dewpoint
-					ini.SetValue("Dewpoint", "Low", ThisMonth.LowDewPoint.Val);
-					ini.SetValue("Dewpoint", "LTime", ThisMonth.LowDewPoint.Ts);
-					ini.SetValue("Dewpoint", "High", ThisMonth.HighDewPoint.Val);
-					ini.SetValue("Dewpoint", "HTime", ThisMonth.HighDewPoint.Ts);
+					ini.SetValue("Dewpoint", "Low", Records.ThisMonth.LowDewPoint.Val);
+					ini.SetValue("Dewpoint", "LTime", Records.ThisMonth.LowDewPoint.Ts);
+					ini.SetValue("Dewpoint", "High", Records.ThisMonth.HighDewPoint.Val);
+					ini.SetValue("Dewpoint", "HTime", Records.ThisMonth.HighDewPoint.Ts);
 					// wind chill
-					ini.SetValue("WindChill", "Low", ThisMonth.LowChill.Val);
-					ini.SetValue("WindChill", "LTime", ThisMonth.LowChill.Ts);
+					ini.SetValue("WindChill", "Low", Records.ThisMonth.LowChill.Val);
+					ini.SetValue("WindChill", "LTime", Records.ThisMonth.LowChill.Ts);
 					// feels like
-					ini.SetValue("FeelsLike", "Low", ThisMonth.LowFeelsLike.Val);
-					ini.SetValue("FeelsLike", "LTime", ThisMonth.LowFeelsLike.Ts);
-					ini.SetValue("FeelsLike", "High", ThisMonth.HighFeelsLike.Val);
-					ini.SetValue("FeelsLike", "HTime", ThisMonth.HighFeelsLike.Ts);
+					ini.SetValue("FeelsLike", "Low", Records.ThisMonth.LowFeelsLike.Val);
+					ini.SetValue("FeelsLike", "LTime", Records.ThisMonth.LowFeelsLike.Ts);
+					ini.SetValue("FeelsLike", "High", Records.ThisMonth.HighFeelsLike.Val);
+					ini.SetValue("FeelsLike", "HTime", Records.ThisMonth.HighFeelsLike.Ts);
 					// Humidex
-					ini.SetValue("Humidex", "High", ThisMonth.HighHumidex.Val);
-					ini.SetValue("Humidex", "HTime", ThisMonth.HighHumidex.Ts);
+					ini.SetValue("Humidex", "High", Records.ThisMonth.HighHumidex.Val);
+					ini.SetValue("Humidex", "HTime", Records.ThisMonth.HighHumidex.Ts);
 					// BGT
-					ini.SetValue("BGT", "High", ThisMonth.HighBgt.Val);
-					ini.SetValue("BGT", "HTime", ThisMonth.HighBgt.Ts);
+					ini.SetValue("BGT", "High", Records.ThisMonth.HighBgt.Val);
+					ini.SetValue("BGT", "HTime", Records.ThisMonth.HighBgt.Ts);
 					// WBGT
-					ini.SetValue("WBGT", "High", ThisMonth.HighWbgt.Val);
-					ini.SetValue("WBGT", "HTime", ThisMonth.HighWbgt.Ts);
+					ini.SetValue("WBGT", "High", Records.ThisMonth.HighWbgt.Val);
+					ini.SetValue("WBGT", "HTime", Records.ThisMonth.HighWbgt.Ts);
 
 					ini.Flush();
 				}

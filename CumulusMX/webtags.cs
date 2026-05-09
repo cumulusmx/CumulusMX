@@ -536,7 +536,7 @@ namespace CumulusMX
 		}
 
 
-		private string GetMonthlyAlltimeValueStr(AllTimeRec rec, Dictionary<string, string> tagParams, int decimals)
+		private string GetMonthlyAlltimeValueStr(Record rec, Dictionary<string, string> tagParams, int decimals)
 		{
 			if (rec.Ts <= cumulus.defaultRecordTS)
 			{
@@ -1696,23 +1696,23 @@ namespace CumulusMX
 		private string TagTempRecordSet(Dictionary<string, string> tagParams)
 		{
 			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
-			if (station.AllTime.HighTemp.Ts >= threshold ||
-				station.AllTime.LowTemp.Ts >= threshold ||
-				station.AllTime.HighDailyTempRange.Ts >= threshold ||
-				station.AllTime.LowDailyTempRange.Ts >= threshold ||
-				station.AllTime.LowChill.Ts >= threshold ||
-				station.AllTime.HighMinTemp.Ts >= threshold ||
-				station.AllTime.LowMaxTemp.Ts >= threshold ||
-				station.AllTime.HighAppTemp.Ts >= threshold ||
-				station.AllTime.LowAppTemp.Ts >= threshold ||
-				station.AllTime.HighHeatIndex.Ts >= threshold ||
-				station.AllTime.HighDewPoint.Ts >= threshold ||
-				station.AllTime.LowDewPoint.Ts >= threshold ||
-				station.AllTime.HighFeelsLike.Ts >= threshold ||
-				station.AllTime.LowFeelsLike.Ts >= threshold ||
-				station.AllTime.HighHumidex.Ts >= threshold ||
-				station.AllTime.HighBgt.Ts >= threshold ||
-				station.AllTime.HighWbgt.Ts >= threshold
+			if (Records.AllTime.HighTemp.Ts >= threshold ||
+				Records.AllTime.LowTemp.Ts >= threshold ||
+				Records.AllTime.HighDailyTempRange.Ts >= threshold ||
+				Records.AllTime.LowDailyTempRange.Ts >= threshold ||
+				Records.AllTime.LowChill.Ts >= threshold ||
+				Records.AllTime.HighMinTemp.Ts >= threshold ||
+				Records.AllTime.LowMaxTemp.Ts >= threshold ||
+				Records.AllTime.HighAppTemp.Ts >= threshold ||
+				Records.AllTime.LowAppTemp.Ts >= threshold ||
+				Records.AllTime.HighHeatIndex.Ts >= threshold ||
+				Records.AllTime.HighDewPoint.Ts >= threshold ||
+				Records.AllTime.LowDewPoint.Ts >= threshold ||
+				Records.AllTime.HighFeelsLike.Ts >= threshold ||
+				Records.AllTime.LowFeelsLike.Ts >= threshold ||
+				Records.AllTime.HighHumidex.Ts >= threshold ||
+				Records.AllTime.HighBgt.Ts >= threshold ||
+				Records.AllTime.HighWbgt.Ts >= threshold
 			)
 				return "1";
 
@@ -1722,9 +1722,9 @@ namespace CumulusMX
 		private string TagWindRecordSet(Dictionary<string, string> tagParams)
 		{
 			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
-			if (station.AllTime.HighGust.Ts >= threshold ||
-				station.AllTime.HighWind.Ts >= threshold ||
-				station.AllTime.HighWindRun.Ts >= threshold
+			if (Records.AllTime.HighGust.Ts >= threshold ||
+				Records.AllTime.HighWind.Ts >= threshold ||
+				Records.AllTime.HighWindRun.Ts >= threshold
 			)
 				return "1";
 
@@ -1734,13 +1734,13 @@ namespace CumulusMX
 		private string TagRainRecordSet(Dictionary<string, string> tagParams)
 		{
 			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
-			if (station.AllTime.HighRainRate.Ts >= threshold ||
-				station.AllTime.DailyRain.Ts >= threshold ||
-				station.AllTime.HourlyRain.Ts >= threshold ||
-				station.AllTime.HighRain24Hours.Ts >= threshold ||
-				station.AllTime.LongestDryPeriod.Ts >= threshold ||
-				station.AllTime.LongestWetPeriod.Ts >= threshold ||
-				station.AllTime.MonthlyRain.Ts >= threshold
+			if (Records.AllTime.HighRainRate.Ts >= threshold ||
+				Records.AllTime.DailyRain.Ts >= threshold ||
+				Records.AllTime.HourlyRain.Ts >= threshold ||
+				Records.AllTime.HighRain24Hours.Ts >= threshold ||
+				Records.AllTime.LongestDryPeriod.Ts >= threshold ||
+				Records.AllTime.LongestWetPeriod.Ts >= threshold ||
+				Records.AllTime.MonthlyRain.Ts >= threshold
 			)
 				return "1";
 
@@ -1750,8 +1750,8 @@ namespace CumulusMX
 		private string TagHumidityRecordSet(Dictionary<string, string> tagParams)
 		{
 			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
-			if (station.AllTime.HighHumidity.Ts >= threshold ||
-				station.AllTime.LowHumidity.Ts >= threshold
+			if (Records.AllTime.HighHumidity.Ts >= threshold ||
+				Records.AllTime.LowHumidity.Ts >= threshold
 			)
 				return "1";
 
@@ -1761,8 +1761,8 @@ namespace CumulusMX
 		private string TagPressureRecordSet(Dictionary<string, string> tagParams)
 		{
 			var threshold = DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs);
-			if (station.AllTime.LowPress.Ts >= threshold ||
-				station.AllTime.HighPress.Ts >= threshold
+			if (Records.AllTime.LowPress.Ts >= threshold ||
+				Records.AllTime.HighPress.Ts >= threshold
 			)
 				return "1";
 
@@ -1771,157 +1771,157 @@ namespace CumulusMX
 
 		private string TagHighTempRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowTempRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LowTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.LowTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighAppTempRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighAppTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighAppTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowAppTempRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LowAppTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.LowAppTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighFeelsLikeRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighFeelsLike.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighFeelsLike.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowFeelsLikeRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LowFeelsLike.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.LowFeelsLike.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighHumidexRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighHumidex.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighHumidex.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighHeatIndexRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighHeatIndex.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighHeatIndex.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowWindChillRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LowChill.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.LowChill.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighMinTempRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighMinTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighMinTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowMaxTempRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LowMaxTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.LowMaxTemp.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighDewPointRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighDewPoint.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighDewPoint.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowDewPointRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LowDewPoint.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.LowDewPoint.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighWindGustRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighGust.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighGust.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighWindSpeedRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighWind.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighWind.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighRainRateRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighRainRate.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighRainRate.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighHourlyRainRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HourlyRain.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HourlyRain.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighDailyRainRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.DailyRain.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.DailyRain.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighRain24HourRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighRain24Hours.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighRain24Hours.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighMonthlyRainRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.MonthlyRain.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.MonthlyRain.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighHumidityRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighHumidity.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighHumidity.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighWindrunRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighWindRun.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighWindRun.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowHumidityRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LowHumidity.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.LowHumidity.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighPressureRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighPress.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighPress.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowPressureRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LowPress.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.LowPress.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLongestDryPeriodRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestDryPeriod.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.LongestDryPeriod.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLongestWetPeriodRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestWetPeriod.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.LongestWetPeriod.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighTempRangeRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighDailyTempRange.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighDailyTempRange.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagLowTempRangeRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LowDailyTempRange.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.LowDailyTempRange.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighBgtRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighBgt.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighBgt.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private string TagHighWbgtRecordSet(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighWbgt.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
+			return Records.AllTime.HighWbgt.Ts < DateTime.Now.AddHours(-cumulus.RecordSetTimeoutHrs) ? "0" : "1";
 		}
 
 		private static string TagErrorLight(Dictionary<string, string> tagParams)
@@ -2646,293 +2646,293 @@ namespace CumulusMX
 		// all time records
 		private string TagtempH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.HighTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.HighTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTtempH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagtempL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.LowTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.LowTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTtempL(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.LowTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.LowTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagapptempH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.HighAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.HighAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTapptempH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighAppTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighAppTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagapptempL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.LowAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.LowAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTapptempL(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.LowAppTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.LowAppTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagfeelslikeH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.HighFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.HighFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTfeelslikeH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighFeelsLike.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighFeelsLike.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagfeelslikeL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.LowFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.LowFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTfeelslikeL(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.LowFeelsLike.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.LowFeelsLike.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TaghumidexH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.AllTime.HighHumidex.Val, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(Records.AllTime.HighHumidex.Val, tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagThumidexH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighHumidex.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighHumidex.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagdewpointH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.HighDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.HighDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTdewpointH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighDewPoint.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighDewPoint.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagdewpointL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.LowDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.LowDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTdewpointL(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.LowDewPoint.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.LowDewPoint.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagheatindexH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.HighHeatIndex.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.HighHeatIndex.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTheatindexH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighHeatIndex.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighHeatIndex.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagBgtH(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighBgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.AllTime.HighBgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return Records.AllTime.HighBgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(Records.AllTime.HighBgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTBgtH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighBgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighBgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagWbgtH(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighWbgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.AllTime.HighWbgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return Records.AllTime.HighWbgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(Records.AllTime.HighWbgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTWbgtH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighWbgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighWbgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 
 		private string TaggustM(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindUnit(station.AllTime.HighGust.Val, tagParams), tagParams, cumulus.WindDPlaces);
+			return CheckRcDp(CheckWindUnit(Records.AllTime.HighGust.Val, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string TagTgustM(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighGust.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighGust.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagwspeedH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindUnit(station.AllTime.HighWind.Val, tagParams), tagParams, cumulus.WindAvgDPlaces);
+			return CheckRcDp(CheckWindUnit(Records.AllTime.HighWind.Val, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string TagTwspeedH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighWind.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighWind.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagwchillL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.LowChill.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.LowChill.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTwchillL(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.LowChill.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.LowChill.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagrrateM(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.AllTime.HighRainRate.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.AllTime.HighRainRate.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagTrrateM(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighRainRate.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighRainRate.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagwindrunH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindRunUnit(station.AllTime.HighWindRun.Val, tagParams), tagParams, cumulus.WindRunDPlaces);
+			return CheckRcDp(CheckWindRunUnit(Records.AllTime.HighWindRun.Val, tagParams), tagParams, cumulus.WindRunDPlaces);
 		}
 
 		private string TagTwindrunH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighWindRun.Ts, cumulus.Trans.WebTagRecDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighWindRun.Ts, cumulus.Trans.WebTagRecDate, tagParams);
 		}
 
 		private string TagrfallH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.AllTime.DailyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.AllTime.DailyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagTrfallH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.DailyRain.Ts, cumulus.Trans.WebTagRecDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.DailyRain.Ts, cumulus.Trans.WebTagRecDate, tagParams);
 		}
 
 		private string Tagr24hourH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.AllTime.HighRain24Hours.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.AllTime.HighRain24Hours.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagTr24hourH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighRain24Hours.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighRain24Hours.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : station.AllTime.LongestDryPeriod.Val.ToString("F0");
+			return Records.AllTime.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : Records.AllTime.LongestDryPeriod.Val.ToString("F0");
 		}
 
 		private string TagTLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.AllTime.LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return Records.AllTime.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(Records.AllTime.LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestWetPeriod.Val  < 0 ? tagParams.Get("nv") ?? "--" : station.AllTime.LongestWetPeriod.Val.ToString("F0");
+			return Records.AllTime.LongestWetPeriod.Val  < 0 ? tagParams.Get("nv") ?? "--" : Records.AllTime.LongestWetPeriod.Val.ToString("F0");
 		}
 
 		private string TagTLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.AllTime.LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return Records.AllTime.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(Records.AllTime.LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagLowDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnitAbs(station.AllTime.LowDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnitAbs(Records.AllTime.LowDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagHighDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnitAbs(station.AllTime.HighDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnitAbs(Records.AllTime.HighDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTLowDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.LowDailyTempRange.Ts, cumulus.Trans.WebTagRecDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.LowDailyTempRange.Ts, cumulus.Trans.WebTagRecDate, tagParams);
 		}
 
 		private string TagTHighDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighDailyTempRange.Ts, cumulus.Trans.WebTagRecDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighDailyTempRange.Ts, cumulus.Trans.WebTagRecDate, tagParams);
 		}
 
 		private string TagrfallhH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.AllTime.HourlyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.AllTime.HourlyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagTrfallhH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HourlyRain.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HourlyRain.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagrfallmH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.AllTime.MonthlyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.AllTime.MonthlyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagTrfallmH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.MonthlyRain.Ts, "MMMM yyyy", tagParams);
+			return GetFormattedDateTime(Records.AllTime.MonthlyRain.Ts, "MMMM yyyy", tagParams);
 		}
 
 		private string TagpressH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.AllTime.HighPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(Records.AllTime.HighPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagTpressH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighPress.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighPress.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagpressL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.AllTime.LowPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(Records.AllTime.LowPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagTpressL(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.LowPress.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.LowPress.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TaghumH(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.HighHumidity.Val.ToString(cumulus.HumFormat);
+			return Records.AllTime.HighHumidity.Val.ToString(cumulus.HumFormat);
 		}
 
 		private string TagThumH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighHumidity.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighHumidity.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TaghumL(Dictionary<string, string> tagParams)
 		{
-			return station.AllTime.LowHumidity.Val.ToString(cumulus.HumFormat);
+			return Records.AllTime.LowHumidity.Val.ToString(cumulus.HumFormat);
 		}
 
 		private string TagThumL(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.LowHumidity.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.LowHumidity.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string Tagrecordsbegandate(Dictionary<string, string> tagParams)
@@ -2947,22 +2947,22 @@ namespace CumulusMX
 
 		private string TagmintempH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.HighMinTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.HighMinTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTmintempH(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.HighMinTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.HighMinTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagmaxtempL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.AllTime.LowMaxTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.AllTime.LowMaxTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagTmaxtempL(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.AllTime.LowMaxTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.AllTime.LowMaxTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		// end of all-time records
@@ -2970,27 +2970,27 @@ namespace CumulusMX
 		private string TagByMonthTempH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighTemp;
+			var rec = Records.MonthlyRecs[month].HighTemp;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthTempHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthTempL(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].LowTemp;
+			var rec = Records.MonthlyRecs[month].LowTemp;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthTempLt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].LowTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].LowTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthTempAvg(Dictionary<string, string> tagParams)
@@ -3015,373 +3015,373 @@ namespace CumulusMX
 		private string TagByMonthAppTempH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighAppTemp;
+			var rec = Records.MonthlyRecs[month].HighAppTemp;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthAppTempHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighAppTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighAppTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthAppTempL(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].LowAppTemp;
+			var rec = Records.MonthlyRecs[month].LowAppTemp;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthAppTempLt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].LowAppTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].LowAppTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthFeelsLikeH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighFeelsLike;
+			var rec = Records.MonthlyRecs[month].HighFeelsLike;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthFeelsLikeHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighFeelsLike.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighFeelsLike.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthFeelsLikeL(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].LowFeelsLike;
+			var rec = Records.MonthlyRecs[month].LowFeelsLike;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthFeelsLikeLt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].LowFeelsLike.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].LowFeelsLike.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthHumidexH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].HighHumidex, tagParams, cumulus.TempDPlaces);
+			return GetMonthlyAlltimeValueStr(Records.MonthlyRecs[month].HighHumidex, tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthHumidexHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighHumidex.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighHumidex.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthDewPointH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighDewPoint;
+			var rec = Records.MonthlyRecs[month].HighDewPoint;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthDewPointHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighDewPoint.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighDewPoint.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthDewPointL(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].LowDewPoint;
+			var rec = Records.MonthlyRecs[month].LowDewPoint;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthDewPointLt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].LowDewPoint.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].LowDewPoint.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthHeatIndexH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighHeatIndex;
+			var rec = Records.MonthlyRecs[month].HighHeatIndex;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthHeatIndexHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighHeatIndex.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighHeatIndex.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthBgtH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighBgt;
+			var rec = Records.MonthlyRecs[month].HighBgt;
 			return rec.Val <= Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthBgtHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighBgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighBgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthWbgtH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighWbgt;
+			var rec = Records.MonthlyRecs[month].HighWbgt;
 			return rec.Val <= Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthWbgtHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighWbgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighWbgt.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthGustH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighGust;
+			var rec = Records.MonthlyRecs[month].HighGust;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckWindUnit(rec.Val, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string TagByMonthGustHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighGust.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighGust.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthWindH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighWind;
+			var rec = Records.MonthlyRecs[month].HighWind;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckWindUnit(rec.Val, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string TagByMonthWindHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighWind.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighWind.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthWChillL(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].LowChill;
+			var rec = Records.MonthlyRecs[month].LowChill;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthWChillLt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].LowChill.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].LowChill.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthRainRateH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighRainRate;
+			var rec = Records.MonthlyRecs[month].HighRainRate;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagByMonthRainRateHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighRainRate.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighRainRate.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthWindRunH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighWindRun;
+			var rec = Records.MonthlyRecs[month].HighWindRun;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckWindRunUnit(rec.Val, tagParams), tagParams, cumulus.WindRunDPlaces);
 		}
 
 		private string TagByMonthWindRunHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighWindRun.Ts, cumulus.Trans.WebTagRecDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighWindRun.Ts, cumulus.Trans.WebTagRecDate, tagParams);
 		}
 
 		private string TagByMonthDailyRainH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].DailyRain;
+			var rec = Records.MonthlyRecs[month].DailyRain;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagByMonthDailyRainHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].DailyRain.Ts, cumulus.Trans.WebTagRecDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].DailyRain.Ts, cumulus.Trans.WebTagRecDate, tagParams);
 		}
 
 		private string TagByMonthRain24HourH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighRain24Hours;
+			var rec = Records.MonthlyRecs[month].HighRain24Hours;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagByMonthRain24HourHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighRain24Hours.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighRain24Hours.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestDryPeriod, tagParams, 0);
+			return Records.MonthlyRecs[month].LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetMonthlyAlltimeValueStr(Records.MonthlyRecs[month].LongestDryPeriod, tagParams, 0);
 		}
 
 		private string TagByMonthLongestDryPeriodT(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return Records.MonthlyRecs[month].LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(Records.MonthlyRecs[month].LongestDryPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagByMonthLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LongestWetPeriod, tagParams, 0);
+			return Records.MonthlyRecs[month].LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetMonthlyAlltimeValueStr(Records.MonthlyRecs[month].LongestWetPeriod, tagParams, 0);
 		}
 
 		private string TagByMonthLongestWetPeriodT(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return station.MonthlyRecs[month].LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.MonthlyRecs[month].LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
+			return Records.MonthlyRecs[month].LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(Records.MonthlyRecs[month].LongestWetPeriod.Ts, cumulus.Trans.WebTagRecDryWetDate, tagParams);
 		}
 
 		private string TagByMonthLowDailyTempRange(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].LowDailyTempRange;
+			var rec = Records.MonthlyRecs[month].LowDailyTempRange;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnitAbs(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthHighDailyTempRange(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighDailyTempRange;
+			var rec = Records.MonthlyRecs[month].HighDailyTempRange;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnitAbs(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthLowDailyTempRangeT(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].LowDailyTempRange.Ts, cumulus.Trans.WebTagRecDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].LowDailyTempRange.Ts, cumulus.Trans.WebTagRecDate, tagParams);
 		}
 
 		private string TagByMonthHighDailyTempRangeT(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighDailyTempRange.Ts, cumulus.Trans.WebTagRecDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighDailyTempRange.Ts, cumulus.Trans.WebTagRecDate, tagParams);
 		}
 
 		private string TagByMonthHourlyRainH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HourlyRain;
+			var rec = Records.MonthlyRecs[month].HourlyRain;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagByMonthHourlyRainHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HourlyRain.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HourlyRain.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthMonthlyRainH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].MonthlyRain;
+			var rec = Records.MonthlyRecs[month].MonthlyRain;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckRainUnit(rec.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagByMonthMonthlyRainHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].MonthlyRain.Ts, "MMMM yyyy", tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].MonthlyRain.Ts, "MMMM yyyy", tagParams);
 		}
 
 		private string TagByMonthPressH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighPress;
+			var rec = Records.MonthlyRecs[month].HighPress;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckPressUnit(rec.Val, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagByMonthPressHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighPress.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighPress.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthPressL(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].LowPress;
+			var rec = Records.MonthlyRecs[month].LowPress;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckPressUnit(rec.Val, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagByMonthPressLt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].LowPress.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].LowPress.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthHumH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].HighHumidity, tagParams, cumulus.HumDPlaces);
+			return GetMonthlyAlltimeValueStr(Records.MonthlyRecs[month].HighHumidity, tagParams, cumulus.HumDPlaces);
 		}
 
 		private string TagByMonthHumHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighHumidity.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighHumidity.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthHumL(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetMonthlyAlltimeValueStr(station.MonthlyRecs[month].LowHumidity, tagParams, cumulus.HumDPlaces);
+			return GetMonthlyAlltimeValueStr(Records.MonthlyRecs[month].LowHumidity, tagParams, cumulus.HumDPlaces);
 		}
 
 		private string TagByMonthHumLt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].LowHumidity.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].LowHumidity.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthMinTempH(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].HighMinTemp;
+			var rec = Records.MonthlyRecs[month].HighMinTemp;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthMinTempHt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].HighMinTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].HighMinTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		private string TagByMonthMaxTempL(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			var rec = station.MonthlyRecs[month].LowMaxTemp;
+			var rec = Records.MonthlyRecs[month].LowMaxTemp;
 			return rec.Ts <= cumulus.defaultRecordTS ? tagParams.Get("nv") ?? "---" : CheckRcDp(CheckTempUnit(rec.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagByMonthMaxTempLt(Dictionary<string, string> tagParams)
 		{
 			var month = GetMonthParam(tagParams);
-			return GetFormattedDateTime(station.MonthlyRecs[month].LowMaxTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
+			return GetFormattedDateTime(Records.MonthlyRecs[month].LowMaxTemp.Ts, cumulus.Trans.WebTagRecTimeDate, tagParams);
 		}
 
 		// end of month-by-month all-time records
@@ -5798,826 +5798,826 @@ namespace CumulusMX
 		// Monthly highs and lows - values
 		private string TagMonthTempH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisMonth.HighTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisMonth.HighTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthTempL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisMonth.LowTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisMonth.LowTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthHeatIndexH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisMonth.HighHeatIndex.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisMonth.HighHeatIndex.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthBgtH(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.HighBgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.ThisMonth.HighBgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return Records.ThisMonth.HighBgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(Records.ThisMonth.HighBgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthWbgtH(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.HighWbgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.ThisMonth.HighWbgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return Records.ThisMonth.HighWbgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(Records.ThisMonth.HighWbgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthWChillL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisMonth.LowChill.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisMonth.LowChill.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthAppTempH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisMonth.HighAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisMonth.HighAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthAppTempL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisMonth.LowAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisMonth.LowAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthFeelsLikeH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisMonth.HighFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisMonth.HighFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthFeelsLikeL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisMonth.LowFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisMonth.LowFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthHumidexH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ThisMonth.HighHumidex.Val, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(Records.ThisMonth.HighHumidex.Val, tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthDewPointH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisMonth.HighDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisMonth.HighDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthDewPointL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisMonth.LowDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisMonth.LowDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagMonthMinTempH(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.HighMinTemp.Val > -999 ? CheckRcDp(CheckTempUnit(station.ThisMonth.HighMinTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
+			return Records.ThisMonth.HighMinTemp.Val > -999 ? CheckRcDp(CheckTempUnit(Records.ThisMonth.HighMinTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagMonthMaxTempL(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LowMaxTemp.Val < 999 ? CheckRcDp(CheckTempUnit(station.ThisMonth.LowMaxTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
+			return Records.ThisMonth.LowMaxTemp.Val < 999 ? CheckRcDp(CheckTempUnit(Records.ThisMonth.LowMaxTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagMonthPressH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.ThisMonth.HighPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(Records.ThisMonth.HighPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagMonthPressL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.ThisMonth.LowPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(Records.ThisMonth.LowPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagMonthHumH(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.HighHumidity.Val.ToString(cumulus.HumFormat);
+			return Records.ThisMonth.HighHumidity.Val.ToString(cumulus.HumFormat);
 		}
 
 		private string TagMonthHumL(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LowHumidity.Val.ToString(cumulus.HumFormat);
+			return Records.ThisMonth.LowHumidity.Val.ToString(cumulus.HumFormat);
 		}
 
 		private string TagMonthGustH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindUnit(station.ThisMonth.HighGust.Val, tagParams), tagParams, cumulus.WindDPlaces);
+			return CheckRcDp(CheckWindUnit(Records.ThisMonth.HighGust.Val, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string TagMonthWindH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindUnit(station.ThisMonth.HighWind.Val, tagParams), tagParams, cumulus.WindAvgDPlaces);
+			return CheckRcDp(CheckWindUnit(Records.ThisMonth.HighWind.Val, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string TagMonthWindRunH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindRunUnit(station.ThisMonth.HighWindRun.Val, tagParams), tagParams, cumulus.WindRunDPlaces);
+			return CheckRcDp(CheckWindRunUnit(Records.ThisMonth.HighWindRun.Val, tagParams), tagParams, cumulus.WindRunDPlaces);
 		}
 
 		private string TagMonthRainRateH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.ThisMonth.HighRainRate.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.ThisMonth.HighRainRate.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagMonthHourlyRainH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.ThisMonth.HourlyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.ThisMonth.HourlyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagMonthDailyRainH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.ThisMonth.DailyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.ThisMonth.DailyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagMonthRain24HourH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.ThisMonth.HighRain24Hours.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.ThisMonth.HighRain24Hours.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagMonthLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : station.ThisMonth.LongestDryPeriod.Val.ToString();
+			return Records.ThisMonth.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : Records.ThisMonth.LongestDryPeriod.Val.ToString();
 		}
 
 		private string TagMonthLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : station.ThisMonth.LongestWetPeriod.Val.ToString();
+			return Records.ThisMonth.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : Records.ThisMonth.LongestWetPeriod.Val.ToString();
 		}
 
 		private string TagMonthHighDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.HighDailyTempRange.Val > -999 ? CheckRcDp(CheckTempUnitAbs(station.ThisMonth.HighDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
+			return Records.ThisMonth.HighDailyTempRange.Val > -999 ? CheckRcDp(CheckTempUnitAbs(Records.ThisMonth.HighDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagMonthLowDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LowDailyTempRange.Val < 999 ? CheckRcDp(CheckTempUnitAbs(station.ThisMonth.LowDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
+			return Records.ThisMonth.LowDailyTempRange.Val < 999 ? CheckRcDp(CheckTempUnitAbs(Records.ThisMonth.LowDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		// Monthly highs and lows - times
 		private string TagMonthTempHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighTemp.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighTemp.Ts, "t", tagParams);
 		}
 
 		private string TagMonthTempLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowTemp.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowTemp.Ts, "t", tagParams);
 		}
 
 		private string TagMonthHeatIndexHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighHeatIndex.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighHeatIndex.Ts, "t", tagParams);
 		}
 
 		private string TagMonthBgtHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighBgt.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighBgt.Ts, "t", tagParams);
 		}
 
 		private string TagMonthWbgtHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighWbgt.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighWbgt.Ts, "t", tagParams);
 		}
 
 		private string TagMonthWChillLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowChill.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowChill.Ts, "t", tagParams);
 		}
 
 		private string TagMonthAppTempHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighAppTemp.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighAppTemp.Ts, "t", tagParams);
 		}
 
 		private string TagMonthAppTempLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowAppTemp.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowAppTemp.Ts, "t", tagParams);
 		}
 
 		private string TagMonthFeelsLikeHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighFeelsLike.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighFeelsLike.Ts, "t", tagParams);
 		}
 
 		private string TagMonthFeelsLikeLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowFeelsLike.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowFeelsLike.Ts, "t", tagParams);
 		}
 
 		private string TagMonthHumidexHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighHumidex.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighHumidex.Ts, "t", tagParams);
 		}
 
 		private string TagMonthDewPointHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighDewPoint.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighDewPoint.Ts, "t", tagParams);
 		}
 
 		private string TagMonthDewPointLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowDewPoint.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowDewPoint.Ts, "t", tagParams);
 		}
 
 		private string TagMonthPressHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighPress.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighPress.Ts, "t", tagParams);
 		}
 
 		private string TagMonthPressLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowPress.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowPress.Ts, "t", tagParams);
 		}
 
 		private string TagMonthHumHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighHumidity.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighHumidity.Ts, "t", tagParams);
 		}
 
 		private string TagMonthHumLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowHumidity.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowHumidity.Ts, "t", tagParams);
 		}
 
 		private string TagMonthGustHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighGust.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighGust.Ts, "t", tagParams);
 		}
 
 		private string TagMonthWindHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighWind.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighWind.Ts, "t", tagParams);
 		}
 
 		private string TagMonthRainRateHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighRainRate.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighRainRate.Ts, "t", tagParams);
 		}
 
 		private string TagMonthHourlyRainHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HourlyRain.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HourlyRain.Ts, "t", tagParams);
 		}
 
 		private string TagMonthRain24HourHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighRain24Hours.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighRain24Hours.Ts, "t", tagParams);
 		}
 
 		// Monthly highs and lows - dates
 		private string TagMonthTempHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighTemp.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighTemp.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthTempLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowTemp.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowTemp.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthHeatIndexHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighHeatIndex.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighHeatIndex.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthBgtHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighBgt.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighBgt.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthWbgtHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighWbgt.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighWbgt.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthWChillLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowChill.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowChill.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthAppTempHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighAppTemp.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighAppTemp.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthAppTempLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowAppTemp.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowAppTemp.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthFeelsLikeHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighFeelsLike.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighFeelsLike.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthFeelsLikeLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowFeelsLike.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowFeelsLike.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthHumidexHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighHumidex.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighHumidex.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthDewPointHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighDewPoint.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighDewPoint.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthDewPointLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowDewPoint.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowDewPoint.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthMinTempHd(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.HighMinTemp.Val > -999 ? GetFormattedDateTime(station.ThisMonth.HighMinTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
+			return Records.ThisMonth.HighMinTemp.Val > -999 ? GetFormattedDateTime(Records.ThisMonth.HighMinTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
 		}
 
 		private string TagMonthMaxTempLd(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LowMaxTemp.Val < 999 ? GetFormattedDateTime(station.ThisMonth.LowMaxTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
+			return Records.ThisMonth.LowMaxTemp.Val < 999 ? GetFormattedDateTime(Records.ThisMonth.LowMaxTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
 		}
 
 		private string TagMonthPressHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighPress.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighPress.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthPressLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowPress.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowPress.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthHumHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighHumidity.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighHumidity.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthHumLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.LowHumidity.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.LowHumidity.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthGustHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighGust.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighGust.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthWindHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighWind.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighWind.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthRainRateHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighRainRate.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighRainRate.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthHourlyRainHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HourlyRain.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HourlyRain.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthRain24HourHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighRain24Hours.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighRain24Hours.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthHighDailyTempRangeD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.HighDailyTempRange.Val < 999 ? GetFormattedDateTime(station.ThisMonth.HighDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
+			return Records.ThisMonth.HighDailyTempRange.Val < 999 ? GetFormattedDateTime(Records.ThisMonth.HighDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
 		}
 
 		private string TagMonthLowDailyTempRangeD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LowDailyTempRange.Val > -999 ? GetFormattedDateTime(station.ThisMonth.LowDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
+			return Records.ThisMonth.LowDailyTempRange.Val > -999 ? GetFormattedDateTime(Records.ThisMonth.LowDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
 		}
 
 		private string TagMonthWindRunHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.HighWindRun.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.HighWindRun.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthDailyRainHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisMonth.DailyRain.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisMonth.DailyRain.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthLongestDryPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.ThisMonth.LongestDryPeriod.Ts, "dd MMMM", tagParams);
+			return Records.ThisMonth.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(Records.ThisMonth.LongestDryPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagMonthLongestWetPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisMonth.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.ThisMonth.LongestWetPeriod.Ts, "dd MMMM", tagParams);
+			return Records.ThisMonth.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(Records.ThisMonth.LongestWetPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		// Yearly highs and lows - values
 		private string TagYearTempH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisYear.HighTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisYear.HighTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearTempL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisYear.LowTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisYear.LowTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearHeatIndexH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisYear.HighHeatIndex.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisYear.HighHeatIndex.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearBgtH(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.HighBgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.ThisYear.HighBgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return Records.ThisYear.HighBgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(Records.ThisYear.HighBgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearWbgtH(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.HighWbgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(station.ThisYear.HighWbgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return Records.ThisYear.HighWbgt.Val == Cumulus.DefaultHiVal ? tagParams.Get("nv") ?? "-" : CheckRcDp(CheckTempUnit(Records.ThisYear.HighWbgt.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearWChillL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisYear.LowChill.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisYear.LowChill.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearAppTempH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisYear.HighAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisYear.HighAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearAppTempL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisYear.LowAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisYear.LowAppTemp.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearFeelsLikeH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisYear.HighFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisYear.HighFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearFeelsLikeL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisYear.LowFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisYear.LowFeelsLike.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearHumidexH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ThisYear.HighHumidex.Val, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(Records.ThisYear.HighHumidex.Val, tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearDewPointH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisYear.HighDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisYear.HighDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearDewPointL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.ThisYear.LowDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Records.ThisYear.LowDewPoint.Val, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagYearMinTempH(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.HighMinTemp.Val > -999 ? CheckRcDp(CheckTempUnit(station.ThisYear.HighMinTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
+			return Records.ThisYear.HighMinTemp.Val > -999 ? CheckRcDp(CheckTempUnit(Records.ThisYear.HighMinTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagYearMaxTempL(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LowMaxTemp.Val < 999 ? CheckRcDp(CheckTempUnit(station.ThisYear.LowMaxTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
+			return Records.ThisYear.LowMaxTemp.Val < 999 ? CheckRcDp(CheckTempUnit(Records.ThisYear.LowMaxTemp.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagYearPressH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.ThisYear.HighPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(Records.ThisYear.HighPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagYearPressL(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckPressUnit(station.ThisYear.LowPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
+			return CheckRcDp(CheckPressUnit(Records.ThisYear.LowPress.Val, tagParams), tagParams, cumulus.PressDPlaces);
 		}
 
 		private string TagYearHumH(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.HighHumidity.Val.ToString(cumulus.HumFormat);
+			return Records.ThisYear.HighHumidity.Val.ToString(cumulus.HumFormat);
 		}
 
 		private string TagYearHumL(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LowHumidity.Val.ToString(cumulus.HumFormat);
+			return Records.ThisYear.LowHumidity.Val.ToString(cumulus.HumFormat);
 		}
 
 		private string TagYearGustH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindUnit(station.ThisYear.HighGust.Val, tagParams), tagParams, cumulus.WindDPlaces);
+			return CheckRcDp(CheckWindUnit(Records.ThisYear.HighGust.Val, tagParams), tagParams, cumulus.WindDPlaces);
 		}
 
 		private string TagYearWindH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindUnit(station.ThisYear.HighWind.Val, tagParams), tagParams, cumulus.WindAvgDPlaces);
+			return CheckRcDp(CheckWindUnit(Records.ThisYear.HighWind.Val, tagParams), tagParams, cumulus.WindAvgDPlaces);
 		}
 
 		private string TagYearWindRunH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckWindRunUnit(station.ThisYear.HighWindRun.Val, tagParams), tagParams, cumulus.WindRunDPlaces);
+			return CheckRcDp(CheckWindRunUnit(Records.ThisYear.HighWindRun.Val, tagParams), tagParams, cumulus.WindRunDPlaces);
 		}
 
 		private string TagYearRainRateH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.ThisYear.HighRainRate.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.ThisYear.HighRainRate.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagYearHourlyRainH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.ThisYear.HourlyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.ThisYear.HourlyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagYearDailyRainH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.ThisYear.DailyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.ThisYear.DailyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagYearRain24HourH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.ThisYear.HighRain24Hours.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.ThisYear.HighRain24Hours.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagYearLongestDryPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : station.ThisYear.LongestDryPeriod.Val.ToString();
+			return Records.ThisYear.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : Records.ThisYear.LongestDryPeriod.Val.ToString();
 		}
 
 		private string TagYearLongestWetPeriod(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : station.ThisYear.LongestWetPeriod.Val.ToString();
+			return Records.ThisYear.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : Records.ThisYear.LongestWetPeriod.Val.ToString();
 		}
 
 		private string TagYearHighDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.HighDailyTempRange.Val > -999 ? CheckRcDp(CheckTempUnitAbs(station.ThisYear.HighDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
+			return Records.ThisYear.HighDailyTempRange.Val > -999 ? CheckRcDp(CheckTempUnitAbs(Records.ThisYear.HighDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagYearLowDailyTempRange(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LowDailyTempRange.Val < 999 ? CheckRcDp(CheckTempUnitAbs(station.ThisYear.LowDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
+			return Records.ThisYear.LowDailyTempRange.Val < 999 ? CheckRcDp(CheckTempUnitAbs(Records.ThisYear.LowDailyTempRange.Val, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "--";
 		}
 
 		private string TagYearMonthlyRainH(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.ThisYear.MonthlyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(Records.ThisYear.MonthlyRain.Val, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		// Yearly highs and lows - times
 		private string TagYearTempHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighTemp.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighTemp.Ts, "t", tagParams);
 		}
 
 		private string TagYearTempLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowTemp.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowTemp.Ts, "t", tagParams);
 		}
 
 		private string TagYearHeatIndexHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighHeatIndex.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighHeatIndex.Ts, "t", tagParams);
 		}
 
 		private string TagYearBgtHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighBgt.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighBgt.Ts, "t", tagParams);
 		}
 
 		private string TagYearWbgtHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighWbgt.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighWbgt.Ts, "t", tagParams);
 		}
 
 		private string TagYearWChillLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowChill.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowChill.Ts, "t", tagParams);
 		}
 
 		private string TagYearAppTempHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighAppTemp.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighAppTemp.Ts, "t", tagParams);
 		}
 
 		private string TagYearAppTempLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowAppTemp.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowAppTemp.Ts, "t", tagParams);
 		}
 
 		private string TagYearFeelsLikeHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighFeelsLike.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighFeelsLike.Ts, "t", tagParams);
 		}
 
 		private string TagYearFeelsLikeLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowFeelsLike.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowFeelsLike.Ts, "t", tagParams);
 		}
 
 		private string TagYearHumidexHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighHumidex.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighHumidex.Ts, "t", tagParams);
 		}
 		private string TagYearDewPointHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighDewPoint.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighDewPoint.Ts, "t", tagParams);
 		}
 
 		private string TagYearDewPointLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowDewPoint.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowDewPoint.Ts, "t", tagParams);
 		}
 
 		private string TagYearPressHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighPress.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighPress.Ts, "t", tagParams);
 		}
 
 		private string TagYearPressLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowPress.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowPress.Ts, "t", tagParams);
 		}
 
 		private string TagYearHumHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighHumidity.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighHumidity.Ts, "t", tagParams);
 		}
 
 		private string TagYearHumLt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowHumidity.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowHumidity.Ts, "t", tagParams);
 		}
 
 		private string TagYearGustHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighGust.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighGust.Ts, "t", tagParams);
 		}
 
 		private string TagYearWindHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighWind.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighWind.Ts, "t", tagParams);
 		}
 
 		private string TagYearRainRateHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighRainRate.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighRainRate.Ts, "t", tagParams);
 		}
 
 		private string TagYearHourlyRainHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HourlyRain.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HourlyRain.Ts, "t", tagParams);
 		}
 
 		private string TagYearRain24HourHt(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighRain24Hours.Ts, "t", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighRain24Hours.Ts, "t", tagParams);
 		}
 
 		// Yearly highs and lows - dates
 		private string TagYearTempHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighTemp.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighTemp.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearTempLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowTemp.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowTemp.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearHeatIndexHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighHeatIndex.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighHeatIndex.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearWChillLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowChill.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowChill.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearAppTempHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighAppTemp.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighAppTemp.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearAppTempLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowAppTemp.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowAppTemp.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearFeelsLikeHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighFeelsLike.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighFeelsLike.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearFeelsLikeLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowFeelsLike.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowFeelsLike.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearHumidexHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighHumidex.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighHumidex.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearDewPointHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighDewPoint.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighDewPoint.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearDewPointLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowDewPoint.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowDewPoint.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearMinTempHd(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.HighMinTemp.Val > -999 ? GetFormattedDateTime(station.ThisYear.HighMinTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
+			return Records.ThisYear.HighMinTemp.Val > -999 ? GetFormattedDateTime(Records.ThisYear.HighMinTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
 		}
 
 		private string TagYearMaxTempLd(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LowMaxTemp.Val < 999 ? GetFormattedDateTime(station.ThisYear.LowMaxTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
+			return Records.ThisYear.LowMaxTemp.Val < 999 ? GetFormattedDateTime(Records.ThisYear.LowMaxTemp.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "---";
 		}
 
 		private string TagYearPressHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighPress.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighPress.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearPressLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowPress.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowPress.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearHumHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighHumidity.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighHumidity.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearHumLd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.LowHumidity.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.LowHumidity.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearGustHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighGust.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighGust.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearWindHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighWind.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighWind.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearRainRateHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighRainRate.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighRainRate.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearHourlyRainHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HourlyRain.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HourlyRain.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearRain24HourHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighRain24Hours.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighRain24Hours.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearHighDailyTempRangeD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.HighDailyTempRange.Val > -999 ? GetFormattedDateTime(station.ThisYear.HighDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
+			return Records.ThisYear.HighDailyTempRange.Val > -999 ? GetFormattedDateTime(Records.ThisYear.HighDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
 		}
 
 		private string TagYearLowDailyTempRangeD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LowDailyTempRange.Val < 999 ? GetFormattedDateTime(station.ThisYear.LowDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
+			return Records.ThisYear.LowDailyTempRange.Val < 999 ? GetFormattedDateTime(Records.ThisYear.LowDailyTempRange.Ts, "dd MMMM", tagParams) : tagParams.Get("nv") ?? "------";
 		}
 
 		private string TagYearWindRunHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.HighWindRun.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.HighWindRun.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearDailyRainHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.DailyRain.Ts, "dd MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.DailyRain.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearLongestDryPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.ThisYear.LongestDryPeriod.Ts, "dd MMMM", tagParams);
+			return Records.ThisYear.LongestDryPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(Records.ThisYear.LongestDryPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearLongestWetPeriodD(Dictionary<string, string> tagParams)
 		{
-			return station.ThisYear.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(station.ThisYear.LongestWetPeriod.Ts, "dd MMMM", tagParams);
+			return Records.ThisYear.LongestWetPeriod.Val < 0 ? tagParams.Get("nv") ?? "--" : GetFormattedDateTime(Records.ThisYear.LongestWetPeriod.Ts, "dd MMMM", tagParams);
 		}
 
 		private string TagYearMonthlyRainHd(Dictionary<string, string> tagParams)
 		{
-			return GetFormattedDateTime(station.ThisYear.MonthlyRain.Ts, "MMMM", tagParams);
+			return GetFormattedDateTime(Records.ThisYear.MonthlyRain.Ts, "MMMM", tagParams);
 		}
 
 		//------------------------------------------------------------

@@ -452,12 +452,12 @@ namespace CumulusMX.ThirdParty
 				sb.Append(ConvertUnits.UserTempToC(station.HiLoToday.HighTemp).ToFixed("F1")); // 28
 			sb.Append(sep);
 
-			sb.Append(ConvertUnits.UserTempToC(station.ThisMonth.LowTemp.Val).ToFixed("F1") + sep);  // 29
+			sb.Append(ConvertUnits.UserTempToC(Records.ThisMonth.LowTemp.Val).ToFixed("F1") + sep);  // 29
 			sb.Append(sep);                                                                                         // 30 avg temp this month
-			sb.Append(ConvertUnits.UserTempToC(station.ThisMonth.HighTemp.Val).ToFixed("F1") + sep); // 31
-			sb.Append(ConvertUnits.UserTempToC(station.ThisYear.LowTemp.Val).ToFixed("F1") + sep);   // 32
+			sb.Append(ConvertUnits.UserTempToC(Records.ThisMonth.HighTemp.Val).ToFixed("F1") + sep); // 31
+			sb.Append(ConvertUnits.UserTempToC(Records.ThisYear.LowTemp.Val).ToFixed("F1") + sep);   // 32
 			sb.Append(sep);                                                                                         // 33 avg temp this year
-			sb.Append(ConvertUnits.UserTempToC(station.ThisYear.HighTemp.Val).ToFixed("F1") + sep);  // 34
+			sb.Append(ConvertUnits.UserTempToC(Records.ThisYear.HighTemp.Val).ToFixed("F1") + sep);  // 34
 			if (station.HiLoToday.LowHumidity < Cumulus.DefaultLoVal)
 				sb.Append(station.HiLoToday.LowHumidity);                                                       // 35
 			sb.Append(sep);
@@ -467,12 +467,12 @@ namespace CumulusMX.ThirdParty
 				sb.Append(station.HiLoToday.HighHumidity);                                                  // 37
 			sb.Append(sep);
 
-			sb.Append(station.ThisMonth.LowHumidity.Val + sep);                                                 // 38
+			sb.Append(Records.ThisMonth.LowHumidity.Val + sep);                                                 // 38
 			sb.Append(sep);                                                                                     // 39 avg hum this month
-			sb.Append(station.ThisMonth.HighHumidity.Val + sep);                                                // 40
-			sb.Append(station.ThisYear.LowHumidity.Val + sep);                                                  // 41
+			sb.Append(Records.ThisMonth.HighHumidity.Val + sep);                                                // 40
+			sb.Append(Records.ThisYear.LowHumidity.Val + sep);                                                  // 41
 			sb.Append(sep);                                                                                     // 42 avg hum this year
-			sb.Append(station.ThisYear.HighHumidity.Val + sep);                                                 // 43
+			sb.Append(Records.ThisYear.HighHumidity.Val + sep);                                                 // 43
 			if (station.HiLoToday.LowPress < Cumulus.DefaultLoVal)
 				sb.Append(ConvertUnits.UserPressToMB(station.HiLoToday.LowPress).ToString("F1", InvC));     // 44
 			sb.Append(sep);
@@ -482,30 +482,30 @@ namespace CumulusMX.ThirdParty
 				sb.Append(ConvertUnits.UserPressToMB(station.HiLoToday.HighPress).ToString("F1", InvC));        // 46
 			sb.Append(sep);
 
-			sb.Append(ConvertUnits.UserPressToMB(station.ThisMonth.LowPress.Val).ToString("F1", InvC) + sep);   // 47
+			sb.Append(ConvertUnits.UserPressToMB(Records.ThisMonth.LowPress.Val).ToString("F1", InvC) + sep);   // 47
 			sb.Append(sep);                                                                                             // 48 avg press this month
-			sb.Append(ConvertUnits.UserPressToMB(station.ThisMonth.HighPress.Val).ToString("F1", InvC) + sep);  // 49
-			sb.Append(ConvertUnits.UserPressToMB(station.ThisYear.LowPress.Val).ToString("F1", InvC) + sep);    // 50
+			sb.Append(ConvertUnits.UserPressToMB(Records.ThisMonth.HighPress.Val).ToString("F1", InvC) + sep);  // 49
+			sb.Append(ConvertUnits.UserPressToMB(Records.ThisYear.LowPress.Val).ToString("F1", InvC) + sep);    // 50
 			sb.Append(sep);                                                                                             // 51 avg press this year
-			sb.Append(ConvertUnits.UserPressToMB(station.ThisYear.HighPress.Val).ToString("F1", InvC) + sep);   // 52
+			sb.Append(ConvertUnits.UserPressToMB(Records.ThisYear.HighPress.Val).ToString("F1", InvC) + sep);   // 52
 			sb.Append(sep + sep);                                                                               // 53/54 min/avg wind today
 			if (station.HiLoToday.HighWind >= Cumulus.DefaultHiVal)
 				sb.Append(ConvertUnits.UserWindToKPH(station.HiLoToday.HighWind).ToString("F1", InvC));     // 55
 			sb.Append(sep);
 
 			sb.Append(sep + sep);                                                                               // 56/57 min/avg wind this month
-			sb.Append(ConvertUnits.UserWindToKPH(station.ThisMonth.HighWind.Val).ToString("F1", InvC) + sep); // 58
+			sb.Append(ConvertUnits.UserWindToKPH(Records.ThisMonth.HighWind.Val).ToString("F1", InvC) + sep); // 58
 			sb.Append(sep + sep);                                                                               // 59/60 min/avg wind this year
-			sb.Append(ConvertUnits.UserWindToKPH(station.ThisYear.HighWind.Val).ToString("F1", InvC) + sep);    // 61
+			sb.Append(ConvertUnits.UserWindToKPH(Records.ThisYear.HighWind.Val).ToString("F1", InvC) + sep);    // 61
 			sb.Append(sep + sep);                                                                               // 62/63 min/avg gust today
 			if (station.HiLoToday.HighGust >= 0)
 				sb.Append(ConvertUnits.UserWindToKPH(station.HiLoToday.HighGust).ToString("F1", InvC) + sep); // 64
 			else
 				sb.Append(sep);
 			sb.Append(sep + sep);                                                           // 65/66 min/avg gust this month
-			sb.Append(ConvertUnits.UserWindToKPH(station.ThisMonth.HighGust.Val).ToString("F1", InvC) + sep); // 67
+			sb.Append(ConvertUnits.UserWindToKPH(Records.ThisMonth.HighGust.Val).ToString("F1", InvC) + sep); // 67
 			sb.Append(sep + sep);                                                           // 68/69 min/avg gust this year
-			sb.Append(ConvertUnits.UserWindToKPH(station.ThisYear.HighGust.Val).ToString("F1", InvC) + sep); // 70
+			sb.Append(ConvertUnits.UserWindToKPH(Records.ThisYear.HighGust.Val).ToString("F1", InvC) + sep); // 70
 			sb.Append(sep + sep + sep);                                                     // 71/72/73 avg wind bearing today/month/year
 			sb.Append(ConvertUnits.UserRainToMM(station.RainLast24Hour).ToString("F1", InvC) + sep);      // 74
 			sb.Append(ConvertUnits.UserRainToMM(station.RainMonth).ToString("F1", InvC) + sep);           // 75
@@ -516,9 +516,9 @@ namespace CumulusMX.ThirdParty
 			else
 				sb.Append(sep);
 			sb.Append(sep);                                                                 // 79 avg rain rate this month
-			sb.Append(ConvertUnits.UserRainToMM(station.ThisMonth.HighRainRate.Val).ToString("F1", InvC) + sep); // 80
+			sb.Append(ConvertUnits.UserRainToMM(Records.ThisMonth.HighRainRate.Val).ToString("F1", InvC) + sep); // 80
 			sb.Append(sep);                                                                 // 81 avg rain rate this year
-			sb.Append(ConvertUnits.UserRainToMM(station.ThisYear.HighRainRate.Val).ToString("F1", InvC) + sep); // 82
+			sb.Append(ConvertUnits.UserRainToMM(Records.ThisYear.HighRainRate.Val).ToString("F1", InvC) + sep); // 82
 			sb.Append(sep);                                                                 // 83 avg solar today
 			if (SendSolar && station.HiLoToday.HighSolar >= 0)
 				sb.Append(station.HiLoToday.HighSolar);                               // 84
