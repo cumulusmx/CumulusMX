@@ -1819,7 +1819,7 @@ namespace CumulusMX.Stations
 					}
 				}
 
-				DoWindChill(OutdoorTemperature, now);
+				DoWindChill(Current.Temperature, now);
 				DoApparentTemp(now);
 				DoFeelsLike(now);
 				DoHumidex(now);
@@ -2109,7 +2109,7 @@ namespace CumulusMX.Stations
 
 				if (loopData.THSWindex < 32000)
 				{
-					THSWIndex = ConvertUnits.TempFToUser(loopData.THSWindex);
+					Current.THSWIndex = ConvertUnits.TempFToUser(loopData.THSWindex);
 				}
 			}
 		}
@@ -2679,10 +2679,10 @@ namespace CumulusMX.Stations
 									{
 										// add in 'archivePeriod' minutes worth of temperature to the temp samples
 										tempsamplestoday += interval;
-										TempTotalToday += OutdoorTemperature * interval;
+										TempTotalToday += Current.Temperature * interval;
 
 										// update chill hours
-										if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
+										if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
 										{
 											// add 1 minute to chill hours
 											ChillHours += interval / 60.0;
@@ -2702,7 +2702,7 @@ namespace CumulusMX.Stations
 
 									AddValuesToRecentWind(avgwind, avgwind, bearing, timestamp.AddMinutes(-interval), timestamp);
 									DoWind(wind, bearing, avgwind, timestamp);
-									DoWindChill(OutdoorTemperature, timestamp);
+									DoWindChill(Current.Temperature, timestamp);
 
 									// update dominant wind bearing
 									CalculateDominantWindBearing(bearing, WindAverage, interval);
@@ -2905,8 +2905,8 @@ namespace CumulusMX.Stations
 									cumulus.LogExceptionMessage(ex, "GetArchiveData: Error in extra logging etc");
 								}
 
-								AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-									OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+								AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex,
+									Current.Humidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 
 
 								UpdateStatusPanel(timestamp.ToUniversalTime());

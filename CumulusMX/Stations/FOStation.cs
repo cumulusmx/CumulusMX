@@ -486,11 +486,11 @@ namespace CumulusMX.Stations
 						DoOutdoorTemp(ConvertUnits.TempCToUser(historydata.outTemp), timestamp);
 						// add in 'archivePeriod' minutes worth of temperature to the temp samples
 						tempsamplestoday += historydata.interval;
-						TempTotalToday += OutdoorTemperature * historydata.interval;
+						TempTotalToday += Current.Temperature * historydata.interval;
 					}
 
 					// update chill hours
-					if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
+					if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
 					{
 						// add 1 minute to chill hours
 						ChillHours += historydata.interval / 60.0;
@@ -647,8 +647,8 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+				AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex,
+					Current.Humidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
@@ -1244,7 +1244,7 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), StationPressure, ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), StationPressure, ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
 						DoPressure(slp, now);
 					}
 				}
@@ -1315,7 +1315,7 @@ namespace CumulusMX.Stations
 						DoOutdoorTemp(ConvertUnits.TempCToUser(outtemp), now);
 
 						// Use current humidity for dewpoint
-						if (OutdoorHumidity > 0)
+						if (Current.Humidity > 0)
 						{
 							// calculate dp
 							DoOutdoorDewpoint(-999, now);

@@ -106,10 +106,10 @@ namespace CumulusMX.ThirdParty
 				Data.Append("&windspeedmph=" + station.WindMPHStr(station.WindAverage));
 			if (station.RecentMaxGust >= 0)
 				Data.Append("&windgustmph=" + station.WindMPHStr(station.RecentMaxGust));
-			if (station.OutdoorHumidity >= 0)
-				Data.Append("&humidity=" + station.OutdoorHumidity);
-			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
-				Data.Append("&tempf=" + WeatherStation.TempFstr(station.OutdoorTemperature));
+			if (Current.Humidity >= 0)
+				Data.Append("&humidity=" + Current.Humidity);
+			if (Current.Temperature > Cumulus.DefaultHiVal)
+				Data.Append("&tempf=" + WeatherStation.TempFstr(Current.Temperature));
 			Data.Append("&rainin=" + WeatherStation.RainINstr(station.RainLastHour));
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight

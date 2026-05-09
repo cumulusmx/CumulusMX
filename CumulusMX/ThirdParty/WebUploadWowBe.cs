@@ -152,8 +152,8 @@ namespace CumulusMX.ThirdParty
 			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
 				bodyObj.Add("dewptf", ConvertUnits.UserTempToF(station.OutdoorDewpoint));
 
-			if (station.OutdoorHumidity >= 0)
-				bodyObj.Add("humidity", station.OutdoorHumidity);
+			if (Current.Humidity >= 0)
+				bodyObj.Add("humidity", Current.Humidity);
 
 			if (SendSoilMoisture && station.SoilMoisture[SoilMoistureSensor].HasValue && cumulus.Units.SoilMoistureUnitText[SoilMoistureSensor] == "%")
 				bodyObj.Add("soilmoisture", station.SoilMoisture[SoilMoistureSensor].Value);
@@ -164,8 +164,8 @@ namespace CumulusMX.ThirdParty
 			if (SendSolar && station.SolarRad.HasValue)
 				bodyObj.Add("solarradiation", station.SolarRad);
 
-			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
-				bodyObj.Add("tempf", ConvertUnits.UserTempToF(station.OutdoorTemperature));
+			if (Current.Temperature > Cumulus.DefaultHiVal)
+				bodyObj.Add("tempf", ConvertUnits.UserTempToF(Current.Temperature));
 
 			// send average speed and bearing
 			bodyObj.Add("winddir", station.AvgBearing);

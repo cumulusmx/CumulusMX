@@ -309,7 +309,7 @@ namespace CumulusMX.Stations
 
 								if (cumulus.StationOptions.CalculateSLP)
 								{
-									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
 									DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
 								}
 							}
@@ -732,7 +732,7 @@ namespace CumulusMX.Stations
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(OutdoorTemperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
 					DoPressure(ConvertUnits.PressMBToUser(slp), DataDateTime);
 				}
 
@@ -748,7 +748,7 @@ namespace CumulusMX.Stations
 
 				// add in archive period minutes worth of temperature to the temp samples
 				tempsamplestoday += intervalMins;
-				TempTotalToday += OutdoorTemperature * intervalMins;
+				TempTotalToday += Current.Temperature * intervalMins;
 
 				// add in 'following interval' minutes worth of wind speed to windrun
 				cumulus.LogMessage("Windrun: " + WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + intervalMins + " minutes = " +
@@ -827,8 +827,8 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(DataDateTime, false);
 				}
 
-				AddRecentDataWithAq(DataDateTime, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-					OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+				AddRecentDataWithAq(DataDateTime, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex,
+					Current.Humidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(rec.Key.UtcFromUnixTime());
 				cumulus.AddToWebServiceLists(DataDateTime);

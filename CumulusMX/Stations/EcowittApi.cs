@@ -1881,7 +1881,7 @@ namespace CumulusMX.Stations
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(station.StationPressure), ConvertUnits.UserTempToC(station.OutdoorTemperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(station.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
 
 					station.DoPressure(ConvertUnits.PressMBToUser(slp), recDateTime);
 				}
@@ -1898,7 +1898,7 @@ namespace CumulusMX.Stations
 
 				// add in archive period minutes worth of temperature to the temp samples
 				station.tempsamplestoday += 5;
-				station.TempTotalToday += station.OutdoorTemperature * 5;
+				station.TempTotalToday += Current.Temperature * 5;
 
 				// add in 'following interval' minutes worth of wind speed to windrun
 				cumulus.LogMessage("Windrun: " + station.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + rec.Value.Interval + " minutes = " +
@@ -1978,8 +1978,8 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(recDateTime, false);
 				}
 
-				station.AddRecentDataWithAq(recDateTime, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, station.OutdoorTemperature, station.WindChill, station.OutdoorDewpoint, station.HeatIndex,
-					station.OutdoorHumidity, station.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, station.IndoorTemperature, station.IndoorHumidity, station.CurrentSolarMax, station.RainRate, station.BlackGlobeTemp, station.WetBulbGlobeTemp);
+				station.AddRecentDataWithAq(recDateTime, station.WindAverage, station.RecentMaxGust, station.WindLatest, station.Bearing, station.AvgBearing, Current.Temperature, station.WindChill, station.OutdoorDewpoint, station.HeatIndex,
+					Current.Humidity, station.Pressure, station.RainToday, station.SolarRad, station.UV, station.RainCounter, station.FeelsLike, station.Humidex, station.ApparentTemperature, station.IndoorTemperature, Current.HumidityIn, station.CurrentSolarMax, station.RainRate, station.BlackGlobeTemp, station.WetBulbGlobeTemp);
 
 				station.UpdateStatusPanel(recDateTime.ToUniversalTime());
 				cumulus.AddToWebServiceLists(recDateTime);

@@ -142,8 +142,8 @@ namespace CumulusMX.ThirdParty
 			//Temperature
 			if (station.IndoorTemperature.HasValue)
 				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(station.IndoorTemperature.Value) * 10));
-			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
-				sb.Append("&temp=" + (int) Math.Round(ConvertUnits.UserTempToC(station.OutdoorTemperature) * 10));
+			if (Current.Temperature > Cumulus.DefaultHiVal)
+				sb.Append("&temp=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.Temperature) * 10));
 			if (station.WindChill > Cumulus.DefaultHiVal)
 				sb.Append("&chill=" + (int) Math.Round(ConvertUnits.UserTempToC(station.WindChill) * 10));
 			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
@@ -152,10 +152,10 @@ namespace CumulusMX.ThirdParty
 				sb.Append("&heat=" + (int) Math.Round(ConvertUnits.UserTempToC(station.HeatIndex) * 10));
 
 			// Humidity
-			if (station.IndoorHumidity.HasValue)
-				sb.Append("&humin=" + station.IndoorHumidity);
-			if (station.OutdoorHumidity >= 0)
-				sb.Append("&hum=" + station.OutdoorHumidity);
+			if (Current.HumidityIn.HasValue)
+				sb.Append("&humin=" + Current.HumidityIn);
+			if (Current.Humidity >= 0)
+				sb.Append("&hum=" + Current.Humidity);
 
 			// Wind
 			if (station.WindLatest >= 0)

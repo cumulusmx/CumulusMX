@@ -177,16 +177,16 @@ namespace CumulusMX.ThirdParty
 			var invC = new CultureInfo("");
 
 			sb.Append($"\"dt\":{timestamp.ToUnixTime()},");
-			if (station.OutdoorTemperature >= Cumulus.DefaultHiVal)
-				sb.Append($"\"temperature\":{ConvertUnits.UserTempToC(station.OutdoorTemperature).ToFixed("F1")},");
+			if (Current.Temperature >= Cumulus.DefaultHiVal)
+				sb.Append($"\"temperature\":{ConvertUnits.UserTempToC(Current.Temperature).ToFixed("F1")},");
 			sb.Append($"\"wind_deg\":{station.AvgBearing},");
 			sb.Append($"\"wind_speed\":{ConvertUnits.UserWindToMS(station.WindAverage).ToString("F1", invC)},");
 			if (station.RecentMaxGust >= 0)
 				sb.Append($"\"wind_gust\":{ConvertUnits.UserWindToMS(station.RecentMaxGust).ToString("F1", invC)},");
 			if (station.Pressure > 0)
 				sb.Append($"\"pressure\":{ConvertUnits.UserPressToHpa(station.Pressure).ToString("F1", invC)},");
-			if (station.OutdoorHumidity >= 0)
-				sb.Append($"\"humidity\":{station.OutdoorHumidity},");
+			if (Current.Humidity >= 0)
+				sb.Append($"\"humidity\":{Current.Humidity},");
 			sb.Append($"\"rain_1h\":{ConvertUnits.UserRainToMM(station.RainLastHour).ToString("F1", invC)},");
 			sb.Append($"\"rain_24h\":{ConvertUnits.UserRainToMM(station.RainLast24Hour).ToString("F1", invC)}");
 			sb.Append("}]");

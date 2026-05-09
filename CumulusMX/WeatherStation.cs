@@ -98,11 +98,6 @@ namespace CumulusMX
 
 		public List<string> LowBatteryDevices { get; set; } = [];
 
-		// Current values
-
-		public double THWIndex = 0;
-		public double THSWIndex = 0;
-
 		public double RainCounterDayStart = 0.0;
 		public double RainCounter = 0.0;
 		public bool gotraindaystart = false;
@@ -895,10 +890,6 @@ namespace CumulusMX
 
 		public DateTime CurrentDate { get; set; }
 
-		/// <summary>
-		/// Indoor relative humidity in %
-		/// </summary>
-		public int? IndoorHumidity { get; set; }
 
 		/// <summary>
 		/// Sea-level pressure
@@ -906,11 +897,6 @@ namespace CumulusMX
 		public double Pressure { get; set; } = 0;
 
 		public double StationPressure { get; set; } = 0;
-
-		/// <summary>
-		/// Outdoor temp
-		/// </summary>
-		public double OutdoorTemperature { get; set; } = 0;
 
 		/// <summary>
 		/// Outdoor dew point
@@ -921,11 +907,6 @@ namespace CumulusMX
 		/// Wind chill
 		/// </summary>
 		public double WindChill { get; set; } = 0;
-
-		/// <summary>
-		/// Outdoor relative humidity in %
-		/// </summary>
-		public int OutdoorHumidity { get; set; } = 0;
 
 		/// <summary>
 		/// Apparent temperature
@@ -1046,13 +1027,13 @@ namespace CumulusMX
 
 		public void UpdateDegreeDays(int interval)
 		{
-			if (OutdoorTemperature < cumulus.NOAAconf.HeatThreshold)
+			if (Current.Temperature < cumulus.NOAAconf.HeatThreshold)
 			{
-				HeatingDegreeDays += (cumulus.NOAAconf.HeatThreshold - OutdoorTemperature) * interval / 1440;
+				HeatingDegreeDays += (cumulus.NOAAconf.HeatThreshold - Current.Temperature) * interval / 1440;
 			}
-			if (OutdoorTemperature > cumulus.NOAAconf.CoolThreshold)
+			if (Current.Temperature > cumulus.NOAAconf.CoolThreshold)
 			{
-				CoolingDegreeDays += (OutdoorTemperature - cumulus.NOAAconf.CoolThreshold) * interval / 1440;
+				CoolingDegreeDays += (Current.Temperature - cumulus.NOAAconf.CoolThreshold) * interval / 1440;
 			}
 		}
 
@@ -1436,7 +1417,7 @@ namespace CumulusMX
 
 					CalculateDominantWindBearing(AvgBearing, WindAverage, 1);
 
-					if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
+					if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
 					{
 						// add 1 minute to chill hours
 						ChillHours += 1.0 / 60.0;
@@ -1463,12 +1444,12 @@ namespace CumulusMX
 					{
 						// update temperature average items
 						tempsamplestoday++;
-						TempTotalToday += OutdoorTemperature;
+						TempTotalToday += Current.Temperature;
 					}
 
 					DoTrendValues(now);
-					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
-						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex, Current.Humidity,
+						Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateAirQualityDb();
 
@@ -1646,8 +1627,8 @@ namespace CumulusMX
 						xapReport.Append($"WindGustsK={ConvertUnits.UserWindToKPH(RecentMaxGust):F1}\n");
 						xapReport.Append($"WindDirD={Bearing}\n");
 						xapReport.Append($"WindDirC={AvgBearing}\n");
-						xapReport.Append($"TempC={ConvertUnits.UserTempToC(OutdoorTemperature):F1}\n");
-						xapReport.Append($"TempF={ConvertUnits.UserTempToF(OutdoorTemperature):F1}\n");
+						xapReport.Append($"TempC={ConvertUnits.UserTempToC(Current.Temperature):F1}\n");
+						xapReport.Append($"TempF={ConvertUnits.UserTempToF(Current.Temperature):F1}\n");
 						xapReport.Append($"DewC={ConvertUnits.UserTempToC(OutdoorDewpoint):F1}\n");
 						xapReport.Append($"DewF={ConvertUnits.UserTempToF(OutdoorDewpoint):F1}\n");
 						xapReport.Append($"AirPressure={ConvertUnits.UserPressToMB(Pressure):F1}\n");
@@ -5804,7 +5785,7 @@ namespace CumulusMX
 
 			var mphwind = Convert.ToInt32(ConvertUnits.UserWindToMPH(WindAverage));
 			var mphgust = Convert.ToInt32(ConvertUnits.UserWindToMPH(RecentMaxGust));
-			var ftempstr = APRStemp(OutdoorTemperature);
+			var ftempstr = APRStemp(Current.Temperature);
 			var in100rainlasthour = Convert.ToInt32(ConvertUnits.UserRainToIN(RainLastHour) * 100);
 			var in100rainlast24hours = Convert.ToInt32(ConvertUnits.UserRainToIN(RainLast24Hour) * 100);
 			int in100raintoday;
@@ -5814,12 +5795,12 @@ namespace CumulusMX
 			var mb10press = Convert.ToInt32(ConvertUnits.UserPressToMB(AltimeterPressure) * 10);
 			// For 100% humidity, send zero. For zero humidity, send 1
 			int hum;
-			if (OutdoorHumidity == 0)
+			if (Current.Humidity == 0)
 				hum = 1;
-			else if (OutdoorHumidity == 100)
+			else if (Current.Humidity == 100)
 				hum = 0;
 			else
-				hum = OutdoorHumidity;
+				hum = Current.Humidity;
 
 			var data = string.Format("{0}\n{1:000}/{2:000}g{3:000}t{4}r{5:000}p{6:000}P{7:000}h{8:00}b{9:00000}", timestamp, AvgBearing, mphwind, mphgust, ftempstr, in100rainlasthour,
 				in100rainlast24hours, in100raintoday, hum, mb10press);
@@ -5899,8 +5880,8 @@ namespace CumulusMX
 			DailyHighLow.YestMidnight.LowTempTime = DailyHighLow.TodayMidnight.LowTempTime;
 			DailyHighLow.YestMidnight.HighTempTime = DailyHighLow.TodayMidnight.HighTempTime;
 
-			DailyHighLow.TodayMidnight.LowTemp = OutdoorTemperature;
-			DailyHighLow.TodayMidnight.HighTemp = OutdoorTemperature;
+			DailyHighLow.TodayMidnight.LowTemp = Current.Temperature;
+			DailyHighLow.TodayMidnight.HighTemp = Current.Temperature;
 			DailyHighLow.TodayMidnight.LowTempTime = logdate;
 			DailyHighLow.TodayMidnight.HighTempTime = logdate;
 
@@ -5914,8 +5895,8 @@ namespace CumulusMX
 			DailyHighLow.Yest9am.LowTempTime = DailyHighLow.Today9am.LowTempTime;
 			DailyHighLow.Yest9am.HighTempTime = DailyHighLow.Today9am.HighTempTime;
 
-			DailyHighLow.Today9am.LowTemp = OutdoorTemperature;
-			DailyHighLow.Today9am.HighTemp = OutdoorTemperature;
+			DailyHighLow.Today9am.LowTemp = Current.Temperature;
+			DailyHighLow.Today9am.HighTemp = Current.Temperature;
 			DailyHighLow.Today9am.LowTempTime = logdate;
 			DailyHighLow.Today9am.HighTempTime = logdate;
 
@@ -5994,15 +5975,15 @@ namespace CumulusMX
 			}
 
 			previousInHum = hum;
-			IndoorHumidity = (int) cumulus.Calib.InHum.Calibrate(hum);
+			Current.HumidityIn = (int) cumulus.Calib.InHum.Calibrate(hum);
 
-			if (IndoorHumidity < 0)
+			if (Current.HumidityIn < 0)
 			{
-				IndoorHumidity = 0;
+				Current.HumidityIn = 0;
 			}
-			if (IndoorHumidity > 100)
+			if (Current.HumidityIn > 100)
 			{
-				IndoorHumidity = 100;
+				Current.HumidityIn = 100;
 			}
 			HaveReadData = true;
 		}
@@ -6041,68 +6022,68 @@ namespace CumulusMX
 
 			if (humpar >= 98 && cumulus.StationOptions.Humidity98Fix)
 			{
-				OutdoorHumidity = 100;
+				Current.Humidity = 100;
 			}
 			else
 			{
-				OutdoorHumidity = (int) cumulus.Calib.Hum.Calibrate(humpar);
+				Current.Humidity = (int) cumulus.Calib.Hum.Calibrate(humpar);
 			}
 
-			if (OutdoorHumidity < 0)
+			if (Current.Humidity < 0)
 			{
-				OutdoorHumidity = 0;
+				Current.Humidity = 0;
 			}
-			if (OutdoorHumidity > 100)
+			if (Current.Humidity > 100)
 			{
-				OutdoorHumidity = 100;
+				Current.Humidity = 100;
 			}
 
-			if (OutdoorHumidity > DailyHighLow.Today.HighHumidity)
+			if (Current.Humidity > DailyHighLow.Today.HighHumidity)
 			{
-				DailyHighLow.Today.HighHumidity = OutdoorHumidity;
+				DailyHighLow.Today.HighHumidity = Current.Humidity;
 				DailyHighLow.Today.HighHumidityTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
-			if (OutdoorHumidity < DailyHighLow.Today.LowHumidity)
+			if (Current.Humidity < DailyHighLow.Today.LowHumidity)
 			{
-				DailyHighLow.Today.LowHumidity = OutdoorHumidity;
+				DailyHighLow.Today.LowHumidity = Current.Humidity;
 				DailyHighLow.Today.LowHumidityTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
-			if (OutdoorHumidity > Records.ThisMonth.HighHumidity.Val)
+			if (Current.Humidity > Records.ThisMonth.HighHumidity.Val)
 			{
-				Records.ThisMonth.HighHumidity.Val = OutdoorHumidity;
+				Records.ThisMonth.HighHumidity.Val = Current.Humidity;
 				Records.ThisMonth.HighHumidity.Ts = timestamp;
 				WriteMonthIniFile();
 			}
-			if (OutdoorHumidity < Records.ThisMonth.LowHumidity.Val)
+			if (Current.Humidity < Records.ThisMonth.LowHumidity.Val)
 			{
-				Records.ThisMonth.LowHumidity.Val = OutdoorHumidity;
+				Records.ThisMonth.LowHumidity.Val = Current.Humidity;
 				Records.ThisMonth.LowHumidity.Ts = timestamp;
 				WriteMonthIniFile();
 			}
-			if (OutdoorHumidity > Records.ThisYear.HighHumidity.Val)
+			if (Current.Humidity > Records.ThisYear.HighHumidity.Val)
 			{
-				Records.ThisYear.HighHumidity.Val = OutdoorHumidity;
+				Records.ThisYear.HighHumidity.Val = Current.Humidity;
 				Records.ThisYear.HighHumidity.Ts = timestamp;
 				WriteYearIniFile();
 			}
-			if (OutdoorHumidity < Records.ThisYear.LowHumidity.Val)
+			if (Current.Humidity < Records.ThisYear.LowHumidity.Val)
 			{
-				Records.ThisYear.LowHumidity.Val = OutdoorHumidity;
+				Records.ThisYear.LowHumidity.Val = Current.Humidity;
 				Records.ThisYear.LowHumidity.Ts = timestamp;
 				WriteYearIniFile();
 			}
-			if (OutdoorHumidity > Records.AllTime.HighHumidity.Val)
+			if (Current.Humidity > Records.AllTime.HighHumidity.Val)
 			{
-				SetAlltime(Records.AllTime.HighHumidity, OutdoorHumidity, timestamp);
+				SetAlltime(Records.AllTime.HighHumidity, Current.Humidity, timestamp);
 			}
-			CheckMonthlyAlltime("HighHumidity", OutdoorHumidity, true, timestamp);
-			if (OutdoorHumidity < Records.AllTime.LowHumidity.Val)
+			CheckMonthlyAlltime("HighHumidity", Current.Humidity, true, timestamp);
+			if (Current.Humidity < Records.AllTime.LowHumidity.Val)
 			{
-				SetAlltime(Records.AllTime.LowHumidity, OutdoorHumidity, timestamp);
+				SetAlltime(Records.AllTime.LowHumidity, Current.Humidity, timestamp);
 			}
-			CheckMonthlyAlltime("LowHumidity", OutdoorHumidity, false, timestamp);
+			CheckMonthlyAlltime("LowHumidity", Current.Humidity, false, timestamp);
 			HaveReadData = true;
 		}
 
@@ -6141,64 +6122,64 @@ namespace CumulusMX
 			previousTemp = temp;
 
 			// update global temp
-			OutdoorTemperature = cumulus.Calib.Temp.Calibrate(temp);
+			Current.Temperature = cumulus.Calib.Temp.Calibrate(temp);
 
 			first_temp = false;
 
 			// Does this reading set any records or trigger any alarms?
-			if (OutdoorTemperature > Records.AllTime.HighTemp.Val)
-				SetAlltime(Records.AllTime.HighTemp, OutdoorTemperature, timestamp);
+			if (Current.Temperature > Records.AllTime.HighTemp.Val)
+				SetAlltime(Records.AllTime.HighTemp, Current.Temperature, timestamp);
 
-			cumulus.HighTempAlarm.CheckAlarm(OutdoorTemperature);
+			cumulus.HighTempAlarm.CheckAlarm(Current.Temperature);
 
-			if (OutdoorTemperature < Records.AllTime.LowTemp.Val)
-				SetAlltime(Records.AllTime.LowTemp, OutdoorTemperature, timestamp);
+			if (Current.Temperature < Records.AllTime.LowTemp.Val)
+				SetAlltime(Records.AllTime.LowTemp, Current.Temperature, timestamp);
 
-			cumulus.LowTempAlarm.CheckAlarm(OutdoorTemperature);
+			cumulus.LowTempAlarm.CheckAlarm(Current.Temperature);
 
-			CheckMonthlyAlltime("HighTemp", OutdoorTemperature, true, timestamp);
-			CheckMonthlyAlltime("LowTemp", OutdoorTemperature, false, timestamp);
+			CheckMonthlyAlltime("HighTemp", Current.Temperature, true, timestamp);
+			CheckMonthlyAlltime("LowTemp", Current.Temperature, false, timestamp);
 
 			var writeToday = false;
 
-			if (OutdoorTemperature > DailyHighLow.Today.HighTemp)
+			if (Current.Temperature > DailyHighLow.Today.HighTemp)
 			{
-				DailyHighLow.Today.HighTemp = OutdoorTemperature;
+				DailyHighLow.Today.HighTemp = Current.Temperature;
 				DailyHighLow.Today.HighTempTime = timestamp;
 				writeToday = true;
 			}
 
-			if (OutdoorTemperature < DailyHighLow.Today.LowTemp)
+			if (Current.Temperature < DailyHighLow.Today.LowTemp)
 			{
-				DailyHighLow.Today.LowTemp = OutdoorTemperature;
+				DailyHighLow.Today.LowTemp = Current.Temperature;
 				DailyHighLow.Today.LowTempTime = timestamp;
 				writeToday = true;
 			}
 
-			if (OutdoorTemperature > DailyHighLow.TodayMidnight.HighTemp)
+			if (Current.Temperature > DailyHighLow.TodayMidnight.HighTemp)
 			{
-				DailyHighLow.TodayMidnight.HighTemp = OutdoorTemperature;
+				DailyHighLow.TodayMidnight.HighTemp = Current.Temperature;
 				DailyHighLow.TodayMidnight.HighTempTime = timestamp;
 				writeToday = true;
 			}
 
-			if (OutdoorTemperature < DailyHighLow.TodayMidnight.LowTemp)
+			if (Current.Temperature < DailyHighLow.TodayMidnight.LowTemp)
 			{
-				DailyHighLow.TodayMidnight.LowTemp = OutdoorTemperature;
+				DailyHighLow.TodayMidnight.LowTemp = Current.Temperature;
 				DailyHighLow.TodayMidnight.LowTempTime = timestamp;
 				writeToday = true;
 			}
 
-			if (OutdoorTemperature > DailyHighLow.Today9am.HighTemp)
+			if (Current.Temperature > DailyHighLow.Today9am.HighTemp)
 			{
-				DailyHighLow.Today9am.HighTemp = OutdoorTemperature;
+				DailyHighLow.Today9am.HighTemp = Current.Temperature;
 				DailyHighLow.Today9am.HighTempTime = timestamp;
 				writeToday = true;
 			}
 
-			if (OutdoorTemperature < DailyHighLow.Today9am.LowTemp)
+			if (Current.Temperature < DailyHighLow.Today9am.LowTemp)
 			{
-				DailyHighLow.Today9am.LowTemp = OutdoorTemperature;
+				DailyHighLow.Today9am.LowTemp = Current.Temperature;
 				DailyHighLow.Today9am.LowTempTime = timestamp;
 				writeToday = true;
 			}
@@ -6208,30 +6189,30 @@ namespace CumulusMX
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (OutdoorTemperature >Records.ThisMonth.HighTemp.Val)
+			if (Current.Temperature >Records.ThisMonth.HighTemp.Val)
 			{
-				Records.ThisMonth.HighTemp.Val = OutdoorTemperature;
+				Records.ThisMonth.HighTemp.Val = Current.Temperature;
 				Records.ThisMonth.HighTemp.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (OutdoorTemperature < Records.ThisMonth.LowTemp.Val)
+			if (Current.Temperature < Records.ThisMonth.LowTemp.Val)
 			{
-				Records.ThisMonth.LowTemp.Val = OutdoorTemperature;
+				Records.ThisMonth.LowTemp.Val = Current.Temperature;
 				Records.ThisMonth.LowTemp.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (OutdoorTemperature > Records.ThisYear.HighTemp.Val)
+			if (Current.Temperature > Records.ThisYear.HighTemp.Val)
 			{
-				Records.ThisYear.HighTemp.Val = OutdoorTemperature;
+				Records.ThisYear.HighTemp.Val = Current.Temperature;
 				Records.ThisYear.HighTemp.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (OutdoorTemperature < Records.ThisYear.LowTemp.Val)
+			if (Current.Temperature < Records.ThisYear.LowTemp.Val)
 			{
-				Records.ThisYear.LowTemp.Val = OutdoorTemperature;
+				Records.ThisYear.LowTemp.Val = Current.Temperature;
 				Records.ThisYear.LowTemp.Ts = timestamp;
 				WriteYearIniFile();
 			}
@@ -6239,11 +6220,11 @@ namespace CumulusMX
 			// Calculate temperature range
 			DailyHighLow.Today.TempRange = DailyHighLow.Today.HighTemp - DailyHighLow.Today.LowTemp;
 
-			if ((cumulus.StationOptions.CalculatedDP || cumulus.DavisStation) && OutdoorHumidity != 0 && !cumulus.FineOffsetStation)
+			if ((cumulus.StationOptions.CalculatedDP || cumulus.DavisStation) && Current.Humidity != 0 && !cumulus.FineOffsetStation)
 			{
 				// Calculate DewPoint.
-				var tempinC = ConvertUnits.UserTempToC(OutdoorTemperature);
-				OutdoorDewpoint = ConvertUnits.TempCToUser(MeteoLib.DewPoint(tempinC, OutdoorHumidity));
+				var tempinC = ConvertUnits.UserTempToC(Current.Temperature);
+				OutdoorDewpoint = ConvertUnits.TempCToUser(MeteoLib.DewPoint(tempinC, Current.Humidity));
 
 				CheckForDewpointHighLow(timestamp);
 			}
@@ -6255,15 +6236,15 @@ namespace CumulusMX
 
 		public void DoCloudBaseHeatIndex(DateTime timestamp)
 		{
-			var tempinF = ConvertUnits.UserTempToF(OutdoorTemperature);
-			var tempinC = ConvertUnits.UserTempToC(OutdoorTemperature);
+			var tempinF = ConvertUnits.UserTempToF(Current.Temperature);
+			var tempinC = ConvertUnits.UserTempToC(Current.Temperature);
 
 			// Calculate cloud base
 			CloudBase = (int) Math.Floor((tempinF - ConvertUnits.UserTempToF(OutdoorDewpoint)) / 4.4 * 1000 / (cumulus.CloudBaseInFeet ? 1 : 3.2808399));
 			if (CloudBase < 0)
 				CloudBase = 0;
 
-			HeatIndex = ConvertUnits.TempCToUser(MeteoLib.HeatIndex(tempinC, OutdoorHumidity));
+			HeatIndex = ConvertUnits.TempCToUser(MeteoLib.HeatIndex(tempinC, Current.Humidity));
 
 			if (HeatIndex > DailyHighLow.Today.HighHeatIndex)
 			{
@@ -6299,7 +6280,7 @@ namespace CumulusMX
 			}
 			catch
 			{
-				WetBulb = OutdoorTemperature;
+				WetBulb = Current.Temperature;
 			}
 		}
 
@@ -6308,11 +6289,11 @@ namespace CumulusMX
 			// Calculates Apparent Temperature
 			// See http://www.bom.gov.au/info/thermal_stress/#atapproximation
 
-			ApparentTemperature = ConvertUnits.TempCToUser(MeteoLib.ApparentTemperature(ConvertUnits.UserTempToC(OutdoorTemperature), ConvertUnits.UserWindToMS(WindAverage), OutdoorHumidity));
+			ApparentTemperature = ConvertUnits.TempCToUser(MeteoLib.ApparentTemperature(ConvertUnits.UserTempToC(Current.Temperature), ConvertUnits.UserWindToMS(WindAverage), Current.Humidity));
 
 
 			// we will tag on the THW Index here
-			THWIndex = ConvertUnits.TempCToUser(MeteoLib.THWIndex(ConvertUnits.UserTempToC(OutdoorTemperature), OutdoorHumidity, ConvertUnits.UserWindToKPH(WindAverage)));
+			Current.THWIndex = ConvertUnits.TempCToUser(MeteoLib.THWIndex(ConvertUnits.UserTempToC(Current.Temperature), Current.Humidity, ConvertUnits.UserWindToKPH(WindAverage)));
 
 			if (ApparentTemperature > DailyHighLow.Today.HighAppTemp)
 			{
@@ -6375,7 +6356,7 @@ namespace CumulusMX
 				// don"t try to calculate wind chill if we haven"t yet had wind and temp readings
 				if (TempReadyToPlot && WindReadyToPlot)
 				{
-					var TempinC = ConvertUnits.UserTempToC(OutdoorTemperature);
+					var TempinC = ConvertUnits.UserTempToC(Current.Temperature);
 					var windinKPH = ConvertUnits.UserWindToKPH(WindAverage);
 					// no wind chill below 1.5 m/s = 5.4 km
 					if (windinKPH >= 5.4)
@@ -6384,7 +6365,7 @@ namespace CumulusMX
 					}
 					else
 					{
-						WindChill = OutdoorTemperature;
+						WindChill = Current.Temperature;
 					}
 				}
 				else
@@ -6432,7 +6413,7 @@ namespace CumulusMX
 
 		public void DoFeelsLike(DateTime timestamp)
 		{
-			FeelsLike = ConvertUnits.TempCToUser(MeteoLib.FeelsLike(ConvertUnits.UserTempToC(OutdoorTemperature), ConvertUnits.UserWindToKPH(WindAverage), OutdoorHumidity));
+			FeelsLike = ConvertUnits.TempCToUser(MeteoLib.FeelsLike(ConvertUnits.UserTempToC(Current.Temperature), ConvertUnits.UserWindToKPH(WindAverage), Current.Humidity));
 
 			if (FeelsLike > DailyHighLow.Today.HighFeelsLike)
 			{
@@ -6488,7 +6469,7 @@ namespace CumulusMX
 
 		public void DoHumidex(DateTime timestamp)
 		{
-			Humidex = MeteoLib.Humidex(ConvertUnits.UserTempToC(OutdoorTemperature), OutdoorHumidity);
+			Humidex = MeteoLib.Humidex(ConvertUnits.UserTempToC(Current.Temperature), Current.Humidity);
 
 			if (Humidex > DailyHighLow.Today.HighHumidex)
 			{
@@ -7079,7 +7060,7 @@ namespace CumulusMX
 
 			if (cumulus.StationOptions.CalculatedDP || dp < -500)
 			{
-				dp = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(OutdoorTemperature), OutdoorHumidity));
+				dp = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(Current.Temperature), Current.Humidity));
 
 			}
 
@@ -7703,7 +7684,7 @@ namespace CumulusMX
 			WetBulb = cumulus.Calib.WetBulb.Calibrate(WetBulb);
 
 			// calculate RH
-			var TempDry = ConvertUnits.UserTempToC(OutdoorTemperature);
+			var TempDry = ConvertUnits.UserTempToC(Current.Temperature);
 			var Es = MeteoLib.SaturationVapourPressure1980(TempDry);
 			var Ew = MeteoLib.SaturationVapourPressure1980(temp);
 			var E = Ew - 0.00066 * (1 + 0.00115 * temp) * (TempDry - temp) * 1013;
@@ -8196,8 +8177,8 @@ namespace CumulusMX
 
 					Records.ThisMonth.HighGust.Val = calibratedgust;
 					Records.ThisMonth.HighWind.Val = WindAverage;
-					Records.ThisMonth.HighTemp.Val = OutdoorTemperature;
-					Records.ThisMonth.LowTemp.Val = OutdoorTemperature;
+					Records.ThisMonth.HighTemp.Val = Current.Temperature;
+					Records.ThisMonth.LowTemp.Val = Current.Temperature;
 					Records.ThisMonth.HighAppTemp.Val = ApparentTemperature;
 					Records.ThisMonth.LowAppTemp.Val = ApparentTemperature;
 					Records.ThisMonth.HighFeelsLike.Val = FeelsLike;
@@ -8209,8 +8190,8 @@ namespace CumulusMX
 					Records.ThisMonth.HourlyRain.Val = RainLastHour;
 					Records.ThisMonth.HighRain24Hours.Val = RainLast24Hour;
 					Records.ThisMonth.DailyRain.Val = Cumulus.DefaultHiVal;
-					Records.ThisMonth.HighHumidity.Val = OutdoorHumidity;
-					Records.ThisMonth.LowHumidity.Val = OutdoorHumidity;
+					Records.ThisMonth.HighHumidity.Val = Current.Humidity;
+					Records.ThisMonth.LowHumidity.Val = Current.Humidity;
 					Records.ThisMonth.HighHeatIndex.Val = HeatIndex;
 					Records.ThisMonth.LowChill.Val = WindChill;
 					Records.ThisMonth.HighMinTemp.Val = Cumulus.DefaultHiVal;
@@ -8269,8 +8250,8 @@ namespace CumulusMX
 
 					Records.ThisYear.HighGust.Val = calibratedgust;
 					Records.ThisYear.HighWind.Val = WindAverage;
-					Records.ThisYear.HighTemp.Val = OutdoorTemperature;
-					Records.ThisYear.LowTemp.Val = OutdoorTemperature;
+					Records.ThisYear.HighTemp.Val = Current.Temperature;
+					Records.ThisYear.LowTemp.Val = Current.Temperature;
 					Records.ThisYear.HighAppTemp.Val = ApparentTemperature;
 					Records.ThisYear.LowAppTemp.Val = ApparentTemperature;
 					Records.ThisYear.HighFeelsLike.Val = FeelsLike;
@@ -8283,8 +8264,8 @@ namespace CumulusMX
 					Records.ThisYear.HighRain24Hours.Val = RainLast24Hour;
 					Records.ThisYear.DailyRain.Val = Cumulus.DefaultHiVal;
 					Records.ThisYear.MonthlyRain.Val = Cumulus.DefaultHiVal;
-					Records.ThisYear.HighHumidity.Val = OutdoorHumidity;
-					Records.ThisYear.LowHumidity.Val = OutdoorHumidity;
+					Records.ThisYear.HighHumidity.Val = Current.Humidity;
+					Records.ThisYear.LowHumidity.Val = Current.Humidity;
 					Records.ThisYear.HighHeatIndex.Val = HeatIndex;
 					Records.ThisYear.LowChill.Val = WindChill;
 					Records.ThisYear.HighMinTemp.Val = Cumulus.DefaultHiVal;
@@ -8388,7 +8369,7 @@ namespace CumulusMX
 
 				RainToday = 0;
 
-				TempTotalToday = OutdoorTemperature;
+				TempTotalToday = Current.Temperature;
 				tempsamplestoday = 1;
 
 				// Copy today"s high wind settings to yesterday
@@ -8410,14 +8391,14 @@ namespace CumulusMX
 				DailyHighLow.Yest.HighTemp = DailyHighLow.Today.HighTemp;
 				DailyHighLow.Yest.HighTempTime = DailyHighLow.Today.HighTempTime;
 				// Reset today"s high temp settings
-				DailyHighLow.Today.HighTemp = OutdoorTemperature;
+				DailyHighLow.Today.HighTemp = Current.Temperature;
 				DailyHighLow.Today.HighTempTime = timestamp;
 
 				// Copy today"s low temp settings to yesterday
 				DailyHighLow.Yest.LowTemp = DailyHighLow.Today.LowTemp;
 				DailyHighLow.Yest.LowTempTime = DailyHighLow.Today.LowTempTime;
 				// Reset today"s low temp settings
-				DailyHighLow.Today.LowTemp = OutdoorTemperature;
+				DailyHighLow.Today.LowTemp = Current.Temperature;
 				DailyHighLow.Today.LowTempTime = timestamp;
 
 				DailyHighLow.Yest.TempRange = DailyHighLow.Today.TempRange;
@@ -8478,12 +8459,12 @@ namespace CumulusMX
 				// Humidity
 				DailyHighLow.Yest.LowHumidity = DailyHighLow.Today.LowHumidity;
 				DailyHighLow.Yest.LowHumidityTime = DailyHighLow.Today.LowHumidityTime;
-				DailyHighLow.Today.LowHumidity = OutdoorHumidity;
+				DailyHighLow.Today.LowHumidity = Current.Humidity;
 				DailyHighLow.Today.LowHumidityTime = timestamp;
 
 				DailyHighLow.Yest.HighHumidity = DailyHighLow.Today.HighHumidity;
 				DailyHighLow.Yest.HighHumidityTime = DailyHighLow.Today.HighHumidityTime;
-				DailyHighLow.Today.HighHumidity = OutdoorHumidity;
+				DailyHighLow.Today.HighHumidity = Current.Humidity;
 				DailyHighLow.Today.HighHumidityTime = timestamp;
 
 				// heat index
@@ -9258,7 +9239,7 @@ namespace CumulusMX
 					if (TempReadyToPlot)
 					{
 						// calculate and display the temp trend
-						temptrendval = (OutdoorTemperature - retVals[0].OutsideTemp) / 3.0F;
+						temptrendval = (Current.Temperature - retVals[0].OutsideTemp) / 3.0F;
 						cumulus.TempChangeAlarm.CheckAlarm(temptrendval);
 					}
 
@@ -9289,7 +9270,7 @@ namespace CumulusMX
 				else
 				{
 					// Calculate Temperature change in the last hour
-					TempChangeLastHour = OutdoorTemperature - retVals[0].OutsideTemp;
+					TempChangeLastHour = Current.Temperature - retVals[0].OutsideTemp;
 
 
 					// calculate and display rainfall in last hour
@@ -11114,8 +11095,8 @@ namespace CumulusMX
 			Data.Append("&winddir=" + AvgBearing);
 			Data.Append("&windspeedmph=" + WindMPHStr(WindAverage));
 			Data.Append("&windgustmph=" + WindMPHStr(RecentMaxGust));
-			Data.Append("&humidity=" + OutdoorHumidity);
-			Data.Append("&tempf=" + TempFstr(OutdoorTemperature));
+			Data.Append("&humidity=" + Current.Humidity);
+			Data.Append("&tempf=" + TempFstr(Current.Temperature));
 			Data.Append("&rainin=" + RainINstr(RainLastHour));
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
@@ -11158,8 +11139,8 @@ namespace CumulusMX
 			Data.Append("&winddir=" + AvgBearing);
 			Data.Append("&windspeedmph=" + WindMPHStr(WindAverage));
 			Data.Append("&windgustmph=" + WindMPHStr(RecentMaxGust));
-			Data.Append("&humidity=" + OutdoorHumidity);
-			Data.Append("&tempf=" + TempFstr(OutdoorTemperature));
+			Data.Append("&humidity=" + Humidity);
+			Data.Append("&tempf=" + TempFstr(Current.Temperature));
 			Data.Append("&rainin=" + RainINstr(RainLastHour));
 			Data.Append("&dailyrainin=");
 			if (cumulus.RolloverHour == 0)
@@ -14957,7 +14938,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			}
 
 
-			var data = new DataStruct(cumulus, OutdoorTemperature, OutdoorHumidity, TempTotalToday / tempsamplestoday, IndoorTemperature, OutdoorDewpoint, WindChill, IndoorHumidity,
+			var data = new DataStruct(cumulus, Current.Temperature, Current.Humidity, TempTotalToday / tempsamplestoday, IndoorTemperature, OutdoorDewpoint, WindChill, Current.HumidityIn,
 				Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainWeek, RainMonth, RainYear, RainRate,
 				RainLastHour, HeatIndex, Humidex, ApparentTemperature, temptrendval, presstrendval, DailyHighLow.Today.HighGust, DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighWind,
 				DailyHighLow.Today.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), DailyHighLow.Today.HighTemp, DailyHighLow.Today.LowTemp,
@@ -15074,8 +15055,8 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 
 			if (sensor == 0)
 			{
-				hum = OutdoorHumidity;
-				tempC = ConvertUnits.UserTempToC(OutdoorTemperature);
+				hum = Current.Humidity;
+				tempC = ConvertUnits.UserTempToC(Current.Temperature);
 			}
 			else if (sensor <= 8 && ExtraHum[sensor].HasValue && ExtraTemp[sensor].HasValue)
 			{

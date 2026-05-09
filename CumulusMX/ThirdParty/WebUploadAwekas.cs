@@ -288,8 +288,8 @@ namespace CumulusMX.ThirdParty
 				if (station.IndoorTemperature.HasValue)
 					sb.Append("indoortemp=" + ConvertUnits.UserTempToC(station.IndoorTemperature.Value).ToFixed("F1"));
 
-				if (station.IndoorHumidity.HasValue)
-					sb.Append("&indoorhumidity=" + station.IndoorHumidity);
+				if (Current.HumidityIn.HasValue)
+					sb.Append("&indoorhumidity=" + Current.HumidityIn);
 				started = true;
 			}
 
@@ -383,12 +383,12 @@ namespace CumulusMX.ThirdParty
 			sb.Append(ID + sep);                                                                              // 1
 			sb.Append(pwstring + sep);                                                                        // 2
 			sb.Append(timestamp.ToString("dd'.'MM'.'yyyy';'HH':'mm") + sep);                                  // 3 + 4
-			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
-				sb.Append(ConvertUnits.UserTempToC(station.OutdoorTemperature).ToFixed("F1") + sep);   // 5
+			if (Current.Temperature > Cumulus.DefaultHiVal)
+				sb.Append(ConvertUnits.UserTempToC(Current.Temperature).ToFixed("F1") + sep);   // 5
 			else
 				sb.Append(sep);
-			if (station.OutdoorHumidity >= 0)
-				sb.Append(station.OutdoorHumidity + sep);                                                     // 6
+			if (Current.Humidity >= 0)
+				sb.Append(Current.Humidity + sep);                                                     // 6
 			else
 				sb.Append(sep);
 			if (station.Pressure > 0)

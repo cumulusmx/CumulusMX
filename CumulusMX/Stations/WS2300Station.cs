@@ -316,9 +316,9 @@ namespace CumulusMX.Stations
 					DoOutdoorTemp(historydata.outTemp, timestamp);
 
 					tempsamplestoday += historydata.interval;
-					TempTotalToday += OutdoorTemperature * historydata.interval;
+					TempTotalToday += Current.Temperature * historydata.interval;
 
-					if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
+					if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
 					// add 1 minute to chill hours
 					{
 						ChillHours += historydata.interval / 60.0;
@@ -356,8 +356,8 @@ namespace CumulusMX.Stations
 				// Dewpoint ====================================================================
 				if (cumulus.StationOptions.CalculatedDP)
 				{
-					var tempC = ConvertUnits.UserTempToC(OutdoorTemperature);
-					DoOutdoorDewpoint(ConvertUnits.TempCToUser(MeteoLib.DewPoint(tempC, OutdoorHumidity)), timestamp);
+					var tempC = ConvertUnits.UserTempToC(Current.Temperature);
+					DoOutdoorDewpoint(ConvertUnits.TempCToUser(MeteoLib.DewPoint(tempC, Current.Humidity)), timestamp);
 					CheckForDewpointHighLow(timestamp);
 				}
 				else
@@ -426,7 +426,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, rainrate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+				AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex, Current.Humidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, Current.HumidityIn, CurrentSolarMax, rainrate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
 

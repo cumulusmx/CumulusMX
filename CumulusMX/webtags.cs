@@ -905,7 +905,7 @@ namespace CumulusMX
 
 		private string Tagtemp(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.OutdoorTemperature, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Current.Temperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagtemprange(Dictionary<string, string> tagParams)
@@ -983,7 +983,7 @@ namespace CumulusMX
 
 		private string Taghum(Dictionary<string, string> tagParams)
 		{
-			return station.OutdoorHumidity.ToString();
+			return Current.Humidity.ToString();
 		}
 
 		private string Taghumidex(Dictionary<string, string> tagParams)
@@ -1175,7 +1175,7 @@ namespace CumulusMX
 
 		private string Taginhum(Dictionary<string, string> tagParams)
 		{
-			return station.IndoorHumidity.HasValue ? station.IndoorHumidity.ToString() : tagParams.Get("nv") ?? "-";
+			return Current.HumidityIn.HasValue ? Current.HumidityIn.ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string Tagintemp(Dictionary<string, string> tagParams)
@@ -4381,12 +4381,12 @@ namespace CumulusMX
 
 		private string TagThwIndex(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.THWIndex, tagParams), tagParams, 1);
+			return CheckRcDp(CheckTempUnit(Current.THWIndex, tagParams), tagParams, 1);
 		}
 
 		private string TagThswIndex(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.THSWIndex, tagParams), tagParams, 1);
+			return CheckRcDp(CheckTempUnit(Current.THSWIndex, tagParams), tagParams, 1);
 		}
 
 		private string TagChillHours(Dictionary<string, string> tagParams)
@@ -4447,7 +4447,7 @@ namespace CumulusMX
 
 		private string TagIsFreezing(Dictionary<string, string> tagParams)
 		{
-			return ConvertUnits.UserTempToC(station.OutdoorTemperature) < 0.09 ? "1" : "0";
+			return ConvertUnits.UserTempToC(Current.Temperature) < 0.09 ? "1" : "0";
 		}
 
 		private string TagIsRaining(Dictionary<string, string> tagParams)
@@ -6865,7 +6865,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select OutsideTemp from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.OutdoorTemperature, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : Current.Temperature, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentWindSpeed(Dictionary<string, string> tagParams)
@@ -6973,7 +6973,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidity from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return result.HasValue ? result.Value.ToString() : station.OutdoorHumidity.ToString();
+			return result.HasValue ? result.Value.ToString() : Current.Humidity.ToString();
 		}
 
 		private string TagRecentPressure(Dictionary<string, string> tagParams)
@@ -7096,7 +7096,7 @@ namespace CumulusMX
 			}
 			else
 			{
-				indoorHumidityValue = station.IndoorHumidity.HasValue ? station.IndoorHumidity.ToString() : tagParams.Get("nv") ?? "-";
+				indoorHumidityValue = Current.HumidityIn.HasValue ? Current.HumidityIn.ToString() : tagParams.Get("nv") ?? "-";
 			}
 
 			return indoorHumidityValue;

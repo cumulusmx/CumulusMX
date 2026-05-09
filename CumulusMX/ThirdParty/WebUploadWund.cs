@@ -203,10 +203,10 @@ namespace CumulusMX.ThirdParty
 				Data.Append($"&windspdmph_avg2m={station.WindMPHStr(station.WindAverage)}");
 				Data.Append($"&winddir_avg2m={station.AvgBearing}");
 			}
-			if (station.OutdoorHumidity >= 0)
-				Data.Append($"&humidity={station.OutdoorHumidity}");
-			if (station.OutdoorTemperature >= Cumulus.DefaultHiVal)
-				Data.Append($"&tempf={WeatherStation.TempFstr(station.OutdoorTemperature)}");
+			if (Current.Humidity >= 0)
+				Data.Append($"&humidity={Current.Humidity}");
+			if (Current.Temperature >= Cumulus.DefaultHiVal)
+				Data.Append($"&tempf={WeatherStation.TempFstr(Current.Temperature)}");
 			Data.Append($"&rainin={WeatherStation.RainINstr(station.RainLastHour)}");
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
@@ -223,8 +223,8 @@ namespace CumulusMX.ThirdParty
 			{
 				if (station.IndoorTemperature.HasValue)
 					Data.Append($"&indoortempf={WeatherStation.TempFstr(station.IndoorTemperature.Value)}");
-				if (station.IndoorHumidity.HasValue)
-					Data.Append($"&indoorhumidity={station.IndoorHumidity}");
+				if (Current.HumidityIn.HasValue)
+					Data.Append($"&indoorhumidity={Current.HumidityIn}");
 			}
 			// Davis soil and leaf sensors
 			if (SendSoilTemp1 && station.SoilTemp[1].HasValue)

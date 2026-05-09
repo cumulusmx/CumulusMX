@@ -1501,10 +1501,10 @@ namespace CumulusMX.Stations
 
 						// add in 'archivePeriod' minutes worth of temperature to the temp samples
 						tempsamplestoday += interval;
-						TempTotalToday += OutdoorTemperature * interval;
+						TempTotalToday += Current.Temperature * interval;
 
 						// update chill hours
-						if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
+						if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
 						{
 							// add 1 minute to chill hours
 							ChillHours += interval / 60.0;
@@ -1632,8 +1632,8 @@ namespace CumulusMX.Stations
 				_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 			}
 
-			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex, OutdoorHumidity,
-							Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+			AddRecentDataEntry(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex, Current.Humidity,
+							Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
 			UpdateStatusPanel(timestamp.ToUniversalTime());
 			// Add current data to the lists of web service updates to be done
 			cumulus.AddToWebServiceLists(timestamp);

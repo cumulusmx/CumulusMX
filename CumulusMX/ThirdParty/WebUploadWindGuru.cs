@@ -164,10 +164,10 @@ namespace CumulusMX.ThirdParty
 			URL.Append("&wind_max=" + ConvertUnits.UserWindToKnots(maxwind).ToString("F1", InvC));
 			URL.Append("&wind_min=" + ConvertUnits.UserWindToKnots(minwind).ToString("F1", InvC));
 			URL.Append("&wind_direction=" + station.AvgBearing);
-			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
-				URL.Append("&temperature=" + ConvertUnits.UserTempToC(station.OutdoorTemperature).ToString("F1", InvC));
-			if (station.OutdoorHumidity >= 0)
-				URL.Append("&rh=" + station.OutdoorHumidity);
+			if (Current.Temperature > Cumulus.DefaultHiVal)
+				URL.Append("&temperature=" + ConvertUnits.UserTempToC(Current.Temperature).ToString("F1", InvC));
+			if (Current.Humidity >= 0)
+				URL.Append("&rh=" + Current.Humidity);
 			if (station.Pressure > 0)
 				URL.Append("&mslp=" + ConvertUnits.UserPressToHpa(station.Pressure).ToString("F1", InvC));
 			if (cumulus.WindGuru.SendRain)

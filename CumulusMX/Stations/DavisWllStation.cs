@@ -746,7 +746,7 @@ namespace CumulusMX.Stations
 
 									if (data1.thsw_index.HasValue)
 									{
-										THSWIndex = ConvertUnits.TempFToUser(data1.thsw_index.Value);
+										Current.THSWIndex = ConvertUnits.TempFToUser(data1.thsw_index.Value);
 									}
 
 									//TODO: Wet Bulb? rec["wet_bulb"] - No, we already have humidity
@@ -1288,7 +1288,7 @@ namespace CumulusMX.Stations
 				// Now we have the primary data, calculate the derived data
 				if (cumulus.StationOptions.CalculatedWC)
 				{
-					DoWindChill(OutdoorTemperature, dateTime);
+					DoWindChill(Current.Temperature, dateTime);
 				}
 
 				DoApparentTemp(dateTime);
@@ -1785,7 +1785,7 @@ namespace CumulusMX.Stations
 					if (cumulus.StationOptions.CalculatedWC)
 					{
 						// DoWindChill does all the required checks and conversions
-						DoWindChill(OutdoorTemperature, timestamp);
+						DoWindChill(Current.Temperature, timestamp);
 					}
 
 					DoApparentTemp(timestamp);
@@ -1861,8 +1861,8 @@ namespace CumulusMX.Stations
 						_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 					}
 
-					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, OutdoorTemperature, WindChill, OutdoorDewpoint, HeatIndex,
-						OutdoorHumidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, IndoorHumidity, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+					AddRecentDataWithAq(timestamp, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, WindChill, OutdoorDewpoint, HeatIndex,
+						Current.Humidity, Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, ApparentTemperature, IndoorTemperature, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateStatusPanel(timestamp.ToUniversalTime());
 					cumulus.AddToWebServiceLists(timestamp);
@@ -2014,7 +2014,7 @@ namespace CumulusMX.Stations
 										}
 
 										// update chill hours
-										if (OutdoorTemperature < cumulus.ChillHourThreshold && OutdoorTemperature > cumulus.ChillHourBase)
+										if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
 										{
 											// add interval minutes to chill hours - arch_int in seconds
 											ChillHours += (data11.arch_int / 3600.0);

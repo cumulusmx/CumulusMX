@@ -56,8 +56,8 @@ namespace CumulusMX.ThirdParty
 					if (station.RecentMaxGust >= 0)
 						message.Append($"g{APRSwind(station.RecentMaxGust)}");
 					// temp F tnnn
-					if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
-						message.Append($"t{APRStemp(station.OutdoorTemperature)}");
+					if (Current.Temperature > Cumulus.DefaultHiVal)
+						message.Append($"t{APRStemp(Current.Temperature)}");
 					// rain last hour 0.01 inches rnnn
 					message.Append($"r{APRSrain(station.RainLastHour)}");
 					// rain last 24 hours 0.01 inches pnnn
@@ -66,10 +66,10 @@ namespace CumulusMX.ThirdParty
 					// use today"s rain for safety
 					// 0900 day, use midnight calculation
 					message.Append(APRSrain(cumulus.RolloverHour == 0 ? station.RainToday : station.RainSinceMidnight));
-					if ((!cumulus.APRS.HumidityCutoff) || (ConvertUnits.UserTempToC(station.OutdoorTemperature) >= -10) && station.OutdoorHumidity >= 0)
+					if ((!cumulus.APRS.HumidityCutoff) || (ConvertUnits.UserTempToC(Current.Temperature) >= -10) && Current.Humidity >= 0)
 					{
 						// humidity Hnn
-						message.Append($"h{APRShum(station.OutdoorHumidity)}");
+						message.Append($"h{APRShum(Current.Humidity)}");
 					}
 					// bar 0.1mb Bnnnnn
 					if (station.AltimeterPressure >= 0)

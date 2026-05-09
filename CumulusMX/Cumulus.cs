@@ -4976,8 +4976,8 @@ namespace CumulusMX
 					StringBuilder values = new StringBuilder(MonthlyTable.StartOfInsert, 600);
 					values.Append(" Values('");
 					values.Append(timestamp.ToString("yyyy-MM-dd HH:mm", inv) + "'");
-					values.Append(sep + station.OutdoorTemperature.ToFixed(TempFormat));
-					values.Append(sep + station.OutdoorHumidity.ToString());
+					values.Append(sep + Current.Temperature.ToFixed(TempFormat));
+					values.Append(sep + Current.Humidity.ToString());
 					values.Append(sep + station.OutdoorDewpoint.ToFixed(TempFormat));
 					values.Append(sep + station.WindAverage.ToString(WindAvgFormat, inv));
 					values.Append(sep + station.RecentMaxGust.ToString(WindFormat, inv));
@@ -4987,7 +4987,7 @@ namespace CumulusMX
 					values.Append(sep + station.Pressure.ToString(PressFormat, inv));
 					values.Append(sep + station.RainCounter.ToString(RainFormat, inv));
 					values.Append(sep + station.IndoorTemperature.ToFixed(TempFormat, "NULL"));
-					values.Append(sep + station.IndoorHumidity.ToText("NULL"));
+					values.Append(sep + Current.HumidityIn.ToText("NULL"));
 					values.Append(sep + station.WindLatest.ToString(WindFormat, inv));
 					values.Append(sep + station.WindChill.ToFixed(TempFormat));
 					values.Append(sep + station.HeatIndex.ToFixed(TempFormat));
@@ -8101,8 +8101,8 @@ namespace CumulusMX
 				var sb = new StringBuilder();
 
 				sb.Append(timestamp.ToString("dd/MM/yy HH:mm:ss "));                          // 1, 2
-				sb.Append(station.OutdoorTemperature.ToFixed(TempFormat) + ' ');              // 3
-				sb.Append(station.OutdoorHumidity.ToString() + ' ');                          // 4
+				sb.Append(Current.Temperature.ToFixed(TempFormat) + ' ');              // 3
+				sb.Append(Current.Humidity.ToString() + ' ');                          // 4
 				sb.Append(station.OutdoorDewpoint.ToFixed(TempFormat) + ' ');                 // 5
 				sb.Append(station.WindAverage.ToString(WindAvgFormat, InvC) + ' ');           // 6
 				sb.Append(station.WindLatest.ToString(WindFormat, InvC) + ' ');               // 7
@@ -8122,7 +8122,7 @@ namespace CumulusMX
 				sb.Append(station.RainYear.ToString(RainFormat, InvC) + ' ');                 // 21
 				sb.Append(station.RainYesterday.ToString(RainFormat, InvC) + ' ');            // 22
 				sb.Append((station.IndoorTemperature ?? 0).ToFixed(TempFormat) + ' ');        // 23
-				sb.Append((station.IndoorHumidity ?? 0).ToString() + ' ');                    // 24
+				sb.Append((Current.HumidityIn ?? 0).ToString() + ' ');                    // 24
 				sb.Append(station.WindChill.ToFixed(TempFormat) + ' ');                       // 25
 				sb.Append(station.temptrendval.ToFixed(TempTrendFormat) + ' ');               // 26
 				sb.Append(DailyHighLow.Today.HighTemp.ToFixed(TempFormat) + ' ');              // 27
@@ -8188,8 +8188,8 @@ namespace CumulusMX
 			StringBuilder values = new StringBuilder(RealtimeTable.StartOfInsert, 1024);
 			values.Append(" Values(");
 			values.Append(timestamp.ToString("\\'yyyy-MM-dd HH:mm:ss\\'", InvC));
-			values.Append(sep + station.OutdoorTemperature.ToFixed(TempFormat));
-			values.Append(sep + station.OutdoorHumidity.ToString());
+			values.Append(sep + Current.Temperature.ToFixed(TempFormat));
+			values.Append(sep + Current.Humidity.ToString());
 			values.Append(sep + station.OutdoorDewpoint.ToFixed(TempFormat));
 			values.Append(sep + station.WindAverage.ToString(WindAvgFormat, InvC));
 			values.Append(sep + station.WindLatest.ToString(WindFormat, InvC));
@@ -8209,7 +8209,7 @@ namespace CumulusMX
 			values.Append(sep + station.RainYear.ToString(RainFormat, InvC));
 			values.Append(sep + station.RainYesterday.ToString(RainFormat, InvC));
 			values.Append(sep + station.IndoorTemperature.ToFixed(TempFormat, "NULL"));
-			values.Append(sep + station.IndoorHumidity.ToText("NULL"));
+			values.Append(sep + Current.HumidityIn.ToText("NULL"));
 			values.Append(sep + station.WindChill.ToFixed(TempFormat));
 			values.Append(sep + "'" + station.temptrendval.ToFixed(TempTrendFormat) + "'");
 			values.Append(sep + DailyHighLow.Today.HighTemp.ToFixed(TempFormat));

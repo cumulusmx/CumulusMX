@@ -198,8 +198,8 @@ namespace CumulusMX.ThirdParty
 
 			URL.Append("&winddir=" + station.AvgBearing);
 
-			if (station.OutdoorHumidity >= 0)
-				URL.Append("&rh=" + station.OutdoorHumidity);
+			if (Current.Humidity >= 0)
+				URL.Append("&rh=" + Current.Humidity);
 
 			if (station.OutdoorDewpoint > Cumulus.DefaultHiVal)
 				URL.Append("&dewpoint=" + WeatherStation.TempCstr(station.OutdoorDewpoint));
@@ -215,8 +215,8 @@ namespace CumulusMX.ThirdParty
 
 			URL.Append("&precip=" + WeatherStation.RainMMstr(station.RainLastHour));
 
-			if (station.OutdoorTemperature > Cumulus.DefaultHiVal)
-				URL.Append("&temp=" + WeatherStation.TempCstr(station.OutdoorTemperature));
+			if (Current.Temperature > Cumulus.DefaultHiVal)
+				URL.Append("&temp=" + WeatherStation.TempCstr(Current.Temperature));
 
 			URL.Append("&softwaretype=CumulusMX+v" + cumulus.Version);
 			URL.Append("&stationtype=" + System.Web.HttpUtility.UrlEncode(cumulus.StationModel.Length > 95 ? cumulus.StationModel[..95] : cumulus.StationModel));

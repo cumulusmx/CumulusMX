@@ -106,7 +106,7 @@ namespace CumulusMX.LogFiles
 			{
 				DateTimeStr = st[0];
 				UnixTimestamp = Convert.ToInt64(st[1]);
-				OutdoorTemperature = Convert.ToDouble(st[2], inv);
+				Current.Temperature = Convert.ToDouble(st[2], inv);
 				OutdoorHumidity = Convert.ToInt32(Convert.ToDouble(st[3], inv));
 				OutdoorDewpoint = Convert.ToDouble(st[4], inv);
 				WindAverage = Convert.ToDouble(st[5], inv);
@@ -181,7 +181,7 @@ namespace CumulusMX.LogFiles
 			return string.Join(",",
 				DateTimeStr,
 				UnixTimestamp.ToString(inv),
-				OutdoorTemperature.ToFixed("F1"),
+				Current.Temperature.ToFixed("F1"),
 				OutdoorHumidity.ToFixed("F1"),
 				OutdoorDewpoint.ToFixed("F1"),
 				WindAverage.ToFixed("F1"),
@@ -219,8 +219,8 @@ namespace CumulusMX.LogFiles
 			return string.Join(",",
 				timestamp.ToString("dd/MM/yy HH:mm", inv),
 				timestamp.ToUnixTime(),
-				station.OutdoorTemperature.ToFixed(cumulus.TempFormat),
-				station.OutdoorHumidity,
+				Current.Temperature.ToFixed(cumulus.TempFormat),
+				Current.Humidity,
 				station.OutdoorDewpoint.ToFixed(cumulus.TempFormat),
 				station.WindAverage.ToString(cumulus.WindAvgFormat, inv),
 				station.RecentMaxGust.ToString(cumulus.WindAvgFormat, inv),
@@ -230,7 +230,7 @@ namespace CumulusMX.LogFiles
 				station.Pressure.ToString(cumulus.PressFormat, inv),
 				station.RainCounter.ToString(cumulus.RainFormat, inv),
 				station.IndoorTemperature.ToFixed(cumulus.TempFormat),
-				station.IndoorHumidity.ToText(),
+				Current.HumidityIn.ToText(),
 				station.WindLatest.ToString(cumulus.WindFormat, inv),
 				station.WindChill.ToString(cumulus.TempFormat, inv),
 				station.HeatIndex.ToFixed(cumulus.TempFormat),
