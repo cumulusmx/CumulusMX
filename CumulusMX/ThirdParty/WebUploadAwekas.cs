@@ -400,7 +400,7 @@ namespace CumulusMX.ThirdParty
 				sb.Append(ConvertUnits.UserWindToKPH(Current.WindAverage).ToString("F1", InvC) + sep);        // 9
 			else
 				sb.Append(sep);
-			sb.Append(station.AvgBearing + sep);                                                              // 10
+			sb.Append(Current.AvgBearing + sep);                                                              // 10
 			sb.Append(sep + sep + sep);                                                                       // 11/12/13 - condition and warning, snow height
 			sb.Append(Lang + sep);                                                                            // 14
 			sb.Append(presstrend + sep);                                                                      // 15

@@ -188,12 +188,12 @@ namespace CumulusMX.ThirdParty
 			if (SendAverage && Current.WindAverage >= 0)
 			{
 				// send average speed and bearing
-				Data.Append($"&winddir={station.AvgBearing}&windspeedmph={station.WindMPHStr(Current.WindAverage)}");
+				Data.Append($"&winddir={Current.AvgBearing}&windspeedmph={station.WindMPHStr(Current.WindAverage)}");
 			}
 			else if (Current.WindLatest >= 0)
 			{
 				// send "instantaneous" speed (i.e. latest) and bearing
-				Data.Append($"&winddir={station.Bearing}&windspeedmph={station.WindMPHStr(Current.WindLatest)}");
+				Data.Append($"&winddir={Current.Bearing}&windspeedmph={station.WindMPHStr(Current.WindLatest)}");
 			}
 			if (Current.RecentMaxGust >= 0)
 				Data.Append($"&windgustmph={station.WindMPHStr(Current.RecentMaxGust)}");
@@ -201,7 +201,7 @@ namespace CumulusMX.ThirdParty
 			if (Current.WindAverage >= 0)
 			{
 				Data.Append($"&windspdmph_avg2m={station.WindMPHStr(Current.WindAverage)}");
-				Data.Append($"&winddir_avg2m={station.AvgBearing}");
+				Data.Append($"&winddir_avg2m={Current.AvgBearing}");
 			}
 			if (Current.Humidity >= 0)
 				Data.Append($"&humidity={Current.Humidity}");

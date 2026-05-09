@@ -196,7 +196,7 @@ namespace CumulusMX.ThirdParty
 			if (Current.RecentMaxGust >= 0)
 				URL.Append("&gust=" + station.WindMSStr(Current.RecentMaxGust));
 
-			URL.Append("&winddir=" + station.AvgBearing);
+			URL.Append("&winddir=" + Current.AvgBearing);
 
 			if (Current.Humidity >= 0)
 				URL.Append("&rh=" + Current.Humidity);

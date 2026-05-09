@@ -179,7 +179,7 @@ namespace CumulusMX.ThirdParty
 			sb.Append($"\"dt\":{timestamp.ToUnixTime()},");
 			if (Current.Temperature >= Cumulus.DefaultHiVal)
 				sb.Append($"\"temperature\":{ConvertUnits.UserTempToC(Current.Temperature).ToFixed("F1")},");
-			sb.Append($"\"wind_deg\":{station.AvgBearing},");
+			sb.Append($"\"wind_deg\":{Current.AvgBearing},");
 			sb.Append($"\"wind_speed\":{ConvertUnits.UserWindToMS(Current.WindAverage).ToString("F1", invC)},");
 			if (Current.RecentMaxGust >= 0)
 				sb.Append($"\"wind_gust\":{ConvertUnits.UserWindToMS(Current.RecentMaxGust).ToString("F1", invC)},");

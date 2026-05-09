@@ -578,12 +578,12 @@ namespace CumulusMX
 
 		private string Tagcurrentwdir(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(station.Bearing);
+			return station.CompassPoint(Current.Bearing);
 		}
 
 		private string Tagwdir(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(station.AvgBearing);
+			return station.CompassPoint(Current.AvgBearing);
 		}
 
 		private string Tagwgust(Dictionary<string, string> tagParams)
@@ -1024,12 +1024,12 @@ namespace CumulusMX
 
 		private string Tagbearing(Dictionary<string, string> tagParams)
 		{
-			return station.Bearing.ToString();
+			return Current.Bearing.ToString();
 		}
 
 		private string Tagavgbearing(Dictionary<string, string> tagParams)
 		{
-			return station.AvgBearing.ToString();
+			return Current.AvgBearing.ToString();
 		}
 
 		private string TagBearingRangeFrom(Dictionary<string, string> tagParams)
@@ -6901,7 +6901,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return result.HasValue ? result.ToString() : station.Bearing.ToString();
+			return result.HasValue ? result.ToString() : Current.Bearing.ToString();
 		}
 
 		private string TagRecentWindAvgDir(Dictionary<string, string> tagParams)
@@ -6910,7 +6910,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<int?>("select WindAvgDir from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return result.HasValue ? result.ToString() : station.AvgBearing.ToString();
+			return result.HasValue ? result.ToString() : Current.AvgBearing.ToString();
 		}
 
 		private string TagRecentWindChill(Dictionary<string, string> tagParams)

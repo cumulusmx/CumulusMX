@@ -130,7 +130,7 @@ namespace CumulusMX.ThirdParty
 			StringBuilder Data = new StringBuilder(1024);
 
 			// send average speed and bearing
-			Data.Append("&winddir=" + station.AvgBearing);
+			Data.Append("&winddir=" + Current.AvgBearing);
 			if (Current.WindAverage >= 0)
 				Data.Append("&windspeedmph=" + station.WindMPHStr(Current.WindAverage));
 			if (Current.RecentMaxGust >= 0)

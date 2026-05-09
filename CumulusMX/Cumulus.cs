@@ -4981,7 +4981,7 @@ namespace CumulusMX
 					values.Append(sep + Current.Dewpoint.ToFixed(TempFormat));
 					values.Append(sep + Current.WindAverage.ToString(WindAvgFormat, inv));
 					values.Append(sep + Current.RecentMaxGust.ToString(WindFormat, inv));
-					values.Append(sep + station.AvgBearing.ToString());
+					values.Append(sep + Current.AvgBearing.ToString());
 					values.Append(sep + station.RainRate.ToString(RainFormat, inv));
 					values.Append(sep + station.RainToday.ToString(RainFormat, inv));
 					values.Append(sep + Current.Pressure.ToString(PressFormat, inv));
@@ -4998,11 +4998,11 @@ namespace CumulusMX
 					values.Append(sep + Current.ApparentTemperature.ToFixed(TempFormat));
 					values.Append(sep + station.CurrentSolarMax.ToString());
 					values.Append(sep + station.SunshineHours.ToString(SunFormat, inv));
-					values.Append(sep + station.Bearing.ToString());
+					values.Append(sep + Current.Bearing.ToString());
 					values.Append(sep + station.RG11RainToday.ToString(RainFormat, inv));
 					values.Append(sep + station.RainSinceMidnight.ToFixed(RainFormat));
-					values.Append(sep + "'" + station.CompassPoint(station.AvgBearing) + "'");
-					values.Append(sep + "'" + station.CompassPoint(station.Bearing) + "'");
+					values.Append(sep + "'" + station.CompassPoint(Current.AvgBearing) + "'");
+					values.Append(sep + "'" + station.CompassPoint(Current.Bearing) + "'");
 					values.Append(sep + Current.FeelsLike.ToFixed(TempFormat));
 					values.Append(sep + Current.Humidex.ToFixed(TempFormat));
 					values.Append(sep + station.BlackGlobeTemp.ToFixed(TempFormat, "NULL"));
@@ -8106,11 +8106,11 @@ namespace CumulusMX
 				sb.Append(Current.Dewpoint.ToFixed(TempFormat) + ' ');                 // 5
 				sb.Append(Current.WindAverage.ToString(WindAvgFormat, InvC) + ' ');           // 6
 				sb.Append(Current.WindLatest.ToString(WindFormat, InvC) + ' ');               // 7
-				sb.Append(station.Bearing.ToString() + ' ');                                  // 8
+				sb.Append(Current.Bearing.ToString() + ' ');                                  // 8
 				sb.Append(station.RainRate.ToString(RainFormat, InvC) + ' ');                 // 9
 				sb.Append(station.RainToday.ToString(RainFormat, InvC) + ' ');                // 10
 				sb.Append(Current.Pressure.ToString(PressFormat, InvC) + ' ');                // 11
-				sb.Append(station.CompassPoint(station.Bearing) + ' ');                       // 12
+				sb.Append(station.CompassPoint(Current.Bearing) + ' ');                       // 12
 				sb.Append(Beaufort(Current.WindAverage) + ' ');                               // 13
 				sb.Append(Units.WindText + ' ');                                              // 14
 				sb.Append(Units.TempText[1].ToString() + ' ');                                // 15
@@ -8145,12 +8145,12 @@ namespace CumulusMX
 				sb.Append((station.UV ?? 0).ToString(UVFormat, InvC) + ' ');                  // 44
 				sb.Append(station.ET.ToString(ETFormat, InvC) + ' ');                         // 45
 				sb.Append((station.SolarRad ?? 0).ToString() + ' ');                          // 46
-				sb.Append(station.AvgBearing.ToString() + ' ');                               // 47
+				sb.Append(Current.AvgBearing.ToString() + ' ');                               // 47
 				sb.Append(station.RainLastHour.ToString(RainFormat, InvC) + ' ');             // 48
 				sb.Append(station.Forecastnumber.ToString() + ' ');                           // 49
 				sb.Append(IsDaylight() ? "1 " : "0 ");                                        // 50
 				sb.Append(station.SensorContactLost ? "1 " : "0 ");                           // 51
-				sb.Append(station.CompassPoint(station.AvgBearing) + ' ');                    // 52
+				sb.Append(station.CompassPoint(Current.AvgBearing) + ' ');                    // 52
 				sb.Append(station.CloudBase.ToString() + ' ');                                // 53
 				sb.Append(CloudBaseInFeet ? "ft " : "m ");                                    // 54
 				sb.Append(Current.ApparentTemperature.ToFixed(TempFormat) + ' ');             // 55
@@ -8193,11 +8193,11 @@ namespace CumulusMX
 			values.Append(sep + Current.Dewpoint.ToFixed(TempFormat));
 			values.Append(sep + Current.WindAverage.ToString(WindAvgFormat, InvC));
 			values.Append(sep + Current.WindLatest.ToString(WindFormat, InvC));
-			values.Append(sep + station.Bearing.ToString());
+			values.Append(sep + Current.Bearing.ToString());
 			values.Append(sep + station.RainRate.ToString(RainFormat, InvC));
 			values.Append(sep + station.RainToday.ToString(RainFormat, InvC));
 			values.Append(sep + Current.Pressure.ToString(PressFormat, InvC) );
-			values.Append(sep + "'" + station.CompassPoint(station.Bearing) + "'");
+			values.Append(sep + "'" + station.CompassPoint(Current.Bearing) + "'");
 			values.Append(sep + Beaufort(Current.WindAverage));
 			values.Append(sep + "'" + Units.WindText + "'");
 			values.Append(sep + "'" + Units.TempText[1].ToString() + "'");
@@ -8232,12 +8232,12 @@ namespace CumulusMX
 			values.Append(sep + station.UV.ToFixed(UVFormat, "NULL"));
 			values.Append(sep + station.ET.ToString(ETFormat, InvC));
 			values.Append(sep + station.SolarRad.ToText("NULL"));
-			values.Append(sep + station.AvgBearing.ToString());
+			values.Append(sep + Current.AvgBearing.ToString());
 			values.Append(sep + station.RainLastHour.ToString(RainFormat, InvC));
 			values.Append(sep + station.Forecastnumber.ToString());
 			values.Append(sep + (IsDaylight() ? "'1'" : "'0'"));
 			values.Append(sep + (station.SensorContactLost ? "'1'" : "'0'"));
-			values.Append(sep + "'" + station.CompassPoint(station.AvgBearing) + "'");
+			values.Append(sep + "'" + station.CompassPoint(Current.AvgBearing) + "'");
 			values.Append(sep + (station.CloudBase).ToString() );
 			values.Append(sep + (CloudBaseInFeet ? "'ft'" : "'m'") );
 			values.Append(sep + Current.ApparentTemperature.ToFixed(TempFormat));

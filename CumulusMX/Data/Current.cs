@@ -88,5 +88,26 @@ namespace CumulusMX
 		/// </summary>
 		public static double RecentMaxGust { get; set; } = 0;
 
+		/// <summary>
+		/// Wind direction in degrees
+		/// </summary>
+		public static int Bearing { get; set; } = 0;
+
+
+		/// <summary>
+		/// Wind direction as compass points
+		/// </summary>
+		public static string BearingText { get; set; } = "---";
+
+		/// <summary>
+		/// Wind direction in degrees
+		/// </summary>
+		public static int AvgBearing { get; set; } = 0;
+
+		/// <summary>
+		/// Wind direction as compass points
+		/// </summary>
+		public static string AvgBearingText { get; set; } = "---";
+
 	}
 }
