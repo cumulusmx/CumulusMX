@@ -148,8 +148,8 @@ namespace CumulusMX.ThirdParty
 				sb.Append("&chill=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.WindChill) * 10));
 			if (Current.Dewpoint > Cumulus.DefaultHiVal)
 				sb.Append("&dew=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.Dewpoint) * 10));
-			if (station.HeatIndex > Cumulus.DefaultHiVal)
-				sb.Append("&heat=" + (int) Math.Round(ConvertUnits.UserTempToC(station.HeatIndex) * 10));
+			if (Current.HeatIndex > Cumulus.DefaultHiVal)
+				sb.Append("&heat=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.HeatIndex) * 10));
 
 			// Humidity
 			if (Current.HumidityIn.HasValue)

@@ -935,7 +935,7 @@ namespace CumulusMX
 
 		private string Tagfeelsliketemp(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.FeelsLike, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Current.FeelsLike, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagtemptrend(Dictionary<string, string> tagParams)
@@ -978,7 +978,7 @@ namespace CumulusMX
 
 		private string Tagheatindex(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.HeatIndex, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(Current.HeatIndex, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Taghum(Dictionary<string, string> tagParams)
@@ -988,7 +988,7 @@ namespace CumulusMX
 
 		private string Taghumidex(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.Humidex, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(Current.Humidex, tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagpress(Dictionary<string, string> tagParams)
@@ -6937,7 +6937,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select HeatIndex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.HeatIndex, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : Current.HeatIndex, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentFeelsLike(Dictionary<string, string> tagParams)
@@ -6946,7 +6946,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select FeelsLike from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : station.FeelsLike, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(result.HasValue ? result.Value : Current.FeelsLike, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentApparent(Dictionary<string, string> tagParams)
@@ -6964,7 +6964,7 @@ namespace CumulusMX
 
 			var result = station.RecentDataDb.ExecuteScalar<double?>("select Humidex from RecentData where Timestamp >= ? order by Timestamp limit 1", recentTs.ToUnixTime());
 
-			return CheckRcDp(result.HasValue ? result.Value : station.Humidex, tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(result.HasValue ? result.Value : Current.Humidex, tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagRecentHumidity(Dictionary<string, string> tagParams)

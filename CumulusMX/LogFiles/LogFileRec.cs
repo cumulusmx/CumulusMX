@@ -233,7 +233,7 @@ namespace CumulusMX.LogFiles
 				Current.HumidityIn.ToText(),
 				station.WindLatest.ToString(cumulus.WindFormat, inv),
 				Current.WindChill.ToString(cumulus.TempFormat, inv),
-				station.HeatIndex.ToFixed(cumulus.TempFormat),
+				Current.HeatIndex.ToFixed(cumulus.TempFormat),
 				station.UV.ToFixed(cumulus.UVFormat),
 				station.SolarRad.ToText(),
 				station.ET.ToString(cumulus.ETFormat, inv),
@@ -244,8 +244,8 @@ namespace CumulusMX.LogFiles
 				station.Bearing.ToString(),
 				station.RG11RainToday.ToString(cumulus.RainFormat, inv),
 				station.RainSinceMidnight.ToFixed(cumulus.RainFormat),
-				station.FeelsLike.ToFixed(cumulus.TempFormat),
-				station.Humidex.ToFixed(cumulus.TempFormat),
+				Current.FeelsLike.ToFixed(cumulus.TempFormat),
+				Current.Humidex.ToFixed(cumulus.TempFormat),
 				station.BlackGlobeTemp.ToFixed(cumulus.TempFormat),
 				station.WetBulbGlobeTemp.ToFixed(cumulus.TempFormat)
 			) + Environment.NewLine;

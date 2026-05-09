@@ -883,21 +883,6 @@ namespace CumulusMX
 
 		public DateTime CurrentDate { get; set; }
 
-		/// <summary>
-		/// Heat index
-		/// </summary>
-		public double HeatIndex { get; set; } = 0;
-
-		/// <summary>
-		/// Humidex
-		/// </summary>
-		public double Humidex { get; set; } = 0;
-
-		/// <summary>
-		/// Feels like (JAG/TI)
-		/// </summary>
-		public double FeelsLike { get; set; } = 0;
-
 
 		/// <summary>
 		/// Latest wind speed/gust
@@ -1418,8 +1403,8 @@ namespace CumulusMX
 					}
 
 					DoTrendValues(now);
-					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, HeatIndex, Current.Humidity,
-						Current.Pressure, RainToday, SolarRad, UV, RainCounter, FeelsLike, Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+					AddRecentDataWithAq(now, WindAverage, RecentMaxGust, WindLatest, Bearing, AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex, Current.Humidity,
+						Current.Pressure, RainToday, SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateAirQualityDb();
 
@@ -6214,33 +6199,33 @@ namespace CumulusMX
 			if (CloudBase < 0)
 				CloudBase = 0;
 
-			HeatIndex = ConvertUnits.TempCToUser(MeteoLib.HeatIndex(tempinC, Current.Humidity));
+			Current.HeatIndex = ConvertUnits.TempCToUser(MeteoLib.HeatIndex(tempinC, Current.Humidity));
 
-			if (HeatIndex > DailyHighLow.Today.HighHeatIndex)
+			if (Current.HeatIndex > DailyHighLow.Today.HighHeatIndex)
 			{
-				DailyHighLow.Today.HighHeatIndex = HeatIndex;
+				DailyHighLow.Today.HighHeatIndex = Current.HeatIndex;
 				DailyHighLow.Today.HighHeatIndexTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (HeatIndex > Records.ThisMonth.HighHeatIndex.Val)
+			if (Current.HeatIndex > Records.ThisMonth.HighHeatIndex.Val)
 			{
-				Records.ThisMonth.HighHeatIndex.Val = HeatIndex;
+				Records.ThisMonth.HighHeatIndex.Val = Current.HeatIndex;
 				Records.ThisMonth.HighHeatIndex.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (HeatIndex > Records.ThisYear.HighHeatIndex.Val)
+			if (Current.HeatIndex > Records.ThisYear.HighHeatIndex.Val)
 			{
-				Records.ThisYear.HighHeatIndex.Val = HeatIndex;
+				Records.ThisYear.HighHeatIndex.Val = Current.HeatIndex;
 				Records.ThisYear.HighHeatIndex.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (HeatIndex > Records.AllTime.HighHeatIndex.Val)
-				SetAlltime(Records.AllTime.HighHeatIndex, HeatIndex, timestamp);
+			if (Current.HeatIndex > Records.AllTime.HighHeatIndex.Val)
+				SetAlltime(Records.AllTime.HighHeatIndex, Current.HeatIndex, timestamp);
 
-			CheckMonthlyAlltime("HighHeatIndex", HeatIndex, true, timestamp);
+			CheckMonthlyAlltime("HighHeatIndex", Current.HeatIndex, true, timestamp);
 
 
 			// Find estimated wet bulb temp. First time this is called, required variables may not have been set up yet
@@ -6383,89 +6368,89 @@ namespace CumulusMX
 
 		public void DoFeelsLike(DateTime timestamp)
 		{
-			FeelsLike = ConvertUnits.TempCToUser(MeteoLib.FeelsLike(ConvertUnits.UserTempToC(Current.Temperature), ConvertUnits.UserWindToKPH(WindAverage), Current.Humidity));
+			Current.FeelsLike = ConvertUnits.TempCToUser(MeteoLib.FeelsLike(ConvertUnits.UserTempToC(Current.Temperature), ConvertUnits.UserWindToKPH(WindAverage), Current.Humidity));
 
-			if (FeelsLike > DailyHighLow.Today.HighFeelsLike)
+			if (Current.FeelsLike > DailyHighLow.Today.HighFeelsLike)
 			{
-				DailyHighLow.Today.HighFeelsLike = FeelsLike;
+				DailyHighLow.Today.HighFeelsLike = Current.FeelsLike;
 				DailyHighLow.Today.HighFeelsLikeTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (FeelsLike < DailyHighLow.Today.LowFeelsLike)
+			if (Current.FeelsLike < DailyHighLow.Today.LowFeelsLike)
 			{
-				DailyHighLow.Today.LowFeelsLike = FeelsLike;
+				DailyHighLow.Today.LowFeelsLike = Current.FeelsLike;
 				DailyHighLow.Today.LowFeelsLikeTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (FeelsLike > Records.ThisMonth.HighFeelsLike.Val)
+			if (Current.FeelsLike > Records.ThisMonth.HighFeelsLike.Val)
 			{
-				Records.ThisMonth.HighFeelsLike.Val = FeelsLike;
+				Records.ThisMonth.HighFeelsLike.Val = Current.FeelsLike;
 				Records.ThisMonth.HighFeelsLike.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (FeelsLike < Records.ThisMonth.LowFeelsLike.Val)
+			if (Current.FeelsLike < Records.ThisMonth.LowFeelsLike.Val)
 			{
-				Records.ThisMonth.LowFeelsLike.Val = FeelsLike;
+				Records.ThisMonth.LowFeelsLike.Val = Current.FeelsLike;
 				Records.ThisMonth.LowFeelsLike.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (FeelsLike > Records.ThisYear.HighFeelsLike.Val)
+			if (Current.FeelsLike > Records.ThisYear.HighFeelsLike.Val)
 			{
-				Records.ThisYear.HighFeelsLike.Val = FeelsLike;
+				Records.ThisYear.HighFeelsLike.Val = Current.FeelsLike;
 				Records.ThisYear.HighFeelsLike.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (FeelsLike < Records.ThisYear.LowFeelsLike.Val)
+			if (Current.FeelsLike < Records.ThisYear.LowFeelsLike.Val)
 			{
-				Records.ThisYear.LowFeelsLike.Val = FeelsLike;
+				Records.ThisYear.LowFeelsLike.Val = Current.FeelsLike;
 				Records.ThisYear.LowFeelsLike.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (FeelsLike > Records.AllTime.HighFeelsLike.Val)
-				SetAlltime(Records.AllTime.HighFeelsLike, FeelsLike, timestamp);
+			if (Current.FeelsLike > Records.AllTime.HighFeelsLike.Val)
+				SetAlltime(Records.AllTime.HighFeelsLike, Current.FeelsLike, timestamp);
 
-			if (FeelsLike < Records.AllTime.LowFeelsLike.Val)
-				SetAlltime(Records.AllTime.LowFeelsLike, FeelsLike, timestamp);
+			if (Current.FeelsLike < Records.AllTime.LowFeelsLike.Val)
+				SetAlltime(Records.AllTime.LowFeelsLike, Current.FeelsLike, timestamp);
 
-			CheckMonthlyAlltime("HighFeelsLike", FeelsLike, true, timestamp);
-			CheckMonthlyAlltime("LowFeelsLike", FeelsLike, false, timestamp);
+			CheckMonthlyAlltime("HighFeelsLike", Current.FeelsLike, true, timestamp);
+			CheckMonthlyAlltime("LowFeelsLike", Current.FeelsLike, false, timestamp);
 		}
 
 		public void DoHumidex(DateTime timestamp)
 		{
-			Humidex = MeteoLib.Humidex(ConvertUnits.UserTempToC(Current.Temperature), Current.Humidity);
+			Current.Humidex = MeteoLib.Humidex(ConvertUnits.UserTempToC(Current.Temperature), Current.Humidity);
 
-			if (Humidex > DailyHighLow.Today.HighHumidex)
+			if (Current.Humidex > DailyHighLow.Today.HighHumidex)
 			{
-				DailyHighLow.Today.HighHumidex = Humidex;
+				DailyHighLow.Today.HighHumidex = Current.Humidex;
 				DailyHighLow.Today.HighHumidexTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (Humidex > Records.ThisMonth.HighHumidex.Val)
+			if (Current.Humidex > Records.ThisMonth.HighHumidex.Val)
 			{
-				Records.ThisMonth.HighHumidex.Val = Humidex;
+				Records.ThisMonth.HighHumidex.Val = Current.Humidex;
 				Records.ThisMonth.HighHumidex.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (Humidex > Records.ThisYear.HighHumidex.Val)
+			if (Current.Humidex > Records.ThisYear.HighHumidex.Val)
 			{
-				Records.ThisYear.HighHumidex.Val = Humidex;
+				Records.ThisYear.HighHumidex.Val = Current.Humidex;
 				Records.ThisYear.HighHumidex.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (Humidex > Records.AllTime.HighHumidex.Val)
-				SetAlltime(Records.AllTime.HighHumidex, Humidex, timestamp);
+			if (Current.Humidex > Records.AllTime.HighHumidex.Val)
+				SetAlltime(Records.AllTime.HighHumidex, Current.Humidex, timestamp);
 
-			CheckMonthlyAlltime("HighHumidex", Humidex, true, timestamp);
+			CheckMonthlyAlltime("HighHumidex", Current.Humidex, true, timestamp);
 		}
 
 		public void CheckForWindrunHighLow(DateTime timestamp)
@@ -8151,9 +8136,9 @@ namespace CumulusMX
 					Records.ThisMonth.LowTemp.Val = Current.Temperature;
 					Records.ThisMonth.HighAppTemp.Val = Current.ApparentTemperature;
 					Records.ThisMonth.LowAppTemp.Val = Current.ApparentTemperature;
-					Records.ThisMonth.HighFeelsLike.Val = FeelsLike;
-					Records.ThisMonth.LowFeelsLike.Val = FeelsLike;
-					Records.ThisMonth.HighHumidex.Val = Humidex;
+					Records.ThisMonth.HighFeelsLike.Val = Current.FeelsLike;
+					Records.ThisMonth.LowFeelsLike.Val = Current.FeelsLike;
+					Records.ThisMonth.HighHumidex.Val = Current.Humidex;
 					Records.ThisMonth.HighPress.Val = Current.Pressure;
 					Records.ThisMonth.LowPress.Val = Current.Pressure;
 					Records.ThisMonth.HighRainRate.Val = RainRate;
@@ -8162,7 +8147,7 @@ namespace CumulusMX
 					Records.ThisMonth.DailyRain.Val = Cumulus.DefaultHiVal;
 					Records.ThisMonth.HighHumidity.Val = Current.Humidity;
 					Records.ThisMonth.LowHumidity.Val = Current.Humidity;
-					Records.ThisMonth.HighHeatIndex.Val = HeatIndex;
+					Records.ThisMonth.HighHeatIndex.Val = Current.HeatIndex;
 					Records.ThisMonth.LowChill.Val = Current.WindChill;
 					Records.ThisMonth.HighMinTemp.Val = Cumulus.DefaultHiVal;
 					Records.ThisMonth.LowMaxTemp.Val = Cumulus.DefaultLoVal;
@@ -8224,9 +8209,9 @@ namespace CumulusMX
 					Records.ThisYear.LowTemp.Val = Current.Temperature;
 					Records.ThisYear.HighAppTemp.Val = Current.ApparentTemperature;
 					Records.ThisYear.LowAppTemp.Val = Current.ApparentTemperature;
-					Records.ThisYear.HighFeelsLike.Val = FeelsLike;
-					Records.ThisYear.LowFeelsLike.Val = FeelsLike;
-					Records.ThisYear.HighHumidex.Val = Humidex;
+					Records.ThisYear.HighFeelsLike.Val = Current.FeelsLike;
+					Records.ThisYear.LowFeelsLike.Val = Current.FeelsLike;
+					Records.ThisYear.HighHumidex.Val = Current.Humidex;
 					Records.ThisYear.HighPress.Val = Current.Pressure;
 					Records.ThisYear.LowPress.Val = Current.Pressure;
 					Records.ThisYear.HighRainRate.Val = RainRate;
@@ -8236,7 +8221,7 @@ namespace CumulusMX
 					Records.ThisYear.MonthlyRain.Val = Cumulus.DefaultHiVal;
 					Records.ThisYear.HighHumidity.Val = Current.Humidity;
 					Records.ThisYear.LowHumidity.Val = Current.Humidity;
-					Records.ThisYear.HighHeatIndex.Val = HeatIndex;
+					Records.ThisYear.HighHeatIndex.Val = Current.HeatIndex;
 					Records.ThisYear.LowChill.Val = Current.WindChill;
 					Records.ThisYear.HighMinTemp.Val = Cumulus.DefaultHiVal;
 					Records.ThisYear.LowMaxTemp.Val = Cumulus.DefaultLoVal;
@@ -8440,7 +8425,7 @@ namespace CumulusMX
 				// heat index
 				DailyHighLow.Yest.HighHeatIndex = DailyHighLow.Today.HighHeatIndex;
 				DailyHighLow.Yest.HighHeatIndexTime = DailyHighLow.Today.HighHeatIndexTime;
-				DailyHighLow.Today.HighHeatIndex = HeatIndex;
+				DailyHighLow.Today.HighHeatIndex = Current.HeatIndex;
 				DailyHighLow.Today.HighHeatIndexTime = timestamp;
 
 				// App temp
@@ -8485,18 +8470,18 @@ namespace CumulusMX
 				// Feels like
 				DailyHighLow.Yest.HighFeelsLike = DailyHighLow.Today.HighFeelsLike;
 				DailyHighLow.Yest.HighFeelsLikeTime = DailyHighLow.Today.HighFeelsLikeTime;
-				DailyHighLow.Today.HighFeelsLike = FeelsLike;
+				DailyHighLow.Today.HighFeelsLike = Current.FeelsLike;
 				DailyHighLow.Today.HighFeelsLikeTime = timestamp;
 
 				DailyHighLow.Yest.LowFeelsLike = DailyHighLow.Today.LowFeelsLike;
 				DailyHighLow.Yest.LowFeelsLikeTime = DailyHighLow.Today.LowFeelsLikeTime;
-				DailyHighLow.Today.LowFeelsLike = FeelsLike;
+				DailyHighLow.Today.LowFeelsLike = Current.FeelsLike;
 				DailyHighLow.Today.LowFeelsLikeTime = timestamp;
 
 				// Humidex
 				DailyHighLow.Yest.HighHumidex = DailyHighLow.Today.HighHumidex;
 				DailyHighLow.Yest.HighHumidexTime = DailyHighLow.Today.HighHumidexTime;
-				DailyHighLow.Today.HighHumidex = Humidex;
+				DailyHighLow.Today.HighHumidex = Current.Humidex;
 				DailyHighLow.Today.HighHumidexTime = timestamp;
 
 				// Lightning
@@ -14909,7 +14894,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 
 			var data = new DataStruct(cumulus, Current.Temperature, Current.Humidity, TempTotalToday / tempsamplestoday, Current.TemperatureIn, Current.Dewpoint, Current.WindChill, Current.HumidityIn,
 				Current.Pressure, WindLatest, WindAverage, RecentMaxGust, WindRunToday, Bearing, AvgBearing, RainToday, RainYesterday, RainWeek, RainMonth, RainYear, RainRate,
-				RainLastHour, HeatIndex, Humidex, Current.ApparentTemperature, temptrendval, presstrendval, DailyHighLow.Today.HighGust, DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighWind,
+				RainLastHour, Current.HeatIndex, Current.Humidex, Current.ApparentTemperature, temptrendval, presstrendval, DailyHighLow.Today.HighGust, DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighWind,
 				DailyHighLow.Today.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), DailyHighLow.Today.HighTemp, DailyHighLow.Today.LowTemp,
 				DailyHighLow.Today.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighPress, DailyHighLow.Today.LowPress, DailyHighLow.Today.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat),
 				DailyHighLow.Today.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighRainRate, DailyHighLow.Today.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighHumidity, DailyHighLow.Today.LowHumidity,
@@ -14922,7 +14907,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				Records.AllTime.HighPress.Val, Records.AllTime.LowPress.Val, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
 				DailyHighLow.Today.HighHourlyRain, DailyHighLow.Today.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat), "F" + Cumulus.Beaufort(DailyHighLow.Today.HighWind), "F" + Cumulus.Beaufort(WindAverage),
 				cumulus.BeaufortDesc(WindAverage), LastDataReadTimestamp, DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
-				FeelsLike, DailyHighLow.Today.HighFeelsLike, DailyHighLow.Today.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowFeelsLike, DailyHighLow.Today.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
+				Current.FeelsLike, DailyHighLow.Today.HighFeelsLike, DailyHighLow.Today.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowFeelsLike, DailyHighLow.Today.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
 				DailyHighLow.Today.HighHumidex, DailyHighLow.Today.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat), alarms);
 
 			try

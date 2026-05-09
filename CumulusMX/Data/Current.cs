@@ -58,5 +58,20 @@ namespace CumulusMX
 		/// </summary>
 		public static double ApparentTemperature { get; set; }
 
+		/// <summary>
+		/// Heat index
+		/// </summary>
+		public static double HeatIndex { get; set; } = 0;
+
+		/// <summary>
+		/// Humidex
+		/// </summary>
+		public static double Humidex { get; set; } = 0;
+
+		/// <summary>
+		/// Feels like (JAG/TI)
+		/// </summary>
+		public static double FeelsLike { get; set; } = 0;
+
 	}
 }
