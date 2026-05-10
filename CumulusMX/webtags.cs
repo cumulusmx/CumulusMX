@@ -4931,7 +4931,7 @@ namespace CumulusMX
 
 		private string TagSoilEc6(Dictionary<string, string> tagParams)
 		{
-			return GetSoilMoisture(6, tagParams);
+			return GetSoilEc(6, tagParams);
 		}
 
 		private string TagSoilEc7(Dictionary<string, string> tagParams)
@@ -4976,7 +4976,7 @@ namespace CumulusMX
 
 		private string TagSoilEc15(Dictionary<string, string> tagParams)
 		{
-			return GetSoilMoisture(15, tagParams);
+			return GetSoilEc(15, tagParams);
 		}
 
 		private string TagSoilEc16(Dictionary<string, string> tagParams)
