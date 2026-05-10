@@ -1862,7 +1862,7 @@ namespace CumulusMX.Stations
 					}
 
 					AddRecentDataWithAq(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-						MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+						MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
 
 					UpdateStatusPanel(timestamp.ToUniversalTime());
 					cumulus.AddToWebServiceLists(timestamp);
@@ -2304,7 +2304,7 @@ namespace CumulusMX.Stations
 									// add in archive period worth of sunshine, if sunny - arch_int in seconds
 									if (cumulus.WllPrimarySunshine == 0 && IsSunny)
 									{
-										SunshineHours += data11.arch_int / 3600.0;
+										MetData.SunshineHours += data11.arch_int / 3600.0;
 									}
 								}
 								else
@@ -2360,7 +2360,7 @@ namespace CumulusMX.Stations
 									{
 										cumulus.LogDebugMessage($"WL.com historic: Adding sunshine hours {sunshine.ToString("F2")}");
 									}
-									SunshineHours += sunshine;
+									MetData.SunshineHours += sunshine;
 								}
 								else
 								{

@@ -49,14 +49,14 @@ namespace CumulusMX
 			DailyHighLow.Yest.HighHourlyRainTime = ini.GetValue("Rain", "HHourlyTime", DateTime.MinValue);
 			DailyHighLow.Yest.HighRain24h = ini.GetValue("Rain", "High24h", 0.0);
 			DailyHighLow.Yest.HighRain24hTime = ini.GetValue("Rain", "High24hTime", DateTime.MinValue);
-			RG11RainYesterday = ini.GetValue("Rain", "RG11Yesterday", 0.0);
+			MetData.RG11RainYesterday = ini.GetValue("Rain", "RG11Yesterday", 0.0);
 			// humidity
 			DailyHighLow.Yest.LowHumidity = ini.GetValue("Humidity", "Low", 0);
 			DailyHighLow.Yest.HighHumidity = ini.GetValue("Humidity", "High", 0);
 			DailyHighLow.Yest.LowHumidityTime = ini.GetValue("Humidity", "LTime", DateTime.MinValue);
 			DailyHighLow.Yest.HighHumidityTime = ini.GetValue("Humidity", "HTime", DateTime.MinValue);
 			// Solar
-			YestSunshineHours = ini.GetValue("Solar", "SunshineHours", 0.0);
+			MetData.YestSunshineHours = ini.GetValue("Solar", "SunshineHours", 0.0);
 			// heat index
 			DailyHighLow.Yest.HighHeatIndex = ini.GetValue("HeatIndex", "High", 0.0);
 			DailyHighLow.Yest.HighHeatIndexTime = ini.GetValue("HeatIndex", "HTime", DateTime.MinValue);
@@ -141,14 +141,14 @@ namespace CumulusMX
 			ini.SetValue("Rain", "HHourlyTime", DailyHighLow.Yest.HighHourlyRainTime);
 			ini.SetValue("Rain", "High24h", DailyHighLow.Yest.HighRain24h);
 			ini.SetValue("Rain", "High24hTime", DailyHighLow.Yest.HighRain24hTime);
-			ini.SetValue("Rain", "RG11Yesterday", RG11RainYesterday);
+			ini.SetValue("Rain", "RG11Yesterday", MetData.RG11RainYesterday);
 			// humidity
 			ini.SetValue("Humidity", "Low", DailyHighLow.Yest.LowHumidity);
 			ini.SetValue("Humidity", "High", DailyHighLow.Yest.HighHumidity);
 			ini.SetValue("Humidity", "LTime", DailyHighLow.Yest.LowHumidityTime);
 			ini.SetValue("Humidity", "HTime", DailyHighLow.Yest.HighHumidityTime);
 			// Solar
-			ini.SetValue("Solar", "SunshineHours", YestSunshineHours);
+			ini.SetValue("Solar", "SunshineHours", MetData.YestSunshineHours);
 			// heat index
 			ini.SetValue("HeatIndex", "High", DailyHighLow.Yest.HighHeatIndex);
 			ini.SetValue("HeatIndex", "HTime", DailyHighLow.Yest.HighHeatIndexTime);

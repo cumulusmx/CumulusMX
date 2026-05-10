@@ -893,19 +893,19 @@ namespace CumulusMX.Stations
 				if (data.lightning != null && data.lightning.distance != null && data.lightning.distance.value != 255)
 				{
 					// add the incremental strikes to the total, allow for the counter being reset
-					if (data.lightning.count.value > station.LightningCounter)
+					if (data.lightning.count.value > MetData.LightningCounter)
 					{
-						station.LightningStrikesToday += data.lightning.count.value - station.LightningCounter;
-						cumulus.LogDebugMessage($"Lightning: Adding {data.lightning.count.value - station.LightningCounter} strikes, total = {station.LightningStrikesToday} strikes today");
+						MetData.LightningStrikesToday += data.lightning.count.value - MetData.LightningCounter;
+						cumulus.LogDebugMessage($"Lightning: Adding {data.lightning.count.value - MetData.LightningCounter} strikes, total = {MetData.LightningStrikesToday} strikes today");
 					}
-					station.LightningCounter = data.lightning.count.value;
-					station.LightningDistance = ConvertUnits.KmtoUserUnits(data.lightning.distance.value);
+					MetData.LightningCounter = data.lightning.count.value;
+					MetData.LightningDistance = ConvertUnits.KmtoUserUnits(data.lightning.distance.value);
 
 					var tim = data.lightning.distance.time.LocalFromUnixTime();
 
-					if (tim > LightningTime)
+					if (tim > MetData.LightningTime)
 					{
-						station.LightningTime = tim;
+						MetData.LightningTime = tim;
 					}
 				}
 			}

@@ -1523,14 +1523,14 @@ namespace CumulusMX.Stations
 					var dtDateTime = DateTime.UnixEpoch;
 					dtDateTime = dtDateTime.AddSeconds(valTime).ToLocalTime();
 
-					if (dtDateTime > station.LightningTime)
+					if (dtDateTime > MetData.LightningTime)
 					{
-						station.LightningTime = dtDateTime;
+						MetData.LightningTime = dtDateTime;
 
 						var valDist = Convert.ToDouble(dist, invNum);
 						if ((int) valDist != 255)
 						{
-							station.LightningDistance = ConvertUnits.KmtoUserUnits(valDist);
+							MetData.LightningDistance = ConvertUnits.KmtoUserUnits(valDist);
 						}
 					}
 				}
@@ -1540,13 +1540,13 @@ namespace CumulusMX.Stations
 			{
 				// add the incremental strikes to the total, allow for the counter being reset
 				var cnt = Convert.ToInt32(num, invNum);
-				if (cnt > station.LightningCounter)
+				if (cnt > MetData.LightningCounter)
 				{
-					station.LightningStrikesToday += cnt - station.LightningCounter;
-					cumulus.LogDebugMessage($"Lightning: Adding {cnt} strikes, total = {station.LightningStrikesToday} strikes today");
+					MetData.LightningStrikesToday += cnt - MetData.LightningCounter;
+					cumulus.LogDebugMessage($"Lightning: Adding {cnt} strikes, total = {MetData.LightningStrikesToday} strikes today");
 				}
 
-				station.LightningCounter = cnt;
+				MetData.LightningCounter = cnt;
 			}
 		}
 

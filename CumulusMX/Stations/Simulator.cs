@@ -129,8 +129,8 @@ namespace CumulusMX.Stations
 			// if we are starting up, set the intial solar rad value to 90% of theoretical
 			if (!solarIntialised)
 			{
-				CurrentSolarMax = AstroLib.SolarMax(recDate, (double) cumulus.Longitude, (double) cumulus.Latitude, ConvertUnits.AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
-				solar = CurrentSolarMax * 0.9;
+				MetData.CurrentSolarMax = AstroLib.SolarMax(recDate, (double) cumulus.Longitude, (double) cumulus.Latitude, ConvertUnits.AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
+				solar = MetData.CurrentSolarMax * 0.9;
 				solarIntialised = true;
 			}
 
@@ -151,15 +151,15 @@ namespace CumulusMX.Stations
 				factor = 0.3;
 			}
 
-			var volatility = CurrentSolarMax * 0.05;
+			var volatility = MetData.CurrentSolarMax * 0.05;
 			if (volatility < 2)
 				volatility = 2;
 			else if (volatility > 30)
 				volatility = 30;
 
-			solar -= (solar - CurrentSolarMax * factor) * 0.02;
+			solar -= (solar - MetData.CurrentSolarMax * factor) * 0.02;
 			solar += volatility * (2 * Program.RandGenerator.NextDouble() - 1);
-			if (solar < 0 || CurrentSolarMax == 0)
+			if (solar < 0 || MetData.CurrentSolarMax == 0)
 				solar = 0;
 			DoSolarRad((int) solar, recDate);
 		}

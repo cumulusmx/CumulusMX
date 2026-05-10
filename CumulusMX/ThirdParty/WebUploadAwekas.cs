@@ -425,7 +425,7 @@ namespace CumulusMX.ThirdParty
 				else
 					sb.Append(sep);
 
-				sb.Append(station.SunshineHours.ToString("F2", InvC) + sep);                                  // 20
+				sb.Append(MetData.SunshineHours.ToString("F2", InvC) + sep);                                  // 20
 			}
 			else
 			{

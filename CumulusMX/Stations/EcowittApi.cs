@@ -1887,12 +1887,12 @@ namespace CumulusMX.Stations
 				}
 
 				// add in archive period worth of sunshine, if sunny
-				if (station.CurrentSolarMax > 0 && MetData.SolarRad.HasValue &&
-					MetData.SolarRad > station.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
+				if (MetData.CurrentSolarMax > 0 && MetData.SolarRad.HasValue &&
+					MetData.SolarRad > MetData.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
 					MetData.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
-					station.SunshineHours += rec.Value.Interval / 60.0;
+					MetData.SunshineHours += rec.Value.Interval / 60.0;
 					cumulus.LogDebugMessage($"Adding {rec.Value.Interval} minutes to Sunshine Hours");
 				}
 
@@ -1979,7 +1979,7 @@ namespace CumulusMX.Stations
 				}
 
 				station.AddRecentDataWithAq(recDateTime, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, station.RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, station.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, station.RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
 
 				station.UpdateStatusPanel(recDateTime.ToUniversalTime());
 				cumulus.AddToWebServiceLists(recDateTime);

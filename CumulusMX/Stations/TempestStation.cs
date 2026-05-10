@@ -196,7 +196,7 @@ namespace CumulusMX.Stations
 					// add in archive period worth of sunshine, if sunny
 					if (IsSunny)
 					{
-						SunshineHours += historydata.ReportInterval / 60.0;
+						MetData.SunshineHours += historydata.ReportInterval / 60.0;
 					}
 				}
 
@@ -282,7 +282,7 @@ namespace CumulusMX.Stations
 				}
 
 				AddRecentDataWithAq(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
@@ -397,10 +397,10 @@ namespace CumulusMX.Stations
 					case WeatherPacket.MessageType.LightningStrike:
 						cumulus.LogDebugMessage("Received a Lightning message");
 
-						LightningTime = wp.LightningStrike.Timestamp;
-						LightningDistance = ConvertUnits.KmtoUserUnits(wp.LightningStrike.Distance);
-						LightningStrikesToday++;
-						cumulus.LogDebugMessage($"Lightning Detected: {wp.LightningStrike.Timestamp} - {wp.LightningStrike.Distance} km - {LightningStrikesToday} strikes today");
+						MetData.LightningTime = wp.LightningStrike.Timestamp;
+						MetData.LightningDistance = ConvertUnits.KmtoUserUnits(wp.LightningStrike.Distance);
+						MetData.LightningStrikesToday++;
+						cumulus.LogDebugMessage($"Lightning Detected: {wp.LightningStrike.Timestamp} - {wp.LightningStrike.Distance} km - {MetData.LightningStrikesToday} strikes today");
 						UpdateMQTT();
 						break;
 				}

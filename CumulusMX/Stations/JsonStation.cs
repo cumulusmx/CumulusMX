@@ -928,10 +928,10 @@ namespace CumulusMX.Stations
 			// Lightning
 			if (stationIndex == cumulus.SensorMaps.Lightning)
 			{
-				station.LightningTime = data.lightning.time ?? DateTime.MinValue;
-				station.LightningStrikesToday += data.lightning.strikes ?? 0 - station.LightningCounter;
-				station.LightningCounter = data.lightning.strikes ?? 0;
-				station.LightningDistance = (data.units.lightning ?? "??") switch
+				MetData.LightningTime = data.lightning.time ?? DateTime.MinValue;
+				MetData.LightningStrikesToday += data.lightning.strikes ?? 0 - MetData.LightningCounter;
+				MetData.LightningCounter = data.lightning.strikes ?? 0;
+				MetData.LightningDistance = (data.units.lightning ?? "??") switch
 				{
 					"km" => ConvertUnits.KmtoUserUnits(data.lightning.distance ?? 0),
 					"mi" => ConvertUnits.MilestoUserUnits(data.lightning.distance ?? 0),

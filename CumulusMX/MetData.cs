@@ -275,6 +275,25 @@ namespace CumulusMX
 		public static double? CO2_pm10_aqi { get; set; }
 		public static double? CO2_pm10_24h_aqi { get; set; }
 
+		public static double SunshineHours { get; set; } = 0;
+
+		public static double YestSunshineHours { get; set; } = 0;
+
+		public static double SunshineToMidnight { get; set; }
+
+		public static double SunHourCounter { get; set; }
+
+		public static double StartOfDaySunHourCounter { get; set; }
+
+		public static int CurrentSolarMax { get; set; }
+
+		public static double LightningDistance { get; set; }
+		public static DateTime LightningTime { get; set; } = DateTime.MinValue;
+		public static int LightningCounter { get; set; } = 0;
+		public static int LightningStrikesToday { get; set; } = 0;
+
+		public static double RG11RainToday { get; set; }
+		public static double RG11RainYesterday { get; set; }
 
 	}
 }

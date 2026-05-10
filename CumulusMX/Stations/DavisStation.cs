@@ -2762,7 +2762,7 @@ namespace CumulusMX.Stations
 
 										// add in archive period worth of sunshine, if sunny
 										if (IsSunny)
-											SunshineHours += interval / 60.0;
+											MetData.SunshineHours += interval / 60.0;
 									}
 
 									// we don't want to do the this for the first instant of the day
@@ -2906,7 +2906,7 @@ namespace CumulusMX.Stations
 								}
 
 								AddRecentDataEntry(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-									MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, -1, -1, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+									MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, -1, -1, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
 
 
 								UpdateStatusPanel(timestamp.ToUniversalTime());

@@ -60,8 +60,8 @@ namespace CumulusMX.Stations
 			// also use it for the Latest value
 			cumulus.StationOptions.UseSpeedForLatest = true;
 
-			LightningTime = DateTime.MinValue;
-			LightningDistance = -1.0;
+			MetData.LightningTime = DateTime.MinValue;
+			MetData.LightningDistance = -1.0;
 
 			tmrDataWatchdog = new System.Timers.Timer();
 
@@ -737,12 +737,12 @@ namespace CumulusMX.Stations
 				}
 
 				// add in archive period worth of sunshine, if sunny
-				if (CurrentSolarMax > 0 && MetData.SolarRad.HasValue &&
-				MetData.SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
+				if (MetData.CurrentSolarMax > 0 && MetData.SolarRad.HasValue &&
+				MetData.SolarRad > MetData.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
 					MetData.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
-					SunshineHours += intervalMins / 60.0;
+					MetData.SunshineHours += intervalMins / 60.0;
 					cumulus.LogDebugMessage($"Adding {intervalMins} minutes to Sunshine Hours");
 				}
 
@@ -828,7 +828,7 @@ namespace CumulusMX.Stations
 				}
 
 				AddRecentDataWithAq(DataDateTime, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
 
 				UpdateStatusPanel(rec.Key.UtcFromUnixTime());
 				cumulus.AddToWebServiceLists(DataDateTime);
@@ -1624,21 +1624,21 @@ namespace CumulusMX.Stations
 				if (sensor.count.HasValue)
 				{
 					// add the incremental strikes to the total, allow for the counter being reset
-					if (sensor.count.Value > LightningCounter)
+					if (sensor.count.Value > MetData.LightningCounter)
 					{
-						LightningStrikesToday += sensor.count.Value - LightningCounter;
-						cumulus.LogDebugMessage($"Lightning: Adding {sensor.count.Value - LightningCounter} strikes, total = {LightningStrikesToday} strikes today");
+						MetData.LightningStrikesToday += sensor.count.Value - MetData.LightningCounter;
+						cumulus.LogDebugMessage($"Lightning: Adding {sensor.count.Value - MetData.LightningCounter} strikes, total = {MetData.LightningStrikesToday} strikes today");
 					}
-					LightningCounter = sensor.count.Value;
+					MetData.LightningCounter = sensor.count.Value;
 				}
 
 				// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
-				if (newLightningTime > LightningTime)
+				if (newLightningTime > MetData.LightningTime)
 				{
-					LightningTime = newLightningTime;
+					MetData.LightningTime = newLightningTime;
 					if (newLightningDistance < 999)
 					{
-						LightningDistance = newLightningDistance;
+						MetData.LightningDistance = newLightningDistance;
 					}
 				}
 			}

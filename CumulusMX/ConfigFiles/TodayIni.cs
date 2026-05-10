@@ -74,8 +74,8 @@ namespace CumulusMX
 			DailyHighLow.Today.HighSolarTime = ini.GetValue("Solar", "HighSolarRadTime", todayDate);
 			DailyHighLow.Today.HighUv = ini.GetValue("Solar", "HighUV", 0.0);
 			DailyHighLow.Today.HighUvTime = ini.GetValue("Solar", "HighUVTime", meteoTodayDate);
-			StartOfDaySunHourCounter = ini.GetValue("Solar", "SunStart", -9999.0);
-			RG11RainToday = ini.GetValue("Rain", "RG11Today", 0.0);
+			MetData.StartOfDaySunHourCounter = ini.GetValue("Solar", "SunStart", -9999.0);
+			MetData.RG11RainToday = ini.GetValue("Rain", "RG11Today", 0.0);
 
 			// Wind
 			DailyHighLow.Today.HighWind = ini.GetValue("Wind", "Speed", 0.0);
@@ -183,8 +183,8 @@ namespace CumulusMX
 			DailyHighLow.Today.HighHumidityTime = ini.GetValue("Humidity", "HTime", meteoTodayDate);
 
 			// Solar
-			SunshineHours = ini.GetValue("Solar", "SunshineHours", 0.0);
-			SunshineToMidnight = ini.GetValue("Solar", "SunshineHoursToMidnight", 0.0);
+			MetData.SunshineHours = ini.GetValue("Solar", "SunshineHours", 0.0);
+			MetData.SunshineToMidnight = ini.GetValue("Solar", "SunshineHoursToMidnight", 0.0);
 
 			// heat index
 			DailyHighLow.Today.HighHeatIndex = ini.GetValue("HeatIndex", "High", -999.0);
@@ -228,14 +228,14 @@ namespace CumulusMX
 			AlltimeRecordTimestamp = ini.GetValue("Records", "Alltime", DateTime.MinValue);
 
 			// Lightning (GW1000 for now)
-			LightningDistance = ini.GetValue("Lightning", "Distance", -1.0);
-			LightningStrikesToday = ini.GetValue("Lightning", "StrikesToday", 0);
-			LightningCounter = ini.GetValue("Lightning", "Counter", LightningStrikesToday);
-			LightningTime = ini.GetValue("Lightning", "LastStrike", DateTime.MinValue);
-			if (LightningTime.Year == 1900)
+			MetData.LightningDistance = ini.GetValue("Lightning", "Distance", -1.0);
+			MetData.LightningStrikesToday = ini.GetValue("Lightning", "StrikesToday", 0);
+			MetData.LightningCounter = ini.GetValue("Lightning", "Counter", MetData.LightningStrikesToday);
+			MetData.LightningTime = ini.GetValue("Lightning", "LastStrike", DateTime.MinValue);
+			if (MetData.LightningTime.Year == 1900)
 			{
 				// legacy - used to be 1/1/1900
-				LightningTime = DateTime.MinValue;
+				MetData.LightningTime = DateTime.MinValue;
 			}
 
 			// Snow accumulation
@@ -313,7 +313,7 @@ namespace CumulusMX
 				ini.SetValue("Rain", "LastTip", LastRainTip);
 				ini.SetValue("Rain", "ConsecutiveRainDays", ConsecutiveRainDays);
 				ini.SetValue("Rain", "ConsecutiveDryDays", ConsecutiveDryDays);
-				ini.SetValue("Rain", "RG11Today", RG11RainToday);
+				ini.SetValue("Rain", "RG11Today", MetData.RG11RainToday);
 				// ET
 				ini.SetValue("ET", "Annual", AnnualETTotal);
 				ini.SetValue("ET", "Startofday", StartofdayET);
@@ -323,8 +323,8 @@ namespace CumulusMX
 				ini.SetValue("Humidity", "LTime", DailyHighLow.Today.LowHumidityTime);
 				ini.SetValue("Humidity", "HTime", DailyHighLow.Today.HighHumidityTime);
 				// Solar
-				ini.SetValue("Solar", "SunshineHours", SunshineHours);
-				ini.SetValue("Solar", "SunshineHoursToMidnight", SunshineToMidnight);
+				ini.SetValue("Solar", "SunshineHours", MetData.SunshineHours);
+				ini.SetValue("Solar", "SunshineHoursToMidnight", MetData.SunshineToMidnight);
 				// heat index
 				ini.SetValue("HeatIndex", "High", DailyHighLow.Today.HighHeatIndex);
 				ini.SetValue("HeatIndex", "HTime", DailyHighLow.Today.HighHeatIndexTime);
@@ -365,7 +365,7 @@ namespace CumulusMX
 				ini.SetValue("Solar", "HighSolarRadTime", DailyHighLow.Today.HighSolarTime);
 				ini.SetValue("Solar", "HighUV", DailyHighLow.Today.HighUv);
 				ini.SetValue("Solar", "HighUVTime", DailyHighLow.Today.HighUvTime);
-				ini.SetValue("Solar", "SunStart", StartOfDaySunHourCounter);
+				ini.SetValue("Solar", "SunStart", MetData.StartOfDaySunHourCounter);
 
 				// Special Fine Offset data
 				ini.SetValue("FineOffset", "FOSensorClockTime", FOSensorClockTime);
@@ -376,10 +376,10 @@ namespace CumulusMX
 				ini.SetValue("Records", "Alltime", AlltimeRecordTimestamp);
 
 				// Lightning (GW1000 for now)
-				ini.SetValue("Lightning", "Distance", LightningDistance);
-				ini.SetValue("Lightning", "LastStrike", LightningTime);
-				ini.SetValue("Lightning", "StrikesToday", LightningStrikesToday);
-				ini.SetValue("Lightning", "Counter", LightningCounter);
+				ini.SetValue("Lightning", "Distance", MetData.LightningDistance);
+				ini.SetValue("Lightning", "LastStrike", MetData.LightningTime);
+				ini.SetValue("Lightning", "StrikesToday", MetData.LightningStrikesToday);
+				ini.SetValue("Lightning", "Counter", MetData.LightningCounter);
 
 				// Snow accumulation
 				for (var i = 1; i < MetData.Snow24h.Length; i++)

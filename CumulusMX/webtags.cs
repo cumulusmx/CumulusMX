@@ -2369,12 +2369,12 @@ namespace CumulusMX
 
 		private string TagRg11RainToday(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.RG11RainToday, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(MetData.RG11RainToday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string TagRg11RainYest(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.RG11RainYesterday, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(MetData.RG11RainYesterday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string Tagcurrcond(Dictionary<string, string> tagParams)
@@ -4103,12 +4103,12 @@ namespace CumulusMX
 
 		private string TagCurrentSolarMax(Dictionary<string, string> tagParams)
 		{
-			return station.CurrentSolarMax.ToString();
+			return MetData.CurrentSolarMax.ToString();
 		}
 
 		private string TagSunshineHours(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.SunshineHours, tagParams, cumulus.SunshineDPlaces);
+			return CheckRcDp(MetData.SunshineHours, tagParams, cumulus.SunshineDPlaces);
 		}
 
 		private string TagSunshineHoursMonth(Dictionary<string, string> tagParams)
@@ -4139,7 +4139,7 @@ namespace CumulusMX
 				// if current month add todays sunshine to total
 				if (start.Year == now.Year && start.Month == now.Month)
 				{
-					total += station.SunshineHours;
+					total += MetData.SunshineHours;
 				}
 
 				if (total.HasValue)
@@ -4182,7 +4182,7 @@ namespace CumulusMX
 				// if current year, add todays sunshine
 				if (start.Year == now.Year)
 				{
-					total += station.SunshineHours;
+					total += MetData.SunshineHours;
 				}
 
 				if (total.HasValue)
@@ -4437,7 +4437,7 @@ namespace CumulusMX
 
 		private string TagYSunshineHours(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.YestSunshineHours, tagParams, cumulus.SunshineDPlaces);
+			return CheckRcDp(MetData.YestSunshineHours, tagParams, cumulus.SunshineDPlaces);
 		}
 
 		private string TagIsSunny(Dictionary<string, string> tagParams)
@@ -5507,17 +5507,17 @@ namespace CumulusMX
 
 		private string TagLightningDistance(Dictionary<string, string> tagParams)
 		{
-			return station.LightningDistance < 0 ? tagParams.Get("nv") ?? "--" : CheckRcDp(station.LightningDistance, tagParams, cumulus.WindRunDPlaces);
+			return MetData.LightningDistance < 0 ? tagParams.Get("nv") ?? "--" : CheckRcDp(MetData.LightningDistance, tagParams, cumulus.WindRunDPlaces);
 		}
 
 		private string TagLightningTime(Dictionary<string, string> tagParams)
 		{
-			return DateTime.Equals(station.LightningTime, DateTime.MinValue) ? tagParams.Get("nv") ?? "---" : GetFormattedDateTime(station.LightningTime, "t", tagParams);
+			return DateTime.Equals(MetData.LightningTime, DateTime.MinValue) ? tagParams.Get("nv") ?? "---" : GetFormattedDateTime(MetData.LightningTime, "t", tagParams);
 		}
 
 		private string TagLightningStrikesToday(Dictionary<string, string> tagParams)
 		{
-			return station.LightningStrikesToday.ToString();
+			return MetData.LightningStrikesToday.ToString();
 		}
 
 		private string TagLeafWetness1(Dictionary<string, string> tagParams)

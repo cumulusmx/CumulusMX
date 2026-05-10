@@ -52,8 +52,8 @@ namespace CumulusMX.Stations
 			// also use it for the Latest value
 			cumulus.StationOptions.UseSpeedForLatest = true;
 
-			LightningTime = DateTime.MinValue;
-			LightningDistance = -1.0;
+			MetData.LightningTime = DateTime.MinValue;
+			MetData.LightningDistance = -1.0;
 
 			tmrDataWatchdog = new System.Timers.Timer();
 
@@ -1252,12 +1252,12 @@ namespace CumulusMX.Stations
 								}
 								else
 								{
-									if (tempUint32 > LightningCounter)
+									if (tempUint32 > MetData.LightningCounter)
 									{
-										LightningStrikesToday += (int) tempUint32 - LightningCounter;
-										cumulus.LogDebugMessage($"Lightning: Adding {(int) tempUint32 - LightningCounter} strikes, total = {LightningStrikesToday} strikes today");
+										MetData.LightningStrikesToday += (int) tempUint32 - MetData.LightningCounter;
+										cumulus.LogDebugMessage($"Lightning: Adding {(int) tempUint32 - MetData.LightningCounter} strikes, total = {MetData.LightningStrikesToday} strikes today");
 									}
-									LightningCounter = (int) tempUint32;
+									MetData.LightningCounter = (int) tempUint32;
 								}
 								idx += 4;
 								break;
@@ -1400,11 +1400,11 @@ namespace CumulusMX.Stations
 					// Now do the stuff that requires more than one input parameter
 
 					// Only set the lightning time/distance if it is newer than what we already have - the GW1000 seems to reset this value
-					if (newLightningTime > LightningTime)
+					if (newLightningTime > MetData.LightningTime)
 					{
-						LightningTime = newLightningTime;
+						MetData.LightningTime = newLightningTime;
 						if (newLightningDistance < 999)
-							LightningDistance = newLightningDistance;
+							MetData.LightningDistance = newLightningDistance;
 					}
 
 					// Process outdoor temperature here, as GW1000 currently does not supply Dew Point so we have to calculate it in DoOutdoorTemp()

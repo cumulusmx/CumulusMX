@@ -154,7 +154,6 @@ namespace CumulusMX
 		public bool WindReadyToPlot = false;
 		public bool TempReadyToPlot = false;
 		private bool first_temp = true;
-		public double RG11RainYesterday { get; set; }
 
 		public abstract void Start();
 
@@ -930,25 +929,6 @@ namespace CumulusMX
 
 		public readonly SmoothingFilter[] SnowDepthAverage = new SmoothingFilter[5];
 
-		public double LightningDistance { get; set; }
-		public DateTime LightningTime { get; set; } = DateTime.MinValue;
-		public int LightningCounter { get; set; } = 0;
-		public int LightningStrikesToday { get; set; } = 0;
-
-		public double SunshineHours { get; set; } = 0;
-
-		public double YestSunshineHours { get; set; } = 0;
-
-		public double SunshineToMidnight { get; set; }
-
-		public double SunHourCounter { get; set; }
-
-		public double StartOfDaySunHourCounter { get; set; }
-
-		public int CurrentSolarMax { get; set; }
-
-		public double RG11RainToday { get; set; }
-
 		public void StartSecondsTimer()
 		{
 			lastSecond = DateTime.UtcNow.ToUnixTime();
@@ -1184,7 +1164,7 @@ namespace CumulusMX
 		{
 			CheckForDataStopped();
 
-			CurrentSolarMax = AstroLib.SolarMax(now, (double) cumulus.Longitude, (double) cumulus.Latitude, ConvertUnits.AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
+			MetData.CurrentSolarMax = AstroLib.SolarMax(now, (double) cumulus.Longitude, (double) cumulus.Latitude, ConvertUnits.AltitudeM(cumulus.Altitude), out SolarElevation, cumulus.SolarOptions);
 
 			if (!DataStopped)
 			{
@@ -1213,9 +1193,9 @@ namespace CumulusMX
 					{
 						// do nothing, we have a separate sensor counting the sunshine hours
 					}
-					else if (MetData.SolarRad.HasValue && MetData.SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.0 && MetData.SolarRad >= cumulus.SolarOptions.SolarMinimum)
+					else if (MetData.SolarRad.HasValue && MetData.SolarRad > MetData.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100.0 && MetData.SolarRad >= cumulus.SolarOptions.SolarMinimum)
 					{
-						SunshineHours += 1.0 / 60.0;
+						MetData.SunshineHours += 1.0 / 60.0;
 					}
 
 					// update heating/cooling degree days
@@ -1230,7 +1210,7 @@ namespace CumulusMX
 
 					DoTrendValues(now);
 					AddRecentDataWithAq(now, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex, MetData.Humidity,
-						MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
+						MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, MetData.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
 
 					UpdateAirQualityDb();
 
@@ -1574,7 +1554,7 @@ namespace CumulusMX
 				{
 					using var sr = new StreamReader(blFile);
 					var line = sr.ReadLine();
-					SunshineHours = double.Parse(line, CultureInfo.InvariantCulture.NumberFormat);
+					MetData.SunshineHours = double.Parse(line, CultureInfo.InvariantCulture.NumberFormat);
 					sr.ReadLine();
 					sr.ReadLine();
 					line = sr.ReadLine();
@@ -5644,13 +5624,13 @@ namespace CumulusMX
 
 		public void ResetSunshineHours(DateTime logdate) // called at midnight irrespective of roll-over time
 		{
-			YestSunshineHours = SunshineHours;
+			MetData.YestSunshineHours = MetData.SunshineHours;
 
-			cumulus.LogMessage("Reset sunshine hours, yesterday = " + YestSunshineHours);
+			cumulus.LogMessage("Reset sunshine hours, yesterday = " + MetData.YestSunshineHours);
 
-			SunshineToMidnight = SunshineHours;
-			SunshineHours = 0;
-			StartOfDaySunHourCounter = SunHourCounter;
+			MetData.SunshineToMidnight = MetData.SunshineHours;
+			MetData.SunshineHours = 0;
+			MetData.StartOfDaySunHourCounter = MetData.SunHourCounter;
 			WriteYesterdayFile(logdate);
 		}
 
@@ -7428,7 +7408,7 @@ namespace CumulusMX
 
 					if (!cumulus.SolarOptions.UseBlakeLarsen)
 					{
-						IsSunny = MetData.SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 && MetData.SolarRad >= cumulus.SolarOptions.SolarMinimum;
+						IsSunny = MetData.SolarRad > MetData.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 && MetData.SolarRad >= cumulus.SolarOptions.SolarMinimum;
 					}
 				}
 			}
@@ -7437,23 +7417,23 @@ namespace CumulusMX
 
 		protected void DoSunHours(double hrs)
 		{
-			if (SunHourCounter == hrs) return;
+			if (MetData.SunHourCounter == hrs) return;
 
-			if (StartOfDaySunHourCounter < -9998)
+			if (MetData.StartOfDaySunHourCounter < -9998)
 			{
 				cumulus.LogWarningMessage("No start of day sun counter. Start counting from now");
-				StartOfDaySunHourCounter = hrs;
+				MetData.StartOfDaySunHourCounter = hrs;
 			}
 
 			// Has the counter reset to a value less than we were expecting. Or has it changed by some infeasibly large value?
-			if (hrs < SunHourCounter || Math.Abs(hrs - SunHourCounter) > 20)
+			if (hrs < MetData.SunHourCounter || Math.Abs(hrs - MetData.SunHourCounter) > 20)
 			{
 				// counter reset
-				cumulus.LogMessage("Sun hour counter reset. Old value = " + SunHourCounter + ", New value = " + hrs);
-				StartOfDaySunHourCounter = hrs - SunshineHours;
+				cumulus.LogMessage("Sun hour counter reset. Old value = " + MetData.SunHourCounter + ", New value = " + hrs);
+				MetData.StartOfDaySunHourCounter = hrs - MetData.SunshineHours;
 			}
-			SunHourCounter = hrs;
-			SunshineHours = hrs - StartOfDaySunHourCounter;
+			MetData.SunHourCounter = hrs;
+			MetData.SunshineHours = hrs - MetData.StartOfDaySunHourCounter;
 		}
 
 		protected void DoWetBulb(double temp, DateTime timestamp) // Supplied in CELSIUS
@@ -7942,8 +7922,8 @@ namespace CumulusMX
 					WriteYearIniFile();
 				}
 
-				RG11RainYesterday = RG11RainToday;
-				RG11RainToday = 0;
+				MetData.RG11RainYesterday = MetData.RG11RainToday;
+				MetData.RG11RainToday = 0;
 
 				if (day == 1)
 				{
@@ -8309,7 +8289,7 @@ namespace CumulusMX
 				DailyHighLow.Today.HighHumidexTime = timestamp;
 
 				// Lightning
-				LightningStrikesToday = 0;
+				MetData.LightningStrikesToday = 0;
 
 				// BGT
 				DailyHighLow.Yest.HighBgt = DailyHighLow.Today.HighBgt;
@@ -8563,12 +8543,12 @@ namespace CumulusMX
 			if (cumulus.RolloverHour == 0)
 			{
 				// use existing current sunshine hour count
-				strb.Append(sep + SunshineHours.ToString(cumulus.SunFormat, inv));
+				strb.Append(sep + MetData.SunshineHours.ToString(cumulus.SunFormat, inv));
 			}
 			else
 			{
 				// for non-midnight roll-over, use midnight
-				strb.Append(sep + SunshineToMidnight.ToString(cumulus.SunFormat, inv));
+				strb.Append(sep + MetData.SunshineToMidnight.ToString(cumulus.SunFormat, inv));
 			}
 			strb.Append(sep + DailyHighLow.Today.HighHeatIndex.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + DailyHighLow.Today.HighHeatIndexTime.ToString("HH:mm", inv));
@@ -8677,7 +8657,7 @@ namespace CumulusMX
 				HighHumidity = DailyHighLow.Today.HighHumidity,
 				HighHumidityTime = DailyHighLow.Today.HighHumidityTime,
 				ET = MetData.ET,
-				SunShineHours = cumulus.RolloverHour == 0 ? SunshineHours : SunshineToMidnight,
+				SunShineHours = cumulus.RolloverHour == 0 ? MetData.SunshineHours : MetData.SunshineToMidnight,
 				HighHeatIndex = DailyHighLow.Today.HighHeatIndex,
 				HighHeatIndexTime = DailyHighLow.Today.HighHeatIndexTime,
 				HighAppTemp = DailyHighLow.Today.HighAppTemp,
@@ -8747,7 +8727,7 @@ namespace CumulusMX
 				queryString.Append(sep + DailyHighLow.Today.HighHumidity);
 				queryString.Append(sep + DailyHighLow.Today.HighHumidityTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + MetData.ET.ToString(cumulus.ETFormat, inv));
-				queryString.Append(sep + (cumulus.RolloverHour == 0 ? SunshineHours.ToString(cumulus.SunFormat, inv) : SunshineToMidnight.ToString(cumulus.SunFormat, inv)));
+				queryString.Append(sep + (cumulus.RolloverHour == 0 ? MetData.SunshineHours.ToString(cumulus.SunFormat, inv) : MetData.SunshineToMidnight.ToString(cumulus.SunFormat, inv)));
 				queryString.Append(sep + DailyHighLow.Today.HighHeatIndex.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + DailyHighLow.Today.HighHeatIndexTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + DailyHighLow.Today.HighAppTemp.ToFixed(cumulus.TempFormat));
@@ -11721,9 +11701,9 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 256);
 
-			json.Append($"[\"Distance to last strike\",\"{(LightningDistance < 0 ? "-" : LightningDistance.ToString(cumulus.WindRunFormat))}\",\"{cumulus.Units.WindRunText}\"],");
-			json.Append($"[\"Time of last strike\",\"{(DateTime.Equals(LightningTime, DateTime.MinValue) ? "-" : LightningTime.ToString("g"))}\",\"\"],");
-			json.Append($"[\"Number of strikes today\",\"{LightningStrikesToday}\",\"\"]");
+			json.Append($"[\"Distance to last strike\",\"{(MetData.LightningDistance < 0 ? "-" : MetData.LightningDistance.ToString(cumulus.WindRunFormat))}\",\"{cumulus.Units.WindRunText}\"],");
+			json.Append($"[\"Time of last strike\",\"{(DateTime.Equals(MetData.LightningTime, DateTime.MinValue) ? "-" : MetData.LightningTime.ToString("g"))}\",\"\"],");
+			json.Append($"[\"Number of strikes today\",\"{MetData.LightningStrikesToday}\",\"\"]");
 			json.Append("]}");
 			return json.ToString();
 		}
@@ -12191,12 +12171,12 @@ namespace CumulusMX
 			json.Append("\"],");
 
 			json.Append("[\"Hours of Sunshine\",\"");
-			json.Append(SunshineHours.ToString(cumulus.SunFormat));
+			json.Append(MetData.SunshineHours.ToString(cumulus.SunFormat));
 			json.Append("&nbsp;hrs");
 			json.Append(sepStr);
 			json.Append("&nbsp;");
 			json.Append(sepStr);
-			json.Append(YestSunshineHours.ToString(cumulus.SunFormat));
+			json.Append(MetData.YestSunshineHours.ToString(cumulus.SunFormat));
 			json.Append("&nbsp;hrs");
 			json.Append(sepStr);
 			json.Append("&nbsp;");
@@ -14725,8 +14705,8 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				DailyHighLow.Today.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat), MetData.SolarRad, DailyHighLow.Today.HighSolar, DailyHighLow.Today.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat), MetData.UV, DailyHighLow.Today.HighUv,
 				DailyHighLow.Today.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat), forecaststr, getTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat),
 				getTimeString(cumulus.MoonRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.MoonSetTime, cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighHeatIndex, DailyHighLow.Today.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighAppTemp,
-				DailyHighLow.Today.LowAppTemp, DailyHighLow.Today.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), CurrentSolarMax,
-				Records.AllTime.HighPress.Val, Records.AllTime.LowPress.Val, SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
+				DailyHighLow.Today.LowAppTemp, DailyHighLow.Today.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), MetData.CurrentSolarMax,
+				Records.AllTime.HighPress.Val, Records.AllTime.LowPress.Val, MetData.SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
 				DailyHighLow.Today.HighHourlyRain, DailyHighLow.Today.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat), "F" + Cumulus.Beaufort(DailyHighLow.Today.HighWind), "F" + Cumulus.Beaufort(MetData.WindAverage),
 				cumulus.BeaufortDesc(MetData.WindAverage), LastDataReadTimestamp, DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 				MetData.FeelsLike, DailyHighLow.Today.HighFeelsLike, DailyHighLow.Today.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowFeelsLike, DailyHighLow.Today.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
