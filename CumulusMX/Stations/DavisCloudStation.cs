@@ -2254,7 +2254,7 @@ namespace CumulusMX.Stations
 										{
 											// set the values for daily average, arch_int is in seconds, but always whole minutes
 											tempsamplestoday += data.arch_int / 60;
-											TempTotalToday += ConvertUnits.TempFToUser(data.temp_out.Value) * data.arch_int / 60;
+											MetData.TempTotalToday += ConvertUnits.TempFToUser(data.temp_out.Value) * data.arch_int / 60;
 
 											// update chill hours
 											if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
@@ -2751,7 +2751,7 @@ namespace CumulusMX.Stations
 												if (!data.temp_avg.HasValue)
 												{
 													tempsamplestoday += data.arch_int / 60;
-													TempTotalToday += ConvertUnits.TempFToUser(data.temp_avg.Value) * data.arch_int / 60;
+													MetData.TempTotalToday += ConvertUnits.TempFToUser(data.temp_avg.Value) * data.arch_int / 60;
 												}
 
 												// update chill hours

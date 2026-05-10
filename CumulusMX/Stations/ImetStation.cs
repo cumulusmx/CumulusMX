@@ -573,7 +573,7 @@ namespace CumulusMX.Stations
 
 								// add in "archivePeriod" minutes worth of temperature to the temp samples
 								tempsamplestoday += interval;
-								TempTotalToday += MetData.Temperature * interval;
+								MetData.TempTotalToday += MetData.Temperature * interval;
 
 								// update chill hours
 								if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)

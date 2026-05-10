@@ -274,7 +274,7 @@ namespace CumulusMX.ThirdParty
 
 			double AvgTemp;
 			if (station.tempsamplestoday > 0)
-				AvgTemp = station.TempTotalToday / station.tempsamplestoday;
+				AvgTemp = MetData.TempTotalToday / station.tempsamplestoday;
 			else
 				AvgTemp = 0;
 
@@ -395,7 +395,7 @@ namespace CumulusMX.ThirdParty
 				sb.Append(ConvertUnits.UserPressToMB(MetData.Pressure).ToString("F1", InvC) + sep);           // 7
 			else
 				sb.Append(sep);
-			sb.Append(ConvertUnits.UserRainToMM(station.RainSinceMidnight).ToString("F1", InvC) + sep);       // 8   - was RainToday in v2
+			sb.Append(ConvertUnits.UserRainToMM(MetData.RainSinceMidnight).ToString("F1", InvC) + sep);       // 8   - was RainToday in v2
 			if (MetData.WindAverage >= 0)
 				sb.Append(ConvertUnits.UserWindToKPH(MetData.WindAverage).ToString("F1", InvC) + sep);        // 9
 			else

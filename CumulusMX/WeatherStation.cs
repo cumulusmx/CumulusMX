@@ -878,12 +878,7 @@ namespace CumulusMX
 
 		public double WindAverageUncalibrated { get; set; } = 0;
 
-		public double GrowingDegreeDaysThisYear1 { get; set; }
-		public double GrowingDegreeDaysThisYear2 { get; set; }
-
 		public int tempsamplestoday { get; set; }
-
-		public double TempTotalToday { get; set; }
 
 		public double ChillHours { get; set; }
 
@@ -1037,8 +1032,6 @@ namespace CumulusMX
 		public int CurrentSolarMax { get; set; }
 
 		public double RG11RainToday { get; set; }
-
-		public double RainSinceMidnight { get; set; }
 
 		public void StartSecondsTimer()
 		{
@@ -1316,7 +1309,7 @@ namespace CumulusMX
 					{
 						// update temperature average items
 						tempsamplestoday++;
-						TempTotalToday += MetData.Temperature;
+						MetData.TempTotalToday += MetData.Temperature;
 					}
 
 					DoTrendValues(now);
@@ -5663,7 +5656,7 @@ namespace CumulusMX
 			int in100raintoday;
 			// use today's rain for safety
 			// 0900 day, use midnight calculation
-			in100raintoday = Convert.ToInt32(ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? MetData.RainToday : RainSinceMidnight) * 100);
+			in100raintoday = Convert.ToInt32(ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight) * 100);
 			var mb10press = Convert.ToInt32(ConvertUnits.UserPressToMB(MetData.AltimeterPressure) * 10);
 			// For 100% humidity, send zero. For zero humidity, send 1
 			int hum;
@@ -5821,7 +5814,7 @@ namespace CumulusMX
 			if (mrrday != MidnightRainResetDay)
 			{
 				MidnightRainCount = RainCounter;
-				RainSinceMidnight = 0;
+				MetData.RainSinceMidnight = 0;
 				MidnightRainResetDay = mrrday;
 				cumulus.LogMessage("Midnight rain reset, count = " + RainCounter + " time = " + timestamp.ToShortTimeString());
 				if (mrrday == 1 && mrrmonth == 1 && cumulus.StationType == StationTypes.VantagePro)
@@ -6872,11 +6865,11 @@ namespace CumulusMX
 
 				if (trendval < 0)
 				{
-					RainSinceMidnight = 0;
+					MetData.RainSinceMidnight = 0;
 				}
 				else
 				{
-					RainSinceMidnight = trendval * cumulus.Calib.Rain.Mult;
+					MetData.RainSinceMidnight = trendval * cumulus.Calib.Rain.Mult;
 				}
 
 				// rain this week so far
@@ -8213,12 +8206,12 @@ namespace CumulusMX
 				if (day == 1 && month == cumulus.GrowingYearStarts)
 				{
 					cumulus.LogMessage(" New growing degree day season starting");
-					GrowingDegreeDaysThisYear1 = 0;
-					GrowingDegreeDaysThisYear2 = 0;
+					MetData.GrowingDegreeDaysThisYear1 = 0;
+					MetData.GrowingDegreeDaysThisYear2 = 0;
 				}
 
-				GrowingDegreeDaysThisYear1 += MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(DailyHighLow.Today.HighTemp), ConvertUnits.UserTempToC(DailyHighLow.Today.LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase1), cumulus.GrowingCap30C);
-				GrowingDegreeDaysThisYear2 += MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(DailyHighLow.Today.HighTemp), ConvertUnits.UserTempToC(DailyHighLow.Today.LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
+				MetData.GrowingDegreeDaysThisYear1 += MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(DailyHighLow.Today.HighTemp), ConvertUnits.UserTempToC(DailyHighLow.Today.LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase1), cumulus.GrowingCap30C);
+				MetData.GrowingDegreeDaysThisYear2 += MeteoLib.GrowingDegreeDays(ConvertUnits.UserTempToC(DailyHighLow.Today.HighTemp), ConvertUnits.UserTempToC(DailyHighLow.Today.LowTemp), ConvertUnits.UserTempToC(cumulus.GrowingBase2), cumulus.GrowingCap30C);
 
 
 				if (day == 1 && month == cumulus.SnowSeasonStart)
@@ -8239,7 +8232,7 @@ namespace CumulusMX
 
 				MetData.RainToday = 0;
 
-				TempTotalToday = MetData.Temperature;
+				MetData.TempTotalToday = MetData.Temperature;
 				tempsamplestoday = 1;
 
 				// Copy today"s high wind settings to yesterday
@@ -8614,7 +8607,7 @@ namespace CumulusMX
 
 			double AvgTemp;
 			if (tempsamplestoday > 0)
-				AvgTemp = TempTotalToday / tempsamplestoday;
+				AvgTemp = MetData.TempTotalToday / tempsamplestoday;
 			else
 				AvgTemp = 0;
 
@@ -10969,7 +10962,7 @@ namespace CumulusMX
 			Data.Append("&rainin=" + RainINstr(RainLastHour));
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
-			Data.Append(RainINstr(cumulus.RolloverHour == 0 ? MetData.RainToday : RainSinceMidnight));
+			Data.Append(RainINstr(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight));
 			Data.Append("&baromin=" + PressINstr(MetData.Pressure));
 			Data.Append("&dewptf=" + TempFstr(MetData.Dewpoint));
 			if (cumulus.PWS.SendUV && MetData.UV.HasValue)
@@ -11985,7 +11978,7 @@ namespace CumulusMX
 			json.Append("&nbsp;\"],");
 
 			json.Append("[\"Average Temperature\",\"");
-			json.Append((TempTotalToday / tempsamplestoday).ToFixedLocal(cumulus.TempFormat));
+			json.Append((MetData.TempTotalToday / tempsamplestoday).ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\",\"");
 			json.Append(YestAvgTemp.ToFixedLocal(cumulus.TempFormat));
@@ -14807,7 +14800,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			}
 
 
-			var data = new DataStruct(cumulus, MetData.Temperature, MetData.Humidity, TempTotalToday / tempsamplestoday, MetData.TemperatureIn, MetData.Dewpoint, MetData.WindChill, MetData.HumidityIn,
+			var data = new DataStruct(cumulus, MetData.Temperature, MetData.Humidity, MetData.TempTotalToday / tempsamplestoday, MetData.TemperatureIn, MetData.Dewpoint, MetData.WindChill, MetData.HumidityIn,
 				MetData.Pressure, MetData.WindLatest, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindRunToday, MetData.Bearing, MetData.AvgBearing, MetData.RainToday, RainYesterday, MetData.RainWeek, MetData.RainMonth, MetData.RainYear, MetData.RainRate,
 				RainLastHour, MetData.HeatIndex, MetData.Humidex, MetData.ApparentTemperature, temptrendval, presstrendval, DailyHighLow.Today.HighGust, DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighWind,
 				DailyHighLow.Today.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), DailyHighLow.Today.HighTemp, DailyHighLow.Today.LowTemp,

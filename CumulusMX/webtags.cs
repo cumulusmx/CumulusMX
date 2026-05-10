@@ -920,7 +920,7 @@ namespace CumulusMX
 
 		private string Tagavgtemp(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnit(station.TempTotalToday / station.tempsamplestoday, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnit(MetData.TempTotalToday / station.tempsamplestoday, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagavgtempY(Dictionary<string, string> tagParams)
@@ -1145,7 +1145,7 @@ namespace CumulusMX
 
 		private string Tagrmidnight(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.RainSinceMidnight, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(MetData.RainSinceMidnight, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string Tagrmonth(Dictionary<string, string> tagParams)

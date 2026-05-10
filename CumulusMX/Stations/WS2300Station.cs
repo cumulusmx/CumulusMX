@@ -316,7 +316,7 @@ namespace CumulusMX.Stations
 					DoOutdoorTemp(historydata.outTemp, timestamp);
 
 					tempsamplestoday += historydata.interval;
-					TempTotalToday += MetData.Temperature * historydata.interval;
+					MetData.TempTotalToday += MetData.Temperature * historydata.interval;
 
 					if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 					// add 1 minute to chill hours

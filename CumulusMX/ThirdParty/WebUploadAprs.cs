@@ -65,7 +65,7 @@ namespace CumulusMX.ThirdParty
 					message.Append('P');
 					// use today"s rain for safety
 					// 0900 day, use midnight calculation
-					message.Append(APRSrain(cumulus.RolloverHour == 0 ? MetData.RainToday : station.RainSinceMidnight));
+					message.Append(APRSrain(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight));
 					if ((!cumulus.APRS.HumidityCutoff) || (ConvertUnits.UserTempToC(MetData.Temperature) >= -10) && MetData.Humidity >= 0)
 					{
 						// humidity Hnn

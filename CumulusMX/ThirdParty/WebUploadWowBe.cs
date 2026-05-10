@@ -146,7 +146,7 @@ namespace CumulusMX.ThirdParty
 			if (MetData.Pressure > 0)
 				bodyObj.Add("baromin", ConvertUnits.UserPressToIN(MetData.Pressure));
 
-			bodyObj.Add("dailyrainin", ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? MetData.RainToday : station.RainSinceMidnight));
+			bodyObj.Add("dailyrainin", ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight));
 			bodyObj.Add("rainin", ConvertUnits.UserRainToIN(station.RainLastHour));
 
 			if (MetData.Dewpoint > Cumulus.DefaultHiVal)

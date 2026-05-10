@@ -98,12 +98,12 @@ namespace CumulusMX
 				DailyHighLow.Today.TempRange = DailyHighLow.Today.HighTemp - DailyHighLow.Today.LowTemp;
 			else
 				DailyHighLow.Today.TempRange = 0;
-			TempTotalToday = ini.GetValue("Temp", "Total", 0.0);
+			MetData.TempTotalToday = ini.GetValue("Temp", "Total", 0.0);
 			tempsamplestoday = ini.GetValue("Temp", "Samples", 1);
 			MetData.HeatingDegreeDays = ini.GetValue("Temp", "HeatingDegreeDays", 0.0);
 			MetData.CoolingDegreeDays = ini.GetValue("Temp", "CoolingDegreeDays", 0.0);
-			GrowingDegreeDaysThisYear1 = ini.GetValue("Temp", "GrowingDegreeDaysThisYear1", 0.0);
-			GrowingDegreeDaysThisYear2 = ini.GetValue("Temp", "GrowingDegreeDaysThisYear2", 0.0);
+			MetData.GrowingDegreeDaysThisYear1 = ini.GetValue("Temp", "GrowingDegreeDaysThisYear1", 0.0);
+			MetData.GrowingDegreeDaysThisYear2 = ini.GetValue("Temp", "GrowingDegreeDaysThisYear2", 0.0);
 
 			// Temperature midnight rollover
 			DailyHighLow.TodayMidnight.LowTemp = ini.GetValue("TempMidnight", "Low", 999.0);
@@ -277,13 +277,13 @@ namespace CumulusMX
 				ini.SetValue("Temp", "LTime", DailyHighLow.Today.LowTempTime);
 				ini.SetValue("Temp", "High", DailyHighLow.Today.HighTemp);
 				ini.SetValue("Temp", "HTime", DailyHighLow.Today.HighTempTime);
-				ini.SetValue("Temp", "Total", TempTotalToday);
+				ini.SetValue("Temp", "Total", MetData.TempTotalToday);
 				ini.SetValue("Temp", "Samples", tempsamplestoday);
 				ini.SetValue("Temp", "ChillHours", ChillHours);
 				ini.SetValue("Temp", "HeatingDegreeDays", MetData.HeatingDegreeDays);
 				ini.SetValue("Temp", "CoolingDegreeDays", MetData.CoolingDegreeDays);
-				ini.SetValue("Temp", "GrowingDegreeDaysThisYear1", GrowingDegreeDaysThisYear1);
-				ini.SetValue("Temp", "GrowingDegreeDaysThisYear2", GrowingDegreeDaysThisYear2);
+				ini.SetValue("Temp", "GrowingDegreeDaysThisYear1", MetData.GrowingDegreeDaysThisYear1);
+				ini.SetValue("Temp", "GrowingDegreeDaysThisYear2", MetData.GrowingDegreeDaysThisYear2);
 				// Temperature midnight rollover
 				ini.SetValue("TempMidnight", "Low", DailyHighLow.TodayMidnight.LowTemp);
 				ini.SetValue("TempMidnight", "LTime", DailyHighLow.TodayMidnight.LowTempTime);

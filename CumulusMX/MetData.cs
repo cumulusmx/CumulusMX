@@ -7,9 +7,8 @@ namespace CumulusMX
 	internal class MetData
 	{
 
-		// MetData values
-
 		public static double THWIndex { get; set; } = 0;
+
 		public static double THSWIndex { get; set; } = 0;
 
 		/// <summary>
@@ -113,7 +112,6 @@ namespace CumulusMX
 			{
 				return AvgBearing == 0 ? "-" : Program.cumulus.Trans.compassp[(AvgBearing * 100 + 1125) % 36000 / 2250];
 			}
-
 		}
 
 		/// <summary>
@@ -125,6 +123,8 @@ namespace CumulusMX
 		/// Rainfall today
 		/// </summary>
 		public static double RainToday { get; set; } = 0;
+
+		public static double RainSinceMidnight { get; set; }
 
 		/// <summary>
 		/// Solar Radiation in W/m2
@@ -154,7 +154,7 @@ namespace CumulusMX
 		public static double RainYear { get; set; } = 0;
 
 		/// <summary>
-		/// MetData rain rate
+		/// rain rate
 		/// </summary>
 		public static double RainRate { get; set; } = 0;
 
@@ -167,6 +167,12 @@ namespace CumulusMX
 		public static double HeatingDegreeDays { get; set; }
 
 		public static double CoolingDegreeDays { get; set; }
+
+		public static double GrowingDegreeDaysThisYear1 { get; set; }
+
+		public static double GrowingDegreeDaysThisYear2 { get; set; }
+
+		public static double TempTotalToday { get; set; }
 
 	}
 }

@@ -2010,7 +2010,7 @@ namespace CumulusMX.Stations
 										if (data11.temp_avg.HasValue)
 										{
 											tempsamplestoday += data11.arch_int / 60;
-											TempTotalToday += ConvertUnits.TempFToUser(data11.temp_avg.Value) * data11.arch_int / 60;
+											MetData.TempTotalToday += ConvertUnits.TempFToUser(data11.temp_avg.Value) * data11.arch_int / 60;
 										}
 
 										// update chill hours

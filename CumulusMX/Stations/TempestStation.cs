@@ -158,7 +158,7 @@ namespace CumulusMX.Stations
 				DoOutdoorTemp(ConvertUnits.TempCToUser((double) historydata.Temperature), timestamp);
 				// add in 'archivePeriod' minutes worth of temperature to the temp samples
 				tempsamplestoday += historydata.ReportInterval;
-				TempTotalToday += MetData.Temperature * historydata.ReportInterval;
+				MetData.TempTotalToday += MetData.Temperature * historydata.ReportInterval;
 
 				// update chill hours
 				if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)

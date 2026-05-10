@@ -243,7 +243,7 @@ namespace CumulusMX.LogFiles
 				station.SunshineHours.ToFixed(cumulus.SunFormat),
 				MetData.Bearing.ToString(),
 				station.RG11RainToday.ToString(cumulus.RainFormat, inv),
-				station.RainSinceMidnight.ToFixed(cumulus.RainFormat),
+				MetData.RainSinceMidnight.ToFixed(cumulus.RainFormat),
 				MetData.FeelsLike.ToFixed(cumulus.TempFormat),
 				MetData.Humidex.ToFixed(cumulus.TempFormat),
 				MetData.BlackGlobeTemp.ToFixed(cumulus.TempFormat),

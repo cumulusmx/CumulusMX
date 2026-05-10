@@ -748,7 +748,7 @@ namespace CumulusMX.Stations
 
 				// add in archive period minutes worth of temperature to the temp samples
 				tempsamplestoday += intervalMins;
-				TempTotalToday += MetData.Temperature * intervalMins;
+				MetData.TempTotalToday += MetData.Temperature * intervalMins;
 
 				// add in 'following interval' minutes worth of wind speed to windrun
 				cumulus.LogMessage("Windrun: " + MetData.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + intervalMins + " minutes = " +

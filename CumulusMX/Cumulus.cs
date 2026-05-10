@@ -5000,7 +5000,7 @@ namespace CumulusMX
 					values.Append(sep + station.SunshineHours.ToString(SunFormat, inv));
 					values.Append(sep + MetData.Bearing.ToString());
 					values.Append(sep + station.RG11RainToday.ToString(RainFormat, inv));
-					values.Append(sep + station.RainSinceMidnight.ToFixed(RainFormat));
+					values.Append(sep + MetData.RainSinceMidnight.ToFixed(RainFormat));
 					values.Append(sep + "'" + station.CompassPoint(MetData.AvgBearing) + "'");
 					values.Append(sep + "'" + station.CompassPoint(MetData.Bearing) + "'");
 					values.Append(sep + MetData.FeelsLike.ToFixed(TempFormat));
