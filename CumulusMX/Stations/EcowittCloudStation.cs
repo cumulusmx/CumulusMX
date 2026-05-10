@@ -719,7 +719,7 @@ namespace CumulusMX.Stations
 					}
 
 					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(temp.Value), hum.value);
-					station.ExtraDewPoint[chan] = ConvertUnits.TempCToUser(dp);
+					MetData.ExtraDewPoint[chan] = ConvertUnits.TempCToUser(dp);
 				}
 
 				if (cumulus.SensorMaps.PrimaryTempHum == chan && temp.HasValue)

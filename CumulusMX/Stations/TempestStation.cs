@@ -163,7 +163,7 @@ namespace CumulusMX.Stations
 				// update chill hours
 				if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 					// add 1 minute to chill hours
-					ChillHours += historydata.ReportInterval / 60.0;
+					MetData.ChillHours += historydata.ReportInterval / 60.0;
 
 				var rainrate = ConvertUnits.RainMMToUser((double) historydata.Precipitation) * (60d / historydata.ReportInterval);
 

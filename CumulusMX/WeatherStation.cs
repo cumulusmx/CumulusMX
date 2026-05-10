@@ -200,11 +200,11 @@ namespace CumulusMX
 			CumulusForecast = cumulus.Trans.ForecastNotAvailable;
 			wsforecast = cumulus.Trans.ForecastNotAvailable;
 
-			ExtraTemp = new double?[17];
-			ExtraHum = new double?[17];
-			ExtraDewPoint = new double?[17];
-			UserTemp = new double?[9];
-			SoilTemp = new double?[17];
+			MetData.ExtraTemp = new double?[17];
+			MetData.ExtraHum = new double?[17];
+			MetData.ExtraDewPoint = new double?[17];
+			MetData.UserTemp = new double?[9];
+			MetData.SoilTemp = new double?[17];
 			SoilEc = new int?[17];
 
 			windcounts = new double[16];
@@ -536,15 +536,15 @@ namespace CumulusMX
 			{
 				if (midnightrainfound)
 				{
-					if (Math.Abs(MidnightRainCount - midnightraincounter) < Math.Pow(10, -cumulus.RainDPlaces))
+					if (Math.Abs(MetData.MidnightRainCount - midnightraincounter) < Math.Pow(10, -cumulus.RainDPlaces))
 					{
 						cumulus.LogMessage($"GetRainCounter: Rain day start counter {RainCounterDayStart:F4} and midnight rain counter {midnightraincounter:F4} match within rounding error, setting midnight rain to rain day start value");
-						MidnightRainCount = RainCounterDayStart;
+						MetData.MidnightRainCount = RainCounterDayStart;
 					}
 					else
 					{
-						cumulus.LogMessage($"GetRainCounter: Midnight rain counter found, setting existing midnight rain counter {MidnightRainCount:F4} to log file value {midnightraincounter:F4}");
-						MidnightRainCount = midnightraincounter;
+						cumulus.LogMessage($"GetRainCounter: Midnight rain counter found, setting existing midnight rain counter {MetData.MidnightRainCount:F4} to log file value {midnightraincounter:F4}");
+						MetData.MidnightRainCount = midnightraincounter;
 					}
 
 					initialiseMidnightRain = false;
@@ -552,7 +552,7 @@ namespace CumulusMX
 				else
 				{
 					cumulus.LogMessage("GetRainCounter: Midnight rain counter not found, setting midnight count to raindaystart = " + RainCounterDayStart);
-					MidnightRainCount = RainCounterDayStart;
+					MetData.MidnightRainCount = RainCounterDayStart;
 				}
 
 			}
@@ -563,7 +563,7 @@ namespace CumulusMX
 				//TODO: MC: Hmm are there issues here, what if the console clock is wrong and it does not reset for another hour, or it already reset and we have had rain since?
 				var month = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(cumulus.RainSeasonStart);
 				cumulus.LogMessage($"GetRainCounter: Special case, Davis station on 1st of {month}. Set midnight rain count to zero");
-				MidnightRainCount = 0;
+				MetData.MidnightRainCount = 0;
 			}
 
 			if (initialiseRainDayStart && raindaystartfound)
@@ -880,12 +880,6 @@ namespace CumulusMX
 
 		public int tempsamplestoday { get; set; }
 
-		public double ChillHours { get; set; }
-
-		public double MidnightRainCount { get; set; }
-
-		public int MidnightRainResetDay { get; set; }
-
 
 		public DateTime lastSpikeRemoval = DateTime.MinValue;
 		private double previousPress = 9999;
@@ -933,31 +927,6 @@ namespace CumulusMX
 
 			return dayfile;
 		}
-
-		/// <summary>
-		/// Extra Temps
-		/// </summary>
-		public double?[] ExtraTemp { get; set; }
-
-		/// <summary>
-		/// User allocated Temps
-		/// </summary>
-		public double?[] UserTemp { get; set; }
-
-		/// <summary>
-		/// Extra Humidity
-		/// </summary>
-		public double?[] ExtraHum { get; set; }
-
-		/// <summary>
-		/// Extra dewpoint
-		/// </summary>
-		public double?[] ExtraDewPoint { get; set; }
-
-		/// <summary>
-		/// Soil Temp 1-16 in C
-		/// </summary>
-		public double?[] SoilTemp { get; set; }
 
 		/// <summary>
 		/// Soil Electrical Conductivity 1-16 in uS/cm
@@ -1285,7 +1254,7 @@ namespace CumulusMX
 					if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 					{
 						// add 1 minute to chill hours
-						ChillHours += 1.0 / 60.0;
+						MetData.ChillHours += 1.0 / 60.0;
 					}
 
 					// update sunshine hours
@@ -5811,17 +5780,17 @@ namespace CumulusMX
 
 			var mrrmonth = timestamp.Month;
 
-			if (mrrday != MidnightRainResetDay)
+			if (mrrday != MetData.MidnightRainResetDay)
 			{
-				MidnightRainCount = RainCounter;
+				MetData.MidnightRainCount = RainCounter;
 				MetData.RainSinceMidnight = 0;
-				MidnightRainResetDay = mrrday;
+				MetData.MidnightRainResetDay = mrrday;
 				cumulus.LogMessage("Midnight rain reset, count = " + RainCounter + " time = " + timestamp.ToShortTimeString());
 				if (mrrday == 1 && mrrmonth == 1 && cumulus.StationType == StationTypes.VantagePro)
 				{
 					// special case: rain counter is about to be reset
 					cumulus.LogMessage("Special case, Davis station on 1st Jan. Set midnight rain count to zero");
-					MidnightRainCount = 0;
+					MetData.MidnightRainCount = 0;
 				}
 			}
 		}
@@ -6696,7 +6665,7 @@ namespace CumulusMX
 
 				if (initialiseMidnightRain)
 				{
-					MidnightRainCount = RainCounter;
+					MetData.MidnightRainCount = RainCounter;
 					initialiseMidnightRain = false;
 				}
 
@@ -6715,15 +6684,15 @@ namespace CumulusMX
 			// Davis VP2 console loses todays rainfall when it is power cycled
 			// so check if the current value is less than previous and has returned to the previous midnight value
 			if (Math.Round(RainCounter, cumulus.RainDPlaces) < Math.Round(previoustotal, cumulus.RainDPlaces) &&
-				Math.Abs(RainCounter - MidnightRainCount) < Math.Pow(10, -cumulus.RainDPlaces) &&
+				Math.Abs(RainCounter - MetData.MidnightRainCount) < Math.Pow(10, -cumulus.RainDPlaces) &&
 				cumulus.StationType == StationTypes.VantagePro2)
 			{
-				var counterLost = previoustotal - MidnightRainCount;
+				var counterLost = previoustotal - MetData.MidnightRainCount;
 				RainCounterDayStart -= counterLost;
-				MidnightRainCount -= counterLost;
+				MetData.MidnightRainCount -= counterLost;
 
 				cumulus.LogWarningMessage($" ****Rain counter reset to previous midnight value (VP2 console power cycled?), lost {counterLost} counts");
-				cumulus.LogWarningMessage($"     New values:  RaindayStart = {RainCounterDayStart}, MidnightRainCount = {MidnightRainCount}, Raincounter = {RainCounter}");
+				cumulus.LogWarningMessage($"     New values:  RaindayStart = {RainCounterDayStart}, MidnightRainCount = {MetData.MidnightRainCount}, Raincounter = {RainCounter}");
 
 				// update any data in the recent data db
 				//var counterChange = RainCounter - prevraincounter
@@ -6749,7 +6718,7 @@ namespace CumulusMX
 					RainCounterDayStart = RainCounter - (previoustotal - RainCounterDayStart);
 					cumulus.LogMessage("Setting RaindayStart to " + RainCounterDayStart);
 
-					MidnightRainCount = RainCounter;
+					MetData.MidnightRainCount = RainCounter;
 					previoustotal = total;
 
 					// update any data in the recent data db
@@ -6858,7 +6827,7 @@ namespace CumulusMX
 				if (MetData.RainToday < 0) MetData.RainToday = 0;
 
 				// Calculate rain since midnight for Wunderground etc
-				var trendval = RainCounter - MidnightRainCount;
+				var trendval = RainCounter - MetData.MidnightRainCount;
 
 				// Round value as some values may have been read from log file and already rounded
 				trendval = Math.Round(trendval, cumulus.RainDPlaces);
@@ -6948,33 +6917,33 @@ namespace CumulusMX
 
 		public void DoExtraHum(int? hum, int channel)
 		{
-			if (channel > 0 && channel < ExtraHum.Length)
+			if (channel > 0 && channel < MetData.ExtraHum.Length)
 			{
-				ExtraHum[channel] = hum;
+				MetData.ExtraHum[channel] = hum;
 			}
 		}
 
 		public void DoExtraTemp(double? temp, int channel)
 		{
-			if (channel > 0 && channel < ExtraTemp.Length)
+			if (channel > 0 && channel < MetData.ExtraTemp.Length)
 			{
-				ExtraTemp[channel] = temp;
+				MetData.ExtraTemp[channel] = temp;
 			}
 		}
 
 		public void DoUserTemp(double? temp, int channel)
 		{
-			if (channel > 0 && channel < UserTemp.Length)
+			if (channel > 0 && channel < MetData.UserTemp.Length)
 			{
-				UserTemp[channel] = temp;
+				MetData.UserTemp[channel] = temp;
 			}
 		}
 
 		public void DoExtraDP(double? dp, int channel)
 		{
-			if (channel > 0 && channel < ExtraDewPoint.Length)
+			if (channel > 0 && channel < MetData.ExtraDewPoint.Length)
 			{
-				ExtraDewPoint[channel] = dp;
+				MetData.ExtraDewPoint[channel] = dp;
 			}
 		}
 
@@ -8200,7 +8169,7 @@ namespace CumulusMX
 				{
 					// new year starting
 					cumulus.LogMessage(" Chill hour season starting");
-					ChillHours = 0;
+					MetData.ChillHours = 0;
 				}
 
 				if (day == 1 && month == cumulus.GrowingYearStarts)
@@ -8308,7 +8277,7 @@ namespace CumulusMX
 				DominantWindBearingY = 0;
 				DominantWindBearingMinutes = 0;
 
-				YestChillHours = ChillHours;
+				MetData.YestChillHours = MetData.ChillHours;
 				YestHeatingDegreeDays = MetData.HeatingDegreeDays;
 				YestCoolingDegreeDays = MetData.CoolingDegreeDays;
 				MetData.HeatingDegreeDays = 0;
@@ -8681,7 +8650,7 @@ namespace CumulusMX
 			strb.Append(sep + DailyHighLow.Today.LowFeelsLikeTime.ToString("HH:mm", inv));
 			strb.Append(sep + DailyHighLow.Today.HighHumidex.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + DailyHighLow.Today.HighHumidexTime.ToString("HH:mm", inv));
-			strb.Append(sep + ChillHours.ToString(cumulus.TempFormat, inv));
+			strb.Append(sep + MetData.ChillHours.ToString(cumulus.TempFormat, inv));
 			strb.Append(sep + DailyHighLow.Today.HighRain24h.ToString(cumulus.RainFormat, inv));
 			strb.Append(sep + DailyHighLow.Today.HighRain24hTime.ToString("HH:mm", inv));
 			strb.Append(sep + (DailyHighLow.Today.HighBgt == Cumulus.DefaultHiVal ? string.Empty : DailyHighLow.Today.HighBgt.ToFixed(cumulus.TempFormat)));
@@ -8789,7 +8758,7 @@ namespace CumulusMX
 				LowFeelsLikeTime = DailyHighLow.Today.LowFeelsLikeTime,
 				HighHumidex = DailyHighLow.Today.HighHumidex,
 				HighHumidexTime = DailyHighLow.Today.HighHumidexTime,
-				ChillHours = ChillHours,
+				ChillHours = MetData.ChillHours,
 				HighRain24h = DailyHighLow.Today.HighRain24h,
 				HighRain24hTime = DailyHighLow.Today.HighRain24hTime,
 				HighBgt = DailyHighLow.Today.HighBgt == Cumulus.DefaultHiVal ? null : DailyHighLow.Today.HighBgt,
@@ -8861,7 +8830,7 @@ namespace CumulusMX
 				queryString.Append(sep + DailyHighLow.Today.LowFeelsLikeTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + DailyHighLow.Today.HighHumidex.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + DailyHighLow.Today.HighHumidexTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + ChillHours.ToFixed(cumulus.TempFormat));
+				queryString.Append(sep + MetData.ChillHours.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + DailyHighLow.Today.HighRain24h.ToString(cumulus.RainFormat, inv));
 				queryString.Append(sep + DailyHighLow.Today.HighRain24hTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + (DailyHighLow.Today.HighBgt == Cumulus.DefaultHiVal ? "NULL" : DailyHighLow.Today.HighBgt.ToFixed(cumulus.TempFormat)));
@@ -9409,8 +9378,6 @@ namespace CumulusMX
 		public string ConSupplyVoltageText { get; set; }
 		public decimal CapacitorVolt { get; set; }
 		public string TxBatText { get; set; }
-
-		public double YestChillHours { get; set; }
 		public double YestHeatingDegreeDays { get; set; }
 		public double YestCoolingDegreeDays { get; set; }
 		public double TempChangeLastHour { get; set; }
@@ -10173,8 +10140,8 @@ namespace CumulusMX
 
 		public void DoSoilTemp(double? value, int index)
 		{
-			if (index > 0 && index < SoilTemp.Length)
-				SoilTemp[index] = value;
+			if (index > 0 && index < MetData.SoilTemp.Length)
+				MetData.SoilTemp[index] = value;
 		}
 
 		public void DoSoilEc(int? value, int index)
@@ -11461,14 +11428,14 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (var sensor = 1; sensor < ExtraTemp.Length; sensor++)
+			for (var sensor = 1; sensor < MetData.ExtraTemp.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraTemp.ValVisible(sensor - 1, true))
 				{
 					json.Append("[\"");
 					json.Append(cumulus.Trans.ExtraTempCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(ExtraTemp[sensor].ToFixed(cumulus.TempFormat, "-"));
+					json.Append(MetData.ExtraTemp[sensor].ToFixed(cumulus.TempFormat, "-"));
 					json.Append("\",\"&deg;");
 					json.Append(cumulus.Units.TempText[1]);
 					json.Append("\"],");
@@ -11486,14 +11453,14 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (var sensor = 1; sensor < UserTemp.Length; sensor++)
+			for (var sensor = 1; sensor < MetData.UserTemp.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.UserTemp.ValVisible(sensor - 1, true))
 				{
 					json.Append("[\"");
 					json.Append(cumulus.Trans.UserTempCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(UserTemp[sensor].ToFixed(cumulus.TempFormat, "-"));
+					json.Append(MetData.UserTemp[sensor].ToFixed(cumulus.TempFormat, "-"));
 					json.Append("\",\"&deg;");
 					json.Append(cumulus.Units.TempText[1]);
 					json.Append("\"],");
@@ -11511,14 +11478,14 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (var sensor = 1; sensor < ExtraHum.Length; sensor++)
+			for (var sensor = 1; sensor < MetData.ExtraHum.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraHum.ValVisible(sensor - 1, true))
 				{
 					json.Append("[\"");
 					json.Append(cumulus.Trans.ExtraHumCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(ExtraHum[sensor].ToFixed(cumulus.HumFormat, "-"));
+					json.Append(MetData.ExtraHum[sensor].ToFixed(cumulus.HumFormat, "-"));
 					json.Append("\",\"%\"],");
 				}
 			}
@@ -11533,14 +11500,14 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (var sensor = 1; sensor < ExtraDewPoint.Length; sensor++)
+			for (var sensor = 1; sensor < MetData.ExtraDewPoint.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.ExtraDewPoint.ValVisible(sensor - 1, true))
 				{
 					json.Append("[\"");
 					json.Append(cumulus.Trans.ExtraDPCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(ExtraDewPoint[sensor].ToFixed(cumulus.TempFormat, "-"));
+					json.Append(MetData.ExtraDewPoint[sensor].ToFixed(cumulus.TempFormat, "-"));
 					json.Append("\",\"&deg;");
 					json.Append(cumulus.Units.TempText[1]);
 					json.Append("\"],");
@@ -11681,11 +11648,11 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 2048);
 
-			for (var i = 1; i < SoilTemp.Length; i++)
+			for (var i = 1; i < MetData.SoilTemp.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilTemp.ValVisible(i - 1, true))
 				{
-					json.Append($"[\"{cumulus.Trans.SoilTempCaptions[i - 1]}\",\"{SoilTemp[i].ToFixed(cumulus.TempFormat, "-")}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
+					json.Append($"[\"{cumulus.Trans.SoilTempCaptions[i - 1]}\",\"{MetData.SoilTemp[i].ToFixed(cumulus.TempFormat, "-")}\",\"&deg;{cumulus.Units.TempText[1]}\"],");
 				}
 			}
 
@@ -14920,10 +14887,10 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 				hum = MetData.Humidity;
 				tempC = ConvertUnits.UserTempToC(MetData.Temperature);
 			}
-			else if (sensor <= 8 && ExtraHum[sensor].HasValue && ExtraTemp[sensor].HasValue)
+			else if (sensor <= 8 && MetData.ExtraHum[sensor].HasValue && MetData.ExtraTemp[sensor].HasValue)
 			{
-				hum = (int) ExtraHum[sensor].Value;
-				tempC = ConvertUnits.UserTempToC(ExtraTemp[sensor].Value);
+				hum = (int) MetData.ExtraHum[sensor].Value;
+				tempC = ConvertUnits.UserTempToC(MetData.ExtraTemp[sensor].Value);
 			}
 			else
 			{

@@ -1868,15 +1868,15 @@ namespace CumulusMX.Stations
 					{
 						if (loopData.ExtraTemp[sensor] < 255)
 						{
-							ExtraTemp[sensor] = ConvertUnits.TempFToUser(loopData.ExtraTemp[sensor] - 90);
+							MetData.ExtraTemp[sensor] = ConvertUnits.TempFToUser(loopData.ExtraTemp[sensor] - 90);
 						}
 						if (loopData.ExtraHum[sensor] <= 100)
 						{
-							ExtraHum[sensor] = loopData.ExtraHum[sensor] > 100 ? null : loopData.ExtraHum[sensor];
+							MetData.ExtraHum[sensor] = loopData.ExtraHum[sensor] > 100 ? null : loopData.ExtraHum[sensor];
 
 							if (loopData.ExtraTemp[sensor] < 255)
 							{
-								ExtraDewPoint[sensor] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[sensor].Value), ExtraHum[sensor].Value));
+								MetData.ExtraDewPoint[sensor] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(MetData.ExtraTemp[sensor].Value), MetData.ExtraHum[sensor].Value));
 							}
 						}
 					}
@@ -1889,7 +1889,7 @@ namespace CumulusMX.Stations
 						}
 						if (loopData.SoilTemp[sensor] < 255)
 						{
-							SoilTemp[sensor] = ConvertUnits.TempFToUser(loopData.SoilTemp[sensor] - 90);
+							MetData.SoilTemp[sensor] = ConvertUnits.TempFToUser(loopData.SoilTemp[sensor] - 90);
 						}
 						if (loopData.LeafWetness[sensor] >= 0 && loopData.LeafWetness[sensor] < 17)
 						{
@@ -2550,7 +2550,7 @@ namespace CumulusMX.Stations
 										if (temp < cumulus.ChillHourThreshold && temp > cumulus.ChillHourBase)
 										{
 											// add 1 minute to chill hours
-											ChillHours += interval / 60.0;
+											MetData.ChillHours += interval / 60.0;
 										}
 
 										// update heating/cooling degree days
@@ -2685,7 +2685,7 @@ namespace CumulusMX.Stations
 										if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 										{
 											// add 1 minute to chill hours
-											ChillHours += interval / 60.0;
+											MetData.ChillHours += interval / 60.0;
 										}
 
 										// update heating/cooling degree days
@@ -2794,7 +2794,7 @@ namespace CumulusMX.Stations
 										DoExtraHum(archiveData.ExtraHum1, 1);
 										if (archiveData.ExtraTemp1 < 255)
 										{
-											ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[1].Value), ExtraHum[1].Value));
+											MetData.ExtraDewPoint[1] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(MetData.ExtraTemp[1].Value), MetData.ExtraHum[1].Value));
 										}
 									}
 
@@ -2803,7 +2803,7 @@ namespace CumulusMX.Stations
 										DoExtraHum(archiveData.ExtraHum2, 2);
 										if (archiveData.ExtraTemp2 < 255)
 										{
-											ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[2].Value), ExtraHum[2].Value));
+											MetData.ExtraDewPoint[2] = ConvertUnits.TempCToUser(MeteoLib.DewPoint(ConvertUnits.UserTempToC(MetData.ExtraTemp[2].Value), MetData.ExtraHum[2].Value));
 										}
 									}
 

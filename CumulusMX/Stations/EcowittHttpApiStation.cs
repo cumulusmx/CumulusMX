@@ -282,10 +282,10 @@ namespace CumulusMX.Stations
 							// Same for extra T/H sensors
 							for (var i = 1; i <= 8; i++)
 							{
-								if (ExtraHum[i].HasValue && ExtraTemp[i].HasValue)
+								if (MetData.ExtraHum[i].HasValue && MetData.ExtraTemp[i].HasValue)
 								{
-									var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i].Value), ExtraHum[i].Value);
-									ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
+									var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(MetData.ExtraTemp[i].Value), MetData.ExtraHum[i].Value);
+									MetData.ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
 								}
 							}
 

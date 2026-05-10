@@ -376,7 +376,7 @@ namespace CumulusMX.Stations
 			DoExtraTemp(WMR928ExtraTempValues[channel], channel);
 
 			WMR928ExtraDPValues[channel] = ConvertUnits.TempCToUser(BCDchartoint(buff[7]));
-			ExtraDewPoint[channel] = ConvertUnits.TempCToUser(BCDchartoint(buff[7]));
+			MetData.ExtraDewPoint[channel] = ConvertUnits.TempCToUser(BCDchartoint(buff[7]));
 
 			if (cumulus.WMR928TempChannel == channel)
 			{

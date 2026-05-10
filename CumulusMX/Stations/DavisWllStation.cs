@@ -2017,7 +2017,7 @@ namespace CumulusMX.Stations
 										if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 										{
 											// add interval minutes to chill hours - arch_int in seconds
-											ChillHours += (data11.arch_int / 3600.0);
+											MetData.ChillHours += (data11.arch_int / 3600.0);
 										}
 
 										// update heating/cooling degree days

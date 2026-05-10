@@ -122,8 +122,8 @@ namespace CumulusMX.ThirdParty
 				Data.Append("&UV=" + MetData.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture.NumberFormat));
 			if (SendSolar && MetData.SolarRad.HasValue)
 				Data.Append("&solarradiation=" + MetData.SolarRad);
-			if (SendSoilTemp && station.SoilTemp[SoilTempSensor].HasValue)
-				Data.Append("&soiltempf=" + WeatherStation.TempFstr(station.SoilTemp[SoilTempSensor].Value));
+			if (SendSoilTemp && MetData.SoilTemp[SoilTempSensor].HasValue)
+				Data.Append("&soiltempf=" + WeatherStation.TempFstr(MetData.SoilTemp[SoilTempSensor].Value));
 			if (SendSoilMoisture && station.SoilMoisture[SoilMoistureSensor].HasValue && cumulus.Units.SoilMoistureUnitText[SoilMoistureSensor] == "%")
 				Data.Append("&soilmoisture=" + station.SoilMoisture[SoilMoistureSensor].Value);
 

@@ -1117,11 +1117,11 @@ namespace CumulusMX.Stations
 								DoExtraTemp(ConvertUnits.TempCToUser(tempInt16 / 10.0), chan);
 								if (cumulus.SensorMaps.PrimaryTempHum == chan)
 								{
-									outdoortemp = ExtraTemp[chan].Value;
+									outdoortemp = MetData.ExtraTemp[chan].Value;
 								}
 								if (cumulus.SensorMaps.PrimaryIndoorTempHum == chan)
 								{
-									DoIndoorTemp(ExtraTemp[chan].Value);
+									DoIndoorTemp(MetData.ExtraTemp[chan].Value);
 								}
 								idx += 2;
 								break;
@@ -1414,10 +1414,10 @@ namespace CumulusMX.Stations
 					// Same for extra T/H sensors
 					for (var i = 1; i <= 8; i++)
 					{
-						if (ExtraHum[i].HasValue && ExtraTemp[i].HasValue)
+						if (MetData.ExtraHum[i].HasValue && MetData.ExtraTemp[i].HasValue)
 						{
-							var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(ExtraTemp[i].Value), ExtraHum[i].Value);
-							ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
+							var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(MetData.ExtraTemp[i].Value), MetData.ExtraHum[i].Value);
+							MetData.ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
 						}
 					}
 

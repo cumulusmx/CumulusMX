@@ -321,7 +321,7 @@ namespace CumulusMX.Stations
 					if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 					// add 1 minute to chill hours
 					{
-						ChillHours += historydata.interval / 60.0;
+						MetData.ChillHours += historydata.interval / 60.0;
 					}
 				}
 

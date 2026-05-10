@@ -305,19 +305,19 @@ namespace CumulusMX.LogFiles
 
 			for (int i = 1; i <= 10; i++)
 			{
-				sb.Append(sep + station.ExtraTemp[i].ToFixed(cumulus.TempFormat));       //2-11
+				sb.Append(sep + MetData.ExtraTemp[i].ToFixed(cumulus.TempFormat));       //2-11
 			}
 			for (int i = 1; i <= 10; i++)
 			{
-				sb.Append(sep + station.ExtraHum[i].ToFixed(cumulus.HumFormat));        //12-21
+				sb.Append(sep + MetData.ExtraHum[i].ToFixed(cumulus.HumFormat));        //12-21
 			}
 			for (int i = 1; i <= 10; i++)
 			{
-				sb.Append(sep + station.ExtraDewPoint[i].ToFixed(cumulus.TempFormat));  //22-31
+				sb.Append(sep + MetData.ExtraDewPoint[i].ToFixed(cumulus.TempFormat));  //22-31
 			}
 			for (int i = 1; i <= 4; i++)
 			{
-				sb.Append(sep + station.SoilTemp[i].ToFixed(cumulus.TempFormat));     //32-35
+				sb.Append(sep + MetData.SoilTemp[i].ToFixed(cumulus.TempFormat));     //32-35
 			}
 
 			for (int i = 1; i <= 4; i++)
@@ -332,7 +332,7 @@ namespace CumulusMX.LogFiles
 
 			for (int i = 5; i <= 16; i++)
 			{
-				sb.Append(sep + station.SoilTemp[i].ToFixed(cumulus.TempFormat));     //44-55
+				sb.Append(sep + MetData.SoilTemp[i].ToFixed(cumulus.TempFormat));     //44-55
 			}
 
 			for (int i = 5; i <= 16; i++)
@@ -352,7 +352,7 @@ namespace CumulusMX.LogFiles
 
 			for (int i = 1; i < 9; i++)
 			{
-				sb.Append(sep + station.UserTemp[i].ToFixed(cumulus.TempFormat));   //76-83
+				sb.Append(sep + MetData.UserTemp[i].ToFixed(cumulus.TempFormat));   //76-83
 			}
 
 			sb.Append(sep + station.CO2.ToText());                                 //84
@@ -377,15 +377,15 @@ namespace CumulusMX.LogFiles
 
 			for (int i = 11; i <= 16; i++)
 			{
-				sb.Append(sep + station.ExtraTemp[i].ToFixed(cumulus.TempFormat));      //101-106
+				sb.Append(sep + MetData.ExtraTemp[i].ToFixed(cumulus.TempFormat));      //101-106
 			}
 			for (int i = 11; i <= 16; i++)
 			{
-				sb.Append(sep + station.ExtraHum[i].ToFixed(cumulus.HumFormat));        //107-112
+				sb.Append(sep + MetData.ExtraHum[i].ToFixed(cumulus.HumFormat));        //107-112
 			}
 			for (int i = 11; i <= 16; i++)
 			{
-				sb.Append(sep + station.ExtraDewPoint[i].ToFixed(cumulus.TempFormat));  //113-118
+				sb.Append(sep + MetData.ExtraDewPoint[i].ToFixed(cumulus.TempFormat));  //113-118
 			}
 
 			for (int i = 1; i <= 4; i++)

@@ -848,8 +848,8 @@ namespace CumulusMX.Stations
 			{
 				if (data["temp" + i + "f"] != null && data["humidity" + i] != null && (mainStation ? 0 : 1) == cumulus.SensorMaps.ExtraTempHum[i-1])
 				{
-					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(station.ExtraTemp[i].Value), station.ExtraHum[i].Value);
-					station.ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
+					var dp = MeteoLib.DewPoint(ConvertUnits.UserTempToC(MetData.ExtraTemp[i].Value), MetData.ExtraHum[i].Value);
+					MetData.ExtraDewPoint[i] = ConvertUnits.TempCToUser(dp);
 				}
 			}
 		}

@@ -63,7 +63,7 @@ namespace CumulusMX
 				MetData.ET = AnnualETTotal - StartofdayET;
 				cumulus.LogMessage("ReadTodayFile: ET today = " + MetData.ET.ToString(cumulus.ETFormat));
 			}
-			ChillHours = ini.GetValue("Temp", "ChillHours", 0.0);
+			MetData.ChillHours = ini.GetValue("Temp", "ChillHours", 0.0);
 
 			// NOAA report names
 			cumulus.NOAAconf.LatestMonthReport = ini.GetValue("NOAA", "LatestMonthlyReport", "");
@@ -132,7 +132,7 @@ namespace CumulusMX
 			DailyHighLow.Today.HighRain24hTime = ini.GetValue("Rain", "High24hTime", meteoTodayDate);
 			RainYesterday = ini.GetValue("Rain", "Yesterday", 0.0);
 			RainCounterDayStart = ini.GetValue("Rain", "Start", -1.0);
-			MidnightRainCount = ini.GetValue("Rain", "Midnight", -1.0);
+			MetData.MidnightRainCount = ini.GetValue("Rain", "Midnight", -1.0);
 			RainCounter = ini.GetValue("Rain", "Last", -1.0);
 
 			if (RainCounterDayStart < -0.5)
@@ -155,12 +155,12 @@ namespace CumulusMX
 				initialiseRainCounter = false;
 			}
 
-			if (MidnightRainCount < -0.5)
+			if (MetData.MidnightRainCount < -0.5)
 			{
 				if (cumulus.RolloverHour == 0 && !initialiseRainDayStart)
 				{
 					// midnight and rollover are the same
-					MidnightRainCount = RainCounterDayStart;
+					MetData.MidnightRainCount = RainCounterDayStart;
 					initialiseMidnightRain = false;
 				}
 				else
@@ -174,7 +174,7 @@ namespace CumulusMX
 				initialiseMidnightRain = false;
 			}
 
-			cumulus.LogMessage($"ReadTodayfile: Rain day start: {RainCounterDayStart:F4}, midnight counter: {MidnightRainCount:F4}, last counter: {RainCounter:F4}");
+			cumulus.LogMessage($"ReadTodayfile: Rain day start: {RainCounterDayStart:F4}, midnight counter: {MetData.MidnightRainCount:F4}, last counter: {RainCounter:F4}");
 
 			// humidity
 			DailyHighLow.Today.LowHumidity = ini.GetValue("Humidity", "Low", 100);
@@ -279,7 +279,7 @@ namespace CumulusMX
 				ini.SetValue("Temp", "HTime", DailyHighLow.Today.HighTempTime);
 				ini.SetValue("Temp", "Total", MetData.TempTotalToday);
 				ini.SetValue("Temp", "Samples", tempsamplestoday);
-				ini.SetValue("Temp", "ChillHours", ChillHours);
+				ini.SetValue("Temp", "ChillHours", MetData.ChillHours);
 				ini.SetValue("Temp", "HeatingDegreeDays", MetData.HeatingDegreeDays);
 				ini.SetValue("Temp", "CoolingDegreeDays", MetData.CoolingDegreeDays);
 				ini.SetValue("Temp", "GrowingDegreeDaysThisYear1", MetData.GrowingDegreeDaysThisYear1);
@@ -308,7 +308,7 @@ namespace CumulusMX
 				ini.SetValue("Rain", "High24hTime", DailyHighLow.Today.HighRain24hTime);
 				ini.SetValue("Rain", "Yesterday", RainYesterday);
 				ini.SetValue("Rain", "Start", RainCounterDayStart);
-				ini.SetValue("Rain", "Midnight", MidnightRainCount);
+				ini.SetValue("Rain", "Midnight", MetData.MidnightRainCount);
 				ini.SetValue("Rain", "Last", RainCounter);
 				ini.SetValue("Rain", "LastTip", LastRainTip);
 				ini.SetValue("Rain", "ConsecutiveRainDays", ConsecutiveRainDays);

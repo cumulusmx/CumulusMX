@@ -158,8 +158,8 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilMoisture && station.SoilMoisture[SoilMoistureSensor].HasValue && cumulus.Units.SoilMoistureUnitText[SoilMoistureSensor] == "%")
 				bodyObj.Add("soilmoisture", station.SoilMoisture[SoilMoistureSensor].Value);
 
-			if (SendSoilTemp && station.SoilTemp[SoilTempSensor].HasValue)
-				bodyObj.Add("soiltempf", ConvertUnits.UserTempToF(station.SoilTemp[SoilTempSensor].Value));
+			if (SendSoilTemp && MetData.SoilTemp[SoilTempSensor].HasValue)
+				bodyObj.Add("soiltempf", ConvertUnits.UserTempToF(MetData.SoilTemp[SoilTempSensor].Value));
 
 			if (SendSolar && MetData.SolarRad.HasValue)
 				bodyObj.Add("solarradiation", MetData.SolarRad);

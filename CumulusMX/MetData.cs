@@ -158,6 +158,10 @@ namespace CumulusMX
 		/// </summary>
 		public static double RainRate { get; set; } = 0;
 
+		public static double MidnightRainCount { get; set; }
+
+		public static int MidnightRainResetDay { get; set; }
+
 		public static double? BlackGlobeTemp { get; set; }
 
 		public static double? WetBulbGlobeTemp { get; set; }
@@ -173,6 +177,35 @@ namespace CumulusMX
 		public static double GrowingDegreeDaysThisYear2 { get; set; }
 
 		public static double TempTotalToday { get; set; }
+
+		public static double ChillHours { get; set; }
+
+		public static double YestChillHours { get; set; }
+
+		/// <summary>
+		/// Extra Temps
+		/// </summary>
+		public static double?[] ExtraTemp { get; set; }
+
+		/// <summary>
+		/// User allocated Temps
+		/// </summary>
+		public static double?[] UserTemp { get; set; }
+
+		/// <summary>
+		/// Extra Humidity
+		/// </summary>
+		public static double?[] ExtraHum { get; set; }
+
+		/// <summary>
+		/// Extra dewpoint
+		/// </summary>
+		public static double?[] ExtraDewPoint { get; set; }
+
+		/// <summary>
+		/// Soil Temp 1-16 in C
+		/// </summary>
+		public static double?[] SoilTemp { get; set; }
 
 	}
 }

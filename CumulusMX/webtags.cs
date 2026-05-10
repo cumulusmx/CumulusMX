@@ -4391,16 +4391,16 @@ namespace CumulusMX
 
 		private string TagChillHours(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.ChillHours, tagParams, 1);
+			return CheckRcDp(MetData.ChillHours, tagParams, 1);
 		}
 
 		private string TagChillHoursToday(Dictionary<string, string> tagParams)
 		{
-			if (station.YestChillHours < 0)
+			if (MetData.YestChillHours < 0)
 				return "n/a";
 
 			// subtract today from yesterday, unless it has been reset, then its just today
-			var hrs = station.ChillHours >= station.YestChillHours ? station.ChillHours - station.YestChillHours : station.ChillHours;
+			var hrs = MetData.ChillHours >= MetData.YestChillHours ? MetData.ChillHours - MetData.YestChillHours : MetData.ChillHours;
 			return CheckRcDp(hrs, tagParams, 1);
 		}
 
@@ -4419,20 +4419,20 @@ namespace CumulusMX
 
 
 			double hrs;
-			if (station.YestChillHours < 0)
+			if (MetData.YestChillHours < 0)
 				return "n/a";
 
-			if (Math.Round(station.YestChillHours, 1) >= rec.ChillHours)
-				hrs = station.YestChillHours - rec.ChillHours;
+			if (Math.Round(MetData.YestChillHours, 1) >= rec.ChillHours)
+				hrs = MetData.YestChillHours - rec.ChillHours;
 			else
-				hrs = station.YestChillHours;
+				hrs = MetData.YestChillHours;
 
 			return CheckRcDp(hrs, tagParams, 1);
 		}
 
 		private string TagYChillHours(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.YestChillHours, tagParams, 1);
+			return CheckRcDp(MetData.YestChillHours, tagParams, 1);
 		}
 
 		private string TagYSunshineHours(Dictionary<string, string> tagParams)
@@ -4553,7 +4553,7 @@ namespace CumulusMX
 
 		private string GetExtraTemp(int index, Dictionary<string, string> tagParams)
 		{
-			return station.ExtraTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.ExtraTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.ExtraTemp[index].HasValue ? CheckRcDp(CheckTempUnit(MetData.ExtraTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagExtraDp1(Dictionary<string, string> tagParams)
@@ -4642,7 +4642,7 @@ namespace CumulusMX
 
 		private string GetExtraDP(int index, Dictionary<string, string> tagParams)
 		{
-			return station.ExtraDewPoint[index].HasValue ? CheckRcDp(CheckTempUnit(station.ExtraDewPoint[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.ExtraDewPoint[index].HasValue ? CheckRcDp(CheckTempUnit(MetData.ExtraDewPoint[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagExtraHum1(Dictionary<string, string> tagParams)
@@ -4731,7 +4731,7 @@ namespace CumulusMX
 
 		private string GetExtraHum(int index, Dictionary<string, string> tagParams)
 		{
-			return station.ExtraHum[index].HasValue ? CheckRcDp(station.ExtraHum[index].Value, tagParams, cumulus.HumDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.ExtraHum[index].HasValue ? CheckRcDp(MetData.ExtraHum[index].Value, tagParams, cumulus.HumDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilTemp1(Dictionary<string, string> tagParams)
@@ -4816,7 +4816,7 @@ namespace CumulusMX
 
 		private string GetSoilTemp(int index, Dictionary<string, string> tagParams)
 		{
-			return station.SoilTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.SoilTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.SoilTemp[index].HasValue ? CheckRcDp(CheckTempUnit(MetData.SoilTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilMoisture1(Dictionary<string, string> tagParams)
@@ -5031,7 +5031,7 @@ namespace CumulusMX
 
 		private string GetUserTemp(int index, Dictionary<string, string> tagParams)
 		{
-			return station.UserTemp[index].HasValue ? CheckRcDp(CheckTempUnit(station.UserTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.UserTemp[index].HasValue ? CheckRcDp(CheckTempUnit(MetData.UserTemp[index].Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLaserDist1(Dictionary<string, string> tagParams)

@@ -1507,7 +1507,7 @@ namespace CumulusMX.Stations
 						if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 						{
 							// add 1 minute to chill hours
-							ChillHours += interval / 60.0;
+							MetData.ChillHours += interval / 60.0;
 						}
 
 						// dew point
