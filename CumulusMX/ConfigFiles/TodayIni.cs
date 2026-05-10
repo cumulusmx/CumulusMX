@@ -84,10 +84,10 @@ namespace CumulusMX
 			DailyHighLow.Today.HighGustTime = ini.GetValue("Wind", "Time", meteoTodayDate);
 			DailyHighLow.Today.HighGustBearing = ini.GetValue("Wind", "Bearing", 0);
 			MetData.WindRunToday = ini.GetValue("Wind", "Windrun", 0.0);
-			DominantWindBearing = ini.GetValue("Wind", "DominantWindBearing", 0);
-			DominantWindBearingMinutes = ini.GetValue("Wind", "DominantWindBearingMinutes", 0);
-			DominantWindBearingX = ini.GetValue("Wind", "DominantWindBearingX", 0.0);
-			DominantWindBearingY = ini.GetValue("Wind", "DominantWindBearingY", 0.0);
+			MetData.DominantWindBearing = ini.GetValue("Wind", "DominantWindBearing", 0);
+			MetData.DominantWindBearingMinutes = ini.GetValue("Wind", "DominantWindBearingMinutes", 0);
+			MetData.DominantWindBearingX = ini.GetValue("Wind", "DominantWindBearingX", 0.0);
+			MetData.DominantWindBearingY = ini.GetValue("Wind", "DominantWindBearingY", 0.0);
 
 			// Temperature
 			DailyHighLow.Today.LowTemp = ini.GetValue("Temp", "Low", 999.0);
@@ -268,10 +268,10 @@ namespace CumulusMX
 				ini.SetValue("Wind", "Bearing", DailyHighLow.Today.HighGustBearing);
 				ini.SetValue("Wind", "Direction", CompassPoint(DailyHighLow.Today.HighGustBearing));
 				ini.SetValue("Wind", "Windrun", MetData.WindRunToday);
-				ini.SetValue("Wind", "DominantWindBearing", DominantWindBearing);
-				ini.SetValue("Wind", "DominantWindBearingMinutes", DominantWindBearingMinutes);
-				ini.SetValue("Wind", "DominantWindBearingX", DominantWindBearingX);
-				ini.SetValue("Wind", "DominantWindBearingY", DominantWindBearingY);
+				ini.SetValue("Wind", "DominantWindBearing", MetData.DominantWindBearing);
+				ini.SetValue("Wind", "DominantWindBearingMinutes", MetData.DominantWindBearingMinutes);
+				ini.SetValue("Wind", "DominantWindBearingX", MetData.DominantWindBearingX);
+				ini.SetValue("Wind", "DominantWindBearingY", MetData.DominantWindBearingY);
 				// Temperature
 				ini.SetValue("Temp", "Low", DailyHighLow.Today.LowTemp);
 				ini.SetValue("Temp", "LTime", DailyHighLow.Today.LowTempTime);

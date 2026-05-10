@@ -114,6 +114,24 @@ namespace CumulusMX
 			}
 		}
 
+		public static int DominantWindBearing { get; set; }
+
+		public static int DominantWindBearingMinutes { get; set; }
+
+		public static double DominantWindBearingY { get; set; }
+
+		public static double DominantWindBearingX { get; set; }
+
+		public static int YestDominantWindBearing { get; set; }
+
+		public static int BearingRangeTo10 { get; set; }
+
+		public static int BearingRangeFrom10 { get; set; }
+
+		public static int BearingRangeTo { get; set; }
+
+		public static int BearingRangeFrom { get; set; }
+
 		/// <summary>
 		/// Wind run for today
 		/// </summary>
@@ -294,6 +312,14 @@ namespace CumulusMX
 
 		public static double RG11RainToday { get; set; }
 		public static double RG11RainYesterday { get; set; }
+
+		public static string ForecastStr { get; set; } = string.Empty;
+
+		public static string CumulusForecast { get; set; } = string.Empty;
+
+		public static string WsForecast { get; set; } = string.Empty;
+
+		public static int ForecastNumber { get; set; }
 
 	}
 }

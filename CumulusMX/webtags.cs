@@ -854,52 +854,52 @@ namespace CumulusMX
 
 		private string Tagforecastnumber(Dictionary<string, string> tagParams)
 		{
-			return station.Forecastnumber.ToString();
+			return MetData.ForecastNumber.ToString();
 		}
 
 		private string Tagforecast(Dictionary<string, string> tagParams)
 		{
-			return station.forecaststr;
+			return MetData.ForecastStr;
 		}
 
 		private string Tagforecastenc(Dictionary<string, string> tagParams)
 		{
-			return EncodeForWeb(station.forecaststr).Replace("\n", "<br>");
+			return EncodeForWeb(MetData.ForecastStr).Replace("\n", "<br>");
 		}
 
 		private string TagforecastJsEnc(Dictionary<string, string> tagParams)
 		{
-			return EncodeForJs(station.forecaststr);
+			return EncodeForJs(MetData.ForecastStr);
 		}
 
 		private string Tagcumulusforecast(Dictionary<string, string> tagParams)
 		{
-			return station.CumulusForecast;
+			return MetData.CumulusForecast;
 		}
 
 		private string Tagcumulusforecastenc(Dictionary<string, string> tagParams)
 		{
-			return EncodeForWeb(station.CumulusForecast);
+			return EncodeForWeb(MetData.CumulusForecast);
 		}
 
 		private string TagcumulusforecastJsEnc(Dictionary<string, string> tagParams)
 		{
-			return EncodeForJs(station.CumulusForecast);
+			return EncodeForJs(MetData.CumulusForecast);
 		}
 
 		private string Tagwsforecast(Dictionary<string, string> tagParams)
 		{
-			return station.wsforecast;
+			return MetData.WsForecast;
 		}
 
 		private string Tagwsforecastenc(Dictionary<string, string> tagParams)
 		{
-			return EncodeForWeb(station.wsforecast);
+			return EncodeForWeb(MetData.WsForecast);
 		}
 
 		private string TagwsforecastJsEnc(Dictionary<string, string> tagParams)
 		{
-			return EncodeForJs(station.wsforecast);
+			return EncodeForJs(MetData.WsForecast);
 		}
 
 
@@ -1034,42 +1034,42 @@ namespace CumulusMX
 
 		private string TagBearingRangeFrom(Dictionary<string, string> tagParams)
 		{
-			return station.BearingRangeFrom.ToString();
+			return MetData.BearingRangeFrom.ToString();
 		}
 
 		private string TagBearingRangeTo(Dictionary<string, string> tagParams)
 		{
-			return station.BearingRangeTo.ToString();
+			return MetData.BearingRangeTo.ToString();
 		}
 
 		private string TagBearingRangeFrom10(Dictionary<string, string> tagParams)
 		{
-			return station.BearingRangeFrom10.ToString("D3");
+			return MetData.BearingRangeFrom10.ToString("D3");
 		}
 
 		private string TagBearingRangeTo10(Dictionary<string, string> tagParams)
 		{
-			return station.BearingRangeTo10.ToString("D3");
+			return MetData.BearingRangeTo10.ToString("D3");
 		}
 
 		private string Tagdomwindbearing(Dictionary<string, string> tagParams)
 		{
-			return station.DominantWindBearing.ToString();
+			return MetData.DominantWindBearing.ToString();
 		}
 
 		private string Tagdomwinddir(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(station.DominantWindBearing);
+			return station.CompassPoint(MetData.DominantWindBearing);
 		}
 
 		private string TagdomwindbearingY(Dictionary<string, string> tagParams)
 		{
-			return station.YestDominantWindBearing.ToString();
+			return MetData.YestDominantWindBearing.ToString();
 		}
 
 		private string TagdomwinddirY(Dictionary<string, string> tagParams)
 		{
-			return station.CompassPoint(station.YestDominantWindBearing);
+			return station.CompassPoint(MetData.YestDominantWindBearing);
 		}
 
 		private string Tagbeaufort(Dictionary<string, string> tagParams)

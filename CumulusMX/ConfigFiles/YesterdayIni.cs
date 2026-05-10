@@ -16,7 +16,7 @@ namespace CumulusMX
 			DailyHighLow.Yest.HighGustBearing = ini.GetValue("Wind", "Bearing", 0);
 
 			YesterdayWindRun = ini.GetValue("Wind", "Windrun", 0.0);
-			YestDominantWindBearing = ini.GetValue("Wind", "DominantWindBearing", 0);
+			MetData.YestDominantWindBearing = ini.GetValue("Wind", "DominantWindBearing", 0);
 			// Temperature
 			DailyHighLow.Yest.LowTemp = ini.GetValue("Temp", "Low", 0.0);
 			DailyHighLow.Yest.LowTempTime = ini.GetValue("Temp", "LTime", DateTime.MinValue);
@@ -109,7 +109,7 @@ namespace CumulusMX
 			ini.SetValue("Wind", "Bearing", DailyHighLow.Yest.HighGustBearing);
 			ini.SetValue("Wind", "Direction", CompassPoint(DailyHighLow.Yest.HighGustBearing));
 			ini.SetValue("Wind", "Windrun", YesterdayWindRun);
-			ini.SetValue("Wind", "DominantWindBearing", YestDominantWindBearing);
+			ini.SetValue("Wind", "DominantWindBearing", MetData.YestDominantWindBearing);
 			// Temperature
 			ini.SetValue("Temp", "Low", DailyHighLow.Yest.LowTemp);
 			ini.SetValue("Temp", "LTime", DailyHighLow.Yest.LowTempTime);

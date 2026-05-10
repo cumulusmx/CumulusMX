@@ -196,8 +196,8 @@ namespace CumulusMX
 				Records.MonthlyRecs[i] = new Records();
 			}
 
-			CumulusForecast = cumulus.Trans.ForecastNotAvailable;
-			wsforecast = cumulus.Trans.ForecastNotAvailable;
+			MetData.CumulusForecast = cumulus.Trans.ForecastNotAvailable;
+			MetData.WsForecast = cumulus.Trans.ForecastNotAvailable;
 
 			MetData.ExtraTemp = new double?[17];
 			MetData.ExtraHum = new double?[17];
@@ -6877,11 +6877,11 @@ namespace CumulusMX
 		public void DoForecast(string forecast, bool hourly)
 		{
 			// store weather station forecast if available
-			wsforecast = forecast;
+			MetData.WsForecast = forecast;
 
 			if (cumulus.ForecastSource == 3)
 			{
-				forecaststr = string.Empty;
+				MetData.ForecastStr = string.Empty;
 			}
 			else if (cumulus.ForecastSource == 2)
 			{
@@ -6894,7 +6894,7 @@ namespace CumulusMX
 			else if (cumulus.ForecastSource == 0)
 			{
 				// user wants to display station forecast
-				forecaststr = wsforecast;
+				MetData.ForecastStr = MetData.WsForecast;
 			}
 
 			// 1 = cumulus forecast
@@ -6934,12 +6934,12 @@ namespace CumulusMX
 					hp = cumulus.FChighpress / 0.0295333727;
 				}
 
-				CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(MetData.Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
+				MetData.CumulusForecast = BetelCast(ConvertUnits.UserPressToHpa(MetData.Pressure), DateTime.Now.Month, windDir, bartrend, cumulus.Latitude > 0, hp, lp);
 
 				// user wants to display Cumulus forecast
 				if (cumulus.ForecastSource == 1)
 				{
-					forecaststr = CumulusForecast;
+					MetData.ForecastStr = MetData.CumulusForecast;
 				}
 			}
 
@@ -6947,11 +6947,6 @@ namespace CumulusMX
 			HaveReadData = true;
 		}
 
-		public string forecaststr { get; set; } = string.Empty;
-
-		public string CumulusForecast { get; set; } = string.Empty;
-
-		public string wsforecast { get; set; } = string.Empty;
 
 		public bool FirstForecastDone = false;
 
@@ -7155,12 +7150,12 @@ namespace CumulusMX
 						if (difference > diffTo)
 						{
 							diffTo = difference;
-							BearingRangeTo = WindVec[i].Bearing;
+							MetData.BearingRangeTo = WindVec[i].Bearing;
 						}
 						if (difference < diffFrom)
 						{
 							diffFrom = difference;
-							BearingRangeFrom = WindVec[i].Bearing;
+							MetData.BearingRangeFrom = WindVec[i].Bearing;
 						}
 					}
 				}
@@ -7195,23 +7190,23 @@ namespace CumulusMX
 
 			if (Math.Abs(MetData.WindAverage) < 0.01)
 			{
-				BearingRangeFrom = 0;
-				BearingRangeFrom10 = 0;
-				BearingRangeTo = 0;
-				BearingRangeTo10 = 0;
+				MetData.BearingRangeFrom = 0;
+				MetData.BearingRangeFrom10 = 0;
+				MetData.BearingRangeTo = 0;
+				MetData.BearingRangeTo10 = 0;
 			}
 			else
 			{
 				// Calculate rounded up/down values
-				BearingRangeFrom10 = (int) (Math.Floor(BearingRangeFrom / 10.0) * 10);
-				BearingRangeTo10 = (int) (Math.Ceiling(BearingRangeTo / 10.0) * 10) % 360;
-				if (cumulus.StationOptions.UseZeroBearing && BearingRangeFrom10 == 0)
+				MetData.BearingRangeFrom10 = (int) (Math.Floor(MetData.BearingRangeFrom / 10.0) * 10);
+				MetData.BearingRangeTo10 = (int) (Math.Ceiling(MetData.BearingRangeTo / 10.0) * 10) % 360;
+				if (cumulus.StationOptions.UseZeroBearing && MetData.BearingRangeFrom10 == 0)
 				{
-					BearingRangeFrom10 = 360;
+					MetData.BearingRangeFrom10 = 360;
 				}
-				if (cumulus.StationOptions.UseZeroBearing && BearingRangeTo10 == 0)
+				if (cumulus.StationOptions.UseZeroBearing && MetData.BearingRangeTo10 == 0)
 				{
-					BearingRangeTo10 = 360;
+					MetData.BearingRangeTo10 = 360;
 				}
 			}
 
@@ -7554,14 +7549,6 @@ namespace CumulusMX
 			}
 			return diff;
 		}
-
-		public int BearingRangeTo10 { get; set; }
-
-		public int BearingRangeFrom10 { get; set; }
-
-		public int BearingRangeTo { get; set; }
-
-		public int BearingRangeFrom { get; set; }
 
 		public const int maxwindvalues = 3600;
 
@@ -8197,12 +8184,12 @@ namespace CumulusMX
 				YesterdayWindRun = MetData.WindRunToday;
 				MetData.WindRunToday = 0;
 
-				YestDominantWindBearing = DominantWindBearing;
+				MetData.YestDominantWindBearing = MetData.DominantWindBearing;
 
-				DominantWindBearing = 0;
-				DominantWindBearingX = 0;
-				DominantWindBearingY = 0;
-				DominantWindBearingMinutes = 0;
+				MetData.DominantWindBearing = 0;
+				MetData.DominantWindBearingX = 0;
+				MetData.DominantWindBearingY = 0;
+				MetData.DominantWindBearingMinutes = 0;
 
 				MetData.YestChillHours = MetData.ChillHours;
 				YestHeatingDegreeDays = MetData.HeatingDegreeDays;
@@ -8564,7 +8551,7 @@ namespace CumulusMX
 			strb.Append(sep + DailyHighLow.Today.HighDewPointTime.ToString("HH:mm", inv));
 			strb.Append(sep + DailyHighLow.Today.LowDewPoint.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + DailyHighLow.Today.LowDewPointTime.ToString("HH:mm", inv));
-			strb.Append(sep + DominantWindBearing.ToString());
+			strb.Append(sep + MetData.DominantWindBearing.ToString());
 			strb.Append(sep + MetData.HeatingDegreeDays.ToString("F1", inv));
 			strb.Append(sep + MetData.CoolingDegreeDays.ToString("F1", inv));
 			strb.Append(sep + DailyHighLow.Today.HighSolar.ToString());
@@ -8672,7 +8659,7 @@ namespace CumulusMX
 				HighDewPointTime = DailyHighLow.Today.HighDewPointTime,
 				LowDewPoint = DailyHighLow.Today.LowDewPoint,
 				LowDewPointTime = DailyHighLow.Today.LowDewPointTime,
-				DominantWindBearing = DominantWindBearing,
+				DominantWindBearing = MetData.DominantWindBearing,
 				HeatingDegreeDays = MetData.HeatingDegreeDays,
 				CoolingDegreeDays = MetData.CoolingDegreeDays,
 				HighSolar = DailyHighLow.Today.HighSolar,
@@ -8742,7 +8729,7 @@ namespace CumulusMX
 				queryString.Append(sep + DailyHighLow.Today.HighDewPointTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + DailyHighLow.Today.LowDewPoint.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + DailyHighLow.Today.LowDewPointTime.ToString("\\'HH:mm\\'", inv));
-				queryString.Append(sep + DominantWindBearing.ToString());
+				queryString.Append(sep + MetData.DominantWindBearing.ToString());
 				queryString.Append(sep + MetData.HeatingDegreeDays.ToString("F1", inv));
 				queryString.Append(sep + MetData.CoolingDegreeDays.ToString("F1", inv));
 				queryString.Append(sep + DailyHighLow.Today.HighSolar.ToString());
@@ -8750,7 +8737,7 @@ namespace CumulusMX
 				queryString.Append(sep + DailyHighLow.Today.HighUv.ToString(cumulus.UVFormat, inv));
 				queryString.Append(sep + DailyHighLow.Today.HighUvTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + "'" + CompassPoint(DailyHighLow.Today.HighGustBearing) + "'");
-				queryString.Append(sep + "'" + CompassPoint(DominantWindBearing) + "'");
+				queryString.Append(sep + "'" + CompassPoint(MetData.DominantWindBearing) + "'");
 				queryString.Append(sep + DailyHighLow.Today.HighFeelsLike.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + DailyHighLow.Today.HighFeelsLikeTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + DailyHighLow.Today.LowFeelsLike.ToFixed(cumulus.TempFormat));
@@ -9235,22 +9222,22 @@ namespace CumulusMX
 
 		public void CalculateDominantWindBearing(int averageBearing, double averageSpeed, int minutes)
 		{
-			DominantWindBearingX += minutes * averageSpeed * Math.Sin(DegToRad(averageBearing));
-			DominantWindBearingY += minutes * averageSpeed * Math.Cos(DegToRad(averageBearing));
-			DominantWindBearingMinutes += minutes;
+			MetData.DominantWindBearingX += minutes * averageSpeed * Math.Sin(DegToRad(averageBearing));
+			MetData.DominantWindBearingY += minutes * averageSpeed * Math.Cos(DegToRad(averageBearing));
+			MetData.DominantWindBearingMinutes += minutes;
 
-			if (Math.Abs(DominantWindBearingX) < 0.001 && Math.Abs(DominantWindBearingY) < 0.001)
+			if (Math.Abs(MetData.DominantWindBearingX) < 0.001 && Math.Abs(MetData.DominantWindBearingY) < 0.001)
 			{
-				DominantWindBearing = 0;
+				MetData.DominantWindBearing = 0;
 			}
 			else
 			{
 				try
 				{
-					DominantWindBearing = calcavgbear(DominantWindBearingX, DominantWindBearingY);
-					if (DominantWindBearing == 0)
+					MetData.DominantWindBearing = calcavgbear(MetData.DominantWindBearingX, MetData.DominantWindBearingY);
+					if (MetData.DominantWindBearing == 0)
 					{
-						DominantWindBearing = 360;
+						MetData.DominantWindBearing = 360;
 					}
 				}
 				catch
@@ -9281,14 +9268,6 @@ namespace CumulusMX
 			cumulus.LastUpdateTime = DateTime.Now;
 		}
 
-		public int DominantWindBearing { get; set; }
-
-		public int DominantWindBearingMinutes { get; set; }
-
-		public double DominantWindBearingY { get; set; }
-
-		public double DominantWindBearingX { get; set; }
-
 		public double YesterdayWindRun { get; set; }
 		public double AnnualETTotal { get; set; }
 		public double StartofdayET { get; set; }
@@ -9299,7 +9278,6 @@ namespace CumulusMX
 		public DateTime FOStationClockTime { get; set; }
 		public DateTime FOSolarClockTime { get; set; }
 		public double YestAvgTemp { get; set; }
-		public int YestDominantWindBearing { get; set; }
 		public double RainLast24Hour { get; set; }
 		public string ConBatText { get; set; }
 		public string ConSupplyVoltageText { get; set; }
@@ -10595,19 +10573,19 @@ namespace CumulusMX
 			if (z_trend == 1)
 			{
 				// rising
-				Forecastnumber = riseOptions[z_option] + 1;
+				MetData.ForecastNumber = riseOptions[z_option] + 1;
 				z_output.Append(cumulus.Trans.zForecast[riseOptions[z_option]]);
 			}
 			else if (z_trend == 2)
 			{
 				// falling
-				Forecastnumber = fallOptions[z_option] + 1;
+				MetData.ForecastNumber = fallOptions[z_option] + 1;
 				z_output.Append(cumulus.Trans.zForecast[fallOptions[z_option]]);
 			}
 			else
 			{
 				// must be "steady"
-				Forecastnumber = steadyOptions[z_option] + 1;
+				MetData.ForecastNumber = steadyOptions[z_option] + 1;
 				z_output.Append(cumulus.Trans.zForecast[steadyOptions[z_option]]);
 			}
 			return z_output.ToString();
@@ -10625,8 +10603,6 @@ namespace CumulusMX
 				return 0.0;
 			}
 		}
-
-		public int Forecastnumber { get; set; }
 
 
 		// This overridden in each station implementation
@@ -12104,13 +12080,13 @@ namespace CumulusMX
 			json.Append("\"],");
 
 			json.Append("[\"Dominant Direction\",\"");
-			json.Append(DominantWindBearing.ToString("F0"));
-			json.Append("&nbsp;&deg;&nbsp;" + CompassPoint(DominantWindBearing));
+			json.Append(MetData.DominantWindBearing.ToString("F0"));
+			json.Append("&nbsp;&deg;&nbsp;" + CompassPoint(MetData.DominantWindBearing));
 			json.Append(sepStr);
 			json.Append("&nbsp;");
 			json.Append(sepStr);
-			json.Append(YestDominantWindBearing.ToString("F0"));
-			json.Append("&nbsp;&deg;&nbsp;" + CompassPoint(YestDominantWindBearing));
+			json.Append(MetData.YestDominantWindBearing.ToString("F0"));
+			json.Append("&nbsp;&deg;&nbsp;" + CompassPoint(MetData.YestDominantWindBearing));
 			json.Append(sepStr);
 			json.Append("&nbsp;");
 			json.Append("\"]");
@@ -14697,16 +14673,16 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			var data = new DataStruct(cumulus, MetData.Temperature, MetData.Humidity, MetData.TempTotalToday / tempsamplestoday, MetData.TemperatureIn, MetData.Dewpoint, MetData.WindChill, MetData.HumidityIn,
 				MetData.Pressure, MetData.WindLatest, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindRunToday, MetData.Bearing, MetData.AvgBearing, MetData.RainToday, MetData.RainYesterday, MetData.RainWeek, MetData.RainMonth, MetData.RainYear, MetData.RainRate,
 				MetData.RainLastHour, MetData.HeatIndex, MetData.Humidex, MetData.ApparentTemperature, temptrendval, presstrendval, DailyHighLow.Today.HighGust, DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighWind,
-				DailyHighLow.Today.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), DailyHighLow.Today.HighTemp, DailyHighLow.Today.LowTemp,
+				DailyHighLow.Today.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, MetData.BearingRangeFrom10, MetData.BearingRangeTo10, windRoseData.ToString(), DailyHighLow.Today.HighTemp, DailyHighLow.Today.LowTemp,
 				DailyHighLow.Today.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighPress, DailyHighLow.Today.LowPress, DailyHighLow.Today.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat),
 				DailyHighLow.Today.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighRainRate, DailyHighLow.Today.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighHumidity, DailyHighLow.Today.LowHumidity,
 				DailyHighLow.Today.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat), cumulus.Units.PressText, cumulus.Units.TempText, cumulus.Units.RainText,
 				DailyHighLow.Today.HighDewPoint, DailyHighLow.Today.LowDewPoint, DailyHighLow.Today.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowWindChill,
 				DailyHighLow.Today.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat), MetData.SolarRad, DailyHighLow.Today.HighSolar, DailyHighLow.Today.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat), MetData.UV, DailyHighLow.Today.HighUv,
-				DailyHighLow.Today.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat), forecaststr, getTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat),
+				DailyHighLow.Today.HighUvTime.ToString(cumulus.ProgramOptions.TimeFormat), MetData.ForecastStr, getTimeString(cumulus.SunRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.SunSetTime, cumulus.ProgramOptions.TimeFormat),
 				getTimeString(cumulus.MoonRiseTime, cumulus.ProgramOptions.TimeFormat), getTimeString(cumulus.MoonSetTime, cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighHeatIndex, DailyHighLow.Today.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighAppTemp,
 				DailyHighLow.Today.LowAppTemp, DailyHighLow.Today.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat), MetData.CurrentSolarMax,
-				Records.AllTime.HighPress.Val, Records.AllTime.LowPress.Val, MetData.SunshineHours, CompassPoint(DominantWindBearing), LastRainTip,
+				Records.AllTime.HighPress.Val, Records.AllTime.LowPress.Val, MetData.SunshineHours, CompassPoint(MetData.DominantWindBearing), LastRainTip,
 				DailyHighLow.Today.HighHourlyRain, DailyHighLow.Today.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat), "F" + Cumulus.Beaufort(DailyHighLow.Today.HighWind), "F" + Cumulus.Beaufort(MetData.WindAverage),
 				cumulus.BeaufortDesc(MetData.WindAverage), LastDataReadTimestamp, DataStopped, StormRain, stormRainStart, CloudBase, cumulus.CloudBaseInFeet ? "ft" : "m", RainLast24Hour,
 				MetData.FeelsLike, DailyHighLow.Today.HighFeelsLike, DailyHighLow.Today.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowFeelsLike, DailyHighLow.Today.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat),
