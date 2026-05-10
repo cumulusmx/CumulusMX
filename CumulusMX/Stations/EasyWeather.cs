@@ -168,7 +168,7 @@ namespace CumulusMX.Stations
 						if (lightReading >= 0 && lightReading <= 300000)
 						{
 							DoSolarRad((int) (lightReading * cumulus.SolarOptions.LuxToWM2), now);
-							LightValue = lightReading;
+							MetData.LightValue = lightReading;
 						}
 					}
 

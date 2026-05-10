@@ -5006,7 +5006,7 @@ namespace CumulusMX
 					values.Append(sep + MetData.FeelsLike.ToFixed(TempFormat));
 					values.Append(sep + MetData.Humidex.ToFixed(TempFormat));
 					values.Append(sep + MetData.BlackGlobeTemp.ToFixed(TempFormat, "NULL"));
-					values.Append(sep + station.WetBulbGlobeTemp.ToFixed(TempFormat, "NULL"));
+					values.Append(sep + MetData.WetBulbGlobeTemp.ToFixed(TempFormat, "NULL"));
 
 					values.Append(')');
 

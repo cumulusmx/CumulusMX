@@ -675,12 +675,12 @@ namespace CumulusMX
 
 		private string Tagheatdegdays(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnitAbs(station.HeatingDegreeDays, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnitAbs(MetData.HeatingDegreeDays, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string Tagcooldegdays(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckTempUnitAbs(station.CoolingDegreeDays, tagParams), tagParams, cumulus.TempDPlaces);
+			return CheckRcDp(CheckTempUnitAbs(MetData.CoolingDegreeDays, tagParams), tagParams, cumulus.TempDPlaces);
 		}
 
 		private string TagheatdegdaysY(Dictionary<string, string> tagParams)
@@ -4088,7 +4088,7 @@ namespace CumulusMX
 
 		private string TagLight(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(station.LightValue, tagParams, 1);
+			return CheckRcDp(MetData.LightValue, tagParams, 1);
 		}
 
 		private string TagUv(Dictionary<string, string> tagParams)
@@ -5585,7 +5585,7 @@ namespace CumulusMX
 
 		private string TagWetBulbGlobeTemp(Dictionary<string, string> tagParams)
 		{
-			return station.WetBulbGlobeTemp.HasValue ? CheckRcDp(station.WetBulbGlobeTemp.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.WetBulbGlobeTemp.HasValue ? CheckRcDp(MetData.WetBulbGlobeTemp.Value, tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		// Alarms

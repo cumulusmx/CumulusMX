@@ -247,7 +247,7 @@ namespace CumulusMX.LogFiles
 				MetData.FeelsLike.ToFixed(cumulus.TempFormat),
 				MetData.Humidex.ToFixed(cumulus.TempFormat),
 				MetData.BlackGlobeTemp.ToFixed(cumulus.TempFormat),
-				station.WetBulbGlobeTemp.ToFixed(cumulus.TempFormat)
+				MetData.WetBulbGlobeTemp.ToFixed(cumulus.TempFormat)
 			) + Environment.NewLine;
 		}
 	}

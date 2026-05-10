@@ -559,7 +559,7 @@ namespace CumulusMX.Stations
 								if (IsSunny)
 									SunshineHours += historydata.interval / 60.0;
 
-								LightValue = historydata.solarVal;
+								MetData.LightValue = historydata.solarVal;
 							}
 							else
 							{
@@ -648,7 +648,7 @@ namespace CumulusMX.Stations
 				}
 
 				AddRecentDataWithAq(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
-					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, WetBulbGlobeTemp);
+					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
@@ -1377,11 +1377,11 @@ namespace CumulusMX.Stations
 					{
 						if (cumulus.SensorMaps.Solar == 0)
 						{
-							LightValue = (data[16] + data[17] * 256 + data[18] * 65536) / 10.0;
+							MetData.LightValue = (data[16] + data[17] * 256 + data[18] * 65536) / 10.0;
 
-							if (LightValue < 300000)
+							if (MetData.LightValue < 300000)
 							{
-								DoSolarRad((int) (LightValue * cumulus.SolarOptions.LuxToWM2), now);
+								DoSolarRad((int) (MetData.LightValue * cumulus.SolarOptions.LuxToWM2), now);
 							}
 						}
 

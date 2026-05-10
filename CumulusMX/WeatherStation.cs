@@ -877,13 +877,6 @@ namespace CumulusMX
 
 
 		public double WindAverageUncalibrated { get; set; } = 0;
-		public double? WetBulbGlobeTemp { get; set; }
-
-		public double LightValue { get; set; }
-
-		public double HeatingDegreeDays { get; set; }
-
-		public double CoolingDegreeDays { get; set; }
 
 		public double GrowingDegreeDaysThisYear1 { get; set; }
 		public double GrowingDegreeDaysThisYear2 { get; set; }
@@ -913,11 +906,11 @@ namespace CumulusMX
 		{
 			if (MetData.Temperature < cumulus.NOAAconf.HeatThreshold)
 			{
-				HeatingDegreeDays += (cumulus.NOAAconf.HeatThreshold - MetData.Temperature) * interval / 1440;
+				MetData.HeatingDegreeDays += (cumulus.NOAAconf.HeatThreshold - MetData.Temperature) * interval / 1440;
 			}
 			if (MetData.Temperature > cumulus.NOAAconf.CoolThreshold)
 			{
-				CoolingDegreeDays += (MetData.Temperature - cumulus.NOAAconf.CoolThreshold) * interval / 1440;
+				MetData.CoolingDegreeDays += (MetData.Temperature - cumulus.NOAAconf.CoolThreshold) * interval / 1440;
 			}
 		}
 
@@ -1328,7 +1321,7 @@ namespace CumulusMX
 
 					DoTrendValues(now);
 					AddRecentDataWithAq(now, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex, MetData.Humidity,
-						MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, WetBulbGlobeTemp);
+						MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, MetData.WetBulbGlobeTemp);
 
 					UpdateAirQualityDb();
 
@@ -6488,35 +6481,35 @@ namespace CumulusMX
 
 		public void DoWBGT(double? temp, DateTime timestamp)
 		{
-			WetBulbGlobeTemp = temp;
+			MetData.WetBulbGlobeTemp = temp;
 
-			if (!WetBulbGlobeTemp.HasValue) return;
+			if (!MetData.WetBulbGlobeTemp.HasValue) return;
 
-			if (WetBulbGlobeTemp > DailyHighLow.Today.HighWbgt)
+			if (MetData.WetBulbGlobeTemp > DailyHighLow.Today.HighWbgt)
 			{
-				DailyHighLow.Today.HighWbgt = WetBulbGlobeTemp.Value;
+				DailyHighLow.Today.HighWbgt = MetData.WetBulbGlobeTemp.Value;
 				DailyHighLow.Today.HighWbgtTime = timestamp;
 				WriteTodayFile(timestamp, false);
 			}
 
-			if (WetBulbGlobeTemp > Records.ThisMonth.HighWbgt.Val)
+			if (MetData.WetBulbGlobeTemp > Records.ThisMonth.HighWbgt.Val)
 			{
-				Records.ThisMonth.HighWbgt.Val = WetBulbGlobeTemp.Value;
+				Records.ThisMonth.HighWbgt.Val = MetData.WetBulbGlobeTemp.Value;
 				Records.ThisMonth.HighWbgt.Ts = timestamp;
 				WriteMonthIniFile();
 			}
 
-			if (WetBulbGlobeTemp > Records.ThisYear.HighWbgt.Val)
+			if (MetData.WetBulbGlobeTemp > Records.ThisYear.HighWbgt.Val)
 			{
-				Records.ThisYear.HighWbgt.Val = WetBulbGlobeTemp.Value;
+				Records.ThisYear.HighWbgt.Val = MetData.WetBulbGlobeTemp.Value;
 				Records.ThisYear.HighWbgt.Ts = timestamp;
 				WriteYearIniFile();
 			}
 
-			if (WetBulbGlobeTemp > Records.AllTime.HighWbgt.Val)
-				SetAlltime(Records.AllTime.HighWbgt, WetBulbGlobeTemp.Value, timestamp);
+			if (MetData.WetBulbGlobeTemp > Records.AllTime.HighWbgt.Val)
+				SetAlltime(Records.AllTime.HighWbgt, MetData.WetBulbGlobeTemp.Value, timestamp);
 
-			CheckMonthlyAlltime("HighWbgt", WetBulbGlobeTemp.Value, true, timestamp);
+			CheckMonthlyAlltime("HighWbgt", MetData.WetBulbGlobeTemp.Value, true, timestamp);
 		}
 
 
@@ -8081,7 +8074,7 @@ namespace CumulusMX
 					Records.ThisMonth.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
 					Records.ThisMonth.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
 					Records.ThisMonth.HighBgt.Val = MetData.BlackGlobeTemp ?? Cumulus.DefaultHiVal;
-					Records.ThisMonth.HighWbgt.Val = WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
+					Records.ThisMonth.HighWbgt.Val = MetData.WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
 
 					// this month highs && lows - timestamps
 					Records.ThisMonth.HighGust.Ts = timestamp;
@@ -8155,7 +8148,7 @@ namespace CumulusMX
 					Records.ThisYear.HighDailyTempRange.Val = Cumulus.DefaultHiVal;
 					Records.ThisYear.LowDailyTempRange.Val = Cumulus.DefaultLoVal;
 					Records.ThisYear.HighBgt.Val = MetData.BlackGlobeTemp ?? Cumulus.DefaultHiVal;
-					Records.ThisYear.HighWbgt.Val = WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
+					Records.ThisYear.HighWbgt.Val = MetData.WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
 
 					// this Year highs && lows - timestamps
 					Records.ThisYear.HighGust.Ts = timestamp;
@@ -8323,10 +8316,10 @@ namespace CumulusMX
 				DominantWindBearingMinutes = 0;
 
 				YestChillHours = ChillHours;
-				YestHeatingDegreeDays = HeatingDegreeDays;
-				YestCoolingDegreeDays = CoolingDegreeDays;
-				HeatingDegreeDays = 0;
-				CoolingDegreeDays = 0;
+				YestHeatingDegreeDays = MetData.HeatingDegreeDays;
+				YestCoolingDegreeDays = MetData.CoolingDegreeDays;
+				MetData.HeatingDegreeDays = 0;
+				MetData.CoolingDegreeDays = 0;
 
 				// reset startofdayET value
 				StartofdayET = AnnualETTotal;
@@ -8418,7 +8411,7 @@ namespace CumulusMX
 				// WBGT
 				DailyHighLow.Yest.HighWbgt = DailyHighLow.Today.HighWbgt;
 				DailyHighLow.Yest.HighWbgtTime = DailyHighLow.Today.HighWbgtTime;
-				DailyHighLow.Today.HighWbgt = WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
+				DailyHighLow.Today.HighWbgt = MetData.WetBulbGlobeTemp ?? Cumulus.DefaultHiVal;
 				DailyHighLow.Today.HighWbgtTime = timestamp;
 
 				// Save the current values in case of program restart
@@ -8683,8 +8676,8 @@ namespace CumulusMX
 			strb.Append(sep + DailyHighLow.Today.LowDewPoint.ToFixed(cumulus.TempFormat));
 			strb.Append(sep + DailyHighLow.Today.LowDewPointTime.ToString("HH:mm", inv));
 			strb.Append(sep + DominantWindBearing.ToString());
-			strb.Append(sep + HeatingDegreeDays.ToString("F1", inv));
-			strb.Append(sep + CoolingDegreeDays.ToString("F1", inv));
+			strb.Append(sep + MetData.HeatingDegreeDays.ToString("F1", inv));
+			strb.Append(sep + MetData.CoolingDegreeDays.ToString("F1", inv));
 			strb.Append(sep + DailyHighLow.Today.HighSolar.ToString());
 			strb.Append(sep + DailyHighLow.Today.HighSolarTime.ToString("HH:mm", inv));
 			strb.Append(sep + DailyHighLow.Today.HighUv.ToString(cumulus.UVFormat, inv));
@@ -8791,8 +8784,8 @@ namespace CumulusMX
 				LowDewPoint = DailyHighLow.Today.LowDewPoint,
 				LowDewPointTime = DailyHighLow.Today.LowDewPointTime,
 				DominantWindBearing = DominantWindBearing,
-				HeatingDegreeDays = HeatingDegreeDays,
-				CoolingDegreeDays = CoolingDegreeDays,
+				HeatingDegreeDays = MetData.HeatingDegreeDays,
+				CoolingDegreeDays = MetData.CoolingDegreeDays,
 				HighSolar = DailyHighLow.Today.HighSolar,
 				HighSolarTime = DailyHighLow.Today.HighSolarTime,
 				HighUv = DailyHighLow.Today.HighUv,
@@ -8861,8 +8854,8 @@ namespace CumulusMX
 				queryString.Append(sep + DailyHighLow.Today.LowDewPoint.ToFixed(cumulus.TempFormat));
 				queryString.Append(sep + DailyHighLow.Today.LowDewPointTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + DominantWindBearing.ToString());
-				queryString.Append(sep + HeatingDegreeDays.ToString("F1", inv));
-				queryString.Append(sep + CoolingDegreeDays.ToString("F1", inv));
+				queryString.Append(sep + MetData.HeatingDegreeDays.ToString("F1", inv));
+				queryString.Append(sep + MetData.CoolingDegreeDays.ToString("F1", inv));
 				queryString.Append(sep + DailyHighLow.Today.HighSolar.ToString());
 				queryString.Append(sep + DailyHighLow.Today.HighSolarTime.ToString("\\'HH:mm\\'", inv));
 				queryString.Append(sep + DailyHighLow.Today.HighUv.ToString(cumulus.UVFormat, inv));
@@ -11679,7 +11672,7 @@ namespace CumulusMX
 				json.Append("\",\"");
 				json.Append(cumulus.Units.TempText);
 				json.Append("\"],[\"WBGT\",\"");
-				json.Append(WetBulbGlobeTemp.ToFixed(cumulus.TempFormat, "-"));
+				json.Append(MetData.WetBulbGlobeTemp.ToFixed(cumulus.TempFormat, "-"));
 				json.Append("\",\"");
 				json.Append(cumulus.Units.TempText);
 				json.Append("\"]]}");

@@ -160,5 +160,13 @@ namespace CumulusMX
 
 		public static double? BlackGlobeTemp { get; set; }
 
+		public static double? WetBulbGlobeTemp { get; set; }
+
+		public static double LightValue { get; set; }
+
+		public static double HeatingDegreeDays { get; set; }
+
+		public static double CoolingDegreeDays { get; set; }
+
 	}
 }

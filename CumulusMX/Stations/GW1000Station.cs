@@ -1081,9 +1081,9 @@ namespace CumulusMX.Stations
 									   // Save the Lux value
 								if (cumulus.SensorMaps.Solar == 0)
 								{
-									LightValue = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
+									MetData.LightValue = GW1000Api.ConvertBigEndianUInt32(data, idx) / 10.0;
 									// convert Lux to W/m² - approximately!
-									DoSolarRad((int) (LightValue * cumulus.SolarOptions.LuxToWM2), dateTime);
+									DoSolarRad((int) (MetData.LightValue * cumulus.SolarOptions.LuxToWM2), dateTime);
 								}
 								idx += 4;
 								break;

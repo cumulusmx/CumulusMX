@@ -421,7 +421,7 @@ namespace CumulusMX.ThirdParty
 			if (SendSolar)
 			{
 				if (cumulus.StationType == StationTypes.FineOffsetSolar)
-					sb.Append(station.LightValue.ToString("F0", InvC) + sep);                                 // 19
+					sb.Append(MetData.LightValue.ToString("F0", InvC) + sep);                                 // 19
 				else
 					sb.Append(sep);
 
