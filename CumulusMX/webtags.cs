@@ -4986,7 +4986,7 @@ namespace CumulusMX
 
 		private string GetSoilEc(int index, Dictionary<string, string> tagParams)
 		{
-			return station.SoilEc[index].HasValue ? station.SoilEc[index].ToString() : tagParams.Get("nv") ?? "-";
+			return MetData.SoilEc[index].HasValue ? MetData.SoilEc[index].ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagUserTemp1(Dictionary<string, string> tagParams)
@@ -5056,7 +5056,7 @@ namespace CumulusMX
 
 		private string GetLaserDist(int index, Dictionary<string, string> tagParams)
 		{
-			return station.LaserDist[index].HasValue ? CheckRcDp(station.LaserDist[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return MetData.LaserDist[index].HasValue ? CheckRcDp(MetData.LaserDist[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 
@@ -5082,7 +5082,7 @@ namespace CumulusMX
 
 		private string GetLaserDepth(int index, Dictionary<string, string> tagParams)
 		{
-			return station.LaserDepth[index].HasValue ? CheckRcDp(station.LaserDepth[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return MetData.LaserDepth[index].HasValue ? CheckRcDp(MetData.LaserDepth[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSnowAcc24h1(Dictionary<string, string> tagParams)
@@ -5107,7 +5107,7 @@ namespace CumulusMX
 
 		private string GetSnowAcc24h(int index,  Dictionary<string, string> tagParams)
 		{
-			return station.Snow24h[index].HasValue ? CheckRcDp(station.Snow24h[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return MetData.Snow24h[index].HasValue ? CheckRcDp(MetData.Snow24h[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSnowAccSeason(Dictionary<string, string> tagParams)
@@ -5176,7 +5176,7 @@ namespace CumulusMX
 
 		private string GetSnowAccSeason(int index, Dictionary<string, string> tagParams)
 		{
-			return station.SnowSeason[index].HasValue ? CheckRcDp(station.SnowSeason[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return MetData.SnowSeason[index].HasValue ? CheckRcDp(MetData.SnowSeason[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLaserSnowLatest1(Dictionary<string, string> tagParams)
@@ -5201,7 +5201,7 @@ namespace CumulusMX
 
 		private string GetLaserSnowLatest(int index, Dictionary<string, string> tagParams)
 		{
-			return station.LastLaserSnowDepth[index].HasValue ? CheckRcDp(ConvertUnits.LaserToSnow(station.LastLaserSnowDepth[index].Value), tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return MetData.LastLaserSnowDepth[index].HasValue ? CheckRcDp(ConvertUnits.LaserToSnow(MetData.LastLaserSnowDepth[index].Value), tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 

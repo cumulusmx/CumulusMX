@@ -364,16 +364,16 @@ namespace CumulusMX.LogFiles
 			sb.Append(sep + station.CO2_temperature.ToFixed(cumulus.TempFormat));  //90
 			sb.Append(sep + station.CO2_humidity.ToFixed("F0"));                   //91
 
-			for (int i = 1; i < station.LaserDist.Length; i++)
+			for (int i = 1; i < MetData.LaserDist.Length; i++)
 			{
-				sb.Append(sep + station.LaserDist[i].ToFixed(cumulus.LaserFormat)); //92-95
+				sb.Append(sep + MetData.LaserDist[i].ToFixed(cumulus.LaserFormat)); //92-95
 			}
-			for (int i = 1; i < station.LaserDepth.Length; i++)
+			for (int i = 1; i < MetData.LaserDepth.Length; i++)
 			{
-				sb.Append(sep + station.LaserDepth[i].ToFixed(cumulus.LaserFormat)); //96-99
+				sb.Append(sep + MetData.LaserDepth[i].ToFixed(cumulus.LaserFormat)); //96-99
 			}
 
-			sb.Append(sep + station.Snow24h[cumulus.LaserPrimarySnowSensor].ToFixed(cumulus.SnowFormat)); //100
+			sb.Append(sep + MetData.Snow24h[cumulus.LaserPrimarySnowSensor].ToFixed(cumulus.SnowFormat)); //100
 
 			for (int i = 11; i <= 16; i++)
 			{
@@ -400,7 +400,7 @@ namespace CumulusMX.LogFiles
 
 			for (int i = 1;i <= 16; i++)
 			{
-				sb.Append(sep + station.SoilEc[i].ToText()); //127-143
+				sb.Append(sep + MetData.SoilEc[i].ToText()); //127-143
 			}
 
 			sb.Append(Environment.NewLine);

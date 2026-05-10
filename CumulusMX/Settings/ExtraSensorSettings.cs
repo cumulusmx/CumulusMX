@@ -508,22 +508,22 @@ namespace CumulusMX.Settings
 					// Nullify the last laser depth so DoSnowfall will realign to any new depth value
 					if (settings.laser.sensor1.depth != cumulus.LaserDepthBaseline[1] || settings.laser.sensor1.reset)
 					{
-						station.LastLaserSnowDepth[1] = station.LaserDepth[1];
+						MetData.LastLaserSnowDepth[1] = MetData.LaserDepth[1];
 						cumulus.LaserDepthBaseline[1] = settings.laser.sensor1.depth;
 					}
 					if (settings.laser.sensor2.depth != cumulus.LaserDepthBaseline[2] || settings.laser.sensor2.reset)
 					{
-						station.LastLaserSnowDepth[2] = station.LaserDepth[2];
+						MetData.LastLaserSnowDepth[2] = MetData.LaserDepth[2];
 						cumulus.LaserDepthBaseline[2] = settings.laser.sensor2.depth;
 					}
 					if (settings.laser.sensor3.depth != cumulus.LaserDepthBaseline[3] || settings.laser.sensor3.reset)
 					{
-						station.LastLaserSnowDepth[3] = station.LaserDepth[3];
+						MetData.LastLaserSnowDepth[3] = MetData.LaserDepth[3];
 						cumulus.LaserDepthBaseline[3] = settings.laser.sensor3.depth;
 					}
 					if (settings.laser.sensor4.depth != cumulus.LaserDepthBaseline[4] || settings.laser.sensor4.reset)
 					{
-						station.LastLaserSnowDepth[4] = station.LaserDepth[4];
+						MetData.LastLaserSnowDepth[4] = MetData.LaserDepth[4];
 						cumulus.LaserDepthBaseline[4] = settings.laser.sensor4.depth;
 					}
 					cumulus.LaserIsSnowSensor[1] = settings.laser.sensor1.snow;

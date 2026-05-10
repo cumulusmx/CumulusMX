@@ -207,5 +207,23 @@ namespace CumulusMX
 		/// </summary>
 		public static double?[] SoilTemp { get; set; }
 
+		/// <summary>
+		/// Soil Electrical Conductivity 1-16 in uS/cm
+		/// </summary>
+		public static int?[] SoilEc { get; set; }
+
+		/// <summary>
+		/// Laser distance
+		/// </summary>
+		public static double?[] LaserDist { get; set; } = new double?[5];
+
+		public static double?[] LaserDepth { get; set; } = new double?[5];
+
+		public static double?[] LastLaserSnowDepth { get; set; } = new double?[5];
+
+		public static double?[] Snow24h { get; set; } = new double?[5];
+
+		public static double?[] SnowSeason { get; set; } = new double?[5];
+
 	}
 }

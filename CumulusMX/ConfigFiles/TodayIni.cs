@@ -239,11 +239,11 @@ namespace CumulusMX
 			}
 
 			// Snow accumulation
-			for (var i = 1; i < Snow24h.Length; i++)
+			for (var i = 1; i < MetData.Snow24h.Length; i++)
 			{
-				Snow24h[i] = ini.GetValue("Snow", "Snow24h" + i, (double?) null);
-				LastLaserSnowDepth[i] = ini.GetValue("Snow", "LastLaserDepth" + i, (double?) null);
-				SnowSeason[i] = ini.GetValue("Snow", "SnowSeason" + i, (double?) null);
+				MetData.Snow24h[i] = ini.GetValue("Snow", "Snow24h" + i, (double?) null);
+				MetData.LastLaserSnowDepth[i] = ini.GetValue("Snow", "LastLaserDepth" + i, (double?) null);
+				MetData.SnowSeason[i] = ini.GetValue("Snow", "SnowSeason" + i, (double?) null);
 			}
 		}
 
@@ -382,13 +382,13 @@ namespace CumulusMX
 				ini.SetValue("Lightning", "Counter", LightningCounter);
 
 				// Snow accumulation
-				for (var i = 1; i < Snow24h.Length; i++)
+				for (var i = 1; i < MetData.Snow24h.Length; i++)
 				{
 					if (cumulus.LaserIsSnowSensor[i])
 					{
-						ini.SetValue("Snow", "LastLaserDepth" + i, LastLaserSnowDepth[i]);
-						ini.SetValue("Snow", "Snow24h" + i, Snow24h[i]);
-						ini.SetValue("Snow", "SnowSeason" + i, SnowSeason[i]);
+						ini.SetValue("Snow", "LastLaserDepth" + i, MetData.LastLaserSnowDepth[i]);
+						ini.SetValue("Snow", "Snow24h" + i, MetData.Snow24h[i]);
+						ini.SetValue("Snow", "SnowSeason" + i, MetData.SnowSeason[i]);
 					}
 				}
 

@@ -205,7 +205,7 @@ namespace CumulusMX
 			MetData.ExtraDewPoint = new double?[17];
 			MetData.UserTemp = new double?[9];
 			MetData.SoilTemp = new double?[17];
-			SoilEc = new int?[17];
+			MetData.SoilEc = new int?[17];
 
 			windcounts = new double[16];
 			WindRecent = new TWindRecent[MaxWindRecent];
@@ -928,20 +928,6 @@ namespace CumulusMX
 			return dayfile;
 		}
 
-		/// <summary>
-		/// Soil Electrical Conductivity 1-16 in uS/cm
-		/// </summary>
-		public int?[] SoilEc { get; set; }
-
-		/// <summary>
-		/// Laser distance
-		/// </summary>
-		public double?[] LaserDist { get; set; } = new double?[5];
-		public double?[] LaserDepth { get; set; } = new double?[5];
-		public double?[] LastLaserSnowDepth { get; set; } = new double?[5];
-		public double?[] Snow24h { get; set; } = new double?[5];
-		public double?[] SnowSeason { get; set; } = new double?[5];
-
 		public readonly SmoothingFilter[] SnowDepthAverage = new SmoothingFilter[5];
 
 		public double RainYesterday { get; set; }
@@ -1310,9 +1296,9 @@ namespace CumulusMX
 							if (now.Hour == cumulus.SnowDepthHour && now.Minute == 0)
 							{
 								// reset the accumulated snow depth(s)
-								for (var i = 0; i < Snow24h.Length; i++)
+								for (var i = 0; i < MetData.Snow24h.Length; i++)
 								{
-									Snow24h[i] = LaserDepth[i].HasValue ? 0 : null;
+									MetData.Snow24h[i] = MetData.LaserDepth[i].HasValue ? 0 : null;
 								}
 							}
 						}
@@ -5741,7 +5727,7 @@ namespace CumulusMX
 		{
 			try
 			{
-				double? depth = LaserDepth[cumulus.SnowAutomated].HasValue ? ConvertUnits.LaserToSnow(LaserDepth[cumulus.SnowAutomated].Value) : null;
+				double? depth = MetData.LaserDepth[cumulus.SnowAutomated].HasValue ? ConvertUnits.LaserToSnow(MetData.LaserDepth[cumulus.SnowAutomated].Value) : null;
 				if (depth.HasValue && depth < 0)
 				{
 					depth = 0;
@@ -5752,7 +5738,7 @@ namespace CumulusMX
 					Date = now.Date,
 					Time = now.TimeOfDay,
 					SnowDepth = depth,
-					Snow24h = Snow24h[cumulus.SnowAutomated],
+					Snow24h = MetData.Snow24h[cumulus.SnowAutomated],
 					Entry = "Automated entry"
 				};
 
@@ -8187,7 +8173,7 @@ namespace CumulusMX
 				{
 					for (var i = 1; i <= 4; i++)
 					{
-						SnowSeason[i] = 0;
+						MetData.SnowSeason[i] = 0;
 					}
 				}
 
@@ -10146,8 +10132,8 @@ namespace CumulusMX
 
 		public void DoSoilEc(int? value, int index)
 		{
-			if (index > 0 && index < SoilEc.Length)
-				SoilEc[index] = value;
+			if (index > 0 && index < MetData.SoilEc.Length)
+				MetData.SoilEc[index] = value;
 		}
 
 		public void DoAirQuality(double? value, int index)
@@ -10357,9 +10343,9 @@ namespace CumulusMX
 
 		public void DoLaserDistance(double? value, int index, DateTime dataTime)
 		{
-			if (index > 0 && index < LaserDist.Length)
+			if (index > 0 && index < MetData.LaserDist.Length)
 			{
-				LaserDist[index] = value;
+				MetData.LaserDist[index] = value;
 
 				// calculate depth?
 				if (cumulus.LaserDepthBaseline[index] > -1)
@@ -10385,34 +10371,34 @@ namespace CumulusMX
 		/// <param name="dataTime">Timestamp associated with the reading (passed into the smoothing filter).</param>
 		public void DoLaserDepth(double? value, int index, DateTime dataTime)
 		{
-			if (index > 0 && index < LaserDepth.Length)
+			if (index > 0 && index < MetData.LaserDepth.Length)
 			{
 				var logEntry = false;
 
-				LaserDepth[index] = value;
+				MetData.LaserDepth[index] = value;
 
 				if (value.HasValue && cumulus.LaserIsSnowSensor[index])
 				{
-					if (!Snow24h[index].HasValue)
+					if (!MetData.Snow24h[index].HasValue)
 					{
-						Snow24h[index] = 0;
+						MetData.Snow24h[index] = 0;
 					}
 
-					if (!SnowSeason[index].HasValue)
+					if (!MetData.SnowSeason[index].HasValue)
 					{
-						SnowSeason[index] = 0;
+						MetData.SnowSeason[index] = 0;
 					}
 
 					// calculate a smoothed value of the depth
 					var newDepth = SnowDepthAverage[index].Update(dataTime, value.Value);
 
-					var lastDepth = LastLaserSnowDepth[index];
+					var lastDepth = MetData.LastLaserSnowDepth[index];
 					var snowInc = 0.0;
 					var laserFmtPlus1dp = "F" + (cumulus.LaserDPlaces + 1);
 
-					if (!LastLaserSnowDepth[index].HasValue)
+					if (!MetData.LastLaserSnowDepth[index].HasValue)
 					{
-						LastLaserSnowDepth[index] = newDepth;
+						MetData.LastLaserSnowDepth[index] = newDepth;
 						logEntry = true;
 					}
 					else
@@ -10436,13 +10422,13 @@ namespace CumulusMX
 #endif
 							snowSpikeTime = DateTime.UtcNow;
 						}
-						else if (depthInc < -cumulus.SnowDepthMinInc || (newDepth <= 0 && LastLaserSnowDepth[index] != newDepth))
+						else if (depthInc < -cumulus.SnowDepthMinInc || (newDepth <= 0 && MetData.LastLaserSnowDepth[index] != newDepth))
 						{
 							// decrease the last depth if less than -minIncrement or we have reached the baseline
-							LastLaserSnowDepth[index] = newDepth;
+							MetData.LastLaserSnowDepth[index] = newDepth;
 							if (cumulus.SnowLogging)
 							{
-								cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {LastLaserSnowDepth[index].Value.ToString(laserFmtPlus1dp)} {cumulus.Units.LaserDistanceText}");
+								cumulus.LogDebugMessage($"Laser #{index} snow depth decreased to: {MetData.LastLaserSnowDepth[index].Value.ToString(laserFmtPlus1dp)} {cumulus.Units.LaserDistanceText}");
 							}
 							logEntry = true;
 
@@ -10453,9 +10439,9 @@ namespace CumulusMX
 							if (depthInc < cumulus.Spike.SnowDiff)
 							{
 								snowInc = ConvertUnits.LaserToSnow(depthInc);
-								Snow24h[index] = (Snow24h[index] ?? 0) + snowInc;
-								SnowSeason[index] = (SnowSeason[index] ?? 0) + snowInc;
-								LastLaserSnowDepth[index] = newDepth;
+								MetData.Snow24h[index] = (MetData.Snow24h[index] ?? 0) + snowInc;
+								MetData.SnowSeason[index] = (MetData.SnowSeason[index] ?? 0) + snowInc;
+								MetData.LastLaserSnowDepth[index] = newDepth;
 								if (cumulus.SnowLogging)
 								{
 									cumulus.LogDebugMessage($"Laser #{index} depth increase added to snow accumulation: {depthInc.ToString(cumulus.LaserFormat)}, new value: {newDepth.ToString(cumulus.LaserFormat)} {cumulus.Units.LaserDistanceText}");
@@ -10470,9 +10456,9 @@ namespace CumulusMX
 								// If we get a spike value for more 400 seconds, then rebaseline on the new value
 								if ((DateTime.UtcNow - snowSpikeTime).TotalSeconds > 400)
 								{
-									cumulus.LogWarningMessage($"Laser #{index} has had an increase above the spike level for six or more consecutive readings. Rebaselining on the new value: {newDepth.ToString(cumulus.LaserFormat)} was: {(LastLaserSnowDepth[index] ?? 0).ToString(cumulus.LaserFormat)}");
+									cumulus.LogWarningMessage($"Laser #{index} has had an increase above the spike level for six or more consecutive readings. Rebaselining on the new value: {newDepth.ToString(cumulus.LaserFormat)} was: {(MetData.LastLaserSnowDepth[index] ?? 0).ToString(cumulus.LaserFormat)}");
 									snowSpikeTime = DateTime.UtcNow;
-									LastLaserSnowDepth[index] = newDepth;
+									MetData.LastLaserSnowDepth[index] = newDepth;
 									logEntry = true;
 								}
 							}
@@ -10536,14 +10522,14 @@ namespace CumulusMX
 								SnowLog.Info(
 									string.Join(',', [
 										DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-										LaserDist[index].ToFixed(cumulus.LaserFormat, "-"),
+										MetData.LaserDist[index].ToFixed(cumulus.LaserFormat, "-"),
 										value.ToFixed(laserFmtPlus1dp),
 										newDepth.ToFixed(laserFmtPlus1dp),
 										lastDepth.ToFixed(laserFmtPlus1dp , ""),
-										LastLaserSnowDepth[index].ToFixed(laserFmtPlus1dp, ""),
+										MetData.LastLaserSnowDepth[index].ToFixed(laserFmtPlus1dp, ""),
 										snowInc.ToFixed(cumulus.SnowFormat),
-										Snow24h[index].ToFixed(cumulus.SnowFormat, "-"),
-										SnowSeason[index].ToFixed(cumulus.SnowFormat, "-"),
+										MetData.Snow24h[index].ToFixed(cumulus.SnowFormat, "-"),
+										MetData.SnowSeason[index].ToFixed(cumulus.SnowFormat, "-"),
 										cumulus.SnowDepthMinInc.ToFixed(laserFmtPlus1dp),
 										SnowDepthAverage[index].MedianWindow.ToFixed("F1"),
 										SnowDepthAverage[index].TimeConst.ToFixed("F1"),
@@ -11525,14 +11511,14 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (var sensor = 1; sensor < LaserDepth.Length; sensor++)
+			for (var sensor = 1; sensor < MetData.LaserDepth.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.LaserDepth.ValVisible(sensor - 1, true))
 				{
 					json.Append("[\"");
 					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(LaserDepth[sensor].ToFixed(cumulus.LaserFormat, "-"));
+					json.Append(MetData.LaserDepth[sensor].ToFixed(cumulus.LaserFormat, "-"));
 					json.Append("\",\"");
 					json.Append(cumulus.Units.LaserDistanceText);
 					json.Append("\"],");
@@ -11550,14 +11536,14 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (var sensor = 1; sensor < LaserDist.Length; sensor++)
+			for (var sensor = 1; sensor < MetData.LaserDist.Length; sensor++)
 			{
 				if (cumulus.GraphOptions.Visible.LaserDist.ValVisible(sensor - 1, true))
 				{
 					json.Append("[\"");
 					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(LaserDist[sensor].ToFixed(cumulus.LaserFormat, "-"));
+					json.Append(MetData.LaserDist[sensor].ToFixed(cumulus.LaserFormat, "-"));
 					json.Append("\",\"");
 					json.Append(cumulus.Units.LaserDistanceText);
 					json.Append("\"],");
@@ -11582,7 +11568,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append($"{Snow24h[sensor].ToFixed(cumulus.SnowFormat, "-")}");
+					json.Append($"{MetData.Snow24h[sensor].ToFixed(cumulus.SnowFormat, "-")}");
 					json.Append("\",\"");
 					json.Append(cumulus.Units.SnowText);
 					json.Append("\"],");
@@ -11607,7 +11593,7 @@ namespace CumulusMX
 					json.Append("[\"");
 					json.Append(cumulus.Trans.LaserCaptions[sensor - 1]);
 					json.Append("\",\"");
-					json.Append(SnowSeason[sensor].ToFixed(cumulus.SnowFormat, "-"));
+					json.Append(MetData.SnowSeason[sensor].ToFixed(cumulus.SnowFormat, "-"));
 					json.Append("\",\"");
 					json.Append(cumulus.Units.SnowText);
 					json.Append("\"],");
@@ -11684,10 +11670,10 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (var i = 1; i < SoilEc.Length; i++)
+			for (var i = 1; i < MetData.SoilEc.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilEc.ValVisible(i - 1, true))
-					json.Append($"[\"{cumulus.Trans.SoilEcCaptions[i - 1]}\",\"{SoilEc[i].ToText("-")}\",\"μS/cm\"],");
+					json.Append($"[\"{cumulus.Trans.SoilEcCaptions[i - 1]}\",\"{MetData.SoilEc[i].ToText("-")}\",\"μS/cm\"],");
 			}
 
 			if (json[^1] == ',')
