@@ -327,8 +327,8 @@ namespace CumulusMX.LogFiles
 
 			sb.Append(sep + sep);     //40-41 - was leaf temp 1/2
 
-			sb.Append(sep + station.LeafWetness[1].ToFixed(cumulus.LeafWetFormat));    //42
-			sb.Append(sep + station.LeafWetness[2].ToFixed(cumulus.LeafWetFormat));    //43
+			sb.Append(sep + MetData.LeafWetness[1].ToFixed(cumulus.LeafWetFormat));    //42
+			sb.Append(sep + MetData.LeafWetness[2].ToFixed(cumulus.LeafWetFormat));    //43
 
 			for (int i = 5; i <= 16; i++)
 			{
@@ -355,14 +355,14 @@ namespace CumulusMX.LogFiles
 				sb.Append(sep + MetData.UserTemp[i].ToFixed(cumulus.TempFormat));   //76-83
 			}
 
-			sb.Append(sep + station.CO2.ToText());                                 //84
-			sb.Append(sep + station.CO2_24h.ToText());                             //85
-			sb.Append(sep + station.CO2_pm2p5.ToFixed("F1"));                      //86
-			sb.Append(sep + station.CO2_pm2p5_24h.ToFixed("F1"));                  //87
-			sb.Append(sep + station.CO2_pm10.ToFixed("F1"));                       //88
-			sb.Append(sep + station.CO2_pm10_24h.ToFixed("F1"));                   //89
-			sb.Append(sep + station.CO2_temperature.ToFixed(cumulus.TempFormat));  //90
-			sb.Append(sep + station.CO2_humidity.ToFixed("F0"));                   //91
+			sb.Append(sep + MetData.CO2.ToText());                                 //84
+			sb.Append(sep + MetData.CO2_24h.ToText());                             //85
+			sb.Append(sep + MetData.CO2_pm2p5.ToFixed("F1"));                      //86
+			sb.Append(sep + MetData.CO2_pm2p5_24h.ToFixed("F1"));                  //87
+			sb.Append(sep + MetData.CO2_pm10.ToFixed("F1"));                       //88
+			sb.Append(sep + MetData.CO2_pm10_24h.ToFixed("F1"));                   //89
+			sb.Append(sep + MetData.CO2_temperature.ToFixed(cumulus.TempFormat));  //90
+			sb.Append(sep + MetData.CO2_humidity.ToFixed("F0"));                   //91
 
 			for (int i = 1; i < MetData.LaserDist.Length; i++)
 			{
@@ -390,12 +390,12 @@ namespace CumulusMX.LogFiles
 
 			for (int i = 1; i <= 4; i++)
 			{
-				sb.Append(sep + station.AirQuality10[i].ToFixed("F1"));     //119-122
+				sb.Append(sep + MetData.AirQuality10[i].ToFixed("F1"));     //119-122
 			}
 
 			for (int i = 1; i <= 4; i++)
 			{
-				sb.Append(sep + station.AirQuality10Avg[i].ToFixed("F1")); //123-126
+				sb.Append(sep + MetData.AirQuality10Avg[i].ToFixed("F1")); //123-126
 			}
 
 			for (int i = 1;i <= 16; i++)

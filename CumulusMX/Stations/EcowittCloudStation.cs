@@ -817,71 +817,71 @@ namespace CumulusMX.Stations
 			{
 				if (data.indoor_co2 != null)
 				{
-					station.CO2 = data.indoor_co2.co2.value;
-					station.CO2_24h = data.indoor_co2.Avg24h.value;
+					MetData.CO2 = data.indoor_co2.co2.value;
+					MetData.CO2_24h = data.indoor_co2.Avg24h.value;
 				}
 				else if (data.co2_aqi_combo != null)
 				{
-					station.CO2 = data.co2_aqi_combo.co2.value;
-					station.CO2_24h = data.co2_aqi_combo.Avg24h.value;
+					MetData.CO2 = data.co2_aqi_combo.co2.value;
+					MetData.CO2_24h = data.co2_aqi_combo.Avg24h.value;
 				}
 				else
 				{
-					station.CO2 = null;
+					MetData.CO2 = null;
 				}
 
 				if (data.pm25_aqi_combo != null)
 				{
-					station.CO2_pm2p5 = data.pm25_aqi_combo.pm25.value;
-					station.CO2_pm2p5_aqi = station.GetAqi(AqMeasure.pm2p5, station.CO2_pm2p5);
+					MetData.CO2_pm2p5 = data.pm25_aqi_combo.pm25.value;
+					MetData.CO2_pm2p5_aqi = station.GetAqi(AqMeasure.pm2p5, MetData.CO2_pm2p5);
 					if (data.pm25_aqi_combo.AqiAvg24h != null)
 					{
 						// kludge, convert US EPA to average PM2.5
-						station.CO2_pm2p5_24h = AirQualityIndices.US_EPApm2p5toPm(data.pm25_aqi_combo.AqiAvg24h.value);
-						station.CO2_pm2p5_24h_aqi = station.GetAqi(AqMeasure.pm2p5, station.CO2_pm2p5_24h);
+						MetData.CO2_pm2p5_24h = AirQualityIndices.US_EPApm2p5toPm(data.pm25_aqi_combo.AqiAvg24h.value);
+						MetData.CO2_pm2p5_24h_aqi = station.GetAqi(AqMeasure.pm2p5, MetData.CO2_pm2p5_24h);
 					}
 					else
 					{
-						station.CO2_pm2p5_24h = null;
+						MetData.CO2_pm2p5_24h = null;
 					}
 				}
 				else
 				{
-					station.CO2_pm2p5 = null;
-					station.CO2_pm2p5_24h = null;
+					MetData.CO2_pm2p5 = null;
+					MetData.CO2_pm2p5_24h = null;
 				}
 
 
 				if (data.pm10_aqi_combo != null)
 				{
-					station.CO2_pm10 = data.pm10_aqi_combo.pm10.value;
-					station.CO2_pm10_aqi = station.GetAqi(AqMeasure.pm10, station.CO2_pm10);
+					MetData.CO2_pm10 = data.pm10_aqi_combo.pm10.value;
+					MetData.CO2_pm10_aqi = station.GetAqi(AqMeasure.pm10, MetData.CO2_pm10);
 					if (data.pm10_aqi_combo.AqiAvg24h != null)
 					{
 						// kludge, convert US EPA to average PM10
-						station.CO2_pm10_24h = AirQualityIndices.US_EPApm10toPm(data.pm10_aqi_combo.AqiAvg24h.value);
-						station.CO2_pm10_24h_aqi = station.GetAqi(AqMeasure.pm10, station.CO2_pm10_24h);
+						MetData.CO2_pm10_24h = AirQualityIndices.US_EPApm10toPm(data.pm10_aqi_combo.AqiAvg24h.value);
+						MetData.CO2_pm10_24h_aqi = station.GetAqi(AqMeasure.pm10, MetData.CO2_pm10_24h);
 					}
 					else
 					{
-						station.CO2_pm10_24h = null;
+						MetData.CO2_pm10_24h = null;
 					}
 				}
 				else
 				{
-					station.CO2_pm10 = null;
-					station.CO2_pm10_24h = null;
+					MetData.CO2_pm10 = null;
+					MetData.CO2_pm10_24h = null;
 				}
 
 				if (data.t_rh_aqi_combo != null)
 				{
-					station.CO2_temperature = data.t_rh_aqi_combo.temperature.value;
-					station.CO2_humidity = data.t_rh_aqi_combo.humidity.value;
+					MetData.CO2_temperature = data.t_rh_aqi_combo.temperature.value;
+					MetData.CO2_humidity = data.t_rh_aqi_combo.humidity.value;
 				}
 				else
 				{
-					station.CO2_temperature = null;
-					station.CO2_humidity = null;
+					MetData.CO2_temperature = null;
+					MetData.CO2_humidity = null;
 				}
 			}
 		}

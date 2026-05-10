@@ -929,39 +929,11 @@ namespace CumulusMX
 		}
 
 		public readonly SmoothingFilter[] SnowDepthAverage = new SmoothingFilter[5];
-		public double?[] AirQuality10 { get; set; } = new double?[5];
-		public double?[] AirQuality10Idx { get; set; } = new double?[5];
-		public double?[] AirQuality10Avg { get; set; } = new double?[5];
-		public double?[] AirQuality10AvgIdx { get; set; } = new double?[5];
-
-		public int? CO2 { get; set; }
-		public int? CO2_24h { get; set; }
-		public double? CO2_pm2p5 { get; set; }
-		public double? CO2_pm2p5_24h { get; set; }
-		public double? CO2_pm10 { get; set; }
-		public double? CO2_pm10_24h { get; set; }
-		public double? CO2_temperature { get; set; }
-		public double? CO2_humidity { get; set; }
-		public double? CO2_pm1 { get; set; }
-		public double? CO2_pm1_24h { get; set; }
-		public double? CO2_pm4 { get; set; }
-		public double? CO2_pm4_24h { get; set; }
-		public double? CO2_pm2p5_aqi { get; set; }
-		public double? CO2_pm2p5_24h_aqi { get; set; }
-		public double? CO2_pm10_aqi { get; set; }
-		public double? CO2_pm10_24h_aqi { get; set; }
-
-		public int? LeakSensor1 { get; set; }
-		public int? LeakSensor2 { get; set; }
-		public int? LeakSensor3 { get; set; }
-		public int? LeakSensor4 { get; set; }
 
 		public double LightningDistance { get; set; }
 		public DateTime LightningTime { get; set; } = DateTime.MinValue;
 		public int LightningCounter { get; set; } = 0;
 		public int LightningStrikesToday { get; set; } = 0;
-
-		public double?[] LeafWetness { get; set; } = new double?[9];
 
 		public double SunshineHours { get; set; } = 0;
 
@@ -8936,23 +8908,23 @@ namespace CumulusMX
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Sensor1:
 					pm2p5 = MetData.AirQuality[1];
-					pm10 = AirQuality10[1];
+					pm10 = MetData.AirQuality10[1];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Sensor2:
 					pm2p5 = MetData.AirQuality[2];
-					pm10 = AirQuality10[2];
+					pm10 = MetData.AirQuality10[2];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Sensor3:
 					pm2p5 = MetData.AirQuality[3];
-					pm10 = AirQuality10[3];
+					pm10 = MetData.AirQuality10[3];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Sensor4:
 					pm2p5 = MetData.AirQuality[4];
-					pm10 = AirQuality10[4];
+					pm10 = MetData.AirQuality10[4];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
-					pm2p5 = CO2_pm2p5;
-					pm10 = CO2_pm10;
+					pm2p5 = MetData.CO2_pm2p5;
+					pm10 = MetData.CO2_pm10;
 					break;
 
 				default: // Not enabled, use invalid values
@@ -10152,10 +10124,10 @@ namespace CumulusMX
 				Pm2p5_2 = MetData.AirQuality[2],
 				Pm2p5_3 = MetData.AirQuality[3],
 				Pm2p5_4 = MetData.AirQuality[4],
-				Pm10_1 = AirQuality10[1],
-				Pm10_2 = AirQuality10[2],
-				Pm10_3 = AirQuality10[3],
-				Pm10_4 = AirQuality10[4]
+				Pm10_1 = MetData.AirQuality10[1],
+				Pm10_2 = MetData.AirQuality10[2],
+				Pm10_3 = MetData.AirQuality10[3],
+				Pm10_4 = MetData.AirQuality10[4]
 			};
 
 			try
@@ -10211,14 +10183,14 @@ namespace CumulusMX
 
 		public void DoAirQuality10(double? value, int index)
 		{
-			AirQuality10[index] = value;
-			AirQuality10Idx[index] = GetAqi(AqMeasure.pm10, value);
+			MetData.AirQuality10[index] = value;
+			MetData.AirQuality10Idx[index] = GetAqi(AqMeasure.pm10, value);
 		}
 
 		public void DoAirQuality10Avg(double? value, int index)
 		{
-			AirQuality10Avg[index] = value;
-			AirQuality10AvgIdx[index] = GetAqi(AqMeasure.pm10h24, value);
+			MetData.AirQuality10Avg[index] = value;
+			MetData.AirQuality10AvgIdx[index] = GetAqi(AqMeasure.pm10h24, value);
 		}
 
 
@@ -10304,24 +10276,24 @@ namespace CumulusMX
 			switch (index)
 			{
 				case 1:
-					LeakSensor1 = value;
+					MetData.LeakSensor1 = value;
 					break;
 				case 2:
-					LeakSensor2 = value;
+					MetData.LeakSensor2 = value;
 					break;
 				case 3:
-					LeakSensor3 = value;
+					MetData.LeakSensor3 = value;
 					break;
 				case 4:
-					LeakSensor4 = value;
+					MetData.LeakSensor4 = value;
 					break;
 			}
 		}
 
 		public void DoLeafWetness(double? value, int index)
 		{
-			if (index > 0 && index < LeafWetness.Length)
-				LeafWetness[index] = value;
+			if (index > 0 && index < MetData.LeafWetness.Length)
+				MetData.LeafWetness[index] = value;
 
 			if (cumulus.StationOptions.LeafWetnessIsRainingIdx == index)
 			{
@@ -11691,18 +11663,18 @@ namespace CumulusMX
 						json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[i - 1]}\",\"{MetData.AirQualityAvg[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 					}
 				}
-				for (var i = 1; i < AirQuality10.Length; i++)
+				for (var i = 1; i < MetData.AirQuality10.Length; i++)
 				{
 					if (cumulus.GraphOptions.Visible.AqSensor.Pm10.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.AirQuality10Captions[i - 1]}\",\"{AirQuality10[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+						json.Append($"[\"{cumulus.Trans.AirQuality10Captions[i - 1]}\",\"{MetData.AirQuality10[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 					}
 				}
-				for (var i = 1; i < AirQuality10Avg.Length; i++)
+				for (var i = 1; i < MetData.AirQuality10Avg.Length; i++)
 				{
 					if (cumulus.GraphOptions.Visible.AqSensor.Pm10Avg.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.AirQuality10AvgCaptions[i - 1]}\",\"{AirQuality10Avg[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+						json.Append($"[\"{cumulus.Trans.AirQuality10AvgCaptions[i - 1]}\",\"{MetData.AirQuality10Avg[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 					}
 				}
 			}
@@ -11721,21 +11693,21 @@ namespace CumulusMX
 			if (cumulus.GraphOptions.Visible.CO2Sensor.IsVisible(local))
 			{
 				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_CurrentCaption}\",\"{CO2.ToText("-")}\",\"{cumulus.Units.CO2UnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_CurrentCaption}\",\"{MetData.CO2.ToText("-")}\",\"{cumulus.Units.CO2UnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.CO2Avg.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_24HourCaption}\",\"{CO2_24h.ToText("-")}\",\"{cumulus.Units.CO2UnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_24HourCaption}\",\"{MetData.CO2_24h.ToText("-")}\",\"{cumulus.Units.CO2UnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm2p5Caption}\",\"{CO2_pm2p5.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm2p5Caption}\",\"{MetData.CO2_pm2p5.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm25Avg.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm2p5_24hrCaption}\",\"{CO2_pm2p5_24h.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm2p5_24hrCaption}\",\"{MetData.CO2_pm2p5_24h.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm10Caption}\",\"{CO2_pm10.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm10Caption}\",\"{MetData.CO2_pm10.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Pm10Avg.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{CO2_pm10_24h.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_pm10_24hrCaption}\",\"{MetData.CO2_pm10_24h.ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Temp.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_TemperatureCaption}\",\"{CO2_temperature.ToFixed(cumulus.TempFormat, "-")}\",\"{cumulus.Units.TempText}\"],");
+					json.Append($"[\"{cumulus.Trans.CO2_TemperatureCaption}\",\"{MetData.CO2_temperature.ToFixed(cumulus.TempFormat, "-")}\",\"{cumulus.Units.TempText}\"],");
 				if (cumulus.GraphOptions.Visible.CO2Sensor.Hum.IsVisible(local))
-					json.Append($"[\"{cumulus.Trans.CO2_HumidityCaption}\",\"{CO2_humidity.ToFixed("F0", "-")}\",\"%\"]");
+					json.Append($"[\"{cumulus.Trans.CO2_HumidityCaption}\",\"{MetData.CO2_humidity.ToFixed("F0", "-")}\",\"%\"]");
 			}
 
 			if (json[^1] == ',')
@@ -11761,11 +11733,11 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 256);
 			if (cumulus.GraphOptions.Visible.LeafWetness.IsVisible(local))
 			{
-				for (var i = 1; i < LeafWetness.Length; i++)
+				for (var i = 1; i < MetData.LeafWetness.Length; i++)
 				{
 					if (cumulus.GraphOptions.Visible.LeafWetness.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[i - 1]}\",\"{LeafWetness[i].ToFixed(cumulus.LeafWetFormat, "-")}\",\"{cumulus.Units.LeafWetnessUnitText[i - 1]}\"],");
+						json.Append($"[\"{cumulus.Trans.LeafWetnessCaptions[i - 1]}\",\"{MetData.LeafWetness[i].ToFixed(cumulus.LeafWetFormat, "-")}\",\"{cumulus.Units.LeafWetnessUnitText[i - 1]}\"],");
 					}
 				}
 			}

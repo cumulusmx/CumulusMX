@@ -1342,8 +1342,8 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.SensorMaps.CO2Enabled && cumulus.SensorMaps.CO2 == stationIndex)
 					{
-						CO2 = sensor.CO2;
-						CO2_24h = sensor.CO2_24H;
+						MetData.CO2 = sensor.CO2;
+						MetData.CO2_24h = sensor.CO2_24H;
 					}
 				}
 				catch (Exception ex)
@@ -1677,29 +1677,29 @@ namespace CumulusMX.Stations
 
 					if (sensor.temp.HasValue && !string.IsNullOrEmpty(sensor.unit))
 					{
-						CO2_temperature = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
+						MetData.CO2_temperature = sensor.unit == "C" ? ConvertUnits.TempCToUser(sensor.temp.Value) : ConvertUnits.TempFToUser(sensor.temp.Value);
 					}
 					else
 					{
-						CO2_temperature = null;
+						MetData.CO2_temperature = null;
 					}
 					// humidty sent as "value%"
-					CO2_humidity = sensor.humidityVal;
+					MetData.CO2_humidity = sensor.humidityVal;
 
-					CO2_pm2p5 = sensor.PM25;
-					CO2_pm2p5_24h = sensor.PM25_24H;
+					MetData.CO2_pm2p5 = sensor.PM25;
+					MetData.CO2_pm2p5_24h = sensor.PM25_24H;
 
-					CO2_pm10 = sensor.PM10;
-					CO2_pm10_24h = sensor.PM10_24H;
+					MetData.CO2_pm10 = sensor.PM10;
+					MetData.CO2_pm10_24h = sensor.PM10_24H;
 
-					CO2_pm1 = sensor.PM1;
-					CO2_pm1_24h = sensor.PM1_24H;
+					MetData.CO2_pm1 = sensor.PM1;
+					MetData.CO2_pm1_24h = sensor.PM1_24H;
 
-					CO2_pm4 = sensor.PM4;
-					CO2_pm4_24h = sensor.PM4_24H;
+					MetData.CO2_pm4 = sensor.PM4;
+					MetData.CO2_pm4_24h = sensor.PM4_24H;
 
-					CO2 = sensor.CO2;
-					CO2_24h = sensor.CO2_24H;
+					MetData.CO2 = sensor.CO2;
+					MetData.CO2_24h = sensor.CO2_24H;
 				}
 				catch (Exception ex)
 				{
@@ -1708,10 +1708,10 @@ namespace CumulusMX.Stations
 			}
 
 
-			CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5);
-			CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5_24h);
-			CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
-			CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10, CO2_pm10_24h);
+			MetData.CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, MetData.CO2_pm2p5);
+			MetData.CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5, MetData.CO2_pm2p5_24h);
+			MetData.CO2_pm10_aqi = GetAqi(AqMeasure.pm10, MetData.CO2_pm10);
+			MetData.CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10, MetData.CO2_pm10_24h);
 		}
 
 		private void ProcessChPm25(EcowittLocalApi.ChPm25Sensor[] sensors)

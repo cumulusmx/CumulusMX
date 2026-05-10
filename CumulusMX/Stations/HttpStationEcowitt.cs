@@ -1467,40 +1467,40 @@ namespace CumulusMX.Stations
 
 			if (stationIndex != cumulus.SensorMaps.CO2) return;
 
-			station.CO2_temperature = data["tf_co2"] != null ? ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_co2"], invNum)) : null;
-			station.CO2_humidity = data["humi_co2"] != null ? Convert.ToInt32(data["humi_co2"], invNum) : null;
-			station.CO2_pm2p5 = data["pm25_co2"] != null ? Convert.ToDouble(data["pm25_co2"], invNum) : null;
-			station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
-			station.CO2_pm2p5_24h = data["pm25_24h_co2"] != null ? Convert.ToDouble(data["pm25_24h_co2"], invNum) : null;
-			station.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5h24, station.CO2_pm2p5_24h);
-			station.CO2_pm10 = data["pm10_co2"] != null ? Convert.ToDouble(data["pm10_co2"], invNum) : null;
-			station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
-			station.CO2_pm10_24h = data["pm10_24h_co2"] != null ? Convert.ToDouble(data["pm10_24h_co2"], invNum) : null;
-			station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10h24, station.CO2_pm10_24h);
+			MetData.CO2_temperature = data["tf_co2"] != null ? ConvertUnits.TempFToUser(Convert.ToDouble(data["tf_co2"], invNum)) : null;
+			MetData.CO2_humidity = data["humi_co2"] != null ? Convert.ToInt32(data["humi_co2"], invNum) : null;
+			MetData.CO2_pm2p5 = data["pm25_co2"] != null ? Convert.ToDouble(data["pm25_co2"], invNum) : null;
+			MetData.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, MetData.CO2_pm2p5);
+			MetData.CO2_pm2p5_24h = data["pm25_24h_co2"] != null ? Convert.ToDouble(data["pm25_24h_co2"], invNum) : null;
+			MetData.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5h24, MetData.CO2_pm2p5_24h);
+			MetData.CO2_pm10 = data["pm10_co2"] != null ? Convert.ToDouble(data["pm10_co2"], invNum) : null;
+			MetData.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, MetData.CO2_pm10);
+			MetData.CO2_pm10_24h = data["pm10_24h_co2"] != null ? Convert.ToDouble(data["pm10_24h_co2"], invNum) : null;
+			MetData.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10h24, MetData.CO2_pm10_24h);
 			if (data["co2"] != null) // CO2 sensor
 			{
-				station.CO2 = Convert.ToInt32(data["co2"], invNum);
+				MetData.CO2 = Convert.ToInt32(data["co2"], invNum);
 			}
 			else if (data["co2in"] != null) // WS3900 console
 			{
-				station.CO2 = Convert.ToInt32(data["co2in"], invNum);
+				MetData.CO2 = Convert.ToInt32(data["co2in"], invNum);
 			}
 			else
 			{
-				station.CO2 = null;
+				MetData.CO2 = null;
 			}
 
 			if (data["co2_24h"] != null) // CO2 sensor
 			{
-				station.CO2_24h = Convert.ToInt32(data["co2_24h"], invNum);
+				MetData.CO2_24h = Convert.ToInt32(data["co2_24h"], invNum);
 			}
 			else if (data["co2in_24h"] != null) // WS3900 console
 			{
-				station.CO2_24h = Convert.ToInt32(data["co2in_24h"], invNum);
+				MetData.CO2_24h = Convert.ToInt32(data["co2in_24h"], invNum);
 			}
 			else
 			{
-				station.CO2_24h = null;
+				MetData.CO2_24h = null;
 			}
 		}
 

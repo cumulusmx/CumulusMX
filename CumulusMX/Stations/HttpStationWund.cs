@@ -471,14 +471,14 @@ namespace CumulusMX.Stations
 					var str2 = data["AqPM2.5"];
 					if (str2 != null && str2 != "-9999")
 					{
-						CO2_pm2p5 = Convert.ToDouble(str2, CultureInfo.InvariantCulture);
-						CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5);
+						MetData.CO2_pm2p5 = Convert.ToDouble(str2, CultureInfo.InvariantCulture);
+						MetData.CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, MetData.CO2_pm2p5);
 					}
 					var str10 = data["AqPM10"];
 					if (str10 != null && str10 != "-9999")
 					{
-						CO2_pm10 = Convert.ToDouble(str10, CultureInfo.InvariantCulture);
-						CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
+						MetData.CO2_pm10 = Convert.ToDouble(str10, CultureInfo.InvariantCulture);
+						MetData.CO2_pm10_aqi = GetAqi(AqMeasure.pm10, MetData.CO2_pm10);
 					}
 				}
 				catch (Exception ex)

@@ -1723,23 +1723,23 @@ namespace CumulusMX.Stations
 
 			try
 			{
-				CO2_temperature = ConvertUnits.TempCToUser(GW1000Api.ConvertBigEndianInt16(data, idx) / 10.0);
+				MetData.CO2_temperature = ConvertUnits.TempCToUser(GW1000Api.ConvertBigEndianInt16(data, idx) / 10.0);
 				idx += 2;
-				CO2_humidity = data[idx++];
-				CO2_pm10 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_humidity = data[idx++];
+				MetData.CO2_pm10 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2_pm10_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_pm10_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2_pm2p5 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_pm2p5 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2_pm2p5_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_pm2p5_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2 = GW1000Api.ConvertBigEndianUInt16(data, idx);
+				MetData.CO2 = GW1000Api.ConvertBigEndianUInt16(data, idx);
 				idx += 2;
-				CO2_24h = GW1000Api.ConvertBigEndianUInt16(data, idx);
+				MetData.CO2_24h = GW1000Api.ConvertBigEndianUInt16(data, idx);
 				idx += 2;
 				var batt = TestBattery3(data[idx]);
-				var msg = $"WH45 CO₂: temp={CO2_temperature.Value.ToString(cumulus.TempFormat)}, hum={CO2_humidity}, pm10={CO2_pm10:F1}, pm10_24h={CO2_pm10_24h:F1}, pm2.5={CO2_pm2p5:F1}, pm2.5_24h={CO2_pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}";
+				var msg = $"WH45 CO₂: temp={MetData.CO2_temperature.Value.ToString(cumulus.TempFormat)}, hum={MetData.CO2_humidity}, pm10={MetData.CO2_pm10:F1}, pm10_24h={MetData.CO2_pm10_24h:F1}, pm2.5={MetData.CO2_pm2p5:F1}, pm2.5_24h={MetData.CO2_pm2p5_24h:F1}, CO₂={MetData.CO2}, CO₂_24h={MetData.CO2_24h}";
 				if (batt == "Low")
 				{
 					batteryLow = true;
@@ -1767,39 +1767,39 @@ namespace CumulusMX.Stations
 
 			try
 			{
-				CO2_temperature = ConvertUnits.TempCToUser(GW1000Api.ConvertBigEndianInt16(data, idx) / 10.0);
+				MetData.CO2_temperature = ConvertUnits.TempCToUser(GW1000Api.ConvertBigEndianInt16(data, idx) / 10.0);
 				idx += 2;
-				CO2_humidity = data[idx++];
-				CO2_pm10 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_humidity = data[idx++];
+				MetData.CO2_pm10 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2_pm10_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_pm10_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2_pm2p5 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_pm2p5 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2_pm2p5_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_pm2p5_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2 = GW1000Api.ConvertBigEndianUInt16(data, idx);
+				MetData.CO2 = GW1000Api.ConvertBigEndianUInt16(data, idx);
 				idx += 2;
-				CO2_24h = GW1000Api.ConvertBigEndianUInt16(data, idx);
+				MetData.CO2_24h = GW1000Api.ConvertBigEndianUInt16(data, idx);
 				idx += 2;
-				CO2_pm1 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_pm1 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2_pm1_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_pm1_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2_pm4 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_pm4 = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				CO2_pm4_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
+				MetData.CO2_pm4_24h = GW1000Api.ConvertBigEndianUInt16(data, idx) / 10.0;
 				idx += 2;
-				var msg = $"WH45 CO₂ New: temp={CO2_temperature.Value.ToString(cumulus.TempFormat)}, hum={CO2_humidity}, pm10={CO2_pm10:F1}, pm10_24h={CO2_pm10_24h:F1}, pm2.5={CO2_pm2p5:F1}, pm2.5_24h={CO2_pm2p5_24h:F1}, CO₂={CO2}, CO₂_24h={CO2_24h}, pm1={CO2_pm1:F1}, pm1_24h={CO2_pm1_24h:F1}, pm4={CO2_pm4:F1}, pm4_24h={CO2_pm4_24h:F1}";
+				var msg = $"WH45 CO₂ New: temp={MetData.CO2_temperature.Value.ToString(cumulus.TempFormat)}, hum={MetData.CO2_humidity}, pm10={MetData.CO2_pm10:F1}, pm10_24h={MetData.CO2_pm10_24h:F1}, pm2.5={MetData.CO2_pm2p5:F1}, pm2.5_24h={MetData.CO2_pm2p5_24h:F1}, CO₂={MetData.CO2}, CO₂_24h={MetData.CO2_24h}, pm1={MetData.CO2_pm1:F1}, pm1_24h={MetData.CO2_pm1_24h:F1}, pm4={MetData.CO2_pm4:F1}, pm4_24h={MetData.CO2_pm4_24h:F1}";
 				var batt = TestBattery3(data[idx]);
 				batteryLow = batt == "Low";
 				msg += $", Battery={batt}";
 				cumulus.LogDebugMessage(msg);
 
-				CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, CO2_pm2p5);
-				CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5h24, CO2_pm2p5_24h);
-				CO2_pm10_aqi = GetAqi(AqMeasure.pm10, CO2_pm10);
-				CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10h24, CO2_pm10_24h);
+				MetData.CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, MetData.CO2_pm2p5);
+				MetData.CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5h24, MetData.CO2_pm2p5_24h);
+				MetData.CO2_pm10_aqi = GetAqi(AqMeasure.pm10, MetData.CO2_pm10);
+				MetData.CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10h24, MetData.CO2_pm10_24h);
 			}
 			catch (Exception ex)
 			{

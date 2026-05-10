@@ -1893,7 +1893,7 @@ namespace CumulusMX.Stations
 						}
 						if (loopData.LeafWetness[sensor] >= 0 && loopData.LeafWetness[sensor] < 17)
 						{
-							LeafWetness[sensor] = loopData.LeafWetness[sensor];
+							MetData.LeafWetness[sensor] = loopData.LeafWetness[sensor];
 						}
 					}
 				}

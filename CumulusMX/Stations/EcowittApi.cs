@@ -2375,7 +2375,7 @@ namespace CumulusMX.Stations
 			// === Indoor CO2 ===
 			try
 			{
-				station.CO2 = rec.Value.IndoorCo2;
+				MetData.CO2 = rec.Value.IndoorCo2;
 			}
 			catch (Exception ex)
 			{
@@ -2385,7 +2385,7 @@ namespace CumulusMX.Stations
 			// === Indoor CO2 24hr avg ===
 			try
 			{
-				station.CO2_24h = rec.Value.IndoorCo2hr24;
+				MetData.CO2_24h = rec.Value.IndoorCo2hr24;
 			}
 			catch (Exception ex)
 			{
@@ -2397,7 +2397,7 @@ namespace CumulusMX.Stations
 			{
 				if (rec.Value.CO2.HasValue && !rec.Value.IndoorCo2.HasValue)
 				{
-					station.CO2 = rec.Value.CO2;
+					MetData.CO2 = rec.Value.CO2;
 				}
 			}
 			catch (Exception ex)
@@ -2410,7 +2410,7 @@ namespace CumulusMX.Stations
 			{
 				if (rec.Value.CO2hr24.HasValue && !rec.Value.IndoorCo2hr24.HasValue)
 				{
-					station.CO2_24h = rec.Value.CO2hr24;
+					MetData.CO2_24h = rec.Value.CO2hr24;
 				}
 			}
 			catch (Exception ex)
@@ -2421,8 +2421,8 @@ namespace CumulusMX.Stations
 			// === PM 2.5 Combo ===
 			try
 			{
-				station.CO2_pm2p5 = (double?) rec.Value.CO2Pm2p5;
-				station.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5);
+				MetData.CO2_pm2p5 = (double?) rec.Value.CO2Pm2p5;
+				MetData.CO2_pm2p5_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, MetData.CO2_pm2p5);
 			}
 			catch (Exception ex)
 			{
@@ -2432,8 +2432,8 @@ namespace CumulusMX.Stations
 			// === PM 2.5 Combo 24h ===
 			try
 			{
-				station.CO2_pm2p5_24h = (double?) rec.Value.CO2Pm2p5Avg;
-				station.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, station.CO2_pm2p5_24h);
+				MetData.CO2_pm2p5_24h = (double?) rec.Value.CO2Pm2p5Avg;
+				MetData.CO2_pm2p5_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm2p5, MetData.CO2_pm2p5_24h);
 			}
 			catch (Exception ex)
 			{
@@ -2443,8 +2443,8 @@ namespace CumulusMX.Stations
 			// === PM 10 Combo ===
 			try
 			{
-				station.CO2_pm10 = (double?) rec.Value.CO2Pm10;
-				station.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10);
+				MetData.CO2_pm10 = (double?) rec.Value.CO2Pm10;
+				MetData.CO2_pm10_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, MetData.CO2_pm10);
 			}
 			catch (Exception ex)
 			{
@@ -2454,8 +2454,8 @@ namespace CumulusMX.Stations
 			// === PM 10 Combo  24h ===
 			try
 			{
-				station.CO2_pm10_24h = rec.Value.CO2Pm10Avg;
-				station.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, station.CO2_pm10_24h);
+				MetData.CO2_pm10_24h = rec.Value.CO2Pm10Avg;
+				MetData.CO2_pm10_24h_aqi = station.GetAqi(WeatherStation.AqMeasure.pm10, MetData.CO2_pm10_24h);
 			}
 			catch (Exception ex)
 			{
@@ -2465,7 +2465,7 @@ namespace CumulusMX.Stations
 			// === temp Combo ===
 			try
 			{
-				station.CO2_temperature = rec.Value.CO2Temp;
+				MetData.CO2_temperature = rec.Value.CO2Temp;
 			}
 			catch (Exception ex)
 			{
@@ -2475,7 +2475,7 @@ namespace CumulusMX.Stations
 			// === humidity Combo ===
 			try
 			{
-				station.CO2_humidity = rec.Value.CO2Hum;
+				MetData.CO2_humidity = rec.Value.CO2Hum;
 			}
 			catch (Exception ex)
 			{

@@ -219,17 +219,17 @@ namespace CumulusMX.ThirdParty
 								sb.Append($"&pm25={MetData.AirQuality[idx]:F0}");
 							if (MetData.AirQualityAvg[idx].HasValue)
 								sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(MetData.AirQualityAvg[idx].Value)}");
-							if (station.AirQuality10[idx].HasValue)
-								sb.Append($"&pm10={station.AirQuality10[idx]:F0}");
+							if (MetData.AirQuality10[idx].HasValue)
+								sb.Append($"&pm10={MetData.AirQuality10[idx]:F0}");
 							break;
 						}
 					case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
-						if (station.CO2_pm2p5.HasValue)
-							sb.Append($"&pm25={station.CO2_pm2p5:F0}");
-						if (station.CO2_pm10.HasValue)
-							sb.Append($"&pm10={station.CO2_pm10:F0}");
-						if (station.CO2_pm2p5_24h.HasValue)
-							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.CO2_pm2p5_24h.Value)}");
+						if (MetData.CO2_pm2p5.HasValue)
+							sb.Append($"&pm25={MetData.CO2_pm2p5:F0}");
+						if (MetData.CO2_pm10.HasValue)
+							sb.Append($"&pm10={MetData.CO2_pm10:F0}");
+						if (MetData.CO2_pm2p5_24h.HasValue)
+							sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(MetData.CO2_pm2p5_24h.Value)}");
 						break;
 				}
 			}
@@ -261,9 +261,9 @@ namespace CumulusMX.ThirdParty
 			{
 				double? wet = null;
 
-				if (cumulus.WCloud.LeafWetnessSensor < station.LeafWetness.Length)
+				if (cumulus.WCloud.LeafWetnessSensor < MetData.LeafWetness.Length)
 				{
-					wet = station.LeafWetness[cumulus.WCloud.LeafWetnessSensor];
+					wet = MetData.LeafWetness[cumulus.WCloud.LeafWetnessSensor];
 				}
 
 				if (wet.HasValue)

@@ -839,16 +839,16 @@ namespace CumulusMX.Stations
 			{
 				try
 				{
-					station.CO2 = data.co2.co2;
-					station.CO2_24h = data.co2.co2_24h;
-					station.CO2_pm2p5 = data.co2.pm2p5;
-					station.CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, station.CO2_pm2p5);
-					station.CO2_pm2p5_24h = data.co2.pm2p5avg24h;
-					station.CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5h24, station.CO2_pm2p5_24h);
-					station.CO2_pm10 = data.co2.pm10;
-					station.CO2_pm10_aqi = GetAqi(AqMeasure.pm10, station.CO2_pm10);
-					station.CO2_pm10_24h = data.co2.pm10avg24h;
-					station.CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10h24, station.CO2_pm10_24h);
+					MetData.CO2 = data.co2.co2;
+					MetData.CO2_24h = data.co2.co2_24h;
+					MetData.CO2_pm2p5 = data.co2.pm2p5;
+					MetData.CO2_pm2p5_aqi = GetAqi(AqMeasure.pm2p5, MetData.CO2_pm2p5);
+					MetData.CO2_pm2p5_24h = data.co2.pm2p5avg24h;
+					MetData.CO2_pm2p5_24h_aqi = GetAqi(AqMeasure.pm2p5h24, MetData.CO2_pm2p5_24h);
+					MetData.CO2_pm10 = data.co2.pm10;
+					MetData.CO2_pm10_aqi = GetAqi(AqMeasure.pm10, MetData.CO2_pm10);
+					MetData.CO2_pm10_24h = data.co2.pm10avg24h;
+					MetData.CO2_pm10_24h_aqi = GetAqi(AqMeasure.pm10h24, MetData.CO2_pm10_24h);
 				}
 				catch (Exception ex)
 				{
@@ -858,16 +858,16 @@ namespace CumulusMX.Stations
 			}
 			else if (stationIndex == cumulus.SensorMaps.CO2)
 			{
-				station.CO2 = null;
-				station.CO2_24h = null;
-				station.CO2_pm2p5 = null;
-				station.CO2_pm2p5_aqi = null;
-				station.CO2_pm2p5_24h = null;
-				station.CO2_pm2p5_24h_aqi = null;
-				station.CO2_pm10 = null;
-				station.CO2_pm10_aqi = null;
-				station.CO2_pm10_24h = null;
-				station.CO2_pm10_24h_aqi = null;
+				MetData.CO2 = null;
+				MetData.CO2_24h = null;
+				MetData.CO2_pm2p5 = null;
+				MetData.CO2_pm2p5_aqi = null;
+				MetData.CO2_pm2p5_24h = null;
+				MetData.CO2_pm2p5_24h_aqi = null;
+				MetData.CO2_pm10 = null;
+				MetData.CO2_pm10_aqi = null;
+				MetData.CO2_pm10_24h = null;
+				MetData.CO2_pm10_24h_aqi = null;
 			}
 
 			// Laser distance

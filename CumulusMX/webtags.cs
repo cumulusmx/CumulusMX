@@ -5277,7 +5277,7 @@ namespace CumulusMX
 
 		private string GetAirQuality10(int index, Dictionary<string, string> tagParams)
 		{
-			return station.AirQuality10[index].HasValue ? CheckRcDp(station.AirQuality10[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.AirQuality10[index].HasValue ? CheckRcDp(MetData.AirQuality10[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQuality10Avg1(Dictionary<string, string> tagParams)
@@ -5302,7 +5302,7 @@ namespace CumulusMX
 
 		private string GetAirQuality10Avg(int index, Dictionary<string, string> tagParams)
 		{
-			return station.AirQuality10Avg[index].HasValue ? CheckRcDp(station.AirQuality10Avg[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.AirQuality10Avg[index].HasValue ? CheckRcDp(MetData.AirQuality10Avg[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityIdx1(Dictionary<string, string> tagParams)
@@ -5377,7 +5377,7 @@ namespace CumulusMX
 
 		private string GetAirQuality10Idx(int index, Dictionary<string, string> tagParams)
 		{
-			return station.AirQuality10Idx[index].HasValue ? CheckRcDp(station.AirQuality10Idx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.AirQuality10Idx[index].HasValue ? CheckRcDp(MetData.AirQuality10Idx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQuality10AvgIdx1(Dictionary<string, string> tagParams)
@@ -5402,107 +5402,107 @@ namespace CumulusMX
 
 		private string GetAirQuality10AvgIdx(int index, Dictionary<string, string> tagParams)
 		{
-			return station.AirQuality10AvgIdx[index].HasValue ? CheckRcDp(station.AirQuality10AvgIdx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.AirQuality10AvgIdx[index].HasValue ? CheckRcDp(MetData.AirQuality10AvgIdx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCo2(Dictionary<string, string> tagParams)
 		{
-			return station.CO2.ToText(tagParams.Get("nv") ?? "-");
+			return MetData.CO2.ToText(tagParams.Get("nv") ?? "-");
 		}
 
 		private string TagCO2_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_24h.ToText(tagParams.Get("nv") ?? "-");
+			return MetData.CO2_24h.ToText(tagParams.Get("nv") ?? "-");
 		}
 
 		private string TagCO2_pm2p5(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm2p5.HasValue ? CheckRcDp(station.CO2_pm2p5.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm2p5.HasValue ? CheckRcDp(MetData.CO2_pm2p5.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm2p5_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm2p5_24h.HasValue ? CheckRcDp(station.CO2_pm2p5_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm2p5_24h.HasValue ? CheckRcDp(MetData.CO2_pm2p5_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm10(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm10.HasValue ? CheckRcDp(station.CO2_pm10.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm10.HasValue ? CheckRcDp(MetData.CO2_pm10.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm10_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm10_24h.HasValue ? CheckRcDp(station.CO2_pm10_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm10_24h.HasValue ? CheckRcDp(MetData.CO2_pm10_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_temp(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_temperature.HasValue ? CheckRcDp(CheckTempUnit(station.CO2_temperature.Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_temperature.HasValue ? CheckRcDp(CheckTempUnit(MetData.CO2_temperature.Value, tagParams), tagParams, cumulus.TempDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_hum(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_humidity.HasValue ? CheckRcDp(station.CO2_humidity.Value, tagParams, cumulus.HumDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_humidity.HasValue ? CheckRcDp(MetData.CO2_humidity.Value, tagParams, cumulus.HumDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm1(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm1.HasValue ? CheckRcDp(station.CO2_pm1.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm1.HasValue ? CheckRcDp(MetData.CO2_pm1.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm1_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm1_24h.HasValue ? CheckRcDp(station.CO2_pm1_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm1_24h.HasValue ? CheckRcDp(MetData.CO2_pm1_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm4(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm4.HasValue ? CheckRcDp(station.CO2_pm4.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm4.HasValue ? CheckRcDp(MetData.CO2_pm4.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm4_24h(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm4_24h.HasValue ? CheckRcDp(station.CO2_pm4_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm4_24h.HasValue ? CheckRcDp(MetData.CO2_pm4_24h.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm2p5_aqi(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm2p5_aqi.HasValue ? CheckRcDp(station.CO2_pm2p5_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm2p5_aqi.HasValue ? CheckRcDp(MetData.CO2_pm2p5_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm2p5_24h_aqi(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm2p5_24h_aqi.HasValue ? CheckRcDp(station.CO2_pm2p5_24h_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm2p5_24h_aqi.HasValue ? CheckRcDp(MetData.CO2_pm2p5_24h_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm10_aqi(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm10_aqi.HasValue ? CheckRcDp(station.CO2_pm10_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm10_aqi.HasValue ? CheckRcDp(MetData.CO2_pm10_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagCO2_pm10_24h_aqi(Dictionary<string, string> tagParams)
 		{
-			return station.CO2_pm10_24h_aqi.HasValue ? CheckRcDp(station.CO2_pm10_24h_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.CO2_pm10_24h_aqi.HasValue ? CheckRcDp(MetData.CO2_pm10_24h_aqi.Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagLeakSensor1(Dictionary<string, string> tagParams)
 		{
-			return station.LeakSensor1.ToString();
+			return MetData.LeakSensor1.ToString();
 		}
 
 		private string TagLeakSensor2(Dictionary<string, string> tagParams)
 		{
-			return station.LeakSensor2.ToString();
+			return MetData.LeakSensor2.ToString();
 		}
 
 		private string TagLeakSensor3(Dictionary<string, string> tagParams)
 		{
-			return station.LeakSensor3.ToString();
+			return MetData.LeakSensor3.ToString();
 		}
 
 		private string TagLeakSensor4(Dictionary<string, string> tagParams)
 		{
-			return station.LeakSensor4.ToString();
+			return MetData.LeakSensor4.ToString();
 		}
 
 		private string TagLightningDistance(Dictionary<string, string> tagParams)
@@ -5562,7 +5562,7 @@ namespace CumulusMX
 
 		private string GetLeafWetness(int index, Dictionary<string, string> tagParams)
 		{
-			return station.LeafWetness[index].HasValue ? CheckRcDp(station.LeafWetness[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
+			return MetData.LeafWetness[index].HasValue ? CheckRcDp(MetData.LeafWetness[index].Value, tagParams, 1) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagVapourPressDeficit(Dictionary<string, string> tagParams)

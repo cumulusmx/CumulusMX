@@ -217,6 +217,8 @@ namespace CumulusMX
 		/// </summary>
 		public static int?[] SoilEc { get; set; }
 
+		public static double?[] LeafWetness { get; set; } = new double?[9];
+
 		/// <summary>
 		/// Laser distance
 		/// </summary>
@@ -239,6 +241,40 @@ namespace CumulusMX
 		public static double?[] AirQualityAvg { get; set; } = new double?[5];
 
 		public static double?[] AirQualityAvgIdx { get; set; } = new double?[5];
+
+		public static double?[] AirQuality10 { get; set; } = new double?[5];
+
+		public static double?[] AirQuality10Idx { get; set; } = new double?[5];
+
+		public static double?[] AirQuality10Avg { get; set; } = new double?[5];
+
+		public static double?[] AirQuality10AvgIdx { get; set; } = new double?[5];
+
+		public static int? LeakSensor1 { get; set; }
+
+		public static int? LeakSensor2 { get; set; }
+
+		public static int? LeakSensor3 { get; set; }
+
+		public static int? LeakSensor4 { get; set; }
+
+		public static int? CO2 { get; set; }
+		public static int? CO2_24h { get; set; }
+		public static double? CO2_pm2p5 { get; set; }
+		public static double? CO2_pm2p5_24h { get; set; }
+		public static double? CO2_pm10 { get; set; }
+		public static double? CO2_pm10_24h { get; set; }
+		public static double? CO2_temperature { get; set; }
+		public static double? CO2_humidity { get; set; }
+		public static double? CO2_pm1 { get; set; }
+		public static double? CO2_pm1_24h { get; set; }
+		public static double? CO2_pm4 { get; set; }
+		public static double? CO2_pm4_24h { get; set; }
+		public static double? CO2_pm2p5_aqi { get; set; }
+		public static double? CO2_pm2p5_24h_aqi { get; set; }
+		public static double? CO2_pm10_aqi { get; set; }
+		public static double? CO2_pm10_24h_aqi { get; set; }
+
 
 	}
 }

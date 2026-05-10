@@ -245,10 +245,10 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilMoisture4 && MetData.SoilMoisture[4].HasValue)
 				Data.Append($"&soilmoisture4={MetData.SoilMoisture[4]}");
 
-			if (SendLeafWetness1 && station.LeafWetness[1].HasValue)
-				Data.Append($"&leafwetness={station.LeafWetness[1]:cumulus.LeafWetFormat}");
-			if (SendLeafWetness2 && station.LeafWetness[2].HasValue)
-				Data.Append($"&leafwetness2={station.LeafWetness[2]:cumulus.LeafWetFormat}");
+			if (SendLeafWetness1 && MetData.LeafWetness[1].HasValue)
+				Data.Append($"&leafwetness={MetData.LeafWetness[1]:cumulus.LeafWetFormat}");
+			if (SendLeafWetness2 && MetData.LeafWetness[2].HasValue)
+				Data.Append($"&leafwetness2={MetData.LeafWetness[2]:cumulus.LeafWetFormat}");
 
 			if (SendAirQuality && cumulus.StationOptions.PrimaryAqSensor > (int) Cumulus.PrimaryAqSensor.Undefined)
 			{
@@ -268,8 +268,8 @@ namespace CumulusMX.ThirdParty
 							var idx = cumulus.StationOptions.PrimaryAqSensor;
 							if (MetData.AirQuality[idx].HasValue)
 								Data.Append($"&AqPM2.5={MetData.AirQuality[idx].Value.ToString("F1", invC)}");
-							if (station.AirQuality10[idx].HasValue)
-								Data.Append($"&AqPM10={station.AirQuality10[idx].Value.ToString("F1", invC)}");
+							if (MetData.AirQuality10[idx].HasValue)
+								Data.Append($"&AqPM10={MetData.AirQuality10[idx].Value.ToString("F1", invC)}");
 							break;
 						}
 				}
