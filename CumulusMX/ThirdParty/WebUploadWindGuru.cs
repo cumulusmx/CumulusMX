@@ -163,13 +163,13 @@ namespace CumulusMX.ThirdParty
 			URL.Append("&wind_avg=" + ConvertUnits.UserWindToKnots(avgwind).ToString("F1", InvC));
 			URL.Append("&wind_max=" + ConvertUnits.UserWindToKnots(maxwind).ToString("F1", InvC));
 			URL.Append("&wind_min=" + ConvertUnits.UserWindToKnots(minwind).ToString("F1", InvC));
-			URL.Append("&wind_direction=" + Current.AvgBearing);
-			if (Current.Temperature > Cumulus.DefaultHiVal)
-				URL.Append("&temperature=" + ConvertUnits.UserTempToC(Current.Temperature).ToString("F1", InvC));
-			if (Current.Humidity >= 0)
-				URL.Append("&rh=" + Current.Humidity);
-			if (Current.Pressure > 0)
-				URL.Append("&mslp=" + ConvertUnits.UserPressToHpa(Current.Pressure).ToString("F1", InvC));
+			URL.Append("&wind_direction=" + MetData.AvgBearing);
+			if (MetData.Temperature > Cumulus.DefaultHiVal)
+				URL.Append("&temperature=" + ConvertUnits.UserTempToC(MetData.Temperature).ToString("F1", InvC));
+			if (MetData.Humidity >= 0)
+				URL.Append("&rh=" + MetData.Humidity);
+			if (MetData.Pressure > 0)
+				URL.Append("&mslp=" + ConvertUnits.UserPressToHpa(MetData.Pressure).ToString("F1", InvC));
 			if (cumulus.WindGuru.SendRain)
 			{
 				URL.Append("&precip=" + ConvertUnits.UserRainToMM(station.RainLastHour).ToString("F1", InvC));

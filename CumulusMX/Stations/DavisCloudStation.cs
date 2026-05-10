@@ -747,7 +747,7 @@ namespace CumulusMX.Stations
 					if (cumulus.StationOptions.CalculatedWC)
 					{
 						// DoWindChill does all the required checks and conversions
-						DoWindChill(Current.Temperature, timestamp);
+						DoWindChill(MetData.Temperature, timestamp);
 					}
 
 					DoApparentTemp(timestamp);
@@ -762,9 +762,9 @@ namespace CumulusMX.Stations
 						CalculateEvapotranspiration(timestamp);
 					}
 
-					if (cumulus.StationOptions.CalculateSLP && Current.StationPressure > 0)
+					if (cumulus.StationOptions.CalculateSLP && MetData.StationPressure > 0)
 					{
-						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(slp), timestamp);
 					}
 
@@ -828,8 +828,8 @@ namespace CumulusMX.Stations
 						_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 					}
 
-					AddRecentDataWithAq(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
-						Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+					AddRecentDataWithAq(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
+						MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateStatusPanel(timestamp.ToUniversalTime());
 					cumulus.AddToWebServiceLists(timestamp);
@@ -1907,9 +1907,9 @@ namespace CumulusMX.Stations
 													// Check for spikes, and set highs
 													if (CheckHighGust(gustCal, gustDirCal, lastRecordTime))
 													{
-														cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + Current.RecentMaxGust.ToString(cumulus.WindFormat));
-														AddValuesToRecentWind(gust, Current.WindAverage, gustDir, lastRecordTime, lastRecordTime);
-														Current.RecentMaxGust = gustCal;
+														cumulus.LogDebugMessage("Setting max gust from current value: " + gustCal.ToString(cumulus.WindFormat) + " was: " + MetData.RecentMaxGust.ToString(cumulus.WindFormat));
+														AddValuesToRecentWind(gust, MetData.WindAverage, gustDir, lastRecordTime, lastRecordTime);
+														MetData.RecentMaxGust = gustCal;
 													}
 												}
 												catch (Exception ex)
@@ -2112,7 +2112,7 @@ namespace CumulusMX.Stations
 			// Now we have the primary data, calculate the derived data
 			if (cumulus.StationOptions.CalculatedWC)
 			{
-				DoWindChill(Current.Temperature, dateTime);
+				DoWindChill(MetData.Temperature, dateTime);
 			}
 
 			DoApparentTemp(dateTime);
@@ -2122,9 +2122,9 @@ namespace CumulusMX.Stations
 
 			if (cumulus.StationOptions.CalculateSLP)
 			{
-				if (Current.StationPressure > 0)
+				if (MetData.StationPressure > 0)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
 					DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
 				}
 				else
@@ -2257,7 +2257,7 @@ namespace CumulusMX.Stations
 											TempTotalToday += ConvertUnits.TempFToUser(data.temp_out.Value) * data.arch_int / 60;
 
 											// update chill hours
-											if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
+											if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 											{
 												// add interval minutes to chill hours - arch_int in seconds
 												ChillHours += (data.arch_int / 3600.0);
@@ -2343,7 +2343,7 @@ namespace CumulusMX.Stations
 									var dir = (int) ((data.wind_dir_of_hi ?? 0) * 22.5);
 									cumulus.LogDebugMessage($"DecodeHistoric: using wind data from TxId {data.tx_id}");
 									DoWind(gust, dir, spd, lastRecordTime);
-									Current.RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
+									MetData.RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
 								}
 								else
 								{
@@ -2352,13 +2352,13 @@ namespace CumulusMX.Stations
 
 								if (data.wind_speed_avg.HasValue)
 								{
-									Current.WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser(data.wind_speed_avg.Value));
+									MetData.WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser(data.wind_speed_avg.Value));
 
 									if (!current)
 									{
 										// add in 'archivePeriod' minutes worth of wind speed to windrun
 										int interval = data.arch_int / 60;
-										WindRunToday += ((Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+										MetData.WindRunToday += ((MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
 									}
 								}
 								else
@@ -2369,7 +2369,7 @@ namespace CumulusMX.Stations
 								if (current)
 								{
 									// we do not have the latest value, so set a pseudo value between average and gust
-									Current.WindLatest = Program.RandGenerator.Next((int) Current.WindAverage, (int) Current.RecentMaxGust);
+									MetData.WindLatest = Program.RandGenerator.Next((int) MetData.WindAverage, (int) MetData.RecentMaxGust);
 								}
 							}
 							catch (Exception ex)
@@ -2755,7 +2755,7 @@ namespace CumulusMX.Stations
 												}
 
 												// update chill hours
-												if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
+												if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 												{
 													// add interval minutes to chill hours - arch_int in seconds
 													ChillHours += (data.arch_int / 3600.0);
@@ -2918,13 +2918,13 @@ namespace CumulusMX.Stations
 
 									if (data.wind_speed_avg != null)
 									{
-										Current.WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser((double) data.wind_speed_avg));
+										MetData.WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser((double) data.wind_speed_avg));
 
 										if (!current)
 										{
 											// add in 'archivePeriod' minutes worth of wind speed to windrun
 											int interval = data.arch_int / 60;
-											WindRunToday += ((Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+											MetData.WindRunToday += ((MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
 										}
 									}
 									else
@@ -2935,7 +2935,7 @@ namespace CumulusMX.Stations
 									if (current)
 									{
 										// we do not have the latest value, so set a pseudo value between average and gust
-										Current.WindLatest = Program.RandGenerator.Next((int) Current.WindAverage, (int) Current.RecentMaxGust);
+										MetData.WindLatest = Program.RandGenerator.Next((int) MetData.WindAverage, (int) MetData.RecentMaxGust);
 									}
 
 								}
@@ -3847,7 +3847,7 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogDebugMessage($"GetAvailableSensors: Found WeatherLink Sensor type={sensor.sensor_type}, lsid={sensor.lsid}, station_id={sensor.station_id}, name={sensor.product_name}, parentId={sensor.parent_device_id}, parent={sensor.parent_device_name}");
 
-					// we need a lookup of LSID to TX_ID for Soil/Leaf transmitters as they do not contain the tx_id in Current data
+					// we need a lookup of LSID to TX_ID for Soil/Leaf transmitters as they do not contain the tx_id in MetData data
 					if (sensor.station_id == cumulus.WllStationId)
 					{
 						if (sensor.tx_id.HasValue)

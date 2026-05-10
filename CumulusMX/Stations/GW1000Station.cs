@@ -1395,7 +1395,7 @@ namespace CumulusMX.Stations
 					} while (idx < size);
 
 					// Some debugging info
-					cumulus.LogDebugMessage($"LiveData: Wind Decode >> Last={windSpeedLast:F1}, LastDir={windDirLast}, Gust={gustLast:F1}, (MXAvg={Current.WindAverage:F1})");
+					cumulus.LogDebugMessage($"LiveData: Wind Decode >> Last={windSpeedLast:F1}, LastDir={windDirLast}, Gust={gustLast:F1}, (MXAvg={MetData.WindAverage:F1})");
 
 					// Now do the stuff that requires more than one input parameter
 
@@ -1441,7 +1441,7 @@ namespace CumulusMX.Stations
 
 						if (cumulus.StationOptions.CalculateSLP)
 						{
-							var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+							var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
 							DoPressure(ConvertUnits.PressMBToUser(slp), dateTime);
 						}
 					}

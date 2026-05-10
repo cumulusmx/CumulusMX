@@ -1755,7 +1755,7 @@ namespace CumulusMX.Stations
 				if (cumulus.StationType == StationTypes.VantagePro2 && !cumulus.DavisOptions.UseLoop2 || cumulus.StationType == StationTypes.VantagePro)
 				{
 					// Loop2 data not available, just use sea level (for now, anyway)
-					Current.AltimeterPressure = Current.Pressure;
+					MetData.AltimeterPressure = MetData.Pressure;
 				}
 
 				var wind = ConvertUnits.WindMPHToUser(loopData.CurrentWindSpeed);
@@ -1819,7 +1819,7 @@ namespace CumulusMX.Stations
 					}
 				}
 
-				DoWindChill(Current.Temperature, now);
+				DoWindChill(MetData.Temperature, now);
 				DoApparentTemp(now);
 				DoFeelsLike(now);
 				DoHumidex(now);
@@ -2059,8 +2059,8 @@ namespace CumulusMX.Stations
 				{
 					cumulus.LogDebugMessage("LOOP2: Ignoring absolute pressure value < 20 inHg");
 					// no absolute, so just make altimeter = sl pressure
-					Current.AltimeterPressure = Current.Pressure;
-					Current.StationPressure = 0;
+					MetData.AltimeterPressure = MetData.Pressure;
+					MetData.StationPressure = 0;
 				}
 				else
 				{
@@ -2093,8 +2093,8 @@ namespace CumulusMX.Stations
 
 					if (CheckHighGust(gust10min, gustdir, now))
 					{
-						cumulus.LogDebugMessage($"LOOP2: Setting max gust from loop2 10-min value: {gust10min.ToString(cumulus.WindFormat)} was: {Current.RecentMaxGust.ToString(cumulus.WindFormat)}");
-						Current.RecentMaxGust = gust10min;
+						cumulus.LogDebugMessage($"LOOP2: Setting max gust from loop2 10-min value: {gust10min.ToString(cumulus.WindFormat)} was: {MetData.RecentMaxGust.ToString(cumulus.WindFormat)}");
+						MetData.RecentMaxGust = gust10min;
 
 						// add to recent values so normal calculation includes this value
 						lock (recentwindLock)
@@ -2109,7 +2109,7 @@ namespace CumulusMX.Stations
 
 				if (loopData.THSWindex < 32000)
 				{
-					Current.THSWIndex = ConvertUnits.TempFToUser(loopData.THSWindex);
+					MetData.THSWIndex = ConvertUnits.TempFToUser(loopData.THSWindex);
 				}
 			}
 		}
@@ -2521,11 +2521,11 @@ namespace CumulusMX.Stations
 										bearing = bearing == 255 ? 0 : (int) (bearing * 22.5);
 
 										// update dominant wind bearing
-										CalculateDominantWindBearing(bearing, Current.WindAverage, interval);
+										CalculateDominantWindBearing(bearing, MetData.WindAverage, interval);
 									}
 
 									// add in 'archivePeriod' minutes worth of wind speed to windrun
-									WindRunToday += lastAvg * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
+									MetData.WindRunToday += lastAvg * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
 
 									var preDayTS = timestamp.AddDays(-1).Date.AddHours(23).AddMinutes(59);
 
@@ -2679,10 +2679,10 @@ namespace CumulusMX.Stations
 									{
 										// add in 'archivePeriod' minutes worth of temperature to the temp samples
 										tempsamplestoday += interval;
-										TempTotalToday += Current.Temperature * interval;
+										TempTotalToday += MetData.Temperature * interval;
 
 										// update chill hours
-										if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
+										if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 										{
 											// add 1 minute to chill hours
 											ChillHours += interval / 60.0;
@@ -2702,10 +2702,10 @@ namespace CumulusMX.Stations
 
 									AddValuesToRecentWind(avgwind, avgwind, bearing, timestamp.AddMinutes(-interval), timestamp);
 									DoWind(wind, bearing, avgwind, timestamp);
-									DoWindChill(Current.Temperature, timestamp);
+									DoWindChill(MetData.Temperature, timestamp);
 
 									// update dominant wind bearing
-									CalculateDominantWindBearing(bearing, Current.WindAverage, interval);
+									CalculateDominantWindBearing(bearing, MetData.WindAverage, interval);
 								}
 
 								DoApparentTemp(timestamp);
@@ -2718,7 +2718,7 @@ namespace CumulusMX.Stations
 								var notFirstRec = timestamp.Minute != 0 || h != rollHour;
 								if (notFirstRec)
 								{
-									WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
+									MetData.WindRunToday += MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
 									CheckForWindrunHighLow(timestamp);
 								}
 
@@ -2743,8 +2743,8 @@ namespace CumulusMX.Stations
 								}
 
 								// No station pressure in archive data
-								Current.StationPressure = 0;
-								Current.AltimeterPressure = Current.Pressure;
+								MetData.StationPressure = 0;
+								MetData.AltimeterPressure = MetData.Pressure;
 
 								if (cumulus.SensorMaps.UV == 0)
 								{
@@ -2905,8 +2905,8 @@ namespace CumulusMX.Stations
 									cumulus.LogExceptionMessage(ex, "GetArchiveData: Error in extra logging etc");
 								}
 
-								AddRecentDataEntry(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
-									Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+								AddRecentDataEntry(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
+									MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, -1, -1, MetData.BlackGlobeTemp, WetBulbGlobeTemp);
 
 
 								UpdateStatusPanel(timestamp.ToUniversalTime());

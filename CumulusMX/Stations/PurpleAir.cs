@@ -214,7 +214,7 @@ namespace CumulusMX.Stations
 			}
 			*/
 
-			/* Current 2-minute average
+			/* MetData 2-minute average
 			 {
 				  "SensorId": "5c:cf:7f:5c:a4:24",
 				  "DateTime": "2025/05/15T11:21:02z",

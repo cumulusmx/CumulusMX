@@ -24,7 +24,7 @@ namespace CumulusMX.Stations
 	//    Packet Type                     4       1       Has the value zero. LOOP2 packets are set to 1.
 	//    Next Record                     5       2       Location in the archive memory where the next data packet will be written. This can be
 	//                                                        monitored to detect when a new record is created.
-	//    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches
+	//    Pressure                        7       2       MetData Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches
 	//                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantage Pro
 	//                                                        Vantage Pro2.  Values outside these ranges will not be logged.
 	//    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.
@@ -566,7 +566,7 @@ namespace CumulusMX.Stations
 	//                                                        to determine the bar trend.
 	//    Packet Type                     4       1       Has the value 1, indicating a LOOP2 packet
 	//    Unused                          5       2       Unused, contains 0x7FFF
-	//    Pressure                        7       2       Current Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches
+	//    Pressure                        7       2       MetData Pressure. Units are (in Hg / 1000). The barometric value should be between 20 inches
 	//                                                        and 32.5 inches in Vantage Pro and between 20 inches and 32.5 inches in both Vantage Pro
 	//                                                        Vantage Pro2.  Values outside these ranges will not be logged.
 	//    Inside Temperature              9       2       The value is sent as 10th of a degree in F.  For example, 795 is returned for 79.5°F.

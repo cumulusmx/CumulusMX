@@ -140,60 +140,60 @@ namespace CumulusMX.ThirdParty
 			StringBuilder sb = new StringBuilder($"https://api.weathercloud.net/v01/set?wid={ID}&key={PW}");
 
 			//Temperature
-			if (Current.TemperatureIn.HasValue)
-				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.TemperatureIn.Value) * 10));
-			if (Current.Temperature > Cumulus.DefaultHiVal)
-				sb.Append("&temp=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.Temperature) * 10));
-			if (Current.WindChill > Cumulus.DefaultHiVal)
-				sb.Append("&chill=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.WindChill) * 10));
-			if (Current.Dewpoint > Cumulus.DefaultHiVal)
-				sb.Append("&dew=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.Dewpoint) * 10));
-			if (Current.HeatIndex > Cumulus.DefaultHiVal)
-				sb.Append("&heat=" + (int) Math.Round(ConvertUnits.UserTempToC(Current.HeatIndex) * 10));
+			if (MetData.TemperatureIn.HasValue)
+				sb.Append("&tempin=" + (int) Math.Round(ConvertUnits.UserTempToC(MetData.TemperatureIn.Value) * 10));
+			if (MetData.Temperature > Cumulus.DefaultHiVal)
+				sb.Append("&temp=" + (int) Math.Round(ConvertUnits.UserTempToC(MetData.Temperature) * 10));
+			if (MetData.WindChill > Cumulus.DefaultHiVal)
+				sb.Append("&chill=" + (int) Math.Round(ConvertUnits.UserTempToC(MetData.WindChill) * 10));
+			if (MetData.Dewpoint > Cumulus.DefaultHiVal)
+				sb.Append("&dew=" + (int) Math.Round(ConvertUnits.UserTempToC(MetData.Dewpoint) * 10));
+			if (MetData.HeatIndex > Cumulus.DefaultHiVal)
+				sb.Append("&heat=" + (int) Math.Round(ConvertUnits.UserTempToC(MetData.HeatIndex) * 10));
 
 			// Humidity
-			if (Current.HumidityIn.HasValue)
-				sb.Append("&humin=" + Current.HumidityIn);
-			if (Current.Humidity >= 0)
-				sb.Append("&hum=" + Current.Humidity);
+			if (MetData.HumidityIn.HasValue)
+				sb.Append("&humin=" + MetData.HumidityIn);
+			if (MetData.Humidity >= 0)
+				sb.Append("&hum=" + MetData.Humidity);
 
 			// Wind
-			if (Current.WindLatest >= 0)
-				sb.Append("&wspd=" + (int) Math.Round(ConvertUnits.UserWindToMS(Current.WindLatest) * 10));
-			if (Current.RecentMaxGust >= 0)
-				sb.Append("&wspdhi=" + (int) Math.Round(ConvertUnits.UserWindToMS(Current.RecentMaxGust) * 10));
-			sb.Append("&wspdavg=" + (int) Math.Round(ConvertUnits.UserWindToMS(Current.WindAverage) * 10));
+			if (MetData.WindLatest >= 0)
+				sb.Append("&wspd=" + (int) Math.Round(ConvertUnits.UserWindToMS(MetData.WindLatest) * 10));
+			if (MetData.RecentMaxGust >= 0)
+				sb.Append("&wspdhi=" + (int) Math.Round(ConvertUnits.UserWindToMS(MetData.RecentMaxGust) * 10));
+			sb.Append("&wspdavg=" + (int) Math.Round(ConvertUnits.UserWindToMS(MetData.WindAverage) * 10));
 
 			// Wind Direction
-			sb.Append("&wdir=" + Current.Bearing);
-			sb.Append("&wdiravg=" + Current.AvgBearing);
+			sb.Append("&wdir=" + MetData.Bearing);
+			sb.Append("&wdiravg=" + MetData.AvgBearing);
 
 			// Pressure
-			if (Current.Pressure > 0)
-				sb.Append("&bar=" + (int) Math.Round(ConvertUnits.UserPressToMB(Current.Pressure * 10)));
+			if (MetData.Pressure > 0)
+				sb.Append("&bar=" + (int) Math.Round(ConvertUnits.UserPressToMB(MetData.Pressure * 10)));
 
 			// rain
-			if (Current.RainToday >= 0)
-				sb.Append("&rain=" + (int) Math.Round(ConvertUnits.UserRainToMM(Current.RainToday) * 10));
-			if (station.RainRate >= 0)
-				sb.Append("&rainrate=" + (int) Math.Round(ConvertUnits.UserRainToMM(station.RainRate) * 10));
+			if (MetData.RainToday >= 0)
+				sb.Append("&rain=" + (int) Math.Round(ConvertUnits.UserRainToMM(MetData.RainToday) * 10));
+			if (MetData.RainRate >= 0)
+				sb.Append("&rainrate=" + (int) Math.Round(ConvertUnits.UserRainToMM(MetData.RainRate) * 10));
 
 			// ET
 			if (SendSolar && cumulus.Manufacturer == Cumulus.StationManufacturer.DAVIS)
 			{
-				sb.Append("&et=" + (int) Math.Round(ConvertUnits.UserRainToMM(station.ET) * 10));
+				sb.Append("&et=" + (int) Math.Round(ConvertUnits.UserRainToMM(MetData.ET) * 10));
 			}
 
 			// solar
-			if (SendSolar && Current.SolarRad.HasValue)
+			if (SendSolar && MetData.SolarRad.HasValue)
 			{
-				sb.Append("&solarrad=" + Current.SolarRad * 10);
+				sb.Append("&solarrad=" + MetData.SolarRad * 10);
 			}
 
 			// uv
-			if (SendUV && station.UV.HasValue)
+			if (SendUV && MetData.UV.HasValue)
 			{
-				sb.Append("&uvi=" + (int) Math.Round(station.UV.Value * 10));
+				sb.Append("&uvi=" + (int) Math.Round(MetData.UV.Value * 10));
 			}
 
 			// aq

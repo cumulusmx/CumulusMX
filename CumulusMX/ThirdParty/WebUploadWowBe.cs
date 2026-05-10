@@ -143,17 +143,17 @@ namespace CumulusMX.ThirdParty
 			if (!string.IsNullOrEmpty(cumulus.StationModel))
 				bodyObj.Add("model", cumulus.StationModel);
 
-			if (Current.Pressure > 0)
-				bodyObj.Add("baromin", ConvertUnits.UserPressToIN(Current.Pressure));
+			if (MetData.Pressure > 0)
+				bodyObj.Add("baromin", ConvertUnits.UserPressToIN(MetData.Pressure));
 
-			bodyObj.Add("dailyrainin", ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? Current.RainToday : station.RainSinceMidnight));
+			bodyObj.Add("dailyrainin", ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? MetData.RainToday : station.RainSinceMidnight));
 			bodyObj.Add("rainin", ConvertUnits.UserRainToIN(station.RainLastHour));
 
-			if (Current.Dewpoint > Cumulus.DefaultHiVal)
-				bodyObj.Add("dewptf", ConvertUnits.UserTempToF(Current.Dewpoint));
+			if (MetData.Dewpoint > Cumulus.DefaultHiVal)
+				bodyObj.Add("dewptf", ConvertUnits.UserTempToF(MetData.Dewpoint));
 
-			if (Current.Humidity >= 0)
-				bodyObj.Add("humidity", Current.Humidity);
+			if (MetData.Humidity >= 0)
+				bodyObj.Add("humidity", MetData.Humidity);
 
 			if (SendSoilMoisture && station.SoilMoisture[SoilMoistureSensor].HasValue && cumulus.Units.SoilMoistureUnitText[SoilMoistureSensor] == "%")
 				bodyObj.Add("soilmoisture", station.SoilMoisture[SoilMoistureSensor].Value);
@@ -161,20 +161,20 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilTemp && station.SoilTemp[SoilTempSensor].HasValue)
 				bodyObj.Add("soiltempf", ConvertUnits.UserTempToF(station.SoilTemp[SoilTempSensor].Value));
 
-			if (SendSolar && Current.SolarRad.HasValue)
-				bodyObj.Add("solarradiation", Current.SolarRad);
+			if (SendSolar && MetData.SolarRad.HasValue)
+				bodyObj.Add("solarradiation", MetData.SolarRad);
 
-			if (Current.Temperature > Cumulus.DefaultHiVal)
-				bodyObj.Add("tempf", ConvertUnits.UserTempToF(Current.Temperature));
+			if (MetData.Temperature > Cumulus.DefaultHiVal)
+				bodyObj.Add("tempf", ConvertUnits.UserTempToF(MetData.Temperature));
 
 			// send average speed and bearing
-			bodyObj.Add("winddir", Current.AvgBearing);
+			bodyObj.Add("winddir", MetData.AvgBearing);
 
-			if (Current.WindAverage >= 0)
-				bodyObj.Add("windspeedmph", ConvertUnits.UserWindToMPH(Current.WindAverage));
+			if (MetData.WindAverage >= 0)
+				bodyObj.Add("windspeedmph", ConvertUnits.UserWindToMPH(MetData.WindAverage));
 
-			if (Current.RecentMaxGust >= 0)
-				bodyObj.Add("windgustmph", ConvertUnits.UserWindToMPH(Current.RecentMaxGust));
+			if (MetData.RecentMaxGust >= 0)
+				bodyObj.Add("windgustmph", ConvertUnits.UserWindToMPH(MetData.RecentMaxGust));
 
 			//if (SendUV && station.UV.HasValue)
 			//	Data.Append("&UV=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture.NumberFormat));

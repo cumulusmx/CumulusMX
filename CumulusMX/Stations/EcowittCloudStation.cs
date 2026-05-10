@@ -663,7 +663,7 @@ namespace CumulusMX.Stations
 				{
 					if (cumulus.StationOptions.CalculateSLP)
 					{
-						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
 						DoPressure(ConvertUnits.PressMBToUser(slp), data.pressure.absolute.time.LocalFromUnixTime());
 					}
 

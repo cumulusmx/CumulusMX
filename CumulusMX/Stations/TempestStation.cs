@@ -145,7 +145,7 @@ namespace CumulusMX.Stations
 
 				// Pressure =============================================================
 				DoStationPressure(ConvertUnits.PressMBToUser((double) historydata.StationPressure));
-				DoPressure(ConvertUnits.PressMBToUser(MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(Current.StationPressure), (double) historydata.Temperature, cumulus.Latitude)), timestamp);
+				DoPressure(ConvertUnits.PressMBToUser(MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToHpa(MetData.StationPressure), (double) historydata.Temperature, cumulus.Latitude)), timestamp);
 
 				// Outdoor Humidity =====================================================
 				DoOutdoorHumidity((int) historydata.Humidity, timestamp);
@@ -158,10 +158,10 @@ namespace CumulusMX.Stations
 				DoOutdoorTemp(ConvertUnits.TempCToUser((double) historydata.Temperature), timestamp);
 				// add in 'archivePeriod' minutes worth of temperature to the temp samples
 				tempsamplestoday += historydata.ReportInterval;
-				TempTotalToday += Current.Temperature * historydata.ReportInterval;
+				TempTotalToday += MetData.Temperature * historydata.ReportInterval;
 
 				// update chill hours
-				if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
+				if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 					// add 1 minute to chill hours
 					ChillHours += historydata.ReportInterval / 60.0;
 
@@ -204,16 +204,16 @@ namespace CumulusMX.Stations
 
 
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + Current.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + historydata.ReportInterval + " minutes = " +
-								   (Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.ReportInterval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				cumulus.LogMessage("Windrun: " + MetData.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + historydata.ReportInterval + " minutes = " +
+								   (MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.ReportInterval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.ReportInterval / 60.0;
+				MetData.WindRunToday += MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.ReportInterval / 60.0;
 
 				// update heating/cooling degree days
 				UpdateDegreeDays(historydata.ReportInterval);
 
 				// update dominant wind bearing
-				CalculateDominantWindBearing(Current.Bearing, Current.WindAverage, historydata.ReportInterval);
+				CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, historydata.ReportInterval);
 
 				DoTrendValues(timestamp);
 
@@ -281,8 +281,8 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataWithAq(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
-					Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+				AddRecentDataWithAq(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
+					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);

@@ -1453,9 +1453,9 @@ namespace CumulusMX.Stations
 			DoWind(ConvertUnits.WindMSToUser(gust), bearing, ConvertUnits.WindMSToUser(average), timestamp);
 
 			// add in 'interval' minutes worth of wind speed to windrun
-			WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval * 60 / 1000.0;
+			MetData.WindRunToday += MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval * 60 / 1000.0;
 			// update dominant wind bearing
-			CalculateDominantWindBearing(Current.Bearing, Current.WindAverage, interval);
+			CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, interval);
 			int sensorcount = packetBuffer[32];
 			for (i = 0; i <= sensorcount; i++)
 			{
@@ -1501,10 +1501,10 @@ namespace CumulusMX.Stations
 
 						// add in 'archivePeriod' minutes worth of temperature to the temp samples
 						tempsamplestoday += interval;
-						TempTotalToday += Current.Temperature * interval;
+						TempTotalToday += MetData.Temperature * interval;
 
 						// update chill hours
-						if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
+						if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 						{
 							// add 1 minute to chill hours
 							ChillHours += interval / 60.0;
@@ -1632,8 +1632,8 @@ namespace CumulusMX.Stations
 				_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 			}
 
-			AddRecentDataEntry(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex, Current.Humidity,
-							Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+			AddRecentDataEntry(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex, MetData.Humidity,
+							MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, -1, -1, MetData.BlackGlobeTemp, WetBulbGlobeTemp);
 			UpdateStatusPanel(timestamp.ToUniversalTime());
 			// Add current data to the lists of web service updates to be done
 			cumulus.AddToWebServiceLists(timestamp);

@@ -48,10 +48,10 @@ namespace CumulusMX
 				try
 				{
 					var raintoday = double.Parse(raintodaystring, invC);
-					cumulus.LogMessage("Before rain today edit, raintoday=" + Current.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.RainCounterDayStart.ToString(cumulus.RainFormat));
-					Current.RainToday = raintoday;
-					station.RainCounterDayStart = station.RainCounter - (Current.RainToday / cumulus.Calib.Rain.Mult);
-					cumulus.LogMessage("After rain today edit,  raintoday=" + Current.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.RainCounterDayStart.ToString(cumulus.RainFormat));
+					cumulus.LogMessage("Before rain today edit, raintoday=" + MetData.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.RainCounterDayStart.ToString(cumulus.RainFormat));
+					MetData.RainToday = raintoday;
+					station.RainCounterDayStart = station.RainCounter - (MetData.RainToday / cumulus.Calib.Rain.Mult);
+					cumulus.LogMessage("After rain today edit,  raintoday=" + MetData.RainToday.ToString(cumulus.RainFormat) + " Raindaystart=" + station.RainCounterDayStart.ToString(cumulus.RainFormat));
 					// force the rainthismonth/rainthisyear values to be recalculated
 					station.UpdateYearMonthRainfall();
 				}
@@ -63,7 +63,7 @@ namespace CumulusMX
 
 			var response = new
 			{
-				raintoday = Current.RainToday.ToString(cumulus.RainFormat, invC),
+				raintoday = MetData.RainToday.ToString(cumulus.RainFormat, invC),
 				raincounter = station.RainCounter.ToString(cumulus.RainFormat, invC),
 				startofdayrain = station.RainCounterDayStart.ToString(cumulus.RainFormat, invC),
 				rainmult = cumulus.Calib.Rain.Mult.ToString("F3", invC)
@@ -78,7 +78,7 @@ namespace CumulusMX
 
 			var response = new
 			{
-				raintoday = Current.RainToday.ToString(cumulus.RainFormat, invC),
+				raintoday = MetData.RainToday.ToString(cumulus.RainFormat, invC),
 				raincounter = station.RainCounter.ToString(cumulus.RainFormat, invC),
 				startofdayrain = station.RainCounterDayStart.ToString(cumulus.RainFormat, invC),
 				rainmult = cumulus.Calib.Rain.Mult.ToString("F3", invC)

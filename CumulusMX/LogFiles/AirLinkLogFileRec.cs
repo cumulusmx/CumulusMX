@@ -157,7 +157,7 @@ namespace CumulusMX.LogFiles
 			{
 				DateTimeStr = st[0];
 				UnixTimestamp = Convert.ToInt64(st[1]);
-				Current.Temperature = Convert.ToDouble(st[2], inv);
+				MetData.Temperature = Convert.ToDouble(st[2], inv);
 				OutdoorHumidity = Convert.ToInt32(Convert.ToDouble(st[3], inv));
 
 				IndoorTemperature = double.TryParse(st[12], inv, out resultDbl) ? resultDbl : null;

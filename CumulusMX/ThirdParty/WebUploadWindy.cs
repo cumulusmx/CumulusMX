@@ -190,33 +190,33 @@ namespace CumulusMX.ThirdParty
 			URL.Append("?id=" + StationId);
 			URL.Append("&time=" + dateUTC);
 
-			if (Current.WindAverage >= 0)
-				URL.Append("&wind=" + station.WindMSStr(Current.WindAverage));
+			if (MetData.WindAverage >= 0)
+				URL.Append("&wind=" + station.WindMSStr(MetData.WindAverage));
 
-			if (Current.RecentMaxGust >= 0)
-				URL.Append("&gust=" + station.WindMSStr(Current.RecentMaxGust));
+			if (MetData.RecentMaxGust >= 0)
+				URL.Append("&gust=" + station.WindMSStr(MetData.RecentMaxGust));
 
-			URL.Append("&winddir=" + Current.AvgBearing);
+			URL.Append("&winddir=" + MetData.AvgBearing);
 
-			if (Current.Humidity >= 0)
-				URL.Append("&rh=" + Current.Humidity);
+			if (MetData.Humidity >= 0)
+				URL.Append("&rh=" + MetData.Humidity);
 
-			if (Current.Dewpoint > Cumulus.DefaultHiVal)
-				URL.Append("&dewpoint=" + WeatherStation.TempCstr(Current.Dewpoint));
+			if (MetData.Dewpoint > Cumulus.DefaultHiVal)
+				URL.Append("&dewpoint=" + WeatherStation.TempCstr(MetData.Dewpoint));
 
-			if (Current.Pressure > 0)
-				URL.Append("&pressure=" + WeatherStation.PressPAstr(Current.Pressure));
+			if (MetData.Pressure > 0)
+				URL.Append("&pressure=" + WeatherStation.PressPAstr(MetData.Pressure));
 
-			if (SendUV && station.UV.HasValue)
-				URL.Append("&uv=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
+			if (SendUV && MetData.UV.HasValue)
+				URL.Append("&uv=" + MetData.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture));
 
-			if (SendSolar && Current.SolarRad.HasValue)
-				URL.Append("&solarradiation=" + Current.SolarRad);
+			if (SendSolar && MetData.SolarRad.HasValue)
+				URL.Append("&solarradiation=" + MetData.SolarRad);
 
 			URL.Append("&precip=" + WeatherStation.RainMMstr(station.RainLastHour));
 
-			if (Current.Temperature > Cumulus.DefaultHiVal)
-				URL.Append("&temp=" + WeatherStation.TempCstr(Current.Temperature));
+			if (MetData.Temperature > Cumulus.DefaultHiVal)
+				URL.Append("&temp=" + WeatherStation.TempCstr(MetData.Temperature));
 
 			URL.Append("&softwaretype=CumulusMX+v" + cumulus.Version);
 			URL.Append("&stationtype=" + System.Web.HttpUtility.UrlEncode(cumulus.StationModel.Length > 95 ? cumulus.StationModel[..95] : cumulus.StationModel));

@@ -1881,15 +1881,15 @@ namespace CumulusMX.Stations
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
 
 					station.DoPressure(ConvertUnits.PressMBToUser(slp), recDateTime);
 				}
 
 				// add in archive period worth of sunshine, if sunny
-				if (station.CurrentSolarMax > 0 && Current.SolarRad.HasValue &&
-					Current.SolarRad > station.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
-					Current.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
+				if (station.CurrentSolarMax > 0 && MetData.SolarRad.HasValue &&
+					MetData.SolarRad > station.CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
+					MetData.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
 					station.SunshineHours += rec.Value.Interval / 60.0;
@@ -1898,19 +1898,19 @@ namespace CumulusMX.Stations
 
 				// add in archive period minutes worth of temperature to the temp samples
 				station.tempsamplestoday += 5;
-				station.TempTotalToday += Current.Temperature * 5;
+				station.TempTotalToday += MetData.Temperature * 5;
 
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + Current.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + rec.Value.Interval + " minutes = " +
-								   (Current.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				cumulus.LogMessage("Windrun: " + MetData.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + rec.Value.Interval + " minutes = " +
+								   (MetData.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				station.WindRunToday += Current.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0;
+				MetData.WindRunToday += MetData.WindAverage * station.WindRunHourMult[cumulus.Units.Wind] * rec.Value.Interval / 60.0;
 
 				// update heating/cooling degree days
 				station.UpdateDegreeDays(rec.Value.Interval);
 
 				// update dominant wind bearing
-				station.CalculateDominantWindBearing(Current.Bearing, Current.WindAverage, rec.Value.Interval);
+				station.CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, rec.Value.Interval);
 				station.DoTrendValues(recDateTime);
 
 				if (cumulus.StationOptions.CalculatedET && recDateTime.Minute == 0)
@@ -1978,8 +1978,8 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(recDateTime, false);
 				}
 
-				station.AddRecentDataWithAq(recDateTime, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
-					Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, station.UV, station.RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, station.CurrentSolarMax, station.RainRate, station.BlackGlobeTemp, station.WetBulbGlobeTemp);
+				station.AddRecentDataWithAq(recDateTime, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
+					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, station.RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, station.CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, station.WetBulbGlobeTemp);
 
 				station.UpdateStatusPanel(recDateTime.ToUniversalTime());
 				cumulus.AddToWebServiceLists(recDateTime);

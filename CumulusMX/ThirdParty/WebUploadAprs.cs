@@ -47,17 +47,17 @@ namespace CumulusMX.ThirdParty
 					message.Clear();
 					message.Append($"{cumulus.APRS.ID}>APRS,TCPIP*:@{timeUTC}z{APRSLat(cumulus)}/{APRSLon(cumulus)}");
 					// bearing _nnn
-					if (Current.AvgBearing >= 0)
-						message.Append($"_{Current.AvgBearing:D3}");
+					if (MetData.AvgBearing >= 0)
+						message.Append($"_{MetData.AvgBearing:D3}");
 					// wind speed mph /nnn
-					if (Current.WindAverage >= 0)
-						message.Append($"/{APRSwind(Current.WindAverage)}");
+					if (MetData.WindAverage >= 0)
+						message.Append($"/{APRSwind(MetData.WindAverage)}");
 					// wind gust last 5 mins mph gnnn
-					if (Current.RecentMaxGust >= 0)
-						message.Append($"g{APRSwind(Current.RecentMaxGust)}");
+					if (MetData.RecentMaxGust >= 0)
+						message.Append($"g{APRSwind(MetData.RecentMaxGust)}");
 					// temp F tnnn
-					if (Current.Temperature > Cumulus.DefaultHiVal)
-						message.Append($"t{APRStemp(Current.Temperature)}");
+					if (MetData.Temperature > Cumulus.DefaultHiVal)
+						message.Append($"t{APRStemp(MetData.Temperature)}");
 					// rain last hour 0.01 inches rnnn
 					message.Append($"r{APRSrain(station.RainLastHour)}");
 					// rain last 24 hours 0.01 inches pnnn
@@ -65,20 +65,20 @@ namespace CumulusMX.ThirdParty
 					message.Append('P');
 					// use today"s rain for safety
 					// 0900 day, use midnight calculation
-					message.Append(APRSrain(cumulus.RolloverHour == 0 ? Current.RainToday : station.RainSinceMidnight));
-					if ((!cumulus.APRS.HumidityCutoff) || (ConvertUnits.UserTempToC(Current.Temperature) >= -10) && Current.Humidity >= 0)
+					message.Append(APRSrain(cumulus.RolloverHour == 0 ? MetData.RainToday : station.RainSinceMidnight));
+					if ((!cumulus.APRS.HumidityCutoff) || (ConvertUnits.UserTempToC(MetData.Temperature) >= -10) && MetData.Humidity >= 0)
 					{
 						// humidity Hnn
-						message.Append($"h{APRShum(Current.Humidity)}");
+						message.Append($"h{APRShum(MetData.Humidity)}");
 					}
 					// bar 0.1mb Bnnnnn
-					if (Current.AltimeterPressure >= 0)
+					if (MetData.AltimeterPressure >= 0)
 					{
-						message.Append($"b{APRSpress(Current.AltimeterPressure)}");
+						message.Append($"b{APRSpress(MetData.AltimeterPressure)}");
 					}
-					if (cumulus.APRS.SendSolar && Current.SolarRad.HasValue)
+					if (cumulus.APRS.SendSolar && MetData.SolarRad.HasValue)
 					{
-						message.Append(APRSsolarradStr(Convert.ToInt32(Current.SolarRad)));
+						message.Append(APRSsolarradStr(Convert.ToInt32(MetData.SolarRad)));
 					}
 
 					// station type e<string>

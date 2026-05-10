@@ -486,11 +486,11 @@ namespace CumulusMX.Stations
 						DoOutdoorTemp(ConvertUnits.TempCToUser(historydata.outTemp), timestamp);
 						// add in 'archivePeriod' minutes worth of temperature to the temp samples
 						tempsamplestoday += historydata.interval;
-						TempTotalToday += Current.Temperature * historydata.interval;
+						TempTotalToday += MetData.Temperature * historydata.interval;
 					}
 
 					// update chill hours
-					if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
+					if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 					{
 						// add 1 minute to chill hours
 						ChillHours += historydata.interval / 60.0;
@@ -569,16 +569,16 @@ namespace CumulusMX.Stations
 					}
 				}
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + Current.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + historydata.followinginterval + " minutes = " +
-								(Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.followinginterval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				cumulus.LogMessage("Windrun: " + MetData.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + historydata.followinginterval + " minutes = " +
+								(MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.followinginterval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.followinginterval / 60.0;
+				MetData.WindRunToday += MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.followinginterval / 60.0;
 
 				// update heating/cooling degree days
 				UpdateDegreeDays(historydata.interval);
 
 				// update dominant wind bearing
-				CalculateDominantWindBearing(Current.Bearing, Current.WindAverage, historydata.interval);
+				CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, historydata.interval);
 
 				CheckForWindrunHighLow(timestamp);
 				DoTrendValues(timestamp);
@@ -647,8 +647,8 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataWithAq(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
-					Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+				AddRecentDataWithAq(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
+					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
@@ -1244,7 +1244,7 @@ namespace CumulusMX.Stations
 					}
 					else
 					{
-						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), Current.StationPressure, ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+						var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), MetData.StationPressure, ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
 						DoPressure(slp, now);
 					}
 				}
@@ -1315,7 +1315,7 @@ namespace CumulusMX.Stations
 						DoOutdoorTemp(ConvertUnits.TempCToUser(outtemp), now);
 
 						// Use current humidity for dewpoint
-						if (Current.Humidity > 0)
+						if (MetData.Humidity > 0)
 						{
 							// calculate dp
 							DoOutdoorDewpoint(-999, now);

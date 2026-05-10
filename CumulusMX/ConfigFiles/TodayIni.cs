@@ -60,8 +60,8 @@ namespace CumulusMX
 			}
 			else
 			{
-				ET = AnnualETTotal - StartofdayET;
-				cumulus.LogMessage("ReadTodayFile: ET today = " + ET.ToString(cumulus.ETFormat));
+				MetData.ET = AnnualETTotal - StartofdayET;
+				cumulus.LogMessage("ReadTodayFile: ET today = " + MetData.ET.ToString(cumulus.ETFormat));
 			}
 			ChillHours = ini.GetValue("Temp", "ChillHours", 0.0);
 
@@ -83,7 +83,7 @@ namespace CumulusMX
 			DailyHighLow.Today.HighGust = ini.GetValue("Wind", "Gust", 0.0);
 			DailyHighLow.Today.HighGustTime = ini.GetValue("Wind", "Time", meteoTodayDate);
 			DailyHighLow.Today.HighGustBearing = ini.GetValue("Wind", "Bearing", 0);
-			WindRunToday = ini.GetValue("Wind", "Windrun", 0.0);
+			MetData.WindRunToday = ini.GetValue("Wind", "Windrun", 0.0);
 			DominantWindBearing = ini.GetValue("Wind", "DominantWindBearing", 0);
 			DominantWindBearingMinutes = ini.GetValue("Wind", "DominantWindBearingMinutes", 0);
 			DominantWindBearingX = ini.GetValue("Wind", "DominantWindBearingX", 0.0);
@@ -267,7 +267,7 @@ namespace CumulusMX
 				ini.SetValue("Wind", "Time", DailyHighLow.Today.HighGustTime);
 				ini.SetValue("Wind", "Bearing", DailyHighLow.Today.HighGustBearing);
 				ini.SetValue("Wind", "Direction", CompassPoint(DailyHighLow.Today.HighGustBearing));
-				ini.SetValue("Wind", "Windrun", WindRunToday);
+				ini.SetValue("Wind", "Windrun", MetData.WindRunToday);
 				ini.SetValue("Wind", "DominantWindBearing", DominantWindBearing);
 				ini.SetValue("Wind", "DominantWindBearingMinutes", DominantWindBearingMinutes);
 				ini.SetValue("Wind", "DominantWindBearingX", DominantWindBearingX);

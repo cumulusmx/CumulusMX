@@ -65,20 +65,20 @@ namespace CumulusMX.LogFiles
 		public void ParseCsvRec(string data)
 		{
 			// 0  Date/Time in the form dd/mm/yy hh:mm
-			// 1  Current Unix timestamp
-			// 2  Current temperature
-			// 3  Current humidity
-			// 4  Current dewpoint
-			// 5  Current wind speed
+			// 1  MetData Unix timestamp
+			// 2  MetData temperature
+			// 3  MetData humidity
+			// 4  MetData dewpoint
+			// 5  MetData wind speed
 			// 6  Recent (10-minute) high gust
 			// 7  Average wind bearing
-			// 8  Current rainfall rate
+			// 8  MetData rainfall rate
 			// 9  Total rainfall today so far
-			// 10  Current sea level pressure
+			// 10  MetData sea level pressure
 			// 11  Total rainfall counter as held by the station
 			// 12  Inside temperature
 			// 13  Inside humidity
-			// 14  Current gust (i.e. 'Latest')
+			// 14  MetData gust (i.e. 'Latest')
 			// 15  Wind chill
 			// 16  Heat Index
 			// 17  UV Index
@@ -86,9 +86,9 @@ namespace CumulusMX.LogFiles
 			// 19  Evapotranspiration
 			// 20  Annual Evapotranspiration
 			// 21  Apparent temperature
-			// 22  Current theoretical max solar radiation
+			// 22  MetData theoretical max solar radiation
 			// 23  Hours of sunshine so far today
-			// 24  Current wind bearing
+			// 24  MetData wind bearing
 			// 25  RG-11 rain total
 			// 26  Rain since midnight
 			// 27  Feels like
@@ -106,7 +106,7 @@ namespace CumulusMX.LogFiles
 			{
 				DateTimeStr = st[0];
 				UnixTimestamp = Convert.ToInt64(st[1]);
-				Current.Temperature = Convert.ToDouble(st[2], inv);
+				MetData.Temperature = Convert.ToDouble(st[2], inv);
 				OutdoorHumidity = Convert.ToInt32(Convert.ToDouble(st[3], inv));
 				OutdoorDewpoint = Convert.ToDouble(st[4], inv);
 				WindAverage = Convert.ToDouble(st[5], inv);
@@ -181,7 +181,7 @@ namespace CumulusMX.LogFiles
 			return string.Join(",",
 				DateTimeStr,
 				UnixTimestamp.ToString(inv),
-				Current.Temperature.ToFixed("F1"),
+				MetData.Temperature.ToFixed("F1"),
 				OutdoorHumidity.ToFixed("F1"),
 				OutdoorDewpoint.ToFixed("F1"),
 				WindAverage.ToFixed("F1"),
@@ -219,34 +219,34 @@ namespace CumulusMX.LogFiles
 			return string.Join(",",
 				timestamp.ToString("dd/MM/yy HH:mm", inv),
 				timestamp.ToUnixTime(),
-				Current.Temperature.ToFixed(cumulus.TempFormat),
-				Current.Humidity,
-				Current.Dewpoint.ToFixed(cumulus.TempFormat),
-				Current.WindAverage.ToString(cumulus.WindAvgFormat, inv),
-				Current.RecentMaxGust.ToString(cumulus.WindAvgFormat, inv),
-				Current.AvgBearing.ToString(),
-				station.RainRate.ToString(cumulus.RainFormat, inv),
-				Current.RainToday.ToString(cumulus.RainFormat, inv),
-				Current.Pressure.ToString(cumulus.PressFormat, inv),
+				MetData.Temperature.ToFixed(cumulus.TempFormat),
+				MetData.Humidity,
+				MetData.Dewpoint.ToFixed(cumulus.TempFormat),
+				MetData.WindAverage.ToString(cumulus.WindAvgFormat, inv),
+				MetData.RecentMaxGust.ToString(cumulus.WindAvgFormat, inv),
+				MetData.AvgBearing.ToString(),
+				MetData.RainRate.ToString(cumulus.RainFormat, inv),
+				MetData.RainToday.ToString(cumulus.RainFormat, inv),
+				MetData.Pressure.ToString(cumulus.PressFormat, inv),
 				station.RainCounter.ToString(cumulus.RainFormat, inv),
-				Current.TemperatureIn.ToFixed(cumulus.TempFormat),
-				Current.HumidityIn.ToText(),
-				Current.WindLatest.ToString(cumulus.WindFormat, inv),
-				Current.WindChill.ToString(cumulus.TempFormat, inv),
-				Current.HeatIndex.ToFixed(cumulus.TempFormat),
-				station.UV.ToFixed(cumulus.UVFormat),
-				Current.SolarRad.ToText(),
-				station.ET.ToString(cumulus.ETFormat, inv),
+				MetData.TemperatureIn.ToFixed(cumulus.TempFormat),
+				MetData.HumidityIn.ToText(),
+				MetData.WindLatest.ToString(cumulus.WindFormat, inv),
+				MetData.WindChill.ToString(cumulus.TempFormat, inv),
+				MetData.HeatIndex.ToFixed(cumulus.TempFormat),
+				MetData.UV.ToFixed(cumulus.UVFormat),
+				MetData.SolarRad.ToText(),
+				MetData.ET.ToString(cumulus.ETFormat, inv),
 				station.AnnualETTotal.ToString(cumulus.ETFormat, inv),
-				Current.ApparentTemperature.ToFixed(cumulus.TempFormat),
+				MetData.ApparentTemperature.ToFixed(cumulus.TempFormat),
 				station.CurrentSolarMax.ToString(),
 				station.SunshineHours.ToFixed(cumulus.SunFormat),
-				Current.Bearing.ToString(),
+				MetData.Bearing.ToString(),
 				station.RG11RainToday.ToString(cumulus.RainFormat, inv),
 				station.RainSinceMidnight.ToFixed(cumulus.RainFormat),
-				Current.FeelsLike.ToFixed(cumulus.TempFormat),
-				Current.Humidex.ToFixed(cumulus.TempFormat),
-				station.BlackGlobeTemp.ToFixed(cumulus.TempFormat),
+				MetData.FeelsLike.ToFixed(cumulus.TempFormat),
+				MetData.Humidex.ToFixed(cumulus.TempFormat),
+				MetData.BlackGlobeTemp.ToFixed(cumulus.TempFormat),
 				station.WetBulbGlobeTemp.ToFixed(cumulus.TempFormat)
 			) + Environment.NewLine;
 		}

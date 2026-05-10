@@ -547,7 +547,7 @@ namespace CumulusMX.Stations
 								DoWind(windgust, windbearing, windspeed, timestamp);
 
 								// add in "archivePeriod" minutes worth of wind speed to windrun
-								WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
+								MetData.WindRunToday += MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval / 60.0;
 
 								DateTime windruncheckTS;
 								if (hour == rollHour && minute == 0)
@@ -564,7 +564,7 @@ namespace CumulusMX.Stations
 								CheckForWindrunHighLow(windruncheckTS);
 
 								// update dominant wind bearing
-								CalculateDominantWindBearing(Current.Bearing, Current.WindAverage, interval);
+								CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, interval);
 							}
 
 							if (sl[TEMP1AVGPOS].Length > 0)
@@ -573,10 +573,10 @@ namespace CumulusMX.Stations
 
 								// add in "archivePeriod" minutes worth of temperature to the temp samples
 								tempsamplestoday += interval;
-								TempTotalToday += Current.Temperature * interval;
+								TempTotalToday += MetData.Temperature * interval;
 
 								// update chill hours
-								if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
+								if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 								{
 									// add 1 minute to chill hours
 									ChillHours += interval / 60.0;
@@ -623,8 +623,8 @@ namespace CumulusMX.Stations
 							if (sl[WINDAVGPOS].Length > 0 && sl[TEMP1AVGPOS].Length > 0)
 							{
 								// wind chill
-								var tempinC = ConvertUnits.UserTempToC(Current.Temperature);
-								var windinKPH = ConvertUnits.UserWindToKPH(Current.WindAverage);
+								var tempinC = ConvertUnits.UserTempToC(MetData.Temperature);
+								var windinKPH = ConvertUnits.UserWindToKPH(MetData.WindAverage);
 								var value = MeteoLib.WindChill(tempinC, windinKPH);
 								// value is now in Celsius, convert to units in use
 								value = ConvertUnits.TempCToUser(value);
@@ -634,7 +634,7 @@ namespace CumulusMX.Stations
 							if (sl[PRESSAVGPOS].Length > 0)
 							{
 								DoPressure(ConvertUnits.PressMBToUser(Convert.ToDouble(sl[PRESSAVGPOS], provider)), timestamp);
-								Current.AltimeterPressure = Current.Pressure;
+								MetData.AltimeterPressure = MetData.Pressure;
 							}
 
 							// Cause wind chill calc
@@ -673,8 +673,8 @@ namespace CumulusMX.Stations
 								_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 							}
 
-							AddRecentDataEntry(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
-								Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+							AddRecentDataEntry(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
+								MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, -1, -1, MetData.BlackGlobeTemp, WetBulbGlobeTemp);
 							UpdateStatusPanel(timestamp.ToUniversalTime());
 
 							// Add current data to the lists of web service updates to be done
@@ -903,7 +903,7 @@ namespace CumulusMX.Stations
 				if (!string.IsNullOrEmpty(sl[PRESSPOS]) && double.TryParse(sl[PRESSPOS], NumberStyles.Float, provider, out varDbl))
 				{
 					DoPressure(ConvertUnits.PressMBToUser(varDbl), now);
-					Current.AltimeterPressure = Current.Pressure;
+					MetData.AltimeterPressure = MetData.Pressure;
 				}
 				else
 				{

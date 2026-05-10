@@ -177,16 +177,16 @@ namespace CumulusMX.ThirdParty
 			var invC = new CultureInfo("");
 
 			sb.Append($"\"dt\":{timestamp.ToUnixTime()},");
-			if (Current.Temperature >= Cumulus.DefaultHiVal)
-				sb.Append($"\"temperature\":{ConvertUnits.UserTempToC(Current.Temperature).ToFixed("F1")},");
-			sb.Append($"\"wind_deg\":{Current.AvgBearing},");
-			sb.Append($"\"wind_speed\":{ConvertUnits.UserWindToMS(Current.WindAverage).ToString("F1", invC)},");
-			if (Current.RecentMaxGust >= 0)
-				sb.Append($"\"wind_gust\":{ConvertUnits.UserWindToMS(Current.RecentMaxGust).ToString("F1", invC)},");
-			if (Current.Pressure > 0)
-				sb.Append($"\"pressure\":{ConvertUnits.UserPressToHpa(Current.Pressure).ToString("F1", invC)},");
-			if (Current.Humidity >= 0)
-				sb.Append($"\"humidity\":{Current.Humidity},");
+			if (MetData.Temperature >= Cumulus.DefaultHiVal)
+				sb.Append($"\"temperature\":{ConvertUnits.UserTempToC(MetData.Temperature).ToFixed("F1")},");
+			sb.Append($"\"wind_deg\":{MetData.AvgBearing},");
+			sb.Append($"\"wind_speed\":{ConvertUnits.UserWindToMS(MetData.WindAverage).ToString("F1", invC)},");
+			if (MetData.RecentMaxGust >= 0)
+				sb.Append($"\"wind_gust\":{ConvertUnits.UserWindToMS(MetData.RecentMaxGust).ToString("F1", invC)},");
+			if (MetData.Pressure > 0)
+				sb.Append($"\"pressure\":{ConvertUnits.UserPressToHpa(MetData.Pressure).ToString("F1", invC)},");
+			if (MetData.Humidity >= 0)
+				sb.Append($"\"humidity\":{MetData.Humidity},");
 			sb.Append($"\"rain_1h\":{ConvertUnits.UserRainToMM(station.RainLastHour).ToString("F1", invC)},");
 			sb.Append($"\"rain_24h\":{ConvertUnits.UserRainToMM(station.RainLast24Hour).ToString("F1", invC)}");
 			sb.Append("}]");

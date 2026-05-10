@@ -29,7 +29,7 @@ namespace CumulusMX.Stations
 			cumulus.StationOptions.UseCumulusPresstrendstr = true;
 			cumulus.StationOptions.UseSpeedForAvgCalc = false;
 
-			Current.WindAverage = 0;
+			MetData.WindAverage = 0;
 
 			timerStartNeeded = true;
 			LoadLastHoursFromDataLogs(cumulus.LastUpdateTime);
@@ -124,7 +124,7 @@ namespace CumulusMX.Stations
 		private void doSolar(DateTime recDate)
 		{
 			// For the solar Program.RandGenerator walk we are chasing the theoretical solar max value
-			double solar = Current.SolarRad ?? 0;
+			double solar = MetData.SolarRad ?? 0;
 
 			// if we are starting up, set the intial solar rad value to 90% of theoretical
 			if (!solarIntialised)
@@ -146,7 +146,7 @@ namespace CumulusMX.Stations
 			}
 
 			// If it's raining, make it dull!
-			if (RainRate > 0)
+			if (MetData.RainRate > 0)
 			{
 				factor = 0.3;
 			}

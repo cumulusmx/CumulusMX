@@ -391,7 +391,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="altitudeM">Altitude in metres</param>
 		/// <param name="pressureHpa">Station pressure in hPha</param>
-		/// <param name="tempC">Current temperature</param>
+		/// <param name="tempC">MetData temperature</param>
 		/// <returns>Returns the sea level pressure in hPa</returns>
 		public static double GetSeaLevelPressure(double altitudeM, double pressureHpa, double tempC)
 		{
@@ -415,7 +415,7 @@ namespace CumulusMX
 		/// </summary>
 		/// <param name="altitudeM">Station altitude in metres</param>
 		/// <param name="pressureHpa">Station pressure in inHg</param>
-		/// <param name="tempC">Current temperature</param>
+		/// <param name="tempC">MetData temperature</param>
 		/// <param name="latitude">Latitude of the station</param>
 		/// <returns>Returns the sea level pressure in hPa</returns>
 		public static double GetSeaLevelPressure(double altitudeM, double pressureHpa, double tempC, decimal latitude)
@@ -449,7 +449,7 @@ namespace CumulusMX
 		/// <param name="altitudeFt">Altitude in feet</param>
 		/// <param name="pressInHg">Station pressure in inHg</param>
 		/// <param name="tempAvgT">Average of temperature now and temperature 12 hours ago</param>
-		/// <param name="dewPoint">Current dewpoint</param>
+		/// <param name="dewPoint">MetData dewpoint</param>
 		/// <returns>Returns the sea level pressure in inHG</returns>
 		public static double GetSeaLevelPressureDavis(double altitudeFt, double pressInHg, double tempAvgT, double dewPoint)
 		{

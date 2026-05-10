@@ -285,11 +285,11 @@ namespace CumulusMX.ThirdParty
 			// indoor temp/humidity
 			if (SendIndoor)
 			{
-				if (Current.TemperatureIn.HasValue)
-					sb.Append("indoortemp=" + ConvertUnits.UserTempToC(Current.TemperatureIn.Value).ToFixed("F1"));
+				if (MetData.TemperatureIn.HasValue)
+					sb.Append("indoortemp=" + ConvertUnits.UserTempToC(MetData.TemperatureIn.Value).ToFixed("F1"));
 
-				if (Current.HumidityIn.HasValue)
-					sb.Append("&indoorhumidity=" + Current.HumidityIn);
+				if (MetData.HumidityIn.HasValue)
+					sb.Append("&indoorhumidity=" + MetData.HumidityIn);
 				started = true;
 			}
 
@@ -383,38 +383,38 @@ namespace CumulusMX.ThirdParty
 			sb.Append(ID + sep);                                                                              // 1
 			sb.Append(pwstring + sep);                                                                        // 2
 			sb.Append(timestamp.ToString("dd'.'MM'.'yyyy';'HH':'mm") + sep);                                  // 3 + 4
-			if (Current.Temperature > Cumulus.DefaultHiVal)
-				sb.Append(ConvertUnits.UserTempToC(Current.Temperature).ToFixed("F1") + sep);   // 5
+			if (MetData.Temperature > Cumulus.DefaultHiVal)
+				sb.Append(ConvertUnits.UserTempToC(MetData.Temperature).ToFixed("F1") + sep);   // 5
 			else
 				sb.Append(sep);
-			if (Current.Humidity >= 0)
-				sb.Append(Current.Humidity + sep);                                                     // 6
+			if (MetData.Humidity >= 0)
+				sb.Append(MetData.Humidity + sep);                                                     // 6
 			else
 				sb.Append(sep);
-			if (Current.Pressure > 0)
-				sb.Append(ConvertUnits.UserPressToMB(Current.Pressure).ToString("F1", InvC) + sep);           // 7
+			if (MetData.Pressure > 0)
+				sb.Append(ConvertUnits.UserPressToMB(MetData.Pressure).ToString("F1", InvC) + sep);           // 7
 			else
 				sb.Append(sep);
 			sb.Append(ConvertUnits.UserRainToMM(station.RainSinceMidnight).ToString("F1", InvC) + sep);       // 8   - was RainToday in v2
-			if (Current.WindAverage >= 0)
-				sb.Append(ConvertUnits.UserWindToKPH(Current.WindAverage).ToString("F1", InvC) + sep);        // 9
+			if (MetData.WindAverage >= 0)
+				sb.Append(ConvertUnits.UserWindToKPH(MetData.WindAverage).ToString("F1", InvC) + sep);        // 9
 			else
 				sb.Append(sep);
-			sb.Append(Current.AvgBearing + sep);                                                              // 10
+			sb.Append(MetData.AvgBearing + sep);                                                              // 10
 			sb.Append(sep + sep + sep);                                                                       // 11/12/13 - condition and warning, snow height
 			sb.Append(Lang + sep);                                                                            // 14
 			sb.Append(presstrend + sep);                                                                      // 15
-			if (Current.RecentMaxGust >= 0)
-				sb.Append(ConvertUnits.UserWindToKPH(Current.RecentMaxGust).ToString("F1", InvC) + sep);      // 16
+			if (MetData.RecentMaxGust >= 0)
+				sb.Append(ConvertUnits.UserWindToKPH(MetData.RecentMaxGust).ToString("F1", InvC) + sep);      // 16
 			else
 				sb.Append(sep);
-			if (SendSolar && Current.SolarRad.HasValue)
-				sb.Append(Current.SolarRad.Value.ToString("F1", InvC) + sep);                                 // 17
+			if (SendSolar && MetData.SolarRad.HasValue)
+				sb.Append(MetData.SolarRad.Value.ToString("F1", InvC) + sep);                                 // 17
 			else
 				sb.Append(sep);
 
-			if (SendUV && station.UV.HasValue)
-				sb.Append(station.UV.Value.ToString("F1", InvC) + sep);                                      // 18
+			if (SendUV && MetData.UV.HasValue)
+				sb.Append(MetData.UV.Value.ToString("F1", InvC) + sep);                                      // 18
 			else
 				sb.Append(sep);
 
@@ -437,8 +437,8 @@ namespace CumulusMX.ThirdParty
 			else
 				sb.Append(sep);
 
-			if (station.RainRate >= 0)
-				sb.Append(ConvertUnits.UserRainToMM(station.RainRate).ToString("F1", InvC) + sep);      // 22
+			if (MetData.RainRate >= 0)
+				sb.Append(ConvertUnits.UserRainToMM(MetData.RainRate).ToString("F1", InvC) + sep);      // 22
 			else
 				sb.Append(sep);
 			sb.Append("Cum_" + cumulus.Version + sep);                                                          // 23
@@ -508,8 +508,8 @@ namespace CumulusMX.ThirdParty
 			sb.Append(ConvertUnits.UserWindToKPH(Records.ThisYear.HighGust.Val).ToString("F1", InvC) + sep); // 70
 			sb.Append(sep + sep + sep);                                                     // 71/72/73 avg wind bearing today/month/year
 			sb.Append(ConvertUnits.UserRainToMM(station.RainLast24Hour).ToString("F1", InvC) + sep);      // 74
-			sb.Append(ConvertUnits.UserRainToMM(station.RainMonth).ToString("F1", InvC) + sep);           // 75
-			sb.Append(ConvertUnits.UserRainToMM(station.RainYear).ToString("F1", InvC) + sep);            // 76
+			sb.Append(ConvertUnits.UserRainToMM(MetData.RainMonth).ToString("F1", InvC) + sep);           // 75
+			sb.Append(ConvertUnits.UserRainToMM(MetData.RainYear).ToString("F1", InvC) + sep);            // 76
 			sb.Append(sep);                                                                 // 77 avg rain rate today
 			if (DailyHighLow.Today.HighRainRate >= 0)
 				sb.Append(ConvertUnits.UserRainToMM(DailyHighLow.Today.HighRainRate).ToString("F1", InvC) + sep); // 78

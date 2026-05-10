@@ -746,7 +746,7 @@ namespace CumulusMX.Stations
 
 									if (data1.thsw_index.HasValue)
 									{
-										Current.THSWIndex = ConvertUnits.TempFToUser(data1.thsw_index.Value);
+										MetData.THSWIndex = ConvertUnits.TempFToUser(data1.thsw_index.Value);
 									}
 
 									//TODO: Wet Bulb? rec["wet_bulb"] - No, we already have humidity
@@ -862,13 +862,13 @@ namespace CumulusMX.Stations
 											var gust2minUncalibrated = ConvertUnits.WindMPHToUser(data1.wind_speed_hi_last_2_min ?? 0);
 											var gust2min = cumulus.Calib.WindGust.Calibrate(gust2minUncalibrated);
 
-											if (gust2min > Current.RecentMaxGust)
+											if (gust2min > MetData.RecentMaxGust)
 											{
 												var dir2min = (int) cumulus.Calib.WindDir.Calibrate(data1.wind_dir_at_hi_speed_last_2_min ?? 0);
 												var time2min = dateTime.AddMinutes(-1);
 
-												cumulus.LogMessage("Current: Setting recent max gust to new value: " + gust2min.ToString(cumulus.WindFormat) + " was: " + Current.RecentMaxGust.ToString(cumulus.WindFormat));
-												Current.RecentMaxGust = gust2min;
+												cumulus.LogMessage("Current: Setting recent max gust to new value: " + gust2min.ToString(cumulus.WindFormat) + " was: " + MetData.RecentMaxGust.ToString(cumulus.WindFormat));
+												MetData.RecentMaxGust = gust2min;
 												_ = CheckHighGust(gust2min, dir2min, time2min);
 
 												// add the uncalibrated values to the recent wind data
@@ -1023,7 +1023,7 @@ namespace CumulusMX.Stations
 								}
 								else
 								{
-									UV = null;
+									MetData.UV = null;
 								}
 							}
 
@@ -1044,7 +1044,7 @@ namespace CumulusMX.Stations
 								}
 								else
 								{
-									Current.SolarRad = null;
+									MetData.SolarRad = null;
 								}
 							}
 
@@ -1288,7 +1288,7 @@ namespace CumulusMX.Stations
 				// Now we have the primary data, calculate the derived data
 				if (cumulus.StationOptions.CalculatedWC)
 				{
-					DoWindChill(Current.Temperature, dateTime);
+					DoWindChill(MetData.Temperature, dateTime);
 				}
 
 				DoApparentTemp(dateTime);
@@ -1785,7 +1785,7 @@ namespace CumulusMX.Stations
 					if (cumulus.StationOptions.CalculatedWC)
 					{
 						// DoWindChill does all the required checks and conversions
-						DoWindChill(Current.Temperature, timestamp);
+						DoWindChill(MetData.Temperature, timestamp);
 					}
 
 					DoApparentTemp(timestamp);
@@ -1861,8 +1861,8 @@ namespace CumulusMX.Stations
 						_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 					}
 
-					AddRecentDataWithAq(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
-						Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+					AddRecentDataWithAq(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
+						MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, WetBulbGlobeTemp);
 
 					UpdateStatusPanel(timestamp.ToUniversalTime());
 					cumulus.AddToWebServiceLists(timestamp);
@@ -2014,7 +2014,7 @@ namespace CumulusMX.Stations
 										}
 
 										// update chill hours
-										if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
+										if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 										{
 											// add interval minutes to chill hours - arch_int in seconds
 											ChillHours += (data11.arch_int / 3600.0);
@@ -2171,7 +2171,7 @@ namespace CumulusMX.Stations
 									DoWind(spd, dirCal, spd, recordTs);
 									// and handle the gust value manually
 									CheckHighGust(cumulus.Calib.WindGust.Calibrate(gust), dirCal, recordTs);
-									Current.RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
+									MetData.RecentMaxGust = cumulus.Calib.WindGust.Calibrate(gust);
 								}
 								else
 								{
@@ -2180,11 +2180,11 @@ namespace CumulusMX.Stations
 
 								if (data11.wind_speed_avg != null)
 								{
-									Current.WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser((double) data11.wind_speed_avg));
+									MetData.WindAverage = cumulus.Calib.WindSpeed.Calibrate(ConvertUnits.WindMPHToUser((double) data11.wind_speed_avg));
 
 									// add in 'archivePeriod' minutes worth of wind speed to windrun
 									int interval = data11.arch_int / 60;
-									WindRunToday += ((Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
+									MetData.WindRunToday += ((MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * interval) / 60.0);
 								}
 								else
 								{
@@ -2270,7 +2270,7 @@ namespace CumulusMX.Stations
 								}
 								else
 								{
-									UV = null;
+									MetData.UV = null;
 									cumulus.LogWarningMessage($"WL.com historic: Warning, no valid UV data on TxId {data11.tx_id}");
 								}
 							}
@@ -2309,7 +2309,7 @@ namespace CumulusMX.Stations
 								}
 								else
 								{
-									Current.SolarRad = null;
+									MetData.SolarRad = null;
 									cumulus.LogWarningMessage($"WL.com historic: Warning, no valid Solar data on TxId {data11.tx_id}");
 								}
 
@@ -3521,7 +3521,7 @@ namespace CumulusMX.Stations
 			}
 		}
 
-		// WLL Current Baro
+		// WLL MetData Baro
 		private sealed class WllCurrentType3
 		{
 			public int lsid { get; set; }
@@ -3531,7 +3531,7 @@ namespace CumulusMX.Stations
 			public double? bar_absolute { get; set; }
 		}
 
-		// WLL Current internal temp/hum
+		// WLL MetData internal temp/hum
 		private sealed class WllCurrentType4
 		{
 			public int lsid { get; set; }

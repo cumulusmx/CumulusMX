@@ -316,9 +316,9 @@ namespace CumulusMX.Stations
 					DoOutdoorTemp(historydata.outTemp, timestamp);
 
 					tempsamplestoday += historydata.interval;
-					TempTotalToday += Current.Temperature * historydata.interval;
+					TempTotalToday += MetData.Temperature * historydata.interval;
 
-					if (Current.Temperature < cumulus.ChillHourThreshold && Current.Temperature > cumulus.ChillHourBase)
+					if (MetData.Temperature < cumulus.ChillHourThreshold && MetData.Temperature > cumulus.ChillHourBase)
 					// add 1 minute to chill hours
 					{
 						ChillHours += historydata.interval / 60.0;
@@ -356,8 +356,8 @@ namespace CumulusMX.Stations
 				// Dewpoint ====================================================================
 				if (cumulus.StationOptions.CalculatedDP)
 				{
-					var tempC = ConvertUnits.UserTempToC(Current.Temperature);
-					DoOutdoorDewpoint(ConvertUnits.TempCToUser(MeteoLib.DewPoint(tempC, Current.Humidity)), timestamp);
+					var tempC = ConvertUnits.UserTempToC(MetData.Temperature);
+					DoOutdoorDewpoint(ConvertUnits.TempCToUser(MeteoLib.DewPoint(tempC, MetData.Humidity)), timestamp);
 					CheckForDewpointHighLow(timestamp);
 				}
 				else
@@ -379,10 +379,10 @@ namespace CumulusMX.Stations
 				}
 
 				// Wind run ======================================================================
-				cumulus.LogMessage("Windrun: " + Current.WindAverage.ToString(cumulus.WindAvgFormat) + cumulus.Units.WindText + " for " + historydata.interval + " minutes = " +
-								(Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				cumulus.LogMessage("Windrun: " + MetData.WindAverage.ToString(cumulus.WindAvgFormat) + cumulus.Units.WindText + " for " + historydata.interval + " minutes = " +
+								(MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.interval / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
 
-				WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.interval / 60.0;
+				MetData.WindRunToday += MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * historydata.interval / 60.0;
 
 				CheckForWindrunHighLow(timestamp);
 
@@ -403,7 +403,7 @@ namespace CumulusMX.Stations
 				DoCloudBaseHeatIndex(timestamp);
 				DoTrendValues(timestamp);
 
-				CalculateDominantWindBearing(Current.Bearing, Current.WindAverage, historydata.interval);
+				CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, historydata.interval);
 
 				bw.ReportProgress((totalentries - datalist.Count) * 100 / totalentries, "processing");
 
@@ -426,7 +426,7 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(timestamp, false);
 				}
 
-				AddRecentDataEntry(timestamp, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex, Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, rainrate, -1, -1, BlackGlobeTemp, WetBulbGlobeTemp);
+				AddRecentDataEntry(timestamp, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex, MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, rainrate, -1, -1, MetData.BlackGlobeTemp, WetBulbGlobeTemp);
 				UpdateStatusPanel(timestamp.ToUniversalTime());
 				cumulus.AddToWebServiceLists(timestamp);
 
@@ -470,7 +470,7 @@ namespace CumulusMX.Stations
 		/// <summary>
 		/// Read history info - interval, countdown etc
 		/// </summary>
-		/// <param name="interval">Current interval in minutes</param>
+		/// <param name="interval">MetData interval in minutes</param>
 		/// <param name="countdown">Countdown to next measurement</param>
 		/// <param name="timelast">Time/Date for last measurement</param>
 		/// <param name="numrecords">number of valid records</param>
@@ -698,7 +698,7 @@ namespace CumulusMX.Stations
 
 				pressure = Ws2300AbsolutePressure();
 
-				if (Current.Pressure > 850 && Current.Pressure < 1200)
+				if (MetData.Pressure > 850 && MetData.Pressure < 1200)
 				{
 					DoStationPressure(ConvertUnits.PressMBToUser(pressure));
 				}

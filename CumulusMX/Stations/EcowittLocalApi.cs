@@ -170,7 +170,7 @@ namespace CumulusMX.Stations
 			//	"upgrade":	"0",
 			//	"apAuto":	"1",
 			//	"newVersion":	"0",
-			//	"curr_msg":	"Current version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries.",
+			//	"curr_msg":	"MetData version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries.",
 			//	"apName":	"GW1100A-WIFID4D3",
 			//	"APpwd":	"base64-string",
 			//	"time":	"20"
@@ -1684,7 +1684,7 @@ namespace CumulusMX.Stations
 			//	"upgrade":	"0",
 			//	"apAuto":	"1",
 			//	"newVersion":	"0",
-			//	"curr_msg":	"Current version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries.",
+			//	"curr_msg":	"MetData version:V2.3.4\r\n- Optimize RF reception performance.\r\n- Fix the issue of incorrect voltage upload for wh34/wh35/wh68 batteries.",
 			//	"apName":	"GW1100A-WIFID4D3",
 			//	"APpwd":	"base64-string",
 			//	"time":	"20"

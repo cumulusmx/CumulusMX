@@ -309,7 +309,7 @@ namespace CumulusMX.Stations
 
 								if (cumulus.StationOptions.CalculateSLP)
 								{
-									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+									var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
 									DoPressure(ConvertUnits.PressMBToUser(slp), dataLastRead);
 								}
 							}
@@ -732,14 +732,14 @@ namespace CumulusMX.Stations
 				// Do the CMX calculate SLP now as it depends on temperature
 				if (cumulus.StationOptions.CalculateSLP)
 				{
-					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(Current.StationPressure), ConvertUnits.UserTempToC(Current.Temperature), cumulus.Latitude);
+					var slp = MeteoLib.GetSeaLevelPressure(ConvertUnits.AltitudeM(cumulus.Altitude), ConvertUnits.UserPressToMB(MetData.StationPressure), ConvertUnits.UserTempToC(MetData.Temperature), cumulus.Latitude);
 					DoPressure(ConvertUnits.PressMBToUser(slp), DataDateTime);
 				}
 
 				// add in archive period worth of sunshine, if sunny
-				if (CurrentSolarMax > 0 && Current.SolarRad.HasValue &&
-				Current.SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
-					Current.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
+				if (CurrentSolarMax > 0 && MetData.SolarRad.HasValue &&
+				MetData.SolarRad > CurrentSolarMax * cumulus.SolarOptions.SunThreshold / 100 &&
+					MetData.SolarRad >= cumulus.SolarOptions.SolarMinimum &&
 					!cumulus.SolarOptions.UseBlakeLarsen)
 				{
 					SunshineHours += intervalMins / 60.0;
@@ -748,18 +748,18 @@ namespace CumulusMX.Stations
 
 				// add in archive period minutes worth of temperature to the temp samples
 				tempsamplestoday += intervalMins;
-				TempTotalToday += Current.Temperature * intervalMins;
+				TempTotalToday += MetData.Temperature * intervalMins;
 
 				// add in 'following interval' minutes worth of wind speed to windrun
-				cumulus.LogMessage("Windrun: " + Current.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + intervalMins + " minutes = " +
-				(Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
-				WindRunToday += Current.WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0;
+				cumulus.LogMessage("Windrun: " + MetData.WindAverage.ToString(cumulus.WindFormat) + cumulus.Units.WindText + " for " + intervalMins + " minutes = " +
+				(MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0).ToString(cumulus.WindRunFormat) + cumulus.Units.WindRunText);
+				MetData.WindRunToday += MetData.WindAverage * WindRunHourMult[cumulus.Units.Wind] * intervalMins / 60.0;
 
 				// update heating/cooling degree days
 				UpdateDegreeDays(intervalMins);
 
 				// update dominant wind bearing
-				CalculateDominantWindBearing(Current.Bearing, Current.WindAverage, intervalMins);
+				CalculateDominantWindBearing(MetData.Bearing, MetData.WindAverage, intervalMins);
 				CheckForWindrunHighLow(DataDateTime);
 				DoTrendValues(DataDateTime);
 
@@ -827,8 +827,8 @@ namespace CumulusMX.Stations
 					_ = cumulus.CustomMysqlMinutesUpdate(DataDateTime, false);
 				}
 
-				AddRecentDataWithAq(DataDateTime, Current.WindAverage, Current.RecentMaxGust, Current.WindLatest, Current.Bearing, Current.AvgBearing, Current.Temperature, Current.WindChill, Current.Dewpoint, Current.HeatIndex,
-					Current.Humidity, Current.Pressure, Current.RainToday, Current.SolarRad, UV, RainCounter, Current.FeelsLike, Current.Humidex, Current.ApparentTemperature, Current.TemperatureIn, Current.HumidityIn, CurrentSolarMax, RainRate, BlackGlobeTemp, WetBulbGlobeTemp);
+				AddRecentDataWithAq(DataDateTime, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindLatest, MetData.Bearing, MetData.AvgBearing, MetData.Temperature, MetData.WindChill, MetData.Dewpoint, MetData.HeatIndex,
+					MetData.Humidity, MetData.Pressure, MetData.RainToday, MetData.SolarRad, MetData.UV, RainCounter, MetData.FeelsLike, MetData.Humidex, MetData.ApparentTemperature, MetData.TemperatureIn, MetData.HumidityIn, CurrentSolarMax, MetData.RainRate, MetData.BlackGlobeTemp, WetBulbGlobeTemp);
 
 				UpdateStatusPanel(rec.Key.UtcFromUnixTime());
 				cumulus.AddToWebServiceLists(DataDateTime);
@@ -1226,7 +1226,7 @@ namespace CumulusMX.Stations
 			}
 
 			// Some debugging info
-			cumulus.LogDebugMessage($"LiveData: Wind Decode >> Last={windSpeedLast:F1}, LastDir={windDirLast}, Gust={gustLast:F1}, (MXAvg={Current.WindAverage:F1})");
+			cumulus.LogDebugMessage($"LiveData: Wind Decode >> Last={windSpeedLast:F1}, LastDir={windDirLast}, Gust={gustLast:F1}, (MXAvg={MetData.WindAverage:F1})");
 
 		}
 

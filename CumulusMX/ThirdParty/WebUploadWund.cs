@@ -185,46 +185,46 @@ namespace CumulusMX.ThirdParty
 			URL.Append($"&PASSWORD={PW}");
 			URL.Append($"&dateutc={dateUTC}");
 			StringBuilder Data = new StringBuilder(1024);
-			if (SendAverage && Current.WindAverage >= 0)
+			if (SendAverage && MetData.WindAverage >= 0)
 			{
 				// send average speed and bearing
-				Data.Append($"&winddir={Current.AvgBearing}&windspeedmph={station.WindMPHStr(Current.WindAverage)}");
+				Data.Append($"&winddir={MetData.AvgBearing}&windspeedmph={station.WindMPHStr(MetData.WindAverage)}");
 			}
-			else if (Current.WindLatest >= 0)
+			else if (MetData.WindLatest >= 0)
 			{
 				// send "instantaneous" speed (i.e. latest) and bearing
-				Data.Append($"&winddir={Current.Bearing}&windspeedmph={station.WindMPHStr(Current.WindLatest)}");
+				Data.Append($"&winddir={MetData.Bearing}&windspeedmph={station.WindMPHStr(MetData.WindLatest)}");
 			}
-			if (Current.RecentMaxGust >= 0)
-				Data.Append($"&windgustmph={station.WindMPHStr(Current.RecentMaxGust)}");
+			if (MetData.RecentMaxGust >= 0)
+				Data.Append($"&windgustmph={station.WindMPHStr(MetData.RecentMaxGust)}");
 			// may not strictly be a 2 min average!
-			if (Current.WindAverage >= 0)
+			if (MetData.WindAverage >= 0)
 			{
-				Data.Append($"&windspdmph_avg2m={station.WindMPHStr(Current.WindAverage)}");
-				Data.Append($"&winddir_avg2m={Current.AvgBearing}");
+				Data.Append($"&windspdmph_avg2m={station.WindMPHStr(MetData.WindAverage)}");
+				Data.Append($"&winddir_avg2m={MetData.AvgBearing}");
 			}
-			if (Current.Humidity >= 0)
-				Data.Append($"&humidity={Current.Humidity}");
-			if (Current.Temperature >= Cumulus.DefaultHiVal)
-				Data.Append($"&tempf={WeatherStation.TempFstr(Current.Temperature)}");
+			if (MetData.Humidity >= 0)
+				Data.Append($"&humidity={MetData.Humidity}");
+			if (MetData.Temperature >= Cumulus.DefaultHiVal)
+				Data.Append($"&tempf={WeatherStation.TempFstr(MetData.Temperature)}");
 			Data.Append($"&rainin={WeatherStation.RainINstr(station.RainLastHour)}");
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
-			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? Current.RainToday : station.RainSinceMidnight));
-			if (Current.Pressure >= Cumulus.DefaultHiVal)
-				Data.Append($"&baromin={WeatherStation.PressINstr(Current.Pressure)}");
-			if (Current.Dewpoint >= Cumulus.DefaultHiVal)
-				Data.Append($"&dewptf={WeatherStation.TempFstr(Current.Dewpoint)}");
-			if (SendUV && station.UV.HasValue)
-				Data.Append($"&UV={station.UV.Value.ToString(cumulus.UVFormat, invC)}");
-			if (SendSolar && Current.SolarRad.HasValue)
-				Data.Append($"&solarradiation={Current.SolarRad}");
+			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? MetData.RainToday : station.RainSinceMidnight));
+			if (MetData.Pressure >= Cumulus.DefaultHiVal)
+				Data.Append($"&baromin={WeatherStation.PressINstr(MetData.Pressure)}");
+			if (MetData.Dewpoint >= Cumulus.DefaultHiVal)
+				Data.Append($"&dewptf={WeatherStation.TempFstr(MetData.Dewpoint)}");
+			if (SendUV && MetData.UV.HasValue)
+				Data.Append($"&UV={MetData.UV.Value.ToString(cumulus.UVFormat, invC)}");
+			if (SendSolar && MetData.SolarRad.HasValue)
+				Data.Append($"&solarradiation={MetData.SolarRad}");
 			if (SendIndoor)
 			{
-				if (Current.TemperatureIn.HasValue)
-					Data.Append($"&indoortempf={WeatherStation.TempFstr(Current.TemperatureIn.Value)}");
-				if (Current.HumidityIn.HasValue)
-					Data.Append($"&indoorhumidity={Current.HumidityIn}");
+				if (MetData.TemperatureIn.HasValue)
+					Data.Append($"&indoortempf={WeatherStation.TempFstr(MetData.TemperatureIn.Value)}");
+				if (MetData.HumidityIn.HasValue)
+					Data.Append($"&indoorhumidity={MetData.HumidityIn}");
 			}
 			// Davis soil and leaf sensors
 			if (SendSoilTemp1 && station.SoilTemp[1].HasValue)

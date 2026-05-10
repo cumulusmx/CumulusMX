@@ -101,27 +101,27 @@ namespace CumulusMX.ThirdParty
 			StringBuilder Data = new StringBuilder(1024);
 
 			// send average speed and bearing
-			Data.Append("&winddir=" + Current.AvgBearing);
-			if (Current.WindAverage >= 0)
-				Data.Append("&windspeedmph=" + station.WindMPHStr(Current.WindAverage));
-			if (Current.RecentMaxGust >= 0)
-				Data.Append("&windgustmph=" + station.WindMPHStr(Current.RecentMaxGust));
-			if (Current.Humidity >= 0)
-				Data.Append("&humidity=" + Current.Humidity);
-			if (Current.Temperature > Cumulus.DefaultHiVal)
-				Data.Append("&tempf=" + WeatherStation.TempFstr(Current.Temperature));
+			Data.Append("&winddir=" + MetData.AvgBearing);
+			if (MetData.WindAverage >= 0)
+				Data.Append("&windspeedmph=" + station.WindMPHStr(MetData.WindAverage));
+			if (MetData.RecentMaxGust >= 0)
+				Data.Append("&windgustmph=" + station.WindMPHStr(MetData.RecentMaxGust));
+			if (MetData.Humidity >= 0)
+				Data.Append("&humidity=" + MetData.Humidity);
+			if (MetData.Temperature > Cumulus.DefaultHiVal)
+				Data.Append("&tempf=" + WeatherStation.TempFstr(MetData.Temperature));
 			Data.Append("&rainin=" + WeatherStation.RainINstr(station.RainLastHour));
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
-			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? Current.RainToday : station.RainSinceMidnight));
-			if (Current.Pressure > 0)
-				Data.Append("&baromin=" + WeatherStation.PressINstr(Current.Pressure));
-			if (Current.Dewpoint > Cumulus.DefaultHiVal)
-				Data.Append("&dewptf=" + WeatherStation.TempFstr(Current.Dewpoint));
-			if (SendUV && station.UV.HasValue)
-				Data.Append("&UV=" + station.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture.NumberFormat));
-			if (SendSolar && Current.SolarRad.HasValue)
-				Data.Append("&solarradiation=" + Current.SolarRad);
+			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? MetData.RainToday : station.RainSinceMidnight));
+			if (MetData.Pressure > 0)
+				Data.Append("&baromin=" + WeatherStation.PressINstr(MetData.Pressure));
+			if (MetData.Dewpoint > Cumulus.DefaultHiVal)
+				Data.Append("&dewptf=" + WeatherStation.TempFstr(MetData.Dewpoint));
+			if (SendUV && MetData.UV.HasValue)
+				Data.Append("&UV=" + MetData.UV.Value.ToString(cumulus.UVFormat, CultureInfo.InvariantCulture.NumberFormat));
+			if (SendSolar && MetData.SolarRad.HasValue)
+				Data.Append("&solarradiation=" + MetData.SolarRad);
 			if (SendSoilTemp && station.SoilTemp[SoilTempSensor].HasValue)
 				Data.Append("&soiltempf=" + WeatherStation.TempFstr(station.SoilTemp[SoilTempSensor].Value));
 			if (SendSoilMoisture && station.SoilMoisture[SoilMoistureSensor].HasValue && cumulus.Units.SoilMoistureUnitText[SoilMoistureSensor] == "%")

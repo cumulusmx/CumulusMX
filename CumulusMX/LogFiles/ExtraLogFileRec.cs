@@ -60,7 +60,7 @@ namespace CumulusMX.LogFiles
 		public void ParseCsvRec(string data)
 		{
 			// 0  Date/Time in the form dd/mm/yy hh:mm
-			// 1  Current Unix timestamp
+			// 1  MetData Unix timestamp
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
