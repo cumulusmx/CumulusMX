@@ -30,8 +30,9 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add BGT/WBGT to all time record detection
 - Add new web tags for BGT/WBGT all-time record set<br>
 `<#HighBgtRecordSet> <#HighWbgtRecordSet>`
+- Fix web tags `<#SoilEc6>` and `<#SoilEc15>` returning soil moisture values
 
-
+---
 
 ## [5.1.0 \[b5006\]][31] - 2026-05-07
 
