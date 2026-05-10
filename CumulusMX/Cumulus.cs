@@ -8120,7 +8120,7 @@ namespace CumulusMX
 				sb.Append(station.presstrendval.ToFixed(PressTrendFormat) + ' ');             // 19
 				sb.Append(MetData.RainMonth.ToString(RainFormat, InvC) + ' ');                // 20
 				sb.Append(MetData.RainYear.ToString(RainFormat, InvC) + ' ');                 // 21
-				sb.Append(station.RainYesterday.ToString(RainFormat, InvC) + ' ');            // 22
+				sb.Append(MetData.RainYesterday.ToString(RainFormat, InvC) + ' ');            // 22
 				sb.Append((MetData.TemperatureIn ?? 0).ToFixed(TempFormat) + ' ');        // 23
 				sb.Append((MetData.HumidityIn ?? 0).ToString() + ' ');                    // 24
 				sb.Append(MetData.WindChill.ToFixed(TempFormat) + ' ');                       // 25
@@ -8146,7 +8146,7 @@ namespace CumulusMX
 				sb.Append(MetData.ET.ToString(ETFormat, InvC) + ' ');                         // 45
 				sb.Append((MetData.SolarRad ?? 0).ToString() + ' ');                          // 46
 				sb.Append(MetData.AvgBearing.ToString() + ' ');                               // 47
-				sb.Append(station.RainLastHour.ToString(RainFormat, InvC) + ' ');             // 48
+				sb.Append(MetData.RainLastHour.ToString(RainFormat, InvC) + ' ');             // 48
 				sb.Append(station.Forecastnumber.ToString() + ' ');                           // 49
 				sb.Append(IsDaylight() ? "1 " : "0 ");                                        // 50
 				sb.Append(station.SensorContactLost ? "1 " : "0 ");                           // 51
@@ -8207,7 +8207,7 @@ namespace CumulusMX
 			values.Append(sep + "'" + (station.presstrendval > 0 ? '+' + station.presstrendval.ToFixed(PressFormat) : station.presstrendval.ToFixed(PressFormat)) + "'");
 			values.Append(sep + MetData.RainMonth.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.RainYear.ToString(RainFormat, InvC));
-			values.Append(sep + station.RainYesterday.ToString(RainFormat, InvC));
+			values.Append(sep + MetData.RainYesterday.ToString(RainFormat, InvC));
 			values.Append(sep + MetData.TemperatureIn.ToFixed(TempFormat, "NULL"));
 			values.Append(sep + MetData.HumidityIn.ToText("NULL"));
 			values.Append(sep + MetData.WindChill.ToFixed(TempFormat));
@@ -8233,7 +8233,7 @@ namespace CumulusMX
 			values.Append(sep + MetData.ET.ToString(ETFormat, InvC));
 			values.Append(sep + MetData.SolarRad.ToText("NULL"));
 			values.Append(sep + MetData.AvgBearing.ToString());
-			values.Append(sep + station.RainLastHour.ToString(RainFormat, InvC));
+			values.Append(sep + MetData.RainLastHour.ToString(RainFormat, InvC));
 			values.Append(sep + station.Forecastnumber.ToString());
 			values.Append(sep + (IsDaylight() ? "'1'" : "'0'"));
 			values.Append(sep + (station.SensorContactLost ? "'1'" : "'0'"));

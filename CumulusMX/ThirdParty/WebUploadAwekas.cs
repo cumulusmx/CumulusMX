@@ -309,10 +309,10 @@ namespace CumulusMX.ThirdParty
 			{
 				for (var i = 1; i <= 4; i++)
 				{
-					if (station.SoilMoisture[i].HasValue)
+					if (MetData.SoilMoisture[i].HasValue)
 					{
 						if (started) sb.Append('&'); else started = true;
-						sb.Append($"soilmoisture{i}={station.SoilMoisture[i]}");
+						sb.Append($"soilmoisture{i}={MetData.SoilMoisture[i]}");
 					}
 				}
 			}
@@ -351,10 +351,10 @@ namespace CumulusMX.ThirdParty
 					case (int)Cumulus.PrimaryAqSensor.Sensor4:
 						{
 							int idx = cumulus.StationOptions.PrimaryAqSensor;
-							if (station.AirQuality[idx].HasValue)
-								sb.Append($"AqPM2.5={station.AirQuality[idx].Value.ToString("F1", InvC)}");
-							if (station.AirQualityAvg[idx].HasValue)
-								sb.Append($"&AqPM2.5_avg_24h={station.AirQualityAvg[idx].Value.ToString("F1", InvC)}");
+							if (MetData.AirQuality[idx].HasValue)
+								sb.Append($"AqPM2.5={MetData.AirQuality[idx].Value.ToString("F1", InvC)}");
+							if (MetData.AirQualityAvg[idx].HasValue)
+								sb.Append($"&AqPM2.5_avg_24h={MetData.AirQualityAvg[idx].Value.ToString("F1", InvC)}");
 							if (station.AirQuality10[idx].HasValue)
 								sb.Append($"&AqPM10={station.AirQuality10[idx].Value.ToString("F1", InvC)}");
 							if (station.AirQuality10Avg[idx].HasValue)

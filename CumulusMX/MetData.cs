@@ -156,6 +156,11 @@ namespace CumulusMX
 		/// <summary>
 		/// rain rate
 		/// </summary>
+
+		public static double RainYesterday { get; set; }
+
+		public static double RainLastHour { get; set; }
+
 		public static double RainRate { get; set; } = 0;
 
 		public static double MidnightRainCount { get; set; }
@@ -224,6 +229,16 @@ namespace CumulusMX
 		public static double?[] Snow24h { get; set; } = new double?[5];
 
 		public static double?[] SnowSeason { get; set; } = new double?[5];
+
+		public static int?[] SoilMoisture { get; set; } = new int?[17];
+
+		public static double?[] AirQuality { get; set; } = new double?[5];
+
+		public static double?[] AirQualityIdx { get; set; } = new double?[5];
+
+		public static double?[] AirQualityAvg { get; set; } = new double?[5];
+
+		public static double?[] AirQualityAvgIdx { get; set; } = new double?[5];
 
 	}
 }

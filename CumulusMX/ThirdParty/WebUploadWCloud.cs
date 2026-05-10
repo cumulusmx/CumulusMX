@@ -215,10 +215,10 @@ namespace CumulusMX.ThirdParty
 					case (int) Cumulus.PrimaryAqSensor.Sensor4:
 						{
 							int idx = cumulus.StationOptions.PrimaryAqSensor;
-							if (station.AirQuality[idx].HasValue)
-								sb.Append($"&pm25={station.AirQuality[idx]:F0}");
-							if (station.AirQualityAvg[idx].HasValue)
-								sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(station.AirQualityAvg[idx].Value)}");
+							if (MetData.AirQuality[idx].HasValue)
+								sb.Append($"&pm25={MetData.AirQuality[idx]:F0}");
+							if (MetData.AirQualityAvg[idx].HasValue)
+								sb.Append($"&aqi={AirQualityIndices.US_EPApm2p5(MetData.AirQualityAvg[idx].Value)}");
 							if (station.AirQuality10[idx].HasValue)
 								sb.Append($"&pm10={station.AirQuality10[idx]:F0}");
 							break;
@@ -239,9 +239,9 @@ namespace CumulusMX.ThirdParty
 			{
 				// Weathercloud wants soil moisture in centibar. Davis supplies this, but Ecowitt provide a percentage
 				int? moist = null;
-				if (cumulus.WCloud.SoilMoistureSensor < station.SoilMoisture.Length)
+				if (cumulus.WCloud.SoilMoistureSensor < MetData.SoilMoisture.Length)
 				{
-					moist = station.SoilMoisture[cumulus.WCloud.SoilMoistureSensor];
+					moist = MetData.SoilMoisture[cumulus.WCloud.SoilMoistureSensor];
 				}
 
 				if (moist.HasValue)

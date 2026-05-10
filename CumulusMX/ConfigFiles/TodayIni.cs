@@ -130,7 +130,7 @@ namespace CumulusMX
 			DailyHighLow.Today.HighHourlyRainTime = ini.GetValue("Rain", "HHourlyTime", meteoTodayDate);
 			DailyHighLow.Today.HighRain24h = ini.GetValue("Rain", "High24h", 0.0);
 			DailyHighLow.Today.HighRain24hTime = ini.GetValue("Rain", "High24hTime", meteoTodayDate);
-			RainYesterday = ini.GetValue("Rain", "Yesterday", 0.0);
+			MetData.RainYesterday = ini.GetValue("Rain", "Yesterday", 0.0);
 			RainCounterDayStart = ini.GetValue("Rain", "Start", -1.0);
 			MetData.MidnightRainCount = ini.GetValue("Rain", "Midnight", -1.0);
 			RainCounter = ini.GetValue("Rain", "Last", -1.0);
@@ -306,7 +306,7 @@ namespace CumulusMX
 				ini.SetValue("Rain", "HHourlyTime", DailyHighLow.Today.HighHourlyRainTime);
 				ini.SetValue("Rain", "High24h", DailyHighLow.Today.HighRain24h);
 				ini.SetValue("Rain", "High24hTime", DailyHighLow.Today.HighRain24hTime);
-				ini.SetValue("Rain", "Yesterday", RainYesterday);
+				ini.SetValue("Rain", "Yesterday", MetData.RainYesterday);
 				ini.SetValue("Rain", "Start", RainCounterDayStart);
 				ini.SetValue("Rain", "Midnight", MetData.MidnightRainCount);
 				ini.SetValue("Rain", "Last", RainCounter);

@@ -3364,7 +3364,7 @@ namespace CumulusMX
 
 						// and yesterdays rain
 						var yest = cumulus.MeteoDate().AddDays(-1);
-						station.RainYesterday = station.DayFile.LastOrDefault(day => day.Date == yest.Date).TotalRain;
+						MetData.RainYesterday = station.DayFile.LastOrDefault(day => day.Date == yest.Date).TotalRain;
 					}
 					else
 					{

@@ -929,17 +929,6 @@ namespace CumulusMX
 		}
 
 		public readonly SmoothingFilter[] SnowDepthAverage = new SmoothingFilter[5];
-
-		public double RainYesterday { get; set; }
-
-		public double RainLastHour { get; set; }
-
-		public int?[] SoilMoisture { get; set; } = new int?[17];
-
-		public double?[] AirQuality { get; set; } = new double?[5];
-		public double?[] AirQualityIdx { get; set; } = new double?[5];
-		public double?[] AirQualityAvg { get; set; } = new double?[5];
-		public double?[] AirQualityAvgIdx { get; set; } = new double?[5];
 		public double?[] AirQuality10 { get; set; } = new double?[5];
 		public double?[] AirQuality10Idx { get; set; } = new double?[5];
 		public double?[] AirQuality10Avg { get; set; } = new double?[5];
@@ -5606,7 +5595,7 @@ namespace CumulusMX
 			var mphwind = Convert.ToInt32(ConvertUnits.UserWindToMPH(MetData.WindAverage));
 			var mphgust = Convert.ToInt32(ConvertUnits.UserWindToMPH(MetData.RecentMaxGust));
 			var ftempstr = APRStemp(MetData.Temperature);
-			var in100rainlasthour = Convert.ToInt32(ConvertUnits.UserRainToIN(RainLastHour) * 100);
+			var in100rainlasthour = Convert.ToInt32(ConvertUnits.UserRainToIN(MetData.RainLastHour) * 100);
 			var in100rainlast24hours = Convert.ToInt32(ConvertUnits.UserRainToIN(RainLast24Hour) * 100);
 			int in100raintoday;
 			// use today's rain for safety
@@ -7719,8 +7708,8 @@ namespace CumulusMX
 
 				// Calculate yesterday"s rain, allowing for the multiplier -
 				// raintotal && raindaystart are not calibrated
-				RainYesterday = (RainCounter - RainCounterDayStart) * cumulus.Calib.Rain.Mult;
-				cumulus.LogMessage("Rainyesterday (calibrated) set to " + RainYesterday);
+				MetData.RainYesterday = (RainCounter - RainCounterDayStart) * cumulus.Calib.Rain.Mult;
+				cumulus.LogMessage("Rainyesterday (calibrated) set to " + MetData.RainYesterday);
 
 				int rdthresh1000;
 				if (cumulus.RainDayThreshold > 0)
@@ -7741,7 +7730,7 @@ namespace CumulusMX
 				}
 
 				// set up rain yesterday * 1000 for comparison
-				var ryest1000 = Convert.ToInt32(RainYesterday * 1000.0);
+				var ryest1000 = Convert.ToInt32(MetData.RainYesterday * 1000.0);
 
 				cumulus.LogMessage("RainDayThreshold = " + cumulus.RainDayThreshold);
 				cumulus.LogMessage("rdt1000=" + rdthresh1000 + " ry1000=" + ryest1000);
@@ -8005,7 +7994,7 @@ namespace CumulusMX
 					Records.ThisMonth.HighPress.Val = MetData.Pressure;
 					Records.ThisMonth.LowPress.Val = MetData.Pressure;
 					Records.ThisMonth.HighRainRate.Val = MetData.RainRate;
-					Records.ThisMonth.HourlyRain.Val = RainLastHour;
+					Records.ThisMonth.HourlyRain.Val = MetData.RainLastHour;
 					Records.ThisMonth.HighRain24Hours.Val = RainLast24Hour;
 					Records.ThisMonth.DailyRain.Val = Cumulus.DefaultHiVal;
 					Records.ThisMonth.HighHumidity.Val = MetData.Humidity;
@@ -8057,7 +8046,7 @@ namespace CumulusMX
 					Records.ThisMonth.HighWbgt.Ts = timestamp;
 				}
 				else
-					RainThisMonth += RainYesterday;
+					RainThisMonth += MetData.RainYesterday;
 
 				if (day == 1 && month == 1)
 				{
@@ -8078,7 +8067,7 @@ namespace CumulusMX
 					Records.ThisYear.HighPress.Val = MetData.Pressure;
 					Records.ThisYear.LowPress.Val = MetData.Pressure;
 					Records.ThisYear.HighRainRate.Val = MetData.RainRate;
-					Records.ThisYear.HourlyRain.Val = RainLastHour;
+					Records.ThisYear.HourlyRain.Val = MetData.RainLastHour;
 					Records.ThisYear.HighRain24Hours.Val = RainLast24Hour;
 					Records.ThisYear.DailyRain.Val = Cumulus.DefaultHiVal;
 					Records.ThisYear.MonthlyRain.Val = Cumulus.DefaultHiVal;
@@ -8148,7 +8137,7 @@ namespace CumulusMX
 				}
 				else
 				{
-					RainThisYear += RainYesterday;
+					RainThisYear += MetData.RainYesterday;
 				}
 
 				if (day == 1 && month == cumulus.ChillHourSeasonStart)
@@ -8245,7 +8234,7 @@ namespace CumulusMX
 
 				DailyHighLow.Yest.HighHourlyRain = DailyHighLow.Today.HighHourlyRain;
 				DailyHighLow.Yest.HighHourlyRainTime = DailyHighLow.Today.HighHourlyRainTime;
-				DailyHighLow.Today.HighHourlyRain = RainLastHour;
+				DailyHighLow.Today.HighHourlyRain = MetData.RainLastHour;
 				DailyHighLow.Today.HighHourlyRainTime = timestamp;
 
 				DailyHighLow.Yest.HighRain24h = DailyHighLow.Today.HighRain24h;
@@ -8946,19 +8935,19 @@ namespace CumulusMX
 					}
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Sensor1:
-					pm2p5 = AirQuality[1];
+					pm2p5 = MetData.AirQuality[1];
 					pm10 = AirQuality10[1];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Sensor2:
-					pm2p5 = AirQuality[2];
+					pm2p5 = MetData.AirQuality[2];
 					pm10 = AirQuality10[2];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Sensor3:
-					pm2p5 = AirQuality[3];
+					pm2p5 = MetData.AirQuality[3];
 					pm10 = AirQuality10[3];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.Sensor4:
-					pm2p5 = AirQuality[4];
+					pm2p5 = MetData.AirQuality[4];
 					pm10 = AirQuality10[4];
 					break;
 				case (int) Cumulus.PrimaryAqSensor.EcowittCO2:
@@ -9083,7 +9072,7 @@ namespace CumulusMX
 				if (retVals.Count != 1)
 				{
 					TempChangeLastHour = 0;
-					RainLastHour = 0;
+					MetData.RainLastHour = 0;
 				}
 				else
 				{
@@ -9095,7 +9084,7 @@ namespace CumulusMX
 					if (RainCounter < retVals[0].raincounter)
 					{
 						// rain total is not available or has gone down, assume it was reset to zero, just use zero
-						RainLastHour = 0;
+						MetData.RainLastHour = 0;
 					}
 					else
 					{
@@ -9117,32 +9106,32 @@ namespace CumulusMX
 						}
 						else
 						{
-							RainLastHour = tempRainLastHour;
+							MetData.RainLastHour = tempRainLastHour;
 
-							if (RainLastHour > Records.AllTime.HourlyRain.Val)
+							if (MetData.RainLastHour > Records.AllTime.HourlyRain.Val)
 							{
-								SetAlltime(Records.AllTime.HourlyRain, RainLastHour, recDtTm);
+								SetAlltime(Records.AllTime.HourlyRain, MetData.RainLastHour, recDtTm);
 							}
 
-							CheckMonthlyAlltime("HourlyRain", RainLastHour, true, recDtTm);
+							CheckMonthlyAlltime("HourlyRain", MetData.RainLastHour, true, recDtTm);
 
-							if (RainLastHour > DailyHighLow.Today.HighHourlyRain)
+							if (MetData.RainLastHour > DailyHighLow.Today.HighHourlyRain)
 							{
-								DailyHighLow.Today.HighHourlyRain = RainLastHour;
+								DailyHighLow.Today.HighHourlyRain = MetData.RainLastHour;
 								DailyHighLow.Today.HighHourlyRainTime = recDtTm;
 								WriteTodayFile(ts, false);
 							}
 
-							if (RainLastHour > Records.ThisMonth.HourlyRain.Val)
+							if (MetData.RainLastHour > Records.ThisMonth.HourlyRain.Val)
 							{
-								Records.ThisMonth.HourlyRain.Val = RainLastHour;
+								Records.ThisMonth.HourlyRain.Val = MetData.RainLastHour;
 								Records.ThisMonth.HourlyRain.Ts = recDtTm;
 								WriteMonthIniFile();
 							}
 
-							if (RainLastHour > Records.ThisYear.HourlyRain.Val)
+							if (MetData.RainLastHour > Records.ThisYear.HourlyRain.Val)
 							{
-								Records.ThisYear.HourlyRain.Val = RainLastHour;
+								Records.ThisYear.HourlyRain.Val = MetData.RainLastHour;
 								Records.ThisYear.HourlyRain.Ts = recDtTm;
 								WriteYearIniFile();
 							}
@@ -9153,7 +9142,7 @@ namespace CumulusMX
 			catch
 			{
 				TempChangeLastHour = 0;
-				RainLastHour = 0;
+				MetData.RainLastHour = 0;
 			}
 
 
@@ -10120,8 +10109,8 @@ namespace CumulusMX
 
 		public void DoSoilMoisture(double? value, int index)
 		{
-			if (index > 0 && index < SoilMoisture.Length)
-				SoilMoisture[index] = (int?) value;
+			if (index > 0 && index < MetData.SoilMoisture.Length)
+				MetData.SoilMoisture[index] = (int?) value;
 		}
 
 		public void DoSoilTemp(double? value, int index)
@@ -10138,19 +10127,19 @@ namespace CumulusMX
 
 		public void DoAirQuality(double? value, int index)
 		{
-			AirQuality[index] = value;
-			AirQualityIdx[index] = GetAqi(AqMeasure.pm2p5, value);
+			MetData.AirQuality[index] = value;
+			MetData.AirQualityIdx[index] = GetAqi(AqMeasure.pm2p5, value);
 		}
 
 		public void DoAirQualityAvg(double? value, int index)
 		{
-			AirQualityAvg[index] = value;
-			AirQualityAvgIdx[index] = GetAqi(AqMeasure.pm2p5h24, value);
+			MetData.AirQualityAvg[index] = value;
+			MetData.AirQualityAvgIdx[index] = GetAqi(AqMeasure.pm2p5h24, value);
 		}
 
 		public void UpdateAirQualityDb()
 		{
-			if (null == (AirQuality[1] ?? AirQuality[2] ?? AirQuality[3] ?? AirQuality[4]))
+			if (null == (MetData.AirQuality[1] ?? MetData.AirQuality[2] ?? MetData.AirQuality[3] ?? MetData.AirQuality[4]))
 			{
 				// no data available
 				return;
@@ -10159,10 +10148,10 @@ namespace CumulusMX
 			var rec = new RecentAqData
 			{
 				DateTime = DateTime.Now,
-				Pm2p5_1 = AirQuality[1],
-				Pm2p5_2 = AirQuality[2],
-				Pm2p5_3 = AirQuality[3],
-				Pm2p5_4 = AirQuality[4],
+				Pm2p5_1 = MetData.AirQuality[1],
+				Pm2p5_2 = MetData.AirQuality[2],
+				Pm2p5_3 = MetData.AirQuality[3],
+				Pm2p5_4 = MetData.AirQuality[4],
 				Pm10_1 = AirQuality10[1],
 				Pm10_2 = AirQuality10[2],
 				Pm10_3 = AirQuality10[3],
@@ -10912,7 +10901,7 @@ namespace CumulusMX
 			Data.Append("&windgustmph=" + WindMPHStr(MetData.RecentMaxGust));
 			Data.Append("&humidity=" + MetData.Humidity);
 			Data.Append("&tempf=" + TempFstr(MetData.Temperature));
-			Data.Append("&rainin=" + RainINstr(RainLastHour));
+			Data.Append("&rainin=" + RainINstr(MetData.RainLastHour));
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
 			Data.Append(RainINstr(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight));
@@ -11653,10 +11642,10 @@ namespace CumulusMX
 		{
 			var json = new StringBuilder("{\"data\":[", 1024);
 
-			for (var i = 1; i < SoilMoisture.Length; i++)
+			for (var i = 1; i < MetData.SoilMoisture.Length; i++)
 			{
 				if (cumulus.GraphOptions.Visible.SoilMoist.ValVisible(i - 1, true))
-					json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[i - 1]}\",\"{SoilMoisture[i].ToText("-")}\",\"{cumulus.Units.SoilMoistureUnitText[i - 1]}\"],");
+					json.Append($"[\"{cumulus.Trans.SoilMoistureCaptions[i - 1]}\",\"{MetData.SoilMoisture[i].ToText("-")}\",\"{cumulus.Units.SoilMoistureUnitText[i - 1]}\"],");
 			}
 
 			if (json[^1] == ',')
@@ -11688,18 +11677,18 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 1024);
 			if (cumulus.GraphOptions.Visible.AqSensor.IsVisible(local))
 			{
-				for (var i = 1; i < AirQuality.Length; i++)
+				for (var i = 1; i < MetData.AirQuality.Length; i++)
 				{
 					if (cumulus.GraphOptions.Visible.AqSensor.Pm.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.AirQualityCaptions[i - 1]}\",\"{AirQuality[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+						json.Append($"[\"{cumulus.Trans.AirQualityCaptions[i - 1]}\",\"{MetData.AirQuality[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 					}
 				}
-				for (var i = 1; i < AirQualityAvg.Length; i++)
+				for (var i = 1; i < MetData.AirQualityAvg.Length; i++)
 				{
 					if (cumulus.GraphOptions.Visible.AqSensor.PmAvg.ValVisible(i - 1, local))
 					{
-						json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[i - 1]}\",\"{AirQualityAvg[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
+						json.Append($"[\"{cumulus.Trans.AirQualityAvgCaptions[i - 1]}\",\"{MetData.AirQualityAvg[i].ToFixed("F1", "-")}\",\"{cumulus.Units.AirQualityUnitText}\"],");
 					}
 				}
 				for (var i = 1; i < AirQuality10.Length; i++)
@@ -12074,7 +12063,7 @@ namespace CumulusMX
 			json.Append(sepStr);
 			json.Append("&nbsp;");
 			json.Append(sepStr);
-			json.Append(RainYesterday.ToString(cumulus.RainFormat));
+			json.Append(MetData.RainYesterday.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
 			json.Append("&nbsp;");
@@ -14754,8 +14743,8 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 
 
 			var data = new DataStruct(cumulus, MetData.Temperature, MetData.Humidity, MetData.TempTotalToday / tempsamplestoday, MetData.TemperatureIn, MetData.Dewpoint, MetData.WindChill, MetData.HumidityIn,
-				MetData.Pressure, MetData.WindLatest, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindRunToday, MetData.Bearing, MetData.AvgBearing, MetData.RainToday, RainYesterday, MetData.RainWeek, MetData.RainMonth, MetData.RainYear, MetData.RainRate,
-				RainLastHour, MetData.HeatIndex, MetData.Humidex, MetData.ApparentTemperature, temptrendval, presstrendval, DailyHighLow.Today.HighGust, DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighWind,
+				MetData.Pressure, MetData.WindLatest, MetData.WindAverage, MetData.RecentMaxGust, MetData.WindRunToday, MetData.Bearing, MetData.AvgBearing, MetData.RainToday, MetData.RainYesterday, MetData.RainWeek, MetData.RainMonth, MetData.RainYear, MetData.RainRate,
+				MetData.RainLastHour, MetData.HeatIndex, MetData.Humidex, MetData.ApparentTemperature, temptrendval, presstrendval, DailyHighLow.Today.HighGust, DailyHighLow.Today.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighWind,
 				DailyHighLow.Today.HighGustBearing, cumulus.Units.WindText, cumulus.Units.WindRunText, BearingRangeFrom10, BearingRangeTo10, windRoseData.ToString(), DailyHighLow.Today.HighTemp, DailyHighLow.Today.LowTemp,
 				DailyHighLow.Today.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighPress, DailyHighLow.Today.LowPress, DailyHighLow.Today.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat),
 				DailyHighLow.Today.LowPressTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighRainRate, DailyHighLow.Today.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat), DailyHighLow.Today.HighHumidity, DailyHighLow.Today.LowHumidity,

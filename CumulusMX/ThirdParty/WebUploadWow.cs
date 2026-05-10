@@ -110,7 +110,7 @@ namespace CumulusMX.ThirdParty
 				Data.Append("&humidity=" + MetData.Humidity);
 			if (MetData.Temperature > Cumulus.DefaultHiVal)
 				Data.Append("&tempf=" + WeatherStation.TempFstr(MetData.Temperature));
-			Data.Append("&rainin=" + WeatherStation.RainINstr(station.RainLastHour));
+			Data.Append("&rainin=" + WeatherStation.RainINstr(MetData.RainLastHour));
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
 			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight));
@@ -124,8 +124,8 @@ namespace CumulusMX.ThirdParty
 				Data.Append("&solarradiation=" + MetData.SolarRad);
 			if (SendSoilTemp && MetData.SoilTemp[SoilTempSensor].HasValue)
 				Data.Append("&soiltempf=" + WeatherStation.TempFstr(MetData.SoilTemp[SoilTempSensor].Value));
-			if (SendSoilMoisture && station.SoilMoisture[SoilMoistureSensor].HasValue && cumulus.Units.SoilMoistureUnitText[SoilMoistureSensor] == "%")
-				Data.Append("&soilmoisture=" + station.SoilMoisture[SoilMoistureSensor].Value);
+			if (SendSoilMoisture && MetData.SoilMoisture[SoilMoistureSensor].HasValue && cumulus.Units.SoilMoistureUnitText[SoilMoistureSensor] == "%")
+				Data.Append("&soilmoisture=" + MetData.SoilMoisture[SoilMoistureSensor].Value);
 
 			Data.Append("&softwaretype=Cumulus%20v" + cumulus.Version);
 			Data.Append("&action=updateraw");

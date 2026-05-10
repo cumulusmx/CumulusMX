@@ -322,7 +322,7 @@ namespace CumulusMX.LogFiles
 
 			for (int i = 1; i <= 4; i++)
 			{
-				sb.Append(sep + station.SoilMoisture[i].ToText());                      //36-39
+				sb.Append(sep + MetData.SoilMoisture[i].ToText());                      //36-39
 			}
 
 			sb.Append(sep + sep);     //40-41 - was leaf temp 1/2
@@ -337,17 +337,17 @@ namespace CumulusMX.LogFiles
 
 			for (int i = 5; i <= 16; i++)
 			{
-				sb.Append(sep + station.SoilMoisture[i].ToText());      //56-67
+				sb.Append(sep + MetData.SoilMoisture[i].ToText());      //56-67
 			}
 
 			for (int i = 1; i <= 4; i++)
 			{
-				sb.Append(sep + station.AirQuality[i].ToFixed("F1"));     //68-71
+				sb.Append(sep + MetData.AirQuality[i].ToFixed("F1"));     //68-71
 			}
 
 			for (int i = 1; i <= 4; i++)
 			{
-				sb.Append(sep + station.AirQualityAvg[i].ToFixed("F1")); //72-75
+				sb.Append(sep + MetData.AirQualityAvg[i].ToFixed("F1")); //72-75
 			}
 
 			for (int i = 1; i < 9; i++)

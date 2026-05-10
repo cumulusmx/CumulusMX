@@ -1160,7 +1160,7 @@ namespace CumulusMX
 
 		private string Tagrhour(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.RainLastHour, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(MetData.RainLastHour, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		private string Tagr24Hour(Dictionary<string, string> tagParams)
@@ -2640,7 +2640,7 @@ namespace CumulusMX
 
 		private string TagrfallY(Dictionary<string, string> tagParams)
 		{
-			return CheckRcDp(CheckRainUnit(station.RainYesterday, tagParams), tagParams, cumulus.RainDPlaces);
+			return CheckRcDp(CheckRainUnit(MetData.RainYesterday, tagParams), tagParams, cumulus.RainDPlaces);
 		}
 
 		// all time records
@@ -4901,7 +4901,7 @@ namespace CumulusMX
 
 		private string GetSoilMoisture(int index, Dictionary<string, string> tagParams)
 		{
-			return station.SoilMoisture[index].HasValue ? station.SoilMoisture[index].ToString() : tagParams.Get("nv") ?? "-";
+			return MetData.SoilMoisture[index].HasValue ? MetData.SoilMoisture[index].ToString() : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagSoilEc1(Dictionary<string, string> tagParams)
@@ -5227,7 +5227,7 @@ namespace CumulusMX
 
 		private string GetAirQuality(int index, Dictionary<string, string> tagParams)
 		{
-			return station.AirQuality[index].HasValue ? CheckRcDp(station.AirQuality[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.AirQuality[index].HasValue ? CheckRcDp(MetData.AirQuality[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityAvg1(Dictionary<string, string> tagParams)
@@ -5252,7 +5252,7 @@ namespace CumulusMX
 
 		private string GetAirQualityAvg(int index, Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityAvg[index].HasValue ? CheckRcDp(station.AirQualityAvg[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.AirQualityAvg[index].HasValue ? CheckRcDp(MetData.AirQualityAvg[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQuality10_1(Dictionary<string, string> tagParams)
@@ -5327,7 +5327,7 @@ namespace CumulusMX
 
 		private string GetAirQualityIdx(int index, Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityIdx[index].HasValue ? CheckRcDp(station.AirQualityIdx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.AirQualityIdx[index].HasValue ? CheckRcDp(MetData.AirQualityIdx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQualityAvgIdx1(Dictionary<string, string> tagParams)
@@ -5352,7 +5352,7 @@ namespace CumulusMX
 
 		private string GetAirQualityAvgIdx(int index, Dictionary<string, string> tagParams)
 		{
-			return station.AirQualityAvgIdx[index].HasValue ? CheckRcDp(station.AirQualityAvgIdx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return MetData.AirQualityAvgIdx[index].HasValue ? CheckRcDp(MetData.AirQualityAvgIdx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQuality10Idx1(Dictionary<string, string> tagParams)
@@ -5377,7 +5377,7 @@ namespace CumulusMX
 
 		private string GetAirQuality10Idx(int index, Dictionary<string, string> tagParams)
 		{
-			return station.AirQuality10Idx[index].HasValue ? CheckRcDp(station.AirQualityIdx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return station.AirQuality10Idx[index].HasValue ? CheckRcDp(station.AirQuality10Idx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQuality10AvgIdx1(Dictionary<string, string> tagParams)

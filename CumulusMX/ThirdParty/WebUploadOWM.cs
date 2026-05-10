@@ -187,7 +187,7 @@ namespace CumulusMX.ThirdParty
 				sb.Append($"\"pressure\":{ConvertUnits.UserPressToHpa(MetData.Pressure).ToString("F1", invC)},");
 			if (MetData.Humidity >= 0)
 				sb.Append($"\"humidity\":{MetData.Humidity},");
-			sb.Append($"\"rain_1h\":{ConvertUnits.UserRainToMM(station.RainLastHour).ToString("F1", invC)},");
+			sb.Append($"\"rain_1h\":{ConvertUnits.UserRainToMM(MetData.RainLastHour).ToString("F1", invC)},");
 			sb.Append($"\"rain_24h\":{ConvertUnits.UserRainToMM(station.RainLast24Hour).ToString("F1", invC)}");
 			sb.Append("}]");
 

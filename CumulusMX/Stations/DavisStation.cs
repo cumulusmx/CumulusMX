@@ -1885,7 +1885,7 @@ namespace CumulusMX.Stations
 					{
 						if (loopData.SoilMoisture[sensor] >= 0 && loopData.SoilMoisture[sensor] <= 250)
 						{
-							SoilMoisture[sensor] = loopData.SoilMoisture[sensor];
+							MetData.SoilMoisture[sensor] = loopData.SoilMoisture[sensor];
 						}
 						if (loopData.SoilTemp[sensor] < 255)
 						{

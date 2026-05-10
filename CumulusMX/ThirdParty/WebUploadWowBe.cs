@@ -147,7 +147,7 @@ namespace CumulusMX.ThirdParty
 				bodyObj.Add("baromin", ConvertUnits.UserPressToIN(MetData.Pressure));
 
 			bodyObj.Add("dailyrainin", ConvertUnits.UserRainToIN(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight));
-			bodyObj.Add("rainin", ConvertUnits.UserRainToIN(station.RainLastHour));
+			bodyObj.Add("rainin", ConvertUnits.UserRainToIN(MetData.RainLastHour));
 
 			if (MetData.Dewpoint > Cumulus.DefaultHiVal)
 				bodyObj.Add("dewptf", ConvertUnits.UserTempToF(MetData.Dewpoint));
@@ -155,8 +155,8 @@ namespace CumulusMX.ThirdParty
 			if (MetData.Humidity >= 0)
 				bodyObj.Add("humidity", MetData.Humidity);
 
-			if (SendSoilMoisture && station.SoilMoisture[SoilMoistureSensor].HasValue && cumulus.Units.SoilMoistureUnitText[SoilMoistureSensor] == "%")
-				bodyObj.Add("soilmoisture", station.SoilMoisture[SoilMoistureSensor].Value);
+			if (SendSoilMoisture && MetData.SoilMoisture[SoilMoistureSensor].HasValue && cumulus.Units.SoilMoistureUnitText[SoilMoistureSensor] == "%")
+				bodyObj.Add("soilmoisture", MetData.SoilMoisture[SoilMoistureSensor].Value);
 
 			if (SendSoilTemp && MetData.SoilTemp[SoilTempSensor].HasValue)
 				bodyObj.Add("soiltempf", ConvertUnits.UserTempToF(MetData.SoilTemp[SoilTempSensor].Value));

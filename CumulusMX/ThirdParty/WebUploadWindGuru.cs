@@ -172,7 +172,7 @@ namespace CumulusMX.ThirdParty
 				URL.Append("&mslp=" + ConvertUnits.UserPressToHpa(MetData.Pressure).ToString("F1", InvC));
 			if (cumulus.WindGuru.SendRain)
 			{
-				URL.Append("&precip=" + ConvertUnits.UserRainToMM(station.RainLastHour).ToString("F1", InvC));
+				URL.Append("&precip=" + ConvertUnits.UserRainToMM(MetData.RainLastHour).ToString("F1", InvC));
 				URL.Append("&precip_interval=3600");
 			}
 

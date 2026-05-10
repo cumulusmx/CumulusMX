@@ -207,7 +207,7 @@ namespace CumulusMX.ThirdParty
 				Data.Append($"&humidity={MetData.Humidity}");
 			if (MetData.Temperature >= Cumulus.DefaultHiVal)
 				Data.Append($"&tempf={WeatherStation.TempFstr(MetData.Temperature)}");
-			Data.Append($"&rainin={WeatherStation.RainINstr(station.RainLastHour)}");
+			Data.Append($"&rainin={WeatherStation.RainINstr(MetData.RainLastHour)}");
 			Data.Append("&dailyrainin=");
 			// use today"s rain or midnight
 			Data.Append(WeatherStation.RainINstr(cumulus.RolloverHour == 0 ? MetData.RainToday : MetData.RainSinceMidnight));
@@ -236,14 +236,14 @@ namespace CumulusMX.ThirdParty
 			if (SendSoilTemp4 && MetData.SoilTemp[4].HasValue)
 				Data.Append($"&soiltempf4={WeatherStation.TempFstr(MetData.SoilTemp[4].Value)}");
 
-			if (SendSoilMoisture1 && station.SoilMoisture[1].HasValue)
-				Data.Append($"&soilmoisture={station.SoilMoisture[1]}");
-			if (SendSoilMoisture2 && station.SoilMoisture[2].HasValue)
-				Data.Append($"&soilmoisture2={station.SoilMoisture[2]}");
-			if (SendSoilMoisture3 && station.SoilMoisture[3].HasValue)
-				Data.Append($"&soilmoisture3={station.SoilMoisture[3]}");
-			if (SendSoilMoisture4 && station.SoilMoisture[4].HasValue)
-				Data.Append($"&soilmoisture4={station.SoilMoisture[4]}");
+			if (SendSoilMoisture1 && MetData.SoilMoisture[1].HasValue)
+				Data.Append($"&soilmoisture={MetData.SoilMoisture[1]}");
+			if (SendSoilMoisture2 && MetData.SoilMoisture[2].HasValue)
+				Data.Append($"&soilmoisture2={MetData.SoilMoisture[2]}");
+			if (SendSoilMoisture3 && MetData.SoilMoisture[3].HasValue)
+				Data.Append($"&soilmoisture3={MetData.SoilMoisture[3]}");
+			if (SendSoilMoisture4 && MetData.SoilMoisture[4].HasValue)
+				Data.Append($"&soilmoisture4={MetData.SoilMoisture[4]}");
 
 			if (SendLeafWetness1 && station.LeafWetness[1].HasValue)
 				Data.Append($"&leafwetness={station.LeafWetness[1]:cumulus.LeafWetFormat}");
@@ -266,8 +266,8 @@ namespace CumulusMX.ThirdParty
 					case (int) Cumulus.PrimaryAqSensor.Sensor4:
 						{
 							var idx = cumulus.StationOptions.PrimaryAqSensor;
-							if (station.AirQuality[idx].HasValue)
-								Data.Append($"&AqPM2.5={station.AirQuality[idx].Value.ToString("F1", invC)}");
+							if (MetData.AirQuality[idx].HasValue)
+								Data.Append($"&AqPM2.5={MetData.AirQuality[idx].Value.ToString("F1", invC)}");
 							if (station.AirQuality10[idx].HasValue)
 								Data.Append($"&AqPM10={station.AirQuality10[idx].Value.ToString("F1", invC)}");
 							break;

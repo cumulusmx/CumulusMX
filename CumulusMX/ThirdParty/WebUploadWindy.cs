@@ -213,7 +213,7 @@ namespace CumulusMX.ThirdParty
 			if (SendSolar && MetData.SolarRad.HasValue)
 				URL.Append("&solarradiation=" + MetData.SolarRad);
 
-			URL.Append("&precip=" + WeatherStation.RainMMstr(station.RainLastHour));
+			URL.Append("&precip=" + WeatherStation.RainMMstr(MetData.RainLastHour));
 
 			if (MetData.Temperature > Cumulus.DefaultHiVal)
 				URL.Append("&temp=" + WeatherStation.TempCstr(MetData.Temperature));

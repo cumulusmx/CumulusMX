@@ -59,7 +59,7 @@ namespace CumulusMX.ThirdParty
 					if (MetData.Temperature > Cumulus.DefaultHiVal)
 						message.Append($"t{APRStemp(MetData.Temperature)}");
 					// rain last hour 0.01 inches rnnn
-					message.Append($"r{APRSrain(station.RainLastHour)}");
+					message.Append($"r{APRSrain(MetData.RainLastHour)}");
 					// rain last 24 hours 0.01 inches pnnn
 					message.Append($"p{APRSrain(station.RainLast24Hour)}");
 					message.Append('P');
