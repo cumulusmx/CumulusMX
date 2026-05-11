@@ -5377,7 +5377,7 @@ namespace CumulusMX
 
 		private string GetAirQuality10Idx(int index, Dictionary<string, string> tagParams)
 		{
-			return station.AirQuality10Idx[index].HasValue ? CheckRcDp(station.AirQualityIdx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
+			return station.AirQuality10Idx[index].HasValue ? CheckRcDp(station.AirQuality10Idx[index].Value, tagParams, cumulus.AirQualityDPlaces) : tagParams.Get("nv") ?? "-";
 		}
 
 		private string TagAirQuality10AvgIdx1(Dictionary<string, string> tagParams)
