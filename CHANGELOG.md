@@ -31,6 +31,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 - Add new web tags for BGT/WBGT all-time record set<br>
 `<#HighBgtRecordSet> <#HighWbgtRecordSet>`
 - Fix web tags `<#SoilEc6>` and `<#SoilEc15>` returning soil moisture values
+- Ecowitt Soil EC values not being read from SD card files during catch-up
 - Fix web tags `<#AirQuality10Idx[1-4]`> returning the PM2.5 Index
 
 ---
