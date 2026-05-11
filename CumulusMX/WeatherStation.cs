@@ -359,6 +359,9 @@ namespace CumulusMX
 			WindRecent = new TWindRecent[MaxWindRecent];
 			WindVec = new TWindVec[MaxWindRecent];
 
+			// set some hi/lo descriptions
+			AllTimeRec.Captions = cumulus.Trans.HiLoCaptions;
+
 			// Open database (create file if it doesn't exist)
 			var flags = SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite;
 
@@ -13563,7 +13566,7 @@ namespace CumulusMX
 			var closeStr = "\"],";
 			var tempUnitStr = "&nbsp;&deg;" + cumulus.Units.TempText[1].ToString() + sepStr;
 
-			json.Append("[\"High Temperature\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiTemp"]}\",\"");
 			json.Append(HiLoToday.HighTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13573,7 +13576,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.HighTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append("[\"Low Temperature\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoTemp"]}\",\"");
 			json.Append(HiLoToday.LowTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13583,7 +13586,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.LowTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append("[\"Temperature Range\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["TempRange"]}\",\"");
 			json.Append((HiLoToday.HighTemp - HiLoToday.LowTemp).ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\",\"");
@@ -13591,7 +13594,7 @@ namespace CumulusMX
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\"],");
 
-			json.Append("[\"Average Temperature\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["AvgTemp"]}\",\"");
 			json.Append((TempTotalToday / tempsamplestoday).ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append("&nbsp;\",\"");
@@ -13600,7 +13603,7 @@ namespace CumulusMX
 			json.Append("&nbsp;\"],");
 
 
-			json.Append("[\"High Apparent Temperature\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiAppTemp"]}\",\"");
 			json.Append(HiLoToday.HighAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13610,7 +13613,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.HighAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append("[\"Low Apparent Temperature\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoAppTemp"]}\",\"");
 			json.Append(HiLoToday.LowAppTemp.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13620,7 +13623,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.LowAppTempTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append("[\"High Feels Like\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiFeelsLike"]}\",\"");
 			json.Append(HiLoToday.HighFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13630,7 +13633,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.HighFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append("[\"Low Feels Like\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoFeelsLike"]}\",\"");
 			json.Append(HiLoToday.LowFeelsLike.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13640,7 +13643,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.LowFeelsLikeTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append("[\"High Humidex\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiHumidex"]}\",\"");
 			json.Append(HiLoToday.HighHumidex.ToFixedLocal(cumulus.TempFormat));
 			json.Append("\",\"");
 			json.Append(HiLoToday.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13649,7 +13652,8 @@ namespace CumulusMX
 			json.Append("\",\"");
 			json.Append(HiLoYest.HighHumidexTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
-			json.Append("[\"High Dew Point\",\"");
+
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiDewPnt"]}\",\"");
 			json.Append(HiLoToday.HighDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13659,7 +13663,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.HighDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append("[\"Low Dew Point\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoDewPnt"]}\",\"");
 			json.Append(HiLoToday.LowDewPoint.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13669,7 +13673,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.LowDewPointTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append("[\"Low Wind Chill\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoWindChill"]}\",\"");
 			json.Append(HiLoToday.LowWindChill.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13679,7 +13683,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.LowWindChillTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append(closeStr);
 
-			json.Append("[\"High Heat Index\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiHeatInd"]}\",\"");
 			json.Append(HiLoToday.HighHeatIndex.ToFixedLocal(cumulus.TempFormat));
 			json.Append(tempUnitStr);
 			json.Append(HiLoToday.HighHeatIndexTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13699,7 +13703,7 @@ namespace CumulusMX
 			var sepStr = "\",\"";
 			var unitStr = "&nbsp;%" + sepStr;
 
-			json.Append("[\"High Humidity\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiHum"]}\",\"");
 			json.Append(HiLoToday.HighHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
 			json.Append(HiLoToday.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13709,7 +13713,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.HighHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append("[\"Low Humidity\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoHum"]}\",\"");
 			json.Append(HiLoToday.LowHumidity.ToString(cumulus.HumFormat));
 			json.Append(unitStr);
 			json.Append(HiLoToday.LowHumidityTime.ToString(cumulus.ProgramOptions.TimeFormat));
@@ -13729,7 +13733,7 @@ namespace CumulusMX
 			var sepStr = "\",\"";
 			var unitStr = "&nbsp;" + cumulus.Units.RainText;
 
-			json.Append("[\"Total Rain\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["TotalRain"]}\",\"");
 			json.Append(RainToday.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
@@ -13741,7 +13745,7 @@ namespace CumulusMX
 			json.Append("&nbsp;");
 			json.Append("\"],");
 
-			json.Append("[\"High Rain Rate\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiRainRate"]}\",\"");
 			json.Append(HiLoToday.HighRainRate.ToString(cumulus.RainFormat));
 			json.Append(unitStr + "/hr");
 			json.Append(sepStr);
@@ -13753,7 +13757,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.HighRainRateTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append("[\"High Hourly Rain\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiHourlyRain"]}\",\"");
 			json.Append(HiLoToday.HighHourlyRain.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
@@ -13765,7 +13769,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.HighHourlyRainTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append("[\"High 24 Hour Rain\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["Hi24hRain"]}\",\"");
 			json.Append(HiLoToday.HighRain24h.ToString(cumulus.RainFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
@@ -13787,7 +13791,7 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 512);
 			var sepStr = "\",\"";
 
-			json.Append("[\"Highest Gust\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiGust"]}\",\"");
 			json.Append(HiLoToday.HighGust.ToString(cumulus.WindFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
@@ -13799,7 +13803,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.HighGustTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append("[\"Highest Speed\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiWindSpeed"]}\",\"");
 			json.Append(HiLoToday.HighWind.ToString(cumulus.WindAvgFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindText);
 			json.Append(sepStr);
@@ -13811,7 +13815,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.HighWindTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append("[\"Wind Run\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["WindRun"]}\",\"");
 			json.Append(WindRunToday.ToString(cumulus.WindRunFormat));
 			json.Append("&nbsp;" + cumulus.Units.WindRunText);
 			json.Append(sepStr);
@@ -13823,7 +13827,7 @@ namespace CumulusMX
 			json.Append("&nbsp;");
 			json.Append("\"],");
 
-			json.Append("[\"Dominant Direction\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["DomDir"]}\",\"");
 			json.Append(DominantWindBearing.ToString("F0"));
 			json.Append("&nbsp;&deg;&nbsp;" + CompassPoint(DominantWindBearing));
 			json.Append(sepStr);
@@ -13845,7 +13849,7 @@ namespace CumulusMX
 			var sepStr = "\",\"";
 			var unitStr = "&nbsp;" + cumulus.Units.PressText;
 
-			json.Append("[\"High Pressure\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiPress"]}\",\"");
 			json.Append(HiLoToday.HighPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
@@ -13857,7 +13861,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.HighPressTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append("[\"Low Pressure\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["LoPress"]}\",\"");
 			json.Append(HiLoToday.LowPress.ToString(cumulus.PressFormat));
 			json.Append(unitStr);
 			json.Append(sepStr);
@@ -13878,7 +13882,7 @@ namespace CumulusMX
 			var json = new StringBuilder("{\"data\":[", 512);
 			var sepStr = "\",\"";
 
-			json.Append("[\"High Solar Radiation\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiSolar"]}\",\"");
 			json.Append(HiLoToday.HighSolar.ToString("F0"));
 			json.Append("&nbsp;W/m<sup>2</sup>");
 			json.Append(sepStr);
@@ -13890,7 +13894,7 @@ namespace CumulusMX
 			json.Append(HiLoYest.HighSolarTime.ToString(cumulus.ProgramOptions.TimeFormat));
 			json.Append("\"],");
 
-			json.Append("[\"Hours of Sunshine\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HrsSunshine"]}\",\"");
 			json.Append(SunshineHours.ToString(cumulus.SunFormat));
 			json.Append("&nbsp;hrs");
 			json.Append(sepStr);
@@ -13902,7 +13906,7 @@ namespace CumulusMX
 			json.Append("&nbsp;");
 			json.Append("\"],");
 
-			json.Append("[\"High UV-Index\",\"");
+			json.Append($"[\"{cumulus.Trans.HiLoCaptions["HiUV"]}\",\"");
 			json.Append(HiLoToday.HighUv.ToString("F1"));
 			json.Append("&nbsp;");
 			json.Append(sepStr);
@@ -16988,50 +16992,45 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 			}
 		}
 
-		public AllTimeRec HighTemp { get; set; } = new AllTimeRec(0);
-		public AllTimeRec LowTemp { get; set; } = new AllTimeRec(1);
-		public AllTimeRec HighGust { get; set; } = new AllTimeRec(2);
-		public AllTimeRec HighWind { get; set; } = new AllTimeRec(3);
-		public AllTimeRec LowChill { get; set; } = new AllTimeRec(4);
-		public AllTimeRec HighRainRate { get; set; } = new AllTimeRec(5);
-		public AllTimeRec DailyRain { get; set; } = new AllTimeRec(6);
-		public AllTimeRec HourlyRain { get; set; } = new AllTimeRec(7);
-		public AllTimeRec LowPress { get; set; } = new AllTimeRec(8);
-		public AllTimeRec HighPress { get; set; } = new AllTimeRec(9);
-		public AllTimeRec MonthlyRain { get; set; } = new AllTimeRec(10);
-		public AllTimeRec HighMinTemp { get; set; } = new AllTimeRec(11);
-		public AllTimeRec LowMaxTemp { get; set; } = new AllTimeRec(12);
-		public AllTimeRec HighHumidity { get; set; } = new AllTimeRec(13);
-		public AllTimeRec LowHumidity { get; set; } = new AllTimeRec(14);
-		public AllTimeRec HighAppTemp { get; set; } = new AllTimeRec(15);
-		public AllTimeRec LowAppTemp { get; set; } = new AllTimeRec(16);
-		public AllTimeRec HighHeatIndex { get; set; } = new AllTimeRec(17);
-		public AllTimeRec HighDewPoint { get; set; } = new AllTimeRec(18);
-		public AllTimeRec LowDewPoint { get; set; } = new AllTimeRec(19);
-		public AllTimeRec HighWindRun { get; set; } = new AllTimeRec(20);
-		public AllTimeRec LongestDryPeriod { get; set; } = new AllTimeRec(21);
-		public AllTimeRec LongestWetPeriod { get; set; } = new AllTimeRec(22);
-		public AllTimeRec HighDailyTempRange { get; set; } = new AllTimeRec(23);
-		public AllTimeRec LowDailyTempRange { get; set; } = new AllTimeRec(24);
-		public AllTimeRec HighFeelsLike { get; set; } = new AllTimeRec(25);
-		public AllTimeRec LowFeelsLike { get; set; } = new AllTimeRec(26);
-		public AllTimeRec HighHumidex { get; set; } = new AllTimeRec(27);
-		public AllTimeRec HighRain24Hours { get; set; } = new AllTimeRec(28);
-		public AllTimeRec HighBgt { get; set; } = new AllTimeRec(29);
-		public AllTimeRec HighWbgt { get; set; } = new AllTimeRec(30);
+		public AllTimeRec HighTemp { get; set; } = new AllTimeRec("HiTemp");
+		public AllTimeRec LowTemp { get; set; } = new AllTimeRec("LoTemp");
+		public AllTimeRec HighGust { get; set; } = new AllTimeRec("HiGust");
+		public AllTimeRec HighWind { get; set; } = new AllTimeRec("HiWindSpeed");
+		public AllTimeRec LowChill { get; set; } = new AllTimeRec("LoWindChill");
+		public AllTimeRec HighRainRate { get; set; } = new AllTimeRec("HiRainRate");
+		public AllTimeRec DailyRain { get; set; } = new AllTimeRec("HiDailyRain");
+		public AllTimeRec HourlyRain { get; set; } = new AllTimeRec("HiHourlyRain");
+		public AllTimeRec LowPress { get; set; } = new AllTimeRec("LoPress");
+		public AllTimeRec HighPress { get; set; } = new AllTimeRec("HiPress");
+		public AllTimeRec MonthlyRain { get; set; } = new AllTimeRec("HiMonthRain");
+		public AllTimeRec HighMinTemp { get; set; } = new AllTimeRec("HiMinTemp");
+		public AllTimeRec LowMaxTemp { get; set; } = new AllTimeRec("LoMaxTemp");
+		public AllTimeRec HighHumidity { get; set; } = new AllTimeRec("HiHum");
+		public AllTimeRec LowHumidity { get; set; } = new AllTimeRec("LoHum");
+		public AllTimeRec HighAppTemp { get; set; } = new AllTimeRec("HiAppTemp");
+		public AllTimeRec LowAppTemp { get; set; } = new AllTimeRec("LoAppTemp");
+		public AllTimeRec HighHeatIndex { get; set; } = new AllTimeRec("HiHeatInd");
+		public AllTimeRec HighDewPoint { get; set; } = new AllTimeRec("HiDewPnt");
+		public AllTimeRec LowDewPoint { get; set; } = new AllTimeRec("LoDewPnt");
+		public AllTimeRec HighWindRun { get; set; } = new AllTimeRec("HiWindDailyRun");
+		public AllTimeRec LongestDryPeriod { get; set; } = new AllTimeRec("LongDryPeriod");
+		public AllTimeRec LongestWetPeriod { get; set; } = new AllTimeRec("LongWetPeriod");
+		public AllTimeRec HighDailyTempRange { get; set; } = new AllTimeRec("HiTempRange");
+		public AllTimeRec LowDailyTempRange { get; set; } = new AllTimeRec("LoTempRange");
+		public AllTimeRec HighFeelsLike { get; set; } = new AllTimeRec("HiFeelsLike");
+		public AllTimeRec LowFeelsLike { get; set; } = new AllTimeRec("LoFeelsLike");
+		public AllTimeRec HighHumidex { get; set; } = new AllTimeRec("HiHumidex");
+		public AllTimeRec HighRain24Hours { get; set; } = new AllTimeRec("Hi24hRain");
+		public AllTimeRec HighBgt { get; set; } = new AllTimeRec("HiBGT");
+		public AllTimeRec HighWbgt { get; set; } = new AllTimeRec("HiWBGT");
 	}
 
-	public class AllTimeRec(int index)
+	public class AllTimeRec(string keyStr)
 	{
-		private static readonly string[] alltimedescs =
-		[
-			"High temperature", "Low temperature", "High gust", "High wind speed", "Low wind chill", "High rain rate", "High daily rain",
-			"High hourly rain", "Low pressure", "High pressure", "Highest monthly rainfall", "Highest minimum temp", "Lowest maximum temp",
-			"High humidity", "Low humidity", "High apparent temp", "Low apparent temp", "High heat index", "High dew point", "Low dew point",
-			"High daily windrun", "Longest dry period", "Longest wet period", "High daily temp range", "Low daily temp range",
-			"High feels like", "Low feels like", "High Humidex", "High 24 hour rain", "High BGT", "High WBGT"
-		];
-		private readonly int idx = index;
+		private readonly string key = keyStr;
+
+		// store {shortname, fulltext]} for each entry
+		public static Dictionary<string, string> Captions { get; set; }
 
 		public double Val { get; set; }
 		public DateTime Ts { get; set; }
@@ -17039,7 +17038,7 @@ ORDER BY rd.date ASC;", earliest[0].Date.ToString("yyyy-MM-dd"));
 		{
 			get
 			{
-				return alltimedescs[idx];
+				return Captions[key];
 			}
 		}
 

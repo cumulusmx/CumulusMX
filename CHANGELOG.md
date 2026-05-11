@@ -14,7 +14,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 
 ### New
 
-- Nothing
+- Add Locale Strings for the dashboard Today/Yesterday & Records pages
 
 ### Changed
 

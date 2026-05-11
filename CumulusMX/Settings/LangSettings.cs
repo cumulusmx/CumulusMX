@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -180,6 +181,18 @@ namespace CumulusMX.Settings
 				snow24h = cumulus.Trans.Snow24h
 			};
 
+			var highLowList = new List<HighLow>();
+			foreach (var key in cumulus.Trans.HiLoCaptions.Keys)
+			{
+				var rec = new HighLow()
+				{
+					key = key,
+					caption = cumulus.Trans.HiLoCaptions[key]
+				};
+
+				highLowList.Add(rec);
+			}
+
 			var settings = new Settings()
 			{
 				accessible = cumulus.ProgramOptions.EnableAccessibility,
@@ -203,7 +216,8 @@ namespace CumulusMX.Settings
 				alarms = alarmSettings,
 				webtags = webtags,
 				snow = snow,
-				laser = cumulus.Trans.LaserCaptions
+				laser = cumulus.Trans.LaserCaptions,
+				highlow = highLowList.ToArray()
 			};
 
 			return JsonSerializer.Serialize(settings);
@@ -530,6 +544,25 @@ namespace CumulusMX.Settings
 					context.Response.StatusCode = 500;
 				}
 
+				// high/low captions
+				try
+				{
+					for (var i = 0; i < settings.highlow.Length; i++)
+					{
+						var rec = settings.highlow[i];
+						cumulus.Trans.HiLoCaptions[rec.key] = rec.caption;
+					}
+
+					AllTimeRec.Captions = cumulus.Trans.HiLoCaptions;
+				}
+				catch (Exception ex)
+				{
+					var msg = "Error processing High/Low caption settings: " + ex.Message;
+					cumulus.LogErrorMessage(msg);
+					errorMsg += msg + "\n\n";
+					context.Response.StatusCode = 500;
+				}
+
 
 				// Save the settings
 				cumulus.WriteStringsFile();
@@ -682,6 +715,12 @@ namespace CumulusMX.Settings
 			public string snow24h { get; set; }
 		}
 
+		private sealed class HighLow
+		{
+			public string key { get; set; }
+			public string caption { get; set; }
+		}
+
 		private sealed class Settings
 		{
 			public bool accessible { get; set; }
@@ -706,6 +745,8 @@ namespace CumulusMX.Settings
 			public WebTags webtags { get; set; }
 			public Snow snow { get; set; }
 			public string[] laser { get; set; }
+			public HighLow[] highlow { get; set; }
+
 		}
 	}
 }
