@@ -182,12 +182,12 @@ namespace CumulusMX.Settings
 			};
 
 			var highLowList = new List<HighLow>();
-			foreach (var key in cumulus.Trans.HiLoCaptions.Keys)
+			foreach (var key in cumulus.Trans.DataCaptions.Keys)
 			{
 				var rec = new HighLow()
 				{
 					key = key,
-					caption = cumulus.Trans.HiLoCaptions[key]
+					caption = cumulus.Trans.DataCaptions[key]
 				};
 
 				highLowList.Add(rec);
@@ -550,10 +550,10 @@ namespace CumulusMX.Settings
 					for (var i = 0; i < settings.highlow.Length; i++)
 					{
 						var rec = settings.highlow[i];
-						cumulus.Trans.HiLoCaptions[rec.key] = rec.caption;
+						cumulus.Trans.DataCaptions[rec.key] = rec.caption;
 					}
 
-					AllTimeRec.Captions = cumulus.Trans.HiLoCaptions;
+					AllTimeRec.Captions = cumulus.Trans.DataCaptions;
 				}
 				catch (Exception ex)
 				{

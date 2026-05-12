@@ -8031,9 +8031,9 @@ namespace CumulusMX
 			Trans.WebTagElapsedTime = ini.GetValue("WebTags", "ElapsedTime", "{0:%d} days {0:%h} hours");
 
 			// Hi/Lo Captions
-			foreach (var key in Trans.HiLoCaptions.Keys)
+			foreach (var key in Trans.DataCaptions.Keys)
 			{
-				Trans.HiLoCaptions[key] = ini.GetValue("HiLoCaptions", key, Trans.HiLoCaptions[key]);
+				Trans.DataCaptions[key] = ini.GetValue("DataCaptions", key, Trans.DataCaptions[key]);
 			}
 
 			if (!File.Exists("strings.ini"))
@@ -8257,9 +8257,9 @@ namespace CumulusMX
 			ini.SetValue("WebTags", "ElapsedTime", Trans.WebTagElapsedTime);
 
 			// Hi/Lo Captions
-			foreach (var key in Trans.HiLoCaptions.Keys)
+			foreach (var key in Trans.DataCaptions.Keys)
 			{
-				ini.SetValue("HiLoCaptions", key, Trans.HiLoCaptions[key]);
+				ini.SetValue("DataCaptions", key, Trans.DataCaptions[key]);
 			}
 
 			ini.Flush();

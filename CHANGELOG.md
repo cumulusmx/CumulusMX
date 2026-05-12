@@ -15,6 +15,7 @@ Alternatively view it [online on GitHub](https://github.com/cumulusmx/CumulusMX/
 ### New
 
 - Add Locale Strings for the dashboard Today/Yesterday & Records pages
+	- The same strings are applied to many chart data series names
 
 ### Changed
 
